@@ -22,7 +22,7 @@
             </StatusScreen>
 
             <ActionSelectionScreen>
-                <h2>Available Actions</h2>
+                <h2>Location: @GetCurrentLocation()</h2>
                 <MenuOptions>
                     @foreach (var action in CurrentActions)
                     {
@@ -38,11 +38,11 @@
             <TravelScreen>
                 <h2>Travel To</h2>
                 <MenuOptions>
-                    @foreach (var location in GetAvailableLocations())
+                    @foreach (var travelOption in CurrentTravelOptions)
                     {
-                        <MenuOption Index="location.Index"
-                                    Text="@location.Description"
-                                    OnClick="() => HandleTravel(location)" />
+                        <MenuOption Index="travelOption.Index"
+                                    Text="@travelOption.Location.ToString()"
+                                    OnClick="() => HandleTravel(travelOption.Index)" />
                     }
                     <br />
                     <BackOption OnBack="PopScreen" />

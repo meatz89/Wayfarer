@@ -1,5 +1,5 @@
 ﻿
-public class UserAction
+public class UserActionOption
 {
     public int Index { get; set; }
     public BasicActionTypes ActionType { get; set; }
@@ -9,4 +9,10 @@ public class UserAction
     {
         return $"{Index}. {Description}";
     }
+}
+
+public class TravelOption
+{
+    public int Index { get; set; }
+    public LocationNames Location { get; set; }
 }

@@ -5,7 +5,7 @@
     public Narrative CurrentNarrative { get; set; }
     public NarrativeStage CurrentNarrativeStage { get; set; }
     public List<Location> Locations { get; set; }
-    public string CurrentLocation { get; set; }
+    public LocationNames CurrentLocation { get; set; }
     public PlayerInfo PlayerInfo { get; set; }
     
     public List<PlayerAction> GetGlobalActions()
@@ -262,15 +262,25 @@
         return changes;
     }
 
-    public ActionResult TravelTo(Location location)
+    public ActionResult TravelTo(LocationNames locationName)
     {
+        Location location = FindLocation(locationName);
+
         CurrentLocation = location.Name;
         return ActionResult.Success($"Moved to {location.Name}.", new ActionResultMessages());
     }
 
-    public List<Location> GetLocations()
+    public List<LocationNames> GetConnectedLocations()
     {
-        return Locations;
+        Location location = FindLocation(CurrentLocation);
+
+        List<LocationNames> loc = location.ConnectedLocations;
+        return loc;
+    }
+
+    private Location FindLocation(LocationNames locationName)
+    {
+        return Locations.Where(x => x.Name == locationName).FirstOrDefault();
     }
 
 }

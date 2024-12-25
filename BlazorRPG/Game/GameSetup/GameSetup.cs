@@ -6,10 +6,18 @@
 
         gameState.Locations = new List<Location>
         {
-            new Location() { Index = 1, Name = "Docks", Description = "Docks" },
-            new Location() { Index = 2, Name = "Market", Description = "Market" }
+            new Location() { 
+                Name = LocationNames.Docks, 
+                Description = "Docks", 
+                ConnectedLocations = new() { LocationNames.Market } },
+            
+            new Location() { 
+                Name = LocationNames.Market, 
+                Description = "Market", 
+                ConnectedLocations = new() { LocationNames.Docks } }
         };
-        gameState.CurrentLocation = "Docks";
+
+        gameState.CurrentLocation = LocationNames.Docks;
 
         var playerInfo = new PlayerInfo();
         playerInfo.Money = 10;

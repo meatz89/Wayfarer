@@ -9,8 +9,9 @@ public partial class GameUI : ComponentBase
     [Inject] private NavigationManager NavigationManager { get; set; }
 
     private Stack<UIScreen> screenStack = new();
-    private List<UserAction> CurrentActions { get; set; } = new();
-    private UserAction CurrentUserAction { get; set; }
+    private List<TravelOption> CurrentTravelOptions { get; set; } = new();
+    private List<UserActionOption> CurrentActions { get; set; } = new();
+    private UserActionOption CurrentUserAction { get; set; }
     private ActionResult LastActionResult { get; set; }
     public List<string> ResultMessages => GetResultMessages();
 
@@ -19,7 +20,33 @@ public partial class GameUI : ComponentBase
     protected override void OnInitialized()
     {
         screenStack.Push(UIScreen.MainGame);
+
         UpdateAvailableActions();
+        UpdateTavelOptions();
+    }
+
+    private LocationNames GetCurrentLocation()
+    {
+        return GameState.CurrentLocation;
+    }
+
+    private void UpdateTavelOptions()
+    {
+        CurrentTravelOptions.Clear();
+        
+        List<LocationNames> locations = GameState.GetConnectedLocations();
+        for (int i = 0; i < locations.Count; i++) 
+        {
+            LocationNames location = locations[i];
+
+            TravelOption travel = new TravelOption()
+            {
+                Index = i + 1,
+                Location = location
+            };
+
+            CurrentTravelOptions.Add(travel);
+        }
     }
 
     private void UpdateAvailableActions()
@@ -101,7 +128,7 @@ public partial class GameUI : ComponentBase
         PushScreen(UIScreen.ActionSelection);
     }
 
-    private void HandleActionSelection(UserAction action)
+    private void HandleActionSelection(UserActionOption action)
     {
         if (action.ActionType == BasicActionTypes.GlobalStatus)
         {
@@ -141,29 +168,27 @@ public partial class GameUI : ComponentBase
         }
     }
 
-    private IEnumerable<Location> GetAvailableLocations()
+    private void HandleTravel(int locationIndex)
     {
-        return GameState.GetLocations();
-    }
+        TravelOption location = CurrentTravelOptions.FirstOrDefault(x => x.Index == locationIndex);
 
-    private void HandleTravel(Location location)
-    {
-        ActionResult result = GameState.TravelTo(location);
+        ActionResult result = GameState.TravelTo(location.Location);
         LastActionResult = result;
         if (result.IsSuccess)
         {
             PopScreen();
             UpdateAvailableActions();
+            UpdateTavelOptions();
         }
     }
 
-    private static List<UserAction> CreateUserActionsFromPlayerActions(List<PlayerAction> playerActions)
+    private static List<UserActionOption> CreateUserActionsFromPlayerActions(List<PlayerAction> playerActions)
     {
-        List<UserAction> userActions = new List<UserAction>();
+        List<UserActionOption> userActions = new List<UserActionOption>();
         int actionIndex = 1;
         foreach (PlayerAction ga in playerActions)
         {
-            UserAction ua = new UserAction
+            UserActionOption ua = new UserActionOption
             {
                 ActionType = ga.ActionType,
                 Description = ga.Description,
