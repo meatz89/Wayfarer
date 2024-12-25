@@ -14,67 +14,98 @@
         return narratives.FirstOrDefault(n => n.ActionType == actionType);
     }
 
-    public bool CanExecute(Narrative narrative, int choiceIndex)
+    public bool CanExecute(NarrativeStage narrativeStage, int choiceId)
     {
-        if (narrative == null) return false;
-
-        Choice choice = narrative.Choices.FirstOrDefault(n => n.Index == choiceIndex);
+        List<Choice> choices = narrativeStage.Choices;
+        Choice choice = choices.FirstOrDefault(c => c.Index == choiceId);
         if (choice == null) return false;
 
         foreach (IRequirement req in choice.Requirements)
         {
-            if (req is ResourceReq resourceReq)
-            {
-                int currentAmount = GetResourceAmount(resourceReq.ResourceType);
-                if (currentAmount < resourceReq.Amount) return false;
-            }
-            if (req is SkillReq skillReq)
-            {
-                // Add skill check logic when skills are implemented
-                return false;
-            }
+            bool hasRequirement = CheckRequirement(req);
+            if (!hasRequirement) return false;
         }
 
         return true;
     }
 
-    private int GetResourceAmount(ResourceTypes resourceType)
+    private bool CheckRequirement(IRequirement requirement)
     {
-        return resourceType switch
+        if(requirement is MoneyRequirement money)
         {
-            ResourceTypes.Money => gameState.PlayerInfo.Money,
-            ResourceTypes.Health => gameState.PlayerInfo.Health,
-            ResourceTypes.PhysicalEnergy => gameState.PlayerInfo.PhysicalEnergy,
-            ResourceTypes.FocusEnergy => gameState.PlayerInfo.FocusEnergy,
-            ResourceTypes.SocialEnergy => gameState.PlayerInfo.SocialEnergy,
-            _ => 0
-        };
+            return gameState.PlayerInfo.Money >= money.Amount;
+        }
+        if (requirement is HealthRequirement health)
+        {
+            return gameState.PlayerInfo.Health >= health.Amount;
+        }
+        if (requirement is PhysicalEnergyRequirement physicalEnergy)
+        {
+            return gameState.PlayerInfo.PhysicalEnergy >= physicalEnergy.Amount;
+        }
+        if (requirement is FocusEnergyRequirement focusEnergy)
+        {
+            return gameState.PlayerInfo.FocusEnergy >= focusEnergy.Amount;
+        }
+        if (requirement is SocialEnergyRequirement socialEnergy)
+        {
+            return gameState.PlayerInfo.SocialEnergy >= socialEnergy.Amount;
+        }
+        if (requirement is SkillLevelRequirement skillLevel)
+        {
+            return gameState.PlayerInfo.Skills[skillLevel.SkillType] >= skillLevel.Amount;
+        }
+        if (requirement is ItemRequirement item)
+        {
+            return false;
+        }
+        return false;
     }
 
-    public SystemActionResult ExecuteChoice(Narrative narrative, int choiceIndex)
+    public SystemActionResult ExecuteChoice(Narrative narrative, NarrativeStage narrativeStage, int choiceId)
     {
-        if (!CanExecute(narrative, choiceIndex))
-        {
-            return SystemActionResult.Failure("Cannot execute this choice");
-        }
+        if (narrative?.Stages == null || !narrative.Stages.Any())
+            return SystemActionResult.Failure("Invalid narrative state");
 
-        Choice choice = narrative.Choices.FirstOrDefault(n => n.Index == choiceIndex);
+        Choice choice = narrative.Stages[0].Choices.FirstOrDefault(c => c.Index == choiceId);
         if (choice == null)
-        {
             return SystemActionResult.Failure("Invalid choice");
-        }
 
-        ActionResultMessages changes = new();
+        if (!CanExecute(narrativeStage, choiceId))
+            return SystemActionResult.Failure("Cannot execute this choice");
 
         foreach (IOutcome outcome in choice.Outcomes)
         {
-            if (outcome is ResourceOutcome resourceOutcome)
+            if (outcome is MoneyOutcome outcomeMoney) 
             {
-                gameState.AddResourceChange(resourceOutcome);
-                changes.Resources.Add(resourceOutcome);
+                gameState.AddMoneyChange(outcomeMoney);
+            }
+            if (outcome is HealthOutcome outcomeHealth)
+            {
+                gameState.AddHealthChange(outcomeHealth);
+            }
+            if (outcome is PhysicalEnergyOutcome outcomePhysicalEnergy)
+            {
+                gameState.AddPhysicalEnergyChange(outcomePhysicalEnergy);
+            }
+            if (outcome is FocusEnergyOutcome outcomeFocusEnergy)
+            {
+                gameState.AddFocusEnergyChange(outcomeFocusEnergy);
+            }
+            if (outcome is SocialEnergyOutcome outcomeSocialEnergy)
+            {
+                gameState.AddSocialEnergyChange(outcomeSocialEnergy);
+            }
+            if (outcome is SkillLevelOutcome outcomeSkillLevel)
+            {
+                gameState.AddSkillLevelChange(outcomeSkillLevel);
+            }
+            if (outcome is ItemOutcome outcomeItem)
+            {
+                gameState.AddItemChange(outcomeItem);
             }
         }
 
-        return SystemActionResult.Success("Action completed successfully", changes);
+        return SystemActionResult.Success("Action completed successfully");
     }
 }

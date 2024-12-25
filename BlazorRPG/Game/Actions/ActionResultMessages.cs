@@ -1,5 +1,12 @@
 ﻿
+
 public class ActionResultMessages
 {
-    public List<ResourceOutcome> Resources { get; init; } = new();
+    public List<MoneyOutcome> Money { get; init; } = new();
+    public List<HealthOutcome> Health { get; init; } = new();
+    public List<PhysicalEnergyOutcome> PhysicalEnergy { get; init; } = new();
+    public List<FocusEnergyOutcome> FocusEnergy { get; init; } = new();
+    public List<SocialEnergyOutcome> SocialEnergy { get; init; } = new();
+    public List<SkillLevelOutcome> SkillLevel { get; init; } = new();
+    public List<ItemOutcome> Item { get; init; } = new();
 }

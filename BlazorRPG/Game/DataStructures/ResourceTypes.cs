@@ -6,4 +6,6 @@
     PhysicalEnergy,
     FocusEnergy,
     SocialEnergy,
+    SkillExperience,
+    ItemChange
 }

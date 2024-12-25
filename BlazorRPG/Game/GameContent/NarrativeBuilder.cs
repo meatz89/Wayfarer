@@ -2,8 +2,7 @@
 public class NarrativeBuilder
 {
     private BasicActionTypes actionType;
-    private string situationDescription;
-    private List<Choice> choices = new();
+    private List<NarrativeStage> stages = new();
 
     public NarrativeBuilder ForAction(BasicActionTypes actionType)
     {
@@ -11,17 +10,11 @@ public class NarrativeBuilder
         return this;
     }
 
-    public NarrativeBuilder WithSituation(string description)
+    public NarrativeBuilder AddStage(Action<NarrativeStageBuilder> buildStage)
     {
-        this.situationDescription = description;
-        return this;
-    }
-
-    public NarrativeBuilder AddChoice(Action<ChoiceBuilder> buildChoice)
-    {
-        ChoiceBuilder builder = new ChoiceBuilder();
-        buildChoice(builder);
-        choices.Add(builder.Build());
+        NarrativeStageBuilder builder = new NarrativeStageBuilder();
+        buildStage(builder);
+        stages.Add(builder.Build());
         return this;
     }
 
@@ -30,8 +23,7 @@ public class NarrativeBuilder
         return new Narrative
         {
             ActionType = actionType,
-            SituationDescription = situationDescription,
-            Choices = choices
+            Stages = stages
         };
     }
 }

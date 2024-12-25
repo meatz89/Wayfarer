@@ -3,6 +3,7 @@
     MainGame,        // Regular gameplay screen with actions
     ActionSelection, // Choose next player action
     ActionNarrative, // Chosen Action Narrative
+    ActionResult,    // Chosen Action Result
     Status,          // Status overview
     Skills,          // Detailed skills page
     Relationships,   // Relationship details and standings

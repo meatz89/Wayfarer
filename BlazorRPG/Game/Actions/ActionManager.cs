@@ -17,15 +17,15 @@
         return true;
     }
 
-    public bool CanExecuteChoice(Narrative currentNarrative, int choice)
+    public bool CanExecuteChoice(NarrativeStage currentNarrativeStage, int choice)
     {
-        bool result = NarrativeSystem.CanExecute(currentNarrative, choice);
+        bool result = NarrativeSystem.CanExecute(currentNarrativeStage, choice);
         return result;
     }
 
-    public ActionResult MakeChoiceForNarrative(Narrative currentNarrative, int choice)
+    public ActionResult MakeChoiceForNarrative(Narrative currentNarrative, NarrativeStage narrativeStage, int choice)
     {
-        SystemActionResult result = NarrativeSystem.ExecuteChoice(currentNarrative, choice);
+        SystemActionResult result = NarrativeSystem.ExecuteChoice(currentNarrative, narrativeStage, choice);
         if (!result.IsSuccess)
         {
             return ActionResult.Failure(result.Message);
@@ -34,7 +34,7 @@
         gameState.ApplyAllChanges();
         ActionResultMessages allMessages = gameState.GetAndClearChanges();
 
-        return ActionResult.Success("It worked!", allMessages);
+        return ActionResult.Success("Action success!", allMessages);
     }
 }
 

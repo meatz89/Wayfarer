@@ -7,7 +7,7 @@
             <MainGameScreen>
                 <h2>Main Menu</h2>
                 <MenuOptions>
-                    <MenuOption Index="1" Text="New Game" OnClick="HandleNewGame" />
+                    <MenuOption Index="1" Text="New Game" OnClick="ToActionSelection" />
                     <BackOption Text="Exit Game" OnBack="ExitGame" />
                 </MenuOptions>
             </MainGameScreen>
@@ -16,6 +16,7 @@
                 <h2>Current Status</h2>
                 <StatusInfo GameState="GameState" />
                 <MenuOptions>
+                    <br />
                     <BackOption OnBack="PopScreen" />
                 </MenuOptions>
             </StatusScreen>
@@ -29,6 +30,7 @@
                                     Text="@action.Description"
                                     OnClick="() => HandleActionSelection(action)" />
                     }
+                    <br />
                     <BackOption OnBack="PopScreen" />
                 </MenuOptions>
             </ActionSelectionScreen>
@@ -42,6 +44,7 @@
                                     Text="@location.Description"
                                     OnClick="() => HandleTravel(location)" />
                     }
+                    <br />
                     <BackOption OnBack="PopScreen" />
                 </MenuOptions>
             </TravelScreen>
@@ -49,21 +52,45 @@
             <NarrativeScreen>
                 @if (GameState.CurrentNarrative != null)
                 {
-                    <h2>Current Situation</h2>
-                    <p class="narrative-text">@GameState.CurrentNarrative.SituationDescription</p>
-                    <MenuOptions>
-                        @foreach (var choice in GameState.CurrentNarrative.Choices)
-                        {
-                            var canExecute = ActionManager.CanExecuteChoice(GameState.CurrentNarrative, choice.Index);
-                            <MenuOption Index="choice.Index"
-                                        Text="@choice.Description"
-                                        IsDisabled="!canExecute"
-                                        OnClick="() => HandleNarrativeChoice(choice.Index)" />
-                        }
-                        <BackOption OnBack="PopScreen" />
-                    </MenuOptions>
+                    @if (GameState.CurrentNarrativeStage != null)
+                    {
+                        <h2>Current Situation</h2>
+                        <p class="narrative-text">@GameState.CurrentNarrativeStage.Situation</p>
+                        <MenuOptions>
+                            @foreach (var choice in GameState.CurrentNarrativeStage.Choices)
+                            {
+                                var canExecute = ActionManager.CanExecuteChoice(GameState.CurrentNarrativeStage, choice.Index);
+                                <MenuOption Index="choice.Index"
+                                            Text="@choice.Description"
+                                            IsDisabled="!canExecute"
+                                            OnClick="() => HandleNarrativeChoice(choice.Index)" />
+                            }
+                            <br />
+                            <BackOption OnBack="PopScreen" />
+                        </MenuOptions>
+                    }
                 }
             </NarrativeScreen>
+
+            <ActionResultScreen>
+                <h2>Action Result</h2>
+                <MenuOptions>
+                    @if (LastActionResult != null)
+                    {
+                        <div class="@(LastActionResult.IsSuccess ? "success-message" : "error-message")">
+                            <p>@(LastActionResult.IsSuccess ? "Success" : "Failure")</p>
+                            <p>Rewards:</p>
+                            @foreach (var message in ResultMessages)
+                            {
+                                @message
+                            }
+                        </div>
+                    }
+                    <br />
+                    <MenuOption Index="1" Text="To Action Selection" OnClick="ToActionSelection" />
+                </MenuOptions>
+            </ActionResultScreen>
+
         </GameScreen>
     </CascadingValue>
 

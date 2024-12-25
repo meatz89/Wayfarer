@@ -4,9 +4,17 @@
 
 <div class="status-info">
     <p>Location: @GameState.CurrentLocation</p>
+    <br />
     <p>Health: @GameState.PlayerInfo.Health/@GameState.PlayerInfo.MaxHealth</p>
+    <p>Money: @GameState.PlayerInfo.Money</p>
+    <br />
     <p>P. Energy: @GameState.PlayerInfo.PhysicalEnergy/@GameState.PlayerInfo.MaxPhysicalEnergy</p>
     <p>F. Energy: @GameState.PlayerInfo.FocusEnergy/@GameState.PlayerInfo.MaxFocusEnergy</p>
     <p>S. Energy: @GameState.PlayerInfo.SocialEnergy/@GameState.PlayerInfo.MaxSocialEnergy</p>
-    <p>Money: @GameState.PlayerInfo.Money</p>
+    <br />
+    <p>Skills:</p>
+    @foreach (var skill in GameState.PlayerInfo.Skills)
+    {
+        <p>@skill.Key: @skill.Value</p>
+    }
 </div>

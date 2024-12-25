@@ -9,4 +9,5 @@
     public int MaxFocusEnergy { get; set; }
     public int SocialEnergy { get; set; }
     public int MaxSocialEnergy { get; set; }
+    public Dictionary<SkillTypes, int> Skills { get; set; }
 }
