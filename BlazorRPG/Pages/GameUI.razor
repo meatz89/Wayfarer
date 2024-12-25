@@ -1,0 +1,71 @@
+﻿@page "/"
+@inherits ComponentBase
+
+<div class="game-container">
+    <CascadingValue Value="CurrentScreen">
+        <GameScreen Screen="CurrentScreen">
+            <MainGameScreen>
+                <h2>Main Menu</h2>
+                <MenuOptions>
+                    <MenuOption Index="1" Text="New Game" OnClick="HandleNewGame" />
+                    <BackOption Text="Exit Game" OnBack="ExitGame" />
+                </MenuOptions>
+            </MainGameScreen>
+
+            <StatusScreen>
+                <h2>Current Status</h2>
+                <StatusInfo GameState="GameState" />
+                <MenuOptions>
+                    <BackOption OnBack="PopScreen" />
+                </MenuOptions>
+            </StatusScreen>
+
+            <ActionSelectionScreen>
+                <h2>Available Actions</h2>
+                <MenuOptions>
+                    @foreach (var action in CurrentActions)
+                    {
+                        <MenuOption Index="action.Index"
+                                    Text="@action.Description"
+                                    OnClick="() => HandleActionSelection(action)" />
+                    }
+                    <BackOption OnBack="PopScreen" />
+                </MenuOptions>
+            </ActionSelectionScreen>
+
+            <TravelScreen>
+                <h2>Travel To</h2>
+                <MenuOptions>
+                    @foreach (var location in GetAvailableLocations())
+                    {
+                        <MenuOption Index="location.Index"
+                                    Text="@location.Description"
+                                    OnClick="() => HandleTravel(location)" />
+                    }
+                    <BackOption OnBack="PopScreen" />
+                </MenuOptions>
+            </TravelScreen>
+
+            <NarrativeScreen>
+                @if (GameState.CurrentNarrative != null)
+                {
+                    <h2>Current Situation</h2>
+                    <p class="narrative-text">@GameState.CurrentNarrative.SituationDescription</p>
+                    <MenuOptions>
+                        @foreach (var choice in GameState.CurrentNarrative.Choices)
+                        {
+                            var canExecute = ActionManager.CanExecuteChoice(GameState.CurrentNarrative, choice.Index);
+                            <MenuOption Index="choice.Index"
+                                        Text="@choice.Description"
+                                        IsDisabled="!canExecute"
+                                        OnClick="() => HandleNarrativeChoice(choice.Index)" />
+                        }
+                        <BackOption OnBack="PopScreen" />
+                    </MenuOptions>
+                }
+            </NarrativeScreen>
+        </GameScreen>
+    </CascadingValue>
+
+    <ActionResultMessage Result="LastActionResult" />
+</div>

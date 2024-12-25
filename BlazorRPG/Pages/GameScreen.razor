@@ -1,0 +1,22 @@
+﻿@code {
+    [Parameter] public UIScreen Screen { get; set; }
+    [Parameter] public RenderFragment MainGameScreen { get; set; }
+    [Parameter] public RenderFragment StatusScreen { get; set; }
+    [Parameter] public RenderFragment ActionSelectionScreen { get; set; }
+    [Parameter] public RenderFragment TravelScreen { get; set; }
+    [Parameter] public RenderFragment NarrativeScreen { get; set; }
+
+    private RenderFragment GetScreenContent() => Screen switch
+    {
+        UIScreen.MainGame => MainGameScreen,
+        UIScreen.Status => StatusScreen,
+        UIScreen.ActionSelection => ActionSelectionScreen,
+        UIScreen.Travel => TravelScreen,
+        UIScreen.ActionNarrative => NarrativeScreen,
+        _ => MainGameScreen
+    };
+}
+
+<div class="screen">
+    @GetScreenContent()
+</div>

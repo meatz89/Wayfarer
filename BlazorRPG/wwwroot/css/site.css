@@ -1,0 +1,66 @@
+/* wwwroot/css/site.css */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: black;
+    color: white;
+    font-family: 'Consolas', 'Courier New', monospace;
+}
+
+main {
+    height: 100%;
+}
+
+.game-container {
+    padding: 20px;
+    height: 100%;
+}
+
+h2 {
+    color: white;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    font-weight: normal;
+}
+
+.choice {
+    padding: 4px;
+    cursor: pointer;
+}
+
+    .choice:hover {
+        background-color: white;
+        color: black;
+    }
+
+    .choice.disabled {
+        color: #666;
+        cursor: not-allowed;
+    }
+
+        .choice.disabled:hover {
+            background-color: transparent;
+            color: #666;
+        }
+
+.success-message {
+    color: #00ff00;
+    margin-top: 1rem;
+}
+
+.error-message {
+    color: #ff0000;
+    margin-top: 1rem;
+}
+
+/* Remove any bootstrap styles we don't want */
+.screen {
+    margin: 0;
+    padding: 0;
+}
+
+.choices {
+    margin: 0;
+    padding: 0;
+}

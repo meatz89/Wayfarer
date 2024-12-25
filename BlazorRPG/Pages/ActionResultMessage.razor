@@ -1,0 +1,10 @@
+﻿@code {
+    [Parameter] public ActionResult Result { get; set; }
+}
+
+@if (Result != null)
+{
+        <div class="@(Result.IsSuccess ? "success-message" : "error-message")">
+        @Result.Message
+        </div>
+}
