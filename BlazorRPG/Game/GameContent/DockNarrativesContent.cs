@@ -1,4 +1,4 @@
-﻿public class DockNarratives
+﻿public class DockNarrativesContent
 {
     public static Narrative DocksInvestigation => new NarrativeBuilder()
         .ForAction(BasicActionTypes.Investigate)

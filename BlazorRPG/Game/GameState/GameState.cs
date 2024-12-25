@@ -7,42 +7,7 @@
     public List<Location> Locations { get; set; }
     public LocationNames CurrentLocation { get; set; }
     public PlayerInfo PlayerInfo { get; set; }
-    
-    public List<PlayerAction> GetGlobalActions()
-    {
-        List<PlayerAction> actions = new List<PlayerAction>();
-        actions.Add(new PlayerAction()
-        {
-            ActionType = BasicActionTypes.GlobalStatus,
-            Description = "[Player] Check Status"
-        });
-        actions.Add(new PlayerAction()
-        {
-            ActionType = BasicActionTypes.GlobalTravel,
-            Description = "[Player] Travel"
-        });
-
-        return actions;
-    }
-
-    public List<PlayerAction> GetLocationActions()
-    {
-        List<PlayerAction> actions = new List<PlayerAction>();
-        actions.Add(new PlayerAction()
-        {
-            ActionType = BasicActionTypes.Investigate,
-            Description = "[Docks] Investigate"
-        });
-
-        return actions;
-    }
-
-    public List<PlayerAction> GetCharacterActions()
-    {
-        List<PlayerAction> actions = new List<PlayerAction>();
-
-        return actions;
-    }
+    public LocationSystem LocationSystem { get; }
 
     public void SetCurrentNarrative(Narrative narrative)
     {
@@ -260,27 +225,6 @@
         outstandingChanges = new ActionResultMessages();
         processedChanges = new ActionResultMessages();
         return changes;
-    }
-
-    public ActionResult TravelTo(LocationNames locationName)
-    {
-        Location location = FindLocation(locationName);
-
-        CurrentLocation = location.Name;
-        return ActionResult.Success($"Moved to {location.Name}.", new ActionResultMessages());
-    }
-
-    public List<LocationNames> GetConnectedLocations()
-    {
-        Location location = FindLocation(CurrentLocation);
-
-        List<LocationNames> loc = location.ConnectedLocations;
-        return loc;
-    }
-
-    private Location FindLocation(LocationNames locationName)
-    {
-        return Locations.Where(x => x.Name == locationName).FirstOrDefault();
     }
 
 }

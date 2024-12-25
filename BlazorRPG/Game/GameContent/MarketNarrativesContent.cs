@@ -1,4 +1,4 @@
-﻿public class MarketNarratives
+﻿public class MarketNarrativesContent
 {
     public static Narrative MarketInvestigation => new NarrativeBuilder()
         .ForAction(BasicActionTypes.Investigate)

@@ -5,6 +5,7 @@ namespace BlazorRPG.Pages;
 public partial class GameUI : ComponentBase
 {
     [Inject] private GameState GameState { get; set; }
+    [Inject] private QueryManager QueryManager { get; set; }
     [Inject] private ActionManager ActionManager { get; set; }
     [Inject] private NavigationManager NavigationManager { get; set; }
 
@@ -27,14 +28,14 @@ public partial class GameUI : ComponentBase
 
     private LocationNames GetCurrentLocation()
     {
-        return GameState.CurrentLocation;
+        return QueryManager.GetCurrentLocation();
     }
 
     private void UpdateTavelOptions()
     {
         CurrentTravelOptions.Clear();
         
-        List<LocationNames> locations = GameState.GetConnectedLocations();
+        List<LocationNames> locations = QueryManager.GetConnectedLocations();
         for (int i = 0; i < locations.Count; i++) 
         {
             LocationNames location = locations[i];
@@ -51,9 +52,9 @@ public partial class GameUI : ComponentBase
 
     private void UpdateAvailableActions()
     {
-        List<PlayerAction> global = GameState.GetGlobalActions();
-        List<PlayerAction> location = GameState.GetLocationActions();
-        List<PlayerAction> character = GameState.GetCharacterActions();
+        List<PlayerAction> global = QueryManager.GetGlobalActions();
+        List<PlayerAction> location = QueryManager.GetLocationActions();
+        List<PlayerAction> character = QueryManager.GetCharacterActions();
 
         List<PlayerAction> playerActions = new List<PlayerAction>();
         playerActions.AddRange(global);
@@ -141,10 +142,16 @@ public partial class GameUI : ComponentBase
         else
         {
             CurrentUserAction = action;
-            bool startedNarrative = ActionManager.StartNarrativeFor(action.ActionType);
-            if (startedNarrative)
+            
+            bool hasNarrative = ActionManager.HasNarrative(action.ActionType);
+            if (hasNarrative)
             {
-                PushScreen(UIScreen.ActionNarrative);
+
+                bool startedNarrative = ActionManager.StartNarrativeFor(action.ActionType);
+                if (startedNarrative)
+                {
+                    PushScreen(UIScreen.ActionNarrative);
+                }
             }
         }
     }
@@ -172,7 +179,7 @@ public partial class GameUI : ComponentBase
     {
         TravelOption location = CurrentTravelOptions.FirstOrDefault(x => x.Index == locationIndex);
 
-        ActionResult result = GameState.TravelTo(location.Location);
+        ActionResult result = ActionManager.TravelTo(location.Location);
         LastActionResult = result;
         if (result.IsSuccess)
         {

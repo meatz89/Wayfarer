@@ -9,9 +9,20 @@
         this.NarrativeSystem = NarrativeSystem;
     }
 
+    public bool HasNarrative(BasicActionTypes actionType)
+    {
+        Narrative narrative = NarrativeSystem.GetNarrativeFor(actionType);
+        return narrative != null;
+    }
+
     public bool StartNarrativeFor(BasicActionTypes actionType)
     {
         Narrative narrative = NarrativeSystem.GetNarrativeFor(actionType);
+        if (narrative == null)
+        {
+            throw new Exception("No Narrative Found");
+        }
+
         gameState.SetCurrentNarrative(narrative);
 
         return true;
@@ -36,5 +47,19 @@
 
         return ActionResult.Success("Action success!", allMessages);
     }
+
+    public ActionResult TravelTo(LocationNames locationName)
+    {
+        Location location = FindLocation(locationName);
+
+        gameState.CurrentLocation = location.Name;
+        return ActionResult.Success($"Moved to {location.Name}.", new ActionResultMessages());
+    }
+
+    private Location FindLocation(LocationNames locationName)
+    {
+        return gameState.Locations.Where(x => x.Name == locationName).FirstOrDefault();
+    }
+
 }
 
