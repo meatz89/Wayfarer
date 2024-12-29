@@ -1,12 +1,14 @@
 ﻿public class GameState
 {
+    public PlayerInfo PlayerInfo { get; set; }
+    public PlayerInventory PlayerInventory { get; set; }
+
     private ActionResultMessages outstandingChanges = new();
     private ActionResultMessages processedChanges = new();
     public Narrative CurrentNarrative { get; set; }
     public NarrativeStage CurrentNarrativeStage { get; set; }
     public List<Location> Locations { get; set; }
     public LocationNames CurrentLocation { get; set; }
-    public PlayerInfo PlayerInfo { get; set; }
     public LocationSystem LocationSystem { get; }
 
     public void SetCurrentNarrative(Narrative narrative)
@@ -24,6 +26,11 @@
     public void AddCoinsChange(CoinsOutcome moneyOutcome)
     {
         outstandingChanges.Coins.Add(moneyOutcome);
+    }
+
+    public void AddFoodChange(FoodOutcome foodOutcome)
+    {
+        outstandingChanges.Food.Add(foodOutcome);
     }
 
     public void AddHealthChange(HealthOutcome healthOutcome)
@@ -72,6 +79,17 @@
                     processedChanges.Coins.Add(money);
                 }
                 outstandingChanges.Coins.RemoveAt(i--);
+                changeProcessed = true;
+            }
+            for (int i = 0; i < outstandingChanges.Food.Count; i++)
+            {
+                FoodOutcome food = outstandingChanges.Food[i];
+                bool neededChange = this.ModifyFood(food.Amount);
+                if (neededChange)
+                {
+                    processedChanges.Food.Add(food);
+                }
+                outstandingChanges.Food.RemoveAt(i--);
                 changeProcessed = true;
             }
             for (int i = 0; i < outstandingChanges.Health.Count; i++)
@@ -154,6 +172,17 @@
         if (newCoins != PlayerInfo.Coins)
         {
             PlayerInfo.Coins = newCoins;
+            return true;
+        }
+        return false;
+    }
+
+    private bool ModifyFood(int amount)
+    {
+        int newFood = Math.Max(0, PlayerInventory.Food + amount);
+        if (newFood != PlayerInventory.Food)
+        {
+            PlayerInventory.Food = newFood;
             return true;
         }
         return false;

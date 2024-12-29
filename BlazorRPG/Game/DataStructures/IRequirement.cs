@@ -7,6 +7,11 @@ public class CoinsRequirement : IRequirement
     public int Amount { get; set; }
 }
 
+public class FoodRequirement : IRequirement
+{
+    public int Amount { get; set; }
+}
+
 public class HealthRequirement : IRequirement
 {
     public int Amount { get; set; }

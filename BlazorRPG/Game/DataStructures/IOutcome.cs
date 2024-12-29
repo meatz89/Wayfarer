@@ -2,6 +2,11 @@
 {
 }
 
+public class FoodOutcome : IOutcome
+{
+    public int Amount { get; set; }
+}
+
 public class CoinsOutcome : IOutcome
 {
     public int Amount { get; set; }

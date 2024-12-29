@@ -1,5 +1,8 @@
 ﻿
 
+
+using Microsoft.Extensions.Hosting;
+
 public class BasicActionDefinitionBuilder
 {
     private BasicActionTypes actionType;
@@ -71,9 +74,35 @@ public class BasicActionDefinitionBuilder
 
         return this;
     }
+
+    public BasicActionDefinitionBuilder ExpendsFood(int cost)
+    {
+        requirements.Add(new FoodRequirement
+        {
+            Amount = cost
+        });
+
+        outcomes.Add(new FoodOutcome
+        {
+            Amount = -cost
+        });
+
+        return this;
+    }
+
     public BasicActionDefinitionBuilder RewardsCoins(int amount)
     {
         outcomes.Add(new CoinsOutcome
+        {
+            Amount = amount
+        });
+
+        return this;
+    }
+
+    internal BasicActionDefinitionBuilder RewardsFood(int amount)
+    {
+        outcomes.Add(new FoodOutcome
         {
             Amount = amount
         });

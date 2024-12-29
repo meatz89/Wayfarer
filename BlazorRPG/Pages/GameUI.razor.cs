@@ -76,6 +76,11 @@ public partial class GameUI : ComponentBase
             string s = $"Health changed by {health.Amount}";
             list.Add(s);
         }
+        foreach (FoodOutcome food in messages.Food)
+        {
+            string s = $"Money changed by {food.Amount}";
+            list.Add(s);
+        }
         foreach (CoinsOutcome money in messages.Coins)
         {
             string s = $"Money changed by {money.Amount}";

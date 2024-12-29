@@ -35,6 +35,10 @@
         {
             return gameState.PlayerInfo.Coins >= money.Amount;
         }
+        if (requirement is FoodRequirement food)
+        {
+            return gameState.PlayerInfo.Health >= food.Amount;
+        }
         if (requirement is HealthRequirement health)
         {
             return gameState.PlayerInfo.Health >= health.Amount;
@@ -79,6 +83,10 @@
             if (outcome is CoinsOutcome outcomeMoney)
             {
                 gameState.AddCoinsChange(outcomeMoney);
+            }
+            if (outcome is FoodOutcome outcomeFood)
+            {
+                gameState.AddFoodChange(outcomeFood);
             }
             if (outcome is HealthOutcome outcomeHealth)
             {

@@ -41,8 +41,11 @@
 
         gameState.CurrentLocation = LocationNames.Docks;
 
+        PlayerInventory playerInventory = new PlayerInventory();
+        playerInventory.Food = 1;
+
         PlayerInfo playerInfo = new PlayerInfo();
-        playerInfo.Coins = 10;
+        playerInfo.Coins = 5;
 
         playerInfo.Health = 8;
         playerInfo.MaxHealth = 10;
@@ -64,6 +67,7 @@
         playerInfo.Skills = skills;
 
         gameState.PlayerInfo = playerInfo;
+        gameState.PlayerInventory = playerInventory;
 
         return gameState;
     }

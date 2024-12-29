@@ -69,6 +69,15 @@
         return this;
     }
 
+    public ChoiceBuilder WithFoodOutcome(int amount)
+    {
+        outcomes.Add(new FoodOutcome
+        {
+            Amount = amount
+        });
+        return this;
+    }
+
     public ChoiceBuilder WithMoneyOutcome(int amount)
     {
         outcomes.Add(new CoinsOutcome
