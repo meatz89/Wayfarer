@@ -1,8 +1,8 @@
 ﻿public enum BasicActionTypes
 {
-    GlobalStatus, // View player state, active quests, relationships
-    GlobalTravel, // Move between connected, unlocked locations
-    GlobalRest,   // Restore energy, advance time
+    CheckStatus, // View player state, active quests, relationships
+    Travel, // Move between connected, unlocked locations
+    Rest,   // Restore energy, advance time
 
     // Location Actions
     Investigate,  // Discover and understand location elements

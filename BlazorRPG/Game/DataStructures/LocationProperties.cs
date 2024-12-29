@@ -6,5 +6,5 @@
     public TradeResourceTypes TradeResourceType;
     public TradeDirections TradeDirection;
     public List<TimeSlots> TimeSlots = new();
-    public BasicActionTypes PrimaryAction;
+    public BasicActionDefinition PrimaryAction;
 }

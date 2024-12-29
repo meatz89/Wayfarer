@@ -6,7 +6,7 @@
     private TradeResourceTypes tradeResourceType;
     private TradeDirections tradeDirection;
     private List<TimeSlots> timeSlots = new();
-    private BasicActionTypes primaryAction;
+    private BasicActionDefinition primaryAction;
 
     internal LocationPropertiesBuilder ForLocation(LocationNames location)
     {
@@ -61,7 +61,26 @@
 
     public LocationPropertiesBuilder AddPrimaryAction(BasicActionTypes basicActionType)
     {
-        primaryAction = basicActionType;
+        if (basicActionType == BasicActionTypes.Trade)
+        {
+            primaryAction = (tradeDirection, tradeResourceType) switch
+            {
+                (TradeDirections.Buy, TradeResourceTypes.Food) => BasicActionDefinitionContent.FoodBuyAction,
+                (TradeDirections.Sell, TradeResourceTypes.Food) => BasicActionDefinitionContent.FoodSellAction,
+                _ => throw new ArgumentException("Invalid trade configuration")
+            };
+        }
+        else
+        {
+            primaryAction = basicActionType switch
+            {
+                BasicActionTypes.Labor => BasicActionDefinitionContent.LaborAction,
+                BasicActionTypes.Discuss => BasicActionDefinitionContent.DiscussAction,
+                BasicActionTypes.Rest => BasicActionDefinitionContent.RestAction,
+                _ => throw new ArgumentException("Invalid action type")
+            };
+        }
+
         return this;
     }
 

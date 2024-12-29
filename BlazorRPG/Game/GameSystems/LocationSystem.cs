@@ -2,23 +2,23 @@
 public class LocationSystem
 {
     private readonly GameState gameState;
-    private readonly List<LocationProperties> locationProperties;
+    private readonly List<LocationProperties> allLocationProperties;
     private readonly List<BasicActionDefinition> basicActionDefinitions;
 
     public LocationSystem(GameState gameState, GameContentProvider contentProvider)
     {
         this.gameState = gameState;
-        this.locationProperties = contentProvider.GetLocationProperties();
+        this.allLocationProperties = contentProvider.GetLocationProperties();
         this.basicActionDefinitions = contentProvider.GetBasicActionDefinitions();
     }
 
     public List<BasicActionTypes> GetLocationActionsFor(LocationNames location)
     {
-        LocationProperties actionsForLocation = locationProperties.FirstOrDefault(n => n.Location == location);
+        LocationProperties actionsForLocation = allLocationProperties.FirstOrDefault(n => n.Location == location);
         if (actionsForLocation != null)
         {
             List<BasicActionTypes> actions = new();
-            actions.Add(actionsForLocation.PrimaryAction);
+            actions.Add(actionsForLocation.PrimaryAction.ActionType);
             return actions;
         }
 
@@ -27,47 +27,48 @@ public class LocationSystem
 
     public SystemActionResult ExecuteAction(LocationNames location, BasicActionTypes basicAction)
     {
-        BasicActionDefinition actionDefinition = FindBasicActionDefinition(location, basicAction);
+        LocationProperties locationProperties = allLocationProperties.FirstOrDefault(x => x.Location == location);
+        if (locationProperties == null) return SystemActionResult.Failure("Location not found");
 
-        if (actionDefinition == null) return SystemActionResult.Failure("No action definition");
-
-        foreach (IOutcome outcome in actionDefinition.Outcomes)
+        BasicActionDefinition primaryAction = locationProperties.PrimaryAction;
+        
+        foreach (IOutcome outcome in primaryAction.Outcomes)
         {
-            if (outcome is CoinsOutcome outcomeMoney)
-            {
-                gameState.AddCoinsChange(outcomeMoney);
-            }
-            if (outcome is FoodOutcome outcomeFood)
-            {
-                gameState.AddFoodChange(outcomeFood);
-            }
-            if (outcome is HealthOutcome outcomeHealth)
-            {
-                gameState.AddHealthChange(outcomeHealth);
-            }
-            if (outcome is PhysicalEnergyOutcome outcomePhysicalEnergy)
-            {
-                gameState.AddPhysicalEnergyChange(outcomePhysicalEnergy);
-            }
-            if (outcome is FocusEnergyOutcome outcomeFocusEnergy)
-            {
-                gameState.AddFocusEnergyChange(outcomeFocusEnergy);
-            }
-            if (outcome is SocialEnergyOutcome outcomeSocialEnergy)
-            {
-                gameState.AddSocialEnergyChange(outcomeSocialEnergy);
-            }
-            if (outcome is SkillLevelOutcome outcomeSkillLevel)
-            {
-                gameState.AddSkillLevelChange(outcomeSkillLevel);
-            }
-            if (outcome is ItemOutcome outcomeItem)
-            {
-                gameState.AddItemChange(outcomeItem);
-            }
+            ApplyOutcome(outcome);
         }
 
         return SystemActionResult.Success("Action completed successfully");
+    }
+
+    private void ApplyOutcome(IOutcome outcome)
+    {
+        switch (outcome)
+        {
+            case CoinsOutcome coinsOutcome:
+                gameState.AddCoinsChange(coinsOutcome);
+                break;
+            case FoodOutcome foodOutcome:
+                gameState.AddFoodChange(foodOutcome);
+                break;
+            case HealthOutcome healthOutcome:
+                gameState.AddHealthChange(healthOutcome);
+                break;
+            case PhysicalEnergyOutcome physicalEnergyOutcome:
+                gameState.AddPhysicalEnergyChange(physicalEnergyOutcome);
+                break;
+            case FocusEnergyOutcome focusEnergyOutcome:
+                gameState.AddFocusEnergyChange(focusEnergyOutcome);
+                break;
+            case SocialEnergyOutcome socialEnergyOutcome:
+                gameState.AddSocialEnergyChange(socialEnergyOutcome);
+                break;
+            case SkillLevelOutcome skillLevelOutcome:
+                gameState.AddSkillLevelChange(skillLevelOutcome);
+                break;
+            case ItemOutcome itemOutcome:
+                gameState.AddItemChange(itemOutcome);
+                break;
+        }
     }
 
     private BasicActionDefinition FindBasicActionDefinition(LocationNames location, BasicActionTypes basicAction)
@@ -118,6 +119,6 @@ public class LocationSystem
 
     private LocationProperties GetLocationProperties(LocationNames location)
     {
-        return locationProperties.FirstOrDefault(x =>  x.Location == location);
+        return allLocationProperties.FirstOrDefault(x =>  x.Location == location);
     }
 }

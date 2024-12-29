@@ -29,6 +29,8 @@
         .ForLocation(LocationNames.MarketSquare)
         .SetLocationType(LocationTypes.Commerce)
         .SetActivityType(ActivityTypes.Trade)
+        .SetTradeResourceType(TradeDirections.Buy)
+        .SetTradeResourceType(TradeResourceTypes.Food)
         .AddTimeSlot(TimeSlots.Morning)
         .AddTimeSlot(TimeSlots.Afternoon)
         .SetAccessType(AccessTypes.Open)

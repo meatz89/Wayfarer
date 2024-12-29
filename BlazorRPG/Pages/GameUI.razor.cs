@@ -138,11 +138,11 @@ public partial class GameUI : ComponentBase
 
     private void HandleActionSelection(UserActionOption action)
     {
-        if (action.ActionType == BasicActionTypes.GlobalStatus)
+        if (action.ActionType == BasicActionTypes.CheckStatus)
         {
             PushScreen(UIScreen.Status);
         }
-        else if (action.ActionType == BasicActionTypes.GlobalTravel)
+        else if (action.ActionType == BasicActionTypes.Travel)
         {
             PushScreen(UIScreen.Travel);
         }

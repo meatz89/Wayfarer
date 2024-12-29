@@ -15,12 +15,12 @@ public class QueryManager
         List<PlayerAction> actions = new List<PlayerAction>();
         actions.Add(new PlayerAction()
         {
-            ActionType = BasicActionTypes.GlobalStatus,
+            ActionType = BasicActionTypes.CheckStatus,
             Description = "[Player] Check Status"
         });
         actions.Add(new PlayerAction()
         {
-            ActionType = BasicActionTypes.GlobalTravel,
+            ActionType = BasicActionTypes.Travel,
             Description = "[Player] Travel"
         });
 
