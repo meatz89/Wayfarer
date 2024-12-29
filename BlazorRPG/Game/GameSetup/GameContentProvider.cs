@@ -14,6 +14,7 @@
         basicActionDefinitions = new List<BasicActionDefinition>
         {
             BasicActionDefinitionContent.LaborAction,
+            BasicActionDefinitionContent.TradeAction,
             BasicActionDefinitionContent.DiscussAction,
             BasicActionDefinitionContent.RestAction,
         };

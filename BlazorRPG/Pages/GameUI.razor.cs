@@ -78,7 +78,7 @@ public partial class GameUI : ComponentBase
         }
         foreach (FoodOutcome food in messages.Food)
         {
-            string s = $"Money changed by {food.Amount}";
+            string s = $"Food changed by {food.Amount}";
             list.Add(s);
         }
         foreach (CoinsOutcome money in messages.Coins)

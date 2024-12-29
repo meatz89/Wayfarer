@@ -28,11 +28,17 @@
     {
         BasicActionDefinition actionDefinition = basicActionDefinitions.FirstOrDefault(x => x.ActionType == basicAction);
 
+        if (actionDefinition == null) return SystemActionResult.Failure("No action definition");
+
         foreach (IOutcome outcome in actionDefinition.Outcomes)
         {
             if (outcome is CoinsOutcome outcomeMoney)
             {
                 gameState.AddCoinsChange(outcomeMoney);
+            }
+            if (outcome is FoodOutcome outcomeFood)
+            {
+                gameState.AddFoodChange(outcomeFood);
             }
             if (outcome is HealthOutcome outcomeHealth)
             {
