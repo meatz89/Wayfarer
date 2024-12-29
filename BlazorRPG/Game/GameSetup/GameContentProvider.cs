@@ -1,5 +1,6 @@
 ﻿public class GameContentProvider
 {
+    private List<BasicActionDefinition> basicActionDefinitions;
     private List<LocationProperties> locationProperties;
     private List<Narrative> narratives;
 
@@ -10,6 +11,11 @@
 
     private void InitializeContent()
     {
+        basicActionDefinitions = new List<BasicActionDefinition>
+        {
+            BasicActionDefinitionContent.LaborAction
+        };
+
         locationProperties = new List<LocationProperties>
         {
             LocationPropertiesContent.Docks,
@@ -22,6 +28,11 @@
             DockNarrativesContent.DocksInvestigation,
             MarketNarrativesContent.MarketInvestigation
         };
+    }
+
+    public List<BasicActionDefinition> GetBasicActionDefinitions()
+    {
+        return basicActionDefinitions;
     }
 
     public List<LocationProperties> GetLocationProperties()

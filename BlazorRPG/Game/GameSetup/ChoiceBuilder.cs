@@ -21,12 +21,12 @@
     {
         requirements.Add(new PhysicalEnergyRequirement
         {
-            Amount = amount
+            Amount = -amount
         });
 
         outcomes.Add(new PhysicalEnergyOutcome
         {
-            Amount = amount
+            Amount = -amount
         });
         return this;
     }
@@ -35,12 +35,12 @@
     {
         requirements.Add(new FocusEnergyRequirement
         {
-            Amount = amount
+            Amount = -amount
         });
 
         outcomes.Add(new FocusEnergyOutcome
         {
-            Amount = amount
+            Amount = -amount
         });
         return this;
     }
@@ -49,12 +49,12 @@
     {
         requirements.Add(new SocialEnergyRequirement
         {
-            Amount = amount
+            Amount = -amount
         });
 
         outcomes.Add(new SocialEnergyOutcome
         {
-            Amount = amount
+            Amount = -amount
         });
         return this;
     }
@@ -71,7 +71,7 @@
 
     public ChoiceBuilder WithMoneyOutcome(int amount)
     {
-        outcomes.Add(new MoneyOutcome
+        outcomes.Add(new CoinsOutcome
         {
             Amount = amount
         });

@@ -4,7 +4,7 @@
     [Parameter] public RenderFragment StatusScreen { get; set; }
     [Parameter] public RenderFragment ActionSelectionScreen { get; set; }
     [Parameter] public RenderFragment TravelScreen { get; set; }
-    [Parameter] public RenderFragment NarrativeScreen { get; set; }
+    [Parameter] public RenderFragment ActionNarrativeScreen { get; set; }
     [Parameter] public RenderFragment ActionResultScreen { get; set; }
 
     private RenderFragment GetScreenContent() => Screen switch
@@ -13,7 +13,7 @@
         UIScreen.Status => StatusScreen,
         UIScreen.ActionSelection => ActionSelectionScreen,
         UIScreen.Travel => TravelScreen,
-        UIScreen.ActionNarrative => NarrativeScreen,
+        UIScreen.ActionNarrative => ActionNarrativeScreen,
         UIScreen.ActionResult => ActionResultScreen,
         _ => MainGameScreen
     };

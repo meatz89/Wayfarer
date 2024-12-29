@@ -2,17 +2,37 @@
 {
     private GameState gameState;
     public NarrativeSystem NarrativeSystem { get; private set; }
+    public LocationSystem LocationSystem { get; private set; }
 
-    public ActionManager(GameState gameState, NarrativeSystem NarrativeSystem)
+    public ActionManager(GameState gameState, NarrativeSystem narrativeSystem, LocationSystem locationSystem)
     {
         this.gameState = gameState;
-        this.NarrativeSystem = NarrativeSystem;
+        this.NarrativeSystem = narrativeSystem;
+        this.LocationSystem = locationSystem;
+    }
+
+    public ActionResult ExecuteBasicAction(LocationNames currentLocation)
+    {
+        List<BasicActionTypes> actions = LocationSystem.GetLocationActionsFor(currentLocation);
+        var action = actions.FirstOrDefault();
+
+        SystemActionResult result = LocationSystem.ExecuteAction(action);
+        if (!result.IsSuccess)
+        {
+            return ActionResult.Failure("Not Possible");
+        }
+
+        gameState.ApplyAllChanges();
+        ActionResultMessages allMessages = gameState.GetAndClearChanges();
+
+        return ActionResult.Success("Action success!", allMessages);
     }
 
     public bool HasNarrative(BasicActionTypes actionType)
     {
         Narrative narrative = NarrativeSystem.GetNarrativeFor(actionType);
-        return narrative != null;
+        bool hasNarrative = narrative != null;
+        return false;
     }
 
     public bool StartNarrativeFor(BasicActionTypes actionType)
@@ -60,6 +80,5 @@
     {
         return gameState.Locations.Where(x => x.Name == locationName).FirstOrDefault();
     }
-
 }
 

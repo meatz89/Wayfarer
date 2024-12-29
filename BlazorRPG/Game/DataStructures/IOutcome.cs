@@ -2,7 +2,7 @@
 {
 }
 
-public class MoneyOutcome : IOutcome
+public class CoinsOutcome : IOutcome
 {
     public int Amount { get; set; }
 }

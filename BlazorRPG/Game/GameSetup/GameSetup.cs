@@ -42,7 +42,7 @@
         gameState.CurrentLocation = LocationNames.Docks;
 
         PlayerInfo playerInfo = new PlayerInfo();
-        playerInfo.Money = 10;
+        playerInfo.Coins = 10;
 
         playerInfo.Health = 8;
         playerInfo.MaxHealth = 10;

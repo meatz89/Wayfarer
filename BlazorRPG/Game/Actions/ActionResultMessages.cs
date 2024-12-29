@@ -2,7 +2,7 @@
 
 public class ActionResultMessages
 {
-    public List<MoneyOutcome> Money { get; init; } = new();
+    public List<CoinsOutcome> Coins { get; init; } = new();
     public List<HealthOutcome> Health { get; init; } = new();
     public List<PhysicalEnergyOutcome> PhysicalEnergy { get; init; } = new();
     public List<FocusEnergyOutcome> FocusEnergy { get; init; } = new();

@@ -1,6 +1,6 @@
 ﻿public class PlayerInfo
 {
-    public int Money { get; set; }
+    public int Coins { get; set; }
     public int Health { get; set; }
     public int MaxHealth { get; set; }
     public int PhysicalEnergy { get; set; }

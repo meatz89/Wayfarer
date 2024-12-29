@@ -21,9 +21,9 @@
         CurrentNarrativeStage = null;
     }
 
-    public void AddMoneyChange(MoneyOutcome moneyOutcome)
+    public void AddCoinsChange(CoinsOutcome moneyOutcome)
     {
-        outstandingChanges.Money.Add(moneyOutcome);
+        outstandingChanges.Coins.Add(moneyOutcome);
     }
 
     public void AddHealthChange(HealthOutcome healthOutcome)
@@ -63,15 +63,15 @@
             bool changeProcessed = false;
 
             // Process Changes
-            for (int i = 0; i < outstandingChanges.Money.Count; i++)
+            for (int i = 0; i < outstandingChanges.Coins.Count; i++)
             {
-                MoneyOutcome money = outstandingChanges.Money[i];
-                bool neededChange = this.ModifyMoney(money.Amount);
+                CoinsOutcome money = outstandingChanges.Coins[i];
+                bool neededChange = this.ModifyCoins(money.Amount);
                 if (neededChange)
                 {
-                    processedChanges.Money.Add(money);
+                    processedChanges.Coins.Add(money);
                 }
-                outstandingChanges.Money.RemoveAt(i--);
+                outstandingChanges.Coins.RemoveAt(i--);
                 changeProcessed = true;
             }
             for (int i = 0; i < outstandingChanges.Health.Count; i++)
@@ -148,12 +148,12 @@
         }
     }
 
-    private bool ModifyMoney(int amount)
+    private bool ModifyCoins(int amount)
     {
-        int newMoney = Math.Max(0, PlayerInfo.Money + amount);
-        if (newMoney != PlayerInfo.Money)
+        int newCoins = Math.Max(0, PlayerInfo.Coins + amount);
+        if (newCoins != PlayerInfo.Coins)
         {
-            PlayerInfo.Money = newMoney;
+            PlayerInfo.Coins = newCoins;
             return true;
         }
         return false;

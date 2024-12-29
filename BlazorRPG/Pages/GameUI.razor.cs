@@ -11,6 +11,7 @@ public partial class GameUI : ComponentBase
 
     private Stack<UIScreen> screenStack = new();
     private List<TravelOption> CurrentTravelOptions { get; set; } = new();
+    private LocationNames CurrentLocation { get; set; }
     private List<UserActionOption> CurrentActions { get; set; } = new();
     private UserActionOption CurrentUserAction { get; set; }
     private ActionResult LastActionResult { get; set; }
@@ -21,6 +22,7 @@ public partial class GameUI : ComponentBase
     protected override void OnInitialized()
     {
         screenStack.Push(UIScreen.MainGame);
+        CurrentLocation = QueryManager.GetCurrentLocation();
 
         UpdateAvailableActions();
         UpdateTavelOptions();
@@ -74,7 +76,7 @@ public partial class GameUI : ComponentBase
             string s = $"Health changed by {health.Amount}";
             list.Add(s);
         }
-        foreach (MoneyOutcome money in messages.Money)
+        foreach (CoinsOutcome money in messages.Coins)
         {
             string s = $"Money changed by {money.Amount}";
             list.Add(s);
@@ -146,11 +148,24 @@ public partial class GameUI : ComponentBase
             bool hasNarrative = ActionManager.HasNarrative(action.ActionType);
             if (hasNarrative)
             {
-
                 bool startedNarrative = ActionManager.StartNarrativeFor(action.ActionType);
                 if (startedNarrative)
                 {
                     PushScreen(UIScreen.ActionNarrative);
+                }
+            }
+            else
+            {
+                ActionResult result = ActionManager.ExecuteBasicAction(CurrentLocation);
+                LastActionResult = result;
+
+                if (result.IsSuccess)
+                {
+                    CurrentUserAction = null;
+                    GameState.ClearCurrentNarrative();
+                    PopScreen();
+                    PushScreen(UIScreen.ActionResult);
+                    UpdateAvailableActions();
                 }
             }
         }
@@ -162,7 +177,6 @@ public partial class GameUI : ComponentBase
             GameState.CurrentNarrative,
             GameState.CurrentNarrativeStage,
             choiceIndex);
-
         LastActionResult = result;
 
         if (result.IsSuccess)
@@ -186,6 +200,7 @@ public partial class GameUI : ComponentBase
             PopScreen();
             UpdateAvailableActions();
             UpdateTavelOptions();
+            CurrentLocation = QueryManager.GetCurrentLocation();
         }
     }
 

@@ -33,7 +33,7 @@
     {
         if (requirement is MoneyRequirement money)
         {
-            return gameState.PlayerInfo.Money >= money.Amount;
+            return gameState.PlayerInfo.Coins >= money.Amount;
         }
         if (requirement is HealthRequirement health)
         {
@@ -76,9 +76,9 @@
 
         foreach (IOutcome outcome in choice.Outcomes)
         {
-            if (outcome is MoneyOutcome outcomeMoney)
+            if (outcome is CoinsOutcome outcomeMoney)
             {
-                gameState.AddMoneyChange(outcomeMoney);
+                gameState.AddCoinsChange(outcomeMoney);
             }
             if (outcome is HealthOutcome outcomeHealth)
             {
