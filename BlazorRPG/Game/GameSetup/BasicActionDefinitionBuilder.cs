@@ -1,8 +1,4 @@
 ﻿
-
-
-using Microsoft.Extensions.Hosting;
-
 public class BasicActionDefinitionBuilder
 {
     private BasicActionTypes actionType;

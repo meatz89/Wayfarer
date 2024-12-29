@@ -16,7 +16,7 @@
         List<BasicActionTypes> actions = LocationSystem.GetLocationActionsFor(currentLocation);
         var action = actions.FirstOrDefault();
 
-        SystemActionResult result = LocationSystem.ExecuteAction(action);
+        SystemActionResult result = LocationSystem.ExecuteAction(currentLocation, action);
         if (!result.IsSuccess)
         {
             return ActionResult.Failure("Not Possible");

@@ -14,7 +14,8 @@
         basicActionDefinitions = new List<BasicActionDefinition>
         {
             BasicActionDefinitionContent.LaborAction,
-            BasicActionDefinitionContent.TradeAction,
+            BasicActionDefinitionContent.FoodBuyAction,
+            BasicActionDefinitionContent.FoodSellAction,
             BasicActionDefinitionContent.DiscussAction,
             BasicActionDefinitionContent.RestAction,
         };

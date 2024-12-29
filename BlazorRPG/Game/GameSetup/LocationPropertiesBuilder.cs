@@ -3,6 +3,8 @@
     private LocationNames location;
     private LocationTypes locationType;
     private ActivityTypes activityType;
+    private TradeResourceTypes tradeResourceType;
+    private TradeDirections tradeDirection;
     private List<TimeSlots> timeSlots = new();
     private BasicActionTypes primaryAction;
 
@@ -21,6 +23,18 @@
     internal LocationPropertiesBuilder SetActivityType(ActivityTypes mingle)
     {
         this.activityType = activityType;
+        return this;
+    }
+
+    internal LocationPropertiesBuilder SetTradeResourceType(TradeResourceTypes tradeResourceType)
+    {
+        this.tradeResourceType = tradeResourceType;
+        return this;
+    }
+
+    internal LocationPropertiesBuilder SetTradeResourceType(TradeDirections tradeDirection)
+    {
+        this.tradeDirection = tradeDirection;
         return this;
     }
 
@@ -58,6 +72,8 @@
             Location = location,
             LocationType = locationType,
             ActivityType = activityType,
+            TradeResourceType = tradeResourceType,
+            TradeDirection = tradeDirection,
             TimeSlots = timeSlots,
             PrimaryAction = primaryAction
         };

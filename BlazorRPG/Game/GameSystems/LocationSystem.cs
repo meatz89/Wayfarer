@@ -1,4 +1,5 @@
-﻿public class LocationSystem
+﻿
+public class LocationSystem
 {
     private readonly GameState gameState;
     private readonly List<LocationProperties> locationProperties;
@@ -24,9 +25,9 @@
         return new List<BasicActionTypes>();
     }
 
-    public SystemActionResult ExecuteAction(BasicActionTypes basicAction)
+    public SystemActionResult ExecuteAction(LocationNames location, BasicActionTypes basicAction)
     {
-        BasicActionDefinition actionDefinition = basicActionDefinitions.FirstOrDefault(x => x.ActionType == basicAction);
+        BasicActionDefinition actionDefinition = FindBasicActionDefinition(location, basicAction);
 
         if (actionDefinition == null) return SystemActionResult.Failure("No action definition");
 
@@ -67,5 +68,56 @@
         }
 
         return SystemActionResult.Success("Action completed successfully");
+    }
+
+    private BasicActionDefinition FindBasicActionDefinition(LocationNames location, BasicActionTypes basicAction)
+    {
+        LocationProperties locationProperties = GetLocationProperties(location);
+        List<BasicActionDefinition> basicActionDefinition = basicActionDefinitions.Where(x => x.ActionType == basicAction).ToList();
+
+        ActivityTypes activityType = locationProperties.ActivityType;
+        LocationTypes locationType = locationProperties.LocationType;
+        TradeResourceTypes tradeResourceType = locationProperties.TradeResourceType;
+        TradeDirections tradeDirection = locationProperties.TradeDirection;
+        switch (activityType)
+        {
+            case ActivityTypes.Trade:
+
+                switch (tradeDirection)
+                {
+                    case TradeDirections.Buy:
+
+                        switch (tradeResourceType)
+                        {
+                            case TradeResourceTypes.Food:
+                                return BasicActionDefinitionContent.FoodBuyAction;
+
+                            default:
+                                return basicActionDefinition.FirstOrDefault();
+                        }
+                        break;
+
+                    case TradeDirections.Sell:
+
+                        switch (tradeResourceType)
+                        {
+                            case TradeResourceTypes.Food:
+                                return BasicActionDefinitionContent.FoodSellAction;
+
+                            default:
+                                return basicActionDefinition.FirstOrDefault();
+                        }
+                    default:
+                        return basicActionDefinition.FirstOrDefault();
+                }
+                break;
+            default:
+                return basicActionDefinition.FirstOrDefault();
+        }
+    }
+
+    private LocationProperties GetLocationProperties(LocationNames location)
+    {
+        return locationProperties.FirstOrDefault(x =>  x.Location == location);
     }
 }

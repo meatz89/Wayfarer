@@ -6,10 +6,16 @@
         .RewardsCoins(2)
         .Build();
 
-    public static BasicActionDefinition TradeAction => new BasicActionDefinitionBuilder()
+    public static BasicActionDefinition FoodBuyAction => new BasicActionDefinitionBuilder()
         .ForAction(BasicActionTypes.Trade)
         .ExpendsCoins(1)
         .RewardsFood(2)
+        .Build();
+
+    public static BasicActionDefinition FoodSellAction => new BasicActionDefinitionBuilder()
+        .ForAction(BasicActionTypes.Trade)
+        .ExpendsFood(1)
+        .RewardsCoins(1)
         .Build();
 
     public static BasicActionDefinition DiscussAction => new BasicActionDefinitionBuilder()
