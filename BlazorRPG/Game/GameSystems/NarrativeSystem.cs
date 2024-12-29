@@ -31,7 +31,7 @@
 
     private bool CheckRequirement(IRequirement requirement)
     {
-        if (requirement is MoneyRequirement money)
+        if (requirement is CoinsRequirement money)
         {
             return gameState.PlayerInfo.Coins >= money.Amount;
         }

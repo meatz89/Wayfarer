@@ -21,7 +21,7 @@
     {
         requirements.Add(new PhysicalEnergyRequirement
         {
-            Amount = -amount
+            Amount = amount
         });
 
         outcomes.Add(new PhysicalEnergyOutcome
@@ -35,7 +35,7 @@
     {
         requirements.Add(new FocusEnergyRequirement
         {
-            Amount = -amount
+            Amount = amount
         });
 
         outcomes.Add(new FocusEnergyOutcome
@@ -49,7 +49,7 @@
     {
         requirements.Add(new SocialEnergyRequirement
         {
-            Amount = -amount
+            Amount = amount
         });
 
         outcomes.Add(new SocialEnergyOutcome

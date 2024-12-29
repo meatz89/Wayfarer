@@ -1,4 +1,6 @@
-﻿public class BasicActionDefinitionBuilder
+﻿
+
+public class BasicActionDefinitionBuilder
 {
     private BasicActionTypes actionType;
     public List<IRequirement> requirements { get; set; } = new();
@@ -14,7 +16,7 @@
     {
         requirements.Add(new PhysicalEnergyRequirement
         {
-            Amount = -cost
+            Amount = cost
         });
 
         outcomes.Add(new PhysicalEnergyOutcome
@@ -25,13 +27,67 @@
         return this;
     }
 
-    public BasicActionDefinitionBuilder RewardsCoins(int coins)
+    public BasicActionDefinitionBuilder ExpendsFocusEnergy(int cost)
+    {
+        requirements.Add(new FocusEnergyRequirement
+        {
+            Amount = cost
+        });
+
+        outcomes.Add(new FocusEnergyOutcome
+        {
+            Amount = -cost
+        });
+
+        return this;
+    }
+
+    public BasicActionDefinitionBuilder ExpendsSocialEnergy(int cost)
+    {
+        requirements.Add(new SocialEnergyRequirement
+        {
+            Amount = cost
+        });
+
+        outcomes.Add(new SocialEnergyOutcome
+        {
+            Amount = -cost
+        });
+
+        return this;
+    }
+
+    public BasicActionDefinitionBuilder ExpendsCoins(int cost)
+    {
+        requirements.Add(new CoinsRequirement
+        {
+            Amount = cost
+        });
+
+        outcomes.Add(new CoinsOutcome
+        {
+            Amount = -cost
+        });
+
+        return this;
+    }
+    public BasicActionDefinitionBuilder RewardsCoins(int amount)
     {
         outcomes.Add(new CoinsOutcome
         {
-            Amount = coins
+            Amount = amount
         });
 
+        return this;
+    }
+
+    public BasicActionDefinitionBuilder RewardsTrust(int amount)
+    {
+        return this;
+    }
+
+    public BasicActionDefinitionBuilder RewardsFullRecovery()
+    {
         return this;
     }
 

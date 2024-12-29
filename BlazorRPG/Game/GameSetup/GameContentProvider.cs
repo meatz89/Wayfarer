@@ -13,13 +13,17 @@
     {
         basicActionDefinitions = new List<BasicActionDefinition>
         {
-            BasicActionDefinitionContent.LaborAction
+            BasicActionDefinitionContent.LaborAction,
+            BasicActionDefinitionContent.DiscussAction,
+            BasicActionDefinitionContent.RestAction,
         };
 
         locationProperties = new List<LocationProperties>
         {
+            LocationPropertiesContent.HarborStreets,
             LocationPropertiesContent.Docks,
-            LocationPropertiesContent.Market
+            LocationPropertiesContent.Market,
+            LocationPropertiesContent.Tavern
         };
 
         narratives = new List<Narrative>

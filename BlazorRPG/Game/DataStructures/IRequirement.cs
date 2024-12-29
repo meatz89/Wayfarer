@@ -2,7 +2,7 @@
 {
 }
 
-public class MoneyRequirement : IRequirement
+public class CoinsRequirement : IRequirement
 {
     public int Amount { get; set; }
 }
