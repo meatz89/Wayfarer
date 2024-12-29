@@ -1,6 +1,6 @@
 ﻿public class GameContentProvider
 {
-    private List<LocationActions> locationActions;
+    private List<LocationProperties> locationProperties;
     private List<Narrative> narratives;
 
     public GameContentProvider()
@@ -10,10 +10,10 @@
 
     private void InitializeContent()
     {
-        locationActions = new List<LocationActions>
+        locationProperties = new List<LocationProperties>
         {
-            LocationActionsContent.Docks,
-            LocationActionsContent.Market
+            LocationPropertiesContent.Docks,
+            LocationPropertiesContent.Market
         };
 
         narratives = new List<Narrative>
@@ -24,9 +24,9 @@
         };
     }
 
-    public List<LocationActions> GetLocationActions()
+    public List<LocationProperties> GetLocationProperties()
     {
-        return locationActions;
+        return locationProperties;
     }
 
     public List<Narrative> GetNarratives()

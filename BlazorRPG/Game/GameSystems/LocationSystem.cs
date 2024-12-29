@@ -1,18 +1,19 @@
 ﻿public class LocationSystem
 {
-    private readonly List<LocationActions> locationActions;
+    private readonly List<LocationProperties> locationProperties;
 
     public LocationSystem(GameContentProvider contentProvider)
     {
-        this.locationActions = contentProvider.GetLocationActions();
+        this.locationProperties = contentProvider.GetLocationProperties();
     }
 
     public List<BasicActionTypes> GetLocationActionsFor(LocationNames location)
     {
-        LocationActions actionsForLocation = locationActions.FirstOrDefault(n => n.Location == location);
+        LocationProperties actionsForLocation = locationProperties.FirstOrDefault(n => n.Location == location);
         if (actionsForLocation != null)
         {
-            List<BasicActionTypes> actions = actionsForLocation.Actions;
+            List<BasicActionTypes> actions = new();
+            actions.Add(actionsForLocation.PrimaryAction);
             return actions;
         }
 

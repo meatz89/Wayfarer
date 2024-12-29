@@ -9,10 +9,10 @@
             new Location() { 
                 Name = LocationNames.Docks, 
                 Description = "Docks", 
-                ConnectedLocations = new() { LocationNames.Market } },
+                ConnectedLocations = new() { LocationNames.MarketSquare } },
             
             new Location() { 
-                Name = LocationNames.Market, 
+                Name = LocationNames.MarketSquare, 
                 Description = "Market", 
                 ConnectedLocations = new() { LocationNames.Docks } }
         };
