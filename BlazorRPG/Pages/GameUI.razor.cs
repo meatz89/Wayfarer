@@ -34,9 +34,9 @@ public partial class GameUI : ComponentBase
     private void UpdateTavelOptions()
     {
         CurrentTravelOptions.Clear();
-        
+
         List<LocationNames> locations = QueryManager.GetConnectedLocations();
-        for (int i = 0; i < locations.Count; i++) 
+        for (int i = 0; i < locations.Count; i++)
         {
             LocationNames location = locations[i];
 
@@ -67,7 +67,7 @@ public partial class GameUI : ComponentBase
     public List<string> GetResultMessages()
     {
         ActionResultMessages messages = LastActionResult.Messages;
-        var list = new List<string>();
+        List<string> list = new List<string>();
 
         foreach (HealthOutcome health in messages.Health)
         {
@@ -142,7 +142,7 @@ public partial class GameUI : ComponentBase
         else
         {
             CurrentUserAction = action;
-            
+
             bool hasNarrative = ActionManager.HasNarrative(action.ActionType);
             if (hasNarrative)
             {
@@ -160,7 +160,7 @@ public partial class GameUI : ComponentBase
     {
         ActionResult result = ActionManager.MakeChoiceForNarrative(
             GameState.CurrentNarrative,
-            GameState.CurrentNarrativeStage, 
+            GameState.CurrentNarrativeStage,
             choiceIndex);
 
         LastActionResult = result;

@@ -17,6 +17,6 @@
             return actions;
         }
 
-        return null;
+        return new List<BasicActionTypes>();
     }
 }

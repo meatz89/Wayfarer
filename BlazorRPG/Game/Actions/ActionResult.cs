@@ -15,7 +15,7 @@ public sealed record SystemActionResult
 {
     public bool IsSuccess { get; init; }
     public string Message { get; init; }
-    
+
     public static SystemActionResult Success(string message) =>
         new() { IsSuccess = true, Message = message };
 

@@ -30,18 +30,20 @@ public class QueryManager
     public List<PlayerAction> GetLocationActions()
     {
         LocationNames currentLocation = gameState.CurrentLocation;
-        var locationActions = locationSystem.GetLocationActionsFor(currentLocation);
+        List<BasicActionTypes> locationActions = locationSystem.GetLocationActionsFor(currentLocation);
+
         List<PlayerAction> actions = new List<PlayerAction>();
-
-        foreach (var locationAction in locationActions)
+        if (locationActions.Count > 0)
         {
-            actions.Add(new PlayerAction()
+            foreach (BasicActionTypes locationAction in locationActions)
             {
-                ActionType = locationAction,
-                Description = $"[{currentLocation}] {locationAction}"
-            });
+                actions.Add(new PlayerAction()
+                {
+                    ActionType = locationAction,
+                    Description = $"[{currentLocation}] {locationAction}"
+                });
+            }
         }
-
         return actions;
     }
 

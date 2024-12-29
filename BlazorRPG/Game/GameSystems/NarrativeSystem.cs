@@ -31,7 +31,7 @@
 
     private bool CheckRequirement(IRequirement requirement)
     {
-        if(requirement is MoneyRequirement money)
+        if (requirement is MoneyRequirement money)
         {
             return gameState.PlayerInfo.Money >= money.Amount;
         }
@@ -76,7 +76,7 @@
 
         foreach (IOutcome outcome in choice.Outcomes)
         {
-            if (outcome is MoneyOutcome outcomeMoney) 
+            if (outcome is MoneyOutcome outcomeMoney)
             {
                 gameState.AddMoneyChange(outcomeMoney);
             }
