@@ -1,7 +1,8 @@
-﻿public enum UIScreen
+﻿public enum UIScreens
 {
     MainGame,        // Regular gameplay screen with actions
     ActionSelection, // Choose next player action
+    ActionPreview,   // Preview Action Cost and Rewards
     ActionNarrative, // Chosen Action Narrative
     ActionResult,    // Chosen Action Result
     Status,          // Status overview

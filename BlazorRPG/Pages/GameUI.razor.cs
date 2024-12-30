@@ -9,7 +9,7 @@ public partial class GameUI : ComponentBase
     [Inject] private ActionManager ActionManager { get; set; }
     [Inject] private NavigationManager NavigationManager { get; set; }
 
-    private Stack<UIScreen> screenStack = new();
+    private Stack<UIScreens> screenStack = new();
 
     private LocationNames CurrentLocation { get; set; }
     private List<UserTravelOption> CurrentTravelOptions { get; set; } = new();
@@ -19,11 +19,11 @@ public partial class GameUI : ComponentBase
     private ActionResult LastActionResult { get; set; }
     public List<string> ResultMessages => GetResultMessages();
 
-    private UIScreen CurrentScreen => screenStack.Count > 0 ? screenStack.Peek() : UIScreen.MainGame;
+    private UIScreens CurrentScreen => screenStack.Count > 0 ? screenStack.Peek() : UIScreens.MainGame;
 
     protected override void OnInitialized()
     {
-        screenStack.Push(UIScreen.MainGame);
+        screenStack.Push(UIScreens.MainGame);
         CurrentLocation = QueryManager.GetCurrentLocation();
 
         UpdateAvailableActions();
@@ -117,7 +117,7 @@ public partial class GameUI : ComponentBase
         return list;
     }
 
-    private void PushScreen(UIScreen screen)
+    private void PushScreen(UIScreens screen)
     {
         screenStack.Push(screen);
         StateHasChanged();
@@ -135,45 +135,56 @@ public partial class GameUI : ComponentBase
     private void ToActionSelection()
     {
         LastActionResult = null;
-        PushScreen(UIScreen.ActionSelection);
+        PushScreen(UIScreens.ActionSelection);
     }
 
     private void HandleActionSelection(UserActionOption action)
     {
         if (action.Action.ActionType == BasicActionTypes.CheckStatus)
         {
-            PushScreen(UIScreen.Status);
+            PushScreen(UIScreens.Status);
         }
         else if (action.Action.ActionType == BasicActionTypes.Travel)
         {
-            PushScreen(UIScreen.Travel);
+            PushScreen(UIScreens.Travel);
         }
         else
         {
             CurrentUserAction = action;
+            PushScreen(UIScreens.ActionPreview);
+        }
+    }
 
-            bool hasNarrative = ActionManager.HasNarrative(action.Action);
-            if (hasNarrative)
+    private void HandleActionConfirmation(bool confirmed)
+    {
+        if (!confirmed)
+        {
+            PopScreen();
+            return;
+        }
+
+        bool hasNarrative = ActionManager.HasNarrative(CurrentUserAction.Action);
+        if (hasNarrative)
+        {
+            bool startedNarrative = ActionManager.StartNarrativeFor(CurrentUserAction.Action);
+            if (startedNarrative)
             {
-                bool startedNarrative = ActionManager.StartNarrativeFor(action.Action);
-                if (startedNarrative)
-                {
-                    PushScreen(UIScreen.ActionNarrative);
-                }
+                PopScreen();
+                PushScreen(UIScreens.ActionNarrative);
             }
-            else
-            {
-                ActionResult result = ActionManager.ExecuteBasicAction(action.Action);
-                LastActionResult = result;
+        }
+        else
+        {
+            ActionResult result = ActionManager.ExecuteBasicAction(CurrentUserAction.Action);
+            LastActionResult = result;
 
-                if (result.IsSuccess)
-                {
-                    CurrentUserAction = null;
-                    GameState.ClearCurrentNarrative();
-                    PopScreen();
-                    PushScreen(UIScreen.ActionResult);
-                    UpdateAvailableActions();
-                }
+            if (result.IsSuccess)
+            {
+                CurrentUserAction = null;
+                GameState.ClearCurrentNarrative();
+                PopScreen();
+                PushScreen(UIScreens.ActionResult);
+                UpdateAvailableActions();
             }
         }
     }
@@ -191,7 +202,7 @@ public partial class GameUI : ComponentBase
             CurrentUserAction = null;
             GameState.ClearCurrentNarrative();
             PopScreen();
-            PushScreen(UIScreen.ActionResult);
+            PushScreen(UIScreens.ActionResult);
             UpdateAvailableActions();
         }
     }
@@ -227,6 +238,7 @@ public partial class GameUI : ComponentBase
         }
         return userActions;
     }
+
 
     private void ExitGame()
     {

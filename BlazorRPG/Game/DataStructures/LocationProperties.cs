@@ -4,6 +4,6 @@
 
     public LocationTypes LocationType;
     public ActivityTypes ActivityType;
-    public List<TimeSlots> TimeSlots = new();
-    public List<BasicActionDefinition> Actions = new();
+
+    public List<BasicAction> Actions = new();
 }

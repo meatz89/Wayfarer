@@ -1,11 +1,11 @@
-﻿public class LocationPropertiesBuilder
+﻿
+public class LocationPropertiesBuilder
 {
     private LocationNames location;
     private LocationTypes locationType;
     private ActivityTypes activityType;
 
-    private List<TimeSlots> timeSlots = new();
-    private List<BasicActionDefinition> actions = new();
+    private List<BasicAction> actions = new();
 
     internal LocationPropertiesBuilder ForLocation(LocationNames location)
     {
@@ -25,12 +25,6 @@
         return this;
     }
 
-    internal LocationPropertiesBuilder AddTimeSlot(TimeSlots timeSlot)
-    {
-        this.timeSlots.Add(timeSlot);
-        return this;
-    }
-
     internal LocationPropertiesBuilder SetAccessType(AccessTypes open)
     {
         return this;
@@ -46,38 +40,11 @@
         return this;
     }
 
-    public LocationPropertiesBuilder AddLaborAction()
+    internal LocationPropertiesBuilder AddAction(Action<BasicActionDefinitionBuilder> buildBasicAction)
     {
-        actions.Add(BasicActionDefinitionContent.LaborAction);
-
-        return this;
-    }
-
-    public LocationPropertiesBuilder AddDiscussAction()
-    {
-        actions.Add(BasicActionDefinitionContent.DiscussAction);
-
-        return this;
-    }
-
-    public LocationPropertiesBuilder AddRestAction()
-    {
-        actions.Add(BasicActionDefinitionContent.RestAction);
-
-        return this;
-    }
-
-    public LocationPropertiesBuilder AddTradeAction(TradeDirections tradeDirection, TradeResourceTypes tradeResource)
-    {
-        BasicActionDefinition tradeAction = (tradeDirection, tradeResource) switch
-        {
-            (TradeDirections.Buy, TradeResourceTypes.Food) => BasicActionDefinitionContent.FoodBuyAction,
-            (TradeDirections.Sell, TradeResourceTypes.Food) => BasicActionDefinitionContent.FoodSellAction,
-            _ => throw new ArgumentException("Invalid trade configuration")
-        };
-
-        actions.Add(tradeAction);
-
+        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder();
+        buildBasicAction(builder);
+        actions.Add(builder.Build());
         return this;
     }
 
@@ -88,7 +55,6 @@
             Location = location,
             LocationType = locationType,
             ActivityType = activityType,
-            TimeSlots = timeSlots,
             Actions = actions
         };
     }

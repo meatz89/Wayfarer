@@ -1,4 +1,4 @@
-﻿public enum TimeSlots
+﻿public enum TimeWindows
 {
     None = 0,
     Morning,

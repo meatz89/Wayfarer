@@ -11,7 +11,7 @@
         this.LocationSystem = locationSystem;
     }
 
-    public ActionResult ExecuteBasicAction(BasicActionDefinition action)
+    public ActionResult ExecuteBasicAction(BasicAction action)
     {
         var currentLocation = gameState.CurrentLocation;
 
@@ -27,7 +27,7 @@
         return ActionResult.Success("Action success!", allMessages);
     }
 
-    public SystemActionResult ExecuteAction(BasicActionDefinition basicAction)
+    public SystemActionResult ExecuteAction(BasicAction basicAction)
     {
         foreach (IOutcome outcome in basicAction.Outcomes)
         {
@@ -68,14 +68,14 @@
         }
     }
 
-    public bool HasNarrative(BasicActionDefinition action)
+    public bool HasNarrative(BasicAction action)
     {
         Narrative narrative = NarrativeSystem.GetNarrativeFor(action.ActionType);
         bool hasNarrative = narrative != null;
         return false;
     }
 
-    public bool StartNarrativeFor(BasicActionDefinition action)
+    public bool StartNarrativeFor(BasicAction action)
     {
         Narrative narrative = NarrativeSystem.GetNarrativeFor(action.ActionType);
         if (narrative == null)

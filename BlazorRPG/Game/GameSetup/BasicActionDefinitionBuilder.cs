@@ -1,13 +1,31 @@
 ﻿
+
 public class BasicActionDefinitionBuilder
 {
     private BasicActionTypes actionType;
+    private string description;
+    private List<TimeWindows> timeSlots = new();
+
     public List<IRequirement> requirements { get; set; } = new();
     public List<IOutcome> outcomes { get; set; } = new();
 
     public BasicActionDefinitionBuilder ForAction(BasicActionTypes actionType)
     {
         this.actionType = actionType;
+        return this;
+    }
+
+    public BasicActionDefinitionBuilder WithDescription(string description)
+    {
+        this.description = description;
+
+        return this;
+    }
+
+    public BasicActionDefinitionBuilder AddTimeWindow(TimeWindows timeSlot)
+    {
+        this.timeSlots.Add(timeSlot);
+
         return this;
     }
 
@@ -111,16 +129,43 @@ public class BasicActionDefinitionBuilder
         return this;
     }
 
-    public BasicActionDefinitionBuilder RewardsFullRecovery()
+    public BasicActionDefinitionBuilder RewardsPhysicalEnergy(int amount)
     {
+        outcomes.Add(new PhysicalEnergyOutcome
+        {
+            Amount = amount
+        });
+
         return this;
     }
 
-    public BasicActionDefinition Build()
+    public BasicActionDefinitionBuilder RewardsFocusEnergy(int amount)
     {
-        return new BasicActionDefinition
+        outcomes.Add(new FocusEnergyOutcome
+        {
+            Amount = amount
+        });
+
+        return this;
+    }
+
+    public BasicActionDefinitionBuilder RewardsSocialEnergy(int amount)
+    {
+        outcomes.Add(new SocialEnergyOutcome
+        {
+            Amount = amount
+        });
+
+        return this;
+    }
+
+    public BasicAction Build()
+    {
+        return new BasicAction
         {
             ActionType = actionType,
+            Description = description,
+            TimeSlots = timeSlots,
             Requirements = requirements,
             Outcomes = outcomes
         };

@@ -1,0 +1,17 @@
+﻿@inherits ActionPreviewBase
+
+<h2>Confirm Action: @CurrentAction.Description</h2>
+<p>Requirements:</p>
+@foreach (var requirement in CurrentAction.Action.Requirements)
+{
+    <p>@GetRequirementDescription(requirement)</p>
+}
+<p>Outcomes:</p>
+@foreach (var outcome in CurrentAction.Action.Outcomes)
+{
+    <p>@GetOutcomeDescription(outcome)</p>
+}
+<MenuOptions>
+    <MenuOption Index="1" Text="Confirm" OnClick="HandleConfirm" />
+    <BackOption OnBack="HandleBack" />
+</MenuOptions>
