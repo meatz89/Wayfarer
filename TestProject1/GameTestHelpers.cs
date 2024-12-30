@@ -14,6 +14,11 @@ public class GameTestHelpers
 
     public static void AdvanceToTimeWindow(ActionManager manager, TimeWindows target)
     {
+        while (manager.GameState.CurrentTimeSlot == target)
+        {
+            manager.AdvanceTime();
+        }
+
         while (manager.GameState.CurrentTimeSlot != target)
         {
             manager.AdvanceTime();

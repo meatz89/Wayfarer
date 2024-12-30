@@ -307,7 +307,9 @@
 
     private bool StartNewDay()
     {
-        bool hasShelter = true;
+        bool hasShelter = ValidUserActions
+            .Where(x => x.BasicAction.ActionType == BasicActionTypes.Rest)
+            .FirstOrDefault() != null;
 
         int food = Player.Inventory.Food;
         int foodNeeded = GameRules.DailyFoodRequirement;
@@ -321,6 +323,7 @@
         int noShelterHealthLoss = GameRules.HealthLossNoShelter;
 
         if (!hasFood) Player.Health = health - noFoodHealthLoss;
+        if (!hasShelter) Player.Health = health - noShelterHealthLoss;
 
         return Player.Health > Player.MinHealth;
     }

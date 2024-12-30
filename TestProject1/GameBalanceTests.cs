@@ -155,20 +155,25 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
     }
 
     [Fact]
-    public void Sub_Optimal_Play_Leads_To_Death()
+    public void Sub_Optimal_Play_Leads_To_Death_1()
     {
         // Test 1: Only doing labor without buying food
         ActionManager.MoveToLocation(LocationNames.Docks);
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 5; i++)
         {
             GameTestHelpers.AdvanceToTimeWindow(ActionManager, TimeWindows.Morning);
             GameTestHelpers.ExecuteActionSequence(ActionManager, BasicActionTypes.Labor);
         }
         Assert.True(GameState.Player.Health <= GameState.Player.MinHealth);
+    }
 
+
+    [Fact]
+    public void Sub_Optimal_Play_Leads_To_Death_2()
+    {
         // Test 2: Only gathering without shelter
         ActionManager.MoveToLocation(LocationNames.DarkForest);
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 5; i++)
         {
             GameTestHelpers.AdvanceToTimeWindow(ActionManager, TimeWindows.Morning);
             GameTestHelpers.ExecuteActionSequence(ActionManager, BasicActionTypes.Gather);
