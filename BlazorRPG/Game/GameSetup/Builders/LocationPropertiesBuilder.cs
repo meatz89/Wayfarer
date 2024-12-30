@@ -3,7 +3,10 @@ public class LocationPropertiesBuilder
 {
     private LocationNames location;
     private LocationTypes locationType;
-    private ActivityTypes activityType;
+    private List<ActivityTypes> activityTypes = new();
+    private AccessTypes accessType;
+    private ShelterStates shelterState;
+    private DangerLevels dangerLevel;
 
     private List<BasicAction> actions = new();
 
@@ -19,24 +22,30 @@ public class LocationPropertiesBuilder
         return this;
     }
 
-    internal LocationPropertiesBuilder SetActivityType(ActivityTypes mingle)
+    internal LocationPropertiesBuilder AddActivityType(ActivityTypes activityType)
     {
-        this.activityType = activityType;
+        this.activityTypes.Add(activityType);
         return this;
     }
 
-    internal LocationPropertiesBuilder SetAccessType(AccessTypes open)
+    internal LocationPropertiesBuilder SetAccessType(AccessTypes accessType)
     {
+        this.accessType = accessType;
+
         return this;
     }
 
-    internal LocationPropertiesBuilder SetShelterStatus(ShelterStates none)
+    internal LocationPropertiesBuilder SetShelterStatus(ShelterStates shelterState)
     {
+        this.shelterState = shelterState;
+
         return this;
     }
 
-    internal LocationPropertiesBuilder SetDangerLevel(DangerLevels safe)
+    internal LocationPropertiesBuilder SetDangerLevel(DangerLevels dangerLevel)
     {
+        this.dangerLevel = dangerLevel;
+
         return this;
     }
 
@@ -50,12 +59,22 @@ public class LocationPropertiesBuilder
 
     public LocationProperties Build()
     {
+        List<BasicAction> locActions = LocationActionsFactory.Create(
+            this.locationType,
+            this.activityTypes,
+            this.accessType,
+            this.shelterState,
+            this.dangerLevel
+        );
+
+        locActions.AddRange(actions);
+
         return new LocationProperties
         {
             Location = location,
             LocationType = locationType,
-            ActivityType = activityType,
-            Actions = actions
+            ActivityTypes = activityTypes,
+            Actions = locActions
         };
     }
 }

@@ -13,6 +13,7 @@
                     LocationNames.Docks,
                     LocationNames.MarketSquare,
                     LocationNames.LionsHeadTavern,
+                    LocationNames.DarkForest,
                 } },
 
             new Location() {
@@ -34,6 +35,13 @@
             new Location() {
                 Name = LocationNames.LionsHeadTavern,
                 Description = "Lion's Head Tavern",
+                ConnectedLocations = new() {
+                    LocationNames.HarborStreets,
+                } },
+
+            new Location() {
+                Name = LocationNames.DarkForest,
+                Description = "Dark Forest",
                 ConnectedLocations = new() {
                     LocationNames.HarborStreets,
                 } }

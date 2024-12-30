@@ -15,7 +15,8 @@
             LocationPropertiesContent.HarborStreets,
             LocationPropertiesContent.Docks,
             LocationPropertiesContent.Market,
-            LocationPropertiesContent.Tavern
+            LocationPropertiesContent.Tavern,
+            LocationPropertiesContent.Forest
         };
 
         narratives = new List<Narrative>

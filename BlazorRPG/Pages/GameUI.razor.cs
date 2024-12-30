@@ -16,7 +16,7 @@ public partial class GameUI : ComponentBase
     private List<UserTravelOption> CurrentTravelOptions { get; set; } = new();
     private List<UserActionOption> CurrentActions { get; set; } = new();
     private UserActionOption CurrentUserAction { get; set; }
-    
+
     private ActionResult LastActionResult { get; set; }
     public List<string> ResultMessages => GetResultMessages();
 
@@ -32,14 +32,18 @@ public partial class GameUI : ComponentBase
         UpdateTavelOptions();
     }
 
-    private LocationNames GetCurrentLocation()
-    {
-        return CurrentLocation;
-    }
 
-    private TimeWindows GetCurrentTime()
+    public string GetActionDescription(UserActionOption userActionOption)
     {
-        return CurrentTimeWindow;
+        string description = string.Empty;
+
+        if (userActionOption.IsDisabled)
+        {
+            description = "";
+        }
+
+        description += userActionOption.Description;
+        return description;
     }
 
     private void UpdateTavelOptions()
@@ -122,25 +126,6 @@ public partial class GameUI : ComponentBase
         }
 
         return list;
-    }
-
-    private string GetActionDescription(UserActionOption userActionOption)
-    {
-        string description = string.Empty;
-
-        if (!string.IsNullOrWhiteSpace(userActionOption.Action.Description))
-        {
-            if (userActionOption.IsDisabled)
-            {
-                description = "[Unavailable] ";
-            }
-            description += userActionOption.Action.Description;
-        }
-        else
-        {
-            description += userActionOption.Description;
-        }
-        return description;
     }
 
     private void HandleActionSelection(UserActionOption action)
@@ -280,6 +265,16 @@ public partial class GameUI : ComponentBase
     {
         LastActionResult = null;
         PushScreen(UIScreens.ActionSelection);
+    }
+
+    private LocationNames GetCurrentLocation()
+    {
+        return CurrentLocation;
+    }
+
+    private TimeWindows GetCurrentTime()
+    {
+        return CurrentTimeWindow;
     }
 
     private void ExitGame()

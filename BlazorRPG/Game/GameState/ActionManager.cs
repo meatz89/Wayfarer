@@ -13,7 +13,7 @@
 
     public ActionResult ExecuteBasicAction(BasicAction action)
     {
-        var currentLocation = gameState.CurrentLocation;
+        LocationNames currentLocation = gameState.CurrentLocation;
 
         SystemActionResult result = ExecuteAction(action);
         if (!result.IsSuccess)

@@ -14,7 +14,7 @@ public class QueryManager
     public List<PlayerAction> GetGlobalActions()
     {
         List<PlayerAction> actions = new List<PlayerAction>();
-        
+
         actions.Add(new PlayerAction()
         {
             Action = new BasicAction() { ActionType = BasicActionTypes.CheckStatus },
@@ -49,7 +49,7 @@ public class QueryManager
                 actions.Add(new PlayerAction()
                 {
                     Action = locationAction,
-                    Description = $"[{currentLocation}] {locationAction.Description}"
+                    Description = $"[{locationAction.ActionType.ToString()}] {locationAction.Description}"
                 });
             }
         }

@@ -3,5 +3,6 @@
     Docks,
     MarketSquare,
     HarborStreets,
-    LionsHeadTavern
+    LionsHeadTavern,
+    DarkForest
 }
