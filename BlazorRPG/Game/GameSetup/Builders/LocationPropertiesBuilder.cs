@@ -1,5 +1,4 @@
-﻿
-public class LocationPropertiesBuilder
+﻿public class LocationPropertiesBuilder
 {
     private LocationNames location;
     private LocationTypes locationType;
@@ -10,46 +9,46 @@ public class LocationPropertiesBuilder
 
     private List<BasicAction> actions = new();
 
-    internal LocationPropertiesBuilder ForLocation(LocationNames location)
+    public LocationPropertiesBuilder ForLocation(LocationNames location)
     {
         this.location = location;
         return this;
     }
 
-    internal LocationPropertiesBuilder SetLocationType(LocationTypes locationType)
+    public LocationPropertiesBuilder SetLocationType(LocationTypes locationType)
     {
         this.locationType = locationType;
         return this;
     }
 
-    internal LocationPropertiesBuilder AddActivityType(ActivityTypes activityType)
+    public LocationPropertiesBuilder AddActivityType(ActivityTypes activityType)
     {
         this.activityTypes.Add(activityType);
         return this;
     }
 
-    internal LocationPropertiesBuilder SetAccessType(AccessTypes accessType)
+    public LocationPropertiesBuilder SetAccessType(AccessTypes accessType)
     {
         this.accessType = accessType;
 
         return this;
     }
 
-    internal LocationPropertiesBuilder SetShelterStatus(ShelterStates shelterState)
+    public LocationPropertiesBuilder SetShelterStatus(ShelterStates shelterState)
     {
         this.shelterState = shelterState;
 
         return this;
     }
 
-    internal LocationPropertiesBuilder SetDangerLevel(DangerLevels dangerLevel)
+    public LocationPropertiesBuilder SetDangerLevel(DangerLevels dangerLevel)
     {
         this.dangerLevel = dangerLevel;
 
         return this;
     }
 
-    internal LocationPropertiesBuilder AddAction(Action<BasicActionDefinitionBuilder> buildBasicAction)
+    public LocationPropertiesBuilder AddAction(Action<BasicActionDefinitionBuilder> buildBasicAction)
     {
         BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder();
         buildBasicAction(builder);

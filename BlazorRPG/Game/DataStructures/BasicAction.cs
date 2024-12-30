@@ -1,7 +1,7 @@
 ﻿public class BasicAction
 {
-    public BasicActionTypes ActionType { get; internal set; }
-    public string Description { get; internal set; }
+    public BasicActionTypes ActionType { get; set; }
+    public string Description { get; set; }
 
     public List<TimeWindows> TimeSlots = new();
     public List<IRequirement> Requirements { get; set; } = new();

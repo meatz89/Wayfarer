@@ -4,8 +4,10 @@
     {
         services.AddSingleton<GameContentProvider>();
         services.AddSingleton<GameState>(_ => GameSetup.CreateNewGame());
+
         services.AddSingleton<NarrativeSystem>();
         services.AddSingleton<LocationSystem>();
+
         services.AddSingleton<ActionManager>();
         services.AddSingleton<QueryManager>();
 

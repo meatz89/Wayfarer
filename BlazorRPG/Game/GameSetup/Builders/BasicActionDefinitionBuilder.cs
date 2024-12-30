@@ -114,7 +114,7 @@ public class BasicActionDefinitionBuilder
         return this;
     }
 
-    internal BasicActionDefinitionBuilder RewardsFood(int amount)
+    public BasicActionDefinitionBuilder RewardsFood(int amount)
     {
         outcomes.Add(new FoodOutcome
         {

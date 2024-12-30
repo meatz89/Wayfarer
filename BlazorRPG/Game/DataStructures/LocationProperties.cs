@@ -1,6 +1,6 @@
 ﻿public class LocationProperties
 {
-    public LocationNames Location { get; internal set; }
+    public LocationNames Location { get; set; }
 
     public LocationTypes LocationType;
 

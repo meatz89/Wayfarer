@@ -82,7 +82,7 @@ public class QueryManager
         return gameState.CurrentLocation;
     }
 
-    internal TimeWindows GetCurrentTime()
+    public TimeWindows GetCurrentTime()
     {
         return gameState.CurrentTime;
     }
