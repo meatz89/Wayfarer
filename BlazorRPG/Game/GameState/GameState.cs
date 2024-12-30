@@ -272,20 +272,20 @@ public class GameState
         switch (timeSlot)
         {
             case 0:
-                CurrentTimeSlot = TimeWindows.Night; break;
-
-            case 1:
-                CurrentTimeSlot = TimeWindows.Afternoon; break;
-
-            case 2:
-                CurrentTimeSlot = TimeWindows.Evening; break;
-
-            case 3:
                 if (CurrentTimeSlot != TimeWindows.Morning)
                 {
                     StartNewDay();
                 }
+                CurrentTimeSlot = TimeWindows.Night; break;
+
+            case 1:
                 CurrentTimeSlot = TimeWindows.Morning; break;
+
+            case 2:
+                CurrentTimeSlot = TimeWindows.Afternoon; break;
+
+            case 3:
+                CurrentTimeSlot = TimeWindows.Evening; break;
         }
     }
 

@@ -1,5 +1,4 @@
-﻿
-public static class LocationActionsFactory
+﻿public static class LocationActionsFactory
 {
     public static List<BasicAction> Create(
         LocationTypes locationType,
@@ -10,218 +9,53 @@ public static class LocationActionsFactory
     )
     {
         List<BasicAction> actions = new List<BasicAction>();
-        actions.AddRange(GetLocationTypeActions(locationType));
 
-        switch (locationType)
+        switch(locationType)
         {
             case LocationTypes.Industry:
-                foreach (ActivityTypes activityType in activityTypes)
-                {
-                    actions.AddRange(GetActivityTypeActionsForIndustry(activityType));
-                }
+                if(!activityTypes.Contains(ActivityTypes.Labor)) activityTypes.Add(ActivityTypes.Labor);
                 break;
 
             case LocationTypes.Commerce:
-                foreach (ActivityTypes activityType in activityTypes)
-                {
-                    actions.AddRange(GetActivityTypeActionsForCommerce(activityType));
-                }
+                if(!activityTypes.Contains(ActivityTypes.Trade)) activityTypes.Add(ActivityTypes.Trade);
                 break;
 
             case LocationTypes.Social:
-                foreach (ActivityTypes activityType in activityTypes)
-                {
-                    actions.AddRange(GetActivityTypeActionsForSocial(activityType));
-                }
+                if(!activityTypes.Contains(ActivityTypes.Mingle)) activityTypes.Add(ActivityTypes.Mingle);
                 break;
 
             case LocationTypes.Nature:
-                foreach (ActivityTypes activityType in activityTypes)
-                {
-                    actions.AddRange(GetActivityTypeActionsForNature(activityType));
-                }
+                if(!activityTypes.Contains(ActivityTypes.Gather)) activityTypes.Add(ActivityTypes.Gather);
                 break;
+        }
+
+        foreach (ActivityTypes activityType in activityTypes)
+        {
+            switch (activityType)
+            {
+                case ActivityTypes.Labor:
+                    actions.AddRange(GetLaborActions(locationType));
+                    break;
+
+                case ActivityTypes.Gather:
+                    actions.AddRange(GetGatherActions(locationType));
+                    break;
+
+                case ActivityTypes.Trade:
+                    actions.AddRange(GetTradeActions(locationType));
+                    break;
+
+                case ActivityTypes.Mingle:
+                    actions.AddRange(GetMingleActions(locationType));
+                    break;
+            }
         }
 
         actions.AddRange(GetRestActions(shelterState));
         return actions;
     }
 
-    private static List<BasicAction> GetActivityTypeActionsForIndustry(ActivityTypes activityType)
-    {
-        List<BasicAction> actions = new List<BasicAction>();
-        switch (activityType)
-        {
-            case ActivityTypes.Trade:
-                actions.Add(
-                    AddAction(action => action
-                        .ForAction(BasicActionTypes.Trade)
-                        .WithDescription("Sell Food")
-                        .AddTimeWindow(TimeWindows.Afternoon)
-                        .AddTimeWindow(TimeWindows.Evening)
-                        .ExpendsFood(1)
-                        .RewardsCoins(1)
-                        )
-                );
-                break;
-
-            case ActivityTypes.Mingle:
-                actions.Add(
-                    AddAction(action => action
-                        .ForAction(BasicActionTypes.Discuss)
-                        .WithDescription("Talk to Workers")
-                        .AddTimeWindow(TimeWindows.Evening)
-                        .ExpendsSocialEnergy(1)
-                        .RewardsTrust(1)
-                    )
-                );
-                break;
-        }
-        return actions;
-    }
-
-
-    private static List<BasicAction> GetActivityTypeActionsForCommerce(ActivityTypes activityType)
-    {
-        List<BasicAction> actions = new List<BasicAction>();
-        switch (activityType)
-        {
-            case ActivityTypes.Labor:
-                actions.Add(
-                    AddAction(action => action
-                        .ForAction(BasicActionTypes.Labor)
-                        .WithDescription("Loading/Unloading Work")
-                        .AddTimeWindow(TimeWindows.Morning)
-                        .AddTimeWindow(TimeWindows.Afternoon)
-                        .ExpendsPhysicalEnergy(1)
-                        .RewardsCoins(1)
-                        )
-                );
-                break;
-
-            case ActivityTypes.Gather:
-                actions.Add(
-                    AddAction(action => action
-                        .ForAction(BasicActionTypes.Gather)
-                        .WithDescription("Market Scrounging")
-                        .AddTimeWindow(TimeWindows.Afternoon)
-                        .AddTimeWindow(TimeWindows.Evening)
-                        .ExpendsSocialEnergy(1)
-                        .RewardsFood(1)
-                        )
-                );
-                break;
-
-            case ActivityTypes.Mingle:
-                actions.Add(
-                    AddAction(action => action
-                        .ForAction(BasicActionTypes.Discuss)
-                        .WithDescription("Merchant Interaction")
-                        .AddTimeWindow(TimeWindows.Evening)
-                        .ExpendsSocialEnergy(1)
-                        .RewardsTrust(1)
-                    )
-                );
-                break;
-        }
-        return actions;
-    }
-
-    private static List<BasicAction> GetActivityTypeActionsForSocial(ActivityTypes activityType)
-    {
-        List<BasicAction> actions = new List<BasicAction>();
-        switch (activityType)
-        {
-            case ActivityTypes.Labor:
-                actions.Add(
-                    AddAction(action => action
-                        .ForAction(BasicActionTypes.Labor)
-                        .WithDescription("Service Work")
-                        .AddTimeWindow(TimeWindows.Morning)
-                        .AddTimeWindow(TimeWindows.Afternoon)
-                        .ExpendsPhysicalEnergy(1)
-                        .RewardsCoins(1)
-                        )
-                );
-                break;
-
-            case ActivityTypes.Trade:
-                actions.Add(
-                    AddAction(action => action
-                        .ForAction(BasicActionTypes.Trade)
-                        .WithDescription("Information Trading")
-                        .AddTimeWindow(TimeWindows.Afternoon)
-                        .AddTimeWindow(TimeWindows.Evening)
-                        .ExpendsPhysicalEnergy(1)
-                        .RewardsCoins(1)
-                        )
-                );
-                break;
-
-            case ActivityTypes.Gather:
-                actions.Add(
-                    AddAction(action => action
-                        .ForAction(BasicActionTypes.Gather)
-                        .WithDescription("Rumor Collection")
-                        .AddTimeWindow(TimeWindows.Evening)
-                        .AddTimeWindow(TimeWindows.Night)
-                        .ExpendsPhysicalEnergy(1)
-                        .RewardsCoins(1)
-                        )
-                );
-                break;
-
-            case ActivityTypes.Mingle:
-                actions.Add(
-                    AddAction(action => action
-                        .ForAction(BasicActionTypes.Discuss)
-                        .WithDescription("Drink")
-                        .AddTimeWindow(TimeWindows.Evening)
-                        .ExpendsCoins(1)
-                        .RewardsSocialEnergy(1)
-                    )
-                );
-                break;
-        }
-        return actions;
-    }
-
-
-    private static List<BasicAction> GetActivityTypeActionsForNature(ActivityTypes activityType)
-    {
-        List<BasicAction> actions = new List<BasicAction>();
-        switch (activityType)
-        {
-            case ActivityTypes.Trade:
-                actions.Add(
-                    AddAction(action => action
-                        .ForAction(BasicActionTypes.Trade)
-                        .WithDescription("Forager Trading")
-                        .AddTimeWindow(TimeWindows.Morning)
-                        .AddTimeWindow(TimeWindows.Afternoon)
-                        .AddTimeWindow(TimeWindows.Evening)
-                        .ExpendsCoins(1)
-                        .RewardsFood(1)
-                        )
-                );
-                break;
-
-            case ActivityTypes.Mingle:
-                actions.Add(
-                    AddAction(action => action
-                        .ForAction(BasicActionTypes.Discuss)
-                        .WithDescription("Traveler Interaction")
-                        .AddTimeWindow(TimeWindows.Morning)
-                        .AddTimeWindow(TimeWindows.Afternoon)
-                        .AddTimeWindow(TimeWindows.Evening)
-                        .RewardsSocialEnergy(1)
-                    )
-                );
-                break;
-        }
-        return actions;
-    }
-    private static List<BasicAction> GetLocationTypeActions(LocationTypes locationType)
+    private static List<BasicAction> GetLaborActions(LocationTypes locationType)
     {
         List<BasicAction> actions = new List<BasicAction>();
         switch (locationType)
@@ -238,9 +72,120 @@ public static class LocationActionsFactory
                         )
                 );
                 break;
+            
+            case LocationTypes.Commerce:
+                actions.Add(
+                    AddAction(action => action
+                        .ForAction(BasicActionTypes.Labor)
+                        .WithDescription("Loading/Unloading Work")
+                        .AddTimeWindow(TimeWindows.Morning)
+                        .AddTimeWindow(TimeWindows.Afternoon)
+                        .ExpendsPhysicalEnergy(1)
+                        .RewardsCoins(1)
+                        )
+                );
+                break;
+         
+            case LocationTypes.Social:
+                actions.Add(
+                    AddAction(action => action
+                        .ForAction(BasicActionTypes.Labor)
+                        .WithDescription("Service Work")
+                        .AddTimeWindow(TimeWindows.Morning)
+                        .AddTimeWindow(TimeWindows.Afternoon)
+                        .ExpendsPhysicalEnergy(1)
+                        .RewardsCoins(1)
+                        )
+                );
+                break;
+
+            case LocationTypes.Nature:
+                break;
+        }
+
+        return actions;
+    }
+
+
+    private static List<BasicAction> GetGatherActions(LocationTypes locationType)
+    {
+        List<BasicAction> actions = new List<BasicAction>();
+        switch (locationType)
+        {
+            case LocationTypes.Industry:
+                actions.Add(
+                    AddAction(action => action
+                        .ForAction(BasicActionTypes.Gather)
+                        .WithDescription("Pick up Trash")
+                        .AddTimeWindow(TimeWindows.Afternoon)
+                        .AddTimeWindow(TimeWindows.Evening)
+                        .ExpendsPhysicalEnergy(1)
+                        )
+                );
+                break;
 
             case LocationTypes.Commerce:
+                actions.Add(
+                    AddAction(action => action
+                        .ForAction(BasicActionTypes.Gather)
+                        .WithDescription("Market Scrounging")
+                        .AddTimeWindow(TimeWindows.Afternoon)
+                        .AddTimeWindow(TimeWindows.Evening)
+                        .ExpendsSocialEnergy(1)
+                        .RewardsFood(1)
+                        )
+                );
+                break;
 
+            case LocationTypes.Social:
+                actions.Add(
+                    AddAction(action => action
+                        .ForAction(BasicActionTypes.Gather)
+                        .WithDescription("Rumor Collection")
+                        .AddTimeWindow(TimeWindows.Evening)
+                        .AddTimeWindow(TimeWindows.Night)
+                        .ExpendsPhysicalEnergy(1)
+                        .RewardsCoins(1)
+                        )
+                );
+                break;
+
+            case LocationTypes.Nature:
+                actions.Add(
+                    AddAction(action => action
+                        .ForAction(BasicActionTypes.Gather)
+                        .WithDescription("Pick Berries")
+                        .AddTimeWindow(TimeWindows.Morning)
+                        .AddTimeWindow(TimeWindows.Afternoon)
+                        .ExpendsFocusEnergy(2)
+                        .RewardsFood(2)
+                    )
+                );
+                break;
+        }
+
+        return actions;
+    }
+
+    private static List<BasicAction> GetTradeActions(LocationTypes locationType)
+    {
+        List<BasicAction> actions = new List<BasicAction>();
+        switch (locationType)
+        {
+            case LocationTypes.Industry:
+                actions.Add(
+                    AddAction(action => action
+                        .ForAction(BasicActionTypes.Trade)
+                        .WithDescription("Sell Food")
+                        .AddTimeWindow(TimeWindows.Afternoon)
+                        .AddTimeWindow(TimeWindows.Evening)
+                        .ExpendsFood(1)
+                        .RewardsCoins(1)
+                        )
+                );
+                break;
+
+            case LocationTypes.Commerce:
                 actions.Add(
                     AddAction(action => action
                         .ForAction(BasicActionTypes.Trade)
@@ -250,6 +195,66 @@ public static class LocationActionsFactory
                         .ExpendsCoins(2)
                         .RewardsFood(1)
                         )
+                );
+                break;
+
+            case LocationTypes.Social:
+                actions.Add(
+                    AddAction(action => action
+                        .ForAction(BasicActionTypes.Trade)
+                        .WithDescription("Information Trading")
+                        .AddTimeWindow(TimeWindows.Afternoon)
+                        .AddTimeWindow(TimeWindows.Evening)
+                        .ExpendsPhysicalEnergy(1)
+                        .RewardsCoins(1)
+                        )
+                );
+                break;
+
+            case LocationTypes.Nature:
+                actions.Add(
+                   AddAction(action => action
+                       .ForAction(BasicActionTypes.Trade)
+                       .WithDescription("Forager Trading")
+                       .AddTimeWindow(TimeWindows.Morning)
+                       .AddTimeWindow(TimeWindows.Afternoon)
+                       .AddTimeWindow(TimeWindows.Evening)
+                       .ExpendsCoins(1)
+                       .RewardsFood(1)
+                       )
+               );
+                break;
+        }
+
+        return actions;
+    }
+
+    private static List<BasicAction> GetMingleActions(LocationTypes locationType)
+    {
+        List<BasicAction> actions = new List<BasicAction>();
+        switch (locationType)
+        {
+            case LocationTypes.Industry:
+                actions.Add(
+                    AddAction(action => action
+                        .ForAction(BasicActionTypes.Discuss)
+                        .WithDescription("Talk to Workers")
+                        .AddTimeWindow(TimeWindows.Evening)
+                        .ExpendsSocialEnergy(1)
+                        .RewardsTrust(1)
+                    )
+                );
+                break;
+
+            case LocationTypes.Commerce:
+                actions.Add(
+                    AddAction(action => action
+                        .ForAction(BasicActionTypes.Discuss)
+                        .WithDescription("Merchant Interaction")
+                        .AddTimeWindow(TimeWindows.Evening)
+                        .ExpendsSocialEnergy(1)
+                        .RewardsTrust(1)
+                    )
                 );
                 break;
 
@@ -270,16 +275,17 @@ public static class LocationActionsFactory
             case LocationTypes.Nature:
                 actions.Add(
                     AddAction(action => action
-                        .ForAction(BasicActionTypes.Gather)
-                        .WithDescription("Hunt")
+                        .ForAction(BasicActionTypes.Discuss)
+                        .WithDescription("Traveler Interaction")
                         .AddTimeWindow(TimeWindows.Morning)
                         .AddTimeWindow(TimeWindows.Afternoon)
-                        .ExpendsPhysicalEnergy(2)
-                        .RewardsFood(2)
+                        .AddTimeWindow(TimeWindows.Evening)
+                        .RewardsSocialEnergy(1)
                     )
                 );
                 break;
         }
+
         return actions;
     }
 
