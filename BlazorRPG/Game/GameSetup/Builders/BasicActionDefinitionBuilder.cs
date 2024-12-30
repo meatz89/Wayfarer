@@ -29,6 +29,21 @@ public class BasicActionDefinitionBuilder
         return this;
     }
 
+    public BasicActionDefinitionBuilder ExpendsHealth(int cost)
+    {
+        requirements.Add(new HealthRequirement
+        {
+            Amount = cost
+        });
+
+        outcomes.Add(new HealthOutcome
+        {
+            Amount = -cost
+        });
+
+        return this;
+    }
+
     public BasicActionDefinitionBuilder ExpendsPhysicalEnergy(int cost)
     {
         requirements.Add(new PhysicalEnergyRequirement
@@ -126,6 +141,16 @@ public class BasicActionDefinitionBuilder
 
     public BasicActionDefinitionBuilder RewardsTrust(int amount)
     {
+        return this;
+    }
+
+    public BasicActionDefinitionBuilder RewardsHealth(int amount)
+    {
+        outcomes.Add(new HealthOutcome
+        {
+            Amount = amount
+        });
+
         return this;
     }
 

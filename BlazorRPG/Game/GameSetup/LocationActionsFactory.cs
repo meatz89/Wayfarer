@@ -34,19 +34,19 @@
             switch (activityType)
             {
                 case ActivityTypes.Labor:
-                    actions.AddRange(GetLaborActions(locationType));
+                    actions.AddRange(GetLaborActions(locationType, dangerLevel));
                     break;
 
                 case ActivityTypes.Gather:
-                    actions.AddRange(GetGatherActions(locationType));
+                    actions.AddRange(GetGatherActions(locationType, dangerLevel));
                     break;
 
                 case ActivityTypes.Trade:
-                    actions.AddRange(GetTradeActions(locationType));
+                    actions.AddRange(GetTradeActions(locationType, dangerLevel));
                     break;
 
                 case ActivityTypes.Mingle:
-                    actions.AddRange(GetMingleActions(locationType));
+                    actions.AddRange(GetMingleActions(locationType, dangerLevel));
                     break;
             }
         }
@@ -55,7 +55,7 @@
         return actions;
     }
 
-    private static List<BasicAction> GetLaborActions(LocationTypes locationType)
+    private static List<BasicAction> GetLaborActions(LocationTypes locationType, DangerLevels dangerLevel)
     {
         List<BasicAction> actions = new List<BasicAction>();
         switch (locationType)
@@ -69,7 +69,8 @@
                         .AddTimeWindow(TimeWindows.Afternoon)
                         .ExpendsPhysicalEnergy(1)
                         .RewardsCoins(1)
-                        )
+                        , dangerLevel
+                    )
                 );
                 break;
             
@@ -82,7 +83,8 @@
                         .AddTimeWindow(TimeWindows.Afternoon)
                         .ExpendsPhysicalEnergy(1)
                         .RewardsCoins(1)
-                        )
+                        , dangerLevel
+                    )
                 );
                 break;
          
@@ -95,7 +97,8 @@
                         .AddTimeWindow(TimeWindows.Afternoon)
                         .ExpendsPhysicalEnergy(1)
                         .RewardsCoins(1)
-                        )
+                        , dangerLevel
+                    )
                 );
                 break;
 
@@ -107,7 +110,7 @@
     }
 
 
-    private static List<BasicAction> GetGatherActions(LocationTypes locationType)
+    private static List<BasicAction> GetGatherActions(LocationTypes locationType, DangerLevels dangerLevel)
     {
         List<BasicAction> actions = new List<BasicAction>();
         switch (locationType)
@@ -120,7 +123,8 @@
                         .AddTimeWindow(TimeWindows.Afternoon)
                         .AddTimeWindow(TimeWindows.Evening)
                         .ExpendsPhysicalEnergy(1)
-                        )
+                        , dangerLevel
+                    )
                 );
                 break;
 
@@ -133,7 +137,8 @@
                         .AddTimeWindow(TimeWindows.Evening)
                         .ExpendsSocialEnergy(1)
                         .RewardsFood(1)
-                        )
+                        , dangerLevel
+                    )
                 );
                 break;
 
@@ -146,7 +151,8 @@
                         .AddTimeWindow(TimeWindows.Night)
                         .ExpendsPhysicalEnergy(1)
                         .RewardsCoins(1)
-                        )
+                        , dangerLevel
+                    )
                 );
                 break;
 
@@ -159,6 +165,7 @@
                         .AddTimeWindow(TimeWindows.Afternoon)
                         .ExpendsFocusEnergy(2)
                         .RewardsFood(2)
+                        , dangerLevel
                     )
                 );
                 break;
@@ -167,7 +174,7 @@
         return actions;
     }
 
-    private static List<BasicAction> GetTradeActions(LocationTypes locationType)
+    private static List<BasicAction> GetTradeActions(LocationTypes locationType, DangerLevels dangerLevel)
     {
         List<BasicAction> actions = new List<BasicAction>();
         switch (locationType)
@@ -181,7 +188,8 @@
                         .AddTimeWindow(TimeWindows.Evening)
                         .ExpendsFood(1)
                         .RewardsCoins(1)
-                        )
+                        , dangerLevel
+                    )
                 );
                 break;
 
@@ -194,7 +202,8 @@
                         .AddTimeWindow(TimeWindows.Afternoon)
                         .ExpendsCoins(2)
                         .RewardsFood(1)
-                        )
+                        , dangerLevel
+                    )
                 );
                 break;
 
@@ -207,7 +216,8 @@
                         .AddTimeWindow(TimeWindows.Evening)
                         .ExpendsPhysicalEnergy(1)
                         .RewardsCoins(1)
-                        )
+                        , dangerLevel
+                    )
                 );
                 break;
 
@@ -221,7 +231,8 @@
                        .AddTimeWindow(TimeWindows.Evening)
                        .ExpendsCoins(1)
                        .RewardsFood(1)
-                       )
+                       , dangerLevel
+                    )
                );
                 break;
         }
@@ -229,7 +240,7 @@
         return actions;
     }
 
-    private static List<BasicAction> GetMingleActions(LocationTypes locationType)
+    private static List<BasicAction> GetMingleActions(LocationTypes locationType, DangerLevels dangerLevel)
     {
         List<BasicAction> actions = new List<BasicAction>();
         switch (locationType)
@@ -242,6 +253,7 @@
                         .AddTimeWindow(TimeWindows.Evening)
                         .ExpendsSocialEnergy(1)
                         .RewardsTrust(1)
+                        , dangerLevel
                     )
                 );
                 break;
@@ -254,6 +266,7 @@
                         .AddTimeWindow(TimeWindows.Evening)
                         .ExpendsSocialEnergy(1)
                         .RewardsTrust(1)
+                        , dangerLevel
                     )
                 );
                 break;
@@ -268,6 +281,7 @@
                         .AddTimeWindow(TimeWindows.Evening)
                         .ExpendsSocialEnergy(1)
                         .RewardsTrust(1)
+                        , dangerLevel
                     )
                 );
                 break;
@@ -281,6 +295,7 @@
                         .AddTimeWindow(TimeWindows.Afternoon)
                         .AddTimeWindow(TimeWindows.Evening)
                         .RewardsSocialEnergy(1)
+                        , dangerLevel
                     )
                 );
                 break;
@@ -306,7 +321,8 @@
                         .AddTimeWindow(TimeWindows.Evening)
                         .AddTimeWindow(TimeWindows.Night)
                         .ExpendsFood(1)
-                        .RewardsPhysicalEnergy(3)
+                        .RewardsPhysicalEnergy(1)
+                        , DangerLevels.Safe
                     )
                 );
                 break;
@@ -320,9 +336,11 @@
                         .AddTimeWindow(TimeWindows.Night)
                         .ExpendsCoins(1)
                         .ExpendsFood(1)
-                        .RewardsPhysicalEnergy(5)
-                        .RewardsPhysicalEnergy(5)
-                        .RewardsPhysicalEnergy(5)
+                        .RewardsHealth(1)
+                        .RewardsPhysicalEnergy(3)
+                        .RewardsPhysicalEnergy(3)
+                        .RewardsPhysicalEnergy(3)
+                        , DangerLevels.Safe
                     )
                 );
                 break;
@@ -330,10 +348,16 @@
         return actions;
     }
 
-    private static BasicAction AddAction(Action<BasicActionDefinitionBuilder> buildBasicAction)
+    private static BasicAction AddAction(Action<BasicActionDefinitionBuilder> buildBasicAction, DangerLevels dangerLevel)
     {
         BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder();
         buildBasicAction(builder);
+
+        if (dangerLevel == DangerLevels.Dangerous)
+        {
+            builder.ExpendsHealth(1);
+        }
+
         BasicAction action = builder.Build();
         return action;
     }
