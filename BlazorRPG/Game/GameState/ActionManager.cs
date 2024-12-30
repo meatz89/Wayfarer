@@ -1,7 +1,7 @@
-﻿using System.Diagnostics;
-
-public class ActionManager
+﻿public class ActionManager
 {
+    private const int hoursToAdvanceForActions = 2;
+
     public GameState GameState;
     public NarrativeSystem NarrativeSystem { get; private set; }
     public LocationSystem LocationSystem { get; private set; }
@@ -26,7 +26,7 @@ public class ActionManager
         List<LocationNames> connectedLocations = GetConnectedLocations();
 
         List<UserTravelOption> userTravelOptions = new List<UserTravelOption>();
-        
+
         for (int i = 0; i < connectedLocations.Count; i++)
         {
             LocationNames location = connectedLocations[i];
@@ -39,7 +39,7 @@ public class ActionManager
 
             userTravelOptions.Add(travel);
         }
-    
+
         GameState.SetCurrentTravelOptions(userTravelOptions);
     }
 
@@ -132,7 +132,7 @@ public class ActionManager
         LocationNames currentLocation = GameState.CurrentLocation;
 
         CharacterNames? character = CharacterSystem.GetCharacterAtLocation(currentLocation);
-        if(!character.HasValue) return actions;
+        if (!character.HasValue) return actions;
 
         List<BasicAction> characterActions = CharacterSystem.GetActionsForCharacter(character.Value);
 
@@ -213,21 +213,19 @@ public class ActionManager
 
     public ActionResult MoveToLocation(LocationNames locationName)
     {
-        Location location = FindLocation(locationName);
-
-        GameState.SetNewLocation(location.Name);
+        GameState.SetNewLocation(locationName);
 
         UpdateTavelOptions();
         UpdateAvailableActions();
 
-        ActionResult actionResult = ActionResult.Success($"Moved to {location.Name}.", new ActionResultMessages());
+        ActionResult actionResult = ActionResult.Success($"Moved to {locationName}.", new ActionResultMessages());
 
         return actionResult;
     }
 
     public bool AdvanceTime()
     {
-        bool stillAlive = GameState.AdvanceTime(1);
+        bool stillAlive = GameState.AdvanceTime(hoursToAdvanceForActions);
 
         UpdateTavelOptions();
         UpdateAvailableActions();
@@ -329,16 +327,9 @@ public class ActionManager
         return result;
     }
 
-    private Location FindLocation(LocationNames locationName)
-    {
-        return GameState.Locations.Where(x => x.Name == locationName).FirstOrDefault();
-    }
-
     public List<LocationNames> GetConnectedLocations()
     {
-        Location location = FindLocation(GameState.CurrentLocation);
-
-        List<LocationNames> loc = location.ConnectedLocations;
+        List<LocationNames> loc = LocationSystem.GetLocationConnections(GameState.CurrentLocation);
         return loc;
     }
 }

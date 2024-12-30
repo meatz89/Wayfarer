@@ -1,6 +1,6 @@
-﻿public class CharacterProperties
+﻿public class Character
 {
-    public CharacterNames Character { get; set; }
+    public CharacterNames CharacterName { get; set; }
     public LocationNames Location { get; set; }
 
     public List<BasicAction> Actions = new();

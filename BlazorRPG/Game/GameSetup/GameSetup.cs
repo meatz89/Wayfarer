@@ -6,49 +6,6 @@
         gameState.SetNewLocation(LocationNames.HarborStreets);
         gameState.SetNewTime(9);
 
-        gameState.Locations = new List<Location>
-        {
-            new Location() {
-                Name = LocationNames.HarborStreets,
-                Description = "Harbor Streets",
-                ConnectedLocations = new() {
-                    LocationNames.Docks,
-                    LocationNames.MarketSquare,
-                    LocationNames.LionsHeadTavern,
-                    LocationNames.DarkForest,
-                } },
-
-            new Location() {
-                Name = LocationNames.Docks,
-                Description = "Docks",
-                ConnectedLocations = new() {
-                    LocationNames.HarborStreets,
-                    LocationNames.MarketSquare
-                } },
-
-            new Location() {
-                Name = LocationNames.MarketSquare,
-                Description = "Market",
-                ConnectedLocations = new() {
-                    LocationNames.HarborStreets,
-                    LocationNames.Docks
-                } },
-
-            new Location() {
-                Name = LocationNames.LionsHeadTavern,
-                Description = "Lion's Head Tavern",
-                ConnectedLocations = new() {
-                    LocationNames.HarborStreets,
-                } },
-
-            new Location() {
-                Name = LocationNames.DarkForest,
-                Description = "Dark Forest",
-                ConnectedLocations = new() {
-                    LocationNames.HarborStreets,
-                } }
-        };
-
         Inventory playerInventory = new Inventory();
         playerInventory.Food = 1;
 

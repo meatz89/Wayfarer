@@ -1,6 +1,10 @@
 ﻿public class Location
 {
-    public LocationNames Name { get; set; }
-    public string Description { get; set; }
+    public LocationNames LocationName { get; set; }
     public List<LocationNames> ConnectedLocations { get; set; }
+    public LocationTypes LocationType;
+
+    public List<ActivityTypes> ActivityTypes;
+
+    public List<BasicAction> Actions = new();
 }

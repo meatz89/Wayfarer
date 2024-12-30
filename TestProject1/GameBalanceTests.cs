@@ -11,13 +11,13 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
     {
         this.output = output;
 
-        var GameContentProvider = new GameContentProvider();
+        GameContentProvider GameContentProvider = new GameContentProvider();
 
         GameState = GameSetup.CreateNewGame();
 
-        var NarrativeSystem = new NarrativeSystem(GameState, GameContentProvider);
-        var LocationSystem = new LocationSystem(GameState, GameContentProvider);
-        var CharacterSystem = new CharacterSystem(GameState, GameContentProvider);
+        NarrativeSystem NarrativeSystem = new NarrativeSystem(GameState, GameContentProvider);
+        LocationSystem LocationSystem = new LocationSystem(GameState, GameContentProvider);
+        CharacterSystem CharacterSystem = new CharacterSystem(GameState, GameContentProvider);
 
         ActionManager = new ActionManager(GameState, NarrativeSystem, LocationSystem, CharacterSystem);
         ActionManager.Initialize();
@@ -30,7 +30,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
         int startingHealth = GameState.Player.Health;
         ActionManager.MoveToLocation(LocationNames.DarkForest);
 
-        var healthLog = new List<string>();
+        List<string> healthLog = new List<string>();
 
         for (int day = 0; day < 3; day++)
         {
@@ -58,8 +58,8 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
     public void No_Action_Sequence_Creates_Unwinnable_State()
     {
         // Track resources through worst-case sequence
-        var resourceLog = new List<string>();
-        var initialState = $"Initial - Health: {GameState.Player.Health}, Food: {GameState.Player.Inventory.Food}, " +
+        List<string> resourceLog = new List<string>();
+        string initialState = $"Initial - Health: {GameState.Player.Health}, Food: {GameState.Player.Inventory.Food}, " +
                           $"Coins: {GameState.Player.Coins}, Energy: {GameState.Player.PhysicalEnergy}";
         resourceLog.Add(initialState);
 
@@ -73,12 +73,12 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
         }
 
         // Check available actions
-        var validActions = GameState.ValidUserActions
+        IEnumerable<UserActionOption> validActions = GameState.ValidUserActions
             .Where(a => !a.IsDisabled)
             .Where(a => a.BasicAction.ActionType != BasicActionTypes.CheckStatus)
             .Where(a => a.BasicAction.ActionType != BasicActionTypes.Wait);
 
-        var availableActions = string.Join(", ", validActions.Select(a => a.BasicAction.ActionType));
+        string availableActions = string.Join(", ", validActions.Select(a => a.BasicAction.ActionType));
         Assert.True(validActions.Any(),
             $"No valid actions available after resource depletion.\nResource history:\n{string.Join("\n", resourceLog)}\n" +
             $"Available actions: {availableActions}");
@@ -88,40 +88,40 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
     [Fact]
     public void Every_Action_Can_Be_Taken()
     {
-        var executedActions = new HashSet<BasicActionTypes>();
-        var actionLog = new List<string>();
+        HashSet<BasicActionTypes> executedActions = new HashSet<BasicActionTypes>();
+        List<string> actionLog = new List<string>();
 
-        foreach (var location in Enum.GetValues<LocationNames>())
+        foreach (LocationNames location in Enum.GetValues<LocationNames>())
         {
             actionLog.Add($"\nTesting {location}:");
             ActionManager.MoveToLocation(location);
 
-            foreach (var timeWindow in Enum.GetValues<TimeWindows>())
+            foreach (TimeWindows timeWindow in Enum.GetValues<TimeWindows>())
             {
                 GameTestHelpers.AdvanceToTimeWindow(ActionManager, timeWindow);
                 // Log ALL actions with their disabled state
-                var allActions = GameState.ValidUserActions
+                IEnumerable<UserActionOption> allActions = GameState.ValidUserActions
                     .Where(a => a.BasicAction.ActionType != BasicActionTypes.CheckStatus)
                     .Where(a => a.BasicAction.ActionType != BasicActionTypes.Travel)
                     .Where(a => a.BasicAction.ActionType != BasicActionTypes.Wait);
 
                 actionLog.Add($"  {timeWindow} actions:");
-                foreach (var action in allActions)
+                foreach (UserActionOption? action in allActions)
                 {
                     actionLog.Add($"    {action.BasicAction.ActionType} - Disabled: {action.IsDisabled}, " +
                                 $"ValidTimeSlots: [{string.Join(",", action.BasicAction.TimeSlots)}], " +
                                 $"CurrentTime: {GameState.CurrentTimeSlot}");
                 }
 
-                var availableActions = allActions.Where(a => !a.IsDisabled);
-                foreach (var action in availableActions)
+                IEnumerable<UserActionOption> availableActions = allActions.Where(a => !a.IsDisabled);
+                foreach (UserActionOption? action in availableActions)
                 {
                     executedActions.Add(action.BasicAction.ActionType);
                 }
             }
         }
 
-        var expectedActions = new[] {
+        BasicActionTypes[] expectedActions = new[] {
         BasicActionTypes.Labor,
         BasicActionTypes.Gather,
         BasicActionTypes.Trade,
@@ -129,7 +129,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
         BasicActionTypes.Rest
     };
 
-        var missingActions = expectedActions.Where(a => !executedActions.Contains(a));
+        IEnumerable<BasicActionTypes> missingActions = expectedActions.Where(a => !executedActions.Contains(a));
         Assert.True(missingActions.Count() == 0,
             $"Missing actions: {string.Join(", ", missingActions)}\n" +
             $"Action log:\n{string.Join("\n", actionLog)}");
@@ -141,7 +141,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
         ActionManager.MoveToLocation(LocationNames.MarketSquare);
         GameTestHelpers.AdvanceToTimeWindow(ActionManager, TimeWindows.Morning);
 
-        foreach (var action in GameState.ValidUserActions)
+        foreach (UserActionOption action in GameState.ValidUserActions)
         {
             output.WriteLine($"Action: {action.BasicAction.ActionType}, " +
                            $"TimeSlots: [{string.Join(",", action.BasicAction.TimeSlots)}], " +
@@ -196,7 +196,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
                 GameTestHelpers.AdvanceToTimeWindow(ActionManager, timeWindow);
 
                 // Count gameplay actions
-                var validGameplayActions = GameState.ValidUserActions
+                List<UserActionOption> validGameplayActions = GameState.ValidUserActions
                     .Where(a => !a.IsDisabled)
                     .Where(a => a.BasicAction.ActionType != BasicActionTypes.Travel)
                     .Where(a => a.BasicAction.ActionType != BasicActionTypes.Wait)
@@ -206,7 +206,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
                 // If no valid gameplay actions, verify we can travel somewhere
                 if (validGameplayActions.Count == 0)
                 {
-                    var canTravel = GameState.ValidUserActions
+                    bool canTravel = GameState.ValidUserActions
                         .Any(a => a.BasicAction.ActionType == BasicActionTypes.Travel && !a.IsDisabled);
 
                     Assert.True(canTravel,
@@ -219,19 +219,19 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
     [Fact]
     public void All_Locations_Reachable()
     {
-        var allLocations = Enum.GetValues<LocationNames>();
+        LocationNames[] allLocations = Enum.GetValues<LocationNames>();
         HashSet<LocationNames> reachedLocations = new();
         Queue<LocationNames> toVisit = new();
         toVisit.Enqueue(GameState.CurrentLocation);
 
         while (toVisit.Count > 0)
         {
-            var location = toVisit.Dequeue();
+            LocationNames location = toVisit.Dequeue();
             if (reachedLocations.Add(location))
             {
                 ActionManager.MoveToLocation(location);
-                var connections = ActionManager.GetConnectedLocations();
-                foreach (var connection in connections)
+                List<LocationNames> connections = ActionManager.GetConnectedLocations();
+                foreach (LocationNames connection in connections)
                 {
                     toVisit.Enqueue(connection);
                 }

@@ -3,9 +3,9 @@ public class GameTestHelpers
 {
     public static void ExecuteActionSequence(ActionManager manager, params BasicActionTypes[] sequence)
     {
-        foreach (var actionType in sequence)
+        foreach (BasicActionTypes actionType in sequence)
         {
-            var action = manager.GameState.ValidUserActions
+            BasicAction action = manager.GameState.ValidUserActions
                 .First(a => a.BasicAction.ActionType == actionType).BasicAction;
 
             manager.ExecuteBasicAction(action);

@@ -163,9 +163,9 @@ public class SmokeTests : IClassFixture<BlazorRPGFixture>
         }
 
         // Try to execute another labor action
-        var action = GameState.ValidUserActions
+        BasicAction action = GameState.ValidUserActions
             .First(a => a.BasicAction.ActionType == BasicActionTypes.Labor).BasicAction;
-        var result = ActionManager.ExecuteBasicAction(action);
+        ActionResult result = ActionManager.ExecuteBasicAction(action);
 
         Assert.False(result.IsSuccess);
     }

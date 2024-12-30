@@ -4,7 +4,6 @@
 
     private ActionResultMessages outstandingChanges = new();
     private ActionResultMessages processedChanges = new();
-    public List<Location> Locations { get; set; }
     public int CurrentTimeInHours { get; private set; }
     public TimeWindows CurrentTimeSlot { get; private set; } = TimeWindows.Morning;
     public Narrative CurrentNarrative { get; private set; }

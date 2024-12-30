@@ -1,8 +1,8 @@
 ﻿
 public class GameContentProvider
 {
-    private List<LocationProperties> locationProperties;
-    private List<CharacterProperties> characterProperties;
+    private List<Location> locationProperties;
+    private List<Character> characterProperties;
     private List<Narrative> narratives;
 
     public GameContentProvider()
@@ -12,7 +12,7 @@ public class GameContentProvider
 
     private void InitializeContent()
     {
-        locationProperties = new List<LocationProperties>
+        locationProperties = new List<Location>
         {
             LocationPropertiesContent.HarborStreets,
             LocationPropertiesContent.Docks,
@@ -21,7 +21,7 @@ public class GameContentProvider
             LocationPropertiesContent.Forest
         };
 
-        characterProperties = new List<CharacterProperties>
+        characterProperties = new List<Character>
         {
             CharacterPropertiesContent.MarketVendor,
         };
@@ -34,12 +34,12 @@ public class GameContentProvider
         };
     }
 
-    public List<LocationProperties> GetLocationProperties()
+    public List<Location> GetLocationProperties()
     {
         return locationProperties;
     }
 
-    public List<CharacterProperties>? GetCharacterProperties()
+    public List<Character>? GetCharacterProperties()
     {
         return characterProperties;
     }

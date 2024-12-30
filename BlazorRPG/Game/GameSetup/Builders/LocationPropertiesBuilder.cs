@@ -1,6 +1,7 @@
 ﻿public class LocationPropertiesBuilder
 {
     private LocationNames location;
+    private List<LocationNames> travelConnections = new();
     private LocationTypes locationType;
     private List<ActivityTypes> activityTypes = new();
     private AccessTypes accessType;
@@ -12,6 +13,12 @@
     public LocationPropertiesBuilder ForLocation(LocationNames location)
     {
         this.location = location;
+        return this;
+    }
+
+    public LocationPropertiesBuilder AddTravelConnection(LocationNames connectedLocation)
+    {
+        travelConnections.Add(connectedLocation);
         return this;
     }
 
@@ -56,7 +63,7 @@
         return this;
     }
 
-    public LocationProperties Build()
+    public Location Build()
     {
         List<BasicAction> locActions = LocationActionsFactory.Create(
             this.locationType,
@@ -68,9 +75,10 @@
 
         locActions.AddRange(actions);
 
-        return new LocationProperties
+        return new Location
         {
-            Location = location,
+            LocationName = location,
+            ConnectedLocations = travelConnections,
             LocationType = locationType,
             ActivityTypes = activityTypes,
             Actions = locActions

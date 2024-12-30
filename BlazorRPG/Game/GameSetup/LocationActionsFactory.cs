@@ -10,22 +10,22 @@
     {
         List<BasicAction> actions = new List<BasicAction>();
 
-        switch(locationType)
+        switch (locationType)
         {
             case LocationTypes.Industry:
-                if(!activityTypes.Contains(ActivityTypes.Labor)) activityTypes.Add(ActivityTypes.Labor);
+                if (!activityTypes.Contains(ActivityTypes.Labor)) activityTypes.Add(ActivityTypes.Labor);
                 break;
 
             case LocationTypes.Commerce:
-                if(!activityTypes.Contains(ActivityTypes.Trade)) activityTypes.Add(ActivityTypes.Trade);
+                if (!activityTypes.Contains(ActivityTypes.Trade)) activityTypes.Add(ActivityTypes.Trade);
                 break;
 
             case LocationTypes.Social:
-                if(!activityTypes.Contains(ActivityTypes.Mingle)) activityTypes.Add(ActivityTypes.Mingle);
+                if (!activityTypes.Contains(ActivityTypes.Mingle)) activityTypes.Add(ActivityTypes.Mingle);
                 break;
 
             case LocationTypes.Nature:
-                if(!activityTypes.Contains(ActivityTypes.Gather)) activityTypes.Add(ActivityTypes.Gather);
+                if (!activityTypes.Contains(ActivityTypes.Gather)) activityTypes.Add(ActivityTypes.Gather);
                 break;
         }
 
@@ -73,7 +73,7 @@
                     )
                 );
                 break;
-            
+
             case LocationTypes.Commerce:
                 actions.Add(
                     AddAction(action => action
@@ -87,7 +87,7 @@
                     )
                 );
                 break;
-         
+
             case LocationTypes.Social:
                 actions.Add(
                     AddAction(action => action

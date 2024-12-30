@@ -9,7 +9,7 @@
         this.character = character;
         return this;
     }
-    
+
     public CharacterPropertiesBuilder InLocation(LocationNames location)
     {
         this.location = location;
@@ -34,16 +34,16 @@
         return this;
     }
 
-    public CharacterProperties Build()
+    public Character Build()
     {
         List<BasicAction> locActions = CharacterActionsFactory.Create(
         );
 
         locActions.AddRange(actions);
 
-        return new CharacterProperties
+        return new Character
         {
-            Character = character,
+            CharacterName = character,
             Location = location,
             Actions = locActions
         };

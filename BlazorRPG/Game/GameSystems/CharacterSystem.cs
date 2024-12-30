@@ -3,7 +3,7 @@
 public class CharacterSystem
 {
     private readonly GameState gameState;
-    private readonly List<CharacterProperties> allCharacterProperties;
+    private readonly List<Character> allCharacterProperties;
 
     public CharacterSystem(GameState gameState, GameContentProvider contentProvider)
     {
@@ -13,7 +13,7 @@ public class CharacterSystem
 
     public List<BasicAction> GetActionsForCharacter(CharacterNames character)
     {
-        CharacterProperties characterProperties = allCharacterProperties.FirstOrDefault(x => x.Character == character);
+        Character characterProperties = allCharacterProperties.FirstOrDefault(x => x.CharacterName == character);
         if (characterProperties == null) return null;
 
         List<BasicAction> actions = characterProperties.Actions;
@@ -22,8 +22,8 @@ public class CharacterSystem
 
     public CharacterNames? GetCharacterAtLocation(LocationNames currentLocation)
     {
-        CharacterProperties characterProperties = allCharacterProperties.FirstOrDefault(x => x.Location == currentLocation);
+        Character characterProperties = allCharacterProperties.FirstOrDefault(x => x.Location == currentLocation);
         if (characterProperties == null) return null;
-        return characterProperties.Character;
+        return characterProperties.CharacterName;
     }
 }

@@ -2,27 +2,6 @@
 @inherits ComponentBase
 
 <div class="game-container">
-    
-    [Base Stats]
-    <br />
-    <text>- Health: @GameState.Player.Health/@GameState.Player.MaxHealth</text>
-    <br />
-    <text>- Food: @GameState.Player.Inventory.Food</text>
-    <br />
-    <text>- Coins: @GameState.Player.Coins</text>
-    <br />
-    <br />
-
-    [Energy]
-    <br />
-    <text>- Physical: @GameState.Player.PhysicalEnergy/@GameState.Player.MaxPhysicalEnergy</text>
-    <br />
-    <text>- Focus: @GameState.Player.FocusEnergy/@GameState.Player.MaxFocusEnergy</text>
-    <br />
-    <text>- Social: @GameState.Player.SocialEnergy/@GameState.Player.MaxSocialEnergy</text>
-    <br />
-    <br />
-
     <CascadingValue Value="CurrentScreen">
         <GameScreen Screen="CurrentScreen">
             <MainGameScreen>
@@ -102,10 +81,9 @@
             </ActionPreviewScreen>
             <ActionResultScreen>
                 <h2>Action Result</h2>
-                <br />
                 @if (LastActionResult != null)
                 {
-                    <text>[@(LastActionResult.IsSuccess ? "Success" : "Failure")]</text>
+                    <text>@(LastActionResult.IsSuccess ? "Success" : "Failure")</text>
                     <br />
                     <br />
                     <text>[Results]</text>
@@ -117,6 +95,33 @@
                     }
                     <br />
                 }
+                
+                <br />
+                --------------------------------
+                <br />
+
+                <h2>New Stats</h2>
+
+                [New Base Stats]
+                <br />
+                <text>- Health: @GameState.Player.Health/@GameState.Player.MaxHealth</text>
+                <br />
+                <text>- Food: @GameState.Player.Inventory.Food</text>
+                <br />
+                <text>- Coins: @GameState.Player.Coins</text>
+                <br />
+                <br />
+
+                [New Energy]
+                <br />
+                <text>- Physical: @GameState.Player.PhysicalEnergy/@GameState.Player.MaxPhysicalEnergy</text>
+                <br />
+                <text>- Focus: @GameState.Player.FocusEnergy/@GameState.Player.MaxFocusEnergy</text>
+                <br />
+                <text>- Social: @GameState.Player.SocialEnergy/@GameState.Player.MaxSocialEnergy</text>
+                <br />
+                <br />
+
                 <MenuOptions>
                     <MenuOption Index="1" Text="To Action Selection" OnClick="ToActionSelection" />
                     <BackOption OnBack="PopScreen" />
@@ -125,6 +130,6 @@
 
         </GameScreen>
     </CascadingValue>
-
     <ActionResultMessage Result="LastActionResult" />
+
 </div>
