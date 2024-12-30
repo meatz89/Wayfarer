@@ -164,7 +164,7 @@ public partial class GameUI : ComponentBase
         List<UserTravelOption> currentTravelOptions = GameState.CurrentTravelOptions;
         UserTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Index == locationIndex);
 
-        ActionResult result = ActionManager.ExecuteTravelAction(location.Location);
+        ActionResult result = ActionManager.MoveToLocation(location.Location);
 
         if (result.IsSuccess)
         {

@@ -260,38 +260,58 @@
         return changes;
     }
 
-    public void AdvanceTime(int inHours)
+    public void SetNewTime(int hours)
     {
-        const int hoursPerWindow = 6;
-        int timeSlot = (int)CurrentTimeInHours / 6;
+        CurrentTimeInHours = hours - 1;
+        bool stillAlive = AdvanceTime(1);
+    }
 
+    public bool AdvanceTime(int inHours)
+    {
+        // Advance the current time
+        CurrentTimeInHours += inHours;
+
+        // Constants and calculation for time slot determination
+        const int hoursPerWindow = 6;
+        int timeSlot = (CurrentTimeInHours / hoursPerWindow) % 4; // There are 4 time windows in a day
+
+        // Store the previous time slot to detect transitions
+        TimeWindows previousTimeSlot = CurrentTimeSlot;
+
+        // Determine the current time slot based on the calculated timeSlot value
         switch (timeSlot)
         {
             case 0:
-                if (CurrentTimeSlot != TimeWindows.Morning)
-                {
-                    StartNewDay();
-                }
-                CurrentTimeSlot = TimeWindows.Night; break;
-
+                CurrentTimeSlot = TimeWindows.Night;
+                break;
             case 1:
-                CurrentTimeSlot = TimeWindows.Morning; break;
-
+                CurrentTimeSlot = TimeWindows.Morning;
+                break;
             case 2:
-                CurrentTimeSlot = TimeWindows.Afternoon; break;
-
+                CurrentTimeSlot = TimeWindows.Afternoon;
+                break;
             case 3:
-                CurrentTimeSlot = TimeWindows.Evening; break;
+                CurrentTimeSlot = TimeWindows.Evening;
+                break;
         }
+
+        // If transitioning from Night to Morning, start a new day
+        if (previousTimeSlot == TimeWindows.Night && CurrentTimeSlot == TimeWindows.Morning)
+        {
+            return StartNewDay(); // Assuming StartNewDay returns a bool indicating success or failure
+        }
+
+        // Return true to indicate normal time advancement
+        return true;
     }
 
-    private void StartNewDay()
+    private bool StartNewDay()
     {
         bool hasShelter = true;
 
         int food = Player.Inventory.Food;
         int foodNeeded = GameRules.DailyFoodRequirement;
-        bool hasFood = foodNeeded >= food;
+        bool hasFood = food >= foodNeeded;
 
         food = hasFood ? food - foodNeeded : 0;
 
@@ -300,23 +320,14 @@
         int noFoodHealthLoss = GameRules.HealthLossNoFood;
         int noShelterHealthLoss = GameRules.HealthLossNoShelter;
 
-        if (!hasFood) health = health - noFoodHealthLoss;
+        if (!hasFood) Player.Health = health - noFoodHealthLoss;
 
-        if (health < minHealth)
-        {
-            throw new Exception("You Lost");
-            Environment.Exit(0);
-        }
+        return Player.Health > Player.MinHealth;
     }
 
     public void SetLastActionResult(ActionResult result)
     {
         LastActionResult = result;
-    }
-
-    public void SetCurrentLocation(LocationNames name)
-    {
-        CurrentLocation = name;
     }
 
     public void ClearLastActionResult()
@@ -334,12 +345,6 @@
         CurrentUserAction = action;
     }
 
-    public void SetCurrentTime(int hours)
-    {
-        CurrentTimeInHours = hours - 1;
-        AdvanceTime(1);
-    }
-
     public void SetCurrentTravelOptions(List<UserTravelOption> userTravelOptions)
     {
         this.CurrentTravelOptions = userTravelOptions;
@@ -348,5 +353,10 @@
     public void SetValidUserActions(List<UserActionOption> userActions)
     {
         this.ValidUserActions = userActions;
+    }
+
+    public void SetNewLocation(LocationNames name)
+    {
+        CurrentLocation = name;
     }
 }

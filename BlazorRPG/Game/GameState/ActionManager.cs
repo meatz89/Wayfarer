@@ -150,7 +150,8 @@ public class ActionManager
         GameState.ApplyAllChanges();
         ActionResultMessages allMessages = GameState.GetAndClearChanges();
 
-        AdvanceTime();
+        bool stillAlive = AdvanceTime();
+        if (!stillAlive) return ActionResult.Failure("you died");
 
         ActionResult actionResult = ActionResult.Success("Action success!", allMessages);
         GameState.SetLastActionResult(actionResult);
@@ -179,7 +180,8 @@ public class ActionManager
         GameState.ApplyAllChanges();
         ActionResultMessages allMessages = GameState.GetAndClearChanges();
 
-        AdvanceTime();
+        bool stillAlive = AdvanceTime();
+        if (!stillAlive) return ActionResult.Failure("you died");
 
         ActionResult actionResult = ActionResult.Success("Action success!", allMessages);
         GameState.SetLastActionResult(actionResult);
@@ -187,11 +189,11 @@ public class ActionManager
         return actionResult;
     }
 
-    public ActionResult ExecuteTravelAction(LocationNames locationName)
+    public ActionResult MoveToLocation(LocationNames locationName)
     {
         Location location = FindLocation(locationName);
 
-        GameState.SetCurrentLocation(location.Name);
+        GameState.SetNewLocation(location.Name);
 
         UpdateTavelOptions();
         UpdateAvailableActions();
@@ -201,9 +203,10 @@ public class ActionManager
         return actionResult;
     }
 
-    public void AdvanceTime()
+    public bool AdvanceTime()
     {
-        GameState.AdvanceTime(1);
+        bool stillAlive = GameState.AdvanceTime(1);
+        return stillAlive;
     }
 
     private bool CheckRequirement(IRequirement requirement)

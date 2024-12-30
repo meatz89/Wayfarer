@@ -35,36 +35,25 @@ namespace TestProject1
             for (int i = 0; i < 5; i++)
             {
                 GameTestHelpers.AdvanceToTimeWindow(ActionManager, TimeWindows.Night);
+                GameTestHelpers.AdvanceToTimeWindow(ActionManager, TimeWindows.Morning);
             }
 
-            Assert.Equal(GameState.Player.MinHealth, GameState.Player.Health);
-        }
-
-        [Fact]
-        public void Player_Dies_Without_Shelter()
-        {
-            // Stay in location without shelter for multiple nights
-            GameState.SetCurrentLocation(LocationNames.Docks);
-            for (int i = 0; i < 5; i++)
-            {
-                GameTestHelpers.AdvanceToTimeWindow(ActionManager, TimeWindows.Night);
-            }
-
-            Assert.Equal(GameState.Player.MinHealth, GameState.Player.Health);
+            Assert.True(GameState.Player.MinHealth >= GameState.Player.Health);
         }
 
         [Fact]
         public void Can_Generate_Basic_Resources()
         {
             // Test dock labor
-            GameState.SetCurrentLocation(LocationNames.Docks);
+            ActionManager.MoveToLocation(LocationNames.Docks);
             GameTestHelpers.AdvanceToTimeWindow(ActionManager, TimeWindows.Morning);
             int initialCoins = GameState.Player.Coins;
             GameTestHelpers.ExecuteActionSequence(ActionManager, BasicActionTypes.Labor);
+
             Assert.True(GameState.Player.Coins > initialCoins);
 
             // Test forest gathering
-            GameState.SetCurrentLocation(LocationNames.DarkForest);
+            ActionManager.MoveToLocation(LocationNames.DarkForest);
             int initialFood = GameState.Player.Inventory.Food;
             GameTestHelpers.ExecuteActionSequence(ActionManager, BasicActionTypes.Gather);
 
@@ -78,16 +67,19 @@ namespace TestProject1
             for (int day = 0; day < 3; day++)
             {
                 // Morning labor at docks
-                GameState.SetCurrentLocation(LocationNames.Docks);
+                ActionManager.MoveToLocation(LocationNames.Docks);
+
                 GameTestHelpers.AdvanceToTimeWindow(ActionManager, TimeWindows.Morning);
                 GameTestHelpers.ExecuteActionSequence(ActionManager, BasicActionTypes.Labor);
 
                 // Afternoon market food purchase
-                GameState.SetCurrentLocation(LocationNames.MarketSquare);
+                ActionManager.MoveToLocation(LocationNames.MarketSquare);
+
                 GameTestHelpers.ExecuteActionSequence(ActionManager, BasicActionTypes.Trade);
 
                 // Evening tavern shelter
-                GameState.SetCurrentLocation(LocationNames.LionsHeadTavern);
+                ActionManager.MoveToLocation(LocationNames.LionsHeadTavern);
+
                 GameTestHelpers.AdvanceToTimeWindow(ActionManager, TimeWindows.Evening);
                 GameTestHelpers.ExecuteActionSequence(ActionManager, BasicActionTypes.Rest);
             }

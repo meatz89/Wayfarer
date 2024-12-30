@@ -7,6 +7,7 @@ public class GameTestHelpers
         {
             var action = manager.GameState.ValidUserActions
                 .First(a => a.BasicAction.ActionType == actionType).BasicAction;
+
             manager.ExecuteBasicAction(action);
         }
     }

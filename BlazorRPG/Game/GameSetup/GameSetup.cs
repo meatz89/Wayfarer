@@ -3,8 +3,8 @@
     public static GameState CreateNewGame()
     {
         GameState gameState = new GameState();
-        gameState.SetCurrentLocation(LocationNames.HarborStreets);
-        gameState.SetCurrentTime(9);
+        gameState.SetNewLocation(LocationNames.HarborStreets);
+        gameState.SetNewTime(9);
 
         gameState.Locations = new List<Location>
         {
