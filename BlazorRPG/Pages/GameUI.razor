@@ -2,6 +2,27 @@
 @inherits ComponentBase
 
 <div class="game-container">
+    
+    [Base Stats]
+    <br />
+    <text>- Health: @GameState.PlayerInfo.Health/@GameState.PlayerInfo.MaxHealth</text>
+    <br />
+    <text>- Food: @GameState.PlayerInventory.Food</text>
+    <br />
+    <text>- Coins: @GameState.PlayerInfo.Coins</text>
+    <br />
+    <br />
+
+    [Energy]
+    <br />
+    <text>- Physical: @GameState.PlayerInfo.PhysicalEnergy/@GameState.PlayerInfo.MaxPhysicalEnergy</text>
+    <br />
+    <text>- Focus: @GameState.PlayerInfo.FocusEnergy/@GameState.PlayerInfo.MaxFocusEnergy</text>
+    <br />
+    <text>- Social: @GameState.PlayerInfo.SocialEnergy/@GameState.PlayerInfo.MaxSocialEnergy</text>
+    <br />
+    <br />
+
     <CascadingValue Value="CurrentScreen">
         <GameScreen Screen="CurrentScreen">
             <MainGameScreen>

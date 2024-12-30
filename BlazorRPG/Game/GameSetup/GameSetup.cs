@@ -3,6 +3,7 @@
     public static GameState CreateNewGame()
     {
         GameState gameState = new GameState();
+        gameState.CurrentLocation = LocationNames.HarborStreets;
 
         gameState.Locations = new List<Location>
         {
@@ -46,8 +47,6 @@
                     LocationNames.HarborStreets,
                 } }
         };
-
-        gameState.CurrentLocation = LocationNames.Docks;
 
         PlayerInventory playerInventory = new PlayerInventory();
         playerInventory.Food = 1;

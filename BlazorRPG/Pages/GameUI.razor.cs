@@ -24,7 +24,7 @@ public partial class GameUI : ComponentBase
 
     protected override void OnInitialized()
     {
-        screenStack.Push(UIScreens.MainGame);
+        screenStack.Push(UIScreens.ActionSelection);
         CurrentLocation = QueryManager.GetCurrentLocation();
         CurrentTimeWindow = QueryManager.GetCurrentTime();
 
@@ -96,7 +96,7 @@ public partial class GameUI : ComponentBase
         }
         foreach (CoinsOutcome money in messages.Coins)
         {
-            string s = $"Money changed by {money.Amount}";
+            string s = $"Coins changed by {money.Amount}";
             list.Add(s);
         }
         foreach (PhysicalEnergyOutcome physicalEnergy in messages.PhysicalEnergy)

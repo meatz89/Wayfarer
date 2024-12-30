@@ -29,6 +29,21 @@
         return true;
     }
 
+    public List<IOutcome> GetChoiceOutcomes(Narrative narrative, NarrativeStage narrativeStage, int choiceId)
+    {
+        if (narrative?.Stages == null || !narrative.Stages.Any())
+            return null;
+
+        Choice choice = narrative.Stages[0].Choices.FirstOrDefault(c => c.Index == choiceId);
+        if (choice == null)
+            return null;
+
+        if (!CanExecute(narrativeStage, choiceId))
+            return null;
+
+        return choice.Outcomes;
+    }
+    
     private bool CheckRequirement(IRequirement requirement)
     {
         if (requirement is CoinsRequirement money)
@@ -64,56 +79,5 @@
             return false;
         }
         return false;
-    }
-
-    public SystemActionResult ExecuteChoice(Narrative narrative, NarrativeStage narrativeStage, int choiceId)
-    {
-        if (narrative?.Stages == null || !narrative.Stages.Any())
-            return SystemActionResult.Failure("Invalid narrative state");
-
-        Choice choice = narrative.Stages[0].Choices.FirstOrDefault(c => c.Index == choiceId);
-        if (choice == null)
-            return SystemActionResult.Failure("Invalid choice");
-
-        if (!CanExecute(narrativeStage, choiceId))
-            return SystemActionResult.Failure("Cannot execute this choice");
-
-        foreach (IOutcome outcome in choice.Outcomes)
-        {
-            if (outcome is CoinsOutcome outcomeMoney)
-            {
-                gameState.AddCoinsChange(outcomeMoney);
-            }
-            if (outcome is FoodOutcome outcomeFood)
-            {
-                gameState.AddFoodChange(outcomeFood);
-            }
-            if (outcome is HealthOutcome outcomeHealth)
-            {
-                gameState.AddHealthChange(outcomeHealth);
-            }
-            if (outcome is PhysicalEnergyOutcome outcomePhysicalEnergy)
-            {
-                gameState.AddPhysicalEnergyChange(outcomePhysicalEnergy);
-            }
-            if (outcome is FocusEnergyOutcome outcomeFocusEnergy)
-            {
-                gameState.AddFocusEnergyChange(outcomeFocusEnergy);
-            }
-            if (outcome is SocialEnergyOutcome outcomeSocialEnergy)
-            {
-                gameState.AddSocialEnergyChange(outcomeSocialEnergy);
-            }
-            if (outcome is SkillLevelOutcome outcomeSkillLevel)
-            {
-                gameState.AddSkillLevelChange(outcomeSkillLevel);
-            }
-            if (outcome is ItemOutcome outcomeItem)
-            {
-                gameState.AddItemChange(outcomeItem);
-            }
-        }
-
-        return SystemActionResult.Success("Action completed successfully");
     }
 }

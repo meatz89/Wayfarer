@@ -11,39 +11,40 @@
         this.LocationSystem = locationSystem;
     }
 
-    public ActionResult ExecuteBasicAction(BasicAction action)
+    public ActionResult ExecuteBasicAction(BasicAction basicAction)
     {
-        LocationNames currentLocation = gameState.CurrentLocation;
-
-        SystemActionResult result = ExecuteAction(action);
-        if (!result.IsSuccess)
+        foreach (IRequirement requirement in basicAction.Requirements)
         {
-            return ActionResult.Failure("Not Possible");
+            bool hasRequirement = CheckRequirement(requirement);
+            if (!hasRequirement) return ActionResult.Failure("Requirement not met");
         }
 
-        gameState.ApplyAllChanges();
-        ActionResultMessages allMessages = gameState.GetAndClearChanges();
-
-        return ActionResult.Success("Action success!", allMessages);
-    }
-
-    public SystemActionResult ExecuteAction(BasicAction basicAction)
-    {
         foreach (IOutcome outcome in basicAction.Outcomes)
         {
             ApplyOutcome(outcome);
         }
 
+        gameState.ApplyAllChanges();
+        ActionResultMessages allMessages = gameState.GetAndClearChanges();
+
         AdvanceTime();
-        return SystemActionResult.Success("Action completed successfully");
+
+        return ActionResult.Success("Action success!", allMessages);
     }
 
     public ActionResult MakeChoiceForNarrative(Narrative currentNarrative, NarrativeStage narrativeStage, int choice)
     {
-        SystemActionResult result = NarrativeSystem.ExecuteChoice(currentNarrative, narrativeStage, choice);
-        if (!result.IsSuccess)
+        var outcomes = NarrativeSystem.GetChoiceOutcomes(currentNarrative, narrativeStage, choice);
+        if (outcomes == null)
         {
-            return ActionResult.Failure(result.Message);
+            return ActionResult.Failure("No Success");
+        }
+        else
+        {
+            foreach (IOutcome outcome in outcomes)
+            {
+                ApplyOutcome(outcome);
+            }
         }
 
         gameState.ApplyAllChanges();
@@ -56,6 +57,43 @@
     public void AdvanceTime()
     {
         gameState.AdvanceTime(1);
+    }
+
+    private bool CheckRequirement(IRequirement requirement)
+    {
+        if (requirement is CoinsRequirement money)
+        {
+            return gameState.PlayerInfo.Coins >= money.Amount;
+        }
+        if (requirement is FoodRequirement food)
+        {
+            return gameState.PlayerInfo.Health >= food.Amount;
+        }
+        if (requirement is HealthRequirement health)
+        {
+            return gameState.PlayerInfo.Health >= health.Amount;
+        }
+        if (requirement is PhysicalEnergyRequirement physicalEnergy)
+        {
+            return gameState.PlayerInfo.PhysicalEnergy >= physicalEnergy.Amount;
+        }
+        if (requirement is FocusEnergyRequirement focusEnergy)
+        {
+            return gameState.PlayerInfo.FocusEnergy >= focusEnergy.Amount;
+        }
+        if (requirement is SocialEnergyRequirement socialEnergy)
+        {
+            return gameState.PlayerInfo.SocialEnergy >= socialEnergy.Amount;
+        }
+        if (requirement is SkillLevelRequirement skillLevel)
+        {
+            return gameState.PlayerInfo.Skills[skillLevel.SkillType] >= skillLevel.Amount;
+        }
+        if (requirement is ItemRequirement item)
+        {
+            return false;
+        }
+        return false;
     }
 
     private void ApplyOutcome(IOutcome outcome)
