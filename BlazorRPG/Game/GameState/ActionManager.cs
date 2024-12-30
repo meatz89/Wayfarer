@@ -89,31 +89,31 @@
     {
         if (requirement is CoinsRequirement money)
         {
-            return gameState.PlayerInfo.Coins >= money.Amount;
+            return gameState.Player.Coins >= money.Amount;
         }
         if (requirement is FoodRequirement food)
         {
-            return gameState.PlayerInfo.Health >= food.Amount;
+            return gameState.Player.Health >= food.Amount;
         }
         if (requirement is HealthRequirement health)
         {
-            return gameState.PlayerInfo.Health >= health.Amount;
+            return gameState.Player.Health >= health.Amount;
         }
         if (requirement is PhysicalEnergyRequirement physicalEnergy)
         {
-            return gameState.PlayerInfo.PhysicalEnergy >= physicalEnergy.Amount;
+            return gameState.Player.PhysicalEnergy >= physicalEnergy.Amount;
         }
         if (requirement is FocusEnergyRequirement focusEnergy)
         {
-            return gameState.PlayerInfo.FocusEnergy >= focusEnergy.Amount;
+            return gameState.Player.FocusEnergy >= focusEnergy.Amount;
         }
         if (requirement is SocialEnergyRequirement socialEnergy)
         {
-            return gameState.PlayerInfo.SocialEnergy >= socialEnergy.Amount;
+            return gameState.Player.SocialEnergy >= socialEnergy.Amount;
         }
         if (requirement is SkillLevelRequirement skillLevel)
         {
-            return gameState.PlayerInfo.Skills[skillLevel.SkillType] >= skillLevel.Amount;
+            return gameState.Player.Skills[skillLevel.SkillType] >= skillLevel.Amount;
         }
         if (requirement is ItemRequirement item)
         {

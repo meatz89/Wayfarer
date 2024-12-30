@@ -48,10 +48,10 @@
                 } }
         };
 
-        PlayerInventory playerInventory = new PlayerInventory();
+        Inventory playerInventory = new Inventory();
         playerInventory.Food = 1;
 
-        PlayerInfo playerInfo = new PlayerInfo();
+        Player playerInfo = new Player();
         playerInfo.Coins = 5;
 
         playerInfo.Health = 8;
@@ -72,9 +72,9 @@
         skills[SkillTypes.Charisma] = 1;
 
         playerInfo.Skills = skills;
+        playerInfo.Inventory = playerInventory;
 
-        gameState.PlayerInfo = playerInfo;
-        gameState.PlayerInventory = playerInventory;
+        gameState.Player = playerInfo;
 
         return gameState;
     }

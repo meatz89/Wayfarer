@@ -1,7 +1,6 @@
 ﻿public class GameState
 {
-    public PlayerInfo PlayerInfo { get; set; }
-    public PlayerInventory PlayerInventory { get; set; }
+    public Player Player { get; set; }
 
     private ActionResultMessages outstandingChanges = new();
     private ActionResultMessages processedChanges = new();
@@ -174,10 +173,10 @@
 
     private bool ModifyCoins(int amount)
     {
-        int newCoins = Math.Max(0, PlayerInfo.Coins + amount);
-        if (newCoins != PlayerInfo.Coins)
+        int newCoins = Math.Max(0, Player.Coins + amount);
+        if (newCoins != Player.Coins)
         {
-            PlayerInfo.Coins = newCoins;
+            Player.Coins = newCoins;
             return true;
         }
         return false;
@@ -185,10 +184,10 @@
 
     private bool ModifyFood(int amount)
     {
-        int newFood = Math.Max(0, PlayerInventory.Food + amount);
-        if (newFood != PlayerInventory.Food)
+        int newFood = Math.Max(0, Player.Inventory.Food + amount);
+        if (newFood != Player.Inventory.Food)
         {
-            PlayerInventory.Food = newFood;
+            Player.Inventory.Food = newFood;
             return true;
         }
         return false;
@@ -196,10 +195,10 @@
 
     private bool ModifyHealth(int amount)
     {
-        int newHealth = Math.Clamp(PlayerInfo.Health + amount, 0, PlayerInfo.MaxHealth);
-        if (newHealth != PlayerInfo.Health)
+        int newHealth = Math.Clamp(Player.Health + amount, 0, Player.MaxHealth);
+        if (newHealth != Player.Health)
         {
-            PlayerInfo.Health = newHealth;
+            Player.Health = newHealth;
             return true;
         }
         return false;
@@ -207,10 +206,10 @@
 
     private bool ModifyPhysicalEnergy(int amount)
     {
-        int newEnergy = Math.Clamp(PlayerInfo.PhysicalEnergy + amount, 0, PlayerInfo.MaxPhysicalEnergy);
-        if (newEnergy != PlayerInfo.PhysicalEnergy)
+        int newEnergy = Math.Clamp(Player.PhysicalEnergy + amount, 0, Player.MaxPhysicalEnergy);
+        if (newEnergy != Player.PhysicalEnergy)
         {
-            PlayerInfo.PhysicalEnergy = newEnergy;
+            Player.PhysicalEnergy = newEnergy;
             return true;
         }
         return false;
@@ -218,10 +217,10 @@
 
     private bool ModifyFocusEnergy(int amount)
     {
-        int newEnergy = Math.Clamp(PlayerInfo.FocusEnergy + amount, 0, PlayerInfo.MaxFocusEnergy);
-        if (newEnergy != PlayerInfo.FocusEnergy)
+        int newEnergy = Math.Clamp(Player.FocusEnergy + amount, 0, Player.MaxFocusEnergy);
+        if (newEnergy != Player.FocusEnergy)
         {
-            PlayerInfo.FocusEnergy = newEnergy;
+            Player.FocusEnergy = newEnergy;
             return true;
         }
         return false;
@@ -229,10 +228,10 @@
 
     private bool ModifySocialEnergy(int amount)
     {
-        int newEnergy = Math.Clamp(PlayerInfo.SocialEnergy + amount, 0, PlayerInfo.MaxSocialEnergy);
-        if (newEnergy != PlayerInfo.SocialEnergy)
+        int newEnergy = Math.Clamp(Player.SocialEnergy + amount, 0, Player.MaxSocialEnergy);
+        if (newEnergy != Player.SocialEnergy)
         {
-            PlayerInfo.SocialEnergy = newEnergy;
+            Player.SocialEnergy = newEnergy;
             return true;
         }
         return false;
@@ -240,10 +239,10 @@
 
     private bool ModifySkillLevel(SkillTypes skillType, int amount)
     {
-        int newSkillLevel = Math.Max(0, PlayerInfo.Skills[skillType] + amount);
-        if (newSkillLevel != PlayerInfo.Skills[skillType])
+        int newSkillLevel = Math.Max(0, Player.Skills[skillType] + amount);
+        if (newSkillLevel != Player.Skills[skillType])
         {
-            PlayerInfo.Skills[skillType] = newSkillLevel;
+            Player.Skills[skillType] = newSkillLevel;
             return true;
         }
         return false;
