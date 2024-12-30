@@ -5,7 +5,6 @@ namespace BlazorRPG.Pages;
 public partial class GameUI : ComponentBase
 {
     [Inject] private GameState GameState { get; set; }
-    [Inject] private QueryManager QueryManager { get; set; }
     [Inject] private ActionManager ActionManager { get; set; }
     [Inject] private NavigationManager NavigationManager { get; set; }
 
@@ -15,7 +14,7 @@ public partial class GameUI : ComponentBase
     public Player Player => GameState.Player;
     public LocationNames CurrentLocation => GameState.CurrentLocation;
     public TimeWindows CurrentTime => GameState.CurrentTimeSlot;
-    public List<UserActionOption> CurrentActions => GameState.CurrentActions;
+    public List<UserActionOption> CurrentActions => GameState.ValidUserActions;
     public UserActionOption CurrentUserAction => GameState.CurrentUserAction;
     public List<UserTravelOption> CurrentTravelOptions => GameState.CurrentTravelOptions;
     public ActionResult LastActionResult => GameState.LastActionResult;
@@ -25,13 +24,8 @@ public partial class GameUI : ComponentBase
     protected override void OnInitialized()
     {
         screenStack.Push(UIScreens.ActionSelection);
-
-        UpdateAvailableActions();
-
-        List<LocationNames> connectedLocations = QueryManager.GetConnectedLocations();
-        GameState.UpdateTavelOptions(connectedLocations);
+        ActionManager.Initialize();
     }
-
 
     public string GetActionDescription(UserActionOption userActionOption)
     {
@@ -46,19 +40,6 @@ public partial class GameUI : ComponentBase
         return description;
     }
 
-    private void UpdateAvailableActions()
-    {
-        List<PlayerAction> global = QueryManager.GetGlobalActions();
-        List<PlayerAction> location = QueryManager.GetLocationActions();
-        List<PlayerAction> character = QueryManager.GetCharacterActions();
-
-        List<PlayerAction> playerActions = new List<PlayerAction>();
-        playerActions.AddRange(global);
-        playerActions.AddRange(location);
-        playerActions.AddRange(character);
-
-        GameState.CreateUserActionsFromPlayerActions(playerActions);
-    }
 
     public List<string> GetResultMessages()
     {
@@ -197,10 +178,9 @@ public partial class GameUI : ComponentBase
         GameState.ClearCurrentUserAction();
 
         GameState.ClearCurrentNarrative();
-        UpdateAvailableActions();
 
-        List<LocationNames> connectedLocations = QueryManager.GetConnectedLocations();
-        GameState.UpdateTavelOptions(connectedLocations);
+        ActionManager.UpdateTavelOptions();
+        ActionManager.UpdateAvailableActions();
     }
 
 

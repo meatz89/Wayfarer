@@ -9,7 +9,6 @@
         services.AddSingleton<LocationSystem>();
 
         services.AddSingleton<ActionManager>();
-        services.AddSingleton<QueryManager>();
 
         return services;
     }

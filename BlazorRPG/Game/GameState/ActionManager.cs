@@ -1,4 +1,6 @@
-﻿public class ActionManager
+﻿using System.Diagnostics;
+
+public class ActionManager
 {
     private GameState gameState;
     public NarrativeSystem NarrativeSystem { get; private set; }
@@ -9,6 +11,121 @@
         this.gameState = gameState;
         this.NarrativeSystem = narrativeSystem;
         this.LocationSystem = locationSystem;
+    }
+
+    public void Initialize()
+    {
+        UpdateTavelOptions();
+        UpdateAvailableActions();
+    }
+
+    public void UpdateTavelOptions()
+    {
+        List<LocationNames> connectedLocations = GetConnectedLocations();
+
+        List<UserTravelOption> userTravelOptions = new List<UserTravelOption>();
+        
+        for (int i = 0; i < connectedLocations.Count; i++)
+        {
+            LocationNames location = connectedLocations[i];
+
+            UserTravelOption travel = new UserTravelOption()
+            {
+                Index = i + 1,
+                Location = location
+            };
+
+            userTravelOptions.Add(travel);
+        }
+    
+        gameState.SetCurrentTravelOptions(userTravelOptions);
+    }
+
+    public void UpdateAvailableActions()
+    {
+        List<PlayerAction> global = GetGlobalActions();
+        List<PlayerAction> location = GetLocationActions();
+        List<PlayerAction> character = GetCharacterActions();
+
+        List<PlayerAction> playerActions = new List<PlayerAction>();
+        playerActions.AddRange(global);
+        playerActions.AddRange(location);
+        playerActions.AddRange(character);
+
+        CreateUserActionsFromPlayerActions(playerActions);
+    }
+
+    public void CreateUserActionsFromPlayerActions(List<PlayerAction> playerActions)
+    {
+        List<UserActionOption> userActions = new List<UserActionOption>();
+        int actionIndex = 1;
+
+        foreach (PlayerAction ga in playerActions)
+        {
+            bool isDisabled = ga.Action.TimeSlots.Count > 0 && !ga.Action.TimeSlots.Contains(gameState.CurrentTimeSlot);
+
+            UserActionOption ua = new UserActionOption
+            {
+                Action = ga.Action,
+                Description = ga.Description,
+                Index = actionIndex++,
+                IsDisabled = isDisabled
+            };
+            userActions.Add(ua);
+        }
+
+        gameState.SetValidUserActions(userActions);
+    }
+
+    public List<PlayerAction> GetGlobalActions()
+    {
+        List<PlayerAction> actions = new List<PlayerAction>();
+
+        actions.Add(new PlayerAction()
+        {
+            Action = new BasicAction() { ActionType = BasicActionTypes.CheckStatus },
+            Description = "(System) Check Status"
+        });
+        actions.Add(new PlayerAction()
+        {
+            Action = new BasicAction() { ActionType = BasicActionTypes.Travel },
+            Description = "(System) Travel"
+        });
+        actions.Add(new PlayerAction()
+        {
+            Action = new BasicAction() { ActionType = BasicActionTypes.Wait },
+            Description = "(System) Wait"
+        });
+
+        return actions;
+    }
+
+    public List<PlayerAction> GetLocationActions()
+    {
+        LocationNames currentLocation = gameState.CurrentLocation;
+
+        // Add Location Action
+        List<BasicAction> locationActions = LocationSystem.GetActionsForLocation(currentLocation);
+
+        List<PlayerAction> actions = new List<PlayerAction>();
+        if (locationActions.Count > 0)
+        {
+            foreach (BasicAction locationAction in locationActions)
+            {
+                actions.Add(new PlayerAction()
+                {
+                    Action = locationAction,
+                    Description = $"[{locationAction.ActionType.ToString()}] {locationAction.Description}"
+                });
+            }
+        }
+        return actions;
+    }
+
+    public List<PlayerAction> GetCharacterActions()
+    {
+        List<PlayerAction> actions = new List<PlayerAction>();
+        return actions;
     }
 
     public ActionResult ExecuteBasicAction(BasicAction basicAction)
@@ -75,6 +192,10 @@
         Location location = FindLocation(locationName);
 
         gameState.SetCurrentLocation(location.Name);
+
+        UpdateTavelOptions();
+        UpdateAvailableActions();
+
         ActionResult actionResult = ActionResult.Success($"Moved to {location.Name}.", new ActionResultMessages());
 
         return actionResult;
@@ -183,5 +304,12 @@
     {
         return gameState.Locations.Where(x => x.Name == locationName).FirstOrDefault();
     }
-}
 
+    public List<LocationNames> GetConnectedLocations()
+    {
+        Location location = FindLocation(gameState.CurrentLocation);
+
+        List<LocationNames> loc = location.ConnectedLocations;
+        return loc;
+    }
+}
