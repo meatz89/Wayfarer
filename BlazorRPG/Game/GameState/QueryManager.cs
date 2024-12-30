@@ -1,4 +1,5 @@
 ﻿
+
 public class QueryManager
 {
     private readonly GameState gameState;
@@ -17,12 +18,17 @@ public class QueryManager
         actions.Add(new PlayerAction()
         {
             Action = new BasicAction() { ActionType = BasicActionTypes.CheckStatus },
-            Description = "[Player] Check Status"
+            Description = "(System) Check Status"
         });
         actions.Add(new PlayerAction()
         {
             Action = new BasicAction() { ActionType = BasicActionTypes.Travel },
-            Description = "[Player] Travel"
+            Description = "(System) Travel"
+        });
+        actions.Add(new PlayerAction()
+        {
+            Action = new BasicAction() { ActionType = BasicActionTypes.Wait },
+            Description = "(System) Wait"
         });
 
         return actions;
@@ -74,5 +80,10 @@ public class QueryManager
     public LocationNames GetCurrentLocation()
     {
         return gameState.CurrentLocation;
+    }
+
+    internal TimeWindows GetCurrentTime()
+    {
+        return gameState.CurrentTime;
     }
 }

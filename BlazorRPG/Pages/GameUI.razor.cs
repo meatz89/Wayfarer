@@ -11,6 +11,7 @@ public partial class GameUI : ComponentBase
 
     private Stack<UIScreens> screenStack = new();
 
+    private TimeWindows CurrentTimeWindow { get; set; }
     private LocationNames CurrentLocation { get; set; }
     private List<UserTravelOption> CurrentTravelOptions { get; set; } = new();
     private List<UserActionOption> CurrentActions { get; set; } = new();
@@ -25,6 +26,7 @@ public partial class GameUI : ComponentBase
     {
         screenStack.Push(UIScreens.MainGame);
         CurrentLocation = QueryManager.GetCurrentLocation();
+        CurrentTimeWindow = QueryManager.GetCurrentTime();
 
         UpdateAvailableActions();
         UpdateTavelOptions();
@@ -32,7 +34,12 @@ public partial class GameUI : ComponentBase
 
     private LocationNames GetCurrentLocation()
     {
-        return QueryManager.GetCurrentLocation();
+        return CurrentLocation;
+    }
+
+    private TimeWindows GetCurrentTime()
+    {
+        return CurrentTimeWindow;
     }
 
     private void UpdateTavelOptions()
@@ -117,25 +124,23 @@ public partial class GameUI : ComponentBase
         return list;
     }
 
-    private void PushScreen(UIScreens screen)
+    private string GetActionDescription(UserActionOption userActionOption)
     {
-        screenStack.Push(screen);
-        StateHasChanged();
-    }
+        string description = string.Empty;
 
-    private void PopScreen()
-    {
-        if (screenStack.Count > 1)
+        if (!string.IsNullOrWhiteSpace(userActionOption.Action.Description))
         {
-            screenStack.Pop();
-            StateHasChanged();
+            if (userActionOption.IsDisabled)
+            {
+                description = "[Unavailable] ";
+            }
+            description += userActionOption.Action.Description;
         }
-    }
-
-    private void ToActionSelection()
-    {
-        LastActionResult = null;
-        PushScreen(UIScreens.ActionSelection);
+        else
+        {
+            description += userActionOption.Description;
+        }
+        return description;
     }
 
     private void HandleActionSelection(UserActionOption action)
@@ -147,6 +152,11 @@ public partial class GameUI : ComponentBase
         else if (action.Action.ActionType == BasicActionTypes.Travel)
         {
             PushScreen(UIScreens.Travel);
+        }
+        else if (action.Action.ActionType == BasicActionTypes.Wait)
+        {
+            ActionManager.AdvanceTime();
+            CompleteActionExecution();
         }
         else
         {
@@ -180,11 +190,9 @@ public partial class GameUI : ComponentBase
 
             if (result.IsSuccess)
             {
-                CurrentUserAction = null;
-                GameState.ClearCurrentNarrative();
                 PopScreen();
                 PushScreen(UIScreens.ActionResult);
-                UpdateAvailableActions();
+                CompleteActionExecution();
             }
         }
     }
@@ -199,11 +207,9 @@ public partial class GameUI : ComponentBase
 
         if (result.IsSuccess)
         {
-            CurrentUserAction = null;
-            GameState.ClearCurrentNarrative();
             PopScreen();
             PushScreen(UIScreens.ActionResult);
-            UpdateAvailableActions();
+            CompleteActionExecution();
         }
     }
 
@@ -213,26 +219,41 @@ public partial class GameUI : ComponentBase
 
         ActionResult result = ActionManager.TravelTo(location.Location);
         LastActionResult = result;
+
         if (result.IsSuccess)
         {
             PopScreen();
-            UpdateAvailableActions();
-            UpdateTavelOptions();
-            CurrentLocation = QueryManager.GetCurrentLocation();
+            CompleteActionExecution();
         }
     }
 
-    private static List<UserActionOption> CreateUserActionsFromPlayerActions(List<PlayerAction> playerActions)
+    private void CompleteActionExecution()
+    {
+        CurrentLocation = QueryManager.GetCurrentLocation();
+        CurrentTimeWindow = QueryManager.GetCurrentTime();
+
+        CurrentUserAction = null;
+        GameState.ClearCurrentNarrative();
+        UpdateAvailableActions();
+        UpdateTavelOptions();
+    }
+
+    private List<UserActionOption> CreateUserActionsFromPlayerActions(List<PlayerAction> playerActions)
     {
         List<UserActionOption> userActions = new List<UserActionOption>();
         int actionIndex = 1;
+        TimeWindows currentTime = QueryManager.GetCurrentTime();
+
         foreach (PlayerAction ga in playerActions)
         {
+            bool isDisabled = ga.Action.TimeSlots.Count > 0 && !ga.Action.TimeSlots.Contains(currentTime);
+
             UserActionOption ua = new UserActionOption
             {
                 Action = ga.Action,
                 Description = ga.Description,
-                Index = actionIndex++
+                Index = actionIndex++,
+                IsDisabled = isDisabled
             };
             userActions.Add(ua);
         }
@@ -240,8 +261,30 @@ public partial class GameUI : ComponentBase
     }
 
 
+    private void PushScreen(UIScreens screen)
+    {
+        screenStack.Push(screen);
+        StateHasChanged();
+    }
+
+    private void PopScreen()
+    {
+        if (screenStack.Count > 1)
+        {
+            screenStack.Pop();
+            StateHasChanged();
+        }
+    }
+
+    private void ToActionSelection()
+    {
+        LastActionResult = null;
+        PushScreen(UIScreens.ActionSelection);
+    }
+
     private void ExitGame()
     {
         NavigationManager.NavigateTo("/");
     }
+
 }

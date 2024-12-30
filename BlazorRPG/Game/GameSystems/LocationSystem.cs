@@ -15,7 +15,8 @@ public class LocationSystem
         LocationProperties locationProperties = allLocationProperties.FirstOrDefault(x => x.Location == location);
         if (locationProperties == null) return null;
 
-        return locationProperties.Actions;
+        List<BasicAction> actions = locationProperties.Actions;
+        return actions;
     }
 
 }

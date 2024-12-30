@@ -13,7 +13,6 @@
             </MainGameScreen>
 
             <StatusScreen>
-                <h2>Current Status</h2>
                 <StatusInfo GameState="GameState" />
                 <MenuOptions>
                     <br />
@@ -22,12 +21,13 @@
             </StatusScreen>
 
             <ActionSelectionScreen>
-                <h2>Location: @GetCurrentLocation()</h2>
+                <h2>Location: @GetCurrentLocation() (@GetCurrentTime())</h2>
                 <MenuOptions>
-                    @foreach (var action in CurrentActions)
+                    @foreach (UserActionOption action in CurrentActions)
                     {
                         <MenuOption Index="action.Index"
-                                    Text="@action.Description"
+                                    Text="@GetActionDescription(action)"
+                                    IsDisabled="action.IsDisabled"
                                     OnClick="() => HandleActionSelection(action)" />
                     }
                     <br />
@@ -78,24 +78,26 @@
                     OnActionConfirmed="HandleActionConfirmation"
                     OnBack="PopScreen" />
             </ActionPreviewScreen>
-
             <ActionResultScreen>
                 <h2>Action Result</h2>
-                <MenuOptions>
-                    @if (LastActionResult != null)
+                <br />
+                @if (LastActionResult != null)
+                {
+                    <text>[@(LastActionResult.IsSuccess ? "Success" : "Failure")]</text>
+                    <br />
+                    <br />
+                    <text>[Results]</text>
+                    <br />
+                    @foreach (var message in ResultMessages)
                     {
-                        <div class="@(LastActionResult.IsSuccess ? "success-message" : "error-message")">
-                            <p>@(LastActionResult.IsSuccess ? "Success" : "Failure")</p>
-                            <p>Rewards:</p>
-                            @foreach (var message in ResultMessages)
-                            {
-                                @message
-                                <br />
-                            }
-                        </div>
+                        <text>- @message</text>
+                        <br />
                     }
                     <br />
+                }
+                <MenuOptions>
                     <MenuOption Index="1" Text="To Action Selection" OnClick="ToActionSelection" />
+                    <BackOption OnBack="PopScreen" />
                 </MenuOptions>
             </ActionResultScreen>
 

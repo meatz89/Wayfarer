@@ -3,19 +3,41 @@
 }
 
 <div class="status-info">
-    <p>Location: @GameState.CurrentLocation</p>
+    <h2>Current Status</h2>
     <br />
-    <p>Health: @GameState.PlayerInfo.Health/@GameState.PlayerInfo.MaxHealth</p>
-    <p>Money: @GameState.PlayerInventory.Food</p>
-    <p>Money: @GameState.PlayerInfo.Coins</p>
+
+    [Location]
     <br />
-    <p>P. Energy: @GameState.PlayerInfo.PhysicalEnergy/@GameState.PlayerInfo.MaxPhysicalEnergy</p>
-    <p>F. Energy: @GameState.PlayerInfo.FocusEnergy/@GameState.PlayerInfo.MaxFocusEnergy</p>
-    <p>S. Energy: @GameState.PlayerInfo.SocialEnergy/@GameState.PlayerInfo.MaxSocialEnergy</p>
+     <text>- @GameState.CurrentLocation</text>
     <br />
-    <p>Skills:</p>
+    <br />
+
+    [Base Stats]
+    <br />
+    <text>- Health: @GameState.PlayerInfo.Health/@GameState.PlayerInfo.MaxHealth</text>
+    <br />
+    <text>- Food: @GameState.PlayerInventory.Food</text>
+    <br />
+    <text>- Money: @GameState.PlayerInfo.Coins</text>
+    <br />
+    <br />
+
+    [Energy]
+    <br />
+    <text>- Physical: @GameState.PlayerInfo.PhysicalEnergy/@GameState.PlayerInfo.MaxPhysicalEnergy</text>
+    <br />
+    <text>- Focus: @GameState.PlayerInfo.FocusEnergy/@GameState.PlayerInfo.MaxFocusEnergy</text>
+    <br />
+    <text>- Social: @GameState.PlayerInfo.SocialEnergy/@GameState.PlayerInfo.MaxSocialEnergy</text>
+    <br/>
+    <br />
+
+    [Skills]
+    <br />
     @foreach (var skill in GameState.PlayerInfo.Skills)
     {
-        <p>@skill.Key: @skill.Value</p>
+        <text>- @skill.Key: @skill.Value</text>
+        <br/>
     }
+    <br/>
 </div>

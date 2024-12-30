@@ -8,8 +8,9 @@
     public Narrative CurrentNarrative { get; set; }
     public NarrativeStage CurrentNarrativeStage { get; set; }
     public List<Location> Locations { get; set; }
-    public LocationNames CurrentLocation { get; set; }
     public LocationSystem LocationSystem { get; }
+    public LocationNames CurrentLocation { get; set; }
+    public TimeWindows CurrentTime { get; private set; } = TimeWindows.Morning;
 
     public void SetCurrentNarrative(Narrative narrative)
     {
@@ -256,4 +257,22 @@
         return changes;
     }
 
+    public void AdvanceTime(int timeSlots)
+    {
+        switch (CurrentTime)
+        {
+            case TimeWindows.Morning:
+                CurrentTime = TimeWindows.Afternoon; break;
+
+            case TimeWindows.Afternoon:
+                CurrentTime = TimeWindows.Evening; break;
+
+            case TimeWindows.Evening:
+                CurrentTime = TimeWindows.Night; break;
+
+            case TimeWindows.Night:
+                CurrentTime = TimeWindows.Morning; break;
+
+        }
+    }
 }

@@ -2,6 +2,7 @@
 {
     CheckStatus, // View player state, active quests, relationships
     Travel, // Move between connected, unlocked locations
+    Wait,   // advance time
     Rest,   // Restore energy, advance time
 
     // Location Actions

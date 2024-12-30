@@ -1,16 +1,38 @@
 ﻿@inherits ActionPreviewBase
 
 <h2>Confirm Action: @CurrentAction.Description</h2>
-<p>Requirements:</p>
+<br />
+
+[Available Times]
+<br />
+
+@foreach (var timeSlot in CurrentAction.Action.TimeSlots)
+{
+    <text>- @timeSlot</text>
+    <br />
+}
+<br />
+
+[Requirements]
+<br />
+
 @foreach (var requirement in CurrentAction.Action.Requirements)
 {
-    <p>@GetRequirementDescription(requirement)</p>
+    <text>- @GetRequirementDescription(requirement)</text>
+    <br />
 }
-<p>Outcomes:</p>
+<br />
+
+[Results]
+<br />
+
 @foreach (var outcome in CurrentAction.Action.Outcomes)
 {
-    <p>@GetOutcomeDescription(outcome)</p>
+    <text>- @GetOutcomeDescription(outcome)</text>
+    <br />
 }
+<br />
+
 <MenuOptions>
     <MenuOption Index="1" Text="Confirm" OnClick="HandleConfirm" />
     <BackOption OnBack="HandleBack" />
