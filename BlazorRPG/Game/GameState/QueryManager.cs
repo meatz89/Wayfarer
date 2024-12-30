@@ -84,6 +84,6 @@ public class QueryManager
 
     public TimeWindows GetCurrentTime()
     {
-        return gameState.CurrentTime;
+        return gameState.CurrentTimeSlot;
     }
 }

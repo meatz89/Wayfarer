@@ -43,7 +43,7 @@
 
     public ActionResult MakeChoiceForNarrative(Narrative currentNarrative, NarrativeStage narrativeStage, int choice)
     {
-        var outcomes = NarrativeSystem.GetChoiceOutcomes(currentNarrative, narrativeStage, choice);
+        List<IOutcome> outcomes = NarrativeSystem.GetChoiceOutcomes(currentNarrative, narrativeStage, choice);
         if (outcomes == null)
         {
             ActionResult actionResultFail = ActionResult.Failure("No Success");
@@ -63,7 +63,7 @@
         ActionResultMessages allMessages = gameState.GetAndClearChanges();
 
         AdvanceTime();
-        
+
         ActionResult actionResult = ActionResult.Success("Action success!", allMessages);
         gameState.SetLastActionResult(actionResult);
 

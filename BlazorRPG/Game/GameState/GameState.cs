@@ -1,4 +1,6 @@
-﻿public class GameState
+﻿using Microsoft.AspNetCore.Mvc.TagHelpers;
+
+public class GameState
 {
     public Player Player { get; set; }
 
@@ -6,8 +8,9 @@
     private ActionResultMessages processedChanges = new();
     public List<Location> Locations { get; set; }
     public LocationSystem LocationSystem { get; }
-    
-    public TimeWindows CurrentTime { get; private set; } = TimeWindows.Morning;
+
+    public int CurrentTimeInHours { get; private set; }
+    public TimeWindows CurrentTimeSlot { get; private set; } = TimeWindows.Morning;
     public Narrative CurrentNarrative { get; private set; }
     public NarrativeStage CurrentNarrativeStage { get; private set; }
     public LocationNames CurrentLocation { get; private set; }
@@ -261,22 +264,52 @@
         return changes;
     }
 
-    public void AdvanceTime(int timeSlots)
+    public void AdvanceTime(int inHours)
     {
-        switch (CurrentTime)
+        const int hoursPerWindow = 6;
+        int timeSlot = (int)CurrentTimeInHours / 6;
+
+        switch (timeSlot)
         {
-            case TimeWindows.Morning:
-                CurrentTime = TimeWindows.Afternoon; break;
+            case 0:
+                CurrentTimeSlot = TimeWindows.Night; break;
 
-            case TimeWindows.Afternoon:
-                CurrentTime = TimeWindows.Evening; break;
+            case 1:
+                CurrentTimeSlot = TimeWindows.Afternoon; break;
 
-            case TimeWindows.Evening:
-                CurrentTime = TimeWindows.Night; break;
+            case 2:
+                CurrentTimeSlot = TimeWindows.Evening; break;
 
-            case TimeWindows.Night:
-                CurrentTime = TimeWindows.Morning; break;
+            case 3:
+                if (CurrentTimeSlot != TimeWindows.Morning)
+                {
+                    StartNewDay();
+                }
+                CurrentTimeSlot = TimeWindows.Morning; break;
+        }
+    }
 
+    private void StartNewDay()
+    {
+        bool hasShelter = true;
+
+        int food = Player.Inventory.Food;
+        int foodNeeded = GameRules.DailyFoodRequirement;
+        bool hasFood = foodNeeded >= food;
+
+        food = hasFood ? food - foodNeeded : 0;
+
+        int health = Player.Health;
+        int minHealth = Player.MinHealth;
+        int noFoodHealthLoss = GameRules.HealthLossNoFood;
+        int noShelterHealthLoss = GameRules.HealthLossNoShelter;
+
+        if (!hasFood) health = health - noFoodHealthLoss;
+
+        if (health < minHealth)
+        {
+            throw new Exception("You Lost");
+            Environment.Exit(0);
         }
     }
 
@@ -305,7 +338,7 @@
 
         foreach (PlayerAction ga in playerActions)
         {
-            bool isDisabled = ga.Action.TimeSlots.Count > 0 && !ga.Action.TimeSlots.Contains(CurrentTime);
+            bool isDisabled = ga.Action.TimeSlots.Count > 0 && !ga.Action.TimeSlots.Contains(CurrentTimeSlot);
 
             UserActionOption ua = new UserActionOption
             {
@@ -343,5 +376,11 @@
     internal void SetCurrentUserAction(UserActionOption action)
     {
         CurrentUserAction = action;
+    }
+
+    internal void SetCurrentTime(int hours)
+    {
+        CurrentTimeInHours = hours - 1;
+        AdvanceTime(1);
     }
 }

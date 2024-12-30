@@ -4,6 +4,7 @@
     {
         GameState gameState = new GameState();
         gameState.SetCurrentLocation(LocationNames.HarborStreets);
+        gameState.SetCurrentTime(9);
 
         gameState.Locations = new List<Location>
         {
@@ -52,18 +53,19 @@
         playerInventory.Food = 1;
 
         Player playerInfo = new Player();
-        playerInfo.Coins = 5;
+        playerInfo.Coins = GameRules.StartingCoins;
 
-        playerInfo.Health = 8;
+        playerInfo.Health = GameRules.StartingHealth;
+        playerInfo.MinHealth = GameRules.MinimumHealth;
         playerInfo.MaxHealth = 10;
 
-        playerInfo.PhysicalEnergy = 5;
+        playerInfo.PhysicalEnergy = GameRules.StartingPhysicalEnergy;
         playerInfo.MaxPhysicalEnergy = 10;
 
-        playerInfo.FocusEnergy = 5;
+        playerInfo.FocusEnergy = GameRules.StartingFocusEnergy;
         playerInfo.MaxFocusEnergy = 10;
 
-        playerInfo.SocialEnergy = 5;
+        playerInfo.SocialEnergy = GameRules.StartingSocialEnergy;
         playerInfo.MaxSocialEnergy = 10;
 
         Dictionary<SkillTypes, int> skills = new Dictionary<SkillTypes, int>();

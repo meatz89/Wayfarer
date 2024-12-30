@@ -43,7 +43,7 @@
 
         return choice.Outcomes;
     }
-    
+
     private bool CheckRequirement(IRequirement requirement)
     {
         if (requirement is CoinsRequirement money)

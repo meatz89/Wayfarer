@@ -13,7 +13,7 @@ public partial class GameUI : ComponentBase
     public List<string> ResultMessages => GetResultMessages();
 
     public LocationNames CurrentLocation => GameState.CurrentLocation;
-    public TimeWindows CurrentTime => GameState.CurrentTime;
+    public TimeWindows CurrentTime => GameState.CurrentTimeSlot;
     public List<UserActionOption> CurrentActions => GameState.CurrentActions;
     public UserActionOption CurrentUserAction => GameState.CurrentUserAction;
     public List<UserTravelOption> CurrentTravelOptions => GameState.CurrentTravelOptions;
@@ -24,7 +24,7 @@ public partial class GameUI : ComponentBase
     protected override void OnInitialized()
     {
         screenStack.Push(UIScreens.ActionSelection);
-        
+
         UpdateAvailableActions();
 
         List<LocationNames> connectedLocations = QueryManager.GetConnectedLocations();

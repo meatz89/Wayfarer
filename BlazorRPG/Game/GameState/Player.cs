@@ -2,6 +2,7 @@
 {
     public int Coins { get; set; }
     public int Health { get; set; }
+    public int MinHealth { get; set; }
     public int MaxHealth { get; set; }
     public int PhysicalEnergy { get; set; }
     public int MaxPhysicalEnergy { get; set; }
