@@ -2,13 +2,13 @@
 
 public class ActionManager
 {
-    private GameState gameState;
+    public GameState GameState;
     public NarrativeSystem NarrativeSystem { get; private set; }
     public LocationSystem LocationSystem { get; private set; }
 
     public ActionManager(GameState gameState, NarrativeSystem narrativeSystem, LocationSystem locationSystem)
     {
-        this.gameState = gameState;
+        this.GameState = gameState;
         this.NarrativeSystem = narrativeSystem;
         this.LocationSystem = locationSystem;
     }
@@ -38,7 +38,7 @@ public class ActionManager
             userTravelOptions.Add(travel);
         }
     
-        gameState.SetCurrentTravelOptions(userTravelOptions);
+        GameState.SetCurrentTravelOptions(userTravelOptions);
     }
 
     public void UpdateAvailableActions()
@@ -62,11 +62,11 @@ public class ActionManager
 
         foreach (PlayerAction ga in playerActions)
         {
-            bool isDisabled = ga.Action.TimeSlots.Count > 0 && !ga.Action.TimeSlots.Contains(gameState.CurrentTimeSlot);
+            bool isDisabled = ga.Action.TimeSlots.Count > 0 && !ga.Action.TimeSlots.Contains(GameState.CurrentTimeSlot);
 
             UserActionOption ua = new UserActionOption
             {
-                Action = ga.Action,
+                BasicAction = ga.Action,
                 Description = ga.Description,
                 Index = actionIndex++,
                 IsDisabled = isDisabled
@@ -74,7 +74,7 @@ public class ActionManager
             userActions.Add(ua);
         }
 
-        gameState.SetValidUserActions(userActions);
+        GameState.SetValidUserActions(userActions);
     }
 
     public List<PlayerAction> GetGlobalActions()
@@ -102,7 +102,7 @@ public class ActionManager
 
     public List<PlayerAction> GetLocationActions()
     {
-        LocationNames currentLocation = gameState.CurrentLocation;
+        LocationNames currentLocation = GameState.CurrentLocation;
 
         // Add Location Action
         List<BasicAction> locationActions = LocationSystem.GetActionsForLocation(currentLocation);
@@ -136,7 +136,7 @@ public class ActionManager
             if (!hasRequirement)
             {
                 ActionResult actionResultFail = ActionResult.Failure("Requirement not met");
-                gameState.SetLastActionResult(actionResultFail);
+                GameState.SetLastActionResult(actionResultFail);
 
                 return actionResultFail;
             }
@@ -147,13 +147,13 @@ public class ActionManager
             ApplyOutcome(outcome);
         }
 
-        gameState.ApplyAllChanges();
-        ActionResultMessages allMessages = gameState.GetAndClearChanges();
+        GameState.ApplyAllChanges();
+        ActionResultMessages allMessages = GameState.GetAndClearChanges();
 
         AdvanceTime();
 
         ActionResult actionResult = ActionResult.Success("Action success!", allMessages);
-        gameState.SetLastActionResult(actionResult);
+        GameState.SetLastActionResult(actionResult);
 
         return actionResult;
     }
@@ -164,7 +164,7 @@ public class ActionManager
         if (outcomes == null)
         {
             ActionResult actionResultFail = ActionResult.Failure("No Success");
-            gameState.SetLastActionResult(actionResultFail);
+            GameState.SetLastActionResult(actionResultFail);
 
             return actionResultFail;
         }
@@ -176,13 +176,13 @@ public class ActionManager
             }
         }
 
-        gameState.ApplyAllChanges();
-        ActionResultMessages allMessages = gameState.GetAndClearChanges();
+        GameState.ApplyAllChanges();
+        ActionResultMessages allMessages = GameState.GetAndClearChanges();
 
         AdvanceTime();
 
         ActionResult actionResult = ActionResult.Success("Action success!", allMessages);
-        gameState.SetLastActionResult(actionResult);
+        GameState.SetLastActionResult(actionResult);
 
         return actionResult;
     }
@@ -191,7 +191,7 @@ public class ActionManager
     {
         Location location = FindLocation(locationName);
 
-        gameState.SetCurrentLocation(location.Name);
+        GameState.SetCurrentLocation(location.Name);
 
         UpdateTavelOptions();
         UpdateAvailableActions();
@@ -203,38 +203,38 @@ public class ActionManager
 
     public void AdvanceTime()
     {
-        gameState.AdvanceTime(1);
+        GameState.AdvanceTime(1);
     }
 
     private bool CheckRequirement(IRequirement requirement)
     {
         if (requirement is CoinsRequirement money)
         {
-            return gameState.Player.Coins >= money.Amount;
+            return GameState.Player.Coins >= money.Amount;
         }
         if (requirement is FoodRequirement food)
         {
-            return gameState.Player.Health >= food.Amount;
+            return GameState.Player.Health >= food.Amount;
         }
         if (requirement is HealthRequirement health)
         {
-            return gameState.Player.Health >= health.Amount;
+            return GameState.Player.Health >= health.Amount;
         }
         if (requirement is PhysicalEnergyRequirement physicalEnergy)
         {
-            return gameState.Player.PhysicalEnergy >= physicalEnergy.Amount;
+            return GameState.Player.PhysicalEnergy >= physicalEnergy.Amount;
         }
         if (requirement is FocusEnergyRequirement focusEnergy)
         {
-            return gameState.Player.FocusEnergy >= focusEnergy.Amount;
+            return GameState.Player.FocusEnergy >= focusEnergy.Amount;
         }
         if (requirement is SocialEnergyRequirement socialEnergy)
         {
-            return gameState.Player.SocialEnergy >= socialEnergy.Amount;
+            return GameState.Player.SocialEnergy >= socialEnergy.Amount;
         }
         if (requirement is SkillLevelRequirement skillLevel)
         {
-            return gameState.Player.Skills[skillLevel.SkillType] >= skillLevel.Amount;
+            return GameState.Player.Skills[skillLevel.SkillType] >= skillLevel.Amount;
         }
         if (requirement is ItemRequirement item)
         {
@@ -248,28 +248,28 @@ public class ActionManager
         switch (outcome)
         {
             case CoinsOutcome coinsOutcome:
-                gameState.AddCoinsChange(coinsOutcome);
+                GameState.AddCoinsChange(coinsOutcome);
                 break;
             case FoodOutcome foodOutcome:
-                gameState.AddFoodChange(foodOutcome);
+                GameState.AddFoodChange(foodOutcome);
                 break;
             case HealthOutcome healthOutcome:
-                gameState.AddHealthChange(healthOutcome);
+                GameState.AddHealthChange(healthOutcome);
                 break;
             case PhysicalEnergyOutcome physicalEnergyOutcome:
-                gameState.AddPhysicalEnergyChange(physicalEnergyOutcome);
+                GameState.AddPhysicalEnergyChange(physicalEnergyOutcome);
                 break;
             case FocusEnergyOutcome focusEnergyOutcome:
-                gameState.AddFocusEnergyChange(focusEnergyOutcome);
+                GameState.AddFocusEnergyChange(focusEnergyOutcome);
                 break;
             case SocialEnergyOutcome socialEnergyOutcome:
-                gameState.AddSocialEnergyChange(socialEnergyOutcome);
+                GameState.AddSocialEnergyChange(socialEnergyOutcome);
                 break;
             case SkillLevelOutcome skillLevelOutcome:
-                gameState.AddSkillLevelChange(skillLevelOutcome);
+                GameState.AddSkillLevelChange(skillLevelOutcome);
                 break;
             case ItemOutcome itemOutcome:
-                gameState.AddItemChange(itemOutcome);
+                GameState.AddItemChange(itemOutcome);
                 break;
         }
     }
@@ -289,7 +289,7 @@ public class ActionManager
             throw new Exception("No Narrative Found");
         }
 
-        gameState.SetCurrentNarrative(narrative);
+        GameState.SetCurrentNarrative(narrative);
 
         return true;
     }
@@ -302,12 +302,12 @@ public class ActionManager
 
     private Location FindLocation(LocationNames locationName)
     {
-        return gameState.Locations.Where(x => x.Name == locationName).FirstOrDefault();
+        return GameState.Locations.Where(x => x.Name == locationName).FirstOrDefault();
     }
 
     public List<LocationNames> GetConnectedLocations()
     {
-        Location location = FindLocation(gameState.CurrentLocation);
+        Location location = FindLocation(GameState.CurrentLocation);
 
         List<LocationNames> loc = location.ConnectedLocations;
         return loc;

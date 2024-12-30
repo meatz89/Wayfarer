@@ -92,15 +92,15 @@ public partial class GameUI : ComponentBase
 
     private void HandleActionSelection(UserActionOption action)
     {
-        if (action.Action.ActionType == BasicActionTypes.CheckStatus)
+        if (action.BasicAction.ActionType == BasicActionTypes.CheckStatus)
         {
             PushScreen(UIScreens.Status);
         }
-        else if (action.Action.ActionType == BasicActionTypes.Travel)
+        else if (action.BasicAction.ActionType == BasicActionTypes.Travel)
         {
             PushScreen(UIScreens.Travel);
         }
-        else if (action.Action.ActionType == BasicActionTypes.Wait)
+        else if (action.BasicAction.ActionType == BasicActionTypes.Wait)
         {
             ActionManager.AdvanceTime();
             CompleteActionExecution();
@@ -120,10 +120,10 @@ public partial class GameUI : ComponentBase
             return;
         }
 
-        bool hasNarrative = ActionManager.HasNarrative(GameState.CurrentUserAction.Action);
+        bool hasNarrative = ActionManager.HasNarrative(GameState.CurrentUserAction.BasicAction);
         if (hasNarrative)
         {
-            bool startedNarrative = ActionManager.StartNarrativeFor(GameState.CurrentUserAction.Action);
+            bool startedNarrative = ActionManager.StartNarrativeFor(GameState.CurrentUserAction.BasicAction);
             if (startedNarrative)
             {
                 PopScreen();
@@ -132,7 +132,7 @@ public partial class GameUI : ComponentBase
         }
         else
         {
-            ActionResult result = ActionManager.ExecuteBasicAction(GameState.CurrentUserAction.Action);
+            ActionResult result = ActionManager.ExecuteBasicAction(GameState.CurrentUserAction.BasicAction);
 
             if (result.IsSuccess)
             {

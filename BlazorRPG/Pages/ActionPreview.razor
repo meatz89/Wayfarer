@@ -6,7 +6,7 @@
 [Available Times]
 <br />
 
-@foreach (var timeSlot in CurrentAction.Action.TimeSlots)
+@foreach (var timeSlot in CurrentAction.BasicAction.TimeSlots)
 {
     <text>- @timeSlot</text>
     <br />
@@ -16,7 +16,7 @@
 [Requirements]
 <br />
 
-@foreach (var requirement in CurrentAction.Action.Requirements)
+@foreach (var requirement in CurrentAction.BasicAction.Requirements)
 {
     <text>- @GetRequirementDescription(requirement)</text>
     <br />
@@ -26,7 +26,7 @@
 [Results]
 <br />
 
-@foreach (var outcome in CurrentAction.Action.Outcomes)
+@foreach (var outcome in CurrentAction.BasicAction.Outcomes)
 {
     <text>- @GetOutcomeDescription(outcome)</text>
     <br />
