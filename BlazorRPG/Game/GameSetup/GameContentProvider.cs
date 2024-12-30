@@ -1,6 +1,8 @@
-﻿public class GameContentProvider
+﻿
+public class GameContentProvider
 {
     private List<LocationProperties> locationProperties;
+    private List<CharacterProperties> characterProperties;
     private List<Narrative> narratives;
 
     public GameContentProvider()
@@ -19,6 +21,11 @@
             LocationPropertiesContent.Forest
         };
 
+        characterProperties = new List<CharacterProperties>
+        {
+            CharacterPropertiesContent.MarketVendor,
+        };
+
         narratives = new List<Narrative>
         {
             DockNarrativesContent.DockWork,
@@ -30,6 +37,11 @@
     public List<LocationProperties> GetLocationProperties()
     {
         return locationProperties;
+    }
+
+    public List<CharacterProperties>? GetCharacterProperties()
+    {
+        return characterProperties;
     }
 
     public List<Narrative> GetNarratives()

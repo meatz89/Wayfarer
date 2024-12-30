@@ -6,3 +6,8 @@
     LionsHeadTavern,
     DarkForest
 }
+
+public enum CharacterNames
+{
+    MarketVendor,
+}
