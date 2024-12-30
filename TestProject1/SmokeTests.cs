@@ -4,6 +4,7 @@ public class SmokeTests : IClassFixture<BlazorRPGFixture>
 
     public NarrativeSystem NarrativeSystem;
     public LocationSystem LocationSystem;
+    public CharacterSystem CharacterSystem;
 
     public GameState GameState;
     public ActionManager ActionManager;
@@ -16,8 +17,9 @@ public class SmokeTests : IClassFixture<BlazorRPGFixture>
 
         NarrativeSystem = new NarrativeSystem(GameState, GameContentProvider);
         LocationSystem = new LocationSystem(GameState, GameContentProvider);
+        CharacterSystem = new CharacterSystem(GameState, GameContentProvider);
 
-        ActionManager = new ActionManager(GameState, NarrativeSystem, LocationSystem);
+        ActionManager = new ActionManager(GameState, NarrativeSystem, LocationSystem, CharacterSystem);
         ActionManager.Initialize();
     }
 

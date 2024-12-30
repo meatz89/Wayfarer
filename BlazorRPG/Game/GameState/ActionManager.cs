@@ -5,12 +5,14 @@ public class ActionManager
     public GameState GameState;
     public NarrativeSystem NarrativeSystem { get; private set; }
     public LocationSystem LocationSystem { get; private set; }
+    public CharacterSystem CharacterSystem { get; private set; }
 
-    public ActionManager(GameState gameState, NarrativeSystem narrativeSystem, LocationSystem locationSystem)
+    public ActionManager(GameState gameState, NarrativeSystem narrativeSystem, LocationSystem locationSystem, CharacterSystem characterSystem)
     {
         this.GameState = gameState;
         this.NarrativeSystem = narrativeSystem;
         this.LocationSystem = locationSystem;
+        this.CharacterSystem = characterSystem;
     }
 
     public void Initialize()
@@ -105,12 +107,11 @@ public class ActionManager
 
     public List<PlayerAction> GetLocationActions()
     {
+        List<PlayerAction> actions = new List<PlayerAction>();
         LocationNames currentLocation = GameState.CurrentLocation;
 
-        // Add Location Action
         List<BasicAction> locationActions = LocationSystem.GetActionsForLocation(currentLocation);
 
-        List<PlayerAction> actions = new List<PlayerAction>();
         if (locationActions.Count > 0)
         {
             foreach (BasicAction locationAction in locationActions)
@@ -128,6 +129,24 @@ public class ActionManager
     public List<PlayerAction> GetCharacterActions()
     {
         List<PlayerAction> actions = new List<PlayerAction>();
+        LocationNames currentLocation = GameState.CurrentLocation;
+
+        CharacterNames? character = CharacterSystem.GetCharacterAtLocation(currentLocation);
+        if(!character.HasValue) return actions;
+
+        List<BasicAction> characterActions = CharacterSystem.GetActionsForCharacter(character.Value);
+
+        if (characterActions.Count > 0)
+        {
+            foreach (BasicAction locationAction in characterActions)
+            {
+                actions.Add(new PlayerAction()
+                {
+                    Action = locationAction,
+                    Description = $"[{locationAction.ActionType.ToString()}] {locationAction.Description}"
+                });
+            }
+        }
         return actions;
     }
 

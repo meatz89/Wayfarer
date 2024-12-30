@@ -7,6 +7,7 @@
 
         services.AddSingleton<NarrativeSystem>();
         services.AddSingleton<LocationSystem>();
+        services.AddSingleton<CharacterSystem>();
 
         services.AddSingleton<ActionManager>();
 

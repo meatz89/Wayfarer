@@ -17,8 +17,9 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
 
         var NarrativeSystem = new NarrativeSystem(GameState, GameContentProvider);
         var LocationSystem = new LocationSystem(GameState, GameContentProvider);
+        var CharacterSystem = new CharacterSystem(GameState, GameContentProvider);
 
-        ActionManager = new ActionManager(GameState, NarrativeSystem, LocationSystem);
+        ActionManager = new ActionManager(GameState, NarrativeSystem, LocationSystem, CharacterSystem);
         ActionManager.Initialize();
     }
 

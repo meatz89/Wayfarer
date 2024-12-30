@@ -1,4 +1,5 @@
 ﻿
+
 public class CharacterSystem
 {
     private readonly GameState gameState;
@@ -19,4 +20,10 @@ public class CharacterSystem
         return actions;
     }
 
+    public CharacterNames? GetCharacterAtLocation(LocationNames currentLocation)
+    {
+        CharacterProperties characterProperties = allCharacterProperties.FirstOrDefault(x => x.Location == currentLocation);
+        if (characterProperties == null) return null;
+        return characterProperties.Character;
+    }
 }
