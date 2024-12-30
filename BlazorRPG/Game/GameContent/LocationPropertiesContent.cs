@@ -22,21 +22,19 @@
         .SetAccessType(AccessTypes.Open)
         .SetShelterStatus(ShelterStates.None)
         .SetDangerLevel(DangerLevels.Safe)
-        .AddPrimaryAction(BasicActionTypes.Labor)
+        .AddLaborAction()
         .Build();
 
     public static LocationProperties Market => new LocationPropertiesBuilder()
         .ForLocation(LocationNames.MarketSquare)
         .SetLocationType(LocationTypes.Commerce)
         .SetActivityType(ActivityTypes.Trade)
-        .SetTradeResourceType(TradeDirections.Buy)
-        .SetTradeResourceType(TradeResourceTypes.Food)
         .AddTimeSlot(TimeSlots.Morning)
         .AddTimeSlot(TimeSlots.Afternoon)
         .SetAccessType(AccessTypes.Open)
         .SetShelterStatus(ShelterStates.None)
         .SetDangerLevel(DangerLevels.Safe)
-        .AddPrimaryAction(BasicActionTypes.Trade)
+        .AddTradeAction(TradeDirections.Buy, TradeResourceTypes.Food)
         .Build();
 
     public static LocationProperties Tavern => new LocationPropertiesBuilder()
@@ -48,6 +46,7 @@
         .SetAccessType(AccessTypes.Open)
         .SetShelterStatus(ShelterStates.None)
         .SetDangerLevel(DangerLevels.Safe)
-        .AddPrimaryAction(BasicActionTypes.Discuss)
+        .AddDiscussAction()
+        .AddRestAction()
         .Build();
 }

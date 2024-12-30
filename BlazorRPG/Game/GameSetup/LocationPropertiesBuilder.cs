@@ -3,10 +3,9 @@
     private LocationNames location;
     private LocationTypes locationType;
     private ActivityTypes activityType;
-    private TradeResourceTypes tradeResourceType;
-    private TradeDirections tradeDirection;
+
     private List<TimeSlots> timeSlots = new();
-    private BasicActionDefinition primaryAction;
+    private List<BasicActionDefinition> actions = new();
 
     internal LocationPropertiesBuilder ForLocation(LocationNames location)
     {
@@ -23,18 +22,6 @@
     internal LocationPropertiesBuilder SetActivityType(ActivityTypes mingle)
     {
         this.activityType = activityType;
-        return this;
-    }
-
-    internal LocationPropertiesBuilder SetTradeResourceType(TradeResourceTypes tradeResourceType)
-    {
-        this.tradeResourceType = tradeResourceType;
-        return this;
-    }
-
-    internal LocationPropertiesBuilder SetTradeResourceType(TradeDirections tradeDirection)
-    {
-        this.tradeDirection = tradeDirection;
         return this;
     }
 
@@ -59,27 +46,37 @@
         return this;
     }
 
-    public LocationPropertiesBuilder AddPrimaryAction(BasicActionTypes basicActionType)
+    public LocationPropertiesBuilder AddLaborAction()
     {
-        if (basicActionType == BasicActionTypes.Trade)
+        actions.Add(BasicActionDefinitionContent.LaborAction);
+
+        return this;
+    }
+
+    public LocationPropertiesBuilder AddDiscussAction()
+    {
+        actions.Add(BasicActionDefinitionContent.DiscussAction);
+
+        return this;
+    }
+
+    public LocationPropertiesBuilder AddRestAction()
+    {
+        actions.Add(BasicActionDefinitionContent.RestAction);
+
+        return this;
+    }
+
+    public LocationPropertiesBuilder AddTradeAction(TradeDirections tradeDirection, TradeResourceTypes tradeResource)
+    {
+        BasicActionDefinition tradeAction = (tradeDirection, tradeResource) switch
         {
-            primaryAction = (tradeDirection, tradeResourceType) switch
-            {
-                (TradeDirections.Buy, TradeResourceTypes.Food) => BasicActionDefinitionContent.FoodBuyAction,
-                (TradeDirections.Sell, TradeResourceTypes.Food) => BasicActionDefinitionContent.FoodSellAction,
-                _ => throw new ArgumentException("Invalid trade configuration")
-            };
-        }
-        else
-        {
-            primaryAction = basicActionType switch
-            {
-                BasicActionTypes.Labor => BasicActionDefinitionContent.LaborAction,
-                BasicActionTypes.Discuss => BasicActionDefinitionContent.DiscussAction,
-                BasicActionTypes.Rest => BasicActionDefinitionContent.RestAction,
-                _ => throw new ArgumentException("Invalid action type")
-            };
-        }
+            (TradeDirections.Buy, TradeResourceTypes.Food) => BasicActionDefinitionContent.FoodBuyAction,
+            (TradeDirections.Sell, TradeResourceTypes.Food) => BasicActionDefinitionContent.FoodSellAction,
+            _ => throw new ArgumentException("Invalid trade configuration")
+        };
+
+        actions.Add(tradeAction);
 
         return this;
     }
@@ -91,10 +88,8 @@
             Location = location,
             LocationType = locationType,
             ActivityType = activityType,
-            TradeResourceType = tradeResourceType,
-            TradeDirection = tradeDirection,
             TimeSlots = timeSlots,
-            PrimaryAction = primaryAction
+            Actions = actions
         };
     }
 }

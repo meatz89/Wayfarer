@@ -13,14 +13,15 @@ public class QueryManager
     public List<PlayerAction> GetGlobalActions()
     {
         List<PlayerAction> actions = new List<PlayerAction>();
+        
         actions.Add(new PlayerAction()
         {
-            ActionType = BasicActionTypes.CheckStatus,
+            Action = new BasicActionDefinition() { ActionType = BasicActionTypes.CheckStatus },
             Description = "[Player] Check Status"
         });
         actions.Add(new PlayerAction()
         {
-            ActionType = BasicActionTypes.Travel,
+            Action = new BasicActionDefinition() { ActionType = BasicActionTypes.Travel },
             Description = "[Player] Travel"
         });
 
@@ -30,17 +31,19 @@ public class QueryManager
     public List<PlayerAction> GetLocationActions()
     {
         LocationNames currentLocation = gameState.CurrentLocation;
-        List<BasicActionTypes> locationActions = locationSystem.GetLocationActionsFor(currentLocation);
+
+        // Add Location Action
+        List<BasicActionDefinition> locationActions = locationSystem.GetActionsForLocation(currentLocation);
 
         List<PlayerAction> actions = new List<PlayerAction>();
         if (locationActions.Count > 0)
         {
-            foreach (BasicActionTypes locationAction in locationActions)
+            foreach (BasicActionDefinition locationAction in locationActions)
             {
                 actions.Add(new PlayerAction()
                 {
-                    ActionType = locationAction,
-                    Description = $"[{currentLocation}] {locationAction}"
+                    Action = locationAction,
+                    Description = $"[{currentLocation}] {locationAction.Description}"
                 });
             }
         }

@@ -10,10 +10,12 @@ public partial class GameUI : ComponentBase
     [Inject] private NavigationManager NavigationManager { get; set; }
 
     private Stack<UIScreen> screenStack = new();
-    private List<TravelOption> CurrentTravelOptions { get; set; } = new();
+
     private LocationNames CurrentLocation { get; set; }
+    private List<UserTravelOption> CurrentTravelOptions { get; set; } = new();
     private List<UserActionOption> CurrentActions { get; set; } = new();
     private UserActionOption CurrentUserAction { get; set; }
+    
     private ActionResult LastActionResult { get; set; }
     public List<string> ResultMessages => GetResultMessages();
 
@@ -42,7 +44,7 @@ public partial class GameUI : ComponentBase
         {
             LocationNames location = locations[i];
 
-            TravelOption travel = new TravelOption()
+            UserTravelOption travel = new UserTravelOption()
             {
                 Index = i + 1,
                 Location = location
@@ -138,11 +140,11 @@ public partial class GameUI : ComponentBase
 
     private void HandleActionSelection(UserActionOption action)
     {
-        if (action.ActionType == BasicActionTypes.CheckStatus)
+        if (action.Action.ActionType == BasicActionTypes.CheckStatus)
         {
             PushScreen(UIScreen.Status);
         }
-        else if (action.ActionType == BasicActionTypes.Travel)
+        else if (action.Action.ActionType == BasicActionTypes.Travel)
         {
             PushScreen(UIScreen.Travel);
         }
@@ -150,10 +152,10 @@ public partial class GameUI : ComponentBase
         {
             CurrentUserAction = action;
 
-            bool hasNarrative = ActionManager.HasNarrative(action.ActionType);
+            bool hasNarrative = ActionManager.HasNarrative(action.Action);
             if (hasNarrative)
             {
-                bool startedNarrative = ActionManager.StartNarrativeFor(action.ActionType);
+                bool startedNarrative = ActionManager.StartNarrativeFor(action.Action);
                 if (startedNarrative)
                 {
                     PushScreen(UIScreen.ActionNarrative);
@@ -161,7 +163,7 @@ public partial class GameUI : ComponentBase
             }
             else
             {
-                ActionResult result = ActionManager.ExecuteBasicAction(CurrentLocation);
+                ActionResult result = ActionManager.ExecuteBasicAction(action.Action);
                 LastActionResult = result;
 
                 if (result.IsSuccess)
@@ -196,7 +198,7 @@ public partial class GameUI : ComponentBase
 
     private void HandleTravel(int locationIndex)
     {
-        TravelOption location = CurrentTravelOptions.FirstOrDefault(x => x.Index == locationIndex);
+        UserTravelOption location = CurrentTravelOptions.FirstOrDefault(x => x.Index == locationIndex);
 
         ActionResult result = ActionManager.TravelTo(location.Location);
         LastActionResult = result;
@@ -217,7 +219,7 @@ public partial class GameUI : ComponentBase
         {
             UserActionOption ua = new UserActionOption
             {
-                ActionType = ga.ActionType,
+                Action = ga.Action,
                 Description = ga.Description,
                 Index = actionIndex++
             };

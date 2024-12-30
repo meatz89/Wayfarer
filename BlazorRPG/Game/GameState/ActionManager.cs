@@ -11,12 +11,11 @@
         this.LocationSystem = locationSystem;
     }
 
-    public ActionResult ExecuteBasicAction(LocationNames currentLocation)
+    public ActionResult ExecuteBasicAction(BasicActionDefinition action)
     {
-        List<BasicActionTypes> actions = LocationSystem.GetLocationActionsFor(currentLocation);
-        var action = actions.FirstOrDefault();
+        var currentLocation = gameState.CurrentLocation;
 
-        SystemActionResult result = LocationSystem.ExecuteAction(currentLocation, action);
+        SystemActionResult result = ExecuteAction(action);
         if (!result.IsSuccess)
         {
             return ActionResult.Failure("Not Possible");
@@ -28,16 +27,57 @@
         return ActionResult.Success("Action success!", allMessages);
     }
 
-    public bool HasNarrative(BasicActionTypes actionType)
+    public SystemActionResult ExecuteAction(BasicActionDefinition basicAction)
     {
-        Narrative narrative = NarrativeSystem.GetNarrativeFor(actionType);
+        foreach (IOutcome outcome in basicAction.Outcomes)
+        {
+            ApplyOutcome(outcome);
+        }
+
+        return SystemActionResult.Success("Action completed successfully");
+    }
+
+    private void ApplyOutcome(IOutcome outcome)
+    {
+        switch (outcome)
+        {
+            case CoinsOutcome coinsOutcome:
+                gameState.AddCoinsChange(coinsOutcome);
+                break;
+            case FoodOutcome foodOutcome:
+                gameState.AddFoodChange(foodOutcome);
+                break;
+            case HealthOutcome healthOutcome:
+                gameState.AddHealthChange(healthOutcome);
+                break;
+            case PhysicalEnergyOutcome physicalEnergyOutcome:
+                gameState.AddPhysicalEnergyChange(physicalEnergyOutcome);
+                break;
+            case FocusEnergyOutcome focusEnergyOutcome:
+                gameState.AddFocusEnergyChange(focusEnergyOutcome);
+                break;
+            case SocialEnergyOutcome socialEnergyOutcome:
+                gameState.AddSocialEnergyChange(socialEnergyOutcome);
+                break;
+            case SkillLevelOutcome skillLevelOutcome:
+                gameState.AddSkillLevelChange(skillLevelOutcome);
+                break;
+            case ItemOutcome itemOutcome:
+                gameState.AddItemChange(itemOutcome);
+                break;
+        }
+    }
+
+    public bool HasNarrative(BasicActionDefinition action)
+    {
+        Narrative narrative = NarrativeSystem.GetNarrativeFor(action.ActionType);
         bool hasNarrative = narrative != null;
         return false;
     }
 
-    public bool StartNarrativeFor(BasicActionTypes actionType)
+    public bool StartNarrativeFor(BasicActionDefinition action)
     {
-        Narrative narrative = NarrativeSystem.GetNarrativeFor(actionType);
+        Narrative narrative = NarrativeSystem.GetNarrativeFor(action.ActionType);
         if (narrative == null)
         {
             throw new Exception("No Narrative Found");
