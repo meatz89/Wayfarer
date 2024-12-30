@@ -12,6 +12,7 @@ public partial class GameUI : ComponentBase
     private Stack<UIScreens> screenStack = new();
     public List<string> ResultMessages => GetResultMessages();
 
+    public Player Player => GameState.Player;
     public LocationNames CurrentLocation => GameState.CurrentLocation;
     public TimeWindows CurrentTime => GameState.CurrentTimeSlot;
     public List<UserActionOption> CurrentActions => GameState.CurrentActions;

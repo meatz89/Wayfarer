@@ -54,7 +54,6 @@ h2 {
     margin-top: 1rem;
 }
 
-/* Remove any bootstrap styles we don't want */
 .screen {
     margin: 0;
     padding: 0;
@@ -63,4 +62,12 @@ h2 {
 .choices {
     margin: 0;
     padding: 0;
+}
+
+.positive {
+    color: #44ff44;
+}
+
+.negative {
+    color: #ff4444;
 }

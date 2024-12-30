@@ -3,6 +3,7 @@
 public partial class ActionPreviewBase : ComponentBase
 {
     [Parameter] public UserActionOption CurrentAction { get; set; }
+    [Parameter] public Player Player { get; set; }  // Add this
     [Parameter] public EventCallback<bool> OnActionConfirmed { get; set; }
     [Parameter] public EventCallback OnBack { get; set; }
 
@@ -22,20 +23,41 @@ public partial class ActionPreviewBase : ComponentBase
         };
     }
 
-    public string GetOutcomeDescription(IOutcome outcome)
+    private string GetValueColor(int amount)
+    {
+        return amount >= 0 ? "positive" : "negative";
+    }
+
+    private string FormatValuePreview(IOutcome outcome)
     {
         return outcome switch
         {
-            PhysicalEnergyOutcome o => $"Physical Energy: {o.Amount}",
-            FocusEnergyOutcome o => $"Focus Energy: {o.Amount}",
-            SocialEnergyOutcome o => $"Social Energy: {o.Amount}",
-            HealthOutcome o => $"Health: {o.Amount}",
-            CoinsOutcome o => $"Coins: {o.Amount}",
-            FoodOutcome o => $"Food: {o.Amount}",
-            SkillLevelOutcome o => $"Skill {o.SkillType}: {o.Amount}",
+            PhysicalEnergyOutcome o => $"({Player.PhysicalEnergy} -> <span class='{GetValueColor(o.Amount)}'>{Math.Clamp(Player.PhysicalEnergy + o.Amount, 0, Player.MaxPhysicalEnergy)}</span>)",
+            FocusEnergyOutcome o => $"({Player.FocusEnergy} -> <span class='{GetValueColor(o.Amount)}'>{Math.Clamp(Player.FocusEnergy + o.Amount, 0, Player.MaxFocusEnergy)}</span>)",
+            SocialEnergyOutcome o => $"({Player.SocialEnergy} -> <span class='{GetValueColor(o.Amount)}'>{Math.Clamp(Player.SocialEnergy + o.Amount, 0, Player.MaxSocialEnergy)}</span>)",
+            HealthOutcome o => $"({Player.Health} -> <span class='{GetValueColor(o.Amount)}'>{Math.Clamp(Player.Health + o.Amount, 0, Player.MaxHealth)}</span>)",
+            CoinsOutcome o => $"({Player.Coins} -> <span class='{GetValueColor(o.Amount)}'>{Math.Max(0, Player.Coins + o.Amount)}</span>)",
+            FoodOutcome o => $"({Player.Inventory.Food} -> <span class='{GetValueColor(o.Amount)}'>{Math.Max(0, Player.Inventory.Food + o.Amount)}</span>)",
+            SkillLevelOutcome o => $"({Player.Skills[o.SkillType]} -> <span class='{GetValueColor(o.Amount)}'>{Math.Max(0, Player.Skills[o.SkillType] + o.Amount)}</span>)",
+            _ => string.Empty
+        };
+    }
+
+    public MarkupString GetOutcomeDescription(IOutcome outcome)
+    {
+        string description = outcome switch
+        {
+            PhysicalEnergyOutcome o => $"Physical Energy {FormatValuePreview(o)}",
+            FocusEnergyOutcome o => $"Focus Energy {FormatValuePreview(o)}",
+            SocialEnergyOutcome o => $"Social Energy {FormatValuePreview(o)}",
+            HealthOutcome o => $"Health {FormatValuePreview(o)}",
+            CoinsOutcome o => $"Coins {FormatValuePreview(o)}",
+            FoodOutcome o => $"Food {FormatValuePreview(o)}",
+            SkillLevelOutcome o => $"Skill {o.SkillType} {FormatValuePreview(o)}",
             ItemOutcome o => $"Item: {o.Name}",
             _ => string.Empty
         };
+        return new MarkupString(description);
     }
 
     public async Task HandleConfirm()
