@@ -16,7 +16,13 @@
         foreach (IRequirement requirement in basicAction.Requirements)
         {
             bool hasRequirement = CheckRequirement(requirement);
-            if (!hasRequirement) return ActionResult.Failure("Requirement not met");
+            if (!hasRequirement)
+            {
+                ActionResult actionResultFail = ActionResult.Failure("Requirement not met");
+                gameState.SetLastActionResult(actionResultFail);
+
+                return actionResultFail;
+            }
         }
 
         foreach (IOutcome outcome in basicAction.Outcomes)
@@ -29,7 +35,10 @@
 
         AdvanceTime();
 
-        return ActionResult.Success("Action success!", allMessages);
+        ActionResult actionResult = ActionResult.Success("Action success!", allMessages);
+        gameState.SetLastActionResult(actionResult);
+
+        return actionResult;
     }
 
     public ActionResult MakeChoiceForNarrative(Narrative currentNarrative, NarrativeStage narrativeStage, int choice)
@@ -37,7 +46,10 @@
         var outcomes = NarrativeSystem.GetChoiceOutcomes(currentNarrative, narrativeStage, choice);
         if (outcomes == null)
         {
-            return ActionResult.Failure("No Success");
+            ActionResult actionResultFail = ActionResult.Failure("No Success");
+            gameState.SetLastActionResult(actionResultFail);
+
+            return actionResultFail;
         }
         else
         {
@@ -51,7 +63,21 @@
         ActionResultMessages allMessages = gameState.GetAndClearChanges();
 
         AdvanceTime();
-        return ActionResult.Success("Action success!", allMessages);
+        
+        ActionResult actionResult = ActionResult.Success("Action success!", allMessages);
+        gameState.SetLastActionResult(actionResult);
+
+        return actionResult;
+    }
+
+    public ActionResult ExecuteTravelAction(LocationNames locationName)
+    {
+        Location location = FindLocation(locationName);
+
+        gameState.SetCurrentLocation(location.Name);
+        ActionResult actionResult = ActionResult.Success($"Moved to {location.Name}.", new ActionResultMessages());
+
+        return actionResult;
     }
 
     public void AdvanceTime()
@@ -151,14 +177,6 @@
     {
         bool result = NarrativeSystem.CanExecute(currentNarrativeStage, choice);
         return result;
-    }
-
-    public ActionResult TravelTo(LocationNames locationName)
-    {
-        Location location = FindLocation(locationName);
-
-        gameState.CurrentLocation = location.Name;
-        return ActionResult.Success($"Moved to {location.Name}.", new ActionResultMessages());
     }
 
     private Location FindLocation(LocationNames locationName)

@@ -5,12 +5,17 @@
 
     private ActionResultMessages outstandingChanges = new();
     private ActionResultMessages processedChanges = new();
-    public Narrative CurrentNarrative { get; set; }
-    public NarrativeStage CurrentNarrativeStage { get; set; }
     public List<Location> Locations { get; set; }
     public LocationSystem LocationSystem { get; }
-    public LocationNames CurrentLocation { get; set; }
+    
     public TimeWindows CurrentTime { get; private set; } = TimeWindows.Morning;
+    public Narrative CurrentNarrative { get; private set; }
+    public NarrativeStage CurrentNarrativeStage { get; private set; }
+    public LocationNames CurrentLocation { get; private set; }
+    public UserActionOption CurrentUserAction { get; private set; }
+    public List<UserTravelOption> CurrentTravelOptions { get; private set; } = new();
+    public List<UserActionOption> CurrentActions { get; private set; } = new();
+    public ActionResult LastActionResult { get; private set; }
 
     public void SetCurrentNarrative(Narrative narrative)
     {
@@ -274,5 +279,70 @@
                 CurrentTime = TimeWindows.Morning; break;
 
         }
+    }
+
+    internal void UpdateTavelOptions(List<LocationNames> locations)
+    {
+        CurrentTravelOptions.Clear();
+        for (int i = 0; i < locations.Count; i++)
+        {
+            LocationNames location = locations[i];
+
+            UserTravelOption travel = new UserTravelOption()
+            {
+                Index = i + 1,
+                Location = location
+            };
+
+            CurrentTravelOptions.Add(travel);
+        }
+    }
+
+
+    public void CreateUserActionsFromPlayerActions(List<PlayerAction> playerActions)
+    {
+        List<UserActionOption> userActions = new List<UserActionOption>();
+        int actionIndex = 1;
+
+        foreach (PlayerAction ga in playerActions)
+        {
+            bool isDisabled = ga.Action.TimeSlots.Count > 0 && !ga.Action.TimeSlots.Contains(CurrentTime);
+
+            UserActionOption ua = new UserActionOption
+            {
+                Action = ga.Action,
+                Description = ga.Description,
+                Index = actionIndex++,
+                IsDisabled = isDisabled
+            };
+            userActions.Add(ua);
+        }
+
+        CurrentActions = userActions;
+    }
+
+    internal void SetLastActionResult(ActionResult result)
+    {
+        LastActionResult = result;
+    }
+
+    internal void SetCurrentLocation(LocationNames name)
+    {
+        CurrentLocation = name;
+    }
+
+    internal void ClearLastActionResult()
+    {
+        LastActionResult = null;
+    }
+
+    internal void ClearCurrentUserAction()
+    {
+        CurrentUserAction = null;
+    }
+
+    internal void SetCurrentUserAction(UserActionOption action)
+    {
+        CurrentUserAction = action;
     }
 }

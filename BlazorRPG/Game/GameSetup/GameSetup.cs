@@ -3,7 +3,7 @@
     public static GameState CreateNewGame()
     {
         GameState gameState = new GameState();
-        gameState.CurrentLocation = LocationNames.HarborStreets;
+        gameState.SetCurrentLocation(LocationNames.HarborStreets);
 
         gameState.Locations = new List<Location>
         {
