@@ -321,7 +321,6 @@
                         .AddTimeWindow(TimeWindows.Evening)
                         .AddTimeWindow(TimeWindows.Night)
                         .ExpendsFood(1)
-                        .RewardsPhysicalEnergy(1)
                         , DangerLevels.Safe
                     )
                 );

@@ -62,7 +62,10 @@ public class ActionManager
 
         foreach (PlayerAction ga in playerActions)
         {
-            bool isDisabled = ga.Action.TimeSlots.Count > 0 && !ga.Action.TimeSlots.Contains(GameState.CurrentTimeSlot);
+            // If no time slots specified, action is always enabled
+            // Otherwise check if current time is in valid slots
+            bool isDisabled = ga.Action.TimeSlots.Count > 0 &&
+                !ga.Action.TimeSlots.Contains(GameState.CurrentTimeSlot);
 
             UserActionOption ua = new UserActionOption
             {
@@ -206,6 +209,10 @@ public class ActionManager
     public bool AdvanceTime()
     {
         bool stillAlive = GameState.AdvanceTime(1);
+
+        UpdateTavelOptions();
+        UpdateAvailableActions();
+
         return stillAlive;
     }
 
