@@ -3,10 +3,10 @@
     [Parameter] public string Text { get; set; }
     [Parameter] public EventCallback OnClick { get; set; }
     [Parameter] public bool IsDisabled { get; set; }
+    [Parameter] public bool IsRequirementNotMet { get; set; }
 }
 
-<div class="choice @(IsDisabled ? "disabled" : "")"
+<div class="choice @(IsDisabled ? "disabled" : "") @(IsRequirementNotMet ? "requirements-not-met" : "")"
      @onclick="@(e => { if (!IsDisabled) OnClick.InvokeAsync(); })">
     @Index. @Text
 </div>
-

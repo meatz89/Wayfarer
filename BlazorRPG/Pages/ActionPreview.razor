@@ -1,59 +1,41 @@
 ﻿@inherits ActionPreviewBase
 
-<h2>Confirm Action: @CurrentAction.Description</h2>
-<br />
+<div class="action-preview">
+    <h3>@CurrentAction.Description</h3>
 
-[Available Times]
-<br />
+    <h4>Requirements</h4>
+    <ul>
+        @foreach (var requirement in CurrentAction.BasicAction.Requirements)
+        {
+            <li style="color: @GetRequirementColor(requirement)">
+                @GetRequirementDescription(requirement)
+            </li>
+        }
+    </ul>
 
-@foreach (var timeSlot in CurrentAction.BasicAction.TimeSlots)
-{
-    <text>- @timeSlot</text>
-    <br />
-}
-<br />
+    <h4>Cost</h4>
+    <ul>
+        @foreach (var outcome in CurrentAction.BasicAction.Outcomes)
+        {
+            @if (IsCost(outcome))
+            {
+                <li style="color: red">
+                    @GetOutcomeDescription(outcome)
+                </li>
+            }
+        }
+    </ul>
 
-[Requirements]
-<br />
-
-@foreach (var requirement in CurrentAction.BasicAction.Requirements)
-{
-    <span style="color: @GetRequirementColor(requirement)">
-        - @GetRequirementDescription(requirement)
-    </span>
-    <br />
-}
-<br />
-
-[Cost]
-<br />
-@foreach (var outcome in CurrentAction.BasicAction.Outcomes)
-{
-    @if (IsCost(outcome))
-    {
-        <span style="color: red">
-            - @GetOutcomeDescription(outcome)
-        </span>
-        <br />
-    }
-}
-<br />
-
-[Rewards]
-<br />
-@foreach (var outcome in CurrentAction.BasicAction.Outcomes)
-{
-    @if (IsReward(outcome))
-    {
-        <span style="color: green">
-            - @GetOutcomeDescription(outcome)
-        </span>
-        <br />
-    }
-}
-<br />
-
-<MenuOptions>
-    <MenuOption Index="1" Text="Confirm" OnClick="HandleConfirm" />
-    <BackOption OnBack="HandleBack" />
-</MenuOptions>
+    <h4>Rewards</h4>
+    <ul>
+        @foreach (var outcome in CurrentAction.BasicAction.Outcomes)
+        {
+            @if (IsReward(outcome))
+            {
+                <li style="color: green">
+                    @GetOutcomeDescription(outcome)
+                </li>
+            }
+        }
+    </ul>
+</div>

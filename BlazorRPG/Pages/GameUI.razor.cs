@@ -21,9 +21,42 @@ public partial class GameUI : ComponentBase
 
     private UIScreens CurrentScreen => screenStack.Count > 0 ? screenStack.Peek() : UIScreens.MainGame;
 
+    // Tooltip Logic
+    private bool showTooltip = false;
+    private UserActionOption hoveredAction = null;
+
+    private void ShowTooltip(UserActionOption action)
+    {
+        hoveredAction = action;
+        showTooltip = true;
+    }
+
+    private void HideTooltip()
+    {
+        hoveredAction = null;
+        showTooltip = false;
+    }
+
+    protected bool AreRequirementsMet(UserActionOption action)
+    {
+        return action.BasicAction.Requirements.All(requirement => requirement switch
+        {
+            PhysicalEnergyRequirement r => Player.PhysicalEnergy >= r.Amount,
+            FocusEnergyRequirement r => Player.FocusEnergy >= r.Amount,
+            SocialEnergyRequirement r => Player.SocialEnergy >= r.Amount,
+            InventorySlotsRequirement r => Player.Inventory.GetEmptySlots() >= r.Count,
+            HealthRequirement r => Player.Health >= r.Amount,
+            CoinsRequirement r => Player.Coins >= r.Amount,
+            FoodRequirement r => Player.Inventory.GetItemCount(ResourceTypes.Food) >= r.Amount,
+            SkillLevelRequirement r => Player.Skills.ContainsKey(r.SkillType) && Player.Skills[r.SkillType] >= r.Amount,
+            ItemRequirement r => Player.Inventory.GetItemCount(r.ResourceType) >= r.Count,
+            _ => false 
+        });
+    }
+
+
     protected override void OnInitialized()
     {
-        screenStack.Push(UIScreens.ActionSelection);
         ActionManager.Initialize();
     }
 
@@ -39,7 +72,6 @@ public partial class GameUI : ComponentBase
         description += userActionOption.Description;
         return description;
     }
-
 
     public List<string> GetResultMessages()
     {
@@ -92,6 +124,8 @@ public partial class GameUI : ComponentBase
 
     private void HandleActionSelection(UserActionOption action)
     {
+        if (action.IsDisabled) return; // Prevent action if disabled
+
         if (action.BasicAction.ActionType == BasicActionTypes.CheckStatus)
         {
             PushScreen(UIScreens.Status);
@@ -108,37 +142,26 @@ public partial class GameUI : ComponentBase
         else
         {
             GameState.SetCurrentUserAction(action);
-            PushScreen(UIScreens.ActionPreview);
-        }
-    }
 
-    private void HandleActionConfirmation(bool confirmed)
-    {
-        if (!confirmed)
-        {
-            PopScreen();
-            return;
-        }
-
-        bool hasNarrative = ActionManager.HasNarrative(GameState.CurrentUserAction.BasicAction);
-        if (hasNarrative)
-        {
-            bool startedNarrative = ActionManager.StartNarrativeFor(GameState.CurrentUserAction.BasicAction);
-            if (startedNarrative)
+            // Execute the action immediately
+            bool hasNarrative = ActionManager.HasNarrative(action.BasicAction);
+            if (hasNarrative)
             {
-                PopScreen();
-                PushScreen(UIScreens.ActionNarrative);
+                bool startedNarrative = ActionManager.StartNarrativeFor(action.BasicAction);
+                if (startedNarrative)
+                {
+                    PushScreen(UIScreens.ActionNarrative);
+                }
             }
-        }
-        else
-        {
-            ActionResult result = ActionManager.ExecuteBasicAction(GameState.CurrentUserAction.BasicAction);
-
-            if (result.IsSuccess)
+            else
             {
-                PopScreen();
-                PushScreen(UIScreens.ActionResult);
-                CompleteActionExecution();
+                ActionResult result = ActionManager.ExecuteBasicAction(action.BasicAction);
+
+                if (result.IsSuccess)
+                {
+                    PushScreen(UIScreens.ActionResult);
+                    CompleteActionExecution();
+                }
             }
         }
     }
@@ -182,7 +205,6 @@ public partial class GameUI : ComponentBase
         ActionManager.UpdateTavelOptions();
         ActionManager.UpdateAvailableActions();
     }
-
 
     private void PushScreen(UIScreens screen)
     {

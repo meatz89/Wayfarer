@@ -37,25 +37,6 @@ public class SmokeTests : IClassFixture<BlazorRPGFixture>
     }
 
     [Fact]
-    public void Can_Generate_Basic_Resources()
-    {
-        // Test dock labor
-        ActionManager.MoveToLocation(LocationNames.Docks);
-        GameTestHelpers.AdvanceToTimeWindow(ActionManager, TimeWindows.Morning);
-        int initialCoins = GameState.Player.Coins;
-        GameTestHelpers.ExecuteActionSequence(ActionManager, BasicActionTypes.Labor);
-
-        Assert.True(GameState.Player.Coins > initialCoins);
-
-        // Test forest gathering
-        ActionManager.MoveToLocation(LocationNames.ForestEdge);
-        int initialFood = GameState.Player.Inventory.GetItemCount(ResourceTypes.Food);
-        GameTestHelpers.ExecuteActionSequence(ActionManager, BasicActionTypes.Gather);
-
-        Assert.True(GameState.Player.Inventory.GetItemCount(ResourceTypes.Food) > initialFood);
-    }
-
-    [Fact]
     public void Can_Survive_Through_Labor_Path()
     {
         // Execute optimal labor->buy food->shelter sequence

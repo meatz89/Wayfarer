@@ -25,15 +25,27 @@
                 <MenuOptions>
                     @foreach (UserActionOption action in CurrentActions)
                     {
-                        <MenuOption Index="action.Index"
-                                    Text="@GetActionDescription(action)"
-                                    IsDisabled="action.IsDisabled"
-                                    OnClick="() => HandleActionSelection(action)" />
+                        <div class="action-container"
+                             @onmouseover="@(() => ShowTooltip(action))"
+                             @onmouseout="@(() => HideTooltip())">
+                            <MenuOption Index="action.Index"
+                                        Text="@GetActionDescription(action)"
+                                        IsDisabled="action.IsDisabled"
+                                        IsRequirementNotMet="!AreRequirementsMet(action)"
+                                        OnClick="() => HandleActionSelection(action)" />
+                            @if (showTooltip && action == hoveredAction && (action.BasicAction.Requirements.Any() || action.BasicAction.Outcomes.Any()))
+                            {
+                                <div class="action-preview">
+                                    <ActionPreview CurrentAction="action" Player="Player" />
+                                </div>
+                            }
+                        </div>
                     }
                     <br />
                     <BackOption OnBack="PopScreen" />
                 </MenuOptions>
             </ActionSelectionScreen>
+
 
             <TravelScreen>
                 <h2>Travel To</h2>
@@ -71,14 +83,6 @@
                     }
                 }
             </ActionNarrativeScreen>
-            
-            <ActionPreviewScreen>
-                <ActionPreview
-                    CurrentAction="CurrentUserAction"
-                    Player="Player"
-                    OnActionConfirmed="HandleActionConfirmation"
-                    OnBack="PopScreen" />
-            </ActionPreviewScreen>
 
             <ActionResultScreen>
                 <h2>Action Result</h2>
