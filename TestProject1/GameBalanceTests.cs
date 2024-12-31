@@ -28,7 +28,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
     public void SubOptimal_Path_Leads_To_Death()
     {
         int startingHealth = GameState.Player.Health;
-        ActionManager.MoveToLocation(LocationNames.DarkForest);
+        ActionManager.MoveToLocation(LocationNames.ForestEdge);
 
         List<string> healthLog = new List<string>();
 
@@ -173,7 +173,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
     public void Sub_Optimal_Play_Leads_To_Death_2()
     {
         // Test 2: Only gathering without shelter
-        ActionManager.MoveToLocation(LocationNames.DarkForest);
+        ActionManager.MoveToLocation(LocationNames.ForestEdge);
         for (int i = 0; i < 5; i++)
         {
             GameTestHelpers.AdvanceToTimeWindow(ActionManager, TimeWindows.Morning);

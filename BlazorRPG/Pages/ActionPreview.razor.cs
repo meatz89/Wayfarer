@@ -18,7 +18,7 @@ public partial class ActionPreviewBase : ComponentBase
             CoinsRequirement r => $"Coins Required: {r.Amount}",
             FoodRequirement r => $"Food Required: {r.Amount}",
             SkillLevelRequirement r => $"Skill Required: {r.SkillType} level {r.Amount}",
-            ItemRequirement r => $"Item Required: {r.Name}",
+            ItemRequirement r => $"Item Required: {r.Item.ToString()}",
             _ => string.Empty
         };
     }
@@ -37,7 +37,7 @@ public partial class ActionPreviewBase : ComponentBase
             SocialEnergyOutcome o => $"({Player.SocialEnergy} -> <span class='{GetValueColor(o.Amount)}'>{Math.Clamp(Player.SocialEnergy + o.Amount, 0, Player.MaxSocialEnergy)}</span>)",
             HealthOutcome o => $"({Player.Health} -> <span class='{GetValueColor(o.Amount)}'>{Math.Clamp(Player.Health + o.Amount, 0, Player.MaxHealth)}</span>)",
             CoinsOutcome o => $"({Player.Coins} -> <span class='{GetValueColor(o.Amount)}'>{Math.Max(0, Player.Coins + o.Amount)}</span>)",
-            FoodOutcome o => $"({Player.Inventory.Food} -> <span class='{GetValueColor(o.Amount)}'>{Math.Max(0, Player.Inventory.Food + o.Amount)}</span>)",
+            FoodOutcome o => $"({Player.Inventory.GetItemCount(ResourceTypes.Food)} -> <span class='{GetValueColor(o.Amount)}'>{Math.Max(0, Player.Inventory.GetItemCount(ResourceTypes.Food) + o.Amount)}</span>)",
             SkillLevelOutcome o => $"({Player.Skills[o.SkillType]} -> <span class='{GetValueColor(o.Amount)}'>{Math.Max(0, Player.Skills[o.SkillType] + o.Amount)}</span>)",
             _ => string.Empty
         };
@@ -54,7 +54,7 @@ public partial class ActionPreviewBase : ComponentBase
             CoinsOutcome o => $"Coins {FormatValuePreview(o)}",
             FoodOutcome o => $"Food {FormatValuePreview(o)}",
             SkillLevelOutcome o => $"Skill {o.SkillType} {FormatValuePreview(o)}",
-            ItemOutcome o => $"Item: {o.Name}",
+            ItemOutcome o => $"Item {o.ChangeType.ToString()}: {o.Item}",
             _ => string.Empty
         };
         return new MarkupString(description);

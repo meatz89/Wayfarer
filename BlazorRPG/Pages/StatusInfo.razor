@@ -8,15 +8,13 @@
 
     [Location]
     <br />
-     <text>- @GameState.CurrentLocation</text>
+    <text>- @GameState.CurrentLocation</text>
     <br />
     <br />
 
     [Base Stats]
     <br />
     <text>- Health: @GameState.Player.Health/@GameState.Player.MaxHealth</text>
-    <br />
-    <text>- Food: @GameState.Player.Inventory.Food</text>
     <br />
     <text>- Coins: @GameState.Player.Coins</text>
     <br />
@@ -29,7 +27,7 @@
     <text>- Focus: @GameState.Player.FocusEnergy/@GameState.Player.MaxFocusEnergy</text>
     <br />
     <text>- Social: @GameState.Player.SocialEnergy/@GameState.Player.MaxSocialEnergy</text>
-    <br/>
+    <br />
     <br />
 
     [Skills]
@@ -37,7 +35,21 @@
     @foreach (var skill in GameState.Player.Skills)
     {
         <text>- @skill.Key: @skill.Value</text>
-        <br/>
+        <br />
     }
-    <br/>
+    <br />
+
+    [Inventory]
+    <br />
+    @foreach (ResourceTypes resourceType in Enum.GetValues(typeof(ResourceTypes)))
+    {
+        if (resourceType != ResourceTypes.None)
+        {
+            var itemCount = GameState.Player.Inventory.GetItemCount(resourceType);
+            if (itemCount > 0)
+            {
+                <text>- @resourceType: @itemCount</text>
+            }
+        }
+    }
 </div>

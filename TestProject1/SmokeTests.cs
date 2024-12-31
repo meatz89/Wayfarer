@@ -48,7 +48,7 @@ public class SmokeTests : IClassFixture<BlazorRPGFixture>
         Assert.True(GameState.Player.Coins > initialCoins);
 
         // Test forest gathering
-        ActionManager.MoveToLocation(LocationNames.DarkForest);
+        ActionManager.MoveToLocation(LocationNames.ForestEdge);
         int initialFood = GameState.Player.Inventory.Food;
         GameTestHelpers.ExecuteActionSequence(ActionManager, BasicActionTypes.Gather);
 
@@ -88,7 +88,7 @@ public class SmokeTests : IClassFixture<BlazorRPGFixture>
         for (int day = 0; day < 3; day++)
         {
             // Morning gathering
-            ActionManager.MoveToLocation(LocationNames.DarkForest);
+            ActionManager.MoveToLocation(LocationNames.ForestEdge);
             GameTestHelpers.AdvanceToTimeWindow(ActionManager, TimeWindows.Morning);
             GameTestHelpers.ExecuteActionSequence(ActionManager, BasicActionTypes.Gather);
 

@@ -5,7 +5,9 @@
         List<ActivityTypes> activityTypes,
         AccessTypes accessType,
         ShelterStates shelterState,
-        DangerLevels dangerLevel
+        DangerLevels dangerLevel,
+        TradeDirectionTypes tradeDirectionType,
+        LocationResourceTypes locationResourceType
     )
     {
         List<BasicAction> actions = new List<BasicAction>();
@@ -38,11 +40,11 @@
                     break;
 
                 case ActivityTypes.Gather:
-                    actions.AddRange(GetGatherActions(locationType, dangerLevel));
+                    actions.AddRange(GetGatherActions(locationType, locationResourceType, dangerLevel));
                     break;
 
                 case ActivityTypes.Trade:
-                    actions.AddRange(GetTradeActions(locationType, dangerLevel));
+                    actions.AddRange(GetTradeActions(locationType, tradeDirectionType, dangerLevel));
                     break;
 
                 case ActivityTypes.Mingle:
@@ -109,10 +111,34 @@
         return actions;
     }
 
-
-    private static List<BasicAction> GetGatherActions(LocationTypes locationType, DangerLevels dangerLevel)
+    private static List<BasicAction> GetGatherActions(LocationTypes locationType, LocationResourceTypes locationResourceType, DangerLevels dangerLevel)
     {
         List<BasicAction> actions = new List<BasicAction>();
+
+        ResourceTypes resourceType;
+        switch(locationResourceType)
+        {
+            case LocationResourceTypes.Forage:
+                resourceType = ResourceTypes.Food;
+                break;
+
+            case LocationResourceTypes.Fish:
+                resourceType = ResourceTypes.Food;
+                break;
+
+            case LocationResourceTypes.Game:
+                resourceType = ResourceTypes.Food;
+                break;
+
+            case LocationResourceTypes.Wood:
+                resourceType = ResourceTypes.Wood;
+                break;
+
+            default:
+                resourceType = ResourceTypes.Wood;
+            break;
+        }
+
         switch (locationType)
         {
             case LocationTypes.Industry:
@@ -160,11 +186,11 @@
                 actions.Add(
                     AddAction(action => action
                         .ForAction(BasicActionTypes.Gather)
-                        .WithDescription("Pick Berries")
+                        .WithDescription("Gather Wood")
                         .AddTimeWindow(TimeWindows.Morning)
                         .AddTimeWindow(TimeWindows.Afternoon)
                         .ExpendsFocusEnergy(2)
-                        .RewardsFood(2)
+                        .RewardsItem(resourceType)
                         , dangerLevel
                     )
                 );
@@ -174,7 +200,7 @@
         return actions;
     }
 
-    private static List<BasicAction> GetTradeActions(LocationTypes locationType, DangerLevels dangerLevel)
+    private static List<BasicAction> GetTradeActions(LocationTypes locationType, TradeDirectionTypes tradeDirection, DangerLevels dangerLevel)
     {
         List<BasicAction> actions = new List<BasicAction>();
         switch (locationType)
@@ -222,15 +248,17 @@
                 break;
 
             case LocationTypes.Nature:
+                if (tradeDirection != TradeDirectionTypes.Sell) break;
+
                 actions.Add(
                    AddAction(action => action
                        .ForAction(BasicActionTypes.Trade)
-                       .WithDescription("Forager Trading")
+                       .WithDescription("Sell Wood")
                        .AddTimeWindow(TimeWindows.Morning)
                        .AddTimeWindow(TimeWindows.Afternoon)
                        .AddTimeWindow(TimeWindows.Evening)
-                       .ExpendsCoins(1)
-                       .RewardsFood(1)
+                       .ExpendsItem(ResourceTypes.Wood)
+                       .RewardsCoins(2)
                        , dangerLevel
                     )
                );

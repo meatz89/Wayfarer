@@ -16,3 +16,13 @@ public enum ActivityTypes
     Mingle
 }
 
+
+public enum LocationResourceTypes
+{
+    None = 0,
+    Forage,
+    Fish,
+    Game,
+    Wood
+}
+

@@ -7,6 +7,8 @@
     private AccessTypes accessType;
     private ShelterStates shelterState;
     private DangerLevels dangerLevel;
+    private LocationResourceTypes locationResourceType;
+    private TradeDirectionTypes tradeDirectionType;
 
     private List<BasicAction> actions = new();
 
@@ -25,6 +27,18 @@
     public LocationPropertiesBuilder SetLocationType(LocationTypes locationType)
     {
         this.locationType = locationType;
+        return this;
+    }
+
+    public LocationPropertiesBuilder SetResourceType(LocationResourceTypes locationResourceType)
+    {
+        this.locationResourceType = locationResourceType;
+        return this;
+    }
+
+    public LocationPropertiesBuilder SetTradeDirectionType(TradeDirectionTypes tradeDirection)
+    {
+        this.tradeDirectionType = tradeDirection;
         return this;
     }
 
@@ -70,7 +84,9 @@
             this.activityTypes,
             this.accessType,
             this.shelterState,
-            this.dangerLevel
+            this.dangerLevel,
+            this.tradeDirectionType,
+            this.locationResourceType
         );
 
         locActions.AddRange(actions);

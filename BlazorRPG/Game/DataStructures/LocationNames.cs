@@ -4,7 +4,7 @@
     MarketSquare,
     HarborStreets,
     LionsHeadTavern,
-    DarkForest
+    ForestEdge
 }
 
 public enum CharacterNames

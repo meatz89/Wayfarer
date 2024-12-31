@@ -1,5 +1,6 @@
 ﻿
 
+
 public class BasicActionDefinitionBuilder
 {
     private BasicActionTypes actionType;
@@ -119,6 +120,32 @@ public class BasicActionDefinitionBuilder
         return this;
     }
 
+    public BasicActionDefinitionBuilder ExpendsItem(ResourceTypes item)
+    {
+        requirements.Add(new ItemRequirement
+        {
+            Item = item
+        });
+
+        outcomes.Add(new ItemOutcome
+        {
+            ChangeType = ItemChangeType.Remove,
+            Item = item
+        });
+
+        return this;
+    }
+    public BasicActionDefinitionBuilder RewardsItem(ResourceTypes item)
+    {
+        outcomes.Add(new ItemOutcome
+        {
+            ChangeType = ItemChangeType.Add,
+            Item = item
+        });
+
+        return this;
+    }
+
     public BasicActionDefinitionBuilder RewardsCoins(int amount)
     {
         outcomes.Add(new CoinsOutcome
@@ -128,6 +155,7 @@ public class BasicActionDefinitionBuilder
 
         return this;
     }
+
 
     public BasicActionDefinitionBuilder RewardsFood(int amount)
     {

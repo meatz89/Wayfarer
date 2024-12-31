@@ -6,8 +6,8 @@
         gameState.SetNewLocation(LocationNames.HarborStreets);
         gameState.SetNewTime(9);
 
-        Inventory playerInventory = new Inventory();
-        playerInventory.Food = 1;
+        Inventory playerInventory = new Inventory(10);
+        playerInventory.AddItem(ResourceTypes.Food);
 
         Player playerInfo = new Player();
         playerInfo.Coins = GameRules.StartingCoins;

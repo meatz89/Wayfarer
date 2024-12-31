@@ -40,5 +40,5 @@ public class SkillLevelRequirement : IRequirement
 
 public class ItemRequirement : IRequirement
 {
-    public string Name { get; set; }
+    public ResourceTypes Item { get; set; }
 }

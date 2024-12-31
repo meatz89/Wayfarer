@@ -153,7 +153,7 @@
             for (int i = 0; i < outstandingChanges.Item.Count; i++)
             {
                 ItemOutcome item = outstandingChanges.Item[i];
-                bool neededChange = this.ModifyItem(item.Name);
+                bool neededChange = this.ModifyItem(item.ChangeType, item.Item);
                 if (neededChange)
                 {
                     processedChanges.Item.Add(item);
@@ -182,10 +182,13 @@
 
     private bool ModifyFood(int amount)
     {
-        int newFood = Math.Max(0, Player.Inventory.Food + amount);
-        if (newFood != Player.Inventory.Food)
+        var inventory = Player.Inventory;
+        int currentFood = inventory.GetItemCount(ResourceTypes.Food);
+
+        int updatedFood = Math.Clamp(currentFood + amount, 0, inventory.GetCapacityFor(ResourceTypes.Food));
+        if (updatedFood != currentFood)
         {
-            Player.Inventory.Food = newFood;
+            inventory.SetItemCount(ResourceTypes.Food, updatedFood);
             return true;
         }
         return false;
@@ -246,10 +249,20 @@
         return false;
     }
 
-    private bool ModifyItem(string name)
+    private bool ModifyItem(ItemChangeType itemChange, ResourceTypes resourceType)
     {
+        if (itemChange == ItemChangeType.Add)
+        {
+            return Player.Inventory.AddItem(resourceType);
+        }
+        else if (itemChange == ItemChangeType.Remove)
+        {
+            return Player.Inventory.RemoveItem(resourceType);
+        }
+
         return false;
     }
+
 
     public ActionResultMessages GetAndClearChanges()
     {
@@ -310,7 +323,7 @@
             .Where(x => x.BasicAction.ActionType == BasicActionTypes.Rest)
             .FirstOrDefault() != null;
 
-        int food = Player.Inventory.Food;
+        int food = Player.Inventory.GetItemCount(ResourceTypes.Food);
         int foodNeeded = GameRules.DailyFoodRequirement;
         bool hasFood = food >= foodNeeded;
 

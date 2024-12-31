@@ -18,7 +18,7 @@ public class GameContentProvider
             LocationPropertiesContent.Docks,
             LocationPropertiesContent.Market,
             LocationPropertiesContent.Tavern,
-            LocationPropertiesContent.Forest
+            LocationPropertiesContent.ForestEdge
         };
 
         characterProperties = new List<Character>
