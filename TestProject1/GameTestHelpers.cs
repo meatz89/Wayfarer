@@ -6,7 +6,7 @@ public class GameTestHelpers
         foreach (BasicActionTypes actionType in sequence)
         {
             BasicAction action = manager.GameState.ValidUserActions
-                .First(a => a.BasicAction.ActionType == actionType).BasicAction;
+                .First(a => a.BasicAction.Id == actionType).BasicAction;
 
             manager.ExecuteBasicAction(action);
         }

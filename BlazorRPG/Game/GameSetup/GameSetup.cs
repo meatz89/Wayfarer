@@ -3,7 +3,7 @@
     public static GameState CreateNewGame()
     {
         GameState gameState = new GameState();
-        gameState.SetNewLocation(LocationNames.HarborStreets);
+        gameState.SetNewLocation(LocationContent.HarborStreets);
         gameState.SetNewTime(9);
 
         Inventory playerInventory = new Inventory(10);

@@ -88,17 +88,17 @@
 
         actions.Add(new PlayerAction()
         {
-            Action = new BasicAction() { ActionType = BasicActionTypes.CheckStatus },
+            Action = new BasicAction() { Id = BasicActionTypes.CheckStatus },
             Description = "(System) Check Status"
         });
         actions.Add(new PlayerAction()
         {
-            Action = new BasicAction() { ActionType = BasicActionTypes.Travel },
+            Action = new BasicAction() { Id = BasicActionTypes.Travel },
             Description = "(System) Travel"
         });
         actions.Add(new PlayerAction()
         {
-            Action = new BasicAction() { ActionType = BasicActionTypes.Wait },
+            Action = new BasicAction() { Id = BasicActionTypes.Wait },
             Description = "(System) Wait"
         });
 
@@ -108,7 +108,7 @@
     public List<PlayerAction> GetLocationActions()
     {
         List<PlayerAction> actions = new List<PlayerAction>();
-        LocationNames currentLocation = GameState.CurrentLocation;
+        LocationNames currentLocation = GameState.CurrentLocation.Name;
 
         List<BasicAction> locationActions = LocationSystem.GetActionsForLocation(currentLocation);
 
@@ -119,7 +119,7 @@
                 actions.Add(new PlayerAction()
                 {
                     Action = locationAction,
-                    Description = $"[{locationAction.ActionType.ToString()}] {locationAction.Description}"
+                    Description = $"[{locationAction.Id.ToString()}] {locationAction.Name}"
                 });
             }
         }
@@ -129,7 +129,7 @@
     public List<PlayerAction> GetCharacterActions()
     {
         List<PlayerAction> actions = new List<PlayerAction>();
-        LocationNames currentLocation = GameState.CurrentLocation;
+        LocationNames currentLocation = GameState.CurrentLocation.Name;
 
         CharacterNames? character = CharacterSystem.GetCharacterAtLocation(currentLocation);
         if (!character.HasValue) return actions;
@@ -143,7 +143,7 @@
                 actions.Add(new PlayerAction()
                 {
                     Action = locationAction,
-                    Description = $"[{locationAction.ActionType.ToString()}] {locationAction.Description}"
+                    Description = $"[{locationAction.Id.ToString()}] {locationAction.Name}"
                 });
             }
         }
@@ -213,7 +213,8 @@
 
     public ActionResult MoveToLocation(LocationNames locationName)
     {
-        GameState.SetNewLocation(locationName);
+        var location = LocationSystem.GetLocation(locationName);
+        GameState.SetNewLocation(location);
 
         UpdateTavelOptions();
         UpdateAvailableActions();
@@ -307,14 +308,14 @@
 
     public bool HasNarrative(BasicAction action)
     {
-        Narrative narrative = NarrativeSystem.GetNarrativeFor(action.ActionType);
+        Narrative narrative = NarrativeSystem.GetNarrativeFor(action.Id);
         bool hasNarrative = narrative != null;
         return false;
     }
 
     public bool StartNarrativeFor(BasicAction action)
     {
-        Narrative narrative = NarrativeSystem.GetNarrativeFor(action.ActionType);
+        Narrative narrative = NarrativeSystem.GetNarrativeFor(action.Id);
         if (narrative == null)
         {
             throw new Exception("No Narrative Found");
@@ -333,7 +334,13 @@
 
     public List<LocationNames> GetConnectedLocations()
     {
-        List<LocationNames> loc = LocationSystem.GetLocationConnections(GameState.CurrentLocation);
+        List<LocationNames> loc = LocationSystem.GetLocationConnections(GameState.CurrentLocation.Name);
+        return loc;
+    }
+
+    public List<Location> GetAllLocations()
+    {
+        List<Location> loc = LocationSystem.GetLocations();
         return loc;
     }
 }

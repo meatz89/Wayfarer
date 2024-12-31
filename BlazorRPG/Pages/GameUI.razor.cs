@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using System.Reflection;
 
 namespace BlazorRPG.Pages;
 
@@ -11,8 +12,17 @@ public partial class GameUI : ComponentBase
     private Stack<UIScreens> screenStack = new();
     public List<string> ResultMessages => GetResultMessages();
 
+    public int physicalEnergyCurrent => GameState.Player.PhysicalEnergy;
+    public int physicalEnergyMax => 10;
+    public int socialEnergyCurrent => GameState.Player.SocialEnergy;
+    public int socialEnergyMax => 10;
+    public int coins => GameState.Player.Coins;
+    public int food => GameState.Player.Inventory.GetItemCount(ResourceTypes.Food);
+    public bool hasShelter => false;
+    public List<Location> Locations => ActionManager.GetAllLocations();
+
     public Player Player => GameState.Player;
-    public LocationNames CurrentLocation => GameState.CurrentLocation;
+    public Location CurrentLocation => GameState.CurrentLocation;
     public TimeWindows CurrentTime => GameState.CurrentTimeSlot;
     public List<UserActionOption> CurrentActions => GameState.ValidUserActions;
     public UserActionOption CurrentUserAction => GameState.CurrentUserAction;
@@ -35,6 +45,12 @@ public partial class GameUI : ComponentBase
     {
         hoveredAction = null;
         showTooltip = false;
+    }
+
+    private bool CanTravelTo(LocationNames locationName)
+    {
+        List<LocationNames> locs = ActionManager.GetConnectedLocations();
+        return locs.Contains(locationName);
     }
 
     protected bool AreRequirementsMet(UserActionOption action)
@@ -126,15 +142,15 @@ public partial class GameUI : ComponentBase
     {
         if (action.IsDisabled) return; // Prevent action if disabled
 
-        if (action.BasicAction.ActionType == BasicActionTypes.CheckStatus)
+        if (action.BasicAction.Id == BasicActionTypes.CheckStatus)
         {
             PushScreen(UIScreens.Status);
         }
-        else if (action.BasicAction.ActionType == BasicActionTypes.Travel)
+        else if (action.BasicAction.Id == BasicActionTypes.Travel)
         {
             PushScreen(UIScreens.Travel);
         }
-        else if (action.BasicAction.ActionType == BasicActionTypes.Wait)
+        else if (action.BasicAction.Id == BasicActionTypes.Wait)
         {
             ActionManager.AdvanceTime();
             CompleteActionExecution();

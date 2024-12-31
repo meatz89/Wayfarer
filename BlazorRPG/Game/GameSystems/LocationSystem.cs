@@ -1,6 +1,4 @@
 ﻿
-
-
 public class LocationSystem
 {
     private readonly GameState gameState;
@@ -14,11 +12,16 @@ public class LocationSystem
 
     public List<BasicAction> GetActionsForLocation(LocationNames location)
     {
-        Location locationProperties = allLocationProperties.FirstOrDefault(x => x.LocationName == location);
+        Location locationProperties = allLocationProperties.FirstOrDefault(x => x.Name == location);
         if (locationProperties == null) return null;
 
-        List<BasicAction> actions = locationProperties.Actions;
+        List<BasicAction> actions = locationProperties.AvailableActions;
         return actions;
+    }
+
+    public List<Location> GetLocations()
+    {
+        return allLocationProperties;
     }
 
     public List<LocationNames> GetLocationConnections(LocationNames currentLocation)
@@ -27,9 +30,9 @@ public class LocationSystem
         return location.ConnectedLocations;
     }
 
-    private Location GetLocation(LocationNames locationName)
+    public Location GetLocation(LocationNames locationName)
     {
-        Location location = allLocationProperties.FirstOrDefault(x => x.LocationName == locationName);
+        Location location = allLocationProperties.FirstOrDefault(x => x.Name == locationName);
         return location;
     }
 

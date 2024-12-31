@@ -244,8 +244,8 @@ public class BasicActionDefinitionBuilder
     {
         return new BasicAction
         {
-            ActionType = actionType,
-            Description = description,
+            Id = actionType,
+            Name = description,
             TimeSlots = timeSlots,
             Requirements = requirements,
             Outcomes = outcomes

@@ -8,7 +8,7 @@
     public TimeWindows CurrentTimeSlot { get; private set; } = TimeWindows.Morning;
     public Narrative CurrentNarrative { get; private set; }
     public NarrativeStage CurrentNarrativeStage { get; private set; }
-    public LocationNames CurrentLocation { get; private set; }
+    public Location CurrentLocation { get; private set; }
     public UserActionOption CurrentUserAction { get; private set; }
     public List<UserTravelOption> CurrentTravelOptions { get; private set; } = new();
     public List<UserActionOption> ValidUserActions { get; private set; } = new();
@@ -322,7 +322,7 @@
     private bool StartNewDay()
     {
         bool hasShelter = ValidUserActions
-            .Where(x => x.BasicAction.ActionType == BasicActionTypes.Rest)
+            .Where(x => x.BasicAction.Id == BasicActionTypes.Rest)
             .FirstOrDefault() != null;
 
         int food = Player.Inventory.GetItemCount(ResourceTypes.Food);
@@ -372,8 +372,8 @@
         this.ValidUserActions = userActions;
     }
 
-    public void SetNewLocation(LocationNames name)
+    public void SetNewLocation(Location location)
     {
-        CurrentLocation = name;
+        CurrentLocation = location;
     }
 }

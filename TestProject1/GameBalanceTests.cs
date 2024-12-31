@@ -75,10 +75,10 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
         // Check available actions
         IEnumerable<UserActionOption> validActions = GameState.ValidUserActions
             .Where(a => !a.IsDisabled)
-            .Where(a => a.BasicAction.ActionType != BasicActionTypes.CheckStatus)
-            .Where(a => a.BasicAction.ActionType != BasicActionTypes.Wait);
+            .Where(a => a.BasicAction.Id != BasicActionTypes.CheckStatus)
+            .Where(a => a.BasicAction.Id != BasicActionTypes.Wait);
 
-        string availableActions = string.Join(", ", validActions.Select(a => a.BasicAction.ActionType));
+        string availableActions = string.Join(", ", validActions.Select(a => a.BasicAction.Id));
         Assert.True(validActions.Any(),
             $"No valid actions available after resource depletion.\nResource history:\n{string.Join("\n", resourceLog)}\n" +
             $"Available actions: {availableActions}");
@@ -101,14 +101,14 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
                 GameTestHelpers.AdvanceToTimeWindow(ActionManager, timeWindow);
                 // Log ALL actions with their disabled state
                 IEnumerable<UserActionOption> allActions = GameState.ValidUserActions
-                    .Where(a => a.BasicAction.ActionType != BasicActionTypes.CheckStatus)
-                    .Where(a => a.BasicAction.ActionType != BasicActionTypes.Travel)
-                    .Where(a => a.BasicAction.ActionType != BasicActionTypes.Wait);
+                    .Where(a => a.BasicAction.Id != BasicActionTypes.CheckStatus)
+                    .Where(a => a.BasicAction.Id != BasicActionTypes.Travel)
+                    .Where(a => a.BasicAction.Id != BasicActionTypes.Wait);
 
                 actionLog.Add($"  {timeWindow} actions:");
                 foreach (UserActionOption? action in allActions)
                 {
-                    actionLog.Add($"    {action.BasicAction.ActionType} - Disabled: {action.IsDisabled}, " +
+                    actionLog.Add($"    {action.BasicAction.Id} - Disabled: {action.IsDisabled}, " +
                                 $"ValidTimeSlots: [{string.Join(",", action.BasicAction.TimeSlots)}], " +
                                 $"CurrentTime: {GameState.CurrentTimeSlot}");
                 }
@@ -116,7 +116,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
                 IEnumerable<UserActionOption> availableActions = allActions.Where(a => !a.IsDisabled);
                 foreach (UserActionOption? action in availableActions)
                 {
-                    executedActions.Add(action.BasicAction.ActionType);
+                    executedActions.Add(action.BasicAction.Id);
                 }
             }
         }
@@ -143,14 +143,14 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
 
         foreach (UserActionOption action in GameState.ValidUserActions)
         {
-            output.WriteLine($"Action: {action.BasicAction.ActionType}, " +
+            output.WriteLine($"Action: {action.BasicAction.Id}, " +
                            $"TimeSlots: [{string.Join(",", action.BasicAction.TimeSlots)}], " +
                            $"CurrentTime: {GameState.CurrentTimeSlot}, " +
                            $"IsDisabled: {action.IsDisabled}");
         }
 
         Assert.True(
-            GameState.ValidUserActions.Any(a => !a.IsDisabled && a.BasicAction.ActionType == BasicActionTypes.Trade),
+            GameState.ValidUserActions.Any(a => !a.IsDisabled && a.BasicAction.Id == BasicActionTypes.Trade),
             "Trade action should be available in morning"
         );
     }
@@ -198,16 +198,16 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
                 // Count gameplay actions
                 List<UserActionOption> validGameplayActions = GameState.ValidUserActions
                     .Where(a => !a.IsDisabled)
-                    .Where(a => a.BasicAction.ActionType != BasicActionTypes.Travel)
-                    .Where(a => a.BasicAction.ActionType != BasicActionTypes.Wait)
-                    .Where(a => a.BasicAction.ActionType != BasicActionTypes.CheckStatus)
+                    .Where(a => a.BasicAction.Id != BasicActionTypes.Travel)
+                    .Where(a => a.BasicAction.Id != BasicActionTypes.Wait)
+                    .Where(a => a.BasicAction.Id != BasicActionTypes.CheckStatus)
                     .ToList();
 
                 // If no valid gameplay actions, verify we can travel somewhere
                 if (validGameplayActions.Count == 0)
                 {
                     bool canTravel = GameState.ValidUserActions
-                        .Any(a => a.BasicAction.ActionType == BasicActionTypes.Travel && !a.IsDisabled);
+                        .Any(a => a.BasicAction.Id == BasicActionTypes.Travel && !a.IsDisabled);
 
                     Assert.True(canTravel,
                         $"No valid actions or travel options at {location} during {timeWindow}");

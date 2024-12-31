@@ -66,10 +66,10 @@
 
         return new Location
         {
-            LocationName = location,
+            Name = location,
             ConnectedLocations = travelConnections,
-            LocationType = locationType,
-            Actions = actions
+            CoreType = locationType,
+            AvailableActions = actions
         };
     }
 }

@@ -1,140 +1,111 @@
 ﻿@page "/"
 @inherits ComponentBase
 
+<div class="top-bar">
+    <div class="time-display">
+        @CurrentTime 🌅
+    </div>
+
+    <div class="energy-meters">
+        <div class="energy-meter">
+            <div class="meter-bar">
+                <div class="meter-fill physical" style="width: @(physicalEnergyCurrent * 100 / physicalEnergyMax)%"></div>
+            </div>
+            <span>Physical (@physicalEnergyCurrent/@physicalEnergyMax)</span>
+        </div>
+        <div class="energy-meter">
+            <div class="meter-bar">
+                <div class="meter-fill social" style="width: @(socialEnergyCurrent * 100 / socialEnergyMax)%"></div>
+            </div>
+            <span>Social (@socialEnergyCurrent/@socialEnergyMax)</span>
+        </div>
+    </div>
+
+    <div class="resources">
+        <div class="resource coins">🪙 @coins Coins</div>
+        <div class="resource food">🍖 @food Food</div>
+        <div class="resource shelter">
+            🏠 @(hasShelter ? "Sheltered" : "No Shelter")
+        </div>
+    </div>
+</div>
+
 <div class="game-container">
-    <CascadingValue Value="CurrentScreen">
-        <GameScreen Screen="CurrentScreen">
-            <MainGameScreen>
-                <h2>Main Menu</h2>
-                <MenuOptions>
-                    <MenuOption Index="1" Text="New Game" OnClick="ToActionSelection" />
-                    <BackOption Text="Exit Game" OnBack="ExitGame" />
-                </MenuOptions>
-            </MainGameScreen>
+    <div class="locations-grid">
+        @foreach (var location in Locations)
+        {
+            <div class="location-card @(location.Name == CurrentLocation.Name ? "current" : "reachable")">
+                <div class="location-name">
+                    @location.Name @(location.Name == CurrentLocation.Name ? "(Current)" : "")
+                </div>
+                <div class="location-type">@location.CoreType</div>
+                <div class="location-time">⏰ @location.TimeWindows</div>
 
-            <StatusScreen>
-                <StatusInfo GameState="GameState" />
-                <MenuOptions>
-                    <br />
-                    <BackOption OnBack="PopScreen" />
-                </MenuOptions>
-            </StatusScreen>
-
-            <ActionSelectionScreen>
-                <h2>Location: @CurrentLocation (@CurrentTime)</h2>
-                <MenuOptions>
-                    @foreach (UserActionOption action in CurrentActions)
-                    {
-                        <div class="action-container"
-                             @onmouseover="@(() => ShowTooltip(action))"
-                             @onmouseout="@(() => HideTooltip())">
-                            <MenuOption Index="action.Index"
-                                        Text="@GetActionDescription(action)"
-                                        IsDisabled="action.IsDisabled"
-                                        IsRequirementNotMet="!AreRequirementsMet(action)"
-                                        OnClick="() => HandleActionSelection(action)" />
-                            @if (showTooltip && action == hoveredAction && (action.BasicAction.Requirements.Any() || action.BasicAction.Outcomes.Any()))
-                            {
-                                <div class="action-preview">
-                                    <ActionPreview CurrentAction="action" Player="Player" />
-                                </div>
-                            }
-                        </div>
-                    }
-                    <br />
-                    <BackOption OnBack="PopScreen" />
-                </MenuOptions>
-            </ActionSelectionScreen>
-
-
-            <TravelScreen>
-                <h2>Travel To</h2>
-                <MenuOptions>
-                    @foreach (var travelOption in CurrentTravelOptions)
-                    {
-                        <MenuOption Index="travelOption.Index"
-                                    Text="@travelOption.Location.ToString()"
-                                    OnClick="() => HandleTravel(travelOption.Index)" />
-                    }
-                    <br />
-                    <BackOption OnBack="PopScreen" />
-                </MenuOptions>
-            </TravelScreen>
-
-            <ActionNarrativeScreen>
-                @if (GameState.CurrentNarrative != null)
+                @if (location.HasBadShelter)
                 {
-                    @if (GameState.CurrentNarrativeStage != null)
+                    <div class="location-warning">⚠️ Bad Shelter</div>
+                }
+
+                @if (location.HasShelter)
+                {
+                    <div class="location-shelter">🏠 Shelter Available (@location.ShelterCost 🪙)</div>
+                }
+
+                @if (location.Name == CurrentLocation.Name)
+                {
+                    @foreach (var action in location.AvailableActions)
                     {
-                        <h2>Current Situation</h2>
-                        <p class="narrative-text">@GameState.CurrentNarrativeStage.Situation</p>
-                        <MenuOptions>
-                            @foreach (var choice in GameState.CurrentNarrativeStage.Choices)
-                            {
-                                var canExecute = ActionManager.CanExecuteChoice(GameState.CurrentNarrativeStage, choice.Index);
-                                <MenuOption Index="choice.Index"
-                                            Text="@choice.Description"
-                                            IsDisabled="!canExecute"
-                                            OnClick="() => HandleNarrativeChoice(choice.Index)" />
-                            }
-                            <br />
-                            <BackOption OnBack="PopScreen" />
-                        </MenuOptions>
+                        <button class="action-button"
+                                onclick="executeAction('@action.Id')"
+                                disabled="@(!action.IsAvailable)">
+                            @action.Name (@action.Cost)
+                        </button>
                     }
                 }
-            </ActionNarrativeScreen>
-
-            <ActionResultScreen>
-                <h2>Action Result</h2>
-                @if (LastActionResult != null)
+                else
                 {
-                    <text>@(LastActionResult.IsSuccess ? "Success" : "Failure")</text>
-                    <br />
-                    <br />
-                    <text>[Results]</text>
-                    <br />
-                    @foreach (var message in ResultMessages)
-                    {
-                        <text>- @message</text>
-                        <br />
-                    }
-                    <br />
+                    <button class="action-button"
+                            onclick="travel('@location.Name')"
+                            disabled="@(!CanTravelTo(location.Name))">
+                        TRAVEL HERE
+                    </button>
                 }
-                
-                <br />
-                --------------------------------
-                <br />
+            </div>
+        }
+    </div>
 
-                <h2>New Stats</h2>
+    <div class="sidebar">
+        <div class="sidebar-panel current-location">
+            <div class="panel-title">Current Location</div>
+            <div class="panel-content">
+                <div>@CurrentLocation</div>
+                <div>Available Actions:</div>
+                @foreach (var action in CurrentLocation.AvailableActions)
+                {
+                    <div>• @action.Name (@action.Cost)</div>
+                }
+            </div>
+        </div>
 
-                [New Base Stats]
-                <br />
-                <text>- Health: @GameState.Player.Health/@GameState.Player.MaxHealth</text>
-                <br />
-                <text>- Food: @GameState.Player.Inventory.GetItemCount(ResourceTypes.Food)</text>
-                <br />
-                <text>- Coins: @GameState.Player.Coins</text>
-                <br />
-                <br />
+        <div class="sidebar-panel">
+            <div class="panel-title">Daily Requirements</div>
+            <div class="panel-content">
+                <div class="requirement">
+                    <span style="color: var(--resource-food)">• 1 Food by Night</span>
+                </div>
+                <div class="requirement">
+                    <span style="color: var(--resource-shelter)">• Shelter during Night</span>
+                </div>
+            </div>
+        </div>
 
-                [New Energy]
-                <br />
-                <text>- Physical: @GameState.Player.PhysicalEnergy/@GameState.Player.MaxPhysicalEnergy</text>
-                <br />
-                <text>- Focus: @GameState.Player.FocusEnergy/@GameState.Player.MaxFocusEnergy</text>
-                <br />
-                <text>- Social: @GameState.Player.SocialEnergy/@GameState.Player.MaxSocialEnergy</text>
-                <br />
-                <br />
-
-                <MenuOptions>
-                    <MenuOption Index="1" Text="To Action Selection" OnClick="ToActionSelection" />
-                    <BackOption OnBack="PopScreen" />
-                </MenuOptions>
-            </ActionResultScreen>
-
-        </GameScreen>
-    </CascadingValue>
-    <ActionResultMessage Result="LastActionResult" />
-
+        <div class="sidebar-panel">
+            <div class="panel-title">Time Management</div>
+            <div class="panel-content">
+                <div>• Travel takes time</div>
+                <div>• Actions advance time</div>
+                <div>• Plan your day carefully</div>
+            </div>
+        </div>
+    </div>
 </div>
