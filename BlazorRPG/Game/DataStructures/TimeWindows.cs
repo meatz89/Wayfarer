@@ -13,13 +13,6 @@ public enum AccessTypes
     Restricted
 }
 
-public enum ShelterStates
-{
-    None = 0,
-    Bad,
-    Good
-}
-
 public enum DangerLevels
 {
     None = 0,

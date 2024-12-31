@@ -14,16 +14,18 @@ public class GameContentProvider
     {
         locationProperties = new List<Location>
         {
-            LocationPropertiesContent.HarborStreets,
-            LocationPropertiesContent.Docks,
-            LocationPropertiesContent.Market,
-            LocationPropertiesContent.Tavern,
-            LocationPropertiesContent.ForestEdge
+            LocationContent.HarborStreets,
+            LocationContent.Docks,
+            LocationContent.MarketSquare,
+            LocationContent.ArtisanRow,
+            LocationContent.Tavern,
+            LocationContent.ForestEdge,
+            LocationContent.CarpentersWorkshop
         };
 
         characterProperties = new List<Character>
         {
-            CharacterPropertiesContent.MarketVendor,
+            CharacterContent.MarketVendor,
         };
 
         narratives = new List<Narrative>

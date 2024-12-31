@@ -1,14 +1,13 @@
 ﻿
-
+using Microsoft.Extensions.Hosting;
 
 public class BasicActionDefinitionBuilder
 {
     private BasicActionTypes actionType;
     private string description;
     private List<TimeWindows> timeSlots = new();
-
-    public List<IRequirement> requirements { get; set; } = new();
-    public List<IOutcome> outcomes { get; set; } = new();
+    public List<IRequirement> requirements = new();
+    public List<IOutcome> outcomes = new();
 
     public BasicActionDefinitionBuilder ForAction(BasicActionTypes actionType)
     {
@@ -19,6 +18,16 @@ public class BasicActionDefinitionBuilder
     public BasicActionDefinitionBuilder WithDescription(string description)
     {
         this.description = description;
+
+        return this;
+    }
+
+    public BasicActionDefinitionBuilder RequiresInventorySlots(int slots)
+    {
+        this.requirements.Add(new InventorySlotsRequirement
+        {
+            Count = slots
+        });
 
         return this;
     }
@@ -42,6 +51,22 @@ public class BasicActionDefinitionBuilder
             Amount = -cost
         });
 
+        return this;
+    }
+
+    public BasicActionDefinitionBuilder ExpendsEnergy(int energyCost, EnergyTypes energyType)
+    {
+        switch (energyType)
+        {
+            case EnergyTypes.Physical:
+                return ExpendsPhysicalEnergy(energyCost);
+
+            case EnergyTypes.Focus:
+                return ExpendsFocusEnergy(energyCost);
+
+            case EnergyTypes.Social:
+                return ExpendsSocialEnergy(energyCost);
+        }
         return this;
     }
 
@@ -120,27 +145,30 @@ public class BasicActionDefinitionBuilder
         return this;
     }
 
-    public BasicActionDefinitionBuilder ExpendsItem(ResourceTypes item)
+    public BasicActionDefinitionBuilder ExpendsItem(ResourceTypes item, int count)
     {
         requirements.Add(new ItemRequirement
         {
-            Item = item
+            ResourceType = item,
+            Count = count
         });
 
         outcomes.Add(new ItemOutcome
         {
             ChangeType = ItemChangeType.Remove,
-            Item = item
+            ResourceType = item,
+            Count = count
         });
 
         return this;
     }
-    public BasicActionDefinitionBuilder RewardsItem(ResourceTypes item)
+    public BasicActionDefinitionBuilder RewardsItem(ResourceTypes item, int count)
     {
         outcomes.Add(new ItemOutcome
         {
             ChangeType = ItemChangeType.Add,
-            Item = item
+            ResourceType = item,
+            Count = count
         });
 
         return this;

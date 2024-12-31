@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-
 public partial class ActionPreviewBase : ComponentBase
 {
     [Parameter] public UserActionOption CurrentAction { get; set; }
@@ -14,11 +13,12 @@ public partial class ActionPreviewBase : ComponentBase
             PhysicalEnergyRequirement r => $"Physical Energy Required: {r.Amount}",
             FocusEnergyRequirement r => $"Focus Energy Required: {r.Amount}",
             SocialEnergyRequirement r => $"Social Energy Required: {r.Amount}",
+            InventorySlotsRequirement r => $"Empty Inventory Slots Required: {r.Count}",
             HealthRequirement r => $"Health Required: {r.Amount}",
             CoinsRequirement r => $"Coins Required: {r.Amount}",
             FoodRequirement r => $"Food Required: {r.Amount}",
             SkillLevelRequirement r => $"Skill Required: {r.SkillType} level {r.Amount}",
-            ItemRequirement r => $"Item Required: {r.Item.ToString()}",
+            ItemRequirement r => $"Requires {r.Count} x {r.ResourceType}",
             _ => string.Empty
         };
     }
@@ -39,6 +39,7 @@ public partial class ActionPreviewBase : ComponentBase
             CoinsOutcome o => $"({Player.Coins} -> <span class='{GetValueColor(o.Amount)}'>{Math.Max(0, Player.Coins + o.Amount)}</span>)",
             FoodOutcome o => $"({Player.Inventory.GetItemCount(ResourceTypes.Food)} -> <span class='{GetValueColor(o.Amount)}'>{Math.Max(0, Player.Inventory.GetItemCount(ResourceTypes.Food) + o.Amount)}</span>)",
             SkillLevelOutcome o => $"({Player.Skills[o.SkillType]} -> <span class='{GetValueColor(o.Amount)}'>{Math.Max(0, Player.Skills[o.SkillType] + o.Amount)}</span>)",
+            ItemOutcome o => $"({Player.Inventory.GetItemCount(o.ResourceType)} -> <span class='{GetValueColor(o.Count)}'>{Player.Inventory.GetItemCount(o.ResourceType) + o.Count}</span>)",
             _ => string.Empty
         };
     }
@@ -54,10 +55,26 @@ public partial class ActionPreviewBase : ComponentBase
             CoinsOutcome o => $"Coins {FormatValuePreview(o)}",
             FoodOutcome o => $"Food {FormatValuePreview(o)}",
             SkillLevelOutcome o => $"Skill {o.SkillType} {FormatValuePreview(o)}",
-            ItemOutcome o => $"Item {o.ChangeType.ToString()}: {o.Item}",
+            ItemOutcome o => $"{(o.Count >= 0 ? "Gain" : "Lose")} {Math.Abs(o.Count)} x {o.ResourceType} {FormatValuePreview(o)}",
             _ => string.Empty
         };
         return new MarkupString(description);
+    }
+    protected string GetRequirementColor(IRequirement requirement)
+    {
+        return requirement switch
+        {
+            PhysicalEnergyRequirement r => Player.PhysicalEnergy >= r.Amount ? "green" : "red",
+            FocusEnergyRequirement r => Player.FocusEnergy >= r.Amount ? "green" : "red",
+            SocialEnergyRequirement r => Player.SocialEnergy >= r.Amount ? "green" : "red",
+            InventorySlotsRequirement r => Player.Inventory.GetEmptySlots() >= r.Count ? "green" : "red",
+            HealthRequirement r => Player.Health >= r.Amount ? "green" : "red",
+            CoinsRequirement r => Player.Coins >= r.Amount ? "green" : "red",
+            FoodRequirement r => Player.Inventory.GetItemCount(ResourceTypes.Food) >= r.Amount ? "green" : "red",
+            SkillLevelRequirement r => Player.Skills.ContainsKey(r.SkillType) && Player.Skills[r.SkillType] >= r.Amount ? "green" : "red",
+            ItemRequirement r => Player.Inventory.GetItemCount(r.ResourceType) >= r.Count ? "green" : "red",
+            _ => "black"
+        };
     }
 
     public async Task HandleConfirm()

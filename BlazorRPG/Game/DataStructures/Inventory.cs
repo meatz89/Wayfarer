@@ -29,16 +29,55 @@
         }
         else if (count < currentCount) // Removing items
         {
-            while (currentCount > count && RemoveItem(item))
+            while (currentCount > count && RemoveItems(item))
             {
                 currentCount--;
             }
         }
     }
 
+    // Method to add multiple items of the same type to the inventory
+    public int AddItems(ResourceTypes item, int count)
+    {
+        int addedCount = 0;
+
+        for (int i = 0; i < count; i++)
+        {
+            if (AddItem(item))
+            {
+                addedCount++;
+            }
+            else
+            {
+                break; // Stop if inventory is full
+            }
+        }
+
+        return addedCount; // Return the number of items successfully added
+    }
+
+    // Method to remove multiple items of the same type from the inventory
+    public int RemoveItems(ResourceTypes item, int count)
+    {
+        int removedCount = 0;
+
+        for (int i = 0; i < count; i++)
+        {
+            if (RemoveItems(item))
+            {
+                removedCount++;
+            }
+            else
+            {
+                break; // Stop if no more items of the type are found
+            }
+        }
+
+        return removedCount; // Return the number of items successfully removed
+    }
 
     // Method to add an item to the inventory
-    public bool AddItem(ResourceTypes item)
+    private bool AddItem(ResourceTypes item)
     {
         for (int i = 0; i < Slots.Length; i++)
         {
@@ -52,7 +91,7 @@
     }
 
     // Method to remove an item from the inventory
-    public bool RemoveItem(ResourceTypes item)
+    private bool RemoveItems(ResourceTypes item)
     {
         for (int i = 0; i < Slots.Length; i++)
         {
@@ -104,15 +143,5 @@
             }
         }
         return count;
-    }
-
-    // Method to display inventory contents
-    public void DisplayInventory()
-    {
-        Console.WriteLine("Inventory Contents:");
-        for (int i = 0; i < Slots.Length; i++)
-        {
-            Console.WriteLine($"Slot {i + 1}: {Slots[i]}");
-        }
     }
 }

@@ -4,7 +4,5 @@
     public List<LocationNames> ConnectedLocations { get; set; }
     public LocationTypes LocationType;
 
-    public List<ActivityTypes> ActivityTypes;
-
     public List<BasicAction> Actions = new();
 }

@@ -49,10 +49,10 @@ public class SmokeTests : IClassFixture<BlazorRPGFixture>
 
         // Test forest gathering
         ActionManager.MoveToLocation(LocationNames.ForestEdge);
-        int initialFood = GameState.Player.Inventory.Food;
+        int initialFood = GameState.Player.Inventory.GetItemCount(ResourceTypes.Food);
         GameTestHelpers.ExecuteActionSequence(ActionManager, BasicActionTypes.Gather);
 
-        Assert.True(GameState.Player.Inventory.Food > initialFood);
+        Assert.True(GameState.Player.Inventory.GetItemCount(ResourceTypes.Food) > initialFood);
     }
 
     [Fact]

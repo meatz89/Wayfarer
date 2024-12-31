@@ -1,32 +1,32 @@
-﻿public class CharacterPropertiesBuilder
+﻿public class CharacterBuilder
 {
     private CharacterNames character;
     private LocationNames location;
     private List<BasicAction> actions = new();
 
-    public CharacterPropertiesBuilder ForCharacter(CharacterNames character)
+    public CharacterBuilder ForCharacter(CharacterNames character)
     {
         this.character = character;
         return this;
     }
 
-    public CharacterPropertiesBuilder InLocation(LocationNames location)
+    public CharacterBuilder InLocation(LocationNames location)
     {
         this.location = location;
         return this;
     }
 
-    public CharacterPropertiesBuilder SetCharacterType(CharacterTypes characterType)
+    public CharacterBuilder SetCharacterType(CharacterTypes characterType)
     {
         return this;
     }
 
-    public CharacterPropertiesBuilder SetDangerLevel(DangerLevels dangerLevel)
+    public CharacterBuilder SetDangerLevel(DangerLevels dangerLevel)
     {
         return this;
     }
 
-    public CharacterPropertiesBuilder AddAction(Action<BasicActionDefinitionBuilder> buildBasicAction)
+    public CharacterBuilder AddAction(Action<BasicActionDefinitionBuilder> buildBasicAction)
     {
         BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder();
         buildBasicAction(builder);

@@ -7,7 +7,7 @@
         gameState.SetNewTime(9);
 
         Inventory playerInventory = new Inventory(10);
-        playerInventory.AddItem(ResourceTypes.Food);
+        playerInventory.AddItems(ResourceTypes.Food, 1);
 
         Player playerInfo = new Player();
         playerInfo.Coins = GameRules.StartingCoins;

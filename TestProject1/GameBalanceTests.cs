@@ -35,18 +35,18 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
         for (int day = 0; day < 3; day++)
         {
             // Track daily stats
-            healthLog.Add($"Day {day} Start - Health: {GameState.Player.Health}, Food: {GameState.Player.Inventory.Food}");
+            healthLog.Add($"Day {day} Start - Health: {GameState.Player.Health}, Food: {GameState.Player.Inventory.GetItemCount(ResourceTypes.Food)}");
 
             // Just gather berries all day without proper shelter
             GameTestHelpers.AdvanceToTimeWindow(ActionManager, TimeWindows.Morning);
             GameTestHelpers.ExecuteActionSequence(ActionManager, BasicActionTypes.Gather);
 
-            healthLog.Add($"Day {day} After Gather - Health: {GameState.Player.Health}, Food: {GameState.Player.Inventory.Food}");
+            healthLog.Add($"Day {day} After Gather - Health: {GameState.Player.Health}, Food: {GameState.Player.Inventory.GetItemCount(ResourceTypes.Food)}");
 
             // No shelter at night, should lose health
             GameTestHelpers.AdvanceToTimeWindow(ActionManager, TimeWindows.Night);
 
-            healthLog.Add($"Day {day} End - Health: {GameState.Player.Health}, Food: {GameState.Player.Inventory.Food}");
+            healthLog.Add($"Day {day} End - Health: {GameState.Player.Health}, Food: {GameState.Player.Inventory.GetItemCount(ResourceTypes.Food)}");
         }
 
         Assert.True(GameState.Player.Health < startingHealth,
@@ -59,7 +59,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
     {
         // Track resources through worst-case sequence
         List<string> resourceLog = new List<string>();
-        string initialState = $"Initial - Health: {GameState.Player.Health}, Food: {GameState.Player.Inventory.Food}, " +
+        string initialState = $"Initial - Health: {GameState.Player.Health}, Food: {GameState.Player.Inventory.GetItemCount(ResourceTypes.Food)}, " +
                           $"Coins: {GameState.Player.Coins}, Energy: {GameState.Player.PhysicalEnergy}";
         resourceLog.Add(initialState);
 
@@ -68,7 +68,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
         while (GameState.Player.PhysicalEnergy > 0)
         {
             GameTestHelpers.ExecuteActionSequence(ActionManager, BasicActionTypes.Labor);
-            resourceLog.Add($"After Labor - Health: {GameState.Player.Health}, Food: {GameState.Player.Inventory.Food}, " +
+            resourceLog.Add($"After Labor - Health: {GameState.Player.Health}, Food: {GameState.Player.Inventory.GetItemCount(ResourceTypes.Food)}, " +
                            $"Coins: {GameState.Player.Coins}, Energy: {GameState.Player.PhysicalEnergy}");
         }
 

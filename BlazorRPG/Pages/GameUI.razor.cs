@@ -83,7 +83,7 @@ public partial class GameUI : ComponentBase
         }
         foreach (ItemOutcome item in messages.Item)
         {
-            string s = $"Item  {item.ChangeType.ToString()} : {item.Item.ToString()}";
+            string s = $"Item {item.ChangeType.ToString()} : {item.ResourceType.ToString()} ({item.Count})";
             list.Add(s);
         }
 

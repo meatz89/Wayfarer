@@ -41,5 +41,6 @@ public class SkillLevelOutcome : IOutcome
 public class ItemOutcome : IOutcome
 {
     public ItemChangeType ChangeType { get; set; }
-    public ResourceTypes Item { get; set; }
+    public ResourceTypes ResourceType { get; set; }
+    public int Count { get; set; }
 }

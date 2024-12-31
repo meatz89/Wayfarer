@@ -243,6 +243,10 @@
         {
             return GameState.Player.Health >= food.Amount;
         }
+        if (requirement is InventorySlotsRequirement inventorySlot)
+        {
+            return GameState.Player.Inventory.GetEmptySlots() >= inventorySlot.Count;
+        }
         if (requirement is HealthRequirement health)
         {
             return GameState.Player.Health >= health.Amount;

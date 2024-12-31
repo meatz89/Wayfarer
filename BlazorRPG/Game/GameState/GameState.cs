@@ -153,7 +153,7 @@
             for (int i = 0; i < outstandingChanges.Item.Count; i++)
             {
                 ItemOutcome item = outstandingChanges.Item[i];
-                bool neededChange = this.ModifyItem(item.ChangeType, item.Item);
+                bool neededChange = this.ModifyItem(item.ChangeType, item.ResourceType, item.Count);
                 if (neededChange)
                 {
                     processedChanges.Item.Add(item);
@@ -249,15 +249,17 @@
         return false;
     }
 
-    private bool ModifyItem(ItemChangeType itemChange, ResourceTypes resourceType)
+    private bool ModifyItem(ItemChangeType itemChange, ResourceTypes resourceType, int count)
     {
         if (itemChange == ItemChangeType.Add)
         {
-            return Player.Inventory.AddItem(resourceType);
+            int itemsAdded = Player.Inventory.AddItems(resourceType, count);
+            return itemsAdded == count;
         }
         else if (itemChange == ItemChangeType.Remove)
         {
-            return Player.Inventory.RemoveItem(resourceType);
+            int itemsRemoved = Player.Inventory.RemoveItems(resourceType, count);
+            return itemsRemoved == count;
         }
 
         return false;

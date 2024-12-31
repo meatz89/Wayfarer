@@ -12,6 +12,11 @@ public class FoodRequirement : IRequirement
     public int Amount { get; set; }
 }
 
+public class InventorySlotsRequirement : IRequirement
+{
+    public int Count { get; set; }
+}
+
 public class HealthRequirement : IRequirement
 {
     public int Amount { get; set; }
@@ -40,5 +45,6 @@ public class SkillLevelRequirement : IRequirement
 
 public class ItemRequirement : IRequirement
 {
-    public ResourceTypes Item { get; set; }
+    public ResourceTypes ResourceType { get; set; }
+    public int Count { get; set; }
 }

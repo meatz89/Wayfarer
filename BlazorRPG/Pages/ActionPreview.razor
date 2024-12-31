@@ -18,7 +18,9 @@
 
 @foreach (var requirement in CurrentAction.BasicAction.Requirements)
 {
-    <text>- @GetRequirementDescription(requirement)</text>
+    <span style="color: @GetRequirementColor(requirement)">
+        - @GetRequirementDescription(requirement)
+    </span>
     <br />
 }
 <br />

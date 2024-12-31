@@ -4,7 +4,9 @@
     MarketSquare,
     HarborStreets,
     LionsHeadTavern,
-    ForestEdge
+    ForestEdge,
+    CarpentersWorkshop,
+    ArtisanRow
 }
 
 public enum CharacterNames
