@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+
 public partial class ActionPreviewBase : ComponentBase
 {
     [Parameter] public UserActionOption CurrentAction { get; set; }
@@ -55,11 +56,12 @@ public partial class ActionPreviewBase : ComponentBase
             CoinsOutcome o => $"Coins {FormatValuePreview(o)}",
             FoodOutcome o => $"Food {FormatValuePreview(o)}",
             SkillLevelOutcome o => $"Skill {o.SkillType} {FormatValuePreview(o)}",
-            ItemOutcome o => $"{(o.Count >= 0 ? "Gain" : "Lose")} {Math.Abs(o.Count)} x {o.ResourceType} {FormatValuePreview(o)}",
+            ItemOutcome o => $"{(o.ChangeType == ItemChangeType.Added ? "Gain" : "Lose")} {o.Count} x {o.ResourceType} {FormatValuePreview(o)}",
             _ => string.Empty
         };
         return new MarkupString(description);
     }
+
     protected string GetRequirementColor(IRequirement requirement)
     {
         return requirement switch
@@ -74,6 +76,38 @@ public partial class ActionPreviewBase : ComponentBase
             SkillLevelRequirement r => Player.Skills.ContainsKey(r.SkillType) && Player.Skills[r.SkillType] >= r.Amount ? "green" : "red",
             ItemRequirement r => Player.Inventory.GetItemCount(r.ResourceType) >= r.Count ? "green" : "red",
             _ => "black"
+        };
+    }
+
+    public bool IsCost(IOutcome outcome)
+    {
+        return outcome switch
+        {
+            PhysicalEnergyOutcome o => o.Amount < 0,
+            FocusEnergyOutcome o => o.Amount < 0,
+            SocialEnergyOutcome o => o.Amount < 0,
+            HealthOutcome o => o.Amount < 0,
+            CoinsOutcome o => o.Amount < 0,
+            FoodOutcome o => o.Amount < 0,
+            SkillLevelOutcome o => o.Amount < 0,
+            ItemOutcome o => o.ChangeType == ItemChangeType.Removed,
+            _ => false
+        };
+    }
+
+    public bool IsReward(IOutcome outcome)
+    {
+        return outcome switch
+        {
+            PhysicalEnergyOutcome o => o.Amount >= 0,
+            FocusEnergyOutcome o => o.Amount >= 0,
+            SocialEnergyOutcome o => o.Amount >= 0,
+            HealthOutcome o => o.Amount >= 0,
+            CoinsOutcome o => o.Amount >= 0,
+            FoodOutcome o => o.Amount >= 0,
+            SkillLevelOutcome o => o.Amount >= 0,
+            ItemOutcome o => o.ChangeType == ItemChangeType.Added,
+            _ => false
         };
     }
 

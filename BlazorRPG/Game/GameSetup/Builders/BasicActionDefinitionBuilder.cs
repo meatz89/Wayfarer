@@ -155,7 +155,7 @@ public class BasicActionDefinitionBuilder
 
         outcomes.Add(new ItemOutcome
         {
-            ChangeType = ItemChangeType.Remove,
+            ChangeType = ItemChangeType.Removed,
             ResourceType = item,
             Count = count
         });
@@ -166,7 +166,7 @@ public class BasicActionDefinitionBuilder
     {
         outcomes.Add(new ItemOutcome
         {
-            ChangeType = ItemChangeType.Add,
+            ChangeType = ItemChangeType.Added,
             ResourceType = item,
             Count = count
         });

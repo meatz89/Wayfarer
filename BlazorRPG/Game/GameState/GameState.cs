@@ -251,12 +251,12 @@
 
     private bool ModifyItem(ItemChangeType itemChange, ResourceTypes resourceType, int count)
     {
-        if (itemChange == ItemChangeType.Add)
+        if (itemChange == ItemChangeType.Added)
         {
             int itemsAdded = Player.Inventory.AddItems(resourceType, count);
             return itemsAdded == count;
         }
-        else if (itemChange == ItemChangeType.Remove)
+        else if (itemChange == ItemChangeType.Removed)
         {
             int itemsRemoved = Player.Inventory.RemoveItems(resourceType, count);
             return itemsRemoved == count;

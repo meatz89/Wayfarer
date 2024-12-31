@@ -25,13 +25,31 @@
 }
 <br />
 
-[Results]
+[Cost]
 <br />
-
 @foreach (var outcome in CurrentAction.BasicAction.Outcomes)
 {
-    <text>- @GetOutcomeDescription(outcome)</text>
-    <br />
+    @if (IsCost(outcome))
+    {
+        <span style="color: red">
+            - @GetOutcomeDescription(outcome)
+        </span>
+        <br />
+    }
+}
+<br />
+
+[Rewards]
+<br />
+@foreach (var outcome in CurrentAction.BasicAction.Outcomes)
+{
+    @if (IsReward(outcome))
+    {
+        <span style="color: green">
+            - @GetOutcomeDescription(outcome)
+        </span>
+        <br />
+    }
 }
 <br />
 
