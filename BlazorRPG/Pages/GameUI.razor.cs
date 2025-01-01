@@ -29,16 +29,16 @@ public partial class GameUI : ComponentBase
     public LocationSpot CurrentSpot => GameState.CurrentLocationSpot;
     public TimeWindows CurrentTime => GameState.CurrentTimeSlot;
 
-    public List<UserActionOption> LocationActions => GameState.ValidLocationActions;
+    public List<UserActionOption> LocationActions => GameState.LocationActions;
     public List<UserActionOption> GetLocationActions(LocationNames locationNames)
     {
-        List<UserActionOption> userActionOptions = GameState.ValidLocationActions.Where(x => x.Location == locationNames).ToList();
+        List<UserActionOption> userActionOptions = GameState.LocationActions.Where(x => x.Location == locationNames).ToList();
         return userActionOptions;
     }
 
     public List<UserActionOption> GetSpotActions(LocationNames locationNames)
     {
-        List<UserActionOption> userActionOptions = GameState.ValidLocationActions.Where(x => x.Location == locationNames).ToList();
+        List<UserActionOption> userActionOptions = GameState.LocationActions.Where(x => x.Location == locationNames).ToList();
         return userActionOptions;
     }
 

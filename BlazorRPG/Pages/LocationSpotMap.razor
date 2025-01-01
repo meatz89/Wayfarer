@@ -13,13 +13,13 @@
 
             @if (spot.Name == CurrentSpot.Name)
             {
-                @foreach (var action in GameState.ValidLocationSpotActions.Where(x => x.LocationSpot == spot.Name))
+                @foreach (var action in GameState.GetLocationSpotActions(CurrentSpot))
                 {
                     <button class="action-button"
                             @onclick="() => OnActionSelected.InvokeAsync(action)"
                             disabled="@(!ActionManager.AreRequirementsMet(action))"
-                            @onmouseover="(e) => ShowTooltip(action, e)"
-                            @onmouseout="HideTooltip">
+                            @onmouseover="(e) => HandleShowTooltip(action, e)"
+                            @onmouseout="HandleHideTooltip">
                         @action.BasicAction.Name (@action.BasicAction.Name)
                     </button>
                 }
@@ -36,11 +36,36 @@
     }
 </div>
 
+@if (showTooltip && hoveredAction != null)
+{
+    <div class="tooltip" style="left: @(mouseX + 10)px; top: @(mouseY + 10)px">
+        <ActionPreview CurrentAction="@hoveredAction"
+                       Player="@GameState.Player" />
+    </div>
+}
+
 @code {
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public LocationSpot CurrentSpot { get; set; }
     [Parameter] public EventCallback<LocationSpot> OnSpotSelected { get; set; }
     [Parameter] public EventCallback<UserActionOption> OnActionSelected { get; set; }
-    [Parameter] public Action<UserActionOption, MouseEventArgs> ShowTooltip { get; set; }
-    [Parameter] public Action HideTooltip { get; set; }
+
+    private bool showTooltip;
+    private UserActionOption hoveredAction;
+    private double mouseX;
+    private double mouseY;
+
+    private void HandleShowTooltip(UserActionOption action, MouseEventArgs e)
+    {
+        hoveredAction = action;
+        mouseX = e.ClientX;
+        mouseY = e.ClientY;
+        showTooltip = true;
+    }
+
+    private void HandleHideTooltip()
+    {
+        hoveredAction = null;
+        showTooltip = false;
+    }
 }

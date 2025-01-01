@@ -233,9 +233,8 @@ body {
     gap: 10px;
 }
 
-
 .tooltip {
-    position: absolute;
+    position: fixed; /* Change from absolute to fixed */
     background-color: var(--bg-panel);
     border: 1px solid var(--border-active);
     padding: 15px;
@@ -243,6 +242,10 @@ body {
     z-index: 1000;
     min-width: 300px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    /* Add positioning adjustments to prevent going off-screen */
+    max-width: calc(100vw - 40px); /* Prevent horizontal overflow */
+    max-height: calc(100vh - 40px); /* Prevent vertical overflow */
+    overflow-y: auto; /* Allow scrolling if content is too tall */
 }
 
 /* Action Preview Styles */

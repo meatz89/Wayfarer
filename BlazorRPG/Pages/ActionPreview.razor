@@ -1,13 +1,16 @@
 ﻿@inherits ActionPreviewBase
 
 <div class="action-preview">
-    <h4>Requirements</h4>
+    <h4>Rewards</h4>
     <ul>
-        @foreach (var requirement in CurrentAction.BasicAction.Requirements)
+        @foreach (var outcome in CurrentAction.BasicAction.Outcomes)
         {
-            <li style="color: @GetRequirementColor(requirement)">
-                @GetRequirementDescription(requirement)
-            </li>
+            @if (IsReward(outcome))
+            {
+                <li style="color: green">
+                    @GetOutcomeDescription(outcome)
+                </li>
+            }
         }
     </ul>
 
@@ -24,16 +27,13 @@
         }
     </ul>
 
-    <h4>Rewards</h4>
+    <h4>Requirements</h4>
     <ul>
-        @foreach (var outcome in CurrentAction.BasicAction.Outcomes)
+        @foreach (var requirement in CurrentAction.BasicAction.Requirements)
         {
-            @if (IsReward(outcome))
-            {
-                <li style="color: green">
-                    @GetOutcomeDescription(outcome)
-                </li>
-            }
+            <li style="color: @GetRequirementColor(requirement)">
+                @GetRequirementDescription(requirement)
+            </li>
         }
     </ul>
 </div>

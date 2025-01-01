@@ -13,10 +13,10 @@
 
     public UserActionOption CurrentUserAction { get; private set; }
 
-    public List<UserActionOption> ValidGlobalActions { get; private set; } = new();
-    public List<UserActionOption> ValidLocationActions { get; private set; } = new();
-    public List<UserActionOption> ValidLocationSpotActions { get; private set; } = new();
-    public List<UserActionOption> ValidCharacterActions { get; private set; } = new();
+    public List<UserActionOption> GlobalActions { get; private set; } = new();
+    public List<UserActionOption> LocationActions { get; private set; } = new();
+    public List<UserActionOption> LocationSpotActions { get; private set; } = new();
+    public List<UserActionOption> CharacterActions { get; private set; } = new();
 
     public List<UserLocationTravelOption> CurrentTravelOptions { get; private set; } = new();
     public List<UserLocationSpotOption> CurrentLocationSpotOptions { get; private set; }
@@ -329,7 +329,7 @@
 
     private bool StartNewDay()
     {
-        bool hasShelter = ValidLocationActions
+        bool hasShelter = LocationActions
             .Where(x => x.BasicAction.Id == BasicActionTypes.Rest)
             .FirstOrDefault() != null;
 
@@ -382,22 +382,27 @@
 
     public void SetGlobalActions(List<UserActionOption> userActions)
     {
-        this.ValidGlobalActions = userActions;
+        this.GlobalActions = userActions;
     }
 
     public void SetLocationActions(List<UserActionOption> userActions)
     {
-        this.ValidLocationActions = userActions;
+        this.LocationActions = userActions;
     }
 
     public void AddLocationActions(List<UserActionOption> userActions)
     {
-        this.ValidCharacterActions.AddRange(userActions);
+        this.CharacterActions.AddRange(userActions);
     }
 
     public void SetLocationSpotActions(List<UserActionOption> userActions)
     {
-        this.ValidLocationSpotActions = userActions;
+        this.LocationSpotActions = userActions;
+    }
+
+    public void AddLocationSpotActions(List<UserActionOption> userActions)
+    {
+        this.LocationSpotActions.AddRange(userActions);
     }
 
     public void SetNewLocation(Location location)
@@ -410,4 +415,14 @@
     {
         CurrentLocationSpot = locationSpot;
     }
+
+    public List<UserActionOption> GetLocationSpotActions(LocationSpot locationSpot)
+    {
+        List<UserActionOption> locationSpotActions = this.LocationSpotActions;
+        List<UserActionOption> userActionOptions = 
+            locationSpotActions.Where(x => x.LocationSpot == locationSpot.Name && 
+            x.Location == locationSpot.Location).ToList();
+        return userActionOptions;
+    }
+
 }

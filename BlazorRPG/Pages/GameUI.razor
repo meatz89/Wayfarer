@@ -39,9 +39,6 @@
 <div class="game-container">
     <div class="map-container">
         <div class="map-toggle">
-            <button class="toggle-button @(showAreaMap ? "" : "active")" @onclick="() => showAreaMap = false">
-                Location View 🏠
-            </button>
             <button class="toggle-button @(showAreaMap ? "active" : "")" @onclick="() => showAreaMap = true">
                 Area Map 🗺️
             </button>
@@ -51,16 +48,15 @@
         {
             <AreaMap CurrentLocation="@CurrentLocation"
                      Locations="@Locations"
-                     OnTravel="@HandleLocationSelection" />
+                     OnTravel="@HandleLocationSelection"
+                     OnViewSpots="@(() => showAreaMap = false)" />
         }
         else
         {
             <LocationSpotMap CurrentLocation="@CurrentLocation"
                              CurrentSpot="@CurrentSpot"
                              OnSpotSelected="@HandleSpotSelection"
-                             OnActionSelected="@HandleActionSelection"
-                             ShowTooltip="@((action, e) => ShowTooltip(action, e))"
-                             HideTooltip="@HideTooltip" />
+                             OnActionSelected="@HandleActionSelection" />
         }
     </div>
 

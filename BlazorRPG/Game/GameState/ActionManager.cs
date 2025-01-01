@@ -25,6 +25,7 @@
     public void UpdateAvailableActions()
     {
         GameState.SetLocationActions(new List<UserActionOption>());
+        GameState.SetLocationSpotActions(new List<UserActionOption>());
 
         CreateGlobalActions();
 
@@ -75,7 +76,7 @@
                     LocationSpot = locationSpot.Name
                 };
                 locationSpotActions.Add(ua);
-                GameState.SetLocationSpotActions(locationSpotActions);
+                GameState.AddLocationSpotActions(locationSpotActions);
             }
         }
 

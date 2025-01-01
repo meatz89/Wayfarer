@@ -16,13 +16,18 @@
             {
                 <div class="location-warning">⚠️ Bad Shelter</div>
             }
-
             @if (location.HasShelter)
             {
                 <div class="location-shelter">🏠 Shelter Available (@location.ShelterCost 🪙)</div>
             }
 
-            @if (location.Name != CurrentLocation.Name)
+            @if (location.Name == CurrentLocation.Name)
+            {
+                <button class="action-button" @onclick="OnViewSpots">
+                    ---- ENTER LOCATION ----
+                </button>
+            }
+            else
             {
                 <button class="action-button"
                         @onclick="() => OnTravel.InvokeAsync(location.Name)"
@@ -38,4 +43,5 @@
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public List<Location> Locations { get; set; }
     [Parameter] public EventCallback<LocationNames> OnTravel { get; set; }
+    [Parameter] public EventCallback OnViewSpots { get; set; }
 }

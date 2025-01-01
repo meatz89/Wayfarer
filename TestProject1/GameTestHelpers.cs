@@ -5,7 +5,7 @@ public class GameTestHelpers
     {
         foreach (BasicActionTypes actionType in sequence)
         {
-            BasicAction action = manager.GameState.ValidLocationActions
+            BasicAction action = manager.GameState.LocationActions
                 .First(a => a.BasicAction.Id == actionType).BasicAction;
 
             manager.ExecuteBasicAction(action);

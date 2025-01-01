@@ -73,7 +73,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
         }
 
         // Check available actions
-        IEnumerable<UserActionOption> validActions = GameState.ValidLocationActions
+        IEnumerable<UserActionOption> validActions = GameState.LocationActions
             .Where(a => !a.IsDisabled)
             .Where(a => a.BasicAction.Id != BasicActionTypes.CheckStatus)
             .Where(a => a.BasicAction.Id != BasicActionTypes.Wait);
@@ -100,7 +100,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
             {
                 GameTestHelpers.AdvanceToTimeWindow(ActionManager, timeWindow);
                 // Log ALL actions with their disabled state
-                IEnumerable<UserActionOption> allActions = GameState.ValidLocationActions
+                IEnumerable<UserActionOption> allActions = GameState.LocationActions
                     .Where(a => a.BasicAction.Id != BasicActionTypes.CheckStatus)
                     .Where(a => a.BasicAction.Id != BasicActionTypes.Travel)
                     .Where(a => a.BasicAction.Id != BasicActionTypes.Wait);
@@ -141,7 +141,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
         ActionManager.MoveToLocation(LocationNames.MarketSquare);
         GameTestHelpers.AdvanceToTimeWindow(ActionManager, TimeWindows.Morning);
 
-        foreach (UserActionOption action in GameState.ValidLocationActions)
+        foreach (UserActionOption action in GameState.LocationActions)
         {
             output.WriteLine($"Action: {action.BasicAction.Id}, " +
                            $"TimeSlots: [{string.Join(",", action.BasicAction.TimeSlots)}], " +
@@ -150,7 +150,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
         }
 
         Assert.True(
-            GameState.ValidLocationActions.Any(a => !a.IsDisabled && a.BasicAction.Id == BasicActionTypes.Trade),
+            GameState.LocationActions.Any(a => !a.IsDisabled && a.BasicAction.Id == BasicActionTypes.Trade),
             "Trade action should be available in morning"
         );
     }
@@ -196,7 +196,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
                 GameTestHelpers.AdvanceToTimeWindow(ActionManager, timeWindow);
 
                 // Count gameplay actions
-                List<UserActionOption> validGameplayActions = GameState.ValidLocationActions
+                List<UserActionOption> validGameplayActions = GameState.LocationActions
                     .Where(a => !a.IsDisabled)
                     .Where(a => a.BasicAction.Id != BasicActionTypes.Travel)
                     .Where(a => a.BasicAction.Id != BasicActionTypes.Wait)
@@ -206,7 +206,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
                 // If no valid gameplay actions, verify we can travel somewhere
                 if (validGameplayActions.Count == 0)
                 {
-                    bool canTravel = GameState.ValidLocationActions
+                    bool canTravel = GameState.LocationActions
                         .Any(a => a.BasicAction.Id == BasicActionTypes.Travel && !a.IsDisabled);
 
                     Assert.True(canTravel,
