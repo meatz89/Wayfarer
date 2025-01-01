@@ -11,20 +11,8 @@
             </div>
             <div class="location-type">@spot.Name</div>
 
-            @if (spot.Name == CurrentSpot.Name)
-            {
-                @foreach (var action in GameState.GetLocationSpotActions(CurrentSpot))
-                {
-                    <button class="action-button"
-                            @onclick="() => OnActionSelected.InvokeAsync(action)"
-                            disabled="@(!ActionManager.AreRequirementsMet(action))"
-                            @onmouseover="(e) => HandleShowTooltip(action, e)"
-                            @onmouseout="HandleHideTooltip">
-                        @action.BasicAction.Name (@action.BasicAction.Name)
-                    </button>
-                }
-            }
-            else
+            @* Add travel option if not current spot *@
+            @if (spot.Name != CurrentSpot.Name)
             {
                 <button class="action-button"
                         @onclick="() => OnSpotSelected.InvokeAsync(spot)"
@@ -32,6 +20,19 @@
                     MOVE HERE
                 </button>
             }
+
+            @* Always show spot actions *@
+            @foreach (var action in GameState.GetLocationSpotActions(spot))
+            {
+                <button class="action-button"
+                        @onclick="() => OnActionSelected.InvokeAsync(action)"
+                        disabled="@(spot.Name != CurrentSpot.Name || !ActionManager.AreRequirementsMet(action))"
+                        @onmouseover="(e) => HandleShowTooltip(action, e)"
+                        @onmouseout="HandleHideTooltip">
+                    @action.BasicAction.Name (@action.BasicAction.Name)
+                </button>
+            }
+
         </div>
     }
 </div>

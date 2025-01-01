@@ -17,9 +17,7 @@
 
     public void Initialize()
     {
-        UpdateTavelOptions();
-        UpdateLocationSpotOptions();
-        UpdateAvailableActions();
+        UpdateState();
     }
 
     public void UpdateAvailableActions()
@@ -217,9 +215,7 @@
     {
         var location = LocationSystem.GetLocation(locationName);
         GameState.SetNewLocation(location);
-
-        UpdateTavelOptions();
-        UpdateAvailableActions();
+        UpdateState();
 
         ActionResult actionResult = ActionResult.Success($"Moved to {locationName}.", new ActionResultMessages());
 
@@ -230,21 +226,17 @@
     {
         var locationSpot = LocationSystem.GetLocationSpotForLocation(location, locationSpotName);
         GameState.SetNewLocationSpot(locationSpot);
+        UpdateState();
 
-        UpdateTavelOptions();
-        UpdateAvailableActions();
     }
 
     public bool AdvanceTime()
     {
         bool stillAlive = GameState.AdvanceTime(hoursToAdvanceForActions);
-
-        UpdateTavelOptions();
-        UpdateAvailableActions();
+        UpdateState();
 
         return stillAlive;
     }
-
 
     public bool HasNarrative(BasicAction action)
     {
@@ -315,8 +307,7 @@
         });
     }
 
-
-    private void UpdateLocationSpotOptions()
+    public void UpdateLocationSpotOptions()
     {
         Location location = GameState.CurrentLocation;
         List<LocationSpot> locationSpots = LocationSystem.GetLocationSpots(location);
@@ -339,7 +330,7 @@
         GameState.SetCurrentLocationSpotOptions(userLocationSpotOption);
     }
 
-    public void UpdateTavelOptions()
+    public void UpdateLocationTravelOptions()
     {
         List<LocationNames> connectedLocations = GetConnectedLocations();
 
@@ -432,5 +423,12 @@
                 GameState.AddItemChange(itemOutcome);
                 break;
         }
+    }
+
+    internal void UpdateState()
+    {
+        UpdateLocationTravelOptions();
+        UpdateLocationSpotOptions();
+        UpdateAvailableActions();
     }
 }

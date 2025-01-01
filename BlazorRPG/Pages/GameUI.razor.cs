@@ -185,10 +185,10 @@ public partial class GameUI : ComponentBase
 
     private void HandleSpotSelection(LocationSpot locationSpot)
     {
-        List<UserLocationSpotOption> currentTravelOptions = GameState.CurrentLocationSpotOptions;
-        UserLocationSpotOption location = currentTravelOptions.FirstOrDefault(x => x.LocationSpot == locationSpot.Name);
+        List<UserLocationSpotOption> userLocationSpotOptions = GameState.CurrentLocationSpotOptions;
+        UserLocationSpotOption userLocationSpot = userLocationSpotOptions.FirstOrDefault(x => x.LocationSpot == locationSpot.Name);
 
-        ActionManager.MoveToLocationSpot(location.Location, locationSpot.Name);
+        ActionManager.MoveToLocationSpot(userLocationSpot.Location, locationSpot.Name);
     }
 
     private void HandleLocationSelection(LocationNames locationNames)
@@ -208,8 +208,8 @@ public partial class GameUI : ComponentBase
     {
         GameState.ClearCurrentUserAction();
         GameState.ClearCurrentNarrative();
-        ActionManager.UpdateTavelOptions();
-        ActionManager.UpdateAvailableActions();
+
+        ActionManager.UpdateState();
     }
 
 }
