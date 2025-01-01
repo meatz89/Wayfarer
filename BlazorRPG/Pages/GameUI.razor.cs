@@ -201,6 +201,7 @@ public partial class GameUI : ComponentBase
         if (result.IsSuccess)
         {
             CompleteActionExecution();
+            showAreaMap = false;
         }
     }
 

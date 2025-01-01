@@ -15,12 +15,8 @@ public class GameContentProvider
         locationProperties = new List<Location>
         {
             LocationContent.HarborStreets,
-            LocationContent.Docks,
             LocationContent.MarketSquare,
-            LocationContent.ArtisanRow,
             LocationContent.Tavern,
-            LocationContent.ForestEdge,
-            LocationContent.CarpentersWorkshop
         };
 
         characterProperties = new List<Character>

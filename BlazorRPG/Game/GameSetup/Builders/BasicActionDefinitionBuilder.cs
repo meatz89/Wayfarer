@@ -70,7 +70,7 @@ public class BasicActionDefinitionBuilder
         return this;
     }
 
-    public BasicActionDefinitionBuilder ExpendsPhysicalEnergy(int cost)
+    private BasicActionDefinitionBuilder ExpendsPhysicalEnergy(int cost)
     {
         requirements.Add(new PhysicalEnergyRequirement
         {
@@ -85,7 +85,7 @@ public class BasicActionDefinitionBuilder
         return this;
     }
 
-    public BasicActionDefinitionBuilder ExpendsFocusEnergy(int cost)
+    private BasicActionDefinitionBuilder ExpendsFocusEnergy(int cost)
     {
         requirements.Add(new FocusEnergyRequirement
         {
@@ -100,7 +100,7 @@ public class BasicActionDefinitionBuilder
         return this;
     }
 
-    public BasicActionDefinitionBuilder ExpendsSocialEnergy(int cost)
+    private BasicActionDefinitionBuilder ExpendsSocialEnergy(int cost)
     {
         requirements.Add(new SocialEnergyRequirement
         {
@@ -210,7 +210,23 @@ public class BasicActionDefinitionBuilder
         return this;
     }
 
-    public BasicActionDefinitionBuilder RewardsPhysicalEnergy(int amount)
+    public BasicActionDefinitionBuilder RewardsEnergy(int amount, EnergyTypes energyType)
+    {
+        switch (energyType)
+        {
+            case EnergyTypes.Physical:
+                return RewardsPhysicalEnergy(amount);
+
+            case EnergyTypes.Focus:
+                return RewardsFocusEnergy(amount);
+
+            case EnergyTypes.Social:
+                return RewardsSocialEnergy(amount);
+        }
+        return this;
+    }
+
+    private BasicActionDefinitionBuilder RewardsPhysicalEnergy(int amount)
     {
         outcomes.Add(new PhysicalEnergyOutcome
         {
@@ -220,7 +236,7 @@ public class BasicActionDefinitionBuilder
         return this;
     }
 
-    public BasicActionDefinitionBuilder RewardsFocusEnergy(int amount)
+    private BasicActionDefinitionBuilder RewardsFocusEnergy(int amount)
     {
         outcomes.Add(new FocusEnergyOutcome
         {
@@ -230,7 +246,7 @@ public class BasicActionDefinitionBuilder
         return this;
     }
 
-    public BasicActionDefinitionBuilder RewardsSocialEnergy(int amount)
+    private BasicActionDefinitionBuilder RewardsSocialEnergy(int amount)
     {
         outcomes.Add(new SocialEnergyOutcome
         {

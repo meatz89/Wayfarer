@@ -38,11 +38,28 @@ public partial class ActionPreviewBase : ComponentBase
             SocialEnergyOutcome o => $"({Player.SocialEnergy} -> <span class='{GetValueColor(o.Amount)}'>{Math.Clamp(Player.SocialEnergy + o.Amount, 0, Player.MaxSocialEnergy)}</span>)",
             HealthOutcome o => $"({Player.Health} -> <span class='{GetValueColor(o.Amount)}'>{Math.Clamp(Player.Health + o.Amount, 0, Player.MaxHealth)}</span>)",
             CoinsOutcome o => $"({Player.Coins} -> <span class='{GetValueColor(o.Amount)}'>{Math.Max(0, Player.Coins + o.Amount)}</span>)",
-            FoodOutcome o => $"({Player.Inventory.GetItemCount(ResourceTypes.Food)} -> <span class='{GetValueColor(o.Amount)}'>{Math.Max(0, Player.Inventory.GetItemCount(ResourceTypes.Food) + o.Amount)}</span>)",
+            FoodOutcome o => $"({Player.Inventory.GetItemCount(ResourceTypes.Food)} -> <span class='{GetValueColor(o.Amount)}'>{GetNewFood(o)}</span>)",
             SkillLevelOutcome o => $"({Player.Skills[o.SkillType]} -> <span class='{GetValueColor(o.Amount)}'>{Math.Max(0, Player.Skills[o.SkillType] + o.Amount)}</span>)",
-            ItemOutcome o => $"({Player.Inventory.GetItemCount(o.ResourceType)} -> <span class='{GetValueColor(o.Count)}'>{Player.Inventory.GetItemCount(o.ResourceType) + o.Count}</span>)",
+            ItemOutcome o => $"({Player.Inventory.GetItemCount(o.ResourceType)} -> <span class='{GetValueColor(o.Count)}'>{GetNewItemCount(o)}</span>)",
             _ => string.Empty
         };
+    }
+
+    private int GetNewFood(FoodOutcome o)
+    {
+        return Math.Max(0, Player.Inventory.GetItemCount(ResourceTypes.Food) + o.Amount);
+    }
+
+    private int GetNewItemCount(ItemOutcome o)
+    {
+        if(o.ChangeType == ItemChangeType.Added)
+        {
+            return Math.Max(0, Player.Inventory.GetItemCount(o.ResourceType) + o.Count);
+        }
+        else
+        {
+            return Math.Max(0, Player.Inventory.GetItemCount(o.ResourceType) - o.Count);
+        }
     }
 
     public MarkupString GetOutcomeDescription(IOutcome outcome)

@@ -25,6 +25,13 @@ public enum LocationSpotTypes
     MineralDeposit,   // Ore gathering
     HuntingSpot,      // Hide gathering
 
+    // Social features
+    TavernBar,        // Trading + social interaction
+    CommonArea,       // Group interactions
+    PrivateCorner,    // Observation spot
+    ServingArea,      // Work opportunity
+    StorageRoom,      // Enhanced shelter + storage
+
     // Shelter features - progressive improvement
     BasicShelter,     // No cost, prevents penalties
     CozyShelter      // Costs coins, restores energy

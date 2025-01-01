@@ -24,28 +24,6 @@
         .SetDangerLevel(DangerLevels.Safe)
         .Build();
 
-    public static Location Docks => new LocationBuilder()
-        .ForLocation(LocationNames.Docks)
-        .SetLocationType(LocationTypes.Industry)
-        .AddTravelConnection(LocationNames.HarborStreets)// Connect back to the harbor streets
-                // No direct connection to the market - goods are likely transported through Harbor Streets
-         // Salvage materials from ships and cargo
-        .AddLocationSpot(feature => feature
-            .ForLocation(LocationNames.Docks)
-            .ForFeatureType(LocationSpotTypes.ForestGrove)
-            .WithEnergyCost(1, EnergyTypes.Physical)
-            .WithOutputResource(ResourceTypes.Salvage, 1))
-        // Trade salvaged goods
-        .AddLocationSpot(feature => feature
-            .ForLocation(LocationNames.Docks)
-            .ForFeatureType(LocationSpotTypes.ResourceMarket)
-            .WithInputResource(ResourceTypes.Salvage, 1)
-            .WithCoinReward(1)
-            .WithEnergyCost(1, EnergyTypes.Social))
-        .SetAccessType(AccessTypes.Open)
-        .SetDangerLevel(DangerLevels.Dangerous)
-        .Build();
-
     // === MARKET DISTRICT ===
     public static Location MarketSquare => new LocationBuilder()
         .ForLocation(LocationNames.MarketSquare)
@@ -71,94 +49,48 @@
         .SetDangerLevel(DangerLevels.Safe)
         .Build();
 
-    public static Location ArtisanRow => new LocationBuilder()
-        .ForLocation(LocationNames.ArtisanRow)
-        .SetLocationType(LocationTypes.Commerce)
-        .AddTravelConnection(LocationNames.MarketSquare)   // Connect to the main market
-        .AddTravelConnection(LocationNames.CarpentersWorkshop)
-        // Buy raw materials at good prices
-        .AddLocationSpot(feature => feature
-            .ForLocation(LocationNames.ArtisanRow)
-            .ForFeatureType(LocationSpotTypes.ResourceMarket)
-            .WithCoinCost(4)
-            .WithOutputResource(ResourceTypes.Metal, 1)
-            .WithEnergyCost(1, EnergyTypes.Social))
-        // Process metal into tools
-        .AddLocationSpot(feature => feature
-            .ForLocation(LocationNames.ArtisanRow)
-            .ForFeatureType(LocationSpotTypes.SmithyForge)
-            .WithInputResource(ResourceTypes.Metal, 1)
-            .WithOutputResource(ResourceTypes.Tools, 1)
-            .WithEnergyCost(3, EnergyTypes.Physical))
-        .SetAccessType(AccessTypes.Open)
-        .SetDangerLevel(DangerLevels.Safe)
-        .Build();
-
     // === RESIDENTIAL DISTRICT ===
     public static Location Tavern => new LocationBuilder()
         .ForLocation(LocationNames.LionsHeadTavern)
         .SetLocationType(LocationTypes.Social)
-        .AddTravelConnection(LocationNames.HarborStreets) // Near the harbor
+        .AddTravelConnection(LocationNames.HarborStreets)
         .AddTravelConnection(LocationNames.MarketSquare)
-        // Comfortable rest with energy recovery
+        // Tutorial entrance spot
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.LionsHeadTavern)
-            .ForFeatureType(LocationSpotTypes.CozyShelter)
-            .WithCoinCost(1))
-        // Expensive but convenient food
+            .ForFeatureType(LocationSpotTypes.ServingArea)
+            .WithEnergyCost(1, EnergyTypes.Physical)
+            .WithEnergyCost(1, EnergyTypes.Social)
+            .WithCoinReward(3)
+        )
+        // Tutorial common tables
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.LionsHeadTavern)
-            .ForFeatureType(LocationSpotTypes.GeneralStore)
+            .ForFeatureType(LocationSpotTypes.CommonArea)
+            .WithEnergyCost(1, EnergyTypes.Social)
+        )
+        // Tutorial bar counter
+        .AddLocationSpot(feature => feature
+            .ForLocation(LocationNames.LionsHeadTavern)
+            .ForFeatureType(LocationSpotTypes.TavernBar)
             .WithCoinCost(3)
             .WithOutputResource(ResourceTypes.Food, 1)
-            .WithEnergyCost(1, EnergyTypes.Social))
+        )
+        // Tutorial corner
+        .AddLocationSpot(feature => feature
+            .ForLocation(LocationNames.LionsHeadTavern)
+            .ForFeatureType(LocationSpotTypes.PrivateCorner)
+            .WithEnergyCost(1, EnergyTypes.Focus)
+        )
+        // Tutorial back room (initially locked)
+        .AddLocationSpot(feature => feature
+            .ForLocation(LocationNames.LionsHeadTavern)
+            .ForFeatureType(LocationSpotTypes.StorageRoom)
+            .WithCoinCost(1)
+            .SetAccessType(AccessTypes.Restricted)
+        )
         .SetAccessType(AccessTypes.Open)
         .SetDangerLevel(DangerLevels.Safe)
         .Build();
 
-    // === OUTSKIRTS ===
-    public static Location ForestEdge => new LocationBuilder()
-        .ForLocation(LocationNames.ForestEdge)
-        .SetLocationType(LocationTypes.Nature)
-        .AddTravelConnection(LocationNames.CarpentersWorkshop) // Carpenters would likely be near the forest
-        // Gather wood
-        .AddLocationSpot(feature => feature
-            .ForLocation(LocationNames.ForestEdge)
-            .ForFeatureType(LocationSpotTypes.ForestGrove)
-            .WithEnergyCost(2, EnergyTypes.Physical)
-            .WithOutputResource(ResourceTypes.Wood, 1))
-        // Sell to traveling merchants
-        .AddLocationSpot(feature => feature
-            .ForLocation(LocationNames.ForestEdge)
-            .ForFeatureType(LocationSpotTypes.ResourceMarket)
-            .WithInputResource(ResourceTypes.Wood, 1)
-            .WithCoinReward(2)
-            .WithEnergyCost(1, EnergyTypes.Social))
-        .SetAccessType(AccessTypes.Open)
-        .SetDangerLevel(DangerLevels.Safe)
-        .Build();
-
-    // === WORKSHOPS ===
-    public static Location CarpentersWorkshop => new LocationBuilder()
-        .ForLocation(LocationNames.CarpentersWorkshop)
-        .SetLocationType(LocationTypes.Industry)
-        .AddTravelConnection(LocationNames.ForestEdge)    // Close to the wood source
-        .AddTravelConnection(LocationNames.ArtisanRow)
-        // Process wood into planks
-        .AddLocationSpot(feature => feature
-            .ForLocation(LocationNames.CarpentersWorkshop)
-            .ForFeatureType(LocationSpotTypes.WoodworkBench)
-            .WithInputResource(ResourceTypes.Wood, 1)
-            .WithOutputResource(ResourceTypes.Planks, 1)
-            .WithEnergyCost(2, EnergyTypes.Physical))
-        // Buy raw materials
-        .AddLocationSpot(feature => feature
-            .ForLocation(LocationNames.CarpentersWorkshop)
-            .ForFeatureType(LocationSpotTypes.ResourceMarket)
-            .WithCoinCost(3)
-            .WithOutputResource(ResourceTypes.Wood, 1)
-            .WithEnergyCost(1, EnergyTypes.Social))
-        .SetAccessType(AccessTypes.Open)
-        .SetDangerLevel(DangerLevels.Safe)
-        .Build();
 }

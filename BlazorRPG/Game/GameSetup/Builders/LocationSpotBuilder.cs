@@ -8,8 +8,14 @@
     private int outputAmount = 0;
     private int coinCost = 0;
     private int coinReward = 0;
-    private int energyCost = 0;
-    private EnergyTypes energyType;
+    private AccessTypes accessType;
+
+    private int physicalEnergyCost;
+    private int socialEnergyCost;
+    private int focusEnergyCost;
+    private int physicalEnergyReward;
+    private int socialEnergyReward;
+    private int focusEnergyReward;
 
     public LocationSpotBuilder ForLocation(LocationNames location)
     {
@@ -39,8 +45,39 @@
 
     public LocationSpotBuilder WithEnergyCost(int amount, EnergyTypes type)
     {
-        energyCost = amount;
-        energyType = type;
+        switch(type)
+        {
+            case EnergyTypes.Physical:
+                physicalEnergyCost = amount;
+                break;
+
+            case EnergyTypes.Focus:
+                focusEnergyCost = amount;
+                break;
+
+            case EnergyTypes.Social:
+                socialEnergyCost = amount;
+                break;
+        }
+        return this;
+    }
+
+    public LocationSpotBuilder WithEnergyReward(int amount, EnergyTypes type)
+    {
+        switch (type)
+        {
+            case EnergyTypes.Physical:
+                physicalEnergyReward = amount;
+                break;
+
+            case EnergyTypes.Focus:
+                focusEnergyReward = amount;
+                break;
+
+            case EnergyTypes.Social:
+                socialEnergyReward = amount;
+                break;
+        }
         return this;
     }
 
@@ -56,151 +93,231 @@
         return this;
     }
 
-    private void ValidateFeatureConfiguration()
+    internal LocationSpotBuilder SetAccessType(AccessTypes accessType)
     {
-        switch (spotName)
-        {
-            case LocationSpotTypes.WoodworkBench:
-            case LocationSpotTypes.SmithyForge:
-                if (inputResource == null || outputResource == null || inputAmount <= 0 || outputAmount <= 0 || energyCost <= 0 || energyType == default)
-                {
-                    throw new InvalidOperationException($"Processing feature '{spotName}' is not fully configured.");
-                }
-                break;
-
-            case LocationSpotTypes.GeneralStore:
-            case LocationSpotTypes.ResourceMarket:
-            case LocationSpotTypes.SpecialtyShop:
-                // Ensure only one of coinCost or coinReward is set
-                if (!((coinCost > 0 && coinReward == 0) || (coinCost == 0 && coinReward > 0)))
-                {
-                    throw new InvalidOperationException($"Trading feature '{spotName}' must have either coinCost or coinReward set, but not both.");
-                }
-                if (energyCost <= 0 || energyType == default)
-                {
-                    throw new InvalidOperationException($"Trading feature '{spotName}' is missing energy configuration.");
-                }
-                if (coinCost > 0 && (outputResource == null || outputAmount <= 0))
-                {
-                    throw new InvalidOperationException($"Trading feature '{spotName}' is missing output configuration.");
-                }
-                if (coinReward > 0 && (inputResource == null || inputAmount <= 0))
-                {
-                    throw new InvalidOperationException($"Trading feature '{spotName}' is missing input configuration");
-                }
-                break;
-
-            case LocationSpotTypes.ForestGrove:
-                if (outputResource == null || outputAmount <= 0 || energyCost <= 0 || energyType == default)
-                {
-                    throw new InvalidOperationException($"Gathering feature '{spotName}' is not fully configured.");
-                }
-                break;
-
-            case LocationSpotTypes.BasicShelter:
-            case LocationSpotTypes.CozyShelter:
-                if (coinCost < 0)
-                {
-                    throw new InvalidOperationException($"Shelter feature '{spotName}' must have a non-negative coin cost.");
-                }
-                break;
-
-            default:
-                throw new ArgumentException($"Unknown feature type: {spotName}");
-        }
+        this.accessType = accessType;
+        return this;
     }
 
     public LocationSpot Build()
     {
-        ValidateFeatureConfiguration(); // Add this validation call
-
+        // Each spot type determines what kind of action it supports
         BasicAction action = spotName switch
         {
+            // Processing spots support labor actions that convert resources
             LocationSpotTypes.WoodworkBench or
-            LocationSpotTypes.SmithyForge =>
+            LocationSpotTypes.SmithyForge or
+            LocationSpotTypes.TanningRack or
+            LocationSpotTypes.WeavingLoom =>
                 BuildProcessingAction(),
 
+            // Trading spots support buying/selling with coins
             LocationSpotTypes.GeneralStore or
             LocationSpotTypes.ResourceMarket or
-            LocationSpotTypes.SpecialtyShop =>
+            LocationSpotTypes.SpecialtyShop or
+            LocationSpotTypes.TavernBar =>
                 BuildTradingAction(),
 
-            LocationSpotTypes.ForestGrove =>
+            // Gathering spots produce resources from environment
+            LocationSpotTypes.ForestGrove or
+            LocationSpotTypes.MineralDeposit or
+            LocationSpotTypes.HuntingSpot =>
                 BuildGatheringAction(),
 
-            LocationSpotTypes.BasicShelter =>
-                BuildShelterAction("Rest in basic shelter", 1, 0, 0),
+            // Social spots support various interaction types
+            LocationSpotTypes.CommonArea or
+            LocationSpotTypes.ServingArea or
+            LocationSpotTypes.PrivateCorner =>
+                BuildInteractionAction(),
 
-            LocationSpotTypes.CozyShelter =>
-                BuildShelterAction("Rest in cozy shelter", 1, 3, 3),
+            // Shelter spots are for resting
+            LocationSpotTypes.BasicShelter or
+            LocationSpotTypes.CozyShelter or
+            LocationSpotTypes.StorageRoom =>
+                BuildRestAction(),
 
-            _ => throw new ArgumentException($"Unknown feature type: {spotName}")
+            _ => throw new ArgumentException($"Unknown spot type: {spotName}")
         };
 
-        return new LocationSpot(spotName, locationName, action);
+        LocationSpot locationSpot = new LocationSpot(spotName, locationName, action);
+        return locationSpot;
     }
 
     private BasicAction BuildProcessingAction()
     {
-        return new BasicActionDefinitionBuilder()
+        var builder = new BasicActionDefinitionBuilder()
             .ForAction(BasicActionTypes.Labor)
-            .WithDescription($"Process {inputResource} into {outputResource}")
-            .ExpendsEnergy(energyCost, energyType)
-            .ExpendsItem(inputResource.Value, inputAmount)
-            .RewardsItem(outputResource.Value, outputAmount)
-            .RequiresInventorySlots(1)
-            .Build();
-    }
+            .WithDescription($"Process {inputResource} into {outputResource}");
 
-    private BasicAction BuildTradingAction()
-    {
+        // Processing actions can have any costs/rewards except energy rewards
         if (coinCost > 0)
-        {
-            return new BasicActionDefinitionBuilder()
-                .ForAction(BasicActionTypes.Trade)
-                .WithDescription($"Buy at {spotName}")
-                .ExpendsEnergy(energyCost, energyType)
-                .ExpendsCoins(coinCost)
-                .RewardsItem(outputResource.Value, outputAmount)
-                .RequiresInventorySlots(1)
-                .Build();
-        }
-        else if (coinReward > 0)
-        {
-            return new BasicActionDefinitionBuilder()
-                .ForAction(BasicActionTypes.Trade)
-                .WithDescription($"Sell at {spotName}")
-                .ExpendsEnergy(energyCost, energyType)
-                .ExpendsItem(inputResource.Value, inputAmount)
-                .RewardsCoins(coinReward)
-                .Build();
-        }
-        throw new ArgumentException($"Trading feature {spotName} must specify buying or selling prices");
+            builder.ExpendsCoins(coinCost);
+        if (coinReward > 0)
+            builder.RewardsCoins(coinReward);
+        if (inputResource.HasValue)
+            builder.ExpendsItem(inputResource.Value, inputAmount);
+        if (outputResource.HasValue)
+            builder.RewardsItem(outputResource.Value, outputAmount);
+
+        // All non-social actions must consume energy
+        if (physicalEnergyCost > 0)
+            builder.ExpendsEnergy(physicalEnergyCost, EnergyTypes.Physical);
+        if (focusEnergyCost > 0)
+            builder.ExpendsEnergy(focusEnergyCost, EnergyTypes.Focus);
+        if (socialEnergyCost > 0)
+            builder.ExpendsEnergy(socialEnergyCost, EnergyTypes.Social);
+
+        // Calculate inventory impact
+        int requiredSlots = 0;
+        if (outputResource.HasValue)
+            requiredSlots += outputAmount;
+        if (inputResource.HasValue)
+            requiredSlots -= inputAmount;
+        if (requiredSlots > 0)
+            builder.RequiresInventorySlots(requiredSlots);
+
+        return builder.Build();
     }
 
     private BasicAction BuildGatheringAction()
     {
-        return new BasicActionDefinitionBuilder()
+        var builder = new BasicActionDefinitionBuilder()
             .ForAction(BasicActionTypes.Gather)
-            .WithDescription($"Gather {outputResource}")
-            .ExpendsEnergy(energyCost, energyType)
-            .RewardsItem(outputResource.Value, outputAmount)
-            .RequiresInventorySlots(1)
-            .Build();
+            .WithDescription($"Gather {outputResource}");
+
+        // Handle all possible costs/rewards except energy rewards
+        if (coinCost > 0)
+            builder.ExpendsCoins(coinCost);
+        if (coinReward > 0)
+            builder.RewardsCoins(coinReward);
+        if (inputResource.HasValue)
+            builder.ExpendsItem(inputResource.Value, inputAmount);
+        if (outputResource.HasValue)
+            builder.RewardsItem(outputResource.Value, outputAmount);
+
+        // Must consume energy
+        if (physicalEnergyCost > 0)
+            builder.ExpendsEnergy(physicalEnergyCost, EnergyTypes.Physical);
+        if (focusEnergyCost > 0)
+            builder.ExpendsEnergy(focusEnergyCost, EnergyTypes.Focus);
+        if (socialEnergyCost > 0)
+            builder.ExpendsEnergy(socialEnergyCost, EnergyTypes.Social);
+
+        // Calculate required inventory slots
+        if (outputAmount > 0)
+            builder.RequiresInventorySlots(outputAmount);
+
+        return builder.Build();
     }
 
-    private BasicAction BuildShelterAction(string description, int foodCost, int physicalEnergyReward, int focusEnergyReward)
+    private BasicAction BuildTradingAction()
     {
-        return new BasicActionDefinitionBuilder()
-            .ForAction(BasicActionTypes.Rest)
-            .WithDescription(description)
-            .ExpendsFood(foodCost)
-            .ExpendsCoins(coinCost)
-            .RewardsPhysicalEnergy(physicalEnergyReward)
-            .RewardsFocusEnergy(focusEnergyReward)
-            .RewardsSocialEnergy(focusEnergyReward)
-            .AddTimeWindow(TimeWindows.Night)
-            .Build();
+        var builder = new BasicActionDefinitionBuilder()
+            .ForAction(BasicActionTypes.Trade);
+
+        if (coinCost > 0)
+        {
+            builder.WithDescription($"Buy at {spotName}")
+                .ExpendsCoins(coinCost);
+        }
+        else
+        {
+            builder.WithDescription($"Sell at {spotName}")
+                .RewardsCoins(coinReward);
+        }
+
+        // Handle any item costs/rewards
+        if (inputResource.HasValue)
+            builder.ExpendsItem(inputResource.Value, inputAmount);
+        if (outputResource.HasValue)
+            builder.RewardsItem(outputResource.Value, outputAmount);
+
+        // Must consume energy
+        if (physicalEnergyCost > 0)
+            builder.ExpendsEnergy(physicalEnergyCost, EnergyTypes.Physical);
+        if (focusEnergyCost > 0)
+            builder.ExpendsEnergy(focusEnergyCost, EnergyTypes.Focus);
+        if (socialEnergyCost > 0)
+            builder.ExpendsEnergy(socialEnergyCost, EnergyTypes.Social);
+
+        // Calculate required slots for buying
+        if (outputResource.HasValue)
+            builder.RequiresInventorySlots(outputAmount);
+
+        return builder.Build();
     }
+
+    private BasicAction BuildInteractionAction()
+    {
+        var builder = new BasicActionDefinitionBuilder()
+            .ForAction(spotName == LocationSpotTypes.PrivateCorner ? BasicActionTypes.Investigate : BasicActionTypes.Mingle)
+            .WithDescription(GetInteractionDescription());
+
+        // Social actions can have any costs/rewards INCLUDING energy rewards
+        if (coinCost > 0)
+            builder.ExpendsCoins(coinCost);
+        if (coinReward > 0)
+            builder.RewardsCoins(coinReward);
+        if (inputResource.HasValue)
+            builder.ExpendsItem(inputResource.Value, inputAmount);
+        if (outputResource.HasValue)
+            builder.RewardsItem(outputResource.Value, outputAmount);
+
+        // Can both consume AND reward energy
+        if (physicalEnergyCost > 0)
+            builder.ExpendsEnergy(physicalEnergyCost, EnergyTypes.Physical);
+        if (focusEnergyCost > 0)
+            builder.ExpendsEnergy(focusEnergyCost, EnergyTypes.Focus);
+        if (socialEnergyCost > 0)
+            builder.ExpendsEnergy(socialEnergyCost, EnergyTypes.Social);
+
+        if (physicalEnergyReward > 0)
+            builder.RewardsEnergy(physicalEnergyReward, EnergyTypes.Physical);
+        if (focusEnergyReward > 0)
+            builder.RewardsEnergy(focusEnergyReward, EnergyTypes.Focus);
+        if (socialEnergyReward > 0)
+            builder.RewardsEnergy(socialEnergyReward, EnergyTypes.Social);
+
+        // Calculate inventory impact if needed
+        if (outputAmount > inputAmount)
+            builder.RequiresInventorySlots(outputAmount - inputAmount);
+
+        return builder.Build();
+    }
+
+    private BasicAction BuildRestAction()
+    {
+        var builder = new BasicActionDefinitionBuilder()
+            .ForAction(BasicActionTypes.Rest)
+            .WithDescription(GetRestDescription())
+            .ExpendsFood(1)
+            .ExpendsCoins(coinCost)
+            .AddTimeWindow(TimeWindows.Night);
+
+        if (physicalEnergyReward > 0)
+            builder.RewardsEnergy(physicalEnergyReward, EnergyTypes.Physical);
+        if (focusEnergyReward > 0)
+            builder.RewardsEnergy(focusEnergyReward, EnergyTypes.Focus);
+        if (socialEnergyReward > 0)
+            builder.RewardsEnergy(socialEnergyReward, EnergyTypes.Social);
+
+        return builder.Build();
+    }
+
+    private string GetInteractionDescription() => spotName switch
+    {
+        LocationSpotTypes.PrivateCorner => "Observe quietly",
+        LocationSpotTypes.CommonArea => "Socialize with patrons",
+        LocationSpotTypes.ServingArea => "Help serve customers",
+        _ => "Interact"
+    };
+
+    private string GetRestDescription() => spotName switch
+    {
+        LocationSpotTypes.BasicShelter => "Rest in basic shelter",
+        LocationSpotTypes.CozyShelter => "Rest in cozy shelter",
+        LocationSpotTypes.StorageRoom => "Rest in storage room",
+        _ => "Rest"
+    };
 
 }

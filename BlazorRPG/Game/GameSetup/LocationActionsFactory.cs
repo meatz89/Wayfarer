@@ -27,7 +27,7 @@
                 .WithDescription("Basic Labor")
                 .AddTimeWindow(TimeWindows.Morning)
                 .AddTimeWindow(TimeWindows.Afternoon)
-                .ExpendsPhysicalEnergy(1)
+                .ExpendsEnergy(1, EnergyTypes.Physical)
                 .RewardsCoins(1),
                 dangerLevel),
 
@@ -36,7 +36,7 @@
                 .WithDescription("Simple Trading")
                 .AddTimeWindow(TimeWindows.Morning)
                 .AddTimeWindow(TimeWindows.Afternoon)
-                .ExpendsSocialEnergy(1)
+                .ExpendsEnergy(1, EnergyTypes.Social)
                 .RewardsCoins(1),
                 dangerLevel),
 
@@ -44,7 +44,7 @@
                 .ForAction(BasicActionTypes.Discuss)
                 .WithDescription("Basic Conversation")
                 .AddTimeWindow(TimeWindows.Evening)
-                .ExpendsSocialEnergy(1)
+                .ExpendsEnergy(1, EnergyTypes.Social)
                 .RewardsTrust(1),
                 dangerLevel),
 
@@ -53,7 +53,7 @@
                 .WithDescription("Basic Gathering")
                 .AddTimeWindow(TimeWindows.Morning)
                 .AddTimeWindow(TimeWindows.Afternoon)
-                .ExpendsFocusEnergy(1)
+                .ExpendsEnergy(1, EnergyTypes.Focus)
                 .RewardsFood(1),
                 dangerLevel),
 
