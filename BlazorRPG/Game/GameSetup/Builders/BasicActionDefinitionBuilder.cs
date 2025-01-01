@@ -1,4 +1,5 @@
 ﻿
+
 public class BasicActionDefinitionBuilder
 {
     private BasicActionTypes actionType;
@@ -261,6 +262,15 @@ public class BasicActionDefinitionBuilder
         return this;
     }
 
+    public BasicActionDefinitionBuilder EndsDay()
+    {
+        outcomes.Add(new EndDayOutcome
+        {
+        });
+
+        return this;
+    }
+
     public BasicAction Build()
     {
         return new BasicAction
@@ -273,5 +283,4 @@ public class BasicActionDefinitionBuilder
             Outcomes = outcomes
         };
     }
-
 }

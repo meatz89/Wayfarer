@@ -73,6 +73,11 @@
         outstandingChanges.Item.Add(itemOutcome);
     }
 
+    public void AddEndDayChange(EndDayOutcome endDayOutcome)
+    {
+        outstandingChanges.EndDay = endDayOutcome;
+    }
+
     public void ApplyAllChanges()
     {
         while (true)
@@ -168,12 +173,25 @@
                 outstandingChanges.Item.RemoveAt(i--);
                 changeProcessed = true;
             }
+            if (outstandingChanges.EndDay != null)
+            {
+                this.AdvanceTimeTo(7-2);
+                outstandingChanges.EndDay = null;
+                changeProcessed = true;
+            }
             // If no changes were processed, break the loop
             if (!changeProcessed)
             {
                 break;
             }
         }
+    }
+
+    private void AdvanceTimeTo(int hours)
+    {
+        int timeToMidnight = 24 - CurrentTimeInHours;
+        int timeToAdvance = timeToMidnight + hours;
+        AdvanceTime(timeToAdvance);
     }
 
     private bool ModifyCoins(int amount)
@@ -309,7 +327,7 @@
         if (daySkip)
         {
             bool stillAlive = StartNewDay();
-            if (stillAlive) Environment.Exit(0);
+            if (!stillAlive) Environment.Exit(0);
             return stillAlive;
         }
 

@@ -32,6 +32,10 @@ public class SocialEnergyOutcome : IOutcome
     public int Amount { get; set; }
 }
 
+public class EndDayOutcome : IOutcome
+{
+}
+
 public class SkillLevelOutcome : IOutcome
 {
     public SkillTypes SkillType { get; set; }

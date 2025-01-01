@@ -4,7 +4,7 @@
     {
         GameState gameState = new GameState();
         gameState.SetNewLocation(LocationContent.HarborStreets);
-        gameState.SetNewTime(9);
+        gameState.SetNewTime(7);
 
         Inventory playerInventory = new Inventory(10);
         playerInventory.AddItems(ResourceTypes.Food, 1);

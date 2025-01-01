@@ -335,6 +335,9 @@
             case ItemOutcome itemOutcome:
                 GameState.AddItemChange(itemOutcome);
                 break;
+            case EndDayOutcome endDayOutcome:
+                GameState.AddEndDayChange(endDayOutcome);
+                break;
         }
     }
 

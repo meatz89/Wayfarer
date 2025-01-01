@@ -315,7 +315,8 @@
         BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder()
             .ForAction(BasicActionTypes.Rest)
             .WithDescription(GetRestDescription())
-            .ExpendsFood(1)         // You need food to recover energy while sleeping
+            .ExpendsFood(1)
+            .EndsDay()
             .AddTimeWindow(TimeWindows.Evening)
             .AddTimeWindow(TimeWindows.Night);
 

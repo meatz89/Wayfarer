@@ -10,4 +10,5 @@ public class ActionResultMessages
     public List<SocialEnergyOutcome> SocialEnergy { get; init; } = new();
     public List<SkillLevelOutcome> SkillLevel { get; init; } = new();
     public List<ItemOutcome> Item { get; init; } = new();
+    public EndDayOutcome EndDay { get; set; }
 }
