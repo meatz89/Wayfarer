@@ -10,14 +10,14 @@
                                                             // Poor travelers need a place to sleep
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.HarborStreets)
-            .ForFeatureType(LocationSpotTypes.BasicShelter)
+            .ForLocationSpot(LocationSpotTypes.BasicShelter)
             .WithCoinCost(0)
             .WithEnergyReward(1, EnergyTypes.Physical)
         )
         // Street vendors sell cheap but limited food
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.HarborStreets)
-            .ForFeatureType(LocationSpotTypes.GeneralStore)
+            .ForLocationSpot(LocationSpotTypes.GeneralStore)
             .WithCoinCost(1)
             .WithOutputResource(ResourceTypes.Food, 1)
             .WithEnergyCost(1, EnergyTypes.Social))
@@ -35,14 +35,14 @@
         // Standard food merchant
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.MarketSquare)
-            .ForFeatureType(LocationSpotTypes.GeneralStore)
+            .ForLocationSpot(LocationSpotTypes.GeneralStore)
             .WithCoinCost(2)
             .WithOutputResource(ResourceTypes.Food, 1)
             .WithEnergyCost(1, EnergyTypes.Social))
         // Luxury goods trader
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.MarketSquare)
-            .ForFeatureType(LocationSpotTypes.SpecialtyShop)
+            .ForLocationSpot(LocationSpotTypes.SpecialtyShop)
             .WithInputResource(ResourceTypes.Planks, 1)
             .WithCoinReward(8)
             .WithEnergyCost(1, EnergyTypes.Social))
@@ -59,7 +59,7 @@
         // Tutorial entrance spot
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.LionsHeadTavern)
-            .ForFeatureType(LocationSpotTypes.ServingArea)
+            .ForLocationSpot(LocationSpotTypes.ServingArea)
             .WithEnergyCost(1, EnergyTypes.Physical)
             .WithEnergyCost(1, EnergyTypes.Social)
             .WithCoinReward(3)
@@ -67,26 +67,27 @@
         // Tutorial common tables
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.LionsHeadTavern)
-            .ForFeatureType(LocationSpotTypes.CommonArea)
+            .ForLocationSpot(LocationSpotTypes.CommonArea)
             .WithEnergyCost(1, EnergyTypes.Social)
         )
         // Tutorial bar counter
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.LionsHeadTavern)
-            .ForFeatureType(LocationSpotTypes.TavernBar)
+            .AddCharacter(CharacterNames.Bartender)
+            .ForLocationSpot(LocationSpotTypes.TavernBar)
             .WithCoinCost(3)
             .WithOutputResource(ResourceTypes.Food, 1)
         )
         // Tutorial corner
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.LionsHeadTavern)
-            .ForFeatureType(LocationSpotTypes.PrivateCorner)
+            .ForLocationSpot(LocationSpotTypes.PrivateCorner)
             .WithEnergyCost(1, EnergyTypes.Focus)
         )
         // Tutorial back room (initially locked)
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.LionsHeadTavern)
-            .ForFeatureType(LocationSpotTypes.GoodShelter)
+            .ForLocationSpot(LocationSpotTypes.GoodShelter)
             .WithCoinCost(1)
             .WithEnergyReward(5, EnergyTypes.Physical)
             .WithEnergyReward(5, EnergyTypes.Focus)

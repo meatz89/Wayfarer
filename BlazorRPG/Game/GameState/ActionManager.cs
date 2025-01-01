@@ -141,7 +141,7 @@
             userActions.Add(ua);
         }
 
-        GameState.SetLocationActions(userActions);
+        GameState.AddCharacterActions(userActions);
     }
 
     //public List<BasicAction> GetCharacterActions()
@@ -366,38 +366,12 @@
 
     public void UpdateAvailableActions()
     {
-        GameState.SetLocationActions(new List<UserActionOption>());
         GameState.SetLocationSpotActions(new List<UserActionOption>());
 
         CreateGlobalActions();
 
         foreach (Location location in LocationSystem.GetLocations())
         {
-            List<BasicAction> locationActions = LocationSystem.GetActionsForLocation(location.Name);
-
-            List<UserActionOption> userActions = new List<UserActionOption>();
-            int actionIndex = 1;
-
-            foreach (BasicAction ga in locationActions)
-            {
-                // If no time slots specified, action is always enabled
-                // Otherwise check if current time is in valid slots
-                bool isDisabled = ga.TimeSlots.Count > 0 &&
-                    !ga.TimeSlots.Contains(GameState.CurrentTimeSlot);
-
-                UserActionOption ua = new UserActionOption
-                {
-                    BasicAction = ga,
-                    Description = ga.Name,
-                    Index = actionIndex++,
-                    IsDisabled = isDisabled,
-                    Location = location.Name
-                };
-                userActions.Add(ua);
-            }
-
-            GameState.AddLocationActions(userActions);
-
             foreach (LocationSpot locationSpot in location.Spots)
             {
                 List<UserActionOption> locationSpotActions = new();
@@ -412,7 +386,6 @@
                 {
                     BasicAction = locationSpotAction,
                     Description = locationSpotAction.Name,
-                    Index = actionIndex++,
                     IsDisabled = isDisabled,
                     Location = location.Name,
                     LocationSpot = locationSpot.Name

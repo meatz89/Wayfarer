@@ -8,7 +8,7 @@
             @if (IsReward(outcome))
             {
                 <li style="color: green">
-                    @GetOutcomeDescription(outcome)
+                    @GetRewardOutcomeDescription(outcome)
                 </li>
             }
         }
@@ -21,7 +21,7 @@
             @if (IsCost(outcome))
             {
                 <li style="color: red">
-                    @GetOutcomeDescription(outcome)
+                    @GetCostOutcomeDescription(outcome)
                 </li>
             }
         }

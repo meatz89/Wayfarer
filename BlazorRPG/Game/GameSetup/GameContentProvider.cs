@@ -21,7 +21,7 @@ public class GameContentProvider
 
         characterProperties = new List<Character>
         {
-            CharacterContent.MarketVendor,
+            CharacterContent.Bartender,
         };
 
         narratives = new List<Narrative>

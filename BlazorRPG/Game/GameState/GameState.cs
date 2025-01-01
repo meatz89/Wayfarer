@@ -14,7 +14,6 @@
     public UserActionOption CurrentUserAction { get; private set; }
 
     public List<UserActionOption> GlobalActions { get; private set; } = new();
-    public List<UserActionOption> LocationActions { get; private set; } = new();
     public List<UserActionOption> LocationSpotActions { get; private set; } = new();
     public List<UserActionOption> CharacterActions { get; private set; } = new();
 
@@ -329,9 +328,7 @@
 
     private bool StartNewDay()
     {
-        bool hasShelter = LocationActions
-            .Where(x => x.BasicAction.Id == BasicActionTypes.Rest)
-            .FirstOrDefault() != null;
+        bool hasShelter = false;
 
         int food = Player.Inventory.GetItemCount(ResourceTypes.Food);
         int foodNeeded = GameRules.DailyFoodRequirement;
@@ -385,16 +382,6 @@
         this.GlobalActions = userActions;
     }
 
-    public void SetLocationActions(List<UserActionOption> userActions)
-    {
-        this.LocationActions = userActions;
-    }
-
-    public void AddLocationActions(List<UserActionOption> userActions)
-    {
-        this.CharacterActions.AddRange(userActions);
-    }
-
     public void SetLocationSpotActions(List<UserActionOption> userActions)
     {
         this.LocationSpotActions = userActions;
@@ -425,4 +412,8 @@
         return userActionOptions;
     }
 
+    internal void AddCharacterActions(List<UserActionOption> userActions)
+    {
+        throw new NotImplementedException();
+    }
 }

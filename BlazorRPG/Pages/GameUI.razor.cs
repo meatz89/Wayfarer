@@ -21,26 +21,12 @@ public partial class GameUI : ComponentBase
     public int food => GameState.Player.Inventory.GetItemCount(ResourceTypes.Food);
     public bool hasShelter => false;
 
-
     public List<Location> Locations => ActionManager.GetAllLocations();
 
     public Player Player => GameState.Player;
     public Location CurrentLocation => GameState.CurrentLocation;
     public LocationSpot CurrentSpot => GameState.CurrentLocationSpot;
     public TimeWindows CurrentTime => GameState.CurrentTimeSlot;
-
-    public List<UserActionOption> LocationActions => GameState.LocationActions;
-    public List<UserActionOption> GetLocationActions(LocationNames locationNames)
-    {
-        List<UserActionOption> userActionOptions = GameState.LocationActions.Where(x => x.Location == locationNames).ToList();
-        return userActionOptions;
-    }
-
-    public List<UserActionOption> GetSpotActions(LocationNames locationNames)
-    {
-        List<UserActionOption> userActionOptions = GameState.LocationActions.Where(x => x.Location == locationNames).ToList();
-        return userActionOptions;
-    }
 
     public UserActionOption CurrentUserAction => GameState.CurrentUserAction;
     public List<UserLocationTravelOption> CurrentTravelOptions => GameState.CurrentTravelOptions;
@@ -53,20 +39,6 @@ public partial class GameUI : ComponentBase
 
     private double mouseX;
     private double mouseY;
-
-    private void ShowTooltip(UserActionOption action, MouseEventArgs e)
-    {
-        hoveredAction = action;
-        mouseX = e.ClientX;
-        mouseY = e.ClientY;
-        showTooltip = true;
-    }
-
-    private void HideTooltip()
-    {
-        hoveredAction = null;
-        showTooltip = false;
-    }
 
     protected override void OnInitialized()
     {

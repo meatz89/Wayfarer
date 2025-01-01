@@ -59,18 +59,11 @@
 
     public Location Build()
     {
-        // Add base location actions
-        actions.AddRange(LocationActionsFactory.Create(
-            this.locationType,
-            this.accessType,
-            this.dangerLevel));
-
         return new Location
         {
             Name = location,
             ConnectedLocations = travelConnections,
             CoreType = locationType,
-            CoreActions = actions,
             Spots = locationSpots
         };
     }

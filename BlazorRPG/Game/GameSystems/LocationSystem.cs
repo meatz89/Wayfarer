@@ -10,15 +10,6 @@ public class LocationSystem
         this.allLocations = contentProvider.GetLocationProperties();
     }
 
-    public List<BasicAction> GetActionsForLocation(LocationNames location)
-    {
-        Location locationProperties = allLocations.FirstOrDefault(x => x.Name == location);
-        if (locationProperties == null) return null;
-
-        List<BasicAction> actions = locationProperties.CoreActions;
-        return actions;
-    }
-
     public List<Location> GetLocations()
     {
         return allLocations;

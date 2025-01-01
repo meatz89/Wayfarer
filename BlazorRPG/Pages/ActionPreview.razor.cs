@@ -62,17 +62,34 @@ public partial class ActionPreviewBase : ComponentBase
         }
     }
 
-    public MarkupString GetOutcomeDescription(IOutcome outcome)
+    public MarkupString GetCostOutcomeDescription(IOutcome outcome)
     {
         string description = outcome switch
         {
-            PhysicalEnergyOutcome o => $"Physical Energy {FormatValuePreview(o)}",
-            FocusEnergyOutcome o => $"Focus Energy {FormatValuePreview(o)}",
-            SocialEnergyOutcome o => $"Social Energy {FormatValuePreview(o)}",
-            HealthOutcome o => $"Health {FormatValuePreview(o)}",
-            CoinsOutcome o => $"Coins {FormatValuePreview(o)}",
-            FoodOutcome o => $"Food {FormatValuePreview(o)}",
-            SkillLevelOutcome o => $"Skill {o.SkillType} {FormatValuePreview(o)}",
+            PhysicalEnergyOutcome o => $"{o.Amount} Physical Energy {FormatValuePreview(o)}",
+            FocusEnergyOutcome o => $"{o.Amount} Focus Energy {FormatValuePreview(o)}",
+            SocialEnergyOutcome o => $"{o.Amount} Social Energy {FormatValuePreview(o)}",
+            HealthOutcome o => $"{o.Amount} Health {FormatValuePreview(o)}",
+            CoinsOutcome o => $"{o.Amount} Coins {FormatValuePreview(o)}",
+            FoodOutcome o => $"{o.Amount} Food {FormatValuePreview(o)}",
+            SkillLevelOutcome o => $"{o.Amount} Level in Skill {o.SkillType} {FormatValuePreview(o)}",
+            ItemOutcome o => $"{(o.ChangeType == ItemChangeType.Added ? "Gain" : "Lose")} {o.Count} x {o.ResourceType} {FormatValuePreview(o)}",
+            _ => string.Empty
+        };
+        return new MarkupString(description);
+    }
+
+    public MarkupString GetRewardOutcomeDescription(IOutcome outcome)
+    {
+        string description = outcome switch
+        {
+            PhysicalEnergyOutcome o => $"+{o.Amount} Physical Energy {FormatValuePreview(o)}",
+            FocusEnergyOutcome o => $"+{o.Amount} Focus Energy {FormatValuePreview(o)}",
+            SocialEnergyOutcome o => $"+{o.Amount} Social Energy {FormatValuePreview(o)}",
+            HealthOutcome o => $"+{o.Amount} Health {FormatValuePreview(o)}",
+            CoinsOutcome o => $"+{o.Amount} Coins {FormatValuePreview(o)}",
+            FoodOutcome o => $"+{o.Amount} Food {FormatValuePreview(o)}",
+            SkillLevelOutcome o => $"+{o.Amount} Level in Skill {o.SkillType} {FormatValuePreview(o)}",
             ItemOutcome o => $"{(o.ChangeType == ItemChangeType.Added ? "Gain" : "Lose")} {o.Count} x {o.ResourceType} {FormatValuePreview(o)}",
             _ => string.Empty
         };

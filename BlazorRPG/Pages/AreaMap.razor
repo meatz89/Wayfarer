@@ -12,15 +12,6 @@
             <div class="location-type">@location.CoreType</div>
             <div class="location-time">⏰ @location.TimeWindows</div>
 
-            @if (location.HasBadShelter)
-            {
-                <div class="location-warning">⚠️ Bad Shelter</div>
-            }
-            @if (location.HasShelter)
-            {
-                <div class="location-shelter">🏠 Shelter Available (@location.ShelterCost 🪙)</div>
-            }
-
             @if (location.Name == CurrentLocation.Name)
             {
                 <button class="action-button" @onclick="OnViewSpots">

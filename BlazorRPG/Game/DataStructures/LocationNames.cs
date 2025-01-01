@@ -11,5 +11,5 @@
 
 public enum CharacterNames
 {
-    MarketVendor,
+    Bartender,
 }

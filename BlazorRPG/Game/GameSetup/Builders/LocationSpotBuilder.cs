@@ -4,11 +4,14 @@
     private LocationSpotTypes spotName;
     private ResourceTypes? inputResource;
     private ResourceTypes? outputResource;
+    private AccessTypes accessType;
+
+    private List<CharacterNames> characters = new();
+
     private int inputAmount = 0;
     private int outputAmount = 0;
     private int coinCost = 0;
     private int coinReward = 0;
-    private AccessTypes accessType;
 
     private int physicalEnergyCost;
     private int socialEnergyCost;
@@ -23,9 +26,15 @@
         return this;
     }
 
-    public LocationSpotBuilder ForFeatureType(LocationSpotTypes featureType)
+    public LocationSpotBuilder ForLocationSpot(LocationSpotTypes featureType)
     {
         this.spotName = featureType;
+        return this;
+    }
+
+    public LocationSpotBuilder AddCharacter(CharacterNames characterNames)
+    {
+        characters.Add(characterNames);
         return this;
     }
 
@@ -102,7 +111,7 @@
     public LocationSpot Build()
     {
         // Each spot type determines what kind of action it supports
-        BasicAction action = spotName switch
+        BasicAction spotAction = spotName switch
         {
             // Processing spots support labor actions that convert resources
             LocationSpotTypes.WoodworkBench or
@@ -138,8 +147,23 @@
             _ => throw new ArgumentException($"Unknown spot type: {spotName}")
         };
 
-        LocationSpot locationSpot = new LocationSpot(spotName, locationName, action);
+        List<BasicAction> characterActions = new List<BasicAction>();
+        foreach (CharacterNames character in characters)
+        {
+            characterActions.Add(BuildCharacterAction(character));
+        }
+
+        LocationSpot locationSpot = new LocationSpot(spotName, locationName, spotAction, characterActions);
         return locationSpot;
+    }
+
+    private BasicAction BuildCharacterAction(CharacterNames character)
+    {
+        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder()
+            .ForAction(BasicActionTypes.Discuss)
+            .WithDescription($"Talk to {character}");
+        
+        return builder.Build();
     }
 
     private BasicAction BuildProcessingAction()
