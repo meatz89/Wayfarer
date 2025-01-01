@@ -30,9 +30,8 @@ public enum LocationSpotTypes
     CommonArea,       // Group interactions
     PrivateCorner,    // Observation spot
     ServingArea,      // Work opportunity
-    StorageRoom,      // Enhanced shelter + storage
 
     // Shelter features - progressive improvement
     BasicShelter,     // No cost, prevents penalties
-    CozyShelter      // Costs coins, restores energy
+    StorageRoom       // Enhanced shelter
 }

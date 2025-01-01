@@ -287,19 +287,21 @@
 
     private BasicAction BuildRestAction()
     {
+        // Start by setting up the basic requirements for any rest
         var builder = new BasicActionDefinitionBuilder()
             .ForAction(BasicActionTypes.Rest)
             .WithDescription(GetRestDescription())
-            .ExpendsFood(1)
-            .ExpendsCoins(coinCost)
+            .ExpendsFood(1)         // You need food to recover energy while sleeping
+            .AddTimeWindow(TimeWindows.Evening)
             .AddTimeWindow(TimeWindows.Night);
 
-        if (physicalEnergyReward > 0)
-            builder.RewardsEnergy(physicalEnergyReward, EnergyTypes.Physical);
-        if (focusEnergyReward > 0)
-            builder.RewardsEnergy(focusEnergyReward, EnergyTypes.Focus);
-        if (socialEnergyReward > 0)
-            builder.RewardsEnergy(socialEnergyReward, EnergyTypes.Social);
+        // If this rest spot has a cost (like an inn room), add it
+        if (coinCost > 0)
+            builder.ExpendsCoins(coinCost);
+
+        builder.RewardsEnergy(physicalEnergyReward, EnergyTypes.Physical)
+               .RewardsEnergy(focusEnergyReward, EnergyTypes.Focus)
+               .RewardsEnergy(socialEnergyReward, EnergyTypes.Social);
 
         return builder.Build();
     }
@@ -315,7 +317,6 @@
     private string GetRestDescription() => spotName switch
     {
         LocationSpotTypes.BasicShelter => "Rest in basic shelter",
-        LocationSpotTypes.CozyShelter => "Rest in cozy shelter",
         LocationSpotTypes.StorageRoom => "Rest in storage room",
         _ => "Rest"
     };

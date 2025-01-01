@@ -12,7 +12,8 @@
             .ForLocation(LocationNames.HarborStreets)
             .ForFeatureType(LocationSpotTypes.BasicShelter)
             .WithCoinCost(0)
-            )
+            .WithEnergyReward(1, EnergyTypes.Physical)
+        )
         // Street vendors sell cheap but limited food
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.HarborStreets)
@@ -87,6 +88,9 @@
             .ForLocation(LocationNames.LionsHeadTavern)
             .ForFeatureType(LocationSpotTypes.StorageRoom)
             .WithCoinCost(1)
+            .WithEnergyReward(5, EnergyTypes.Physical)
+            .WithEnergyReward(5, EnergyTypes.Focus)
+            .WithEnergyReward(5, EnergyTypes.Social)
             .SetAccessType(AccessTypes.Restricted)
         )
         .SetAccessType(AccessTypes.Open)
