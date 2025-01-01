@@ -88,7 +88,7 @@
             <div class="panel-content">
                 <div>@CurrentLocation.Name</div>
                 <div>Available Actions:</div>
-                @foreach (var action in CurrentLocation.AvailableActions)
+                @foreach (var action in CurrentLocation.CoreActions)
                 {
                     <div>• @action.Name (@action.Cost)</div>
                 }

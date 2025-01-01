@@ -1,4 +1,5 @@
 ﻿
+
 public class LocationSystem
 {
     private readonly GameState gameState;
@@ -15,7 +16,7 @@ public class LocationSystem
         Location locationProperties = allLocationProperties.FirstOrDefault(x => x.Name == location);
         if (locationProperties == null) return null;
 
-        List<BasicAction> actions = locationProperties.AvailableActions;
+        List<BasicAction> actions = locationProperties.CoreActions;
         return actions;
     }
 
@@ -36,4 +37,8 @@ public class LocationSystem
         return location;
     }
 
+    public List<LocationSpot> GetLocationSpots(Location location)
+    {
+        return location.LocationSpots;
+    }
 }

@@ -1,6 +1,6 @@
-﻿public class LocationFeatureBuilder
+﻿public class LocationSpotBuilder
 {
-    private LocationFeatureTypes featureType;
+    private LocationSpotTypes featureType;
     private ResourceTypes? inputResource;
     private ResourceTypes? outputResource;
     private int inputAmount = 0;
@@ -10,40 +10,40 @@
     private int energyCost = 0;
     private EnergyTypes energyType;
 
-    public LocationFeatureBuilder ForFeatureType(LocationFeatureTypes featureType)
+    public LocationSpotBuilder ForFeatureType(LocationSpotTypes featureType)
     {
         this.featureType = featureType;
         return this;
     }
 
-    public LocationFeatureBuilder WithInputResource(ResourceTypes resource, int amount)
+    public LocationSpotBuilder WithInputResource(ResourceTypes resource, int amount)
     {
         inputResource = resource;
         inputAmount = amount;
         return this;
     }
 
-    public LocationFeatureBuilder WithOutputResource(ResourceTypes resource, int amount)
+    public LocationSpotBuilder WithOutputResource(ResourceTypes resource, int amount)
     {
         outputResource = resource;
         outputAmount = amount;
         return this;
     }
 
-    public LocationFeatureBuilder WithEnergyCost(int amount, EnergyTypes type)
+    public LocationSpotBuilder WithEnergyCost(int amount, EnergyTypes type)
     {
         energyCost = amount;
         energyType = type;
         return this;
     }
 
-    internal LocationFeatureBuilder WithCoinCost(int coinsToInvest)
+    internal LocationSpotBuilder WithCoinCost(int coinsToInvest)
     {
         coinCost = coinsToInvest;
         return this;
     }
 
-    public LocationFeatureBuilder WithCoinReward(int coinsToReceive)
+    public LocationSpotBuilder WithCoinReward(int coinsToReceive)
     {
         coinReward = coinsToReceive;
         return this;
@@ -53,17 +53,17 @@
     {
         switch (featureType)
         {
-            case LocationFeatureTypes.WoodworkBench:
-            case LocationFeatureTypes.SmithyForge:
+            case LocationSpotTypes.WoodworkBench:
+            case LocationSpotTypes.SmithyForge:
                 if (inputResource == null || outputResource == null || inputAmount <= 0 || outputAmount <= 0 || energyCost <= 0 || energyType == default)
                 {
                     throw new InvalidOperationException($"Processing feature '{featureType}' is not fully configured.");
                 }
                 break;
 
-            case LocationFeatureTypes.GeneralStore:
-            case LocationFeatureTypes.ResourceMarket:
-            case LocationFeatureTypes.SpecialtyShop:
+            case LocationSpotTypes.GeneralStore:
+            case LocationSpotTypes.ResourceMarket:
+            case LocationSpotTypes.SpecialtyShop:
                 // Ensure only one of coinCost or coinReward is set
                 if (!((coinCost > 0 && coinReward == 0) || (coinCost == 0 && coinReward > 0)))
                 {
@@ -83,15 +83,15 @@
                 }
                 break;
 
-            case LocationFeatureTypes.ForestGrove:
+            case LocationSpotTypes.ForestGrove:
                 if (outputResource == null || outputAmount <= 0 || energyCost <= 0 || energyType == default)
                 {
                     throw new InvalidOperationException($"Gathering feature '{featureType}' is not fully configured.");
                 }
                 break;
 
-            case LocationFeatureTypes.BasicShelter:
-            case LocationFeatureTypes.CozyShelter:
+            case LocationSpotTypes.BasicShelter:
+            case LocationSpotTypes.CozyShelter:
                 if (coinCost < 0)
                 {
                     throw new InvalidOperationException($"Shelter feature '{featureType}' must have a non-negative coin cost.");
@@ -103,32 +103,34 @@
         }
     }
 
-    public BasicAction Build()
+    public LocationSpot Build()
     {
         ValidateFeatureConfiguration(); // Add this validation call
 
-        return featureType switch
+        BasicAction action = featureType switch
         {
-            LocationFeatureTypes.WoodworkBench or
-            LocationFeatureTypes.SmithyForge =>
+            LocationSpotTypes.WoodworkBench or
+            LocationSpotTypes.SmithyForge =>
                 BuildProcessingAction(),
 
-            LocationFeatureTypes.GeneralStore or
-            LocationFeatureTypes.ResourceMarket or
-            LocationFeatureTypes.SpecialtyShop =>
+            LocationSpotTypes.GeneralStore or
+            LocationSpotTypes.ResourceMarket or
+            LocationSpotTypes.SpecialtyShop =>
                 BuildTradingAction(),
 
-            LocationFeatureTypes.ForestGrove =>
+            LocationSpotTypes.ForestGrove =>
                 BuildGatheringAction(),
 
-            LocationFeatureTypes.BasicShelter =>
+            LocationSpotTypes.BasicShelter =>
                 BuildShelterAction("Rest in basic shelter", 1, 0, 0),
 
-            LocationFeatureTypes.CozyShelter =>
+            LocationSpotTypes.CozyShelter =>
                 BuildShelterAction("Rest in cozy shelter", 1, 3, 3),
 
             _ => throw new ArgumentException($"Unknown feature type: {featureType}")
         };
+
+        return new LocationSpot(featureType, action);
     }
 
     private BasicAction BuildProcessingAction()

@@ -6,6 +6,7 @@
     private AccessTypes accessType;
     private DangerLevels dangerLevel;
 
+    private List<LocationSpot> locationSpots = new();
     private List<BasicAction> actions = new();
 
     public LocationBuilder ForLocation(LocationNames location)
@@ -14,11 +15,11 @@
         return this;
     }
 
-    public LocationBuilder AddFeature(Action<LocationFeatureBuilder> buildFeature)
+    public LocationBuilder AddLocationSpot(Action<LocationSpotBuilder> buildLocationSpot)
     {
-        LocationFeatureBuilder builder = new();
-        buildFeature(builder);
-        actions.Add(builder.Build());
+        LocationSpotBuilder builder = new();
+        buildLocationSpot(builder);
+        locationSpots.Add(builder.Build());
         return this;
     }
 
@@ -69,7 +70,8 @@
             Name = location,
             ConnectedLocations = travelConnections,
             CoreType = locationType,
-            AvailableActions = actions
+            CoreActions = actions,
+            LocationSpots = locationSpots
         };
     }
 }

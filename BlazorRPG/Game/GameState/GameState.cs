@@ -9,12 +9,14 @@
     public Narrative CurrentNarrative { get; private set; }
     public NarrativeStage CurrentNarrativeStage { get; private set; }
     public Location CurrentLocation { get; private set; }
+    public ActionResult LastActionResult { get; private set; }
+
     public UserActionOption CurrentUserAction { get; private set; }
-    public List<UserTravelOption> CurrentTravelOptions { get; private set; } = new();
     public List<UserActionOption> ValidGlobalActions { get; private set; } = new();
     public List<UserActionOption> ValidLocationActions { get; private set; } = new();
     public List<UserActionOption> ValidCharacterActions { get; private set; } = new();
-    public ActionResult LastActionResult { get; private set; }
+    public List<UserTravelOption> CurrentTravelOptions { get; private set; } = new();
+    public List<UserLocationSpotOption> CurrentLocationSpotOptions { get; private set; }
 
     public void SetCurrentNarrative(Narrative narrative)
     {
@@ -362,6 +364,11 @@
     public void SetCurrentUserAction(UserActionOption action)
     {
         CurrentUserAction = action;
+    }
+
+    public void SetCurrentLocationSpotOptions(List<UserLocationSpotOption> userLocationSpotOption)
+    {
+        this.CurrentLocationSpotOptions = userLocationSpotOption;
     }
 
     public void SetCurrentTravelOptions(List<UserTravelOption> userTravelOptions)

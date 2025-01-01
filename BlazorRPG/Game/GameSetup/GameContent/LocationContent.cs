@@ -8,13 +8,13 @@
         .AddTravelConnection(LocationNames.MarketSquare)   // Connect to the main market area
         .AddTravelConnection(LocationNames.LionsHeadTavern) // A place to rest near the harbor
         // Poor travelers need a place to sleep
-        .AddFeature(feature => feature
-            .ForFeatureType(LocationFeatureTypes.BasicShelter)
+        .AddLocationSpot(feature => feature
+            .ForFeatureType(LocationSpotTypes.BasicShelter)
             .WithCoinCost(0)
             )
         // Street vendors sell cheap but limited food
-        .AddFeature(feature => feature
-            .ForFeatureType(LocationFeatureTypes.GeneralStore)
+        .AddLocationSpot(feature => feature
+            .ForFeatureType(LocationSpotTypes.GeneralStore)
             .WithCoinCost(1)
             .WithOutputResource(ResourceTypes.Food, 1)
             .WithEnergyCost(1, EnergyTypes.Social))
@@ -28,13 +28,13 @@
         .AddTravelConnection(LocationNames.HarborStreets)// Connect back to the harbor streets
                 // No direct connection to the market - goods are likely transported through Harbor Streets
          // Salvage materials from ships and cargo
-        .AddFeature(feature => feature
-            .ForFeatureType(LocationFeatureTypes.ForestGrove)
+        .AddLocationSpot(feature => feature
+            .ForFeatureType(LocationSpotTypes.ForestGrove)
             .WithEnergyCost(1, EnergyTypes.Physical)
             .WithOutputResource(ResourceTypes.Salvage, 1))
         // Trade salvaged goods
-        .AddFeature(feature => feature
-            .ForFeatureType(LocationFeatureTypes.ResourceMarket)
+        .AddLocationSpot(feature => feature
+            .ForFeatureType(LocationSpotTypes.ResourceMarket)
             .WithInputResource(ResourceTypes.Salvage, 1)
             .WithCoinReward(1)
             .WithEnergyCost(1, EnergyTypes.Social))
@@ -50,14 +50,14 @@
         .AddTravelConnection(LocationNames.ArtisanRow)    // Goods flow to/from artisan workshops
         .AddTravelConnection(LocationNames.LionsHeadTavern)
         // Standard food merchant
-        .AddFeature(feature => feature
-            .ForFeatureType(LocationFeatureTypes.GeneralStore)
+        .AddLocationSpot(feature => feature
+            .ForFeatureType(LocationSpotTypes.GeneralStore)
             .WithCoinCost(2)
             .WithOutputResource(ResourceTypes.Food, 1)
             .WithEnergyCost(1, EnergyTypes.Social))
         // Luxury goods trader
-        .AddFeature(feature => feature
-            .ForFeatureType(LocationFeatureTypes.SpecialtyShop)
+        .AddLocationSpot(feature => feature
+            .ForFeatureType(LocationSpotTypes.SpecialtyShop)
             .WithInputResource(ResourceTypes.Planks, 1)
             .WithCoinReward(8)
             .WithEnergyCost(1, EnergyTypes.Social))
@@ -71,14 +71,14 @@
         .AddTravelConnection(LocationNames.MarketSquare)   // Connect to the main market
         .AddTravelConnection(LocationNames.CarpentersWorkshop)
         // Buy raw materials at good prices
-        .AddFeature(feature => feature
-            .ForFeatureType(LocationFeatureTypes.ResourceMarket)
+        .AddLocationSpot(feature => feature
+            .ForFeatureType(LocationSpotTypes.ResourceMarket)
             .WithCoinCost(4)
             .WithOutputResource(ResourceTypes.Metal, 1)
             .WithEnergyCost(1, EnergyTypes.Social))
         // Process metal into tools
-        .AddFeature(feature => feature
-            .ForFeatureType(LocationFeatureTypes.SmithyForge)
+        .AddLocationSpot(feature => feature
+            .ForFeatureType(LocationSpotTypes.SmithyForge)
             .WithInputResource(ResourceTypes.Metal, 1)
             .WithOutputResource(ResourceTypes.Tools, 1)
             .WithEnergyCost(3, EnergyTypes.Physical))
@@ -93,12 +93,12 @@
         .AddTravelConnection(LocationNames.HarborStreets) // Near the harbor
         .AddTravelConnection(LocationNames.MarketSquare)
         // Comfortable rest with energy recovery
-        .AddFeature(feature => feature
-            .ForFeatureType(LocationFeatureTypes.CozyShelter)
+        .AddLocationSpot(feature => feature
+            .ForFeatureType(LocationSpotTypes.CozyShelter)
             .WithCoinCost(1))
         // Expensive but convenient food
-        .AddFeature(feature => feature
-            .ForFeatureType(LocationFeatureTypes.GeneralStore)
+        .AddLocationSpot(feature => feature
+            .ForFeatureType(LocationSpotTypes.GeneralStore)
             .WithCoinCost(3)
             .WithOutputResource(ResourceTypes.Food, 1)
             .WithEnergyCost(1, EnergyTypes.Social))
@@ -112,13 +112,13 @@
         .SetLocationType(LocationTypes.Nature)
         .AddTravelConnection(LocationNames.CarpentersWorkshop) // Carpenters would likely be near the forest
         // Gather wood
-        .AddFeature(feature => feature
-            .ForFeatureType(LocationFeatureTypes.ForestGrove)
+        .AddLocationSpot(feature => feature
+            .ForFeatureType(LocationSpotTypes.ForestGrove)
             .WithEnergyCost(2, EnergyTypes.Physical)
             .WithOutputResource(ResourceTypes.Wood, 1))
         // Sell to traveling merchants
-        .AddFeature(feature => feature
-            .ForFeatureType(LocationFeatureTypes.ResourceMarket)
+        .AddLocationSpot(feature => feature
+            .ForFeatureType(LocationSpotTypes.ResourceMarket)
             .WithInputResource(ResourceTypes.Wood, 1)
             .WithCoinReward(2)
             .WithEnergyCost(1, EnergyTypes.Social))
@@ -133,14 +133,14 @@
         .AddTravelConnection(LocationNames.ForestEdge)    // Close to the wood source
         .AddTravelConnection(LocationNames.ArtisanRow)
         // Process wood into planks
-        .AddFeature(feature => feature
-            .ForFeatureType(LocationFeatureTypes.WoodworkBench)
+        .AddLocationSpot(feature => feature
+            .ForFeatureType(LocationSpotTypes.WoodworkBench)
             .WithInputResource(ResourceTypes.Wood, 1)
             .WithOutputResource(ResourceTypes.Planks, 1)
             .WithEnergyCost(2, EnergyTypes.Physical))
         // Buy raw materials
-        .AddFeature(feature => feature
-            .ForFeatureType(LocationFeatureTypes.ResourceMarket)
+        .AddLocationSpot(feature => feature
+            .ForFeatureType(LocationSpotTypes.ResourceMarket)
             .WithCoinCost(3)
             .WithOutputResource(ResourceTypes.Wood, 1)
             .WithEnergyCost(1, EnergyTypes.Social))

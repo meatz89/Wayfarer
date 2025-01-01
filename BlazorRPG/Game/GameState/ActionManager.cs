@@ -18,7 +18,31 @@
     public void Initialize()
     {
         UpdateTavelOptions();
+        UpdateLocationSpotOptions();
         UpdateAvailableActions();
+    }
+
+    private void UpdateLocationSpotOptions()
+    {
+        Location location = GameState.CurrentLocation;
+        List<LocationSpot> locationSpots = LocationSystem.GetLocationSpots(location);
+
+        List<UserLocationSpotOption> userLocationSpotOption = new List<UserLocationSpotOption>();
+        
+        for (int i = 0; i < locationSpots.Count; i++)
+        {
+            LocationSpot locationSpot = locationSpots[i];
+            UserLocationSpotOption locationSpotOption = new UserLocationSpotOption()
+            {
+                Index = i + 1,
+                Location = location.Name,
+                LocationSpot = locationSpot.Name
+            };
+
+            userLocationSpotOption.Add(locationSpotOption);
+        }
+
+        GameState.SetCurrentLocationSpotOptions(userLocationSpotOption);
     }
 
     public void UpdateTavelOptions()
