@@ -406,14 +406,29 @@
     public List<UserActionOption> GetLocationSpotActions(LocationSpot locationSpot)
     {
         List<UserActionOption> locationSpotActions = this.LocationSpotActions;
+        
         List<UserActionOption> userActionOptions =
-            locationSpotActions.Where(x => x.LocationSpot == locationSpot.Name &&
-            x.Location == locationSpot.Location).ToList();
+            locationSpotActions
+            .Where(x => x.LocationSpot == locationSpot.Name && x.Location == locationSpot.Location)
+            .ToList();
+
+        List<UserActionOption> characterActions = 
+            CharacterActions
+            .Where(x => x.LocationSpot == locationSpot.Name)
+            .ToList();
+
+        userActionOptions.AddRange(characterActions);
+
         return userActionOptions;
     }
 
-    internal void AddCharacterActions(List<UserActionOption> userActions)
+    public void AddCharacterActions(List<UserActionOption> userActions)
     {
-        throw new NotImplementedException();
+        CharacterActions.AddRange(userActions);
+    }
+
+    public void SetCharacterActions(List<UserActionOption> userActionOptions)
+    {
+        CharacterActions = userActionOptions;
     }
 }

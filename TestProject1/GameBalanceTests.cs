@@ -78,7 +78,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
             .Where(a => a.BasicAction.Id != BasicActionTypes.CheckStatus)
             .Where(a => a.BasicAction.Id != BasicActionTypes.Wait);
 
-        string availableActions = string.Join(", ", validActions.Select(a => a.BasicAction.Id));
+        string availableActions = string.Join(", ", validActions.Select(a => a.BasicAction.ActionType));
         Assert.True(validActions.Any(),
             $"No valid actions available after resource depletion.\nResource history:\n{string.Join("\n", resourceLog)}\n" +
             $"Available actions: {availableActions}");
@@ -108,7 +108,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
                 actionLog.Add($"  {timeWindow} actions:");
                 foreach (UserActionOption? action in allActions)
                 {
-                    actionLog.Add($"    {action.BasicAction.Id} - Disabled: {action.IsDisabled}, " +
+                    actionLog.Add($"    {action.BasicAction.ActionType} - Disabled: {action.IsDisabled}, " +
                                 $"ValidTimeSlots: [{string.Join(",", action.BasicAction.TimeSlots)}], " +
                                 $"CurrentTime: {GameState.CurrentTimeSlot}");
                 }
@@ -116,7 +116,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
                 IEnumerable<UserActionOption> availableActions = allActions.Where(a => !a.IsDisabled);
                 foreach (UserActionOption? action in availableActions)
                 {
-                    executedActions.Add(action.BasicAction.Id);
+                    executedActions.Add(action.BasicAction.ActionType);
                 }
             }
         }
@@ -143,7 +143,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
 
         foreach (UserActionOption action in GameState.LocationActions)
         {
-            output.WriteLine($"Action: {action.BasicAction.Id}, " +
+            output.WriteLine($"Action: {action.BasicAction.ActionType}, " +
                            $"TimeSlots: [{string.Join(",", action.BasicAction.TimeSlots)}], " +
                            $"CurrentTime: {GameState.CurrentTimeSlot}, " +
                            $"IsDisabled: {action.IsDisabled}");

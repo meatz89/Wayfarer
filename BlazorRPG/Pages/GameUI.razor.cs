@@ -111,7 +111,7 @@ public partial class GameUI : ComponentBase
     {
         if (action.IsDisabled) return; // Prevent action if disabled
 
-        else if (action.BasicAction.Id == BasicActionTypes.Wait)
+        else if (action.BasicAction.ActionType == BasicActionTypes.Wait)
         {
             ActionManager.AdvanceTime();
             CompleteActionExecution();

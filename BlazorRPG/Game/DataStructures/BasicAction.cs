@@ -1,6 +1,7 @@
 ﻿public class BasicAction
 {
-    public BasicActionTypes Id { get; set; }
+    public BasicActionTypes ActionType { get; set; }
+    public CharacterNames Character { get; set; }
     public string Name { get; set; }
     public bool IsAvailable = true;
     public int Cost = 1;

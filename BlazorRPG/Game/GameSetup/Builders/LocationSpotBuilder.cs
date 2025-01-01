@@ -161,6 +161,7 @@
     {
         BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder()
             .ForAction(BasicActionTypes.Discuss)
+            .ForCharacter(character)
             .WithDescription($"Talk to {character}");
         
         return builder.Build();

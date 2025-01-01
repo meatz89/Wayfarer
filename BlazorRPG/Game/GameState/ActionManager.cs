@@ -107,7 +107,7 @@
 
         UserActionOption ua = new UserActionOption
         {
-            BasicAction = new BasicAction() { Id = BasicActionTypes.Wait },
+            BasicAction = new BasicAction() { ActionType = BasicActionTypes.Wait },
             Description = "Wait",
             Index = actionIndex++,
             IsDisabled = false
@@ -117,32 +117,6 @@
         GameState.SetGlobalActions(userActions);
     }
 
-    public void CreateCharacterActions(List<BasicAction> BasicActions, LocationNames locationName, CharacterNames characterName)
-    {
-        List<UserActionOption> userActions = new List<UserActionOption>();
-        int actionIndex = 1;
-
-        foreach (BasicAction ga in BasicActions)
-        {
-            // If no time slots specified, action is always enabled
-            // Otherwise check if current time is in valid slots
-            bool isDisabled = ga.TimeSlots.Count > 0 &&
-                !ga.TimeSlots.Contains(GameState.CurrentTimeSlot);
-
-            UserActionOption ua = new UserActionOption
-            {
-                BasicAction = ga,
-                Description = ga.Name,
-                Index = actionIndex++,
-                IsDisabled = isDisabled,
-                Location = locationName,
-                Character = characterName
-            };
-            userActions.Add(ua);
-        }
-
-        GameState.AddCharacterActions(userActions);
-    }
 
     //public List<BasicAction> GetCharacterActions()
     //{
@@ -179,14 +153,14 @@
 
     public bool HasNarrative(BasicAction action)
     {
-        Narrative narrative = NarrativeSystem.GetNarrativeFor(action.Id);
+        Narrative narrative = NarrativeSystem.GetNarrativeFor(action.ActionType);
         bool hasNarrative = narrative != null;
         return false;
     }
 
     public bool StartNarrativeFor(BasicAction action)
     {
-        Narrative narrative = NarrativeSystem.GetNarrativeFor(action.Id);
+        Narrative narrative = NarrativeSystem.GetNarrativeFor(action.ActionType);
         if (narrative == null)
         {
             throw new Exception("No Narrative Found");
@@ -367,9 +341,55 @@
     public void UpdateAvailableActions()
     {
         GameState.SetLocationSpotActions(new List<UserActionOption>());
+        GameState.SetCharacterActions(new List<UserActionOption>());
 
         CreateGlobalActions();
+        CreateLocationSpotActions();
+        CreateCharacterActions();
 
+        //List<BasicAction> character = GetCharacterActions(character.Name);
+        //CreateCharacterActions(character);
+    }
+
+    public void CreateCharacterActions()
+    {
+        List<UserActionOption> userActions = new List<UserActionOption>();
+
+        foreach (Location location in LocationSystem.GetLocations())
+        {
+            foreach (LocationSpot locationSpot in location.Spots)
+            {
+                foreach (BasicAction ga in locationSpot.CharacterActions)
+                {
+                    int actionIndex = 1;
+
+                    // If no time slots specified, action is always enabled
+                    // Otherwise check if current time is in valid slots
+                    bool isDisabled = ga.TimeSlots.Count > 0 &&
+                        !ga.TimeSlots.Contains(GameState.CurrentTimeSlot);
+
+                    LocationSpotTypes locationSpotName = locationSpot.Name;
+                    LocationNames name = location.Name;
+                    UserActionOption ua = new UserActionOption
+                    {
+                        BasicAction = ga,
+                        Description = ga.Name,
+                        Index = actionIndex++,
+                        IsDisabled = isDisabled,
+                        Location = name,
+                        LocationSpot = locationSpotName,
+                        Character = ga.Character
+                    };
+                    userActions.Add(ua);
+                }
+            }
+        }
+
+        GameState.AddCharacterActions(userActions);
+    }
+
+    private void CreateLocationSpotActions()
+    {
         foreach (Location location in LocationSystem.GetLocations())
         {
             foreach (LocationSpot locationSpot in location.Spots)
@@ -394,12 +414,9 @@
                 GameState.AddLocationSpotActions(locationSpotActions);
             }
         }
-
-        //List<BasicAction> character = GetCharacterActions(character.Name);
-        //CreateCharacterActions(character);
     }
 
-    internal void UpdateState()
+    public void UpdateState()
     {
         UpdateLocationTravelOptions();
         UpdateLocationSpotOptions();

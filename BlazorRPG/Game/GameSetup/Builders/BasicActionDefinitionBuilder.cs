@@ -1,9 +1,8 @@
 ﻿
-using Microsoft.Extensions.Hosting;
-
 public class BasicActionDefinitionBuilder
 {
     private BasicActionTypes actionType;
+    private CharacterNames character;
     private string description;
     private List<TimeWindows> timeSlots = new();
     public List<IRequirement> requirements = new();
@@ -12,6 +11,12 @@ public class BasicActionDefinitionBuilder
     public BasicActionDefinitionBuilder ForAction(BasicActionTypes actionType)
     {
         this.actionType = actionType;
+        return this;
+    }
+
+    public BasicActionDefinitionBuilder ForCharacter(CharacterNames character)
+    {
+        this.character = character;
         return this;
     }
 
@@ -260,11 +265,13 @@ public class BasicActionDefinitionBuilder
     {
         return new BasicAction
         {
-            Id = actionType,
+            ActionType = actionType,
+            Character = character,
             Name = description,
             TimeSlots = timeSlots,
             Requirements = requirements,
             Outcomes = outcomes
         };
     }
+
 }
