@@ -52,7 +52,7 @@ public partial class ActionPreviewBase : ComponentBase
 
     private int GetNewItemCount(ItemOutcome o)
     {
-        if(o.ChangeType == ItemChangeType.Added)
+        if (o.ChangeType == ItemChangeType.Added)
         {
             return Math.Max(0, Player.Inventory.GetItemCount(o.ResourceType) + o.Count);
         }

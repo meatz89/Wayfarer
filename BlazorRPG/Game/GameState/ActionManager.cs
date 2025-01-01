@@ -83,7 +83,7 @@
 
     public ActionResult MoveToLocation(LocationNames locationName)
     {
-        var location = LocationSystem.GetLocation(locationName);
+        Location location = LocationSystem.GetLocation(locationName);
         GameState.SetNewLocation(location);
         UpdateState();
 
@@ -94,7 +94,7 @@
 
     public void MoveToLocationSpot(LocationNames location, LocationSpotTypes locationSpotName)
     {
-        var locationSpot = LocationSystem.GetLocationSpotForLocation(location, locationSpotName);
+        LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(location, locationSpotName);
         GameState.SetNewLocationSpot(locationSpot);
         UpdateState();
 
@@ -229,7 +229,7 @@
 
     public bool AreRequirementsMet(UserActionOption action)
     {
-        var Player = GameState.Player;
+        Player Player = GameState.Player;
 
         return action.BasicAction.Requirements.All(requirement => requirement switch
         {

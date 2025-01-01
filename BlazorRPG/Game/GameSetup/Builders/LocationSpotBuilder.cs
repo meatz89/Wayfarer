@@ -45,7 +45,7 @@
 
     public LocationSpotBuilder WithEnergyCost(int amount, EnergyTypes type)
     {
-        switch(type)
+        switch (type)
         {
             case EnergyTypes.Physical:
                 physicalEnergyCost = amount;
@@ -132,8 +132,7 @@
 
             // Shelter spots are for resting
             LocationSpotTypes.BasicShelter or
-            LocationSpotTypes.CozyShelter or
-            LocationSpotTypes.StorageRoom =>
+            LocationSpotTypes.GoodShelter =>
                 BuildRestAction(),
 
             _ => throw new ArgumentException($"Unknown spot type: {spotName}")
@@ -145,7 +144,7 @@
 
     private BasicAction BuildProcessingAction()
     {
-        var builder = new BasicActionDefinitionBuilder()
+        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder()
             .ForAction(BasicActionTypes.Labor)
             .WithDescription($"Process {inputResource} into {outputResource}");
 
@@ -181,7 +180,7 @@
 
     private BasicAction BuildGatheringAction()
     {
-        var builder = new BasicActionDefinitionBuilder()
+        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder()
             .ForAction(BasicActionTypes.Gather)
             .WithDescription($"Gather {outputResource}");
 
@@ -212,7 +211,7 @@
 
     private BasicAction BuildTradingAction()
     {
-        var builder = new BasicActionDefinitionBuilder()
+        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder()
             .ForAction(BasicActionTypes.Trade);
 
         if (coinCost > 0)
@@ -249,7 +248,7 @@
 
     private BasicAction BuildInteractionAction()
     {
-        var builder = new BasicActionDefinitionBuilder()
+        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder()
             .ForAction(spotName == LocationSpotTypes.PrivateCorner ? BasicActionTypes.Investigate : BasicActionTypes.Mingle)
             .WithDescription(GetInteractionDescription());
 
@@ -288,7 +287,7 @@
     private BasicAction BuildRestAction()
     {
         // Start by setting up the basic requirements for any rest
-        var builder = new BasicActionDefinitionBuilder()
+        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder()
             .ForAction(BasicActionTypes.Rest)
             .WithDescription(GetRestDescription())
             .ExpendsFood(1)         // You need food to recover energy while sleeping
@@ -317,7 +316,7 @@
     private string GetRestDescription() => spotName switch
     {
         LocationSpotTypes.BasicShelter => "Rest in basic shelter",
-        LocationSpotTypes.StorageRoom => "Rest in storage room",
+        LocationSpotTypes.GoodShelter => "Rest in storage room",
         _ => "Rest"
     };
 

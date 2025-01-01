@@ -190,7 +190,7 @@
 
     private bool ModifyFood(int amount)
     {
-        var inventory = Player.Inventory;
+        Inventory inventory = Player.Inventory;
         int currentFood = inventory.GetItemCount(ResourceTypes.Food);
 
         int updatedFood = Math.Clamp(currentFood + amount, 0, inventory.GetCapacityFor(ResourceTypes.Food));
@@ -419,8 +419,8 @@
     public List<UserActionOption> GetLocationSpotActions(LocationSpot locationSpot)
     {
         List<UserActionOption> locationSpotActions = this.LocationSpotActions;
-        List<UserActionOption> userActionOptions = 
-            locationSpotActions.Where(x => x.LocationSpot == locationSpot.Name && 
+        List<UserActionOption> userActionOptions =
+            locationSpotActions.Where(x => x.LocationSpot == locationSpot.Name &&
             x.Location == locationSpot.Location).ToList();
         return userActionOptions;
     }

@@ -13,7 +13,7 @@
 
     public int GetCapacityFor(ResourceTypes item)
     {
-        return Slots.Length; 
+        return Slots.Length;
     }
 
     public void SetItemCount(ResourceTypes item, int count)
@@ -107,7 +107,7 @@
     // Method to check if the inventory contains a specific item
     public bool ContainsItem(ResourceTypes item)
     {
-        foreach (var slot in Slots)
+        foreach (ResourceTypes slot in Slots)
         {
             if (slot == item)
             {
@@ -121,7 +121,7 @@
     public int GetEmptySlots()
     {
         int emptyCount = 0;
-        foreach (var slot in Slots)
+        foreach (ResourceTypes slot in Slots)
         {
             if (slot == ResourceTypes.None)
             {
@@ -135,7 +135,7 @@
     public int GetItemCount(ResourceTypes item)
     {
         int count = 0;
-        foreach (var slot in Slots)
+        foreach (ResourceTypes slot in Slots)
         {
             if (slot == item)
             {

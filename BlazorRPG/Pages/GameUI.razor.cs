@@ -20,7 +20,7 @@ public partial class GameUI : ComponentBase
     public int coins => GameState.Player.Coins;
     public int food => GameState.Player.Inventory.GetItemCount(ResourceTypes.Food);
     public bool hasShelter => false;
-    
+
 
     public List<Location> Locations => ActionManager.GetAllLocations();
 

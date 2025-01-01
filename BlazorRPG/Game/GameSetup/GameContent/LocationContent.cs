@@ -7,7 +7,7 @@
         .AddTravelConnection(LocationNames.Docks)          // Directly connected to the docks
         .AddTravelConnection(LocationNames.MarketSquare)   // Connect to the main market area
         .AddTravelConnection(LocationNames.LionsHeadTavern) // A place to rest near the harbor
-        // Poor travelers need a place to sleep
+                                                            // Poor travelers need a place to sleep
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.HarborStreets)
             .ForFeatureType(LocationSpotTypes.BasicShelter)
@@ -86,7 +86,7 @@
         // Tutorial back room (initially locked)
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.LionsHeadTavern)
-            .ForFeatureType(LocationSpotTypes.StorageRoom)
+            .ForFeatureType(LocationSpotTypes.GoodShelter)
             .WithCoinCost(1)
             .WithEnergyReward(5, EnergyTypes.Physical)
             .WithEnergyReward(5, EnergyTypes.Focus)

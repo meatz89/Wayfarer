@@ -33,5 +33,5 @@ public enum LocationSpotTypes
 
     // Shelter features - progressive improvement
     BasicShelter,     // No cost, prevents penalties
-    StorageRoom       // Enhanced shelter
+    GoodShelter       // Enhanced shelter
 }
