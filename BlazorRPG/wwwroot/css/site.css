@@ -299,3 +299,31 @@ body {
     .action-button:disabled:hover {
         background-color: var(--bg-panel);
     }
+
+.map-container {
+    position: relative;
+}
+
+.map-toggle {
+    position: absolute;
+    top: -40px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.toggle-button {
+    background-color: var(--bg-panel);
+    border: none;
+    color: var(--text-primary);
+    padding: 8px 16px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+    .toggle-button.active {
+        background-color: var(--bg-active);
+        border: 1px solid var(--border-active);
+    }
+

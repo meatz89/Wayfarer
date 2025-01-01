@@ -1,6 +1,7 @@
 ﻿public class LocationSpotBuilder
 {
-    private LocationSpotTypes featureType;
+    private LocationNames locationName;
+    private LocationSpotTypes spotName;
     private ResourceTypes? inputResource;
     private ResourceTypes? outputResource;
     private int inputAmount = 0;
@@ -10,9 +11,15 @@
     private int energyCost = 0;
     private EnergyTypes energyType;
 
+    public LocationSpotBuilder ForLocation(LocationNames location)
+    {
+        this.locationName = location;
+        return this;
+    }
+
     public LocationSpotBuilder ForFeatureType(LocationSpotTypes featureType)
     {
-        this.featureType = featureType;
+        this.spotName = featureType;
         return this;
     }
 
@@ -51,13 +58,13 @@
 
     private void ValidateFeatureConfiguration()
     {
-        switch (featureType)
+        switch (spotName)
         {
             case LocationSpotTypes.WoodworkBench:
             case LocationSpotTypes.SmithyForge:
                 if (inputResource == null || outputResource == null || inputAmount <= 0 || outputAmount <= 0 || energyCost <= 0 || energyType == default)
                 {
-                    throw new InvalidOperationException($"Processing feature '{featureType}' is not fully configured.");
+                    throw new InvalidOperationException($"Processing feature '{spotName}' is not fully configured.");
                 }
                 break;
 
@@ -67,26 +74,26 @@
                 // Ensure only one of coinCost or coinReward is set
                 if (!((coinCost > 0 && coinReward == 0) || (coinCost == 0 && coinReward > 0)))
                 {
-                    throw new InvalidOperationException($"Trading feature '{featureType}' must have either coinCost or coinReward set, but not both.");
+                    throw new InvalidOperationException($"Trading feature '{spotName}' must have either coinCost or coinReward set, but not both.");
                 }
                 if (energyCost <= 0 || energyType == default)
                 {
-                    throw new InvalidOperationException($"Trading feature '{featureType}' is missing energy configuration.");
+                    throw new InvalidOperationException($"Trading feature '{spotName}' is missing energy configuration.");
                 }
                 if (coinCost > 0 && (outputResource == null || outputAmount <= 0))
                 {
-                    throw new InvalidOperationException($"Trading feature '{featureType}' is missing output configuration.");
+                    throw new InvalidOperationException($"Trading feature '{spotName}' is missing output configuration.");
                 }
                 if (coinReward > 0 && (inputResource == null || inputAmount <= 0))
                 {
-                    throw new InvalidOperationException($"Trading feature '{featureType}' is missing input configuration");
+                    throw new InvalidOperationException($"Trading feature '{spotName}' is missing input configuration");
                 }
                 break;
 
             case LocationSpotTypes.ForestGrove:
                 if (outputResource == null || outputAmount <= 0 || energyCost <= 0 || energyType == default)
                 {
-                    throw new InvalidOperationException($"Gathering feature '{featureType}' is not fully configured.");
+                    throw new InvalidOperationException($"Gathering feature '{spotName}' is not fully configured.");
                 }
                 break;
 
@@ -94,12 +101,12 @@
             case LocationSpotTypes.CozyShelter:
                 if (coinCost < 0)
                 {
-                    throw new InvalidOperationException($"Shelter feature '{featureType}' must have a non-negative coin cost.");
+                    throw new InvalidOperationException($"Shelter feature '{spotName}' must have a non-negative coin cost.");
                 }
                 break;
 
             default:
-                throw new ArgumentException($"Unknown feature type: {featureType}");
+                throw new ArgumentException($"Unknown feature type: {spotName}");
         }
     }
 
@@ -107,7 +114,7 @@
     {
         ValidateFeatureConfiguration(); // Add this validation call
 
-        BasicAction action = featureType switch
+        BasicAction action = spotName switch
         {
             LocationSpotTypes.WoodworkBench or
             LocationSpotTypes.SmithyForge =>
@@ -127,10 +134,10 @@
             LocationSpotTypes.CozyShelter =>
                 BuildShelterAction("Rest in cozy shelter", 1, 3, 3),
 
-            _ => throw new ArgumentException($"Unknown feature type: {featureType}")
+            _ => throw new ArgumentException($"Unknown feature type: {spotName}")
         };
 
-        return new LocationSpot(featureType, action);
+        return new LocationSpot(spotName, locationName, action);
     }
 
     private BasicAction BuildProcessingAction()
@@ -151,7 +158,7 @@
         {
             return new BasicActionDefinitionBuilder()
                 .ForAction(BasicActionTypes.Trade)
-                .WithDescription($"Buy at {featureType}")
+                .WithDescription($"Buy at {spotName}")
                 .ExpendsEnergy(energyCost, energyType)
                 .ExpendsCoins(coinCost)
                 .RewardsItem(outputResource.Value, outputAmount)
@@ -162,13 +169,13 @@
         {
             return new BasicActionDefinitionBuilder()
                 .ForAction(BasicActionTypes.Trade)
-                .WithDescription($"Sell at {featureType}")
+                .WithDescription($"Sell at {spotName}")
                 .ExpendsEnergy(energyCost, energyType)
                 .ExpendsItem(inputResource.Value, inputAmount)
                 .RewardsCoins(coinReward)
                 .Build();
         }
-        throw new ArgumentException($"Trading feature {featureType} must specify buying or selling prices");
+        throw new ArgumentException($"Trading feature {spotName} must specify buying or selling prices");
     }
 
     private BasicAction BuildGatheringAction()

@@ -12,11 +12,15 @@
     public ActionResult LastActionResult { get; private set; }
 
     public UserActionOption CurrentUserAction { get; private set; }
+
     public List<UserActionOption> ValidGlobalActions { get; private set; } = new();
     public List<UserActionOption> ValidLocationActions { get; private set; } = new();
+    public List<UserActionOption> ValidLocationSpotActions { get; private set; } = new();
     public List<UserActionOption> ValidCharacterActions { get; private set; } = new();
-    public List<UserTravelOption> CurrentTravelOptions { get; private set; } = new();
+
+    public List<UserLocationTravelOption> CurrentTravelOptions { get; private set; } = new();
     public List<UserLocationSpotOption> CurrentLocationSpotOptions { get; private set; }
+    public LocationSpot CurrentLocationSpot { get; internal set; }
 
     public void SetCurrentNarrative(Narrative narrative)
     {
@@ -371,14 +375,14 @@
         this.CurrentLocationSpotOptions = userLocationSpotOption;
     }
 
-    public void SetCurrentTravelOptions(List<UserTravelOption> userTravelOptions)
+    public void SetCurrentTravelOptions(List<UserLocationTravelOption> userTravelOptions)
     {
         this.CurrentTravelOptions = userTravelOptions;
     }
 
     public void SetGlobalActions(List<UserActionOption> userActions)
     {
-        this.ValidLocationActions = userActions;
+        this.ValidGlobalActions = userActions;
     }
 
     public void SetLocationActions(List<UserActionOption> userActions)
@@ -388,11 +392,22 @@
 
     public void AddLocationActions(List<UserActionOption> userActions)
     {
-        this.ValidLocationActions.AddRange(userActions);
+        this.ValidCharacterActions.AddRange(userActions);
+    }
+
+    public void SetLocationSpotActions(List<UserActionOption> userActions)
+    {
+        this.ValidLocationSpotActions = userActions;
     }
 
     public void SetNewLocation(Location location)
     {
         CurrentLocation = location;
+        CurrentLocationSpot = location.Spots.FirstOrDefault();
+    }
+
+    public void SetNewLocationSpot(LocationSpot locationSpot)
+    {
+        CurrentLocationSpot = locationSpot;
     }
 }

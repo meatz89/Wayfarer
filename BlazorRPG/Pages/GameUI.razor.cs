@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using System.Reflection;
-using System.Threading;
 
 namespace BlazorRPG.Pages;
 
@@ -22,10 +20,13 @@ public partial class GameUI : ComponentBase
     public int coins => GameState.Player.Coins;
     public int food => GameState.Player.Inventory.GetItemCount(ResourceTypes.Food);
     public bool hasShelter => false;
+    
+
     public List<Location> Locations => ActionManager.GetAllLocations();
 
     public Player Player => GameState.Player;
     public Location CurrentLocation => GameState.CurrentLocation;
+    public LocationSpot CurrentSpot => GameState.CurrentLocationSpot;
     public TimeWindows CurrentTime => GameState.CurrentTimeSlot;
 
     public List<UserActionOption> LocationActions => GameState.ValidLocationActions;
@@ -35,13 +36,20 @@ public partial class GameUI : ComponentBase
         return userActionOptions;
     }
 
+    public List<UserActionOption> GetSpotActions(LocationNames locationNames)
+    {
+        List<UserActionOption> userActionOptions = GameState.ValidLocationActions.Where(x => x.Location == locationNames).ToList();
+        return userActionOptions;
+    }
+
     public UserActionOption CurrentUserAction => GameState.CurrentUserAction;
-    public List<UserTravelOption> CurrentTravelOptions => GameState.CurrentTravelOptions;
+    public List<UserLocationTravelOption> CurrentTravelOptions => GameState.CurrentTravelOptions;
     public ActionResult LastActionResult => GameState.LastActionResult;
 
     // Tooltip Logic
-    private bool showTooltip = false;
-    private UserActionOption hoveredAction = null;
+    public bool showAreaMap = true;
+    public bool showTooltip = false;
+    public UserActionOption hoveredAction = null;
 
     private double mouseX;
     private double mouseY;
@@ -59,30 +67,6 @@ public partial class GameUI : ComponentBase
         hoveredAction = null;
         showTooltip = false;
     }
-
-    private bool CanTravelTo(LocationNames locationName)
-    {
-        List<LocationNames> locs = ActionManager.GetConnectedLocations();
-        return locs.Contains(locationName);
-    }
-
-    protected bool AreRequirementsMet(UserActionOption action)
-    {
-        return action.BasicAction.Requirements.All(requirement => requirement switch
-        {
-            PhysicalEnergyRequirement r => Player.PhysicalEnergy >= r.Amount,
-            FocusEnergyRequirement r => Player.FocusEnergy >= r.Amount,
-            SocialEnergyRequirement r => Player.SocialEnergy >= r.Amount,
-            InventorySlotsRequirement r => Player.Inventory.GetEmptySlots() >= r.Count,
-            HealthRequirement r => Player.Health >= r.Amount,
-            CoinsRequirement r => Player.Coins >= r.Amount,
-            FoodRequirement r => Player.Inventory.GetItemCount(ResourceTypes.Food) >= r.Amount,
-            SkillLevelRequirement r => Player.Skills.ContainsKey(r.SkillType) && Player.Skills[r.SkillType] >= r.Amount,
-            ItemRequirement r => Player.Inventory.GetItemCount(r.ResourceType) >= r.Count,
-            _ => false
-        });
-    }
-
 
     protected override void OnInitialized()
     {
@@ -199,10 +183,18 @@ public partial class GameUI : ComponentBase
         }
     }
 
-    private void HandleTravel(LocationNames locationNames)
+    private void HandleSpotSelection(LocationSpot locationSpot)
     {
-        List<UserTravelOption> currentTravelOptions = GameState.CurrentTravelOptions;
-        UserTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Location == locationNames);
+        List<UserLocationSpotOption> currentTravelOptions = GameState.CurrentLocationSpotOptions;
+        UserLocationSpotOption location = currentTravelOptions.FirstOrDefault(x => x.LocationSpot == locationSpot.Name);
+
+        ActionManager.MoveToLocationSpot(location.Location, locationSpot.Name);
+    }
+
+    private void HandleLocationSelection(LocationNames locationNames)
+    {
+        List<UserLocationTravelOption> currentTravelOptions = GameState.CurrentTravelOptions;
+        UserLocationTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Location == locationNames);
 
         ActionResult result = ActionManager.MoveToLocation(location.Location);
 

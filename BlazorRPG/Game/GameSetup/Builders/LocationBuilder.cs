@@ -71,7 +71,7 @@
             ConnectedLocations = travelConnections,
             CoreType = locationType,
             CoreActions = actions,
-            LocationSpots = locationSpots
+            Spots = locationSpots
         };
     }
 }

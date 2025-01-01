@@ -37,48 +37,30 @@
 </div>
 
 <div class="game-container">
-    <div class="locations-grid">
-        @foreach (Location location in Locations)
+    <div class="map-container">
+        <div class="map-toggle">
+            <button class="toggle-button @(showAreaMap ? "" : "active")" @onclick="() => showAreaMap = false">
+                Location View 🏠
+            </button>
+            <button class="toggle-button @(showAreaMap ? "active" : "")" @onclick="() => showAreaMap = true">
+                Area Map 🗺️
+            </button>
+        </div>
+
+        @if (showAreaMap)
         {
-            <div class="location-card @(location.Name == CurrentLocation.Name ? "current" : "reachable")">
-                <div class="location-name">
-                    @location.Name @(location.Name == CurrentLocation.Name ? "(Current)" : "")
-                </div>
-                <div class="location-type">@location.CoreType</div>
-                <div class="location-time">⏰ @location.TimeWindows</div>
-
-                @if (location.HasBadShelter)
-                {
-                    <div class="location-warning">⚠️ Bad Shelter</div>
-                }
-
-                @if (location.HasShelter)
-                {
-                    <div class="location-shelter">🏠 Shelter Available (@location.ShelterCost 🪙)</div>
-                }
-
-                @if (location.Name == CurrentLocation.Name)
-                {
-                    @foreach (var action in GetLocationActions(location.Name))
-                    {
-                        <button class="action-button"
-                                @onclick="() => HandleActionSelection(action)"
-                                disabled="@(!AreRequirementsMet(action))"
-                                @onmouseover="(e) => ShowTooltip(action, e)"
-                                @onmouseout="HideTooltip">
-                            @action.BasicAction.Name (@action.BasicAction.Cost)
-                        </button>
-                    }
-                }
-                else
-                {
-                    <button class="action-button"
-                            @onclick="() => HandleTravel(location.Name)"
-                            disabled="@(!CanTravelTo(location.Name))">
-                        TRAVEL HERE
-                    </button>
-                }
-            </div>
+            <AreaMap CurrentLocation="@CurrentLocation"
+                     Locations="@Locations"
+                     OnTravel="@HandleLocationSelection" />
+        }
+        else
+        {
+            <LocationSpotMap CurrentLocation="@CurrentLocation"
+                             CurrentSpot="@CurrentSpot"
+                             OnSpotSelected="@HandleSpotSelection"
+                             OnActionSelected="@HandleActionSelection"
+                             ShowTooltip="@((action, e) => ShowTooltip(action, e))"
+                             HideTooltip="@HideTooltip" />
         }
     </div>
 

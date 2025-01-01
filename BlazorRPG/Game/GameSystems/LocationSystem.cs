@@ -1,19 +1,18 @@
 ﻿
-
 public class LocationSystem
 {
     private readonly GameState gameState;
-    private readonly List<Location> allLocationProperties;
+    private readonly List<Location> allLocations;
 
     public LocationSystem(GameState gameState, GameContentProvider contentProvider)
     {
         this.gameState = gameState;
-        this.allLocationProperties = contentProvider.GetLocationProperties();
+        this.allLocations = contentProvider.GetLocationProperties();
     }
 
     public List<BasicAction> GetActionsForLocation(LocationNames location)
     {
-        Location locationProperties = allLocationProperties.FirstOrDefault(x => x.Name == location);
+        Location locationProperties = allLocations.FirstOrDefault(x => x.Name == location);
         if (locationProperties == null) return null;
 
         List<BasicAction> actions = locationProperties.CoreActions;
@@ -22,7 +21,7 @@ public class LocationSystem
 
     public List<Location> GetLocations()
     {
-        return allLocationProperties;
+        return allLocations;
     }
 
     public List<LocationNames> GetLocationConnections(LocationNames currentLocation)
@@ -33,12 +32,19 @@ public class LocationSystem
 
     public Location GetLocation(LocationNames locationName)
     {
-        Location location = allLocationProperties.FirstOrDefault(x => x.Name == locationName);
+        Location location = allLocations.FirstOrDefault(x => x.Name == locationName);
         return location;
     }
 
     public List<LocationSpot> GetLocationSpots(Location location)
     {
-        return location.LocationSpots;
+        return location.Spots;
+    }
+
+    public LocationSpot GetLocationSpotForLocation(LocationNames locationName, LocationSpotTypes locationSpotType)
+    {
+        Location location = GetLocation(locationName);
+        List<LocationSpot> spots = GetLocationSpots(location);
+        return spots.FirstOrDefault(x => x.Name == locationSpotType);
     }
 }

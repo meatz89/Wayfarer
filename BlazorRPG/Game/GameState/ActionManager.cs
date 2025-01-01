@@ -22,51 +22,6 @@
         UpdateAvailableActions();
     }
 
-    private void UpdateLocationSpotOptions()
-    {
-        Location location = GameState.CurrentLocation;
-        List<LocationSpot> locationSpots = LocationSystem.GetLocationSpots(location);
-
-        List<UserLocationSpotOption> userLocationSpotOption = new List<UserLocationSpotOption>();
-        
-        for (int i = 0; i < locationSpots.Count; i++)
-        {
-            LocationSpot locationSpot = locationSpots[i];
-            UserLocationSpotOption locationSpotOption = new UserLocationSpotOption()
-            {
-                Index = i + 1,
-                Location = location.Name,
-                LocationSpot = locationSpot.Name
-            };
-
-            userLocationSpotOption.Add(locationSpotOption);
-        }
-
-        GameState.SetCurrentLocationSpotOptions(userLocationSpotOption);
-    }
-
-    public void UpdateTavelOptions()
-    {
-        List<LocationNames> connectedLocations = GetConnectedLocations();
-
-        List<UserTravelOption> userTravelOptions = new List<UserTravelOption>();
-
-        for (int i = 0; i < connectedLocations.Count; i++)
-        {
-            LocationNames location = connectedLocations[i];
-
-            UserTravelOption travel = new UserTravelOption()
-            {
-                Index = i + 1,
-                Location = location
-            };
-
-            userTravelOptions.Add(travel);
-        }
-
-        GameState.SetCurrentTravelOptions(userTravelOptions);
-    }
-
     public void UpdateAvailableActions()
     {
         GameState.SetLocationActions(new List<UserActionOption>());
@@ -99,6 +54,29 @@
             }
 
             GameState.AddLocationActions(userActions);
+
+            foreach (LocationSpot locationSpot in location.Spots)
+            {
+                List<UserActionOption> locationSpotActions = new();
+                BasicAction locationSpotAction = locationSpot.LocationSpotAction;
+
+                // If no time slots specified, action is always enabled
+                // Otherwise check if current time is in valid slots
+                bool isDisabled = locationSpotAction.TimeSlots.Count > 0 &&
+                    !locationSpotAction.TimeSlots.Contains(GameState.CurrentTimeSlot);
+
+                UserActionOption ua = new UserActionOption
+                {
+                    BasicAction = locationSpotAction,
+                    Description = locationSpotAction.Name,
+                    Index = actionIndex++,
+                    IsDisabled = isDisabled,
+                    Location = location.Name,
+                    LocationSpot = locationSpot.Name
+                };
+                locationSpotActions.Add(ua);
+                GameState.SetLocationSpotActions(locationSpotActions);
+            }
         }
 
         //List<BasicAction> character = GetCharacterActions(character.Name);
@@ -247,6 +225,15 @@
         return actionResult;
     }
 
+    public void MoveToLocationSpot(LocationNames location, LocationSpotTypes locationSpotName)
+    {
+        var locationSpot = LocationSystem.GetLocationSpotForLocation(location, locationSpotName);
+        GameState.SetNewLocationSpot(locationSpot);
+
+        UpdateTavelOptions();
+        UpdateAvailableActions();
+    }
+
     public bool AdvanceTime()
     {
         bool stillAlive = GameState.AdvanceTime(hoursToAdvanceForActions);
@@ -256,6 +243,123 @@
 
         return stillAlive;
     }
+
+
+    public bool HasNarrative(BasicAction action)
+    {
+        Narrative narrative = NarrativeSystem.GetNarrativeFor(action.Id);
+        bool hasNarrative = narrative != null;
+        return false;
+    }
+
+    public bool StartNarrativeFor(BasicAction action)
+    {
+        Narrative narrative = NarrativeSystem.GetNarrativeFor(action.Id);
+        if (narrative == null)
+        {
+            throw new Exception("No Narrative Found");
+        }
+
+        GameState.SetCurrentNarrative(narrative);
+
+        return true;
+    }
+
+    public bool CanExecuteChoice(NarrativeStage currentNarrativeStage, int choice)
+    {
+        bool result = NarrativeSystem.CanExecute(currentNarrativeStage, choice);
+        return result;
+    }
+
+    public List<LocationNames> GetConnectedLocations()
+    {
+        List<LocationNames> loc = LocationSystem.GetLocationConnections(GameState.CurrentLocation.Name);
+        return loc;
+    }
+
+    public List<Location> GetAllLocations()
+    {
+        List<Location> loc = LocationSystem.GetLocations();
+        return loc;
+    }
+
+
+    public bool CanTravelTo(LocationNames locationName)
+    {
+        List<LocationNames> locs = GetConnectedLocations();
+        return locs.Contains(locationName);
+    }
+
+    public bool CanMoveToSpot(LocationSpotTypes locationName)
+    {
+        return true;
+    }
+
+    public bool AreRequirementsMet(UserActionOption action)
+    {
+        var Player = GameState.Player;
+
+        return action.BasicAction.Requirements.All(requirement => requirement switch
+        {
+            PhysicalEnergyRequirement r => Player.PhysicalEnergy >= r.Amount,
+            FocusEnergyRequirement r => Player.FocusEnergy >= r.Amount,
+            SocialEnergyRequirement r => Player.SocialEnergy >= r.Amount,
+            InventorySlotsRequirement r => Player.Inventory.GetEmptySlots() >= r.Count,
+            HealthRequirement r => Player.Health >= r.Amount,
+            CoinsRequirement r => Player.Coins >= r.Amount,
+            FoodRequirement r => Player.Inventory.GetItemCount(ResourceTypes.Food) >= r.Amount,
+            SkillLevelRequirement r => Player.Skills.ContainsKey(r.SkillType) && Player.Skills[r.SkillType] >= r.Amount,
+            ItemRequirement r => Player.Inventory.GetItemCount(r.ResourceType) >= r.Count,
+            _ => false
+        });
+    }
+
+
+    private void UpdateLocationSpotOptions()
+    {
+        Location location = GameState.CurrentLocation;
+        List<LocationSpot> locationSpots = LocationSystem.GetLocationSpots(location);
+
+        List<UserLocationSpotOption> userLocationSpotOption = new List<UserLocationSpotOption>();
+
+        for (int i = 0; i < locationSpots.Count; i++)
+        {
+            LocationSpot locationSpot = locationSpots[i];
+            UserLocationSpotOption locationSpotOption = new UserLocationSpotOption()
+            {
+                Index = i + 1,
+                Location = location.Name,
+                LocationSpot = locationSpot.Name
+            };
+
+            userLocationSpotOption.Add(locationSpotOption);
+        }
+
+        GameState.SetCurrentLocationSpotOptions(userLocationSpotOption);
+    }
+
+    public void UpdateTavelOptions()
+    {
+        List<LocationNames> connectedLocations = GetConnectedLocations();
+
+        List<UserLocationTravelOption> userTravelOptions = new List<UserLocationTravelOption>();
+
+        for (int i = 0; i < connectedLocations.Count; i++)
+        {
+            LocationNames location = connectedLocations[i];
+
+            UserLocationTravelOption travel = new UserLocationTravelOption()
+            {
+                Index = i + 1,
+                Location = location
+            };
+
+            userTravelOptions.Add(travel);
+        }
+
+        GameState.SetCurrentTravelOptions(userTravelOptions);
+    }
+
 
     private bool CheckRequirement(IRequirement requirement)
     {
@@ -327,43 +431,5 @@
                 GameState.AddItemChange(itemOutcome);
                 break;
         }
-    }
-
-    public bool HasNarrative(BasicAction action)
-    {
-        Narrative narrative = NarrativeSystem.GetNarrativeFor(action.Id);
-        bool hasNarrative = narrative != null;
-        return false;
-    }
-
-    public bool StartNarrativeFor(BasicAction action)
-    {
-        Narrative narrative = NarrativeSystem.GetNarrativeFor(action.Id);
-        if (narrative == null)
-        {
-            throw new Exception("No Narrative Found");
-        }
-
-        GameState.SetCurrentNarrative(narrative);
-
-        return true;
-    }
-
-    public bool CanExecuteChoice(NarrativeStage currentNarrativeStage, int choice)
-    {
-        bool result = NarrativeSystem.CanExecute(currentNarrativeStage, choice);
-        return result;
-    }
-
-    public List<LocationNames> GetConnectedLocations()
-    {
-        List<LocationNames> loc = LocationSystem.GetLocationConnections(GameState.CurrentLocation.Name);
-        return loc;
-    }
-
-    public List<Location> GetAllLocations()
-    {
-        List<Location> loc = LocationSystem.GetLocations();
-        return loc;
     }
 }

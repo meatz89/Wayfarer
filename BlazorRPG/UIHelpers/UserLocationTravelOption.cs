@@ -1,5 +1,5 @@
 ﻿
-public class UserTravelOption
+public class UserLocationTravelOption
 {
     public int Index { get; set; }
     public LocationNames Location { get; set; }
