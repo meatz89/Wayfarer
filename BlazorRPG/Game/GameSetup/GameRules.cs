@@ -9,6 +9,6 @@
 
     public static int MinimumHealth { get; } = 0;
     public static int DailyFoodRequirement { get; } = 2;
-    public static int HealthLossNoFood { get; } = 2;
-    public static int HealthLossNoShelter { get; } = 2;
+    public static int NoFoodEffectOnHealth { get; } = -2;
+    public static int NoShelterEffectOnHealth { get; } = -2;
 }

@@ -17,6 +17,8 @@ public partial class GameUI : ComponentBase
     public int focusEnergyMax => GameState.Player.MaxFocusEnergy;
     public int socialEnergyCurrent => GameState.Player.SocialEnergy;
     public int socialEnergyMax => GameState.Player.MaxSocialEnergy;
+    public int health => GameState.Player.Health;
+    public int maxHealth => GameState.Player.MaxHealth;
     public int coins => GameState.Player.Coins;
     public int food => GameState.Player.Inventory.GetItemCount(ResourceTypes.Food);
     public bool hasShelter => false;
@@ -27,6 +29,7 @@ public partial class GameUI : ComponentBase
     public Location CurrentLocation => GameState.CurrentLocation;
     public LocationSpot CurrentSpot => GameState.CurrentLocationSpot;
     public TimeWindows CurrentTime => GameState.CurrentTimeSlot;
+    public int CurrentHour => GameState.CurrentTimeInHours;
 
     public UserActionOption CurrentUserAction => GameState.CurrentUserAction;
     public List<UserLocationTravelOption> CurrentTravelOptions => GameState.CurrentTravelOptions;

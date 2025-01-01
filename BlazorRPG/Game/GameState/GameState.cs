@@ -289,17 +289,36 @@
 
     public bool AdvanceTime(int inHours)
     {
+        bool daySkip = false;
         // Advance the current time
-        CurrentTimeInHours += inHours;
+        if (CurrentTimeInHours + inHours > 24)
+        {
+            daySkip = true;
+        }
+
+        CurrentTimeInHours = (CurrentTimeInHours + inHours) % 24;
 
         // Constants and calculation for time slot determination
         const int hoursPerWindow = 6;
         int timeSlot = (CurrentTimeInHours / hoursPerWindow) % 4; // There are 4 time windows in a day
 
-        // Store the previous time slot to detect transitions
-        TimeWindows previousTimeSlot = CurrentTimeSlot;
-
         // Determine the current time slot based on the calculated timeSlot value
+        DetermineCurrentTimeSlot(timeSlot);
+
+        // If transitioning from Night to Morning, start a new day
+        if (daySkip)
+        {
+            bool stillAlive = StartNewDay();
+            if (stillAlive) Environment.Exit(0);
+            return stillAlive;
+        }
+
+        // Return true to indicate normal time advancement
+        return true;
+    }
+
+    private void DetermineCurrentTimeSlot(int timeSlot)
+    {
         switch (timeSlot)
         {
             case 0:
@@ -315,15 +334,6 @@
                 CurrentTimeSlot = TimeWindows.Evening;
                 break;
         }
-
-        // If transitioning from Night to Morning, start a new day
-        if (previousTimeSlot == TimeWindows.Night && CurrentTimeSlot == TimeWindows.Morning)
-        {
-            return StartNewDay(); // Assuming StartNewDay returns a bool indicating success or failure
-        }
-
-        // Return true to indicate normal time advancement
-        return true;
     }
 
     private bool StartNewDay()
@@ -338,13 +348,18 @@
 
         int health = Player.Health;
         int minHealth = Player.MinHealth;
-        int noFoodHealthLoss = GameRules.HealthLossNoFood;
-        int noShelterHealthLoss = GameRules.HealthLossNoShelter;
+        int noFoodHealthLoss = GameRules.NoFoodEffectOnHealth;
+        int noShelterHealthLoss = GameRules.NoShelterEffectOnHealth;
 
-        if (!hasFood) Player.Health = health - noFoodHealthLoss;
-        if (!hasShelter) Player.Health = health - noShelterHealthLoss;
+        if (!hasFood) NewHealth(GameRules.NoFoodEffectOnHealth);
+        if (!hasShelter) NewHealth(GameRules.NoShelterEffectOnHealth);
 
         return Player.Health > Player.MinHealth;
+    }
+
+    public void NewHealth(int healthGain)
+    {
+        Player.Health = Math.Min(Player.MaxHealth, Math.Max(Player.MinHealth, Player.Health + healthGain));
     }
 
     public void SetLastActionResult(ActionResult result)

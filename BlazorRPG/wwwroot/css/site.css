@@ -11,9 +11,9 @@
     --energy-physical: #ff6b6b;
     --energy-focus: #ffd700;
     --energy-social: #4ecdc4;
+    --resource-health: #ff6b6b;
     --resource-coins: #ffd700;
     --resource-food: #8fd694;
-    --resource-shelter: #87ceeb;
     --danger: #ff6b6b;
 }
 
@@ -106,6 +106,9 @@ body {
     align-items: center;
     gap: 5px;
 }
+    .resource.health {
+        color: var(--resource-health);
+    }
 
     .resource.coins {
         color: var(--resource-coins);
@@ -113,10 +116,6 @@ body {
 
     .resource.food {
         color: var(--resource-food);
-    }
-
-    .resource.shelter {
-        color: var(--resource-shelter);
     }
 
 /* Location grid */

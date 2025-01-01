@@ -3,6 +3,7 @@
 
 <div class="top-bar">
     <div class="time-display">
+        @CurrentHour:00
         @CurrentTime 🌅
     </div>
 
@@ -28,11 +29,9 @@
     </div>
 
     <div class="resources">
+        <div class="resource health"> @health/@maxHealth Health</div>
         <div class="resource coins">🪙 @coins Coins</div>
         <div class="resource food">🍖 @food Food</div>
-        <div class="resource shelter">
-            🏠 @(hasShelter ? "Sheltered" : "No Shelter")
-        </div>
     </div>
 </div>
 
