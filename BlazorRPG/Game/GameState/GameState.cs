@@ -11,7 +11,9 @@
     public Location CurrentLocation { get; private set; }
     public UserActionOption CurrentUserAction { get; private set; }
     public List<UserTravelOption> CurrentTravelOptions { get; private set; } = new();
-    public List<UserActionOption> ValidUserActions { get; private set; } = new();
+    public List<UserActionOption> ValidGlobalActions { get; private set; } = new();
+    public List<UserActionOption> ValidLocationActions { get; private set; } = new();
+    public List<UserActionOption> ValidCharacterActions { get; private set; } = new();
     public ActionResult LastActionResult { get; private set; }
 
     public void SetCurrentNarrative(Narrative narrative)
@@ -321,7 +323,7 @@
 
     private bool StartNewDay()
     {
-        bool hasShelter = ValidUserActions
+        bool hasShelter = ValidLocationActions
             .Where(x => x.BasicAction.Id == BasicActionTypes.Rest)
             .FirstOrDefault() != null;
 
@@ -367,9 +369,19 @@
         this.CurrentTravelOptions = userTravelOptions;
     }
 
-    public void SetValidUserActions(List<UserActionOption> userActions)
+    public void SetGlobalActions(List<UserActionOption> userActions)
     {
-        this.ValidUserActions = userActions;
+        this.ValidLocationActions = userActions;
+    }
+
+    public void SetLocationActions(List<UserActionOption> userActions)
+    {
+        this.ValidLocationActions = userActions;
+    }
+
+    public void AddLocationActions(List<UserActionOption> userActions)
+    {
+        this.ValidLocationActions.AddRange(userActions);
     }
 
     public void SetNewLocation(Location location)

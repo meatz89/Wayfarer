@@ -5,6 +5,8 @@ public class UserActionOption
     public string Description { get; set; }
     public BasicAction BasicAction { get; set; }
     public bool IsDisabled { get; set; }
+    public LocationNames Location { get; internal set; }
+    public CharacterNames Character { get; internal set; }
 
     public string Display()
     {

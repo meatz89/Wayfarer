@@ -9,6 +9,7 @@
     --text-secondary: #888888;
     --text-muted: #666666;
     --energy-physical: #ff6b6b;
+    --energy-focus: #ffd700;
     --energy-social: #4ecdc4;
     --resource-coins: #ffd700;
     --resource-food: #8fd694;
@@ -81,12 +82,14 @@ body {
 
     .meter-fill.physical {
         background-color: var(--energy-physical);
-        width: 66%;
+    }
+
+    .meter-fill.focus {
+        background-color: var(--energy-focus);
     }
 
     .meter-fill.social {
         background-color: var(--energy-social);
-        width: 100%;
     }
 
 /* Resources */
@@ -126,6 +129,7 @@ body {
     border-radius: 5px;
 }
 
+/* Ensure location card can receive clicks */
 .location-card {
     background-color: var(--bg-card);
     border-radius: 5px;
@@ -133,6 +137,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    position: relative; /* For proper stacking context */
 }
 
     .location-card.current {
@@ -151,6 +156,7 @@ body {
             background-color: var(--bg-panel);
             opacity: 0.3;
             border-radius: 5px;
+            pointer-events: none; /* This is crucial - allows clicks to pass through */
         }
 
 .location-name {
@@ -188,9 +194,18 @@ body {
     width: 100%;
     text-align: center;
     margin-top: auto;
+    position: relative; /* Ensure button stays above overlay */
+    z-index: 1; /* Ensure button stays above overlay */
 }
 
-/* Right sidebar */
+    /* Ensure the button stays clickable when disabled */
+    .action-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: auto !important; /* Force pointer events */
+    }
+
+/* Sidebar */
 .sidebar {
     display: flex;
     flex-direction: column;
@@ -218,14 +233,69 @@ body {
     gap: 10px;
 }
 
-.requirement {
-    display: flex;
-    align-items: center;
-    gap: 5px;
+
+.tooltip {
+    position: absolute;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-active);
+    padding: 15px;
+    border-radius: 4px;
+    z-index: 1000;
+    min-width: 300px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Connection lines */
-.connection-line {
-    stroke: var(--text-muted);
-    stroke-width: 2;
+/* Action Preview Styles */
+.action-preview {
+    color: var(--text-primary);
 }
+
+    .action-preview h4 {
+        margin: 10px 0 5px 0;
+        color: var(--text-secondary);
+        font-size: 1em;
+    }
+
+    .action-preview ul {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 15px 0;
+    }
+
+    .action-preview li {
+        margin: 5px 0;
+        font-size: 0.9em;
+    }
+
+/* Color classes for values */
+.positive {
+    color: #4ecdc4;
+}
+
+.negative {
+    color: #ff6b6b;
+}
+
+
+/* Color overrides for requirements and outcomes */
+.action-preview li[style*="color: green"] {
+    color: #4ecdc4 !important;
+}
+
+.action-preview li[style*="color: red"] {
+    color: #ff6b6b !important;
+}
+
+/* Make sure buttons stay clickable */
+.action-button {
+    position: relative;
+    z-index: 2;
+}
+
+    .action-button:hover {
+        background-color: var(--bg-active);
+    }
+
+    .action-button:disabled:hover {
+        background-color: var(--bg-panel);
+    }

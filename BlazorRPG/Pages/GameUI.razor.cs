@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using System.Reflection;
+using System.Threading;
 
 namespace BlazorRPG.Pages;
 
@@ -9,13 +11,14 @@ public partial class GameUI : ComponentBase
     [Inject] private ActionManager ActionManager { get; set; }
     [Inject] private NavigationManager NavigationManager { get; set; }
 
-    private Stack<UIScreens> screenStack = new();
     public List<string> ResultMessages => GetResultMessages();
 
     public int physicalEnergyCurrent => GameState.Player.PhysicalEnergy;
-    public int physicalEnergyMax => 10;
+    public int physicalEnergyMax => GameState.Player.MaxPhysicalEnergy;
+    public int focusEnergyCurrent => GameState.Player.FocusEnergy;
+    public int focusEnergyMax => GameState.Player.MaxFocusEnergy;
     public int socialEnergyCurrent => GameState.Player.SocialEnergy;
-    public int socialEnergyMax => 10;
+    public int socialEnergyMax => GameState.Player.MaxSocialEnergy;
     public int coins => GameState.Player.Coins;
     public int food => GameState.Player.Inventory.GetItemCount(ResourceTypes.Food);
     public bool hasShelter => false;
@@ -24,20 +27,30 @@ public partial class GameUI : ComponentBase
     public Player Player => GameState.Player;
     public Location CurrentLocation => GameState.CurrentLocation;
     public TimeWindows CurrentTime => GameState.CurrentTimeSlot;
-    public List<UserActionOption> CurrentActions => GameState.ValidUserActions;
+
+    public List<UserActionOption> LocationActions => GameState.ValidLocationActions;
+    public List<UserActionOption> GetLocationActions(LocationNames locationNames)
+    {
+        List<UserActionOption> userActionOptions = GameState.ValidLocationActions.Where(x => x.Location == locationNames).ToList();
+        return userActionOptions;
+    }
+
     public UserActionOption CurrentUserAction => GameState.CurrentUserAction;
     public List<UserTravelOption> CurrentTravelOptions => GameState.CurrentTravelOptions;
     public ActionResult LastActionResult => GameState.LastActionResult;
-
-    private UIScreens CurrentScreen => screenStack.Count > 0 ? screenStack.Peek() : UIScreens.MainGame;
 
     // Tooltip Logic
     private bool showTooltip = false;
     private UserActionOption hoveredAction = null;
 
-    private void ShowTooltip(UserActionOption action)
+    private double mouseX;
+    private double mouseY;
+
+    private void ShowTooltip(UserActionOption action, MouseEventArgs e)
     {
         hoveredAction = action;
+        mouseX = e.ClientX;
+        mouseY = e.ClientY;
         showTooltip = true;
     }
 
@@ -66,7 +79,7 @@ public partial class GameUI : ComponentBase
             FoodRequirement r => Player.Inventory.GetItemCount(ResourceTypes.Food) >= r.Amount,
             SkillLevelRequirement r => Player.Skills.ContainsKey(r.SkillType) && Player.Skills[r.SkillType] >= r.Amount,
             ItemRequirement r => Player.Inventory.GetItemCount(r.ResourceType) >= r.Count,
-            _ => false 
+            _ => false
         });
     }
 
@@ -142,14 +155,6 @@ public partial class GameUI : ComponentBase
     {
         if (action.IsDisabled) return; // Prevent action if disabled
 
-        if (action.BasicAction.Id == BasicActionTypes.CheckStatus)
-        {
-            PushScreen(UIScreens.Status);
-        }
-        else if (action.BasicAction.Id == BasicActionTypes.Travel)
-        {
-            PushScreen(UIScreens.Travel);
-        }
         else if (action.BasicAction.Id == BasicActionTypes.Wait)
         {
             ActionManager.AdvanceTime();
@@ -166,7 +171,6 @@ public partial class GameUI : ComponentBase
                 bool startedNarrative = ActionManager.StartNarrativeFor(action.BasicAction);
                 if (startedNarrative)
                 {
-                    PushScreen(UIScreens.ActionNarrative);
                 }
             }
             else
@@ -175,7 +179,6 @@ public partial class GameUI : ComponentBase
 
                 if (result.IsSuccess)
                 {
-                    PushScreen(UIScreens.ActionResult);
                     CompleteActionExecution();
                 }
             }
@@ -192,22 +195,19 @@ public partial class GameUI : ComponentBase
 
         if (result.IsSuccess)
         {
-            PopScreen();
-            PushScreen(UIScreens.ActionResult);
             CompleteActionExecution();
         }
     }
 
-    private void HandleTravel(int locationIndex)
+    private void HandleTravel(LocationNames locationNames)
     {
         List<UserTravelOption> currentTravelOptions = GameState.CurrentTravelOptions;
-        UserTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Index == locationIndex);
+        UserTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Location == locationNames);
 
         ActionResult result = ActionManager.MoveToLocation(location.Location);
 
         if (result.IsSuccess)
         {
-            PopScreen();
             CompleteActionExecution();
         }
     }
@@ -215,37 +215,9 @@ public partial class GameUI : ComponentBase
     private void CompleteActionExecution()
     {
         GameState.ClearCurrentUserAction();
-
         GameState.ClearCurrentNarrative();
-
         ActionManager.UpdateTavelOptions();
         ActionManager.UpdateAvailableActions();
-    }
-
-    private void PushScreen(UIScreens screen)
-    {
-        screenStack.Push(screen);
-        StateHasChanged();
-    }
-
-    private void PopScreen()
-    {
-        if (screenStack.Count > 1)
-        {
-            screenStack.Pop();
-            StateHasChanged();
-        }
-    }
-
-    private void ToActionSelection()
-    {
-        GameState.ClearLastActionResult();
-        PushScreen(UIScreens.ActionSelection);
-    }
-
-    private void ExitGame()
-    {
-        NavigationManager.NavigateTo("/");
     }
 
 }

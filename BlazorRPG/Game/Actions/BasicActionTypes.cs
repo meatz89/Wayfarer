@@ -1,8 +1,6 @@
 ﻿public enum BasicActionTypes
 {
-    CheckStatus, // View player state, active quests, relationships
-    Travel, // Move between connected, unlocked locations
-    Wait,   // advance time
+    Wait,   // Advance time
     Rest,   // Restore energy, advance time
 
     // Location Actions

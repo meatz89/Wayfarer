@@ -45,110 +45,109 @@
 
     public void UpdateAvailableActions()
     {
-        List<PlayerAction> global = GetGlobalActions();
-        List<PlayerAction> location = GetLocationActions();
-        List<PlayerAction> character = GetCharacterActions();
+        GameState.SetLocationActions(new List<UserActionOption>());
 
-        List<PlayerAction> playerActions = new List<PlayerAction>();
-        playerActions.AddRange(global);
-        playerActions.AddRange(location);
-        playerActions.AddRange(character);
+        CreateGlobalActions();
 
-        CreateUserActionsFromPlayerActions(playerActions);
+        foreach (Location location in LocationSystem.GetLocations())
+        {
+            List<BasicAction> locationActions = LocationSystem.GetActionsForLocation(location.Name);
+
+            List<UserActionOption> userActions = new List<UserActionOption>();
+            int actionIndex = 1;
+
+            foreach (BasicAction ga in locationActions)
+            {
+                // If no time slots specified, action is always enabled
+                // Otherwise check if current time is in valid slots
+                bool isDisabled = ga.TimeSlots.Count > 0 &&
+                    !ga.TimeSlots.Contains(GameState.CurrentTimeSlot);
+
+                UserActionOption ua = new UserActionOption
+                {
+                    BasicAction = ga,
+                    Description = ga.Name,
+                    Index = actionIndex++,
+                    IsDisabled = isDisabled,
+                    Location = location.Name
+                };
+                userActions.Add(ua);
+            }
+
+            GameState.AddLocationActions(userActions);
+        }
+
+        //List<BasicAction> character = GetCharacterActions(character.Name);
+        //CreateCharacterActions(character);
     }
 
-    public void CreateUserActionsFromPlayerActions(List<PlayerAction> playerActions)
+    public void CreateGlobalActions()
     {
         List<UserActionOption> userActions = new List<UserActionOption>();
         int actionIndex = 1;
 
-        foreach (PlayerAction ga in playerActions)
+        UserActionOption ua = new UserActionOption
+        {
+            BasicAction = new BasicAction() { Id = BasicActionTypes.Wait },
+            Description = "Wait",
+            Index = actionIndex++,
+            IsDisabled = false
+        };
+        userActions.Add(ua);
+
+        GameState.SetGlobalActions(userActions);
+    }
+
+    public void CreateCharacterActions(List<BasicAction> BasicActions, LocationNames locationName, CharacterNames characterName)
+    {
+        List<UserActionOption> userActions = new List<UserActionOption>();
+        int actionIndex = 1;
+
+        foreach (BasicAction ga in BasicActions)
         {
             // If no time slots specified, action is always enabled
             // Otherwise check if current time is in valid slots
-            bool isDisabled = ga.Action.TimeSlots.Count > 0 &&
-                !ga.Action.TimeSlots.Contains(GameState.CurrentTimeSlot);
+            bool isDisabled = ga.TimeSlots.Count > 0 &&
+                !ga.TimeSlots.Contains(GameState.CurrentTimeSlot);
 
             UserActionOption ua = new UserActionOption
             {
-                BasicAction = ga.Action,
-                Description = ga.Description,
+                BasicAction = ga,
+                Description = ga.Name,
                 Index = actionIndex++,
-                IsDisabled = isDisabled
+                IsDisabled = isDisabled,
+                Location = locationName,
+                Character = characterName
             };
             userActions.Add(ua);
         }
 
-        GameState.SetValidUserActions(userActions);
+        GameState.SetLocationActions(userActions);
     }
 
-    public List<PlayerAction> GetGlobalActions()
-    {
-        List<PlayerAction> actions = new List<PlayerAction>();
+    //public List<BasicAction> GetCharacterActions()
+    //{
+    //    List<BasicAction> actions = new List<BasicAction>();
+    //    LocationNames currentLocation = GameState.CurrentLocation.Name;
 
-        actions.Add(new PlayerAction()
-        {
-            Action = new BasicAction() { Id = BasicActionTypes.CheckStatus },
-            Description = "(System) Check Status"
-        });
-        actions.Add(new PlayerAction()
-        {
-            Action = new BasicAction() { Id = BasicActionTypes.Travel },
-            Description = "(System) Travel"
-        });
-        actions.Add(new PlayerAction()
-        {
-            Action = new BasicAction() { Id = BasicActionTypes.Wait },
-            Description = "(System) Wait"
-        });
+    //    CharacterNames? character = CharacterSystem.GetCharacterAtLocation(currentLocation);
+    //    if (!character.HasValue) return actions;
 
-        return actions;
-    }
+    //    List<BasicAction> characterActions = CharacterSystem.GetActionsForCharacter(character.Value);
 
-    public List<PlayerAction> GetLocationActions()
-    {
-        List<PlayerAction> actions = new List<PlayerAction>();
-        LocationNames currentLocation = GameState.CurrentLocation.Name;
-
-        List<BasicAction> locationActions = LocationSystem.GetActionsForLocation(currentLocation);
-
-        if (locationActions.Count > 0)
-        {
-            foreach (BasicAction locationAction in locationActions)
-            {
-                actions.Add(new PlayerAction()
-                {
-                    Action = locationAction,
-                    Description = $"[{locationAction.Id.ToString()}] {locationAction.Name}"
-                });
-            }
-        }
-        return actions;
-    }
-
-    public List<PlayerAction> GetCharacterActions()
-    {
-        List<PlayerAction> actions = new List<PlayerAction>();
-        LocationNames currentLocation = GameState.CurrentLocation.Name;
-
-        CharacterNames? character = CharacterSystem.GetCharacterAtLocation(currentLocation);
-        if (!character.HasValue) return actions;
-
-        List<BasicAction> characterActions = CharacterSystem.GetActionsForCharacter(character.Value);
-
-        if (characterActions.Count > 0)
-        {
-            foreach (BasicAction locationAction in characterActions)
-            {
-                actions.Add(new PlayerAction()
-                {
-                    Action = locationAction,
-                    Description = $"[{locationAction.Id.ToString()}] {locationAction.Name}"
-                });
-            }
-        }
-        return actions;
-    }
+    //    if (characterActions.Count > 0)
+    //    {
+    //        foreach (BasicAction locationAction in characterActions)
+    //        {
+    //            actions.Add(new BasicAction()
+    //            {
+    //                Action = locationAction,
+    //                Description = $"[{locationAction.Id.ToString()}] {locationAction.Name}"
+    //            });
+    //        }
+    //    }
+    //    return actions;
+    //}
 
     public ActionResult ExecuteBasicAction(BasicAction basicAction)
     {
