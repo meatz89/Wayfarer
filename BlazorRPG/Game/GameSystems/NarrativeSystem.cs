@@ -3,11 +3,32 @@
     private readonly GameState gameState;
     private readonly List<Narrative> narratives;
 
-    public NarrativeSystem(GameState gameState, GameContentProvider contentProvider)
+    private readonly KnowledgeSystem knowledgeSystem;
+    private readonly CharacterRelationshipSystem relationshipSystem;
+
+    public NarrativeSystem(
+        GameState gameState, 
+        GameContentProvider contentProvider,
+        KnowledgeSystem knowledgeSystem,
+        CharacterRelationshipSystem relationshipSystem)
     {
         this.gameState = gameState;
         this.narratives = contentProvider.GetNarratives();
+        this.knowledgeSystem = knowledgeSystem;
+        this.relationshipSystem = relationshipSystem;
     }
+
+
+    public Narrative GetAvailableNarrative(BasicActionTypes action, LocationNames location)
+    {
+        return new Narrative();
+    }
+
+    public List<Choice> GetAvailableChoices(NarrativeStage stage)
+    {
+        return new List<Choice>();
+    }
+
 
     public Narrative GetNarrativeFor(BasicActionTypes actionType)
     {

@@ -3,16 +3,40 @@
     private const int hoursToAdvanceForActions = 2;
 
     public GameState GameState;
-    public NarrativeSystem NarrativeSystem { get; private set; }
-    public LocationSystem LocationSystem { get; private set; }
-    public CharacterSystem CharacterSystem { get; private set; }
+    public NarrativeSystem NarrativeSystem { get; }
+    public LocationSystem LocationSystem { get; }
+    public CharacterSystem CharacterSystem { get;}
+    public ActionValidator ActionValidator { get; }
+    public KnowledgeSystem KnowledgeSystem { get; }
+    public CharacterRelationshipSystem RelationshipSystem { get; }
+    public TimeSystem TimeSystem { get; }
+    public InformationSystem InformationSystem { get; }
+    public LocationAccess LocationAccess { get; }
 
-    public ActionManager(GameState gameState, NarrativeSystem narrativeSystem, LocationSystem locationSystem, CharacterSystem characterSystem)
+    public ActionManager(
+        GameState gameState, 
+        NarrativeSystem narrativeSystem, 
+        LocationSystem locationSystem, 
+        CharacterSystem characterSystem,
+        ActionValidator actionValidator,
+        KnowledgeSystem knowledgeSystem,
+        CharacterRelationshipSystem relationshipSystem,
+        TimeSystem timeSystem,
+        InformationSystem informationSystem,
+        LocationAccess locationAccess
+        )
     {
-        this.GameState = gameState;
-        this.NarrativeSystem = narrativeSystem;
-        this.LocationSystem = locationSystem;
-        this.CharacterSystem = characterSystem;
+        GameState = gameState;
+        NarrativeSystem = narrativeSystem;
+        LocationSystem = locationSystem;
+        CharacterSystem = characterSystem;
+
+        ActionValidator = actionValidator;
+        KnowledgeSystem = knowledgeSystem;
+        RelationshipSystem = relationshipSystem;
+        TimeSystem = timeSystem;
+        InformationSystem = informationSystem;
+        LocationAccess = locationAccess;
     }
 
     public void Initialize()

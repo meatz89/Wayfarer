@@ -9,6 +9,13 @@
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<CharacterSystem>();
 
+        services.AddSingleton<KnowledgeSystem>();
+        services.AddSingleton<CharacterRelationshipSystem>();
+        services.AddSingleton<TimeSystem>();
+        services.AddSingleton<InformationSystem>();
+        services.AddSingleton<LocationAccess>();
+        services.AddSingleton<ActionValidator>();
+
         services.AddSingleton<ActionManager>();
 
         return services;
