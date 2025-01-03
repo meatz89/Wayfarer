@@ -95,7 +95,8 @@ public partial class GameUI : ComponentBase
                 _ => "info"
             };
 
-            list.Add($"<span class='{cssClass}'>{sysMsg.Message}</span>");
+            list.Add($"{sysMsg.Message}");
+            //list.Add($"<span class='{cssClass}'>{sysMsg.Message}</span>");
         }
 
         return list;
