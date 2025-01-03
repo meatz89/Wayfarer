@@ -71,18 +71,19 @@ public partial class GameUI : ComponentBase
 
     public List<string> GetResultMessages()
     {
-        ActionResultMessages messages = GameState.Actions.LastActionResult.Messages;
+        ActionResultMessages messages = GameState.Actions.LastActionResultMessages;
+
         List<string> list = new();
+        if (messages == null) return list;
 
         // Show outcomes with their previews
         foreach (Outcome outcome in messages.Outcomes)
         {
             string description = outcome.GetDescription();
             string preview = outcome.GetPreview(Player);
-            list.Add($"{description} {preview}");
+            list.Add($"{description}");
         }
 
-        // Show system messages with appropriate styling
         foreach (SystemMessage sysMsg in messages.SystemMessages)
         {
             // Add CSS class based on message type
@@ -113,12 +114,10 @@ public partial class GameUI : ComponentBase
         {
             // Execute the action immediately
             ActionResult result = GameManager.ExecuteBasicAction(action, action.BasicAction);
-
             if (result.IsSuccess)
             {
                 CompleteActionExecution();
             }
-           
         }
     }
 

@@ -273,7 +273,6 @@
                 Costs = new List<Outcome>()
             {
                 new ResourceOutcome(ResourceTypes.Food, -1),
-                new DayChangeOutcome() 
             },
                 Rewards = new List<Outcome>
             {

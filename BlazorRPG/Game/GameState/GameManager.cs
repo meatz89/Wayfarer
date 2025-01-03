@@ -218,6 +218,7 @@ public class GameManager
         bool shouldChangeDays = ContextEngine.ProcessActionOutcome(basicAction);
 
         ActionResultMessages allMessages = MessageSystem.GetAndClearChanges();
+        gameState.Actions.SetLastActionResultMessages(allMessages);
 
         // Handle time advancement based on action type
         bool stillAlive;

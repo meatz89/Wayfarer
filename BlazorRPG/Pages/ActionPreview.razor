@@ -1,22 +1,39 @@
 ﻿@inherits ActionPreviewBase
 
 <div class="action-preview">
-    <h4>Requirements:</h4>
-    <ul>
-        @foreach (string description in GetRequirementDescriptions())
-        {
-            <li>@((MarkupString)description)</li>
-        }
-    </ul>
+    @if (GetRequirementDescriptions().Count > 0)
+    {
+        <h4>Requirements:</h4>
+        <ul>
+            @foreach (string description in GetRequirementDescriptions())
+            {
+                <li>@((MarkupString)description)</li>
+            }
+        </ul>
+    }
 
-    <h4>Outcomes:</h4>
-    <ul>
-        @foreach (string description in GetOutcomeDescriptions())
-        {
-            <li>@((MarkupString)description)</li>
-        }
-    </ul>
+    @if (GetOutcomeCostsDescriptions().Count > 0)
+    {
+        <h4>Costs:</h4>
+        <ul>
+            @foreach (string description in GetOutcomeCostsDescriptions())
+            {
+                <li>@((MarkupString)description)</li>
+            }
+        </ul>
+    }
 
+    @if (GetOutcomeRewardsDescriptions().Count > 0)
+    {
+        <h4>Rewards:</h4>
+        <ul>
+            @foreach (string description in GetOutcomeRewardsDescriptions())
+            {
+                <li>@((MarkupString)description)</li>
+            }
+        </ul>
+    }
+@* 
     <div class="action-buttons">
         <button class="action-button" @onclick="HandleConfirm">
             Confirm
@@ -24,5 +41,5 @@
         <button class="action-button" @onclick="HandleBack">
             Back
         </button>
-    </div>
+    </div> *@
 </div>

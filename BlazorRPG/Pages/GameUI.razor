@@ -100,6 +100,20 @@
             </div>
         </div>
 
+        <div class="sidebar-panel">
+            <div class="panel-title">Last Action Effects</div>
+            <div class="panel-content">
+                @foreach (string message in ResultMessages)
+                {
+                    <div class="quest-effect">
+                        <div class="effect-description">
+                            @message
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
         <div class="sidebar-panel quest-effects">
             <div class="panel-title">Quest Effects</div>
             <div class="panel-content">

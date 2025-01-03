@@ -1,4 +1,5 @@
-﻿public class ActionState
+﻿
+public class ActionState
 {
     public UserActionOption CurrentUserAction { get; private set; }
     public List<UserActionOption> GlobalActions { get; private set; } = new();
@@ -6,6 +7,12 @@
     public List<UserActionOption> CharacterActions { get; private set; } = new();
     public List<UserActionOption> QuestActions { get; private set; } = new();
     public ActionResult LastActionResult { get; private set; }
+    public ActionResultMessages LastActionResultMessages { get; private set; }
+
+    public void SetLastActionResultMessages(ActionResultMessages allMessages)
+    {
+        LastActionResultMessages = allMessages;
+    }
 
     public void SetCurrentUserAction(UserActionOption action)
     {

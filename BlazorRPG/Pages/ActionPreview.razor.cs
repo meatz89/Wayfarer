@@ -14,13 +14,16 @@ public partial class ActionPreviewBase : ComponentBase
         foreach (Requirement req in CurrentAction.BasicAction.Requirements)
         {
             string description = req.GetDescription();
-            string color = req.IsSatisfied(Player) ? "positive" : "negative";
+            bool isSatisfied = req.IsSatisfied(Player);
+
+            if (isSatisfied) { continue; }
+            string color = isSatisfied ? "positive" : "negative";
             descriptions.Add($"<span class='{color}'>{description}</span>");
         }
         return descriptions;
     }
 
-    public List<string> GetOutcomeDescriptions()
+    public List<string> GetOutcomeCostsDescriptions()
     {
         List<string> descriptions = new();
         foreach (Outcome outcome in CurrentAction.BasicAction.Costs)
@@ -38,6 +41,12 @@ public partial class ActionPreviewBase : ComponentBase
                 descriptions.Add($"{description} {preview}");
             }
         }
+        return descriptions;
+    }
+
+    public List<string> GetOutcomeRewardsDescriptions()
+    {
+        List<string> descriptions = new();
         foreach (Outcome outcome in CurrentAction.BasicAction.Rewards)
         {
             string description = outcome.GetDescription();
