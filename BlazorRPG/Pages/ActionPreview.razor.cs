@@ -11,7 +11,8 @@ public partial class ActionPreviewBase : ComponentBase
     public List<string> GetRequirementDescriptions()
     {
         List<string> descriptions = new();
-        foreach (Requirement req in CurrentAction.BasicAction.Requirements)
+        BasicAction basicAction = CurrentAction.BasicAction;
+        foreach (Requirement req in basicAction.Requirements)
         {
             string description = req.GetDescription();
             bool isSatisfied = req.IsSatisfied(Player);
@@ -26,7 +27,8 @@ public partial class ActionPreviewBase : ComponentBase
     public List<string> GetOutcomeCostsDescriptions()
     {
         List<string> descriptions = new();
-        foreach (Outcome outcome in CurrentAction.BasicAction.Costs)
+        BasicAction basicAction = CurrentAction.BasicAction;
+        foreach (Outcome outcome in basicAction.Costs)
         {
             string description = outcome.GetDescription();
             string preview = outcome.GetPreview(Player);
@@ -41,13 +43,23 @@ public partial class ActionPreviewBase : ComponentBase
                 descriptions.Add($"{description} {preview}");
             }
         }
+
+        if (basicAction.TimeInvestment > 0)
+        {
+            string time =
+                (basicAction.TimeInvestment > 1)
+                ? $"{basicAction.TimeInvestment} hours"
+                : $"{basicAction.TimeInvestment} hour";
+            descriptions.Add($"{time} passes");
+        }
         return descriptions;
     }
 
     public List<string> GetOutcomeRewardsDescriptions()
     {
         List<string> descriptions = new();
-        foreach (Outcome outcome in CurrentAction.BasicAction.Rewards)
+        BasicAction basicAction = CurrentAction.BasicAction;
+        foreach (Outcome outcome in basicAction.Rewards)
         {
             string description = outcome.GetDescription();
             string preview = outcome.GetPreview(Player);

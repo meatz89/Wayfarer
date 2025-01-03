@@ -115,7 +115,7 @@ public class GameManager
                 UserActionOption ua = new UserActionOption
                 {
                     BasicAction = locationSpotAction,
-                    Description = locationSpotAction.Name,
+                    Description = locationSpotAction.Description,
                     IsDisabled = isDisabled,
                     Location = location.Name,
                     LocationSpot = locationSpot.Name
@@ -146,7 +146,7 @@ public class GameManager
                     UserActionOption ua = new UserActionOption
                     {
                         BasicAction = ga,
-                        Description = ga.Name,
+                        Description = ga.Description,
                         Index = actionIndex++,
                         IsDisabled = isDisabled,
                         Location = name,
@@ -176,7 +176,7 @@ public class GameManager
             UserActionOption ua = new UserActionOption
             {
                 BasicAction = questAction,
-                Description = questAction.Name,
+                Description = questAction.Description,
                 Index = actionIndex++,
                 IsDisabled = false,
                 Location = step.Location,

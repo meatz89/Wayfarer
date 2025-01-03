@@ -261,27 +261,19 @@
 
     private BasicAction BuildRestAction()
     {
-        return new BasicAction
-        {
-            ActionType = BasicActionTypes.Rest,
-            Name = GetRestDescription(),
-            TimeSlots = new List<TimeWindows> { TimeWindows.Evening, TimeWindows.Night },
-            Requirements = new List<Requirement>
-            {
-                new ResourceRequirement(ResourceTypes.Food, 1)
-            },
-                Costs = new List<Outcome>()
-            {
-                new ResourceOutcome(ResourceTypes.Food, -1),
-            },
-                Rewards = new List<Outcome>
-            {
-                new EnergyOutcome(EnergyTypes.Physical, 5),
-                new EnergyOutcome(EnergyTypes.Focus, 5),
-                new EnergyOutcome(EnergyTypes.Social, 5),
-                new DayChangeOutcome()
-            }
-        };
+        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder()
+            .ForAction(BasicActionTypes.Rest);
+
+        builder.WithDescription(GetRestDescription())
+        .AddTimeSlot(TimeWindows.Night)
+        .WithTimeInvestment(0)
+        .ExpendsFood(1)
+        .RewardsEnergy(5, EnergyTypes.Physical)
+        .RewardsEnergy(5, EnergyTypes.Focus)
+        .RewardsEnergy(5, EnergyTypes.Social)
+        .EndsDay();
+
+        return builder.Build();
     }
 
     private string GetInteractionDescription() => spotName switch

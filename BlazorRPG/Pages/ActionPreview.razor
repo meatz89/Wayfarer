@@ -3,7 +3,7 @@
 <div class="action-preview">
     @if (GetRequirementDescriptions().Count > 0)
     {
-        <h4>Requirements:</h4>
+        <h4>Requirements</h4>
         <ul>
             @foreach (string description in GetRequirementDescriptions())
             {
@@ -14,7 +14,7 @@
 
     @if (GetOutcomeCostsDescriptions().Count > 0)
     {
-        <h4>Costs:</h4>
+        <h4>Outcomes</h4>
         <ul>
             @foreach (string description in GetOutcomeCostsDescriptions())
             {
@@ -25,7 +25,7 @@
 
     @if (GetOutcomeRewardsDescriptions().Count > 0)
     {
-        <h4>Rewards:</h4>
+        <h4>Rewards</h4>
         <ul>
             @foreach (string description in GetOutcomeRewardsDescriptions())
             {

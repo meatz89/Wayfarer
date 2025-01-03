@@ -9,8 +9,6 @@ public abstract class Outcome
     public abstract string GetPreview(PlayerState player);
 }
 
-
-// Example of a concrete outcome
 public class EnergyOutcome : Outcome
 {
     public EnergyTypes EnergyType { get; }
