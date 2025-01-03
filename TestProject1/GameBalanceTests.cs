@@ -6,6 +6,7 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
     private readonly ITestOutputHelper output;
     private ActionManager ActionManager;
     private GameState GameState;
+    private GameRules GameRules;
 
     public GameBalanceTests(BlazorRPGFixture fixture, ITestOutputHelper output)
     {
@@ -14,12 +15,15 @@ public class GameBalanceTests : IClassFixture<BlazorRPGFixture>
         GameContentProvider GameContentProvider = new GameContentProvider();
 
         GameState = GameSetup.CreateNewGame();
+        GameRules = GameRules.StandardRuleset;
 
-        NarrativeSystem NarrativeSystem = new NarrativeSystem(GameState, GameContentProvider);
+        KnowledgeSystem knowledgeSystem = new KnowledgeSystem();
+        CharacterRelationshipSystem relationshipSystem = new CharacterRelationshipSystem();
+        NarrativeSystem NarrativeSystem = new NarrativeSystem(GameState, GameContentProvider, knowledgeSystem, relationshipSystem);
         LocationSystem LocationSystem = new LocationSystem(GameState, GameContentProvider);
         CharacterSystem CharacterSystem = new CharacterSystem(GameState, GameContentProvider);
 
-        ActionManager = new ActionManager(GameState, NarrativeSystem, LocationSystem, CharacterSystem);
+        ActionManager = new ActionManager(GameState, GameRules, NarrativeSystem, LocationSystem, CharacterSystem);
         ActionManager.Initialize();
     }
 

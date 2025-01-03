@@ -10,14 +10,14 @@
                                                             // Poor travelers need a place to sleep
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.HarborStreets)
-            .ForLocationSpot(LocationSpotTypes.BasicShelter)
+            .ForLocationSpot(LocationSpotNames.BasicShelter)
             .WithCoinCost(0)
             .WithEnergyReward(1, EnergyTypes.Physical)
         )
         // Street vendors sell cheap but limited food
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.HarborStreets)
-            .ForLocationSpot(LocationSpotTypes.GeneralStore)
+            .ForLocationSpot(LocationSpotNames.GeneralStore)
             .WithCoinCost(1)
             .WithOutputResource(ResourceTypes.Food, 1)
             .WithEnergyCost(1, EnergyTypes.Social))
@@ -29,20 +29,21 @@
     public static Location MarketSquare => new LocationBuilder()
         .ForLocation(LocationNames.MarketSquare)
         .SetLocationType(LocationTypes.Commerce)
-       .AddTravelConnection(LocationNames.HarborStreets) // Main connection to the rest of the town
+        .AddTravelConnection(LocationNames.HarborStreets) // Main connection to the rest of the town
         .AddTravelConnection(LocationNames.ArtisanRow)    // Goods flow to/from artisan workshops
         .AddTravelConnection(LocationNames.LionsHeadTavern)
         // Standard food merchant
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.MarketSquare)
-            .ForLocationSpot(LocationSpotTypes.GeneralStore)
+            .ForLocationSpot(LocationSpotNames.GeneralStore)
+            .WithCharacter(CharacterNames.WealthyMerchant)
             .WithCoinCost(2)
             .WithOutputResource(ResourceTypes.Food, 1)
             .WithEnergyCost(1, EnergyTypes.Social))
         // Luxury goods trader
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.MarketSquare)
-            .ForLocationSpot(LocationSpotTypes.SpecialtyShop)
+            .ForLocationSpot(LocationSpotNames.SpecialtyShop)
             .WithInputResource(ResourceTypes.Planks, 1)
             .WithCoinReward(8)
             .WithEnergyCost(1, EnergyTypes.Social))
@@ -59,7 +60,7 @@
         // Tutorial entrance spot
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.LionsHeadTavern)
-            .ForLocationSpot(LocationSpotTypes.ServingArea)
+            .ForLocationSpot(LocationSpotNames.ServingArea)
             .WithEnergyCost(1, EnergyTypes.Physical)
             .WithEnergyCost(1, EnergyTypes.Social)
             .WithCoinReward(3)
@@ -67,27 +68,27 @@
         // Tutorial common tables
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.LionsHeadTavern)
-            .ForLocationSpot(LocationSpotTypes.CommonArea)
+            .ForLocationSpot(LocationSpotNames.CommonArea)
             .WithEnergyCost(1, EnergyTypes.Social)
         )
         // Tutorial bar counter
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.LionsHeadTavern)
-            .AddCharacter(CharacterNames.Bartender)
-            .ForLocationSpot(LocationSpotTypes.TavernBar)
+            .WithCharacter(CharacterNames.Bartender)
+            .ForLocationSpot(LocationSpotNames.TavernBar)
             .WithCoinCost(3)
             .WithOutputResource(ResourceTypes.Food, 1)
         )
         // Tutorial corner
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.LionsHeadTavern)
-            .ForLocationSpot(LocationSpotTypes.PrivateCorner)
+            .ForLocationSpot(LocationSpotNames.PrivateCorner)
             .WithEnergyCost(1, EnergyTypes.Focus)
         )
         // Tutorial back room (initially locked)
         .AddLocationSpot(feature => feature
             .ForLocation(LocationNames.LionsHeadTavern)
-            .ForLocationSpot(LocationSpotTypes.GoodShelter)
+            .ForLocationSpot(LocationSpotNames.GoodShelter)
             .WithCoinCost(1)
             .WithEnergyReward(5, EnergyTypes.Physical)
             .WithEnergyReward(5, EnergyTypes.Focus)

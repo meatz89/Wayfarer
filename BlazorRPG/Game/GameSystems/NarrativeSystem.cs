@@ -7,7 +7,7 @@
     private readonly CharacterRelationshipSystem relationshipSystem;
 
     public NarrativeSystem(
-        GameState gameState, 
+        GameState gameState,
         GameContentProvider contentProvider,
         KnowledgeSystem knowledgeSystem,
         CharacterRelationshipSystem relationshipSystem)

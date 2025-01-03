@@ -1,4 +1,4 @@
-﻿public enum ItemChangeType
+﻿public enum ResourceChangeType
 {
     None = 0,
     Added,

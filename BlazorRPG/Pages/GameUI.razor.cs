@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 
 namespace BlazorRPG.Pages;
 
 public partial class GameUI : ComponentBase
 {
     [Inject] private GameState GameState { get; set; }
-    [Inject] private ActionManager ActionManager { get; set; }
+    [Inject] private GameManager GameManager { get; set; }
     [Inject] private NavigationManager NavigationManager { get; set; }
 
     public List<string> ResultMessages => GetResultMessages();
@@ -23,7 +22,7 @@ public partial class GameUI : ComponentBase
     public int food => GameState.Player.Inventory.GetItemCount(ResourceTypes.Food);
     public bool hasShelter => false;
 
-    public List<Location> Locations => ActionManager.GetAllLocations();
+    public List<Location> Locations => GameManager.GetAllLocations();
 
     public Player Player => GameState.Player;
     public Location CurrentLocation => GameState.CurrentLocation;
@@ -33,7 +32,6 @@ public partial class GameUI : ComponentBase
 
     public UserActionOption CurrentUserAction => GameState.CurrentUserAction;
     public List<UserLocationTravelOption> CurrentTravelOptions => GameState.CurrentTravelOptions;
-    public ActionResult LastActionResult => GameState.LastActionResult;
 
     // Tooltip Logic
     public bool showAreaMap = true;
@@ -45,7 +43,17 @@ public partial class GameUI : ComponentBase
 
     protected override void OnInitialized()
     {
-        ActionManager.Initialize();
+        GameManager.StartGame();
+    }
+    
+    public string GetModifierDescription(IGameStateModifier modifier)
+    {
+        if (modifier is FoodModfier modfier)
+        {
+            return $"Need additional Food: {modfier.AdditionalFood}";
+        }
+
+        return string.Empty;
     }
 
     public string GetActionDescription(UserActionOption userActionOption)
@@ -101,9 +109,9 @@ public partial class GameUI : ComponentBase
             string s = $"Skill Level in {skillLevel.SkillType} changed by {skillLevel.Amount}";
             list.Add(s);
         }
-        foreach (ItemOutcome item in messages.Item)
+        foreach (ResourceOutcome item in messages.Resources)
         {
-            string s = $"Item {item.ChangeType.ToString()} : {item.ResourceType.ToString()} ({item.Count})";
+            string s = $"Item {item.ChangeType.ToString()} : {item.Resource.ToString()} ({item.Count})";
             list.Add(s);
         }
 
@@ -116,7 +124,7 @@ public partial class GameUI : ComponentBase
 
         else if (action.BasicAction.ActionType == BasicActionTypes.Wait)
         {
-            ActionManager.AdvanceTime();
+            GameManager.AdvanceTime();
             CompleteActionExecution();
         }
         else
@@ -124,17 +132,17 @@ public partial class GameUI : ComponentBase
             GameState.SetCurrentUserAction(action);
 
             // Execute the action immediately
-            bool hasNarrative = ActionManager.HasNarrative(action.BasicAction);
+            bool hasNarrative = GameManager.HasNarrative(action.BasicAction);
             if (hasNarrative)
             {
-                bool startedNarrative = ActionManager.StartNarrativeFor(action.BasicAction);
+                bool startedNarrative = GameManager.StartNarrativeFor(action.BasicAction);
                 if (startedNarrative)
                 {
                 }
             }
             else
             {
-                ActionResult result = ActionManager.ExecuteBasicAction(action.BasicAction);
+                ActionResult result = GameManager.ExecuteBasicAction(action.BasicAction);
 
                 if (result.IsSuccess)
                 {
@@ -144,26 +152,31 @@ public partial class GameUI : ComponentBase
         }
     }
 
-    private void HandleNarrativeChoice(int choiceIndex)
+    public List<Quest> GetActiveQuests()
     {
-        ActionResult result = ActionManager.MakeChoiceForNarrative(
-            GameState.CurrentNarrative,
-            GameState.CurrentNarrativeStage,
-            choiceIndex);
-
-
-        if (result.IsSuccess)
-        {
-            CompleteActionExecution();
-        }
+        return GameState.ActiveQuests;
     }
+
+    //private void HandleNarrativeChoice(int choiceIndex)
+    //{
+    //    ActionResult result = ActionManager.MakeChoiceForNarrative(
+    //        GameState.CurrentNarrative,
+    //        GameState.CurrentNarrativeStage,
+    //        choiceIndex);
+
+
+    //    if (result.IsSuccess)
+    //    {
+    //        CompleteActionExecution();
+    //    }
+    //}
 
     private void HandleSpotSelection(LocationSpot locationSpot)
     {
         List<UserLocationSpotOption> userLocationSpotOptions = GameState.CurrentLocationSpotOptions;
         UserLocationSpotOption userLocationSpot = userLocationSpotOptions.FirstOrDefault(x => x.LocationSpot == locationSpot.Name);
 
-        ActionManager.MoveToLocationSpot(userLocationSpot.Location, locationSpot.Name);
+        GameManager.MoveToLocationSpot(userLocationSpot.Location, locationSpot.Name);
     }
 
     private void HandleLocationSelection(LocationNames locationNames)
@@ -171,7 +184,7 @@ public partial class GameUI : ComponentBase
         List<UserLocationTravelOption> currentTravelOptions = GameState.CurrentTravelOptions;
         UserLocationTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Location == locationNames);
 
-        ActionResult result = ActionManager.MoveToLocation(location.Location);
+        ActionResult result = GameManager.MoveToLocation(location.Location);
 
         if (result.IsSuccess)
         {
@@ -185,7 +198,7 @@ public partial class GameUI : ComponentBase
         GameState.ClearCurrentUserAction();
         GameState.ClearCurrentNarrative();
 
-        ActionManager.UpdateState();
+        GameManager.UpdateState();
     }
 
 }

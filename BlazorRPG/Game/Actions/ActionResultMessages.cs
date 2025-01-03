@@ -9,6 +9,6 @@ public class ActionResultMessages
     public List<FocusEnergyOutcome> FocusEnergy { get; init; } = new();
     public List<SocialEnergyOutcome> SocialEnergy { get; init; } = new();
     public List<SkillLevelOutcome> SkillLevel { get; init; } = new();
-    public List<ItemOutcome> Item { get; init; } = new();
+    public List<ResourceOutcome> Resources { get; init; } = new();
     public EndDayOutcome EndDay { get; set; }
 }

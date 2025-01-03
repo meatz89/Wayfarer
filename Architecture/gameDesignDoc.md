@@ -98,14 +98,78 @@ This systemic approach means each player's story develops uniquely based on:
 - What skills they develop
 - Which Knowledge Flags they prioritize
 
-The result is an deeply engrossing medieval life simulation where your story emerges naturally from your choices within our carefully crafted systems.
+## The Context Engine 
+
+Wayfarer's core mechanics operate through three simple, transparent layers: Status, Reputation, and Achievement. Status effects are binary conditions with clear mechanical impacts. Hunger applies -1 to all energy regeneration. Exhaustion adds +1 energy cost to physical actions. A character is either in these states or not - no hidden tracking needed.
+
+The Reputation system uses straightforward level progression for each reputation type. Take the "Reliable" reputation - every completed work action adds one point toward this reputation. At three points, the reputation levels up. Each level provides fixed mechanical benefits - Level 1 Reliable reputation earns one additional coin per work action. Level 2 enables access to more valuable work opportunities. Level 3 allows teaching work skills to others. Similar clear progression tracks exist for other reputation types like "Generous" or "Observant," each with their own mechanical rewards.
+
+Achievement Context marks permanent progression through binary flags. Rather than accumulating arbitrary points, learning the dock loading techniques happens through clear steps - observe the process, assist with loading, practice the method. Once complete, this achievement permanently reduces dock work energy cost by one point and unlocks related opportunities.
+
+## Resource Framework
+
+All resources in Wayfarer follow a clear four-tier structure with fixed effects. Food items demonstrate this pattern:
+Basic: +1 energy restoration, 4-hour hunger prevention
+Standard: +2 energy restoration, 8-hour hunger prevention 
+Quality: +3 energy restoration, 12-hour hunger prevention
+Premium: +4 energy restoration, 24-hour hunger prevention
+
+Tools use identical tier progression, where each tier provides fixed mechanical benefits:
+Basic: Enables work actions
+Standard: -1 to action energy costs
+Quality: -2 to action energy costs, unlocks specialized actions
+Master: -3 to action energy costs, enables teaching
+
+Tools degrade one tier after five uses, creating predictable maintenance cycles. Repair costs are fixed at 2 coins per tier. No randomness or hidden mechanics - just clear progression and maintenance paths.
+
+## Character Interaction Matrix
+
+Character interactions in Wayfarer operate through clear, deterministic systems. Each character has a primary motivation type that determines how they respond to player actions. A Profit-motivated merchant will always offer standard prices for first interactions, but provides fixed mechanical bonuses based on specific achievements. Earning Level 1 Reliable reputation with them reduces all their prices by one coin. Level 2 unlocks bulk trading options. Level 3 enables special merchant contracts with guaranteed higher returns.
+
+Characters provide resources through four fixed categories that integrate with player progression. Material resources cover tangible rewards like coins, food, or tools. Knowledge resources unlock specific capabilities or opportunities within locations. Access resources open new spots within locations or enable special action types. Social resources create connections to other characters and unlock their basic interaction options.
+
+Every character interaction involves an exchange between these resource categories with set values. When helping a Knowledge-motivated character like Old Thomas, spending one social energy in conversation always yields one knowledge point about his area of expertise (dock work). Using that knowledge in dock work then provides one point toward building trust with dock workers. This creates predictable progression paths without relying on chance or hidden mechanics.
+
+Characters also maintain fixed requirements for deeper interactions based on player status and achievements. A Security-motivated guard requires Level 2 Reliable reputation before sharing patrol schedules. A Community-focused character needs three successful assistance actions before revealing personal connections. These requirements are always visible to the player and progress through clear steps rather than hidden calculations.
+
+## Environmental Framework 
+
+Location design in Wayfarer follows similarly rigid structures. Each spot within a location enables specific action types with fixed mechanical outcomes. A tavern's kitchen spot allows work actions that cost one physical energy to earn one coin. The quiet corner spot enables observation actions that cost one focus energy to gain one knowledge point about ongoing activities. The common area allows social actions that cost one social energy to build one reputation point with present characters.
+
+Location access operates through binary states rather than gradual progression. A back room is either locked or unlocked based on meeting specific requirements - like reaching Level 2 trust with the owner. Storage spots have fixed capacity limits rather than variable space. A basic storage chest always holds five items, while a secure storage room holds ten.
+
+This system of fixed values and clear progression creates a game environment where players can make informed decisions based on predictable outcomes rather than hoping for favorable random results or trying to game hidden systems. Every action has defined costs and rewards, every progression path has clear steps, and every character interaction follows consistent rules.
+
+## Quest System
+
+Wayfarer's quest system integrates seamlessly with existing game mechanics by treating quest actions as specialized variants of basic actions. Quest actions follow the same core rules - they cost energy, provide rewards, and unlock opportunities - but feature unique requirements and enhanced narrative elements tied to character goals and location stories.
+
+A quest action becomes available only when its quest step is active and the player meets all requirements. For example, helping a merchant's son learn trading might require 50 coins and Level 2 "Reliable" reputation before the teaching action becomes available. This creates natural pacing where story progression depends on player achievement rather than arbitrary triggers.
+
+Quest actions appear in the same spots as basic actions but offer enhanced rewards. Where a basic TRADE action at the market might cost one social energy for minimal profit, a quest-specific trade action could yield special items or unlock new location spots. The key is that quest actions use identical mechanical systems - energy costs, reputation gains, knowledge acquisition - just with different values and narrative context.
+
+The system encourages exploration of game mechanics by setting specific but flexible requirements. A dock worker's quest might need any combination of three quality tools, demonstrating mastery of the resource system without forcing a single solution. Another quest could require earning 100 coins through any means, letting players engage with multiple game systems to achieve their goal.
+
+Quest progress ties directly to the Context Engine. A character's willingness to share quest information might depend on the player's Status Context (being well-fed and rested), Reputation level with relevant groups, and completed Achievements. This creates natural story gating where quest advancement feels earned through mastery of core game systems.
+
+Each quest step provides concrete mechanical benefits beyond story progression. Teaching the merchant's son might permanently reduce trading energy costs at his family's shop. Helping the dock worker could unlock a new storage spot with expanded capacity. These rewards integrate with existing systems rather than creating parallel progression paths.
+
+By treating quests as specialized configurations of standard game mechanics rather than a separate system, we maintain consistent rules while enabling richer narrative experiences. Players understand exactly what they need to accomplish, how to achieve it using familiar mechanics, and what concrete benefits they'll receive for success.
+
+## Integration of Systems
+
+The Context Engine, Resource Framework and Quest System work together through fixed mechanical relationships. Consider a trading interaction: A merchant's prices are determined by the player's current Status Context (being hungry increases food prices by one coin), Reputation level (Level 2 "Reliable" reduces all prices by one coin), and completed Achievement flags (knowing market schedules enables bulk purchases at fixed discounts).
+
+Resource quality directly affects action outcomes. Using a Quality tool while having Level 2 "Skilled" reputation reduces the energy cost of work actions by three points total - two from the tool quality and one from the reputation level. These bonuses are fixed and cumulative, allowing players to make informed decisions about resource investment and action timing.
+
+Character relationships progress through similar fixed mechanics. Each successful interaction with a character adds one point to their relevant reputation track. Reaching reputation Level 1 requires three points and always unlocks basic trade options. Level 2 needs six more points and enables special actions. Level 3 requires nine additional points and grants access to unique opportunities. No hidden modifiers or chance elements affect this progression.
 
 ## Learning Through Play 
 The Lion's Head Tavern serves as the perfect introduction to Wayfarer's interwoven systems. As a social hub that everyone understands intuitively, it provides a safe space for players to experiment with core mechanics before venturing into more challenging areas.
 
 Players begin at the entrance, where they can freely observe the tavern's layout and activity patterns. This introduces the spot movement system naturally - players can see different areas (the bar, common tables, quiet corners) and understand how characters move between them throughout the day.
 
-The bar counter presents their first trading opportunity through simple food and drink purchases. Sarah, the friendly bartender, serves as both tutorial guide and their first relationship-building opportunity. Through her, players learn about market schedules and local happenings, demonstrating how information gathering leads to new opportunities.
+The bar counter presents their first trading quest through simple food and drink purchases. Sarah, the friendly bartender, serves as both tutorial guide and their first relationship-building questline. Through her, players learn about market schedules and local happenings, demonstrating how information gathering leads to new opportunities.
 
 Regular patron Old Thomas, always at his usual table, introduces the social system through low-pressure conversation. His background as a retired dock worker creates natural connections to future opportunities, showing how relationships and knowledge interweave to create progression paths.
 
@@ -114,27 +178,3 @@ The quiet corner lets players practice observation, learning about information g
 This carefully structured but organic introduction ensures players understand core systems before venturing into more complex locations like the docks or market district. Yet even this tutorial space remains relevant throughout the game - as players gain new knowledge and relationships, they discover the tavern holds deeper opportunities they couldn't initially access.
 
 This approach to teaching through natural play exemplifies Wayfarer's core philosophy: systems that create organic, meaningful experiences rather than artificial game mechanics. Every element serves both immediate gameplay purpose and deeper narrative significance, creating an engrossing medieval life simulation that rewards patient exploration and strategic thinking.
-
-## A Day in the Life: Early Game Experience
-
-Let's follow a new player's journey through their first few days in Wayfarer to see how our systems create an organic and engaging experience.
-
-Dawn breaks as you find yourself in the Harbor Streets, one of the many souls seeking opportunity in this bustling port town. Your most immediate concern is basic survival - you have a single piece of bread in your inventory and no coins. The street vendors are setting up their stalls, but their wares are beyond your means. You need work, and quickly.
-
-Your first investigation of the area reveals three promising paths. The docks are alive with activity as workers unload the morning ships. The market square shows signs of life as merchants prepare their stalls. And there, offering shelter from the morning chill, stands the Lion's Head Tavern. Each of these locations could offer opportunities, but each would demand different approaches and energy expenditure.
-
-The tavern proves an inviting first stop. Inside, you find distinct areas that suggest different possibilities. Sarah, the tavern keeper, offers a welcoming presence at the bar. The common tables host a mix of patrons, including an elderly man who seems to be a regular. A quiet corner provides an excellent vantage point for observation, while the kitchen shows signs of busy preparation for the day ahead.
-
-In your first interaction with Sarah, you learn that she's short-staffed for the morning rush. She offers a straightforward deal - help serve breakfast and earn both coins and a meal. This introduces you to the labor system naturally - you spend physical energy but gain both immediate resources and potential relationship growth. During your work, you notice that Sarah seems to know everyone's routine, marking her as a valuable source of information once you've built more trust.
-
-Between serving tables, you overhear fragments of conversation from Old Thomas, the elderly patron. His tales of dock work catch your attention - he mentions specific times when extra hands are needed and hints at understanding the guard patrol patterns. This demonstrates how the information system works: through regular observation, you can piece together valuable knowledge about opportunities, schedules, and safe routes.
-
-As morning fades into afternoon, you've earned enough coins for a simple meal and learned crucial information about the area. You could return to the kitchen for another shift, but your physical energy is low. Instead, you might spend some focus energy observing the tavern's patterns or use social energy to engage Thomas in conversation about dock work. This illustrates how time windows and energy types create natural rhythms to your day.
-
-The evening brings new faces to the tavern - merchants unwinding after market hours, dock workers finishing their shifts. Each represents potential relationships and information sources, but building these connections will take time and careful energy management. For now, you need to consider shelter for the night. The streets offer basic protection, but you've noticed the tavern has a back room. Sarah mentioned it could serve as shelter for trusted helpers - a goal worth working toward.
-
-As you plan for tomorrow, you weigh several promising leads: Thomas's information about dock work could lead to better-paying morning labor, your observations of merchant patterns might reveal profitable trading opportunities, and continued work for Sarah could secure better shelter. Each path requires different energy types, builds different skills, and unlocks different knowledge flags.
-
-This early game experience demonstrates how Wayfarer's systems work together to create engaging choices without explicit quest markers or artificial goals. Every action you take - whether working, observing, or conversing - contributes to your growing understanding of both the game's mechanics and the living world it presents. The choices feel meaningful because they arise naturally from your character's needs and aspirations rather than a predetermined story path.
-
-Through this organic introduction to the game's core systems, players learn that success comes not just from managing resources, but from building a web of knowledge and relationships that transform simple actions into rich opportunities. The tavern, your first point of contact with the game's world, remains relevant even as you expand your horizons.

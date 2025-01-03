@@ -15,4 +15,5 @@
     Discuss,      // General conversation and information exchange
     Confide,      // Share personal matters and deepen relationships
     Assist,       // Help characters with their work/tasks
+    Teach,
 }

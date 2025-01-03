@@ -7,7 +7,7 @@
     Nature
 }
 
-public enum LocationSpotTypes
+public enum LocationSpotNames
 {
     // Processing features - each handles unique resource conversion
     WoodworkBench,    // Wood -> Planks

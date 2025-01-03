@@ -40,7 +40,7 @@ public partial class ActionPreviewBase : ComponentBase
             CoinsOutcome o => $"({Player.Coins} -> <span class='{GetValueColor(o.Amount)}'>{Math.Max(0, Player.Coins + o.Amount)}</span>)",
             FoodOutcome o => $"({Player.Inventory.GetItemCount(ResourceTypes.Food)} -> <span class='{GetValueColor(o.Amount)}'>{GetNewFood(o)}</span>)",
             SkillLevelOutcome o => $"({Player.Skills[o.SkillType]} -> <span class='{GetValueColor(o.Amount)}'>{Math.Max(0, Player.Skills[o.SkillType] + o.Amount)}</span>)",
-            ItemOutcome o => $"({Player.Inventory.GetItemCount(o.ResourceType)} -> <span class='{GetValueColor(o.Count)}'>{GetNewItemCount(o)}</span>)",
+            ResourceOutcome o => $"({Player.Inventory.GetItemCount(o.Resource)} -> <span class='{GetValueColor(o.Count)}'>{GetNewItemCount(o)}</span>)",
             _ => string.Empty
         };
     }
@@ -50,15 +50,15 @@ public partial class ActionPreviewBase : ComponentBase
         return Math.Max(0, Player.Inventory.GetItemCount(ResourceTypes.Food) + o.Amount);
     }
 
-    private int GetNewItemCount(ItemOutcome o)
+    private int GetNewItemCount(ResourceOutcome o)
     {
-        if (o.ChangeType == ItemChangeType.Added)
+        if (o.ChangeType == ResourceChangeType.Added)
         {
-            return Math.Max(0, Player.Inventory.GetItemCount(o.ResourceType) + o.Count);
+            return Math.Max(0, Player.Inventory.GetItemCount(o.Resource) + o.Count);
         }
         else
         {
-            return Math.Max(0, Player.Inventory.GetItemCount(o.ResourceType) - o.Count);
+            return Math.Max(0, Player.Inventory.GetItemCount(o.Resource) - o.Count);
         }
     }
 
@@ -73,7 +73,7 @@ public partial class ActionPreviewBase : ComponentBase
             CoinsOutcome o => $"{o.Amount} Coins {FormatValuePreview(o)}",
             FoodOutcome o => $"{o.Amount} Food {FormatValuePreview(o)}",
             SkillLevelOutcome o => $"{o.Amount} Level in Skill {o.SkillType} {FormatValuePreview(o)}",
-            ItemOutcome o => $"{(o.ChangeType == ItemChangeType.Added ? "Gain" : "Lose")} {o.Count} x {o.ResourceType} {FormatValuePreview(o)}",
+            ResourceOutcome o => $"{(o.ChangeType == ResourceChangeType.Added ? "Gain" : "Lose")} {o.Count} x {o.Resource} {FormatValuePreview(o)}",
             _ => string.Empty
         };
         return new MarkupString(description);
@@ -90,7 +90,7 @@ public partial class ActionPreviewBase : ComponentBase
             CoinsOutcome o => $"+{o.Amount} Coins {FormatValuePreview(o)}",
             FoodOutcome o => $"+{o.Amount} Food {FormatValuePreview(o)}",
             SkillLevelOutcome o => $"+{o.Amount} Level in Skill {o.SkillType} {FormatValuePreview(o)}",
-            ItemOutcome o => $"{(o.ChangeType == ItemChangeType.Added ? "Gain" : "Lose")} {o.Count} x {o.ResourceType} {FormatValuePreview(o)}",
+            ResourceOutcome o => $"{(o.ChangeType == ResourceChangeType.Added ? "Gain" : "Lose")} {o.Count} x {o.Resource} {FormatValuePreview(o)}",
             _ => string.Empty
         };
         return new MarkupString(description);
@@ -124,7 +124,7 @@ public partial class ActionPreviewBase : ComponentBase
             CoinsOutcome o => o.Amount < 0,
             FoodOutcome o => o.Amount < 0,
             SkillLevelOutcome o => o.Amount < 0,
-            ItemOutcome o => o.ChangeType == ItemChangeType.Removed,
+            ResourceOutcome o => o.ChangeType == ResourceChangeType.Removed,
             _ => false
         };
     }
@@ -140,7 +140,7 @@ public partial class ActionPreviewBase : ComponentBase
             CoinsOutcome o => o.Amount >= 0,
             FoodOutcome o => o.Amount >= 0,
             SkillLevelOutcome o => o.Amount >= 0,
-            ItemOutcome o => o.ChangeType == ItemChangeType.Added,
+            ResourceOutcome o => o.ChangeType == ResourceChangeType.Added,
             _ => false
         };
     }

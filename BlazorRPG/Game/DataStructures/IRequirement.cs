@@ -2,6 +2,17 @@
 {
 }
 
+public class ReputationRequirement : IRequirement
+{
+    public ReputationTypes ReputationTypes { get; set; }
+    public int Amount { get; set; }
+}
+
+public class StatusRequirement : IRequirement
+{
+    public StatusTypes Status { get; set; }
+}
+
 public class CoinsRequirement : IRequirement
 {
     public int Amount { get; set; }

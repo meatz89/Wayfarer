@@ -1,9 +1,6 @@
-﻿
-
-public class BasicActionDefinitionBuilder
+﻿public class BasicActionDefinitionBuilder
 {
     private BasicActionTypes actionType;
-    private CharacterNames character;
     private string description;
     private List<TimeWindows> timeSlots = new();
     public List<IRequirement> requirements = new();
@@ -15,11 +12,6 @@ public class BasicActionDefinitionBuilder
         return this;
     }
 
-    public BasicActionDefinitionBuilder ForCharacter(CharacterNames character)
-    {
-        this.character = character;
-        return this;
-    }
 
     public BasicActionDefinitionBuilder WithDescription(string description)
     {
@@ -159,22 +151,23 @@ public class BasicActionDefinitionBuilder
             Count = count
         });
 
-        outcomes.Add(new ItemOutcome
+        outcomes.Add(new ResourceOutcome
         {
-            ChangeType = ItemChangeType.Removed,
-            ResourceType = item,
+            ChangeType = ResourceChangeType.Removed,
+            Resource = item,
             Count = count
         });
 
         return this;
     }
-    public BasicActionDefinitionBuilder RewardsItem(ResourceTypes item, int count)
+
+    public BasicActionDefinitionBuilder RewardsResource(ResourceTypes resourceType, int amount)
     {
-        outcomes.Add(new ItemOutcome
+        outcomes.Add(new ResourceOutcome
         {
-            ChangeType = ItemChangeType.Added,
-            ResourceType = item,
-            Count = count
+            ChangeType = ResourceChangeType.Added,
+            Resource = resourceType,
+            Count = amount
         });
 
         return this;
@@ -262,6 +255,26 @@ public class BasicActionDefinitionBuilder
         return this;
     }
 
+    public BasicActionDefinitionBuilder RewardsReputation(ReputationTypes reputationType, int amount)
+    {
+        outcomes.Add(new ReputationOutcome
+        {
+            Amount = amount
+        });
+
+        return this;
+    }
+
+    public BasicActionDefinitionBuilder UnlocksAchievement(AchievementTypes achievementType)
+    {
+        outcomes.Add(new AchievementOutcome
+        {
+            AchievementType = achievementType
+        });
+
+        return this;
+    }
+
     public BasicActionDefinitionBuilder EndsDay()
     {
         outcomes.Add(new EndDayOutcome
@@ -276,11 +289,10 @@ public class BasicActionDefinitionBuilder
         return new BasicAction
         {
             ActionType = actionType,
-            Character = character,
             Name = description,
             TimeSlots = timeSlots,
             Requirements = requirements,
-            Outcomes = outcomes
+            Outcomes = outcomes,
         };
     }
 }

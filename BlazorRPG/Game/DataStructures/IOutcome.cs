@@ -32,6 +32,17 @@ public class SocialEnergyOutcome : IOutcome
     public int Amount { get; set; }
 }
 
+public class ReputationOutcome : IOutcome
+{
+    public ReputationTypes ReputationType { get; set; }
+    public int Amount { get; set; }
+}
+
+public class AchievementOutcome : IOutcome
+{
+    public AchievementTypes AchievementType { get; set; }
+}
+
 public class EndDayOutcome : IOutcome
 {
 }
@@ -42,9 +53,9 @@ public class SkillLevelOutcome : IOutcome
     public int Amount { get; set; }
 }
 
-public class ItemOutcome : IOutcome
+public class ResourceOutcome : IOutcome
 {
-    public ItemChangeType ChangeType { get; set; }
-    public ResourceTypes ResourceType { get; set; }
+    public ResourceChangeType ChangeType { get; set; }
+    public ResourceTypes Resource { get; set; }
     public int Count { get; set; }
 }

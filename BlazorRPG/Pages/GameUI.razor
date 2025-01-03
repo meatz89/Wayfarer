@@ -46,16 +46,16 @@
         @if (showAreaMap)
         {
             <AreaMap CurrentLocation="@CurrentLocation"
-                     Locations="@Locations"
-                     OnTravel="@HandleLocationSelection"
-                     OnViewSpots="@(() => showAreaMap = false)" />
+            Locations="@Locations"
+            OnTravel="@HandleLocationSelection"
+            OnViewSpots="@(() => showAreaMap = false)" />
         }
         else
         {
             <LocationSpotMap CurrentLocation="@CurrentLocation"
-                             CurrentSpot="@CurrentSpot"
-                             OnSpotSelected="@HandleSpotSelection"
-                             OnActionSelected="@HandleActionSelection" />
+            CurrentSpot="@CurrentSpot"
+            OnSpotSelected="@HandleSpotSelection"
+            OnActionSelected="@HandleActionSelection" />
         }
     </div>
 
@@ -70,6 +70,18 @@
         <div class="sidebar-panel">
             <div class="panel-title">Daily Requirements</div>
             <div class="panel-content">
+                @*                 <div class="requirement">
+                    <span style="color: var(--resource-food)">
+                        • @baseRequirements.DailyFood Food by Night
+                        @if (modifiedRequirements.DailyFood > baseRequirements.DailyFood)
+                        {
+                            <span class="modifier">
+                                (+@(modifiedRequirements.DailyFood - baseRequirements.DailyFood)
+                                from @GetModifierSource())
+                            </span>
+                        }
+                    </span>
+                </div> *@
                 <div class="requirement">
                     <span style="color: var(--resource-food)">• 1 Food by Night</span>
                 </div>
@@ -85,6 +97,28 @@
                 <div>• Travel takes time</div>
                 <div>• Actions advance time</div>
                 <div>• Plan your day carefully</div>
+            </div>
+        </div>
+
+        <div class="sidebar-panel quest-effects">
+            <div class="panel-title">Quest Effects</div>
+            <div class="panel-content">
+                @foreach (Quest activeQuest in GetActiveQuests())
+                {
+                    QuestStep questStep = activeQuest.GetCurrentStep();
+                    @if(questStep != null)
+                    {
+                        @foreach (IGameStateModifier modifier in questStep.StateModifiers)
+                        {
+                            <div class="quest-effect">
+                                <div class="effect-source">@activeQuest.Title:</div>
+                                <div class="effect-description">
+                                    @GetModifierDescription(modifier)
+                                </div>
+                            </div>
+                        }
+                    }
+                }
             </div>
         </div>
     </div>

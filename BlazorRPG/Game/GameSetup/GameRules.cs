@@ -1,14 +1,27 @@
-﻿public static class GameRules
+﻿public class GameRules
 {
-    public static int StartingHealth { get; } = 10;
-    public static int StartingCoins { get; } = 0;
+    public static GameRules StandardRuleset = new GameRules
+    {
+        StartingHealth = 10,
+        StartingCoins = 0,
+        StartingPhysicalEnergy = 3,
+        StartingFocusEnergy = 3,
+        StartingSocialEnergy = 3,
+        MinimumHealth = 0,
+        DailyFoodRequirement = 2,
+        NoFoodEffectOnHealth = -2,
+        NoShelterEffectOnHealth = -2,
+    };
 
-    public static int StartingPhysicalEnergy { get; } = 3;
-    public static int StartingFocusEnergy { get; } = 3;
-    public static int StartingSocialEnergy { get; } = 3;
+    public int StartingHealth;
+    public int StartingCoins;
 
-    public static int MinimumHealth { get; } = 0;
-    public static int DailyFoodRequirement { get; } = 2;
-    public static int NoFoodEffectOnHealth { get; } = -2;
-    public static int NoShelterEffectOnHealth { get; } = -2;
+    public int StartingPhysicalEnergy;
+    public int StartingFocusEnergy;
+    public int StartingSocialEnergy;
+
+    public int MinimumHealth;
+    public int DailyFoodRequirement;
+    public int NoFoodEffectOnHealth;
+    public int NoShelterEffectOnHealth;
 }

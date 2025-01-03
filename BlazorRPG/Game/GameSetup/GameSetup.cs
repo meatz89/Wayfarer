@@ -4,25 +4,26 @@
     {
         GameState gameState = new GameState();
         gameState.SetNewLocation(LocationContent.HarborStreets);
-        gameState.SetNewTime(7);
+
+        GameRules gameRules = GameRules.StandardRuleset;
 
         Inventory playerInventory = new Inventory(10);
         playerInventory.AddItems(ResourceTypes.Food, 1);
 
         Player playerInfo = new Player();
-        playerInfo.Coins = GameRules.StartingCoins;
+        playerInfo.Coins = gameRules.StartingCoins;
 
-        playerInfo.Health = GameRules.StartingHealth;
-        playerInfo.MinHealth = GameRules.MinimumHealth;
+        playerInfo.Health = gameRules.StartingHealth;
+        playerInfo.MinHealth = gameRules.MinimumHealth;
         playerInfo.MaxHealth = 10;
 
-        playerInfo.PhysicalEnergy = GameRules.StartingPhysicalEnergy;
+        playerInfo.PhysicalEnergy = gameRules.StartingPhysicalEnergy;
         playerInfo.MaxPhysicalEnergy = 10;
 
-        playerInfo.FocusEnergy = GameRules.StartingFocusEnergy;
+        playerInfo.FocusEnergy = gameRules.StartingFocusEnergy;
         playerInfo.MaxFocusEnergy = 10;
 
-        playerInfo.SocialEnergy = GameRules.StartingSocialEnergy;
+        playerInfo.SocialEnergy = gameRules.StartingSocialEnergy;
         playerInfo.MaxSocialEnergy = 10;
 
         Dictionary<SkillTypes, int> skills = new Dictionary<SkillTypes, int>();

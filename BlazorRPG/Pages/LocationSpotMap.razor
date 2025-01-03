@@ -1,5 +1,5 @@
 ﻿@* LocationSpotMap.razor *@
-@inject ActionManager ActionManager
+@inject GameManager ActionManager
 @inject GameState GameState
 
 <div class="locations-grid">
@@ -22,7 +22,7 @@
             }
 
             @* Always show spot actions *@
-            @foreach (var action in GameState.GetLocationSpotActions(spot))
+            @foreach (UserActionOption action in GameState.GetActions(spot))
             {
                 <button class="action-button"
                         @onclick="() => OnActionSelected.InvokeAsync(action)"

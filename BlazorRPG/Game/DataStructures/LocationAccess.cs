@@ -1,14 +1,14 @@
 ﻿public class LocationAccess
 {
     private List<KnowledgeFlags> requiredKnowledge = new();
-    private List<LocationSpotTypes> spotAccess = new();
+    private List<LocationSpotNames> spotAccess = new();
 
     public bool CanAccessLocation(LocationNames location, List<KnowledgeFlags> playerKnowledge)
     {
         return true;
     }
 
-    public bool CanAccessSpot(LocationSpotTypes spot, List<KnowledgeFlags> playerKnowledge)
+    public bool CanAccessSpot(LocationSpotNames spot, List<KnowledgeFlags> playerKnowledge)
     {
         return true;
     }

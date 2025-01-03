@@ -1,5 +1,6 @@
 ﻿public enum LocationNames
 {
+    None = 0,
     Docks,
     MarketSquare,
     HarborStreets,
@@ -11,5 +12,7 @@
 
 public enum CharacterNames
 {
+    None = 0,
     Bartender,
+    WealthyMerchant,
 }

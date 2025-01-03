@@ -1,6 +1,4 @@
-﻿
-
-public class CharacterSystem
+﻿public class CharacterSystem
 {
     private readonly GameState gameState;
     private readonly List<Character> allCharacterProperties;
@@ -25,5 +23,9 @@ public class CharacterSystem
         Character characterProperties = allCharacterProperties.FirstOrDefault(x => x.Location == currentLocation);
         if (characterProperties == null) return null;
         return characterProperties.CharacterName;
+    }
+
+    public void ProcessActionImpact(BasicAction basicAction)
+    {
     }
 }

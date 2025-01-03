@@ -7,7 +7,7 @@ public class LocationSystem
     public LocationSystem(GameState gameState, GameContentProvider contentProvider)
     {
         this.gameState = gameState;
-        this.allLocations = contentProvider.GetLocationProperties();
+        this.allLocations = contentProvider.GetLocations();
     }
 
     public List<Location> GetLocations()
@@ -32,7 +32,7 @@ public class LocationSystem
         return location.Spots;
     }
 
-    public LocationSpot GetLocationSpotForLocation(LocationNames locationName, LocationSpotTypes locationSpotType)
+    public LocationSpot GetLocationSpotForLocation(LocationNames locationName, LocationSpotNames locationSpotType)
     {
         Location location = GetLocation(locationName);
         List<LocationSpot> spots = GetLocationSpots(location);
