@@ -120,21 +120,24 @@
 
     internal void ModifyReputation(ReputationTypes reputationType, int amount)
     {
-        throw new NotImplementedException();
     }
 
     internal int GetReputationLevel(ReputationTypes reputationType)
     {
-        throw new NotImplementedException();
+        return 1;
     }
 
     internal void UnlockAchievement(AchievementTypes achievementType)
     {
-        throw new NotImplementedException();
     }
 
     internal bool HasAchievement(AchievementTypes achievementType)
     {
-        throw new NotImplementedException();
+        return false;
+    }
+
+    internal bool HasStatus(StatusTypes status)
+    {
+        return false;
     }
 }

@@ -79,29 +79,14 @@ public partial class GameUI : ComponentBase
             string s = $"Health changed by {health.Amount}";
             list.Add(s);
         }
-        foreach (FoodOutcome food in messages.Food)
-        {
-            string s = $"Food changed by {food.Amount}";
-            list.Add(s);
-        }
         foreach (CoinsOutcome money in messages.Coins)
         {
             string s = $"Coins changed by {money.Amount}";
             list.Add(s);
         }
-        foreach (PhysicalEnergyOutcome physicalEnergy in messages.PhysicalEnergy)
+        foreach (EnergyOutcome energy in messages.Energy)
         {
-            string s = $"P. Energy changed by {physicalEnergy.Amount}";
-            list.Add(s);
-        }
-        foreach (FocusEnergyOutcome focusEnergy in messages.FocusEnergy)
-        {
-            string s = $"F. Energy changed by {focusEnergy.Amount}";
-            list.Add(s);
-        }
-        foreach (SocialEnergyOutcome socialEnergy in messages.SocialEnergy)
-        {
-            string s = $"S. Energy changed by {socialEnergy.Amount}";
+            string s = $"{energy.EnergyType} changed by {energy.Amount}";
             list.Add(s);
         }
         foreach (SkillLevelOutcome skillLevel in messages.SkillLevel)

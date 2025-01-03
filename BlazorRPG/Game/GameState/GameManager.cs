@@ -319,20 +319,7 @@ public class GameManager
     public bool AreRequirementsMet(UserActionOption action)
     {
         PlayerState Player = gameState.Player;
-
-        return action.BasicAction.Requirements.All(requirement => requirement switch
-        {
-            PhysicalEnergyRequirement r => Player.PhysicalEnergy >= r.Amount,
-            FocusEnergyRequirement r => Player.FocusEnergy >= r.Amount,
-            SocialEnergyRequirement r => Player.SocialEnergy >= r.Amount,
-            InventorySlotsRequirement r => Player.Inventory.GetEmptySlots() >= r.Count,
-            HealthRequirement r => Player.Health >= r.Amount,
-            CoinsRequirement r => Player.Coins >= r.Amount,
-            FoodRequirement r => Player.Inventory.GetItemCount(ResourceTypes.Food) >= r.Amount,
-            SkillLevelRequirement r => Player.Skills.ContainsKey(r.SkillType) && Player.Skills[r.SkillType] >= r.Amount,
-            ItemRequirement r => Player.Inventory.GetItemCount(r.ResourceType) >= r.Count,
-            _ => false
-        });
+        return action.BasicAction.CanExecute(Player);
     }
 
     public void UpdateLocationSpotOptions()

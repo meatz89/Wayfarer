@@ -1,39 +1,28 @@
 ﻿@inherits ActionPreviewBase
 
 <div class="action-preview">
-    <h4>Rewards</h4>
+    <h4>Requirements:</h4>
     <ul>
-        @foreach (var outcome in CurrentAction.BasicAction.Rewards)
+        @foreach (string description in GetRequirementDescriptions())
         {
-            @if (IsReward(outcome))
-            {
-                <li style="color: green">
-                    @GetRewardOutcomeDescription(outcome)
-                </li>
-            }
+            <li>@((MarkupString)description)</li>
         }
     </ul>
 
-    <h4>Cost</h4>
+    <h4>Outcomes:</h4>
     <ul>
-        @foreach (var outcome in CurrentAction.BasicAction.Rewards)
+        @foreach (string description in GetOutcomeDescriptions())
         {
-            @if (IsCost(outcome))
-            {
-                <li style="color: red">
-                    @GetCostOutcomeDescription(outcome)
-                </li>
-            }
+            <li>@((MarkupString)description)</li>
         }
     </ul>
 
-    <h4>Requirements</h4>
-    <ul>
-        @foreach (var requirement in CurrentAction.BasicAction.Requirements)
-        {
-            <li style="color: @GetRequirementColor(requirement)">
-                @GetRequirementDescription(requirement)
-            </li>
-        }
-    </ul>
+    <div class="action-buttons">
+        <button class="action-button" @onclick="HandleConfirm">
+            Confirm
+        </button>
+        <button class="action-button" @onclick="HandleBack">
+            Back
+        </button>
+    </div>
 </div>

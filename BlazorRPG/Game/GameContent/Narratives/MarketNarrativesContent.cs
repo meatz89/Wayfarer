@@ -8,10 +8,10 @@
             .AddChoice(choice => choice
                 .WithIndex(1)
                 .WithDescription("Study the market prices")
-                .ExpendsFocusEnergy(1))
+                .ExpendsEnergy(EnergyTypes.Focus, 1))
             .AddChoice(choice => choice
                 .WithIndex(2)
                 .WithDescription("Listen to merchant gossip")
-                .ExpendsSocialEnergy(1)))
+                .ExpendsEnergy(EnergyTypes.Social, 1)))
         .Build();
 }

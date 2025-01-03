@@ -30,6 +30,6 @@
         }
 
         // Return whether this action should trigger day change
-        return basicAction.Costs.Any(o => o is DayChangeOutcome) || basicAction.Rewards.Any(o => o is DayChangeOutcome)
+        return basicAction.Costs.Any(o => o is DayChangeOutcome) || basicAction.Rewards.Any(o => o is DayChangeOutcome);
     }
 }

@@ -3,7 +3,8 @@
     private int index;
     private string description;
     private List<Requirement> requirements = new();
-    private List<Outcome> outcomes = new();
+    private List<Outcome> costs = new();
+    private List<Outcome> rewards = new();
 
     public ChoiceBuilder WithIndex(int index)
     {
@@ -17,82 +18,34 @@
         return this;
     }
 
-    public ChoiceBuilder ExpendsPhysicalEnergy(int amount)
+    public ChoiceBuilder ExpendsEnergy(EnergyTypes energy, int amount)
     {
-        requirements.Add(new PhysicalEnergyRequirement
-        {
-            Amount = amount
-        });
-
-        outcomes.Add(new PhysicalEnergyOutcome
-        {
-            Amount = -amount
-        });
-        return this;
-    }
-
-    public ChoiceBuilder ExpendsFocusEnergy(int amount)
-    {
-        requirements.Add(new FocusEnergyRequirement
-        {
-            Amount = amount
-        });
-
-        outcomes.Add(new FocusEnergyOutcome
-        {
-            Amount = -amount
-        });
-        return this;
-    }
-
-    public ChoiceBuilder ExpendsSocialEnergy(int amount)
-    {
-        requirements.Add(new SocialEnergyRequirement
-        {
-            Amount = amount
-        });
-
-        outcomes.Add(new SocialEnergyOutcome
-        {
-            Amount = -amount
-        });
+        requirements.Add(new EnergyRequirement(energy, amount));
+        costs.Add(new EnergyOutcome(energy, amount));
         return this;
     }
 
     public ChoiceBuilder RequiresSkill(SkillTypes type, int amount)
     {
-        requirements.Add(new SkillLevelRequirement
-        {
-            SkillType = type,
-            Amount = amount
-        });
+        requirements.Add(new SkillLevelRequirement(type, amount));
         return this;
     }
 
     public ChoiceBuilder WithFoodOutcome(int amount)
     {
-        outcomes.Add(new FoodOutcome
-        {
-            Amount = amount
-        });
+        rewards.Add(new ResourceOutcome(ResourceTypes.Food, amount));
         return this;
     }
 
     public ChoiceBuilder WithMoneyOutcome(int amount)
     {
-        outcomes.Add(new CoinsOutcome
-        {
-            Amount = amount
-        });
+        rewards.Add(new CoinsOutcome(amount));
         return this;
     }
 
     public ChoiceBuilder WithHealthOutcome(int amount)
     {
-        outcomes.Add(new HealthOutcome
-        {
-            Amount = amount
-        });
+        rewards.Add(new HealthOutcome(amount));
         return this;
     }
 
@@ -103,7 +56,8 @@
             Index = index,
             Description = description,
             Requirements = requirements,
-            Outcomes = outcomes
+            Costs = costs,
+            Rewards = rewards
         };
     }
 }

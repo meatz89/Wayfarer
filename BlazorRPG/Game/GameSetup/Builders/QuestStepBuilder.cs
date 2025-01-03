@@ -43,20 +43,14 @@
 
     public QuestStepBuilder RequiresReputation(ReputationTypes reputationType, int amount)
     {
-        ReputationRequirement item = new ReputationRequirement()
-        {
-            ReputationTypes = reputationType,
-            Amount = amount
-        };
-
+        ReputationRequirement item = new ReputationRequirement(reputationType, amount);
         requirements.Add(item);
-
         return this;
     }
 
     public QuestStepBuilder RequiresCoins(int amount)
     {
-        CoinsRequirement item = new CoinsRequirement() { Amount = amount };
+        CoinsRequirement item = new CoinsRequirement(amount);
         requirements.Add(item);
 
         return this;
@@ -64,7 +58,7 @@
 
     public QuestStepBuilder RequiresStatus(StatusTypes status)
     {
-        StatusRequirement item = new StatusRequirement() { Status = status };
+        StatusRequirement item = new StatusRequirement(status);
         requirements.Add(item);
 
         return this;

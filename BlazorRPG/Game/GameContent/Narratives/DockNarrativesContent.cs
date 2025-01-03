@@ -8,7 +8,7 @@
             .AddChoice(choice => choice
                 .WithIndex(1)
                 .WithDescription("Observe the workers' routines")
-                .ExpendsFocusEnergy(1)))
+                .ExpendsEnergy(EnergyTypes.Focus, 1)))
         .Build();
 
     public static Narrative DockWork => new NarrativeBuilder()
@@ -19,12 +19,12 @@
             .AddChoice(choice => choice
                 .WithIndex(1)
                 .WithDescription("Work steadily and methodically")
-                .ExpendsPhysicalEnergy(2)
+                .ExpendsEnergy(EnergyTypes.Physical, 2)
                 .RequiresSkill(SkillTypes.Strength, 1))
             .AddChoice(choice => choice
                 .WithIndex(2)
                 .WithDescription("Push yourself to work faster")
-                .ExpendsPhysicalEnergy(3)
+                .ExpendsEnergy(EnergyTypes.Physical, 3)
                 .WithHealthOutcome(-1)))
         .Build();
 

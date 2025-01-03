@@ -3,14 +3,20 @@
     private readonly GameState gameState;
     private readonly List<Quest> allQuests = new();
     private readonly ContextEngine contextEngine;
+    private readonly ActionValidator actionValidator;
     private readonly List<Quest> activeQuests = new();
     private readonly int maxActiveQuests = 3;  // Fixed limit
     private int activeQuestCount;
 
-    public QuestSystem(GameState gameState, GameContentProvider contentProvider, ContextEngine contextEngine)
+    public QuestSystem(
+        GameState gameState, 
+        GameContentProvider contentProvider, 
+        ContextEngine contextEngine,
+        ActionValidator actionValidator)
     {
         this.gameState = gameState;
         this.contextEngine = contextEngine;
+        this.actionValidator = actionValidator;
         this.allQuests = contentProvider.GetQuests();
 
         foreach (Quest quest in allQuests)
@@ -30,7 +36,7 @@
 
             BasicAction questAction = questStep.QuestAction;
             if (questAction.ActionType == action.ActionType &&
-                contextEngine.MeetsRequirements(questStep))
+                actionValidator.CanExecuteAction(questStep.QuestAction))
             {
                 quest.AdvanceQuest();
             }
@@ -52,8 +58,8 @@
         return new List<IGameStateModifier>();
     }
 
-    public IEnumerable<object> GetActiveConditions()
+    public List<QuestCondidtion> GetActiveConditions()
     {
-        throw new NotImplementedException();
+        return new List<QuestCondidtion>();
     }
 }

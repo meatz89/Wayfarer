@@ -62,7 +62,13 @@
         if (!CanExecute(narrativeStage, choiceId))
             return null;
 
-        return choice.Outcomes;
+        List<Outcome> costs = choice.Costs;
+        List<Outcome> rewards = choice.Rewards;
+
+        var outcomes = new List<Outcome>();
+        outcomes.AddRange(costs);
+        outcomes.AddRange(rewards);
+        return outcomes;
     }
 
     private bool CheckRequirement(Requirement requirement)
@@ -70,10 +76,6 @@
         if (requirement is CoinsRequirement money)
         {
             return gameState.Player.Coins >= money.Amount;
-        }
-        if (requirement is FoodRequirement food)
-        {
-            return gameState.Player.Health >= food.Amount;
         }
         if (requirement is InventorySlotsRequirement inventorySlot)
         {
@@ -83,23 +85,26 @@
         {
             return gameState.Player.Health >= health.Amount;
         }
-        if (requirement is PhysicalEnergyRequirement physicalEnergy)
+        if (requirement is EnergyRequirement energy)
         {
-            return gameState.Player.PhysicalEnergy >= physicalEnergy.Amount;
-        }
-        if (requirement is FocusEnergyRequirement focusEnergy)
-        {
-            return gameState.Player.FocusEnergy >= focusEnergy.Amount;
-        }
-        if (requirement is SocialEnergyRequirement socialEnergy)
-        {
-            return gameState.Player.SocialEnergy >= socialEnergy.Amount;
+            switch (energy.EnergyType)
+            {
+                case EnergyTypes.Physical:
+                   return gameState.Player.PhysicalEnergy >= energy.Amount;
+
+                case EnergyTypes.Focus:
+                    return gameState.Player.FocusEnergy >= energy.Amount;
+
+                case EnergyTypes.Social:
+                    return gameState.Player.SocialEnergy >= energy.Amount;
+            }
+            return false;
         }
         if (requirement is SkillLevelRequirement skillLevel)
         {
             return gameState.Player.Skills[skillLevel.SkillType] >= skillLevel.Amount;
         }
-        if (requirement is ItemRequirement item)
+        if (requirement is ResourceRequirement resource)
         {
             return false;
         }

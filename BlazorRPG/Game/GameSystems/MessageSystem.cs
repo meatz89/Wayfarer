@@ -5,7 +5,7 @@ public class MessageSystem
 
     public void AddSystemMessage(string message)
     {
-        throw new NotImplementedException();
+        
     }
 
     public ActionResultMessages GetAndClearChanges()
