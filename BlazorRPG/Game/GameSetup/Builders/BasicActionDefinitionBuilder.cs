@@ -3,8 +3,9 @@
     private BasicActionTypes actionType;
     private string description;
     private List<TimeWindows> timeSlots = new();
-    public List<IRequirement> requirements = new();
-    public List<IOutcome> outcomes = new();
+    public List<Requirement> requirements = new();
+    public List<Outcome> costs = new();
+    public List<Outcome> rewards = new();
 
     public BasicActionDefinitionBuilder ForAction(BasicActionTypes actionType)
     {
@@ -22,265 +23,96 @@
 
     public BasicActionDefinitionBuilder RequiresInventorySlots(int slots)
     {
-        this.requirements.Add(new InventorySlotsRequirement
-        {
-            Count = slots
-        });
-
+        this.requirements.Add(new InventorySlotsRequirement(slots));
         return this;
     }
 
     public BasicActionDefinitionBuilder AddTimeWindow(TimeWindows timeSlot)
     {
         this.timeSlots.Add(timeSlot);
-
         return this;
     }
 
     public BasicActionDefinitionBuilder ExpendsHealth(int cost)
     {
-        requirements.Add(new HealthRequirement
-        {
-            Amount = cost
-        });
-
-        outcomes.Add(new HealthOutcome
-        {
-            Amount = -cost
-        });
-
+        requirements.Add(new HealthRequirement(cost));
+        costs.Add(new HealthOutcome(cost));
         return this;
     }
 
     public BasicActionDefinitionBuilder ExpendsEnergy(int energyCost, EnergyTypes energyType)
     {
-        switch (energyType)
-        {
-            case EnergyTypes.Physical:
-                return ExpendsPhysicalEnergy(energyCost);
-
-            case EnergyTypes.Focus:
-                return ExpendsFocusEnergy(energyCost);
-
-            case EnergyTypes.Social:
-                return ExpendsSocialEnergy(energyCost);
-        }
-        return this;
-    }
-
-    private BasicActionDefinitionBuilder ExpendsPhysicalEnergy(int cost)
-    {
-        requirements.Add(new PhysicalEnergyRequirement
-        {
-            Amount = cost
-        });
-
-        outcomes.Add(new PhysicalEnergyOutcome
-        {
-            Amount = -cost
-        });
-
-        return this;
-    }
-
-    private BasicActionDefinitionBuilder ExpendsFocusEnergy(int cost)
-    {
-        requirements.Add(new FocusEnergyRequirement
-        {
-            Amount = cost
-        });
-
-        outcomes.Add(new FocusEnergyOutcome
-        {
-            Amount = -cost
-        });
-
-        return this;
-    }
-
-    private BasicActionDefinitionBuilder ExpendsSocialEnergy(int cost)
-    {
-        requirements.Add(new SocialEnergyRequirement
-        {
-            Amount = cost
-        });
-
-        outcomes.Add(new SocialEnergyOutcome
-        {
-            Amount = -cost
-        });
-
+        requirements.Add(new EnergyRequirement(energyType, energyCost));
+        costs.Add(new EnergyOutcome(energyType, energyCost));
         return this;
     }
 
     public BasicActionDefinitionBuilder ExpendsCoins(int cost)
     {
-        requirements.Add(new CoinsRequirement
-        {
-            Amount = cost
-        });
-
-        outcomes.Add(new CoinsOutcome
-        {
-            Amount = -cost
-        });
-
+        requirements.Add(new CoinsRequirement(cost));
+        costs.Add(new CoinsOutcome(cost));
         return this;
     }
 
     public BasicActionDefinitionBuilder ExpendsFood(int cost)
     {
-        requirements.Add(new FoodRequirement
-        {
-            Amount = cost
-        });
-
-        outcomes.Add(new FoodOutcome
-        {
-            Amount = -cost
-        });
-
+        requirements.Add(new ResourceRequirement(ResourceTypes.Food, cost));    
+        costs.Add(new ResourceOutcome(ResourceTypes.Food, cost));
         return this;
     }
 
     public BasicActionDefinitionBuilder ExpendsItem(ResourceTypes item, int count)
     {
-        requirements.Add(new ItemRequirement
-        {
-            ResourceType = item,
-            Count = count
-        });
-
-        outcomes.Add(new ResourceOutcome
-        {
-            ChangeType = ResourceChangeType.Removed,
-            Resource = item,
-            Count = count
-        });
-
+        requirements.Add(new ResourceRequirement(item, count));
+        costs.Add(new ResourceOutcome(item, count));
         return this;
     }
 
     public BasicActionDefinitionBuilder RewardsResource(ResourceTypes resourceType, int amount)
     {
-        outcomes.Add(new ResourceOutcome
-        {
-            ChangeType = ResourceChangeType.Added,
-            Resource = resourceType,
-            Count = amount
-        });
-
+        rewards.Add(new ResourceOutcome(resourceType, amount));
         return this;
     }
 
     public BasicActionDefinitionBuilder RewardsCoins(int amount)
     {
-        outcomes.Add(new CoinsOutcome
-        {
-            Amount = amount
-        });
-
+        rewards.Add(new CoinsOutcome(amount));
         return this;
     }
 
 
     public BasicActionDefinitionBuilder RewardsFood(int amount)
     {
-        outcomes.Add(new FoodOutcome
-        {
-            Amount = amount
-        });
-
+        rewards.Add(new ResourceOutcome(ResourceTypes.Food, amount));
         return this;
     }
 
-    public BasicActionDefinitionBuilder RewardsTrust(int amount)
+    public BasicActionDefinitionBuilder RewardsTrust(int amount, CharacterNames characterNames)
     {
         return this;
     }
 
     public BasicActionDefinitionBuilder RewardsHealth(int amount)
     {
-        outcomes.Add(new HealthOutcome
-        {
-            Amount = amount
-        });
-
+        rewards.Add(new HealthOutcome(amount));
         return this;
     }
 
     public BasicActionDefinitionBuilder RewardsEnergy(int amount, EnergyTypes energyType)
     {
-        switch (energyType)
-        {
-            case EnergyTypes.Physical:
-                return RewardsPhysicalEnergy(amount);
-
-            case EnergyTypes.Focus:
-                return RewardsFocusEnergy(amount);
-
-            case EnergyTypes.Social:
-                return RewardsSocialEnergy(amount);
-        }
-        return this;
-    }
-
-    private BasicActionDefinitionBuilder RewardsPhysicalEnergy(int amount)
-    {
-        outcomes.Add(new PhysicalEnergyOutcome
-        {
-            Amount = amount
-        });
-
-        return this;
-    }
-
-    private BasicActionDefinitionBuilder RewardsFocusEnergy(int amount)
-    {
-        outcomes.Add(new FocusEnergyOutcome
-        {
-            Amount = amount
-        });
-
-        return this;
-    }
-
-    private BasicActionDefinitionBuilder RewardsSocialEnergy(int amount)
-    {
-        outcomes.Add(new SocialEnergyOutcome
-        {
-            Amount = amount
-        });
-
+        rewards.Add(new EnergyOutcome(energyType, amount));
         return this;
     }
 
     public BasicActionDefinitionBuilder RewardsReputation(ReputationTypes reputationType, int amount)
     {
-        outcomes.Add(new ReputationOutcome
-        {
-            Amount = amount
-        });
-
+        rewards.Add(new ReputationOutcome(reputationType, amount));
         return this;
     }
 
     public BasicActionDefinitionBuilder UnlocksAchievement(AchievementTypes achievementType)
     {
-        outcomes.Add(new AchievementOutcome
-        {
-            AchievementType = achievementType
-        });
-
-        return this;
-    }
-
-    public BasicActionDefinitionBuilder EndsDay()
-    {
-        outcomes.Add(new EndDayOutcome
-        {
-        });
-
+        rewards.Add(new AchievementOutcome(achievementType));
         return this;
     }
 
@@ -292,7 +124,8 @@
             Name = description,
             TimeSlots = timeSlots,
             Requirements = requirements,
-            Outcomes = outcomes,
+            Costs = costs,
+            Rewards = rewards,
         };
     }
 }

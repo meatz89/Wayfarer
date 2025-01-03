@@ -2,8 +2,8 @@
 {
     private int index;
     private string description;
-    private List<IRequirement> requirements = new();
-    private List<IOutcome> outcomes = new();
+    private List<Requirement> requirements = new();
+    private List<Outcome> outcomes = new();
 
     public ChoiceBuilder WithIndex(int index)
     {

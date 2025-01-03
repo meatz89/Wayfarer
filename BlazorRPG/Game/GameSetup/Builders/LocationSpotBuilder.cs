@@ -261,24 +261,28 @@
 
     private BasicAction BuildRestAction()
     {
-        // Start by setting up the basic requirements for any rest
-        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder()
-            .ForAction(BasicActionTypes.Rest)
-            .WithDescription(GetRestDescription())
-            .ExpendsFood(1)
-            .EndsDay()
-            .AddTimeWindow(TimeWindows.Evening)
-            .AddTimeWindow(TimeWindows.Night);
-
-        // If this rest spot has a cost (like an inn room), add it
-        if (coinCost > 0)
-            builder.ExpendsCoins(coinCost);
-
-        builder.RewardsEnergy(physicalEnergyReward, EnergyTypes.Physical)
-               .RewardsEnergy(focusEnergyReward, EnergyTypes.Focus)
-               .RewardsEnergy(socialEnergyReward, EnergyTypes.Social);
-
-        return builder.Build();
+        return new BasicAction
+        {
+            ActionType = BasicActionTypes.Rest,
+            Name = GetRestDescription(),
+            TimeSlots = new List<TimeWindows> { TimeWindows.Evening, TimeWindows.Night },
+            Requirements = new List<Requirement>
+            {
+                new ResourceRequirement(ResourceTypes.Food, 1)
+            },
+                Costs = new List<Outcome>()
+            {
+                new ResourceOutcome(ResourceTypes.Food, -1),
+                new DayChangeOutcome() 
+            },
+                Rewards = new List<Outcome>
+            {
+                new EnergyOutcome(EnergyTypes.Physical, 5),
+                new EnergyOutcome(EnergyTypes.Focus, 5),
+                new EnergyOutcome(EnergyTypes.Social, 5),
+                new DayChangeOutcome()
+            }
+        };
     }
 
     private string GetInteractionDescription() => spotName switch

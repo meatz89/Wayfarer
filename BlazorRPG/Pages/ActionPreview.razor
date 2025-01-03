@@ -3,7 +3,7 @@
 <div class="action-preview">
     <h4>Rewards</h4>
     <ul>
-        @foreach (var outcome in CurrentAction.BasicAction.Outcomes)
+        @foreach (var outcome in CurrentAction.BasicAction.Rewards)
         {
             @if (IsReward(outcome))
             {
@@ -16,7 +16,7 @@
 
     <h4>Cost</h4>
     <ul>
-        @foreach (var outcome in CurrentAction.BasicAction.Outcomes)
+        @foreach (var outcome in CurrentAction.BasicAction.Rewards)
         {
             @if (IsCost(outcome))
             {

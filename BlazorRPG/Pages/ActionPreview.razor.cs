@@ -7,7 +7,7 @@ public partial class ActionPreviewBase : ComponentBase
     [Parameter] public EventCallback<bool> OnActionConfirmed { get; set; }
     [Parameter] public EventCallback OnBack { get; set; }
 
-    public string GetRequirementDescription(IRequirement requirement)
+    public string GetRequirementDescription(Requirement requirement)
     {
         return requirement switch
         {
@@ -29,7 +29,7 @@ public partial class ActionPreviewBase : ComponentBase
         return amount >= 0 ? "positive" : "negative";
     }
 
-    private string FormatValuePreview(IOutcome outcome)
+    private string FormatValuePreview(Outcome outcome)
     {
         return outcome switch
         {
@@ -62,7 +62,7 @@ public partial class ActionPreviewBase : ComponentBase
         }
     }
 
-    public MarkupString GetCostOutcomeDescription(IOutcome outcome)
+    public MarkupString GetCostOutcomeDescription(Outcome outcome)
     {
         string description = outcome switch
         {
@@ -79,7 +79,7 @@ public partial class ActionPreviewBase : ComponentBase
         return new MarkupString(description);
     }
 
-    public MarkupString GetRewardOutcomeDescription(IOutcome outcome)
+    public MarkupString GetRewardOutcomeDescription(Outcome outcome)
     {
         string description = outcome switch
         {
@@ -96,7 +96,7 @@ public partial class ActionPreviewBase : ComponentBase
         return new MarkupString(description);
     }
 
-    protected string GetRequirementColor(IRequirement requirement)
+    protected string GetRequirementColor(Requirement requirement)
     {
         return requirement switch
         {
@@ -113,7 +113,7 @@ public partial class ActionPreviewBase : ComponentBase
         };
     }
 
-    public bool IsCost(IOutcome outcome)
+    public bool IsCost(Outcome outcome)
     {
         return outcome switch
         {
@@ -129,7 +129,7 @@ public partial class ActionPreviewBase : ComponentBase
         };
     }
 
-    public bool IsReward(IOutcome outcome)
+    public bool IsReward(Outcome outcome)
     {
         return outcome switch
         {

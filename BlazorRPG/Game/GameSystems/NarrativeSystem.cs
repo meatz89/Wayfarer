@@ -41,7 +41,7 @@
         Choice choice = choices.FirstOrDefault(c => c.Index == choiceId);
         if (choice == null) return false;
 
-        foreach (IRequirement req in choice.Requirements)
+        foreach (Requirement req in choice.Requirements)
         {
             bool hasRequirement = CheckRequirement(req);
             if (!hasRequirement) return false;
@@ -50,7 +50,7 @@
         return true;
     }
 
-    public List<IOutcome> GetChoiceOutcomes(Narrative narrative, NarrativeStage narrativeStage, int choiceId)
+    public List<Outcome> GetChoiceOutcomes(Narrative narrative, NarrativeStage narrativeStage, int choiceId)
     {
         if (narrative?.Stages == null || !narrative.Stages.Any())
             return null;
@@ -65,7 +65,7 @@
         return choice.Outcomes;
     }
 
-    private bool CheckRequirement(IRequirement requirement)
+    private bool CheckRequirement(Requirement requirement)
     {
         if (requirement is CoinsRequirement money)
         {

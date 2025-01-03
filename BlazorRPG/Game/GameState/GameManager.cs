@@ -214,26 +214,31 @@ public class GameManager
         // 3. Apply character relationship effects
         CharacterSystem.ProcessActionImpact(basicAction);
 
-        // 4. Execute core action logic
-        // ... existing execution code
-
-        // 5. Update contexts based on results
-        ContextEngine.ProcessActionOutcome(basicAction);
+        // 4. Execute outcomes and check if day change is needed
+        bool shouldChangeDays = ContextEngine.ProcessActionOutcome(basicAction);
 
         ActionResultMessages allMessages = MessageSystem.GetAndClearChanges();
 
-        bool stillAlive = AdvanceTime(1);
+        // Handle time advancement based on action type
+        bool stillAlive;
+        if (shouldChangeDays)
+        {
+            AdvanceTimeTo(7); // Advance to morning
+            stillAlive = StartNewDay(); // Apply day change effects
+        }
+        else
+        {
+            stillAlive = AdvanceTime(1); // Normal time advance
+        }
+
         if (!stillAlive) return ActionResult.Failure("you died");
 
-        ActionResult actionResult = ActionResult.Success("Action success!", allMessages);
-        gameState.Actions.SetLastActionResult(actionResult);
-
-        return actionResult;
+        return ActionResult.Success("Action success!", allMessages);
     }
 
     //public ActionResult MakeChoiceForNarrative(Narrative currentNarrative, NarrativeStage narrativeStage, int choice)
     //{
-    //    List<IOutcome> outcomes = NarrativeSystem.GetChoiceOutcomes(currentNarrative, narrativeStage, choice);
+    //    List<Outcome> outcomes = NarrativeSystem.GetChoiceOutcomes(currentNarrative, narrativeStage, choice);
     //    if (outcomes == null)
     //    {
     //        ActionResult actionResultFail = ActionResult.Failure("No Success");
@@ -243,7 +248,7 @@ public class GameManager
     //    }
     //    else
     //    {
-    //        foreach (IOutcome outcome in outcomes)
+    //        foreach (Outcome outcome in outcomes)
     //        {
     //            ApplyOutcome(outcome);
     //        }

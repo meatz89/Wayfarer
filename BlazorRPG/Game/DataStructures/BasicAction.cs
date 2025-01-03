@@ -1,11 +1,23 @@
 ﻿public class BasicAction
 {
     public BasicActionTypes ActionType { get; set; }
-
     public string Name { get; set; }
     public bool IsAvailable = true;
-    public int Cost = 1;
     public List<TimeWindows> TimeSlots = new();
-    public List<IRequirement> Requirements { get; set; } = new();
-    public List<IOutcome> Outcomes { get; set; } = new();
+    public List<Requirement> Requirements { get; set; } = new();
+    public List<Outcome> Rewards { get; set; } = new();
+    public List<Outcome> Costs { get; internal set; }
+
+    public bool CanExecute(PlayerState player)
+    {
+        return Requirements.All(r => r.IsSatisfied(player));
+    }
+
+    public void Execute(PlayerState player)
+    {
+        foreach (Outcome outcome in Rewards)
+        {
+            outcome.Apply(player);
+        }
+    }
 }

@@ -1,159 +1,35 @@
 ﻿public class ContextEngine
 {
     private readonly GameState gameState;
-
-    private readonly StatusSystem statusSystem;
-    private readonly ReputationSystem reputationSystem;
-    private readonly AchievementSystem achievementSystem;
-
-    private readonly ActionValidator actionValidator;
     private readonly MessageSystem messageSystem;
 
-    public ContextEngine(
-        GameState gameState,
-        StatusSystem statusSystem,
-        ReputationSystem reputationSystem,
-        AchievementSystem achievementSystem,
-        ActionValidator actionValidator,
-        MessageSystem messageSystem
-        )
+    public ContextEngine(GameState gameState, MessageSystem messageSystem)
     {
         this.gameState = gameState;
-
-        this.statusSystem = statusSystem;
-        this.reputationSystem = reputationSystem;
-        this.achievementSystem = achievementSystem;
-        this.actionValidator = actionValidator;
         this.messageSystem = messageSystem;
     }
 
     public bool CanExecuteInContext(BasicAction basicAction)
     {
-        return actionValidator.CanExecuteAction(basicAction);
+        return basicAction.CanExecute(gameState.Player);
     }
 
-    public bool MeetsRequirements(QuestStep questStep)
+    public bool ProcessActionOutcome(BasicAction basicAction)
     {
-        BasicAction basicAction = questStep.QuestAction;
-        return actionValidator.CanExecuteAction(basicAction);
-    }
-
-    public void ProcessActionOutcome(BasicAction basicAction)
-    {
-        foreach (IOutcome outcome in basicAction.Outcomes)
+        // First apply all regular outcomes
+        foreach (Outcome cost in basicAction.Costs)
         {
-            ApplyOutcome(outcome);
+            cost.Apply(gameState.Player);
         }
-    }
 
-    private void ApplyOutcome(IOutcome outcome)
-    {
-        switch (outcome)
+
+        // First apply all regular outcomes
+        foreach (Outcome reward in basicAction.Rewards)
         {
-            case CoinsOutcome coinsOutcome:
-                AddCoinsChange(coinsOutcome);
-                break;
-            case FoodOutcome foodOutcome:
-                AddFoodChange(foodOutcome);
-                break;
-            case HealthOutcome healthOutcome:
-                AddHealthChange(healthOutcome);
-                break;
-            case PhysicalEnergyOutcome physicalEnergyOutcome:
-                AddPhysicalEnergyChange(physicalEnergyOutcome);
-                break;
-            case FocusEnergyOutcome focusEnergyOutcome:
-                AddFocusEnergyChange(focusEnergyOutcome);
-                break;
-            case SocialEnergyOutcome socialEnergyOutcome:
-                AddSocialEnergyChange(socialEnergyOutcome);
-                break;
-            case SkillLevelOutcome skillLevelOutcome:
-                AddSkillLevelChange(skillLevelOutcome);
-                break;
-            case ResourceOutcome itemOutcome:
-                AddResourceChange(itemOutcome);
-                break;
-            case EndDayOutcome endDayOutcome:
-                AddEndDayChange(endDayOutcome);
-                break;
+            reward.Apply(gameState.Player);
         }
-    }
 
-    public void AddCoinsChange(CoinsOutcome money)
-    {
-        bool neededChange = gameState.Player.ModifyCoins(money.Amount);
-        if (neededChange)
-        {
-            messageSystem.changes.Coins.Add(money);
-        }
-    }
-
-    public void AddFoodChange(FoodOutcome food)
-    {
-        bool neededChange = gameState.Player.ModifyFood(food.Amount);
-        if (neededChange)
-        {
-            messageSystem.changes.Food.Add(food);
-        }
-    }
-
-    public void AddHealthChange(HealthOutcome health)
-    {
-        bool neededChange = gameState.Player.ModifyHealth(health.Amount);
-        if (neededChange)
-        {
-            messageSystem.changes.Health.Add(health);
-        }
-    }
-
-    public void AddPhysicalEnergyChange(PhysicalEnergyOutcome physicalEnergy)
-    {
-        bool neededChange = gameState.Player.ModifyPhysicalEnergy(physicalEnergy.Amount);
-        if (neededChange)
-        {
-            messageSystem.changes.PhysicalEnergy.Add(physicalEnergy);
-        }
-    }
-
-    public void AddFocusEnergyChange(FocusEnergyOutcome focusEnergy)
-    {
-        bool neededChange = gameState.Player.ModifyFocusEnergy(focusEnergy.Amount);
-        if (neededChange)
-        {
-            messageSystem.changes.FocusEnergy.Add(focusEnergy);
-        }
-    }
-
-    public void AddSocialEnergyChange(SocialEnergyOutcome socialEnergy)
-    {
-        bool neededChange = gameState.Player.ModifySocialEnergy(socialEnergy.Amount);
-        if (neededChange)
-        {
-            messageSystem.changes.SocialEnergy.Add(socialEnergy);
-        }
-    }
-
-    public void AddSkillLevelChange(SkillLevelOutcome skillLevel)
-    {
-        bool neededChange = gameState.Player.ModifySkillLevel(skillLevel.SkillType, skillLevel.Amount);
-        if (neededChange)
-        {
-            messageSystem.changes.SkillLevel.Add(skillLevel);
-        }
-    }
-
-    public void AddResourceChange(ResourceOutcome resource)
-    {
-        bool neededChange = gameState.Player.ModifyItem(resource.ChangeType, resource.Resource, resource.Count);
-        if (neededChange)
-        {
-            messageSystem.changes.Resources.Add(resource);
-        }
-    }
-
-    public void AddEndDayChange(EndDayOutcome endDay)
-    {
-        //this.AdvanceTimeTo(7 - 2);
+        // Return whether this action should trigger day change
+        return basicAction.Costs.Any(o => o is DayChangeOutcome) || basicAction.Rewards.Any(o => o is DayChangeOutcome)
     }
 }

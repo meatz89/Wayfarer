@@ -2,8 +2,8 @@
 {
     public string Description { get; set; }
     public BasicAction QuestAction { get; set; }
-    public List<IRequirement> Requirements = new();
-    public List<IOutcome> Outcomes = new();
+    public List<Requirement> Requirements = new();
+    public List<Outcome> Outcomes = new();
     public List<IGameStateModifier> StateModifiers = new();
     public LocationNames Location { get; set; }
     public LocationSpotNames LocationSpot { get; set; }

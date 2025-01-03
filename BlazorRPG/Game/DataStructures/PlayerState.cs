@@ -117,4 +117,24 @@
     {
         Health = Math.Min(MaxHealth, Math.Max(MinHealth, Health + healthGain));
     }
+
+    internal void ModifyReputation(ReputationTypes reputationType, int amount)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal int GetReputationLevel(ReputationTypes reputationType)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal void UnlockAchievement(AchievementTypes achievementType)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal bool HasAchievement(AchievementTypes achievementType)
+    {
+        throw new NotImplementedException();
+    }
 }

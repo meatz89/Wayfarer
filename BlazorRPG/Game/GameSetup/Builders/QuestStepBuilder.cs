@@ -2,7 +2,7 @@
 {
     private string description;
 
-    private List<IRequirement> requirements = new();
+    private List<Requirement> requirements = new();
     private BasicAction action;
     private LocationNames location;
     private LocationSpotNames locationSpot;
