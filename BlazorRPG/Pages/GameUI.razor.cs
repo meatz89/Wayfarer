@@ -72,32 +72,29 @@ public partial class GameUI : ComponentBase
     public List<string> GetResultMessages()
     {
         ActionResultMessages messages = GameState.Actions.LastActionResult.Messages;
-        List<string> list = new List<string>();
+        List<string> list = new();
 
-        foreach (HealthOutcome health in messages.Health)
+        // Show outcomes with their previews
+        foreach (Outcome outcome in messages.Outcomes)
         {
-            string s = $"Health changed by {health.Amount}";
-            list.Add(s);
+            string description = outcome.GetDescription();
+            string preview = outcome.GetPreview(Player);
+            list.Add($"{description} {preview}");
         }
-        foreach (CoinsOutcome money in messages.Coins)
+
+        // Show system messages with appropriate styling
+        foreach (SystemMessage sysMsg in messages.SystemMessages)
         {
-            string s = $"Coins changed by {money.Amount}";
-            list.Add(s);
-        }
-        foreach (EnergyOutcome energy in messages.Energy)
-        {
-            string s = $"{energy.EnergyType} changed by {energy.Amount}";
-            list.Add(s);
-        }
-        foreach (SkillLevelOutcome skillLevel in messages.SkillLevel)
-        {
-            string s = $"Skill Level in {skillLevel.SkillType} changed by {skillLevel.Amount}";
-            list.Add(s);
-        }
-        foreach (ResourceOutcome item in messages.Resources)
-        {
-            string s = $"Item {item.ChangeType.ToString()} : {item.Resource.ToString()} ({item.Count})";
-            list.Add(s);
+            // Add CSS class based on message type
+            string cssClass = sysMsg.Type switch
+            {
+                SystemMessageTypes.Warning => "warning",
+                SystemMessageTypes.Danger => "danger",
+                SystemMessageTypes.Success => "success",
+                _ => "info"
+            };
+
+            list.Add($"<span class='{cssClass}'>{sysMsg.Message}</span>");
         }
 
         return list;

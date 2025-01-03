@@ -20,6 +20,13 @@
         foreach (Outcome cost in basicAction.Costs)
         {
             cost.Apply(gameState.Player);
+            // Record it for display
+            messageSystem.AddOutcome(cost);
+
+            if (cost is DayChangeOutcome)
+            {
+                messageSystem.AddSystemMessage("Night falls...", SystemMessageTypes.Info);
+            }
         }
 
 
@@ -27,6 +34,13 @@
         foreach (Outcome reward in basicAction.Rewards)
         {
             reward.Apply(gameState.Player);
+            // Record it for display
+            messageSystem.AddOutcome(reward);
+
+            if (reward is DayChangeOutcome)
+            {
+                messageSystem.AddSystemMessage("Night falls...", SystemMessageTypes.Info);
+            }
         }
 
         // Return whether this action should trigger day change

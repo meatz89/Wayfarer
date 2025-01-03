@@ -1,18 +1,21 @@
-﻿
-public class MessageSystem
+﻿public class MessageSystem
 {
-    public ActionResultMessages changes = new();
+    private ActionResultMessages currentChanges = new();
 
-    public void AddSystemMessage(string message)
+    public void AddOutcome(Outcome outcome)
     {
-        
+        currentChanges.Outcomes.Add(outcome);
+    }
+
+    public void AddSystemMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info)
+    {
+        currentChanges.SystemMessages.Add(new SystemMessage(message, type));
     }
 
     public ActionResultMessages GetAndClearChanges()
     {
-        ActionResultMessages changesToReturn = changes;
-
-        changes = new ActionResultMessages();
-        return changesToReturn;
+        ActionResultMessages changes = currentChanges;
+        currentChanges = new ActionResultMessages();
+        return changes;
     }
 }
