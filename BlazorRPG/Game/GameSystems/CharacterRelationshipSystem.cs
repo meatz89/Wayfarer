@@ -8,7 +8,7 @@
         return 1;
     }
 
-    public void ModifyTrust(CharacterNames character, int amount)
+    public void ModifyTrust(CharacterNames character, int count)
     {
     }
 

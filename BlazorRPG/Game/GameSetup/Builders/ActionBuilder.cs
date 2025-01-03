@@ -1,5 +1,6 @@
 ﻿
-public class BasicActionDefinitionBuilder
+
+public class ActionBuilder
 {
     private BasicActionTypes actionType;
     private string description;
@@ -9,121 +10,121 @@ public class BasicActionDefinitionBuilder
     public List<Outcome> rewards = new();
     public int hoursPassed = 1;
 
-    public BasicActionDefinitionBuilder ForAction(BasicActionTypes actionType)
+    public ActionBuilder ForAction(BasicActionTypes actionType)
     {
         this.actionType = actionType;
         return this;
     }
 
 
-    public BasicActionDefinitionBuilder WithDescription(string description)
+    public ActionBuilder WithDescription(string description)
     {
         this.description = description;
         return this;
     }
 
-    public BasicActionDefinitionBuilder WithTimeInvestment(int hoursPassed)
+    public ActionBuilder WithTimeInvestment(int hoursPassed)
     {
         this.hoursPassed = 0;
         return this;
     }
 
 
-    public BasicActionDefinitionBuilder RequiresInventorySlots(int slots)
+    public ActionBuilder RequiresInventorySlots(int slots)
     {
         this.requirements.Add(new InventorySlotsRequirement(slots));
         return this;
     }
 
-    public BasicActionDefinitionBuilder AddTimeSlot(TimeWindows timeSlot)
+    public ActionBuilder AddTimeSlot(TimeWindows timeSlot)
     {
         this.timeSlots.Add(timeSlot);
         return this;
     }
 
-    public BasicActionDefinitionBuilder ExpendsHealth(int cost)
+    public ActionBuilder ExpendsHealth(int cost)
     {
         requirements.Add(new HealthRequirement(cost));
         costs.Add(new HealthOutcome(cost));
         return this;
     }
 
-    public BasicActionDefinitionBuilder ExpendsEnergy(int energyCost, EnergyTypes energyType)
+    public ActionBuilder ExpendsEnergy(int energyCost, EnergyTypes energyType)
     {
         requirements.Add(new EnergyRequirement(energyType, energyCost));
         costs.Add(new EnergyOutcome(energyType, -energyCost));
         return this;
     }
 
-    public BasicActionDefinitionBuilder ExpendsCoins(int cost)
+    public ActionBuilder ExpendsCoins(int cost)
     {
         requirements.Add(new CoinsRequirement(cost));
         costs.Add(new CoinsOutcome(-cost));
         return this;
     }
 
-    public BasicActionDefinitionBuilder ExpendsFood(int cost)
+    public ActionBuilder ExpendsFood(int cost)
     {
         requirements.Add(new ResourceRequirement(ResourceTypes.Food, cost));    
         costs.Add(new ResourceOutcome(ResourceTypes.Food, -cost));
         return this;
     }
 
-    public BasicActionDefinitionBuilder ExpendsItem(ResourceTypes item, int count)
+    public ActionBuilder ExpendsItem(ResourceTypes item, int count)
     {
         requirements.Add(new ResourceRequirement(item, count));
         costs.Add(new ResourceOutcome(item, -count));
         return this;
     }
 
-    public BasicActionDefinitionBuilder RewardsResource(ResourceTypes resourceType, int amount)
+    public ActionBuilder RewardsResource(ResourceTypes resourceType, int count)
     {
-        rewards.Add(new ResourceOutcome(resourceType, amount));
+        rewards.Add(new ResourceOutcome(resourceType, count));
         return this;
     }
 
-    public BasicActionDefinitionBuilder RewardsCoins(int amount)
+    public ActionBuilder RewardsCoins(int count)
     {
-        rewards.Add(new CoinsOutcome(amount));
+        rewards.Add(new CoinsOutcome(count));
         return this;
     }
 
-    public BasicActionDefinitionBuilder RewardsFood(int amount)
+    public ActionBuilder RewardsFood(int count)
     {
-        rewards.Add(new ResourceOutcome(ResourceTypes.Food, amount));
+        rewards.Add(new ResourceOutcome(ResourceTypes.Food, count));
         return this;
     }
 
-    public BasicActionDefinitionBuilder RewardsTrust(int amount, CharacterNames characterNames)
+    public ActionBuilder RewardsTrust(int count, CharacterNames characterNames)
     {
         return this;
     }
 
-    public BasicActionDefinitionBuilder RewardsHealth(int amount)
+    public ActionBuilder RewardsHealth(int count)
     {
-        rewards.Add(new HealthOutcome(amount));
+        rewards.Add(new HealthOutcome(count));
         return this;
     }
 
-    public BasicActionDefinitionBuilder RewardsEnergy(int amount, EnergyTypes energyType)
+    public ActionBuilder RewardsEnergy(int count, EnergyTypes energyType)
     {
-        rewards.Add(new EnergyOutcome(energyType, amount));
+        rewards.Add(new EnergyOutcome(energyType, count));
         return this;
     }
 
-    public BasicActionDefinitionBuilder RewardsReputation(ReputationTypes reputationType, int amount)
+    public ActionBuilder RewardsReputation(ReputationTypes reputationType, int count)
     {
-        rewards.Add(new ReputationOutcome(reputationType, amount));
+        rewards.Add(new ReputationOutcome(reputationType, count));
         return this;
     }
 
-    public BasicActionDefinitionBuilder UnlocksAchievement(AchievementTypes achievementType)
+    public ActionBuilder UnlocksAchievement(AchievementTypes achievementType)
     {
         rewards.Add(new AchievementOutcome(achievementType));
         return this;
     }
 
-    public BasicActionDefinitionBuilder EndsDay()
+    public ActionBuilder EndsDay()
     {
         costs.Add(new DayChangeOutcome());
         return this;
@@ -134,7 +135,7 @@ public class BasicActionDefinitionBuilder
         return new BasicAction
         {
             ActionType = actionType,
-            Description = description,
+            Name = description,
             TimeSlots = timeSlots,
             Requirements = requirements,
             Costs = costs,

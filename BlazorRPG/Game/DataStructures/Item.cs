@@ -1,7 +1,6 @@
 ﻿public class Item
 {
-    public ItemNames Name { get; }
-    public int EnergyRestoration { get; }
-    public int EffectDuration { get; }
-    public BasicAction[] UnlockedActions { get; }
+    public ItemNames Name { get; set; }
+    public string Description { get; set; }
+    public List<ActionModifier> ActionModifiers { get; set; }
 }

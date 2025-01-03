@@ -40,13 +40,6 @@
             .WithCoinCost(2)
             .WithOutputResource(ResourceTypes.Food, 1)
             .WithEnergyCost(1, EnergyTypes.Social))
-        // Luxury goods trader
-        .AddLocationSpot(feature => feature
-            .ForLocation(LocationNames.MarketSquare)
-            .ForLocationSpot(LocationSpotNames.SpecialtyShop)
-            .WithInputResource(ResourceTypes.Planks, 1)
-            .WithCoinReward(8)
-            .WithEnergyCost(1, EnergyTypes.Social))
         .SetAccessType(AccessTypes.Open)
         .SetDangerLevel(DangerLevels.Safe)
         .Build();

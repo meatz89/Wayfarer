@@ -8,9 +8,9 @@
         return actions;
     }
 
-    private static BasicAction AddAction(Action<BasicActionDefinitionBuilder> buildBasicAction, DangerLevels dangerLevel)
+    private static BasicAction AddAction(Action<ActionBuilder> buildBasicAction, DangerLevels dangerLevel)
     {
-        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder();
+        ActionBuilder builder = new ActionBuilder();
         buildBasicAction(builder);
 
         if (dangerLevel == DangerLevels.Dangerous)

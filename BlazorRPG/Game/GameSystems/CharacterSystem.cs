@@ -6,7 +6,7 @@
     public CharacterSystem(GameState gameState, GameContentProvider contentProvider)
     {
         this.gameState = gameState;
-        this.allCharacterProperties = contentProvider.GetCharacterProperties();
+        this.allCharacterProperties = contentProvider.GetCharacters();
     }
 
     public List<BasicAction> GetActionsForCharacter(CharacterNames character)

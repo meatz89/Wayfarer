@@ -46,9 +46,9 @@
     }
 
 
-    public CharacterBuilder AddAction(Action<BasicActionDefinitionBuilder> buildBasicAction)
+    public CharacterBuilder AddAction(Action<ActionBuilder> buildBasicAction)
     {
-        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder();
+        ActionBuilder builder = new ActionBuilder();
         buildBasicAction(builder);
         actions.Add(builder.Build());
         return this;

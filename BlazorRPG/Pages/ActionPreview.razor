@@ -1,6 +1,8 @@
 ﻿@inherits ActionPreviewBase
 
 <div class="action-preview">
+    <h4>@GetActionName()</h4>
+
     @if (GetRequirementDescriptions().Count > 0)
     {
         <h4>Requirements</h4>

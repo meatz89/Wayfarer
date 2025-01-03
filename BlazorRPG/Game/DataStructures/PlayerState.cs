@@ -16,10 +16,17 @@
 
     public Dictionary<SkillTypes, int> Skills { get; set; }
     public Inventory Inventory { get; set; }
+    public Equipment Equipment { get; set; }
 
-    public bool ModifyCoins(int amount)
+    public PlayerState()
     {
-        int newCoins = Math.Max(0, Coins + amount);
+        Inventory = new Inventory(GameRules.StandardRuleset.StartingInventorySize);
+        Equipment = new Equipment();
+    }
+
+    public bool ModifyCoins(int count)
+    {
+        int newCoins = Math.Max(0, Coins + count);
         if (newCoins != Coins)
         {
             Coins = newCoins;
@@ -28,12 +35,12 @@
         return false;
     }
 
-    public bool ModifyFood(int amount)
+    public bool ModifyFood(int count)
     {
         Inventory inventory = Inventory;
         int currentFood = inventory.GetItemCount(ResourceTypes.Food);
 
-        int updatedFood = Math.Clamp(currentFood + amount, 0, inventory.GetCapacityFor(ResourceTypes.Food));
+        int updatedFood = Math.Clamp(currentFood + count, 0, inventory.GetCapacityFor(ResourceTypes.Food));
         if (updatedFood != currentFood)
         {
             inventory.SetItemCount(ResourceTypes.Food, updatedFood);
@@ -42,9 +49,9 @@
         return false;
     }
 
-    public bool ModifyHealth(int amount)
+    public bool ModifyHealth(int count)
     {
-        int newHealth = Math.Clamp(Health + amount, 0, MaxHealth);
+        int newHealth = Math.Clamp(Health + count, 0, MaxHealth);
         if (newHealth != Health)
         {
             Health = newHealth;
@@ -53,9 +60,9 @@
         return false;
     }
 
-    public bool ModifyPhysicalEnergy(int amount)
+    public bool ModifyPhysicalEnergy(int count)
     {
-        int newEnergy = Math.Clamp(PhysicalEnergy + amount, 0, MaxPhysicalEnergy);
+        int newEnergy = Math.Clamp(PhysicalEnergy + count, 0, MaxPhysicalEnergy);
         if (newEnergy != PhysicalEnergy)
         {
             PhysicalEnergy = newEnergy;
@@ -64,9 +71,9 @@
         return false;
     }
 
-    public bool ModifyFocusEnergy(int amount)
+    public bool ModifyFocusEnergy(int count)
     {
-        int newEnergy = Math.Clamp(FocusEnergy + amount, 0, MaxFocusEnergy);
+        int newEnergy = Math.Clamp(FocusEnergy + count, 0, MaxFocusEnergy);
         if (newEnergy != FocusEnergy)
         {
             FocusEnergy = newEnergy;
@@ -75,9 +82,9 @@
         return false;
     }
 
-    public bool ModifySocialEnergy(int amount)
+    public bool ModifySocialEnergy(int count)
     {
-        int newEnergy = Math.Clamp(SocialEnergy + amount, 0, MaxSocialEnergy);
+        int newEnergy = Math.Clamp(SocialEnergy + count, 0, MaxSocialEnergy);
         if (newEnergy != SocialEnergy)
         {
             SocialEnergy = newEnergy;
@@ -86,9 +93,9 @@
         return false;
     }
 
-    public bool ModifySkillLevel(SkillTypes skillType, int amount)
+    public bool ModifySkillLevel(SkillTypes skillType, int count)
     {
-        int newSkillLevel = Math.Max(0, Skills[skillType] + amount);
+        int newSkillLevel = Math.Max(0, Skills[skillType] + count);
         if (newSkillLevel != Skills[skillType])
         {
             Skills[skillType] = newSkillLevel;
@@ -118,7 +125,7 @@
         Health = Math.Min(MaxHealth, Math.Max(MinHealth, Health + healthGain));
     }
 
-    internal void ModifyReputation(ReputationTypes reputationType, int amount)
+    internal void ModifyReputation(ReputationTypes reputationType, int count)
     {
     }
 
@@ -136,7 +143,7 @@
         return false;
     }
 
-    internal bool HasStatus(StatusTypes status)
+    internal bool HasStatus(PlayerStatusTypes status)
     {
         return false;
     }

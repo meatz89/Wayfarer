@@ -4,6 +4,7 @@
     {
         StartingHealth = 10,
         StartingCoins = 0,
+        StartingInventorySize = 10,
         StartingPhysicalEnergy = 3,
         StartingFocusEnergy = 3,
         StartingSocialEnergy = 3,
@@ -15,6 +16,7 @@
 
     public int StartingHealth;
     public int StartingCoins;
+    public int StartingInventorySize;
 
     public int StartingPhysicalEnergy;
     public int StartingFocusEnergy;
@@ -24,4 +26,5 @@
     public int DailyFoodRequirement;
     public int NoFoodEffectOnHealth;
     public int NoShelterEffectOnHealth;
+    
 }

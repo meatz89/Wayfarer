@@ -7,6 +7,14 @@ public partial class ActionPreviewBase : ComponentBase
     [Parameter] public EventCallback<bool> OnActionConfirmed { get; set; }
     [Parameter] public EventCallback OnBack { get; set; }
 
+    public string GetActionName()
+    {
+        BasicAction action = CurrentAction.BasicAction;
+
+        string name = $"{action.ActionType} - {action.Name}";
+        return name;
+    }
+
     // Now we work directly with our strongly-typed classes
     public List<string> GetRequirementDescriptions()
     {

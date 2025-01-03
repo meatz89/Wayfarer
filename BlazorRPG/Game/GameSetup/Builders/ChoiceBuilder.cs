@@ -18,34 +18,34 @@
         return this;
     }
 
-    public ChoiceBuilder ExpendsEnergy(EnergyTypes energy, int amount)
+    public ChoiceBuilder ExpendsEnergy(EnergyTypes energy, int count)
     {
-        requirements.Add(new EnergyRequirement(energy, amount));
-        costs.Add(new EnergyOutcome(energy, amount));
+        requirements.Add(new EnergyRequirement(energy, count));
+        costs.Add(new EnergyOutcome(energy, count));
         return this;
     }
 
-    public ChoiceBuilder RequiresSkill(SkillTypes type, int amount)
+    public ChoiceBuilder RequiresSkill(SkillTypes type, int count)
     {
-        requirements.Add(new SkillLevelRequirement(type, amount));
+        requirements.Add(new SkillLevelRequirement(type, count));
         return this;
     }
 
-    public ChoiceBuilder WithFoodOutcome(int amount)
+    public ChoiceBuilder WithFoodOutcome(int count)
     {
-        rewards.Add(new ResourceOutcome(ResourceTypes.Food, amount));
+        rewards.Add(new ResourceOutcome(ResourceTypes.Food, count));
         return this;
     }
 
-    public ChoiceBuilder WithMoneyOutcome(int amount)
+    public ChoiceBuilder WithMoneyOutcome(int count)
     {
-        rewards.Add(new CoinsOutcome(amount));
+        rewards.Add(new CoinsOutcome(count));
         return this;
     }
 
-    public ChoiceBuilder WithHealthOutcome(int amount)
+    public ChoiceBuilder WithHealthOutcome(int count)
     {
-        rewards.Add(new HealthOutcome(amount));
+        rewards.Add(new HealthOutcome(count));
         return this;
     }
 

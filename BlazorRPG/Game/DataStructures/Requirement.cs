@@ -7,68 +7,68 @@
 public class EnergyRequirement : Requirement
 {
     public EnergyTypes EnergyType { get; }
-    public int Amount { get; }
+    public int Count { get; }
 
-    public EnergyRequirement(EnergyTypes type, int amount)
+    public EnergyRequirement(EnergyTypes type, int count)
     {
         EnergyType = type;
-        Amount = amount;
+        Count = count;
     }
 
     public override bool IsSatisfied(PlayerState player)
     {
         return EnergyType switch
         {
-            EnergyTypes.Physical => player.PhysicalEnergy >= Amount,
-            EnergyTypes.Focus => player.FocusEnergy >= Amount,
-            EnergyTypes.Social => player.SocialEnergy >= Amount,
+            EnergyTypes.Physical => player.PhysicalEnergy >= Count,
+            EnergyTypes.Focus => player.FocusEnergy >= Count,
+            EnergyTypes.Social => player.SocialEnergy >= Count,
             _ => false
         };
     }
 
     public override string GetDescription()
     {
-        return $"{EnergyType} Energy Required: {Amount}";
+        return $"{EnergyType} Energy Required: {Count}";
     }
 }
 
 public class HealthRequirement : Requirement
 {
-    public int Amount { get; }
+    public int Count { get; }
 
-    public HealthRequirement(int amount)
+    public HealthRequirement(int count)
     {
-        Amount = amount;
+        Count = count;
     }
 
     public override bool IsSatisfied(PlayerState player)
     {
-        return player.Health >= Amount;
+        return player.Health >= Count;
     }
 
     public override string GetDescription()
     {
-        return $"Health Required: {Amount}";
+        return $"Health Required: {Count}";
     }
 }
 
 public class CoinsRequirement : Requirement
 {
-    public int Amount { get; }
+    public int Count { get; }
 
-    public CoinsRequirement(int amount)
+    public CoinsRequirement(int count)
     {
-        Amount = amount;
+        Count = count;
     }
 
     public override bool IsSatisfied(PlayerState player)
     {
-        return player.Coins >= Amount;
+        return player.Coins >= Count;
     }
 
     public override string GetDescription()
     {
-        return $"Coins Required: {Amount}";
+        return $"Coins Required: {Count}";
     }
 }
 
@@ -117,53 +117,53 @@ public class InventorySlotsRequirement : Requirement
 public class SkillLevelRequirement : Requirement
 {
     public SkillTypes SkillType { get; }
-    public int Amount { get; }
+    public int Count { get; }
 
-    public SkillLevelRequirement(SkillTypes skillType, int amount)
+    public SkillLevelRequirement(SkillTypes skillType, int count)
     {
         SkillType = skillType;
-        Amount = amount;
+        Count = count;
     }
 
     public override bool IsSatisfied(PlayerState player)
     {
         return player.Skills.ContainsKey(SkillType) &&
-               player.Skills[SkillType] >= Amount;
+               player.Skills[SkillType] >= Count;
     }
 
     public override string GetDescription()
     {
-        return $"{SkillType} Skill Level Required: {Amount}";
+        return $"{SkillType} Skill Level Required: {Count}";
     }
 }
 
 public class ReputationRequirement : Requirement
 {
     public ReputationTypes ReputationType { get; }
-    public int Amount { get; }
+    public int Count { get; }
 
-    public ReputationRequirement(ReputationTypes type, int amount)
+    public ReputationRequirement(ReputationTypes type, int count)
     {
         ReputationType = type;
-        Amount = amount;
+        Count = count;
     }
 
     public override bool IsSatisfied(PlayerState player)
     {
-        return player.GetReputationLevel(ReputationType) >= Amount;
+        return player.GetReputationLevel(ReputationType) >= Count;
     }
 
     public override string GetDescription()
     {
-        return $"{ReputationType} Reputation Required: {Amount}";
+        return $"{ReputationType} Reputation Required: {Count}";
     }
 }
 
 public class StatusRequirement : Requirement
 {
-    public StatusTypes Status { get; }
+    public PlayerStatusTypes Status { get; }
 
-    public StatusRequirement(StatusTypes status)
+    public StatusRequirement(PlayerStatusTypes status)
     {
         Status = status;
     }

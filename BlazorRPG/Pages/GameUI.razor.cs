@@ -45,7 +45,7 @@ public partial class GameUI : ComponentBase
     {
         GameManager.StartGame();
     }
-    
+
     public string GetModifierDescription(IGameStateModifier modifier)
     {
         if (modifier is FoodModfier modfier)

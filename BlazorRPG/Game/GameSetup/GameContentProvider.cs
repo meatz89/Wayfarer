@@ -2,8 +2,10 @@
 
 public class GameContentProvider
 {
-    private List<Location> locationProperties;
-    private List<Character> characterProperties;
+    private List<Location> locations;
+    private List<Character> characters;
+    private List<Item> items;
+
     private List<Narrative> narratives;
     private List<Quest> quests;
 
@@ -14,17 +16,25 @@ public class GameContentProvider
 
     private void InitializeContent()
     {
-        locationProperties = new List<Location>
+        locations = new List<Location>
         {
             LocationContent.HarborStreets,
             LocationContent.MarketSquare,
             LocationContent.Tavern,
         };
 
-        characterProperties = new List<Character>
+        characters = new List<Character>
         {
             CharacterContent.Bartender,
             CharacterContent.WealthyMerchant
+        };
+
+        items = new List<Item>
+        {
+            ItemContent.WoodcuttersAxe,
+            ItemContent.TorchLight,
+            ItemContent.CraftingApron,
+            ItemContent.CharmingPendant
         };
 
         narratives = new List<Narrative>
@@ -42,12 +52,17 @@ public class GameContentProvider
 
     public List<Location> GetLocations()
     {
-        return locationProperties;
+        return locations;
     }
 
-    public List<Character>? GetCharacterProperties()
+    public List<Character>? GetCharacters()
     {
-        return characterProperties;
+        return characters;
+    }
+
+    public List<Item> GetItems()
+    {
+        return items;
     }
 
     public List<Narrative> GetNarratives()

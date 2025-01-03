@@ -7,9 +7,6 @@
 
         GameRules gameRules = GameRules.StandardRuleset;
 
-        Inventory playerInventory = new Inventory(10);
-        playerInventory.AddItems(ResourceTypes.Food, 1);
-
         PlayerState playerInfo = new PlayerState();
         playerInfo.Coins = gameRules.StartingCoins;
 
@@ -32,7 +29,7 @@
         skills[SkillTypes.Charisma] = 1;
 
         playerInfo.Skills = skills;
-        playerInfo.Inventory = playerInventory;
+        playerInfo.Inventory.AddItems(ResourceTypes.Food, 1);
 
         gameState.Player = playerInfo;
 

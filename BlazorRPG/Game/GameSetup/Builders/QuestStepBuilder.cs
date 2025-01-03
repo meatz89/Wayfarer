@@ -14,9 +14,9 @@
         return this;
     }
 
-    public QuestStepBuilder WithAction(Action<BasicActionDefinitionBuilder> buildAction)
+    public QuestStepBuilder WithAction(Action<ActionBuilder> buildAction)
     {
-        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder();
+        ActionBuilder builder = new ActionBuilder();
         buildAction(builder);
         this.action = builder.Build();
 
@@ -41,22 +41,22 @@
         return this;
     }
 
-    public QuestStepBuilder RequiresReputation(ReputationTypes reputationType, int amount)
+    public QuestStepBuilder RequiresReputation(ReputationTypes reputationType, int count)
     {
-        ReputationRequirement item = new ReputationRequirement(reputationType, amount);
+        ReputationRequirement item = new ReputationRequirement(reputationType, count);
         requirements.Add(item);
         return this;
     }
 
-    public QuestStepBuilder RequiresCoins(int amount)
+    public QuestStepBuilder RequiresCoins(int count)
     {
-        CoinsRequirement item = new CoinsRequirement(amount);
+        CoinsRequirement item = new CoinsRequirement(count);
         requirements.Add(item);
 
         return this;
     }
 
-    public QuestStepBuilder RequiresStatus(StatusTypes status)
+    public QuestStepBuilder RequiresStatus(PlayerStatusTypes status)
     {
         StatusRequirement item = new StatusRequirement(status);
         requirements.Add(item);

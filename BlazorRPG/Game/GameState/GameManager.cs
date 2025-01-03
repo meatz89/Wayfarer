@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 
 public class GameManager
 {
@@ -19,6 +18,7 @@ public class GameManager
     public LocationAccess LocationAccess { get; }
     public ContextEngine ContextEngine { get; }
     public QuestSystem QuestSystem { get; }
+    public ItemSystem ItemSystem { get; }
     public MessageSystem MessageSystem { get; }
 
     public GameManager(
@@ -34,6 +34,7 @@ public class GameManager
         LocationAccess locationAccess,
         ContextEngine contextEngine,
         QuestSystem questSystem,
+        ItemSystem itemSystem,
         MessageSystem messageSystem
         )
     {
@@ -51,12 +52,16 @@ public class GameManager
         this.LocationAccess = locationAccess;
         this.ContextEngine = contextEngine;
         this.QuestSystem = questSystem;
+        this.ItemSystem = itemSystem;
         this.MessageSystem = messageSystem;
     }
 
     public void StartGame()
     {
         UpdateState();
+
+        Item item = ItemSystem.GetItemFromName(ItemNames.CharmingPendant);
+        if(item != null) gameState.Player.Equipment.SetMainHand(item);
     }
 
     public void UpdateState()
@@ -115,7 +120,7 @@ public class GameManager
                 UserActionOption ua = new UserActionOption
                 {
                     BasicAction = locationSpotAction,
-                    Description = locationSpotAction.Description,
+                    Description = locationSpotAction.Name,
                     IsDisabled = isDisabled,
                     Location = location.Name,
                     LocationSpot = locationSpot.Name
@@ -146,7 +151,7 @@ public class GameManager
                     UserActionOption ua = new UserActionOption
                     {
                         BasicAction = ga,
-                        Description = ga.Description,
+                        Description = ga.Name,
                         Index = actionIndex++,
                         IsDisabled = isDisabled,
                         Location = name,
@@ -176,7 +181,7 @@ public class GameManager
             UserActionOption ua = new UserActionOption
             {
                 BasicAction = questAction,
-                Description = questAction.Description,
+                Description = questAction.Name,
                 Index = actionIndex++,
                 IsDisabled = false,
                 Location = step.Location,

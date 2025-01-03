@@ -75,7 +75,7 @@
     {
         if (requirement is CoinsRequirement money)
         {
-            return gameState.Player.Coins >= money.Amount;
+            return gameState.Player.Coins >= money.Count;
         }
         if (requirement is InventorySlotsRequirement inventorySlot)
         {
@@ -83,26 +83,26 @@
         }
         if (requirement is HealthRequirement health)
         {
-            return gameState.Player.Health >= health.Amount;
+            return gameState.Player.Health >= health.Count;
         }
         if (requirement is EnergyRequirement energy)
         {
             switch (energy.EnergyType)
             {
                 case EnergyTypes.Physical:
-                   return gameState.Player.PhysicalEnergy >= energy.Amount;
+                   return gameState.Player.PhysicalEnergy >= energy.Count;
 
                 case EnergyTypes.Focus:
-                    return gameState.Player.FocusEnergy >= energy.Amount;
+                    return gameState.Player.FocusEnergy >= energy.Count;
 
                 case EnergyTypes.Social:
-                    return gameState.Player.SocialEnergy >= energy.Amount;
+                    return gameState.Player.SocialEnergy >= energy.Count;
             }
             return false;
         }
         if (requirement is SkillLevelRequirement skillLevel)
         {
-            return gameState.Player.Skills[skillLevel.SkillType] >= skillLevel.Amount;
+            return gameState.Player.Skills[skillLevel.SkillType] >= skillLevel.Count;
         }
         if (requirement is ResourceRequirement resource)
         {

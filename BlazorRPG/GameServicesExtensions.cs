@@ -8,6 +8,7 @@
         services.AddSingleton<NarrativeSystem>();
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<CharacterSystem>();
+        services.AddSingleton<ItemSystem>();
 
         services.AddSingleton<KnowledgeSystem>();
         services.AddSingleton<CharacterRelationshipSystem>();

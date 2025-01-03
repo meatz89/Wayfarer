@@ -11,16 +11,20 @@
 
     public bool CanExecuteInContext(BasicAction basicAction)
     {
-        return basicAction.CanExecute(gameState.Player);
+        // Create a copy of the action to apply modifiers
+        BasicAction modifiedAction = ApplyModifiers(basicAction);
+        return modifiedAction.CanExecute(gameState.Player);
     }
 
     public bool ProcessActionOutcome(BasicAction basicAction)
     {
-        // First apply all regular outcomes
-        foreach (Outcome cost in basicAction.Costs)
+        // Apply modifiers before processing the action
+        BasicAction modifiedAction = ApplyModifiers(basicAction);
+
+        // Process costs first
+        foreach (Outcome cost in modifiedAction.Costs)
         {
             cost.Apply(gameState.Player);
-            // Record it for display
             messageSystem.AddOutcome(cost);
 
             if (cost is DayChangeOutcome)
@@ -29,12 +33,10 @@
             }
         }
 
-
-        // First apply all regular outcomes
-        foreach (Outcome reward in basicAction.Rewards)
+        // Then process rewards
+        foreach (Outcome reward in modifiedAction.Rewards)
         {
             reward.Apply(gameState.Player);
-            // Record it for display
             messageSystem.AddOutcome(reward);
 
             if (reward is DayChangeOutcome)
@@ -43,7 +45,73 @@
             }
         }
 
-        // Return whether this action should trigger day change
-        return basicAction.Costs.Any(o => o is DayChangeOutcome) || basicAction.Rewards.Any(o => o is DayChangeOutcome);
+        // Check if this action triggered a day change
+        return modifiedAction.Costs.Any(o => o is DayChangeOutcome) ||
+               modifiedAction.Rewards.Any(o => o is DayChangeOutcome);
+    }
+
+    private BasicAction ApplyModifiers(BasicAction originalAction)
+    {
+        // Create a new action with the same base properties
+        BasicAction modifiedAction = new BasicAction
+        {
+            ActionType = originalAction.ActionType,
+            Name = originalAction.Name,
+
+            // Create new lists to avoid modifying the original
+            TimeSlots = new List<TimeWindows>(originalAction.TimeSlots),
+            Costs = new List<Outcome>(originalAction.Costs),
+            Rewards = new List<Outcome>(originalAction.Rewards)
+        };
+
+        // Get all currently active modifiers
+        List<ActionModifier> activeModifiers = GetActiveModifiers();
+
+        // Apply each applicable modifier
+        foreach (ActionModifier modifier in activeModifiers)
+        {
+            if (IsModifierApplicable(modifier, modifiedAction))
+            {
+                modifier.ApplyModification(modifiedAction);
+            }
+        }
+
+        return modifiedAction;
+    }
+
+    private List<ActionModifier> GetActiveModifiers()
+    {
+        List<ActionModifier> modifiers = new();
+
+        // Get modifiers from equipped items
+        foreach (Item item in gameState.Player.Equipment.GetEquippedItems())
+        {
+            modifiers.AddRange(item.ActionModifiers);
+        }
+
+        // Get modifiers from worn clothing
+        foreach (Item clothing in gameState.Player.Equipment.GetWornClothing())
+        {
+            modifiers.AddRange(clothing.ActionModifiers);
+        }
+
+        return modifiers;
+    }
+
+    private bool IsModifierApplicable(ActionModifier modifier, BasicAction action)
+    {
+        // Check if modifier applies to this action type
+        if (modifier.ApplicableActions.Count > 0 &&
+            !modifier.ApplicableActions.Contains(action.ActionType))
+        {
+            return false;
+        }
+
+        // Add more conditions here as needed, like:
+        // - Time window checks
+        // - Location type checks
+        // - Player status checks
+
+        return true;
     }
 }

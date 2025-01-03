@@ -12,12 +12,12 @@ public abstract class Outcome
 public class EnergyOutcome : Outcome
 {
     public EnergyTypes EnergyType { get; }
-    public int Amount { get; }
+    public int Amount { get; set; }
 
-    public EnergyOutcome(EnergyTypes type, int amount)
+    public EnergyOutcome(EnergyTypes type, int count)
     {
         EnergyType = type;
-        Amount = amount;
+        Amount = count;
     }
 
     public override void Apply(PlayerState player)
@@ -75,54 +75,54 @@ public class EnergyOutcome : Outcome
 
 public class HealthOutcome : Outcome
 {
-    public int Amount { get; }
+    public int Count { get; }
 
-    public HealthOutcome(int amount)
+    public HealthOutcome(int count)
     {
-        Amount = amount;
+        Count = count;
     }
 
     public override void Apply(PlayerState player)
     {
         // Uses Player's built-in clamping
-        player.ModifyHealth(Amount);
+        player.ModifyHealth(Count);
     }
 
     public override string GetDescription()
     {
-        return $"{(Amount >= 0 ? "+" : "")}{Amount} Health";
+        return $"{(Count >= 0 ? "+" : "")}{Count} Health";
     }
 
     public override string GetPreview(PlayerState player)
     {
-        int newValue = Math.Clamp(player.Health + Amount, 0, player.MaxHealth);
+        int newValue = Math.Clamp(player.Health + Count, 0, player.MaxHealth);
         return $"({player.Health} -> {newValue})";
     }
 }
 
 public class CoinsOutcome : Outcome
 {
-    public int Amount { get; }
+    public int Count { get; }
 
-    public CoinsOutcome(int amount)
+    public CoinsOutcome(int count)
     {
-        Amount = amount;
+        Count = count;
     }
 
     public override void Apply(PlayerState player)
     {
-        player.ModifyCoins(Amount);
+        player.ModifyCoins(Count);
     }
 
     public override string GetDescription()
     {
-        return $"{(Amount >= 0 ? "+" : "")}{Amount} Coins";
+        return $"{(Count >= 0 ? "+" : "")}{Count} Coins";
     }
 
     public override string GetPreview(PlayerState player)
     {
         // Coins can't go below 0
-        int newValue = Math.Max(0, player.Coins + Amount);
+        int newValue = Math.Max(0, player.Coins + Count);
         return $"({player.Coins} -> {newValue})";
     }
 }
@@ -132,7 +132,7 @@ public class ResourceOutcome : Outcome
 {
     public ResourceChangeType ChangeType { get; }
     public ResourceTypes Resource { get; }
-    public int Count { get; }
+    public int Count { get; set;  }
 
     public ResourceOutcome(ResourceTypes resource, int count)
     {
@@ -165,28 +165,28 @@ public class ResourceOutcome : Outcome
 public class SkillLevelOutcome : Outcome
 {
     public SkillTypes SkillType { get; }
-    public int Amount { get; }
+    public int Count { get; }
 
-    public SkillLevelOutcome(SkillTypes skillType, int amount)
+    public SkillLevelOutcome(SkillTypes skillType, int count)
     {
         SkillType = skillType;
-        Amount = amount;
+        Count = count;
     }
 
     public override void Apply(PlayerState player)
     {
-        player.ModifySkillLevel(SkillType, Amount);
+        player.ModifySkillLevel(SkillType, Count);
     }
 
     public override string GetDescription()
     {
-        return $"{(Amount >= 0 ? "+" : "")}{Amount} {SkillType} Skill";
+        return $"{(Count >= 0 ? "+" : "")}{Count} {SkillType} Skill";
     }
 
     public override string GetPreview(PlayerState player)
     {
         int current = player.Skills[SkillType];
-        int newValue = Math.Max(0, current + Amount);
+        int newValue = Math.Max(0, current + Count);
         return $"({current} -> {newValue})";
     }
 }
@@ -195,29 +195,29 @@ public class SkillLevelOutcome : Outcome
 public class ReputationOutcome : Outcome
 {
     public ReputationTypes ReputationType { get; }
-    public int Amount { get; }
+    public int Count { get; }
 
-    public ReputationOutcome(ReputationTypes type, int amount)
+    public ReputationOutcome(ReputationTypes type, int count)
     {
         ReputationType = type;
-        Amount = amount;
+        Count = count;
     }
 
     public override void Apply(PlayerState player)
     {
         // This would need a ReputationSystem reference or player method
-        player.ModifyReputation(ReputationType, Amount);
+        player.ModifyReputation(ReputationType, Count);
     }
 
     public override string GetDescription()
     {
-        return $"{(Amount >= 0 ? "+" : "")}{Amount} {ReputationType} Reputation";
+        return $"{(Count >= 0 ? "+" : "")}{Count} {ReputationType} Reputation";
     }
 
     public override string GetPreview(PlayerState player)
     {
         int current = player.GetReputationLevel(ReputationType);
-        int newValue = Math.Clamp(current + Amount, 0, 100); // Assuming 0-100 scale
+        int newValue = Math.Clamp(current + Count, 0, 100); // Assuming 0-100 scale
         return $"({current} -> {newValue})";
     }
 }

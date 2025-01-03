@@ -7,8 +7,8 @@
     private ResourceTypes? outputResource;
     private AccessTypes accessType;
 
-    private int inputAmount = 0;
-    private int outputAmount = 0;
+    private int inputCount = 0;
+    private int outputCount = 0;
     private int coinCost = 0;
     private int coinReward = 0;
 
@@ -37,53 +37,53 @@
         return this;
     }
 
-    public LocationSpotBuilder WithInputResource(ResourceTypes resource, int amount)
+    public LocationSpotBuilder WithInputResource(ResourceTypes resource, int count)
     {
         inputResource = resource;
-        inputAmount = amount;
+        inputCount = count;
         return this;
     }
 
-    public LocationSpotBuilder WithOutputResource(ResourceTypes resource, int amount)
+    public LocationSpotBuilder WithOutputResource(ResourceTypes resource, int count)
     {
         outputResource = resource;
-        outputAmount = amount;
+        outputCount = count;
         return this;
     }
 
-    public LocationSpotBuilder WithEnergyCost(int amount, EnergyTypes type)
+    public LocationSpotBuilder WithEnergyCost(int count, EnergyTypes type)
     {
         switch (type)
         {
             case EnergyTypes.Physical:
-                physicalEnergyCost = amount;
+                physicalEnergyCost = count;
                 break;
 
             case EnergyTypes.Focus:
-                focusEnergyCost = amount;
+                focusEnergyCost = count;
                 break;
 
             case EnergyTypes.Social:
-                socialEnergyCost = amount;
+                socialEnergyCost = count;
                 break;
         }
         return this;
     }
 
-    public LocationSpotBuilder WithEnergyReward(int amount, EnergyTypes type)
+    public LocationSpotBuilder WithEnergyReward(int count, EnergyTypes type)
     {
         switch (type)
         {
             case EnergyTypes.Physical:
-                physicalEnergyReward = amount;
+                physicalEnergyReward = count;
                 break;
 
             case EnergyTypes.Focus:
-                focusEnergyReward = amount;
+                focusEnergyReward = count;
                 break;
 
             case EnergyTypes.Social:
-                socialEnergyReward = amount;
+                socialEnergyReward = count;
                 break;
         }
         return this;
@@ -110,7 +110,7 @@
 
     private BasicAction BuildCharacterAction(CharacterNames character)
     {
-        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder()
+        ActionBuilder builder = new ActionBuilder()
             .ForAction(BasicActionTypes.Discuss)
             .WithDescription($"Talk to {character}");
 
@@ -119,7 +119,7 @@
 
     private BasicAction BuildProcessingAction()
     {
-        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder()
+        ActionBuilder builder = new ActionBuilder()
             .ForAction(BasicActionTypes.Labor)
             .WithDescription($"Process {inputResource} into {outputResource}");
 
@@ -129,9 +129,9 @@
         if (coinReward > 0)
             builder.RewardsCoins(coinReward);
         if (inputResource.HasValue)
-            builder.ExpendsItem(inputResource.Value, inputAmount);
+            builder.ExpendsItem(inputResource.Value, inputCount);
         if (outputResource.HasValue)
-            builder.RewardsResource(outputResource.Value, outputAmount);
+            builder.RewardsResource(outputResource.Value, outputCount);
 
         // All non-social actions must consume energy
         if (physicalEnergyCost > 0)
@@ -144,9 +144,9 @@
         // Calculate inventory impact
         int requiredSlots = 0;
         if (outputResource.HasValue)
-            requiredSlots += outputAmount;
+            requiredSlots += outputCount;
         if (inputResource.HasValue)
-            requiredSlots -= inputAmount;
+            requiredSlots -= inputCount;
         if (requiredSlots > 0)
             builder.RequiresInventorySlots(requiredSlots);
 
@@ -155,7 +155,7 @@
 
     private BasicAction BuildGatheringAction()
     {
-        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder()
+        ActionBuilder builder = new ActionBuilder()
             .ForAction(BasicActionTypes.Gather)
             .WithDescription($"Gather {outputResource}");
 
@@ -165,9 +165,9 @@
         if (coinReward > 0)
             builder.RewardsCoins(coinReward);
         if (inputResource.HasValue)
-            builder.ExpendsItem(inputResource.Value, inputAmount);
+            builder.ExpendsItem(inputResource.Value, inputCount);
         if (outputResource.HasValue)
-            builder.RewardsResource(outputResource.Value, outputAmount);
+            builder.RewardsResource(outputResource.Value, outputCount);
 
         // Must consume energy
         if (physicalEnergyCost > 0)
@@ -178,15 +178,15 @@
             builder.ExpendsEnergy(socialEnergyCost, EnergyTypes.Social);
 
         // Calculate required inventory slots
-        if (outputAmount > 0)
-            builder.RequiresInventorySlots(outputAmount);
+        if (outputCount > 0)
+            builder.RequiresInventorySlots(outputCount);
 
         return builder.Build();
     }
 
     private BasicAction BuildTradingAction()
     {
-        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder()
+        ActionBuilder builder = new ActionBuilder()
             .ForAction(BasicActionTypes.Trade);
 
         if (coinCost > 0)
@@ -202,9 +202,9 @@
 
         // Handle any item costs/rewards
         if (inputResource.HasValue)
-            builder.ExpendsItem(inputResource.Value, inputAmount);
+            builder.ExpendsItem(inputResource.Value, inputCount);
         if (outputResource.HasValue)
-            builder.RewardsResource(outputResource.Value, outputAmount);
+            builder.RewardsResource(outputResource.Value, outputCount);
 
         // Must consume energy
         if (physicalEnergyCost > 0)
@@ -216,14 +216,14 @@
 
         // Calculate required slots for buying
         if (outputResource.HasValue)
-            builder.RequiresInventorySlots(outputAmount);
+            builder.RequiresInventorySlots(outputCount);
 
         return builder.Build();
     }
 
     private BasicAction BuildInteractionAction()
     {
-        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder()
+        ActionBuilder builder = new ActionBuilder()
             .ForAction(spotName == LocationSpotNames.PrivateCorner ? BasicActionTypes.Investigate : BasicActionTypes.Mingle)
             .WithDescription(GetInteractionDescription());
 
@@ -233,9 +233,9 @@
         if (coinReward > 0)
             builder.RewardsCoins(coinReward);
         if (inputResource.HasValue)
-            builder.ExpendsItem(inputResource.Value, inputAmount);
+            builder.ExpendsItem(inputResource.Value, inputCount);
         if (outputResource.HasValue)
-            builder.RewardsResource(outputResource.Value, outputAmount);
+            builder.RewardsResource(outputResource.Value, outputCount);
 
         // Can both consume AND reward energy
         if (physicalEnergyCost > 0)
@@ -253,15 +253,15 @@
             builder.RewardsEnergy(socialEnergyReward, EnergyTypes.Social);
 
         // Calculate inventory impact if needed
-        if (outputAmount > inputAmount)
-            builder.RequiresInventorySlots(outputAmount - inputAmount);
+        if (outputCount > inputCount)
+            builder.RequiresInventorySlots(outputCount - inputCount);
 
         return builder.Build();
     }
 
     private BasicAction BuildRestAction()
     {
-        BasicActionDefinitionBuilder builder = new BasicActionDefinitionBuilder()
+        ActionBuilder builder = new ActionBuilder()
             .ForAction(BasicActionTypes.Rest);
 
         builder.WithDescription(GetRestDescription())

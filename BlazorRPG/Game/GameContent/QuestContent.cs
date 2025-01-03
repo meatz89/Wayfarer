@@ -18,7 +18,7 @@
             ))
         .AddStep(step => step
             .WithDescription("Teach basic trading to the merchant's son")
-            .RequiresStatus(StatusTypes.WellRested)
+            .RequiresStatus(PlayerStatusTypes.WellRested)
             .WithLocation(LocationNames.MarketSquare)
             .WithLocationSpot(LocationSpotNames.GeneralStore)
             .WithCharacter(CharacterNames.WealthyMerchant)

@@ -29,7 +29,7 @@
                         disabled="@(spot.Name != CurrentSpot.Name || !ActionManager.AreRequirementsMet(action))"
                         @onmouseover="(e) => HandleShowTooltip(action, e)"
                         @onmouseout="HandleHideTooltip">
-                    @action.BasicAction.Description (@action.BasicAction.Description)
+                    @action.BasicAction.Name (@action.BasicAction.Name)
                 </button>
             }
 
