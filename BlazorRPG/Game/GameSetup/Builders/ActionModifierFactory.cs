@@ -4,11 +4,18 @@
     {
         List<ActionModifier> modifiers = new();
 
+        // No modifier conditions specified
+        if (config.ActionType == default && config.LocationType == default)
+        {
+            return modifiers;
+        }
+
         // Create energy cost reducer if configured
         if (config.EnergyReduction > 0)
         {
             modifiers.Add(new EnergyCostReducer(
                 config.Description,
+                config.Source,
                 config.EnergyReduction,
                 config.EnergyType,
                 config.ActionType));
@@ -20,6 +27,7 @@
         {
             modifiers.Add(new ConditionalResourceBonusModifier(
                 config.Description,
+                config.Source,
                 config.ActionType,
                 config.RequiredResourceReward,
                 config.AdditionalResource,
@@ -31,6 +39,7 @@
         {
             modifiers.Add(new CoinsRewardModifier(
                 config.Description,
+                config.Source,
                 config.AdditionalCoins,
                 config.ActionType));
         }
@@ -40,6 +49,7 @@
         {
             modifiers.Add(new TimeSlotModifier(
                 config.Description,
+                config.Source,
                 config.TimeWindow,
                 config.ActionType));
         }

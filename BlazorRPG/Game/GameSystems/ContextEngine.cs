@@ -1,4 +1,5 @@
-﻿public class ContextEngine
+﻿
+public class ContextEngine
 {
     private readonly GameState gameState;
     private readonly MessageSystem messageSystem;
@@ -50,6 +51,37 @@
                modifiedAction.Rewards.Any(o => o is DayChangeOutcome);
     }
 
+    public BasicAction GetModifiedAction(BasicAction originalAction)
+    {
+        // Create a new action with the same base properties
+        BasicAction modifiedAction = new BasicAction
+        {
+            ActionType = originalAction.ActionType,
+            Name = originalAction.Name,
+            TimeInvestment = originalAction.TimeInvestment,
+
+            // Create new lists to avoid modifying the original
+            TimeSlots = new List<TimeWindows>(originalAction.TimeSlots),
+            Requirements = new List<Requirement>(originalAction.Requirements),
+            Costs = new List<Outcome>(originalAction.Costs),
+            Rewards = new List<Outcome>(originalAction.Rewards)
+        };
+
+        // Get all currently active modifiers
+        List<ActionModifier> activeModifiers = GetActiveModifiers();
+
+        // Apply each applicable modifier
+        foreach (ActionModifier modifier in activeModifiers)
+        {
+            if (IsModifierApplicable(modifier, modifiedAction))
+            {
+                modifier.ApplyModification(modifiedAction);
+            }
+        }
+
+        return modifiedAction;
+    }
+
     private BasicAction ApplyModifiers(BasicAction originalAction)
     {
         // Create a new action with the same base properties
@@ -79,7 +111,7 @@
         return modifiedAction;
     }
 
-    private List<ActionModifier> GetActiveModifiers()
+    public List<ActionModifier> GetActiveModifiers()
     {
         List<ActionModifier> modifiers = new();
 

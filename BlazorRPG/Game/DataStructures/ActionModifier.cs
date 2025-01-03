@@ -1,6 +1,7 @@
 ﻿// Base class with common configuration
 public abstract class ActionModifier
 {
+    public string Source;
     public string Description;
     public abstract void ApplyModification(BasicAction action);
     public List<BasicActionTypes> ApplicableActions = new();
@@ -14,8 +15,9 @@ public class EnergyCostReducer : ActionModifier
 
     private readonly int reduction;
 
-    public EnergyCostReducer(string description, int reduction, EnergyTypes type, BasicActionTypes actionType)
+    public EnergyCostReducer(string description, string source, int reduction, EnergyTypes type, BasicActionTypes actionType)
     {
+        this.Source = source;
         this.Description = description;
         this.reduction = reduction;
         this.energyType = type;
@@ -39,8 +41,9 @@ public class TimeSlotModifier : ActionModifier
 {
     private readonly TimeWindows timeWindowToAdd;
 
-    public TimeSlotModifier(string description, TimeWindows timeWindow, BasicActionTypes actionType)
+    public TimeSlotModifier(string description, string source, TimeWindows timeWindow, BasicActionTypes actionType)
     {
+        this.Source = source;
         this.Description = description;
         this.timeWindowToAdd = timeWindow;
         this.ApplicableActions.Add(actionType);
@@ -61,8 +64,9 @@ public class GatheringBonusModifier : ActionModifier
     private readonly int bonusAmount;
     private readonly ResourceTypes resourceType;
 
-    public GatheringBonusModifier(string description, int bonusAmount, ResourceTypes resourceType, BasicActionTypes actionType)
+    public GatheringBonusModifier(string description, string source, int bonusAmount, ResourceTypes resourceType, BasicActionTypes actionType)
     {
+        this.Source = source;
         this.Description = description;
         this.bonusAmount = bonusAmount;
         this.resourceType = resourceType;
@@ -86,8 +90,9 @@ public class RequirementRemover : ActionModifier
 {
     private readonly Type requirementTypeToRemove;
 
-    public RequirementRemover(string description, Type requirementType, BasicActionTypes actionType)
+    public RequirementRemover(string description, string source, Type requirementType, BasicActionTypes actionType)
     {
+        this.Source = source;
         this.Description = description;
         this.requirementTypeToRemove = requirementType;
         this.ApplicableActions.Add(actionType);
@@ -104,8 +109,9 @@ public class CoinsRewardModifier : ActionModifier
 {
     private readonly int bonusAmount;
 
-    public CoinsRewardModifier(string description, int amount, BasicActionTypes actionType)
+    public CoinsRewardModifier(string description, string source, int amount, BasicActionTypes actionType)
     {
+        this.Source = source;
         this.Description = description;
         this.bonusAmount = amount;
         this.ApplicableActions.Add(actionType);
@@ -125,11 +131,13 @@ public class ConditionalResourceBonusModifier : ActionModifier
 
     public ConditionalResourceBonusModifier(
         string description,
+        string source,
         BasicActionTypes actionType,
         ResourceTypes requiredResource,
         ResourceTypes bonusResource,
         int bonusAmount)
     {
+        this.Source = source;
         this.Description = description;
         this.ApplicableActions.Add(actionType);
         this.requiredResourceType = requiredResource;

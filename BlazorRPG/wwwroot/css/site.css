@@ -329,3 +329,7 @@ body {
         border: 1px solid var(--border-active);
     }
 
+.modifier-effect {
+    color: lightblue; /* Or any color that indicates a modifier effect */
+    font-style: italic;
+}

@@ -19,6 +19,10 @@
     public ItemBuilder WithActionModifier(Action<ActionModifierBuilder> buildModifier)
     {
         ActionModifierBuilder builder = new();
+
+        // Set the source in the builder
+        builder.WithSource(itemName.ToString());
+
         buildModifier(builder);
         modifiers.AddRange(builder.Build());
         return this;

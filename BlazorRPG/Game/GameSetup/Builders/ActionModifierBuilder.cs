@@ -1,5 +1,4 @@
-﻿
-public class ActionModifierBuilder
+﻿public class ActionModifierBuilder
 {
     private string description;
 
@@ -16,6 +15,14 @@ public class ActionModifierBuilder
     private ResourceTypes additionalResourceReward;
     private int additionalResourceRewardAmount;
     private int additionalCoinReward;
+
+    private string source;
+
+    public ActionModifierBuilder WithSource(string source)
+    {
+        this.source = source;
+        return this;
+    }
 
     public ActionModifierBuilder WithDescription(string description)
     {
@@ -79,6 +86,7 @@ public class ActionModifierBuilder
         ModifierConfiguration config = new ModifierConfiguration
         {
             Description = description,
+            Source = source,
             ActionType = applicableActionType,
             LocationType = applicableLocationType,
             PlayerStatus = applicablePlayerStatusType,
@@ -99,6 +107,7 @@ public class ActionModifierBuilder
 public class ModifierConfiguration
 {
     public string Description { get; set; }
+    public string Source { get; set; }
     public BasicActionTypes ActionType { get; set; }
     public LocationTypes LocationType { get; set; }
     public PlayerStatusTypes PlayerStatus { get; set; }

@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-public abstract class Outcome
+﻿public abstract class Outcome
 {
     public abstract void Apply(PlayerState player);
     public abstract string GetDescription();
