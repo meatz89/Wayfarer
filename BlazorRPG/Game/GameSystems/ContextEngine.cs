@@ -82,7 +82,7 @@
 
     public void AddCoinsChange(CoinsOutcome money)
     {
-        bool neededChange = gameState.ModifyCoins(money.Amount);
+        bool neededChange = gameState.Player.ModifyCoins(money.Amount);
         if (neededChange)
         {
             messageSystem.changes.Coins.Add(money);
@@ -91,7 +91,7 @@
 
     public void AddFoodChange(FoodOutcome food)
     {
-        bool neededChange = gameState.ModifyFood(food.Amount);
+        bool neededChange = gameState.Player.ModifyFood(food.Amount);
         if (neededChange)
         {
             messageSystem.changes.Food.Add(food);
@@ -100,7 +100,7 @@
 
     public void AddHealthChange(HealthOutcome health)
     {
-        bool neededChange = gameState.ModifyHealth(health.Amount);
+        bool neededChange = gameState.Player.ModifyHealth(health.Amount);
         if (neededChange)
         {
             messageSystem.changes.Health.Add(health);
@@ -109,7 +109,7 @@
 
     public void AddPhysicalEnergyChange(PhysicalEnergyOutcome physicalEnergy)
     {
-        bool neededChange = gameState.ModifyPhysicalEnergy(physicalEnergy.Amount);
+        bool neededChange = gameState.Player.ModifyPhysicalEnergy(physicalEnergy.Amount);
         if (neededChange)
         {
             messageSystem.changes.PhysicalEnergy.Add(physicalEnergy);
@@ -118,7 +118,7 @@
 
     public void AddFocusEnergyChange(FocusEnergyOutcome focusEnergy)
     {
-        bool neededChange = gameState.ModifyFocusEnergy(focusEnergy.Amount);
+        bool neededChange = gameState.Player.ModifyFocusEnergy(focusEnergy.Amount);
         if (neededChange)
         {
             messageSystem.changes.FocusEnergy.Add(focusEnergy);
@@ -127,7 +127,7 @@
 
     public void AddSocialEnergyChange(SocialEnergyOutcome socialEnergy)
     {
-        bool neededChange = gameState.ModifySocialEnergy(socialEnergy.Amount);
+        bool neededChange = gameState.Player.ModifySocialEnergy(socialEnergy.Amount);
         if (neededChange)
         {
             messageSystem.changes.SocialEnergy.Add(socialEnergy);
@@ -136,7 +136,7 @@
 
     public void AddSkillLevelChange(SkillLevelOutcome skillLevel)
     {
-        bool neededChange = gameState.ModifySkillLevel(skillLevel.SkillType, skillLevel.Amount);
+        bool neededChange = gameState.Player.ModifySkillLevel(skillLevel.SkillType, skillLevel.Amount);
         if (neededChange)
         {
             messageSystem.changes.SkillLevel.Add(skillLevel);
@@ -145,7 +145,7 @@
 
     public void AddResourceChange(ResourceOutcome resource)
     {
-        bool neededChange = gameState.ModifyItem(resource.ChangeType, resource.Resource, resource.Count);
+        bool neededChange = gameState.Player.ModifyItem(resource.ChangeType, resource.Resource, resource.Count);
         if (neededChange)
         {
             messageSystem.changes.Resources.Add(resource);

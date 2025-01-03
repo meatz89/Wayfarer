@@ -24,14 +24,14 @@ public partial class GameUI : ComponentBase
 
     public List<Location> Locations => GameManager.GetAllLocations();
 
-    public Player Player => GameState.Player;
-    public Location CurrentLocation => GameState.CurrentLocation;
-    public LocationSpot CurrentSpot => GameState.CurrentLocationSpot;
-    public TimeWindows CurrentTime => GameState.CurrentTimeSlot;
-    public int CurrentHour => GameState.CurrentTimeInHours;
+    public PlayerState Player => GameState.Player;
+    public Location CurrentLocation => GameState.World.CurrentLocation;
+    public LocationSpot CurrentSpot => GameState.World.CurrentLocationSpot;
+    public TimeWindows CurrentTime => GameState.World.CurrentTimeSlot;
+    public int CurrentHour => GameState.World.CurrentTimeInHours;
 
-    public UserActionOption CurrentUserAction => GameState.CurrentUserAction;
-    public List<UserLocationTravelOption> CurrentTravelOptions => GameState.CurrentTravelOptions;
+    public UserActionOption CurrentUserAction => GameState.Actions.CurrentUserAction;
+    public List<UserLocationTravelOption> CurrentTravelOptions => GameState.World.CurrentTravelOptions;
 
     // Tooltip Logic
     public bool showAreaMap = true;
@@ -71,7 +71,7 @@ public partial class GameUI : ComponentBase
 
     public List<string> GetResultMessages()
     {
-        ActionResultMessages messages = GameState.LastActionResult.Messages;
+        ActionResultMessages messages = GameState.Actions.LastActionResult.Messages;
         List<string> list = new List<string>();
 
         foreach (HealthOutcome health in messages.Health)
@@ -129,26 +129,14 @@ public partial class GameUI : ComponentBase
         }
         else
         {
-            GameState.SetCurrentUserAction(action);
-
             // Execute the action immediately
-            bool hasNarrative = GameManager.HasNarrative(action.BasicAction);
-            if (hasNarrative)
-            {
-                bool startedNarrative = GameManager.StartNarrativeFor(action.BasicAction);
-                if (startedNarrative)
-                {
-                }
-            }
-            else
-            {
-                ActionResult result = GameManager.ExecuteBasicAction(action.BasicAction);
+            ActionResult result = GameManager.ExecuteBasicAction(action, action.BasicAction);
 
-                if (result.IsSuccess)
-                {
-                    CompleteActionExecution();
-                }
+            if (result.IsSuccess)
+            {
+                CompleteActionExecution();
             }
+           
         }
     }
 
@@ -173,7 +161,7 @@ public partial class GameUI : ComponentBase
 
     private void HandleSpotSelection(LocationSpot locationSpot)
     {
-        List<UserLocationSpotOption> userLocationSpotOptions = GameState.CurrentLocationSpotOptions;
+        List<UserLocationSpotOption> userLocationSpotOptions = GameState.World.CurrentLocationSpotOptions;
         UserLocationSpotOption userLocationSpot = userLocationSpotOptions.FirstOrDefault(x => x.LocationSpot == locationSpot.Name);
 
         GameManager.MoveToLocationSpot(userLocationSpot.Location, locationSpot.Name);
@@ -181,7 +169,7 @@ public partial class GameUI : ComponentBase
 
     private void HandleLocationSelection(LocationNames locationNames)
     {
-        List<UserLocationTravelOption> currentTravelOptions = GameState.CurrentTravelOptions;
+        List<UserLocationTravelOption> currentTravelOptions = GameState.World.CurrentTravelOptions;
         UserLocationTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Location == locationNames);
 
         ActionResult result = GameManager.MoveToLocation(location.Location);
@@ -195,9 +183,6 @@ public partial class GameUI : ComponentBase
 
     private void CompleteActionExecution()
     {
-        GameState.ClearCurrentUserAction();
-        GameState.ClearCurrentNarrative();
-
         GameManager.UpdateState();
     }
 

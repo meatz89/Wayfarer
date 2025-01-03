@@ -1,21 +1,35 @@
-# PowerShell Script to merge all .cs, .cshtml, and .razor files in the current folder and its subfolders
-# Define the output file name
-$outputFile = "./MergedCode.txt"
+# Script to combine files by type into single files
 
-# Ensure the output file doesn't already exist
-if (Test-Path $outputFile) {
-    Remove-Item $outputFile
+# Define the directory where the script is located
+$ScriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Definition
+
+# Define the file types to search for
+$fileExtensions = @("cshtml.cs", "cshtml", "cs", "html", "css")
+
+# Loop through each file extension
+foreach ($extension in $fileExtensions) {
+    # Get all files with the current extension in the script's directory and subdirectories
+    $files = Get-ChildItem -Path $ScriptDirectory -Recurse -Filter "*.$extension"
+
+    # Construct the output file name, replacing '.' in the extension for clean file names
+    $cleanExtension = $extension -replace '\.', ''
+    $outputFile = Join-Path -Path $ScriptDirectory -ChildPath "All${cleanExtension}Files.$extension"
+
+    # Clear the output file if it already exists
+    if (Test-Path $outputFile) {
+        Remove-Item -Path $outputFile
+    }
+
+    # Iterate through each file and append its contents to the output file
+    foreach ($file in $files) {
+        # Append the file name as a comment (optional, for reference)
+        Add-Content -Path $outputFile -Value "`n/* File: $($file.FullName) */`n"
+
+        # Append the file content
+        Get-Content -Path $file.FullName | Add-Content -Path $outputFile
+    }
+
+    Write-Output "Combined $extension files into $outputFile"
 }
 
-# Get all files with the specified extensions in the folder and subfolders
-$files = Get-ChildItem -Path . -Recurse -Include *.cs, *.cshtml, *.razor
-
-# Loop through each file and append its content to the output file
-foreach ($file in $files) {
-    # Add a file header for better organization
-    "//================ ${file} ================" | Out-File -Append -FilePath $outputFile
-    Get-Content $file.FullName | Out-File -Append -FilePath $outputFile
-    "`n`n" | Out-File -Append -FilePath $outputFile  # Add some spacing between files
-}
-
-Write-Host "All .cs, .cshtml, and .razor files have been merged into $outputFile"
+Write-Output "File combination completed!"

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 public class GameManager
 {
@@ -60,8 +61,9 @@ public class GameManager
 
     public void UpdateState()
     {
-        UpdateActiveQuests();
+        gameState.Actions.ClearCurrentUserAction();
 
+        UpdateActiveQuests();
         UpdateLocationTravelOptions();
         UpdateLocationSpotOptions();
         UpdateAvailableActions();
@@ -69,9 +71,9 @@ public class GameManager
 
     public void UpdateAvailableActions()
     {
-        gameState.SetLocationSpotActions(new List<UserActionOption>());
-        gameState.SetCharacterActions(new List<UserActionOption>());
-        gameState.SetQuestActions(new List<UserActionOption>());
+        gameState.Actions.SetLocationSpotActions(new List<UserActionOption>());
+        gameState.Actions.SetCharacterActions(new List<UserActionOption>());
+        gameState.Actions.SetQuestActions(new List<UserActionOption>());
 
         CreateGlobalActions();
         CreateLocationSpotActions();
@@ -93,7 +95,7 @@ public class GameManager
         };
         userActions.Add(ua);
 
-        gameState.SetGlobalActions(userActions);
+        gameState.Actions.SetGlobalActions(userActions);
     }
 
     private void CreateLocationSpotActions()
@@ -108,7 +110,7 @@ public class GameManager
                 // If no time slots specified, action is always enabled
                 // Otherwise check if current time is in valid slots
                 bool isDisabled = locationSpotAction.TimeSlots.Count > 0 &&
-                    !locationSpotAction.TimeSlots.Contains(gameState.CurrentTimeSlot);
+                    !locationSpotAction.TimeSlots.Contains(gameState.World.CurrentTimeSlot);
 
                 UserActionOption ua = new UserActionOption
                 {
@@ -119,7 +121,7 @@ public class GameManager
                     LocationSpot = locationSpot.Name
                 };
                 locationSpotActions.Add(ua);
-                gameState.AddLocationSpotActions(locationSpotActions);
+                gameState.Actions.AddLocationSpotActions(locationSpotActions);
             }
         }
     }
@@ -137,7 +139,7 @@ public class GameManager
                     int actionIndex = 1;
 
                     bool isDisabled = ga.TimeSlots.Count > 0 &&
-                        !ga.TimeSlots.Contains(gameState.CurrentTimeSlot);
+                        !ga.TimeSlots.Contains(gameState.World.CurrentTimeSlot);
 
                     LocationSpotNames locationSpotName = locationSpot.Name;
                     LocationNames name = location.Name;
@@ -156,7 +158,7 @@ public class GameManager
             }
         }
 
-        gameState.AddCharacterActions(userActions);
+        gameState.Actions.AddCharacterActions(userActions);
     }
 
     public void CreateQuestActions()
@@ -184,12 +186,12 @@ public class GameManager
             userActions.Add(ua);
         }
 
-        gameState.AddQuestActions(userActions);
+        gameState.Actions.AddQuestActions(userActions);
     }
 
     private bool IsActionLocation(LocationNames location, LocationSpotNames locationSpot)
     {
-        return location != gameState.CurrentLocation.Name || locationSpot != gameState.CurrentLocationSpot.Name;
+        return location != gameState.World.CurrentLocation.Name || locationSpot != gameState.World.CurrentLocationSpot.Name;
     }
 
     private void UpdateActiveQuests()
@@ -198,8 +200,10 @@ public class GameManager
         gameState.ActiveQuests = quests;
     }
 
-    public ActionResult ExecuteBasicAction(BasicAction basicAction)
+    public ActionResult ExecuteBasicAction(UserActionOption action, BasicAction basicAction)
     {
+        gameState.Actions.SetCurrentUserAction(action);
+
         // 1. Check context requirements
         if (!ContextEngine.CanExecuteInContext(basicAction))
             return ActionResult.Failure("Current context prevents this action");
@@ -222,7 +226,7 @@ public class GameManager
         if (!stillAlive) return ActionResult.Failure("you died");
 
         ActionResult actionResult = ActionResult.Success("Action success!", allMessages);
-        gameState.SetLastActionResult(actionResult);
+        gameState.Actions.SetLastActionResult(actionResult);
 
         return actionResult;
     }
@@ -260,7 +264,7 @@ public class GameManager
     public ActionResult MoveToLocation(LocationNames locationName)
     {
         Location location = LocationSystem.GetLocation(locationName);
-        gameState.SetNewLocation(location);
+        gameState.World.SetNewLocation(location);
         UpdateState();
 
         ActionResult actionResult = ActionResult.Success($"Moved to {locationName}.", new ActionResultMessages());
@@ -271,7 +275,7 @@ public class GameManager
     public void MoveToLocationSpot(LocationNames location, LocationSpotNames locationSpotName)
     {
         LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(location, locationSpotName);
-        gameState.SetNewLocationSpot(locationSpot);
+        gameState.World.SetNewLocationSpot(locationSpot);
         UpdateState();
 
     }
@@ -283,28 +287,9 @@ public class GameManager
         return false;
     }
 
-    public bool StartNarrativeFor(BasicAction action)
-    {
-        Narrative narrative = NarrativeSystem.GetNarrativeFor(action.ActionType);
-        if (narrative == null)
-        {
-            throw new Exception("No Narrative Found");
-        }
-
-        gameState.SetCurrentNarrative(narrative);
-
-        return true;
-    }
-
-    public bool CanExecuteChoice(NarrativeStage currentNarrativeStage, int choice)
-    {
-        bool result = NarrativeSystem.CanExecute(currentNarrativeStage, choice);
-        return result;
-    }
-
     public List<LocationNames> GetConnectedLocations()
     {
-        List<LocationNames> loc = LocationSystem.GetLocationConnections(gameState.CurrentLocation.Name);
+        List<LocationNames> loc = LocationSystem.GetLocationConnections(gameState.World.CurrentLocation.Name);
         return loc;
     }
 
@@ -328,7 +313,7 @@ public class GameManager
 
     public bool AreRequirementsMet(UserActionOption action)
     {
-        Player Player = gameState.Player;
+        PlayerState Player = gameState.Player;
 
         return action.BasicAction.Requirements.All(requirement => requirement switch
         {
@@ -347,7 +332,7 @@ public class GameManager
 
     public void UpdateLocationSpotOptions()
     {
-        Location location = gameState.CurrentLocation;
+        Location location = gameState.World.CurrentLocation;
         List<LocationSpot> locationSpots = LocationSystem.GetLocationSpots(location);
 
         List<UserLocationSpotOption> userLocationSpotOption = new List<UserLocationSpotOption>();
@@ -365,7 +350,7 @@ public class GameManager
             userLocationSpotOption.Add(locationSpotOption);
         }
 
-        gameState.SetCurrentLocationSpotOptions(userLocationSpotOption);
+        gameState.World.SetCurrentLocationSpotOptions(userLocationSpotOption);
     }
 
     public void UpdateLocationTravelOptions()
@@ -387,7 +372,7 @@ public class GameManager
             userTravelOptions.Add(travel);
         }
 
-        gameState.SetCurrentTravelOptions(userTravelOptions);
+        gameState.World.SetCurrentTravelOptions(userTravelOptions);
     }
 
 
@@ -398,7 +383,7 @@ public class GameManager
 
     public void AdvanceTimeTo(int hours)
     {
-        int timeToMidnight = 24 - gameState.CurrentTimeInHours;
+        int timeToMidnight = 24 - gameState.World.CurrentTimeInHours;
         int timeToAdvance = timeToMidnight + hours;
         AdvanceTime(timeToAdvance);
     }
@@ -407,18 +392,18 @@ public class GameManager
     {
         bool daySkip = false;
         // Advance the current time
-        if (gameState.CurrentTimeInHours + inHours > 24)
+        if (gameState.World.CurrentTimeInHours + inHours > 24)
         {
             daySkip = true;
         }
 
-        gameState.CurrentTimeInHours = (gameState.CurrentTimeInHours + inHours) % 24;
+        gameState.World.CurrentTimeInHours = (gameState.World.CurrentTimeInHours + inHours) % 24;
 
         const int timeWindowsPerDay = 4;
         const int hoursPerTimeWindow = 6;
-        int timeSlot = (gameState.CurrentTimeInHours / hoursPerTimeWindow) % timeWindowsPerDay;
+        int timeSlot = (gameState.World.CurrentTimeInHours / hoursPerTimeWindow) % timeWindowsPerDay;
 
-        gameState.DetermineCurrentTimeSlot(timeSlot);
+        gameState.World.DetermineCurrentTimeSlot(timeSlot);
 
         if (daySkip)
         {
@@ -432,7 +417,7 @@ public class GameManager
 
     private bool StartNewDay()
     {
-        Player Player = gameState.Player;
+        PlayerState Player = gameState.Player;
 
         // Get quest-modified game rules
         GameRules modifiedRules = QuestSystem.GetModifiedRules(currentRules);
@@ -480,7 +465,7 @@ public class GameManager
         int noFoodHealthLoss = currentRules.NoFoodEffectOnHealth;
         int noShelterHealthLoss = currentRules.NoShelterEffectOnHealth;
 
-        if (!hasFood) gameState.ChangeHealth(currentRules.NoFoodEffectOnHealth);
+        if (!hasFood) gameState.Player.ChangeHealth(currentRules.NoFoodEffectOnHealth);
 
         return Player.Health > Player.MinHealth;
     }

@@ -3,7 +3,7 @@
 public partial class ActionPreviewBase : ComponentBase
 {
     [Parameter] public UserActionOption CurrentAction { get; set; }
-    [Parameter] public Player Player { get; set; }  // Add this
+    [Parameter] public PlayerState Player { get; set; }  // Add this
     [Parameter] public EventCallback<bool> OnActionConfirmed { get; set; }
     [Parameter] public EventCallback OnBack { get; set; }
 

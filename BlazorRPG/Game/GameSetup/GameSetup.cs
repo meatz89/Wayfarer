@@ -3,14 +3,14 @@
     public static GameState CreateNewGame()
     {
         GameState gameState = new GameState();
-        gameState.SetNewLocation(LocationContent.HarborStreets);
+        gameState.World.SetNewLocation(LocationContent.HarborStreets);
 
         GameRules gameRules = GameRules.StandardRuleset;
 
         Inventory playerInventory = new Inventory(10);
         playerInventory.AddItems(ResourceTypes.Food, 1);
 
-        Player playerInfo = new Player();
+        PlayerState playerInfo = new PlayerState();
         playerInfo.Coins = gameRules.StartingCoins;
 
         playerInfo.Health = gameRules.StartingHealth;
