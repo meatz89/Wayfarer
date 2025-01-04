@@ -61,6 +61,70 @@
                 .WithMomentumChange(2)
             ))
 
+        .AddStage(stage => stage
+            .WithId(2)
+            .WithSituation("As you're balancing multiple drinks, a rowdy patron bumps into you. The drinks are wobbling...")
+
+            .AddChoice(choice => choice
+                .WithIndex(1)
+                .WithName("Quick Recovery")
+                .WithChoiceType(ChoiceTypes.Aggressive)
+                .WithNarrative("Make a rapid move to stabilize the drinks.")
+                .WithAdvantageChange(-1)
+                .WithMomentumChange(2)
+            )
+
+            .AddChoice(choice => choice
+                .WithIndex(2)
+                .WithName("Steady Hands")
+                .WithChoiceType(ChoiceTypes.Careful)
+                .WithNarrative("Carefully adjust your grip and stance.")
+                .WithMomentumChange(-1)
+                .WithAdvantageChange(+2)
+            )
+
+            .AddChoice(choice => choice
+                .WithIndex(3)
+                .WithName("Use The Crowd")
+                .WithChoiceType(ChoiceTypes.Tactical)
+                .WithNarrative("Shift through nearby patrons to regain balance.")
+                .WithAdvantageChange(2) 
+                .WithConnectionChange(-1) 
+            )
+
+            .AddChoice(choice => choice
+                .WithIndex(4)
+                .WithName("Ask Patron for Space")
+                .WithChoiceType(ChoiceTypes.Tactical)
+                .WithNarrative("Politely but firmly request more room to work.")
+                .WhenTensionAbove(5)
+                .WithTensionChange(-2)
+                .WithConnectionChange(1)
+            ))
+
+        .AddStage(stage => stage
+            .WithId(3)
+            .WithSituation("You've stabilized the drinks, but now some patrons are impatient from the delay.")
+
+            .AddChoice(choice => choice
+                .WithIndex(1)
+                .WithName("Quick Distribution")
+                .WithChoiceType(ChoiceTypes.Aggressive)
+                .WithNarrative("Make a rapid move to stabilize the drinks.")
+                .ExpendsEnergy(EnergyTypes.Physical, 2)
+                .WithUnderstandingChange(-1)
+                .WithMomentumChange(2)
+            )
+
+            .AddChoice(choice => choice
+                .WithIndex(2)
+                .WithName("Personal Touch")
+                .WithChoiceType(ChoiceTypes.Careful)
+                .WithNarrative("Carefully adjust your grip and stance.")
+                .ExpendsEnergy(EnergyTypes.Physical, 1)
+                .WithMomentumChange(-1)
+                .WithConnectionChange(+2)
+            ))
         .Build();
 
 }

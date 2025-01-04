@@ -10,6 +10,12 @@
 
     private string narrative;
     private NarrativeState narrativeStateChanges = NarrativeState.NoChange;
+    private int onlyWhenMomentumAbove;
+    private int onlyWhenAdvantageAbove;
+    private int onlyWhenUnderstandingAbove;
+    private int onlyWhenTensionAbove;
+
+    public int onlyWhenConnectionAbove { get; private set; }
 
     public ChoiceBuilder WithIndex(int index)
     {
@@ -54,36 +60,65 @@
         return this;
     }
 
-    public ChoiceBuilder WithMomentumChange(int Momentum)
+    public ChoiceBuilder WithMomentumChange(int momentum)
     {
-        this.narrativeStateChanges.Momentum = Momentum;
+        this.narrativeStateChanges.Momentum = momentum;
         return this;
     }
 
-    public ChoiceBuilder WithAdvantageChange(int Advantage)
+    public ChoiceBuilder WithAdvantageChange(int advantage)
     {
-        this.narrativeStateChanges.Advantage = Advantage;
+        this.narrativeStateChanges.Advantage = advantage;
         return this;
     }
 
-    public ChoiceBuilder WithUnderstandingChange(int Understanding)
+    public ChoiceBuilder WithUnderstandingChange(int understanding)
     {
-        this.narrativeStateChanges.Understanding = Understanding;
+        this.narrativeStateChanges.Understanding = understanding;
         return this;
     }
 
-    public ChoiceBuilder WithConnectionChange(int Connection)
+    public ChoiceBuilder WithConnectionChange(int connection)
     {
-        this.narrativeStateChanges.Connection = Connection;
+        this.narrativeStateChanges.Connection = connection;
         return this;
     }
 
-    public ChoiceBuilder WithTensionChange(int Tension)
+    public ChoiceBuilder WithTensionChange(int tension)
     {
-        this.narrativeStateChanges.Tension = Tension;
+        this.narrativeStateChanges.Tension = tension;
         return this;
     }
 
+    public ChoiceBuilder WhenMomentumAbove(int momentum)
+    {
+        this.onlyWhenMomentumAbove = momentum;
+        return this;
+    }
+
+    public ChoiceBuilder WhenAdvantageAbove(int advantage)
+    {
+        this.onlyWhenAdvantageAbove = advantage;
+        return this;
+    }
+
+    public ChoiceBuilder WhenUnderstandingAbove(int understanding)
+    {
+        this.onlyWhenUnderstandingAbove = understanding;
+        return this;
+    }
+
+    public ChoiceBuilder WhenConnectionAbove(int connection)
+    {
+        this.onlyWhenConnectionAbove = connection;
+        return this;
+    }
+
+    public ChoiceBuilder WhenTensionAbove(int tension)
+    {
+        this.onlyWhenTensionAbove = tension;
+        return this;
+    }
 
     public NarrativeChoice Build()
     {
