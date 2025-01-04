@@ -1,4 +1,6 @@
 ﻿// Enhanced ChoiceBuilder that works with the provided Requirements and Outcomes
+
+
 public class ChoiceBuilder
 {
     private int index;
@@ -44,6 +46,12 @@ public class ChoiceBuilder
     {
         requirement = new EnergyRequirement(energy, count);
         cost = new EnergyOutcome(energy, -count); // Negative for consumption
+        return this;
+    }
+
+    public ChoiceBuilder WithRequirement(Requirement requirement)
+    {
+        requirement = requirement;
         return this;
     }
 
@@ -191,5 +199,10 @@ public class ChoiceBuilder
                 onlyWhenTensionAbove
             )
         };
+    }
+
+    public ChoiceBuilder WithValueChange(ValueTypes lowestValue, int newValue)
+    {
+        return this;
     }
 }

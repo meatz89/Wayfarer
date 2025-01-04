@@ -10,7 +10,7 @@
     public CharacterNames CharacterName { get; set; }
     public CharacterRoles Role { get; set; }
     public RelationshipStatus Relationship { get; set; }
-    public NarrativeState NarrativeState { get; internal set; }
+    public NarrativeState CurrentValues { get; internal set; }
 }
 
 public enum ChoiceCategories

@@ -1,1 +1,8 @@
-﻿public enum ReputationTypes { Reliable, Generous, Observant }
+﻿public enum ReputationTypes 
+{ 
+    Reliable, 
+    Generous, 
+    Observant,
+    Merchant,
+    Social
+}

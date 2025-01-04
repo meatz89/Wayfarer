@@ -17,7 +17,7 @@
             .WithTensionChange(1);
 
         // Set high value thresholds for special options
-        if (context.NarrativeState.Momentum >= 8)
+        if (context.CurrentValues.Momentum >= 8)
         {
             builder.WhenMomentumAbove(8)
                    .WithMoneyOutcome(5); // Increased reward for high momentum
@@ -81,7 +81,7 @@ public class CarefulChoiceFactory
             .WithMomentumChange(-1);
 
         // Special options for high understanding
-        if (context.NarrativeState.Understanding >= 8)
+        if (context.CurrentValues.Understanding >= 8)
         {
             builder.WhenUnderstandingAbove(8)
                    .WithAdvantageChange(1);  // Extra advantage from careful analysis
@@ -133,7 +133,7 @@ public class TacticalChoiceFactory
         AddContextualElements(builder, context);
 
         // Special options for high advantage
-        if (context.NarrativeState.Advantage >= 8)
+        if (context.CurrentValues.Advantage >= 8)
         {
             builder.WhenAdvantageAbove(8)
                    .WithConnectionChange(1);  // Leverage position for connections

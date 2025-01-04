@@ -16,7 +16,7 @@
             ActionType = ActionTypes.Mingle,
             LocationType = LocationTypes.Social,
             TimeSlot = TimeSlots.Night,
-            NarrativeState = state
+            CurrentValues = state
         };
 
         var generator = new NarrativeGenerator();

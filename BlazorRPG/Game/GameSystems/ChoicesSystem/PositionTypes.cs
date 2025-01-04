@@ -1,29 +1,30 @@
-﻿// Core Pattern Enums
-public enum PositionTypes
+﻿public enum PositionTypes
 {
-    Direct,    // Higher reward/higher cost
-    Careful,   // Lower reward/safer
-    Tactical   // Indirect benefits/special requirements
+    Direct,     // High impact, high cost
+    Careful,    // Low risk, steady progress
+    Tactical,   // Strategic advantage through special means
+    Recovery    // Restore from low values
 }
 
 public enum IntentTypes
 {
-    Progress,    // Advance main goal
-    Opportunity, // Side benefits
-    Position     // Improve situation
+    Progress,    // Direct advancement toward goal
+    Position,    // Improve situation for future benefit
+    Opportunity  // Create or capitalize on special situations
 }
 
 public enum ScopeTypes
 {
-    Immediate,  // Quick effect
-    Invested,   // Delayed benefit
-    Strategic   // Long-term gain
+    Immediate,   // Effects happen right away
+    Invested,    // Benefits come after setup/delay
+    Strategic    // Long-term advantages
 }
 
-public enum NarrativeContexts
+public enum ValueTypes
 {
-    Labor,       // Physical/skill focus
-    Trade,       // Resource/negotiation focus
-    Investigate, // Observation/knowledge focus
-    Mingle       // Social/relationship focus
+    Momentum,
+    Advantage,
+    Understanding,
+    Connection,
+    Tension
 }
