@@ -1,0 +1,95 @@
+﻿@inherits NarrativeViewBase
+
+<div class="narrative-container">
+    @if (GameState.Actions.CurrentNarrative != null)
+    {
+        var narrative = GameState.Actions.CurrentNarrative;
+        var currentStage = GameManager.NarrativeSystem.GetCurrentStage(narrative);
+
+        <div class="narrative-header">
+            <h2>@narrative.Situation</h2>
+        </div>
+
+        <div class="narrative-stats">
+            <div class="stat">
+                <span class="stat-label">Momentum:</span>
+                <span class="stat-value">@narrative.InitialState.Momentum</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Advantage:</span>
+                <span class="stat-value">@narrative.InitialState.Advantage</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Understanding:</span>
+                <span class="stat-value">@narrative.InitialState.Understanding</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Connection:</span>
+                <span class="stat-value">@narrative.InitialState.Connection</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Tension:</span>
+                <span class="stat-value">@narrative.InitialState.Tension</span>
+            </div>
+        </div>
+
+        <div class="narrative-stage">
+            <div class="stage-description">
+                @currentStage.Situation
+            </div>
+        </div>
+
+        <div class="narrative-choices">
+            @foreach (var choice in GameState.Actions.NarrativeChoiceOptions)
+            {
+                <div class="choice-option @(hoveredChoice == choice ? "hovered" : "")"
+                     @onmouseover="() => ShowTooltip(choice)"
+                     @onmouseout="HideTooltip"
+                     @onclick="() => HandleChoiceSelection(choice)">
+                    <span class="choice-index">@choice.Index.</span>
+                    <span class="choice-description">@choice.Description</span>
+                </div>
+            }
+        </div>
+
+        @if (showTooltip && hoveredChoice != null)
+        {
+            <div class="tooltip">
+                <div class="preview-container">
+                    <h4>Choice Preview</h4>
+                    @if (hoveredChoice.NarrativeChoice.Requirement != null)
+                    {
+                        <div class="requirements">
+                            <h5>Requirements</h5>
+                            <div class="requirement @(IsRequirementMet(hoveredChoice) ? "positive" : "negative")">
+                                @hoveredChoice.NarrativeChoice.Requirement.GetDescription()
+                            </div>
+                        </div>
+                    }
+
+                    @if (hoveredChoice.NarrativeChoice.Cost != null)
+                    {
+                        <div class="costs">
+                            <h5>Costs</h5>
+                            <div class="cost">
+                                @hoveredChoice.NarrativeChoice.Cost.GetDescription()
+                                @hoveredChoice.NarrativeChoice.Cost.GetPreview(GameState.Player)
+                            </div>
+                        </div>
+                    }
+
+                    @if (hoveredChoice.NarrativeChoice.Reward != null)
+                    {
+                        <div class="rewards">
+                            <h5>Rewards</h5>
+                            <div class="reward">
+                                @hoveredChoice.NarrativeChoice.Reward.GetDescription()
+                                @hoveredChoice.NarrativeChoice.Reward.GetPreview(GameState.Player)
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>

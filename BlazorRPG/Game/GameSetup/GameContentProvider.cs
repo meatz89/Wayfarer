@@ -18,8 +18,6 @@ public class GameContentProvider
     {
         locations = new List<Location>
         {
-            LocationContent.HarborStreets,
-            LocationContent.MarketSquare,
             LocationContent.Tavern,
         };
 
@@ -39,9 +37,7 @@ public class GameContentProvider
 
         narratives = new List<Narrative>
         {
-            DockNarrativesContent.DockWork,
-            DockNarrativesContent.DocksInvestigation,
-            MarketNarrativesContent.MarketInvestigation
+            NarrativeContent.TavernServeDrinks
         };
 
         quests = new List<Quest>

@@ -2,11 +2,11 @@
 
 public class ScheduleBuilder
 {
-    private TimeWindows timeWindow;
+    private TimeSlots timeWindow;
     private LocationSpotNames locationSpotType;
     private BasicActionTypes basicActionTypes;
 
-    public ScheduleBuilder AtTime(TimeWindows timeWindow)
+    public ScheduleBuilder AtTime(TimeSlots timeWindow)
     {
         this.timeWindow = timeWindow;
         return this;

@@ -10,7 +10,7 @@
 
     // Time tracking - moved here since it affects world state
     public int CurrentTimeInHours { get; set; }
-    public TimeWindows CurrentTimeSlot { get; private set; } = TimeWindows.Morning;
+    public TimeSlots CurrentTimeSlot { get; private set; } = TimeSlots.Morning;
 
     public void SetNewLocation(Location location)
     {
@@ -38,10 +38,10 @@
     {
         CurrentTimeSlot = timeSlot switch
         {
-            0 => TimeWindows.Night,
-            1 => TimeWindows.Morning,
-            2 => TimeWindows.Afternoon,
-            _ => TimeWindows.Evening
+            0 => TimeSlots.Night,
+            1 => TimeSlots.Morning,
+            2 => TimeSlots.Afternoon,
+            _ => TimeSlots.Evening
         };
     }
 }

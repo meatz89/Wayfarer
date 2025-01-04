@@ -17,7 +17,7 @@ public class ContextEngine
         return modifiedAction.CanExecute(gameState.Player);
     }
 
-    public bool ProcessActionOutcome(BasicAction basicAction)
+    public BasicAction ProcessActionOutcome(BasicAction basicAction)
     {
         // Apply modifiers before processing the action
         BasicAction modifiedAction = ApplyModifiers(basicAction);
@@ -27,11 +27,6 @@ public class ContextEngine
         {
             cost.Apply(gameState.Player);
             messageSystem.AddOutcome(cost);
-
-            if (cost is DayChangeOutcome)
-            {
-                messageSystem.AddSystemMessage("Night falls...", SystemMessageTypes.Info);
-            }
         }
 
         // Then process rewards
@@ -39,16 +34,11 @@ public class ContextEngine
         {
             reward.Apply(gameState.Player);
             messageSystem.AddOutcome(reward);
-
-            if (reward is DayChangeOutcome)
-            {
-                messageSystem.AddSystemMessage("Night falls...", SystemMessageTypes.Info);
-            }
         }
 
         // Check if this action triggered a day change
-        return modifiedAction.Costs.Any(o => o is DayChangeOutcome) ||
-               modifiedAction.Rewards.Any(o => o is DayChangeOutcome);
+        bool dayChange = modifiedAction.Costs.Any(o => o is DayChangeOutcome);
+        return modifiedAction;
     }
 
     public BasicAction GetModifiedAction(BasicAction originalAction)
@@ -61,7 +51,7 @@ public class ContextEngine
             TimeInvestment = originalAction.TimeInvestment,
 
             // Create new lists to avoid modifying the original
-            TimeSlots = new List<TimeWindows>(originalAction.TimeSlots),
+            TimeSlots = new List<TimeSlots>(originalAction.TimeSlots),
             Requirements = new List<Requirement>(originalAction.Requirements),
             Costs = new List<Outcome>(originalAction.Costs),
             Rewards = new List<Outcome>(originalAction.Rewards)
@@ -91,7 +81,7 @@ public class ContextEngine
             Name = originalAction.Name,
 
             // Create new lists to avoid modifying the original
-            TimeSlots = new List<TimeWindows>(originalAction.TimeSlots),
+            TimeSlots = new List<TimeSlots>(originalAction.TimeSlots),
             Costs = new List<Outcome>(originalAction.Costs),
             Rewards = new List<Outcome>(originalAction.Rewards)
         };

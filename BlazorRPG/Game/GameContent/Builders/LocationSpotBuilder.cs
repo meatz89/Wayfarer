@@ -117,7 +117,7 @@
         return builder.Build();
     }
 
-    private BasicAction BuildProcessingAction()
+    private BasicAction BuildLaborAction()
     {
         ActionBuilder builder = new ActionBuilder()
             .ForAction(BasicActionTypes.Labor)
@@ -265,7 +265,7 @@
             .ForAction(BasicActionTypes.Rest);
 
         builder.WithDescription(GetRestDescription())
-        .AddTimeSlot(TimeWindows.Night)
+        .AddTimeSlot(TimeSlots.Night)
         .WithTimeInvestment(0)
         .ExpendsFood(1)
         .RewardsEnergy(5, EnergyTypes.Physical)
@@ -301,7 +301,7 @@
             LocationSpotNames.SmithyForge or
             LocationSpotNames.TanningRack or
             LocationSpotNames.WeavingLoom =>
-                BuildProcessingAction(),
+                BuildLaborAction(),
 
             // Trading spots support buying/selling with coins
             LocationSpotNames.GeneralStore or

@@ -194,15 +194,72 @@ public class GameManager
         gameState.Actions.AddQuestActions(userActions);
     }
 
-    private bool IsActionLocation(LocationNames location, LocationSpotNames locationSpot)
-    {
-        return location != gameState.World.CurrentLocation.Name || locationSpot != gameState.World.CurrentLocationSpot.Name;
-    }
 
     private void UpdateActiveQuests()
     {
         List<Quest> quests = QuestSystem.GetAvailableQuests();
-        gameState.ActiveQuests = quests;
+        gameState.Actions.ActiveQuests = quests;
+    }
+
+    public void SetNarrativeChoices(Narrative narrative)
+    {
+        NarrativeStage stage = NarrativeSystem.GetCurrentStage(narrative);
+        List<NarrativeChoice> choices = NarrativeSystem.GetCurrentStageChoices(narrative);
+
+        List<UserNarrativeChoiceOption> choiceOptions = new List<UserNarrativeChoiceOption>();
+        foreach (NarrativeChoice choice in choices)
+        {
+            UserNarrativeChoiceOption option = new UserNarrativeChoiceOption()
+            {
+                Index = choice.Index,
+                Description = choice.Description,
+                Location = narrative.LocationName,
+                LocationSpot = narrative.LocationSpot,
+                Character = narrative.NarrativeCharacter,
+                Narrative = narrative,
+                NarrativeStage = stage,
+                NarrativeChoice = choice
+            };
+
+            choiceOptions.Add(option);
+        }
+
+        gameState.Actions.SetNarrativeChoiceOptions(choiceOptions);
+    }
+
+    public void ExecuteNarrativeChoice(UserNarrativeChoiceOption choiceOption)
+    {
+        Narrative narrative = choiceOption.Narrative;
+        NarrativeChoice choice = choiceOption.NarrativeChoice;
+
+        NarrativeSystem.ExecuteChoice(narrative, choice);
+        ProceedNarrative(narrative);
+    }
+
+    private void InitializeNarrative(Narrative narrative)
+    {
+        bool hasNextStage = NarrativeSystem.GetNextStage(narrative);
+        if (hasNextStage)
+        {
+            SetNarrativeChoices(narrative);
+        }
+        else
+        {
+            gameState.Actions.CompleteActiveNarrative();
+        }
+    }
+
+    private void ProceedNarrative(Narrative narrative)
+    {
+        bool hasNextStage = NarrativeSystem.GetNextStage(narrative);
+        if (hasNextStage)
+        {
+            SetNarrativeChoices(narrative);
+        }
+        else
+        {
+            gameState.Actions.CompleteActiveNarrative();
+        }
     }
 
     public ActionResult ExecuteBasicAction(UserActionOption action, BasicAction basicAction)
@@ -220,24 +277,31 @@ public class GameManager
         CharacterSystem.ProcessActionImpact(basicAction);
 
         // 4. Execute outcomes and check if day change is needed
-        bool shouldChangeDays = ContextEngine.ProcessActionOutcome(basicAction);
+        BasicAction modifiedAction = ContextEngine.ProcessActionOutcome(basicAction);
 
         ActionResultMessages allMessages = MessageSystem.GetAndClearChanges();
         gameState.Actions.SetLastActionResultMessages(allMessages);
 
-        // Handle time advancement based on action type
-        bool stillAlive;
-        if (shouldChangeDays)
-        {
-            AdvanceTimeTo(7); // Advance to morning
-            stillAlive = StartNewDay(); // Apply day change effects
-        }
-        else
-        {
-            stillAlive = AdvanceTime(1); // Normal time advance
-        }
+        LocationNames location = action.Location;
+        LocationSpotNames locationSpot = action.LocationSpot;
 
-        if (!stillAlive) return ActionResult.Failure("you died");
+        Narrative narrative = NarrativeSystem.GetAvailableNarrative(modifiedAction.ActionType, location, locationSpot);
+        NarrativeSystem.SetActiveNarrative(narrative);
+        InitializeNarrative(narrative);
+
+        // Handle time advancement based on action type
+        //bool stillAlive;
+        //if (shouldChangeDays)
+        //{
+        //    AdvanceTimeTo(7); // Advance to morning
+        //    stillAlive = StartNewDay(); // Apply day change effects
+        //}
+        //else
+        //{
+        bool stillAlive = AdvanceTime(1); // Normal time advance
+        //}
+
+        //if (!stillAlive) return ActionResult.Failure("you died");
 
         return ActionResult.Success("Action success!", allMessages);
     }
@@ -288,14 +352,6 @@ public class GameManager
         LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(location, locationSpotName);
         gameState.World.SetNewLocationSpot(locationSpot);
         UpdateState();
-
-    }
-
-    public bool HasNarrative(BasicAction action)
-    {
-        Narrative narrative = NarrativeSystem.GetNarrativeFor(action.ActionType);
-        bool hasNarrative = narrative != null;
-        return false;
     }
 
     public List<LocationNames> GetConnectedLocations()
@@ -309,7 +365,6 @@ public class GameManager
         List<Location> loc = LocationSystem.GetLocations();
         return loc;
     }
-
 
     public bool CanTravelTo(LocationNames locationName)
     {

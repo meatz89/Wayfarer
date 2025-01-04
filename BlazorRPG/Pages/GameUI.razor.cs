@@ -27,7 +27,7 @@ public partial class GameUI : ComponentBase
     public PlayerState Player => GameState.Player;
     public Location CurrentLocation => GameState.World.CurrentLocation;
     public LocationSpot CurrentSpot => GameState.World.CurrentLocationSpot;
-    public TimeWindows CurrentTime => GameState.World.CurrentTimeSlot;
+    public TimeSlots CurrentTime => GameState.World.CurrentTimeSlot;
     public int CurrentHour => GameState.World.CurrentTimeInHours;
 
     public UserActionOption CurrentUserAction => GameState.Actions.CurrentUserAction;
@@ -124,7 +124,7 @@ public partial class GameUI : ComponentBase
 
     public List<Quest> GetActiveQuests()
     {
-        return GameState.ActiveQuests;
+        return GameState.Actions.ActiveQuests;
     }
 
     //private void HandleNarrativeChoice(int choiceIndex)

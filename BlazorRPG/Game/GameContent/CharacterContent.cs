@@ -13,7 +13,7 @@
             .ValuesTrust(true)            // Rewards consistent behavior
             .SharesKnowledge(false))      // Keeps trade secrets
         .AddSchedule(schedule => schedule
-            .AtTime(TimeWindows.Morning)
+            .AtTime(TimeSlots.Morning)
             .AtSpot(LocationSpotNames.ResourceMarket)
             .WithAction(BasicActionTypes.Trade))
         .AddGoal(goal => goal

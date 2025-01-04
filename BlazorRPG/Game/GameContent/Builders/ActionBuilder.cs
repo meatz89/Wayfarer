@@ -4,7 +4,7 @@ public class ActionBuilder
 {
     private BasicActionTypes actionType;
     private string description;
-    private List<TimeWindows> timeSlots = new();
+    private List<TimeSlots> timeSlots = new();
     public List<Requirement> requirements = new();
     public List<Outcome> costs = new();
     public List<Outcome> rewards = new();
@@ -36,7 +36,7 @@ public class ActionBuilder
         return this;
     }
 
-    public ActionBuilder AddTimeSlot(TimeWindows timeSlot)
+    public ActionBuilder AddTimeSlot(TimeSlots timeSlot)
     {
         this.timeSlots.Add(timeSlot);
         return this;

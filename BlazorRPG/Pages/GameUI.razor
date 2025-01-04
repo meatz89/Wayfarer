@@ -43,20 +43,28 @@
             </button>
         </div>
 
-        @if (showAreaMap)
+        @if (GameState.Actions.CurrentNarrative != null)
         {
-            <AreaMap CurrentLocation="@CurrentLocation"
-            Locations="@Locations"
-            OnTravel="@HandleLocationSelection"
-            OnViewSpots="@(() => showAreaMap = false)" />
+            <NarrativeView />
         }
         else
         {
-            <LocationSpotMap CurrentLocation="@CurrentLocation"
-            CurrentSpot="@CurrentSpot"
-            OnSpotSelected="@HandleSpotSelection"
-            OnActionSelected="@HandleActionSelection" />
+            @if (showAreaMap)
+            {
+                <AreaMap CurrentLocation="@CurrentLocation"
+                         Locations="@Locations"
+                         OnTravel="@HandleLocationSelection"
+                         OnViewSpots="@(() => showAreaMap = false)" />
+            }
+            else
+            {
+                <LocationSpotMap CurrentLocation="@CurrentLocation"
+                                 CurrentSpot="@CurrentSpot"
+                                 OnSpotSelected="@HandleSpotSelection"
+                                 OnActionSelected="@HandleActionSelection" />
+            }
         }
+
     </div>
 
     <div class="sidebar">

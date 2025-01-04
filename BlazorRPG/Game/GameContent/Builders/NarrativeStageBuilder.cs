@@ -2,7 +2,7 @@
 {
     private int id;
     private string situationDescription;
-    private List<Choice> choices = new();
+    private List<NarrativeChoice> choices = new();
 
     public NarrativeStageBuilder WithId(int id)
     {
