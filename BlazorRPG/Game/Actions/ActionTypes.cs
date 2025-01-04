@@ -1,4 +1,4 @@
-﻿public enum BasicActionTypes
+﻿public enum ActionTypes
 {
     Wait,   // Advance time
     Rest,   // Restore energy, advance time

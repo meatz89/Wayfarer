@@ -125,25 +125,25 @@
         Health = Math.Min(MaxHealth, Math.Max(MinHealth, Health + healthGain));
     }
 
-    internal void ModifyReputation(ReputationTypes reputationType, int count)
+    public void ModifyReputation(ReputationTypes reputationType, int count)
     {
     }
 
-    internal int GetReputationLevel(ReputationTypes reputationType)
+    public int GetReputationLevel(ReputationTypes reputationType)
     {
         return 1;
     }
 
-    internal void UnlockAchievement(AchievementTypes achievementType)
+    public void UnlockAchievement(AchievementTypes achievementType)
     {
     }
 
-    internal bool HasAchievement(AchievementTypes achievementType)
+    public bool HasAchievement(AchievementTypes achievementType)
     {
         return false;
     }
 
-    internal bool HasStatus(PlayerStatusTypes status)
+    public bool HasStatus(PlayerStatusTypes status)
     {
         return false;
     }

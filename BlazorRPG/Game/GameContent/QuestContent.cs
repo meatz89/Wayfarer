@@ -11,7 +11,7 @@
             .WithLocationSpot(LocationSpotNames.GeneralStore)
             .WithCharacter(CharacterNames.WealthyMerchant)
             .WithAction(action => action
-                .ForAction(BasicActionTypes.Trade)
+                .ForAction(ActionTypes.Trade)
                 .WithDescription("Prove yourself to Merchant")
                 .ExpendsEnergy(1, EnergyTypes.Social)
                 .RewardsReputation(ReputationTypes.Reliable, 1)
@@ -23,7 +23,7 @@
             .WithLocationSpot(LocationSpotNames.GeneralStore)
             .WithCharacter(CharacterNames.WealthyMerchant)
             .WithAction(action => action
-                .ForAction(BasicActionTypes.Teach)
+                .ForAction(ActionTypes.Teach)
                 .WithDescription("Teach Merchant's Son")
                 .ExpendsEnergy(2, EnergyTypes.Social)
                 .ExpendsEnergy(1, EnergyTypes.Focus)

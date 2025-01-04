@@ -1,18 +1,21 @@
 ﻿public class NarrativeSystem
 {
     private readonly GameState gameState;
+    private readonly ChoiceSystem choiceSystem;
     private readonly List<Narrative> narratives;
 
     public NarrativeSystem(
         GameState gameState,
-        GameContentProvider contentProvider
+        GameContentProvider contentProvider,
+        ChoiceSystem choiceSystem
         )
     {
         this.gameState = gameState;
+        this.choiceSystem = choiceSystem;
         this.narratives = contentProvider.GetNarratives();
     }
 
-    public Narrative GetAvailableNarrative(BasicActionTypes action, LocationNames location, LocationSpotNames locationSpot)
+    public Narrative GetAvailableNarrative(ActionTypes action, LocationNames location, LocationSpotNames locationSpot)
     {
         return narratives.FirstOrDefault(x =>
             x.ActionType == action &&
@@ -28,10 +31,12 @@
 
     }
 
-    public List<NarrativeChoice> GetChoicesForCurrentStage(Narrative narrative)
+    public List<NarrativeChoice> GetCurrentStageChoices(Narrative narrative)
     {
         NarrativeStage stage = GetCurrentStage(narrative);
         List<NarrativeChoice> choices = stage.Choices;
+
+        choices = choiceSystem.GenerateExampleChoices();
         return choices;
     }
 
@@ -55,13 +60,6 @@
     public NarrativeStage GetCurrentStage(Narrative narrative)
     {
         return narrative.Stages[narrative.currentStage - 1];
-    }
-
-    public List<NarrativeChoice> GetCurrentStageChoices(Narrative narrative)
-    {
-        NarrativeStage stage = GetCurrentStage(narrative);
-        List<NarrativeChoice> options = stage.Choices;
-        return options;
     }
 
     public void SetActiveNarrative(Narrative narrative)

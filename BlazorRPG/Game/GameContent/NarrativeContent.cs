@@ -1,12 +1,12 @@
 ﻿public class NarrativeContent
 {
     public static Narrative TavernServeDrinks => new NarrativeBuilder()
-        .ForAction(BasicActionTypes.Mingle)
+        .ForAction(ActionTypes.Mingle)
         .ForLocationType(LocationTypes.Social)
         .ForLocation(LocationNames.LionsHeadTavern)
         .ForLocationSpot(LocationSpotNames.ServingArea)
         .WithCharacter(CharacterNames.Bartender)
-        .InCharacterRole(NarrativeCharacterRoles.WorkFor)
+        .InCharacterRole(CharacterRoles.WorkFor)
         .WithTimeSlot(TimeSlots.Night)
         .WithSituation("Serve Drinks in the Tavern at night.")
         .WithMomentum(3) // normal service pace

@@ -21,6 +21,9 @@
         services.AddSingleton<StatusSystem>();
         services.AddSingleton<AchievementSystem>();
 
+        services.AddSingleton<NarrativeGenerator>();
+        services.AddSingleton<ChoiceSystem>();
+
         services.AddSingleton<ActionValidator>();
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<ContextEngine>();

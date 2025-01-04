@@ -2,9 +2,9 @@
 {
     None = 0,
     Industry,
-    Commerce,
+    Commercial,
     Social,
-    Nature
+    Nature,
 }
 
 public enum LocationSpotNames

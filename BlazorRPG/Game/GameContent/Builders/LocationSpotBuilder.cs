@@ -111,7 +111,7 @@
     private BasicAction BuildCharacterAction(CharacterNames character)
     {
         ActionBuilder builder = new ActionBuilder()
-            .ForAction(BasicActionTypes.Discuss)
+            .ForAction(ActionTypes.Discuss)
             .WithDescription($"Talk to {character}");
 
         return builder.Build();
@@ -120,7 +120,7 @@
     private BasicAction BuildLaborAction()
     {
         ActionBuilder builder = new ActionBuilder()
-            .ForAction(BasicActionTypes.Labor)
+            .ForAction(ActionTypes.Labor)
             .WithDescription($"Process {inputResource} into {outputResource}");
 
         // Processing actions can have any costs/rewards except energy rewards
@@ -156,7 +156,7 @@
     private BasicAction BuildGatheringAction()
     {
         ActionBuilder builder = new ActionBuilder()
-            .ForAction(BasicActionTypes.Gather)
+            .ForAction(ActionTypes.Gather)
             .WithDescription($"Gather {outputResource}");
 
         // Handle all possible costs/rewards except energy rewards
@@ -187,7 +187,7 @@
     private BasicAction BuildTradingAction()
     {
         ActionBuilder builder = new ActionBuilder()
-            .ForAction(BasicActionTypes.Trade);
+            .ForAction(ActionTypes.Trade);
 
         if (coinCost > 0)
         {
@@ -224,7 +224,7 @@
     private BasicAction BuildInteractionAction()
     {
         ActionBuilder builder = new ActionBuilder()
-            .ForAction(spotName == LocationSpotNames.PrivateCorner ? BasicActionTypes.Investigate : BasicActionTypes.Mingle)
+            .ForAction(spotName == LocationSpotNames.PrivateCorner ? ActionTypes.Investigate : ActionTypes.Mingle)
             .WithDescription(GetInteractionDescription());
 
         // Social actions can have any costs/rewards INCLUDING energy rewards
@@ -262,7 +262,7 @@
     private BasicAction BuildRestAction()
     {
         ActionBuilder builder = new ActionBuilder()
-            .ForAction(BasicActionTypes.Rest);
+            .ForAction(ActionTypes.Rest);
 
         builder.WithDescription(GetRestDescription())
         .AddTimeSlot(TimeSlots.Night)

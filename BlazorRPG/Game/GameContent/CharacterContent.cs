@@ -15,7 +15,7 @@
         .AddSchedule(schedule => schedule
             .AtTime(TimeSlots.Morning)
             .AtSpot(LocationSpotNames.ResourceMarket)
-            .WithAction(BasicActionTypes.Trade))
+            .WithAction(ActionTypes.Trade))
         .AddGoal(goal => goal
             .WithDescription("Train son to take over business")
             .WithReward(RewardTypes.TradeDiscount))

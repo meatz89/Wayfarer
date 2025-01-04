@@ -1,11 +1,11 @@
 ﻿public class NarrativeBuilder
 {
-    private BasicActionTypes actionType;
+    private ActionTypes actionType;
     private LocationTypes locationType;
     private LocationNames locationName;
     private LocationSpotNames locationSpotName;
     private CharacterNames narrativeCharacter;
-    private NarrativeCharacterRoles narrativeCharacterRole;
+    private CharacterRoles narrativeCharacterRole;
 
     private TimeSlots timeSlot;
     private string situation;
@@ -14,7 +14,7 @@
     private List<NarrativeStage> stages = new();
 
 
-    public NarrativeBuilder ForAction(BasicActionTypes actionType)
+    public NarrativeBuilder ForAction(ActionTypes actionType)
     {
         this.actionType = actionType;
         return this;
@@ -38,7 +38,7 @@
         return this;
     }
 
-    public NarrativeBuilder InCharacterRole(NarrativeCharacterRoles narrativeCharacterRole)
+    public NarrativeBuilder InCharacterRole(CharacterRoles narrativeCharacterRole)
     {
         this.narrativeCharacterRole = narrativeCharacterRole;
         return this;

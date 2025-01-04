@@ -1,11 +1,11 @@
 ﻿public class Narrative
 {
-    public BasicActionTypes ActionType { get; set; }
+    public ActionTypes ActionType { get; set; }
     public LocationTypes LocationType { get; set; }
     public LocationNames LocationName { get; set; }
     public LocationSpotNames LocationSpot { get; set; }
     public CharacterNames NarrativeCharacter { get; set; }
-    public NarrativeCharacterRoles NarrativeCharacterRole { get; set; }
+    public CharacterRoles NarrativeCharacterRole { get; set; }
     public TimeSlots TimeSlot { get; set; }
     public string Situation { get; set; }
 

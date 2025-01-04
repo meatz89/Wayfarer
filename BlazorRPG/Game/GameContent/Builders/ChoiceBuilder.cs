@@ -1,21 +1,19 @@
-﻿public class ChoiceBuilder
+﻿// Enhanced ChoiceBuilder that works with the provided Requirements and Outcomes
+public class ChoiceBuilder
 {
     private int index;
     private string description;
     private ChoiceTypes choiceType;
-
     private Requirement requirement;
     private Outcome cost;
     private Outcome reward;
-
     private string narrative;
     private NarrativeState narrativeStateChanges = NarrativeState.NoChange;
     private int onlyWhenMomentumAbove;
     private int onlyWhenAdvantageAbove;
     private int onlyWhenUnderstandingAbove;
+    private int onlyWhenConnectionAbove;
     private int onlyWhenTensionAbove;
-
-    public int onlyWhenConnectionAbove { get; private set; }
 
     public ChoiceBuilder WithIndex(int index)
     {
@@ -41,10 +39,11 @@
         return this;
     }
 
+    // Enhanced energy methods that work with the provided Requirement/Outcome system
     public ChoiceBuilder ExpendsEnergy(EnergyTypes energy, int count)
     {
         requirement = new EnergyRequirement(energy, count);
-        cost = new EnergyOutcome(energy, count);
+        cost = new EnergyOutcome(energy, -count); // Negative for consumption
         return this;
     }
 
@@ -54,69 +53,120 @@
         return this;
     }
 
+    public ChoiceBuilder RequiresHealth(int count)
+    {
+        requirement = new HealthRequirement(count);
+        return this;
+    }
+
+    public ChoiceBuilder RequiresCoins(int count)
+    {
+        requirement = new CoinsRequirement(count);
+        return this;
+    }
+
+    public ChoiceBuilder RequiresResource(ResourceTypes type, int count)
+    {
+        requirement = new ResourceRequirement(type, count);
+        return this;
+    }
+
+    public ChoiceBuilder RequiresInventorySlots(int count)
+    {
+        requirement = new InventorySlotsRequirement(count);
+        return this;
+    }
+
+    // Outcome methods
+    public ChoiceBuilder WithHealthOutcome(int count)
+    {
+        reward = new HealthOutcome(count);
+        return this;
+    }
+
     public ChoiceBuilder WithMoneyOutcome(int count)
     {
         reward = new CoinsOutcome(count);
         return this;
     }
 
+    public ChoiceBuilder WithResourceOutcome(ResourceTypes type, int count)
+    {
+        reward = new ResourceOutcome(type, count);
+        return this;
+    }
+
+    public ChoiceBuilder WithSkillOutcome(SkillTypes type, int count)
+    {
+        reward = new SkillLevelOutcome(type, count);
+        return this;
+    }
+
+    public ChoiceBuilder WithReputationOutcome(ReputationTypes type, int count)
+    {
+        reward = new ReputationOutcome(type, count);
+        return this;
+    }
+
+    // Narrative state changes
     public ChoiceBuilder WithMomentumChange(int momentum)
     {
-        this.narrativeStateChanges.Momentum = momentum;
+        narrativeStateChanges.Momentum = momentum;
         return this;
     }
 
     public ChoiceBuilder WithAdvantageChange(int advantage)
     {
-        this.narrativeStateChanges.Advantage = advantage;
+        narrativeStateChanges.Advantage = advantage;
         return this;
     }
 
     public ChoiceBuilder WithUnderstandingChange(int understanding)
     {
-        this.narrativeStateChanges.Understanding = understanding;
+        narrativeStateChanges.Understanding = understanding;
         return this;
     }
 
     public ChoiceBuilder WithConnectionChange(int connection)
     {
-        this.narrativeStateChanges.Connection = connection;
+        narrativeStateChanges.Connection = connection;
         return this;
     }
 
     public ChoiceBuilder WithTensionChange(int tension)
     {
-        this.narrativeStateChanges.Tension = tension;
+        narrativeStateChanges.Tension = tension;
         return this;
     }
 
+    // Value thresholds
     public ChoiceBuilder WhenMomentumAbove(int momentum)
     {
-        this.onlyWhenMomentumAbove = momentum;
+        onlyWhenMomentumAbove = momentum;
         return this;
     }
 
     public ChoiceBuilder WhenAdvantageAbove(int advantage)
     {
-        this.onlyWhenAdvantageAbove = advantage;
+        onlyWhenAdvantageAbove = advantage;
         return this;
     }
 
     public ChoiceBuilder WhenUnderstandingAbove(int understanding)
     {
-        this.onlyWhenUnderstandingAbove = understanding;
+        onlyWhenUnderstandingAbove = understanding;
         return this;
     }
 
     public ChoiceBuilder WhenConnectionAbove(int connection)
     {
-        this.onlyWhenConnectionAbove = connection;
+        onlyWhenConnectionAbove = connection;
         return this;
     }
 
     public ChoiceBuilder WhenTensionAbove(int tension)
     {
-        this.onlyWhenTensionAbove = tension;
+        onlyWhenTensionAbove = tension;
         return this;
     }
 
@@ -131,9 +181,15 @@
             Requirement = requirement,
             Cost = cost,
             Reward = reward,
-            NarrativeStateChanges = narrativeStateChanges
+            NarrativeStateChanges = narrativeStateChanges,
+            // Store thresholds for validation
+            ValueThresholds = new NarrativeState(
+                onlyWhenMomentumAbove,
+                onlyWhenAdvantageAbove,
+                onlyWhenUnderstandingAbove,
+                onlyWhenConnectionAbove,
+                onlyWhenTensionAbove
+            )
         };
     }
 }
-
-

@@ -1,4 +1,4 @@
-﻿public enum NarrativeCharacterRoles
+﻿public enum CharacterRoles
 {
     None = 0,
     WorkFor,

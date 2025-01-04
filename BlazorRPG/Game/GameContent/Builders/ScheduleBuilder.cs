@@ -4,7 +4,7 @@ public class ScheduleBuilder
 {
     private TimeSlots timeWindow;
     private LocationSpotNames locationSpotType;
-    private BasicActionTypes basicActionTypes;
+    private ActionTypes basicActionTypes;
 
     public ScheduleBuilder AtTime(TimeSlots timeWindow)
     {
@@ -18,7 +18,7 @@ public class ScheduleBuilder
         return this;
     }
 
-    public ScheduleBuilder WithAction(BasicActionTypes basicActionTypes)
+    public ScheduleBuilder WithAction(ActionTypes basicActionTypes)
     {
         this.basicActionTypes = basicActionTypes;
         return this;

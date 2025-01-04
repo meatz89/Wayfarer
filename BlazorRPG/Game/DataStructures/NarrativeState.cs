@@ -8,13 +8,18 @@
     public int Connection { get; set; }
     public int Tension { get; set; }
 
-    public NarrativeState(int m, int a, int u, int c, int t)
+    public NarrativeState()
     {
-        this.Momentum = m;
-        this.Advantage = a;
-        this.Understanding = u;
-        this.Connection = c;
-        this.Tension = t;
+        
+    }
+
+    public NarrativeState(int momentum, int advantage, int understanding, int connection, int tension)
+    {
+        this.Momentum = momentum;
+        this.Advantage = advantage;
+        this.Understanding = understanding;
+        this.Connection = connection;
+        this.Tension = tension;
     }
 
     public void ApplyChanges(NarrativeState changes)

@@ -10,5 +10,10 @@
     // Work action related skills
     Strength,
     Agility,
-    Vitality
+    Vitality,
+
+    PhysicalLabor,
+    Trading,
+    Observation,
+    Socializing
 }
