@@ -2,6 +2,7 @@
 
 public partial class NarrativeViewBase : ComponentBase
 {
+    [Parameter] public EventCallback OnNarrativeCompleted { get; set; }
     [Inject] public GameState GameState { get; set; }
     [Inject] public GameManager GameManager { get; set; }
 
@@ -31,6 +32,7 @@ public partial class NarrativeViewBase : ComponentBase
         }
 
         GameManager.ExecuteNarrativeChoice(choice);
+        OnNarrativeCompleted.InvokeAsync();
     }
 
     public bool IsRequirementMet(UserNarrativeChoiceOption choice)

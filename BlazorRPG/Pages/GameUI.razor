@@ -43,9 +43,9 @@
             </button>
         </div>
 
-        @if (GameState.Actions.CurrentNarrative != null)
+        @if (HasNarrative())
         {
-            <NarrativeView />
+            <NarrativeView OnNarrativeCompleted="HandleNarrativeCompleted" />
         }
         else
         {

@@ -466,3 +466,163 @@ body {
 .costs {
     color: var(--resource-health);
 }
+
+.narrative-container {
+    background-color: var(--bg-panel);
+    padding: 20px;
+    border-radius: 5px;
+    margin: 20px 0;
+}
+
+.narrative-header {
+    margin-bottom: 20px;
+}
+
+    .narrative-header h2 {
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        margin: 0;
+    }
+
+.narrative-stats {
+    display: flex;
+    gap: 20px;
+    background-color: var(--bg-card);
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.narrative-stage {
+    background-color: var(--bg-card);
+    padding: 20px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.stage-description {
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+.narrative-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.choice-option {
+    background-color: var(--bg-card);
+    padding: 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    gap: 10px;
+}
+
+    .choice-option:hover,
+    .choice-option.hovered {
+        background-color: var(--bg-active);
+    }
+
+.choice-index {
+    color: var(--text-secondary);
+    min-width: 25px;
+}
+
+.choice-description {
+    color: var(--text-primary);
+    flex: 1;
+}
+
+.preview-container {
+    padding: 15px;
+}
+
+    .preview-container h4 {
+        color: var(--text-primary);
+        margin: 0 0 15px 0;
+    }
+
+    .preview-container h5 {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin: 10px 0 5px 0;
+    }
+
+.requirements,
+.costs,
+.rewards {
+    margin-bottom: 15px;
+}
+
+.requirement,
+.cost,
+.reward {
+    font-size: 0.9rem;
+    margin: 5px 0;
+}
+
+    .requirement.positive {
+        color: var(--energy-social);
+    }
+
+    .requirement.negative {
+        color: var(--resource-health);
+    }
+
+.rewards {
+    color: var(--energy-social);
+}
+
+.costs {
+    color: var(--resource-health);
+}
+
+.narrative-state-changes {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--bg-panel);
+}
+
+.state-change {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
+    color: var(--text-secondary);
+}
+
+    .state-change.positive .state-preview {
+        color: var(--energy-social);
+    }
+
+    .state-change.negative .state-preview {
+        color: var(--resource-health);
+    }
+
+.state-label {
+    margin-right: 10px;
+}
+
+.state-preview {
+    font-family: monospace;
+}

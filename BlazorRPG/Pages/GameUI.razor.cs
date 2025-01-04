@@ -46,6 +46,17 @@ public partial class GameUI : ComponentBase
         GameManager.StartGame();
     }
 
+    public bool HasNarrative()
+    {
+        return GameState.Actions.CurrentNarrative != null;
+    }
+
+    private void HandleNarrativeCompleted()
+    {
+        // Force a re-render of the GameUI component
+        StateHasChanged();
+    }
+
     public string GetModifierDescription(IGameStateModifier modifier)
     {
         if (modifier is FoodModfier modfier)
