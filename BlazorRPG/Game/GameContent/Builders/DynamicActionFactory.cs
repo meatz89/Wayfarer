@@ -3,11 +3,11 @@
     public ActionImplementation CreateAction(ActionGenerationContext context)
     {
         // Generate the specialized name
-        var nameGenerator = new ActionNameGenerator(context);
+        ActionNameGenerator nameGenerator = new ActionNameGenerator(context);
         string actionName = nameGenerator.GenerateName();
 
         // Create the action with the generated name
-        var action = new ActionImplementation
+        ActionImplementation action = new ActionImplementation
         {
             Name = actionName,
             ActionType = context.BaseAction,
@@ -26,12 +26,7 @@
 
         // Base energy cost based on intensity
         EnergyTypes energyType = GetEnergyType(context.BaseAction);
-        int energyCost = context.Activity.Intensity switch
-        {
-            IntensityTypes.High => 3,
-            IntensityTypes.Medium => 2,
-            _ => 1
-        };
+        int energyCost = 1;
 
         requirements.Add(new EnergyRequirement(energyType, energyCost));
 
@@ -51,12 +46,7 @@
 
         // Base energy cost
         EnergyTypes energyType = GetEnergyType(context.BaseAction);
-        int energyCost = context.Activity.Intensity switch
-        {
-            IntensityTypes.High => -3,
-            IntensityTypes.Medium => -2,
-            _ => -1
-        };
+        int energyCost = -1;
 
         costs.Add(new EnergyOutcome(energyType, energyCost));
 

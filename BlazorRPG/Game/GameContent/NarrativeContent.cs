@@ -88,8 +88,8 @@
                 .WithName("Use The Crowd")
                 .WithChoiceType(ChoiceTypes.Tactical)
                 .WithNarrative("Shift through nearby patrons to regain balance.")
-                .WithAdvantageChange(2) 
-                .WithConnectionChange(-1) 
+                .WithAdvantageChange(2)
+                .WithConnectionChange(-1)
             )
 
             .AddChoice(choice => choice

@@ -26,5 +26,5 @@
     public int DailyFoodRequirement;
     public int NoFoodEffectOnHealth;
     public int NoShelterEffectOnHealth;
-    
+
 }

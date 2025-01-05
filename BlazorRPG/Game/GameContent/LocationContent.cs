@@ -11,19 +11,13 @@
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Labor)
                 .WithSpace(space => space
-                    .WithAccess(AccessTypes.Open)
                     .WithScale(ScaleVariations.Medium)
-                    .WithPopulation(PopulationDensity.Sparse)
                     .WithExposure(ExposureConditions.Outdoor))
                 .WithSocial(social => social
-                    .WithAuthority(AuthorityTypes.Official)
-                    .WithFormality(FormalityTypes.Formal)
-                    .WithTension(TensionState.Alert))
+                    .WithTension(TensionState.Relaxed)
+                    .WithLegality(LegalityTypes.Legal))
                 .WithActivity(activity => activity
-                    .WithComplexity(ComplexityTypes.Simple)
-                    .WithIntensity(IntensityTypes.Medium)
-                    .WithDuration(DurationTypes.Brief)
-                    .WithNoise(NoiseTypes.Quiet))
+                    .WithComplexity(ComplexityTypes.Simple))
             )
         )
         // PLAYGROUND GATHER ACTION
@@ -32,21 +26,14 @@
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Gather)
                 .WithSpace(space => space
-                    .WithAccess(AccessTypes.Open)
                     .WithScale(ScaleVariations.Medium)
-                    .WithPopulation(PopulationDensity.Sparse)
                     .WithExposure(ExposureConditions.Outdoor))
                 .WithSocial(social => social
-                    .WithAuthority(AuthorityTypes.Official)
-                    .WithFormality(FormalityTypes.Formal)
                     .WithTension(TensionState.Alert))
                 .WithActivity(activity => activity
                     .WithComplexity(ComplexityTypes.Simple)
-                    .WithIntensity(IntensityTypes.Medium)
-                    .WithDuration(DurationTypes.Brief)
-                    .WithNoise(NoiseTypes.Quiet))
             )
-        )
+        ))
         // PLAYGROUND TRADE ACTION
         .AddLocationSpot(feature => feature
             .ForLocationSpot(LocationSpotNames.WharfMerchant)
@@ -54,42 +41,31 @@
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Trade)
                 .WithSpace(space => space
-                    .WithAccess(AccessTypes.Open)
                     .WithScale(ScaleVariations.Medium)
-                    .WithPopulation(PopulationDensity.Sparse)
                     .WithExposure(ExposureConditions.Outdoor))
                 .WithSocial(social => social
-                    .WithAuthority(AuthorityTypes.Official)
-                    .WithFormality(FormalityTypes.Formal)
-                    .WithTension(TensionState.Alert))
+                    .WithTension(TensionState.Alert)
+                    .WithLegality(LegalityTypes.Legal))
                 .WithActivity(activity => activity
                     .WithComplexity(ComplexityTypes.Simple)
-                    .WithIntensity(IntensityTypes.Low)
-                    .WithDuration(DurationTypes.Brief)
-                    .WithNoise(NoiseTypes.Quiet))
             )
-        )
+        ))
         // PLAYGROUND MINGLE ACTION
         .AddLocationSpot(feature => feature
             .ForLocationSpot(LocationSpotNames.DocksidePub)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
-                    .WithAccess(AccessTypes.Public)
                     .WithScale(ScaleVariations.Intimate)
-                    .WithPopulation(PopulationDensity.Busy)
                     .WithExposure(ExposureConditions.Indoor))
                 .WithSocial(social => social
-                    .WithAuthority(AuthorityTypes.Official)
-                    .WithFormality(FormalityTypes.Casual)
-                    .WithTension(TensionState.Relaxed))
+                    .WithTension(TensionState.Relaxed)
+                    .WithLegality(LegalityTypes.Legal)
+                )
                 .WithActivity(activity => activity
                     .WithComplexity(ComplexityTypes.Simple)
-                    .WithIntensity(IntensityTypes.Low)
-                    .WithDuration(DurationTypes.Brief)
-                    .WithNoise(NoiseTypes.Quiet))
             )
-        )
+        ))
         .Build();
 
     // === COMMERCIAL CHOICES PLAYGROUND ===
@@ -103,30 +79,26 @@
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
-                    .WithAccess(AccessTypes.Public)
                     .WithScale(ScaleVariations.Intimate))
                 .WithSocial(social => social
-                    .WithFormality(FormalityTypes.Casual)
-                    .WithTension(TensionState.Relaxed))
+                    .WithTension(TensionState.Relaxed)
+                    .WithLegality(LegalityTypes.Legal)
+                )
                 .WithActivity(activity => activity
-                    .WithComplexity(ComplexityTypes.Simple)
-                    .WithIntensity(IntensityTypes.Low)))
-        )
+                    .WithComplexity(ComplexityTypes.Simple))
+        ))
         // PLAYGROUND GATHER ACTION
         .AddLocationSpot(feature => feature
             .ForLocationSpot(LocationSpotNames.HerbGarden)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
-                    .WithAccess(AccessTypes.Public)
                     .WithScale(ScaleVariations.Intimate))
                 .WithSocial(social => social
-                    .WithFormality(FormalityTypes.Casual)
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
-                    .WithComplexity(ComplexityTypes.Simple)
-                    .WithIntensity(IntensityTypes.Low)))
-        )
+                    .WithComplexity(ComplexityTypes.Simple))
+        ))
         // PLAYGROUND TRADE ACTION
         .AddLocationSpot(feature => feature
             .ForLocationSpot(LocationSpotNames.MarketBazaar)
@@ -134,30 +106,24 @@
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
-                    .WithAccess(AccessTypes.Public)
                     .WithScale(ScaleVariations.Intimate))
                 .WithSocial(social => social
-                    .WithFormality(FormalityTypes.Casual)
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
-                    .WithComplexity(ComplexityTypes.Simple)
-                    .WithIntensity(IntensityTypes.Low)))
-        )
+                    .WithComplexity(ComplexityTypes.Simple))
+        ))
         // PLAYGROUND MINGLE ACTION
         .AddLocationSpot(feature => feature
             .ForLocationSpot(LocationSpotNames.MarketSquare)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
-                    .WithAccess(AccessTypes.Public)
                     .WithScale(ScaleVariations.Intimate))
                 .WithSocial(social => social
-                    .WithFormality(FormalityTypes.Casual)
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
-                    .WithComplexity(ComplexityTypes.Simple)
-                    .WithIntensity(IntensityTypes.Low)))
-        )
+                    .WithComplexity(ComplexityTypes.Simple))
+        ))
         .Build();
 
     // === SOCIAL CHOICES PLAYGROUND ===
@@ -171,30 +137,25 @@
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
-                    .WithAccess(AccessTypes.Public)
+                    .WithExposure(ExposureConditions.Indoor)
                     .WithScale(ScaleVariations.Intimate))
                 .WithSocial(social => social
-                    .WithFormality(FormalityTypes.Casual)
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
-                    .WithComplexity(ComplexityTypes.Simple)
-                    .WithIntensity(IntensityTypes.Low)))
-        )
+                    .WithComplexity(ComplexityTypes.Simple))
+        ))
         // PLAYGROUND GATHER ACTION
         .AddLocationSpot(feature => feature
             .ForLocationSpot(LocationSpotNames.CellarPantry)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
-                    .WithAccess(AccessTypes.Public)
                     .WithScale(ScaleVariations.Intimate))
                 .WithSocial(social => social
-                    .WithFormality(FormalityTypes.Casual)
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
-                    .WithComplexity(ComplexityTypes.Simple)
-                    .WithIntensity(IntensityTypes.Low)))
-        )
+                    .WithComplexity(ComplexityTypes.Simple))
+        ))
         // PLAYGROUND TRADE ACTION
         .AddLocationSpot(feature => feature
             .ForLocationSpot(LocationSpotNames.TavernBarterTable)
@@ -202,30 +163,24 @@
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
-                    .WithAccess(AccessTypes.Public)
                     .WithScale(ScaleVariations.Intimate))
                 .WithSocial(social => social
-                    .WithFormality(FormalityTypes.Casual)
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
-                    .WithComplexity(ComplexityTypes.Simple)
-                    .WithIntensity(IntensityTypes.Low)))
-        )
+                    .WithComplexity(ComplexityTypes.Simple))
+        ))
         // PLAYGROUND MINGLE ACTION
         .AddLocationSpot(feature => feature
             .ForLocationSpot(LocationSpotNames.InnFireplace)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
-                    .WithAccess(AccessTypes.Public)
                     .WithScale(ScaleVariations.Intimate))
                 .WithSocial(social => social
-                    .WithFormality(FormalityTypes.Casual)
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
-                    .WithComplexity(ComplexityTypes.Simple)
-                    .WithIntensity(IntensityTypes.Low)))
-        )
+                    .WithComplexity(ComplexityTypes.Simple))
+        ))
         .Build();
 
     // === NATURE CHOICES PLAYGROUND ===
@@ -239,30 +194,24 @@
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
-                    .WithAccess(AccessTypes.Public)
                     .WithScale(ScaleVariations.Intimate))
                 .WithSocial(social => social
-                    .WithFormality(FormalityTypes.Casual)
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
-                    .WithComplexity(ComplexityTypes.Simple)
-                    .WithIntensity(IntensityTypes.Low)))
-        )
+                    .WithComplexity(ComplexityTypes.Simple))
+        ))
         // PLAYGROUND GATHER ACTION
         .AddLocationSpot(feature => feature
             .ForLocationSpot(LocationSpotNames.MysticGrove)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
-                    .WithAccess(AccessTypes.Public)
                     .WithScale(ScaleVariations.Intimate))
                 .WithSocial(social => social
-                    .WithFormality(FormalityTypes.Casual)
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
-                    .WithComplexity(ComplexityTypes.Simple)
-                    .WithIntensity(IntensityTypes.Low)))
-        )
+                    .WithComplexity(ComplexityTypes.Simple))
+        ))
         // PLAYGROUND TRADE ACTION
         .AddLocationSpot(feature => feature
             .ForLocationSpot(LocationSpotNames.WoodworkerCabin)
@@ -270,14 +219,11 @@
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
-                    .WithAccess(AccessTypes.Public)
                     .WithScale(ScaleVariations.Intimate))
                 .WithSocial(social => social
-                    .WithFormality(FormalityTypes.Casual)
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
-                    .WithComplexity(ComplexityTypes.Simple)
-                    .WithIntensity(IntensityTypes.Low)))
+                    .WithComplexity(ComplexityTypes.Simple)))
         )
         // PLAYGROUND MINGLE ACTION
         .AddLocationSpot(feature => feature
@@ -285,15 +231,12 @@
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
-                    .WithAccess(AccessTypes.Public)
                     .WithScale(ScaleVariations.Intimate))
                 .WithSocial(social => social
-                    .WithFormality(FormalityTypes.Casual)
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
-                    .WithComplexity(ComplexityTypes.Simple)
-                    .WithIntensity(IntensityTypes.Low)))
-        )
+                    .WithComplexity(ComplexityTypes.Simple))
+        ))
         .Build();
 
     // === RESIDENTIAL DISTRICT ===
@@ -310,14 +253,11 @@
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
-                    .WithAccess(AccessTypes.Public)
                     .WithScale(ScaleVariations.Intimate))
                 .WithSocial(social => social
-                    .WithFormality(FormalityTypes.Casual)
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
-                    .WithComplexity(ComplexityTypes.Simple)
-                    .WithIntensity(IntensityTypes.Low)))
+                    .WithComplexity(ComplexityTypes.Simple)))
         )
         .Build();
 }

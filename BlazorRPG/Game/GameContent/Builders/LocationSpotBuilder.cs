@@ -12,8 +12,7 @@
     private List<Outcome> costs = new();
     private List<Outcome> rewards = new();
     private int timeInvestment = 1;
-
-    private ActionImplementation SpotAction;
+    private ActionGenerationContext actionGenerationContext;
 
     public LocationSpotBuilder(LocationNames location, LocationTypes locationType)
     {
@@ -66,10 +65,7 @@
         ActionContextBuilder builder = new ActionContextBuilder(locationType);
         buildContext(builder);
 
-        ActionGenerationContext context = builder.Build();
-
-        var factory = new DynamicActionFactory();
-        SpotAction = factory.CreateAction(context);
+        actionGenerationContext = builder.Build();
         return this;
     }
 
@@ -79,7 +75,7 @@
             spotName,
             location,
             character,
-            SpotAction,
+            actionGenerationContext,
             characterActions
         );
     }

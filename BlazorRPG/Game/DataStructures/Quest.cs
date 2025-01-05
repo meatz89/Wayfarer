@@ -32,7 +32,7 @@
     {
         QuestStep questStep = Steps[CurrentStep];
 
-        if(questStep == null) return null;
+        if (questStep == null) return null;
         return questStep;
     }
 }

@@ -65,7 +65,7 @@
 
     private void CapNarrativeValue(string propertyName, int maxValue)
     {
-        var property = typeof(NarrativeStateValues).GetProperty(propertyName);
+        System.Reflection.PropertyInfo? property = typeof(NarrativeStateValues).GetProperty(propertyName);
         if (property != null)
         {
             int currentValue = (int)property.GetValue(_choice.NarrativeStateChanges);

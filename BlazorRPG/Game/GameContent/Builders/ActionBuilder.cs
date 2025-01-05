@@ -65,7 +65,7 @@ public class ActionBuilder
 
     public ActionBuilder ExpendsFood(int cost)
     {
-        requirements.Add(new ResourceRequirement(ResourceTypes.Food, cost));    
+        requirements.Add(new ResourceRequirement(ResourceTypes.Food, cost));
         costs.Add(new ResourceOutcome(ResourceTypes.Food, -cost));
         return this;
     }

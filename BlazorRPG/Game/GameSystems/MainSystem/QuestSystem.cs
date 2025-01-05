@@ -9,8 +9,8 @@
     private int activeQuestCount;
 
     public QuestSystem(
-        GameState gameState, 
-        GameContentProvider contentProvider, 
+        GameState gameState,
+        GameContentProvider contentProvider,
         ContextEngine contextEngine,
         ActionValidator actionValidator)
     {

@@ -18,7 +18,7 @@
 
     public List<NarrativeChoice> GenerateChoices(NarrativeActionContext context)
     {
-        var choices = new List<NarrativeChoice>();
+        List<NarrativeChoice> choices = new List<NarrativeChoice>();
         int choiceIndex = 1;
 
         // First, create our guaranteed viable core choices
@@ -49,7 +49,7 @@
     private NarrativeChoice GenerateTRADEoffChoice(NarrativeActionContext context, int index)
     {
         // Create a choice with meaningful positive and negative effects
-        var tradeoffValues = GenerateContextTRADEoff(context);
+        (int positiveValue, int negativeValue) tradeoffValues = GenerateContextTRADEoff(context);
 
         return new ChoiceBuilder()
             .WithIndex(index)
@@ -66,7 +66,7 @@
     private NarrativeChoice GenerateOpportunityChoice(NarrativeActionContext context, int index)
     {
         // Create a choice that offers special rewards or unlocks
-        var builder = new ChoiceBuilder()
+        ChoiceBuilder builder = new ChoiceBuilder()
             .WithIndex(index)
             .WithChoiceType(ChoiceTypes.Tactical)
             .WithName(GetOpportunityActionDescription(context))
@@ -84,7 +84,7 @@
 
     private List<NarrativeChoice> GenerateHighValueChoices(NarrativeActionContext context, int startIndex)
     {
-        var highValueChoices = new List<NarrativeChoice>();
+        List<NarrativeChoice> highValueChoices = new List<NarrativeChoice>();
 
         if (context.CurrentValues.Momentum >= 8)
         {
@@ -376,7 +376,7 @@
 
     private ValueTypes GetLowestValue(NarrativeStateValues state)
     {
-        var values = new Dictionary<ValueTypes, int>
+        Dictionary<ValueTypes, int> values = new Dictionary<ValueTypes, int>
     {
         { ValueTypes.Momentum, state.Momentum },
         { ValueTypes.Advantage, state.Advantage },

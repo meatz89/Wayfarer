@@ -130,7 +130,7 @@ public class ResourceOutcome : Outcome
 {
     public ResourceChangeType ChangeType { get; }
     public ResourceTypes Resource { get; }
-    public int Count { get; set;  }
+    public int Count { get; set; }
 
     public ResourceOutcome(ResourceTypes resource, int count)
     {

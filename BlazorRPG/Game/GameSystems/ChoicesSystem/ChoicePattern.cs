@@ -13,7 +13,7 @@
 
     public NarrativeChoice CreateChoice(NarrativeActionContext context, int index)
     {
-        var builder = new ChoiceBuilder()
+        ChoiceBuilder builder = new ChoiceBuilder()
             .WithIndex(index)
             .WithChoiceType(ConvertPositionToChoiceType())
             .WithName(GenerateDescription(context));
@@ -25,7 +25,7 @@
         }
 
         // Apply standard value changes
-        foreach (var change in StandardValueChanges)
+        foreach (ValueChange change in StandardValueChanges)
         {
             ApplyValueChange(builder, change);
         }

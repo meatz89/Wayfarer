@@ -11,7 +11,7 @@
     {
         NarrativeStateValues state = NarrativeStateValues.InitialState;
 
-        var generator = new NarrativeGenerator();
+        NarrativeGenerator generator = new NarrativeGenerator();
         List<NarrativeChoice> choices = generator.GenerateChoices(context);
 
         return choices;

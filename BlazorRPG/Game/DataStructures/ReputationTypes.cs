@@ -1,7 +1,7 @@
-﻿public enum ReputationTypes 
-{ 
-    Reliable, 
-    Generous, 
+﻿public enum ReputationTypes
+{
+    Reliable,
+    Generous,
     Observant,
     Merchant,
     Social,

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Buffers;
+using System.Text;
 
 public class GameManager
 {
@@ -61,7 +62,7 @@ public class GameManager
         UpdateState();
 
         Item item = ItemSystem.GetItemFromName(ItemNames.CharmingPendant);
-        if(item != null) gameState.Player.Equipment.SetMainHand(item);
+        if (item != null) gameState.Player.Equipment.SetMainHand(item);
     }
 
     public void UpdateState()
@@ -107,20 +108,25 @@ public class GameManager
     {
         foreach (Location location in LocationSystem.GetLocations())
         {
-            foreach (LocationSpot locationSpot in location.Spots)
+            List<LocationSpot> spots = location.Spots;
+            foreach (LocationSpot locationSpot in spots)
             {
                 List<UserActionOption> locationSpotActions = new();
-                ActionImplementation locationSpotAction = locationSpot.LocationSpotAction;
+
+                ActionGenerationContext context = locationSpot.ActionGenerationContext;
+
+                DynamicActionFactory factory = new DynamicActionFactory();
+                ActionImplementation spotAction = factory.CreateAction(context);
 
                 // If no time slots specified, action is always enabled
                 // Otherwise check if current time is in valid slots
-                bool isDisabled = locationSpotAction.TimeSlots.Count > 0 &&
-                    !locationSpotAction.TimeSlots.Contains(gameState.World.CurrentTimeSlot);
+                bool isDisabled = spotAction.TimeSlots.Count > 0 &&
+                    !spotAction.TimeSlots.Contains(gameState.World.CurrentTimeSlot);
 
                 UserActionOption ua = new UserActionOption
                 {
-                    BasicAction = locationSpotAction,
-                    Description = locationSpotAction.Name,
+                    BasicAction = spotAction,
+                    Description = spotAction.Name,
                     IsDisabled = isDisabled,
                     Location = location.Name,
                     LocationSpot = locationSpot.Name

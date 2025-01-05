@@ -1,4 +1,6 @@
-﻿public enum PlayerStatusTypes { Hungry, Tired, Injured, Homeless,
+﻿public enum PlayerStatusTypes
+{
+    Hungry, Tired, Injured, Homeless,
     WellRested,
     Official
 }

@@ -12,7 +12,7 @@ public class ActionState
     public ActionResultMessages LastActionResultMessages { get; private set; }
 
     public List<Quest> ActiveQuests { get; set; }
-    
+
     public Narrative CurrentNarrative { get; private set; }
     public List<UserNarrativeChoiceOption> NarrativeChoiceOptions { get; private set; } = new();
 

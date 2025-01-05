@@ -3,7 +3,7 @@
     // Creates direct, high-impact choices that cost more but provide immediate benefits
     public static NarrativeChoice Create(NarrativeActionContext context)
     {
-        var builder = new ChoiceBuilder()
+        ChoiceBuilder builder = new ChoiceBuilder()
             .WithIndex(1)
             .WithChoiceType(ChoiceTypes.Direct)
             .WithName(GetDirectDescription(context))
@@ -68,7 +68,7 @@ public class CarefulChoiceFactory
     // Creates careful choices that minimize risk while building understanding
     public static NarrativeChoice Create(NarrativeActionContext context)
     {
-        var builder = new ChoiceBuilder()
+        ChoiceBuilder builder = new ChoiceBuilder()
             .WithIndex(2)
             .WithChoiceType(ChoiceTypes.Careful)
             .WithName(GetCarefulDescription(context))
@@ -120,7 +120,7 @@ public class TacticalChoiceFactory
     // Creates tactical choices that require skills but offer special opportunities
     public static NarrativeChoice Create(NarrativeActionContext context)
     {
-        var builder = new ChoiceBuilder()
+        ChoiceBuilder builder = new ChoiceBuilder()
             .WithIndex(3)
             .WithChoiceType(ChoiceTypes.Tactical)
             .WithName(GetTacticalDescription(context))

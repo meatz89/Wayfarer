@@ -85,7 +85,7 @@ public class SkillRequirement : Requirement
 
     public override bool IsSatisfied(PlayerState player)
     {
-        if(!player.Skills.ContainsKey(SkillType)) return false;
+        if (!player.Skills.ContainsKey(SkillType)) return false;
         int actualLevel = player.Skills[SkillType];
         return actualLevel >= Level;
     }

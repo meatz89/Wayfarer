@@ -15,7 +15,7 @@
 
     public ActionContextBuilder WithSpace(Action<SpacePropertiesBuilder> buildSpace)
     {
-        var builder = new SpacePropertiesBuilder();
+        SpacePropertiesBuilder builder = new SpacePropertiesBuilder();
         buildSpace(builder);
         context.Space = builder.Build();
         return this;
@@ -23,7 +23,7 @@
 
     public ActionContextBuilder WithSocial(Action<SocialContextBuilder> buildSocial)
     {
-        var builder = new SocialContextBuilder();
+        SocialContextBuilder builder = new SocialContextBuilder();
         buildSocial(builder);
         context.Social = builder.Build();
         return this;
@@ -31,7 +31,7 @@
 
     public ActionContextBuilder WithActivity(Action<ActivityPropertiesBuilder> buildActivity)
     {
-        var builder = new ActivityPropertiesBuilder();
+        ActivityPropertiesBuilder builder = new ActivityPropertiesBuilder();
         buildActivity(builder);
         context.Activity = builder.Build();
         return this;
