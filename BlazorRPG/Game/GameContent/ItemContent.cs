@@ -13,7 +13,7 @@
         .WithName(ItemNames.WoodcuttersAxe)
         .WithDescription("A nice axe for cutting trees")
         .WithActionModifier(actionModifier => actionModifier
-            .WithDescription("Gathers more Wood when Gathering")
+            .WithDescription("GATHERs more Wood when GATHERing")
             .ForActionType(BasicActionTypes.Gather)
             .WhenResourceRewardHas(ResourceTypes.Wood)
             .AdditionalResourceReward(ResourceTypes.Wood, 1)

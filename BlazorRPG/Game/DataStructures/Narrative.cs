@@ -8,9 +8,10 @@
     public CharacterRoles NarrativeCharacterRole { get; set; }
     public TimeSlots TimeSlot { get; set; }
     public string Situation { get; set; }
-
-    public NarrativeState InitialState { get; set; }
     public List<NarrativeStage> Stages { get; set; } = new();
+
+    public NarrativeStateValues InitialState { get; set; }
+    public int ActionCompletion = 0;
 
     public int currentStage = 0;
     public int numberOfStages => Stages.Count();

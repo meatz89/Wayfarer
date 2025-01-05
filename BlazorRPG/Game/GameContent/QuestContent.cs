@@ -16,19 +16,5 @@
                 .ExpendsEnergy(1, EnergyTypes.Social)
                 .RewardsReputation(ReputationTypes.Reliable, 1)
             ))
-        .AddStep(step => step
-            .WithDescription("Teach basic trading to the merchant's son")
-            .RequiresStatus(PlayerStatusTypes.WellRested)
-            .WithLocation(LocationNames.GenericMarket)
-            .WithLocationSpot(LocationSpotNames.MarketBazaar)
-            .WithCharacter(CharacterNames.WealthyMerchant)
-            .WithAction(action => action
-                .ForAction(BasicActionTypes.Teach)
-                .WithDescription("Teach Merchant's Son")
-                .ExpendsEnergy(2, EnergyTypes.Social)
-                .ExpendsEnergy(1, EnergyTypes.Focus)
-                .RewardsCoins(10)
-                .UnlocksAchievement(AchievementTypes.TrustedHelper)
-            ))
         .Build();
 }

@@ -1,4 +1,4 @@
-﻿public record BasicAction
+﻿public record ActionImplementation
 {
     public string Name { get; set; }
     public BasicActionTypes ActionType { get; set; }
@@ -13,3 +13,4 @@
         return Requirements.All(r => r.IsSatisfied(player));
     }
 }
+

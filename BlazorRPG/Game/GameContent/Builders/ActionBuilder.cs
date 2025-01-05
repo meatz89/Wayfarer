@@ -130,9 +130,9 @@ public class ActionBuilder
         return this;
     }
 
-    public BasicAction Build()
+    public ActionImplementation Build()
     {
-        return new BasicAction
+        return new ActionImplementation
         {
             ActionType = actionType,
             Name = description,

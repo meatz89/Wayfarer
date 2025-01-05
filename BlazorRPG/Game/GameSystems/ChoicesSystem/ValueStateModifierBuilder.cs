@@ -1,9 +1,9 @@
 ﻿public class ValueStateModifierBuilder
 {
     private readonly NarrativeChoice _choice;
-    private readonly NarrativeState _values;
+    private readonly NarrativeStateValues _values;
 
-    public ValueStateModifierBuilder(NarrativeChoice choice, NarrativeState values)
+    public ValueStateModifierBuilder(NarrativeChoice choice, NarrativeStateValues values)
     {
         _choice = choice;
         _values = values;

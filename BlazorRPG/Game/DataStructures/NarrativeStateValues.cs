@@ -1,14 +1,14 @@
-﻿public class NarrativeState
+﻿public class NarrativeStateValues
 {
-    public static NarrativeState InitialState = new NarrativeState(5, 5, 5, 5, 5);
-    public static NarrativeState NoChange => new NarrativeState(0, 0, 0, 0, 0);
+    public static NarrativeStateValues InitialState = new NarrativeStateValues(5, 5, 5, 5, 5);
+    public static NarrativeStateValues NoChange => new NarrativeStateValues(0, 0, 0, 0, 0);
     public int Momentum { get; set; }
     public int Advantage { get; set; }
     public int Understanding { get; set; }
     public int Connection { get; set; }
     public int Tension { get; set; }
 
-    public NarrativeState(int momentum, int advantage, int understanding, int connection, int tension)
+    public NarrativeStateValues(int momentum, int advantage, int understanding, int connection, int tension)
     {
         this.Momentum = momentum;
         this.Advantage = advantage;
@@ -17,7 +17,7 @@
         this.Tension = tension;
     }
 
-    public void ApplyChanges(NarrativeState changes)
+    public void ApplyChanges(NarrativeStateValues changes)
     {
         this.Momentum += changes.Momentum;
         this.Advantage += changes.Advantage;

@@ -10,7 +10,7 @@
     public CharacterNames CharacterName { get; set; }
     public CharacterRoles Role { get; set; }
     public RelationshipStatus Relationship { get; set; }
-    public NarrativeState CurrentValues { get; internal set; }
+    public NarrativeStateValues CurrentValues { get; internal set; }
 }
 
 public enum ChoiceCategories
@@ -41,7 +41,7 @@ public enum StageProgressions
     // Setup Types
     InitialAssessment,    // First look at situation
     OpportunitySpotting,  // Finding advantages
-    ResourceGathering,    // Collecting needed items
+    ResourceGATHERing,    // Collecting needed items
 
     // Challenge Types
     ExternalComplication, // Outside problem appears

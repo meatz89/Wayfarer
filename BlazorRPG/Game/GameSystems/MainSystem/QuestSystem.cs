@@ -25,7 +25,7 @@
         }
     }
 
-    public void ProcessAction(BasicAction action)
+    public void ProcessAction(ActionImplementation action)
     {
         // Check each active quest
         for (int i = 0; i < activeQuestCount; i++)
@@ -34,7 +34,7 @@
             // If action matches quest step and requirements are met
             QuestStep questStep = quest.GetCurrentStep();
 
-            BasicAction questAction = questStep.QuestAction;
+            ActionImplementation questAction = questStep.QuestAction;
             if (questAction.ActionType == action.ActionType &&
                 actionValidator.CanExecuteAction(questStep.QuestAction))
             {

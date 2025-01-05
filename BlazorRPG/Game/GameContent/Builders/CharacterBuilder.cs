@@ -2,7 +2,7 @@
 {
     private CharacterNames character;
     private LocationNames location;
-    private List<BasicAction> actions = new();
+    private List<ActionImplementation> actions = new();
     private CharacterMotivations characterMotivation;
     private CharacterPersonality personality;
     private List<Schedule> schedules = new();
@@ -21,11 +21,6 @@
     }
 
     public CharacterBuilder SetCharacterType(CharacterTypes characterType)
-    {
-        return this;
-    }
-
-    public CharacterBuilder SetDangerLevel(DangerLevels dangerLevel)
     {
         return this;
     }
@@ -72,7 +67,7 @@
 
     public Character Build()
     {
-        List<BasicAction> locActions = CharacterActionsFactory.Create(
+        List<ActionImplementation> locActions = CharacterActionsFactory.Create(
         );
 
         locActions.AddRange(actions);

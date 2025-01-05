@@ -93,7 +93,7 @@ public class GameManager
 
         UserActionOption ua = new UserActionOption
         {
-            BasicAction = new BasicAction() { ActionType = BasicActionTypes.Wait },
+            BasicAction = new ActionImplementation() { ActionType = BasicActionTypes.Wait },
             Description = "Wait",
             Index = actionIndex++,
             IsDisabled = false
@@ -110,7 +110,7 @@ public class GameManager
             foreach (LocationSpot locationSpot in location.Spots)
             {
                 List<UserActionOption> locationSpotActions = new();
-                BasicAction locationSpotAction = locationSpot.LocationSpotAction;
+                ActionImplementation locationSpotAction = locationSpot.LocationSpotAction;
 
                 // If no time slots specified, action is always enabled
                 // Otherwise check if current time is in valid slots
@@ -139,7 +139,7 @@ public class GameManager
         {
             foreach (LocationSpot locationSpot in location.Spots)
             {
-                foreach (BasicAction ga in locationSpot.CharacterActions)
+                foreach (ActionImplementation ga in locationSpot.CharacterActions)
                 {
                     int actionIndex = 1;
 
@@ -175,7 +175,7 @@ public class GameManager
         {
             QuestStep step = quest.GetCurrentStep();
 
-            BasicAction questAction = step.QuestAction;
+            ActionImplementation questAction = step.QuestAction;
             int actionIndex = 1;
 
             UserActionOption ua = new UserActionOption
@@ -262,7 +262,7 @@ public class GameManager
         }
     }
 
-    public ActionResult ExecuteBasicAction(UserActionOption action, BasicAction basicAction)
+    public ActionResult ExecuteBasicAction(UserActionOption action, ActionImplementation basicAction)
     {
         gameState.Actions.SetCurrentUserAction(action);
 
@@ -277,7 +277,7 @@ public class GameManager
         CharacterSystem.ProcessActionImpact(basicAction);
 
         // 4. Execute outcomes and check if day change is needed
-        BasicAction modifiedAction = ContextEngine.ProcessActionOutcome(basicAction);
+        ActionImplementation modifiedAction = ContextEngine.ProcessActionOutcome(basicAction);
 
         ActionResultMessages allMessages = MessageSystem.GetAndClearChanges();
         gameState.Actions.SetLastActionResultMessages(allMessages);

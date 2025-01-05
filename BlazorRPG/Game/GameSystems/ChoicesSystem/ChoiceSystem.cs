@@ -9,7 +9,7 @@
 
     public List<NarrativeChoice> GenerateChoices(NarrativeActionContext context)
     {
-        NarrativeState state = NarrativeState.InitialState;
+        NarrativeStateValues state = NarrativeStateValues.InitialState;
 
         var generator = new NarrativeGenerator();
         List<NarrativeChoice> choices = generator.GenerateChoices(context);

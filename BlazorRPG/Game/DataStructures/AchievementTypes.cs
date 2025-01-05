@@ -2,5 +2,5 @@
 {
     DockLoadingMastery,
     TrustedHelper,
-    ResourcefulTrader
+    ResourcefulTRADEr
 }

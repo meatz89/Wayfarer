@@ -9,12 +9,12 @@
         this.allCharacterProperties = contentProvider.GetCharacters();
     }
 
-    public List<BasicAction> GetActionsForCharacter(CharacterNames character)
+    public List<ActionImplementation> GetActionsForCharacter(CharacterNames character)
     {
         Character characterProperties = allCharacterProperties.FirstOrDefault(x => x.CharacterName == character);
         if (characterProperties == null) return null;
 
-        List<BasicAction> actions = characterProperties.Actions;
+        List<ActionImplementation> actions = characterProperties.Actions;
         return actions;
     }
 
@@ -25,7 +25,7 @@
         return characterProperties.CharacterName;
     }
 
-    public void ProcessActionImpact(BasicAction basicAction)
+    public void ProcessActionImpact(ActionImplementation basicAction)
     {
     }
 }

@@ -3,7 +3,7 @@
     private string description;
 
     private List<Requirement> requirements = new();
-    private BasicAction action;
+    private ActionImplementation action;
     private LocationNames location;
     private LocationSpotNames locationSpot;
     private CharacterNames character;

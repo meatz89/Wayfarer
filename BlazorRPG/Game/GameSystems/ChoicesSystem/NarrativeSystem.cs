@@ -26,7 +26,7 @@
     public void ExecuteChoice(Narrative narrative, NarrativeChoice narrativeChoice)
     {
         NarrativeStage stage = GetCurrentStage(narrative);
-        NarrativeState changes = narrativeChoice.NarrativeStateChanges;
+        NarrativeStateValues changes = narrativeChoice.NarrativeStateChanges;
         narrative.InitialState.ApplyChanges(changes);
 
     }

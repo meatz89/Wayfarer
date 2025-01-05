@@ -3,5 +3,5 @@
     None = 0,
     WorkFor,
     Conversation,
-    Teach
+    TEACH
 }

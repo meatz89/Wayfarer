@@ -10,17 +10,17 @@ public class ContextEngine
         this.messageSystem = messageSystem;
     }
 
-    public bool CanExecuteInContext(BasicAction basicAction)
+    public bool CanExecuteInContext(ActionImplementation basicAction)
     {
         // Create a copy of the action to apply modifiers
-        BasicAction modifiedAction = ApplyModifiers(basicAction);
+        ActionImplementation modifiedAction = ApplyModifiers(basicAction);
         return modifiedAction.CanExecute(gameState.Player);
     }
 
-    public BasicAction ProcessActionOutcome(BasicAction basicAction)
+    public ActionImplementation ProcessActionOutcome(ActionImplementation basicAction)
     {
         // Apply modifiers before processing the action
-        BasicAction modifiedAction = ApplyModifiers(basicAction);
+        ActionImplementation modifiedAction = ApplyModifiers(basicAction);
 
         // Process costs first
         foreach (Outcome cost in modifiedAction.Costs)
@@ -41,10 +41,10 @@ public class ContextEngine
         return modifiedAction;
     }
 
-    public BasicAction GetModifiedAction(BasicAction originalAction)
+    public ActionImplementation GetModifiedAction(ActionImplementation originalAction)
     {
         // Create a new action with the same base properties
-        BasicAction modifiedAction = new BasicAction
+        ActionImplementation modifiedAction = new ActionImplementation
         {
             ActionType = originalAction.ActionType,
             Name = originalAction.Name,
@@ -72,10 +72,10 @@ public class ContextEngine
         return modifiedAction;
     }
 
-    private BasicAction ApplyModifiers(BasicAction originalAction)
+    private ActionImplementation ApplyModifiers(ActionImplementation originalAction)
     {
         // Create a new action with the same base properties
-        BasicAction modifiedAction = new BasicAction
+        ActionImplementation modifiedAction = new ActionImplementation
         {
             ActionType = originalAction.ActionType,
             Name = originalAction.Name,
@@ -120,7 +120,7 @@ public class ContextEngine
         return modifiers;
     }
 
-    private bool IsModifierApplicable(ActionModifier modifier, BasicAction action)
+    private bool IsModifierApplicable(ActionModifier modifier, ActionImplementation action)
     {
         // Check if modifier applies to this action type
         if (modifier.ApplicableActions.Count > 0 &&

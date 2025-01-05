@@ -8,8 +8,8 @@
     public Requirement Requirement { get; set; }
     public Outcome Cost { get; set; }
     public Outcome Reward { get; set; }
-    public NarrativeState NarrativeStateChanges { get; set; }
-    public NarrativeState ValueThresholds { get; set; }
+    public NarrativeStateValues NarrativeStateChanges { get; set; }
+    public NarrativeStateValues ValueThresholds { get; set; }
 
     // New properties needed for value state modifications
     public int CompletionPoints { get; set; }

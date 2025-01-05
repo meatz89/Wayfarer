@@ -10,7 +10,7 @@ public class ValueChange
         Amount = amount;
     }
 
-    public void Apply(NarrativeState state)
+    public void Apply(NarrativeStateValues state)
     {
         switch (Type)
         {

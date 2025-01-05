@@ -23,7 +23,7 @@
 
         // First, create our guaranteed viable core choices
         choices.Add(GenerateBaseChoice(context, choiceIndex++));
-        choices.Add(GenerateTradeoffChoice(context, choiceIndex++));
+        choices.Add(GenerateTRADEoffChoice(context, choiceIndex++));
         choices.Add(GenerateOpportunityChoice(context, choiceIndex++));
 
         // Add high-value choices when appropriate
@@ -46,16 +46,16 @@
             .Build();
     }
 
-    private NarrativeChoice GenerateTradeoffChoice(NarrativeActionContext context, int index)
+    private NarrativeChoice GenerateTRADEoffChoice(NarrativeActionContext context, int index)
     {
         // Create a choice with meaningful positive and negative effects
-        var tradeoffValues = GenerateContextTradeoff(context);
+        var tradeoffValues = GenerateContextTRADEoff(context);
 
         return new ChoiceBuilder()
             .WithIndex(index)
             .WithChoiceType(ChoiceTypes.Direct)
-            .WithName(GetTradeoffActionDescription(context))
-            .WithNarrative(GetTradeoffActionNarrative(context))
+            .WithName(GetTRADEoffActionDescription(context))
+            .WithNarrative(GetTRADEoffActionNarrative(context))
             .ExpendsEnergy(GetContextEnergy(context), 2)
             .WithMoneyOutcome(2)
             .WithMomentumChange(tradeoffValues.positiveValue)
@@ -114,7 +114,7 @@
         return highValueChoices;
     }
 
-    private (int positiveValue, int negativeValue) GenerateContextTradeoff(NarrativeActionContext context)
+    private (int positiveValue, int negativeValue) GenerateContextTRADEoff(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
@@ -186,7 +186,7 @@
         };
     }
 
-    private string GetTradeoffActionDescription(NarrativeActionContext context)
+    private string GetTRADEoffActionDescription(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
@@ -198,7 +198,7 @@
         };
     }
 
-    private string GetTradeoffActionNarrative(NarrativeActionContext context)
+    private string GetTRADEoffActionNarrative(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
@@ -374,7 +374,7 @@
         };
     }
 
-    private ValueTypes GetLowestValue(NarrativeState state)
+    private ValueTypes GetLowestValue(NarrativeStateValues state)
     {
         var values = new Dictionary<ValueTypes, int>
     {
@@ -387,7 +387,7 @@
         return values.MinBy(x => x.Value).Key;
     }
 
-    private bool HasLowValues(NarrativeState state)
+    private bool HasLowValues(NarrativeStateValues state)
     {
         const int lowThreshold = 2;
         return state.Momentum <= lowThreshold ||

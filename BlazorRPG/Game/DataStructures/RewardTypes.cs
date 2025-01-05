@@ -1,4 +1,4 @@
 ﻿public enum RewardTypes
 {
-    TradeDiscount
+    TRADEDiscount
 }

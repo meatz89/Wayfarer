@@ -7,12 +7,12 @@
         this.gameState = gameState;
     }
 
-    public bool CanExecuteAction(BasicAction action)
+    public bool CanExecuteAction(ActionImplementation action)
     {
         return action.CanExecute(gameState.Player);
     }
 
-    public List<string> GetBlockingRequirements(BasicAction action)
+    public List<string> GetBlockingRequirements(ActionImplementation action)
     {
         List<string> blocking = new();
         foreach (Requirement req in action.Requirements)

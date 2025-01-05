@@ -72,6 +72,30 @@ public class CoinsRequirement : Requirement
     }
 }
 
+public class SkillRequirement : Requirement
+{
+    public SkillTypes SkillType { get; }
+    public int Level { get; }
+
+    public SkillRequirement(SkillTypes skillType, int level)
+    {
+        SkillType = skillType;
+        Level = level;
+    }
+
+    public override bool IsSatisfied(PlayerState player)
+    {
+        if(!player.Skills.ContainsKey(SkillType)) return false;
+        int actualLevel = player.Skills[SkillType];
+        return actualLevel >= Level;
+    }
+
+    public override string GetDescription()
+    {
+        return $"{SkillType} Level Required: {Level}";
+    }
+}
+
 public class ResourceRequirement : Requirement
 {
     public ResourceTypes ResourceType { get; }

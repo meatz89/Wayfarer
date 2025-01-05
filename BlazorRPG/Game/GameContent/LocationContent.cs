@@ -5,35 +5,90 @@
         .SetLocationType(LocationTypes.Industrial)
         .ForLocation(LocationNames.GenericDocks)
         .AddTravelConnection(LocationNames.LionsHeadTavern)
-        .SetAccessType(AccessTypes.Open)
-        .SetDangerLevel(DangerLevels.Safe)
         // PLAYGROUND LABOR ACTION
         .AddLocationSpot(feature => feature
-            .ForActionType(BasicActionTypes.Labor)
             .ForLocationSpot(LocationSpotNames.DocksideWarehouse)
-            .WithEnergyCost(1, EnergyTypes.Physical)
-            .WithCoinReward(3)
+            .WithContext(context => context
+                .WithBaseAction(BasicActionTypes.Labor)
+                .WithSpace(space => space
+                    .WithAccess(AccessTypes.Open)
+                    .WithScale(ScaleVariations.Medium)
+                    .WithPopulation(PopulationDensity.Sparse)
+                    .WithExposure(ExposureConditions.Outdoor))
+                .WithSocial(social => social
+                    .WithAuthority(AuthorityTypes.Official)
+                    .WithFormality(FormalityTypes.Formal)
+                    .WithTension(TensionState.Alert))
+                .WithActivity(activity => activity
+                    .WithComplexity(ComplexityTypes.Simple)
+                    .WithIntensity(IntensityTypes.Medium)
+                    .WithDuration(DurationTypes.Brief)
+                    .WithNoise(NoiseTypes.Quiet))
+            )
         )
         // PLAYGROUND GATHER ACTION
         .AddLocationSpot(feature => feature
-            .ForActionType(BasicActionTypes.Gather)
             .ForLocationSpot(LocationSpotNames.FishingWharf)
-            .WithEnergyCost(1, EnergyTypes.Physical)
-            .WithOutputResource(ResourceTypes.Fish, 1)
+            .WithContext(context => context
+                .WithBaseAction(BasicActionTypes.Gather)
+                .WithSpace(space => space
+                    .WithAccess(AccessTypes.Open)
+                    .WithScale(ScaleVariations.Medium)
+                    .WithPopulation(PopulationDensity.Sparse)
+                    .WithExposure(ExposureConditions.Outdoor))
+                .WithSocial(social => social
+                    .WithAuthority(AuthorityTypes.Official)
+                    .WithFormality(FormalityTypes.Formal)
+                    .WithTension(TensionState.Alert))
+                .WithActivity(activity => activity
+                    .WithComplexity(ComplexityTypes.Simple)
+                    .WithIntensity(IntensityTypes.Medium)
+                    .WithDuration(DurationTypes.Brief)
+                    .WithNoise(NoiseTypes.Quiet))
+            )
         )
         // PLAYGROUND TRADE ACTION
         .AddLocationSpot(feature => feature
-            .ForActionType(BasicActionTypes.Trade)
             .ForLocationSpot(LocationSpotNames.WharfMerchant)
             .WithCharacter(CharacterNames.Shopkeeper)
-            .WithCoinCost(2)
-            .WithOutputResource(ResourceTypes.Food, 1)
+            .WithContext(context => context
+                .WithBaseAction(BasicActionTypes.Trade)
+                .WithSpace(space => space
+                    .WithAccess(AccessTypes.Open)
+                    .WithScale(ScaleVariations.Medium)
+                    .WithPopulation(PopulationDensity.Sparse)
+                    .WithExposure(ExposureConditions.Outdoor))
+                .WithSocial(social => social
+                    .WithAuthority(AuthorityTypes.Official)
+                    .WithFormality(FormalityTypes.Formal)
+                    .WithTension(TensionState.Alert))
+                .WithActivity(activity => activity
+                    .WithComplexity(ComplexityTypes.Simple)
+                    .WithIntensity(IntensityTypes.Low)
+                    .WithDuration(DurationTypes.Brief)
+                    .WithNoise(NoiseTypes.Quiet))
+            )
         )
         // PLAYGROUND MINGLE ACTION
         .AddLocationSpot(feature => feature
-            .ForActionType(BasicActionTypes.Mingle)
             .ForLocationSpot(LocationSpotNames.DocksidePub)
-            .WithEnergyCost(1, EnergyTypes.Social)
+            .WithContext(context => context
+                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithSpace(space => space
+                    .WithAccess(AccessTypes.Public)
+                    .WithScale(ScaleVariations.Intimate)
+                    .WithPopulation(PopulationDensity.Busy)
+                    .WithExposure(ExposureConditions.Indoor))
+                .WithSocial(social => social
+                    .WithAuthority(AuthorityTypes.Official)
+                    .WithFormality(FormalityTypes.Casual)
+                    .WithTension(TensionState.Relaxed))
+                .WithActivity(activity => activity
+                    .WithComplexity(ComplexityTypes.Simple)
+                    .WithIntensity(IntensityTypes.Low)
+                    .WithDuration(DurationTypes.Brief)
+                    .WithNoise(NoiseTypes.Quiet))
+            )
         )
         .Build();
 
@@ -42,35 +97,66 @@
         .SetLocationType(LocationTypes.Commercial)
         .ForLocation(LocationNames.GenericMarket)
         .AddTravelConnection(LocationNames.LionsHeadTavern)
-        .SetAccessType(AccessTypes.Open)
-        .SetDangerLevel(DangerLevels.Safe)
         // PLAYGROUND LABOR ACTION
         .AddLocationSpot(feature => feature
-            .ForActionType(BasicActionTypes.Labor)
             .ForLocationSpot(LocationSpotNames.MarketPorters)
-            .WithEnergyCost(1, EnergyTypes.Physical)
-            .WithCoinReward(3)
+            .WithContext(context => context
+                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithSpace(space => space
+                    .WithAccess(AccessTypes.Public)
+                    .WithScale(ScaleVariations.Intimate))
+                .WithSocial(social => social
+                    .WithFormality(FormalityTypes.Casual)
+                    .WithTension(TensionState.Relaxed))
+                .WithActivity(activity => activity
+                    .WithComplexity(ComplexityTypes.Simple)
+                    .WithIntensity(IntensityTypes.Low)))
         )
         // PLAYGROUND GATHER ACTION
         .AddLocationSpot(feature => feature
-            .ForActionType(BasicActionTypes.Gather)
             .ForLocationSpot(LocationSpotNames.HerbGarden)
-            .WithEnergyCost(1, EnergyTypes.Focus)
-            .WithOutputResource(ResourceTypes.Herbs, 1)
+            .WithContext(context => context
+                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithSpace(space => space
+                    .WithAccess(AccessTypes.Public)
+                    .WithScale(ScaleVariations.Intimate))
+                .WithSocial(social => social
+                    .WithFormality(FormalityTypes.Casual)
+                    .WithTension(TensionState.Relaxed))
+                .WithActivity(activity => activity
+                    .WithComplexity(ComplexityTypes.Simple)
+                    .WithIntensity(IntensityTypes.Low)))
         )
         // PLAYGROUND TRADE ACTION
         .AddLocationSpot(feature => feature
-            .ForActionType(BasicActionTypes.Trade)
             .ForLocationSpot(LocationSpotNames.MarketBazaar)
             .WithCharacter(CharacterNames.Shopkeeper)
-            .WithCoinCost(2)
-            .WithOutputResource(ResourceTypes.Cloth, 1)
+            .WithContext(context => context
+                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithSpace(space => space
+                    .WithAccess(AccessTypes.Public)
+                    .WithScale(ScaleVariations.Intimate))
+                .WithSocial(social => social
+                    .WithFormality(FormalityTypes.Casual)
+                    .WithTension(TensionState.Relaxed))
+                .WithActivity(activity => activity
+                    .WithComplexity(ComplexityTypes.Simple)
+                    .WithIntensity(IntensityTypes.Low)))
         )
         // PLAYGROUND MINGLE ACTION
         .AddLocationSpot(feature => feature
-            .ForActionType(BasicActionTypes.Mingle)
             .ForLocationSpot(LocationSpotNames.MarketSquare)
-            .WithEnergyCost(1, EnergyTypes.Social)
+            .WithContext(context => context
+                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithSpace(space => space
+                    .WithAccess(AccessTypes.Public)
+                    .WithScale(ScaleVariations.Intimate))
+                .WithSocial(social => social
+                    .WithFormality(FormalityTypes.Casual)
+                    .WithTension(TensionState.Relaxed))
+                .WithActivity(activity => activity
+                    .WithComplexity(ComplexityTypes.Simple)
+                    .WithIntensity(IntensityTypes.Low)))
         )
         .Build();
 
@@ -79,35 +165,66 @@
         .SetLocationType(LocationTypes.Social)
         .ForLocation(LocationNames.GenericTavern)
         .AddTravelConnection(LocationNames.LionsHeadTavern)
-        .SetAccessType(AccessTypes.Open)
-        .SetDangerLevel(DangerLevels.Safe)
         // PLAYGROUND LABOR ACTION
         .AddLocationSpot(feature => feature
-            .ForActionType(BasicActionTypes.Labor)
             .ForLocationSpot(LocationSpotNames.TavernKitchen)
-            .WithEnergyCost(1, EnergyTypes.Physical)
-            .WithCoinReward(3)
+            .WithContext(context => context
+                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithSpace(space => space
+                    .WithAccess(AccessTypes.Public)
+                    .WithScale(ScaleVariations.Intimate))
+                .WithSocial(social => social
+                    .WithFormality(FormalityTypes.Casual)
+                    .WithTension(TensionState.Relaxed))
+                .WithActivity(activity => activity
+                    .WithComplexity(ComplexityTypes.Simple)
+                    .WithIntensity(IntensityTypes.Low)))
         )
         // PLAYGROUND GATHER ACTION
         .AddLocationSpot(feature => feature
-            .ForActionType(BasicActionTypes.Gather)
             .ForLocationSpot(LocationSpotNames.CellarPantry)
-            .WithEnergyCost(1, EnergyTypes.Focus)
-            .WithOutputResource(ResourceTypes.Food, 1)
+            .WithContext(context => context
+                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithSpace(space => space
+                    .WithAccess(AccessTypes.Public)
+                    .WithScale(ScaleVariations.Intimate))
+                .WithSocial(social => social
+                    .WithFormality(FormalityTypes.Casual)
+                    .WithTension(TensionState.Relaxed))
+                .WithActivity(activity => activity
+                    .WithComplexity(ComplexityTypes.Simple)
+                    .WithIntensity(IntensityTypes.Low)))
         )
         // PLAYGROUND TRADE ACTION
         .AddLocationSpot(feature => feature
-            .ForActionType(BasicActionTypes.Trade)
             .ForLocationSpot(LocationSpotNames.TavernBarterTable)
             .WithCharacter(CharacterNames.Bartender)
-            .WithCoinCost(2)
-            .WithOutputResource(ResourceTypes.Food, 1)
+            .WithContext(context => context
+                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithSpace(space => space
+                    .WithAccess(AccessTypes.Public)
+                    .WithScale(ScaleVariations.Intimate))
+                .WithSocial(social => social
+                    .WithFormality(FormalityTypes.Casual)
+                    .WithTension(TensionState.Relaxed))
+                .WithActivity(activity => activity
+                    .WithComplexity(ComplexityTypes.Simple)
+                    .WithIntensity(IntensityTypes.Low)))
         )
         // PLAYGROUND MINGLE ACTION
         .AddLocationSpot(feature => feature
-            .ForActionType(BasicActionTypes.Mingle)
             .ForLocationSpot(LocationSpotNames.InnFireplace)
-            .WithEnergyCost(1, EnergyTypes.Social)
+            .WithContext(context => context
+                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithSpace(space => space
+                    .WithAccess(AccessTypes.Public)
+                    .WithScale(ScaleVariations.Intimate))
+                .WithSocial(social => social
+                    .WithFormality(FormalityTypes.Casual)
+                    .WithTension(TensionState.Relaxed))
+                .WithActivity(activity => activity
+                    .WithComplexity(ComplexityTypes.Simple)
+                    .WithIntensity(IntensityTypes.Low)))
         )
         .Build();
 
@@ -116,35 +233,66 @@
         .SetLocationType(LocationTypes.Nature)
         .ForLocation(LocationNames.GenericForest)
         .AddTravelConnection(LocationNames.LionsHeadTavern)
-        .SetAccessType(AccessTypes.Open)
-        .SetDangerLevel(DangerLevels.Safe)
         // PLAYGROUND LABOR ACTION
         .AddLocationSpot(feature => feature
-            .ForActionType(BasicActionTypes.Labor)
             .ForLocationSpot(LocationSpotNames.LumberYard)
-            .WithEnergyCost(1, EnergyTypes.Physical)
-            .WithCoinReward(3)
+            .WithContext(context => context
+                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithSpace(space => space
+                    .WithAccess(AccessTypes.Public)
+                    .WithScale(ScaleVariations.Intimate))
+                .WithSocial(social => social
+                    .WithFormality(FormalityTypes.Casual)
+                    .WithTension(TensionState.Relaxed))
+                .WithActivity(activity => activity
+                    .WithComplexity(ComplexityTypes.Simple)
+                    .WithIntensity(IntensityTypes.Low)))
         )
         // PLAYGROUND GATHER ACTION
         .AddLocationSpot(feature => feature
-            .ForActionType(BasicActionTypes.Gather)
             .ForLocationSpot(LocationSpotNames.MysticGrove)
-            .WithEnergyCost(1, EnergyTypes.Focus)
-            .WithOutputResource(ResourceTypes.Wood, 1)
+            .WithContext(context => context
+                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithSpace(space => space
+                    .WithAccess(AccessTypes.Public)
+                    .WithScale(ScaleVariations.Intimate))
+                .WithSocial(social => social
+                    .WithFormality(FormalityTypes.Casual)
+                    .WithTension(TensionState.Relaxed))
+                .WithActivity(activity => activity
+                    .WithComplexity(ComplexityTypes.Simple)
+                    .WithIntensity(IntensityTypes.Low)))
         )
         // PLAYGROUND TRADE ACTION
         .AddLocationSpot(feature => feature
-            .ForActionType(BasicActionTypes.Trade)
             .ForLocationSpot(LocationSpotNames.WoodworkerCabin)
             .WithCharacter(CharacterNames.ForestTrader)
-            .WithCoinCost(2)
-            .WithOutputResource(ResourceTypes.Wood, 1)
+            .WithContext(context => context
+                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithSpace(space => space
+                    .WithAccess(AccessTypes.Public)
+                    .WithScale(ScaleVariations.Intimate))
+                .WithSocial(social => social
+                    .WithFormality(FormalityTypes.Casual)
+                    .WithTension(TensionState.Relaxed))
+                .WithActivity(activity => activity
+                    .WithComplexity(ComplexityTypes.Simple)
+                    .WithIntensity(IntensityTypes.Low)))
         )
         // PLAYGROUND MINGLE ACTION
         .AddLocationSpot(feature => feature
-            .ForActionType(BasicActionTypes.Mingle)
             .ForLocationSpot(LocationSpotNames.GroveShrine)
-            .WithEnergyCost(1, EnergyTypes.Social)
+            .WithContext(context => context
+                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithSpace(space => space
+                    .WithAccess(AccessTypes.Public)
+                    .WithScale(ScaleVariations.Intimate))
+                .WithSocial(social => social
+                    .WithFormality(FormalityTypes.Casual)
+                    .WithTension(TensionState.Relaxed))
+                .WithActivity(activity => activity
+                    .WithComplexity(ComplexityTypes.Simple)
+                    .WithIntensity(IntensityTypes.Low)))
         )
         .Build();
 
@@ -156,12 +304,20 @@
         .AddTravelConnection(LocationNames.GenericTavern)
         .AddTravelConnection(LocationNames.GenericMarket)
         .AddTravelConnection(LocationNames.GenericForest)
-        .SetAccessType(AccessTypes.Open)
-        .SetDangerLevel(DangerLevels.Safe)
         .AddLocationSpot(feature => feature
-            .ForActionType(BasicActionTypes.Mingle)
             .ForLocationSpot(LocationSpotNames.TavernKitchen)
             .WithEnergyCost(1, EnergyTypes.Social)
+            .WithContext(context => context
+                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithSpace(space => space
+                    .WithAccess(AccessTypes.Public)
+                    .WithScale(ScaleVariations.Intimate))
+                .WithSocial(social => social
+                    .WithFormality(FormalityTypes.Casual)
+                    .WithTension(TensionState.Relaxed))
+                .WithActivity(activity => activity
+                    .WithComplexity(ComplexityTypes.Simple)
+                    .WithIntensity(IntensityTypes.Low)))
         )
         .Build();
 }

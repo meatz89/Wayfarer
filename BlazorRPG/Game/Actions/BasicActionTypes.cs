@@ -3,17 +3,21 @@
     Wait,   // Advance time
     Rest,   // Restore energy, advance time
 
-    // Location Actions
-    Investigate,  // Discover and understand location elements
-    Labor,        // Location-specific work for resources
-    Gather,       // Collect location-specific resources/items
-    Trade,        // Trade or gift items
-    Mingle,
+    // Physical Actions define direct interaction with the world:
+    Labor, // for directed physical effort
+    Gather, // for collecting and taking
+    Craft, // for creating and combining
+    Move, // for traversing and positioning
 
-    // Character Actions
-    Observe,      // Watch and learn about characters indirectly
-    Discuss,      // General conversation and information exchange
-    Confide,      // Share personal matters and deepen relationships
-    Assist,       // Help characters with their work/tasks
-    Teach,
+    // Social Actions handle character interactions:
+    Mingle, // for casual interaction
+    Trade, // for formal exchange
+    Persuade, // for directed influence
+    Perform, // for entertainment and display
+
+    // Mental Actions cover intellectual activities:
+    Investigate, // for directed observation
+    Study, // for focused learning
+    Plan, // for strategic thinking
+    Reflect, // for processing and rest
 }

@@ -9,7 +9,7 @@ public partial class ActionPreviewBase : ComponentBase
 
     public string GetActionName()
     {
-        BasicAction action = CurrentAction.BasicAction;
+        ActionImplementation action = CurrentAction.BasicAction;
 
         string name = $"{action.ActionType} - {action.Name}";
         return name;
@@ -19,7 +19,7 @@ public partial class ActionPreviewBase : ComponentBase
     public List<string> GetRequirementDescriptions()
     {
         List<string> descriptions = new();
-        BasicAction basicAction = CurrentAction.BasicAction;
+        ActionImplementation basicAction = CurrentAction.BasicAction;
         foreach (Requirement req in basicAction.Requirements)
         {
             string description = req.GetDescription();
@@ -35,7 +35,7 @@ public partial class ActionPreviewBase : ComponentBase
     public List<string> GetOutcomeCostsDescriptions()
     {
         List<string> descriptions = new();
-        BasicAction basicAction = CurrentAction.BasicAction;
+        ActionImplementation basicAction = CurrentAction.BasicAction;
         foreach (Outcome outcome in basicAction.Costs)
         {
             string description = outcome.GetDescription();
@@ -66,7 +66,7 @@ public partial class ActionPreviewBase : ComponentBase
     public List<string> GetOutcomeRewardsDescriptions()
     {
         List<string> descriptions = new();
-        BasicAction basicAction = CurrentAction.BasicAction;
+        ActionImplementation basicAction = CurrentAction.BasicAction;
         foreach (Outcome outcome in basicAction.Rewards)
         {
             string description = outcome.GetDescription();

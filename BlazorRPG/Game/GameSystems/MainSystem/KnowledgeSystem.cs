@@ -15,7 +15,7 @@ public enum KnowledgeFlags
 {
     SafeRoute,
     LoadingTechnique,
-    GatheringSpot,
+    GATHERingSpot,
     StorageSpot,
     Schedule,
     Preference,

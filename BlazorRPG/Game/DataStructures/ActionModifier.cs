@@ -3,7 +3,7 @@ public abstract class ActionModifier
 {
     public string Source;
     public string Description;
-    public abstract void ApplyModification(BasicAction action);
+    public abstract void ApplyModification(ActionImplementation action);
     public List<BasicActionTypes> ApplicableActions = new();
 }
 
@@ -24,7 +24,7 @@ public class EnergyCostReducer : ActionModifier
         this.ApplicableActions.Add(actionType);
     }
 
-    public override void ApplyModification(BasicAction action)
+    public override void ApplyModification(ActionImplementation action)
     {
         foreach (Outcome cost in action.Costs)
         {
@@ -49,7 +49,7 @@ public class TimeSlotModifier : ActionModifier
         this.ApplicableActions.Add(actionType);
     }
 
-    public override void ApplyModification(BasicAction action)
+    public override void ApplyModification(ActionImplementation action)
     {
         // Only add the time window if it's not already present
         if (!action.TimeSlots.Contains(timeWindowToAdd))
@@ -59,12 +59,12 @@ public class TimeSlotModifier : ActionModifier
     }
 }
 
-public class GatheringBonusModifier : ActionModifier
+public class GATHERingBonusModifier : ActionModifier
 {
     private readonly int bonusAmount;
     private readonly ResourceTypes resourceType;
 
-    public GatheringBonusModifier(string description, string source, int bonusAmount, ResourceTypes resourceType, BasicActionTypes actionType)
+    public GATHERingBonusModifier(string description, string source, int bonusAmount, ResourceTypes resourceType, BasicActionTypes actionType)
     {
         this.Source = source;
         this.Description = description;
@@ -73,7 +73,7 @@ public class GatheringBonusModifier : ActionModifier
         this.ApplicableActions.Add(actionType);
     }
 
-    public override void ApplyModification(BasicAction action)
+    public override void ApplyModification(ActionImplementation action)
     {
         foreach (Outcome reward in action.Rewards)
         {
@@ -98,7 +98,7 @@ public class RequirementRemover : ActionModifier
         this.ApplicableActions.Add(actionType);
     }
 
-    public override void ApplyModification(BasicAction action)
+    public override void ApplyModification(ActionImplementation action)
     {
         // Remove all requirements of the specified type
         action.Requirements.RemoveAll(req => req.GetType() == requirementTypeToRemove);
@@ -117,7 +117,7 @@ public class CoinsRewardModifier : ActionModifier
         this.ApplicableActions.Add(actionType);
     }
 
-    public override void ApplyModification(BasicAction action)
+    public override void ApplyModification(ActionImplementation action)
     {
         action.Rewards.Add(new CoinsOutcome(bonusAmount));
     }
@@ -145,7 +145,7 @@ public class ConditionalResourceBonusModifier : ActionModifier
         this.bonusAmount = bonusAmount;
     }
 
-    public override void ApplyModification(BasicAction action)
+    public override void ApplyModification(ActionImplementation action)
     {
         // First check if the action normally gives the required resource
         bool hasRequiredResource = action.Rewards.Any(reward =>

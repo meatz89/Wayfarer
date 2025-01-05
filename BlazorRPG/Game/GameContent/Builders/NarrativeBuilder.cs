@@ -10,7 +10,7 @@
     private TimeSlots timeSlot;
     private string situation;
 
-    private NarrativeState initialState = NarrativeState.InitialState;
+    private NarrativeStateValues initialState = NarrativeStateValues.InitialState;
     private List<NarrativeStage> stages = new();
 
 

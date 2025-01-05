@@ -4,5 +4,6 @@
     Generous, 
     Observant,
     Merchant,
-    Social
+    Social,
+    Official
 }

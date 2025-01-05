@@ -2,7 +2,6 @@
 {
     public static Character Bartender => new CharacterBuilder()
         .ForCharacter(CharacterNames.Bartender)
-        .SetDangerLevel(DangerLevels.Safe)
         .Build();
 
     public static Character WealthyMerchant => new CharacterBuilder()
@@ -18,6 +17,6 @@
             .WithAction(BasicActionTypes.Trade))
         .AddGoal(goal => goal
             .WithDescription("Train son to take over business")
-            .WithReward(RewardTypes.TradeDiscount))
+            .WithReward(RewardTypes.TRADEDiscount))
         .Build();
 }

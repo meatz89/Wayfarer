@@ -10,7 +10,7 @@ public class ChoiceBuilder
     private Outcome cost;
     private Outcome reward;
     private string narrative;
-    private NarrativeState narrativeStateChanges = NarrativeState.NoChange;
+    private NarrativeStateValues narrativeStateChanges = NarrativeStateValues.NoChange;
     private int onlyWhenMomentumAbove;
     private int onlyWhenAdvantageAbove;
     private int onlyWhenUnderstandingAbove;
@@ -191,7 +191,7 @@ public class ChoiceBuilder
             Reward = reward,
             NarrativeStateChanges = narrativeStateChanges,
             // Store thresholds for validation
-            ValueThresholds = new NarrativeState(
+            ValueThresholds = new NarrativeStateValues(
                 onlyWhenMomentumAbove,
                 onlyWhenAdvantageAbove,
                 onlyWhenUnderstandingAbove,

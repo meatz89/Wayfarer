@@ -1,6 +1,4 @@
-﻿
-
-public class GameContentProvider
+﻿public class GameContentProvider
 {
     private List<Location> locations;
     private List<Character> characters;

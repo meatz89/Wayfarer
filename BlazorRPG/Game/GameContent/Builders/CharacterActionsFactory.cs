@@ -1,24 +1,19 @@
 ﻿public class CharacterActionsFactory
 {
-    public static List<BasicAction> Create(
+    public static List<ActionImplementation> Create(
         )
     {
-        List<BasicAction> actions = new List<BasicAction>();
+        List<ActionImplementation> actions = new List<ActionImplementation>();
 
         return actions;
     }
 
-    private static BasicAction AddAction(Action<ActionBuilder> buildBasicAction, DangerLevels dangerLevel)
+    private static ActionImplementation AddAction(Action<ActionBuilder> buildBasicAction)
     {
         ActionBuilder builder = new ActionBuilder();
         buildBasicAction(builder);
 
-        if (dangerLevel == DangerLevels.Dangerous)
-        {
-            builder.ExpendsHealth(1);
-        }
-
-        BasicAction action = builder.Build();
+        ActionImplementation action = builder.Build();
         return action;
     }
 }

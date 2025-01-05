@@ -9,17 +9,17 @@
 
 public enum LocationSpotNames
 {
-    // Labor features - each handles unique coin generation
+    // LABOR features - each handles unique coin generation
     DocksideWarehouse,    // Work opportunity at the Docks
     MarketPorters,        // Work opportunity at the Market
     LumberYard,           // Work opportunity at the Forest
     TavernKitchen,        // Work opportunity at the Tavern
 
-    // Gathering features - each provides unique resources
-    FishingWharf,         // Gathering opportunity at the Docks
-    HerbGarden,           // Gathering opportunity at the Market
-    MysticGrove,          // Gathering opportunity at the Forest
-    CellarPantry,         // Gathering opportunity at the Tavern
+    // GATHERing features - each provides unique resources
+    FishingWharf,         // GATHERing opportunity at the Docks
+    HerbGarden,           // GATHERing opportunity at the Market
+    MysticGrove,          // GATHERing opportunity at the Forest
+    CellarPantry,         // GATHERing opportunity at the Tavern
 
     // Trading features - each has unique trade rules
     WharfMerchant,        // Trading opportunity at the Docks
@@ -37,4 +37,3 @@ public enum LocationSpotNames
     Campground,           // No cost, prevents penalties
     TravelerLodge      // Enhanced shelter
 }
-

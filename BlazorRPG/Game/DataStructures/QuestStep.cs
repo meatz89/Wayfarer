@@ -1,7 +1,7 @@
 ﻿public class QuestStep
 {
     public string Description { get; set; }
-    public BasicAction QuestAction { get; set; }
+    public ActionImplementation QuestAction { get; set; }
     public List<Requirement> Requirements = new();
     public List<Outcome> Outcomes = new();
     public List<IGameStateModifier> StateModifiers = new();
