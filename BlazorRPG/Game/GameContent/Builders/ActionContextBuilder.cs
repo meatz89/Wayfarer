@@ -39,3 +39,19 @@
 
     public ActionGenerationContext Build() => context;
 }
+
+
+public class ActionGenerationContext
+{
+    public LocationTypes LocationType;
+    public BasicActionTypes BaseAction;
+    public SpaceProperties Space;
+    public SocialContext Social;
+    public ActivityProperties Activity;
+
+    public ActionGenerationContext()
+    {
+        
+    }
+
+}

@@ -1,6 +1,6 @@
 ﻿public class SocialContextBuilder
 {
-    private LegalityTypes legality = LegalityTypes.Illegal;
+    private LegalityTypes legality = LegalityTypes.Legal;
     private TensionState tension = TensionState.Relaxed;
 
     public SocialContextBuilder WithLegality(LegalityTypes legality)

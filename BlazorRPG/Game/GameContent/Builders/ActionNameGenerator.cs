@@ -1,222 +1,79 @@
 ﻿public class ActionNameGenerator
 {
     private readonly ActionGenerationContext context;
-    private readonly ActionNameCombinationData combinationData;
+    private readonly ActionNameCombinations actionNameData;
 
     public ActionNameGenerator(ActionGenerationContext context)
     {
         this.context = context;
-        this.combinationData = new ActionNameCombinationData();
+        this.actionNameData = new ActionNameCombinations();
+
+        actionNameData.CheckForMissingCombinations();
     }
 
     public string GenerateName()
     {
-        // Retrieve name parts using the combination data
-        ActionVerb? verb = combinationData.GetVerb(context);
-        LocationDescriptor? locationDescriptor = combinationData.GetLocationDescriptor(context);
-        SpaceDescriptor? spaceDescriptor = combinationData.GetSpaceDescriptor(context);
-        ActivityDescriptor? activityDescriptor = combinationData.GetActivityDescriptor(context);
+        // 1. Determine Location Context
+        LocationContext locationContext = LocationContextMapper.GetLocationContext(
+            context.LocationType,
+            context.Space.Exposure,
+            context.Space.Scale);
 
-        // Build the name from the retrieved parts
+        // 2. Get Possible Verbs and Adjectives based on LocationContext and BaseAction
+        List<ActionNameCombination> matchingCombinations = actionNameData.GetCombinations(locationContext, context.BaseAction);
+
+        if (matchingCombinations.Count == 0)
+        {
+            return "Unknown Action"; // Or some default action name
+        }
+
+        // 3. Choose a Combination (e.g., randomly, based on additional context, or use the first one)
+        // For simplicity, we'll just use the first matching combination here
+        ActionNameCombination chosenCombination = matchingCombinations[0];
+
+        // 4. Build Name
         List<string> parts = new List<string>();
-        if (locationDescriptor.HasValue) parts.Add(locationDescriptor.Value.ToString());
-        if (activityDescriptor.HasValue) parts.Add(activityDescriptor.Value.ToString());
-        if (verb.HasValue) parts.Add(verb.Value.ToString());
-        if (spaceDescriptor.HasValue) parts.Add(spaceDescriptor.Value.ToString());
+        if (chosenCombination.Adjective != Adjective.None)
+        {
+            parts.Add(chosenCombination.Adjective.ToString());
+        }
+        parts.Add(chosenCombination.Verb.ToString());
 
-        return string.Join(" ", parts);
+        string name = string.Join(" ", parts);
+
+        // 5. Handle Legality (optional)
+        if (context.Social.Legality == LegalityTypes.Illegal)
+        {
+            name = "Stealthily " + name;
+        }
+
+        return name;
     }
 }
 
-public class ActionNameCombinationData
+public partial class ActionNameCombinations
 {
-    public List<ActionNamePart> Combinations { get; } = new List<ActionNamePart>()
+    public List<ActionNameCombination> GetCombinations(LocationContext context, BasicActionTypes actionType)
     {
-        // Define all valid combinations here
+        // Returns a list of combinations that match the provided context and action type
+        return ValidCombinations.Where(c => c.LocationContext == context && c.BaseAction == actionType).ToList();
+    }
 
-        // Gather
-        new ActionNamePart(baseAction: BasicActionTypes.Gather, locationType: LocationTypes.Nature, exposure: ExposureConditions.Outdoor, complexity: ComplexityTypes.Complex, verbResult: ActionVerb.Hunt),
-        new ActionNamePart(baseAction: BasicActionTypes.Gather, locationType: LocationTypes.Nature, exposure: ExposureConditions.Outdoor, verbResult: ActionVerb.Forage),
-        new ActionNamePart(baseAction: BasicActionTypes.Gather, locationType: LocationTypes.Commercial, verbResult: ActionVerb.Browse),
-        new ActionNamePart(baseAction: BasicActionTypes.Gather, verbResult: ActionVerb.Collect),
-
-        // Labor
-        new ActionNamePart(baseAction: BasicActionTypes.Labor, locationType: LocationTypes.Industrial, verbResult: ActionVerb.Labor),
-        new ActionNamePart(baseAction: BasicActionTypes.Labor, locationType: LocationTypes.Social, verbResult: ActionVerb.Serve),
-        new ActionNamePart(baseAction: BasicActionTypes.Labor, verbResult: ActionVerb.Labor),
-
-        // Trade
-        new ActionNamePart(baseAction: BasicActionTypes.Trade, verbResult: ActionVerb.Negotiate),
-        new ActionNamePart(baseAction: BasicActionTypes.Trade, locationType: LocationTypes.Commercial, verbResult: ActionVerb.Barter),
-        new ActionNamePart(baseAction: BasicActionTypes.Trade, verbResult: ActionVerb.Trade),
-
-        // Mingle
-        new ActionNamePart(baseAction: BasicActionTypes.Mingle, locationType: LocationTypes.Social, verbResult: ActionVerb.Socialize),
-        new ActionNamePart(baseAction: BasicActionTypes.Mingle, verbResult: ActionVerb.Network),
-        new ActionNamePart(baseAction: BasicActionTypes.Mingle, verbResult: ActionVerb.Chat),
-
-        // --- Location Descriptor Combinations ---
-        new ActionNamePart(locationType: LocationTypes.Industrial, locationDescriptorResult: LocationDescriptor.Dockside),
-        new ActionNamePart(locationType: LocationTypes.Commercial, locationDescriptorResult: LocationDescriptor.Market),
-        new ActionNamePart(locationType: LocationTypes.Social, scale: ScaleVariations.Intimate, locationDescriptorResult: LocationDescriptor.Tavern),
-        new ActionNamePart(locationType: LocationTypes.Nature, exposure: ExposureConditions.Outdoor, locationDescriptorResult: LocationDescriptor.Forest),
-
-        // --- Space Descriptor Combinations ---
-        new ActionNamePart(baseAction: BasicActionTypes.Gather, locationType: LocationTypes.Nature, complexity: ComplexityTypes.Complex, spaceDescriptorResult: SpaceDescriptor.Game),
-        new ActionNamePart(baseAction: BasicActionTypes.Gather, locationType: LocationTypes.Nature, spaceDescriptorResult: SpaceDescriptor.Resources),
-        new ActionNamePart(scale: ScaleVariations.Intimate, spaceDescriptorResult: SpaceDescriptor.CloseQuarters),
-        new ActionNamePart(exposure: ExposureConditions.Outdoor, spaceDescriptorResult: SpaceDescriptor.Wilderness),
-
-        // --- Activity Descriptor Combinations ---
-        new ActionNamePart(complexity: ComplexityTypes.Complex, activityDescriptorResult: ActivityDescriptor.Expert),
-        new ActionNamePart(activityDescriptorResult: ActivityDescriptor.Intensive),
-    };
-
-    public ActionVerb? GetVerb(ActionGenerationContext context)
+    public void CheckForMissingCombinations()
     {
-        foreach (ActionNamePart combo in Combinations)
+        var allLocationContexts = Enum.GetValues(typeof(LocationContext)).Cast<LocationContext>();
+        var allBaseActions = Enum.GetValues(typeof(BasicActionTypes)).Cast<BasicActionTypes>();
+
+        foreach (var locationContext in allLocationContexts)
         {
-            if (combo.BaseAction == context.BaseAction &&
-                (combo.LocationType == null || combo.LocationType == context.LocationType) &&
-                (combo.Exposure == null || combo.Exposure == context.Space.Exposure) &&
-                (combo.Complexity == null || combo.Complexity == context.Activity.Complexity))
+            foreach (var baseAction in allBaseActions)
             {
-                return combo.VerbResult;
+                bool found = ValidCombinations.Any(c => c.LocationContext == locationContext && c.BaseAction == baseAction);
+                if (!found)
+                {
+                    Console.WriteLine($"Missing combination: LocationContext={locationContext}, BaseAction={baseAction}");
+                }
             }
         }
-        return null; // Or a default verb
     }
-
-    public LocationDescriptor? GetLocationDescriptor(ActionGenerationContext context)
-    {
-        foreach (ActionNamePart combo in Combinations)
-        {
-            if ((combo.LocationType == null || combo.LocationType == context.LocationType) &&
-                (combo.Scale == null || combo.Scale == context.Space.Scale))
-            {
-                return combo.LocationDescriptorResult;
-            }
-        }
-        return null;
-    }
-
-    public SpaceDescriptor? GetSpaceDescriptor(ActionGenerationContext context)
-    {
-        foreach (ActionNamePart combo in Combinations)
-        {
-            if ((combo.BaseAction == null || combo.BaseAction == context.BaseAction) &&
-                (combo.LocationType == null || combo.LocationType == context.LocationType) &&
-                (combo.Complexity == null || combo.Complexity == context.Activity.Complexity) &&
-                (combo.Scale == null || combo.Scale == context.Space.Scale) &&
-                (combo.Exposure == null || combo.Exposure == context.Space.Exposure))
-            {
-                return combo.SpaceDescriptorResult;
-            }
-        }
-        return null;
-    }
-
-    public ActivityDescriptor? GetActivityDescriptor(ActionGenerationContext context)
-    {
-        foreach (ActionNamePart combo in Combinations)
-        {
-            if ((combo.Complexity == null || combo.Complexity == context.Activity.Complexity))
-            {
-                return combo.ActivityDescriptorResult;
-            }
-        }
-        return null;
-    }
-}
-
-public class ActionNamePart
-{
-    public BasicActionTypes? BaseAction { get; set; }
-    public LocationTypes? LocationType { get; set; }
-    public ScaleVariations? Scale { get; set; }
-    public ExposureConditions? Exposure { get; set; }
-    public LegalityTypes? Legality { get; set; }
-    public TensionState? Tension { get; set; }
-    public ComplexityTypes? Complexity { get; set; }
-    
-    public ActionVerb? VerbResult { get; set; }
-    public LocationDescriptor? LocationDescriptorResult { get; set; }
-    public SpaceDescriptor? SpaceDescriptorResult { get; set; }
-    public ActivityDescriptor? ActivityDescriptorResult { get; set; }
-
-    public ActionNamePart(
-        BasicActionTypes? baseAction = null,
-        LocationTypes? locationType = null,
-        ScaleVariations? scale = null,
-        ExposureConditions? exposure = null,
-        LegalityTypes? legality = null,
-        TensionState? tension = null,
-        ComplexityTypes? complexity = null,
-        ActionVerb? verbResult = null,
-        LocationDescriptor? locationDescriptorResult = null,
-        SpaceDescriptor? spaceDescriptorResult = null,
-        ActivityDescriptor? activityDescriptorResult = null)
-    {
-        BaseAction = baseAction;
-        LocationType = locationType;
-        Scale = scale;
-        Exposure = exposure;
-        Legality = legality;
-        Tension = tension;
-        Complexity = complexity;
-        VerbResult = verbResult;
-        LocationDescriptorResult = locationDescriptorResult;
-        SpaceDescriptorResult = spaceDescriptorResult;
-        ActivityDescriptorResult = activityDescriptorResult;
-    }
-}
-
-// In ActionNameGenerator.cs
-
-public enum ActionVerb
-{
-    // Gather
-    Forage,
-    Hunt,
-    Browse,
-    Collect,
-
-    // Labor
-    Labor,
-    Serve,
-
-    // Trade
-    Negotiate,
-    Barter,
-    Trade,
-
-    // Mingle
-    Socialize,
-    Network,
-    Chat
-}
-
-public enum LocationDescriptor
-{
-    Dockside,
-    Market,
-    Tavern,
-    Forest,
-    // ... add more as needed
-}
-
-public enum SpaceDescriptor
-{
-    Game,
-    Resources,
-    CloseQuarters,
-    Wilderness,
-    // ... add more as needed
-}
-
-public enum ActivityDescriptor
-{
-    Expert,
-    Intensive,
-    // ... add more as needed
 }
