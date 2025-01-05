@@ -1,392 +1,165 @@
-﻿
-public class SpaceProperties
+﻿public enum LocationSpotNames
 {
-    public ScaleVariations Scale { get; set; }
-    public ExposureConditions Exposure { get; set; }
-}
-
-public class SocialContext
-{
-    public LegalityTypes Legality { get; set; }
-    public TensionState Tension { get; set; }
-}
-
-public class ActivityProperties
-{
-    public ComplexityTypes Complexity { get; set; }
-}
-
-public enum ScaleVariations
-{
-    Medium,
-    Intimate,
-    Large
-}
-
-public enum ExposureConditions
-{
-    Indoor,
-    Outdoor,
-}
-
-
-public enum LegalityTypes
-{
-    Legal,
-    Illegal
-}
-
-public enum TensionState
-{
-    Relaxed,
-    Alert,
-    Hostile,
-}
-
-// Activity Properties define execution requirements
-public enum ComplexityTypes
-{
-    Complex,
-    Simple
-}
-
-
-public enum Verb
-{
-    ServeDrinks,
-    PlayMusic,
-    Forage,
-    Hunt,
-    Browse,
-    Collect,
-    Labor,
-    Negotiate,
-    Barter,
-    Trade,
-    Socialize,
-    Network,
-    Chat,
-    Mine,       
-    Fish,       
-    Repair,     
-    Manufacture,
-    Store,      
-    Load,       
-    Unload,     
-    Guard,      
-    Patrol,     
-    Rest,       
-    Perform,    
-    Gamble,     
-    Gossip,     
-    Observe,    
-    Study,      
-    Purchase,   
-    Sell,
-    None
-}
-
-public enum Adjective
-{
-    Stealthily,
-    Expertly,
-    Intensely,
-    // ... add more as needed
-    None
-}
-
-public enum LocationSpotNames
-{
-    // Tavern
-    Tavern,
+    // Social
     TavernBarterTable,
     CellarPantry,
     TavernKitchen,
     InnFireplace,
-    // Public Market
-    PublicMarket,
     MarketSquare,
     MarketBazaar,
     MarketPorters,
     HerbGarden,
-    // Road
+
+    // Nature
     Road,
-    // Forest
     Forest,
     MysticGrove,
     LumberYard,
     WoodworkerCabin,
     GroveShrine,
-    // Field
     Field,
     Campground,
-    // Dock
-    Dock,
+    Cave,
+    Cavern,
+    UndergroundLake,
+    HuntingGrounds,
+    FishingSpot,
+    GatheringSpot,
+
+    // Industrial
     FishingWharf,
     WharfMerchant,
     DocksidePub,
-    // Warehouse
     Warehouse,
     DocksideWarehouse,
-    // Factory
     Factory,
-    // Workshop
     Workshop,
-    // Market
+
+    // Commercial
     Market,
-    // Shop
     Shop,
-    // Garden
     Garden,
-    // TravelerLodge
+    TradingPost,
+    MerchantStand,
     TravelerLodge,
 
     Undefined,
-    Cave,
-    Cavern,
-    UndergroundLake
+    TavernRoom,
+    DockArea,
+    PublicMarket,
+    TavernInvestigate,
+    TavernMingle
 }
-
 
 public static class LocationSpotMapper
 {
-    public static LocationSpotNames GetLocationSpotName(LocationTypes locationType, BasicActionTypes baseAction, ExposureConditions exposure, ScaleVariations scale)
+    public static LocationSpotNames GetLocationSpot(LocationTypes locationType, BasicActionTypes baseAction, ExposureConditions exposure, ScaleVariations scale)
     {
-        if (locationType == LocationTypes.Social)
+        return locationType switch
         {
-            if (exposure == ExposureConditions.Indoor)
-            {
-                switch (baseAction)
-                {
-                    case BasicActionTypes.Labor:
-                        return LocationSpotNames.TavernKitchen;
-                    case BasicActionTypes.Gather:
-                        return LocationSpotNames.CellarPantry;
-                    case BasicActionTypes.Trade:
-                        return LocationSpotNames.TavernBarterTable;
-                    case BasicActionTypes.Mingle:
-                    case BasicActionTypes.Perform:
-                    case BasicActionTypes.Investigate:
-                    default:
-                        return LocationSpotNames.Tavern;
-                }
-            }
-            else // Outdoor
-            {
-                switch (baseAction)
-                {
-                    case BasicActionTypes.Labor:
-                        return LocationSpotNames.MarketPorters;
-                    case BasicActionTypes.Gather:
-                        return LocationSpotNames.HerbGarden;
-                    case BasicActionTypes.Trade:
-                        return LocationSpotNames.MarketBazaar;
-                    default:
-                        return LocationSpotNames.PublicMarket;
-                }
-            }
-        }
-        else if (locationType == LocationTypes.Nature)
+            LocationTypes.Social => GetSocialSpot(baseAction, exposure),
+            LocationTypes.Nature => GetNatureSpot(baseAction, exposure, scale),
+            LocationTypes.Industrial => GetIndustrialSpot(baseAction, exposure, scale),
+            LocationTypes.Commercial => GetCommercialSpot(baseAction, exposure),
+            _ => LocationSpotNames.Undefined
+        };
+    }
+
+    private static LocationSpotNames GetSocialSpot(BasicActionTypes baseAction, ExposureConditions exposure)
+    {
+        if (exposure == ExposureConditions.Indoor)
         {
-            if (exposure == ExposureConditions.Outdoor)
+            return baseAction switch
             {
-                switch (scale)
-                {
-                    case ScaleVariations.Intimate:
-                        return LocationSpotNames.Road;
-                    case ScaleVariations.Medium:
-                        return LocationSpotNames.Forest;
-                    case ScaleVariations.Large:
-                        return LocationSpotNames.Field;
-                }
-            }
-            else // Indoor
-            {
-                switch (scale)
-                {
-                    case ScaleVariations.Intimate:
-                        return LocationSpotNames.Cave;
-                    case ScaleVariations.Medium:
-                        return LocationSpotNames.Cavern;
-                    case ScaleVariations.Large:
-                        return LocationSpotNames.UndergroundLake;
-                }
-            }
-        }
-        else if (locationType == LocationTypes.Industrial)
-        {
-            if (exposure == ExposureConditions.Outdoor)
-            {
-                switch (baseAction)
-                {
-                    case BasicActionTypes.Gather:
-                        return LocationSpotNames.FishingWharf;
-                    case BasicActionTypes.Trade:
-                        return LocationSpotNames.WharfMerchant;
-                    case BasicActionTypes.Mingle:
-                        return LocationSpotNames.DocksidePub;
-                    default:
-                        return LocationSpotNames.Dock;
-                }
-            }
-            else // Indoor
-            {
-                switch (scale)
-                {
-                    case ScaleVariations.Large:
-                        return LocationSpotNames.Warehouse;
-                    case ScaleVariations.Medium:
-                        return LocationSpotNames.Factory;
-                    case ScaleVariations.Intimate:
-                    default:
-                        return LocationSpotNames.Workshop;
-                }
-            }
-        }
-        else if (locationType == LocationTypes.Commercial)
-        {
-            if (exposure == ExposureConditions.Outdoor)
-            {
-                switch (scale)
-                {
-                    case ScaleVariations.Intimate:
-                        return LocationSpotNames.HerbGarden;
-                    case ScaleVariations.Medium:
-                        return LocationSpotNames.MarketBazaar;
-                    case ScaleVariations.Large:
-                        return LocationSpotNames.MarketSquare;
-                    default:
-                        return LocationSpotNames.Market;
-                }
-            }
-            else // Indoor
-            {
-                return LocationSpotNames.Shop;
-            }
+                BasicActionTypes.Labor => LocationSpotNames.TavernKitchen,
+                BasicActionTypes.Gather => LocationSpotNames.CellarPantry,
+                BasicActionTypes.Trade => LocationSpotNames.TavernBarterTable,
+                BasicActionTypes.Mingle => LocationSpotNames.TavernMingle,
+                BasicActionTypes.Perform => LocationSpotNames.InnFireplace,
+                BasicActionTypes.Investigate => LocationSpotNames.TavernInvestigate,
+                _ => LocationSpotNames.TavernRoom
+            };
         }
 
-        return LocationSpotNames.Undefined; // Fallback
+        return baseAction switch
+        {
+            BasicActionTypes.Labor => LocationSpotNames.MarketPorters,
+            BasicActionTypes.Gather => LocationSpotNames.HerbGarden,
+            BasicActionTypes.Trade => LocationSpotNames.MarketBazaar,
+            BasicActionTypes.Mingle => LocationSpotNames.MarketSquare,
+            _ => LocationSpotNames.PublicMarket
+        };
+    }
+
+    private static LocationSpotNames GetNatureSpot(BasicActionTypes baseAction, ExposureConditions exposure, ScaleVariations scale)
+    {
+        if (exposure == ExposureConditions.Indoor)
+        {
+            return scale switch
+            {
+                ScaleVariations.Intimate => LocationSpotNames.Cave,
+                ScaleVariations.Medium => LocationSpotNames.Cavern,
+                _ => LocationSpotNames.UndergroundLake
+            };
+        }
+
+        return scale switch
+        {
+            ScaleVariations.Intimate => baseAction switch
+            {
+                BasicActionTypes.Trade => LocationSpotNames.WoodworkerCabin,
+                BasicActionTypes.Mingle => LocationSpotNames.GroveShrine,
+                _ => LocationSpotNames.Road
+            },
+            ScaleVariations.Medium => baseAction switch
+            {
+                BasicActionTypes.Labor => LocationSpotNames.LumberYard,
+                BasicActionTypes.Gather => LocationSpotNames.MysticGrove,
+                _ => LocationSpotNames.Forest
+            },
+            _ => LocationSpotNames.Field
+        };
+    }
+
+    private static LocationSpotNames GetIndustrialSpot(BasicActionTypes baseAction, ExposureConditions exposure, ScaleVariations scale)
+    {
+        if (exposure == ExposureConditions.Indoor)
+        {
+            if (scale == ScaleVariations.Large)
+            {
+                return baseAction == BasicActionTypes.Labor
+                    ? LocationSpotNames.DocksideWarehouse
+                    : LocationSpotNames.Warehouse;
+            }
+
+            return scale == ScaleVariations.Medium
+                ? LocationSpotNames.Factory
+                : LocationSpotNames.Workshop;
+        }
+
+        return baseAction switch
+        {
+            BasicActionTypes.Gather => LocationSpotNames.FishingWharf,
+            BasicActionTypes.Trade => LocationSpotNames.WharfMerchant,
+            BasicActionTypes.Mingle => LocationSpotNames.DocksidePub,
+            _ => LocationSpotNames.DockArea
+        };
+    }
+
+    private static LocationSpotNames GetCommercialSpot(BasicActionTypes baseAction, ExposureConditions exposure)
+    {
+        if (exposure == ExposureConditions.Indoor)
+        {
+            return LocationSpotNames.Shop;
+        }
+
+        return baseAction switch
+        {
+            BasicActionTypes.Labor => LocationSpotNames.MarketPorters,
+            BasicActionTypes.Gather => LocationSpotNames.HerbGarden,
+            BasicActionTypes.Trade => LocationSpotNames.MarketBazaar,
+            BasicActionTypes.Mingle => LocationSpotNames.MarketSquare,
+            _ => LocationSpotNames.Market
+        };
     }
 }
-
-public enum BasicActionTypes
-{
-    // Physical Actions define direct interaction with the world:
-    Labor, // for directed physical effort
-    Gather, // for collecting and taking
-    Craft, // for creating and combining
-    Move, // for traversing and positioning
-
-    // Social Actions handle character interactions:
-    Mingle, // for casual interaction
-    Trade, // for formal exchange
-    Persuade, // for directed influence
-    Perform, // for entertainment and display
-
-    // Mental Actions cover intellectual activities:
-    Investigate, // for directed observation
-    Study, // for focused learning
-    Plan, // for strategic thinking
-    Reflect, // for processing and rest
-}
-
-public partial class ActionNameCombinations
-{
-    public List<ActionNameCombination> ValidCombinations { get; } = new List<ActionNameCombination>()
-    {
-        // ========================================
-        // Tavern (Social + Indoor)
-        // ========================================
-        new ActionNameCombination(LocationSpotNames.Tavern, BasicActionTypes.Labor, Verb.ServeDrinks),
-        new ActionNameCombination(LocationSpotNames.Tavern, BasicActionTypes.Perform, Verb.PlayMusic), // Changed Mingle to Perform
-        new ActionNameCombination(LocationSpotNames.Tavern, BasicActionTypes.Mingle, Verb.Gamble),
-        new ActionNameCombination(LocationSpotNames.Tavern, BasicActionTypes.Mingle, Verb.Gossip),
-        new ActionNameCombination(LocationSpotNames.Tavern, BasicActionTypes.Mingle, Verb.Socialize),
-        new ActionNameCombination(LocationSpotNames.Tavern, BasicActionTypes.Mingle, Verb.Chat),
-        new ActionNameCombination(LocationSpotNames.Tavern, BasicActionTypes.Investigate, Verb.Observe), // Changed Mingle to Investigate
-        new ActionNameCombination(LocationSpotNames.Tavern, BasicActionTypes.Trade, Verb.Barter),
-
-        // ========================================
-        // Public Market (Social + Outdoor)
-        // ========================================
-        new ActionNameCombination(LocationSpotNames.PublicMarket, BasicActionTypes.Gather, Verb.Browse),
-        new ActionNameCombination(LocationSpotNames.PublicMarket, BasicActionTypes.Trade, Verb.Barter),
-        new ActionNameCombination(LocationSpotNames.PublicMarket, BasicActionTypes.Mingle, Verb.Chat),
-        new ActionNameCombination(LocationSpotNames.PublicMarket, BasicActionTypes.Mingle, Verb.Gossip),
-        new ActionNameCombination(LocationSpotNames.PublicMarket, BasicActionTypes.Investigate, Verb.Observe), // Changed Mingle to Investigate
-        new ActionNameCombination(LocationSpotNames.PublicMarket, BasicActionTypes.Perform, Verb.Perform), // Changed Mingle to Perform
-        new ActionNameCombination(LocationSpotNames.PublicMarket, BasicActionTypes.Trade, Verb.Purchase),
-        new ActionNameCombination(LocationSpotNames.PublicMarket, BasicActionTypes.Trade, Verb.Sell),
-        new ActionNameCombination(LocationSpotNames.PublicMarket, BasicActionTypes.Labor, Verb.Guard),
-
-        // ========================================
-        // Road (Nature + Outdoor + Intimate)
-        // ========================================
-        new ActionNameCombination(LocationSpotNames.Road, BasicActionTypes.Gather, Verb.Forage),
-        new ActionNameCombination(LocationSpotNames.Road, BasicActionTypes.Labor, Verb.Patrol),
-
-        // ========================================
-        // Forest (Nature + Outdoor + Medium)
-        // ========================================
-        new ActionNameCombination(LocationSpotNames.Forest, BasicActionTypes.Gather, Verb.Hunt, complexity: ComplexityTypes.Complex), // Only allow hunting if complex
-        new ActionNameCombination(LocationSpotNames.Forest, BasicActionTypes.Gather, Verb.Forage),
-        new ActionNameCombination(LocationSpotNames.Forest, BasicActionTypes.Labor, Verb.Patrol),
-
-        // ========================================
-        // Field (Nature + Outdoor + Large)
-        // ========================================
-        new ActionNameCombination(LocationSpotNames.Field, BasicActionTypes.Gather, Verb.Forage),
-        new ActionNameCombination(LocationSpotNames.Field, BasicActionTypes.Labor, Verb.Patrol),
-
-        // ========================================
-        // Dock (Industrial + Outdoor)
-        // ========================================
-        new ActionNameCombination(LocationSpotNames.Dock, BasicActionTypes.Labor, Verb.Load),
-        new ActionNameCombination(LocationSpotNames.Dock, BasicActionTypes.Labor, Verb.Unload),
-        new ActionNameCombination(LocationSpotNames.Dock, BasicActionTypes.Trade, Verb.Negotiate),
-        new ActionNameCombination(LocationSpotNames.Dock, BasicActionTypes.Trade, Verb.Barter),
-        new ActionNameCombination(LocationSpotNames.Dock, BasicActionTypes.Gather, Verb.Fish),
-
-        // ========================================
-        // Warehouse (Industrial + Indoor + Large)
-        // ========================================
-        new ActionNameCombination(LocationSpotNames.Warehouse, BasicActionTypes.Labor, Verb.Store),
-        new ActionNameCombination(LocationSpotNames.Warehouse, BasicActionTypes.Labor, Verb.Load),
-        new ActionNameCombination(LocationSpotNames.Warehouse, BasicActionTypes.Labor, Verb.Unload),
-
-        // ========================================
-        // Factory (Industrial + Indoor + Medium)
-        // ========================================
-        new ActionNameCombination(LocationSpotNames.Factory, BasicActionTypes.Labor, Verb.Manufacture),
-
-        // ========================================
-        // Workshop (Industrial + Indoor + Intimate)
-        // ========================================
-        new ActionNameCombination(LocationSpotNames.Workshop, BasicActionTypes.Labor, Verb.Repair),
-        new ActionNameCombination(LocationSpotNames.Workshop, BasicActionTypes.Study, Verb.Study),
-
-        // ========================================
-        // Market (Commercial + Outdoor)
-        // ========================================
-        new ActionNameCombination(LocationSpotNames.Market, BasicActionTypes.Gather, Verb.Browse),
-        new ActionNameCombination(LocationSpotNames.Market, BasicActionTypes.Trade, Verb.Barter),
-        new ActionNameCombination(LocationSpotNames.Market, BasicActionTypes.Trade, Verb.Purchase),
-        new ActionNameCombination(LocationSpotNames.Market, BasicActionTypes.Trade, Verb.Sell),
-        new ActionNameCombination(LocationSpotNames.Market, BasicActionTypes.Mingle, Verb.Chat),
-        new ActionNameCombination(LocationSpotNames.Market, BasicActionTypes.Investigate, Verb.Observe),
-
-        // ========================================
-        // Shop (Commercial + Indoor)
-        // ========================================
-        new ActionNameCombination(LocationSpotNames.Shop, BasicActionTypes.Gather, Verb.Browse),
-        new ActionNameCombination(LocationSpotNames.Shop, BasicActionTypes.Trade, Verb.Barter),
-        new ActionNameCombination(LocationSpotNames.Shop, BasicActionTypes.Trade, Verb.Purchase),
-        new ActionNameCombination(LocationSpotNames.Shop, BasicActionTypes.Trade, Verb.Sell),
-        new ActionNameCombination(LocationSpotNames.Shop, BasicActionTypes.Mingle, Verb.Chat),
-        new ActionNameCombination(LocationSpotNames.Shop, BasicActionTypes.Study, Verb.Study),
-    };
-
-}
-
-
-

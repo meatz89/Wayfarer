@@ -67,7 +67,7 @@
         ActionGenerationContext context = contextBuilder.Build();
 
         // Determine LocationSpotName based on the built context
-        LocationSpotNames locationSpotName = LocationSpotMapper.GetLocationSpotName(
+        LocationSpotNames locationSpotName = LocationSpotMapper.GetLocationSpot(
             context.LocationType,
             context.BaseAction,
             context.Space.Exposure,

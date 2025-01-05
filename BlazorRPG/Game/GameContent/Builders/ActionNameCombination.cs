@@ -24,9 +24,7 @@ public static class LocationContextExtensions
     {
         switch (context)
         {
-            case LocationSpotNames.Tavern:
-                return Verb.Socialize;
-            case LocationSpotNames.PublicMarket:
+            case LocationSpotNames.Market:
                 return Verb.Browse;
             case LocationSpotNames.Road:
                 return Verb.Forage;
@@ -34,16 +32,12 @@ public static class LocationContextExtensions
                 return Verb.Forage;
             case LocationSpotNames.Field:
                 return Verb.Forage;
-            case LocationSpotNames.Dock:
-                return Verb.Labor;
             case LocationSpotNames.Warehouse:
                 return Verb.Labor;
             case LocationSpotNames.Factory:
                 return Verb.Labor;
             case LocationSpotNames.Workshop:
                 return Verb.Labor;
-            case LocationSpotNames.Market:
-                return Verb.Browse;
             case LocationSpotNames.Shop:
                 return Verb.Browse;
             default:

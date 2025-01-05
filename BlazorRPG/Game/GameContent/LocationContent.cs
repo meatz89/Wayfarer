@@ -72,9 +72,10 @@
         // PLAYGROUND LABOR ACTION
         .AddLocationSpot(feature => feature
             .WithContext(context => context
-                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithBaseAction(BasicActionTypes.Labor)
                 .WithSpace(space => space
-                    .WithScale(ScaleVariations.Intimate))
+                    .WithScale(ScaleVariations.Intimate)
+                    .WithExposure(ExposureConditions.Outdoor))
                 .WithSocial(social => social
                     .WithTension(TensionState.Relaxed)
                     .WithLegality(LegalityTypes.Legal)
@@ -85,9 +86,10 @@
         // PLAYGROUND GATHER ACTION
         .AddLocationSpot(feature => feature
             .WithContext(context => context
-                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithBaseAction(BasicActionTypes.Gather)
                 .WithSpace(space => space
-                    .WithScale(ScaleVariations.Intimate))
+                    .WithScale(ScaleVariations.Intimate)
+                    .WithExposure(ExposureConditions.Outdoor))
                 .WithSocial(social => social
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
@@ -97,9 +99,10 @@
         .AddLocationSpot(feature => feature
             .WithCharacter(CharacterNames.Shopkeeper)
             .WithContext(context => context
-                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithBaseAction(BasicActionTypes.Trade)
                 .WithSpace(space => space
-                    .WithScale(ScaleVariations.Intimate))
+                    .WithScale(ScaleVariations.Intimate)
+                    .WithExposure(ExposureConditions.Outdoor))
                 .WithSocial(social => social
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
@@ -110,7 +113,8 @@
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
-                    .WithScale(ScaleVariations.Intimate))
+                    .WithScale(ScaleVariations.Intimate)
+                    .WithExposure(ExposureConditions.Outdoor))
                 .WithSocial(social => social
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
@@ -126,10 +130,11 @@
         // PLAYGROUND LABOR ACTION
         .AddLocationSpot(feature => feature
             .WithContext(context => context
-                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithBaseAction(BasicActionTypes.Labor)
                 .WithSpace(space => space
                     .WithExposure(ExposureConditions.Indoor)
-                    .WithScale(ScaleVariations.Intimate))
+                    .WithScale(ScaleVariations.Intimate)
+                    .WithExposure(ExposureConditions.Outdoor))
                 .WithSocial(social => social
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
@@ -138,9 +143,10 @@
         // PLAYGROUND GATHER ACTION
         .AddLocationSpot(feature => feature
             .WithContext(context => context
-                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithBaseAction(BasicActionTypes.Gather)
                 .WithSpace(space => space
-                    .WithScale(ScaleVariations.Intimate))
+                    .WithScale(ScaleVariations.Intimate)
+                    .WithExposure(ExposureConditions.Outdoor))
                 .WithSocial(social => social
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
@@ -150,9 +156,10 @@
         .AddLocationSpot(feature => feature
             .WithCharacter(CharacterNames.Bartender)
             .WithContext(context => context
-                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithBaseAction(BasicActionTypes.Trade)
                 .WithSpace(space => space
-                    .WithScale(ScaleVariations.Intimate))
+                    .WithScale(ScaleVariations.Intimate)
+                    .WithExposure(ExposureConditions.Outdoor))
                 .WithSocial(social => social
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
@@ -163,7 +170,8 @@
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
-                    .WithScale(ScaleVariations.Intimate))
+                    .WithScale(ScaleVariations.Intimate)
+                    .WithExposure(ExposureConditions.Outdoor))
                 .WithSocial(social => social
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
@@ -179,9 +187,10 @@
         // PLAYGROUND LABOR ACTION
         .AddLocationSpot(feature => feature
             .WithContext(context => context
-                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithBaseAction(BasicActionTypes.Labor)
                 .WithSpace(space => space
-                    .WithScale(ScaleVariations.Intimate))
+                    .WithScale(ScaleVariations.Intimate)
+                    .WithExposure(ExposureConditions.Outdoor))
                 .WithSocial(social => social
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
@@ -190,9 +199,10 @@
         // PLAYGROUND GATHER ACTION
         .AddLocationSpot(feature => feature
             .WithContext(context => context
-                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithBaseAction(BasicActionTypes.Gather)
                 .WithSpace(space => space
-                    .WithScale(ScaleVariations.Intimate))
+                    .WithScale(ScaleVariations.Intimate)
+                    .WithExposure(ExposureConditions.Outdoor))
                 .WithSocial(social => social
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
@@ -200,11 +210,11 @@
         ))
         // PLAYGROUND TRADE ACTION
         .AddLocationSpot(feature => feature
-            .WithCharacter(CharacterNames.ForestTrader)
             .WithContext(context => context
-                .WithBaseAction(BasicActionTypes.Mingle)
+                .WithBaseAction(BasicActionTypes.Trade)
                 .WithSpace(space => space
-                    .WithScale(ScaleVariations.Intimate))
+                    .WithScale(ScaleVariations.Intimate)
+                    .WithExposure(ExposureConditions.Outdoor))
                 .WithSocial(social => social
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
@@ -215,7 +225,8 @@
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
-                    .WithScale(ScaleVariations.Intimate))
+                    .WithScale(ScaleVariations.Intimate)
+                    .WithExposure(ExposureConditions.Outdoor))
                 .WithSocial(social => social
                     .WithTension(TensionState.Relaxed))
                 .WithActivity(activity => activity
