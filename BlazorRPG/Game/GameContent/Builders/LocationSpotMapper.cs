@@ -1,55 +1,75 @@
 ﻿public enum LocationSpotNames
 {
-    // Social
+    // Social Indoor
+    Tavern,
     TavernBarterTable,
     CellarPantry,
     TavernKitchen,
     InnFireplace,
-    MarketSquare,
-    MarketBazaar,
-    MarketPorters,
-    HerbGarden,
+    TavernStudy, // Added for Study
+    TavernRest, // Added for Rest
 
-    // Nature
+    // Social Outdoor
+    PublicMarket,
+    MarketSquare, // For Mingle
+    MarketBazaar, // For Trade
+    MarketPorters, // For Labor
+    HerbGarden, // For Gather
+    MarketPerformance, // For Perform
+
+    // Nature Outdoor Intimate
     Road,
+    WoodworkerCabin, // For Trade
+    GroveShrine, // For Mingle
+    RoadsideCamp, // For Rest
+
+    // Nature Outdoor Medium
     Forest,
-    MysticGrove,
-    LumberYard,
-    WoodworkerCabin,
-    GroveShrine,
+    MysticGrove, // For Gather
+    LumberYard, // For Labor
+    HuntingGrounds, // For Gather (Hunt)
+
+    // Nature Outdoor Large
     Field,
     Campground,
+
+    // Nature Indoor
     Cave,
     Cavern,
     UndergroundLake,
-    HuntingGrounds,
-    FishingSpot,
-    GatheringSpot,
 
-    // Industrial
+    // Industrial Outdoor
+    Dock,
     FishingWharf,
     WharfMerchant,
     DocksidePub,
+
+    // Industrial Indoor Large
     Warehouse,
-    DocksideWarehouse,
+    DocksideWarehouse, // For Labor
+
+    // Industrial Indoor Medium
     Factory,
+
+    // Industrial Indoor Intimate
     Workshop,
 
-    // Commercial
+    // Commercial Outdoor
     Market,
-    Shop,
     Garden,
-    TradingPost,
-    MerchantStand,
+    TradingPost, // For Trade
+    MerchantStand, // For Trade (alternative)
+
+    // Commercial Indoor
+    Shop,
+
+    // TravelerLodge (Moved from Nature)
     TravelerLodge,
 
     Undefined,
-    TavernRoom,
-    DockArea,
-    PublicMarket,
-    TavernInvestigate,
-    TavernMingle
+    TavernRoom
 }
+
 
 public static class LocationSpotMapper
 {
@@ -60,7 +80,7 @@ public static class LocationSpotMapper
             LocationTypes.Social => GetSocialSpot(baseAction, exposure),
             LocationTypes.Nature => GetNatureSpot(baseAction, exposure, scale),
             LocationTypes.Industrial => GetIndustrialSpot(baseAction, exposure, scale),
-            LocationTypes.Commercial => GetCommercialSpot(baseAction, exposure),
+            LocationTypes.Commercial => GetCommercialSpot(baseAction, exposure, scale),
             _ => LocationSpotNames.Undefined
         };
     }
@@ -74,92 +94,122 @@ public static class LocationSpotMapper
                 BasicActionTypes.Labor => LocationSpotNames.TavernKitchen,
                 BasicActionTypes.Gather => LocationSpotNames.CellarPantry,
                 BasicActionTypes.Trade => LocationSpotNames.TavernBarterTable,
-                BasicActionTypes.Mingle => LocationSpotNames.TavernMingle,
+                BasicActionTypes.Mingle => LocationSpotNames.Tavern,
                 BasicActionTypes.Perform => LocationSpotNames.InnFireplace,
-                BasicActionTypes.Investigate => LocationSpotNames.TavernInvestigate,
-                _ => LocationSpotNames.TavernRoom
+                BasicActionTypes.Investigate => LocationSpotNames.Tavern,
+                BasicActionTypes.Study => LocationSpotNames.TavernStudy,
+                BasicActionTypes.Rest => LocationSpotNames.TavernRoom,
+                _ => LocationSpotNames.Tavern
             };
         }
 
+        // Outdoor
         return baseAction switch
         {
             BasicActionTypes.Labor => LocationSpotNames.MarketPorters,
             BasicActionTypes.Gather => LocationSpotNames.HerbGarden,
             BasicActionTypes.Trade => LocationSpotNames.MarketBazaar,
             BasicActionTypes.Mingle => LocationSpotNames.MarketSquare,
+            BasicActionTypes.Perform => LocationSpotNames.MarketPerformance,
             _ => LocationSpotNames.PublicMarket
         };
     }
 
     private static LocationSpotNames GetNatureSpot(BasicActionTypes baseAction, ExposureConditions exposure, ScaleVariations scale)
     {
-        if (exposure == ExposureConditions.Indoor)
+        if (exposure == ExposureConditions.Outdoor)
+        {
+            switch (scale)
+            {
+                case ScaleVariations.Intimate:
+                    return baseAction switch
+                    {
+                        BasicActionTypes.Trade => LocationSpotNames.WoodworkerCabin,
+                        BasicActionTypes.Mingle => LocationSpotNames.GroveShrine,
+                        BasicActionTypes.Rest => LocationSpotNames.RoadsideCamp,
+                        _ => LocationSpotNames.Road
+                    };
+                case ScaleVariations.Medium:
+                    return baseAction switch
+                    {
+                        BasicActionTypes.Labor => LocationSpotNames.LumberYard,
+                        BasicActionTypes.Gather => LocationSpotNames.Forest,
+                        BasicActionTypes.Perform => LocationSpotNames.MysticGrove,
+                        _ => LocationSpotNames.Forest
+                    };
+                case ScaleVariations.Large:
+                    return baseAction switch
+                    {
+                        BasicActionTypes.Rest => LocationSpotNames.Campground,
+                        _ => LocationSpotNames.Field
+                    };
+            }
+        }
+        else // Indoor
         {
             return scale switch
             {
                 ScaleVariations.Intimate => LocationSpotNames.Cave,
                 ScaleVariations.Medium => LocationSpotNames.Cavern,
-                _ => LocationSpotNames.UndergroundLake
+                ScaleVariations.Large => LocationSpotNames.UndergroundLake,
+                _ => LocationSpotNames.Cave // Default
             };
         }
 
-        return scale switch
-        {
-            ScaleVariations.Intimate => baseAction switch
-            {
-                BasicActionTypes.Trade => LocationSpotNames.WoodworkerCabin,
-                BasicActionTypes.Mingle => LocationSpotNames.GroveShrine,
-                _ => LocationSpotNames.Road
-            },
-            ScaleVariations.Medium => baseAction switch
-            {
-                BasicActionTypes.Labor => LocationSpotNames.LumberYard,
-                BasicActionTypes.Gather => LocationSpotNames.MysticGrove,
-                _ => LocationSpotNames.Forest
-            },
-            _ => LocationSpotNames.Field
-        };
+        return LocationSpotNames.Undefined; // Fallback
     }
 
     private static LocationSpotNames GetIndustrialSpot(BasicActionTypes baseAction, ExposureConditions exposure, ScaleVariations scale)
     {
-        if (exposure == ExposureConditions.Indoor)
+        if (exposure == ExposureConditions.Outdoor)
         {
-            if (scale == ScaleVariations.Large)
+            return baseAction switch
             {
-                return baseAction == BasicActionTypes.Labor
-                    ? LocationSpotNames.DocksideWarehouse
-                    : LocationSpotNames.Warehouse;
-            }
-
-            return scale == ScaleVariations.Medium
-                ? LocationSpotNames.Factory
-                : LocationSpotNames.Workshop;
+                BasicActionTypes.Gather => LocationSpotNames.FishingWharf,
+                BasicActionTypes.Trade => LocationSpotNames.WharfMerchant,
+                BasicActionTypes.Mingle => LocationSpotNames.DocksidePub,
+                _ => LocationSpotNames.Dock
+            };
         }
-
-        return baseAction switch
+        else // Indoor
         {
-            BasicActionTypes.Gather => LocationSpotNames.FishingWharf,
-            BasicActionTypes.Trade => LocationSpotNames.WharfMerchant,
-            BasicActionTypes.Mingle => LocationSpotNames.DocksidePub,
-            _ => LocationSpotNames.DockArea
-        };
+            switch (scale)
+            {
+                case ScaleVariations.Large:
+                    return baseAction switch
+                    {
+                        BasicActionTypes.Labor => LocationSpotNames.DocksideWarehouse,
+                        _ => LocationSpotNames.Warehouse
+                    };
+                case ScaleVariations.Medium:
+                    return LocationSpotNames.Factory;
+                case ScaleVariations.Intimate:
+                default:
+                    return LocationSpotNames.Workshop;
+            }
+        }
     }
 
-    private static LocationSpotNames GetCommercialSpot(BasicActionTypes baseAction, ExposureConditions exposure)
+    private static LocationSpotNames GetCommercialSpot(BasicActionTypes baseAction, ExposureConditions exposure, ScaleVariations scale)
     {
-        if (exposure == ExposureConditions.Indoor)
+        if (exposure == ExposureConditions.Outdoor)
         {
-            return LocationSpotNames.Shop;
+            return baseAction switch
+            {
+                BasicActionTypes.Gather => LocationSpotNames.HerbGarden,
+                BasicActionTypes.Trade => LocationSpotNames.MarketBazaar,
+                BasicActionTypes.Mingle => LocationSpotNames.MarketSquare,
+                BasicActionTypes.Labor => LocationSpotNames.MarketPorters,
+                _ => LocationSpotNames.Market
+            };
         }
-
-        return baseAction switch
+        else // Indoor
         {
-            BasicActionTypes.Labor => LocationSpotNames.MarketPorters,
-            BasicActionTypes.Gather => LocationSpotNames.HerbGarden,
-            BasicActionTypes.Trade => LocationSpotNames.MarketBazaar,
-            BasicActionTypes.Mingle => LocationSpotNames.MarketSquare,
-            _ => LocationSpotNames.Market
-        };
+            return baseAction switch
+            {
+                BasicActionTypes.Study => LocationSpotNames.Workshop,
+                _ => LocationSpotNames.Shop
+            };
+        }
     }
 }

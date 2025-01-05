@@ -193,6 +193,7 @@ public enum BasicActionTypes
     Study, // for focused learning
     Plan, // for strategic thinking
     Reflect, // for processing and rest
+    Rest,
 }
 
 

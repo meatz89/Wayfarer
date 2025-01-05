@@ -17,12 +17,20 @@
     {
         var locationSpotBuilder = new LocationSpotBuilder(this.locationName, this.locationType);
         buildLocationSpot(locationSpotBuilder);
-        
-        LocationSpot item = locationSpotBuilder.Build();
-        this.locationSpots.Add(item);
-        
+        var newSpot = locationSpotBuilder.Build();
+
+        // Check for duplicate LocationSpotNames within the same Location
+        if (locationSpots.Any(spot => spot.Name == newSpot.Name))
+        {
+            Console.WriteLine($"Duplicate LocationSpotName '{newSpot.Name}' found in location '{locationName}'.");
+        }
+        else
+        {
+            this.locationSpots.Add(newSpot);
+        }
         return this;
     }
+
 
     public LocationBuilder AddTravelConnection(LocationNames connectedLocation)
     {
