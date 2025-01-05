@@ -18,7 +18,11 @@ public class GameContentProvider
     {
         locations = new List<Location>
         {
-            LocationContent.Tavern,
+            LocationContent.LionsHeadTavern,
+            LocationContent.Industrial,
+            LocationContent.Commercial,
+            LocationContent.Social,
+            LocationContent.Nature
         };
 
         characters = new List<Character>

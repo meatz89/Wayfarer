@@ -1,13 +1,11 @@
 ﻿public enum LocationNames
 {
     None = 0,
-    Docks,
-    MarketSquare,
-    HarborStreets,
+    GenericDocks,
+    GenericMarket,
     LionsHeadTavern,
-    ForestEdge,
-    CarpentersWorkshop,
-    ArtisanRow
+    GenericForest,
+    GenericTavern
 }
 
 public enum CharacterNames
@@ -15,4 +13,6 @@ public enum CharacterNames
     None = 0,
     Bartender,
     WealthyMerchant,
+    Shopkeeper,
+    ForestTrader,
 }

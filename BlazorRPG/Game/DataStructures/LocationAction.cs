@@ -1,5 +1,5 @@
 ﻿public class LocationActions
 {
     public LocationNames Location { get; set; }
-    public List<ActionTypes> Actions { get; set; } = new();
+    public List<BasicActionTypes> Actions { get; set; } = new();
 }

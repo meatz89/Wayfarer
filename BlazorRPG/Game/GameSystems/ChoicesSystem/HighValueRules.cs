@@ -1,5 +1,4 @@
-﻿
-public class HighValueRules
+﻿public class HighValueRules
 {
     public static readonly List<ValueStateRule> AllRules = new()
     {
@@ -9,7 +8,6 @@ public class HighValueRules
             Threshold = 8,
             Modification = new()
             {
-                CompletionPointMultiplier = 2.0f,
                 EnergyCostIncrease = 1,
                 ValueChanges = new() { new(ValueTypes.Tension, 1) }
             }
@@ -50,7 +48,6 @@ public class HighValueRules
             Threshold = 8,
             Modification = new()
             {
-                CompletionPointMultiplier = 1.5f,
                 ValueChanges = new() { new(ValueTypes.Momentum, 1) }
             }
         }

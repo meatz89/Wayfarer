@@ -15,7 +15,7 @@
         this.narratives = contentProvider.GetNarratives();
     }
 
-    public Narrative GetAvailableNarrative(ActionTypes action, LocationNames location, LocationSpotNames locationSpot)
+    public Narrative GetAvailableNarrative(BasicActionTypes action, LocationNames location, LocationSpotNames locationSpot)
     {
         return narratives.FirstOrDefault(x =>
             x.ActionType == action &&
@@ -36,7 +36,15 @@
         NarrativeStage stage = GetCurrentStage(narrative);
         List<NarrativeChoice> choices = stage.Choices;
 
-        choices = choiceSystem.GenerateExampleChoices();
+        NarrativeActionContext context = new NarrativeActionContext
+        {
+            ActionType = narrative.ActionType,
+            LocationType = narrative.LocationType,
+            TimeSlot = narrative.TimeSlot,
+            CurrentValues = narrative.InitialState,
+        };
+
+        choices = choiceSystem.GenerateChoices(context);
         return choices;
     }
 

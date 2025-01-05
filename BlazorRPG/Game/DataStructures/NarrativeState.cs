@@ -8,11 +8,6 @@
     public int Connection { get; set; }
     public int Tension { get; set; }
 
-    public NarrativeState()
-    {
-        
-    }
-
     public NarrativeState(int momentum, int advantage, int understanding, int connection, int tension)
     {
         this.Momentum = momentum;

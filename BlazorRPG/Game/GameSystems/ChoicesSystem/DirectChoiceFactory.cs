@@ -1,7 +1,7 @@
 ﻿public class DirectChoiceFactory
 {
     // Creates direct, high-impact choices that cost more but provide immediate benefits
-    public static NarrativeChoice Create(ActionContext context)
+    public static NarrativeChoice Create(NarrativeActionContext context)
     {
         var builder = new ChoiceBuilder()
             .WithIndex(1)
@@ -26,38 +26,38 @@
         return builder.Build();
     }
 
-    private static string GetDirectDescription(ActionContext context)
+    private static string GetDirectDescription(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "Put everything into your work",
-            ActionTypes.Trade => "Make an aggressive deal",
-            ActionTypes.Investigate => "Focus intensely on the details",
-            ActionTypes.Mingle => "Take control of the conversation",
+            BasicActionTypes.Labor => "Put everything into your work",
+            BasicActionTypes.Trade => "Make an aggressive deal",
+            BasicActionTypes.Investigate => "Focus intensely on the details",
+            BasicActionTypes.Mingle => "Take control of the conversation",
             _ => "Take decisive action"
         };
     }
 
-    private static string GetDirectNarrative(ActionContext context)
+    private static string GetDirectNarrative(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "You throw yourself into the physical work with complete focus, pushing your limits...",
-            ActionTypes.Trade => "You step forward confidently with your best offer, taking control of the negotiation...",
-            ActionTypes.Investigate => "You examine every detail with intense concentration, determined to uncover the truth...",
-            ActionTypes.Mingle => "You take charge of the conversation, speaking your mind with clarity and purpose...",
+            BasicActionTypes.Labor => "You throw yourself into the physical work with complete focus, pushing your limits...",
+            BasicActionTypes.Trade => "You step forward confidently with your best offer, taking control of the negotiation...",
+            BasicActionTypes.Investigate => "You examine every detail with intense concentration, determined to uncover the truth...",
+            BasicActionTypes.Mingle => "You take charge of the conversation, speaking your mind with clarity and purpose...",
             _ => "You commit fully to your chosen path, acting with determination..."
         };
     }
 
-    private static EnergyTypes GetContextEnergy(ActionContext context)
+    private static EnergyTypes GetContextEnergy(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => EnergyTypes.Physical,
-            ActionTypes.Trade => EnergyTypes.Social,
-            ActionTypes.Investigate => EnergyTypes.Focus,
-            ActionTypes.Mingle => EnergyTypes.Social,
+            BasicActionTypes.Labor => EnergyTypes.Physical,
+            BasicActionTypes.Trade => EnergyTypes.Social,
+            BasicActionTypes.Investigate => EnergyTypes.Focus,
+            BasicActionTypes.Mingle => EnergyTypes.Social,
             _ => EnergyTypes.Physical
         };
     }
@@ -66,7 +66,7 @@
 public class CarefulChoiceFactory
 {
     // Creates careful choices that minimize risk while building understanding
-    public static NarrativeChoice Create(ActionContext context)
+    public static NarrativeChoice Create(NarrativeActionContext context)
     {
         var builder = new ChoiceBuilder()
             .WithIndex(2)
@@ -90,26 +90,26 @@ public class CarefulChoiceFactory
         return builder.Build();
     }
 
-    private static string GetCarefulDescription(ActionContext context)
+    private static string GetCarefulDescription(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "Take a methodical approach",
-            ActionTypes.Trade => "Analyze the market carefully",
-            ActionTypes.Investigate => "Document everything systematically",
-            ActionTypes.Mingle => "Listen and observe attentively",
+            BasicActionTypes.Labor => "Take a methodical approach",
+            BasicActionTypes.Trade => "Analyze the market carefully",
+            BasicActionTypes.Investigate => "Document everything systematically",
+            BasicActionTypes.Mingle => "Listen and observe attentively",
             _ => "Proceed with caution"
         };
     }
 
-    private static string GetCarefulNarrative(ActionContext context)
+    private static string GetCarefulNarrative(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "You approach the work systematically, paying attention to every detail...",
-            ActionTypes.Trade => "You take time to study the market conditions and current prices...",
-            ActionTypes.Investigate => "You make careful notes of everything you observe, building a complete picture...",
-            ActionTypes.Mingle => "You listen carefully to the conversation, picking up subtle details...",
+            BasicActionTypes.Labor => "You approach the work systematically, paying attention to every detail...",
+            BasicActionTypes.Trade => "You take time to study the market conditions and current prices...",
+            BasicActionTypes.Investigate => "You make careful notes of everything you observe, building a complete picture...",
+            BasicActionTypes.Mingle => "You listen carefully to the conversation, picking up subtle details...",
             _ => "You move forward carefully, considering each step..."
         };
     }
@@ -118,7 +118,7 @@ public class CarefulChoiceFactory
 public class TacticalChoiceFactory
 {
     // Creates tactical choices that require skills but offer special opportunities
-    public static NarrativeChoice Create(ActionContext context)
+    public static NarrativeChoice Create(NarrativeActionContext context)
     {
         var builder = new ChoiceBuilder()
             .WithIndex(3)
@@ -142,49 +142,49 @@ public class TacticalChoiceFactory
         return builder.Build();
     }
 
-    private static void AddContextualElements(ChoiceBuilder builder, ActionContext context)
+    private static void AddContextualElements(ChoiceBuilder builder, NarrativeActionContext context)
     {
         switch (context.ActionType)
         {
-            case ActionTypes.Labor:
+            case BasicActionTypes.Labor:
                 builder.RequiresSkill(SkillTypes.PhysicalLabor, 2)
                       .WithMoneyOutcome(2);  // Bonus for skilled work
                 break;
-            case ActionTypes.Trade:
+            case BasicActionTypes.Trade:
                 builder.RequiresSkill(SkillTypes.Trading, 2)
                       .WithMoneyOutcome(4);  // Higher reward for market knowledge
                 break;
-            case ActionTypes.Investigate:
+            case BasicActionTypes.Investigate:
                 builder.RequiresSkill(SkillTypes.Observation, 2)
                       .WithUnderstandingChange(2);  // Extra insight from expertise
                 break;
-            case ActionTypes.Mingle:
+            case BasicActionTypes.Mingle:
                 builder.RequiresSkill(SkillTypes.Socializing, 2)
                       .WithConnectionChange(2);  // Better networking from social skill
                 break;
         }
     }
 
-    private static string GetTacticalDescription(ActionContext context)
+    private static string GetTacticalDescription(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "Apply expert technique",
-            ActionTypes.Trade => "Leverage market knowledge",
-            ActionTypes.Investigate => "Use advanced observation methods",
-            ActionTypes.Mingle => "Navigate social dynamics",
+            BasicActionTypes.Labor => "Apply expert technique",
+            BasicActionTypes.Trade => "Leverage market knowledge",
+            BasicActionTypes.Investigate => "Use advanced observation methods",
+            BasicActionTypes.Mingle => "Navigate social dynamics",
             _ => "Use tactical advantage"
         };
     }
 
-    private static string GetTacticalNarrative(ActionContext context)
+    private static string GetTacticalNarrative(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "Drawing on your experience, you employ specialized techniques...",
-            ActionTypes.Trade => "You spot an opportunity in the market that others might miss...",
-            ActionTypes.Investigate => "Your trained eye picks up on subtle patterns and details...",
-            ActionTypes.Mingle => "You carefully navigate the social dynamics of the situation...",
+            BasicActionTypes.Labor => "Drawing on your experience, you employ specialized techniques...",
+            BasicActionTypes.Trade => "You spot an opportunity in the market that others might miss...",
+            BasicActionTypes.Investigate => "Your trained eye picks up on subtle patterns and details...",
+            BasicActionTypes.Mingle => "You carefully navigate the social dynamics of the situation...",
             _ => "You leverage your expertise to gain an advantage..."
         };
     }

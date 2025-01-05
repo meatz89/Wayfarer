@@ -1,6 +1,6 @@
 ﻿public class Narrative
 {
-    public ActionTypes ActionType { get; set; }
+    public BasicActionTypes ActionType { get; set; }
     public LocationTypes LocationType { get; set; }
     public LocationNames LocationName { get; set; }
     public LocationSpotNames LocationSpot { get; set; }

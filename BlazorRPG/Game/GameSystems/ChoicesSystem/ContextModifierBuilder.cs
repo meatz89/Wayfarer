@@ -1,9 +1,9 @@
 ﻿public class ContextModifierBuilder
 {
     private readonly NarrativeChoice _choice;
-    private readonly ActionContext _context;
+    private readonly NarrativeActionContext _context;
 
-    public ContextModifierBuilder(NarrativeChoice choice, ActionContext context)
+    public ContextModifierBuilder(NarrativeChoice choice, NarrativeActionContext context)
     {
         _choice = choice;
         _context = context;
@@ -47,7 +47,7 @@
         // Apply location-based value caps to narrative state changes
         switch (_context.LocationType)
         {
-            case LocationTypes.Industry:
+            case LocationTypes.Industrial:
                 CapNarrativeValue(nameof(_choice.NarrativeStateChanges.Momentum), 10);
                 break;
             case LocationTypes.Social:

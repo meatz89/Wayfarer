@@ -17,7 +17,7 @@
 
     public LocationBuilder AddLocationSpot(Action<LocationSpotBuilder> buildLocationSpot)
     {
-        LocationSpotBuilder builder = new();
+        LocationSpotBuilder builder = new(location);
         buildLocationSpot(builder);
         locationSpots.Add(builder.Build());
         return this;

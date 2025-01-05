@@ -2,5 +2,8 @@
 {
     None = 0,
     Food,
-    Wood
+    Wood,
+    Fish,
+    Herbs,
+    Cloth
 }

@@ -16,29 +16,23 @@
         _valueRules = HighValueRules.AllRules;
     }
 
-    public List<NarrativeChoice> GenerateChoices(ActionContext context, NarrativeState currentState)
+    public List<NarrativeChoice> GenerateChoices(NarrativeActionContext context)
     {
         var choices = new List<NarrativeChoice>();
         int choiceIndex = 1;
 
         // First, create our guaranteed viable core choices
-        choices.Add(GenerateBaseChoice(context, choiceIndex++, currentState));
-        choices.Add(GenerateTradeoffChoice(context, choiceIndex++, currentState));
-        choices.Add(GenerateOpportunityChoice(context, choiceIndex++, currentState));
-
-        // Add recovery choice if needed - this is a special case we always want to handle
-        if (HasLowValues(currentState))
-        {
-            choices.Add(GenerateRecoveryChoice(context, choiceIndex++, currentState));
-        }
+        choices.Add(GenerateBaseChoice(context, choiceIndex++));
+        choices.Add(GenerateTradeoffChoice(context, choiceIndex++));
+        choices.Add(GenerateOpportunityChoice(context, choiceIndex++));
 
         // Add high-value choices when appropriate
-        choices.AddRange(GenerateHighValueChoices(context, choiceIndex, currentState));
+        choices.AddRange(GenerateHighValueChoices(context, choiceIndex));
 
         return choices;
     }
 
-    private NarrativeChoice GenerateBaseChoice(ActionContext context, int index, NarrativeState currentState)
+    private NarrativeChoice GenerateBaseChoice(NarrativeActionContext context, int index)
     {
         // Create a guaranteed viable basic choice that anyone can take
         return new ChoiceBuilder()
@@ -52,7 +46,7 @@
             .Build();
     }
 
-    private NarrativeChoice GenerateTradeoffChoice(ActionContext context, int index, NarrativeState currentState)
+    private NarrativeChoice GenerateTradeoffChoice(NarrativeActionContext context, int index)
     {
         // Create a choice with meaningful positive and negative effects
         var tradeoffValues = GenerateContextTradeoff(context);
@@ -69,7 +63,7 @@
             .Build();
     }
 
-    private NarrativeChoice GenerateOpportunityChoice(ActionContext context, int index, NarrativeState currentState)
+    private NarrativeChoice GenerateOpportunityChoice(NarrativeActionContext context, int index)
     {
         // Create a choice that offers special rewards or unlocks
         var builder = new ChoiceBuilder()
@@ -87,81 +81,79 @@
         return builder.Build();
     }
 
-    private NarrativeChoice GenerateRecoveryChoice(ActionContext context, int index, NarrativeState currentState)
-    {
-        var lowestValue = GetLowestValue(currentState);
 
-        return new ChoiceBuilder()
-            .WithIndex(index)
-            .WithChoiceType(ChoiceTypes.Recovery)
-            .WithName(GetRecoveryActionDescription(context, lowestValue))
-            .WithNarrative(GetRecoveryActionNarrative(context, lowestValue))
-            .WithValueChange(lowestValue, 2)  // Restore the lowest value
-            .Build();
-    }
-
-    private IEnumerable<NarrativeChoice> GenerateHighValueChoices(ActionContext context, int startIndex, NarrativeState currentState)
+    private List<NarrativeChoice> GenerateHighValueChoices(NarrativeActionContext context, int startIndex)
     {
         var highValueChoices = new List<NarrativeChoice>();
 
-        if (currentState.Momentum >= 8)
+        if (context.CurrentValues.Momentum >= 8)
         {
-            highValueChoices.Add(GenerateFlowStateChoice(context, startIndex++, currentState));
+            highValueChoices.Add(GenerateFlowStateChoice(context, startIndex++));
         }
 
-        if (currentState.Understanding >= 8)
+        if (context.CurrentValues.Advantage >= 8)
         {
-            highValueChoices.Add(GenerateInsightChoice(context, startIndex++, currentState));
+            //highValueChoices.Add(GenerateAdvantageChoice(context, startIndex++));
         }
 
-        if (currentState.Connection >= 8)
+        if (context.CurrentValues.Understanding >= 8)
         {
-            highValueChoices.Add(GenerateTrustChoice(context, startIndex++, currentState));
+            highValueChoices.Add(GenerateInsightChoice(context, startIndex++));
+        }
+
+        if (context.CurrentValues.Connection >= 8)
+        {
+            highValueChoices.Add(GenerateTrustChoice(context, startIndex++));
+        }
+
+        if (context.CurrentValues.Tension >= 8)
+        {
+            //highValueChoices.Add(GenerateTensionChoice(context, startIndex++));
         }
 
         return highValueChoices;
     }
 
-    private (int positiveValue, int negativeValue) GenerateContextTradeoff(ActionContext context)
+    private (int positiveValue, int negativeValue) GenerateContextTradeoff(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => (2, -1),      // High momentum, lose connection
-            ActionTypes.Trade => (2, -1),      // High advantage, lose connection
-            ActionTypes.Investigate => (2, -1), // High understanding, lose momentum
-            ActionTypes.Mingle => (2, -1),     // High connection, lose advantage
+            BasicActionTypes.Labor => (2, -1),      // High momentum, lose connection
+            BasicActionTypes.Trade => (2, -1),      // High advantage, lose connection
+            BasicActionTypes.Investigate => (2, -1), // High understanding, lose momentum
+            BasicActionTypes.Mingle => (2, -1),     // High connection, lose advantage
             _ => (1, -1)
         };
     }
 
     // Continuation of the NarrativeChoiceGenerator class...
 
-    private void AddContextualOpportunity(ChoiceBuilder builder, ActionContext context)
+    private void AddContextualOpportunity(ChoiceBuilder builder, NarrativeActionContext context)
     {
         switch (context.ActionType)
         {
-            case ActionTypes.Labor:
+            case BasicActionTypes.Labor:
                 builder.RequiresSkill(SkillTypes.PhysicalLabor, 2)
                       .WithSkillOutcome(SkillTypes.PhysicalLabor, 1)
                       .WithName("Apply Expert Technique")
                       .WithNarrative("Draw upon your experience to find a more efficient approach to the work.");
                 break;
 
-            case ActionTypes.Trade:
+            case BasicActionTypes.Trade:
                 builder.RequiresSkill(SkillTypes.Trading, 2)
                       .WithReputationOutcome(ReputationTypes.Merchant, 1)
                       .WithName("Leverage Market Knowledge")
                       .WithNarrative("Use your understanding of trade patterns to spot a special opportunity.");
                 break;
 
-            case ActionTypes.Investigate:
+            case BasicActionTypes.Investigate:
                 builder.RequiresSkill(SkillTypes.Observation, 2)
                       .WithSkillOutcome(SkillTypes.Observation, 1)
                       .WithName("Apply Careful Analysis")
                       .WithNarrative("Your trained eye allows you to notice subtle but important details.");
                 break;
 
-            case ActionTypes.Mingle:
+            case BasicActionTypes.Mingle:
                 builder.RequiresSkill(SkillTypes.Socializing, 2)
                       .WithReputationOutcome(ReputationTypes.Social, 1)
                       .WithName("Read Social Dynamics")
@@ -170,79 +162,79 @@
         }
     }
 
-    private string GetBaseActionDescription(ActionContext context)
+    private string GetBaseActionDescription(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "Work at a steady pace",
-            ActionTypes.Trade => "Make a fair offer",
-            ActionTypes.Investigate => "Take a careful look",
-            ActionTypes.Mingle => "Engage in small talk",
+            BasicActionTypes.Labor => "Work at a steady pace",
+            BasicActionTypes.Trade => "Make a fair offer",
+            BasicActionTypes.Investigate => "Take a careful look",
+            BasicActionTypes.Mingle => "Engage in small talk",
             _ => "Take measured action"
         };
     }
 
-    private string GetBaseActionNarrative(ActionContext context)
+    private string GetBaseActionNarrative(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "You focus on maintaining a sustainable work rhythm, neither rushing nor dawdling.",
-            ActionTypes.Trade => "You consider the fair market value and make a reasonable offer.",
-            ActionTypes.Investigate => "You take your time to observe the obvious details first.",
-            ActionTypes.Mingle => "You start with simple, friendly conversation to establish rapport.",
+            BasicActionTypes.Labor => "You focus on maintaining a sustainable work rhythm, neither rushing nor dawdling.",
+            BasicActionTypes.Trade => "You consider the fair market value and make a reasonable offer.",
+            BasicActionTypes.Investigate => "You take your time to observe the obvious details first.",
+            BasicActionTypes.Mingle => "You start with simple, friendly conversation to establish rapport.",
             _ => "You proceed with careful consideration of your actions."
         };
     }
 
-    private string GetTradeoffActionDescription(ActionContext context)
+    private string GetTradeoffActionDescription(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "Push yourself to the limit",
-            ActionTypes.Trade => "Drive a hard bargain",
-            ActionTypes.Investigate => "Focus intensely on details",
-            ActionTypes.Mingle => "Dominate the conversation",
+            BasicActionTypes.Labor => "Push yourself to the limit",
+            BasicActionTypes.Trade => "Drive a hard bargain",
+            BasicActionTypes.Investigate => "Focus intensely on details",
+            BasicActionTypes.Mingle => "Dominate the conversation",
             _ => "Take aggressive action"
         };
     }
 
-    private string GetTradeoffActionNarrative(ActionContext context)
+    private string GetTradeoffActionNarrative(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "You pour all your energy into working as quickly as possible, though it leaves little room for social niceties.",
-            ActionTypes.Trade => "You press your advantage in negotiations, though it might strain relationships.",
-            ActionTypes.Investigate => "You focus so intently on the details that you might miss the broader situation.",
-            ActionTypes.Mingle => "You take control of the conversation, though some might find it overwhelming.",
+            BasicActionTypes.Labor => "You pour all your energy into working as quickly as possible, though it leaves little room for social niceties.",
+            BasicActionTypes.Trade => "You press your advantage in negotiations, though it might strain relationships.",
+            BasicActionTypes.Investigate => "You focus so intently on the details that you might miss the broader situation.",
+            BasicActionTypes.Mingle => "You take control of the conversation, though some might find it overwhelming.",
             _ => "You commit fully to your chosen course, accepting the consequences."
         };
     }
 
-    private string GetOpportunityActionDescription(ActionContext context)
+    private string GetOpportunityActionDescription(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "Study efficient techniques",
-            ActionTypes.Trade => "Build trade connections",
-            ActionTypes.Investigate => "Search for patterns",
-            ActionTypes.Mingle => "Cultivate relationships",
+            BasicActionTypes.Labor => "Study efficient techniques",
+            BasicActionTypes.Trade => "Build trade connections",
+            BasicActionTypes.Investigate => "Search for patterns",
+            BasicActionTypes.Mingle => "Cultivate relationships",
             _ => "Seek strategic advantage"
         };
     }
 
-    private string GetOpportunityActionNarrative(ActionContext context)
+    private string GetOpportunityActionNarrative(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "While working, you pay special attention to the techniques of more experienced workers.",
-            ActionTypes.Trade => "You focus on building long-term trading relationships rather than immediate profit.",
-            ActionTypes.Investigate => "You look for recurring patterns that might reveal deeper truths.",
-            ActionTypes.Mingle => "You invest time in developing meaningful connections with others.",
+            BasicActionTypes.Labor => "While working, you pay special attention to the techniques of more experienced workers.",
+            BasicActionTypes.Trade => "You focus on building long-term trading relationships rather than immediate profit.",
+            BasicActionTypes.Investigate => "You look for recurring patterns that might reveal deeper truths.",
+            BasicActionTypes.Mingle => "You invest time in developing meaningful connections with others.",
             _ => "You look for ways to create lasting advantages."
         };
     }
 
-    private string GetRecoveryActionDescription(ActionContext context, ValueTypes lowestValue)
+    private string GetRecoveryActionDescription(NarrativeActionContext context, ValueTypes lowestValue)
     {
         return lowestValue switch
         {
@@ -254,7 +246,7 @@
         };
     }
 
-    private string GetRecoveryActionNarrative(ActionContext context, ValueTypes lowestValue)
+    private string GetRecoveryActionNarrative(NarrativeActionContext context, ValueTypes lowestValue)
     {
         return lowestValue switch
         {
@@ -266,7 +258,7 @@
         };
     }
 
-    private NarrativeChoice GenerateFlowStateChoice(ActionContext context, int index, NarrativeState currentState)
+    private NarrativeChoice GenerateFlowStateChoice(NarrativeActionContext context, int index)
     {
         // Flow state choices capitalize on high momentum for maximum efficiency
         return new ChoiceBuilder()
@@ -281,31 +273,31 @@
             .Build();
     }
 
-    private string GetFlowStateDescription(ActionContext context)
+    private string GetFlowStateDescription(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "Work with perfect efficiency",
-            ActionTypes.Trade => "Negotiate with perfect timing",
-            ActionTypes.Investigate => "Enter deep focus state",
-            ActionTypes.Mingle => "Achieve perfect social flow",
+            BasicActionTypes.Labor => "Work with perfect efficiency",
+            BasicActionTypes.Trade => "Negotiate with perfect timing",
+            BasicActionTypes.Investigate => "Enter deep focus state",
+            BasicActionTypes.Mingle => "Achieve perfect social flow",
             _ => "Enter flow state"
         };
     }
 
-    private string GetFlowStateNarrative(ActionContext context)
+    private string GetFlowStateNarrative(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "Everything clicks into place as you work with machine-like efficiency.",
-            ActionTypes.Trade => "You feel the perfect rhythm of negotiation, every word landing exactly right.",
-            ActionTypes.Investigate => "Your mind enters a state of perfect clarity and focus.",
-            ActionTypes.Mingle => "The social dynamics become crystal clear, every interaction flowing naturally.",
+            BasicActionTypes.Labor => "Everything clicks into place as you work with machine-like efficiency.",
+            BasicActionTypes.Trade => "You feel the perfect rhythm of negotiation, every word landing exactly right.",
+            BasicActionTypes.Investigate => "Your mind enters a state of perfect clarity and focus.",
+            BasicActionTypes.Mingle => "The social dynamics become crystal clear, every interaction flowing naturally.",
             _ => "You enter a state of perfect focus and efficiency."
         };
     }
 
-    private NarrativeChoice GenerateInsightChoice(ActionContext context, int index, NarrativeState currentState)
+    private NarrativeChoice GenerateInsightChoice(NarrativeActionContext context, int index)
     {
         // Insight choices leverage high understanding to reveal hidden opportunities
         return new ChoiceBuilder()
@@ -320,31 +312,31 @@
             .Build();
     }
 
-    private string GetInsightDescription(ActionContext context)
+    private string GetInsightDescription(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "Apply advanced technique",
-            ActionTypes.Trade => "Spot market pattern",
-            ActionTypes.Investigate => "Make key connection",
-            ActionTypes.Mingle => "Read social undercurrents",
+            BasicActionTypes.Labor => "Apply advanced technique",
+            BasicActionTypes.Trade => "Spot market pattern",
+            BasicActionTypes.Investigate => "Make key connection",
+            BasicActionTypes.Mingle => "Read social undercurrents",
             _ => "Use special insight"
         };
     }
 
-    private string GetInsightNarrative(ActionContext context)
+    private string GetInsightNarrative(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "Your deep understanding reveals a better way to approach the task.",
-            ActionTypes.Trade => "You recognize a subtle pattern in market behavior others have missed.",
-            ActionTypes.Investigate => "The pieces suddenly click together in your mind.",
-            ActionTypes.Mingle => "You perceive the hidden dynamics of the social situation.",
+            BasicActionTypes.Labor => "Your deep understanding reveals a better way to approach the task.",
+            BasicActionTypes.Trade => "You recognize a subtle pattern in market behavior others have missed.",
+            BasicActionTypes.Investigate => "The pieces suddenly click together in your mind.",
+            BasicActionTypes.Mingle => "You perceive the hidden dynamics of the social situation.",
             _ => "Your understanding reveals a hidden opportunity."
         };
     }
 
-    private NarrativeChoice GenerateTrustChoice(ActionContext context, int index, NarrativeState currentState)
+    private NarrativeChoice GenerateTrustChoice(NarrativeActionContext context, int index)
     {
         // Trust choices leverage high connection for special cooperation opportunities
         return new ChoiceBuilder()
@@ -358,26 +350,26 @@
             .Build();
     }
 
-    private string GetTrustDescription(ActionContext context)
+    private string GetTrustDescription(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "Coordinate team effort",
-            ActionTypes.Trade => "Call in a favor",
-            ActionTypes.Investigate => "Share sensitive information",
-            ActionTypes.Mingle => "Deepen relationship",
+            BasicActionTypes.Labor => "Coordinate team effort",
+            BasicActionTypes.Trade => "Call in a favor",
+            BasicActionTypes.Investigate => "Share sensitive information",
+            BasicActionTypes.Mingle => "Deepen relationship",
             _ => "Leverage trust"
         };
     }
 
-    private string GetTrustNarrative(ActionContext context)
+    private string GetTrustNarrative(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => "Your good relationships allow you to organize an effective team effort.",
-            ActionTypes.Trade => "Your strong connections give you access to special opportunities.",
-            ActionTypes.Investigate => "People trust you enough to share important information.",
-            ActionTypes.Mingle => "The strong bonds you've built open new possibilities.",
+            BasicActionTypes.Labor => "Your good relationships allow you to organize an effective team effort.",
+            BasicActionTypes.Trade => "Your strong connections give you access to special opportunities.",
+            BasicActionTypes.Investigate => "People trust you enough to share important information.",
+            BasicActionTypes.Mingle => "The strong bonds you've built open new possibilities.",
             _ => "Your relationships create new opportunities."
         };
     }
@@ -404,14 +396,14 @@
                state.Connection <= lowThreshold;
     }
 
-    private EnergyTypes GetContextEnergy(ActionContext context)
+    private EnergyTypes GetContextEnergy(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => EnergyTypes.Physical,
-            ActionTypes.Trade => EnergyTypes.Social,
-            ActionTypes.Investigate => EnergyTypes.Focus,
-            ActionTypes.Mingle => EnergyTypes.Social,
+            BasicActionTypes.Labor => EnergyTypes.Physical,
+            BasicActionTypes.Trade => EnergyTypes.Social,
+            BasicActionTypes.Investigate => EnergyTypes.Focus,
+            BasicActionTypes.Mingle => EnergyTypes.Social,
             _ => EnergyTypes.Physical
         };
     }

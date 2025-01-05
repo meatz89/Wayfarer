@@ -18,11 +18,11 @@
     private int physicalEnergyReward;
     private int socialEnergyReward;
     private int focusEnergyReward;
+    private BasicActionTypes actionType;
 
-    public LocationSpotBuilder ForLocation(LocationNames location)
+    public LocationSpotBuilder(LocationNames locationName)
     {
-        this.locationName = location;
-        return this;
+        this.locationName = locationName;
     }
 
     public LocationSpotBuilder ForLocationSpot(LocationSpotNames featureType)
@@ -111,7 +111,7 @@
     private BasicAction BuildCharacterAction(CharacterNames character)
     {
         ActionBuilder builder = new ActionBuilder()
-            .ForAction(ActionTypes.Discuss)
+            .ForAction(BasicActionTypes.Discuss)
             .WithDescription($"Talk to {character}");
 
         return builder.Build();
@@ -120,7 +120,7 @@
     private BasicAction BuildLaborAction()
     {
         ActionBuilder builder = new ActionBuilder()
-            .ForAction(ActionTypes.Labor)
+            .ForAction(BasicActionTypes.Labor)
             .WithDescription($"Process {inputResource} into {outputResource}");
 
         // Processing actions can have any costs/rewards except energy rewards
@@ -156,7 +156,7 @@
     private BasicAction BuildGatheringAction()
     {
         ActionBuilder builder = new ActionBuilder()
-            .ForAction(ActionTypes.Gather)
+            .ForAction(BasicActionTypes.Gather)
             .WithDescription($"Gather {outputResource}");
 
         // Handle all possible costs/rewards except energy rewards
@@ -187,7 +187,7 @@
     private BasicAction BuildTradingAction()
     {
         ActionBuilder builder = new ActionBuilder()
-            .ForAction(ActionTypes.Trade);
+            .ForAction(BasicActionTypes.Trade);
 
         if (coinCost > 0)
         {
@@ -224,8 +224,7 @@
     private BasicAction BuildInteractionAction()
     {
         ActionBuilder builder = new ActionBuilder()
-            .ForAction(spotName == LocationSpotNames.PrivateCorner ? ActionTypes.Investigate : ActionTypes.Mingle)
-            .WithDescription(GetInteractionDescription());
+            .ForAction(BasicActionTypes.Mingle);
 
         // Social actions can have any costs/rewards INCLUDING energy rewards
         if (coinCost > 0)
@@ -262,9 +261,9 @@
     private BasicAction BuildRestAction()
     {
         ActionBuilder builder = new ActionBuilder()
-            .ForAction(ActionTypes.Rest);
+            .ForAction(BasicActionTypes.Rest);
 
-        builder.WithDescription(GetRestDescription())
+        builder
         .AddTimeSlot(TimeSlots.Night)
         .WithTimeInvestment(0)
         .ExpendsFood(1)
@@ -276,55 +275,35 @@
         return builder.Build();
     }
 
-    private string GetInteractionDescription() => spotName switch
+    public LocationSpotBuilder ForActionType(BasicActionTypes actionType)
     {
-        LocationSpotNames.PrivateCorner => "Observe quietly",
-        LocationSpotNames.CommonArea => "Socialize with patrons",
-        LocationSpotNames.ServingArea => "Help serve customers",
-        _ => "Interact"
-    };
-
-    private string GetRestDescription() => spotName switch
-    {
-        LocationSpotNames.BasicShelter => "Rest in basic shelter",
-        LocationSpotNames.GoodShelter => "Rest in storage room",
-        _ => "Rest"
-    };
-
+        this.actionType = actionType;
+        return this;
+    }
+    
     public LocationSpot Build()
     {
         // Each spot type determines what kind of action it supports
-        BasicAction spotAction = spotName switch
+        BasicAction spotAction = actionType switch
         {
             // Processing spots support labor actions that convert resources
-            LocationSpotNames.WoodworkBench or
-            LocationSpotNames.SmithyForge or
-            LocationSpotNames.TanningRack or
-            LocationSpotNames.WeavingLoom =>
+            BasicActionTypes.Labor  =>
                 BuildLaborAction(),
 
-            // Trading spots support buying/selling with coins
-            LocationSpotNames.GeneralStore or
-            LocationSpotNames.ResourceMarket or
-            LocationSpotNames.SpecialtyShop or
-            LocationSpotNames.TavernBar =>
-                BuildTradingAction(),
-
             // Gathering spots produce resources from environment
-            LocationSpotNames.ForestGrove or
-            LocationSpotNames.MineralDeposit or
-            LocationSpotNames.HuntingSpot =>
+            BasicActionTypes.Gather =>
                 BuildGatheringAction(),
 
+            // Trading spots support buying/selling with coins
+            BasicActionTypes.Trade =>
+                BuildTradingAction(),
+
             // Social spots support various interaction types
-            LocationSpotNames.CommonArea or
-            LocationSpotNames.ServingArea or
-            LocationSpotNames.PrivateCorner =>
+            BasicActionTypes.Mingle =>
                 BuildInteractionAction(),
 
             // Shelter spots are for resting
-            LocationSpotNames.BasicShelter or
-            LocationSpotNames.GoodShelter =>
+            BasicActionTypes.Rest =>
                 BuildRestAction(),
 
             _ => throw new ArgumentException($"Unknown spot type: {spotName}")

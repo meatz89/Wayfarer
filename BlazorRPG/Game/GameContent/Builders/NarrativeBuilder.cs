@@ -1,6 +1,6 @@
 ﻿public class NarrativeBuilder
 {
-    private ActionTypes actionType;
+    private BasicActionTypes actionType;
     private LocationTypes locationType;
     private LocationNames locationName;
     private LocationSpotNames locationSpotName;
@@ -14,7 +14,7 @@
     private List<NarrativeStage> stages = new();
 
 
-    public NarrativeBuilder ForAction(ActionTypes actionType)
+    public NarrativeBuilder ForAction(BasicActionTypes actionType)
     {
         this.actionType = actionType;
         return this;

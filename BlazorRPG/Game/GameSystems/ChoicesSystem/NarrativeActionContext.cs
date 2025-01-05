@@ -1,6 +1,6 @@
-﻿public class ActionContext
+﻿public class NarrativeActionContext
 {
-    public ActionTypes ActionType { get; set; }
+    public BasicActionTypes ActionType { get; set; }
     public TimeSlots TimeSlot { get; set; }
     public LocationTypes LocationType { get; set; }
     public LocationNames LocationName { get; set; }

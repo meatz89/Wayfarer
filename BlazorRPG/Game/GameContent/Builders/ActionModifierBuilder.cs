@@ -2,7 +2,7 @@
 {
     private string description;
 
-    private ActionTypes applicableActionType;
+    private BasicActionTypes applicableActionType;
     private LocationTypes applicableLocationType;
     private PlayerStatusTypes applicablePlayerStatusType;
 
@@ -30,7 +30,7 @@
         return this;
     }
 
-    public ActionModifierBuilder ForActionType(ActionTypes actionType)
+    public ActionModifierBuilder ForActionType(BasicActionTypes actionType)
     {
         this.applicableActionType = actionType;
         return this;
@@ -108,7 +108,7 @@ public class ModifierConfiguration
 {
     public string Description { get; set; }
     public string Source { get; set; }
-    public ActionTypes ActionType { get; set; }
+    public BasicActionTypes ActionType { get; set; }
     public LocationTypes LocationType { get; set; }
     public PlayerStatusTypes PlayerStatus { get; set; }
     public TimeSlots TimeWindow { get; set; }

@@ -11,7 +11,7 @@
     public List<Requirement> StandardRequirements { get; init; } = new();
     public List<Outcome> StandardOutcomes { get; init; } = new();
 
-    public NarrativeChoice CreateChoice(ActionContext context, int index)
+    public NarrativeChoice CreateChoice(NarrativeActionContext context, int index)
     {
         var builder = new ChoiceBuilder()
             .WithIndex(index)
@@ -73,19 +73,19 @@
         }
     }
 
-    private string GenerateDescription(ActionContext context)
+    private string GenerateDescription(NarrativeActionContext context)
     {
         return $"{Position} {Intent} ({Scope})";
     }
 
-    private EnergyTypes GetContextEnergy(ActionContext context)
+    private EnergyTypes GetContextEnergy(NarrativeActionContext context)
     {
         return context.ActionType switch
         {
-            ActionTypes.Labor => EnergyTypes.Physical,
-            ActionTypes.Trade => EnergyTypes.Social,
-            ActionTypes.Investigate => EnergyTypes.Focus,
-            ActionTypes.Mingle => EnergyTypes.Social,
+            BasicActionTypes.Labor => EnergyTypes.Physical,
+            BasicActionTypes.Trade => EnergyTypes.Social,
+            BasicActionTypes.Investigate => EnergyTypes.Focus,
+            BasicActionTypes.Mingle => EnergyTypes.Social,
             _ => EnergyTypes.Physical
         };
     }

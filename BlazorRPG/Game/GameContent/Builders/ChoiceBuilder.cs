@@ -200,9 +200,4 @@ public class ChoiceBuilder
             )
         };
     }
-
-    public ChoiceBuilder WithValueChange(ValueTypes lowestValue, int newValue)
-    {
-        return this;
-    }
 }

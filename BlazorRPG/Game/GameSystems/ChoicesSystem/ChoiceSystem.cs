@@ -7,20 +7,12 @@
 
     public NarrativeGenerator NarrativeGenerator { get; }
 
-    public List<NarrativeChoice> GenerateExampleChoices()
+    public List<NarrativeChoice> GenerateChoices(NarrativeActionContext context)
     {
         NarrativeState state = NarrativeState.InitialState;
 
-        var context = new ActionContext
-        {
-            ActionType = ActionTypes.Mingle,
-            LocationType = LocationTypes.Social,
-            TimeSlot = TimeSlots.Night,
-            CurrentValues = state
-        };
-
         var generator = new NarrativeGenerator();
-        List<NarrativeChoice> choices = generator.GenerateChoices(context, state);
+        List<NarrativeChoice> choices = generator.GenerateChoices(context);
 
         return choices;
 

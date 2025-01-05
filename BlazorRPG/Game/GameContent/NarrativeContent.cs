@@ -1,10 +1,10 @@
 ﻿public class NarrativeContent
 {
     public static Narrative TavernServeDrinks => new NarrativeBuilder()
-        .ForAction(ActionTypes.Mingle)
+        .ForAction(BasicActionTypes.Mingle)
         .ForLocationType(LocationTypes.Social)
         .ForLocation(LocationNames.LionsHeadTavern)
-        .ForLocationSpot(LocationSpotNames.ServingArea)
+        .ForLocationSpot(LocationSpotNames.TavernKitchen)
         .WithCharacter(CharacterNames.Bartender)
         .InCharacterRole(CharacterRoles.WorkFor)
         .WithTimeSlot(TimeSlots.Night)

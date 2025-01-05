@@ -3,7 +3,7 @@
     private readonly LocationSystem locationSystem;
     private readonly TimeSystem timeSystem;
 
-    public InformationPiece GenerateInformation(ActionTypes action, LocationNames location)
+    public InformationPiece GenerateInformation(BasicActionTypes action, LocationNames location)
     {
         return new InformationPiece();
     }

@@ -93,7 +93,7 @@ public class GameManager
 
         UserActionOption ua = new UserActionOption
         {
-            BasicAction = new BasicAction() { ActionType = ActionTypes.Wait },
+            BasicAction = new BasicAction() { ActionType = BasicActionTypes.Wait },
             Description = "Wait",
             Index = actionIndex++,
             IsDisabled = false

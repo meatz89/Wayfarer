@@ -1,7 +1,7 @@
 ﻿public record BasicAction
 {
     public string Name { get; set; }
-    public ActionTypes ActionType { get; set; }
+    public BasicActionTypes ActionType { get; set; }
     public List<TimeSlots> TimeSlots = new();
     public List<Requirement> Requirements { get; set; } = new();
     public List<Outcome> Rewards { get; set; } = new();

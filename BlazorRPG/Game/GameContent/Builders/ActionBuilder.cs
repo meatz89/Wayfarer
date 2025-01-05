@@ -2,7 +2,7 @@
 
 public class ActionBuilder
 {
-    private ActionTypes actionType;
+    private BasicActionTypes actionType;
     private string description;
     private List<TimeSlots> timeSlots = new();
     public List<Requirement> requirements = new();
@@ -10,7 +10,7 @@ public class ActionBuilder
     public List<Outcome> rewards = new();
     public int hoursPassed = 1;
 
-    public ActionBuilder ForAction(ActionTypes actionType)
+    public ActionBuilder ForAction(BasicActionTypes actionType)
     {
         this.actionType = actionType;
         return this;
