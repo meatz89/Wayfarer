@@ -3,13 +3,8 @@
     // Core properties for the location spot
     private readonly LocationNames locationName;
     private readonly LocationTypes locationType;
-    private readonly SpaceProperties spaceProperties;
-    private readonly SocialContext socialContext;
-    private readonly ActivityProperties activityProperties;
-    private LocationSpotNames spotName;
     private CharacterNames character;
     private List<ActionImplementation> characterActions = new();
-    private ActionContextBuilder contextBuilder;
 
     // Simple requirements and rewards for direct action configuration
     private List<Requirement> requirements = new();
@@ -17,11 +12,12 @@
     private List<Outcome> rewards = new();
     private int timeInvestment = 1;
 
+    private ActionContextBuilder contextBuilder;
+
     public LocationSpotBuilder(LocationNames location, LocationTypes locationType)
     {
         this.locationName = location;
         this.locationType = locationType;
-        this.contextBuilder = new ActionContextBuilder(locationType);
     }
 
     public LocationSpotBuilder WithCharacter(CharacterNames character)
@@ -59,8 +55,8 @@
     // Advanced context-based action generation
     public LocationSpotBuilder WithContext(Action<ActionContextBuilder> buildContext)
     {
-        ActionContextBuilder builder = new ActionContextBuilder(locationType);
-        buildContext(builder);
+        contextBuilder = new ActionContextBuilder(locationType);
+        buildContext(contextBuilder);
         return this;
     }
 
@@ -71,8 +67,9 @@
         ActionGenerationContext context = contextBuilder.Build();
 
         // Determine LocationSpotName based on the built context
-        LocationSpotNames locationSpotName = LocationSpotMapper.GetLocationSpot(
+        LocationSpotNames locationSpotName = LocationSpotMapper.GetLocationSpotName(
             context.LocationType,
+            context.BaseAction,
             context.Space.Exposure,
             context.Space.Scale);
 
@@ -80,7 +77,7 @@
         context = contextBuilder.WithLocationSpotName(locationSpotName).Build();
 
         return new LocationSpot(
-            locationSpotName, // Use the generated name
+            locationSpotName,
             locationName,
             character,
             context,

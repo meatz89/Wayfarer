@@ -1,6 +1,7 @@
 ﻿public class LocationSpot
 {
     public LocationSpotNames Name;
+
     public LocationNames LocationName;
     public CharacterNames Character;
 
@@ -10,7 +11,7 @@
     public TimeSlots TimeSlotOpen;
 
     public LocationSpot(
-        LocationSpotNames locationSpotType,
+        LocationSpotNames name,
         LocationNames location,
         CharacterNames character,
         ActionGenerationContext actionGenerationContext,
@@ -18,7 +19,7 @@
         TimeSlots timeSlotOpen
         )
     {
-        this.Name = locationSpotType;
+        this.Name = name;
         this.LocationName = location;
         this.ActionGenerationContext = actionGenerationContext;
         this.Character = character;

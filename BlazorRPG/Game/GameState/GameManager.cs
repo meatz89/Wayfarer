@@ -92,45 +92,37 @@ public class GameManager
         List<UserActionOption> userActions = new List<UserActionOption>();
         int actionIndex = 1;
 
-        UserActionOption ua = new UserActionOption
-        {
-            BasicAction = new ActionImplementation() { ActionType = BasicActionTypes.Wait },
-            Description = "Wait",
-            Index = actionIndex++,
-            IsDisabled = false
-        };
-        userActions.Add(ua);
-
         gameState.Actions.SetGlobalActions(userActions);
     }
 
     private void CreateLocationSpotActions()
     {
         var location = gameState.World.CurrentLocation;
-        List<UserActionOption> allLocationSpotActions = new();  
+        List<UserActionOption> allLocationSpotActions = new();
 
         foreach (LocationSpot locationSpot in location.LocationSpots)
         {
+            // Generate this spot's specific action
             ActionGenerationContext context = locationSpot.ActionGenerationContext;
             DynamicActionFactory factory = new DynamicActionFactory();
             ActionImplementation spotAction = factory.CreateAction(context);
 
-            bool isDisabled = spotAction.TimeSlots.Count > 0 &&
-                !spotAction.TimeSlots.Contains(gameState.World.CurrentTimeSlot);
-
+            // Create exactly ONE action option for this specific spot
             UserActionOption ua = new UserActionOption
             {
                 BasicAction = spotAction,
                 Description = spotAction.Name,
-                IsDisabled = isDisabled,
+                IsDisabled = spotAction.TimeSlots.Count > 0 &&
+                    !spotAction.TimeSlots.Contains(gameState.World.CurrentTimeSlot),
                 Location = location.Name,
-                LocationSpot = locationSpot.Name
+                LocationSpot = locationSpot.Name  // This ties the action specifically to this spot
             };
 
-            allLocationSpotActions.Add(ua);  // Add to our single list
+            // Add just this ONE action to our list
+            allLocationSpotActions.Add(ua);
         }
 
-        // Set the complete list once at the end
+        // Replace all location spot actions with our new correctly distributed set
         gameState.Actions.SetLocationSpotActions(allLocationSpotActions);
     }
 
@@ -290,8 +282,11 @@ public class GameManager
         LocationSpotNames locationSpot = action.LocationSpot;
 
         Narrative narrative = NarrativeSystem.GetAvailableNarrative(modifiedAction.ActionType, location, locationSpot);
-        NarrativeSystem.SetActiveNarrative(narrative);
-        InitializeNarrative(narrative);
+        if (narrative != null)
+        {
+            NarrativeSystem.SetActiveNarrative(narrative);
+            InitializeNarrative(narrative);
+        }
 
         // Handle time advancement based on action type
         //bool stillAlive;

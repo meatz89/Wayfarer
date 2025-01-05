@@ -82,11 +82,6 @@
             return true;
         }
 
-        // Example: Skip combinations where the action is Wait or Rest and the tension is Hostile
-        if ((baseAction == BasicActionTypes.Wait || baseAction == BasicActionTypes.Rest) && tension == TensionState.Hostile)
-        {
-            return true;
-        }
         // Add more skip conditions here based on your game's logic
 
         return false; // Do not skip by default
