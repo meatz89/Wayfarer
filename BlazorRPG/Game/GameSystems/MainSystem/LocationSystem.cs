@@ -18,7 +18,7 @@ public class LocationSystem
     public List<LocationNames> GetLocationConnections(LocationNames currentLocation)
     {
         Location location = GetLocation(currentLocation);
-        return location.ConnectedLocations;
+        return location.TravelConnections;
     }
 
     public Location GetLocation(LocationNames locationName)
@@ -29,7 +29,7 @@ public class LocationSystem
 
     public List<LocationSpot> GetLocationSpots(Location location)
     {
-        return location.Spots;
+        return location.LocationSpots;
     }
 
     public LocationSpot GetLocationSpotForLocation(LocationNames locationName, LocationSpotNames locationSpotType)

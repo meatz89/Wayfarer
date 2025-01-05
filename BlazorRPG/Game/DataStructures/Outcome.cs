@@ -183,6 +183,9 @@ public class SkillLevelOutcome : Outcome
 
     public override string GetPreview(PlayerState player)
     {
+        bool hasKey =  player.Skills.ContainsKey(SkillType);
+        if (!hasKey) { return $"(0 -> {Count})"; }
+
         int current = player.Skills[SkillType];
         int newValue = Math.Max(0, current + Count);
         return $"({current} -> {newValue})";

@@ -9,8 +9,7 @@
             <div class="location-name">
                 @location.Name @(location.Name == CurrentLocation.Name ? "(Current)" : "")
             </div>
-            <div class="location-type">@location.CoreType</div>
-            <div class="location-time">⏰ @location.TimeWindows</div>
+            <div class="location-type">@location.LocationType</div>
 
             @if (location.Name == CurrentLocation.Name)
             {

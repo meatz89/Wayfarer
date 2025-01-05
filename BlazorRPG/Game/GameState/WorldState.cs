@@ -16,7 +16,7 @@
     {
         CurrentLocation = location;
         // Default to first spot in new location
-        CurrentLocationSpot = location.Spots.FirstOrDefault();
+        CurrentLocationSpot = location.LocationSpots.FirstOrDefault();
     }
 
     public void SetNewLocationSpot(LocationSpot locationSpot)

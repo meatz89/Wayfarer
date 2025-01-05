@@ -2,7 +2,7 @@
 
 public class ActionNamePart
 {
-    public LocationContext? LocationContext { get; set; } // Location context
+    public LocationSpotNames? LocationContext { get; set; } // Location context
     public BasicActionTypes? BaseAction { get; set; }
     public ComplexityTypes? Complexity { get; set; }
     public TensionState? Tension { get; set; }
@@ -11,7 +11,7 @@ public class ActionNamePart
     public Adjective? AdjectiveResult { get; set; } = Adjective.None;
 
     public ActionNamePart(
-        LocationContext? locationContext = null,
+        LocationSpotNames? locationContext = null,
         BasicActionTypes? baseAction = null,
         ComplexityTypes? complexity = null,
         TensionState? tension = null,

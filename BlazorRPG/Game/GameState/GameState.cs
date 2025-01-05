@@ -16,19 +16,19 @@ public class GameState
     {
         List<UserActionOption> locationActions =
             Actions.LocationSpotActions
-            .Where(x => x.Location == locationSpot.Location)
+            .Where(x => x.Location == locationSpot.LocationName)
             .Where(x => x.LocationSpot == locationSpot.Name)
             .ToList();
 
         List<UserActionOption> characterActions =
             Actions.CharacterActions
-            .Where(x => x.Location == locationSpot.Location)
+            .Where(x => x.Location == locationSpot.LocationName)
             .Where(x => x.LocationSpot == locationSpot.Name)
             .ToList();
 
         List<UserActionOption> questActions =
             Actions.QuestActions
-            .Where(x => x.Location == locationSpot.Location)
+            .Where(x => x.Location == locationSpot.LocationName)
             .Where(x => x.LocationSpot == locationSpot.Name)
             .ToList();
 

@@ -3,9 +3,10 @@
 @inject GameState GameState
 
 <div class="locations-grid">
-    @foreach (LocationSpot spot in CurrentLocation.Spots)
+    @foreach (LocationSpot spot in CurrentLocation.LocationSpots)
     {
         <div class="location-card @(spot.Name == CurrentSpot.Name ? "current" : "reachable")">
+            <div class="location-time">⏰ @spot.TimeSlotOpen</div>
             <div class="location-name">
                 @spot.Name @(spot.Name == CurrentSpot.Name ? "(Current)" : "")
             </div>

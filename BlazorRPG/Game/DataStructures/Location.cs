@@ -1,8 +1,7 @@
 ﻿public class Location
 {
+    public LocationTypes LocationType { get; set; }
     public LocationNames Name { get; set; }
-    public LocationTypes CoreType;
-    public TimeSlots TimeWindows { get; set; }
-    public List<LocationNames> ConnectedLocations = new();
-    public List<LocationSpot> Spots = new();
+    public List<LocationNames> TravelConnections { get; set; }
+    public List<LocationSpot> LocationSpots { get; set; }
 }

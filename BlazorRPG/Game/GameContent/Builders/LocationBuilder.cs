@@ -1,6 +1,6 @@
 ﻿public class LocationBuilder
 {
-    private LocationNames location;
+    private LocationNames locationName;
     private LocationTypes locationType;
     private List<LocationNames> travelConnections = new();
 
@@ -9,15 +9,18 @@
 
     public LocationBuilder ForLocation(LocationNames location)
     {
-        this.location = location;
+        this.locationName = location;
         return this;
     }
 
     public LocationBuilder AddLocationSpot(Action<LocationSpotBuilder> buildLocationSpot)
     {
-        LocationSpotBuilder builder = new(location, locationType);
-        buildLocationSpot(builder);
-        locationSpots.Add(builder.Build());
+        var locationSpotBuilder = new LocationSpotBuilder(this.locationName, this.locationType);
+        buildLocationSpot(locationSpotBuilder);
+        
+        LocationSpot item = locationSpotBuilder.Build();
+        this.locationSpots.Add(item);
+        
         return this;
     }
 
@@ -45,10 +48,10 @@
     {
         return new Location
         {
-            Name = location,
-            ConnectedLocations = travelConnections,
-            CoreType = locationType,
-            Spots = locationSpots
+            Name = locationName,
+            TravelConnections = travelConnections,
+            LocationType = locationType,
+            LocationSpots = locationSpots
         };
     }
 }

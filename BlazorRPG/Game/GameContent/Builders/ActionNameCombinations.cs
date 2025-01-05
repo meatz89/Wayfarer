@@ -1,230 +1,94 @@
-﻿public enum Verb
+﻿public partial class ActionNameCombinations
 {
-    ServeDrinks,
-    PlayMusic,
-    Forage,
-    Hunt,
-    Browse,
-    Collect,
-    Labor,
-    Negotiate,
-    Barter,
-    Trade,
-    Socialize,
-    Network,
-    Chat,
-    Mine,       
-    Fish,       
-    Repair,     
-    Manufacture,
-    Store,      
-    Load,       
-    Unload,     
-    Guard,      
-    Patrol,     
-    Rest,       
-    Perform,    
-    Gamble,     
-    Gossip,     
-    Observe,    
-    Study,      
-    Purchase,   
-    Sell        
-}
-
-public enum Adjective
-{
-    Stealthily,
-    Expertly,
-    Intensely,
-    // ... add more as needed
-    None
-}
-
-public enum LocationContext
-{
-    None,
-
-    // Social
-    Tavern,         // Social + Indoor + Any Scale
-    PublicMarket,   // Social + Outdoor + Any Scale
-
-    // Nature
-    Road,           // Nature + Outdoor + Intimate
-    Forest,         // Nature + Outdoor + Medium
-    Field,          // Nature + Outdoor + Large
-
-    // Industrial
-    Dock,           // Industrial + Outdoor + Any Scale
-    Warehouse,      // Industrial + Indoor + Large
-    Factory,        // Industrial + Indoor + Medium
-    Workshop,       // Industrial + Indoor + Intimate
-
-    // Commercial
-    Market,         // Commercial + Outdoor + Any Scale
-    Shop,            // Commercial + Indoor + Any Scale
-    Garden
-}
-public static class LocationContextMapper
-{
-    public static LocationContext GetLocationContext(LocationTypes locationType, ExposureConditions exposure, ScaleVariations scale)
+    public List<ActionNameCombination> GetCombinations(LocationSpotNames context, BasicActionTypes actionType)
     {
-        if (locationType == LocationTypes.Social)
-        {
-            return exposure == ExposureConditions.Indoor ? LocationContext.Tavern : LocationContext.PublicMarket;
-        }
-        else if (locationType == LocationTypes.Nature)
-        {
-            if (exposure == ExposureConditions.Outdoor)
-            {
-                if (scale == ScaleVariations.Intimate) return LocationContext.Road;
-                if (scale == ScaleVariations.Medium) return LocationContext.Forest;
-                if (scale == ScaleVariations.Large) return LocationContext.Field;
-            }
-            else
-            {
-                return LocationContext.Garden;
-            }
-        }
-        else if (locationType == LocationTypes.Industrial)
-        {
-            if (exposure == ExposureConditions.Outdoor) return LocationContext.Dock;
-            if (scale == ScaleVariations.Large) return LocationContext.Warehouse;
-            if (scale == ScaleVariations.Medium) return LocationContext.Factory;
-            return LocationContext.Workshop; // Intimate or default
-        }
-        else if (locationType == LocationTypes.Commercial)
-        {
-            return exposure == ExposureConditions.Outdoor ? LocationContext.Market : LocationContext.Shop;
-        }
-
-        return LocationContext.None;
+        // Returns a list of combinations that match the provided context and action type
+        return ValidCombinations.Where(c => c.LocationContext == context && c.BaseAction == actionType).ToList();
     }
-}
 
-public enum BasicActionTypes
-{
-    Wait,   // Advance time
-    Rest,   // Restore energy, advance time
-
-    // Physical Actions define direct interaction with the world:
-    Labor, // for directed physical effort
-    Gather, // for collecting and taking
-    Craft, // for creating and combining
-    Move, // for traversing and positioning
-
-    // Social Actions handle character interactions:
-    Mingle, // for casual interaction
-    Trade, // for formal exchange
-    Persuade, // for directed influence
-    Perform, // for entertainment and display
-
-    // Mental Actions cover intellectual activities:
-    Investigate, // for directed observation
-    Study, // for focused learning
-    Plan, // for strategic thinking
-    Reflect, // for processing and rest
-}
-
-public partial class ActionNameCombinations
-{
-    public List<ActionNameCombination> ValidCombinations { get; } = new List<ActionNameCombination>()
+    public Verb? GetVerb(LocationSpotNames locationContext, BasicActionTypes baseAction, ComplexityTypes? complexity = null, TensionState? tension = null)
     {
-        // ========================================
-        // Tavern (Social + Indoor)
-        // ========================================
-        new ActionNameCombination(LocationContext.Tavern, BasicActionTypes.Labor, Verb.ServeDrinks),
-        new ActionNameCombination(LocationContext.Tavern, BasicActionTypes.Mingle, Verb.PlayMusic),
-        new ActionNameCombination(LocationContext.Tavern, BasicActionTypes.Mingle, Verb.Gamble),
-        new ActionNameCombination(LocationContext.Tavern, BasicActionTypes.Mingle, Verb.Gossip),
-        new ActionNameCombination(LocationContext.Tavern, BasicActionTypes.Mingle, Verb.Socialize),
-        new ActionNameCombination(LocationContext.Tavern, BasicActionTypes.Mingle, Verb.Chat),
-        new ActionNameCombination(LocationContext.Tavern, BasicActionTypes.Mingle, Verb.Observe),
-        new ActionNameCombination(LocationContext.Tavern, BasicActionTypes.Trade, Verb.Barter),
-        new ActionNameCombination(LocationContext.Tavern, BasicActionTypes.Labor, Verb.Rest),
+        foreach (var combo in ValidCombinations)
+        {
+            if (combo.LocationContext == locationContext &&
+                combo.BaseAction == baseAction &&
+                (combo.Complexity == null || combo.Complexity == complexity) &&
+                (combo.Tension == null || combo.Tension == tension))
+            {
+                return combo.Verb;
+            }
+        }
+        return null; // Or a default verb
+    }
 
-        // ========================================
-        // Public Market (Social + Outdoor)
-        // ========================================
-        new ActionNameCombination(LocationContext.PublicMarket, BasicActionTypes.Gather, Verb.Browse),
-        new ActionNameCombination(LocationContext.PublicMarket, BasicActionTypes.Trade, Verb.Barter),
-        new ActionNameCombination(LocationContext.PublicMarket, BasicActionTypes.Mingle, Verb.Chat),
-        new ActionNameCombination(LocationContext.PublicMarket, BasicActionTypes.Mingle, Verb.Gossip),
-        new ActionNameCombination(LocationContext.PublicMarket, BasicActionTypes.Mingle, Verb.Observe),
-        new ActionNameCombination(LocationContext.PublicMarket, BasicActionTypes.Mingle, Verb.Perform),
-        new ActionNameCombination(LocationContext.PublicMarket, BasicActionTypes.Trade, Verb.Purchase),
-        new ActionNameCombination(LocationContext.PublicMarket, BasicActionTypes.Trade, Verb.Sell),
-        new ActionNameCombination(LocationContext.PublicMarket, BasicActionTypes.Labor, Verb.Guard),
+    public Adjective? GetAdjective(ActionGenerationContext context)
+    {
+        foreach (var combo in ValidCombinations)
+        {
+            if ((combo.Tension == null || combo.Tension == context.Social.Tension) &&
+                (combo.Complexity == null || combo.Complexity == context.Activity.Complexity))
+            {
+                return combo.Adjective;
+            }
+        }
+        return Adjective.None;
+    }
 
-        // ========================================
-        // Road (Nature + Outdoor + Intimate)
-        // ========================================
-        new ActionNameCombination(LocationContext.Road, BasicActionTypes.Gather, Verb.Forage),
-        new ActionNameCombination(LocationContext.Road, BasicActionTypes.Labor, Verb.Patrol),
-        new ActionNameCombination(LocationContext.Road, BasicActionTypes.Labor, Verb.Rest),
+    public void CheckForMissingCombinations()
+    {
+        var allLocationContexts = Enum.GetValues(typeof(LocationSpotNames)).Cast<LocationSpotNames>();
+        var allBaseActions = Enum.GetValues(typeof(BasicActionTypes)).Cast<BasicActionTypes>();
+        var allComplexities = Enum.GetValues(typeof(ComplexityTypes)).Cast<ComplexityTypes>();
+        var allTensions = Enum.GetValues(typeof(TensionState)).Cast<TensionState>();
 
-        // ========================================
-        // Forest (Nature + Outdoor + Medium)
-        // ========================================
-        new ActionNameCombination(LocationContext.Forest, BasicActionTypes.Gather, Verb.Hunt),
-        new ActionNameCombination(LocationContext.Forest, BasicActionTypes.Gather, Verb.Forage),
-        new ActionNameCombination(LocationContext.Forest, BasicActionTypes.Labor, Verb.Patrol),
+        foreach (var locationContext in allLocationContexts)
+        {
+            foreach (var baseAction in allBaseActions)
+            {
+                foreach (var complexity in allComplexities)
+                {
+                    foreach (var tension in allTensions)
+                    {
+                        bool found = ValidCombinations.Any(c => c.LocationContext == locationContext &&
+                                                               c.BaseAction == baseAction &&
+                                                               (c.Complexity == null || c.Complexity == complexity) &&
+                                                               (c.Tension == null || c.Tension == tension));
+                        if (!found)
+                        {
+                            // Only print if it's a combination we haven't explicitly excluded
+                            if (!ShouldSkipCombination(locationContext, baseAction, complexity, tension))
+                            {
+                                Console.WriteLine($"Missing combination: LocationContext={locationContext}, BaseAction={baseAction}, Complexity={complexity}, Tension={tension}");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-        // ========================================
-        // Field (Nature + Outdoor + Large)
-        // ========================================
-        new ActionNameCombination(LocationContext.Field, BasicActionTypes.Gather, Verb.Forage),
-        new ActionNameCombination(LocationContext.Field, BasicActionTypes.Labor, Verb.Patrol),
+    // Add logic to exclude combinations that are not relevant based on your game's rules
+    private bool ShouldSkipCombination(LocationSpotNames locationContext, BasicActionTypes baseAction, ComplexityTypes complexity, TensionState tension)
+    {
+        // Example: Skip combinations where Labor is attempted in a Field
+        if (locationContext == LocationSpotNames.Field && baseAction == BasicActionTypes.Labor)
+        {
+            return true;
+        }
 
-        // ========================================
-        // Dock (Industrial + Outdoor)
-        // ========================================
-        new ActionNameCombination(LocationContext.Dock, BasicActionTypes.Labor, Verb.Labor),
-        new ActionNameCombination(LocationContext.Dock, BasicActionTypes.Labor, Verb.Load),
-        new ActionNameCombination(LocationContext.Dock, BasicActionTypes.Labor, Verb.Unload),
-        new ActionNameCombination(LocationContext.Dock, BasicActionTypes.Trade, Verb.Negotiate),
-        new ActionNameCombination(LocationContext.Dock, BasicActionTypes.Trade, Verb.Barter),
-        new ActionNameCombination(LocationContext.Dock, BasicActionTypes.Gather, Verb.Fish),
+        // Example: Skip combinations where Trade is attempted in a Forest
+        if (locationContext == LocationSpotNames.Forest && baseAction == BasicActionTypes.Trade)
+        {
+            return true;
+        }
 
-        // ========================================
-        // Warehouse (Industrial + Indoor + Large)
-        // ========================================
-        new ActionNameCombination(LocationContext.Warehouse, BasicActionTypes.Labor, Verb.Labor),
-        new ActionNameCombination(LocationContext.Warehouse, BasicActionTypes.Labor, Verb.Store),
-        new ActionNameCombination(LocationContext.Warehouse, BasicActionTypes.Labor, Verb.Load),
-        new ActionNameCombination(LocationContext.Warehouse, BasicActionTypes.Labor, Verb.Unload),
+        // Example: Skip combinations where the action is Wait or Rest and the tension is Hostile
+        if ((baseAction == BasicActionTypes.Wait || baseAction == BasicActionTypes.Rest) && tension == TensionState.Hostile)
+        {
+            return true;
+        }
+        // Add more skip conditions here based on your game's logic
 
-        // ========================================
-        // Factory (Industrial + Indoor + Medium)
-        // ========================================
-        new ActionNameCombination(LocationContext.Factory, BasicActionTypes.Labor, Verb.Labor),
-        new ActionNameCombination(LocationContext.Factory, BasicActionTypes.Labor, Verb.Manufacture),
-
-        // ========================================
-        // Workshop (Industrial + Indoor + Intimate)
-        // ========================================
-        new ActionNameCombination(LocationContext.Workshop, BasicActionTypes.Labor, Verb.Labor),
-        new ActionNameCombination(LocationContext.Workshop, BasicActionTypes.Labor, Verb.Repair),
-        new ActionNameCombination(LocationContext.Workshop, BasicActionTypes.Labor, Verb.Study),
-
-        // ========================================
-        // Market (Commercial + Outdoor)
-        // ========================================
-        new ActionNameCombination(LocationContext.Market, BasicActionTypes.Gather, Verb.Browse),
-        new ActionNameCombination(LocationContext.Market, BasicActionTypes.Trade, Verb.Barter),
-        new ActionNameCombination(LocationContext.Market, BasicActionTypes.Trade, Verb.Purchase),
-        new ActionNameCombination(LocationContext.Market, BasicActionTypes.Trade, Verb.Sell),
-        new ActionNameCombination(LocationContext.Market, BasicActionTypes.Mingle, Verb.Chat),
-        new ActionNameCombination(LocationContext.Market, BasicActionTypes.Mingle, Verb.Observe),
-
-        // ========================================
-        // Shop (Commercial + Indoor)
-        // ========================================
-        new ActionNameCombination(LocationContext.Shop, BasicActionTypes.Gather, Verb.Browse),
-        new ActionNameCombination(LocationContext.Shop, BasicActionTypes.Trade, Verb.Barter),
-        new ActionNameCombination(LocationContext.Shop, BasicActionTypes.Trade, Verb.Purchase),
-        new ActionNameCombination(LocationContext.Shop, BasicActionTypes.Trade, Verb.Sell),
-        new ActionNameCombination(LocationContext.Shop, BasicActionTypes.Mingle, Verb.Chat),
-        new ActionNameCombination(LocationContext.Shop, BasicActionTypes.Labor, Verb.Study),
-    };
+        return false; // Do not skip by default
+    }
 }

@@ -7,7 +7,6 @@
         .AddTravelConnection(LocationNames.LionsHeadTavern)
         // PLAYGROUND LABOR ACTION
         .AddLocationSpot(feature => feature
-            .ForLocationSpot(LocationSpotNames.DocksideWarehouse)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Labor)
                 .WithSpace(space => space
@@ -22,7 +21,6 @@
         )
         // PLAYGROUND GATHER ACTION
         .AddLocationSpot(feature => feature
-            .ForLocationSpot(LocationSpotNames.FishingWharf)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Gather)
                 .WithSpace(space => space
@@ -36,7 +34,6 @@
         ))
         // PLAYGROUND TRADE ACTION
         .AddLocationSpot(feature => feature
-            .ForLocationSpot(LocationSpotNames.WharfMerchant)
             .WithCharacter(CharacterNames.Shopkeeper)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Trade)
@@ -52,7 +49,6 @@
         ))
         // PLAYGROUND MINGLE ACTION
         .AddLocationSpot(feature => feature
-            .ForLocationSpot(LocationSpotNames.DocksidePub)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
@@ -75,7 +71,6 @@
         .AddTravelConnection(LocationNames.LionsHeadTavern)
         // PLAYGROUND LABOR ACTION
         .AddLocationSpot(feature => feature
-            .ForLocationSpot(LocationSpotNames.MarketPorters)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
@@ -89,7 +84,6 @@
         ))
         // PLAYGROUND GATHER ACTION
         .AddLocationSpot(feature => feature
-            .ForLocationSpot(LocationSpotNames.HerbGarden)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
@@ -101,7 +95,6 @@
         ))
         // PLAYGROUND TRADE ACTION
         .AddLocationSpot(feature => feature
-            .ForLocationSpot(LocationSpotNames.MarketBazaar)
             .WithCharacter(CharacterNames.Shopkeeper)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
@@ -114,7 +107,6 @@
         ))
         // PLAYGROUND MINGLE ACTION
         .AddLocationSpot(feature => feature
-            .ForLocationSpot(LocationSpotNames.MarketSquare)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
@@ -133,7 +125,6 @@
         .AddTravelConnection(LocationNames.LionsHeadTavern)
         // PLAYGROUND LABOR ACTION
         .AddLocationSpot(feature => feature
-            .ForLocationSpot(LocationSpotNames.TavernKitchen)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
@@ -146,7 +137,6 @@
         ))
         // PLAYGROUND GATHER ACTION
         .AddLocationSpot(feature => feature
-            .ForLocationSpot(LocationSpotNames.CellarPantry)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
@@ -158,7 +148,6 @@
         ))
         // PLAYGROUND TRADE ACTION
         .AddLocationSpot(feature => feature
-            .ForLocationSpot(LocationSpotNames.TavernBarterTable)
             .WithCharacter(CharacterNames.Bartender)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
@@ -171,7 +160,6 @@
         ))
         // PLAYGROUND MINGLE ACTION
         .AddLocationSpot(feature => feature
-            .ForLocationSpot(LocationSpotNames.InnFireplace)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
@@ -190,7 +178,6 @@
         .AddTravelConnection(LocationNames.LionsHeadTavern)
         // PLAYGROUND LABOR ACTION
         .AddLocationSpot(feature => feature
-            .ForLocationSpot(LocationSpotNames.LumberYard)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
@@ -202,7 +189,6 @@
         ))
         // PLAYGROUND GATHER ACTION
         .AddLocationSpot(feature => feature
-            .ForLocationSpot(LocationSpotNames.MysticGrove)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
@@ -214,7 +200,6 @@
         ))
         // PLAYGROUND TRADE ACTION
         .AddLocationSpot(feature => feature
-            .ForLocationSpot(LocationSpotNames.WoodworkerCabin)
             .WithCharacter(CharacterNames.ForestTrader)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
@@ -227,7 +212,6 @@
         )
         // PLAYGROUND MINGLE ACTION
         .AddLocationSpot(feature => feature
-            .ForLocationSpot(LocationSpotNames.GroveShrine)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space
@@ -248,8 +232,6 @@
         .AddTravelConnection(LocationNames.GenericMarket)
         .AddTravelConnection(LocationNames.GenericForest)
         .AddLocationSpot(feature => feature
-            .ForLocationSpot(LocationSpotNames.TavernKitchen)
-            .WithEnergyCost(1, EnergyTypes.Social)
             .WithContext(context => context
                 .WithBaseAction(BasicActionTypes.Mingle)
                 .WithSpace(space => space

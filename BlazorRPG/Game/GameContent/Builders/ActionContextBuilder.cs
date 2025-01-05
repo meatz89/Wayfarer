@@ -1,15 +1,20 @@
 ﻿public class ActionContextBuilder
 {
-    private readonly ActionGenerationContext context = new();
+    public LocationTypes LocationType { get; private set; }
+    public BasicActionTypes BaseAction { get; private set; }
+    public SpaceProperties Space { get; private set; } = new();
+    public SocialContext Social { get; private set; } = new();
+    public ActivityProperties Activity { get; private set; } = new();
+    public LocationSpotNames LocationSpotName { get; private set; }
 
     public ActionContextBuilder(LocationTypes locationType)
     {
-        context.LocationType = locationType;
+        LocationType = locationType;
     }
 
     public ActionContextBuilder WithBaseAction(BasicActionTypes baseAction)
     {
-        context.BaseAction = baseAction;
+        BaseAction = baseAction;
         return this;
     }
 
@@ -17,7 +22,7 @@
     {
         SpacePropertiesBuilder builder = new SpacePropertiesBuilder();
         buildSpace(builder);
-        context.Space = builder.Build();
+        Space = builder.Build();
         return this;
     }
 
@@ -25,7 +30,7 @@
     {
         SocialContextBuilder builder = new SocialContextBuilder();
         buildSocial(builder);
-        context.Social = builder.Build();
+        Social = builder.Build();
         return this;
     }
 
@@ -33,25 +38,49 @@
     {
         ActivityPropertiesBuilder builder = new ActivityPropertiesBuilder();
         buildActivity(builder);
-        context.Activity = builder.Build();
+        Activity = builder.Build();
         return this;
     }
 
-    public ActionGenerationContext Build() => context;
-}
+    public ActionContextBuilder WithLocationSpotName(LocationSpotNames locationSpotName)
+    {
+        LocationSpotName = locationSpotName;
+        return this;
+    }
 
+    public ActionGenerationContext Build()
+    {
+        ActionGenerationContext context = new ActionGenerationContext(
+            LocationType, BaseAction, Space, Social, Activity, LocationSpotName);
+
+        return context;
+    }
+
+}
 
 public class ActionGenerationContext
 {
-    public LocationTypes LocationType;
-    public BasicActionTypes BaseAction;
-    public SpaceProperties Space;
-    public SocialContext Social;
-    public ActivityProperties Activity;
+    public LocationTypes LocationType { get; }
+    public BasicActionTypes BaseAction { get; }
+    public SpaceProperties Space { get; }
+    public SocialContext Social { get; }
+    public ActivityProperties Activity { get; }
+    public LocationSpotNames LocationSpotName { get; }
 
-    public ActionGenerationContext()
+
+    public ActionGenerationContext(
+        LocationTypes locationType,
+        BasicActionTypes baseAction,
+        SpaceProperties space,
+        SocialContext social,
+        ActivityProperties activity,
+        LocationSpotNames locationSpotName)
     {
-        
+        LocationType = locationType;
+        BaseAction = baseAction;
+        Space = space;
+        Social = social;
+        Activity = activity;
+        LocationSpotName = locationSpotName;
     }
-
 }

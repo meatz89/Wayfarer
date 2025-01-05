@@ -1,30 +1,27 @@
 ﻿public class LocationSpotBuilder
 {
     // Core properties for the location spot
-    private readonly LocationNames location;
+    private readonly LocationNames locationName;
     private readonly LocationTypes locationType;
+    private readonly SpaceProperties spaceProperties;
+    private readonly SocialContext socialContext;
+    private readonly ActivityProperties activityProperties;
     private LocationSpotNames spotName;
     private CharacterNames character;
     private List<ActionImplementation> characterActions = new();
+    private ActionContextBuilder contextBuilder;
 
     // Simple requirements and rewards for direct action configuration
     private List<Requirement> requirements = new();
     private List<Outcome> costs = new();
     private List<Outcome> rewards = new();
     private int timeInvestment = 1;
-    private ActionGenerationContext actionGenerationContext;
 
     public LocationSpotBuilder(LocationNames location, LocationTypes locationType)
     {
-        this.location = location;
+        this.locationName = location;
         this.locationType = locationType;
-    }
-
-    // Core setup methods
-    public LocationSpotBuilder ForLocationSpot(LocationSpotNames spot)
-    {
-        this.spotName = spot;
-        return this;
+        this.contextBuilder = new ActionContextBuilder(locationType);
     }
 
     public LocationSpotBuilder WithCharacter(CharacterNames character)
@@ -64,19 +61,32 @@
     {
         ActionContextBuilder builder = new ActionContextBuilder(locationType);
         buildContext(builder);
-
-        actionGenerationContext = builder.Build();
         return this;
     }
 
+
     public LocationSpot Build()
     {
+        // Build the ActionGenerationContext
+        ActionGenerationContext context = contextBuilder.Build();
+
+        // Determine LocationSpotName based on the built context
+        LocationSpotNames locationSpotName = LocationSpotMapper.GetLocationSpot(
+            context.LocationType,
+            context.Space.Exposure,
+            context.Space.Scale);
+
+        // Update the context with the LocationSpotName
+        context = contextBuilder.WithLocationSpotName(locationSpotName).Build();
+
         return new LocationSpot(
-            spotName,
-            location,
+            locationSpotName, // Use the generated name
+            locationName,
             character,
-            actionGenerationContext,
-            characterActions
+            context,
+            characterActions,
+            TimeSlots.Night
+
         );
     }
 }
