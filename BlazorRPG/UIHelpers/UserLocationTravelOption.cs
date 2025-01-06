@@ -9,5 +9,5 @@ public class UserLocationSpotOption
 {
     public int Index { get; set; }
     public LocationNames Location { get; set; }
-    public LocationSpotNames LocationSpot { get; set; }
+    public string LocationSpot { get; set; }
 }

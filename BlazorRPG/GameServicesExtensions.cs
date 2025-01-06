@@ -14,7 +14,6 @@
         services.AddSingleton<CharacterRelationshipSystem>();
         services.AddSingleton<TimeSystem>();
         services.AddSingleton<InformationSystem>();
-        services.AddSingleton<LocationAccess>();
 
         services.AddSingleton<QuestSystem>();
         services.AddSingleton<ReputationSystem>();
@@ -26,7 +25,7 @@
 
         services.AddSingleton<ActionValidator>();
         services.AddSingleton<MessageSystem>();
-        services.AddSingleton<ContextEngine>();
+        services.AddSingleton<ActionSystem>();
         services.AddSingleton<GameManager>();
 
         return services;

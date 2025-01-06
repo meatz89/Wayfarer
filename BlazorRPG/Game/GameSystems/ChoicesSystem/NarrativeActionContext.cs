@@ -4,7 +4,6 @@
     public TimeSlots TimeSlot { get; set; }
     public LocationTypes LocationType { get; set; }
     public LocationNames LocationName { get; set; }
-    public LocationSpotNames LocationSpot { get; set; }
 
     // Character Content
     public CharacterNames CharacterName { get; set; }

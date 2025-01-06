@@ -8,7 +8,6 @@
             .RequiresReputation(ReputationTypes.Reliable, 2)
             .RequiresCoins(50)
             .WithLocation(LocationNames.GenericMarket)
-            .WithLocationSpot(LocationSpotNames.MarketBazaar)
             .WithCharacter(CharacterNames.WealthyMerchant)
             .WithAction(action => action
                 .ForAction(BasicActionTypes.Trade)

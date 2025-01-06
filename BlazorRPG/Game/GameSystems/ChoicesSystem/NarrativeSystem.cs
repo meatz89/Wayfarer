@@ -15,12 +15,11 @@
         this.narratives = contentProvider.GetNarratives();
     }
 
-    public Narrative GetAvailableNarrative(BasicActionTypes action, LocationNames location, LocationSpotNames locationSpot)
+    public Narrative GetAvailableNarrative(BasicActionTypes action, LocationNames location)
     {
         return narratives.FirstOrDefault(x =>
             x.ActionType == action &&
-            x.LocationName == location &&
-            x.LocationSpot == locationSpot);
+            x.LocationName == location);
     }
 
     public void ExecuteChoice(Narrative narrative, NarrativeChoice narrativeChoice)

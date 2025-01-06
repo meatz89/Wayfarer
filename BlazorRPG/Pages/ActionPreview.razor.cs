@@ -9,7 +9,7 @@ public partial class ActionPreviewBase : ComponentBase
 
     public string GetActionName()
     {
-        ActionImplementation action = CurrentAction.BasicAction;
+        ActionImplementation action = CurrentAction.ActionImplementation;
 
         string name = $"{action.ActionType} - {action.Name}";
         return name;
@@ -19,7 +19,7 @@ public partial class ActionPreviewBase : ComponentBase
     public List<string> GetRequirementDescriptions()
     {
         List<string> descriptions = new();
-        ActionImplementation basicAction = CurrentAction.BasicAction;
+        ActionImplementation basicAction = CurrentAction.ActionImplementation;
         foreach (Requirement req in basicAction.Requirements)
         {
             string description = req.GetDescription();
@@ -35,7 +35,7 @@ public partial class ActionPreviewBase : ComponentBase
     public List<string> GetOutcomeCostsDescriptions()
     {
         List<string> descriptions = new();
-        ActionImplementation basicAction = CurrentAction.BasicAction;
+        ActionImplementation basicAction = CurrentAction.ActionImplementation;
         foreach (Outcome outcome in basicAction.Costs)
         {
             string description = outcome.GetDescription();
@@ -52,21 +52,21 @@ public partial class ActionPreviewBase : ComponentBase
             }
         }
 
-        if (basicAction.TimeInvestment > 0)
-        {
-            string time =
-                (basicAction.TimeInvestment > 1)
-                ? $"{basicAction.TimeInvestment} hours"
-                : $"{basicAction.TimeInvestment} hour";
-            descriptions.Add($"{time} passes");
-        }
+        //if (basicAction.TimeInvestment > 0)
+        //{
+        //    string time =
+        //        (basicAction.TimeInvestment > 1)
+        //        ? $"{basicAction.TimeInvestment} hours"
+        //        : $"{basicAction.TimeInvestment} hour";
+        //    descriptions.Add($"{time} passes");
+        //}
         return descriptions;
     }
 
     public List<string> GetOutcomeRewardsDescriptions()
     {
         List<string> descriptions = new();
-        ActionImplementation basicAction = CurrentAction.BasicAction;
+        ActionImplementation basicAction = CurrentAction.ActionImplementation;
         foreach (Outcome outcome in basicAction.Rewards)
         {
             string description = outcome.GetDescription();

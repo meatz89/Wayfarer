@@ -1,65 +1,96 @@
 ﻿public class LocationBuilder
 {
-    private LocationNames locationName;
     private LocationTypes locationType;
+    private LocationNames locationName;
+    private LocationArchetype locationArchetype;
+    private LocationProperties locationProperties = new LocationProperties();
     private List<LocationNames> travelConnections = new();
-
     private List<LocationSpot> locationSpots = new();
-    private List<ActionImplementation> actions = new();
 
-    public LocationBuilder ForLocation(LocationNames location)
+    public LocationBuilder SetLocationType(LocationTypes type)
     {
-        this.locationName = location;
+        this.locationType = type;
+        return this;
+    }
+
+    public LocationBuilder ForLocation(LocationNames name)
+    {
+        this.locationName = name;
+        return this;
+    }
+
+    public LocationBuilder SetLocationArchetype(LocationArchetype archetype)
+    {
+        this.locationArchetype = archetype;
+        return this;
+    }
+
+    public LocationBuilder AddTravelConnection(LocationNames connection)
+    {
+        this.travelConnections.Add(connection);
         return this;
     }
 
     public LocationBuilder AddLocationSpot(Action<LocationSpotBuilder> buildLocationSpot)
     {
-        var locationSpotBuilder = new LocationSpotBuilder(this.locationName, this.locationType);
+        // Create a new LocationSpotBuilder instance here
+        LocationSpotBuilder locationSpotBuilder = new LocationSpotBuilder(locationName);
+
+        // Invoke the builder action to configure the LocationSpot
         buildLocationSpot(locationSpotBuilder);
-        var newSpot = locationSpotBuilder.Build();
 
-        // Check for duplicate LocationSpotNames within the same Location
-        if (locationSpots.Any(spot => spot.Name == newSpot.Name))
-        {
-            Console.WriteLine($"Duplicate LocationSpotName '{newSpot.Name}' found in location '{locationName}'.");
-        }
-        else
-        {
-            this.locationSpots.Add(newSpot);
-        }
+        // Add the built LocationSpot to the list
+        this.locationSpots.Add(locationSpotBuilder.Build());
+
         return this;
     }
 
-
-    public LocationBuilder AddTravelConnection(LocationNames connectedLocation)
+    public LocationBuilder SetSpace(Action<SpacePropertiesBuilder> spaceBuilder)
     {
-        travelConnections.Add(connectedLocation);
+        SpacePropertiesBuilder builder = new SpacePropertiesBuilder();
+        spaceBuilder?.Invoke(builder);
+        SpaceProperties spaceProperties = builder.Build();
+
+        this.locationProperties.Scale = spaceProperties.Scale;
+        this.locationProperties.Exposure = spaceProperties.Exposure;
+        this.locationProperties.CrowdLevel = spaceProperties.CrowdLevel;
+
         return this;
     }
 
-    public LocationBuilder SetLocationType(LocationTypes locationType)
+    public LocationBuilder SetSocial(Action<SocialContextBuilder> socialBuilder)
     {
-        this.locationType = locationType;
+        SocialContextBuilder builder = new SocialContextBuilder();
+        socialBuilder?.Invoke(builder);
+        SocialContext socialContext = builder.Build();
+
+        this.locationProperties.Legality = socialContext.Legality;
+        this.locationProperties.Tension = socialContext.Tension;
+
         return this;
     }
 
-    public LocationBuilder AddAction(Action<ActionBuilder> buildBasicAction)
+    public LocationBuilder SetActivity(Action<ActivityPropertiesBuilder> activityBuilder)
     {
-        ActionBuilder builder = new ActionBuilder();
-        buildBasicAction(builder);
-        actions.Add(builder.Build());
+        ActivityPropertiesBuilder builder = new ActivityPropertiesBuilder();
+        activityBuilder?.Invoke(builder);
+        ActivityProperties activityProperties = builder.Build();
+
+        this.locationProperties.Complexity = activityProperties.Complexity;
+
         return this;
     }
 
     public Location Build()
     {
-        return new Location
+        return new Location()
         {
-            Name = locationName,
-            TravelConnections = travelConnections,
+            Archetype = locationArchetype,
+            LocationSpots = locationSpots,
             LocationType = locationType,
-            LocationSpots = locationSpots
+            LocationName = locationName,
+            Properties = locationProperties,
+            TravelConnections = travelConnections
         };
     }
 }

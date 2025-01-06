@@ -124,7 +124,7 @@ public partial class GameUI : ComponentBase
         else
         {
             // Execute the action immediately
-            ActionResult result = GameManager.ExecuteBasicAction(action, action.BasicAction);
+            ActionResult result = GameManager.ExecuteBasicAction(action, action.ActionImplementation);
             if (result.IsSuccess)
             {
                 CompleteActionExecution();

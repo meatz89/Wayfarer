@@ -5,7 +5,6 @@
     private List<Requirement> requirements = new();
     private ActionImplementation action;
     private LocationNames location;
-    private LocationSpotNames locationSpot;
     private CharacterNames character;
 
     public QuestStepBuilder WithDescription(string description)
@@ -26,12 +25,6 @@
     public QuestStepBuilder WithLocation(LocationNames location)
     {
         this.location = location;
-        return this;
-    }
-
-    public QuestStepBuilder WithLocationSpot(LocationSpotNames locationSpot)
-    {
-        this.locationSpot = locationSpot;
         return this;
     }
 
@@ -72,7 +65,6 @@
             Requirements = requirements,
             QuestAction = action,
             Location = location,
-            LocationSpot = locationSpot,
             Character = character
         };
     }

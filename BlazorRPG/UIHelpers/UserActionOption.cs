@@ -4,9 +4,9 @@ public class UserActionOption
     public int Index { get; set; }
     public string Description { get; set; }
     public bool IsDisabled { get; set; }
-    public ActionImplementation BasicAction { get; set; }
+    public ActionImplementation ActionImplementation { get; set; }
     public LocationNames Location { get; set; }
-    public LocationSpotNames LocationSpot { get; set; }
+    public string LocationSpot { get; set; }
     public CharacterNames Character { get; set; }
 
     public string Display()
@@ -24,7 +24,7 @@ public class UserNarrativeChoiceOption
     public NarrativeStage NarrativeStage { get; set; }
     public NarrativeChoice NarrativeChoice { get; set; }
     public LocationNames Location { get; set; }
-    public LocationSpotNames LocationSpot { get; set; }
+    public string LocationSpot { get; set; }
     public CharacterNames Character { get; set; }
 
     public string Display()

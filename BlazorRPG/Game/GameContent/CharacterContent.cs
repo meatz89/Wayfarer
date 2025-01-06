@@ -13,7 +13,7 @@
             .SharesKnowledge(false))      // Keeps trade secrets
         .AddSchedule(schedule => schedule
             .AtTime(TimeSlots.Morning)
-            .AtSpot(LocationSpotNames.MarketBazaar)
+            .AtLocation(LocationNames.GenericMarket)
             .WithAction(BasicActionTypes.Trade))
         .AddGoal(goal => goal
             .WithDescription("Train son to take over business")

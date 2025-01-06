@@ -5,7 +5,7 @@
     public SpaceProperties Space { get; private set; } = new();
     public SocialContext Social { get; private set; } = new();
     public ActivityProperties Activity { get; private set; } = new();
-    public LocationSpotNames LocationSpotName { get; private set; }
+    public string LocationSpotName { get; private set; }
 
     public ActionContextBuilder(LocationTypes locationType)
     {
@@ -42,7 +42,7 @@
         return this;
     }
 
-    public ActionContextBuilder WithLocationSpotName(LocationSpotNames locationSpotName)
+    public ActionContextBuilder WithLocationSpotName(string locationSpotName)
     {
         LocationSpotName = locationSpotName;
         return this;
@@ -65,7 +65,7 @@ public class ActionGenerationContext
     public SpaceProperties Space { get; }
     public SocialContext Social { get; }
     public ActivityProperties Activity { get; }
-    public LocationSpotNames LocationSpotName { get; }
+    public string LocationSpotName { get; }
 
 
     public ActionGenerationContext(
@@ -74,7 +74,7 @@ public class ActionGenerationContext
         SpaceProperties space,
         SocialContext social,
         ActivityProperties activity,
-        LocationSpotNames locationSpotName)
+        string locationSpotName)
     {
         LocationType = locationType;
         BaseAction = baseAction;

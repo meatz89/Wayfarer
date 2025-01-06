@@ -23,7 +23,7 @@ public class LocationSystem
 
     public Location GetLocation(LocationNames locationName)
     {
-        Location location = allLocations.FirstOrDefault(x => x.Name == locationName);
+        Location location = allLocations.FirstOrDefault(x => x.LocationName == locationName);
         return location;
     }
 
@@ -32,7 +32,7 @@ public class LocationSystem
         return location.LocationSpots;
     }
 
-    public LocationSpot GetLocationSpotForLocation(LocationNames locationName, LocationSpotNames locationSpotType)
+    public LocationSpot GetLocationSpotForLocation(LocationNames locationName, string locationSpotType)
     {
         Location location = GetLocation(locationName);
         List<LocationSpot> spots = GetLocationSpots(location);

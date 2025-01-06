@@ -1,9 +1,8 @@
 ﻿
-
 public class ScheduleBuilder
 {
     private TimeSlots timeWindow;
-    private LocationSpotNames locationSpotType;
+    private LocationNames locationName;
     private BasicActionTypes basicActionTypes;
 
     public ScheduleBuilder AtTime(TimeSlots timeWindow)
@@ -12,9 +11,9 @@ public class ScheduleBuilder
         return this;
     }
 
-    public ScheduleBuilder AtSpot(LocationSpotNames locationSpotType)
+    public ScheduleBuilder AtLocation(LocationNames location)
     {
-        this.locationSpotType = locationSpotType;
+        this.locationName = location;
         return this;
     }
 
@@ -28,5 +27,4 @@ public class ScheduleBuilder
     {
         return new Schedule();
     }
-
 }

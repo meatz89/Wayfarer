@@ -6,3 +6,19 @@
     Social,
     Nature,
 }
+public enum LocationArchetype
+{
+    Tavern,
+    Market,
+    Forest,
+    Road,
+    Field,
+    Dock,
+    Warehouse,
+    Factory,
+    Workshop,
+    Shop,
+    Garden,
+    None
+}
+

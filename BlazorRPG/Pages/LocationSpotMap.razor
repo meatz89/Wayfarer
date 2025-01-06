@@ -6,7 +6,7 @@
     @foreach (LocationSpot spot in CurrentLocation.LocationSpots)
     {
         <div class="location-card @(spot.Name == CurrentSpot.Name ? "current" : "reachable")">
-            <div class="location-time">⏰ @spot.TimeSlotOpen</div>
+            @* <div class="location-time">⏰ @spot.TimeSlotOpen</div> *@
             <div class="location-name">
                 @spot.Name @(spot.Name == CurrentSpot.Name ? "(Current)" : "")
             </div>
@@ -30,7 +30,7 @@
                         disabled="@(spot.Name != CurrentSpot.Name || !ActionManager.AreRequirementsMet(action))"
                         @onmouseover="(e) => HandleShowTooltip(action, e)"
                         @onmouseout="HandleHideTooltip">
-                    @action.BasicAction.Name (@action.BasicAction.Name)
+                    @action.ActionImplementation.Name (@action.ActionImplementation.Name)
                 </button>
             }
 

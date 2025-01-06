@@ -1,89 +1,38 @@
 ﻿public class LocationSpotBuilder
 {
-    // Core properties for the location spot
-    private readonly LocationNames locationName;
-    private readonly LocationTypes locationType;
-    private CharacterNames character;
-    private List<ActionImplementation> characterActions = new();
+    private string name;
+    private BasicActionTypes actionType;
+    private LocationNames locationName;
 
-    // Simple requirements and rewards for direct action configuration
-    private List<Requirement> requirements = new();
-    private List<Outcome> costs = new();
-    private List<Outcome> rewards = new();
-    private int timeInvestment = 1;
-
-    private ActionContextBuilder contextBuilder;
-
-    public LocationSpotBuilder(LocationNames location, LocationTypes locationType)
+    public LocationSpotBuilder(LocationNames locationName)
     {
-        this.locationName = location;
-        this.locationType = locationType;
+        this.locationName = locationName;
     }
 
-    public LocationSpotBuilder WithCharacter(CharacterNames character)
+    public LocationSpotBuilder WithName(string name)
     {
-        this.character = character;
+        this.name = name;
         return this;
     }
 
-    public LocationSpotBuilder WithEnergyCost(int cost, EnergyTypes energyType)
+    public LocationSpotBuilder ForActionType(BasicActionTypes actionType)
     {
-        requirements.Add(new EnergyRequirement(energyType, cost));
-        costs.Add(new EnergyOutcome(energyType, -cost));
+        this.actionType = actionType;
         return this;
     }
-
-    public LocationSpotBuilder WithCoinCost(int cost)
-    {
-        requirements.Add(new CoinsRequirement(cost));
-        costs.Add(new CoinsOutcome(-cost));
-        return this;
-    }
-
-    public LocationSpotBuilder WithCoinReward(int reward)
-    {
-        rewards.Add(new CoinsOutcome(reward));
-        return this;
-    }
-
-    public LocationSpotBuilder WithOutputResource(ResourceTypes resource, int count)
-    {
-        rewards.Add(new ResourceOutcome(resource, count));
-        return this;
-    }
-
-    // Advanced context-based action generation
-    public LocationSpotBuilder WithContext(Action<ActionContextBuilder> buildContext)
-    {
-        contextBuilder = new ActionContextBuilder(locationType);
-        buildContext(contextBuilder);
-        return this;
-    }
-
 
     public LocationSpot Build()
     {
-        // Build the ActionGenerationContext
-        ActionGenerationContext context = contextBuilder.Build();
+        // Validation: Ensure name and actionType are set
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new InvalidOperationException("LocationSpot must have a name.");
+        }
+        if (actionType == BasicActionTypes.Wait) // Example check
+        {
+            throw new InvalidOperationException("LocationSpot must have a valid BasicActionType.");
+        }
 
-        // Determine LocationSpotName based on the built context
-        LocationSpotNames locationSpotName = LocationSpotMapper.GetLocationSpot(
-            context.LocationType,
-            context.BaseAction,
-            context.Space.Exposure,
-            context.Space.Scale);
-
-        // Update the context with the LocationSpotName
-        context = contextBuilder.WithLocationSpotName(locationSpotName).Build();
-
-        return new LocationSpot(
-            locationSpotName,
-            locationName,
-            character,
-            context,
-            characterActions,
-            TimeSlots.Night
-
-        );
+        return new LocationSpot(name, locationName, actionType);
     }
 }

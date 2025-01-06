@@ -3,7 +3,6 @@
     private BasicActionTypes actionType;
     private LocationTypes locationType;
     private LocationNames locationName;
-    private LocationSpotNames locationSpotName;
     private CharacterNames narrativeCharacter;
     private CharacterRoles narrativeCharacterRole;
 
@@ -41,12 +40,6 @@
     public NarrativeBuilder InCharacterRole(CharacterRoles narrativeCharacterRole)
     {
         this.narrativeCharacterRole = narrativeCharacterRole;
-        return this;
-    }
-
-    public NarrativeBuilder ForLocationSpot(LocationSpotNames locationSpotName)
-    {
-        this.locationSpotName = locationSpotName;
         return this;
     }
 
@@ -107,7 +100,6 @@
             ActionType = actionType,
             LocationType = locationType,
             LocationName = locationName,
-            LocationSpot = locationSpotName,
             NarrativeCharacter = narrativeCharacter,
             NarrativeCharacterRole = narrativeCharacterRole,
             TimeSlot = timeSlot,

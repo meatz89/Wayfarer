@@ -17,10 +17,6 @@
         locations = new List<Location>
         {
             LocationContent.LionsHeadTavern,
-            LocationContent.Industrial,
-            LocationContent.Commercial,
-            LocationContent.Social,
-            LocationContent.Nature
         };
 
         characters = new List<Character>

@@ -140,7 +140,6 @@ public class ActionBuilder
             Requirements = requirements,
             Costs = costs,
             Rewards = rewards,
-            TimeInvestment = hoursPassed
         };
     }
 

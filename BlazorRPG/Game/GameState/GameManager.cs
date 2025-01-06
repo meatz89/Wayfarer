@@ -1,5 +1,4 @@
-﻿using System.Buffers;
-using System.Text;
+﻿using System.Text;
 
 public class GameManager
 {
@@ -10,14 +9,8 @@ public class GameManager
 
     public NarrativeSystem NarrativeSystem { get; }
     public LocationSystem LocationSystem { get; }
-    public CharacterSystem CharacterSystem { get; }
     public ActionValidator ActionValidator { get; }
-    public KnowledgeSystem KnowledgeSystem { get; }
-    public CharacterRelationshipSystem RelationshipSystem { get; }
-    public TimeSystem TimeSystem { get; }
-    public InformationSystem InformationSystem { get; }
-    public LocationAccess LocationAccess { get; }
-    public ContextEngine ContextEngine { get; }
+    public ActionSystem ContextEngine { get; }
     public QuestSystem QuestSystem { get; }
     public ItemSystem ItemSystem { get; }
     public MessageSystem MessageSystem { get; }
@@ -26,14 +19,8 @@ public class GameManager
         GameState gameState,
         NarrativeSystem narrativeSystem,
         LocationSystem locationSystem,
-        CharacterSystem characterSystem,
         ActionValidator actionValidator,
-        KnowledgeSystem knowledgeSystem,
-        CharacterRelationshipSystem relationshipSystem,
-        TimeSystem timeSystem,
-        InformationSystem informationSystem,
-        LocationAccess locationAccess,
-        ContextEngine contextEngine,
+        ActionSystem actionSystem,
         QuestSystem questSystem,
         ItemSystem itemSystem,
         MessageSystem messageSystem
@@ -44,14 +31,8 @@ public class GameManager
 
         this.NarrativeSystem = narrativeSystem;
         this.LocationSystem = locationSystem;
-        this.CharacterSystem = characterSystem;
         this.ActionValidator = actionValidator;
-        this.KnowledgeSystem = knowledgeSystem;
-        this.RelationshipSystem = relationshipSystem;
-        this.TimeSystem = timeSystem;
-        this.InformationSystem = informationSystem;
-        this.LocationAccess = locationAccess;
-        this.ContextEngine = contextEngine;
+        this.ContextEngine = actionSystem;
         this.QuestSystem = questSystem;
         this.ItemSystem = itemSystem;
         this.MessageSystem = messageSystem;
@@ -82,7 +63,7 @@ public class GameManager
         gameState.Actions.SetQuestActions(new List<UserActionOption>());
 
         CreateGlobalActions();
-        CreateLocationSpotActions();
+        OnPlayerEnterLocation(gameState.World.CurrentLocation);
         //CreateCharacterActions();
         CreateQuestActions();
     }
@@ -94,72 +75,61 @@ public class GameManager
 
         gameState.Actions.SetGlobalActions(userActions);
     }
-
-    private void CreateLocationSpotActions()
+    private void OnPlayerEnterLocation(Location location)
     {
-        var location = gameState.World.CurrentLocation;
-        List<UserActionOption> allLocationSpotActions = new();
+        List<ActionTemplate> allActionTemplates = ActionContent.LoadActionTemplates();
+        List<LocationSpot> locationSpots = location.LocationSpots;
 
-        foreach (LocationSpot locationSpot in location.LocationSpots)
+        foreach (LocationSpot locationSpot in locationSpots)
         {
-            // Generate this spot's specific action
-            ActionGenerationContext context = locationSpot.ActionGenerationContext;
-            DynamicActionFactory factory = new DynamicActionFactory();
-            ActionImplementation spotAction = factory.CreateAction(context);
-
-            // Create exactly ONE action option for this specific spot
-            UserActionOption ua = new UserActionOption
-            {
-                BasicAction = spotAction,
-                Description = spotAction.Name,
-                IsDisabled = spotAction.TimeSlots.Count > 0 &&
-                    !spotAction.TimeSlots.Contains(gameState.World.CurrentTimeSlot),
-                Location = location.Name,
-                LocationSpot = locationSpot.Name  // This ties the action specifically to this spot
-            };
-
-            // Add just this ONE action to our list
-            allLocationSpotActions.Add(ua);
+            locationSpot.Actions = new List<ActionImplementation>();
         }
 
-        // Replace all location spot actions with our new correctly distributed set
-        gameState.Actions.SetLocationSpotActions(allLocationSpotActions);
-    }
-
-    public void CreateCharacterActions()
-    {
-        List<UserActionOption> userActions = new();
-        var currentLocation = gameState.World.CurrentLocation;
-
-        foreach (LocationSpot locationSpot in currentLocation.LocationSpots)
+        foreach (ActionTemplate template in allActionTemplates)
         {
-            // Only process spots that have characters
-            if (locationSpot.Character == CharacterNames.None)
-                continue;
-
-            foreach (ActionImplementation ga in locationSpot.CharacterActions)
+            if (template.AvailabilityConditions.All(c => MeetsCondition(c, location.Properties)))
             {
-                int actionIndex = 1;
+                ActionImplementation actionImplementation = template.CreateActionImplementation();
 
-                bool isDisabled = ga.TimeSlots.Count > 0 &&
-                    !ga.TimeSlots.Contains(gameState.World.CurrentTimeSlot);
+                // Get the corresponding LocationSpot based on the action type
+                LocationSpot? matchingSpot = locationSpots.FirstOrDefault(s => s.ActionType == actionImplementation.ActionType);
 
-                LocationSpotNames locationSpotName = locationSpot.Name;
-                LocationNames name = locationSpot.LocationName;
-                UserActionOption ua = new UserActionOption
+                // If a matching spot is found, add the action to it
+                if (matchingSpot != null)
                 {
-                    BasicAction = ga,
-                    Description = ga.Name,
-                    Index = actionIndex++,
-                    IsDisabled = isDisabled,
-                    Location = name,
-                    LocationSpot = locationSpotName,
-                    Character = locationSpot.Character
-                };
-                userActions.Add(ua);
+                    matchingSpot.AddAction(actionImplementation);
+                }
+                else
+                {
+                    // Optional: Handle cases where no matching spot is found (log an error, use a default spot, etc.)
+                    Console.WriteLine($"Warning: No LocationSpot found for ActionType '{actionImplementation.ActionType}' at location '{location.LocationName}'.");
+                }
             }
         }
-        gameState.Actions.AddCharacterActions(userActions);
+
+        List<UserActionOption> options = new List<UserActionOption>();
+        foreach(LocationSpot locationSpot in locationSpots)
+        {
+            foreach (ActionImplementation action in locationSpot.Actions)
+            {
+                UserActionOption userActionOption = new UserActionOption()
+                {
+                    ActionImplementation = action,
+                    Description = action.Name,
+                    IsDisabled = false,
+                    Location = locationSpot.LocationName,
+                    LocationSpot = locationSpot.Name
+                };
+                options.Add(userActionOption);
+            }
+        }
+        gameState.Actions.SetLocationSpotActions(options);
+    }
+
+    private bool MeetsCondition(LocationPropertyCondition condition, LocationProperties properties)
+    {
+        object actualValue = properties.GetProperty(condition.PropertyType);
+        return actualValue.Equals(condition.ExpectedValue);
     }
 
     public void CreateQuestActions()
@@ -176,12 +146,11 @@ public class GameManager
 
             UserActionOption ua = new UserActionOption
             {
-                BasicAction = questAction,
+                ActionImplementation = questAction,
                 Description = questAction.Name,
                 Index = actionIndex++,
                 IsDisabled = false,
                 Location = step.Location,
-                LocationSpot = step.LocationSpot,
                 Character = step.Character
             };
             userActions.Add(ua);
@@ -210,7 +179,6 @@ public class GameManager
                 Index = choice.Index,
                 Description = choice.Description,
                 Location = narrative.LocationName,
-                LocationSpot = narrative.LocationSpot,
                 Character = narrative.NarrativeCharacter,
                 Narrative = narrative,
                 NarrativeStage = stage,
@@ -270,7 +238,7 @@ public class GameManager
         QuestSystem.ProcessAction(basicAction);
 
         // 3. Apply character relationship effects
-        CharacterSystem.ProcessActionImpact(basicAction);
+        //CharacterSystem.ProcessActionImpact(basicAction);
 
         // 4. Execute outcomes and check if day change is needed
         ActionImplementation modifiedAction = ContextEngine.ProcessActionOutcome(basicAction);
@@ -279,61 +247,18 @@ public class GameManager
         gameState.Actions.SetLastActionResultMessages(allMessages);
 
         LocationNames location = action.Location;
-        LocationSpotNames locationSpot = action.LocationSpot;
 
-        Narrative narrative = NarrativeSystem.GetAvailableNarrative(modifiedAction.ActionType, location, locationSpot);
+        Narrative narrative = NarrativeSystem.GetAvailableNarrative(modifiedAction.ActionType, location);
         if (narrative != null)
         {
             NarrativeSystem.SetActiveNarrative(narrative);
             InitializeNarrative(narrative);
         }
 
-        // Handle time advancement based on action type
-        //bool stillAlive;
-        //if (shouldChangeDays)
-        //{
-        //    AdvanceTimeTo(7); // Advance to morning
-        //    stillAlive = StartNewDay(); // Apply day change effects
-        //}
-        //else
-        //{
         bool stillAlive = AdvanceTime(1); // Normal time advance
-        //}
-
-        //if (!stillAlive) return ActionResult.Failure("you died");
 
         return ActionResult.Success("Action success!", allMessages);
     }
-
-    //public ActionResult MakeChoiceForNarrative(Narrative currentNarrative, NarrativeStage narrativeStage, int choice)
-    //{
-    //    List<Outcome> outcomes = NarrativeSystem.GetChoiceOutcomes(currentNarrative, narrativeStage, choice);
-    //    if (outcomes == null)
-    //    {
-    //        ActionResult actionResultFail = ActionResult.Failure("No Success");
-    //        GameState.SetLastActionResult(actionResultFail);
-
-    //        return actionResultFail;
-    //    }
-    //    else
-    //    {
-    //        foreach (Outcome outcome in outcomes)
-    //        {
-    //            ApplyOutcome(outcome);
-    //        }
-    //    }
-
-    //    GameState.ApplyAllChanges();
-    //    ActionResultMessages allMessages = GameState.GetAndClearChanges();
-
-    //    bool stillAlive = AdvanceTime();
-    //    if (!stillAlive) return ActionResult.Failure("you died");
-
-    //    ActionResult actionResult = ActionResult.Success("Action success!", allMessages);
-    //    GameState.SetLastActionResult(actionResult);
-
-    //    return actionResult;
-    //}
 
     public ActionResult MoveToLocation(LocationNames locationName)
     {
@@ -346,7 +271,7 @@ public class GameManager
         return actionResult;
     }
 
-    public void MoveToLocationSpot(LocationNames location, LocationSpotNames locationSpotName)
+    public void MoveToLocationSpot(LocationNames location, string locationSpotName)
     {
         LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(location, locationSpotName);
         gameState.World.SetNewLocationSpot(locationSpot);
@@ -355,7 +280,7 @@ public class GameManager
 
     public List<LocationNames> GetConnectedLocations()
     {
-        List<LocationNames> loc = LocationSystem.GetLocationConnections(gameState.World.CurrentLocation.Name);
+        List<LocationNames> loc = LocationSystem.GetLocationConnections(gameState.World.CurrentLocation.LocationName);
         return loc;
     }
 
@@ -371,7 +296,7 @@ public class GameManager
         return locs.Contains(locationName);
     }
 
-    public bool CanMoveToSpot(LocationSpotNames locationName)
+    public bool CanMoveToSpot(string locationSpotName)
     {
         return true;
     }
@@ -379,7 +304,7 @@ public class GameManager
     public bool AreRequirementsMet(UserActionOption action)
     {
         PlayerState Player = gameState.Player;
-        return action.BasicAction.CanExecute(Player);
+        return action.ActionImplementation.CanExecute(Player);
     }
 
     public void UpdateLocationSpotOptions()
@@ -395,7 +320,7 @@ public class GameManager
             UserLocationSpotOption locationSpotOption = new UserLocationSpotOption()
             {
                 Index = i + 1,
-                Location = location.Name,
+                Location = location.LocationName,
                 LocationSpot = locationSpot.Name
             };
 
