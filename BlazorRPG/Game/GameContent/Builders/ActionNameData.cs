@@ -57,7 +57,7 @@ public enum CrowdLevel
     Empty,
     Sparse,
     Populated,
-    Crowded
+    Busy
 }
 
 public enum LegalityTypes

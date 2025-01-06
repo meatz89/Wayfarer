@@ -5,15 +5,14 @@
         .SetLocationType(LocationTypes.Social)
         .ForLocation(LocationNames.LionsHeadTavern)
         .SetLocationArchetype(LocationArchetype.Tavern)
-        .SetSpace(space => space
+        .WithLocationProperties(properties => properties
             .WithScale(ScaleVariations.Medium)
             .WithExposure(ExposureConditions.Indoor)
-            .WithCrowdLevel(CrowdLevel.Crowded))
-        .SetSocial(social => social
+            .WithCrowdLevel(CrowdLevel.Busy)
             .WithLegality(LegalityTypes.Legal)
-            .WithTension(TensionState.Relaxed))
-        .SetActivity(activity => activity
-            .WithComplexity(ComplexityTypes.Simple))
+            .WithTension(TensionState.Relaxed)
+            .WithComplexity(ComplexityTypes.Simple)
+        )
         .AddLocationSpot(spot => spot
             .WithName("Tavern Bar")
             .ForActionType(BasicActionTypes.Labor))

@@ -13,7 +13,8 @@
 
             @if (location.LocationName == CurrentLocation.LocationName)
             {
-                <button class="action-button" @onclick="OnViewSpots">
+                <button class="action-button"
+                        @onclick="() => OnTravel.InvokeAsync(location.LocationName)">
                     ---- ENTER LOCATION ----
                 </button>
             }
@@ -33,5 +34,4 @@
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public List<Location> Locations { get; set; }
     [Parameter] public EventCallback<LocationNames> OnTravel { get; set; }
-    [Parameter] public EventCallback OnViewSpots { get; set; }
 }

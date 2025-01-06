@@ -28,10 +28,6 @@
         {
             throw new InvalidOperationException("LocationSpot must have a name.");
         }
-        if (actionType == BasicActionTypes.Wait) // Example check
-        {
-            throw new InvalidOperationException("LocationSpot must have a valid BasicActionType.");
-        }
 
         return new LocationSpot(name, locationName, actionType);
     }

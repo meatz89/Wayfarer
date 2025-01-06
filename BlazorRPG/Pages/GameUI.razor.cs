@@ -159,12 +159,25 @@ public partial class GameUI : ComponentBase
         GameManager.MoveToLocationSpot(userLocationSpot.Location, locationSpot.Name);
     }
 
-    private void HandleLocationSelection(LocationNames locationNames)
+    private void HandleLocationSelection(LocationNames locationName)
     {
         List<UserLocationTravelOption> currentTravelOptions = GameState.World.CurrentTravelOptions;
-        UserLocationTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Location == locationNames);
 
-        ActionResult result = GameManager.MoveToLocation(location.Location);
+        bool enterLocation = locationName == GameState.World.CurrentLocation.LocationName;
+
+        ActionResult result;
+
+        if (enterLocation)
+        {
+            result = GameManager.TravelToLocation(locationName);
+            GameManager.TravelToLocation(locationName);
+        }
+        else
+        {
+            UserLocationTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Location == locationName);
+            GameManager.TravelToLocation(location.Location);
+            result = GameManager.TravelToLocation(location.Location);
+        }
 
         if (result.IsSuccess)
         {

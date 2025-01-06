@@ -51,21 +51,22 @@ public class GameManager
         gameState.Actions.ClearCurrentUserAction();
 
         UpdateActiveQuests();
+
         UpdateLocationTravelOptions();
+
         UpdateLocationSpotOptions();
+
         UpdateAvailableActions();
     }
 
     public void UpdateAvailableActions()
     {
-        gameState.Actions.SetLocationSpotActions(new List<UserActionOption>());
         gameState.Actions.SetCharacterActions(new List<UserActionOption>());
         gameState.Actions.SetQuestActions(new List<UserActionOption>());
 
         CreateGlobalActions();
-        OnPlayerEnterLocation(gameState.World.CurrentLocation);
         //CreateCharacterActions();
-        CreateQuestActions();
+        //CreateQuestActions();
     }
 
     public void CreateGlobalActions()
@@ -75,40 +76,53 @@ public class GameManager
 
         gameState.Actions.SetGlobalActions(userActions);
     }
+
     private void OnPlayerEnterLocation(Location location)
     {
         List<ActionTemplate> allActionTemplates = ActionContent.LoadActionTemplates();
         List<LocationSpot> locationSpots = location.LocationSpots;
+        ActionAvailabilityService availabilityService = new ActionAvailabilityService();
 
-        foreach (LocationSpot locationSpot in locationSpots)
+        // Clear existing actions in each LocationSpot
+        foreach (LocationSpot spot in locationSpots)
         {
-            locationSpot.Actions = new List<ActionImplementation>();
+            spot.Actions.Clear();
         }
 
         foreach (ActionTemplate template in allActionTemplates)
         {
-            if (template.AvailabilityConditions.All(c => MeetsCondition(c, location.Properties)))
+            // Use ActionAvailabilityService to check availability
+            if (availabilityService.IsActionAvailable(template, location))
             {
-                ActionImplementation actionImplementation = template.CreateActionImplementation();
+                // Create ActionImplementation using the factory
+                ActionImplementation actionImplementation = ActionFactory.CreateAction(template, location);
 
-                // Get the corresponding LocationSpot based on the action type
-                LocationSpot? matchingSpot = locationSpots.FirstOrDefault(s => s.ActionType == actionImplementation.ActionType);
+                // Find a matching LocationSpot based on ActionType
+                LocationSpot matchingSpot = null;
+                foreach (LocationSpot spot in locationSpots)
+                {
+                    if (spot.ActionType == actionImplementation.ActionType)
+                    {
+                        matchingSpot = spot;
+                        break;
+                    }
+                }
 
-                // If a matching spot is found, add the action to it
+                // Add the action to the LocationSpot (if found)
                 if (matchingSpot != null)
                 {
                     matchingSpot.AddAction(actionImplementation);
                 }
                 else
                 {
-                    // Optional: Handle cases where no matching spot is found (log an error, use a default spot, etc.)
                     Console.WriteLine($"Warning: No LocationSpot found for ActionType '{actionImplementation.ActionType}' at location '{location.LocationName}'.");
                 }
             }
         }
 
+
         List<UserActionOption> options = new List<UserActionOption>();
-        foreach(LocationSpot locationSpot in locationSpots)
+        foreach (LocationSpot locationSpot in locationSpots)
         {
             foreach (ActionImplementation action in locationSpot.Actions)
             {
@@ -124,12 +138,6 @@ public class GameManager
             }
         }
         gameState.Actions.SetLocationSpotActions(options);
-    }
-
-    private bool MeetsCondition(LocationPropertyCondition condition, LocationProperties properties)
-    {
-        object actualValue = properties.GetProperty(condition.PropertyType);
-        return actualValue.Equals(condition.ExpectedValue);
     }
 
     public void CreateQuestActions()
@@ -260,13 +268,14 @@ public class GameManager
         return ActionResult.Success("Action success!", allMessages);
     }
 
-    public ActionResult MoveToLocation(LocationNames locationName)
+    public ActionResult TravelToLocation(LocationNames locationName)
     {
         Location location = LocationSystem.GetLocation(locationName);
         gameState.World.SetNewLocation(location);
         UpdateState();
 
         ActionResult actionResult = ActionResult.Success($"Moved to {locationName}.", new ActionResultMessages());
+        OnPlayerEnterLocation(gameState.World.CurrentLocation);
 
         return actionResult;
     }

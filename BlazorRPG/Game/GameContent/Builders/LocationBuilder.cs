@@ -3,9 +3,11 @@
     private LocationTypes locationType;
     private LocationNames locationName;
     private LocationArchetype locationArchetype;
-    private LocationProperties locationProperties = new LocationProperties();
     private List<LocationNames> travelConnections = new();
     private List<LocationSpot> locationSpots = new();
+
+    // Location properties
+    private LocationProperties locationProperties;
 
     public LocationBuilder SetLocationType(LocationTypes type)
     {
@@ -33,64 +35,38 @@
 
     public LocationBuilder AddLocationSpot(Action<LocationSpotBuilder> buildLocationSpot)
     {
-        // Create a new LocationSpotBuilder instance here
         LocationSpotBuilder locationSpotBuilder = new LocationSpotBuilder(locationName);
-
-        // Invoke the builder action to configure the LocationSpot
         buildLocationSpot(locationSpotBuilder);
+        LocationSpot newSpot = locationSpotBuilder.Build();
 
-        // Add the built LocationSpot to the list
-        this.locationSpots.Add(locationSpotBuilder.Build());
+        // Check for duplicate LocationSpot names within the same Location
+        if (locationSpots.Any(spot => spot.Name == newSpot.Name))
+        {
+            throw new InvalidOperationException($"Duplicate LocationSpot name '{newSpot.Name}' found in location '{locationName}'.");
+        }
 
+        this.locationSpots.Add(newSpot);
         return this;
     }
 
-    public LocationBuilder SetSpace(Action<SpacePropertiesBuilder> spaceBuilder)
+    public LocationBuilder WithLocationProperties(Action<LocationPropertiesBuilder> buildProperties)
     {
-        SpacePropertiesBuilder builder = new SpacePropertiesBuilder();
-        spaceBuilder?.Invoke(builder);
-        SpaceProperties spaceProperties = builder.Build();
+        var builder = new LocationPropertiesBuilder();
+        buildProperties(builder);
 
-        this.locationProperties.Scale = spaceProperties.Scale;
-        this.locationProperties.Exposure = spaceProperties.Exposure;
-        this.locationProperties.CrowdLevel = spaceProperties.CrowdLevel;
-
-        return this;
-    }
-
-    public LocationBuilder SetSocial(Action<SocialContextBuilder> socialBuilder)
-    {
-        SocialContextBuilder builder = new SocialContextBuilder();
-        socialBuilder?.Invoke(builder);
-        SocialContext socialContext = builder.Build();
-
-        this.locationProperties.Legality = socialContext.Legality;
-        this.locationProperties.Tension = socialContext.Tension;
-
-        return this;
-    }
-
-    public LocationBuilder SetActivity(Action<ActivityPropertiesBuilder> activityBuilder)
-    {
-        ActivityPropertiesBuilder builder = new ActivityPropertiesBuilder();
-        activityBuilder?.Invoke(builder);
-        ActivityProperties activityProperties = builder.Build();
-
-        this.locationProperties.Complexity = activityProperties.Complexity;
-
+        locationProperties = builder.Build();
         return this;
     }
 
     public Location Build()
     {
-        return new Location()
-        {
-            Archetype = locationArchetype,
-            LocationSpots = locationSpots,
-            LocationType = locationType,
-            LocationName = locationName,
-            Properties = locationProperties,
-            TravelConnections = travelConnections
-        };
+        return new Location(
+            locationType,
+            locationName,
+            locationArchetype,
+            travelConnections,
+            locationSpots,
+            locationProperties
+        );
     }
 }

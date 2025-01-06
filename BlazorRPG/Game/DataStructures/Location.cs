@@ -1,10 +1,26 @@
 ﻿public class Location
 {
+    public Location(
+        LocationTypes locationType,
+        LocationNames locationName,
+        LocationArchetype locationArchetype,
+        List<LocationNames> travelConnections,
+        List<LocationSpot> locationSpots,
+        LocationProperties locationProperties)
+    {
+        LocationType = locationType;
+        LocationName = locationName;
+        LocationArchetype = locationArchetype;
+        TravelConnections = travelConnections;
+        LocationSpots = locationSpots;
+        LocationProperties = locationProperties;
+    }
+
     public LocationTypes LocationType { get; set; } // Industrial/Commercial/etc
     public LocationNames LocationName { get; set; }
-    public LocationArchetype Archetype { get; set; } // Tavern/Market/Dock/etc
-    public LocationProperties Properties { get; set; } // Properties like Indoor/Crowded/etc
+    public LocationArchetype LocationArchetype { get; set; } // Tavern/Market/Dock/etc
     public List<LocationNames> TravelConnections { get; set; }
     public List<LocationSpot> LocationSpots { get; set; } // Action groupings
+    public LocationProperties LocationProperties { get; set; }
 
 }
