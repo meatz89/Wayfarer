@@ -1,6 +1,6 @@
 ﻿@inherits EncounterViewBase
 
-<div class="encounter-container">
+<div class="encounter-container" @onmousemove="OnMouseMove">
     @if (GameState.Actions.CurrentEncounter != null)
     {
         <div class="encounter-header">
