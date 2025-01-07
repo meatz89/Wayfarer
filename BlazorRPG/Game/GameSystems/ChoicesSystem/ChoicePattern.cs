@@ -4,7 +4,6 @@
     public IntentTypes Intent { get; init; }
     public ScopeTypes Scope { get; init; }
 
-    public int BaseCompletionPoints { get; init; }
     public int BaseEnergyCost { get; init; }
 
     public List<ValueChange> StandardValueChanges { get; init; } = new();
@@ -18,10 +17,13 @@
             .WithChoiceType(ConvertPositionToChoiceType())
             .WithName(GenerateDescription(context));
 
+        // Determine the energy type based on the context
+        EnergyTypes energyType = GetContextEnergy(context);
+
         // Apply standard costs
         if (BaseEnergyCost > 0)
         {
-            builder.ExpendsEnergy(GetContextEnergy(context), BaseEnergyCost);
+            builder.ExpendsEnergy(energyType, BaseEnergyCost);
         }
 
         // Apply standard value changes
@@ -33,7 +35,22 @@
         // Apply standard requirements
         foreach (Requirement requirement in StandardRequirements)
         {
-            builder.WithRequirement(requirement);
+            builder.AddRequirement(requirement);
+        }
+
+        // Apply standard outcomes (rewards)
+        foreach (Outcome outcome in StandardOutcomes)
+        {
+            if (outcome is EnergyOutcome)
+            {
+                // For EnergyOutcome, add it to Costs
+                builder.AddCost(outcome);
+            }
+            else
+            {
+                // For other outcomes, add them to Rewards
+                builder.AddReward(outcome);
+            }
         }
 
         return builder.Build();
@@ -55,9 +72,6 @@
     {
         switch (change.Type)
         {
-            case ValueTypes.Momentum:
-                builder.WithMomentumChange(change.Amount);
-                break;
             case ValueTypes.Advantage:
                 builder.WithAdvantageChange(change.Amount);
                 break;
@@ -75,6 +89,9 @@
 
     private string GenerateDescription(EncounterActionContext context)
     {
+        // This is where you'll implement the logic to generate dynamic descriptions
+        // based on Position, Intent, Scope, and context.
+        // For now, we'll use a placeholder:
         return $"{Position} {Intent} ({Scope})";
     }
 
@@ -83,9 +100,18 @@
         return context.ActionType switch
         {
             BasicActionTypes.Labor => EnergyTypes.Physical,
+            BasicActionTypes.Craft => EnergyTypes.Physical,
+            BasicActionTypes.Move => EnergyTypes.Physical,
             BasicActionTypes.Trade => EnergyTypes.Social,
+            BasicActionTypes.Gather => EnergyTypes.Focus,
             BasicActionTypes.Investigate => EnergyTypes.Focus,
+            BasicActionTypes.Study => EnergyTypes.Focus,
+            BasicActionTypes.Plan => EnergyTypes.Focus,
             BasicActionTypes.Mingle => EnergyTypes.Social,
+            BasicActionTypes.Perform => EnergyTypes.Social,
+            BasicActionTypes.Persuade => EnergyTypes.Social,
+            BasicActionTypes.Reflect => EnergyTypes.Focus,
+            BasicActionTypes.Rest => EnergyTypes.Physical,
             _ => EnergyTypes.Physical
         };
     }

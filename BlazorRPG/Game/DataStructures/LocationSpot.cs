@@ -4,6 +4,7 @@
     public LocationNames LocationName { get; set; }
     public BasicActionTypes ActionType { get; set; }
     public List<ActionImplementation> Actions { get; set; } = new(); // Actions available at this spot
+    public CharacterNames? Character { get; set; } = null;
 
     public void AddAction(ActionImplementation action)
     {

@@ -5,6 +5,7 @@
     private LocationArchetype locationArchetype;
     private List<LocationNames> travelConnections = new();
     private List<LocationSpot> locationSpots = new();
+    private int difficultyLevel;
 
     // Location properties
     private LocationProperties locationProperties;
@@ -58,6 +59,12 @@
         return this;
     }
 
+    public LocationBuilder WithDifficultyLevel(int difficultyLevel)
+    {
+        this.difficultyLevel = difficultyLevel;
+        return this;
+    }
+
     public Location Build()
     {
         return new Location(
@@ -66,7 +73,8 @@
             locationArchetype,
             travelConnections,
             locationSpots,
-            locationProperties
+            locationProperties,
+            difficultyLevel
         );
     }
 }

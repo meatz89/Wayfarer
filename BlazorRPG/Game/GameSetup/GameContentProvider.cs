@@ -4,7 +4,6 @@
     private List<Character> characters;
     private List<Item> items;
 
-    private List<Encounter> encounters;
     private List<Quest> quests;
 
     public GameContentProvider()
@@ -33,11 +32,6 @@
             ItemContent.CharmingPendant
         };
 
-        encounters = new List<Encounter>
-        {
-            EncounterContent.TavernServeDrinks
-        };
-
         quests = new List<Quest>
         {
             QuestContent.MerchantApprentice,
@@ -57,11 +51,6 @@
     public List<Item> GetItems()
     {
         return items;
-    }
-
-    public List<Encounter> GetEncounters()
-    {
-        return encounters;
     }
 
     public List<Quest> GetQuests()

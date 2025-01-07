@@ -1,12 +1,28 @@
 ﻿public class EncounterActionContext
 {
-    public BasicActionTypes ActionType { get; set; }
-    public TimeSlots TimeSlot { get; set; }
-    public LocationTypes LocationType { get; set; }
-    public LocationNames LocationName { get; set; }
+    public BasicActionTypes ActionType { get; }
+    public LocationTypes LocationType { get; }
+    public LocationArchetype LocationArchetype { get; }
+    public TimeSlots TimeSlot { get; }
+    public LocationProperties LocationProperties { get; }
+    public PlayerState PlayerState { get; }
+    public EncounterStateValues CurrentValues { get; }
 
-    // Character Content
-    public CharacterNames CharacterName { get; set; }
-    public CharacterRoleTypes Role { get; set; }
-    public EncounterStateValues CurrentValues { get; internal set; }
+    public EncounterActionContext(
+        BasicActionTypes actionType,
+        LocationTypes locationType,
+        LocationArchetype locationarcheType,
+        TimeSlots timeSlot,
+        LocationProperties locationProperties,
+        PlayerState playerState,
+        EncounterStateValues currentValues)
+    {
+        ActionType = actionType;
+        LocationType = locationType;
+        LocationArchetype = locationarcheType;
+        TimeSlot = timeSlot;
+        LocationProperties = locationProperties;
+        PlayerState = playerState;
+        CurrentValues = currentValues;
+    }
 }

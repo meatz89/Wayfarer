@@ -3,16 +3,11 @@
     private int index;
     private string description;
     private ChoiceTypes choiceType;
-    private Requirement requirement;
-    private Outcome cost;
-    private Outcome reward;
+    private List<Requirement> requirements = new();
+    private List<Outcome> costs = new();
+    private List<Outcome> rewards = new();
     private string encounter;
     private EncounterStateValues encounterStateChanges = EncounterStateValues.NoChange;
-    private int onlyWhenMomentumAbove;
-    private int onlyWhenAdvantageAbove;
-    private int onlyWhenUnderstandingAbove;
-    private int onlyWhenConnectionAbove;
-    private int onlyWhenTensionAbove;
 
     public ChoiceBuilder WithIndex(int index)
     {
@@ -40,82 +35,70 @@
 
     public ChoiceBuilder ExpendsEnergy(EnergyTypes energy, int count)
     {
-        requirement = new EnergyRequirement(energy, count);
-        cost = new EnergyOutcome(energy, -count); // Negative for consumption
-        return this;
-    }
+        requirements.Add(new EnergyRequirement(energy, count));
 
-    public ChoiceBuilder WithRequirement(Requirement requirement)
-    {
-        requirement = requirement;
+        costs.Add(new EnergyOutcome(energy, -count));
         return this;
     }
 
     public ChoiceBuilder RequiresSkill(SkillTypes type, int count)
     {
-        requirement = new SkillLevelRequirement(type, count);
+        requirements.Add(new SkillLevelRequirement(type, count));
         return this;
     }
 
     public ChoiceBuilder RequiresHealth(int count)
     {
-        requirement = new HealthRequirement(count);
+        requirements.Add(new HealthRequirement(count));
         return this;
     }
 
     public ChoiceBuilder RequiresCoins(int count)
     {
-        requirement = new CoinsRequirement(count);
+        requirements.Add(new CoinsRequirement(count));
         return this;
     }
 
     public ChoiceBuilder RequiresResource(ResourceTypes type, int count)
     {
-        requirement = new ResourceRequirement(type, count);
+        requirements.Add(new ResourceRequirement(type, count));
         return this;
     }
 
     public ChoiceBuilder RequiresInventorySlots(int count)
     {
-        requirement = new InventorySlotsRequirement(count);
+        requirements.Add(new InventorySlotsRequirement(count));
         return this;
     }
 
     // Outcome methods
     public ChoiceBuilder WithHealthOutcome(int count)
     {
-        reward = new HealthOutcome(count);
+        rewards.Add(new HealthOutcome(count));
         return this;
     }
 
     public ChoiceBuilder WithMoneyOutcome(int count)
     {
-        reward = new CoinsOutcome(count);
+        rewards.Add(new CoinsOutcome(count));
         return this;
     }
 
     public ChoiceBuilder WithResourceOutcome(ResourceTypes type, int count)
     {
-        reward = new ResourceOutcome(type, count);
+        rewards.Add(new ResourceOutcome(type, count));
         return this;
     }
 
     public ChoiceBuilder WithSkillOutcome(SkillTypes type, int count)
     {
-        reward = new SkillLevelOutcome(type, count);
+        rewards.Add(new SkillLevelOutcome(type, count));
         return this;
     }
 
     public ChoiceBuilder WithReputationOutcome(ReputationTypes type, int count)
     {
-        reward = new ReputationOutcome(type, count);
-        return this;
-    }
-
-    // Encounter state changes
-    public ChoiceBuilder WithMomentumChange(int momentum)
-    {
-        encounterStateChanges.Momentum = momentum;
+        rewards.Add(new ReputationOutcome(type, count));
         return this;
     }
 
@@ -143,36 +126,24 @@
         return this;
     }
 
-    // Value thresholds
-    public ChoiceBuilder WhenMomentumAbove(int momentum)
+    public ChoiceBuilder AddRequirement(Requirement requirement)
     {
-        onlyWhenMomentumAbove = momentum;
+        this.requirements.Add(requirement);
         return this;
     }
 
-    public ChoiceBuilder WhenAdvantageAbove(int advantage)
+    public ChoiceBuilder AddCost(Outcome cost)
     {
-        onlyWhenAdvantageAbove = advantage;
+        this.costs.Add(cost);
         return this;
     }
 
-    public ChoiceBuilder WhenUnderstandingAbove(int understanding)
+    public ChoiceBuilder AddReward(Outcome reward)
     {
-        onlyWhenUnderstandingAbove = understanding;
+        this.rewards.Add(reward);
         return this;
     }
 
-    public ChoiceBuilder WhenConnectionAbove(int connection)
-    {
-        onlyWhenConnectionAbove = connection;
-        return this;
-    }
-
-    public ChoiceBuilder WhenTensionAbove(int tension)
-    {
-        onlyWhenTensionAbove = tension;
-        return this;
-    }
 
     public EncounterChoice Build()
     {
@@ -182,18 +153,10 @@
             ChoiceType = choiceType,
             Description = description,
             Encounter = encounter,
-            Requirement = requirement,
-            Cost = cost,
-            Reward = reward,
+            Requirements = requirements,
+            Costs = costs,
+            Rewards = rewards,
             EncounterStateChanges = encounterStateChanges,
-            // Store thresholds for validation
-            ValueThresholds = new EncounterStateValues(
-                onlyWhenMomentumAbove,
-                onlyWhenAdvantageAbove,
-                onlyWhenUnderstandingAbove,
-                onlyWhenConnectionAbove,
-                onlyWhenTensionAbove
-            )
         };
     }
 }

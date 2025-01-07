@@ -25,6 +25,7 @@
     public Dictionary<SkillTypes, int> Skills { get; set; }
     public Inventory Inventory { get; set; }
     public Equipment Equipment { get; set; }
+    public int Level { get; set; } = 1;
 
     public PlayerState()
     {

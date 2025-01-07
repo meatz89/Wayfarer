@@ -25,18 +25,16 @@ public partial class EncounterViewBase : ComponentBase
 
     public void HandleChoiceSelection(UserEncounterChoiceOption choice)
     {
-        if (choice.EncounterChoice.Requirement != null &&
-            !choice.EncounterChoice.Requirement.IsSatisfied(GameState.Player))
+        var reqs = choice.EncounterChoice.Requirements;
+        foreach (var req in reqs)
         {
-            return;
-        }
+            if (req != null && req.IsSatisfied(GameState.Player))
+            {
+                return;
+            }
 
-        GameManager.ExecuteEncounterChoice(choice);
-        OnEncounterCompleted.InvokeAsync();
-    }
-
-    public bool IsRequirementMet(UserEncounterChoiceOption choice)
-    {
-        return choice.EncounterChoice.Requirement?.IsSatisfied(GameState.Player) ?? true;
+            GameManager.ExecuteEncounterChoice(choice);
+            OnEncounterCompleted.InvokeAsync();
+        };
     }
 }

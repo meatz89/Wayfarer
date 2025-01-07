@@ -3,6 +3,7 @@
     private string name;
     private BasicActionTypes actionType;
     private LocationNames locationName;
+    private CharacterNames? character;
 
     public LocationSpotBuilder(LocationNames locationName)
     {
@@ -21,6 +22,13 @@
         return this;
     }
 
+    public LocationSpotBuilder WithCharacter(CharacterNames? character)
+    {
+        this.character = character;
+        return this;
+    }
+
+
     public LocationSpot Build()
     {
         // Validation: Ensure name and actionType are set
@@ -29,6 +37,11 @@
             throw new InvalidOperationException("LocationSpot must have a name.");
         }
 
-        return new LocationSpot(name, locationName, actionType);
+        LocationSpot locationSpot = new LocationSpot(name, locationName, actionType);
+        if (character != null)
+        {
+            locationSpot.Character = character;
+        }
+        return locationSpot;
     }
 }

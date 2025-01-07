@@ -1,23 +1,25 @@
 ﻿public class ActionState
 {
     public UserActionOption CurrentUserAction { get; private set; }
-
     public List<UserActionOption> GlobalActions { get; private set; } = new();
     public List<UserActionOption> LocationSpotActions { get; private set; } = new();
     public List<UserActionOption> CharacterActions { get; private set; } = new();
     public List<UserActionOption> QuestActions { get; private set; } = new();
-
     public ActionResult LastActionResult { get; private set; }
     public ActionResultMessages LastActionResultMessages { get; private set; }
 
     public List<Quest> ActiveQuests { get; set; }
-
     public Encounter CurrentEncounter { get; private set; }
     public List<UserEncounterChoiceOption> EncounterChoiceOptions { get; private set; } = new();
 
     public void SetActiveEncounter(Encounter encounter)
     {
         this.CurrentEncounter = encounter;
+    }
+
+    public Encounter GetCurrentEncounter()
+    {
+        return this.CurrentEncounter;
     }
 
     public void SetEncounterChoiceOptions(List<UserEncounterChoiceOption> choiceOptions)

@@ -37,5 +37,6 @@
         .AddLocationSpot(spot => spot
             .WithName("Rooms")
             .ForActionType(BasicActionTypes.Rest))
+        .WithDifficultyLevel(1)
         .Build();
 }

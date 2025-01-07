@@ -49,13 +49,9 @@ public class GameManager
     public void UpdateState()
     {
         gameState.Actions.ClearCurrentUserAction();
-
         UpdateActiveQuests();
-
         UpdateLocationTravelOptions();
-
         UpdateLocationSpotOptions();
-
         UpdateAvailableActions();
     }
 
@@ -159,6 +155,7 @@ public class GameManager
         gameState.Actions.ActiveQuests = quests;
     }
 
+
     public void SetEncounterChoices(Encounter encounter)
     {
         EncounterStage stage = EncounterSystem.GetCurrentStage(encounter);
@@ -214,34 +211,52 @@ public class GameManager
     {
         gameState.Actions.SetCurrentUserAction(action);
 
-        // 1. Check context requirements
         if (!ContextEngine.CanExecuteInContext(basicAction))
             return ActionResult.Failure("Current context prevents this action");
 
-        // 2. Update quest progress if applicable
-        QuestSystem.ProcessAction(basicAction);
+        // Generate encounter instead of looking up predefined one
+        Encounter encounter = EncounterSystem.GenerateEncounter(
+            basicAction.ActionType,
+            gameState.World.CurrentLocation,
+            gameState.Player);
 
-        // 3. Apply character relationship effects
-        //CharacterSystem.ProcessActionImpact(basicAction);
+        // Set as active encounter
+        EncounterSystem.SetActiveEncounter(encounter);
 
-        // 4. Execute outcomes and check if day change is needed
-        ActionImplementation modifiedAction = ContextEngine.ProcessActionOutcome(basicAction);
+        // Initialize first stage
+        InitializeEncounter(encounter);
 
-        ActionResultMessages allMessages = MessageSystem.GetAndClearChanges();
-        gameState.Actions.SetLastActionResultMessages(allMessages);
+        return ActionResult.Success("Action started!", new ActionResultMessages());
 
-        LocationNames location = action.Location;
 
-        Encounter encounter = EncounterSystem.GetAvailableEncounter(modifiedAction.ActionType, location);
-        if (encounter != null)
-        {
-            EncounterSystem.SetActiveEncounter(encounter);
-            InitializeEncounter(encounter);
-        }
+        //// 1. Check context requirements
+        //if (!ContextEngine.CanExecuteInContext(basicAction))
+        //    return ActionResult.Failure("Current context prevents this action");
 
-        bool stillAlive = AdvanceTime(1); // Normal time advance
+        //// 2. Update quest progress if applicable
+        //QuestSystem.ProcessAction(basicAction);
 
-        return ActionResult.Success("Action success!", allMessages);
+        //// 3. Apply character relationship effects
+        ////CharacterSystem.ProcessActionImpact(basicAction);
+
+        //// 4. Execute outcomes and check if day change is needed
+        //ActionImplementation modifiedAction = ContextEngine.ProcessActionOutcome(basicAction);
+
+        //ActionResultMessages allMessages = MessageSystem.GetAndClearChanges();
+        //gameState.Actions.SetLastActionResultMessages(allMessages);
+
+        //LocationNames location = action.Location;
+
+        //Encounter encounter = EncounterSystem.GetAvailableEncounter(modifiedAction.ActionType, location);
+        //if (encounter != null)
+        //{
+        //    EncounterSystem.SetActiveEncounter(encounter);
+        //    InitializeEncounter(encounter);
+        //}
+
+        //bool stillAlive = AdvanceTime(1); // Normal time advance
+
+        //return ActionResult.Success("Action success!", allMessages);
     }
 
     public ActionResult TravelToLocation(LocationNames locationName)

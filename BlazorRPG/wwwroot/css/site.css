@@ -626,3 +626,71 @@ body {
 .state-preview {
     font-family: monospace;
 }
+
+
+.encounter-header {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.encounter-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 10px;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-label {
+    font-weight: bold;
+}
+
+.encounter-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.tooltip {
+    position: absolute;
+    padding: 10px;
+    z-index: 10;
+    width: 300px;
+}
+
+.preview-container {
+    padding: 5px;
+    margin-bottom: 5px;
+}
+
+    .preview-container h4 {
+        margin-top: 0;
+        margin-bottom: 5px;
+    }
+
+.requirements, .costs, .rewards, .encounter-state-changes {
+    margin-bottom: 5px;
+}
+
+.requirement, .cost, .reward {
+    margin-bottom: 2px;
+    padding: 2px;
+    border-radius: 3px;
+}
+
+.requirement {
+    border-left: 3px solid;
+}
+
+.cost {
+    border-left: 3px solid orange;
+}
+
+.reward {
+    border-left: 3px solid blue;
+}
+

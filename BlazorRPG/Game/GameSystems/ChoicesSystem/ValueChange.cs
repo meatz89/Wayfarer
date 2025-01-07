@@ -10,25 +10,4 @@ public class ValueChange
         Amount = amount;
     }
 
-    public void Apply(EncounterStateValues state)
-    {
-        switch (Type)
-        {
-            case ValueTypes.Momentum:
-                state.Momentum += Amount;
-                break;
-            case ValueTypes.Advantage:
-                state.Advantage += Amount;
-                break;
-            case ValueTypes.Understanding:
-                state.Understanding += Amount;
-                break;
-            case ValueTypes.Connection:
-                state.Connection += Amount;
-                break;
-            case ValueTypes.Tension:
-                state.Tension += Amount;
-                break;
-        }
-    }
 }

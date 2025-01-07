@@ -1,14 +1,7 @@
 ﻿public class EncounterStageBuilder
 {
-    private int id;
     private string situationDescription;
     private List<EncounterChoice> choices = new();
-
-    public EncounterStageBuilder WithId(int id)
-    {
-        this.id = id;
-        return this;
-    }
 
     public EncounterStageBuilder WithSituation(string description)
     {
@@ -28,7 +21,6 @@
     {
         return new EncounterStage
         {
-            Id = id,
             Situation = situationDescription,
             Choices = choices
         };

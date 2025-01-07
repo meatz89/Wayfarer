@@ -1,42 +1,34 @@
 ﻿@inherits EncounterViewBase
 
-
 <div class="encounter-container">
     @if (GameState.Actions.CurrentEncounter != null)
     {
-        var encounter = GameState.Actions.CurrentEncounter;
-        var currentStage = GameManager.EncounterSystem.GetCurrentStage(encounter);
-
         <div class="encounter-header">
-            <h2>@encounter.Situation</h2>
+            <h2>@GameState.Actions.CurrentEncounter.Situation</h2>
         </div>
 
         <div class="encounter-stats">
             <div class="stat">
-                <span class="stat-label">Momentum:</span>
-                <span class="stat-value">@encounter.InitialState.Momentum</span>
-            </div>
-            <div class="stat">
                 <span class="stat-label">Advantage:</span>
-                <span class="stat-value">@encounter.InitialState.Advantage</span>
+                <span class="stat-value">@GameState.Actions.CurrentEncounter.InitialState.Advantage</span>
             </div>
             <div class="stat">
                 <span class="stat-label">Understanding:</span>
-                <span class="stat-value">@encounter.InitialState.Understanding</span>
+                <span class="stat-value">@GameState.Actions.CurrentEncounter.InitialState.Understanding</span>
             </div>
             <div class="stat">
                 <span class="stat-label">Connection:</span>
-                <span class="stat-value">@encounter.InitialState.Connection</span>
+                <span class="stat-value">@GameState.Actions.CurrentEncounter.InitialState.Connection</span>
             </div>
             <div class="stat">
                 <span class="stat-label">Tension:</span>
-                <span class="stat-value">@encounter.InitialState.Tension</span>
+                <span class="stat-value">@GameState.Actions.CurrentEncounter.InitialState.Tension</span>
             </div>
         </div>
 
         <div class="encounter-stage">
             <div class="stage-description">
-                @currentStage.Situation
+                @GameManager.EncounterSystem.GetCurrentStage(GameState.Actions.CurrentEncounter).Situation
             </div>
         </div>
 
@@ -55,38 +47,48 @@
 
         @if (showTooltip && hoveredChoice != null)
         {
-            <div class="tooltip">
+            <div class="tooltip" style="left: @mouseX; top: @mouseY">
                 <div class="preview-container">
                     <h4>Choice Preview</h4>
-                    @if (hoveredChoice.EncounterChoice.Requirement != null)
+
+                    @if (hoveredChoice.EncounterChoice.Requirements.Count > 0)
                     {
                         <div class="requirements">
                             <h5>Requirements</h5>
-                            <div class="requirement @(IsRequirementMet(hoveredChoice) ? "positive" : "negative")">
-                                @hoveredChoice.EncounterChoice.Requirement.GetDescription()
-                            </div>
+                            @foreach (var req in hoveredChoice.EncounterChoice.Requirements)
+                            {
+                                <div class="requirement @(req.IsSatisfied(GameState.Player) ? "positive" : "negative")">
+                                    @req.GetDescription()
+                                </div>
+                            }
                         </div>
                     }
 
-                    @if (hoveredChoice.EncounterChoice.Cost != null)
+                    @if (hoveredChoice.EncounterChoice.Costs.Count > 0)
                     {
                         <div class="costs">
                             <h5>Costs</h5>
-                            <div class="cost">
-                                @hoveredChoice.EncounterChoice.Cost.GetDescription()
-                                @hoveredChoice.EncounterChoice.Cost.GetPreview(GameState.Player)
-                            </div>
+                            @foreach (var cost in hoveredChoice.EncounterChoice.Costs)
+                            {
+                                <div class="cost">
+                                    @cost.GetDescription()
+                                    @cost.GetPreview(GameState.Player)
+                                </div>
+                            }
                         </div>
                     }
 
-                    @if (hoveredChoice.EncounterChoice.Reward != null)
+                    @if (hoveredChoice.EncounterChoice.Rewards.Count > 0)
                     {
                         <div class="rewards">
                             <h5>Rewards</h5>
-                            <div class="reward">
-                                @hoveredChoice.EncounterChoice.Reward.GetDescription()
-                                @hoveredChoice.EncounterChoice.Reward.GetPreview(GameState.Player)
-                            </div>
+                            @foreach (var reward in hoveredChoice.EncounterChoice.Rewards)
+                            {
+                                <div class="reward">
+                                    @reward.GetDescription()
+                                    @reward.GetPreview(GameState.Player)
+                                </div>
+                            }
                         </div>
                     }
 
@@ -96,10 +98,6 @@
                             var changes = hoveredChoice.EncounterChoice.EncounterStateChanges;
                             var currentState = GameState.Actions.CurrentEncounter.InitialState;
                         }
-                        <div class="state-change @(changes.Momentum != 0 ? changes.Momentum > 0 ? "positive" : "negative" : "")">
-                            <span class="state-label">Momentum:</span>
-                            <span class="state-preview">@currentState.Momentum → @(currentState.Momentum + changes.Momentum)</span>
-                        </div>
                         <div class="state-change @(changes.Advantage != 0 ? changes.Advantage > 0 ? "positive" : "negative" : "")">
                             <span class="state-label">Advantage:</span>
                             <span class="state-preview">@currentState.Advantage → @(currentState.Advantage + changes.Advantage)</span>
