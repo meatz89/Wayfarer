@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 public partial class EncounterViewBase : ComponentBase
 {
@@ -25,16 +26,32 @@ public partial class EncounterViewBase : ComponentBase
 
     public void HandleChoiceSelection(UserEncounterChoiceOption choice)
     {
-        var reqs = choice.EncounterChoice.Requirements;
-        foreach (var req in reqs)
+        if (choice.EncounterChoice.Requirements.Any(req => !req.IsSatisfied(GameState.Player)))
         {
-            if (req != null && req.IsSatisfied(GameState.Player))
-            {
-                return;
-            }
+            return; // Don't execute if requirements are not met
+        }
 
-            GameManager.ExecuteEncounterChoice(choice);
-            OnEncounterCompleted.InvokeAsync();
-        };
+        // Apply the choice to the encounter
+        GameManager.ExecuteEncounterChoice(choice);
+
+        // The GameManager should have already updated the encounter state,
+        // so we can just trigger a re-render
+        StateHasChanged();
+        OnEncounterCompleted.InvokeAsync();
+    }
+
+    public void OnMouseMove(MouseEventArgs e)
+    {
+        mouseX = e.ClientX + 10;
+        mouseY = e.ClientY + 10;
+    }
+
+    public bool IsRequirementMet(UserEncounterChoiceOption choice)
+    {
+        foreach (Requirement req in choice.EncounterChoice.Requirements)
+        {
+            if (!req.IsSatisfied(GameState.Player)) return false;
+        }
+        return true;
     }
 }
