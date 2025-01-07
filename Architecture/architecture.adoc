@@ -1,0 +1,584 @@
+= Game Logic System Architecture
+:toc:
+
+== 1. Introduction and Goals
+
+=== 1.1 Requirements Overview
+
+The Game Logic System is the core engine for Wayfarer, a medieval-themed life simulation game emphasizing systemic interactions and emergent gameplay. It manages:
+
+- Game state and progression
+- Encounter System: Location-based actions and interactions, driven by dynamic choices.
+- Character relationships and knowledge
+- Resource and energy management
+- Time and schedule systems
+
+=== 1.2 Quality Goals
+
+[%autowidth]
+|===
+|Quality Goal |Motivation |Driver
+
+|Maintainability
+|Clean separation between game logic and external systems. Easy to understand and modify existing code.
+|Development Team
+
+|Extensibility
+|Easy addition of new content (locations, characters, items, encounters, actions, etc.) and new systems (if needed) without altering existing ones.
+|Development Team
+
+|Consistency
+|Predictable and deterministic game mechanics.
+|Game Design
+
+|Performance
+|Efficient state management and calculations, particularly during Encounter resolution.
+|Technical Lead
+
+|Testability
+|Isolated core logic for comprehensive testing, particularly for the Encounter System.
+|QA Team
+|===
+
+=== 1.3 Stakeholders
+
+[%autowidth]
+|===
+|Role |Expectations
+
+|Development Team
+|Clean architecture with clear boundaries between systems. Well-defined extension points.
+
+|Game Designers
+|Flexible system that supports complex gameplay mechanics, particularly the Encounter system and its impact on player progression.
+
+|Content Writers
+|Clear interfaces for integrating narrative content into Encounters and the ability to create diverse choices and outcomes.
+
+|QA Team
+|Testable and predictable behavior, with deterministic outcomes for all actions and choices.
+
+|Players
+|Consistent and engaging gameplay experience with meaningful choices that have clear consequences.
+|===
+
+== 2. Architecture Constraints
+
+=== 2.1 Technical Constraints
+
+- Strongly-typed C# implementation
+- No direct UI dependencies (UI interacts through data structures and events)
+- Pure game logic separated from content generation (content is provided by a dedicated `GameContentProvider`)
+- Deterministic outcomes for all actions and Encounter choices
+- Use of enums and immutable data structures where appropriate
+- Adherence to Domain-Driven Design principles (Entities and Value Objects)
+
+=== 2.2 Organizational Constraints
+
+- Must support external content creation pipeline (e.g., using builders)
+- Must facilitate automated testing
+- Must enable clear separation between content and mechanics
+
+== 3. System Scope and Context
+
+=== 3.1 Business Context
+
+[plantuml,"business-context",svg]
+----
+@startuml
+actor "Game UI" as UI
+actor "Content System" as CS
+component [Game Logic System] as GLS
+UI --> GLS : "Executes actions"
+CS --> GLS : "Provides content data"
+GLS --> UI : "Provides game state"
+@enduml
+----
+
+[%autowidth]
+|===
+|Element |Description
+
+|Game Logic System
+|Core system managing game rules, state, and the Encounter system.
+
+|Game UI
+|External system handling player interaction and display.
+
+|Content System
+|External system (or potentially a set of classes within the Game Logic System) providing game content data.
+|===
+
+=== 3.2 Technical Context
+
+[plantuml,"technical-context",svg]
+----
+@startuml
+left to right direction
+actor "Player" as Player
+
+rectangle "UI System" as UI {
+}
+
+rectangle "Game Logic System" as GLS {
+  component "GameManager" as GameManager
+}
+
+database "Content Store" as CS
+
+Player - UI
+UI -- GameManager : Interacts with
+CS -- GLS : Provides Data
+@enduml
+----
+
+Explanation:
+
+Player: The external actor interacting with the game.
+UI System: Represents the user interface, which is an external system from the perspective of the Game Logic System. It handles player input and displays the game state.
+Game Logic System (GLS): This is our main system. It contains all the core game logic, including the GameManager, EncounterSystem, and all other subsystems.
+GameManager: The entry point for the UI into the Game Logic System.
+Content Store: An external data source (could be a database, files, etc.) that provides the game content (locations, characters, items, encounter definitions, etc.) to the GameContentProvider.
+
+== 4. Solution Strategy
+
+The system employs several key strategic decisions:
+
+1.  State Isolation: `GameState` class contains all mutable game state with no external dependencies.
+2.  Clean Actions: `GameManager` handles all state modifications through well-defined actions, primarily by initiating and resolving Encounters.
+3.  Content Independence: Location, character, and item systems are populated at startup but operate independently of content generation. A `GameContentProvider` is responsible for loading content.
+4.  Deterministic Design: All game mechanics, especially Encounter choices and outcomes, produce predictable results based on the current state.
+5.  Encounter System: The core gameplay loop revolves around the Encounter System, which manages dynamic, multi-stage interactions with deterministic choices and outcomes based on Narrative Values and player resources.
+6.  Action System: The `ActionSystem` handles the execution of actions, including applying modifiers from items and other sources.
+7. Message System: The `MessageSystem` manages system messages and action result messages.
+
+== 5. Building Block View
+
+=== 5.1 Level 1
+
+You're absolutely right. The previous Building Block View diagrams were still too granular and would lead to excessive documentation maintenance. We need to focus on architecturally significant components and abstract away less critical details.
+
+Here's a revised Building Block View that adheres to the arc42 principles more effectively, focusing on higher-level components and their relationships:
+
+[plantuml,"building-blocks-1",svg]
+----
+@startuml
+left to right direction
+package "Game Logic System" {
+  component "GameManager" as GameManager
+  component "GameState" as GameState
+  component "Content Management" as ContentManagement
+  component "World Simulation" as WorldSimulation
+  component "Encounter System" as EncounterSystem
+}
+
+GameManager -- GameState : Modifies
+GameManager -- EncounterSystem : Triggers and Manages
+GameManager -- WorldSimulation : Uses data from
+ContentManagement -- WorldSimulation : Provides data to
+ContentManagement -- EncounterSystem : Provides data to
+@enduml
+----
+
+**Explanation of Components:**
+
+*   **GameManager:** The central orchestrator of the game logic. It receives input from the UI, triggers and manages Encounters, and updates the `GameState`. It's the main entry point for external systems.
+*   **GameState:** Holds all mutable data of the game, including the player's state, world state, and any other persistent information. It does not contain any logic, but only data structures
+*   **Content Management:**  Responsible for loading, storing, and providing access to static game content like locations, characters, items, and encounter definitions. This abstracts away the `GameContentProvider` and the details of how content is stored.
+*   **World Simulation:** This component encapsulates the systems responsible for the simulation of the game world, including:
+    *   **LocationSystem:**  Manages location data and rules.
+    *   **CharacterSystem:** Manages character data and AI.
+    *   **TimeState:** Manages the flow of time.
+    *   **KnowledgeState:** Manages the player's knowledge
+*   **Encounter System:** This component encapsulates all logic related to Encounters:
+    *   **Encounter Generation:** Creating new Encounters based on context.
+    *   **Choice Generation:**  Generating choices for each stage of an Encounter.
+    *   **Narrative Value Calculation:** Updating Narrative Values based on player choices.
+    *   **Applying Choice Effects**
+
+**Relationships:**
+
+*   **GameManager modifies GameState:**  The `GameManager` makes all changes to the `GameState`, ensuring a single point of control over state mutations.
+*   **GameManager triggers and manages EncounterSystem:** The `GameManager` initiates and controls the flow of Encounters.
+*   **GameManager uses data from World Simulation:** `GameManager` uses data from `World Simulation` to make decisions.
+*   **Content Management provides data to World Simulation:** The `Content Management` component provides static data to populate and define the `World Simulation` systems.
+*   **Content Management provides data to Encounter System:** The `Content Management` component provides static data, including encounter definitions to the `Encounter System`.
+
+== 6. Runtime View
+
+=== 6.1 Encounter Execution Flow
+
+[plantuml,"sequence1",svg]
+----
+@startuml
+participant "UI" as UI
+participant "GameManager" as GM
+participant "EncounterSystem" as ES
+participant "GameState" as GS
+participant "LocationSystem" as LS
+participant "ChoiceSystem" as CS
+participant "ActionSystem" as AS
+
+UI -> GM: ExecuteAction(actionData)
+GM -> LS: GetCurrentLocation()
+LS --> GM: currentLocation  
+GM -> ES: StartEncounter(currentLocation, actionData)
+ES -> ES: Initialize Encounter (Narrative Values, Difficulty)
+ES -> CS: Generate Choices (Context, Narrative Values, Player State)
+CS -> ES: Generated Choices
+ES --> GM: Encounter Stage Details (Situation, Choices)
+GM --> UI: PresentEncounterStage(Stage Details)
+UI -> GM: SelectChoice(choiceIndex)
+GM -> ES: ApplyChoice(choiceIndex)
+ES -> AS: ExecuteChoiceEffects(choice, playerState)
+AS -> GS: Update Player Energy/Stats/Items
+AS -> MessageSystem: Generate Messages
+ES -> ES: Check for Encounter End (Advantage 10 or Player Forced to Quit)
+ES --> GM: EncounterResult OR Next Stage Details
+GM --> UI: UpdateGameState or PresentNextEncounterStage
+@enduml
+----
+
+=== 6.2 Knowledge Acquisition Flow
+
+[plantuml,"sequence2",svg]
+----
+@startuml
+participant "UI" as UI
+participant "GameManager" as AM
+participant "LocationSystem" as LS
+participant "GameState" as GS
+
+UI -> AM: ExecuteInvestigateAction()
+AM -> LS: GetLocationKnowledgeOptions()
+LS --> AM: knowledgeOptions
+AM -> GS: CheckExistingKnowledge()
+GS --> AM: currentKnowledge
+AM -> AM: DetermineOutcome()
+AM -> GS: UpdateKnowledge()
+GS --> AM: newState
+AM --> UI: investigationResult
+@enduml
+----
+
+=== 6.3 State Change Processing
+
+The system uses a two-phase state change approach:
+
+1.  Pending Changes Phase:
+    - Changes are collected in `ActionResultMessages`. This now includes changes resulting from Encounter choices.
+    - Multiple outcomes can be queued.
+    - No state is modified.
+
+2.  Application Phase:
+    - Changes are applied atomically to the `GameState`.
+    - Results are validated.
+    - Changes generate new messages via the `MessageSystem`
+    - Process repeats until no new changes.
+
+This ensures consistent state transitions and proper change propagation.
+
+=== 6.4 Action Execution Flow (Requirements Check)
+
+[plantuml,"sequence3",svg]
+----
+@startuml
+participant "UI" as UI
+participant "GameManager" as AM
+participant "ActionValidator" as REQ
+participant "GameState" as GS
+participant "ActionSystem" as AS
+
+UI -> AM: ExecuteAction
+AM -> REQ: ValidateRequirements
+REQ -> GS: CheckResources
+GS --> REQ: ValidationResult
+REQ --> AM: Requirements Met/Not Met
+AM -> AS: ExecuteAction
+AS --> AM: ActionResult
+AM --> UI: ActionResult
+@enduml
+----
+
+== 7. Cross-cutting Concepts
+
+=== 7.1 Domain Models
+
+Core domain models include:
+
+-   Encounters: (Dynamic, multi-stage interactions replacing the old action system)
+-   Narrative Values: (Advantage, Understanding, Connection, Tension - temporary values within an Encounter)
+-   Actions (INVESTIGATE, LABOR, DISCUSS, etc. - now trigger Encounters)
+-   Knowledge Flags (binary states that unlock capabilities)
+-   Energy Types (Physical, Social, Focus)
+-   Time Windows (Morning, Afternoon, Evening, Night)
+-   Location Archetypes (TAVERN, MARKET, FOREST, etc.)
+-   Location Spots (Bar, Tables, Fireplace, etc.)
+-   Action Templates (with Basic Action Types)
+-   Items
+-   Characters
+-   Quests
+-   Reputation
+-   Player Statuses
+-   Achievements
+
+=== 7.2 State Management
+
+-   `GameState` is the single source of truth.
+-   All state modifications go through `GameManager`, primarily via the `EncounterSystem`.
+-   State changes are atomic and deterministic.
+-   External systems can only read state.
+-   State is structured to support efficient queries and updates.
+
+=== 7.3 Exception Handling
+
+-   Validation errors returned as Results (e.g., using a `Result<T>` type).
+-   No exceptions for expected failure cases (e.g., insufficient resources, failing an Encounter due to low Advantage).
+-   System exceptions only for true errors (e.g., null references, unexpected data).
+
+=== 7.4 Content Creation Pattern
+
+The system employs a comprehensive builder pattern for game content:
+
+-   `LocationBuilder`: Constructs location definitions.
+-   `CharacterBuilder`: Creates character definitions.
+-   `ActionTemplateBuilder`: Defines available action templates with Basic Action Types.
+-   `EncounterBuilder`: Constructs Encounter definitions, including stages and choices.
+-   `NarrativeBuilder`: Constructs narrative sequences.
+-   `LocationContextBuilder`: Creates Location Contexts
+- `ItemBuilder`: Creates item definitions
+
+This provides:
+
+-   Type-safe content creation.
+-   Consistent validation.
+-   Flexible composition.
+
+=== 7.5 Encounter Generation
+
+Encounters are generated on demand by the `EncounterSystem` when the player initiates an action in a location. The generator uses:
+
+-   The Location and its current Context.
+-   The Action Type selected by the player.
+-   The Location Spot the player is interacting with.
+-   The current World State (e.g., Time of Day).
+-   The Player's State (Skills, Inventory, Relationships, Reputation, Energy, etc.).
+-     Narrative Value   mechanics and rules.
+-     Choice System   which generates choices based on the current   Encounter   context and state.
+
+This ensures that:
+
+-   Only valid Encounters are generated in a given location and context.
+-   Costs, rewards, and Narrative Value changes are contextually appropriate and deterministic.
+-   Encounters are transient and do not need to be persisted.
+-   Encounters adapt to the player's state and previous choices, creating a dynamic experience.
+
+  7.6. Choice Generation  
+
+The `ChoiceSystem` is responsible for generating choices within each stage of an `Encounter`. It uses the `EncounterGenerator` to assist in this process.
+
+-     Choice Types  :
+    -     Basic Choices:   Offer straightforward gains, usually in `Advantage`, with an `Energy` cost and potential `Tension` increase.
+    -     Strategic Choices:   Allow building `Understanding` or `Connection` or managing `Tension`, often with lower `Energy` cost but less `Advantage` gain.
+    -     Special Choices:    Unlocked by meeting specific conditions based on high `Narrative Values`, `Skills`, `Items`, `Knowledge`, or `Reputation`. These choices offer significant benefits but might have higher costs or prerequisites.
+
+-     Choice Generation Rules:  
+    -   Each stage offers 3-4 choices.
+    -   1-2 Basic Choices are always included.
+    -   0-1 Strategic Choice is included, based on context and current `Narrative Values`.
+    -   0-1 Special Choice is included if the player meets the requirements.
+
+-     Deterministic Outcomes:   Each choice has clearly defined and deterministic effects on `Narrative Values`, `Energy`, and potentially other game state elements (e.g. `Reputation`, `Relationships`).
+
+  7.7 Narrative Value Mechanics  
+
+-     Advantage (0-10):  
+    -   Starts at `5 + (Player Level - Encounter Difficulty)`.
+    -   Reaching 10 `Advantage` wins the `Encounter`.
+    -   High `Advantage` (8+) unlocks powerful choices.
+    -   Low `Advantage` (0-2) reduces choice effectiveness.
+    -   Modified by `Connection` value.
+
+-     Understanding (0-10):  
+    -   Starts at 0.
+    -   Increased through investigation, observation, and learning choices.
+    -   High `Understanding` (6+) unlocks choices to reduce `Tension` and may reveal hidden information or unlock "Expert Moves."
+    -   Low `Understanding` limits options.
+
+-     Connection (0-10):  
+    -   Starts at 5.
+    -   Increased by building rapport, helping others, or leveraging relationships.
+    -   Decreased by damaging relationships or through selfish choices.
+    -   Modifies `Advantage` gains from   all   choices:
+        -   8-10: +2 `Advantage`
+        -   5-7: +1 `Advantage`
+        -   0-4: +0 `Advantage`
+    -   High `Connection` (7+) unlocks "Social Moves" and provides bonus `Reputation`/`Trust`.
+    -   Low `Connection` may cause `Reputation`/`Trust` loss.
+
+-     Tension (0-10):  
+    -   Starts at 0.
+    -   Increased by risky, urgent, or conflict-driven choices.
+    -   High `Tension` (6+) increases all `Energy` costs by +1 and unlocks "Power Moves."
+    -   Can only be reduced through choices unlocked by high `Understanding`.
+
+  7.8 Energy System  
+
+-     Energy Types:   `Physical`, `Focus`, `Social`.
+-     Energy Costs:   Choices have `Energy` costs based on the `Encounter` type and context.
+-     Depleted Energy:  
+    -   `Physical Energy` (0): Choices cost 1 `Health`.
+    -   `Focus Energy` (0): Choices cost 1 `Stress`.
+    -   `Social Energy` (0): Choices cost 1 `Reputation`.
+-     Tension Modifier:   High `Tension` (6+) increases all `Energy` costs by +1.
+
+== 8. Architectural Decisions
+
+=== 8.1 Strict State Isolation
+
+`GameState` has no dependencies on other systems to ensure clean separation and testability.
+
+=== 8.2 Content Independence
+
+Location, character, and item systems are populated at startup but operate independently of content generation. The `GameContentProvider` handles loading this content.
+
+=== 8.3 Deterministic Design
+
+All game mechanics, especially   Encounter   choices and outcomes, are deterministic. The same choices in the same state will always produce the same results.
+
+=== 8.4 Energy Management
+
+The game features distinct energy types:
+
+-   `Physical Energy`: Manual labor and physical tasks.
+-   `Focus Energy`: Investigation, observation, and mental tasks.
+-   `Social Energy`: Character interactions and social actions.
+
+Each energy type:
+
+-   Has a maximum capacity.
+-   Regenerates through rest.
+-   Is consumed by specific actions within   Encounters.
+-   Depletion leads to penalties (Health, Stress, or Reputation loss).
+
+=== 8.5 Game Initialization
+
+The system uses a `GameSetup` class to create consistent initial states:
+
+-   Starting resources (health, energy, coins).
+-   Initial location setup.
+-   Basic action availability.
+-   Starting inventory capacity.
+-   Default skill levels.
+
+=== 8.6 Resource System
+
+Resources are managed through:
+
+-   Fixed or dynamic inventory slots.
+-   Resource types enumeration.
+-   Add/remove validation.
+-   Capacity tracking.
+-   Resource transformation rules (e.g., combining herbs to create potions).
+
+=== 8.7 Encounter System
+
+The   Encounter System   is the core of the gameplay loop, driving dynamic interactions and emergent narrative through:
+
+-     Narrative Values:   `Advantage`, `Understanding`, `Connection`, and `Tension` track the player's progress and the state of the `Encounter`.
+-     Deterministic Choices:    Choices have clearly defined costs and rewards, with outcomes determined by the current game state.
+-     Contextual Generation:   `Encounters`, stages, and choices are generated based on the location, action type, time of day, player state, and current `Narrative Values`.
+
+== 9. Quality Requirements
+
+[%autowidth]
+|===
+|Quality Goal |Scenario
+
+|Maintainability
+|New Encounter types can be added without modifying existing code. New choices can be easily added to existing Encounters.
+
+|Extensibility
+|New location/character types can be integrated without core changes. New Narrative Values could be added with appropriate modifications to existing systems. New item types and modifiers can be created.
+
+|Consistency
+|Same inputs (choices within Encounters) always produce the same outputs (changes to Narrative Values, Energy, and player stats).
+
+|Testability
+|All game logic, especially Encounter generation and resolution, can be tested without UI or content dependencies. The deterministic nature of the system facilitates thorough testing.
+|===
+
+== 10. Risks and Technical Debt
+
+=== 10.1 Encounter and Choice Generation Complexity
+
+Ensuring that the `EncounterSystem` and `ChoiceSystem` generate varied, balanced, and engaging Encounters with meaningful choices across all possible contexts will require careful design, thorough testing, and likely iterative refinement. The complexity of interactions between `Narrative Values`, `Skills`, `Items`, `Knowledge`, and `Reputation` needs to be managed carefully.
+
+=== 10.2 Balancing
+
+Balancing Narrative Values, Energy costs, choice rewards, encounter difficulty, and the overall progression curve will require extensive playtesting and adjustments.
+
+=== 10.3 Narrative Value Interactions
+
+While the core interactions between Advantage, Understanding, Connection, and Tension are defined, edge cases and unexpected combinations might emerge during development, requiring adjustments to the system.
+
+== 11. Glossary
+
+[%autowidth]
+|===
+|Term |Definition
+
+|`GameState`
+|Central class holding all mutable game state.
+
+|`GameManager`
+|Coordinates all state modifications, primarily through the `EncounterSystem`.
+
+|`LocationSystem`
+|Manages definitions and rules for game locations (Entities).
+
+|`CharacterSystem`
+|Manages definitions and rules for game characters (Entities).
+
+|`ItemSystem`
+|Manages definitions and rules for game items (Entities).
+
+|`EncounterSystem`
+|Generates and manages dynamic, multi-stage interactions (  Encounters  ).
+
+|`ChoiceSystem`
+|Generates choices within each stage of an   Encounter.
+
+|`EncounterGenerator`
+|Assists the `EncounterSystem` and `ChoiceSystem` in generating Encounters, stages, and choices.
+
+|`ActionSystem`
+|Handles the execution of actions, including applying modifiers.
+
+|`MessageSystem`
+|Manages and processes system messages and action result messages.
+
+|`Encounter`
+|A dynamic, multi-stage interaction triggered by player actions.
+
+|`Narrative Values`
+|Temporary values that govern the flow and outcome of an   Encounter   (Advantage, Understanding, Connection, Tension).
+
+|`Knowledge Flag`
+|Binary state indicating specific player knowledge.
+
+|`Energy Type`
+|Resource used for performing actions (Physical, Social, Focus).
+
+|`Action Template`
+|Defines the basic structure and logic of an action. Now used for determining the encounter type.
+
+|`Location Spot`
+|A specific area within a location where actions can be performed.
+
+|`Location Archetype`
+|A template for a type of location, defining typical activities and resources.
+
+|`Location Properties`
+|Attributes of a location that modify Encounters.
+|===
