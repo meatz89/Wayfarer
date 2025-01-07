@@ -51,7 +51,7 @@
 
     public LocationBuilder WithLocationProperties(Action<LocationPropertiesBuilder> buildProperties)
     {
-        var builder = new LocationPropertiesBuilder();
+        LocationPropertiesBuilder builder = new LocationPropertiesBuilder();
         buildProperties(builder);
 
         locationProperties = builder.Build();

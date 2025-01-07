@@ -4,7 +4,7 @@
 $ScriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
 # Define the file types to search for
-$fileExtensions = @("cshtml.cs", "cshtml", "cs", "html", "css")
+$fileExtensions = @("cshtml", "cs", "html", "css")
 
 # Loop through each file extension
 foreach ($extension in $fileExtensions) {

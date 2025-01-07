@@ -2,7 +2,6 @@
 {
     private readonly GameState gameState;
     private readonly List<Quest> allQuests = new();
-    private readonly ActionSystem contextEngine;
     private readonly ActionValidator actionValidator;
     private readonly List<Quest> activeQuests = new();
     private readonly int maxActiveQuests = 3;  // Fixed limit
@@ -11,11 +10,9 @@
     public QuestSystem(
         GameState gameState,
         GameContentProvider contentProvider,
-        ActionSystem contextEngine,
         ActionValidator actionValidator)
     {
         this.gameState = gameState;
-        this.contextEngine = contextEngine;
         this.actionValidator = actionValidator;
         this.allQuests = contentProvider.GetQuests();
 

@@ -1,6 +1,4 @@
-﻿
-
-public class ActionResultMessages
+﻿public class ActionResultMessages
 {
     // Store the actual outcomes that were applied
     public List<Outcome> Outcomes { get; init; } = new();

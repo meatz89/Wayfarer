@@ -1,6 +1,6 @@
 ﻿public class StatusSystem
 {
-    private List<PlayerStatusTypes> activeStatuses;  // Fixed-size array of current statuses
+    private List<PlayerStatusTypes> activeStatuses;
 
     public void ApplyStatus(PlayerStatusTypes status)
     {

@@ -335,25 +335,25 @@ body {
 }
 
 
-/* Narrative */
-.narrative-container {
+/* Encounter */
+.encounter-container {
     background-color: var(--bg-panel);
     padding: 20px;
     border-radius: 5px;
     margin: 20px 0;
 }
 
-.narrative-header {
+.encounter-header {
     margin-bottom: 20px;
 }
 
-    .narrative-header h2 {
+    .encounter-header h2 {
         color: var(--text-primary);
         font-size: 1.5rem;
         margin: 0;
     }
 
-.narrative-stats {
+.encounter-stats {
     display: flex;
     gap: 20px;
     background-color: var(--bg-card);
@@ -380,7 +380,7 @@ body {
     font-weight: bold;
 }
 
-.narrative-stage {
+.encounter-stage {
     background-color: var(--bg-card);
     padding: 20px;
     border-radius: 4px;
@@ -392,7 +392,7 @@ body {
     line-height: 1.6;
 }
 
-.narrative-choices {
+.encounter-choices {
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -467,24 +467,24 @@ body {
     color: var(--resource-health);
 }
 
-.narrative-container {
+.encounter-container {
     background-color: var(--bg-panel);
     padding: 20px;
     border-radius: 5px;
     margin: 20px 0;
 }
 
-.narrative-header {
+.encounter-header {
     margin-bottom: 20px;
 }
 
-    .narrative-header h2 {
+    .encounter-header h2 {
         color: var(--text-primary);
         font-size: 1.5rem;
         margin: 0;
     }
 
-.narrative-stats {
+.encounter-stats {
     display: flex;
     gap: 20px;
     background-color: var(--bg-card);
@@ -511,7 +511,7 @@ body {
     font-weight: bold;
 }
 
-.narrative-stage {
+.encounter-stage {
     background-color: var(--bg-card);
     padding: 20px;
     border-radius: 4px;
@@ -523,7 +523,7 @@ body {
     line-height: 1.6;
 }
 
-.narrative-choices {
+.encounter-choices {
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -598,7 +598,7 @@ body {
     color: var(--resource-health);
 }
 
-.narrative-state-changes {
+.encounter-state-changes {
     margin-top: 15px;
     padding-top: 15px;
     border-top: 1px solid var(--bg-panel);

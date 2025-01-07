@@ -20,7 +20,6 @@ public partial class GameUI : ComponentBase
     public int maxHealth => GameState.Player.MaxHealth;
     public int coins => GameState.Player.Coins;
     public int food => GameState.Player.Inventory.GetItemCount(ResourceTypes.Food);
-    public bool hasShelter => false;
 
     public List<Location> Locations => GameManager.GetAllLocations();
 
@@ -29,9 +28,6 @@ public partial class GameUI : ComponentBase
     public LocationSpot CurrentSpot => GameState.World.CurrentLocationSpot;
     public TimeSlots CurrentTime => GameState.World.CurrentTimeSlot;
     public int CurrentHour => GameState.World.CurrentTimeInHours;
-
-    public UserActionOption CurrentUserAction => GameState.Actions.CurrentUserAction;
-    public List<UserLocationTravelOption> CurrentTravelOptions => GameState.World.CurrentTravelOptions;
 
     // Tooltip Logic
     public bool showAreaMap = true;
@@ -46,12 +42,12 @@ public partial class GameUI : ComponentBase
         GameManager.StartGame();
     }
 
-    public bool HasNarrative()
+    public bool HasEncounter()
     {
-        return GameState.Actions.CurrentNarrative != null;
+        return GameState.Actions.CurrentEncounter != null;
     }
 
-    private void HandleNarrativeCompleted()
+    private void HandleEncounterCompleted()
     {
         // Force a re-render of the GameUI component
         StateHasChanged();
@@ -65,19 +61,6 @@ public partial class GameUI : ComponentBase
         }
 
         return string.Empty;
-    }
-
-    public string GetActionDescription(UserActionOption userActionOption)
-    {
-        string description = string.Empty;
-
-        if (userActionOption.IsDisabled)
-        {
-            description = "";
-        }
-
-        description += userActionOption.Description;
-        return description;
     }
 
     public List<string> GetResultMessages()
@@ -136,20 +119,6 @@ public partial class GameUI : ComponentBase
     {
         return GameState.Actions.ActiveQuests;
     }
-
-    //private void HandleNarrativeChoice(int choiceIndex)
-    //{
-    //    ActionResult result = ActionManager.MakeChoiceForNarrative(
-    //        GameState.CurrentNarrative,
-    //        GameState.CurrentNarrativeStage,
-    //        choiceIndex);
-
-
-    //    if (result.IsSuccess)
-    //    {
-    //        CompleteActionExecution();
-    //    }
-    //}
 
     private void HandleSpotSelection(LocationSpot locationSpot)
     {

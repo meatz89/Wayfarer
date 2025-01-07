@@ -1,5 +1,4 @@
-﻿
-public class ScheduleBuilder
+﻿public class ScheduleBuilder
 {
     private TimeSlots timeWindow;
     private LocationNames locationName;

@@ -1,12 +1,12 @@
 ﻿public class LocationProperties
 {
-    public ScaleVariations? Scale { get; set; }
+    public ScaleVariationTypes? Scale { get; set; }
     public bool IsScaleSet { get; private set; } = false;
-    public ExposureConditions? Exposure { get; set; }
+    public ExposureConditionTypes? Exposure { get; set; }
     public bool IsExposureSet { get; private set; } = false;
     public LegalityTypes? Legality { get; set; }
     public bool IsLegalitySet { get; private set; } = false;
-    public TensionState? Tension { get; set; }
+    public TensionStateTypes? Tension { get; set; }
     public bool IsTensionSet { get; private set; } = false;
     public ComplexityTypes? Complexity { get; set; }
     public bool IsComplexitySet { get; private set; } = false;
@@ -14,32 +14,32 @@
     public bool IsArchetypeSet { get; private set; } = false;
     public ResourceTypes? Resource { get; set; }
     public bool IsResourceSet { get; private set; } = false;
-    public CrowdLevel? CrowdLevel { get; set; }
+    public CrowdLevelTypes? CrowdLevel { get; set; }
     public bool IsCrowdLevelSet { get; private set; } = false;
     public ReputationTypes ReputationType { get; set; }
     public bool IsReputationTypeSet { get; private set; } = false;
 
-    public object GetProperty(LocationPropertyType propertyType)
+    public object GetProperty(LocationPropertyTypes propertyType)
     {
         switch (propertyType)
         {
-            case LocationPropertyType.Scale:
+            case LocationPropertyTypes.Scale:
                 return Scale;
-            case LocationPropertyType.Exposure:
+            case LocationPropertyTypes.Exposure:
                 return Exposure;
-            case LocationPropertyType.Legality:
+            case LocationPropertyTypes.Legality:
                 return Legality;
-            case LocationPropertyType.Tension:
+            case LocationPropertyTypes.Tension:
                 return Tension;
-            case LocationPropertyType.Complexity:
+            case LocationPropertyTypes.Complexity:
                 return Complexity;
-            case LocationPropertyType.Archetype:
+            case LocationPropertyTypes.Archetype:
                 return Archetype;
-            case LocationPropertyType.Resource:
+            case LocationPropertyTypes.Resource:
                 return Resource;
-            case LocationPropertyType.CrowdLevel:
+            case LocationPropertyTypes.CrowdLevel:
                 return CrowdLevel;
-            case LocationPropertyType.ReputationType:
+            case LocationPropertyTypes.ReputationType:
                 return ReputationType;
             default:
                 throw new ArgumentException($"Unknown property type: {propertyType}");
@@ -47,43 +47,43 @@
     }
 
     // SetProperty now also sets the corresponding IsSet flag
-    public void SetProperty(LocationPropertyType propertyType, object value)
+    public void SetProperty(LocationPropertyTypes propertyType, object value)
     {
         switch (propertyType)
         {
-            case LocationPropertyType.Scale:
-                Scale = (ScaleVariations)value;
+            case LocationPropertyTypes.Scale:
+                Scale = (ScaleVariationTypes)value;
                 IsScaleSet = true;
                 break;
-            case LocationPropertyType.Exposure:
-                Exposure = (ExposureConditions)value;
+            case LocationPropertyTypes.Exposure:
+                Exposure = (ExposureConditionTypes)value;
                 IsExposureSet = true;
                 break;
-            case LocationPropertyType.Legality:
+            case LocationPropertyTypes.Legality:
                 Legality = (LegalityTypes)value;
                 IsLegalitySet = true;
                 break;
-            case LocationPropertyType.Tension:
-                Tension = (TensionState)value;
+            case LocationPropertyTypes.Tension:
+                Tension = (TensionStateTypes)value;
                 IsTensionSet = true;
                 break;
-            case LocationPropertyType.Complexity:
+            case LocationPropertyTypes.Complexity:
                 Complexity = (ComplexityTypes)value;
                 IsComplexitySet = true;
                 break;
-            case LocationPropertyType.Archetype:
+            case LocationPropertyTypes.Archetype:
                 Archetype = (LocationArchetype)value;
                 IsArchetypeSet = true;
                 break;
-            case LocationPropertyType.Resource:
+            case LocationPropertyTypes.Resource:
                 Resource = (ResourceTypes?)value;
                 IsResourceSet = true;
                 break;
-            case LocationPropertyType.CrowdLevel:
-                CrowdLevel = (CrowdLevel)value;
+            case LocationPropertyTypes.CrowdLevel:
+                CrowdLevel = (CrowdLevelTypes)value;
                 IsCrowdLevelSet = true;
                 break;
-            case LocationPropertyType.ReputationType:
+            case LocationPropertyTypes.ReputationType:
                 ReputationType = (ReputationTypes)value;
                 IsReputationTypeSet = true;
                 break;

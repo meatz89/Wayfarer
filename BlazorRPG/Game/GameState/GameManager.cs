@@ -7,7 +7,7 @@ public class GameManager
     public GameState gameState;
     private GameRules currentRules;
 
-    public NarrativeSystem NarrativeSystem { get; }
+    public EncounterSystem EncounterSystem { get; }
     public LocationSystem LocationSystem { get; }
     public ActionValidator ActionValidator { get; }
     public ActionSystem ContextEngine { get; }
@@ -17,7 +17,7 @@ public class GameManager
 
     public GameManager(
         GameState gameState,
-        NarrativeSystem narrativeSystem,
+        EncounterSystem encounterSystem,
         LocationSystem locationSystem,
         ActionValidator actionValidator,
         ActionSystem actionSystem,
@@ -29,7 +29,7 @@ public class GameManager
         this.gameState = gameState;
         this.currentRules = GameRules.StandardRuleset;
 
-        this.NarrativeSystem = narrativeSystem;
+        this.EncounterSystem = encounterSystem;
         this.LocationSystem = locationSystem;
         this.ActionValidator = actionValidator;
         this.ContextEngine = actionSystem;
@@ -126,14 +126,7 @@ public class GameManager
         {
             foreach (ActionImplementation action in locationSpot.Actions)
             {
-                UserActionOption userActionOption = new UserActionOption()
-                {
-                    ActionImplementation = action,
-                    Description = action.Name,
-                    IsDisabled = false,
-                    Location = locationSpot.LocationName,
-                    LocationSpot = locationSpot.Name
-                };
+                UserActionOption userActionOption = new UserActionOption(default, action.Name, false, action, locationSpot.LocationName, locationSpot.Name, default);
                 options.Add(userActionOption);
             }
         }
@@ -152,15 +145,7 @@ public class GameManager
             ActionImplementation questAction = step.QuestAction;
             int actionIndex = 1;
 
-            UserActionOption ua = new UserActionOption
-            {
-                ActionImplementation = questAction,
-                Description = questAction.Name,
-                Index = actionIndex++,
-                IsDisabled = false,
-                Location = step.Location,
-                Character = step.Character
-            };
+            UserActionOption ua = new UserActionOption(actionIndex++, questAction.Name, false, questAction, step.Location, default, step.Character);
             userActions.Add(ua);
         }
 
@@ -174,63 +159,54 @@ public class GameManager
         gameState.Actions.ActiveQuests = quests;
     }
 
-    public void SetNarrativeChoices(Narrative narrative)
+    public void SetEncounterChoices(Encounter encounter)
     {
-        NarrativeStage stage = NarrativeSystem.GetCurrentStage(narrative);
-        List<NarrativeChoice> choices = NarrativeSystem.GetCurrentStageChoices(narrative);
+        EncounterStage stage = EncounterSystem.GetCurrentStage(encounter);
+        List<EncounterChoice> choices = EncounterSystem.GetCurrentStageChoices(encounter);
 
-        List<UserNarrativeChoiceOption> choiceOptions = new List<UserNarrativeChoiceOption>();
-        foreach (NarrativeChoice choice in choices)
+        List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
+        foreach (EncounterChoice choice in choices)
         {
-            UserNarrativeChoiceOption option = new UserNarrativeChoiceOption()
-            {
-                Index = choice.Index,
-                Description = choice.Description,
-                Location = narrative.LocationName,
-                Character = narrative.NarrativeCharacter,
-                Narrative = narrative,
-                NarrativeStage = stage,
-                NarrativeChoice = choice
-            };
+            UserEncounterChoiceOption option = new UserEncounterChoiceOption(choice.Index, choice.Description, default, encounter, stage, choice, encounter.LocationName, default, encounter.EncounterCharacter);
 
             choiceOptions.Add(option);
         }
 
-        gameState.Actions.SetNarrativeChoiceOptions(choiceOptions);
+        gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
     }
 
-    public void ExecuteNarrativeChoice(UserNarrativeChoiceOption choiceOption)
+    public void ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
     {
-        Narrative narrative = choiceOption.Narrative;
-        NarrativeChoice choice = choiceOption.NarrativeChoice;
+        Encounter encounter = choiceOption.Encounter;
+        EncounterChoice choice = choiceOption.EncounterChoice;
 
-        NarrativeSystem.ExecuteChoice(narrative, choice);
-        ProceedNarrative(narrative);
+        EncounterSystem.ExecuteChoice(encounter, choice);
+        ProceedEncounter(encounter);
     }
 
-    private void InitializeNarrative(Narrative narrative)
+    private void InitializeEncounter(Encounter encounter)
     {
-        bool hasNextStage = NarrativeSystem.GetNextStage(narrative);
+        bool hasNextStage = EncounterSystem.GetNextStage(encounter);
         if (hasNextStage)
         {
-            SetNarrativeChoices(narrative);
+            SetEncounterChoices(encounter);
         }
         else
         {
-            gameState.Actions.CompleteActiveNarrative();
+            gameState.Actions.CompleteActiveEncounter();
         }
     }
 
-    private void ProceedNarrative(Narrative narrative)
+    private void ProceedEncounter(Encounter encounter)
     {
-        bool hasNextStage = NarrativeSystem.GetNextStage(narrative);
+        bool hasNextStage = EncounterSystem.GetNextStage(encounter);
         if (hasNextStage)
         {
-            SetNarrativeChoices(narrative);
+            SetEncounterChoices(encounter);
         }
         else
         {
-            gameState.Actions.CompleteActiveNarrative();
+            gameState.Actions.CompleteActiveEncounter();
         }
     }
 
@@ -256,11 +232,11 @@ public class GameManager
 
         LocationNames location = action.Location;
 
-        Narrative narrative = NarrativeSystem.GetAvailableNarrative(modifiedAction.ActionType, location);
-        if (narrative != null)
+        Encounter encounter = EncounterSystem.GetAvailableEncounter(modifiedAction.ActionType, location);
+        if (encounter != null)
         {
-            NarrativeSystem.SetActiveNarrative(narrative);
-            InitializeNarrative(narrative);
+            EncounterSystem.SetActiveEncounter(encounter);
+            InitializeEncounter(encounter);
         }
 
         bool stillAlive = AdvanceTime(1); // Normal time advance
@@ -326,12 +302,7 @@ public class GameManager
         for (int i = 0; i < locationSpots.Count; i++)
         {
             LocationSpot locationSpot = locationSpots[i];
-            UserLocationSpotOption locationSpotOption = new UserLocationSpotOption()
-            {
-                Index = i + 1,
-                Location = location.LocationName,
-                LocationSpot = locationSpot.Name
-            };
+            UserLocationSpotOption locationSpotOption = new UserLocationSpotOption(i + 1, location.LocationName, locationSpot.Name);
 
             userLocationSpotOption.Add(locationSpotOption);
         }
@@ -349,11 +320,7 @@ public class GameManager
         {
             LocationNames location = connectedLocations[i];
 
-            UserLocationTravelOption travel = new UserLocationTravelOption()
-            {
-                Index = i + 1,
-                Location = location
-            };
+            UserLocationTravelOption travel = new UserLocationTravelOption(i + 1, location);
 
             userTravelOptions.Add(travel);
         }

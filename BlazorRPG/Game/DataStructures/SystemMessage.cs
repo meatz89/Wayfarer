@@ -1,6 +1,4 @@
-﻿
-// Create a proper class for system messages
-public class SystemMessage
+﻿public class SystemMessage
 {
     public string Message { get; }
     public SystemMessageTypes Type { get; }

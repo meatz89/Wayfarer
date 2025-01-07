@@ -1,9 +1,9 @@
 ﻿public class ValueStateModifierBuilder
 {
-    private readonly NarrativeChoice _choice;
-    private readonly NarrativeStateValues _values;
+    private readonly EncounterChoice _choice;
+    private readonly EncounterStateValues _values;
 
-    public ValueStateModifierBuilder(NarrativeChoice choice, NarrativeStateValues values)
+    public ValueStateModifierBuilder(EncounterChoice choice, EncounterStateValues values)
     {
         _choice = choice;
         _values = values;
@@ -14,7 +14,7 @@
         if (_values.Momentum >= 8)
         {
             _choice.CompletionPoints *= 2;
-            _choice.NarrativeStateChanges.Tension += 1;
+            _choice.EncounterStateChanges.Tension += 1;
 
             // Modify cost if it's an energy outcome
             if (_choice.Cost is EnergyOutcome energyCost)
@@ -31,7 +31,7 @@
         {
             // Clear additional requirements while preserving the main requirement
             _choice.AdditionalRequirements.Clear();
-            _choice.NarrativeStateChanges.Understanding += 1;
+            _choice.EncounterStateChanges.Understanding += 1;
         }
         return this;
     }
@@ -41,7 +41,7 @@
         if (_values.Understanding >= 8)
         {
             _choice.UnlockedOptions.Add("HIDDEN_OPTION");
-            _choice.NarrativeStateChanges.Connection += 1;
+            _choice.EncounterStateChanges.Connection += 1;
         }
         return this;
     }
@@ -51,7 +51,7 @@
         if (_values.Connection >= 8)
         {
             _choice.UnlockedOptions.Add("SPECIAL_REQUEST");
-            _choice.NarrativeStateChanges.Advantage += 1;
+            _choice.EncounterStateChanges.Advantage += 1;
         }
         return this;
     }
@@ -61,12 +61,12 @@
         if (_values.Tension >= 8)
         {
             _choice.CompletionPoints = (int)(_choice.CompletionPoints * 1.5);
-            _choice.NarrativeStateChanges.Momentum += 1;
+            _choice.EncounterStateChanges.Momentum += 1;
         }
         return this;
     }
 
-    public NarrativeChoice Build()
+    public EncounterChoice Build()
     {
         return _choice;
     }

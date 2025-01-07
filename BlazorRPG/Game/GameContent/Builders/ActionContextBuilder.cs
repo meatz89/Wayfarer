@@ -51,7 +51,13 @@
     public ActionGenerationContext Build()
     {
         ActionGenerationContext context = new ActionGenerationContext(
-            LocationType, BaseAction, Space, Social, Activity, LocationSpotName);
+            LocationType,
+            BaseAction,
+            Space,
+            Social,
+            Activity,
+            LocationSpotName
+        );
 
         return context;
     }

@@ -11,7 +11,7 @@
     public List<Requirement> StandardRequirements { get; init; } = new();
     public List<Outcome> StandardOutcomes { get; init; } = new();
 
-    public NarrativeChoice CreateChoice(NarrativeActionContext context, int index)
+    public EncounterChoice CreateChoice(EncounterActionContext context, int index)
     {
         ChoiceBuilder builder = new ChoiceBuilder()
             .WithIndex(index)
@@ -73,12 +73,12 @@
         }
     }
 
-    private string GenerateDescription(NarrativeActionContext context)
+    private string GenerateDescription(EncounterActionContext context)
     {
         return $"{Position} {Intent} ({Scope})";
     }
 
-    private EnergyTypes GetContextEnergy(NarrativeActionContext context)
+    private EnergyTypes GetContextEnergy(EncounterActionContext context)
     {
         return context.ActionType switch
         {

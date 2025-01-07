@@ -2,7 +2,7 @@
 {
     public string Title { get; }
     public string Description { get; }
-    public QuestStates State { get; private set; }
+    public QuestStateTypes State { get; private set; }
     public QuestStep[] Steps { get; }
     private int CurrentStep { get; set; }
 
@@ -11,7 +11,7 @@
         Title = title;
         Description = description;
         Steps = steps;
-        State = QuestStates.NotStarted;
+        State = QuestStateTypes.NotStarted;
         CurrentStep = 0;
     }
 
@@ -20,11 +20,11 @@
         if (CurrentStep < Steps.Length - 1)
         {
             CurrentStep++;
-            State = QuestStates.InProgress;
+            State = QuestStateTypes.InProgress;
         }
         else
         {
-            State = QuestStates.Completed;
+            State = QuestStateTypes.Completed;
         }
     }
 

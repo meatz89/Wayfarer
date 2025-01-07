@@ -5,14 +5,13 @@
         services.AddSingleton<GameContentProvider>();
         services.AddSingleton<GameState>(_ => GameSetup.CreateNewGame());
 
-        services.AddSingleton<NarrativeSystem>();
+        services.AddSingleton<EncounterSystem>();
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<CharacterSystem>();
         services.AddSingleton<ItemSystem>();
 
         services.AddSingleton<KnowledgeSystem>();
         services.AddSingleton<CharacterRelationshipSystem>();
-        services.AddSingleton<TimeSystem>();
         services.AddSingleton<InformationSystem>();
 
         services.AddSingleton<QuestSystem>();
@@ -20,7 +19,7 @@
         services.AddSingleton<StatusSystem>();
         services.AddSingleton<AchievementSystem>();
 
-        services.AddSingleton<NarrativeGenerator>();
+        services.AddSingleton<EncounterGenerator>();
         services.AddSingleton<ChoiceSystem>();
 
         services.AddSingleton<ActionValidator>();

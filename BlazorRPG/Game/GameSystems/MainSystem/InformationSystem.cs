@@ -1,7 +1,7 @@
 ﻿public class InformationSystem
 {
     private readonly LocationSystem locationSystem;
-    private readonly TimeSystem timeSystem;
+    private readonly List<InformationTypes> informationTypes;
 
     public InformationPiece GenerateInformation(BasicActionTypes action, LocationNames location)
     {

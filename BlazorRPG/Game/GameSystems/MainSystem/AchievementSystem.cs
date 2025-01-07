@@ -1,5 +1,4 @@
-﻿
-public class AchievementSystem
+﻿public class AchievementSystem
 {
     private bool[] unlockedAchievements;  // Fixed-size array of completion states
 

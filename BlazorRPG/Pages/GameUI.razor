@@ -43,9 +43,9 @@
             </button>
         </div>
 
-        @if (HasNarrative())
+        @if (HasEncounter())
         {
-            <NarrativeView OnNarrativeCompleted="HandleNarrativeCompleted" />
+            <EncounterView OnEncounterCompleted="HandleEncounterCompleted" />
         }
         else
         {

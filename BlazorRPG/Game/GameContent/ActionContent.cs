@@ -14,7 +14,7 @@
             .AddTimeSlot(TimeSlots.Night)
             .AddAvailabilityCondition(properties => properties
                 .WithArchetype(LocationArchetype.Tavern)
-                .WithCrowdLevel(CrowdLevel.Busy))
+                .WithCrowdLevel(CrowdLevelTypes.Busy))
             .Build());
 
         // Example: Clean Tables
@@ -27,7 +27,7 @@
             .AddTimeSlot(TimeSlots.Night)
             .AddAvailabilityCondition(properties => properties
                 .WithArchetype(LocationArchetype.Tavern)
-                .WithCrowdLevel(CrowdLevel.Empty))
+                .WithCrowdLevel(CrowdLevelTypes.Empty))
             .Build());
 
         // Example: Browse Market

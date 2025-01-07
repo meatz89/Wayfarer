@@ -128,7 +128,7 @@ public class CoinsOutcome : Outcome
 // Resource outcomes handle inventory changes
 public class ResourceOutcome : Outcome
 {
-    public ResourceChangeType ChangeType { get; }
+    public ResourceChangeTypes ChangeType { get; }
     public ResourceTypes Resource { get; }
     public int Count { get; set; }
 
@@ -136,7 +136,7 @@ public class ResourceOutcome : Outcome
     {
         Resource = resource;
         Count = Math.Abs(count); // Store count as positive
-        ChangeType = count >= 0 ? ResourceChangeType.Added : ResourceChangeType.Removed;
+        ChangeType = count >= 0 ? ResourceChangeTypes.Added : ResourceChangeTypes.Removed;
     }
 
     public override void Apply(PlayerState player)
@@ -146,14 +146,14 @@ public class ResourceOutcome : Outcome
 
     public override string GetDescription()
     {
-        string action = ChangeType == ResourceChangeType.Added ? "Gain" : "Lose";
+        string action = ChangeType == ResourceChangeTypes.Added ? "Gain" : "Lose";
         return $"{action} {Count} {Resource}";
     }
 
     public override string GetPreview(PlayerState player)
     {
         int current = player.Inventory.GetItemCount(Resource);
-        int change = ChangeType == ResourceChangeType.Added ? Count : -Count;
+        int change = ChangeType == ResourceChangeTypes.Added ? Count : -Count;
         int newValue = Math.Max(0, current + change);
         return $"({current} -> {newValue})";
     }

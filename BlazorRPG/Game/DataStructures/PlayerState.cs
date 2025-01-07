@@ -104,14 +104,14 @@
         return false;
     }
 
-    public bool ModifyItem(ResourceChangeType itemChange, ResourceTypes resourceType, int count)
+    public bool ModifyItem(ResourceChangeTypes itemChange, ResourceTypes resourceType, int count)
     {
-        if (itemChange == ResourceChangeType.Added)
+        if (itemChange == ResourceChangeTypes.Added)
         {
             int itemsAdded = Inventory.AddItems(resourceType, count);
             return itemsAdded == count;
         }
-        else if (itemChange == ResourceChangeType.Removed)
+        else if (itemChange == ResourceChangeTypes.Removed)
         {
             int itemsRemoved = Inventory.RemoveItems(resourceType, count);
             return itemsRemoved == count;

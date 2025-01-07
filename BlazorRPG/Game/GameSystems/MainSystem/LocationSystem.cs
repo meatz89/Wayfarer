@@ -1,5 +1,4 @@
-﻿
-public class LocationSystem
+﻿public class LocationSystem
 {
     private readonly GameState gameState;
     private readonly List<Location> allLocations;

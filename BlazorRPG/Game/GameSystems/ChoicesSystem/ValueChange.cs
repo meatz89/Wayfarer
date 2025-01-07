@@ -1,4 +1,4 @@
-﻿// Represents a specific value change in the narrative state
+﻿// Represents a specific value change in the encounter state
 public class ValueChange
 {
     public ValueTypes Type { get; }
@@ -10,7 +10,7 @@ public class ValueChange
         Amount = amount;
     }
 
-    public void Apply(NarrativeStateValues state)
+    public void Apply(EncounterStateValues state)
     {
         switch (Type)
         {

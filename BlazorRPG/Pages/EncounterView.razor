@@ -1,0 +1,124 @@
+﻿@inherits EncounterViewBase
+
+
+<div class="encounter-container">
+    @if (GameState.Actions.CurrentEncounter != null)
+    {
+        var encounter = GameState.Actions.CurrentEncounter;
+        var currentStage = GameManager.EncounterSystem.GetCurrentStage(encounter);
+
+        <div class="encounter-header">
+            <h2>@encounter.Situation</h2>
+        </div>
+
+        <div class="encounter-stats">
+            <div class="stat">
+                <span class="stat-label">Momentum:</span>
+                <span class="stat-value">@encounter.InitialState.Momentum</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Advantage:</span>
+                <span class="stat-value">@encounter.InitialState.Advantage</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Understanding:</span>
+                <span class="stat-value">@encounter.InitialState.Understanding</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Connection:</span>
+                <span class="stat-value">@encounter.InitialState.Connection</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Tension:</span>
+                <span class="stat-value">@encounter.InitialState.Tension</span>
+            </div>
+        </div>
+
+        <div class="encounter-stage">
+            <div class="stage-description">
+                @currentStage.Situation
+            </div>
+        </div>
+
+        <div class="encounter-choices">
+            @foreach (var choice in GameState.Actions.EncounterChoiceOptions)
+            {
+                <div class="choice-option @(hoveredChoice == choice ? "hovered" : "")"
+                     @onmouseover="() => ShowTooltip(choice)"
+                     @onmouseout="HideTooltip"
+                     @onclick="() => HandleChoiceSelection(choice)">
+                    <span class="choice-index">@choice.Index.</span>
+                    <span class="choice-description">@choice.Description</span>
+                </div>
+            }
+        </div>
+
+        @if (showTooltip && hoveredChoice != null)
+        {
+            <div class="tooltip">
+                <div class="preview-container">
+                    <h4>Choice Preview</h4>
+                    @if (hoveredChoice.EncounterChoice.Requirement != null)
+                    {
+                        <div class="requirements">
+                            <h5>Requirements</h5>
+                            <div class="requirement @(IsRequirementMet(hoveredChoice) ? "positive" : "negative")">
+                                @hoveredChoice.EncounterChoice.Requirement.GetDescription()
+                            </div>
+                        </div>
+                    }
+
+                    @if (hoveredChoice.EncounterChoice.Cost != null)
+                    {
+                        <div class="costs">
+                            <h5>Costs</h5>
+                            <div class="cost">
+                                @hoveredChoice.EncounterChoice.Cost.GetDescription()
+                                @hoveredChoice.EncounterChoice.Cost.GetPreview(GameState.Player)
+                            </div>
+                        </div>
+                    }
+
+                    @if (hoveredChoice.EncounterChoice.Reward != null)
+                    {
+                        <div class="rewards">
+                            <h5>Rewards</h5>
+                            <div class="reward">
+                                @hoveredChoice.EncounterChoice.Reward.GetDescription()
+                                @hoveredChoice.EncounterChoice.Reward.GetPreview(GameState.Player)
+                            </div>
+                        </div>
+                    }
+
+                    <div class="encounter-state-changes">
+                        <h5>State Changes</h5>
+                        @{
+                            var changes = hoveredChoice.EncounterChoice.EncounterStateChanges;
+                            var currentState = GameState.Actions.CurrentEncounter.InitialState;
+                        }
+                        <div class="state-change @(changes.Momentum != 0 ? changes.Momentum > 0 ? "positive" : "negative" : "")">
+                            <span class="state-label">Momentum:</span>
+                            <span class="state-preview">@currentState.Momentum → @(currentState.Momentum + changes.Momentum)</span>
+                        </div>
+                        <div class="state-change @(changes.Advantage != 0 ? changes.Advantage > 0 ? "positive" : "negative" : "")">
+                            <span class="state-label">Advantage:</span>
+                            <span class="state-preview">@currentState.Advantage → @(currentState.Advantage + changes.Advantage)</span>
+                        </div>
+                        <div class="state-change @(changes.Understanding != 0 ? changes.Understanding > 0 ? "positive" : "negative" : "")">
+                            <span class="state-label">Understanding:</span>
+                            <span class="state-preview">@currentState.Understanding → @(currentState.Understanding + changes.Understanding)</span>
+                        </div>
+                        <div class="state-change @(changes.Connection != 0 ? changes.Connection > 0 ? "positive" : "negative" : "")">
+                            <span class="state-label">Connection:</span>
+                            <span class="state-preview">@currentState.Connection → @(currentState.Connection + changes.Connection)</span>
+                        </div>
+                        <div class="state-change @(changes.Tension != 0 ? changes.Tension > 0 ? "positive" : "negative" : "")">
+                            <span class="state-label">Tension:</span>
+                            <span class="state-preview">@currentState.Tension → @(currentState.Tension + changes.Tension)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>

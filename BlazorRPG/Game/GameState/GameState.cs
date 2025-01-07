@@ -1,5 +1,4 @@
-﻿
-public class GameState
+﻿public class GameState
 {
     public PlayerState Player { get; set; }
     public ActionState Actions { get; }
@@ -39,5 +38,4 @@ public class GameState
 
         return actions;
     }
-
 }

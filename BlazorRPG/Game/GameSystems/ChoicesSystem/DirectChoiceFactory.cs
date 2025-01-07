@@ -1,13 +1,13 @@
 ﻿public class DirectChoiceFactory
 {
     // Creates direct, high-impact choices that cost more but provide immediate benefits
-    public static NarrativeChoice Create(NarrativeActionContext context)
+    public static EncounterChoice Create(EncounterActionContext context)
     {
         ChoiceBuilder builder = new ChoiceBuilder()
             .WithIndex(1)
             .WithChoiceType(ChoiceTypes.Direct)
             .WithName(GetDirectDescription(context))
-            .WithNarrative(GetDirectNarrative(context))
+            .WithEncounter(GetDirectEncounter(context))
             // Direct choices always have higher energy costs
             .ExpendsEnergy(GetContextEnergy(context), 2)
             // Standard reward for direct approach
@@ -26,7 +26,7 @@
         return builder.Build();
     }
 
-    private static string GetDirectDescription(NarrativeActionContext context)
+    private static string GetDirectDescription(EncounterActionContext context)
     {
         return context.ActionType switch
         {
@@ -38,7 +38,7 @@
         };
     }
 
-    private static string GetDirectNarrative(NarrativeActionContext context)
+    private static string GetDirectEncounter(EncounterActionContext context)
     {
         return context.ActionType switch
         {
@@ -50,7 +50,7 @@
         };
     }
 
-    private static EnergyTypes GetContextEnergy(NarrativeActionContext context)
+    private static EnergyTypes GetContextEnergy(EncounterActionContext context)
     {
         return context.ActionType switch
         {
@@ -66,13 +66,13 @@
 public class CarefulChoiceFactory
 {
     // Creates careful choices that minimize risk while building understanding
-    public static NarrativeChoice Create(NarrativeActionContext context)
+    public static EncounterChoice Create(EncounterActionContext context)
     {
         ChoiceBuilder builder = new ChoiceBuilder()
             .WithIndex(2)
             .WithChoiceType(ChoiceTypes.Careful)
             .WithName(GetCarefulDescription(context))
-            .WithNarrative(GetCarefulNarrative(context))
+            .WithEncounter(GetCarefulEncounter(context))
             // Careful choices give smaller rewards but cost no energy
             .WithMoneyOutcome(1)
             // Build understanding and connection at cost of momentum
@@ -90,7 +90,7 @@ public class CarefulChoiceFactory
         return builder.Build();
     }
 
-    private static string GetCarefulDescription(NarrativeActionContext context)
+    private static string GetCarefulDescription(EncounterActionContext context)
     {
         return context.ActionType switch
         {
@@ -102,7 +102,7 @@ public class CarefulChoiceFactory
         };
     }
 
-    private static string GetCarefulNarrative(NarrativeActionContext context)
+    private static string GetCarefulEncounter(EncounterActionContext context)
     {
         return context.ActionType switch
         {
@@ -118,13 +118,13 @@ public class CarefulChoiceFactory
 public class TacticalChoiceFactory
 {
     // Creates tactical choices that require skills but offer special opportunities
-    public static NarrativeChoice Create(NarrativeActionContext context)
+    public static EncounterChoice Create(EncounterActionContext context)
     {
         ChoiceBuilder builder = new ChoiceBuilder()
             .WithIndex(3)
             .WithChoiceType(ChoiceTypes.Tactical)
             .WithName(GetTacticalDescription(context))
-            .WithNarrative(GetTacticalNarrative(context))
+            .WithEncounter(GetTacticalEncounter(context))
             // Tactical choices build advantage and understanding
             .WithAdvantageChange(2)
             .WithUnderstandingChange(1);
@@ -142,7 +142,7 @@ public class TacticalChoiceFactory
         return builder.Build();
     }
 
-    private static void AddContextualElements(ChoiceBuilder builder, NarrativeActionContext context)
+    private static void AddContextualElements(ChoiceBuilder builder, EncounterActionContext context)
     {
         switch (context.ActionType)
         {
@@ -165,7 +165,7 @@ public class TacticalChoiceFactory
         }
     }
 
-    private static string GetTacticalDescription(NarrativeActionContext context)
+    private static string GetTacticalDescription(EncounterActionContext context)
     {
         return context.ActionType switch
         {
@@ -177,7 +177,7 @@ public class TacticalChoiceFactory
         };
     }
 
-    private static string GetTacticalNarrative(NarrativeActionContext context)
+    private static string GetTacticalEncounter(EncounterActionContext context)
     {
         return context.ActionType switch
         {

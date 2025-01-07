@@ -30,19 +30,19 @@
         LocationProperties properties = builder.Build();
 
         // Create LocationPropertyCondition instances for each property defined in the builder
-        AddConditionIfSet<LocationArchetype>(properties, LocationPropertyType.Archetype);
-        AddConditionIfSet<CrowdLevel>(properties, LocationPropertyType.CrowdLevel);
-        AddConditionIfSet<ResourceTypes>(properties, LocationPropertyType.Resource);
-        AddConditionIfSet<ScaleVariations>(properties, LocationPropertyType.Scale);
-        AddConditionIfSet<ExposureConditions>(properties, LocationPropertyType.Exposure);
-        AddConditionIfSet<LegalityTypes>(properties, LocationPropertyType.Legality);
-        AddConditionIfSet<TensionState>(properties, LocationPropertyType.Tension);
-        AddConditionIfSet<ComplexityTypes>(properties, LocationPropertyType.Complexity);
+        AddConditionIfSet<LocationArchetype>(properties, LocationPropertyTypes.Archetype);
+        AddConditionIfSet<CrowdLevelTypes>(properties, LocationPropertyTypes.CrowdLevel);
+        AddConditionIfSet<ResourceTypes>(properties, LocationPropertyTypes.Resource);
+        AddConditionIfSet<ScaleVariationTypes>(properties, LocationPropertyTypes.Scale);
+        AddConditionIfSet<ExposureConditionTypes>(properties, LocationPropertyTypes.Exposure);
+        AddConditionIfSet<LegalityTypes>(properties, LocationPropertyTypes.Legality);
+        AddConditionIfSet<TensionStateTypes>(properties, LocationPropertyTypes.Tension);
+        AddConditionIfSet<ComplexityTypes>(properties, LocationPropertyTypes.Complexity);
 
         return this;
     }
 
-    private void AddConditionIfSet<T>(LocationProperties properties, LocationPropertyType propertyType)
+    private void AddConditionIfSet<T>(LocationProperties properties, LocationPropertyTypes propertyType)
     {
         object propertyValue = properties.GetProperty(propertyType);
         if (propertyValue != null)

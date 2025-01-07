@@ -1,6 +1,4 @@
-﻿
-
-public class ActionBuilder
+﻿public class ActionBuilder
 {
     private BasicActionTypes actionType;
     private string description;
@@ -16,7 +14,6 @@ public class ActionBuilder
         return this;
     }
 
-
     public ActionBuilder WithDescription(string description)
     {
         this.description = description;
@@ -28,7 +25,6 @@ public class ActionBuilder
         this.hoursPassed = 0;
         return this;
     }
-
 
     public ActionBuilder RequiresInventorySlots(int slots)
     {

@@ -1,23 +1,22 @@
-﻿
-public class SpacePropertiesBuilder
+﻿public class SpacePropertiesBuilder
 {
-    private ScaleVariations scale = ScaleVariations.Medium;
-    private ExposureConditions exposure = ExposureConditions.Indoor;
-    private CrowdLevel crowdLevel = CrowdLevel.Empty;
+    private ScaleVariationTypes scale = ScaleVariationTypes.Medium;
+    private ExposureConditionTypes exposure = ExposureConditionTypes.Indoor;
+    private CrowdLevelTypes crowdLevel = CrowdLevelTypes.Empty;
 
-    public SpacePropertiesBuilder WithScale(ScaleVariations scale)
+    public SpacePropertiesBuilder WithScale(ScaleVariationTypes scale)
     {
         this.scale = scale;
         return this;
     }
 
-    public SpacePropertiesBuilder WithExposure(ExposureConditions exposure)
+    public SpacePropertiesBuilder WithExposure(ExposureConditionTypes exposure)
     {
         this.exposure = exposure;
         return this;
     }
 
-    public SpacePropertiesBuilder WithCrowdLevel(CrowdLevel crowdLevel)
+    public SpacePropertiesBuilder WithCrowdLevel(CrowdLevelTypes crowdLevel)
     {
         this.crowdLevel = crowdLevel;
         return this;

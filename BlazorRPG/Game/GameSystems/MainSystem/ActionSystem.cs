@@ -1,5 +1,4 @@
-﻿
-public class ActionSystem
+﻿public class ActionSystem
 {
     private readonly GameState gameState;
     private readonly MessageSystem messageSystem;

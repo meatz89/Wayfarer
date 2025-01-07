@@ -20,7 +20,6 @@
     {
         ActionModifierBuilder builder = new();
 
-        // Set the source in the builder
         builder.WithSource(itemName.ToString());
 
         buildModifier(builder);

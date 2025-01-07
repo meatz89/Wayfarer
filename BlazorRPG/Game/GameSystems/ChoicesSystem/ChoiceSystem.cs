@@ -1,18 +1,18 @@
 ﻿public class ChoiceSystem
 {
-    public ChoiceSystem(NarrativeGenerator narrativeGenerator)
+    public ChoiceSystem(EncounterGenerator encounterGenerator)
     {
-        NarrativeGenerator = narrativeGenerator;
+        EncounterGenerator = encounterGenerator;
     }
 
-    public NarrativeGenerator NarrativeGenerator { get; }
+    public EncounterGenerator EncounterGenerator { get; }
 
-    public List<NarrativeChoice> GenerateChoices(NarrativeActionContext context)
+    public List<EncounterChoice> GenerateChoices(EncounterActionContext context)
     {
-        NarrativeStateValues state = NarrativeStateValues.InitialState;
+        EncounterStateValues state = EncounterStateValues.InitialState;
 
-        NarrativeGenerator generator = new NarrativeGenerator();
-        List<NarrativeChoice> choices = generator.GenerateChoices(context);
+        EncounterGenerator generator = new EncounterGenerator();
+        List<EncounterChoice> choices = generator.GenerateChoices(context);
 
         return choices;
 

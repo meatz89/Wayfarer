@@ -1,5 +1,4 @@
-﻿
-public class ActionState
+﻿public class ActionState
 {
     public UserActionOption CurrentUserAction { get; private set; }
 
@@ -13,23 +12,23 @@ public class ActionState
 
     public List<Quest> ActiveQuests { get; set; }
 
-    public Narrative CurrentNarrative { get; private set; }
-    public List<UserNarrativeChoiceOption> NarrativeChoiceOptions { get; private set; } = new();
+    public Encounter CurrentEncounter { get; private set; }
+    public List<UserEncounterChoiceOption> EncounterChoiceOptions { get; private set; } = new();
 
-    public void SetActiveNarrative(Narrative narrative)
+    public void SetActiveEncounter(Encounter encounter)
     {
-        this.CurrentNarrative = narrative;
+        this.CurrentEncounter = encounter;
     }
 
-    public void SetNarrativeChoiceOptions(List<UserNarrativeChoiceOption> choiceOptions)
+    public void SetEncounterChoiceOptions(List<UserEncounterChoiceOption> choiceOptions)
     {
-        this.NarrativeChoiceOptions = choiceOptions;
+        this.EncounterChoiceOptions = choiceOptions;
     }
 
-    public void CompleteActiveNarrative()
+    public void CompleteActiveEncounter()
     {
-        this.CurrentNarrative = null;
-        this.NarrativeChoiceOptions = new();
+        this.CurrentEncounter = null;
+        this.EncounterChoiceOptions = new();
     }
 
     public void SetLastActionResultMessages(ActionResultMessages allMessages)
@@ -57,11 +56,6 @@ public class ActionState
         LocationSpotActions = actions;
     }
 
-    public void AddLocationSpotActions(List<UserActionOption> actions)
-    {
-        LocationSpotActions.AddRange(actions);
-    }
-
     public void SetCharacterActions(List<UserActionOption> actions)
     {
         CharacterActions = actions;
@@ -82,8 +76,4 @@ public class ActionState
         QuestActions.AddRange(actions);
     }
 
-    public void SetLastActionResult(ActionResult result)
-    {
-        LastActionResult = result;
-    }
 }

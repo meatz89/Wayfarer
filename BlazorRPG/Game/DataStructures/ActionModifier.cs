@@ -1,5 +1,4 @@
-﻿// Base class with common configuration
-public abstract class ActionModifier
+﻿public abstract class ActionModifier
 {
     public string Source;
     public string Description;
@@ -7,7 +6,6 @@ public abstract class ActionModifier
     public List<BasicActionTypes> ApplicableActions = new();
 }
 
-// Example modifier class updated to work with the factory system
 public class EnergyCostReducer : ActionModifier
 {
     private readonly EnergyTypes energyType;

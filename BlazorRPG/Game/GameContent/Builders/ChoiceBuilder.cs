@@ -1,7 +1,4 @@
-﻿// Enhanced ChoiceBuilder that works with the provided Requirements and Outcomes
-
-
-public class ChoiceBuilder
+﻿public class ChoiceBuilder
 {
     private int index;
     private string description;
@@ -9,8 +6,8 @@ public class ChoiceBuilder
     private Requirement requirement;
     private Outcome cost;
     private Outcome reward;
-    private string narrative;
-    private NarrativeStateValues narrativeStateChanges = NarrativeStateValues.NoChange;
+    private string encounter;
+    private EncounterStateValues encounterStateChanges = EncounterStateValues.NoChange;
     private int onlyWhenMomentumAbove;
     private int onlyWhenAdvantageAbove;
     private int onlyWhenUnderstandingAbove;
@@ -35,13 +32,12 @@ public class ChoiceBuilder
         return this;
     }
 
-    public ChoiceBuilder WithNarrative(string narrative)
+    public ChoiceBuilder WithEncounter(string encounter)
     {
-        this.narrative = narrative;
+        this.encounter = encounter;
         return this;
     }
 
-    // Enhanced energy methods that work with the provided Requirement/Outcome system
     public ChoiceBuilder ExpendsEnergy(EnergyTypes energy, int count)
     {
         requirement = new EnergyRequirement(energy, count);
@@ -116,34 +112,34 @@ public class ChoiceBuilder
         return this;
     }
 
-    // Narrative state changes
+    // Encounter state changes
     public ChoiceBuilder WithMomentumChange(int momentum)
     {
-        narrativeStateChanges.Momentum = momentum;
+        encounterStateChanges.Momentum = momentum;
         return this;
     }
 
     public ChoiceBuilder WithAdvantageChange(int advantage)
     {
-        narrativeStateChanges.Advantage = advantage;
+        encounterStateChanges.Advantage = advantage;
         return this;
     }
 
     public ChoiceBuilder WithUnderstandingChange(int understanding)
     {
-        narrativeStateChanges.Understanding = understanding;
+        encounterStateChanges.Understanding = understanding;
         return this;
     }
 
     public ChoiceBuilder WithConnectionChange(int connection)
     {
-        narrativeStateChanges.Connection = connection;
+        encounterStateChanges.Connection = connection;
         return this;
     }
 
     public ChoiceBuilder WithTensionChange(int tension)
     {
-        narrativeStateChanges.Tension = tension;
+        encounterStateChanges.Tension = tension;
         return this;
     }
 
@@ -178,20 +174,20 @@ public class ChoiceBuilder
         return this;
     }
 
-    public NarrativeChoice Build()
+    public EncounterChoice Build()
     {
-        return new NarrativeChoice
+        return new EncounterChoice
         {
             Index = index,
             ChoiceType = choiceType,
             Description = description,
-            Narrative = narrative,
+            Encounter = encounter,
             Requirement = requirement,
             Cost = cost,
             Reward = reward,
-            NarrativeStateChanges = narrativeStateChanges,
+            EncounterStateChanges = encounterStateChanges,
             // Store thresholds for validation
-            ValueThresholds = new NarrativeStateValues(
+            ValueThresholds = new EncounterStateValues(
                 onlyWhenMomentumAbove,
                 onlyWhenAdvantageAbove,
                 onlyWhenUnderstandingAbove,

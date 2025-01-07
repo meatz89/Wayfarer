@@ -1,6 +1,7 @@
 ﻿public class KnowledgeSystem
 {
     private readonly GameState gameState;
+
     private List<KnowledgeFlags> knowledgePoints = new();
     private List<KnowledgeFlags> unlockedKnowledge = new();
 
@@ -9,15 +10,4 @@
     {
 
     }
-}
-
-public enum KnowledgeFlags
-{
-    SafeRoute,
-    LoadingTechnique,
-    GATHERingSpot,
-    StorageSpot,
-    Schedule,
-    Preference,
-    Motivation
 }

@@ -6,11 +6,11 @@
         .ForLocation(LocationNames.LionsHeadTavern)
         .SetLocationArchetype(LocationArchetype.Tavern)
         .WithLocationProperties(properties => properties
-            .WithScale(ScaleVariations.Medium)
-            .WithExposure(ExposureConditions.Indoor)
-            .WithCrowdLevel(CrowdLevel.Busy)
+            .WithScale(ScaleVariationTypes.Medium)
+            .WithExposure(ExposureConditionTypes.Indoor)
+            .WithCrowdLevel(CrowdLevelTypes.Busy)
             .WithLegality(LegalityTypes.Legal)
-            .WithTension(TensionState.Relaxed)
+            .WithTension(TensionStateTypes.Relaxed)
             .WithComplexity(ComplexityTypes.Simple)
         )
         .AddLocationSpot(spot => spot

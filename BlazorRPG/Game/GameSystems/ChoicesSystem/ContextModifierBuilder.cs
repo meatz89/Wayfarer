@@ -1,9 +1,9 @@
 ﻿public class ContextModifierBuilder
 {
-    private readonly NarrativeChoice _choice;
-    private readonly NarrativeActionContext _context;
+    private readonly EncounterChoice _choice;
+    private readonly EncounterActionContext _context;
 
-    public ContextModifierBuilder(NarrativeChoice choice, NarrativeActionContext context)
+    public ContextModifierBuilder(EncounterChoice choice, EncounterActionContext context)
     {
         _choice = choice;
         _context = context;
@@ -44,39 +44,39 @@
 
     public ContextModifierBuilder ApplyLocationModifiers()
     {
-        // Apply location-based value caps to narrative state changes
+        // Apply location-based value caps to encounter state changes
         switch (_context.LocationType)
         {
             case LocationTypes.Industrial:
-                CapNarrativeValue(nameof(_choice.NarrativeStateChanges.Momentum), 10);
+                CapEncounterValue(nameof(_choice.EncounterStateChanges.Momentum), 10);
                 break;
             case LocationTypes.Social:
-                CapNarrativeValue(nameof(_choice.NarrativeStateChanges.Connection), 10);
+                CapEncounterValue(nameof(_choice.EncounterStateChanges.Connection), 10);
                 break;
             case LocationTypes.Commercial:
-                CapNarrativeValue(nameof(_choice.NarrativeStateChanges.Advantage), 10);
+                CapEncounterValue(nameof(_choice.EncounterStateChanges.Advantage), 10);
                 break;
             case LocationTypes.Nature:
-                CapNarrativeValue(nameof(_choice.NarrativeStateChanges.Understanding), 10);
+                CapEncounterValue(nameof(_choice.EncounterStateChanges.Understanding), 10);
                 break;
         }
         return this;
     }
 
-    private void CapNarrativeValue(string propertyName, int maxValue)
+    private void CapEncounterValue(string propertyName, int maxValue)
     {
-        System.Reflection.PropertyInfo? property = typeof(NarrativeStateValues).GetProperty(propertyName);
+        System.Reflection.PropertyInfo? property = typeof(EncounterStateValues).GetProperty(propertyName);
         if (property != null)
         {
-            int currentValue = (int)property.GetValue(_choice.NarrativeStateChanges);
+            int currentValue = (int)property.GetValue(_choice.EncounterStateChanges);
             if (currentValue > maxValue)
             {
-                property.SetValue(_choice.NarrativeStateChanges, maxValue);
+                property.SetValue(_choice.EncounterStateChanges, maxValue);
             }
         }
     }
 
-    public NarrativeChoice Build()
+    public EncounterChoice Build()
     {
         return _choice;
     }

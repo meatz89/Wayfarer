@@ -1,7 +1,7 @@
 ﻿public class SocialContextBuilder
 {
     private LegalityTypes legality = LegalityTypes.Legal;
-    private TensionState tension = TensionState.Relaxed;
+    private TensionStateTypes tension = TensionStateTypes.Relaxed;
 
     public SocialContextBuilder WithLegality(LegalityTypes legality)
     {
@@ -9,7 +9,7 @@
         return this;
     }
 
-    public SocialContextBuilder WithTension(TensionState tension)
+    public SocialContextBuilder WithTension(TensionStateTypes tension)
     {
         this.tension = tension;
         return this;
