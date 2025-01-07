@@ -5,3 +5,24 @@
     public CrowdLevelTypes CrowdLevel { get; internal set; }
 }
 
+public enum ScaleVariationTypes
+{
+    Medium,
+    Intimate,
+    Large
+}
+
+public enum ExposureConditionTypes
+{
+    Indoor,
+    Outdoor,
+}
+
+public enum CrowdLevelTypes
+{
+    Empty,
+    Sparse,
+    Populated,
+    Busy
+}
+

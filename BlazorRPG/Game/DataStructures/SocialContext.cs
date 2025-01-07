@@ -4,3 +4,16 @@
     public TensionStateTypes Tension { get; set; }
 }
 
+public enum LegalityTypes
+{
+    Legal,
+    Illegal
+}
+
+public enum TensionStateTypes
+{
+    Relaxed,
+    Alert,
+    Hostile,
+}
+
