@@ -10,65 +10,12 @@ Our design philosophy centers on emergent narrative, where meaningful stories ar
 
 The heart of *Wayfarer* lies in its **Encounter System**. Every action the player undertakes, whether it's working at the docks, haggling with a merchant, investigating a mystery, or socializing in the tavern, triggers an Encounter. These Encounters are not simply single choices or skill checks, but miniature, dynamic scenarios that play out in stages.
 
-**Narrative Values: The Drivers of Encounters**
-
-Each Encounter is governed by four **Narrative Values:**
-
-*   **Advantage (0-10):** Represents the player's success and progress within the Encounter. Reaching 10 Advantage signifies a successful outcome.
-    *   **Mechanic:**  Starts at 5. Increased through choices that offer Advantage gains. Decreased through choices that involve risks or setbacks, or as a consequence of low Connection.
-    *   **High Advantage (8+):** Unlocks powerful choices that can potentially end the encounter quickly or provide bonus rewards.
-    *   **Low Advantage (0-2):** Significantly reduces the effectiveness of choices.
-
-*   **Understanding (0-10):** Represents the player's grasp of the situation, unlocking options to reduce Tension and gain insights.
-    *   **Mechanic:** Starts at 0. Increased through choices that involve investigation, observation, or careful planning. Counteracts Tension.
-    *   **High Understanding (6+):** Unlocks choices that can reduce Tension or reveal hidden information, making the encounter easier.
-    *   **Low Understanding (0-2):** Limits options and makes it difficult to manage Tension.
-
-*   **Connection (0-10):** Represents the player's social capital and relationships, influencing choice effectiveness and reputation gains or losses.
-    *   **Mechanic:** Starts at 5. Increased through choices that involve building rapport, helping others, or leveraging existing relationships. Decreased through choices that involve betrayal, selfishness, or damaging relationships. Modifies the effectiveness of all choices.
-    *   **High Connection (8+):** Choices generate bonus trust or reputation. May unlock unique choices to call in favors.
-    *   **Low Connection (0-2):** Choices may result in a loss of trust or reputation. Advantage gains from choices are reduced.
-
-*   **Tension (0-10):** Represents the risk and pressure of the situation, increasing the cost of choices and the potential for negative consequences.
-    *   **Mechanic:** Starts at 0. Increased through choices that involve risk, conflict, or urgency. Certain actions or events may automatically increase Tension. Can only be decreased through special choices unlocked by high Understanding.
-    *   **High Tension (6+):** Choices that increase Advantage have an added cost, such as draining player Energy or risking Health/Reputation/Stress.
-    *   **Low Tension (0-2):** Choices are generally safer and less costly.
-
-**The Interplay of Narrative Values:**
-
-These values are designed to interact with each other in an elegant and dynamic way:
-
-*   **Advantage** is the primary success metric.
-*   **Understanding** counteracts **Tension**.
-*   **Connection** modifies the effectiveness of all other values and impacts long-term progression (reputation and trust).
-*   **Tension** introduces risk and forces difficult choices, especially when Energy is low.
-
-**Energy: The Fuel of Action and the Replacement for Momentum:**
-
-Instead of a Momentum value, players manage three types of Energy:
-
-*   **Physical Energy:** Spent on manual labor, combat, and other physically demanding actions.
-*   **Focus Energy:** Spent on investigation, planning, crafting, and mental tasks.
-*   **Social Energy:** Spent on social interactions, persuasion, and performance.
-
-Energy is a persistent resource, carrying over between Encounters. Depleting an Energy type doesn't end the Encounter but introduces penalties:
-
-*   **Physical Energy 0:** Choices costing Physical Energy now cost 1 Health.
-*   **Focus Energy 0:** Choices costing Focus Energy now cost 1 Stress.
-*   **Social Energy 0:** Choices costing Social Energy now cost 1 Reputation.
-
-This creates a compelling risk-reward dynamic, forcing players to push their limits while managing the consequences. Reaching 0 Health, 10 Stress, or 0 Reputation results in a game over, emphasizing the importance of long-term resource management.
-
-**Choices that Matter:**
-
-Each stage of an Encounter presents the player with 3-4 choices. These choices are not simply dialogue options but actions with tangible costs (Energy, potential Narrative Value shifts) and rewards (Narrative Value changes, resources, knowledge, relationship changes).
-
 
 **Narrative Values: The Drivers of Encounters**
 
 Each Encounter is governed by four **Narrative Values:**
 
-*   **Advantage (0-10):** Represents the player's success and progress within the Encounter.
+  *   **Advantage (0-10):** Represents the player's success and progress within the Encounter.
     *   **Mechanic:**
         *   Starts at `5 + (Player Level - Encounter Difficulty)`.
         *   Increased through choices that offer Advantage gains.
