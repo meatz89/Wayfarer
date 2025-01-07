@@ -29,7 +29,7 @@
         skills[SkillTypes.Charisma] = 1;
 
         playerInfo.Skills = skills;
-        playerInfo.Inventory.AddItems(ResourceTypes.Food, 1);
+        playerInfo.Inventory.AddResources(ResourceTypes.Food, 1);
 
         gameState.Player = playerInfo;
 

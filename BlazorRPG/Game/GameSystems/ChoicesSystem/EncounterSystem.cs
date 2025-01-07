@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-// ... (Other necessary using directives and classes)
-
-public class EncounterSystem
+﻿public class EncounterSystem
 {
     private readonly GameState gameState;
     private readonly ChoiceSystem choiceSystem;

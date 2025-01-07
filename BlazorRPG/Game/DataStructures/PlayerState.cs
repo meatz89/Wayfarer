@@ -23,16 +23,57 @@
     public int SocialEnergy { get; set; }
     public int MaxSocialEnergy { get; set; }
 
-    public Dictionary<SkillTypes, int> Skills { get; set; }
+    public Dictionary<SkillTypes, int> Skills { get; set; } = new();
     public Inventory Inventory { get; set; }
     public Equipment Equipment { get; set; }
     public List<Knowledge> Knowledge { get; set; } = new();
-    public Dictionary<ReputationTypes, int> Reputations { get; set; } = new(); // Use the new Reputation class
+    public Dictionary<ReputationTypes, int> Reputations { get; set; } = new();
 
     public PlayerState()
     {
         Inventory = new Inventory(GameRules.StandardRuleset.StartingInventorySize);
         Equipment = new Equipment();
+
+        Skills.Add(SkillTypes.Strength, 1); // Example: Give the player some starting skills
+        Skills.Add(SkillTypes.Perception, 2);
+        Skills.Add(SkillTypes.Charisma, 3);
+        Skills.Add(SkillTypes.Crafting, 2);
+
+        Reputations.Add(ReputationTypes.Honest, 3); // Initialize a reputation
+        Reputations.Add(ReputationTypes.Reliable, 5);
+        Reputations.Add(ReputationTypes.Trusted, 2);
+        Reputations.Add(ReputationTypes.Courageous, 1);
+        Reputations.Add(ReputationTypes.Generous, 1);
+        Reputations.Add(ReputationTypes.Sharp, 5);
+        Reputations.Add(ReputationTypes.Unbreakable, 1);
+        Reputations.Add(ReputationTypes.Wise, 1);
+        Reputations.Add(ReputationTypes.Pious, 1);
+        Reputations.Add(ReputationTypes.Ruthless, 1);
+
+        Knowledge.Add(new Knowledge(KnowledgeTypes.Clue));
+        Knowledge.Add(new Knowledge(KnowledgeTypes.Secret));
+
+        Coins = GameRules.StandardRuleset.StartingCoins;
+
+        Health = GameRules.StandardRuleset.StartingHealth;
+        MinHealth = GameRules.StandardRuleset.MinimumHealth;
+        MaxHealth = 10;
+
+        PhysicalEnergy = GameRules.StandardRuleset.StartingPhysicalEnergy;
+        MaxPhysicalEnergy = 10;
+
+        FocusEnergy = GameRules.StandardRuleset.StartingFocusEnergy;
+        MaxFocusEnergy = 10;
+
+        SocialEnergy = GameRules.StandardRuleset.StartingSocialEnergy;
+        MaxSocialEnergy = 10;
+
+        Stress = MinStress = 0;
+        MaxStress = 10;
+
+        Reputation = 0;
+        MinReputation = 0;
+        MaxReputation = 10;
     }
 
     public bool ModifyCoins(int count)
@@ -119,12 +160,12 @@
     {
         if (itemChange == ResourceChangeTypes.Added)
         {
-            int itemsAdded = Inventory.AddItems(resourceType, count);
+            int itemsAdded = Inventory.AddResources(resourceType, count);
             return itemsAdded == count;
         }
         else if (itemChange == ResourceChangeTypes.Removed)
         {
-            int itemsRemoved = Inventory.RemoveItems(resourceType, count);
+            int itemsRemoved = Inventory.RemoveResources(resourceType, count);
             return itemsRemoved == count;
         }
 
@@ -138,15 +179,28 @@
 
     public void ModifyReputation(ReputationTypes reputationType, int count)
     {
+        if (!Reputations.ContainsKey(reputationType))
+        {
+            Reputations.Add(reputationType, 0);
+        }
+        Reputations[reputationType] += count;
     }
 
     public int GetReputationLevel(ReputationTypes reputationType)
     {
-        return 1;
+        if (!Reputations.ContainsKey(reputationType))
+        {
+            return 0;
+        }
+        return Reputations[reputationType];
     }
 
     public void SetReputationLevel(ReputationTypes reputationType, int level)
     {
+        if (Reputations.ContainsKey(reputationType))
+        {
+            Reputations[reputationType] = level;
+        }
     }
 
     public void UnlockAchievement(AchievementTypes achievementType)
@@ -170,15 +224,24 @@
 
     public void ModifyKnowledge(KnowledgeTypes knowledgeType, int count)
     {
+        // Add the knowledge to the player's knowledge list
+        for (int i = 0; i < count; i++)
+        {
+            Knowledge.Add(new Knowledge(knowledgeType));
+        }
     }
 
-    public bool HasReputation(ReputationTypes honest)
+    public bool HasReputation(ReputationTypes reputationType)
     {
-        return true;
+        return Reputations.ContainsKey(reputationType);
     }
 
-    public bool HasKnowledge(KnowledgeTypes clue)
+    public bool HasKnowledge(KnowledgeTypes knowledgeType)
     {
-        return true;
+        return Knowledge.Any(k => k.KnowledgeType == knowledgeType);
+    }
+
+    public void ModifyResource(ResourceChangeTypes changeType, ResourceTypes resource, int count)
+    {
     }
 }

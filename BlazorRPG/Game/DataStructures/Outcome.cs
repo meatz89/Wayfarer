@@ -42,7 +42,7 @@ public class ItemOutcome : Outcome
                         item.Condition -= 10; // Example: Reduce condition
                         break;
                     case ItemConditionChangeTypes.Consume:
-                        player.Inventory.RemoveItem(item); // Consume/remove the item
+                        player.Inventory.RemoveResources(ResourceTypes.Food, 1); // Consume/remove the item
                         break;
                         // Handle other condition change types
                 }
@@ -259,7 +259,7 @@ public class ResourceOutcome : Outcome
 
     public override void Apply(PlayerState player)
     {
-        player.ModifyItem(ChangeType, Resource, Count);
+        player.ModifyResource(ChangeType, Resource, Count);
     }
 
     public override string GetDescription()

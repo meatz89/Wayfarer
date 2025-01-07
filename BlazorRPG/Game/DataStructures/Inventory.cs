@@ -1,8 +1,9 @@
-﻿
-
-public class Inventory
+﻿public class Inventory
 {
     private ResourceTypes[] Slots;
+
+    public int MaxCapacity { get { return Slots.Length; } }
+    public int UsedCapacity { get { return Slots.Count(s => s != ResourceTypes.None); } }
 
     public Inventory(int size)
     {
@@ -24,14 +25,14 @@ public class Inventory
 
         if (count > currentCount) // Adding items
         {
-            while (currentCount < count && AddItem(item))
+            while (currentCount < count && AddResource(item))
             {
                 currentCount++;
             }
         }
         else if (count < currentCount) // Removing items
         {
-            while (currentCount > count && RemoveItems(item))
+            while (currentCount > count && RemoveResource(item))
             {
                 currentCount--;
             }
@@ -39,13 +40,13 @@ public class Inventory
     }
 
     // Method to add multiple items of the same type to the inventory
-    public int AddItems(ResourceTypes item, int count)
+    public int AddResources(ResourceTypes resource, int count)
     {
         int addedCount = 0;
 
         for (int i = 0; i < count; i++)
         {
-            if (AddItem(item))
+            if (AddResource(resource))
             {
                 addedCount++;
             }
@@ -59,13 +60,13 @@ public class Inventory
     }
 
     // Method to remove multiple items of the same type from the inventory
-    public int RemoveItems(ResourceTypes item, int count)
+    public int RemoveResources(ResourceTypes resource, int count)
     {
         int removedCount = 0;
 
         for (int i = 0; i < count; i++)
         {
-            if (RemoveItems(item))
+            if (RemoveResource(resource))
             {
                 removedCount++;
             }
@@ -79,7 +80,7 @@ public class Inventory
     }
 
     // Method to add an item to the inventory
-    private bool AddItem(ResourceTypes item)
+    private bool AddResource(ResourceTypes item)
     {
         for (int i = 0; i < Slots.Length; i++)
         {
@@ -93,7 +94,7 @@ public class Inventory
     }
 
     // Method to remove an item from the inventory
-    private bool RemoveItems(ResourceTypes item)
+    public bool RemoveResource(ResourceTypes item)
     {
         for (int i = 0; i < Slots.Length; i++)
         {
