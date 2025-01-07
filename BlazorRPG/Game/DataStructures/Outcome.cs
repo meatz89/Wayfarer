@@ -125,7 +125,6 @@ public class CoinsOutcome : Outcome
     }
 }
 
-// Resource outcomes handle inventory changes
 public class ResourceOutcome : Outcome
 {
     public ResourceChangeTypes ChangeType { get; }
@@ -159,7 +158,6 @@ public class ResourceOutcome : Outcome
     }
 }
 
-// Skill outcomes modify player abilities
 public class SkillLevelOutcome : Outcome
 {
     public SkillTypes SkillType { get; }
@@ -192,7 +190,7 @@ public class SkillLevelOutcome : Outcome
     }
 }
 
-// Reputation changes affect standing with groups
+
 public class ReputationOutcome : Outcome
 {
     public ReputationTypes ReputationType { get; }
@@ -223,6 +221,37 @@ public class ReputationOutcome : Outcome
     }
 }
 
+
+public class KnowledgeOutcome : Outcome
+{
+    public KnowledgeTypes KnowledgeType { get; }
+    public int Count { get; }
+
+    public KnowledgeOutcome(KnowledgeTypes type, int count)
+    {
+        KnowledgeType = type;
+        Count = count;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        // This would need a ReputationSystem reference or player method
+        player.ModifyKnowledge(KnowledgeType, Count);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(Count >= 0 ? "+" : "")}{Count} {KnowledgeType} KnowledgeType";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        int current = player.GetKnowledgeLevel(KnowledgeType);
+        int newValue = Math.Clamp(current + Count, 0, 100); // Assuming 0-100 scale
+        return $"({current} -> {newValue})";
+    }
+}
+
 // Achievements are one-time unlocks
 public class AchievementOutcome : Outcome
 {
@@ -247,6 +276,33 @@ public class AchievementOutcome : Outcome
     {
         bool hasAchievement = player.HasAchievement(AchievementType);
         return hasAchievement ? "(Already Unlocked)" : "(Will Unlock)";
+    }
+}
+
+public class ItemOutcome : Outcome
+{
+    public ItemTypes ItemType { get; }
+    public int ItemDamage { get; }
+
+    public ItemOutcome(ItemTypes item, int value)
+    {
+        ItemType = item;
+        ItemDamage = value;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        player.Inventory.AddItem(ItemType);
+    }
+
+    public override string GetDescription()
+    {
+        return $"New Item: {ItemType}";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        return $"Receive item {ItemType}";
     }
 }
 

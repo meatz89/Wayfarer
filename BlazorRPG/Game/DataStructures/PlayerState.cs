@@ -149,11 +149,35 @@
 
     public bool HasAchievement(AchievementTypes achievementType)
     {
-        return false;
+        return true;
     }
 
     public bool HasStatus(PlayerStatusTypes status)
     {
-        return false;
+        return true;
+    }
+
+    public int GetKnowledgeLevel(KnowledgeTypes knowledgeType)
+    {
+        return 1;
+    }
+
+    public void ModifyKnowledge(KnowledgeTypes knowledgeType, int count)
+    {
+    }
+
+    public bool HasReputation(ReputationTypes honest)
+    {
+        return true;
+    }
+
+    public int GetReputationValue(ReputationTypes honest)
+    {
+        return 5;
+    }
+
+    public bool HasKnowledge(KnowledgeTypes clue)
+    {
+        return true;
     }
 }

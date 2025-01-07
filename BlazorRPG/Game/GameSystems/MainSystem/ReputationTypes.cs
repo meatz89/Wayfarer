@@ -1,4 +1,5 @@
 ﻿public enum ReputationTypes
 {
-    Reliable
+    Reliable,
+    Honest
 }

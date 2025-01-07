@@ -89,12 +89,172 @@
 
     private string GenerateDescription(EncounterActionContext context)
     {
-        // This is where you'll implement the logic to generate dynamic descriptions
-        // based on Position, Intent, Scope, and context.
-        // For now, we'll use a placeholder:
-        return $"{Position} {Intent} ({Scope})";
+        string position = Position.ToString();
+        string intent = Intent.ToString();
+        string scope = Scope.ToString();
+
+        switch (context.ActionType)
+        {
+            case BasicActionTypes.Labor:
+                position = GetLaborPositionDescription();
+                intent = GetLaborIntentDescription();
+                scope = GetLaborScopeDescription();
+                break;
+            case BasicActionTypes.Trade:
+                position = GetTradePositionDescription();
+                intent = GetTradeIntentDescription();
+                scope = GetTradeScopeDescription();
+                break;
+            case BasicActionTypes.Mingle:
+                position = GetMinglePositionDescription();
+                intent = GetMingleIntentDescription();
+                scope = GetMingleScopeDescription();
+                break;
+            case BasicActionTypes.Investigate:
+                position = GetInvestigatePositionDescription();
+                intent = GetInvestigateIntentDescription();
+                scope = GetInvestigateScopeDescription();
+                break;
+                // Add cases for other BasicActionTypes
+        }
+
+        return $"{position} {intent} ({scope})";
     }
 
+    // Helper methods for generating descriptions based on ActionType
+    private string GetLaborPositionDescription()
+    {
+        return Position switch
+        {
+            PositionTypes.Direct => "Forceful",
+            PositionTypes.Careful => "Methodical",
+            PositionTypes.Tactical => "Efficient",
+            PositionTypes.Recovery => "Restorative",
+            _ => Position.ToString()
+        };
+    }
+    private string GetTradePositionDescription()
+    {
+        return Position switch
+        {
+            PositionTypes.Direct => "Assertive",
+            PositionTypes.Careful => "Calculated",
+            PositionTypes.Tactical => "Strategic",
+            PositionTypes.Recovery => "Bargaining",
+            _ => Position.ToString()
+        };
+    }
+
+    private string GetMinglePositionDescription()
+    {
+        return Position switch
+        {
+            PositionTypes.Direct => "Charismatic",
+            PositionTypes.Careful => "Observant",
+            PositionTypes.Tactical => "Influential",
+            PositionTypes.Recovery => "Amiable",
+            _ => Position.ToString()
+        };
+    }
+
+    private string GetInvestigatePositionDescription()
+    {
+        return Position switch
+        {
+            PositionTypes.Direct => "Confrontational",
+            PositionTypes.Careful => "Thorough",
+            PositionTypes.Tactical => "Insightful",
+            PositionTypes.Recovery => "Reflective",
+            _ => Position.ToString()
+        };
+    }
+
+    private string GetLaborIntentDescription()
+    {
+        return Intent switch
+        {
+            IntentTypes.Progress => "Work",
+            IntentTypes.Position => "Approach",
+            IntentTypes.Opportunity => "Scheme",
+            _ => Intent.ToString()
+        };
+    }
+
+    private string GetTradeIntentDescription()
+    {
+        return Intent switch
+        {
+            IntentTypes.Progress => "Negotiation",
+            IntentTypes.Position => "Haggling",
+            IntentTypes.Opportunity => "Deal",
+            _ => Intent.ToString()
+        };
+    }
+
+    private string GetMingleIntentDescription()
+    {
+        return Intent switch
+        {
+            IntentTypes.Progress => "Interaction",
+            IntentTypes.Position => "Impression",
+            IntentTypes.Opportunity => "Connection",
+            _ => Intent.ToString()
+        };
+    }
+
+    private string GetInvestigateIntentDescription()
+    {
+        return Intent switch
+        {
+            IntentTypes.Progress => "Inquiry",
+            IntentTypes.Position => "Deduction",
+            IntentTypes.Opportunity => "Revelation",
+            _ => Intent.ToString()
+        };
+    }
+
+    private string GetLaborScopeDescription()
+    {
+        return Scope switch
+        {
+            ScopeTypes.Immediate => "Immediate Results",
+            ScopeTypes.Invested => "Long-Term Gains",
+            ScopeTypes.Strategic => "Overall Progress",
+            _ => Scope.ToString()
+        };
+    }
+    private string GetTradeScopeDescription()
+    {
+        return Scope switch
+        {
+            ScopeTypes.Immediate => "Quick Deal",
+            ScopeTypes.Invested => "Favorable Terms",
+            ScopeTypes.Strategic => "Market Advantage",
+            _ => Scope.ToString()
+        };
+    }
+
+    private string GetMingleScopeDescription()
+    {
+        return Scope switch
+        {
+            ScopeTypes.Immediate => "Social Interaction",
+            ScopeTypes.Invested => "Building Rapport",
+            ScopeTypes.Strategic => "Social Network",
+            _ => Scope.ToString()
+        };
+    }
+
+    private string GetInvestigateScopeDescription()
+    {
+        return Scope switch
+        {
+            ScopeTypes.Immediate => "Uncover Clue",
+            ScopeTypes.Invested => "Gather Information",
+            ScopeTypes.Strategic => "Solve Mystery",
+            _ => Scope.ToString()
+        };
+    }
     private EnergyTypes GetContextEnergy(EncounterActionContext context)
     {
         return context.ActionType switch

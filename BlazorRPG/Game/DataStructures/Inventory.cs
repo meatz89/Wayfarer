@@ -1,4 +1,6 @@
-﻿public class Inventory
+﻿
+
+public class Inventory
 {
     private ResourceTypes[] Slots;
 
@@ -143,5 +145,15 @@
             }
         }
         return count;
+    }
+
+    public void AddItem(ItemTypes itemName)
+    {
+
+    }
+
+    public bool HasItemOfType(ItemTypes weapon)
+    {
+        return true;
     }
 }

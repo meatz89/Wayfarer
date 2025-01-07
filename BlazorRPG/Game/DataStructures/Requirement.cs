@@ -7,28 +7,28 @@
 public class EnergyRequirement : Requirement
 {
     public EnergyTypes EnergyType { get; }
-    public int Count { get; }
+    public int Amount { get; }
 
     public EnergyRequirement(EnergyTypes type, int count)
     {
         EnergyType = type;
-        Count = count;
+        Amount = count;
     }
 
     public override bool IsSatisfied(PlayerState player)
     {
         return EnergyType switch
         {
-            EnergyTypes.Physical => player.PhysicalEnergy >= Count,
-            EnergyTypes.Focus => player.FocusEnergy >= Count,
-            EnergyTypes.Social => player.SocialEnergy >= Count,
+            EnergyTypes.Physical => player.PhysicalEnergy >= Amount,
+            EnergyTypes.Focus => player.FocusEnergy >= Amount,
+            EnergyTypes.Social => player.SocialEnergy >= Amount,
             _ => false
         };
     }
 
     public override string GetDescription()
     {
-        return $"{EnergyType} Energy Required: {Count}";
+        return $"{EnergyType} Energy Required: {Amount}";
     }
 }
 

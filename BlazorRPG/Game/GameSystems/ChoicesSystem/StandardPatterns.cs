@@ -1,4 +1,5 @@
-﻿public class StandardPatterns
+﻿
+public class StandardPatterns
 {
     public static readonly ChoicePattern DirectProgressImmediate = new()
     {

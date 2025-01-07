@@ -1,3 +1,8 @@
-﻿public class ItemTypes
+﻿public enum ItemTypes
 {
+    Weapon
+}
+public enum ItemConditionChangeTypes
+{
+    Damage
 }

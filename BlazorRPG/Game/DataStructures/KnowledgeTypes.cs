@@ -1,3 +1,5 @@
-﻿public class KnowledgeTypes
+﻿public enum KnowledgeTypes
 {
+    Weakness,
+    Clue
 }
