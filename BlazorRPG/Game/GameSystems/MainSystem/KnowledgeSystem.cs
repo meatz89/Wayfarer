@@ -2,11 +2,11 @@
 {
     private readonly GameState gameState;
 
-    private List<KnowledgeFlags> knowledgePoints = new();
-    private List<KnowledgeFlags> unlockedKnowledge = new();
+    private List<Knowledge> knowledgePoints = new();
+    private List<Knowledge> unlockedKnowledge = new();
 
-    public bool HasKnowledge(KnowledgeFlags flag) => unlockedKnowledge.Contains(flag);
-    public void UnlockKnowledge(KnowledgeFlags flag)
+    public bool HasKnowledge(Knowledge flag) => unlockedKnowledge.Contains(flag);
+    public void UnlockKnowledge(Knowledge flag)
     {
 
     }

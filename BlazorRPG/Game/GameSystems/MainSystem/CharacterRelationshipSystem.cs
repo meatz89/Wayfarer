@@ -1,7 +1,7 @@
 ﻿public class CharacterRelationshipSystem
 {
     private List<int> trustLevels = new();
-    private List<KnowledgeFlags> unlockedCharacterKnowledge = new();
+    private List<Knowledge> unlockedCharacterKnowledge = new();
 
     public int GetTrustLevel(CharacterNames character)
     {
@@ -12,7 +12,7 @@
     {
     }
 
-    public bool HasUnlockedKnowledge(CharacterNames character, KnowledgeFlags knowledge)
+    public bool HasUnlockedKnowledge(CharacterNames character, Knowledge knowledge)
     {
         return true;
     }

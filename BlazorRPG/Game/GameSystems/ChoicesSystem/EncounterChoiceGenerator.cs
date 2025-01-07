@@ -1,4 +1,84 @@
-﻿public class EncounterChoiceGenerator
+﻿//SPECIAL CHOICE GENERATION:
+//TENSION - BASED(Power Moves):
+//CopyRequirements:
+//-Tension ≥ 7
+//- Physical Skill ≥ relevant threshold
+//- Equipped item matches narrative type
+
+public enum ItemTypes { Weapon, Valuable, Tool, Equipment, Gift }
+
+//Item Types per Context:
+//-Combat: WEAPON
+//- Negotiation: VALUABLE
+//- Investigation: TOOL
+//- Labor: EQUIPMENT
+//- Social: GIFT
+
+//Effects:
+//-Large Advantage gain(+3)
+//-Tension reduction
+//- Possible permanent item effects
+//UNDERSTANDING-BASED (Expert Moves):
+//CopyRequirements:
+//-Understanding ≥ 7
+//- Focus Skill ≥ relevant threshold
+//- Has relevant knowledge flag
+
+public enum KnowledgeTypes { Weakness, Leverage, Clue, Technique, Secret }
+
+//Knowledge Types per Context:
+//-Combat: WEAKNESS
+//- Negotiation: LEVERAGE
+//- Investigation: CLUE
+//- Labor: TECHNIQUE
+//- Social: SECRET
+
+//Effects:
+//-Significant Advantage gain(+2)
+//-Understanding increase
+//- May unlock new knowledge
+//CONNECTION - BASED(Social Moves):
+//CopyRequirements:
+//-Connection ≥ 7
+//- Social Skill ≥ relevant threshold
+//- Has relevant reputation type
+
+public enum ReputationTypes { Unbreakable, Honest, Sharp, Reliable, Trusted }
+
+//Reputation Types per Context:
+//-Combat: UNBREAKABLE
+//- Negotiation: HONEST
+//- Investigation: SHARP
+//- Labor: RELIABLE
+//- Social: TRUSTED
+
+//Effects:
+//-Reliable Advantage gain(+2)
+//-Connection increase
+//- Reputation reinforcement
+//CHOICE GENERATION RULES:
+//CopyEach stage generates 3-4 choices:
+//1.Always include 1-2 basic progression choices
+//2. Include contextual special choice if available
+//3. Include strategic value-building choice
+
+//Basic Choice Properties:
+//-Energy cost(type based on context)
+//- Value changes
+//- Simple effects
+
+//Special Choice Properties:
+//-Higher energy cost
+//- Significant advantage gain
+//- Secondary benefits
+//- May consume resources
+
+//Strategic Choice Properties:
+//-Lower energy cost
+//- Build helpful values
+//- Position improvement
+
+public class EncounterChoiceGenerator
 {
     private readonly List<ChoicePattern> _basePatterns;
     private readonly List<ValueStateRule> _valueRules;
