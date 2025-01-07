@@ -48,6 +48,7 @@
         };
     }
 
+
     private EncounterStage GenerateStage(EncounterActionContext context)
     {
         // Generate relevant choices based on context

@@ -5,7 +5,6 @@
         services.AddSingleton<GameContentProvider>();
         services.AddSingleton<GameState>(_ => GameSetup.CreateNewGame());
 
-        services.AddSingleton<EncounterSystem>();
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<CharacterSystem>();
         services.AddSingleton<ItemSystem>();
@@ -19,7 +18,7 @@
         services.AddSingleton<StatusSystem>();
         services.AddSingleton<AchievementSystem>();
 
-        services.AddSingleton<EncounterGenerator>();
+        services.AddSingleton<EncounterSystem>();
         services.AddSingleton<ChoiceSystem>();
 
         services.AddSingleton<ActionValidator>();
