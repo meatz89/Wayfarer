@@ -8,6 +8,5 @@
     // Character Content
     public CharacterNames CharacterName { get; set; }
     public CharacterRoleTypes Role { get; set; }
-    public RelationshipStatus Relationship { get; set; }
     public EncounterStateValues CurrentValues { get; internal set; }
 }

@@ -17,7 +17,7 @@ public enum ScaleVariationTypes
 
 public enum ExposureConditionTypes
 {
-    Indoor,Outdoor,
+    Indoor, Outdoor,
 }
 
 public enum CrowdLevelTypes

@@ -25,7 +25,7 @@
 
         Dictionary<SkillTypes, int> skills = new Dictionary<SkillTypes, int>();
         skills[SkillTypes.Strength] = 1;
-        skills[SkillTypes.Observance] = 1;
+        skills[SkillTypes.Perception] = 1;
         skills[SkillTypes.Charisma] = 1;
 
         playerInfo.Skills = skills;

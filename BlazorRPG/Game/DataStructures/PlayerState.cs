@@ -5,6 +5,14 @@
     public int MinHealth { get; set; }
     public int MaxHealth { get; set; }
 
+    public int Stress { get; set; }
+    public int MinStress { get; set; }
+    public int MaxStress { get; set; }
+
+    public int Reputation { get; set; }
+    public int MinReputation { get; set; }
+    public int MaxReputation { get; set; }
+
     public int PhysicalEnergy { get; set; }
     public int MaxPhysicalEnergy { get; set; }
 

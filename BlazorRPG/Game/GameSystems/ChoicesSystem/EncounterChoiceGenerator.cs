@@ -23,11 +23,8 @@
 
         // First, create our guaranteed viable core choices
         choices.Add(GenerateBaseChoice(context, choiceIndex++));
-        choices.Add(GenerateTRADEoffChoice(context, choiceIndex++));
+        choices.Add(GenerateTradeoffChoice(context, choiceIndex++));
         choices.Add(GenerateOpportunityChoice(context, choiceIndex++));
-
-        // Add high-value choices when appropriate
-        choices.AddRange(GenerateHighValueChoices(context, choiceIndex));
 
         return choices;
     }
@@ -46,20 +43,17 @@
             .Build();
     }
 
-    private EncounterChoice GenerateTRADEoffChoice(EncounterActionContext context, int index)
+    private EncounterChoice GenerateTradeoffChoice(EncounterActionContext context, int index)
     {
-        // Create a choice with meaningful positive and negative effects
-        (int positiveValue, int negativeValue) tradeoffValues = GenerateContextTRADEoff(context);
-
         return new ChoiceBuilder()
             .WithIndex(index)
             .WithChoiceType(ChoiceTypes.Direct)
             .WithName(GetTRADEoffActionDescription(context))
-            .WithEncounter(GetTRADEoffActionEncounter(context))
+            .WithEncounter(GetTradeoffActionEncounter(context))
             .ExpendsEnergy(GetContextEnergy(context), 2)
             .WithMoneyOutcome(2)
-            .WithMomentumChange(tradeoffValues.positiveValue)
-            .WithConnectionChange(tradeoffValues.negativeValue)
+            .WithMomentumChange(1)
+            .WithConnectionChange(-1)
             .Build();
     }
 
@@ -82,79 +76,33 @@
     }
 
 
-    private List<EncounterChoice> GenerateHighValueChoices(EncounterActionContext context, int startIndex)
-    {
-        List<EncounterChoice> highValueChoices = new List<EncounterChoice>();
-
-        if (context.CurrentValues.Momentum >= 8)
-        {
-            highValueChoices.Add(GenerateFlowStateChoice(context, startIndex++));
-        }
-
-        if (context.CurrentValues.Advantage >= 8)
-        {
-            //highValueChoices.Add(GenerateAdvantageChoice(context, startIndex++));
-        }
-
-        if (context.CurrentValues.Understanding >= 8)
-        {
-            highValueChoices.Add(GenerateInsightChoice(context, startIndex++));
-        }
-
-        if (context.CurrentValues.Connection >= 8)
-        {
-            highValueChoices.Add(GenerateTrustChoice(context, startIndex++));
-        }
-
-        if (context.CurrentValues.Tension >= 8)
-        {
-            //highValueChoices.Add(GenerateTensionChoice(context, startIndex++));
-        }
-
-        return highValueChoices;
-    }
-
-    private (int positiveValue, int negativeValue) GenerateContextTRADEoff(EncounterActionContext context)
-    {
-        return context.ActionType switch
-        {
-            BasicActionTypes.Labor => (2, -1),      // High momentum, lose connection
-            BasicActionTypes.Trade => (2, -1),      // High advantage, lose connection
-            BasicActionTypes.Investigate => (2, -1), // High understanding, lose momentum
-            BasicActionTypes.Mingle => (2, -1),     // High connection, lose advantage
-            _ => (1, -1)
-        };
-    }
-
-    // Continuation of the EncounterChoiceGenerator class...
-
     private void AddContextualOpportunity(ChoiceBuilder builder, EncounterActionContext context)
     {
         switch (context.ActionType)
         {
             case BasicActionTypes.Labor:
-                builder.RequiresSkill(SkillTypes.PhysicalLabor, 2)
-                      .WithSkillOutcome(SkillTypes.PhysicalLabor, 1)
+                builder.RequiresSkill(SkillTypes.Strength, 2)
+                      .WithSkillOutcome(SkillTypes.Strength, 1)
                       .WithName("Apply Expert Technique")
                       .WithEncounter("Draw upon your experience to find a more efficient approach to the work.");
                 break;
 
             case BasicActionTypes.Trade:
-                builder.RequiresSkill(SkillTypes.Trading, 2)
+                builder.RequiresSkill(SkillTypes.Charisma, 2)
                       .WithReputationOutcome(ReputationTypes.Merchant, 1)
                       .WithName("Leverage Market Knowledge")
                       .WithEncounter("Use your understanding of trade patterns to spot a special opportunity.");
                 break;
 
             case BasicActionTypes.Investigate:
-                builder.RequiresSkill(SkillTypes.Observation, 2)
-                      .WithSkillOutcome(SkillTypes.Observation, 1)
+                builder.RequiresSkill(SkillTypes.Perception, 2)
+                      .WithSkillOutcome(SkillTypes.Perception, 1)
                       .WithName("Apply Careful Analysis")
                       .WithEncounter("Your trained eye allows you to notice subtle but important details.");
                 break;
 
             case BasicActionTypes.Mingle:
-                builder.RequiresSkill(SkillTypes.Socializing, 2)
+                builder.RequiresSkill(SkillTypes.Charisma, 2)
                       .WithReputationOutcome(ReputationTypes.Social, 1)
                       .WithName("Read Social Dynamics")
                       .WithEncounter("Your social experience helps you navigate the complex web of relationships.");
@@ -198,7 +146,7 @@
         };
     }
 
-    private string GetTRADEoffActionEncounter(EncounterActionContext context)
+    private string GetTradeoffActionEncounter(EncounterActionContext context)
     {
         return context.ActionType switch
         {
@@ -234,167 +182,6 @@
         };
     }
 
-    private string GetRecoveryActionDescription(EncounterActionContext context, ValueTypes lowestValue)
-    {
-        return lowestValue switch
-        {
-            ValueTypes.Momentum => "Take a moment to recover",
-            ValueTypes.Advantage => "Regroup and reassess",
-            ValueTypes.Understanding => "Clear your mind",
-            ValueTypes.Connection => "Reset social dynamics",
-            _ => "Take time to recover"
-        };
-    }
-
-    private string GetRecoveryActionEncounter(EncounterActionContext context, ValueTypes lowestValue)
-    {
-        return lowestValue switch
-        {
-            ValueTypes.Momentum => "You pause to catch your breath and restore your energy.",
-            ValueTypes.Advantage => "You step back to regain your strategic position.",
-            ValueTypes.Understanding => "You take time to organize your thoughts and observations.",
-            ValueTypes.Connection => "You reset your approach to social interactions.",
-            _ => "You take time to recover your strength."
-        };
-    }
-
-    private EncounterChoice GenerateFlowStateChoice(EncounterActionContext context, int index)
-    {
-        // Flow state choices capitalize on high momentum for maximum efficiency
-        return new ChoiceBuilder()
-            .WithIndex(index)
-            .WithChoiceType(ChoiceTypes.Modified)
-            .WithName(GetFlowStateDescription(context))
-            .WithEncounter(GetFlowStateEncounter(context))
-            .ExpendsEnergy(GetContextEnergy(context), 3)  // Higher energy cost
-            .WithMoneyOutcome(4)  // Higher reward
-            .WithMomentumChange(2)
-            .WithTensionChange(1)
-            .Build();
-    }
-
-    private string GetFlowStateDescription(EncounterActionContext context)
-    {
-        return context.ActionType switch
-        {
-            BasicActionTypes.Labor => "Work with perfect efficiency",
-            BasicActionTypes.Trade => "Negotiate with perfect timing",
-            BasicActionTypes.Investigate => "Enter deep focus state",
-            BasicActionTypes.Mingle => "Achieve perfect social flow",
-            _ => "Enter flow state"
-        };
-    }
-
-    private string GetFlowStateEncounter(EncounterActionContext context)
-    {
-        return context.ActionType switch
-        {
-            BasicActionTypes.Labor => "Everything clicks into place as you work with machine-like efficiency.",
-            BasicActionTypes.Trade => "You feel the perfect rhythm of negotiation, every word landing exactly right.",
-            BasicActionTypes.Investigate => "Your mind enters a state of perfect clarity and focus.",
-            BasicActionTypes.Mingle => "The social dynamics become crystal clear, every interaction flowing naturally.",
-            _ => "You enter a state of perfect focus and efficiency."
-        };
-    }
-
-    private EncounterChoice GenerateInsightChoice(EncounterActionContext context, int index)
-    {
-        // Insight choices leverage high understanding to reveal hidden opportunities
-        return new ChoiceBuilder()
-            .WithIndex(index)
-            .WithChoiceType(ChoiceTypes.Modified)
-            .WithName(GetInsightDescription(context))
-            .WithEncounter(GetInsightEncounter(context))
-            .ExpendsEnergy(GetContextEnergy(context), 1)
-            .WithMoneyOutcome(2)
-            .WithUnderstandingChange(1)
-            .WithConnectionChange(1)
-            .Build();
-    }
-
-    private string GetInsightDescription(EncounterActionContext context)
-    {
-        return context.ActionType switch
-        {
-            BasicActionTypes.Labor => "Apply advanced technique",
-            BasicActionTypes.Trade => "Spot market pattern",
-            BasicActionTypes.Investigate => "Make key connection",
-            BasicActionTypes.Mingle => "Read social undercurrents",
-            _ => "Use special insight"
-        };
-    }
-
-    private string GetInsightEncounter(EncounterActionContext context)
-    {
-        return context.ActionType switch
-        {
-            BasicActionTypes.Labor => "Your deep understanding reveals a better way to approach the task.",
-            BasicActionTypes.Trade => "You recognize a subtle pattern in market behavior others have missed.",
-            BasicActionTypes.Investigate => "The pieces suddenly click together in your mind.",
-            BasicActionTypes.Mingle => "You perceive the hidden dynamics of the social situation.",
-            _ => "Your understanding reveals a hidden opportunity."
-        };
-    }
-
-    private EncounterChoice GenerateTrustChoice(EncounterActionContext context, int index)
-    {
-        // Trust choices leverage high connection for special cooperation opportunities
-        return new ChoiceBuilder()
-            .WithIndex(index)
-            .WithChoiceType(ChoiceTypes.Modified)
-            .WithName(GetTrustDescription(context))
-            .WithEncounter(GetTrustEncounter(context))
-            .WithMoneyOutcome(2)
-            .WithConnectionChange(1)
-            .WithAdvantageChange(1)
-            .Build();
-    }
-
-    private string GetTrustDescription(EncounterActionContext context)
-    {
-        return context.ActionType switch
-        {
-            BasicActionTypes.Labor => "Coordinate team effort",
-            BasicActionTypes.Trade => "Call in a favor",
-            BasicActionTypes.Investigate => "Share sensitive information",
-            BasicActionTypes.Mingle => "Deepen relationship",
-            _ => "Leverage trust"
-        };
-    }
-
-    private string GetTrustEncounter(EncounterActionContext context)
-    {
-        return context.ActionType switch
-        {
-            BasicActionTypes.Labor => "Your good relationships allow you to organize an effective team effort.",
-            BasicActionTypes.Trade => "Your strong connections give you access to special opportunities.",
-            BasicActionTypes.Investigate => "People trust you enough to share important information.",
-            BasicActionTypes.Mingle => "The strong bonds you've built open new possibilities.",
-            _ => "Your relationships create new opportunities."
-        };
-    }
-
-    private ValueTypes GetLowestValue(EncounterStateValues state)
-    {
-        Dictionary<ValueTypes, int> values = new Dictionary<ValueTypes, int>
-    {
-        { ValueTypes.Momentum, state.Momentum },
-        { ValueTypes.Advantage, state.Advantage },
-        { ValueTypes.Understanding, state.Understanding },
-        { ValueTypes.Connection, state.Connection }
-    };
-
-        return values.MinBy(x => x.Value).Key;
-    }
-
-    private bool HasLowValues(EncounterStateValues state)
-    {
-        const int lowThreshold = 2;
-        return state.Momentum <= lowThreshold ||
-               state.Advantage <= lowThreshold ||
-               state.Understanding <= lowThreshold ||
-               state.Connection <= lowThreshold;
-    }
 
     private EnergyTypes GetContextEnergy(EncounterActionContext context)
     {

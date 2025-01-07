@@ -56,7 +56,7 @@
                 .WithChoiceType(ChoiceTypes.Modified)
                 .WithEncounter("Use your practiced technique to pour multiple drinks efficiently.")
                 .ExpendsEnergy(EnergyTypes.Physical, 1)
-                .RequiresSkill(SkillTypes.Agility, 1)
+                .RequiresSkill(SkillTypes.Strength, 1)
                 .WithMomentumChange(2)
             ))
 
