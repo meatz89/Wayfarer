@@ -1,5 +1,12 @@
 ﻿public enum KnowledgeTypes
 {
+    Clue,
     Weakness,
-    Clue
+    Leverage,
+    Technique,
+    Secret,
+    LocalHistory,
+    CharacterBackground,
+    HiddenPath,
+    ResourceLocation
 }

@@ -1,8 +1,24 @@
 ﻿public enum ItemTypes
 {
-    Weapon
+    Weapon,
+    Valuable,
+    Tool,
+    Equipment,
+    Gift,
+    Resource,
+    Ingredient,
+    Document,
+    Key,
+    Contraband
 }
+
 public enum ItemConditionChangeTypes
 {
-    Damage
+    Damage,
+    Consume,
+    Enhance,
+    Upgrade,
+    Repair,
+    Refine,
+    Modify
 }

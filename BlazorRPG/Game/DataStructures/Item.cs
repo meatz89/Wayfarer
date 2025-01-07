@@ -1,7 +1,16 @@
-﻿public class Item
+﻿
+public class Item
 {
-    public ItemNames Name { get; set; }
+    public string Name { get; set; }
     public ItemTypes ItemType { get; set; }
-    public string Description { get; set; }
-    public List<ActionModifier> ActionModifiers { get; set; }
+    public int Condition { get; set; } // Could be a percentage or a discrete value
+    public List<ActionModifier> ActionModifiers = new();
+
+    // Add other properties as needed (e.g., effects, value)
+    public Item(string name, ItemTypes itemType)
+    {
+        Name = name;
+        ItemType = itemType;
+        Condition = 100;
+    }
 }

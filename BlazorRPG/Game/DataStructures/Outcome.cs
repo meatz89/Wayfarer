@@ -7,6 +7,125 @@
     public abstract string GetPreview(PlayerState player);
 }
 
+public class ItemOutcome : Outcome
+{
+    public ItemTypes ItemType { get; set; }
+    public int QuantityChange { get; set; }
+    public ItemConditionChangeTypes ConditionChangeType { get; set; }
+
+    public ItemOutcome(ItemTypes itemType, int quantityChange, ItemConditionChangeTypes conditionChangeType)
+    {
+        ItemType = itemType;
+        QuantityChange = quantityChange;
+        ConditionChangeType = conditionChangeType;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        if (QuantityChange > 0)
+        {
+            // Add item(s)
+            for (int i = 0; i < QuantityChange; i++)
+            {
+                player.Inventory.AddItem(ItemType);
+            }
+        }
+        else
+        {
+            // Remove or damage item(s)
+            var itemsToRemove = player.Inventory.GetItemsOfType(ItemType).Take(Math.Abs(QuantityChange)).ToList();
+            foreach (var item in itemsToRemove)
+            {
+                switch (ConditionChangeType)
+                {
+                    case ItemConditionChangeTypes.Damage:
+                        item.Condition -= 10; // Example: Reduce condition
+                        break;
+                    case ItemConditionChangeTypes.Consume:
+                        player.Inventory.RemoveItem(item); // Consume/remove the item
+                        break;
+                        // Handle other condition change types
+                }
+            }
+        }
+    }
+
+    public override string GetDescription()
+    {
+        throw new NotImplementedException();
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class KnowledgeOutcome : Outcome
+{
+    public KnowledgeTypes KnowledgeType { get; set; }
+    public int Amount { get; set; }
+
+    public KnowledgeOutcome(KnowledgeTypes knowledgeType, int amount)
+    {
+        KnowledgeType = knowledgeType;
+        Amount = amount;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        // Add the knowledge to the player's knowledge list
+        for (int i = 0; i < Amount; i++)
+        {
+            player.Knowledge.Add(new Knowledge(KnowledgeType));
+        }
+    }
+
+    public override string GetDescription()
+    {
+        throw new NotImplementedException();
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class ReputationOutcome : Outcome
+{
+    public ReputationTypes ReputationType { get; set; }
+    public int Amount { get; set; }
+
+    public ReputationOutcome(ReputationTypes reputationType, int amount)
+    {
+        ReputationType = reputationType;
+        Amount = amount;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        if (!player.Reputations.ContainsKey(ReputationType))
+        {
+            player.Reputations[ReputationType] = 0;
+        }
+        player.SetReputationLevel(ReputationType, player.GetReputationLevel(ReputationType) + Amount);
+
+    }
+
+    public override string GetDescription()
+    {
+        return $"{ReputationType} ReputationType";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        int current = player.GetReputationLevel(ReputationType);
+        int newValue = Math.Clamp(current + 1, 0, 100); // Assuming 0-100 scale
+        return $"({current} -> {newValue})";
+    }
+}
+
 public class EnergyOutcome : Outcome
 {
     public EnergyTypes EnergyType { get; }
@@ -191,67 +310,6 @@ public class SkillLevelOutcome : Outcome
 }
 
 
-public class ReputationOutcome : Outcome
-{
-    public ReputationTypes ReputationType { get; }
-    public int Count { get; }
-
-    public ReputationOutcome(ReputationTypes type, int count)
-    {
-        ReputationType = type;
-        Count = count;
-    }
-
-    public override void Apply(PlayerState player)
-    {
-        // This would need a ReputationSystem reference or player method
-        player.ModifyReputation(ReputationType, Count);
-    }
-
-    public override string GetDescription()
-    {
-        return $"{(Count >= 0 ? "+" : "")}{Count} {ReputationType} Reputation";
-    }
-
-    public override string GetPreview(PlayerState player)
-    {
-        int current = player.GetReputationLevel(ReputationType);
-        int newValue = Math.Clamp(current + Count, 0, 100); // Assuming 0-100 scale
-        return $"({current} -> {newValue})";
-    }
-}
-
-
-public class KnowledgeOutcome : Outcome
-{
-    public KnowledgeTypes KnowledgeType { get; }
-    public int Count { get; }
-
-    public KnowledgeOutcome(KnowledgeTypes type, int count)
-    {
-        KnowledgeType = type;
-        Count = count;
-    }
-
-    public override void Apply(PlayerState player)
-    {
-        // This would need a ReputationSystem reference or player method
-        player.ModifyKnowledge(KnowledgeType, Count);
-    }
-
-    public override string GetDescription()
-    {
-        return $"{(Count >= 0 ? "+" : "")}{Count} {KnowledgeType} KnowledgeType";
-    }
-
-    public override string GetPreview(PlayerState player)
-    {
-        int current = player.GetKnowledgeLevel(KnowledgeType);
-        int newValue = Math.Clamp(current + Count, 0, 100); // Assuming 0-100 scale
-        return $"({current} -> {newValue})";
-    }
-}
-
 // Achievements are one-time unlocks
 public class AchievementOutcome : Outcome
 {
@@ -276,33 +334,6 @@ public class AchievementOutcome : Outcome
     {
         bool hasAchievement = player.HasAchievement(AchievementType);
         return hasAchievement ? "(Already Unlocked)" : "(Will Unlock)";
-    }
-}
-
-public class ItemOutcome : Outcome
-{
-    public ItemTypes ItemType { get; }
-    public int ItemDamage { get; }
-
-    public ItemOutcome(ItemTypes item, int value)
-    {
-        ItemType = item;
-        ItemDamage = value;
-    }
-
-    public override void Apply(PlayerState player)
-    {
-        player.Inventory.AddItem(ItemType);
-    }
-
-    public override string GetDescription()
-    {
-        return $"New Item: {ItemType}";
-    }
-
-    public override string GetPreview(PlayerState player)
-    {
-        return $"Receive item {ItemType}";
     }
 }
 

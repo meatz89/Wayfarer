@@ -1,4 +1,4 @@
-﻿public class EncounterStateValues
+﻿public record EncounterStateValues
 {
     public static EncounterStateValues NoChange => new EncounterStateValues(0, 0, 0, 0);
     public static EncounterStateValues InitialState = new EncounterStateValues(0, 5, 5, 0);

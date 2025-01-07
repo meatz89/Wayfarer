@@ -5,9 +5,11 @@
         StartingHealth = 10,
         StartingCoins = 0,
         StartingInventorySize = 10,
-        StartingPhysicalEnergy = 3,
-        StartingFocusEnergy = 3,
-        StartingSocialEnergy = 3,
+
+        StartingPhysicalEnergy = 10,
+        StartingFocusEnergy = 10,
+        StartingSocialEnergy = 10,
+
         MinimumHealth = 0,
         DailyFoodRequirement = 2,
         NoFoodEffectOnHealth = -2,

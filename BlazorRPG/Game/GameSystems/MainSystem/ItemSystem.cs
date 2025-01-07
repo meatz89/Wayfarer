@@ -11,7 +11,7 @@
 
     public Item GetItemFromName(ItemNames names)
     {
-        Item? item = allItems.FirstOrDefault(i => i.Name == names);
+        Item? item = allItems.FirstOrDefault(i => i.Name == names.ToString());
         return item;
     }
 }

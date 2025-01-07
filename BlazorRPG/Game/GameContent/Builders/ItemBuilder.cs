@@ -1,12 +1,19 @@
 ﻿public class ItemBuilder
 {
     private ItemNames itemName;
+    private ItemTypes itemType;
     private string description;
     private List<ActionModifier> modifiers = new();
 
     public ItemBuilder WithName(ItemNames itemName)
     {
         this.itemName = itemName;
+        return this;
+    }
+
+    public ItemBuilder WithItemType(ItemTypes itemType)
+    {
+        this.itemType = itemType;
         return this;
     }
 
@@ -29,12 +36,7 @@
 
     public Item Build()
     {
-        return new Item
-        {
-            Name = this.itemName,
-            Description = this.description,
-            ActionModifiers = modifiers
-        };
+        return new Item(this.itemName.ToString(), this.itemType);
     }
 
 }

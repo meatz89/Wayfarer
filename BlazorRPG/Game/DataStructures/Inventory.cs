@@ -156,4 +156,14 @@ public class Inventory
     {
         return true;
     }
+
+    public List<Item> GetItemsOfType(ItemTypes itemType)
+    {
+        return new List<Item>();
+    }
+
+    public void RemoveItem(Item item)
+    {
+        
+    }
 }

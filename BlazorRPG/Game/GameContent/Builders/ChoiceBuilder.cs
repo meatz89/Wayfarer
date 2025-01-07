@@ -37,7 +37,7 @@
     {
         requirements.Add(new EnergyRequirement(energy, count));
 
-        costs.Add(new EnergyOutcome(energy, -count));
+        //costs.Add(new EnergyOutcome(energy, -count)); // Remove energy costs from here
         return this;
     }
 

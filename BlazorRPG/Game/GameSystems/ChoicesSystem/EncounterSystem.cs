@@ -83,7 +83,7 @@ public class EncounterSystem
     public void ExecuteChoice(Encounter encounter, EncounterChoice choice)
     {
         // 1. Energy Costs
-        ApplyEnergyCosts(choice);
+        //ApplyEnergyCosts(choice);
 
         // 2. Narrative Value Changes
         encounter.InitialState.ApplyChanges(choice.EncounterStateChanges);
@@ -97,7 +97,10 @@ public class EncounterSystem
         {
             encounter.InitialState.Advantage += 1;
         }
-        encounter.InitialState.Advantage = Math.Min(encounter.InitialState.Advantage, 10); // Cap Advantage at 10
+        encounter.InitialState.Advantage = Math.Clamp(encounter.InitialState.Advantage, 0, 10); // Cap Advantage at 10
+        encounter.InitialState.Understanding = Math.Clamp(encounter.InitialState.Understanding, 0, 10); // Cap Advantage at 10
+        encounter.InitialState.Connection = Math.Clamp(encounter.InitialState.Connection, 0, 10); // Cap Advantage at 10
+        encounter.InitialState.Tension = Math.Clamp(encounter.InitialState.Tension, 0, 10); // Cap Advantage at 10
 
         // 4. Tension Modifier
         if (encounter.InitialState.Tension >= 6)

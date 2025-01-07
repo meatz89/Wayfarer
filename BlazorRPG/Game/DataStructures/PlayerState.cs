@@ -1,5 +1,6 @@
 ﻿public class PlayerState
 {
+    public int Level { get; set; } = 1;
     public int Coins { get; set; }
     public int Health { get; set; }
     public int MinHealth { get; set; }
@@ -25,7 +26,8 @@
     public Dictionary<SkillTypes, int> Skills { get; set; }
     public Inventory Inventory { get; set; }
     public Equipment Equipment { get; set; }
-    public int Level { get; set; } = 1;
+    public List<Knowledge> Knowledge { get; set; } = new();
+    public Dictionary<ReputationTypes, int> Reputations { get; set; } = new(); // Use the new Reputation class
 
     public PlayerState()
     {
@@ -143,6 +145,10 @@
         return 1;
     }
 
+    public void SetReputationLevel(ReputationTypes reputationType, int level)
+    {
+    }
+
     public void UnlockAchievement(AchievementTypes achievementType)
     {
     }
@@ -169,11 +175,6 @@
     public bool HasReputation(ReputationTypes honest)
     {
         return true;
-    }
-
-    public int GetReputationValue(ReputationTypes honest)
-    {
-        return 5;
     }
 
     public bool HasKnowledge(KnowledgeTypes clue)

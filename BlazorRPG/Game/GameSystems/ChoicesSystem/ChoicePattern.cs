@@ -41,16 +41,24 @@
         // Apply standard outcomes (rewards)
         foreach (Outcome outcome in StandardOutcomes)
         {
-            if (outcome is EnergyOutcome)
+            // Apply outcomes based on type
+            if (outcome is EnergyOutcome energyOutcome)
             {
-                // For EnergyOutcome, add it to Costs
-                builder.AddCost(outcome);
+                builder.AddCost(energyOutcome);
             }
-            else
+            else if (outcome is ItemOutcome itemOutcome)
             {
-                // For other outcomes, add them to Rewards
-                builder.AddReward(outcome);
+                builder.AddReward(itemOutcome); // Or AddCost if it's a negative outcome
             }
+            else if (outcome is KnowledgeOutcome knowledgeOutcome)
+            {
+                builder.AddReward(knowledgeOutcome);
+            }
+            else if (outcome is ReputationOutcome reputationOutcome)
+            {
+                builder.AddReward(reputationOutcome);
+            }
+            // Add other outcome types as needed
         }
 
         return builder.Build();
