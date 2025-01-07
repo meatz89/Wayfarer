@@ -5,7 +5,15 @@
 
 public enum ComplexityTypes
 {
-    Complex,
-    Simple
+    Complex, Simple
 }
 
+public enum Intensity
+{
+    Low, Medium, High
+}
+
+public enum Tools
+{
+    None, Simple, Complex
+}

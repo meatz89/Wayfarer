@@ -2,18 +2,22 @@
 {
     None = 0,
 
-    // Character interaction related skills
-    Observance,
-    Intelligence,
-    Charisma,
+    // PHYSICAL
+    //
+    Strength, // None/Low/High
+    Agility, // None/Low/High
+    Endurance, // None/Low/High
+    
+    // MENTAL
+    //
+    Knowledge, // None/Basic/Expert (Specific Knowledge Flags)
+    Focus, // None/Low/High
+    Perception, // None/Low/High
 
-    // Work action related skills
-    Strength,
-    Agility,
-    Vitality,
+    // SOCIAL
+    //
+    Presence, // None/Low/High
+    Status, // None/Low/High
+    Trust // None/Low/High (With specific characters or factions)
 
-    PhysicalLabor,
-    Trading,
-    Observation,
-    Socializing
 }

@@ -5,24 +5,33 @@
     public CrowdLevelTypes CrowdLevel { get; internal set; }
 }
 
+public enum AccessTypes
+{
+    Public, Private, Restricted
+}
+
 public enum ScaleVariationTypes
 {
-    Medium,
-    Intimate,
-    Large
+    Intimate, Medium, Large
 }
 
 public enum ExposureConditionTypes
 {
-    Indoor,
-    Outdoor,
+    Indoor,Outdoor,
 }
 
 public enum CrowdLevelTypes
 {
-    Empty,
-    Sparse,
-    Populated,
-    Busy
+    Empty, Sparse, Busy, Crowded
+}
+
+public enum LightingTypes
+{
+    Bright, Dim, Dark
+}
+
+public enum VisibilityTypes
+{
+    Open, Limited, Hidden
 }
 

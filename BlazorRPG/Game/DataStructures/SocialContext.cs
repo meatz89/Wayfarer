@@ -6,14 +6,16 @@
 
 public enum LegalityTypes
 {
-    Legal,
-    Illegal
+    Legal, Gray, Illegal
 }
 
 public enum TensionStateTypes
 {
-    Relaxed,
-    Alert,
-    Hostile,
+    Relaxed, Alert, Hostile,
+}
+
+public enum GroupSize
+{
+    Solo, Small, Large
 }
 

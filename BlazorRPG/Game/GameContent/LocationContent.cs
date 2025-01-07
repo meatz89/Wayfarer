@@ -8,7 +8,7 @@
         .WithLocationProperties(properties => properties
             .WithScale(ScaleVariationTypes.Medium)
             .WithExposure(ExposureConditionTypes.Indoor)
-            .WithCrowdLevel(CrowdLevelTypes.Busy)
+            .WithCrowdLevel(CrowdLevelTypes.Crowded)
             .WithLegality(LegalityTypes.Legal)
             .WithTension(TensionStateTypes.Relaxed)
             .WithComplexity(ComplexityTypes.Simple)
