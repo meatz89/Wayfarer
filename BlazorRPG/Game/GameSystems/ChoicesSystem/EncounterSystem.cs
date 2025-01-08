@@ -90,10 +90,18 @@
         {
             encounter.Context.CurrentValues.Advantage += 1;
         }
-        encounter.Context.CurrentValues.Advantage = Math.Clamp(encounter.Context.CurrentValues.Advantage, 0, 10); // Cap Advantage at 10
-        encounter.Context.CurrentValues.Understanding = Math.Clamp(encounter.Context.CurrentValues.Understanding, 0, 10); // Cap Advantage at 10
-        encounter.Context.CurrentValues.Connection = Math.Clamp(encounter.Context.CurrentValues.Connection, 0, 10); // Cap Advantage at 10
-        encounter.Context.CurrentValues.Tension = Math.Clamp(encounter.Context.CurrentValues.Tension, 0, 10); // Cap Advantage at 10
+        
+        encounter.Context.CurrentValues.Advantage =
+            Math.Clamp(encounter.Context.CurrentValues.Advantage, 0, 10); // Cap Advantage at 10
+        
+        encounter.Context.CurrentValues.Understanding = 
+            Math.Clamp(encounter.Context.CurrentValues.Understanding, 0, 10); // Cap Advantage at 10
+        
+        encounter.Context.CurrentValues.Connection = 
+            Math.Clamp(encounter.Context.CurrentValues.Connection, 0, 10); // Cap Advantage at 10
+        
+        encounter.Context.CurrentValues.Tension = 
+            Math.Clamp(encounter.Context.CurrentValues.Tension, 0, 10); // Cap Advantage at 10
 
         // 4. Tension Modifier
         if (encounter.Context.CurrentValues.Tension >= 6)
