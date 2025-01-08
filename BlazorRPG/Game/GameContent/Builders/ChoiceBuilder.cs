@@ -1,4 +1,7 @@
-﻿public class ChoiceBuilder
+﻿
+using System;
+
+public class ChoiceBuilder
 {
     private int index;
     private string description;
@@ -8,6 +11,7 @@
     private List<Outcome> rewards = new();
     private string encounter;
     private EncounterStateValues encounterStateChanges = EncounterStateValues.NoChange;
+    private List<EncounterValueChange> standardValueChanges = new();
 
     public ChoiceBuilder WithIndex(int index)
     {
@@ -33,11 +37,9 @@
         return this;
     }
 
-    public ChoiceBuilder ExpendsEnergy(EnergyTypes energy, int count)
+    public ChoiceBuilder RequiresEnergy(EnergyTypes energy, int count)
     {
         requirements.Add(new EnergyRequirement(energy, count));
-
-        //costs.Add(new EnergyOutcome(energy, -count)); // Remove energy costs from here
         return this;
     }
 
@@ -126,6 +128,24 @@
         return this;
     }
 
+    public ChoiceBuilder WithValueChange(EncounterValues valueType, int change)
+    {
+        standardValueChanges.Add(new EncounterValueChange(valueType, change));
+        return this;
+    }
+
+    public ChoiceBuilder WithValueChanges(List<EncounterValueChange> valueChanges)
+    {
+        standardValueChanges.AddRange(valueChanges);
+        return this;
+    }
+
+    public ChoiceBuilder WithRequirements(List<Requirement> requirements)
+    {
+        this.requirements = requirements;
+        return this;
+    }
+
     public ChoiceBuilder AddRequirement(Requirement requirement)
     {
         this.requirements.Add(requirement);
@@ -153,10 +173,12 @@
             ChoiceType = choiceType,
             Description = description,
             Encounter = encounter,
-            Requirements = requirements,
-            Costs = costs,
-            Rewards = rewards,
+            ChoiceRequirements = requirements,
+            PermanentCosts = costs,
+            PermanentRewards = rewards,
             EncounterStateChanges = encounterStateChanges,
+            EncounterValueChanges = standardValueChanges
         };
     }
+
 }

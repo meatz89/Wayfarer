@@ -15,11 +15,25 @@
         this.Tension = tension;
     }
 
-    public void ApplyChanges(EncounterStateValues changes)
+    public void ApplyChanges(List<EncounterValueChange> valueChanges)
     {
-        this.Advantage += changes.Advantage;
-        this.Understanding += changes.Understanding;
-        this.Connection += changes.Connection;
-        this.Tension += changes.Tension;
+        foreach (EncounterValueChange change in valueChanges)
+        {
+            switch (change.ValueType)
+            {
+                case EncounterValues.Advantage:
+                    Advantage += change.Change;
+                    break;
+                case EncounterValues.Understanding:
+                    Understanding += change.Change;
+                    break;
+                case EncounterValues.Connection:
+                    Connection += change.Change;
+                    break;
+                case EncounterValues.Tension:
+                    Tension += change.Change;
+                    break;
+            }
+        }
     }
 }

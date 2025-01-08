@@ -51,11 +51,11 @@
                 <div class="preview-container">
                     <h4>Choice Preview</h4>
 
-                    @if (hoveredChoice.EncounterChoice.Requirements.Count > 0)
+                    @if (hoveredChoice.EncounterChoice.ChoiceRequirements.Count > 0)
                     {
                         <div class="requirements">
                             <h5>Requirements</h5>
-                            @foreach (var req in hoveredChoice.EncounterChoice.Requirements)
+                            @foreach (var req in hoveredChoice.EncounterChoice.ChoiceRequirements)
                             {
                                 <div class="requirement @(req.IsSatisfied(GameState.Player) ? "positive" : "negative")">
                                     @req.GetDescription()
@@ -64,11 +64,11 @@
                         </div>
                     }
 
-                    @if (hoveredChoice.EncounterChoice.Costs.Count > 0)
+                    @if (hoveredChoice.EncounterChoice.PermanentCosts.Count > 0)
                     {
                         <div class="costs">
                             <h5>Costs</h5>
-                            @foreach (var cost in hoveredChoice.EncounterChoice.Costs)
+                            @foreach (var cost in hoveredChoice.EncounterChoice.PermanentCosts)
                             {
                                 <div class="cost">
                                     @cost.GetDescription()
@@ -78,11 +78,11 @@
                         </div>
                     }
 
-                    @if (hoveredChoice.EncounterChoice.Rewards.Count > 0)
+                    @if (hoveredChoice.EncounterChoice.PermanentRewards.Count > 0)
                     {
                         <div class="rewards">
                             <h5>Rewards</h5>
-                            @foreach (var reward in hoveredChoice.EncounterChoice.Rewards)
+                            @foreach (var reward in hoveredChoice.EncounterChoice.PermanentRewards)
                             {
                                 <div class="reward">
                                     @reward.GetDescription()

@@ -28,6 +28,7 @@
     public Equipment Equipment { get; set; }
     public List<Knowledge> Knowledge { get; set; } = new();
     public Dictionary<ReputationTypes, int> Reputations { get; set; } = new();
+    public Encounter CurrentEncounter { get; internal set; }
 
     public PlayerState()
     {

@@ -6,7 +6,7 @@
 
     public int BaseEnergyCost { get; init; }
 
-    public List<ValueChange> StandardValueChanges { get; init; } = new();
+    public List<EncounterValueChange> StandardValueChanges { get; init; } = new();
     public List<Requirement> StandardRequirements { get; init; } = new();
     public List<Outcome> StandardOutcomes { get; init; } = new();
 
@@ -17,38 +17,38 @@
             .WithChoiceType(ConvertPositionToChoiceType())
             .WithName(GenerateDescription(context));
 
-        // Determine the energy type based on the context
-        EnergyTypes energyType = GetContextEnergy(context);
+        // Determine the energy type based on the context
+        EnergyTypes energyType = GetContextEnergy(context);
 
-        // Apply standard costs
-        if (BaseEnergyCost > 0)
+        // Apply standard costs
+        if (BaseEnergyCost > 0)
         {
-            builder.ExpendsEnergy(energyType, BaseEnergyCost);
+            builder.RequiresEnergy(energyType, BaseEnergyCost);
         }
 
-        // Apply standard value changes
-        foreach (ValueChange change in StandardValueChanges)
+        // Apply standard value changes using WithValueChange
+        foreach (EncounterValueChange change in StandardValueChanges)
         {
-            ApplyValueChange(builder, change);
+            builder.WithValueChange(change.ValueType, change.Change);
         }
 
-        // Apply standard requirements
-        foreach (Requirement requirement in StandardRequirements)
+        // Apply standard requirements
+        foreach (Requirement requirement in StandardRequirements)
         {
             builder.AddRequirement(requirement);
         }
 
-        // Apply standard outcomes (rewards)
-        foreach (Outcome outcome in StandardOutcomes)
+        // Apply standard outcomes (rewards)
+        foreach (Outcome outcome in StandardOutcomes)
         {
-            // Apply outcomes based on type
-            if (outcome is EnergyOutcome energyOutcome)
+            // Apply outcomes based on type
+            if (outcome is EnergyOutcome energyOutcome)
             {
                 builder.AddCost(energyOutcome);
             }
             else if (outcome is ItemOutcome itemOutcome)
             {
-                builder.AddReward(itemOutcome); // Or AddCost if it's a negative outcome
+                builder.AddReward(itemOutcome);
             }
             else if (outcome is KnowledgeOutcome knowledgeOutcome)
             {
@@ -58,8 +58,16 @@
             {
                 builder.AddReward(reputationOutcome);
             }
-            // Add other outcome types as needed
-        }
+            else if (outcome is CoinsOutcome coinsOutcome)
+            {
+                builder.AddReward(coinsOutcome);
+            }
+            else if (outcome is ResourceOutcome resourceOutcome)
+            {
+                builder.AddReward(resourceOutcome);
+            }
+            // Add other outcome types as needed
+        }
 
         return builder.Build();
     }
@@ -76,21 +84,21 @@
         };
     }
 
-    private void ApplyValueChange(ChoiceBuilder builder, ValueChange change)
+    private void ApplyValueChange(ChoiceBuilder builder, EncounterValueChange change)
     {
-        switch (change.Type)
+        switch (change.ValueType)
         {
-            case ValueTypes.Advantage:
-                builder.WithAdvantageChange(change.Amount);
+            case EncounterValues.Advantage:
+                builder.WithAdvantageChange(change.Change);
                 break;
-            case ValueTypes.Understanding:
-                builder.WithUnderstandingChange(change.Amount);
+            case EncounterValues.Understanding:
+                builder.WithUnderstandingChange(change.Change);
                 break;
-            case ValueTypes.Connection:
-                builder.WithConnectionChange(change.Amount);
+            case EncounterValues.Connection:
+                builder.WithConnectionChange(change.Change);
                 break;
-            case ValueTypes.Tension:
-                builder.WithTensionChange(change.Amount);
+            case EncounterValues.Tension:
+                builder.WithTensionChange(change.Change);
                 break;
         }
     }

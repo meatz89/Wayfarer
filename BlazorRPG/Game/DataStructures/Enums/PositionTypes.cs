@@ -19,12 +19,3 @@ public enum ScopeTypes
     Invested,    // Benefits come after setup/delay
     Strategic    // Long-term advantages
 }
-
-public enum ValueTypes
-{
-    Momentum,
-    Advantage,
-    Understanding,
-    Connection,
-    Tension
-}

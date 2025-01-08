@@ -26,8 +26,10 @@
                 advantage: 5 + (gameState.Player.Level - location.DifficultyLevel), // Calculate Starting Advantage
                 understanding: 0,
                 connection: 5,
-                tension: 0
-            )
+            tension: 0
+            ),
+            1
+
         );
 
         // Generate initial stage
@@ -40,12 +42,13 @@
             LocationType = location.LocationType,
             LocationName = location.LocationName,
             TimeSlot = gameState.World.CurrentTimeSlot,
-            Situation = GenerateSituation(context),
+            Situation = GenerateSituation(context), // Added GenerateSituation call
             Stages = new List<EncounterStage> { initialStage },
             InitialState = context.CurrentValues,
-            EncounterDifficulty = location.DifficultyLevel
+            EncounterDifficulty = location.DifficultyLevel,
         };
     }
+
 
     private EncounterStage GenerateStage(EncounterActionContext context)
     {
@@ -62,6 +65,7 @@
     public void SetActiveEncounter(Encounter encounter)
     {
         gameState.Actions.SetActiveEncounter(encounter);
+        gameState.Player.CurrentEncounter = encounter;
     }
 
     public EncounterStage GetCurrentStage(Encounter encounter)
@@ -74,13 +78,48 @@
         return encounter.Stages[encounter.currentStage].Choices;
     }
 
+
+    public bool GetNextStage(Encounter encounter)
+    {
+        // Don't proceed if we've hit our success condition (Advantage ≥ 10) or if the player is in a game over state
+        if (encounter.InitialState.Advantage >= 10 || IsGameOver())
+        {
+            return false;
+        }
+
+        // Create context for new stage generation
+        EncounterActionContext context = new(
+            encounter.ActionType,
+            encounter.LocationType,
+            encounter.LocationArchetype,
+            encounter.TimeSlot!.Value,
+            gameState.World.CurrentLocation.LocationProperties,
+            gameState.Player,
+            encounter.InitialState,
+            encounter.currentStage + 1
+        );
+
+        // Generate new stage and add it
+        EncounterStage newStage = GenerateStage(context);
+        encounter.Stages.Add(newStage);
+        encounter.currentStage++;
+
+        return true;
+    }
+
+    // New method to check for game over conditions
+    private bool IsGameOver()
+    {
+        return gameState.Player.Health <= 0;
+    }
+
     public void ExecuteChoice(Encounter encounter, EncounterChoice choice)
     {
         // 1. Energy Costs
-        //ApplyEnergyCosts(choice);
+        ApplyEnergyCosts(choice);
 
         // 2. Narrative Value Changes
-        encounter.InitialState.ApplyChanges(choice.EncounterStateChanges);
+        encounter.InitialState.ApplyChanges(choice.EncounterValueChanges);
 
         // 3. Connection Bonus (Apply to Advantage gains only)
         if (encounter.InitialState.Connection >= 8)
@@ -105,20 +144,28 @@
         // 5. Item/Knowledge/Reputation Effects (Handled in Special Choice generation)
 
         // Apply choice costs and rewards - These are now mainly for resources
-        foreach (Outcome cost in choice.Costs)
+        foreach (Outcome cost in choice.PermanentCosts)
         {
             cost.Apply(gameState.Player);
         }
 
-        foreach (Outcome reward in choice.Rewards)
+        foreach (Outcome reward in choice.PermanentRewards)
         {
             reward.Apply(gameState.Player);
+        }
+
+        // Check for game over conditions after applying choice effects
+        if (IsGameOver())
+        {
+            // Handle game over (e.g., display a message, end the encounter)
+            Console.WriteLine("Game Over!");
+            gameState.Actions.SetActiveEncounter(null); // Or other logic to end the encounter
         }
     }
 
     private void ApplyEnergyCosts(EncounterChoice choice)
     {
-        foreach (Requirement req in choice.Requirements)
+        foreach (Requirement req in choice.ChoiceRequirements)
         {
             if (req is EnergyRequirement energyReq)
             {
@@ -133,47 +180,40 @@
                 switch (energyReq.EnergyType)
                 {
                     case EnergyTypes.Physical:
-                        if (gameState.Player.PhysicalEnergy >= cost)
+                        gameState.Player.PhysicalEnergy -= cost;
+                        if (gameState.Player.PhysicalEnergy < 0)
                         {
-                            gameState.Player.PhysicalEnergy -= cost;
-                        }
-                        else
-                        {
+                            gameState.Player.Health += gameState.Player.PhysicalEnergy; // Health penalty equals the amount of energy overspent
                             gameState.Player.PhysicalEnergy = 0; // Deplete energy
-                            gameState.Player.Health -= 1; // Health penalty
                             if (gameState.Player.Health <= 0)
                             {
-                                // Game Over
+                                Console.WriteLine("Game Over! Health depleted.");
                             }
                         }
                         break;
+
                     case EnergyTypes.Focus:
-                        if (gameState.Player.FocusEnergy >= cost)
+                        gameState.Player.FocusEnergy -= cost;
+                        if (gameState.Player.FocusEnergy < 0)
                         {
-                            gameState.Player.FocusEnergy -= cost;
-                        }
-                        else
-                        {
+                            gameState.Player.Stress -= gameState.Player.FocusEnergy; // Stress penalty equals the amount of energy overspent
                             gameState.Player.FocusEnergy = 0; // Deplete energy
-                            gameState.Player.Stress += 1; // Stress penalty
                             if (gameState.Player.Stress >= 10)
                             {
-                                // Game Over
+                                Console.WriteLine("Game Over! Stress too high.");
                             }
                         }
                         break;
+
                     case EnergyTypes.Social:
-                        if (gameState.Player.SocialEnergy >= cost)
+                        gameState.Player.SocialEnergy -= cost;
+                        if (gameState.Player.SocialEnergy < 0)
                         {
-                            gameState.Player.SocialEnergy -= cost;
-                        }
-                        else
-                        {
+                            gameState.Player.Reputation += gameState.Player.SocialEnergy; // Reputation penalty equals the amount of energy overspent
                             gameState.Player.SocialEnergy = 0; // Deplete energy
-                            gameState.Player.Reputation -= 1; // Reputation penalty - needs a general reputation
                             if (gameState.Player.Reputation <= 0)
                             {
-                                // Game Over
+                                Console.WriteLine("Game Over! Reputation depleted.");
                             }
                         }
                         break;
@@ -182,33 +222,6 @@
         }
     }
 
-
-    public bool GetNextStage(Encounter encounter)
-    {
-        // Don't proceed if we've hit our success condition (Advantage ≥ 10)
-        if (encounter.InitialState.Advantage >= 10)
-        {
-            return false;
-        }
-
-        // Create context for new stage generation
-        EncounterActionContext context = new(
-            encounter.ActionType,
-            encounter.LocationType,
-            encounter.LocationArchetype,
-            encounter.TimeSlot!.Value,
-            gameState.World.CurrentLocation.LocationProperties,
-            gameState.Player,
-            encounter.InitialState
-        );
-
-        // Generate new stage and add it
-        EncounterStage newStage = GenerateStage(context);
-        encounter.Stages.Add(newStage);
-        encounter.currentStage++;
-
-        return true;
-    }
 
     private string GenerateSituation(EncounterActionContext context)
     {

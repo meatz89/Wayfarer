@@ -4,6 +4,27 @@
     public abstract string GetDescription();
 }
 
+public class UnderstandingRequirement : Requirement
+{
+    private readonly int requiredLevel;
+
+    public UnderstandingRequirement(int level)
+    {
+        requiredLevel = level;
+    }
+
+    public override bool IsSatisfied(PlayerState player)
+    {
+        Encounter encounter = player.CurrentEncounter;
+        return encounter != null && encounter.InitialState.Understanding >= requiredLevel;
+    }
+
+    public override string GetDescription()
+    {
+        return $"Requires Understanding level {requiredLevel}";
+    }
+}
+
 public class EnergyRequirement : Requirement
 {
     public EnergyTypes EnergyType { get; }

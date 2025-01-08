@@ -26,7 +26,7 @@ public partial class EncounterViewBase : ComponentBase
 
     public void HandleChoiceSelection(UserEncounterChoiceOption choice)
     {
-        if (choice.EncounterChoice.Requirements.Any(req => !req.IsSatisfied(GameState.Player)))
+        if (choice.EncounterChoice.ChoiceRequirements.Any(req => !req.IsSatisfied(GameState.Player)))
         {
             return; // Don't execute if requirements are not met
         }
@@ -48,7 +48,7 @@ public partial class EncounterViewBase : ComponentBase
 
     public bool IsRequirementMet(UserEncounterChoiceOption choice)
     {
-        foreach (Requirement req in choice.EncounterChoice.Requirements)
+        foreach (Requirement req in choice.EncounterChoice.ChoiceRequirements)
         {
             if (!req.IsSatisfied(GameState.Player)) return false;
         }

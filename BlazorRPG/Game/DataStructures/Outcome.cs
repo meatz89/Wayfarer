@@ -33,8 +33,8 @@ public class ItemOutcome : Outcome
         else
         {
             // Remove or damage item(s)
-            var itemsToRemove = player.Inventory.GetItemsOfType(ItemType).Take(Math.Abs(QuantityChange)).ToList();
-            foreach (var item in itemsToRemove)
+            List<Item> itemsToRemove = player.Inventory.GetItemsOfType(ItemType).Take(Math.Abs(QuantityChange)).ToList();
+            foreach (Item? item in itemsToRemove)
             {
                 switch (ConditionChangeType)
                 {
