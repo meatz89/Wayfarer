@@ -1,4 +1,6 @@
-﻿public class EncounterSystem
+﻿using System.Diagnostics.Metrics;
+
+public class EncounterSystem
 {
     private readonly GameState gameState;
     private readonly ChoiceSystem choiceSystem;
@@ -82,34 +84,7 @@
         encounter.Context.CurrentValues.ApplyChanges(choice.EncounterValueChanges);
 
         // 3. Connection Bonus (Apply to Advantage gains only)
-        if (encounter.Context.CurrentValues.Connection >= 8)
-        {
-            encounter.Context.CurrentValues.Advantage += 2;
-        }
-        else if (encounter.Context.CurrentValues.Connection >= 5)
-        {
-            encounter.Context.CurrentValues.Advantage += 1;
-        }
-        
-        encounter.Context.CurrentValues.Advantage =
-            Math.Clamp(encounter.Context.CurrentValues.Advantage, 0, 10); // Cap Advantage at 10
-        
-        encounter.Context.CurrentValues.Understanding = 
-            Math.Clamp(encounter.Context.CurrentValues.Understanding, 0, 10); // Cap Advantage at 10
-        
-        encounter.Context.CurrentValues.Connection = 
-            Math.Clamp(encounter.Context.CurrentValues.Connection, 0, 10); // Cap Advantage at 10
-        
-        encounter.Context.CurrentValues.Tension = 
-            Math.Clamp(encounter.Context.CurrentValues.Tension, 0, 10); // Cap Advantage at 10
-
-        // 4. Tension Modifier
-        if (encounter.Context.CurrentValues.Tension >= 6)
-        {
-            // Increase Energy costs (already handled in ApplyEnergyCosts)
-        }
-
-        // 5. Item/Knowledge/Reputation Effects (Handled in Special Choice generation)
+        ApplyEncounterStateValueModifications(encounter);
 
         // Apply choice costs and rewards - These are now mainly for resources
         foreach (Outcome cost in choice.PermanentCosts)
@@ -129,6 +104,30 @@
             Console.WriteLine("Game Over!");
             gameState.Actions.SetActiveEncounter(null); // Or other logic to end the encounter
         }
+    }
+
+    private static void ApplyEncounterStateValueModifications(Encounter encounter)
+    {
+        if (encounter.Context.CurrentValues.Connection >= 8)
+        {
+            encounter.Context.CurrentValues.Advantage += 2;
+        }
+        else if (encounter.Context.CurrentValues.Connection >= 5)
+        {
+            encounter.Context.CurrentValues.Advantage += 1;
+        }
+
+        encounter.Context.CurrentValues.Advantage =
+            Math.Clamp(encounter.Context.CurrentValues.Advantage, 0, 10); // Cap Advantage at 10
+
+        encounter.Context.CurrentValues.Understanding =
+            Math.Clamp(encounter.Context.CurrentValues.Understanding, 0, 10); // Cap Advantage at 10
+
+        encounter.Context.CurrentValues.Connection =
+            Math.Clamp(encounter.Context.CurrentValues.Connection, 0, 10); // Cap Advantage at 10
+
+        encounter.Context.CurrentValues.Tension =
+            Math.Clamp(encounter.Context.CurrentValues.Tension, 0, 10); // Cap Advantage at 10
     }
 
     private void ApplyEnergyCosts(EncounterChoice choice)
