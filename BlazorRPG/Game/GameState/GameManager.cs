@@ -161,7 +161,7 @@ public class GameManager
         string locationSpot = "LocationSpot";
 
         EncounterStage stage = EncounterSystem.GetCurrentStage(encounter);
-        List<EncounterChoice> choices = EncounterSystem.GetCurrentStageChoices(encounter);
+        List<EncounterChoice> choices = stage.Choices;
 
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
         foreach (EncounterChoice choice in choices)
@@ -207,18 +207,15 @@ public class GameManager
         if (!ContextEngine.CanExecuteInContext(basicAction))
             return ActionResult.Failure("Current context prevents this action");
 
-        bool normalAction = false;
-        if (normalAction)
+        Encounter encounter = GenerateEncounter(basicAction.ActionType, location, gameState.Player);
+        if (encounter != null)
         {
-            return GenerateNormalAction(action, basicAction);
+            // Set as active encounter
+            EncounterSystem.SetActiveEncounter(encounter);
+            return ActionResult.Success("Action started!", new ActionResultMessages());
         }
 
-        Encounter encounter = GenerateEncounter(basicAction.ActionType, location, gameState.Player);
-
-        // Set as active encounter
-        EncounterSystem.SetActiveEncounter(encounter);
-
-        return ActionResult.Success("Action started!", new ActionResultMessages());
+        return GenerateNormalAction(action, basicAction);
     }
 
     public Encounter GenerateEncounter(
@@ -246,6 +243,7 @@ public class GameManager
 
         // Generate encounter instead of looking up predefined one
         Encounter encounter = EncounterSystem.GenerateEncounter(context);
+        if (encounter == null) { return null; }
 
         // Initialize first stage
         SetEncounterChoices(encounter);

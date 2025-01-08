@@ -1,6 +1,5 @@
 ﻿public class ChoiceSystem
 {
-    private readonly Random random = new();
     private readonly List<ChoiceSetTemplate> choiceSetTemplates;
     private readonly ChoiceSetFactory choiceSetFactory;
     private readonly ChoiceSetSelector choiceSetSelector;
@@ -18,6 +17,8 @@
         ChoiceSetTemplate template = choiceSetSelector.SelectTemplate(
             choiceSetTemplates,
             context);
+
+        if (template == null) { return null; }
 
         // Create implementation
         ChoiceSet choiceSet = choiceSetFactory.CreateFromTemplate(

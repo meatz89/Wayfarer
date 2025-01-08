@@ -2,7 +2,6 @@
 {
     private int index;
     private string description;
-    private ChoiceTypes choiceType;
     private List<Requirement> requirements = new();
     private List<Outcome> costs = new();
     private List<Outcome> rewards = new();
@@ -13,12 +12,6 @@
     public ChoiceBuilder WithIndex(int index)
     {
         this.index = index;
-        return this;
-    }
-
-    public ChoiceBuilder WithChoiceType(ChoiceTypes choiceType)
-    {
-        this.choiceType = choiceType;
         return this;
     }
 
@@ -185,7 +178,6 @@
         return new EncounterChoice
         {
             Index = index,
-            ChoiceType = choiceType,
             Description = description,
             Encounter = encounter,
             ChoiceRequirements = requirements,

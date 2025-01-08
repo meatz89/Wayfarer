@@ -1,15 +1,14 @@
 ﻿public record EncounterStateValues
 {
+    public static EncounterStateValues InitialState => new EncounterStateValues(3, 0, 0, 0); // Starting values
     public static EncounterStateValues NoChange => new EncounterStateValues(0, 0, 0, 0);
-    public static EncounterStateValues InitialState = new EncounterStateValues(0, 5, 5, 0);
+
     public int Outcome { get; set; }
     public int Insight { get; set; }
     public int Resonance { get; set; }
     public int Pressure { get; set; }
 
-    public EncounterStateValues()
-    {
-    }
+    public EncounterStateValues() { }
 
     public EncounterStateValues(int outcome, int insight, int resonance, int pressure)
     {
@@ -39,5 +38,11 @@
                     break;
             }
         }
+
+        // Clamp values to 0-10 range
+        Outcome = Math.Clamp(Outcome, 0, 10);
+        Insight = Math.Clamp(Insight, 0, 10);
+        Resonance = Math.Clamp(Resonance, 0, 10);
+        Pressure = Math.Clamp(Pressure, 0, 10);
     }
 }

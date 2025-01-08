@@ -2,7 +2,6 @@
 {
     public int Index { get; set; }
     public string Encounter { get; set; }
-    public ChoiceTypes ChoiceType { get; set; }
     public string Description { get; set; }
     public List<ValueChange> EncounterValueChanges { get; set; } = new();
     public List<Requirement> ChoiceRequirements { get; set; } = new();

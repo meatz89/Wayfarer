@@ -24,12 +24,12 @@
         playerInfo.MaxSocialEnergy = 10;
 
         Dictionary<SkillTypes, int> skills = new Dictionary<SkillTypes, int>();
-        skills[SkillTypes.Strength] = 1;
-        skills[SkillTypes.Perception] = 1;
-        skills[SkillTypes.Charisma] = 1;
+        skills[SkillTypes.Strength] = 10;
+        skills[SkillTypes.Perception] = 10;
+        skills[SkillTypes.Charisma] = 10;
 
         playerInfo.Skills = skills;
-        playerInfo.Inventory.AddResources(ResourceTypes.Food, 1);
+        playerInfo.Inventory.AddResources(ResourceTypes.Food, 10);
 
         gameState.Player = playerInfo;
 

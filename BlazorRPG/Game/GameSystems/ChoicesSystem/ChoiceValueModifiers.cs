@@ -1,5 +1,4 @@
-﻿
-public class ChoiceValueModifiers
+﻿public class ChoiceValueModifiers
 {
     public int OutcomeModifier { get; set; }
     public int PressureGainModifier { get; set; }

@@ -16,7 +16,12 @@
 
         // Pick randomly from top 2-3 scoring sets
         var topSets = scoredSets.Take(3).ToList();
-        return topSets[random.Next(topSets.Count)].Set;
+        if(topSets.Count() < 1)
+        {
+            return null;
+        }
+        int randomValue = random.Next(topSets.Count);
+        return topSets[randomValue].Set;
     }
 
     private bool MeetsConditions(ChoiceSetTemplate template, EncounterActionContext context)

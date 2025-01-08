@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.Metrics;
-
-public class EncounterSystem
+﻿public class EncounterSystem
 {
     private readonly GameState gameState;
     private readonly ChoiceSystem choiceSystem;
@@ -11,81 +9,18 @@ public class EncounterSystem
         this.choiceSystem = choiceSystem;
     }
 
-    public Encounter GenerateEncounter(EncounterActionContext context)
-    {
-        // Generate initial stage
-        EncounterStage initialStage = GenerateStage(context);
-
-        // Create encounter with initial stage
-        Encounter encounter = new Encounter(context, GenerateSituation(context));
-        encounter.Stages.Add(initialStage);
-
-        return encounter;
-    }
-
-
-    private EncounterStage GenerateStage(EncounterActionContext context)
-    {
-        // Generate relevant choices based on context
-        List<EncounterChoice> choices = choiceSystem.GenerateChoices(context);
-
-        return new EncounterStage
-        {
-            Situation = GenerateStageSituation(context),
-            Choices = choices
-        };
-    }
-
-    public void SetActiveEncounter(Encounter encounter)
-    {
-        gameState.Actions.SetActiveEncounter(encounter);
-        gameState.Player.CurrentEncounter = encounter;
-    }
-
-    public EncounterStage GetCurrentStage(Encounter encounter)
-    {
-        return encounter.Stages[encounter.CurrentStage];
-    }
-
-    public List<EncounterChoice> GetCurrentStageChoices(Encounter encounter)
-    {
-        return encounter.Stages[encounter.CurrentStage].Choices;
-    }
-
-    public bool GetNextStage(Encounter encounter)
-    {
-        // Don't proceed if we've hit our success condition (Outcome ≥ 10) or if the player is in a game over state
-        if (encounter.Context.CurrentValues.Outcome >= 10 || IsGameOver())
-        {
-            return false;
-        }
-
-        // Generate new stage and add it
-        EncounterStage newStage = GenerateStage(encounter.Context);
-        encounter.Stages.Add(newStage);
-        encounter.CurrentStage++;
-
-        return true;
-    }
-
-    // New method to check for game over conditions
-    private bool IsGameOver()
-    {
-        return gameState.Player.Health <= 0;
-    }
-
     public void ExecuteChoice(Encounter encounter, EncounterChoice choice)
     {
         // 1. Energy Costs
-        ApplyEnergyCosts(choice);
+        ApplyEnergyCosts(choice, encounter.Context);
 
         // 2. Narrative Value Changes
         encounter.Context.CurrentValues.ApplyChanges(choice.EncounterValueChanges);
 
-        // 3. Resonance Bonus (Apply to Outcome gains only)
+        // 3. Apply Encounter State Value Modifications
         ApplyEncounterStateValueModifications(encounter);
 
-        // Apply choice costs and rewards - These are now mainly for resources
+        // 4. Apply Choice Costs and Rewards
         foreach (Outcome cost in choice.PermanentCosts)
         {
             cost.Apply(gameState.Player);
@@ -107,6 +42,13 @@ public class EncounterSystem
 
     private static void ApplyEncounterStateValueModifications(Encounter encounter)
     {
+        // **Insight Modifiers**
+        // Increase Insight based on choices that increase Insight
+        int insightIncreasingChoices = encounter.GetCurrentStage().Choices.Count(c => c.EncounterValueChanges.Any(vc => vc.ValueType == ValueTypes.Insight && vc.Change > 0));
+        encounter.Context.CurrentValues.Insight += insightIncreasingChoices;
+
+        // **Resonance Modifiers**
+        // Modify Outcome based on Resonance
         if (encounter.Context.CurrentValues.Resonance >= 8)
         {
             encounter.Context.CurrentValues.Outcome += 2;
@@ -115,33 +57,15 @@ public class EncounterSystem
         {
             encounter.Context.CurrentValues.Outcome += 1;
         }
-
-        encounter.Context.CurrentValues.Outcome =
-            Math.Clamp(encounter.Context.CurrentValues.Outcome, 0, 10); // Cap Outcome at 10
-
-        encounter.Context.CurrentValues.Insight =
-            Math.Clamp(encounter.Context.CurrentValues.Insight, 0, 10); // Cap Outcome at 10
-
-        encounter.Context.CurrentValues.Resonance =
-            Math.Clamp(encounter.Context.CurrentValues.Resonance, 0, 10); // Cap Outcome at 10
-
-        encounter.Context.CurrentValues.Pressure =
-            Math.Clamp(encounter.Context.CurrentValues.Pressure, 0, 10); // Cap Outcome at 10
     }
 
-    private void ApplyEnergyCosts(EncounterChoice choice)
+    private void ApplyEnergyCosts(EncounterChoice choice, EncounterActionContext context)
     {
         foreach (Requirement req in choice.ChoiceRequirements)
         {
             if (req is EnergyRequirement energyReq)
             {
                 int cost = energyReq.Amount;
-
-                // Pressure Modifier
-                if (gameState.Actions.CurrentEncounter.Context.CurrentValues.Pressure >= 6)
-                {
-                    cost += 1;
-                }
 
                 switch (energyReq.EnergyType)
                 {
@@ -162,12 +86,9 @@ public class EncounterSystem
                         gameState.Player.FocusEnergy -= cost;
                         if (gameState.Player.FocusEnergy < 0)
                         {
-                            gameState.Player.Stress -= gameState.Player.FocusEnergy; // Stress penalty equals the amount of energy overspent
+                            // Apply a negative consequence related to low Focus Energy
+                            context.CurrentValues.Pressure += 2; // Example: Increase Pressure due to lack of focus
                             gameState.Player.FocusEnergy = 0; // Deplete energy
-                            if (gameState.Player.Stress >= 10)
-                            {
-                                Console.WriteLine("Game Over! Stress too high.");
-                            }
                         }
                         break;
 
@@ -188,6 +109,88 @@ public class EncounterSystem
         }
     }
 
+    private static string GetOutcomeType(EncounterStateValues values)
+    {
+        if (values.Outcome >= 7 && values.Pressure <= 3)
+        {
+            return "Success";
+        }
+        else if (values.Outcome <= 3 && values.Pressure >= 7)
+        {
+            return "Failure";
+        }
+        else if (values.Insight >= 7)
+        {
+            return "Insightful";
+        }
+        else if (values.Resonance >= 7)
+        {
+            return "Influential";
+        }
+        else
+        {
+            return "Neutral";
+        }
+    }
+
+    public Encounter GenerateEncounter(EncounterActionContext context)
+    {
+        // Generate initial stage
+        EncounterStage initialStage = GenerateStage(context);
+        if (initialStage == null)
+        {
+            return null;
+        }
+
+        // Create encounter with initial stage
+        Encounter encounter = new Encounter(context, GenerateSituation(context));
+        encounter.AddStage(initialStage);
+
+        return encounter;
+    }
+
+    private EncounterStage GenerateStage(EncounterActionContext context)
+    {
+        // Generate relevant choices based on context
+        List<EncounterChoice> choices = choiceSystem.GenerateChoices(context);
+        if (choices == null || choices.Count == 0) return null;
+
+        return new EncounterStage
+        {
+            Situation = GenerateStageSituation(context),
+            Choices = choices
+        };
+    }
+
+    public void SetActiveEncounter(Encounter encounter)
+    {
+        gameState.Actions.SetActiveEncounter(encounter);
+        gameState.Player.CurrentEncounter = encounter;
+    }
+
+    public bool GetNextStage(Encounter encounter)
+    {
+        // Don't proceed if we've hit our success condition (Outcome ≥ 10) or if the player is in a game over state
+        if (encounter.Context.CurrentValues.Outcome >= 10 || IsGameOver())
+        {
+            return false;
+        }
+
+        // Generate new stage and add it
+        EncounterStage newStage = GenerateStage(encounter.Context);
+        if(newStage == null) return false;
+
+        encounter.AddStage(newStage);
+        encounter.CurrentStage++;
+
+        return true;
+    }
+
+    // New method to check for game over conditions
+    private bool IsGameOver()
+    {
+        return gameState.Player.Health <= 0;
+    }
 
     private string GenerateSituation(EncounterActionContext context)
     {
@@ -221,5 +224,10 @@ public class EncounterSystem
             return "You have a clear grasp of the situation...";
 
         return "You consider your options...";
+    }
+
+    public EncounterStage GetCurrentStage(Encounter encounter)
+    {
+        return encounter.GetCurrentStage();
     }
 }

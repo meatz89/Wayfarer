@@ -1,18 +1,11 @@
 ﻿public class ChoicePatternBuilder
 {
-    private ChoiceTypes choiceType;
     private int baseEnergyCost;
     private EnergyTypes energyType;
     private List<ValueChange> baseValueChanges = new();
     private List<Requirement> requirements = new();
     private List<Outcome> costs = new();
     private List<Outcome> rewards = new();
-
-    public ChoicePatternBuilder WithType(ChoiceTypes type)
-    {
-        this.choiceType = type;
-        return this;
-    }
 
     public ChoicePatternBuilder WithBaseEnergyCost(int cost, EnergyTypes type)
     {
@@ -21,6 +14,7 @@
         return this;
     }
 
+    // No changes necessary here, as we are still using BaseValueChanges
     public ChoicePatternBuilder WithBaseValueChanges(Action<ValueChangeBuilder> buildValues)
     {
         ValueChangeBuilder builder = new();
@@ -28,6 +22,7 @@
         this.baseValueChanges = builder.Build();
         return this;
     }
+
 
     // New: Methods for adding requirements
     public ChoicePatternBuilder WithRequirement(Requirement requirement)
@@ -54,7 +49,6 @@
     {
         return new ChoicePattern
         {
-            ChoiceType = choiceType,
             BaseValueChanges = baseValueChanges,
             EnergyType = energyType,
             BaseCost = baseEnergyCost,

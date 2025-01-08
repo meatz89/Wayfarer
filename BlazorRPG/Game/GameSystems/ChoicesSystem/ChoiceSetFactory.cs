@@ -1,5 +1,4 @@
-﻿
-public class ChoiceSetFactory
+﻿public class ChoiceSetFactory
 {
     public ChoiceSet CreateFromTemplate(
         ChoiceSetTemplate template,
@@ -24,12 +23,16 @@ public class ChoiceSetFactory
     }
 
     private EncounterChoice CreateChoiceFromPattern(
-    ChoicePattern pattern,
-    EncounterActionContext context,
-    ChoiceValueModifiers modifiers)
+        ChoicePattern pattern,
+        EncounterActionContext context,
+        ChoiceValueModifiers modifiers)
     {
         // Start with base value changes
         List<ValueChange> finalValueChanges = new(pattern.BaseValueChanges);
+
+        // **Apply modifiers based on Encounter Values and Player State**
+        modifiers.OutcomeModifier += GetOutcomeModifier(context);
+        modifiers.PressureGainModifier += GetPressureModifier(context);
 
         // Apply modifiers
         foreach (ValueChange baseChange in pattern.BaseValueChanges)
@@ -46,7 +49,16 @@ public class ChoiceSetFactory
                         ValueTypes.Pressure,
                         baseChange.Change + modifiers.PressureGainModifier));
                     break;
-                    // etc for other value types
+                case ValueTypes.Insight:
+                    finalValueChanges.Add(new ValueChange(
+                        ValueTypes.Insight,
+                        baseChange.Change + modifiers.InsightGainModifier));
+                    break;
+                case ValueTypes.Resonance:
+                    finalValueChanges.Add(new ValueChange(
+                        ValueTypes.Resonance,
+                        baseChange.Change + modifiers.ResonanceGainModifier));
+                    break;
             }
         }
 
@@ -55,9 +67,7 @@ public class ChoiceSetFactory
         // Create the choice using the builder and add requirements, costs, and rewards
         return new ChoiceBuilder()
             .WithName(description)
-            .WithChoiceType(pattern.ChoiceType)
-            .RequiresEnergy(pattern.EnergyType,
-                pattern.BaseCost + modifiers.EnergyCostModifier)
+            .RequiresEnergy(pattern.EnergyType, pattern.BaseCost + modifiers.EnergyCostModifier)
             .WithValueChanges(finalValueChanges)
             .WithRequirements(pattern.Requirements)
             .WithCosts(pattern.Costs)
@@ -65,6 +75,31 @@ public class ChoiceSetFactory
             .Build();
     }
 
+    private int GetOutcomeModifier(EncounterActionContext context)
+    {
+        int modifier = 0;
+
+        // Skill vs. Difficulty
+        modifier += context.PlayerState.GetSkillLevel(GetRelevantSkill(context)) - context.LocationDifficulty;
+
+        // Resonance for social actions
+        if (context.ActionType == BasicActionTypes.Mingle || context.ActionType == BasicActionTypes.Trade || context.ActionType == BasicActionTypes.Persuade)
+        {
+            modifier += context.CurrentValues.Resonance;
+        }
+
+        return modifier;
+    }
+
+    private int GetPressureModifier(EncounterActionContext context)
+    {
+        int modifier = 0;
+
+        // Insight reduces Pressure gain
+        modifier -= context.CurrentValues.Insight;
+
+        return modifier;
+    }
 
     private ChoiceValueModifiers CalculateModifiers(
         ChoicePattern pattern,
@@ -129,25 +164,18 @@ public class ChoiceSetFactory
                 description += "Mingle";
                 break;
             default:
-                description += pattern.ChoiceType.ToString(); // Fallback
+                description += context.ActionType.ToString(); // Use the action type as a fallback
                 break;
         }
 
         // Location
         description += $" at the {context.LocationArchetype}";
 
-        // Choice type modifier
-        switch (pattern.ChoiceType)
+        // Dynamically determine choice type based on value changes
+        string choiceType = GetChoiceType(pattern.BaseValueChanges);
+        if (!string.IsNullOrEmpty(choiceType))
         {
-            case ChoiceTypes.Aggressive:
-                description += " (Aggressively)";
-                break;
-            case ChoiceTypes.Careful:
-                description += " (Carefully)";
-                break;
-            case ChoiceTypes.Tactical:
-                description += " (Tactically)";
-                break;
+            description += $" ({choiceType})";
         }
 
         // Requirements
@@ -159,6 +187,40 @@ public class ChoiceSetFactory
         }
 
         return description;
+    }
+
+    // Helper method to determine choice type based on value changes
+    private string GetChoiceType(List<ValueChange> valueChanges)
+    {
+        // If a choice increases Outcome significantly and decreases Pressure or increases Insight, it could be considered "Careful"
+        if (valueChanges.Any(vc => vc.ValueType == ValueTypes.Outcome && vc.Change >= 2) &&
+            (valueChanges.Any(vc => vc.ValueType == ValueTypes.Pressure && vc.Change < 0) ||
+             valueChanges.Any(vc => vc.ValueType == ValueTypes.Insight && vc.Change > 0)))
+        {
+            return "Carefully";
+        }
+
+        // If a choice significantly increases Pressure, it could be considered "Aggressive"
+        if (valueChanges.Any(vc => vc.ValueType == ValueTypes.Pressure && vc.Change >= 3))
+        {
+            return "Aggressively";
+        }
+
+        // If a choice increases both Outcome and Insight, it could be considered "Tactical"
+        if (valueChanges.Any(vc => vc.ValueType == ValueTypes.Outcome && vc.Change >= 1) &&
+            valueChanges.Any(vc => vc.ValueType == ValueTypes.Insight && vc.Change >= 2))
+        {
+            return "Tactically";
+        }
+
+        // If a choice restores values like Health, Energy, or reduces Pressure, it could be considered "Recovery"
+        if (valueChanges.Any(vc => vc.ValueType == ValueTypes.Pressure && vc.Change < 0))
+        {
+            return "Carefully";
+        }
+
+        // Default: no specific choice type
+        return "";
     }
 
 }
