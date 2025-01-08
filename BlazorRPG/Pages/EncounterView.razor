@@ -45,25 +45,28 @@
             }
         </div>
 
+
         @if (showTooltip && hoveredChoice != null)
         {
             <div class="tooltip" style="left: @mouseX; top: @mouseY">
                 <div class="preview-container">
                     <h4>Choice Preview</h4>
 
+                    @* Requirements *@
                     @if (hoveredChoice.EncounterChoice.ChoiceRequirements.Count > 0)
                     {
                         <div class="requirements">
                             <h5>Requirements</h5>
                             @foreach (var req in hoveredChoice.EncounterChoice.ChoiceRequirements)
                             {
-                                <div class="requirement @(req.IsSatisfied(GameState.Player) ? "positive" : "negative")">
-                                    @req.GetDescription()
+                                <div class="requirement">
+                                    @GetRequirementDescription(req, GameState.Player)
                                 </div>
                             }
                         </div>
                     }
 
+                    @* Permanent Costs *@
                     @if (hoveredChoice.EncounterChoice.PermanentCosts.Count > 0)
                     {
                         <div class="costs">
@@ -78,6 +81,7 @@
                         </div>
                     }
 
+                    @* Permanent Rewards *@
                     @if (hoveredChoice.EncounterChoice.PermanentRewards.Count > 0)
                     {
                         <div class="rewards">
@@ -92,6 +96,7 @@
                         </div>
                     }
 
+                    @* Encounter Value Changes *@
                     <div class="encounter-state-changes">
                         <h5>State Changes</h5>
                         @{
@@ -99,19 +104,19 @@
                             var previewState = CalculatePreviewState(currentState, hoveredChoice.EncounterChoice.EncounterValueChanges);
                         }
                         <div class="state-change @GetStateChangeClass(currentState.Advantage, previewState.Advantage)">
-                            <span class="state-label">Advantage:</span>
+                            <span class="stat-label">Advantage:</span>
                             <span class="state-preview">@currentState.Advantage → @previewState.Advantage</span>
                         </div>
                         <div class="state-change @GetStateChangeClass(currentState.Understanding, previewState.Understanding)">
-                            <span class="state-label">Understanding:</span>
+                            <span class="stat-label">Understanding:</span>
                             <span class="state-preview">@currentState.Understanding → @previewState.Understanding</span>
                         </div>
                         <div class="state-change @GetStateChangeClass(currentState.Connection, previewState.Connection)">
-                            <span class="state-label">Connection:</span>
+                            <span class="stat-label">Connection:</span>
                             <span class="state-preview">@currentState.Connection → @previewState.Connection</span>
                         </div>
                         <div class="state-change @GetStateChangeClass(currentState.Tension, previewState.Tension)">
-                            <span class="state-label">Tension:</span>
+                            <span class="stat-label">Tension:</span>
                             <span class="state-preview">@currentState.Tension → @previewState.Tension</span>
                         </div>
                     </div>

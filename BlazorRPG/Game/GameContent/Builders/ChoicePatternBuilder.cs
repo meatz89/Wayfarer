@@ -4,7 +4,9 @@
     private int baseEnergyCost;
     private EnergyTypes energyType;
     private List<ValueChange> baseValueChanges = new();
-    private SkillRequirement skillRequirement;
+    private List<Requirement> requirements = new();
+    private List<Outcome> costs = new();
+    private List<Outcome> rewards = new();
 
     public ChoicePatternBuilder WithType(ChoiceTypes type)
     {
@@ -27,9 +29,24 @@
         return this;
     }
 
-    public ChoicePatternBuilder WithSkillRequirement(SkillTypes skillType, int level)
+    // New: Methods for adding requirements
+    public ChoicePatternBuilder WithRequirement(Requirement requirement)
     {
-        this.skillRequirement = new SkillRequirement(skillType, level);
+        this.requirements.Add(requirement);
+        return this;
+    }
+
+    // New: Methods for adding costs
+    public ChoicePatternBuilder WithCost(Outcome cost)
+    {
+        this.costs.Add(cost);
+        return this;
+    }
+
+    // New: Methods for adding rewards
+    public ChoicePatternBuilder WithReward(Outcome reward)
+    {
+        this.rewards.Add(reward);
         return this;
     }
 
@@ -41,6 +58,9 @@
             BaseValueChanges = baseValueChanges,
             EnergyType = energyType,
             BaseCost = baseEnergyCost,
+            Requirements = requirements,
+            Costs = costs,
+            Rewards = rewards
         };
     }
 }

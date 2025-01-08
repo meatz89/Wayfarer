@@ -24,6 +24,36 @@ public partial class EncounterViewBase : ComponentBase
         showTooltip = false;
     }
 
+    public void HandleChoiceSelection(UserEncounterChoiceOption choice)
+    {
+        if (choice.EncounterChoice.ChoiceRequirements.Any(req => !req.IsSatisfied(GameState.Player)))
+        {
+            return; // Don't execute if requirements are not met
+        }
+
+        // Apply the choice to the encounter
+        GameManager.ExecuteEncounterChoice(choice);
+
+        // The GameManager should have already updated the encounter state,
+        // so we can just trigger a re-render
+        //StateHasChanged(); //Removed because we added it to OnInitialized
+        OnEncounterCompleted.InvokeAsync();
+    }
+
+    public void OnMouseMove(MouseEventArgs e)
+    {
+        mouseX = e.ClientX + 10;
+        mouseY = e.ClientY + 10;
+    }
+
+    public bool IsRequirementMet(UserEncounterChoiceOption choice)
+    {
+        foreach (Requirement req in choice.EncounterChoice.ChoiceRequirements)
+        {
+            if (!req.IsSatisfied(GameState.Player)) return false;
+        }
+        return true;
+    }
 
     // New Method to calculate the preview state
     public EncounterStateValues CalculatePreviewState(EncounterStateValues currentState, List<ValueChange> valueChanges)
@@ -36,7 +66,7 @@ public partial class EncounterViewBase : ComponentBase
             Tension = currentState.Tension
         };
 
-        foreach (var valueChange in valueChanges)
+        foreach (ValueChange valueChange in valueChanges)
         {
             switch (valueChange.ValueType)
             {
@@ -58,38 +88,6 @@ public partial class EncounterViewBase : ComponentBase
         return previewState;
     }
 
-    public void HandleChoiceSelection(UserEncounterChoiceOption choice)
-    {
-        if (choice.EncounterChoice.ChoiceRequirements.Any(req => !req.IsSatisfied(GameState.Player)))
-        {
-            return; // Don't execute if requirements are not met
-        }
-
-        // Apply the choice to the encounter
-        GameManager.ExecuteEncounterChoice(choice);
-
-        // The GameManager should have already updated the encounter state,
-        // so we can just trigger a re-render
-        StateHasChanged();
-        OnEncounterCompleted.InvokeAsync();
-    }
-
-    public void OnMouseMove(MouseEventArgs e)
-    {
-        mouseX = e.ClientX + 10;
-        mouseY = e.ClientY + 10;
-    }
-
-    public bool IsRequirementMet(UserEncounterChoiceOption choice)
-    {
-        foreach (Requirement req in choice.EncounterChoice.ChoiceRequirements)
-        {
-            if (!req.IsSatisfied(GameState.Player)) return false;
-        }
-        return true;
-    }
-
-
     // Method to determine the CSS class based on the change
     public string GetStateChangeClass(int currentValue, int previewValue)
     {
@@ -105,5 +103,16 @@ public partial class EncounterViewBase : ComponentBase
         {
             return "";
         }
+    }
+
+    // Updated method for requirement descriptions
+    public MarkupString GetRequirementDescription(Requirement req, PlayerState player)
+    {
+        bool isMet = req.IsSatisfied(player);
+        string iconHtml = isMet
+            ? "<span class='green-checkmark'>✓</span>"
+            : "<span class='red-x'>✗</span>";
+
+        return new MarkupString($"{iconHtml} {req.GetDescription()}");
     }
 }

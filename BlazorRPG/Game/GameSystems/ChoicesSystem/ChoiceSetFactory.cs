@@ -1,5 +1,4 @@
-﻿
-public class ChoiceSetFactory
+﻿public class ChoiceSetFactory
 {
     public ChoiceSet CreateFromTemplate(
         ChoiceSetTemplate template,
@@ -25,6 +24,22 @@ public class ChoiceSetFactory
 
     private bool IsTemplateValid(ChoiceSetTemplate template, EncounterActionContext context)
     {
+        // A choice set is invalid if any of its availability conditions are not met
+        bool hasLocationConditions = template.AvailabilityConditions.Any();
+        bool locationConditionsMet = hasLocationConditions && template.AvailabilityConditions.All(cond => cond.IsMet(context.LocationProperties));
+        if (hasLocationConditions && !locationConditionsMet)
+        {
+            return false;
+        }
+
+        // A choice set is invalid if any of its state conditions are not met
+        bool hasStateConditions = template.StateConditions.Any();
+        bool stateConditionsMet = hasStateConditions && template.StateConditions.All(cond => cond.IsMet(context.CurrentValues));
+        if (hasStateConditions && !stateConditionsMet)
+        {
+            return false;
+        }
+
         return true;
     }
 
@@ -55,11 +70,15 @@ public class ChoiceSetFactory
             }
         }
 
+        // Create the choice using the builder and add requirements, costs, and rewards
         return new ChoiceBuilder()
             .WithChoiceType(pattern.ChoiceType)
             .RequiresEnergy(pattern.EnergyType,
                 pattern.BaseCost + modifiers.EnergyCostModifier)
             .WithValueChanges(finalValueChanges)
+            .WithRequirements(pattern.Requirements) // Add requirements
+            .WithCosts(pattern.Costs) // Add costs
+            .WithRewards(pattern.Rewards) // Add rewards
             .Build();
     }
 

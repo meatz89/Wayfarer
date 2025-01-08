@@ -1,7 +1,4 @@
-﻿
-using System;
-
-public class ChoiceBuilder
+﻿public class ChoiceBuilder
 {
     private int index;
     private string description;
@@ -73,32 +70,50 @@ public class ChoiceBuilder
         return this;
     }
 
-    // Outcome methods
-    public ChoiceBuilder WithHealthOutcome(int count)
+    // Outcome methods (Updated to differentiate between Costs and Rewards)
+    public ChoiceBuilder WithHealthCost(int count)
+    {
+        costs.Add(new HealthOutcome(-count)); // Negative for cost
+        return this;
+    }
+
+    public ChoiceBuilder WithHealthReward(int count)
     {
         rewards.Add(new HealthOutcome(count));
         return this;
     }
 
-    public ChoiceBuilder WithMoneyOutcome(int count)
+    public ChoiceBuilder WithCoinsCost(int count)
+    {
+        costs.Add(new CoinsOutcome(-count)); // Negative for cost
+        return this;
+    }
+
+    public ChoiceBuilder WithCoinsReward(int count)
     {
         rewards.Add(new CoinsOutcome(count));
         return this;
     }
 
-    public ChoiceBuilder WithResourceOutcome(ResourceTypes type, int count)
+    public ChoiceBuilder WithResourceCost(ResourceTypes type, int count)
+    {
+        costs.Add(new ResourceOutcome(type, -count)); // Negative for cost
+        return this;
+    }
+
+    public ChoiceBuilder WithResourceReward(ResourceTypes type, int count)
     {
         rewards.Add(new ResourceOutcome(type, count));
         return this;
     }
 
-    public ChoiceBuilder WithSkillOutcome(SkillTypes type, int count)
+    public ChoiceBuilder WithSkillReward(SkillTypes type, int count)
     {
         rewards.Add(new SkillLevelOutcome(type, count));
         return this;
     }
 
-    public ChoiceBuilder WithReputationOutcome(ReputationTypes type, int count)
+    public ChoiceBuilder WithReputationReward(ReputationTypes type, int count)
     {
         rewards.Add(new ReputationOutcome(type, count));
         return this;
@@ -140,30 +155,42 @@ public class ChoiceBuilder
         return this;
     }
 
-    public ChoiceBuilder WithRequirements(List<Requirement> requirements)
+    // Updated to be clearer
+    public ChoiceBuilder WithRequirements(List<Requirement> newRequirements)
     {
-        this.requirements = requirements;
+        requirements.AddRange(newRequirements);
+        return this;
+    }
+
+    public ChoiceBuilder WithCosts(List<Outcome> newCosts)
+    {
+        costs.AddRange(newCosts);
+        return this;
+    }
+
+    public ChoiceBuilder WithRewards(List<Outcome> newRewards)
+    {
+        rewards.AddRange(newRewards);
         return this;
     }
 
     public ChoiceBuilder AddRequirement(Requirement requirement)
     {
-        this.requirements.Add(requirement);
+        requirements.Add(requirement);
         return this;
     }
 
     public ChoiceBuilder AddCost(Outcome cost)
     {
-        this.costs.Add(cost);
+        costs.Add(cost);
         return this;
     }
 
     public ChoiceBuilder AddReward(Outcome reward)
     {
-        this.rewards.Add(reward);
+        rewards.Add(reward);
         return this;
     }
-
 
     public EncounterChoice Build()
     {
@@ -179,5 +206,4 @@ public class ChoiceBuilder
             EncounterValueChanges = standardValueChanges
         };
     }
-
 }
