@@ -9,7 +9,6 @@
 
     public EncounterStateValues()
     {
-
     }
 
     public EncounterStateValues(int advantage, int understanding, int connection, int tension)

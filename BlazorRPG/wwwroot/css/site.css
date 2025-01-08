@@ -547,3 +547,8 @@ body {
     color: var(--resource-health);
     margin-right: 5px;
 }
+
+.energy-cost-preview {
+    margin-bottom: 5px;
+    color: var(--resource-health); /* Example: Color for energy cost */
+}

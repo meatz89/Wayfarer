@@ -65,11 +65,25 @@
                         </div>
                     }
 
+                    @* Energy Costs *@
+                    <div class="costs">
+                        <h5>Energy Costs</h5>
+                        @{
+                            var energyCostPreview = CalculateEnergyCostPreview(hoveredChoice.EncounterChoice, GameState.Player, GameState.Actions.CurrentEncounter.Context.CurrentValues);
+                        }
+                        @foreach (var previewLine in energyCostPreview)
+                        {
+                            <div class="cost">
+                                @((MarkupString)previewLine)
+                            </div>
+                        }
+                    </div>
+
                     @* Permanent Costs *@
                     @if (hoveredChoice.EncounterChoice.PermanentCosts.Count > 0)
                     {
                         <div class="costs">
-                            <h5>Costs</h5>
+                            <h5>Permanent Costs</h5>
                             @foreach (var cost in hoveredChoice.EncounterChoice.PermanentCosts)
                             {
                                 <div class="cost">

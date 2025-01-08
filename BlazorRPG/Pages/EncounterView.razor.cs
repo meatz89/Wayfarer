@@ -120,4 +120,76 @@ public partial class EncounterViewBase : ComponentBase
 
         return new MarkupString($"{iconHtml} {req.GetDescription()}");
     }
+
+    public List<string> CalculateEnergyCostPreview(EncounterChoice choice, PlayerState player, EncounterStateValues encounterStateValues)
+    {
+        List<string> preview = new();
+        int previewPhysicalEnergy = player.PhysicalEnergy;
+        int previewFocusEnergy = player.FocusEnergy;
+        int previewSocialEnergy = player.SocialEnergy;
+        int previewHealth = player.Health;
+
+        foreach (Requirement req in choice.ChoiceRequirements)
+        {
+            if (req is EnergyRequirement energyReq)
+            {
+                int cost = energyReq.Amount;
+
+                // Tension Modifier (Simulate the logic from ApplyEnergyCosts)
+                if (encounterStateValues.Tension >= 6)
+                {
+                    cost += 1;
+                }
+
+                switch (energyReq.EnergyType)
+                {
+                    case EnergyTypes.Physical:
+                        previewPhysicalEnergy -= cost;
+                        if (previewPhysicalEnergy < 0)
+                        {
+                            previewHealth += previewPhysicalEnergy; // Health penalty
+                            previewPhysicalEnergy = 0;
+                        }
+                        preview.Add(
+                            $"<span class='{(energyReq.Amount > 0 ? "negative" : "positive")}'>" +
+                            $"{energyReq.EnergyType} Energy: ({player.PhysicalEnergy} -> {previewPhysicalEnergy})" +
+                            $"</span>");
+                        if (previewHealth < player.Health)
+                        {
+                            preview.Add(
+                                $"<span class='negative'>" +
+                                $"Health: ({player.Health} -> {previewHealth})" +
+                                $"</span>");
+                        }
+                        break;
+
+                    case EnergyTypes.Focus:
+                        previewFocusEnergy -= cost;
+                        if (previewFocusEnergy < 0)
+                        {
+                            previewFocusEnergy = 0; // Deplete energy in preview
+                        }
+                        preview.Add(
+                            $"<span class='{(energyReq.Amount > 0 ? "negative" : "positive")}'>" +
+                            $"{energyReq.EnergyType} Energy: ({player.FocusEnergy} -> {previewFocusEnergy})" +
+                            $"</span>");
+                        break;
+
+                    case EnergyTypes.Social:
+                        previewSocialEnergy -= cost;
+                        if (previewSocialEnergy < 0)
+                        {
+                            previewSocialEnergy = 0; // Deplete energy in preview
+                        }
+                        preview.Add(
+                            $"<span class='{(energyReq.Amount > 0 ? "negative" : "positive")}'>" +
+                            $"{energyReq.EnergyType} Energy: ({player.SocialEnergy} -> {previewSocialEnergy})" +
+                            $"</span>");
+                        break;
+                }
+            }
+        }
+
+        return preview;
+    }
 }

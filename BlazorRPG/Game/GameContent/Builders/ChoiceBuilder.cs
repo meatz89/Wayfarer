@@ -28,11 +28,6 @@
         return this;
     }
 
-    public ChoiceBuilder WithEncounter(string encounter)
-    {
-        this.encounter = encounter;
-        return this;
-    }
 
     public ChoiceBuilder RequiresEnergy(EnergyTypes energy, int count)
     {
@@ -43,12 +38,6 @@
     public ChoiceBuilder RequiresSkill(SkillTypes type, int count)
     {
         requirements.Add(new SkillLevelRequirement(type, count));
-        return this;
-    }
-
-    public ChoiceBuilder RequiresHealth(int count)
-    {
-        requirements.Add(new HealthRequirement(count));
         return this;
     }
 
@@ -70,7 +59,6 @@
         return this;
     }
 
-    // Outcome methods (Updated to differentiate between Costs and Rewards)
     public ChoiceBuilder WithHealthCost(int count)
     {
         costs.Add(new HealthOutcome(-count)); // Negative for cost
