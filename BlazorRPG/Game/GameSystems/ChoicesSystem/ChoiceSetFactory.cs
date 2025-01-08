@@ -1,4 +1,5 @@
-﻿public class ChoiceSetFactory
+﻿
+public class ChoiceSetFactory
 {
     public ChoiceSet CreateFromTemplate(
         ChoiceSetTemplate template,
@@ -20,27 +21,6 @@
         }
 
         return new ChoiceSet(choices);
-    }
-
-    private bool IsTemplateValid(ChoiceSetTemplate template, EncounterActionContext context)
-    {
-        // A choice set is invalid if any of its availability conditions are not met
-        bool hasLocationConditions = template.AvailabilityConditions.Any();
-        bool locationConditionsMet = hasLocationConditions && template.AvailabilityConditions.All(cond => cond.IsMet(context.LocationProperties));
-        if (hasLocationConditions && !locationConditionsMet)
-        {
-            return false;
-        }
-
-        // A choice set is invalid if any of its state conditions are not met
-        bool hasStateConditions = template.StateConditions.Any();
-        bool stateConditionsMet = hasStateConditions && template.StateConditions.All(cond => cond.IsMet(context.CurrentValues));
-        if (hasStateConditions && !stateConditionsMet)
-        {
-            return false;
-        }
-
-        return true;
     }
 
     private EncounterChoice CreateChoiceFromPattern(
@@ -70,17 +50,21 @@
             }
         }
 
+        string description = GenerateDescription(pattern, context);
+
         // Create the choice using the builder and add requirements, costs, and rewards
         return new ChoiceBuilder()
+            .WithName(description) 
             .WithChoiceType(pattern.ChoiceType)
             .RequiresEnergy(pattern.EnergyType,
                 pattern.BaseCost + modifiers.EnergyCostModifier)
             .WithValueChanges(finalValueChanges)
-            .WithRequirements(pattern.Requirements) // Add requirements
-            .WithCosts(pattern.Costs) // Add costs
-            .WithRewards(pattern.Rewards) // Add rewards
+            .WithRequirements(pattern.Requirements)
+            .WithCosts(pattern.Costs)
+            .WithRewards(pattern.Rewards)
             .Build();
     }
+
 
     private ChoiceValueModifiers CalculateModifiers(
         ChoicePattern pattern,
@@ -96,6 +80,27 @@
         return mods;
     }
 
+    private bool IsTemplateValid(ChoiceSetTemplate template, EncounterActionContext context)
+    {
+        // A choice set is invalid if any of its availability conditions are not met
+        bool hasLocationConditions = template.AvailabilityConditions.Any();
+        bool locationConditionsMet = hasLocationConditions && template.AvailabilityConditions.All(cond => cond.IsMet(context.LocationProperties));
+        if (hasLocationConditions && !locationConditionsMet)
+        {
+            return false;
+        }
+
+        // A choice set is invalid if any of its state conditions are not met
+        bool hasStateConditions = template.StateConditions.Any();
+        bool stateConditionsMet = hasStateConditions && template.StateConditions.All(cond => cond.IsMet(context.CurrentValues));
+        if (hasStateConditions && !stateConditionsMet)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     private SkillTypes GetRelevantSkill(EncounterActionContext context)
     {
         return context.ActionType switch
@@ -106,4 +111,54 @@
             _ => SkillTypes.None
         };
     }
+
+    private string GenerateDescription(ChoicePattern pattern, EncounterActionContext context)
+    {
+        string description = "";
+
+        // Action type
+        switch (context.ActionType)
+        {
+            case BasicActionTypes.Labor:
+                description += "Work";
+                break;
+            case BasicActionTypes.Investigate:
+                description += "Investigate";
+                break;
+            case BasicActionTypes.Mingle:
+                description += "Mingle";
+                break;
+            default:
+                description += pattern.ChoiceType.ToString(); // Fallback
+                break;
+        }
+
+        // Location
+        description += $" at the {context.LocationArchetype}";
+
+        // Choice type modifier
+        switch (pattern.ChoiceType)
+        {
+            case ChoiceTypes.Aggressive:
+                description += " (Aggressively)";
+                break;
+            case ChoiceTypes.Careful:
+                description += " (Carefully)";
+                break;
+            case ChoiceTypes.Tactical:
+                description += " (Tactically)";
+                break;
+        }
+
+        // Requirements
+        if (pattern.Requirements.Any())
+        {
+            description += " (Requires: ";
+            description += string.Join(", ", pattern.Requirements.Select(r => r.GetDescription()));
+            description += ")";
+        }
+
+        return description;
+    }
+
 }

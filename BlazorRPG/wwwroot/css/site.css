@@ -426,6 +426,21 @@ body {
     display: flex;
     gap: 10px;
 }
+    .choice-option.disabled {
+        background-color: var(--bg-card); /* Or any desired color */
+        color: var(--text-muted);
+        cursor: not-allowed;
+    }
+
+        .choice-option.disabled:hover {
+            background-color: var(--bg-card); /* Prevent hover effect */
+            cursor: not-allowed;
+        }
+
+        .choice-option.disabled .choice-index,
+        .choice-option.disabled .choice-description {
+            color: var(--text-muted); /* Lighter text color */
+        }
 
     .choice-option:hover,
     .choice-option.hovered {

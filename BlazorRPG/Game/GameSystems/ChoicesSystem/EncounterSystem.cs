@@ -52,7 +52,6 @@ public class EncounterSystem
         return encounter.Stages[encounter.CurrentStage].Choices;
     }
 
-
     public bool GetNextStage(Encounter encounter)
     {
         // Don't proceed if we've hit our success condition (Advantage ≥ 10) or if the player is in a game over state

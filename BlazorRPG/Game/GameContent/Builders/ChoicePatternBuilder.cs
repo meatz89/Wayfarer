@@ -60,7 +60,7 @@
             BaseCost = baseEnergyCost,
             Requirements = requirements,
             Costs = costs,
-            Rewards = rewards
+            Rewards = rewards,
         };
     }
 }

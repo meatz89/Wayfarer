@@ -26,9 +26,9 @@ public partial class EncounterViewBase : ComponentBase
 
     public void HandleChoiceSelection(UserEncounterChoiceOption choice)
     {
-        if (choice.EncounterChoice.ChoiceRequirements.Any(req => !req.IsSatisfied(GameState.Player)))
+        if (IsChoiceDisabled(choice))
         {
-            return; // Don't execute if requirements are not met
+            return; // Don't execute if the choice is disabled
         }
 
         // Apply the choice to the encounter
@@ -38,6 +38,11 @@ public partial class EncounterViewBase : ComponentBase
         // so we can just trigger a re-render
         //StateHasChanged(); //Removed because we added it to OnInitialized
         OnEncounterCompleted.InvokeAsync();
+    }
+
+    public bool IsChoiceDisabled(UserEncounterChoiceOption choice)
+    {
+        return choice.EncounterChoice.ChoiceRequirements.Any(req => !req.IsSatisfied(GameState.Player));
     }
 
     public void OnMouseMove(MouseEventArgs e)
