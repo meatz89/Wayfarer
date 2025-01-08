@@ -1,10 +1,10 @@
 ﻿// Represents a specific value change in the encounter state
-public class EncounterValueChange
+public class ValueChange
 {
-    public EncounterValues ValueType { get; }
+    public ValueTypes ValueType { get; }
     public int Change { get; }
 
-    public EncounterValueChange(EncounterValues type, int amount)
+    public ValueChange(ValueTypes type, int amount)
     {
         ValueType = type;
         Change = amount;
@@ -12,7 +12,7 @@ public class EncounterValueChange
 
 }
 
-public enum EncounterValues
+public enum ValueTypes
 {
     Momentum,
     Advantage,

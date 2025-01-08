@@ -88,7 +88,7 @@ public class GameManager
         foreach (ActionTemplate template in allActionTemplates)
         {
             // Use ActionAvailabilityService to check availability
-            if (availabilityService.IsActionAvailable(template, location))
+            if (availabilityService.IsActionAvailable(template, location.LocationProperties))
             {
                 // Create ActionImplementation using the factory
                 ActionImplementation actionImplementation = ActionFactory.CreateAction(template, location);
@@ -158,13 +158,17 @@ public class GameManager
 
     public void SetEncounterChoices(Encounter encounter)
     {
+        string locationSpot = "LocationSpot";
+
         EncounterStage stage = EncounterSystem.GetCurrentStage(encounter);
         List<EncounterChoice> choices = EncounterSystem.GetCurrentStageChoices(encounter);
 
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
         foreach (EncounterChoice choice in choices)
         {
-            UserEncounterChoiceOption option = new UserEncounterChoiceOption(choice.Index, choice.Description, default, encounter, stage, choice, encounter.LocationName, default, encounter.EncounterCharacter);
+            UserEncounterChoiceOption option = new UserEncounterChoiceOption(
+                choice.Index, choice.Description,
+                encounter, stage, choice);
 
             choiceOptions.Add(option);
         }
@@ -179,11 +183,6 @@ public class GameManager
 
         EncounterSystem.ExecuteChoice(encounter, choice);
         ProceedEncounter(encounter);
-    }
-
-    private void InitializeEncounter(Encounter encounter)
-    {
-        SetEncounterChoices(encounter);
     }
 
     private void ProceedEncounter(Encounter encounter)
@@ -201,6 +200,8 @@ public class GameManager
 
     public ActionResult ExecuteBasicAction(UserActionOption action, ActionImplementation basicAction)
     {
+        Location location = LocationSystem.GetLocation(action.Location);
+
         gameState.Actions.SetCurrentUserAction(action);
 
         if (!ContextEngine.CanExecuteInContext(basicAction))
@@ -212,24 +213,44 @@ public class GameManager
             return GenerateNormalAction(action, basicAction);
         }
 
-        GenerateEncounter(basicAction);
-
-        return ActionResult.Success("Action started!", new ActionResultMessages());
-    }
-
-    private void GenerateEncounter(ActionImplementation basicAction)
-    {
-        // Generate encounter instead of looking up predefined one
-        Encounter encounter = EncounterSystem.GenerateEncounter(
-            basicAction.ActionType,
-            gameState.World.CurrentLocation,
-            gameState.Player);
+        Encounter encounter = GenerateEncounter(basicAction.ActionType, location, gameState.Player);
 
         // Set as active encounter
         EncounterSystem.SetActiveEncounter(encounter);
 
+        return ActionResult.Success("Action started!", new ActionResultMessages());
+    }
+
+    public Encounter GenerateEncounter(
+        BasicActionTypes action,
+        Location location,
+        PlayerState playerState)
+    {
+        // Create context with proper difficulty
+        EncounterActionContext context = new(
+            action,
+            location.LocationType,
+            location.LocationArchetype,
+            gameState.World.CurrentTimeSlot,
+            location.LocationProperties,
+            playerState,
+            new EncounterStateValues(
+                advantage: 5 + (playerState.Level - location.DifficultyLevel),
+                understanding: 0,
+                connection: 5,
+                tension: 0
+            ),
+            1,
+            location.DifficultyLevel
+        );
+
+        // Generate encounter instead of looking up predefined one
+        Encounter encounter = EncounterSystem.GenerateEncounter(context);
+
         // Initialize first stage
-        InitializeEncounter(encounter);
+        SetEncounterChoices(encounter);
+
+        return encounter;
     }
 
     private ActionResult GenerateNormalAction(UserActionOption action, ActionImplementation basicAction)

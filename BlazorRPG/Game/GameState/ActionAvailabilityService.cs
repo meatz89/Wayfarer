@@ -1,10 +1,10 @@
 ﻿public class ActionAvailabilityService
 {
-    public bool IsActionAvailable(ActionTemplate template, Location location)
+    public bool IsActionAvailable(ActionTemplate template, LocationProperties locationProperties)
     {
         foreach (LocationPropertyCondition condition in template.AvailabilityConditions)
         {
-            if (!condition.IsMet(location)) // Use the Location object directly
+            if (!condition.IsMet(locationProperties)) // Use the Location object directly
             {
                 return false;
             }

@@ -9,9 +9,9 @@
         ExpectedValue = expectedValue;
     }
 
-    public bool IsMet(Location location)
+    public bool IsMet(LocationProperties locationProperties)
     {
-        object property = location.LocationProperties.GetProperty(PropertyType);
+        object property = locationProperties.GetProperty(PropertyType);
 
         // If the property is not set, consider the condition as met
         if (property == null)

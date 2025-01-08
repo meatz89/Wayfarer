@@ -16,7 +16,7 @@
     // Method to check if the action is available at a location
     public bool IsAvailableAt(Location location)
     {
-        return AvailabilityConditions.All(c => c.IsMet(location));
+        return AvailabilityConditions.All(c => c.IsMet(location.LocationProperties));
     }
 
 }

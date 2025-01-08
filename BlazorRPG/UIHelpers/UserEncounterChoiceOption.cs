@@ -1,4 +1,6 @@
-﻿public record UserEncounterChoiceOption(int Index, string Description, bool IsDisabled, Encounter Encounter, EncounterStage EncounterStage, EncounterChoice EncounterChoice, LocationNames Location, string LocationSpot, CharacterNames Character)
+﻿public record UserEncounterChoiceOption(
+    int Index, string Description, Encounter Encounter,
+    EncounterStage EncounterStage, EncounterChoice EncounterChoice)
 {
     public string Display()
     {

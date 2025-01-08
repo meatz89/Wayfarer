@@ -5,6 +5,7 @@
     private List<Item> items;
 
     private List<Quest> quests;
+    private List<ChoiceSetTemplate> choiceSetTemplates;
 
     public GameContentProvider()
     {
@@ -36,6 +37,17 @@
         {
             QuestContent.MerchantApprentice,
         };
+
+
+        choiceSetTemplates = new List<ChoiceSetTemplate>()
+        {
+            ChoiceSetContent.ExampleTemplate,
+        };
+    }
+
+    public List<ChoiceSetTemplate> GetChoiceSetTemplates()
+    {
+        return choiceSetTemplates;
     }
 
     public List<Location> GetLocations()

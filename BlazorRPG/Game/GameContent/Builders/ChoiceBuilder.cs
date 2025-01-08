@@ -11,7 +11,7 @@ public class ChoiceBuilder
     private List<Outcome> rewards = new();
     private string encounter;
     private EncounterStateValues encounterStateChanges = EncounterStateValues.NoChange;
-    private List<EncounterValueChange> standardValueChanges = new();
+    private List<ValueChange> standardValueChanges = new();
 
     public ChoiceBuilder WithIndex(int index)
     {
@@ -128,13 +128,13 @@ public class ChoiceBuilder
         return this;
     }
 
-    public ChoiceBuilder WithValueChange(EncounterValues valueType, int change)
+    public ChoiceBuilder WithValueChange(ValueTypes valueType, int change)
     {
-        standardValueChanges.Add(new EncounterValueChange(valueType, change));
+        standardValueChanges.Add(new ValueChange(valueType, change));
         return this;
     }
 
-    public ChoiceBuilder WithValueChanges(List<EncounterValueChange> valueChanges)
+    public ChoiceBuilder WithValueChanges(List<ValueChange> valueChanges)
     {
         standardValueChanges.AddRange(valueChanges);
         return this;
@@ -176,7 +176,6 @@ public class ChoiceBuilder
             ChoiceRequirements = requirements,
             PermanentCosts = costs,
             PermanentRewards = rewards,
-            EncounterStateChanges = encounterStateChanges,
             EncounterValueChanges = standardValueChanges
         };
     }

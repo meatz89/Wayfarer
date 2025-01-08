@@ -8,6 +8,7 @@
     public PlayerState PlayerState { get; }
     public EncounterStateValues CurrentValues { get; }
     public int StageNumber { get; } // Add this field
+    public int LocationDifficulty { get; internal set; }
 
     public EncounterActionContext(
         BasicActionTypes actionType,
@@ -17,7 +18,8 @@
         LocationProperties locationProperties,
         PlayerState playerState,
         EncounterStateValues currentValues,
-        int stageNumber)
+        int stageNumber,
+        int locationDifficulty)
     {
         ActionType = actionType;
         LocationType = locationType;
@@ -27,6 +29,7 @@
         PlayerState = playerState;
         CurrentValues = currentValues;
 
-        StageNumber = stageNumber;  // Set the field
+        LocationDifficulty = locationDifficulty;
+        StageNumber = stageNumber;
     }
 }

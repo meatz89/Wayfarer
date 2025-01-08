@@ -16,7 +16,7 @@ public class UnderstandingRequirement : Requirement
     public override bool IsSatisfied(PlayerState player)
     {
         Encounter encounter = player.CurrentEncounter;
-        return encounter != null && encounter.InitialState.Understanding >= requiredLevel;
+        return encounter != null && encounter.Context.CurrentValues.Understanding >= requiredLevel;
     }
 
     public override string GetDescription()

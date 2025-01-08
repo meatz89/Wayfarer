@@ -245,4 +245,9 @@
     public void ModifyResource(ResourceChangeTypes changeType, ResourceTypes resource, int count)
     {
     }
+
+    internal int GetSkillLevel(SkillTypes value)
+    {
+        return 1;
+    }
 }

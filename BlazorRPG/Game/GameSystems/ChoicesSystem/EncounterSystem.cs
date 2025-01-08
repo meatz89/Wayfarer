@@ -9,44 +9,16 @@
         this.choiceSystem = choiceSystem;
     }
 
-    public Encounter GenerateEncounter(
-        BasicActionTypes action,
-        Location location,
-        PlayerState playerState)
+    public Encounter GenerateEncounter(EncounterActionContext context)
     {
-        // Create context for generation
-        EncounterActionContext context = new(
-            action,
-            location.LocationType,
-            location.LocationArchetype,
-            gameState.World.CurrentTimeSlot,
-            location.LocationProperties,
-            playerState,
-            new EncounterStateValues(
-                advantage: 5 + (gameState.Player.Level - location.DifficultyLevel), // Calculate Starting Advantage
-                understanding: 0,
-                connection: 5,
-            tension: 0
-            ),
-            1
-
-        );
-
         // Generate initial stage
         EncounterStage initialStage = GenerateStage(context);
 
         // Create encounter with initial stage
-        return new Encounter
-        {
-            ActionType = action,
-            LocationType = location.LocationType,
-            LocationName = location.LocationName,
-            TimeSlot = gameState.World.CurrentTimeSlot,
-            Situation = GenerateSituation(context), // Added GenerateSituation call
-            Stages = new List<EncounterStage> { initialStage },
-            InitialState = context.CurrentValues,
-            EncounterDifficulty = location.DifficultyLevel,
-        };
+        Encounter encounter = new Encounter(context, GenerateSituation(context));
+        encounter.Stages.Add(initialStage);
+
+        return encounter;
     }
 
 
@@ -70,39 +42,27 @@
 
     public EncounterStage GetCurrentStage(Encounter encounter)
     {
-        return encounter.Stages[encounter.currentStage];
+        return encounter.Stages[encounter.CurrentStage];
     }
 
     public List<EncounterChoice> GetCurrentStageChoices(Encounter encounter)
     {
-        return encounter.Stages[encounter.currentStage].Choices;
+        return encounter.Stages[encounter.CurrentStage].Choices;
     }
 
 
     public bool GetNextStage(Encounter encounter)
     {
         // Don't proceed if we've hit our success condition (Advantage ≥ 10) or if the player is in a game over state
-        if (encounter.InitialState.Advantage >= 10 || IsGameOver())
+        if (encounter.Context.CurrentValues.Advantage >= 10 || IsGameOver())
         {
             return false;
         }
 
-        // Create context for new stage generation
-        EncounterActionContext context = new(
-            encounter.ActionType,
-            encounter.LocationType,
-            encounter.LocationArchetype,
-            encounter.TimeSlot!.Value,
-            gameState.World.CurrentLocation.LocationProperties,
-            gameState.Player,
-            encounter.InitialState,
-            encounter.currentStage + 1
-        );
-
         // Generate new stage and add it
-        EncounterStage newStage = GenerateStage(context);
+        EncounterStage newStage = GenerateStage(encounter.Context);
         encounter.Stages.Add(newStage);
-        encounter.currentStage++;
+        encounter.CurrentStage++;
 
         return true;
     }
@@ -119,24 +79,24 @@
         ApplyEnergyCosts(choice);
 
         // 2. Narrative Value Changes
-        encounter.InitialState.ApplyChanges(choice.EncounterValueChanges);
+        encounter.Context.CurrentValues.ApplyChanges(choice.EncounterValueChanges);
 
         // 3. Connection Bonus (Apply to Advantage gains only)
-        if (encounter.InitialState.Connection >= 8)
+        if (encounter.Context.CurrentValues.Connection >= 8)
         {
-            encounter.InitialState.Advantage += 2;
+            encounter.Context.CurrentValues.Advantage += 2;
         }
-        else if (encounter.InitialState.Connection >= 5)
+        else if (encounter.Context.CurrentValues.Connection >= 5)
         {
-            encounter.InitialState.Advantage += 1;
+            encounter.Context.CurrentValues.Advantage += 1;
         }
-        encounter.InitialState.Advantage = Math.Clamp(encounter.InitialState.Advantage, 0, 10); // Cap Advantage at 10
-        encounter.InitialState.Understanding = Math.Clamp(encounter.InitialState.Understanding, 0, 10); // Cap Advantage at 10
-        encounter.InitialState.Connection = Math.Clamp(encounter.InitialState.Connection, 0, 10); // Cap Advantage at 10
-        encounter.InitialState.Tension = Math.Clamp(encounter.InitialState.Tension, 0, 10); // Cap Advantage at 10
+        encounter.Context.CurrentValues.Advantage = Math.Clamp(encounter.Context.CurrentValues.Advantage, 0, 10); // Cap Advantage at 10
+        encounter.Context.CurrentValues.Understanding = Math.Clamp(encounter.Context.CurrentValues.Understanding, 0, 10); // Cap Advantage at 10
+        encounter.Context.CurrentValues.Connection = Math.Clamp(encounter.Context.CurrentValues.Connection, 0, 10); // Cap Advantage at 10
+        encounter.Context.CurrentValues.Tension = Math.Clamp(encounter.Context.CurrentValues.Tension, 0, 10); // Cap Advantage at 10
 
         // 4. Tension Modifier
-        if (encounter.InitialState.Tension >= 6)
+        if (encounter.Context.CurrentValues.Tension >= 6)
         {
             // Increase Energy costs (already handled in ApplyEnergyCosts)
         }
@@ -172,7 +132,7 @@
                 int cost = energyReq.Amount;
 
                 // Tension Modifier
-                if (gameState.Actions.CurrentEncounter.InitialState.Tension >= 6)
+                if (gameState.Actions.CurrentEncounter.Context.CurrentValues.Tension >= 6)
                 {
                     cost += 1;
                 }

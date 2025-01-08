@@ -7,6 +7,11 @@
     public int Connection { get; set; }
     public int Tension { get; set; }
 
+    public EncounterStateValues()
+    {
+        
+    }
+
     public EncounterStateValues(int advantage, int understanding, int connection, int tension)
     {
         this.Advantage = advantage;
@@ -15,22 +20,22 @@
         this.Tension = tension;
     }
 
-    public void ApplyChanges(List<EncounterValueChange> valueChanges)
+    public void ApplyChanges(List<ValueChange> valueChanges)
     {
-        foreach (EncounterValueChange change in valueChanges)
+        foreach (ValueChange change in valueChanges)
         {
             switch (change.ValueType)
             {
-                case EncounterValues.Advantage:
+                case ValueTypes.Advantage:
                     Advantage += change.Change;
                     break;
-                case EncounterValues.Understanding:
+                case ValueTypes.Understanding:
                     Understanding += change.Change;
                     break;
-                case EncounterValues.Connection:
+                case ValueTypes.Connection:
                     Connection += change.Change;
                     break;
-                case EncounterValues.Tension:
+                case ValueTypes.Tension:
                     Tension += change.Change;
                     break;
             }
