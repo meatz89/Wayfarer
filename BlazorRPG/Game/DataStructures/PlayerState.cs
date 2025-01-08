@@ -61,20 +61,20 @@
         MaxHealth = 10;
 
         PhysicalEnergy = GameRules.StandardRuleset.StartingPhysicalEnergy;
-        MaxPhysicalEnergy = 10;
+        MaxPhysicalEnergy = 20;
 
         FocusEnergy = GameRules.StandardRuleset.StartingFocusEnergy;
-        MaxFocusEnergy = 10;
+        MaxFocusEnergy = 20;
 
         SocialEnergy = GameRules.StandardRuleset.StartingSocialEnergy;
-        MaxSocialEnergy = 10;
+        MaxSocialEnergy = 20;
 
         Stress = MinStress = 0;
-        MaxStress = 10;
+        MaxStress = 20;
 
         Reputation = 0;
         MinReputation = 0;
-        MaxReputation = 10;
+        MaxReputation = 20;
     }
 
     public bool ModifyCoins(int count)

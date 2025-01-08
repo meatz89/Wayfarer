@@ -34,30 +34,93 @@
         // Check for game over conditions after applying choice effects
         if (IsGameOver())
         {
-            // Handle game over (e.g., display a message, end the encounter)
+            // Handle game over
             Console.WriteLine("Game Over!");
-            gameState.Actions.SetActiveEncounter(null); // Or other logic to end the encounter
+            gameState.Actions.SetActiveEncounter(null);
         }
     }
 
-    private static void ApplyEncounterStateValueModifications(Encounter encounter)
+    private void ApplyEncounterStateValueModifications(Encounter encounter)
     {
-        // **Insight Modifiers**
-        // Increase Insight based on choices that increase Insight
-        int insightIncreasingChoices = encounter.GetCurrentStage().Choices.Count(c => c.EncounterValueChanges.Any(vc => vc.ValueType == ValueTypes.Insight && vc.Change > 0));
-        encounter.Context.CurrentValues.Insight += insightIncreasingChoices;
+        EncounterActionContext context = encounter.Context;
+
+        // **Apply Strain based on Pressure**
+        int strainIncrease = context.CurrentValues.Pressure;
+        ApplyStrain(encounter, context, strainIncrease);
 
         // **Resonance Modifiers**
-        // Modify Outcome based on Resonance
-        if (encounter.Context.CurrentValues.Resonance >= 8)
+        if (context.CurrentValues.Resonance >= 8)
         {
-            encounter.Context.CurrentValues.Outcome += 2;
+            context.CurrentValues.Outcome += 2;
         }
-        else if (encounter.Context.CurrentValues.Resonance >= 5)
+        else if (context.CurrentValues.Resonance >= 5)
         {
-            encounter.Context.CurrentValues.Outcome += 1;
+            context.CurrentValues.Outcome += 1;
+        }
+
+        // **Determine Outcome Based on Values** (no more OutcomeType)
+        // (This is where you'll implement the logic based on your detailed explanation)
+        ApplyConsequences(context);
+
+        // Clamp values (moved here after applying consequences)
+        context.CurrentValues.Outcome = Math.Clamp(context.CurrentValues.Outcome, 0, 20);
+        context.CurrentValues.Insight = Math.Clamp(context.CurrentValues.Insight, 0, 20);
+        context.CurrentValues.Resonance = Math.Clamp(context.CurrentValues.Resonance, 0, 20);
+        context.CurrentValues.Pressure = Math.Clamp(context.CurrentValues.Pressure, 0, 20);
+    }
+
+    private void ApplyStrain(Encounter encounter, EncounterActionContext context, int strainIncrease)
+    {
+        // Increase Energy Costs
+        foreach (EncounterChoice choice in encounter.GetCurrentStage().Choices)
+        {
+            foreach (Requirement req in choice.ChoiceRequirements)
+            {
+                if (req is EnergyRequirement energyReq)
+                {
+                    energyReq.Amount += strainIncrease / 3; // Increase cost by 1 for every 3 points of Pressure
+                }
+            }
+        }
+
+        // Apply Penalties based on Strain
+        if (strainIncrease >= 9)
+        {
+            // -1 to all actions (or you could apply this as a temporary debuff to player's skills)
+        }
+        else if (strainIncrease >= 7)
+        {
+            // -1 to focus actions
+        }
+        else if (strainIncrease >= 5)
+        {
+            // -1 to physical actions
+        }
+        else if (strainIncrease >= 3)
+        {
+            // -1 to social actions
+        }
+
+        if (context.CurrentValues.Pressure == 10)
+        {
+            // Trigger a collapse/major setback based on the encounter context
+            switch (context.LocationType)
+            {
+                case LocationTypes.Industrial:
+                    context.CurrentValues.Outcome = 0; // Critical failure
+                    gameState.Player.Health -= 5; // Injury
+                    break;
+                case LocationTypes.Social:
+                    context.CurrentValues.Outcome = 0; // Social faux pas
+                    gameState.Player.Reputation -= 3; // Reputation damage
+                    break;
+                default:
+                    context.CurrentValues.Outcome = 1; // Default setback
+                    break;
+            }
         }
     }
+
 
     private void ApplyEnergyCosts(EncounterChoice choice, EncounterActionContext context)
     {
@@ -109,28 +172,58 @@
         }
     }
 
-    private static string GetOutcomeType(EncounterStateValues values)
+    // **Determine Consequences Based on Values**
+    private void ApplyConsequences(EncounterActionContext context)
     {
-        if (values.Outcome >= 7 && values.Pressure <= 3)
+        int outcome = context.CurrentValues.Outcome;
+        int pressure = context.CurrentValues.Pressure;
+        int insight = context.CurrentValues.Insight;
+        int resonance = context.CurrentValues.Resonance;
+
+        // **Examples of Consequences (Based on your descriptions):**
+
+        // High Outcome + Low Pressure: Clean success
+        if (outcome >= 7 && pressure <= 3)
         {
-            return "Success";
+            // Full rewards based on Outcome magnitude and context
+            // e.g., context.LocationArchetype might determine the type of reward
+            // e.g., outcome magnitude determines the quantity
         }
-        else if (values.Outcome <= 3 && values.Pressure >= 7)
+
+        // High Outcome + High Pressure: Success with complications
+        if (outcome >= 7 && pressure >= 7)
         {
-            return "Failure";
+            // Partial rewards, but also a penalty based on Pressure and context
+            if (context.LocationType == LocationTypes.Industrial)
+            {
+                gameState.Player.Health -= (pressure / 2); // Injury based on Pressure
+            }
+            else if (context.LocationType == LocationTypes.Social)
+            {
+                gameState.Player.Reputation -= (pressure / 3); // Reputation damage
+            }
         }
-        else if (values.Insight >= 7)
+
+        // Low Outcome + High Pressure: Failure
+        if (outcome <= 3 && pressure >= 7)
         {
-            return "Insightful";
+            // Significant negative consequences based on context
+            // e.g., loss of resources, major injury, major reputation damage
         }
-        else if (values.Resonance >= 7)
+
+        // High Insight: Knowledge gain
+        if (insight >= 7)
         {
-            return "Influential";
+            gameState.Player.ModifyKnowledge(KnowledgeTypes.Clue, 1);
         }
-        else
+
+        // High Resonance: Reputation gain
+        if (resonance >= 7)
         {
-            return "Neutral";
+            gameState.Player.ModifyReputation(ReputationTypes.Trusted, 1);
         }
+
+        // Add more logic to determine specific rewards/penalties based on the combination of values and context
     }
 
     public Encounter GenerateEncounter(EncounterActionContext context)
@@ -170,8 +263,8 @@
 
     public bool GetNextStage(Encounter encounter)
     {
-        // Don't proceed if we've hit our success condition (Outcome ≥ 10) or if the player is in a game over state
-        if (encounter.Context.CurrentValues.Outcome >= 10 || IsGameOver())
+        // Don't proceed if we've hit our success condition (Outcome ≥ 20) or if the player is in a game over state
+        if (encounter.Context.CurrentValues.Outcome >= 20 || IsGameOver())
         {
             return false;
         }
@@ -181,7 +274,6 @@
         if(newStage == null) return false;
 
         encounter.AddStage(newStage);
-        encounter.CurrentStage++;
 
         return true;
     }

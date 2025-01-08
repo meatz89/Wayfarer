@@ -63,29 +63,27 @@ public partial class EncounterViewBase : ComponentBase
     // New Method to calculate the preview state
     public EncounterStateValues CalculatePreviewState(EncounterStateValues currentState, List<ValueChange> valueChanges)
     {
-        EncounterStateValues previewState = new EncounterStateValues
-        {
-            Outcome = currentState.Outcome,
-            Insight = currentState.Insight,
-            Resonance = currentState.Resonance,
-            Pressure = currentState.Pressure
-        };
+        EncounterStateValues previewState = new EncounterStateValues(
+            currentState.Outcome,
+            currentState.Insight,
+            currentState.Resonance,
+            currentState.Pressure);
 
         foreach (ValueChange valueChange in valueChanges)
         {
             switch (valueChange.ValueType)
             {
                 case ValueTypes.Outcome:
-                    previewState.Outcome = Math.Clamp(previewState.Outcome + valueChange.Change, 0, 10);
+                    previewState.Outcome = Math.Clamp(previewState.Outcome + valueChange.Change, 0, 20);
                     break;
                 case ValueTypes.Insight:
-                    previewState.Insight = Math.Clamp(previewState.Insight + valueChange.Change, 0, 10);
+                    previewState.Insight = Math.Clamp(previewState.Insight + valueChange.Change, 0, 20);
                     break;
                 case ValueTypes.Resonance:
-                    previewState.Resonance = Math.Clamp(previewState.Resonance + valueChange.Change, 0, 10);
+                    previewState.Resonance = Math.Clamp(previewState.Resonance + valueChange.Change, 0, 20);
                     break;
                 case ValueTypes.Pressure:
-                    previewState.Pressure = Math.Clamp(previewState.Pressure + valueChange.Change, 0, 10);
+                    previewState.Pressure = Math.Clamp(previewState.Pressure + valueChange.Change, 0, 20);
                     break;
             }
         }

@@ -6,7 +6,7 @@
     private List<Outcome> costs = new();
     private List<Outcome> rewards = new();
     private string encounter;
-    private EncounterStateValues encounterStateChanges = EncounterStateValues.NoChange;
+    private EncounterStateValues encounterStateChanges = EncounterStateValues.InitialState;
     private List<ValueChange> standardValueChanges = new();
 
     public ChoiceBuilder WithIndex(int index)

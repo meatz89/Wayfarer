@@ -31,5 +31,31 @@
 
         LocationDifficulty = locationDifficulty;
         StageNumber = stageNumber;
+
+        // Initialize Encounter Values based on Player and Location
+        InitializeEncounterValues(currentValues, playerState, locationProperties, locationDifficulty);
     }
+
+    private void InitializeEncounterValues(EncounterStateValues currentValues, PlayerState playerState, LocationProperties locationProperties, int locationDifficulty)
+    {
+        // Initialize Outcome based on PlayerLevel and Action Difficulty
+        currentValues.Outcome = 3 + (playerState.Level - locationDifficulty); // Assuming a function to calculate this
+
+        // Initialize Insight based on relevant Knowledge
+        if (playerState.HasKnowledge(KnowledgeTypes.LocalHistory)) // Example: Assuming a KnowledgeType relevant to the location
+        {
+            currentValues.Insight += 2; // Example: Bonus for relevant knowledge
+        }
+
+        // Initialize Resonance based on Reputation
+        if (locationProperties.ReputationType != default)
+        {
+            currentValues.Resonance += playerState.GetReputationLevel(locationProperties.ReputationType);
+        }
+
+        // Initialize Pressure based on Location's Danger Level
+        // Assuming a property like 'DangerLevel' in LocationProperties (You need to define this in your LocationProperties class)
+        currentValues.Pressure = locationProperties.Pressure != null ? (int)locationProperties.Pressure : 0; // Example: Base Pressure on location danger
+    }
+
 }

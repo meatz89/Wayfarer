@@ -181,7 +181,7 @@ public class GameManager
         Encounter encounter = choiceOption.Encounter;
         EncounterChoice choice = choiceOption.EncounterChoice;
 
-        EncounterSystem.ExecuteChoice(encounter, choice);
+        this.EncounterSystem.ExecuteChoice(encounter, choice);
         ProceedEncounter(encounter);
     }
 

@@ -30,9 +30,8 @@
         // Start with base value changes
         List<ValueChange> finalValueChanges = new(pattern.BaseValueChanges);
 
-        // **Apply modifiers based on Encounter Values and Player State**
-        modifiers.OutcomeModifier += GetOutcomeModifier(context);
-        modifiers.PressureGainModifier += GetPressureModifier(context);
+        // **Calculate Modifiers**
+        modifiers = CalculateModifiers(pattern, context);
 
         // Apply modifiers
         foreach (ValueChange baseChange in pattern.BaseValueChanges)
@@ -75,45 +74,22 @@
             .Build();
     }
 
-    private int GetOutcomeModifier(EncounterActionContext context)
-    {
-        int modifier = 0;
-
-        // Skill vs. Difficulty
-        modifier += context.PlayerState.GetSkillLevel(GetRelevantSkill(context)) - context.LocationDifficulty;
-
-        // Resonance for social actions
-        if (context.ActionType == BasicActionTypes.Mingle || context.ActionType == BasicActionTypes.Trade || context.ActionType == BasicActionTypes.Persuade)
-        {
-            modifier += context.CurrentValues.Resonance;
-        }
-
-        return modifier;
-    }
-
-    private int GetPressureModifier(EncounterActionContext context)
-    {
-        int modifier = 0;
-
-        // Insight reduces Pressure gain
-        modifier -= context.CurrentValues.Insight;
-
-        return modifier;
-    }
-
     private ChoiceValueModifiers CalculateModifiers(
         ChoicePattern pattern,
         EncounterActionContext context)
     {
         ChoiceValueModifiers mods = new ChoiceValueModifiers();
 
-        // Apply skill vs difficulty modifier
-        mods.OutcomeModifier +=
-            context.PlayerState.GetSkillLevel(GetRelevantSkill(context)) -
-            context.LocationDifficulty;
+        // **Skill vs. Difficulty**
+        mods.OutcomeModifier += context.PlayerState.GetSkillLevel(GetRelevantSkill(context)) - context.LocationDifficulty;
+
+        // **Insight reduces Pressure gain**
+        mods.PressureGainModifier -= context.CurrentValues.Insight;
+        mods.OutcomeModifier += context.CurrentValues.Resonance;
 
         return mods;
     }
+
 
     private bool IsTemplateValid(ChoiceSetTemplate template, EncounterActionContext context)
     {

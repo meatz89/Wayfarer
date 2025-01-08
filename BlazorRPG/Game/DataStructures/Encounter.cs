@@ -3,7 +3,7 @@ public class Encounter
 {
     public EncounterActionContext Context { get; }
     private List<EncounterStage> stages = new();
-    public int CurrentStage { get; set; } = 0;
+    private int currentStage { get; set; } = 0;
     public int NumberOfStages => stages.Count();
     public string Situation { get; set; }
 
@@ -16,10 +16,20 @@ public class Encounter
     public void AddStage(EncounterStage encounterStage)
     {
         stages.Add(encounterStage);
+
+        if (NumberOfStages != 1)
+        {
+            NextStage();
+        }
     }
 
     public EncounterStage GetCurrentStage()
     {
-        return stages[CurrentStage];
+        return stages[currentStage];
+    }
+
+    public void NextStage()
+    {
+        currentStage++;
     }
 }

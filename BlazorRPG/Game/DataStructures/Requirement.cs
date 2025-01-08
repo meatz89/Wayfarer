@@ -28,7 +28,7 @@ public class InsightRequirement : Requirement
 public class EnergyRequirement : Requirement
 {
     public EnergyTypes EnergyType { get; }
-    public int Amount { get; }
+    public int Amount { get; set; }
 
     public EnergyRequirement(EnergyTypes type, int count)
     {
