@@ -18,5 +18,6 @@ public enum ValueTypes
     Outcome,
     Insight,
     Resonance,
-    Pressure
+    Pressure,
+    Energy,
 }

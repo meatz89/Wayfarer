@@ -7,8 +7,9 @@
     public LocationProperties LocationProperties { get; }
     public PlayerState PlayerState { get; }
     public EncounterStateValues CurrentValues { get; }
-    public int StageNumber { get; } // Add this field
-    public int LocationDifficulty { get; internal set; }
+    public int StageNumber { get; }
+    public int LocationDifficulty { get; set; }
+    public List<ChoiceModifierEntry> ChoiceModifiersHistory { get; set; } = new();
 
     public EncounterActionContext(
         BasicActionTypes actionType,
@@ -39,7 +40,7 @@
     private void InitializeEncounterValues(EncounterStateValues currentValues, PlayerState playerState, LocationProperties locationProperties, int locationDifficulty)
     {
         // Initialize Outcome based on PlayerLevel and Action Difficulty
-        currentValues.Outcome = 3 + (playerState.Level - locationDifficulty); // Assuming a function to calculate this
+        currentValues.Outcome = 5 + (playerState.Level - locationDifficulty); // Assuming a function to calculate this
 
         // Initialize Insight based on relevant Knowledge
         if (playerState.HasKnowledge(KnowledgeTypes.LocalHistory)) // Example: Assuming a KnowledgeType relevant to the location

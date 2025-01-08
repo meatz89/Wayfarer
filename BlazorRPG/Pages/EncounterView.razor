@@ -51,6 +51,23 @@
                 <div class="preview-container">
                     <h4>Choice Preview</h4>
 
+                    <div class="encounter-value-changes">
+                        <h5>Value Changes</h5>
+                        @foreach (var detail in hoveredChoice.EncounterChoice.ValueChangeDetails)
+                        {
+                            <div class="value-change">
+                                <span class="value-type">@detail.ValueType:</span>
+                                <span class="value-breakdown">
+                                    @foreach (var source in detail.ValueChanges)
+                                    {
+                                        <span>@source.Source (@source.Amount)</span>
+                                    }
+                                    <span>= @detail.ValueChanges.Sum(s => s.Amount)</span>
+                                </span>
+                            </div>
+                        }
+                    </div>
+
                     @* Requirements *@
                     @if (hoveredChoice.EncounterChoice.ChoiceRequirements.Count > 0)
                     {

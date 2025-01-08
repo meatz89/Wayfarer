@@ -7,5 +7,7 @@
     public List<Requirement> ChoiceRequirements { get; set; } = new();
     public List<Outcome> PermanentCosts { get; set; } = new();
     public List<Outcome> PermanentRewards { get; set; } = new();
+    public Dictionary<string, int> ValueModifiers { get; set; } = new();
+    public List<ValueChangeDetail> ValueChangeDetails { get; set; } = new();
 
 }

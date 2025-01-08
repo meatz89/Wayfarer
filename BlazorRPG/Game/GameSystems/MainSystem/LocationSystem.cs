@@ -17,7 +17,7 @@
     public List<LocationNames> GetLocationResonances(LocationNames currentLocation)
     {
         Location location = GetLocation(currentLocation);
-        return location.TravelResonances;
+        return location.TravelConnections;
     }
 
     public Location GetLocation(LocationNames locationName)

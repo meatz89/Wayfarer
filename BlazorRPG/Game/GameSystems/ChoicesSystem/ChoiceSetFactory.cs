@@ -28,50 +28,118 @@
         ChoiceValueModifiers modifiers)
     {
         // Start with base value changes
-        List<ValueChange> finalValueChanges = new(pattern.BaseValueChanges);
+        List<ValueChange> baseValueChanges = new(pattern.BaseValueChanges);
+        Dictionary<ValueTypes, List<(string Source, int Amount)>> valueChangeDetails = new();
 
-        // **Calculate Modifiers**
+        // Initialize the dictionary with base values
+        foreach (ValueChange baseChange in baseValueChanges)
+        {
+            valueChangeDetails[baseChange.ValueType] = new List<(string Source, int Amount)>
+            {
+                ("Base", baseChange.Change)
+            };
+        }
+
+        // Calculate the modifiers based on the pattern and context
         modifiers = CalculateModifiers(pattern, context);
 
-        // Apply modifiers
-        foreach (ValueChange baseChange in pattern.BaseValueChanges)
+        // Create new ValueChange instances for each modified value
+        List<ValueChange> modifiedValueChanges = new List<ValueChange>();
+
+        foreach (ValueChange baseChange in baseValueChanges)
         {
+            int modifiedValue = baseChange.Change;
+            string modifierDetailKey = baseChange.ValueType.ToString();
+
             switch (baseChange.ValueType)
             {
                 case ValueTypes.Outcome:
-                    finalValueChanges.Add(new ValueChange(
-                        ValueTypes.Outcome,
-                        baseChange.Change + modifiers.OutcomeModifier));
+                    modifiedValue += modifiers.OutcomeModifier;
                     break;
                 case ValueTypes.Pressure:
-                    finalValueChanges.Add(new ValueChange(
-                        ValueTypes.Pressure,
-                        baseChange.Change + modifiers.PressureGainModifier));
+                    modifiedValue += modifiers.PressureGainModifier;
                     break;
                 case ValueTypes.Insight:
-                    finalValueChanges.Add(new ValueChange(
-                        ValueTypes.Insight,
-                        baseChange.Change + modifiers.InsightGainModifier));
+                    modifiedValue += modifiers.InsightGainModifier;
                     break;
                 case ValueTypes.Resonance:
-                    finalValueChanges.Add(new ValueChange(
-                        ValueTypes.Resonance,
-                        baseChange.Change + modifiers.ResonanceGainModifier));
+                    modifiedValue += modifiers.ResonanceGainModifier;
                     break;
             }
+
+            // Add the modified value change to the list
+            modifiedValueChanges.Add(new ValueChange(baseChange.ValueType, modifiedValue));
+
+            // Update the modifier details for the UI preview
+            if (!string.IsNullOrEmpty(modifierDetailKey))
+            {
+                foreach (KeyValuePair<string, int> modDetail in modifiers.ModifierDetails)
+                {
+                    valueChangeDetails[baseChange.ValueType].Add((modDetail.Key, modDetail.Value));
+                }
+            }
+        }
+
+        // Calculate the final energy cost with modifiers and strain
+        int strainModifier = context.CurrentValues.Pressure / 3;
+        int energyCost = pattern.BaseCost + modifiers.EnergyCostModifier + strainModifier;
+
+        // Add energy cost details to valueChangeDetails
+        if (!valueChangeDetails.ContainsKey(ValueTypes.Energy))
+        {
+            valueChangeDetails[ValueTypes.Energy] = new List<(string Source, int Amount)>();
+        }
+        valueChangeDetails[ValueTypes.Energy].Add(("Base", pattern.BaseCost));
+        if (modifiers.EnergyCostModifier != 0)
+        {
+            valueChangeDetails[ValueTypes.Energy].Add(("Modifier", modifiers.EnergyCostModifier));
         }
 
         string description = GenerateDescription(pattern, context);
 
-        // Create the choice using the builder and add requirements, costs, and rewards
-        return new ChoiceBuilder()
+        // Create the choice using the builder
+        ChoiceBuilder choiceBuilder = new ChoiceBuilder()
             .WithName(description)
-            .RequiresEnergy(pattern.EnergyType, pattern.BaseCost + modifiers.EnergyCostModifier)
-            .WithValueChanges(finalValueChanges)
+            .RequiresEnergy(pattern.EnergyType, energyCost)
+            .WithValueChanges(modifiedValueChanges)
             .WithRequirements(pattern.Requirements)
             .WithCosts(pattern.Costs)
-            .WithRewards(pattern.Rewards)
-            .Build();
+            .WithRewards(pattern.Rewards);
+
+        // Add the modifier details to the choice
+        foreach (KeyValuePair<string, int> modifierDetail in modifiers.ModifierDetails)
+        {
+            choiceBuilder.WithValueModifier(modifierDetail.Key, modifierDetail.Value);
+        }
+
+        List<ValueChangeDetail> valueChangeDetailList = GetValueChangeDetails(modifiers, valueChangeDetails);
+        
+        EncounterChoice choice = choiceBuilder.Build();
+        choice.ValueChangeDetails = valueChangeDetailList;
+
+        return choice;
+    }
+
+    private static List<ValueChangeDetail> GetValueChangeDetails(ChoiceValueModifiers modifiers, Dictionary<ValueTypes, List<(string Source, int Amount)>> valueChangeDetails)
+    {
+        List<ValueChangeDetail> valueChangeDetailList = new List<ValueChangeDetail>();
+        foreach (KeyValuePair<ValueTypes, List<(string Source, int Amount)>> detail in valueChangeDetails)
+        {
+            ValueTypes valueType = detail.Key;
+            List<(string Source, int Amount)> sourceAmountList = detail.Value;
+
+            var listValueChangeSource = new List<ValueChangeSource>();
+            foreach (var sourceAmount in sourceAmountList)
+            {
+                ValueChangeSource valueChangeSource = new ValueChangeSource(sourceAmount.Source, sourceAmount.Amount);
+                listValueChangeSource.Add(valueChangeSource);
+            }
+            ValueChangeDetail valueChangeDetail = new ValueChangeDetail(valueType, listValueChangeSource);
+            valueChangeDetailList.Add(valueChangeDetail);
+        }
+
+        // Build and return the choice
+        return valueChangeDetailList;
     }
 
     private ChoiceValueModifiers CalculateModifiers(
@@ -81,35 +149,15 @@
         ChoiceValueModifiers mods = new ChoiceValueModifiers();
 
         // **Skill vs. Difficulty**
-        mods.OutcomeModifier += context.PlayerState.GetSkillLevel(GetRelevantSkill(context)) - context.LocationDifficulty;
+        int skillVsDifficulty = context.PlayerState.GetSkillLevel(GetRelevantSkill(context)) - context.LocationDifficulty;
+        mods.OutcomeModifier += skillVsDifficulty;
+        mods.AddModifierDetail("Skill vs. Difficulty", skillVsDifficulty);
 
         // **Insight reduces Pressure gain**
         mods.PressureGainModifier -= context.CurrentValues.Insight;
-        mods.OutcomeModifier += context.CurrentValues.Resonance;
+        mods.AddModifierDetail("Insight Modifier", -context.CurrentValues.Insight);
 
         return mods;
-    }
-
-
-    private bool IsTemplateValid(ChoiceSetTemplate template, EncounterActionContext context)
-    {
-        // A choice set is invalid if any of its availability conditions are not met
-        bool hasLocationConditions = template.AvailabilityConditions.Any();
-        bool locationConditionsMet = hasLocationConditions && template.AvailabilityConditions.All(cond => cond.IsMet(context.LocationProperties));
-        if (hasLocationConditions && !locationConditionsMet)
-        {
-            return false;
-        }
-
-        // A choice set is invalid if any of its state conditions are not met
-        bool hasStateConditions = template.StateConditions.Any();
-        bool stateConditionsMet = hasStateConditions && template.StateConditions.All(cond => cond.IsMet(context.CurrentValues));
-        if (hasStateConditions && !stateConditionsMet)
-        {
-            return false;
-        }
-
-        return true;
     }
 
     private SkillTypes GetRelevantSkill(EncounterActionContext context)
@@ -199,4 +247,24 @@
         return "";
     }
 
+    private bool IsTemplateValid(ChoiceSetTemplate template, EncounterActionContext context)
+    {
+        // A choice set is invalid if any of its availability conditions are not met
+        bool hasLocationConditions = template.AvailabilityConditions.Any();
+        bool locationConditionsMet = hasLocationConditions && template.AvailabilityConditions.All(cond => cond.IsMet(context.LocationProperties));
+        if (hasLocationConditions && !locationConditionsMet)
+        {
+            return false;
+        }
+
+        // A choice set is invalid if any of its state conditions are not met
+        bool hasStateConditions = template.StateConditions.Any();
+        bool stateConditionsMet = hasStateConditions && template.StateConditions.All(cond => cond.IsMet(context.CurrentValues));
+        if (hasStateConditions && !stateConditionsMet)
+        {
+            return false;
+        }
+
+        return true;
+    }
 }

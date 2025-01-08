@@ -8,6 +8,7 @@
     private string encounter;
     private EncounterStateValues encounterStateChanges = EncounterStateValues.InitialState;
     private List<ValueChange> standardValueChanges = new();
+    private Dictionary<string, int> valueModifiers = new();
 
     public ChoiceBuilder WithIndex(int index)
     {
@@ -21,6 +22,11 @@
         return this;
     }
 
+    public ChoiceBuilder WithValueModifier(string name, int value)
+    {
+        valueModifiers.Add(name, value);
+        return this;
+    }
 
     public ChoiceBuilder RequiresEnergy(EnergyTypes energy, int count)
     {
@@ -183,7 +189,8 @@
             ChoiceRequirements = requirements,
             PermanentCosts = costs,
             PermanentRewards = rewards,
-            EncounterValueChanges = standardValueChanges
+            EncounterValueChanges = standardValueChanges,
+            ValueModifiers = valueModifiers,
         };
     }
 }

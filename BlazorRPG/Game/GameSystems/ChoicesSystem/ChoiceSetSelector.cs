@@ -16,7 +16,7 @@
 
         // Pick randomly from top 2-3 scoring sets
         var topSets = scoredSets.Take(3).ToList();
-        if(topSets.Count() < 1)
+        if (topSets.Count() < 1)
         {
             return null;
         }

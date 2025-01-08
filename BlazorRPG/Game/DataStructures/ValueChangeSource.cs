@@ -1,0 +1,1 @@
+﻿public record ValueChangeSource(string Source, int Amount);

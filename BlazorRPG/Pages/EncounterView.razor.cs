@@ -60,7 +60,6 @@ public partial class EncounterViewBase : ComponentBase
         return true;
     }
 
-    // New Method to calculate the preview state
     public EncounterStateValues CalculatePreviewState(EncounterStateValues currentState, List<ValueChange> valueChanges)
     {
         EncounterStateValues previewState = new EncounterStateValues(

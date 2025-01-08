@@ -155,8 +155,7 @@ public class GameManager
         gameState.Actions.ActiveQuests = quests;
     }
 
-
-    public void SetEncounterChoices(Encounter encounter)
+    public void SetEncounterChoices(Encounter encounter, LocationNames location)
     {
         string locationSpot = "LocationSpot";
 
@@ -167,7 +166,7 @@ public class GameManager
         foreach (EncounterChoice choice in choices)
         {
             UserEncounterChoiceOption option = new UserEncounterChoiceOption(
-                choice.Index, choice.Description,
+                choice.Index, choice.Description, location,
                 encounter, stage, choice);
 
             choiceOptions.Add(option);
@@ -181,16 +180,19 @@ public class GameManager
         Encounter encounter = choiceOption.Encounter;
         EncounterChoice choice = choiceOption.EncounterChoice;
 
-        this.EncounterSystem.ExecuteChoice(encounter, choice);
-        ProceedEncounter(encounter);
+        Location location = LocationSystem.GetLocation(choiceOption.LocationName);
+        LocationNames locationName = location.LocationName;
+
+        this.EncounterSystem.ExecuteChoice(encounter, choice, location.LocationProperties);
+        ProceedEncounter(encounter, locationName);
     }
 
-    private void ProceedEncounter(Encounter encounter)
+    private void ProceedEncounter(Encounter encounter, LocationNames locationName)
     {
         bool hasNextStage = EncounterSystem.GetNextStage(encounter);
         if (hasNextStage)
         {
-            SetEncounterChoices(encounter);
+            SetEncounterChoices(encounter, locationName);
         }
         else
         {
@@ -246,7 +248,7 @@ public class GameManager
         if (encounter == null) { return null; }
 
         // Initialize first stage
-        SetEncounterChoices(encounter);
+        SetEncounterChoices(encounter, location.LocationName);
 
         return encounter;
     }

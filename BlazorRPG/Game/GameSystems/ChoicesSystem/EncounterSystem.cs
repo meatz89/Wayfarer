@@ -9,8 +9,15 @@
         this.choiceSystem = choiceSystem;
     }
 
-    public void ExecuteChoice(Encounter encounter, EncounterChoice choice)
+    public void ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationProperties locationProperties)
     {
+        // Create an instance of ConsequenceProcessor
+        ConsequenceProcessor consequenceProcessor = new ConsequenceProcessor(gameState, encounter.Context, locationProperties);
+
+        // Use ConsequenceProcessor to handle all choice consequences
+        consequenceProcessor.ProcessConsequences(choice, encounter);
+
+
         // 1. Energy Costs
         ApplyEnergyCosts(choice, encounter.Context);
 
@@ -44,10 +51,6 @@
     {
         EncounterActionContext context = encounter.Context;
 
-        // **Apply Strain based on Pressure**
-        int strainIncrease = context.CurrentValues.Pressure;
-        ApplyStrain(encounter, context, strainIncrease);
-
         // **Resonance Modifiers**
         if (context.CurrentValues.Resonance >= 8)
         {
@@ -58,69 +61,19 @@
             context.CurrentValues.Outcome += 1;
         }
 
-        // **Determine Outcome Based on Values** (no more OutcomeType)
-        // (This is where you'll implement the logic based on your detailed explanation)
-        ApplyConsequences(context);
+        // **Determine Base Outcome Based on Values**
+        // This is where you'll implement logic to derive the outcome description
+        // based on the combination of Outcome, Pressure, Insight, and Resonance values.
+        // You can use a similar approach to what you had in `GetOutcomeType`, but
+        // instead of returning a string, you might want to set properties on the
+        // `Encounter` or `EncounterStage` that describe the outcome.
 
-        // Clamp values (moved here after applying consequences)
-        context.CurrentValues.Outcome = Math.Clamp(context.CurrentValues.Outcome, 0, 20);
-        context.CurrentValues.Insight = Math.Clamp(context.CurrentValues.Insight, 0, 20);
-        context.CurrentValues.Resonance = Math.Clamp(context.CurrentValues.Resonance, 0, 20);
-        context.CurrentValues.Pressure = Math.Clamp(context.CurrentValues.Pressure, 0, 20);
+        // Clamp values after applying modifications
+        context.CurrentValues.Outcome = Math.Clamp(context.CurrentValues.Outcome, 0, 10);
+        context.CurrentValues.Insight = Math.Clamp(context.CurrentValues.Insight, 0, 10);
+        context.CurrentValues.Resonance = Math.Clamp(context.CurrentValues.Resonance, 0, 10);
+        context.CurrentValues.Pressure = Math.Clamp(context.CurrentValues.Pressure, 0, 10);
     }
-
-    private void ApplyStrain(Encounter encounter, EncounterActionContext context, int strainIncrease)
-    {
-        // Increase Energy Costs
-        foreach (EncounterChoice choice in encounter.GetCurrentStage().Choices)
-        {
-            foreach (Requirement req in choice.ChoiceRequirements)
-            {
-                if (req is EnergyRequirement energyReq)
-                {
-                    energyReq.Amount += strainIncrease / 3; // Increase cost by 1 for every 3 points of Pressure
-                }
-            }
-        }
-
-        // Apply Penalties based on Strain
-        if (strainIncrease >= 9)
-        {
-            // -1 to all actions (or you could apply this as a temporary debuff to player's skills)
-        }
-        else if (strainIncrease >= 7)
-        {
-            // -1 to focus actions
-        }
-        else if (strainIncrease >= 5)
-        {
-            // -1 to physical actions
-        }
-        else if (strainIncrease >= 3)
-        {
-            // -1 to social actions
-        }
-
-        if (context.CurrentValues.Pressure == 10)
-        {
-            // Trigger a collapse/major setback based on the encounter context
-            switch (context.LocationType)
-            {
-                case LocationTypes.Industrial:
-                    context.CurrentValues.Outcome = 0; // Critical failure
-                    gameState.Player.Health -= 5; // Injury
-                    break;
-                case LocationTypes.Social:
-                    context.CurrentValues.Outcome = 0; // Social faux pas
-                    gameState.Player.Reputation -= 3; // Reputation damage
-                    break;
-                default:
-                    context.CurrentValues.Outcome = 1; // Default setback
-                    break;
-            }
-        }
-    }
-
 
     private void ApplyEnergyCosts(EncounterChoice choice, EncounterActionContext context)
     {
@@ -172,7 +125,6 @@
         }
     }
 
-    // **Determine Consequences Based on Values**
     private void ApplyConsequences(EncounterActionContext context)
     {
         int outcome = context.CurrentValues.Outcome;
@@ -271,7 +223,7 @@
 
         // Generate new stage and add it
         EncounterStage newStage = GenerateStage(encounter.Context);
-        if(newStage == null) return false;
+        if (newStage == null) return false;
 
         encounter.AddStage(newStage);
 
