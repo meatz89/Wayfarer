@@ -6,7 +6,7 @@
     Social,
     Nature,
 }
-public enum LocationArchetype
+public enum LocationArchetypes
 {
     Tavern,
     Market,
@@ -19,6 +19,8 @@ public enum LocationArchetype
     Workshop,
     Shop,
     Garden,
-    None
+    None,
+    Library,
+    ConstructionSite
 }
 

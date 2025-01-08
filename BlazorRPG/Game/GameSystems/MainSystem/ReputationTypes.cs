@@ -9,5 +9,6 @@
     Courageous,  // Bravery, facing danger
     Wise,        // Wisdom, good advice
     Pious,       // Religious, devout
-    Ruthless     // Ruthless actions
+    Ruthless,     // Ruthless actions
+    RoguesGuild
 }

@@ -3,7 +3,7 @@
     public Location(
         LocationTypes locationType,
         LocationNames locationName,
-        LocationArchetype locationArchetype,
+        LocationArchetypes locationArchetype,
         List<LocationNames> travelConnections,
         List<LocationSpot> locationSpots,
         LocationProperties locationProperties,
@@ -20,7 +20,7 @@
 
     public LocationTypes LocationType { get; set; } // Industrial/Commercial/etc
     public LocationNames LocationName { get; set; }
-    public LocationArchetype LocationArchetype { get; set; } // Tavern/Market/Dock/etc
+    public LocationArchetypes LocationArchetype { get; set; } // Tavern/Market/Dock/etc
     public List<LocationNames> TravelConnections { get; set; }
     public List<LocationSpot> LocationSpots { get; set; } // Action groupings
     public LocationProperties LocationProperties { get; set; }

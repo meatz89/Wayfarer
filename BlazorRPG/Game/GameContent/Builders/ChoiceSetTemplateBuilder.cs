@@ -25,7 +25,7 @@
         LocationProperties properties = builder.Build();
 
         // Create LocationPropertyCondition instances for each property defined in the builder
-        AddConditionIfSet<LocationArchetype>(properties, LocationPropertyTypes.Archetype);
+        AddConditionIfSet<LocationArchetypes>(properties, LocationPropertyTypes.Archetype);
         AddConditionIfSet<CrowdLevelTypes>(properties, LocationPropertyTypes.CrowdLevel);
         AddConditionIfSet<ResourceTypes>(properties, LocationPropertyTypes.Resource);
         AddConditionIfSet<ScaleVariationTypes>(properties, LocationPropertyTypes.Scale);

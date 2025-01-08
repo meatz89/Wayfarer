@@ -49,7 +49,7 @@
         return this;
     }
 
-    public LocationPropertiesBuilder WithArchetype(LocationArchetype archetype)
+    public LocationPropertiesBuilder WithArchetype(LocationArchetypes archetype)
     {
         properties.SetProperty(LocationPropertyTypes.Archetype, archetype);
         return this;

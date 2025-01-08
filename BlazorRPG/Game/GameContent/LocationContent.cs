@@ -4,7 +4,7 @@
     public static Location LionsHeadTavern => new LocationBuilder()
         .SetLocationType(LocationTypes.Social)
         .ForLocation(LocationNames.LionsHeadTavern)
-        .SetLocationArchetype(LocationArchetype.Tavern)
+        .SetLocationArchetype(LocationArchetypes.Tavern)
         .WithLocationProperties(properties => properties
             .WithScale(ScaleVariationTypes.Medium)
             .WithExposure(ExposureConditionTypes.Indoor)

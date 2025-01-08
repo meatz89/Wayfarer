@@ -42,6 +42,7 @@
         choiceSetTemplates = new List<ChoiceSetTemplate>()
         {
             ChoiceSetContent.ExampleTemplate,
+            ChoiceSetContent.MingleChoiceSetTemplate,
         };
     }
 

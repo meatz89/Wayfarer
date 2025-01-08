@@ -2,7 +2,7 @@
 {
     public BasicActionTypes ActionType { get; }
     public LocationTypes LocationType { get; }
-    public LocationArchetype LocationArchetype { get; }
+    public LocationArchetypes LocationArchetype { get; }
     public TimeSlots TimeSlot { get; }
     public LocationProperties LocationProperties { get; }
     public PlayerState PlayerState { get; }
@@ -13,7 +13,7 @@
     public EncounterActionContext(
         BasicActionTypes actionType,
         LocationTypes locationType,
-        LocationArchetype locationarcheType,
+        LocationArchetypes locationarcheType,
         TimeSlots timeSlot,
         LocationProperties locationProperties,
         PlayerState playerState,

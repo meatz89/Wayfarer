@@ -13,7 +13,7 @@
             .AddTimeSlot(TimeSlots.Evening)
             .AddTimeSlot(TimeSlots.Night)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetype.Tavern)
+                .WithArchetype(LocationArchetypes.Tavern)
                 .WithCrowdLevel(CrowdLevelTypes.Crowded))
             .Build());
 
@@ -26,7 +26,7 @@
             .AddTimeSlot(TimeSlots.Evening)
             .AddTimeSlot(TimeSlots.Night)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetype.Tavern)
+                .WithArchetype(LocationArchetypes.Tavern)
                 .WithCrowdLevel(CrowdLevelTypes.Empty))
             .Build());
 
@@ -38,7 +38,7 @@
             .AddTimeSlot(TimeSlots.Afternoon)
             .AddTimeSlot(TimeSlots.Evening)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetype.Market))
+                .WithArchetype(LocationArchetypes.Market))
             .Build());
 
         // Example: Hunt
@@ -49,7 +49,7 @@
             .AddTimeSlot(TimeSlots.Afternoon)
             .AddTimeSlot(TimeSlots.Evening)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetype.Forest))
+                .WithArchetype(LocationArchetypes.Forest))
             .Build());
 
         // Example: Barter at Tavern
@@ -61,7 +61,7 @@
             .AddTimeSlot(TimeSlots.Evening)
             .AddTimeSlot(TimeSlots.Night)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetype.Tavern))
+                .WithArchetype(LocationArchetypes.Tavern))
             .Build());
 
         // Example: Play Music at Tavern
@@ -71,7 +71,7 @@
             .AddTimeSlot(TimeSlots.Evening)
             .AddTimeSlot(TimeSlots.Night)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetype.Tavern))
+                .WithArchetype(LocationArchetypes.Tavern))
             .Build());
 
         // Example: Gather Herbs in the Forest
@@ -81,7 +81,7 @@
             .AddTimeSlot(TimeSlots.Morning)
             .AddTimeSlot(TimeSlots.Afternoon)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetype.Forest))
+                .WithArchetype(LocationArchetypes.Forest))
             .Build());
 
         // Example: Gossip in the Tavern
@@ -91,7 +91,7 @@
             .AddTimeSlot(TimeSlots.Evening)
             .AddTimeSlot(TimeSlots.Night)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetype.Tavern))
+                .WithArchetype(LocationArchetypes.Tavern))
             .Build());
 
         // Example: Investigate in the Tavern
@@ -100,7 +100,7 @@
             .WithActionType(BasicActionTypes.Investigate)
             .AddTimeSlot(TimeSlots.Night)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetype.Tavern))
+                .WithArchetype(LocationArchetypes.Tavern))
             .Build());
 
         // Example: Rest in the Tavern
@@ -109,7 +109,7 @@
             .WithActionType(BasicActionTypes.Rest)
             .AddTimeSlot(TimeSlots.Night)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetype.Tavern))
+                .WithArchetype(LocationArchetypes.Tavern))
             .Build());
 
         // ... Add more action templates for different actions and location types

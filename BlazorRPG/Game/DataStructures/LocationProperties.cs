@@ -10,7 +10,7 @@
     public bool IsTensionSet { get; private set; } = false;
     public ComplexityTypes? Complexity { get; set; }
     public bool IsComplexitySet { get; private set; } = false;
-    public LocationArchetype? Archetype { get; set; }
+    public LocationArchetypes? Archetype { get; set; }
     public bool IsArchetypeSet { get; private set; } = false;
     public ResourceTypes? Resource { get; set; }
     public bool IsResourceSet { get; private set; } = false;
@@ -72,7 +72,7 @@
                 IsComplexitySet = true;
                 break;
             case LocationPropertyTypes.Archetype:
-                Archetype = (LocationArchetype)value;
+                Archetype = (LocationArchetypes)value;
                 IsArchetypeSet = true;
                 break;
             case LocationPropertyTypes.Resource:

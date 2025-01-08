@@ -2,7 +2,7 @@
 {
     private LocationTypes locationType;
     private LocationNames locationName;
-    private LocationArchetype locationArchetype;
+    private LocationArchetypes locationArchetype;
     private List<LocationNames> travelConnections = new();
     private List<LocationSpot> locationSpots = new();
     private int difficultyLevel;
@@ -22,7 +22,7 @@
         return this;
     }
 
-    public LocationBuilder SetLocationArchetype(LocationArchetype archetype)
+    public LocationBuilder SetLocationArchetype(LocationArchetypes archetype)
     {
         this.locationArchetype = archetype;
         return this;
