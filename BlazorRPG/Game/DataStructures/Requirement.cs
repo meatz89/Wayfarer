@@ -4,11 +4,11 @@
     public abstract string GetDescription();
 }
 
-public class UnderstandingRequirement : Requirement
+public class InsightRequirement : Requirement
 {
     private readonly int requiredLevel;
 
-    public UnderstandingRequirement(int level)
+    public InsightRequirement(int level)
     {
         requiredLevel = level;
     }
@@ -16,12 +16,12 @@ public class UnderstandingRequirement : Requirement
     public override bool IsSatisfied(PlayerState player)
     {
         Encounter encounter = player.CurrentEncounter;
-        return encounter != null && encounter.Context.CurrentValues.Understanding >= requiredLevel;
+        return encounter != null && encounter.Context.CurrentValues.Insight >= requiredLevel;
     }
 
     public override string GetDescription()
     {
-        return $"Requires Understanding level {requiredLevel}";
+        return $"Requires Insight level {requiredLevel}";
     }
 }
 

@@ -15,8 +15,8 @@ public class ValueChange
 public enum ValueTypes
 {
     Momentum,
-    Advantage,
-    Understanding,
-    Connection,
-    Tension
+    Outcome,
+    Insight,
+    Resonance,
+    Pressure
 }

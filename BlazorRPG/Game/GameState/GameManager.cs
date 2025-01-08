@@ -235,10 +235,10 @@ public class GameManager
             location.LocationProperties,
             playerState,
             new EncounterStateValues(
-                advantage: 5 + (playerState.Level - location.DifficultyLevel),
-                understanding: 0,
-                connection: 5,
-                tension: 0
+                outcome: 5 + (playerState.Level - location.DifficultyLevel),
+                insight: 0,
+                resonance: 5,
+                pressure: 0
             ),
             1,
             location.DifficultyLevel
@@ -299,7 +299,7 @@ public class GameManager
 
     public List<LocationNames> GetConnectedLocations()
     {
-        List<LocationNames> loc = LocationSystem.GetLocationConnections(gameState.World.CurrentLocation.LocationName);
+        List<LocationNames> loc = LocationSystem.GetLocationResonances(gameState.World.CurrentLocation.LocationName);
         return loc;
     }
 

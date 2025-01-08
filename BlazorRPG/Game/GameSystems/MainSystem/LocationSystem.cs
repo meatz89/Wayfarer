@@ -14,10 +14,10 @@
         return allLocations;
     }
 
-    public List<LocationNames> GetLocationConnections(LocationNames currentLocation)
+    public List<LocationNames> GetLocationResonances(LocationNames currentLocation)
     {
         Location location = GetLocation(currentLocation);
-        return location.TravelConnections;
+        return location.TravelResonances;
     }
 
     public Location GetLocation(LocationNames locationName)

@@ -4,27 +4,27 @@ public class ValueChangeBuilder
 {
     private List<ValueChange> changes = new();
 
-    public ValueChangeBuilder WithAdvantage(int value)
+    public ValueChangeBuilder WithOutcome(int value)
     {
-        changes.Add(new ValueChange(ValueTypes.Advantage, value));
+        changes.Add(new ValueChange(ValueTypes.Outcome, value));
         return this;
     }
 
-    public ValueChangeBuilder WithUnderstanding(int value)
+    public ValueChangeBuilder WithInsight(int value)
     {
-        changes.Add(new ValueChange(ValueTypes.Understanding, value));
+        changes.Add(new ValueChange(ValueTypes.Insight, value));
         return this;
     }
 
-    public ValueChangeBuilder WithConnection(int value)
+    public ValueChangeBuilder WithResonance(int value)
     {
-        changes.Add(new ValueChange(ValueTypes.Connection, value));
+        changes.Add(new ValueChange(ValueTypes.Resonance, value));
         return this;
     }
 
-    public ValueChangeBuilder WithTension(int value)
+    public ValueChangeBuilder WithPressure(int value)
     {
-        changes.Add(new ValueChange(ValueTypes.Tension, value));
+        changes.Add(new ValueChange(ValueTypes.Pressure, value));
         return this;
     }
 

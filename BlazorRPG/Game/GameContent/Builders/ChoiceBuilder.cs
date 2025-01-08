@@ -107,27 +107,27 @@
         return this;
     }
 
-    public ChoiceBuilder WithAdvantageChange(int advantage)
+    public ChoiceBuilder WithOutcomeChange(int outcome)
     {
-        encounterStateChanges.Advantage = advantage;
+        encounterStateChanges.Outcome = outcome;
         return this;
     }
 
-    public ChoiceBuilder WithUnderstandingChange(int understanding)
+    public ChoiceBuilder WithInsightChange(int insight)
     {
-        encounterStateChanges.Understanding = understanding;
+        encounterStateChanges.Insight = insight;
         return this;
     }
 
-    public ChoiceBuilder WithConnectionChange(int connection)
+    public ChoiceBuilder WithResonanceChange(int resonance)
     {
-        encounterStateChanges.Connection = connection;
+        encounterStateChanges.Resonance = resonance;
         return this;
     }
 
-    public ChoiceBuilder WithTensionChange(int tension)
+    public ChoiceBuilder WithPressureChange(int pressure)
     {
-        encounterStateChanges.Tension = tension;
+        encounterStateChanges.Pressure = pressure;
         return this;
     }
 

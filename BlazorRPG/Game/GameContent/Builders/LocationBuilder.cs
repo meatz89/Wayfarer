@@ -3,7 +3,7 @@
     private LocationTypes locationType;
     private LocationNames locationName;
     private LocationArchetypes locationArchetype;
-    private List<LocationNames> travelConnections = new();
+    private List<LocationNames> travelResonances = new();
     private List<LocationSpot> locationSpots = new();
     private int difficultyLevel;
 
@@ -28,9 +28,9 @@
         return this;
     }
 
-    public LocationBuilder AddTravelConnection(LocationNames connection)
+    public LocationBuilder AddTravelResonance(LocationNames resonance)
     {
-        this.travelConnections.Add(connection);
+        this.travelResonances.Add(resonance);
         return this;
     }
 
@@ -71,7 +71,7 @@
             locationType,
             locationName,
             locationArchetype,
-            travelConnections,
+            travelResonances,
             locationSpots,
             locationProperties,
             difficultyLevel

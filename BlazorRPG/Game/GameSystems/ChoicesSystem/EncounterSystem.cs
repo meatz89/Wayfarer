@@ -54,8 +54,8 @@ public class EncounterSystem
 
     public bool GetNextStage(Encounter encounter)
     {
-        // Don't proceed if we've hit our success condition (Advantage ≥ 10) or if the player is in a game over state
-        if (encounter.Context.CurrentValues.Advantage >= 10 || IsGameOver())
+        // Don't proceed if we've hit our success condition (Outcome ≥ 10) or if the player is in a game over state
+        if (encounter.Context.CurrentValues.Outcome >= 10 || IsGameOver())
         {
             return false;
         }
@@ -82,7 +82,7 @@ public class EncounterSystem
         // 2. Narrative Value Changes
         encounter.Context.CurrentValues.ApplyChanges(choice.EncounterValueChanges);
 
-        // 3. Connection Bonus (Apply to Advantage gains only)
+        // 3. Resonance Bonus (Apply to Outcome gains only)
         ApplyEncounterStateValueModifications(encounter);
 
         // Apply choice costs and rewards - These are now mainly for resources
@@ -107,26 +107,26 @@ public class EncounterSystem
 
     private static void ApplyEncounterStateValueModifications(Encounter encounter)
     {
-        if (encounter.Context.CurrentValues.Connection >= 8)
+        if (encounter.Context.CurrentValues.Resonance >= 8)
         {
-            encounter.Context.CurrentValues.Advantage += 2;
+            encounter.Context.CurrentValues.Outcome += 2;
         }
-        else if (encounter.Context.CurrentValues.Connection >= 5)
+        else if (encounter.Context.CurrentValues.Resonance >= 5)
         {
-            encounter.Context.CurrentValues.Advantage += 1;
+            encounter.Context.CurrentValues.Outcome += 1;
         }
 
-        encounter.Context.CurrentValues.Advantage =
-            Math.Clamp(encounter.Context.CurrentValues.Advantage, 0, 10); // Cap Advantage at 10
+        encounter.Context.CurrentValues.Outcome =
+            Math.Clamp(encounter.Context.CurrentValues.Outcome, 0, 10); // Cap Outcome at 10
 
-        encounter.Context.CurrentValues.Understanding =
-            Math.Clamp(encounter.Context.CurrentValues.Understanding, 0, 10); // Cap Advantage at 10
+        encounter.Context.CurrentValues.Insight =
+            Math.Clamp(encounter.Context.CurrentValues.Insight, 0, 10); // Cap Outcome at 10
 
-        encounter.Context.CurrentValues.Connection =
-            Math.Clamp(encounter.Context.CurrentValues.Connection, 0, 10); // Cap Advantage at 10
+        encounter.Context.CurrentValues.Resonance =
+            Math.Clamp(encounter.Context.CurrentValues.Resonance, 0, 10); // Cap Outcome at 10
 
-        encounter.Context.CurrentValues.Tension =
-            Math.Clamp(encounter.Context.CurrentValues.Tension, 0, 10); // Cap Advantage at 10
+        encounter.Context.CurrentValues.Pressure =
+            Math.Clamp(encounter.Context.CurrentValues.Pressure, 0, 10); // Cap Outcome at 10
     }
 
     private void ApplyEnergyCosts(EncounterChoice choice)
@@ -137,8 +137,8 @@ public class EncounterSystem
             {
                 int cost = energyReq.Amount;
 
-                // Tension Modifier
-                if (gameState.Actions.CurrentEncounter.Context.CurrentValues.Tension >= 6)
+                // Pressure Modifier
+                if (gameState.Actions.CurrentEncounter.Context.CurrentValues.Pressure >= 6)
                 {
                     cost += 1;
                 }
@@ -196,15 +196,15 @@ public class EncounterSystem
 
         situationElements.Add($"You are trying to {context.ActionType} at the {context.LocationArchetype} ({context.LocationType}).");
 
-        if (context.CurrentValues.Tension >= 6)
+        if (context.CurrentValues.Pressure >= 6)
         {
             situationElements.Add("The situation is tense.");
         }
-        if (context.CurrentValues.Understanding >= 7)
+        if (context.CurrentValues.Insight >= 7)
         {
-            situationElements.Add("You have a good understanding of what's going on.");
+            situationElements.Add("You have a good insight of what's going on.");
         }
-        else if (context.CurrentValues.Understanding <= 2)
+        else if (context.CurrentValues.Insight <= 2)
         {
             situationElements.Add("You're not quite sure what to do.");
         }
@@ -215,9 +215,9 @@ public class EncounterSystem
     private string GenerateStageSituation(EncounterActionContext context)
     {
         // Generate situation based on narrative values and context
-        if (context.CurrentValues.Tension >= 8)
+        if (context.CurrentValues.Pressure >= 8)
             return "The situation is very tense...";
-        if (context.CurrentValues.Understanding >= 8)
+        if (context.CurrentValues.Insight >= 8)
             return "You have a clear grasp of the situation...";
 
         return "You consider your options...";

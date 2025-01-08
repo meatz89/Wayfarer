@@ -7,13 +7,13 @@
             .WithCrowdLevel(CrowdLevelTypes.Crowded)
             .WithScale(ScaleVariationTypes.Medium))
         .AddStateCondition(values => values
-            .WithMaxTension(6))
+            .WithMaxPressure(6))
         .AddChoice(choice => choice
             .WithType(ChoiceTypes.Aggressive)
             .WithBaseEnergyCost(2, EnergyTypes.Physical)
             .WithBaseValueChanges(values => values
-                .WithAdvantage(3)
-                .WithTension(2))
+                .WithOutcome(3)
+                .WithPressure(2))
             .WithRequirement(new SkillRequirement(SkillTypes.Strength, 2))
             .WithCost(new CoinsOutcome(-5))
             .WithReward(new ReputationOutcome(ReputationTypes.Unbreakable, 1)))
@@ -21,15 +21,15 @@
             .WithType(ChoiceTypes.Careful)
             .WithBaseEnergyCost(1, EnergyTypes.Focus)
             .WithBaseValueChanges(values => values
-                .WithAdvantage(1)
-                .WithUnderstanding(1))
-            .WithRequirement(new UnderstandingRequirement(3)))
+                .WithOutcome(1)
+                .WithInsight(1))
+            .WithRequirement(new InsightRequirement(3)))
         .AddChoice(choice => choice
             .WithType(ChoiceTypes.Tactical)
             .WithBaseEnergyCost(1, EnergyTypes.Social)
             .WithBaseValueChanges(values => values
-                .WithAdvantage(1)
-                .WithConnection(1))
+                .WithOutcome(1)
+                .WithResonance(1))
             .WithReward(new ResourceOutcome(ResourceTypes.Food, 1)))
         .Build();
 
@@ -42,8 +42,8 @@
             .WithType(ChoiceTypes.Aggressive)
             .WithBaseEnergyCost(2, EnergyTypes.Social)
             .WithBaseValueChanges(values => values
-                .WithConnection(3)
-                .WithTension(2))
+                .WithResonance(3)
+                .WithPressure(2))
             .WithRequirement(new SkillRequirement(SkillTypes.Charisma, 2))
             .WithCost(new CoinsOutcome(-3)) // Costs 3 coins
             .WithReward(new ReputationOutcome(ReputationTypes.RoguesGuild, 1))) // Rewards 1 RoguesGuild reputation
@@ -51,8 +51,8 @@
             .WithType(ChoiceTypes.Careful)
             .WithBaseEnergyCost(1, EnergyTypes.Focus)
             .WithBaseValueChanges(values => values
-                .WithUnderstanding(1)
-                .WithConnection(1))
+                .WithInsight(1)
+                .WithResonance(1))
             .WithRequirement(new CoinsRequirement(5))) // Requires 5 coins
         .Build();
 }

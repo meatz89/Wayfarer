@@ -10,7 +10,7 @@
             .WithExposure(ExposureConditionTypes.Indoor)
             .WithCrowdLevel(CrowdLevelTypes.Crowded)
             .WithLegality(LegalityTypes.Legal)
-            .WithTension(TensionStateTypes.Relaxed)
+            .WithPressure(PressureStateTypes.Relaxed)
             .WithComplexity(ComplexityTypes.Simple)
         )
         .AddLocationSpot(spot => spot

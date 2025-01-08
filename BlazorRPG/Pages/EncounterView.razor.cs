@@ -65,27 +65,27 @@ public partial class EncounterViewBase : ComponentBase
     {
         EncounterStateValues previewState = new EncounterStateValues
         {
-            Advantage = currentState.Advantage,
-            Understanding = currentState.Understanding,
-            Connection = currentState.Connection,
-            Tension = currentState.Tension
+            Outcome = currentState.Outcome,
+            Insight = currentState.Insight,
+            Resonance = currentState.Resonance,
+            Pressure = currentState.Pressure
         };
 
         foreach (ValueChange valueChange in valueChanges)
         {
             switch (valueChange.ValueType)
             {
-                case ValueTypes.Advantage:
-                    previewState.Advantage = Math.Clamp(previewState.Advantage + valueChange.Change, 0, 10);
+                case ValueTypes.Outcome:
+                    previewState.Outcome = Math.Clamp(previewState.Outcome + valueChange.Change, 0, 10);
                     break;
-                case ValueTypes.Understanding:
-                    previewState.Understanding = Math.Clamp(previewState.Understanding + valueChange.Change, 0, 10);
+                case ValueTypes.Insight:
+                    previewState.Insight = Math.Clamp(previewState.Insight + valueChange.Change, 0, 10);
                     break;
-                case ValueTypes.Connection:
-                    previewState.Connection = Math.Clamp(previewState.Connection + valueChange.Change, 0, 10);
+                case ValueTypes.Resonance:
+                    previewState.Resonance = Math.Clamp(previewState.Resonance + valueChange.Change, 0, 10);
                     break;
-                case ValueTypes.Tension:
-                    previewState.Tension = Math.Clamp(previewState.Tension + valueChange.Change, 0, 10);
+                case ValueTypes.Pressure:
+                    previewState.Pressure = Math.Clamp(previewState.Pressure + valueChange.Change, 0, 10);
                     break;
             }
         }
@@ -135,8 +135,8 @@ public partial class EncounterViewBase : ComponentBase
             {
                 int cost = energyReq.Amount;
 
-                // Tension Modifier (Simulate the logic from ApplyEnergyCosts)
-                if (encounterStateValues.Tension >= 6)
+                // Pressure Modifier (Simulate the logic from ApplyEnergyCosts)
+                if (encounterStateValues.Pressure >= 6)
                 {
                     cost += 1;
                 }

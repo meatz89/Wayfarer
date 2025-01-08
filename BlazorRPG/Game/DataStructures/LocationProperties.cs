@@ -6,8 +6,8 @@
     public bool IsExposureSet { get; private set; } = false;
     public LegalityTypes? Legality { get; set; }
     public bool IsLegalitySet { get; private set; } = false;
-    public TensionStateTypes? Tension { get; set; }
-    public bool IsTensionSet { get; private set; } = false;
+    public PressureStateTypes? Pressure { get; set; }
+    public bool IsPressureSet { get; private set; } = false;
     public ComplexityTypes? Complexity { get; set; }
     public bool IsComplexitySet { get; private set; } = false;
     public LocationArchetypes? Archetype { get; set; }
@@ -29,8 +29,8 @@
                 return Exposure;
             case LocationPropertyTypes.Legality:
                 return Legality;
-            case LocationPropertyTypes.Tension:
-                return Tension;
+            case LocationPropertyTypes.Pressure:
+                return Pressure;
             case LocationPropertyTypes.Complexity:
                 return Complexity;
             case LocationPropertyTypes.Archetype:
@@ -63,9 +63,9 @@
                 Legality = (LegalityTypes)value;
                 IsLegalitySet = true;
                 break;
-            case LocationPropertyTypes.Tension:
-                Tension = (TensionStateTypes)value;
-                IsTensionSet = true;
+            case LocationPropertyTypes.Pressure:
+                Pressure = (PressureStateTypes)value;
+                IsPressureSet = true;
                 break;
             case LocationPropertyTypes.Complexity:
                 Complexity = (ComplexityTypes)value;

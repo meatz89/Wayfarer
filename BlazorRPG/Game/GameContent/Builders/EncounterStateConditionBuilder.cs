@@ -3,15 +3,15 @@
     private Dictionary<ValueTypes, int> maxValues = new();
     private Dictionary<ValueTypes, int> minValues = new();
 
-    public EncounterStateConditionBuilder WithMaxTension(int value)
+    public EncounterStateConditionBuilder WithMaxPressure(int value)
     {
-        maxValues[ValueTypes.Tension] = value;
+        maxValues[ValueTypes.Pressure] = value;
         return this;
     }
 
-    public EncounterStateConditionBuilder WithMinUnderstanding(int value)
+    public EncounterStateConditionBuilder WithMinInsight(int value)
     {
-        minValues[ValueTypes.Understanding] = value;
+        minValues[ValueTypes.Insight] = value;
         return this;
     }
 

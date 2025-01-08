@@ -2,21 +2,21 @@
 {
     public static EncounterStateValues NoChange => new EncounterStateValues(0, 0, 0, 0);
     public static EncounterStateValues InitialState = new EncounterStateValues(0, 5, 5, 0);
-    public int Advantage { get; set; }
-    public int Understanding { get; set; }
-    public int Connection { get; set; }
-    public int Tension { get; set; }
+    public int Outcome { get; set; }
+    public int Insight { get; set; }
+    public int Resonance { get; set; }
+    public int Pressure { get; set; }
 
     public EncounterStateValues()
     {
     }
 
-    public EncounterStateValues(int advantage, int understanding, int connection, int tension)
+    public EncounterStateValues(int outcome, int insight, int resonance, int pressure)
     {
-        this.Advantage = advantage;
-        this.Understanding = understanding;
-        this.Connection = connection;
-        this.Tension = tension;
+        this.Outcome = outcome;
+        this.Insight = insight;
+        this.Resonance = resonance;
+        this.Pressure = pressure;
     }
 
     public void ApplyChanges(List<ValueChange> valueChanges)
@@ -25,17 +25,17 @@
         {
             switch (change.ValueType)
             {
-                case ValueTypes.Advantage:
-                    Advantage += change.Change;
+                case ValueTypes.Outcome:
+                    Outcome += change.Change;
                     break;
-                case ValueTypes.Understanding:
-                    Understanding += change.Change;
+                case ValueTypes.Insight:
+                    Insight += change.Change;
                     break;
-                case ValueTypes.Connection:
-                    Connection += change.Change;
+                case ValueTypes.Resonance:
+                    Resonance += change.Change;
                     break;
-                case ValueTypes.Tension:
-                    Tension += change.Change;
+                case ValueTypes.Pressure:
+                    Pressure += change.Change;
                     break;
             }
         }

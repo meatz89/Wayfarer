@@ -1,7 +1,7 @@
 ﻿public class SocialContext
 {
     public LegalityTypes Legality { get; set; }
-    public TensionStateTypes Tension { get; set; }
+    public PressureStateTypes Pressure { get; set; }
 }
 
 public enum LegalityTypes
@@ -9,7 +9,7 @@ public enum LegalityTypes
     Legal, Gray, Illegal
 }
 
-public enum TensionStateTypes
+public enum PressureStateTypes
 {
     Relaxed, Alert, Hostile,
 }

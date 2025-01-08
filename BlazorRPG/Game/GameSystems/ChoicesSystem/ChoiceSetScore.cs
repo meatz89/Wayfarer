@@ -32,14 +32,14 @@
     //    int score = 0;
 
     //    // Reward sets that could use high values
-    //    if (values.Understanding >= 6 && this.UsesUnderstanding())
+    //    if (values.Insight >= 6 && this.UsesInsight())
     //        score += 3;
 
-    //    if (values.Connection >= 7 && this.UsesConnection())
+    //    if (values.Resonance >= 7 && this.UsesResonance())
     //        score += 3;
 
     //    // Penalize sets that might be dangerous
-    //    if (values.Tension >= 7 && this.IncreaseTension())
+    //    if (values.Pressure >= 7 && this.IncreasePressure())
     //        score -= 2;
 
     //    return score;
@@ -80,28 +80,28 @@
     //public int ScoreProgressPotential(EncounterActionContext context)
     //{
     //    // Higher scores for sets that could:
-    //    // - Lead to victory if advantage is high
-    //    // - Reduce tension if it's dangerous
+    //    // - Lead to victory if outcome is high
+    //    // - Reduce pressure if it's dangerous
     //    // - Build needed resources if they're low
     //}
 
-    //public bool UsesUnderstanding()
+    //public bool UsesInsight()
     //{
     //    return ChoicePatterns.Any(p =>
-    //        p.BaseValueChanges.Any(c => c.ValueType == ValueTypes.Understanding));
+    //        p.BaseValueChanges.Any(c => c.ValueType == ValueTypes.Insight));
     //}
 
-    //public bool UsesConnection()
+    //public bool UsesResonance()
     //{
     //    return ChoicePatterns.Any(p =>
-    //        p.BaseValueChanges.Any(c => c.ValueType == ValueTypes.Connection));
+    //        p.BaseValueChanges.Any(c => c.ValueType == ValueTypes.Resonance));
     //}
 
-    //public bool IncreaseTension()
+    //public bool IncreasePressure()
     //{
     //    return ChoicePatterns.Any(p =>
     //        p.BaseValueChanges.Any(c =>
-    //            c.ValueType == ValueTypes.Tension && c.Change > 0));
+    //            c.ValueType == ValueTypes.Pressure && c.Change > 0));
     //}
 
     //public EnergyTypes GetDominantEnergy()

@@ -36,15 +36,15 @@ public class ChoiceSetFactory
         {
             switch (baseChange.ValueType)
             {
-                case ValueTypes.Advantage:
+                case ValueTypes.Outcome:
                     finalValueChanges.Add(new ValueChange(
-                        ValueTypes.Advantage,
-                        baseChange.Change + modifiers.AdvantageModifier));
+                        ValueTypes.Outcome,
+                        baseChange.Change + modifiers.OutcomeModifier));
                     break;
-                case ValueTypes.Tension:
+                case ValueTypes.Pressure:
                     finalValueChanges.Add(new ValueChange(
-                        ValueTypes.Tension,
-                        baseChange.Change + modifiers.TensionGainModifier));
+                        ValueTypes.Pressure,
+                        baseChange.Change + modifiers.PressureGainModifier));
                     break;
                     // etc for other value types
             }
@@ -54,7 +54,7 @@ public class ChoiceSetFactory
 
         // Create the choice using the builder and add requirements, costs, and rewards
         return new ChoiceBuilder()
-            .WithName(description) 
+            .WithName(description)
             .WithChoiceType(pattern.ChoiceType)
             .RequiresEnergy(pattern.EnergyType,
                 pattern.BaseCost + modifiers.EnergyCostModifier)
@@ -73,7 +73,7 @@ public class ChoiceSetFactory
         ChoiceValueModifiers mods = new ChoiceValueModifiers();
 
         // Apply skill vs difficulty modifier
-        mods.AdvantageModifier +=
+        mods.OutcomeModifier +=
             context.PlayerState.GetSkillLevel(GetRelevantSkill(context)) -
             context.LocationDifficulty;
 

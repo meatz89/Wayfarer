@@ -31,7 +31,7 @@
         AddConditionIfSet<ScaleVariationTypes>(properties, LocationPropertyTypes.Scale);
         AddConditionIfSet<ExposureConditionTypes>(properties, LocationPropertyTypes.Exposure);
         AddConditionIfSet<LegalityTypes>(properties, LocationPropertyTypes.Legality);
-        AddConditionIfSet<TensionStateTypes>(properties, LocationPropertyTypes.Tension);
+        AddConditionIfSet<PressureStateTypes>(properties, LocationPropertyTypes.Pressure);
         AddConditionIfSet<ComplexityTypes>(properties, LocationPropertyTypes.Complexity);
 
         return this;

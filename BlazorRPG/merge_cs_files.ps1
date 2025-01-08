@@ -4,16 +4,16 @@
 $ScriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
 # Define the file types to search for
-$fileExtensions = @("razor", "cs")
+$fileExpressures = @("razor", "cs")
 
-# Loop through each file extension
-foreach ($extension in $fileExtensions) {
-    # Get all files with the current extension in the script's directory and subdirectories
-    $files = Get-ChildItem -Path $ScriptDirectory -Recurse -Filter "*.$extension"
+# Loop through each file expressure
+foreach ($expressure in $fileExpressures) {
+    # Get all files with the current expressure in the script's directory and subdirectories
+    $files = Get-ChildItem -Path $ScriptDirectory -Recurse -Filter "*.$expressure"
 
-    # Construct the output file name, replacing '.' in the extension for clean file names
-    $cleanExtension = $extension -replace '\.', ''
-    $outputFile = Join-Path -Path $ScriptDirectory -ChildPath "All${cleanExtension}Files.$extension"
+    # Construct the output file name, replacing '.' in the expressure for clean file names
+    $cleanExpressure = $expressure -replace '\.', ''
+    $outputFile = Join-Path -Path $ScriptDirectory -ChildPath "All${cleanExpressure}Files.$expressure"
 
     # Clear the output file if it already exists
     if (Test-Path $outputFile) {
@@ -29,7 +29,7 @@ foreach ($extension in $fileExtensions) {
         Get-Content -Path $file.FullName | Add-Content -Path $outputFile
     }
 
-    Write-Output "Combined $extension files into $outputFile"
+    Write-Output "Combined $expressure files into $outputFile"
 }
 
 Write-Output "File combination completed!"

@@ -25,9 +25,9 @@
         return this;
     }
 
-    public LocationPropertiesBuilder WithTension(TensionStateTypes tension)
+    public LocationPropertiesBuilder WithPressure(PressureStateTypes pressure)
     {
-        properties.SetProperty(LocationPropertyTypes.Tension, tension);
+        properties.SetProperty(LocationPropertyTypes.Pressure, pressure);
         return this;
     }
 

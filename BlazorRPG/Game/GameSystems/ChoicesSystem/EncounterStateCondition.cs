@@ -30,10 +30,10 @@
     {
         return type switch
         {
-            ValueTypes.Advantage => state.Advantage,
-            ValueTypes.Understanding => state.Understanding,
-            ValueTypes.Connection => state.Connection,
-            ValueTypes.Tension => state.Tension,
+            ValueTypes.Outcome => state.Outcome,
+            ValueTypes.Insight => state.Insight,
+            ValueTypes.Resonance => state.Resonance,
+            ValueTypes.Pressure => state.Pressure,
             _ => 0
         };
     }

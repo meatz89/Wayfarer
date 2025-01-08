@@ -1,4 +1,4 @@
-﻿public static class GameServicesExtensions
+﻿public static class GameServicesExpressures
 {
     public static IServiceCollection AddGameServices(this IServiceCollection services)
     {

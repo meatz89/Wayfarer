@@ -1,9 +1,9 @@
 ﻿
 public class ChoiceValueModifiers
 {
-    public int AdvantageModifier { get; set; }
-    public int TensionGainModifier { get; set; }
-    public int UnderstandingGainModifier { get; set; }
-    public int ConnectionGainModifier { get; set; }
+    public int OutcomeModifier { get; set; }
+    public int PressureGainModifier { get; set; }
+    public int InsightGainModifier { get; set; }
+    public int ResonanceGainModifier { get; set; }
     public int EnergyCostModifier { get; set; }
 }
