@@ -6,6 +6,7 @@
     Social,
     Nature,
 }
+
 public enum LocationArchetypes
 {
     Tavern,
@@ -24,3 +25,17 @@ public enum LocationArchetypes
     ConstructionSite
 }
 
+public enum ChoiceArchetypes
+{
+    Physical,
+    Focus,
+    Social
+}
+
+public enum ChoiceApproaches
+{
+    Aggressive,
+    Careful,
+    Strategic,
+    Desperate
+}

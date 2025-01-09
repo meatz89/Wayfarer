@@ -1,5 +1,7 @@
 ﻿public class ChoiceTemplateBuilder
 {
+    private ChoiceArchetypes archetype;
+    private ChoiceApproaches approach;
     private int baseEnergyCost;
     private EnergyTypes energyType;
     private List<ValueChange> baseValueChanges = new();
@@ -7,6 +9,18 @@
     private List<Outcome> costs = new();
     private List<Outcome> rewards = new();
     private SkillTypes relevantSkill;
+
+    public ChoiceTemplateBuilder WithArchetype(ChoiceArchetypes archetype)
+    {
+        this.archetype = archetype;
+        return this;
+    }
+
+    public ChoiceTemplateBuilder WithApproach(ChoiceApproaches approach)
+    {
+        this.approach = approach;
+        return this;
+    }
 
     public ChoiceTemplateBuilder WithBaseEnergyCost(int cost, EnergyTypes type)
     {
@@ -51,6 +65,8 @@
     {
         return new ChoiceTemplate
         {
+            Archetype = archetype,
+            Approach = approach,
             BaseValueChanges = baseValueChanges,
             EnergyType = energyType,
             BaseCost = baseEnergyCost,

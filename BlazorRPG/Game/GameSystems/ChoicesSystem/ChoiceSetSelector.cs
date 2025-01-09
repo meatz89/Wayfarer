@@ -29,9 +29,6 @@
         // Check action type matches
         if (encounterContext.ActionType != template.ActionType) return false;
 
-        // Check location archetype matches
-        if (encounterContext.LocationArchetype != template.LocationArchetype) return false;
-
         // Check location conditions
         foreach (LocationPropertyCondition condition in template.AvailabilityConditions)
         {
@@ -52,7 +49,7 @@
         // Create a ChoiceSetScore and initialize its properties based on the template
         ChoiceSetScore score = new ChoiceSetScore();
         score.BaseScore = 0; // Can be adjusted based on template properties
-        score.ChoicePatterns = template.ChoicePatterns;
+        score.ChoicePatterns = template.ChoiceTemplates;
         // Set any other needed properties
         return score;
     }

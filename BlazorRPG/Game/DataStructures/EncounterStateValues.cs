@@ -41,9 +41,9 @@
     public void ClampValues()
     {
 
-        Outcome = Math.Clamp(Outcome, 0, 40);
-        Insight = Math.Clamp(Insight, 0, 40);
-        Resonance = Math.Clamp(Resonance, 0, 40);
-        Pressure = Math.Clamp(Pressure, 0, 40);
+        Outcome = Math.Clamp(Outcome, 0, 100);
+        Insight = Math.Clamp(Insight, 0, 50);
+        Resonance = Math.Clamp(Resonance, 0, 50);
+        Pressure = Math.Clamp(Pressure, 0, 50);
     }
 }

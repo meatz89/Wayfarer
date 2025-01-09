@@ -39,7 +39,7 @@ public class ItemOutcome : Outcome
                 switch (ConditionChangeType)
                 {
                     case ItemConditionChangeTypes.Damage:
-                        item.Condition -= 40; // Example: Reduce condition
+                        item.Condition -= 10; // Example: Reduce condition
                         break;
                     case ItemConditionChangeTypes.Consume:
                         player.Inventory.RemoveResources(ResourceTypes.Food, 1); // Consume/remove the item

@@ -1,5 +1,8 @@
 ﻿public class ChoiceTemplate
 {
+    public ChoiceArchetypes Archetype { get; set; }
+    public ChoiceApproaches Approach { get; set; }
+
     public List<ValueChange> BaseValueChanges { get; set; }
     public EnergyTypes EnergyType { get; set; }
     public int BaseCost { get; set; }

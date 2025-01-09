@@ -3,6 +3,10 @@
     // Basic properties
     private int index;
     private string description;
+
+    private ChoiceArchetypes archetype;
+    private ChoiceApproaches approach;
+    
     private SkillTypes choiceRelevantSkill;
 
     // Base values that will be used by calculator
@@ -10,7 +14,7 @@
     private List<Requirement> requirements = new();
     private List<Outcome> baseCosts = new();
     private List<Outcome> baseRewards = new();
-
+    
     public ChoiceBuilder WithIndex(int index)
     {
         this.index = index;
@@ -20,6 +24,18 @@
     public ChoiceBuilder WithName(string description)
     {
         this.description = description;
+        return this;
+    }
+    
+    public ChoiceBuilder WithArchetype(ChoiceArchetypes archetype)
+    {
+        this.archetype = archetype;
+        return this;
+    }
+    
+    public ChoiceBuilder WithApproach(ChoiceApproaches approach)
+    {
+        this.approach = approach;
         return this;
     }
 
@@ -147,6 +163,8 @@
         {
             Index = index,
             Description = description,
+            Archetype = archetype,
+            Approach = approach,
             ChoiceRelevantSkill = choiceRelevantSkill,
             BaseValueChanges = baseValueChanges,
             Requirements = requirements,

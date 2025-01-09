@@ -1,34 +1,36 @@
 ﻿public class ChoiceSetFactory
 {
-    public ChoiceSet CreateFromTemplate(ChoiceSetTemplate template, EncounterContext context)
+    public ChoiceSet CreateFromChoiceSet(ChoiceSetTemplate template, EncounterContext context)
     {
         if (!IsTemplateValid(template, context))
             return null;
 
         // Create base choices from patterns
         List<EncounterChoice> choices = new();
-        foreach (ChoiceTemplate pattern in template.ChoicePatterns)
+        foreach (ChoiceTemplate choiceTemplate in template.ChoiceTemplates)
         {
-            EncounterChoice choice = CreateChoiceFromPattern(pattern, context);
+            EncounterChoice choice = CreateChoiceFromTemplate(choiceTemplate, context);
             choices.Add(choice);
         }
 
         return new ChoiceSet(choices);
     }
 
-    private EncounterChoice CreateChoiceFromPattern(ChoiceTemplate pattern, EncounterContext context)
+    private EncounterChoice CreateChoiceFromTemplate(ChoiceTemplate template, EncounterContext context)
     {
-        string description = GenerateDescription(pattern, context);
+        string description = GenerateDescription(template, context);
 
         // Create the choice with only base values
         ChoiceBuilder choiceBuilder = new ChoiceBuilder()
             .WithName(description)
-            .WithRelevantSkill(pattern.RelevantSkill)
-            .RequiresEnergy(pattern.EnergyType, pattern.BaseCost)
-            .WithValueChanges(pattern.BaseValueChanges)
-            .WithRequirements(pattern.Requirements)
-            .WithBaseCosts(pattern.Costs)
-            .WithBaseRewards(pattern.Rewards);
+            .WithArchetype(template.Archetype)
+            .WithApproach(template.Approach)
+            .WithRelevantSkill(template.RelevantSkill)
+            .RequiresEnergy(template.EnergyType, template.BaseCost)
+            .WithValueChanges(template.BaseValueChanges)
+            .WithRequirements(template.Requirements)
+            .WithBaseCosts(template.Costs)
+            .WithBaseRewards(template.Rewards);
 
         return choiceBuilder.Build();
     }
@@ -58,10 +60,16 @@
         description += $" at the {context.LocationArchetype}";
 
         // Choice type based on base value changes
-        string choiceType = GetChoiceType(pattern.BaseValueChanges);
-        if (!string.IsNullOrEmpty(choiceType))
+        string choiceArchtype = pattern.Archetype.ToString();
+        if (!string.IsNullOrEmpty(choiceArchtype))
         {
-            description += $" ({choiceType})";
+            description += $" ({choiceArchtype})";
+        }
+
+        string choiceApproach = pattern.Approach.ToString();
+        if (!string.IsNullOrEmpty(choiceApproach))
+        {
+            description += $" [{choiceApproach}]";
         }
 
         // Requirements
@@ -73,34 +81,6 @@
         }
 
         return description;
-    }
-
-    private string GetChoiceType(List<ValueChange> valueChanges)
-    {
-        if (valueChanges.Any(vc => vc.ValueType == ValueTypes.Outcome && vc.Change >= 2) &&
-            (valueChanges.Any(vc => vc.ValueType == ValueTypes.Pressure && vc.Change < 0) ||
-             valueChanges.Any(vc => vc.ValueType == ValueTypes.Insight && vc.Change > 0)))
-        {
-            return "Carefully";
-        }
-
-        if (valueChanges.Any(vc => vc.ValueType == ValueTypes.Pressure && vc.Change >= 3))
-        {
-            return "Aggressively";
-        }
-
-        if (valueChanges.Any(vc => vc.ValueType == ValueTypes.Outcome && vc.Change >= 1) &&
-            valueChanges.Any(vc => vc.ValueType == ValueTypes.Insight && vc.Change >= 2))
-        {
-            return "Tactically";
-        }
-
-        if (valueChanges.Any(vc => vc.ValueType == ValueTypes.Pressure && vc.Change < 0))
-        {
-            return "Carefully";
-        }
-
-        return "";
     }
 
     private bool IsTemplateValid(ChoiceSetTemplate template, EncounterContext context)

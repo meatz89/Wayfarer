@@ -30,7 +30,7 @@
         choiceSystem.ExecuteChoice(choice);
 
         // Check for game over or victory conditions
-        if (IsGameOver() || HasWon(encounter))
+        if (IsGameOver() || WinGame(encounter))
         {
             gameState.Actions.SetActiveEncounter(null);
         }
@@ -45,9 +45,9 @@
         return choice.Consequences.ModifiedRequirements.All(req => req.IsSatisfied(gameState.Player));
     }
 
-    private bool HasWon(Encounter encounter)
+    private bool WinGame(Encounter encounter)
     {
-        return encounter.Context.CurrentValues.Outcome >= 40;
+        return encounter.Context.CurrentValues.Outcome >= 100;
     }
 
     private EncounterStage GenerateStage(EncounterContext context)

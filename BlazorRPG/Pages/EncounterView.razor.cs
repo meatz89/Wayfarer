@@ -47,8 +47,8 @@ public partial class EncounterViewBase : ComponentBase
 
     public void OnMouseMove(MouseEventArgs e)
     {
-        mouseX = e.ClientX + 40;
-        mouseY = e.ClientY + 40;
+        mouseX = e.ClientX + 10;
+        mouseY = e.ClientY + 10;
     }
 
     public bool IsRequirementMet(UserEncounterChoiceOption choice)

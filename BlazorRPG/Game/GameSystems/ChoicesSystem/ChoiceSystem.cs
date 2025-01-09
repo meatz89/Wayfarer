@@ -27,7 +27,7 @@ public class ChoiceSystem
         if (template == null) return null;
 
         // 2. Create base choices with unmodified values
-        ChoiceSet choiceSet = choiceSetFactory.CreateFromTemplate(
+        ChoiceSet choiceSet = choiceSetFactory.CreateFromChoiceSet(
             template, context);
 
         // 3. Calculate consequences for each choice

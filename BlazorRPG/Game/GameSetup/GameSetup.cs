@@ -12,18 +12,18 @@
 
         playerInfo.Health = gameRules.StartingHealth;
         playerInfo.MinHealth = gameRules.MinimumHealth;
-        playerInfo.MaxHealth = 40;
+        playerInfo.MaxHealth = 100;
 
         playerInfo.PhysicalEnergy = gameRules.StartingPhysicalEnergy;
-        playerInfo.MaxPhysicalEnergy = 40;
+        playerInfo.MaxPhysicalEnergy = 50;
 
         playerInfo.FocusEnergy = gameRules.StartingFocusEnergy;
-        playerInfo.MaxFocusEnergy = 40;
+        playerInfo.MaxFocusEnergy = 50;
 
         playerInfo.SocialEnergy = gameRules.StartingSocialEnergy;
-        playerInfo.MaxSocialEnergy = 40;
+        playerInfo.MaxSocialEnergy = 50;
 
-        playerInfo.Inventory.AddResources(ResourceTypes.Food, 10);
+        playerInfo.Inventory.AddResources(ResourceTypes.Food, 5);
 
         gameState.Player = playerInfo;
 

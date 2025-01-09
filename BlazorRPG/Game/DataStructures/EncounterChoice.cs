@@ -3,6 +3,8 @@
     // Identity & Description
     public int Index { get; set; }
     public string Description { get; set; }
+    public ChoiceArchetypes Archetype { get; set; }
+    public ChoiceApproaches Approach { get; set; }
     public SkillTypes ChoiceRelevantSkill { get; set; }
 
     // Base Values (unmodified inputs from pattern)
