@@ -49,142 +49,80 @@
         {
             <div class="tooltip" style="left: @mouseX; top: @mouseY">
                 <div class="preview-container">
-                    <h4>Choice Preview</h4>
-
-                    @* Value Changes *@
-                    <div class="value-changes">
-                        <h5>Encounter Value Changes</h5>
-                        @foreach (var baseChange in hoveredChoice.EncounterChoice.Consequences.BaseValueChanges)
-                        {
-                            var detail = hoveredChoice.EncounterChoice.Consequences.ValueChangeDetails
-                            .FirstOrDefault(d => d.ValueType == baseChange.ValueType);
-                            if (detail != null)
-                            {
-                                <div class="value-change">
-                                    <div class="value-type">@baseChange.ValueType</div>
-                                    <div class="value-breakdown">
-                                        <span>Base: @baseChange.Change</span>
-                                        @foreach (var source in detail.ValueChanges)
-                                        {
-                                            <span class="modifier @(source.Amount > 0 ? "positive" : "negative")">
-                                                @source.Source: @(source.Amount > 0 ? "+" : "")@source.Amount
-                                            </span>
-                                        }
-                                        <span class="total">
-                                            Total: @(detail.ValueChanges.Sum(s => s.Amount) > 0 ? "+" : "")@detail.ValueChanges.Sum(s => s.Amount)
-                                        </span>
-                                    </div>
-                                </div>
-                            }
-                        }
+                    <div class="preview-header">
+                        <h4>@hoveredChoice.Description</h4>
+                        <div class="choice-type">@hoveredChoice.EncounterChoice.Archetype - @hoveredChoice.EncounterChoice.Approach</div>
                     </div>
 
-                    @* Cost Modifications *@
-                    @if (hoveredChoice.EncounterChoice.Consequences.CostModifications.Any())
-                    {
-                        <div class="cost-modifications">
-                            <h5>Costs</h5>
-                            @foreach (var mod in hoveredChoice.EncounterChoice.Consequences.CostModifications)
+                    @* Base Effects Section *@
+                    <div class="value-section">
+                        <h5>Base Effects:</h5>
+                        <div class="value-list">
+                            @foreach (var baseChange in hoveredChoice.EncounterChoice.BaseValueChanges)
                             {
-                                <div class="cost-modification">
-                                    <div class="cost-type">@mod.OutcomeType</div>
-                                    <div class="base-cost">
-                                        Base: @hoveredChoice.EncounterChoice.Consequences.BaseCosts
-                                        .First(c => c.GetDescription().Contains(mod.OutcomeType)).GetDescription()
-                                    </div>
-                                    <div class="modifier @(mod.Amount > 0 ? "positive" : "negative")">
-                                        @mod.Source: @(mod.Amount > 0 ? "+" : "")@mod.Amount
-                                    </div>
-                                    <div class="final-cost">
-                                        Final: @hoveredChoice.EncounterChoice.Consequences.ModifiedCosts
-                                        .First(c => c.GetDescription().Contains(mod.OutcomeType)).GetDescription()
-                                    </div>
+                                <div class="value-item">
+                                    @GetValueTypeIcon(baseChange.ValueType)
+                                    <span>@baseChange.ValueType @(baseChange.Change > 0 ? "+" : "")@baseChange.Change</span>
                                 </div>
                             }
-                        </div>
-                    }
-
-                    @* Reward Modifications *@
-                    @if (hoveredChoice.EncounterChoice.Consequences.RewardModifications.Any())
-                    {
-                        <div class="reward-modifications">
-                            <h5>Rewards</h5>
-                            @foreach (var mod in hoveredChoice.EncounterChoice.Consequences.RewardModifications)
-                            {
-                                var baseReward = hoveredChoice.EncounterChoice.Consequences.BaseRewards
-                                .First(r => r.GetDescription().Contains(mod.OutcomeType));
-                                var modifiedReward = hoveredChoice.EncounterChoice.Consequences.ModifiedRewards
-                                .First(r => r.GetDescription().Contains(mod.OutcomeType));
-
-                                <div class="reward-modification">
-                                    <div class="reward-type">@mod.OutcomeType</div>
-                                    <div class="base-reward">Base: @baseReward.GetDescription()</div>
-                                    <div class="modifier @(mod.Amount > 0 ? "positive" : "negative")">
-                                        @mod.Source: @(mod.Amount > 0 ? "+" : "")@mod.Amount
-                                    </div>
-                                    <div class="final-reward">
-                                        Final: @modifiedReward.GetDescription()
-                                        <span class="preview">@modifiedReward.GetPreview(GameState.Player)</span>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-
-                    @* Energy Costs *@
-                    <div class="energy-costs">
-                        <h5>Energy Requirements</h5>
-                        @foreach (var requirement in hoveredChoice.EncounterChoice.Consequences.ModifiedRequirements
-                       .Where(r => r is EnergyRequirement))
-                        {
-                            var energyReq = (EnergyRequirement)requirement;
-                            <div class="energy-cost">
-                                <div class="energy-type">@energyReq.EnergyType Energy</div>
-                                @{
-                                    var currentEnergy = GetCurrentEnergy(GameState.Player, energyReq.EnergyType);
-                                    var maxEnergy = GetMaxEnergy(GameState.Player, energyReq.EnergyType);
-                                    var newEnergy = Math.Max(0, currentEnergy - energyReq.Amount);
-                                }
-                                <div class="energy-preview @(newEnergy < currentEnergy ? "negative" : "positive")">
-                                    @currentEnergy → @newEnergy / @maxEnergy
-                                </div>
-                                @if (newEnergy == 0 && currentEnergy < energyReq.Amount)
-                                {
-                                    <div class="energy-warning">
-                                        Warning: Insufficient energy will cause:
-                                        @switch (energyReq.EnergyType)
-                                        {
-                                            case EnergyTypes.Physical:
-                                                <span class="health-loss">Health Loss</span>
-                                                break;
-                                            case EnergyTypes.Focus:
-                                                <span class="pressure-gain">Pressure Gain</span>
-                                                break;
-                                            case EnergyTypes.Social:
-                                                <span class="reputation-loss">Reputation Loss</span>
-                                                break;
-                                        }
-                                    </div>
-                                }
+                            <div class="value-item">
+                                @GetEnergyTypeIcon(hoveredChoice.EncounterChoice.EnergyType)
+                                <span>@hoveredChoice.EncounterChoice.EnergyCost @hoveredChoice.EncounterChoice.EnergyType Energy</span>
                             </div>
-                        }
+                        </div>
                     </div>
 
-                    @* Requirements *@
-                    @if (hoveredChoice.EncounterChoice.Consequences.ModifiedRequirements
-                   .Any(r => !(r is EnergyRequirement)))
-                    {
-                        <div class="other-requirements">
-                            <h5>Other Requirements</h5>
-                            @foreach (var requirement in hoveredChoice.EncounterChoice.Consequences.ModifiedRequirements
-                           .Where(r => !(r is EnergyRequirement)))
+                    @* Location Transformations *@
+                    <div class="location-effects">
+                        <h5>@GameState.World.CurrentLocation.Archetype Effects:</h5>
+                        <div class="transformations">
+                            @foreach (var rule in GetLocationTransformationRules(GameState.World.CurrentLocation.Archetype))
                             {
-                                <div class="requirement @(requirement.IsSatisfied(GameState.Player) ? "met" : "unmet")">
-                                    @requirement.GetDescription()
+                                <div class="transformation">
+                                    <span class="transform-icon">→</span>
+                                    <span>@rule</span>
                                 </div>
                             }
                         </div>
-                    }
+                    </div>
+
+                    @* Final Results Section *@
+                    <div class="final-results">
+                        <h5>Final Results:</h5>
+                        <div class="value-list">
+                            @foreach (var valueChange in hoveredChoice.EncounterChoice.ModifiedValueChanges)
+                            {
+                                <div class="value-item">
+                                    @GetValueTypeIcon(valueChange.ValueType)
+                                    <span class="value-result">
+                                        @valueChange.ValueType @(valueChange.Change > 0 ? "+" : "")@valueChange.Change
+                                        <span class="value-breakdown">
+                                            @* Display base and modifications *@
+                                            (Base: @(hoveredChoice.EncounterChoice.BaseValueChanges.FirstOrDefault(b => b.ValueType == valueChange.ValueType)?.Change ?? 0)
+                                            @foreach (var mod in hoveredChoice.EncounterChoice.Modifications.Where(m => m.Type == ModificationType.ValueChange && m.ValueChange.ValueType == valueChange.ValueType))
+                                            {
+                                                @(", " + mod.Source + ": " + (mod.ValueChange.ValueTransformation.TransformationType == TransformationType.Reduce || mod.ValueChange.ValueTransformation.TransformationType == TransformationType.ReduceCost ? "-" : "+") + mod.ValueChange.Amount)
+                                            }
+                                            )
+                                        </span>
+                                    </span>
+                                </div>
+                            }
+                            @{
+                                var finalEnergy = CalculateFinalEnergyCost(hoveredChoice.EncounterChoice);
+                            }
+                            <div class="value-item">
+                                @GetEnergyTypeIcon(hoveredChoice.EncounterChoice.EnergyType)
+                                <span>
+                                    @finalEnergy.FinalCost @hoveredChoice.EncounterChoice.EnergyType Energy
+                                    @if (finalEnergy.Reduction > 0)
+                                    {
+                                        <span class="value-breakdown">(reduced from @(finalEnergy.FinalCost + finalEnergy.Reduction))</span>
+                                    }
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         }

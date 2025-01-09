@@ -69,7 +69,7 @@
             Approach = approach,
             BaseValueChanges = baseValueChanges,
             EnergyType = energyType,
-            BaseCost = baseEnergyCost,
+            BaseEnergyCost = baseEnergyCost,
             RelevantSkill = relevantSkill,
             Requirements = requirements,
             Costs = costs,

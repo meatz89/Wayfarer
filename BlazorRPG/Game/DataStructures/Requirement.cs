@@ -6,7 +6,7 @@
 
 public class InsightRequirement : Requirement
 {
-    private readonly int requiredLevel;
+    public int requiredLevel;
 
     public InsightRequirement(int level)
     {

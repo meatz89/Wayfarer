@@ -6,8 +6,6 @@
     public int NumberOfStages => stages.Count();
     public string Situation { get; set; }
 
-    public List<ChoiceConsequences> ChoiceValueModifications { get; } = new();
-
     public Encounter(EncounterContext context, string situation)
     {
         Context = context;

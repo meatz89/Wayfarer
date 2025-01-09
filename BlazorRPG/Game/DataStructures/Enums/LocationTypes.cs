@@ -22,7 +22,8 @@ public enum LocationArchetypes
     Garden,
     None,
     Library,
-    ConstructionSite
+    ConstructionSite,
+    Docks
 }
 
 public enum ChoiceArchetypes

@@ -16,7 +16,9 @@
             .WithBaseEnergyCost(2, EnergyTypes.Physical)
             .WithBaseValueChanges(values => values
                 .WithOutcome(3) 
-                .WithPressure(2) 
+                .WithPressure(2)
+                .WithInsight(1)
+                .WithResonance(1)
                 )
             .WithRequirement(new SkillRequirement(SkillTypes.Strength, 2))
             .WithCost(new CoinsOutcome(-5))
@@ -28,7 +30,9 @@
             .WithBaseEnergyCost(1, EnergyTypes.Focus)
             .WithBaseValueChanges(values => values
                 .WithOutcome(1) 
-                .WithInsight(2) 
+                .WithInsight(2)
+                .WithOutcome(1)
+                .WithPressure(1)
                 )
             .WithRequirement(new InsightRequirement(3)))
         .AddChoice(choice => choice
@@ -38,7 +42,9 @@
             .WithBaseEnergyCost(1, EnergyTypes.Social)
             .WithBaseValueChanges(values => values
                 .WithOutcome(2) 
-                .WithResonance(1)) 
+                .WithResonance(1)
+                .WithInsight(1)
+                .WithPressure(1))
             .WithReward(new ResourceOutcome(ResourceTypes.Food, 1)))
         .Build();
 

@@ -19,13 +19,6 @@
 
     public void ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationProperties locationProperties)
     {
-        // First check if we can execute
-        if (!ValidateChoice(choice))
-        {
-            messageSystem.AddSystemMessage("Cannot execute choice - requirements not met");
-            return;
-        }
-
         // Let ChoiceSystem execute the choice
         choiceSystem.ExecuteChoice(choice);
 
@@ -34,15 +27,6 @@
         {
             gameState.Actions.SetActiveEncounter(null);
         }
-
-        // Record modifications in encounter history
-        encounter.ChoiceValueModifications.Add(choice.Consequences);
-    }
-
-    private bool ValidateChoice(EncounterChoice choice)
-    {
-        // Check if all modified requirements are met
-        return choice.Consequences.ModifiedRequirements.All(req => req.IsSatisfied(gameState.Player));
     }
 
     private bool WinGame(Encounter encounter)
@@ -62,11 +46,6 @@
             Situation = GenerateStageSituation(context),
             Choices = choices
         };
-    }
-
-    public string GetChoicePreview(EncounterChoice choice)
-    {
-        return choiceSystem.GetChoicePreview(choice);
     }
 
     public Encounter GenerateEncounter(EncounterContext context)

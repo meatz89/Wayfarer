@@ -26,7 +26,7 @@
             .WithArchetype(template.Archetype)
             .WithApproach(template.Approach)
             .WithRelevantSkill(template.RelevantSkill)
-            .RequiresEnergy(template.EnergyType, template.BaseCost)
+            .RequiresEnergy(template.EnergyType, template.BaseEnergyCost)
             .WithValueChanges(template.BaseValueChanges)
             .WithRequirements(template.Requirements)
             .WithBaseCosts(template.Costs)

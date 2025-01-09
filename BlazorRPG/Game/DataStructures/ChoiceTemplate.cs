@@ -5,7 +5,7 @@
 
     public List<ValueChange> BaseValueChanges { get; set; }
     public EnergyTypes EnergyType { get; set; }
-    public int BaseCost { get; set; }
+    public int BaseEnergyCost { get; set; }
     public SkillTypes RelevantSkill { get; set; }
 
     public List<Requirement> Requirements { get; set; }

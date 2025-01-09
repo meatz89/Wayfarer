@@ -28,21 +28,17 @@ public partial class EncounterViewBase : ComponentBase
     {
         if (IsChoiceDisabled(choice))
         {
-            return; // Don't execute if the choice is disabled
+            return;
         }
 
-        // Apply the choice to the encounter
         GameManager.ExecuteEncounterChoice(choice);
-
-        // The GameManager should have already updated the encounter state,
-        // so we can just trigger a re-render
-        //StateHasChanged(); //Removed because we added it to OnInitialized
         OnEncounterCompleted.InvokeAsync();
     }
 
     public bool IsChoiceDisabled(UserEncounterChoiceOption choice)
     {
-        return choice.EncounterChoice.Requirements.Any(req => !req.IsSatisfied(GameState.Player));
+        // Use the ModifiedRequirements for the disabled check
+        return choice.EncounterChoice.ModifiedRequirements.Any(req => !req.IsSatisfied(GameState.Player));
     }
 
     public void OnMouseMove(MouseEventArgs e)
@@ -60,54 +56,42 @@ public partial class EncounterViewBase : ComponentBase
         return true;
     }
 
-    public EncounterStateValues CalculatePreviewState(EncounterStateValues currentState, List<ValueChange> valueChanges)
+    public List<string> GetLocationTransformationRules(LocationArchetypes archetype)
     {
-        EncounterStateValues previewState = new EncounterStateValues(
-            currentState.Outcome,
-            currentState.Insight,
-            currentState.Resonance,
-            currentState.Pressure);
+        var rules = new List<string>();
+        var archetypeEffect = LocationArchetypeContent.Effects[archetype];
 
-        foreach (ValueChange valueChange in valueChanges)
+        foreach (var transformation in archetypeEffect.ValueTransformations)
         {
-            switch (valueChange.ValueType)
+            foreach (var trans in transformation.Value)
             {
-                case ValueTypes.Outcome:
-                    previewState.Outcome = Math.Clamp(previewState.Outcome + valueChange.Change, 0, 20);
-                    break;
-                case ValueTypes.Insight:
-                    previewState.Insight = Math.Clamp(previewState.Insight + valueChange.Change, 0, 20);
-                    break;
-                case ValueTypes.Resonance:
-                    previewState.Resonance = Math.Clamp(previewState.Resonance + valueChange.Change, 0, 20);
-                    break;
-                case ValueTypes.Pressure:
-                    previewState.Pressure = Math.Clamp(previewState.Pressure + valueChange.Change, 0, 20);
-                    break;
+                switch (trans.TransformationType)
+                {
+                    case TransformationType.Convert:
+                        rules.Add($"Each point of {trans.SourceValue} converts one point of {trans.SourceValue} gain into {trans.TargetValue}");
+                        break;
+                    case TransformationType.Reduce:
+                    case TransformationType.ReduceCost:
+                        rules.Add($"Each point of {trans.SourceValue} reduces one point of {trans.TargetValue} gain");
+                        break;
+                    case TransformationType.Increase:
+                        rules.Add($"Each point of {trans.SourceValue} increases one point of {trans.TargetValue} gain");
+                        break;
+                    case TransformationType.Set:
+                        rules.Add($"Each point of {trans.SourceValue} can be set to {trans.TargetValue} instead");
+                        break;
+                }
             }
         }
 
-        return previewState;
+        foreach (var reduction in archetypeEffect.EnergyCostReductions)
+        {
+            rules.Add($"{reduction.Key} energy cost at this Location reduced by {reduction.Value}");
+        }
+
+        return rules;
     }
 
-    // Method to determine the CSS class based on the change
-    public string GetStateChangeClass(int currentValue, int previewValue)
-    {
-        if (previewValue > currentValue)
-        {
-            return "positive";
-        }
-        else if (previewValue < currentValue)
-        {
-            return "negative";
-        }
-        else
-        {
-            return "";
-        }
-    }
-
-    // Updated method for requirement descriptions
     public MarkupString GetRequirementDescription(Requirement req, PlayerState player)
     {
         bool isMet = req.IsSatisfied(player);
@@ -118,98 +102,94 @@ public partial class EncounterViewBase : ComponentBase
         return new MarkupString($"{iconHtml} {req.GetDescription()}");
     }
 
-    public List<string> CalculateEnergyCostPreview(EncounterChoice choice, PlayerState player, EncounterStateValues encounterStateValues)
+    public MarkupString GetValueTypeIcon(ValueTypes valueType)
     {
-        List<string> preview = new();
-        int previewPhysicalEnergy = player.PhysicalEnergy;
-        int previewFocusEnergy = player.FocusEnergy;
-        int previewSocialEnergy = player.SocialEnergy;
-        int previewHealth = player.Health;
-
-        foreach (Requirement req in choice.Requirements)
+        return valueType switch
         {
-            if (req is EnergyRequirement energyReq)
-            {
-                int cost = energyReq.Amount;
+            ValueTypes.Outcome => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
+            ValueTypes.Insight => new MarkupString("<i class='value-icon insight-icon'>💡</i>"),
+            ValueTypes.Resonance => new MarkupString("<i class='value-icon resonance-icon'>🤝</i>"),
+            ValueTypes.Pressure => new MarkupString("<i class='value-icon pressure-icon'>⚡</i>"),
+            _ => new MarkupString("")
+        };
+    }
 
-                // Pressure Modifier (Simulate the logic from ApplyEnergyCosts)
-                if (encounterStateValues.Pressure >= 6)
-                {
-                    cost += 1;
-                }
+    public MarkupString GetEnergyTypeIcon(EnergyTypes energyType)
+    {
+        return energyType switch
+        {
+            EnergyTypes.Physical => new MarkupString("<i class='energy-icon physical-icon'>💪</i>"),
+            EnergyTypes.Focus => new MarkupString("<i class='energy-icon focus-icon'>🎯</i>"),
+            EnergyTypes.Social => new MarkupString("<i class='energy-icon social-icon'>👥</i>"),
+            _ => new MarkupString("")
+        };
+    }
 
-                switch (energyReq.EnergyType)
-                {
-                    case EnergyTypes.Physical:
-                        previewPhysicalEnergy -= cost;
-                        if (previewPhysicalEnergy < 0)
-                        {
-                            previewHealth += previewPhysicalEnergy; // Health penalty
-                            previewPhysicalEnergy = 0;
-                        }
-                        preview.Add(
-                            $"<span class='{(energyReq.Amount > 0 ? "negative" : "positive")}'>" +
-                            $"{energyReq.EnergyType} Energy: ({player.PhysicalEnergy} -> {previewPhysicalEnergy})" +
-                            $"</span>");
-                        if (previewHealth < player.Health)
-                        {
-                            preview.Add(
-                                $"<span class='negative'>" +
-                                $"Health: ({player.Health} -> {previewHealth})" +
-                                $"</span>");
-                        }
-                        break;
+    public string GetChoiceArchetypeIcon(ChoiceArchetypes archetype)
+    {
+        return archetype switch
+        {
+            ChoiceArchetypes.Physical => "💪",
+            ChoiceArchetypes.Focus => "🎯",
+            ChoiceArchetypes.Social => "👥",
+            _ => ""
+        };
+    }
 
-                    case EnergyTypes.Focus:
-                        previewFocusEnergy -= cost;
-                        if (previewFocusEnergy < 0)
-                        {
-                            previewFocusEnergy = 0; // Deplete energy in preview
-                        }
-                        preview.Add(
-                            $"<span class='{(energyReq.Amount > 0 ? "negative" : "positive")}'>" +
-                            $"{energyReq.EnergyType} Energy: ({player.FocusEnergy} -> {previewFocusEnergy})" +
-                            $"</span>");
-                        break;
+    public string GetChoiceApproachIcon(ChoiceApproaches approach)
+    {
+        return approach switch
+        {
+            ChoiceApproaches.Aggressive => "⚔️",
+            ChoiceApproaches.Careful => "🛡️",
+            ChoiceApproaches.Strategic => "📋",
+            ChoiceApproaches.Desperate => "⚠️",
+            _ => ""
+        };
+    }
 
-                    case EnergyTypes.Social:
-                        previewSocialEnergy -= cost;
-                        if (previewSocialEnergy < 0)
-                        {
-                            previewSocialEnergy = 0; // Deplete energy in preview
-                        }
-                        preview.Add(
-                            $"<span class='{(energyReq.Amount > 0 ? "negative" : "positive")}'>" +
-                            $"{energyReq.EnergyType} Energy: ({player.SocialEnergy} -> {previewSocialEnergy})" +
-                            $"</span>");
-                        break;
-                }
-            }
+    public FinalEnergyCost CalculateFinalEnergyCost(EncounterChoice choice)
+    {
+        var finalCost = new FinalEnergyCost
+        {
+            FinalCost = choice.EnergyCost,
+            Reduction = 0
+        };
+
+        // Apply location-based energy reduction
+        var archetypeEffect = LocationArchetypeContent.Effects[GameState.Actions.CurrentEncounter.Context.LocationArchetype];
+
+        if (archetypeEffect.EnergyCostReductions.TryGetValue(choice.EnergyType, out int reduction))
+        {
+            finalCost.Reduction += reduction;
         }
 
-        return preview;
+        finalCost.FinalCost = Math.Max(0, finalCost.FinalCost - finalCost.Reduction);
+        return finalCost;
     }
 
 
-    public int GetCurrentEnergy(PlayerState player, EnergyTypes type)
+    private string GetTransformationEffect(ChoiceModification modification)
     {
-        return type switch
+        if (modification.Type != ModificationType.ValueChange || modification.ValueChange.ValueTransformation == null)
         {
-            EnergyTypes.Physical => player.PhysicalEnergy,
-            EnergyTypes.Focus => player.FocusEnergy,
-            EnergyTypes.Social => player.SocialEnergy,
-            _ => 0
-        };
-    }
+            return string.Empty;
+        }
 
-    public int GetMaxEnergy(PlayerState player, EnergyTypes type)
-    {
-        return type switch
+        var transformation = modification.ValueChange.ValueTransformation;
+        switch (transformation.TransformationType)
         {
-            EnergyTypes.Physical => player.MaxPhysicalEnergy,
-            EnergyTypes.Focus => player.MaxFocusEnergy,
-            EnergyTypes.Social => player.MaxSocialEnergy,
-            _ => 0
-        };
+            case TransformationType.Convert:
+                return $"Converted {modification.ValueChange.Amount} {transformation.SourceValue} to {modification.ValueChange.Amount} {transformation.TargetValue}";
+            case TransformationType.Reduce:
+            case TransformationType.ReduceCost:
+                return $"Reduced {modification.ValueChange.Amount} {transformation.TargetValue} due to {modification.ValueChange.Amount} {transformation.SourceValue}";
+            case TransformationType.Increase:
+                return $"Increased {modification.ValueChange.Amount} {transformation.TargetValue} due to {modification.ValueChange.Amount} {transformation.SourceValue}";
+            case TransformationType.Set:
+                return $"Set {modification.ValueChange.Amount} {transformation.SourceValue} to {modification.ValueChange.Amount} {transformation.TargetValue}";
+            default:
+                return string.Empty;
+        }
     }
 }

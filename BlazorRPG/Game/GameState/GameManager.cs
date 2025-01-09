@@ -181,7 +181,7 @@ public class GameManager
         EncounterContext context = new(
             action,
             location.LocationType,
-            location.LocationArchetype,
+            location.Archetype,
             gameState.World.CurrentTimeSlot,
             location.LocationProperties,
             playerState,
@@ -211,10 +211,6 @@ public class GameManager
         EncounterChoice choice = choiceOption.EncounterChoice;
 
         Location location = LocationSystem.GetLocation(choiceOption.LocationName);
-
-        // Get preview before execution
-        string preview = EncounterSystem.GetChoicePreview(choice);
-        MessageSystem.AddSystemMessage($"Executing choice: {preview}");
 
         // Execute the choice
         EncounterSystem.ExecuteChoice(encounter, choice, location.LocationProperties);

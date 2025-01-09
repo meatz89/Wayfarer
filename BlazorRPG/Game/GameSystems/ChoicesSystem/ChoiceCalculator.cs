@@ -1,331 +1,289 @@
 ﻿public class ChoiceCalculator
 {
-    public ChoiceConsequences CalculateConsequences(EncounterChoice choice, EncounterContext context)
+    private readonly Dictionary<LocationArchetypes, ArchetypeEffect> locationArchetypeEffects;
+
+    public ChoiceCalculator(Dictionary<LocationArchetypes, ArchetypeEffect> locationArchetypeEffects)
     {
-        ChoiceConsequences consequences = new ChoiceConsequences
-        {
-            BaseValueChanges = choice.BaseValueChanges,
-            BaseRequirements = choice.Requirements,
-            BaseCosts = choice.BaseCosts,
-            BaseRewards = choice.BaseRewards
-        };
-
-        // Calculate all modifiers first
-        CalculateValueModifiers(choice, consequences, context);
-
-        // Apply modifiers to get modified values
-        CalculateModifiedValues(consequences);
-        CalculateModifiedRequirements(consequences, context);
-        CalculateModifiedOutcomes(choice, consequences, context); // Pass the choice here
-
-        return consequences;
+        this.locationArchetypeEffects = locationArchetypeEffects;
     }
 
-    private void CalculateValueModifiers(EncounterChoice choice, ChoiceConsequences consequences, EncounterContext context)
+    public void CalculateChoice(EncounterChoice choice, EncounterContext context)
     {
-        ChoiceValueModifiers modifiers = new ChoiceValueModifiers();
-        Dictionary<ValueTypes, List<(string Source, int Amount)>> valueChangeDetails = new Dictionary<ValueTypes, List<(string Source, int Amount)>>();
+        // 1. Reset Modifications
+        choice.Modifications.Clear();
 
-        // Initialize details dictionary with base values
-        foreach (ValueChange baseChange in consequences.BaseValueChanges)
+        // 2. Use Base Values Directly
+        choice.ModifiedValueChanges = new List<ValueChange>(choice.BaseValueChanges);
+        choice.ModifiedRequirements = new List<Requirement>(choice.Requirements);
+        choice.ModifiedCosts = new List<Outcome>(choice.BaseCosts);
+        choice.ModifiedRewards = new List<Outcome>(choice.BaseRewards);
+
+        // 3. Apply Modifiers (excluding transformations)
+        ApplyLocationArchetypeModifiers(choice, context);
+        ApplyPlayerSkillModifiers(choice, context);
+
+        // 4. Apply Transformations
+        ApplyValueTransformations(choice, context);
+
+        // 5. Apply Energy Cost Reductions
+        ApplyEnergyCostReductions(choice, context);
+    }
+
+    private void ApplyLocationArchetypeModifiers(EncounterChoice choice, EncounterContext context)
+    {
+        var archetypeEffect = locationArchetypeEffects[context.LocationArchetype];
+
+        // Iterate over each base value change in the choice
+        foreach (var valueChange in choice.BaseValueChanges)
         {
-            valueChangeDetails[baseChange.ValueType] = new List<(string Source, int Amount)>
+            // Check if the archetype effect has any transformations for this value type
+            if (archetypeEffect.ValueTransformations.TryGetValue(valueChange.ValueType, out var transformations))
             {
-                ("Base", baseChange.Change)
-            };
+                // Apply each transformation
+                foreach (var transformation in transformations)
+                {
+                    string effect = GetTransformationEffect(transformation); // Get the description of the transformation
+
+                    // Add a modification representing the transformation
+                    choice.Modifications.Add(new ChoiceModification
+                    {
+                        Source = ModificationSource.LocationArchetype,
+                        Type = ModificationType.ValueChange,
+                        Effect = effect, // Use the effect as a general description
+                        SourceDetails = effect, // Use the effect as source details
+                        ValueChange = new ValueChangeModification
+                        {
+                            ValueType = valueChange.ValueType,
+                            Amount = valueChange.Change,
+                            ValueTransformation = transformation
+                        }
+                    });
+                }
+            }
         }
 
-        // Skill vs Difficulty impact
+        // Iterate over each energy requirement in the choice
+        foreach (var requirement in choice.Requirements.OfType<EnergyRequirement>())
+        {
+            // Check if the archetype effect has a cost reduction for this energy type
+            if (archetypeEffect.EnergyCostReductions.TryGetValue(requirement.EnergyType, out int reductionAmount))
+            {
+                // Add a modification representing the energy cost reduction
+                choice.Modifications.Add(new ChoiceModification
+                {
+                    Source = ModificationSource.LocationArchetype,
+                    Type = ModificationType.EnergyCost,
+                    Effect = $"Reduced {requirement.EnergyType} Energy cost by {reductionAmount}",
+                    SourceDetails = $"Reduced {requirement.EnergyType} Energy cost by {reductionAmount}",
+                    Requirement = new RequirementModification
+                    {
+                        RequirementType = "Energy",
+                        Amount = -reductionAmount
+                    }
+                });
+            }
+        }
+
+        // Modify Requirements based on LocationArchetype
+        foreach (var requirement in choice.ModifiedRequirements)
+        {
+            if (requirement is EnergyRequirement energyRequirement)
+            {
+                if (archetypeEffect.EnergyCostReductions.TryGetValue(energyRequirement.EnergyType, out int reductionAmount))
+                {
+                    choice.Modifications.Add(new ChoiceModification
+                    {
+                        Source = ModificationSource.LocationArchetype,
+                        Type = ModificationType.EnergyCost,
+                        Effect = $"Reduced {energyRequirement.EnergyType} Energy cost by {reductionAmount}",
+                        Requirement = new RequirementModification
+                        {
+                            RequirementType = "Energy",
+                            Amount = -reductionAmount
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+
+    private string GetTransformationEffect(ValueTransformation transformation)
+    {
+        switch (transformation.TransformationType)
+        {
+            case TransformationType.Convert:
+                return $"Each point of {transformation.SourceValue} converts one point of {transformation.SourceValue} gain into {transformation.TargetValue}";
+            case TransformationType.Reduce:
+            case TransformationType.ReduceCost:
+                return $"Each point of {transformation.SourceValue} reduces one point of {transformation.TargetValue} gain";
+            case TransformationType.Increase:
+                return $"Each point of {transformation.SourceValue} increases one point of {transformation.TargetValue} gain";
+            case TransformationType.Set:
+                return $"Each point of {transformation.SourceValue} can be set to {transformation.TargetValue} instead";
+            default:
+                return string.Empty;
+        }
+    }
+
+    private void ApplyPlayerSkillModifiers(EncounterChoice choice, EncounterContext context)
+    {
+        // Example: Modify ValueChanges based on relevant skill
         int skillVsDifficulty = context.PlayerState.GetSkillLevel(choice.ChoiceRelevantSkill) - context.LocationDifficulty;
 
-        // Only give a bonus to outcome if it is the right archetype
-        if (choice.Archetype == ChoiceArchetypes.Physical)
+        if (skillVsDifficulty > 0)
         {
-            modifiers.OutcomeModifier += skillVsDifficulty;
-            modifiers.AddModifierDetail("Skill Level", skillVsDifficulty);
-            AddValueChangeDetail(valueChangeDetails, ValueTypes.Outcome, "Skill Level", skillVsDifficulty);
-        }
-        else if (choice.Archetype == ChoiceArchetypes.Focus)
-        {
-            modifiers.InsightGainModifier += skillVsDifficulty;
-            modifiers.AddModifierDetail("Skill Level", skillVsDifficulty);
-            AddValueChangeDetail(valueChangeDetails, ValueTypes.Insight, "Skill Level", skillVsDifficulty);
-        }
-        else if (choice.Archetype == ChoiceArchetypes.Social)
-        {
-            modifiers.ResonanceGainModifier += skillVsDifficulty;
-            modifiers.AddModifierDetail("Skill Level", skillVsDifficulty);
-            AddValueChangeDetail(valueChangeDetails, ValueTypes.Resonance, "Skill Level", skillVsDifficulty);
-        }
-
-        // Location impact
-        switch (context.LocationType)
-        {
-            case LocationTypes.Industrial:
-                // Industrial locations generally increase pressure. 
-                // Aggressive choices are even more risky here.
-                if (choice.Approach == ChoiceApproaches.Aggressive)
-                {
-                    modifiers.PressureGainModifier += 2;
-                    modifiers.AddModifierDetail("Industrial Location (Aggressive)", 2);
-                    AddValueChangeDetail(valueChangeDetails, ValueTypes.Pressure, "Industrial Location (Aggressive)", 2);
-                }
-                else
-                {
-                    modifiers.PressureGainModifier += 1;
-                    modifiers.AddModifierDetail("Industrial Location", 1);
-                    AddValueChangeDetail(valueChangeDetails, ValueTypes.Pressure, "Industrial Location", 1);
-                }
-                break;
-            case LocationTypes.Social:
-                // Social locations generally favor resonance gain. 
-                // Strategic choices are particularly effective here.
-                if (choice.Approach == ChoiceApproaches.Strategic)
-                {
-                    modifiers.ResonanceGainModifier += 2;
-                    modifiers.AddModifierDetail("Social Location (Strategic)", 2);
-                    AddValueChangeDetail(valueChangeDetails, ValueTypes.Resonance, "Social Location (Strategic)", 2);
-                }
-                else
-                {
-                    modifiers.ResonanceGainModifier += 1;
-                    modifiers.AddModifierDetail("Social Location", 1);
-                    AddValueChangeDetail(valueChangeDetails, ValueTypes.Resonance, "Social Location", 1);
-                }
-                break;
-            case LocationTypes.Nature:
-                // Nature locations generally favor insight gain. 
-                // Careful choices are particularly effective here.
-                if (choice.Approach == ChoiceApproaches.Careful)
-                {
-                    modifiers.InsightGainModifier += 2;
-                    modifiers.AddModifierDetail("Nature Location (Careful)", 2);
-                    AddValueChangeDetail(valueChangeDetails, ValueTypes.Insight, "Nature Location (Careful)", 2);
-                }
-                else
-                {
-                    modifiers.InsightGainModifier += 1;
-                    modifiers.AddModifierDetail("Nature Location", 1);
-                    AddValueChangeDetail(valueChangeDetails, ValueTypes.Insight, "Nature Location", 1);
-                }
-                break;
-        }
-
-        // Insight impact on Pressure
-        // Higher insight reduces pressure gain, especially for Focus archetype choices.
-        int insightLevel = context.CurrentValues.Insight;
-        int pressureReduction = -insightLevel / 2;
-
-        if (choice.Archetype == ChoiceArchetypes.Focus)
-        {
-            modifiers.PressureGainModifier += pressureReduction * 2; // Focus choices benefit more from insight
-            modifiers.AddModifierDetail("Insight (Focus)", pressureReduction * 2);
-            AddValueChangeDetail(valueChangeDetails, ValueTypes.Pressure, "Insight (Focus)", pressureReduction * 2);
-        }
-        else
-        {
-            modifiers.PressureGainModifier += pressureReduction;
-            modifiers.AddModifierDetail("Insight", pressureReduction);
-            AddValueChangeDetail(valueChangeDetails, ValueTypes.Pressure, "Insight", pressureReduction);
-        }
-
-        // Energy cost strain from pressure
-        // This is handled in CalculateModifiedOutcomes to affect energy costs directly
-
-        consequences.Modifiers = modifiers;
-        consequences.ValueChangeDetails = GetValueChangeDetails(valueChangeDetails);
-    }
-
-    private void AddValueChangeDetail(Dictionary<ValueTypes, List<(string Source, int Amount)>> details,
-        ValueTypes type, string source, int amount)
-    {
-        if (!details.ContainsKey(type))
-        {
-            details[type] = new List<(string Source, int Amount)>();
-        }
-        details[type].Add((source, amount));
-    }
-
-    private List<ValueChangeDetail> GetValueChangeDetails(Dictionary<ValueTypes, List<(string Source, int Amount)>> details)
-    {
-        List<ValueChangeDetail> valueChangeDetails = new List<ValueChangeDetail>();
-        foreach (KeyValuePair<ValueTypes, List<(string Source, int Amount)>> detail in details)
-        {
-            List<ValueChangeSource> sources = new List<ValueChangeSource>();
-            foreach ((string Source, int Amount) in detail.Value)
+            // Only give a bonus to outcome if it is the right archetype
+            if (choice.Archetype == ChoiceArchetypes.Physical)
             {
-                sources.Add(new ValueChangeSource(Source, Amount));
-            }
-            valueChangeDetails.Add(new ValueChangeDetail(detail.Key, sources));
-        }
-        return valueChangeDetails;
-    }
-
-    private void CalculateModifiedValues(ChoiceConsequences consequences)
-    {
-        foreach (ValueChange baseChange in consequences.BaseValueChanges)
-        {
-            ValueChange modifiedChange = new ValueChange(baseChange.ValueType, baseChange.Change);
-
-            switch (baseChange.ValueType)
-            {
-                case ValueTypes.Outcome:
-                    modifiedChange.Change += consequences.Modifiers.OutcomeModifier;
-                    break;
-                case ValueTypes.Pressure:
-                    modifiedChange.Change += consequences.Modifiers.PressureGainModifier;
-                    break;
-                case ValueTypes.Insight:
-                    modifiedChange.Change += consequences.Modifiers.InsightGainModifier;
-                    break;
-                case ValueTypes.Resonance:
-                    modifiedChange.Change += consequences.Modifiers.ResonanceGainModifier;
-                    break;
-            }
-
-            consequences.ModifiedValueChanges.Add(modifiedChange);
-        }
-    }
-
-    private void CalculateModifiedRequirements(ChoiceConsequences consequences, EncounterContext context)
-    {
-        foreach (Requirement baseReq in consequences.BaseRequirements)
-        {
-            if (baseReq is EnergyRequirement energyReq)
-            {
-                // Create new requirement with pressure modifier
-                int pressureModifier = context.CurrentValues.Pressure / 3;
-                if (pressureModifier > 0)
+                choice.Modifications.Add(new ChoiceModification
                 {
-                    consequences.RequirementModifications.Add(new RequirementModification
+                    Source = ModificationSource.PlayerSkill,
+                    Type = ModificationType.ValueChange,
+                    Effect = $"Increased Outcome by {skillVsDifficulty} due to {choice.ChoiceRelevantSkill} skill",
+                    SourceDetails = $"Increased Outcome by {skillVsDifficulty} due to {choice.ChoiceRelevantSkill} skill", // Add SourceDetails here
+                    ValueChange = new ValueChangeModification
                     {
-                        Source = "High Pressure",
-                        RequirementType = energyReq.EnergyType.ToString(),
-                        Amount = pressureModifier
-                    });
-
-                    consequences.ModifiedRequirements.Add(new EnergyRequirement(
-                        energyReq.EnergyType,
-                        energyReq.Amount + pressureModifier));
-                }
-                else
-                {
-                    consequences.ModifiedRequirements.Add(baseReq);
-                }
+                        ValueType = ValueTypes.Outcome,
+                        Amount = skillVsDifficulty,
+                        ValueTransformation = new ValueTransformation { } // Create a dummy ValueTransformation object
+                    }
+                });
             }
-            else
+            else if (choice.Archetype == ChoiceArchetypes.Focus)
             {
-                consequences.ModifiedRequirements.Add(baseReq);
+                choice.Modifications.Add(new ChoiceModification
+                {
+                    Source = ModificationSource.PlayerSkill,
+                    Type = ModificationType.ValueChange,
+                    Effect = $"Increased Insight by {skillVsDifficulty} due to {choice.ChoiceRelevantSkill} skill",
+                    SourceDetails = $"Increased Insight by {skillVsDifficulty} due to {choice.ChoiceRelevantSkill} skill",
+                    ValueChange = new ValueChangeModification
+                    {
+                        ValueType = ValueTypes.Insight,
+                        Amount = skillVsDifficulty,
+                        ValueTransformation = new ValueTransformation { }
+                    }
+                });
+            }
+            else if (choice.Archetype == ChoiceArchetypes.Social)
+            {
+                choice.Modifications.Add(new ChoiceModification
+                {
+                    Source = ModificationSource.PlayerSkill,
+                    Type = ModificationType.ValueChange,
+                    Effect = $"Increased Resonance by {skillVsDifficulty} due to {choice.ChoiceRelevantSkill} skill",
+                    SourceDetails = $"Increased Resonance by {skillVsDifficulty} due to {choice.ChoiceRelevantSkill} skill",
+                    ValueChange = new ValueChangeModification
+                    {
+                        ValueType = ValueTypes.Resonance,
+                        Amount = skillVsDifficulty,
+                        ValueTransformation = new ValueTransformation { }
+                    }
+                });
             }
         }
     }
 
-    private void CalculateModifiedOutcomes(EncounterChoice choice, ChoiceConsequences consequences, EncounterContext context)
+    private void ApplyValueTransformations(EncounterChoice choice, EncounterContext context)
     {
-        // First handle costs
-        foreach (Outcome baseCost in consequences.BaseCosts)
+        // Create a list to track modifications made in this method
+        var modificationsMade = new List<ChoiceModification>();
+
+        foreach (var modification in choice.Modifications)
         {
-            // High pressure now makes choices more expensive
-            if (baseCost is EnergyOutcome energyCost)
+            if (modification.Type == ModificationType.ValueChange && modification.ValueChange != null)
             {
-                int strainModifier = context.CurrentValues.Pressure / 3;
+                if (modification.ValueChange.ValueTransformation != null)
+                {
+                    // Find the ValueChange in ModifiedValueChanges that matches the current modification's ValueType
+                    var valueChangeToModify = choice.ModifiedValueChanges.FirstOrDefault(vc => vc.ValueType == modification.ValueChange.ValueType);
 
-                // Increase energy cost based on choice archetype
-                if (choice.Archetype == ChoiceArchetypes.Physical)
-                {
-                    strainModifier *= 2; // Physical choices are more expensive under pressure
-                }
-                else if (choice.Archetype == ChoiceArchetypes.Social)
-                {
-                    strainModifier += strainModifier / 2; // Social choices are slightly more expensive
-                }
-
-                if (strainModifier > 0)
-                {
-                    consequences.CostModifications.Add(new OutcomeModification
+                    if (valueChangeToModify != null)
                     {
-                        Source = "High Pressure",
-                        OutcomeType = energyCost.EnergyType.ToString(),
-                        Amount = strainModifier
-                    });
-
-                    consequences.ModifiedCosts.Add(new EnergyOutcome(
-                        energyCost.EnergyType,
-                        energyCost.Amount + strainModifier));
+                        ValueTransformation valueTransformation = modification.ValueChange.ValueTransformation;
+                        switch (valueTransformation.TransformationType)
+                        {
+                            case TransformationType.Convert:
+                                ConvertValueChange(choice, context, choice.ModifiedValueChanges, modification, valueChangeToModify);
+                                modificationsMade.Add(modification);
+                                break;
+                            case TransformationType.Reduce:
+                            case TransformationType.ReduceCost:
+                                ReduceValueChange(choice, context, choice.ModifiedValueChanges, modification, valueChangeToModify);
+                                modificationsMade.Add(modification);
+                                break;
+                            case TransformationType.Increase:
+                                IncreaseValueChange(choice, context, choice.ModifiedValueChanges, modification, valueChangeToModify);
+                                modificationsMade.Add(modification);
+                                break;
+                            case TransformationType.Set:
+                                SetValueChange(choice, context, choice.ModifiedValueChanges, modification, valueChangeToModify);
+                                modificationsMade.Add(modification);
+                                break;
+                        }
+                    }
                 }
-                else
-                {
-                    consequences.ModifiedCosts.Add(baseCost);
-                }
-            }
-            else
-            {
-                consequences.ModifiedCosts.Add(baseCost);
             }
         }
 
-        // Then handle rewards
-        foreach (Outcome baseReward in consequences.BaseRewards)
+        // Remove the modifications that were handled in this method
+        foreach (var mod in modificationsMade)
         {
-            if (baseReward is ResourceOutcome resourceReward)
+            choice.Modifications.Remove(mod);
+        }
+    }
+
+    private void ConvertValueChange(EncounterChoice choice, EncounterContext context, List<ValueChange> modifiedValueChanges, ChoiceModification choiceModification, ValueChange valueChangeToModify)
+    {
+        // For Convert, we remove the source change and add a new change of the target type
+        modifiedValueChanges.Remove(valueChangeToModify);
+        modifiedValueChanges.Add(new ValueChange(choiceModification.ValueChange.ValueTransformation.TargetValue, valueChangeToModify.Change));
+
+        choiceModification.Effect = $"Converted {valueChangeToModify.Change} {choiceModification.ValueChange.ValueTransformation.SourceValue} to {valueChangeToModify.Change} {choiceModification.ValueChange.ValueTransformation.TargetValue}";
+    }
+
+    private void ReduceValueChange(EncounterChoice choice, EncounterContext context, List<ValueChange> modifiedValueChanges, ChoiceModification choiceModification, ValueChange valueChangeToModify)
+    {
+        // Reduce modifies the value change directly, no new ValueChange is created
+        if (choiceModification.ValueChange.Amount < 0)
+        {
+            // Ensure we don't reduce below zero
+            int reductionAmount = Math.Min(Math.Abs(choiceModification.ValueChange.Amount), valueChangeToModify.Change);
+            valueChangeToModify.Change -= reductionAmount;
+
+            choiceModification.Effect = $"Reduced {reductionAmount} {choiceModification.ValueChange.ValueTransformation.TargetValue} due to {Math.Abs(choiceModification.ValueChange.Amount)} {choiceModification.ValueChange.ValueTransformation.SourceValue}";
+        }
+    }
+
+    private void IncreaseValueChange(EncounterChoice choice, EncounterContext context, List<ValueChange> modifiedValueChanges, ChoiceModification choiceModification, ValueChange valueChangeToModify)
+    {
+        // Increase modifies the value change directly
+        valueChangeToModify.Change += choiceModification.ValueChange.Amount;
+
+        choiceModification.Effect = $"Increased {choiceModification.ValueChange.Amount} {choiceModification.ValueChange.ValueTransformation.TargetValue} due to {choiceModification.ValueChange.Amount} {choiceModification.ValueChange.ValueTransformation.SourceValue}";
+    }
+
+    private void SetValueChange(EncounterChoice choice, EncounterContext context, List<ValueChange> modifiedValueChanges, ChoiceModification choiceModification, ValueChange valueChangeToModify)
+    {
+        // Remove the existing change and add a new one with the set value
+        modifiedValueChanges.Remove(valueChangeToModify);
+        modifiedValueChanges.Add(new ValueChange(choiceModification.ValueChange.ValueTransformation.TargetValue, choiceModification.ValueChange.Amount));
+
+        choiceModification.Effect = $"Set {valueChangeToModify.Change} {choiceModification.ValueChange.ValueTransformation.SourceValue} to {choiceModification.ValueChange.Amount} {choiceModification.ValueChange.ValueTransformation.TargetValue}";
+    }
+
+    private void ApplyEnergyCostReductions(EncounterChoice choice, EncounterContext context)
+    {
+        var archetypeEffect = locationArchetypeEffects[context.LocationArchetype];
+        // Iterate through each energy cost requirement in the choice
+        foreach (var requirement in choice.ModifiedRequirements.OfType<EnergyRequirement>())
+        {
+            // Check if there's a reduction for this energy type in the archetype's effects
+            if (archetypeEffect.EnergyCostReductions.TryGetValue(requirement.EnergyType, out int reductionAmount))
             {
-                float insightBonus = context.CurrentValues.Insight;
-                // Focus choices get a larger bonus from insight for resource rewards
-                if (choice.Archetype == ChoiceArchetypes.Focus)
-                {
-                    insightBonus *= 2;
-                }
-
-                if (insightBonus > 0)
-                {
-                    int bonusAmount = (int)(resourceReward.Amount * insightBonus);
-                    consequences.RewardModifications.Add(new OutcomeModification
-                    {
-                        Source = "High Insight",
-                        OutcomeType = resourceReward.ResourceType.ToString(),
-                        Amount = bonusAmount
-                    });
-
-                    consequences.ModifiedRewards.Add(new ResourceOutcome(
-                        resourceReward.ResourceType,
-                        resourceReward.Amount + bonusAmount));
-                }
-                else
-                {
-                    consequences.ModifiedRewards.Add(baseReward);
-                }
-            }
-            else if (baseReward is ReputationOutcome reputationReward)
-            {
-                float resonanceBonus = context.CurrentValues.Resonance;
-                // Social choices get a larger bonus from resonance for reputation rewards
-                if (choice.Archetype == ChoiceArchetypes.Social)
-                {
-                    resonanceBonus *= 2;
-                }
-
-                if (resonanceBonus > 0)
-                {
-                    int bonusAmount = (int)(reputationReward.Amount * resonanceBonus);
-                    consequences.RewardModifications.Add(new OutcomeModification
-                    {
-                        Source = "High Resonance",
-                        OutcomeType = reputationReward.ReputationType.ToString(),
-                        Amount = bonusAmount
-                    });
-
-                    consequences.ModifiedRewards.Add(new ReputationOutcome(
-                        reputationReward.ReputationType,
-                        reputationReward.Amount + bonusAmount));
-                }
-                else
-                {
-                    consequences.ModifiedRewards.Add(baseReward);
-                }
-            }
-            else
-            {
-                consequences.ModifiedRewards.Add(baseReward);
+                // Reduce the energy cost requirement, ensuring it doesn't go below 0
+                requirement.Amount = Math.Max(0, requirement.Amount - reductionAmount);
             }
         }
     }
