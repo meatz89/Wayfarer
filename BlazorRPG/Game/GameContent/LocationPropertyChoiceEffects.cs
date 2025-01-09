@@ -4,6 +4,8 @@ public class LocationPropertyChoiceEffect
 {
     public LocationPropertyTypeValue LocationProperty { get; set; } // Changed to abstract type
     public ValueTransformation ValueTypeEffect { get; set; } // Changed to base class
+
+    public string RuleDescription { get; set; } 
 }
 
 public class LocationPropertyChoiceEffects
@@ -18,7 +20,8 @@ public class LocationPropertyChoiceEffects
             {
                 SourceValueType = ValueTypes.Insight,
                 TargetValueType = ValueTypes.Resonance
-            }
+            },
+            RuleDescription = "Crowded areas convert Insight to Resonance."
         },
 
         // Thematic Fit: Crowded areas might limit deep thought (Insight) but increase social interaction and emotional impact (Resonance).
@@ -27,12 +30,14 @@ public class LocationPropertyChoiceEffects
         new LocationPropertyChoiceEffect
         {
             LocationProperty = new ScaleValue { ScaleVariation = ScaleVariationTypes.Intimate },
-            ValueTypeEffect = new ChangeValueTransformation { ValueType = ValueTypes.Insight, ChangeInValue = 1 }
+            ValueTypeEffect = new ChangeValueTransformation { ValueType = ValueTypes.Insight, ChangeInValue = 1 },
+            RuleDescription = "Intimate spaces increase Insight by 1."
         },
         new LocationPropertyChoiceEffect
         {
             LocationProperty = new ScaleValue { ScaleVariation = ScaleVariationTypes.Intimate },
-            ValueTypeEffect = new ChangeValueTransformation { ValueType = ValueTypes.Pressure, ChangeInValue = -1 }
+            ValueTypeEffect = new ChangeValueTransformation { ValueType = ValueTypes.Pressure, ChangeInValue = -1 },
+            RuleDescription = "Intimate spaces reduce Pressure by 1."
         },
 
         // Thematic Fit: Intimate spaces are conducive to introspection and deep thought (Insight) and can feel less pressured.

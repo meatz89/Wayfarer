@@ -74,9 +74,9 @@
 
                     @* Location Transformations *@
                     <div class="location-effects">
-                        <h5>@GameState.World.CurrentLocation.Archetype Effects:</h5>
+                        <h5>@GameState.World.CurrentLocation Effects:</h5>
                         <div class="transformations">
-                            @foreach (var rule in GetLocationTransformationRules(GameState.World.CurrentLocation.Archetype))
+                            @foreach (var rule in GetLocationTransformationRules())
                             {
                                 <div class="transformation">
                                     <span class="transform-icon">→</span>
@@ -101,7 +101,18 @@
                                             (Base: @(hoveredChoice.EncounterChoice.BaseValueChanges.FirstOrDefault(b => b.ValueType == valueChange.ValueType)?.Change ?? 0)
                                             @foreach (var mod in hoveredChoice.EncounterChoice.Modifications.Where(m => m.Type == ModificationType.ValueChange && m.ValueChange.ValueType == valueChange.ValueType))
                                             {
-                                                @(", " + mod.Source + ": " + (mod.ValueChange.ValueTransformation.TransformationType == TransformationType.Reduce || mod.ValueChange.ValueTransformation.TransformationType == TransformationType.ReduceCost ? "-" : "+") + mod.ValueChange.Amount)
+                                                @if (mod.ValueChange.ValueTransformation is ChangeValueTransformation changeTransformation)
+                                                {
+                                                    @(", " + mod.Source + ": " + (changeTransformation.ChangeInValue > 0 ? "+" : "") + changeTransformation.ChangeInValue)
+                                                }
+                                                else if (mod.ValueChange.ValueTransformation is ConvertValueTransformation)
+                                                {
+                                                    @(", " + mod.Source + ": Convert")
+                                                }
+                                                else if (mod.ValueChange.ValueTransformation is CancelValueTransformation)
+                                                {
+                                                    @(", " + mod.Source + ": Cancel")
+                                                }
                                             }
                                             )
                                         </span>

@@ -8,7 +8,7 @@ public class ChoiceSystem
     private readonly ChoiceCalculator calculator;
     private readonly ChoiceExecutor executor;
 
-    private readonly Dictionary<LocationArchetypes, LocationPropertyChoiceEffect> locationArchetypeEffects;
+    private readonly List<LocationPropertyChoiceEffect> locationContextEffects;
 
     public ChoiceSystem(GameContentProvider contentProvider, GameState gameState, GameContentProvider gameContentProvider)
     {
@@ -18,8 +18,8 @@ public class ChoiceSystem
         this.choiceSetFactory = new ChoiceSetFactory();
         this.executor = new ChoiceExecutor(gameState);
 
-        this.locationArchetypeEffects = gameContentProvider.GetLocationArchetypeEffects();
-        this.calculator = new ChoiceCalculator(locationArchetypeEffects);
+        this.locationContextEffects = gameContentProvider.GetLocationArchetypeEffects();
+        this.calculator = new ChoiceCalculator(locationContextEffects);
     }
 
     public List<EncounterChoice> GenerateChoices(EncounterContext context)

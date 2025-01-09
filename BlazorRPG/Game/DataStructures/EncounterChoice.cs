@@ -63,7 +63,7 @@ public class OutcomeModification
 
 public enum ModificationSource
 {
-    LocationArchetype,
+    LocationProperty,
     LocationType,
     LocationScale,
     LocationCrowdLevel,

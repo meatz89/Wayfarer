@@ -12,7 +12,7 @@
 
     public ChoiceTemplateBuilder WithArchetype(ChoiceArchetypes archetype)
     {
-        this.location property = archetype;
+        this.archetype = archetype;
         return this;
     }
 

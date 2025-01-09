@@ -128,7 +128,7 @@
             case LocationPropertyTypes.CrowdLevel:
                 return context.LocationProperties.CrowdLevel == ((CrowdLevelValue)locationProperty).CrowdLevel;
             case LocationPropertyTypes.ReputationType:
-                return context.LocationProperties.ReputationType == ((ReputationTypeValue)locationProperty).ReputationType;
+                return context.LocationProperties.ReputationType == ((LocationReputationTypeValue)locationProperty).ReputationType;
             default:
                 return false;
         }

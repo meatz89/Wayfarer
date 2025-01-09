@@ -2,7 +2,7 @@
 {
     // === RESIDENTIAL DISTRICT ===
     public static Location LionsHeadTavern => new LocationBuilder()
-        .SetLocationType(LocationTypes.Social)
+        .SetLocationType(LocationTypes.Residential)
         .ForLocation(LocationNames.LionsHeadTavern)
         .SetLocationArchetype(LocationArchetypes.Tavern)
         .WithLocationProperties(properties => properties

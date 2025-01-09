@@ -71,27 +71,21 @@
 
         if (valueChangeToModify != null)
         {
-            // Apply the modification
-            switch (modification.ValueTransformation.TransformationType)
+            // Apply the modification based on the ValueTransformation type
+            switch (modification.ValueTransformation)
             {
-                case TransformationType.Convert:
+                case ConvertValueTransformation convertTransformation:
                     // For Convert, we remove the source change and add a new change of the target type
                     choice.ModifiedValueChanges.Remove(valueChangeToModify);
-                    choice.ModifiedValueChanges.Add(new ValueChange(modification.ValueTransformation.TargetValue, valueChangeToModify.Change));
+                    choice.ModifiedValueChanges.Add(new ValueChange(convertTransformation.TargetValueType, valueChangeToModify.Change));
                     break;
-                case TransformationType.Reduce:
-                case TransformationType.ReduceCost:
-                    // Reduce subtracts the amount
-                    valueChangeToModify.Change = Math.Max(0, valueChangeToModify.Change + modification.Amount);
+                case ChangeValueTransformation changeTransformation:
+                    // ChangeValueTransformation modifies the value directly
+                    valueChangeToModify.Change += changeTransformation.ChangeInValue;
                     break;
-                case TransformationType.Increase:
-                    // Increase adds the amount
-                    valueChangeToModify.Change += modification.Amount;
-                    break;
-                case TransformationType.Set:
-                    // Set will replace one with another
+                case CancelValueTransformation _:
+                    // CancelValueTransformation removes the value change
                     choice.ModifiedValueChanges.Remove(valueChangeToModify);
-                    choice.ModifiedValueChanges.Add(new ValueChange(modification.ValueTransformation.TargetValue, modification.Amount));
                     break;
             }
         }
