@@ -50,20 +50,30 @@ Each encounter unfolds in stages, each following a deterministic process:
         *   **Rewards** are tailored.
         *   **Encounter Value Changes** are fine-tuned.
 
-    **d. Choice Presentation:** The player is presented with 3-4 choices, each defined by:
-        *   **Choice Archetype:** (Physical, Focus, Social) - Determines the energy type consumed, possible requirements, and potential rewards/costs.
-            *   **Physical:** Often increases Outcome, may increase Pressure. Rewards: Coins, Reputation. Costs: Health.
-            *   **Focus:** Often increases Insight, may reduce Pressure. Rewards: Knowledge, Items. Costs: Stress.
-            *   **Social:** Often increases Resonance, may impact Outcome. Rewards: Relations, Skills. Costs: Reputation.
-        *   **Approach:** (Aggressive, Careful, Strategic, Desperate) - Defines the strategic style and dictates which encounter values are affected.
-            *   **Aggressive:** High risk/reward, large Outcome gains, increases Pressure.
-            *   **Careful:** Balanced, moderate Outcome gains, reduces Pressure.
-            *   **Strategic:** Long-term focus, small/no immediate Outcome gain, increases Insight or Resonance.
-            *   **Desperate:** Fallback, small Outcome gain, high Pressure cost.
-        *   **Energy Cost:** The amount of Physical, Focus, or Social energy required.
-        *   **Encounter Value Changes:** How the choice modifies Outcome, Pressure, Insight, and Resonance.
-        *   **Requirements:** (Optional) Skill, Item, Knowledge, or Reputation thresholds.
-        *   **Rewards:** (Optional) Items, Knowledge, Reputation, or other benefits.
+    **d. Choice Presentation:** The player is presented with 3-4 choices, each defined by two core properties:
+        * Choice Archetype (Physical, Focus, Social):
+            - Determines energy type consumed
+            - Defines possible requirements:
+                - Physical: Strength skills, tools/weapons
+                - Focus: Observation skills, knowledge flags
+                - Social: Charisma skills, reputation/relations
+            - Defines possible rewards/costs:
+                - Physical: Coins/reputation gain, health loss
+                - Focus: Knowledge/items gain, stress increase
+                - Social: Relations/skills gain, reputation loss
+
+        * Approach (Aggressive, Careful, Strategic, Desperate):
+            - Dictates encounter value changes:
+                - Aggressive: High risk/reward (+2/+3 Outcome, +1/+2 Pressure)
+                - Careful: Balanced (+1 Outcome, -1 Pressure)
+                - Strategic: Long-term (+2 Insight/Resonance, no immediate Outcome)
+                - Desperate: Fallback (+1 Outcome, +2 Pressure)
+            - Determines requirements:
+                - Desperate never has requirements (fallback option)
+                - Other approaches may have requirements based on difficulty
+                - Maximum two choices with requirements per set
+            - Higher difficulty encounters have more requirements
+
  *   **Basic vs Strategic vs Special:** Each choice set will contain 1-2 Basic choices, 0-1 Strategic choices and 0-1 Special choices, adding another layer of strategic depth.
 
     **e. Player Choice and Consequence:**
@@ -148,6 +158,96 @@ If the player chooses "Observe Crowd," the context changes:
 
 For Stage 2, the system would select a *different* choice set, perhaps "Market Investigation - Following Up," due to the increased Insight, the reduced Focus Energy, and the still-relevant location and action type.
 
+**6. Energy and Pressure Mechanics**
+
+The energy system interacts intimately with mounting pressure. While each choice's base energy cost is determined by its archetype, these costs increase as pressure builds. Under normal circumstances (pressure 0-5), choices cost their base amount. As pressure mounts (6-8), every choice costs one additional energy point. In extremely tense situations (pressure 9-10), choices cost two additional energy points. This creates a natural escalation where continuing to push forward becomes increasingly costly. When a particular energy type is depleted, choices requiring that energy instead cost permanent resources - health for physical, stress for focus, and reputation for social.
+
+- **Energy Costs:**
+  - Base cost determined by Choice Archetype
+  - Modified by Pressure level:
+    - Pressure above 5: +1 to energy cost for each additional point of Pressure
+
+- **Energy Depletion:**
+  - Physical Energy (0): Choices cost 1 Health
+  - Focus Energy (0): Choices cost 1 Stress
+  - Social Energy (0): Choices cost 1 Reputation
+
+- **Pressure Impact:**
+  - Influences choice availability
+  - Affects energy costs
+  - Creates urgency through increasing costs
+
+**7. Choice Set Pool Organization**
+
+Choice sets are organized into distinct pools based on action types, with each pool containing multiple templates tailored to different situations. Labor actions draw primarily from templates featuring physical choices, investigation actions favor focus choices, while social interactions emphasize social choices. However, each pool maintains some variety to ensure players always have options. The specific choice set selected depends on multiple factors: the action type determines the initial pool, location properties filter the available templates, and the current encounter context guides the final selection.
+
+- **Pool Structure:**
+  - Separate pools for each Action Type
+  - Each pool contains multiple Choice Set Templates
+  - Templates are tagged with required Location Properties
+
+- **Choice Set Bias:**
+  - Labor: Primarily Physical choices
+  - Investigate: Primarily Focus choices
+  - Discuss: Mix of Focus and Social choices
+  - Mingle: Primarily Social choices
+
+- **Selection Criteria:**
+  - Action Type determines initial pool
+  - Location Properties filter available templates
+  - Encounter Context determines final selection
+  - Current Energy levels influence selection
+
+- **Context Sensitivity:**
+  - High Pressure favors Careful approaches
+  - Low Energy favors approaches matching remaining energy types
+  - High Insight/Resonance enables more Strategic approaches
+
+**8. Requirements System**
+
+Requirements appear more frequently in higher difficulty encounters. Low difficulty encounters (1-3) generally avoid requirements, medium difficulty (4-6) might include one required choice, while high difficulty encounters (7-10) often feature two choices with requirements. These requirements always match their choice's archetype - physical choices might require strength skills or specific tools, focus choices might need certain knowledge or observation abilities, and social choices could require specific reputation levels or relationship standings. Importantly, the Desperate approach never has requirements, ensuring players always have at least one available option.
+This interlocking system creates a rich decision space where players must consider not just the immediate effects of their choices, but also their current resources, capabilities, and the mounting pressure of the situation. The deterministic nature of the system ensures that players can learn and master its mechanics while the variety of choice sets and the dynamic pressure system maintains engagement and challenge.
+
+- **Requirement Distribution:**
+  - Maximum two requirements per choice set
+  - Desperate approach never has requirements
+  - Requirements tied to Choice Archetype
+
+- **Difficulty Scaling:**
+  - Low Difficulty (1-3): No requirements
+  - Medium Difficulty (4-6): One requirement possible
+  - High Difficulty (7-10): Two requirements possible
+
+- **Requirement Types:**
+  - Must match Choice Archetype
+  - Scale with difficulty level
+  - Always provide alternative choices
+
 **Conclusion**
 
 This system, with its intricate interplay of Locations, Actions, Encounters, and Choices, creates a dynamic and engaging gameplay experience. It's deterministic, ensuring predictability and allowing players to master its mechanics, yet it feels dynamic and responsive due to the variety of choice sets and the context-sensitive instantiation. The player's choices have a tangible impact on the unfolding narrative, creating a sense of agency within a structured and elegant framework. The AI's role in generating narrative content further enhances the immersive quality of the game, making each playthrough a unique and compelling experience. This system, by achieving a balance between determinism, dynamism, and player agency, delivers on its core design goals of elegance, verisimilitude, and meaningful choice.
+
+This creates a really elegant system where each choice has two core properties that determine its behavior:
+
+1. Choice Archetype (Physical, Focus, Social):
+- Determines energy type consumed
+- Defines possible requirements:
+    - Physical: Strength skills, tools/weapons
+    - Focus: Observation skills, knowledge flags
+    - Social: Charisma skills, reputation/relations
+- Defines possible rewards/costs:
+    - Physical: Coins/reputation gain, health loss
+    - Focus: Knowledge/items gain, stress increase 
+    - Social: Relations/skills gain, reputation loss
+
+2. Approach (Aggressive, Careful, Strategic, Desperate):
+- Dictates encounter value changes:
+    - Aggressive: High risk/reward (+2/+3 Outcome, +1/+2 Pressure)
+    - Careful: Balanced (+1 Outcome, -1 Pressure)  
+    - Strategic: Long-term (+2 Insight/Resonance, no immediate Outcome)
+    - Desperate: Fallback (+1 Outcome, +2 Pressure)
+- Determines requirements:
+    - Desperate never has requirements (fallback option)
+    - Other approaches may have requirements based on difficulty
+    - Maximum two choices with requirements per set
+- Higher difficulty encounters have more requirements
