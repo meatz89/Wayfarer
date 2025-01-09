@@ -15,7 +15,7 @@
             .WithSkill(SkillTypes.Strength)
             .WithBaseEnergyCost(2, EnergyTypes.Physical)
             .WithBaseValueChanges(values => values
-                .WithOutcome(3) 
+                .WithOutcome(3)
                 .WithPressure(2)
                 .WithInsight(1)
                 .WithResonance(1)
@@ -29,7 +29,7 @@
             .WithSkill(SkillTypes.Strength)
             .WithBaseEnergyCost(1, EnergyTypes.Focus)
             .WithBaseValueChanges(values => values
-                .WithOutcome(1) 
+                .WithOutcome(1)
                 .WithInsight(2)
                 .WithOutcome(1)
                 .WithPressure(1)
@@ -41,7 +41,7 @@
             .WithSkill(SkillTypes.Strength)
             .WithBaseEnergyCost(1, EnergyTypes.Social)
             .WithBaseValueChanges(values => values
-                .WithOutcome(2) 
+                .WithOutcome(2)
                 .WithResonance(1)
                 .WithInsight(1)
                 .WithPressure(1))
@@ -63,7 +63,7 @@
                 .WithPressure(2))
             .WithRequirement(new SkillRequirement(SkillTypes.Charisma, 2))
             .WithCost(new CoinsOutcome(-3)) // Costs 3 coins
-            .WithReward(new ReputationOutcome(ReputationTypes.RoguesGuild, 1))) 
+            .WithReward(new ReputationOutcome(ReputationTypes.RoguesGuild, 1)))
         .AddChoice(choice => choice
             .WithArchetype(ChoiceArchetypes.Physical)
             .WithApproach(ChoiceApproaches.Desperate)

@@ -8,7 +8,7 @@ public class ChoiceSystem
     private readonly ChoiceCalculator calculator;
     private readonly ChoiceExecutor executor;
 
-    private readonly Dictionary<LocationArchetypes, ArchetypeEffect> locationArchetypeEffects;
+    private readonly Dictionary<LocationArchetypes, LocationPropertyChoiceEffect> locationArchetypeEffects;
 
     public ChoiceSystem(GameContentProvider contentProvider, GameState gameState, GameContentProvider gameContentProvider)
     {

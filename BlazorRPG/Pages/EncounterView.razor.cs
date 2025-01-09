@@ -58,33 +58,18 @@ public partial class EncounterViewBase : ComponentBase
 
     public List<string> GetLocationTransformationRules(LocationArchetypes archetype)
     {
-        var rules = new List<string>();
-        var archetypeEffect = LocationArchetypeContent.Effects[archetype];
+        List<string> rules = new List<string>();
+        LocationPropertyChoiceEffect archetypeEffect = LocationPropertyChoiceEffects.Effects[archetype];
 
-        foreach (var transformation in archetypeEffect.ValueTransformations)
+        foreach (KeyValuePair<ValueTypes, List<ValueTransformation>> transformation in archetypeEffect.ValueTransformations)
         {
-            foreach (var trans in transformation.Value)
+            foreach (ValueTransformation trans in transformation.Value)
             {
-                switch (trans.TransformationType)
-                {
-                    case TransformationType.Convert:
-                        rules.Add($"Each point of {trans.SourceValue} converts one point of {trans.SourceValue} gain into {trans.TargetValue}");
-                        break;
-                    case TransformationType.Reduce:
-                    case TransformationType.ReduceCost:
-                        rules.Add($"Each point of {trans.SourceValue} reduces one point of {trans.TargetValue} gain");
-                        break;
-                    case TransformationType.Increase:
-                        rules.Add($"Each point of {trans.SourceValue} increases one point of {trans.TargetValue} gain");
-                        break;
-                    case TransformationType.Set:
-                        rules.Add($"Each point of {trans.SourceValue} can be set to {trans.TargetValue} instead");
-                        break;
-                }
+                //TODO
             }
         }
 
-        foreach (var reduction in archetypeEffect.EnergyCostReductions)
+        foreach (KeyValuePair<EnergyTypes, int> reduction in archetypeEffect.EnergyCostReductions)
         {
             rules.Add($"{reduction.Key} energy cost at this Location reduced by {reduction.Value}");
         }
@@ -150,14 +135,14 @@ public partial class EncounterViewBase : ComponentBase
 
     public FinalEnergyCost CalculateFinalEnergyCost(EncounterChoice choice)
     {
-        var finalCost = new FinalEnergyCost
+        FinalEnergyCost finalCost = new FinalEnergyCost
         {
             FinalCost = choice.EnergyCost,
             Reduction = 0
         };
 
         // Apply location-based energy reduction
-        var archetypeEffect = LocationArchetypeContent.Effects[GameState.Actions.CurrentEncounter.Context.LocationArchetype];
+        LocationPropertyChoiceEffect archetypeEffect = LocationPropertyChoiceEffects.Effects[GameState.Actions.CurrentEncounter.Context.LocationArchetype];
 
         if (archetypeEffect.EnergyCostReductions.TryGetValue(choice.EnergyType, out int reduction))
         {
@@ -176,7 +161,7 @@ public partial class EncounterViewBase : ComponentBase
             return string.Empty;
         }
 
-        var transformation = modification.ValueChange.ValueTransformation;
+        ValueTransformation transformation = modification.ValueChange.ValueTransformation;
         switch (transformation.TransformationType)
         {
             case TransformationType.Convert:

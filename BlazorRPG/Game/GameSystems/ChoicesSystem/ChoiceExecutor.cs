@@ -101,7 +101,7 @@
     {
         if (modification.RequirementType == "Energy")
         {
-            foreach (var req in choice.ModifiedRequirements.OfType<EnergyRequirement>())
+            foreach (EnergyRequirement req in choice.ModifiedRequirements.OfType<EnergyRequirement>())
             {
                 req.Amount = Math.Max(0, req.Amount + modification.Amount);
             }
@@ -123,7 +123,7 @@
     {
         if (modification.Type == ModificationType.EnergyCost)
         {
-            foreach (var cost in choice.ModifiedCosts.OfType<EnergyOutcome>())
+            foreach (EnergyOutcome cost in choice.ModifiedCosts.OfType<EnergyOutcome>())
             {
                 cost.Amount = Math.Max(0, cost.Amount + modification.Requirement.Amount);
             }
@@ -147,10 +147,10 @@
     {
         // Use reflection or type-specific logic to adjust the requirement
         // Example using reflection:
-        var property = requirement.GetType().GetProperties().FirstOrDefault(p => p.Name == "Amount" || p.Name == "Count" || p.Name == "Level");
+        System.Reflection.PropertyInfo? property = requirement.GetType().GetProperties().FirstOrDefault(p => p.Name == "Amount" || p.Name == "Count" || p.Name == "Level");
         if (property != null && property.CanWrite)
         {
-            var currentValue = (int)property.GetValue(requirement);
+            int currentValue = (int)property.GetValue(requirement);
             property.SetValue(requirement, Math.Max(0, currentValue + amount)); // Ensure non-negative
         }
     }
@@ -158,10 +158,10 @@
     private void AdjustOutcome(Outcome outcome, int amount)
     {
         // Similar to AdjustRequirement, use reflection or type-specific logic
-        var property = outcome.GetType().GetProperties().FirstOrDefault(p => p.Name == "Amount" || p.Name == "Count" || p.Name == "QuantityChange");
+        System.Reflection.PropertyInfo? property = outcome.GetType().GetProperties().FirstOrDefault(p => p.Name == "Amount" || p.Name == "Count" || p.Name == "QuantityChange");
         if (property != null && property.CanWrite)
         {
-            var currentValue = (int)property.GetValue(outcome);
+            int currentValue = (int)property.GetValue(outcome);
             property.SetValue(outcome, currentValue + amount); // Here you might want to clamp to certain bounds
         }
     }

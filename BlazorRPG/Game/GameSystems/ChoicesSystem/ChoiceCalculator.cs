@@ -1,10 +1,10 @@
 ﻿public class ChoiceCalculator
 {
-    private readonly Dictionary<LocationArchetypes, ArchetypeEffect> locationArchetypeEffects;
+    private readonly List<LocationPropertyChoiceEffect> locationPropertyEffects;
 
-    public ChoiceCalculator(Dictionary<LocationArchetypes, ArchetypeEffect> locationArchetypeEffects)
+    public ChoiceCalculator(List<LocationPropertyChoiceEffect> locationPropertyEffects)
     {
-        this.locationArchetypeEffects = locationArchetypeEffects;
+        this.locationPropertyEffects = locationPropertyEffects;
     }
 
     public void CalculateChoice(EncounterChoice choice, EncounterContext context)
@@ -19,8 +19,8 @@
         choice.ModifiedRewards = new List<Outcome>(choice.BaseRewards);
 
         // 3. Apply Modifiers (excluding transformations)
-        ApplyLocationArchetypeModifiers(choice, context);
-        ApplyPlayerSkillModifiers(choice, context);
+        ApplyLocationPropertyModifiers(choice, context);
+        //ApplyPlayerSkillModifiers(choice, context);
 
         // 4. Apply Transformations
         ApplyValueTransformations(choice, context);
@@ -29,77 +29,79 @@
         ApplyEnergyCostReductions(choice, context);
     }
 
-    private void ApplyLocationArchetypeModifiers(EncounterChoice choice, EncounterContext context)
+    private void ApplyLocationPropertyModifiers(EncounterChoice choice, EncounterContext context)
     {
-        var archetypeEffect = locationArchetypeEffects[context.LocationArchetype];
-
-        // Iterate over each base value change in the choice
-        foreach (var valueChange in choice.BaseValueChanges)
+        foreach (var effect in locationPropertyEffects)
         {
-            // Check if the archetype effect has any transformations for this value type
-            if (archetypeEffect.ValueTransformations.TryGetValue(valueChange.ValueType, out var transformations))
+            // Check if the effect's LocationProperty matches the context
+            if (IsLocationPropertyMatch(effect.LocationProperty, context))
             {
-                // Apply each transformation
-                foreach (var transformation in transformations)
+                // Apply the effect based on the ValueTransformation type
+                if (effect.ValueTypeEffect is ChangeValueTransformation changeTransformation)
                 {
-                    string effect = GetTransformationEffect(transformation); // Get the description of the transformation
-
-                    // Add a modification representing the transformation
+                    // Apply change transformation
                     choice.Modifications.Add(new ChoiceModification
                     {
-                        Source = ModificationSource.LocationArchetype,
+                        Source = ModificationSource.LocationProperty,
                         Type = ModificationType.ValueChange,
-                        Effect = effect, // Use the effect as a general description
-                        SourceDetails = effect, // Use the effect as source details
+                        Effect = $"Changed {changeTransformation.ValueType} by {changeTransformation.ChangeInValue} due to {effect.LocationProperty.GetPropertyType()}",
+                        SourceDetails = $"Changed {changeTransformation.ValueType} by {changeTransformation.ChangeInValue} due to {effect.LocationProperty.GetPropertyType()}",
                         ValueChange = new ValueChangeModification
                         {
-                            ValueType = valueChange.ValueType,
-                            Amount = valueChange.Change,
-                            ValueTransformation = transformation
+                            ValueType = changeTransformation.ValueType,
+                            Amount = changeTransformation.ChangeInValue,
+                            ValueTransformation = changeTransformation
                         }
                     });
                 }
-            }
-        }
-
-        // Iterate over each energy requirement in the choice
-        foreach (var requirement in choice.Requirements.OfType<EnergyRequirement>())
-        {
-            // Check if the archetype effect has a cost reduction for this energy type
-            if (archetypeEffect.EnergyCostReductions.TryGetValue(requirement.EnergyType, out int reductionAmount))
-            {
-                // Add a modification representing the energy cost reduction
-                choice.Modifications.Add(new ChoiceModification
+                else if (effect.ValueTypeEffect is ConvertValueTransformation convertTransformation)
                 {
-                    Source = ModificationSource.LocationArchetype,
-                    Type = ModificationType.EnergyCost,
-                    Effect = $"Reduced {requirement.EnergyType} Energy cost by {reductionAmount}",
-                    SourceDetails = $"Reduced {requirement.EnergyType} Energy cost by {reductionAmount}",
-                    Requirement = new RequirementModification
-                    {
-                        RequirementType = "Energy",
-                        Amount = -reductionAmount
-                    }
-                });
-            }
-        }
-
-        // Modify Requirements based on LocationArchetype
-        foreach (var requirement in choice.ModifiedRequirements)
-        {
-            if (requirement is EnergyRequirement energyRequirement)
-            {
-                if (archetypeEffect.EnergyCostReductions.TryGetValue(energyRequirement.EnergyType, out int reductionAmount))
-                {
+                    // Apply convert transformation
                     choice.Modifications.Add(new ChoiceModification
                     {
-                        Source = ModificationSource.LocationArchetype,
+                        Source = ModificationSource.LocationProperty,
+                        Type = ModificationType.ValueChange,
+                        Effect = $"Converted {convertTransformation.SourceValueType} to {convertTransformation.TargetValueType} due to {effect.LocationProperty.GetPropertyType()}",
+                        SourceDetails = $"Converted {convertTransformation.SourceValueType} to {convertTransformation.TargetValueType} due to {effect.LocationProperty.GetPropertyType()}",
+                        ValueChange = new ValueChangeModification
+                        {
+                            ValueType = convertTransformation.SourceValueType, // Use SourceValueType for finding the ValueChange
+                            Amount = 0, // Amount is not directly used in conversion, set to 0 or find a suitable value from context
+                            ValueTransformation = convertTransformation
+                        }
+                    });
+                }
+                else if (effect.ValueTypeEffect is CancelValueTransformation cancelTransformation)
+                {
+                    // Apply cancel transformation
+                    choice.Modifications.Add(new ChoiceModification
+                    {
+                        Source = ModificationSource.LocationProperty,
+                        Type = ModificationType.ValueChange,
+                        Effect = $"Canceled {cancelTransformation.ValueType} due to {effect.LocationProperty.GetPropertyType()}",
+                        SourceDetails = $"Canceled {cancelTransformation.ValueType} due to {effect.LocationProperty.GetPropertyType()}",
+                        ValueChange = new ValueChangeModification
+                        {
+                            ValueType = cancelTransformation.ValueType,
+                            Amount = 0, // Amount is not directly used in cancellation, set to 0
+                            ValueTransformation = cancelTransformation
+                        }
+                    });
+                }
+                else if (effect.ValueTypeEffect is EnergyValueTransformation energyTransformation)
+                {
+                    // Apply energy transformation
+                    choice.Modifications.Add(new ChoiceModification
+                    {
+                        Source = ModificationSource.LocationProperty,
                         Type = ModificationType.EnergyCost,
-                        Effect = $"Reduced {energyRequirement.EnergyType} Energy cost by {reductionAmount}",
+                        Effect = $"Changed {energyTransformation.EnergyType} Energy cost by {energyTransformation.ChangeInValue} due to {effect.LocationProperty.GetPropertyType()}",
+                        SourceDetails = $"Changed {energyTransformation.EnergyType} Energy cost by {energyTransformation.ChangeInValue} due to {effect.LocationProperty.GetPropertyType()}",
                         Requirement = new RequirementModification
                         {
-                            RequirementType = "Energy",
-                            Amount = -reductionAmount
+                            RequirementType = "Energy", // Assuming "Energy" is the relevant requirement type
+                            Amount = energyTransformation.ChangeInValue,
+                            // Additional fields for energy modifications can be added here
                         }
                     });
                 }
@@ -107,22 +109,28 @@
         }
     }
 
-
-    private string GetTransformationEffect(ValueTransformation transformation)
+    private bool IsLocationPropertyMatch(LocationPropertyTypeValue locationProperty, EncounterContext context)
     {
-        switch (transformation.TransformationType)
+        switch (locationProperty.GetPropertyType())
         {
-            case TransformationType.Convert:
-                return $"Each point of {transformation.SourceValue} converts one point of {transformation.SourceValue} gain into {transformation.TargetValue}";
-            case TransformationType.Reduce:
-            case TransformationType.ReduceCost:
-                return $"Each point of {transformation.SourceValue} reduces one point of {transformation.TargetValue} gain";
-            case TransformationType.Increase:
-                return $"Each point of {transformation.SourceValue} increases one point of {transformation.TargetValue} gain";
-            case TransformationType.Set:
-                return $"Each point of {transformation.SourceValue} can be set to {transformation.TargetValue} instead";
+            case LocationPropertyTypes.Scale:
+                return context.LocationProperties.Scale == ((ScaleValue)locationProperty).ScaleVariation;
+            case LocationPropertyTypes.Exposure:
+                return context.LocationProperties.Exposure == ((ExposureValue)locationProperty).ExposureCondition;
+            case LocationPropertyTypes.Legality:
+                return context.LocationProperties.Legality == ((LegalityValue)locationProperty).Legality;
+            case LocationPropertyTypes.Pressure:
+                return context.LocationProperties.Pressure == ((PressureValue)locationProperty).PressureState;
+            case LocationPropertyTypes.Complexity:
+                return context.LocationProperties.Complexity == ((ComplexityValue)locationProperty).Complexity;
+            case LocationPropertyTypes.Resource:
+                return context.LocationProperties.Resource == ((ResourceValue)locationProperty).Resource;
+            case LocationPropertyTypes.CrowdLevel:
+                return context.LocationProperties.CrowdLevel == ((CrowdLevelValue)locationProperty).CrowdLevel;
+            case LocationPropertyTypes.ReputationType:
+                return context.LocationProperties.ReputationType == ((ReputationTypeValue)locationProperty).ReputationType;
             default:
-                return string.Empty;
+                return false;
         }
     }
 
@@ -146,7 +154,7 @@
                     {
                         ValueType = ValueTypes.Outcome,
                         Amount = skillVsDifficulty,
-                        ValueTransformation = new ValueTransformation { } // Create a dummy ValueTransformation object
+                        ValueTransformation = new ChangeValueTransformation()
                     }
                 });
             }
@@ -162,7 +170,7 @@
                     {
                         ValueType = ValueTypes.Insight,
                         Amount = skillVsDifficulty,
-                        ValueTransformation = new ValueTransformation { }
+                        ValueTransformation = new ChangeValueTransformation()
                     }
                 });
             }
@@ -178,7 +186,7 @@
                     {
                         ValueType = ValueTypes.Resonance,
                         Amount = skillVsDifficulty,
-                        ValueTransformation = new ValueTransformation { }
+                        ValueTransformation = new ChangeValueTransformation()
                     }
                 });
             }
@@ -188,37 +196,48 @@
     private void ApplyValueTransformations(EncounterChoice choice, EncounterContext context)
     {
         // Create a list to track modifications made in this method
-        var modificationsMade = new List<ChoiceModification>();
+        List<ChoiceModification> modificationsMade = new List<ChoiceModification>();
 
-        foreach (var modification in choice.Modifications)
+        foreach (ChoiceModification modification in choice.Modifications)
         {
             if (modification.Type == ModificationType.ValueChange && modification.ValueChange != null)
             {
                 if (modification.ValueChange.ValueTransformation != null)
                 {
                     // Find the ValueChange in ModifiedValueChanges that matches the current modification's ValueType
-                    var valueChangeToModify = choice.ModifiedValueChanges.FirstOrDefault(vc => vc.ValueType == modification.ValueChange.ValueType);
+                    // For Convert, we use SourceValueType
+                    ValueChange? valueChangeToModify;
+                    if (modification.ValueChange.ValueTransformation is ConvertValueTransformation)
+                    {
+                        valueChangeToModify = choice.ModifiedValueChanges.FirstOrDefault(vc => vc.ValueType == modification.ValueChange.ValueType);
+                    }
+                    else
+                    {
+                        valueChangeToModify = choice.ModifiedValueChanges.FirstOrDefault(vc => vc.ValueType == modification.ValueChange.ValueType);
+                    }
 
                     if (valueChangeToModify != null)
                     {
-                        ValueTransformation valueTransformation = modification.ValueChange.ValueTransformation;
-                        switch (valueTransformation.TransformationType)
+                        switch (modification.ValueChange.ValueTransformation)
                         {
-                            case TransformationType.Convert:
-                                ConvertValueChange(choice, context, choice.ModifiedValueChanges, modification, valueChangeToModify);
+                            case ConvertValueTransformation convertTransformation:
+                                ConvertValueChange(choice, context, choice.ModifiedValueChanges, modification, valueChangeToModify, convertTransformation);
                                 modificationsMade.Add(modification);
                                 break;
-                            case TransformationType.Reduce:
-                            case TransformationType.ReduceCost:
-                                ReduceValueChange(choice, context, choice.ModifiedValueChanges, modification, valueChangeToModify);
-                                modificationsMade.Add(modification);
+                            case ChangeValueTransformation changeTransformation:
+                                if (changeTransformation.ChangeInValue > 0)
+                                {
+                                    IncreaseValueChange(choice, context, choice.ModifiedValueChanges, modification, valueChangeToModify, changeTransformation);
+                                    modificationsMade.Add(modification);
+                                }
+                                else if (changeTransformation.ChangeInValue < 0)
+                                {
+                                    ReduceValueChange(choice, context, choice.ModifiedValueChanges, modification, valueChangeToModify, changeTransformation);
+                                    modificationsMade.Add(modification);
+                                }
                                 break;
-                            case TransformationType.Increase:
-                                IncreaseValueChange(choice, context, choice.ModifiedValueChanges, modification, valueChangeToModify);
-                                modificationsMade.Add(modification);
-                                break;
-                            case TransformationType.Set:
-                                SetValueChange(choice, context, choice.ModifiedValueChanges, modification, valueChangeToModify);
+                            case CancelValueTransformation cancelTransformation:
+                                CancelValueChange(choice, context, choice.ModifiedValueChanges, modification, valueChangeToModify, cancelTransformation);
                                 modificationsMade.Add(modification);
                                 break;
                         }
@@ -228,62 +247,70 @@
         }
 
         // Remove the modifications that were handled in this method
-        foreach (var mod in modificationsMade)
+        foreach (ChoiceModification mod in modificationsMade)
         {
             choice.Modifications.Remove(mod);
         }
     }
 
-    private void ConvertValueChange(EncounterChoice choice, EncounterContext context, List<ValueChange> modifiedValueChanges, ChoiceModification choiceModification, ValueChange valueChangeToModify)
+    private void ConvertValueChange(EncounterChoice choice, EncounterContext context, List<ValueChange> modifiedValueChanges, ChoiceModification choiceModification, ValueChange valueChangeToModify, ConvertValueTransformation convertTransformation)
     {
-        // For Convert, we remove the source change and add a new change of the target type
+        // Remove the source value change
         modifiedValueChanges.Remove(valueChangeToModify);
-        modifiedValueChanges.Add(new ValueChange(choiceModification.ValueChange.ValueTransformation.TargetValue, valueChangeToModify.Change));
 
-        choiceModification.Effect = $"Converted {valueChangeToModify.Change} {choiceModification.ValueChange.ValueTransformation.SourceValue} to {valueChangeToModify.Change} {choiceModification.ValueChange.ValueTransformation.TargetValue}";
+        // Add a new value change with the target type and the amount from the source
+        modifiedValueChanges.Add(new ValueChange(convertTransformation.TargetValueType, valueChangeToModify.Change));
+
+        // Update the modification effect
+        choiceModification.Effect = $"Converted {valueChangeToModify.Change} {convertTransformation.SourceValueType} to {valueChangeToModify.Change} {convertTransformation.TargetValueType}";
     }
 
-    private void ReduceValueChange(EncounterChoice choice, EncounterContext context, List<ValueChange> modifiedValueChanges, ChoiceModification choiceModification, ValueChange valueChangeToModify)
+    private void ReduceValueChange(EncounterChoice choice, EncounterContext context, List<ValueChange> modifiedValueChanges, ChoiceModification choiceModification, ValueChange valueChangeToModify, ChangeValueTransformation changeTransformation)
     {
-        // Reduce modifies the value change directly, no new ValueChange is created
-        if (choiceModification.ValueChange.Amount < 0)
+        // Ensure we don't reduce below zero
+        int reductionAmount = Math.Min(Math.Abs(changeTransformation.ChangeInValue), valueChangeToModify.Change);
+        valueChangeToModify.Change -= reductionAmount;
+
+        choiceModification.Effect = $"Reduced {valueChangeToModify.ValueType} by {reductionAmount}";
+    }
+
+    private void IncreaseValueChange(EncounterChoice choice, EncounterContext context, List<ValueChange> modifiedValueChanges, ChoiceModification choiceModification, ValueChange valueChangeToModify, ChangeValueTransformation changeTransformation)
+    {
+        valueChangeToModify.Change += changeTransformation.ChangeInValue;
+
+        choiceModification.Effect = $"Increased {valueChangeToModify.ValueType} by {changeTransformation.ChangeInValue}";
+    }
+
+    private void CancelValueChange(EncounterChoice choice, EncounterContext context, List<ValueChange> modifiedValueChanges, ChoiceModification choiceModification, ValueChange valueChangeToModify, CancelValueTransformation cancelTransformation)
+    {
+        // Remove the value change if it matches the type to be canceled
+        if (valueChangeToModify.ValueType == cancelTransformation.ValueType)
         {
-            // Ensure we don't reduce below zero
-            int reductionAmount = Math.Min(Math.Abs(choiceModification.ValueChange.Amount), valueChangeToModify.Change);
-            valueChangeToModify.Change -= reductionAmount;
-
-            choiceModification.Effect = $"Reduced {reductionAmount} {choiceModification.ValueChange.ValueTransformation.TargetValue} due to {Math.Abs(choiceModification.ValueChange.Amount)} {choiceModification.ValueChange.ValueTransformation.SourceValue}";
+            modifiedValueChanges.Remove(valueChangeToModify);
+            choiceModification.Effect = $"Canceled {cancelTransformation.ValueType}";
         }
-    }
-
-    private void IncreaseValueChange(EncounterChoice choice, EncounterContext context, List<ValueChange> modifiedValueChanges, ChoiceModification choiceModification, ValueChange valueChangeToModify)
-    {
-        // Increase modifies the value change directly
-        valueChangeToModify.Change += choiceModification.ValueChange.Amount;
-
-        choiceModification.Effect = $"Increased {choiceModification.ValueChange.Amount} {choiceModification.ValueChange.ValueTransformation.TargetValue} due to {choiceModification.ValueChange.Amount} {choiceModification.ValueChange.ValueTransformation.SourceValue}";
-    }
-
-    private void SetValueChange(EncounterChoice choice, EncounterContext context, List<ValueChange> modifiedValueChanges, ChoiceModification choiceModification, ValueChange valueChangeToModify)
-    {
-        // Remove the existing change and add a new one with the set value
-        modifiedValueChanges.Remove(valueChangeToModify);
-        modifiedValueChanges.Add(new ValueChange(choiceModification.ValueChange.ValueTransformation.TargetValue, choiceModification.ValueChange.Amount));
-
-        choiceModification.Effect = $"Set {valueChangeToModify.Change} {choiceModification.ValueChange.ValueTransformation.SourceValue} to {choiceModification.ValueChange.Amount} {choiceModification.ValueChange.ValueTransformation.TargetValue}";
     }
 
     private void ApplyEnergyCostReductions(EncounterChoice choice, EncounterContext context)
     {
-        var archetypeEffect = locationArchetypeEffects[context.LocationArchetype];
-        // Iterate through each energy cost requirement in the choice
-        foreach (var requirement in choice.ModifiedRequirements.OfType<EnergyRequirement>())
+        foreach (var effect in locationPropertyEffects)
         {
-            // Check if there's a reduction for this energy type in the archetype's effects
-            if (archetypeEffect.EnergyCostReductions.TryGetValue(requirement.EnergyType, out int reductionAmount))
+            // Check if the effect's LocationProperty matches the context
+            if (IsLocationPropertyMatch(effect.LocationProperty, context))
             {
-                // Reduce the energy cost requirement, ensuring it doesn't go below 0
-                requirement.Amount = Math.Max(0, requirement.Amount - reductionAmount);
+                // Apply energy cost reduction if the effect is an EnergyValueTransformation
+                if (effect.ValueTypeEffect is EnergyValueTransformation energyTransformation)
+                {
+                    // Iterate through each energy cost requirement in the choice
+                    foreach (EnergyRequirement requirement in choice.ModifiedRequirements.OfType<EnergyRequirement>())
+                    {
+                        if (requirement.EnergyType == energyTransformation.EnergyType)
+                        {
+                            // Reduce the energy cost requirement, ensuring it doesn't go below 0
+                            requirement.Amount = Math.Max(0, requirement.Amount + energyTransformation.ChangeInValue);
+                        }
+                    }
+                }
             }
         }
     }

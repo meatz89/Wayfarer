@@ -5,20 +5,6 @@
         // Create a new instance based on the template
         ActionImplementation action = template.CreateActionImplementation();
 
-        // Add costs based on location type
-        switch (location.LocationType)
-        {
-            case LocationTypes.Industrial:
-                action.Costs.Add(new EnergyOutcome(EnergyTypes.Physical, -1));
-                break;
-            case LocationTypes.Social:
-                action.Costs.Add(new EnergyOutcome(EnergyTypes.Social, -1));
-                break;
-            case LocationTypes.Nature:
-                action.Costs.Add(new EnergyOutcome(EnergyTypes.Focus, -1));
-                break;
-        }
-
         // Add rewards based on action type
         switch (action.ActionType)
         {

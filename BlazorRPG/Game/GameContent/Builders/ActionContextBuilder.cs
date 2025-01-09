@@ -3,7 +3,7 @@
     public LocationTypes LocationType { get; private set; }
     public BasicActionTypes BaseAction { get; private set; }
     public SpaceProperties Space { get; private set; } = new();
-    public SocialContext Social { get; private set; } = new();
+    public SocialProperties Social { get; private set; } = new();
     public ActivityProperties Activity { get; private set; } = new();
     public string LocationSpotName { get; private set; }
 
@@ -26,9 +26,9 @@
         return this;
     }
 
-    public ActionContextBuilder WithSocial(Action<SocialContextBuilder> buildSocial)
+    public ActionContextBuilder WithSocial(Action<SocialPropertiesBuilder> buildSocial)
     {
-        SocialContextBuilder builder = new SocialContextBuilder();
+        SocialPropertiesBuilder builder = new SocialPropertiesBuilder();
         buildSocial(builder);
         Social = builder.Build();
         return this;
@@ -69,7 +69,7 @@ public class ActionGenerationContext
     public LocationTypes LocationType { get; }
     public BasicActionTypes BaseAction { get; }
     public SpaceProperties Space { get; }
-    public SocialContext Social { get; }
+    public SocialProperties Social { get; }
     public ActivityProperties Activity { get; }
     public string LocationSpotName { get; }
 
@@ -78,7 +78,7 @@ public class ActionGenerationContext
         LocationTypes locationType,
         BasicActionTypes baseAction,
         SpaceProperties space,
-        SocialContext social,
+        SocialProperties social,
         ActivityProperties activity,
         string locationSpotName)
     {

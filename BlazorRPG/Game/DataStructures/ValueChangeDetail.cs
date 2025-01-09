@@ -13,9 +13,29 @@ public class LocationArchetypeTransformation
     public string Explanation { get; set; }
 }
 
-public class ValueTransformation
+public abstract class ValueTransformation
 {
-    public ValueTypes SourceValue { get; set; }
-    public ValueTypes TargetValue { get; set; }
-    public TransformationType TransformationType { get; set; }
+}
+
+public class ConvertValueTransformation : ValueTransformation
+{
+    public ValueTypes SourceValueType { get; set; }
+    public ValueTypes TargetValueType { get; set; }
+}
+
+public class ChangeValueTransformation : ValueTransformation
+{
+    public ValueTypes ValueType { get; set; }
+    public int ChangeInValue { get; set; }
+}
+
+public class CancelValueTransformation : ValueTransformation
+{
+    public ValueTypes ValueType { get; set; }
+}
+
+public class EnergyValueTransformation : ValueTransformation
+{
+    public EnergyTypes EnergyType { get; set; }
+    public int ChangeInValue { get; set; }
 }

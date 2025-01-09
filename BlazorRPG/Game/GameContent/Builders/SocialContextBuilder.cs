@@ -1,23 +1,23 @@
-﻿public class SocialContextBuilder
+﻿public class SocialPropertiesBuilder
 {
     private LegalityTypes legality = LegalityTypes.Legal;
     private PressureStateTypes pressure = PressureStateTypes.Relaxed;
 
-    public SocialContextBuilder WithLegality(LegalityTypes legality)
+    public SocialPropertiesBuilder WithLegality(LegalityTypes legality)
     {
         this.legality = legality;
         return this;
     }
 
-    public SocialContextBuilder WithPressure(PressureStateTypes pressure)
+    public SocialPropertiesBuilder WithPressure(PressureStateTypes pressure)
     {
         this.pressure = pressure;
         return this;
     }
 
-    public SocialContext Build()
+    public SocialProperties Build()
     {
-        return new SocialContext
+        return new SocialProperties
         {
             Legality = legality,
             Pressure = pressure

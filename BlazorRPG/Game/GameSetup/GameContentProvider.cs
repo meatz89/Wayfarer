@@ -7,7 +7,7 @@
     private List<Quest> quests;
     private List<ChoiceSetTemplate> choiceSetTemplates;
 
-    private Dictionary<LocationArchetypes, ArchetypeEffect> locationArchetypeEffects = new Dictionary<LocationArchetypes, ArchetypeEffect>();
+    private Dictionary<LocationArchetypes, LocationPropertyChoiceEffect> locationArchetypeEffects = new Dictionary<LocationArchetypes, LocationPropertyChoiceEffect>();
 
     public GameContentProvider()
     {
@@ -47,10 +47,10 @@
             ChoiceSetContent.MingleChoiceSetTemplate,
         };
 
-        locationArchetypeEffects = LocationArchetypeContent.Effects;
+        locationArchetypeEffects = LocationPropertyChoiceEffects.Effects;
     }
 
-    public Dictionary<LocationArchetypes, ArchetypeEffect> GetLocationArchetypeEffects()
+    public Dictionary<LocationArchetypes, LocationPropertyChoiceEffect> GetLocationArchetypeEffects()
     {
         return locationArchetypeEffects;
     }

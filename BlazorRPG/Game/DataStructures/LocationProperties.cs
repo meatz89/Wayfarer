@@ -1,4 +1,181 @@
-﻿public class LocationProperties
+﻿public enum LegalityTypes
+{
+    Legal, Gray, Illegal
+}
+
+public enum PressureStateTypes
+{
+    Relaxed, Alert, Hostile,
+}
+
+public enum GroupSize
+{
+    Solo, Small, Large
+}
+
+public enum LocationPropertyTypes
+{
+    Archetype,
+    Scale,
+    Exposure,
+    Legality,
+    Pressure,
+    Complexity,
+    Resource,
+    CrowdLevel,
+    ReputationType
+}
+
+public abstract class LocationPropertyTypeValue
+{
+    public abstract LocationPropertyTypes GetPropertyType();
+}
+
+// --- Archetype ---
+public enum LocationArchetypes
+{
+    Tavern,
+    Market,
+    Forest,
+    Road,
+    Field,
+    Dock,
+    Warehouse,
+    Factory,
+    Workshop,
+    Shop,
+    Garden,
+    None,
+    Library,
+    ConstructionSite,
+    Docks
+}
+
+public class ArchetypeValue : LocationPropertyTypeValue
+{
+    public LocationArchetypes LocationArchetype { get; set; }
+    public override LocationPropertyTypes GetPropertyType()
+    {
+        return LocationPropertyTypes.Archetype;
+    }
+}
+
+// --- Scale ---
+public enum ScaleVariationTypes
+{
+    Intimate, Medium, Large
+}
+
+public class ScaleValue : LocationPropertyTypeValue
+{
+    public ScaleVariationTypes ScaleVariation { get; set; }
+    public override LocationPropertyTypes GetPropertyType()
+    {
+        return LocationPropertyTypes.Scale;
+    }
+}
+
+// --- Exposure ---
+public enum ExposureConditionTypes
+{
+    Indoor, Outdoor,
+}
+
+public class ExposureValue : LocationPropertyTypeValue
+{
+    public ExposureConditionTypes ExposureCondition { get; set; }
+    public override LocationPropertyTypes GetPropertyType()
+    {
+        return LocationPropertyTypes.Exposure;
+    }
+}
+
+// --- Legality ---
+public class LegalityValue : LocationPropertyTypeValue
+{
+    public LegalityTypes Legality { get; set; }
+    public override LocationPropertyTypes GetPropertyType()
+    {
+        return LocationPropertyTypes.Legality;
+    }
+}
+
+// --- Pressure ---
+public class PressureValue : LocationPropertyTypeValue
+{
+    public PressureStateTypes PressureState { get; set; }
+    public override LocationPropertyTypes GetPropertyType()
+    {
+        return LocationPropertyTypes.Pressure;
+    }
+}
+
+// --- Complexity ---
+public enum ComplexityTypes
+{
+    Complex, Simple
+}
+
+public class ComplexityValue : LocationPropertyTypeValue
+{
+    public ComplexityTypes Complexity { get; set; }
+    public override LocationPropertyTypes GetPropertyType()
+    {
+        return LocationPropertyTypes.Complexity;
+    }
+}
+
+// --- Resource ---
+public enum ResourceTypes
+{
+    None = 0,
+    Food,
+    Wood,
+    Fish,
+    Herbs,
+    Cloth
+}
+
+public class ResourceValue : LocationPropertyTypeValue
+{
+    public ResourceTypes Resource { get; set; }
+    public override LocationPropertyTypes GetPropertyType()
+    {
+        return LocationPropertyTypes.Resource;
+    }
+}
+
+// --- Crowd Level ---
+public enum CrowdLevelTypes
+{
+    Empty, Sparse, Busy, Crowded
+}
+
+public class CrowdLevelValue : LocationPropertyTypeValue
+{
+    public CrowdLevelTypes CrowdLevel { get; set; }
+    public override LocationPropertyTypes GetPropertyType()
+    {
+        return LocationPropertyTypes.CrowdLevel;
+    }
+}
+
+// --- Reputation Type ---
+public enum LocationReputationTypes
+{
+    None, Notorious, Famous, Respected, Hidden
+}
+
+public class LocationReputationTypeValue : LocationPropertyTypeValue
+{
+    public ReputationTypes ReputationType { get; set; }
+    public override LocationPropertyTypes GetPropertyType()
+    {
+        return LocationPropertyTypes.ReputationType;
+    }
+}
+
+public class LocationProperties
 {
     public ScaleVariationTypes? Scale { get; set; }
     public bool IsScaleSet { get; private set; } = false;
@@ -76,7 +253,7 @@
                 IsArchetypeSet = true;
                 break;
             case LocationPropertyTypes.Resource:
-                Resource = (ResourceTypes?)value;
+                Resource = (ResourceTypes)value;
                 IsResourceSet = true;
                 break;
             case LocationPropertyTypes.CrowdLevel:
