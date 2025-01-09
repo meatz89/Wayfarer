@@ -16,7 +16,7 @@
         // Apply modifiers to get modified values
         CalculateModifiedValues(consequences);
         CalculateModifiedRequirements(consequences, context);
-        CalculateModifiedOutcomes(consequences, context);
+        CalculateModifiedOutcomes(choice, consequences, context); // Pass the choice here
 
         return consequences;
     }
@@ -30,52 +30,107 @@
         foreach (ValueChange baseChange in consequences.BaseValueChanges)
         {
             valueChangeDetails[baseChange.ValueType] = new List<(string Source, int Amount)>
-        {
-            ("Base", baseChange.Change)
-        };
+            {
+                ("Base", baseChange.Change)
+            };
         }
 
         // Skill vs Difficulty impact
         int skillVsDifficulty = context.PlayerState.GetSkillLevel(choice.ChoiceRelevantSkill) - context.LocationDifficulty;
-        modifiers.OutcomeModifier += skillVsDifficulty;
-        modifiers.AddModifierDetail("Skill Level", skillVsDifficulty);
-        AddValueChangeDetail(valueChangeDetails, ValueTypes.Outcome, "Skill Level", skillVsDifficulty);
+
+        // Only give a bonus to outcome if it is the right archetype
+        if (choice.Archetype == ChoiceArchetypes.Physical)
+        {
+            modifiers.OutcomeModifier += skillVsDifficulty;
+            modifiers.AddModifierDetail("Skill Level", skillVsDifficulty);
+            AddValueChangeDetail(valueChangeDetails, ValueTypes.Outcome, "Skill Level", skillVsDifficulty);
+        }
+        else if (choice.Archetype == ChoiceArchetypes.Focus)
+        {
+            modifiers.InsightGainModifier += skillVsDifficulty;
+            modifiers.AddModifierDetail("Skill Level", skillVsDifficulty);
+            AddValueChangeDetail(valueChangeDetails, ValueTypes.Insight, "Skill Level", skillVsDifficulty);
+        }
+        else if (choice.Archetype == ChoiceArchetypes.Social)
+        {
+            modifiers.ResonanceGainModifier += skillVsDifficulty;
+            modifiers.AddModifierDetail("Skill Level", skillVsDifficulty);
+            AddValueChangeDetail(valueChangeDetails, ValueTypes.Resonance, "Skill Level", skillVsDifficulty);
+        }
 
         // Location impact
         switch (context.LocationType)
         {
             case LocationTypes.Industrial:
-                modifiers.PressureGainModifier += 2;
-                modifiers.AddModifierDetail("Industrial Location", 2);
-                AddValueChangeDetail(valueChangeDetails, ValueTypes.Pressure, "Industrial Location", 2);
+                // Industrial locations generally increase pressure. 
+                // Aggressive choices are even more risky here.
+                if (choice.Approach == ChoiceApproaches.Aggressive)
+                {
+                    modifiers.PressureGainModifier += 2;
+                    modifiers.AddModifierDetail("Industrial Location (Aggressive)", 2);
+                    AddValueChangeDetail(valueChangeDetails, ValueTypes.Pressure, "Industrial Location (Aggressive)", 2);
+                }
+                else
+                {
+                    modifiers.PressureGainModifier += 1;
+                    modifiers.AddModifierDetail("Industrial Location", 1);
+                    AddValueChangeDetail(valueChangeDetails, ValueTypes.Pressure, "Industrial Location", 1);
+                }
                 break;
             case LocationTypes.Social:
-                modifiers.ResonanceGainModifier += 1;
-                modifiers.AddModifierDetail("Social Location", 1);
-                AddValueChangeDetail(valueChangeDetails, ValueTypes.Resonance, "Social Location", 1);
+                // Social locations generally favor resonance gain. 
+                // Strategic choices are particularly effective here.
+                if (choice.Approach == ChoiceApproaches.Strategic)
+                {
+                    modifiers.ResonanceGainModifier += 2;
+                    modifiers.AddModifierDetail("Social Location (Strategic)", 2);
+                    AddValueChangeDetail(valueChangeDetails, ValueTypes.Resonance, "Social Location (Strategic)", 2);
+                }
+                else
+                {
+                    modifiers.ResonanceGainModifier += 1;
+                    modifiers.AddModifierDetail("Social Location", 1);
+                    AddValueChangeDetail(valueChangeDetails, ValueTypes.Resonance, "Social Location", 1);
+                }
                 break;
             case LocationTypes.Nature:
-                modifiers.InsightGainModifier += 1;
-                modifiers.AddModifierDetail("Natural Location", 1);
-                AddValueChangeDetail(valueChangeDetails, ValueTypes.Insight, "Natural Location", 1);
+                // Nature locations generally favor insight gain. 
+                // Careful choices are particularly effective here.
+                if (choice.Approach == ChoiceApproaches.Careful)
+                {
+                    modifiers.InsightGainModifier += 2;
+                    modifiers.AddModifierDetail("Nature Location (Careful)", 2);
+                    AddValueChangeDetail(valueChangeDetails, ValueTypes.Insight, "Nature Location (Careful)", 2);
+                }
+                else
+                {
+                    modifiers.InsightGainModifier += 1;
+                    modifiers.AddModifierDetail("Nature Location", 1);
+                    AddValueChangeDetail(valueChangeDetails, ValueTypes.Insight, "Nature Location", 1);
+                }
                 break;
         }
 
         // Insight impact on Pressure
+        // Higher insight reduces pressure gain, especially for Focus archetype choices.
         int insightLevel = context.CurrentValues.Insight;
         int pressureReduction = -insightLevel / 2;
-        modifiers.PressureGainModifier += pressureReduction;
-        modifiers.AddModifierDetail("Insight Pressure Reduction", pressureReduction);
-        AddValueChangeDetail(valueChangeDetails, ValueTypes.Pressure, "Insight Reduction", pressureReduction);
+
+        if (choice.Archetype == ChoiceArchetypes.Focus)
+        {
+            modifiers.PressureGainModifier += pressureReduction * 2; // Focus choices benefit more from insight
+            modifiers.AddModifierDetail("Insight (Focus)", pressureReduction * 2);
+            AddValueChangeDetail(valueChangeDetails, ValueTypes.Pressure, "Insight (Focus)", pressureReduction * 2);
+        }
+        else
+        {
+            modifiers.PressureGainModifier += pressureReduction;
+            modifiers.AddModifierDetail("Insight", pressureReduction);
+            AddValueChangeDetail(valueChangeDetails, ValueTypes.Pressure, "Insight", pressureReduction);
+        }
 
         // Energy cost strain from pressure
-        int strainModifier = context.CurrentValues.Pressure / 3;
-        if (strainModifier > 0)
-        {
-            modifiers.EnergyCostModifier += strainModifier;
-            modifiers.AddModifierDetail("Pressure Strain", strainModifier);
-            AddValueChangeDetail(valueChangeDetails, ValueTypes.Energy, "Pressure Strain", strainModifier);
-        }
+        // This is handled in CalculateModifiedOutcomes to affect energy costs directly
 
         consequences.Modifiers = modifiers;
         consequences.ValueChangeDetails = GetValueChangeDetails(valueChangeDetails);
@@ -129,15 +184,6 @@
             }
 
             consequences.ModifiedValueChanges.Add(modifiedChange);
-
-            // Add details for UI/preview
-            consequences.ValueChangeDetails.Add(new ValueChangeDetail(
-                baseChange.ValueType,
-                new List<ValueChangeSource>
-                {
-                new("Base", baseChange.Change),
-                new("Modifier", modifiedChange.Change - baseChange.Change)
-                }));
         }
     }
 
@@ -174,14 +220,26 @@
         }
     }
 
-    private void CalculateModifiedOutcomes(ChoiceConsequences consequences, EncounterContext context)
+    private void CalculateModifiedOutcomes(EncounterChoice choice, ChoiceConsequences consequences, EncounterContext context)
     {
         // First handle costs
         foreach (Outcome baseCost in consequences.BaseCosts)
         {
+            // High pressure now makes choices more expensive
             if (baseCost is EnergyOutcome energyCost)
             {
                 int strainModifier = context.CurrentValues.Pressure / 3;
+
+                // Increase energy cost based on choice archetype
+                if (choice.Archetype == ChoiceArchetypes.Physical)
+                {
+                    strainModifier *= 2; // Physical choices are more expensive under pressure
+                }
+                else if (choice.Archetype == ChoiceArchetypes.Social)
+                {
+                    strainModifier += strainModifier / 2; // Social choices are slightly more expensive
+                }
+
                 if (strainModifier > 0)
                 {
                     consequences.CostModifications.Add(new OutcomeModification
@@ -211,7 +269,13 @@
         {
             if (baseReward is ResourceOutcome resourceReward)
             {
-                float insightBonus = context.CurrentValues.Insight * 0.1f;
+                float insightBonus = context.CurrentValues.Insight;
+                // Focus choices get a larger bonus from insight for resource rewards
+                if (choice.Archetype == ChoiceArchetypes.Focus)
+                {
+                    insightBonus *= 2;
+                }
+
                 if (insightBonus > 0)
                 {
                     int bonusAmount = (int)(resourceReward.Amount * insightBonus);
@@ -233,7 +297,13 @@
             }
             else if (baseReward is ReputationOutcome reputationReward)
             {
-                float resonanceBonus = context.CurrentValues.Resonance * 0.2f;
+                float resonanceBonus = context.CurrentValues.Resonance;
+                // Social choices get a larger bonus from resonance for reputation rewards
+                if (choice.Archetype == ChoiceArchetypes.Social)
+                {
+                    resonanceBonus *= 2;
+                }
+
                 if (resonanceBonus > 0)
                 {
                     int bonusAmount = (int)(reputationReward.Amount * resonanceBonus);
