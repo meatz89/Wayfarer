@@ -24,21 +24,24 @@
         return topSets[randomValue].Set;
     }
 
-    private bool MeetsConditions(ChoiceSetTemplate template, EncounterContext context)
+    private bool MeetsConditions(ChoiceSetTemplate template, EncounterContext encounterContext)
     {
         // Check action type matches
-        if (context.ActionType != template.ActionType) return false;
+        if (encounterContext.ActionType != template.ActionType) return false;
+
+        // Check location archetype matches
+        if (encounterContext.LocationArchetype != template.LocationArchetype) return false;
 
         // Check location conditions
         foreach (LocationPropertyCondition condition in template.AvailabilityConditions)
         {
-            if (!condition.IsMet(context.LocationProperties)) return false;
+            if (!condition.IsMet(encounterContext.LocationProperties)) return false;
         }
 
         // Check state conditions
         foreach (EncounterStateCondition condition in template.StateConditions)
         {
-            if (!condition.IsMet(context.CurrentValues)) return false;
+            if (!condition.IsMet(encounterContext.CurrentValues)) return false;
         }
 
         return true;

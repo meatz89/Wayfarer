@@ -2,6 +2,7 @@
 {
     public static ChoiceSetTemplate ExampleTemplate => new ChoiceSetTemplateBuilder()
         .WithName("Crowded Labor")
+        .WithLocationArchetype(LocationArchetypes.Library)
         .WithActionType(BasicActionTypes.Labor)
         .AddAvailabilityCondition(properties => properties
             .WithCrowdLevel(CrowdLevelTypes.Crowded)
@@ -38,6 +39,7 @@
     public static ChoiceSetTemplate MingleChoiceSetTemplate => new ChoiceSetTemplateBuilder()
         .WithName("Mingle Choices")
         .WithActionType(BasicActionTypes.Mingle)
+        .WithLocationArchetype(LocationArchetypes.Tavern)
         .AddAvailabilityCondition(properties => properties
             .WithArchetype(LocationArchetypes.Tavern)) // Assuming you have this location type
         .AddChoice(choice => choice

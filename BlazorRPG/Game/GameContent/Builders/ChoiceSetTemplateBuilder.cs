@@ -5,10 +5,17 @@
     private List<LocationPropertyCondition> availabilityConditions = new();
     private List<EncounterStateCondition> stateConditions = new();
     private List<ChoiceTemplate> choicePatterns = new();
+    private LocationArchetypes locationArchetype;
 
     public ChoiceSetTemplateBuilder WithName(string name)
     {
         this.name = name;
+        return this;
+    }
+
+    public ChoiceSetTemplateBuilder WithLocationArchetype(LocationArchetypes locationArchetype)
+    {
+        this.locationArchetype = locationArchetype;
         return this;
     }
 
@@ -72,6 +79,7 @@
         return new ChoiceSetTemplate(
             name,
             actionType,
+            locationArchetype,
             availabilityConditions,
             stateConditions,
             choicePatterns
