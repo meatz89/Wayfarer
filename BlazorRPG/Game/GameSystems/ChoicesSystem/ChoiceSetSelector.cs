@@ -2,7 +2,7 @@
 {
     private readonly Random random = new();
 
-    public ChoiceSetTemplate SelectTemplate(List<ChoiceSetTemplate> templates, EncounterActionContext context)
+    public ChoiceSetTemplate SelectTemplate(List<ChoiceSetTemplate> templates, EncounterContext context)
     {
         // Get valid sets
         List<ChoiceSetTemplate> validSets = templates.Where(t => MeetsConditions(t, context)).ToList();
@@ -24,7 +24,7 @@
         return topSets[randomValue].Set;
     }
 
-    private bool MeetsConditions(ChoiceSetTemplate template, EncounterActionContext context)
+    private bool MeetsConditions(ChoiceSetTemplate template, EncounterContext context)
     {
         // Check action type matches
         if (context.ActionType != template.ActionType) return false;

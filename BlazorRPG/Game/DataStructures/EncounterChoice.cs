@@ -1,13 +1,15 @@
 ﻿public class EncounterChoice
 {
+    // Identity & Description
     public int Index { get; set; }
-    public string Encounter { get; set; }
     public string Description { get; set; }
-    public List<ValueChange> EncounterValueChanges { get; set; } = new();
-    public List<Requirement> ChoiceRequirements { get; set; } = new();
-    public List<Outcome> PermanentCosts { get; set; } = new();
-    public List<Outcome> PermanentRewards { get; set; } = new();
-    public Dictionary<string, int> ValueModifiers { get; set; } = new();
-    public List<ValueChangeDetail> ValueChangeDetails { get; set; } = new();
 
+    // Base Values (unmodified inputs from pattern)
+    public List<ValueChange> BaseValueChanges { get; set; } = new();
+    public List<Requirement> Requirements { get; set; } = new();
+    public List<Outcome> BaseCosts { get; set; } = new();
+    public List<Outcome> BaseRewards { get; set; } = new();
+
+    // Modification results (calculated by calculator)
+    public ChoiceConsequences Consequences { get; set; }
 }

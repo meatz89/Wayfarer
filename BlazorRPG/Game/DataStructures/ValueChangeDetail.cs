@@ -1,1 +1,4 @@
-﻿public record ValueChangeDetail(ValueTypes ValueType, List<ValueChangeSource> ValueChanges);
+﻿
+public record ValueChangeDetail(ValueTypes ValueType, List<ValueChangeSource> ValueChanges)
+{
+}

@@ -1,4 +1,5 @@
-﻿public class MessageSystem
+﻿
+public class MessageSystem
 {
     private ActionResultMessages currentChanges = new();
 
@@ -17,5 +18,10 @@
         ActionResultMessages changes = currentChanges;
         currentChanges = new ActionResultMessages();
         return changes;
+    }
+
+    internal void GenerateChoiceResultMessages(ChoiceConsequences consequences)
+    {
+        throw new NotImplementedException();
     }
 }

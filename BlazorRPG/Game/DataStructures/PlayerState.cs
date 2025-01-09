@@ -204,25 +204,6 @@
         }
     }
 
-    public void UnlockAchievement(AchievementTypes achievementType)
-    {
-    }
-
-    public bool HasAchievement(AchievementTypes achievementType)
-    {
-        return true;
-    }
-
-    public bool HasStatus(PlayerStatusTypes status)
-    {
-        return true;
-    }
-
-    public int GetKnowledgeLevel(KnowledgeTypes knowledgeType)
-    {
-        return 1;
-    }
-
     public void ModifyKnowledge(KnowledgeTypes knowledgeType, int count)
     {
         // Add the knowledge to the player's knowledge list
@@ -242,12 +223,26 @@
         return Knowledge.Any(k => k.KnowledgeType == knowledgeType);
     }
 
-    public void ModifyResource(ResourceChangeTypes changeType, ResourceTypes resource, int count)
+    internal bool HasAchievement(AchievementTypes achievementType)
+    {
+        return true;
+    }
+
+    internal void UnlockAchievement(AchievementTypes achievementType)
     {
     }
 
-    internal int GetSkillLevel(SkillTypes value)
+    internal int GetSkillLevel(SkillTypes primarySkillType)
     {
-        return 1;
+        return 10;
+    }
+
+    internal void ModifyResource(ResourceChangeTypes changeType, ResourceTypes resourceType, int amount)
+    {
+    }
+
+    internal bool HasStatus(PlayerStatusTypes status)
+    {
+        return true;
     }
 }

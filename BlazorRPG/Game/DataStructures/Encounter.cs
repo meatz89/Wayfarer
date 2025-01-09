@@ -1,15 +1,16 @@
-﻿
-public class Encounter
+﻿public class Encounter
 {
-    public EncounterActionContext Context { get; }
+    public EncounterContext EncounterContext { get; }
     private List<EncounterStage> stages = new();
     private int currentStage { get; set; } = 0;
     public int NumberOfStages => stages.Count();
     public string Situation { get; set; }
 
-    public Encounter(EncounterActionContext context, string situation)
+    public List<ChoiceConsequences> ChoiceValueModifications { get; } = new();
+
+    public Encounter(EncounterContext context, string situation)
     {
-        Context = context;
+        EncounterContext = context;
         Situation = situation;
     }
 
@@ -31,5 +32,27 @@ public class Encounter
     public void NextStage()
     {
         currentStage++;
+    }
+
+    public void ModifyValue(ValueTypes valueType, int change)
+    {
+        switch (valueType)
+        {
+            case ValueTypes.Outcome:
+                EncounterContext.CurrentValues.Outcome += change;
+                break;
+            case ValueTypes.Pressure:
+                EncounterContext.CurrentValues.Pressure += change;
+                break;
+            case ValueTypes.Insight:
+                EncounterContext.CurrentValues.Insight += change;
+                break;
+            case ValueTypes.Resonance:
+                EncounterContext.CurrentValues.Resonance += change;
+                break;
+        }
+
+        // Clamp all values to valid range
+        EncounterContext.CurrentValues.ClampValues();
     }
 }

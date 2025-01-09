@@ -42,7 +42,7 @@ public partial class EncounterViewBase : ComponentBase
 
     public bool IsChoiceDisabled(UserEncounterChoiceOption choice)
     {
-        return choice.EncounterChoice.ChoiceRequirements.Any(req => !req.IsSatisfied(GameState.Player));
+        return choice.EncounterChoice.Requirements.Any(req => !req.IsSatisfied(GameState.Player));
     }
 
     public void OnMouseMove(MouseEventArgs e)
@@ -53,7 +53,7 @@ public partial class EncounterViewBase : ComponentBase
 
     public bool IsRequirementMet(UserEncounterChoiceOption choice)
     {
-        foreach (Requirement req in choice.EncounterChoice.ChoiceRequirements)
+        foreach (Requirement req in choice.EncounterChoice.Requirements)
         {
             if (!req.IsSatisfied(GameState.Player)) return false;
         }
@@ -126,7 +126,7 @@ public partial class EncounterViewBase : ComponentBase
         int previewSocialEnergy = player.SocialEnergy;
         int previewHealth = player.Health;
 
-        foreach (Requirement req in choice.ChoiceRequirements)
+        foreach (Requirement req in choice.Requirements)
         {
             if (req is EnergyRequirement energyReq)
             {
@@ -188,5 +188,28 @@ public partial class EncounterViewBase : ComponentBase
         }
 
         return preview;
+    }
+
+
+    public int GetCurrentEnergy(PlayerState player, EnergyTypes type)
+    {
+        return type switch
+        {
+            EnergyTypes.Physical => player.PhysicalEnergy,
+            EnergyTypes.Focus => player.FocusEnergy,
+            EnergyTypes.Social => player.SocialEnergy,
+            _ => 0
+        };
+    }
+
+    public int GetMaxEnergy(PlayerState player, EnergyTypes type)
+    {
+        return type switch
+        {
+            EnergyTypes.Physical => player.MaxPhysicalEnergy,
+            EnergyTypes.Focus => player.MaxFocusEnergy,
+            EnergyTypes.Social => player.MaxSocialEnergy,
+            _ => 0
+        };
     }
 }

@@ -175,16 +175,52 @@ public class GameManager
         gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
     }
 
+    public Encounter GenerateEncounter(BasicActionTypes action, Location location, PlayerState playerState)
+    {
+        // Create initial context
+        EncounterContext context = new(
+            action,
+            location.LocationType,
+            location.LocationArchetype,
+            gameState.World.CurrentTimeSlot,
+            location.LocationProperties,
+            playerState,
+            new EncounterStateValues(
+                outcome: 5 + (playerState.Level - location.DifficultyLevel),
+                insight: 0,
+                resonance: 5,
+                pressure: 0
+            ),
+            1,
+            location.DifficultyLevel
+        );
+
+        // Generate encounter
+        Encounter encounter = EncounterSystem.GenerateEncounter(context);
+        if (encounter == null) return null;
+
+        // Setup initial choices
+        SetEncounterChoices(encounter, location.LocationName);
+
+        return encounter;
+    }
+
     public void ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
     {
         Encounter encounter = choiceOption.Encounter;
         EncounterChoice choice = choiceOption.EncounterChoice;
 
         Location location = LocationSystem.GetLocation(choiceOption.LocationName);
-        LocationNames locationName = location.LocationName;
 
-        this.EncounterSystem.ExecuteChoice(encounter, choice, location.LocationProperties);
-        ProceedEncounter(encounter, locationName);
+        // Get preview before execution
+        string preview = EncounterSystem.GetChoicePreview(choice);
+        MessageSystem.AddSystemMessage($"Executing choice: {preview}");
+
+        // Execute the choice
+        EncounterSystem.ExecuteChoice(encounter, choice, location.LocationProperties);
+
+        // Check if we should proceed to next stage
+        ProceedEncounter(encounter, location.LocationName);
     }
 
     private void ProceedEncounter(Encounter encounter, LocationNames locationName)
@@ -218,39 +254,6 @@ public class GameManager
         }
 
         return GenerateNormalAction(action, basicAction);
-    }
-
-    public Encounter GenerateEncounter(
-        BasicActionTypes action,
-        Location location,
-        PlayerState playerState)
-    {
-        // Create context with proper difficulty
-        EncounterActionContext context = new(
-            action,
-            location.LocationType,
-            location.LocationArchetype,
-            gameState.World.CurrentTimeSlot,
-            location.LocationProperties,
-            playerState,
-            new EncounterStateValues(
-                outcome: 5 + (playerState.Level - location.DifficultyLevel),
-                insight: 0,
-                resonance: 5,
-                pressure: 0
-            ),
-            1,
-            location.DifficultyLevel
-        );
-
-        // Generate encounter instead of looking up predefined one
-        Encounter encounter = EncounterSystem.GenerateEncounter(context);
-        if (encounter == null) { return null; }
-
-        // Initialize first stage
-        SetEncounterChoices(encounter, location.LocationName);
-
-        return encounter;
     }
 
     private ActionResult GenerateNormalAction(UserActionOption action, ActionImplementation basicAction)

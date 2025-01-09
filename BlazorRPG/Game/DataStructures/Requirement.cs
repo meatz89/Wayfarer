@@ -16,7 +16,7 @@ public class InsightRequirement : Requirement
     public override bool IsSatisfied(PlayerState player)
     {
         Encounter encounter = player.CurrentEncounter;
-        return encounter != null && encounter.Context.CurrentValues.Insight >= requiredLevel;
+        return encounter != null && encounter.EncounterContext.CurrentValues.Insight >= requiredLevel;
     }
 
     public override string GetDescription()

@@ -1,14 +1,14 @@
 ﻿public class ChoiceBuilder
 {
+    // Basic properties
     private int index;
     private string description;
+
+    // Base values that will be used by calculator
+    private List<ValueChange> baseValueChanges = new();
     private List<Requirement> requirements = new();
-    private List<Outcome> costs = new();
-    private List<Outcome> rewards = new();
-    private string encounter;
-    private EncounterStateValues encounterStateChanges = EncounterStateValues.InitialState;
-    private List<ValueChange> standardValueChanges = new();
-    private Dictionary<string, int> valueModifiers = new();
+    private List<Outcome> baseCosts = new();
+    private List<Outcome> baseRewards = new();
 
     public ChoiceBuilder WithIndex(int index)
     {
@@ -22,12 +22,19 @@
         return this;
     }
 
-    public ChoiceBuilder WithValueModifier(string name, int value)
+    public ChoiceBuilder WithValueChange(ValueTypes valueType, int change)
     {
-        valueModifiers.Add(name, value);
+        baseValueChanges.Add(new ValueChange(valueType, change));
         return this;
     }
 
+    public ChoiceBuilder WithValueChanges(List<ValueChange> valueChanges)
+    {
+        baseValueChanges.AddRange(valueChanges);
+        return this;
+    }
+
+    // Requirements
     public ChoiceBuilder RequiresEnergy(EnergyTypes energy, int count)
     {
         requirements.Add(new EnergyRequirement(energy, count));
@@ -58,124 +65,72 @@
         return this;
     }
 
+    // Base Costs
     public ChoiceBuilder WithHealthCost(int count)
     {
-        costs.Add(new HealthOutcome(-count)); // Negative for cost
-        return this;
-    }
-
-    public ChoiceBuilder WithHealthReward(int count)
-    {
-        rewards.Add(new HealthOutcome(count));
+        baseCosts.Add(new HealthOutcome(-count));
         return this;
     }
 
     public ChoiceBuilder WithCoinsCost(int count)
     {
-        costs.Add(new CoinsOutcome(-count)); // Negative for cost
-        return this;
-    }
-
-    public ChoiceBuilder WithCoinsReward(int count)
-    {
-        rewards.Add(new CoinsOutcome(count));
+        baseCosts.Add(new CoinsOutcome(-count));
         return this;
     }
 
     public ChoiceBuilder WithResourceCost(ResourceTypes type, int count)
     {
-        costs.Add(new ResourceOutcome(type, -count)); // Negative for cost
+        baseCosts.Add(new ResourceOutcome(type, -count));
+        return this;
+    }
+
+    // Base Rewards
+    public ChoiceBuilder WithHealthReward(int count)
+    {
+        baseRewards.Add(new HealthOutcome(count));
+        return this;
+    }
+
+    public ChoiceBuilder WithCoinsReward(int count)
+    {
+        baseRewards.Add(new CoinsOutcome(count));
         return this;
     }
 
     public ChoiceBuilder WithResourceReward(ResourceTypes type, int count)
     {
-        rewards.Add(new ResourceOutcome(type, count));
+        baseRewards.Add(new ResourceOutcome(type, count));
         return this;
     }
 
     public ChoiceBuilder WithSkillReward(SkillTypes type, int count)
     {
-        rewards.Add(new SkillLevelOutcome(type, count));
+        baseRewards.Add(new SkillLevelOutcome(type, count));
         return this;
     }
 
     public ChoiceBuilder WithReputationReward(ReputationTypes type, int count)
     {
-        rewards.Add(new ReputationOutcome(type, count));
+        baseRewards.Add(new ReputationOutcome(type, count));
         return this;
     }
 
-    public ChoiceBuilder WithOutcomeChange(int outcome)
-    {
-        encounterStateChanges.Outcome = outcome;
-        return this;
-    }
-
-    public ChoiceBuilder WithInsightChange(int insight)
-    {
-        encounterStateChanges.Insight = insight;
-        return this;
-    }
-
-    public ChoiceBuilder WithResonanceChange(int resonance)
-    {
-        encounterStateChanges.Resonance = resonance;
-        return this;
-    }
-
-    public ChoiceBuilder WithPressureChange(int pressure)
-    {
-        encounterStateChanges.Pressure = pressure;
-        return this;
-    }
-
-    public ChoiceBuilder WithValueChange(ValueTypes valueType, int change)
-    {
-        standardValueChanges.Add(new ValueChange(valueType, change));
-        return this;
-    }
-
-    public ChoiceBuilder WithValueChanges(List<ValueChange> valueChanges)
-    {
-        standardValueChanges.AddRange(valueChanges);
-        return this;
-    }
-
-    // Updated to be clearer
+    // Collection methods
     public ChoiceBuilder WithRequirements(List<Requirement> newRequirements)
     {
         requirements.AddRange(newRequirements);
         return this;
     }
 
-    public ChoiceBuilder WithCosts(List<Outcome> newCosts)
+    public ChoiceBuilder WithBaseCosts(List<Outcome> newCosts)
     {
-        costs.AddRange(newCosts);
+        baseCosts.AddRange(newCosts);
         return this;
     }
 
-    public ChoiceBuilder WithRewards(List<Outcome> newRewards)
+    public ChoiceBuilder WithBaseRewards(List<Outcome> newRewards)
     {
-        rewards.AddRange(newRewards);
-        return this;
-    }
-
-    public ChoiceBuilder AddRequirement(Requirement requirement)
-    {
-        requirements.Add(requirement);
-        return this;
-    }
-
-    public ChoiceBuilder AddCost(Outcome cost)
-    {
-        costs.Add(cost);
-        return this;
-    }
-
-    public ChoiceBuilder AddReward(Outcome reward)
-    {
-        rewards.Add(reward);
+        baseRewards.AddRange(newRewards);
         return this;
     }
 
@@ -185,12 +140,10 @@
         {
             Index = index,
             Description = description,
-            Encounter = encounter,
-            ChoiceRequirements = requirements,
-            PermanentCosts = costs,
-            PermanentRewards = rewards,
-            EncounterValueChanges = standardValueChanges,
-            ValueModifiers = valueModifiers,
+            BaseValueChanges = baseValueChanges,
+            Requirements = requirements,
+            BaseCosts = baseCosts,
+            BaseRewards = baseRewards
         };
     }
 }

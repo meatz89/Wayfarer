@@ -37,8 +37,11 @@
                     break;
             }
         }
+    }
 
-        // Clamp values to 0-20 range
+    internal void ClampValues()
+    {
+
         Outcome = Math.Clamp(Outcome, 0, 20);
         Insight = Math.Clamp(Insight, 0, 20);
         Resonance = Math.Clamp(Resonance, 0, 20);

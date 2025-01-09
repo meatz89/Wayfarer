@@ -4,7 +4,7 @@
     public int BaseScore { get; set; }  // Starting point based on template
 
     // Situational Modifiers
-    public int GetContextScore(EncounterActionContext context)
+    public int GetContextScore(EncounterContext context)
     {
         int score = BaseScore;
 

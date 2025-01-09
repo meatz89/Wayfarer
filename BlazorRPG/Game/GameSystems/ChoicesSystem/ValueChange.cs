@@ -1,23 +1,11 @@
-﻿// Represents a specific value change in the encounter state
-public class ValueChange
+﻿public class ValueChange
 {
     public ValueTypes ValueType { get; }
-    public int Change { get; }
+    public int Change { get; set; }
 
-    public ValueChange(ValueTypes type, int amount)
+    public ValueChange(ValueTypes type, int change)
     {
         ValueType = type;
-        Change = amount;
+        Change = change;
     }
-
-}
-
-public enum ValueTypes
-{
-    Momentum,
-    Outcome,
-    Insight,
-    Resonance,
-    Pressure,
-    Energy,
 }

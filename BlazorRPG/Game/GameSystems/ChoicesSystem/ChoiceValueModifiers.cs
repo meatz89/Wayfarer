@@ -1,15 +1,14 @@
 ﻿public class ChoiceValueModifiers
 {
-    public int OutcomeModifier { get; set; }
-    public int PressureGainModifier { get; set; }
-    public int InsightGainModifier { get; set; }
-    public int ResonanceGainModifier { get; set; }
-    public int EnergyCostModifier { get; set; }
+    public int EnergyCostModifier { get; set; } = 0;
+    public int OutcomeModifier { get; set; } = 0;
+    public int PressureGainModifier { get; set; } = 0;
+    public int InsightGainModifier { get; set; } = 0;
+    public int ResonanceGainModifier { get; set; } = 0;
+    public Dictionary<string, int> ModifierDetails { get; set; } = new Dictionary<string, int>();
 
-    public Dictionary<string, int> ModifierDetails { get; private set; } = new Dictionary<string, int>();
-
-    public void AddModifierDetail(string modifierName, int value)
+    public void AddModifierDetail(string source, int amount)
     {
-        ModifierDetails.Add(modifierName, value);
+        ModifierDetails.Add(source, amount);
     }
 }

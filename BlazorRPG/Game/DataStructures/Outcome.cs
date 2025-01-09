@@ -247,31 +247,31 @@ public class CoinsOutcome : Outcome
 public class ResourceOutcome : Outcome
 {
     public ResourceChangeTypes ChangeType { get; }
-    public ResourceTypes Resource { get; }
-    public int Count { get; set; }
+    public ResourceTypes ResourceType { get; }
+    public int Amount { get; set; }
 
     public ResourceOutcome(ResourceTypes resource, int count)
     {
-        Resource = resource;
-        Count = Math.Abs(count); // Store count as positive
+        ResourceType = resource;
+        Amount = Math.Abs(count); // Store count as positive
         ChangeType = count >= 0 ? ResourceChangeTypes.Added : ResourceChangeTypes.Removed;
     }
 
     public override void Apply(PlayerState player)
     {
-        player.ModifyResource(ChangeType, Resource, Count);
+        player.ModifyResource(ChangeType, ResourceType, Amount);
     }
 
     public override string GetDescription()
     {
         string action = ChangeType == ResourceChangeTypes.Added ? "Gain" : "Lose";
-        return $"{action} {Count} {Resource}";
+        return $"{action} {Amount} {ResourceType}";
     }
 
     public override string GetPreview(PlayerState player)
     {
-        int current = player.Inventory.GetItemCount(Resource);
-        int change = ChangeType == ResourceChangeTypes.Added ? Count : -Count;
+        int current = player.Inventory.GetItemCount(ResourceType);
+        int change = ChangeType == ResourceChangeTypes.Added ? Amount : -Amount;
         int newValue = Math.Max(0, current + change);
         return $"({current} -> {newValue})";
     }

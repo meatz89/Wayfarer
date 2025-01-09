@@ -76,9 +76,9 @@ public class GATHERingBonusModifier : ActionModifier
         foreach (Outcome reward in action.Rewards)
         {
             if (reward is ResourceOutcome resourceReward &&
-                resourceReward.Resource == resourceType)
+                resourceReward.ResourceType == resourceType)
             {
-                resourceReward.Count += bonusAmount;
+                resourceReward.Amount += bonusAmount;
             }
         }
     }
@@ -148,7 +148,7 @@ public class ConditionalResourceBonusModifier : ActionModifier
         // First check if the action normally gives the required resource
         bool hasRequiredResource = action.Rewards.Any(reward =>
             reward is ResourceOutcome resourceReward &&
-            resourceReward.Resource == requiredResourceType);
+            resourceReward.ResourceType == requiredResourceType);
 
         // Only add the bonus if the condition is met
         if (hasRequiredResource)

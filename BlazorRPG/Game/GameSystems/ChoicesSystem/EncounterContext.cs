@@ -1,4 +1,4 @@
-﻿public class EncounterActionContext
+﻿public class EncounterContext
 {
     public BasicActionTypes ActionType { get; }
     public LocationTypes LocationType { get; }
@@ -10,8 +10,9 @@
     public int StageNumber { get; }
     public int LocationDifficulty { get; set; }
     public List<ChoiceModifierEntry> ChoiceModifiersHistory { get; set; } = new();
+    public SkillTypes PrimarySkillType { get; internal set; }
 
-    public EncounterActionContext(
+    public EncounterContext(
         BasicActionTypes actionType,
         LocationTypes locationType,
         LocationArchetypes locationarcheType,
