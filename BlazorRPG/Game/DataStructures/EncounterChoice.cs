@@ -3,6 +3,7 @@
     // Identity & Description
     public int Index { get; set; }
     public string Description { get; set; }
+    public SkillTypes ChoiceRelevantSkill { get; set; }
 
     // Base Values (unmodified inputs from pattern)
     public List<ValueChange> BaseValueChanges { get; set; } = new();
@@ -12,4 +13,5 @@
 
     // Modification results (calculated by calculator)
     public ChoiceConsequences Consequences { get; set; }
+    public List<ChoiceModifierEntry> ChoiceModifierEntries { get; set; } = new();
 }

@@ -10,19 +10,19 @@
         <div class="encounter-stats">
             <div class="stat">
                 <span class="stat-label">Outcome:</span>
-                <span class="stat-value">@GameState.Actions.CurrentEncounter.EncounterContext.CurrentValues.Outcome</span>
+                <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Outcome</span>
             </div>
             <div class="stat">
                 <span class="stat-label">Insight:</span>
-                <span class="stat-value">@GameState.Actions.CurrentEncounter.EncounterContext.CurrentValues.Insight</span>
+                <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Insight</span>
             </div>
             <div class="stat">
                 <span class="stat-label">Resonance:</span>
-                <span class="stat-value">@GameState.Actions.CurrentEncounter.EncounterContext.CurrentValues.Resonance</span>
+                <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Resonance</span>
             </div>
             <div class="stat">
                 <span class="stat-label">Pressure:</span>
-                <span class="stat-value">@GameState.Actions.CurrentEncounter.EncounterContext.CurrentValues.Pressure</span>
+                <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Pressure</span>
             </div>
         </div>
 
@@ -62,14 +62,17 @@
                             {
                                 <div class="value-change">
                                     <div class="value-type">@baseChange.ValueType</div>
-                                    @foreach (var source in detail.ValueChanges)
-                                    {
-                                        <div class="value-modifier @(source.Amount > 0 ? "positive" : "negative")">
-                                            @source.Source: @(source.Amount > 0 ? "+" : "")@source.Amount
-                                        </div>
-                                    }
-                                    <div class="value-total">
-                                        Total: @(detail.ValueChanges.Sum(s => s.Amount) > 0 ? "+" : "")@detail.ValueChanges.Sum(s => s.Amount)
+                                    <div class="value-breakdown">
+                                        <span>Base: @baseChange.Change</span>
+                                        @foreach (var source in detail.ValueChanges)
+                                        {
+                                            <span class="modifier @(source.Amount > 0 ? "positive" : "negative")">
+                                                @source.Source: @(source.Amount > 0 ? "+" : "")@source.Amount
+                                            </span>
+                                        }
+                                        <span class="total">
+                                            Total: @(detail.ValueChanges.Sum(s => s.Amount) > 0 ? "+" : "")@detail.ValueChanges.Sum(s => s.Amount)
+                                        </span>
                                     </div>
                                 </div>
                             }

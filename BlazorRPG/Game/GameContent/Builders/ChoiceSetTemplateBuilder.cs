@@ -4,7 +4,7 @@
     private BasicActionTypes actionType;
     private List<LocationPropertyCondition> availabilityConditions = new();
     private List<EncounterStateCondition> stateConditions = new();
-    private List<ChoicePattern> choicePatterns = new();
+    private List<ChoiceTemplate> choicePatterns = new();
 
     public ChoiceSetTemplateBuilder WithName(string name)
     {
@@ -54,9 +54,9 @@
         return this;
     }
 
-    public ChoiceSetTemplateBuilder AddChoice(Action<ChoicePatternBuilder> buildChoice)
+    public ChoiceSetTemplateBuilder AddChoice(Action<ChoiceTemplateBuilder> buildChoice)
     {
-        ChoicePatternBuilder builder = new();
+        ChoiceTemplateBuilder builder = new();
         buildChoice(builder);
         choicePatterns.Add(builder.Build());
         return this;

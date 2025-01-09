@@ -39,7 +39,7 @@ public class ItemOutcome : Outcome
                 switch (ConditionChangeType)
                 {
                     case ItemConditionChangeTypes.Damage:
-                        item.Condition -= 10; // Example: Reduce condition
+                        item.Condition -= 40; // Example: Reduce condition
                         break;
                     case ItemConditionChangeTypes.Consume:
                         player.Inventory.RemoveResources(ResourceTypes.Food, 1); // Consume/remove the item
@@ -121,7 +121,7 @@ public class ReputationOutcome : Outcome
     public override string GetPreview(PlayerState player)
     {
         int current = player.GetReputationLevel(ReputationType);
-        int newValue = Math.Clamp(current + 1, 0, 100); // Assuming 0-100 scale
+        int newValue = Math.Clamp(current + 1, 0, 100);
         return $"({current} -> {newValue})";
     }
 }
@@ -201,7 +201,6 @@ public class HealthOutcome : Outcome
 
     public override void Apply(PlayerState player)
     {
-        // Uses Player's built-in clamping
         player.ModifyHealth(Count);
     }
 

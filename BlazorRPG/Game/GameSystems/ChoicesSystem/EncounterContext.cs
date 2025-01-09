@@ -9,8 +9,6 @@
     public EncounterStateValues CurrentValues { get; }
     public int StageNumber { get; }
     public int LocationDifficulty { get; set; }
-    public List<ChoiceModifierEntry> ChoiceModifiersHistory { get; set; } = new();
-    public SkillTypes PrimarySkillType { get; internal set; }
 
     public EncounterContext(
         BasicActionTypes actionType,

@@ -9,6 +9,7 @@
         .AddStateCondition(values => values
             .WithMaxPressure(6))
         .AddChoice(choice => choice
+            .WithSkill(SkillTypes.Strength)
             .WithBaseEnergyCost(2, EnergyTypes.Physical)
             .WithBaseValueChanges(values => values
                 .WithOutcome(3) // High Outcome
@@ -18,6 +19,7 @@
             .WithCost(new CoinsOutcome(-5))
             .WithReward(new ReputationOutcome(ReputationTypes.Unbreakable, 1)))
         .AddChoice(choice => choice
+            .WithSkill(SkillTypes.Strength)
             .WithBaseEnergyCost(1, EnergyTypes.Focus)
             .WithBaseValueChanges(values => values
                 .WithOutcome(1) // Low Outcome
@@ -25,6 +27,7 @@
                 )
             .WithRequirement(new InsightRequirement(3)))
         .AddChoice(choice => choice
+            .WithSkill(SkillTypes.Strength)
             .WithBaseEnergyCost(1, EnergyTypes.Social)
             .WithBaseValueChanges(values => values
                 .WithOutcome(2) // Medium Outcome
@@ -38,6 +41,7 @@
         .AddAvailabilityCondition(properties => properties
             .WithArchetype(LocationArchetypes.Tavern)) // Assuming you have this location type
         .AddChoice(choice => choice
+            .WithSkill(SkillTypes.Strength)
             .WithBaseEnergyCost(2, EnergyTypes.Social)
             .WithBaseValueChanges(values => values
                 .WithResonance(3)
@@ -46,6 +50,7 @@
             .WithCost(new CoinsOutcome(-3)) // Costs 3 coins
             .WithReward(new ReputationOutcome(ReputationTypes.RoguesGuild, 1))) // Rewards 1 RoguesGuild reputation
         .AddChoice(choice => choice
+            .WithSkill(SkillTypes.Strength)
             .WithBaseEnergyCost(1, EnergyTypes.Focus)
             .WithBaseValueChanges(values => values
                 .WithInsight(1)

@@ -552,3 +552,114 @@ body {
     margin-bottom: 5px;
     color: var(--resource-health); /* Example: Color for energy cost */
 }
+.value-type {
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+}
+
+.value-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.modifier {
+    margin-left: 10px;
+}
+
+.total {
+    margin-left: 10px;
+    font-weight: bold;
+}
+
+/* Cost/Reward Modifications Formatting */
+.cost-modifications, .reward-modifications {
+    margin-bottom: 20px;
+}
+
+.cost-modification, .reward-modification {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.cost-type, .reward-type {
+    font-weight: bold;
+}
+
+.base-cost, .base-reward {
+    color: var(--text-secondary);
+}
+
+.final-cost, .final-reward {
+    font-weight: bold;
+}
+
+.preview {
+    font-style: italic;
+    color: var(--text-secondary);
+}
+
+/* Energy Costs Formatting */
+.energy-costs {
+    margin-bottom: 20px;
+}
+
+.energy-cost {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.energy-type {
+    font-weight: bold;
+}
+
+.energy-preview {
+    font-family: monospace;
+}
+
+.energy-warning {
+    color: var(--danger);
+    font-size: 0.8rem;
+}
+
+.health-loss {
+    color: var(--resource-health);
+}
+
+.pressure-gain {
+    color: var(--danger);
+}
+
+.reputation-loss {
+    color: var(--resource-health);
+}
+
+/* Other Requirements Formatting */
+.other-requirements {
+    margin-bottom: 20px;
+}
+
+.requirement {
+    font-size: 0.9rem;
+    margin: 5px 0;
+    padding-left: 5px;
+    border-left: 3px solid;
+}
+
+    .requirement.met {
+        color: var(--energy-social);
+        border-color: var(--energy-social);
+    }
+
+    .requirement.unmet {
+        color: var(--resource-health);
+        border-color: var(--resource-health);
+    }

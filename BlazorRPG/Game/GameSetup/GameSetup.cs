@@ -12,23 +12,17 @@
 
         playerInfo.Health = gameRules.StartingHealth;
         playerInfo.MinHealth = gameRules.MinimumHealth;
-        playerInfo.MaxHealth = 20;
+        playerInfo.MaxHealth = 40;
 
         playerInfo.PhysicalEnergy = gameRules.StartingPhysicalEnergy;
-        playerInfo.MaxPhysicalEnergy = 20;
+        playerInfo.MaxPhysicalEnergy = 40;
 
         playerInfo.FocusEnergy = gameRules.StartingFocusEnergy;
-        playerInfo.MaxFocusEnergy = 20;
+        playerInfo.MaxFocusEnergy = 40;
 
         playerInfo.SocialEnergy = gameRules.StartingSocialEnergy;
-        playerInfo.MaxSocialEnergy = 20;
+        playerInfo.MaxSocialEnergy = 40;
 
-        Dictionary<SkillTypes, int> skills = new Dictionary<SkillTypes, int>();
-        skills[SkillTypes.Strength] = 20;
-        skills[SkillTypes.Perception] = 20;
-        skills[SkillTypes.Charisma] = 20;
-
-        playerInfo.Skills = skills;
         playerInfo.Inventory.AddResources(ResourceTypes.Food, 10);
 
         gameState.Player = playerInfo;

@@ -36,7 +36,7 @@
         }
 
         // Skill vs Difficulty impact
-        int skillVsDifficulty = context.PlayerState.GetSkillLevel(context.PrimarySkillType) - context.LocationDifficulty;
+        int skillVsDifficulty = context.PlayerState.GetSkillLevel(choice.ChoiceRelevantSkill) - context.LocationDifficulty;
         modifiers.OutcomeModifier += skillVsDifficulty;
         modifiers.AddModifierDetail("Skill Level", skillVsDifficulty);
         AddValueChangeDetail(valueChangeDetails, ValueTypes.Outcome, "Skill Level", skillVsDifficulty);

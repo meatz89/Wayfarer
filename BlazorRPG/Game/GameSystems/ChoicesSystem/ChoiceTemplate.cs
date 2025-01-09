@@ -1,8 +1,9 @@
-﻿public class ChoicePattern
+﻿public class ChoiceTemplate
 {
     public List<ValueChange> BaseValueChanges { get; set; }
     public EnergyTypes EnergyType { get; set; }
     public int BaseCost { get; set; }
+    public SkillTypes RelevantSkill { get; set; }
 
     public List<Requirement> Requirements { get; set; }
     public List<Outcome> Costs { get; set; }

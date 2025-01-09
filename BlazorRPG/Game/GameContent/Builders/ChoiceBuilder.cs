@@ -3,6 +3,7 @@
     // Basic properties
     private int index;
     private string description;
+    private SkillTypes choiceRelevantSkill;
 
     // Base values that will be used by calculator
     private List<ValueChange> baseValueChanges = new();
@@ -19,6 +20,12 @@
     public ChoiceBuilder WithName(string description)
     {
         this.description = description;
+        return this;
+    }
+
+    public ChoiceBuilder WithRelevantSkill(SkillTypes skillType)
+    {
+        this.choiceRelevantSkill = skillType;
         return this;
     }
 
@@ -140,6 +147,7 @@
         {
             Index = index,
             Description = description,
+            ChoiceRelevantSkill = choiceRelevantSkill,
             BaseValueChanges = baseValueChanges,
             Requirements = requirements,
             BaseCosts = baseCosts,

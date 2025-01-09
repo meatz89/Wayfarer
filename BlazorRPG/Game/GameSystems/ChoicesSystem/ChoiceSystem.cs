@@ -2,19 +2,21 @@
 
 public class ChoiceSystem
 {
+    private readonly GameState gameState;
     private readonly List<ChoiceSetTemplate> choiceSetTemplates;
     private readonly ChoiceSetFactory choiceSetFactory;
     private readonly ChoiceSetSelector choiceSetSelector;
     private readonly ChoiceCalculator calculator;
     private readonly ChoiceExecutor executor;
 
-    public ChoiceSystem(GameContentProvider contentProvider)
+    public ChoiceSystem(GameContentProvider contentProvider, GameState gameState)
     {
+        this.gameState = gameState;
         this.choiceSetTemplates = contentProvider.GetChoiceSetTemplates();
         this.choiceSetSelector = new ChoiceSetSelector();
         this.choiceSetFactory = new ChoiceSetFactory();
         this.calculator = new ChoiceCalculator();
-        this.executor = new ChoiceExecutor();
+        this.executor = new ChoiceExecutor(gameState);
     }
 
     public List<EncounterChoice> GenerateChoices(EncounterContext context)
@@ -57,11 +59,11 @@ public class ChoiceSystem
             if (detail != null)
             {
                 preview.AppendLine($"{baseChange.ValueType}:");
-                foreach (var source in detail.ValueChanges)
+                foreach (ValueChangeSource source in detail.ValueChanges)
                 {
                     preview.AppendLine($"  {source.Source}: {source.Amount:+#;-#;0}");
                 }
-                var total = detail.ValueChanges.Sum(s => s.Amount);
+                int total = detail.ValueChanges.Sum(s => s.Amount);
                 preview.AppendLine($"  Total: {total:+#;-#;0}");
             }
         }

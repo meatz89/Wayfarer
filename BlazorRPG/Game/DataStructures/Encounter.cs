@@ -1,6 +1,6 @@
 ﻿public class Encounter
 {
-    public EncounterContext EncounterContext { get; }
+    public EncounterContext Context { get; }
     private List<EncounterStage> stages = new();
     private int currentStage { get; set; } = 0;
     public int NumberOfStages => stages.Count();
@@ -10,7 +10,7 @@
 
     public Encounter(EncounterContext context, string situation)
     {
-        EncounterContext = context;
+        Context = context;
         Situation = situation;
     }
 
@@ -39,20 +39,20 @@
         switch (valueType)
         {
             case ValueTypes.Outcome:
-                EncounterContext.CurrentValues.Outcome += change;
+                Context.CurrentValues.Outcome += change;
                 break;
             case ValueTypes.Pressure:
-                EncounterContext.CurrentValues.Pressure += change;
+                Context.CurrentValues.Pressure += change;
                 break;
             case ValueTypes.Insight:
-                EncounterContext.CurrentValues.Insight += change;
+                Context.CurrentValues.Insight += change;
                 break;
             case ValueTypes.Resonance:
-                EncounterContext.CurrentValues.Resonance += change;
+                Context.CurrentValues.Resonance += change;
                 break;
         }
 
         // Clamp all values to valid range
-        EncounterContext.CurrentValues.ClampValues();
+        Context.CurrentValues.ClampValues();
     }
 }

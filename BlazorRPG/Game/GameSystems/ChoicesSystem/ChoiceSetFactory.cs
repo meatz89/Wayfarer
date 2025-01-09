@@ -7,7 +7,7 @@
 
         // Create base choices from patterns
         List<EncounterChoice> choices = new();
-        foreach (ChoicePattern pattern in template.ChoicePatterns)
+        foreach (ChoiceTemplate pattern in template.ChoicePatterns)
         {
             EncounterChoice choice = CreateChoiceFromPattern(pattern, context);
             choices.Add(choice);
@@ -16,13 +16,14 @@
         return new ChoiceSet(choices);
     }
 
-    private EncounterChoice CreateChoiceFromPattern(ChoicePattern pattern, EncounterContext context)
+    private EncounterChoice CreateChoiceFromPattern(ChoiceTemplate pattern, EncounterContext context)
     {
         string description = GenerateDescription(pattern, context);
 
         // Create the choice with only base values
         ChoiceBuilder choiceBuilder = new ChoiceBuilder()
             .WithName(description)
+            .WithRelevantSkill(pattern.RelevantSkill)
             .RequiresEnergy(pattern.EnergyType, pattern.BaseCost)
             .WithValueChanges(pattern.BaseValueChanges)
             .WithRequirements(pattern.Requirements)
@@ -32,7 +33,7 @@
         return choiceBuilder.Build();
     }
 
-    private string GenerateDescription(ChoicePattern pattern, EncounterContext context)
+    private string GenerateDescription(ChoiceTemplate pattern, EncounterContext context)
     {
         string description = "";
 

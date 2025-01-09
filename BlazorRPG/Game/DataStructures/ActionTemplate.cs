@@ -5,8 +5,8 @@
     public List<TimeSlots> TimeSlots { get; set; }
     public List<LocationPropertyCondition> AvailabilityConditions { get; set; }
 
-    // Make the constructor internal so that only the builder can access it
-    internal ActionTemplate(string name, BasicActionTypes actionType, List<TimeSlots> timeSlots,
+    // Make the constructor public so that only the builder can access it
+    public ActionTemplate(string name, BasicActionTypes actionType, List<TimeSlots> timeSlots,
                          List<LocationPropertyCondition> availabilityConditions)
     {
         Name = name;

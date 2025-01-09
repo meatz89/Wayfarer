@@ -29,9 +29,6 @@
         // Let ChoiceSystem execute the choice
         choiceSystem.ExecuteChoice(choice);
 
-        // Apply any encounter-specific post-execution logic
-        ApplyEncounterStateValueModifications(encounter);
-
         // Check for game over or victory conditions
         if (IsGameOver() || HasWon(encounter))
         {
@@ -50,7 +47,7 @@
 
     private bool HasWon(Encounter encounter)
     {
-        return encounter.EncounterContext.CurrentValues.Outcome >= 20;
+        return encounter.Context.CurrentValues.Outcome >= 40;
     }
 
     private EncounterStage GenerateStage(EncounterContext context)
@@ -88,35 +85,6 @@
         return encounter;
     }
 
-
-    private void ApplyEncounterStateValueModifications(Encounter encounter)
-    {
-        EncounterContext context = encounter.EncounterContext;
-
-        // **Resonance Modifiers**
-        if (context.CurrentValues.Resonance >= 8)
-        {
-            context.CurrentValues.Outcome += 2;
-        }
-        else if (context.CurrentValues.Resonance >= 5)
-        {
-            context.CurrentValues.Outcome += 1;
-        }
-
-        // **Determine Base Outcome Based on Values**
-        // This is where you'll implement logic to derive the outcome description
-        // based on the combination of Outcome, Pressure, Insight, and Resonance values.
-        // You can use a similar approach to what you had in `GetOutcomeType`, but
-        // instead of returning a string, you might want to set properties on the
-        // `Encounter` or `EncounterStage` that describe the outcome.
-
-        // Clamp values after applying modifications
-        context.CurrentValues.Outcome = Math.Clamp(context.CurrentValues.Outcome, 0, 10);
-        context.CurrentValues.Insight = Math.Clamp(context.CurrentValues.Insight, 0, 10);
-        context.CurrentValues.Resonance = Math.Clamp(context.CurrentValues.Resonance, 0, 10);
-        context.CurrentValues.Pressure = Math.Clamp(context.CurrentValues.Pressure, 0, 10);
-    }
-
     public void SetActiveEncounter(Encounter encounter)
     {
         gameState.Actions.SetActiveEncounter(encounter);
@@ -126,13 +94,13 @@
     public bool GetNextStage(Encounter encounter)
     {
         // Don't proceed if we've hit our success condition (Outcome ≥ 20) or if the player is in a game over state
-        if (encounter.EncounterContext.CurrentValues.Outcome >= 20 || IsGameOver())
+        if (encounter.Context.CurrentValues.Outcome >= 20 || IsGameOver())
         {
             return false;
         }
 
         // Generate new stage and add it
-        EncounterStage newStage = GenerateStage(encounter.EncounterContext);
+        EncounterStage newStage = GenerateStage(encounter.Context);
         if (newStage == null) return false;
 
         encounter.AddStage(newStage);

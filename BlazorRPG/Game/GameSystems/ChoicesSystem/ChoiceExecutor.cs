@@ -1,7 +1,11 @@
 ﻿public class ChoiceExecutor
 {
     private readonly GameState gameState;
-    private readonly MessageSystem messageSystem;
+
+    public ChoiceExecutor(GameState gameState)
+    {
+        this.gameState = gameState;
+    }
 
     public void ExecuteChoice(EncounterChoice choice)
     {
@@ -32,9 +36,6 @@
         {
             reward.Apply(gameState.Player);
         }
-
-        // Generate messages about all changes
-        messageSystem.GenerateChoiceResultMessages(consequences);
     }
 
     private bool AreRequirementsMet(List<Requirement> requirements)

@@ -19,9 +19,4 @@ public class MessageSystem
         currentChanges = new ActionResultMessages();
         return changes;
     }
-
-    internal void GenerateChoiceResultMessages(ChoiceConsequences consequences)
-    {
-        throw new NotImplementedException();
-    }
 }

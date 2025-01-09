@@ -8,7 +8,6 @@
     public int Resonance { get; set; }
     public int Pressure { get; set; }
 
-
     public EncounterStateValues(int outcome, int insight, int resonance, int pressure)
     {
         this.Outcome = outcome;
@@ -39,12 +38,12 @@
         }
     }
 
-    internal void ClampValues()
+    public void ClampValues()
     {
 
-        Outcome = Math.Clamp(Outcome, 0, 20);
-        Insight = Math.Clamp(Insight, 0, 20);
-        Resonance = Math.Clamp(Resonance, 0, 20);
-        Pressure = Math.Clamp(Pressure, 0, 20);
+        Outcome = Math.Clamp(Outcome, 0, 40);
+        Insight = Math.Clamp(Insight, 0, 40);
+        Resonance = Math.Clamp(Resonance, 0, 40);
+        Pressure = Math.Clamp(Pressure, 0, 40);
     }
 }

@@ -1,6 +1,6 @@
 ﻿public class ChoiceSetScore
 {
-    public List<ChoicePattern> ChoicePatterns { get; set; }
+    public List<ChoiceTemplate> ChoicePatterns { get; set; }
     public int BaseScore { get; set; }  // Starting point based on template
 
     // Situational Modifiers

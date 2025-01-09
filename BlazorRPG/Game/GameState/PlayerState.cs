@@ -28,16 +28,16 @@
     public Equipment Equipment { get; set; }
     public List<Knowledge> Knowledge { get; set; } = new();
     public Dictionary<ReputationTypes, int> Reputations { get; set; } = new();
-    public Encounter CurrentEncounter { get; internal set; }
+    public Encounter CurrentEncounter { get; set; }
 
     public PlayerState()
     {
         Inventory = new Inventory(GameRules.StandardRuleset.StartingInventorySize);
         Equipment = new Equipment();
 
-        Skills.Add(SkillTypes.Strength, 1); // Example: Give the player some starting skills
-        Skills.Add(SkillTypes.Perception, 2);
-        Skills.Add(SkillTypes.Charisma, 3);
+        Skills.Add(SkillTypes.Strength, 5);
+        Skills.Add(SkillTypes.Perception, 5);
+        Skills.Add(SkillTypes.Charisma, 8);
         Skills.Add(SkillTypes.Crafting, 2);
 
         Reputations.Add(ReputationTypes.Honest, 3); // Initialize a reputation
@@ -58,23 +58,23 @@
 
         Health = GameRules.StandardRuleset.StartingHealth;
         MinHealth = GameRules.StandardRuleset.MinimumHealth;
-        MaxHealth = 10;
+        MaxHealth = 40;
 
         PhysicalEnergy = GameRules.StandardRuleset.StartingPhysicalEnergy;
-        MaxPhysicalEnergy = 20;
+        MaxPhysicalEnergy = 40;
 
         FocusEnergy = GameRules.StandardRuleset.StartingFocusEnergy;
-        MaxFocusEnergy = 20;
+        MaxFocusEnergy = 40;
 
         SocialEnergy = GameRules.StandardRuleset.StartingSocialEnergy;
-        MaxSocialEnergy = 20;
+        MaxSocialEnergy = 40;
 
         Stress = MinStress = 0;
-        MaxStress = 20;
+        MaxStress = 40;
 
         Reputation = 0;
         MinReputation = 0;
-        MaxReputation = 20;
+        MaxReputation = 40;
     }
 
     public bool ModifyCoins(int count)
@@ -223,25 +223,25 @@
         return Knowledge.Any(k => k.KnowledgeType == knowledgeType);
     }
 
-    internal bool HasAchievement(AchievementTypes achievementType)
+    public int GetSkillLevel(SkillTypes primarySkillType)
+    {
+        return Skills[primarySkillType];
+    }
+
+    public bool HasAchievement(AchievementTypes achievementType)
     {
         return true;
     }
 
-    internal void UnlockAchievement(AchievementTypes achievementType)
+    public void UnlockAchievement(AchievementTypes achievementType)
     {
     }
 
-    internal int GetSkillLevel(SkillTypes primarySkillType)
-    {
-        return 10;
-    }
-
-    internal void ModifyResource(ResourceChangeTypes changeType, ResourceTypes resourceType, int amount)
+    public void ModifyResource(ResourceChangeTypes changeType, ResourceTypes resourceType, int amount)
     {
     }
 
-    internal bool HasStatus(PlayerStatusTypes status)
+    public bool HasStatus(PlayerStatusTypes status)
     {
         return true;
     }
