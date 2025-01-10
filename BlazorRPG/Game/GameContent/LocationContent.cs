@@ -39,4 +39,164 @@
             .ForActionType(BasicActionTypes.Rest))
         .WithDifficultyLevel(1)
         .Build();
+
+    public static Location BusyMarketplace => new LocationBuilder()
+    .SetLocationType(LocationTypes.Commercial)
+    .ForLocation(LocationNames.BusyMarketplace)
+    .SetLocationArchetype(LocationArchetypes.Market)
+    .WithLocationProperties(properties => properties
+        .WithScale(ScaleVariationTypes.Large)
+        .WithExposure(ExposureConditionTypes.Outdoor)
+        .WithCrowdLevel(CrowdLevelTypes.Crowded)
+        .WithLegality(LegalityTypes.Legal)
+        .WithPressure(PressureStateTypes.Alert)
+        .WithComplexity(ComplexityTypes.Complex)
+    )
+    .AddLocationSpot(spot => spot
+        .WithName("Merchant Stalls")
+        .ForActionType(BasicActionTypes.Persuade))
+    .AddLocationSpot(spot => spot
+        .WithName("Food Court")
+        .ForActionType(BasicActionTypes.Gather))
+    .AddLocationSpot(spot => spot
+        .WithName("Market Square")
+        .ForActionType(BasicActionTypes.Perform))
+    .AddLocationSpot(spot => spot
+        .WithName("Auction Block")
+        .ForActionType(BasicActionTypes.Investigate))
+    .WithDifficultyLevel(2)
+    .Build();
+
+    public static Location QuietBookshop => new LocationBuilder()
+        .SetLocationType(LocationTypes.Commercial)
+        .ForLocation(LocationNames.QuietBookshop)
+        .SetLocationArchetype(LocationArchetypes.Library)
+        .WithLocationProperties(properties => properties
+            .WithScale(ScaleVariationTypes.Intimate)
+            .WithExposure(ExposureConditionTypes.Indoor)
+            .WithCrowdLevel(CrowdLevelTypes.Sparse)
+            .WithLegality(LegalityTypes.Legal)
+            .WithPressure(PressureStateTypes.Relaxed)
+            .WithComplexity(ComplexityTypes.Complex)
+        )
+        .AddLocationSpot(spot => spot
+            .WithName("Reading Nook")
+            .ForActionType(BasicActionTypes.Study))
+        .AddLocationSpot(spot => spot
+            .WithName("Shop Counter")
+            .ForActionType(BasicActionTypes.Labor))
+        .AddLocationSpot(spot => spot
+            .WithName("Rare Books Section")
+            .ForActionType(BasicActionTypes.Investigate))
+        .WithDifficultyLevel(1)
+        .Build();
+
+
+public static Location BusyDockyard => new LocationBuilder()
+    .SetLocationType(LocationTypes.Industrial)
+    .ForLocation(LocationNames.BusyDockyard)
+    .SetLocationArchetype(LocationArchetypes.Docks)
+    .WithLocationProperties(properties => properties
+        .WithScale(ScaleVariationTypes.Large)
+        .WithExposure(ExposureConditionTypes.Outdoor)
+        .WithCrowdLevel(CrowdLevelTypes.Busy)
+        .WithLegality(LegalityTypes.Gray)
+        .WithPressure(PressureStateTypes.Alert)
+        .WithComplexity(ComplexityTypes.Complex)
+        .WithResource(ResourceTypes.Fish)
+    )
+    .AddLocationSpot(spot => spot
+        .WithName("Loading Area")
+        .ForActionType(BasicActionTypes.Labor))
+    .AddLocationSpot(spot => spot
+        .WithName("Fish Market")
+        .ForActionType(BasicActionTypes.Gather))
+    .AddLocationSpot(spot => spot
+        .WithName("Harbormaster's Office")
+        .ForActionType(BasicActionTypes.Investigate))
+    .AddLocationSpot(spot => spot
+        .WithName("Workers' Rest Area")
+        .ForActionType(BasicActionTypes.Mingle))
+    .WithDifficultyLevel(3)
+    .Build();
+
+    public static Location CraftsmanWorkshop => new LocationBuilder()
+        .SetLocationType(LocationTypes.Industrial)
+        .ForLocation(LocationNames.CraftsmanWorkshop)
+        .SetLocationArchetype(LocationArchetypes.Workshop)
+        .WithLocationProperties(properties => properties
+            .WithScale(ScaleVariationTypes.Intimate)
+            .WithExposure(ExposureConditionTypes.Indoor)
+            .WithCrowdLevel(CrowdLevelTypes.Sparse)
+            .WithLegality(LegalityTypes.Legal)
+            .WithPressure(PressureStateTypes.Relaxed)
+            .WithComplexity(ComplexityTypes.Complex)
+            .WithResource(ResourceTypes.Cloth)
+        )
+        .AddLocationSpot(spot => spot
+            .WithName("Workbench")
+            .ForActionType(BasicActionTypes.Labor))
+        .AddLocationSpot(spot => spot
+            .WithName("Storage Area")
+            .ForActionType(BasicActionTypes.Gather))
+        .AddLocationSpot(spot => spot
+            .WithName("Apprentice Corner")
+            .ForActionType(BasicActionTypes.Study))
+        .WithDifficultyLevel(2)
+        .Build();
+
+
+    public static Location WildForest => new LocationBuilder()
+    .SetLocationType(LocationTypes.Natural)
+    .ForLocation(LocationNames.WildForest)
+    .SetLocationArchetype(LocationArchetypes.Forest)
+    .WithLocationProperties(properties => properties
+        .WithScale(ScaleVariationTypes.Large)
+        .WithExposure(ExposureConditionTypes.Outdoor)
+        .WithCrowdLevel(CrowdLevelTypes.Empty)
+        .WithLegality(LegalityTypes.Gray)
+        .WithPressure(PressureStateTypes.Alert)
+        .WithComplexity(ComplexityTypes.Complex)
+        .WithResource(ResourceTypes.Herbs)
+    )
+    .AddLocationSpot(spot => spot
+        .WithName("Herb Garden")
+        .ForActionType(BasicActionTypes.Gather))
+    .AddLocationSpot(spot => spot
+        .WithName("Meditation Grove")
+        .ForActionType(BasicActionTypes.Reflect))
+    .AddLocationSpot(spot => spot
+        .WithName("Hidden Trail")
+        .ForActionType(BasicActionTypes.Travel))
+    .AddLocationSpot(spot => spot
+        .WithName("Ancient Ruins")
+        .ForActionType(BasicActionTypes.Investigate))
+    .WithDifficultyLevel(3)
+    .Build();
+
+    public static Location TendedGarden => new LocationBuilder()
+        .SetLocationType(LocationTypes.Natural)
+        .ForLocation(LocationNames.TendedGarden)
+        .SetLocationArchetype(LocationArchetypes.Garden)
+        .WithLocationProperties(properties => properties
+            .WithScale(ScaleVariationTypes.Medium)
+            .WithExposure(ExposureConditionTypes.Outdoor)
+            .WithCrowdLevel(CrowdLevelTypes.Sparse)
+            .WithLegality(LegalityTypes.Legal)
+            .WithPressure(PressureStateTypes.Relaxed)
+            .WithComplexity(ComplexityTypes.Simple)
+            .WithResource(ResourceTypes.Food)
+        )
+        .AddLocationSpot(spot => spot
+            .WithName("Vegetable Beds")
+            .ForActionType(BasicActionTypes.Labor))
+        .AddLocationSpot(spot => spot
+            .WithName("Herb Section")
+            .ForActionType(BasicActionTypes.Gather))
+        .AddLocationSpot(spot => spot
+            .WithName("Garden Bench")
+            .ForActionType(BasicActionTypes.Reflect))
+        .WithDifficultyLevel(1)
+        .Build();
+
 }

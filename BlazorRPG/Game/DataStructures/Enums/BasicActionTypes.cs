@@ -5,7 +5,7 @@
     // Physical Actions define direct interaction with the world:
     Labor, // Directed physical effort. (Reward Type: Wealth/Resources)
     Gather, // Collecting/taking resources. (Reward Type: Resources)
-    Move, // Traversing/positioning. (Reward Type: Position/State Change)
+    Travel, // Traversing/positioning. (Reward Type: Position/State Change)
 
     // Social Actions handle character interactions:
     Mingle, // Casual interaction. (Reward Type: Relationships/Social Energy)

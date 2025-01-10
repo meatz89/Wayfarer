@@ -16,7 +16,7 @@
         return allLocations;
     }
 
-    public List<LocationNames> GetLocationResonances(LocationNames currentLocation)
+    public List<LocationNames> GetLocationConnections(LocationNames currentLocation)
     {
         Location location = GetLocation(currentLocation);
         return location.TravelConnections;

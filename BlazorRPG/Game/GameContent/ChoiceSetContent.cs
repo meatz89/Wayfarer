@@ -1,5 +1,36 @@
 ﻿public static class ChoiceSetContent
 {
+    public static ChoiceSetTemplate InvestigateQuietTavern => new ChoiceSetTemplateBuilder()
+    .WithName("Careful Observation")
+    .WithActionType(BasicActionTypes.Investigate) // Victory condition: Insight
+    .AddAvailabilityCondition(properties => properties
+        .WithArchetype(LocationArchetypes.Tavern)
+        .WithCrowdLevel(CrowdLevelTypes.Empty))
+    .AddStateCondition(values => values
+        .WithMaxPressure(5))
+    .AddChoice(choice => choice
+        // Primary victory progress choice
+        .WithArchetype(ChoiceArchetypes.Focus)
+        .WithApproach(ChoiceApproaches.Direct)
+        .WithBaseValueChanges(values => values
+            .WithInsight(3) // High progress toward victory
+            .WithPressure(1)))
+    .AddChoice(choice => choice
+        // Pressure management choice
+        .WithArchetype(ChoiceArchetypes.Focus)
+        .WithApproach(ChoiceApproaches.Pragmatic)
+        .WithBaseValueChanges(values => values
+            .WithInsight(1)
+            .WithPressure(-1))) // Pressure Management
+    .AddChoice(choice => choice
+        // Secondary benefits choice
+        .WithArchetype(ChoiceArchetypes.Social)
+        .WithApproach(ChoiceApproaches.Tactical)
+        .WithBaseValueChanges(values => values
+            .WithResonance(2) // Focusing on secondary benefits
+            .WithInsight(1)))
+    .Build();
+
     public static ChoiceSetTemplate ServingDrinks => new ChoiceSetTemplateBuilder()
         .WithName("Rush Hour Service")
         .WithActionType(BasicActionTypes.Labor)

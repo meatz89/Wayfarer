@@ -76,6 +76,7 @@ public class GameManager
     private void OnPlayerEnterLocation(Location location)
     {
         List<ActionTemplate> allActionTemplates = ActionContent.LoadActionTemplates();
+
         List<LocationSpot> locationSpots = location.LocationSpots;
         ActionAvailabilityService availabilityService = new ActionAvailabilityService();
 
@@ -310,11 +311,6 @@ public class GameManager
         UpdateState();
     }
 
-    public List<LocationNames> GetConnectedLocations()
-    {
-        List<LocationNames> loc = LocationSystem.GetLocationResonances(gameState.World.CurrentLocation.LocationName);
-        return loc;
-    }
 
     public List<Location> GetAllLocations()
     {
@@ -322,10 +318,31 @@ public class GameManager
         return loc;
     }
 
+    public List<LocationNames> GetConnectedLocations()
+    {
+        List<LocationNames> loc = 
+            LocationSystem.GetLocations()
+            .Where(x => x != gameState.World.CurrentLocation)
+            .Select(x => x.LocationName)
+            .ToList();
+
+        return loc;
+    }
+
     public bool CanTravelTo(LocationNames locationName)
     {
         List<LocationNames> locs = GetConnectedLocations();
-        return locs.Contains(locationName);
+        bool canTravel = locs.Contains(locationName);
+
+        int cost = GetTravelCostForLocation(locationName);
+
+        return canTravel;
+    }
+
+    private int GetTravelCostForLocation(LocationNames locationName)
+    {
+        // Todo: Calculate from range
+        return 1;
     }
 
     public bool CanMoveToSpot(string locationSpotName)

@@ -19,6 +19,12 @@
         locations = new List<Location>
         {
             LocationContent.LionsHeadTavern,
+            LocationContent.QuietBookshop,
+            LocationContent.CraftsmanWorkshop,
+            LocationContent.TendedGarden,
+            LocationContent.BusyDockyard,
+            LocationContent.BusyMarketplace,
+            LocationContent.WildForest
         };
 
         characters = new List<Character>

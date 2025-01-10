@@ -31,10 +31,27 @@ public class EncounterSystem
             gameState.Actions.SetActiveEncounter(null);
         }
     }
-
     private bool WinGame(Encounter encounter)
     {
-        return encounter.Context.CurrentValues.Outcome >= 100;
+        return encounter.Context.ActionType switch
+        {
+            // Physical actions check Outcome
+            BasicActionTypes.Labor => encounter.Context.CurrentValues.Outcome >= 10,
+            BasicActionTypes.Gather => encounter.Context.CurrentValues.Outcome >= 10,
+            BasicActionTypes.Travel => encounter.Context.CurrentValues.Outcome >= 10,
+
+            // Social actions check Resonance
+            BasicActionTypes.Mingle => encounter.Context.CurrentValues.Resonance >= 10,
+            BasicActionTypes.Persuade => encounter.Context.CurrentValues.Resonance >= 10,
+            BasicActionTypes.Perform => encounter.Context.CurrentValues.Resonance >= 10,
+
+            // Mental actions check Insight
+            BasicActionTypes.Investigate => encounter.Context.CurrentValues.Insight >= 10,
+            BasicActionTypes.Study => encounter.Context.CurrentValues.Insight >= 10,
+            BasicActionTypes.Reflect => encounter.Context.CurrentValues.Insight >= 10,
+
+            _ => false
+        };
     }
 
     private EncounterStage GenerateStage(EncounterContext context)

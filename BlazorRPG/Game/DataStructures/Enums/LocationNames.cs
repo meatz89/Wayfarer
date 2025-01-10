@@ -5,5 +5,11 @@
     GenericMarket,
     LionsHeadTavern,
     GenericForest,
-    GenericTavern
+    GenericTavern,
+    TendedGarden,
+    WildForest,
+    CraftsmanWorkshop,
+    BusyDockyard,
+    QuietBookshop,
+    BusyMarketplace
 }
