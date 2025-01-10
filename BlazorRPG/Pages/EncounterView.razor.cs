@@ -77,43 +77,35 @@ public partial class EncounterViewBase : ComponentBase
             _ => effect.RuleDescription
         };
     }
-
     public string RenderValueModification(EncounterChoice choice, ValueChange finalChange)
     {
         List<string> modifications = new();
-        var relevantModifications = choice.Modifications
-            .Where(m => m.Type == ModificationType.ValueChange &&
-                        (m.ValueChange.ValueType == finalChange.ValueType || m.ValueChange.TargetValueType == finalChange.ValueType))
-            .OrderBy(m => m.Source == ModificationSource.LocationProperty ? 0 : 1); // Prioritize location property modifications
 
-        foreach (var modification in relevantModifications)
+        // Get the true base value from the original value in the first modification
+        var firstMod = choice.Modifications
+            .FirstOrDefault(m => m.Type == ModificationType.ValueChange &&
+                                m.ValueChange?.ValueType == finalChange.ValueType);
+
+        int baseValue = firstMod?.ValueChange?.OriginalValue ?? 0;
+
+        // If we have a base value and modifications, add it first
+        if (baseValue != 0)
         {
-            string modDesc = "";
+            modifications.Add($"Base: {(baseValue > 0 ? "+" : "")}{baseValue}");
+        }
+
+        // Add each modification's contribution
+        foreach (var modification in choice.Modifications
+            .Where(m => m.Type == ModificationType.ValueChange &&
+                        m.ValueChange?.ValueType == finalChange.ValueType)
+            .OrderBy(m => m.Source == ModificationSource.LocationProperty ? 0 : 1))
+        {
             if (modification.Source == ModificationSource.LocationProperty)
             {
-                modDesc += $"{modification.SourceDetails}: ";
+                var valueChange = modification.ValueChange;
+                var contribution = valueChange.ConversionAmount; // This is the actual modification amount
+                modifications.Add($"{modification.SourceDetails}: {(contribution > 0 ? "+" : "")}{contribution}");
             }
-
-            if (modification.ValueChange.TargetValueType == null) // Direct modification
-            {
-                if (modification.ValueChange.ValueType == finalChange.ValueType)
-                {
-                    modDesc += $"{(modification.ValueChange.NewSourceValue > 0 ? "+" : "")}{modification.ValueChange.NewSourceValue - modification.ValueChange.OriginalSourceValue}";
-                }
-            }
-            else // Conversion
-            {
-                if (modification.ValueChange.ValueType == finalChange.ValueType) // Source of conversion
-                {
-                    modDesc += $"{(modification.ValueChange.ConversionAmount > 0 ? "-" : "")}{modification.ValueChange.ConversionAmount} (to {modification.ValueChange.TargetValueType})";
-                }
-                else if (modification.ValueChange.TargetValueType == finalChange.ValueType) // Target of conversion
-                {
-                    modDesc += $"{(modification.ValueChange.ConversionAmount > 0 ? "+" : "")}{modification.ValueChange.ConversionAmount} (from {modification.ValueChange.ValueType})";
-                }
-            }
-
-            modifications.Add(modDesc);
         }
 
         return modifications.Count > 0 ? $"({string.Join(", ", modifications)})" : string.Empty;
@@ -124,8 +116,8 @@ public partial class EncounterViewBase : ComponentBase
         // Check if there are *any* modifications for this value type
         return choice.Modifications.Any(m =>
             m.Type == ModificationType.ValueChange &&
-            (m.ValueChange.ValueType == finalChange.ValueType ||
-             (m.ValueChange.TargetValueType.HasValue && m.ValueChange.TargetValueType.Value == finalChange.ValueType)));
+            m.ValueChange != null &&
+            m.ValueChange.ValueType == finalChange.ValueType);
     }
 
     public List<LocationPropertyChoiceEffect> GetLocationEffects(EncounterChoice choice)
@@ -174,47 +166,18 @@ public partial class EncounterViewBase : ComponentBase
             {
                 var valueChangeMod = modification.ValueChange;
 
-                // Handle direct value changes and conversions
-                if (valueChangeMod.TargetValueType == null) // Direct change
+                // Handle direct value changes
+                var existingChange = modifiedValueChanges
+                    .FirstOrDefault(vc => vc.ValueType == valueChangeMod.ValueType);
+
+                if (existingChange != null)
                 {
-                    var existingChange = modifiedValueChanges
-                        .FirstOrDefault(vc => vc.ValueType == valueChangeMod.ValueType);
-
-                    if (existingChange != null)
-                    {
-                        existingChange.Change = valueChangeMod.NewSourceValue;
-                    }
-                    else
-                    {
-                        modifiedValueChanges.Add(new ValueChange(valueChangeMod.ValueType, valueChangeMod.NewSourceValue));
-                    }
-                }
-                else // Conversion
-                {
-                    var sourceChange = modifiedValueChanges
-                        .FirstOrDefault(vc => vc.ValueType == valueChangeMod.ValueType);
-                    var targetChange = modifiedValueChanges
-                        .FirstOrDefault(vc => vc.ValueType == valueChangeMod.TargetValueType);
-
-                    if (sourceChange != null)
-                    {
-                        sourceChange.Change = valueChangeMod.NewSourceValue;
-                    }
-
-                    if (targetChange != null)
-                    {
-                        targetChange.Change = valueChangeMod.NewTargetValue;
-                    }
-                    else
-                    {
-                        modifiedValueChanges.Add(new ValueChange(valueChangeMod.TargetValueType.Value, valueChangeMod.NewTargetValue));
-                    }
+                    existingChange.Change = valueChangeMod.TargetValue; // Update the change with the modified value
                 }
             }
         }
 
         return modifiedValueChanges;
     }
-
 
 }

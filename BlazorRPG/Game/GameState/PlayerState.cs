@@ -112,6 +112,16 @@
         return false;
     }
 
+    internal void ModifyEnergy(EnergyTypes energyType, int amount)
+    {
+        switch (energyType)
+        {
+            case EnergyTypes.Physical:  ModifyPhysicalEnergy(amount); break;
+            case EnergyTypes.Focus:  ModifyFocusEnergy(amount); break;
+            case EnergyTypes.Social: ModifySocialEnergy(amount); break;
+        };
+    }
+
     public bool ModifyPhysicalEnergy(int count)
     {
         int newEnergy = Math.Clamp(PhysicalEnergy + count, 0, MaxPhysicalEnergy);
@@ -264,4 +274,5 @@
     {
         return true;
     }
+
 }

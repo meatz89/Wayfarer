@@ -12,8 +12,11 @@
         // 1. Reset Modifications
         choice.Modifications.Clear();
 
-        // 2. Use Base Values Directly
-        choice.ModifiedValueChanges = new List<ValueChange>(choice.BaseValueChanges);
+        // 2. Create fresh ValueChange objects for modifications
+        choice.ModifiedValueChanges = choice.BaseValueChanges
+            .Select(vc => new ValueChange(vc.ValueType, vc.Change))
+            .ToList();
+
         choice.ModifiedRequirements = new List<Requirement>(choice.Requirements);
         choice.ModifiedCosts = new List<Outcome>(choice.BaseCosts);
         choice.ModifiedRewards = new List<Outcome>(choice.BaseRewards);
@@ -42,16 +45,16 @@
                 modification.ValueChange = ApplyValueModification(choice, mod);
                 break;
             case ValueConversion conv:
-                modification.Type = ModificationType.ValueChange;
-                modification.ValueChange = ApplyValueConversion(choice, conv);
+                modification.Type = ModificationType.ValueConversion;
+                modification.ValueConversion = ApplyValueConversion(choice, conv);
                 break;
             case PartialValueConversion pConv:
-                modification.Type = ModificationType.ValueChange;
-                modification.ValueChange = ApplyPartialValueConversion(choice, pConv);
+                modification.Type = ModificationType.ValueConversion;
+                modification.ValueConversion = ApplyPartialValueConversion(choice, pConv);
                 break;
             case EnergyModification eMod:
                 modification.Type = ModificationType.Requirement;
-                modification.ValueChange = ApplyEnergyModification(choice, eMod);
+                modification.EnergyChange = ApplyEnergyModification(choice, eMod);
                 break;
             case ValueBonus bonus:
                 modification.Type = ModificationType.ValueChange;
@@ -61,6 +64,8 @@
 
         // Only add the modification if something actually changed
         if (modification.ValueChange != null ||
+            modification.ValueConversion != null ||
+            modification.EnergyChange != null ||
             modification.Requirement != null ||
             modification.Cost != null ||
             modification.Reward != null)
@@ -69,98 +74,96 @@
         }
     }
 
-    private ValueChangeModification ApplyValueBonus(EncounterChoice choice, ValueBonus bonus)
+    private ValueChangeModification ApplyValueModification(EncounterChoice choice, ValueModification mod)
     {
-        ValueChange? sourceChange = choice.ModifiedValueChanges
-            .FirstOrDefault(vc => vc.ValueType == bonus.ValueType);
+        ValueChange? targetChange = choice.ModifiedValueChanges
+            .FirstOrDefault(vc => vc.ValueType == mod.ValueType);
 
-        // If there's nothing to convert, no modification happened
-        if (sourceChange == null)
-            return null;
+        if (targetChange == null) return null;
 
-        int convertedAmount = sourceChange.Change;
+        // Get the true base value from BaseValueChanges (which stays untouched)
+        int originalValue = choice.BaseValueChanges
+            .First(vc => vc.ValueType == mod.ValueType).Change;
 
-        // Record both the removal of source value and addition of target value
         ValueChangeModification modification = new()
         {
-            ValueType = bonus.ValueType,
-            OriginalSourceValue = convertedAmount,
-            NewSourceValue = 0,
-            TargetValueType = bonus.ValueType,
-            OriginalTargetValue = 0,
-            NewTargetValue = convertedAmount,
-            ConversionAmount = convertedAmount
+            ValueType = mod.ValueType,
+            OriginalValue = originalValue,
+            TargetValue = targetChange.Change + mod.ModifierAmount,
+            ConversionAmount = mod.ModifierAmount,
+            ValueChangeSourceType = ValueChangeSourceType.LocationProperty
         };
 
-        // Perform the actual conversion
-        choice.ModifiedValueChanges.Remove(sourceChange);
-        choice.ModifiedValueChanges.Add(new ValueChange(bonus.ValueType, convertedAmount));
-
+        targetChange.Change += mod.ModifierAmount;
         return modification;
     }
 
-
-    private ValueChangeModification ApplyValueModification(EncounterChoice choice, ValueModification modf)
-    {
-        ValueChange? sourceChange = choice.ModifiedValueChanges
-            .FirstOrDefault(vc => vc.ValueType == modf.ValueType);
-
-        // If there's nothing to convert, no modification happened
-        if (sourceChange == null)
-            return null;
-
-        int convertedAmount = sourceChange.Change;
-
-        // Record both the removal of source value and addition of target value
-        ValueChangeModification modification = new()
-        {
-            ValueType = modf.ValueType,  
-            OriginalSourceValue = convertedAmount,
-            NewSourceValue = 0,
-            TargetValueType = modf.ValueType,
-            OriginalTargetValue = 0,
-            NewTargetValue = convertedAmount,
-            ConversionAmount = convertedAmount  
-        };
-
-        // Perform the actual conversion
-        choice.ModifiedValueChanges.Remove(sourceChange);
-        choice.ModifiedValueChanges.Add(new ValueChange(modf.ValueType, convertedAmount));
-
-        return modification;
-    }
-
-    private ValueChangeModification ApplyValueConversion(EncounterChoice choice, ValueConversion conv)
+    private ValueConversionModification ApplyValueConversion(EncounterChoice choice, ValueConversion conv)
     {
         ValueChange? sourceChange = choice.ModifiedValueChanges
             .FirstOrDefault(vc => vc.ValueType == conv.SourceValueType);
 
-        // If there's nothing to convert, no modification happened
-        if (sourceChange == null)
-            return null;
+        if (sourceChange == null) return null;
+
+        ValueChange? targetChange = choice.ModifiedValueChanges
+            .FirstOrDefault(vc => vc.ValueType == conv.TargetValueType);
+
+        // Get original values from BaseValueChanges to ensure we're using unmodified values
+        int originalSourceValue = choice.BaseValueChanges
+            .First(vc => vc.ValueType == conv.SourceValueType).Change;
+        int originalTargetValue = choice.BaseValueChanges
+            .FirstOrDefault(vc => vc.ValueType == conv.TargetValueType)?.Change ?? 0;
 
         int convertedAmount = sourceChange.Change;
+        sourceChange.Change = 0;
 
-        // Record both the removal of source value and addition of target value
+        if (targetChange != null)
+        {
+            targetChange.Change += convertedAmount;
+        }
+        else
+        {
+            choice.ModifiedValueChanges.Add(new ValueChange(conv.TargetValueType, convertedAmount));
+        }
+
+        return new ValueConversionModification
+        {
+            ValueType = conv.SourceValueType,
+            OriginalValue = originalSourceValue,
+            SourceTargetValue = 0,
+            TargetValueType = conv.TargetValueType,
+            OriginalTargetValue = originalTargetValue,
+            NewTargetValue = originalTargetValue + convertedAmount,
+            ConversionAmount = convertedAmount,
+            ValueChangeSourceType = ValueChangeSourceType.LocationProperty
+        };
+    }
+
+    private ValueChangeModification ApplyValueBonus(EncounterChoice choice, ValueBonus bonus)
+    {
+        ValueChange? targetChange = choice.ModifiedValueChanges
+            .FirstOrDefault(vc => vc.ValueType == bonus.ValueType);
+
+        if (targetChange == null) return null;
+
+        // Get original value from BaseValueChanges to ensure we're using unmodified value
+        int originalValue = choice.BaseValueChanges
+            .First(vc => vc.ValueType == bonus.ValueType).Change;
+
         ValueChangeModification modification = new()
         {
-            ValueType = conv.SourceValueType,  // We track the source type since it's being converted
-            OriginalSourceValue = convertedAmount,
-            NewSourceValue = 0,
-            TargetValueType = conv.TargetValueType,
-            OriginalTargetValue = 0,
-            NewTargetValue = convertedAmount,
-            ConversionAmount = convertedAmount  // Full amount was converted
+            ValueType = bonus.ValueType,
+            OriginalValue = originalValue,
+            TargetValue = targetChange.Change + bonus.BonusAmount,
+            ConversionAmount = bonus.BonusAmount,
+            ValueChangeSourceType = ValueChangeSourceType.LocationProperty
         };
 
-        // Perform the actual conversion
-        choice.ModifiedValueChanges.Remove(sourceChange);
-        choice.ModifiedValueChanges.Add(new ValueChange(conv.TargetValueType, convertedAmount));
-
+        targetChange.Change += bonus.BonusAmount;
         return modification;
     }
 
-    private ValueChangeModification ApplyPartialValueConversion(EncounterChoice choice, PartialValueConversion pConv)
+    private ValueConversionModification ApplyPartialValueConversion(EncounterChoice choice, PartialValueConversion pConv)
     {
         // Early exit if this conversion doesn't apply to this choice type
         if (choice.Archetype != pConv.TargetArchetype)
@@ -180,18 +183,6 @@
         int originalSourceValue = sourceChange.Change;
         int originalTargetValue = targetChange?.Change ?? 0;
 
-        // Record both the partial reduction of source and increase of target
-        ValueChangeModification modification = new()
-        {
-            ValueType = pConv.SourceValueType,  // We track the source type since it's being partially converted
-            OriginalSourceValue = originalSourceValue,
-            NewSourceValue = originalSourceValue - pConv.ConversionAmount,
-            TargetValueType = pConv.TargetValueType,
-            OriginalTargetValue = originalTargetValue,
-            NewTargetValue = originalTargetValue + pConv.ConversionAmount,
-            ConversionAmount = pConv.ConversionAmount  // Only part of the value was converted
-        };
-
         // Perform the actual conversion
         sourceChange.Change -= pConv.ConversionAmount;
 
@@ -204,10 +195,23 @@
             choice.ModifiedValueChanges.Add(new ValueChange(pConv.TargetValueType, pConv.ConversionAmount));
         }
 
+        // Create a ValueConversionModification record
+        ValueConversionModification modification = new()
+        {
+            ValueType = pConv.SourceValueType,
+            OriginalValue = originalSourceValue,
+            SourceTargetValue = sourceChange.Change, // New source value after partial conversion
+            TargetValueType = pConv.TargetValueType,
+            OriginalTargetValue = originalTargetValue,
+            NewTargetValue = originalTargetValue + pConv.ConversionAmount, // New target value after partial conversion
+            ConversionAmount = pConv.ConversionAmount,
+            ValueChangeSourceType = ValueChangeSourceType.LocationProperty
+        };
+
         return modification;
     }
 
-    private ValueChangeModification ApplyEnergyModification(EncounterChoice choice, EnergyModification eMod)
+    private EnergyChangeModification ApplyEnergyModification(EncounterChoice choice, EnergyModification eMod)
     {
         if (choice.Archetype != eMod.TargetArchetype)
             return null;
@@ -228,10 +232,9 @@
                 OriginalValue = originalAmount,
                 NewValue = energyRequirement.Amount
             };
+            return modification;
         }
 
         return null;
     }
-
-
 }

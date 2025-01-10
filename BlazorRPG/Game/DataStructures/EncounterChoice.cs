@@ -24,7 +24,6 @@
     public List<Outcome> ModifiedRewards { get; set; } = new();
 }
 
-
 public class ChoiceModification
 {
     public ModificationSource Source { get; set; }
@@ -33,6 +32,7 @@ public class ChoiceModification
     public string SourceDetails { get; set; } // Added property for source details
 
     // Specific modification data (only one of these will be populated based on Type)
+    public ValueConversionModification ValueConversion { get; set; }
     public ValueChangeModification ValueChange { get; set; }
     public EnergyChangeModification EnergyChange { get; set; }
     public RequirementModification Requirement { get; set; }
@@ -53,12 +53,24 @@ public class EnergyChangeModification
 public class ValueChangeModification
 {
     public ValueTypes ValueType { get; set; }
-    public int OriginalSourceValue { get; set; }
-    public int NewSourceValue { get; set; }
+    public int OriginalValue { get; set; }
+    public int TargetValue { get; set; }
+    public int ConversionAmount { get; set; } // Only used for conversions and value bonus
+    public ValueChangeSourceType ValueChangeSourceType { get; set; }
+}
+
+
+// Data for modifying a ValueChange
+public class ValueConversionModification
+{
+    public ValueTypes ValueType { get; set; }
+    public int OriginalValue { get; set; }
+    public int SourceTargetValue { get; set; }
     public ValueTypes? TargetValueType { get; set; }  // Only used for conversions
     public int OriginalTargetValue { get; set; }      // Only used for conversions
     public int NewTargetValue { get; set; }           // Only used for conversions
     public int ConversionAmount { get; set; }         // Only used for conversions
+    public ValueChangeSourceType ValueChangeSourceType { get; internal set; }
 }
 
 // Data for modifying a Requirement
@@ -95,7 +107,8 @@ public enum ModificationType
     Requirement,
     Cost,
     Reward,
-    EnergyCost
+    EnergyCost,
+    ValueConversion
 }
 
 public enum RequirementSource
