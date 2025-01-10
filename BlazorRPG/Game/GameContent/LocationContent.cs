@@ -4,8 +4,8 @@
     public static Location LionsHeadTavern => new LocationBuilder()
         .SetLocationType(LocationTypes.Residential)
         .ForLocation(LocationNames.LionsHeadTavern)
-        .SetLocationArchetype(LocationArchetypes.Tavern)
         .WithLocationProperties(properties => properties
+            .WithArchetype(LocationArchetypes.Tavern)
             .WithScale(ScaleVariationTypes.Medium)
             .WithExposure(ExposureConditionTypes.Indoor)
             .WithCrowdLevel(CrowdLevelTypes.Crowded)
@@ -43,8 +43,8 @@
     public static Location BusyMarketplace => new LocationBuilder()
     .SetLocationType(LocationTypes.Commercial)
     .ForLocation(LocationNames.BusyMarketplace)
-    .SetLocationArchetype(LocationArchetypes.Market)
     .WithLocationProperties(properties => properties
+        .WithArchetype(LocationArchetypes.Market)
         .WithScale(ScaleVariationTypes.Large)
         .WithExposure(ExposureConditionTypes.Outdoor)
         .WithCrowdLevel(CrowdLevelTypes.Crowded)
@@ -70,8 +70,8 @@
     public static Location QuietBookshop => new LocationBuilder()
         .SetLocationType(LocationTypes.Commercial)
         .ForLocation(LocationNames.QuietBookshop)
-        .SetLocationArchetype(LocationArchetypes.Library)
         .WithLocationProperties(properties => properties
+            .WithArchetype(LocationArchetypes.Library)
             .WithScale(ScaleVariationTypes.Intimate)
             .WithExposure(ExposureConditionTypes.Indoor)
             .WithCrowdLevel(CrowdLevelTypes.Sparse)
@@ -95,8 +95,8 @@
     public static Location BusyDockyard => new LocationBuilder()
         .SetLocationType(LocationTypes.Industrial)
         .ForLocation(LocationNames.BusyDockyard)
-        .SetLocationArchetype(LocationArchetypes.Docks)
         .WithLocationProperties(properties => properties
+            .WithArchetype(LocationArchetypes.Docks)
             .WithScale(ScaleVariationTypes.Large)
             .WithExposure(ExposureConditionTypes.Outdoor)
             .WithCrowdLevel(CrowdLevelTypes.Busy)
@@ -123,8 +123,8 @@
     public static Location CraftsmanWorkshop => new LocationBuilder()
         .SetLocationType(LocationTypes.Industrial)
         .ForLocation(LocationNames.CraftsmanWorkshop)
-        .SetLocationArchetype(LocationArchetypes.Workshop)
         .WithLocationProperties(properties => properties
+            .WithArchetype(LocationArchetypes.CraftsmanWorkshop)
             .WithScale(ScaleVariationTypes.Intimate)
             .WithExposure(ExposureConditionTypes.Indoor)
             .WithCrowdLevel(CrowdLevelTypes.Sparse)
@@ -149,8 +149,8 @@
     public static Location WildForest => new LocationBuilder()
     .SetLocationType(LocationTypes.Natural)
     .ForLocation(LocationNames.WildForest)
-    .SetLocationArchetype(LocationArchetypes.Forest)
     .WithLocationProperties(properties => properties
+        .WithArchetype(LocationArchetypes.Forest)
         .WithScale(ScaleVariationTypes.Large)
         .WithExposure(ExposureConditionTypes.Outdoor)
         .WithCrowdLevel(CrowdLevelTypes.Empty)
@@ -177,8 +177,8 @@
     public static Location TendedGarden => new LocationBuilder()
         .SetLocationType(LocationTypes.Natural)
         .ForLocation(LocationNames.TendedGarden)
-        .SetLocationArchetype(LocationArchetypes.Garden)
         .WithLocationProperties(properties => properties
+            .WithArchetype(LocationArchetypes.Garden)
             .WithScale(ScaleVariationTypes.Medium)
             .WithExposure(ExposureConditionTypes.Outdoor)
             .WithCrowdLevel(CrowdLevelTypes.Sparse)

@@ -86,6 +86,22 @@ public class GameManager
             spot.Actions.Clear();
         }
 
+        CreateActionsForLocation(location, allActionTemplates, locationSpots, availabilityService);
+
+        List<UserActionOption> options = new List<UserActionOption>();
+        foreach (LocationSpot locationSpot in locationSpots)
+        {
+            foreach (ActionImplementation action in locationSpot.Actions)
+            {
+                UserActionOption userActionOption = new UserActionOption(default, action.Name, false, action, locationSpot.LocationName, locationSpot.Name, default);
+                options.Add(userActionOption);
+            }
+        }
+        gameState.Actions.SetLocationSpotActions(options);
+    }
+
+    private static void CreateActionsForLocation(Location location, List<ActionTemplate> allActionTemplates, List<LocationSpot> locationSpots, ActionAvailabilityService availabilityService)
+    {
         foreach (ActionTemplate template in allActionTemplates)
         {
             // Use ActionAvailabilityService to check availability
@@ -116,18 +132,6 @@ public class GameManager
                 }
             }
         }
-
-
-        List<UserActionOption> options = new List<UserActionOption>();
-        foreach (LocationSpot locationSpot in locationSpots)
-        {
-            foreach (ActionImplementation action in locationSpot.Actions)
-            {
-                UserActionOption userActionOption = new UserActionOption(default, action.Name, false, action, locationSpot.LocationName, locationSpot.Name, default);
-                options.Add(userActionOption);
-            }
-        }
-        gameState.Actions.SetLocationSpotActions(options);
     }
 
     public void CreateQuestActions()

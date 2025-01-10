@@ -2,7 +2,6 @@
 {
     private LocationTypes locationType;
     private LocationNames locationName;
-    private LocationArchetypes locationArchetype;
     private List<LocationNames> travelResonances = new();
     private List<LocationSpot> locationSpots = new();
     private int difficultyLevel;
@@ -19,12 +18,6 @@
     public LocationBuilder ForLocation(LocationNames name)
     {
         this.locationName = name;
-        return this;
-    }
-
-    public LocationBuilder SetLocationArchetype(LocationArchetypes archetype)
-    {
-        this.locationArchetype = archetype;
         return this;
     }
 
@@ -70,7 +63,6 @@
         return new Location(
             locationType,
             locationName,
-            locationArchetype,
             travelResonances,
             locationSpots,
             locationProperties,

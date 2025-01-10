@@ -4,7 +4,6 @@
     {
         List<ActionTemplate> actionTemplates = new List<ActionTemplate>();
 
-        // Example: Serve Drinks
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName("Serve Drinks")
             .WithActionType(BasicActionTypes.Labor)
@@ -13,8 +12,33 @@
             .AddTimeSlot(TimeSlots.Evening)
             .AddTimeSlot(TimeSlots.Night)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Tavern)
-                .WithCrowdLevel(CrowdLevelTypes.Crowded))
+                .WithArchetype(LocationArchetypes.Tavern)    // Mandatory
+                .WithExposure(ExposureConditionTypes.Indoor) // Mandatory
+                .WithLegality(LegalityTypes.Legal))          // Mandatory
+            .Build());
+
+        // Perform Music - Similar core requirements
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName("Perform Music")
+            .WithActionType(BasicActionTypes.Perform)
+            .AddTimeSlot(TimeSlots.Evening)
+            .AddTimeSlot(TimeSlots.Night)
+            .AddAvailabilityCondition(properties => properties
+                .WithArchetype(LocationArchetypes.Tavern)    // Mandatory
+                .WithExposure(ExposureConditionTypes.Indoor) // Mandatory
+                .WithLegality(LegalityTypes.Legal))          // Mandatory
+            .Build());
+
+        // Gossip - Same pattern
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName("Gossip")
+            .WithActionType(BasicActionTypes.Mingle)
+            .AddTimeSlot(TimeSlots.Evening)
+            .AddTimeSlot(TimeSlots.Night)
+            .AddAvailabilityCondition(properties => properties
+                .WithArchetype(LocationArchetypes.Tavern)    // Mandatory
+                .WithExposure(ExposureConditionTypes.Indoor) // Mandatory
+                .WithLegality(LegalityTypes.Legal))          // Mandatory
             .Build());
 
         // Example: Clean Tables
@@ -70,16 +94,6 @@
             .AddTimeSlot(TimeSlots.Afternoon)
             .AddAvailabilityCondition(properties => properties
                 .WithArchetype(LocationArchetypes.Forest))
-            .Build());
-
-        // Example: Gossip in the Tavern
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Gossip")
-            .WithActionType(BasicActionTypes.Mingle)
-            .AddTimeSlot(TimeSlots.Evening)
-            .AddTimeSlot(TimeSlots.Night)
-            .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Tavern))
             .Build());
 
         // Example: Investigate in the Tavern
@@ -169,94 +183,66 @@
                 .WithScale(ScaleVariationTypes.Large))
             .Build());
 
-        // Social networking in gray area
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName("Network with Smugglers")
             .WithActionType(BasicActionTypes.Mingle)
             .AddTimeSlot(TimeSlots.Evening)
             .AddTimeSlot(TimeSlots.Night)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Docks)
-                .WithLegality(LegalityTypes.Gray))
+                .WithLegality(LegalityTypes.Gray)        // Must be a legally ambiguous area
+                .WithCrowdLevel(CrowdLevelTypes.Sparse)  // Not too many witnesses
+                .WithPressure(PressureStateTypes.Alert)) // Some tension in the air
             .Build());
 
-        // Fish gathering depends on time
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Sort Fresh Catch")
-            .WithActionType(BasicActionTypes.Gather)
-            .AddTimeSlot(TimeSlots.Morning)
-            .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Docks)
-                .WithResource(ResourceTypes.Fish))
-            .Build());
-
-        // === WORKSHOP ACTIONS ===
-        // Crafting combines focus and physical labor
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Craft Clothing")
-            .WithActionType(BasicActionTypes.Labor)
-            .AddTimeSlot(TimeSlots.Morning)
-            .AddTimeSlot(TimeSlots.Afternoon)
-            .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Workshop)
-                .WithResource(ResourceTypes.Cloth))
-            .Build());
-
-        // Apprenticeship learning
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Study Crafting")
-            .WithActionType(BasicActionTypes.Study)
-            .AddTimeSlot(TimeSlots.Morning)
-            .AddTimeSlot(TimeSlots.Afternoon)
-            .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Workshop)
-                .WithComplexity(ComplexityTypes.Complex))
-            .Build());
-
-        // === FOREST ACTIONS ===
-        // Herb gathering requires focus and timing
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Forage for Herbs")
-            .WithActionType(BasicActionTypes.Gather)
-            .AddTimeSlot(TimeSlots.Morning)
-            .AddTimeSlot(TimeSlots.Afternoon)
-            .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Forest)
-                .WithResource(ResourceTypes.Herbs))
-            .Build());
-
-        // Meditation benefits from isolation
+        // "Forest Meditation" - Now properly requires a natural setting
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName("Forest Meditation")
             .WithActionType(BasicActionTypes.Reflect)
             .AddTimeSlot(TimeSlots.Morning)
             .AddTimeSlot(TimeSlots.Evening)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Forest)
-                .WithCrowdLevel(CrowdLevelTypes.Empty))
+                .WithArchetype(LocationArchetypes.Forest)        // Must be in forest
+                .WithExposure(ExposureConditionTypes.Outdoor)   // Must be outside
+                .WithCrowdLevel(CrowdLevelTypes.Empty)          // Needs solitude
+                .WithPressure(PressureStateTypes.Relaxed))      // Peaceful atmosphere
             .Build());
 
-        // === GARDEN ACTIONS ===
-        // Garden work combines physical labor with focus
+        // "Study Ancient Texts" should work in any quiet, complex location
         actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Tend Garden")
-            .WithActionType(BasicActionTypes.Labor)
+            .WithName("Study Ancient Texts")
+            .WithActionType(BasicActionTypes.Study)
             .AddTimeSlot(TimeSlots.Morning)
             .AddTimeSlot(TimeSlots.Afternoon)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Garden)
-                .WithResource(ResourceTypes.Food))
+                .WithComplexity(ComplexityTypes.Complex)       // Intellectual environment
+                .WithCrowdLevel(CrowdLevelTypes.Sparse)       // Need quiet
+                .WithPressure(PressureStateTypes.Relaxed)     // Peaceful atmosphere
+                .WithExposure(ExposureConditionTypes.Indoor)) // Indoor activity
             .Build());
 
-        // Peaceful reflection in nature
+        // "Street Performance" - Now properly requires a market setting
         actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Garden Contemplation")
-            .WithActionType(BasicActionTypes.Reflect)
-            .AddTimeSlot(TimeSlots.Morning)
+            .WithName("Street Performance")
+            .WithActionType(BasicActionTypes.Perform)
+            .AddTimeSlot(TimeSlots.Afternoon)
             .AddTimeSlot(TimeSlots.Evening)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Garden)
-                .WithPressure(PressureStateTypes.Relaxed))
+                .WithArchetype(LocationArchetypes.Market)        // Must be in market
+                .WithCrowdLevel(CrowdLevelTypes.Crowded)        // Need an audience
+                .WithScale(ScaleVariationTypes.Large)           // Need space
+                .WithLegality(LegalityTypes.Legal))             // Must be allowed
+            .Build());
+
+        // "Sort Fresh Catch" - Now properly requires a dock setting
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName("Sort Fresh Catch")
+            .WithActionType(BasicActionTypes.Gather)
+            .AddTimeSlot(TimeSlots.Morning)
+            .AddAvailabilityCondition(properties => properties
+                .WithArchetype(LocationArchetypes.Docks)         // Must be at docks
+                .WithResource(ResourceTypes.Fish)                // Must have fish
+                .WithExposure(ExposureConditionTypes.Outdoor)    // Fresh air needed
+                .WithScale(ScaleVariationTypes.Large))           // Need work space
             .Build());
 
         return actionTemplates;

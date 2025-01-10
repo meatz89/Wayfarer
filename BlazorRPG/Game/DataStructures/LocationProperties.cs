@@ -48,7 +48,8 @@ public enum LocationArchetypes
     None,
     Library,
     ConstructionSite,
-    Docks
+    Docks,
+    CraftsmanWorkshop
 }
 
 public class ArchetypeValue : LocationPropertyTypeValue

@@ -3,7 +3,6 @@
     public Location(
         LocationTypes locationType,
         LocationNames locationName,
-        LocationArchetypes locationArchetype,
         List<LocationNames> travelResonances,
         List<LocationSpot> locationSpots,
         LocationProperties locationProperties,
@@ -11,7 +10,6 @@
     {
         LocationType = locationType;
         LocationName = locationName;
-        Archetype = locationArchetype;
         TravelConnections = travelResonances;
         LocationSpots = locationSpots;
         LocationProperties = locationProperties;
@@ -24,7 +22,6 @@
     public List<LocationNames> TravelConnections { get; set; }
     public List<LocationSpot> LocationSpots { get; set; } // Action groupings
     public LocationProperties LocationProperties { get; set; }
-
     public int DifficultyLevel { get; set; }
 
 }
