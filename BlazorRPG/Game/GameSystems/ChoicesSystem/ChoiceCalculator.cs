@@ -225,9 +225,19 @@
             int originalAmount = energyRequirement.Amount;
             energyRequirement.Amount = Math.Max(0, energyRequirement.Amount + eMod.EnergyCostModifier);
 
+            // Map the choice archetype to the correct energy type
+            EnergyTypes energyType = choice.Archetype switch
+            {
+                ChoiceArchetypes.Physical => EnergyTypes.Physical,
+                ChoiceArchetypes.Focus => EnergyTypes.Focus,
+                ChoiceArchetypes.Social => EnergyTypes.Social,
+                _ => throw new ArgumentOutOfRangeException(nameof(choice.Archetype),
+                    "All choice archetypes must map to an energy type")
+            };
+
             EnergyChangeModification modification = new()
             {
-                EnergyType = EnergyTypes.Physical,
+                EnergyType = energyType,  // Now using the correct energy type
                 ChoiceArchetype = eMod.TargetArchetype,
                 OriginalValue = originalAmount,
                 NewValue = energyRequirement.Amount
