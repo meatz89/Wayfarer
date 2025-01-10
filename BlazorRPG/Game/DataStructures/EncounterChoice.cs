@@ -34,17 +34,31 @@ public class ChoiceModification
 
     // Specific modification data (only one of these will be populated based on Type)
     public ValueChangeModification ValueChange { get; set; }
+    public EnergyChangeModification EnergyChange { get; set; }
     public RequirementModification Requirement { get; set; }
     public OutcomeModification Cost { get; set; }
     public OutcomeModification Reward { get; set; }
+}
+
+// Data for modifying a EnergyChange
+public class EnergyChangeModification
+{
+    public EnergyTypes EnergyType { get; set; }
+    public ChoiceArchetypes ChoiceArchetype { get; set; }  
+    public int OriginalValue { get; set; }
+    public int NewValue { get; set; }
 }
 
 // Data for modifying a ValueChange
 public class ValueChangeModification
 {
     public ValueTypes ValueType { get; set; }
-    public int Amount { get; set; }
-    public ValueTransformation ValueTransformation { get; set; }
+    public int OriginalSourceValue { get; set; }
+    public int NewSourceValue { get; set; }
+    public ValueTypes? TargetValueType { get; set; }  // Only used for conversions
+    public int OriginalTargetValue { get; set; }      // Only used for conversions
+    public int NewTargetValue { get; set; }           // Only used for conversions
+    public int ConversionAmount { get; set; }         // Only used for conversions
 }
 
 // Data for modifying a Requirement

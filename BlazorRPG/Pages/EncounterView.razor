@@ -75,7 +75,7 @@
                 <div class="final-results">
                     <h5>Final Results</h5>
                     <div class="value-list">
-                        @foreach (var finalChange in hoveredChoice.EncounterChoice.ModifiedValueChanges)
+                        @foreach (var finalChange in GetModifiedValue(hoveredChoice))
                         {
                             <div class="value-item @GetValueChangeClass(finalChange)">
                                 @GetValueTypeIcon(finalChange.ValueType)

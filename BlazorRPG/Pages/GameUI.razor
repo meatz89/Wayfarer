@@ -76,26 +76,36 @@
     <div class="location-properties">
         <div class="properties-header">Properties</div>
             <div class="properties-grid">
+                    @foreach (var prop in GetLocationPropertiesWithEffects())
+                    {
+                        if (prop.Effects.Count > 0)
+                        {
+                            <div class="property-tag @prop.CssClass" data-tooltip="@string.Join(" | ", prop.Effects)">
+                                <span class="property-icon">@prop.Icon</span>
+                                <span class="property-text">@prop.Text</span>
+                                <span class="effect-indicator">✨</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="property-tag @prop.CssClass">
+                                <span class="property-icon">@prop.Icon</span>
+                                <span class="property-text">@prop.Text</span>
+                            </div>
+                        }
+                    }
+                </div>
+            <ul class="property-effects">
                 @foreach (var prop in GetLocationPropertiesWithEffects())
                 {
-                    if(prop.Effects.Count > 0)
+                    @foreach (var effect in prop.Effects)
                     {
-                        <div class="property-tag @prop.CssClass" data-tooltip="@string.Join(" | ", prop.Effects)">
-                            <span class="property-icon">@prop.Icon</span>
-                            <span class="property-text">@prop.Text</span>
-                            <span class="effect-indicator">✨</span>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="property-tag @prop.CssClass">
-                            <span class="property-icon">@prop.Icon</span>
-                            <span class="property-text">@prop.Text</span>
-                        </div>
+                        <li>@effect</li>
                     }
                 }
+            </ul>
+
             </div>
-        </div>
         </div>
 
         <div class="sidebar-panel">

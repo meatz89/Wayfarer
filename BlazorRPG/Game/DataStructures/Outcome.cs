@@ -5,6 +5,11 @@
 
     // Method to preview outcome without applying it
     public abstract string GetPreview(PlayerState player);
+
+    public override string ToString()
+    {
+        return GetDescription();
+    }
 }
 
 public class ItemOutcome : Outcome

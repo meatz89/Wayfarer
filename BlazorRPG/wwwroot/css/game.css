@@ -1002,3 +1002,39 @@ body {
     font-style: italic;
     margin: 0;
 }
+.property-tag {
+    display: inline-flex; /* Align icon and indicator horizontally */
+    align-items: center;
+    padding: 1px 5px;
+    border-radius: 10px;
+    box-shadow: 1px 1px 2px #666666, -1px -1px 2px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+.property-icon {
+    font-size: 1.2em;
+}
+
+.effect-indicator {
+    margin-left: 5px; /* Add a small space between icon and indicator */
+    font-size: 0.8em;
+    color: #daa520;
+}
+
+.property-effects {
+    list-style-type: disc;
+    margin: 20px 0 0 20px; /* Indent the list */
+    padding-left: 0;
+    font-size: 0.8em;
+    color: #a0aec0;
+}
+
+    .property-effects li {
+        margin-top: 10px;
+    }
+
+.properties-grid {
+    display: flex; /* Arrange the icons in a row */
+    flex-wrap: wrap; /* Allow wrapping to the next line */
+    margin-bottom: 10px; /* Add some space before the effects list */
+}

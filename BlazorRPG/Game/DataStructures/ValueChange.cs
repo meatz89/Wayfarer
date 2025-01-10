@@ -8,4 +8,9 @@
         ValueType = type;
         Change = change;
     }
+
+    public override string ToString()
+    {
+        return $"{Change} {ValueType.ToString()}";
+    }
 }
