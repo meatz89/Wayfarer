@@ -92,33 +92,33 @@
         .Build();
 
 
-public static Location BusyDockyard => new LocationBuilder()
-    .SetLocationType(LocationTypes.Industrial)
-    .ForLocation(LocationNames.BusyDockyard)
-    .SetLocationArchetype(LocationArchetypes.Docks)
-    .WithLocationProperties(properties => properties
-        .WithScale(ScaleVariationTypes.Large)
-        .WithExposure(ExposureConditionTypes.Outdoor)
-        .WithCrowdLevel(CrowdLevelTypes.Busy)
-        .WithLegality(LegalityTypes.Gray)
-        .WithPressure(PressureStateTypes.Alert)
-        .WithComplexity(ComplexityTypes.Complex)
-        .WithResource(ResourceTypes.Fish)
-    )
-    .AddLocationSpot(spot => spot
-        .WithName("Loading Area")
-        .ForActionType(BasicActionTypes.Labor))
-    .AddLocationSpot(spot => spot
-        .WithName("Fish Market")
-        .ForActionType(BasicActionTypes.Gather))
-    .AddLocationSpot(spot => spot
-        .WithName("Harbormaster's Office")
-        .ForActionType(BasicActionTypes.Investigate))
-    .AddLocationSpot(spot => spot
-        .WithName("Workers' Rest Area")
-        .ForActionType(BasicActionTypes.Mingle))
-    .WithDifficultyLevel(3)
-    .Build();
+    public static Location BusyDockyard => new LocationBuilder()
+        .SetLocationType(LocationTypes.Industrial)
+        .ForLocation(LocationNames.BusyDockyard)
+        .SetLocationArchetype(LocationArchetypes.Docks)
+        .WithLocationProperties(properties => properties
+            .WithScale(ScaleVariationTypes.Large)
+            .WithExposure(ExposureConditionTypes.Outdoor)
+            .WithCrowdLevel(CrowdLevelTypes.Busy)
+            .WithLegality(LegalityTypes.Gray)
+            .WithPressure(PressureStateTypes.Alert)
+            .WithComplexity(ComplexityTypes.Complex)
+            .WithResource(ResourceTypes.Fish)
+        )
+        .AddLocationSpot(spot => spot
+            .WithName("Loading Area")
+            .ForActionType(BasicActionTypes.Labor))
+        .AddLocationSpot(spot => spot
+            .WithName("Fish Market")
+            .ForActionType(BasicActionTypes.Gather))
+        .AddLocationSpot(spot => spot
+            .WithName("Harbormaster's Office")
+            .ForActionType(BasicActionTypes.Investigate))
+        .AddLocationSpot(spot => spot
+            .WithName("Workers' Rest Area")
+            .ForActionType(BasicActionTypes.Mingle))
+        .WithDifficultyLevel(3)
+        .Build();
 
     public static Location CraftsmanWorkshop => new LocationBuilder()
         .SetLocationType(LocationTypes.Industrial)

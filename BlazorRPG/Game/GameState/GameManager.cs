@@ -300,7 +300,7 @@ public class GameManager
 
     public List<LocationNames> GetConnectedLocations()
     {
-        List<LocationNames> loc = 
+        List<LocationNames> loc =
             LocationSystem.GetLocations()
             .Where(x => x != gameState.World.CurrentLocation)
             .Select(x => x.LocationName)

@@ -250,12 +250,12 @@ public partial class GameUI : ComponentBase
 
     private List<PropertyDisplay> GetLocationPropertiesWithEffects()
     {
-        var properties = new List<PropertyDisplay>();
-        var loc = CurrentLocation.LocationProperties;
+        List<PropertyDisplay> properties = new List<PropertyDisplay>();
+        LocationProperties loc = CurrentLocation.LocationProperties;
 
         if (loc.IsArchetypeSet)
         {
-            var archetypeEffects = GetEffectDescriptions(LocationPropertyTypes.Archetype);
+            List<string> archetypeEffects = GetEffectDescriptions(LocationPropertyTypes.Archetype);
             properties.Add(new(
                 "🏠",
                 FormatLocationArchetype(CurrentLocation.Archetype),
@@ -266,7 +266,7 @@ public partial class GameUI : ComponentBase
 
         if (loc.IsScaleSet)
         {
-            var scaleEffects = GetEffectDescriptions(LocationPropertyTypes.Scale);
+            List<string> scaleEffects = GetEffectDescriptions(LocationPropertyTypes.Scale);
             properties.Add(new(
                 "📐",
                 FormatScale(loc.Scale),
@@ -277,7 +277,7 @@ public partial class GameUI : ComponentBase
 
         if (loc.IsExposureSet)
         {
-            var exposureEffects = GetEffectDescriptions(LocationPropertyTypes.Exposure);
+            List<string> exposureEffects = GetEffectDescriptions(LocationPropertyTypes.Exposure);
             properties.Add(new(
                 loc.Exposure == ExposureConditionTypes.Indoor ? "🏗️" : "🌳",
                 FormatExposure(loc.Exposure),
@@ -288,7 +288,7 @@ public partial class GameUI : ComponentBase
 
         if (loc.IsLegalitySet)
         {
-            var legalityEffects = GetEffectDescriptions(LocationPropertyTypes.Legality);
+            List<string> legalityEffects = GetEffectDescriptions(LocationPropertyTypes.Legality);
             properties.Add(new(
                 "⚖️",
                 FormatLegality(loc.Legality),
@@ -299,7 +299,7 @@ public partial class GameUI : ComponentBase
 
         if (loc.IsPressureSet)
         {
-            var pressureEffects = GetEffectDescriptions(LocationPropertyTypes.Pressure);
+            List<string> pressureEffects = GetEffectDescriptions(LocationPropertyTypes.Pressure);
             properties.Add(new(
                 GetPressureIcon(loc.Pressure),
                 FormatPressure(loc.Pressure),
@@ -310,7 +310,7 @@ public partial class GameUI : ComponentBase
 
         if (loc.IsComplexitySet)
         {
-            var complexityEffects = GetEffectDescriptions(LocationPropertyTypes.Complexity);
+            List<string> complexityEffects = GetEffectDescriptions(LocationPropertyTypes.Complexity);
             properties.Add(new(
                 "🧩",
                 FormatComplexity(loc.Complexity),
@@ -321,7 +321,7 @@ public partial class GameUI : ComponentBase
 
         if (loc.IsResourceSet && loc.Resource != ResourceTypes.None)
         {
-            var resourceEffects = GetEffectDescriptions(LocationPropertyTypes.Resource);
+            List<string> resourceEffects = GetEffectDescriptions(LocationPropertyTypes.Resource);
             properties.Add(new(
                 GetResourceIcon(loc.Resource),
                 FormatResource(loc.Resource),
@@ -332,7 +332,7 @@ public partial class GameUI : ComponentBase
 
         if (loc.IsCrowdLevelSet)
         {
-            var crowdEffects = GetEffectDescriptions(LocationPropertyTypes.CrowdLevel);
+            List<string> crowdEffects = GetEffectDescriptions(LocationPropertyTypes.CrowdLevel);
             properties.Add(new(
                 GetCrowdIcon(loc.CrowdLevel),
                 FormatCrowdLevel(loc.CrowdLevel),
@@ -340,7 +340,7 @@ public partial class GameUI : ComponentBase
                 crowdEffects
             ));
         }
-        
+
         return properties;
     }
 

@@ -46,7 +46,7 @@
         LocationProperties locationProperties = location.LocationProperties;
 
         List<LocationPropertyChoiceEffect> effects = new List<LocationPropertyChoiceEffect>();
-        foreach (LocationPropertyChoiceEffect locationContextEffect in locationContextEffects) 
+        foreach (LocationPropertyChoiceEffect locationContextEffect in locationContextEffects)
         {
             if (IsLocationPropertyMatch(locationContextEffect.LocationProperty, locationProperties))
             {
