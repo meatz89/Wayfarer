@@ -10,7 +10,7 @@
             .WithLocation(LocationNames.GenericMarket)
             .WithCharacter(CharacterNames.WealthyMerchant)
             .WithAction(action => action
-                .ForAction(BasicActionTypes.Trade)
+                .ForAction(BasicActionTypes.Persuade)
                 .WithDescription("Prove yourself to Merchant")
                 .ExpendsEnergy(1, EnergyTypes.Social)
                 .RewardsReputation(ReputationTypes.Reliable, 1)

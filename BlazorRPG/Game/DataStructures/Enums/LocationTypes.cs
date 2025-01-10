@@ -12,8 +12,8 @@ public enum ChoiceArchetypes
 
 public enum ChoiceApproaches
 {
-    Aggressive,
-    Careful,
-    Strategic,
-    Desperate
+    Direct,
+    Pragmatic,
+    Tactical,
+    Improvised
 }

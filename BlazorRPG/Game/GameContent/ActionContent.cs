@@ -52,18 +52,6 @@
                 .WithArchetype(LocationArchetypes.Forest))
             .Build());
 
-        // Example: Barter at Tavern
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Barter")
-            .WithActionType(BasicActionTypes.Trade)
-            .AddTimeSlot(TimeSlots.Morning)
-            .AddTimeSlot(TimeSlots.Afternoon)
-            .AddTimeSlot(TimeSlots.Evening)
-            .AddTimeSlot(TimeSlots.Night)
-            .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Tavern))
-            .Build());
-
         // Example: Play Music at Tavern
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName("Play Music")

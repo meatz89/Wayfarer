@@ -18,7 +18,7 @@
             .ForActionType(BasicActionTypes.Labor))
         .AddLocationSpot(spot => spot
             .WithName("Tavern Table")
-            .ForActionType(BasicActionTypes.Trade))
+            .ForActionType(BasicActionTypes.Reflect))
         .AddLocationSpot(spot => spot
             .WithName("Cellar Pantry")
             .ForActionType(BasicActionTypes.Gather))

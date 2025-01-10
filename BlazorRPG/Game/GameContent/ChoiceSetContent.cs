@@ -12,7 +12,7 @@
             .WithMinResonance(2))
         .AddChoice(choice => choice
             .WithArchetype(ChoiceArchetypes.Physical)
-            .WithApproach(ChoiceApproaches.Aggressive)
+            .WithApproach(ChoiceApproaches.Direct)
             .WithSkill(SkillTypes.Service)
             .WithBaseEnergyCost(3, EnergyTypes.Physical)
             .WithBaseValueChanges(values => values
@@ -23,7 +23,7 @@
             .WithReward(new CoinsOutcome(10)))
         .AddChoice(choice => choice
             .WithArchetype(ChoiceArchetypes.Social)
-            .WithApproach(ChoiceApproaches.Strategic)
+            .WithApproach(ChoiceApproaches.Tactical)
             .WithSkill(SkillTypes.Service)
             .WithBaseEnergyCost(2, EnergyTypes.Social)
             .WithBaseValueChanges(values => values
@@ -33,7 +33,7 @@
             .WithReward(new ReputationOutcome(ReputationTypes.Reliable, 1)))
         .AddChoice(choice => choice
             .WithArchetype(ChoiceArchetypes.Focus)
-            .WithApproach(ChoiceApproaches.Careful)
+            .WithApproach(ChoiceApproaches.Pragmatic)
             .WithSkill(SkillTypes.Service)
             .WithBaseEnergyCost(2, EnergyTypes.Focus)
             .WithBaseValueChanges(values => values

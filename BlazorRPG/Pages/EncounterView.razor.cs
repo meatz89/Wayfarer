@@ -151,10 +151,10 @@ public partial class EncounterViewBase : ComponentBase
     {
         return approach switch
         {
-            ChoiceApproaches.Aggressive => "⚔️",
-            ChoiceApproaches.Careful => "🛡️",
-            ChoiceApproaches.Strategic => "📋",
-            ChoiceApproaches.Desperate => "⚠️",
+            ChoiceApproaches.Direct => "⚔️",
+            ChoiceApproaches.Pragmatic => "🛡️",
+            ChoiceApproaches.Tactical => "📋",
+            ChoiceApproaches.Improvised => "⚠️",
             _ => ""
         };
     }
