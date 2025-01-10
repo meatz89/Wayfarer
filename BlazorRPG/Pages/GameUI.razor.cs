@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using System.Reflection.Metadata.Ecma335;
 
 namespace BlazorRPG.Pages;
 
@@ -166,26 +165,6 @@ public partial class GameUI : ComponentBase
         return GameManager.GetLocationEffects(CurrentLocation.LocationName);
     }
 
-    public string GetEffectDescription(LocationPropertyChoiceEffect effect)
-    {
-        var prop = effect.LocationProperty.GetPropertyType();
-        return effect.RuleDescription;
-    }
-
-
-    private string GetEffectClass(LocationPropertyChoiceEffect effect)
-    {
-        return effect.ValueTypeEffect switch
-        {
-            ValueModification => "effect-value",
-            ValueConversion or PartialValueConversion => "effect-convert",
-            EnergyModification => "effect-energy",
-            ValueBonus => "effect-bonus",
-            _ => ""
-        };
-    }
-
-
     private string GetPressureIcon(PressureStateTypes? pressure) => pressure switch
     {
         PressureStateTypes.Relaxed => "😌",
@@ -212,8 +191,6 @@ public partial class GameUI : ComponentBase
         CrowdLevelTypes.Crowded => "👥👥",
         _ => "❓"
     };
-
-    private record struct EffectDisplay(string Description, string CssClass);
 
     private string FormatLocationArchetype(LocationArchetypes? value)
     {
@@ -389,26 +366,6 @@ public partial class GameUI : ComponentBase
     {
         return effect.RuleDescription;
     }
-        
-    //    => effect switch
-    //{
-    //    ValueModification mod =>
-    //        $"Modifies {mod.ValueType} by {(mod.ModifierAmount >= 0 ? "+" : "")}{mod.ModifierAmount}",
-
-    //    ValueConversion conv =>
-    //        $"Converts {conv.SourceValueType} into {conv.TargetValueType}",
-
-    //    PartialValueConversion pConv =>
-    //        $"Converts {pConv.ConversionAmount} {pConv.SourceValueType} into {pConv.TargetValueType} for {pConv.TargetArchetype} choices",
-
-    //    EnergyModification eMod =>
-    //        $"{eMod.TargetArchetype} choices cost {(eMod.EnergyCostModifier >= 0 ? "+" : "")}{eMod.EnergyCostModifier} Energy",
-
-    //    ValueBonus bonus =>
-    //        $"{bonus.ChoiceArchetype} choices gain {(bonus.BonusAmount >= 0 ? "+" : "")}{bonus.BonusAmount} {bonus.ValueType}",
-
-    //    _ => effect.RuleDescription
-    //};
 }
 
 public record struct PropertyDisplay(

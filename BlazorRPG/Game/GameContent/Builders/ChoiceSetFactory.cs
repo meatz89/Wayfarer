@@ -22,7 +22,7 @@
 
         // Create the choice with only base values
         ChoiceBuilder choiceBuilder = new ChoiceBuilder()
-            .WithName(description)
+            .WithDescription(description)
             .WithArchetype(template.Archetype)
             .WithApproach(template.Approach)
             .WithRelevantSkill(template.RelevantSkill)
@@ -58,19 +58,6 @@
 
         // Location
         description += $" at the {context.LocationArchetype}";
-
-        // Choice type based on base value changes
-        string choiceArchtype = pattern.Archetype.ToString();
-        if (!string.IsNullOrEmpty(choiceArchtype))
-        {
-            description += $" ({choiceArchtype})";
-        }
-
-        string choiceApproach = pattern.Approach.ToString();
-        if (!string.IsNullOrEmpty(choiceApproach))
-        {
-            description += $" [{choiceApproach}]";
-        }
 
         // Requirements
         if (pattern.Requirements.Any())

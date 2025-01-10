@@ -21,7 +21,7 @@
         return this;
     }
 
-    public ChoiceBuilder WithName(string description)
+    public ChoiceBuilder WithDescription(string description)
     {
         this.description = description;
         return this;
