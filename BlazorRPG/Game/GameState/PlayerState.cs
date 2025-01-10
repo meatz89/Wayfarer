@@ -245,22 +245,22 @@
         return true;
     }
 
-    internal bool CanPayEnergy(EnergyTypes energyType, int amount)
+    public bool CanPayEnergy(EnergyTypes energyType, int amount)
     {
         return true;
     }
 
-    internal bool HasResource(ResourceTypes resourceType, int v)
+    public bool HasResource(ResourceTypes resourceType, int v)
     {
         return true;
     }
 
-    internal bool CanLoseReputation(ReputationTypes reputationType, object value)
+    public bool CanLoseReputation(ReputationTypes reputationType, object value)
     {
         return true;
     }
 
-    internal bool HasCoins(object value)
+    public bool HasCoins(object value)
     {
         return true;
     }

@@ -1,6 +1,4 @@
 ﻿
-
-
 public class EncounterSystem
 {
     private readonly GameState gameState;
@@ -152,8 +150,29 @@ public class EncounterSystem
         return encounter.GetCurrentStage();
     }
 
-    internal Encounter GetEncounterForChoice(EncounterChoice choice)
+    public Encounter GetEncounterForChoice(EncounterChoice choice)
     {
         return gameState.Actions.CurrentEncounter;
     }
+
+    public void SetEncounterChoices(Encounter encounter, LocationNames location)
+    {
+        string locationSpot = "LocationSpot";
+
+        EncounterStage stage = GetCurrentStage(encounter);
+        List<EncounterChoice> choices = stage.Choices;
+
+        List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
+        foreach (EncounterChoice choice in choices)
+        {
+            UserEncounterChoiceOption option = new UserEncounterChoiceOption(
+                choice.Index, choice.Description, location,
+                encounter, stage, choice);
+
+            choiceOptions.Add(option);
+        }
+
+        gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
+    }
+
 }
