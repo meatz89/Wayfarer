@@ -13,19 +13,26 @@
     public ChoiceTemplateBuilder WithArchetype(ChoiceArchetypes archetype)
     {
         this.archetype = archetype;
+        this.baseEnergyCost = 1;
+        this.energyType = archetype switch
+        {
+            ChoiceArchetypes.Physical => EnergyTypes.Physical,
+            ChoiceArchetypes.Focus => EnergyTypes.Focus,
+            ChoiceArchetypes.Social => EnergyTypes.Social,
+            _ => throw new ArgumentOutOfRangeException(nameof(archetype),
+                "All choice archetypes must map to an energy type")
+        };
         return this;
     }
-
     public ChoiceTemplateBuilder WithApproach(ChoiceApproaches approach)
     {
         this.approach = approach;
         return this;
     }
 
-    public ChoiceTemplateBuilder WithBaseEnergyCost(int cost, EnergyTypes type)
+    public ChoiceTemplateBuilder WithBaseEnergyCost(int cost)
     {
         this.baseEnergyCost = cost;
-        this.energyType = type;
         return this;
     }
 

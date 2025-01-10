@@ -19,7 +19,7 @@ public static class ChoiceSetContent
                 // Direct approach that can lead to Rising Tension
                 .WithArchetype(ChoiceArchetypes.Physical)
                 .WithApproach(ChoiceApproaches.Direct)
-                .WithBaseEnergyCost(3, EnergyTypes.Physical)
+                .WithBaseEnergyCost(3)
                 .WithBaseValueChanges(values => values
                     .WithOutcome(3)    // Good progress
                     .WithPressure(2))) // But risks complications
@@ -27,7 +27,7 @@ public static class ChoiceSetContent
                 // Study approach that leads to Knowledge Advantage
                 .WithArchetype(ChoiceArchetypes.Focus)
                 .WithApproach(ChoiceApproaches.Tactical)
-                .WithBaseEnergyCost(2, EnergyTypes.Focus)
+                .WithBaseEnergyCost(2)
                 .WithBaseValueChanges(values => values
                     .WithInsight(3)    // Building understanding
                     .WithOutcome(1)))
@@ -105,7 +105,7 @@ public static class ChoiceSetContent
                 .WithArchetype(ChoiceArchetypes.Physical)
                 .WithApproach(ChoiceApproaches.Direct)
                 .WithSkill(SkillTypes.Service)
-                .WithBaseEnergyCost(3, EnergyTypes.Physical)
+                .WithBaseEnergyCost(3)
                 .WithBaseValueChanges(values => values
                     .WithOutcome(3)
                     .WithPressure(2)
@@ -114,7 +114,7 @@ public static class ChoiceSetContent
             .AddChoice(choice => choice
                 .WithArchetype(ChoiceArchetypes.Social)
                 .WithApproach(ChoiceApproaches.Tactical)
-                .WithBaseEnergyCost(2, EnergyTypes.Social)
+                .WithBaseEnergyCost(2)
                 .WithBaseValueChanges(values => values
                     .WithOutcome(1)
                     .WithResonance(2)
@@ -134,7 +134,7 @@ public static class ChoiceSetContent
             .AddChoice(choice => choice
                 .WithArchetype(ChoiceArchetypes.Physical)
                 .WithApproach(ChoiceApproaches.Direct)
-                .WithBaseEnergyCost(4, EnergyTypes.Physical)
+                .WithBaseEnergyCost(4)
                 .WithBaseValueChanges(values => values
                     .WithOutcome(4)
                     .WithPressure(3)))
@@ -192,7 +192,7 @@ public static class ChoiceSetContent
             .AddChoice(choice => choice
                 .WithArchetype(ChoiceArchetypes.Physical)
                 .WithApproach(ChoiceApproaches.Direct)
-                .WithBaseEnergyCost(4, EnergyTypes.Physical)
+                .WithBaseEnergyCost(4)
                 .WithBaseValueChanges(values => values
                     .WithOutcome(4)
                     .WithPressure(3)))
