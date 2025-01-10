@@ -16,7 +16,7 @@ public class ChoiceSystem
         this.executor = new ChoiceExecutor(gameState);
     }
 
-    public List<EncounterChoice> GenerateChoices(
+    public ChoiceSet GenerateChoices(
         EncounterContext context)
     {
         List<LocationPropertyChoiceEffect> effects = context.LocationPropertyChoiceEffects;
@@ -25,19 +25,19 @@ public class ChoiceSystem
         // 1. Select appropriate template based on context
         ChoiceSetTemplate template = choiceSetSelector.SelectTemplate(
             choiceSetTemplates, context);
+
         if (template == null) return null;
 
         // 2. Create base choices with unmodified values
         ChoiceSet choiceSet = choiceSetFactory.CreateFromChoiceSet(
             template, context);
 
-        // 3. Calculate consequences for each choice
         foreach (EncounterChoice choice in choiceSet.Choices)
         {
             calculator.CalculateChoice(choice, context);
         }
 
-        return choiceSet.Choices;
+        return choiceSet;
     }
 
     public void ExecuteChoice(EncounterChoice choice)

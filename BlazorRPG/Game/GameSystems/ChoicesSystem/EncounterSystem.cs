@@ -56,14 +56,15 @@
     private EncounterStage GenerateStage(EncounterContext context)
     {
         // Use ChoiceSystem to generate choices
-        List<EncounterChoice> choices = choiceSystem.GenerateChoices(context);
-        if (choices == null || choices.Count == 0) return null;
+        ChoiceSet? choiceSet = choiceSystem.GenerateChoices(context);
+        if (choiceSet == null || choiceSet.Choices.Count == 0) return null;
 
         // Create stage with generated choices
         return new EncounterStage
         {
             Situation = GenerateStageSituation(context),
-            Choices = choices
+            CurrentChoiceSetName = choiceSet.Name,
+            Choices = choiceSet.Choices
         };
     }
 

@@ -10,7 +10,7 @@
             choices.Add(choice);
         }
 
-        return new ChoiceSet(choices);
+        return new ChoiceSet(template.Name, choices);
     }
 
     private EncounterChoice CreateChoiceFromTemplate(ChoiceTemplate template, EncounterContext context)

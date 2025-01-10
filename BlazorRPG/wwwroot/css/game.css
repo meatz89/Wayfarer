@@ -988,3 +988,17 @@ body {
 .property-text {
     margin: 0 4px;
 }
+
+.encounter-context {
+    margin: 1rem 0;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.choice-set-name {
+    font-size: 1.2rem;
+    color: #666;
+    font-style: italic;
+    margin: 0;
+}
