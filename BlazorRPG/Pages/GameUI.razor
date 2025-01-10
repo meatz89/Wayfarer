@@ -67,10 +67,23 @@
     </div>
 
     <div class="sidebar">
-        <div class="sidebar-panel current-location">
-            <div class="panel-title">Current Location</div>
-            <div class="panel-content">
-                <div>@CurrentLocation.LocationName</div>
+
+        <div class="sidebar-panel location-panel">
+            <div class="location-name">
+                @CurrentLocation.LocationName
+            </div>
+
+            <div class="location-effects-container">
+                <div class="location-effects-header">
+                    Location Effects
+                </div>
+                @foreach (var effect in GetLocationEffects())
+                {
+                    <div class="location-effect @GetEffectClass(effect)">
+                        <span class="effect-bullet">•</span>
+                        <span>@GetEffectDescription(effect)</span>
+                    </div>
+                }
             </div>
         </div>
 
@@ -104,20 +117,6 @@
                 <div>• Travel takes time</div>
                 <div>• Actions advance time</div>
                 <div>• Plan your day carefully</div>
-            </div>
-        </div>
-
-        <div class="sidebar-panel">
-            <div class="panel-title">Last Action Effects</div>
-            <div class="panel-content">
-                @foreach (string message in ResultMessages)
-                {
-                    <div class="quest-effect">
-                        <div class="effect-description">
-                            @message
-                        </div>
-                    </div>
-                }
             </div>
         </div>
 

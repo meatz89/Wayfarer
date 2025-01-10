@@ -7,7 +7,7 @@
     private List<Quest> quests;
     private List<ChoiceSetTemplate> choiceSetTemplates;
 
-    private List<LocationPropertyChoiceEffect> locationArchetypeEffects = new ();
+    private List<LocationPropertyChoiceEffect> locationArchetypeEffects = new();
 
     public GameContentProvider()
     {
@@ -43,8 +43,7 @@
 
         choiceSetTemplates = new List<ChoiceSetTemplate>()
         {
-            ChoiceSetContent.ExampleTemplate,
-            ChoiceSetContent.MingleChoiceSetTemplate,
+            ChoiceSetContent.ServingDrinks,
         };
 
         locationArchetypeEffects = LocationPropertyChoiceEffects.Effects;

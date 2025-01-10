@@ -9,13 +9,48 @@
         return this;
     }
 
+    public EncounterStateConditionBuilder WithMaxInsight(int value)
+    {
+        maxValues[ValueTypes.Insight] = value;
+        return this;
+    }
+
+    public EncounterStateConditionBuilder WithMaxResonance(int value)
+    {
+        maxValues[ValueTypes.Resonance] = value;
+        return this;
+    }
+
+    public EncounterStateConditionBuilder WithMaxOutcome(int value)
+    {
+        maxValues[ValueTypes.Outcome] = value;
+        return this;
+    }
+
+
     public EncounterStateConditionBuilder WithMinInsight(int value)
     {
         minValues[ValueTypes.Insight] = value;
         return this;
     }
 
-    // Add more value type conditions as needed
+    public EncounterStateConditionBuilder WithMinResonance(int value)
+    {
+        minValues[ValueTypes.Resonance] = value;
+        return this;
+    }
+
+    public EncounterStateConditionBuilder WithMinOutcome(int value)
+    {
+        minValues[ValueTypes.Outcome] = value;
+        return this;
+    }
+
+    public EncounterStateConditionBuilder WithMinPressure(int value)
+    {
+        minValues[ValueTypes.Pressure] = value;
+        return this;
+    }
 
     public EncounterStateCondition Build()
     {

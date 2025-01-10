@@ -15,7 +15,7 @@
     //Perception, // None/Low/High
 
     Charisma,
-    Crafting,
+    Service,
     //
     //Presence, // None/Low/High
     //Status, // None/Low/High

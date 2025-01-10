@@ -38,7 +38,6 @@
         Skills.Add(SkillTypes.Strength, 5);
         Skills.Add(SkillTypes.Perception, 5);
         Skills.Add(SkillTypes.Charisma, 8);
-        Skills.Add(SkillTypes.Crafting, 2);
 
         Reputations.Add(ReputationTypes.Honest, 3); // Initialize a reputation
         Reputations.Add(ReputationTypes.Reliable, 5);
@@ -242,6 +241,26 @@
     }
 
     public bool HasStatus(PlayerStatusTypes status)
+    {
+        return true;
+    }
+
+    internal bool CanPayEnergy(EnergyTypes energyType, int amount)
+    {
+        return true;
+    }
+
+    internal bool HasResource(ResourceTypes resourceType, int v)
+    {
+        return true;
+    }
+
+    internal bool CanLoseReputation(ReputationTypes reputationType, object value)
+    {
+        return true;
+    }
+
+    internal bool HasCoins(object value)
     {
         return true;
     }

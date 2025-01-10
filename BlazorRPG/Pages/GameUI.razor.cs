@@ -160,4 +160,28 @@ public partial class GameUI : ComponentBase
         GameManager.UpdateState();
     }
 
+    public List<LocationPropertyChoiceEffect> GetLocationEffects()
+    {
+        return GameManager.GetLocationEffects(CurrentLocation.LocationName);
+    }
+
+    public string GetEffectDescription(LocationPropertyChoiceEffect effect)
+    {
+        var prop = effect.LocationProperty.GetPropertyType();
+        return effect.RuleDescription;
+    }
+
+
+    private string GetEffectClass(LocationPropertyChoiceEffect effect)
+    {
+        return effect.ValueTypeEffect switch
+        {
+            ValueModification => "effect-value",
+            ValueConversion or PartialValueConversion => "effect-convert",
+            EnergyModification => "effect-energy",
+            ValueBonus => "effect-bonus",
+            _ => ""
+        };
+    }
+
 }

@@ -1,4 +1,7 @@
-﻿public class EncounterSystem
+﻿
+
+
+public class EncounterSystem
 {
     private readonly GameState gameState;
     private readonly ChoiceSystem choiceSystem;
@@ -130,5 +133,10 @@
     public EncounterStage GetCurrentStage(Encounter encounter)
     {
         return encounter.GetCurrentStage();
+    }
+
+    internal Encounter GetEncounterForChoice(EncounterChoice choice)
+    {
+        return gameState.Actions.CurrentEncounter;
     }
 }

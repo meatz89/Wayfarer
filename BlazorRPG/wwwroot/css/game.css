@@ -159,11 +159,6 @@ body {
             pointer-events: none; /* This is crucial - allows clicks to pass through */
         }
 
-.location-name {
-    font-size: 1.2em;
-    font-weight: bold;
-}
-
 .location-type {
     color: var(--text-secondary);
     font-size: 0.9em;
@@ -841,3 +836,89 @@ body {
     font-size: 0.9em;
     margin-top: 4px;
 }
+.location-effect {
+    padding: 2px 0;
+    font-size: 0.9em;
+    color: var(--text-muted);
+}
+
+    .location-effect:hover {
+        color: var(--text-primary);
+    }
+
+    /* Color coding for different property types */
+    .location-effect[data-property="CrowdLevel"] {
+        color: var(--crowd-color);
+    }
+
+    .location-effect[data-property="Scale"] {
+        color: var(--scale-color);
+    }
+
+    .location-effect[data-property="Exposure"] {
+        color: var(--exposure-color);
+    }
+
+    .location-effect[data-property="Resource"] {
+        color: var(--resource-color);
+    }
+/* Location Panel Styles */
+.location-name {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #e2e8f0; /* Slightly muted white */
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #2d3748; /* Subtle divider */
+}
+
+.location-effects-container {
+    margin-top: 0.5rem;
+}
+
+.location-effects-header {
+    font-size: 0.9rem;
+    color: #718096; /* Muted text */
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.location-effect {
+    display: flex;
+    align-items: flex-start;
+    padding: 0.25rem 0;
+    font-size: 0.9rem;
+    color: #a0aec0; /* Default effect text color */
+    line-height: 1.4;
+}
+
+.effect-bullet {
+    margin-right: 0.5rem;
+    color: #4a5568; /* Very muted bullet point */
+}
+
+/* Effect type colors */
+.effect-value {
+    color: #9f7aea; /* Purple for value modifications */
+}
+
+.effect-energy {
+    color: #4299e1; /* Blue for energy effects */
+}
+
+.effect-convert {
+    color: #48bb78; /* Green for conversions */
+}
+
+.effect-bonus {
+    color: #ecc94b; /* Yellow for bonuses */
+}
+
+/* Hover effects */
+.location-effect:hover {
+    color: #e2e8f0; /* Brighten text on hover */
+}
+
+    .location-effect:hover .effect-bullet {
+        color: #718096; /* Brighten bullet on hover */
+    }

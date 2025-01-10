@@ -53,7 +53,7 @@ public enum LocationArchetypes
 
 public class ArchetypeValue : LocationPropertyTypeValue
 {
-    public LocationArchetypes LocationArchetype { get; set; }
+    public LocationArchetypes Archetype { get; set; }
     public override LocationPropertyTypes GetPropertyType()
     {
         return LocationPropertyTypes.Archetype;
@@ -83,7 +83,7 @@ public enum ExposureConditionTypes
 
 public class ExposureValue : LocationPropertyTypeValue
 {
-    public ExposureConditionTypes ExposureCondition { get; set; }
+    public ExposureConditionTypes Exposure { get; set; }
     public override LocationPropertyTypes GetPropertyType()
     {
         return LocationPropertyTypes.Exposure;
@@ -101,7 +101,7 @@ public class LegalityValue : LocationPropertyTypeValue
 }
 
 // --- Pressure ---
-public class PressureValue : LocationPropertyTypeValue
+public class PressureStateValue : LocationPropertyTypeValue
 {
     public PressureStateTypes PressureState { get; set; }
     public override LocationPropertyTypes GetPropertyType()
@@ -193,7 +193,7 @@ public class LocationProperties
     public bool IsResourceSet { get; private set; } = false;
     public CrowdLevelTypes? CrowdLevel { get; set; }
     public bool IsCrowdLevelSet { get; private set; } = false;
-    public ReputationTypes ReputationType { get; set; }
+    public ReputationTypes LocationReputationType { get; set; }
     public bool IsReputationTypeSet { get; private set; } = false;
 
     public object GetProperty(LocationPropertyTypes propertyType)
@@ -217,7 +217,7 @@ public class LocationProperties
             case LocationPropertyTypes.CrowdLevel:
                 return CrowdLevel;
             case LocationPropertyTypes.ReputationType:
-                return ReputationType;
+                return LocationReputationType;
             default:
                 throw new ArgumentException($"Unknown property type: {propertyType}");
         }
@@ -261,7 +261,7 @@ public class LocationProperties
                 IsCrowdLevelSet = true;
                 break;
             case LocationPropertyTypes.ReputationType:
-                ReputationType = (ReputationTypes)value;
+                LocationReputationType = (ReputationTypes)value;
                 IsReputationTypeSet = true;
                 break;
             default:

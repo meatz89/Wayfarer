@@ -177,8 +177,10 @@ public class GameManager
 
     public Encounter GenerateEncounter(BasicActionTypes action, Location location, PlayerState playerState)
     {
+        List<LocationPropertyChoiceEffect> effects = LocationSystem.GetLocationEffects(location.LocationName);
+
         // Create initial context
-        EncounterContext context = new(
+        EncounterContext context = new EncounterContext(
             action,
             location.LocationType,
             location.Archetype,
@@ -192,7 +194,8 @@ public class GameManager
                 pressure: 0
             ),
             1,
-            location.DifficultyLevel
+            location.DifficultyLevel,
+            effects
         );
 
         // Generate encounter
@@ -203,6 +206,17 @@ public class GameManager
         SetEncounterChoices(encounter, location.LocationName);
 
         return encounter;
+    }
+
+    public List<LocationPropertyChoiceEffect> GetLocationEffects(LocationNames locationName)
+    {
+        return LocationSystem.GetLocationEffects(locationName);
+    }
+
+    public List<LocationPropertyChoiceEffect> GetLocationEffects(EncounterChoice choice)
+    {
+        Location location = gameState.World.CurrentLocation;
+        return LocationSystem.GetLocationEffects(location.LocationName);
     }
 
     public void ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)

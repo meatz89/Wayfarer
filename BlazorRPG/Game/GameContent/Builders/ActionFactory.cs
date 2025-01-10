@@ -12,7 +12,7 @@
                 action.Rewards.Add(new CoinsOutcome(3)); // Add 3 coins
                 break;
             case BasicActionTypes.Mingle:
-                action.Rewards.Add(new ReputationOutcome(location.LocationProperties.ReputationType, 1)); // Add 1 reputation of the type associated with the location
+                action.Rewards.Add(new ReputationOutcome(location.LocationProperties.LocationReputationType, 1)); // Add 1 reputation of the type associated with the location
                 break;
             case BasicActionTypes.Gather:
                 if (location.LocationProperties.Resource.HasValue)

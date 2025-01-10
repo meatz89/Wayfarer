@@ -95,12 +95,12 @@ public class KnowledgeOutcome : Outcome
 public class ReputationOutcome : Outcome
 {
     public ReputationTypes ReputationType { get; set; }
-    public int Amount { get; set; }
+    public int Change { get; set; }
 
     public ReputationOutcome(ReputationTypes reputationType, int amount)
     {
         ReputationType = reputationType;
-        Amount = amount;
+        Change = amount;
     }
 
     public override void Apply(PlayerState player)
@@ -109,7 +109,7 @@ public class ReputationOutcome : Outcome
         {
             player.Reputations[ReputationType] = 0;
         }
-        player.SetReputationLevel(ReputationType, player.GetReputationLevel(ReputationType) + Amount);
+        player.SetReputationLevel(ReputationType, player.GetReputationLevel(ReputationType) + Change);
 
     }
 
@@ -218,27 +218,27 @@ public class HealthOutcome : Outcome
 
 public class CoinsOutcome : Outcome
 {
-    public int Count { get; }
+    public int Amount { get; }
 
     public CoinsOutcome(int count)
     {
-        Count = count;
+        Amount = count;
     }
 
     public override void Apply(PlayerState player)
     {
-        player.ModifyCoins(Count);
+        player.ModifyCoins(Amount);
     }
 
     public override string GetDescription()
     {
-        return $"{(Count >= 0 ? "+" : "")}{Count} Coins";
+        return $"{(Amount >= 0 ? "+" : "")}{Amount} Coins";
     }
 
     public override string GetPreview(PlayerState player)
     {
         // Coins can't go below 0
-        int newValue = Math.Max(0, player.Coins + Count);
+        int newValue = Math.Max(0, player.Coins + Amount);
         return $"({player.Coins} -> {newValue})";
     }
 }

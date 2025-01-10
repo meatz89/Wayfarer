@@ -53,85 +53,49 @@
                         <h4>@hoveredChoice.Description</h4>
                         <div class="choice-type">@hoveredChoice.EncounterChoice.Archetype - @hoveredChoice.EncounterChoice.Approach</div>
                     </div>
+                </div>
 
-                    @* Base Effects Section *@
-                    <div class="value-section">
-                        <h5>Base Effects:</h5>
-                        <div class="value-list">
-                            @foreach (var baseChange in hoveredChoice.EncounterChoice.BaseValueChanges)
-                            {
-                                <div class="value-item">
-                                    @GetValueTypeIcon(baseChange.ValueType)
-                                    <span>@baseChange.ValueType @(baseChange.Change > 0 ? "+" : "")@baseChange.Change</span>
-                                </div>
-                            }
-                            <div class="value-item">
-                                @GetEnergyTypeIcon(hoveredChoice.EncounterChoice.EnergyType)
-                                <span>@hoveredChoice.EncounterChoice.EnergyCost @hoveredChoice.EncounterChoice.EnergyType Energy</span>
-                            </div>
+                @* Location Effects Section *@
+                <div class="location-effects">
+                    <h5>Location Effects</h5>
+                    @foreach (var effect in GetLocationEffects(hoveredChoice.EncounterChoice))
+                    {
+                        <div class="effect-item">
+                            @RenderLocationEffect(effect)
                         </div>
-                    </div>
+                    }
+                </div>
 
-                    @* Location Transformations *@
-                    <div class="location-effects">
-                        <h5>@GameState.World.CurrentLocation Effects:</h5>
-                        <div class="transformations">
-                            @foreach (var rule in GetLocationTransformationRules())
-                            {
-                                <div class="transformation">
-                                    <span class="transform-icon">→</span>
-                                    <span>@rule</span>
-                                </div>
-                            }
-                        </div>
-                    </div>
-
-                    @* Final Results Section *@
-                    <div class="final-results">
-                        <h5>Final Results:</h5>
-                        <div class="value-list">
-                            @foreach (var valueChange in hoveredChoice.EncounterChoice.ModifiedValueChanges)
-                            {
-                                <div class="value-item">
-                                    @GetValueTypeIcon(valueChange.ValueType)
-                                    <span class="value-result">
-                                        @valueChange.ValueType @(valueChange.Change > 0 ? "+" : "")@valueChange.Change
-                                        <span class="value-breakdown">
-                                            @* Display base and modifications *@
-                                            (Base: @(hoveredChoice.EncounterChoice.BaseValueChanges.FirstOrDefault(b => b.ValueType == valueChange.ValueType)?.Change ?? 0)
-                                            @foreach (var mod in hoveredChoice.EncounterChoice.Modifications.Where(m => m.Type == ModificationType.ValueChange && m.ValueChange.ValueType == valueChange.ValueType))
-                                            {
-                                                @if (mod.ValueChange.ValueTransformation is ChangeValueTransformation changeTransformation)
-                                                {
-                                                    @(", " + mod.Source + ": " + (changeTransformation.ChangeInValue > 0 ? "+" : "") + changeTransformation.ChangeInValue)
-                                                }
-                                                else if (mod.ValueChange.ValueTransformation is ConvertValueTransformation)
-                                                {
-                                                    @(", " + mod.Source + ": Convert")
-                                                }
-                                                else if (mod.ValueChange.ValueTransformation is CancelValueTransformation)
-                                                {
-                                                    @(", " + mod.Source + ": Cancel")
-                                                }
-                                            }
-                                            )
-                                        </span>
-                                    </span>
-                                </div>
-                            }
-                            @{
-                                var finalEnergy = CalculateFinalEnergyCost(hoveredChoice.EncounterChoice);
-                            }
-                            <div class="value-item">
-                                @GetEnergyTypeIcon(hoveredChoice.EncounterChoice.EnergyType)
-                                <span>
-                                    @finalEnergy.FinalCost @hoveredChoice.EncounterChoice.EnergyType Energy
-                                    @if (finalEnergy.Reduction > 0)
+                @* Final Results Section *@
+                <div class="final-results">
+                    <h5>Final Results</h5>
+                    <div class="value-list">
+                        @foreach (var finalChange in hoveredChoice.EncounterChoice.ModifiedValueChanges)
+                        {
+                            <div class="value-item @GetValueChangeClass(finalChange)">
+                                @GetValueTypeIcon(finalChange.ValueType)
+                                <span class="value-result">
+                                    @finalChange.ValueType @(finalChange.Change > 0 ? "+" : "")@finalChange.Change
+                                    @if (IsValueModified(hoveredChoice.EncounterChoice, finalChange))
                                     {
-                                        <span class="value-breakdown">(reduced from @(finalEnergy.FinalCost + finalEnergy.Reduction))</span>
+                                        <span class="value-modification">
+                                            @RenderValueModification(hoveredChoice.EncounterChoice, finalChange)
+                                        </span>
                                     }
                                 </span>
                             </div>
+                        }
+                        <div class="energy-cost">
+                            @GetEnergyTypeIcon(hoveredChoice.EncounterChoice.EnergyType)
+                            <span>
+                                @hoveredChoice.EncounterChoice.ModifiedEnergyCost @hoveredChoice.EncounterChoice.EnergyType Energy
+                                @if (IsEnergyCostModified(hoveredChoice.EncounterChoice))
+                                {
+                                    <span class="energy-modification">
+                                        @RenderEnergyCostModification(hoveredChoice.EncounterChoice)
+                                    </span>
+                                }
+                            </span>
                         </div>
                     </div>
                 </div>

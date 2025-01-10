@@ -9,6 +9,7 @@
     public EncounterStateValues CurrentValues { get; }
     public int StageNumber { get; }
     public int LocationDifficulty { get; set; }
+    public List<LocationPropertyChoiceEffect> LocationPropertyChoiceEffects { get; set; }
 
     public EncounterContext(
         BasicActionTypes actionType,
@@ -19,7 +20,8 @@
         PlayerState playerState,
         EncounterStateValues currentValues,
         int stageNumber,
-        int locationDifficulty)
+        int locationDifficulty,
+        List<LocationPropertyChoiceEffect> locationPropertyChoiceEffects)
     {
         ActionType = actionType;
         LocationType = locationType;
@@ -32,30 +34,32 @@
         LocationDifficulty = locationDifficulty;
         StageNumber = stageNumber;
 
+        LocationPropertyChoiceEffects = locationPropertyChoiceEffects;
+
         // Initialize Encounter Values based on Player and Location
         InitializeEncounterValues(currentValues, playerState, locationProperties, locationDifficulty);
     }
 
     private void InitializeEncounterValues(EncounterStateValues currentValues, PlayerState playerState, LocationProperties locationProperties, int locationDifficulty)
     {
-        // Initialize Outcome based on PlayerLevel and Action Difficulty
-        currentValues.Outcome = 5 + (playerState.Level - locationDifficulty); // Assuming a function to calculate this
+        //// Initialize Outcome based on PlayerLevel and Action Difficulty
+        //currentValues.Outcome = 5 + (playerState.Level - locationDifficulty); // Assuming a function to calculate this
 
-        // Initialize Insight based on relevant Knowledge
-        if (playerState.HasKnowledge(KnowledgeTypes.LocalHistory)) // Example: Assuming a KnowledgeType relevant to the location
-        {
-            currentValues.Insight += 2; // Example: Bonus for relevant knowledge
-        }
+        //// Initialize Insight based on relevant Knowledge
+        //if (playerState.HasKnowledge(KnowledgeTypes.LocalHistory)) // Example: Assuming a KnowledgeType relevant to the location
+        //{
+        //    currentValues.Insight += 2; // Example: Bonus for relevant knowledge
+        //}
 
-        // Initialize Resonance based on Reputation
-        if (locationProperties.ReputationType != default)
-        {
-            currentValues.Resonance += playerState.GetReputationLevel(locationProperties.ReputationType);
-        }
+        //// Initialize Resonance based on Reputation
+        //if (locationProperties.LocationReputationType != default)
+        //{
+        //    currentValues.Resonance += playerState.GetReputationLevel(locationProperties.LocationReputationType);
+        //}
 
-        // Initialize Pressure based on Location's Danger Level
-        // Assuming a property like 'DangerLevel' in LocationProperties (You need to define this in your LocationProperties class)
-        currentValues.Pressure = locationProperties.Pressure != null ? (int)locationProperties.Pressure : 0; // Example: Base Pressure on location danger
+        //// Initialize Pressure based on Location's Danger Level
+        //// Assuming a property like 'DangerLevel' in LocationProperties (You need to define this in your LocationProperties class)
+        //currentValues.Pressure = locationProperties.Pressure != null ? (int)locationProperties.Pressure : 0; // Example: Base Pressure on location danger
     }
 
 }

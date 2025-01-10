@@ -16,6 +16,7 @@
     public List<Outcome> BaseRewards { get; set; } = new();
 
     // Calculated Values and Modifications
+    public int ModifiedEnergyCost { get; set; }
     public List<ChoiceModification> Modifications { get; set; } = new();
     public List<ValueChange> ModifiedValueChanges { get; set; } = new();
     public List<Requirement> ModifiedRequirements { get; set; } = new();

@@ -60,9 +60,9 @@ public partial class EncounterViewBase : ComponentBase
     public List<string> GetLocationTransformationRules()
     {
         List<string> rules = new List<string>();
-        var locationPropertyEffects = LocationPropertyChoiceEffects.Effects;
+        List<LocationPropertyChoiceEffect> locationPropertyEffects = LocationPropertyChoiceEffects.Effects;
 
-        foreach (var effect in locationPropertyEffects)
+        foreach (LocationPropertyChoiceEffect effect in locationPropertyEffects)
         {
             // Check if the effect's LocationProperty matches the current context
             if (IsLocationPropertyMatch(effect.LocationProperty, GameState.Actions.CurrentEncounter.Context))
@@ -78,141 +78,147 @@ public partial class EncounterViewBase : ComponentBase
         return rules;
     }
 
-    private bool IsLocationPropertyMatch(LocationPropertyTypeValue locationProperty, EncounterContext context)
-{
-    switch (locationProperty.GetPropertyType())
+    public bool IsLocationPropertyMatch(LocationPropertyTypeValue locationProperty, EncounterContext context)
     {
-        case LocationPropertyTypes.Scale:
-            return context.LocationProperties.Scale == ((ScaleValue)locationProperty).ScaleVariation;
-        case LocationPropertyTypes.Exposure:
-            return context.LocationProperties.Exposure == ((ExposureValue)locationProperty).ExposureCondition;
-        case LocationPropertyTypes.Legality:
-            return context.LocationProperties.Legality == ((LegalityValue)locationProperty).Legality;
-        case LocationPropertyTypes.Pressure:
-            return context.LocationProperties.Pressure == ((PressureValue)locationProperty).PressureState;
-        case LocationPropertyTypes.Complexity:
-            return context.LocationProperties.Complexity == ((ComplexityValue)locationProperty).Complexity;
-        case LocationPropertyTypes.Resource:
-            return context.LocationProperties.Resource == ((ResourceValue)locationProperty).Resource;
-        case LocationPropertyTypes.CrowdLevel:
-            return context.LocationProperties.CrowdLevel == ((CrowdLevelValue)locationProperty).CrowdLevel;
-        case LocationPropertyTypes.ReputationType:
-            return context.LocationProperties.ReputationType == ((LocationReputationTypeValue)locationProperty).ReputationType;
-        default:
-            return false;
-    }
-}
-
-public MarkupString GetRequirementDescription(Requirement req, PlayerState player)
-{
-    bool isMet = req.IsSatisfied(player);
-    string iconHtml = isMet
-        ? "<span class='green-checkmark'>✓</span>"
-        : "<span class='red-x'>✗</span>";
-
-    return new MarkupString($"{iconHtml} {req.GetDescription()}");
-}
-
-public MarkupString GetValueTypeIcon(ValueTypes valueType)
-{
-    return valueType switch
-    {
-        ValueTypes.Outcome => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
-        ValueTypes.Insight => new MarkupString("<i class='value-icon insight-icon'>💡</i>"),
-        ValueTypes.Resonance => new MarkupString("<i class='value-icon resonance-icon'>🤝</i>"),
-        ValueTypes.Pressure => new MarkupString("<i class='value-icon pressure-icon'>⚡</i>"),
-        _ => new MarkupString("")
-    };
-}
-
-public MarkupString GetEnergyTypeIcon(EnergyTypes energyType)
-{
-    return energyType switch
-    {
-        EnergyTypes.Physical => new MarkupString("<i class='energy-icon physical-icon'>💪</i>"),
-        EnergyTypes.Focus => new MarkupString("<i class='energy-icon focus-icon'>🎯</i>"),
-        EnergyTypes.Social => new MarkupString("<i class='energy-icon social-icon'>👥</i>"),
-        _ => new MarkupString("")
-    };
-}
-
-public string GetChoiceArchetypeIcon(ChoiceArchetypes archetype)
-{
-    return archetype switch
-    {
-        ChoiceArchetypes.Physical => "💪",
-        ChoiceArchetypes.Focus => "🎯",
-        ChoiceArchetypes.Social => "👥",
-        _ => ""
-    };
-}
-
-public string GetChoiceApproachIcon(ChoiceApproaches approach)
-{
-    return approach switch
-    {
-        ChoiceApproaches.Aggressive => "⚔️",
-        ChoiceApproaches.Careful => "🛡️",
-        ChoiceApproaches.Strategic => "📋",
-        ChoiceApproaches.Desperate => "⚠️",
-        _ => ""
-    };
-}
-
-public FinalEnergyCost CalculateFinalEnergyCost(EncounterChoice choice)
-{
-    FinalEnergyCost finalCost = new FinalEnergyCost
-    {
-        FinalCost = choice.EnergyCost,
-        Reduction = 0
-    };
-
-    // Apply location-based energy reduction
-    foreach (var effect in LocationPropertyChoiceEffects.Effects)
-    {
-        // Check if the effect's LocationProperty matches the current context
-        if (IsLocationPropertyMatch(effect.LocationProperty, GameState.Actions.CurrentEncounter.Context))
+        switch (locationProperty.GetPropertyType())
         {
-            if (effect.ValueTypeEffect is EnergyValueTransformation energyTransformation &&
-                choice.EnergyType == energyTransformation.EnergyType)
-            {
-                finalCost.Reduction -= energyTransformation.ChangeInValue; // Assuming positive change reduces cost
-            }
+            case LocationPropertyTypes.Scale:
+                return context.LocationProperties.Scale == ((ScaleValue)locationProperty).ScaleVariation;
+            case LocationPropertyTypes.Exposure:
+                return context.LocationProperties.Exposure == ((ExposureValue)locationProperty).Exposure;
+            case LocationPropertyTypes.Legality:
+                return context.LocationProperties.Legality == ((LegalityValue)locationProperty).Legality;
+            case LocationPropertyTypes.Pressure:
+                return context.LocationProperties.Pressure == ((PressureStateValue)locationProperty).PressureState;
+            case LocationPropertyTypes.Complexity:
+                return context.LocationProperties.Complexity == ((ComplexityValue)locationProperty).Complexity;
+            case LocationPropertyTypes.Resource:
+                return context.LocationProperties.Resource == ((ResourceValue)locationProperty).Resource;
+            case LocationPropertyTypes.CrowdLevel:
+                return context.LocationProperties.CrowdLevel == ((CrowdLevelValue)locationProperty).CrowdLevel;
+            case LocationPropertyTypes.ReputationType:
+                return context.LocationProperties.LocationReputationType == ((LocationReputationTypeValue)locationProperty).ReputationType;
+            default:
+                return false;
         }
     }
 
-    finalCost.FinalCost = Math.Max(0, finalCost.FinalCost - finalCost.Reduction);
-    return finalCost;
-}
-
-public string GetTransformationEffect(ChoiceModification modification)
-{
-    if (modification.Type != ModificationType.ValueChange || modification.ValueChange.ValueTransformation == null)
+    public MarkupString GetRequirementDescription(Requirement req, PlayerState player)
     {
-        return string.Empty;
+        bool isMet = req.IsSatisfied(player);
+        string iconHtml = isMet
+            ? "<span class='green-checkmark'>✓</span>"
+            : "<span class='red-x'>✗</span>";
+
+        return new MarkupString($"{iconHtml} {req.GetDescription()}");
     }
 
-    switch (modification.ValueChange.ValueTransformation)
+    public MarkupString GetValueTypeIcon(ValueTypes valueType)
     {
-        case ConvertValueTransformation convertTransformation:
-            return $"Converted {modification.ValueChange.Amount} {convertTransformation.SourceValueType} to {modification.ValueChange.Amount} {convertTransformation.TargetValueType}";
-        case ChangeValueTransformation changeTransformation:
-            if (changeTransformation.ChangeInValue > 0)
-            {
-                return $"Increased {changeTransformation.ValueType} by {changeTransformation.ChangeInValue}";
-            }
-            else if (changeTransformation.ChangeInValue < 0)
-            {
-                return $"Reduced {changeTransformation.ValueType} by {Math.Abs(changeTransformation.ChangeInValue)}";
-            }
-            else
-            {
-                return string.Empty; // No change
-            }
-        case CancelValueTransformation cancelTransformation:
-            return $"Canceled {cancelTransformation.ValueType}";
-        default:
-            return string.Empty;
+        return valueType switch
+        {
+            ValueTypes.Outcome => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
+            ValueTypes.Insight => new MarkupString("<i class='value-icon insight-icon'>💡</i>"),
+            ValueTypes.Resonance => new MarkupString("<i class='value-icon resonance-icon'>🤝</i>"),
+            ValueTypes.Pressure => new MarkupString("<i class='value-icon pressure-icon'>⚡</i>"),
+            _ => new MarkupString("")
+        };
     }
-}
+
+    public MarkupString GetEnergyTypeIcon(EnergyTypes energyType)
+    {
+        return energyType switch
+        {
+            EnergyTypes.Physical => new MarkupString("<i class='energy-icon physical-icon'>💪</i>"),
+            EnergyTypes.Focus => new MarkupString("<i class='energy-icon focus-icon'>🎯</i>"),
+            EnergyTypes.Social => new MarkupString("<i class='energy-icon social-icon'>👥</i>"),
+            _ => new MarkupString("")
+        };
+    }
+
+    public string GetChoiceArchetypeIcon(ChoiceArchetypes archetype)
+    {
+        return archetype switch
+        {
+            ChoiceArchetypes.Physical => "💪",
+            ChoiceArchetypes.Focus => "🎯",
+            ChoiceArchetypes.Social => "👥",
+            _ => ""
+        };
+    }
+
+    public string GetChoiceApproachIcon(ChoiceApproaches approach)
+    {
+        return approach switch
+        {
+            ChoiceApproaches.Aggressive => "⚔️",
+            ChoiceApproaches.Careful => "🛡️",
+            ChoiceApproaches.Strategic => "📋",
+            ChoiceApproaches.Desperate => "⚠️",
+            _ => ""
+        };
+    }
+
+    public string RenderLocationEffect(LocationPropertyChoiceEffect effect)
+    {
+        return effect.ValueTypeEffect switch
+        {
+            ValueModification mod => $"{effect.LocationProperty.GetPropertyType()}: {mod.ValueType} {(mod.ModifierAmount > 0 ? "+" : "")}{mod.ModifierAmount}",
+            ValueConversion conv => $"{effect.LocationProperty.GetPropertyType()}: Convert {conv.SourceValueType} to {conv.TargetValueType}",
+            PartialValueConversion pConv => $"{effect.LocationProperty.GetPropertyType()}: Convert {pConv.ConversionAmount} {pConv.SourceValueType} to {pConv.TargetValueType}",
+            EnergyModification eMod => $"{effect.LocationProperty.GetPropertyType()}: {eMod.TargetArchetype} Energy {(eMod.EnergyCostModifier > 0 ? "+" : "")}{eMod.EnergyCostModifier}",
+            ValueBonus bonus => $"{effect.LocationProperty.GetPropertyType()}: {bonus.ChoiceArchetype} gains {bonus.ValueType} {(bonus.BonusAmount > 0 ? "+" : "")}{bonus.BonusAmount}",
+            _ => effect.RuleDescription
+        };
+    }
+
+    public string RenderValueModification(EncounterChoice choice, ValueChange finalChange)
+    {
+        int baseChange = choice.BaseValueChanges.FirstOrDefault(b => b.ValueType == finalChange.ValueType)?.Change ?? 0;
+        List<string> modifications = new List<string>();
+
+        if (baseChange != finalChange.Change)
+        {
+            modifications.Add($"Base: {baseChange}");
+            foreach (LocationPropertyChoiceEffect effect in GetLocationEffects(choice))
+            {
+                if (effect.ValueTypeEffect is ValueModification mod && mod.ValueType == finalChange.ValueType)
+                {
+                    modifications.Add($"{effect.LocationProperty.GetPropertyType()}: {(mod.ModifierAmount > 0 ? "+" : "")}{mod.ModifierAmount}");
+                }
+            }
+        }
+
+        return modifications.Count > 0 ? $"({string.Join(", ", modifications)})" : string.Empty;
+    }
+
+    public List<LocationPropertyChoiceEffect> GetLocationEffects(EncounterChoice choice)
+    {
+        return GameManager.GetLocationEffects(choice);
+    }
+
+    public bool IsValueModified(EncounterChoice choice, ValueChange finalChange)
+    {
+        int baseChange = choice.BaseValueChanges.FirstOrDefault(b => b.ValueType == finalChange.ValueType)?.Change ?? 0;
+        return baseChange != finalChange.Change;
+    }
+
+    public string RenderEnergyCostModification(EncounterChoice choice)
+    {
+        IEnumerable<string> modifications = GetLocationEffects(choice)
+            .Where(e => e.ValueTypeEffect is EnergyModification)
+            .Select(e => $"{e.LocationProperty.GetPropertyType()}: {((EnergyModification)e.ValueTypeEffect).EnergyCostModifier}");
+
+        return modifications.Any() ? $"({string.Join(", ", modifications)})" : string.Empty;
+    }
+
+    public bool IsEnergyCostModified(EncounterChoice choice)
+    {
+        return choice.EnergyCost != choice.ModifiedEnergyCost;
+    }
+
+    public string GetValueChangeClass(ValueChange change)
+    {
+        return change.Change > 0 ? "positive-change" : change.Change < 0 ? "negative-change" : "neutral-change";
+    }
 }

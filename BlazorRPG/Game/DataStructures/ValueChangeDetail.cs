@@ -13,29 +13,53 @@ public class LocationArchetypeTransformation
     public string Explanation { get; set; }
 }
 
-public abstract class ValueTransformation
+public class LocationPropertyChoiceEffect
 {
+    public LocationPropertyTypeValue LocationProperty { get; set; }
+    public ValueTransformation ValueTypeEffect { get; set; }
+    public string RuleDescription { get; set; }
 }
 
-public class ConvertValueTransformation : ValueTransformation
+// Base class for all value transformations
+public abstract class ValueTransformation
+{
+    public string RuleDescription { get; set; }
+}
+
+// Adds/subtracts from a value
+public class ValueModification : ValueTransformation
+{
+    public ValueTypes ValueType { get; set; }
+    public int ModifierAmount { get; set; }
+}
+
+// Completely converts one value type to another
+public class ValueConversion : ValueTransformation
 {
     public ValueTypes SourceValueType { get; set; }
     public ValueTypes TargetValueType { get; set; }
 }
 
-public class ChangeValueTransformation : ValueTransformation
+// Converts part of one value to another
+public class PartialValueConversion : ValueTransformation
 {
-    public ValueTypes ValueType { get; set; }
-    public int ChangeInValue { get; set; }
+    public ValueTypes SourceValueType { get; set; }
+    public ValueTypes TargetValueType { get; set; }
+    public int ConversionAmount { get; set; }
+    public ChoiceArchetypes TargetArchetype { get; set; }
 }
 
-public class CancelValueTransformation : ValueTransformation
+// Modifies energy costs for specific choice types
+public class EnergyModification : ValueTransformation
 {
-    public ValueTypes ValueType { get; set; }
+    public ChoiceArchetypes TargetArchetype { get; set; }
+    public int EnergyCostModifier { get; set; }
 }
 
-public class EnergyValueTransformation : ValueTransformation
+// Adds bonus to specific value type for specific choice archetype
+public class ValueBonus : ValueTransformation
 {
-    public EnergyTypes EnergyType { get; set; }
-    public int ChangeInValue { get; set; }
+    public ChoiceArchetypes ChoiceArchetype { get; set; }
+    public ValueTypes ValueType { get; set; }
+    public int BonusAmount { get; set; }
 }
