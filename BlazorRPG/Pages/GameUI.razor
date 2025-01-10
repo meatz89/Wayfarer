@@ -68,34 +68,34 @@
 
     <div class="sidebar">
 
-        <div class="sidebar-panel location-panel">
-            <div class="location-name">
-                @CurrentLocation.LocationName
-            </div>
+<div class="sidebar-panel location-panel">
+    <div class="location-name">
+        @CurrentLocation.LocationName
+    </div>
 
-            <div class="location-properties">
-                <div class="properties-header">Properties</div>
-                <div class="properties-grid">
-                    @foreach (var prop in GetLocationProperties())
+    <div class="location-properties">
+        <div class="properties-header">Properties</div>
+            <div class="properties-grid">
+                @foreach (var prop in GetLocationPropertiesWithEffects())
+                {
+                    if(prop.Effects.Count > 0)
+                    {
+                        <div class="property-tag @prop.CssClass" data-tooltip="@string.Join(" | ", prop.Effects)">
+                            <span class="property-icon">@prop.Icon</span>
+                            <span class="property-text">@prop.Text</span>
+                            <span class="effect-indicator">✨</span>
+                        </div>
+                    }
+                    else
                     {
                         <div class="property-tag @prop.CssClass">
                             <span class="property-icon">@prop.Icon</span>
-                            @prop.Text
+                            <span class="property-text">@prop.Text</span>
                         </div>
                     }
-                </div>
-            </div>
-
-            <div class="location-effects-container">
-                <div class="location-effects-header">Effects</div>
-                @foreach (var effect in GetFormattedEffects())
-                {
-                    <div class="location-effect @effect.CssClass">
-                        <span class="effect-bullet">•</span>
-                        <span>@effect.Description</span>
-                    </div>
                 }
             </div>
+        </div>
         </div>
 
         <div class="sidebar-panel">

@@ -23,7 +23,6 @@ public class LocationPropertyChoiceEffect
 // Base class for all value transformations
 public abstract class ValueTransformation
 {
-    public string RuleDescription { get; set; }
 }
 
 // Adds/subtracts from a value

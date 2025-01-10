@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using System.Reflection.Metadata.Ecma335;
 
 namespace BlazorRPG.Pages;
 
@@ -183,45 +184,7 @@ public partial class GameUI : ComponentBase
             _ => ""
         };
     }
-    private record struct PropertyDisplay(string Icon, string Text, string CssClass = "");
 
-    private List<PropertyDisplay> GetLocationProperties()
-    {
-        var properties = new List<PropertyDisplay>();
-        var loc = CurrentLocation.LocationProperties;
-
-        if (loc.IsArchetypeSet)
-            properties.Add(new("🏠", FormatLocationArchetype(CurrentLocation.Archetype)));
-
-        if (loc.IsScaleSet)
-            properties.Add(new("📐", FormatScale(loc.Scale)));
-
-        if (loc.IsExposureSet)
-            properties.Add(new(loc.Exposure == ExposureConditionTypes.Indoor ? "🏗️" : "🌳",
-                             FormatExposure(loc.Exposure)));
-
-        if (loc.IsLegalitySet)
-            properties.Add(new("⚖️", FormatLegality(loc.Legality),
-                             $"property-{loc.Legality.ToString().ToLower()}"));
-
-        if (loc.IsPressureSet)
-            properties.Add(new(GetPressureIcon(loc.Pressure),
-                             FormatPressure(loc.Pressure),
-                             $"property-{loc.Pressure.ToString().ToLower()}"));
-
-        if (loc.IsComplexitySet)
-            properties.Add(new("🧩", FormatComplexity(loc.Complexity)));
-
-        if (loc.IsResourceSet && loc.Resource != ResourceTypes.None)
-            properties.Add(new(GetResourceIcon(loc.Resource),
-                             FormatResource(loc.Resource)));
-
-        if (loc.IsCrowdLevelSet)
-            properties.Add(new(GetCrowdIcon(loc.CrowdLevel),
-                             FormatCrowdLevel(loc.CrowdLevel)));
-
-        return properties;
-    }
 
     private string GetPressureIcon(PressureStateTypes? pressure) => pressure switch
     {
@@ -251,15 +214,6 @@ public partial class GameUI : ComponentBase
     };
 
     private record struct EffectDisplay(string Description, string CssClass);
-
-    private List<EffectDisplay> GetFormattedEffects()
-    {
-        return GetLocationEffects()
-            .Select(effect => new EffectDisplay(
-                GetEffectDescription(effect),
-                GetEffectClass(effect)))
-            .ToList();
-    }
 
     private string FormatLocationArchetype(LocationArchetypes? value)
     {
@@ -297,13 +251,13 @@ public partial class GameUI : ComponentBase
         return FormatEnumString(value.ToString());
     }
 
-    private string FormatResource(ResourceTypes? value)
+    private string FormatCrowdLevel(CrowdLevelTypes? value)
     {
         if (value == null) return string.Empty;
         return FormatEnumString(value.ToString());
     }
 
-    private string FormatCrowdLevel(CrowdLevelTypes? value)
+    private string FormatResource(ResourceTypes? value)
     {
         if (value == null) return string.Empty;
         return FormatEnumString(value.ToString());
@@ -317,4 +271,148 @@ public partial class GameUI : ComponentBase
             .Replace("Types", "");
     }
 
+    private List<PropertyDisplay> GetLocationPropertiesWithEffects()
+    {
+        var properties = new List<PropertyDisplay>();
+        var loc = CurrentLocation.LocationProperties;
+
+        if (loc.IsArchetypeSet)
+        {
+            var archetypeEffects = GetEffectDescriptions(LocationPropertyTypes.Archetype);
+            properties.Add(new(
+                "🏠",
+                FormatLocationArchetype(CurrentLocation.Archetype),
+                "",
+                archetypeEffects
+            ));
+        }
+
+        if (loc.IsScaleSet)
+        {
+            var scaleEffects = GetEffectDescriptions(LocationPropertyTypes.Scale);
+            properties.Add(new(
+                "📐",
+                FormatScale(loc.Scale),
+                "",
+                scaleEffects
+            ));
+        }
+
+        if (loc.IsExposureSet)
+        {
+            var exposureEffects = GetEffectDescriptions(LocationPropertyTypes.Exposure);
+            properties.Add(new(
+                loc.Exposure == ExposureConditionTypes.Indoor ? "🏗️" : "🌳",
+                FormatExposure(loc.Exposure),
+                "",
+                exposureEffects
+            ));
+        }
+
+        if (loc.IsLegalitySet)
+        {
+            var legalityEffects = GetEffectDescriptions(LocationPropertyTypes.Legality);
+            properties.Add(new(
+                "⚖️",
+                FormatLegality(loc.Legality),
+                $"property-{loc.Legality.ToString().ToLower()}",
+                legalityEffects
+            ));
+        }
+
+        if (loc.IsPressureSet)
+        {
+            var pressureEffects = GetEffectDescriptions(LocationPropertyTypes.Pressure);
+            properties.Add(new(
+                GetPressureIcon(loc.Pressure),
+                FormatPressure(loc.Pressure),
+                $"property-{loc.Pressure.ToString().ToLower()}",
+                pressureEffects
+            ));
+        }
+
+        if (loc.IsComplexitySet)
+        {
+            var complexityEffects = GetEffectDescriptions(LocationPropertyTypes.Complexity);
+            properties.Add(new(
+                "🧩",
+                FormatComplexity(loc.Complexity),
+                "",
+                complexityEffects
+            ));
+        }
+
+        if (loc.IsResourceSet && loc.Resource != ResourceTypes.None)
+        {
+            var resourceEffects = GetEffectDescriptions(LocationPropertyTypes.Resource);
+            properties.Add(new(
+                GetResourceIcon(loc.Resource),
+                FormatResource(loc.Resource),
+                "",
+                resourceEffects
+            ));
+        }
+
+        if (loc.IsCrowdLevelSet)
+        {
+            var crowdEffects = GetEffectDescriptions(LocationPropertyTypes.CrowdLevel);
+            properties.Add(new(
+                GetCrowdIcon(loc.CrowdLevel),
+                FormatCrowdLevel(loc.CrowdLevel),
+                "",
+                crowdEffects
+            ));
+        }
+        
+        return properties;
+    }
+
+    private List<string> GetEffectDescriptions(LocationPropertyTypes propertyType)
+    {
+        List<string> effects = new();
+        List<LocationPropertyChoiceEffect> locationEffects = GetLocationEffects();
+
+        foreach (LocationPropertyChoiceEffect effect in locationEffects)
+        {
+            // Skip if property type doesn't match
+            if (effect.LocationProperty.GetPropertyType() != propertyType)
+                continue;
+
+            string formattedEffect = FormatEffect(effect);
+            effects.Add(formattedEffect);
+        }
+
+        return effects;
+    }
+
+    public string FormatEffect(LocationPropertyChoiceEffect effect)
+    {
+        return effect.RuleDescription;
+    }
+        
+    //    => effect switch
+    //{
+    //    ValueModification mod =>
+    //        $"Modifies {mod.ValueType} by {(mod.ModifierAmount >= 0 ? "+" : "")}{mod.ModifierAmount}",
+
+    //    ValueConversion conv =>
+    //        $"Converts {conv.SourceValueType} into {conv.TargetValueType}",
+
+    //    PartialValueConversion pConv =>
+    //        $"Converts {pConv.ConversionAmount} {pConv.SourceValueType} into {pConv.TargetValueType} for {pConv.TargetArchetype} choices",
+
+    //    EnergyModification eMod =>
+    //        $"{eMod.TargetArchetype} choices cost {(eMod.EnergyCostModifier >= 0 ? "+" : "")}{eMod.EnergyCostModifier} Energy",
+
+    //    ValueBonus bonus =>
+    //        $"{bonus.ChoiceArchetype} choices gain {(bonus.BonusAmount >= 0 ? "+" : "")}{bonus.BonusAmount} {bonus.ValueType}",
+
+    //    _ => effect.RuleDescription
+    //};
 }
+
+public record struct PropertyDisplay(
+    string Icon,
+    string Text,
+    string CssClass,
+    List<string> Effects);
