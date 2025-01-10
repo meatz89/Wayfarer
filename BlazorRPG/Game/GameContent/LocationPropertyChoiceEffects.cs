@@ -1,6 +1,6 @@
 ﻿public class LocationPropertyChoiceEffects
 {
-    public static List<LocationPropertyChoiceEffect> Effects { get; set; } = new()
+    public static List<LocationPropertyChoiceEffect> AllEffects { get; set; } = new()
     {
         // Crowded spaces make focus harder but increase social rewards
         new LocationPropertyChoiceEffect

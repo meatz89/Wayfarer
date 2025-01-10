@@ -2,9 +2,6 @@
 {
     public ChoiceSet CreateFromChoiceSet(ChoiceSetTemplate template, EncounterContext context)
     {
-        if (!IsTemplateValid(template, context))
-            return null;
-
         // Create base choices from patterns
         List<EncounterChoice> choices = new();
         foreach (ChoiceTemplate choiceTemplate in template.ChoiceTemplates)
@@ -68,26 +65,5 @@
         }
 
         return description;
-    }
-
-    private bool IsTemplateValid(ChoiceSetTemplate template, EncounterContext context)
-    {
-        bool hasLocationConditions = template.AvailabilityConditions.Any();
-        bool locationConditionsMet = hasLocationConditions &&
-            template.AvailabilityConditions.All(cond => cond.IsMet(context.LocationProperties));
-        if (hasLocationConditions && !locationConditionsMet)
-        {
-            return false;
-        }
-
-        bool hasStateConditions = template.StateConditions.Any();
-        bool stateConditionsMet = hasStateConditions &&
-            template.StateConditions.All(cond => cond.IsMet(context.CurrentValues));
-        if (hasStateConditions && !stateConditionsMet)
-        {
-            return false;
-        }
-
-        return true;
     }
 }

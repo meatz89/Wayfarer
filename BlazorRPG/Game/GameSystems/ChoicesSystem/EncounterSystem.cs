@@ -1,5 +1,4 @@
-﻿
-public class EncounterSystem
+﻿public class EncounterSystem
 {
     private readonly GameState gameState;
     private readonly ChoiceSystem choiceSystem;
@@ -31,22 +30,24 @@ public class EncounterSystem
     }
     private bool WinGame(Encounter encounter)
     {
+        int winValue = 50;
+
         return encounter.Context.ActionType switch
         {
             // Physical actions check Outcome
-            BasicActionTypes.Labor => encounter.Context.CurrentValues.Outcome >= 10,
-            BasicActionTypes.Gather => encounter.Context.CurrentValues.Outcome >= 10,
-            BasicActionTypes.Travel => encounter.Context.CurrentValues.Outcome >= 10,
+            BasicActionTypes.Labor => encounter.Context.CurrentValues.Outcome >= winValue,
+            BasicActionTypes.Gather => encounter.Context.CurrentValues.Outcome >= winValue,
+            BasicActionTypes.Travel => encounter.Context.CurrentValues.Outcome >= winValue,
 
             // Social actions check Resonance
-            BasicActionTypes.Mingle => encounter.Context.CurrentValues.Resonance >= 10,
-            BasicActionTypes.Persuade => encounter.Context.CurrentValues.Resonance >= 10,
-            BasicActionTypes.Perform => encounter.Context.CurrentValues.Resonance >= 10,
+            BasicActionTypes.Mingle => encounter.Context.CurrentValues.Resonance >= winValue,
+            BasicActionTypes.Persuade => encounter.Context.CurrentValues.Resonance >= winValue,
+            BasicActionTypes.Perform => encounter.Context.CurrentValues.Resonance >= winValue,
 
             // Mental actions check Insight
-            BasicActionTypes.Investigate => encounter.Context.CurrentValues.Insight >= 10,
-            BasicActionTypes.Study => encounter.Context.CurrentValues.Insight >= 10,
-            BasicActionTypes.Reflect => encounter.Context.CurrentValues.Insight >= 10,
+            BasicActionTypes.Investigate => encounter.Context.CurrentValues.Insight >= winValue,
+            BasicActionTypes.Study => encounter.Context.CurrentValues.Insight >= winValue,
+            BasicActionTypes.Reflect => encounter.Context.CurrentValues.Insight >= winValue,
 
             _ => false
         };

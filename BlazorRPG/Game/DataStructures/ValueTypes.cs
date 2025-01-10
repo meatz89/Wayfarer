@@ -4,5 +4,4 @@
     Insight,
     Resonance,
     Pressure,
-    Energy,
 }

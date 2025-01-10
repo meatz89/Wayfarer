@@ -1,4 +1,6 @@
-﻿public class LocationPropertiesBuilder
+﻿
+
+public class LocationPropertiesBuilder
 {
     private LocationProperties properties;
 
@@ -43,20 +45,28 @@
         return this;
     }
 
+    public LocationPropertiesBuilder WithAnyResource()
+    {
+        properties.SetProperty(LocationPropertyTypes.Resource, ResourceTypes.Any);
+        return this;
+    }
+
     public LocationPropertiesBuilder WithCrowdLevel(CrowdLevelTypes crowdLevel)
     {
         properties.SetProperty(LocationPropertyTypes.CrowdLevel, crowdLevel);
         return this;
     }
 
+    public LocationProperties Build()
+    {
+        return properties;
+    }
+
+    // ONLY FOR ACTIONS TO LOCATION MAPPING
+    // NOT FOR USE IN CHOICESETS
     public LocationPropertiesBuilder WithArchetype(LocationArchetypes archetype)
     {
         properties.SetProperty(LocationPropertyTypes.Archetype, archetype);
         return this;
-    }
-
-    public LocationProperties Build()
-    {
-        return properties;
     }
 }

@@ -11,7 +11,7 @@ public class ChoiceSystem
     {
         this.gameState = gameState;
         this.choiceSetTemplates = contentProvider.GetChoiceSetTemplates();
-        this.choiceSetSelector = new ChoiceSetSelector();
+        this.choiceSetSelector = new ChoiceSetSelector(gameState);
         this.choiceSetFactory = new ChoiceSetFactory();
         this.executor = new ChoiceExecutor(gameState);
     }

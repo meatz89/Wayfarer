@@ -47,12 +47,8 @@
         };
 
 
-        choiceSetTemplates = new List<ChoiceSetTemplate>()
-        {
-            ChoiceSetContent.ServingDrinks,
-        };
-
-        locationArchetypeEffects = LocationPropertyChoiceEffects.Effects;
+        choiceSetTemplates = ChoiceSetContent.AllChoiceSets;
+        locationArchetypeEffects = LocationPropertyChoiceEffects.AllEffects;
     }
 
     public List<LocationPropertyChoiceEffect> GetLocationArchetypeEffects()

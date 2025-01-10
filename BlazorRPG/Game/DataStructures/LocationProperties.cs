@@ -133,7 +133,8 @@ public enum ResourceTypes
     Wood,
     Fish,
     Herbs,
-    Cloth
+    Cloth,
+    Any
 }
 
 public class ResourceValue : LocationPropertyTypeValue

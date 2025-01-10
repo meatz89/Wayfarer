@@ -16,6 +16,9 @@
 
     Charisma,
     Service,
+    Herbalism,
+    Crafting,
+    Haggling,
     //
     //Presence, // None/Low/High
     //Status, // None/Low/High

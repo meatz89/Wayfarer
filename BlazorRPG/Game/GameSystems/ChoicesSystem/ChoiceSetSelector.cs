@@ -1,6 +1,12 @@
 ﻿public class ChoiceSetSelector
 {
     private readonly Random random = new();
+    public GameState GameState { get; }
+
+    public ChoiceSetSelector(GameState gameState)
+    {
+        GameState = gameState;
+    }
 
     public ChoiceSetTemplate SelectTemplate(List<ChoiceSetTemplate> templates, EncounterContext context)
     {

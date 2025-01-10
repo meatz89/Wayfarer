@@ -1,4 +1,5 @@
-﻿public class EncounterStateConditionBuilder
+﻿
+public class EncounterStateConditionBuilder
 {
     private Dictionary<ValueTypes, int> maxValues = new();
     private Dictionary<ValueTypes, int> minValues = new();
@@ -56,4 +57,5 @@
     {
         return new EncounterStateCondition(minValues, maxValues);
     }
+
 }
