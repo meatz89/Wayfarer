@@ -73,15 +73,26 @@
                 @CurrentLocation.LocationName
             </div>
 
-            <div class="location-effects-container">
-                <div class="location-effects-header">
-                    Location Effects
+            <div class="location-properties">
+                <div class="properties-header">Properties</div>
+                <div class="properties-grid">
+                    @foreach (var prop in GetLocationProperties())
+                    {
+                        <div class="property-tag @prop.CssClass">
+                            <span class="property-icon">@prop.Icon</span>
+                            @prop.Text
+                        </div>
+                    }
                 </div>
-                @foreach (var effect in GetLocationEffects())
+            </div>
+
+            <div class="location-effects-container">
+                <div class="location-effects-header">Effects</div>
+                @foreach (var effect in GetFormattedEffects())
                 {
-                    <div class="location-effect @GetEffectClass(effect)">
+                    <div class="location-effect @effect.CssClass">
                         <span class="effect-bullet">•</span>
-                        <span>@GetEffectDescription(effect)</span>
+                        <span>@effect.Description</span>
                     </div>
                 }
             </div>

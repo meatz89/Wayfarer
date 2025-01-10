@@ -183,5 +183,138 @@ public partial class GameUI : ComponentBase
             _ => ""
         };
     }
+    private record struct PropertyDisplay(string Icon, string Text, string CssClass = "");
+
+    private List<PropertyDisplay> GetLocationProperties()
+    {
+        var properties = new List<PropertyDisplay>();
+        var loc = CurrentLocation.LocationProperties;
+
+        if (loc.IsArchetypeSet)
+            properties.Add(new("🏠", FormatLocationArchetype(CurrentLocation.Archetype)));
+
+        if (loc.IsScaleSet)
+            properties.Add(new("📐", FormatScale(loc.Scale)));
+
+        if (loc.IsExposureSet)
+            properties.Add(new(loc.Exposure == ExposureConditionTypes.Indoor ? "🏗️" : "🌳",
+                             FormatExposure(loc.Exposure)));
+
+        if (loc.IsLegalitySet)
+            properties.Add(new("⚖️", FormatLegality(loc.Legality),
+                             $"property-{loc.Legality.ToString().ToLower()}"));
+
+        if (loc.IsPressureSet)
+            properties.Add(new(GetPressureIcon(loc.Pressure),
+                             FormatPressure(loc.Pressure),
+                             $"property-{loc.Pressure.ToString().ToLower()}"));
+
+        if (loc.IsComplexitySet)
+            properties.Add(new("🧩", FormatComplexity(loc.Complexity)));
+
+        if (loc.IsResourceSet && loc.Resource != ResourceTypes.None)
+            properties.Add(new(GetResourceIcon(loc.Resource),
+                             FormatResource(loc.Resource)));
+
+        if (loc.IsCrowdLevelSet)
+            properties.Add(new(GetCrowdIcon(loc.CrowdLevel),
+                             FormatCrowdLevel(loc.CrowdLevel)));
+
+        return properties;
+    }
+
+    private string GetPressureIcon(PressureStateTypes? pressure) => pressure switch
+    {
+        PressureStateTypes.Relaxed => "😌",
+        PressureStateTypes.Alert => "⚠️",
+        PressureStateTypes.Hostile => "⚔️",
+        _ => "❓"
+    };
+
+    private string GetResourceIcon(ResourceTypes? resource) => resource switch
+    {
+        ResourceTypes.Food => "🍖",
+        ResourceTypes.Wood => "🪵",
+        ResourceTypes.Fish => "🐟",
+        ResourceTypes.Herbs => "🌿",
+        ResourceTypes.Cloth => "🧵",
+        _ => "📦"
+    };
+
+    private string GetCrowdIcon(CrowdLevelTypes? crowdLevel) => crowdLevel switch
+    {
+        CrowdLevelTypes.Empty => "🕸️",
+        CrowdLevelTypes.Sparse => "👤",
+        CrowdLevelTypes.Busy => "👥",
+        CrowdLevelTypes.Crowded => "👥👥",
+        _ => "❓"
+    };
+
+    private record struct EffectDisplay(string Description, string CssClass);
+
+    private List<EffectDisplay> GetFormattedEffects()
+    {
+        return GetLocationEffects()
+            .Select(effect => new EffectDisplay(
+                GetEffectDescription(effect),
+                GetEffectClass(effect)))
+            .ToList();
+    }
+
+    private string FormatLocationArchetype(LocationArchetypes? value)
+    {
+        if (value == null) return string.Empty;
+        return FormatEnumString(value.ToString());
+    }
+
+    private string FormatScale(ScaleVariationTypes? value)
+    {
+        if (value == null) return string.Empty;
+        return FormatEnumString(value.ToString());
+    }
+
+    private string FormatExposure(ExposureConditionTypes? value)
+    {
+        if (value == null) return string.Empty;
+        return FormatEnumString(value.ToString());
+    }
+
+    private string FormatLegality(LegalityTypes? value)
+    {
+        if (value == null) return string.Empty;
+        return FormatEnumString(value.ToString());
+    }
+
+    private string FormatPressure(PressureStateTypes? value)
+    {
+        if (value == null) return string.Empty;
+        return FormatEnumString(value.ToString());
+    }
+
+    private string FormatComplexity(ComplexityTypes? value)
+    {
+        if (value == null) return string.Empty;
+        return FormatEnumString(value.ToString());
+    }
+
+    private string FormatResource(ResourceTypes? value)
+    {
+        if (value == null) return string.Empty;
+        return FormatEnumString(value.ToString());
+    }
+
+    private string FormatCrowdLevel(CrowdLevelTypes? value)
+    {
+        if (value == null) return string.Empty;
+        return FormatEnumString(value.ToString());
+    }
+
+    private string FormatEnumString(string value)
+    {
+        return string.Concat(value
+            .Select((x, i) => i > 0 && char.IsUpper(x) ? " " + x : x.ToString()))
+            .Replace("Type", "")
+            .Replace("Types", "");
+    }
 
 }

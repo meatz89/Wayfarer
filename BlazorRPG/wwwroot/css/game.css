@@ -922,3 +922,128 @@ body {
     .location-effect:hover .effect-bullet {
         color: #718096; /* Brighten bullet on hover */
     }
+/* Location Panel Styles */
+.location-panel {
+    padding: 1rem;
+}
+
+.location-name {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #e2e8f0;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #2d3748;
+}
+
+/* Properties Section */
+.properties-header {
+    font-size: 0.9rem;
+    color: #718096;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.properties-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.property-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    background: #2d3748;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    color: #e2e8f0;
+    transition: all 0.2s;
+}
+
+    .property-tag:hover {
+        background: #374151;
+    }
+
+.property-icon {
+    margin-right: 0.5rem;
+    font-size: 1rem;
+}
+
+/* Property Tag Variations */
+.property-tag.legal {
+    background: #065f46;
+}
+
+.property-tag.gray {
+    background: #4b5563;
+}
+
+.property-tag.illegal {
+    background: #991b1b;
+}
+
+.property-tag.relaxed {
+    background: #065f46;
+}
+
+.property-tag.alert {
+    background: #92400e;
+}
+
+.property-tag.hostile {
+    background: #991b1b;
+}
+
+/* Effects Section */
+.location-effects-container {
+    margin-top: 1rem;
+}
+
+.location-effects-header {
+    font-size: 0.9rem;
+    color: #718096;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.location-effect {
+    display: flex;
+    align-items: flex-start;
+    padding: 0.25rem 0;
+    font-size: 0.9rem;
+    color: #a0aec0;
+    line-height: 1.4;
+}
+
+.effect-bullet {
+    margin-right: 0.5rem;
+    color: #4a5568;
+}
+
+/* Effect Colors */
+.effect-value {
+    color: #9f7aea;
+}
+
+.effect-energy {
+    color: #4299e1;
+}
+
+.effect-convert {
+    color: #48bb78;
+}
+
+.effect-bonus {
+    color: #ecc94b;
+}
+
+/* Hover Effects */
+.location-effect:hover {
+    color: #e2e8f0;
+}
+
+    .location-effect:hover .effect-bullet {
+        color: #718096;
+    }
