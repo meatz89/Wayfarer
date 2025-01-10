@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using System;
 
 public partial class EncounterViewBase : ComponentBase
 {
@@ -36,82 +35,12 @@ public partial class EncounterViewBase : ComponentBase
         OnEncounterCompleted.InvokeAsync();
     }
 
-    public bool IsChoiceDisabled(UserEncounterChoiceOption choice)
-    {
-        // Use the ModifiedRequirements for the disabled check
-        return choice.EncounterChoice.ModifiedRequirements.Any(req => !req.IsSatisfied(GameState.Player));
-    }
-
     public void OnMouseMove(MouseEventArgs e)
     {
         mouseX = e.ClientX + 10;
         mouseY = e.ClientY + 10;
     }
 
-    public bool IsRequirementMet(UserEncounterChoiceOption choice)
-    {
-        foreach (Requirement req in choice.EncounterChoice.Requirements)
-        {
-            if (!req.IsSatisfied(GameState.Player)) return false;
-        }
-        return true;
-    }
-
-    public List<string> GetLocationTransformationRules()
-    {
-        List<string> rules = new List<string>();
-        List<LocationPropertyChoiceEffect> locationPropertyEffects = LocationPropertyChoiceEffects.Effects;
-
-        foreach (LocationPropertyChoiceEffect effect in locationPropertyEffects)
-        {
-            // Check if the effect's LocationProperty matches the current context
-            if (IsLocationPropertyMatch(effect.LocationProperty, GameState.Actions.CurrentEncounter.Context))
-            {
-                // Get the rule description directly from the effect
-                if (!string.IsNullOrEmpty(effect.RuleDescription))
-                {
-                    rules.Add(effect.RuleDescription);
-                }
-            }
-        }
-
-        return rules;
-    }
-
-    public bool IsLocationPropertyMatch(LocationPropertyTypeValue locationProperty, EncounterContext context)
-    {
-        switch (locationProperty.GetPropertyType())
-        {
-            case LocationPropertyTypes.Scale:
-                return context.LocationProperties.Scale == ((ScaleValue)locationProperty).ScaleVariation;
-            case LocationPropertyTypes.Exposure:
-                return context.LocationProperties.Exposure == ((ExposureValue)locationProperty).Exposure;
-            case LocationPropertyTypes.Legality:
-                return context.LocationProperties.Legality == ((LegalityValue)locationProperty).Legality;
-            case LocationPropertyTypes.Pressure:
-                return context.LocationProperties.Pressure == ((PressureStateValue)locationProperty).PressureState;
-            case LocationPropertyTypes.Complexity:
-                return context.LocationProperties.Complexity == ((ComplexityValue)locationProperty).Complexity;
-            case LocationPropertyTypes.Resource:
-                return context.LocationProperties.Resource == ((ResourceValue)locationProperty).Resource;
-            case LocationPropertyTypes.CrowdLevel:
-                return context.LocationProperties.CrowdLevel == ((CrowdLevelValue)locationProperty).CrowdLevel;
-            case LocationPropertyTypes.ReputationType:
-                return context.LocationProperties.LocationReputationType == ((LocationReputationTypeValue)locationProperty).ReputationType;
-            default:
-                return false;
-        }
-    }
-
-    public MarkupString GetRequirementDescription(Requirement req, PlayerState player)
-    {
-        bool isMet = req.IsSatisfied(player);
-        string iconHtml = isMet
-            ? "<span class='green-checkmark'>✓</span>"
-            : "<span class='red-x'>✗</span>";
-
-        return new MarkupString($"{iconHtml} {req.GetDescription()}");
-    }
 
     public MarkupString GetValueTypeIcon(ValueTypes valueType)
     {
@@ -133,29 +62,6 @@ public partial class EncounterViewBase : ComponentBase
             EnergyTypes.Focus => new MarkupString("<i class='energy-icon focus-icon'>🎯</i>"),
             EnergyTypes.Social => new MarkupString("<i class='energy-icon social-icon'>👥</i>"),
             _ => new MarkupString("")
-        };
-    }
-
-    public string GetChoiceArchetypeIcon(ChoiceArchetypes archetype)
-    {
-        return archetype switch
-        {
-            ChoiceArchetypes.Physical => "💪",
-            ChoiceArchetypes.Focus => "🎯",
-            ChoiceArchetypes.Social => "👥",
-            _ => ""
-        };
-    }
-
-    public string GetChoiceApproachIcon(ChoiceApproaches approach)
-    {
-        return approach switch
-        {
-            ChoiceApproaches.Direct => "⚔️",
-            ChoiceApproaches.Pragmatic => "🛡️",
-            ChoiceApproaches.Tactical => "📋",
-            ChoiceApproaches.Improvised => "⚠️",
-            _ => ""
         };
     }
 
@@ -221,4 +127,11 @@ public partial class EncounterViewBase : ComponentBase
     {
         return change.Change > 0 ? "positive-change" : change.Change < 0 ? "negative-change" : "neutral-change";
     }
+
+    public bool IsChoiceDisabled(UserEncounterChoiceOption choice)
+    {
+        // Use the ModifiedRequirements for the disabled check
+        return choice.EncounterChoice.ModifiedRequirements.Any(req => !req.IsSatisfied(GameState.Player));
+    }
+
 }
