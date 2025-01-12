@@ -135,6 +135,19 @@
     }
 
     // Method to count the number of a given item type in the inventory
+    public int GetItemCount(ItemTypes item)
+    {
+        int count = 0;
+        foreach (ItemTypes slot in Slots)
+        {
+            if (slot == item)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public int GetItemCount(ResourceTypes item)
     {
         int count = 0;
@@ -147,6 +160,7 @@
         }
         return count;
     }
+
 
     public void AddItem(ItemTypes itemName)
     {

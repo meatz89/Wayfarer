@@ -17,7 +17,7 @@
             .Select(vc => new ValueChange(vc.ValueType, vc.Change))
             .ToList();
 
-        choice.ModifiedRequirements = new List<Requirement>(choice.Requirements);
+        choice.ModifiedRequirements = new List<Requirement>(choice.BaseRequirements);
         choice.ModifiedCosts = new List<Outcome>(choice.BaseCosts);
         choice.ModifiedRewards = new List<Outcome>(choice.BaseRewards);
 

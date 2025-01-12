@@ -67,7 +67,7 @@
 
 
             case LocationPropertyTypes.ActivityLevel:
-                return locProperties.Activity == ((ActivityLevelValue)locPropertyTypeValue).ActivityLevel;
+                return locProperties.ActivityLevel == ((ActivityLevelValue)locPropertyTypeValue).ActivityLevel;
             case LocationPropertyTypes.Accessibility:
                 return locProperties.Exposure == ((ExposureValue)locPropertyTypeValue).Exposure;
             case LocationPropertyTypes.Supervision:

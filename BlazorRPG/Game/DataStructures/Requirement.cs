@@ -4,24 +4,45 @@
     public abstract string GetDescription();
 }
 
-public class InsightRequirement : Requirement
+public class MaxPressureRequirement : Requirement
 {
-    public int requiredLevel;
+    public int maxPressure;
 
-    public InsightRequirement(int level)
+    public MaxPressureRequirement(int pressure)
     {
-        requiredLevel = level;
+        maxPressure = pressure;
     }
 
     public override bool IsSatisfied(PlayerState player)
     {
         Encounter encounter = player.CurrentEncounter;
-        return encounter != null && encounter.Context.CurrentValues.Insight >= requiredLevel;
+        return encounter != null && encounter.Context.CurrentValues.Pressure <= maxPressure;
     }
 
     public override string GetDescription()
     {
-        return $"Requires Insight level {requiredLevel}";
+        return $"Requires Insight level {maxPressure}";
+    }
+}
+
+public class InsightRequirement : Requirement
+{
+    public int requiredInsight;
+
+    public InsightRequirement(int insight)
+    {
+        requiredInsight = insight;
+    }
+
+    public override bool IsSatisfied(PlayerState player)
+    {
+        Encounter encounter = player.CurrentEncounter;
+        return encounter != null && encounter.Context.CurrentValues.Insight >= requiredInsight;
+    }
+
+    public override string GetDescription()
+    {
+        return $"Requires Insight level {requiredInsight}";
     }
 }
 
@@ -117,6 +138,26 @@ public class SkillRequirement : Requirement
     }
 }
 
+public class ItemRequirement : Requirement
+{
+    public ItemTypes ResourceType { get; }
+
+    public ItemRequirement(ItemTypes resourceType)
+    {
+        ResourceType = resourceType;
+    }
+
+    public override bool IsSatisfied(PlayerState player)
+    {
+        return player.Inventory.GetItemCount(ResourceType) > 0;
+    }
+
+    public override string GetDescription()
+    {
+        return $"{ResourceType} Required";
+    }
+}
+
 public class ResourceRequirement : Requirement
 {
     public ResourceTypes ResourceType { get; }
@@ -156,6 +197,26 @@ public class InventorySlotsRequirement : Requirement
     public override string GetDescription()
     {
         return $"Empty Inventory Slots Required: {Count}";
+    }
+}
+
+public class KnowledgeRequirement : Requirement
+{
+    public KnowledgeTypes KnowledgeType { get; }
+
+    public KnowledgeRequirement(KnowledgeTypes knowledgeType)
+    {
+        KnowledgeType = knowledgeType;
+    }
+
+    public override bool IsSatisfied(PlayerState player)
+    {
+        return player.HasKnowledge(KnowledgeType);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{KnowledgeType} Skill Level Required";
     }
 }
 

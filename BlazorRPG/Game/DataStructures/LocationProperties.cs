@@ -59,7 +59,7 @@ public class LocationProperties
     // Action Availability
     public AccessibilityTypes? Accessability { get; set; }
     public bool IsAccessabilitySet { get; private set; } = false;
-    public ActivityLevelTypes? Activity { get; set; }
+    public ActivityLevelTypes? ActivityLevel { get; set; }
     public bool IsActivitySet { get; private set; } = false;
     public SupervisionTypes? Supervision { get; set; }
     public bool IsSupervisionSet { get; private set; } = false;
@@ -87,14 +87,14 @@ public class LocationProperties
             case LocationPropertyTypes.Accessibility:
                 return Accessability;
             case LocationPropertyTypes.ActivityLevel:
-                return Activity;
+                return ActivityLevel;
             case LocationPropertyTypes.Supervision:
                 return Supervision;
 
             case LocationPropertyTypes.Atmosphere:
-                return Space;
-            case LocationPropertyTypes.Space:
                 return Atmosphere;
+            case LocationPropertyTypes.Space:
+                return Space;
             case LocationPropertyTypes.Lighting:
                 return Lighting;
             case LocationPropertyTypes.Exposure:
@@ -124,7 +124,7 @@ public class LocationProperties
                 IsAccessabilitySet = true;
                 break;
             case LocationPropertyTypes.ActivityLevel:
-                Activity = (ActivityLevelTypes)value;
+                ActivityLevel = (ActivityLevelTypes)value;
                 IsActivitySet = true;
                 break;
             case LocationPropertyTypes.Supervision:

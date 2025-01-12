@@ -230,8 +230,8 @@ public partial class GameUI : ComponentBase
         {
             List<string> crowdEffects = GetEffectDescriptions(LocationPropertyTypes.ActivityLevel);
             properties.Add(new(
-                GetCrowdIcon(loc.Activity),
-                FormatEnumString(loc.Activity.ToString()),
+                GetCrowdIcon(loc.ActivityLevel),
+                FormatEnumString(loc.ActivityLevel.ToString()),
                 "",
                 crowdEffects
             ));
