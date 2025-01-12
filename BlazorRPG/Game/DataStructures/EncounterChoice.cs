@@ -141,11 +141,6 @@
         return requirements;
     }
 
-    private SkillTypes GetArchetypeSkill(ChoiceArchetypes archetype)
-    {
-        throw new NotImplementedException();
-    }
-
     private void ResetModifications()
     {
         ModifiedValueChanges = new List<ValueChange>(BaseValueChanges);
@@ -172,6 +167,17 @@
             ChoiceArchetypes.Physical => EnergyTypes.Physical,
             ChoiceArchetypes.Focus => EnergyTypes.Focus,
             ChoiceArchetypes.Social => EnergyTypes.Social,
+            _ => throw new ArgumentException("Invalid archetype")
+        };
+    }
+
+    private SkillTypes GetArchetypeSkill(ChoiceArchetypes archetype)
+    {
+        return archetype switch
+        {
+            ChoiceArchetypes.Physical => SkillTypes.Strength,
+            ChoiceArchetypes.Focus => SkillTypes.Perception,
+            ChoiceArchetypes.Social => SkillTypes.Charisma,
             _ => throw new ArgumentException("Invalid archetype")
         };
     }

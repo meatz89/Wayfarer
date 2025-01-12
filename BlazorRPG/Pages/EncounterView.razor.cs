@@ -12,10 +12,12 @@ public partial class EncounterViewBase : ComponentBase
     public double mouseX;
     public double mouseY;
 
-    public void ShowTooltip(UserEncounterChoiceOption choice)
+    public void ShowTooltip(UserEncounterChoiceOption choice, double x, double y)
     {
         hoveredChoice = choice;
         showTooltip = true;
+        mouseX = x;
+        mouseY = y;
     }
 
     public void HideTooltip()
@@ -40,7 +42,6 @@ public partial class EncounterViewBase : ComponentBase
         mouseX = e.ClientX + 10;
         mouseY = e.ClientY + 10;
     }
-
 
     public MarkupString GetValueTypeIcon(ValueTypes valueType)
     {

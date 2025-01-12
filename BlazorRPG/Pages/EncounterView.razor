@@ -38,8 +38,8 @@
             <div class="encounter-choices">
                 @foreach (var choice in GameState.Actions.EncounterChoiceOptions)
                 {
-                    <div class="choice-option @(hoveredChoice == choice ? "hovered" : "") @(IsChoiceDisabled(choice) ? "disabled" : "")"
-                         @onmouseover="() => ShowTooltip(choice)"
+                    <div class="choice-option"
+                         @onmousemove="((e) => ShowTooltip(choice, e.ClientX + 10, e.ClientY + 10))"
                          @onmouseout="HideTooltip"
                          @onclick="() => HandleChoiceSelection(choice)">
                         <span class="choice-index">@choice.Index.</span>
@@ -52,7 +52,7 @@
 
         @if (showTooltip && hoveredChoice != null)
         {
-            <div class="tooltip" style="left: @mouseX; top: @mouseY">
+            <div class="tooltip" style="left: @(mouseX)px; top: @(mouseY)px; position: fixed;">
                 <div class="preview-container">
                     <div class="preview-header">
                         <h4>@hoveredChoice.Description</h4>

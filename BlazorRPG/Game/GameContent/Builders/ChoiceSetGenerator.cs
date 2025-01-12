@@ -11,8 +11,18 @@
 
     public ChoiceSet GenerateChoiceSet(ChoiceSetTemplate template)
     {
-        // The template now defines how many choices of each archetype we need
-        List<EncounterChoice> choices = GenerateBaseChoices(template);
+        bool debugMode = true;
+
+        List<EncounterChoice> choices = new();
+        if (debugMode)
+        {
+            // Generate all possible combinations
+            choices = GenerateAllChoiceCombinations();
+        }
+        else
+        {
+            choices = GenerateBaseChoices(template);
+        }
 
         // Apply location property effects using our existing calculator
         foreach (EncounterChoice choice in choices)
@@ -20,56 +30,25 @@
             calculator.CalculateChoice(choice, context);
         }
 
-        // Add improvised choice if we don't have enough valid choices
-        while (choices.Count < 4)
-        {
-            AddImprovisedChoice(choices);
-        }
-
         return new ChoiceSet(template.Name, choices);
     }
 
-    private List<EncounterChoice> GenerateBaseChoices(ChoiceSetTemplate template)
+    private List<EncounterChoice> GenerateAllChoiceCombinations()
     {
         List<EncounterChoice> choices = new();
         int index = 0;
 
-        // For each composition pattern, generate the required choices
-        foreach (var composition in template.CompositionPatterns)
+        // Generate a choice for every archetype-approach combination
+        foreach (ChoiceArchetypes archetype in Enum.GetValues(typeof(ChoiceArchetypes)))
         {
-            // Generate primary archetype choices
-            for (int i = 0; i < composition.PrimaryCount; i++)
+            foreach (ChoiceApproaches approach in Enum.GetValues(typeof(ChoiceApproaches)))
             {
-                ChoiceApproaches approach = SelectBestApproachForArchetype(
-                    composition.PrimaryArchetype,
-                    context.CurrentValues,
-                    context.PlayerState);
-
                 EncounterChoice choice = new ChoiceBuilder()
                     .WithIndex(index++)
-                    .WithArchetype(composition.PrimaryArchetype)
+                    .WithArchetype(archetype)
                     .WithApproach(approach)
-                    .WithBaseValueChanges(GenerateBaseValueChanges(composition.PrimaryArchetype, approach))
-                    .WithRequirements(GenerateRequirements(composition.PrimaryArchetype, approach))
-                    .Build();
-
-                choices.Add(choice);
-            }
-
-            // Generate secondary archetype choices
-            for (int i = 0; i < composition.SecondaryCount; i++)
-            {
-                ChoiceApproaches approach = SelectBestApproachForArchetype(
-                    composition.SecondaryArchetype,
-                    context.CurrentValues,
-                    context.PlayerState);
-
-                EncounterChoice choice = new ChoiceBuilder()
-                    .WithIndex(index++)
-                    .WithArchetype(composition.SecondaryArchetype)
-                    .WithApproach(approach)
-                    .WithBaseValueChanges(GenerateBaseValueChanges(composition.SecondaryArchetype, approach))
-                    .WithRequirements(GenerateRequirements(composition.SecondaryArchetype, approach))
+                    .WithBaseValueChanges(GenerateBaseValueChanges(archetype, approach))
+                    .WithRequirements(GenerateRequirements(archetype, approach))
                     .Build();
 
                 choices.Add(choice);
@@ -78,70 +57,11 @@
 
         return choices;
     }
-
-    private List<Requirement> GenerateRequirements(ChoiceArchetypes archetype, ChoiceApproaches approach)
-    {
-        List<Requirement> requirements = new();
-
-        switch (approach)
-        {
-            case ChoiceApproaches.Direct:
-                // Direct requires matching skill and sufficient energy
-                requirements.Add(new EnergyRequirement(GetArchetypeEnergy(archetype), 2));
-                requirements.Add(GetArchetypeSkillRequirement(archetype));
-                break;
-
-            case ChoiceApproaches.Pragmatic:
-                // Pragmatic requires low pressure and matching skill
-                requirements.Add(new MaxPressureRequirement(5));
-                requirements.Add(GetArchetypeSkillRequirement(archetype));
-                break;
-
-            case ChoiceApproaches.Tactical:
-                // Tactical has type-specific requirements
-                requirements.Add(GetTacticalRequirement(archetype));
-                break;
-
-            case ChoiceApproaches.Improvised:
-                // Improvised has no requirements
-                break;
-        }
-
-        return requirements;
-    }
-
-    private Requirement GetArchetypeSkillRequirement(ChoiceArchetypes archetype) =>
-        archetype switch
-        {
-            ChoiceArchetypes.Physical => new SkillRequirement(SkillTypes.Strength, 1),
-            ChoiceArchetypes.Focus => new SkillRequirement(SkillTypes.Perception, 1),
-            ChoiceArchetypes.Social => new SkillRequirement(SkillTypes.Charisma, 1),
-            _ => throw new ArgumentException("Invalid archetype")
-        };
-
-    private Requirement GetTacticalRequirement(ChoiceArchetypes archetype) =>
-        archetype switch
-        {
-            ChoiceArchetypes.Physical => new ItemRequirement(ItemTypes.Tool),
-            ChoiceArchetypes.Focus => new KnowledgeRequirement(KnowledgeTypes.LocalHistory),
-            ChoiceArchetypes.Social => new ReputationRequirement(ReputationTypes.Reliable, 5),
-            _ => throw new ArgumentException("Invalid archetype")
-        };
-
-    private EnergyTypes GetArchetypeEnergy(ChoiceArchetypes archetype) =>
-        archetype switch
-        {
-            ChoiceArchetypes.Physical => EnergyTypes.Physical,
-            ChoiceArchetypes.Focus => EnergyTypes.Focus,
-            ChoiceArchetypes.Social => EnergyTypes.Social,
-            _ => throw new ArgumentException("Invalid archetype")
-        };
-
     private List<ValueChange> GenerateBaseValueChanges(ChoiceArchetypes archetype, ChoiceApproaches approach)
     {
         List<ValueChange> changes = new();
 
-        // Base outcome change from archetype-approach combination
+        // Base outcome change from approach
         int outcomeChange = approach switch
         {
             ChoiceApproaches.Direct => 3,
@@ -215,21 +135,6 @@
             ChoiceArchetypes.Social => values.Resonance >= 5,
             _ => true
         };
-    }
-
-    private void AddImprovisedChoice(List<EncounterChoice> choices)
-    {
-        ChoiceArchetypes archetype = DetermineImprovisedArchetype(choices);
-
-        // Create improvised choice using the builder
-        EncounterChoice improvisedChoice = new ChoiceBuilder()
-            .WithIndex(choices.Count)
-            .WithArchetype(archetype)
-            .WithApproach(ChoiceApproaches.Improvised)
-            .WithDescription(GenerateDescription(archetype, ChoiceApproaches.Improvised))
-            .Build();
-
-        choices.Add(improvisedChoice);
     }
 
     private bool HasSufficientEnergy(ChoiceArchetypes archetype, PlayerState playerState, int amount)
@@ -313,4 +218,129 @@
     {
         return $"{choiceArchetype} - {choiceApproach}";
     }
+
+    private List<Requirement> GenerateRequirements(ChoiceArchetypes archetype, ChoiceApproaches approach)
+    {
+        List<Requirement> requirements = new();
+
+        switch (approach)
+        {
+            case ChoiceApproaches.Direct:
+                // Direct requires matching skill and sufficient energy
+                requirements.Add(new EnergyRequirement(GetArchetypeEnergy(archetype), 2));
+                requirements.Add(GetArchetypeSkillRequirement(archetype));
+                break;
+
+            case ChoiceApproaches.Pragmatic:
+                // Pragmatic requires low pressure and matching skill
+                requirements.Add(new MaxPressureRequirement(5));
+                requirements.Add(GetArchetypeSkillRequirement(archetype));
+                break;
+
+            case ChoiceApproaches.Tactical:
+                // Tactical has type-specific requirements
+                requirements.Add(GetTacticalRequirement(archetype));
+                break;
+
+            case ChoiceApproaches.Improvised:
+                // Improvised has no requirements
+                break;
+        }
+
+        return requirements;
+    }
+
+    private Requirement GetArchetypeSkillRequirement(ChoiceArchetypes archetype) =>
+        archetype switch
+        {
+            ChoiceArchetypes.Physical => new SkillRequirement(SkillTypes.Strength, 1),
+            ChoiceArchetypes.Focus => new SkillRequirement(SkillTypes.Perception, 1),
+            ChoiceArchetypes.Social => new SkillRequirement(SkillTypes.Charisma, 1),
+            _ => throw new ArgumentException("Invalid archetype")
+        };
+
+    private Requirement GetTacticalRequirement(ChoiceArchetypes archetype) =>
+        archetype switch
+        {
+            ChoiceArchetypes.Physical => new ItemRequirement(ItemTypes.Tool),
+            ChoiceArchetypes.Focus => new KnowledgeRequirement(KnowledgeTypes.LocalHistory),
+            ChoiceArchetypes.Social => new ReputationRequirement(ReputationTypes.Reliable, 5),
+            _ => throw new ArgumentException("Invalid archetype")
+        };
+
+    private EnergyTypes GetArchetypeEnergy(ChoiceArchetypes archetype) =>
+        archetype switch
+        {
+            ChoiceArchetypes.Physical => EnergyTypes.Physical,
+            ChoiceArchetypes.Focus => EnergyTypes.Focus,
+            ChoiceArchetypes.Social => EnergyTypes.Social,
+            _ => throw new ArgumentException("Invalid archetype")
+        };
+
+
+    private List<EncounterChoice> GenerateBaseChoices(ChoiceSetTemplate template)
+    {
+        List<EncounterChoice> choices = new();
+        int index = 0;
+
+        // For each composition pattern, generate the required choices
+        foreach (var composition in template.CompositionPatterns)
+        {
+            // Generate primary archetype choices
+            for (int i = 0; i < composition.PrimaryCount; i++)
+            {
+                ChoiceApproaches approach = SelectBestApproachForArchetype(
+                    composition.PrimaryArchetype,
+                    context.CurrentValues,
+                    context.PlayerState);
+
+                EncounterChoice choice = new ChoiceBuilder()
+                    .WithIndex(index++)
+                    .WithArchetype(composition.PrimaryArchetype)
+                    .WithApproach(approach)
+                    .WithBaseValueChanges(GenerateBaseValueChanges(composition.PrimaryArchetype, approach))
+                    .WithRequirements(GenerateRequirements(composition.PrimaryArchetype, approach))
+                    .Build();
+
+                choices.Add(choice);
+            }
+
+            // Generate secondary archetype choices
+            for (int i = 0; i < composition.SecondaryCount; i++)
+            {
+                ChoiceApproaches approach = SelectBestApproachForArchetype(
+                    composition.SecondaryArchetype,
+                    context.CurrentValues,
+                    context.PlayerState);
+
+                EncounterChoice choice = new ChoiceBuilder()
+                    .WithIndex(index++)
+                    .WithArchetype(composition.SecondaryArchetype)
+                    .WithApproach(approach)
+                    .WithBaseValueChanges(GenerateBaseValueChanges(composition.SecondaryArchetype, approach))
+                    .WithRequirements(GenerateRequirements(composition.SecondaryArchetype, approach))
+                    .Build();
+
+                choices.Add(choice);
+            }
+        }
+
+        return choices;
+    }
+
+    private void AddImprovisedChoice(List<EncounterChoice> choices)
+    {
+        ChoiceArchetypes archetype = DetermineImprovisedArchetype(choices);
+
+        // Create improvised choice using the builder
+        EncounterChoice improvisedChoice = new ChoiceBuilder()
+            .WithIndex(choices.Count)
+            .WithArchetype(archetype)
+            .WithApproach(ChoiceApproaches.Improvised)
+            .WithDescription(GenerateDescription(archetype, ChoiceApproaches.Improvised))
+            .Build();
+
+        choices.Add(improvisedChoice);
+    }
+
 }
