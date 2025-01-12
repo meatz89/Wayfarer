@@ -95,8 +95,8 @@ public static class ChoiceSetContent
             .WithName("Busy Service")
             .WithActionType(BasicActionTypes.Labor)
             .AddAvailabilityCondition(properties => properties
+                .WithAccessibility(AccessibilityTypes.Public)
                 .WithActivityLevel(ActivityLevelTypes.Bustling)
-                .WithExposure(ExposureTypes.Indoor)
                 .WithAtmosphere(AtmosphereTypes.Causal))
             .AddStateCondition(values => values
                 .WithMaxPressure(5)

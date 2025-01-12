@@ -121,7 +121,7 @@ public class LocationProperties
 
             case LocationPropertyTypes.Accessibility:
                 Accessability = (AccessibilityTypes)value;
-                IsExposureSet = true;
+                IsAccessabilitySet = true;
                 break;
             case LocationPropertyTypes.ActivityLevel:
                 Activity = (ActivityLevelTypes)value;
@@ -146,7 +146,7 @@ public class LocationProperties
                 break;
             case LocationPropertyTypes.Exposure:
                 Exposure = (ExposureTypes)value;
-                IsAccessabilitySet = true;
+                IsExposureSet = true;
                 break;
             default:
                 throw new ArgumentException($"Unknown property type: {propertyType}");
