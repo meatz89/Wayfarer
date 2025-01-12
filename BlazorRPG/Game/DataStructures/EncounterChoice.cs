@@ -44,7 +44,7 @@ public class ChoiceModification
 public class EnergyChangeModification
 {
     public EnergyTypes EnergyType { get; set; }
-    public ChoiceArchetypes ChoiceArchetype { get; set; }  
+    public ChoiceArchetypes ChoiceArchetype { get; set; }
     public int OriginalValue { get; set; }
     public int NewValue { get; set; }
 }

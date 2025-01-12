@@ -60,14 +60,14 @@ public class LocationProperties
     public AccessibilityTypes? Accessability { get; set; }
     public bool IsAccessabilitySet { get; private set; } = false;
     public ActivityLevelTypes? Activity { get; set; }
-    public bool IsActivitySet { get; private set; } = false; 
+    public bool IsActivitySet { get; private set; } = false;
     public SupervisionTypes? Supervision { get; set; }
     public bool IsSupervisionSet { get; private set; } = false;
 
 
     // Action Availability
     public AtmosphereTypes? Atmosphere { get; set; }
-    public bool IsAtmosphereSet { get; private set; } = false; 
+    public bool IsAtmosphereSet { get; private set; } = false;
     public SpaceTypes? Space { get; set; }
     public bool IsSpaceSet { get; private set; } = false;
     public LightingTypes? Lighting { get; set; }
@@ -99,7 +99,7 @@ public class LocationProperties
                 return Lighting;
             case LocationPropertyTypes.Exposure:
                 return Exposure;
-            
+
             default:
                 throw new ArgumentException($"Unknown property type: {propertyType}");
         }
@@ -141,7 +141,7 @@ public class LocationProperties
                 IsSpaceSet = true;
                 break;
             case LocationPropertyTypes.Lighting:
-                Lighting= (LightingTypes)value;
+                Lighting = (LightingTypes)value;
                 IsLightingSet = true;
                 break;
             case LocationPropertyTypes.Exposure:

@@ -10,7 +10,7 @@ public class LocationContent
             .WithArchetype(LocationArchetypes.Tavern)
             .WithResource(ResourceTypes.Ale)
             .WithActivityLevel(ActivityLevelTypes.Bustling)
-            .WithAccessibility(AccessibilityTypes.Restricted)
+            .WithAccessibility(AccessibilityTypes.Public)
             .WithSupervision(SupervisionTypes.Unsupervised)
             .WithAtmosphere(AtmosphereTypes.Causal)
             .WithSpace(SpaceTypes.Cramped)

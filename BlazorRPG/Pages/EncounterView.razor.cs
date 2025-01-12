@@ -82,7 +82,7 @@ public partial class EncounterViewBase : ComponentBase
         List<string> modifications = new();
 
         // Get the true base value from the original value in the first modification
-        var firstMod = choice.Modifications
+        ChoiceModification? firstMod = choice.Modifications
             .FirstOrDefault(m => m.Type == ModificationType.ValueChange &&
                                 m.ValueChange?.ValueType == finalChange.ValueType);
 
@@ -95,15 +95,15 @@ public partial class EncounterViewBase : ComponentBase
         }
 
         // Add each modification's contribution
-        foreach (var modification in choice.Modifications
+        foreach (ChoiceModification? modification in choice.Modifications
             .Where(m => m.Type == ModificationType.ValueChange &&
                         m.ValueChange?.ValueType == finalChange.ValueType)
             .OrderBy(m => m.Source == ModificationSource.LocationProperty ? 0 : 1))
         {
             if (modification.Source == ModificationSource.LocationProperty)
             {
-                var valueChange = modification.ValueChange;
-                var contribution = valueChange.ConversionAmount; // This is the actual modification amount
+                ValueChangeModification valueChange = modification.ValueChange;
+                int contribution = valueChange.ConversionAmount; // This is the actual modification amount
                 modifications.Add($"{modification.SourceDetails}: {(contribution > 0 ? "+" : "")}{contribution}");
             }
         }
@@ -160,14 +160,14 @@ public partial class EncounterViewBase : ComponentBase
             .ToList();
 
         // Apply modifications to the copied list
-        foreach (var modification in encounterChoice.Modifications)
+        foreach (ChoiceModification modification in encounterChoice.Modifications)
         {
             if (modification.Type == ModificationType.ValueChange && modification.ValueChange != null)
             {
-                var valueChangeMod = modification.ValueChange;
+                ValueChangeModification valueChangeMod = modification.ValueChange;
 
                 // Handle direct value changes
-                var existingChange = modifiedValueChanges
+                ValueChange? existingChange = modifiedValueChanges
                     .FirstOrDefault(vc => vc.ValueType == valueChangeMod.ValueType);
 
                 if (existingChange != null)

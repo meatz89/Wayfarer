@@ -57,7 +57,7 @@
         }
 
         // Verify we can pay all energy costs
-        foreach (var energyCost in totalEnergyCosts)
+        foreach (KeyValuePair<EnergyTypes, int> energyCost in totalEnergyCosts)
         {
             if (!gameState.Player.CanPayEnergy(energyCost.Key, energyCost.Value))
             {
@@ -66,7 +66,7 @@
         }
 
         // If we can pay all costs, apply them
-        foreach (var energyCost in totalEnergyCosts)
+        foreach (KeyValuePair<EnergyTypes, int> energyCost in totalEnergyCosts)
         {
             gameState.Player.ModifyEnergy(energyCost.Key, -energyCost.Value);
         }

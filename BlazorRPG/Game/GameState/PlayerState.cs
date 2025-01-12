@@ -116,8 +116,8 @@
     {
         switch (energyType)
         {
-            case EnergyTypes.Physical:  ModifyPhysicalEnergy(amount); break;
-            case EnergyTypes.Focus:  ModifyFocusEnergy(amount); break;
+            case EnergyTypes.Physical: ModifyPhysicalEnergy(amount); break;
+            case EnergyTypes.Focus: ModifyFocusEnergy(amount); break;
             case EnergyTypes.Social: ModifySocialEnergy(amount); break;
         };
     }

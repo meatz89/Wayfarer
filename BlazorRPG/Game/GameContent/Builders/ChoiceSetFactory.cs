@@ -20,7 +20,7 @@ public class ChoiceSetFactory
     private EncounterChoice CreateChoiceFromTemplate(int index, ChoiceTemplate template, EncounterContext context)
     {
         string description = GenerateDescription(template, context);
-        
+
         // Create the choice with only base values
         ChoiceBuilder choiceBuilder = new ChoiceBuilder()
             .WithIndex(index)

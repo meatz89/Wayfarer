@@ -12,10 +12,10 @@
     public bool IsActionAvailable(ActionTemplate template, LocationProperties locationProperties)
     {
         // First check all mandatory properties - these must match exactly if specified
-        var mandatoryConditions = template.AvailabilityConditions
+        IEnumerable<LocationPropertyCondition> mandatoryConditions = template.AvailabilityConditions
             .Where(c => MandatoryProperties.Contains(c.PropertyType));
 
-        foreach (var condition in mandatoryConditions)
+        foreach (LocationPropertyCondition? condition in mandatoryConditions)
         {
             // For mandatory properties, we require both that they're set and match
             if (!IsPropertySet(locationProperties, condition.PropertyType))
@@ -32,10 +32,10 @@
 
         // Contextual properties (like crowd level, pressure, complexity) are stored
         // but don't affect availability - they'll modify the encounter instead
-        var contextualConditions = template.AvailabilityConditions
+        IEnumerable<LocationPropertyCondition> contextualConditions = template.AvailabilityConditions
             .Where(c => !MandatoryProperties.Contains(c.PropertyType));
 
-        foreach (var condition in contextualConditions)
+        foreach (LocationPropertyCondition? condition in contextualConditions)
         {
             if (IsPropertySet(locationProperties, condition.PropertyType))
             {
