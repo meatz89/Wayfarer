@@ -8,9 +8,9 @@ public static class ChoiceSetContent
             .WithName("Starting Complex Work")
             .WithActionType(BasicActionTypes.Labor)
             .AddAvailabilityCondition(properties => properties
-                .WithComplexity(ComplexityTypes.Complex)    // Task requires skill/focus
+                .WithComplexity(AtmosphereTypes.Tense)    // Task requires skill/focus
                 .WithExposure(ExposureConditionTypes.Indoor)  // Controlled environment
-                .WithCrowdLevel(CrowdLevelTypes.Sparse))    // Few distractions
+                .WithActivityLevel(ActivityLevelTypes.Quiet))    // Few distractions
             .AddStateCondition(values => values
                 .WithMaxOutcome(4)
                 .WithMaxPressure(4)
@@ -38,8 +38,8 @@ public static class ChoiceSetContent
         .WithName("Initial Social Approach")
         .WithActionType(BasicActionTypes.Persuade)
         .AddAvailabilityCondition(properties => properties
-            .WithCrowdLevel(CrowdLevelTypes.Busy)      // Need people around
-            .WithComplexity(ComplexityTypes.Complex)    // Situation has depth
+            .WithActivityLevel(ActivityLevelTypes.Quiet)      // Need people around
+            .WithComplexity(AtmosphereTypes.Tense)    // Situation has depth
             .WithExposure(ExposureConditionTypes.Indoor)) // Controlled environment
         .AddStateCondition(values => values
             .WithMaxOutcome(4)
@@ -66,9 +66,9 @@ public static class ChoiceSetContent
             .WithName("Careful Investigation")
             .WithActionType(BasicActionTypes.Investigate)
             .AddAvailabilityCondition(properties => properties
-                .WithCrowdLevel(CrowdLevelTypes.Empty)
-                .WithComplexity(ComplexityTypes.Complex)
-                .WithPressure(PressureStateTypes.Relaxed))
+                .WithActivityLevel(ActivityLevelTypes.Deserted)
+                .WithComplexity(AtmosphereTypes.Tense)
+                .WithSupervision(SupervisionTypes.Unsupervised))
             .AddStateCondition(values => values
                 .WithMaxPressure(5))
             .AddChoice(choice => choice
@@ -95,9 +95,9 @@ public static class ChoiceSetContent
             .WithName("Busy Service")
             .WithActionType(BasicActionTypes.Labor)
             .AddAvailabilityCondition(properties => properties
-                .WithCrowdLevel(CrowdLevelTypes.Crowded)
+                .WithActivityLevel(ActivityLevelTypes.Bustling)
                 .WithExposure(ExposureConditionTypes.Indoor)
-                .WithComplexity(ComplexityTypes.Simple))
+                .WithComplexity(AtmosphereTypes.Causal))
             .AddStateCondition(values => values
                 .WithMaxPressure(5)
                 .WithMinResonance(2))
@@ -126,8 +126,8 @@ public static class ChoiceSetContent
             .WithName("Mounting Pressure")
             .WithActionType(BasicActionTypes.Labor)
             .AddAvailabilityCondition(properties => properties
-                .WithComplexity(ComplexityTypes.Complex)
-                .WithPressure(PressureStateTypes.Alert))
+                .WithComplexity(AtmosphereTypes.Tense)
+                .WithSupervision(SupervisionTypes.Patrolled))
             .AddStateCondition(values => values
                 .WithMinPressure(6)
                 .WithMaxOutcome(6))
@@ -157,7 +157,7 @@ public static class ChoiceSetContent
             .WithName("Expert Approach")
             .WithActionType(BasicActionTypes.Labor)
             .AddAvailabilityCondition(properties => properties
-                .WithComplexity(ComplexityTypes.Complex))
+                .WithComplexity(AtmosphereTypes.Tense))
             .AddStateCondition(values => values
                 .WithMinInsight(7))
             .AddChoice(choice => choice
@@ -185,7 +185,7 @@ public static class ChoiceSetContent
             .WithName("Resource Pressure")
             .WithActionType(BasicActionTypes.Gather)
             .AddAvailabilityCondition(properties => properties
-                .WithPressure(PressureStateTypes.Alert)
+                .WithSupervision(SupervisionTypes.Patrolled)
                 .WithAnyResource())
             .AddStateCondition(values => values
                 .WithMinPressure(6))

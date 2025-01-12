@@ -165,11 +165,11 @@ public partial class GameUI : ComponentBase
         return GameManager.GetLocationEffects(CurrentLocation.LocationName);
     }
 
-    private string GetPressureIcon(PressureStateTypes? pressure) => pressure switch
+    private string GetPressureIcon(AtmosphereTypes? pressure) => pressure switch
     {
-        PressureStateTypes.Relaxed => "😌",
-        PressureStateTypes.Alert => "⚠️",
-        PressureStateTypes.Hostile => "⚔️",
+        AtmosphereTypes.Causal => "😌",
+        AtmosphereTypes.Formal => "⚠️",
+        AtmosphereTypes.Tense => "⚔️",
         _ => "❓"
     };
 
@@ -183,62 +183,13 @@ public partial class GameUI : ComponentBase
         _ => "📦"
     };
 
-    private string GetCrowdIcon(CrowdLevelTypes? crowdLevel) => crowdLevel switch
+    private string GetCrowdIcon(ActivityLevelTypes? crowdLevel) => crowdLevel switch
     {
-        CrowdLevelTypes.Empty => "🕸️",
-        CrowdLevelTypes.Sparse => "👤",
-        CrowdLevelTypes.Busy => "👥",
-        CrowdLevelTypes.Crowded => "👥👥",
+        ActivityLevelTypes.Deserted => "🕸️",
+        ActivityLevelTypes.Quiet => "👤",
+        ActivityLevelTypes.Bustling => "👥",
         _ => "❓"
     };
-
-    private string FormatLocationArchetype(LocationArchetypes? value)
-    {
-        if (value == null) return string.Empty;
-        return FormatEnumString(value.ToString());
-    }
-
-    private string FormatScale(ScaleVariationTypes? value)
-    {
-        if (value == null) return string.Empty;
-        return FormatEnumString(value.ToString());
-    }
-
-    private string FormatExposure(ExposureConditionTypes? value)
-    {
-        if (value == null) return string.Empty;
-        return FormatEnumString(value.ToString());
-    }
-
-    private string FormatLegality(LegalityTypes? value)
-    {
-        if (value == null) return string.Empty;
-        return FormatEnumString(value.ToString());
-    }
-
-    private string FormatPressure(PressureStateTypes? value)
-    {
-        if (value == null) return string.Empty;
-        return FormatEnumString(value.ToString());
-    }
-
-    private string FormatComplexity(ComplexityTypes? value)
-    {
-        if (value == null) return string.Empty;
-        return FormatEnumString(value.ToString());
-    }
-
-    private string FormatCrowdLevel(CrowdLevelTypes? value)
-    {
-        if (value == null) return string.Empty;
-        return FormatEnumString(value.ToString());
-    }
-
-    private string FormatResource(ResourceTypes? value)
-    {
-        if (value == null) return string.Empty;
-        return FormatEnumString(value.ToString());
-    }
 
     private string FormatEnumString(string value)
     {
@@ -258,64 +209,9 @@ public partial class GameUI : ComponentBase
             List<string> archetypeEffects = GetEffectDescriptions(LocationPropertyTypes.Archetype);
             properties.Add(new(
                 "🏠",
-                FormatLocationArchetype(CurrentLocation.Archetype),
+                FormatEnumString(CurrentLocation.Archetype.ToString()),
                 "",
                 archetypeEffects
-            ));
-        }
-
-        if (loc.IsScaleSet)
-        {
-            List<string> scaleEffects = GetEffectDescriptions(LocationPropertyTypes.Scale);
-            properties.Add(new(
-                "📐",
-                FormatScale(loc.Scale),
-                "",
-                scaleEffects
-            ));
-        }
-
-        if (loc.IsExposureSet)
-        {
-            List<string> exposureEffects = GetEffectDescriptions(LocationPropertyTypes.Exposure);
-            properties.Add(new(
-                loc.Exposure == ExposureConditionTypes.Indoor ? "🏗️" : "🌳",
-                FormatExposure(loc.Exposure),
-                "",
-                exposureEffects
-            ));
-        }
-
-        if (loc.IsLegalitySet)
-        {
-            List<string> legalityEffects = GetEffectDescriptions(LocationPropertyTypes.Legality);
-            properties.Add(new(
-                "⚖️",
-                FormatLegality(loc.Legality),
-                $"property-{loc.Legality.ToString().ToLower()}",
-                legalityEffects
-            ));
-        }
-
-        if (loc.IsPressureSet)
-        {
-            List<string> pressureEffects = GetEffectDescriptions(LocationPropertyTypes.Pressure);
-            properties.Add(new(
-                GetPressureIcon(loc.Pressure),
-                FormatPressure(loc.Pressure),
-                $"property-{loc.Pressure.ToString().ToLower()}",
-                pressureEffects
-            ));
-        }
-
-        if (loc.IsComplexitySet)
-        {
-            List<string> complexityEffects = GetEffectDescriptions(LocationPropertyTypes.Complexity);
-            properties.Add(new(
-                "🧩",
-                FormatComplexity(loc.Complexity),
-                "",
-                complexityEffects
             ));
         }
 
@@ -324,20 +220,77 @@ public partial class GameUI : ComponentBase
             List<string> resourceEffects = GetEffectDescriptions(LocationPropertyTypes.Resource);
             properties.Add(new(
                 GetResourceIcon(loc.Resource),
-                FormatResource(loc.Resource),
+                FormatEnumString(loc.Resource.ToString()),
                 "",
                 resourceEffects
             ));
         }
 
-        if (loc.IsCrowdLevelSet)
+        if (loc.IsActivitySet)
         {
-            List<string> crowdEffects = GetEffectDescriptions(LocationPropertyTypes.CrowdLevel);
+            List<string> crowdEffects = GetEffectDescriptions(LocationPropertyTypes.ActivityLevel);
             properties.Add(new(
-                GetCrowdIcon(loc.CrowdLevel),
-                FormatCrowdLevel(loc.CrowdLevel),
+                GetCrowdIcon(loc.Activity),
+                FormatEnumString(loc.Activity.ToString()),
                 "",
                 crowdEffects
+            ));
+        }
+
+
+        if (loc.IsAccessabilitySet)
+        {
+            List<string> scaleEffects = GetEffectDescriptions(LocationPropertyTypes.Accessibility);
+            properties.Add(new(
+                "📐",
+                FormatEnumString(loc.Accessability.ToString()),
+                "",
+                scaleEffects
+            ));
+        }
+
+        if (loc.IsSupervisionSet)
+        {
+            List<string> legalityEffects = GetEffectDescriptions(LocationPropertyTypes.Supervision);
+            properties.Add(new(
+                "⚖️",
+                FormatEnumString(loc.Supervision.ToString()),
+                $"property-{loc.Supervision.ToString().ToLower()}",
+                legalityEffects
+            ));
+        }
+
+
+        if (loc.IsAtmosphereSet)
+        {
+            List<string> pressureEffects = GetEffectDescriptions(LocationPropertyTypes.Atmosphere);
+            properties.Add(new(
+                GetPressureIcon(loc.Atmosphere),
+                FormatEnumString(loc.Atmosphere.ToString()),
+                $"property-{loc.Space.ToString().ToLower()}",
+                pressureEffects
+            ));
+        }
+
+        if (loc.IsSpaceSet)
+        {
+            List<string> complexityEffects = GetEffectDescriptions(LocationPropertyTypes.Space);
+            properties.Add(new(
+                "🧩",
+                FormatEnumString(loc.Space.ToString()),
+                "",
+                complexityEffects
+            ));
+        }
+
+        if (loc.IsExposureSet)
+        {
+            List<string> exposureEffects = GetEffectDescriptions(LocationPropertyTypes.Exposure);
+            properties.Add(new(
+                loc.Exposure == ExposureConditionTypes.Indoor ? "🏗️" : "🌳",
+                FormatEnumString(loc.Exposure.ToString()),
+                "",
+                exposureEffects
             ));
         }
 

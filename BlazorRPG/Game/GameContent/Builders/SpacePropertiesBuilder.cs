@@ -1,10 +1,10 @@
 ﻿public class SpacePropertiesBuilder
 {
-    private ScaleVariationTypes scale = ScaleVariationTypes.Medium;
+    private AccessibilityTypes scale = AccessibilityTypes.Restricted;
     private ExposureConditionTypes exposure = ExposureConditionTypes.Indoor;
-    private CrowdLevelTypes crowdLevel = CrowdLevelTypes.Empty;
+    private ActivityLevelTypes crowdLevel = ActivityLevelTypes.Deserted;
 
-    public SpacePropertiesBuilder WithScale(ScaleVariationTypes scale)
+    public SpacePropertiesBuilder WithScale(AccessibilityTypes scale)
     {
         this.scale = scale;
         return this;
@@ -16,7 +16,7 @@
         return this;
     }
 
-    public SpacePropertiesBuilder WithCrowdLevel(CrowdLevelTypes crowdLevel)
+    public SpacePropertiesBuilder WithCrowdLevel(ActivityLevelTypes crowdLevel)
     {
         this.crowdLevel = crowdLevel;
         return this;

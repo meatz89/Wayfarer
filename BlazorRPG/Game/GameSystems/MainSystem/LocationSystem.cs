@@ -60,22 +60,27 @@
     {
         switch (locPropertyTypeValue.GetPropertyType())
         {
-            case LocationPropertyTypes.Scale:
-                return locProperties.Scale == ((ScaleValue)locPropertyTypeValue).ScaleVariation;
-            case LocationPropertyTypes.Exposure:
-                return locProperties.Exposure == ((ExposureValue)locPropertyTypeValue).Exposure;
-            case LocationPropertyTypes.Legality:
-                return locProperties.Legality == ((LegalityValue)locPropertyTypeValue).Legality;
-            case LocationPropertyTypes.Pressure:
-                return locProperties.Pressure == ((PressureStateValue)locPropertyTypeValue).PressureState;
-            case LocationPropertyTypes.Complexity:
-                return locProperties.Complexity == ((ComplexityValue)locPropertyTypeValue).Complexity;
+            case LocationPropertyTypes.Archetype:
+                return locProperties.Archetype == ((ArchetypeValue)locPropertyTypeValue).Archetype;
             case LocationPropertyTypes.Resource:
                 return locProperties.Resource == ((ResourceValue)locPropertyTypeValue).Resource;
-            case LocationPropertyTypes.CrowdLevel:
-                return locProperties.CrowdLevel == ((CrowdLevelValue)locPropertyTypeValue).CrowdLevel;
-            case LocationPropertyTypes.ReputationType:
-                return locProperties.LocationReputationType == ((LocationReputationTypeValue)locPropertyTypeValue).ReputationType;
+
+
+            case LocationPropertyTypes.ActivityLevel:
+                return locProperties.Activity == ((ActivityLevelValue)locPropertyTypeValue).ActivityLevel;
+            case LocationPropertyTypes.Accessibility:
+                return locProperties.Exposure == ((ExposureValue)locPropertyTypeValue).Exposure;
+            case LocationPropertyTypes.Supervision:
+                return locProperties.Supervision == ((SupervisionValue)locPropertyTypeValue).Supervision;
+
+            case LocationPropertyTypes.Atmosphere:
+                return locProperties.Atmosphere == ((AtmosphereValue)locPropertyTypeValue).Atmosphere;
+            case LocationPropertyTypes.Space:
+                return locProperties.Space == ((SpaceValue)locPropertyTypeValue).Space;
+            case LocationPropertyTypes.Lighting:
+                return locProperties.Lighting == ((LightingValue)locPropertyTypeValue).Lighting;
+            case LocationPropertyTypes.Exposure:
+                return locProperties.Accessability == ((AccessabilityLevelValue)locPropertyTypeValue).Accessability;
             default:
                 return false;
         }

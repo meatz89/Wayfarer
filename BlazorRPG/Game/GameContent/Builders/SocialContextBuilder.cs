@@ -1,15 +1,15 @@
 ﻿public class SocialPropertiesBuilder
 {
-    private LegalityTypes legality = LegalityTypes.Legal;
-    private PressureStateTypes pressure = PressureStateTypes.Relaxed;
+    private SupervisionTypes legality = SupervisionTypes.Unsupervised;
+    private SupervisionTypes pressure = SupervisionTypes.Unsupervised;
 
-    public SocialPropertiesBuilder WithLegality(LegalityTypes legality)
+    public SocialPropertiesBuilder WithLegality(SupervisionTypes legality)
     {
         this.legality = legality;
         return this;
     }
 
-    public SocialPropertiesBuilder WithPressure(PressureStateTypes pressure)
+    public SocialPropertiesBuilder WithPressure(SupervisionTypes pressure)
     {
         this.pressure = pressure;
         return this;

@@ -4,8 +4,9 @@
     private static readonly HashSet<LocationPropertyTypes> MandatoryProperties = new()
     {
         LocationPropertyTypes.Archetype,  // The fundamental nature of the location
-        LocationPropertyTypes.Exposure,   // Whether it's indoor/outdoor
-        LocationPropertyTypes.Legality    // Whether the action is legally allowed
+        LocationPropertyTypes.ActivityLevel,   // Whether it's indoor/outdoor
+        LocationPropertyTypes.Accessibility,   // Whether it's indoor/outdoor
+        LocationPropertyTypes.Supervision    // Whether the action is legally allowed
     };
 
     public bool IsActionAvailable(ActionTemplate template, LocationProperties locationProperties)
@@ -57,14 +58,16 @@
         return propertyType switch
         {
             LocationPropertyTypes.Archetype => properties.IsArchetypeSet,
-            LocationPropertyTypes.Scale => properties.IsScaleSet,
-            LocationPropertyTypes.Exposure => properties.IsExposureSet,
-            LocationPropertyTypes.Legality => properties.IsLegalitySet,
-            LocationPropertyTypes.Pressure => properties.IsPressureSet,
-            LocationPropertyTypes.Complexity => properties.IsComplexitySet,
             LocationPropertyTypes.Resource => properties.IsResourceSet,
-            LocationPropertyTypes.CrowdLevel => properties.IsCrowdLevelSet,
-            LocationPropertyTypes.ReputationType => properties.IsReputationTypeSet,
+
+            LocationPropertyTypes.Accessibility => properties.IsAccessabilitySet,
+            LocationPropertyTypes.ActivityLevel => properties.IsActivitySet,
+            LocationPropertyTypes.Supervision => properties.IsSupervisionSet,
+
+            LocationPropertyTypes.Atmosphere => properties.IsAtmosphereSet,
+            LocationPropertyTypes.Space => properties.IsSpaceSet,
+            LocationPropertyTypes.Lighting => properties.IsLightingSet,
+            LocationPropertyTypes.Exposure => properties.IsExposureSet,
             _ => throw new ArgumentException($"Unknown property type: {propertyType}")
         };
     }

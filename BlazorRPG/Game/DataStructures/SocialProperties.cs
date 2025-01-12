@@ -1,5 +1,5 @@
 ﻿public class SocialProperties
 {
-    public LegalityTypes Legality { get; set; }
-    public PressureStateTypes Pressure { get; set; }
+    public SupervisionTypes Legality { get; set; }
+    public SupervisionTypes Pressure { get; set; }
 }

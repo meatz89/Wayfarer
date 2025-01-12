@@ -5,7 +5,7 @@
         // Crowded spaces make focus harder but increase social rewards
         new LocationPropertyChoiceEffect
         {
-            LocationProperty = new CrowdLevelValue { CrowdLevel = CrowdLevelTypes.Crowded },
+            LocationProperty = new ActivityLevelValue { ActivityLevel = ActivityLevelTypes.Bustling },
             ValueTypeEffect = new EnergyModification
             {
                 TargetArchetype = ChoiceArchetypes.Focus,
@@ -30,7 +30,7 @@
         // Relaxed atmosphere reduces pressure gain
         new LocationPropertyChoiceEffect
         {
-            LocationProperty = new PressureStateValue { PressureState = PressureStateTypes.Relaxed },
+            LocationProperty = new SupervisionValue { Supervision = SupervisionTypes.Unsupervised },
             ValueTypeEffect = new ValueModification
             {
                 ValueType = ValueTypes.Pressure,

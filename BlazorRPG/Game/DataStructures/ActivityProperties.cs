@@ -1,4 +1,4 @@
 ﻿public class ActivityProperties
 {
-    public ComplexityTypes Complexity { get; set; }
+    public AtmosphereTypes Complexity { get; set; }
 }

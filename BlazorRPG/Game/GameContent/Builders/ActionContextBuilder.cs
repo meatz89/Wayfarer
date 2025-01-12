@@ -34,14 +34,6 @@
         return this;
     }
 
-    public ActionContextBuilder WithActivity(Action<ActivityPropertiesBuilder> buildActivity)
-    {
-        ActivityPropertiesBuilder builder = new ActivityPropertiesBuilder();
-        buildActivity(builder);
-        Activity = builder.Build();
-        return this;
-    }
-
     public ActionContextBuilder WithLocationSpotName(string locationSpotName)
     {
         LocationSpotName = locationSpotName;

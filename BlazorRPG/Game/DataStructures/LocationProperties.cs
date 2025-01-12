@@ -1,34 +1,14 @@
-﻿public enum LegalityTypes
+﻿
+// --- Resource ---
+public enum ResourceTypes
 {
-    Legal, Gray, Illegal
-}
-
-public enum PressureStateTypes
-{
-    Relaxed, Alert, Hostile,
-}
-
-public enum GroupSize
-{
-    Solo, Small, Large
-}
-
-public enum LocationPropertyTypes
-{
-    Archetype,
-    Scale,
-    Exposure,
-    Legality,
-    Pressure,
-    Complexity,
-    Resource,
-    CrowdLevel,
-    ReputationType
-}
-
-public abstract class LocationPropertyTypeValue
-{
-    public abstract LocationPropertyTypes GetPropertyType();
+    None = 0,
+    Food,
+    Wood,
+    Fish,
+    Herbs,
+    Cloth,
+    Any
 }
 
 // --- Archetype ---
@@ -52,6 +32,169 @@ public enum LocationArchetypes
     CraftsmanWorkshop
 }
 
+public enum LocationPropertyTypes
+{
+    Archetype,
+    Resource,
+
+    ActivityLevel,
+    Accessibility,
+    Supervision,
+
+    Atmosphere,
+    Space,
+    Lighting,
+    Exposure,
+}
+
+public class LocationProperties
+{
+    // Action Availability
+    public LocationArchetypes? Archetype { get; set; }
+    public bool IsArchetypeSet { get; private set; } = false;
+    public ResourceTypes? Resource { get; set; }
+    public bool IsResourceSet { get; private set; } = false;
+
+    // Action Availability
+    public AccessibilityTypes? Accessability { get; set; }
+    public bool IsAccessabilitySet { get; private set; } = false;
+    public ActivityLevelTypes? Activity { get; set; }
+    public bool IsActivitySet { get; private set; } = false; 
+    public SupervisionTypes? Supervision { get; set; }
+    public bool IsSupervisionSet { get; private set; } = false;
+
+
+    // Action Availability
+    public AtmosphereTypes? Atmosphere { get; set; }
+    public bool IsAtmosphereSet { get; private set; } = false; 
+    public SpaceTypes? Space { get; set; }
+    public bool IsSpaceSet { get; private set; } = false;
+    public LightingTypes? Lighting { get; set; }
+    public bool IsLightingSet { get; private set; } = false;
+    public ExposureConditionTypes? Exposure { get; set; }
+    public bool IsExposureSet { get; private set; } = false;
+
+    public object GetProperty(LocationPropertyTypes propertyType)
+    {
+        switch (propertyType)
+        {
+            case LocationPropertyTypes.Archetype:
+                return Archetype;
+            case LocationPropertyTypes.Resource:
+                return Resource;
+
+            case LocationPropertyTypes.Accessibility:
+                return Accessability;
+            case LocationPropertyTypes.ActivityLevel:
+                return Activity;
+            case LocationPropertyTypes.Supervision:
+                return Supervision;
+
+            case LocationPropertyTypes.Atmosphere:
+                return Space;
+            case LocationPropertyTypes.Space:
+                return Atmosphere;
+            case LocationPropertyTypes.Lighting:
+                return Lighting;
+            case LocationPropertyTypes.Exposure:
+                return Exposure;
+            
+            default:
+                throw new ArgumentException($"Unknown property type: {propertyType}");
+        }
+    }
+
+    // SetProperty now also sets the corresponding IsSet flag
+    public void SetProperty(LocationPropertyTypes propertyType, object value)
+    {
+        switch (propertyType)
+        {
+            case LocationPropertyTypes.Archetype:
+                Archetype = (LocationArchetypes)value;
+                IsArchetypeSet = true;
+                break;
+            case LocationPropertyTypes.Resource:
+                Resource = (ResourceTypes)value;
+                IsResourceSet = true;
+                break;
+
+            case LocationPropertyTypes.Accessibility:
+                Exposure = (ExposureConditionTypes)value;
+                IsExposureSet = true;
+                break;
+            case LocationPropertyTypes.ActivityLevel:
+                Activity = (ActivityLevelTypes)value;
+                IsActivitySet = true;
+                break;
+            case LocationPropertyTypes.Supervision:
+                Supervision = (SupervisionTypes)value;
+                IsSupervisionSet = true;
+                break;
+
+            case LocationPropertyTypes.Atmosphere:
+                Atmosphere = (AtmosphereTypes)value;
+                IsAtmosphereSet = true;
+                break;
+            case LocationPropertyTypes.Space:
+                Space = (SpaceTypes)value;
+                IsSpaceSet = true;
+                break;
+            case LocationPropertyTypes.Lighting:
+                Lighting= (LightingTypes)value;
+                IsLightingSet = true;
+                break;
+            case LocationPropertyTypes.Exposure:
+                Accessability = (AccessibilityTypes)value;
+                IsAccessabilitySet = true;
+                break;
+            default:
+                throw new ArgumentException($"Unknown property type: {propertyType}");
+        }
+    }
+}
+
+public enum ActivityLevelTypes
+{
+    Deserted, Quiet, Bustling
+}
+
+public enum AccessibilityTypes
+{
+    Private, Restricted, Public
+}
+
+public enum SupervisionTypes
+{
+    Unsupervised, Patrolled, Watched
+}
+
+
+public enum AtmosphereTypes
+{
+    Formal, Causal, Tense
+}
+
+public enum SpaceTypes
+{
+    Open, Cramped, Hazardous
+}
+
+public enum LightingTypes
+{
+    Bright, Dim, Dark
+}
+
+public enum ExposureConditionTypes
+{
+    Indoor, Outdoor
+}
+
+
+public abstract class LocationPropertyTypeValue
+{
+    public abstract LocationPropertyTypes GetPropertyType();
+}
+
 public class ArchetypeValue : LocationPropertyTypeValue
 {
     public LocationArchetypes Archetype { get; set; }
@@ -59,83 +202,6 @@ public class ArchetypeValue : LocationPropertyTypeValue
     {
         return LocationPropertyTypes.Archetype;
     }
-}
-
-// --- Scale ---
-public enum ScaleVariationTypes
-{
-    Intimate, Medium, Large
-}
-
-public class ScaleValue : LocationPropertyTypeValue
-{
-    public ScaleVariationTypes ScaleVariation { get; set; }
-    public override LocationPropertyTypes GetPropertyType()
-    {
-        return LocationPropertyTypes.Scale;
-    }
-}
-
-// --- Exposure ---
-public enum ExposureConditionTypes
-{
-    Indoor, Outdoor,
-}
-
-public class ExposureValue : LocationPropertyTypeValue
-{
-    public ExposureConditionTypes Exposure { get; set; }
-    public override LocationPropertyTypes GetPropertyType()
-    {
-        return LocationPropertyTypes.Exposure;
-    }
-}
-
-// --- Legality ---
-public class LegalityValue : LocationPropertyTypeValue
-{
-    public LegalityTypes Legality { get; set; }
-    public override LocationPropertyTypes GetPropertyType()
-    {
-        return LocationPropertyTypes.Legality;
-    }
-}
-
-// --- Pressure ---
-public class PressureStateValue : LocationPropertyTypeValue
-{
-    public PressureStateTypes PressureState { get; set; }
-    public override LocationPropertyTypes GetPropertyType()
-    {
-        return LocationPropertyTypes.Pressure;
-    }
-}
-
-// --- Complexity ---
-public enum ComplexityTypes
-{
-    Complex, Simple
-}
-
-public class ComplexityValue : LocationPropertyTypeValue
-{
-    public ComplexityTypes Complexity { get; set; }
-    public override LocationPropertyTypes GetPropertyType()
-    {
-        return LocationPropertyTypes.Complexity;
-    }
-}
-
-// --- Resource ---
-public enum ResourceTypes
-{
-    None = 0,
-    Food,
-    Wood,
-    Fish,
-    Herbs,
-    Cloth,
-    Any
 }
 
 public class ResourceValue : LocationPropertyTypeValue
@@ -147,127 +213,68 @@ public class ResourceValue : LocationPropertyTypeValue
     }
 }
 
-// --- Crowd Level ---
-public enum CrowdLevelTypes
-{
-    Empty, Sparse, Busy, Crowded
-}
 
-public class CrowdLevelValue : LocationPropertyTypeValue
+
+public class ActivityLevelValue : LocationPropertyTypeValue
 {
-    public CrowdLevelTypes CrowdLevel { get; set; }
+    public ActivityLevelTypes ActivityLevel { get; set; }
     public override LocationPropertyTypes GetPropertyType()
     {
-        return LocationPropertyTypes.CrowdLevel;
+        return LocationPropertyTypes.ActivityLevel;
     }
 }
 
-// --- Reputation Type ---
-public enum LocationReputationTypes
+public class AccessabilityLevelValue : LocationPropertyTypeValue
 {
-    None, Notorious, Famous, Respected, Hidden
-}
-
-public class LocationReputationTypeValue : LocationPropertyTypeValue
-{
-    public ReputationTypes ReputationType { get; set; }
+    public AccessibilityTypes Accessability { get; set; }
     public override LocationPropertyTypes GetPropertyType()
     {
-        return LocationPropertyTypes.ReputationType;
+        return LocationPropertyTypes.Exposure;
     }
 }
 
-public class LocationProperties
+public class SupervisionValue : LocationPropertyTypeValue
 {
-    public ScaleVariationTypes? Scale { get; set; }
-    public bool IsScaleSet { get; private set; } = false;
-    public ExposureConditionTypes? Exposure { get; set; }
-    public bool IsExposureSet { get; private set; } = false;
-    public LegalityTypes? Legality { get; set; }
-    public bool IsLegalitySet { get; private set; } = false;
-    public PressureStateTypes? Pressure { get; set; }
-    public bool IsPressureSet { get; private set; } = false;
-    public ComplexityTypes? Complexity { get; set; }
-    public bool IsComplexitySet { get; private set; } = false;
-    public LocationArchetypes? Archetype { get; set; }
-    public bool IsArchetypeSet { get; private set; } = false;
-    public ResourceTypes? Resource { get; set; }
-    public bool IsResourceSet { get; private set; } = false;
-    public CrowdLevelTypes? CrowdLevel { get; set; }
-    public bool IsCrowdLevelSet { get; private set; } = false;
-    public ReputationTypes LocationReputationType { get; set; }
-    public bool IsReputationTypeSet { get; private set; } = false;
-
-    public object GetProperty(LocationPropertyTypes propertyType)
+    public SupervisionTypes Supervision { get; set; }
+    public override LocationPropertyTypes GetPropertyType()
     {
-        switch (propertyType)
-        {
-            case LocationPropertyTypes.Scale:
-                return Scale;
-            case LocationPropertyTypes.Exposure:
-                return Exposure;
-            case LocationPropertyTypes.Legality:
-                return Legality;
-            case LocationPropertyTypes.Pressure:
-                return Pressure;
-            case LocationPropertyTypes.Complexity:
-                return Complexity;
-            case LocationPropertyTypes.Archetype:
-                return Archetype;
-            case LocationPropertyTypes.Resource:
-                return Resource;
-            case LocationPropertyTypes.CrowdLevel:
-                return CrowdLevel;
-            case LocationPropertyTypes.ReputationType:
-                return LocationReputationType;
-            default:
-                throw new ArgumentException($"Unknown property type: {propertyType}");
-        }
+        return LocationPropertyTypes.Supervision;
     }
+}
 
-    // SetProperty now also sets the corresponding IsSet flag
-    public void SetProperty(LocationPropertyTypes propertyType, object value)
+
+public class AtmosphereValue : LocationPropertyTypeValue
+{
+    public AtmosphereTypes Atmosphere { get; set; }
+    public override LocationPropertyTypes GetPropertyType()
     {
-        switch (propertyType)
-        {
-            case LocationPropertyTypes.Scale:
-                Scale = (ScaleVariationTypes)value;
-                IsScaleSet = true;
-                break;
-            case LocationPropertyTypes.Exposure:
-                Exposure = (ExposureConditionTypes)value;
-                IsExposureSet = true;
-                break;
-            case LocationPropertyTypes.Legality:
-                Legality = (LegalityTypes)value;
-                IsLegalitySet = true;
-                break;
-            case LocationPropertyTypes.Pressure:
-                Pressure = (PressureStateTypes)value;
-                IsPressureSet = true;
-                break;
-            case LocationPropertyTypes.Complexity:
-                Complexity = (ComplexityTypes)value;
-                IsComplexitySet = true;
-                break;
-            case LocationPropertyTypes.Archetype:
-                Archetype = (LocationArchetypes)value;
-                IsArchetypeSet = true;
-                break;
-            case LocationPropertyTypes.Resource:
-                Resource = (ResourceTypes)value;
-                IsResourceSet = true;
-                break;
-            case LocationPropertyTypes.CrowdLevel:
-                CrowdLevel = (CrowdLevelTypes)value;
-                IsCrowdLevelSet = true;
-                break;
-            case LocationPropertyTypes.ReputationType:
-                LocationReputationType = (ReputationTypes)value;
-                IsReputationTypeSet = true;
-                break;
-            default:
-                throw new ArgumentException($"Unknown property type: {propertyType}");
-        }
+        return LocationPropertyTypes.Atmosphere;
+    }
+}
+
+public class SpaceValue : LocationPropertyTypeValue
+{
+    public SpaceTypes Space { get; set; }
+    public override LocationPropertyTypes GetPropertyType()
+    {
+        return LocationPropertyTypes.Space;
+    }
+}
+
+public class LightingValue : LocationPropertyTypeValue
+{
+    public LightingTypes Lighting { get; set; }
+    public override LocationPropertyTypes GetPropertyType()
+    {
+        return LocationPropertyTypes.Lighting;
+    }
+}
+
+public class ExposureValue : LocationPropertyTypeValue
+{
+    public ExposureConditionTypes Exposure { get; set; }
+    public override LocationPropertyTypes GetPropertyType()
+    {
+        return LocationPropertyTypes.Accessibility;
     }
 }

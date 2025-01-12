@@ -9,33 +9,33 @@ public class LocationPropertiesBuilder
         this.properties = existingProperties ?? new LocationProperties();
     }
 
-    public LocationPropertiesBuilder WithScale(ScaleVariationTypes scale)
+    public LocationPropertiesBuilder WithScale(AccessibilityTypes scale)
     {
-        properties.SetProperty(LocationPropertyTypes.Scale, scale);
+        properties.SetProperty(LocationPropertyTypes.Exposure, scale);
         return this;
     }
 
     public LocationPropertiesBuilder WithExposure(ExposureConditionTypes exposure)
     {
-        properties.SetProperty(LocationPropertyTypes.Exposure, exposure);
+        properties.SetProperty(LocationPropertyTypes.Accessibility, exposure);
         return this;
     }
 
-    public LocationPropertiesBuilder WithLegality(LegalityTypes legality)
+    public LocationPropertiesBuilder WithLegality(SupervisionTypes legality)
     {
-        properties.SetProperty(LocationPropertyTypes.Legality, legality);
+        properties.SetProperty(LocationPropertyTypes.Supervision, legality);
         return this;
     }
 
-    public LocationPropertiesBuilder WithPressure(PressureStateTypes pressure)
+    public LocationPropertiesBuilder WithSupervision(SupervisionTypes pressure)
     {
-        properties.SetProperty(LocationPropertyTypes.Pressure, pressure);
+        properties.SetProperty(LocationPropertyTypes.Atmosphere, pressure);
         return this;
     }
 
-    public LocationPropertiesBuilder WithComplexity(ComplexityTypes complexity)
+    public LocationPropertiesBuilder WithComplexity(AtmosphereTypes complexity)
     {
-        properties.SetProperty(LocationPropertyTypes.Complexity, complexity);
+        properties.SetProperty(LocationPropertyTypes.Space, complexity);
         return this;
     }
 
@@ -51,9 +51,9 @@ public class LocationPropertiesBuilder
         return this;
     }
 
-    public LocationPropertiesBuilder WithCrowdLevel(CrowdLevelTypes crowdLevel)
+    public LocationPropertiesBuilder WithActivityLevel(ActivityLevelTypes crowdLevel)
     {
-        properties.SetProperty(LocationPropertyTypes.CrowdLevel, crowdLevel);
+        properties.SetProperty(LocationPropertyTypes.ActivityLevel, crowdLevel);
         return this;
     }
 
