@@ -1,7 +1,7 @@
 ﻿public class SpacePropertiesBuilder
 {
     private AccessibilityTypes scale = AccessibilityTypes.Restricted;
-    private ExposureConditionTypes exposure = ExposureConditionTypes.Indoor;
+    private ExposureTypes exposure = ExposureTypes.Indoor;
     private ActivityLevelTypes crowdLevel = ActivityLevelTypes.Deserted;
 
     public SpacePropertiesBuilder WithScale(AccessibilityTypes scale)
@@ -10,7 +10,7 @@
         return this;
     }
 
-    public SpacePropertiesBuilder WithExposure(ExposureConditionTypes exposure)
+    public SpacePropertiesBuilder WithExposure(ExposureTypes exposure)
     {
         this.exposure = exposure;
         return this;

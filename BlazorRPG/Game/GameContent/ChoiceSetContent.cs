@@ -9,7 +9,7 @@ public static class ChoiceSetContent
             .WithActionType(BasicActionTypes.Labor)
             .AddAvailabilityCondition(properties => properties
                 .WithAtmosphere(AtmosphereTypes.Tense)    // Task requires skill/focus
-                .WithExposure(ExposureConditionTypes.Indoor)  // Controlled environment
+                .WithExposure(ExposureTypes.Indoor)  // Controlled environment
                 .WithActivityLevel(ActivityLevelTypes.Quiet))    // Few distractions
             .AddStateCondition(values => values
                 .WithMaxOutcome(4)
@@ -40,7 +40,7 @@ public static class ChoiceSetContent
         .AddAvailabilityCondition(properties => properties
             .WithActivityLevel(ActivityLevelTypes.Quiet)      // Need people around
             .WithAtmosphere(AtmosphereTypes.Tense)    // Situation has depth
-            .WithExposure(ExposureConditionTypes.Indoor)) // Controlled environment
+            .WithExposure(ExposureTypes.Indoor)) // Controlled environment
         .AddStateCondition(values => values
             .WithMaxOutcome(4)
             .WithMaxPressure(4)
@@ -96,7 +96,7 @@ public static class ChoiceSetContent
             .WithActionType(BasicActionTypes.Labor)
             .AddAvailabilityCondition(properties => properties
                 .WithActivityLevel(ActivityLevelTypes.Bustling)
-                .WithExposure(ExposureConditionTypes.Indoor)
+                .WithExposure(ExposureTypes.Indoor)
                 .WithAtmosphere(AtmosphereTypes.Causal))
             .AddStateCondition(values => values
                 .WithMaxPressure(5)

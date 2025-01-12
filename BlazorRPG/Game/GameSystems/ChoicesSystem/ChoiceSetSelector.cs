@@ -11,7 +11,14 @@
     public ChoiceSetTemplate SelectTemplate(List<ChoiceSetTemplate> templates, EncounterContext context)
     {
         // Get valid sets
-        List<ChoiceSetTemplate> validSets = templates.Where(t => MeetsConditions(t, context)).ToList();
+        List<ChoiceSetTemplate> validSets = new();
+        foreach (ChoiceSetTemplate template in templates)
+        {
+            if (MeetsConditions(template, context))
+            {
+                validSets.Add(template);
+            }
+        }
 
         // Create ChoiceSetScore for each template and calculate
         var scoredSets = validSets.Select(set => new

@@ -12,9 +12,9 @@
             .AddTimeSlot(TimeSlots.Evening)
             .AddTimeSlot(TimeSlots.Night)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Tavern)    // Mandatory
-                .WithExposure(ExposureConditionTypes.Indoor) // Mandatory
-                .WithSupervision(SupervisionTypes.Unsupervised))          // Mandatory
+                .WithActivityLevel(ActivityLevelTypes.Bustling)     // Mandatory
+                .WithAccessibility(AccessibilityTypes.Public)       // Mandatory
+                .WithSupervision(SupervisionTypes.Unsupervised))    // Mandatory
             .Build());
 
         // Perform Music - Similar core requirements
@@ -24,9 +24,9 @@
             .AddTimeSlot(TimeSlots.Evening)
             .AddTimeSlot(TimeSlots.Night)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Tavern)    // Mandatory
-                .WithExposure(ExposureConditionTypes.Indoor) // Mandatory
-                .WithSupervision(SupervisionTypes.Unsupervised))          // Mandatory
+                .WithActivityLevel(ActivityLevelTypes.Bustling)     // Mandatory
+                .WithAccessibility(AccessibilityTypes.Public)       // Mandatory
+                .WithSupervision(SupervisionTypes.Unsupervised))    // Mandatory
             .Build());
 
         // Gossip - Same pattern
@@ -36,9 +36,9 @@
             .AddTimeSlot(TimeSlots.Evening)
             .AddTimeSlot(TimeSlots.Night)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Tavern)    // Mandatory
-                .WithExposure(ExposureConditionTypes.Indoor) // Mandatory
-                .WithSupervision(SupervisionTypes.Unsupervised))          // Mandatory
+                .WithActivityLevel(ActivityLevelTypes.Bustling)     // Mandatory
+                .WithAccessibility(AccessibilityTypes.Public)       // Mandatory
+                .WithSupervision(SupervisionTypes.Unsupervised))    // Mandatory
             .Build());
 
         // Example: Clean Tables
@@ -50,8 +50,9 @@
             .AddTimeSlot(TimeSlots.Evening)
             .AddTimeSlot(TimeSlots.Night)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Tavern)
-                .WithActivityLevel(ActivityLevelTypes.Deserted))
+                .WithActivityLevel(ActivityLevelTypes.Deserted)     // Mandatory
+                .WithAccessibility(AccessibilityTypes.Public)       // Mandatory
+                .WithSupervision(SupervisionTypes.Unsupervised))    // Mandatory
             .Build());
 
         // Example: Browse Market
@@ -191,7 +192,7 @@
             .AddTimeSlot(TimeSlots.Evening)
             .AddAvailabilityCondition(properties => properties
                 .WithArchetype(LocationArchetypes.Forest)        // Must be in forest
-                .WithExposure(ExposureConditionTypes.Outdoor)   // Must be outside
+                .WithExposure(ExposureTypes.Outdoor)   // Must be outside
                 .WithActivityLevel(ActivityLevelTypes.Deserted)          // Needs solitude
                 .WithSupervision(SupervisionTypes.Unsupervised))      // Peaceful atmosphere
             .Build());
@@ -206,7 +207,7 @@
                 .WithAtmosphere(AtmosphereTypes.Tense)       // Intellectual environment
                 .WithActivityLevel(ActivityLevelTypes.Quiet)       // Need quiet
                 .WithSupervision(SupervisionTypes.Unsupervised)     // Peaceful atmosphere
-                .WithExposure(ExposureConditionTypes.Indoor)) // Indoor activity
+                .WithExposure(ExposureTypes.Indoor)) // Indoor activity
             .Build());
 
         // "Street Performance" - Now properly requires a market setting
@@ -230,7 +231,7 @@
             .AddAvailabilityCondition(properties => properties
                 .WithArchetype(LocationArchetypes.Docks)         // Must be at docks
                 .WithResource(ResourceTypes.Fish)                // Must have fish
-                .WithExposure(ExposureConditionTypes.Outdoor)    // Fresh air needed
+                .WithExposure(ExposureTypes.Outdoor)    // Fresh air needed
                 .WithAccessibility(AccessibilityTypes.Public))           // Need work space
             .Build());
 

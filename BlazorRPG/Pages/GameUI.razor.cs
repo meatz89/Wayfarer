@@ -287,7 +287,7 @@ public partial class GameUI : ComponentBase
         {
             List<string> exposureEffects = GetEffectDescriptions(LocationPropertyTypes.Exposure);
             properties.Add(new(
-                loc.Exposure == ExposureConditionTypes.Indoor ? "🏗️" : "🌳",
+                loc.Exposure == ExposureTypes.Indoor ? "🏗️" : "🌳",
                 FormatEnumString(loc.Exposure.ToString()),
                 "",
                 exposureEffects

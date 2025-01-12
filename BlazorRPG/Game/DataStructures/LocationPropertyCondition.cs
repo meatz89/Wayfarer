@@ -21,4 +21,9 @@
 
         return property.Equals(ExpectedValue);
     }
+
+    public override string ToString()
+    {
+        return $"{PropertyType} is {ExpectedValue.ToString()}";
+    }
 }

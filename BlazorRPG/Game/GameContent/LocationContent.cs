@@ -1,4 +1,6 @@
-﻿public class LocationContent
+﻿using System.Runtime.Versioning;
+
+public class LocationContent
 {
     // === RESIDENTIAL DISTRICT ===
     public static Location LionsHeadTavern => new LocationBuilder()
@@ -6,12 +8,14 @@
         .ForLocation(LocationNames.LionsHeadTavern)
         .WithLocationProperties((Action<LocationPropertiesBuilder>)(properties => properties
             .WithArchetype(LocationArchetypes.Tavern)
-            .WithAccessibility(AccessibilityTypes.Restricted)
-            .WithExposure(ExposureConditionTypes.Indoor)
+            .WithResource(ResourceTypes.Ale)
             .WithActivityLevel(ActivityLevelTypes.Bustling)
+            .WithAccessibility(AccessibilityTypes.Restricted)
             .WithSupervision(SupervisionTypes.Unsupervised)
-            .WithSupervision(SupervisionTypes.Unsupervised)
-            .WithAtmosphere(AtmosphereTypes.Causal))
+            .WithAtmosphere(AtmosphereTypes.Causal)
+            .WithSpace(SpaceTypes.Cramped)
+            .WithLighting(LightingTypes.Dim)
+            .WithExposure(ExposureTypes.Indoor))
         )
         .AddLocationSpot(spot => spot
             .WithName("Tavern Bar")
@@ -46,7 +50,7 @@
     .WithLocationProperties((Action<LocationPropertiesBuilder>)(properties => properties
         .WithArchetype(LocationArchetypes.Market)
         .WithAccessibility(AccessibilityTypes.Public)
-        .WithExposure(ExposureConditionTypes.Outdoor)
+        .WithExposure(ExposureTypes.Outdoor)
         .WithActivityLevel(ActivityLevelTypes.Bustling)
         .WithSupervision(SupervisionTypes.Unsupervised)
         .WithSupervision(SupervisionTypes.Patrolled)
@@ -73,7 +77,7 @@
         .WithLocationProperties((Action<LocationPropertiesBuilder>)(properties => properties
             .WithArchetype(LocationArchetypes.Library)
             .WithAccessibility(AccessibilityTypes.Private)
-            .WithExposure(ExposureConditionTypes.Indoor)
+            .WithExposure(ExposureTypes.Indoor)
             .WithActivityLevel(ActivityLevelTypes.Quiet)
             .WithSupervision(SupervisionTypes.Unsupervised)
             .WithSupervision(SupervisionTypes.Unsupervised)
@@ -98,7 +102,7 @@
         .WithLocationProperties((Action<LocationPropertiesBuilder>)(properties => properties
             .WithArchetype(LocationArchetypes.Docks)
             .WithAccessibility(AccessibilityTypes.Public)
-            .WithExposure(ExposureConditionTypes.Outdoor)
+            .WithExposure(ExposureTypes.Outdoor)
             .WithActivityLevel(ActivityLevelTypes.Quiet)
             .WithSupervision(SupervisionTypes.Watched)
             .WithSupervision(SupervisionTypes.Patrolled)
@@ -126,7 +130,7 @@
         .WithLocationProperties((Action<LocationPropertiesBuilder>)(properties => properties
             .WithArchetype(LocationArchetypes.CraftsmanWorkshop)
             .WithAccessibility(AccessibilityTypes.Private)
-            .WithExposure(ExposureConditionTypes.Indoor)
+            .WithExposure(ExposureTypes.Indoor)
             .WithActivityLevel(ActivityLevelTypes.Quiet)
             .WithSupervision(SupervisionTypes.Unsupervised)
             .WithSupervision(SupervisionTypes.Unsupervised)
@@ -152,7 +156,7 @@
     .WithLocationProperties((Action<LocationPropertiesBuilder>)(properties => properties
         .WithArchetype(LocationArchetypes.Forest)
         .WithAccessibility(AccessibilityTypes.Public)
-        .WithExposure(ExposureConditionTypes.Outdoor)
+        .WithExposure(ExposureTypes.Outdoor)
         .WithActivityLevel(ActivityLevelTypes.Deserted)
         .WithSupervision(SupervisionTypes.Watched)
         .WithSupervision(SupervisionTypes.Patrolled)
@@ -180,7 +184,7 @@
         .WithLocationProperties((Action<LocationPropertiesBuilder>)(properties => properties
             .WithArchetype(LocationArchetypes.Garden)
             .WithAccessibility(AccessibilityTypes.Restricted)
-            .WithExposure(ExposureConditionTypes.Outdoor)
+            .WithExposure(ExposureTypes.Outdoor)
             .WithActivityLevel(ActivityLevelTypes.Quiet)
             .WithSupervision(SupervisionTypes.Unsupervised)
             .WithSupervision(SupervisionTypes.Unsupervised)

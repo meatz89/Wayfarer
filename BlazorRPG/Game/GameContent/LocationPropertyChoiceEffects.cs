@@ -17,7 +17,7 @@
         // Indoor spaces help with social actions
         new LocationPropertyChoiceEffect
         {
-            LocationProperty = new ExposureValue { Exposure = ExposureConditionTypes.Indoor },
+            LocationProperty = new ExposureValue { Exposure = ExposureTypes.Indoor },
             ValueTypeEffect = new ValueBonus
             {
                 ChoiceArchetype = ChoiceArchetypes.Social,

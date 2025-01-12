@@ -8,7 +8,8 @@ public enum ResourceTypes
     Fish,
     Herbs,
     Cloth,
-    Any
+    Any,
+    Ale
 }
 
 // --- Archetype ---
@@ -71,7 +72,7 @@ public class LocationProperties
     public bool IsSpaceSet { get; private set; } = false;
     public LightingTypes? Lighting { get; set; }
     public bool IsLightingSet { get; private set; } = false;
-    public ExposureConditionTypes? Exposure { get; set; }
+    public ExposureTypes? Exposure { get; set; }
     public bool IsExposureSet { get; private set; } = false;
 
     public object GetProperty(LocationPropertyTypes propertyType)
@@ -119,7 +120,7 @@ public class LocationProperties
                 break;
 
             case LocationPropertyTypes.Accessibility:
-                Exposure = (ExposureConditionTypes)value;
+                Accessability = (AccessibilityTypes)value;
                 IsExposureSet = true;
                 break;
             case LocationPropertyTypes.ActivityLevel:
@@ -144,7 +145,7 @@ public class LocationProperties
                 IsLightingSet = true;
                 break;
             case LocationPropertyTypes.Exposure:
-                Accessability = (AccessibilityTypes)value;
+                Exposure = (ExposureTypes)value;
                 IsAccessabilitySet = true;
                 break;
             default:
@@ -184,7 +185,7 @@ public enum LightingTypes
     Bright, Dim, Dark
 }
 
-public enum ExposureConditionTypes
+public enum ExposureTypes
 {
     Indoor, Outdoor
 }
@@ -272,7 +273,7 @@ public class LightingValue : LocationPropertyTypeValue
 
 public class ExposureValue : LocationPropertyTypeValue
 {
-    public ExposureConditionTypes Exposure { get; set; }
+    public ExposureTypes Exposure { get; set; }
     public override LocationPropertyTypes GetPropertyType()
     {
         return LocationPropertyTypes.Accessibility;

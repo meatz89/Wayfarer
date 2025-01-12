@@ -12,6 +12,44 @@
         return this;
     }
 
+    public LocationPropertiesBuilder WithAtmosphere(AtmosphereTypes pressure)
+    {
+        properties.SetProperty(LocationPropertyTypes.Atmosphere, pressure);
+        return this;
+    }
+
+    public LocationPropertiesBuilder WithSpace(SpaceTypes space)
+    {
+        properties.SetProperty(LocationPropertyTypes.Space, space);
+        return this;
+    }
+
+    public LocationPropertiesBuilder WithLighting(LightingTypes lighting)
+    {
+        properties.SetProperty(LocationPropertyTypes.Lighting, lighting);
+        return this;
+    }
+
+    public LocationPropertiesBuilder WithExposure(ExposureTypes exposure)
+    {
+        properties.SetProperty(LocationPropertyTypes.Exposure, exposure);
+        return this;
+    }
+
+
+    public LocationProperties Build()
+    {
+        return properties;
+    }
+
+    // ONLY FOR ACTIONS TO LOCATION MAPPING
+    // NOT FOR USE IN CHOICESETS
+    public LocationPropertiesBuilder WithArchetype(LocationArchetypes archetype)
+    {
+        properties.SetProperty(LocationPropertyTypes.Archetype, archetype);
+        return this;
+    }
+
     public LocationPropertiesBuilder WithResource(ResourceTypes resource)
     {
         properties.SetProperty(LocationPropertyTypes.Resource, resource);
@@ -36,41 +74,4 @@
         return this;
     }
 
-    public LocationPropertiesBuilder WithAtmosphere(AtmosphereTypes pressure)
-    {
-        properties.SetProperty(LocationPropertyTypes.Atmosphere, pressure);
-        return this;
-    }
-
-    public LocationPropertiesBuilder WithSpace(SpaceTypes space)
-    {
-        properties.SetProperty(LocationPropertyTypes.Space, space);
-        return this;
-    }
-
-    public LocationPropertiesBuilder WithLighting(LightingTypes lighting)
-    {
-        properties.SetProperty(LocationPropertyTypes.Lighting, lighting);
-        return this;
-    }
-
-    public LocationPropertiesBuilder WithExposure(ExposureConditionTypes exposure)
-    {
-        properties.SetProperty(LocationPropertyTypes.Exposure, exposure);
-        return this;
-    }
-
-
-    public LocationProperties Build()
-    {
-        return properties;
-    }
-
-    // ONLY FOR ACTIONS TO LOCATION MAPPING
-    // NOT FOR USE IN CHOICESETS
-    public LocationPropertiesBuilder WithArchetype(LocationArchetypes archetype)
-    {
-        properties.SetProperty(LocationPropertyTypes.Archetype, archetype);
-        return this;
-    }
 }

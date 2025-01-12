@@ -34,7 +34,7 @@
         AddConditionIfSet<ActivityLevelTypes>(properties, LocationPropertyTypes.ActivityLevel);
         AddConditionIfSet<ResourceTypes>(properties, LocationPropertyTypes.Resource);
         AddConditionIfSet<AccessibilityTypes>(properties, LocationPropertyTypes.Exposure);
-        AddConditionIfSet<ExposureConditionTypes>(properties, LocationPropertyTypes.Accessibility);
+        AddConditionIfSet<ExposureTypes>(properties, LocationPropertyTypes.Accessibility);
         AddConditionIfSet<SupervisionTypes>(properties, LocationPropertyTypes.Supervision);
         AddConditionIfSet<SupervisionTypes>(properties, LocationPropertyTypes.Atmosphere);
         AddConditionIfSet<AtmosphereTypes>(properties, LocationPropertyTypes.Space);
