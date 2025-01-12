@@ -1,6 +1,4 @@
-﻿
-
-public class LocationPropertiesBuilder
+﻿public class LocationPropertiesBuilder
 {
     private LocationProperties properties;
 
@@ -9,33 +7,8 @@ public class LocationPropertiesBuilder
         this.properties = existingProperties ?? new LocationProperties();
     }
 
-    public LocationPropertiesBuilder WithScale(AccessibilityTypes scale)
+    public LocationPropertiesBuilder WithAnyResource()
     {
-        properties.SetProperty(LocationPropertyTypes.Exposure, scale);
-        return this;
-    }
-
-    public LocationPropertiesBuilder WithExposure(ExposureConditionTypes exposure)
-    {
-        properties.SetProperty(LocationPropertyTypes.Accessibility, exposure);
-        return this;
-    }
-
-    public LocationPropertiesBuilder WithLegality(SupervisionTypes legality)
-    {
-        properties.SetProperty(LocationPropertyTypes.Supervision, legality);
-        return this;
-    }
-
-    public LocationPropertiesBuilder WithSupervision(SupervisionTypes pressure)
-    {
-        properties.SetProperty(LocationPropertyTypes.Atmosphere, pressure);
-        return this;
-    }
-
-    public LocationPropertiesBuilder WithComplexity(AtmosphereTypes complexity)
-    {
-        properties.SetProperty(LocationPropertyTypes.Space, complexity);
         return this;
     }
 
@@ -45,17 +18,48 @@ public class LocationPropertiesBuilder
         return this;
     }
 
-    public LocationPropertiesBuilder WithAnyResource()
+    public LocationPropertiesBuilder WithActivityLevel(ActivityLevelTypes activityLevel)
     {
-        properties.SetProperty(LocationPropertyTypes.Resource, ResourceTypes.Any);
+        properties.SetProperty(LocationPropertyTypes.ActivityLevel, activityLevel);
         return this;
     }
 
-    public LocationPropertiesBuilder WithActivityLevel(ActivityLevelTypes crowdLevel)
+    public LocationPropertiesBuilder WithAccessibility(AccessibilityTypes accessibility)
     {
-        properties.SetProperty(LocationPropertyTypes.ActivityLevel, crowdLevel);
+        properties.SetProperty(LocationPropertyTypes.Accessibility, accessibility);
         return this;
     }
+
+    public LocationPropertiesBuilder WithSupervision(SupervisionTypes supervision)
+    {
+        properties.SetProperty(LocationPropertyTypes.Supervision, supervision);
+        return this;
+    }
+
+    public LocationPropertiesBuilder WithAtmosphere(AtmosphereTypes pressure)
+    {
+        properties.SetProperty(LocationPropertyTypes.Atmosphere, pressure);
+        return this;
+    }
+
+    public LocationPropertiesBuilder WithSpace(SpaceTypes space)
+    {
+        properties.SetProperty(LocationPropertyTypes.Space, space);
+        return this;
+    }
+
+    public LocationPropertiesBuilder WithLighting(LightingTypes lighting)
+    {
+        properties.SetProperty(LocationPropertyTypes.Lighting, lighting);
+        return this;
+    }
+
+    public LocationPropertiesBuilder WithExposure(ExposureConditionTypes exposure)
+    {
+        properties.SetProperty(LocationPropertyTypes.Exposure, exposure);
+        return this;
+    }
+
 
     public LocationProperties Build()
     {

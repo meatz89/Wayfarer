@@ -4,14 +4,14 @@
     public static Location LionsHeadTavern => new LocationBuilder()
         .SetLocationType(LocationTypes.Residential)
         .ForLocation(LocationNames.LionsHeadTavern)
-        .WithLocationProperties(properties => properties
+        .WithLocationProperties((Action<LocationPropertiesBuilder>)(properties => properties
             .WithArchetype(LocationArchetypes.Tavern)
-            .WithScale(AccessibilityTypes.Restricted)
+            .WithAccessibility(AccessibilityTypes.Restricted)
             .WithExposure(ExposureConditionTypes.Indoor)
             .WithActivityLevel(ActivityLevelTypes.Bustling)
-            .WithLegality(SupervisionTypes.Unsupervised)
             .WithSupervision(SupervisionTypes.Unsupervised)
-            .WithComplexity(AtmosphereTypes.Causal)
+            .WithSupervision(SupervisionTypes.Unsupervised)
+            .WithAtmosphere(AtmosphereTypes.Causal))
         )
         .AddLocationSpot(spot => spot
             .WithName("Tavern Bar")
@@ -43,14 +43,14 @@
     public static Location BusyMarketplace => new LocationBuilder()
     .SetLocationType(LocationTypes.Commercial)
     .ForLocation(LocationNames.BusyMarketplace)
-    .WithLocationProperties(properties => properties
+    .WithLocationProperties((Action<LocationPropertiesBuilder>)(properties => properties
         .WithArchetype(LocationArchetypes.Market)
-        .WithScale(AccessibilityTypes.Public)
+        .WithAccessibility(AccessibilityTypes.Public)
         .WithExposure(ExposureConditionTypes.Outdoor)
         .WithActivityLevel(ActivityLevelTypes.Bustling)
-        .WithLegality(SupervisionTypes.Unsupervised)
+        .WithSupervision(SupervisionTypes.Unsupervised)
         .WithSupervision(SupervisionTypes.Patrolled)
-        .WithComplexity(AtmosphereTypes.Tense)
+        .WithAtmosphere(AtmosphereTypes.Tense))
     )
     .AddLocationSpot(spot => spot
         .WithName("Merchant Stalls")
@@ -70,14 +70,14 @@
     public static Location QuietBookshop => new LocationBuilder()
         .SetLocationType(LocationTypes.Commercial)
         .ForLocation(LocationNames.QuietBookshop)
-        .WithLocationProperties(properties => properties
+        .WithLocationProperties((Action<LocationPropertiesBuilder>)(properties => properties
             .WithArchetype(LocationArchetypes.Library)
-            .WithScale(AccessibilityTypes.Private)
+            .WithAccessibility(AccessibilityTypes.Private)
             .WithExposure(ExposureConditionTypes.Indoor)
             .WithActivityLevel(ActivityLevelTypes.Quiet)
-            .WithLegality(SupervisionTypes.Unsupervised)
             .WithSupervision(SupervisionTypes.Unsupervised)
-            .WithComplexity(AtmosphereTypes.Tense)
+            .WithSupervision(SupervisionTypes.Unsupervised)
+            .WithAtmosphere(AtmosphereTypes.Tense))
         )
         .AddLocationSpot(spot => spot
             .WithName("Reading Nook")
@@ -95,15 +95,15 @@
     public static Location BusyDockyard => new LocationBuilder()
         .SetLocationType(LocationTypes.Industrial)
         .ForLocation(LocationNames.BusyDockyard)
-        .WithLocationProperties(properties => properties
+        .WithLocationProperties((Action<LocationPropertiesBuilder>)(properties => properties
             .WithArchetype(LocationArchetypes.Docks)
-            .WithScale(AccessibilityTypes.Public)
+            .WithAccessibility(AccessibilityTypes.Public)
             .WithExposure(ExposureConditionTypes.Outdoor)
             .WithActivityLevel(ActivityLevelTypes.Quiet)
-            .WithLegality(SupervisionTypes.Watched)
+            .WithSupervision(SupervisionTypes.Watched)
             .WithSupervision(SupervisionTypes.Patrolled)
-            .WithComplexity(AtmosphereTypes.Tense)
-            .WithResource(ResourceTypes.Fish)
+            .WithAtmosphere(AtmosphereTypes.Tense)
+            .WithResource(ResourceTypes.Fish))
         )
         .AddLocationSpot(spot => spot
             .WithName("Loading Area")
@@ -123,15 +123,15 @@
     public static Location CraftsmanWorkshop => new LocationBuilder()
         .SetLocationType(LocationTypes.Industrial)
         .ForLocation(LocationNames.CraftsmanWorkshop)
-        .WithLocationProperties(properties => properties
+        .WithLocationProperties((Action<LocationPropertiesBuilder>)(properties => properties
             .WithArchetype(LocationArchetypes.CraftsmanWorkshop)
-            .WithScale(AccessibilityTypes.Private)
+            .WithAccessibility(AccessibilityTypes.Private)
             .WithExposure(ExposureConditionTypes.Indoor)
             .WithActivityLevel(ActivityLevelTypes.Quiet)
-            .WithLegality(SupervisionTypes.Unsupervised)
             .WithSupervision(SupervisionTypes.Unsupervised)
-            .WithComplexity(AtmosphereTypes.Tense)
-            .WithResource(ResourceTypes.Cloth)
+            .WithSupervision(SupervisionTypes.Unsupervised)
+            .WithAtmosphere(AtmosphereTypes.Tense)
+            .WithResource(ResourceTypes.Cloth))
         )
         .AddLocationSpot(spot => spot
             .WithName("Workbench")
@@ -149,15 +149,15 @@
     public static Location WildForest => new LocationBuilder()
     .SetLocationType(LocationTypes.Natural)
     .ForLocation(LocationNames.WildForest)
-    .WithLocationProperties(properties => properties
+    .WithLocationProperties((Action<LocationPropertiesBuilder>)(properties => properties
         .WithArchetype(LocationArchetypes.Forest)
-        .WithScale(AccessibilityTypes.Public)
+        .WithAccessibility(AccessibilityTypes.Public)
         .WithExposure(ExposureConditionTypes.Outdoor)
         .WithActivityLevel(ActivityLevelTypes.Deserted)
-        .WithLegality(SupervisionTypes.Watched)
+        .WithSupervision(SupervisionTypes.Watched)
         .WithSupervision(SupervisionTypes.Patrolled)
-        .WithComplexity(AtmosphereTypes.Tense)
-        .WithResource(ResourceTypes.Herbs)
+        .WithAtmosphere(AtmosphereTypes.Tense)
+        .WithResource(ResourceTypes.Herbs))
     )
     .AddLocationSpot(spot => spot
         .WithName("Herb Garden")
@@ -177,15 +177,15 @@
     public static Location TendedGarden => new LocationBuilder()
         .SetLocationType(LocationTypes.Natural)
         .ForLocation(LocationNames.TendedGarden)
-        .WithLocationProperties(properties => properties
+        .WithLocationProperties((Action<LocationPropertiesBuilder>)(properties => properties
             .WithArchetype(LocationArchetypes.Garden)
-            .WithScale(AccessibilityTypes.Restricted)
+            .WithAccessibility(AccessibilityTypes.Restricted)
             .WithExposure(ExposureConditionTypes.Outdoor)
             .WithActivityLevel(ActivityLevelTypes.Quiet)
-            .WithLegality(SupervisionTypes.Unsupervised)
             .WithSupervision(SupervisionTypes.Unsupervised)
-            .WithComplexity(AtmosphereTypes.Causal)
-            .WithResource(ResourceTypes.Food)
+            .WithSupervision(SupervisionTypes.Unsupervised)
+            .WithAtmosphere(AtmosphereTypes.Causal)
+            .WithResource(ResourceTypes.Food))
         )
         .AddLocationSpot(spot => spot
             .WithName("Vegetable Beds")

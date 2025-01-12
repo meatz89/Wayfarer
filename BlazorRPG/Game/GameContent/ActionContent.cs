@@ -14,7 +14,7 @@
             .AddAvailabilityCondition(properties => properties
                 .WithArchetype(LocationArchetypes.Tavern)    // Mandatory
                 .WithExposure(ExposureConditionTypes.Indoor) // Mandatory
-                .WithLegality(SupervisionTypes.Unsupervised))          // Mandatory
+                .WithSupervision(SupervisionTypes.Unsupervised))          // Mandatory
             .Build());
 
         // Perform Music - Similar core requirements
@@ -26,7 +26,7 @@
             .AddAvailabilityCondition(properties => properties
                 .WithArchetype(LocationArchetypes.Tavern)    // Mandatory
                 .WithExposure(ExposureConditionTypes.Indoor) // Mandatory
-                .WithLegality(SupervisionTypes.Unsupervised))          // Mandatory
+                .WithSupervision(SupervisionTypes.Unsupervised))          // Mandatory
             .Build());
 
         // Gossip - Same pattern
@@ -38,7 +38,7 @@
             .AddAvailabilityCondition(properties => properties
                 .WithArchetype(LocationArchetypes.Tavern)    // Mandatory
                 .WithExposure(ExposureConditionTypes.Indoor) // Mandatory
-                .WithLegality(SupervisionTypes.Unsupervised))          // Mandatory
+                .WithSupervision(SupervisionTypes.Unsupervised))          // Mandatory
             .Build());
 
         // Example: Clean Tables
@@ -168,7 +168,7 @@
             .AddTimeSlot(TimeSlots.Afternoon)
             .AddAvailabilityCondition(properties => properties
                 .WithArchetype(LocationArchetypes.Library)
-                .WithComplexity(AtmosphereTypes.Tense))
+                .WithAtmosphere(AtmosphereTypes.Tense))
             .Build());
 
         // === DOCKYARD ACTIONS ===
@@ -180,7 +180,7 @@
             .AddTimeSlot(TimeSlots.Afternoon)
             .AddAvailabilityCondition(properties => properties
                 .WithArchetype(LocationArchetypes.Docks)
-                .WithScale(AccessibilityTypes.Public))
+                .WithAccessibility(AccessibilityTypes.Public))
             .Build());
 
         // "Forest Meditation" - Now properly requires a natural setting
@@ -203,7 +203,7 @@
             .AddTimeSlot(TimeSlots.Morning)
             .AddTimeSlot(TimeSlots.Afternoon)
             .AddAvailabilityCondition(properties => properties
-                .WithComplexity(AtmosphereTypes.Tense)       // Intellectual environment
+                .WithAtmosphere(AtmosphereTypes.Tense)       // Intellectual environment
                 .WithActivityLevel(ActivityLevelTypes.Quiet)       // Need quiet
                 .WithSupervision(SupervisionTypes.Unsupervised)     // Peaceful atmosphere
                 .WithExposure(ExposureConditionTypes.Indoor)) // Indoor activity
@@ -218,8 +218,8 @@
             .AddAvailabilityCondition(properties => properties
                 .WithArchetype(LocationArchetypes.Market)        // Must be in market
                 .WithActivityLevel(ActivityLevelTypes.Bustling)        // Need an audience
-                .WithScale(AccessibilityTypes.Public)           // Need space
-                .WithLegality(SupervisionTypes.Unsupervised))             // Must be allowed
+                .WithAccessibility(AccessibilityTypes.Public)           // Need space
+                .WithSupervision(SupervisionTypes.Unsupervised))             // Must be allowed
             .Build());
 
         // "Sort Fresh Catch" - Now properly requires a dock setting
@@ -231,7 +231,7 @@
                 .WithArchetype(LocationArchetypes.Docks)         // Must be at docks
                 .WithResource(ResourceTypes.Fish)                // Must have fish
                 .WithExposure(ExposureConditionTypes.Outdoor)    // Fresh air needed
-                .WithScale(AccessibilityTypes.Public))           // Need work space
+                .WithAccessibility(AccessibilityTypes.Public))           // Need work space
             .Build());
 
         return actionTemplates;

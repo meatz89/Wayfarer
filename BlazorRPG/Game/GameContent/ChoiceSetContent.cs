@@ -8,7 +8,7 @@ public static class ChoiceSetContent
             .WithName("Starting Complex Work")
             .WithActionType(BasicActionTypes.Labor)
             .AddAvailabilityCondition(properties => properties
-                .WithComplexity(AtmosphereTypes.Tense)    // Task requires skill/focus
+                .WithAtmosphere(AtmosphereTypes.Tense)    // Task requires skill/focus
                 .WithExposure(ExposureConditionTypes.Indoor)  // Controlled environment
                 .WithActivityLevel(ActivityLevelTypes.Quiet))    // Few distractions
             .AddStateCondition(values => values
@@ -39,7 +39,7 @@ public static class ChoiceSetContent
         .WithActionType(BasicActionTypes.Persuade)
         .AddAvailabilityCondition(properties => properties
             .WithActivityLevel(ActivityLevelTypes.Quiet)      // Need people around
-            .WithComplexity(AtmosphereTypes.Tense)    // Situation has depth
+            .WithAtmosphere(AtmosphereTypes.Tense)    // Situation has depth
             .WithExposure(ExposureConditionTypes.Indoor)) // Controlled environment
         .AddStateCondition(values => values
             .WithMaxOutcome(4)
@@ -67,7 +67,7 @@ public static class ChoiceSetContent
             .WithActionType(BasicActionTypes.Investigate)
             .AddAvailabilityCondition(properties => properties
                 .WithActivityLevel(ActivityLevelTypes.Deserted)
-                .WithComplexity(AtmosphereTypes.Tense)
+                .WithAtmosphere(AtmosphereTypes.Tense)
                 .WithSupervision(SupervisionTypes.Unsupervised))
             .AddStateCondition(values => values
                 .WithMaxPressure(5))
@@ -97,7 +97,7 @@ public static class ChoiceSetContent
             .AddAvailabilityCondition(properties => properties
                 .WithActivityLevel(ActivityLevelTypes.Bustling)
                 .WithExposure(ExposureConditionTypes.Indoor)
-                .WithComplexity(AtmosphereTypes.Causal))
+                .WithAtmosphere(AtmosphereTypes.Causal))
             .AddStateCondition(values => values
                 .WithMaxPressure(5)
                 .WithMinResonance(2))
@@ -126,7 +126,7 @@ public static class ChoiceSetContent
             .WithName("Mounting Pressure")
             .WithActionType(BasicActionTypes.Labor)
             .AddAvailabilityCondition(properties => properties
-                .WithComplexity(AtmosphereTypes.Tense)
+                .WithAtmosphere(AtmosphereTypes.Tense)
                 .WithSupervision(SupervisionTypes.Patrolled))
             .AddStateCondition(values => values
                 .WithMinPressure(6)
@@ -157,7 +157,7 @@ public static class ChoiceSetContent
             .WithName("Expert Approach")
             .WithActionType(BasicActionTypes.Labor)
             .AddAvailabilityCondition(properties => properties
-                .WithComplexity(AtmosphereTypes.Tense))
+                .WithAtmosphere(AtmosphereTypes.Tense))
             .AddStateCondition(values => values
                 .WithMinInsight(7))
             .AddChoice(choice => choice
