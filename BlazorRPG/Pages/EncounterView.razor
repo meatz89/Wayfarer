@@ -39,7 +39,7 @@
                 @foreach (var choice in GameState.Actions.EncounterChoiceOptions)
                 {
                     <div class="choice-option"
-                         @onmousemove="((e) => ShowTooltip(choice, e.ClientX + 10, e.ClientY + 10))"
+                         @onmousemove="async (e) => await ShowTooltip(choice, e)"
                          @onmouseout="HideTooltip"
                          @onclick="() => HandleChoiceSelection(choice)">
                         <span class="choice-index">@choice.Index.</span>
@@ -108,3 +108,5 @@
         }
     }
 </div>
+
+<script src="js/tooltip.js"></script>

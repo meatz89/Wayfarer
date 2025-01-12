@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 
 public partial class EncounterViewBase : ComponentBase
 {
+    [Inject] public IJSRuntime JSRuntime { get; set; } // Inject IJSRuntime
+
     [Parameter] public EventCallback OnEncounterCompleted { get; set; }
     [Inject] public GameState GameState { get; set; }
     [Inject] public GameManager GameManager { get; set; }
@@ -12,12 +15,21 @@ public partial class EncounterViewBase : ComponentBase
     public double mouseX;
     public double mouseY;
 
-    public void ShowTooltip(UserEncounterChoiceOption choice, double x, double y)
+    public async Task ShowTooltip(UserEncounterChoiceOption choice, MouseEventArgs e)
     {
         hoveredChoice = choice;
         showTooltip = true;
-        mouseX = x;
-        mouseY = y;
+        mouseX = e.ClientX + 10;
+        mouseY = e.ClientY + 10;
+
+        // Get dimensions using JavaScript interop
+        var dimensions = await JSRuntime.InvokeAsync<Dimensions>("getDimensions");
+
+        // Adjust mouseY if the tooltip would overflow
+        if (mouseY + dimensions.TooltipHeight > dimensions.WindowHeight)
+        {
+            mouseY = e.ClientY - dimensions.TooltipHeight - 10; // Position above, with offset
+        }
     }
 
     public void HideTooltip()
@@ -181,4 +193,10 @@ public partial class EncounterViewBase : ComponentBase
         return modifiedValueChanges;
     }
 
+}
+
+public class Dimensions
+{
+    public int WindowHeight { get; set; }
+    public int TooltipHeight { get; set; }
 }
