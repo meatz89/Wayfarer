@@ -1,12 +1,10 @@
 ﻿public class ChoiceSetTemplateBuilder
 {
     private string name;
-    private ChoiceArchetypes archetype;
-    private ChoiceApproaches approach;
     private BasicActionTypes actionType;
+    private List<ChoicePatternComposition> compositionPatterns = new();
     private List<LocationPropertyCondition> availabilityConditions = new();
     private List<EncounterStateCondition> stateConditions = new();
-    private List<ChoiceTemplate> choicePatterns = new();
 
     public ChoiceSetTemplateBuilder WithName(string name)
     {
@@ -17,6 +15,15 @@
     public ChoiceSetTemplateBuilder WithActionType(BasicActionTypes actionType)
     {
         this.actionType = actionType;
+        // We can automatically set default composition based on action type
+        SetDefaultCompositionForActionType(actionType);
+        return this;
+    }
+
+    public ChoiceSetTemplateBuilder WithComposition(ChoicePatternComposition composition)
+    {
+        compositionPatterns.Clear();  // Remove default composition
+        compositionPatterns.Add(composition);
         return this;
     }
 
@@ -59,28 +66,60 @@
         return this;
     }
 
-    public ChoiceSetTemplateBuilder AddChoice(Action<ChoiceTemplateBuilder> buildChoice)
-    {
-        ChoiceTemplateBuilder builder = new();
-        buildChoice(builder);
-        choicePatterns.Add(builder.Build());
-        return this;
-    }
-
     public ChoiceSetTemplate Build()
     {
-        if (string.IsNullOrEmpty(name))
-            throw new InvalidOperationException("Choice Set Template must have a name");
-        if (choicePatterns.Count == 0)
-            throw new InvalidOperationException("Choice Set Template must have at least one choice pattern");
-
         return new ChoiceSetTemplate(
             name,
             actionType,
+            compositionPatterns,
             availabilityConditions,
-            stateConditions,
-            choicePatterns
-        );
+            stateConditions);
+    }
+
+
+    private void SetDefaultCompositionForActionType(BasicActionTypes actionType)
+    {
+        switch (actionType)
+        {
+            case BasicActionTypes.Labor:
+            case BasicActionTypes.Gather:
+            case BasicActionTypes.Travel:
+                // Physical-focused composition
+                compositionPatterns.Add(new ChoicePatternComposition
+                {
+                    PrimaryArchetype = ChoiceArchetypes.Physical,
+                    SecondaryArchetype = ChoiceArchetypes.Focus,
+                    PrimaryCount = 2,
+                    SecondaryCount = 1
+                });
+                break;
+
+            case BasicActionTypes.Investigate:
+            case BasicActionTypes.Study:
+            case BasicActionTypes.Reflect:
+                // Focus-focused composition
+                compositionPatterns.Add(new ChoicePatternComposition
+                {
+                    PrimaryArchetype = ChoiceArchetypes.Focus,
+                    SecondaryArchetype = ChoiceArchetypes.Social,
+                    PrimaryCount = 2,
+                    SecondaryCount = 1
+                });
+                break;
+
+            case BasicActionTypes.Mingle:
+            case BasicActionTypes.Persuade:
+            case BasicActionTypes.Perform:
+                // Social-focused composition
+                compositionPatterns.Add(new ChoicePatternComposition
+                {
+                    PrimaryArchetype = ChoiceArchetypes.Social,
+                    SecondaryArchetype = ChoiceArchetypes.Focus,
+                    PrimaryCount = 2,
+                    SecondaryCount = 1
+                });
+                break;
+        }
     }
 
 }

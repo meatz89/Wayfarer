@@ -2,143 +2,99 @@
 {
     public static List<ChoiceSetTemplate> AllChoiceSets { get; set; } = new()
     {
-        // Opening Opportunities for any complex, focused task
-         new ChoiceSetTemplateBuilder()
+        // Heavy Labor - Simple physical task with focus support
+        new ChoiceSetTemplateBuilder()
+            .WithName("Heavy Labor")
+            .WithActionType(BasicActionTypes.Labor)  // This automatically sets up 2 Physical + 1 Focus
+            .AddAvailabilityCondition(properties => properties
+                .WithActivityLevel(ActivityLevelTypes.Quiet)
+                .WithSupervision(SupervisionTypes.Unsupervised))
+            .AddStateCondition(values => values
+                .WithMaxPressure(5))
+            .Build(),
+
+        // Starting Complex Work - Balanced physical and mental approach
+        new ChoiceSetTemplateBuilder()
             .WithName("Starting Complex Work")
             .WithActionType(BasicActionTypes.Labor)
+            .WithComposition(new ChoicePatternComposition
+            {
+                PrimaryArchetype = ChoiceArchetypes.Physical,
+                SecondaryArchetype = ChoiceArchetypes.Focus,
+                PrimaryCount = 1,    // One physical for direct action
+                SecondaryCount = 1    // One focus for tactical planning
+            })
             .AddAvailabilityCondition(properties => properties
-                .WithAtmosphere(AtmosphereTypes.Tense)    // Task requires skill/focus
-                .WithExposure(ExposureTypes.Indoor)  // Controlled environment
-                .WithActivityLevel(ActivityLevelTypes.Quiet))    // Few distractions
+                .WithAtmosphere(AtmosphereTypes.Tense)
+                .WithExposure(ExposureTypes.Indoor)
+                .WithActivityLevel(ActivityLevelTypes.Quiet))
             .AddStateCondition(values => values
                 .WithMaxOutcome(4)
                 .WithMaxPressure(4)
                 .WithMaxInsight(4))
-            .AddChoice(choice => choice
-                // Direct approach that can lead to Rising Tension
-                .WithArchetype(ChoiceArchetypes.Physical)
-                .WithApproach(ChoiceApproaches.Direct))
-            .AddChoice(choice => choice
-                // Study approach that leads to Knowledge Advantage
-                .WithArchetype(ChoiceArchetypes.Focus)
-                .WithApproach(ChoiceApproaches.Tactical))
             .Build(),
 
-    // Former "Market Haggling Opening" becomes "Social Opening in Busy Space"
-    new ChoiceSetTemplateBuilder()
-        .WithName("Initial Social Approach")
-        .WithActionType(BasicActionTypes.Persuade)
-        .AddAvailabilityCondition(properties => properties
-            .WithActivityLevel(ActivityLevelTypes.Quiet)      // Need people around
-            .WithAtmosphere(AtmosphereTypes.Tense)    // Situation has depth
-            .WithExposure(ExposureTypes.Indoor)) // Controlled environment
-        .AddStateCondition(values => values
-            .WithMaxOutcome(4)
-            .WithMaxPressure(4)
-            .WithMaxInsight(4)
-            .WithMaxResonance(4))
-        .AddChoice(choice => choice
-            .WithArchetype(ChoiceArchetypes.Social)
-            .WithApproach(ChoiceApproaches.Direct))
-        .AddChoice(choice => choice
-            .WithArchetype(ChoiceArchetypes.Focus)
-            .WithApproach(ChoiceApproaches.Tactical))
-        .Build(),
+        // Initial Social Approach - Social lead with focus support
+        new ChoiceSetTemplateBuilder()
+            .WithName("Initial Social Approach")
+            .WithActionType(BasicActionTypes.Persuade)  // This sets up 2 Social + 1 Focus
+            .AddAvailabilityCondition(properties => properties
+                .WithActivityLevel(ActivityLevelTypes.Quiet)
+                .WithAtmosphere(AtmosphereTypes.Tense)
+                .WithExposure(ExposureTypes.Indoor))
+            .AddStateCondition(values => values
+                .WithMaxOutcome(4)
+                .WithMaxPressure(4)
+                .WithMaxInsight(4)
+                .WithMaxResonance(4))
+            .Build(),
 
-        // === Opening Opportunities Sets ===
+        // Careful Investigation - Focus-heavy with social backup
         new ChoiceSetTemplateBuilder()
             .WithName("Careful Investigation")
-            .WithActionType(BasicActionTypes.Investigate)
+            .WithActionType(BasicActionTypes.Investigate)  // This sets up 2 Focus + 1 Social
             .AddAvailabilityCondition(properties => properties
                 .WithActivityLevel(ActivityLevelTypes.Deserted)
                 .WithAtmosphere(AtmosphereTypes.Tense)
                 .WithSupervision(SupervisionTypes.Unsupervised))
             .AddStateCondition(values => values
                 .WithMaxPressure(5))
-            .AddChoice(choice => choice
-                .WithArchetype(ChoiceArchetypes.Focus)
-                .WithApproach(ChoiceApproaches.Direct))
-            .AddChoice(choice => choice
-                .WithArchetype(ChoiceArchetypes.Focus)
-                .WithApproach(ChoiceApproaches.Pragmatic))
-            .AddChoice(choice => choice
-                .WithArchetype(ChoiceArchetypes.Social)
-                .WithApproach(ChoiceApproaches.Tactical))
             .Build(),
 
+        // Busy Service - Physical lead with social support
         new ChoiceSetTemplateBuilder()
             .WithName("Busy Service")
             .WithActionType(BasicActionTypes.Labor)
+            .WithComposition(new ChoicePatternComposition
+            {
+                PrimaryArchetype = ChoiceArchetypes.Physical,
+                SecondaryArchetype = ChoiceArchetypes.Social,
+                PrimaryCount = 1,
+                SecondaryCount = 1
+            })
             .AddAvailabilityCondition(properties => properties
                 .WithAccessibility(AccessibilityTypes.Public)
                 .WithActivityLevel(ActivityLevelTypes.Bustling)
-                .WithAtmosphere(AtmosphereTypes.Causal))
-            .AddChoice(choice => choice
-                .WithArchetype(ChoiceArchetypes.Physical)
-                .WithApproach(ChoiceApproaches.Direct))
-            .AddChoice(choice => choice
-                .WithArchetype(ChoiceArchetypes.Social)
-                .WithApproach(ChoiceApproaches.Tactical))
+                .WithAtmosphere(AtmosphereTypes.Relaxed))
             .Build(),
 
-        // === Rising Tension Sets ===
+        // Mounting Pressure - Physical focus with tactical options
         new ChoiceSetTemplateBuilder()
             .WithName("Mounting Pressure")
             .WithActionType(BasicActionTypes.Labor)
+            .WithComposition(new ChoicePatternComposition
+            {
+                PrimaryArchetype = ChoiceArchetypes.Physical,
+                SecondaryArchetype = ChoiceArchetypes.Focus,
+                PrimaryCount = 2,    // Two physical choices
+                SecondaryCount = 1    // One focus for tactical support
+            })
             .AddAvailabilityCondition(properties => properties
                 .WithAtmosphere(AtmosphereTypes.Tense)
                 .WithSupervision(SupervisionTypes.Patrolled))
             .AddStateCondition(values => values
                 .WithMinPressure(6)
                 .WithMaxOutcome(6))
-            .AddChoice(choice => choice
-                .WithArchetype(ChoiceArchetypes.Physical)
-                .WithApproach(ChoiceApproaches.Direct))
-            .AddChoice(choice => choice
-                .WithArchetype(ChoiceArchetypes.Focus)
-                .WithApproach(ChoiceApproaches.Pragmatic))
-            .AddChoice(choice => choice
-                .WithArchetype(ChoiceArchetypes.Physical)
-                .WithApproach(ChoiceApproaches.Tactical))
-            .Build(),
-
-        // === Knowledge Advantage Sets ===
-        new ChoiceSetTemplateBuilder()
-            .WithName("Expert Approach")
-            .WithActionType(BasicActionTypes.Labor)
-            .AddAvailabilityCondition(properties => properties
-                .WithAtmosphere(AtmosphereTypes.Tense))
-            .AddStateCondition(values => values
-                .WithMinInsight(7))
-            .AddChoice(choice => choice
-                .WithArchetype(ChoiceArchetypes.Focus)
-                .WithApproach(ChoiceApproaches.Direct))
-            .AddChoice(choice => choice
-                .WithArchetype(ChoiceArchetypes.Social)
-                .WithApproach(ChoiceApproaches.Tactical))
-            .AddChoice(choice => choice
-                .WithArchetype(ChoiceArchetypes.Focus)
-                .WithApproach(ChoiceApproaches.Pragmatic))
-            .Build(),
-
-        // === Resource Management Sets ===
-        new ChoiceSetTemplateBuilder()
-            .WithName("Resource Pressure")
-            .WithActionType(BasicActionTypes.Gather)
-            .AddAvailabilityCondition(properties => properties
-                .WithSupervision(SupervisionTypes.Patrolled)
-                .WithAnyResource())
-            .AddStateCondition(values => values
-                .WithMinPressure(6))
-            .AddChoice(choice => choice
-                .WithArchetype(ChoiceArchetypes.Physical)
-                .WithApproach(ChoiceApproaches.Direct))
-            .AddChoice(choice => choice
-                .WithArchetype(ChoiceArchetypes.Focus)
-                .WithApproach(ChoiceApproaches.Tactical))
-            .AddChoice(choice => choice
-                .WithArchetype(ChoiceArchetypes.Physical)
-                .WithApproach(ChoiceApproaches.Pragmatic))
             .Build()
     };
 }

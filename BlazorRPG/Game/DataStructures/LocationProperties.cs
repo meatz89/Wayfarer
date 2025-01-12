@@ -172,7 +172,7 @@ public enum SupervisionTypes
 
 public enum AtmosphereTypes
 {
-    Formal, Causal, Tense
+    Relaxed, Formal, Tense
 }
 
 public enum SpaceTypes

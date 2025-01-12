@@ -2,9 +2,9 @@
 {
     private readonly List<LocationPropertyChoiceEffect> locationPropertyEffects;
 
-    public ChoiceCalculator(List<LocationPropertyChoiceEffect> locationPropertyEffects)
+    public ChoiceCalculator(List<LocationPropertyChoiceEffect> locationEffects)
     {
-        this.locationPropertyEffects = locationPropertyEffects;
+        this.locationPropertyEffects = locationEffects;
     }
 
     public void CalculateChoice(EncounterChoice choice, EncounterContext context)

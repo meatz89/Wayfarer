@@ -12,7 +12,7 @@ public class LocationContent
             .WithActivityLevel(ActivityLevelTypes.Bustling)
             .WithAccessibility(AccessibilityTypes.Public)
             .WithSupervision(SupervisionTypes.Unsupervised)
-            .WithAtmosphere(AtmosphereTypes.Causal)
+            .WithAtmosphere(AtmosphereTypes.Relaxed)
             .WithSpace(SpaceTypes.Cramped)
             .WithLighting(LightingTypes.Dim)
             .WithExposure(ExposureTypes.Indoor))
@@ -188,7 +188,7 @@ public class LocationContent
             .WithActivityLevel(ActivityLevelTypes.Quiet)
             .WithSupervision(SupervisionTypes.Unsupervised)
             .WithSupervision(SupervisionTypes.Unsupervised)
-            .WithAtmosphere(AtmosphereTypes.Causal)
+            .WithAtmosphere(AtmosphereTypes.Relaxed)
             .WithResource(ResourceTypes.Food))
         )
         .AddLocationSpot(spot => spot

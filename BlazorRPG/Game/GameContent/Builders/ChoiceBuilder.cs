@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-public class ChoiceBuilder
+﻿public class ChoiceBuilder
 {
     // Basic properties
     private int index;
@@ -12,9 +10,6 @@ public class ChoiceBuilder
     private List<Requirement> requirements = new();
     private List<Outcome> baseCosts = new();
     private List<Outcome> baseRewards = new();
-    private bool requireTool;
-    private bool requireKnowledge;
-    private bool requireReputation;
 
     public ChoiceBuilder WithIndex(int index)
     {
@@ -44,6 +39,57 @@ public class ChoiceBuilder
         // Set requirements based on approach
         SetBaseRequirements();
         return this;
+    }
+
+    public ChoiceBuilder WithBaseValueChanges(List<ValueChange> changes)
+    {
+        this.baseValueChanges = changes;
+        return this;
+    }
+
+    public ChoiceBuilder WithRequirements(List<Requirement> requirements)
+    {
+        this.requirements = requirements;
+        return this;
+    }
+
+    public EncounterChoice Build()
+    {
+        string description = $"{archetype} - {approach}";
+        bool requireTool = IsRequireTool();
+        bool requireKnowledge = IsRequireKnowledge();
+        bool requireReputation = IsRequireReputation();
+
+        EncounterChoice choice = new EncounterChoice(
+            index,
+            description,
+            archetype,
+            approach,
+            requireTool,
+            requireKnowledge,
+            requireReputation
+        );
+
+        // Set the base values we calculated
+        choice.BaseValueChanges = baseValueChanges;
+        choice.BaseRequirements = requirements;
+
+        return choice;
+    }
+
+    private bool IsRequireReputation()
+    {
+        return archetype == ChoiceArchetypes.Social && approach == ChoiceApproaches.Tactical;
+    }
+
+    private bool IsRequireKnowledge()
+    {
+        return archetype == ChoiceArchetypes.Focus && approach == ChoiceApproaches.Tactical;
+    }
+
+    private bool IsRequireTool()
+    {
+        return archetype == ChoiceArchetypes.Physical && approach == ChoiceApproaches.Tactical;
     }
 
     private void SetBaseEnergyCost()
@@ -151,7 +197,7 @@ public class ChoiceBuilder
                 requirements.Add(new MaxPressureRequirement(5));
                 break;
             case ChoiceApproaches.Tactical:
-                GetTacticalRequirement();
+                // No requirements
                 break;
             case ChoiceApproaches.Improvised:
                 // No requirements
@@ -159,30 +205,4 @@ public class ChoiceBuilder
         }
     }
 
-    private void GetTacticalRequirement()
-    {
-        switch(archetype)
-        {
-            case ChoiceArchetypes.Physical: this.requireTool = true; break;
-            case ChoiceArchetypes.Focus: this.requireKnowledge = true; break;
-            case ChoiceArchetypes.Social: this.requireReputation = true; break;
-            default: throw new ArgumentOutOfRangeException();
-        };
-    }
-
-
-    public EncounterChoice Build()
-    {
-        EncounterChoice encounterChoice = new EncounterChoice
-                (
-                    index,
-                    description,
-                    archetype,
-                    approach,
-                    requireTool,
-                    requireKnowledge,
-                    requireReputation
-                );
-        return encounterChoice;
-    }
 }

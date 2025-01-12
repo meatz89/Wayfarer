@@ -167,7 +167,7 @@ public partial class GameUI : ComponentBase
 
     private string GetPressureIcon(AtmosphereTypes? pressure) => pressure switch
     {
-        AtmosphereTypes.Causal => "😌",
+        AtmosphereTypes.Relaxed => "😌",
         AtmosphereTypes.Formal => "⚠️",
         AtmosphereTypes.Tense => "⚔️",
         _ => "❓"

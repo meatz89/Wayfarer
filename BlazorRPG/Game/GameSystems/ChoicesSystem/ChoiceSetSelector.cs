@@ -20,21 +20,24 @@
             }
         }
 
-        // Create ChoiceSetScore for each template and calculate
-        var scoredSets = validSets.Select(set => new
-        {
-            Set = set,
-            Score = CreateScoreForTemplate(set).GetContextScore(context)
-        }).OrderByDescending(x => x.Score);
+        //// Create ChoiceSetScore for each template and calculate
+        //var scoredSets = validSets.Select(set => new
+        //{
+        //    Set = set,
+        //    Score = CreateScoreForTemplate(set).GetContextScore(context)
+        //}).OrderByDescending(x => x.Score);
 
         // Pick randomly from top 2-3 scoring sets
-        var topSets = scoredSets.Take(3).ToList();
+        List<ChoiceSetTemplate> topSets = validSets.Take(3).ToList();
         if (topSets.Count() < 1)
         {
             return null;
         }
+        
         int randomValue = random.Next(topSets.Count);
-        return topSets[randomValue].Set;
+        ChoiceSetTemplate randomTemplate = topSets[randomValue];
+        
+        return randomTemplate;
     }
 
     private bool MeetsConditions(ChoiceSetTemplate template, EncounterContext encounterContext)
@@ -57,13 +60,4 @@
         return true;
     }
 
-    private ChoiceSetScore CreateScoreForTemplate(ChoiceSetTemplate template)
-    {
-        // Create a ChoiceSetScore and initialize its properties based on the template
-        ChoiceSetScore score = new ChoiceSetScore();
-        score.BaseScore = 0; // Can be adjusted based on template properties
-        score.ChoicePatterns = template.ChoiceTemplates;
-        // Set any other needed properties
-        return score;
-    }
 }

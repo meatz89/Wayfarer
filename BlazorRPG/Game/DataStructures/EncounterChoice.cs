@@ -60,39 +60,43 @@
     {
         List<ValueChange> changes = new();
 
-        // Base Outcome change from approach
-        int outcomeChange = Approach switch
+        // First, apply Approach-based changes
+        switch (Approach)
         {
-            ChoiceApproaches.Direct => 2,
-            ChoiceApproaches.Pragmatic => 1,
-            ChoiceApproaches.Tactical => 0,
-            ChoiceApproaches.Improvised => 1,
-            _ => throw new ArgumentException("Invalid approach")
-        };
-        changes.Add(new ValueChange(ValueTypes.Outcome, outcomeChange));
+            case ChoiceApproaches.Direct:
+                changes.Add(new ValueChange(ValueTypes.Outcome, 2));
+                changes.Add(new ValueChange(ValueTypes.Pressure, 1));
+                break;
+            case ChoiceApproaches.Pragmatic:
+                changes.Add(new ValueChange(ValueTypes.Outcome, 1));
+                // No pressure change
+                break;
+            case ChoiceApproaches.Tactical:
+                // No immediate outcome gain
+                changes.Add(new ValueChange(ValueTypes.Pressure, -1));
+                break;
+            case ChoiceApproaches.Improvised:
+                changes.Add(new ValueChange(ValueTypes.Outcome, 1));
+                changes.Add(new ValueChange(ValueTypes.Pressure, 2));
+                break;
+        }
 
-        // Pressure change from approach
-        int pressureChange = Approach switch
-        {
-            ChoiceApproaches.Direct => 1,
-            ChoiceApproaches.Pragmatic => 0,
-            ChoiceApproaches.Tactical => 0,
-            ChoiceApproaches.Improvised => 2,
-            _ => throw new ArgumentException("Invalid approach")
-        };
-        changes.Add(new ValueChange(ValueTypes.Pressure, pressureChange));
-
-        // Archetype-specific secondary value
+        // Then, apply Archetype-specific changes
         switch (Archetype)
         {
             case ChoiceArchetypes.Focus:
-                int insightChange = Approach == ChoiceApproaches.Tactical ? 2 : 1;
-                changes.Add(new ValueChange(ValueTypes.Insight, insightChange));
+                if (Approach == ChoiceApproaches.Tactical)
+                    changes.Add(new ValueChange(ValueTypes.Insight, 2));
+                else
+                    changes.Add(new ValueChange(ValueTypes.Insight, 1));
                 break;
             case ChoiceArchetypes.Social:
-                int resonanceChange = Approach == ChoiceApproaches.Tactical ? 2 : 1;
-                changes.Add(new ValueChange(ValueTypes.Resonance, resonanceChange));
+                if (Approach == ChoiceApproaches.Tactical)
+                    changes.Add(new ValueChange(ValueTypes.Resonance, 2));
+                else
+                    changes.Add(new ValueChange(ValueTypes.Resonance, 1));
                 break;
+                // Physical focuses on pure Outcome gains, already handled by Approach
         }
 
         return changes;
