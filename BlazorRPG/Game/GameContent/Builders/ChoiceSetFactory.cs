@@ -1,27 +1,32 @@
-﻿public class ChoiceSetFactory
+﻿using Microsoft.Extensions.FileSystemGlobbing.Internal;
+
+public class ChoiceSetFactory
 {
     public ChoiceSet CreateFromChoiceSet(ChoiceSetTemplate template, EncounterContext context)
     {
         // Create base choices from patterns
         List<EncounterChoice> choices = new();
+        int i = 0;
         foreach (ChoiceTemplate choiceTemplate in template.ChoiceTemplates)
         {
-            EncounterChoice choice = CreateChoiceFromTemplate(choiceTemplate, context);
+            i++;
+            EncounterChoice choice = CreateChoiceFromTemplate(i, choiceTemplate, context);
             choices.Add(choice);
         }
 
         return new ChoiceSet(template.Name, choices);
     }
 
-    private EncounterChoice CreateChoiceFromTemplate(ChoiceTemplate template, EncounterContext context)
+    private EncounterChoice CreateChoiceFromTemplate(int index, ChoiceTemplate template, EncounterContext context)
     {
         string description = GenerateDescription(template, context);
-
+        
         // Create the choice with only base values
         ChoiceBuilder choiceBuilder = new ChoiceBuilder()
+            .WithIndex(index)
             .WithDescription(description)
-            .WithArchetype(template.Archetype)
-            .WithApproach(template.Approach)
+            .WithArchetype(template.ChoiceArchetype)
+            .WithApproach(template.ChoiceApproach)
             .WithRelevantSkill(template.RelevantSkill)
             .RequiresEnergy(template.EnergyType, template.BaseEnergyCost)
             .WithValueChanges(template.BaseValueChanges)
@@ -35,35 +40,8 @@
     private string GenerateDescription(ChoiceTemplate pattern, EncounterContext context)
     {
         string description = "";
-
-        // Action type
-        switch (context.ActionType)
-        {
-            case BasicActionTypes.Labor:
-                description += "Work";
-                break;
-            case BasicActionTypes.Investigate:
-                description += "Investigate";
-                break;
-            case BasicActionTypes.Mingle:
-                description += "Mingle";
-                break;
-            default:
-                description += context.ActionType.ToString();
-                break;
-        }
-
-        // Location
-        description += $" at the {context.LocationArchetype}";
-
-        // Requirements
-        if (pattern.Requirements.Any())
-        {
-            description += " (Requires: ";
-            description += string.Join(", ", pattern.Requirements.Select(r => r.GetDescription()));
-            description += ")";
-        }
-
+        description += $"{pattern.ChoiceArchetype} - ";
+        description += $"{pattern.ChoiceApproach}";
         return description;
     }
 }

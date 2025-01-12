@@ -72,8 +72,8 @@
     {
         return new ChoiceTemplate
         {
-            Archetype = archetype,
-            Approach = approach,
+            ChoiceArchetype = archetype,
+            ChoiceApproach = approach,
             BaseValueChanges = baseValueChanges,
             EnergyType = energyType,
             BaseEnergyCost = baseEnergyCost,
