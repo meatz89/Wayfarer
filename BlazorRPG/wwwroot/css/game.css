@@ -1029,3 +1029,218 @@ body {
     flex-wrap: wrap; /* Allow wrapping to the next line */
     margin-bottom: 10px; /* Add some space before the effects list */
 }
+/* Revise the tooltip base styles */
+.tooltip {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-active);
+    padding: 15px;
+    border-radius: 4px;
+    min-width: 300px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Add clear section separation */
+.preview-header {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--bg-card);
+}
+
+.location-effects {
+    background-color: var(--bg-card);
+    margin: 15px 0;
+    padding: 12px;
+    border-radius: 4px;
+}
+
+.final-results {
+    background-color: var(--bg-card);
+    padding: 12px;
+    border-radius: 4px;
+}
+
+/* Improve value display */
+.value-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: var(--bg-panel);
+    margin-bottom: 6px;
+}
+
+.value-result {
+    margin-left: auto; /* Push to right side */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.value-modification {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    margin-left: 8px;
+}
+
+/* Enhance icons */
+.value-icon, .energy-icon {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background-color: var(--bg-panel);
+}
+/* First, let's create a distinct section for energy costs */
+.energy-cost-section {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--bg-panel); /* Creates a visual separator */
+}
+
+/* Style the energy cost display differently from regular values */
+.energy-cost-display {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background-color: var(--bg-panel);
+    border-radius: 4px;
+    border-left: 3px solid var(--energy-physical); /* Changes based on energy type */
+}
+
+    /* Energy type specific borders */
+    .energy-cost-display.physical {
+        border-color: var(--energy-physical);
+    }
+
+    .energy-cost-display.focus {
+        border-color: var(--energy-focus);
+    }
+
+    .energy-cost-display.social {
+        border-color: var(--energy-social);
+    }
+
+.energy-cost-value {
+    margin-left: auto;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.energy-modification {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    margin-left: 8px;
+}
+.energy-cost-display {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background-color: var(--bg-panel);
+    border-radius: 4px;
+    border-left: 3px solid transparent; /* Color set by energy type classes */
+    gap: 12px; /* Creates consistent spacing between elements */
+}
+
+    /* Each energy type gets its own visual identity */
+    .energy-cost-display.physical {
+        border-color: var(--energy-physical);
+    }
+
+        .energy-cost-display.physical .value-type {
+            color: var(--energy-physical);
+        }
+
+    .energy-cost-display.focus {
+        border-color: var(--energy-focus);
+    }
+
+        .energy-cost-display.focus .value-type {
+            color: var(--energy-focus);
+        }
+
+    .energy-cost-display.social {
+        border-color: var(--energy-social);
+    }
+
+        .energy-cost-display.social .value-type {
+            color: var(--energy-social);
+        }
+
+/* Energy icon styling */
+.energy-icon {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background-color: var(--bg-card);
+}
+
+/* Style for the energy type text */
+.value-type {
+    font-weight: 500; /* Makes the text slightly bolder */
+    flex-grow: 1; /* Takes up available space */
+}
+.encounter-stats {
+    display: flex;
+    gap: 20px;
+    background-color: var(--bg-card);
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px; /* Ensures consistent spacing */
+    position: relative; /* For icon positioning */
+    padding-top: 24px; /* Makes room for the icon */
+}
+
+    /* Position the icon above the stat */
+    .stat .value-icon {
+        position: absolute;
+        top: -4px;
+        font-size: 1.2em;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: var(--bg-panel);
+    }
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 4px 0;
+}
+
+.stat-value {
+    color: var(--text-primary);
+    font-size: 1.4rem;
+    font-weight: bold;
+}
+
+/* Color the values based on their type */
+.stat:has(.outcome-icon) .stat-value {
+    color: #2563eb; /* Same blue as the outcome icon */
+}
+
+.stat:has(.insight-icon) .stat-value {
+    color: #7c3aed; /* Same violet as the insight icon */
+}
+
+.stat:has(.resonance-icon) .stat-value {
+    color: #db2777; /* Same pink as the resonance icon */
+}
+
+.stat:has(.pressure-icon) .stat-value {
+    color: #dc2626; /* Same red as the pressure icon */
+}

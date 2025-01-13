@@ -11,19 +11,23 @@
 
             <div class="encounter-stats">
                 <div class="stat">
-                    <span class="stat-label">Outcome:</span>
+                    @GetValueTypeIcon(ValueTypes.Outcome)
+                    <span class="stat-label">Outcome</span>
                     <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Outcome</span>
                 </div>
                 <div class="stat">
-                    <span class="stat-label">Insight:</span>
+                    @GetValueTypeIcon(ValueTypes.Insight)
+                    <span class="stat-label">Insight</span>
                     <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Insight</span>
                 </div>
                 <div class="stat">
-                    <span class="stat-label">Resonance:</span>
+                    @GetValueTypeIcon(ValueTypes.Resonance)
+                    <span class="stat-label">Resonance</span>
                     <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Resonance</span>
                 </div>
                 <div class="stat">
-                    <span class="stat-label">Pressure:</span>
+                    @GetValueTypeIcon(ValueTypes.Pressure)
+                    <span class="stat-label">Pressure</span>
                     <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Pressure</span>
                 </div>
             </div>
@@ -52,48 +56,51 @@
 
         @if (showTooltip && hoveredChoice != null)
         {
-            <div class="tooltip" style="left: @(mouseX)px; top: @(mouseY)px; position: fixed;">
-                <div class="preview-container">
-                    <div class="preview-header">
-                        <h4>@hoveredChoice.Description</h4>
-                        <div class="choice-type">@hoveredChoice.EncounterChoice.Archetype - @hoveredChoice.EncounterChoice.Approach</div>
-                    </div>
+            <div class="tooltip" style="left: @(mouseX)px; top: @(mouseY)px;">
+                <div class="preview-header">
+                    <h4>@hoveredChoice.EncounterChoice.Archetype - @hoveredChoice.EncounterChoice.Approach</h4>
+                    <div class="choice-description">@hoveredChoice.Description</div>
                 </div>
 
-                @* Location Effects Section *@
-                <div class="location-effects">
-                    <h5>Location Effects</h5>
-                    @foreach (var effect in GetLocationEffects(hoveredChoice.EncounterChoice))
-                    {
-                        <div class="effect-item">
-                            @RenderLocationEffect(effect)
-                        </div>
-                    }
-                </div>
-
-                @* Final Results Section *@
-                <div class="final-results">
-                    <h5>Final Results</h5>
-                    <div class="value-list">
-                        @foreach (var finalChange in GetModifiedValue(hoveredChoice))
+                @if (GetLocationEffects(hoveredChoice.EncounterChoice).Any())
+                {
+                    <div class="location-effects">
+                        <h5>Location Effects</h5>
+                        @foreach (var effect in GetLocationEffects(hoveredChoice.EncounterChoice))
                         {
-                            <div class="value-item @GetValueChangeClass(finalChange)">
-                                @GetValueTypeIcon(finalChange.ValueType)
+                            <div class="effect-item">@RenderLocationEffect(effect)</div>
+                        }
+                    </div>
+                }
+                <div class="final-results">
+                    <h5>Choice Results</h5>
+                    <div class="value-list">
+                        @foreach (var change in GetModifiedValue(hoveredChoice))
+                        {
+                            <div class="value-item">
+                                @GetValueTypeIcon(change.ValueType)
+                                <span class="value-type">@change.ValueType</span>
                                 <span class="value-result">
-                                    @finalChange.ValueType @(finalChange.Change > 0 ? "+" : "")@finalChange.Change
-                                    @if (IsValueModified(hoveredChoice.EncounterChoice, finalChange))
+                                    @(change.Change >= 0 ? "+" : "")@change.Change
+                                    @if (IsValueModified(hoveredChoice.EncounterChoice, change))
                                     {
                                         <span class="value-modification">
-                                            @RenderValueModification(hoveredChoice.EncounterChoice, finalChange)
+                                            @RenderValueModification(hoveredChoice.EncounterChoice, change)
                                         </span>
                                     }
                                 </span>
                             </div>
                         }
-                        <div class="energy-cost">
+                    </div>
+
+                    <div class="energy-cost-section">
+                        <div class="energy-cost-display @hoveredChoice.EncounterChoice.EnergyType.ToString().ToLower()">
                             @GetEnergyTypeIcon(hoveredChoice.EncounterChoice.EnergyType)
-                            <span>
-                                @hoveredChoice.EncounterChoice.ModifiedEnergyCost @hoveredChoice.EncounterChoice.EnergyType Energy
+                            <span class="value-type">
+                                @hoveredChoice.EncounterChoice.EnergyType Energy Cost
+                            </span>
+                            <span class="energy-cost-value">
+                                @hoveredChoice.EncounterChoice.ModifiedEnergyCost
                                 @if (IsEnergyCostModified(hoveredChoice.EncounterChoice))
                                 {
                                     <span class="energy-modification">
