@@ -164,7 +164,7 @@ public class GameManager
     {
         List<LocationPropertyChoiceEffect> effects = LocationSystem.GetLocationEffects(location.LocationName);
 
-        // Create initial context
+        // Create initial context with our new value system
         EncounterContext context = new EncounterContext(
             action,
             location.LocationType,
@@ -173,24 +173,49 @@ public class GameManager
             location.LocationProperties,
             playerState,
             new EncounterStateValues(
+                // Base outcome is now calculated using player level and location difficulty
                 outcome: 5 + (playerState.Level - location.DifficultyLevel),
-                insight: 0,
-                resonance: 5,
-                pressure: 0
+                // Insight starts at 0 unless player has relevant knowledge
+                insight: playerState.HasKnowledge(KnowledgeTypes.LocalHistory) ? 2 : 0,
+                // Resonance starts based on relevant reputation
+                resonance: GetStartingResonance(playerState, location),
+                // Starting pressure based on location properties
+                pressure: GetStartingPressure(location.LocationProperties)
             ),
             1,
             location.DifficultyLevel,
             effects
         );
 
-        // Generate encounter
-        Encounter encounter = EncounterSystem.GenerateEncounter(context);
-        if (encounter == null) return null;
+        return EncounterSystem.GenerateEncounter(context);
+    }
 
-        // Setup initial choices
-        EncounterSystem.SetEncounterChoices(encounter, location.LocationName);
+    private int GetStartingResonance(PlayerState player, Location location)
+    {
+        // Base resonance of 5
+        int resonance = 5;
 
-        return encounter;
+        // Add bonuses from relevant reputation
+        if (location.Archetype == LocationArchetypes.Market && player.HasReputation(ReputationTypes.Reliable))
+            resonance += player.GetReputationLevel(ReputationTypes.Reliable);
+
+        return resonance;
+    }
+
+    private int GetStartingPressure(LocationProperties properties)
+    {
+        // Base pressure starts at 0
+        int pressure = 0;
+
+        // Add pressure based on location properties
+        if (properties.Atmosphere == AtmosphereTypes.Tense)
+            pressure += 2;
+        if (properties.Space == SpaceTypes.Hazardous)
+            pressure += 2;
+        if (properties.Supervision == SupervisionTypes.Watched)
+            pressure += 1;
+
+        return pressure;
     }
 
     public List<LocationPropertyChoiceEffect> GetLocationEffects(LocationNames locationName)
@@ -234,7 +259,6 @@ public class GameManager
     public ActionResult ExecuteBasicAction(UserActionOption action, ActionImplementation basicAction)
     {
         Location location = LocationSystem.GetLocation(action.Location);
-
         gameState.Actions.SetCurrentUserAction(action);
 
         if (!ContextEngine.CanExecuteInContext(basicAction))
@@ -245,6 +269,10 @@ public class GameManager
         {
             // Set as active encounter
             EncounterSystem.SetActiveEncounter(encounter);
+
+            // Add this line to populate the initial choices
+            EncounterSystem.SetEncounterChoices(encounter, location.LocationName);
+
             return ActionResult.Success("Action started!", new ActionResultMessages());
         }
 

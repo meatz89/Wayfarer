@@ -30,7 +30,7 @@
         // 2. Create base choices with unmodified values
         this.choiceSetGenerator = new ChoiceSetGenerator(context);
 
-        ChoiceSet choiceSet = choiceSetGenerator.GenerateChoiceSet(
+        ChoiceSet choiceSet = choiceSetGenerator.Generate(
             template);
 
         return choiceSet;

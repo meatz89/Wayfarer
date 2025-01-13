@@ -33,14 +33,21 @@
         ProcessAllValueChanges(choice);
     }
 
-
     private bool ProcessEnergyChanges(EncounterChoice choice)
     {
-        // First, calculate total energy costs for each energy type
         Dictionary<EnergyTypes, int> totalEnergyCosts = new();
 
-        // Add base energy cost
+        // Get base energy cost
         totalEnergyCosts[choice.EnergyType] = choice.ModifiedEnergyCost;
+
+        // Apply pressure modifier
+        int pressureLevel = gameState.Actions.CurrentEncounter.Context.CurrentValues.Pressure;
+        if (pressureLevel >= 6)
+        {
+            // Each point of pressure above 5 adds +1 energy cost
+            int pressureModifier = pressureLevel - 5;
+            totalEnergyCosts[choice.EnergyType] += pressureModifier;
+        }
 
         // Add costs from modifications
         foreach (ChoiceModification mod in choice.Modifications
