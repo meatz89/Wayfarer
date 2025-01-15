@@ -71,7 +71,7 @@
         );
 
         // Set the base values we calculated
-        choice.BaseValueChanges = baseValueChanges;
+        choice.BaseEncounterValueChanges = baseValueChanges;
         choice.BaseRequirements = requirements;
 
         return choice;

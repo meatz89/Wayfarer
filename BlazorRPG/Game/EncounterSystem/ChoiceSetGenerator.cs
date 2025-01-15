@@ -111,13 +111,13 @@
         if (choice.Approach == ChoiceApproaches.Direct)
         {
             // Direct approaches become more extreme
-            choice.ModifiedValueChanges.Add(new ValueChange(ValueTypes.Outcome, 2));
-            choice.ModifiedValueChanges.Add(new ValueChange(ValueTypes.Pressure, 2));
+            choice.ModifiedEncounterValueChanges.Add(new ValueChange(ValueTypes.Outcome, 2));
+            choice.ModifiedEncounterValueChanges.Add(new ValueChange(ValueTypes.Pressure, 2));
         }
         else if (choice.Approach == ChoiceApproaches.Pragmatic)
         {
             // Pragmatic approaches get better at managing pressure
-            choice.ModifiedValueChanges.Add(new ValueChange(ValueTypes.Pressure, -2));
+            choice.ModifiedEncounterValueChanges.Add(new ValueChange(ValueTypes.Pressure, -2));
         }
     }
 
@@ -127,19 +127,19 @@
         if (choice.Approach == ChoiceApproaches.Direct)
         {
             // Direct approaches get better at gaining outcome
-            choice.ModifiedValueChanges.Add(new ValueChange(ValueTypes.Outcome, 4));
+            choice.ModifiedEncounterValueChanges.Add(new ValueChange(ValueTypes.Outcome, 4));
         }
         else if (choice.Approach == ChoiceApproaches.Tactical)
         {
             // Tactical approaches can convert their specialty into outcome
-            bool hasInsight = choice.ModifiedValueChanges
+            bool hasInsight = choice.ModifiedEncounterValueChanges
                 .Any(v => v.ValueType == ValueTypes.Insight);
-            bool hasResonance = choice.ModifiedValueChanges
+            bool hasResonance = choice.ModifiedEncounterValueChanges
                 .Any(v => v.ValueType == ValueTypes.Resonance);
 
             if (hasInsight || hasResonance)
             {
-                choice.ModifiedValueChanges.Add(new ValueChange(ValueTypes.Outcome, 2));
+                choice.ModifiedEncounterValueChanges.Add(new ValueChange(ValueTypes.Outcome, 2));
             }
         }
     }

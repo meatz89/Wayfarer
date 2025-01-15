@@ -13,7 +13,7 @@
         choice.Modifications.Clear();
 
         // 2. Create fresh ValueChange objects for modifications
-        choice.ModifiedValueChanges = choice.BaseValueChanges
+        choice.ModifiedEncounterValueChanges = choice.BaseEncounterValueChanges
             .Select(vc => new ValueChange(vc.ValueType, vc.Change))
             .ToList();
 
@@ -76,13 +76,13 @@
 
     private ValueChangeModification ApplyValueModification(EncounterChoice choice, ValueModification mod)
     {
-        ValueChange? targetChange = choice.ModifiedValueChanges
+        ValueChange? targetChange = choice.ModifiedEncounterValueChanges
             .FirstOrDefault(vc => vc.ValueType == mod.ValueType);
 
         if (targetChange == null) return null;
 
         // Get the true base value from BaseValueChanges (which stays untouched)
-        int originalValue = choice.BaseValueChanges
+        int originalValue = choice.BaseEncounterValueChanges
             .First(vc => vc.ValueType == mod.ValueType).Change;
 
         ValueChangeModification modification = new()
@@ -100,18 +100,18 @@
 
     private ValueConversionModification ApplyValueConversion(EncounterChoice choice, ValueConversion conv)
     {
-        ValueChange? sourceChange = choice.ModifiedValueChanges
+        ValueChange? sourceChange = choice.ModifiedEncounterValueChanges
             .FirstOrDefault(vc => vc.ValueType == conv.SourceValueType);
 
         if (sourceChange == null) return null;
 
-        ValueChange? targetChange = choice.ModifiedValueChanges
+        ValueChange? targetChange = choice.ModifiedEncounterValueChanges
             .FirstOrDefault(vc => vc.ValueType == conv.TargetValueType);
 
         // Get original values from BaseValueChanges to ensure we're using unmodified values
-        int originalSourceValue = choice.BaseValueChanges
+        int originalSourceValue = choice.BaseEncounterValueChanges
             .First(vc => vc.ValueType == conv.SourceValueType).Change;
-        int originalTargetValue = choice.BaseValueChanges
+        int originalTargetValue = choice.BaseEncounterValueChanges
             .FirstOrDefault(vc => vc.ValueType == conv.TargetValueType)?.Change ?? 0;
 
         int convertedAmount = sourceChange.Change;
@@ -123,7 +123,7 @@
         }
         else
         {
-            choice.ModifiedValueChanges.Add(new ValueChange(conv.TargetValueType, convertedAmount));
+            choice.ModifiedEncounterValueChanges.Add(new ValueChange(conv.TargetValueType, convertedAmount));
         }
 
         return new ValueConversionModification
@@ -141,13 +141,13 @@
 
     private ValueChangeModification ApplyValueBonus(EncounterChoice choice, ValueBonus bonus)
     {
-        ValueChange? targetChange = choice.ModifiedValueChanges
+        ValueChange? targetChange = choice.ModifiedEncounterValueChanges
             .FirstOrDefault(vc => vc.ValueType == bonus.ValueType);
 
         if (targetChange == null) return null;
 
         // Get original value from BaseValueChanges to ensure we're using unmodified value
-        int originalValue = choice.BaseValueChanges
+        int originalValue = choice.BaseEncounterValueChanges
             .First(vc => vc.ValueType == bonus.ValueType).Change;
 
         ValueChangeModification modification = new()
@@ -169,7 +169,7 @@
         if (choice.Archetype != pConv.TargetArchetype)
             return null;
 
-        ValueChange? sourceChange = choice.ModifiedValueChanges
+        ValueChange? sourceChange = choice.ModifiedEncounterValueChanges
             .FirstOrDefault(vc => vc.ValueType == pConv.SourceValueType);
 
         // If there's not enough value to convert, no modification happened
@@ -177,7 +177,7 @@
             return null;
 
         // Find existing target value change if it exists
-        ValueChange? targetChange = choice.ModifiedValueChanges
+        ValueChange? targetChange = choice.ModifiedEncounterValueChanges
             .FirstOrDefault(vc => vc.ValueType == pConv.TargetValueType);
 
         int originalSourceValue = sourceChange.Change;
@@ -192,7 +192,7 @@
         }
         else
         {
-            choice.ModifiedValueChanges.Add(new ValueChange(pConv.TargetValueType, pConv.ConversionAmount));
+            choice.ModifiedEncounterValueChanges.Add(new ValueChange(pConv.TargetValueType, pConv.ConversionAmount));
         }
 
         // Create a ValueConversionModification record

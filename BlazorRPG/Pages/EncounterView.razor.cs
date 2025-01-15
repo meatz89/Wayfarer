@@ -168,7 +168,7 @@ public partial class EncounterViewBase : ComponentBase
         EncounterChoice encounterChoice = hoveredChoice.EncounterChoice;
 
         // Create a copy of BaseValueChanges to modify
-        List<ValueChange> modifiedValueChanges = encounterChoice.BaseValueChanges
+        List<ValueChange> modifiedValueChanges = encounterChoice.BaseEncounterValueChanges
             .Select(vc => new ValueChange(vc.ValueType, vc.Change))
             .ToList();
 

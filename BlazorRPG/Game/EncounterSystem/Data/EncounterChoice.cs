@@ -13,14 +13,14 @@
     public int EnergyCost { get; set; }
 
     // Base values determined by archetype-approach combination
-    public List<ValueChange> BaseValueChanges { get; set; } = new();
+    public List<ValueChange> BaseEncounterValueChanges { get; set; } = new();
     public List<Requirement> BaseRequirements { get; set; } = new();
     public List<Outcome> BaseCosts { get; set; } = new();
     public List<Outcome> BaseRewards { get; set; } = new();
 
     // Calculated Values and Modifications
     public List<ChoiceModification> Modifications { get; set; } = new();
-    public List<ValueChange> ModifiedValueChanges { get; set; } = new();
+    public List<ValueChange> ModifiedEncounterValueChanges { get; set; } = new();
     public List<Requirement> ModifiedRequirements { get; set; } = new();
     public List<Outcome> ModifiedCosts { get; set; } = new();
     public List<Outcome> ModifiedRewards { get; set; } = new();
@@ -49,7 +49,7 @@
         Approach = approach;
 
         // Initialize base values based on archetype and approach
-        BaseValueChanges = GenerateBaseValueChanges();
+        BaseEncounterValueChanges = GenerateBaseValueChanges();
         BaseRequirements = GenerateBaseRequirements();
 
         // Initialize modifications as copies
@@ -143,7 +143,7 @@
 
     private void ResetModifications()
     {
-        ModifiedValueChanges = new List<ValueChange>(BaseValueChanges);
+        ModifiedEncounterValueChanges = new List<ValueChange>(BaseEncounterValueChanges);
         ModifiedRequirements = new List<Requirement>(BaseRequirements);
         ModifiedEnergyCost = GetBaseEnergyCost();
     }
