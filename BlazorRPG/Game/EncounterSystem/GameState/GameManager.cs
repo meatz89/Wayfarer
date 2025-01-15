@@ -175,6 +175,8 @@ public class GameManager
             new EncounterStateValues(
                 // Base outcome is now calculated using player level and location difficulty
                 outcome: 5 + (playerState.Level - location.DifficultyLevel),
+                // Momentum starts at 0
+                momentum: 0,
                 // Insight starts at 0 unless player has relevant knowledge
                 insight: playerState.HasKnowledge(KnowledgeTypes.LocalHistory) ? 2 : 0,
                 // Resonance starts based on relevant reputation

@@ -752,6 +752,10 @@ body {
     color: #2563eb; /* blue-600 */
 }
 
+.momentum-icon {
+    color: #ff7f50; /* Coral color for momentum */
+}
+
 .insight-icon {
     color: #7c3aed; /* violet-600 */
 }
@@ -1231,6 +1235,10 @@ body {
 /* Color the values based on their type */
 .stat:has(.outcome-icon) .stat-value {
     color: #2563eb; /* Same blue as the outcome icon */
+}
+
+.stat:has(.momentum-icon) .stat-value {
+    color: #ff7f50; /* Same blue as the outcome icon */
 }
 
 .stat:has(.insight-icon) .stat-value {

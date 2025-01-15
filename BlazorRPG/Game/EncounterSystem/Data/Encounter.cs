@@ -39,6 +39,9 @@
             case ValueTypes.Outcome:
                 Context.CurrentValues.Outcome += change;
                 break;
+            case ValueTypes.Momentum:
+                Context.CurrentValues.Momentum += change;
+                break;
             case ValueTypes.Pressure:
                 Context.CurrentValues.Pressure += change;
                 break;
@@ -51,6 +54,6 @@
         }
 
         // Clamp all values to valid range
-        Context.CurrentValues.ClampValues();
+        //Context.CurrentValues.ClampValues();
     }
 }

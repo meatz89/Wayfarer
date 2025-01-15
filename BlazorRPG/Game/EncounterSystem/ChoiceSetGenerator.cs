@@ -173,39 +173,112 @@
     {
         List<ValueChange> changes = new();
 
-        // Base values are now doubled
+        // First apply base approach effects
         switch (approach)
         {
             case ChoiceApproaches.Direct:
-                changes.Add(new ValueChange(ValueTypes.Outcome, 4)); 
+                // Direct approaches build up secondary values strongly but with high pressure
+                switch (archetype)
+                {
+                    case ChoiceArchetypes.Physical:
+                        changes.Add(new ValueChange(ValueTypes.Momentum, 3));
+                        changes.Add(new ValueChange(ValueTypes.Pressure, 2));
+                        break;
+                    case ChoiceArchetypes.Focus:
+                        changes.Add(new ValueChange(ValueTypes.Insight, 3));
+                        changes.Add(new ValueChange(ValueTypes.Pressure, 2));
+                        break;
+                    case ChoiceArchetypes.Social:
+                        changes.Add(new ValueChange(ValueTypes.Resonance, 3));
+                        changes.Add(new ValueChange(ValueTypes.Pressure, 2));
+                        break;
+                }
                 break;
+
             case ChoiceApproaches.Pragmatic:
-                changes.Add(new ValueChange(ValueTypes.Outcome, 2)); 
+                // Pragmatic builds secondary values moderately with no pressure
+                switch (archetype)
+                {
+                    case ChoiceArchetypes.Physical:
+                        changes.Add(new ValueChange(ValueTypes.Momentum, 2));
+                        break;
+                    case ChoiceArchetypes.Focus:
+                        changes.Add(new ValueChange(ValueTypes.Insight, 2));
+                        break;
+                    case ChoiceArchetypes.Social:
+                        changes.Add(new ValueChange(ValueTypes.Resonance, 2));
+                        break;
+                }
                 break;
+
             case ChoiceApproaches.Tactical:
-                // No immediate outcome gain
-                changes.Add(new ValueChange(ValueTypes.Pressure, -2)); 
+                // Tactical reduces pressure and maintains secondary values
+                changes.Add(new ValueChange(ValueTypes.Pressure, -2));
+                switch (archetype)
+                {
+                    case ChoiceArchetypes.Physical:
+                        changes.Add(new ValueChange(ValueTypes.Momentum, 1));
+                        break;
+                    case ChoiceArchetypes.Focus:
+                        changes.Add(new ValueChange(ValueTypes.Insight, 1));
+                        break;
+                    case ChoiceArchetypes.Social:
+                        changes.Add(new ValueChange(ValueTypes.Resonance, 1));
+                        break;
+                }
                 break;
+
             case ChoiceApproaches.Improvised:
-                changes.Add(new ValueChange(ValueTypes.Outcome, 2)); 
-                changes.Add(new ValueChange(ValueTypes.Pressure, 4)); 
+                // Improvised always generates pressure and minimal gains
+                changes.Add(new ValueChange(ValueTypes.Pressure, 2));
+                switch (archetype)
+                {
+                    case ChoiceArchetypes.Physical:
+                        changes.Add(new ValueChange(ValueTypes.Momentum, 1));
+                        break;
+                    case ChoiceArchetypes.Focus:
+                        changes.Add(new ValueChange(ValueTypes.Insight, 1));
+                        break;
+                    case ChoiceArchetypes.Social:
+                        changes.Add(new ValueChange(ValueTypes.Resonance, 1));
+                        break;
+                }
                 break;
         }
 
-        // Archetype-specific secondary value changes
-        switch (archetype)
+        // Then calculate Outcome based on the appropriate secondary value
+        int currentValue = archetype switch
         {
-            case ChoiceArchetypes.Focus:
-                int insightChange = approach == ChoiceApproaches.Tactical ? 4 : 2; 
-                changes.Add(new ValueChange(ValueTypes.Insight, insightChange));
-                break;
-            case ChoiceArchetypes.Social:
-                int resonanceChange = approach == ChoiceApproaches.Tactical ? 4 : 2;
-                changes.Add(new ValueChange(ValueTypes.Resonance, resonanceChange));
-                break;
+            ChoiceArchetypes.Physical => context.CurrentValues.Momentum,
+            ChoiceArchetypes.Focus => context.CurrentValues.Insight,
+            ChoiceArchetypes.Social => context.CurrentValues.Resonance,
+            _ => 0
+        };
+
+        // Only add Outcome if we can generate it
+        if (CanGenerateOutcome(archetype, context.CurrentValues))
+        {
+            changes.Add(new ValueChange(ValueTypes.Outcome, currentValue));
+        }
+        else
+        {
+            // If we can't generate Outcome, add extra Pressure
+            changes.Add(new ValueChange(ValueTypes.Pressure, 2));
         }
 
         return changes;
+    }
+
+    private bool CanGenerateOutcome(ChoiceArchetypes archetype, EncounterStateValues values)
+    {
+        // Check if we meet the conditions to generate Outcome
+        return archetype switch
+        {
+            ChoiceArchetypes.Physical => values.Pressure <= values.Momentum,
+            ChoiceArchetypes.Focus => values.Insight > 0,
+            ChoiceArchetypes.Social => values.Resonance > 0,
+            _ => false
+        };
     }
 
     private List<ValueChange> ModifyValuesForCriticalState(List<ValueChange> baseChanges, ChoiceArchetypes archetype, ChoiceApproaches approach)

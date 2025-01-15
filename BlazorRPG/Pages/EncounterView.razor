@@ -16,6 +16,11 @@
                     <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Outcome</span>
                 </div>
                 <div class="stat">
+                    @GetValueTypeIcon(ValueTypes.Momentum)
+                    <span class="stat-label">Momentum</span>
+                    <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Momentum</span>
+                </div>
+                <div class="stat">
                     @GetValueTypeIcon(ValueTypes.Insight)
                     <span class="stat-label">Insight</span>
                     <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Insight</span>

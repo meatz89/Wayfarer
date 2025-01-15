@@ -60,9 +60,10 @@ public partial class EncounterViewBase : ComponentBase
         return valueType switch
         {
             ValueTypes.Outcome => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
+            ValueTypes.Momentum => new MarkupString("<i class='value-icon momentum-icon'>⚡</i>"),
             ValueTypes.Insight => new MarkupString("<i class='value-icon insight-icon'>💡</i>"),
             ValueTypes.Resonance => new MarkupString("<i class='value-icon resonance-icon'>🤝</i>"),
-            ValueTypes.Pressure => new MarkupString("<i class='value-icon pressure-icon'>⚡</i>"),
+            ValueTypes.Pressure => new MarkupString("<i class='value-icon pressure-icon'>⚠</i>"),
             _ => new MarkupString("")
         };
     }
