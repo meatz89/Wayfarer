@@ -69,35 +69,20 @@ public partial class EncounterViewBase : ComponentBase
         };
     }
 
-    public List<(ValueTypes Type, string Label, int Total, List<string> Details)> GetValueChanges(EncounterChoice choice)
+    public List<DetailedChange> GetValueChanges(EncounterChoice choice)
     {
-        // Get all detailed changes
-        Dictionary<ValueTypes, (int TotalAmount, List<string> Sources)> detailedChanges = choice.GetDetailedChanges();
-        List<(ValueTypes Type, string Label, int Total, List<string> Details)> result = new List<(ValueTypes Type, string Label, int Total, List<string> Details)>();
-
-        // For each value type, create a display entry
-        foreach (KeyValuePair<ValueTypes, (int TotalAmount, List<string> Sources)> kvp in detailedChanges)
-        {
-            ValueTypes valueType = kvp.Key;
-            (int totalAmount, List<string> sources) = kvp.Value;
-
-            result.Add((
-                valueType,                        // The value type
-                valueType.ToString(),            // Label for display
-                totalAmount,                     // Total combined change
-                sources                          // List of detailed change descriptions
-            ));
-        }
-
-        return result;
+        return choice.GetDetailedChanges();
     }
 
     public string RenderValueModification(EncounterChoice choice, ValueModification change)
     {
-        Dictionary<ValueTypes, (int TotalAmount, List<string> Sources)> detailedChanges = choice.GetDetailedChanges();
-        if (detailedChanges.TryGetValue(change.ValueType, out (int TotalAmount, List<string> Sources) details))
+        List<DetailedChange> detailedChanges = choice.GetDetailedChanges();
+        foreach (DetailedChange dc in detailedChanges)
         {
-            return string.Join(", ", details.Sources);
+            if (dc.ValueType == change.ValueType)
+            {
+                return string.Join(", ", dc.ChangeValues.Sources);
+            }
         }
         return "";
     }

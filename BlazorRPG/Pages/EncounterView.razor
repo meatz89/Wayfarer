@@ -75,22 +75,22 @@
                 <div class="final-results">
                     <h5>Choice Results</h5>
                     <div class="value-list">
-                        @foreach (var (type, label, total, details) in GetValueChanges(hoveredChoice.EncounterChoice))
+                        @foreach (DetailedChange dc in GetValueChanges(hoveredChoice.EncounterChoice))
                         {
                             <div class="value-item">
                                 <div class="value-main">
                                     <div class="value-header">
-                                        @GetValueTypeIcon(type)
-                                        <span class="value-type">@label</span>
+                                        @GetValueTypeIcon(dc.ValueType)
+                                        <span class="value-type">@dc.ValueType</span>
                                     </div>
-                                    <span class="value-total @(total >= 0 ? "positive-change" : "negative-change")">
-                                        @(total >= 0 ? "+" : "")@total
+                                    <span class="value-total @(dc.ChangeValues.TotalAmount >= 0 ? "positive-change" : "negative-change")">
+                                        @(dc.ChangeValues.TotalAmount >= 0 ? "+" : "")@dc.ChangeValues.TotalAmount
                                     </span>
                                 </div>
-                                @if (details.Any())
+                                @if (dc.ChangeValues.Sources.Any())
                                 {
                                     <div class="value-details">
-                                        @foreach (var detail in details)
+                                        @foreach (var detail in dc.ChangeValues.Sources)
                                         {
                                             <div class="detail-line">@detail</div>
                                         }

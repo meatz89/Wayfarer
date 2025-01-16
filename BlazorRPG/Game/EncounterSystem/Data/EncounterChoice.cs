@@ -17,54 +17,115 @@
     public List<Outcome> ModifiedRewards { get; set; } = new();
     public int EnergyCost { get; set; }
 
+
     // For execution - just raw numbers for applying changes
-    public Dictionary<ValueTypes, int> GetCombinedValues()
+    public List<CombinedValue> GetCombinedValues()
     {
-        Dictionary<ValueTypes, int> combined = new Dictionary<ValueTypes, int>();
+        List<CombinedValue> combined = new List<CombinedValue>();
 
         // Add base values first 
         foreach (BaseValueChange baseChange in BaseEncounterValueChanges)
         {
-            if (!combined.ContainsKey(baseChange.ValueType))
-                combined[baseChange.ValueType] = 0;
-            combined[baseChange.ValueType] += baseChange.Amount;
+            bool found = false;
+            foreach (CombinedValue cv in combined)
+            {
+                if (cv.ValueType == baseChange.ValueType)
+                {
+                    cv.Amount += baseChange.Amount;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                combined.Add(new CombinedValue { ValueType = baseChange.ValueType, Amount = baseChange.Amount });
+            }
         }
 
         // Add modifications
         foreach (ValueModification modification in ValueModifications)
         {
-            if (!combined.ContainsKey(modification.ValueType))
-                combined[modification.ValueType] = 0;
-            combined[modification.ValueType] += modification.Amount;
+            bool found = false;
+            foreach (CombinedValue cv in combined)
+            {
+                if (cv.ValueType == modification.ValueType)
+                {
+                    cv.Amount += modification.Amount;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                combined.Add(new CombinedValue { ValueType = modification.ValueType, Amount = modification.Amount });
+            }
         }
 
         return combined;
     }
 
-    public Dictionary<ValueTypes, (int TotalAmount, List<string> Sources)> GetDetailedChanges()
+    public List<DetailedChange> GetDetailedChanges()
     {
-        Dictionary<ValueTypes, (int Amount, List<string> Sources)> combined = new Dictionary<ValueTypes, (int Amount, List<string> Sources)>();
+        List<DetailedChange> combined = new List<DetailedChange>();
 
         // Add base changes
         foreach (BaseValueChange change in BaseEncounterValueChanges)
         {
-            if (!combined.ContainsKey(change.ValueType))
-                combined[change.ValueType] = (0, new List<string>());
+            bool found = false;
+            foreach (DetailedChange dc in combined)
+            {
+                if (dc.ValueType == change.ValueType)
+                {
+                    dc.ChangeValues.TotalAmount += change.Amount;
+                    dc.ChangeValues.Sources.Add($"Base: {(change.Amount >= 0 ? "+" : "")}{change.Amount}");
+                    found = true;
+                    break;
+                }
+            }
 
-            (int amount, List<string> sources) = combined[change.ValueType];
-            combined[change.ValueType] = (amount + change.Amount, sources);
-            sources.Add($"Base: {(change.Amount >= 0 ? "+" : "")}{change.Amount}");
+            if (!found)
+            {
+                combined.Add(new DetailedChange
+                {
+                    ValueType = change.ValueType,
+                    ChangeValues = new ChangeValues
+                    {
+                        TotalAmount = change.Amount,
+                        Sources = new List<string> { $"Base: {(change.Amount >= 0 ? "+" : "")}{change.Amount}" }
+                    }
+                });
+            }
         }
 
         // Add modifications
         foreach (ValueModification change in ValueModifications)
         {
-            if (!combined.ContainsKey(change.ValueType))
-                combined[change.ValueType] = (0, new List<string>());
+            bool found = false;
+            foreach (DetailedChange dc in combined)
+            {
+                if (dc.ValueType == change.ValueType)
+                {
+                    dc.ChangeValues.TotalAmount += change.Amount;
+                    dc.ChangeValues.Sources.Add($"{change.Source}: {(change.Amount >= 0 ? "+" : "")}{change.Amount}");
+                    found = true;
+                    break;
+                }
+            }
 
-            (int amount, List<string> sources) = combined[change.ValueType];
-            combined[change.ValueType] = (amount + change.Amount, sources);
-            sources.Add($"{change.Source}: {(change.Amount >= 0 ? "+" : "")}{change.Amount}");
+            if (!found)
+            {
+                combined.Add(new DetailedChange
+                {
+                    ValueType = change.ValueType,
+                    ChangeValues = new ChangeValues
+                    {
+                        TotalAmount = change.Amount,
+                        Sources = new List<string> { $"{change.Source}: {(change.Amount >= 0 ? "+" : "")}{change.Amount}" }
+                    }
+                });
+            }
         }
 
         return combined;
@@ -92,4 +153,23 @@
             _ => throw new ArgumentException("Invalid archetype")
         };
     }
+}
+
+
+public class DetailedChange
+{
+    public ValueTypes ValueType { get; set; }
+    public ChangeValues ChangeValues { get; set; }
+}
+
+public class ChangeValues
+{
+    public int TotalAmount { get; set; }
+    public List<string> Sources { get; set; } = new List<string>();
+}
+
+public class CombinedValue
+{
+    public ValueTypes ValueType { get; set; }
+    public int Amount { get; set; }
 }
