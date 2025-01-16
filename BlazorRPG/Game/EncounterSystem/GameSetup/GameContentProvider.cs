@@ -48,7 +48,8 @@
 
 
         choiceSetTemplates = ChoiceSetContent.AllChoiceSets;
-        locationArchetypeEffects = LocationPropertyChoiceEffects.AllEffects;
+        locationArchetypeEffects = new List<LocationPropertyChoiceEffect>();
+        // LocationPropertyChoiceEffects.AllEffects;
     }
 
     public List<LocationPropertyChoiceEffect> GetLocationArchetypeEffects()

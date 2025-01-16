@@ -6,60 +6,39 @@
     public TimeSlots TimeSlot { get; }
     public LocationProperties LocationProperties { get; }
     public PlayerState PlayerState { get; }
-    public EncounterStateValues CurrentValues { get; }
-    public int StageNumber { get; }
-    public int LocationDifficulty { get; set; }
-    public List<LocationPropertyChoiceEffect> LocationPropertyChoiceEffects { get; set; }
+    public EncounterStateValues CurrentValues { get; set; } // Note: Now settable
+    public int StageNumber { get; set; } // Note: Now settable
+    public int LocationDifficulty { get; }
+    public List<LocationPropertyChoiceEffect> LocationPropertyChoiceEffects { get; }
 
+    // Constructor remains the same but without value initialization
     public EncounterContext(
         BasicActionTypes actionType,
         LocationTypes locationType,
-        LocationArchetypes locationarcheType,
+        LocationArchetypes locationArchetype,
         TimeSlots timeSlot,
         LocationProperties locationProperties,
         PlayerState playerState,
-        EncounterStateValues currentValues,
-        int stageNumber,
         int locationDifficulty,
         List<LocationPropertyChoiceEffect> locationPropertyChoiceEffects)
     {
         ActionType = actionType;
         LocationType = locationType;
-        LocationArchetype = locationarcheType;
+        LocationArchetype = locationArchetype;
         TimeSlot = timeSlot;
         LocationProperties = locationProperties;
         PlayerState = playerState;
-        CurrentValues = currentValues;
-
         LocationDifficulty = locationDifficulty;
-        StageNumber = stageNumber;
-
         LocationPropertyChoiceEffects = locationPropertyChoiceEffects;
 
-        // Initialize Encounter Values based on Player and Location
-        InitializeEncounterValues(currentValues, playerState, locationProperties, locationDifficulty);
+        // Initialize encounter values
+        CurrentValues = new EncounterStateValues(
+            outcome: 5 + (playerState.Level - locationDifficulty),
+            momentum: 0,
+            insight: 0,
+            resonance: 5,
+            pressure: 0);
+
+        StageNumber = 0;
     }
-
-    private void InitializeEncounterValues(EncounterStateValues currentValues, PlayerState playerState, LocationProperties locationProperties, int locationDifficulty)
-    {
-        //// Initialize Outcome based on PlayerLevel and Action Difficulty
-        //currentValues.Outcome = 5 + (playerState.Level - locationDifficulty); // Assuming a function to calculate this
-
-        //// Initialize Insight based on relevant Knowledge
-        //if (playerState.HasKnowledge(KnowledgeTypes.LocalHistory)) // Example: Assuming a KnowledgeType relevant to the location
-        //{
-        //    currentValues.Insight += 2; // Example: Bonus for relevant knowledge
-        //}
-
-        //// Initialize Resonance based on Reputation
-        //if (locationProperties.LocationReputationType != default)
-        //{
-        //    currentValues.Resonance += playerState.GetReputationLevel(locationProperties.LocationReputationType);
-        //}
-
-        //// Initialize Pressure based on Location's Danger Level
-        //// Assuming a property like 'DangerLevel' in LocationProperties (You need to define this in your LocationProperties class)
-        //currentValues.Pressure = locationProperties.Pressure != null ? (int)locationProperties.Pressure : 0; // Example: Base Pressure on location danger
-    }
-
 }

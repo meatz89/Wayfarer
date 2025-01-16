@@ -1,35 +1,35 @@
 ﻿public class Encounter
 {
     public EncounterContext Context { get; }
+    public string Situation { get; }
     private List<EncounterStage> stages = new();
-    private int currentStage { get; set; } = 0;
-    public int NumberOfStages => stages.Count();
-    public string Situation { get; set; }
+    public int CurrentStageIndex { get; private set; }
 
     public Encounter(EncounterContext context, string situation)
     {
         Context = context;
         Situation = situation;
+        CurrentStageIndex = 0;
     }
 
-    public void AddStage(EncounterStage encounterStage)
+    public void AddStage(EncounterStage stage)
     {
-        stages.Add(encounterStage);
-
-        if (NumberOfStages != 1)
-        {
-            NextStage();
-        }
+        stages.Add(stage);
     }
 
     public EncounterStage GetCurrentStage()
     {
-        return stages[currentStage];
+        if (CurrentStageIndex >= stages.Count)
+            return null;
+
+        return stages[CurrentStageIndex];
     }
 
-    public void NextStage()
+    public bool AdvanceStage()
     {
-        currentStage++;
+        if (CurrentStageIndex >= stages.Count) return false;
+        CurrentStageIndex++;
+        return true;
     }
 
     public void ModifyValue(ValueTypes valueType, int change)
@@ -52,8 +52,5 @@
                 Context.CurrentValues.Resonance += change;
                 break;
         }
-
-        // Clamp all values to valid range
-        //Context.CurrentValues.ClampValues();
     }
 }

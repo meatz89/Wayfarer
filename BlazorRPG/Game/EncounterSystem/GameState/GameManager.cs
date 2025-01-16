@@ -172,19 +172,6 @@ public class GameManager
             gameState.World.CurrentTimeSlot,
             location.LocationProperties,
             playerState,
-            new EncounterStateValues(
-                // Base outcome is now calculated using player level and location difficulty
-                outcome: 5 + (playerState.Level - location.DifficultyLevel),
-                // Momentum starts at 0
-                momentum: 0,
-                // Insight starts at 0 unless player has relevant knowledge
-                insight: playerState.HasKnowledge(KnowledgeTypes.LocalHistory) ? 2 : 0,
-                // Resonance starts based on relevant reputation
-                resonance: GetStartingResonance(playerState, location),
-                // Starting pressure based on location properties
-                pressure: GetStartingPressure(location.LocationProperties)
-            ),
-            1,
             location.DifficultyLevel,
             effects
         );
@@ -247,7 +234,7 @@ public class GameManager
 
     private void ProceedEncounter(Encounter encounter, LocationNames locationName)
     {
-        bool hasNextStage = EncounterSystem.GetNextStage(encounter);
+        bool hasNextStage = encounter.AdvanceStage();
         if (hasNextStage)
         {
             EncounterSystem.SetEncounterChoices(encounter, locationName);

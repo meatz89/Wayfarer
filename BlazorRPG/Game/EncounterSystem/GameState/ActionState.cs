@@ -9,28 +9,30 @@
     public ActionResultMessages LastActionResultMessages { get; private set; }
 
     public List<Quest> ActiveQuests { get; set; }
-    public Encounter CurrentEncounter { get; private set; }
-    public List<UserEncounterChoiceOption> EncounterChoiceOptions { get; private set; } = new();
 
-    public void SetActiveEncounter(Encounter encounter)
-    {
-        this.CurrentEncounter = encounter;
-    }
+    public Encounter CurrentEncounter { get; private set; }
+    public List<UserEncounterChoiceOption> CurrentChoiceOptions { get; private set; }
 
     public Encounter GetCurrentEncounter()
     {
         return this.CurrentEncounter;
     }
 
-    public void SetEncounterChoiceOptions(List<UserEncounterChoiceOption> choiceOptions)
+    public void SetActiveEncounter(Encounter encounter)
     {
-        this.EncounterChoiceOptions = choiceOptions;
+        CurrentEncounter = encounter;
+        CurrentChoiceOptions = new List<UserEncounterChoiceOption>();
+    }
+
+    public void SetEncounterChoiceOptions(List<UserEncounterChoiceOption> options)
+    {
+        CurrentChoiceOptions = options;
     }
 
     public void CompleteActiveEncounter()
     {
         this.CurrentEncounter = null;
-        this.EncounterChoiceOptions = new();
+        this.CurrentChoiceOptions = new();
     }
 
     public void SetLastActionResultMessages(ActionResultMessages allMessages)

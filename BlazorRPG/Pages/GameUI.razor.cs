@@ -305,7 +305,7 @@ public partial class GameUI : ComponentBase
         foreach (LocationPropertyChoiceEffect effect in locationEffects)
         {
             // Skip if property type doesn't match
-            if (effect.LocationProperty.GetPropertyType() != propertyType)
+            if (effect.PropertyType != propertyType)
                 continue;
 
             string formattedEffect = FormatEffect(effect);
@@ -317,7 +317,7 @@ public partial class GameUI : ComponentBase
 
     public string FormatEffect(LocationPropertyChoiceEffect effect)
     {
-        return effect.RuleDescription;
+        return effect.Description;
     }
 }
 

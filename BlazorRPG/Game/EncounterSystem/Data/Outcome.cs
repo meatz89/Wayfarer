@@ -221,6 +221,32 @@ public class HealthOutcome : Outcome
     }
 }
 
+public class StressOutcome : Outcome
+{
+    public int Count { get; }
+
+    public StressOutcome(int count)
+    {
+        Count = count;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        player.ModifyStress(Count);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(Count >= 0 ? "+" : "")}{Count} Stress";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        int newValue = Math.Clamp(player.Stress + Count, 0, player.MaxStress);
+        return $"({player.Stress} -> {newValue})";
+    }
+}
+
 public class CoinsOutcome : Outcome
 {
     public int Amount { get; }

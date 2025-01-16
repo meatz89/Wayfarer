@@ -50,6 +50,8 @@ public enum LocationPropertyTypes
 
 public class LocationProperties
 {
+    public List<LocationPropertyChoiceEffect> ChoiceEffects { get; set; } = new();
+
     // Action Availability
     public LocationArchetypes? Archetype { get; set; }
     public bool IsArchetypeSet { get; private set; } = false;

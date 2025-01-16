@@ -4,19 +4,15 @@
     private readonly List<ChoiceSetTemplate> choiceSetTemplates;
     private ChoiceSetGenerator choiceSetGenerator;
     private readonly ChoiceSetSelector choiceSetSelector;
-    private readonly ChoiceExecutor executor;
 
-    public ChoiceSystem(GameContentProvider contentProvider, GameState gameState, GameContentProvider gameContentProvider)
+    public ChoiceSystem(
+        GameContentProvider contentProvider,
+        GameState gameState)
     {
         this.gameState = gameState;
         this.choiceSetTemplates = contentProvider.GetChoiceSetTemplates();
         this.choiceSetSelector = new ChoiceSetSelector(gameState);
-        this.executor = new ChoiceExecutor(gameState);
-    }
-
-    public void ExecuteChoice(EncounterChoice choice)
-    {
-        executor.ExecuteChoice(choice);
+        this.choiceSetGenerator = new ChoiceSetGenerator(gameState);
     }
 
     public ChoiceSet GenerateChoices(
@@ -28,11 +24,10 @@
         if (template == null) return null;
 
         // 2. Create base choices with unmodified values
-        this.choiceSetGenerator = new ChoiceSetGenerator(context);
-
         ChoiceSet choiceSet = choiceSetGenerator.Generate(
-            template);
+            template, context);
 
         return choiceSet;
     }
+
 }

@@ -48,10 +48,7 @@
         List<LocationPropertyChoiceEffect> effects = new List<LocationPropertyChoiceEffect>();
         foreach (LocationPropertyChoiceEffect locationContextEffect in locationContextEffects)
         {
-            if (IsLocationPropertyMatch(locationContextEffect.LocationProperty, locationProperties))
-            {
-                effects.Add(locationContextEffect);
-            }
+            effects.Add(locationContextEffect);
         }
         return effects;
     }

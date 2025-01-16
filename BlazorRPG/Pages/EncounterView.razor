@@ -45,7 +45,7 @@
             </div>
 
             <div class="encounter-choices">
-                @foreach (var choice in GameState.Actions.EncounterChoiceOptions)
+                @foreach (var choice in GameState.Actions.CurrentChoiceOptions)
                 {
                     <div class="choice-option"
                          @onmousemove="async (e) => await ShowTooltip(choice, e)"
@@ -70,10 +70,6 @@
                 {
                     <div class="location-effects">
                         <h5>Location Effects</h5>
-                        @foreach (var effect in GetLocationEffects(hoveredChoice.EncounterChoice))
-                        {
-                            <div class="effect-item">@RenderLocationEffect(effect)</div>
-                        }
                     </div>
                 }
                 <div class="final-results">
@@ -85,7 +81,7 @@
                                 @GetValueTypeIcon(change.ValueType)
                                 <span class="value-type">@change.ValueType</span>
                                 <span class="value-result">
-                                    @(change.Change >= 0 ? "+" : "")@change.Change
+                                    @(change.Amount >= 0 ? "+" : "")@change.Amount
                                     @if (IsValueModified(hoveredChoice.EncounterChoice, change))
                                     {
                                         <span class="value-modification">
@@ -104,7 +100,7 @@
                                 @hoveredChoice.EncounterChoice.EnergyType Energy Cost
                             </span>
                             <span class="energy-cost-value">
-                                @hoveredChoice.EncounterChoice.ModifiedEnergyCost
+                                @hoveredChoice.EncounterChoice.EnergyCost
                                 @if (IsEnergyCostModified(hoveredChoice.EncounterChoice))
                                 {
                                     <span class="energy-modification">

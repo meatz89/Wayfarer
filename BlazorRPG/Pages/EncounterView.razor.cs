@@ -23,7 +23,7 @@ public partial class EncounterViewBase : ComponentBase
         mouseY = e.ClientY + 10;
 
         // Get dimensions using JavaScript interop
-        var dimensions = await JSRuntime.InvokeAsync<Dimensions>("getDimensions");
+        Dimensions dimensions = await JSRuntime.InvokeAsync<Dimensions>("getDimensions");
 
         // Adjust mouseY if the tooltip would overflow
         if (mouseY + dimensions.TooltipHeight > dimensions.WindowHeight)
@@ -38,16 +38,6 @@ public partial class EncounterViewBase : ComponentBase
         showTooltip = false;
     }
 
-    public void HandleChoiceSelection(UserEncounterChoiceOption choice)
-    {
-        if (IsChoiceDisabled(choice))
-        {
-            return;
-        }
-
-        GameManager.ExecuteEncounterChoice(choice);
-        OnEncounterCompleted.InvokeAsync();
-    }
 
     public void OnMouseMove(MouseEventArgs e)
     {
@@ -79,59 +69,55 @@ public partial class EncounterViewBase : ComponentBase
         };
     }
 
-    public string RenderLocationEffect(LocationPropertyChoiceEffect effect)
-    {
-        return effect.ValueTypeEffect switch
-        {
-            ValueModification mod => $"{effect.LocationProperty.GetPropertyType()}: {mod.ValueType} {(mod.ModifierAmount > 0 ? "+" : "")}{mod.ModifierAmount}",
-            ValueConversion conv => $"{effect.LocationProperty.GetPropertyType()}: Convert {conv.SourceValueType} to {conv.TargetValueType}",
-            PartialValueConversion pConv => $"{effect.LocationProperty.GetPropertyType()}: Convert {pConv.ConversionAmount} {pConv.SourceValueType} to {pConv.TargetValueType}",
-            EnergyModification eMod => $"{effect.LocationProperty.GetPropertyType()}: {eMod.TargetArchetype} Energy {(eMod.EnergyCostModifier > 0 ? "+" : "")}{eMod.EnergyCostModifier}",
-            ValueBonus bonus => $"{effect.LocationProperty.GetPropertyType()}: {bonus.ChoiceArchetype} gains {bonus.ValueType} {(bonus.BonusAmount > 0 ? "+" : "")}{bonus.BonusAmount}",
-            _ => effect.RuleDescription
-        };
-    }
     public string RenderValueModification(EncounterChoice choice, ValueChange finalChange)
     {
         List<string> modifications = new();
 
-        // Get the true base value from the original value in the first modification
-        ChoiceModification? firstMod = choice.Modifications
-            .FirstOrDefault(m => m.Type == ModificationType.ValueChange &&
-                                m.ValueChange?.ValueType == finalChange.ValueType);
+        // Find the corresponding base value change
+        ValueChange baseChange = choice.BaseEncounterValueChanges
+            .FirstOrDefault(bc => bc.ValueType == finalChange.ValueType);
 
-        int baseValue = firstMod?.ValueChange?.OriginalValue ?? 0;
-
-        // If we have a base value and modifications, add it first
-        if (baseValue != 0)
+        // Add base value contribution only if it exists
+        if (baseChange != null)
         {
-            modifications.Add($"Base: {(baseValue > 0 ? "+" : "")}{baseValue}");
+            modifications.Add($"Base: {(baseChange.Amount >= 0 ? "+" : "")}{baseChange.Amount}");
         }
 
-        // Add each modification's contribution
-        foreach (ChoiceModification? modification in choice.Modifications
-            .Where(m => m.Type == ModificationType.ValueChange &&
-                        m.ValueChange?.ValueType == finalChange.ValueType)
-            .OrderBy(m => m.Source == ModificationSource.LocationProperty ? 0 : 1))
+        // Add contributions from modifications, excluding the base value change
+        foreach (ValueChange modChange in choice.ModifiedEncounterValueChanges
+            .Where(mc => mc.ValueType == finalChange.ValueType && mc != baseChange))
         {
-            if (modification.Source == ModificationSource.LocationProperty)
-            {
-                ValueChangeModification valueChange = modification.ValueChange;
-                int contribution = valueChange.ConversionAmount; // This is the actual modification amount
-                modifications.Add($"{modification.SourceDetails}: {(contribution > 0 ? "+" : "")}{contribution}");
-            }
+            modifications.Add($"{modChange.ValueType}: {(modChange.Amount >= 0 ? "+" : "")}{modChange.Amount}");
         }
 
         return modifications.Count > 0 ? $"({string.Join(", ", modifications)})" : string.Empty;
     }
 
+    public List<ValueChange> GetModifiedValue(UserEncounterChoiceOption hoveredChoice)
+    {
+        EncounterChoice encounterChoice = hoveredChoice.EncounterChoice;
+
+        // Return the list of modified value changes directly
+        return encounterChoice.ModifiedEncounterValueChanges;
+    }
+
+    public void HandleChoiceSelection(UserEncounterChoiceOption choice)
+    {
+        if (IsChoiceDisabled(choice))
+        {
+            return;
+        }
+
+        GameManager.ExecuteEncounterChoice(choice);
+        OnEncounterCompleted.InvokeAsync();
+    }
+
     public bool IsValueModified(EncounterChoice choice, ValueChange finalChange)
     {
         // Check if there are *any* modifications for this value type
-        return choice.Modifications.Any(m =>
-            m.Type == ModificationType.ValueChange &&
-            m.ValueChange != null &&
-            m.ValueChange.ValueType == finalChange.ValueType);
+        return choice.ModifiedEncounterValueChanges.Any(m =>
+            m.ValueType != null &&
+            m.ValueType == finalChange.ValueType);
     }
 
     public List<LocationPropertyChoiceEffect> GetLocationEffects(EncounterChoice choice)
@@ -141,21 +127,18 @@ public partial class EncounterViewBase : ComponentBase
 
     public string RenderEnergyCostModification(EncounterChoice choice)
     {
-        IEnumerable<string> modifications = GetLocationEffects(choice)
-            .Where(e => e.ValueTypeEffect is EnergyModification)
-            .Select(e => $"{e.LocationProperty.GetPropertyType()}: {((EnergyModification)e.ValueTypeEffect).EnergyCostModifier}");
-
-        return modifications.Any() ? $"({string.Join(", ", modifications)})" : string.Empty;
+        // TODO
+        return "";
     }
 
     public bool IsEnergyCostModified(EncounterChoice choice)
     {
-        return choice.EnergyCost != choice.ModifiedEnergyCost;
+        return choice.EnergyCost != choice.EnergyCost;
     }
 
     public string GetValueChangeClass(ValueChange change)
     {
-        return change.Change > 0 ? "positive-change" : change.Change < 0 ? "negative-change" : "neutral-change";
+        return change.Amount > 0 ? "positive-change" : change.Amount < 0 ? "negative-change" : "neutral-change";
     }
 
     public bool IsChoiceDisabled(UserEncounterChoiceOption choice)
@@ -163,37 +146,6 @@ public partial class EncounterViewBase : ComponentBase
         // Use the ModifiedRequirements for the disabled check
         return choice.EncounterChoice.ModifiedRequirements.Any(req => !req.IsSatisfied(GameState.Player));
     }
-
-    public List<ValueChange> GetModifiedValue(UserEncounterChoiceOption hoveredChoice)
-    {
-        EncounterChoice encounterChoice = hoveredChoice.EncounterChoice;
-
-        // Create a copy of BaseValueChanges to modify
-        List<ValueChange> modifiedValueChanges = encounterChoice.BaseEncounterValueChanges
-            .Select(vc => new ValueChange(vc.ValueType, vc.Change))
-            .ToList();
-
-        // Apply modifications to the copied list
-        foreach (ChoiceModification modification in encounterChoice.Modifications)
-        {
-            if (modification.Type == ModificationType.ValueChange && modification.ValueChange != null)
-            {
-                ValueChangeModification valueChangeMod = modification.ValueChange;
-
-                // Handle direct value changes
-                ValueChange? existingChange = modifiedValueChanges
-                    .FirstOrDefault(vc => vc.ValueType == valueChangeMod.ValueType);
-
-                if (existingChange != null)
-                {
-                    existingChange.Change = valueChangeMod.TargetValue; // Update the change with the modified value
-                }
-            }
-        }
-
-        return modifiedValueChanges;
-    }
-
 }
 
 public class Dimensions

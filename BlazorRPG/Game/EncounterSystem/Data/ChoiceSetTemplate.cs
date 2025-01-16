@@ -1,23 +1,22 @@
 ﻿public class ChoiceSetTemplate
 {
     public string Name { get; }
+    public List<CompositionPattern> CompositionPatterns { get; }
     public BasicActionTypes ActionType { get; }
-    public List<ChoicePatternComposition> CompositionPatterns { get; }
     public List<LocationPropertyCondition> AvailabilityConditions { get; }
     public List<EncounterStateCondition> StateConditions { get; }
 
-
     public ChoiceSetTemplate(
         string name,
+        List<CompositionPattern> compositionPatterns,
         BasicActionTypes actionType,
-        List<ChoicePatternComposition> compositionPatterns,
         List<LocationPropertyCondition> availabilityConditions,
-        List<EncounterStateCondition> stateConditions)
+        List<EncounterStateCondition> encounterStateConditions)
     {
         Name = name;
-        ActionType = actionType;
         CompositionPatterns = compositionPatterns;
+        ActionType = actionType;
         AvailabilityConditions = availabilityConditions;
-        StateConditions = stateConditions;
+        StateConditions = encounterStateConditions;
     }
 }

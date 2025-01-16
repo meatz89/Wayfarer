@@ -17,7 +17,7 @@
         new ChoiceSetTemplateBuilder()
             .WithName("Starting Complex Work")
             .WithActionType(BasicActionTypes.Labor)
-            .WithComposition(new ChoicePatternComposition
+            .WithComposition(new CompositionPattern
             {
                 PrimaryArchetype = ChoiceArchetypes.Physical,
                 SecondaryArchetype = ChoiceArchetypes.Focus,
@@ -65,7 +65,7 @@
         new ChoiceSetTemplateBuilder()
             .WithName("Busy Service")
             .WithActionType(BasicActionTypes.Labor)
-            .WithComposition(new ChoicePatternComposition
+            .WithComposition(new CompositionPattern
             {
                 PrimaryArchetype = ChoiceArchetypes.Physical,
                 SecondaryArchetype = ChoiceArchetypes.Social,
@@ -82,7 +82,7 @@
         new ChoiceSetTemplateBuilder()
             .WithName("Mounting Pressure")
             .WithActionType(BasicActionTypes.Labor)
-            .WithComposition(new ChoicePatternComposition
+            .WithComposition(new CompositionPattern
             {
                 PrimaryArchetype = ChoiceArchetypes.Physical,
                 SecondaryArchetype = ChoiceArchetypes.Focus,

@@ -2,7 +2,7 @@
 {
     private string name;
     private BasicActionTypes actionType;
-    private List<ChoicePatternComposition> compositionPatterns = new();
+    private List<CompositionPattern> compositionPatterns = new();
     private List<LocationPropertyCondition> availabilityConditions = new();
     private List<EncounterStateCondition> stateConditions = new();
 
@@ -20,7 +20,7 @@
         return this;
     }
 
-    public ChoiceSetTemplateBuilder WithComposition(ChoicePatternComposition composition)
+    public ChoiceSetTemplateBuilder WithComposition(CompositionPattern composition)
     {
         compositionPatterns.Clear();  // Remove default composition
         compositionPatterns.Add(composition);
@@ -70,8 +70,8 @@
     {
         return new ChoiceSetTemplate(
             name,
-            actionType,
             compositionPatterns,
+            actionType,
             availabilityConditions,
             stateConditions);
     }
@@ -85,7 +85,7 @@
             case BasicActionTypes.Gather:
             case BasicActionTypes.Travel:
                 // Physical-focused composition
-                compositionPatterns.Add(new ChoicePatternComposition
+                compositionPatterns.Add(new CompositionPattern
                 {
                     PrimaryArchetype = ChoiceArchetypes.Physical,
                     SecondaryArchetype = ChoiceArchetypes.Focus,
@@ -98,7 +98,7 @@
             case BasicActionTypes.Study:
             case BasicActionTypes.Reflect:
                 // Focus-focused composition
-                compositionPatterns.Add(new ChoicePatternComposition
+                compositionPatterns.Add(new CompositionPattern
                 {
                     PrimaryArchetype = ChoiceArchetypes.Focus,
                     SecondaryArchetype = ChoiceArchetypes.Social,
@@ -111,7 +111,7 @@
             case BasicActionTypes.Persuade:
             case BasicActionTypes.Perform:
                 // Social-focused composition
-                compositionPatterns.Add(new ChoicePatternComposition
+                compositionPatterns.Add(new CompositionPattern
                 {
                     PrimaryArchetype = ChoiceArchetypes.Social,
                     SecondaryArchetype = ChoiceArchetypes.Focus,

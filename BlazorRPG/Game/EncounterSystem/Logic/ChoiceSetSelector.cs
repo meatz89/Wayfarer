@@ -33,10 +33,10 @@
         {
             return null;
         }
-        
+
         int randomValue = random.Next(topSets.Count);
         ChoiceSetTemplate randomTemplate = topSets[randomValue];
-        
+
         return randomTemplate;
     }
 

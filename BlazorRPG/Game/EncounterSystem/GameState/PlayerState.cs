@@ -112,6 +112,17 @@
         return false;
     }
 
+    public bool ModifyStress(int count)
+    {
+        int newStress = Math.Clamp(Stress + count, 0, MaxStress);
+        if (newStress != Stress)
+        {
+            Stress = newStress;
+            return true;
+        }
+        return false;
+    }
+
     internal void ModifyEnergy(EnergyTypes energyType, int amount)
     {
         switch (energyType)

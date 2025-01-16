@@ -1,22 +1,52 @@
-﻿using System.Diagnostics.Metrics;
-
-public class EncounterSystem
+﻿public class EncounterSystem
 {
     private readonly GameState gameState;
     private readonly ChoiceSystem choiceSystem;
-    private readonly LocationSystem locationSystem;
-    private readonly MessageSystem messageSystem;
+    private readonly ChoiceCalculator choiceCalculator;
+    private readonly ChoiceExecutor choiceExecutor;
 
     public EncounterSystem(
         GameState gameState,
         ChoiceSystem choiceSystem,
-        LocationSystem locationSystem,
-        MessageSystem messageSystem)
+        MessageSystem messageSystemfabian)
     {
         this.gameState = gameState;
         this.choiceSystem = choiceSystem;
-        this.locationSystem = locationSystem;
-        this.messageSystem = messageSystem;
+        this.choiceExecutor = new ChoiceExecutor(gameState);
+        this.choiceCalculator = new ChoiceCalculator();
+    }
+
+    public void ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationProperties locationProperties)
+    {
+        // Pre-calculate all effects
+        ChoiceCalculationResult calculationResult = choiceCalculator.CalculateChoiceEffects(choice, encounter.Context);
+
+        // Verify requirements are met before executing
+        if (!VerifyRequirements(calculationResult.Requirements))
+        {
+            return;
+        }
+
+        // Execute the choice with pre-calculated values
+        choiceExecutor.ExecuteChoice(calculationResult);
+
+        // Update encounter state
+        encounter.Context.CurrentValues = calculationResult.NewStateValues;
+        encounter.Context.StageNumber++;
+        encounter.Context.CurrentValues.LastChoiceType = choice.Archetype;
+
+        // Check for game over conditions
+        if (IsGameOver(encounter) || IsGameWon(encounter))
+        {
+            EndEncounter(encounter);
+            return;
+        }
+
+        // Generate next stage if not over
+        if (!GetNextStage(encounter))
+        {
+            EndEncounter(encounter);
+        }
     }
 
     public Encounter GenerateEncounter(EncounterContext context)
@@ -37,11 +67,18 @@ public class EncounterSystem
 
     private EncounterStage GenerateStage(EncounterContext context)
     {
-        // Use ChoiceSystem to generate choices
-        ChoiceSet? choiceSet = choiceSystem.GenerateChoices(context);
-        if (choiceSet == null || choiceSet.Choices.Count == 0) return null;
+        // Get choice set from choice system
+        ChoiceSet choiceSet = choiceSystem.GenerateChoices(context);
+        if (choiceSet == null || choiceSet.Choices.Count == 0)
+            return null;
 
-        // Create stage with generated choices
+        // Pre-calculate all choices in the set
+        foreach (EncounterChoice choice in choiceSet.Choices)
+        {
+            choiceCalculator.CalculateChoiceEffects(choice, context);
+        }
+
+        // Create stage with pre-calculated choices
         return new EncounterStage
         {
             Situation = GenerateStageSituation(context),
@@ -50,29 +87,25 @@ public class EncounterSystem
         };
     }
 
-    public void ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationProperties locationProperties)
+    private bool VerifyRequirements(List<Requirement> requirements)
     {
-        // Let ChoiceSystem execute the choice
-        choiceSystem.ExecuteChoice(choice);
-
-        // Check for game over or victory conditions
-        if (IsGameOver(encounter) || IsGameWon(encounter))
-        {
-            gameState.Actions.SetActiveEncounter(null);
-        }
+        return requirements.All(req => req.IsSatisfied(gameState.Player));
     }
 
-    public bool GetNextStage(Encounter encounter)
+    private void EndEncounter(Encounter encounter)
     {
-        // Generate new stage and add it
+        gameState.Actions.SetActiveEncounter(null);
+        // Additional cleanup if needed
+    }
+    private bool GetNextStage(Encounter encounter)
+    {
         EncounterStage newStage = GenerateStage(encounter.Context);
-        if (newStage == null) return false;
+        if (newStage == null)
+            return false;
 
         encounter.AddStage(newStage);
-
         return true;
     }
-
 
     public void SetEncounterChoices(Encounter encounter, LocationNames location)
     {
