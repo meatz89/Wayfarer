@@ -8,7 +8,7 @@
         )
     {
         this.gameState = gameState;
-        this.calculator = new ChoiceCalculator();
+        this.calculator = new ChoiceCalculator(gameState);
         this.baseValueGenerator = new ChoiceEffectsGenerator();
     }
 

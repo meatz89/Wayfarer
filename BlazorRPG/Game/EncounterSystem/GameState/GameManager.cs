@@ -490,6 +490,6 @@ public class GameManager
 
     public ChoiceCalculationResult CalculateChoiceEffects(EncounterChoice encounterChoice, EncounterContext context)
     {
-        return new ChoiceCalculator().CalculateChoiceEffects(encounterChoice, context);
+        return new ChoiceCalculator(gameState).CalculateChoiceEffects(encounterChoice, context);
     }
 }

@@ -13,9 +13,8 @@
         if (!AreRequirementsMet(result.Requirements))
             return;
 
-        // Apply energy cost
-        if (!ApplyEnergyCost(result.EnergyType, result.EnergyCost))
-            return;
+        // Apply energy cost or alternative cost
+        ApplyEnergyCost(choice, result);
 
         // Apply costs
         foreach (Outcome cost in result.Costs)
@@ -42,12 +41,35 @@
         return requirements.All(req => req.IsSatisfied(gameState.Player));
     }
 
-    private bool ApplyEnergyCost(EnergyTypes energyType, int cost)
+    private void ApplyEnergyCost(EncounterChoice choice, ChoiceCalculationResult result)
     {
-        if (!gameState.Player.CanPayEnergy(energyType, cost))
-            return false;
+        int energyCost = result.EnergyCost;
 
-        gameState.Player.ModifyEnergy(energyType, -cost);
-        return true;
+        if (gameState.Player.CanPayEnergy(choice.EnergyType, energyCost))
+        {
+            gameState.Player.ModifyEnergy(choice.EnergyType, -energyCost);
+        }
+        else
+        {
+            // Apply alternative costs based on energy type
+            switch (choice.EnergyType)
+            {
+                case EnergyTypes.Physical:
+                    int healthCost = energyCost - gameState.Player.PhysicalEnergy;
+                    gameState.Player.PhysicalEnergy = 0;
+                    gameState.Player.ModifyHealth(-healthCost);
+                    break;
+                case EnergyTypes.Focus:
+                    int concentrationCost = energyCost - gameState.Player.FocusEnergy;
+                    gameState.Player.FocusEnergy = 0;
+                    gameState.Player.ModifyConcentration(concentrationCost);
+                    break;
+                case EnergyTypes.Social:
+                    int reputationCost = energyCost - gameState.Player.SocialEnergy;
+                    gameState.Player.SocialEnergy = 0;
+                    gameState.Player.ModifyReputation(-reputationCost);
+                    break;
+            }
+        }
     }
 }

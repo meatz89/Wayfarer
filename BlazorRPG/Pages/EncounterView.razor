@@ -6,7 +6,7 @@
         <div class="encounter-header">
             <h2>@GameState.Actions.CurrentEncounter.Situation</h2>
         </div>
-        
+
         <div class="encounter-context">
 
             <div class="encounter-stats">
@@ -36,7 +36,6 @@
                     <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Pressure</span>
                 </div>
             </div>
-
             <div class="encounter-stage">
                 <h3 class="choice-set-name">@GameManager.EncounterSystem.GetCurrentStage(GameState.Actions.CurrentEncounter).CurrentChoiceSetName</h3>
                 <div class="stage-description">
@@ -47,7 +46,7 @@
             <div class="encounter-choices">
                 @foreach (var choice in GameState.Actions.CurrentChoiceOptions)
                 {
-                    <div class="choice-option"
+                    <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")"
                          @onmousemove="async (e) => await ShowTooltip(choice, e)"
                          @onmouseout="HideTooltip"
                          @onclick="() => HandleChoiceSelection(choice)">
@@ -70,8 +69,10 @@
                 {
                     <div class="location-effects">
                         <h5>Location Effects</h5>
+                        @*TODO: List the location effects*@
                     </div>
                 }
+
                 <div class="final-results">
                     <h5>Choice Results</h5>
                     <div class="value-list">
@@ -112,6 +113,8 @@
                                                 @GetOutcomeIcon(cost)
                                                 <span class="value-type">@cost.GetDescription()</span>
                                             </div>
+                                            <span class="value-total">
+                                            </span>
                                         </div>
                                     </li>
                                 }
@@ -129,20 +132,23 @@
                                                 @GetOutcomeIcon(reward)
                                                 <span class="value-type">@reward.GetDescription()</span>
                                             </div>
+                                            <span class="value-total">
+                                            </span>
                                         </div>
                                     </li>
                                 }
                             </ul>
                         }
                     </div>
+
                     <div class="energy-cost-section">
                         <div class="energy-cost-display @hoveredChoice.EncounterChoice.EnergyType.ToString().ToLower()">
                             @GetEnergyTypeIcon(hoveredChoice.EncounterChoice.EnergyType)
                             <span class="value-type">
-                                @hoveredChoice.EncounterChoice.EnergyType Energy Cost
+                                Energy Cost
                             </span>
                             <span class="energy-cost-value">
-                                @hoveredChoice.EncounterChoice.EnergyCost
+                                @GetEnergyDisplay(hoveredChoice.EncounterChoice)
                             </span>
                         </div>
                     </div>

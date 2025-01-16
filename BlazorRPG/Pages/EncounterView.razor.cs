@@ -74,6 +74,30 @@ public partial class EncounterViewBase : ComponentBase
         };
     }
 
+    public string GetEnergyDisplay(EncounterChoice choice)
+    {
+        int energyCost = choice.EnergyCost;
+
+        // Calculate alternative costs if not enough energy
+        switch (choice.EnergyType)
+        {
+            case EnergyTypes.Physical when GameState.Player.PhysicalEnergy < energyCost:
+                int healthLoss = energyCost - GameState.Player.PhysicalEnergy;
+                return $"-{healthLoss} Health";
+
+            case EnergyTypes.Focus when GameState.Player.FocusEnergy < energyCost:
+                int concentrationLoss = energyCost - GameState.Player.FocusEnergy;
+                return $"-{concentrationLoss} Concentration";
+
+            case EnergyTypes.Social when GameState.Player.SocialEnergy < energyCost:
+                int reputationLoss = energyCost - GameState.Player.SocialEnergy;
+                return $"{reputationLoss} Reputation";
+
+            default:
+                return $"{energyCost} {choice.EnergyType}";
+        }
+    }
+
     public List<DetailedChange> GetValueChanges(EncounterChoice choice)
     {
         return choice.GetDetailedChanges();

@@ -1,10 +1,14 @@
-﻿public class ChoiceCalculator
+﻿using System.Numerics;
+
+public class ChoiceCalculator
 {
+    private readonly GameState gameState;
     private readonly ChoiceEffectsGenerator baseValueGenerator;
     private readonly LocationPropertyEffectCalculator locationPropertyCalculator;
 
-    public ChoiceCalculator()
+    public ChoiceCalculator(GameState gameState)
     {
+        this.gameState = gameState;
         this.baseValueGenerator = new ChoiceEffectsGenerator();
         this.locationPropertyCalculator = new LocationPropertyEffectCalculator();
     }
@@ -16,10 +20,10 @@
             .GenerateBaseValueChanges(choice.Archetype, choice.Approach);
 
         // 2. Calculate all modifications from game state and effects
-        List<ValueModification> modifications = CalculateAllValueChanges(choice, context);
+        List<ValueModification> valueModifications = CalculateAllValueChanges(choice, context);
 
         // 3. Calculate new state after combining base values and modifications
-        EncounterStateValues newState = CalculateNewState(context.CurrentValues, choice, baseChanges, modifications);
+        EncounterStateValues newState = CalculateNewState(context.CurrentValues, choice, baseChanges, valueModifications);
 
         // 4. Calculate final requirements, costs and rewards
         List<Requirement> requirements = CalculateRequirements(choice, context);
@@ -28,17 +32,17 @@
 
         // 5. Store all results in the choice for UI preview
         choice.BaseEncounterValueChanges = baseChanges;
-        choice.ValueModifications = modifications;
+        choice.ValueModifications = valueModifications;
         choice.Requirements = requirements;
         choice.Costs = costs;
         choice.Rewards = rewards;
-        choice.EnergyCost = CalculateEnergyCost(choice, context);
+        choice.EnergyCost = CalculateEnergyCost(choice, context, gameState.Player);
 
         // 6. Return complete calculation result
         return new ChoiceCalculationResult(
             newState,
             baseChanges,          // Base values
-            modifications,        // Modifications with sources
+            valueModifications,   // Modifications with sources
             choice.EnergyType,    // Energy type
             choice.EnergyCost,    // Energy cost
             requirements,         // Requirements
@@ -198,20 +202,20 @@
         return costs;
     }
 
-    private List<Outcome> CalculateRewards(EncounterChoice choice, EncounterContext context)
-    {
-        List<Outcome> rewards = baseValueGenerator.GenerateBaseRewards(choice.Archetype, choice.Approach);
-        List<Outcome> propertyRewards = locationPropertyCalculator.CalculatePropertyRewards(choice, context.LocationProperties);
-        rewards.AddRange(propertyRewards);
-        return rewards;
-    }
-
-    private int CalculateEnergyCost(EncounterChoice choice, EncounterContext context)
+    private int CalculateEnergyCost(EncounterChoice choice, EncounterContext context, PlayerState player)
     {
         int baseEnergyCost = baseValueGenerator.GenerateBaseEnergyCost(choice.Archetype, choice.Approach);
         int propertyModifier = locationPropertyCalculator.CalculateEnergyCostModifier(choice, context.LocationProperties);
         int pressureModifier = context.CurrentValues.Pressure >= 6 ? context.CurrentValues.Pressure - 5 : 0;
 
         return baseEnergyCost + propertyModifier + pressureModifier;
+    }
+
+    private List<Outcome> CalculateRewards(EncounterChoice choice, EncounterContext context)
+    {
+        List<Outcome> rewards = baseValueGenerator.GenerateBaseRewards(choice.Archetype, choice.Approach);
+        List<Outcome> propertyRewards = locationPropertyCalculator.CalculatePropertyRewards(choice, context.LocationProperties);
+        rewards.AddRange(propertyRewards);
+        return rewards;
     }
 }

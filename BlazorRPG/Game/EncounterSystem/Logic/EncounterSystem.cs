@@ -13,7 +13,7 @@
         this.gameState = gameState;
         this.choiceSystem = choiceSystem;
         this.choiceExecutor = new ChoiceExecutor(gameState);
-        this.choiceCalculator = new ChoiceCalculator();
+        this.choiceCalculator = new ChoiceCalculator(gameState);
     }
 
     public void ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationProperties locationProperties)
@@ -137,7 +137,7 @@
 
         // Loss if all energy types are depleted and can't pay permanent costs
         bool canPayPhysical = player.PhysicalEnergy > 0 || player.Health > 1;
-        bool canPayFocus = player.FocusEnergy > 0 || player.Concentration < player.MaxConcentration - 1;
+        bool canPayFocus = player.FocusEnergy > 0 || player.Concentration > 1;
         bool canPaySocial = player.SocialEnergy > 0 || player.Reputation > 1;
 
         return !canPayPhysical && !canPayFocus && !canPaySocial;

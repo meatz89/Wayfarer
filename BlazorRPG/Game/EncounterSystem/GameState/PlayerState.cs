@@ -231,6 +231,17 @@
         }
     }
 
+    public bool CanPayEnergy(EnergyTypes energyType, int amount)
+    {
+        switch (energyType)
+        {
+            case EnergyTypes.Physical: return PhysicalEnergy >= amount;
+            case EnergyTypes.Focus: return FocusEnergy >= amount;
+            case EnergyTypes.Social: return SocialEnergy >= amount;
+        };
+        return false;
+    }
+
     public bool HasReputation(ReputationTypes reputationType)
     {
         return Reputations.ContainsKey(reputationType);
@@ -260,11 +271,6 @@
     }
 
     public bool HasStatus(PlayerStatusTypes status)
-    {
-        return true;
-    }
-
-    public bool CanPayEnergy(EnergyTypes energyType, int amount)
     {
         return true;
     }
