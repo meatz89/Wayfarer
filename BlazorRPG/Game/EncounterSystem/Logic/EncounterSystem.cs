@@ -121,38 +121,7 @@
     private bool IsGameWon(Encounter encounter)
     {
         const int OUTCOME_WIN = 20;
-        const int INSIGHT_WIN = 14;
-        const int RESONANCE_WIN = 14;
-
-        // Different win conditions based on action type
-        return encounter.Context.ActionType switch
-        {
-            // Physical actions need high Outcome
-            BasicActionTypes.Labor or
-            BasicActionTypes.Gather or
-            BasicActionTypes.Travel =>
-                encounter.Context.CurrentValues.Outcome >= OUTCOME_WIN ||
-                (encounter.Context.CurrentValues.Outcome >= 14 &&
-                 encounter.Context.CurrentValues.Pressure <= 3),
-
-            // Social actions can win through high Resonance
-            BasicActionTypes.Mingle or
-            BasicActionTypes.Persuade or
-            BasicActionTypes.Perform =>
-                encounter.Context.CurrentValues.Outcome >= OUTCOME_WIN ||
-                (encounter.Context.CurrentValues.Resonance >= RESONANCE_WIN &&
-                 encounter.Context.CurrentValues.Outcome >= 10),
-
-            // Mental actions can win through high Insight
-            BasicActionTypes.Investigate or
-            BasicActionTypes.Study or
-            BasicActionTypes.Reflect =>
-                encounter.Context.CurrentValues.Outcome >= OUTCOME_WIN ||
-                (encounter.Context.CurrentValues.Insight >= INSIGHT_WIN &&
-                 encounter.Context.CurrentValues.Outcome >= 10),
-
-            _ => false
-        };
+        return encounter.Context.CurrentValues.Outcome >= OUTCOME_WIN;
     }
 
     // New method to check for game over conditions
@@ -161,13 +130,14 @@
         EncounterStateValues values = encounter.Context.CurrentValues;
         PlayerState player = gameState.Player;
 
+        const int PRESSURE_LOOSE = 20;
         // Immediate loss if pressure maxes out
-        if (values.Pressure >= 10)
+        if (values.Pressure >= PRESSURE_LOOSE)
             return true;
 
         // Loss if all energy types are depleted and can't pay permanent costs
         bool canPayPhysical = player.PhysicalEnergy > 0 || player.Health > 1;
-        bool canPayFocus = player.FocusEnergy > 0 || player.Stress < player.MaxStress - 1;
+        bool canPayFocus = player.FocusEnergy > 0 || player.Concentration < player.MaxConcentration - 1;
         bool canPaySocial = player.SocialEnergy > 0 || player.Reputation > 1;
 
         return !canPayPhysical && !canPayFocus && !canPaySocial;

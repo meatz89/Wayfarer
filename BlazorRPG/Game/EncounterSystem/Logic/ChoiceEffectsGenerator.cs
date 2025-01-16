@@ -1,4 +1,4 @@
-﻿public class ChoiceBaseValueGenerator
+﻿public class ChoiceEffectsGenerator
 {
     public List<BaseValueChange> GenerateBaseValueChanges(ChoiceArchetypes archetype, ChoiceApproaches approach)
     {
@@ -134,12 +134,14 @@
     {
         List<Outcome> costs = new();
 
-        // Add base energy cost
-        costs.Add(new EnergyOutcome(
-            GetArchetypeEnergy(archetype),
-            GenerateBaseEnergyCost(archetype, approach)));
-
         // Direct approaches have additional costs
+        GetDirectChoiceOutcome(archetype, approach, costs);
+
+        return costs;
+    }
+
+    private static void GetDirectChoiceOutcome(ChoiceArchetypes archetype, ChoiceApproaches approach, List<Outcome> costs)
+    {
         if (approach == ChoiceApproaches.Direct)
         {
             switch (archetype)
@@ -148,17 +150,15 @@
                     costs.Add(new HealthOutcome(-1));
                     break;
                 case ChoiceArchetypes.Focus:
-                    // Add stress cost for intense focus
-                    costs.Add(new StressOutcome(1));
+                    // Add concentration cost for intense focus
+                    costs.Add(new ConcentrationOutcome(-1));
                     break;
                 case ChoiceArchetypes.Social:
-                    // Risk to reputation for direct social approaches
-                    costs.Add(new ReputationOutcome(ReputationTypes.Reliable, -1));
+                    // Reputation Loss for direct social approaches
+                    costs.Add(new ReputationOutcome(-1));
                     break;
             }
         }
-
-        return costs;
     }
 
     public List<Outcome> GenerateBaseRewards(ChoiceArchetypes archetype, ChoiceApproaches approach)
@@ -170,8 +170,6 @@
         {
             case ChoiceArchetypes.Physical:
                 rewards.Add(new CoinsOutcome(2));
-                if (approach == ChoiceApproaches.Direct)
-                    rewards.Add(new ReputationOutcome(ReputationTypes.Reliable, 1));
                 break;
 
             case ChoiceArchetypes.Focus:
@@ -181,9 +179,9 @@
 
             case ChoiceArchetypes.Social:
                 if (approach == ChoiceApproaches.Tactical)
-                    rewards.Add(new ReputationOutcome(ReputationTypes.Reliable, 2));
+                    rewards.Add(new ReputationOutcome(2));
                 else
-                    rewards.Add(new ReputationOutcome(ReputationTypes.Reliable, 1));
+                    rewards.Add(new ReputationOutcome(1));
                 break;
         }
 

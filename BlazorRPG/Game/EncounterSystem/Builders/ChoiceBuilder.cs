@@ -68,7 +68,7 @@
             requireReputation);
 
         choice.BaseEncounterValueChanges = baseValueChanges;
-        choice.ModifiedRequirements = requirements;
+        choice.Requirements = requirements;
 
         return choice;
     }

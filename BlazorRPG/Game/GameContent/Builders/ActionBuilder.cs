@@ -108,9 +108,9 @@
         return this;
     }
 
-    public ActionBuilder RewardsReputation(ReputationTypes reputationType, int count)
+    public ActionBuilder RewardsReputation(int count)
     {
-        rewards.Add(new ReputationOutcome(reputationType, count));
+        rewards.Add(new ReputationOutcome(count));
         return this;
     }
 

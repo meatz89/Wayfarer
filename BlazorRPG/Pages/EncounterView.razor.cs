@@ -45,6 +45,11 @@ public partial class EncounterViewBase : ComponentBase
         mouseY = e.ClientY + 10;
     }
 
+    public MarkupString GetOutcomeIcon(Outcome outcome)
+    {
+        return new MarkupString("");
+    }
+
     public MarkupString GetValueTypeIcon(ValueTypes valueType)
     {
         return valueType switch
@@ -135,7 +140,7 @@ public partial class EncounterViewBase : ComponentBase
     public bool IsChoiceDisabled(UserEncounterChoiceOption choice)
     {
         // Use the ModifiedRequirements for the disabled check
-        return choice.EncounterChoice.ModifiedRequirements.Any(req => !req.IsSatisfied(GameState.Player));
+        return choice.EncounterChoice.Requirements.Any(req => !req.IsSatisfied(GameState.Player));
     }
 }
 

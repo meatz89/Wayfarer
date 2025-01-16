@@ -239,7 +239,8 @@ body {
     min-width: 300px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     max-width: calc(100vw - 40px);
-    max-height: calc(100vh - 40px);
+    /* Reduce maximum height to prevent overflow */
+    max-height: 60vh; /* Adjust this value as needed */
     overflow-y: auto;
     pointer-events: none;
 }
@@ -1265,3 +1266,93 @@ body {
 .stat:has(.pressure-icon) .stat-value {
     color: #dc2626; /* Same red as the pressure icon */
 }
+
+.outcomes-preview {
+    margin: 12px 0;
+}
+
+.outcomes-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+    .outcomes-list li {
+        margin-bottom: 8px; /* Spacing between items */
+    }
+
+    .outcomes-list .value-item {
+        background-color: transparent; /* Removes background */
+        padding: 0; /* Removes padding */
+        border: none; /* Removes border */
+    }
+
+    .outcomes-list .value-main {
+        align-items: center; /* Align items to the same baseline */
+    }
+
+    .outcomes-list .value-header {
+        gap: 4px; /* Reduced gap */
+    }
+
+    .outcomes-list .value-icon {
+        width: 20px; /* Smaller icon size */
+        height: 20px;
+        font-size: 0.9em; /* Smaller icon font size */
+    }
+
+    .outcomes-list .value-type {
+        font-size: 0.9em; /* Smaller font size for type */
+        color: var(--text-secondary); /* Dimmed text color */
+    }
+
+    .outcomes-list .value-total {
+        font-size: 0.9em; /* Smaller font size for total */
+        margin-left: auto; /* Push the total to the right */
+    }
+
+/* Reduce font size and icon size in the outcomes preview */
+.outcomes-preview {
+    margin: 12px 0;
+    font-size: 0.9em; /* Smaller font size for the whole section */
+}
+
+.outcomes-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+    .outcomes-list li {
+        margin-bottom: 8px;
+    }
+
+    .outcomes-list .value-item {
+        background-color: transparent;
+        padding: 0;
+        border: none;
+    }
+
+    .outcomes-list .value-main {
+        align-items: center;
+    }
+
+    .outcomes-list .value-header {
+        gap: 4px; /* Reduced gap */
+    }
+
+    .outcomes-list .value-icon {
+        width: 20px; /* Smaller icon size */
+        height: 20px;
+        font-size: 0.9em; /* Smaller icon font size */
+        background-color: transparent;
+    }
+
+    .outcomes-list .value-type {
+        font-size: 0.9em; /* Smaller font size for type */
+        color: var(--text-secondary);
+        margin-bottom: 0px;
+    }
+
+    .outcomes-list .value-total {
+        font-size: 0.9em; /* Smaller font size for total */
+        margin-left: auto; /* Push the total to the right */
+    }

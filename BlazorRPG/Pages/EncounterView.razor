@@ -99,7 +99,42 @@
                             </div>
                         }
                     </div>
-
+                    <div class="outcomes-preview">
+                        @if (hoveredChoice.EncounterChoice.Costs.Count > 0)
+                        {
+                            <h6>Costs</h6>
+                            <ul class="outcomes-list">
+                                @foreach (Outcome cost in hoveredChoice.EncounterChoice.Costs)
+                                {
+                                    <li class="value-item">
+                                        <div class="value-main">
+                                            <div class="value-header">
+                                                @GetOutcomeIcon(cost)
+                                                <span class="value-type">@cost.GetDescription()</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        @if (hoveredChoice.EncounterChoice.Rewards.Count > 0)
+                        {
+                            <h6>Rewards</h6>
+                            <ul class="outcomes-list">
+                                @foreach (Outcome reward in hoveredChoice.EncounterChoice.Rewards)
+                                {
+                                    <li class="value-item">
+                                        <div class="value-main">
+                                            <div class="value-header">
+                                                @GetOutcomeIcon(reward)
+                                                <span class="value-type">@reward.GetDescription()</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
                     <div class="energy-cost-section">
                         <div class="energy-cost-display @hoveredChoice.EncounterChoice.EnergyType.ToString().ToLower()">
                             @GetEnergyTypeIcon(hoveredChoice.EncounterChoice.EnergyType)

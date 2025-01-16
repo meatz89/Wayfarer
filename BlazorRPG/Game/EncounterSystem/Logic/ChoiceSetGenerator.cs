@@ -2,14 +2,14 @@
 {
     private readonly GameState gameState;
     private readonly ChoiceCalculator calculator;
-    private readonly ChoiceBaseValueGenerator baseValueGenerator;
+    private readonly ChoiceEffectsGenerator baseValueGenerator;
 
     public ChoiceSetGenerator(GameState gameState
         )
     {
         this.gameState = gameState;
         this.calculator = new ChoiceCalculator();
-        this.baseValueGenerator = new ChoiceBaseValueGenerator();
+        this.baseValueGenerator = new ChoiceEffectsGenerator();
     }
 
     public ChoiceSet Generate(ChoiceSetTemplate template, EncounterContext context)

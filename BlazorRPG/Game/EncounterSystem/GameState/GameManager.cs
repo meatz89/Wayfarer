@@ -483,7 +483,7 @@ public class GameManager
         int noFoodHealthLoss = currentRules.NoFoodEffectOnHealth;
         int noShelterHealthLoss = currentRules.NoShelterEffectOnHealth;
 
-        if (!hasFood) gameState.Player.ChangeHealth(currentRules.NoFoodEffectOnHealth);
+        if (!hasFood) gameState.Player.ModifyHealth(currentRules.NoFoodEffectOnHealth);
 
         return Player.Health > Player.MinHealth;
     }

@@ -1,11 +1,11 @@
 ﻿public class ChoiceCalculator
 {
-    private readonly ChoiceBaseValueGenerator baseValueGenerator;
+    private readonly ChoiceEffectsGenerator baseValueGenerator;
     private readonly LocationPropertyEffectCalculator locationPropertyCalculator;
 
     public ChoiceCalculator()
     {
-        this.baseValueGenerator = new ChoiceBaseValueGenerator();
+        this.baseValueGenerator = new ChoiceEffectsGenerator();
         this.locationPropertyCalculator = new LocationPropertyEffectCalculator();
     }
 
@@ -29,9 +29,9 @@
         // 5. Store all results in the choice for UI preview
         choice.BaseEncounterValueChanges = baseChanges;
         choice.ValueModifications = modifications;
-        choice.ModifiedRequirements = requirements;
-        choice.ModifiedCosts = costs;
-        choice.ModifiedRewards = rewards;
+        choice.Requirements = requirements;
+        choice.Costs = costs;
+        choice.Rewards = rewards;
         choice.EnergyCost = CalculateEnergyCost(choice, context);
 
         // 6. Return complete calculation result
@@ -59,24 +59,14 @@
         // Add state-based modifications
         AddStateModifications(modifications, choice, context);
 
-        // Add outcome conversion last
-        AddOutcomeConversion(modifications, choice, context);
-
         return modifications;
     }
 
     private void AddDecayModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {
-        // Base decay for Momentum
-        //modifications.Add(new ValueModification(ValueTypes.Momentum, -2, "Base Decay"));
-
         // Decay for unused values
         if (choice.Archetype != ChoiceArchetypes.Physical)
             modifications.Add(new ValueModification(ValueTypes.Momentum, -1, "Unused Momentum Decay"));
-        //if (choice.Archetype != ChoiceArchetypes.Focus)
-        //    modifications.Add(new ValueModification(ValueTypes.Insight, -1, "Unused Insight Decay"));
-        //if (choice.Archetype != ChoiceArchetypes.Social)
-        //    modifications.Add(new ValueModification(ValueTypes.Resonance, -1, "Unused Resonance Decay"));
 
         // Extra decay for repeating choices
         if (context.CurrentValues.LastChoiceType == choice.Archetype)
@@ -104,13 +94,13 @@
             choice.BaseEncounterValueChanges,
             modifications);
 
-        // Add pressure when values hit zero
-        if (projectedValues.Momentum == 0)
-            modifications.Add(new ValueModification(ValueTypes.Pressure, 2, "No Momentum"));
-        if (projectedValues.Insight == 0)
-            modifications.Add(new ValueModification(ValueTypes.Pressure, 2, "No Insight"));
-        if (projectedValues.Resonance == 0)
-            modifications.Add(new ValueModification(ValueTypes.Pressure, 2, "No Resonance"));
+        // Add pressure when values are too low
+        if (projectedValues.Momentum < projectedValues.Outcome / 3)
+            modifications.Add(new ValueModification(ValueTypes.Pressure, 2, "Not enough Momentum"));
+        if (projectedValues.Insight < projectedValues.Outcome / 3)
+            modifications.Add(new ValueModification(ValueTypes.Pressure, 2, "Not enough Insight"));
+        if (projectedValues.Resonance < projectedValues.Outcome / 3)
+            modifications.Add(new ValueModification(ValueTypes.Pressure, 2, "Not enough Resonance"));
     }
 
     private void AddStateModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
@@ -129,42 +119,6 @@
                 }
             }
         }
-    }
-
-    private void AddOutcomeConversion(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
-    {
-        /*
-        // Project final state including all previous modifications
-        EncounterStateValues projectedValues = ProjectNewState(
-            context.CurrentValues,
-            choice.BaseEncounterValueChanges,
-            modifications);
-
-        bool canGenerateOutcome = choice.Archetype switch
-        {
-            ChoiceArchetypes.Physical => projectedValues.Pressure <= projectedValues.Momentum,
-            ChoiceArchetypes.Focus => projectedValues.Insight > 0,
-            ChoiceArchetypes.Social => projectedValues.Resonance > 0,
-            _ => false
-        };
-
-        if (canGenerateOutcome)
-        {
-            int outcomeAmount = choice.Archetype switch
-            {
-                ChoiceArchetypes.Physical => projectedValues.Momentum,
-                ChoiceArchetypes.Focus => projectedValues.Insight,
-                ChoiceArchetypes.Social => projectedValues.Resonance,
-                _ => 0
-            };
-
-            modifications.Add(new ValueModification(ValueTypes.Outcome, outcomeAmount, $"{choice.Archetype} Conversion"));
-        }
-        else
-        {
-            modifications.Add(new ValueModification(ValueTypes.Pressure, 2, "Failed Outcome Generation"));
-        }
-        */
     }
 
     private EncounterStateValues ProjectNewState(

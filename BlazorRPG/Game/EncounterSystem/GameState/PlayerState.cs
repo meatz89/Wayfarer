@@ -2,13 +2,14 @@
 {
     public int Level { get; set; } = 1;
     public int Coins { get; set; }
+
     public int Health { get; set; }
     public int MinHealth { get; set; }
     public int MaxHealth { get; set; }
 
-    public int Stress { get; set; }
-    public int MinStress { get; set; }
-    public int MaxStress { get; set; }
+    public int Concentration { get; set; }
+    public int MinConcentration { get; set; }
+    public int MaxConcentration { get; set; }
 
     public int Reputation { get; set; }
     public int MinReputation { get; set; }
@@ -68,8 +69,8 @@
         SocialEnergy = GameRules.StandardRuleset.StartingSocialEnergy;
         MaxSocialEnergy = 40;
 
-        Stress = MinStress = 0;
-        MaxStress = 40;
+        Concentration = MinConcentration = 0;
+        MaxConcentration = 40;
 
         Reputation = 0;
         MinReputation = 0;
@@ -112,18 +113,29 @@
         return false;
     }
 
-    public bool ModifyStress(int count)
+    public bool ModifyConcentration(int count)
     {
-        int newStress = Math.Clamp(Stress + count, 0, MaxStress);
-        if (newStress != Stress)
+        int newConcentration = Math.Clamp(Concentration + count, 0, MaxConcentration);
+        if (newConcentration != Concentration)
         {
-            Stress = newStress;
+            Concentration = newConcentration;
             return true;
         }
         return false;
     }
 
-    internal void ModifyEnergy(EnergyTypes energyType, int amount)
+    public bool ModifyReputation(int count)
+    {
+        int newReputation = Math.Clamp(Reputation + count, 0, MaxReputation);
+        if (newReputation != Reputation)
+        {
+            Reputation = newReputation;
+            return true;
+        }
+        return false;
+    }
+
+    public void ModifyEnergy(EnergyTypes energyType, int amount)
     {
         switch (energyType)
         {
@@ -191,20 +203,6 @@
         }
 
         return false;
-    }
-
-    public void ChangeHealth(int healthGain)
-    {
-        Health = Math.Min(MaxHealth, Math.Max(MinHealth, Health + healthGain));
-    }
-
-    public void ModifyReputation(ReputationTypes reputationType, int count)
-    {
-        if (!Reputations.ContainsKey(reputationType))
-        {
-            Reputations.Add(reputationType, 0);
-        }
-        Reputations[reputationType] += count;
     }
 
     public int GetReputationLevel(ReputationTypes reputationType)

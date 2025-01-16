@@ -57,12 +57,12 @@ public class ItemOutcome : Outcome
 
     public override string GetDescription()
     {
-        throw new NotImplementedException();
+        return "Item Change";
     }
 
     public override string GetPreview(PlayerState player)
     {
-        throw new NotImplementedException();
+        return "Item Change";
     }
 }
 
@@ -94,40 +94,6 @@ public class KnowledgeOutcome : Outcome
     public override string GetPreview(PlayerState player)
     {
         throw new NotImplementedException();
-    }
-}
-
-public class ReputationOutcome : Outcome
-{
-    public ReputationTypes ReputationType { get; set; }
-    public int Change { get; set; }
-
-    public ReputationOutcome(ReputationTypes reputationType, int amount)
-    {
-        ReputationType = reputationType;
-        Change = amount;
-    }
-
-    public override void Apply(PlayerState player)
-    {
-        if (!player.Reputations.ContainsKey(ReputationType))
-        {
-            player.Reputations[ReputationType] = 0;
-        }
-        player.SetReputationLevel(ReputationType, player.GetReputationLevel(ReputationType) + Change);
-
-    }
-
-    public override string GetDescription()
-    {
-        return $"{ReputationType} ReputationType";
-    }
-
-    public override string GetPreview(PlayerState player)
-    {
-        int current = player.GetReputationLevel(ReputationType);
-        int newValue = Math.Clamp(current + 1, 0, 100);
-        return $"({current} -> {newValue})";
     }
 }
 
@@ -221,29 +187,55 @@ public class HealthOutcome : Outcome
     }
 }
 
-public class StressOutcome : Outcome
+public class ConcentrationOutcome : Outcome
 {
     public int Count { get; }
 
-    public StressOutcome(int count)
+    public ConcentrationOutcome(int count)
     {
         Count = count;
     }
 
     public override void Apply(PlayerState player)
     {
-        player.ModifyStress(Count);
+        player.ModifyConcentration(Count);
     }
 
     public override string GetDescription()
     {
-        return $"{(Count >= 0 ? "+" : "")}{Count} Stress";
+        return $"{(Count >= 0 ? "+" : "")}{Count} Concentration";
     }
 
     public override string GetPreview(PlayerState player)
     {
-        int newValue = Math.Clamp(player.Stress + Count, 0, player.MaxStress);
-        return $"({player.Stress} -> {newValue})";
+        int newValue = Math.Clamp(player.Concentration + Count, 0, player.MaxConcentration);
+        return $"({player.Concentration} -> {newValue})";
+    }
+}
+
+public class ReputationOutcome : Outcome
+{
+    public int Count { get; }
+
+    public ReputationOutcome(int count)
+    {
+        Count = count;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        player.ModifyReputation(Count);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(Count >= 0 ? "+" : "")}{Count} Reputation";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        int newValue = Math.Clamp(player.Reputation + Count, 0, player.MaxReputation);
+        return $"({player.Reputation} -> {newValue})";
     }
 }
 

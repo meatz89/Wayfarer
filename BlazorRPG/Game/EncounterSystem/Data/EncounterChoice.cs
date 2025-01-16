@@ -6,17 +6,16 @@
     public ChoiceArchetypes Archetype { get; }
     public ChoiceApproaches Approach { get; }
     public EnergyTypes EnergyType { get; }
+    public int EnergyCost { get; set; }
 
     // Value changes
     public List<BaseValueChange> BaseEncounterValueChanges { get; set; } = new();
     public List<ValueModification> ValueModifications { get; set; } = new();
 
     // Requirements and outcomes
-    public List<Requirement> ModifiedRequirements { get; set; } = new();
-    public List<Outcome> ModifiedCosts { get; set; } = new();
-    public List<Outcome> ModifiedRewards { get; set; } = new();
-    public int EnergyCost { get; set; }
-
+    public List<Requirement> Requirements { get; set; } = new();
+    public List<Outcome> Costs { get; set; } = new();
+    public List<Outcome> Rewards { get; set; } = new();
 
     // For execution - just raw numbers for applying changes
     public List<CombinedValue> GetCombinedValues()
