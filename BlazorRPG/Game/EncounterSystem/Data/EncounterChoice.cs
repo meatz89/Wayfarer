@@ -154,22 +154,3 @@
         };
     }
 }
-
-
-public class DetailedChange
-{
-    public ValueTypes ValueType { get; set; }
-    public ChangeValues ChangeValues { get; set; }
-}
-
-public class ChangeValues
-{
-    public int TotalAmount { get; set; }
-    public List<string> Sources { get; set; } = new List<string>();
-}
-
-public class CombinedValue
-{
-    public ValueTypes ValueType { get; set; }
-    public int Amount { get; set; }
-}
