@@ -1,54 +1,54 @@
 ﻿public class ChoiceBaseValueGenerator
 {
-    public List<ValueChange> GenerateBaseValueChanges(ChoiceArchetypes archetype, ChoiceApproaches approach)
+    public List<BaseValueChange> GenerateBaseValueChanges(ChoiceArchetypes archetype, ChoiceApproaches approach)
     {
-        List<ValueChange> changes = new();
+        List<BaseValueChange> changes = new();
 
         // First apply Approach-based changes - preserved from original
         switch (approach)
         {
             case ChoiceApproaches.Direct:
-                changes.Add(new ValueChange(ValueTypes.Outcome, 2));
-                changes.Add(new ValueChange(ValueTypes.Pressure, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Outcome, 2));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, 1));
                 break;
             case ChoiceApproaches.Pragmatic:
-                changes.Add(new ValueChange(ValueTypes.Outcome, 1));
-                // No pressure change - preserved
+                changes.Add(new BaseValueChange(ValueTypes.Outcome, 1));
+                // Pragmatic has no inherent pressure change
                 break;
             case ChoiceApproaches.Tactical:
-                // No immediate outcome gain - preserved
-                changes.Add(new ValueChange(ValueTypes.Pressure, -1));
+                // Tactical sacrifices immediate outcome for pressure reduction
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, -1));
                 break;
             case ChoiceApproaches.Improvised:
-                changes.Add(new ValueChange(ValueTypes.Outcome, 1));
-                changes.Add(new ValueChange(ValueTypes.Pressure, 2));
+                changes.Add(new BaseValueChange(ValueTypes.Outcome, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, 2));
                 break;
         }
 
-        // Then apply Archetype-specific changes - preserved from original
+        // Then add archetype-specific base changes
+        // These represent the core competency of each archetype
         switch (archetype)
         {
             case ChoiceArchetypes.Physical:
-                if (approach == ChoiceApproaches.Direct)
-                    changes.Add(new ValueChange(ValueTypes.Momentum, 3));
-                else if (approach == ChoiceApproaches.Pragmatic)
-                    changes.Add(new ValueChange(ValueTypes.Momentum, 2));
-                else if (approach == ChoiceApproaches.Tactical)
-                    changes.Add(new ValueChange(ValueTypes.Momentum, 1));
+                int momentumGain = approach switch
+                {
+                    ChoiceApproaches.Direct => 3,
+                    ChoiceApproaches.Pragmatic => 2,
+                    ChoiceApproaches.Tactical => 1,
+                    _ => 0
+                };
+                if (momentumGain > 0)
+                    changes.Add(new BaseValueChange(ValueTypes.Momentum, momentumGain));
                 break;
 
             case ChoiceArchetypes.Focus:
-                if (approach == ChoiceApproaches.Tactical)
-                    changes.Add(new ValueChange(ValueTypes.Insight, 2));
-                else
-                    changes.Add(new ValueChange(ValueTypes.Insight, 1));
+                int insightGain = approach == ChoiceApproaches.Tactical ? 2 : 1;
+                changes.Add(new BaseValueChange(ValueTypes.Insight, insightGain));
                 break;
 
             case ChoiceArchetypes.Social:
-                if (approach == ChoiceApproaches.Tactical)
-                    changes.Add(new ValueChange(ValueTypes.Resonance, 2));
-                else
-                    changes.Add(new ValueChange(ValueTypes.Resonance, 1));
+                int resonanceGain = approach == ChoiceApproaches.Tactical ? 2 : 1;
+                changes.Add(new BaseValueChange(ValueTypes.Resonance, resonanceGain));
                 break;
         }
 

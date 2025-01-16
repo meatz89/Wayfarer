@@ -666,11 +666,6 @@ body {
     gap: 12px;
 }
 
-.preview-header {
-    border-bottom: 1px solid #eee;
-    padding-bottom: 8px;
-}
-
 .choice-type {
     color: #666;
     font-size: 0.9em;
@@ -789,30 +784,99 @@ body {
     color: #16a34a; /* green-600 */
 }
 
-.value-section, .final-results {
-    background-color: var(--bg-card);
-    padding: 12px;
-    border-radius: 4px;
-    margin-top: 8px;
-}
-
+/* Base tooltip structure */
 .value-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
     margin-top: 8px;
+    gap: 0px;
 }
 
+/* Individual value change item */
 .value-item {
+    display: flex;
+    flex-direction: column; /* Changed to column for better organization */
+    background-color: var(--bg-panel);
+    padding: 12px;
+    border-radius: 4px;
+    align-items: flex-start;
+}
+
+/* Main value row with icon and total */
+.value-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.value-header {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.value-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-card);
+    border-radius: 4px;
+}
+
+.value-type {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.value-total {
+    font-weight: bold;
+}
+
+/* Value details/breakdown section */
+.value-details {
+    margin-left: 32px; /* Aligns with the value type text */
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detail-line {
+    color: var(--text-secondary);
+    font-size: 0.9em;
+    display: flex;
+}
+
+/* Positive/Negative colors */
+.positive-change {
+    color: var(--energy-social);
+}
+
+.negative-change {
+    color: var(--resource-health);
+}
+
+.value-section {
+    background-color: var(--bg-card);
+    padding: 12px;
+    margin-top: 8px;
+}
+
+.final-results {
+    background-color: var(--bg-card);
+    padding-top: 1px;
+    padding-bottom: 12px;
+    padding-left: 12px;
+    padding-right: 12px;
+    border-radius: 4px;
 }
 
 .value-result {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 0px;
 }
 
 .value-breakdown {
@@ -821,16 +885,6 @@ body {
     margin-left: 4px;
 }
 
-.preview-header h4 {
-    margin: 0;
-    color: var(--text-primary);
-}
-
-.preview-header .choice-type {
-    color: var(--text-secondary);
-    font-size: 0.9em;
-    margin-top: 4px;
-}
 .location-effect {
     padding: 2px 0;
     font-size: 0.9em;
@@ -1033,22 +1087,25 @@ body {
     flex-wrap: wrap; /* Allow wrapping to the next line */
     margin-bottom: 10px; /* Add some space before the effects list */
 }
-/* Revise the tooltip base styles */
-.tooltip {
-    background-color: var(--bg-panel);
-    border: 1px solid var(--border-active);
-    padding: 15px;
-    border-radius: 4px;
-    min-width: 300px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+
+
 
 /* Add clear section separation */
 .preview-header {
-    margin-bottom: 15px;
-    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
     border-bottom: 1px solid var(--bg-card);
 }
+    .preview-header h4 {
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+    .preview-header .choice-type {
+        color: var(--text-secondary);
+        font-size: 0.9em;
+        margin-top: 4px;
+    }
 
 .location-effects {
     background-color: var(--bg-card);
@@ -1057,45 +1114,6 @@ body {
     border-radius: 4px;
 }
 
-.final-results {
-    background-color: var(--bg-card);
-    padding: 12px;
-    border-radius: 4px;
-}
-
-/* Improve value display */
-.value-item {
-    display: flex;
-    align-items: center;
-    padding: 8px;
-    border-radius: 4px;
-    background-color: var(--bg-panel);
-    margin-bottom: 6px;
-}
-
-.value-result {
-    margin-left: auto; /* Push to right side */
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.value-modification {
-    font-size: 0.9em;
-    color: var(--text-secondary);
-    margin-left: 8px;
-}
-
-/* Enhance icons */
-.value-icon, .energy-icon {
-    width: 24px;
-    height: 24px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    background-color: var(--bg-panel);
-}
 /* First, let's create a distinct section for energy costs */
 .energy-cost-section {
     margin-top: 15px;
@@ -1183,11 +1201,6 @@ body {
     background-color: var(--bg-card);
 }
 
-/* Style for the energy type text */
-.value-type {
-    font-weight: 500; /* Makes the text slightly bolder */
-    flex-grow: 1; /* Takes up available space */
-}
 .encounter-stats {
     display: flex;
     gap: 20px;

@@ -69,36 +69,49 @@ public partial class EncounterViewBase : ComponentBase
         };
     }
 
-    public string RenderValueModification(EncounterChoice choice, ValueChange finalChange)
+    public List<(ValueTypes Type, string Label, int Total, List<string> Details)> GetValueChanges(EncounterChoice choice)
     {
-        List<string> modifications = new();
+        // Get all detailed changes
+        var detailedChanges = choice.GetDetailedChanges();
+        var result = new List<(ValueTypes Type, string Label, int Total, List<string> Details)>();
 
-        // Find the corresponding base value change
-        ValueChange baseChange = choice.BaseEncounterValueChanges
-            .FirstOrDefault(bc => bc.ValueType == finalChange.ValueType);
-
-        // Add base value contribution only if it exists
-        if (baseChange != null)
+        // For each value type, create a display entry
+        foreach (var kvp in detailedChanges)
         {
-            modifications.Add($"Base: {(baseChange.Amount >= 0 ? "+" : "")}{baseChange.Amount}");
+            ValueTypes valueType = kvp.Key;
+            var (totalAmount, sources) = kvp.Value;
+
+            result.Add((
+                valueType,                        // The value type
+                valueType.ToString(),            // Label for display
+                totalAmount,                     // Total combined change
+                sources                          // List of detailed change descriptions
+            ));
         }
 
-        // Add contributions from modifications, excluding the base value change
-        foreach (ValueChange modChange in choice.ModifiedEncounterValueChanges
-            .Where(mc => mc.ValueType == finalChange.ValueType && mc != baseChange))
-        {
-            modifications.Add($"{modChange.ValueType}: {(modChange.Amount >= 0 ? "+" : "")}{modChange.Amount}");
-        }
-
-        return modifications.Count > 0 ? $"({string.Join(", ", modifications)})" : string.Empty;
+        return result;
     }
 
-    public List<ValueChange> GetModifiedValue(UserEncounterChoiceOption hoveredChoice)
+    public string RenderValueModification(EncounterChoice choice, ValueModification change)
     {
-        EncounterChoice encounterChoice = hoveredChoice.EncounterChoice;
+        var detailedChanges = choice.GetDetailedChanges();
+        if (detailedChanges.TryGetValue(change.ValueType, out var details))
+        {
+            return string.Join(", ", details.Sources);
+        }
+        return "";
+    }
 
-        // Return the list of modified value changes directly
-        return encounterChoice.ModifiedEncounterValueChanges;
+    public bool IsValueModified(EncounterChoice choice, ValueModification change)
+    {
+        // Check if there are any modifications for this value type
+        return choice.ValueModifications.Any(m => m.ValueType == change.ValueType);
+    }
+
+    public EncounterStateValues GetNewStateValues(UserEncounterChoiceOption choice)
+    {
+        ChoiceCalculationResult result = GameManager.CalculateChoiceEffects(choice.EncounterChoice, choice.Encounter.Context);
+        return result.NewStateValues;
     }
 
     public void HandleChoiceSelection(UserEncounterChoiceOption choice)
@@ -110,14 +123,6 @@ public partial class EncounterViewBase : ComponentBase
 
         GameManager.ExecuteEncounterChoice(choice);
         OnEncounterCompleted.InvokeAsync();
-    }
-
-    public bool IsValueModified(EncounterChoice choice, ValueChange finalChange)
-    {
-        // Check if there are *any* modifications for this value type
-        return choice.ModifiedEncounterValueChanges.Any(m =>
-            m.ValueType != null &&
-            m.ValueType == finalChange.ValueType);
     }
 
     public List<LocationPropertyChoiceEffect> GetLocationEffects(EncounterChoice choice)
@@ -136,7 +141,7 @@ public partial class EncounterViewBase : ComponentBase
         return choice.EnergyCost != choice.EnergyCost;
     }
 
-    public string GetValueChangeClass(ValueChange change)
+    public string GetValueChangeClass(ValueModification change)
     {
         return change.Amount > 0 ? "positive-change" : change.Amount < 0 ? "negative-change" : "neutral-change";
     }

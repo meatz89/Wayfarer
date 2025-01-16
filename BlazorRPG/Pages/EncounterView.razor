@@ -75,20 +75,27 @@
                 <div class="final-results">
                     <h5>Choice Results</h5>
                     <div class="value-list">
-                        @foreach (var change in GetModifiedValue(hoveredChoice))
+                        @foreach (var (type, label, total, details) in GetValueChanges(hoveredChoice.EncounterChoice))
                         {
                             <div class="value-item">
-                                @GetValueTypeIcon(change.ValueType)
-                                <span class="value-type">@change.ValueType</span>
-                                <span class="value-result">
-                                    @(change.Amount >= 0 ? "+" : "")@change.Amount
-                                    @if (IsValueModified(hoveredChoice.EncounterChoice, change))
-                                    {
-                                        <span class="value-modification">
-                                            @RenderValueModification(hoveredChoice.EncounterChoice, change)
-                                        </span>
-                                    }
-                                </span>
+                                <div class="value-main">
+                                    <div class="value-header">
+                                        @GetValueTypeIcon(type)
+                                        <span class="value-type">@label</span>
+                                    </div>
+                                    <span class="value-total @(total >= 0 ? "positive-change" : "negative-change")">
+                                        @(total >= 0 ? "+" : "")@total
+                                    </span>
+                                </div>
+                                @if (details.Any())
+                                {
+                                    <div class="value-details">
+                                        @foreach (var detail in details)
+                                        {
+                                            <div class="detail-line">@detail</div>
+                                        }
+                                    </div>
+                                }
                             </div>
                         }
                     </div>
@@ -101,12 +108,6 @@
                             </span>
                             <span class="energy-cost-value">
                                 @hoveredChoice.EncounterChoice.EnergyCost
-                                @if (IsEnergyCostModified(hoveredChoice.EncounterChoice))
-                                {
-                                    <span class="energy-modification">
-                                        @RenderEnergyCostModification(hoveredChoice.EncounterChoice)
-                                    </span>
-                                }
                             </span>
                         </div>
                     </div>

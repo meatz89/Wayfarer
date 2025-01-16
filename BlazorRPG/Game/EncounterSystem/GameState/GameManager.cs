@@ -234,8 +234,8 @@ public class GameManager
 
     private void ProceedEncounter(Encounter encounter, LocationNames locationName)
     {
-        bool hasNextStage = encounter.AdvanceStage();
-        if (hasNextStage)
+        encounter.AdvanceStage();
+        if (encounter.GetCurrentStage() != null)
         {
             EncounterSystem.SetEncounterChoices(encounter, locationName);
         }
@@ -488,4 +488,8 @@ public class GameManager
         return Player.Health > Player.MinHealth;
     }
 
+    public ChoiceCalculationResult CalculateChoiceEffects(EncounterChoice encounterChoice, EncounterContext context)
+    {
+        return new ChoiceCalculator().CalculateChoiceEffects(encounterChoice, context);
+    }
 }

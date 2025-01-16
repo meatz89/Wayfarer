@@ -1,15 +1,77 @@
 ﻿public class ChoiceBuilder
 {
-    // Basic properties
     private int index;
     private string description;
-
     private ChoiceArchetypes archetype;
     private ChoiceApproaches approach;
-    private List<ValueChange> baseValueChanges = new();
+    private List<BaseValueChange> baseValueChanges = new();
     private List<Requirement> requirements = new();
     private List<Outcome> baseCosts = new();
     private List<Outcome> baseRewards = new();
+
+    // Most methods unchanged, but SetBaseValueChanges updated:
+    private void SetBaseValueChanges()
+    {
+        baseValueChanges.Clear();
+
+        // Add Outcome change based on approach
+        int outcomeChange = approach switch
+        {
+            ChoiceApproaches.Direct => 2,
+            ChoiceApproaches.Pragmatic => 1,
+            ChoiceApproaches.Tactical => 0,
+            ChoiceApproaches.Improvised => 1,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        baseValueChanges.Add(new BaseValueChange(ValueTypes.Outcome, outcomeChange));
+
+        // Add Pressure change based on approach
+        int pressureChange = approach switch
+        {
+            ChoiceApproaches.Direct => 2,
+            ChoiceApproaches.Pragmatic => 0,
+            ChoiceApproaches.Tactical => 0,
+            ChoiceApproaches.Improvised => 1,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        baseValueChanges.Add(new BaseValueChange(ValueTypes.Pressure, pressureChange));
+
+        // Add archetype-specific value changes
+        switch (archetype)
+        {
+            case ChoiceArchetypes.Focus:
+                int insightChange = approach == ChoiceApproaches.Tactical ? 2 : 1;
+                baseValueChanges.Add(new BaseValueChange(ValueTypes.Insight, insightChange));
+                break;
+            case ChoiceArchetypes.Social:
+                int resonanceChange = approach == ChoiceApproaches.Tactical ? 2 : 1;
+                baseValueChanges.Add(new BaseValueChange(ValueTypes.Resonance, resonanceChange));
+                break;
+        }
+    }
+
+    // Build method updated to use new types
+    public EncounterChoice Build()
+    {
+        string description = $"{archetype} - {approach}";
+        bool requireTool = IsRequireTool();
+        bool requireKnowledge = IsRequireKnowledge();
+        bool requireReputation = IsRequireReputation();
+
+        EncounterChoice choice = new(
+            index,
+            description,
+            archetype,
+            approach,
+            requireTool,
+            requireKnowledge,
+            requireReputation);
+
+        choice.BaseEncounterValueChanges = baseValueChanges;
+        choice.ModifiedRequirements = requirements;
+
+        return choice;
+    }
 
     public ChoiceBuilder WithIndex(int index)
     {
@@ -41,40 +103,11 @@
         return this;
     }
 
-    public ChoiceBuilder WithBaseValueChanges(List<ValueChange> changes)
-    {
-        this.baseValueChanges = changes;
-        return this;
-    }
 
     public ChoiceBuilder WithRequirements(List<Requirement> requirements)
     {
         this.requirements = requirements;
         return this;
-    }
-
-    public EncounterChoice Build()
-    {
-        string description = $"{archetype} - {approach}";
-        bool requireTool = IsRequireTool();
-        bool requireKnowledge = IsRequireKnowledge();
-        bool requireReputation = IsRequireReputation();
-
-        EncounterChoice choice = new EncounterChoice(
-            index,
-            description,
-            archetype,
-            approach,
-            requireTool,
-            requireKnowledge,
-            requireReputation
-        );
-
-        // Set the base values we calculated
-        choice.BaseEncounterValueChanges = baseValueChanges;
-        choice.BaseRequirements = requirements;
-
-        return choice;
     }
 
     private bool IsRequireReputation()
@@ -112,50 +145,6 @@
         };
 
         baseCosts.Add(new EnergyOutcome(energyType, baseCost));
-    }
-
-    private void SetBaseValueChanges()
-    {
-        // Clear existing value changes
-        baseValueChanges.Clear();
-
-        // Add Outcome change based on approach
-        int outcomeChange = approach switch
-        {
-            ChoiceApproaches.Direct => 2,
-            ChoiceApproaches.Pragmatic => 1,
-            ChoiceApproaches.Tactical => 0,
-            ChoiceApproaches.Improvised => 1,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        baseValueChanges.Add(new ValueChange(ValueTypes.Outcome, outcomeChange));
-
-        // Add Pressure change based on approach
-        int pressureChange = approach switch
-        {
-            ChoiceApproaches.Direct => 2,
-            ChoiceApproaches.Pragmatic => 0,
-            ChoiceApproaches.Tactical => 0,
-            ChoiceApproaches.Improvised => 1,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        baseValueChanges.Add(new ValueChange(ValueTypes.Pressure, pressureChange));
-
-        // Add archetype-specific value changes
-        switch (archetype)
-        {
-            case ChoiceArchetypes.Physical:
-                // Physical choices can't modify Insight
-                break;
-            case ChoiceArchetypes.Focus:
-                int insightChange = approach == ChoiceApproaches.Tactical ? 2 : 1;
-                baseValueChanges.Add(new ValueChange(ValueTypes.Insight, insightChange));
-                break;
-            case ChoiceArchetypes.Social:
-                int resonanceChange = approach == ChoiceApproaches.Tactical ? 2 : 1;
-                baseValueChanges.Add(new ValueChange(ValueTypes.Resonance, resonanceChange));
-                break;
-        }
     }
 
     private EnergyTypes GetEnergyType()

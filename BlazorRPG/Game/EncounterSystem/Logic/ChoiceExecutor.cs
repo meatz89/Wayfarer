@@ -7,26 +7,31 @@
         this.gameState = gameState;
     }
 
-    // UPDATED to use ChoiceCalculationResult
-    public void ExecuteChoice(ChoiceCalculationResult calculationResult)
+    public void ExecuteChoice(EncounterChoice choice, ChoiceCalculationResult result)
     {
+        // First verify all requirements are met
+        if (!AreRequirementsMet(result.Requirements))
+            return;
+
         // Apply energy cost
-        gameState.Player.ModifyEnergy(calculationResult.EnergyTypes, -calculationResult.EnergyCost);
+        if (!ApplyEnergyCost(result.EnergyType, result.EnergyCost))
+            return;
 
         // Apply costs
-        foreach (Outcome cost in calculationResult.Costs)
+        foreach (Outcome cost in result.Costs)
         {
             cost.Apply(gameState.Player);
         }
 
-        // Apply value changes
-        foreach (ValueChange change in calculationResult.ValueChanges)
+        // Apply all value changes as a single transaction
+        Dictionary<ValueTypes, int> combinedChanges = result.GetCombinedValues();
+        foreach (KeyValuePair<ValueTypes, int> kvp in combinedChanges)
         {
-            gameState.Actions.CurrentEncounter.ModifyValue(change.ValueType, change.Amount);
+            gameState.Actions.CurrentEncounter.ModifyValue(kvp.Key, kvp.Value);
         }
 
         // Apply rewards
-        foreach (Outcome reward in calculationResult.Rewards)
+        foreach (Outcome reward in result.Rewards)
         {
             reward.Apply(gameState.Player);
         }
@@ -39,13 +44,9 @@
 
     private bool ApplyEnergyCost(EnergyTypes energyType, int cost)
     {
-        // Check if we can pay
         if (!gameState.Player.CanPayEnergy(energyType, cost))
-        {
             return false;
-        }
 
-        // Apply the cost
         gameState.Player.ModifyEnergy(energyType, -cost);
         return true;
     }

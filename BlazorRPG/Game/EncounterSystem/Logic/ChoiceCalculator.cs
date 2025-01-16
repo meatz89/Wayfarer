@@ -1,169 +1,260 @@
 ﻿public class ChoiceCalculator
 {
     private readonly ChoiceBaseValueGenerator baseValueGenerator;
-    private readonly LocationPropertyEffectCalculator locationPropertyEffectsCalculator;
+    private readonly LocationPropertyEffectCalculator locationPropertyCalculator;
 
     public ChoiceCalculator()
     {
         this.baseValueGenerator = new ChoiceBaseValueGenerator();
-        this.locationPropertyEffectsCalculator = new LocationPropertyEffectCalculator();
+        this.locationPropertyCalculator = new LocationPropertyEffectCalculator();
     }
 
     public ChoiceCalculationResult CalculateChoiceEffects(EncounterChoice choice, EncounterContext context)
     {
-        // Calculate base values
-        List<ValueChange> valueChanges = CalculateValueChanges(choice, context);
+        // 1. Get base values that are inherent to the choice type
+        List<BaseValueChange> baseChanges = baseValueGenerator
+            .GenerateBaseValueChanges(choice.Archetype, choice.Approach);
+
+        // 2. Calculate all modifications from game state and effects
+        List<ValueModification> modifications = CalculateAllValueChanges(choice, context);
+
+        // 3. Calculate new state after combining base values and modifications
+        EncounterStateValues newState = CalculateNewState(context.CurrentValues, choice, baseChanges, modifications);
+
+        // 4. Calculate final requirements, costs and rewards
         List<Requirement> requirements = CalculateRequirements(choice, context);
-
-        // Get energy type and cost
-        EnergyTypes energyType = choice.EnergyType;
-        int energyCost = CalculateEnergyCost(choice, context);
-
-        // Calculate costs and rewards
         List<Outcome> costs = CalculateCosts(choice, context);
         List<Outcome> rewards = CalculateRewards(choice, context);
 
-        // Store results in choice for UI preview
-        choice.ModifiedEncounterValueChanges = valueChanges;
+        // 5. Store all results in the choice for UI preview
+        choice.BaseEncounterValueChanges = baseChanges;
+        choice.ValueModifications = modifications;
         choice.ModifiedRequirements = requirements;
-        choice.EnergyCost = energyCost;
         choice.ModifiedCosts = costs;
         choice.ModifiedRewards = rewards;
+        choice.EnergyCost = CalculateEnergyCost(choice, context);
 
-        // Calculate new state after these changes
-        EncounterStateValues newValues = CalculateNewState(context, valueChanges);
-
-        // Return complete calculation result
+        // 6. Return complete calculation result
         return new ChoiceCalculationResult(
-            newValues,
-            valueChanges,
-            energyType,
-            energyCost,
-            requirements,
-            costs,
-            rewards);
+            newState,
+            baseChanges,          // Base values
+            modifications,        // Modifications with sources
+            choice.EnergyType,    // Energy type
+            choice.EnergyCost,    // Energy cost
+            requirements,         // Requirements
+            costs,                // Costs
+            rewards);             // Rewards
     }
 
-    private EncounterStateValues CalculateNewState(EncounterContext context, List<ValueChange> valueChanges)
+    private List<ValueModification> CalculateAllValueChanges(EncounterChoice choice, EncounterContext context)
     {
-        // Create a copy of the current state values
-        EncounterStateValues newValues = new EncounterStateValues(
-            context.CurrentValues.Outcome,
-            context.CurrentValues.Momentum,
-            context.CurrentValues.Insight,
-            context.CurrentValues.Resonance,
-            context.CurrentValues.Pressure);
+        List<ValueModification> modifications = new();
 
-        // Apply value changes to the copied state
-        foreach (ValueChange change in valueChanges)
+        // Add decay changes first
+        AddDecayModifications(modifications, choice, context);
+
+        // Add cascade effects based on projected state
+        AddCascadeModifications(modifications, choice, context);
+
+        // Add state-based modifications
+        AddStateModifications(modifications, choice, context);
+
+        // Add outcome conversion last
+        AddOutcomeConversion(modifications, choice, context);
+
+        return modifications;
+    }
+
+    private void AddDecayModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
+    {
+        // Base decay for Momentum
+        modifications.Add(new ValueModification(ValueTypes.Momentum, -2, "Base Decay"));
+
+        // Decay for unused values
+        if (choice.Archetype != ChoiceArchetypes.Physical)
+            modifications.Add(new ValueModification(ValueTypes.Momentum, -1, "Unused Momentum Decay"));
+        if (choice.Archetype != ChoiceArchetypes.Focus)
+            modifications.Add(new ValueModification(ValueTypes.Insight, -1, "Unused Insight Decay"));
+        if (choice.Archetype != ChoiceArchetypes.Social)
+            modifications.Add(new ValueModification(ValueTypes.Resonance, -1, "Unused Resonance Decay"));
+
+        // Extra decay for repeating choices
+        if (context.CurrentValues.LastChoiceType == choice.Archetype)
         {
-            switch (change.ValueType)
+            switch (choice.Archetype)
             {
-                case ValueTypes.Outcome:
-                    newValues.Outcome += change.Amount;
+                case ChoiceArchetypes.Physical:
+                    modifications.Add(new ValueModification(ValueTypes.Momentum, -2, "Repeated Physical Choice"));
                     break;
-                case ValueTypes.Momentum:
-                    newValues.Momentum += change.Amount;
+                case ChoiceArchetypes.Focus:
+                    modifications.Add(new ValueModification(ValueTypes.Insight, -1, "Repeated Focus Choice"));
                     break;
-                case ValueTypes.Insight:
-                    newValues.Insight += change.Amount;
-                    break;
-                case ValueTypes.Resonance:
-                    newValues.Resonance += change.Amount;
-                    break;
-                case ValueTypes.Pressure:
-                    newValues.Pressure += change.Amount;
+                case ChoiceArchetypes.Social:
+                    modifications.Add(new ValueModification(ValueTypes.Resonance, -1, "Repeated Social Choice"));
                     break;
             }
         }
-
-        return newValues;
     }
 
-    private List<ValueChange> CalculateValueChanges(EncounterChoice choice, EncounterContext context)
+    private void AddCascadeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {
-        List<ValueChange> changes = new();
-        // add the base value changes first
-        changes.AddRange(choice.BaseEncounterValueChanges);
+        // Project state after base values and current modifications
+        EncounterStateValues projectedValues = ProjectNewState(
+            context.CurrentValues,
+            choice.BaseEncounterValueChanges,
+            modifications);
 
-        // Location modifications
-        List<ValueChange> propertyChanges = locationPropertyEffectsCalculator.CalculatePropertyEffects(choice, context.LocationProperties);
-        changes.AddRange(propertyChanges);
+        // Add pressure when values hit zero
+        if (projectedValues.Momentum == 0)
+            modifications.Add(new ValueModification(ValueTypes.Pressure, 2, "No Momentum"));
+        if (projectedValues.Insight == 0)
+            modifications.Add(new ValueModification(ValueTypes.Pressure, 2, "No Insight"));
+        if (projectedValues.Resonance == 0)
+            modifications.Add(new ValueModification(ValueTypes.Pressure, 2, "No Resonance"));
+    }
 
-        // Outcome calculation based on secondary value, after applying property effects
-        if (CanGenerateOutcome(choice.Archetype, context.CurrentValues))
+    private void AddStateModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
+    {
+        // High pressure reduces gains
+        if (context.CurrentValues.Pressure >= 6)
         {
-            int currentValue = choice.Archetype switch
+            foreach (BaseValueChange baseChange in choice.BaseEncounterValueChanges)
             {
-                ChoiceArchetypes.Physical => context.CurrentValues.Momentum + changes.Where(c => c.ValueType == ValueTypes.Momentum).Sum(c => c.Amount),
-                ChoiceArchetypes.Focus => context.CurrentValues.Insight + changes.Where(c => c.ValueType == ValueTypes.Insight).Sum(c => c.Amount),
-                ChoiceArchetypes.Social => context.CurrentValues.Resonance + changes.Where(c => c.ValueType == ValueTypes.Resonance).Sum(c => c.Amount),
+                if (baseChange.ValueType != ValueTypes.Pressure && baseChange.Amount > 0)
+                {
+                    modifications.Add(new ValueModification(
+                        baseChange.ValueType,
+                        -1,
+                        "High Pressure Penalty"));
+                }
+            }
+        }
+    }
+
+    private void AddOutcomeConversion(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
+    {
+        // Project final state including all previous modifications
+        EncounterStateValues projectedValues = ProjectNewState(
+            context.CurrentValues,
+            choice.BaseEncounterValueChanges,
+            modifications);
+
+        bool canGenerateOutcome = choice.Archetype switch
+        {
+            ChoiceArchetypes.Physical => projectedValues.Pressure <= projectedValues.Momentum,
+            ChoiceArchetypes.Focus => projectedValues.Insight > 0,
+            ChoiceArchetypes.Social => projectedValues.Resonance > 0,
+            _ => false
+        };
+
+        if (canGenerateOutcome)
+        {
+            int outcomeAmount = choice.Archetype switch
+            {
+                ChoiceArchetypes.Physical => projectedValues.Momentum,
+                ChoiceArchetypes.Focus => projectedValues.Insight,
+                ChoiceArchetypes.Social => projectedValues.Resonance,
                 _ => 0
             };
 
-            // Check if there's already a base outcome change before adding a new one
-            if (!changes.Any(vc => vc.ValueType == ValueTypes.Outcome))
-            {
-                changes.Add(new ValueChange(ValueTypes.Outcome, currentValue));
-            }
+            modifications.Add(new ValueModification(ValueTypes.Outcome, outcomeAmount,
+                $"{choice.Archetype} Conversion"));
         }
         else
         {
-            changes.Add(new ValueChange(ValueTypes.Pressure, 2));
+            modifications.Add(new ValueModification(ValueTypes.Pressure, 2, "Failed Outcome Generation"));
         }
-
-        return changes;
     }
 
+    private EncounterStateValues ProjectNewState(
+        EncounterStateValues currentValues,
+        List<BaseValueChange> baseChanges,
+        List<ValueModification> modifications)
+    {
+        EncounterStateValues newState = new(
+            currentValues.Outcome,
+            currentValues.Momentum,
+            currentValues.Insight,
+            currentValues.Resonance,
+            currentValues.Pressure);
 
+        // Apply base changes first
+        foreach (BaseValueChange change in baseChanges)
+        {
+            ApplyValueChange(newState, change.ValueType, change.Amount);
+        }
+
+        // Then apply modifications
+        foreach (ValueModification mod in modifications)
+        {
+            ApplyValueChange(newState, mod.ValueType, mod.Amount);
+        }
+
+        return newState;
+    }
+
+    private void ApplyValueChange(EncounterStateValues state, ValueTypes valueType, int amount)
+    {
+        switch (valueType)
+        {
+            case ValueTypes.Outcome:
+                state.Outcome = Math.Max(0, state.Outcome + amount);
+                break;
+            case ValueTypes.Momentum:
+                state.Momentum = Math.Max(0, state.Momentum + amount);
+                break;
+            case ValueTypes.Insight:
+                state.Insight = Math.Max(0, state.Insight + amount);
+                break;
+            case ValueTypes.Resonance:
+                state.Resonance = Math.Max(0, state.Resonance + amount);
+                break;
+            case ValueTypes.Pressure:
+                state.Pressure = Math.Clamp(state.Pressure + amount, 0, 8);
+                break;
+        }
+    }
+
+    private EncounterStateValues CalculateNewState(
+        EncounterStateValues currentValues,
+        EncounterChoice choice,
+        List<BaseValueChange> baseChanges,
+        List<ValueModification> modifications)
+    {
+        EncounterStateValues newState = ProjectNewState(currentValues, baseChanges, modifications);
+        newState.LastChoiceType = choice.Archetype;
+        return newState;
+    }
+
+    // Rest of the calculation methods stay the same
     private List<Requirement> CalculateRequirements(EncounterChoice choice, EncounterContext context)
     {
         List<Requirement> requirements = baseValueGenerator.GenerateBaseRequirements(choice.Archetype, choice.Approach);
-
-        // Add location-specific requirements
-        List<Requirement> propertyRequirements = locationPropertyEffectsCalculator.CalculateLocationRequirements(choice, context.LocationProperties);
+        List<Requirement> propertyRequirements = locationPropertyCalculator.CalculateLocationRequirements(choice, context.LocationProperties);
         requirements.AddRange(propertyRequirements);
-
         return requirements;
     }
 
     private List<Outcome> CalculateCosts(EncounterChoice choice, EncounterContext context)
     {
         List<Outcome> costs = baseValueGenerator.GenerateBaseCosts(choice.Archetype, choice.Approach);
-
-        // Add location-specific costs
-        List<Outcome> propertyCosts = locationPropertyEffectsCalculator.CalculatePropertyCosts(choice, context.LocationProperties);
+        List<Outcome> propertyCosts = locationPropertyCalculator.CalculatePropertyCosts(choice, context.LocationProperties);
         costs.AddRange(propertyCosts);
-
         return costs;
     }
 
     private List<Outcome> CalculateRewards(EncounterChoice choice, EncounterContext context)
     {
         List<Outcome> rewards = baseValueGenerator.GenerateBaseRewards(choice.Archetype, choice.Approach);
-
-        // Add location-specific rewards
-        List<Outcome> propertyRewards = locationPropertyEffectsCalculator.CalculatePropertyRewards(choice, context.LocationProperties);
+        List<Outcome> propertyRewards = locationPropertyCalculator.CalculatePropertyRewards(choice, context.LocationProperties);
         rewards.AddRange(propertyRewards);
-
         return rewards;
-    }
-
-    private bool CanGenerateOutcome(ChoiceArchetypes archetype, EncounterStateValues values)
-    {
-        return archetype switch
-        {
-            ChoiceArchetypes.Physical => values.Pressure <= values.Momentum,
-            ChoiceArchetypes.Focus => values.Insight > 0,
-            ChoiceArchetypes.Social => values.Resonance > 0,
-            _ => false
-        };
     }
 
     private int CalculateEnergyCost(EncounterChoice choice, EncounterContext context)
     {
         int baseEnergyCost = baseValueGenerator.GenerateBaseEnergyCost(choice.Archetype, choice.Approach);
-        int propertyModifier = locationPropertyEffectsCalculator.CalculateEnergyCostModifier(choice, context.LocationProperties);
+        int propertyModifier = locationPropertyCalculator.CalculateEnergyCostModifier(choice, context.LocationProperties);
         int pressureModifier = context.CurrentValues.Pressure >= 6 ? context.CurrentValues.Pressure - 5 : 0;
 
         return baseEnergyCost + propertyModifier + pressureModifier;

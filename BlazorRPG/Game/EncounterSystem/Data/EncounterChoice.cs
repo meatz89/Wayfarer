@@ -1,31 +1,76 @@
 ﻿public class EncounterChoice
 {
-    // Core properties - no change
+    // Core properties
     public int Index { get; }
     public string Description { get; }
     public ChoiceArchetypes Archetype { get; }
     public ChoiceApproaches Approach { get; }
+    public EnergyTypes EnergyType { get; }
 
-    // Base values - will be set by ChoiceBaseValueGenerator
-    public List<ValueChange> BaseEncounterValueChanges { get; set; } = new();
-    public List<Requirement> BaseRequirements { get; set; } = new();
-    public List<Outcome> BaseCosts { get; set; } = new();
-    public List<Outcome> BaseRewards { get; set; } = new();
+    // Value changes
+    public List<BaseValueChange> BaseEncounterValueChanges { get; set; } = new();
+    public List<ValueModification> ValueModifications { get; set; } = new();
 
-    // Modified values - will be set by ChoiceCalculator
-    public List<ValueChange> ModifiedEncounterValueChanges { get; set; } = new();
+    // Requirements and outcomes
     public List<Requirement> ModifiedRequirements { get; set; } = new();
     public List<Outcome> ModifiedCosts { get; set; } = new();
     public List<Outcome> ModifiedRewards { get; set; } = new();
-
-    // Requirement flags - used for UI/display
-    public bool RequireTool { get; }
-    public bool RequireKnowledge { get; }
-    public bool RequireReputation { get; }
-
-    public EnergyTypes EnergyType { get; }
     public int EnergyCost { get; set; }
 
+    // For execution - just raw numbers for applying changes
+    public Dictionary<ValueTypes, int> GetCombinedValues()
+    {
+        Dictionary<ValueTypes, int> combined = new Dictionary<ValueTypes, int>();
+
+        // Add base values first 
+        foreach (BaseValueChange baseChange in BaseEncounterValueChanges)
+        {
+            if (!combined.ContainsKey(baseChange.ValueType))
+                combined[baseChange.ValueType] = 0;
+            combined[baseChange.ValueType] += baseChange.Amount;
+        }
+
+        // Add modifications
+        foreach (ValueModification modification in ValueModifications)
+        {
+            if (!combined.ContainsKey(modification.ValueType))
+                combined[modification.ValueType] = 0;
+            combined[modification.ValueType] += modification.Amount;
+        }
+
+        return combined;
+    }
+
+    public Dictionary<ValueTypes, (int TotalAmount, List<string> Sources)> GetDetailedChanges()
+    {
+        Dictionary<ValueTypes, (int Amount, List<string> Sources)> combined = new Dictionary<ValueTypes, (int Amount, List<string> Sources)>();
+
+        // Add base changes
+        foreach (BaseValueChange change in BaseEncounterValueChanges)
+        {
+            if (!combined.ContainsKey(change.ValueType))
+                combined[change.ValueType] = (0, new List<string>());
+
+            (int amount, List<string> sources) = combined[change.ValueType];
+            combined[change.ValueType] = (amount + change.Amount, sources);
+            sources.Add($"Base: {(change.Amount >= 0 ? "+" : "")}{change.Amount}");
+        }
+
+        // Add modifications
+        foreach (ValueModification change in ValueModifications)
+        {
+            if (!combined.ContainsKey(change.ValueType))
+                combined[change.ValueType] = (0, new List<string>());
+
+            (int amount, List<string> sources) = combined[change.ValueType];
+            combined[change.ValueType] = (amount + change.Amount, sources);
+            sources.Add($"{change.Source}: {(change.Amount >= 0 ? "+" : "")}{change.Amount}");
+        }
+
+        return combined;
+    }
+
+    // Constructor remains the same
     public EncounterChoice(
         int index,
         string description,
@@ -39,11 +84,6 @@
         Description = description;
         Archetype = archetype;
         Approach = approach;
-        RequireTool = requireTool;
-        RequireKnowledge = requireKnowledge;
-        RequireReputation = requireReputation;
-
-        // Set energy type based on archetype
         EnergyType = archetype switch
         {
             ChoiceArchetypes.Physical => EnergyTypes.Physical,

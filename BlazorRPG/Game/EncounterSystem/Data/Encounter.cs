@@ -25,11 +25,9 @@
         return stages[CurrentStageIndex];
     }
 
-    public bool AdvanceStage()
+    public void AdvanceStage()
     {
-        if (CurrentStageIndex >= stages.Count) return false;
         CurrentStageIndex++;
-        return true;
     }
 
     public void ModifyValue(ValueTypes valueType, int change)

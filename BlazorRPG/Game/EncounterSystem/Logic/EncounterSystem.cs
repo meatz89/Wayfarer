@@ -18,37 +18,21 @@
 
     public void ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationProperties locationProperties)
     {
-        // Pre-calculate all effects
-        ChoiceCalculationResult calculationResult = choiceCalculator.CalculateChoiceEffects(choice, encounter.Context);
+        // Retrieve the ChoiceCalculationResult
+        ChoiceCalculationResult result = choiceCalculator.CalculateChoiceEffects(choice, encounter.Context);
 
-        // Verify requirements are met before executing
-        if (!VerifyRequirements(calculationResult.Requirements))
-        {
-            return;
-        }
+        // Execute the choice with the actual modified values from the result
+        choiceExecutor.ExecuteChoice(choice, result);
 
-        // Execute the choice with pre-calculated values
-        choiceExecutor.ExecuteChoice(calculationResult);
-
-        // Update encounter state
-        encounter.Context.CurrentValues = calculationResult.NewStateValues;
-        encounter.Context.StageNumber++;
+        // Update last choice type
         encounter.Context.CurrentValues.LastChoiceType = choice.Archetype;
 
-        // Check for game over conditions
-        if (IsGameOver(encounter) || IsGameWon(encounter))
-        {
-            EndEncounter(encounter);
-            return;
-        }
-
-        // Generate next stage if not over
+        // Advance to the next stage (or end the encounter if no more stages)
         if (!GetNextStage(encounter))
         {
             EndEncounter(encounter);
         }
     }
-
     public Encounter GenerateEncounter(EncounterContext context)
     {
         // Generate initial stage
@@ -87,18 +71,19 @@
         };
     }
 
-    private bool VerifyRequirements(List<Requirement> requirements)
-    {
-        return requirements.All(req => req.IsSatisfied(gameState.Player));
-    }
-
     private void EndEncounter(Encounter encounter)
     {
         gameState.Actions.SetActiveEncounter(null);
-        // Additional cleanup if needed
     }
+
     private bool GetNextStage(Encounter encounter)
     {
+        // Check for game over conditions
+        if (IsGameOver(encounter) || IsGameWon(encounter))
+        {
+            return false;
+        }
+
         EncounterStage newStage = GenerateStage(encounter.Context);
         if (newStage == null)
             return false;

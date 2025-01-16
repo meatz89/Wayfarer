@@ -1,5 +1,4 @@
-﻿
-public class ChoiceSetGenerator
+﻿public class ChoiceSetGenerator
 {
     private readonly GameState gameState;
     private readonly ChoiceCalculator calculator;
@@ -124,9 +123,6 @@ public class ChoiceSetGenerator
 
         // Set base values using generator
         choice.BaseEncounterValueChanges = baseValueGenerator.GenerateBaseValueChanges(archetype, approach);
-        choice.BaseRequirements = baseValueGenerator.GenerateBaseRequirements(archetype, approach);
-        choice.BaseCosts = baseValueGenerator.GenerateBaseCosts(archetype, approach);
-        choice.BaseRewards = baseValueGenerator.GenerateBaseRewards(archetype, approach);
 
         return choice;
     }
