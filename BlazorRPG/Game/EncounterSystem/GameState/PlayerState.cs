@@ -60,6 +60,10 @@
         MinHealth = GameRules.StandardRuleset.MinimumHealth;
         MaxHealth = 40;
 
+        Health = GameRules.StandardRuleset.StartingHealth;
+        Health = GameRules.StandardRuleset.StartingHealth;
+
+
         PhysicalEnergy = GameRules.StandardRuleset.StartingPhysicalEnergy;
         MaxPhysicalEnergy = 40;
 

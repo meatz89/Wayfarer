@@ -1,4 +1,5 @@
-﻿public class EncounterStateValues
+﻿
+public class EncounterStateValues
 {
     public int Outcome { get; set; }
     public int Momentum { get; set; }
@@ -14,5 +15,14 @@
         Insight = insight;
         Resonance = resonance;
         Pressure = pressure;
+    }
+
+    public void Clamp()
+    {
+        Outcome = Math.Max(0, Outcome);
+        Momentum = Math.Max(0, Momentum);
+        Insight = Math.Max(0, Insight);
+        Resonance = Math.Max(0, Resonance);
+        Pressure = Math.Max(0, Pressure);
     }
 }

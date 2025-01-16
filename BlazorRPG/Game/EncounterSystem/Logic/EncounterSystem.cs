@@ -118,31 +118,6 @@
         gameState.Player.CurrentEncounter = encounter;
     }
 
-    private bool IsGameWon(Encounter encounter)
-    {
-        const int OUTCOME_WIN = 20;
-        return encounter.Context.CurrentValues.Outcome >= OUTCOME_WIN;
-    }
-
-    // New method to check for game over conditions
-    private bool IsGameOver(Encounter encounter)
-    {
-        EncounterStateValues values = encounter.Context.CurrentValues;
-        PlayerState player = gameState.Player;
-
-        const int PRESSURE_LOOSE = 20;
-        // Immediate loss if pressure maxes out
-        if (values.Pressure >= PRESSURE_LOOSE)
-            return true;
-
-        // Loss if all energy types are depleted and can't pay permanent costs
-        bool canPayPhysical = player.PhysicalEnergy > 0 || player.Health > 1;
-        bool canPayFocus = player.FocusEnergy > 0 || player.Concentration > 1;
-        bool canPaySocial = player.SocialEnergy > 0 || player.Reputation > 1;
-
-        return !canPayPhysical && !canPayFocus && !canPaySocial;
-    }
-
     public EncounterStage GetCurrentStage(Encounter encounter)
     {
         return encounter.GetCurrentStage();
@@ -185,5 +160,33 @@
             return "You have a clear grasp of the situation...";
 
         return "You consider your options...";
+    }
+
+    private bool IsGameWon(Encounter encounter)
+    {
+        const int WIN_BASE = 20;
+        int OUTCOME_WIN = encounter.Context.LocationDifficulty + WIN_BASE;
+
+        return encounter.Context.CurrentValues.Outcome >= OUTCOME_WIN;
+    }
+
+    private bool IsGameOver(Encounter encounter)
+    {
+        const int LOSE_BASE = 20;
+        int PRESSURE_LOOSE = LOSE_BASE - encounter.Context.LocationDifficulty;
+
+        EncounterStateValues values = encounter.Context.CurrentValues;
+        PlayerState player = gameState.Player;
+
+        // Immediate loss if pressure maxes out
+        if (values.Pressure >= PRESSURE_LOOSE)
+            return true;
+
+        // Loss if all energy types are depleted and can't pay permanent costs
+        bool canPayPhysical = player.PhysicalEnergy > 0 || player.Health > 1;
+        bool canPayFocus = player.FocusEnergy > 0 || player.Concentration > 1;
+        bool canPaySocial = player.SocialEnergy > 0 || player.Reputation > 1;
+
+        return !canPayPhysical && !canPayFocus && !canPaySocial;
     }
 }

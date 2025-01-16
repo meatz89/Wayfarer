@@ -10,9 +10,17 @@
         PlayerState playerInfo = new PlayerState();
         playerInfo.Coins = gameRules.StartingCoins;
 
-        playerInfo.Health = gameRules.StartingHealth;
         playerInfo.MinHealth = gameRules.MinimumHealth;
+        playerInfo.Health = gameRules.StartingHealth;
         playerInfo.MaxHealth = 100;
+
+        playerInfo.MinConcentration = 0;
+        playerInfo.Concentration = 50;
+        playerInfo.MaxConcentration = 100;
+
+        playerInfo.MinReputation = 0;
+        playerInfo.Reputation = 50;
+        playerInfo.MaxReputation = 100;
 
         playerInfo.PhysicalEnergy = gameRules.StartingPhysicalEnergy;
         playerInfo.MaxPhysicalEnergy = 50;

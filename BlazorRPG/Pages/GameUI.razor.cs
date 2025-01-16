@@ -18,6 +18,10 @@ public partial class GameUI : ComponentBase
     public int socialEnergyMax => GameState.Player.MaxSocialEnergy;
     public int health => GameState.Player.Health;
     public int maxHealth => GameState.Player.MaxHealth;
+    public int concentration => GameState.Player.Concentration;
+    public int maxConcentration => GameState.Player.MaxConcentration;
+    public int reputation => GameState.Player.Reputation;
+    public int maxReputation => GameState.Player.MaxReputation;
     public int coins => GameState.Player.Coins;
     public int food => GameState.Player.Inventory.GetItemCount(ResourceTypes.Food);
 
