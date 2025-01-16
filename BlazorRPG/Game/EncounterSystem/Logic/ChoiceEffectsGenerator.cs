@@ -55,18 +55,14 @@
         return changes;
     }
 
-    public List<Requirement> GenerateBaseRequirements(ChoiceArchetypes archetype, ChoiceApproaches approach)
+    public List<Requirement> GenerateSpecialRequirements(ChoiceArchetypes archetype, ChoiceApproaches approach)
     {
         List<Requirement> requirements = new();
 
-        EnergyTypes energyType = GetArchetypeEnergy(archetype);
-
-        // Preserved from original requirement generation
         switch (approach)
         {
             case ChoiceApproaches.Direct:
                 // Only requires sufficient energy
-                requirements.Add(new EnergyRequirement(energyType, 2));
                 break;
 
             case ChoiceApproaches.Pragmatic:
@@ -76,7 +72,7 @@
                 break;
 
             case ChoiceApproaches.Tactical:
-                // Add archetype-specific requirement - preserved from original
+                // Add archetype-specific requirement
                 switch (archetype)
                 {
                     case ChoiceArchetypes.Physical:
@@ -86,7 +82,7 @@
                         requirements.Add(new KnowledgeRequirement(KnowledgeTypes.LocalHistory));
                         break;
                     case ChoiceArchetypes.Social:
-                        requirements.Add(new ReputationRequirement(ReputationTypes.Reliable, 5));
+                        requirements.Add(new ReputationRequirement(5));
                         break;
                 }
                 break;
@@ -97,7 +93,6 @@
 
     public int GenerateBaseEnergyCost(ChoiceArchetypes archetype, ChoiceApproaches approach)
     {
-        // Preserved from original
         return approach switch
         {
             ChoiceApproaches.Direct => 3,

@@ -5,7 +5,7 @@
         .WithDescription("Help the merchant's son learn the trade")
         .AddStep(step => step
             .WithDescription("Prove yourself as reliable to the merchant")
-            .RequiresReputation(ReputationTypes.Reliable, 2)
+            .RequiresReputation(2)
             .RequiresCoins(50)
             .WithLocation(LocationNames.GenericMarket)
             .WithCharacter(CharacterNames.WealthyMerchant)

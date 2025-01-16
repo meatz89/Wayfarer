@@ -34,9 +34,9 @@
         return this;
     }
 
-    public QuestStepBuilder RequiresReputation(ReputationTypes reputationType, int count)
+    public QuestStepBuilder RequiresReputation(int count)
     {
-        ReputationRequirement item = new ReputationRequirement(reputationType, count);
+        ReputationRequirement item = new ReputationRequirement(count);
         requirements.Add(item);
         return this;
     }

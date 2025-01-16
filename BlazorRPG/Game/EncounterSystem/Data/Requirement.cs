@@ -94,6 +94,46 @@ public class HealthRequirement : Requirement
     }
 }
 
+public class ConcentrationRequirement : Requirement
+{
+    public int Count { get; }
+
+    public ConcentrationRequirement(int count)
+    {
+        Count = count;
+    }
+
+    public override bool IsSatisfied(PlayerState player)
+    {
+        return player.Concentration >= Count;
+    }
+
+    public override string GetDescription()
+    {
+        return $"Concentration Required: {Count}";
+    }
+}
+
+public class ReputationRequirement : Requirement
+{
+    public int Count { get; }
+
+    public ReputationRequirement(int count)
+    {
+        Count = count;
+    }
+
+    public override bool IsSatisfied(PlayerState player)
+    {
+        return player.Reputation >= Count;
+    }
+
+    public override string GetDescription()
+    {
+        return $"Reputation Required: {Count}";
+    }
+}
+
 public class CoinsRequirement : Requirement
 {
     public int Count { get; }
@@ -243,28 +283,6 @@ public class SkillLevelRequirement : Requirement
     }
 }
 
-public class ReputationRequirement : Requirement
-{
-    public ReputationTypes ReputationType { get; }
-    public int Count { get; }
-
-    public ReputationRequirement(ReputationTypes type, int count)
-    {
-        ReputationType = type;
-        Count = count;
-    }
-
-    public override bool IsSatisfied(PlayerState player)
-    {
-        return player.GetReputationLevel(ReputationType) >= Count;
-    }
-
-    public override string GetDescription()
-    {
-        return $"{ReputationType} Reputation Required: {Count}";
-    }
-}
-
 public class StatusRequirement : Requirement
 {
     public PlayerStatusTypes Status { get; }
@@ -284,5 +302,3 @@ public class StatusRequirement : Requirement
         return $"Status Required: {Status}";
     }
 }
-
-
