@@ -123,6 +123,7 @@ public partial class EncounterViewBase : ComponentBase
 
         GameManager.ExecuteEncounterChoice(choice);
         OnEncounterCompleted.InvokeAsync();
+        HideTooltip();
     }
 
     public List<LocationPropertyChoiceEffect> GetLocationEffects(EncounterChoice choice)

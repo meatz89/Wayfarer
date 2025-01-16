@@ -68,15 +68,15 @@
     private void AddDecayModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {
         // Base decay for Momentum
-        modifications.Add(new ValueModification(ValueTypes.Momentum, -2, "Base Decay"));
+        //modifications.Add(new ValueModification(ValueTypes.Momentum, -2, "Base Decay"));
 
         // Decay for unused values
         if (choice.Archetype != ChoiceArchetypes.Physical)
             modifications.Add(new ValueModification(ValueTypes.Momentum, -1, "Unused Momentum Decay"));
-        if (choice.Archetype != ChoiceArchetypes.Focus)
-            modifications.Add(new ValueModification(ValueTypes.Insight, -1, "Unused Insight Decay"));
-        if (choice.Archetype != ChoiceArchetypes.Social)
-            modifications.Add(new ValueModification(ValueTypes.Resonance, -1, "Unused Resonance Decay"));
+        //if (choice.Archetype != ChoiceArchetypes.Focus)
+        //    modifications.Add(new ValueModification(ValueTypes.Insight, -1, "Unused Insight Decay"));
+        //if (choice.Archetype != ChoiceArchetypes.Social)
+        //    modifications.Add(new ValueModification(ValueTypes.Resonance, -1, "Unused Resonance Decay"));
 
         // Extra decay for repeating choices
         if (context.CurrentValues.LastChoiceType == choice.Archetype)
@@ -133,6 +133,7 @@
 
     private void AddOutcomeConversion(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {
+        /*
         // Project final state including all previous modifications
         EncounterStateValues projectedValues = ProjectNewState(
             context.CurrentValues,
@@ -157,13 +158,13 @@
                 _ => 0
             };
 
-            modifications.Add(new ValueModification(ValueTypes.Outcome, outcomeAmount,
-                $"{choice.Archetype} Conversion"));
+            modifications.Add(new ValueModification(ValueTypes.Outcome, outcomeAmount, $"{choice.Archetype} Conversion"));
         }
         else
         {
             modifications.Add(new ValueModification(ValueTypes.Pressure, 2, "Failed Outcome Generation"));
         }
+        */
     }
 
     private EncounterStateValues ProjectNewState(
