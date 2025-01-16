@@ -67,25 +67,25 @@
     {
         List<Outcome> costs = new();
 
-        //// Iterate through all defined effects
-        //foreach (LocationPropertyChoiceEffect effect in LocationPropertyChoiceEffects.AllEffects)
-        //{
-        //    // Check if the effect's location property matches the current location's properties
-        //    if (LocationPropertyMatches(effect.LocationProperty, properties))
-        //    {
-        //        // Apply cost modifications if applicable
-        //        if (effect.ValueEffect is OutcomeModification outcomeMod)
-        //        {
-        //            // Assuming you have a way to create Outcome objects based on the modification
-        //            // This is a placeholder, adjust according to your Outcome creation logic
-        //            Outcome newOutcome = CreateOutcomeFromModification(outcomeMod);
-        //            if (newOutcome != null)
-        //            {
-        //                costs.Add(newOutcome);
-        //            }
-        //        }
-        //    }
-        //}
+        // Iterate through all defined effects
+        foreach (LocationPropertyChoiceEffect effect in LocationPropertyChoiceEffects.AllEffects)
+        {
+            // Check if the effect's location property matches the current location's properties
+            //if (LocationPropertyMatches(effect.LocationProperty, properties))
+            //{
+            //    // Apply cost modifications if applicable
+            //    if (effect.ValueEffect is OutcomeModification outcomeMod)
+            //    {
+            //        // Assuming you have a way to create Outcome objects based on the modification
+            //        // This is a placeholder, adjust according to your Outcome creation logic
+            //        Outcome newOutcome = CreateOutcomeFromModification(outcomeMod);
+            //        if (newOutcome != null)
+            //        {
+            //            costs.Add(newOutcome);
+            //        }
+            //    }
+            //}
+        }
 
         return costs;
     }
@@ -94,25 +94,25 @@
     {
         List<Outcome> rewards = new();
 
-        //// Iterate through all defined effects
-        //foreach (LocationPropertyChoiceEffect effect in LocationPropertyChoiceEffects.AllEffects)
-        //{
-        //    // Check if the effect's location property matches the current location's properties
-        //    if (LocationPropertyMatches(effect.LocationProperty, properties))
-        //    {
-        //        // Apply reward modifications if applicable
-        //        if (effect.ValueEffect is OutcomeModification outcomeMod)
-        //        {
-        //            // Assuming you have a way to create Outcome objects based on the modification
-        //            // This is a placeholder, adjust according to your Outcome creation logic
-        //            Outcome newOutcome = CreateOutcomeFromModification(outcomeMod);
-        //            if (newOutcome != null)
-        //            {
-        //                rewards.Add(newOutcome);
-        //            }
-        //        }
-        //    }
-        //}
+        // Iterate through all defined effects
+        foreach (LocationPropertyChoiceEffect effect in LocationPropertyChoiceEffects.AllEffects)
+        {
+            // Check if the effect's location property matches the current location's properties
+            //if (LocationPropertyMatches(effect.LocationProperty, properties))
+            //{
+            //    // Apply reward modifications if applicable
+            //    if (effect.ValueEffect is OutcomeModification outcomeMod)
+            //    {
+            //        // Assuming you have a way to create Outcome objects based on the modification
+            //        // This is a placeholder, adjust according to your Outcome creation logic
+            //        Outcome newOutcome = CreateOutcomeFromModification(outcomeMod);
+            //        if (newOutcome != null)
+            //        {
+            //            rewards.Add(newOutcome);
+            //        }
+            //    }
+            //}
+        }
 
         return rewards;
     }

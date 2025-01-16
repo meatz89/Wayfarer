@@ -72,14 +72,14 @@ public partial class EncounterViewBase : ComponentBase
     public List<(ValueTypes Type, string Label, int Total, List<string> Details)> GetValueChanges(EncounterChoice choice)
     {
         // Get all detailed changes
-        var detailedChanges = choice.GetDetailedChanges();
-        var result = new List<(ValueTypes Type, string Label, int Total, List<string> Details)>();
+        Dictionary<ValueTypes, (int TotalAmount, List<string> Sources)> detailedChanges = choice.GetDetailedChanges();
+        List<(ValueTypes Type, string Label, int Total, List<string> Details)> result = new List<(ValueTypes Type, string Label, int Total, List<string> Details)>();
 
         // For each value type, create a display entry
-        foreach (var kvp in detailedChanges)
+        foreach (KeyValuePair<ValueTypes, (int TotalAmount, List<string> Sources)> kvp in detailedChanges)
         {
             ValueTypes valueType = kvp.Key;
-            var (totalAmount, sources) = kvp.Value;
+            (int totalAmount, List<string> sources) = kvp.Value;
 
             result.Add((
                 valueType,                        // The value type
@@ -94,8 +94,8 @@ public partial class EncounterViewBase : ComponentBase
 
     public string RenderValueModification(EncounterChoice choice, ValueModification change)
     {
-        var detailedChanges = choice.GetDetailedChanges();
-        if (detailedChanges.TryGetValue(change.ValueType, out var details))
+        Dictionary<ValueTypes, (int TotalAmount, List<string> Sources)> detailedChanges = choice.GetDetailedChanges();
+        if (detailedChanges.TryGetValue(change.ValueType, out (int TotalAmount, List<string> Sources) details))
         {
             return string.Join(", ", details.Sources);
         }
