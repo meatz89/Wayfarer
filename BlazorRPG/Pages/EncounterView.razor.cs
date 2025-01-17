@@ -52,7 +52,8 @@ public partial class EncounterViewBase : ComponentBase
         int projectedChange = GetProjectedChange(changeType);
         int projectedValue = currentValue + projectedChange;
 
-        return (projectedChange >= 0 ? "+" : "") + projectedChange.ToString();
+        // Only show the change if it's not zero
+        return projectedChange == 0 ? "" : (projectedChange > 0 ? "+" : "") + projectedChange.ToString();
     }
 
     private int GetCurrentValue(ChangeTypes changeType)
@@ -190,7 +191,28 @@ public partial class EncounterViewBase : ComponentBase
         if (calculationResult.EnergyCost > 0)
             AddDetailedChange(detailedChanges, ConvertEnergyTypeToChangeType(calculationResult.EnergyType), "Base", -calculationResult.EnergyCost);
 
+        // Sort the detailed changes
+        detailedChanges = SortDetailedChanges(detailedChanges);
+
         return detailedChanges;
+    }
+
+    private List<DetailedChange> SortDetailedChanges(List<DetailedChange> changes)
+    {
+        // Define the order of ChangeTypes
+        List<ChangeTypes> order = new List<ChangeTypes>()
+        {
+            ChangeTypes.Momentum,
+            ChangeTypes.Insight,
+            ChangeTypes.Resonance,
+            ChangeTypes.Outcome,
+            ChangeTypes.Pressure,
+            ChangeTypes.PhysicalEnergy,
+            ChangeTypes.FocusEnergy,
+            ChangeTypes.SocialEnergy
+        };
+
+        return changes.OrderBy(dc => order.IndexOf(dc.ChangeType)).ToList();
     }
 
     private void AddDetailedChange(List<DetailedChange> combined, ChangeTypes changeType, string source, int amount)

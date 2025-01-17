@@ -6,32 +6,8 @@
         <div class="encounter-header">
             <h2>@GameState.Actions.CurrentEncounter.Situation</h2>
         </div>
-
         <div class="encounter-context">
-
             <div class="encounter-stats">
-                <div class="stat">
-                    @GetValueTypeIcon(ChangeTypes.Outcome)
-                    <span class="stat-label">Outcome</span>
-                    <span class="stat-value">
-                        @GameState.Actions.CurrentEncounter.Context.CurrentValues.Outcome
-                        @if (hoveredChoice != null)
-                        {
-                            <span> (@GetProjectedValue(ChangeTypes.Outcome))</span>
-                        }
-                    </span>
-                </div>
-                <div class="stat">
-                    @GetValueTypeIcon(ChangeTypes.Pressure)
-                    <span class="stat-label">Pressure</span>
-                    <span class="stat-value">
-                        @GameState.Actions.CurrentEncounter.Context.CurrentValues.Pressure
-                        @if (hoveredChoice != null)
-                        {
-                            <span> (@GetProjectedValue(ChangeTypes.Pressure))</span>
-                        }
-                    </span>
-                </div>
                 <div class="stat">
                     @GetValueTypeIcon(ChangeTypes.Momentum)
                     <span class="stat-label">Momentum</span>
@@ -39,7 +15,7 @@
                         @GameState.Actions.CurrentEncounter.Context.CurrentValues.Momentum
                         @if (hoveredChoice != null)
                         {
-                            <span> (@GetProjectedValue(ChangeTypes.Momentum))</span>
+                            <span class="stat-projected-change"> @GetProjectedValue(ChangeTypes.Momentum)</span>
                         }
                     </span>
                 </div>
@@ -50,7 +26,7 @@
                         @GameState.Actions.CurrentEncounter.Context.CurrentValues.Insight
                         @if (hoveredChoice != null)
                         {
-                            <span> (@GetProjectedValue(ChangeTypes.Insight))</span>
+                            <span class="stat-projected-change"> @GetProjectedValue(ChangeTypes.Insight)</span>
                         }
                     </span>
                 </div>
@@ -61,7 +37,29 @@
                         @GameState.Actions.CurrentEncounter.Context.CurrentValues.Resonance
                         @if (hoveredChoice != null)
                         {
-                            <span> (@GetProjectedValue(ChangeTypes.Resonance))</span>
+                            <span class="stat-projected-change"> @GetProjectedValue(ChangeTypes.Resonance)</span>
+                        }
+                    </span>
+                </div>
+                <div class="stat">
+                    @GetValueTypeIcon(ChangeTypes.Outcome)
+                    <span class="stat-label">Outcome</span>
+                    <span class="stat-value">
+                        @GameState.Actions.CurrentEncounter.Context.CurrentValues.Outcome
+                        @if (hoveredChoice != null)
+                        {
+                            <span class="stat-projected-change"> @GetProjectedValue(ChangeTypes.Outcome)</span>
+                        }
+                    </span>
+                </div>
+                <div class="stat">
+                    @GetValueTypeIcon(ChangeTypes.Pressure)
+                    <span class="stat-label">Pressure</span>
+                    <span class="stat-value">
+                        @GameState.Actions.CurrentEncounter.Context.CurrentValues.Pressure
+                        @if (hoveredChoice != null)
+                        {
+                            <span class="stat-projected-change"> @GetProjectedValue(ChangeTypes.Pressure)</span>
                         }
                     </span>
                 </div>
