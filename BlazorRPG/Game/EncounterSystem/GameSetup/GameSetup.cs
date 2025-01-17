@@ -3,7 +3,7 @@
     public static GameState CreateNewGame()
     {
         GameState gameState = new GameState();
-        gameState.World.SetNewLocation(LocationContent.LionsHeadTavern);
+        gameState.World.SetNewLocation(LocationContent.ForestRoad);
 
         GameRules gameRules = GameRules.StandardRuleset;
 

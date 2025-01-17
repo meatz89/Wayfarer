@@ -1,4 +1,5 @@
-﻿public class ChoiceSystem
+﻿
+public class ChoiceSystem
 {
     private readonly GameState gameState;
     private readonly List<ChoiceSetTemplate> choiceSetTemplates;
@@ -21,7 +22,7 @@
         // 1. Select appropriate template based on context
         ChoiceSetTemplate template = choiceSetSelector.SelectTemplate(
             choiceSetTemplates, context);
-        if (template == null) return null;
+        if (template == null) return GetStandardTemplate();
 
         // 2. Create base choices with unmodified values
         ChoiceSet choiceSet = choiceSetGenerator.Generate(
@@ -30,4 +31,8 @@
         return choiceSet;
     }
 
+    private ChoiceSet GetStandardTemplate()
+    {
+        throw new NotImplementedException();
+    }
 }

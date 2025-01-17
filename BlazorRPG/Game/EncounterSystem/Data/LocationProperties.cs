@@ -16,6 +16,7 @@ public enum ResourceTypes
 // --- Archetype ---
 public enum LocationArchetypes
 {
+    Undefined = 0,
     Tavern,
     Market,
     Forest,
@@ -31,7 +32,8 @@ public enum LocationArchetypes
     Library,
     ConstructionSite,
     Docks,
-    CraftsmanWorkshop
+    CraftsmanWorkshop,
+    Crossroads
 }
 
 public enum LocationPropertyTypes
@@ -175,7 +177,8 @@ public enum SupervisionTypes
 
 public enum AtmosphereTypes
 {
-    Relaxed, Formal, Tense
+    Relaxed, Formal, Tense,
+    Mysterious
 }
 
 public enum SpaceTypes

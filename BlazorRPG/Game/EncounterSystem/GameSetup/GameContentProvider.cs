@@ -18,19 +18,13 @@
     {
         locations = new List<Location>
         {
-            LocationContent.LionsHeadTavern,
-            LocationContent.QuietBookshop,
-            LocationContent.CraftsmanWorkshop,
-            LocationContent.TendedGarden,
-            LocationContent.BusyDockyard,
-            LocationContent.BusyMarketplace,
-            LocationContent.WildForest
+            LocationContent.ForestRoad,
+            LocationContent.AncientCrossroads,
+            LocationContent.WanderersWelcome
         };
 
         characters = new List<Character>
         {
-            CharacterContent.Bartender,
-            CharacterContent.WealthyMerchant
         };
 
         items = new List<Item>
@@ -43,11 +37,11 @@
 
         quests = new List<Quest>
         {
-            QuestContent.MerchantApprentice,
+            //QuestContent.MerchantApprentice,
         };
 
 
-        choiceSetTemplates = ChoiceSetContent.AllChoiceSets;
+        choiceSetTemplates = ChoiceSetContent.TutorialSequence;
         locationArchetypeEffects = new List<LocationPropertyChoiceEffect>();
         // LocationPropertyChoiceEffects.AllEffects;
     }

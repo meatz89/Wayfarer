@@ -74,13 +74,17 @@ public class GameManager
         // Execute the choice
         EncounterResults result = EncounterSystem.ExecuteChoice(encounter, choice, location.LocationProperties);
 
-        if (IsGameOver(gameState.Player))
+        if (result != EncounterResults.Ongoing)
         {
-            return EncounterResults.GameOver;
+            gameState.Actions.CompleteActiveEncounter();
         }
         else
         {
-            // Check if we should proceed to next stage
+            if (IsGameOver(gameState.Player))
+            {
+                gameState.Actions.CompleteActiveEncounter();
+                return EncounterResults.GameOver;
+            }
             ProceedEncounter(encounter, location.LocationName);
         }
 
@@ -100,14 +104,7 @@ public class GameManager
     private void ProceedEncounter(Encounter encounter, LocationNames locationName)
     {
         encounter.AdvanceStage();
-        if (encounter.GetCurrentStage() != null)
-        {
-            SetEncounterChoices(encounter, locationName);
-        }
-        else
-        {
-            gameState.Actions.CompleteActiveEncounter();
-        }
+        SetEncounterChoices(encounter, locationName);
     }
 
     public void CreateGlobalActions()
@@ -213,7 +210,7 @@ public class GameManager
         EncounterContext context = new EncounterContext(
             action,
             location.LocationType,
-            location.Archetype,
+            location.LocationProperties.Archetype.Value,
             gameState.World.CurrentTimeSlot,
             location.LocationProperties,
             playerState,

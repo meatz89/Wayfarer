@@ -44,6 +44,16 @@
         }
     }
 
+    private bool GetNextStage(Encounter encounter)
+    {
+        EncounterStage newStage = GenerateStage(encounter.Context);
+        if (newStage == null)
+            return false;
+
+        encounter.AddStage(newStage);
+        return true;
+    }
+
     public Encounter GenerateEncounter(EncounterContext context)
     {
         // Generate initial stage
@@ -80,16 +90,6 @@
             CurrentChoiceSetName = choiceSet.Name,
             Choices = choiceSet.Choices
         };
-    }
-
-    private bool GetNextStage(Encounter encounter)
-    {
-        EncounterStage newStage = GenerateStage(encounter.Context);
-        if (newStage == null)
-            return false;
-
-        encounter.AddStage(newStage);
-        return true;
     }
 
     public List<UserEncounterChoiceOption> GetChoiceOptions(Encounter encounter, LocationNames location)

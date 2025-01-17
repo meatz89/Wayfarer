@@ -4,6 +4,12 @@ public class EncounterStateConditionBuilder
     private Dictionary<ValueTypes, int> maxValues = new();
     private Dictionary<ValueTypes, int> minValues = new();
 
+    public EncounterStateConditionBuilder WithMaxMomentum(int value)
+    {
+        maxValues[ValueTypes.Momentum] = value;
+        return this;
+    }
+
     public EncounterStateConditionBuilder WithMaxPressure(int value)
     {
         maxValues[ValueTypes.Pressure] = value;

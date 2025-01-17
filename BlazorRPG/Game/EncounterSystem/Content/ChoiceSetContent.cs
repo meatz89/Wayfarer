@@ -1,100 +1,73 @@
 ﻿public static class ChoiceSetContent
 {
-    public static List<ChoiceSetTemplate> AllChoiceSets { get; set; } = new()
+    public static List<ChoiceSetTemplate> TutorialSequence => new()
     {
-        // Heavy Labor - Simple physical task with focus support
+        // First encounter: Physical challenge with the fallen tree
+        // Teaches: Momentum building, pressure management, and physical energy
         new ChoiceSetTemplateBuilder()
-            .WithName("Heavy Labor")
-            .WithActionType(BasicActionTypes.Labor)  // This automatically sets up 2 Physical + 1 Focus
-            .AddAvailabilityCondition(properties => properties
-                .WithActivityLevel(ActivityLevelTypes.Quiet)
-                .WithSupervision(SupervisionTypes.Unsupervised))
-            .AddStateCondition(values => values
-                .WithMaxPressure(5))
-            .Build(),
-
-        // Starting Complex Work - Balanced physical and mental approach
-        new ChoiceSetTemplateBuilder()
-            .WithName("Starting Complex Work")
+            .WithName("Clearing the Path")
             .WithActionType(BasicActionTypes.Labor)
             .WithComposition(new CompositionPattern
             {
                 PrimaryArchetype = ChoiceArchetypes.Physical,
                 SecondaryArchetype = ChoiceArchetypes.Focus,
-                PrimaryCount = 2,    // One physical for direct action
-                SecondaryCount = 1    // One focus for tactical planning
+                PrimaryCount = 2,    // Two physical choices for direct and pragmatic approaches
+                SecondaryCount = 1    // One focus choice for tactical assessment
             })
             .AddAvailabilityCondition(properties => properties
-                .WithAtmosphere(AtmosphereTypes.Tense)
-                .WithExposure(ExposureTypes.Indoor)
-                .WithActivityLevel(ActivityLevelTypes.Quiet))
-            .AddStateCondition(values => values
-                .WithMaxOutcome(4)
-                .WithMaxPressure(4)
-                .WithMaxInsight(4))
-            .Build(),
-
-        // Initial Social Approach - Social lead with focus support
-        new ChoiceSetTemplateBuilder()
-            .WithName("Initial Social Approach")
-            .WithActionType(BasicActionTypes.Persuade)  // This sets up 2 Social + 1 Focus
-            .AddAvailabilityCondition(properties => properties
-                .WithActivityLevel(ActivityLevelTypes.Quiet)
-                .WithAtmosphere(AtmosphereTypes.Tense)
-                .WithExposure(ExposureTypes.Indoor))
-            .AddStateCondition(values => values
-                .WithMaxOutcome(4)
-                .WithMaxPressure(4)
-                .WithMaxInsight(4)
-                .WithMaxResonance(4))
-            .Build(),
-
-        // Careful Investigation - Focus-heavy with social backup
-        new ChoiceSetTemplateBuilder()
-            .WithName("Careful Investigation")
-            .WithActionType(BasicActionTypes.Investigate)  // This sets up 2 Focus + 1 Social
-            .AddAvailabilityCondition(properties => properties
+                .WithArchetype(LocationArchetypes.Forest)
                 .WithActivityLevel(ActivityLevelTypes.Deserted)
-                .WithAtmosphere(AtmosphereTypes.Tense)
+                .WithExposure(ExposureTypes.Outdoor)
                 .WithSupervision(SupervisionTypes.Unsupervised))
-            .AddStateCondition(values => values
-                .WithMaxPressure(5))
+            //.AddStateCondition(values => values
+            //    .WithMaxOutcome(3)    // Early stage - plenty of work ahead
+            //    .WithMaxPressure(4)   // Not too threatening yet
+            //    .WithMaxMomentum(3))  // Room to build momentum
             .Build(),
 
-        // Busy Service - Physical lead with social support
+        // Second encounter: Mental challenge at the crossroads
+        // Teaches: Insight building, outcome generation through understanding
         new ChoiceSetTemplateBuilder()
-            .WithName("Busy Service")
-            .WithActionType(BasicActionTypes.Labor)
+            .WithName("Decoding Ancient Signs")
+            .WithActionType(BasicActionTypes.Investigate)
             .WithComposition(new CompositionPattern
             {
-                PrimaryArchetype = ChoiceArchetypes.Physical,
-                SecondaryArchetype = ChoiceArchetypes.Social,
-                PrimaryCount = 2,
-                SecondaryCount = 1
+                PrimaryArchetype = ChoiceArchetypes.Focus,
+                SecondaryArchetype = ChoiceArchetypes.Physical,
+                PrimaryCount = 2,    // Two focus choices for direct observation and careful study
+                SecondaryCount = 1    // One physical choice to clear debris/get better view
             })
             .AddAvailabilityCondition(properties => properties
-                .WithAccessibility(AccessibilityTypes.Public)
-                .WithActivityLevel(ActivityLevelTypes.Bustling)
-                .WithAtmosphere(AtmosphereTypes.Relaxed))
+                .WithArchetype(LocationArchetypes.Crossroads)
+                .WithActivityLevel(ActivityLevelTypes.Deserted)
+                .WithAtmosphere(AtmosphereTypes.Mysterious))
+            //.AddStateCondition(values => values
+            //    .WithMaxOutcome(3)    // Early stage investigation
+            //    .WithMaxPressure(4)   // Some time pressure but not urgent
+            //    .WithMaxInsight(5))   // Room to build understanding
             .Build(),
 
-        // Mounting Pressure - Physical focus with tactical options
+        // Third encounter: Social challenge at the tavern
+        // Teaches: Resonance building, social energy management
         new ChoiceSetTemplateBuilder()
-            .WithName("Mounting Pressure")
-            .WithActionType(BasicActionTypes.Labor)
+            .WithName("Finding Your Place")
+            .WithActionType(BasicActionTypes.Persuade)
             .WithComposition(new CompositionPattern
             {
-                PrimaryArchetype = ChoiceArchetypes.Physical,
+                PrimaryArchetype = ChoiceArchetypes.Social,
                 SecondaryArchetype = ChoiceArchetypes.Focus,
-                PrimaryCount = 2,    // Two physical choices
-                SecondaryCount = 1    // One focus for tactical support
+                PrimaryCount = 2,    // Two social choices for different approaches
+                SecondaryCount = 1    // One focus choice to read the room
             })
             .AddAvailabilityCondition(properties => properties
-                .WithAtmosphere(AtmosphereTypes.Tense)
-                .WithSupervision(SupervisionTypes.Patrolled))
-            .AddStateCondition(values => values
-                .WithMinPressure(6)
-                .WithMaxOutcome(6))
+                .WithArchetype(LocationArchetypes.Tavern)
+                .WithActivityLevel(ActivityLevelTypes.Bustling)
+                .WithAccessibility(AccessibilityTypes.Public)
+                .WithAtmosphere(AtmosphereTypes.Relaxed))
+            //.AddStateCondition(values => values
+            //    .WithMaxOutcome(3)     // Early social positioning
+            //    .WithMaxPressure(4)    // Some social pressure but not overwhelming
+            //    .WithMaxResonance(5))  // Room to build connections
             .Build()
     };
 }

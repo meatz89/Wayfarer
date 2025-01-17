@@ -234,7 +234,7 @@ public partial class GameUI : ComponentBase
             List<string> archetypeEffects = GetEffectDescriptions(LocationPropertyTypes.Archetype);
             properties.Add(new(
                 "🏠",
-                FormatEnumString(CurrentLocation.Archetype.ToString()),
+                FormatEnumString(CurrentLocation.LocationProperties.Archetype.ToString()),
                 "",
                 archetypeEffects
             ));

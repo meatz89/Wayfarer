@@ -290,6 +290,7 @@ public partial class EncounterViewBase : ComponentBase
         }
 
         EncounterResults result = GameManager.ExecuteEncounterChoice(choice);
+
         OnEncounterCompleted.InvokeAsync(result);
         HideTooltip();
     }
