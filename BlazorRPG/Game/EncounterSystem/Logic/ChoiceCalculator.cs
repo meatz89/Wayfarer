@@ -65,7 +65,7 @@ public class ChoiceCalculator
                     modifications.Add(new EncounterValueModification(
                         ValueTypes.Outcome,
                         conversionAmount,
-                        "outcome generation 2:1 if pressure is under 3"));
+                        $"From Momentum {values.Momentum} because Pressure is under 3"));
                 }
                 break;
         }
@@ -82,7 +82,8 @@ public class ChoiceCalculator
                     modifications.Add(new EncounterValueModification(
                         ValueTypes.Outcome,
                         1,
-                        "Gain Outcome from insight if insight exceeds pressure"));
+                        $"From Insight {values.Insight} because Insight exceeds Pressure")
+                    );
                 }
                 break;
 
@@ -94,7 +95,7 @@ public class ChoiceCalculator
                     modifications.Add(new EncounterValueModification(
                         ValueTypes.Outcome,
                         conversionAmount,
-                        "Gain Outcome from insight at 2:1 ratio"));
+                        $"From Insight {values.Insight} As Conversion"));
                 }
                 break;
         }
@@ -114,6 +115,10 @@ public class ChoiceCalculator
                         ValueTypes.Outcome,
                         outcomeGain,
                         "Excess resonance to outcome"));
+                    modifications.Add(new EncounterValueModification(
+                        ValueTypes.Resonance,
+                        -outcomeGain,
+                        $"From Excess Resonance {outcomeGain}"));
                 }
                 break;
 
@@ -125,7 +130,7 @@ public class ChoiceCalculator
                     modifications.Add(new EncounterValueModification(
                         ValueTypes.Outcome,
                         conversionAmount,
-                        "Gain outcome from resonance at 3:1 ratio"));
+                        $"From Resonance {values.Resonance} because Resonance exceeds 3"));
                 }
                 break;
 
@@ -136,7 +141,7 @@ public class ChoiceCalculator
                     modifications.Add(new EncounterValueModification(
                         ValueTypes.Pressure,
                         -2,
-                        "reduce pressure"));
+                        "From Resonance"));
                 }
                 break;
         }
@@ -169,19 +174,14 @@ public class ChoiceCalculator
     {
         EncounterStateValues currentValues = context.CurrentValues;
 
-        // Project the state after applying decay modifications
-        EncounterStateValues projectedValues = ProjectNewState(
-            context.CurrentValues,
-            new List<BaseValueChange>(), // No base changes for projection
-            modifications.Where(m => m is EncounterValueModification).ToList() // Only apply decay modifications
-        );
-
-        // Momentum reduces energy costs based on current state
-        if (currentValues.Momentum > 0)
+        // Momentum reduces energy costs based on current state, only if energy cost is > 0
+        if (currentValues.Momentum > 0 && choice.EnergyCost > 0)
         {
+            int reductionAmount = Math.Min(currentValues.Momentum, Math.Min(3, choice.EnergyCost)); // Ensure reduction doesn't exceed cost or 3
+
             modifications.Add(new EnergyCostReduction(
                 choice.EnergyType,
-                Math.Min(currentValues.Momentum, 3),
+                reductionAmount,
                 $"From Momentum {currentValues.Momentum}"
             ));
         }
