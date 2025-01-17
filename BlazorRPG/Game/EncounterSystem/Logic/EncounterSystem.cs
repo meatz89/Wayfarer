@@ -33,7 +33,7 @@
         {
             return EncounterResults.EncounterSuccess;
         }
-        else if(IsEncounterLost(encounter))
+        else if (IsEncounterLost(encounter))
         {
             return EncounterResults.EncounterFailure;
         }
@@ -43,7 +43,7 @@
             return EncounterResults.Ongoing;
         }
     }
-    
+
     public Encounter GenerateEncounter(EncounterContext context)
     {
         // Generate initial stage

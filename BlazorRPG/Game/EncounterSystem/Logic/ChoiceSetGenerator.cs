@@ -1,5 +1,4 @@
-﻿
-public class ChoiceSetGenerator
+﻿public class ChoiceSetGenerator
 {
     private readonly GameState gameState;
     private readonly ChoiceCalculator calculator;

@@ -95,7 +95,7 @@
         }
 
         // Add Energy Cost as a negative modification
-        if(EnergyCost > 0)
+        if (EnergyCost > 0)
             AddDetailedChange(combined, ConvertEnergyTypeToChangeType(EnergyType), "Base", -EnergyCost);
 
         return combined;

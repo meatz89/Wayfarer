@@ -240,7 +240,7 @@ public class GameManager
     public void SetEncounterChoices(Encounter encounter, LocationNames location)
     {
         string locationSpot = "LocationSpot";
-        List<UserEncounterChoiceOption> choiceOptions = 
+        List<UserEncounterChoiceOption> choiceOptions =
             EncounterSystem.GetChoiceOptions(encounter, location);
 
         gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
