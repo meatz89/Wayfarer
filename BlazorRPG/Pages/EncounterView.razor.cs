@@ -5,8 +5,7 @@ using Microsoft.JSInterop;
 public partial class EncounterViewBase : ComponentBase
 {
     [Inject] public IJSRuntime JSRuntime { get; set; } // Inject IJSRuntime
-
-    [Parameter] public EventCallback OnEncounterCompleted { get; set; }
+    [Parameter] public EventCallback<EncounterResults> OnEncounterCompleted { get; set; }
     [Inject] public GameState GameState { get; set; }
     [Inject] public GameManager GameManager { get; set; }
 
@@ -135,8 +134,8 @@ public partial class EncounterViewBase : ComponentBase
             return;
         }
 
-        GameManager.ExecuteEncounterChoice(choice);
-        OnEncounterCompleted.InvokeAsync();
+        EncounterResults result = GameManager.ExecuteEncounterChoice(choice);
+        OnEncounterCompleted.InvokeAsync(result);
         HideTooltip();
     }
 

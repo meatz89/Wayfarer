@@ -1,5 +1,4 @@
 ﻿using System.Text;
-
 public class GameManager
 {
     private const int hoursToAdvanceForActions = 2;
@@ -63,6 +62,52 @@ public class GameManager
         CreateGlobalActions();
         //CreateCharacterActions();
         //CreateQuestActions();
+    }
+
+    public EncounterResults ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
+    {
+        Encounter encounter = choiceOption.Encounter;
+        EncounterChoice choice = choiceOption.EncounterChoice;
+
+        Location location = LocationSystem.GetLocation(choiceOption.LocationName);
+
+        // Execute the choice
+        EncounterResults result = EncounterSystem.ExecuteChoice(encounter, choice, location.LocationProperties);
+
+        if (IsGameOver(gameState.Player))
+        {
+            return EncounterResults.GameOver;
+        }
+        else
+        {
+            // Check if we should proceed to next stage
+            ProceedEncounter(encounter, location.LocationName);
+        }
+
+        return result;
+    }
+
+    private bool IsGameOver(PlayerState player)
+    {
+        bool canPayPhysical = player.PhysicalEnergy > 0 || player.Health > 1;
+        bool canPayFocus = player.FocusEnergy > 0 || player.Concentration > 1;
+        bool canPaySocial = player.SocialEnergy > 0 || player.Reputation > 1;
+
+        bool isGameOver = !(canPayPhysical || canPayFocus || canPaySocial);
+        return isGameOver;
+    }
+
+    private void ProceedEncounter(Encounter encounter, LocationNames locationName)
+    {
+        encounter.AdvanceStage();
+        if (encounter.GetCurrentStage() != null)
+        {
+            SetEncounterChoices(encounter, locationName);
+        }
+        else
+        {
+            gameState.Actions.CompleteActiveEncounter();
+        }
     }
 
     public void CreateGlobalActions()
@@ -179,33 +224,6 @@ public class GameManager
         return EncounterSystem.GenerateEncounter(context);
     }
 
-    private int GetStartingResonance(PlayerState player, Location location)
-    {
-        // Base resonance of 5
-        int resonance = 5;
-
-        // Add bonuses from relevant reputation
-        if (location.Archetype == LocationArchetypes.Market && player.HasReputation(ReputationTypes.Reliable))
-            resonance += player.GetReputationLevel(ReputationTypes.Reliable);
-
-        return resonance;
-    }
-
-    private int GetStartingPressure(LocationProperties properties)
-    {
-        // Base pressure starts at 0
-        int pressure = 0;
-
-        // Add pressure based on location properties
-        if (properties.Atmosphere == AtmosphereTypes.Tense)
-            pressure += 2;
-        if (properties.Space == SpaceTypes.Hazardous)
-            pressure += 2;
-        if (properties.Supervision == SupervisionTypes.Watched)
-            pressure += 1;
-
-        return pressure;
-    }
 
     public List<LocationPropertyChoiceEffect> GetLocationEffects(LocationNames locationName)
     {
@@ -218,31 +236,14 @@ public class GameManager
         return LocationSystem.GetLocationEffects(location.LocationName);
     }
 
-    public void ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
+
+    public void SetEncounterChoices(Encounter encounter, LocationNames location)
     {
-        Encounter encounter = choiceOption.Encounter;
-        EncounterChoice choice = choiceOption.EncounterChoice;
+        string locationSpot = "LocationSpot";
+        List<UserEncounterChoiceOption> choiceOptions = 
+            EncounterSystem.GetChoiceOptions(encounter, location);
 
-        Location location = LocationSystem.GetLocation(choiceOption.LocationName);
-
-        // Execute the choice
-        EncounterSystem.ExecuteChoice(encounter, choice, location.LocationProperties);
-
-        // Check if we should proceed to next stage
-        ProceedEncounter(encounter, location.LocationName);
-    }
-
-    private void ProceedEncounter(Encounter encounter, LocationNames locationName)
-    {
-        encounter.AdvanceStage();
-        if (encounter.GetCurrentStage() != null)
-        {
-            EncounterSystem.SetEncounterChoices(encounter, locationName);
-        }
-        else
-        {
-            gameState.Actions.CompleteActiveEncounter();
-        }
+        gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
     }
 
     public ActionResult ExecuteBasicAction(UserActionOption action, ActionImplementation basicAction)
@@ -260,7 +261,7 @@ public class GameManager
             EncounterSystem.SetActiveEncounter(encounter);
 
             // Add this line to populate the initial choices
-            EncounterSystem.SetEncounterChoices(encounter, location.LocationName);
+            SetEncounterChoices(encounter, location.LocationName);
 
             return ActionResult.Success("Action started!", new ActionResultMessages());
         }
@@ -393,18 +394,6 @@ public class GameManager
         gameState.World.SetCurrentTravelOptions(userTravelOptions);
     }
 
-
-    public void AdvanceTime()
-    {
-        AdvanceTime(1);
-    }
-
-    public void AdvanceTimeTo(int hours)
-    {
-        int timeToMidnight = 24 - gameState.World.CurrentTimeInHours;
-        int timeToAdvance = timeToMidnight + hours;
-        AdvanceTime(timeToAdvance);
-    }
 
     public bool AdvanceTime(int inHours)
     {

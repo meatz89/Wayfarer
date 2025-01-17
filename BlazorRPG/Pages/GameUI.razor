@@ -65,9 +65,10 @@
             </button>
         </div>
 
+
         @if (HasEncounter())
         {
-            <EncounterView OnEncounterCompleted="HandleEncounterCompleted" />
+            <EncounterView OnEncounterCompleted="(result) => HandleEncounterCompleted(result)" />
         }
         else
         {
@@ -86,6 +87,11 @@
             }
         }
 
+        @* Add this at the end of the main container: *@
+        @if (ShowEncounterResult)
+        {
+            <EncounterResultView Result="@EncounterResult" OnContinue="ContinueAfterEncounterResult" />
+        }
     </div>
 
     <div class="sidebar">

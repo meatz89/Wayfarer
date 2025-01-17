@@ -1,0 +1,42 @@
+﻿@* EncounterResultView.razor *@
+@inherits ComponentBase
+
+<div class="encounter-result-overlay">
+    <div class="encounter-result-panel">
+        <h2>Encounter Result</h2>
+
+        @if (Result == EncounterResults.EncounterSuccess)
+        {
+            <div class="result-message">
+                <h3>Encounter Won!</h3>
+                <p>You successfully navigated the challenges and emerged victorious.</p>
+            </div>
+        }
+        else if (Result == EncounterResults.EncounterFailure)
+        {
+            <div class="result-message">
+                <h3>Encounter Lost</h3>
+                <p>You were unable to overcome the challenges of this encounter.</p>
+            </div>
+        }
+        else if (Result == EncounterResults.GameOver)
+        {
+            <div class="result-message">
+                <h3>Game Over</h3>
+                <p>The challenges proved too great. Your journey ends here.</p>
+            </div>
+        }
+
+        @* Display any additional information here, e.g., rewards gained, resources lost, etc. *@
+
+        <button @onclick="OnContinue">Continue</button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EncounterResults Result { get; set; }
+
+    [Parameter]
+    public EventCallback OnContinue { get; set; }
+}

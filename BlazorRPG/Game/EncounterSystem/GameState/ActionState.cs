@@ -18,12 +18,6 @@
         return this.CurrentEncounter;
     }
 
-    public void SetActiveEncounter(Encounter encounter)
-    {
-        CurrentEncounter = encounter;
-        CurrentChoiceOptions = new List<UserEncounterChoiceOption>();
-    }
-
     public void SetEncounterChoiceOptions(List<UserEncounterChoiceOption> options)
     {
         CurrentChoiceOptions = options;
@@ -31,8 +25,13 @@
 
     public void CompleteActiveEncounter()
     {
-        this.CurrentEncounter = null;
-        this.CurrentChoiceOptions = new();
+        SetActiveEncounter(null);
+    }
+
+    public void SetActiveEncounter(Encounter encounter)
+    {
+        CurrentEncounter = encounter;
+        CurrentChoiceOptions = new();
     }
 
     public void SetLastActionResultMessages(ActionResultMessages allMessages)

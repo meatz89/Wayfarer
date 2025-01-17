@@ -33,6 +33,9 @@ public partial class GameUI : ComponentBase
     public TimeSlots CurrentTime => GameState.World.CurrentTimeSlot;
     public int CurrentHour => GameState.World.CurrentTimeInHours;
 
+    public bool ShowEncounterResult { get; set; } = false;
+    public EncounterResults EncounterResult { get; set; }
+
     // Tooltip Logic
     public bool showAreaMap = true;
     public bool showTooltip = false;
@@ -44,6 +47,24 @@ public partial class GameUI : ComponentBase
     protected override void OnInitialized()
     {
         GameManager.StartGame();
+    }
+
+    private void HandleEncounterCompleted(EncounterResults result)
+    {
+        EncounterResult = result;
+
+        if (result != EncounterResults.Ongoing)
+        {
+            ShowEncounterResult = true;
+        }
+
+        // Force a re-render of the GameUI component
+        StateHasChanged();
+    }
+
+    private void ContinueAfterEncounterResult()
+    {
+        ShowEncounterResult = false;
     }
 
     public bool HasEncounter()

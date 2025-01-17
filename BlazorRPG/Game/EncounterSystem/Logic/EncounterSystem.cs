@@ -16,7 +16,7 @@
         this.choiceCalculator = new ChoiceCalculator(gameState);
     }
 
-    public void ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationProperties locationProperties)
+    public EncounterResults ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationProperties locationProperties)
     {
         // Retrieve the ChoiceCalculationResult
         ChoiceCalculationResult result = choiceCalculator.CalculateChoiceEffects(choice, encounter.Context);
@@ -27,12 +27,22 @@
         // Update last choice type
         encounter.Context.CurrentValues.LastChoiceType = choice.Archetype;
 
-        // Advance to the next stage (or end the encounter if no more stages)
-        if (!GetNextStage(encounter))
+        // Check for game over conditions
+        if (IsEncounterWon(encounter))
         {
-            EndEncounter(encounter);
+            return EncounterResults.EncounterSuccess;
+        }
+        else if(IsEncounterLost(encounter))
+        {
+            return EncounterResults.EncounterFailure;
+        }
+        else
+        {
+            GetNextStage(encounter);
+            return EncounterResults.Ongoing;
         }
     }
+    
     public Encounter GenerateEncounter(EncounterContext context)
     {
         // Generate initial stage
@@ -71,19 +81,8 @@
         };
     }
 
-    private void EndEncounter(Encounter encounter)
-    {
-        gameState.Actions.SetActiveEncounter(null);
-    }
-
     private bool GetNextStage(Encounter encounter)
     {
-        // Check for game over conditions
-        if (IsGameOver(encounter) || IsGameWon(encounter))
-        {
-            return false;
-        }
-
         EncounterStage newStage = GenerateStage(encounter.Context);
         if (newStage == null)
             return false;
@@ -92,10 +91,8 @@
         return true;
     }
 
-    public void SetEncounterChoices(Encounter encounter, LocationNames location)
+    public List<UserEncounterChoiceOption> GetChoiceOptions(Encounter encounter, LocationNames location)
     {
-        string locationSpot = "LocationSpot";
-
         EncounterStage stage = GetCurrentStage(encounter);
         List<EncounterChoice> choices = stage.Choices;
 
@@ -109,7 +106,7 @@
             choiceOptions.Add(option);
         }
 
-        gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
+        return choiceOptions;
     }
 
     public void SetActiveEncounter(Encounter encounter)
@@ -162,17 +159,17 @@
         return "You consider your options...";
     }
 
-    private bool IsGameWon(Encounter encounter)
+    private bool IsEncounterWon(Encounter encounter)
     {
-        const int WIN_BASE = 20;
+        const int WIN_BASE = 10;
         int OUTCOME_WIN = encounter.Context.LocationDifficulty + WIN_BASE;
 
         return encounter.Context.CurrentValues.Outcome >= OUTCOME_WIN;
     }
 
-    private bool IsGameOver(Encounter encounter)
+    private bool IsEncounterLost(Encounter encounter)
     {
-        const int LOSE_BASE = 20;
+        const int LOSE_BASE = 40;
         int PRESSURE_LOOSE = LOSE_BASE - encounter.Context.LocationDifficulty;
 
         EncounterStateValues values = encounter.Context.CurrentValues;
@@ -182,11 +179,7 @@
         if (values.Pressure >= PRESSURE_LOOSE)
             return true;
 
-        // Loss if all energy types are depleted and can't pay permanent costs
-        bool canPayPhysical = player.PhysicalEnergy > 0 || player.Health > 1;
-        bool canPayFocus = player.FocusEnergy > 0 || player.Concentration > 1;
-        bool canPaySocial = player.SocialEnergy > 0 || player.Reputation > 1;
-
-        return !canPayPhysical && !canPayFocus && !canPaySocial;
+        return false;
     }
+
 }
