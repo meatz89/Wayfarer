@@ -13,6 +13,7 @@ public class GameManager
     public QuestSystem QuestSystem { get; }
     public ItemSystem ItemSystem { get; }
     public MessageSystem MessageSystem { get; }
+    public NarrativeSystem NarrativeSystem { get; }
 
     public GameManager(
         GameState gameState,
@@ -22,7 +23,8 @@ public class GameManager
         ActionSystem actionSystem,
         QuestSystem questSystem,
         ItemSystem itemSystem,
-        MessageSystem messageSystem
+        MessageSystem messageSystem,
+        NarrativeSystem narrativeSystem
         )
     {
         this.gameState = gameState;
@@ -35,6 +37,7 @@ public class GameManager
         this.QuestSystem = questSystem;
         this.ItemSystem = itemSystem;
         this.MessageSystem = messageSystem;
+        this.NarrativeSystem = narrativeSystem;
     }
 
     public void StartGame()
@@ -52,6 +55,17 @@ public class GameManager
         UpdateLocationTravelOptions();
         UpdateLocationSpotOptions();
         UpdateAvailableActions();
+    }
+
+    public string GetLocationNarrative(LocationNames locationName)
+    {
+        return NarrativeSystem.GetLocationNarrative(locationName);
+    }
+
+    public bool HasLocationNarrative(LocationNames locationName)
+    {
+        // You can implement more complex logic here if needed
+        return !string.IsNullOrEmpty(GetLocationNarrative(locationName));
     }
 
     public void UpdateAvailableActions()
@@ -478,4 +492,5 @@ public class GameManager
     {
         return new ChoiceCalculator(gameState).CalculateChoiceEffects(encounterChoice, context);
     }
+
 }

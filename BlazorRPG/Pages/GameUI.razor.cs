@@ -27,6 +27,8 @@ public partial class GameUI : ComponentBase
 
     public List<Location> Locations => GameManager.GetAllLocations();
 
+    private bool showNarrative = false;
+    private LocationNames selectedLocation;
     public PlayerState Player => GameState.Player;
     public Location CurrentLocation => GameState.World.CurrentLocation;
     public LocationSpot CurrentSpot => GameState.World.CurrentLocationSpot;
@@ -48,6 +50,56 @@ public partial class GameUI : ComponentBase
     {
         GameManager.StartGame();
     }
+
+    private void HandleLocationSelection(LocationNames locationName)
+    {
+        selectedLocation = locationName;
+        // Check if the location has a narrative
+        if (GameManager.HasLocationNarrative(locationName))
+        {
+            showNarrative = true;
+        }
+        else
+        {
+            // If no narrative, proceed as before
+            FinalizeLocationSelection(locationName);
+        }
+    }
+
+    private void OnNarrativeContinue()
+    {
+        showNarrative = false;
+        FinalizeLocationSelection(selectedLocation);
+    }
+
+
+    private void FinalizeLocationSelection(LocationNames locationName)
+    {
+        List<UserLocationTravelOption> currentTravelOptions = GameState.World.CurrentTravelOptions;
+
+        bool enterLocation = locationName == GameState.World.CurrentLocation.LocationName;
+
+        ActionResult result;
+
+        if (enterLocation)
+        {
+            result = GameManager.TravelToLocation(locationName);
+            GameManager.TravelToLocation(locationName);
+        }
+        else
+        {
+            UserLocationTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Location == locationName);
+            GameManager.TravelToLocation(location.Location);
+            result = GameManager.TravelToLocation(location.Location);
+        }
+
+        if (result.IsSuccess)
+        {
+            CompleteActionExecution();
+            showAreaMap = false;
+        }
+    }
+
 
     private void HandleEncounterCompleted(EncounterResults result)
     {
@@ -151,33 +203,6 @@ public partial class GameUI : ComponentBase
         UserLocationSpotOption userLocationSpot = userLocationSpotOptions.FirstOrDefault(x => x.LocationSpot == locationSpot.Name);
 
         GameManager.MoveToLocationSpot(userLocationSpot.Location, locationSpot.Name);
-    }
-
-    private void HandleLocationSelection(LocationNames locationName)
-    {
-        List<UserLocationTravelOption> currentTravelOptions = GameState.World.CurrentTravelOptions;
-
-        bool enterLocation = locationName == GameState.World.CurrentLocation.LocationName;
-
-        ActionResult result;
-
-        if (enterLocation)
-        {
-            result = GameManager.TravelToLocation(locationName);
-            GameManager.TravelToLocation(locationName);
-        }
-        else
-        {
-            UserLocationTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Location == locationName);
-            GameManager.TravelToLocation(location.Location);
-            result = GameManager.TravelToLocation(location.Location);
-        }
-
-        if (result.IsSuccess)
-        {
-            CompleteActionExecution();
-            showAreaMap = false;
-        }
     }
 
     private void CompleteActionExecution()

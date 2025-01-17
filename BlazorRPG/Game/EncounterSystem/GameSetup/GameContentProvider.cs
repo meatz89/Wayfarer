@@ -1,4 +1,5 @@
-﻿public class GameContentProvider
+﻿
+public class GameContentProvider
 {
     private List<Location> locations;
     private List<Character> characters;
@@ -6,6 +7,7 @@
 
     private List<Quest> quests;
     private List<ChoiceSetTemplate> choiceSetTemplates;
+    private List<LocationNarrative> narrativeContents;
 
     private List<LocationPropertyChoiceEffect> locationArchetypeEffects = new();
 
@@ -41,6 +43,7 @@
         };
 
 
+        narrativeContents = NarrativeContent.LocationNarratives;
         choiceSetTemplates = ChoiceSetContent.TutorialSequence;
         locationArchetypeEffects = new List<LocationPropertyChoiceEffect>();
         // LocationPropertyChoiceEffects.AllEffects;
@@ -74,5 +77,10 @@
     public List<Quest> GetQuests()
     {
         return quests;
+    }
+
+    internal List<LocationNarrative> GetNarratives()
+    {
+        return narrativeContents;
     }
 }

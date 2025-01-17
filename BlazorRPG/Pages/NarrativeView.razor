@@ -1,0 +1,29 @@
+﻿@* NarrativeView.razor *@
+@inject GameManager GameManager
+@inject GameState GameState
+
+<div class="narrative-container">
+    <div class="narrative-text">
+        @if (!string.IsNullOrEmpty(NarrativeText))
+        {
+            <p>@((MarkupString)NarrativeText)</p>
+        }
+    </div>
+
+    <button class="narrative-button" @onclick="OnNarrativeCompleted">
+        Continue
+    </button>
+</div>
+
+@code {
+    [Parameter] public LocationNames LocationName { get; set; }
+    [Parameter] public EventCallback OnNarrativeCompleted { get; set; }
+
+    private string NarrativeText { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        // Fetch the narrative text based on the LocationName
+        NarrativeText = GameManager.GetLocationNarrative(LocationName);
+    }
+}

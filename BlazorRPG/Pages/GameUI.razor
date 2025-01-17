@@ -64,8 +64,6 @@
                 Travel 🗺️
             </button>
         </div>
-
-
         @if (HasEncounter())
         {
             <EncounterView OnEncounterCompleted="(result) => HandleEncounterCompleted(result)" />
@@ -74,9 +72,16 @@
         {
             @if (showAreaMap)
             {
-                <AreaMap CurrentLocation="@CurrentLocation"
-                         Locations="@Locations"
-                         OnTravel="@HandleLocationSelection"/>
+                @if (showNarrative)
+                {
+                    <NarrativeView LocationName="@selectedLocation" OnNarrativeCompleted="OnNarrativeContinue" />
+                }
+                else
+                {
+                    <AreaMap CurrentLocation="@CurrentLocation"
+                             Locations="@Locations"
+                             OnTravel="@HandleLocationSelection" />
+                }
             }
             else
             {

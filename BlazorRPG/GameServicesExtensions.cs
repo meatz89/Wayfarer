@@ -18,6 +18,7 @@
         services.AddSingleton<StatusSystem>();
         services.AddSingleton<AchievementSystem>();
 
+        services.AddSingleton<NarrativeSystem>();
         services.AddSingleton<EncounterSystem>();
         services.AddSingleton<ChoiceSystem>();
 

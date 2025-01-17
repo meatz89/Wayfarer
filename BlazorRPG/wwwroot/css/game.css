@@ -1506,3 +1506,42 @@ body {
 .stat:has(.pressure-icon) .stat-projected-change.negative {
     color: var(--energy-social); /* Inverted for pressure */
 }
+/* Narrative View Styles */
+.narrative-container {
+    background-color: var(--bg-panel);
+    padding: 20px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center content horizontally */
+    height: 100%; /* Ensure it takes up the available height */
+    justify-content: center; /* Center content vertically */
+}
+
+.narrative-text {
+    color: var(--text-primary);
+    font-size: 1.1em;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    text-align: center; /* Center text */
+    max-width: 80%; /* Limit text width for readability */
+}
+
+    .narrative-text p {
+        margin-bottom: 10px;
+    }
+
+.narrative-button {
+    background-color: var(--bg-active);
+    border: none;
+    color: var(--text-primary);
+    padding: 10px 20px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s;
+}
+
+    .narrative-button:hover {
+        background-color: var(--border-active);
+    }
