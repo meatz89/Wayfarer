@@ -54,74 +54,238 @@ public class ChoiceCalculator
     {
         List<ValueModification> modifications = new();
 
-        // Add decay changes first
+        // First handle value decay - this affects what resources we have available
         AddDecayModifications(modifications, choice, context);
 
-        // Add cascade effects based on projected state
-        AddCascadeModifications(modifications, choice, context);
-
-        // Add state-based modifications
+        // Then handle state-based modifications that affect our value gains
         AddStateModifications(modifications, choice, context);
+
+        // Finally calculate outcome generation based on our archetype, approach and current values
+        AddOutcomeModifications(modifications, choice, context);
 
         return modifications;
     }
 
-    private void AddDecayModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
-    {
-        // Decay for unused values
-        if (choice.Archetype != ChoiceArchetypes.Physical)
-            modifications.Add(new ValueModification(ValueTypes.Momentum, -1, "Unused Momentum Decay"));
 
-        // Extra decay for repeating choices
-        if (context.CurrentValues.LastChoiceType == choice.Archetype)
-        {
-            switch (choice.Archetype)
-            {
-                case ChoiceArchetypes.Physical:
-                    modifications.Add(new ValueModification(ValueTypes.Momentum, -2, "Repeated Physical Choice"));
-                    break;
-                case ChoiceArchetypes.Focus:
-                    modifications.Add(new ValueModification(ValueTypes.Insight, -1, "Repeated Focus Choice"));
-                    break;
-                case ChoiceArchetypes.Social:
-                    modifications.Add(new ValueModification(ValueTypes.Resonance, -1, "Repeated Social Choice"));
-                    break;
-            }
-        }
-    }
-
-    private void AddCascadeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
+    private void AddOutcomeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {
-        // Project state after base values and current modifications
+        // Project the state after applying all current modifications
         EncounterStateValues projectedValues = ProjectNewState(
             context.CurrentValues,
             choice.BaseEncounterValueChanges,
             modifications);
 
-        // Add pressure when values are too low
-        if (projectedValues.Momentum < projectedValues.Outcome / 3)
-            modifications.Add(new ValueModification(ValueTypes.Pressure, 2, "Not enough Momentum"));
-        if (projectedValues.Insight < projectedValues.Outcome / 3)
-            modifications.Add(new ValueModification(ValueTypes.Pressure, 2, "Not enough Insight"));
-        if (projectedValues.Resonance < projectedValues.Outcome / 3)
-            modifications.Add(new ValueModification(ValueTypes.Pressure, 2, "Not enough Resonance"));
+        // Now handle outcome generation based on archetype and approach
+        switch (choice.Archetype)
+        {
+            case ChoiceArchetypes.Physical:
+                AddPhysicalOutcomeModifications(modifications, choice, projectedValues);
+                break;
+            case ChoiceArchetypes.Focus:
+                AddFocusOutcomeModifications(modifications, choice, projectedValues);
+                break;
+            case ChoiceArchetypes.Social:
+                AddSocialOutcomeModifications(modifications, choice, projectedValues);
+                break;
+        }
+    }
+
+    private void AddPhysicalOutcomeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterStateValues values)
+    {
+        switch (choice.Approach)
+        {
+            case ChoiceApproaches.Direct:
+                // Generate outcome from momentum at 2:1 if pressure is low
+                if (values.Momentum > 0 && values.Pressure < 3)
+                {
+                    int conversionAmount = values.Momentum / 2;
+                    modifications.Add(new EncounterValueModification(
+                        ValueTypes.Outcome,
+                        conversionAmount,
+                        "outcome generation 2:1 if pressure is under 3"));
+                }
+                break;
+
+            case ChoiceApproaches.Improvised:
+                // Convert all momentum to outcome 1:1
+                if (values.Momentum > 0)
+                {
+                    modifications.Add(new EncounterValueModification(
+                        ValueTypes.Outcome,
+                        values.Momentum,
+                        "Conversion To outcome 1:1"));
+                    modifications.Add(new EncounterValueModification(
+                        ValueTypes.Momentum,
+                        -values.Momentum,
+                        "Conversion To outcome 1:1"));
+                }
+                break;
+        }
+    }
+
+    private void AddFocusOutcomeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterStateValues values)
+    {
+        switch (choice.Approach)
+        {
+            case ChoiceApproaches.Direct:
+                // Generate outcome if insight exceeds pressure
+                if (values.Insight > values.Pressure)
+                {
+                    modifications.Add(new EncounterValueModification(
+                        ValueTypes.Outcome,
+                        1,
+                        "insight exceeds pressure"));
+                }
+                break;
+
+            case ChoiceApproaches.Tactical:
+                // Convert insight at 2:1 ratio
+                if (values.Insight >= 2)
+                {
+                    int conversionAmount = values.Insight / 2;
+                    modifications.Add(new EncounterValueModification(
+                        ValueTypes.Outcome,
+                        conversionAmount,
+                        "insight at 2:1 ratio"));
+                }
+                break;
+
+            case ChoiceApproaches.Improvised:
+                // Generate outcome if insight threshold met
+                if (values.Insight >= 5)
+                {
+                    modifications.Add(new EncounterValueModification(
+                        ValueTypes.Outcome,
+                        1,
+                        "insight threshold 5 met"));
+                }
+                break;
+        }
+    }
+
+    private void AddSocialOutcomeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterStateValues values)
+    {
+        switch (choice.Approach)
+        {
+            case ChoiceApproaches.Direct:
+                // Convert excess resonance to outcome
+                if (values.Resonance > values.Pressure)
+                {
+                    int outcomeGain = values.Resonance - values.Pressure;
+                    modifications.Add(new EncounterValueModification(
+                        ValueTypes.Outcome,
+                        outcomeGain,
+                        "excess resonance to outcome"));
+                }
+                break;
+
+            case ChoiceApproaches.Pragmatic:
+                // Convert resonance at 3:1 ratio
+                if (values.Resonance >= 3)
+                {
+                    int conversionAmount = values.Resonance / 3;
+                    modifications.Add(new EncounterValueModification(
+                        ValueTypes.Outcome,
+                        conversionAmount,
+                        "resonance at 3:1 ratio"));
+                }
+                break;
+
+            case ChoiceApproaches.Tactical:
+                // Convert resonance at 2:1 and reduce pressure
+                if (values.Resonance > 0)
+                {
+                    int conversionAmount = values.Resonance / 2;
+                    modifications.Add(new EncounterValueModification(
+                        ValueTypes.Outcome,
+                        conversionAmount,
+                        "convert resonance at 2:1 and reduce pressure"));
+                    modifications.Add(new EncounterValueModification(
+                        ValueTypes.Pressure,
+                        -2,
+                        "convert resonance at 2:1 and reduce pressure"));
+                    modifications.Add(new EncounterValueModification(
+                        ValueTypes.Resonance,
+                        -values.Resonance,
+                        "convert resonance at 2:1 and reduce pressure"));
+                }
+                break;
+
+            case ChoiceApproaches.Improvised:
+                // Convert resonance at 4:1 if pressure is low
+                if (values.Resonance >= 4 && values.Pressure < 4)
+                {
+                    modifications.Add(new EncounterValueModification(
+                        ValueTypes.Outcome,
+                        1,
+                        "Convert resonance at 4:1 if pressure is low"));
+                    modifications.Add(new EncounterValueModification(
+                        ValueTypes.Resonance,
+                        -4,
+                        "Convert resonance at 4:1 if pressure is low"));
+                }
+                break;
+        }
+    }
+
+    private void AddDecayModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
+    {
+        // First handle value decay
+        if (context.CurrentValues.LastChoiceType.HasValue)
+        {
+            // Momentum decays by 2 each turn without physical action
+            if (context.CurrentValues.LastChoiceType != ChoiceArchetypes.Physical)
+            {
+                modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -1, "No Physical Choice"));
+            }
+            // Insight decays by 1 when repeating choice type
+            if (choice.Archetype == context.CurrentValues.LastChoiceType)
+            {
+                modifications.Add(new EncounterValueModification(ValueTypes.Insight, -1, "Repeated Choice Type"));
+            }
+            // Resonance decays by 1 when repeating choice approaches
+            if (choice.Approach == context.CurrentValues.LastChoiceApproach)
+            {
+                modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -1, "Repeated Choice Approach"));
+            }
+        }
     }
 
     private void AddStateModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {
-        // High pressure reduces gains
-        if (context.CurrentValues.Pressure >= 6)
+        // Momentum reduces energy costs
+        if (context.CurrentValues.Momentum > 0)
+        {
+            modifications.Add(new EnergyModification(
+                choice.EnergyType,
+                -Math.Min(context.CurrentValues.Momentum, 3),
+                "Momentum Energy Reduction"
+            ));
+        };
+
+        // Insight amplifies value gains
+        if (context.CurrentValues.Insight >= 2)
         {
             foreach (BaseValueChange baseChange in choice.BaseEncounterValueChanges)
             {
-                if (baseChange.ValueType != ValueTypes.Pressure && baseChange.Amount > 0)
+                if (baseChange.Amount > 0 && baseChange.ValueType != ValueTypes.Pressure)
                 {
-                    modifications.Add(new ValueModification(
+                    modifications.Add(new EncounterValueModification(
                         baseChange.ValueType,
-                        -1,
-                        "High Pressure Penalty"));
+                        context.CurrentValues.Insight / 2,
+                        "Insight Amplification"));
                 }
             }
+        }
+
+        // Resonance reduces pressure gain
+        if (context.CurrentValues.Resonance > 0 &&
+            choice.BaseEncounterValueChanges.Any(x => x.ValueType == ValueTypes.Pressure))
+        {
+            modifications.Add(new EncounterValueModification(
+                ValueTypes.Pressure,
+                -Math.Min(context.CurrentValues.Resonance, 3),
+                "Resonance Pressure Reduction"));
         }
     }
 
@@ -146,7 +310,14 @@ public class ChoiceCalculator
         // Then apply modifications
         foreach (ValueModification mod in modifications)
         {
-            ApplyValueChange(newState, mod.ValueType, mod.Amount);
+            if (mod is EncounterValueModification evm)
+            {
+                ApplyValueChange(newState, evm.ValueType, evm.Amount);
+            }
+            else if (mod is EnergyModification em)
+            {
+                // Do nothing here, energy modifications don't directly affect state values
+            }
         }
 
         return newState;
@@ -182,6 +353,7 @@ public class ChoiceCalculator
     {
         EncounterStateValues newState = ProjectNewState(currentValues, baseChanges, modifications);
         newState.LastChoiceType = choice.Archetype;
+        newState.LastChoiceApproach = choice.Approach;
         return newState;
     }
 

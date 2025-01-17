@@ -12,12 +12,6 @@
     public OutcomeModification Reward { get; set; }
 }
 
-public class EnergyModification
-{
-    public ChoiceArchetypes TargetArchetype { get; set; }
-    public EnergyTypes EnergyType { get; set; }
-    public int EnergyCostModifier { get; set; }
-}
 
 // Data for modifying a Requirement
 public class RequirementModification

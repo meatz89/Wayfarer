@@ -7,6 +7,7 @@ public class EncounterStateValues
     public int Resonance { get; set; }
     public int Pressure { get; set; }
     public ChoiceArchetypes? LastChoiceType { get; set; }
+    public ChoiceApproaches? LastChoiceApproach { get; set; }
 
     public EncounterStateValues(int outcome, int momentum, int insight, int resonance, int pressure)
     {

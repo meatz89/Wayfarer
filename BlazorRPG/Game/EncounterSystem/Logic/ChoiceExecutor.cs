@@ -23,10 +23,36 @@
         }
 
         // Apply all value changes as a single transaction
-        Dictionary<ValueTypes, int> combinedChanges = result.GetCombinedValues();
-        foreach (KeyValuePair<ValueTypes, int> kvp in combinedChanges)
+        Dictionary<ChangeTypes, int> combinedChanges = result.GetCombinedValues();
+        foreach (KeyValuePair<ChangeTypes, int> kvp in combinedChanges)
         {
-            gameState.Actions.CurrentEncounter.ModifyValue(kvp.Key, kvp.Value);
+            switch (kvp.Key)
+            {
+                case ChangeTypes.Outcome:
+                    gameState.Actions.CurrentEncounter.ModifyValue(ValueTypes.Outcome, kvp.Value);
+                    break;
+                case ChangeTypes.Momentum:
+                    gameState.Actions.CurrentEncounter.ModifyValue(ValueTypes.Momentum, kvp.Value);
+                    break;
+                case ChangeTypes.Insight:
+                    gameState.Actions.CurrentEncounter.ModifyValue(ValueTypes.Insight, kvp.Value);
+                    break;
+                case ChangeTypes.Resonance:
+                    gameState.Actions.CurrentEncounter.ModifyValue(ValueTypes.Resonance, kvp.Value);
+                    break;
+                case ChangeTypes.Pressure:
+                    gameState.Actions.CurrentEncounter.ModifyValue(ValueTypes.Pressure, kvp.Value);
+                    break;
+                case ChangeTypes.PhysicalEnergy:
+                    gameState.Player.ModifyEnergy(EnergyTypes.Physical, kvp.Value);
+                    break;
+                case ChangeTypes.FocusEnergy:
+                    gameState.Player.ModifyEnergy(EnergyTypes.Focus, kvp.Value);
+                    break;
+                case ChangeTypes.SocialEnergy:
+                    gameState.Player.ModifyEnergy(EnergyTypes.Social, kvp.Value);
+                    break;
+            }
         }
 
         // Apply rewards

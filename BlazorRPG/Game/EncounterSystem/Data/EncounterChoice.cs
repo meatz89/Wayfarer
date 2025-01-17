@@ -17,119 +17,6 @@
     public List<Outcome> Costs { get; set; } = new();
     public List<Outcome> Rewards { get; set; } = new();
 
-    // For execution - just raw numbers for applying changes
-    public List<CombinedValue> GetCombinedValues()
-    {
-        List<CombinedValue> combined = new List<CombinedValue>();
-
-        // Add base values first 
-        foreach (BaseValueChange baseChange in BaseEncounterValueChanges)
-        {
-            bool found = false;
-            foreach (CombinedValue cv in combined)
-            {
-                if (cv.ValueType == baseChange.ValueType)
-                {
-                    cv.Amount += baseChange.Amount;
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found)
-            {
-                combined.Add(new CombinedValue { ValueType = baseChange.ValueType, Amount = baseChange.Amount });
-            }
-        }
-
-        // Add modifications
-        foreach (ValueModification modification in ValueModifications)
-        {
-            bool found = false;
-            foreach (CombinedValue cv in combined)
-            {
-                if (cv.ValueType == modification.ValueType)
-                {
-                    cv.Amount += modification.Amount;
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found)
-            {
-                combined.Add(new CombinedValue { ValueType = modification.ValueType, Amount = modification.Amount });
-            }
-        }
-
-        return combined;
-    }
-
-    public List<DetailedChange> GetDetailedChanges()
-    {
-        List<DetailedChange> combined = new List<DetailedChange>();
-
-        // Add base changes
-        foreach (BaseValueChange change in BaseEncounterValueChanges)
-        {
-            bool found = false;
-            foreach (DetailedChange dc in combined)
-            {
-                if (dc.ValueType == change.ValueType)
-                {
-                    dc.ChangeValues.TotalAmount += change.Amount;
-                    dc.ChangeValues.Sources.Add($"Base: {(change.Amount >= 0 ? "+" : "")}{change.Amount}");
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found)
-            {
-                combined.Add(new DetailedChange
-                {
-                    ValueType = change.ValueType,
-                    ChangeValues = new ChangeValues
-                    {
-                        TotalAmount = change.Amount,
-                        Sources = new List<string> { $"Base: {(change.Amount >= 0 ? "+" : "")}{change.Amount}" }
-                    }
-                });
-            }
-        }
-
-        // Add modifications
-        foreach (ValueModification change in ValueModifications)
-        {
-            bool found = false;
-            foreach (DetailedChange dc in combined)
-            {
-                if (dc.ValueType == change.ValueType)
-                {
-                    dc.ChangeValues.TotalAmount += change.Amount;
-                    dc.ChangeValues.Sources.Add($"{change.Source}: {(change.Amount >= 0 ? "+" : "")}{change.Amount}");
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found)
-            {
-                combined.Add(new DetailedChange
-                {
-                    ValueType = change.ValueType,
-                    ChangeValues = new ChangeValues
-                    {
-                        TotalAmount = change.Amount,
-                        Sources = new List<string> { $"{change.Source}: {(change.Amount >= 0 ? "+" : "")}{change.Amount}" }
-                    }
-                });
-            }
-        }
-
-        return combined;
-    }
-
     // Constructor remains the same
     public EncounterChoice(
         int index,
@@ -150,6 +37,140 @@
             ChoiceArchetypes.Focus => EnergyTypes.Focus,
             ChoiceArchetypes.Social => EnergyTypes.Social,
             _ => throw new ArgumentException("Invalid archetype")
+        };
+    }
+
+    // For execution - just raw numbers for applying changes
+    public List<CombinedValue> GetCombinedValues()
+    {
+        List<CombinedValue> combined = new List<CombinedValue>();
+
+        // Add base values first
+        foreach (BaseValueChange baseChange in BaseEncounterValueChanges)
+        {
+            AddToCombinedValues(combined, ConvertValueTypeToChangeType(baseChange.ValueType), baseChange.Amount);
+        }
+
+        // Add modifications
+        foreach (ValueModification modification in ValueModifications)
+        {
+            if (modification is EncounterValueModification evm)
+            {
+                AddToCombinedValues(combined, ConvertValueTypeToChangeType(evm.ValueType), evm.Amount);
+            }
+            else if (modification is EnergyModification em)
+            {
+                AddToCombinedValues(combined, ConvertEnergyTypeToChangeType(em.EnergyType), em.Amount);
+            }
+        }
+
+        // Add Energy Cost as a negative modification
+        AddToCombinedValues(combined, ConvertEnergyTypeToChangeType(EnergyType), -EnergyCost);
+
+
+        return combined;
+    }
+
+    public List<DetailedChange> GetDetailedChanges()
+    {
+        List<DetailedChange> combined = new List<DetailedChange>();
+
+        // Add base changes
+        foreach (BaseValueChange change in BaseEncounterValueChanges)
+        {
+            AddDetailedChange(combined, ConvertValueTypeToChangeType(change.ValueType), "Base", change.Amount);
+        }
+
+        // Add modifications
+        foreach (ValueModification change in ValueModifications)
+        {
+            if (change is EncounterValueModification evm)
+            {
+                AddDetailedChange(combined, ConvertValueTypeToChangeType(evm.ValueType), change.Source, change.Amount);
+            }
+            else if (change is EnergyModification em)
+            {
+                AddDetailedChange(combined, ConvertEnergyTypeToChangeType(em.EnergyType), change.Source, change.Amount);
+            }
+        }
+
+        // Add Energy Cost as a negative modification
+        AddDetailedChange(combined, ConvertEnergyTypeToChangeType(EnergyType), "Energy Cost", -EnergyCost);
+
+        return combined;
+    }
+
+
+    // Helper methods for adding to combined values and detailed changes
+    private void AddToCombinedValues(List<CombinedValue> combined, ChangeTypes changeType, int amount)
+    {
+        bool found = false;
+        foreach (CombinedValue cv in combined)
+        {
+            if (cv.ChangeType == changeType)
+            {
+                cv.Amount += amount;
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            combined.Add(new CombinedValue { ChangeType = changeType, Amount = amount });
+        }
+    }
+
+    private void AddDetailedChange(List<DetailedChange> combined, ChangeTypes changeType, string source, int amount)
+    {
+        bool found = false;
+        foreach (DetailedChange dc in combined)
+        {
+            if (dc.ChangeType == changeType)
+            {
+                dc.ChangeValues.TotalAmount += amount;
+                dc.ChangeValues.Sources.Add($"{source}: {(amount >= 0 ? "+" : "")}{amount}");
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            combined.Add(new DetailedChange
+            {
+                ChangeType = changeType,
+                ChangeValues = new ChangeValues
+                {
+                    TotalAmount = amount,
+                    Sources = new List<string> { $"{source}: {(amount >= 0 ? "+" : "")}{amount}" }
+                }
+            });
+        }
+    }
+
+    // Conversion methods
+    private ChangeTypes ConvertValueTypeToChangeType(ValueTypes valueType)
+    {
+        return valueType switch
+        {
+            ValueTypes.Outcome => ChangeTypes.Outcome,
+            ValueTypes.Momentum => ChangeTypes.Momentum,
+            ValueTypes.Insight => ChangeTypes.Insight,
+            ValueTypes.Resonance => ChangeTypes.Resonance,
+            ValueTypes.Pressure => ChangeTypes.Pressure,
+            _ => throw new ArgumentException("Invalid ValueType")
+        };
+    }
+
+    private ChangeTypes ConvertEnergyTypeToChangeType(EnergyTypes energyType)
+    {
+        return energyType switch
+        {
+            EnergyTypes.Physical => ChangeTypes.PhysicalEnergy,
+            EnergyTypes.Focus => ChangeTypes.FocusEnergy,
+            EnergyTypes.Social => ChangeTypes.SocialEnergy,
+            _ => throw new ArgumentException("Invalid EnergyType")
         };
     }
 }

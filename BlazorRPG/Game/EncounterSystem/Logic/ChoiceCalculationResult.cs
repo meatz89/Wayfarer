@@ -40,26 +40,72 @@
     public bool IsValid => (BaseValueChanges.Count > 0 || ValueModifications.Count > 0) && Requirements.Count > 0;
 
     // Helper for execution to get combined changes
-    public Dictionary<ValueTypes, int> GetCombinedValues()
+    public Dictionary<ChangeTypes, int> GetCombinedValues()
     {
-        Dictionary<ValueTypes, int> combined = new Dictionary<ValueTypes, int>();
+        Dictionary<ChangeTypes, int> combined = new Dictionary<ChangeTypes, int>();
 
         // Add base values first
         foreach (BaseValueChange baseChange in BaseValueChanges)
         {
-            if (!combined.ContainsKey(baseChange.ValueType))
-                combined[baseChange.ValueType] = 0;
-            combined[baseChange.ValueType] += baseChange.Amount;
+            ChangeTypes changeType = ConvertValueTypeToChangeType(baseChange.ValueType);
+            if (!combined.ContainsKey(changeType))
+                combined[changeType] = 0;
+            combined[changeType] += baseChange.Amount;
         }
 
         // Add modifications
         foreach (ValueModification modification in ValueModifications)
         {
-            if (!combined.ContainsKey(modification.ValueType))
-                combined[modification.ValueType] = 0;
-            combined[modification.ValueType] += modification.Amount;
+            ChangeTypes changeType;
+            if (modification is EncounterValueModification evm)
+            {
+                changeType = ConvertValueTypeToChangeType(evm.ValueType);
+            }
+            else if (modification is EnergyModification em)
+            {
+                changeType = ConvertEnergyTypeToChangeType(em.EnergyType);
+            }
+            else
+            {
+                throw new InvalidOperationException("Unknown ValueModification type.");
+            }
+
+            if (!combined.ContainsKey(changeType))
+                combined[changeType] = 0;
+            combined[changeType] += modification.Amount;
         }
 
+        // Subtract energy cost
+        ChangeTypes energyChangeType = ConvertEnergyTypeToChangeType(EnergyType);
+        if (!combined.ContainsKey(energyChangeType))
+            combined[energyChangeType] = 0;
+        combined[energyChangeType] -= EnergyCost;
+
         return combined;
+    }
+
+    // Conversion methods (copied from EncounterChoice for consistency)
+    private ChangeTypes ConvertValueTypeToChangeType(ValueTypes valueType)
+    {
+        return valueType switch
+        {
+            ValueTypes.Outcome => ChangeTypes.Outcome,
+            ValueTypes.Momentum => ChangeTypes.Momentum,
+            ValueTypes.Insight => ChangeTypes.Insight,
+            ValueTypes.Resonance => ChangeTypes.Resonance,
+            ValueTypes.Pressure => ChangeTypes.Pressure,
+            _ => throw new ArgumentException("Invalid ValueType")
+        };
+    }
+
+    private ChangeTypes ConvertEnergyTypeToChangeType(EnergyTypes energyType)
+    {
+        return energyType switch
+        {
+            EnergyTypes.Physical => ChangeTypes.PhysicalEnergy,
+            EnergyTypes.Focus => ChangeTypes.FocusEnergy,
+            EnergyTypes.Social => ChangeTypes.SocialEnergy,
+            _ => throw new ArgumentException("Invalid EnergyType")
+        };
     }
 }

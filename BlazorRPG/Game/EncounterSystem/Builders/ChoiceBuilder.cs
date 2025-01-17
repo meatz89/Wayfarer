@@ -58,7 +58,7 @@
         bool requireKnowledge = IsRequireKnowledge();
         bool requireReputation = IsRequireReputation();
 
-        EncounterChoice choice = new(
+        EncounterChoice choice = new EncounterChoice(
             index,
             description,
             archetype,

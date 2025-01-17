@@ -49,15 +49,18 @@ public partial class EncounterViewBase : ComponentBase
         return new MarkupString("");
     }
 
-    public MarkupString GetValueTypeIcon(ValueTypes valueType)
+    public MarkupString GetValueTypeIcon(ChangeTypes valueType)
     {
         return valueType switch
         {
-            ValueTypes.Outcome => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
-            ValueTypes.Momentum => new MarkupString("<i class='value-icon momentum-icon'>⚡</i>"),
-            ValueTypes.Insight => new MarkupString("<i class='value-icon insight-icon'>💡</i>"),
-            ValueTypes.Resonance => new MarkupString("<i class='value-icon resonance-icon'>🤝</i>"),
-            ValueTypes.Pressure => new MarkupString("<i class='value-icon pressure-icon'>⚠</i>"),
+            ChangeTypes.Outcome => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
+            ChangeTypes.Momentum => new MarkupString("<i class='value-icon momentum-icon'>⚡</i>"),
+            ChangeTypes.Insight => new MarkupString("<i class='value-icon insight-icon'>💡</i>"),
+            ChangeTypes.Resonance => new MarkupString("<i class='value-icon resonance-icon'>🤝</i>"),
+            ChangeTypes.Pressure => new MarkupString("<i class='value-icon pressure-icon'>⚠</i>"),
+            ChangeTypes.PhysicalEnergy => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
+            ChangeTypes.FocusEnergy => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
+            ChangeTypes.SocialEnergy => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
             _ => new MarkupString("")
         };
     }
@@ -100,25 +103,6 @@ public partial class EncounterViewBase : ComponentBase
     public List<DetailedChange> GetValueChanges(EncounterChoice choice)
     {
         return choice.GetDetailedChanges();
-    }
-
-    public string RenderValueModification(EncounterChoice choice, ValueModification change)
-    {
-        List<DetailedChange> detailedChanges = choice.GetDetailedChanges();
-        foreach (DetailedChange dc in detailedChanges)
-        {
-            if (dc.ValueType == change.ValueType)
-            {
-                return string.Join(", ", dc.ChangeValues.Sources);
-            }
-        }
-        return "";
-    }
-
-    public bool IsValueModified(EncounterChoice choice, ValueModification change)
-    {
-        // Check if there are any modifications for this value type
-        return choice.ValueModifications.Any(m => m.ValueType == change.ValueType);
     }
 
     public EncounterStateValues GetNewStateValues(UserEncounterChoiceOption choice)

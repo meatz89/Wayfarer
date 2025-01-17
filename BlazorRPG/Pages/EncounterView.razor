@@ -11,29 +11,29 @@
 
             <div class="encounter-stats">
                 <div class="stat">
-                    @GetValueTypeIcon(ValueTypes.Outcome)
+                    @GetValueTypeIcon(ChangeTypes.Outcome)
                     <span class="stat-label">Outcome</span>
                     <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Outcome</span>
                 </div>
                 <div class="stat">
-                    @GetValueTypeIcon(ValueTypes.Momentum)
+                    @GetValueTypeIcon(ChangeTypes.Pressure)
+                    <span class="stat-label">Pressure</span>
+                    <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Pressure</span>
+                </div>
+                <div class="stat">
+                    @GetValueTypeIcon(ChangeTypes.Momentum)
                     <span class="stat-label">Momentum</span>
                     <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Momentum</span>
                 </div>
                 <div class="stat">
-                    @GetValueTypeIcon(ValueTypes.Insight)
+                    @GetValueTypeIcon(ChangeTypes.Insight)
                     <span class="stat-label">Insight</span>
                     <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Insight</span>
                 </div>
                 <div class="stat">
-                    @GetValueTypeIcon(ValueTypes.Resonance)
+                    @GetValueTypeIcon(ChangeTypes.Resonance)
                     <span class="stat-label">Resonance</span>
                     <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Resonance</span>
-                </div>
-                <div class="stat">
-                    @GetValueTypeIcon(ValueTypes.Pressure)
-                    <span class="stat-label">Pressure</span>
-                    <span class="stat-value">@GameState.Actions.CurrentEncounter.Context.CurrentValues.Pressure</span>
                 </div>
             </div>
             <div class="encounter-stage">
@@ -81,8 +81,8 @@
                             <div class="value-item">
                                 <div class="value-main">
                                     <div class="value-header">
-                                        @GetValueTypeIcon(dc.ValueType)
-                                        <span class="value-type">@dc.ValueType</span>
+                                        @GetValueTypeIcon(dc.ChangeType)
+                                        <span class="value-type">@dc.ChangeType</span>
                                     </div>
                                     <span class="value-total @(dc.ChangeValues.TotalAmount >= 0 ? "positive-change" : "negative-change")">
                                         @(dc.ChangeValues.TotalAmount >= 0 ? "+" : "")@dc.ChangeValues.TotalAmount

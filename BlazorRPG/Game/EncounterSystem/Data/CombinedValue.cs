@@ -1,5 +1,5 @@
 ﻿public class CombinedValue
 {
-    public ValueTypes ValueType { get; set; }
+    public ChangeTypes ChangeType { get; set; }
     public int Amount { get; set; }
 }

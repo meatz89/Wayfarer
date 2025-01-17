@@ -12,15 +12,33 @@ public class BaseValueChange
 }
 
 // Modifications - track source and can be chained/combined
-public class ValueModification
+public abstract class ValueModification
+{
+    public int Amount { get; set; }
+    public string Source { get; set; }
+}
+
+
+// Modifications - track source and can be chained/combined
+public class EncounterValueModification : ValueModification
 {
     public ValueTypes ValueType { get; }
-    public int Amount { get; }
-    public string Source { get; }
 
-    public ValueModification(ValueTypes type, int amount, string source)
+    public EncounterValueModification(ValueTypes type, int amount, string source)
     {
         ValueType = type;
+        Amount = amount;
+        Source = source;
+    }
+}
+
+public class EnergyModification : ValueModification
+{
+    public EnergyTypes EnergyType { get; set; }
+
+    public EnergyModification(EnergyTypes type, int amount, string source)
+    {
+        EnergyType = type;
         Amount = amount;
         Source = source;
     }

@@ -1,5 +1,5 @@
 ﻿public class DetailedChange
 {
-    public ValueTypes ValueType { get; set; }
+    public ChangeTypes ChangeType { get; set; }
     public ChangeValues ChangeValues { get; set; }
 }
