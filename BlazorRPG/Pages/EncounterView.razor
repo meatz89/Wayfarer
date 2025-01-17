@@ -84,7 +84,7 @@
                                         @GetValueTypeIcon(dc.ChangeType)
                                         <span class="value-type">@dc.ChangeType</span>
                                     </div>
-                                    <span class="value-total @(dc.ChangeValues.TotalAmount >= 0 ? "positive-change" : "negative-change")">
+                                    <span class="value-total @((dc.ChangeType == ChangeTypes.Pressure) ? (dc.ChangeValues.TotalAmount >= 0 ? "negative-change" : "positive-change") : (dc.ChangeValues.TotalAmount >= 0 ? "positive-change" : "negative-change"))">
                                         @(dc.ChangeValues.TotalAmount >= 0 ? "+" : "")@dc.ChangeValues.TotalAmount
                                     </span>
                                 </div>

@@ -229,11 +229,11 @@ public enum RequirementTypes
     Strength,
     Charisma,
     Perception,
-    
+
     //Inventory
     InventorySlots,
     Coins,
-    
+
     //Knowledge
     LocalHistory,
 

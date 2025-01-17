@@ -19,14 +19,7 @@
                 validSets.Add(template);
             }
         }
-
-        //// Create ChoiceSetScore for each template and calculate
-        //var scoredSets = validSets.Select(set => new
-        //{
-        //    Set = set,
-        //    Score = CreateScoreForTemplate(set).GetContextScore(context)
-        //}).OrderByDescending(x => x.Score);
-
+        
         // Pick randomly from top 2-3 scoring sets
         List<ChoiceSetTemplate> topSets = validSets.Take(3).ToList();
         if (topSets.Count() < 1)

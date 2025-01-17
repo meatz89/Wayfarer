@@ -1,14 +1,11 @@
-﻿using System.Security.AccessControl;
-
-public class ChoiceSetGenerator
+﻿public class ChoiceSetGenerator
 {
     private readonly GameState gameState;
     private readonly ChoiceCalculator calculator;
     private readonly ChoiceEffectsGenerator baseValueGenerator;
     private readonly HashSet<(ChoiceArchetypes, ChoiceApproaches)> usedCombinations;
 
-    public ChoiceSetGenerator(GameState gameState
-        )
+    public ChoiceSetGenerator(GameState gameState)
     {
         this.gameState = gameState;
         this.calculator = new ChoiceCalculator(gameState);
@@ -16,8 +13,86 @@ public class ChoiceSetGenerator
         this.usedCombinations = new HashSet<(ChoiceArchetypes, ChoiceApproaches)>();
     }
 
+    private bool IsDirectApproachAvailable(
+        ChoiceArchetypes archetype,
+        EncounterStateValues values,
+        PlayerState playerState)
+    {
+        // Archetype-specific direct approach requirements
+        switch (archetype)
+        {
+            case ChoiceArchetypes.Physical:
+                // Physical Direct needs sufficient momentum to overcome pressure
+                return values.Momentum >= values.Pressure;
+
+            case ChoiceArchetypes.Focus:
+                // Focus Direct needs sufficient insight for breakthrough
+                return values.Insight >= values.Pressure;
+
+            case ChoiceArchetypes.Social:
+                // Social Direct needs sufficient resonance for leverage
+                return values.Resonance >= values.Pressure;
+
+            default:
+                return false;
+        }
+    }
+
+    private bool IsPragmaticApproachAvailable(
+        ChoiceArchetypes archetype,
+        EncounterStateValues values,
+        PlayerState playerState)
+    {
+        // Archetype-specific pragmatic requirements
+        switch (archetype)
+        {
+            case ChoiceArchetypes.Physical:
+                // Need some momentum to maintain flow
+                return values.Pressure < 5;
+
+            case ChoiceArchetypes.Focus:
+                // Need base insight to build upon
+                return values.Pressure < 5;
+
+            case ChoiceArchetypes.Social:
+                // Need base resonance to leverage
+                return values.Pressure < 5;
+
+            default:
+                return false;
+        }
+    }
+
+    private bool IsTacticalApproachAvailable(
+        ChoiceArchetypes archetype,
+        EncounterStateValues values,
+        PlayerState playerState)
+    {
+        // Check archetype-specific tactical requirements
+        switch (archetype)
+        {
+            case ChoiceArchetypes.Physical:
+                // Need high momentum to spend effectively
+                return values.Momentum >= 4 || HasTool(playerState);
+
+            case ChoiceArchetypes.Focus:
+                // Need high insight to convert
+                return values.Insight >= 4 || HasRelevantKnowledge(playerState);
+
+            case ChoiceArchetypes.Social:
+                // Need high resonance to leverage
+                return values.Resonance >= 4 || HasSufficientReputation(playerState);
+
+            default:
+                return false;
+        }
+    }
+
+
     public ChoiceSet Generate(ChoiceSetTemplate template, EncounterContext context)
     {
+        usedCombinations.Clear();
+
         PlayerState playerState = gameState.Player;
         EncounterStateValues currentValues = context.CurrentValues;
 
@@ -54,7 +129,7 @@ public class ChoiceSetGenerator
                 ChoiceApproaches approach = SelectApproach(pattern.PrimaryArchetype, values, playerState);
                 choices.Add(CreateChoice(index++, pattern.PrimaryArchetype, approach));
 
-                if(unusedChoiceChoiceArchetypes.Contains(pattern.PrimaryArchetype))
+                if (unusedChoiceChoiceArchetypes.Contains(pattern.PrimaryArchetype))
                 {
                     unusedChoiceChoiceArchetypes.Remove(pattern.PrimaryArchetype);
                 }
@@ -65,7 +140,7 @@ public class ChoiceSetGenerator
             {
                 ChoiceApproaches approach = SelectApproach(pattern.SecondaryArchetype, values, playerState);
                 choices.Add(CreateChoice(index++, pattern.SecondaryArchetype, approach));
-                
+
                 if (unusedChoiceChoiceArchetypes.Contains(pattern.SecondaryArchetype))
                 {
                     unusedChoiceChoiceArchetypes.Remove(pattern.SecondaryArchetype);
@@ -145,96 +220,6 @@ public class ChoiceSetGenerator
         approaches.Add(ChoiceApproaches.Improvised);
 
         return approaches;
-    }
-
-    private bool IsDirectApproachAvailable(
-        ChoiceArchetypes archetype,
-        EncounterStateValues values,
-        PlayerState playerState)
-    {
-        // Must have sufficient energy for direct approach
-        if (!HasSufficientEnergy(archetype, playerState, 3))
-            return false;
-
-        // Archetype-specific direct approach requirements
-        switch (archetype)
-        {
-            case ChoiceArchetypes.Physical:
-                // Physical Direct needs sufficient momentum to overcome pressure
-                return values.Momentum >= values.Pressure;
-
-            case ChoiceArchetypes.Focus:
-                // Focus Direct needs sufficient insight for breakthrough
-                return values.Insight >= values.Pressure;
-
-            case ChoiceArchetypes.Social:
-                // Social Direct needs sufficient resonance for leverage
-                return values.Resonance >= values.Pressure;
-
-            default:
-                return false;
-        }
-    }
-
-    private bool IsPragmaticApproachAvailable(
-        ChoiceArchetypes archetype,
-        EncounterStateValues values,
-        PlayerState playerState)
-    {
-        // Pragmatic requires moderate energy and low pressure
-        if (!HasSufficientEnergy(archetype, playerState, 2))
-            return false;
-
-        if (values.Pressure >= 5)
-            return false;
-
-        // Archetype-specific pragmatic requirements
-        switch (archetype)
-        {
-            case ChoiceArchetypes.Physical:
-                // Need some momentum to maintain flow
-                return values.Momentum >= 2;
-
-            case ChoiceArchetypes.Focus:
-                // Need base insight to build upon
-                return values.Insight >= 2;
-
-            case ChoiceArchetypes.Social:
-                // Need base resonance to leverage
-                return values.Resonance >= 2;
-
-            default:
-                return false;
-        }
-    }
-
-    private bool IsTacticalApproachAvailable(
-        ChoiceArchetypes archetype,
-        EncounterStateValues values,
-        PlayerState playerState)
-    {
-        // Tactical requires low energy cost but high secondary values
-        if (!HasSufficientEnergy(archetype, playerState, 1))
-            return false;
-
-        // Check archetype-specific tactical requirements
-        switch (archetype)
-        {
-            case ChoiceArchetypes.Physical:
-                // Need high momentum to spend effectively
-                return values.Momentum >= 4 && HasTool(playerState);
-
-            case ChoiceArchetypes.Focus:
-                // Need high insight to convert
-                return values.Insight >= 4 && HasRelevantKnowledge(playerState);
-
-            case ChoiceArchetypes.Social:
-                // Need high resonance to leverage
-                return values.Resonance >= 4 && HasSufficientReputation(playerState);
-
-            default:
-                return false;
-        }
     }
 
     private ChoiceApproaches SelectBestApproach(

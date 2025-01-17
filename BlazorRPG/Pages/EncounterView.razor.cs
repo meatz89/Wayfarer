@@ -109,7 +109,7 @@ public partial class EncounterViewBase : ComponentBase
     private List<CombinedValue> ConvertCombinedValues(Dictionary<ChangeTypes, int> combinedValuesDict)
     {
         List<CombinedValue> combinedValuesList = new List<CombinedValue>();
-        foreach (var kvp in combinedValuesDict)
+        foreach (KeyValuePair<ChangeTypes, int> kvp in combinedValuesDict)
         {
             combinedValuesList.Add(new CombinedValue { ChangeType = kvp.Key, Amount = kvp.Value });
         }
