@@ -44,6 +44,46 @@ public partial class EncounterViewBase : ComponentBase
         mouseY = e.ClientY + 10;
     }
 
+    public string GetProjectedValue(ChangeTypes changeType)
+    {
+        if (hoveredChoice == null) return "";
+
+        int currentValue = GetCurrentValue(changeType);
+        int projectedChange = GetProjectedChange(changeType);
+        int projectedValue = currentValue + projectedChange;
+
+        return (projectedChange >= 0 ? "+" : "") + projectedChange.ToString();
+    }
+
+    private int GetCurrentValue(ChangeTypes changeType)
+    {
+        EncounterStateValues currentValues = GameState.Actions.CurrentEncounter.Context.CurrentValues;
+        return changeType switch
+        {
+            ChangeTypes.Outcome => currentValues.Outcome,
+            ChangeTypes.Pressure => currentValues.Pressure,
+            ChangeTypes.Momentum => currentValues.Momentum,
+            ChangeTypes.Insight => currentValues.Insight,
+            ChangeTypes.Resonance => currentValues.Resonance,
+            _ => 0
+        };
+    }
+
+    private int GetProjectedChange(ChangeTypes changeType)
+    {
+        if (hoveredChoice == null || hoveredChoice.EncounterChoice.CalculationResult == null) return 0;
+
+        int projectedChange = 0;
+        foreach (DetailedChange detailedChange in GetValueChanges(hoveredChoice.EncounterChoice))
+        {
+            if (detailedChange.ChangeType == changeType)
+            {
+                projectedChange += detailedChange.ChangeValues.TotalAmount;
+            }
+        }
+        return projectedChange;
+    }
+
     public MarkupString GetOutcomeIcon(Outcome outcome)
     {
         return new MarkupString("");

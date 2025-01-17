@@ -1,5 +1,4 @@
-﻿
-public class EncounterStateValues
+﻿public class EncounterStateValues
 {
     public int Outcome { get; set; }
     public int Momentum { get; set; }

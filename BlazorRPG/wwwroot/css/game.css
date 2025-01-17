@@ -375,24 +375,41 @@ body {
     padding: 15px;
     border-radius: 4px;
     margin-bottom: 20px;
+    padding-top: 30px;
+    align-items: flex-start;
 }
 
 .stat {
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding-top: 30px; 
+    flex-direction: column;
 }
 
+    /* Position the icon above the stat */
+    .stat .value-icon {
+        /* ... other icon styles */
+        top: 0px;
+        font-size: 1.4em;
+    }
+
 .stat-label {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-bottom: 5px;
+    /* ... other stat label styles */
+    margin: 4px 0; /* Adjust spacing */
 }
 
 .stat-value {
-    color: var(--text-primary);
-    font-size: 1.2rem;
-    font-weight: bold;
+    /* ... other stat-value styles */
+    display: flex; /* Use flexbox */
+    align-items: center; /* Center vertically */
+    gap: 4px; /* Space between value and projected change */
+}
+
+.stat-projected-change {
+    font-size: 0.8rem; /* Smaller font size */
+    font-weight: normal; /* Lighter weight */
+    color: var(--text-secondary); /* Lighter color */
 }
 
 .encounter-stage {
@@ -1241,8 +1258,6 @@ body {
 }
 
 .stat-value {
-    color: var(--text-primary);
-    font-size: 1.4rem;
     font-weight: bold;
 }
 
@@ -1422,4 +1437,3 @@ body {
 .social-icon {
     color: green;
 }
-/* Add more styles for other icons */
