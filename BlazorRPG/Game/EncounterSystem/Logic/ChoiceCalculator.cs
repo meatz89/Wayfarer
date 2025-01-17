@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-public class ChoiceCalculator
+﻿public class ChoiceCalculator
 {
     private readonly GameState gameState;
     private readonly ChoiceEffectsGenerator baseValueGenerator;

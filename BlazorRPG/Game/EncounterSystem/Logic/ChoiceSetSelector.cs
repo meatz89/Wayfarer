@@ -19,7 +19,7 @@
                 validSets.Add(template);
             }
         }
-        
+
         // Pick randomly from top 2-3 scoring sets
         List<ChoiceSetTemplate> topSets = validSets.Take(3).ToList();
         if (topSets.Count() < 1)
