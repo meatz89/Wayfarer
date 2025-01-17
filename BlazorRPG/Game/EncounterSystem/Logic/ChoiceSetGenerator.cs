@@ -1,8 +1,11 @@
-﻿public class ChoiceSetGenerator
+﻿using System.Security.AccessControl;
+
+public class ChoiceSetGenerator
 {
     private readonly GameState gameState;
     private readonly ChoiceCalculator calculator;
     private readonly ChoiceEffectsGenerator baseValueGenerator;
+    private readonly HashSet<(ChoiceArchetypes, ChoiceApproaches)> usedCombinations;
 
     public ChoiceSetGenerator(GameState gameState
         )
@@ -10,6 +13,7 @@
         this.gameState = gameState;
         this.calculator = new ChoiceCalculator(gameState);
         this.baseValueGenerator = new ChoiceEffectsGenerator();
+        this.usedCombinations = new HashSet<(ChoiceArchetypes, ChoiceApproaches)>();
     }
 
     public ChoiceSet Generate(ChoiceSetTemplate template, EncounterContext context)
@@ -37,6 +41,11 @@
         List<EncounterChoice> choices = new();
         int index = 0;
 
+        List<ChoiceArchetypes> unusedChoiceChoiceArchetypes = new List<ChoiceArchetypes>() {
+            ChoiceArchetypes.Physical,
+            ChoiceArchetypes.Focus,
+            ChoiceArchetypes.Social
+        };
         foreach (CompositionPattern pattern in template.CompositionPatterns)
         {
             // Generate primary choices
@@ -44,6 +53,11 @@
             {
                 ChoiceApproaches approach = SelectApproach(pattern.PrimaryArchetype, values, playerState);
                 choices.Add(CreateChoice(index++, pattern.PrimaryArchetype, approach));
+
+                if(unusedChoiceChoiceArchetypes.Contains(pattern.PrimaryArchetype))
+                {
+                    unusedChoiceChoiceArchetypes.Remove(pattern.PrimaryArchetype);
+                }
             }
 
             // Generate secondary choices
@@ -51,33 +65,61 @@
             {
                 ChoiceApproaches approach = SelectApproach(pattern.SecondaryArchetype, values, playerState);
                 choices.Add(CreateChoice(index++, pattern.SecondaryArchetype, approach));
+                
+                if (unusedChoiceChoiceArchetypes.Contains(pattern.SecondaryArchetype))
+                {
+                    unusedChoiceChoiceArchetypes.Remove(pattern.SecondaryArchetype);
+                }
+            }
+
+            // Generate unused archetype choices
+            foreach (ChoiceArchetypes choiceArchetype in unusedChoiceChoiceArchetypes)
+            {
+                ChoiceApproaches approach = SelectApproach(choiceArchetype, values, playerState);
+                choices.Add(CreateChoice(index++, choiceArchetype, approach));
             }
         }
 
         // Ensure fallback choice exists
         if (!choices.Any(c => c.Approach == ChoiceApproaches.Improvised))
         {
-            AddImprovisedChoice(choices);
+            ChoiceArchetypes archetype = GetLeastRepresentedArchetype(choices);
+            ChoiceApproaches approach = ChoiceApproaches.Improvised;
+            if (!usedCombinations.Contains((archetype, approach)))
+            {
+                choices.Add(CreateImprovisedChoice(choices.Count, archetype));
+                usedCombinations.Add((archetype, approach));
+            }
         }
 
         return choices;
     }
 
     private ChoiceApproaches SelectApproach(
-        ChoiceArchetypes archetype,
-        EncounterStateValues values,
-        PlayerState playerState)
+            ChoiceArchetypes archetype,
+            EncounterStateValues values,
+            PlayerState playerState)
     {
         // Check approach availability based on archetype and current values
         List<ChoiceApproaches> availableApproaches = GetAvailableApproaches(
             archetype, values, playerState);
 
+        // Filter out approaches that have already been used with the current archetype
+        List<ChoiceApproaches> validApproaches = new List<ChoiceApproaches>();
+        foreach (ChoiceApproaches approach in availableApproaches)
+        {
+            if (!usedCombinations.Contains((archetype, approach)))
+            {
+                validApproaches.Add(approach);
+            }
+        }
+
         // If no valid approaches, return Improvised as fallback
-        if (availableApproaches.Count == 0)
+        if (validApproaches.Count == 0)
             return ChoiceApproaches.Improvised;
 
         // Prioritize approaches based on current state
-        return SelectBestApproach(availableApproaches, archetype, values, playerState);
+        return SelectBestApproach(validApproaches, archetype, values, playerState);
     }
 
     private List<ChoiceApproaches> GetAvailableApproaches(
@@ -235,11 +277,24 @@
         return values.Outcome < (10 - values.Pressure);
     }
 
-    private void AddImprovisedChoice(List<EncounterChoice> choices)
+    private EncounterChoice CreateImprovisedChoice(int index, ChoiceArchetypes archetype)
     {
-        ChoiceArchetypes archetype = GetLeastRepresentedArchetype(choices);
-        choices.Add(CreateChoice(choices.Count, archetype, ChoiceApproaches.Improvised));
+        ChoiceApproaches approach = ChoiceApproaches.Improvised;
+        EncounterChoice choice = new(
+            index,
+            $"{archetype} - {approach}",
+            archetype,
+            approach,
+            false,
+            false,
+            false);
+
+        // Set base values using generator
+        choice.BaseEncounterValueChanges = baseValueGenerator.GenerateBaseValueChanges(archetype, approach);
+
+        return choice;
     }
+
 
     private EncounterChoice CreateChoice(int index, ChoiceArchetypes archetype, ChoiceApproaches approach)
     {
@@ -259,13 +314,42 @@
         // Set base values using generator
         choice.BaseEncounterValueChanges = baseValueGenerator.GenerateBaseValueChanges(archetype, approach);
 
+        // Mark the combination as used
+        usedCombinations.Add((archetype, approach));
+
         return choice;
     }
 
     private ChoiceArchetypes GetLeastRepresentedArchetype(List<EncounterChoice> choices)
     {
-        return ChoiceArchetypes.Physical;
+        // Count the occurrences of each archetype in the list of choices
+        Dictionary<ChoiceArchetypes, int> archetypeCounts = new Dictionary<ChoiceArchetypes, int>();
+        foreach (ChoiceArchetypes archetype in Enum.GetValues(typeof(ChoiceArchetypes)))
+        {
+            archetypeCounts[archetype] = 0;
+        }
+
+        foreach (EncounterChoice choice in choices)
+        {
+            archetypeCounts[choice.Archetype]++;
+        }
+
+        // Find the archetype with the minimum count
+        ChoiceArchetypes leastRepresentedArchetype = ChoiceArchetypes.Physical; // Default
+        int minCount = int.MaxValue;
+
+        foreach (KeyValuePair<ChoiceArchetypes, int> pair in archetypeCounts)
+        {
+            if (pair.Value < minCount)
+            {
+                minCount = pair.Value;
+                leastRepresentedArchetype = pair.Key;
+            }
+        }
+
+        return leastRepresentedArchetype;
     }
+
 
     private bool HasSufficientEnergy(ChoiceArchetypes archetype, PlayerState playerState, int v)
     {

@@ -149,6 +149,37 @@ public partial class EncounterViewBase : ComponentBase
         // Use the ModifiedRequirements for the disabled check
         return choice.EncounterChoice.Requirements.Any(req => !req.IsSatisfied(GameState.Player));
     }
+
+    public List<DetailedRequirement> GetDetailedRequirements(EncounterChoice choice)
+    {
+        return choice.GetDetailedRequirements(GameState.Player);
+    }
+
+    public MarkupString GetRequirementIcon(RequirementTypes requirementType)
+    {
+        return requirementType switch
+        {
+            RequirementTypes.MaxPressure => new MarkupString("<i class='requirement-icon pressure-icon'>⚠</i>"),
+            RequirementTypes.MinInsight => new MarkupString("<i class='requirement-icon insight-icon'>💡</i>"),
+            RequirementTypes.PhysicalEnergy => new MarkupString("<i class='requirement-icon physical-icon'>💪</i>"),
+            RequirementTypes.FocusEnergy => new MarkupString("<i class='requirement-icon focus-icon'>🎯</i>"),
+            RequirementTypes.SocialEnergy => new MarkupString("<i class='requirement-icon social-icon'>👥</i>"),
+            RequirementTypes.Health => new MarkupString("<i class='requirement-icon health-icon'>❤️</i>"),
+            RequirementTypes.Concentration => new MarkupString("<i class='requirement-icon concentration-icon'>🌀</i>"),
+            RequirementTypes.Reputation => new MarkupString("<i class='requirement-icon reputation-icon'>👤</i>"),
+            RequirementTypes.Coins => new MarkupString("<i class='requirement-icon coins-icon'>💰</i>"),
+            RequirementTypes.Strength => new MarkupString("<i class='requirement-icon strength-icon'>💪</i>"),
+            RequirementTypes.Perception => new MarkupString("<i class='requirement-icon perception-icon'>👁️</i>"),
+            RequirementTypes.Charisma => new MarkupString("<i class='requirement-icon charisma-icon'>💬</i>"),
+            RequirementTypes.Tool => new MarkupString("<i class='requirement-icon tool-icon'>🔧</i>"),
+            RequirementTypes.Wood => new MarkupString("<i class='requirement-icon wood-icon'>🌲</i>"),
+            RequirementTypes.Metal => new MarkupString("<i class='requirement-icon metal-icon'>🔩</i>"),
+            RequirementTypes.InventorySlots => new MarkupString("<i class='requirement-icon inventory-slots-icon'>🗄️</i>"),
+            RequirementTypes.LocalHistory => new MarkupString("<i class='requirement-icon local-history-icon'>📜</i>"),
+            RequirementTypes.Inspired => new MarkupString("<i class='requirement-icon inspired-icon'>✨</i>"),
+            _ => new MarkupString("")
+        };
+    }
 }
 
 public class Dimensions

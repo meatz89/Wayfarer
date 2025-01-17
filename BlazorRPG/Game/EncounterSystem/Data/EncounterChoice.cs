@@ -174,4 +174,126 @@
             _ => throw new ArgumentException("Invalid EnergyType")
         };
     }
+
+    public List<DetailedRequirement> GetDetailedRequirements(PlayerState playerState)
+    {
+        List<DetailedRequirement> detailedRequirements = new List<DetailedRequirement>();
+
+        foreach (Requirement req in Requirements)
+        {
+            detailedRequirements.Add(new DetailedRequirement
+            {
+                RequirementType = GetRequirementType(req),
+                Description = req.GetDescription(),
+                IsSatisfied = req.IsSatisfied(playerState)
+            });
+        }
+
+        return detailedRequirements;
+    }
+
+    private RequirementTypes GetRequirementType(Requirement req)
+    {
+        return req switch
+        {
+            MaxPressureRequirement => RequirementTypes.MaxPressure,
+            InsightRequirement => RequirementTypes.MinInsight,
+            EnergyRequirement energyReq => energyReq.EnergyType switch
+            {
+                EnergyTypes.Physical => RequirementTypes.PhysicalEnergy,
+                EnergyTypes.Focus => RequirementTypes.FocusEnergy,
+                EnergyTypes.Social => RequirementTypes.SocialEnergy,
+                _ => RequirementTypes.Other
+            },
+            HealthRequirement => RequirementTypes.Health,
+            ConcentrationRequirement => RequirementTypes.Concentration,
+            ReputationRequirement => RequirementTypes.Reputation,
+            CoinsRequirement => RequirementTypes.Coins,
+            SkillRequirement skillReq => skillReq.SkillType switch
+            {
+                SkillTypes.Strength => RequirementTypes.Strength,
+                SkillTypes.Perception => RequirementTypes.Perception,
+                SkillTypes.Charisma => RequirementTypes.Charisma,
+                _ => RequirementTypes.Other
+            },
+            ItemRequirement itemReq => itemReq.ResourceType switch
+            {
+                ItemTypes.Tool => RequirementTypes.Tool,
+                _ => RequirementTypes.Other
+            },
+            ResourceRequirement resourceReq => resourceReq.ResourceType switch
+            {
+                ResourceTypes.Wood => RequirementTypes.Wood,
+                ResourceTypes.Metal => RequirementTypes.Metal,
+                _ => RequirementTypes.Other
+            },
+            InventorySlotsRequirement => RequirementTypes.InventorySlots,
+            KnowledgeRequirement knowledgeReq => knowledgeReq.KnowledgeType switch
+            {
+                KnowledgeTypes.LocalHistory => RequirementTypes.LocalHistory,
+                _ => RequirementTypes.Other
+            },
+            SkillLevelRequirement skillLevelReq => skillLevelReq.SkillType switch
+            {
+                SkillTypes.Strength => RequirementTypes.Strength,
+                SkillTypes.Perception => RequirementTypes.Perception,
+                SkillTypes.Charisma => RequirementTypes.Charisma,
+                _ => RequirementTypes.Other
+            },
+            StatusRequirement statusReq => statusReq.Status switch
+            {
+                PlayerStatusTypes.Inspired => RequirementTypes.Inspired,
+                _ => RequirementTypes.Other
+            },
+            _ => RequirementTypes.Other
+        };
+    }
+}
+
+public class DetailedRequirement
+{
+    public string Description { get; internal set; }
+    public bool IsSatisfied { get; internal set; }
+    internal RequirementTypes RequirementType { get; set; }
+}
+
+public enum RequirementTypes
+{
+    Other,
+
+    //Skills
+    Strength,
+    Charisma,
+    Perception,
+    
+    //Inventory
+    InventorySlots,
+    Coins,
+    
+    //Knowledge
+    LocalHistory,
+
+    //Items
+    Tool,
+
+    //Player State
+    Health,
+    Concentration,
+    Reputation,
+
+    //Energy
+    PhysicalEnergy,
+    FocusEnergy,
+    SocialEnergy,
+
+    //Encounter States
+    MaxPressure,
+    MinInsight,
+
+    //Resources
+    Wood,
+    Metal,
+
+    //Player Status
+    Inspired
 }

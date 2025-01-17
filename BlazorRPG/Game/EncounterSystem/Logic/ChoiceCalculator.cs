@@ -40,13 +40,13 @@ public class ChoiceCalculator
         // 6. Return complete calculation result
         return new ChoiceCalculationResult(
             newState,
-            baseChanges,          // Base values
-            valueModifications,   // Modifications with sources
-            choice.EnergyType,    // Energy type
-            choice.EnergyCost,    // Energy cost
-            requirements,         // Requirements
-            costs,                // Costs
-            rewards);             // Rewards
+            baseChanges,           // Base values
+            valueModifications,    // Modifications with sources
+            choice.EnergyType,     // Energy type
+            choice.EnergyCost,     // Energy cost
+            requirements,          // Requirements
+            costs,                 // Costs
+            rewards);              // Rewards
     }
 
     private List<ValueModification> CalculateAllValueChanges(EncounterChoice choice, EncounterContext context)
@@ -64,7 +64,6 @@ public class ChoiceCalculator
 
         return modifications;
     }
-
 
     private void AddOutcomeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {
@@ -230,7 +229,7 @@ public class ChoiceCalculator
         if (context.CurrentValues.LastChoiceType.HasValue)
         {
             // Momentum decays by 2 each turn without physical action
-            if (context.CurrentValues.LastChoiceType != ChoiceArchetypes.Physical)
+            if (choice.Archetype != ChoiceArchetypes.Physical)
             {
                 modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -1, "No Physical Choice"));
             }
@@ -370,39 +369,43 @@ public class ChoiceCalculator
     {
         List<Requirement> requirements = new List<Requirement>();
 
-        // Add alternative requirements if not enough energy
+        // Calculate energy cost
         int energyCost = CalculateEnergyCost(choice, context, playerState);
 
-        // Check if the player has enough energy to meet the requirement
-        if (choice.EnergyType == EnergyTypes.Physical && gameState.Player.PhysicalEnergy < energyCost)
+        // Only add energy requirements if the cost is greater than 0
+        if (energyCost > 0)
         {
-            int healthCost = energyCost - gameState.Player.PhysicalEnergy;
-            requirements.Add(new HealthRequirement(healthCost));
-        }
-        else if (choice.EnergyType == EnergyTypes.Focus && gameState.Player.FocusEnergy < energyCost)
-        {
-            int concentrationCost = energyCost - gameState.Player.FocusEnergy;
-            requirements.Add(new ConcentrationRequirement(concentrationCost));
-        }
-        else if (choice.EnergyType == EnergyTypes.Social && gameState.Player.SocialEnergy < energyCost)
-        {
-            int reputationCost = energyCost - gameState.Player.SocialEnergy;
-            requirements.Add(new ReputationRequirement(reputationCost));
-        }
-        else
-        {
-            // If the player has enough energy, add the energy requirement
-            switch (choice.EnergyType)
+            // Check if the player has enough energy to meet the requirement
+            if (choice.EnergyType == EnergyTypes.Physical && gameState.Player.PhysicalEnergy < energyCost)
             {
-                case EnergyTypes.Physical:
-                    requirements.Add(new EnergyRequirement(EnergyTypes.Physical, energyCost));
-                    break;
-                case EnergyTypes.Focus:
-                    requirements.Add(new EnergyRequirement(EnergyTypes.Focus, energyCost));
-                    break;
-                case EnergyTypes.Social:
-                    requirements.Add(new EnergyRequirement(EnergyTypes.Social, energyCost));
-                    break;
+                int healthCost = energyCost - gameState.Player.PhysicalEnergy;
+                requirements.Add(new HealthRequirement(healthCost));
+            }
+            else if (choice.EnergyType == EnergyTypes.Focus && gameState.Player.FocusEnergy < energyCost)
+            {
+                int concentrationCost = energyCost - gameState.Player.FocusEnergy;
+                requirements.Add(new ConcentrationRequirement(concentrationCost));
+            }
+            else if (choice.EnergyType == EnergyTypes.Social && gameState.Player.SocialEnergy < energyCost)
+            {
+                int reputationCost = energyCost - gameState.Player.SocialEnergy;
+                requirements.Add(new ReputationRequirement(reputationCost));
+            }
+            else
+            {
+                // If the player has enough energy, add the energy requirement
+                switch (choice.EnergyType)
+                {
+                    case EnergyTypes.Physical:
+                        requirements.Add(new EnergyRequirement(EnergyTypes.Physical, energyCost));
+                        break;
+                    case EnergyTypes.Focus:
+                        requirements.Add(new EnergyRequirement(EnergyTypes.Focus, energyCost));
+                        break;
+                    case EnergyTypes.Social:
+                        requirements.Add(new EnergyRequirement(EnergyTypes.Social, energyCost));
+                        break;
+                }
             }
         }
         return requirements;
@@ -422,7 +425,18 @@ public class ChoiceCalculator
         int propertyModifier = locationPropertyCalculator.CalculateEnergyCostModifier(choice, context.LocationProperties);
         int pressureModifier = context.CurrentValues.Pressure >= 6 ? context.CurrentValues.Pressure - 5 : 0;
 
-        return baseEnergyCost + propertyModifier + pressureModifier;
+        // Apply energy cost reductions from modifications
+        int energyReduction = 0;
+        foreach (ValueModification modification in choice.ValueModifications)
+        {
+            if (modification is EnergyCostReduction reduction && reduction.EnergyType == choice.EnergyType)
+            {
+                energyReduction += reduction.Amount;
+            }
+        }
+
+        // Ensure energy cost doesn't go below 0
+        return Math.Max(0, baseEnergyCost + propertyModifier + pressureModifier - energyReduction);
     }
 
     private List<Outcome> CalculateRewards(EncounterChoice choice, EncounterContext context)

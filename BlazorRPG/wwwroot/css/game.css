@@ -1387,3 +1387,39 @@ body {
     .result-message h3 {
         margin-top: 0;
     }
+.requirements-preview {
+    margin-top: 10px;
+    border-top: 1px solid lightgray;
+    padding-top: 10px;
+}
+
+.requirements-list {
+    list-style: none;
+    padding: 0;
+}
+
+.requirement-icon {
+    margin-right: 5px;
+}
+
+/* Example icon styles - customize these */
+.pressure-icon {
+    color: red;
+}
+
+.insight-icon {
+    color: orange;
+}
+
+.physical-icon {
+    color: brown;
+}
+
+.focus-icon {
+    color: blue;
+}
+
+.social-icon {
+    color: green;
+}
+/* Add more styles for other icons */

@@ -114,34 +114,34 @@
     {
         List<Requirement> requirements = new();
 
-        //switch (approach)
-        //{
-        //    case ChoiceApproaches.Direct:
-        //        // Only requires sufficient energy
-        //        break;
+        switch (approach)
+        {
+            case ChoiceApproaches.Direct:
+                // Only requires sufficient energy
+                break;
 
-        //    case ChoiceApproaches.Pragmatic:
-        //        // Requires skill and low pressure
-        //        requirements.Add(new SkillRequirement(GetArchetypeSkill(archetype), 1));
-        //        requirements.Add(new MaxPressureRequirement(5));
-        //        break;
+            case ChoiceApproaches.Pragmatic:
+                // Requires skill and low pressure
+                requirements.Add(new SkillRequirement(GetArchetypeSkill(archetype), 1));
+                requirements.Add(new MaxPressureRequirement(5));
+                break;
 
-        //    case ChoiceApproaches.Tactical:
-        //        // Add archetype-specific requirement
-        //        switch (archetype)
-        //        {
-        //            case ChoiceArchetypes.Physical:
-        //                requirements.Add(new ItemRequirement(ItemTypes.Tool));
-        //                break;
-        //            case ChoiceArchetypes.Focus:
-        //                requirements.Add(new KnowledgeRequirement(KnowledgeTypes.LocalHistory));
-        //                break;
-        //            case ChoiceArchetypes.Social:
-        //                requirements.Add(new ReputationRequirement(5));
-        //                break;
-        //        }
-        //        break;
-        //}
+            case ChoiceApproaches.Tactical:
+                // Add archetype-specific requirement
+                switch (archetype)
+                {
+                    case ChoiceArchetypes.Physical:
+                        requirements.Add(new ItemRequirement(ItemTypes.Tool));
+                        break;
+                    case ChoiceArchetypes.Focus:
+                        requirements.Add(new KnowledgeRequirement(KnowledgeTypes.LocalHistory));
+                        break;
+                    case ChoiceArchetypes.Social:
+                        requirements.Add(new ReputationRequirement(5));
+                        break;
+                }
+                break;
+        }
 
         return requirements;
     }
@@ -155,17 +155,6 @@
             ChoiceApproaches.Tactical => 1,
             ChoiceApproaches.Improvised => 0,
             _ => throw new ArgumentException("Invalid approach")
-        };
-    }
-
-    private static EnergyTypes GetArchetypeEnergy(ChoiceArchetypes archetype)
-    {
-        return archetype switch
-        {
-            ChoiceArchetypes.Physical => EnergyTypes.Physical,
-            ChoiceArchetypes.Focus => EnergyTypes.Focus,
-            ChoiceArchetypes.Social => EnergyTypes.Social,
-            _ => throw new ArgumentException("Invalid archetype")
         };
     }
 

@@ -88,12 +88,12 @@ public class KnowledgeOutcome : Outcome
 
     public override string GetDescription()
     {
-        throw new NotImplementedException();
+        return "Knowledge";
     }
 
     public override string GetPreview(PlayerState player)
     {
-        throw new NotImplementedException();
+        return "Knowledge";
     }
 }
 

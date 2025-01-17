@@ -21,7 +21,7 @@
             {
                 PrimaryArchetype = ChoiceArchetypes.Physical,
                 SecondaryArchetype = ChoiceArchetypes.Focus,
-                PrimaryCount = 1,    // One physical for direct action
+                PrimaryCount = 2,    // One physical for direct action
                 SecondaryCount = 1    // One focus for tactical planning
             })
             .AddAvailabilityCondition(properties => properties
@@ -69,7 +69,7 @@
             {
                 PrimaryArchetype = ChoiceArchetypes.Physical,
                 SecondaryArchetype = ChoiceArchetypes.Social,
-                PrimaryCount = 1,
+                PrimaryCount = 2,
                 SecondaryCount = 1
             })
             .AddAvailabilityCondition(properties => properties

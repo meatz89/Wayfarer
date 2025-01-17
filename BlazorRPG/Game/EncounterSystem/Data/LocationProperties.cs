@@ -9,7 +9,8 @@ public enum ResourceTypes
     Herbs,
     Cloth,
     Any,
-    Ale
+    Ale,
+    Metal
 }
 
 // --- Archetype ---

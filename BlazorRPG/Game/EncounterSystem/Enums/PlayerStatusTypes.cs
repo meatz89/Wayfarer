@@ -2,5 +2,6 @@
 {
     Hungry, Tired, Injured, Homeless,
     WellRested,
-    Official
+    Official,
+    Inspired
 }
