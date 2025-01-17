@@ -52,11 +52,20 @@ public partial class EncounterViewBase : ComponentBase
         int projectedChange = GetProjectedChange(changeType);
         int projectedValue = currentValue + projectedChange;
 
-        // Only show the change if it's not zero
-        return projectedChange == 0 ? "" : (projectedChange > 0 ? "+" : "") + projectedChange.ToString();
+        // Only show the change if it's not zero, and add class for styling
+        if (projectedChange == 0)
+        {
+            return "";
+        }
+        else
+        {
+            string sign = projectedChange > 0 ? "+" : "";
+            string projectedValueString = $"{sign}{projectedChange}";
+            return projectedValueString;
+        }
     }
 
-    private int GetCurrentValue(ChangeTypes changeType)
+    public int GetCurrentValue(ChangeTypes changeType)
     {
         EncounterStateValues currentValues = GameState.Actions.CurrentEncounter.Context.CurrentValues;
         return changeType switch
@@ -70,7 +79,7 @@ public partial class EncounterViewBase : ComponentBase
         };
     }
 
-    private int GetProjectedChange(ChangeTypes changeType)
+    public int GetProjectedChange(ChangeTypes changeType)
     {
         if (hoveredChoice == null || hoveredChoice.EncounterChoice.CalculationResult == null) return 0;
 
@@ -147,7 +156,7 @@ public partial class EncounterViewBase : ComponentBase
 
         return ConvertCombinedValues(choice.CalculationResult.GetCombinedValues());
     }
-    private List<CombinedValue> ConvertCombinedValues(Dictionary<ChangeTypes, int> combinedValuesDict)
+    public List<CombinedValue> ConvertCombinedValues(Dictionary<ChangeTypes, int> combinedValuesDict)
     {
         List<CombinedValue> combinedValuesList = new List<CombinedValue>();
         foreach (KeyValuePair<ChangeTypes, int> kvp in combinedValuesDict)
@@ -164,7 +173,7 @@ public partial class EncounterViewBase : ComponentBase
         return ConvertDetailedChanges(choice.CalculationResult);
     }
 
-    private List<DetailedChange> ConvertDetailedChanges(ChoiceCalculationResult calculationResult)
+    public List<DetailedChange> ConvertDetailedChanges(ChoiceCalculationResult calculationResult)
     {
         List<DetailedChange> detailedChanges = new List<DetailedChange>();
 
@@ -197,7 +206,7 @@ public partial class EncounterViewBase : ComponentBase
         return detailedChanges;
     }
 
-    private List<DetailedChange> SortDetailedChanges(List<DetailedChange> changes)
+    public List<DetailedChange> SortDetailedChanges(List<DetailedChange> changes)
     {
         // Define the order of ChangeTypes
         List<ChangeTypes> order = new List<ChangeTypes>()
@@ -215,7 +224,7 @@ public partial class EncounterViewBase : ComponentBase
         return changes.OrderBy(dc => order.IndexOf(dc.ChangeType)).ToList();
     }
 
-    private void AddDetailedChange(List<DetailedChange> combined, ChangeTypes changeType, string source, int amount)
+    public void AddDetailedChange(List<DetailedChange> combined, ChangeTypes changeType, string source, int amount)
     {
         bool found = false;
         foreach (DetailedChange dc in combined)
@@ -249,7 +258,7 @@ public partial class EncounterViewBase : ComponentBase
         return choice.GetDetailedRequirements(GameState.Player);
     }
 
-    private ChangeTypes ConvertValueTypeToChangeType(ValueTypes valueType)
+    public ChangeTypes ConvertValueTypeToChangeType(ValueTypes valueType)
     {
         return valueType switch
         {
@@ -262,7 +271,7 @@ public partial class EncounterViewBase : ComponentBase
         };
     }
 
-    private ChangeTypes ConvertEnergyTypeToChangeType(EnergyTypes energyType)
+    public ChangeTypes ConvertEnergyTypeToChangeType(EnergyTypes energyType)
     {
         return energyType switch
         {

@@ -15,7 +15,9 @@
                         @GameState.Actions.CurrentEncounter.Context.CurrentValues.Momentum
                         @if (hoveredChoice != null)
                         {
-                            <span class="stat-projected-change"> @GetProjectedValue(ChangeTypes.Momentum)</span>
+                            int projectedChange = GetProjectedChange(ChangeTypes.Momentum);
+                            string projectedClass = projectedChange > 0 ? "positive" : (projectedChange < 0 ? "negative" : "");
+                            <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ChangeTypes.Momentum)</span>
                         }
                     </span>
                 </div>
@@ -26,7 +28,9 @@
                         @GameState.Actions.CurrentEncounter.Context.CurrentValues.Insight
                         @if (hoveredChoice != null)
                         {
-                            <span class="stat-projected-change"> @GetProjectedValue(ChangeTypes.Insight)</span>
+                            int projectedChange = GetProjectedChange(ChangeTypes.Insight);
+                            string projectedClass = projectedChange > 0 ? "positive" : (projectedChange < 0 ? "negative" : "");
+                            <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ChangeTypes.Insight)</span>
                         }
                     </span>
                 </div>
@@ -37,7 +41,9 @@
                         @GameState.Actions.CurrentEncounter.Context.CurrentValues.Resonance
                         @if (hoveredChoice != null)
                         {
-                            <span class="stat-projected-change"> @GetProjectedValue(ChangeTypes.Resonance)</span>
+                            int projectedChange = GetProjectedChange(ChangeTypes.Resonance);
+                            string projectedClass = projectedChange > 0 ? "positive" : (projectedChange < 0 ? "negative" : "");
+                            <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ChangeTypes.Resonance)</span>
                         }
                     </span>
                 </div>
@@ -48,7 +54,9 @@
                         @GameState.Actions.CurrentEncounter.Context.CurrentValues.Outcome
                         @if (hoveredChoice != null)
                         {
-                            <span class="stat-projected-change"> @GetProjectedValue(ChangeTypes.Outcome)</span>
+                            int projectedChange = GetProjectedChange(ChangeTypes.Outcome);
+                            string projectedClass = projectedChange > 0 ? "positive" : (projectedChange < 0 ? "negative" : "");
+                            <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ChangeTypes.Outcome)</span>
                         }
                     </span>
                 </div>
@@ -59,7 +67,9 @@
                         @GameState.Actions.CurrentEncounter.Context.CurrentValues.Pressure
                         @if (hoveredChoice != null)
                         {
-                            <span class="stat-projected-change"> @GetProjectedValue(ChangeTypes.Pressure)</span>
+                            int projectedChange = GetProjectedChange(ChangeTypes.Pressure);
+                            string projectedClass = projectedChange > 0 ? "negative" : (projectedChange < 0 ? "positive" : "");
+                            <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ChangeTypes.Pressure)</span>
                         }
                     </span>
                 </div>

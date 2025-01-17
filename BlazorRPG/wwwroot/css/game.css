@@ -1437,3 +1437,72 @@ body {
 .social-icon {
     color: green;
 }
+
+.stat-projected-change {
+    font-size: 0.8rem; /* Smaller font size */
+    font-weight: normal; /* Lighter weight */
+    color: var(--text-secondary); /* Lighter color */
+}
+
+/* ... other styles ... */
+
+/* Color the values based on their type AND positive/negative */
+.stat:has(.outcome-icon) .stat-value {
+    color: #2563eb; /* Same blue as the outcome icon */
+}
+
+.stat:has(.outcome-icon) .stat-projected-change.positive {
+    color: var(--energy-social);
+}
+
+.stat:has(.outcome-icon) .stat-projected-change.negative {
+    color: var(--resource-health);
+}
+
+.stat:has(.momentum-icon) .stat-value {
+    color: #ff7f50; /* Same coral as the momentum icon */
+}
+
+.stat:has(.momentum-icon) .stat-projected-change.positive {
+    color: var(--energy-social);
+}
+
+.stat:has(.momentum-icon) .stat-projected-change.negative {
+    color: var(--resource-health);
+}
+
+.stat:has(.insight-icon) .stat-value {
+    color: #7c3aed; /* Same violet as the insight icon */
+}
+
+.stat:has(.insight-icon) .stat-projected-change.positive {
+    color: var(--energy-social);
+}
+
+.stat:has(.insight-icon) .stat-projected-change.negative {
+    color: var(--resource-health);
+}
+
+.stat:has(.resonance-icon) .stat-value {
+    color: #db2777; /* Same pink as the resonance icon */
+}
+
+.stat:has(.resonance-icon) .stat-projected-change.positive {
+    color: var(--energy-social);
+}
+
+.stat:has(.resonance-icon) .stat-projected-change.negative {
+    color: var(--resource-health);
+}
+
+.stat:has(.pressure-icon) .stat-value {
+    color: #dc2626; /* Same red as the pressure icon */
+}
+
+.stat:has(.pressure-icon) .stat-projected-change.positive {
+    color: var(--resource-health); /* Inverted for pressure */
+}
+
+.stat:has(.pressure-icon) .stat-projected-change.negative {
+    color: var(--energy-social); /* Inverted for pressure */
+}
