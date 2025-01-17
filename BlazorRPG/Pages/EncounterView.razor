@@ -68,12 +68,13 @@
                         @if (hoveredChoice != null)
                         {
                             int projectedChange = GetProjectedChange(ChangeTypes.Pressure);
-                            string projectedClass = projectedChange > 0 ? "negative" : (projectedChange < 0 ? "positive" : "");
+                            string projectedClass = projectedChange > 0 ? "positive" : (projectedChange < 0 ? "negative" : "");
                             <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ChangeTypes.Pressure)</span>
                         }
                     </span>
                 </div>
             </div>
+
             <div class="encounter-stage">
                 <h3 class="choice-set-name">@GameManager.EncounterSystem.GetCurrentStage(GameState.Actions.CurrentEncounter).CurrentChoiceSetName</h3>
                 <div class="stage-description">
