@@ -27,25 +27,25 @@
         {
             case ChoiceApproaches.Direct:
                 // High risk, immediate conversion
-                changes.Add(new BaseValueChange(ValueTypes.Momentum, 2));
-                changes.Add(new BaseValueChange(ValueTypes.Pressure, 3));
+                changes.Add(new BaseValueChange(ValueTypes.Momentum, 3));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, 4));
                 break;
 
             case ChoiceApproaches.Pragmatic:
                 // Safe momentum building
-                changes.Add(new BaseValueChange(ValueTypes.Momentum, 2));
+                changes.Add(new BaseValueChange(ValueTypes.Momentum, 3));
                 break;
 
             case ChoiceApproaches.Tactical:
                 // Pressure management through momentum spending
                 // Actual spending happens in execution phase
-                changes.Add(new BaseValueChange(ValueTypes.Momentum, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Momentum, 2));
                 changes.Add(new BaseValueChange(ValueTypes.Pressure, -1));
                 break;
 
             case ChoiceApproaches.Improvised:
                 // Small gain with conditional conversion
-                changes.Add(new BaseValueChange(ValueTypes.Momentum, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Momentum, 2));
                 changes.Add(new BaseValueChange(ValueTypes.Pressure, 2));
                 break;
         }
@@ -57,26 +57,26 @@
         {
             case ChoiceApproaches.Direct:
                 // Understanding breakthrough
-                changes.Add(new BaseValueChange(ValueTypes.Insight, 2));
-                changes.Add(new BaseValueChange(ValueTypes.Pressure, 2));
+                changes.Add(new BaseValueChange(ValueTypes.Insight, 3));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, 3));
                 // Outcome conversion if Insight > Pressure happens in execution
                 break;
 
             case ChoiceApproaches.Pragmatic:
                 // Careful study
-                changes.Add(new BaseValueChange(ValueTypes.Insight, 2));
+                changes.Add(new BaseValueChange(ValueTypes.Insight, 3));
                 break;
 
             case ChoiceApproaches.Tactical:
                 // Knowledge application
                 // Insight conversion happens in execution
-                changes.Add(new BaseValueChange(ValueTypes.Insight, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Insight, 2));
                 changes.Add(new BaseValueChange(ValueTypes.Pressure, -1));
                 break;
 
             case ChoiceApproaches.Improvised:
                 // Basic observation
-                changes.Add(new BaseValueChange(ValueTypes.Insight, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Insight, 2));
                 changes.Add(new BaseValueChange(ValueTypes.Pressure, 2));
                 break;
         }
@@ -88,23 +88,23 @@
         {
             case ChoiceApproaches.Direct:
                 // Social leverage
-                changes.Add(new BaseValueChange(ValueTypes.Resonance, 2));
-                changes.Add(new BaseValueChange(ValueTypes.Pressure, 2));
+                changes.Add(new BaseValueChange(ValueTypes.Resonance, 3));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, 3));
                 break;
 
             case ChoiceApproaches.Pragmatic:
                 // Relationship building
-                changes.Add(new BaseValueChange(ValueTypes.Resonance, 2));
+                changes.Add(new BaseValueChange(ValueTypes.Resonance, 3));
                 break;
 
             case ChoiceApproaches.Tactical:
-                changes.Add(new BaseValueChange(ValueTypes.Resonance, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Resonance, 2));
                 changes.Add(new BaseValueChange(ValueTypes.Pressure, -1));
                 break;
 
             case ChoiceApproaches.Improvised:
                 // Basic interaction
-                changes.Add(new BaseValueChange(ValueTypes.Resonance, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Resonance, 2));
                 changes.Add(new BaseValueChange(ValueTypes.Pressure, 2));
                 break;
         }

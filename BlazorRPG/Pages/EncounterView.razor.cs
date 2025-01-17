@@ -99,16 +99,116 @@ public partial class EncounterViewBase : ComponentBase
                 return $"{energyCost} {choice.EnergyType}";
         }
     }
+    public List<CombinedValue> GetCombinedValues(EncounterChoice choice)
+    {
+        // Use the stored CalculationResult
+        if (choice.CalculationResult == null) return new List<CombinedValue>();
+
+        return ConvertCombinedValues(choice.CalculationResult.GetCombinedValues());
+    }
+    private List<CombinedValue> ConvertCombinedValues(Dictionary<ChangeTypes, int> combinedValuesDict)
+    {
+        List<CombinedValue> combinedValuesList = new List<CombinedValue>();
+        foreach (var kvp in combinedValuesDict)
+        {
+            combinedValuesList.Add(new CombinedValue { ChangeType = kvp.Key, Amount = kvp.Value });
+        }
+        return combinedValuesList;
+    }
 
     public List<DetailedChange> GetValueChanges(EncounterChoice choice)
     {
-        return choice.GetDetailedChanges();
+        // Use the stored CalculationResult
+        if (choice.CalculationResult == null) return new List<DetailedChange>();
+        return ConvertDetailedChanges(choice.CalculationResult);
     }
 
-    public EncounterStateValues GetNewStateValues(UserEncounterChoiceOption choice)
+    private List<DetailedChange> ConvertDetailedChanges(ChoiceCalculationResult calculationResult)
     {
-        ChoiceCalculationResult result = GameManager.CalculateChoiceEffects(choice.EncounterChoice, choice.Encounter.Context);
-        return result.NewStateValues;
+        List<DetailedChange> detailedChanges = new List<DetailedChange>();
+
+        // Add base changes
+        foreach (BaseValueChange change in calculationResult.BaseValueChanges)
+        {
+            AddDetailedChange(detailedChanges, ConvertValueTypeToChangeType(change.ValueType), "Base", change.Amount);
+        }
+
+        // Add modifications
+        foreach (ValueModification change in calculationResult.ValueModifications)
+        {
+            if (change is EncounterValueModification evm)
+            {
+                AddDetailedChange(detailedChanges, ConvertValueTypeToChangeType(evm.ValueType), change.Source, change.Amount);
+            }
+            else if (change is EnergyCostReduction em)
+            {
+                AddDetailedChange(detailedChanges, ConvertEnergyTypeToChangeType(em.EnergyType), change.Source, em.Amount);
+            }
+        }
+
+        // Add Energy Cost as a negative modification
+        if (calculationResult.EnergyCost > 0)
+            AddDetailedChange(detailedChanges, ConvertEnergyTypeToChangeType(calculationResult.EnergyType), "Base", -calculationResult.EnergyCost);
+
+        return detailedChanges;
+    }
+
+    private void AddDetailedChange(List<DetailedChange> combined, ChangeTypes changeType, string source, int amount)
+    {
+        bool found = false;
+        foreach (DetailedChange dc in combined)
+        {
+            if (dc.ChangeType == changeType)
+            {
+                dc.ChangeValues.TotalAmount += amount;
+                dc.ChangeValues.Sources.Add($"{source}: {(amount >= 0 ? "+" : "")}{amount}");
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            combined.Add(new DetailedChange
+            {
+                ChangeType = changeType,
+                ChangeValues = new ChangeValues
+                {
+                    TotalAmount = amount,
+                    Sources = new List<string> { $"{source}: {(amount >= 0 ? "+" : "")}{amount}" }
+                }
+            });
+        }
+    }
+
+    public List<DetailedRequirement> GetDetailedRequirements(EncounterChoice choice)
+    {
+        if (choice.CalculationResult == null) return new List<DetailedRequirement>();
+        return choice.GetDetailedRequirements(GameState.Player);
+    }
+
+    private ChangeTypes ConvertValueTypeToChangeType(ValueTypes valueType)
+    {
+        return valueType switch
+        {
+            ValueTypes.Outcome => ChangeTypes.Outcome,
+            ValueTypes.Momentum => ChangeTypes.Momentum,
+            ValueTypes.Insight => ChangeTypes.Insight,
+            ValueTypes.Resonance => ChangeTypes.Resonance,
+            ValueTypes.Pressure => ChangeTypes.Pressure,
+            _ => throw new ArgumentException("Invalid ValueType")
+        };
+    }
+
+    private ChangeTypes ConvertEnergyTypeToChangeType(EnergyTypes energyType)
+    {
+        return energyType switch
+        {
+            EnergyTypes.Physical => ChangeTypes.PhysicalEnergy,
+            EnergyTypes.Focus => ChangeTypes.FocusEnergy,
+            EnergyTypes.Social => ChangeTypes.SocialEnergy,
+            _ => throw new ArgumentException("Invalid EnergyType")
+        };
     }
 
     public void HandleChoiceSelection(UserEncounterChoiceOption choice)
@@ -128,31 +228,10 @@ public partial class EncounterViewBase : ComponentBase
         return GameManager.GetLocationEffects(choice);
     }
 
-    public string RenderEnergyCostModification(EncounterChoice choice)
-    {
-        // TODO
-        return "";
-    }
-
-    public bool IsEnergyCostModified(EncounterChoice choice)
-    {
-        return choice.EnergyCost != choice.EnergyCost;
-    }
-
-    public string GetValueChangeClass(ValueModification change)
-    {
-        return change.Amount > 0 ? "positive-change" : change.Amount < 0 ? "negative-change" : "neutral-change";
-    }
-
     public bool IsChoiceDisabled(UserEncounterChoiceOption choice)
     {
         // Use the ModifiedRequirements for the disabled check
         return choice.EncounterChoice.Requirements.Any(req => !req.IsSatisfied(GameState.Player));
-    }
-
-    public List<DetailedRequirement> GetDetailedRequirements(EncounterChoice choice)
-    {
-        return choice.GetDetailedRequirements(GameState.Player);
     }
 
     public MarkupString GetRequirementIcon(RequirementTypes requirementType)

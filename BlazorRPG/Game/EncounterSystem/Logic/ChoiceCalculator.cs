@@ -38,7 +38,7 @@ public class ChoiceCalculator
         choice.EnergyCost = CalculateEnergyCost(choice, context, gameState.Player);
 
         // 6. Return complete calculation result
-        return new ChoiceCalculationResult(
+        var choiceCalculationResult = new ChoiceCalculationResult(
             newState,
             baseChanges,           // Base values
             valueModifications,    // Modifications with sources
@@ -47,6 +47,10 @@ public class ChoiceCalculator
             requirements,          // Requirements
             costs,                 // Costs
             rewards);              // Rewards
+
+        choice.CalculationResult = choiceCalculationResult; // Store the result in the choice
+
+        return choiceCalculationResult;
     }
 
     private List<ValueModification> CalculateAllValueChanges(EncounterChoice choice, EncounterContext context)
@@ -102,9 +106,10 @@ public class ChoiceCalculator
                 break;
 
             case ChoiceApproaches.Improvised:
-                // Convert all momentum to outcome 1:1
+                // Convert all existing momentum to outcome 1:1
                 if (values.Momentum > 0)
                 {
+                    // Convert existing momentum to outcome
                     modifications.Add(new EncounterValueModification(
                         ValueTypes.Outcome,
                         values.Momentum,
@@ -113,6 +118,12 @@ public class ChoiceCalculator
                         ValueTypes.Momentum,
                         -values.Momentum,
                         "Conversion To outcome 1:1"));
+
+                    // Calculate how much momentum will be added by base changes
+                    int momentumToAdd = choice.BaseEncounterValueChanges
+                        .Where(bc => bc.ValueType == ValueTypes.Momentum)
+                        .Sum(bc => bc.Amount);
+
                 }
                 break;
         }
@@ -129,7 +140,7 @@ public class ChoiceCalculator
                     modifications.Add(new EncounterValueModification(
                         ValueTypes.Outcome,
                         1,
-                        "insight exceeds pressure"));
+                        "Gain Outcome from insight if insight exceeds pressure"));
                 }
                 break;
 
@@ -141,7 +152,7 @@ public class ChoiceCalculator
                     modifications.Add(new EncounterValueModification(
                         ValueTypes.Outcome,
                         conversionAmount,
-                        "insight at 2:1 ratio"));
+                        "Gain Outcome from insight at 2:1 ratio"));
                 }
                 break;
 
@@ -152,11 +163,12 @@ public class ChoiceCalculator
                     modifications.Add(new EncounterValueModification(
                         ValueTypes.Outcome,
                         1,
-                        "insight threshold 5 met"));
+                        "Gain outcome if insight threshold 5 met"));
                 }
                 break;
         }
     }
+
 
     private void AddSocialOutcomeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterStateValues values)
     {
@@ -170,7 +182,7 @@ public class ChoiceCalculator
                     modifications.Add(new EncounterValueModification(
                         ValueTypes.Outcome,
                         outcomeGain,
-                        "excess resonance to outcome"));
+                        "Excess resonance to outcome"));
                 }
                 break;
 
@@ -182,7 +194,7 @@ public class ChoiceCalculator
                     modifications.Add(new EncounterValueModification(
                         ValueTypes.Outcome,
                         conversionAmount,
-                        "resonance at 3:1 ratio"));
+                        "Gain outcome from resonance at 3:1 ratio"));
                 }
                 break;
 
@@ -190,19 +202,10 @@ public class ChoiceCalculator
                 // Convert resonance at 2:1 and reduce pressure
                 if (values.Resonance > 0)
                 {
-                    int conversionAmount = values.Resonance / 2;
-                    modifications.Add(new EncounterValueModification(
-                        ValueTypes.Outcome,
-                        conversionAmount,
-                        "convert resonance at 2:1 and reduce pressure"));
                     modifications.Add(new EncounterValueModification(
                         ValueTypes.Pressure,
                         -2,
-                        "convert resonance at 2:1 and reduce pressure"));
-                    modifications.Add(new EncounterValueModification(
-                        ValueTypes.Resonance,
-                        -values.Resonance,
-                        "convert resonance at 2:1 and reduce pressure"));
+                        "reduce pressure"));
                 }
                 break;
 
@@ -248,18 +251,25 @@ public class ChoiceCalculator
 
     private void AddStateModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {
-        // Momentum reduces energy costs
-        if (context.CurrentValues.Momentum > 0)
+        // Project the state after applying decay modifications
+        EncounterStateValues projectedValues = ProjectNewState(
+            context.CurrentValues,
+            new List<BaseValueChange>(), // No base changes for projection
+            modifications.Where(m => m is EncounterValueModification).ToList() // Only apply decay modifications
+        );
+
+        // Momentum reduces energy costs based on projected state
+        if (projectedValues.Momentum > 0)
         {
             modifications.Add(new EnergyCostReduction(
                 choice.EnergyType,
-                Math.Min(context.CurrentValues.Momentum, 3),
-                "Momentum Energy Reduction"
+                Math.Min(projectedValues.Momentum, 3),
+                "Momentum Energy Cost Reduction"
             ));
-        };
+        }
 
-        // Insight amplifies value gains
-        if (context.CurrentValues.Insight >= 2)
+        // Insight amplifies value gains based on projected state
+        if (projectedValues.Insight >= 2)
         {
             foreach (BaseValueChange baseChange in choice.BaseEncounterValueChanges)
             {
@@ -267,21 +277,46 @@ public class ChoiceCalculator
                 {
                     modifications.Add(new EncounterValueModification(
                         baseChange.ValueType,
-                        context.CurrentValues.Insight / 2,
-                        "Insight Amplification"));
+                        projectedValues.Insight / 2,
+                        "Insight Value Amplification"));
                 }
             }
         }
 
-        // Resonance reduces pressure gain
-        if (context.CurrentValues.Resonance > 0 &&
+        // Resonance reduces pressure gain based on projected state
+        if (projectedValues.Resonance > 0 &&
             choice.BaseEncounterValueChanges.Any(x => x.ValueType == ValueTypes.Pressure))
         {
             modifications.Add(new EncounterValueModification(
                 ValueTypes.Pressure,
-                -Math.Min(context.CurrentValues.Resonance, 3),
+                -Math.Min(projectedValues.Resonance, 3),
                 "Resonance Pressure Reduction"));
         }
+    }
+
+    private int CalculateEnergyCost(EncounterChoice choice, EncounterContext context, PlayerState player)
+    {
+        int baseEnergyCost = baseValueGenerator.GenerateBaseEnergyCost(choice.Archetype, choice.Approach);
+        int propertyModifier = locationPropertyCalculator.CalculateEnergyCostModifier(choice, context.LocationProperties);
+        int pressureModifier = context.CurrentValues.Pressure >= 6 ? context.CurrentValues.Pressure - 5 : 0;
+
+        // Apply energy cost reductions from modifications, using projected momentum
+        int energyReduction = 0;
+
+        // Project the state after applying decay modifications but before other modifications
+        EncounterStateValues projectedState = ProjectNewState(
+            context.CurrentValues,
+            new List<BaseValueChange>(),
+            choice.ValueModifications.Where(m => m is EncounterValueModification && m.Source == "No Physical Choice" || m.Source == "Repeated Choice Type" || m.Source == "Repeated Choice Approach").ToList()
+        );
+
+        if (projectedState.Momentum > 0)
+        {
+            energyReduction += Math.Min(projectedState.Momentum, 3);
+        }
+
+        // Ensure energy cost doesn't go below 0
+        return Math.Max(0, baseEnergyCost + propertyModifier + pressureModifier - energyReduction);
     }
 
     private EncounterStateValues ProjectNewState(
@@ -391,22 +426,6 @@ public class ChoiceCalculator
                 int reputationCost = energyCost - gameState.Player.SocialEnergy;
                 requirements.Add(new ReputationRequirement(reputationCost));
             }
-            else
-            {
-                // If the player has enough energy, add the energy requirement
-                switch (choice.EnergyType)
-                {
-                    case EnergyTypes.Physical:
-                        requirements.Add(new EnergyRequirement(EnergyTypes.Physical, energyCost));
-                        break;
-                    case EnergyTypes.Focus:
-                        requirements.Add(new EnergyRequirement(EnergyTypes.Focus, energyCost));
-                        break;
-                    case EnergyTypes.Social:
-                        requirements.Add(new EnergyRequirement(EnergyTypes.Social, energyCost));
-                        break;
-                }
-            }
         }
         return requirements;
     }
@@ -417,26 +436,6 @@ public class ChoiceCalculator
         List<Outcome> propertyCosts = locationPropertyCalculator.CalculatePropertyCosts(choice, context.LocationProperties);
         costs.AddRange(propertyCosts);
         return costs;
-    }
-
-    private int CalculateEnergyCost(EncounterChoice choice, EncounterContext context, PlayerState player)
-    {
-        int baseEnergyCost = baseValueGenerator.GenerateBaseEnergyCost(choice.Archetype, choice.Approach);
-        int propertyModifier = locationPropertyCalculator.CalculateEnergyCostModifier(choice, context.LocationProperties);
-        int pressureModifier = context.CurrentValues.Pressure >= 6 ? context.CurrentValues.Pressure - 5 : 0;
-
-        // Apply energy cost reductions from modifications
-        int energyReduction = 0;
-        foreach (ValueModification modification in choice.ValueModifications)
-        {
-            if (modification is EnergyCostReduction reduction && reduction.EnergyType == choice.EnergyType)
-            {
-                energyReduction += reduction.Amount;
-            }
-        }
-
-        // Ensure energy cost doesn't go below 0
-        return Math.Max(0, baseEnergyCost + propertyModifier + pressureModifier - energyReduction);
     }
 
     private List<Outcome> CalculateRewards(EncounterChoice choice, EncounterContext context)

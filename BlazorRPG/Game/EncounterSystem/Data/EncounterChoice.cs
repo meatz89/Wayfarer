@@ -17,6 +17,8 @@
     public List<Outcome> Costs { get; set; } = new();
     public List<Outcome> Rewards { get; set; } = new();
 
+    public ChoiceCalculationResult CalculationResult { get; set; }
+
     // Constructor remains the same
     public EncounterChoice(
         int index,
@@ -40,66 +42,45 @@
         };
     }
 
-    // For execution - just raw numbers for applying changes
+    // Get Combined Values from Calculation Result
     public List<CombinedValue> GetCombinedValues()
     {
-        List<CombinedValue> combined = new List<CombinedValue>();
-
-        // Add base values first
-        foreach (BaseValueChange baseChange in BaseEncounterValueChanges)
+        if (CalculationResult == null)
         {
-            AddToCombinedValues(combined, ConvertValueTypeToChangeType(baseChange.ValueType), baseChange.Amount);
+            return new List<CombinedValue>(); // Or handle it appropriately, e.g., throw an exception
         }
 
-        // Add modifications
-        foreach (ValueModification modification in ValueModifications)
-        {
-            if (modification is EncounterValueModification evm)
-            {
-                AddToCombinedValues(combined, ConvertValueTypeToChangeType(evm.ValueType), evm.Amount);
-            }
-            else if (modification is EnergyCostReduction em)
-            {
-                AddToCombinedValues(combined, ConvertEnergyTypeToChangeType(em.EnergyType), em.Amount);
-            }
-        }
-
-        // Add Energy Cost as a negative modification
-        AddToCombinedValues(combined, ConvertEnergyTypeToChangeType(EnergyType), -EnergyCost);
-
-
-        return combined;
+        return CalculationResult.GetCombinedValues()
+            .Select(cv => new CombinedValue { ChangeType = cv.Key, Amount = cv.Value })
+            .ToList();
     }
 
+    // Get Detailed Changes from Calculation Result
     public List<DetailedChange> GetDetailedChanges()
     {
-        List<DetailedChange> combined = new List<DetailedChange>();
-
-        // Add base changes
-        foreach (BaseValueChange change in BaseEncounterValueChanges)
+        if (CalculationResult == null)
         {
-            AddDetailedChange(combined, ConvertValueTypeToChangeType(change.ValueType), "Base", change.Amount);
+            return new List<DetailedChange>();
         }
 
-        // Add modifications
-        foreach (ValueModification change in ValueModifications)
-        {
-            if (change is EncounterValueModification evm)
-            {
-                AddDetailedChange(combined, ConvertValueTypeToChangeType(evm.ValueType), change.Source, change.Amount);
-            }
-            else if (change is EnergyCostReduction em)
-            {
-                AddDetailedChange(combined, ConvertEnergyTypeToChangeType(em.EnergyType), change.Source, change.Amount);
-            }
-        }
-
-        // Add Energy Cost as a negative modification
-        if (EnergyCost > 0)
-            AddDetailedChange(combined, ConvertEnergyTypeToChangeType(EnergyType), "Base", -EnergyCost);
-
-        return combined;
+        return CalculationResult.GetDetailedChanges();
     }
+
+    public List<DetailedRequirement> GetDetailedRequirements(PlayerState playerState)
+    {
+        if (CalculationResult == null)
+        {
+            return new List<DetailedRequirement>();
+        }
+
+        return CalculationResult.Requirements.Select(req => new DetailedRequirement
+        {
+            RequirementType = GetRequirementType(req),
+            Description = req.GetDescription(),
+            IsSatisfied = req.IsSatisfied(playerState)
+        }).ToList();
+    }
+
 
 
     // Helper methods for adding to combined values and detailed changes
@@ -173,23 +154,6 @@
             EnergyTypes.Social => ChangeTypes.SocialEnergy,
             _ => throw new ArgumentException("Invalid EnergyType")
         };
-    }
-
-    public List<DetailedRequirement> GetDetailedRequirements(PlayerState playerState)
-    {
-        List<DetailedRequirement> detailedRequirements = new List<DetailedRequirement>();
-
-        foreach (Requirement req in Requirements)
-        {
-            detailedRequirements.Add(new DetailedRequirement
-            {
-                RequirementType = GetRequirementType(req),
-                Description = req.GetDescription(),
-                IsSatisfied = req.IsSatisfied(playerState)
-            });
-        }
-
-        return detailedRequirements;
     }
 
     private RequirementTypes GetRequirementType(Requirement req)
