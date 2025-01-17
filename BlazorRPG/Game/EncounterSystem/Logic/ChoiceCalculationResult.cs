@@ -61,7 +61,7 @@
             {
                 changeType = ConvertValueTypeToChangeType(evm.ValueType);
             }
-            else if (modification is EnergyModification em)
+            else if (modification is EnergyCostReduction em)
             {
                 changeType = ConvertEnergyTypeToChangeType(em.EnergyType);
             }

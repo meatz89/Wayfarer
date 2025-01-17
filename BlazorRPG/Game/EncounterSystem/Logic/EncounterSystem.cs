@@ -26,6 +26,7 @@
 
         // Update last choice type
         encounter.Context.CurrentValues.LastChoiceType = choice.Archetype;
+        encounter.Context.CurrentValues.LastChoiceApproach = choice.Approach;
 
         // Check for game over conditions
         if (IsEncounterWon(encounter))

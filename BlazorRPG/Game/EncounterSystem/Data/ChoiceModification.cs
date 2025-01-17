@@ -6,7 +6,7 @@
     public string SourceDetails { get; set; } // Added property for source details
 
     // Specific modification data (only one of these will be populated based on Type)
-    public EnergyModification EnergyChange { get; set; }
+    public EnergyCostReduction EnergyChange { get; set; }
     public RequirementModification Requirement { get; set; }
     public OutcomeModification Cost { get; set; }
     public OutcomeModification Reward { get; set; }

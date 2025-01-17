@@ -27,8 +27,8 @@
         {
             case ChoiceApproaches.Direct:
                 // High risk, immediate conversion
+                changes.Add(new BaseValueChange(ValueTypes.Momentum, 2));
                 changes.Add(new BaseValueChange(ValueTypes.Pressure, 3));
-                // Momentum conversion happens in execution phase
                 break;
 
             case ChoiceApproaches.Pragmatic:
@@ -40,11 +40,13 @@
                 // Pressure management through momentum spending
                 // Actual spending happens in execution phase
                 changes.Add(new BaseValueChange(ValueTypes.Momentum, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, -1));
                 break;
 
             case ChoiceApproaches.Improvised:
                 // Small gain with conditional conversion
                 changes.Add(new BaseValueChange(ValueTypes.Momentum, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, 2));
                 break;
         }
     }
@@ -62,19 +64,20 @@
 
             case ChoiceApproaches.Pragmatic:
                 // Careful study
-                changes.Add(new BaseValueChange(ValueTypes.Insight, 1));
-                changes.Add(new BaseValueChange(ValueTypes.Pressure, -1));
+                changes.Add(new BaseValueChange(ValueTypes.Insight, 2));
                 break;
 
             case ChoiceApproaches.Tactical:
                 // Knowledge application
                 // Insight conversion happens in execution
-                changes.Add(new BaseValueChange(ValueTypes.Pressure, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Insight, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, -1));
                 break;
 
             case ChoiceApproaches.Improvised:
                 // Basic observation
                 changes.Add(new BaseValueChange(ValueTypes.Insight, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, 2));
                 break;
         }
     }
@@ -91,17 +94,18 @@
 
             case ChoiceApproaches.Pragmatic:
                 // Relationship building
-                changes.Add(new BaseValueChange(ValueTypes.Resonance, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Resonance, 2));
                 break;
 
             case ChoiceApproaches.Tactical:
-                // Social capital spending
-                // Resonance conversion happens in execution
+                changes.Add(new BaseValueChange(ValueTypes.Resonance, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, -1));
                 break;
 
             case ChoiceApproaches.Improvised:
                 // Basic interaction
                 changes.Add(new BaseValueChange(ValueTypes.Resonance, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, 2));
                 break;
         }
     }

@@ -32,11 +32,11 @@ public class EncounterValueModification : ValueModification
     }
 }
 
-public class EnergyModification : ValueModification
+public class EnergyCostReduction : ValueModification
 {
     public EnergyTypes EnergyType { get; set; }
 
-    public EnergyModification(EnergyTypes type, int amount, string source)
+    public EnergyCostReduction(EnergyTypes type, int amount, string source)
     {
         EnergyType = type;
         Amount = amount;

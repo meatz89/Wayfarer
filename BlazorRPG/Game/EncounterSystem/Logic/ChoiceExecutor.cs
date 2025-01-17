@@ -43,15 +43,6 @@
                 case ChangeTypes.Pressure:
                     gameState.Actions.CurrentEncounter.ModifyValue(ValueTypes.Pressure, kvp.Value);
                     break;
-                case ChangeTypes.PhysicalEnergy:
-                    gameState.Player.ModifyEnergy(EnergyTypes.Physical, kvp.Value);
-                    break;
-                case ChangeTypes.FocusEnergy:
-                    gameState.Player.ModifyEnergy(EnergyTypes.Focus, kvp.Value);
-                    break;
-                case ChangeTypes.SocialEnergy:
-                    gameState.Player.ModifyEnergy(EnergyTypes.Social, kvp.Value);
-                    break;
             }
         }
 

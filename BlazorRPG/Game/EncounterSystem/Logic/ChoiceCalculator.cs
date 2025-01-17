@@ -16,8 +16,7 @@ public class ChoiceCalculator
     public ChoiceCalculationResult CalculateChoiceEffects(EncounterChoice choice, EncounterContext context)
     {
         // 1. Get base values that are inherent to the choice type
-        List<BaseValueChange> baseChanges = baseValueGenerator
-            .GenerateBaseValueChanges(choice.Archetype, choice.Approach);
+        List<BaseValueChange> baseChanges = baseValueGenerator.GenerateBaseValueChanges(choice.Archetype, choice.Approach);
 
         // 2. Calculate all modifications from game state and effects
         List<ValueModification> valueModifications = CalculateAllValueChanges(choice, context);
@@ -70,22 +69,19 @@ public class ChoiceCalculator
     private void AddOutcomeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {
         // Project the state after applying all current modifications
-        EncounterStateValues projectedValues = ProjectNewState(
-            context.CurrentValues,
-            choice.BaseEncounterValueChanges,
-            modifications);
+        EncounterStateValues currentValues = context.CurrentValues;
 
         // Now handle outcome generation based on archetype and approach
         switch (choice.Archetype)
         {
             case ChoiceArchetypes.Physical:
-                AddPhysicalOutcomeModifications(modifications, choice, projectedValues);
+                AddPhysicalOutcomeModifications(modifications, choice, currentValues);
                 break;
             case ChoiceArchetypes.Focus:
-                AddFocusOutcomeModifications(modifications, choice, projectedValues);
+                AddFocusOutcomeModifications(modifications, choice, currentValues);
                 break;
             case ChoiceArchetypes.Social:
-                AddSocialOutcomeModifications(modifications, choice, projectedValues);
+                AddSocialOutcomeModifications(modifications, choice, currentValues);
                 break;
         }
     }
@@ -256,9 +252,9 @@ public class ChoiceCalculator
         // Momentum reduces energy costs
         if (context.CurrentValues.Momentum > 0)
         {
-            modifications.Add(new EnergyModification(
+            modifications.Add(new EnergyCostReduction(
                 choice.EnergyType,
-                -Math.Min(context.CurrentValues.Momentum, 3),
+                Math.Min(context.CurrentValues.Momentum, 3),
                 "Momentum Energy Reduction"
             ));
         };
@@ -314,7 +310,7 @@ public class ChoiceCalculator
             {
                 ApplyValueChange(newState, evm.ValueType, evm.Amount);
             }
-            else if (mod is EnergyModification em)
+            else if (mod is EnergyCostReduction em)
             {
                 // Do nothing here, energy modifications don't directly affect state values
             }

@@ -33,10 +33,10 @@
 
         // Initialize encounter values
         CurrentValues = new EncounterStateValues(
-            outcome: 5 + (playerState.Level - locationDifficulty),
+            outcome: 0 + (playerState.Level - locationDifficulty),
             momentum: 0,
             insight: 0,
-            resonance: 5,
+            resonance: 0,
             pressure: 0);
 
         StageNumber = 0;

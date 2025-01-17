@@ -58,7 +58,7 @@
             {
                 AddToCombinedValues(combined, ConvertValueTypeToChangeType(evm.ValueType), evm.Amount);
             }
-            else if (modification is EnergyModification em)
+            else if (modification is EnergyCostReduction em)
             {
                 AddToCombinedValues(combined, ConvertEnergyTypeToChangeType(em.EnergyType), em.Amount);
             }
@@ -88,14 +88,15 @@
             {
                 AddDetailedChange(combined, ConvertValueTypeToChangeType(evm.ValueType), change.Source, change.Amount);
             }
-            else if (change is EnergyModification em)
+            else if (change is EnergyCostReduction em)
             {
                 AddDetailedChange(combined, ConvertEnergyTypeToChangeType(em.EnergyType), change.Source, change.Amount);
             }
         }
 
         // Add Energy Cost as a negative modification
-        AddDetailedChange(combined, ConvertEnergyTypeToChangeType(EnergyType), "Energy Cost", -EnergyCost);
+        if(EnergyCost > 0)
+            AddDetailedChange(combined, ConvertEnergyTypeToChangeType(EnergyType), "Base", -EnergyCost);
 
         return combined;
     }
