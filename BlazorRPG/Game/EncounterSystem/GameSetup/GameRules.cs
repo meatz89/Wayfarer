@@ -29,6 +29,10 @@
     public int NoFoodEffectOnHealth;
     public int NoShelterEffectOnHealth;
 
+    public static int StrategicMomentumRequirement = 5;
+    public static int StrategicInsightRequirement = 5;
+    public static int StrategicResonanceRequirement = 5;
+
     public static List<ChoiceApproaches> GetPriorityOrder(
         ChoiceArchetypes archetype,
         EncounterStateValues values)
@@ -56,17 +60,17 @@
 
             ChoiceArchetypes.Focus => new List<ChoiceApproaches>
         {
-            ChoiceApproaches.Aggressive,
             ChoiceApproaches.Strategic,
             ChoiceApproaches.Careful,
+            ChoiceApproaches.Aggressive,
             ChoiceApproaches.Desperate
         },
 
             ChoiceArchetypes.Social => new List<ChoiceApproaches>
         {
+            ChoiceApproaches.Strategic,
             ChoiceApproaches.Careful,
             ChoiceApproaches.Aggressive,
-            ChoiceApproaches.Strategic,
             ChoiceApproaches.Desperate
         },
 

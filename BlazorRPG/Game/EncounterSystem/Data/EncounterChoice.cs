@@ -121,7 +121,11 @@
             },
             StatusRequirement statusReq => statusReq.Status switch
             {
-                PlayerStatusTypes.Inspired => RequirementTypes.Inspired,
+                PlayerStatusTypes.Wet => RequirementTypes.Wet,
+                PlayerStatusTypes.Cold => RequirementTypes.Cold,
+                PlayerStatusTypes.Hungry => RequirementTypes.Hungry,
+                PlayerStatusTypes.Tired => RequirementTypes.Tired,
+                PlayerStatusTypes.Injured => RequirementTypes.Injured,
                 _ => RequirementTypes.Other
             },
             _ => RequirementTypes.Other
@@ -174,5 +178,9 @@ public enum RequirementTypes
     Metal,
 
     //Player Status
-    Inspired
+    Wet,
+    Cold,
+    Hungry,
+    Tired,
+    Injured,
 }

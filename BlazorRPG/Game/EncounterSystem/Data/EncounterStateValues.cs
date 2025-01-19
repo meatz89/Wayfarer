@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography.X509Certificates;
-
-public class EncounterStateValues
+﻿public class EncounterStateValues
 {
     public int Outcome { get; set; }
     public int Pressure { get; set; }

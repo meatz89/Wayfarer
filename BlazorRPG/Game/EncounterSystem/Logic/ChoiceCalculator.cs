@@ -282,10 +282,14 @@
     {
         List<Requirement> requirements = GetEnergyRequirements(choice, context, playerState);
 
-        List<Requirement> specialChoiceRequirements = baseValueGenerator.GenerateSpecialRequirements(choice.Archetype, choice.Approach);
+        List<Requirement> specialChoiceRequirements = baseValueGenerator
+            .GenerateStrategicRequirements(choice.Archetype, choice.Approach);
+
         requirements.AddRange(specialChoiceRequirements);
 
-        List<Requirement> propertyRequirements = locationPropertyCalculator.CalculateLocationRequirements(choice, context.LocationProperties);
+        List<Requirement> propertyRequirements = locationPropertyCalculator
+            .CalculateLocationRequirements(choice, context.LocationProperties);
+
         requirements.AddRange(propertyRequirements);
 
         return requirements;

@@ -1,7 +1,8 @@
 ﻿public enum PlayerStatusTypes
 {
-    Hungry, Tired, Injured, Homeless,
-    WellRested,
-    Official,
-    Inspired
+    Wet,
+    Cold,
+    Hungry, 
+    Tired, 
+    Injured,
 }

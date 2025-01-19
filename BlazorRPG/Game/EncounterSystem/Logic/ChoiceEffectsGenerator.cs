@@ -75,32 +75,6 @@
         };
     }
 
-    // We'll keep this method but simplify its implementation as special requirements 
-    // are now primarily handled through the mastery value system
-    public List<Requirement> GenerateSpecialRequirements(ChoiceArchetypes archetype, ChoiceApproaches approach)
-    {
-        List<Requirement> requirements = new();
-
-        // Special choices (4th option) require high mastery values
-        if (approach == ChoiceApproaches.Strategic)
-        {
-            switch (archetype)
-            {
-                case ChoiceArchetypes.Physical:
-                    requirements.Add(new MomentumRequirement(6));
-                    break;
-                case ChoiceArchetypes.Focus:
-                    requirements.Add(new InsightRequirement(6));
-                    break;
-                case ChoiceArchetypes.Social:
-                    requirements.Add(new ResonanceRequirement(6));
-                    break;
-            }
-        }
-
-        return requirements;
-    }
-
     public List<Outcome> CalculatePressureCosts(EncounterChoice choice, EncounterContext context)
     {
         List<Outcome> costs = new();
@@ -137,5 +111,29 @@
         List<Outcome> rewards = new List<Outcome>();
 
         return rewards;
+    }
+
+    public List<Requirement> GenerateStrategicRequirements(ChoiceArchetypes archetype, ChoiceApproaches approach)
+    {
+        List<Requirement> requirements = new();
+
+        // Special choices (4th option) require high mastery values
+        if (approach == ChoiceApproaches.Strategic)
+        {
+            switch (archetype)
+            {
+                case ChoiceArchetypes.Physical:
+                    requirements.Add(new MomentumRequirement(GameRules.StrategicMomentumRequirement));
+                    break;
+                case ChoiceArchetypes.Focus:
+                    requirements.Add(new InsightRequirement(GameRules.StrategicInsightRequirement));
+                    break;
+                case ChoiceArchetypes.Social:
+                    requirements.Add(new ResonanceRequirement(GameRules.StrategicResonanceRequirement));
+                    break;
+            }
+        }
+
+        return requirements;
     }
 }

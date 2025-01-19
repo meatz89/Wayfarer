@@ -329,7 +329,6 @@ public partial class EncounterViewBase : ComponentBase
             RequirementTypes.Metal => new MarkupString("<i class='requirement-icon metal-icon'>🔩</i>"),
             RequirementTypes.InventorySlots => new MarkupString("<i class='requirement-icon inventory-slots-icon'>🗄️</i>"),
             RequirementTypes.LocalHistory => new MarkupString("<i class='requirement-icon local-history-icon'>📜</i>"),
-            RequirementTypes.Inspired => new MarkupString("<i class='requirement-icon inspired-icon'>✨</i>"),
             _ => new MarkupString("")
         };
     }

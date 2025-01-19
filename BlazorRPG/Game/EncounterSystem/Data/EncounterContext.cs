@@ -34,7 +34,8 @@
         LocationPropertyChoiceEffects = locationPropertyChoiceEffects;
 
         // Initialize encounter values
-        CurrentValues = new EncounterStateValues(locationDifficulty, playerLevel);
+        EncounterStateInitializer encounterStateInitializer = new EncounterStateInitializer();
+        CurrentValues = EncounterStateInitializer.Generate(locationDifficulty, playerLevel);
         StageNumber = 0;
     }
 }
