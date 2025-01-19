@@ -40,81 +40,202 @@
         List<EncounterChoice> choices = new();
         CompositionPattern pattern = template.CompositionPattern;
 
-        // Handle extreme pressure scenario first
         if (values.Pressure >= 9)
         {
             return GenerateDesperateOnlyChoices(pattern.PrimaryArchetype);
         }
 
-        // Try to generate primary archetype choices (2 choices)
-        for (int i = 0; i < 2; i++)
+        // First Choice: Best non-strategic approach from primary archetype
+        EncounterChoice firstChoice = GenerateFirstChoice(pattern.PrimaryArchetype, values, playerState);
+        if (firstChoice != null)
         {
-            EncounterChoice choice = TryGenerateChoice(pattern.PrimaryArchetype, values, playerState);
+            choices.Add(firstChoice);
+        }
 
-            if (choice != null)
+        // Second Choice: Strategic or best available from primary/secondary
+        EncounterChoice secondChoice = GenerateSecondChoice(pattern, firstChoice, values, playerState);
+        if (secondChoice != null)
+        {
+            choices.Add(secondChoice);
+        }
+
+        // Third Choice: Strategic or best available from primary/secondary
+        if (choices.Count >= 2)
+        {
+            EncounterChoice thirdChoice = GenerateThirdChoice(pattern, firstChoice, secondChoice, values, playerState);
+            if (thirdChoice != null)
             {
-                choices.Add(choice);
+                choices.Add(thirdChoice);
             }
         }
 
-        // Only try to generate secondary choice if we have less than 3 choices
-        if (choices.Count < 3)
-        {
-            EncounterChoice secondaryChoice = TryGenerateChoice(pattern.SecondaryArchetype, values, playerState);
-
-            if (secondaryChoice != null)
-            {
-                choices.Add(secondaryChoice);
-            }
-        }
-
-        if (choices.Count < 3)
-        {
-            EncounterChoice desperateChoice = null;
-
-            // If we couldn't generate a regular choice, try a desperate fallback
-            if (!HasDesperateChoice(choices, pattern.PrimaryArchetype))
-            {
-                desperateChoice = CreateChoice(choices.Count, pattern.PrimaryArchetype, ChoiceApproaches.Desperate);
-            }
-            else if (!HasDesperateChoice(choices, pattern.SecondaryArchetype))
-            {
-                desperateChoice = CreateChoice(choices.Count, pattern.SecondaryArchetype, ChoiceApproaches.Desperate);
-            }
-            else if (!HasThirdArchetypeDesperateChoice(choices))
-            {
-                ChoiceArchetypes thirdArchetype = GetMissingArchetype(choices);
-                desperateChoice = CreateChoice(choices.Count, thirdArchetype, ChoiceApproaches.Desperate);
-            }
-
-            if (desperateChoice != null)
-            {
-                choices.Add(desperateChoice);
-            }
-        }
-
-        // Add special choice if applicable and we don't already have too many choices
+        // Special fourth choice if high mastery value
         if (choices.Count < 4 && ShouldAddSpecialChoice(values))
         {
             EncounterChoice specialChoice = TryGenerateSpecialChoice(choices.Count, template, values);
-            if (specialChoice != null)
+            // Only add if it doesn't duplicate an existing strategic choice
+            if (specialChoice != null && !HasStrategicChoice(choices, specialChoice.Archetype))
             {
                 choices.Add(specialChoice);
             }
         }
 
+        // Fallback if insufficient choices
+        if (choices.Count < 3)
+        {
+            if (IsChoicePossible(pattern.PrimaryArchetype, ChoiceApproaches.Desperate, values, playerState))
+                choices.Add(CreateChoice(choices.Count + 1, pattern.PrimaryArchetype, ChoiceApproaches.Desperate));
+        }
+
+        if (choices.Count < 3)
+        {
+            if (IsChoicePossible(pattern.SecondaryArchetype, ChoiceApproaches.Desperate, values, playerState))
+                choices.Add(CreateChoice(choices.Count + 1, pattern.SecondaryArchetype, ChoiceApproaches.Desperate));
+        }
+
         return choices;
     }
 
-    private EncounterChoice TryGenerateChoice(
+    private EncounterChoice GenerateFirstChoice(
         ChoiceArchetypes archetype,
         EncounterStateValues values,
         PlayerState playerState)
     {
-        // Get an approach according to our priority rules
-        ChoiceApproaches approach = SelectApproach(archetype, values, playerState);
+        const int choiceIndex = 1;
 
-        return CreateChoice(1, archetype, approach);
+        // Get available approaches excluding Strategic
+        List<ChoiceApproaches> approaches = GetAvailableApproaches(archetype, values, playerState)
+            .Where(a => a != ChoiceApproaches.Strategic)
+            .ToList();
+
+        // Use SelectBestApproach to choose the best available approach
+        ChoiceApproaches selectedApproach = SelectBestApproach(archetype, approaches, values, playerState);
+
+        return CreateChoice(choiceIndex, archetype, selectedApproach);
+    }
+
+    private bool HasStrategicChoice(List<EncounterChoice> choices, ChoiceArchetypes archetype)
+    {
+        return choices.Any(c =>
+            c.Archetype == archetype &&
+            c.Approach == ChoiceApproaches.Strategic);
+    }
+
+    private EncounterChoice GenerateSecondChoice(
+        CompositionPattern pattern,
+        EncounterChoice firstChoice,
+        EncounterStateValues values,
+        PlayerState playerState)
+    {
+        const int choiceIndex = 2;
+
+        // First try a different approach with the primary archetype
+        // Get all available approaches except Strategic and the one used in first choice
+        List<ChoiceApproaches> availableApproaches = GetAvailableApproaches(pattern.PrimaryArchetype, values, playerState)
+            .Where(a => a != firstChoice.Approach && a != ChoiceApproaches.Strategic)
+            .ToList();
+
+        if (availableApproaches.Any())
+        {
+            // Use our priority-based approach selection for the primary archetype
+            ChoiceApproaches approach = SelectBestApproach(pattern.PrimaryArchetype, availableApproaches, values, playerState);
+            return CreateChoice(choiceIndex, pattern.PrimaryArchetype, approach);
+        }
+
+        // If we couldn't make another primary archetype choice, then try strategic choices
+        if (IsChoicePossible(pattern.SecondaryArchetype, ChoiceApproaches.Strategic, values, playerState))
+        {
+            return CreateChoice(choiceIndex, pattern.SecondaryArchetype, ChoiceApproaches.Strategic);
+        }
+
+        ChoiceArchetypes remainingArchetype = GetRemainingArchetype(pattern.PrimaryArchetype, pattern.SecondaryArchetype);
+        if (IsChoicePossible(remainingArchetype, ChoiceApproaches.Strategic, values, playerState))
+        {
+            return CreateChoice(choiceIndex, remainingArchetype, ChoiceApproaches.Strategic);
+        }
+
+        // As a last resort, try a regular choice with the secondary archetype
+        return TryGenerateRegularChoice(pattern.SecondaryArchetype, firstChoice, values, playerState);
+    }
+
+    private EncounterChoice GenerateThirdChoice(
+        CompositionPattern pattern,
+        EncounterChoice firstChoice,
+        EncounterChoice secondChoice,
+        EncounterStateValues values,
+        PlayerState playerState)
+    {
+        const int choiceIndex = 3;
+
+        // First try Strategic choices in priority order
+        // Primary archetype strategic
+        if (!HasArchetype(firstChoice, secondChoice, pattern.PrimaryArchetype) &&
+            IsChoicePossible(pattern.PrimaryArchetype, ChoiceApproaches.Strategic, values, playerState))
+        {
+            return CreateChoice(choiceIndex, pattern.PrimaryArchetype, ChoiceApproaches.Strategic);
+        }
+
+        // Secondary archetype strategic
+        if (!HasArchetype(firstChoice, secondChoice, pattern.SecondaryArchetype) &&
+            IsChoicePossible(pattern.SecondaryArchetype, ChoiceApproaches.Strategic, values, playerState))
+        {
+            return CreateChoice(choiceIndex, pattern.SecondaryArchetype, ChoiceApproaches.Strategic);
+        }
+
+        // Third archetype strategic (special case allowed)
+        ChoiceArchetypes thirdArchetype = GetRemainingArchetype(pattern.PrimaryArchetype, pattern.SecondaryArchetype);
+        if (IsChoicePossible(thirdArchetype, ChoiceApproaches.Strategic, values, playerState))
+        {
+            return CreateChoice(choiceIndex, thirdArchetype, ChoiceApproaches.Strategic);
+        }
+
+        //// If no Strategic choice possible, must use either primary or secondary archetype
+        //// Figure out which one hasn't been used yet
+        //if (!HasArchetype(firstChoice, secondChoice, pattern.PrimaryArchetype))
+        //{
+        //    return TryGenerateRegularChoice(pattern.PrimaryArchetype, secondChoice, values, playerState);
+        //}
+        //if (!HasArchetype(firstChoice, secondChoice, pattern.SecondaryArchetype))
+        //{
+        //    return TryGenerateRegularChoice(pattern.SecondaryArchetype, secondChoice, values, playerState);
+        //}
+
+        // If both archetypes are used, we can't generate a third choice
+        return null;
+    }
+
+    private bool HasArchetype(EncounterChoice first, EncounterChoice second, ChoiceArchetypes archetype)
+    {
+        return (first?.Archetype == archetype) || (second?.Archetype == archetype);
+    }
+
+    private ChoiceArchetypes GetRemainingArchetype(ChoiceArchetypes first, ChoiceArchetypes second)
+    {
+        return Enum.GetValues<ChoiceArchetypes>()
+            .First(a => a != first && a != second);
+    }
+
+    private EncounterChoice TryGenerateRegularChoice(
+        ChoiceArchetypes archetype,
+        EncounterChoice existingChoice,
+        EncounterStateValues values,
+        PlayerState playerState)
+    {
+        // Get available approaches excluding those already used
+        List<ChoiceApproaches> approaches = GetAvailableApproaches(archetype, values, playerState)
+            .Where(a => !usedCombinations.Contains((archetype, a)))
+            .ToList();
+
+        // Try each approach in priority order
+        foreach (ChoiceApproaches approach in GameRules.GetPriorityOrder(archetype, values))
+        {
+            if (approaches.Contains(approach) && IsChoicePossible(archetype, approach, values, playerState))
+            {
+                return CreateChoice(existingChoice.Index + 1, archetype, approach);
+            }
+        }
+
+        return null;
     }
 
     private bool IsChoicePossible(
@@ -138,54 +259,9 @@
         // Add other requirement checks here (energy, skills, etc.)
         // We can expand this as needed
 
+        if (usedCombinations.Contains((archetype, approach))) return false;
+
         return true;
-    }
-
-    private bool HasDesperateChoice(List<EncounterChoice> choices, ChoiceArchetypes archetype)
-    {
-        return choices.Any(c =>
-            c.Archetype == archetype &&
-            c.Approach == ChoiceApproaches.Desperate);
-    }
-
-    private bool HasThirdArchetypeDesperateChoice(List<EncounterChoice> choices)
-    {
-        ChoiceArchetypes thirdArchetype = GetMissingArchetype(choices);
-        return HasDesperateChoice(choices, thirdArchetype);
-    }
-
-    private ChoiceArchetypes GetMissingArchetype(List<EncounterChoice> choices)
-    {
-        // Get all archetypes present in the choices
-        HashSet<ChoiceArchetypes> presentArchetypes = new(
-            choices.Select(c => c.Archetype));
-
-        // Return the first archetype that isn't present
-        return Enum.GetValues<ChoiceArchetypes>()
-            .First(a => !presentArchetypes.Contains(a));
-    }
-
-    private ChoiceApproaches SelectApproach(
-        ChoiceArchetypes archetype,
-        EncounterStateValues values,
-        PlayerState playerState)
-    {
-        // Get available approaches based on pressure thresholds
-        List<ChoiceApproaches> availableApproaches = GetAvailableApproaches(
-            archetype, values, playerState);
-
-        // Filter out already used combinations
-        availableApproaches = availableApproaches
-            .Where(approach => !usedCombinations.Contains((archetype, approach)))
-            .ToList();
-
-        // If no valid approaches, return Desperate as fallback
-        if (availableApproaches.Count == 0)
-            return ChoiceApproaches.Desperate;
-
-        ChoiceApproaches approach = SelectBestApproach(archetype, availableApproaches, values, playerState);
-
-        return approach;
     }
 
     private List<ChoiceApproaches> GetAvailableApproaches(
@@ -214,35 +290,7 @@
         if (values.Pressure <= 8)
             approaches.Add(ChoiceApproaches.Careful);
 
-        // Desperate is always available
-        approaches.Add(ChoiceApproaches.Desperate);
-
         return approaches;
-    }
-
-    private ChoiceApproaches SelectBestApproach(
-        ChoiceArchetypes archetype,
-        List<ChoiceApproaches> availableApproaches,
-        EncounterStateValues values,
-        PlayerState playerState)
-    {
-        // Define archetype-specific priority orders
-        List<ChoiceApproaches> priorityOrder = GameRules.GetPriorityOrder(archetype, values);
-
-        foreach (ChoiceApproaches approach in priorityOrder)
-        {
-            if (!IsChoicePossible(archetype, approach, values, playerState))
-            {
-                continue;
-            }
-
-            if (availableApproaches.Contains(approach))
-            {
-                return approach;
-            }
-        }
-
-        return ChoiceApproaches.Desperate;
     }
 
 
@@ -274,6 +322,31 @@
             values.Resonance >= 7 ||
             values.Momentum >= 7
         );
+    }
+
+    private ChoiceApproaches SelectBestApproach(
+        ChoiceArchetypes archetype,
+        List<ChoiceApproaches> availableApproaches,
+        EncounterStateValues values,
+        PlayerState playerState)
+    {
+        // Define archetype-specific priority orders
+        List<ChoiceApproaches> priorityOrder = GameRules.GetPriorityOrder(archetype, values);
+
+        foreach (ChoiceApproaches approach in priorityOrder)
+        {
+            if (!IsChoicePossible(archetype, approach, values, playerState))
+            {
+                continue;
+            }
+
+            if (availableApproaches.Contains(approach))
+            {
+                return approach;
+            }
+        }
+
+        return ChoiceApproaches.Desperate;
     }
 
     private EncounterChoice TryGenerateSpecialChoice(

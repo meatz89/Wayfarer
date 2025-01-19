@@ -2,7 +2,7 @@
 {
     Wet,
     Cold,
-    Hungry, 
-    Tired, 
+    Hungry,
+    Tired,
     Injured,
 }

@@ -97,7 +97,7 @@
             case ChoiceApproaches.Desperate:
                 // Risky progress when needed
                 modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 1,
-                $"From Desperate Approach")); 
+                $"From Desperate Approach"));
                 modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 2,
                 $"From Desperate Approach"));
                 break;
@@ -186,7 +186,8 @@
 
     private int CalculateEnergyCost(EncounterChoice choice, EncounterContext context, PlayerState player)
     {
-        int baseEnergyCost = baseValueGenerator.GenerateBaseEnergyCost(choice.Archetype, choice.Approach);
+        int baseEnergyCost = GameRules.GetBaseEnergyCost(choice.Archetype, choice.Approach);
+
         int propertyModifier = locationPropertyCalculator.CalculateEnergyCostModifier(choice, context.LocationProperties);
         int pressureModifier = context.CurrentValues.Pressure >= 6 ? context.CurrentValues.Pressure - 5 : 0;
 
@@ -197,12 +198,12 @@
         EncounterStateValues projectedState = ProjectNewState(
             context.CurrentValues,
             new List<BaseValueChange>(),
-            choice.ValueModifications.Where(m => m is EncounterValueModification && m.Source == "No Physical Choice" || m.Source == "Repeated Choice Type" || m.Source == "Repeated Choice Approach").ToList()
+            choice.ValueModifications.ToList()
         );
 
         if (projectedState.Momentum > 0)
         {
-            energyReduction += Math.Min(projectedState.Momentum, 3);
+            energyReduction += Math.Min(projectedState.Momentum / 3, 3);
         }
 
         // Ensure energy cost doesn't go below 0
@@ -345,7 +346,6 @@
         return rewards;
     }
 
-
     private void AddOutcomeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {
         /*
@@ -368,101 +368,98 @@
         */
     }
 
+    //private void AddPhysicalOutcomeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterStateValues values)
+    //{
+    //    switch (choice.Approach)
+    //    {
+    //        case ChoiceApproaches.Aggressive:
+    //            // Generate outcome from momentum at 2:1 if pressure is low
+    //            if (values.Momentum > 0 && values.Pressure < 3)
+    //            {
+    //                int conversionAmount = values.Momentum / 2;
+    //                modifications.Add(new EncounterValueModification(
+    //                    ValueTypes.Outcome,
+    //                    conversionAmount,
+    //                    $"From Momentum {values.Momentum} because Pressure is under 3"));
+    //            }
+    //            break;
+    //    }
+    //}
 
-    private void AddPhysicalOutcomeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterStateValues values)
-    {
-        switch (choice.Approach)
-        {
-            case ChoiceApproaches.Aggressive:
-                // Generate outcome from momentum at 2:1 if pressure is low
-                if (values.Momentum > 0 && values.Pressure < 3)
-                {
-                    int conversionAmount = values.Momentum / 2;
-                    modifications.Add(new EncounterValueModification(
-                        ValueTypes.Outcome,
-                        conversionAmount,
-                        $"From Momentum {values.Momentum} because Pressure is under 3"));
-                }
-                break;
-        }
-    }
+    //private void AddFocusOutcomeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterStateValues values)
+    //{
+    //    switch (choice.Approach)
+    //    {
+    //        case ChoiceApproaches.Aggressive:
+    //            // Generate outcome if insight exceeds pressure
+    //            if (values.Insight > values.Pressure)
+    //            {
+    //                modifications.Add(new EncounterValueModification(
+    //                    ValueTypes.Outcome,
+    //                    1,
+    //                    $"From Insight {values.Insight} because Insight exceeds Pressure")
+    //                );
+    //            }
+    //            break;
 
-    private void AddFocusOutcomeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterStateValues values)
-    {
-        switch (choice.Approach)
-        {
-            case ChoiceApproaches.Aggressive:
-                // Generate outcome if insight exceeds pressure
-                if (values.Insight > values.Pressure)
-                {
-                    modifications.Add(new EncounterValueModification(
-                        ValueTypes.Outcome,
-                        1,
-                        $"From Insight {values.Insight} because Insight exceeds Pressure")
-                    );
-                }
-                break;
+    //        case ChoiceApproaches.Strategic:
+    //            // Convert insight at 2:1 ratio
+    //            if (values.Insight >= 2)
+    //            {
+    //                int conversionAmount = values.Insight / 2;
+    //                modifications.Add(new EncounterValueModification(
+    //                    ValueTypes.Outcome,
+    //                    conversionAmount,
+    //                    $"From Insight {values.Insight} As Conversion"));
+    //            }
+    //            break;
+    //    }
+    //}
 
-            case ChoiceApproaches.Strategic:
-                // Convert insight at 2:1 ratio
-                if (values.Insight >= 2)
-                {
-                    int conversionAmount = values.Insight / 2;
-                    modifications.Add(new EncounterValueModification(
-                        ValueTypes.Outcome,
-                        conversionAmount,
-                        $"From Insight {values.Insight} As Conversion"));
-                }
-                break;
-        }
-    }
+    //private void AddSocialOutcomeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterStateValues values)
+    //{
+    //    switch (choice.Approach)
+    //    {
+    //        case ChoiceApproaches.Aggressive:
+    //            // Convert excess resonance to outcome
+    //            if (values.Resonance > values.Pressure)
+    //            {
+    //                int outcomeGain = values.Resonance - values.Pressure;
+    //                modifications.Add(new EncounterValueModification(
+    //                    ValueTypes.Outcome,
+    //                    outcomeGain,
+    //                    "Excess resonance to outcome"));
+    //                modifications.Add(new EncounterValueModification(
+    //                    ValueTypes.Resonance,
+    //                    -outcomeGain,
+    //                    $"From Excess Resonance {outcomeGain}"));
+    //            }
+    //            break;
 
+    //        case ChoiceApproaches.Careful:
+    //            // Convert resonance at 3:1 ratio
+    //            if (values.Resonance >= 3)
+    //            {
+    //                int conversionAmount = values.Resonance / 3;
+    //                modifications.Add(new EncounterValueModification(
+    //                    ValueTypes.Outcome,
+    //                    conversionAmount,
+    //                    $"From Resonance {values.Resonance} because Resonance exceeds 3"));
+    //            }
+    //            break;
 
-    private void AddSocialOutcomeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterStateValues values)
-    {
-        switch (choice.Approach)
-        {
-            case ChoiceApproaches.Aggressive:
-                // Convert excess resonance to outcome
-                if (values.Resonance > values.Pressure)
-                {
-                    int outcomeGain = values.Resonance - values.Pressure;
-                    modifications.Add(new EncounterValueModification(
-                        ValueTypes.Outcome,
-                        outcomeGain,
-                        "Excess resonance to outcome"));
-                    modifications.Add(new EncounterValueModification(
-                        ValueTypes.Resonance,
-                        -outcomeGain,
-                        $"From Excess Resonance {outcomeGain}"));
-                }
-                break;
-
-            case ChoiceApproaches.Careful:
-                // Convert resonance at 3:1 ratio
-                if (values.Resonance >= 3)
-                {
-                    int conversionAmount = values.Resonance / 3;
-                    modifications.Add(new EncounterValueModification(
-                        ValueTypes.Outcome,
-                        conversionAmount,
-                        $"From Resonance {values.Resonance} because Resonance exceeds 3"));
-                }
-                break;
-
-            case ChoiceApproaches.Strategic:
-                // Convert resonance at 2:1 and reduce pressure
-                if (values.Resonance > 0)
-                {
-                    modifications.Add(new EncounterValueModification(
-                        ValueTypes.Pressure,
-                        -2,
-                        "From Resonance"));
-                }
-                break;
-        }
-    }
-
+    //        case ChoiceApproaches.Strategic:
+    //            // Convert resonance at 2:1 and reduce pressure
+    //            if (values.Resonance > 0)
+    //            {
+    //                modifications.Add(new EncounterValueModification(
+    //                    ValueTypes.Pressure,
+    //                    -2,
+    //                    "From Resonance"));
+    //            }
+    //            break;
+    //    }
+    //}
 
     private void AddDecayModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {

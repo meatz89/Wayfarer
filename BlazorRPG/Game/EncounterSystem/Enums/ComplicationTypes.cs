@@ -1,6 +1,4 @@
-﻿
-
-public enum ComplicationTypes
+﻿public enum ComplicationTypes
 {
     MinorInjury,
     StressIncrease,

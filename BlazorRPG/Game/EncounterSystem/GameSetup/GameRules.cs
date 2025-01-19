@@ -43,7 +43,6 @@
             return new List<ChoiceApproaches>
         {
             ChoiceApproaches.Careful,
-            ChoiceApproaches.Desperate
         };
         }
 
@@ -55,7 +54,6 @@
             ChoiceApproaches.Strategic,
             ChoiceApproaches.Careful,
             ChoiceApproaches.Aggressive,
-            ChoiceApproaches.Desperate
         },
 
             ChoiceArchetypes.Focus => new List<ChoiceApproaches>
@@ -63,7 +61,6 @@
             ChoiceApproaches.Strategic,
             ChoiceApproaches.Careful,
             ChoiceApproaches.Aggressive,
-            ChoiceApproaches.Desperate
         },
 
             ChoiceArchetypes.Social => new List<ChoiceApproaches>
@@ -71,7 +68,6 @@
             ChoiceApproaches.Strategic,
             ChoiceApproaches.Careful,
             ChoiceApproaches.Aggressive,
-            ChoiceApproaches.Desperate
         },
 
             _ => throw new ArgumentException("Invalid archetype")
@@ -102,4 +98,18 @@
             _ => throw new ArgumentException("Invalid EnergyType")
         };
     }
+
+    public static int GetBaseEnergyCost(ChoiceArchetypes archetype, ChoiceApproaches approach)
+    {
+        // Each approach has a base energy cost that reflects its intensity
+        return approach switch
+        {
+            ChoiceApproaches.Aggressive => 3, // High energy cost for aggressive actions
+            ChoiceApproaches.Careful => 2,    // Moderate cost for careful actions
+            ChoiceApproaches.Strategic => 2,   // Moderate cost for strategic actions
+            ChoiceApproaches.Desperate => 1,   // Low cost as a fallback option
+            _ => throw new ArgumentException("Invalid approach")
+        };
+    }
+
 }

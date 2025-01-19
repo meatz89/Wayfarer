@@ -1,5 +1,4 @@
-﻿
-public class ComplicationEffect
+﻿public class ComplicationEffect
 {
     public ComplicationTypes Type { get; }
     public string Description { get; }

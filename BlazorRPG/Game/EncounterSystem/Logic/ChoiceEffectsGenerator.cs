@@ -11,13 +11,32 @@
             changes.Add(new BaseValueChange(ValueTypes.Outcome, 1)); // Base progress
         }
 
+        if (archetype != ChoiceArchetypes.Physical)
+        {
+            changes.Add(new BaseValueChange(ValueTypes.Momentum, -1)); // Base progress
+        }
+
+        switch (archetype)
+        {
+            case ChoiceArchetypes.Physical:
+                changes.Add(new BaseValueChange(ValueTypes.Resonance, 1));
+                break;
+
+            case ChoiceArchetypes.Focus:
+                changes.Add(new BaseValueChange(ValueTypes.Momentum, 1));
+                break;
+
+            case ChoiceArchetypes.Social:
+                changes.Add(new BaseValueChange(ValueTypes.Insight, 1));
+                break;
+        }
+
         // Finally, add archetype-specific changes that represent mastery value gains
         AddArchetypeMasteryChanges(changes, archetype, approach);
 
         // Combine changes of the same ValueType
         return BaseValueChange.CombineBaseValueChanges(changes);
     }
-
 
     private void AddArchetypeMasteryChanges(List<BaseValueChange> changes, ChoiceArchetypes archetype, ChoiceApproaches approach)
     {
@@ -60,19 +79,6 @@
                 }
                 break;
         }
-    }
-
-    public int GenerateBaseEnergyCost(ChoiceArchetypes archetype, ChoiceApproaches approach)
-    {
-        // Each approach has a base energy cost that reflects its intensity
-        return approach switch
-        {
-            ChoiceApproaches.Aggressive => 3, // High energy cost for aggressive actions
-            ChoiceApproaches.Careful => 2,    // Moderate cost for careful actions
-            ChoiceApproaches.Strategic => 2,   // Moderate cost for strategic actions
-            ChoiceApproaches.Desperate => 1,   // Low cost as a fallback option
-            _ => throw new ArgumentException("Invalid approach")
-        };
     }
 
     public List<Outcome> CalculatePressureCosts(EncounterChoice choice, EncounterContext context)

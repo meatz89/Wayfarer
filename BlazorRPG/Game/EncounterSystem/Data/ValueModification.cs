@@ -18,6 +18,7 @@
     {
         return changes
             .GroupBy(c => c.ValueType)
+            .Where(g => g.Sum(c => c.Amount) != 0)
             .Select(g => new BaseValueChange(g.Key, g.Sum(c => c.Amount)))
             .ToList();
     }
