@@ -11,45 +11,13 @@
             changes.Add(new BaseValueChange(ValueTypes.Outcome, 1)); // Base progress
         }
 
-        // Then apply approach-specific base changes
-        AddApproachBaseChanges(changes, approach);
-
         // Finally, add archetype-specific changes that represent mastery value gains
         AddArchetypeMasteryChanges(changes, archetype, approach);
 
-        return changes;
+        // Combine changes of the same ValueType
+        return BaseValueChange.CombineBaseValueChanges(changes);
     }
 
-
-    private void AddApproachBaseChanges(List<BaseValueChange> changes, ChoiceApproaches approach)
-    {
-        // Each approach has a distinct effect pattern that creates its strategic identity
-        switch (approach)
-        {
-            case ChoiceApproaches.Aggressive:
-                // High risk, high reward
-                changes.Add(new BaseValueChange(ValueTypes.Outcome, 2)); // +2 additional outcome
-                changes.Add(new BaseValueChange(ValueTypes.Pressure, 2)); // But increases pressure
-                break;
-
-            case ChoiceApproaches.Careful:
-                // Safety focused - either reduces pressure OR makes small progress
-                // Note: We're implementing our refined careful approach that doesn't do both
-                changes.Add(new BaseValueChange(ValueTypes.Pressure, -1));
-                break;
-
-            case ChoiceApproaches.Strategic:
-                // Focused on building mastery values - no direct outcome changes
-                // Mastery value changes will be added by archetype
-                break;
-
-            case ChoiceApproaches.Desperate:
-                // Risky progress when needed
-                changes.Add(new BaseValueChange(ValueTypes.Outcome, 1)); // Additional outcome
-                changes.Add(new BaseValueChange(ValueTypes.Pressure, 2)); // But at high pressure cost
-                break;
-        }
-    }
 
     private void AddArchetypeMasteryChanges(List<BaseValueChange> changes, ChoiceArchetypes archetype, ChoiceApproaches approach)
     {

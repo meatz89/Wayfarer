@@ -105,7 +105,7 @@
                 compositionPattern = new CompositionPattern
                 {
                     PrimaryArchetype = ChoiceArchetypes.Social,
-                    SecondaryArchetype = ChoiceArchetypes.Focus,
+                    SecondaryArchetype = ChoiceArchetypes.Physical,
                     PrimaryCount = 2,
                     SecondaryCount = 1
                 };

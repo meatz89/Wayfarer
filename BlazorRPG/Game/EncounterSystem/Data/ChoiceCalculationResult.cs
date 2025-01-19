@@ -47,7 +47,7 @@
         // Add base values first
         foreach (BaseValueChange baseChange in BaseValueChanges)
         {
-            ChangeTypes changeType = ConvertValueTypeToChangeType(baseChange.ValueType);
+            ChangeTypes changeType = GameRules.ConvertValueTypeToChangeType(baseChange.ValueType);
             if (!combined.ContainsKey(changeType))
                 combined[changeType] = 0;
             combined[changeType] += baseChange.Amount;
@@ -59,11 +59,11 @@
             ChangeTypes changeType;
             if (modification is EncounterValueModification evm)
             {
-                changeType = ConvertValueTypeToChangeType(evm.ValueType);
+                changeType = GameRules.ConvertValueTypeToChangeType(evm.ValueType);
             }
             else if (modification is EnergyCostReduction em)
             {
-                changeType = ConvertEnergyTypeToChangeType(em.EnergyType);
+                changeType = GameRules.ConvertEnergyTypeToChangeType(em.EnergyType);
             }
             else
             {
@@ -76,7 +76,7 @@
         }
 
         // Subtract energy cost
-        ChangeTypes energyChangeType = ConvertEnergyTypeToChangeType(EnergyType);
+        ChangeTypes energyChangeType = GameRules.ConvertEnergyTypeToChangeType(EnergyType);
         if (!combined.ContainsKey(energyChangeType))
             combined[energyChangeType] = 0;
         combined[energyChangeType] -= EnergyCost;
@@ -84,28 +84,4 @@
         return combined;
     }
 
-    // Conversion methods (copied from EncounterChoice for consistency)
-    private ChangeTypes ConvertValueTypeToChangeType(ValueTypes valueType)
-    {
-        return valueType switch
-        {
-            ValueTypes.Outcome => ChangeTypes.Outcome,
-            ValueTypes.Momentum => ChangeTypes.Momentum,
-            ValueTypes.Insight => ChangeTypes.Insight,
-            ValueTypes.Resonance => ChangeTypes.Resonance,
-            ValueTypes.Pressure => ChangeTypes.Pressure,
-            _ => throw new ArgumentException("Invalid ValueType")
-        };
-    }
-
-    private ChangeTypes ConvertEnergyTypeToChangeType(EnergyTypes energyType)
-    {
-        return energyType switch
-        {
-            EnergyTypes.Physical => ChangeTypes.PhysicalEnergy,
-            EnergyTypes.Focus => ChangeTypes.FocusEnergy,
-            EnergyTypes.Social => ChangeTypes.SocialEnergy,
-            _ => throw new ArgumentException("Invalid EnergyType")
-        };
-    }
 }

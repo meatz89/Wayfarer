@@ -1,5 +1,4 @@
-﻿
-public class ChoiceSystem
+﻿public class ChoiceSystem
 {
     private readonly GameState gameState;
     private readonly List<ChoiceSetTemplate> choiceSetTemplates;

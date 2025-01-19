@@ -15,11 +15,11 @@
             .WithLighting(LightingTypes.Dim)
             .WithExposure(ExposureTypes.Indoor))
         .AddLocationSpot(spot => spot
-            .WithName("Common Room")
-            .ForActionType(BasicActionTypes.Mingle))
-        .AddLocationSpot(spot => spot
             .WithName("Bar Counter")
             .ForActionType(BasicActionTypes.Persuade))
+        .AddLocationSpot(spot => spot
+            .WithName("Common Room")
+            .ForActionType(BasicActionTypes.Mingle))
         .WithDifficultyLevel(1)
         .Build();
 

@@ -40,30 +40,146 @@
         List<EncounterChoice> choices = new();
         CompositionPattern pattern = template.CompositionPattern;
 
-        // Handle high pressure scenario first
+        // Handle extreme pressure scenario first
         if (values.Pressure >= 9)
         {
             return GenerateDesperateOnlyChoices(pattern.PrimaryArchetype);
         }
 
-        // Generate primary archetype choices (2 choices)
+        // Try to generate primary archetype choices (2 choices)
         for (int i = 0; i < 2; i++)
         {
-            ChoiceApproaches approach = SelectApproach(pattern.PrimaryArchetype, values, playerState);
-            choices.Add(CreateChoice(choices.Count, pattern.PrimaryArchetype, approach));
+            EncounterChoice choice = TryGenerateChoice(pattern.PrimaryArchetype, values, playerState);
+
+            if (choice == null)
+            {
+                // If we couldn't generate a regular choice, try a desperate fallback
+                if (!HasDesperateChoice(choices, pattern.PrimaryArchetype))
+                {
+                    choice = CreateChoice(choices.Count, pattern.PrimaryArchetype, ChoiceApproaches.Desperate);
+                }
+                else if (!HasDesperateChoice(choices, pattern.SecondaryArchetype))
+                {
+                    choice = CreateChoice(choices.Count, pattern.SecondaryArchetype, ChoiceApproaches.Desperate);
+                }
+                else if (!HasThirdArchetypeDesperateChoice(choices))
+                {
+                    ChoiceArchetypes thirdArchetype = GetMissingArchetype(choices);
+                    choice = CreateChoice(choices.Count, thirdArchetype, ChoiceApproaches.Desperate);
+                }
+            }
+
+            if (choice != null)
+            {
+                choices.Add(choice);
+            }
         }
 
-        // Generate secondary archetype choice (1 choice)
-        ChoiceApproaches secondaryApproach = SelectApproach(pattern.SecondaryArchetype, values, playerState);
-        choices.Add(CreateChoice(choices.Count, pattern.SecondaryArchetype, secondaryApproach));
-
-        // Add special choice if applicable (high mastery value)
-        if (ShouldAddSpecialChoice(values))
+        // Only try to generate secondary choice if we have less than 3 choices
+        if (choices.Count < 3)
         {
-            choices.Add(CreateSpecialChoice(choices.Count, template, values));
+            EncounterChoice secondaryChoice = TryGenerateChoice(pattern.SecondaryArchetype, values, playerState);
+
+            if (secondaryChoice == null)
+            {
+                // Apply the same fallback logic
+                if (!HasDesperateChoice(choices, pattern.PrimaryArchetype))
+                {
+                    secondaryChoice = CreateChoice(choices.Count, pattern.PrimaryArchetype, ChoiceApproaches.Desperate);
+                }
+                else if (!HasDesperateChoice(choices, pattern.SecondaryArchetype))
+                {
+                    secondaryChoice = CreateChoice(choices.Count, pattern.SecondaryArchetype, ChoiceApproaches.Desperate);
+                }
+                else if (!HasThirdArchetypeDesperateChoice(choices))
+                {
+                    ChoiceArchetypes thirdArchetype = GetMissingArchetype(choices);
+                    secondaryChoice = CreateChoice(choices.Count, thirdArchetype, ChoiceApproaches.Desperate);
+                }
+            }
+
+            if (secondaryChoice != null)
+            {
+                choices.Add(secondaryChoice);
+            }
+        }
+
+        // Add special choice if applicable and we don't already have too many choices
+        if (choices.Count < 4 && ShouldAddSpecialChoice(values))
+        {
+            EncounterChoice specialChoice = TryGenerateSpecialChoice(choices.Count, template, values);
+            if (specialChoice != null)
+            {
+                choices.Add(specialChoice);
+            }
         }
 
         return choices;
+    }
+
+    private EncounterChoice TryGenerateChoice(
+        ChoiceArchetypes archetype,
+        EncounterStateValues values,
+        PlayerState playerState)
+    {
+        // Get an approach according to our priority rules
+        ChoiceApproaches approach = SelectApproach(archetype, values, playerState);
+
+        // Check if this choice would be possible
+        if (!IsChoicePossible(archetype, approach, values, playerState))
+        {
+            return null;
+        }
+
+        return CreateChoice(0, archetype, approach);
+    }
+
+    private bool IsChoicePossible(
+        ChoiceArchetypes archetype,
+        ChoiceApproaches approach,
+        EncounterStateValues values,
+        PlayerState playerState)
+    {
+        // Check mastery value requirements
+        if (approach == ChoiceApproaches.Strategic)
+        {
+            switch (archetype)
+            {
+                case ChoiceArchetypes.Physical when values.Momentum < 3:
+                case ChoiceArchetypes.Focus when values.Insight < 3:
+                case ChoiceArchetypes.Social when values.Resonance < 3:
+                    return false;
+            }
+        }
+
+        // Add other requirement checks here (energy, skills, etc.)
+        // We can expand this as needed
+
+        return true;
+    }
+
+    private bool HasDesperateChoice(List<EncounterChoice> choices, ChoiceArchetypes archetype)
+    {
+        return choices.Any(c =>
+            c.Archetype == archetype &&
+            c.Approach == ChoiceApproaches.Desperate);
+    }
+
+    private bool HasThirdArchetypeDesperateChoice(List<EncounterChoice> choices)
+    {
+        ChoiceArchetypes thirdArchetype = GetMissingArchetype(choices);
+        return HasDesperateChoice(choices, thirdArchetype);
+    }
+
+    private ChoiceArchetypes GetMissingArchetype(List<EncounterChoice> choices)
+    {
+        // Get all archetypes present in the choices
+        HashSet<ChoiceArchetypes> presentArchetypes = new(
+            choices.Select(c => c.Archetype));
+
+        // Return the first archetype that isn't present
+        return Enum.GetValues<ChoiceArchetypes>()
+            .First(a => !presentArchetypes.Contains(a));
     }
 
     private ChoiceApproaches SelectApproach(
@@ -126,56 +242,12 @@
         EncounterStateValues values)
     {
         // Define archetype-specific priority orders
-        List<ChoiceApproaches> priorityOrder = GetPriorityOrder(archetype, values);
+        List<ChoiceApproaches> priorityOrder = GameRules.GetPriorityOrder(archetype, values);
 
         // Return the highest priority available approach
         return priorityOrder.First(approach => availableApproaches.Contains(approach));
     }
 
-    private List<ChoiceApproaches> GetPriorityOrder(
-        ChoiceArchetypes archetype,
-        EncounterStateValues values)
-    {
-        if (values.Pressure >= 7)
-        {
-            // High pressure priority order is the same for all archetypes
-            return new List<ChoiceApproaches>
-        {
-            ChoiceApproaches.Careful,
-            ChoiceApproaches.Desperate
-        };
-        }
-
-        // Normal pressure priority orders vary by archetype
-        return archetype switch
-        {
-            ChoiceArchetypes.Physical => new List<ChoiceApproaches>
-        {
-            ChoiceApproaches.Aggressive,
-            ChoiceApproaches.Careful,
-            ChoiceApproaches.Strategic,
-            ChoiceApproaches.Desperate
-        },
-
-            ChoiceArchetypes.Focus => new List<ChoiceApproaches>
-        {
-            ChoiceApproaches.Strategic,
-            ChoiceApproaches.Aggressive,
-            ChoiceApproaches.Careful,
-            ChoiceApproaches.Desperate
-        },
-
-            ChoiceArchetypes.Social => new List<ChoiceApproaches>
-        {
-            ChoiceApproaches.Careful,
-            ChoiceApproaches.Aggressive,
-            ChoiceApproaches.Strategic,
-            ChoiceApproaches.Desperate
-        },
-
-            _ => throw new ArgumentException("Invalid archetype")
-        };
-    }
 
     private List<EncounterChoice> GenerateDesperateOnlyChoices(ChoiceArchetypes primaryArchetype)
     {
@@ -207,16 +279,16 @@
         );
     }
 
-    private EncounterChoice CreateSpecialChoice(
+    private EncounterChoice TryGenerateSpecialChoice(
         int index,
         ChoiceSetTemplate template,
         EncounterStateValues values)
     {
         // Determine which mastery value enables this special choice
-        ChoiceArchetypes specialArchetype;
+        ChoiceArchetypes specialArchetype = ChoiceArchetypes.Focus;
         if (values.Insight >= 7) specialArchetype = ChoiceArchetypes.Focus;
         else if (values.Resonance >= 7) specialArchetype = ChoiceArchetypes.Social;
-        else specialArchetype = ChoiceArchetypes.Physical;
+        else if (values.Momentum >= 7) specialArchetype = ChoiceArchetypes.Physical;
 
         return CreateChoice(index, specialArchetype, ChoiceApproaches.Strategic);
     }

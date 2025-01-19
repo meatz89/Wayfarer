@@ -9,6 +9,8 @@ public partial class EncounterViewBase : ComponentBase
     [Inject] public GameState GameState { get; set; }
     [Inject] public GameManager GameManager { get; set; }
 
+    private const string BaseValueChangeLabel = "Base";
+
     public UserEncounterChoiceOption hoveredChoice;
     public bool showTooltip;
     public double mouseX;
@@ -180,7 +182,7 @@ public partial class EncounterViewBase : ComponentBase
         // Add base changes
         foreach (BaseValueChange change in calculationResult.BaseValueChanges)
         {
-            AddDetailedChange(detailedChanges, ConvertValueTypeToChangeType(change.ValueType), "Base", change.Amount);
+            AddDetailedChange(detailedChanges, ConvertValueTypeToChangeType(change.ValueType), BaseValueChangeLabel, change.Amount);
         }
 
         // Add modifications
@@ -198,7 +200,7 @@ public partial class EncounterViewBase : ComponentBase
 
         // Add Energy Cost as a negative modification
         if (calculationResult.EnergyCost > 0)
-            AddDetailedChange(detailedChanges, ConvertEnergyTypeToChangeType(calculationResult.EnergyType), "Base", -calculationResult.EnergyCost);
+            AddDetailedChange(detailedChanges, ConvertEnergyTypeToChangeType(calculationResult.EnergyType), BaseValueChangeLabel, -calculationResult.EnergyCost);
 
         // Sort the detailed changes
         detailedChanges = SortDetailedChanges(detailedChanges);
