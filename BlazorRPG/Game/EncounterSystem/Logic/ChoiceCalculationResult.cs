@@ -108,9 +108,4 @@
             _ => throw new ArgumentException("Invalid EnergyType")
         };
     }
-
-    internal List<DetailedChange> GetDetailedChanges()
-    {
-        throw new NotImplementedException();
-    }
 }

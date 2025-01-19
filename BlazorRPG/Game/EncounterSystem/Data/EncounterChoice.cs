@@ -55,17 +55,6 @@
             .ToList();
     }
 
-    // Get Detailed Changes from Calculation Result
-    public List<DetailedChange> GetDetailedChanges()
-    {
-        if (CalculationResult == null)
-        {
-            return new List<DetailedChange>();
-        }
-
-        return CalculationResult.GetDetailedChanges();
-    }
-
     public List<DetailedRequirement> GetDetailedRequirements(PlayerState playerState)
     {
         if (CalculationResult == null)
