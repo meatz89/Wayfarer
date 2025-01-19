@@ -20,9 +20,7 @@ public class GameContentProvider
     {
         locations = new List<Location>
         {
-            LocationContent.ForestRoad,
-            LocationContent.AncientCrossroads,
-            LocationContent.WanderersWelcome
+            LocationContent.WaysideInn,
         };
 
         characters = new List<Character>

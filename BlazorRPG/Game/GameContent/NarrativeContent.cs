@@ -14,7 +14,7 @@
             "yesterday's bread, others faded like memories of childhood songs. The stone leans slightly, as if listening " +
             "for the footsteps of approaching travelers, its lichen-spotted face holding secrets for those who know how to look."),
 
-        new LocationNarrative(LocationNames.WanderersWelcome,
+        new LocationNarrative(LocationNames.WaysideInn,
             "Haven's Rest rises before you like a half-remembered dream: a three-story building of weathered stone " +
             "and ancient timber that seems to have grown from the very earth. The Wanderer's Welcome is more than " +
             "just a tavern—it's the heart of Haven's Rest, its windows glowing with warm invitation. The scents of " +

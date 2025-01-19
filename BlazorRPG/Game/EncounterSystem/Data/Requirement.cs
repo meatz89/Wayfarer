@@ -25,6 +25,28 @@ public class MaxPressureRequirement : Requirement
     }
 }
 
+public class MomentumRequirement : Requirement
+{
+    public int requiredMomentum;
+
+    public MomentumRequirement(int momentum)
+    {
+        requiredMomentum = momentum;
+    }
+
+    public override bool IsSatisfied(PlayerState player)
+    {
+        Encounter encounter = player.CurrentEncounter;
+        return encounter != null && encounter.Context.CurrentValues.Momentum >= requiredMomentum;
+    }
+
+    public override string GetDescription()
+    {
+        return $"Requires Momentum level {requiredMomentum}";
+    }
+}
+
+
 public class InsightRequirement : Requirement
 {
     public int requiredInsight;
@@ -43,6 +65,28 @@ public class InsightRequirement : Requirement
     public override string GetDescription()
     {
         return $"Requires Insight level {requiredInsight}";
+    }
+}
+
+
+public class ResonanceRequirement : Requirement
+{
+    public int requiredResonance;
+
+    public ResonanceRequirement(int resonance)
+    {
+        requiredResonance = resonance;
+    }
+
+    public override bool IsSatisfied(PlayerState player)
+    {
+        Encounter encounter = player.CurrentEncounter;
+        return encounter != null && encounter.Context.CurrentValues.Resonance >= requiredResonance;
+    }
+
+    public override string GetDescription()
+    {
+        return $"Requires Resonance level {requiredResonance}";
     }
 }
 

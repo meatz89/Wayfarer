@@ -3,7 +3,7 @@
     public static GameState CreateNewGame()
     {
         GameState gameState = new GameState();
-        gameState.World.SetNewLocation(LocationContent.ForestRoad);
+        gameState.World.SetNewLocation(LocationContent.WaysideInn);
 
         GameRules gameRules = GameRules.StandardRuleset;
 
@@ -12,24 +12,24 @@
 
         playerInfo.MinHealth = gameRules.MinimumHealth;
         playerInfo.Health = gameRules.StartingHealth;
-        playerInfo.MaxHealth = 100;
+        playerInfo.MaxHealth = 20;
 
         playerInfo.MinConcentration = 0;
-        playerInfo.Concentration = 50;
-        playerInfo.MaxConcentration = 100;
+        playerInfo.Concentration = 10;
+        playerInfo.MaxConcentration = 20;
 
         playerInfo.MinReputation = 0;
-        playerInfo.Reputation = 50;
-        playerInfo.MaxReputation = 100;
+        playerInfo.Reputation = 10;
+        playerInfo.MaxReputation = 20;
 
         playerInfo.PhysicalEnergy = gameRules.StartingPhysicalEnergy;
-        playerInfo.MaxPhysicalEnergy = 50;
+        playerInfo.MaxPhysicalEnergy = 10;
 
         playerInfo.FocusEnergy = gameRules.StartingFocusEnergy;
-        playerInfo.MaxFocusEnergy = 50;
+        playerInfo.MaxFocusEnergy = 10;
 
         playerInfo.SocialEnergy = gameRules.StartingSocialEnergy;
-        playerInfo.MaxSocialEnergy = 50;
+        playerInfo.MaxSocialEnergy = 10;
 
         playerInfo.Inventory.AddResources(ResourceTypes.Food, 5);
 

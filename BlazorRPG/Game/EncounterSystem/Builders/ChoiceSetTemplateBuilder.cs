@@ -2,7 +2,7 @@
 {
     private string name;
     private BasicActionTypes actionType;
-    private List<CompositionPattern> compositionPatterns = new();
+    private CompositionPattern compositionPattern;
     private List<LocationPropertyCondition> availabilityConditions = new();
     private List<EncounterStateCondition> stateConditions = new();
 
@@ -15,15 +15,7 @@
     public ChoiceSetTemplateBuilder WithActionType(BasicActionTypes actionType)
     {
         this.actionType = actionType;
-        // We can automatically set default composition based on action type
         SetDefaultCompositionForActionType(actionType);
-        return this;
-    }
-
-    public ChoiceSetTemplateBuilder WithComposition(CompositionPattern composition)
-    {
-        compositionPatterns.Clear();  // Remove default composition
-        compositionPatterns.Add(composition);
         return this;
     }
 
@@ -70,12 +62,11 @@
     {
         return new ChoiceSetTemplate(
             name,
-            compositionPatterns,
+            compositionPattern,
             actionType,
             availabilityConditions,
             stateConditions);
     }
-
 
     private void SetDefaultCompositionForActionType(BasicActionTypes actionType)
     {
@@ -85,39 +76,39 @@
             case BasicActionTypes.Gather:
             case BasicActionTypes.Travel:
                 // Physical-focused composition
-                compositionPatterns.Add(new CompositionPattern
+                compositionPattern = new CompositionPattern
                 {
                     PrimaryArchetype = ChoiceArchetypes.Physical,
                     SecondaryArchetype = ChoiceArchetypes.Focus,
                     PrimaryCount = 2,
                     SecondaryCount = 1
-                });
+                };
                 break;
 
             case BasicActionTypes.Investigate:
             case BasicActionTypes.Study:
             case BasicActionTypes.Reflect:
                 // Focus-focused composition
-                compositionPatterns.Add(new CompositionPattern
+                compositionPattern = new CompositionPattern
                 {
                     PrimaryArchetype = ChoiceArchetypes.Focus,
                     SecondaryArchetype = ChoiceArchetypes.Social,
                     PrimaryCount = 2,
                     SecondaryCount = 1
-                });
+                };
                 break;
 
             case BasicActionTypes.Mingle:
             case BasicActionTypes.Persuade:
             case BasicActionTypes.Perform:
                 // Social-focused composition
-                compositionPatterns.Add(new CompositionPattern
+                compositionPattern = new CompositionPattern
                 {
                     PrimaryArchetype = ChoiceArchetypes.Social,
                     SecondaryArchetype = ChoiceArchetypes.Focus,
                     PrimaryCount = 2,
                     SecondaryCount = 1
-                });
+                };
                 break;
         }
     }

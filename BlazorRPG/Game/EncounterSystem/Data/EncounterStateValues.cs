@@ -15,11 +15,11 @@ public class EncounterStateValues
     // Constructor for initial state
     public EncounterStateValues(int difficulty, int playerLevel)
     {
-        Outcome = 2 + (playerLevel - difficulty); // Base calculation
+        Outcome = 5 + (playerLevel - difficulty); // Base calculation
         Pressure = 2;
-        Momentum = 2;
-        Insight = 2;
-        Resonance = 2;
+        Momentum = 0;
+        Insight = 1;
+        Resonance = 4;
         LastChoiceType = null;
         LastChoiceApproach = null;
     }
