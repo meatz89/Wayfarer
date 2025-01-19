@@ -107,6 +107,79 @@
     private void AddStateModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {
         EncounterStateValues currentValues = context.CurrentValues;
+        //AddBonusToOutcome(modifications, currentValues);
+
+        // Add Pressure penalty to Outcome
+        if (currentValues.Pressure >= 7)
+        {
+            modifications.Add(new EncounterValueModification(
+                ValueTypes.Outcome,
+                -1,
+                "High Pressure Penalty"
+            ));
+        }
+
+        // Pressure affects energy costs
+        if (currentValues.Pressure > 5)
+        {
+            int energyIncrease = currentValues.Pressure - 5;
+            modifications.Add(new EnergyCostReduction(
+                choice.EnergyType,
+                -energyIncrease, // Negative because it's increasing cost
+                $"High Pressure (+{energyIncrease} Energy Cost)"
+            ));
+        }
+        
+        AddEnergyEffects(modifications, choice, currentValues);
+    }
+
+    private static void AddEnergyEffects(List<ValueModification> modifications, EncounterChoice choice, EncounterStateValues currentValues)
+    {
+        // Momentum affects physical energy costs
+        if (choice.EnergyType == EnergyTypes.Physical)
+        {
+            int momentumEffect = currentValues.Momentum - 5; // Positive or negative based on base 5
+            if (momentumEffect != 0)
+            {
+                modifications.Add(new EnergyCostReduction(
+                    EnergyTypes.Social,
+                    momentumEffect,
+                    $"From Momentum {(momentumEffect > 0 ? "Bonus" : "Penalty")}"
+                ));
+            }
+        }
+
+        //// Insight affects focus energy costs
+        //if (choice.EnergyType == EnergyTypes.Focus)
+        //{
+        //    int insightEffect = currentValues.Insight - 5; // Positive or negative based on base 5
+        //    if (insightEffect != 0)
+        //    {
+        //        modifications.Add(new EnergyCostReduction(
+        //            EnergyTypes.Social,
+        //            insightEffect,
+        //            $"From Insight {(insightEffect > 0 ? "Bonus" : "Penalty")}"
+        //        ));
+        //    }
+        //}
+
+        //// Resonance affects social energy costs
+        //if (choice.EnergyType == EnergyTypes.Social)
+        //{
+        //    int resonanceEffect = currentValues.Resonance - 5; // Positive or negative based on base 5
+        //    if (resonanceEffect != 0)
+        //    {
+        //        modifications.Add(new EnergyCostReduction(
+        //            EnergyTypes.Social,
+        //            resonanceEffect,
+        //            $"From Resonance {(resonanceEffect > 0 ? "Bonus" : "Penalty")}"
+        //        ));
+        //    }
+        //}
+    }
+
+    private static void AddBonusToOutcome(List<ValueModification> modifications, EncounterStateValues currentValues)
+    {
 
         // Add Insight/Resonance bonus to Outcome
         if (currentValues.Momentum >= 7)
@@ -137,77 +210,29 @@
                 $"High Resonance Bonus"
             ));
         }
-
-        // Add Pressure penalty to Outcome
-        if (currentValues.Pressure >= 7)
-        {
-            modifications.Add(new EncounterValueModification(
-                ValueTypes.Outcome,
-                -1,
-                "High Pressure Penalty"
-            ));
-        }
-
-        // Pressure affects energy costs
-        if (currentValues.Pressure > 5)
-        {
-            int energyIncrease = currentValues.Pressure - 5;
-            modifications.Add(new EnergyCostReduction(
-                choice.EnergyType,
-                -energyIncrease, // Negative because it's increasing cost
-                $"High Pressure (+{energyIncrease} Energy Cost)"
-            ));
-        }
-
-        // Insight reduces energy costs
-        if (currentValues.Insight > 0)
-        {
-            modifications.Add(new EnergyCostReduction(
-                choice.EnergyType,
-                1,  // One choice per set gets -1 cost
-                $"From Insight"
-            ));
-        }
-
-        // Resonance affects Social energy costs
-        if (choice.EnergyType == EnergyTypes.Social)
-        {
-            int resonanceEffect = currentValues.Resonance - 5; // Positive or negative based on base 5
-            if (resonanceEffect != 0)
-            {
-                modifications.Add(new EnergyCostReduction(
-                    EnergyTypes.Social,
-                    resonanceEffect,
-                    $"From Resonance {(resonanceEffect > 0 ? "Bonus" : "Penalty")}"
-                ));
-            }
-        }
     }
 
     private int CalculateEnergyCost(EncounterChoice choice, EncounterContext context, PlayerState player)
     {
         int baseEnergyCost = GameRules.GetBaseEnergyCost(choice.Archetype, choice.Approach);
 
+        EncounterStateValues currentValues = context.CurrentValues;
         int propertyModifier = locationPropertyCalculator.CalculateEnergyCostModifier(choice, context.LocationProperties);
-        int pressureModifier = context.CurrentValues.Pressure >= 6 ? context.CurrentValues.Pressure - 5 : 0;
+        int pressureModifier = currentValues.Pressure >= 6 ? currentValues.Pressure - 5 : 0;
 
         // Apply energy cost reductions from modifications, using projected momentum
         int energyReduction = 0;
 
-        // Project the state after applying decay modifications but before other modifications
-        EncounterStateValues projectedState = ProjectNewState(
-            context.CurrentValues,
-            new List<BaseValueChange>(),
-            choice.ValueModifications.ToList()
-        );
-
-        if (projectedState.Momentum > 0)
+        if (currentValues.Momentum > 0)
         {
-            energyReduction += Math.Min(projectedState.Momentum / 3, 3);
+            energyReduction += Math.Min(currentValues.Momentum / 3, 3);
         }
 
         // Ensure energy cost doesn't go below 0
-        return Math.Max(0, baseEnergyCost + propertyModifier + pressureModifier - energyReduction);
+        int calculatedCost = baseEnergyCost + propertyModifier + pressureModifier - energyReduction;
+        int actualCost = Math.Max(0, calculatedCost);
+
+        return actualCost;
     }
 
 
