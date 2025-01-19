@@ -16,21 +16,6 @@
             changes.Add(new BaseValueChange(ValueTypes.Momentum, -1)); // Base progress
         }
 
-        switch (archetype)
-        {
-            case ChoiceArchetypes.Physical:
-                changes.Add(new BaseValueChange(ValueTypes.Resonance, 1));
-                break;
-
-            case ChoiceArchetypes.Focus:
-                changes.Add(new BaseValueChange(ValueTypes.Momentum, 1));
-                break;
-
-            case ChoiceArchetypes.Social:
-                changes.Add(new BaseValueChange(ValueTypes.Insight, 1));
-                break;
-        }
-
         // Finally, add archetype-specific changes that represent mastery value gains
         AddArchetypeMasteryChanges(changes, archetype, approach);
 

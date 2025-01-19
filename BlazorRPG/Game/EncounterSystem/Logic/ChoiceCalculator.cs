@@ -68,8 +68,6 @@
 
         return modifications;
     }
-
-
     private void AddApproachModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {
         // Each approach has a distinct effect pattern that creates its strategic identity
@@ -81,17 +79,23 @@
                 $"From Aggressive Approach"));
                 modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 2,
                 $"From Aggressive Approach"));
-                break;
+                modifications.Add(new EncounterValueModification(ValueTypes.Insight, 1,
+                $"From Aggressive Approach"));
+            break;
 
             case ChoiceApproaches.Careful:
                 // Safety focused - reduces pressure
                 modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -1,
+                $"From Careful Approach"));
+                modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 1,
                 $"From Careful Approach"));
                 break;
 
             case ChoiceApproaches.Strategic:
                 // Focused on building mastery values - no direct outcome changes
                 // Mastery value changes will be added by archetype
+                modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 1,
+                $"From Strategic Approach"));
                 break;
 
             case ChoiceApproaches.Desperate:
@@ -103,7 +107,7 @@
                 break;
         }
     }
-
+    
     private void AddStateModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {
         EncounterStateValues currentValues = context.CurrentValues;
