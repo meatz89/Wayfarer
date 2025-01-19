@@ -16,54 +16,8 @@
             changes.Add(new BaseValueChange(ValueTypes.Momentum, -1)); // Base progress
         }
 
-        // Finally, add archetype-specific changes that represent mastery value gains
-        AddArchetypeMasteryChanges(changes, archetype, approach);
-
         // Combine changes of the same ValueType
         return BaseValueChange.CombineBaseValueChanges(changes);
-    }
-
-    private void AddArchetypeMasteryChanges(List<BaseValueChange> changes, ChoiceArchetypes archetype, ChoiceApproaches approach)
-    {
-        // Each archetype builds its specific mastery value
-        switch (archetype)
-        {
-            case ChoiceArchetypes.Physical:
-                // Physical actions build Momentum
-                if (approach == ChoiceApproaches.Strategic)
-                {
-                    changes.Add(new BaseValueChange(ValueTypes.Momentum, 2));
-                }
-                else if (approach == ChoiceApproaches.Aggressive)
-                {
-                    changes.Add(new BaseValueChange(ValueTypes.Momentum, 1));
-                }
-                break;
-
-            case ChoiceArchetypes.Focus:
-                // Focus actions build Insight
-                if (approach == ChoiceApproaches.Strategic)
-                {
-                    changes.Add(new BaseValueChange(ValueTypes.Insight, 2));
-                }
-                else if (approach != ChoiceApproaches.Desperate)
-                {
-                    changes.Add(new BaseValueChange(ValueTypes.Insight, 1));
-                }
-                break;
-
-            case ChoiceArchetypes.Social:
-                // Social actions build Resonance
-                if (approach == ChoiceApproaches.Strategic)
-                {
-                    changes.Add(new BaseValueChange(ValueTypes.Resonance, 2));
-                }
-                else if (approach == ChoiceApproaches.Careful)
-                {
-                    changes.Add(new BaseValueChange(ValueTypes.Resonance, 1));
-                }
-                break;
-        }
     }
 
     public List<Outcome> CalculatePressureCosts(EncounterChoice choice, EncounterContext context)

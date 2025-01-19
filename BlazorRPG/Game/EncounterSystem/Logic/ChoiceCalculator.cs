@@ -55,6 +55,7 @@
     {
         List<ValueModification> modifications = new();
 
+        AddArchetypeModifications(modifications, choice, context);
         AddApproachModifications(modifications, choice, context);
 
         // First handle value decay - this affects what resources we have available
@@ -68,6 +69,58 @@
 
         return modifications;
     }
+
+    private void AddArchetypeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
+    {
+        // Each archetype builds its specific mastery value
+        ChoiceApproaches approach = choice.Approach;
+
+        switch (choice.Archetype)
+        {
+            case ChoiceArchetypes.Physical:
+                // Physical actions build Momentum
+                if (approach == ChoiceApproaches.Strategic)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 2,
+                        $"From Physical Strategic"));
+                }
+                else if (approach == ChoiceApproaches.Aggressive)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 1,
+                        $"From Physical Aggressive"));
+                }
+                break;
+
+            case ChoiceArchetypes.Focus:
+                // Focus actions build Insight
+                if (approach == ChoiceApproaches.Strategic)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Insight, 2,
+                        $"From Focus Strategic"));
+                }
+                else if (approach != ChoiceApproaches.Desperate)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Insight, 1,
+                        $"From Focus Desperate"));
+                }
+                break;
+
+            case ChoiceArchetypes.Social:
+                // Social actions build Resonance
+                if (approach == ChoiceApproaches.Strategic)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 2,
+                        $"From Social Strategic"));
+                }
+                else if (approach == ChoiceApproaches.Careful)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 1,
+                        $"From Social Careful"));
+                }
+                break;
+        }
+    }
+
     private void AddApproachModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {
         // Each approach has a distinct effect pattern that creates its strategic identity
@@ -76,32 +129,26 @@
             case ChoiceApproaches.Aggressive:
                 // High risk, high reward
                 modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 2,
-                $"From Aggressive Approach"));
+                    $"From Aggressive Approach"));
                 modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 2,
-                $"From Aggressive Approach"));
-                modifications.Add(new EncounterValueModification(ValueTypes.Insight, 1,
-                $"From Aggressive Approach"));
+                    $"From Aggressive Approach"));
             break;
 
             case ChoiceApproaches.Careful:
                 // Safety focused - reduces pressure
                 modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -1,
-                $"From Careful Approach"));
-                modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 1,
-                $"From Careful Approach"));
+                    $"From Careful Approach"));
                 break;
 
             case ChoiceApproaches.Strategic:
                 // Focused on building mastery values - no direct outcome changes
                 // Mastery value changes will be added by archetype
-                modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 1,
-                $"From Strategic Approach"));
                 break;
 
             case ChoiceApproaches.Desperate:
                 // Risky progress when needed
                 modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 1,
-                $"From Desperate Approach"));
+                    $"From Desperate Approach"));
                 modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 2,
                 $"From Desperate Approach"));
                 break;
@@ -182,39 +229,39 @@
         //}
     }
 
-    private static void AddBonusToOutcome(List<ValueModification> modifications, EncounterStateValues currentValues)
-    {
+    //private static void AddBonusToOutcome(List<ValueModification> modifications, EncounterStateValues currentValues)
+    //{
 
-        // Add Insight/Resonance bonus to Outcome
-        if (currentValues.Momentum >= 7)
-        {
-            modifications.Add(new EncounterValueModification(
-                ValueTypes.Outcome,
-                1,
-                $"High Momentum Bonus"
-            ));
-        }
+    //    // Add Insight/Resonance bonus to Outcome
+    //    if (currentValues.Momentum >= 7)
+    //    {
+    //        modifications.Add(new EncounterValueModification(
+    //            ValueTypes.Outcome,
+    //            1,
+    //            $"High Momentum Bonus"
+    //        ));
+    //    }
 
-        // Add Insight/Resonance bonus to Outcome
-        if (currentValues.Insight >= 7)
-        {
-            modifications.Add(new EncounterValueModification(
-                ValueTypes.Outcome,
-                1,
-                $"High Insight Bonus"
-            ));
-        }
+    //    // Add Insight/Resonance bonus to Outcome
+    //    if (currentValues.Insight >= 7)
+    //    {
+    //        modifications.Add(new EncounterValueModification(
+    //            ValueTypes.Outcome,
+    //            1,
+    //            $"High Insight Bonus"
+    //        ));
+    //    }
 
-        // Add Pressure penalty to Outcome
-        if (currentValues.Resonance >= 7)
-        {
-            modifications.Add(new EncounterValueModification(
-                ValueTypes.Outcome,
-                1,
-                $"High Resonance Bonus"
-            ));
-        }
-    }
+    //    // Add Pressure penalty to Outcome
+    //    if (currentValues.Resonance >= 7)
+    //    {
+    //        modifications.Add(new EncounterValueModification(
+    //            ValueTypes.Outcome,
+    //            1,
+    //            $"High Resonance Bonus"
+    //        ));
+    //    }
+    //}
 
     private int CalculateEnergyCost(EncounterChoice choice, EncounterContext context, PlayerState player)
     {
@@ -238,7 +285,6 @@
 
         return actualCost;
     }
-
 
     private EncounterStateValues ProjectNewState(
         EncounterStateValues currentValues,

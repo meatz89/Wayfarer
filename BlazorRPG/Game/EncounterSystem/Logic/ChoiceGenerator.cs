@@ -33,9 +33,9 @@
     }
 
     private List<EncounterChoice> GenerateBaseChoices(
-    ChoiceSetTemplate template,
-    EncounterStateValues values,
-    PlayerState playerState)
+        ChoiceSetTemplate template,
+        EncounterStateValues values,
+        PlayerState playerState)
     {
         List<EncounterChoice> choices = new();
         CompositionPattern pattern = template.CompositionPattern;
