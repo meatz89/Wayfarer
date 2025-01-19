@@ -221,6 +221,7 @@ public class GameManager
         List<LocationPropertyChoiceEffect> effects = LocationSystem.GetLocationEffects(location.LocationName);
 
         // Create initial context with our new value system
+        int playerLevel = playerState.Level;
         EncounterContext context = new EncounterContext(
             action,
             location.LocationType,
@@ -229,7 +230,8 @@ public class GameManager
             location.LocationProperties,
             playerState,
             location.DifficultyLevel,
-            effects
+            effects,
+            playerLevel
         );
 
         return EncounterSystem.GenerateEncounter(context);

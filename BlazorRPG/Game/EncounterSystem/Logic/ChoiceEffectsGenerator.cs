@@ -1,87 +1,27 @@
 ﻿public class ChoiceEffectsGenerator
 {
-    private void AddPhysicalArchetypeChanges(List<BaseValueChange> changes, ChoiceApproaches approach)
+    public List<Outcome> CalculatePressureCosts(EncounterChoice choice, EncounterContext context)
     {
-        switch (approach)
+        List<Outcome> costs = new();
+
+        // Add pressure-based complications at high pressure
+        if (context.CurrentValues.Pressure >= 7)
         {
-            case ChoiceApproaches.Direct:
-                // High risk, immediate conversion
-                changes.Add(new BaseValueChange(ValueTypes.Momentum, 2));
-                changes.Add(new BaseValueChange(ValueTypes.Pressure, 3));
-                break;
-
-            case ChoiceApproaches.Pragmatic:
-                // Safe momentum building
-                changes.Add(new BaseValueChange(ValueTypes.Momentum, 2));
-                break;
-
-            case ChoiceApproaches.Tactical:
-                // Pressure management through momentum spending
-                changes.Add(new BaseValueChange(ValueTypes.Momentum, 1));
-                changes.Add(new BaseValueChange(ValueTypes.Pressure, -2));
-                break;
-
-            case ChoiceApproaches.Improvised:
-                // Small gain with conditional conversion
-                changes.Add(new BaseValueChange(ValueTypes.Momentum, 1));
-                break;
+            switch (choice.Archetype)
+            {
+                case ChoiceArchetypes.Physical:
+                    costs.Add(new HealthOutcome(-1));
+                    break;
+                case ChoiceArchetypes.Focus:
+                    costs.Add(new ConcentrationOutcome(-1));
+                    break;
+                case ChoiceArchetypes.Social:
+                    costs.Add(new ReputationOutcome(-1));
+                    break;
+            }
         }
-    }
 
-    private void AddFocusArchetypeChanges(List<BaseValueChange> changes, ChoiceApproaches approach)
-    {
-        switch (approach)
-        {
-            case ChoiceApproaches.Direct:
-                // Understanding breakthrough
-                changes.Add(new BaseValueChange(ValueTypes.Insight, 2));
-                changes.Add(new BaseValueChange(ValueTypes.Pressure, 2));
-                break;
-
-            case ChoiceApproaches.Pragmatic:
-                // Careful study
-                changes.Add(new BaseValueChange(ValueTypes.Insight, 2));
-                break;
-
-            case ChoiceApproaches.Tactical:
-                // Knowledge application
-                // Insight conversion happens in execution
-                changes.Add(new BaseValueChange(ValueTypes.Insight, 1));
-                changes.Add(new BaseValueChange(ValueTypes.Pressure, -1));
-                break;
-
-            case ChoiceApproaches.Improvised:
-                // Basic observation
-                changes.Add(new BaseValueChange(ValueTypes.Insight, 1));
-                break;
-        }
-    }
-
-    private void AddSocialArchetypeChanges(List<BaseValueChange> changes, ChoiceApproaches approach)
-    {
-        switch (approach)
-        {
-            case ChoiceApproaches.Direct:
-                // Social leverage
-                changes.Add(new BaseValueChange(ValueTypes.Resonance, 2));
-                changes.Add(new BaseValueChange(ValueTypes.Pressure, 2));
-                break;
-
-            case ChoiceApproaches.Pragmatic:
-                // Relationship building
-                changes.Add(new BaseValueChange(ValueTypes.Resonance, 2));
-                break;
-
-            case ChoiceApproaches.Tactical:
-                changes.Add(new BaseValueChange(ValueTypes.Resonance, 1));
-                changes.Add(new BaseValueChange(ValueTypes.Pressure, -2));
-                break;
-
-            case ChoiceApproaches.Improvised:
-                // Basic interaction
-                changes.Add(new BaseValueChange(ValueTypes.Pressure, -1));
-                break;
-        }
+        return costs;
     }
 
     public List<BaseValueChange> GenerateBaseValueChanges(ChoiceArchetypes archetype, ChoiceApproaches approach)
@@ -104,6 +44,89 @@
 
         return changes;
     }
+
+    private void AddPhysicalArchetypeChanges(List<BaseValueChange> changes, ChoiceApproaches approach)
+    {
+        // Add base Outcome
+        changes.Add(new BaseValueChange(ValueTypes.Outcome, 1)); // Base progress
+
+        // Add approach-specific modifiers
+        switch (approach)
+        {
+            case ChoiceApproaches.Aggressive:
+                changes.Add(new BaseValueChange(ValueTypes.Outcome, 2));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, 2));
+                break;
+            case ChoiceApproaches.Careful:
+                changes.Add(new BaseValueChange(ValueTypes.Outcome, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, -1));
+                break;
+            case ChoiceApproaches.Strategic:
+                // No additional Outcome
+                break;
+            case ChoiceApproaches.Desperate:
+                changes.Add(new BaseValueChange(ValueTypes.Outcome, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, 2));
+                break;
+        }
+    }
+
+    private void AddFocusArchetypeChanges(List<BaseValueChange> changes, ChoiceApproaches approach)
+    {
+        switch (approach)
+        {
+            case ChoiceApproaches.Aggressive:
+                // Understanding breakthrough
+                changes.Add(new BaseValueChange(ValueTypes.Insight, 2));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, 2));
+                break;
+
+            case ChoiceApproaches.Careful:
+                // Careful study
+                changes.Add(new BaseValueChange(ValueTypes.Insight, 2));
+                break;
+
+            case ChoiceApproaches.Strategic:
+                // Knowledge application
+                // Insight conversion happens in execution
+                changes.Add(new BaseValueChange(ValueTypes.Insight, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, -1));
+                break;
+
+            case ChoiceApproaches.Desperate:
+                // Basic observation
+                changes.Add(new BaseValueChange(ValueTypes.Insight, 1));
+                break;
+        }
+    }
+
+    private void AddSocialArchetypeChanges(List<BaseValueChange> changes, ChoiceApproaches approach)
+    {
+        switch (approach)
+        {
+            case ChoiceApproaches.Aggressive:
+                // Social leverage
+                changes.Add(new BaseValueChange(ValueTypes.Resonance, 2));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, 2));
+                break;
+
+            case ChoiceApproaches.Careful:
+                // Relationship building
+                changes.Add(new BaseValueChange(ValueTypes.Resonance, 2));
+                break;
+
+            case ChoiceApproaches.Strategic:
+                changes.Add(new BaseValueChange(ValueTypes.Resonance, 1));
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, -2));
+                break;
+
+            case ChoiceApproaches.Desperate:
+                // Basic interaction
+                changes.Add(new BaseValueChange(ValueTypes.Pressure, -1));
+                break;
+        }
+    }
+
 
     public List<Requirement> GenerateSpecialRequirements(ChoiceArchetypes archetype, ChoiceApproaches approach)
     {
@@ -145,10 +168,10 @@
     {
         return approach switch
         {
-            ChoiceApproaches.Direct => 3,
-            ChoiceApproaches.Pragmatic => 2,
-            ChoiceApproaches.Tactical => 1,
-            ChoiceApproaches.Improvised => 0,
+            ChoiceApproaches.Aggressive => 3,
+            ChoiceApproaches.Careful => 2,
+            ChoiceApproaches.Strategic => 1,
+            ChoiceApproaches.Desperate => 0,
             _ => throw new ArgumentException("Invalid approach")
         };
     }
@@ -216,4 +239,5 @@
 
         return rewards;
     }
+
 }

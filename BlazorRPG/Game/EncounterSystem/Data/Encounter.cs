@@ -50,6 +50,6 @@
                 Context.CurrentValues.Resonance += change;
                 break;
         }
-        Context.CurrentValues.Clamp();
+        Context.CurrentValues.ClampValues();
     }
 }

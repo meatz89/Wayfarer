@@ -1,4 +1,5 @@
-﻿public class ChoiceExecutor
+﻿
+public class ChoiceExecutor
 {
     private readonly GameState gameState;
 
@@ -15,6 +16,12 @@
 
         // Apply energy cost or alternative cost
         ApplyEnergyCost(choice, result);
+        
+        // Apply high pressure complications if needed
+        if (gameState.Actions.CurrentEncounter.Context.CurrentValues.Pressure >= 7)
+        {
+            ApplyComplications(choice);
+        }
 
         // Apply costs
         foreach (Outcome cost in result.Costs)
@@ -89,4 +96,42 @@
             }
         }
     }
+
+    private void ApplyComplications(EncounterChoice choice)
+    {
+        ComplicationEffect complication = GetComplicationForChoice(choice);
+        if (complication != null)
+        {
+            complication.Consequence.Apply(gameState.Player);
+        }
+    }
+
+    private ComplicationEffect GetComplicationForChoice(EncounterChoice choice)
+    {
+        return null;
+    }
+}
+
+public class ComplicationEffect
+{
+    public ComplicationTypes Type { get; }
+    public string Description { get; }
+    public Outcome Consequence { get; }
+
+    public ComplicationEffect(ComplicationTypes type, string description, Outcome consequence)
+    {
+        Type = type;
+        Description = description;
+        Consequence = consequence;
+    }
+}
+
+public enum ComplicationTypes
+{
+    MinorInjury,
+    StressIncrease,
+    ReputationLoss,
+    EquipmentDamage,
+    ResourceLoss,
+    TimeDelay
 }

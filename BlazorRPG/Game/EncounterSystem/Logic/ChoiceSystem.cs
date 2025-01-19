@@ -3,7 +3,7 @@ public class ChoiceSystem
 {
     private readonly GameState gameState;
     private readonly List<ChoiceSetTemplate> choiceSetTemplates;
-    private ChoiceSetGenerator choiceSetGenerator;
+    private ChoiceGenerator choiceSetGenerator;
     private readonly ChoiceSetSelector choiceSetSelector;
 
     public ChoiceSystem(
@@ -13,7 +13,7 @@ public class ChoiceSystem
         this.gameState = gameState;
         this.choiceSetTemplates = contentProvider.GetChoiceSetTemplates();
         this.choiceSetSelector = new ChoiceSetSelector(gameState);
-        this.choiceSetGenerator = new ChoiceSetGenerator(gameState);
+        this.choiceSetGenerator = new ChoiceGenerator(gameState);
     }
 
     public ChoiceSet GenerateChoices(

@@ -20,7 +20,9 @@
         LocationProperties locationProperties,
         PlayerState playerState,
         int locationDifficulty,
-        List<LocationPropertyChoiceEffect> locationPropertyChoiceEffects)
+        List<LocationPropertyChoiceEffect> locationPropertyChoiceEffects,
+        int playerLevel
+        )
     {
         ActionType = actionType;
         LocationType = locationType;
@@ -32,13 +34,7 @@
         LocationPropertyChoiceEffects = locationPropertyChoiceEffects;
 
         // Initialize encounter values
-        CurrentValues = new EncounterStateValues(
-            outcome: 0 + (playerState.Level - locationDifficulty),
-            momentum: 0,
-            insight: 0,
-            resonance: 0,
-            pressure: 0);
-
+        CurrentValues = new EncounterStateValues(locationDifficulty, playerLevel);
         StageNumber = 0;
     }
 }

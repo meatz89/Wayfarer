@@ -55,7 +55,7 @@
     {
         switch (choice.Approach)
         {
-            case ChoiceApproaches.Direct:
+            case ChoiceApproaches.Aggressive:
                 // Generate outcome from momentum at 2:1 if pressure is low
                 if (values.Momentum > 0 && values.Pressure < 3)
                 {
@@ -73,7 +73,7 @@
     {
         switch (choice.Approach)
         {
-            case ChoiceApproaches.Direct:
+            case ChoiceApproaches.Aggressive:
                 // Generate outcome if insight exceeds pressure
                 if (values.Insight > values.Pressure)
                 {
@@ -85,7 +85,7 @@
                 }
                 break;
 
-            case ChoiceApproaches.Tactical:
+            case ChoiceApproaches.Strategic:
                 // Convert insight at 2:1 ratio
                 if (values.Insight >= 2)
                 {
@@ -104,7 +104,7 @@
     {
         switch (choice.Approach)
         {
-            case ChoiceApproaches.Direct:
+            case ChoiceApproaches.Aggressive:
                 // Convert excess resonance to outcome
                 if (values.Resonance > values.Pressure)
                 {
@@ -120,7 +120,7 @@
                 }
                 break;
 
-            case ChoiceApproaches.Pragmatic:
+            case ChoiceApproaches.Careful:
                 // Convert resonance at 3:1 ratio
                 if (values.Resonance >= 3)
                 {
@@ -132,7 +132,7 @@
                 }
                 break;
 
-            case ChoiceApproaches.Tactical:
+            case ChoiceApproaches.Strategic:
                 // Convert resonance at 2:1 and reduce pressure
                 if (values.Resonance > 0)
                 {
@@ -172,41 +172,59 @@
     {
         EncounterStateValues currentValues = context.CurrentValues;
 
-        // Momentum reduces energy costs based on current state, only if energy cost is > 0
-        if (currentValues.Momentum > 0 && choice.EnergyCost > 0)
+        // Add Insight/Resonance bonus to Outcome
+        if (currentValues.Insight >= 7 || currentValues.Resonance >= 7)
         {
-            int reductionAmount = Math.Min(currentValues.Momentum, Math.Min(3, choice.EnergyCost)); // Ensure reduction doesn't exceed cost or 3
-
-            modifications.Add(new EnergyCostReduction(
-                choice.EnergyType,
-                reductionAmount,
-                $"From Momentum {currentValues.Momentum}"
+            modifications.Add(new EncounterValueModification(
+                ValueTypes.Outcome,
+                1,
+                $"High {(currentValues.Insight >= 7 ? "Insight" : "Resonance")} Bonus"
             ));
         }
 
-        // Insight amplifies value gains based on current state
-        if (currentValues.Insight >= 2)
-        {
-            foreach (BaseValueChange baseChange in choice.BaseEncounterValueChanges)
-            {
-                if (baseChange.Amount > 0 && baseChange.ValueType != ValueTypes.Pressure)
-                {
-                    modifications.Add(new EncounterValueModification(
-                        baseChange.ValueType,
-                        currentValues.Insight / 2,
-                        $"From Insight {currentValues.Insight}"));
-                }
-            }
-        }
-
-        // Resonance reduces pressure gain based on current state
-        if (currentValues.Resonance > 0 &&
-            choice.BaseEncounterValueChanges.Any(x => x.ValueType == ValueTypes.Pressure))
+        // Add Pressure penalty to Outcome
+        if (currentValues.Pressure >= 7)
         {
             modifications.Add(new EncounterValueModification(
-                ValueTypes.Pressure,
-                -Math.Min(currentValues.Resonance, 3),
-                $"From Resonance {currentValues.Resonance}"));
+                ValueTypes.Outcome,
+                -1,
+                "High Pressure Penalty"
+            ));
+        }
+
+        // Pressure affects energy costs
+        if (currentValues.Pressure > 5)
+        {
+            int energyIncrease = currentValues.Pressure - 5;
+            modifications.Add(new EnergyCostReduction(
+                choice.EnergyType,
+                -energyIncrease, // Negative because it's increasing cost
+                $"High Pressure (+{energyIncrease} Energy Cost)"
+            ));
+        }
+
+        // Insight reduces energy costs
+        if (currentValues.Insight > 0)
+        {
+            modifications.Add(new EnergyCostReduction(
+                choice.EnergyType,
+                1,  // One choice per set gets -1 cost
+                $"From Insight"
+            ));
+        }
+
+        // Resonance affects Social energy costs
+        if (choice.EnergyType == EnergyTypes.Social)
+        {
+            int resonanceEffect = currentValues.Resonance - 5; // Positive or negative based on base 5
+            if (resonanceEffect != 0)
+            {
+                modifications.Add(new EnergyCostReduction(
+                    EnergyTypes.Social,
+                    resonanceEffect,
+                    $"From Resonance {(resonanceEffect > 0 ? "Bonus" : "Penalty")}"
+                ));
+            }
         }
     }
 
@@ -276,7 +294,7 @@
         List<BaseValueChange> baseChanges,
         List<ValueModification> modifications)
     {
-        EncounterStateValues newState = new(
+        EncounterStateValues newState = EncounterStateValues.WithValues(
             currentValues.Outcome,
             currentValues.Momentum,
             currentValues.Insight,
@@ -385,6 +403,10 @@
     private List<Outcome> CalculateCosts(EncounterChoice choice, EncounterContext context)
     {
         List<Outcome> costs = baseValueGenerator.GenerateBaseCosts(choice.Archetype, choice.Approach);
+
+        List<Outcome> pressureCosts = baseValueGenerator.CalculatePressureCosts(choice, context);
+        costs.AddRange(pressureCosts);
+
         List<Outcome> propertyCosts = locationPropertyCalculator.CalculatePropertyCosts(choice, context.LocationProperties);
         costs.AddRange(propertyCosts);
         return costs;

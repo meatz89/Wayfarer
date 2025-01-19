@@ -1,93 +1,17 @@
-﻿public class ChoiceSetGenerator
+﻿public class ChoiceGenerator
 {
     private readonly GameState gameState;
     private readonly ChoiceCalculator calculator;
     private readonly ChoiceEffectsGenerator baseValueGenerator;
     private readonly HashSet<(ChoiceArchetypes, ChoiceApproaches)> usedCombinations;
 
-    public ChoiceSetGenerator(GameState gameState)
+    public ChoiceGenerator(GameState gameState)
     {
         this.gameState = gameState;
         this.calculator = new ChoiceCalculator(gameState);
         this.baseValueGenerator = new ChoiceEffectsGenerator();
         this.usedCombinations = new HashSet<(ChoiceArchetypes, ChoiceApproaches)>();
     }
-
-    private bool IsDirectApproachAvailable(
-        ChoiceArchetypes archetype,
-        EncounterStateValues values,
-        PlayerState playerState)
-    {
-        // Archetype-specific direct approach requirements
-        switch (archetype)
-        {
-            case ChoiceArchetypes.Physical:
-                // Physical Direct needs sufficient momentum to overcome pressure
-                return values.Momentum >= values.Pressure;
-
-            case ChoiceArchetypes.Focus:
-                // Focus Direct needs sufficient insight for breakthrough
-                return values.Insight >= values.Pressure;
-
-            case ChoiceArchetypes.Social:
-                // Social Direct needs sufficient resonance for leverage
-                return values.Resonance >= values.Pressure;
-
-            default:
-                return false;
-        }
-    }
-
-    private bool IsPragmaticApproachAvailable(
-        ChoiceArchetypes archetype,
-        EncounterStateValues values,
-        PlayerState playerState)
-    {
-        // Archetype-specific pragmatic requirements
-        switch (archetype)
-        {
-            case ChoiceArchetypes.Physical:
-                // Need some momentum to maintain flow
-                return values.Pressure < 5;
-
-            case ChoiceArchetypes.Focus:
-                // Need base insight to build upon
-                return values.Pressure < 5;
-
-            case ChoiceArchetypes.Social:
-                // Need base resonance to leverage
-                return values.Pressure < 5;
-
-            default:
-                return false;
-        }
-    }
-
-    private bool IsTacticalApproachAvailable(
-        ChoiceArchetypes archetype,
-        EncounterStateValues values,
-        PlayerState playerState)
-    {
-        // Check archetype-specific tactical requirements
-        switch (archetype)
-        {
-            case ChoiceArchetypes.Physical:
-                // Need high momentum to spend effectively
-                return values.Momentum >= 4 || HasTool(playerState);
-
-            case ChoiceArchetypes.Focus:
-                // Need high insight to convert
-                return values.Insight >= 4 || HasRelevantKnowledge(playerState);
-
-            case ChoiceArchetypes.Social:
-                // Need high resonance to leverage
-                return values.Resonance >= 4 || HasSufficientReputation(playerState);
-
-            default:
-                return false;
-        }
-    }
-
 
     public ChoiceSet Generate(ChoiceSetTemplate template, EncounterContext context)
     {
@@ -116,11 +40,18 @@
         List<EncounterChoice> choices = new();
         int index = 0;
 
-        List<ChoiceArchetypes> unusedChoiceChoiceArchetypes = new List<ChoiceArchetypes>() {
-            ChoiceArchetypes.Physical,
-            ChoiceArchetypes.Focus,
-            ChoiceArchetypes.Social
-        };
+        if (values.Pressure >= 9)
+        {
+            foreach (ChoiceArchetypes archetype in Enum.GetValues(typeof(ChoiceArchetypes)))
+            {
+                choices.Add(CreateChoice(
+                    choices.Count,
+                    archetype,
+                    ChoiceApproaches.Desperate));
+            }
+            return choices;
+        }
+
         foreach (CompositionPattern pattern in template.CompositionPatterns)
         {
             // Generate primary choices
@@ -129,10 +60,6 @@
                 ChoiceApproaches approach = SelectApproach(pattern.PrimaryArchetype, values, playerState);
                 choices.Add(CreateChoice(index++, pattern.PrimaryArchetype, approach));
 
-                if (unusedChoiceChoiceArchetypes.Contains(pattern.PrimaryArchetype))
-                {
-                    unusedChoiceChoiceArchetypes.Remove(pattern.PrimaryArchetype);
-                }
             }
 
             // Generate secondary choices
@@ -141,25 +68,14 @@
                 ChoiceApproaches approach = SelectApproach(pattern.SecondaryArchetype, values, playerState);
                 choices.Add(CreateChoice(index++, pattern.SecondaryArchetype, approach));
 
-                if (unusedChoiceChoiceArchetypes.Contains(pattern.SecondaryArchetype))
-                {
-                    unusedChoiceChoiceArchetypes.Remove(pattern.SecondaryArchetype);
-                }
-            }
-
-            // Generate unused archetype choices
-            foreach (ChoiceArchetypes choiceArchetype in unusedChoiceChoiceArchetypes)
-            {
-                ChoiceApproaches approach = SelectApproach(choiceArchetype, values, playerState);
-                choices.Add(CreateChoice(index++, choiceArchetype, approach));
             }
         }
 
         // Ensure fallback choice exists
-        if (!choices.Any(c => c.Approach == ChoiceApproaches.Improvised))
+        if (!choices.Any(c => c.Approach == ChoiceApproaches.Desperate))
         {
             ChoiceArchetypes archetype = GetLeastRepresentedArchetype(choices);
-            ChoiceApproaches approach = ChoiceApproaches.Improvised;
+            ChoiceApproaches approach = ChoiceApproaches.Desperate;
             if (!usedCombinations.Contains((archetype, approach)))
             {
                 choices.Add(CreateImprovisedChoice(choices.Count, archetype));
@@ -169,6 +85,55 @@
 
         return choices;
     }
+
+    private bool IsApproachAvailable(
+    ChoiceApproaches approach,
+    EncounterStateValues values)
+    {
+        switch (approach)
+        {
+            case ChoiceApproaches.Aggressive:
+                return values.Pressure < 7; // Too risky at high pressure
+
+            case ChoiceApproaches.Careful:
+                return values.Pressure < 9; // Still possible under pressure
+
+            case ChoiceApproaches.Strategic:
+                return values.Pressure < 7; // Requires calm situation
+
+            case ChoiceApproaches.Desperate:
+                return true; // Always available
+
+            default:
+                return false;
+        }
+    }
+
+    private List<ChoiceApproaches> GetAvailableApproaches(
+        ChoiceArchetypes archetype,
+        EncounterStateValues values,
+        PlayerState playerState)
+    {
+        List<ChoiceApproaches> approaches = new();
+
+        // Check Direct approach availability
+        if (IsApproachAvailable(ChoiceApproaches.Aggressive, values))
+            approaches.Add(ChoiceApproaches.Aggressive);
+
+        // Check Pragmatic approach availability
+        if (IsApproachAvailable(ChoiceApproaches.Careful, values))
+            approaches.Add(ChoiceApproaches.Careful);
+
+        // Check Tactical approach availability
+        if (IsApproachAvailable(ChoiceApproaches.Strategic, values))
+            approaches.Add(ChoiceApproaches.Strategic);
+
+        if (IsApproachAvailable(ChoiceApproaches.Desperate, values))
+            approaches.Add(ChoiceApproaches.Strategic);
+
+        return approaches;
+    }
+
 
     private ChoiceApproaches SelectApproach(
             ChoiceArchetypes archetype,
@@ -191,35 +156,10 @@
 
         // If no valid approaches, return Improvised as fallback
         if (validApproaches.Count == 0)
-            return ChoiceApproaches.Improvised;
+            return ChoiceApproaches.Desperate;
 
         // Prioritize approaches based on current state
         return SelectBestApproach(validApproaches, archetype, values, playerState);
-    }
-
-    private List<ChoiceApproaches> GetAvailableApproaches(
-        ChoiceArchetypes archetype,
-        EncounterStateValues values,
-        PlayerState playerState)
-    {
-        List<ChoiceApproaches> approaches = new();
-
-        // Check Direct approach availability
-        if (IsDirectApproachAvailable(archetype, values, playerState))
-            approaches.Add(ChoiceApproaches.Direct);
-
-        // Check Pragmatic approach availability
-        if (IsPragmaticApproachAvailable(archetype, values, playerState))
-            approaches.Add(ChoiceApproaches.Pragmatic);
-
-        // Check Tactical approach availability
-        if (IsTacticalApproachAvailable(archetype, values, playerState))
-            approaches.Add(ChoiceApproaches.Tactical);
-
-        // Improvised is always available as fallback
-        approaches.Add(ChoiceApproaches.Improvised);
-
-        return approaches;
     }
 
     private ChoiceApproaches SelectBestApproach(
@@ -232,24 +172,24 @@
         if (values.Pressure >= 6)
         {
             // High pressure - prioritize pressure reduction
-            if (availableApproaches.Contains(ChoiceApproaches.Tactical))
-                return ChoiceApproaches.Tactical;
-            if (availableApproaches.Contains(ChoiceApproaches.Pragmatic))
-                return ChoiceApproaches.Pragmatic;
+            if (availableApproaches.Contains(ChoiceApproaches.Strategic))
+                return ChoiceApproaches.Strategic;
+            if (availableApproaches.Contains(ChoiceApproaches.Careful))
+                return ChoiceApproaches.Careful;
         }
         else if (NeedsOutcome(values))
         {
             // Need outcome - prioritize direct conversion
-            if (availableApproaches.Contains(ChoiceApproaches.Direct))
-                return ChoiceApproaches.Direct;
-            if (availableApproaches.Contains(ChoiceApproaches.Tactical))
-                return ChoiceApproaches.Tactical;
+            if (availableApproaches.Contains(ChoiceApproaches.Aggressive))
+                return ChoiceApproaches.Aggressive;
+            if (availableApproaches.Contains(ChoiceApproaches.Strategic))
+                return ChoiceApproaches.Strategic;
         }
         else
         {
             // Building up values - prefer pragmatic
-            if (availableApproaches.Contains(ChoiceApproaches.Pragmatic))
-                return ChoiceApproaches.Pragmatic;
+            if (availableApproaches.Contains(ChoiceApproaches.Careful))
+                return ChoiceApproaches.Careful;
         }
 
         // Return first available as fallback
@@ -264,15 +204,8 @@
 
     private EncounterChoice CreateImprovisedChoice(int index, ChoiceArchetypes archetype)
     {
-        ChoiceApproaches approach = ChoiceApproaches.Improvised;
-        EncounterChoice choice = new(
-            index,
-            $"{archetype} - {approach}",
-            archetype,
-            approach,
-            false,
-            false,
-            false);
+        ChoiceApproaches approach = ChoiceApproaches.Desperate;
+        EncounterChoice choice = CreateChoice(index, archetype, approach);
 
         // Set base values using generator
         choice.BaseEncounterValueChanges = baseValueGenerator.GenerateBaseValueChanges(archetype, approach);
@@ -280,12 +213,11 @@
         return choice;
     }
 
-
     private EncounterChoice CreateChoice(int index, ChoiceArchetypes archetype, ChoiceApproaches approach)
     {
-        bool requireTool = archetype == ChoiceArchetypes.Physical && approach == ChoiceApproaches.Tactical;
-        bool requireKnowledge = archetype == ChoiceArchetypes.Focus && approach == ChoiceApproaches.Tactical;
-        bool requireReputation = archetype == ChoiceArchetypes.Social && approach == ChoiceApproaches.Tactical;
+        bool requireTool = archetype == ChoiceArchetypes.Physical && approach == ChoiceApproaches.Strategic;
+        bool requireKnowledge = archetype == ChoiceArchetypes.Focus && approach == ChoiceApproaches.Strategic;
+        bool requireReputation = archetype == ChoiceArchetypes.Social && approach == ChoiceApproaches.Strategic;
 
         EncounterChoice choice = new(
             index,
@@ -335,24 +267,4 @@
         return leastRepresentedArchetype;
     }
 
-
-    private bool HasSufficientEnergy(ChoiceArchetypes archetype, PlayerState playerState, int v)
-    {
-        return true;
-    }
-
-    private bool HasSufficientReputation(PlayerState playerState)
-    {
-        return true;
-    }
-
-    private bool HasRelevantKnowledge(PlayerState playerState)
-    {
-        return true;
-    }
-
-    private bool HasTool(PlayerState playerState)
-    {
-        return true;
-    }
 }
