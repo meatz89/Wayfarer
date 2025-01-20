@@ -8,7 +8,7 @@
     public TimeSlots TimeSlot { get; }
     public LocationProperties LocationProperties { get; }
     public PlayerState PlayerState { get; }
-    public EncounterStateValues CurrentValues { get; set; } // Note: Now settable
+    public EncounterValues CurrentValues { get; set; } // Note: Now settable
     public int StageNumber { get; set; } // Note: Now settable
     public int LocationDifficulty { get; }
     public List<LocationPropertyChoiceEffect> LocationPropertyChoiceEffects { get; }
@@ -24,8 +24,9 @@
         LocationProperties locationProperties,
         PlayerState playerState,
         int locationDifficulty,
-        List<LocationPropertyChoiceEffect> locationPropertyChoiceEffects,
-        int playerLevel
+        List<LocationPropertyChoiceEffect> choiceEffects,
+        int playerLevel,
+        List<PlayerStatusTypes> playerStatusTypes
         )
     {
         LocationName = locationName;
@@ -37,11 +38,17 @@
         LocationProperties = locationProperties;
         PlayerState = playerState;
         LocationDifficulty = locationDifficulty;
-        LocationPropertyChoiceEffects = locationPropertyChoiceEffects;
+        LocationPropertyChoiceEffects = choiceEffects;
 
         // Initialize encounter values
         EncounterStateInitializer encounterStateInitializer = new EncounterStateInitializer();
-        CurrentValues = EncounterStateInitializer.Generate(locationDifficulty, playerLevel);
         StageNumber = 0;
+
+        CurrentValues = EncounterStateInitializer.Generate(
+                locationDifficulty, 
+                playerLevel, 
+                locationProperties,
+                playerStatusTypes
+                );
     }
 }

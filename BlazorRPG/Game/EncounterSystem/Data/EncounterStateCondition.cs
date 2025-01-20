@@ -11,7 +11,7 @@
         MaxValues = maxValues;
     }
 
-    public bool IsMet(EncounterStateValues state)
+    public bool IsMet(EncounterValues state)
     {
         foreach ((ValueTypes valueType, int minValue) in MinValues)
         {
@@ -28,7 +28,7 @@
         return true;
     }
 
-    private int GetValueFromState(EncounterStateValues state, ValueTypes type)
+    private int GetValueFromState(EncounterValues state, ValueTypes type)
     {
         return type switch
         {

@@ -10,7 +10,7 @@ public class EncounterStateAnalysis
     public EncounterStateCategory StateCategory { get; private set; }
 
     public static EncounterStateAnalysis Analyze(
-        EncounterStateValues values,
+        EncounterValues values,
         int stageNumber,
         PlayerState player)
     {

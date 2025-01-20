@@ -12,6 +12,7 @@ public class GameManager
     public ItemSystem ItemSystem { get; }
     public MessageSystem MessageSystem { get; }
     public NarrativeSystem NarrativeSystem { get; }
+    public PlayerStatusSystem PlayerStatusSystem { get; }
 
     public GameManager(
         GameState gameState,
@@ -22,7 +23,8 @@ public class GameManager
         QuestSystem questSystem,
         ItemSystem itemSystem,
         MessageSystem messageSystem,
-        NarrativeSystem narrativeSystem
+        NarrativeSystem narrativeSystem,
+        PlayerStatusSystem playerStatusSystem
         )
     {
         this.gameState = gameState;
@@ -36,6 +38,7 @@ public class GameManager
         this.ItemSystem = itemSystem;
         this.MessageSystem = messageSystem;
         this.NarrativeSystem = narrativeSystem;
+        PlayerStatusSystem = playerStatusSystem;
     }
 
     public void StartGame()
@@ -210,6 +213,8 @@ public class GameManager
 
         // Create initial context with our new value system
         int playerLevel = playerState.Level;
+        List<PlayerStatusTypes> playerStatusTypes = PlayerStatusSystem.GetActiveStatusList();
+
         EncounterContext context = new EncounterContext(
             location.LocationName,
             locationSpotName,
@@ -221,7 +226,8 @@ public class GameManager
             playerState,
             location.DifficultyLevel,
             effects,
-            playerLevel
+            playerLevel,
+            playerStatusTypes
         );
 
         return EncounterSystem.GenerateEncounter(context);

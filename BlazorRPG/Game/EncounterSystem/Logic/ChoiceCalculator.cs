@@ -20,7 +20,7 @@
         List<ValueModification> valueModifications = CalculateAllValueChanges(choice, context);
 
         // 3. Calculate new state after combining base values and modifications
-        EncounterStateValues newState = CalculateNewState(context.CurrentValues, choice, baseChanges, valueModifications);
+        EncounterValues newState = CalculateNewState(context.CurrentValues, choice, baseChanges, valueModifications);
 
         // 4. Calculate final requirements, costs and rewards
         List<Requirement> requirements = CalculateRequirements(choice, context, gameState.Player);
@@ -157,7 +157,7 @@
 
     private void AddStateModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {
-        EncounterStateValues currentValues = context.CurrentValues;
+        EncounterValues currentValues = context.CurrentValues;
         //AddBonusToOutcome(modifications, currentValues);
 
         // Add Pressure penalty to Outcome
@@ -184,7 +184,7 @@
         AddEnergyEffects(modifications, choice, currentValues);
     }
 
-    private static void AddEnergyEffects(List<ValueModification> modifications, EncounterChoice choice, EncounterStateValues currentValues)
+    private static void AddEnergyEffects(List<ValueModification> modifications, EncounterChoice choice, EncounterValues currentValues)
     {
         // Momentum affects physical energy costs
         if (choice.EnergyType == EnergyTypes.Physical)
@@ -267,7 +267,7 @@
     {
         int baseEnergyCost = GameRules.GetBaseEnergyCost(choice.Archetype, choice.Approach);
 
-        EncounterStateValues currentValues = context.CurrentValues;
+        EncounterValues currentValues = context.CurrentValues;
         int propertyModifier = locationPropertyCalculator.CalculateEnergyCostModifier(choice, context.LocationProperties);
         int pressureModifier = currentValues.Pressure >= 6 ? currentValues.Pressure - 5 : 0;
 
@@ -286,12 +286,12 @@
         return actualCost;
     }
 
-    private EncounterStateValues ProjectNewState(
-        EncounterStateValues currentValues,
+    private EncounterValues ProjectNewState(
+        EncounterValues currentValues,
         List<BaseValueChange> baseChanges,
         List<ValueModification> modifications)
     {
-        EncounterStateValues newState = EncounterStateValues.WithValues(
+        EncounterValues newState = EncounterValues.WithValues(
             currentValues.Outcome,
             currentValues.Momentum,
             currentValues.Insight,
@@ -320,7 +320,7 @@
         return newState;
     }
 
-    private void ApplyValueChange(EncounterStateValues state, ValueTypes valueType, int amount)
+    private void ApplyValueChange(EncounterValues state, ValueTypes valueType, int amount)
     {
         switch (valueType)
         {
@@ -342,13 +342,13 @@
         }
     }
 
-    private EncounterStateValues CalculateNewState(
-        EncounterStateValues currentValues,
+    private EncounterValues CalculateNewState(
+        EncounterValues currentValues,
         EncounterChoice choice,
         List<BaseValueChange> baseChanges,
         List<ValueModification> modifications)
     {
-        EncounterStateValues newState = ProjectNewState(currentValues, baseChanges, modifications);
+        EncounterValues newState = ProjectNewState(currentValues, baseChanges, modifications);
         newState.LastChoiceType = choice.Archetype;
         newState.LastChoiceApproach = choice.Approach;
         return newState;

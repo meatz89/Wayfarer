@@ -70,7 +70,7 @@ public partial class EncounterViewBase : ComponentBase
 
     public int GetCurrentValue(ChangeTypes changeType)
     {
-        EncounterStateValues currentValues = GameState.Actions.CurrentEncounter.Context.CurrentValues;
+        EncounterValues currentValues = GameState.Actions.CurrentEncounter.Context.CurrentValues;
         return changeType switch
         {
             ChangeTypes.Outcome => currentValues.Outcome,

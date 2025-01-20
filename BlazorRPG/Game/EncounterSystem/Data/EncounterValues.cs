@@ -1,4 +1,4 @@
-﻿public class EncounterStateValues
+﻿public class EncounterValues
 {
     public int Outcome { get; set; }
     public int Pressure { get; set; }
@@ -11,33 +11,33 @@
     public ChoiceApproaches? LastChoiceApproach { get; set; }
 
     // Constructor for initial state
-    public EncounterStateValues(int difficulty, int playerLevel)
+    public EncounterValues()
     {
-        Outcome = 5 + (playerLevel - difficulty); // Base calculation
-        Pressure = 2;
         Momentum = 0;
-        Insight = 1;
-        Resonance = 4;
+        Insight = 0;
+        Resonance = 0;
+        Outcome = 0;
+        Pressure = 0;
         LastChoiceType = null;
         LastChoiceApproach = null;
     }
 
     public void ClampValues()
     {
-        Outcome = Math.Max(0, Outcome);
         Momentum = Math.Max(0, Momentum);
         Insight = Math.Max(0, Insight);
         Resonance = Math.Max(0, Resonance);
+        Outcome = Math.Max(0, Outcome);
         Pressure = Math.Max(0, Pressure);
     }
 
-    public static EncounterStateValues WithValues(int outcome, int momentum, int insight, int resonance, int pressure)
+    public static EncounterValues WithValues(int momentum, int insight, int resonance, int outcome, int pressure)
     {
-        EncounterStateValues encounterStateValues = new EncounterStateValues(1, 1);
-        encounterStateValues.Outcome = Math.Max(0, outcome);
+        EncounterValues encounterStateValues = new EncounterValues();
         encounterStateValues.Momentum = Math.Max(0, momentum);
         encounterStateValues.Insight = Math.Max(0, insight);
         encounterStateValues.Resonance = Math.Max(0, resonance);
+        encounterStateValues.Outcome = Math.Max(0, outcome);
         encounterStateValues.Pressure = Math.Max(0, pressure);
         return encounterStateValues;
     }

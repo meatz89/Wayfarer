@@ -15,7 +15,7 @@
 
         services.AddSingleton<QuestSystem>();
         services.AddSingleton<ReputationSystem>();
-        services.AddSingleton<StatusSystem>();
+        services.AddSingleton<PlayerStatusSystem>();
         services.AddSingleton<AchievementSystem>();
 
         services.AddSingleton<NarrativeSystem>();
@@ -26,7 +26,7 @@
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<ActionSystem>();
         services.AddSingleton<GameManager>();
-        
+
         services.AddSingleton<LargeLanguageAdapter>();
 
         return services;

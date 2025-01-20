@@ -30,12 +30,12 @@
     public int NoShelterEffectOnHealth;
 
     public static int StrategicMomentumRequirement = 5;
-    public static int StrategicInsightRequirement = 5;
-    public static int StrategicResonanceRequirement = 5;
+    public static int StrategicInsightRequirement = 6;
+    public static int StrategicResonanceRequirement = 7;
 
     public static List<ChoiceApproaches> GetPriorityOrder(
         ChoiceArchetypes archetype,
-        EncounterStateValues values)
+        EncounterValues values)
     {
         if (values.Pressure >= 7)
         {

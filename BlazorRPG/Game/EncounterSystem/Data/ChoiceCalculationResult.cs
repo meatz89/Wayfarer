@@ -1,7 +1,7 @@
 ﻿public class ChoiceCalculationResult
 {
     // The new state after applying all changes
-    public EncounterStateValues NewStateValues { get; }
+    public EncounterValues NewStateValues { get; }
 
     // Base values and modifications stored separately for UI/preview
     public List<BaseValueChange> BaseValueChanges { get; }
@@ -17,7 +17,7 @@
     public List<Outcome> Rewards { get; }
 
     public ChoiceCalculationResult(
-        EncounterStateValues newStateValues,
+        EncounterValues newStateValues,
         List<BaseValueChange> baseValueChanges,
         List<ValueModification> valueModifications,
         EnergyTypes energyType,

@@ -18,7 +18,7 @@
         usedCombinations.Clear();
 
         PlayerState playerState = gameState.Player;
-        EncounterStateValues currentValues = context.CurrentValues;
+        EncounterValues currentValues = context.CurrentValues;
 
         // Generate base choices
         List<EncounterChoice> choices = GenerateBaseChoices(template, currentValues, playerState);
@@ -34,7 +34,7 @@
 
     private List<EncounterChoice> GenerateBaseChoices(
         ChoiceSetTemplate template,
-        EncounterStateValues values,
+        EncounterValues values,
         PlayerState playerState)
     {
         List<EncounterChoice> choices = new();
@@ -98,7 +98,7 @@
 
     private EncounterChoice GenerateFirstChoice(
         ChoiceArchetypes archetype,
-        EncounterStateValues values,
+        EncounterValues values,
         PlayerState playerState)
     {
         const int choiceIndex = 1;
@@ -124,7 +124,7 @@
     private EncounterChoice GenerateSecondChoice(
         CompositionPattern pattern,
         EncounterChoice firstChoice,
-        EncounterStateValues values,
+        EncounterValues values,
         PlayerState playerState)
     {
         const int choiceIndex = 2;
@@ -162,7 +162,7 @@
         CompositionPattern pattern,
         EncounterChoice firstChoice,
         EncounterChoice secondChoice,
-        EncounterStateValues values,
+        EncounterValues values,
         PlayerState playerState)
     {
         const int choiceIndex = 3;
@@ -218,7 +218,7 @@
     private EncounterChoice TryGenerateRegularChoice(
         ChoiceArchetypes archetype,
         EncounterChoice existingChoice,
-        EncounterStateValues values,
+        EncounterValues values,
         PlayerState playerState)
     {
         // Get available approaches excluding those already used
@@ -241,7 +241,7 @@
     private bool IsChoicePossible(
         ChoiceArchetypes archetype,
         ChoiceApproaches approach,
-        EncounterStateValues values,
+        EncounterValues values,
         PlayerState playerState)
     {
         // Check mastery value requirements
@@ -266,7 +266,7 @@
 
     private List<ChoiceApproaches> GetAvailableApproaches(
         ChoiceArchetypes archetype,
-        EncounterStateValues values,
+        EncounterValues values,
         PlayerState playerState)
     {
         List<ChoiceApproaches> approaches = new();
@@ -314,7 +314,7 @@
         return choices;
     }
 
-    private bool ShouldAddSpecialChoice(EncounterStateValues values)
+    private bool ShouldAddSpecialChoice(EncounterValues values)
     {
         // Add special choice if any mastery value is high enough and pressure isn't too high
         return values.Pressure <= 6 && (
@@ -327,7 +327,7 @@
     private ChoiceApproaches SelectBestApproach(
         ChoiceArchetypes archetype,
         List<ChoiceApproaches> availableApproaches,
-        EncounterStateValues values,
+        EncounterValues values,
         PlayerState playerState)
     {
         // Define archetype-specific priority orders
@@ -352,7 +352,7 @@
     private EncounterChoice TryGenerateSpecialChoice(
         int index,
         ChoiceSetTemplate template,
-        EncounterStateValues values)
+        EncounterValues values)
     {
         // Determine which mastery value enables this special choice
         ChoiceArchetypes specialArchetype = ChoiceArchetypes.Focus;

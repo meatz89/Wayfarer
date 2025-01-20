@@ -177,7 +177,7 @@
         const int LOSE_BASE = 40;
         int PRESSURE_LOOSE = LOSE_BASE - encounter.Context.LocationDifficulty;
 
-        EncounterStateValues values = encounter.Context.CurrentValues;
+        EncounterValues values = encounter.Context.CurrentValues;
         PlayerState player = gameState.Player;
 
         // Immediate loss if pressure maxes out
