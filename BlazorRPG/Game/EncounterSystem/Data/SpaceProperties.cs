@@ -1,6 +1,6 @@
 ﻿public class SpaceProperties
 {
-    public AccessibilityTypes Scale { get; set; }
-    public ExposureTypes Exposure { get; set; }
-    public ActivityLevelTypes CrowdLevel { get; set; }
+    public Accessability Scale { get; set; }
+    public Temperature Exposure { get; set; }
+    public CrowdDensity CrowdLevel { get; set; }
 }

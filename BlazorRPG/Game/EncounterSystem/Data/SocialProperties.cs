@@ -1,5 +1,5 @@
 ﻿public class SocialProperties
 {
-    public SupervisionTypes Legality { get; set; }
-    public SupervisionTypes Pressure { get; set; }
+    public Engagement Legality { get; set; }
+    public Engagement Pressure { get; set; }
 }

@@ -1,8 +1,6 @@
 ﻿using System.Text;
 public class GameManager
 {
-    private const int hoursToAdvanceForActions = 2;
-
     public GameState gameState;
     private GameRules currentRules;
 
@@ -84,9 +82,10 @@ public class GameManager
         EncounterChoice choice = choiceOption.EncounterChoice;
 
         Location location = LocationSystem.GetLocation(choiceOption.LocationName);
+        LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(choiceOption.LocationName, choiceOption.locationSpotName);
 
         // Execute the choice
-        EncounterResults result = EncounterSystem.ExecuteChoice(encounter, choice, location.LocationProperties);
+        EncounterResults result = EncounterSystem.ExecuteChoice(encounter, choice, locationSpot.SpotProperties);
 
         if (result != EncounterResults.Ongoing)
         {
@@ -99,7 +98,7 @@ public class GameManager
                 gameState.Actions.CompleteActiveEncounter();
                 return EncounterResults.GameOver;
             }
-            ProceedEncounter(encounter, location.LocationName);
+            ProceedEncounter(encounter);
         }
 
         return result;
@@ -115,10 +114,10 @@ public class GameManager
         return isGameOver;
     }
 
-    private void ProceedEncounter(Encounter encounter, LocationNames locationName)
+    private void ProceedEncounter(Encounter encounter)
     {
         encounter.AdvanceStage();
-        SetEncounterChoices(encounter, locationName);
+        SetEncounterChoices(encounter);
     }
 
     public void CreateGlobalActions()
@@ -156,35 +155,23 @@ public class GameManager
         gameState.Actions.SetLocationSpotActions(options);
     }
 
-    private static void CreateActionsForLocation(Location location, List<ActionTemplate> allActionTemplates, List<LocationSpot> locationSpots, ActionAvailabilityService availabilityService)
+    private static void CreateActionsForLocation(
+        Location location, 
+        List<ActionTemplate> allActionTemplates, 
+        List<LocationSpot> locationSpots, 
+        ActionAvailabilityService availabilityService)
     {
         foreach (ActionTemplate template in allActionTemplates)
         {
-            // Use ActionAvailabilityService to check availability
-            if (availabilityService.IsActionAvailable(template, location.LocationProperties))
+            foreach (LocationSpot locationSpot in locationSpots)
             {
-                // Create ActionImplementation using the factory
-                ActionImplementation actionImplementation = ActionFactory.CreateAction(template, location);
+                // Use ActionAvailabilityService to check availability
+                if (availabilityService.IsActionAvailable(template, locationSpot.SpotProperties))
+                {
+                    // Create ActionImplementation using the factory
+                    ActionImplementation actionImplementation = ActionFactory.CreateAction(template, location);
 
-                // Find a matching LocationSpot based on ActionType
-                LocationSpot matchingSpot = null;
-                foreach (LocationSpot spot in locationSpots)
-                {
-                    if (spot.ActionType == actionImplementation.ActionType)
-                    {
-                        matchingSpot = spot;
-                        break;
-                    }
-                }
-
-                // Add the action to the LocationSpot (if found)
-                if (matchingSpot != null)
-                {
-                    matchingSpot.AddAction(actionImplementation);
-                }
-                else
-                {
-                    Console.WriteLine($"Warning: No LocationSpot found for ActionType '{actionImplementation.ActionType}' at location '{location.LocationName}'.");
+                    locationSpot.AddAction(actionImplementation);
                 }
             }
         }
@@ -216,18 +203,21 @@ public class GameManager
         gameState.Actions.ActiveQuests = quests;
     }
 
-    public Encounter GenerateEncounter(BasicActionTypes action, Location location, PlayerState playerState)
+    public Encounter GenerateEncounter(BasicActionTypes chosenAction, Location location, PlayerState playerState, string locationSpotName)
     {
-        List<LocationPropertyChoiceEffect> effects = LocationSystem.GetLocationEffects(location.LocationName);
+        List<LocationPropertyChoiceEffect> effects = LocationSystem.GetLocationEffects(location.LocationName, locationSpotName);
+        LocationSpot? locationSpot = LocationSystem.GetLocationSpotForLocation(location.LocationName, locationSpotName);
 
         // Create initial context with our new value system
         int playerLevel = playerState.Level;
         EncounterContext context = new EncounterContext(
-            action,
+            location.LocationName,
+            locationSpotName,
+            chosenAction,
             location.LocationType,
-            location.LocationProperties.Archetype.Value,
+            location.LocationArchetype,
             gameState.World.CurrentTimeSlot,
-            location.LocationProperties,
+            locationSpot.SpotProperties,
             playerState,
             location.DifficultyLevel,
             effects,
@@ -238,23 +228,24 @@ public class GameManager
     }
 
 
-    public List<LocationPropertyChoiceEffect> GetLocationEffects(LocationNames locationName)
+    public List<LocationPropertyChoiceEffect> GetLocationEffects(Encounter encounter, EncounterChoice choice)
     {
-        return LocationSystem.GetLocationEffects(locationName);
+        LocationNames locationName = encounter.Context.LocationName;
+        string locationSpot = encounter.Context.LocationSpotName;
+
+        return LocationSystem.GetLocationEffects(locationName, locationSpot);
     }
 
-    public List<LocationPropertyChoiceEffect> GetLocationEffects(EncounterChoice choice)
+    public List<LocationPropertyChoiceEffect> GetLocationEffects(EncounterChoice choice, string locationSpotName)
     {
         Location location = gameState.World.CurrentLocation;
-        return LocationSystem.GetLocationEffects(location.LocationName);
+        return LocationSystem.GetLocationEffects(location.LocationName, locationSpotName);
     }
 
-
-    public void SetEncounterChoices(Encounter encounter, LocationNames location)
+    public void SetEncounterChoices(Encounter encounter)
     {
-        string locationSpot = "LocationSpot";
         List<UserEncounterChoiceOption> choiceOptions =
-            EncounterSystem.GetChoiceOptions(encounter, location);
+            EncounterSystem.GetChoiceOptions(encounter);
 
         gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
     }
@@ -267,14 +258,14 @@ public class GameManager
         if (!ContextEngine.CanExecuteInContext(basicAction))
             return ActionResult.Failure("Current context prevents this action");
 
-        Encounter encounter = GenerateEncounter(basicAction.ActionType, location, gameState.Player);
+        Encounter encounter = GenerateEncounter(basicAction.ActionType, location, gameState.Player, action.LocationSpot);
         if (encounter != null)
         {
             // Set as active encounter
             EncounterSystem.SetActiveEncounter(encounter);
 
             // Add this line to populate the initial choices
-            SetEncounterChoices(encounter, location.LocationName);
+            SetEncounterChoices(encounter);
 
             return ActionResult.Success("Action started!", new ActionResultMessages());
         }

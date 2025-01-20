@@ -2,6 +2,7 @@
     int Index,
     string Description,
     LocationNames LocationName,
+    string locationSpotName,
     Encounter Encounter,
     EncounterStage EncounterStage,
     EncounterChoice EncounterChoice)

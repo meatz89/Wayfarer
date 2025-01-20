@@ -1,12 +1,17 @@
 ﻿@* LocationSpotMap.razor *@
-@inject GameManager ActionManager
-@inject GameState GameState
-
 <div class="locations-grid">
     @foreach (LocationSpot spot in CurrentLocation.LocationSpots)
     {
         <div class="location-card @(spot.Name == CurrentSpot.Name ? "current" : "reachable")">
-            @* <div class="location-time">⏰ @spot.TimeSlotOpen</div> *@
+            <div class="location-spot-properties">
+                @foreach (var prop in GetSpotProperties(spot))
+                {
+                    <div class="property-tag @prop.CssClass">
+                        <span class="property-icon">@prop.Icon</span>
+                        <span class="property-text">@prop.Text</span>
+                    </div>
+                }
+            </div>
             <div class="location-name">
                 @spot.Name @(spot.Name == CurrentSpot.Name ? "(Current)" : "")
             </div>
@@ -17,7 +22,7 @@
             {
                 <button class="action-button"
                         @onclick="() => OnSpotSelected.InvokeAsync(spot)"
-                        disabled="@(!ActionManager.CanMoveToSpot(spot.Name))">
+                        disabled="@(!GameManager.CanMoveToSpot(spot.Name))">
                     MOVE HERE
                 </button>
             }
@@ -27,7 +32,7 @@
             {
                 <button class="action-button"
                         @onclick="() => OnActionSelected.InvokeAsync(action)"
-                        disabled="@(spot.Name != CurrentSpot.Name || !ActionManager.AreRequirementsMet(action))"
+                        disabled="@(spot.Name != CurrentSpot.Name || !GameManager.AreRequirementsMet(action))"
                         @onmouseover="(e) => HandleShowTooltip(action, e)"
                         @onmouseout="HandleHideTooltip">
                     @action.ActionImplementation.Name (@action.ActionImplementation.Name)
@@ -47,6 +52,9 @@
 }
 
 @code {
+    [Inject] private GameManager GameManager { get; set; }
+    [Inject] private GameState GameState { get; set; }
+
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public LocationSpot CurrentSpot { get; set; }
     [Parameter] public EventCallback<LocationSpot> OnSpotSelected { get; set; }
@@ -70,4 +78,93 @@
         hoveredAction = null;
         showTooltip = false;
     }
+
+    private List<PropertyDisplay> GetSpotProperties(LocationSpot spot)
+    {
+        List<PropertyDisplay> properties = new List<PropertyDisplay>();
+
+        if (spot.SpotProperties.IsAccessabilitySet)
+        {
+            properties.Add(new(
+                "📐",
+                FormatEnumString(spot.SpotProperties.Accessability.ToString()),
+                ""
+            ));
+        }
+
+        if (spot.SpotProperties.IsEngagementSet)
+        {
+            properties.Add(new(
+                "⚖️",
+                FormatEnumString(spot.SpotProperties.Engagement.ToString()),
+                $"property-{spot.SpotProperties.Engagement.ToString().ToLower()}"
+            ));
+        }
+
+        if (spot.SpotProperties.IsAtmosphereSet)
+        {
+            properties.Add(new(
+                "😌",
+                FormatEnumString(spot.SpotProperties.Atmosphere.ToString()),
+                $"property-{spot.SpotProperties.Atmosphere.ToString().ToLower()}"
+            ));
+        }
+
+        if (spot.SpotProperties.IsRoomLayoutSet)
+        {
+            properties.Add(new(
+                "🧩",
+                FormatEnumString(spot.SpotProperties.RoomLayout.ToString()),
+                ""
+            ));
+        }
+
+        if (spot.SpotProperties.IsTemperatureSet)
+        {
+            properties.Add(new(
+                spot.SpotProperties.Temperature == Temperature.Warm ? "☀️" : "❄️",
+                FormatEnumString(spot.SpotProperties.Temperature.ToString()),
+                ""
+            ));
+        }
+
+        return properties;
+    }
+
+
+    private string GetPressureIcon(Atmosphere? pressure) => pressure switch
+    {
+        Atmosphere.Social => "😌",
+        Atmosphere.Aloof => "⚠️",
+        Atmosphere.Hostile => "⚔️",
+        _ => "❓"
+    };
+
+    private string GetResourceIcon(ResourceTypes? resource) => resource switch
+    {
+        ResourceTypes.Food => "🍖",
+        ResourceTypes.Wood => "🪵",
+        ResourceTypes.Fish => "🐟",
+        ResourceTypes.Herbs => "🌿",
+        ResourceTypes.Cloth => "🧵",
+        _ => "📦"
+    };
+
+    private string GetCrowdIcon(CrowdDensity? crowdLevel) => crowdLevel switch
+    {
+        CrowdDensity.Deserted => "🕸️",
+        CrowdDensity.Quiet => "👤",
+        CrowdDensity.Busy => "👥",
+        _ => "❓"
+    };
+
+
+    private string FormatEnumString(string value)
+    {
+        return string.Concat(value
+            .Select((x, i) => i > 0 && char.IsUpper(x) ? " " + x : x.ToString()))
+            .Replace("Type", "")
+            .Replace("Types", "");
+    }
+
 }

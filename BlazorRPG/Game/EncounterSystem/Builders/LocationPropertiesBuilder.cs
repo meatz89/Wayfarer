@@ -12,30 +12,35 @@
         return this;
     }
 
-    public LocationPropertiesBuilder WithAtmosphere(AtmosphereTypes pressure)
+    public LocationPropertiesBuilder WithAccessability(Accessability accessability)
     {
-        properties.SetProperty(LocationPropertyTypes.Atmosphere, pressure);
+        properties.SetProperty(LocationPropertyTypes.Accessibility, accessability);
         return this;
     }
 
-    public LocationPropertiesBuilder WithSpace(SpaceTypes space)
+    public LocationPropertiesBuilder WithEngagement(Engagement engagement)
     {
-        properties.SetProperty(LocationPropertyTypes.Space, space);
+        properties.SetProperty(LocationPropertyTypes.Engagement, engagement);
         return this;
     }
 
-    public LocationPropertiesBuilder WithLighting(LightingTypes lighting)
+    public LocationPropertiesBuilder WithAtmosphere(Atmosphere socialDynamics)
     {
-        properties.SetProperty(LocationPropertyTypes.Lighting, lighting);
+        properties.SetProperty(LocationPropertyTypes.Atmosphere, socialDynamics);
         return this;
     }
 
-    public LocationPropertiesBuilder WithExposure(ExposureTypes exposure)
+    public LocationPropertiesBuilder WithRoomLayout(RoomLayout roomLayout)
     {
-        properties.SetProperty(LocationPropertyTypes.Exposure, exposure);
+        properties.SetProperty(LocationPropertyTypes.RoomLayout, roomLayout);
         return this;
     }
 
+    public LocationPropertiesBuilder WithTemperature(Temperature temperature)
+    {
+        properties.SetProperty(LocationPropertyTypes.Temperature, temperature);
+        return this;
+    }
 
     public LocationProperties Build()
     {
@@ -56,21 +61,15 @@
         return this;
     }
 
-    public LocationPropertiesBuilder WithActivityLevel(ActivityLevelTypes activityLevel)
+    public LocationPropertiesBuilder WithCrowdDensity(CrowdDensity crowdDensity)
     {
-        properties.SetProperty(LocationPropertyTypes.ActivityLevel, activityLevel);
+        properties.SetProperty(LocationPropertyTypes.CrowdDensity, crowdDensity);
         return this;
     }
 
-    public LocationPropertiesBuilder WithAccessibility(AccessibilityTypes accessibility)
+    public LocationPropertiesBuilder WithLocationScale(LocationScale locationScale)
     {
-        properties.SetProperty(LocationPropertyTypes.Accessibility, accessibility);
-        return this;
-    }
-
-    public LocationPropertiesBuilder WithSupervision(SupervisionTypes supervision)
-    {
-        properties.SetProperty(LocationPropertyTypes.Supervision, supervision);
+        properties.SetProperty(LocationPropertyTypes.LocationScale, locationScale);
         return this;
     }
 

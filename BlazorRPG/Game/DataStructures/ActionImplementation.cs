@@ -6,7 +6,10 @@
     public List<Outcome> Costs { get; set; } = new();
     public List<Outcome> Rewards { get; set; } = new();
     public List<TimeSlots> TimeSlots { get; set; } = new();
-    public List<LocationPropertyCondition> AvailabilityConditions { get; set; } = new();
+    public LocationArchetypes LocationArchetype{ get; set; } = new();
+    public CrowdDensity CrowdDensity { get; set; } = new();
+    public LocationScale LocationScale { get; set; } = new();
+    public List<LocationPropertyCondition> SpotAvailabilityConditions { get; set; } = new();
 
     public bool CanExecute(PlayerState player)
     {
@@ -14,9 +17,15 @@
     }
 
     // Method to check if the action is available at a location
-    public bool IsAvailableAt(Location location)
+    public bool IsAvailableAt(Location location, LocationSpot locationSpot)
     {
-        return AvailabilityConditions.All(c => c.IsMet(location.LocationProperties));
+        bool isMet = SpotAvailabilityConditions.All(c => c.IsMet(locationSpot.SpotProperties));
+        
+        if(LocationArchetype != location.LocationArchetype) isMet = false;
+        if(CrowdDensity != location.CrowdDensity) isMet = false;
+        if(LocationScale != location.LocationScale) isMet = false;
+
+        return isMet;
     }
 
 }

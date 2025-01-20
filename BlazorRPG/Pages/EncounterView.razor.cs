@@ -6,6 +6,7 @@ public partial class EncounterViewBase : ComponentBase
 {
     [Inject] public IJSRuntime JSRuntime { get; set; } // Inject IJSRuntime
     [Parameter] public EventCallback<EncounterResults> OnEncounterCompleted { get; set; }
+    [Parameter] public Encounter Encounter { get; set; }
     [Inject] public GameState GameState { get; set; }
     [Inject] public GameManager GameManager { get; set; }
 
@@ -297,9 +298,9 @@ public partial class EncounterViewBase : ComponentBase
         HideTooltip();
     }
 
-    public List<LocationPropertyChoiceEffect> GetLocationEffects(EncounterChoice choice)
+    public List<LocationPropertyChoiceEffect> GetLocationSpotEffects(EncounterChoice choice)
     {
-        return GameManager.GetLocationEffects(choice);
+        return GameManager.GetLocationEffects(Encounter, choice);
     }
 
     public bool IsChoiceDisabled(UserEncounterChoiceOption choice)

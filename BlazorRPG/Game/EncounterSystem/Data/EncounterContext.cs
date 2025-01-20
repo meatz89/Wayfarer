@@ -1,5 +1,7 @@
 ﻿public class EncounterContext
 {
+    public LocationNames LocationName { get; }
+    public string LocationSpotName { get; }
     public BasicActionTypes ActionType { get; }
     public LocationTypes LocationType { get; }
     public LocationArchetypes LocationArchetype { get; }
@@ -13,6 +15,8 @@
 
     // Constructor remains the same but without value initialization
     public EncounterContext(
+        LocationNames locationName,
+        string locationSpotName,
         BasicActionTypes actionType,
         LocationTypes locationType,
         LocationArchetypes locationArchetype,
@@ -24,6 +28,8 @@
         int playerLevel
         )
     {
+        LocationName = locationName;
+        LocationSpotName = locationSpotName;
         ActionType = actionType;
         LocationType = locationType;
         LocationArchetype = locationArchetype;

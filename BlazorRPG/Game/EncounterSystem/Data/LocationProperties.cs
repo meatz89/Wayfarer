@@ -1,4 +1,5 @@
-﻿
+﻿// For LOCATION
+
 // --- Resource ---
 public enum ResourceTypes
 {
@@ -36,20 +37,16 @@ public enum LocationArchetypes
     Crossroads
 }
 
-public enum LocationPropertyTypes
+public enum CrowdDensity
 {
-    Archetype,
-    Resource,
-
-    ActivityLevel,
-    Accessibility,
-    Supervision,
-
-    Atmosphere,
-    Space,
-    Lighting,
-    Exposure,
+    Deserted, Quiet, Busy
 }
+
+public enum LocationScale
+{
+    Small, Medium, Large
+}
+
 
 public class LocationProperties
 {
@@ -60,25 +57,22 @@ public class LocationProperties
     public bool IsArchetypeSet { get; private set; } = false;
     public ResourceTypes? Resource { get; set; }
     public bool IsResourceSet { get; private set; } = false;
+    public CrowdDensity? CrowdDensity { get; set; }
+    public bool IsCrowdDensitySet { get; private set; } = false;
+    public LocationScale? LocationScale { get; set; }
+    public bool IsLocationScaleSet { get; private set; } = false;
 
     // Action Availability
-    public AccessibilityTypes? Accessability { get; set; }
+    public Accessability? Accessability { get; set; }
     public bool IsAccessabilitySet { get; private set; } = false;
-    public ActivityLevelTypes? ActivityLevel { get; set; }
-    public bool IsActivitySet { get; private set; } = false;
-    public SupervisionTypes? Supervision { get; set; }
-    public bool IsSupervisionSet { get; private set; } = false;
-
-
-    // Action Availability
-    public AtmosphereTypes? Atmosphere { get; set; }
+    public Engagement? Engagement { get; set; }
+    public bool IsEngagementSet { get; private set; } = false;
+    public Atmosphere? Atmosphere { get; set; }
     public bool IsAtmosphereSet { get; private set; } = false;
-    public SpaceTypes? Space { get; set; }
-    public bool IsSpaceSet { get; private set; } = false;
-    public LightingTypes? Lighting { get; set; }
-    public bool IsLightingSet { get; private set; } = false;
-    public ExposureTypes? Exposure { get; set; }
-    public bool IsExposureSet { get; private set; } = false;
+    public RoomLayout? RoomLayout { get; set; }
+    public bool IsRoomLayoutSet { get; private set; } = false;
+    public Temperature? Temperature { get; set; }
+    public bool IsTemperatureSet { get; private set; } = false;
 
     public object GetProperty(LocationPropertyTypes propertyType)
     {
@@ -88,22 +82,21 @@ public class LocationProperties
                 return Archetype;
             case LocationPropertyTypes.Resource:
                 return Resource;
+            case LocationPropertyTypes.CrowdDensity:
+                return CrowdDensity;
+            case LocationPropertyTypes.LocationScale:
+                return LocationScale;
 
             case LocationPropertyTypes.Accessibility:
                 return Accessability;
-            case LocationPropertyTypes.ActivityLevel:
-                return ActivityLevel;
-            case LocationPropertyTypes.Supervision:
-                return Supervision;
-
+            case LocationPropertyTypes.Engagement:
+                return Engagement;
             case LocationPropertyTypes.Atmosphere:
                 return Atmosphere;
-            case LocationPropertyTypes.Space:
-                return Space;
-            case LocationPropertyTypes.Lighting:
-                return Lighting;
-            case LocationPropertyTypes.Exposure:
-                return Exposure;
+            case LocationPropertyTypes.RoomLayout:
+                return RoomLayout;
+            case LocationPropertyTypes.Temperature:
+                return Temperature;
 
             default:
                 throw new ArgumentException($"Unknown property type: {propertyType}");
@@ -123,79 +116,41 @@ public class LocationProperties
                 Resource = (ResourceTypes)value;
                 IsResourceSet = true;
                 break;
+            case LocationPropertyTypes.CrowdDensity:
+                CrowdDensity = (CrowdDensity)value;
+                IsCrowdDensitySet = true;
+                break;
+            case LocationPropertyTypes.LocationScale:
+                LocationScale = (LocationScale)value;
+                IsLocationScaleSet = true;
+                break;
+
 
             case LocationPropertyTypes.Accessibility:
-                Accessability = (AccessibilityTypes)value;
+                Accessability = (Accessability)value;
                 IsAccessabilitySet = true;
                 break;
-            case LocationPropertyTypes.ActivityLevel:
-                ActivityLevel = (ActivityLevelTypes)value;
-                IsActivitySet = true;
+            case LocationPropertyTypes.Engagement:
+                Engagement = (Engagement)value;
+                IsEngagementSet = true;
                 break;
-            case LocationPropertyTypes.Supervision:
-                Supervision = (SupervisionTypes)value;
-                IsSupervisionSet = true;
-                break;
-
             case LocationPropertyTypes.Atmosphere:
-                Atmosphere = (AtmosphereTypes)value;
+                Atmosphere = (Atmosphere)value;
                 IsAtmosphereSet = true;
                 break;
-            case LocationPropertyTypes.Space:
-                Space = (SpaceTypes)value;
-                IsSpaceSet = true;
+            case LocationPropertyTypes.RoomLayout:
+                RoomLayout = (RoomLayout)value;
+                IsRoomLayoutSet = true;
                 break;
-            case LocationPropertyTypes.Lighting:
-                Lighting = (LightingTypes)value;
-                IsLightingSet = true;
-                break;
-            case LocationPropertyTypes.Exposure:
-                Exposure = (ExposureTypes)value;
-                IsExposureSet = true;
+            case LocationPropertyTypes.Temperature:
+                Temperature = (Temperature)value;
+                IsTemperatureSet = true;
                 break;
             default:
                 throw new ArgumentException($"Unknown property type: {propertyType}");
         }
     }
 }
-
-public enum ActivityLevelTypes
-{
-    Deserted, Quiet, Bustling
-}
-
-public enum AccessibilityTypes
-{
-    Private, Restricted, Public
-}
-
-public enum SupervisionTypes
-{
-    Unsupervised, Patrolled, Watched
-}
-
-
-public enum AtmosphereTypes
-{
-    Relaxed, Formal, Tense,
-    Mysterious
-}
-
-public enum SpaceTypes
-{
-    Open, Cramped, Hazardous
-}
-
-public enum LightingTypes
-{
-    Bright, Dim, Dark
-}
-
-public enum ExposureTypes
-{
-    Indoor, Outdoor
-}
-
 
 public abstract class LocationPropertyTypeValue
 {
@@ -220,68 +175,64 @@ public class ResourceValue : LocationPropertyTypeValue
     }
 }
 
-
-
-public class ActivityLevelValue : LocationPropertyTypeValue
+public class CrowdDensityValue : LocationPropertyTypeValue
 {
-    public ActivityLevelTypes ActivityLevel { get; set; }
+    public CrowdDensity CrowdDensity { get; set; }
     public override LocationPropertyTypes GetPropertyType()
     {
-        return LocationPropertyTypes.ActivityLevel;
+        return LocationPropertyTypes.CrowdDensity;
     }
 }
 
-public class AccessabilityLevelValue : LocationPropertyTypeValue
+public class LocationScaleValue : LocationPropertyTypeValue
 {
-    public AccessibilityTypes Accessability { get; set; }
+    public LocationScale LocationScale { get; set; }
     public override LocationPropertyTypes GetPropertyType()
     {
-        return LocationPropertyTypes.Exposure;
+        return LocationPropertyTypes.LocationScale;
     }
 }
 
-public class SupervisionValue : LocationPropertyTypeValue
+public class AccessabilityValue : LocationPropertyTypeValue
 {
-    public SupervisionTypes Supervision { get; set; }
+    public Accessability Accessability { get; set; }
     public override LocationPropertyTypes GetPropertyType()
     {
-        return LocationPropertyTypes.Supervision;
+        return LocationPropertyTypes.Accessibility;
     }
 }
 
-
+public class EngagementValue : LocationPropertyTypeValue
+{
+    public Engagement Engagement { get; set; }
+    public override LocationPropertyTypes GetPropertyType()
+    {
+        return LocationPropertyTypes.Engagement;
+    }
+}
 public class AtmosphereValue : LocationPropertyTypeValue
 {
-    public AtmosphereTypes Atmosphere { get; set; }
+    public Atmosphere Atmosphere { get; set; }
     public override LocationPropertyTypes GetPropertyType()
     {
         return LocationPropertyTypes.Atmosphere;
     }
 }
 
-public class SpaceValue : LocationPropertyTypeValue
+public class RoomLayoutValue : LocationPropertyTypeValue
 {
-    public SpaceTypes Space { get; set; }
+    public RoomLayout RoomLayout { get; set; }
     public override LocationPropertyTypes GetPropertyType()
     {
-        return LocationPropertyTypes.Space;
+        return LocationPropertyTypes.RoomLayout;
     }
 }
 
-public class LightingValue : LocationPropertyTypeValue
+public class TemperatureValue : LocationPropertyTypeValue
 {
-    public LightingTypes Lighting { get; set; }
+    public Temperature Temperature { get; set; }
     public override LocationPropertyTypes GetPropertyType()
     {
-        return LocationPropertyTypes.Lighting;
-    }
-}
-
-public class ExposureValue : LocationPropertyTypeValue
-{
-    public ExposureTypes Exposure { get; set; }
-    public override LocationPropertyTypes GetPropertyType()
-    {
-        return LocationPropertyTypes.Accessibility;
+        return LocationPropertyTypes.Temperature;
     }
 }

@@ -16,5 +16,7 @@
     Investigate, // Directed observation. (Reward Type: Knowledge/Opportunities)
     Study, // Focused learning. (Reward Type: Knowledge/Skills)
     Reflect, // Processing/rest. (Reward Type: State Change/Energy Restoration)
+    Recover,
+    Discuss,
 }
 

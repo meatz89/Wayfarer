@@ -124,13 +124,13 @@
         {
             return properties.Atmosphere.HasValue && properties.Atmosphere.Value == atmosphereValue.Atmosphere;
         }
-        else if (locationProperty is SpaceValue spaceValue)
+        else if (locationProperty is RoomLayoutValue spaceValue)
         {
-            return properties.Space.HasValue && properties.Space.Value == spaceValue.Space;
+            return properties.RoomLayout.HasValue && properties.RoomLayout.Value == spaceValue.RoomLayout;
         }
-        else if (locationProperty is ActivityLevelValue activityLevelValue)
+        else if (locationProperty is CrowdDensityValue activityLevelValue)
         {
-            return properties.ActivityLevel.HasValue && properties.ActivityLevel.Value == activityLevelValue.ActivityLevel;
+            return properties.CrowdDensity.HasValue && properties.CrowdDensity.Value == activityLevelValue.CrowdDensity;
         }
         // Add other property type checks here
 

@@ -4,9 +4,8 @@
     private static readonly HashSet<LocationPropertyTypes> MandatoryProperties = new()
     {
         LocationPropertyTypes.Archetype,  // The fundamental nature of the location
-        LocationPropertyTypes.ActivityLevel,   // Whether it's indoor/outdoor
-        LocationPropertyTypes.Accessibility,   // Whether it's indoor/outdoor
-        LocationPropertyTypes.Supervision    // Whether the action is legally allowed
+        LocationPropertyTypes.CrowdDensity,   
+        LocationPropertyTypes.LocationScale,
     };
 
     public bool IsActionAvailable(ActionTemplate template, LocationProperties locationProperties)
@@ -59,15 +58,14 @@
         {
             LocationPropertyTypes.Archetype => properties.IsArchetypeSet,
             LocationPropertyTypes.Resource => properties.IsResourceSet,
+            LocationPropertyTypes.CrowdDensity => properties.IsCrowdDensitySet,
+            LocationPropertyTypes.LocationScale => properties.IsLocationScaleSet,
 
             LocationPropertyTypes.Accessibility => properties.IsAccessabilitySet,
-            LocationPropertyTypes.ActivityLevel => properties.IsActivitySet,
-            LocationPropertyTypes.Supervision => properties.IsSupervisionSet,
-
+            LocationPropertyTypes.Engagement => properties.IsEngagementSet,
             LocationPropertyTypes.Atmosphere => properties.IsAtmosphereSet,
-            LocationPropertyTypes.Space => properties.IsSpaceSet,
-            LocationPropertyTypes.Lighting => properties.IsLightingSet,
-            LocationPropertyTypes.Exposure => properties.IsExposureSet,
+            LocationPropertyTypes.RoomLayout => properties.IsRoomLayoutSet,
+            LocationPropertyTypes.Temperature => properties.IsTemperatureSet,
             _ => throw new ArgumentException($"Unknown property type: {propertyType}")
         };
     }

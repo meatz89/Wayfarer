@@ -32,9 +32,9 @@ public partial class GameUI : ComponentBase
     public PlayerState Player => GameState.Player;
     public Location CurrentLocation => GameState.World.CurrentLocation;
     public LocationSpot CurrentSpot => GameState.World.CurrentLocationSpot;
+    public Encounter CurrentEncounter => GameState.Actions.CurrentEncounter;
     public TimeSlots CurrentTime => GameState.World.CurrentTimeSlot;
     public int CurrentHour => GameState.World.CurrentTimeInHours;
-
     public bool ShowEncounterResult { get; set; } = false;
     public EncounterResults EncounterResult { get; set; }
 
@@ -121,7 +121,7 @@ public partial class GameUI : ComponentBase
 
     public bool HasEncounter()
     {
-        return GameState.Actions.CurrentEncounter != null;
+        return CurrentEncounter != null;
     }
 
     private void HandleEncounterCompleted()
@@ -210,36 +210,30 @@ public partial class GameUI : ComponentBase
         GameManager.UpdateState();
     }
 
-    public List<LocationPropertyChoiceEffect> GetLocationEffects()
+    private List<PropertyDisplay> GetLocationProperties(Location location)
     {
-        return GameManager.GetLocationEffects(CurrentLocation.LocationName);
+        List<PropertyDisplay> properties = new List<PropertyDisplay>();
+
+        properties.Add(new(
+                "",
+                FormatEnumString(location.LocationArchetype.ToString()),
+                ""
+            ));
+
+        properties.Add(new(
+                "",
+                FormatEnumString(location.CrowdDensity.ToString()),
+                ""
+            ));
+
+        properties.Add(new(
+                "",
+                FormatEnumString(location.LocationScale.ToString()),
+                ""
+            ));
+
+        return properties;
     }
-
-    private string GetPressureIcon(AtmosphereTypes? pressure) => pressure switch
-    {
-        AtmosphereTypes.Relaxed => "😌",
-        AtmosphereTypes.Formal => "⚠️",
-        AtmosphereTypes.Tense => "⚔️",
-        _ => "❓"
-    };
-
-    private string GetResourceIcon(ResourceTypes? resource) => resource switch
-    {
-        ResourceTypes.Food => "🍖",
-        ResourceTypes.Wood => "🪵",
-        ResourceTypes.Fish => "🐟",
-        ResourceTypes.Herbs => "🌿",
-        ResourceTypes.Cloth => "🧵",
-        _ => "📦"
-    };
-
-    private string GetCrowdIcon(ActivityLevelTypes? crowdLevel) => crowdLevel switch
-    {
-        ActivityLevelTypes.Deserted => "🕸️",
-        ActivityLevelTypes.Quiet => "👤",
-        ActivityLevelTypes.Bustling => "👥",
-        _ => "❓"
-    };
 
     private string FormatEnumString(string value)
     {
@@ -248,131 +242,9 @@ public partial class GameUI : ComponentBase
             .Replace("Type", "")
             .Replace("Types", "");
     }
-
-    private List<PropertyDisplay> GetLocationPropertiesWithEffects()
-    {
-        List<PropertyDisplay> properties = new List<PropertyDisplay>();
-        LocationProperties loc = CurrentLocation.LocationProperties;
-
-        if (loc.IsArchetypeSet)
-        {
-            List<string> archetypeEffects = GetEffectDescriptions(LocationPropertyTypes.Archetype);
-            properties.Add(new(
-                "🏠",
-                FormatEnumString(CurrentLocation.LocationProperties.Archetype.ToString()),
-                "",
-                archetypeEffects
-            ));
-        }
-
-        if (loc.IsResourceSet && loc.Resource != ResourceTypes.None)
-        {
-            List<string> resourceEffects = GetEffectDescriptions(LocationPropertyTypes.Resource);
-            properties.Add(new(
-                GetResourceIcon(loc.Resource),
-                FormatEnumString(loc.Resource.ToString()),
-                "",
-                resourceEffects
-            ));
-        }
-
-        if (loc.IsActivitySet)
-        {
-            List<string> crowdEffects = GetEffectDescriptions(LocationPropertyTypes.ActivityLevel);
-            properties.Add(new(
-                GetCrowdIcon(loc.ActivityLevel),
-                FormatEnumString(loc.ActivityLevel.ToString()),
-                "",
-                crowdEffects
-            ));
-        }
-
-
-        if (loc.IsAccessabilitySet)
-        {
-            List<string> scaleEffects = GetEffectDescriptions(LocationPropertyTypes.Accessibility);
-            properties.Add(new(
-                "📐",
-                FormatEnumString(loc.Accessability.ToString()),
-                "",
-                scaleEffects
-            ));
-        }
-
-        if (loc.IsSupervisionSet)
-        {
-            List<string> legalityEffects = GetEffectDescriptions(LocationPropertyTypes.Supervision);
-            properties.Add(new(
-                "⚖️",
-                FormatEnumString(loc.Supervision.ToString()),
-                $"property-{loc.Supervision.ToString().ToLower()}",
-                legalityEffects
-            ));
-        }
-
-
-        if (loc.IsAtmosphereSet)
-        {
-            List<string> pressureEffects = GetEffectDescriptions(LocationPropertyTypes.Atmosphere);
-            properties.Add(new(
-                GetPressureIcon(loc.Atmosphere),
-                FormatEnumString(loc.Atmosphere.ToString()),
-                $"property-{loc.Space.ToString().ToLower()}",
-                pressureEffects
-            ));
-        }
-
-        if (loc.IsSpaceSet)
-        {
-            List<string> complexityEffects = GetEffectDescriptions(LocationPropertyTypes.Space);
-            properties.Add(new(
-                "🧩",
-                FormatEnumString(loc.Space.ToString()),
-                "",
-                complexityEffects
-            ));
-        }
-
-        if (loc.IsExposureSet)
-        {
-            List<string> exposureEffects = GetEffectDescriptions(LocationPropertyTypes.Exposure);
-            properties.Add(new(
-                loc.Exposure == ExposureTypes.Indoor ? "🏗️" : "🌳",
-                FormatEnumString(loc.Exposure.ToString()),
-                "",
-                exposureEffects
-            ));
-        }
-
-        return properties;
-    }
-
-    private List<string> GetEffectDescriptions(LocationPropertyTypes propertyType)
-    {
-        List<string> effects = new();
-        List<LocationPropertyChoiceEffect> locationEffects = GetLocationEffects();
-
-        foreach (LocationPropertyChoiceEffect effect in locationEffects)
-        {
-            // Skip if property type doesn't match
-            if (effect.LocationProperty.GetPropertyType() != propertyType)
-                continue;
-
-            string formattedEffect = FormatEffect(effect);
-            effects.Add(formattedEffect);
-        }
-
-        return effects;
-    }
-
-    public string FormatEffect(LocationPropertyChoiceEffect effect)
-    {
-        return effect.Description;
-    }
 }
 
 public record struct PropertyDisplay(
-    string Icon,
-    string Text,
-    string CssClass,
-    List<string> Effects);
+string Icon,
+string Text,
+string CssClass);

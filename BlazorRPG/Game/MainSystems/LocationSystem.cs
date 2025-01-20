@@ -33,17 +33,19 @@
         return location.LocationSpots;
     }
 
-    public LocationSpot GetLocationSpotForLocation(LocationNames locationName, string locationSpotType)
+    public LocationSpot GetLocationSpotForLocation(LocationNames locationName, string locationSpot)
     {
         Location location = GetLocation(locationName);
         List<LocationSpot> spots = GetLocationSpots(location);
-        return spots.FirstOrDefault(x => x.Name == locationSpotType);
+        LocationSpot? locationSpot1 = spots.FirstOrDefault(x => x.Name == locationSpot);
+        return locationSpot1;
     }
 
-    public List<LocationPropertyChoiceEffect> GetLocationEffects(LocationNames locationName)
+    public List<LocationPropertyChoiceEffect> GetLocationEffects(LocationNames locationName, string locationSpotName)
     {
         Location location = GetLocation(locationName);
-        LocationProperties locationProperties = location.LocationProperties;
+        LocationSpot locationSpot = GetLocationSpotForLocation(locationName, locationSpotName);
+        LocationProperties locationProperties = locationSpot.SpotProperties;
 
         List<LocationPropertyChoiceEffect> effects = new List<LocationPropertyChoiceEffect>();
         foreach (LocationPropertyChoiceEffect locationContextEffect in locationContextEffects)
@@ -61,23 +63,21 @@
                 return locProperties.Archetype == ((ArchetypeValue)locPropertyTypeValue).Archetype;
             case LocationPropertyTypes.Resource:
                 return locProperties.Resource == ((ResourceValue)locPropertyTypeValue).Resource;
+            case LocationPropertyTypes.CrowdDensity:
+                return locProperties.CrowdDensity == ((CrowdDensityValue)locPropertyTypeValue).CrowdDensity;
+            case LocationPropertyTypes.LocationScale:
+                return locProperties.LocationScale == ((LocationScaleValue)locPropertyTypeValue).LocationScale;
 
-
-            case LocationPropertyTypes.ActivityLevel:
-                return locProperties.ActivityLevel == ((ActivityLevelValue)locPropertyTypeValue).ActivityLevel;
             case LocationPropertyTypes.Accessibility:
-                return locProperties.Exposure == ((ExposureValue)locPropertyTypeValue).Exposure;
-            case LocationPropertyTypes.Supervision:
-                return locProperties.Supervision == ((SupervisionValue)locPropertyTypeValue).Supervision;
-
+                return locProperties.Accessability == ((AccessabilityValue)locPropertyTypeValue).Accessability;
+            case LocationPropertyTypes.Engagement:
+                return locProperties.Engagement == ((EngagementValue)locPropertyTypeValue).Engagement;
             case LocationPropertyTypes.Atmosphere:
                 return locProperties.Atmosphere == ((AtmosphereValue)locPropertyTypeValue).Atmosphere;
-            case LocationPropertyTypes.Space:
-                return locProperties.Space == ((SpaceValue)locPropertyTypeValue).Space;
-            case LocationPropertyTypes.Lighting:
-                return locProperties.Lighting == ((LightingValue)locPropertyTypeValue).Lighting;
-            case LocationPropertyTypes.Exposure:
-                return locProperties.Accessability == ((AccessabilityLevelValue)locPropertyTypeValue).Accessability;
+            case LocationPropertyTypes.RoomLayout:
+                return locProperties.RoomLayout == ((RoomLayoutValue)locPropertyTypeValue).RoomLayout;
+            case LocationPropertyTypes.Temperature:
+                return locProperties.Temperature == ((TemperatureValue)locPropertyTypeValue).Temperature;
             default:
                 return false;
         }

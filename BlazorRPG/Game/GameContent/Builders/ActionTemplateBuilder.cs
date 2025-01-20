@@ -3,6 +3,10 @@
     private string name;
     private BasicActionTypes actionType;
     private List<TimeSlots> timeSlots = new List<TimeSlots>();
+
+    private LocationArchetypes locationArchetype;
+    private CrowdDensity crowdDensity;
+    private LocationScale locationScale;
     private List<LocationPropertyCondition> availabilityConditions = new List<LocationPropertyCondition>();
 
     public ActionTemplateBuilder WithName(string name)
@@ -23,6 +27,24 @@
         return this;
     }
 
+    public ActionTemplateBuilder SetLocationArchetype(LocationArchetypes archetype)
+    {
+        this.locationArchetype = archetype;
+        return this;
+    }
+
+    public ActionTemplateBuilder SetCrowdDensity(CrowdDensity crowdDensity)
+    {
+        this.crowdDensity = crowdDensity;
+        return this;
+    }
+
+    public ActionTemplateBuilder SetLocationScale(LocationScale locationScale)
+    {
+        this.locationScale = locationScale;
+        return this;
+    }
+
     public ActionTemplateBuilder AddAvailabilityCondition(Action<LocationPropertiesBuilder> buildLocationProperties)
     {
         LocationPropertiesBuilder builder = new LocationPropertiesBuilder();
@@ -30,15 +52,11 @@
         LocationProperties properties = builder.Build();
 
         // Create LocationPropertyCondition instances for each property defined in the builder
-        AddConditionIfSet<LocationArchetypes>(properties, LocationPropertyTypes.Archetype);
-        AddConditionIfSet<ResourceTypes>(properties, LocationPropertyTypes.Resource);
-        AddConditionIfSet<AccessibilityTypes>(properties, LocationPropertyTypes.Accessibility);
-        AddConditionIfSet<ActivityLevelTypes>(properties, LocationPropertyTypes.ActivityLevel);
-        AddConditionIfSet<SupervisionTypes>(properties, LocationPropertyTypes.Supervision);
-        AddConditionIfSet<AtmosphereTypes>(properties, LocationPropertyTypes.Atmosphere);
-        AddConditionIfSet<SpaceTypes>(properties, LocationPropertyTypes.Space);
-        AddConditionIfSet<LightingTypes>(properties, LocationPropertyTypes.Lighting);
-        AddConditionIfSet<ExposureTypes>(properties, LocationPropertyTypes.Exposure);
+        AddConditionIfSet<Accessability>(properties, LocationPropertyTypes.Accessibility);
+        AddConditionIfSet<Engagement>(properties, LocationPropertyTypes.Engagement);
+        AddConditionIfSet<Atmosphere>(properties, LocationPropertyTypes.Atmosphere);
+        AddConditionIfSet<RoomLayout>(properties, LocationPropertyTypes.RoomLayout);
+        AddConditionIfSet<Temperature>(properties, LocationPropertyTypes.Temperature);
 
         return this;
     }
@@ -59,6 +77,8 @@
         {
             throw new InvalidOperationException("ActionTemplate must have a name.");
         }
-        return new ActionTemplate(name, actionType, timeSlots, availabilityConditions);
+        return new ActionTemplate(name, actionType, timeSlots,
+            locationArchetype, crowdDensity, locationScale,
+            availabilityConditions);
     }
 }

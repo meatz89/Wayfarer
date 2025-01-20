@@ -2,12 +2,33 @@
 {
     private LocationTypes locationType;
     private LocationNames locationName;
+
     private List<LocationNames> travelResonances = new();
     private List<LocationSpot> locationSpots = new();
     private int difficultyLevel;
 
     // Location properties
-    private LocationProperties locationProperties;
+    private LocationArchetypes locationArchetype;
+    private CrowdDensity crowdDensity;
+    private LocationScale locationScale;
+
+    public LocationBuilder WithArchetype(LocationArchetypes archetype)
+    {
+        this.locationArchetype = archetype;
+        return this;
+    }
+
+    public LocationBuilder WithCrowdLevel(CrowdDensity crowdDensity)
+    {
+        this.crowdDensity = crowdDensity;
+        return this;
+    }
+
+    public LocationBuilder WithLocationScale(LocationScale locationScale)
+    {
+        this.locationScale = locationScale;
+        return this;
+    }
 
     public LocationBuilder SetLocationType(LocationTypes type)
     {
@@ -43,14 +64,6 @@
         return this;
     }
 
-    public LocationBuilder WithLocationProperties(Action<LocationPropertiesBuilder> buildProperties)
-    {
-        LocationPropertiesBuilder builder = new LocationPropertiesBuilder();
-        buildProperties(builder);
-
-        locationProperties = builder.Build();
-        return this;
-    }
 
     public LocationBuilder WithDifficultyLevel(int difficultyLevel)
     {
@@ -63,9 +76,11 @@
         return new Location(
             locationType,
             locationName,
+            locationArchetype,
+            crowdDensity,
+            locationScale,
             travelResonances,
             locationSpots,
-            locationProperties,
             difficultyLevel
         );
     }

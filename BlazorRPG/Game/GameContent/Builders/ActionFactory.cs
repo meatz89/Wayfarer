@@ -12,10 +12,6 @@
                 action.Rewards.Add(new CoinsOutcome(3)); // Add 3 coins
                 break;
             case BasicActionTypes.Gather:
-                if (location.LocationProperties.Resource.HasValue)
-                {
-                    action.Rewards.Add(new ResourceOutcome(location.LocationProperties.Resource.Value, 1)); // Add 1 of the location's resource
-                }
                 break;
         }
 

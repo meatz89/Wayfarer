@@ -6,10 +6,7 @@
             .WithName("Finding a place to stay for the night")
             .WithActionType(BasicActionTypes.Persuade)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Tavern)
-                .WithActivityLevel(ActivityLevelTypes.Bustling)
-                .WithAccessibility(AccessibilityTypes.Public)
-                .WithAtmosphere(AtmosphereTypes.Relaxed))
+                .WithArchetype(LocationArchetypes.Tavern))
             //.AddStateCondition(values => values
             //    .WithMaxOutcome(3)     // Early social positioning
             //    .WithMaxPressure(4)    // Some social pressure but not overwhelming

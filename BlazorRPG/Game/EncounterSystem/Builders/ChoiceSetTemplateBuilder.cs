@@ -28,15 +28,14 @@
         // Create LocationPropertyCondition instances for each property defined in the builder
         AddConditionIfSet<LocationArchetypes>(properties, LocationPropertyTypes.Archetype);
         AddConditionIfSet<ResourceTypes>(properties, LocationPropertyTypes.Resource);
+        AddConditionIfSet<CrowdDensity>(properties, LocationPropertyTypes.CrowdDensity);
+        AddConditionIfSet<LocationScale>(properties, LocationPropertyTypes.LocationScale);
 
-        AddConditionIfSet<ActivityLevelTypes>(properties, LocationPropertyTypes.ActivityLevel);
-        AddConditionIfSet<AccessibilityTypes>(properties, LocationPropertyTypes.Accessibility);
-        AddConditionIfSet<SupervisionTypes>(properties, LocationPropertyTypes.Supervision);
-
-        AddConditionIfSet<AtmosphereTypes>(properties, LocationPropertyTypes.Atmosphere);
-        AddConditionIfSet<SpaceTypes>(properties, LocationPropertyTypes.Space);
-        AddConditionIfSet<LightingTypes>(properties, LocationPropertyTypes.Lighting);
-        AddConditionIfSet<ExposureTypes>(properties, LocationPropertyTypes.Exposure);
+        AddConditionIfSet<Accessability>(properties, LocationPropertyTypes.Accessibility);
+        AddConditionIfSet<Engagement>(properties, LocationPropertyTypes.Engagement);
+        AddConditionIfSet<Atmosphere>(properties, LocationPropertyTypes.Atmosphere);
+        AddConditionIfSet<RoomLayout>(properties, LocationPropertyTypes.RoomLayout);
+        AddConditionIfSet<Temperature>(properties, LocationPropertyTypes.Temperature);
 
         return this;
     }

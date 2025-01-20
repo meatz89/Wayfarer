@@ -137,7 +137,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    position: relative; /* For proper stacking context */
+    position: relative;
 }
 
     .location-card.current {
@@ -158,6 +158,19 @@ body {
             border-radius: 5px;
             pointer-events: none; /* This is crucial - allows clicks to pass through */
         }
+
+.location-spot-properties {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: row; /* Stack properties vertically */
+    align-items: flex-end; /* Align to the right */
+}
+
+    .location-spot-properties .property-tag {
+        margin-bottom: 5px; /* Add some spacing between property tags */
+    }
 
 .location-type {
     color: var(--text-secondary);

@@ -92,7 +92,8 @@
         };
     }
 
-    public List<UserEncounterChoiceOption> GetChoiceOptions(Encounter encounter, LocationNames location)
+    public List<UserEncounterChoiceOption> GetChoiceOptions(
+        Encounter encounter)
     {
         EncounterStage stage = GetCurrentStage(encounter);
         List<EncounterChoice> choices = stage.Choices;
@@ -100,8 +101,11 @@
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
         foreach (EncounterChoice choice in choices)
         {
+            LocationNames locationName = encounter.Context.LocationName;
+            string locationSpotName = encounter.Context.LocationSpotName;
+
             UserEncounterChoiceOption option = new UserEncounterChoiceOption(
-                choice.Index, choice.Description, location,
+                choice.Index, choice.Description, locationName, locationSpotName,
                 encounter, stage, choice);
 
             choiceOptions.Add(option);

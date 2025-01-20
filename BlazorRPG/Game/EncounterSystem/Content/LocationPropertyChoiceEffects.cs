@@ -5,7 +5,7 @@
             // Atmosphere effects
             new LocationPropertyChoiceEffect
             {
-                LocationProperty = new AtmosphereValue { Atmosphere = AtmosphereTypes.Relaxed },
+                LocationProperty = new AtmosphereValue { Atmosphere = Atmosphere.Social },
                 ValueEffect = new EncounterValueModification(ValueTypes.Pressure, -2, "Relaxed Atmosphere") // Add source here
                 {
                 },
@@ -14,7 +14,7 @@
 
             new LocationPropertyChoiceEffect
             {
-                LocationProperty = new AtmosphereValue { Atmosphere = AtmosphereTypes.Tense },
+                LocationProperty = new AtmosphereValue { Atmosphere = Atmosphere.Hostile },
                 ValueEffect = new EncounterValueModification(ValueTypes.Pressure, 2, "Tense Atmosphere"), // Add source here
                 Description = "The tense atmosphere increases pressure"
             },
@@ -22,7 +22,7 @@
             // Activity level effects
             new LocationPropertyChoiceEffect
             {
-                LocationProperty = new ActivityLevelValue { ActivityLevel = ActivityLevelTypes.Quiet },
+                LocationProperty = new CrowdDensityValue { CrowdDensity = CrowdDensity.Quiet },
                 ValueEffect = new EncounterValueModification(ValueTypes.Insight, 2, "Quiet Atmosphere"),
                 Description = "The quiet space helps concentration"
             },

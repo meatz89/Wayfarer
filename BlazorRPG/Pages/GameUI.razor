@@ -66,7 +66,7 @@
         </div>
         @if (HasEncounter())
         {
-            <EncounterView OnEncounterCompleted="(result) => HandleEncounterCompleted(result)" />
+            <EncounterView Encounter="CurrentEncounter" OnEncounterCompleted="(result) => HandleEncounterCompleted(result)" />
         }
         else
         {
@@ -98,99 +98,77 @@
     </div>
 
     <div class="sidebar">
+        <div class="sidebar-panel location-panel">
+        <div class="location-name">
+            @CurrentLocation.LocationName
+        </div>
 
-<div class="sidebar-panel location-panel">
-    <div class="location-name">
-        @CurrentLocation.LocationName
-    </div>
-
-    <div class="location-properties">
-        <div class="properties-header">Properties</div>
-            <div class="properties-grid">
-                    @foreach (var prop in GetLocationPropertiesWithEffects())
+            <div class="location-properties">
+                <div class="properties-header">Properties</div>
+                <div class="properties-grid">
+                    @foreach (var prop in GetLocationProperties(CurrentLocation))
                     {
-                        if (prop.Effects.Count > 0)
-                        {
-                            <div class="property-tag @prop.CssClass" data-tooltip="@string.Join(" | ", prop.Effects)">
-                                <span class="property-icon">@prop.Icon</span>
-                                <span class="property-text">@prop.Text</span>
-                                <span class="effect-indicator">✨</span>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="property-tag @prop.CssClass">
-                                <span class="property-icon">@prop.Icon</span>
-                                <span class="property-text">@prop.Text</span>
-                            </div>
-                        }
+                        <div class="property-tag @prop.CssClass">
+                            <span class="property-icon">@prop.Icon</span>
+                            <span class="property-text">@prop.Text</span>
+                        </div>
                     }
                 </div>
-            <ul class="property-effects">
-                @foreach (var prop in GetLocationPropertiesWithEffects())
-                {
-                    @foreach (var effect in prop.Effects)
-                    {
-                        <li>@effect</li>
-                    }
-                }
-            </ul>
-
             </div>
-        </div>
 
-        <div class="sidebar-panel">
-            <div class="panel-title">Daily Requirements</div>
-            <div class="panel-content">
-                @*                 <div class="requirement">
-                    <span style="color: var(--resource-food)">
-                        • @baseRequirements.DailyFood Food by Night
-                        @if (modifiedRequirements.DailyFood > baseRequirements.DailyFood)
-                        {
-                            <span class="modifier">
-                                (+@(modifiedRequirements.DailyFood - baseRequirements.DailyFood)
-                                from @GetModifierSource())
-                            </span>
-                        }
-                    </span>
-                </div> *@
-                <div class="requirement">
-                    <span style="color: var(--resource-food)">• 1 Food by Night</span>
-                </div>
-                <div class="requirement">
-                    <span style="color: var(--resource-shelter)">• Shelter during Night</span>
+            <div class="sidebar-panel">
+                <div class="panel-title">Daily Requirements</div>
+                <div class="panel-content">
+                    @*                 <div class="requirement">
+                        <span style="color: var(--resource-food)">
+                            • @baseRequirements.DailyFood Food by Night
+                            @if (modifiedRequirements.DailyFood > baseRequirements.DailyFood)
+                            {
+                                <span class="modifier">
+                                    (+@(modifiedRequirements.DailyFood - baseRequirements.DailyFood)
+                                    from @GetModifierSource())
+                                </span>
+                            }
+                        </span>
+                    </div> *@
+                    <div class="requirement">
+                        <span style="color: var(--resource-food)">• 1 Food by Night</span>
+                    </div>
+                    <div class="requirement">
+                        <span style="color: var(--resource-shelter)">• Shelter during Night</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="sidebar-panel">
-            <div class="panel-title">Time Management</div>
-            <div class="panel-content">
-                <div>• Travel takes time</div>
-                <div>• Actions advance time</div>
-                <div>• Plan your day carefully</div>
+            <div class="sidebar-panel">
+                <div class="panel-title">Time Management</div>
+                <div class="panel-content">
+                    <div>• Travel takes time</div>
+                    <div>• Actions advance time</div>
+                    <div>• Plan your day carefully</div>
+                </div>
             </div>
-        </div>
 
-        <div class="sidebar-panel quest-effects">
-            <div class="panel-title">Quest Effects</div>
-            <div class="panel-content">
-                @foreach (Quest activeQuest in GetActiveQuests())
-                {
-                    QuestStep questStep = activeQuest.GetCurrentStep();
-                    @if(questStep != null)
+            <div class="sidebar-panel quest-effects">
+                <div class="panel-title">Quest Effects</div>
+                <div class="panel-content">
+                    @foreach (Quest activeQuest in GetActiveQuests())
                     {
-                        @foreach (IGameStateModifier modifier in questStep.StateModifiers)
+                        QuestStep questStep = activeQuest.GetCurrentStep();
+                        @if(questStep != null)
                         {
-                            <div class="quest-effect">
-                                <div class="effect-source">@activeQuest.Title:</div>
-                                <div class="effect-description">
-                                    @GetModifierDescription(modifier)
+                            @foreach (IGameStateModifier modifier in questStep.StateModifiers)
+                            {
+                                <div class="quest-effect">
+                                    <div class="effect-source">@activeQuest.Title:</div>
+                                    <div class="effect-description">
+                                        @GetModifierDescription(modifier)
+                                    </div>
                                 </div>
-                            </div>
+                            }
                         }
                     }
-                }
+                </div>
             </div>
         </div>
     </div>
