@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.SignalR.Protocol;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using System.Text;
 
 public class LargeLanguageAdapter
 {
-    private const string openAiApiKey = "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";
     private const string completionsUrl = "https://api.openai.com/v1/chat/completions";
+    private string openAiApiKey;
 
     private Completion4oModel modelFromFile;
     private const string jsonPath = "completions.json";
@@ -21,8 +20,10 @@ public class LargeLanguageAdapter
         modelFromFile = GetModelFromFile(fileContent).Result;
     }
 
-    public void Execute(RequestObject requestObject)
+    public void Execute(RequestObject requestObject, string apiKey)
     {
+        this.openAiApiKey = apiKey;
+
         string prompt = string.Empty;
         prompt += requestObject.Choice1;
         prompt += requestObject.Choice2;

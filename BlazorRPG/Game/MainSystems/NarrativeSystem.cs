@@ -1,13 +1,18 @@
-﻿
-public class NarrativeSystem
+﻿public class NarrativeSystem
 {
     private List<LocationNarrative> narrativeContents;
+    private string openAiApiKey;
 
-    public NarrativeSystem(GameContentProvider gameContentProvider, LargeLanguageAdapter largeLanguageAdapter)
+    public NarrativeSystem(
+        GameContentProvider gameContentProvider, 
+        LargeLanguageAdapter largeLanguageAdapter,
+        IConfiguration configuration
+        )
     {
         narrativeContents = new List<LocationNarrative>();
         narrativeContents = gameContentProvider.GetNarratives();
         LargeLanguageAdapter = largeLanguageAdapter;
+        openAiApiKey = configuration.GetValue<string>("OpenAiApiKey");
     }
 
     public LargeLanguageAdapter LargeLanguageAdapter { get; }
@@ -27,7 +32,7 @@ public class NarrativeSystem
             Choice3 = prompt3,
         };
 
-        LargeLanguageAdapter.Execute(request);
+        LargeLanguageAdapter.Execute(request, openAiApiKey);
     }
 
     public string GetStageNarrative()
