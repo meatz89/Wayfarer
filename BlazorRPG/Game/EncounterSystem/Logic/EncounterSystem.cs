@@ -2,16 +2,19 @@
 {
     private readonly GameState gameState;
     private readonly ChoiceSystem choiceSystem;
+    private readonly NarrativeSystem narrativeSystem;
     private readonly ChoiceCalculator choiceCalculator;
     private readonly ChoiceExecutor choiceExecutor;
 
     public EncounterSystem(
         GameState gameState,
         ChoiceSystem choiceSystem,
+        NarrativeSystem narrativeSystem,
         MessageSystem messageSystemfabian)
     {
         this.gameState = gameState;
         this.choiceSystem = choiceSystem;
+        this.narrativeSystem = narrativeSystem;
         this.choiceExecutor = new ChoiceExecutor(gameState);
         this.choiceCalculator = new ChoiceCalculator(gameState);
     }
@@ -64,7 +67,9 @@
         }
 
         // Create encounter with initial stage
-        Encounter encounter = new Encounter(context, GenerateSituation(context));
+        string situation = GenerateSituation(context);
+
+        Encounter encounter = new Encounter(context, situation);
         encounter.AddStage(initialStage);
 
         return encounter;
@@ -74,8 +79,14 @@
     {
         // Get choice set from choice system
         ChoiceSet choiceSet = choiceSystem.GenerateChoices(context);
+
         if (choiceSet == null || choiceSet.Choices.Count == 0)
             return null;
+
+        foreach (EncounterChoice choice in choiceSet.Choices)
+        {
+            choiceCalculator.CalculateChoiceEffects(choice, context);
+        }
 
         // Pre-calculate all choices in the set
         foreach (EncounterChoice choice in choiceSet.Choices)
@@ -84,15 +95,23 @@
         }
 
         // Create stage with pre-calculated choices
+        //string oldSituation = GenerateStageSituation(context);
+        narrativeSystem.GenerateStageNarrative(context, choiceSet.Choices);
+
+        string newSituation = narrativeSystem.GetStageNarrative();
+        List<string> choicesTexts = narrativeSystem.GetStageChoicesNarrative();
+
+        choiceSet.ApplyNarratives(choicesTexts);
+
         return new EncounterStage
         {
-            Situation = GenerateStageSituation(context),
+            Situation = newSituation,
             CurrentChoiceSetName = choiceSet.Name,
             Choices = choiceSet.Choices
         };
     }
 
-    public List<UserEncounterChoiceOption> GetChoiceOptions(
+    public List<UserEncounterChoiceOption> GetChoices(
         Encounter encounter)
     {
         EncounterStage stage = GetCurrentStage(encounter);

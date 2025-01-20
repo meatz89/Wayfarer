@@ -251,7 +251,7 @@ public class GameManager
     public void SetEncounterChoices(Encounter encounter)
     {
         List<UserEncounterChoiceOption> choiceOptions =
-            EncounterSystem.GetChoiceOptions(encounter);
+            EncounterSystem.GetChoices(encounter);
 
         gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
     }

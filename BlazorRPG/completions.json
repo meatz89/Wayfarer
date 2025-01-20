@@ -1,0 +1,71 @@
+{
+	"model": "gpt-4o",
+	"messages": [
+		{
+			"role": "system",
+			"content": [
+				{
+					"type": "text",
+					"text": "Create narratives for medieval visual novel RPG encounters by providing an introductory narrative and narrative flavor texts that reflect the mechanical value changes based on given archetype, approach combinations, and choice effects. You will be provided with the number of choices, choice archetypes, approaches, and effects on the encounter values.\n\n# Steps\n\n1. **Create an Introductory Narrative**: Begin with a narrative that sets up the situation for the player, providing context for the encounter.\n2. **Designate Choices**: Assign each choice a unique designation based on its archetype and approach, such as \"Friendly Greeting\" or \"Warm Yourself First.\"\n3. **Narrative Creation for Choices**: Create one-sentence narrative descriptions for each choice, illustrating both the strategic and narrative impact of the decision.\n4. **Ensure Cohesiveness**: Ensure cohesiveness of the created narratives with the medieval setting and encounter dynamics.\n\n# Output Format\n\nThe output should be formatted as a JSON object with the following structure:\n\n```json\n{\n  \"introductory_narrative\": \"A brief narrative setting the scene for the player.\",\n  \"choices\": [\n    {\n      \"designation\": \"A unique designation fitting the context of the choice.\",\n      \"narrative\": \"A one-sentence narrative that aligns with the specified change in mechanical values.\"\n    }\n    // Repeat for each choice\n  ]\n}\n```\n\n**Example:**\n\n- **Given Choices and Effects**:\n  1. [Social - Careful] - +1 Outcome, -1 Pressure\n  2. [Focus - Strategic] - +2 Insight, No Outcome change\n  3. [Social - Desperate] - +1 Outcome, +2 Pressure\n\n- **Example Output**:\n  \n```json\n{\n  \"introductory_narrative\": \"The innkeeper watches your approach, taking in your rain-soaked appearance with practiced eyes. Their attention settles on you, waiting to see how you'll handle yourself.\",\n  \"choices\": [\n    {\n      \"designation\": \"Request Room and Board\",\n      \"narrative\": \"A straightforward request now that you've established yourself as a customer.\"\n    },\n    {\n      \"designation\": \"Order Food and Drink First\",\n      \"narrative\": \"Immediate comfort, but delays securing a room.\"\n    },\n    {\n      \"designation\": \"Inquire About Local Conditions\",\n      \"narrative\": \"Learn about the area while conducting business.\"\n    }\n  ]\n}\n```\n\n# Notes\n\n- Maintain a consistent medieval tone and atmosphere in all descriptions.\n- Ensure that each narrative naturally reflects the mechanical changes and fits within the story's events.\n- Do not announce the choice effects directly. Weave them into the narrative or leave them out.\n- Designation should be at 4-7 words"
+				}
+			]
+		},
+		{
+			"role": "user",
+			"content": [
+				{
+					"type": "text",
+					"text": "Rainwater streams from your cloak as you push open the heavy wooden door of the wayside inn. The sudden warmth and golden light from the hearth hits you like a physical force after hours on the dark road. Your muscles ache from fighting the wind, and your boots squelch with every step on the worn floorboards.\nThe common room is alive with activity - travelers seeking shelter from the storm have filled most of the tables. Conversations blend with the crackle of the fire and the occasional burst of laughter. A serving girl weaves between patrons with practiced ease, while the innkeeper watches everything from behind a scarred wooden bar.\n\nThe player starts the encounter DISCUSS with the Innkeeper."
+				}
+			]
+		}
+	],
+	"response_format": {
+		"type": "json_schema",
+		"json_schema": {
+			"name": "medieval_narrative_encounter",
+			"schema": {
+				"type": "object",
+				"required": [
+					"introductory_narrative",
+					"choices"
+				],
+				"properties": {
+					"choices": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"required": [
+								"designation",
+								"narrative"
+							],
+							"properties": {
+								"narrative": {
+									"type": "string",
+									"description": "A one-sentence narrative that aligns with the specified change in mechanical values."
+								},
+								"designation": {
+									"type": "string",
+									"description": "A unique designation fitting the context of the choice."
+								}
+							},
+							"additionalProperties": false
+						},
+						"description": "A list of choices available to the player during the encounter."
+					},
+					"introductory_narrative": {
+						"type": "string",
+						"description": "A brief narrative setting the scene for the player."
+					}
+				},
+				"additionalProperties": false
+			},
+			"strict": true
+		}
+	},
+	"temperature": 1,
+	"max_completion_tokens": 2048,
+	"top_p": 1,
+	"frequency_penalty": 0,
+	"presence_penalty": 0
+}

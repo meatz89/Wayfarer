@@ -2,7 +2,7 @@
 {
     // Core properties
     public int Index { get; }
-    public string Description { get; }
+    public string Description { get; set; }
     public ChoiceArchetypes Archetype { get; }
     public ChoiceApproaches Approach { get; }
     public EnergyTypes EnergyType { get; }
