@@ -55,6 +55,54 @@ public class GameManager
         UpdateAvailableActions();
     }
 
+    private void OnPlayerEnterLocation(Location location)
+    {
+        List<ActionTemplate> allActionTemplates = ActionContent.LoadActionTemplates();
+
+        List<LocationSpot> locationSpots = location.LocationSpots;
+        ActionAvailabilityService availabilityService = new ActionAvailabilityService();
+
+        // Clear existing actions in each LocationSpot
+        foreach (LocationSpot spot in locationSpots)
+        {
+            spot.Actions.Clear();
+        }
+
+        CreateActionsForLocation(location, allActionTemplates, locationSpots, availabilityService);
+
+        List<UserActionOption> options = new List<UserActionOption>();
+        foreach (LocationSpot locationSpot in locationSpots)
+        {
+            foreach (ActionImplementation action in locationSpot.Actions)
+            {
+                UserActionOption userActionOption = new UserActionOption(default, action.Name, false, action, locationSpot.LocationName, locationSpot.Name, default);
+                options.Add(userActionOption);
+            }
+        }
+        gameState.Actions.SetLocationSpotActions(options);
+    }
+
+    private static void CreateActionsForLocation(
+        Location location,
+        List<ActionTemplate> allActionTemplates,
+        List<LocationSpot> locationSpots,
+        ActionAvailabilityService availabilityService)
+    {
+        foreach (ActionTemplate template in allActionTemplates)
+        {
+            foreach (LocationSpot locationSpot in locationSpots)
+            {
+                // Use ActionAvailabilityService to check availability
+                if (availabilityService.IsActionAvailable(template, locationSpot.SpotProperties))
+                {
+                    // Create ActionImplementation using the factory
+                    ActionImplementation actionImplementation = ActionFactory.CreateAction(template, location);
+                    locationSpot.AddAction(actionImplementation);
+                }
+            }
+        }
+    }
+
     public string GetLocationNarrative(LocationNames locationName)
     {
         return NarrativeSystem.GetLocationNarrative(locationName);
@@ -128,54 +176,6 @@ public class GameManager
         gameState.Actions.SetGlobalActions(userActions);
     }
 
-    private void OnPlayerEnterLocation(Location location)
-    {
-        List<ActionTemplate> allActionTemplates = ActionContent.LoadActionTemplates();
-
-        List<LocationSpot> locationSpots = location.LocationSpots;
-        ActionAvailabilityService availabilityService = new ActionAvailabilityService();
-
-        // Clear existing actions in each LocationSpot
-        foreach (LocationSpot spot in locationSpots)
-        {
-            spot.Actions.Clear();
-        }
-
-        CreateActionsForLocation(location, allActionTemplates, locationSpots, availabilityService);
-
-        List<UserActionOption> options = new List<UserActionOption>();
-        foreach (LocationSpot locationSpot in locationSpots)
-        {
-            foreach (ActionImplementation action in locationSpot.Actions)
-            {
-                UserActionOption userActionOption = new UserActionOption(default, action.Name, false, action, locationSpot.LocationName, locationSpot.Name, default);
-                options.Add(userActionOption);
-            }
-        }
-        gameState.Actions.SetLocationSpotActions(options);
-    }
-
-    private static void CreateActionsForLocation(
-        Location location, 
-        List<ActionTemplate> allActionTemplates, 
-        List<LocationSpot> locationSpots, 
-        ActionAvailabilityService availabilityService)
-    {
-        foreach (ActionTemplate template in allActionTemplates)
-        {
-            foreach (LocationSpot locationSpot in locationSpots)
-            {
-                // Use ActionAvailabilityService to check availability
-                if (availabilityService.IsActionAvailable(template, locationSpot.SpotProperties))
-                {
-                    // Create ActionImplementation using the factory
-                    ActionImplementation actionImplementation = ActionFactory.CreateAction(template, location);
-
-                    locationSpot.AddAction(actionImplementation);
-                }
-            }
-        }
-    }
 
     public void CreateQuestActions()
     {

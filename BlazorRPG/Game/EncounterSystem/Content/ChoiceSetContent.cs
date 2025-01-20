@@ -4,7 +4,7 @@
     {
         new ChoiceSetTemplateBuilder()
             .WithName("Finding a place to stay for the night")
-            .WithActionType(BasicActionTypes.Persuade)
+            .WithActionType(BasicActionTypes.Discuss)
             .AddAvailabilityCondition(properties => properties
                 .WithArchetype(LocationArchetypes.Tavern))
             //.AddStateCondition(values => values

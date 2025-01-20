@@ -26,6 +26,8 @@
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<ActionSystem>();
         services.AddSingleton<GameManager>();
+        
+        services.AddSingleton<LargeLanguageAdapter>();
 
         return services;
     }

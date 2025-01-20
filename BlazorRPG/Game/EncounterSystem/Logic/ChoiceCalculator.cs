@@ -132,7 +132,7 @@
                     $"From Aggressive Approach"));
                 modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 2,
                     $"From Aggressive Approach"));
-            break;
+                break;
 
             case ChoiceApproaches.Careful:
                 // Safety focused - reduces pressure
@@ -154,7 +154,7 @@
                 break;
         }
     }
-    
+
     private void AddStateModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {
         EncounterStateValues currentValues = context.CurrentValues;
@@ -180,7 +180,7 @@
                 $"High Pressure (+{energyIncrease} Energy Cost)"
             ));
         }
-        
+
         AddEnergyEffects(modifications, choice, currentValues);
     }
 

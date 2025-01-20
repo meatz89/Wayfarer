@@ -87,6 +87,8 @@
             case BasicActionTypes.Investigate:
             case BasicActionTypes.Study:
             case BasicActionTypes.Reflect:
+            case BasicActionTypes.Rest:
+            case BasicActionTypes.Recover:
                 // Focus-focused composition
                 compositionPattern = new CompositionPattern
                 {
@@ -98,6 +100,7 @@
                 break;
 
             case BasicActionTypes.Mingle:
+            case BasicActionTypes.Discuss:
             case BasicActionTypes.Persuade:
             case BasicActionTypes.Perform:
                 // Social-focused composition
@@ -109,6 +112,17 @@
                     SecondaryCount = 1
                 };
                 break;
+            default:
+                // default composition pattern
+                compositionPattern = new CompositionPattern
+                {
+                    PrimaryArchetype = ChoiceArchetypes.Social,
+                    SecondaryArchetype = ChoiceArchetypes.Physical,
+                    PrimaryCount = 2,
+                    SecondaryCount = 1
+                };
+                break;
+
         }
     }
 

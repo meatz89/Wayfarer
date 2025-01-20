@@ -4,8 +4,14 @@
     private static readonly HashSet<LocationPropertyTypes> MandatoryProperties = new()
     {
         LocationPropertyTypes.Archetype,  // The fundamental nature of the location
-        LocationPropertyTypes.CrowdDensity,   
+        LocationPropertyTypes.CrowdDensity,
         LocationPropertyTypes.LocationScale,
+
+        LocationPropertyTypes.Accessibility,
+        LocationPropertyTypes.Engagement,
+        LocationPropertyTypes.Atmosphere,
+        LocationPropertyTypes.RoomLayout,
+        LocationPropertyTypes.Temperature,
     };
 
     public bool IsActionAvailable(ActionTemplate template, LocationProperties locationProperties)
