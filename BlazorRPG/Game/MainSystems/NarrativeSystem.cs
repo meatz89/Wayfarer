@@ -9,10 +9,10 @@
         IConfiguration configuration
         )
     {
+        openAiApiKey = configuration.GetValue<string>("OpenAiApiKey");
         narrativeContents = new List<LocationNarrative>();
         narrativeContents = gameContentProvider.GetNarratives();
         LargeLanguageAdapter = largeLanguageAdapter;
-        openAiApiKey = configuration.GetValue<string>("OpenAiApiKey");
     }
 
     public LargeLanguageAdapter LargeLanguageAdapter { get; }
