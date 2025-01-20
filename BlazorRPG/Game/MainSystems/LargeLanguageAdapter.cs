@@ -20,20 +20,15 @@ public class LargeLanguageAdapter
         modelFromFile = GetModelFromFile(fileContent).Result;
     }
 
-    public void Execute(RequestObject requestObject, string apiKey)
+    public void Execute(List<CompletionMessage4o> previousPrompts, CompletionMessage4o newPrompt, string apiKey)
     {
         this.openAiApiKey = apiKey;
-
-        string prompt = string.Empty;
-        prompt += requestObject.Choice1;
-        prompt += requestObject.Choice2;
-        prompt += requestObject.Choice3;
 
         Completion4oModel completion4Model = modelFromFile;
         List<CompletionMessage4o> messages = completion4Model.messages;
 
-        CompletionMessage4o completionMessage4o = CreateCompletionMessage(Roles.user, prompt);
-        messages.Add(completionMessage4o);
+        messages.AddRange(previousPrompts);
+        messages.Add(newPrompt);
 
         HttpRequestMessage request = PrepareOpenAiRequest(messages);
 
@@ -151,7 +146,7 @@ public class LargeLanguageAdapter
         return string.Empty;
     }
 
-    private CompletionMessage4o CreateCompletionMessage(Roles user, string prompt)
+    public CompletionMessage4o CreateCompletionMessage(Roles user, string prompt)
     {
         CompletionMessageContent4o content = new CompletionMessageContent4o()
         {
@@ -166,72 +161,11 @@ public class LargeLanguageAdapter
         return message;
     }
 
-
-
     private async Task<Completion4oModel> GetModelFromFile(string fileContent)
     {
         Completion4oModel completion4Model = null;
         completion4Model = JsonConvert.DeserializeObject<Completion4oModel>(fileContent);
         return completion4Model;
     }
-}
-
-public class JsonResponse
-{
-    public ChoicesNarrative[] choices { get; set; }
-    public string introductory_narrative { get; set; }
-}
-
-public class SceneNarrative
-{
-    public string Description { get; set; }
-}
-
-public class ChoicesNarrative
-{
-    public string narrative { get; set; }
-    public string designation { get; set; }
-}
-
-public class RequestObject
-{
-    public string Choice1 { get; set; }
-    public string Choice2 { get; set; }
-    public string Choice3 { get; set; }
-}
-
-
-public class FileHelper
-{
-    public string ReadFile(string fileName)
-    {
-        var path = Path.Combine(GetAppDirectory(), fileName);
-
-        string modelFromFile = string.Empty;
-        using (var stream = File.OpenRead(path))
-        {
-            StreamReader streamReader = new StreamReader(stream);
-            try
-            {
-                modelFromFile = streamReader.ReadToEnd();
-            }
-            catch (Exception ex)
-            {
-                string s = "";
-            }
-        }
-
-        return modelFromFile;
-    }
-
-    private string GetAppDirectory()
-    {
-        return Environment.CurrentDirectory;
-    }
-}
-
-public enum Roles
-{
-    system, assistant, user
 }
 

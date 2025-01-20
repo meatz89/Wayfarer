@@ -3,6 +3,8 @@
     private List<LocationNarrative> narrativeContents;
     private string openAiApiKey;
 
+    private List<CompletionMessage4o> previousPrompts = new();
+
     public NarrativeSystem(
         GameContentProvider gameContentProvider, 
         LargeLanguageAdapter largeLanguageAdapter,
@@ -17,22 +19,27 @@
 
     public LargeLanguageAdapter LargeLanguageAdapter { get; }
 
+    public void SetEncounterIntroduction(EncounterContext context)
+    {
+        string prompt = "Rainwater streams from your cloak as you push open the heavy wooden door of the wayside inn. The sudden warmth and golden light from the hearth hits you like a physical force after hours on the dark road. Your muscles ache from fighting the wind, and your boots squelch with every step on the worn floorboards.\nThe common room is alive with activity - travelers seeking shelter from the storm have filled most of the tables. Conversations blend with the crackle of the fire and the occasional burst of laughter. A serving girl weaves between patrons with practiced ease, while the innkeeper watches everything from behind a scarred wooden bar.\n\nThe player starts the encounter DISCUSS with the Innkeeper.";
+        CompletionMessage4o newPrompt = LargeLanguageAdapter.CreateCompletionMessage(Roles.user, prompt);
+        previousPrompts.Add(newPrompt);
+    }
+
     public void GenerateStageNarrative(EncounterContext context, List<EncounterChoice> choices)
     {
-        var prompt = "";
-
         var prompt1 = $"{1}. {choices[0].Archetype} - {choices[0].Approach} {Environment.NewLine}";
         var prompt2 = $"{2}. {choices[1].Archetype} - {choices[1].Approach} {Environment.NewLine}";
         var prompt3 = $"{3}. {choices[2].Archetype} - {choices[2].Approach} {Environment.NewLine}";
 
-        var request = new RequestObject()
-        {
-            Choice1 = prompt1,
-            Choice2 = prompt2,
-            Choice3 = prompt3,
-        };
+        string prompt = string.Empty;
+        prompt += prompt1;
+        prompt += prompt2;
+        prompt += prompt3;
+        CompletionMessage4o newPrompt = LargeLanguageAdapter.CreateCompletionMessage(Roles.user, prompt);
 
-        LargeLanguageAdapter.Execute(request, openAiApiKey);
+        LargeLanguageAdapter.Execute(previousPrompts, newPrompt, openAiApiKey);
+        previousPrompts.Add(newPrompt);
     }
 
     public string GetStageNarrative()

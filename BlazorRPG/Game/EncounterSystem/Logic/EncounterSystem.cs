@@ -96,6 +96,7 @@
 
         // Create stage with pre-calculated choices
         //string oldSituation = GenerateStageSituation(context);
+        narrativeSystem.SetEncounterIntroduction(context);
         narrativeSystem.GenerateStageNarrative(context, choiceSet.Choices);
 
         string newSituation = narrativeSystem.GetStageNarrative();
