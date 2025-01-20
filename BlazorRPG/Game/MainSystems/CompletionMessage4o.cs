@@ -7,7 +7,7 @@ public class CompletionMessage4o
     public override string ToString()
     {
         string s = string.Empty;
-        foreach (var item in content)
+        foreach (CompletionMessageContent4o item in content)
         {
             s += $"{role}: {item.text}";
             s += Environment.NewLine;

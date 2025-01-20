@@ -45,8 +45,8 @@
         StageNumber = 0;
 
         CurrentValues = EncounterStateInitializer.Generate(
-                locationDifficulty, 
-                playerLevel, 
+                locationDifficulty,
+                playerLevel,
                 locationProperties,
                 playerStatusTypes
                 );

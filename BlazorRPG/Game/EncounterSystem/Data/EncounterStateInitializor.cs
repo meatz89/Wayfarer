@@ -1,8 +1,8 @@
 ﻿public class EncounterStateInitializer
 {
     public static EncounterValues Generate(
-        int difficulty, 
-        int playerLevel, 
+        int difficulty,
+        int playerLevel,
         LocationProperties locationProperties,
         List<PlayerStatusTypes> playerStatusTypes
         )
@@ -13,7 +13,7 @@
         int resonanceChange = 0;
         int pressureChange = 0;
 
-        if (locationProperties.IsTemperatureSet && 
+        if (locationProperties.IsTemperatureSet &&
             locationProperties.Temperature.Value == Temperature.Warm)
         {
             outgomeChange += 1;
@@ -25,7 +25,7 @@
         {
             insightChange += 1;
         }
-        
+
         if (locationProperties.IsRoomLayoutSet &&
             locationProperties.RoomLayout.Value == RoomLayout.Secluded)
         {
@@ -38,7 +38,7 @@
             pressureChange += 1;
         }
 
-        if (playerStatusTypes.Contains(PlayerStatusTypes.Wet) || 
+        if (playerStatusTypes.Contains(PlayerStatusTypes.Wet) ||
             playerStatusTypes.Contains(PlayerStatusTypes.Cold))
         {
             resonanceChange -= 1;

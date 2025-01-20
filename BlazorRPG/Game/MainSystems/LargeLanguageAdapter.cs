@@ -7,26 +7,24 @@ public class LargeLanguageAdapter
     private const string completionsUrl = "https://api.openai.com/v1/chat/completions";
     private string openAiApiKey;
 
-    private Completion4oModel modelFromFile;
     private const string jsonPath = "completions.json";
+
+    string fileContent;
 
     public SceneNarrative sceneNarrative;
     public List<ChoicesNarrative> choicesNarratives;
 
-    public LargeLanguageAdapter()
+    public void Reset()
     {
         FileHelper fileHelper = new FileHelper();
-        string fileContent = fileHelper.ReadFile(jsonPath);
-        modelFromFile = GetModelFromFile(fileContent).Result;
+        fileContent = fileHelper.ReadFile(jsonPath);
     }
 
-    public void Execute(List<CompletionMessage4o> previousPrompts, CompletionMessage4o newPrompt, string apiKey)
+    public string Execute(List<CompletionMessage4o> previousPrompts, CompletionMessage4o newPrompt, string apiKey)
     {
         this.openAiApiKey = apiKey;
 
-        Completion4oModel completion4Model = modelFromFile;
-        List<CompletionMessage4o> messages = completion4Model.messages;
-
+        List<CompletionMessage4o> messages = new();
         messages.AddRange(previousPrompts);
         messages.Add(newPrompt);
 
@@ -34,6 +32,8 @@ public class LargeLanguageAdapter
 
         string response = GetOpenAiResponse(request);
         ProecessOpenAiResponse(response);
+
+        return response;
     }
 
     public void ProecessOpenAiResponse(string openAiResponseString)
@@ -66,6 +66,7 @@ public class LargeLanguageAdapter
     private HttpRequestMessage PrepareOpenAiRequest(List<CompletionMessage4o> completionMessages)
     {
         // Prompt
+        Completion4oModel modelFromFile = GetModelFromFile(fileContent).Result;
         List<CompletionMessage4o> messages = modelFromFile.messages;
         messages.AddRange(completionMessages);
 
@@ -76,7 +77,7 @@ public class LargeLanguageAdapter
         Console.WriteLine("----START Messages sent to API START----");
         foreach (CompletionMessage4o message in messages)
         {
-            foreach (var content in message.content)
+            foreach (CompletionMessageContent4o content in message.content)
             {
                 protocolLines += Environment.NewLine;
                 Console.WriteLine("");
@@ -99,8 +100,8 @@ public class LargeLanguageAdapter
 
         //Converting the object to a json string
         string json = JsonConvert.SerializeObject(modelFromFile);
-        var stringData = new StringContent(json, Encoding.UTF8, "application/json");
-        var request = new HttpRequestMessage(HttpMethod.Post, completionsUrl)
+        StringContent stringData = new StringContent(json, Encoding.UTF8, "application/json");
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, completionsUrl)
         {
             Content = stringData
         };
@@ -116,11 +117,11 @@ public class LargeLanguageAdapter
         const string openAiCallStarted = $"\r\nCalling OpenAI API\r\n";
         Console.WriteLine(openAiCallStarted);
 
-        using (var httpClient = new HttpClient())
+        using (HttpClient httpClient = new HttpClient())
         {
             httpClient.Timeout = TimeSpan.FromSeconds(200);
 
-            var responseFromOpenAiApi = httpClient.Send(request, HttpCompletionOption.ResponseHeadersRead);
+            HttpResponseMessage responseFromOpenAiApi = httpClient.Send(request, HttpCompletionOption.ResponseHeadersRead);
             if (!responseFromOpenAiApi.IsSuccessStatusCode)
             {
                 Console.WriteLine(responseFromOpenAiApi.Content);
