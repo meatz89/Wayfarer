@@ -119,11 +119,10 @@
         }
 
         // Create stage with pre-calculated choices
-        //string oldSituation = GenerateStageSituation(context);
         ChoicesNarrativeResponse choicesNarrativeResponse = narrativeSystem.GetChoicesNarrative(context, choiceSet.Choices);
 
         string newSituation = GetStageNarrative(choicesNarrativeResponse);
-        List<string> choicesTexts = GetStageChoicesNarrative(choicesNarrativeResponse);
+        List<ChoicesNarrative> choicesTexts = GetStageChoicesNarrative(choicesNarrativeResponse);
 
         choiceSet.ApplyNarratives(choicesTexts);
 
@@ -143,22 +142,11 @@
         return sceneNarrative;
     }
 
-    public List<string> GetStageChoicesNarrative(ChoicesNarrativeResponse choicesNarrativeResponse)
+    public List<ChoicesNarrative> GetStageChoicesNarrative(ChoicesNarrativeResponse choicesNarrativeResponse)
     {
         List<ChoicesNarrative> choicesNarrative = choicesNarrativeResponse.choices.ToList();
-        List<string> choices = new List<string>();
-
-        string desig1 = choicesNarrative[0].designation;
-        string desig2 = choicesNarrative[1].designation;
-        string desig3 = choicesNarrative[2].designation;
-
-        choices.Add(desig1);
-        choices.Add(desig2);
-        choices.Add(desig3);
-
-        return choices;
+        return choicesNarrative;
     }
-
 
     public List<UserEncounterChoiceOption> GetChoices(
         Encounter encounter)
@@ -173,8 +161,14 @@
             string locationSpotName = encounter.Context.LocationSpotName;
 
             UserEncounterChoiceOption option = new UserEncounterChoiceOption(
-                choice.Index, choice.Description, locationName, locationSpotName,
-                encounter, stage, choice);
+                choice.Index, 
+                choice.Designation,
+                choice.Narrative,
+                locationName, 
+                locationSpotName,
+                encounter, 
+                stage, 
+                choice);
 
             choiceOptions.Add(option);
         }

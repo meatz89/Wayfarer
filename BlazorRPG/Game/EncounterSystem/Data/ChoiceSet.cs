@@ -9,10 +9,15 @@
         Choices = choices;
     }
 
-    internal void ApplyNarratives(List<string> choicesTexts)
+    public void ApplyNarratives(List<ChoicesNarrative> choicesTexts)
     {
-        Choices[0].Description = choicesTexts[0];
-        Choices[1].Description = choicesTexts[1];
-        Choices[2].Description = choicesTexts[2];
+        foreach (ChoicesNarrative narrative in choicesTexts)
+        {
+            int index = narrative.choiceNumber;
+            EncounterChoice choice = Choices[index - 1];
+
+            choice.Designation = narrative.designation;
+            choice.Narrative= narrative.narrative;
+        }
     }
 }

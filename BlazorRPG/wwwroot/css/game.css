@@ -254,6 +254,7 @@ body {
     max-width: calc(100vw - 40px);
     /* Reduce maximum height to prevent overflow */
     max-height: 60vh; /* Adjust this value as needed */
+    max-width: 400px;
     overflow-y: auto;
     pointer-events: none;
 }
@@ -481,6 +482,14 @@ body {
 .choice-description {
     color: var(--text-primary);
     flex: 1;
+}
+
+.choice-narrative {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    flex: 1;
+    padding-top: 10px;
+    padding-bottom: 1px;
 }
 
 .preview-container {

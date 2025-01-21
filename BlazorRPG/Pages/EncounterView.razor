@@ -101,7 +101,7 @@
             <div class="tooltip" style="left: @(mouseX)px; top: @(mouseY)px;">
                 <div class="preview-header">
                     <h4>@hoveredChoice.EncounterChoice.Archetype - @hoveredChoice.EncounterChoice.Approach</h4>
-                    <div class="choice-description">@hoveredChoice.Description</div>
+                    <div class="choice-narrative">@hoveredChoice.Narrative</div>
                 </div>
 
                 @if (GetLocationSpotEffects(hoveredChoice.EncounterChoice).Any())

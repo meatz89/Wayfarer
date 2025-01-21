@@ -2,7 +2,8 @@
 {
     // Core properties
     public int Index { get; }
-    public string Description { get; set; }
+    public string Designation { get; set; }
+    public string Narrative { get; set; }
     public ChoiceArchetypes Archetype { get; }
     public ChoiceApproaches Approach { get; }
     public EnergyTypes EnergyType { get; }
@@ -30,7 +31,7 @@
         bool requireReputation)
     {
         Index = index;
-        Description = description;
+        Designation = description;
         Archetype = archetype;
         Approach = approach;
         EnergyType = archetype switch
