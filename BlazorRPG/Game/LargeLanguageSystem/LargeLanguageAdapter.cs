@@ -24,7 +24,7 @@ public class LargeLanguageAdapter
         HttpRequestMessage request = OpenAiHelpers.PrepareOpenAiRequest(FileContentChoices, messages, openAiApiKey);
 
         string response = OpenAiHelpers.GetOpenAiResponse(request);
-        var result = ProcessOpenAiResponseChoices(response);
+        ChoicesNarrativeResponse result = ProcessOpenAiResponseChoices(response);
 
         return result;
     }

@@ -59,7 +59,7 @@
         string description = InitialSituation + NewLine + encounter.TaskToSolve;
         AddToList(descriptions, description);
 
-        foreach (var choice in encounter.Narratives)
+        foreach (Narrative choice in encounter.Narratives)
         {
             AddToList(descriptions, choice.Text);
         }

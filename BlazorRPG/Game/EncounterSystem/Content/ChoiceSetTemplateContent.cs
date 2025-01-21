@@ -1,9 +1,9 @@
-﻿public static class ChoiceSetContent
+﻿public static class ChoiceSetTemplateContent
 {
     public static List<ChoiceSetTemplate> TutorialSequence => new()
     {
         new ChoiceSetTemplateBuilder()
-            .WithName("Finding a place to stay for the night")
+            .WithName("Find a place to stay for the night")
             .WithActionType(BasicActionTypes.Discuss)
             .AddAvailabilityCondition(properties => properties
                 .WithArchetype(LocationArchetypes.Tavern))

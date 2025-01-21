@@ -120,7 +120,7 @@
 
         // Create stage with pre-calculated choices
         //string oldSituation = GenerateStageSituation(context);
-        ChoicesNarrativeResponse choicesNarrativeResponse = narrativeSystem.GetNewStageChoicesNarrative(context, choiceSet.Choices);
+        ChoicesNarrativeResponse choicesNarrativeResponse = narrativeSystem.GetChoicesNarrative(context, choiceSet.Choices);
 
         string newSituation = GetStageNarrative(choicesNarrativeResponse);
         List<string> choicesTexts = GetStageChoicesNarrative(choicesNarrativeResponse);
@@ -131,6 +131,7 @@
         {
             Situation = newSituation,
             CurrentChoiceSetName = choiceSet.Name,
+            ChoiceSetName = choiceSet.Name,
             Choices = choiceSet.Choices
         };
     }

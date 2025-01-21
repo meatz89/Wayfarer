@@ -23,7 +23,7 @@
 
         // Social tutorial action - getting the innkeeper's attention
         actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Seek Innkeeper's Attention")
+            .WithName("Ask Innkeeper for a place to stay for the night")
             .WithActionType(BasicActionTypes.Discuss)
             .AddTimeSlot(TimeSlots.Morning)
             .AddTimeSlot(TimeSlots.Afternoon)
