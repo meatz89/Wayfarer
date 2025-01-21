@@ -1,8 +1,8 @@
 ﻿public enum TimeSlots
 {
+    Night,
     Morning,
     Afternoon,
-    Evening,
-    Night
+    Evening
 }
 

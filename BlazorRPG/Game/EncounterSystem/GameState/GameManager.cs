@@ -38,7 +38,7 @@ public class GameManager
         this.ItemSystem = itemSystem;
         this.MessageSystem = messageSystem;
         this.NarrativeSystem = narrativeSystem;
-        PlayerStatusSystem = playerStatusSystem;
+        this.PlayerStatusSystem = playerStatusSystem;
     }
 
     public void StartGame()
@@ -127,7 +127,7 @@ public class GameManager
         //CreateQuestActions();
     }
 
-    public EncounterResults ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
+    public EncounterResult ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
     {
         Encounter encounter = choiceOption.Encounter;
         EncounterChoice choice = choiceOption.EncounterChoice;
@@ -136,9 +136,10 @@ public class GameManager
         LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(choiceOption.LocationName, choiceOption.locationSpotName);
 
         // Execute the choice
-        EncounterResults result = EncounterSystem.ExecuteChoice(encounter, choice, locationSpot.SpotProperties);
+        EncounterResult encounterResult = EncounterSystem.ExecuteChoice(encounter, choice, locationSpot.SpotProperties);
+        gameState.Actions.LastEncounterResult = encounterResult;
 
-        if (result != EncounterResults.Ongoing)
+        if (encounterResult.encounterResults != EncounterResults.Ongoing)
         {
             gameState.Actions.CompleteActiveEncounter();
         }
@@ -147,12 +148,18 @@ public class GameManager
             if (IsGameOver(gameState.Player))
             {
                 gameState.Actions.CompleteActiveEncounter();
-                return EncounterResults.GameOver;
+
+                return new EncounterResult()
+                {
+                    encounter = encounter,
+                    encounterResults = EncounterResults.GameOver,
+                    EncounterEndMessage = "Game Over"
+                };
             }
             ProceedEncounter(encounter);
         }
 
-        return result;
+        return encounterResult;
     }
 
     private bool IsGameOver(PlayerState player)
@@ -230,7 +237,10 @@ public class GameManager
             playerStatusTypes
         );
 
-        return EncounterSystem.GenerateEncounter(context);
+        UserActionOption action = gameState.Actions.LocationSpotActions.Where(x => x.LocationSpot == locationSpot.Name).First();
+        ActionImplementation actionImpl = action.ActionImplementation;
+
+        return EncounterSystem.GenerateEncounter(context, actionImpl);
     }
 
 

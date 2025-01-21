@@ -1,4 +1,5 @@
-﻿public class WorldState
+﻿
+public class WorldState
 {
     // Current location tracking
     public Location CurrentLocation { get; set; }
@@ -43,5 +44,16 @@
             2 => TimeSlots.Afternoon,
             _ => TimeSlots.Evening
         };
+    }
+
+    public void SetCurrentTime(int hours)
+    {
+        CurrentTimeInHours = (CurrentTimeInHours + hours) % 24;
+
+        const int timeWindowsPerDay = 4;
+        const int hoursPerTimeWindow = 6;
+        int timeSlot = (CurrentTimeInHours / hoursPerTimeWindow) % timeWindowsPerDay;
+
+        DetermineCurrentTimeSlot(timeSlot);
     }
 }

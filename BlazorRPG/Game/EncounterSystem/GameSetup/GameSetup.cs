@@ -4,6 +4,7 @@
     {
         GameState gameState = new GameState();
         gameState.World.SetNewLocation(LocationContent.WaysideInn);
+        gameState.World.SetCurrentTime(0);
 
         GameRules gameRules = GameRules.StandardRuleset;
 

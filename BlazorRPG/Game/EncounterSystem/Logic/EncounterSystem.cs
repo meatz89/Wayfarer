@@ -19,7 +19,7 @@
         this.choiceCalculator = new ChoiceCalculator(gameState);
     }
 
-    public EncounterResults ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationProperties locationProperties)
+    public EncounterResult ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationProperties locationProperties)
     {
         // Retrieve the ChoiceCalculationResult
         ChoiceCalculationResult result = choiceCalculator.CalculateChoiceEffects(choice, encounter.Context);
@@ -30,20 +30,43 @@
         // Update last choice type
         encounter.Context.CurrentValues.LastChoiceType = choice.Archetype;
         encounter.Context.CurrentValues.LastChoiceApproach = choice.Approach;
+        narrativeSystem.MakeChoice(encounter.Context, choice);
 
         // Check for game over conditions
         if (IsEncounterWon(encounter))
         {
-            return EncounterResults.EncounterSuccess;
+            string narrative = narrativeSystem.GetEncounterSuccessNarrative(encounter.Context);
+
+            EncounterResult successResult = new()
+            {
+                encounter = encounter,
+                encounterResults = EncounterResults.EncounterSuccess,
+                EncounterEndMessage = narrative
+            };
+            return successResult;
+
         }
         else if (IsEncounterLost(encounter))
         {
-            return EncounterResults.EncounterFailure;
+            //string narrative = narrativeSystem.GetEncounterFailureNarrative(encounter.Context);
+            EncounterResult failResult = new()
+            {
+                encounter = encounter,
+                encounterResults = EncounterResults.EncounterFailure,
+                EncounterEndMessage = ""
+            };
+            return failResult;
         }
         else
         {
             GetNextStage(encounter);
-            return EncounterResults.Ongoing;
+            EncounterResult ongoingResult = new()
+            {
+                encounter = encounter,
+                encounterResults = EncounterResults.Ongoing,
+                EncounterEndMessage = ""
+            };
+            return ongoingResult;
         }
     }
 
@@ -57,8 +80,10 @@
         return true;
     }
 
-    public Encounter GenerateEncounter(EncounterContext context)
+    public Encounter GenerateEncounter(EncounterContext context, ActionImplementation actionImplementation)
     {
+        narrativeSystem.NewEncounter(context, actionImplementation);
+
         // Generate initial stage
         EncounterStage initialStage = GenerateStage(context);
         if (initialStage == null)
@@ -71,7 +96,6 @@
 
         Encounter encounter = new Encounter(context, situation);
         encounter.AddStage(initialStage);
-
         return encounter;
     }
 
@@ -96,8 +120,7 @@
 
         // Create stage with pre-calculated choices
         //string oldSituation = GenerateStageSituation(context);
-        narrativeSystem.NewEncounter(context);
-        narrativeSystem.NewEncounterStage(context, choiceSet.Choices);
+        narrativeSystem.GenerateNewStageNarrative(context, choiceSet.Choices);
 
         string newSituation = narrativeSystem.GetStageNarrative();
         List<string> choicesTexts = narrativeSystem.GetStageChoicesNarrative();
@@ -207,4 +230,10 @@
         return false;
     }
 
+}
+public class EncounterResult
+{
+    public Encounter encounter;
+    public EncounterResults encounterResults;
+    public string EncounterEndMessage;
 }

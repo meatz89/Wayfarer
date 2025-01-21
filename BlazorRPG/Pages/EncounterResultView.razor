@@ -5,25 +5,28 @@
     <div class="encounter-result-panel">
         <h2>Encounter Result</h2>
 
-        @if (Result == EncounterResults.EncounterSuccess)
+        @if (Result.encounterResults == EncounterResults.EncounterSuccess)
         {
             <div class="result-message">
                 <h3>Encounter Won!</h3>
                 <p>You successfully navigated the challenges and emerged victorious.</p>
+                <p>@Result.EncounterEndMessage</p>
             </div>
         }
-        else if (Result == EncounterResults.EncounterFailure)
+        else if (Result.encounterResults == EncounterResults.EncounterFailure)
         {
             <div class="result-message">
                 <h3>Encounter Lost</h3>
                 <p>You were unable to overcome the challenges of this encounter.</p>
+                <p>@Result.EncounterEndMessage</p>
             </div>
         }
-        else if (Result == EncounterResults.GameOver)
+        else if (Result.encounterResults == EncounterResults.GameOver)
         {
             <div class="result-message">
                 <h3>Game Over</h3>
                 <p>The challenges proved too great. Your journey ends here.</p>
+                <p>@Result.EncounterEndMessage</p>
             </div>
         }
 
@@ -35,7 +38,7 @@
 
 @code {
     [Parameter]
-    public EncounterResults Result { get; set; }
+    public EncounterResult Result { get; set; }
 
     [Parameter]
     public EventCallback OnContinue { get; set; }

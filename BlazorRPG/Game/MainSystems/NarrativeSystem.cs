@@ -2,12 +2,12 @@
 {
     private List<LocationNarrative> narrativeContents;
     private string openAiApiKey;
-
-    private List<CompletionMessage4o> previousPrompts = new();
+    private const string NewLine = "\r\n";
 
     public NarrativeSystem(
         GameContentProvider gameContentProvider,
         LargeLanguageAdapter largeLanguageAdapter,
+        JournalSystem journalSystem,
         IConfiguration configuration
         )
     {
@@ -15,49 +15,68 @@
         narrativeContents = new List<LocationNarrative>();
         narrativeContents = gameContentProvider.GetNarratives();
         LargeLanguageAdapter = largeLanguageAdapter;
+        JournalSystem = journalSystem;
     }
 
     public LargeLanguageAdapter LargeLanguageAdapter { get; }
+    public JournalSystem JournalSystem { get; }
 
-    public void NewEncounter(EncounterContext context)
+    public void NewEncounter(EncounterContext context, ActionImplementation actionImplementation)
     {
         LargeLanguageAdapter.Reset();
 
-        string prompt = "Rainwater streams from your cloak as you push open the heavy wooden door of the wayside inn. The sudden warmth and golden light from the hearth hits you like a physical force after hours on the dark road. Your muscles ache from fighting the wind, and your boots squelch with every step on the worn floorboards.\nThe common room is alive with activity - travelers seeking shelter from the storm have filled most of the tables. Conversations blend with the crackle of the fire and the occasional burst of laughter. A serving girl weaves between patrons with practiced ease, while the innkeeper watches everything from behind a scarred wooden bar.\n\nThe player starts the encounter DISCUSS with the Innkeeper.";
-        CompletionMessage4o newPrompt = LargeLanguageAdapter.CreateCompletionMessage(Roles.user, prompt);
-        previousPrompts.Add(newPrompt);
+        string taskToSolve = $"You are in the {context.LocationName}, a {context.LocationArchetype}, at the {context.LocationSpotName}. It is {context.TimeSlot.ToString()}. You start your {context.ActionType.ToString()} task: { actionImplementation.Name }.";
+        string initialSituation = string.Empty;
+
+        JournalSystem.StartEncounter(taskToSolve, initialSituation);
     }
 
-    public void NewEncounterStage(EncounterContext context, List<EncounterChoice> choices)
+    public void MakeChoice(EncounterContext context, EncounterChoice encounterChoice)
     {
-        string prompt1 = $"{1}. {choices[0].Archetype} - {choices[0].Approach} {Environment.NewLine}";
-        string prompt2 = $"{2}. {choices[1].Archetype} - {choices[1].Approach} {Environment.NewLine}";
-        string prompt3 = $"{3}. {choices[2].Archetype} - {choices[2].Approach} {Environment.NewLine}";
+        string choice = $"[{encounterChoice.Archetype} - {encounterChoice.Approach}] {encounterChoice.Description}";
+        string prompt = $"You made a choice: {choice}";
 
-        string prompt = string.Empty;
+        JournalSystem.NoteNewEncounterNarrative(prompt);
+    }
+
+    public void GenerateNewStageNarrative(EncounterContext context, List<EncounterChoice> choices)
+    {
+        string prompt = $"Analyze the narrative consequences of the last choice and create the new Situation Description. " +
+            $"Create the narrative descriptions for the new choice options: {NewLine}";
+
+        string prompt1 = $"{1}. ({choices[0].Archetype} - {choices[0].Approach}) {NewLine}";
+        string prompt2 = $"{2}. ({choices[1].Archetype} - {choices[1].Approach}) {NewLine}";
+        string prompt3 = $"{3}. ({choices[2].Archetype} - {choices[2].Approach}) {NewLine}";
+
         prompt += prompt1;
         prompt += prompt2;
         prompt += prompt3;
 
-        CompletionMessage4o newPrompt = LargeLanguageAdapter.CreateCompletionMessage(Roles.user, prompt);
 
-        string response = LargeLanguageAdapter.Execute(previousPrompts, newPrompt, openAiApiKey);
-        previousPrompts.Add(newPrompt);
+        List<CompletionMessage4o> previousPrompts = new();
+        List<string> list = JournalSystem.GetDescriptionForCurrentEncounter();
+        foreach (string choice in list)
+        {
+            CompletionMessage4o previousPrompt = OpenAiHelpers.CreateCompletionMessage(Roles.user, choice);
+            previousPrompts.Add(previousPrompt);
+        }
 
-        CompletionMessage4o newResponse = LargeLanguageAdapter.CreateCompletionMessage(Roles.assistant, response);
-        previousPrompts.Add(newResponse);
+        CompletionMessage4o choicesPrompt = OpenAiHelpers.CreateCompletionMessage(Roles.user, prompt);
+        ChoicesNarrativeResponse choicesNarrativeResponse = LargeLanguageAdapter.Execute(previousPrompts, choicesPrompt, openAiApiKey);
+
+        JournalSystem.NoteNewEncounterAssistantNarrative(choicesNarrativeResponse.introductory_narrative);
 
     }
 
     public string GetStageNarrative()
     {
-        SceneNarrative sceneNarrative = LargeLanguageAdapter.GetSceneNarrative();
-        return sceneNarrative.Description;
+        string sceneNarrative = LargeLanguageAdapter.ChoicesNarrativeResponse.introductory_narrative;
+        return sceneNarrative;
     }
 
     public List<string> GetStageChoicesNarrative()
     {
-        List<ChoicesNarrative> choicesNarrative = LargeLanguageAdapter.GetChoicesNarrative();
+        List<ChoicesNarrative> choicesNarrative = LargeLanguageAdapter.ChoicesNarrativeResponse.choices.ToList();
         List<string> choices = new List<string>();
 
         string desig1 = choicesNarrative[0].designation;
@@ -78,5 +97,10 @@
             .FirstOrDefault();
 
         return locationNarrative.Description;
+    }
+
+    internal string GetEncounterSuccessNarrative(EncounterContext context)
+    {
+        throw new NotImplementedException();
     }
 }

@@ -12,6 +12,7 @@
 
     public Encounter CurrentEncounter { get; private set; }
     public List<UserEncounterChoiceOption> CurrentChoiceOptions { get; private set; }
+    public EncounterResult LastEncounterResult { get; internal set; }
 
     public Encounter GetCurrentEncounter()
     {

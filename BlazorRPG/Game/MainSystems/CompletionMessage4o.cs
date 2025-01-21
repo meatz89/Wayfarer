@@ -4,13 +4,15 @@ public class CompletionMessage4o
     public string role;
     public List<CompletionMessageContent4o> content;
 
+    private const string NewLine = "\r\n";
+
     public override string ToString()
     {
         string s = string.Empty;
         foreach (CompletionMessageContent4o item in content)
         {
             s += $"{role}: {item.text}";
-            s += Environment.NewLine;
+            s += NewLine;
         }
         return s;
     }

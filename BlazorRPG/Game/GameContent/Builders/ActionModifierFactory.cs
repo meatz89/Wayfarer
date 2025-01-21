@@ -54,12 +54,6 @@
                 config.ActionType));
         }
 
-        if (modifiers.Count == 0)
-        {
-            throw new InvalidOperationException(
-                "Invalid modifier configuration - no effects specified");
-        }
-
         return modifiers;
     }
 }
