@@ -1,5 +1,6 @@
 ﻿public record UserEncounterChoiceOption(
     int Index,
+    string ChoiceType,
     string Description,
     string Narrative,
     LocationNames LocationName,

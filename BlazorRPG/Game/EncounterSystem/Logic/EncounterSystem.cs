@@ -92,7 +92,7 @@
         }
 
         // Create encounter with initial stage
-        string situation = GenerateSituation(context);
+        string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
 
         Encounter encounter = new Encounter(context, situation);
         encounter.AddStage(initialStage);
@@ -135,7 +135,6 @@
         };
     }
 
-
     public string GetStageNarrative(ChoicesNarrativeResponse choicesNarrativeResponse)
     {
         string sceneNarrative = choicesNarrativeResponse.introductory_narrative;
@@ -162,6 +161,7 @@
 
             UserEncounterChoiceOption option = new UserEncounterChoiceOption(
                 choice.Index,
+                choice.ChoiceType,
                 choice.Designation,
                 choice.Narrative,
                 locationName,
@@ -190,29 +190,6 @@
     public Encounter GetEncounterForChoice(EncounterChoice choice)
     {
         return gameState.Actions.CurrentEncounter;
-    }
-
-    private string GenerateSituation(EncounterContext context)
-    {
-        // Improved situation generation
-        List<string> situationElements = new List<string>();
-
-        situationElements.Add($"You are trying to {context.ActionType} at the {context.LocationArchetype} ({context.LocationType}).");
-
-        if (context.CurrentValues.Pressure >= 6)
-        {
-            situationElements.Add("The situation is tense.");
-        }
-        if (context.CurrentValues.Insight >= 7)
-        {
-            situationElements.Add("You have a good insight of what's going on.");
-        }
-        else if (context.CurrentValues.Insight <= 2)
-        {
-            situationElements.Add("You're not quite sure what to do.");
-        }
-
-        return string.Join(" ", situationElements);
     }
 
     private bool IsEncounterWon(Encounter encounter)

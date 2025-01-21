@@ -297,6 +297,7 @@
         EncounterChoice choice = new(
             index,
             $"{archetype} - {approach}",
+            $"{archetype} - {approach}",
             archetype,
             approach,
             requireTool,

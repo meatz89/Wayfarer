@@ -2,6 +2,7 @@
 {
     // Core properties
     public int Index { get; }
+    public string ChoiceType { get; set; }
     public string Designation { get; set; }
     public string Narrative { get; set; }
     public ChoiceArchetypes Archetype { get; }
@@ -14,6 +15,7 @@
     // Constructor remains the same
     public EncounterChoice(
         int index,
+        string choiceType,
         string description,
         ChoiceArchetypes archetype,
         ChoiceApproaches approach,
@@ -22,6 +24,7 @@
         bool requireReputation)
     {
         Index = index;
+        ChoiceType = choiceType;
         Designation = description;
         Archetype = archetype;
         Approach = approach;

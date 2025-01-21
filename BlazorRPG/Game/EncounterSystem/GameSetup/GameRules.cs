@@ -42,7 +42,8 @@
             // High pressure priority order is the same for all archetypes
             return new List<ChoiceApproaches>
         {
-            ChoiceApproaches.Careful,
+            ChoiceApproaches.Aggressive,
+            ChoiceApproaches.Desperate,
         };
         }
 
