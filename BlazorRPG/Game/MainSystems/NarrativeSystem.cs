@@ -33,13 +33,19 @@
 
     public ChoicesNarrativeResponse GetChoicesNarrative(EncounterContext context, List<EncounterChoice> choices)
     {
-        // TODO: CURRENT ENCOUNTER STATE VALUES
+        var values = context.CurrentValues;
+        var encounterState = $"Current States: " +
+            $"Outcome ({values.Outcome}/10), " +
+            $"Pressure ({values.Pressure}/10), " +
+            $"Momentum ({values.Momentum}/10), " +
+            $"Insight ({values.Insight}/10), " +
+            $"Resonance ({values.Resonance}/10)";
 
         string initialGoal = JournalSystem.GetCurrentEncounterGoal();
 
         string prompt = $"Analyze the narrative consequences of the last choice and create the new Situation Description. " + NewLine;
-        prompt += $"Do NOT stray away to far from the initial goal of the encounter: {initialGoal}{NewLine}{NewLine}";
-        
+        prompt += $"Do NOT stray away to far from the initial goal of the encounter: '{initialGoal}' {NewLine}{NewLine}";
+        prompt += $"{encounterState}{NewLine}{NewLine}";
         prompt = AddChoicesToPrompt(choices, prompt);
 
         List<CompletionMessage4o> previousPrompts = new();
@@ -106,23 +112,23 @@
     private static string CreatePromptForChoice(int index, EncounterChoice encounterChoice)
     {
         string prompt = $"{index}. ({encounterChoice.Archetype} - {encounterChoice.Approach})";
-        string effects = $" effects {NewLine}";
+        string effects = $": ";
 
         List<BaseValueChange> baseValueChanges = encounterChoice.CalculationResult.BaseValueChanges;
         List<ValueModification> valueModifications = encounterChoice.CalculationResult.ValueModifications;
 
         foreach (BaseValueChange baseValueChange in baseValueChanges)
         {
-            effects += $"{baseValueChange.Amount} to {baseValueChange.ValueType}" + NewLine;
+            effects += $"{baseValueChange.Amount} to {baseValueChange.ValueType}, ";
         }
 
         foreach (ValueModification valueModification in valueModifications)
         {
             if (valueModification is EncounterValueModification encounterValueMod)
-                effects += $"{encounterValueMod.Amount} to {encounterValueMod.ValueType}" + NewLine;
+                effects += $"{encounterValueMod.Amount} to {encounterValueMod.ValueType}, ";
         }
 
-        prompt = prompt + effects + NewLine;
+        prompt = prompt + effects + NewLine + NewLine;
 
         return prompt;
     }

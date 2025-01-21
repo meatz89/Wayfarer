@@ -10,6 +10,11 @@
         {
             changes.Add(new BaseValueChange(ValueTypes.Outcome, 1)); // Base progress
         }
+        // Every strategic choice gets 2 Outcome
+        else
+        {
+            changes.Add(new BaseValueChange(ValueTypes.Outcome, 2)); // Base progress
+        }
 
         if (archetype != ChoiceArchetypes.Physical)
         {
