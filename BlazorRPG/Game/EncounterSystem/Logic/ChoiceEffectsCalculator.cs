@@ -76,17 +76,17 @@
                 if (approach == ChoiceApproaches.Strategic)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 3,
-                        $"From Physical Strategic"));
+                        $"Physical Strategic"));
                 }
                 else if (approach == ChoiceApproaches.Careful)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 2,
-                        $"From Physical Careful"));
+                        $"Physical Careful"));
                 }
                 else if (approach == ChoiceApproaches.Aggressive)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 4,
-                        $"From Physical Aggressive"));
+                        $"Physical Aggressive"));
                 }
                 else if (approach == ChoiceApproaches.Desperate)
                 {
@@ -99,17 +99,17 @@
                 if (approach == ChoiceApproaches.Strategic)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Insight, 3,
-                        $"From Focus Strategic"));
+                        $"Focus Strategic"));
                 }
                 else if (approach == ChoiceApproaches.Careful)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Insight, 2,
-                        $"From Focus Careful"));
+                        $"Focus Careful"));
                 }
                 else if (approach == ChoiceApproaches.Aggressive)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 2,
-                        $"From Focus Aggressive"));
+                        $"Focus Aggressive"));
                 }
                 else if (approach != ChoiceApproaches.Desperate)
                 {
@@ -122,17 +122,17 @@
                 if (approach == ChoiceApproaches.Strategic)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 3,
-                        $"From Social Strategic"));
+                        $"Social Strategic"));
                 }
                 else if (approach == ChoiceApproaches.Careful)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 2,
-                        $"From Social Careful"));
+                        $"Social Careful"));
                 }
                 else if (approach == ChoiceApproaches.Aggressive)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 3,
-                        $"From Social Aggressive"));
+                        $"Social Aggressive"));
                 }
                 else if (approach == ChoiceApproaches.Desperate)
                 {

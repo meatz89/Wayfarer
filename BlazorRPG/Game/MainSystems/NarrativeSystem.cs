@@ -128,18 +128,18 @@
 
         foreach (BaseValueChange baseValueChange in baseValueChanges)
         {
-            effects += $"{baseValueChange.Amount} to {baseValueChange.ValueType}, ";
+            effects += $"{baseValueChange.Amount} to {baseValueChange.ValueType}; ";
         }
 
         foreach (ValueModification valueModification in valueModifications)
         {
             if (valueModification is EncounterValueModification encounterValueMod)
-                effects += $"{encounterValueMod.Amount} to {encounterValueMod.ValueType}, " +
-                    $"because of: {encounterValueMod.Source}";
+                effects += $"{encounterValueMod.Amount} to {encounterValueMod.ValueType} " +
+                    $"from {encounterValueMod.Source}; ";
             
             if (valueModification is EnergyCostReduction energyCostReduction)
-                effects += $"{energyCostReduction.Amount} to {energyCostReduction.EnergyType}, " +
-                    $"because of: {energyCostReduction.Source}";
+                effects += $"{energyCostReduction.Amount} to {energyCostReduction.EnergyType} " +
+                    $"from {energyCostReduction.Source}; ";
         }
 
         prompt = prompt + effects + NewLine + NewLine;
