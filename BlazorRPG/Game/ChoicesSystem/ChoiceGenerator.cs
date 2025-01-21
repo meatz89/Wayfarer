@@ -1,14 +1,14 @@
 ﻿public class ChoiceGenerator
 {
     private readonly GameState gameState;
-    private readonly ChoiceEffectsCalculator calculator;
+    private readonly ChoiceCalculator calculator;
     private readonly BaseValueChangeGenerator baseValueGenerator;
     private readonly HashSet<(ChoiceArchetypes, ChoiceApproaches)> usedCombinations;
 
     public ChoiceGenerator(GameState gameState)
     {
         this.gameState = gameState;
-        this.calculator = new ChoiceEffectsCalculator(gameState);
+        this.calculator = new ChoiceCalculator(gameState);
         this.baseValueGenerator = new BaseValueChangeGenerator();
         this.usedCombinations = new HashSet<(ChoiceArchetypes, ChoiceApproaches)>();
     }

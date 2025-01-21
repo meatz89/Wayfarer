@@ -1,4 +1,6 @@
-﻿public class NarrativeSystem
+﻿using System.Collections.Generic;
+
+public class NarrativeSystem
 {
     private List<LocationNarrative> narrativeContents;
     private string openAiApiKey;
@@ -38,17 +40,11 @@
 
         string prompt = $"Analyze the narrative consequences of the last choice and create the new Situation Description. " + NewLine;
         prompt += $"Do NOT stray away to far from the initial goal of the encounter: '{initialGoal}' {NewLine}{NewLine}";
-        
+
         prompt += $"{encounterState}{NewLine}{NewLine}";
         prompt = AddChoicesToPrompt(choices, prompt);
 
-        List<CompletionMessage4o> previousPrompts = new();
-        List<string> list = JournalSystem.GetDescriptionForCurrentEncounter();
-        foreach (string choice in list)
-        {
-            CompletionMessage4o previousPrompt = OpenAiHelpers.CreateCompletionMessage(Roles.user, choice);
-            previousPrompts.Add(previousPrompt);
-        }
+        List<CompletionMessage4o> previousPrompts = GetPreviousPrompts();
 
         CompletionMessage4o choicesPrompt = OpenAiHelpers.CreateCompletionMessage(Roles.user, prompt);
         ChoicesNarrativeResponse choicesNarrativeResponse = LargeLanguageAdapter.NextEncounterChoices(previousPrompts, choicesPrompt, openAiApiKey);
@@ -65,13 +61,7 @@
             $"Wrap up the encounter narrative.{NewLine}{NewLine}";
         prompt += $"{encounterState}{NewLine}{NewLine}";
 
-        List<CompletionMessage4o> previousPrompts = new();
-        List<string> list = JournalSystem.GetDescriptionForCurrentEncounter();
-        foreach (string choice in list)
-        {
-            CompletionMessage4o previousPrompt = OpenAiHelpers.CreateCompletionMessage(Roles.user, choice);
-            previousPrompts.Add(previousPrompt);
-        }
+        List<CompletionMessage4o> previousPrompts = GetPreviousPrompts();
 
         CompletionMessage4o choicesPrompt = OpenAiHelpers.CreateCompletionMessage(Roles.user, prompt);
         string encounterEndNarrative = LargeLanguageAdapter.EncounterEndNarrative(previousPrompts, choicesPrompt, openAiApiKey);
@@ -79,6 +69,26 @@
         JournalSystem.EndEncounter(encounterEndNarrative);
 
         return encounterEndNarrative;
+    }
+
+    private List<CompletionMessage4o> GetPreviousPrompts()
+    {
+        List<CompletionMessage4o> previousPrompts = new();
+        List<string> initialDescriptions = JournalSystem.GetInitialEncounterDescriptions();
+        List<Narrative> encounterNarratives = JournalSystem.GetDescriptionForCurrentEncounter();
+        foreach (string description in initialDescriptions)
+        {
+            CompletionMessage4o previousPrompt =
+                OpenAiHelpers.CreateCompletionMessage(Roles.user, description);
+            previousPrompts.Add(previousPrompt);
+        }
+        foreach (Narrative narrative in encounterNarratives)
+        {
+            CompletionMessage4o previousPrompt =
+                OpenAiHelpers.CreateCompletionMessage(narrative.Role, narrative.Text);
+            previousPrompts.Add(previousPrompt);
+        }
+        return previousPrompts;
     }
 
     private static string GetEncounterState(EncounterContext context)

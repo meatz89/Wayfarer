@@ -1,10 +1,10 @@
-﻿public class ChoiceEffectsCalculator
+﻿public class ChoiceCalculator
 {
     private readonly GameState gameState;
     private readonly BaseValueChangeGenerator baseValueGenerator;
     private readonly LocationPropertyEffectCalculator locationPropertyCalculator;
 
-    public ChoiceEffectsCalculator(GameState gameState)
+    public ChoiceCalculator(GameState gameState)
     {
         this.gameState = gameState;
         this.baseValueGenerator = new BaseValueChangeGenerator();
@@ -75,17 +75,17 @@
                 // Physical actions build Momentum
                 if (approach == ChoiceApproaches.Strategic)
                 {
-                    modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 3,
+                    modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -4,
                         $"Physical Strategic"));
                 }
                 else if (approach == ChoiceApproaches.Careful)
                 {
-                    modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 2,
+                    modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 3,
                         $"Physical Careful"));
                 }
                 else if (approach == ChoiceApproaches.Aggressive)
                 {
-                    modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 4,
+                    modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 2,
                         $"Physical Aggressive"));
                 }
                 else if (approach == ChoiceApproaches.Desperate)
@@ -98,18 +98,16 @@
                 // Focus actions build Insight
                 if (approach == ChoiceApproaches.Strategic)
                 {
-                    modifications.Add(new EncounterValueModification(ValueTypes.Insight, 3,
+                    modifications.Add(new EncounterValueModification(ValueTypes.Insight, -4,
                         $"Focus Strategic"));
                 }
                 else if (approach == ChoiceApproaches.Careful)
                 {
-                    modifications.Add(new EncounterValueModification(ValueTypes.Insight, 2,
+                    modifications.Add(new EncounterValueModification(ValueTypes.Insight, 3,
                         $"Focus Careful"));
                 }
                 else if (approach == ChoiceApproaches.Aggressive)
                 {
-                    modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 2,
-                        $"Focus Aggressive"));
                 }
                 else if (approach != ChoiceApproaches.Desperate)
                 {
@@ -121,17 +119,17 @@
                 // Social actions build Resonance
                 if (approach == ChoiceApproaches.Strategic)
                 {
-                    modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 3,
+                    modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -4,
                         $"Social Strategic"));
                 }
                 else if (approach == ChoiceApproaches.Careful)
                 {
-                    modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 2,
+                    modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 3,
                         $"Social Careful"));
                 }
                 else if (approach == ChoiceApproaches.Aggressive)
                 {
-                    modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 3,
+                    modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 1,
                         $"Social Aggressive"));
                 }
                 else if (approach == ChoiceApproaches.Desperate)
@@ -164,7 +162,7 @@
                 "High Resonance Bonus"
             ));
         }
-        if (currentValues.Pressure >= 5)
+        if (currentValues.Pressure >= 6)
         {
             modifications.Add(new EncounterValueModification(
                 ValueTypes.Outcome,
@@ -172,7 +170,7 @@
                 "Medium Pressure Penalty"
             ));
         }
-        if (currentValues.Pressure >= 7)
+        if (currentValues.Pressure >= 8)
         {
             modifications.Add(new EncounterValueModification(
                 ValueTypes.Outcome,

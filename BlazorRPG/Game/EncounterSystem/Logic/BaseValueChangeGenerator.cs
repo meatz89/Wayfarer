@@ -7,22 +7,23 @@
 
         if (approach == ChoiceApproaches.Strategic)
         {
-            changes.Add(new BaseValueChange(ValueTypes.Outcome, 2)); // Base progress
+            changes.Add(new BaseValueChange(ValueTypes.Outcome, 3)); // Base progress
         }
         if (approach == ChoiceApproaches.Careful)
         {
-            //changes.Add(new BaseValueChange(ValueTypes.Outcome, -1)); // Base progress
+            changes.Add(new BaseValueChange(ValueTypes.Pressure, -1)); // Base progress
         }
         if (approach == ChoiceApproaches.Aggressive)
         {
             changes.Add(new BaseValueChange(ValueTypes.Outcome, 3)); // Base progress
+            changes.Add(new BaseValueChange(ValueTypes.Pressure, -2)); // Base progress
         }
         if (approach == ChoiceApproaches.Desperate)
         {
             changes.Add(new BaseValueChange(ValueTypes.Outcome, -2)); // Base progress
             changes.Add(new BaseValueChange(ValueTypes.Insight, -2)); // Base progress
             changes.Add(new BaseValueChange(ValueTypes.Resonance, -2)); // Base progress
-            changes.Add(new BaseValueChange(ValueTypes.Pressure, -4)); // Base progress
+            changes.Add(new BaseValueChange(ValueTypes.Pressure, -3)); // Base progress
         }
         if (archetype != ChoiceArchetypes.Physical)
         {

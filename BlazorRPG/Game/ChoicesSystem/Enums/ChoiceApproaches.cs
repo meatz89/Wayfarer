@@ -1,5 +1,4 @@
-﻿
-public enum ChoiceApproaches
+﻿public enum ChoiceApproaches
 {
     Strategic,  // High in priority order when conditions allow
     Aggressive, // Only available at low pressure

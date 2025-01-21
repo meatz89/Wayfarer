@@ -13,33 +13,31 @@
         InitialSituation = gameContentProvider.GetInitialSituation;
     }
 
-    public List<string> GetDescriptionForCurrentEncounter()
+    public List<Narrative> GetDescriptionForCurrentEncounter()
     {
-        List<string> descriptions = GetInitialEncounterDescriptions();
-
+        List<Narrative> narratives = new();
         EncounterHistory encounter = LastEncounter;
-        string description = InitialSituation + NewLine + NewLine + encounter.InitialGoal;
-        AddToList(descriptions, description);
-
-        foreach (Narrative choice in encounter.Narratives)
+        foreach (Narrative narrative in encounter.Narratives)
         {
-            AddToList(descriptions, choice.Text);
+            narratives.Add(narrative);
         }
-
-        AddToList(descriptions, encounter.ResultSituation);
-        return descriptions;
+        return narratives;
     }
 
-    private List<string> GetInitialEncounterDescriptions()
+    public List<string> GetInitialEncounterDescriptions()
     {
         List<string> descriptions = new List<string>();
-        string description = Background + NewLine + InitialSituation;
-        AddToList(descriptions, description);
+        string description1 = Background + NewLine + InitialSituation;
+        AddToList(descriptions, description1);
 
         foreach (string journeyEntry in JourneyEntries)
         {
             AddToList(descriptions, journeyEntry);
         }
+
+        EncounterHistory encounter = LastEncounter;
+        string description2 = InitialSituation + NewLine + NewLine + encounter.InitialGoal;
+        AddToList(descriptions, description2);
 
         return descriptions;
     }
