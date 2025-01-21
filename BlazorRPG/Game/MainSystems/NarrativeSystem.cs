@@ -33,6 +33,8 @@
 
     public ChoicesNarrativeResponse GetChoicesNarrative(EncounterContext context, List<EncounterChoice> choices)
     {
+        // TODO: CURRENT ENCOUNTER STATE VALUES
+
         string initialGoal = JournalSystem.GetCurrentEncounterGoal();
 
         string prompt = $"Analyze the narrative consequences of the last choice and create the new Situation Description. " + NewLine;

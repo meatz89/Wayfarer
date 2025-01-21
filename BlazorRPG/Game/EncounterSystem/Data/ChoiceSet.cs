@@ -14,7 +14,7 @@
         foreach (ChoicesNarrative narrative in choicesTexts)
         {
             int index = narrative.choiceNumber;
-            if (Choices.Count > index)
+            if (Choices.Count >= index)
             {
                 EncounterChoice choice = Choices[index - 1];
                 choice.Designation = narrative.designation;
