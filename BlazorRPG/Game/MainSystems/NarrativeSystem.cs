@@ -33,8 +33,8 @@
 
     public void MakeChoice(EncounterContext context, EncounterChoice encounterChoice)
     {
-        string choice = $"[{encounterChoice.Archetype} - {encounterChoice.Approach}] {encounterChoice.Description}";
-        string prompt = $"You made a choice: {choice}";
+        string choice = $"{encounterChoice.Description} ({encounterChoice.Archetype} - {encounterChoice.Approach})";
+        string prompt = $"The player chose: {choice}";
 
         JournalSystem.NoteNewEncounterNarrative(prompt);
     }
@@ -69,7 +69,26 @@
 
     private static string CreatePromptForChoice(int index, EncounterChoice encounterChoice)
     {
-        return $"{index}. ({encounterChoice.Archetype} - {encounterChoice.Approach}) {NewLine}";
+        string prompt = $"{index}. ({encounterChoice.Archetype} - {encounterChoice.Approach})";
+        string effects = $" effects {NewLine}";
+
+        var baseValueChanges = encounterChoice.CalculationResult.BaseValueChanges;
+        var valueModifications = encounterChoice.CalculationResult.ValueModifications;
+
+        foreach (BaseValueChange baseValueChange in baseValueChanges)
+        {
+            effects += $"{baseValueChange.Amount} to {baseValueChange.ValueType}" + NewLine;
+        }
+
+        foreach (ValueModification valueModification in valueModifications)
+        {
+            if(valueModification is EncounterValueModification encounterValueMod)
+            effects += $"{encounterValueMod.Amount} to {encounterValueMod.ValueType}" + NewLine;
+        }
+
+        prompt = prompt + effects + NewLine;
+
+        return prompt;
     }
 
     public string GetEncounterSuccessNarrative(EncounterContext context)
