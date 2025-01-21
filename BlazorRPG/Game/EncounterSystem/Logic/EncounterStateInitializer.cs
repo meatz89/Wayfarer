@@ -46,11 +46,11 @@
 
 
         return EncounterValues.WithValues(
-            momentum: 5 + momentumChange,
-            insight: 5 + insightChange,
-            resonance: 5 + resonanceChange,
-            outcome: 2 + (playerLevel - difficulty) + outgomeChange,
-            pressure: 2 + pressureChange
+            momentum: 2 + momentumChange,
+            insight: 2 + insightChange,
+            resonance: 2 + resonanceChange,
+            outcome: 5 + (playerLevel - difficulty) + outgomeChange,
+            pressure: 5 + pressureChange
         );
     }
 }

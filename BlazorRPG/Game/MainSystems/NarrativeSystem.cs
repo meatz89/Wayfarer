@@ -33,14 +33,7 @@
 
     public ChoicesNarrativeResponse GetChoicesNarrative(EncounterContext context, List<EncounterChoice> choices)
     {
-        var values = context.CurrentValues;
-        var encounterState = $"Current States: " +
-            $"Outcome ({values.Outcome}/10), " +
-            $"Pressure ({values.Pressure}/10), " +
-            $"Momentum ({values.Momentum}/10), " +
-            $"Insight ({values.Insight}/10), " +
-            $"Resonance ({values.Resonance}/10)";
-
+        string encounterState = GetEncounterState(context);
         string initialGoal = JournalSystem.GetCurrentEncounterGoal();
 
         string prompt = $"Analyze the narrative consequences of the last choice and create the new Situation Description. " + NewLine;
@@ -61,6 +54,42 @@
 
         JournalSystem.NoteNewEncounterAssistantNarrative(choicesNarrativeResponse.introductory_narrative);
         return choicesNarrativeResponse;
+    }
+
+    public string GetEncounterSuccessNarrative(EncounterContext context)
+    {
+        string encounterState = GetEncounterState(context);
+
+        string prompt = $"The last player decision ended the encounter successfully. " +
+            $"Wrap up the encounter narrative.{NewLine}{NewLine}";
+        prompt += $"{encounterState}{NewLine}{NewLine}";
+
+        List<CompletionMessage4o> previousPrompts = new();
+        List<string> list = JournalSystem.GetDescriptionForCurrentEncounter();
+        foreach (string choice in list)
+        {
+            CompletionMessage4o previousPrompt = OpenAiHelpers.CreateCompletionMessage(Roles.user, choice);
+            previousPrompts.Add(previousPrompt);
+        }
+
+        CompletionMessage4o choicesPrompt = OpenAiHelpers.CreateCompletionMessage(Roles.user, prompt);
+        string encounterEndNarrative = LargeLanguageAdapter.EncounterEndNarrative(previousPrompts, choicesPrompt, openAiApiKey);
+
+        JournalSystem.EndEncounter(encounterEndNarrative);
+
+        return encounterEndNarrative;
+    }
+
+    private static string GetEncounterState(EncounterContext context)
+    {
+        var values = context.CurrentValues;
+        var encounterState = $"Current States: " +
+            $"Outcome ({values.Outcome}/10), " +
+            $"Pressure ({values.Pressure}/10), " +
+            $"Momentum ({values.Momentum}/10), " +
+            $"Insight ({values.Insight}/10), " +
+            $"Resonance ({values.Resonance}/10)";
+        return encounterState;
     }
 
     private static string AddChoicesToPrompt(List<EncounterChoice> choices, string prompt)
@@ -86,27 +115,6 @@
 
         string prompt = $"The player chose: {choice}";
         JournalSystem.NoteNewEncounterNarrative(prompt);
-    }
-
-    public string GetEncounterSuccessNarrative(EncounterContext context)
-    {
-        string prompt = $"The last player decision successfully ended the encounter. " +
-            $"Wrap up the encounter narrative.";
-
-        List<CompletionMessage4o> previousPrompts = new();
-        List<string> list = JournalSystem.GetDescriptionForCurrentEncounter();
-        foreach (string choice in list)
-        {
-            CompletionMessage4o previousPrompt = OpenAiHelpers.CreateCompletionMessage(Roles.user, choice);
-            previousPrompts.Add(previousPrompt);
-        }
-
-        CompletionMessage4o choicesPrompt = OpenAiHelpers.CreateCompletionMessage(Roles.user, prompt);
-        string encounterEndNarrative = LargeLanguageAdapter.EncounterEndNarrative(previousPrompts, choicesPrompt, openAiApiKey);
-
-        JournalSystem.EndEncounter(encounterEndNarrative);
-
-        return encounterEndNarrative;
     }
 
     private static string CreatePromptForChoice(int index, EncounterChoice encounterChoice)
