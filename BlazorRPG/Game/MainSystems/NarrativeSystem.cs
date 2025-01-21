@@ -25,23 +25,20 @@
     {
         LargeLanguageAdapter.Reset();
 
-        string taskToSolve = $"The player is in the {context.LocationName}, a {context.LocationArchetype}, at the {context.LocationSpotName}. It is {context.TimeSlot.ToString()}. The player starts a {context.ActionType.ToString()} action: {actionImplementation.Name}.";
-        string initialSituation = string.Empty;
+        string initialSituation = $"The player is in the {context.LocationName}, a {context.LocationArchetype}, at the {context.LocationSpotName}. It is {context.TimeSlot.ToString()}. The player starts a {context.ActionType.ToString()} action.";
+        string actionGoal = $"{actionImplementation.Name}";
 
-        JournalSystem.StartEncounter(taskToSolve, initialSituation);
+        JournalSystem.StartEncounter(initialSituation, actionGoal);
     }
 
     public ChoicesNarrativeResponse GetChoicesNarrative(EncounterContext context, List<EncounterChoice> choices)
     {
-        string prompt = $"Analyze the narrative consequences of the last choice and create the new Situation Description. " + NewLine +
-            $"Create the narrative descriptions for the new choice options: {NewLine}";
+        string initialGoal = JournalSystem.GetCurrentEncounterGoal();
 
-        int i = 1;
-        foreach (EncounterChoice choice in choices)
-        {
-            prompt += CreatePromptForChoice(i, choice);
-            i++;
-        }
+        string prompt = $"Analyze the narrative consequences of the last choice and create the new Situation Description. " + NewLine;
+        prompt += $"Do NOT stray away to far from the initial goal of the encounter: {initialGoal}{NewLine}{NewLine}";
+        
+        prompt = AddChoicesToPrompt(choices, prompt);
 
         List<CompletionMessage4o> previousPrompts = new();
         List<string> list = JournalSystem.GetDescriptionForCurrentEncounter();
@@ -56,6 +53,19 @@
 
         JournalSystem.NoteNewEncounterAssistantNarrative(choicesNarrativeResponse.introductory_narrative);
         return choicesNarrativeResponse;
+    }
+
+    private static string AddChoicesToPrompt(List<EncounterChoice> choices, string prompt)
+    {
+        int i = 1;
+        prompt += $"Create the narrative descriptions for the new choice options:{NewLine}{NewLine}";
+        foreach (EncounterChoice choice in choices)
+        {
+            prompt += CreatePromptForChoice(i, choice);
+            i++;
+        }
+
+        return prompt;
     }
 
     public void MakeChoice(EncounterContext context, EncounterChoice encounterChoice)

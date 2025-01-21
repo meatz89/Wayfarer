@@ -14,10 +14,12 @@
         foreach (ChoicesNarrative narrative in choicesTexts)
         {
             int index = narrative.choiceNumber;
-            EncounterChoice choice = Choices[index - 1];
-
-            choice.Designation = narrative.designation;
-            choice.Narrative= narrative.narrative;
+            if (Choices.Count > index)
+            {
+                EncounterChoice choice = Choices[index - 1];
+                choice.Designation = narrative.designation;
+                choice.Narrative = narrative.narrative;
+            }
         }
     }
 }

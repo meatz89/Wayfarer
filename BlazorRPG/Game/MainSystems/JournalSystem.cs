@@ -1,4 +1,5 @@
 ﻿
+
 public class JournalSystem
 {
     public string Background { get; set; }
@@ -19,7 +20,7 @@ public class JournalSystem
         List<string> descriptions = GetInitialEncounterDescriptions();
 
         EncounterHistory encounter = LastEncounter;
-        string description = InitialSituation + NewLine + NewLine + encounter.TaskToSolve;
+        string description = InitialSituation + NewLine + NewLine + encounter.InitialGoal;
         AddToList(descriptions, description);
 
         foreach (Narrative choice in encounter.Narratives)
@@ -50,12 +51,12 @@ public class JournalSystem
         JourneyEntries.Add(narrative);
     }
 
-    public void StartEncounter(string taskToSolve, string initialSituation)
+    public void StartEncounter(string initialSituation, string actionGoal)
     {
         LastEncounter = new EncounterHistory()
         {
-            TaskToSolve = taskToSolve,
             InitialSituation = initialSituation,
+            InitialGoal = actionGoal,
         };
     }
 
@@ -83,5 +84,10 @@ public class JournalSystem
     {
         Narrative item = new Narrative() { Role = Roles.assistant, Text = assistantNarrative };
         LastEncounter.Narratives.Add(item);
+    }
+
+    internal string GetCurrentEncounterGoal()
+    {
+        return LastEncounter.InitialGoal;
     }
 }

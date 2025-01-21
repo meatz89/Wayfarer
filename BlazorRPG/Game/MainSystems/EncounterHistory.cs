@@ -1,6 +1,6 @@
 ﻿public class EncounterHistory
 {
-    public string TaskToSolve { get; set; }
+    public string InitialGoal { get; set; }
     public string InitialSituation { get; set; }
     public List<Narrative> Narratives = new();
     public string ResultSituation { get; set; }
