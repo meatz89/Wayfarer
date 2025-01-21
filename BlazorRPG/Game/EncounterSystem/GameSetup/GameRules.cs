@@ -52,22 +52,22 @@
             ChoiceArchetypes.Physical => new List<ChoiceApproaches>
         {
             ChoiceApproaches.Strategic,
-            ChoiceApproaches.Careful,
             ChoiceApproaches.Aggressive,
+            ChoiceApproaches.Careful,
         },
 
             ChoiceArchetypes.Focus => new List<ChoiceApproaches>
         {
             ChoiceApproaches.Strategic,
-            ChoiceApproaches.Careful,
             ChoiceApproaches.Aggressive,
+            ChoiceApproaches.Careful,
         },
 
             ChoiceArchetypes.Social => new List<ChoiceApproaches>
         {
             ChoiceApproaches.Strategic,
-            ChoiceApproaches.Careful,
             ChoiceApproaches.Aggressive,
+            ChoiceApproaches.Careful,
         },
 
             _ => throw new ArgumentException("Invalid archetype")
@@ -112,4 +112,71 @@
         };
     }
 
+    public static CompositionPattern SetDefaultCompositionForActionType(BasicActionTypes actionType)
+    {
+        CompositionPattern compositionPattern = new CompositionPattern
+        {
+            PrimaryArchetype = ChoiceArchetypes.Social,
+            SecondaryArchetype = ChoiceArchetypes.Focus,
+            PrimaryCount = 2,
+            SecondaryCount = 1
+        };
+
+        switch (actionType)
+        {
+            case BasicActionTypes.Labor:
+            case BasicActionTypes.Gather:
+            case BasicActionTypes.Travel:
+                // Physical-focused composition
+                compositionPattern = new CompositionPattern
+                {
+                    PrimaryArchetype = ChoiceArchetypes.Physical,
+                    SecondaryArchetype = ChoiceArchetypes.Focus,
+                    PrimaryCount = 2,
+                    SecondaryCount = 1
+                };
+                break;
+
+            case BasicActionTypes.Investigate:
+            case BasicActionTypes.Study:
+            case BasicActionTypes.Reflect:
+            case BasicActionTypes.Rest:
+            case BasicActionTypes.Recover:
+                // Focus-focused composition
+                compositionPattern = new CompositionPattern
+                {
+                    PrimaryArchetype = ChoiceArchetypes.Focus,
+                    SecondaryArchetype = ChoiceArchetypes.Social,
+                    PrimaryCount = 2,
+                    SecondaryCount = 1
+                };
+                break;
+
+            case BasicActionTypes.Mingle:
+            case BasicActionTypes.Discuss:
+            case BasicActionTypes.Persuade:
+            case BasicActionTypes.Perform:
+                // Social-focused composition
+                compositionPattern = new CompositionPattern
+                {
+                    PrimaryArchetype = ChoiceArchetypes.Social,
+                    SecondaryArchetype = ChoiceArchetypes.Focus,
+                    PrimaryCount = 2,
+                    SecondaryCount = 1
+                };
+                break;
+            default:
+                // default composition pattern
+                compositionPattern = new CompositionPattern
+                {
+                    PrimaryArchetype = ChoiceArchetypes.Social,
+                    SecondaryArchetype = ChoiceArchetypes.Physical,
+                    PrimaryCount = 2,
+                    SecondaryCount = 1
+                };
+                break;
+        }
+     
+        return compositionPattern;
+    }
 }

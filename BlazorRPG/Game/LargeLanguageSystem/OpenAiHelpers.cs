@@ -20,32 +20,20 @@ public static class OpenAiHelpers
     {
         messages.AddRange(completionMessages);
 
-        string protocolLines = NewLine;
-        protocolLines += NewLine;
         Console.WriteLine("");
-        protocolLines += "----START Messages sent to API START----";
         Console.WriteLine("----START Messages sent to API START----");
         foreach (CompletionMessage4o message in messages)
         {
             foreach (CompletionMessageContent4o content in message.content)
             {
-                protocolLines += NewLine;
                 Console.WriteLine("");
-                protocolLines += "----START Message----";
-                Console.WriteLine("----START Message----");
-                protocolLines += $"{message.role}:";
+                Console.WriteLine("----New Prompt----");
                 Console.WriteLine($"{message.role}:");
-                protocolLines += $"{content.text}";
                 Console.WriteLine($"{content.text}");
-                protocolLines += "----END Message----";
-                Console.WriteLine("----END Message----");
-                protocolLines += NewLine;
                 Console.WriteLine("");
             }
         }
-        protocolLines += "----END Messages sent to API END----";
         Console.WriteLine("----END Messages sent to API END----");
-        protocolLines += NewLine;
         Console.WriteLine("");
 
         //Converting the object to a json string
