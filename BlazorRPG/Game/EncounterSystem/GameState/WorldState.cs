@@ -16,7 +16,6 @@ public class WorldState
     public void SetNewLocation(Location location)
     {
         CurrentLocation = location;
-        // Default to first spot in new location
         CurrentLocationSpot = location.LocationSpots.FirstOrDefault();
     }
 

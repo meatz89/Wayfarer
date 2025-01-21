@@ -30,6 +30,7 @@
     public List<Knowledge> Knowledge { get; set; } = new();
     public Dictionary<ReputationTypes, int> Reputations { get; set; } = new();
     public Encounter CurrentEncounter { get; set; }
+    public LocationNames StartingLocation { get; set; }
 
     public PlayerState()
     {

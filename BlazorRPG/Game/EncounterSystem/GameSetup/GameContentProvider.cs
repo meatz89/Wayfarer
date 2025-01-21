@@ -11,7 +11,8 @@
     private List<LocationPropertyChoiceEffect> locationArchetypeEffects = new();
 
     public string GetBackground => "Rainwater streams from your cloak as you push open the heavy wooden door of the wayside inn. The sudden warmth and golden light from the hearth hits you like a physical force after hours on the dark road. Your muscles ache from fighting the wind, and your boots squelch with every step on the worn floorboards.";
-    public string GetInitialSituation => "The common room is alive with activity - travelers seeking shelter from the storm have filled most of the tables. Conversations blend with the crackle of the fire and the occasional burst of laughter. A serving girl weaves between patrons with practiced ease, while the innkeeper watches everything from behind a scarred wooden bar.";
+    public string GetInitialSituation => "";
+        //"The common room is alive with activity - travelers seeking shelter from the storm have filled most of the tables. Conversations blend with the crackle of the fire and the occasional burst of laughter. A serving girl weaves between patrons with practiced ease, while the innkeeper watches everything from behind a scarred wooden bar.";
 
     public GameContentProvider()
     {

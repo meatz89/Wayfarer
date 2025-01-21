@@ -3,12 +3,13 @@
     public static GameState CreateNewGame()
     {
         GameState gameState = new GameState();
-        gameState.World.SetNewLocation(LocationContent.WaysideInn);
         gameState.World.SetCurrentTime(0);
 
         GameRules gameRules = GameRules.StandardRuleset;
 
         PlayerState playerInfo = new PlayerState();
+        playerInfo.StartingLocation = LocationNames.WaysideInn;
+
         playerInfo.Coins = gameRules.StartingCoins;
 
         playerInfo.MinHealth = gameRules.MinimumHealth;
@@ -35,7 +36,6 @@
         playerInfo.Inventory.AddResources(ResourceTypes.Food, 5);
 
         gameState.Player = playerInfo;
-
 
         return gameState;
     }

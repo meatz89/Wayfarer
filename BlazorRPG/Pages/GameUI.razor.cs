@@ -55,7 +55,7 @@ public partial class GameUI : ComponentBase
     {
         selectedLocation = locationName;
         // Check if the location has a narrative
-        if (GameManager.HasLocationNarrative(locationName))
+        if (GameManager.GetLocationNarrative(locationName) != string.Empty)
         {
             showNarrative = true;
         }

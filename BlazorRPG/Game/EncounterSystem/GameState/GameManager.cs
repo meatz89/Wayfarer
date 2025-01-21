@@ -12,6 +12,7 @@ public class GameManager
     public ItemSystem ItemSystem { get; }
     public MessageSystem MessageSystem { get; }
     public NarrativeSystem NarrativeSystem { get; }
+    public JournalSystem JournalSystem { get; }
     public PlayerStatusSystem PlayerStatusSystem { get; }
 
     public GameManager(
@@ -24,6 +25,7 @@ public class GameManager
         ItemSystem itemSystem,
         MessageSystem messageSystem,
         NarrativeSystem narrativeSystem,
+        JournalSystem journalSystem,
         PlayerStatusSystem playerStatusSystem
         )
     {
@@ -38,11 +40,13 @@ public class GameManager
         this.ItemSystem = itemSystem;
         this.MessageSystem = messageSystem;
         this.NarrativeSystem = narrativeSystem;
+        this.JournalSystem = journalSystem;
         this.PlayerStatusSystem = playerStatusSystem;
     }
 
     public void StartGame()
     {
+        TravelToLocation(gameState.Player.StartingLocation);
         UpdateState();
 
         Item item = ItemSystem.GetItemFromName(ItemNames.CharmingPendant);
@@ -64,13 +68,7 @@ public class GameManager
 
         List<LocationSpot> locationSpots = location.LocationSpots;
         ActionAvailabilityService availabilityService = new ActionAvailabilityService();
-
-        // Clear existing actions in each LocationSpot
-        foreach (LocationSpot spot in locationSpots)
-        {
-            spot.Actions.Clear();
-        }
-
+        
         CreateActionsForLocation(location, allActionTemplates, locationSpots, availabilityService);
 
         List<UserActionOption> options = new List<UserActionOption>();
@@ -85,36 +83,9 @@ public class GameManager
         gameState.Actions.SetLocationSpotActions(options);
     }
 
-    private static void CreateActionsForLocation(
-        Location location,
-        List<ActionTemplate> allActionTemplates,
-        List<LocationSpot> locationSpots,
-        ActionAvailabilityService availabilityService)
-    {
-        foreach (ActionTemplate template in allActionTemplates)
-        {
-            foreach (LocationSpot locationSpot in locationSpots)
-            {
-                // Use ActionAvailabilityService to check availability
-                if (availabilityService.IsActionAvailable(template, locationSpot.SpotProperties))
-                {
-                    // Create ActionImplementation using the factory
-                    ActionImplementation actionImplementation = ActionFactory.CreateAction(template, location);
-                    locationSpot.AddAction(actionImplementation);
-                }
-            }
-        }
-    }
-
     public string GetLocationNarrative(LocationNames locationName)
     {
         return NarrativeSystem.GetLocationNarrative(locationName);
-    }
-
-    public bool HasLocationNarrative(LocationNames locationName)
-    {
-        // You can implement more complex logic here if needed
-        return !string.IsNullOrEmpty(GetLocationNarrative(locationName));
     }
 
     public void UpdateAvailableActions()
@@ -308,7 +279,6 @@ public class GameManager
         gameState.Actions.SetLastActionResultMessages(allMessages);
 
         LocationNames location = action.Location;
-
         bool stillAlive = AdvanceTime(1); // Normal time advance
 
         return ActionResult.Success("Action success!", allMessages);
@@ -316,6 +286,13 @@ public class GameManager
 
     public ActionResult TravelToLocation(LocationNames locationName)
     {
+        if (gameState.World.CurrentLocation == null ||
+            gameState.World.CurrentLocation.LocationName != locationName)
+        {
+            var narrative = GetLocationNarrative(locationName);
+            JournalSystem.WriteJourneyEntry(narrative);
+        }
+
         Location location = LocationSystem.GetLocation(locationName);
         gameState.World.SetNewLocation(location);
         UpdateState();
@@ -502,4 +479,30 @@ public class GameManager
         return new ChoiceCalculator(gameState).CalculateChoiceEffects(encounterChoice, context);
     }
 
+    private static void CreateActionsForLocation(
+        Location location,
+        List<ActionTemplate> allActionTemplates,
+        List<LocationSpot> locationSpots,
+        ActionAvailabilityService availabilityService)
+    {
+        // Clear existing actions in each LocationSpot
+        foreach (LocationSpot spot in locationSpots)
+        {
+            spot.Actions.Clear();
+        }
+
+        foreach (ActionTemplate template in allActionTemplates)
+        {
+            foreach (LocationSpot locationSpot in locationSpots)
+            {
+                // Use ActionAvailabilityService to check availability
+                if (availabilityService.IsActionAvailable(template, locationSpot.SpotProperties))
+                {
+                    // Create ActionImplementation using the factory
+                    ActionImplementation actionImplementation = ActionFactory.CreateAction(template, location);
+                    locationSpot.AddAction(actionImplementation);
+                }
+            }
+        }
+    }
 }
