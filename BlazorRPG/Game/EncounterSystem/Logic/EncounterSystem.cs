@@ -3,7 +3,7 @@
     private readonly GameState gameState;
     private readonly ChoiceSystem choiceSystem;
     private readonly NarrativeSystem narrativeSystem;
-    private readonly ChoiceCalculator choiceCalculator;
+    private readonly ChoiceEffectsCalculator choiceCalculator;
     private readonly ChoiceExecutor choiceExecutor;
 
     public EncounterSystem(
@@ -16,7 +16,7 @@
         this.choiceSystem = choiceSystem;
         this.narrativeSystem = narrativeSystem;
         this.choiceExecutor = new ChoiceExecutor(gameState);
-        this.choiceCalculator = new ChoiceCalculator(gameState);
+        this.choiceCalculator = new ChoiceEffectsCalculator(gameState);
     }
 
     public EncounterResult ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationProperties locationProperties)

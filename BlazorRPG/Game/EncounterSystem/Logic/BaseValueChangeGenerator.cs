@@ -1,21 +1,29 @@
-﻿public class ChoiceEffectsGenerator
+﻿public class BaseValueChangeGenerator
 {
     public List<BaseValueChange> GenerateBaseValueChanges(ChoiceArchetypes archetype, ChoiceApproaches approach)
     {
         // Every choice gets base progress, then modifications based on approach and archetype
         List<BaseValueChange> changes = new();
 
-        // First add the base outcome that every non-strategic choice gets
-        if (approach != ChoiceApproaches.Strategic)
-        {
-            changes.Add(new BaseValueChange(ValueTypes.Outcome, 1)); // Base progress
-        }
-        // Every strategic choice gets 2 Outcome
-        else
+        if(approach == ChoiceApproaches.Strategic)
         {
             changes.Add(new BaseValueChange(ValueTypes.Outcome, 2)); // Base progress
         }
-
+        if (approach == ChoiceApproaches.Careful)
+        {
+            changes.Add(new BaseValueChange(ValueTypes.Outcome, -1)); // Base progress
+        }
+        if (approach == ChoiceApproaches.Aggressive)
+        {
+            changes.Add(new BaseValueChange(ValueTypes.Outcome, 2)); // Base progress
+        }
+        if (approach == ChoiceApproaches.Desperate)
+        {
+            changes.Add(new BaseValueChange(ValueTypes.Outcome, -2)); // Base progress
+            changes.Add(new BaseValueChange(ValueTypes.Insight, -2)); // Base progress
+            changes.Add(new BaseValueChange(ValueTypes.Resonance, -2)); // Base progress
+            changes.Add(new BaseValueChange(ValueTypes.Pressure, -4)); // Base progress
+        }
         if (archetype != ChoiceArchetypes.Physical)
         {
             changes.Add(new BaseValueChange(ValueTypes.Momentum, -1)); // Base progress
@@ -49,20 +57,6 @@
         return costs;
     }
 
-    public List<Outcome> GenerateBaseCosts(ChoiceArchetypes archetype, ChoiceApproaches approach)
-    {
-        List<Outcome> costs = new List<Outcome>();
-
-        return costs;
-    }
-
-    public List<Outcome> GenerateBaseRewards(ChoiceArchetypes archetype, ChoiceApproaches approach)
-    {
-        List<Outcome> rewards = new List<Outcome>();
-
-        return rewards;
-    }
-
     public List<Requirement> GenerateStrategicRequirements(ChoiceArchetypes archetype, ChoiceApproaches approach)
     {
         List<Requirement> requirements = new();
@@ -85,5 +79,19 @@
         }
 
         return requirements;
+    }
+
+    public List<Outcome> GenerateBaseCosts(ChoiceArchetypes archetype, ChoiceApproaches approach)
+    {
+        List<Outcome> costs = new List<Outcome>();
+
+        return costs;
+    }
+
+    public List<Outcome> GenerateBaseRewards(ChoiceArchetypes archetype, ChoiceApproaches approach)
+    {
+        List<Outcome> rewards = new List<Outcome>();
+
+        return rewards;
     }
 }

@@ -1,13 +1,13 @@
-﻿public class ChoiceCalculator
+﻿public class ChoiceEffectsCalculator
 {
     private readonly GameState gameState;
-    private readonly ChoiceEffectsGenerator baseValueGenerator;
+    private readonly BaseValueChangeGenerator baseValueGenerator;
     private readonly LocationPropertyEffectCalculator locationPropertyCalculator;
 
-    public ChoiceCalculator(GameState gameState)
+    public ChoiceEffectsCalculator(GameState gameState)
     {
         this.gameState = gameState;
-        this.baseValueGenerator = new ChoiceEffectsGenerator();
+        this.baseValueGenerator = new BaseValueChangeGenerator();
         this.locationPropertyCalculator = new LocationPropertyEffectCalculator();
     }
 
@@ -84,11 +84,20 @@
                     modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 2,
                         $"From Physical Strategic"));
                 }
-                else if (approach == ChoiceApproaches.Aggressive)
+                else if (approach == ChoiceApproaches.Careful)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 1,
+                        $"From Physical Careful"));
+                }
+                else if (approach == ChoiceApproaches.Aggressive)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 3,
                         $"From Physical Aggressive"));
                 }
+                else if (approach == ChoiceApproaches.Desperate)
+                {
+                }
+                
                 break;
 
             case ChoiceArchetypes.Focus:
@@ -98,11 +107,20 @@
                     modifications.Add(new EncounterValueModification(ValueTypes.Insight, 2,
                         $"From Focus Strategic"));
                 }
-                else if (approach != ChoiceApproaches.Desperate)
+                else if (approach == ChoiceApproaches.Careful)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Insight, 1,
-                        $"From Focus Desperate"));
+                        $"From Focus Careful"));
                 }
+                else if (approach == ChoiceApproaches.Aggressive)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 1,
+                        $"From Focus Aggressive"));
+                }
+                else if (approach != ChoiceApproaches.Desperate)
+                {
+                }
+
                 break;
 
             case ChoiceArchetypes.Social:
@@ -117,6 +135,15 @@
                     modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 1,
                         $"From Social Careful"));
                 }
+                else if (approach == ChoiceApproaches.Aggressive)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 2,
+                        $"From Social Aggressive"));
+                }
+                else if (approach == ChoiceApproaches.Desperate)
+                {
+                }
+
                 break;
         }
     }
