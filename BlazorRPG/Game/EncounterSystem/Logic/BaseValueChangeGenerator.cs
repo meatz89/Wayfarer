@@ -16,7 +16,7 @@
         if (approach == ChoiceApproaches.Aggressive)
         {
             changes.Add(new BaseValueChange(ValueTypes.Outcome, 3)); // Base progress
-            changes.Add(new BaseValueChange(ValueTypes.Pressure, -2)); // Base progress
+            changes.Add(new BaseValueChange(ValueTypes.Pressure, 2)); // Base progress
         }
         if (approach == ChoiceApproaches.Desperate)
         {
