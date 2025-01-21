@@ -11,11 +11,11 @@
         }
         if (approach == ChoiceApproaches.Careful)
         {
-            changes.Add(new BaseValueChange(ValueTypes.Outcome, -1)); // Base progress
+            //changes.Add(new BaseValueChange(ValueTypes.Outcome, -1)); // Base progress
         }
         if (approach == ChoiceApproaches.Aggressive)
         {
-            changes.Add(new BaseValueChange(ValueTypes.Outcome, 2)); // Base progress
+            changes.Add(new BaseValueChange(ValueTypes.Outcome, 3)); // Base progress
         }
         if (approach == ChoiceApproaches.Desperate)
         {

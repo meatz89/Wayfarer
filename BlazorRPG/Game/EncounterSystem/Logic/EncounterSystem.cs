@@ -215,17 +215,6 @@
         return string.Join(" ", situationElements);
     }
 
-    private string GenerateStageSituation(EncounterContext context)
-    {
-        // Generate situation based on narrative values and context
-        if (context.CurrentValues.Pressure >= 8)
-            return "The situation is very tense...";
-        if (context.CurrentValues.Insight >= 8)
-            return "You have a clear grasp of the situation...";
-
-        return "You consider your options...";
-    }
-
     private bool IsEncounterWon(Encounter encounter)
     {
         const int WIN_BASE = 10;
@@ -241,6 +230,10 @@
 
         EncounterValues values = encounter.Context.CurrentValues;
         PlayerState player = gameState.Player;
+
+        // Immediate loss if outcome is 0
+        if (values.Outcome <= 0)
+            return true;
 
         // Immediate loss if pressure maxes out
         if (values.Pressure >= PRESSURE_LOOSE)
