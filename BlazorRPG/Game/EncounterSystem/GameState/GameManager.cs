@@ -68,7 +68,7 @@ public class GameManager
 
         List<LocationSpot> locationSpots = location.LocationSpots;
         ActionAvailabilityService availabilityService = new ActionAvailabilityService();
-        
+
         CreateActionsForLocation(location, allActionTemplates, locationSpots, availabilityService);
 
         List<UserActionOption> options = new List<UserActionOption>();
@@ -289,7 +289,7 @@ public class GameManager
         if (gameState.World.CurrentLocation == null ||
             gameState.World.CurrentLocation.LocationName != locationName)
         {
-            var narrative = GetLocationNarrative(locationName);
+            string narrative = GetLocationNarrative(locationName);
             JournalSystem.WriteJourneyEntry(narrative);
         }
 

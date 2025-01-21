@@ -28,11 +28,6 @@
         List<Outcome> rewards = CalculateRewards(choice, context);
 
         // 5. Store all results in the choice for UI preview
-        choice.BaseEncounterValueChanges = baseChanges;
-        choice.ValueModifications = valueModifications;
-        choice.Requirements = requirements;
-        choice.Costs = costs;
-        choice.Rewards = rewards;
         choice.EnergyCost = CalculateEnergyCost(choice, context, gameState.Player);
 
         // 6. Return complete calculation result
@@ -96,7 +91,7 @@
                 else if (approach == ChoiceApproaches.Desperate)
                 {
                 }
-                
+
                 break;
 
             case ChoiceArchetypes.Focus:

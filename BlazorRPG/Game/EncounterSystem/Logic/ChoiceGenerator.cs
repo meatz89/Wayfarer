@@ -50,7 +50,7 @@
         for (int i = 0; i < strategicChoiceCount && choices.Count < desiredChoiceCount; i++)
         {
             ChoiceArchetypes[] archetypeOrder = GameRules.GetStrategicArchetypeOrder(pattern);
-            foreach (var archetype in archetypeOrder)
+            foreach (ChoiceArchetypes archetype in archetypeOrder)
             {
                 if (IsChoicePossible(archetype, ChoiceApproaches.Strategic, values, playerState)
                     && !HasArchetypeWithApproach(choices, archetype, ChoiceApproaches.Strategic))
@@ -86,7 +86,7 @@
         EncounterValues values,
         PlayerState playerState)
     {
-        var availableApproaches = GetAvailableApproaches(archetype, values, playerState)
+        List<ChoiceApproaches> availableApproaches = GetAvailableApproaches(archetype, values, playerState)
             .Where(a => a != ChoiceApproaches.Strategic
                    && !existingChoices.Any(c => c.Archetype == archetype && c.Approach == a))
             .ToList();
@@ -287,7 +287,7 @@
 
         return ChoiceApproaches.Desperate;
     }
-    
+
     private EncounterChoice CreateChoice(int index, ChoiceArchetypes archetype, ChoiceApproaches approach)
     {
         bool requireTool = archetype == ChoiceArchetypes.Physical && approach == ChoiceApproaches.Strategic;

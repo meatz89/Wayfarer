@@ -306,7 +306,7 @@ public partial class EncounterViewBase : ComponentBase
     public bool IsChoiceDisabled(UserEncounterChoiceOption choice)
     {
         // Use the ModifiedRequirements for the disabled check
-        return choice.EncounterChoice.Requirements.Any(req => !req.IsSatisfied(GameState.Player));
+        return choice.EncounterChoice.CalculationResult.Requirements.Any(req => !req.IsSatisfied(GameState.Player));
     }
 
     public MarkupString GetRequirementIcon(RequirementTypes requirementType)

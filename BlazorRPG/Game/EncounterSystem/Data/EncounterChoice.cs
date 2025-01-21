@@ -8,17 +8,8 @@
     public ChoiceApproaches Approach { get; }
     public EnergyTypes EnergyType { get; }
     public int EnergyCost { get; set; }
-
-    // Value changes
-    public List<BaseValueChange> BaseEncounterValueChanges { get; set; } = new();
-    public List<ValueModification> ValueModifications { get; set; } = new();
-
-    // Requirements and outcomes
-    public List<Requirement> Requirements { get; set; } = new();
-    public List<Outcome> Costs { get; set; } = new();
-    public List<Outcome> Rewards { get; set; } = new();
-
     public ChoiceCalculationResult CalculationResult { get; set; }
+    public List<BaseValueChange> BaseEncounterValueChanges { get; internal set; }
 
     // Constructor remains the same
     public EncounterChoice(
@@ -132,13 +123,6 @@
             _ => RequirementTypes.Other
         };
     }
-}
-
-public class DetailedRequirement
-{
-    public string Description { get; internal set; }
-    public bool IsSatisfied { get; internal set; }
-    internal RequirementTypes RequirementType { get; set; }
 }
 
 public enum RequirementTypes

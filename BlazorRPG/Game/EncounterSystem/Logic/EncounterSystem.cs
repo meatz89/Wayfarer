@@ -161,13 +161,13 @@
             string locationSpotName = encounter.Context.LocationSpotName;
 
             UserEncounterChoiceOption option = new UserEncounterChoiceOption(
-                choice.Index, 
+                choice.Index,
                 choice.Designation,
                 choice.Narrative,
-                locationName, 
+                locationName,
                 locationSpotName,
-                encounter, 
-                stage, 
+                encounter,
+                stage,
                 choice);
 
             choiceOptions.Add(option);

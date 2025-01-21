@@ -1,10 +1,8 @@
-﻿
-
-public class JournalSystem
+﻿public class JournalSystem
 {
     public string Background { get; set; }
     public string InitialSituation { get; set; }
-    public List<string> JourneyEntries{ get; set; } = new();
+    public List<string> JourneyEntries { get; set; } = new();
     public EncounterHistory LastEncounter { get; set; }
     public List<EncounterHistory> EncounterHistory { get; set; } = new();
     private const string NewLine = "\r\n";
@@ -80,13 +78,13 @@ public class JournalSystem
         LastEncounter.Narratives.Add(item);
     }
 
-    internal void NoteNewEncounterAssistantNarrative(string assistantNarrative)
+    public void NoteNewEncounterAssistantNarrative(string assistantNarrative)
     {
         Narrative item = new Narrative() { Role = Roles.assistant, Text = assistantNarrative };
         LastEncounter.Narratives.Add(item);
     }
 
-    internal string GetCurrentEncounterGoal()
+    public string GetCurrentEncounterGoal()
     {
         return LastEncounter.InitialGoal;
     }

@@ -140,7 +140,7 @@
                         }
                     </div>
                     <div class="requirements-preview">
-                        @if (hoveredChoice.EncounterChoice.Requirements.Count > 0)
+                        @if (hoveredChoice.EncounterChoice.CalculationResult.Requirements.Count > 0)
                         {
                             <h6>Requirements</h6>
                             <ul class="requirements-list">
@@ -162,11 +162,11 @@
                         }
                     </div>
                     <div class="outcomes-preview">
-                        @if (hoveredChoice.EncounterChoice.Costs.Count > 0)
+                        @if (hoveredChoice.EncounterChoice.CalculationResult.Costs.Count > 0)
                         {
                             <h6>Costs</h6>
                             <ul class="outcomes-list">
-                                @foreach (Outcome cost in hoveredChoice.EncounterChoice.Costs)
+                                @foreach (Outcome cost in hoveredChoice.EncounterChoice.CalculationResult.Costs)
                                 {
                                     <li class="value-item">
                                         <div class="value-main">
@@ -181,11 +181,11 @@
                                 }
                             </ul>
                         }
-                        @if (hoveredChoice.EncounterChoice.Rewards.Count > 0)
+                        @if (hoveredChoice.EncounterChoice.CalculationResult.Rewards.Count > 0)
                         {
                             <h6>Rewards</h6>
                             <ul class="outcomes-list">
-                                @foreach (Outcome reward in hoveredChoice.EncounterChoice.Rewards)
+                                @foreach (Outcome reward in hoveredChoice.EncounterChoice.CalculationResult.Rewards)
                                 {
                                     <li class="value-item">
                                         <div class="value-main">

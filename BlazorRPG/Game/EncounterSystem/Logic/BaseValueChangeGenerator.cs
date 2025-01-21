@@ -5,7 +5,7 @@
         // Every choice gets base progress, then modifications based on approach and archetype
         List<BaseValueChange> changes = new();
 
-        if(approach == ChoiceApproaches.Strategic)
+        if (approach == ChoiceApproaches.Strategic)
         {
             changes.Add(new BaseValueChange(ValueTypes.Outcome, 2)); // Base progress
         }

@@ -38,6 +38,7 @@
 
         string prompt = $"Analyze the narrative consequences of the last choice and create the new Situation Description. " + NewLine;
         prompt += $"Do NOT stray away to far from the initial goal of the encounter: '{initialGoal}' {NewLine}{NewLine}";
+        
         prompt += $"{encounterState}{NewLine}{NewLine}";
         prompt = AddChoicesToPrompt(choices, prompt);
 
@@ -82,14 +83,26 @@
 
     private static string GetEncounterState(EncounterContext context)
     {
-        var values = context.CurrentValues;
-        var encounterState = $"Current States: " +
+        EncounterValues values = context.CurrentValues;
+        string encounterState = $"Current States: " +
             $"Outcome ({values.Outcome}/10), " +
             $"Pressure ({values.Pressure}/10), " +
             $"Momentum ({values.Momentum}/10), " +
             $"Insight ({values.Insight}/10), " +
             $"Resonance ({values.Resonance}/10)";
+
         return encounterState;
+    }
+    public void MakeChoice(EncounterContext context, EncounterChoice encounterChoice)
+    {
+        string choice =
+            $"{encounterChoice.Designation} " +
+            $"('{encounterChoice.Narrative}'){NewLine}" +
+            $"This is a {encounterChoice.Archetype.ToString().ToUpper()} choice{NewLine}" +
+            $"This is a {encounterChoice.Approach.ToString().ToUpper()} approach";
+
+        string prompt = $"The player chose: {choice}";
+        JournalSystem.NoteNewEncounterNarrative(prompt);
     }
 
     private static string AddChoicesToPrompt(List<EncounterChoice> choices, string prompt)
@@ -103,18 +116,6 @@
         }
 
         return prompt;
-    }
-
-    public void MakeChoice(EncounterContext context, EncounterChoice encounterChoice)
-    {
-        string choice = 
-            $"{encounterChoice.Designation} " +
-            $"('{encounterChoice.Narrative}'){NewLine}" +
-            $"This is a {encounterChoice.Archetype.ToString().ToUpper()} choice{NewLine}" +
-            $"This is a {encounterChoice.Approach.ToString().ToUpper()} approach";
-
-        string prompt = $"The player chose: {choice}";
-        JournalSystem.NoteNewEncounterNarrative(prompt);
     }
 
     private static string CreatePromptForChoice(int index, EncounterChoice encounterChoice)
@@ -133,11 +134,15 @@
         foreach (ValueModification valueModification in valueModifications)
         {
             if (valueModification is EncounterValueModification encounterValueMod)
-                effects += $"{encounterValueMod.Amount} to {encounterValueMod.ValueType}, ";
+                effects += $"{encounterValueMod.Amount} to {encounterValueMod.ValueType}, " +
+                    $"because of: {encounterValueMod.Source}";
+            
+            if (valueModification is EnergyCostReduction energyCostReduction)
+                effects += $"{energyCostReduction.Amount} to {energyCostReduction.EnergyType}, " +
+                    $"because of: {energyCostReduction.Source}";
         }
 
         prompt = prompt + effects + NewLine + NewLine;
-
         return prompt;
     }
 

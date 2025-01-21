@@ -176,7 +176,7 @@
                 };
                 break;
         }
-     
+
         return compositionPattern;
     }
     public static ChoiceArchetypes[] GetStrategicArchetypeOrder(CompositionPattern pattern)
