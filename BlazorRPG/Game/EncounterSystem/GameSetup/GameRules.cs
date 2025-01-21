@@ -179,4 +179,44 @@
      
         return compositionPattern;
     }
+    public static ChoiceArchetypes[] GetStrategicArchetypeOrder(CompositionPattern pattern)
+    {
+        // Primary archetype gets priority for strategic choices
+        // Then secondary, then the remaining one
+        ChoiceArchetypes remainingArchetype = GetRemainingArchetype(
+            pattern.PrimaryArchetype,
+            pattern.SecondaryArchetype);
+
+        return new[]
+        {
+        pattern.PrimaryArchetype,
+        pattern.SecondaryArchetype,
+        remainingArchetype
+    };
+    }
+
+    public static List<ChoiceArchetypes> GetArchetypePriority(CompositionPattern pattern)
+    {
+        List<ChoiceArchetypes> priority = new()
+    {
+        pattern.PrimaryArchetype,
+        pattern.SecondaryArchetype
+    };
+
+        // Add the remaining archetype last
+        ChoiceArchetypes remainingArchetype = GetRemainingArchetype(
+            pattern.PrimaryArchetype,
+            pattern.SecondaryArchetype);
+        priority.Add(remainingArchetype);
+
+        return priority;
+    }
+
+    private static ChoiceArchetypes GetRemainingArchetype(
+        ChoiceArchetypes first,
+        ChoiceArchetypes second)
+    {
+        return Enum.GetValues<ChoiceArchetypes>()
+            .First(a => a != first && a != second);
+    }
 }
