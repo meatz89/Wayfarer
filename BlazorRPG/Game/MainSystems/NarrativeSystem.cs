@@ -41,17 +41,15 @@
 
     public ChoicesNarrativeResponse GetNewStageChoicesNarrative(EncounterContext context, List<EncounterChoice> choices)
     {
-        string prompt = $"Analyze the narrative consequences of the last choice and create the new Situation Description. " +
+        string prompt = $"Analyze the narrative consequences of the last choice and create the new Situation Description. " + NewLine +
             $"Create the narrative descriptions for the new choice options: {NewLine}";
 
-        string prompt1 = $"{1}. ({choices[0].Archetype} - {choices[0].Approach}) {NewLine}";
-        string prompt2 = $"{2}. ({choices[1].Archetype} - {choices[1].Approach}) {NewLine}";
-        string prompt3 = $"{3}. ({choices[2].Archetype} - {choices[2].Approach}) {NewLine}";
-
-        prompt += prompt1;
-        prompt += prompt2;
-        prompt += prompt3;
-
+        int i = 1;
+        foreach(var choice in choices)
+        {
+            prompt += CreatePromptForChoice(i, choice);
+            i++;
+        }
 
         List<CompletionMessage4o> previousPrompts = new();
         List<string> list = JournalSystem.GetDescriptionForCurrentEncounter();
@@ -67,6 +65,11 @@
         JournalSystem.NoteNewEncounterAssistantNarrative(choicesNarrativeResponse.introductory_narrative);
 
         return choicesNarrativeResponse;
+    }
+
+    private static string CreatePromptForChoice(int index, EncounterChoice encounterChoice)
+    {
+        return $"{index}. ({encounterChoice.Archetype} - {encounterChoice.Approach}) {NewLine}";
     }
 
     public string GetEncounterSuccessNarrative(EncounterContext context)

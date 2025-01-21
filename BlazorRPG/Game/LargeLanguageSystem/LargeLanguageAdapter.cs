@@ -1,10 +1,18 @@
 ﻿using Newtonsoft.Json;
 
 public class LargeLanguageAdapter
-{ 
+{
+    private static string jsonPathChoices = "choices.json";
+    private static string jsonPathEncounterEnd = "endEncounter.json";
+
+    private static string FileContentChoices;
+    private static string FileContentEncounterEnd;
+
     public void Reset()
     {
-        OpenAiHelpers.Prepare();
+        FileHelper fileHelper = new FileHelper();
+        FileContentChoices = fileHelper.ReadFile(jsonPathChoices);
+        FileContentEncounterEnd = fileHelper.ReadFile(jsonPathEncounterEnd);
     }
 
     public ChoicesNarrativeResponse NextEncounterChoices(List<CompletionMessage4o> previousPrompts, CompletionMessage4o newPrompt, string openAiApiKey)
@@ -13,7 +21,7 @@ public class LargeLanguageAdapter
         messages.AddRange(previousPrompts);
         messages.Add(newPrompt);
 
-        HttpRequestMessage request = OpenAiHelpers.PrepareOpenAiRequestChoices(messages, openAiApiKey);
+        HttpRequestMessage request = OpenAiHelpers.PrepareOpenAiRequest(FileContentChoices, messages, openAiApiKey);
 
         string response = OpenAiHelpers.GetOpenAiResponse(request);
         var result = ProcessOpenAiResponseChoices(response);
@@ -24,17 +32,14 @@ public class LargeLanguageAdapter
 
     public string EncounterEndNarrative(List<CompletionMessage4o> previousPrompts, CompletionMessage4o newPrompt, string openAiApiKey)
     {
-
         List<CompletionMessage4o> messages = new();
         messages.AddRange(previousPrompts);
         messages.Add(newPrompt);
 
-        HttpRequestMessage request = OpenAiHelpers.PrepareOpenAiRequestEncounterEnd(messages, openAiApiKey);
+        HttpRequestMessage request = OpenAiHelpers.PrepareOpenAiRequest(FileContentEncounterEnd, messages, openAiApiKey);
 
         string response = OpenAiHelpers.GetOpenAiResponse(request);
-        var result = ProcessOpenAiResponseEncounterEnd(response);
-        
-        return result;
+        return response;
     }
 
     public ChoicesNarrativeResponse ProcessOpenAiResponseChoices(string openAiResponseString)

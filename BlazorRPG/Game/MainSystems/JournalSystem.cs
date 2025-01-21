@@ -3,7 +3,7 @@
     public string Background { get; set; }
     public string InitialSituation { get; set; }
     public EncounterHistory LastEncounter { get; set; }
-    public List<EncounterHistory> EncounterHistory { get; set; }
+    public List<EncounterHistory> EncounterHistory { get; set; } = new();
     private const string NewLine = "\r\n";
 
     public JournalSystem(GameContentProvider gameContentProvider)

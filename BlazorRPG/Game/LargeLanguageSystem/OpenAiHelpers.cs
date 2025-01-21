@@ -5,34 +5,13 @@ using System.Text;
 public static class OpenAiHelpers
 {
     private static string NewLine = "\r\n";
-    private static string jsonPathChoices = "choices.json";
-    private static string jsonPathEncounterEnd = "endEncounter.json";
     private static string completionsUrl = "https://api.openai.com/v1/chat/completions";
     private static string openAiApiKey;
 
-    private static string FileContentChoices;
-    private static string FileContentEncounterEnd;
-
-    public static void Prepare()
-    {
-        FileHelper fileHelper = new FileHelper();
-        FileContentChoices = fileHelper.ReadFile(jsonPathChoices);
-        FileContentEncounterEnd = fileHelper.ReadFile(jsonPathEncounterEnd);
-    }
-
-    public static HttpRequestMessage PrepareOpenAiRequestChoices(List<CompletionMessage4o> completionMessages, string openAiApiKey)
+    public static HttpRequestMessage PrepareOpenAiRequest(string fileContent, List<CompletionMessage4o> completionMessages, string openAiApiKey)
     {
         // Prompt
-        Completion4oModel modelFromFile = GetModelFromFile(FileContentChoices);
-        List<CompletionMessage4o> messages = modelFromFile.messages;
-        return Prepare(completionMessages, openAiApiKey, modelFromFile, messages);
-    }
-
-
-    public static HttpRequestMessage PrepareOpenAiRequestEncounterEnd(List<CompletionMessage4o> completionMessages, string openAiApiKey)
-    {
-        // Prompt
-        Completion4oModel modelFromFile = GetModelFromFile(FileContentEncounterEnd);
+        Completion4oModel modelFromFile = GetModelFromFile(fileContent);
         List<CompletionMessage4o> messages = modelFromFile.messages;
         return Prepare(completionMessages, openAiApiKey, modelFromFile, messages);
     }
