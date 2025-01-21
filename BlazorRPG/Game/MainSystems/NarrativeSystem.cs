@@ -60,7 +60,9 @@
 
     public void MakeChoice(EncounterContext context, EncounterChoice encounterChoice)
     {
-        string choice = $"{encounterChoice.Designation} {NewLine}" +
+        string choice = 
+            $"{encounterChoice.Designation} " +
+            $"('{encounterChoice.Narrative}{NewLine}')" +
             $"This is a {encounterChoice.Archetype.ToString().ToUpper()} choice{NewLine}" +
             $"This is a {encounterChoice.Approach.ToString().ToUpper()} approach";
 
