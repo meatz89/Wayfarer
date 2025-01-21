@@ -120,10 +120,10 @@
 
         // Create stage with pre-calculated choices
         //string oldSituation = GenerateStageSituation(context);
-        narrativeSystem.GenerateNewStageNarrative(context, choiceSet.Choices);
+        ChoicesNarrativeResponse choicesNarrativeResponse = narrativeSystem.GetNewStageChoicesNarrative(context, choiceSet.Choices);
 
-        string newSituation = narrativeSystem.GetStageNarrative();
-        List<string> choicesTexts = narrativeSystem.GetStageChoicesNarrative();
+        string newSituation = GetStageNarrative(choicesNarrativeResponse);
+        List<string> choicesTexts = GetStageChoicesNarrative(choicesNarrativeResponse);
 
         choiceSet.ApplyNarratives(choicesTexts);
 
@@ -134,6 +134,30 @@
             Choices = choiceSet.Choices
         };
     }
+
+
+    public string GetStageNarrative(ChoicesNarrativeResponse choicesNarrativeResponse)
+    {
+        string sceneNarrative = choicesNarrativeResponse.introductory_narrative;
+        return sceneNarrative;
+    }
+
+    public List<string> GetStageChoicesNarrative(ChoicesNarrativeResponse choicesNarrativeResponse)
+    {
+        List<ChoicesNarrative> choicesNarrative = choicesNarrativeResponse.choices.ToList();
+        List<string> choices = new List<string>();
+
+        string desig1 = choicesNarrative[0].designation;
+        string desig2 = choicesNarrative[1].designation;
+        string desig3 = choicesNarrative[2].designation;
+
+        choices.Add(desig1);
+        choices.Add(desig2);
+        choices.Add(desig3);
+
+        return choices;
+    }
+
 
     public List<UserEncounterChoiceOption> GetChoices(
         Encounter encounter)

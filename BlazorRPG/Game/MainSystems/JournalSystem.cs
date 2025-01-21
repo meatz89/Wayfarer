@@ -59,9 +59,9 @@
         string description = InitialSituation + NewLine + encounter.TaskToSolve;
         AddToList(descriptions, description);
 
-        foreach (string choice in encounter.Narratives)
+        foreach (var choice in encounter.Narratives)
         {
-            AddToList(descriptions, choice);
+            AddToList(descriptions, choice.Text);
         }
 
         AddToList(descriptions, encounter.ResultSituation);

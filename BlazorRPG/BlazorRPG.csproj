@@ -15,7 +15,10 @@
 	</ItemGroup>
     
 	<ItemGroup>
-	  <Content Update="completions.json">
+	  <Content Update="endEncounter.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Update="choices.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>
 	</ItemGroup>

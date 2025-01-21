@@ -1,40 +1,66 @@
 ﻿using Newtonsoft.Json;
 
 public class LargeLanguageAdapter
-{
-    public ChoicesNarrativeResponse ChoicesNarrativeResponse;
-
+{ 
     public void Reset()
     {
         OpenAiHelpers.Prepare();
     }
 
-    public ChoicesNarrativeResponse Execute(List<CompletionMessage4o> previousPrompts, CompletionMessage4o newPrompt, string apiKey)
+    public ChoicesNarrativeResponse NextEncounterChoices(List<CompletionMessage4o> previousPrompts, CompletionMessage4o newPrompt, string openAiApiKey)
     {
         List<CompletionMessage4o> messages = new();
         messages.AddRange(previousPrompts);
         messages.Add(newPrompt);
 
-        HttpRequestMessage request = OpenAiHelpers.PrepareOpenAiRequest(messages, apiKey);
+        HttpRequestMessage request = OpenAiHelpers.PrepareOpenAiRequestChoices(messages, openAiApiKey);
 
         string response = OpenAiHelpers.GetOpenAiResponse(request);
-        ProecessOpenAiResponse(response);
+        var result = ProcessOpenAiResponseChoices(response);
 
-        return ChoicesNarrativeResponse;
+        return result;
     }
 
-    public void ProecessOpenAiResponse(string openAiResponseString)
+
+    public string EncounterEndNarrative(List<CompletionMessage4o> previousPrompts, CompletionMessage4o newPrompt, string openAiApiKey)
+    {
+
+        List<CompletionMessage4o> messages = new();
+        messages.AddRange(previousPrompts);
+        messages.Add(newPrompt);
+
+        HttpRequestMessage request = OpenAiHelpers.PrepareOpenAiRequestEncounterEnd(messages, openAiApiKey);
+
+        string response = OpenAiHelpers.GetOpenAiResponse(request);
+        var result = ProcessOpenAiResponseEncounterEnd(response);
+        
+        return result;
+    }
+
+    public ChoicesNarrativeResponse ProcessOpenAiResponseChoices(string openAiResponseString)
     {
         try
         {
-            ChoicesNarrativeResponse =
-                JsonConvert.DeserializeObject<ChoicesNarrativeResponse>(openAiResponseString);
+            return JsonConvert.DeserializeObject<ChoicesNarrativeResponse>(openAiResponseString);
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
         }
+        return null;
     }
 
+    public string ProcessOpenAiResponseEncounterEnd(string openAiResponseString)
+    {
+        try
+        {
+            return JsonConvert.DeserializeObject<string>(openAiResponseString);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        return null;
+    }
 }
 

@@ -5,22 +5,40 @@ using System.Text;
 public static class OpenAiHelpers
 {
     private static string NewLine = "\r\n";
-    private static string jsonPath = "completions.json";
+    private static string jsonPathChoices = "choices.json";
+    private static string jsonPathEncounterEnd = "endEncounter.json";
     private static string completionsUrl = "https://api.openai.com/v1/chat/completions";
     private static string openAiApiKey;
-    private static string FileContent;
+
+    private static string FileContentChoices;
+    private static string FileContentEncounterEnd;
 
     public static void Prepare()
     {
         FileHelper fileHelper = new FileHelper();
-        FileContent = fileHelper.ReadFile(jsonPath);
+        FileContentChoices = fileHelper.ReadFile(jsonPathChoices);
+        FileContentEncounterEnd = fileHelper.ReadFile(jsonPathEncounterEnd);
     }
 
-    public static HttpRequestMessage PrepareOpenAiRequest(List<CompletionMessage4o> completionMessages, string openAiApiKey)
+    public static HttpRequestMessage PrepareOpenAiRequestChoices(List<CompletionMessage4o> completionMessages, string openAiApiKey)
     {
         // Prompt
-        Completion4oModel modelFromFile = GetModelFromFile(FileContent);
+        Completion4oModel modelFromFile = GetModelFromFile(FileContentChoices);
         List<CompletionMessage4o> messages = modelFromFile.messages;
+        return Prepare(completionMessages, openAiApiKey, modelFromFile, messages);
+    }
+
+
+    public static HttpRequestMessage PrepareOpenAiRequestEncounterEnd(List<CompletionMessage4o> completionMessages, string openAiApiKey)
+    {
+        // Prompt
+        Completion4oModel modelFromFile = GetModelFromFile(FileContentEncounterEnd);
+        List<CompletionMessage4o> messages = modelFromFile.messages;
+        return Prepare(completionMessages, openAiApiKey, modelFromFile, messages);
+    }
+
+    private static HttpRequestMessage Prepare(List<CompletionMessage4o> completionMessages, string openAiApiKey, Completion4oModel modelFromFile, List<CompletionMessage4o> messages)
+    {
         messages.AddRange(completionMessages);
 
         string protocolLines = NewLine;

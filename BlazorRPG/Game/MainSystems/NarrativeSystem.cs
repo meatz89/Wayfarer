@@ -39,7 +39,7 @@
         JournalSystem.NoteNewEncounterNarrative(prompt);
     }
 
-    public void GenerateNewStageNarrative(EncounterContext context, List<EncounterChoice> choices)
+    public ChoicesNarrativeResponse GetNewStageChoicesNarrative(EncounterContext context, List<EncounterChoice> choices)
     {
         string prompt = $"Analyze the narrative consequences of the last choice and create the new Situation Description. " +
             $"Create the narrative descriptions for the new choice options: {NewLine}";
@@ -62,32 +62,31 @@
         }
 
         CompletionMessage4o choicesPrompt = OpenAiHelpers.CreateCompletionMessage(Roles.user, prompt);
-        ChoicesNarrativeResponse choicesNarrativeResponse = LargeLanguageAdapter.Execute(previousPrompts, choicesPrompt, openAiApiKey);
+        ChoicesNarrativeResponse choicesNarrativeResponse = LargeLanguageAdapter.NextEncounterChoices(previousPrompts, choicesPrompt, openAiApiKey);
 
         JournalSystem.NoteNewEncounterAssistantNarrative(choicesNarrativeResponse.introductory_narrative);
 
+        return choicesNarrativeResponse;
     }
 
-    public string GetStageNarrative()
+    public string GetEncounterSuccessNarrative(EncounterContext context)
     {
-        string sceneNarrative = LargeLanguageAdapter.ChoicesNarrativeResponse.introductory_narrative;
-        return sceneNarrative;
-    }
+        string prompt = $"The encounter is over. The player has won. Wrap up the encounter narrative.";
 
-    public List<string> GetStageChoicesNarrative()
-    {
-        List<ChoicesNarrative> choicesNarrative = LargeLanguageAdapter.ChoicesNarrativeResponse.choices.ToList();
-        List<string> choices = new List<string>();
+        List<CompletionMessage4o> previousPrompts = new();
+        List<string> list = JournalSystem.GetDescriptionForCurrentEncounter();
+        foreach (string choice in list)
+        {
+            CompletionMessage4o previousPrompt = OpenAiHelpers.CreateCompletionMessage(Roles.user, choice);
+            previousPrompts.Add(previousPrompt);
+        }
 
-        string desig1 = choicesNarrative[0].designation;
-        string desig2 = choicesNarrative[1].designation;
-        string desig3 = choicesNarrative[2].designation;
+        CompletionMessage4o choicesPrompt = OpenAiHelpers.CreateCompletionMessage(Roles.user, prompt);
+        string encounterEndNarrative = LargeLanguageAdapter.EncounterEndNarrative(previousPrompts, choicesPrompt, openAiApiKey);
 
-        choices.Add(desig1);
-        choices.Add(desig2);
-        choices.Add(desig3);
+        JournalSystem.EndEncounter(encounterEndNarrative);
 
-        return choices;
+        return encounterEndNarrative;
     }
 
     public string GetLocationNarrative(LocationNames locationName)
@@ -99,8 +98,4 @@
         return locationNarrative.Description;
     }
 
-    internal string GetEncounterSuccessNarrative(EncounterContext context)
-    {
-        throw new NotImplementedException();
-    }
 }
