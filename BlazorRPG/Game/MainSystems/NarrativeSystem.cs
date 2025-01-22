@@ -35,7 +35,7 @@
         string encounterState = "Encounter State:" + GetEncounterState(context);
         string initialGoal = JournalSystem.GetCurrentEncounterGoal();
 
-        string prompt = $"Analyze the narrative consequences of the last choice and create the new Situation Description. " + NewLine;
+        string prompt = $"" + NewLine;
         prompt += $"Do NOT stray away to far from the initial goal of the encounter: '{initialGoal}' {NewLine}{NewLine}";
 
         prompt += $"{encounterState}{NewLine}{NewLine}";
@@ -91,15 +91,11 @@
 
     public void MakeChoice(EncounterContext context, EncounterChoice encounterChoice)
     {
-        string currentValues = $"New Encounter States are:";
-        currentValues += GetEncounterState(context);
-
         string choice =
             $"{encounterChoice.Designation} " +
             $"('{encounterChoice.Narrative}'){NewLine}" +
             $"This is a {encounterChoice.Archetype.ToString().ToUpper()} choice{NewLine}" +
-            $"This is a {encounterChoice.Approach.ToString().ToUpper()} approach{NewLine}" +
-            $"{currentValues}";
+            $"This is a {encounterChoice.Approach.ToString().ToUpper()} approach";
 
         string prompt = $"The player chooses: {choice}";
         JournalSystem.NoteNewEncounterNarrative(prompt);

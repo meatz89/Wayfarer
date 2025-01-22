@@ -49,7 +49,7 @@ public class LargeLanguageAdapter
         OpenAiHelper.SetClient(_openAiClient);
         HttpRequestMessage request = OpenAiHelper.CreateOpenAiRequest(fileContent, messages);
         string response = OpenAiHelper.SendRequest(request);
-        return ProcessOpenAiResponseEncounterEnd(response);
+        return response;
     }
 
     private ChoicesNarrativeResponse ProcessOpenAiResponseChoices(string openAiResponseString)
@@ -57,19 +57,6 @@ public class LargeLanguageAdapter
         try
         {
             return JsonConvert.DeserializeObject<ChoicesNarrativeResponse>(openAiResponseString);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-            return null;
-        }
-    }
-
-    private string ProcessOpenAiResponseEncounterEnd(string openAiResponseString)
-    {
-        try
-        {
-            return JsonConvert.DeserializeObject<string>(openAiResponseString);
         }
         catch (Exception ex)
         {

@@ -157,8 +157,13 @@
         if (approach == null)
             return null;
 
-        var choice = CreateChoice(usedCombinations.Count + 1, archetype, approach.Value);
-        return choice;
+        if (!usedCombinations.Any(c => c.archetype == pattern.PrimaryArchetype && c.approach == approach))
+        {
+            var choice = CreateChoice(usedCombinations.Count + 1, archetype, approach.Value);
+            return choice;
+        }
+
+        return null;
     }
 
     private List<EncounterChoice> GenerateDesperateOnlyChoices(CompositionPattern pattern)
