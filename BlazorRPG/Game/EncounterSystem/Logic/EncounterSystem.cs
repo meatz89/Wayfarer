@@ -31,7 +31,37 @@
         narrativeSystem.MakeChoice(encounter.Context, choice);
 
         // Check for game over conditions
-        if (IsEncounterWon(encounter))
+        return ProcessEncounterStageResult(encounter);
+    }
+
+    private EncounterResult ProcessEncounterStageResult(Encounter encounter)
+    {
+        if (!IsEncounterWon(encounter))
+        {
+            if (!IsEncounterLost(encounter))
+            {
+                GetNextStage(encounter);
+                EncounterResult ongoingResult = new()
+                {
+                    encounter = encounter,
+                    encounterResults = EncounterResults.Ongoing,
+                    EncounterEndMessage = ""
+                };
+                return ongoingResult;
+            }
+            else
+            {
+                string narrative = narrativeSystem.GetEncounterFailureNarrative(encounter.Context);
+                EncounterResult failResult = new()
+                {
+                    encounter = encounter,
+                    encounterResults = EncounterResults.EncounterFailure,
+                    EncounterEndMessage = ""
+                };
+                return failResult;
+            }
+        }
+        else
         {
             string narrative = narrativeSystem.GetEncounterSuccessNarrative(encounter.Context);
 
@@ -42,29 +72,6 @@
                 EncounterEndMessage = narrative
             };
             return successResult;
-
-        }
-        else if (IsEncounterLost(encounter))
-        {
-            string narrative = narrativeSystem.GetEncounterFailureNarrative(encounter.Context);
-            EncounterResult failResult = new()
-            {
-                encounter = encounter,
-                encounterResults = EncounterResults.EncounterFailure,
-                EncounterEndMessage = ""
-            };
-            return failResult;
-        }
-        else
-        {
-            GetNextStage(encounter);
-            EncounterResult ongoingResult = new()
-            {
-                encounter = encounter,
-                encounterResults = EncounterResults.Ongoing,
-                EncounterEndMessage = ""
-            };
-            return ongoingResult;
         }
     }
 
