@@ -89,8 +89,7 @@
     public static List<ChoiceApproaches> GetAvailableApproaches(
         ChoiceArchetypes archetype,
         EncounterValues values,
-        PlayerState playerState,
-        CompositionPattern pattern)
+        PlayerState playerState)
     {
         // Start with base approaches
         List<ChoiceApproaches> approaches = new List<ChoiceApproaches>
@@ -101,20 +100,12 @@
             ChoiceApproaches.Careful,    // Always available
             ChoiceApproaches.Strategic,  // Available with requirements
             ChoiceApproaches.Tactical,    // Available with requirements
+            ChoiceApproaches.Aggressive,    // Available with requirements
+            ChoiceApproaches.Desperate,    // Available with requirements
         };
 
-        // Only add Aggressive/Desperate for primary archetype
-        if (archetype == pattern.PrimaryArchetype)
-        {
-            approaches.Add(ChoiceApproaches.Aggressive);
-            if (values.Pressure >= 6)
-            {
-                approaches.Add(ChoiceApproaches.Desperate);
-            }
-        }
-
         // Filter based on value requirements
-        return approaches.Where(approach => IsApproachAvailable(archetype, approach, values, playerState, pattern))
+        return approaches.Where(approach => IsApproachAvailable(archetype, approach, values, playerState))
                         .ToList();
     }
 
@@ -122,15 +113,8 @@
         ChoiceArchetypes archetype,
         ChoiceApproaches approach,
         EncounterValues values,
-        PlayerState playerState,
-        CompositionPattern pattern)
+        PlayerState playerState)
     {
-        // First check if this is a primary-only approach
-        if (PrimaryArchetypeOnlyApproaches.Contains(approach) && archetype != pattern.PrimaryArchetype)
-        {
-            return false;
-        }
-
         // Then check standard value requirements
         return approach switch
         {
@@ -139,7 +123,8 @@
             ChoiceApproaches.Diplomatic => values.Resonance >= 4 && values.Insight >= 4,
             ChoiceApproaches.Methodical => values.Insight >= 4 && values.Momentum >= 4,
             ChoiceApproaches.Forceful => values.Momentum >= 4 && values.Resonance >= 4,
-            ChoiceApproaches.Desperate => values.Pressure >= 6,
+            ChoiceApproaches.Desperate => values.Pressure > 6,
+            ChoiceApproaches.Aggressive => values.Pressure <= 6,
             _ => true // Careful always available
         };
     }

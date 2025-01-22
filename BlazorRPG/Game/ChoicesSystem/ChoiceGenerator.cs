@@ -133,10 +133,12 @@
         PlayerState playerState,
         CompositionPattern pattern)
     {
-        return GameRules.GetAvailableApproaches(archetype, values, playerState, pattern)
-            .Where(approach => !usedCombinations.Any(used =>
-                used.archetype == archetype && used.approach == approach))
-            .ToList();
+        List<ChoiceApproaches> choiceApproaches = GameRules.GetAvailableApproaches(archetype, values, playerState);
+        List<ChoiceApproaches> unusedChoiceApproaches = choiceApproaches
+                    .Where(approach => !usedCombinations.Any(used =>
+                        used.archetype == archetype && used.approach == approach))
+                    .ToList();
+        return unusedChoiceApproaches;
     }
 
     private EncounterChoice TryGenerateChoiceForArchetype(
