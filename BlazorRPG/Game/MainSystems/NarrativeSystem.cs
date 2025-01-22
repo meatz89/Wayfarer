@@ -32,7 +32,7 @@
 
     public ChoicesNarrativeResponse GetChoicesNarrative(EncounterContext context, List<EncounterChoice> choices)
     {
-        string encounterState = GetEncounterState(context);
+        string encounterState = "Encounter State:" + GetEncounterState(context);
         string initialGoal = JournalSystem.GetCurrentEncounterGoal();
 
         string prompt = $"Analyze the narrative consequences of the last choice and create the new Situation Description. " + NewLine;
@@ -52,7 +52,7 @@
 
     public string GetEncounterSuccessNarrative(EncounterContext context)
     {
-        string encounterState = GetEncounterState(context);
+        string encounterState = "Encounter State:" + GetEncounterState(context);
 
         string prompt = $"The last player decision ended the encounter successfully. " +
             $"Wrap up the encounter narrative.{NewLine}{NewLine}";
@@ -91,7 +91,7 @@
     private static string GetEncounterState(EncounterContext context)
     {
         EncounterValues values = context.CurrentValues;
-        string encounterState = $"Current States: " +
+        string encounterState = $"{NewLine}" +
             $"Outcome ({values.Outcome}/10), " +
             $"Pressure ({values.Pressure}/10), " +
             $"Momentum ({values.Momentum}/10), " +
@@ -100,13 +100,18 @@
 
         return encounterState;
     }
+
     public void MakeChoice(EncounterContext context, EncounterChoice encounterChoice)
     {
+        string currentValues = $"The new Encounter States are:";
+        currentValues += GetEncounterState(context);
+
         string choice =
             $"{encounterChoice.Designation} " +
             $"('{encounterChoice.Narrative}'){NewLine}" +
             $"This is a {encounterChoice.Archetype.ToString().ToUpper()} choice{NewLine}" +
-            $"This is a {encounterChoice.Approach.ToString().ToUpper()} approach";
+            $"This is a {encounterChoice.Approach.ToString().ToUpper()} approach{NewLine}" +
+            $"{currentValues}";
 
         string prompt = $"The player chose: {choice}";
         JournalSystem.NoteNewEncounterNarrative(prompt);

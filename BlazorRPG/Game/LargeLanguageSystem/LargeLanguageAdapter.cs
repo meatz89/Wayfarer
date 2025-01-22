@@ -28,10 +28,11 @@ public class LargeLanguageAdapter
 
         Completion4oModel modelFromFile = JsonConvert.DeserializeObject<Completion4oModel>(_fileContentChoices);
         modelFromFile.messages.AddRange(messages);
-        string json = JsonConvert.SerializeObject(modelFromFile);
+        string fileContent = JsonConvert.SerializeObject(modelFromFile);
 
-        HttpRequestMessage request = _openAiClient.CreateRequest(json);
-        string response = _openAiClient.SendRequest(request);
+        OpenAiHelper.SetClient(_openAiClient);
+        HttpRequestMessage request = OpenAiHelper.CreateOpenAiRequest(fileContent, messages);
+        string response = OpenAiHelper.SendRequest(request);
         return ProcessOpenAiResponseChoices(response);
     }
 
@@ -43,10 +44,11 @@ public class LargeLanguageAdapter
 
         Completion4oModel modelFromFile = JsonConvert.DeserializeObject<Completion4oModel>(_fileContentEncounterEnd);
         modelFromFile.messages.AddRange(messages);
-        string json = JsonConvert.SerializeObject(modelFromFile);
+        string fileContent = JsonConvert.SerializeObject(modelFromFile);
 
-        HttpRequestMessage request = _openAiClient.CreateRequest(json);
-        string response = _openAiClient.SendRequest(request);
+        OpenAiHelper.SetClient(_openAiClient);
+        HttpRequestMessage request = OpenAiHelper.CreateOpenAiRequest(fileContent, messages);
+        string response = OpenAiHelper.SendRequest(request);
         return ProcessOpenAiResponseEncounterEnd(response);
     }
 

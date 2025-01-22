@@ -39,7 +39,12 @@ public class OpenAiClient
             if (!string.IsNullOrWhiteSpace(responseJson))
             {
                 dynamic jsonObject = JsonConvert.DeserializeObject(responseJson);
-                return jsonObject?.choices?[0]?.message?.content;
+                string responseMessage = jsonObject?.choices?[0]?.message?.content;
+
+                const string openAiCallReceived = $"\r\nSuccessfully called OpenAI API:\r\n";
+                Console.WriteLine(openAiCallReceived);
+                Console.WriteLine(responseMessage);
+                return responseMessage;
             }
         }
         return string.Empty;
