@@ -27,6 +27,7 @@
         // Update last choice type
         encounter.Context.CurrentValues.LastChoiceType = choice.Archetype;
         encounter.Context.CurrentValues.LastChoiceApproach = choice.Approach;
+
         narrativeSystem.MakeChoice(encounter.Context, choice);
 
         // Check for game over conditions
@@ -45,7 +46,7 @@
         }
         else if (IsEncounterLost(encounter))
         {
-            //string narrative = narrativeSystem.GetEncounterFailureNarrative(encounter.Context);
+            string narrative = narrativeSystem.GetEncounterFailureNarrative(encounter.Context);
             EncounterResult failResult = new()
             {
                 encounter = encounter,
@@ -121,18 +122,6 @@
         };
     }
 
-    public string GetStageNarrative(ChoicesNarrativeResponse choicesNarrativeResponse)
-    {
-        string sceneNarrative = choicesNarrativeResponse.introductory_narrative;
-        return sceneNarrative;
-    }
-
-    public List<ChoicesNarrative> GetStageChoicesNarrative(ChoicesNarrativeResponse choicesNarrativeResponse)
-    {
-        List<ChoicesNarrative> choicesNarrative = choicesNarrativeResponse.choices.ToList();
-        return choicesNarrative;
-    }
-
     public List<UserEncounterChoiceOption> GetChoices(
         Encounter encounter)
     {
@@ -203,6 +192,18 @@
             return true;
 
         return false;
+    }
+
+    public string GetStageNarrative(ChoicesNarrativeResponse choicesNarrativeResponse)
+    {
+        string sceneNarrative = choicesNarrativeResponse.introductory_narrative;
+        return sceneNarrative;
+    }
+
+    public List<ChoicesNarrative> GetStageChoicesNarrative(ChoicesNarrativeResponse choicesNarrativeResponse)
+    {
+        List<ChoicesNarrative> choicesNarrative = choicesNarrativeResponse.choices.ToList();
+        return choicesNarrative;
     }
 
 }

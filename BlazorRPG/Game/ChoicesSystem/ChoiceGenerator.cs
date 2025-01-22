@@ -1,5 +1,7 @@
 ﻿public class ChoiceGenerator
 {
+    private const int numberOfChoicesToGenerate = 4;
+
     private readonly GameState gameState;
     private readonly ChoiceCalculator calculator;
     private readonly List<(ChoiceArchetypes archetype, ChoiceApproaches approach)> usedCombinations;
@@ -20,7 +22,7 @@
 
         List<EncounterChoice> choices = initialValues.Pressure >= 9
             ? GenerateDesperateOnlyChoices(template.CompositionPattern)
-            : GenerateBaseChoices(template, initialValues, playerState, 9);
+            : GenerateBaseChoices(template, initialValues, playerState, numberOfChoicesToGenerate);
 
         foreach (EncounterChoice choice in choices)
         {

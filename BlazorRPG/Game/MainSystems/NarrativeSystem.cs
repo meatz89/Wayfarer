@@ -35,7 +35,7 @@
         string encounterState = "Encounter State:" + GetEncounterState(context);
         string initialGoal = JournalSystem.GetCurrentEncounterGoal();
 
-        string prompt = $"" + NewLine;
+        string prompt = $"{NewLine}";
         prompt += $"Do NOT stray away to far from the initial goal of the encounter: '{initialGoal}' {NewLine}{NewLine}";
 
         prompt += $"{encounterState}{NewLine}{NewLine}";
@@ -52,9 +52,27 @@
 
     public string GetEncounterSuccessNarrative(EncounterContext context)
     {
-        string encounterState = "Encounter State:" + GetEncounterState(context);
+        string encounterState = "Final Encounter State:" + GetEncounterState(context);
 
         string prompt = $"The last player decision ended the encounter successfully. " +
+            $"Wrap up the encounter narrative.{NewLine}{NewLine}";
+        prompt += $"{encounterState}{NewLine}{NewLine}";
+
+        List<CompletionMessage4o> previousPrompts = GetPreviousPrompts();
+
+        CompletionMessage4o choicesPrompt = OpenAiHelper.CreateCompletionMessage(Roles.user, prompt);
+        string encounterEndNarrative = LargeLanguageAdapter.EncounterEndNarrative(previousPrompts, choicesPrompt);
+
+        JournalSystem.EndEncounter(encounterEndNarrative);
+
+        return encounterEndNarrative;
+    }
+
+    public string GetEncounterFailureNarrative(EncounterContext context)
+    {
+        string encounterState = "Final Encounter State:" + GetEncounterState(context);
+
+        string prompt = $"The last player decision resulted in failing the encounter. " +
             $"Wrap up the encounter narrative.{NewLine}{NewLine}";
         prompt += $"{encounterState}{NewLine}{NewLine}";
 
@@ -92,8 +110,8 @@
     public void MakeChoice(EncounterContext context, EncounterChoice encounterChoice)
     {
         string prompt =
-            $"{encounterChoice.Narrative}{NewLine}" +
-            $"({encounterChoice.Archetype.ToString().ToUpper()} - {encounterChoice.Approach.ToString().ToUpper()})";
+            $"{encounterChoice.Narrative} ({encounterChoice.Designation}){NewLine}" +
+            $"[{encounterChoice.Archetype.ToString().ToUpper()} - {encounterChoice.Approach.ToString().ToUpper()}]";
 
         JournalSystem.NoteNewEncounterNarrative(prompt);
     }
