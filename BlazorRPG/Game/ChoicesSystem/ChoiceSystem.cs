@@ -21,7 +21,13 @@
         // 1. Select appropriate template based on context
         ChoiceSetTemplate template = choiceSetSelector.SelectTemplate(
             choiceSetTemplates, context);
-        if (template == null) return GetStandardTemplate();
+
+        ActionImplementation actionImplementation = context.ActionImplementation;
+
+        if (template == null)
+        {
+            template = GetStandardTemplate(context.ActionType, actionImplementation.Name);
+        }
 
         // 2. Create base choices with unmodified values
         ChoiceSet choiceSet = choiceSetGenerator.Generate(
@@ -30,8 +36,18 @@
         return choiceSet;
     }
 
-    private ChoiceSet GetStandardTemplate()
+    private ChoiceSetTemplate GetStandardTemplate(BasicActionTypes actionType, string name)
     {
-        throw new NotImplementedException();
+        ChoiceSetTemplate template = new ChoiceSetTemplate()
+        {
+            ActionType = actionType,
+            Name = name,
+            CompositionPattern = new CompositionPattern()
+            {
+                SecondaryArchetype = ChoiceArchetypes.Physical,
+                PrimaryArchetype = ChoiceArchetypes.Social,
+            }
+        };
+        return template;
     }
 }

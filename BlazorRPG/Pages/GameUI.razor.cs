@@ -81,7 +81,6 @@ public partial class GameUI : ComponentBase
         List<UserLocationTravelOption> currentTravelOptions = GameState.World.CurrentTravelOptions;
 
         bool enterLocation = locationName == GameState.World.CurrentLocation.LocationName;
-
         ActionResult result;
 
         if (enterLocation)

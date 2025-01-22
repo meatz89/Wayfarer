@@ -184,7 +184,7 @@ public class GameManager
         gameState.Actions.ActiveQuests = quests;
     }
 
-    public Encounter GenerateEncounter(BasicActionTypes chosenAction, Location location, PlayerState playerState, string locationSpotName)
+    public Encounter GenerateEncounter(ActionImplementation actionImplementation, Location location, PlayerState playerState, string locationSpotName)
     {
         List<LocationPropertyChoiceEffect> effects = LocationSystem.GetLocationEffects(location.LocationName, locationSpotName);
         LocationSpot? locationSpot = LocationSystem.GetLocationSpotForLocation(location.LocationName, locationSpotName);
@@ -194,9 +194,10 @@ public class GameManager
         List<PlayerStatusTypes> playerStatusTypes = PlayerStatusSystem.GetActiveStatusList();
 
         EncounterContext context = new EncounterContext(
+            actionImplementation,
             location.LocationName,
             locationSpotName,
-            chosenAction,
+            actionImplementation.ActionType,
             location.LocationType,
             location.LocationArchetype,
             gameState.World.CurrentTimeSlot,
@@ -237,15 +238,15 @@ public class GameManager
         gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
     }
 
-    public ActionResult ExecuteBasicAction(UserActionOption action, ActionImplementation basicAction)
+    public ActionResult ExecuteBasicAction(UserActionOption action, ActionImplementation actionImplementation)
     {
         Location location = LocationSystem.GetLocation(action.Location);
         gameState.Actions.SetCurrentUserAction(action);
 
-        if (!ContextEngine.CanExecuteInContext(basicAction))
+        if (!ContextEngine.CanExecuteInContext(actionImplementation))
             return ActionResult.Failure("Current context prevents this action");
 
-        Encounter encounter = GenerateEncounter(basicAction.ActionType, location, gameState.Player, action.LocationSpot);
+        Encounter encounter = GenerateEncounter(actionImplementation, location, gameState.Player, action.LocationSpot);
         if (encounter != null)
         {
             // Set as active encounter
@@ -257,7 +258,7 @@ public class GameManager
             return ActionResult.Success("Action started!", new ActionResultMessages());
         }
 
-        return GenerateNormalAction(action, basicAction);
+        return GenerateNormalAction(action, actionImplementation);
     }
 
     private ActionResult GenerateNormalAction(UserActionOption action, ActionImplementation basicAction)

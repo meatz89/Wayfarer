@@ -1,5 +1,6 @@
 ﻿public class EncounterContext
 {
+    public ActionImplementation ActionImplementation { get; }
     public LocationNames LocationName { get; }
     public string LocationSpotName { get; }
     public BasicActionTypes ActionType { get; }
@@ -15,6 +16,7 @@
 
     // Constructor remains the same but without value initialization
     public EncounterContext(
+        ActionImplementation actionImplementation,
         LocationNames locationName,
         string locationSpotName,
         BasicActionTypes actionType,
@@ -29,6 +31,7 @@
         List<PlayerStatusTypes> playerStatusTypes
         )
     {
+        ActionImplementation = actionImplementation;
         LocationName = locationName;
         LocationSpotName = locationSpotName;
         ActionType = actionType;
