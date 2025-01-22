@@ -15,7 +15,7 @@
                 .WithTemperature(Temperature.Warm)))
         .AddLocationSpot(spot => spot
             .WithName("Bar")
-            .ForActionType(BasicActionTypes.Discuss)
+            .ForActionType(BasicActionTypes.Persuade)
             .WithLocationProperties(properties => properties
                 .WithResource(ResourceTypes.Ale)
                 .WithAccessability(Accessability.Public)

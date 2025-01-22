@@ -1,11 +1,11 @@
-﻿public static class ActionContent
+﻿public static class LocationActionsContent
 {
-    public static List<ActionTemplate> LoadActionTemplates()
+    public static List<ActionTemplate> LoadLocationActionTemplates()
     {
         List<ActionTemplate> actionTemplates = new List<ActionTemplate>();
 
         actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Recover at Hearth")
+            .WithName("Recover at the Hearth")
             .WithActionType(BasicActionTypes.Recover)
             .AddTimeSlot(TimeSlots.Morning)
             .AddTimeSlot(TimeSlots.Afternoon)
@@ -24,7 +24,7 @@
         // Social tutorial action - getting the innkeeper's attention
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName("Ask Innkeeper for a place to stay for the night")
-            .WithActionType(BasicActionTypes.Discuss)
+            .WithActionType(BasicActionTypes.Persuade)
             .AddTimeSlot(TimeSlots.Morning)
             .AddTimeSlot(TimeSlots.Afternoon)
             .AddTimeSlot(TimeSlots.Evening)
@@ -39,7 +39,7 @@
             .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Information Gateway")
+            .WithName("Get local information from other patrons")
             .WithActionType(BasicActionTypes.Investigate)
             .AddTimeSlot(TimeSlots.Morning)
             .AddTimeSlot(TimeSlots.Afternoon)
@@ -55,8 +55,8 @@
             .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Social dynamics")
-            .WithActionType(BasicActionTypes.Persuade)
+            .WithName("Improve relations with other patrons")
+            .WithActionType(BasicActionTypes.Mingle)
             .AddTimeSlot(TimeSlots.Morning)
             .AddTimeSlot(TimeSlots.Afternoon)
             .AddTimeSlot(TimeSlots.Evening)
