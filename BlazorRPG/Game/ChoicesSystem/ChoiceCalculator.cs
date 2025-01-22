@@ -39,8 +39,6 @@
             costs,                 // Costs
             rewards);              // Rewards
 
-        choice.CalculationResult = choiceCalculationResult; // Store the result in the choice
-
         return choiceCalculationResult;
     }
 

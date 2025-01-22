@@ -24,7 +24,7 @@
 
         foreach (EncounterChoice choice in choices)
         {
-            calculator.CalculateChoiceEffects(choice, context);
+            choice.CalculationResult = calculator.CalculateChoiceEffects(choice, context);
         }
 
         return new ChoiceSet(template.Name, choices);

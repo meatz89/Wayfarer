@@ -21,11 +21,8 @@
 
     public EncounterResult ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationProperties locationProperties)
     {
-        // Retrieve the ChoiceCalculationResult
-        ChoiceCalculationResult result = choiceCalculator.CalculateChoiceEffects(choice, encounter.Context);
-
         // Execute the choice with the actual modified values from the result
-        choiceExecutor.ExecuteChoice(choice, result);
+        choiceExecutor.ExecuteChoice(choice, choice.CalculationResult);
 
         // Update last choice type
         encounter.Context.CurrentValues.LastChoiceType = choice.Archetype;
@@ -106,17 +103,6 @@
 
         if (choiceSet == null || choiceSet.Choices.Count == 0)
             return null;
-
-        foreach (EncounterChoice choice in choiceSet.Choices)
-        {
-            choiceCalculator.CalculateChoiceEffects(choice, context);
-        }
-
-        // Pre-calculate all choices in the set
-        foreach (EncounterChoice choice in choiceSet.Choices)
-        {
-            choiceCalculator.CalculateChoiceEffects(choice, context);
-        }
 
         // Create stage with pre-calculated choices
         ChoicesNarrativeResponse choicesNarrativeResponse = narrativeSystem.GetChoicesNarrative(context, choiceSet.Choices);

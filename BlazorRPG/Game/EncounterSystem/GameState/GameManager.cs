@@ -474,11 +474,6 @@ public class GameManager
         return Player.Health > Player.MinHealth;
     }
 
-    public ChoiceCalculationResult CalculateChoiceEffects(EncounterChoice encounterChoice, EncounterContext context)
-    {
-        return new ChoiceCalculator(gameState).CalculateChoiceEffects(encounterChoice, context);
-    }
-
     private static void CreateActionsForLocation(
         Location location,
         List<ActionTemplate> allActionTemplates,
