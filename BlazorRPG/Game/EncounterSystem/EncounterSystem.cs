@@ -19,7 +19,7 @@
         this.choiceCalculator = new ChoiceCalculator(gameState);
     }
 
-    public EncounterResult ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationProperties locationProperties)
+    public EncounterResult ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationSpotProperties locationProperties)
     {
         // Execute the choice with the actual modified values from the result
         choiceExecutor.ExecuteChoice(choice, choice.CalculationResult);

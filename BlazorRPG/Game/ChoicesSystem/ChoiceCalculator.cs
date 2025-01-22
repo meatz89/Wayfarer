@@ -9,7 +9,7 @@
         this.locationPropertyCalculator = new LocationPropertyEffectCalculator();
     }
 
-    public ChoiceCalculationResult CalculateChoiceEffects(EncounterChoice choice, LocationProperties locationProperties, EncounterValues initialEncounterValues)
+    public ChoiceCalculationResult CalculateChoiceEffects(EncounterChoice choice, LocationSpotProperties locationProperties, EncounterValues initialEncounterValues)
     {
         // 1. Get base values that are inherent to the choice type
         List<BaseValueChange> baseChanges = new List<BaseValueChange>();
@@ -43,7 +43,7 @@
     }
 
 
-    private int CalculateEnergyCost(EncounterChoice choice, EncounterValues currentValues, PlayerState player, LocationProperties locationProperties)
+    private int CalculateEnergyCost(EncounterChoice choice, EncounterValues currentValues, PlayerState player, LocationSpotProperties locationProperties)
     {
         int baseEnergyCost = GameRules.GetBaseEnergyCost(choice.Archetype, choice.Approach);
 
@@ -139,7 +139,7 @@
         return newState;
     }
 
-    private List<Requirement> CalculateRequirements(List<ValueModification> valueModifications, EncounterChoice choice, PlayerState playerState, LocationProperties locationProperties, EncounterValues encounterValues)
+    private List<Requirement> CalculateRequirements(List<ValueModification> valueModifications, EncounterChoice choice, PlayerState playerState, LocationSpotProperties locationProperties, EncounterValues encounterValues)
     {
         List<Requirement> requirements = GetEnergyRequirements(choice, playerState);
 
@@ -251,7 +251,7 @@
         return requirements;
     }
 
-    private List<Outcome> CalculateCosts(EncounterChoice choice, LocationProperties locationProperties)
+    private List<Outcome> CalculateCosts(EncounterChoice choice, LocationSpotProperties locationProperties)
     {
         List<Outcome> costs = GenerateBaseCosts(choice.Archetype, choice.Approach);
 
@@ -260,7 +260,7 @@
         return costs;
     }
 
-    private List<Outcome> CalculateRewards(EncounterChoice choice, LocationProperties locationProperties)
+    private List<Outcome> CalculateRewards(EncounterChoice choice, LocationSpotProperties locationProperties)
     {
         List<Outcome> rewards = GenerateBaseRewards(choice.Archetype, choice.Approach);
         List<Outcome> propertyRewards = locationPropertyCalculator.CalculatePropertyRewards(choice, locationProperties);

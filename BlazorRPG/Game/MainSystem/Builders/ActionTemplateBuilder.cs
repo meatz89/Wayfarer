@@ -49,7 +49,7 @@
     {
         LocationPropertiesBuilder builder = new LocationPropertiesBuilder();
         buildLocationProperties(builder);
-        LocationProperties properties = builder.Build();
+        LocationSpotProperties properties = builder.Build();
 
         // Create LocationPropertyCondition instances for each property defined in the builder
         AddConditionIfSet<Accessability>(properties, LocationPropertyTypes.Accessibility);
@@ -61,7 +61,7 @@
         return this;
     }
 
-    private void AddConditionIfSet<T>(LocationProperties properties, LocationPropertyTypes propertyType)
+    private void AddConditionIfSet<T>(LocationSpotProperties properties, LocationPropertyTypes propertyType)
     {
         object propertyValue = properties.GetProperty(propertyType);
         if (propertyValue != null)

@@ -45,7 +45,7 @@
     {
         Location location = GetLocation(locationName);
         LocationSpot locationSpot = GetLocationSpotForLocation(locationName, locationSpotName);
-        LocationProperties locationProperties = locationSpot.SpotProperties;
+        LocationSpotProperties locationProperties = locationSpot.SpotProperties;
 
         List<LocationPropertyChoiceEffect> effects = new List<LocationPropertyChoiceEffect>();
         foreach (LocationPropertyChoiceEffect locationContextEffect in locationContextEffects)
@@ -53,34 +53,6 @@
             effects.Add(locationContextEffect);
         }
         return effects;
-    }
-
-    private bool IsLocationPropertyMatch(LocationPropertyTypeValue locPropertyTypeValue, LocationProperties locProperties)
-    {
-        switch (locPropertyTypeValue.GetPropertyType())
-        {
-            case LocationPropertyTypes.Archetype:
-                return locProperties.Archetype == ((ArchetypeValue)locPropertyTypeValue).Archetype;
-            case LocationPropertyTypes.Resource:
-                return locProperties.Resource == ((ResourceValue)locPropertyTypeValue).Resource;
-            case LocationPropertyTypes.CrowdDensity:
-                return locProperties.CrowdDensity == ((CrowdDensityValue)locPropertyTypeValue).CrowdDensity;
-            case LocationPropertyTypes.LocationScale:
-                return locProperties.LocationScale == ((LocationScaleValue)locPropertyTypeValue).LocationScale;
-
-            case LocationPropertyTypes.Accessibility:
-                return locProperties.Accessability == ((AccessabilityValue)locPropertyTypeValue).Accessability;
-            case LocationPropertyTypes.Engagement:
-                return locProperties.Engagement == ((EngagementValue)locPropertyTypeValue).Engagement;
-            case LocationPropertyTypes.Atmosphere:
-                return locProperties.Atmosphere == ((AtmosphereValue)locPropertyTypeValue).Atmosphere;
-            case LocationPropertyTypes.RoomLayout:
-                return locProperties.RoomLayout == ((RoomLayoutValue)locPropertyTypeValue).RoomLayout;
-            case LocationPropertyTypes.Temperature:
-                return locProperties.Temperature == ((TemperatureValue)locPropertyTypeValue).Temperature;
-            default:
-                return false;
-        }
     }
 
 }

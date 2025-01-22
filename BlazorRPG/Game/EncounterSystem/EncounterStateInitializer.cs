@@ -3,7 +3,7 @@
     public static EncounterValues Generate(
         int difficulty,
         int playerLevel,
-        LocationProperties locationProperties,
+        LocationSpotProperties locationProperties,
         List<PlayerStatusTypes> playerStatusTypes
         )
     {
@@ -21,7 +21,7 @@
         }
 
         if (locationProperties.IsAccessabilitySet &&
-            locationProperties.Accessability.Value == Accessability.Private)
+            locationProperties.Accessibility.Value == Accessability.Private)
         {
             insightChange += 1;
         }
@@ -30,12 +30,6 @@
             locationProperties.RoomLayout.Value == RoomLayout.Secluded)
         {
             pressureChange -= 1;
-        }
-
-        if (locationProperties.IsCrowdDensitySet &&
-            locationProperties.CrowdDensity.Value == CrowdDensity.Busy)
-        {
-            pressureChange += 1;
         }
 
         if (playerStatusTypes.Contains(PlayerStatusTypes.Wet) ||

@@ -9,7 +9,7 @@
         ExpectedValue = expectedValue;
     }
 
-    public bool IsMet(LocationProperties locationProperties)
+    public bool IsMet(LocationSpotProperties locationProperties)
     {
         object property = locationProperties.GetProperty(PropertyType);
 

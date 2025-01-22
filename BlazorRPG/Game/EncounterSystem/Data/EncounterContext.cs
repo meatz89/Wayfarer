@@ -7,7 +7,7 @@
     public LocationTypes LocationType { get; }
     public LocationArchetypes LocationArchetype { get; }
     public TimeSlots TimeSlot { get; }
-    public LocationProperties LocationProperties { get; }
+    public LocationSpotProperties LocationProperties { get; }
     public PlayerState PlayerState { get; }
     public EncounterValues CurrentValues { get; set; } // Note: Now settable
     public int StageNumber { get; set; } // Note: Now settable
@@ -23,7 +23,7 @@
         LocationTypes locationType,
         LocationArchetypes locationArchetype,
         TimeSlots timeSlot,
-        LocationProperties locationProperties,
+        LocationSpotProperties locationProperties,
         PlayerState playerState,
         int locationDifficulty,
         List<LocationPropertyChoiceEffect> choiceEffects,

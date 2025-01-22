@@ -1,10 +1,10 @@
 ﻿public class LocationPropertiesBuilder
 {
-    private LocationProperties properties;
+    private LocationSpotProperties properties;
 
-    public LocationPropertiesBuilder(LocationProperties existingProperties = null)
+    public LocationPropertiesBuilder(LocationSpotProperties existingProperties = null)
     {
-        this.properties = existingProperties ?? new LocationProperties();
+        this.properties = existingProperties ?? new LocationSpotProperties();
     }
 
     public LocationPropertiesBuilder WithAnyResource()
@@ -42,35 +42,9 @@
         return this;
     }
 
-    public LocationProperties Build()
+    public LocationSpotProperties Build()
     {
         return properties;
-    }
-
-    // ONLY FOR ACTIONS TO LOCATION MAPPING
-    // NOT FOR USE IN CHOICESETS
-    public LocationPropertiesBuilder WithArchetype(LocationArchetypes archetype)
-    {
-        properties.SetProperty(LocationPropertyTypes.Archetype, archetype);
-        return this;
-    }
-
-    public LocationPropertiesBuilder WithResource(ResourceTypes resource)
-    {
-        properties.SetProperty(LocationPropertyTypes.Resource, resource);
-        return this;
-    }
-
-    public LocationPropertiesBuilder WithCrowdDensity(CrowdDensity crowdDensity)
-    {
-        properties.SetProperty(LocationPropertyTypes.CrowdDensity, crowdDensity);
-        return this;
-    }
-
-    public LocationPropertiesBuilder WithLocationScale(LocationScale locationScale)
-    {
-        properties.SetProperty(LocationPropertyTypes.LocationScale, locationScale);
-        return this;
     }
 
 }

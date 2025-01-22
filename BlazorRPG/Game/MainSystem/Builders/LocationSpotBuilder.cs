@@ -1,10 +1,9 @@
 ﻿public class LocationSpotBuilder
 {
     private string name;
-    private BasicActionTypes actionType;
     private LocationNames locationName;
     private CharacterNames? character;
-    private LocationProperties properties;
+    private LocationSpotProperties properties;
 
     public LocationSpotBuilder(LocationNames locationName)
     {
@@ -14,12 +13,6 @@
     public LocationSpotBuilder WithName(string name)
     {
         this.name = name;
-        return this;
-    }
-
-    public LocationSpotBuilder ForActionType(BasicActionTypes actionType)
-    {
-        this.actionType = actionType;
         return this;
     }
 
@@ -46,7 +39,7 @@
             throw new InvalidOperationException("LocationSpot must have a name.");
         }
 
-        LocationSpot locationSpot = new LocationSpot(name, locationName, actionType, properties);
+        LocationSpot locationSpot = new LocationSpot(name, locationName, properties);
         if (character != null)
         {
             locationSpot.Character = character;

@@ -9,13 +9,21 @@
     public List<LocationPropertyCondition> AvailabilityConditions { get; set; }
 
     // Make the constructor public so that only the builder can access it
-    public ActionTemplate(string name, BasicActionTypes actionType, List<TimeSlots> timeSlots,
-        LocationArchetypes locationArchetype, CrowdDensity crowdDensity, LocationScale locationScale,
-                         List<LocationPropertyCondition> availabilityConditions)
+    public ActionTemplate(
+        string name,
+        BasicActionTypes actionType,
+        List<TimeSlots> timeSlots,
+        LocationArchetypes locationArchetype,
+        CrowdDensity crowdDensity,
+        LocationScale locationScale,
+        List<LocationPropertyCondition> availabilityConditions)
     {
         Name = name;
         ActionType = actionType;
         TimeSlots = timeSlots;
+        LocationArchetype = locationArchetype;
+        CrowdDensity = crowdDensity;
+        LocationScale = locationScale;
         AvailabilityConditions = availabilityConditions;
     }
 

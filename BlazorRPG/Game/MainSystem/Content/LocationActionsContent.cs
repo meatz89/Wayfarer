@@ -6,16 +6,15 @@
 
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName("Recover at the Hearth")
+            .SetLocationArchetype(LocationArchetypes.Tavern)
             .WithActionType(BasicActionTypes.Recover)
             .AddTimeSlot(TimeSlots.Morning)
             .AddTimeSlot(TimeSlots.Afternoon)
             .AddTimeSlot(TimeSlots.Evening)
             .AddTimeSlot(TimeSlots.Night)
-            .SetLocationArchetype(LocationArchetypes.Tavern)
             .SetCrowdDensity(CrowdDensity.Busy)
             .SetLocationScale(LocationScale.Medium)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Tavern)
                 .WithTemperature(Temperature.Warm)
                 .WithAccessability(Accessability.Communal))
             .Build());
@@ -24,48 +23,45 @@
         // Social tutorial action - getting the innkeeper's attention
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName("Ask Innkeeper for a place to stay for the night")
+            .SetLocationArchetype(LocationArchetypes.Tavern)
             .WithActionType(BasicActionTypes.Persuade)
             .AddTimeSlot(TimeSlots.Morning)
             .AddTimeSlot(TimeSlots.Afternoon)
             .AddTimeSlot(TimeSlots.Evening)
             .AddTimeSlot(TimeSlots.Night)
-            .SetLocationArchetype(LocationArchetypes.Tavern)
             .SetCrowdDensity(CrowdDensity.Busy)
             .SetLocationScale(LocationScale.Medium)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Tavern)
                 .WithAccessability(Accessability.Public)
                 .WithEngagement(Engagement.Service))
             .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName("Get local information from other patrons")
+            .SetLocationArchetype(LocationArchetypes.Tavern)
             .WithActionType(BasicActionTypes.Investigate)
             .AddTimeSlot(TimeSlots.Morning)
             .AddTimeSlot(TimeSlots.Afternoon)
             .AddTimeSlot(TimeSlots.Evening)
             .AddTimeSlot(TimeSlots.Night)
-            .SetLocationArchetype(LocationArchetypes.Tavern)
             .SetCrowdDensity(CrowdDensity.Busy)
             .SetLocationScale(LocationScale.Medium)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Tavern)
                 .WithAccessability(Accessability.Private)
                 .WithRoomLayout(RoomLayout.Secluded))
             .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName("Improve relations with other patrons")
+            .SetLocationArchetype(LocationArchetypes.Tavern)
             .WithActionType(BasicActionTypes.Mingle)
             .AddTimeSlot(TimeSlots.Morning)
             .AddTimeSlot(TimeSlots.Afternoon)
             .AddTimeSlot(TimeSlots.Evening)
             .AddTimeSlot(TimeSlots.Night)
-            .SetLocationArchetype(LocationArchetypes.Tavern)
             .SetCrowdDensity(CrowdDensity.Busy)
             .SetLocationScale(LocationScale.Medium)
             .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Tavern)
                 .WithAccessability(Accessability.Public)
                 .WithAtmosphere(Atmosphere.Social))
             .Build());

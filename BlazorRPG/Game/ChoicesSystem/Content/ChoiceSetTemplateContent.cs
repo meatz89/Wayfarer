@@ -5,8 +5,7 @@
         new ChoiceSetTemplateBuilder()
             .WithName("Find a place to stay for the night")
             .WithActionType(BasicActionTypes.Discuss)
-            .AddAvailabilityCondition(properties => properties
-                .WithArchetype(LocationArchetypes.Tavern))
+            .ForLocationArchetype(LocationArchetypes.Tavern)
             .Build(),
     };
 }

@@ -5,10 +5,17 @@
     private CompositionPattern compositionPattern;
     private List<LocationPropertyCondition> availabilityConditions = new();
     private List<EncounterStateCondition> stateConditions = new();
+    private LocationArchetypes locationArchetypeRequired;
 
     public ChoiceSetTemplateBuilder WithName(string name)
     {
         this.name = name;
+        return this;
+    }
+
+    public ChoiceSetTemplateBuilder ForLocationArchetype(LocationArchetypes locationArchetype)
+    {
+        this.locationArchetypeRequired = locationArchetype;
         return this;
     }
 
@@ -23,14 +30,9 @@
     {
         LocationPropertiesBuilder builder = new();
         buildProperties(builder);
-        LocationProperties properties = builder.Build();
+        LocationSpotProperties properties = builder.Build();
 
         // Create LocationPropertyCondition instances for each property defined in the builder
-        AddConditionIfSet<LocationArchetypes>(properties, LocationPropertyTypes.Archetype);
-        AddConditionIfSet<ResourceTypes>(properties, LocationPropertyTypes.Resource);
-        AddConditionIfSet<CrowdDensity>(properties, LocationPropertyTypes.CrowdDensity);
-        AddConditionIfSet<LocationScale>(properties, LocationPropertyTypes.LocationScale);
-
         AddConditionIfSet<Accessability>(properties, LocationPropertyTypes.Accessibility);
         AddConditionIfSet<Engagement>(properties, LocationPropertyTypes.Engagement);
         AddConditionIfSet<Atmosphere>(properties, LocationPropertyTypes.Atmosphere);
@@ -40,7 +42,7 @@
         return this;
     }
 
-    private void AddConditionIfSet<T>(LocationProperties properties, LocationPropertyTypes propertyType)
+    private void AddConditionIfSet<T>(LocationSpotProperties properties, LocationPropertyTypes propertyType)
     {
         object propertyValue = properties.GetProperty(propertyType);
         if (propertyValue != null)
@@ -66,6 +68,4 @@
             availabilityConditions,
             stateConditions);
     }
-
-
 }

@@ -14,7 +14,7 @@
         //}
     }
 
-    public int CalculateEnergyCostModifier(EncounterChoice choice, LocationProperties properties)
+    public int CalculateEnergyCostModifier(EncounterChoice choice, LocationSpotProperties properties)
     {
         int modifier = 0;
 
@@ -35,7 +35,7 @@
         return modifier;
     }
 
-    public List<Requirement> CalculateLocationRequirements(EncounterChoice choice, LocationProperties properties)
+    public List<Requirement> CalculateLocationRequirements(EncounterChoice choice, LocationSpotProperties properties)
     {
         List<Requirement> requirements = new();
 
@@ -63,7 +63,7 @@
     }
 
 
-    public List<Outcome> CalculatePropertyCosts(EncounterChoice choice, LocationProperties properties)
+    public List<Outcome> CalculatePropertyCosts(EncounterChoice choice, LocationSpotProperties properties)
     {
         List<Outcome> costs = new();
 
@@ -90,7 +90,7 @@
         return costs;
     }
 
-    public List<Outcome> CalculatePropertyRewards(EncounterChoice choice, LocationProperties properties)
+    public List<Outcome> CalculatePropertyRewards(EncounterChoice choice, LocationSpotProperties properties)
     {
         List<Outcome> rewards = new();
 
@@ -115,26 +115,6 @@
         }
 
         return rewards;
-    }
-
-    // Helper method to check if a LocationPropertyTypeValue matches the current location's properties
-    private bool LocationPropertyMatches(LocationPropertyTypeValue locationProperty, LocationProperties properties)
-    {
-        if (locationProperty is AtmosphereValue atmosphereValue)
-        {
-            return properties.Atmosphere.HasValue && properties.Atmosphere.Value == atmosphereValue.Atmosphere;
-        }
-        else if (locationProperty is RoomLayoutValue spaceValue)
-        {
-            return properties.RoomLayout.HasValue && properties.RoomLayout.Value == spaceValue.RoomLayout;
-        }
-        else if (locationProperty is CrowdDensityValue activityLevelValue)
-        {
-            return properties.CrowdDensity.HasValue && properties.CrowdDensity.Value == activityLevelValue.CrowdDensity;
-        }
-        // Add other property type checks here
-
-        return false;
     }
 
 }

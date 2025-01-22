@@ -48,22 +48,12 @@ public enum LocationScale
 }
 
 
-public class LocationProperties
+public class LocationSpotProperties
 {
     public List<LocationPropertyChoiceEffect> ChoiceEffects { get; set; } = new();
 
     // Action Availability
-    public LocationArchetypes? Archetype { get; set; }
-    public bool IsArchetypeSet { get; private set; } = false;
-    public ResourceTypes? Resource { get; set; }
-    public bool IsResourceSet { get; private set; } = false;
-    public CrowdDensity? CrowdDensity { get; set; }
-    public bool IsCrowdDensitySet { get; private set; } = false;
-    public LocationScale? LocationScale { get; set; }
-    public bool IsLocationScaleSet { get; private set; } = false;
-
-    // Action Availability
-    public Accessability? Accessability { get; set; }
+    public Accessability? Accessibility { get; set; }
     public bool IsAccessabilitySet { get; private set; } = false;
     public Engagement? Engagement { get; set; }
     public bool IsEngagementSet { get; private set; } = false;
@@ -78,17 +68,8 @@ public class LocationProperties
     {
         switch (propertyType)
         {
-            case LocationPropertyTypes.Archetype:
-                return Archetype;
-            case LocationPropertyTypes.Resource:
-                return Resource;
-            case LocationPropertyTypes.CrowdDensity:
-                return CrowdDensity;
-            case LocationPropertyTypes.LocationScale:
-                return LocationScale;
-
             case LocationPropertyTypes.Accessibility:
-                return Accessability;
+                return Accessibility;
             case LocationPropertyTypes.Engagement:
                 return Engagement;
             case LocationPropertyTypes.Atmosphere:
@@ -108,26 +89,8 @@ public class LocationProperties
     {
         switch (propertyType)
         {
-            case LocationPropertyTypes.Archetype:
-                Archetype = (LocationArchetypes)value;
-                IsArchetypeSet = true;
-                break;
-            case LocationPropertyTypes.Resource:
-                Resource = (ResourceTypes)value;
-                IsResourceSet = true;
-                break;
-            case LocationPropertyTypes.CrowdDensity:
-                CrowdDensity = (CrowdDensity)value;
-                IsCrowdDensitySet = true;
-                break;
-            case LocationPropertyTypes.LocationScale:
-                LocationScale = (LocationScale)value;
-                IsLocationScaleSet = true;
-                break;
-
-
             case LocationPropertyTypes.Accessibility:
-                Accessability = (Accessability)value;
+                Accessibility = (Accessability)value;
                 IsAccessabilitySet = true;
                 break;
             case LocationPropertyTypes.Engagement:

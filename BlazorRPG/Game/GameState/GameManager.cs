@@ -67,10 +67,14 @@ public class GameManager
         List<ActionTemplate> allActionTemplates = LocationActionsContent.LoadLocationActionTemplates();
 
         List<LocationSpot> locationSpots = location.LocationSpots;
-        ActionAvailabilityService availabilityService = new ActionAvailabilityService();
+        PopulateLocationSpotActions(location, allActionTemplates, locationSpots);
 
-        CreateActionsForLocation(location, allActionTemplates, locationSpots, availabilityService);
+        List<UserActionOption> options = GetUserActionOptions(locationSpots);
+        gameState.Actions.SetLocationSpotActions(options);
+    }
 
+    private static List<UserActionOption> GetUserActionOptions(List<LocationSpot> locationSpots)
+    {
         List<UserActionOption> options = new List<UserActionOption>();
         foreach (LocationSpot locationSpot in locationSpots)
         {
@@ -80,7 +84,8 @@ public class GameManager
                 options.Add(userActionOption);
             }
         }
-        gameState.Actions.SetLocationSpotActions(options);
+
+        return options;
     }
 
     public string GetLocationNarrative(LocationNames locationName)
@@ -474,11 +479,10 @@ public class GameManager
         return Player.Health > Player.MinHealth;
     }
 
-    private static void CreateActionsForLocation(
+    private static void PopulateLocationSpotActions(
         Location location,
         List<ActionTemplate> allActionTemplates,
-        List<LocationSpot> locationSpots,
-        ActionAvailabilityService availabilityService)
+        List<LocationSpot> locationSpots)
     {
         // Clear existing actions in each LocationSpot
         foreach (LocationSpot spot in locationSpots)
@@ -486,15 +490,14 @@ public class GameManager
             spot.Actions.Clear();
         }
 
-        foreach (ActionTemplate template in allActionTemplates)
+        // For each action template, find matching spots and create actions
+        foreach (ActionTemplate actionTemplate in allActionTemplates)
         {
             foreach (LocationSpot locationSpot in locationSpots)
             {
-                // Use ActionAvailabilityService to check availability
-                if (availabilityService.IsActionAvailable(template, locationSpot.SpotProperties))
+                if (actionTemplate.IsValidForSpot(location, locationSpot))
                 {
-                    // Create ActionImplementation using the factory
-                    ActionImplementation actionImplementation = ActionFactory.CreateAction(template, location);
+                    ActionImplementation actionImplementation = ActionFactory.CreateAction(actionTemplate, location);
                     locationSpot.AddAction(actionImplementation);
                 }
             }
