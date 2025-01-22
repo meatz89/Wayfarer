@@ -78,7 +78,7 @@
 
     public void NoteNewEncounterAssistantNarrative(string assistantNarrative)
     {
-        Narrative item = new Narrative() { Role = Roles.assistant, Text = assistantNarrative };
+        Narrative item = new Narrative() { Role = Roles.user, Text = assistantNarrative };
         LastEncounter.Narratives.Add(item);
     }
 
