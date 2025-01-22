@@ -29,108 +29,130 @@
     public int NoFoodEffectOnHealth;
     public int NoShelterEffectOnHealth;
 
-    public static int StrategicMomentumRequirement = 5;
-    public static int StrategicInsightRequirement = 6;
-    public static int StrategicResonanceRequirement = 7;
+    public static int StrategicMomentumRequirement = 4;
+    public static int StrategicInsightRequirement = 4;
+    public static int StrategicResonanceRequirement = 4;
+
+    public static List<ChoiceApproaches> PrimaryArchetypeOnlyApproaches = new()
+    {
+        ChoiceApproaches.Aggressive,
+        ChoiceApproaches.Desperate,
+    };
 
     public static List<ChoiceApproaches> GetPriorityOrder(
         ChoiceArchetypes archetype,
         EncounterValues values)
     {
-        if (values.Pressure >= 7)
-        {
-            // High pressure priority order is the same for all archetypes
-            return new List<ChoiceApproaches>
-        {
-            ChoiceApproaches.Aggressive,
-            ChoiceApproaches.Desperate,
-        };
-        }
-
-        // Normal pressure priority orders vary by archetype
-        return archetype switch
+        // Priority orders should only include approaches that are valid for the archetype
+        var baseOrder = archetype switch
         {
             ChoiceArchetypes.Physical => new List<ChoiceApproaches>
-        {
-            ChoiceApproaches.Forceful,
-
-            ChoiceApproaches.Tactical,
-            ChoiceApproaches.Strategic,
-            ChoiceApproaches.Aggressive,
-            ChoiceApproaches.Careful,
-        },
+            {
+                ChoiceApproaches.Forceful,
+                ChoiceApproaches.Tactical,
+                ChoiceApproaches.Strategic,
+                ChoiceApproaches.Careful
+            },
 
             ChoiceArchetypes.Focus => new List<ChoiceApproaches>
-        {
-            ChoiceApproaches.Methodical,
-
-            ChoiceApproaches.Tactical,
-            ChoiceApproaches.Strategic,
-            ChoiceApproaches.Aggressive,
-            ChoiceApproaches.Careful,
-        },
+            {
+                ChoiceApproaches.Methodical,
+                ChoiceApproaches.Tactical,
+                ChoiceApproaches.Strategic,
+                ChoiceApproaches.Careful
+            },
 
             ChoiceArchetypes.Social => new List<ChoiceApproaches>
-        {
-            ChoiceApproaches.Diplomatic,
-
-            ChoiceApproaches.Tactical,
-            ChoiceApproaches.Strategic,
-            ChoiceApproaches.Aggressive,
-            ChoiceApproaches.Careful,
-        },
+            {
+                ChoiceApproaches.Diplomatic,
+                ChoiceApproaches.Tactical,
+                ChoiceApproaches.Strategic,
+                ChoiceApproaches.Careful
+            },
 
             _ => throw new ArgumentException("Invalid archetype")
         };
+
+        // Add Aggressive and Desperate to the end of primary archetype's list only
+        if (archetype == values.LastChoiceType)
+        {
+            baseOrder.Add(ChoiceApproaches.Aggressive);
+            if (values.Pressure >= 6)
+            {
+                baseOrder.Add(ChoiceApproaches.Desperate);
+            }
+        }
+
+        return baseOrder;
     }
 
     public static List<ChoiceApproaches> GetAvailableApproaches(
         ChoiceArchetypes archetype,
         EncounterValues values,
-        PlayerState playerState)
+        PlayerState playerState,
+        CompositionPattern pattern)
     {
-        // Start with all approaches
-        var approaches = Enum.GetValues<ChoiceApproaches>().ToList();
+        // Start with base approaches
+        var approaches = new List<ChoiceApproaches>
+        {
+            ChoiceApproaches.Diplomatic,    // Available with requirements
+            ChoiceApproaches.Methodical,    // Available with requirements
+            ChoiceApproaches.Forceful,    // Available with requirements
+            ChoiceApproaches.Careful,    // Always available
+            ChoiceApproaches.Strategic,  // Available with requirements
+            ChoiceApproaches.Tactical,    // Available with requirements
+        };
+
+        // Only add Aggressive/Desperate for primary archetype
+        if (archetype == pattern.PrimaryArchetype)
+        {
+            approaches.Add(ChoiceApproaches.Aggressive);
+            if (values.Pressure >= 6)
+            {
+                approaches.Add(ChoiceApproaches.Desperate);
+            }
+        }
 
         // Filter based on value requirements
-        List<ChoiceApproaches> possibleApproaches = approaches.Where(approach =>
-                    IsApproachAvailable(archetype, approach, values, playerState))
-                    .ToList();
-        return possibleApproaches;
+        return approaches.Where(approach => IsApproachAvailable(archetype, approach, values, playerState, pattern))
+                        .ToList();
     }
 
     private static bool IsApproachAvailable(
         ChoiceArchetypes archetype,
         ChoiceApproaches approach,
         EncounterValues values,
-        PlayerState playerState)
+        PlayerState playerState,
+        CompositionPattern pattern)
     {
+        // First check if this is a primary-only approach
+        if (PrimaryArchetypeOnlyApproaches.Contains(approach) && archetype != pattern.PrimaryArchetype)
+        {
+            return false;
+        }
+
+        // Then check standard value requirements
         return approach switch
         {
-            ChoiceApproaches.Tactical => IsTacticalAvailable(archetype, values),
-            ChoiceApproaches.Strategic => IsStrategicAvailable(archetype, values),
+            ChoiceApproaches.Tactical => GetArchetypeValue(archetype, values) >= 6,
+            ChoiceApproaches.Strategic => values.Outcome >= 6,
             ChoiceApproaches.Diplomatic => values.Resonance >= 4 && values.Insight >= 4,
             ChoiceApproaches.Methodical => values.Insight >= 4 && values.Momentum >= 4,
             ChoiceApproaches.Forceful => values.Momentum >= 4 && values.Resonance >= 4,
             ChoiceApproaches.Desperate => values.Pressure >= 6,
-            _ => true // Aggressive and Careful always available
+            _ => true // Careful always available
         };
     }
 
-    private static bool IsStrategicAvailable(ChoiceArchetypes archetype, EncounterValues values)
+    private static int GetArchetypeValue(ChoiceArchetypes archetype, EncounterValues values)
     {
-        return values.Outcome >= 6;
-    }
-
-    private static bool IsTacticalAvailable(ChoiceArchetypes archetype, EncounterValues values)
-    {
-        switch (archetype)
+        return archetype switch
         {
-            case ChoiceArchetypes.Physical: return values.Momentum >= 6;
-            case ChoiceArchetypes.Focus: return values.Insight >= 6;
-            case ChoiceArchetypes.Social: return values.Resonance >= 6;
-        }
-        return false;
+            ChoiceArchetypes.Physical => values.Momentum,
+            ChoiceArchetypes.Focus => values.Insight,
+            ChoiceArchetypes.Social => values.Resonance,
+            _ => throw new ArgumentException("Invalid archetype")
+        };
     }
 
     public static bool IsChoicePossible(

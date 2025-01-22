@@ -1,20 +1,18 @@
 ﻿public class ChoiceCalculator
 {
     private readonly GameState gameState;
-    private readonly BaseValueChangeGenerator baseValueGenerator;
     private readonly LocationPropertyEffectCalculator locationPropertyCalculator;
 
     public ChoiceCalculator(GameState gameState)
     {
         this.gameState = gameState;
-        this.baseValueGenerator = new BaseValueChangeGenerator();
         this.locationPropertyCalculator = new LocationPropertyEffectCalculator();
     }
 
     public ChoiceCalculationResult CalculateChoiceEffects(EncounterChoice choice, EncounterContext context)
     {
         // 1. Get base values that are inherent to the choice type
-        List<BaseValueChange> baseChanges = baseValueGenerator.GenerateBaseValueChanges(choice.Archetype, choice.Approach);
+        List<BaseValueChange> baseChanges = GenerateBaseValueChanges(choice.Archetype, choice.Approach);
 
         // 2. Calculate all modifications from game state and effects
         List<ValueModification> valueModifications = CalculateAllValueChanges(choice, context);
@@ -46,6 +44,80 @@
         return choiceCalculationResult;
     }
 
+    public List<BaseValueChange> GenerateBaseValueChanges(ChoiceArchetypes archetype, ChoiceApproaches approach)
+    {
+        // Every choice gets base progress, then modifications based on approach and archetype
+        List<BaseValueChange> changes = new();
+
+        if (approach == ChoiceApproaches.Diplomatic)
+        {
+            changes.Add(new BaseValueChange(ValueTypes.Outcome, 2)); // Base progress
+        }
+        if (approach == ChoiceApproaches.Methodical)
+        {
+            changes.Add(new BaseValueChange(ValueTypes.Outcome, 2)); // Base progress
+        }
+        if (approach == ChoiceApproaches.Forceful)
+        {
+            changes.Add(new BaseValueChange(ValueTypes.Outcome, 2)); // Base progress
+        }
+        if (approach == ChoiceApproaches.Tactical)
+        {
+            changes.Add(new BaseValueChange(ValueTypes.Outcome, 3)); // Base progress
+        }
+        if (approach == ChoiceApproaches.Strategic)
+        {
+            changes.Add(new BaseValueChange(ValueTypes.Outcome, -2)); // Base progress
+            changes.Add(new BaseValueChange(ValueTypes.Pressure, -2)); // Base progress
+        }
+        if (approach == ChoiceApproaches.Careful)
+        {
+            changes.Add(new BaseValueChange(ValueTypes.Pressure, -1)); // Base progress
+        }
+        if (approach == ChoiceApproaches.Aggressive)
+        {
+            changes.Add(new BaseValueChange(ValueTypes.Outcome, 3)); // Base progress
+            changes.Add(new BaseValueChange(ValueTypes.Pressure, 2)); // Base progress
+        }
+        if (approach == ChoiceApproaches.Desperate)
+        {
+            changes.Add(new BaseValueChange(ValueTypes.Outcome, -2)); // Base progress
+            changes.Add(new BaseValueChange(ValueTypes.Insight, -2)); // Base progress
+            changes.Add(new BaseValueChange(ValueTypes.Resonance, -2)); // Base progress
+            changes.Add(new BaseValueChange(ValueTypes.Pressure, -3)); // Base progress
+        }
+        if (archetype != ChoiceArchetypes.Physical)
+        {
+            changes.Add(new BaseValueChange(ValueTypes.Momentum, -1)); // Base progress
+        }
+
+        // Combine changes of the same ValueType
+        return BaseValueChange.CombineBaseValueChanges(changes);
+    }
+
+    public List<Requirement> GenerateApproachRequirements(ChoiceArchetypes archetype, ChoiceApproaches approach)
+    {
+        List<Requirement> requirements = new();
+
+        if (approach == ChoiceApproaches.Strategic)
+        {
+            switch (archetype)
+            {
+                case ChoiceArchetypes.Physical:
+                    requirements.Add(new MomentumRequirement(GameRules.StrategicMomentumRequirement));
+                    break;
+                case ChoiceArchetypes.Focus:
+                    requirements.Add(new InsightRequirement(GameRules.StrategicInsightRequirement));
+                    break;
+                case ChoiceArchetypes.Social:
+                    requirements.Add(new ResonanceRequirement(GameRules.StrategicResonanceRequirement));
+                    break;
+            }
+        }
+
+        return requirements;
+    }
+
     private List<ValueModification> CalculateAllValueChanges(EncounterChoice choice, EncounterContext context)
     {
         List<ValueModification> modifications = new();
@@ -73,20 +145,33 @@
         {
             case ChoiceArchetypes.Physical:
                 // Physical actions build Momentum
-                if (approach == ChoiceApproaches.Strategic)
+                if (approach == ChoiceApproaches.Forceful)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -2,
+                        $"Forceful"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -2,
+                        $"Forceful"));
+                }
+                if (approach == ChoiceApproaches.Tactical)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -4,
-                        $"Physical Strategic"));
+                        $"Tactical"));
+                }
+                if (approach == ChoiceApproaches.Strategic)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 3,
+                        $"Strategic"));
                 }
                 else if (approach == ChoiceApproaches.Careful)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 3,
-                        $"Physical Careful"));
+                        $"Careful"));
                 }
                 else if (approach == ChoiceApproaches.Aggressive)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 2,
-                        $"Physical Aggressive"));
+                        $"Aggressive"));
                 }
                 else if (approach == ChoiceApproaches.Desperate)
                 {
@@ -96,15 +181,28 @@
 
             case ChoiceArchetypes.Focus:
                 // Focus actions build Insight
-                if (approach == ChoiceApproaches.Strategic)
+                if (approach == ChoiceApproaches.Methodical)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Insight, -2,
+                        $"Methodical"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -2,
+                        $"Methodical"));
+                }
+                if (approach == ChoiceApproaches.Tactical)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Insight, -4,
-                        $"Focus Strategic"));
+                        $"Tactical"));
+                }
+                if (approach == ChoiceApproaches.Strategic)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 3,
+                        $"Strategic"));
                 }
                 else if (approach == ChoiceApproaches.Careful)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Insight, 3,
-                        $"Focus Careful"));
+                        $"Careful"));
                 }
                 else if (approach == ChoiceApproaches.Aggressive)
                 {
@@ -117,20 +215,33 @@
 
             case ChoiceArchetypes.Social:
                 // Social actions build Resonance
-                if (approach == ChoiceApproaches.Strategic)
+                if (approach == ChoiceApproaches.Diplomatic)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -2,
+                        $"Diplomatic"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Insight, -2,
+                        $"Diplomatic"));
+                }
+                if (approach == ChoiceApproaches.Tactical)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -4,
-                        $"Social Strategic"));
+                        $"Tactical"));
+                }
+                if (approach == ChoiceApproaches.Strategic)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Insight, 3,
+                        $"Strategic"));
                 }
                 else if (approach == ChoiceApproaches.Careful)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 3,
-                        $"Social Careful"));
+                        $"Careful"));
                 }
                 else if (approach == ChoiceApproaches.Aggressive)
                 {
                     modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 1,
-                        $"Social Aggressive"));
+                        $"Aggressive"));
                 }
                 else if (approach == ChoiceApproaches.Desperate)
                 {
@@ -303,8 +414,7 @@
     {
         List<Requirement> requirements = GetEnergyRequirements(choice, context, playerState);
 
-        List<Requirement> specialChoiceRequirements = baseValueGenerator
-            .GenerateStrategicRequirements(choice.Archetype, choice.Approach);
+        List<Requirement> specialChoiceRequirements = GenerateApproachRequirements(choice.Archetype, choice.Approach);
 
         requirements.AddRange(specialChoiceRequirements);
 
@@ -348,9 +458,9 @@
 
     private List<Outcome> CalculateCosts(EncounterChoice choice, EncounterContext context)
     {
-        List<Outcome> costs = baseValueGenerator.GenerateBaseCosts(choice.Archetype, choice.Approach);
+        List<Outcome> costs = GenerateBaseCosts(choice.Archetype, choice.Approach);
 
-        List<Outcome> pressureCosts = baseValueGenerator.CalculatePressureCosts(choice, context);
+        List<Outcome> pressureCosts = CalculatePressureCosts(choice, context);
         costs.AddRange(pressureCosts);
 
         List<Outcome> propertyCosts = locationPropertyCalculator.CalculatePropertyCosts(choice, context.LocationProperties);
@@ -360,9 +470,21 @@
 
     private List<Outcome> CalculateRewards(EncounterChoice choice, EncounterContext context)
     {
-        List<Outcome> rewards = baseValueGenerator.GenerateBaseRewards(choice.Archetype, choice.Approach);
+        List<Outcome> rewards = GenerateBaseRewards(choice.Archetype, choice.Approach);
         List<Outcome> propertyRewards = locationPropertyCalculator.CalculatePropertyRewards(choice, context.LocationProperties);
         rewards.AddRange(propertyRewards);
+        return rewards;
+    }
+
+    private List<Outcome> GenerateBaseCosts(ChoiceArchetypes archetype, ChoiceApproaches approach)
+    {
+        List<Outcome> costs = new List<Outcome>();
+        return costs;
+    }
+
+    private List<Outcome> GenerateBaseRewards(ChoiceArchetypes archetype, ChoiceApproaches approach)
+    {
+        List<Outcome> rewards = new List<Outcome>();
         return rewards;
     }
 
@@ -393,5 +515,29 @@
             }
         }
         */
+    }
+
+    public List<Outcome> CalculatePressureCosts(EncounterChoice choice, EncounterContext context)
+    {
+        List<Outcome> costs = new();
+
+        //// Add pressure-based complications at high pressure
+        //if (context.CurrentValues.Pressure >= 7)
+        //{
+        //    switch (choice.Archetype)
+        //    {
+        //        case ChoiceArchetypes.Physical:
+        //            costs.Add(new HealthOutcome(-1));
+        //            break;
+        //        case ChoiceArchetypes.Focus:
+        //            costs.Add(new ConcentrationOutcome(-1));
+        //            break;
+        //        case ChoiceArchetypes.Social:
+        //            costs.Add(new ReputationOutcome(-1));
+        //            break;
+        //    }
+        //}
+
+        return costs;
     }
 }

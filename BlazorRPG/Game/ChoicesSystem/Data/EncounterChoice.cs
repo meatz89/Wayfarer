@@ -10,7 +10,6 @@
     public EnergyTypes EnergyType { get; }
     public int EnergyCost { get; set; }
     public ChoiceCalculationResult CalculationResult { get; set; }
-    public List<BaseValueChange> BaseEncounterValueChanges { get; internal set; }
 
     // Constructor remains the same
     public EncounterChoice(
