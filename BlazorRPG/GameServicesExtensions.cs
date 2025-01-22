@@ -11,7 +11,6 @@
 
         services.AddSingleton<KnowledgeSystem>();
         services.AddSingleton<CharacterRelationshipSystem>();
-        services.AddSingleton<InformationSystem>();
 
         services.AddSingleton<QuestSystem>();
         services.AddSingleton<ReputationSystem>();

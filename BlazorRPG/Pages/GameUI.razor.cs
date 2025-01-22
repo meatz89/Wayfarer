@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace BlazorRPG.Pages; 
+namespace BlazorRPG.Pages;
 
 public partial class GameUI : ComponentBase
 {

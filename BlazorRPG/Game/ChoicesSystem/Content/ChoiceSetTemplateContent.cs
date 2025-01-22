@@ -1,16 +1,12 @@
 ﻿public static class ChoiceSetTemplateContent
 {
-    public static List<ChoiceSetTemplate> TutorialSequence => new()
+    public static List<ChoiceSetTemplate> ActionChoiceSets => new()
     {
         new ChoiceSetTemplateBuilder()
             .WithName("Find a place to stay for the night")
             .WithActionType(BasicActionTypes.Discuss)
             .AddAvailabilityCondition(properties => properties
                 .WithArchetype(LocationArchetypes.Tavern))
-            //.AddStateCondition(values => values
-            //    .WithMaxOutcome(3)     // Early social positioning
-            //    .WithMaxPressure(4)    // Some social pressure but not overwhelming
-            //    .WithMaxResonance(5))  // Room to build connections
-            .Build()
+            .Build(),
     };
 }

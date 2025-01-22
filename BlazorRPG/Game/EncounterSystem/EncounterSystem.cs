@@ -53,7 +53,7 @@
             {
                 string narrative = "Failure";
                 if (gameState.DebugMode != Modes.Debug)
-                { 
+                {
                     narrative = narrativeSystem.GetEncounterFailureNarrative(encounter.Context);
                 }
                 EncounterResult failResult = new()

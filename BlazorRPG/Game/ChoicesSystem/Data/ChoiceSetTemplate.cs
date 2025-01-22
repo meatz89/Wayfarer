@@ -1,6 +1,6 @@
 ﻿public class ChoiceSetTemplate
 {
-    public string Name { get; set;  }
+    public string Name { get; set; }
     public CompositionPattern CompositionPattern { get; set; }
     public BasicActionTypes ActionType { get; set; }
     public List<LocationPropertyCondition> AvailabilityConditions { get; set; }

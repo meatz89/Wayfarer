@@ -163,7 +163,7 @@
 
         if (!usedCombinations.Any(c => c.archetype == pattern.PrimaryArchetype && c.approach == approach))
         {
-            var choice = CreateChoice(usedCombinations.Count + 1, archetype, approach.Value);
+            EncounterChoice choice = CreateChoice(usedCombinations.Count + 1, archetype, approach.Value);
             return choice;
         }
 

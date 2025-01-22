@@ -45,7 +45,7 @@
 
 
         narrativeContents = NarrativeContent.LocationNarratives;
-        choiceSetTemplates = ChoiceSetTemplateContent.TutorialSequence;
+        choiceSetTemplates = ChoiceSetTemplateContent.ActionChoiceSets;
         locationArchetypeEffects = new List<LocationPropertyChoiceEffect>();
         // LocationPropertyChoiceEffects.AllEffects;
     }

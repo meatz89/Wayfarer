@@ -19,7 +19,7 @@
         // Apply high pressure complications if needed
         if (gameState.Actions.CurrentEncounter.Context.CurrentValues.Pressure >= 7)
         {
-            ApplyComplications(choice);
+            //ApplyComplications(choice);
         }
 
         // Apply costs
@@ -96,17 +96,4 @@
         }
     }
 
-    private void ApplyComplications(EncounterChoice choice)
-    {
-        ComplicationEffect complication = GetComplicationForChoice(choice);
-        if (complication != null)
-        {
-            complication.Consequence.Apply(gameState.Player);
-        }
-    }
-
-    private ComplicationEffect GetComplicationForChoice(EncounterChoice choice)
-    {
-        return null;
-    }
 }
