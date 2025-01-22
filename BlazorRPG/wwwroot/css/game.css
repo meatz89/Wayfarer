@@ -34,10 +34,13 @@ body {
     margin: 0 auto;
 }
 
-.top-bar {
+.top-bar, .locations-grid, .sidebar-panel, .encounter-container {
     background-color: var(--bg-panel);
     border-radius: 5px;
     padding: 15px;
+}
+
+.top-bar {
     margin-bottom: 20px;
     display: grid;
     grid-template-columns: auto 1fr auto;
@@ -46,10 +49,13 @@ body {
 }
 
 /* Time display */
-.time-display {
+.time-display, .resources {
     background-color: var(--bg-card);
     padding: 10px 20px;
     border-radius: 3px;
+}
+
+.time-display {
     font-weight: bold;
     color: var(--resource-coins);
 }
@@ -61,10 +67,18 @@ body {
     gap: 5px;
 }
 
-.energy-meter {
+.energy-meter, .resource {
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+.energy-meter {
+    gap: 10px;
+}
+
+.resource {
+    gap: 5px;
 }
 
 .meter-bar {
@@ -96,28 +110,19 @@ body {
 .resources {
     display: flex;
     gap: 20px;
-    background-color: var(--bg-card);
-    padding: 10px 20px;
-    border-radius: 3px;
 }
 
-.resource {
-    display: flex;
-    align-items: center;
-    gap: 5px;
+.resource.health {
+    color: var(--resource-health);
 }
 
-    .resource.health {
-        color: var(--resource-health);
-    }
+.resource.coins {
+    color: var(--resource-coins);
+}
 
-    .resource.coins {
-        color: var(--resource-coins);
-    }
-
-    .resource.food {
-        color: var(--resource-food);
-    }
+.resource.food {
+    color: var(--resource-food);
+}
 
 /* Location grid */
 .locations-grid {
@@ -125,8 +130,6 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 20px;
     padding: 20px;
-    background-color: var(--bg-panel);
-    border-radius: 5px;
 }
 
 /* Ensure location card can receive clicks */
@@ -172,24 +175,24 @@ body {
         margin-bottom: 5px; /* Add some spacing between property tags */
     }
 
+.location-type, .location-time, .location-warning, .location-shelter {
+    font-size: 0.9em;
+}
+
 .location-type {
     color: var(--text-secondary);
-    font-size: 0.9em;
 }
 
 .location-time {
     color: var(--text-muted);
-    font-size: 0.9em;
 }
 
 .location-warning {
     color: var(--danger);
-    font-size: 0.9em;
 }
 
 .location-shelter {
     color: var(--resource-shelter);
-    font-size: 0.9em;
 }
 
 .action-button {
@@ -220,15 +223,9 @@ body {
     gap: 20px;
 }
 
-.sidebar-panel {
-    background-color: var(--bg-panel);
-    border-radius: 5px;
-    padding: 15px;
+.sidebar-panel.current-location {
+    background-color: var(--bg-active);
 }
-
-    .sidebar-panel.current-location {
-        background-color: var(--bg-active);
-    }
 
 .panel-title {
     font-size: 1.2em;
@@ -259,19 +256,19 @@ body {
     pointer-events: none;
 }
 
-    .tooltip h4 {
+    .tooltip h4, .action-preview h4 {
         margin-top: 0;
         color: var(--text-secondary);
         font-size: 1em;
     }
 
-    .tooltip ul {
+    .tooltip ul, .action-preview ul {
         list-style: none;
         padding: 0;
         margin: 0 0 15px 0;
     }
 
-    .tooltip li {
+    .tooltip li, .action-preview li, .requirement {
         margin: 5px 0;
         font-size: 0.9em;
     }
@@ -283,19 +280,6 @@ body {
 
     .action-preview h4 {
         margin: 10px 0 5px 0;
-        color: var(--text-secondary);
-        font-size: 1em;
-    }
-
-    .action-preview ul {
-        list-style: none;
-        padding: 0;
-        margin: 0 0 15px 0;
-    }
-
-    .action-preview li {
-        margin: 5px 0;
-        font-size: 0.9em;
     }
 
 /* Color classes for values */
@@ -366,9 +350,6 @@ body {
 
 /* Encounter */
 .encounter-container {
-    background-color: var(--bg-panel);
-    padding: 20px;
-    border-radius: 5px;
     margin: 20px 0;
 }
 
@@ -382,12 +363,15 @@ body {
         margin: 0;
     }
 
+.encounter-stats, .encounter-stage, .choice-option, .stat {
+    background-color: var(--bg-card);
+    border-radius: 4px;
+}
+
 .encounter-stats {
     display: flex;
     gap: 20px;
-    background-color: var(--bg-card);
     padding: 15px;
-    border-radius: 4px;
     margin-bottom: 20px;
     padding-top: 30px;
     align-items: flex-start;
@@ -397,24 +381,33 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 30px; 
-    flex-direction: column;
+    padding-top: 30px;
 }
 
     /* Position the icon above the stat */
     .stat .value-icon {
         /* ... other icon styles */
-        top: 0px;
-        font-size: 1.4em;
+        top: -4px;
+        font-size: 1.2em;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: var(--bg-panel);
     }
 
 .stat-label {
     /* ... other stat label styles */
+    color: var(--text-secondary);
+    font-size: 0.9rem;
     margin: 4px 0; /* Adjust spacing */
 }
 
 .stat-value {
     /* ... other stat-value styles */
+    font-weight: bold;
     display: flex; /* Use flexbox */
     align-items: center; /* Center vertically */
     gap: 4px; /* Space between value and projected change */
@@ -427,9 +420,7 @@ body {
 }
 
 .encounter-stage {
-    background-color: var(--bg-card);
     padding: 20px;
-    border-radius: 4px;
     margin-bottom: 20px;
 }
 
@@ -445,14 +436,13 @@ body {
 }
 
 .choice-option {
-    background-color: var(--bg-card);
     padding: 15px;
-    border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s;
     display: flex;
     gap: 10px;
 }
+
     .choice-option.disabled {
         background-color: var(--bg-card); /* Or any desired color */
         color: var(--text-muted);
@@ -486,7 +476,7 @@ body {
 
 .choice-narrative {
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    font-size: 0.9em;
     flex: 1;
     padding-top: 10px;
     padding-bottom: 1px;
@@ -494,6 +484,9 @@ body {
 
 .preview-container {
     padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
     .preview-container h4 {
@@ -501,9 +494,12 @@ body {
         margin: 0 0 15px 0;
     }
 
-    .preview-container h5 {
+    .preview-container h5, .choice-type {
         color: var(--text-secondary);
-        font-size: 0.9rem;
+        font-size: 0.9em;
+    }
+
+    .preview-container h5 {
         margin: 10px 0 5px 0;
     }
 
@@ -511,13 +507,6 @@ body {
 .costs,
 .rewards {
     margin-bottom: 15px;
-}
-
-.requirement,
-.cost,
-.reward {
-    font-size: 0.9rem;
-    margin: 5px 0;
 }
 
 .requirement {
@@ -587,6 +576,7 @@ body {
     margin-bottom: 5px;
     color: var(--resource-health); /* Example: Color for energy cost */
 }
+
 .value-type {
     font-weight: bold;
     color: var(--text-primary);
@@ -643,6 +633,8 @@ body {
 /* Energy Costs Formatting */
 .energy-costs {
     margin-bottom: 20px;
+    border-top: 1px solid #eee;
+    padding-top: 8px;
 }
 
 .energy-cost {
@@ -650,6 +642,7 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 5px;
+    padding: 4px 0;
 }
 
 .energy-type {
@@ -682,33 +675,14 @@ body {
     margin-bottom: 20px;
 }
 
-.requirement {
-    font-size: 0.9rem;
-    margin: 5px 0;
-    padding-left: 5px;
-    border-left: 3px solid;
+.requirement.met {
+    color: var(--energy-social);
+    border-color: var(--energy-social);
 }
 
-    .requirement.met {
-        color: var(--energy-social);
-        border-color: var(--energy-social);
-    }
-
-    .requirement.unmet {
-        color: var(--resource-health);
-        border-color: var(--resource-health);
-    }
-
-
-.preview-container {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.choice-type {
-    color: #666;
-    font-size: 0.9em;
+.requirement.unmet {
+    color: var(--resource-health);
+    border-color: var(--resource-health);
 }
 
 .location-effects {
@@ -731,13 +705,6 @@ body {
     margin: 8px 0;
 }
 
-.value-type {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 500;
-}
-
 .value-breakdown {
     margin-left: 24px;
     font-size: 0.9em;
@@ -751,30 +718,15 @@ body {
     color: #ef4444;
 }
 
-.energy-costs {
-    border-top: 1px solid #eee;
-    padding-top: 8px;
+.energy-preview.negative {
+    color: #ef4444;
 }
 
-.energy-cost {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 4px 0;
+.energy-preview.positive {
+    color: #22c55e;
 }
 
-.energy-preview {
-    font-family: monospace;
-}
-
-    .energy-preview.negative {
-        color: #ef4444;
-    }
-
-    .energy-preview.positive {
-        color: #22c55e;
-    }
-.value-icon {
+.value-icon, .energy-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -801,15 +753,6 @@ body {
 
 .pressure-icon {
     color: #dc2626; /* red-600 */
-}
-
-.energy-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    font-style: normal;
 }
 
 .physical-icon {
@@ -866,11 +809,6 @@ body {
     border-radius: 4px;
 }
 
-.value-type {
-    font-weight: 500;
-    color: var(--text-primary);
-}
-
 .value-total {
     font-weight: bold;
 }
@@ -888,16 +826,6 @@ body {
     font-size: 0.9em;
     display: flex;
 }
-
-/* Positive/Negative colors */
-.positive-change {
-    color: var(--energy-social);
-}
-
-.negative-change {
-    color: var(--resource-health);
-}
-
 .value-section {
     background-color: var(--bg-card);
     padding: 12px;
@@ -1016,15 +944,6 @@ body {
     padding: 1rem;
 }
 
-.location-name {
-    font-size: 1.25rem;
-    font-weight: 500;
-    color: #e2e8f0;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid #2d3748;
-}
-
 /* Properties Section */
 .properties-header {
     font-size: 0.9rem;
@@ -1038,12 +957,19 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 0.5rem;
     margin-bottom: 1rem;
+    display: flex; /* Arrange the icons in a row */
+    flex-wrap: wrap; /* Allow wrapping to the next line */
 }
 
 
 .property-tag {
     position: relative;
     cursor: help;
+    display: inline-flex; /* Align icon and indicator horizontally */
+    align-items: center;
+    padding: 1px 5px;
+    border-radius: 10px;
+    box-shadow: 1px 1px 2px #666666, -1px -1px 2px rgba(0, 0, 0, 0.2);
 }
 
     .property-tag[data-tooltip] {
@@ -1072,6 +998,8 @@ body {
     font-size: 0.8em;
     margin-left: 4px;
     opacity: 0.7;
+    margin-left: 5px; /* Add a small space between icon and indicator */
+    color: #daa520;
 }
 
 .property-text {
@@ -1091,23 +1019,9 @@ body {
     font-style: italic;
     margin: 0;
 }
-.property-tag {
-    display: inline-flex; /* Align icon and indicator horizontally */
-    align-items: center;
-    padding: 1px 5px;
-    border-radius: 10px;
-    box-shadow: 1px 1px 2px #666666, -1px -1px 2px rgba(0, 0, 0, 0.2);
-    position: relative;
-}
 
 .property-icon {
     font-size: 1.2em;
-}
-
-.effect-indicator {
-    margin-left: 5px; /* Add a small space between icon and indicator */
-    font-size: 0.8em;
-    color: #daa520;
 }
 
 .property-effects {
@@ -1122,20 +1036,14 @@ body {
         margin-top: 10px;
     }
 
-.properties-grid {
-    display: flex; /* Arrange the icons in a row */
-    flex-wrap: wrap; /* Allow wrapping to the next line */
-    margin-bottom: 10px; /* Add some space before the effects list */
-}
-
-
-
 /* Add clear section separation */
 .preview-header {
     border-bottom: 1px solid #eee;
     padding-bottom: 20px;
     border-bottom: 1px solid var(--bg-card);
+    margin-bottom: 12px;
 }
+
     .preview-header h4 {
         margin: 0;
         color: var(--text-primary);
@@ -1162,39 +1070,6 @@ body {
 }
 
 /* Style the energy cost display differently from regular values */
-.energy-cost-display {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    background-color: var(--bg-panel);
-    border-radius: 4px;
-    border-left: 3px solid var(--energy-physical); /* Changes based on energy type */
-}
-
-    /* Energy type specific borders */
-    .energy-cost-display.physical {
-        border-color: var(--energy-physical);
-    }
-
-    .energy-cost-display.focus {
-        border-color: var(--energy-focus);
-    }
-
-    .energy-cost-display.social {
-        border-color: var(--energy-social);
-    }
-
-.energy-cost-value {
-    margin-left: auto;
-    font-weight: bold;
-    font-size: 1.1em;
-}
-
-.energy-modification {
-    font-size: 0.9em;
-    color: var(--text-secondary);
-    margin-left: 8px;
-}
 .energy-cost-display {
     display: flex;
     align-items: center;
@@ -1230,6 +1105,18 @@ body {
             color: var(--energy-social);
         }
 
+.energy-cost-value {
+    margin-left: auto;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.energy-modification {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    margin-left: 8px;
+}
+
 /* Energy icon styling */
 .energy-icon {
     width: 24px;
@@ -1251,27 +1138,10 @@ body {
 }
 
 .stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     min-width: 80px; /* Ensures consistent spacing */
     position: relative; /* For icon positioning */
     padding-top: 24px; /* Makes room for the icon */
 }
-
-    /* Position the icon above the stat */
-    .stat .value-icon {
-        position: absolute;
-        top: -4px;
-        font-size: 1.2em;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        background-color: var(--bg-panel);
-    }
 
 .stat-label {
     color: var(--text-secondary);
@@ -1304,94 +1174,71 @@ body {
     color: #dc2626; /* Same red as the pressure icon */
 }
 
-.outcomes-preview {
+.outcomes-preview, .energy-costs-preview {
     margin: 12px 0;
+    font-size: 0.9em; /* Smaller font size for the whole section */
 }
 
-.outcomes-list {
+.outcomes-list, .energy-costs-list {
     list-style-type: none;
     padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
     .outcomes-list li {
         margin-bottom: 8px; /* Spacing between items */
     }
 
-    .outcomes-list .value-item {
+    .outcomes-list .value-item, .energy-costs-list .value-item {
         background-color: transparent; /* Removes background */
         padding: 0; /* Removes padding */
         border: none; /* Removes border */
+        background-color: var(--bg-panel);
+        padding: 8px;
+        border-radius: 4px;
     }
 
-    .outcomes-list .value-main {
+    .outcomes-list .value-main, .energy-costs-list .value-header {
         align-items: center; /* Align items to the same baseline */
+        gap: 4px; /* Reduced gap */
+        gap: 8px;
     }
 
     .outcomes-list .value-header {
         gap: 4px; /* Reduced gap */
     }
 
-    .outcomes-list .value-icon {
+    .outcomes-list .value-icon, .energy-costs-list .value-icon {
         width: 20px; /* Smaller icon size */
         height: 20px;
         font-size: 0.9em; /* Smaller icon font size */
+        background-color: transparent;
+        background-color: var(--bg-card);
+        width: 20px;
+        height: 20px;
+        font-size: 0.9em;
     }
 
-    .outcomes-list .value-type {
+    .outcomes-list .value-type, .energy-costs-list .value-type {
         font-size: 0.9em; /* Smaller font size for type */
         color: var(--text-secondary); /* Dimmed text color */
-    }
-
-    .outcomes-list .value-total {
-        font-size: 0.9em; /* Smaller font size for total */
-        margin-left: auto; /* Push the total to the right */
-    }
-
-/* Reduce font size and icon size in the outcomes preview */
-.outcomes-preview {
-    margin: 12px 0;
-    font-size: 0.9em; /* Smaller font size for the whole section */
-}
-
-.outcomes-list {
-    list-style-type: none;
-    padding: 0;
-}
-
-    .outcomes-list li {
-        margin-bottom: 8px;
-    }
-
-    .outcomes-list .value-item {
-        background-color: transparent;
-        padding: 0;
-        border: none;
-    }
-
-    .outcomes-list .value-main {
-        align-items: center;
-    }
-
-    .outcomes-list .value-header {
-        gap: 4px; /* Reduced gap */
-    }
-
-    .outcomes-list .value-icon {
-        width: 20px; /* Smaller icon size */
-        height: 20px;
-        font-size: 0.9em; /* Smaller icon font size */
-        background-color: transparent;
-    }
-
-    .outcomes-list .value-type {
-        font-size: 0.9em; /* Smaller font size for type */
-        color: var(--text-secondary);
         margin-bottom: 0px;
+        font-size: 0.9em;
+        color: var(--text-secondary);
     }
 
-    .outcomes-list .value-total {
+    .outcomes-list .value-total, .energy-costs-list .value-total {
         font-size: 0.9em; /* Smaller font size for total */
         margin-left: auto; /* Push the total to the right */
+        font-size: 0.9em;
+    }
+
+    .energy-costs-list .value-details {
+        margin-left: 28px;
+        font-size: 0.85em;
+        color: var(--text-muted);
     }
 
 /* Encounter Result Overlay */
@@ -1426,6 +1273,7 @@ body {
     .result-message h3 {
         margin-top: 0;
     }
+
 .requirements-preview {
     margin-top: 10px;
     border-top: 1px solid lightgray;
@@ -1461,14 +1309,6 @@ body {
 .social-icon {
     color: green;
 }
-
-.stat-projected-change {
-    font-size: 0.8rem; /* Smaller font size */
-    font-weight: normal; /* Lighter weight */
-    color: var(--text-secondary); /* Lighter color */
-}
-
-/* ... other styles ... */
 
 /* Color the values based on their type AND positive/negative */
 .stat:has(.outcome-icon) .stat-value {
@@ -1569,3 +1409,144 @@ body {
     .narrative-button:hover {
         background-color: var(--border-active);
     }
+
+.energy-costs-preview {
+    padding: 12px;
+    background-color: var(--bg-card);
+    border-radius: 4px;
+}
+
+    .energy-costs-preview h6 {
+        margin: 0 0 8px 0;
+        color: var(--text-primary);
+    }
+
+/* Ensure proper section spacing */
+.final-results,
+.requirements-preview,
+.energy-costs-preview,
+.outcomes-preview {
+    border-top: 1px solid var(--bg-card);
+}
+
+    .final-results:first-child,
+    .requirements-preview:first-child,
+    .energy-costs-preview:first-child,
+    .outcomes-preview:first-child {
+        border-top: none;
+        margin-top: 0;
+        padding-top: 0;
+    }
+
+.tooltip {
+    position: fixed;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-active);
+    padding: 15px;
+    border-radius: 4px;
+    z-index: 1000;
+    min-width: 300px;
+    max-width: 400px;
+    max-height: 60vh;
+    overflow-y: auto;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.preview-header {
+    border-bottom: 1px solid var(--bg-card);
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+}
+
+    .preview-header h4 {
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+.choice-narrative {
+    color: var(--text-secondary);
+    font-size: 0.9em;
+    margin-top: 8px;
+}
+
+.tooltip-section {
+    padding: 12px;
+    background-color: var(--bg-card);
+    border-radius: 4px;
+    margin-top: 12px;
+}
+
+    .tooltip-section h5 {
+        margin: 0 0 8px 0;
+        color: var(--text-primary);
+        font-size: 0.9em;
+    }
+
+    .tooltip-section:first-of-type {
+        margin-top: 0;
+    }
+
+.tooltip-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tooltip-item {
+    background-color: var(--bg-panel);
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.tooltip-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tooltip-item-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+    .tooltip-item-title .value-icon {
+        width: 20px;
+        height: 20px;
+        font-size: 0.9em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--bg-card);
+        border-radius: 4px;
+    }
+
+.tooltip-item-name {
+    font-size: 0.9em;
+    color: var(--text-primary);
+}
+
+.tooltip-item-value {
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.tooltip-item-details {
+    margin-left: 28px;
+    margin-top: 4px;
+}
+
+.tooltip-detail-line {
+    font-size: 0.85em;
+    color: var(--text-muted);
+    padding: 2px 0;
+}
+
+.positive-change {
+    color: var(--energy-social);
+}
+
+.negative-change {
+    color: var(--resource-health);
+}

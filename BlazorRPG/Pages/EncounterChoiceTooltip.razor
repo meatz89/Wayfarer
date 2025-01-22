@@ -1,0 +1,150 @@
+﻿@inherits EncounterChoiceTooltipBase
+
+<div class="tooltip" style="left: @(mouseX)px; top: @(mouseY)px;">
+    <div class="preview-header">
+        <h4>@hoveredChoice.Description</h4>
+        <div class="choice-narrative">@hoveredChoice.Narrative</div>
+    </div>
+
+    @if (GetLocationSpotEffects(hoveredChoice.EncounterChoice).Any())
+    {
+        <div class="tooltip-section">
+            <h5>Location Effects</h5>
+            @*TODO: List the location effects*@
+        </div>
+    }
+
+    <div class="tooltip-section">
+        <h5>Encounter Value Changes</h5>
+        <div class="tooltip-list">
+            @foreach (DetailedChange dc in GetValueChanges(hoveredChoice.EncounterChoice)
+            .Where(c => c.ChangeType != ChangeTypes.PhysicalEnergy
+            && c.ChangeType != ChangeTypes.FocusEnergy
+            && c.ChangeType != ChangeTypes.SocialEnergy))
+            {
+                <div class="tooltip-item">
+                    <div class="tooltip-item-header">
+                        <div class="tooltip-item-title">
+                            @GetValueTypeIcon(dc.ChangeType)
+                            <span class="tooltip-item-name">@dc.ChangeType</span>
+                        </div>
+                        <span class="tooltip-item-value @((dc.ChangeType == ChangeTypes.Pressure) ? (dc.ChangeValues.TotalAmount >= 0 ? "negative-change" : "positive-change") : (dc.ChangeValues.TotalAmount >= 0 ? "positive-change" : "negative-change"))">
+                            @(dc.ChangeValues.TotalAmount >= 0 ? "+" : "")@dc.ChangeValues.TotalAmount
+                        </span>
+                    </div>
+                    @if (dc.ChangeValues.Sources.Any())
+                    {
+                        <div class="tooltip-item-details">
+                            @foreach (var detail in dc.ChangeValues.Sources)
+                            {
+                                <div class="tooltip-detail-line">@detail</div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (hoveredChoice.EncounterChoice.CalculationResult.Requirements.Count > 0)
+    {
+        <div class="tooltip-section">
+            <h5>Requirements</h5>
+            <div class="tooltip-list">
+                @foreach (DetailedRequirement req in GetDetailedRequirements(hoveredChoice.EncounterChoice))
+                {
+                    <div class="tooltip-item">
+                        <div class="tooltip-item-header">
+                            <div class="tooltip-item-title">
+                                @GetRequirementIcon(req.RequirementType)
+                                <span class="tooltip-item-name">@req.Description</span>
+                            </div>
+                            <span class="tooltip-item-value @(req.IsSatisfied ? "positive-change" : "negative-change")">
+                                @(req.IsSatisfied ? "✓" : "✗")
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @{
+        var energyChanges = GetValueChanges(hoveredChoice.EncounterChoice)
+        .Where(c => c.ChangeType == ChangeTypes.PhysicalEnergy
+        || c.ChangeType == ChangeTypes.FocusEnergy
+        || c.ChangeType == ChangeTypes.SocialEnergy)
+        .ToList();
+    }
+    @if (energyChanges.Any())
+    {
+        <div class="tooltip-section">
+            <h5>Energy Costs</h5>
+            <div class="tooltip-list">
+                @foreach (DetailedChange energy in energyChanges)
+                {
+                    <div class="tooltip-item">
+                        <div class="tooltip-item-header">
+                            <div class="tooltip-item-title">
+                                @GetValueTypeIcon(energy.ChangeType)
+                                <span class="tooltip-item-name">@energy.ChangeType.ToString().Replace("Energy", "")</span>
+                            </div>
+                            <span class="tooltip-item-value negative-change">
+                                @energy.ChangeValues.TotalAmount
+                            </span>
+                        </div>
+                        @if (energy.ChangeValues.Sources.Any())
+                        {
+                            <div class="tooltip-item-details">
+                                @foreach (var detail in energy.ChangeValues.Sources)
+                                {
+                                    <div class="tooltip-detail-line">@detail</div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @if (hoveredChoice.EncounterChoice.CalculationResult.Costs.Count > 0)
+    {
+        <div class="tooltip-section">
+            <h5>Costs</h5>
+            <div class="tooltip-list">
+                @foreach (Outcome cost in hoveredChoice.EncounterChoice.CalculationResult.Costs)
+                {
+                    <div class="tooltip-item">
+                        <div class="tooltip-item-header">
+                            <div class="tooltip-item-title">
+                                @GetOutcomeIcon(cost)
+                                <span class="tooltip-item-name">@cost.GetDescription()</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @if (hoveredChoice.EncounterChoice.CalculationResult.Rewards.Count > 0)
+    {
+        <div class="tooltip-section">
+            <h5>Rewards</h5>
+            <div class="tooltip-list">
+                @foreach (Outcome reward in hoveredChoice.EncounterChoice.CalculationResult.Rewards)
+                {
+                    <div class="tooltip-item">
+                        <div class="tooltip-item-header">
+                            <div class="tooltip-item-title">
+                                @GetOutcomeIcon(reward)
+                                <span class="tooltip-item-name">@reward.GetDescription()</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
