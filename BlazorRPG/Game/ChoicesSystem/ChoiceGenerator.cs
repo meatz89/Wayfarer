@@ -115,11 +115,16 @@
             return primaryChoice;
 
         // Then try secondary archetype
-        return TryGenerateChoiceForArchetype(
-            pattern.SecondaryArchetype,
-            values,
-            playerState,
-            pattern);
+        EncounterChoice secondaryChoice = TryGenerateChoiceForArchetype(
+                    pattern.SecondaryArchetype,
+                    values,
+                    playerState,
+                    pattern);
+
+        if (secondaryChoice != null)
+            return secondaryChoice;
+
+        return null;
     }
 
     private List<ChoiceApproaches> GetUnusedAvailableApproaches(
@@ -152,7 +157,8 @@
         if (approach == null)
             return null;
 
-        return CreateChoice(usedCombinations.Count + 1, archetype, approach.Value);
+        var choice = CreateChoice(usedCombinations.Count + 1, archetype, approach.Value);
+        return choice;
     }
 
     private List<EncounterChoice> GenerateDesperateOnlyChoices(CompositionPattern pattern)
