@@ -9,29 +9,28 @@
         this.locationPropertyCalculator = new LocationPropertyEffectCalculator();
     }
 
-    public ChoiceCalculationResult CalculateChoiceEffects(EncounterChoice choice, EncounterContext context)
+    public ChoiceCalculationResult CalculateChoiceEffects(EncounterChoice choice, LocationProperties locationProperties, EncounterValues initialEncounterValues)
     {
         // 1. Get base values that are inherent to the choice type
         List<BaseValueChange> baseChanges = new List<BaseValueChange>();
-        List<ValueModification> valueModifications = GameRules.GetChoiceBaseValueEffects(choice, context);
+        List<ValueModification> valueModifications = GameRules.GetChoiceBaseValueEffects(choice);
 
         // 2. Calculate all modifications from game state and effects
-        List<ValueModification> modifications = CalculateAllValueChanges(choice, context);
+        List<ValueModification> modifications = CalculateAllValueChanges(choice);
         valueModifications.AddRange(modifications);
 
         // 3. Calculate new state after combining base values and modifications
-        EncounterValues newState = CalculateNewState(context.CurrentValues, choice, baseChanges, valueModifications);
-
-        choice.EnergyCost = CalculateEnergyCost(choice, context, gameState.Player);
+        EncounterValues newEncounterValues = CalculateNewState(initialEncounterValues, choice, baseChanges, valueModifications);
+        choice.EnergyCost = CalculateEnergyCost(choice, newEncounterValues, gameState.Player, locationProperties);
 
         // 4. Calculate final requirements, costs and rewards
-        List<Requirement> requirements = CalculateRequirements(valueModifications, choice, context, gameState.Player);
-        List<Outcome> costs = CalculateCosts(choice, context);
-        List<Outcome> rewards = CalculateRewards(choice, context);
+        List<Requirement> requirements = CalculateRequirements(valueModifications, choice, gameState.Player, locationProperties, newEncounterValues);
+        List<Outcome> costs = CalculateCosts(choice, locationProperties);
+        List<Outcome> rewards = CalculateRewards(choice, locationProperties);
 
         // 5. Return complete calculation result
         ChoiceCalculationResult choiceCalculationResult = new ChoiceCalculationResult(
-            newState,
+            newEncounterValues,
             baseChanges,           // Base values
             valueModifications,    // Modifications with sources
             choice.EnergyType,     // Energy type
@@ -44,12 +43,11 @@
     }
 
 
-    private int CalculateEnergyCost(EncounterChoice choice, EncounterContext context, PlayerState player)
+    private int CalculateEnergyCost(EncounterChoice choice, EncounterValues currentValues, PlayerState player, LocationProperties locationProperties)
     {
         int baseEnergyCost = GameRules.GetBaseEnergyCost(choice.Archetype, choice.Approach);
 
-        EncounterValues currentValues = context.CurrentValues;
-        int propertyModifier = locationPropertyCalculator.CalculateEnergyCostModifier(choice, context.LocationProperties);
+        int propertyModifier = locationPropertyCalculator.CalculateEnergyCostModifier(choice, locationProperties);
 
         // Apply energy cost reductions from modifications, using projected momentum
         int energyReduction = 0;
@@ -66,19 +64,9 @@
         return actualCost;
     }
 
-    private List<ValueModification> CalculateAllValueChanges(EncounterChoice choice, EncounterContext context)
+    private List<ValueModification> CalculateAllValueChanges(EncounterChoice choice)
     {
         List<ValueModification> modifications = new();
-
-        // First handle value decay - this affects what resources we have available
-        AddDecayModifications(modifications, choice, context);
-
-        // Then handle state-based modifications that affect our value gains
-        //AddStateModifications(modifications, choice, context);
-        //AddEnergyEffects(modifications, choice, context);
-
-        // Finally calculate outcome generation based on our archetype, approach and current values
-        AddOutcomeModifications(modifications, choice, context);
 
         return modifications;
     }
@@ -151,22 +139,22 @@
         return newState;
     }
 
-    private List<Requirement> CalculateRequirements(List<ValueModification> valueModifications, EncounterChoice choice, EncounterContext context, PlayerState playerState)
+    private List<Requirement> CalculateRequirements(List<ValueModification> valueModifications, EncounterChoice choice, PlayerState playerState, LocationProperties locationProperties, EncounterValues encounterValues)
     {
-        List<Requirement> requirements = GetEnergyRequirements(choice, context, playerState);
+        List<Requirement> requirements = GetEnergyRequirements(choice, playerState);
 
-        List<Requirement> baseValueRequirements = GetBaseValueRequirements(valueModifications, choice, context, playerState);
+        List<Requirement> baseValueRequirements = GetBaseValueRequirements(valueModifications, choice, playerState, encounterValues);
         requirements.AddRange(baseValueRequirements);
 
         List<Requirement> propertyRequirements = locationPropertyCalculator
-            .CalculateLocationRequirements(choice, context.LocationProperties);
+            .CalculateLocationRequirements(choice, locationProperties);
 
         requirements.AddRange(propertyRequirements);
 
         return requirements;
     }
 
-    private List<Requirement> GetBaseValueRequirements(List<ValueModification> valueModifications, EncounterChoice choice, EncounterContext context, PlayerState playerState)
+    private List<Requirement> GetBaseValueRequirements(List<ValueModification> valueModifications, EncounterChoice choice, PlayerState playerState, EncounterValues encounterValues)
     {
         List<Requirement> requirements = new();
 
@@ -201,7 +189,7 @@
                 else if (change.ValueType == ValueTypes.Pressure)
                 {
                     // Pressure requirement: current pressure + change must not exceed 10
-                    if (context.CurrentValues.Pressure + change.Amount > 10)
+                    if (encounterValues.Pressure + change.Amount > 10)
                     {
                         requirements.Add(new PressureRequirement(10 - change.Amount));
                     }
@@ -212,7 +200,7 @@
         return requirements;
     }
 
-    private List<Requirement> GetEnergyRequirements(EncounterChoice choice, EncounterContext context, PlayerState playerState)
+    private List<Requirement> GetEnergyRequirements(EncounterChoice choice, PlayerState playerState)
     {
         List<Requirement> requirements = new List<Requirement>();
 
@@ -263,22 +251,19 @@
         return requirements;
     }
 
-    private List<Outcome> CalculateCosts(EncounterChoice choice, EncounterContext context)
+    private List<Outcome> CalculateCosts(EncounterChoice choice, LocationProperties locationProperties)
     {
         List<Outcome> costs = GenerateBaseCosts(choice.Archetype, choice.Approach);
 
-        List<Outcome> pressureCosts = CalculatePressureCosts(choice, context);
-        costs.AddRange(pressureCosts);
-
-        List<Outcome> propertyCosts = locationPropertyCalculator.CalculatePropertyCosts(choice, context.LocationProperties);
+        List<Outcome> propertyCosts = locationPropertyCalculator.CalculatePropertyCosts(choice, locationProperties);
         costs.AddRange(propertyCosts);
         return costs;
     }
 
-    private List<Outcome> CalculateRewards(EncounterChoice choice, EncounterContext context)
+    private List<Outcome> CalculateRewards(EncounterChoice choice, LocationProperties locationProperties)
     {
         List<Outcome> rewards = GenerateBaseRewards(choice.Archetype, choice.Approach);
-        List<Outcome> propertyRewards = locationPropertyCalculator.CalculatePropertyRewards(choice, context.LocationProperties);
+        List<Outcome> propertyRewards = locationPropertyCalculator.CalculatePropertyRewards(choice, locationProperties);
         rewards.AddRange(propertyRewards);
         return rewards;
     }
@@ -293,129 +278,6 @@
     {
         List<Outcome> rewards = new List<Outcome>();
         return rewards;
-    }
-
-    private void AddOutcomeModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
-    {
-    }
-
-    private void AddDecayModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
-    {
-        /*
-        // First handle value decay
-        if (context.CurrentValues.LastChoiceType.HasValue)
-        {
-            // Momentum decays by 2 each turn without physical action
-            if (choice.Archetype != ChoiceArchetypes.Physical)
-            {
-                modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -1, "No Physical Choice"));
-            }
-            // Insight decays by 1 when repeating choice type
-            if (choice.Archetype == context.CurrentValues.LastChoiceType)
-            {
-                modifications.Add(new EncounterValueModification(ValueTypes.Insight, -1, "Repeated Choice Type"));
-            }
-            // Resonance decays by 1 when repeating choice approaches
-            if (choice.Approach == context.CurrentValues.LastChoiceApproach)
-            {
-                modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -1, "Repeated Choice Approach"));
-            }
-        }
-        */
-    }
-
-    public List<Outcome> CalculatePressureCosts(EncounterChoice choice, EncounterContext context)
-    {
-        List<Outcome> costs = new();
-
-        //// Add pressure-based complications at high pressure
-        //if (context.CurrentValues.Pressure >= 7)
-        //{
-        //    switch (choice.Archetype)
-        //    {
-        //        case ChoiceArchetypes.Physical:
-        //            costs.Add(new HealthOutcome(-1));
-        //            break;
-        //        case ChoiceArchetypes.Focus:
-        //            costs.Add(new ConcentrationOutcome(-1));
-        //            break;
-        //        case ChoiceArchetypes.Social:
-        //            costs.Add(new ReputationOutcome(-1));
-        //            break;
-        //    }
-        //}
-
-        return costs;
-    }
-
-    private void AddStateModifications(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
-    {
-        EncounterValues currentValues = context.CurrentValues;
-        //AddBonusToOutcome(modifications, currentValues);
-
-        // Add Pressure penalty to Outcome
-        if (currentValues.Insight > 5)
-        {
-            modifications.Add(new EncounterValueModification(
-                ValueTypes.Outcome,
-                1,
-                "High Insight Bonus"
-            ));
-        }
-        if (currentValues.Resonance > 5)
-        {
-            modifications.Add(new EncounterValueModification(
-                ValueTypes.Outcome,
-                1,
-                "High Resonance Bonus"
-            ));
-        }
-        if (currentValues.Pressure >= 6)
-        {
-            modifications.Add(new EncounterValueModification(
-                ValueTypes.Outcome,
-                -1,
-                "Medium Pressure Penalty"
-            ));
-        }
-        if (currentValues.Pressure >= 8)
-        {
-            modifications.Add(new EncounterValueModification(
-                ValueTypes.Outcome,
-                -1,
-                "High Pressure Penalty"
-            ));
-        }
-
-    }
-
-    private static void AddEnergyEffects(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
-    {
-        EncounterValues currentValues = context.CurrentValues;
-
-        // Pressure affects energy costs
-        if (currentValues.Pressure > 5)
-        {
-            int energyIncrease = currentValues.Pressure - 5;
-            modifications.Add(new EnergyCostReduction(
-                choice.EnergyType,
-                -energyIncrease, // Negative because it's increasing cost
-                $"High Pressure (+{energyIncrease} Energy Cost)"
-            ));
-        }
-        // Momentum affects physical energy costs
-        if (choice.EnergyType == EnergyTypes.Physical)
-        {
-            int momentumEffect = currentValues.Momentum - 5; // Positive or negative based on base 5
-            if (momentumEffect != 0)
-            {
-                modifications.Add(new EnergyCostReduction(
-                    EnergyTypes.Social,
-                    momentumEffect,
-                    $"From Momentum {(momentumEffect > 0 ? "Bonus" : "Penalty")}"
-                ));
-            }
-        }
     }
 
 }

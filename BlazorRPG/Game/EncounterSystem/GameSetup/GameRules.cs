@@ -315,7 +315,7 @@
             .First(a => a != first && a != second);
     }
 
-    public static List<ValueModification> GetChoiceBaseValueEffects(EncounterChoice choice, EncounterContext context)
+    public static List<ValueModification> GetChoiceBaseValueEffects(EncounterChoice choice)
     {
         List<ValueModification> modifications = new List<ValueModification>();
 

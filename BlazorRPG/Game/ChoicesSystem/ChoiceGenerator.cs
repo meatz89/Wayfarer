@@ -16,15 +16,15 @@
         usedCombinations.Clear();
 
         PlayerState playerState = gameState.Player;
-        EncounterValues currentValues = context.CurrentValues;
+        EncounterValues initialValues = context.CurrentValues;
 
-        List<EncounterChoice> choices = currentValues.Pressure >= 9
+        List<EncounterChoice> choices = initialValues.Pressure >= 9
             ? GenerateDesperateOnlyChoices(template.CompositionPattern)
-            : GenerateBaseChoices(template, currentValues, playerState, 9);
+            : GenerateBaseChoices(template, initialValues, playerState, 9);
 
         foreach (EncounterChoice choice in choices)
         {
-            choice.CalculationResult = calculator.CalculateChoiceEffects(choice, context);
+            choice.CalculationResult = calculator.CalculateChoiceEffects(choice, context.LocationProperties, initialValues);
         }
 
         return new ChoiceSet(template.Name, choices);
