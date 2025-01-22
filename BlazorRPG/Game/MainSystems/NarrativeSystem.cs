@@ -88,22 +88,10 @@
         return previousPrompts;
     }
 
-    private static string GetEncounterState(EncounterContext context)
-    {
-        EncounterValues values = context.CurrentValues;
-        string encounterState = $"{NewLine}" +
-            $"Outcome ({values.Outcome}/10), " +
-            $"Pressure ({values.Pressure}/10), " +
-            $"Momentum ({values.Momentum}/10), " +
-            $"Insight ({values.Insight}/10), " +
-            $"Resonance ({values.Resonance}/10)";
-
-        return encounterState;
-    }
 
     public void MakeChoice(EncounterContext context, EncounterChoice encounterChoice)
     {
-        string currentValues = $"The new Encounter States are:";
+        string currentValues = $"New Encounter States are:";
         currentValues += GetEncounterState(context);
 
         string choice =
@@ -113,7 +101,7 @@
             $"This is a {encounterChoice.Approach.ToString().ToUpper()} approach{NewLine}" +
             $"{currentValues}";
 
-        string prompt = $"The player chose: {choice}";
+        string prompt = $"The player chooses: {choice}";
         JournalSystem.NoteNewEncounterNarrative(prompt);
     }
 
@@ -146,15 +134,13 @@
         foreach (ValueModification valueModification in valueModifications)
         {
             if (valueModification is EncounterValueModification encounterValueMod)
-                effects += $"{encounterValueMod.Amount} to {encounterValueMod.ValueType} " +
-                    $"from {encounterValueMod.Source}; ";
+                effects += $"{encounterValueMod.Amount} to {encounterValueMod.ValueType}; ";
 
             if (valueModification is EnergyCostReduction energyCostReduction)
-                effects += $"{energyCostReduction.Amount} to {energyCostReduction.EnergyType} " +
-                    $"from {energyCostReduction.Source}; ";
+                effects += $"{energyCostReduction.Amount} to {energyCostReduction.EnergyType}; ";
         }
 
-        prompt = prompt + effects + NewLine + NewLine;
+        prompt = prompt + effects + NewLine;
         return prompt;
     }
 
@@ -167,4 +153,16 @@
         return locationNarrative.Description;
     }
 
+    private static string GetEncounterState(EncounterContext context)
+    {
+        EncounterValues values = context.CurrentValues;
+        string encounterState = $"{NewLine}" +
+            $"Outcome ({values.Outcome}/10), " +
+            $"Pressure ({values.Pressure}/10), " +
+            $"Momentum ({values.Momentum}/10), " +
+            $"Insight ({values.Insight}/10), " +
+            $"Resonance ({values.Resonance}/10)";
+
+        return encounterState;
+    }
 }

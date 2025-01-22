@@ -2,8 +2,6 @@
 
 public static class OpenAiHelper
 {
-    private static string NewLine = "\r\n";
-    private static string completionsUrl = "https://api.openai.com/v1/chat/completions";
     private static string openAiApiKey;
     private static OpenAiClient openAiClient;
 
