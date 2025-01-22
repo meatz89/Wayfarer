@@ -3,7 +3,7 @@
 public partial class ActionPreviewBase : ComponentBase
 {
     [Parameter] public UserActionOption CurrentAction { get; set; }
-    [Parameter] public PlayerState Player { get; set; }
+    [Parameter] public GameState GameState { get; set; }
     [Parameter] public EventCallback<bool> OnActionConfirmed { get; set; }
     [Parameter] public EventCallback OnBack { get; set; }
 
@@ -23,7 +23,7 @@ public partial class ActionPreviewBase : ComponentBase
         foreach (Requirement req in basicAction.Requirements)
         {
             string description = req.GetDescription();
-            bool isSatisfied = req.IsSatisfied(Player);
+            bool isSatisfied = req.IsSatisfied(GameState);
 
             if (isSatisfied) { continue; }
             string color = isSatisfied ? "positive" : "negative";
@@ -39,7 +39,7 @@ public partial class ActionPreviewBase : ComponentBase
         foreach (Outcome outcome in basicAction.Costs)
         {
             string description = outcome.GetDescription();
-            string preview = outcome.GetPreview(Player);
+            string preview = outcome.GetPreview(GameState.Player);
 
             // Special handling for DayChangeOutcome to make it stand out
             if (outcome is DayChangeOutcome)
@@ -70,7 +70,7 @@ public partial class ActionPreviewBase : ComponentBase
         foreach (Outcome outcome in basicAction.Rewards)
         {
             string description = outcome.GetDescription();
-            string preview = outcome.GetPreview(Player);
+            string preview = outcome.GetPreview(GameState.Player);
 
             // Special handling for DayChangeOutcome to make it stand out
             if (outcome is DayChangeOutcome)

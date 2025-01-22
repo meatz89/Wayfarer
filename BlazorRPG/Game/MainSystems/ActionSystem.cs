@@ -13,7 +13,7 @@
     {
         // Create a copy of the action to apply modifiers
         ActionImplementation modifiedAction = ApplyModifiers(basicAction);
-        return modifiedAction.CanExecute(gameState.Player);
+        return modifiedAction.CanExecute(gameState);
     }
 
     public ActionImplementation ProcessActionOutcome(ActionImplementation basicAction)

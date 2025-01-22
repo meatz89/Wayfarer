@@ -11,9 +11,9 @@
     public LocationScale LocationScale { get; set; } = new();
     public List<LocationPropertyCondition> SpotAvailabilityConditions { get; set; } = new();
 
-    public bool CanExecute(PlayerState player)
+    public bool CanExecute(GameState gameState)
     {
-        return Requirements.All(r => r.IsSatisfied(player));
+        return Requirements.All(r => r.IsSatisfied(gameState));
     }
 
     // Method to check if the action is available at a location

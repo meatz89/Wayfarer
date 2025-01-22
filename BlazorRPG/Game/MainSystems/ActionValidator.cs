@@ -9,7 +9,7 @@
 
     public bool CanExecuteAction(ActionImplementation action)
     {
-        return action.CanExecute(gameState.Player);
+        return action.CanExecute(gameState);
     }
 
     public List<string> GetBlockingRequirements(ActionImplementation action)
@@ -17,7 +17,7 @@
         List<string> blocking = new();
         foreach (Requirement req in action.Requirements)
         {
-            if (!req.IsSatisfied(gameState.Player))
+            if (!req.IsSatisfied(gameState))
             {
                 blocking.Add(req.GetDescription());
             }

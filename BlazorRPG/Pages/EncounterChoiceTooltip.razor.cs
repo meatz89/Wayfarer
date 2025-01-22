@@ -27,7 +27,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     public List<DetailedRequirement> GetDetailedRequirements(EncounterChoice choice)
     {
         if (choice.CalculationResult == null) return new List<DetailedRequirement>();
-        return choice.GetDetailedRequirements(GameState.Player);
+        return choice.GetDetailedRequirements(GameState);
     }
 
     public void AddDetailedChange(List<DetailedChange> combined, ChangeTypes changeType, string source, int amount)

@@ -17,7 +17,7 @@
             if (Choices.Count >= index)
             {
                 EncounterChoice choice = Choices[index - 1];
-                var oldDesignation = choice.Designation;
+                string oldDesignation = choice.Designation;
 
                 choice.Designation = narrative.designation;
                 choice.Narrative = narrative.narrative;

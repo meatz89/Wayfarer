@@ -61,7 +61,7 @@
 
     private bool AreRequirementsMet(List<Requirement> requirements)
     {
-        return requirements.All(req => req.IsSatisfied(gameState.Player));
+        return requirements.All(req => req.IsSatisfied(gameState));
     }
 
     private void ApplyEnergyCost(EncounterChoice choice, ChoiceCalculationResult result)

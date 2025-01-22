@@ -49,7 +49,7 @@
             .ToList();
     }
 
-    public List<DetailedRequirement> GetDetailedRequirements(PlayerState playerState)
+    public List<DetailedRequirement> GetDetailedRequirements(GameState gameState)
     {
         if (CalculationResult == null)
         {
@@ -60,7 +60,7 @@
         {
             RequirementType = GetRequirementType(req),
             Description = req.GetDescription(),
-            IsSatisfied = req.IsSatisfied(playerState)
+            IsSatisfied = req.IsSatisfied(gameState)
         }).ToList();
     }
 

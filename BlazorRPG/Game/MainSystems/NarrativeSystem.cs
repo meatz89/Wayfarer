@@ -143,7 +143,7 @@
             if (valueModification is EncounterValueModification encounterValueMod)
                 effects += $"{encounterValueMod.Amount} to {encounterValueMod.ValueType} " +
                     $"from {encounterValueMod.Source}; ";
-            
+
             if (valueModification is EnergyCostReduction energyCostReduction)
                 effects += $"{energyCostReduction.Amount} to {energyCostReduction.EnergyType} " +
                     $"from {energyCostReduction.Source}; ";

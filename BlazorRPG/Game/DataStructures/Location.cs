@@ -1,4 +1,5 @@
-﻿public class Location
+﻿
+public class Location
 {
     public Location(
         LocationTypes locationType,
@@ -29,4 +30,8 @@
     public List<LocationSpot> LocationSpots { get; set; } // Action groupings
     public int DifficultyLevel { get; set; }
 
+    internal bool HasProperty(LocationPropertyTypes property)
+    {
+        throw new NotImplementedException();
+    }
 }

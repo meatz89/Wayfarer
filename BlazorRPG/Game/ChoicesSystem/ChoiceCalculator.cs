@@ -21,7 +21,7 @@
 
         // 3. Calculate new state after combining base values and modifications
         EncounterValues newState = CalculateNewState(context.CurrentValues, choice, baseChanges, valueModifications);
-        
+
         choice.EnergyCost = CalculateEnergyCost(choice, context, gameState.Player);
 
         // 4. Calculate final requirements, costs and rewards
@@ -154,7 +154,7 @@
     private List<Requirement> CalculateRequirements(List<ValueModification> valueModifications, EncounterChoice choice, EncounterContext context, PlayerState playerState)
     {
         List<Requirement> requirements = GetEnergyRequirements(choice, context, playerState);
-        
+
         List<Requirement> baseValueRequirements = GetBaseValueRequirements(valueModifications, choice, context, playerState);
         requirements.AddRange(baseValueRequirements);
 
@@ -171,7 +171,7 @@
         List<Requirement> requirements = new();
 
         // Iterate through value modifications and add requirements for negative changes
-        foreach (var modification in valueModifications)
+        foreach (ValueModification modification in valueModifications)
         {
             // Only consider EncounterValueModifications, not EnergyCostReductions
             if (modification is EncounterValueModification change)

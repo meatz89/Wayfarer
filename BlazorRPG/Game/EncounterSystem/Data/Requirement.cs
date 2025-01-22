@@ -1,6 +1,6 @@
 ﻿public abstract class Requirement
 {
-    public abstract bool IsSatisfied(PlayerState player);
+    public abstract bool IsSatisfied(GameState gameState);
     public abstract string GetDescription();
 }
 
@@ -13,9 +13,9 @@ public class PressureRequirement : Requirement
         maxPressure = pressure;
     }
 
-    public override bool IsSatisfied(PlayerState player)
+    public override bool IsSatisfied(GameState gameState)
     {
-        Encounter encounter = player.CurrentEncounter;
+        Encounter encounter = gameState.Player.CurrentEncounter;
         return encounter != null && encounter.Context.CurrentValues.Pressure <= maxPressure;
     }
 
@@ -34,9 +34,9 @@ public class MomentumRequirement : Requirement
         requiredMomentum = momentum;
     }
 
-    public override bool IsSatisfied(PlayerState player)
+    public override bool IsSatisfied(GameState gameState)
     {
-        Encounter encounter = player.CurrentEncounter;
+        Encounter encounter = gameState.Player.CurrentEncounter;
         return encounter != null && encounter.Context.CurrentValues.Momentum >= requiredMomentum;
     }
 
@@ -56,9 +56,9 @@ public class InsightRequirement : Requirement
         requiredInsight = insight;
     }
 
-    public override bool IsSatisfied(PlayerState player)
+    public override bool IsSatisfied(GameState gameState)
     {
-        Encounter encounter = player.CurrentEncounter;
+        Encounter encounter = gameState.Player.CurrentEncounter;
         return encounter != null && encounter.Context.CurrentValues.Insight >= requiredInsight;
     }
 
@@ -78,9 +78,9 @@ public class ResonanceRequirement : Requirement
         requiredResonance = resonance;
     }
 
-    public override bool IsSatisfied(PlayerState player)
+    public override bool IsSatisfied(GameState gameState)
     {
-        Encounter encounter = player.CurrentEncounter;
+        Encounter encounter = gameState.Player.CurrentEncounter;
         return encounter != null && encounter.Context.CurrentValues.Resonance >= requiredResonance;
     }
 
@@ -102,13 +102,13 @@ public class EnergyRequirement : Requirement
         Amount = count;
     }
 
-    public override bool IsSatisfied(PlayerState player)
+    public override bool IsSatisfied(GameState gameState)
     {
         return EnergyType switch
         {
-            EnergyTypes.Physical => player.PhysicalEnergy >= Amount,
-            EnergyTypes.Focus => player.FocusEnergy >= Amount,
-            EnergyTypes.Social => player.SocialEnergy >= Amount,
+            EnergyTypes.Physical => gameState.Player.PhysicalEnergy >= Amount,
+            EnergyTypes.Focus => gameState.Player.FocusEnergy >= Amount,
+            EnergyTypes.Social => gameState.Player.SocialEnergy >= Amount,
             _ => false
         };
     }
@@ -128,9 +128,9 @@ public class HealthRequirement : Requirement
         Count = count;
     }
 
-    public override bool IsSatisfied(PlayerState player)
+    public override bool IsSatisfied(GameState gameState)
     {
-        return player.Health >= Count;
+        return gameState.Player.Health >= Count;
     }
 
     public override string GetDescription()
@@ -148,9 +148,9 @@ public class ConcentrationRequirement : Requirement
         Count = count;
     }
 
-    public override bool IsSatisfied(PlayerState player)
+    public override bool IsSatisfied(GameState gameState)
     {
-        return player.Concentration >= Count;
+        return gameState.Player.Concentration >= Count;
     }
 
     public override string GetDescription()
@@ -168,9 +168,9 @@ public class ReputationRequirement : Requirement
         Count = count;
     }
 
-    public override bool IsSatisfied(PlayerState player)
+    public override bool IsSatisfied(GameState gameState)
     {
-        return player.Reputation >= Count;
+        return gameState.Player.Reputation >= Count;
     }
 
     public override string GetDescription()
@@ -188,9 +188,9 @@ public class CoinsRequirement : Requirement
         Count = count;
     }
 
-    public override bool IsSatisfied(PlayerState player)
+    public override bool IsSatisfied(GameState gameState)
     {
-        return player.Coins >= Count;
+        return gameState.Player.Coins >= Count;
     }
 
     public override string GetDescription()
@@ -210,10 +210,10 @@ public class SkillRequirement : Requirement
         Level = level;
     }
 
-    public override bool IsSatisfied(PlayerState player)
+    public override bool IsSatisfied(GameState gameState)
     {
-        if (!player.Skills.ContainsKey(SkillType)) return false;
-        int actualLevel = player.Skills[SkillType];
+        if (!gameState.Player.Skills.ContainsKey(SkillType)) return false;
+        int actualLevel = gameState.Player.Skills[SkillType];
         return actualLevel >= Level;
     }
 
@@ -232,9 +232,9 @@ public class ItemRequirement : Requirement
         ResourceType = resourceType;
     }
 
-    public override bool IsSatisfied(PlayerState player)
+    public override bool IsSatisfied(GameState gameState)
     {
-        return player.Inventory.GetItemCount(ResourceType) > 0;
+        return gameState.Player.Inventory.GetItemCount(ResourceType) > 0;
     }
 
     public override string GetDescription()
@@ -254,9 +254,9 @@ public class ResourceRequirement : Requirement
         Count = count;
     }
 
-    public override bool IsSatisfied(PlayerState player)
+    public override bool IsSatisfied(GameState gameState)
     {
-        return player.Inventory.GetItemCount(ResourceType) >= Count;
+        return gameState.Player.Inventory.GetItemCount(ResourceType) >= Count;
     }
 
     public override string GetDescription()
@@ -274,9 +274,9 @@ public class InventorySlotsRequirement : Requirement
         Count = count;
     }
 
-    public override bool IsSatisfied(PlayerState player)
+    public override bool IsSatisfied(GameState gameState)
     {
-        return player.Inventory.GetEmptySlots() >= Count;
+        return gameState.Player.Inventory.GetEmptySlots() >= Count;
     }
 
     public override string GetDescription()
@@ -294,14 +294,75 @@ public class KnowledgeRequirement : Requirement
         KnowledgeType = knowledgeType;
     }
 
-    public override bool IsSatisfied(PlayerState player)
+    public override bool IsSatisfied(GameState gameState)
     {
-        return player.HasKnowledge(KnowledgeType);
+        return gameState.Player.HasKnowledge(KnowledgeType);
     }
 
     public override string GetDescription()
     {
         return $"{KnowledgeType} Skill Level Required";
+    }
+}
+public class RelationshipRequirement : Requirement
+{
+    public CharacterTypes Character { get; }
+    public int Level { get; }
+
+    public RelationshipRequirement(CharacterTypes character, int level)
+    {
+        Character = character;
+        Level = level;
+    }
+
+    public override bool IsSatisfied(GameState gameState)
+    {
+        return gameState.Player.GetRelationshipLevel(Character) >= Level;
+    }
+
+    public override string GetDescription()
+    {
+        return $"Relationship with {Character} Required: {Level}";
+    }
+}
+
+public class LocationPropertyRequirement : Requirement
+{
+    public LocationPropertyTypes Property { get; }
+
+    public LocationPropertyRequirement(LocationPropertyTypes property)
+    {
+        Property = property;
+    }
+
+    public override bool IsSatisfied(GameState gameState)
+    {
+        return gameState.World.CurrentLocation.HasProperty(Property);
+    }
+
+    public override string GetDescription()
+    {
+        return $"Location Property Required: {Property}";
+    }
+}
+
+public class TimeWindowRequirement : Requirement
+{
+    public TimeSlots TimeWindow { get; }
+
+    public TimeWindowRequirement(TimeSlots timeWindow)
+    {
+        TimeWindow = timeWindow;
+    }
+
+    public override bool IsSatisfied(GameState gameState)
+    {
+        return gameState.World.CurrentTimeSlot == TimeWindow;
+    }
+
+    public override string GetDescription()
+    {
+        return $"Time Required: {TimeWindow}";
     }
 }
 
@@ -316,10 +377,10 @@ public class SkillLevelRequirement : Requirement
         Count = count;
     }
 
-    public override bool IsSatisfied(PlayerState player)
+    public override bool IsSatisfied(GameState gameState)
     {
-        return player.Skills.ContainsKey(SkillType) &&
-               player.Skills[SkillType] >= Count;
+        return gameState.Player.Skills.ContainsKey(SkillType) &&
+               gameState.Player.Skills[SkillType] >= Count;
     }
 
     public override string GetDescription()
@@ -337,9 +398,9 @@ public class StatusRequirement : Requirement
         Status = status;
     }
 
-    public override bool IsSatisfied(PlayerState player)
+    public override bool IsSatisfied(GameState gameState)
     {
-        return player.HasStatus(Status);
+        return gameState.Player.HasStatus(Status);
     }
 
     public override string GetDescription()

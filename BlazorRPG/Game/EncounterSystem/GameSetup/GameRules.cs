@@ -44,7 +44,7 @@
         EncounterValues values)
     {
         // Priority orders should only include approaches that are valid for the archetype
-        var baseOrder = archetype switch
+        List<ChoiceApproaches> baseOrder = archetype switch
         {
             ChoiceArchetypes.Physical => new List<ChoiceApproaches>
             {
@@ -93,7 +93,7 @@
         CompositionPattern pattern)
     {
         // Start with base approaches
-        var approaches = new List<ChoiceApproaches>
+        List<ChoiceApproaches> approaches = new List<ChoiceApproaches>
         {
             ChoiceApproaches.Diplomatic,    // Available with requirements
             ChoiceApproaches.Methodical,    // Available with requirements
@@ -206,13 +206,13 @@
         return approach switch
         {
             ChoiceApproaches.Aggressive => 2,
-            ChoiceApproaches.Careful => 2,   
-            ChoiceApproaches.Desperate => 3,   
-            ChoiceApproaches.Strategic => 1, 
-            ChoiceApproaches.Tactical => 2,   
-            ChoiceApproaches.Diplomatic => 1,   
-            ChoiceApproaches.Methodical => 1,   
-            ChoiceApproaches.Forceful => 1,   
+            ChoiceApproaches.Careful => 2,
+            ChoiceApproaches.Desperate => 3,
+            ChoiceApproaches.Strategic => 1,
+            ChoiceApproaches.Tactical => 2,
+            ChoiceApproaches.Diplomatic => 1,
+            ChoiceApproaches.Methodical => 1,
+            ChoiceApproaches.Forceful => 1,
             _ => throw new ArgumentException("Invalid approach")
         };
     }

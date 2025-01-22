@@ -295,4 +295,8 @@
         return true;
     }
 
+    internal int GetRelationshipLevel(CharacterTypes character)
+    {
+        throw new NotImplementedException();
+    }
 }

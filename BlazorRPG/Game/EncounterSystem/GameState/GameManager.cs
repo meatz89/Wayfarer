@@ -351,8 +351,7 @@ public class GameManager
 
     public bool AreRequirementsMet(UserActionOption action)
     {
-        PlayerState Player = gameState.Player;
-        return action.ActionImplementation.CanExecute(Player);
+        return action.ActionImplementation.CanExecute(gameState);
     }
 
     public void UpdateLocationSpotOptions()
