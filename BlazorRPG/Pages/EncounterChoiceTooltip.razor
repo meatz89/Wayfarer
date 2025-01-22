@@ -14,6 +14,29 @@
         </div>
     }
 
+    @if (hoveredChoice.EncounterChoice.CalculationResult.Requirements.Count > 0)
+    {
+        <div class="tooltip-section">
+            <h5>Requirements</h5>
+            <div class="tooltip-list">
+                @foreach (DetailedRequirement req in GetDetailedRequirements(hoveredChoice.EncounterChoice))
+                {
+                    <div class="tooltip-item">
+                        <div class="tooltip-item-header">
+                            <div class="tooltip-item-title">
+                                @GetRequirementIcon(req.RequirementType)
+                                <span class="tooltip-item-name">@req.Description</span>
+                            </div>
+                            <span class="tooltip-item-value @(req.IsSatisfied ? "positive-change" : "negative-change")">
+                                @(req.IsSatisfied ? "✓" : "✗")
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
     <div class="tooltip-section">
         <h5>Encounter Value Changes</h5>
         <div class="tooltip-list">
@@ -45,29 +68,6 @@
             }
         </div>
     </div>
-
-    @if (hoveredChoice.EncounterChoice.CalculationResult.Requirements.Count > 0)
-    {
-        <div class="tooltip-section">
-            <h5>Requirements</h5>
-            <div class="tooltip-list">
-                @foreach (DetailedRequirement req in GetDetailedRequirements(hoveredChoice.EncounterChoice))
-                {
-                    <div class="tooltip-item">
-                        <div class="tooltip-item-header">
-                            <div class="tooltip-item-title">
-                                @GetRequirementIcon(req.RequirementType)
-                                <span class="tooltip-item-name">@req.Description</span>
-                            </div>
-                            <span class="tooltip-item-value @(req.IsSatisfied ? "positive-change" : "negative-change")">
-                                @(req.IsSatisfied ? "✓" : "✗")
-                            </span>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-    }
 
     @{
         var energyChanges = GetValueChanges(hoveredChoice.EncounterChoice)

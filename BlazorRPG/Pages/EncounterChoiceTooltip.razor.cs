@@ -11,7 +11,6 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     [Parameter] public double mouseX { get; set; }
     [Parameter] public double mouseY { get; set; }
 
-    private const string BaseValueChangeLabel = "Base";
 
     public List<LocationPropertyChoiceEffect> GetLocationSpotEffects(EncounterChoice choice)
     {
@@ -22,7 +21,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     {
         // Use the stored CalculationResult
         if (choice.CalculationResult == null) return new List<DetailedChange>();
-        return ConvertDetailedChanges(choice.CalculationResult);
+        return ConvertDetailedChanges(choice.CalculationResult, choice.Approach);
     }
 
     public List<DetailedRequirement> GetDetailedRequirements(EncounterChoice choice)
@@ -59,14 +58,14 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         }
     }
 
-    public List<DetailedChange> ConvertDetailedChanges(ChoiceCalculationResult calculationResult)
+    public List<DetailedChange> ConvertDetailedChanges(ChoiceCalculationResult calculationResult, ChoiceApproaches approach)
     {
         List<DetailedChange> detailedChanges = new List<DetailedChange>();
 
         // Add base changes
         foreach (BaseValueChange change in calculationResult.BaseValueChanges)
         {
-            AddDetailedChange(detailedChanges, ConvertValueTypeToChangeType(change.ValueType), BaseValueChangeLabel, change.Amount);
+            AddDetailedChange(detailedChanges, ConvertValueTypeToChangeType(change.ValueType), approach.ToString(), change.Amount);
         }
 
         // Add modifications
@@ -84,7 +83,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
 
         // Add Energy Cost as a negative modification
         if (calculationResult.EnergyCost > 0)
-            AddDetailedChange(detailedChanges, ConvertEnergyTypeToChangeType(calculationResult.EnergyType), BaseValueChangeLabel, -calculationResult.EnergyCost);
+            AddDetailedChange(detailedChanges, ConvertEnergyTypeToChangeType(calculationResult.EnergyType), approach.ToString(), -calculationResult.EnergyCost);
 
         // Sort the detailed changes
         detailedChanges = SortDetailedChanges(detailedChanges);

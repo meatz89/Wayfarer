@@ -4,11 +4,11 @@
     public abstract string GetDescription();
 }
 
-public class MaxPressureRequirement : Requirement
+public class PressureRequirement : Requirement
 {
     public int maxPressure;
 
-    public MaxPressureRequirement(int pressure)
+    public PressureRequirement(int pressure)
     {
         maxPressure = pressure;
     }
@@ -21,7 +21,7 @@ public class MaxPressureRequirement : Requirement
 
     public override string GetDescription()
     {
-        return $"Requires Insight level {maxPressure}";
+        return $"Requires Pressure at {maxPressure} or below";
     }
 }
 
@@ -42,7 +42,7 @@ public class MomentumRequirement : Requirement
 
     public override string GetDescription()
     {
-        return $"Requires Momentum level {requiredMomentum}";
+        return $"Requires Momentum at {requiredMomentum} or above";
     }
 }
 
@@ -64,7 +64,7 @@ public class InsightRequirement : Requirement
 
     public override string GetDescription()
     {
-        return $"Requires Insight level {requiredInsight}";
+        return $"Requires Insight at {requiredInsight} or above";
     }
 }
 
@@ -86,9 +86,10 @@ public class ResonanceRequirement : Requirement
 
     public override string GetDescription()
     {
-        return $"Requires Resonance level {requiredResonance}";
+        return $"Requires Resonance at {requiredResonance} or above";
     }
 }
+
 
 public class EnergyRequirement : Requirement
 {

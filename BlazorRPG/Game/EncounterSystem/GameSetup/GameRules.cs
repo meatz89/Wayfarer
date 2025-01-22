@@ -314,4 +314,185 @@
         return Enum.GetValues<ChoiceArchetypes>()
             .First(a => a != first && a != second);
     }
+
+    public static List<ValueModification> GetChoiceBaseValueEffects(EncounterChoice choice, EncounterContext context)
+    {
+        List<ValueModification> modifications = new List<ValueModification>();
+
+        // Each archetype builds its specific mastery value
+        ChoiceApproaches approach = choice.Approach;
+
+        switch (choice.Archetype)
+        {
+            case ChoiceArchetypes.Physical:
+                // Physical actions build Momentum
+                if (approach == ChoiceApproaches.Forceful)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 4,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -2,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -2,
+                        $"{choice.Archetype} {choice.Approach}"));
+                }
+                if (approach == ChoiceApproaches.Tactical)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 4,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -4,
+                        $"{choice.Archetype} {choice.Approach}"));
+                }
+                if (approach == ChoiceApproaches.Strategic)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -2,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 3,
+                        $"{choice.Archetype} {choice.Approach}"));
+                }
+                else if (approach == ChoiceApproaches.Careful)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -1,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 3,
+                        $"{choice.Archetype} {choice.Approach}"));
+                }
+                else if (approach == ChoiceApproaches.Aggressive)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 3,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 4,
+                        $"{choice.Archetype} {choice.Approach}"));
+                }
+                else if (approach == ChoiceApproaches.Desperate)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Outcome, -2,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -4,
+                        $"{choice.Archetype} {choice.Approach}"));
+                }
+
+                break;
+
+            case ChoiceArchetypes.Focus:
+                // Focus actions build Insight
+                if (approach == ChoiceApproaches.Methodical)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 4,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Insight, -2,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -2,
+                        $"{choice.Archetype} {choice.Approach}"));
+                }
+                if (approach == ChoiceApproaches.Tactical)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 4,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Insight, -4,
+                        $"{choice.Archetype} {choice.Approach}"));
+                }
+                if (approach == ChoiceApproaches.Strategic)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Insight, -2,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 3,
+                        $"{choice.Archetype} {choice.Approach}"));
+                }
+                else if (approach == ChoiceApproaches.Careful)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -1,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Insight, 3,
+                        $"{choice.Archetype} {choice.Approach}"));
+                }
+                else if (approach == ChoiceApproaches.Aggressive)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 3,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 2,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                }
+                else if (approach != ChoiceApproaches.Desperate)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Outcome, -2,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -4,
+                        $"{choice.Archetype} {choice.Approach}"));
+                }
+
+                break;
+
+            case ChoiceArchetypes.Social:
+                // Social actions build Resonance
+                if (approach == ChoiceApproaches.Diplomatic)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 4,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -2,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Insight, -2,
+                        $"{choice.Archetype} {choice.Approach}"));
+                }
+                if (approach == ChoiceApproaches.Tactical)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 4,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -4,
+                        $"{choice.Archetype} {choice.Approach}"));
+                }
+                if (approach == ChoiceApproaches.Strategic)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -2,
+                        $"{choice.Archetype} {choice.Approach}"));
+                    modifications.Add(new EncounterValueModification(ValueTypes.Insight, 3,
+                        $"{choice.Archetype} {choice.Approach}"));
+                }
+                else if (approach == ChoiceApproaches.Careful)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -1,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 3,
+                        $"{choice.Archetype} {choice.Approach}"));
+                }
+                else if (approach == ChoiceApproaches.Aggressive)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 3,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 3,
+                        $"{choice.Archetype} {choice.Approach}"));
+                }
+                else if (approach == ChoiceApproaches.Desperate)
+                {
+                    modifications.Add(new EncounterValueModification(ValueTypes.Outcome, -2,
+                        $"{choice.Archetype} {choice.Approach}"));
+
+                    modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -4,
+                        $"{choice.Archetype} {choice.Approach}"));
+                }
+
+                break;
+        }
+
+        return modifications;
+    }
 }

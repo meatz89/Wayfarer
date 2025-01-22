@@ -69,7 +69,7 @@
     {
         return req switch
         {
-            MaxPressureRequirement => RequirementTypes.MaxPressure,
+            PressureRequirement => RequirementTypes.MaxPressure,
             InsightRequirement => RequirementTypes.MinInsight,
             EnergyRequirement energyReq => energyReq.EnergyType switch
             {
