@@ -9,25 +9,17 @@
                 @if (Result.encounterResults == EncounterResults.EncounterSuccess)
                 {
                     <h3>Encounter Won!</h3>
-                    <div class="result-message">
-                        <p>@((MarkupString)NarrativeText)</p>
-                    </div>
+                    <p>@((MarkupString)NarrativeText)</p>
                 }
                 else if (Result.encounterResults == EncounterResults.EncounterFailure)
                 {
                     <h3>Encounter Lost</h3>
-                    <div class="result-message">
-                        <p>You were unable to overcome the challenges of this encounter.</p>
-                        <p>@((MarkupString)NarrativeText)</p>
-                    </div>
+                    <p>@((MarkupString)NarrativeText)</p>
                 }
                 else if (Result.encounterResults == EncounterResults.GameOver)
                 {
                     <h3>Game Over</h3>
-                    <div class="result-message">
-                        <p>The challenges proved too great. Your journey ends here.</p>
-                        <p>@((MarkupString)NarrativeText)</p>
-                    </div>
+                    <p>@((MarkupString)NarrativeText)</p>
                 }
 
                 @* Display any additional information here, e.g., rewards gained, resources lost, etc. *@
