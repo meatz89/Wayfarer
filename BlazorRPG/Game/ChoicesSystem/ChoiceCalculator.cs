@@ -42,6 +42,29 @@
         return choiceCalculationResult;
     }
 
+
+    private int CalculateEnergyCost(EncounterChoice choice, EncounterContext context, PlayerState player)
+    {
+        int baseEnergyCost = GameRules.GetBaseEnergyCost(choice.Archetype, choice.Approach);
+
+        EncounterValues currentValues = context.CurrentValues;
+        int propertyModifier = locationPropertyCalculator.CalculateEnergyCostModifier(choice, context.LocationProperties);
+
+        // Apply energy cost reductions from modifications, using projected momentum
+        int energyReduction = 0;
+
+        if (currentValues.Momentum > 0)
+        {
+            energyReduction += Math.Min(currentValues.Momentum / 3, 3);
+        }
+
+        // Ensure energy cost doesn't go below 0
+        int calculatedCost = baseEnergyCost + propertyModifier - energyReduction;
+        int actualCost = Math.Max(0, calculatedCost);
+
+        return actualCost;
+    }
+
     public List<BaseValueChange> GenerateBaseValueChanges(ChoiceArchetypes archetype, ChoiceApproaches approach)
     {
         // Every choice gets base progress, then modifications based on approach and archetype
@@ -86,7 +109,7 @@
         }
         if (archetype != ChoiceArchetypes.Physical)
         {
-            changes.Add(new BaseValueChange(ValueTypes.Momentum, -1)); // Base progress
+            //changes.Add(new BaseValueChange(ValueTypes.Momentum, -1)); // Base progress
         }
 
         // Combine changes of the same ValueType
@@ -126,7 +149,8 @@
         AddDecayModifications(modifications, choice, context);
 
         // Then handle state-based modifications that affect our value gains
-        AddStateModifications(modifications, choice, context);
+        //AddStateModifications(modifications, choice, context);
+        //AddEnergyEffects(modifications, choice, context);
 
         // Finally calculate outcome generation based on our archetype, approach and current values
         AddOutcomeModifications(modifications, choice, context);
@@ -287,11 +311,13 @@
                 "High Pressure Penalty"
             ));
         }
-        AddEnergyEffects(modifications, choice, currentValues);
+        
     }
 
-    private static void AddEnergyEffects(List<ValueModification> modifications, EncounterChoice choice, EncounterValues currentValues)
+    private static void AddEnergyEffects(List<ValueModification> modifications, EncounterChoice choice, EncounterContext context)
     {
+        EncounterValues currentValues = context.CurrentValues;
+
         // Pressure affects energy costs
         if (currentValues.Pressure > 5)
         {
@@ -315,29 +341,6 @@
                 ));
             }
         }
-    }
-
-    private int CalculateEnergyCost(EncounterChoice choice, EncounterContext context, PlayerState player)
-    {
-        int baseEnergyCost = GameRules.GetBaseEnergyCost(choice.Archetype, choice.Approach);
-
-        EncounterValues currentValues = context.CurrentValues;
-        int propertyModifier = locationPropertyCalculator.CalculateEnergyCostModifier(choice, context.LocationProperties);
-        int pressureModifier = currentValues.Pressure >= 6 ? currentValues.Pressure - 5 : 0;
-
-        // Apply energy cost reductions from modifications, using projected momentum
-        int energyReduction = 0;
-
-        if (currentValues.Momentum > 0)
-        {
-            energyReduction += Math.Min(currentValues.Momentum / 3, 3);
-        }
-
-        // Ensure energy cost doesn't go below 0
-        int calculatedCost = baseEnergyCost + propertyModifier + pressureModifier - energyReduction;
-        int actualCost = Math.Max(0, calculatedCost);
-
-        return actualCost;
     }
 
     private EncounterValues ProjectNewState(
@@ -429,7 +432,7 @@
         List<Requirement> requirements = new List<Requirement>();
 
         // Calculate energy cost
-        int energyCost = CalculateEnergyCost(choice, context, playerState);
+        int energyCost = choice.EnergyCost;
 
         // Only add energy requirements if the cost is greater than 0
         if (energyCost > 0)

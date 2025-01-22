@@ -205,11 +205,11 @@
         // Each approach has a base energy cost that reflects its intensity
         return approach switch
         {
-            ChoiceApproaches.Aggressive => 3, // High energy cost for aggressive actions
-            ChoiceApproaches.Careful => 2,    // Moderate cost for careful actions
-            ChoiceApproaches.Desperate => 4,   
-            ChoiceApproaches.Strategic => 2,   // Moderate cost for strategic actions
-            ChoiceApproaches.Tactical => 3,   
+            ChoiceApproaches.Aggressive => 2,
+            ChoiceApproaches.Careful => 2,   
+            ChoiceApproaches.Desperate => 3,   
+            ChoiceApproaches.Strategic => 1, 
+            ChoiceApproaches.Tactical => 2,   
             ChoiceApproaches.Diplomatic => 1,   
             ChoiceApproaches.Methodical => 1,   
             ChoiceApproaches.Forceful => 1,   
