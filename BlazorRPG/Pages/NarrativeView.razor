@@ -6,29 +6,23 @@
     <div class="narrative-text">
         @if (ShowResult)
         {
-                @if (Result.encounterResults == EncounterResults.EncounterSuccess)
-                {
-                    <h3>Encounter Won!</h3>
-                    <p>@((MarkupString)NarrativeText)</p>
-                }
-                else if (Result.encounterResults == EncounterResults.EncounterFailure)
-                {
-                    <h3>Encounter Lost</h3>
-                    <p>@((MarkupString)NarrativeText)</p>
-                }
-                else if (Result.encounterResults == EncounterResults.GameOver)
-                {
-                    <h3>Game Over</h3>
-                    <p>@((MarkupString)NarrativeText)</p>
-                }
-
+            @if (Result.encounterResults == EncounterResults.EncounterSuccess)
+            {
+                <h3>Encounter Won!</h3>
+            }
+            else if (Result.encounterResults == EncounterResults.EncounterFailure)
+            {
+                <h3>Encounter Lost</h3>
+            }
+            else if (Result.encounterResults == EncounterResults.GameOver)
+            {
+                <h3>Game Over</h3>
+            }
                 @* Display any additional information here, e.g., rewards gained, resources lost, etc. *@
         }
-        else {
-                @if (!string.IsNullOrEmpty(NarrativeText))
-                {
-                    <p>@((MarkupString)NarrativeText)</p>
-                }
+        @if (!string.IsNullOrEmpty(NarrativeText))
+        {
+            <p>@((MarkupString)NarrativeText)</p>
         }
     </div>
 
