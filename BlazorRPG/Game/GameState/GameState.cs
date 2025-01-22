@@ -1,9 +1,10 @@
 ﻿public class GameState
 {
+    public Modes GameMode = Modes.Live;
+
     public PlayerState Player { get; set; }
     public ActionState Actions { get; }
     public WorldState World { get; }
-    public Modes DebugMode = Modes.Debug;
 
     public GameState()
     {
@@ -43,5 +44,5 @@
 public enum Modes
 {
     Debug,
-    Production
+    Live
 }

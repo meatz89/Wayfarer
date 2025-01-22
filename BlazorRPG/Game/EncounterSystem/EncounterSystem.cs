@@ -52,7 +52,7 @@
             else
             {
                 string narrative = "Failure";
-                if (gameState.DebugMode != Modes.Debug)
+                if (gameState.GameMode != Modes.Debug)
                 {
                     narrative = narrativeSystem.GetEncounterFailureNarrative(encounter.Context);
                 }
@@ -68,7 +68,7 @@
         else
         {
             string narrative = "Success";
-            if (gameState.DebugMode != Modes.Debug)
+            if (gameState.GameMode != Modes.Debug)
             {
                 narrative = narrativeSystem.GetEncounterSuccessNarrative(encounter.Context);
             }
@@ -122,7 +122,7 @@
 
         // Create stage with pre-calculated choices
         string newSituation = "situation";
-        if (gameState.DebugMode != Modes.Debug)
+        if (gameState.GameMode != Modes.Debug)
         {
             ChoicesNarrativeResponse choicesNarrativeResponse = narrativeSystem.GetChoicesNarrative(context, choiceSet.Choices);
             newSituation = GetStageNarrative(choicesNarrativeResponse);
