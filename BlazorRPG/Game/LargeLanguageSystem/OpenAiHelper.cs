@@ -2,7 +2,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 
-public static class OpenAiHelpers
+public static class OpenAiHelper
 {
     private static string NewLine = "\r\n";
     private static string completionsUrl = "https://api.openai.com/v1/chat/completions";

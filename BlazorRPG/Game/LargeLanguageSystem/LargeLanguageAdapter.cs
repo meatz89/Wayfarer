@@ -2,47 +2,55 @@
 
 public class LargeLanguageAdapter
 {
-    private static string jsonPathChoices = "choices.json";
-    private static string jsonPathEncounterEnd = "endEncounter.json";
+    private readonly string _jsonPathChoices = "choices.json";
+    private readonly string _jsonPathEncounterEnd = "endEncounter.json";
+    private readonly OpenAiClient _openAiClient;
+    private string _fileContentChoices;
+    private string _fileContentEncounterEnd;
 
-    private static string FileContentChoices;
-    private static string FileContentEncounterEnd;
+    public LargeLanguageAdapter(string apiKey)
+    {
+        _openAiClient = new OpenAiClient(apiKey);
+    }
 
     public void Reset()
     {
         FileHelper fileHelper = new FileHelper();
-        FileContentChoices = fileHelper.ReadFile(jsonPathChoices);
-        FileContentEncounterEnd = fileHelper.ReadFile(jsonPathEncounterEnd);
+        _fileContentChoices = fileHelper.ReadFile(_jsonPathChoices);
+        _fileContentEncounterEnd = fileHelper.ReadFile(_jsonPathEncounterEnd);
     }
 
-    public ChoicesNarrativeResponse NextEncounterChoices(List<CompletionMessage4o> previousPrompts, CompletionMessage4o newPrompt, string openAiApiKey)
+    public ChoicesNarrativeResponse NextEncounterChoices(List<CompletionMessage4o> previousPrompts, CompletionMessage4o newPrompt)
     {
         List<CompletionMessage4o> messages = new();
         messages.AddRange(previousPrompts);
         messages.Add(newPrompt);
 
-        HttpRequestMessage request = OpenAiHelpers.PrepareOpenAiRequest(FileContentChoices, messages, openAiApiKey);
+        Completion4oModel modelFromFile = JsonConvert.DeserializeObject<Completion4oModel>(_fileContentChoices);
+        modelFromFile.messages.AddRange(messages);
+        string json = JsonConvert.SerializeObject(modelFromFile);
 
-        string response = OpenAiHelpers.GetOpenAiResponse(request);
-        ChoicesNarrativeResponse result = ProcessOpenAiResponseChoices(response);
-
-        return result;
+        HttpRequestMessage request = _openAiClient.CreateRequest(json);
+        string response = _openAiClient.SendRequest(request);
+        return ProcessOpenAiResponseChoices(response);
     }
 
-
-    public string EncounterEndNarrative(List<CompletionMessage4o> previousPrompts, CompletionMessage4o newPrompt, string openAiApiKey)
+    public string EncounterEndNarrative(List<CompletionMessage4o> previousPrompts, CompletionMessage4o newPrompt)
     {
         List<CompletionMessage4o> messages = new();
         messages.AddRange(previousPrompts);
         messages.Add(newPrompt);
 
-        HttpRequestMessage request = OpenAiHelpers.PrepareOpenAiRequest(FileContentEncounterEnd, messages, openAiApiKey);
+        Completion4oModel modelFromFile = JsonConvert.DeserializeObject<Completion4oModel>(_fileContentEncounterEnd);
+        modelFromFile.messages.AddRange(messages);
+        string json = JsonConvert.SerializeObject(modelFromFile);
 
-        string response = OpenAiHelpers.GetOpenAiResponse(request);
-        return response;
+        HttpRequestMessage request = _openAiClient.CreateRequest(json);
+        string response = _openAiClient.SendRequest(request);
+        return ProcessOpenAiResponseEncounterEnd(response);
     }
 
-    public ChoicesNarrativeResponse ProcessOpenAiResponseChoices(string openAiResponseString)
+    private ChoicesNarrativeResponse ProcessOpenAiResponseChoices(string openAiResponseString)
     {
         try
         {
@@ -51,11 +59,11 @@ public class LargeLanguageAdapter
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
+            return null;
         }
-        return null;
     }
 
-    public string ProcessOpenAiResponseEncounterEnd(string openAiResponseString)
+    private string ProcessOpenAiResponseEncounterEnd(string openAiResponseString)
     {
         try
         {
@@ -64,8 +72,7 @@ public class LargeLanguageAdapter
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
+            return null;
         }
-        return null;
     }
 }
-

@@ -52,6 +52,9 @@
         {
             ChoiceArchetypes.Physical => new List<ChoiceApproaches>
         {
+            ChoiceApproaches.Forceful,
+
+            ChoiceApproaches.Tactical,
             ChoiceApproaches.Strategic,
             ChoiceApproaches.Aggressive,
             ChoiceApproaches.Careful,
@@ -59,6 +62,9 @@
 
             ChoiceArchetypes.Focus => new List<ChoiceApproaches>
         {
+            ChoiceApproaches.Methodical,
+
+            ChoiceApproaches.Tactical,
             ChoiceApproaches.Strategic,
             ChoiceApproaches.Aggressive,
             ChoiceApproaches.Careful,
@@ -66,6 +72,9 @@
 
             ChoiceArchetypes.Social => new List<ChoiceApproaches>
         {
+            ChoiceApproaches.Diplomatic,
+
+            ChoiceApproaches.Tactical,
             ChoiceApproaches.Strategic,
             ChoiceApproaches.Aggressive,
             ChoiceApproaches.Careful,
@@ -73,6 +82,75 @@
 
             _ => throw new ArgumentException("Invalid archetype")
         };
+    }
+
+    public static List<ChoiceApproaches> GetAvailableApproaches(
+        ChoiceArchetypes archetype,
+        EncounterValues values,
+        PlayerState playerState)
+    {
+        // Start with all approaches
+        var approaches = Enum.GetValues<ChoiceApproaches>().ToList();
+
+        // Filter based on value requirements
+        List<ChoiceApproaches> possibleApproaches = approaches.Where(approach =>
+                    IsApproachAvailable(archetype, approach, values, playerState))
+                    .ToList();
+        return possibleApproaches;
+    }
+
+    private static bool IsApproachAvailable(
+        ChoiceArchetypes archetype,
+        ChoiceApproaches approach,
+        EncounterValues values,
+        PlayerState playerState)
+    {
+        return approach switch
+        {
+            ChoiceApproaches.Tactical => IsTacticalAvailable(archetype, values),
+            ChoiceApproaches.Strategic => IsStrategicAvailable(archetype, values),
+            ChoiceApproaches.Diplomatic => values.Resonance >= 4 && values.Insight >= 4,
+            ChoiceApproaches.Methodical => values.Insight >= 4 && values.Momentum >= 4,
+            ChoiceApproaches.Forceful => values.Momentum >= 4 && values.Resonance >= 4,
+            ChoiceApproaches.Desperate => values.Pressure >= 6,
+            _ => true // Aggressive and Careful always available
+        };
+    }
+
+    private static bool IsStrategicAvailable(ChoiceArchetypes archetype, EncounterValues values)
+    {
+        return values.Outcome >= 6;
+    }
+
+    private static bool IsTacticalAvailable(ChoiceArchetypes archetype, EncounterValues values)
+    {
+        switch (archetype)
+        {
+            case ChoiceArchetypes.Physical: return values.Momentum >= 6;
+            case ChoiceArchetypes.Focus: return values.Insight >= 6;
+            case ChoiceArchetypes.Social: return values.Resonance >= 6;
+        }
+        return false;
+    }
+
+    public static bool IsChoicePossible(
+        ChoiceArchetypes archetype,
+        ChoiceApproaches approach,
+        EncounterValues values,
+        PlayerState playerState)
+    {
+        // Check mastery value requirements
+        if (approach == ChoiceApproaches.Strategic)
+        {
+            switch (archetype)
+            {
+                case ChoiceArchetypes.Physical when values.Momentum < GameRules.StrategicMomentumRequirement:
+                case ChoiceArchetypes.Focus when values.Insight < GameRules.StrategicInsightRequirement:
+                case ChoiceArchetypes.Social when values.Resonance < GameRules.StrategicResonanceRequirement:
+                    return false;
+            }
+        }
+        return true;
     }
 
     // Conversion methods (copied from EncounterChoice for consistency)
@@ -107,8 +185,12 @@
         {
             ChoiceApproaches.Aggressive => 3, // High energy cost for aggressive actions
             ChoiceApproaches.Careful => 2,    // Moderate cost for careful actions
+            ChoiceApproaches.Desperate => 4,   
             ChoiceApproaches.Strategic => 2,   // Moderate cost for strategic actions
-            ChoiceApproaches.Desperate => 1,   // Low cost as a fallback option
+            ChoiceApproaches.Tactical => 3,   
+            ChoiceApproaches.Diplomatic => 1,   
+            ChoiceApproaches.Methodical => 1,   
+            ChoiceApproaches.Forceful => 1,   
             _ => throw new ArgumentException("Invalid approach")
         };
     }
@@ -119,8 +201,6 @@
         {
             PrimaryArchetype = ChoiceArchetypes.Social,
             SecondaryArchetype = ChoiceArchetypes.Focus,
-            PrimaryCount = 2,
-            SecondaryCount = 1
         };
 
         switch (actionType)
@@ -133,8 +213,6 @@
                 {
                     PrimaryArchetype = ChoiceArchetypes.Physical,
                     SecondaryArchetype = ChoiceArchetypes.Focus,
-                    PrimaryCount = 2,
-                    SecondaryCount = 1
                 };
                 break;
 
@@ -148,8 +226,6 @@
                 {
                     PrimaryArchetype = ChoiceArchetypes.Focus,
                     SecondaryArchetype = ChoiceArchetypes.Social,
-                    PrimaryCount = 2,
-                    SecondaryCount = 1
                 };
                 break;
 
@@ -162,8 +238,6 @@
                 {
                     PrimaryArchetype = ChoiceArchetypes.Social,
                     SecondaryArchetype = ChoiceArchetypes.Focus,
-                    PrimaryCount = 2,
-                    SecondaryCount = 1
                 };
                 break;
             default:
@@ -172,8 +246,6 @@
                 {
                     PrimaryArchetype = ChoiceArchetypes.Social,
                     SecondaryArchetype = ChoiceArchetypes.Physical,
-                    PrimaryCount = 2,
-                    SecondaryCount = 1
                 };
                 break;
         }
