@@ -3,7 +3,7 @@
     public PlayerState Player { get; set; }
     public ActionState Actions { get; }
     public WorldState World { get; }
-    public Modes Mode = Modes.Debug;
+    public Modes DebugMode = Modes.Debug;
 
     public GameState()
     {
@@ -39,4 +39,9 @@
 
         return actions;
     }
+}
+public enum Modes
+{
+    Debug,
+    Production
 }

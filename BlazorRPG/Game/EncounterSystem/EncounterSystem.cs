@@ -51,7 +51,11 @@
             }
             else
             {
-                string narrative = narrativeSystem.GetEncounterFailureNarrative(encounter.Context);
+                string narrative = "Failure";
+                if (gameState.DebugMode != Modes.Debug)
+                { 
+                    narrative = narrativeSystem.GetEncounterFailureNarrative(encounter.Context);
+                }
                 EncounterResult failResult = new()
                 {
                     encounter = encounter,
@@ -63,7 +67,11 @@
         }
         else
         {
-            string narrative = narrativeSystem.GetEncounterSuccessNarrative(encounter.Context);
+            string narrative = "Success";
+            if (gameState.DebugMode != Modes.Debug)
+            {
+                narrative = narrativeSystem.GetEncounterSuccessNarrative(encounter.Context);
+            }
 
             EncounterResult successResult = new()
             {
@@ -114,7 +122,7 @@
 
         // Create stage with pre-calculated choices
         string newSituation = "situation";
-        if (gameState.Mode != Modes.Debug)
+        if (gameState.DebugMode != Modes.Debug)
         {
             ChoicesNarrativeResponse choicesNarrativeResponse = narrativeSystem.GetChoicesNarrative(context, choiceSet.Choices);
             newSituation = GetStageNarrative(choicesNarrativeResponse);
@@ -221,10 +229,4 @@ public class EncounterResult
     public Encounter encounter;
     public EncounterResults encounterResults;
     public string EncounterEndMessage;
-}
-
-public enum Modes
-{
-    Debug,
-    Live
 }
