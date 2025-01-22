@@ -113,12 +113,14 @@
             return null;
 
         // Create stage with pre-calculated choices
-        ChoicesNarrativeResponse choicesNarrativeResponse = narrativeSystem.GetChoicesNarrative(context, choiceSet.Choices);
-
-        string newSituation = GetStageNarrative(choicesNarrativeResponse);
-        List<ChoicesNarrative> choicesTexts = GetStageChoicesNarrative(choicesNarrativeResponse);
-
-        choiceSet.ApplyNarratives(choicesTexts);
+        string newSituation = "situation";
+        if (gameState.Mode != Modes.Debug)
+        {
+            ChoicesNarrativeResponse choicesNarrativeResponse = narrativeSystem.GetChoicesNarrative(context, choiceSet.Choices);
+            newSituation = GetStageNarrative(choicesNarrativeResponse);
+            List<ChoicesNarrative> choicesTexts = GetStageChoicesNarrative(choicesNarrativeResponse);
+            choiceSet.ApplyNarratives(choicesTexts);
+        }
 
         return new EncounterStage
         {
@@ -219,4 +221,10 @@ public class EncounterResult
     public Encounter encounter;
     public EncounterResults encounterResults;
     public string EncounterEndMessage;
+}
+
+public enum Modes
+{
+    Debug,
+    Live
 }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace BlazorRPG.Pages;
+namespace BlazorRPG.Pages; 
 
 public partial class GameUI : ComponentBase
 {
@@ -54,14 +54,18 @@ public partial class GameUI : ComponentBase
     private void HandleLocationSelection(LocationNames locationName)
     {
         selectedLocation = locationName;
+
         // Check if the location has a narrative
-        if (GameManager.GetLocationNarrative(locationName) != string.Empty)
+        string narrative = GameManager.GetLocationNarrative(locationName);
+        if (narrative != string.Empty)
         {
             showNarrative = true;
+            showAreaMap = true;
         }
         else
         {
             // If no narrative, proceed as before
+            showNarrative = false;
             FinalizeLocationSelection(locationName);
         }
     }
@@ -71,7 +75,6 @@ public partial class GameUI : ComponentBase
         showNarrative = false;
         FinalizeLocationSelection(selectedLocation);
     }
-
 
     private void FinalizeLocationSelection(LocationNames locationName)
     {
@@ -100,7 +103,6 @@ public partial class GameUI : ComponentBase
         }
     }
 
-
     private void HandleEncounterCompleted(EncounterResult result)
     {
         EncounterResult = result;
@@ -116,7 +118,9 @@ public partial class GameUI : ComponentBase
 
     private void ContinueAfterEncounterResult()
     {
+        // Reset encounter logic
         ShowEncounterResult = false;
+        EncounterResult = null;
     }
 
     public bool HasEncounter()

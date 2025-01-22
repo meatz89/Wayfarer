@@ -3,6 +3,7 @@
     public PlayerState Player { get; set; }
     public ActionState Actions { get; }
     public WorldState World { get; }
+    public Modes Mode = Modes.Debug;
 
     public GameState()
     {

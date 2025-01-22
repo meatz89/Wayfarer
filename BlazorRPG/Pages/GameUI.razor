@@ -74,26 +74,42 @@
             {
                 @if (showNarrative)
                 {
-                    <NarrativeView LocationName="@selectedLocation" OnNarrativeCompleted="OnNarrativeContinue" />
+                    <NarrativeView LocationName="@selectedLocation"
+                    OnNarrativeCompleted="OnNarrativeContinue"
+                    Result="@EncounterResult"
+                    ShowResult="false" />
+                }
+                else if (ShowEncounterResult)
+                {
+                    <NarrativeView LocationName="@selectedLocation"
+                    OnNarrativeCompleted="ContinueAfterEncounterResult"
+                    Result="@EncounterResult"
+                    ShowResult="true" />
                 }
                 else
                 {
                     <AreaMap CurrentLocation="@CurrentLocation"
-                             Locations="@Locations"
-                             OnTravel="@HandleLocationSelection" />
+                    Locations="@Locations"
+                    OnTravel="@HandleLocationSelection" />
                 }
             }
             else
             {
-                <LocationSpotMap CurrentLocation="@CurrentLocation"
+                if (ShowEncounterResult)
+                {
+                    <NarrativeView LocationName="@selectedLocation"
+                                   OnNarrativeCompleted="ContinueAfterEncounterResult"
+                                   Result="@EncounterResult"
+                                   ShowResult="true" />
+                }
+                else
+                {
+                    <LocationSpotMap CurrentLocation="@CurrentLocation"
                                  CurrentSpot="@CurrentSpot"
                                  OnSpotSelected="@HandleSpotSelection"
                                  OnActionSelected="@HandleActionSelection" />
+                }
             }
-        }
-        @if (ShowEncounterResult)
-        {
-            <EncounterResultView Result="@EncounterResult" OnContinue="ContinueAfterEncounterResult" />
         }
     </div>
 

@@ -3,12 +3,45 @@
 @inject GameState GameState
 
 <div class="narrative-container">
-    <div class="narrative-text">
-        @if (!string.IsNullOrEmpty(NarrativeText))
-        {
-            <p>@((MarkupString)NarrativeText)</p>
-        }
-    </div>
+    @if (ShowResult)
+    {
+        <div class="encounter-result-panel">
+
+            @if (Result.encounterResults == EncounterResults.EncounterSuccess)
+            {
+                <h3>Encounter Won!</h3>
+                <div class="result-message">
+                    <p>@((MarkupString)NarrativeText)</p>
+                </div>
+            }
+            else if (Result.encounterResults == EncounterResults.EncounterFailure)
+            {
+                <h3>Encounter Lost</h3>
+                <div class="result-message">
+                    <p>You were unable to overcome the challenges of this encounter.</p>
+                    <p>@((MarkupString)NarrativeText)</p>
+                </div>
+            }
+            else if (Result.encounterResults == EncounterResults.GameOver)
+            {
+                <h3>Game Over</h3>
+                <div class="result-message">
+                    <p>The challenges proved too great. Your journey ends here.</p>
+                    <p>@((MarkupString)NarrativeText)</p>
+                </div>
+            }
+
+            @* Display any additional information here, e.g., rewards gained, resources lost, etc. *@
+        </div>
+    }
+    else {
+        <div class="narrative-text">
+            @if (!string.IsNullOrEmpty(NarrativeText))
+            {
+                <p>@((MarkupString)NarrativeText)</p>
+            }
+        </div>
+    }
 
     <button class="narrative-button" @onclick="OnNarrativeCompleted">
         Continue
@@ -18,12 +51,21 @@
 @code {
     [Parameter] public LocationNames LocationName { get; set; }
     [Parameter] public EventCallback OnNarrativeCompleted { get; set; }
+    // Add these properties:
+    [Parameter] public EncounterResult Result { get; set; }
+    [Parameter] public bool ShowResult { get; set; } = false;
 
     private string NarrativeText { get; set; }
 
     protected override void OnParametersSet()
     {
-        // Fetch the narrative text based on the LocationName
-        NarrativeText = GameManager.GetLocationNarrative(LocationName);
+        // Fetch the narrative text based on the LocationName or result
+        if (!ShowResult)
+        {
+            NarrativeText = GameManager.GetLocationNarrative(LocationName);
+        }
+        else {
+            NarrativeText = Result.EncounterEndMessage;
+        }
     }
 }

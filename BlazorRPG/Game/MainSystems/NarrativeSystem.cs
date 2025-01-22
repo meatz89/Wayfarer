@@ -10,7 +10,6 @@
         IConfiguration configuration
         )
     {
-        narrativeContents = new List<LocationNarrative>();
         narrativeContents = gameContentProvider.GetNarratives();
         JournalSystem = journalSystem;
         openAiApiKey = configuration.GetValue<string>("OpenAiApiKey");
