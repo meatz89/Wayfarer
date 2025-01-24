@@ -23,10 +23,10 @@ public partial class ActionPreviewBase : ComponentBase
     public string GetConditionDescription(OutcomeCondition condition)
     {
         if (condition.MaxValue == int.MaxValue)
-            return $"IF {condition.ValueType} ≥ {condition.MinValue}";
+            return $"{condition.ValueType} ≥ {condition.MinValue}";
         else if (condition.MinValue == int.MinValue)
-            return $"IF {condition.ValueType} ≤ {condition.MaxValue}";
-        return $"IF {condition.MinValue} ≤ {condition.ValueType} ≤ {condition.MaxValue}";
+            return $"{condition.ValueType} ≤ {condition.MaxValue}";
+        return $"{condition.MinValue} ≤ {condition.ValueType} ≤ {condition.MaxValue}";
     }
 
     public ChangeTypes ConvertValueTypeToChangeType(ValueTypes valueType) =>
