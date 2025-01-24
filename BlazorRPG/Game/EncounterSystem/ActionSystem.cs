@@ -22,21 +22,21 @@
         ActionImplementation modifiedAction = CreateModifiedAction(basicAction);
 
         // Process costs first
-        foreach (Outcome cost in modifiedAction.Costs)
+        foreach (Outcome cost in modifiedAction.FailureOutcomes)
         {
             cost.Apply(gameState.Player);
             messageSystem.AddOutcome(cost);
         }
 
         // Then process rewards
-        foreach (Outcome reward in modifiedAction.Rewards)
+        foreach (Outcome reward in modifiedAction.SuccessOutcomes)
         {
             reward.Apply(gameState.Player);
             messageSystem.AddOutcome(reward);
         }
 
         // Check if this action triggered a day change
-        bool dayChange = modifiedAction.Costs.Any(o => o is DayChangeOutcome);
+        bool dayChange = modifiedAction.FailureOutcomes.Any(o => o is DayChangeOutcome);
         return modifiedAction;
     }
 
@@ -50,8 +50,8 @@
 
             // Create new lists to avoid modifying the original
             TimeSlots = new List<TimeSlots>(originalAction.TimeSlots),
-            Costs = new List<Outcome>(originalAction.Costs),
-            Rewards = new List<Outcome>(originalAction.Rewards)
+            FailureOutcomes = new List<Outcome>(originalAction.FailureOutcomes),
+            SuccessOutcomes = new List<Outcome>(originalAction.SuccessOutcomes)
         };
 
         // Get all currently active modifiers

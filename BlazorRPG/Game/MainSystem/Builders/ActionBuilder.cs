@@ -134,8 +134,8 @@
             Name = description,
             TimeSlots = timeSlots,
             Requirements = requirements,
-            Costs = costs,
-            Rewards = rewards,
+            FailureOutcomes = costs,
+            SuccessOutcomes = rewards,
         };
     }
 

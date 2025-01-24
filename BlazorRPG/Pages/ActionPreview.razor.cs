@@ -36,7 +36,7 @@ public partial class ActionPreviewBase : ComponentBase
     {
         List<string> descriptions = new();
         ActionImplementation basicAction = CurrentAction.ActionImplementation;
-        foreach (Outcome outcome in basicAction.Costs)
+        foreach (Outcome outcome in basicAction.FailureOutcomes)
         {
             string description = outcome.GetDescription();
             string preview = outcome.GetPreview(GameState.Player);
@@ -67,7 +67,7 @@ public partial class ActionPreviewBase : ComponentBase
     {
         List<string> descriptions = new();
         ActionImplementation basicAction = CurrentAction.ActionImplementation;
-        foreach (Outcome outcome in basicAction.Rewards)
+        foreach (Outcome outcome in basicAction.SuccessOutcomes)
         {
             string description = outcome.GetDescription();
             string preview = outcome.GetPreview(GameState.Player);

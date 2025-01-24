@@ -24,7 +24,7 @@ public class EnergyCostReducer : ActionModifier
 
     public override void ApplyModification(ActionImplementation action)
     {
-        foreach (Outcome cost in action.Costs)
+        foreach (Outcome cost in action.FailureOutcomes)
         {
             if (cost is EnergyOutcome energyCost &&
                 energyCost.EnergyType == energyType)
@@ -73,7 +73,7 @@ public class GATHERingBonusModifier : ActionModifier
 
     public override void ApplyModification(ActionImplementation action)
     {
-        foreach (Outcome reward in action.Rewards)
+        foreach (Outcome reward in action.SuccessOutcomes)
         {
             if (reward is ResourceOutcome resourceReward &&
                 resourceReward.ResourceType == resourceType)
@@ -117,7 +117,7 @@ public class CoinsRewardModifier : ActionModifier
 
     public override void ApplyModification(ActionImplementation action)
     {
-        action.Rewards.Add(new CoinsOutcome(bonusAmount));
+        action.SuccessOutcomes.Add(new CoinsOutcome(bonusAmount));
     }
 }
 
@@ -146,7 +146,7 @@ public class ConditionalResourceBonusModifier : ActionModifier
     public override void ApplyModification(ActionImplementation action)
     {
         // First check if the action normally gives the required resource
-        bool hasRequiredResource = action.Rewards.Any(reward =>
+        bool hasRequiredResource = action.SuccessOutcomes.Any(reward =>
             reward is ResourceOutcome resourceReward &&
             resourceReward.ResourceType == requiredResourceType);
 
@@ -154,7 +154,7 @@ public class ConditionalResourceBonusModifier : ActionModifier
         if (hasRequiredResource)
         {
             // Add a new resource outcome for the bonus
-            action.Rewards.Add(new ResourceOutcome(bonusResourceType, bonusAmount));
+            action.SuccessOutcomes.Add(new ResourceOutcome(bonusResourceType, bonusAmount));
         }
     }
 }

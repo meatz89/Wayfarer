@@ -1,4 +1,6 @@
-﻿public class GameRules
+﻿using System.Diagnostics.Eventing.Reader;
+
+public class GameRules
 {
     public static GameRules StandardRuleset = new GameRules
     {
@@ -185,10 +187,85 @@
         };
     }
 
+    public static List<Outcome> CreateCostsForAction(ActionTemplate template)
+    {
+        var costs = new List<Outcome>();
+        switch (template.ActionType)
+        {
+            case BasicActionTypes.Labor:
+                costs.Add(new HealthOutcome(-1));
+                break;
+            case BasicActionTypes.Persuade:
+                costs.Add(new ReputationOutcome(-1));
+                break;
+            case BasicActionTypes.Investigate:
+                costs.Add(new ConcentrationOutcome(-1));
+                break;
+            case BasicActionTypes.Mingle:
+                costs.Add(new ReputationOutcome(-1));
+                break;
+            case BasicActionTypes.Recover:
+                costs.Add(new CoinsOutcome(-5));
+                costs.Add(new ResourceOutcome(ResourceTypes.Food, -1));
+                break;
+        }
+        return costs;
+    }
+
+
+    public static List<Outcome> CreateRewardsForTemplate(ActionTemplate template)
+    {
+        var rewards = new List<Outcome>();
+        switch (template.ActionType)
+        {
+            case BasicActionTypes.Labor:
+                rewards.Add(new CoinsOutcome(5));
+                rewards.Add(new ResourceOutcome(ResourceTypes.Wood, 1));
+                break;
+            case BasicActionTypes.Persuade:
+                rewards.Add(new CoinsOutcome(3));
+                rewards.Add(new ReputationOutcome(2));
+                break;
+            case BasicActionTypes.Investigate:
+                rewards.Add(new KnowledgeOutcome(KnowledgeTypes.LocalHistory, 1));
+                rewards.Add(new ReputationOutcome(1));
+                break;
+            case BasicActionTypes.Mingle:
+                rewards.Add(new ReputationOutcome(3));
+                break;
+            case BasicActionTypes.Recover:
+                rewards.Add(new EnergyOutcome(EnergyTypes.Physical, 5));
+                rewards.Add(new EnergyOutcome(EnergyTypes.Focus, 5));
+                rewards.Add(new EnergyOutcome(EnergyTypes.Social, 5));
+                rewards.Add(new HealthOutcome(1));
+                break;
+        }
+        return rewards;
+    }
+
     public static int GetBaseEnergyCost(BasicActionTypes actionType)
     {
-        int energycost = 2;
+        EnergyTypes energyType = EnergyTypes.Social;
 
+        energyType = actionType switch
+        {
+            BasicActionTypes.Labor => EnergyTypes.Physical,
+            BasicActionTypes.Gather => EnergyTypes.Physical,
+            BasicActionTypes.Travel => EnergyTypes.Physical,
+            BasicActionTypes.Rest => EnergyTypes.Physical,
+            BasicActionTypes.Recover => EnergyTypes.Physical,
+
+            BasicActionTypes.Investigate => EnergyTypes.Focus,
+            BasicActionTypes.Study => EnergyTypes.Focus,
+            BasicActionTypes.Reflect => EnergyTypes.Focus,
+            
+            BasicActionTypes.Mingle => EnergyTypes.Social,
+            BasicActionTypes.Discuss => EnergyTypes.Social,
+            BasicActionTypes.Persuade => EnergyTypes.Social,
+            BasicActionTypes.Perform => EnergyTypes.Social,
+        };
+
+        int energycost = 2;
         energycost = actionType switch
         {
             BasicActionTypes.Labor => 3,

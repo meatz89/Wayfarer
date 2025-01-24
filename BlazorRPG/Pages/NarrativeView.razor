@@ -22,12 +22,12 @@
                 </div>
             }
 
-            @if (Result.encounterResults == EncounterResults.EncounterSuccess && Result.encounter.Context.ActionImplementation.Rewards.Any())
+            @if (Result.encounterResults == EncounterResults.EncounterSuccess && Result.encounter.Context.ActionImplementation.SuccessOutcomes.Any())
             {
                 <div class="tooltip-section">
                     <h5>Rewards</h5>
                     <div class="tooltip-list">
-                        @foreach (Outcome reward in Result.encounter.Context.ActionImplementation.Rewards)
+                        @foreach (Outcome reward in Result.encounter.Context.ActionImplementation.SuccessOutcomes)
                         {
                             <div class="tooltip-item">
                                 <div class="tooltip-item-header">
@@ -45,12 +45,12 @@
                 </div>
             }
 
-            @if (Result.encounterResults == EncounterResults.EncounterFailure && Result.encounter.Context.ActionImplementation.Costs.Any())
+            @if (Result.encounterResults == EncounterResults.EncounterFailure && Result.encounter.Context.ActionImplementation.FailureOutcomes.Any())
             {
                 <div class="tooltip-section">
                     <h5>Costs</h5>
                     <div class="tooltip-list">
-                        @foreach (Outcome cost in Result.encounter.Context.ActionImplementation.Costs)
+                        @foreach (Outcome cost in Result.encounter.Context.ActionImplementation.FailureOutcomes)
                         {
                             <div class="tooltip-item">
                                 <div class="tooltip-item-header">

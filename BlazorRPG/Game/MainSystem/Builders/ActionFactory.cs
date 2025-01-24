@@ -1,4 +1,8 @@
-﻿public static class ActionFactory
+﻿
+using Microsoft.Extensions.Hosting;
+using System;
+
+public static class ActionFactory
 {
     public static ActionImplementation CreateAction(ActionTemplate template, Location location)
     {
@@ -9,7 +13,7 @@
         switch (action.ActionType)
         {
             case BasicActionTypes.Labor:
-                action.Rewards.Add(new CoinsOutcome(3)); // Add 3 coins
+                action.SuccessOutcomes.Add(new CoinsOutcome(3)); // Add 3 coins
                 break;
             case BasicActionTypes.Gather:
                 break;
@@ -29,33 +33,24 @@
             LocationArchetype = template.LocationArchetype,
             CrowdDensity = template.CrowdDensity,
             LocationScale = template.LocationScale,
-            Costs = CreateCostsForAction(template),
-            Rewards = CreateRewardsForTemplate(template),
+            FailureOutcomes = GameRules.CreateCostsForAction(template),
+            SuccessOutcomes = GameRules.CreateRewardsForTemplate(template),
+            EnergyCosts = CreateEnergyCostsForAction(template),
         };
         return actionImplementation;
     }
 
-    private static List<Outcome> CreateCostsForAction(ActionTemplate template)
+    private static List<Outcome> CreateEnergyCostsForAction(ActionTemplate template)
     {
-        var costs = new List<Outcome>();
+        var energyCosts = new List<Outcome>();
 
-        var cost = new HealthOutcome(-1);
-        costs.Add(cost);
+        int cost = GameRules.GetBaseEnergyCost(template.ActionType);
 
-        var energy = new EnergyOutcome(EnergyTypes.Social, -1);
-        costs.Add(energy);
+        var energy = new EnergyOutcome(EnergyTypes.Social, -cost);
+        energyCosts.Add(energy);
 
-        return costs;
+        return energyCosts;
     }
 
-    private static List<Outcome> CreateRewardsForTemplate(ActionTemplate template)
-    {
-        var rewards = new List<Outcome>();
-
-        var reward = new CoinsOutcome(1);
-        rewards.Add(reward);
-
-        return rewards;
-    }
 
 }

@@ -3,8 +3,9 @@
     public string Name { get; set; }
     public BasicActionTypes ActionType { get; set; }
     public List<Requirement> Requirements { get; set; } = new();
-    public List<Outcome> Costs { get; set; } = new();
-    public List<Outcome> Rewards { get; set; } = new();
+    public List<Outcome> EnergyCosts { get; set; }
+    public List<Outcome> FailureOutcomes { get; set; } = new();
+    public List<Outcome> SuccessOutcomes { get; set; } = new();
     public List<TimeSlots> TimeSlots { get; set; } = new();
     public LocationArchetypes LocationArchetype { get; set; } = new();
     public CrowdDensity CrowdDensity { get; set; } = new();

@@ -28,14 +28,14 @@ public partial class NarrativeViewBase : ComponentBase
     {
         if (Result.encounterResults == EncounterResults.EncounterSuccess)
         {
-            foreach (Outcome reward in Result.encounter.Context.ActionImplementation.Rewards)
+            foreach (Outcome reward in Result.encounter.Context.ActionImplementation.SuccessOutcomes)
             {
                 reward.Apply(GameState.Player);
             }
         }
         else if (Result.encounterResults == EncounterResults.EncounterFailure)
         {
-            foreach (Outcome cost in Result.encounter.Context.ActionImplementation.Costs)
+            foreach (Outcome cost in Result.encounter.Context.ActionImplementation.FailureOutcomes)
             {
                 cost.Apply(GameState.Player);
             }
@@ -49,8 +49,7 @@ public partial class NarrativeViewBase : ComponentBase
 
     public List<Outcome> GetEnergyCosts()
     {
-        return Result.encounter.Context.ActionImplementation.Costs
-            .Where(cost => cost is EnergyOutcome)
+        return Result.encounter.Context.ActionImplementation.EnergyCosts
             .ToList();
     }
 
