@@ -4,46 +4,20 @@
     <div class="preview-header">
         <h4>@GetActionName()</h4>
     </div>
-
-    @if (GetRequirementDescriptions().Any())
-    {
-        <div class="tooltip-section">
-            <h5>Requirements</h5>
-            <div class="tooltip-list">
-                @foreach (Requirement req in CurrentAction.ActionImplementation.Requirements)
-                {
-                    <div class="tooltip-item">
-                        <div class="tooltip-item-header">
-                            <div class="tooltip-item-title">
-                                @GetRequirementIcon(req)
-                                <span class="tooltip-item-name">@req.GetDescription()</span>
-                            </div>
-                            <span class="tooltip-item-value @(req.IsSatisfied(GameState) ? "positive-change" : "negative-change")">
-                                @(req.IsSatisfied(GameState) ? "✓" : "✗")
-                            </span>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-    }
-    <div class="tooltip-section">
-        <h5>Encounter Target</h5>
-        <div class="tooltip-list">
-            <div class="tooltip-item">
-                <div class="tooltip-item-header">
-                    <div class="tooltip-item-title">
-                        @GetValueTypeIcon(ChangeTypes.Outcome)
-                        <span class="tooltip-item-name">Success When: Outcome ≥ @(10 + CurrentAction.LocationDifficulty)</span>
-                    </div>
+    <div class="tooltip-list">
+        <div class="tooltip-item">
+            <div class="tooltip-item-header">
+                <div class="tooltip-item-title">
+                    @GetValueTypeIcon(ChangeTypes.Outcome)
+                    <span class="tooltip-item-name">Success When: Outcome ≥ @(10 + CurrentAction.LocationDifficulty)</span>
                 </div>
             </div>
-            <div class="tooltip-item">
-                <div class="tooltip-item-header">
-                    <div class="tooltip-item-title">
-                        @GetValueTypeIcon(ChangeTypes.Outcome)
-                        <span class="tooltip-item-name">Failure When: Outcome ≤ 0</span>
-                    </div>
+        </div>
+        <div class="tooltip-item">
+            <div class="tooltip-item-header">
+                <div class="tooltip-item-title">
+                    @GetValueTypeIcon(ChangeTypes.Outcome)
+                    <span class="tooltip-item-name">Failure When: Outcome ≤ 0</span>
                 </div>
             </div>
         </div>
@@ -69,6 +43,28 @@
         </div>
     </div>
 
+    @if (GetRequirementDescriptions().Any())
+    {
+        <div class="tooltip-section">
+            <h5>Requirements</h5>
+            <div class="tooltip-list">
+                @foreach (Requirement req in CurrentAction.ActionImplementation.Requirements)
+                {
+                    <div class="tooltip-item">
+                        <div class="tooltip-item-header">
+                            <div class="tooltip-item-title">
+                                @GetRequirementIcon(req)
+                                <span class="tooltip-item-name">@req.GetDescription()</span>
+                            </div>
+                            <span class="tooltip-item-value @(req.IsSatisfied(GameState) ? "positive-change" : "negative-change")">
+                                @(req.IsSatisfied(GameState) ? "✓" : "✗")
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
     <div class="tooltip-section">
         <h5>On Success</h5>
         <div class="tooltip-list">
