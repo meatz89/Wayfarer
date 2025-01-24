@@ -6,7 +6,9 @@
     ActionImplementation ActionImplementation,
     LocationNames Location,
     string LocationSpot,
-    CharacterNames Character)
+    CharacterNames Character,
+    int LocationDifficulty
+    )
 {
     public string Display()
     {

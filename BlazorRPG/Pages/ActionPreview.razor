@@ -1,47 +1,106 @@
 ﻿@inherits ActionPreviewBase
 
 <div class="action-preview">
-    <h4>@GetActionName()</h4>
+    <div class="preview-header">
+        <h4>@GetActionName()</h4>
+    </div>
 
-    @if (GetRequirementDescriptions().Count > 0)
+    @if (GetRequirementDescriptions().Any())
     {
-        <h4>Requirements</h4>
-        <ul>
-            @foreach (string description in GetRequirementDescriptions())
-            {
-                <li>@((MarkupString)description)</li>
-            }
-        </ul>
+        <div class="tooltip-section">
+            <h5>Requirements</h5>
+            <div class="tooltip-list">
+                @foreach (Requirement req in CurrentAction.ActionImplementation.Requirements)
+                {
+                    <div class="tooltip-item">
+                        <div class="tooltip-item-header">
+                            <div class="tooltip-item-title">
+                                @GetRequirementIcon(req)
+                                <span class="tooltip-item-name">@req.GetDescription()</span>
+                            </div>
+                            <span class="tooltip-item-value @(req.IsSatisfied(GameState) ? "positive-change" : "negative-change")">
+                                @(req.IsSatisfied(GameState) ? "✓" : "✗")
+                            </span>
+                        </div>
+                    </div>
+                }
+                <div class="tooltip-item">
+                    <div class="tooltip-item-header">
+                        <div class="tooltip-item-title">
+                            @GetValueTypeIcon(ChangeTypes.Outcome)
+                            <span class="tooltip-item-name">Success Requirement: Outcome ≥ @(10 + CurrentAction.LocationDifficulty)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="tooltip-item">
+                    <div class="tooltip-item-header">
+                        <div class="tooltip-item-title">
+                            @GetValueTypeIcon(ChangeTypes.Outcome)
+                            <span class="tooltip-item-name">Failure Condition: Outcome ≤ 0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     }
 
-    @if (GetOutcomeCostsDescriptions().Count > 0)
-    {
-        <h4>Outcomes</h4>
-        <ul>
-            @foreach (string description in GetOutcomeCostsDescriptions())
+    <div class="tooltip-section">
+        <h5>Energy Costs</h5>
+        <div class="tooltip-list">
+            @foreach (Outcome cost in CurrentAction.ActionImplementation.EnergyCosts)
             {
-                <li>@((MarkupString)description)</li>
+                <div class="tooltip-item">
+                    <div class="tooltip-item-header">
+                        <div class="tooltip-item-title">
+                            @GetOutcomeIcon(cost)
+                            <span class="tooltip-item-name">@cost.GetDescription()</span>
+                        </div>
+                        <span class="tooltip-item-value negative-change">
+                            @cost.GetPreview(GameState.Player)
+                        </span>
+                    </div>
+                </div>
             }
-        </ul>
-    }
+        </div>
+    </div>
 
-    @if (GetOutcomeRewardsDescriptions().Count > 0)
-    {
-        <h4>Rewards</h4>
-        <ul>
-            @foreach (string description in GetOutcomeRewardsDescriptions())
+    <div class="tooltip-section">
+        <h5>Success Rewards</h5>
+        <div class="tooltip-list">
+            @foreach (Outcome reward in CurrentAction.ActionImplementation.SuccessOutcomes)
             {
-                <li>@((MarkupString)description)</li>
+                <div class="tooltip-item">
+                    <div class="tooltip-item-header">
+                        <div class="tooltip-item-title">
+                            @GetOutcomeIcon(reward)
+                            <span class="tooltip-item-name">@reward.GetDescription()</span>
+                        </div>
+                        <span class="tooltip-item-value positive-change">
+                            @reward.GetPreview(GameState.Player)
+                        </span>
+                    </div>
+                </div>
             }
-        </ul>
-    }
-@* 
-    <div class="action-buttons">
-        <button class="action-button" @onclick="HandleConfirm">
-            Confirm
-        </button>
-        <button class="action-button" @onclick="HandleBack">
-            Back
-        </button>
-    </div> *@
+        </div>
+    </div>
+
+    <div class="tooltip-section">
+        <h5>Failure Costs</h5>
+        <div class="tooltip-list">
+            @foreach (Outcome cost in CurrentAction.ActionImplementation.FailureOutcomes)
+            {
+                <div class="tooltip-item">
+                    <div class="tooltip-item-header">
+                        <div class="tooltip-item-title">
+                            @GetOutcomeIcon(cost)
+                            <span class="tooltip-item-name">@cost.GetDescription()</span>
+                        </div>
+                        <span class="tooltip-item-value negative-change">
+                            @cost.GetPreview(GameState.Player)
+                        </span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
 </div>

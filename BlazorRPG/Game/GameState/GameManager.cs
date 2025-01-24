@@ -69,22 +69,22 @@ public class GameManager
         List<LocationSpot> locationSpots = location.LocationSpots;
         PopulateLocationSpotActions(location, allActionTemplates, locationSpots);
 
-        List<UserActionOption> options = GetUserActionOptions(locationSpots);
+        List<UserActionOption> options = GetUserActionOptions(location, locationSpots);
         gameState.Actions.SetLocationSpotActions(options);
     }
 
-    private static List<UserActionOption> GetUserActionOptions(List<LocationSpot> locationSpots)
+    private static List<UserActionOption> GetUserActionOptions(Location location, List<LocationSpot> locationSpots)
     {
         List<UserActionOption> options = new List<UserActionOption>();
         foreach (LocationSpot locationSpot in locationSpots)
         {
-            CreateActionsForLocationSpot(options, locationSpot);
+            CreateActionsForLocationSpot(options, location, locationSpot);
         }
 
         return options;
     }
 
-    private static void CreateActionsForLocationSpot(List<UserActionOption> options, LocationSpot locationSpot)
+    private static void CreateActionsForLocationSpot(List<UserActionOption> options, Location location, LocationSpot locationSpot)
     {
         List<ActionImplementation> locationSpotActions = locationSpot.Actions;
         foreach (ActionImplementation actionImplementation in locationSpotActions)
@@ -97,7 +97,8 @@ public class GameManager
                     actionImplementation,
                     locationSpot.LocationName,
                     locationSpot.Name,
-                    default);
+                    default,
+                    location.DifficultyLevel);
 
             options.Add(userActionOption);
         }
@@ -197,7 +198,9 @@ public class GameManager
                 questAction, 
                 step.Location, 
                 default, 
-                step.Character);
+                step.Character,
+                1
+                );
 
             userActions.Add(ua);
         }

@@ -51,16 +51,44 @@ public partial class ActionPreviewBase : ComponentBase
                 descriptions.Add($"{description} {preview}");
             }
         }
-
-        //if (basicAction.TimeInvestment > 0)
-        //{
-        //    string time =
-        //        (basicAction.TimeInvestment > 1)
-        //        ? $"{basicAction.TimeInvestment} hours"
-        //        : $"{basicAction.TimeInvestment} hour";
-        //    descriptions.Add($"{time} passes");
-        //}
         return descriptions;
+    }
+
+    public MarkupString GetValueTypeIcon(ChangeTypes valueType)
+    {
+        return valueType switch
+        {
+            ChangeTypes.Outcome => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
+            ChangeTypes.Momentum => new MarkupString("<i class='value-icon momentum-icon'>⚡</i>"),
+            ChangeTypes.Insight => new MarkupString("<i class='value-icon insight-icon'>💡</i>"),
+            ChangeTypes.Resonance => new MarkupString("<i class='value-icon resonance-icon'>🤝</i>"),
+            ChangeTypes.Pressure => new MarkupString("<i class='value-icon pressure-icon'>⚠</i>"),
+            ChangeTypes.PhysicalEnergy => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
+            ChangeTypes.FocusEnergy => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
+            ChangeTypes.SocialEnergy => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
+            _ => new MarkupString("")
+        };
+    }
+
+    public MarkupString GetOutcomeIcon(Outcome outcome)
+    {
+        if (outcome is EnergyOutcome energyOutcome)
+        {
+            return energyOutcome.EnergyType switch
+            {
+                EnergyTypes.Physical => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
+                EnergyTypes.Focus => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
+                EnergyTypes.Social => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
+                _ => new MarkupString("")
+            };
+        }
+        return new MarkupString("");
+    }
+
+    public MarkupString GetRequirementIcon(Requirement requirement)
+    {
+        // Add icons for each requirement type like in EncounterChoiceTooltip
+        return new MarkupString("");
     }
 
     public List<string> GetOutcomeRewardsDescriptions()

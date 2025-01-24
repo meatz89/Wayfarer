@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.JSInterop;
 
 public partial class EncounterChoiceTooltipBase : ComponentBase
 {
