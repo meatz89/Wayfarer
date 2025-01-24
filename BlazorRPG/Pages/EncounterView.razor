@@ -85,8 +85,10 @@
             <div class="encounter-choices">
                 @foreach (var choice in GameState.Actions.CurrentChoiceOptions)
                 {
-                    <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")"
-                         @onmousemove="async (e) => await ShowTooltip(choice, e)"
+                    <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")
+                         @(choice.EncounterChoice.IsEncounterWinningChoice ? "winning" : "" )
+                         @(choice.EncounterChoice.IsEncounterFailingChoice ? "failing" : "")"
+                         @onmousemove ="async (e) => await ShowTooltip(choice, e)"
                          @onmouseout="HideTooltip"
                          @onclick="() => HandleChoiceSelection(choice)">
                         <span class="choice-index">@choice.Index.</span>

@@ -185,21 +185,27 @@
         };
     }
 
-    public static int GetBaseEnergyCost(ChoiceArchetypes archetype, ChoiceApproaches approach)
+    public static int GetBaseEnergyCost(BasicActionTypes actionType)
     {
-        // Each approach has a base energy cost that reflects its intensity
-        return approach switch
+        int energycost = 2;
+
+        energycost = actionType switch
         {
-            ChoiceApproaches.Aggressive => 2,
-            ChoiceApproaches.Careful => 2,
-            ChoiceApproaches.Desperate => 3,
-            ChoiceApproaches.Strategic => 1,
-            ChoiceApproaches.Tactical => 2,
-            ChoiceApproaches.Diplomatic => 1,
-            ChoiceApproaches.Methodical => 1,
-            ChoiceApproaches.Forceful => 1,
-            _ => throw new ArgumentException("Invalid approach")
+            BasicActionTypes.Labor => 3,
+            BasicActionTypes.Gather => 2,
+            BasicActionTypes.Travel => 1,
+            BasicActionTypes.Investigate => 2,
+            BasicActionTypes.Study => 3,
+            BasicActionTypes.Reflect => 1,
+            BasicActionTypes.Rest => 0,
+            BasicActionTypes.Recover => 1,
+            BasicActionTypes.Mingle => 1,
+            BasicActionTypes.Discuss => 2,
+            BasicActionTypes.Persuade => 3,
+            BasicActionTypes.Perform => 3,
         };
+
+        return energycost;
     }
 
     public static CompositionPattern SetDefaultCompositionForActionType(BasicActionTypes actionType)

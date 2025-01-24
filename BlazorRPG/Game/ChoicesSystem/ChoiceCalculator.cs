@@ -21,7 +21,7 @@
 
         // 3. Calculate new state after combining base values and modifications
         EncounterValues projectedEncounterState = CalculateNewState(initialEncounterValues, choice, choiceBaseChanges, valueModifications);
-        choice.EnergyCost = CalculateEnergyCost(choice, projectedEncounterState, gameState.Player, locationProperties);
+        int energyCost = CalculateEnergyCost(choice, projectedEncounterState, gameState.Player, locationProperties);
 
         // 4. Calculate final requirements, costs and rewards
         List<Requirement> requirements = CalculateRequirements(valueModifications, choice, gameState.Player, locationProperties, projectedEncounterState);
@@ -34,7 +34,7 @@
             choiceBaseChanges,     // Base values
             valueModifications,    // Modifications with sources
             choice.EnergyType,     // Energy type
-            choice.EnergyCost,     // Energy cost
+            0,                     // Energy cost
             requirements,          // Requirements
             costs,                 // Costs
             rewards);              // Rewards
@@ -45,7 +45,7 @@
 
     private int CalculateEnergyCost(EncounterChoice choice, EncounterValues currentValues, PlayerState player, LocationSpotProperties locationProperties)
     {
-        int baseEnergyCost = GameRules.GetBaseEnergyCost(choice.Archetype, choice.Approach);
+        int baseEnergyCost = 0; //GameRules.GetBaseEnergyCost(choice.Archetype, choice.Approach);
 
         int propertyModifier = locationPropertyCalculator.CalculateEnergyCostModifier(choice, locationProperties);
 
@@ -169,7 +169,7 @@
                     switch (change.ValueType)
                     {
                         case ValueTypes.Momentum:
-                            requirements.Add(new MomentumRequirement(-change.Amount)); // Note: Negate the amount to make it positive for the requirement
+                            requirements.Add(new MomentumRequirement(-change.Amount));
                             break;
                         case ValueTypes.Insight:
                             requirements.Add(new InsightRequirement(-change.Amount));

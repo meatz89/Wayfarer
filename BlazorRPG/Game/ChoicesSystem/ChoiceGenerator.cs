@@ -27,10 +27,10 @@
         foreach (EncounterChoice choice in choices)
         {
             choice.CalculationResult = calculator.CalculateChoiceEffects(choice, context.LocationProperties, initialValues);
-            
+
             EncounterValues projection = choice.CalculationResult.ProjectedEncounterState;
             choice.IsEncounterWinningChoice = IsEncounterWon(context, projection);
-            
+
             if (!choice.IsEncounterWinningChoice)
             {
                 choice.IsEncounterFailingChoice = IsEncounterLost(context, projection);
