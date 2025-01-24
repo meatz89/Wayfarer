@@ -28,8 +28,14 @@ public partial class NarrativeViewBase : ComponentBase
         EncounterContext context = Result.encounter.Context;
         ActionImplementation actionImplementation = context.ActionImplementation;
         List<OutcomeCondition> outcomeConditions = actionImplementation.OutcomeConditions;
-        List<Outcome> outcomes = outcomeConditions.FirstOrDefault(oc => oc.EncounterResults == Result.encounterResults).Outcomes;
-        return outcomes;
+        if (outcomeConditions != null && outcomeConditions.Count > 0)
+        {
+            OutcomeCondition? outcome = outcomeConditions.FirstOrDefault(oc => oc.EncounterResults == Result.encounterResults);
+            List<Outcome> outcomes = outcome.Outcomes;
+            return outcomes;
+        }
+
+        return new();
     }
 
     public List<Outcome> GetEnergyCosts()

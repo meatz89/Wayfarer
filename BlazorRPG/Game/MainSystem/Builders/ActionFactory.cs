@@ -18,6 +18,7 @@
         // Add success/failure conditions
         OutcomeCondition failureCondition = new OutcomeCondition
         {
+            EncounterResults = EncounterResults.EncounterFailure,
             ValueType = ValueTypes.Outcome,
             MaxValue = 0,
             MinValue = int.MinValue,
@@ -26,6 +27,7 @@
 
         OutcomeCondition successCondition = new OutcomeCondition
         {
+            EncounterResults = EncounterResults.EncounterSuccess,
             ValueType = ValueTypes.Outcome,
             MinValue = 10 + location.DifficultyLevel,
             MaxValue = int.MaxValue,

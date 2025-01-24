@@ -268,7 +268,7 @@ public class GameRules
 
     public static int GetBaseEnergyCost(BasicActionTypes actionType)
     {
-        
+
         int energycost = 2;
         energycost = actionType switch
         {

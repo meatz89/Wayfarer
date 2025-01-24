@@ -24,14 +24,7 @@ public class ActionSystem
             TimeSlots = new List<TimeSlots>(originalAction.TimeSlots),
             Requirements = new List<Requirement>(originalAction.Requirements),
             EnergyCosts = new List<Outcome>(originalAction.EnergyCosts),
-            OutcomeConditions = originalAction.OutcomeConditions.Select(oc =>
-                new OutcomeCondition
-                {
-                    ValueType = oc.ValueType,
-                    MinValue = oc.MinValue,
-                    MaxValue = oc.MaxValue,
-                    Outcomes = new List<Outcome>(oc.Outcomes)
-                }).ToList(),
+            OutcomeConditions = originalAction.OutcomeConditions.ToList(),
             LocationArchetype = originalAction.LocationArchetype,
             CrowdDensity = originalAction.CrowdDensity,
             LocationScale = originalAction.LocationScale,

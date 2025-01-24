@@ -34,7 +34,7 @@
             List<Outcome> outcomes = OutcomeConditions
                         .FirstOrDefault(x => x.EncounterResults == EncounterResults.EncounterFailure).Outcomes;
             return outcomes;
-    }
+        }
     }
 
     public List<Outcome> SuccessOutcomes
@@ -44,6 +44,6 @@
             List<Outcome> outcomes = OutcomeConditions
                         .FirstOrDefault(x => x.EncounterResults == EncounterResults.EncounterSuccess).Outcomes;
             return outcomes;
-    }
+        }
     }
 }

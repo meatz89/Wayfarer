@@ -10,7 +10,7 @@
     public LocationSpotProperties LocationProperties { get; }
     public PlayerState PlayerState { get; }
     public EncounterValues CurrentValues { get; set; }
-    public int StageNumber { get; set; } 
+    public int StageNumber { get; set; }
     public int LocationDifficulty { get; }
     public List<LocationPropertyChoiceEffect> LocationPropertyChoiceEffects { get; }
 

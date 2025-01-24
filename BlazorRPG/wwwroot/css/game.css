@@ -1507,6 +1507,7 @@ body {
     background-color: var(--bg-panel);
     padding: 8px;
     border-radius: 4px;
+    min-width: 300px;
 }
 
 .tooltip-item-header {
@@ -1535,6 +1536,7 @@ body {
 .tooltip-item-name {
     font-size: 0.9em;
     color: var(--text-primary);
+    width: 100%;
 }
 
 .tooltip-item-value {
