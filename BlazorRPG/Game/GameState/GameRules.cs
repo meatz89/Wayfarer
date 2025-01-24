@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.Eventing.Reader;
-
-public class GameRules
+﻿public class GameRules
 {
     public static GameRules StandardRuleset = new GameRules
     {
@@ -427,10 +425,10 @@ public class GameRules
             modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 4,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -2,
+            modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -1,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -2,
+            modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -1,
                 $"{choice.Archetype} {choice.Approach}"));
         }
         if (approach == ChoiceApproaches.Tactical)
@@ -438,7 +436,7 @@ public class GameRules
             modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 5,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -4,
+            modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -3,
                 $"{choice.Archetype} {choice.Approach}"));
         }
         if (approach == ChoiceApproaches.Strategic)
@@ -446,18 +444,15 @@ public class GameRules
             modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -2,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 3,
+            modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 4,
                 $"{choice.Archetype} {choice.Approach}"));
         }
         else if (approach == ChoiceApproaches.Careful)
         {
-            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, -1,
+            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -1,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -2,
-                $"{choice.Archetype} {choice.Approach}"));
-
-            modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 3,
+            modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 4,
                 $"{choice.Archetype} {choice.Approach}"));
         }
         else if (approach == ChoiceApproaches.Aggressive)
@@ -470,10 +465,10 @@ public class GameRules
         }
         else if (approach == ChoiceApproaches.Desperate)
         {
-            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, -1,
+            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 2,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -2,
+            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 5,
                 $"{choice.Archetype} {choice.Approach}"));
         }
     }
@@ -485,10 +480,10 @@ public class GameRules
             modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 4,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Insight, -2,
+            modifications.Add(new EncounterValueModification(ValueTypes.Insight, -1,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -2,
+            modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -1,
                 $"{choice.Archetype} {choice.Approach}"));
         }
         if (approach == ChoiceApproaches.Tactical)
@@ -496,7 +491,7 @@ public class GameRules
             modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 5,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Insight, -4,
+            modifications.Add(new EncounterValueModification(ValueTypes.Insight, -3,
                 $"{choice.Archetype} {choice.Approach}"));
         }
         if (approach == ChoiceApproaches.Strategic)
@@ -504,18 +499,15 @@ public class GameRules
             modifications.Add(new EncounterValueModification(ValueTypes.Insight, -2,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 3,
+            modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 4,
                 $"{choice.Archetype} {choice.Approach}"));
         }
         else if (approach == ChoiceApproaches.Careful)
         {
-            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, -1,
+            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -1,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -2,
-                $"{choice.Archetype} {choice.Approach}"));
-
-            modifications.Add(new EncounterValueModification(ValueTypes.Insight, 3,
+            modifications.Add(new EncounterValueModification(ValueTypes.Insight, 4,
                 $"{choice.Archetype} {choice.Approach}"));
         }
         else if (approach == ChoiceApproaches.Aggressive)
@@ -529,10 +521,10 @@ public class GameRules
         }
         else if (approach != ChoiceApproaches.Desperate)
         {
-            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, -2,
+            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 2,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -3,
+            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 5,
                 $"{choice.Archetype} {choice.Approach}"));
         }
     }
@@ -544,10 +536,10 @@ public class GameRules
             modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 4,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -2,
+            modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -1,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Insight, -2,
+            modifications.Add(new EncounterValueModification(ValueTypes.Insight, -1,
                 $"{choice.Archetype} {choice.Approach}"));
         }
         if (approach == ChoiceApproaches.Tactical)
@@ -555,25 +547,22 @@ public class GameRules
             modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 5,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -4,
+            modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -3,
                 $"{choice.Archetype} {choice.Approach}"));
         }
         if (approach == ChoiceApproaches.Strategic)
         {
             modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -2,
                 $"{choice.Archetype} {choice.Approach}"));
-            modifications.Add(new EncounterValueModification(ValueTypes.Insight, 3,
+            modifications.Add(new EncounterValueModification(ValueTypes.Insight, 4,
                 $"{choice.Archetype} {choice.Approach}"));
         }
         else if (approach == ChoiceApproaches.Careful)
         {
-            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, -1,
+            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -1,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -2,
-                $"{choice.Archetype} {choice.Approach}"));
-
-            modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 3,
+            modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 4,
                 $"{choice.Archetype} {choice.Approach}"));
         }
         else if (approach == ChoiceApproaches.Aggressive)
@@ -586,10 +575,10 @@ public class GameRules
         }
         else if (approach == ChoiceApproaches.Desperate)
         {
-            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, -2,
+            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 2,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -3,
+            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 5,
                 $"{choice.Archetype} {choice.Approach}"));
         }
     }

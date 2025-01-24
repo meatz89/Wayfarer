@@ -189,9 +189,9 @@
                 else if (change.ValueType == ValueTypes.Pressure)
                 {
                     // Pressure requirement: current pressure + change must not exceed 10
-                    if (encounterValues.Pressure + change.Amount > 10)
+                    if (encounterValues.Pressure + change.Amount > 20)
                     {
-                        requirements.Add(new PressureRequirement(10 - change.Amount));
+                        requirements.Add(new PressureRequirement(20 - change.Amount));
                     }
                 }
             }
