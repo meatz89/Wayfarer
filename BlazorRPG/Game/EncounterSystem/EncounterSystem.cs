@@ -31,25 +31,15 @@
         narrativeSystem.MakeChoice(encounter.Context, choice);
 
         // Check for game over conditions
-        return ProcessEncounterStageResult(encounter);
+        return ProcessEncounterStageResult(encounter, choice);
     }
 
-    private EncounterResult ProcessEncounterStageResult(Encounter encounter)
+    private EncounterResult ProcessEncounterStageResult(Encounter encounter, EncounterChoice choice)
     {
-        if (!IsEncounterWon(encounter))
+        bool isEncounterEndingChoice = choice.IsEncounterFailingChoice || choice.IsEncounterWinningChoice;
+        if (isEncounterEndingChoice)
         {
-            if (!IsEncounterLost(encounter))
-            {
-                GetNextStage(encounter);
-                EncounterResult ongoingResult = new()
-                {
-                    encounter = encounter,
-                    encounterResults = EncounterResults.Ongoing,
-                    EncounterEndMessage = ""
-                };
-                return ongoingResult;
-            }
-            else
+            if (choice.IsEncounterFailingChoice)
             {
                 string narrative = "Failure";
                 if (gameState.GameMode != Modes.Debug)
@@ -64,23 +54,34 @@
                 };
                 return failResult;
             }
-        }
-        else
-        {
-            string narrative = "Success";
-            if (gameState.GameMode != Modes.Debug)
-            {
-                narrative = narrativeSystem.GetEncounterSuccessNarrative(encounter.Context);
-            }
 
-            EncounterResult successResult = new()
+            if (choice.IsEncounterWinningChoice)
             {
-                encounter = encounter,
-                encounterResults = EncounterResults.EncounterSuccess,
-                EncounterEndMessage = narrative
-            };
-            return successResult;
+
+                string narrative = "Success";
+                if (gameState.GameMode != Modes.Debug)
+                {
+                    narrative = narrativeSystem.GetEncounterSuccessNarrative(encounter.Context);
+                }
+
+                EncounterResult successResult = new()
+                {
+                    encounter = encounter,
+                    encounterResults = EncounterResults.EncounterSuccess,
+                    EncounterEndMessage = narrative
+                };
+                return successResult;
+            }
         }
+
+        GetNextStage(encounter);
+        EncounterResult ongoingResult = new()
+        {
+            encounter = encounter,
+            encounterResults = EncounterResults.Ongoing,
+            EncounterEndMessage = ""
+        };
+        return ongoingResult;
     }
 
     private bool GetNextStage(Encounter encounter)
@@ -182,33 +183,6 @@
     public Encounter GetEncounterForChoice(EncounterChoice choice)
     {
         return gameState.Actions.CurrentEncounter;
-    }
-
-    private bool IsEncounterWon(Encounter encounter)
-    {
-        const int WIN_BASE = 10;
-        int OUTCOME_WIN = encounter.Context.LocationDifficulty + WIN_BASE;
-
-        return encounter.Context.CurrentValues.Outcome >= OUTCOME_WIN;
-    }
-
-    private bool IsEncounterLost(Encounter encounter)
-    {
-        const int LOSE_BASE = 40;
-        int PRESSURE_LOOSE = LOSE_BASE - encounter.Context.LocationDifficulty;
-
-        EncounterValues values = encounter.Context.CurrentValues;
-        PlayerState player = gameState.Player;
-
-        // Immediate loss if outcome is 0
-        if (values.Outcome <= 0)
-            return true;
-
-        // Immediate loss if pressure maxes out
-        if (values.Pressure >= PRESSURE_LOOSE)
-            return true;
-
-        return false;
     }
 
     public string GetStageNarrative(ChoicesNarrativeResponse choicesNarrativeResponse)

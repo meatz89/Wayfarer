@@ -1,10 +1,10 @@
 ﻿public class EncounterValues
 {
-    public int Outcome { get; set; }
-    public int Pressure { get; set; }
     public int Momentum { get; set; }
     public int Insight { get; set; }
     public int Resonance { get; set; }
+    public int Outcome { get; set; }
+    public int Pressure { get; set; }
 
     // Track last choice for insight decay
     public ChoiceArchetypes? LastChoiceType { get; set; }

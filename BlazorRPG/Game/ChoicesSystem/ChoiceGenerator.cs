@@ -27,9 +27,43 @@
         foreach (EncounterChoice choice in choices)
         {
             choice.CalculationResult = calculator.CalculateChoiceEffects(choice, context.LocationProperties, initialValues);
+            
+            EncounterValues projection = choice.CalculationResult.ProjectedEncounterState;
+            choice.IsEncounterWinningChoice = IsEncounterWon(context, projection);
+            
+            if (!choice.IsEncounterWinningChoice)
+            {
+                choice.IsEncounterFailingChoice = IsEncounterLost(context, projection);
+            }
         }
 
         return new ChoiceSet(template.Name, choices);
+    }
+
+    private bool IsEncounterWon(EncounterContext context, EncounterValues projection)
+    {
+        const int WIN_BASE = 10;
+        int OUTCOME_WIN = context.LocationDifficulty + WIN_BASE;
+
+        return projection.Outcome >= OUTCOME_WIN;
+    }
+
+    private bool IsEncounterLost(EncounterContext context, EncounterValues projection)
+    {
+        const int LOSE_BASE = 40;
+        int PRESSURE_LOOSE = LOSE_BASE - context.LocationDifficulty;
+
+        PlayerState player = gameState.Player;
+
+        // Immediate loss if outcome is 0
+        if (projection.Outcome <= 0)
+            return true;
+
+        // Immediate loss if pressure maxes out
+        if (projection.Pressure >= PRESSURE_LOOSE)
+            return true;
+
+        return false;
     }
 
     private List<EncounterChoice> GenerateBaseChoices(

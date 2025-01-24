@@ -1,6 +1,6 @@
 ﻿public class GameState
 {
-    public Modes GameMode = Modes.Live;
+    public Modes GameMode = Modes.Debug;
 
     public PlayerState Player { get; set; }
     public ActionState Actions { get; }

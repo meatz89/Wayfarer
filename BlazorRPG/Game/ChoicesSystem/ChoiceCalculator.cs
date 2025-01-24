@@ -12,7 +12,7 @@
     public ChoiceCalculationResult CalculateChoiceEffects(EncounterChoice choice, LocationSpotProperties locationProperties, EncounterValues initialEncounterValues)
     {
         // 1. Get base values that are inherent to the choice type
-        List<BaseValueChange> baseChanges = new List<BaseValueChange>();
+        List<BaseValueChange> choiceBaseChanges = new List<BaseValueChange>();
         List<ValueModification> valueModifications = GameRules.GetChoiceBaseValueEffects(choice);
 
         // 2. Calculate all modifications from game state and effects
@@ -20,18 +20,18 @@
         valueModifications.AddRange(modifications);
 
         // 3. Calculate new state after combining base values and modifications
-        EncounterValues newEncounterValues = CalculateNewState(initialEncounterValues, choice, baseChanges, valueModifications);
-        choice.EnergyCost = CalculateEnergyCost(choice, newEncounterValues, gameState.Player, locationProperties);
+        EncounterValues projectedEncounterState = CalculateNewState(initialEncounterValues, choice, choiceBaseChanges, valueModifications);
+        choice.EnergyCost = CalculateEnergyCost(choice, projectedEncounterState, gameState.Player, locationProperties);
 
         // 4. Calculate final requirements, costs and rewards
-        List<Requirement> requirements = CalculateRequirements(valueModifications, choice, gameState.Player, locationProperties, newEncounterValues);
+        List<Requirement> requirements = CalculateRequirements(valueModifications, choice, gameState.Player, locationProperties, projectedEncounterState);
         List<Outcome> costs = CalculateCosts(choice, locationProperties);
         List<Outcome> rewards = CalculateRewards(choice, locationProperties);
 
         // 5. Return complete calculation result
         ChoiceCalculationResult choiceCalculationResult = new ChoiceCalculationResult(
-            newEncounterValues,
-            baseChanges,           // Base values
+            projectedEncounterState,
+            choiceBaseChanges,     // Base values
             valueModifications,    // Modifications with sources
             choice.EnergyType,     // Energy type
             choice.EnergyCost,     // Energy cost
@@ -77,11 +77,11 @@
         List<ValueModification> modifications)
     {
         EncounterValues newState = EncounterValues.WithValues(
-            currentValues.Outcome,
-            currentValues.Momentum,
-            currentValues.Insight,
-            currentValues.Resonance,
-            currentValues.Pressure);
+            momentum: currentValues.Momentum,
+            insight: currentValues.Insight,
+            resonance: currentValues.Resonance,
+            outcome: currentValues.Outcome,
+            pressure: currentValues.Pressure);
 
         // Apply base changes first
         foreach (BaseValueChange change in baseChanges)

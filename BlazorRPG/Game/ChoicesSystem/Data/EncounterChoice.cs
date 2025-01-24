@@ -9,6 +9,8 @@
     public ChoiceApproaches Approach { get; }
     public EnergyTypes EnergyType { get; }
     public int EnergyCost { get; set; }
+    public bool IsEncounterWinningChoice { get; set; } 
+    public  bool IsEncounterFailingChoice { get; set; }
     public ChoiceCalculationResult CalculationResult { get; set; }
 
     // Constructor remains the same
@@ -125,49 +127,4 @@
             _ => RequirementTypes.Other
         };
     }
-}
-
-public enum RequirementTypes
-{
-    Other,
-
-    //Skills
-    Strength,
-    Charisma,
-    Perception,
-
-    //Inventory
-    InventorySlots,
-    Coins,
-
-    //Knowledge
-    LocalHistory,
-
-    //Items
-    Tool,
-
-    //Player State
-    Health,
-    Concentration,
-    Reputation,
-
-    //Energy
-    PhysicalEnergy,
-    FocusEnergy,
-    SocialEnergy,
-
-    //Encounter States
-    MaxPressure,
-    MinInsight,
-
-    //Resources
-    Wood,
-    Metal,
-
-    //Player Status
-    Wet,
-    Cold,
-    Hungry,
-    Tired,
-    Injured,
 }
