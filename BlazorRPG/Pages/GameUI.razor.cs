@@ -33,7 +33,7 @@ public partial class GameUI : ComponentBase
     public Location CurrentLocation => GameState.World.CurrentLocation;
     public LocationSpot CurrentSpot => GameState.World.CurrentLocationSpot;
     public Encounter CurrentEncounter => GameState.Actions.CurrentEncounter;
-    public TimeSlots CurrentTime => GameState.World.CurrentTimeSlot;
+    public TimeWindows CurrentTime => GameState.World.WorldTime;
     public int CurrentHour => GameState.World.CurrentTimeInHours;
     public bool ShowEncounterResult { get; set; } = false;
     public EncounterResult EncounterResult { get; set; }
@@ -210,6 +210,8 @@ public partial class GameUI : ComponentBase
 
     private List<PropertyDisplay> GetLocationProperties(Location location)
     {
+        WorldState world = GameState.World;
+
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
         properties.Add(new(
@@ -227,6 +229,18 @@ public partial class GameUI : ComponentBase
         properties.Add(new(
                 "",
                 FormatEnumString(location.LocationScale.ToString()),
+                ""
+            ));
+
+        properties.Add(new(
+                "",
+                FormatEnumString(world.WorldTime.ToString()),
+                ""
+            ));
+
+        properties.Add(new(
+                "",
+                FormatEnumString(world.WorldWeather.ToString()),
                 ""
             ));
 

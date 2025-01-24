@@ -2,7 +2,7 @@
 {
     private BasicActionTypes actionType;
     private string description;
-    private List<TimeSlots> timeSlots = new();
+    private List<TimeWindows> timeSlots = new();
     public List<Requirement> requirements = new();
     public List<Outcome> energyCosts = new();
     public List<Outcome> costs = new();
@@ -33,7 +33,7 @@
         return this;
     }
 
-    public ActionBuilder AddTimeSlot(TimeSlots timeSlot)
+    public ActionBuilder AddTimeSlot(TimeWindows timeSlot)
     {
         this.timeSlots.Add(timeSlot);
         return this;

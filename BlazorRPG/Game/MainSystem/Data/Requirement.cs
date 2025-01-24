@@ -346,18 +346,38 @@ public class LocationPropertyRequirement : Requirement
     }
 }
 
+public class WeatherRequirement : Requirement
+{
+    public WeatherTypes WeatherType { get; }
+
+    public WeatherRequirement(WeatherTypes weatherType)
+    {
+        WeatherType = weatherType;
+    }
+
+    public override bool IsSatisfied(GameState gameState)
+    {
+        return gameState.World.WorldWeather == WeatherType;
+    }
+
+    public override string GetDescription()
+    {
+        return $"Weather Required: {WeatherType}";
+    }
+}
+
 public class TimeWindowRequirement : Requirement
 {
-    public TimeSlots TimeWindow { get; }
+    public TimeWindows TimeWindow { get; }
 
-    public TimeWindowRequirement(TimeSlots timeWindow)
+    public TimeWindowRequirement(TimeWindows timeWindow)
     {
         TimeWindow = timeWindow;
     }
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.World.CurrentTimeSlot == TimeWindow;
+        return gameState.World.WorldTime == TimeWindow;
     }
 
     public override string GetDescription()

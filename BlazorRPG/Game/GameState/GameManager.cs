@@ -230,7 +230,7 @@ public class GameManager
             actionImplementation.ActionType,
             location.LocationType,
             location.LocationArchetype,
-            gameState.World.CurrentTimeSlot,
+            gameState.World.WorldTime,
             locationSpot.SpotProperties,
             playerState,
             location.DifficultyLevel,

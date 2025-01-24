@@ -9,7 +9,7 @@
     private ResourceTypes requiredResourceReward;
 
     private ResourceTypes resourceReward;
-    private TimeSlots timeWindowToAdd;
+    private TimeWindows timeWindowToAdd;
     private EnergyTypes reducedEnergyType;
     private int reducedEnergyAmount;
     private ResourceTypes additionalResourceReward;
@@ -67,7 +67,7 @@
         return this;
     }
 
-    public ActionModifierBuilder ForTimeWindow(TimeSlots timeWindow)
+    public ActionModifierBuilder ForTimeWindow(TimeWindows timeWindow)
     {
         this.timeWindowToAdd = timeWindow;
         return this;
@@ -111,7 +111,7 @@ public class ModifierConfiguration
     public BasicActionTypes ActionType { get; set; }
     public LocationTypes LocationType { get; set; }
     public PlayerStatusTypes PlayerStatus { get; set; }
-    public TimeSlots TimeWindow { get; set; }
+    public TimeWindows TimeWindow { get; set; }
     public EnergyTypes EnergyType { get; set; }
     public int EnergyReduction { get; set; }
 

@@ -10,7 +10,8 @@
 
     // Time tracking - moved here since it affects world state
     public int CurrentTimeInHours { get; set; }
-    public TimeSlots CurrentTimeSlot { get; private set; } = TimeSlots.Morning;
+    public TimeWindows WorldTime { get; private set; }
+    public WeatherTypes WorldWeather { get; private set; } 
 
     public void SetCurrentTime(int hours)
     {
@@ -46,13 +47,17 @@
 
     public void DetermineCurrentTimeSlot(int timeSlot)
     {
-        CurrentTimeSlot = timeSlot switch
+        WorldTime = timeSlot switch
         {
-            0 => TimeSlots.Night,
-            1 => TimeSlots.Morning,
-            2 => TimeSlots.Afternoon,
-            _ => TimeSlots.Evening
+            0 => TimeWindows.Night,
+            1 => TimeWindows.Morning,
+            2 => TimeWindows.Afternoon,
+            _ => TimeWindows.Evening
         };
     }
 
+    public void ChangeWeather(WeatherTypes weatherType)
+    {
+        WorldWeather = weatherType;
+    }
 }

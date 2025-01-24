@@ -6,7 +6,7 @@
             .ForAction(template.ActionType)
             .WithDescription(template.Name);
 
-        foreach (TimeSlots timeSlot in template.TimeSlots)
+        foreach (TimeWindows timeSlot in template.TimeSlots)
         {
             builder.AddTimeSlot(timeSlot);
         }

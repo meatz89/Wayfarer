@@ -6,7 +6,7 @@
     public BasicActionTypes ActionType { get; }
     public LocationTypes LocationType { get; }
     public LocationArchetypes LocationArchetype { get; }
-    public TimeSlots TimeSlot { get; }
+    public TimeWindows TimeSlot { get; }
     public LocationSpotProperties LocationProperties { get; }
     public PlayerState PlayerState { get; }
     public EncounterValues CurrentValues { get; set; }
@@ -22,7 +22,7 @@
         BasicActionTypes actionType,
         LocationTypes locationType,
         LocationArchetypes locationArchetype,
-        TimeSlots timeSlot,
+        TimeWindows timeSlot,
         LocationSpotProperties locationProperties,
         PlayerState playerState,
         int locationDifficulty,

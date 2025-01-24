@@ -37,9 +37,9 @@ public class EnergyCostReducer : ActionModifier
 
 public class TimeSlotModifier : ActionModifier
 {
-    private readonly TimeSlots timeWindowToAdd;
+    private readonly TimeWindows timeWindowToAdd;
 
-    public TimeSlotModifier(string description, string source, TimeSlots timeWindow, BasicActionTypes actionType)
+    public TimeSlotModifier(string description, string source, TimeWindows timeWindow, BasicActionTypes actionType)
     {
         this.Source = source;
         this.Description = description;

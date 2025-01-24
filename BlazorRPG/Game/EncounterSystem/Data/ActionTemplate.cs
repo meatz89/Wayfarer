@@ -2,7 +2,7 @@
 {
     public string Name { get; set; }
     public BasicActionTypes ActionType { get; set; }
-    public List<TimeSlots> TimeSlots { get; set; }
+    public List<TimeWindows> TimeSlots { get; set; }
     public LocationArchetypes LocationArchetype { get; set; }
     public CrowdDensity CrowdDensity { get; set; }
     public LocationScale LocationScale { get; set; }
@@ -12,7 +12,7 @@
     public ActionTemplate(
         string name,
         BasicActionTypes actionType,
-        List<TimeSlots> timeSlots,
+        List<TimeWindows> timeSlots,
         LocationArchetypes locationArchetype,
         CrowdDensity crowdDensity,
         LocationScale locationScale,

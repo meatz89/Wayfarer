@@ -2,7 +2,7 @@
 {
     private string name;
     private BasicActionTypes actionType;
-    private List<TimeSlots> timeSlots = new List<TimeSlots>();
+    private List<TimeWindows> timeSlots = new List<TimeWindows>();
 
     private LocationArchetypes locationArchetype;
     private CrowdDensity crowdDensity;
@@ -21,7 +21,7 @@
         return this;
     }
 
-    public ActionTemplateBuilder AddTimeSlot(TimeSlots timeSlot)
+    public ActionTemplateBuilder AddTimeSlot(TimeWindows timeSlot)
     {
         this.timeSlots.Add(timeSlot);
         return this;
