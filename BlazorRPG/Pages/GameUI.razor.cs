@@ -215,36 +215,107 @@ public partial class GameUI : ComponentBase
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
         properties.Add(new(
-                "",
+                GetIconForLocationArchetype(location.LocationArchetype),
                 FormatEnumString(location.LocationArchetype.ToString()),
                 ""
             ));
 
         properties.Add(new(
-                "",
+                GetIconForCrowdDensity(location.CrowdDensity),
                 FormatEnumString(location.CrowdDensity.ToString()),
                 ""
             ));
 
         properties.Add(new(
-                "",
+                GetIconForLocationScale(location.LocationScale),
                 FormatEnumString(location.LocationScale.ToString()),
                 ""
             ));
 
         properties.Add(new(
-                "",
+                GetIconForTimeWindow(world.WorldTime),
                 FormatEnumString(world.WorldTime.ToString()),
                 ""
             ));
 
         properties.Add(new(
-                "",
+                GetIconForWeatherType(world.WorldWeather),
                 FormatEnumString(world.WorldWeather.ToString()),
                 ""
             ));
 
         return properties;
+    }
+
+    // Helper methods to get icons for different property types
+    private string GetIconForLocationArchetype(LocationArchetypes type)
+    {
+        return type switch
+        {
+            LocationArchetypes.Tavern => "🍺",
+            LocationArchetypes.Market => "🛒",
+            LocationArchetypes.Forest => "🌲",
+            LocationArchetypes.Road => "🛣️",
+            LocationArchetypes.Field => "🌾",
+            LocationArchetypes.Dock => "⚓",
+            LocationArchetypes.Warehouse => "🏭",
+            LocationArchetypes.Factory => "🏭",
+            LocationArchetypes.Workshop => "🔨",
+            LocationArchetypes.Shop => "🛍️",
+            LocationArchetypes.Garden => "🌷",
+            LocationArchetypes.Library => "📚",
+            LocationArchetypes.ConstructionSite => "🚧",
+            LocationArchetypes.Docks => "🚢",
+            LocationArchetypes.CraftsmanWorkshop => "🛠️",
+            LocationArchetypes.Crossroads => "🔀",
+            _ => "❓"
+        };
+    }
+
+    private string GetIconForCrowdDensity(CrowdDensity density)
+    {
+        return density switch
+        {
+            CrowdDensity.Deserted => "😶",
+            CrowdDensity.Quiet => "🚶",
+            CrowdDensity.Busy => "👥",
+            _ => "❓"
+        };
+    }
+
+    private string GetIconForLocationScale(LocationScale scale)
+    {
+        return scale switch
+        {
+            LocationScale.Small => "🏠",
+            LocationScale.Medium => "🏘️",
+            LocationScale.Large => "🏙️",
+            _ => "❓"
+        };
+    }
+
+    private string GetIconForTimeWindow(TimeWindows time)
+    {
+        return time switch
+        {
+            TimeWindows.Night => "🌙",
+            TimeWindows.Morning => "🌄",
+            TimeWindows.Afternoon => "☀️",
+            TimeWindows.Evening => "🌆",
+            _ => "❓"
+        };
+    }
+
+    private string GetIconForWeatherType(WeatherTypes type)
+    {
+        return type switch
+        {
+            WeatherTypes.Clear => "🌤️",
+            WeatherTypes.Sunny => "☀️",
+            WeatherTypes.Windy => "💨",
+            WeatherTypes.Stormy => "⛈️",
+            _ => "❓"
+        };
     }
 
     private string FormatEnumString(string value)
