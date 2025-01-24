@@ -23,21 +23,43 @@
             }
 
             <div class="tooltip-section">
-                <h5>Rewards</h5>
+                <h5>Consequences</h5>
                 <div class="tooltip-list">
-                    @foreach (Outcome reward in GetActionOutcomes())
+                    @if (Result.encounterResults == EncounterResults.EncounterSuccess)
                     {
-                        <div class="tooltip-item wide">
-                            <div class="tooltip-item-header">
-                                <div class="tooltip-item-title">
-                                    @GetOutcomeIcon(reward)
-                                    <span class="tooltip-item-name">@reward.GetDescription()</span>
+                        foreach (Outcome reward in GetActionOutcomesSuccess())
+                        {
+                            <div class="tooltip-item wide">
+                                <div class="tooltip-item-header">
+                                    <div class="tooltip-item-title">
+                                        @GetOutcomeIcon(reward)
+                                        <span class="tooltip-item-name">@reward.GetDescription()</span>
+                                    </div>
+                                    <span class="tooltip-item-value positive-change">
+                                        @reward.GetPreview(GameState.Player)
+                                    </span>
                                 </div>
-                                <span class="tooltip-item-value positive-change">
-                                    @reward.GetPreview(GameState.Player)
-                                </span>
                             </div>
-                        </div>
+                        }
+                    }
+                </div>
+                <div class="tooltip-list">
+                    @if (Result.encounterResults == EncounterResults.EncounterFailure)
+                    {
+                        @foreach (Outcome reward in GetActionOutcomesFailure())
+                        {
+                            <div class="tooltip-item wide">
+                                <div class="tooltip-item-header">
+                                    <div class="tooltip-item-title">
+                                        @GetOutcomeIcon(reward)
+                                        <span class="tooltip-item-name">@reward.GetDescription()</span>
+                                    </div>
+                                    <span class="tooltip-item-value negative-change">
+                                        @reward.GetPreview(GameState.Player)
+                                    </span>
+                                </div>
+                            </div>
+                        }
                     }
                 </div>
             </div>

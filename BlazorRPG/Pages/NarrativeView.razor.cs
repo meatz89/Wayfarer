@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Http;
 
 public partial class NarrativeViewBase : ComponentBase
 {
@@ -23,18 +24,33 @@ public partial class NarrativeViewBase : ComponentBase
         }
     }
 
-    public List<Outcome> GetActionOutcomes()
+    public List<Outcome> GetActionOutcomesSuccess()
+    {
+
+        EncounterContext context = Result.encounter.Context;
+        ActionImplementation actionImplementation = context.ActionImplementation;
+        List<OutcomeCondition> outcomeConditions = actionImplementation.OutcomeConditions;
+        if (outcomeConditions != null && outcomeConditions.Count > 0)
+        {
+            OutcomeCondition? outcome = outcomeConditions.FirstOrDefault(oc => oc.EncounterResults == EncounterResults.EncounterSuccess);
+            List<Outcome> outcomes = outcome.Outcomes;
+            return outcomes;
+        }
+        return new();
+
+    }
+
+    public List<Outcome> GetActionOutcomesFailure()
     {
         EncounterContext context = Result.encounter.Context;
         ActionImplementation actionImplementation = context.ActionImplementation;
         List<OutcomeCondition> outcomeConditions = actionImplementation.OutcomeConditions;
         if (outcomeConditions != null && outcomeConditions.Count > 0)
         {
-            OutcomeCondition? outcome = outcomeConditions.FirstOrDefault(oc => oc.EncounterResults == Result.encounterResults);
+            OutcomeCondition? outcome = outcomeConditions.FirstOrDefault(oc => oc.EncounterResults == EncounterResults.EncounterFailure);
             List<Outcome> outcomes = outcome.Outcomes;
             return outcomes;
         }
-
         return new();
     }
 

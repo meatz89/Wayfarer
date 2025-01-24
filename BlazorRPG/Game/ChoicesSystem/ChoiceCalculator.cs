@@ -9,22 +9,26 @@
         this.locationPropertyCalculator = new LocationPropertyEffectCalculator();
     }
 
-    public ChoiceCalculationResult CalculateChoiceEffects(EncounterChoice choice, LocationSpotProperties locationProperties, EncounterValues initialEncounterValues)
+    public ChoiceCalculationResult CalculateChoiceEffects(
+        EncounterChoice choice, 
+        LocationSpotProperties locationProperties, 
+        EncounterValues initialEncounterValues)
     {
         // 1. Get base values that are inherent to the choice type
         List<BaseValueChange> choiceBaseChanges = new List<BaseValueChange>();
         List<ValueModification> valueModifications = GameRules.GetChoiceBaseValueEffects(choice);
 
         // 2. Calculate all modifications from game state and effects
-        List<ValueModification> modifications = CalculateAllValueChanges(choice);
+        List<ValueModification> modifications = CalculateAllValueChanges(choice, initialEncounterValues);
         valueModifications.AddRange(modifications);
 
         // 3. Calculate new state after combining base values and modifications
         EncounterValues projectedEncounterState = CalculateNewState(initialEncounterValues, choice, choiceBaseChanges, valueModifications);
-        int energyCost = CalculateEnergyCost(choice, projectedEncounterState, gameState.Player, locationProperties);
+        PlayerState player = gameState.Player;
+        int energyCost = CalculateEnergyCost(choice, projectedEncounterState, player, locationProperties);
 
         // 4. Calculate final requirements, costs and rewards
-        List<Requirement> requirements = CalculateRequirements(valueModifications, choice, gameState.Player, locationProperties, projectedEncounterState);
+        List<Requirement> requirements = CalculateRequirements(valueModifications, choice, player, locationProperties, projectedEncounterState);
         List<Outcome> costs = CalculateCosts(choice, locationProperties);
         List<Outcome> rewards = CalculateRewards(choice, locationProperties);
 
@@ -43,7 +47,7 @@
     }
 
 
-    private int CalculateEnergyCost(EncounterChoice choice, EncounterValues currentValues, PlayerState player, LocationSpotProperties locationProperties)
+    private int CalculateEnergyCost(EncounterChoice choice, EncounterValues initialEncounterValues, PlayerState player, LocationSpotProperties locationProperties)
     {
         int baseEnergyCost = 0; //GameRules.GetBaseEnergyCost(choice.Archetype, choice.Approach);
 
@@ -52,9 +56,9 @@
         // Apply energy cost reductions from modifications, using projected momentum
         int energyReduction = 0;
 
-        if (currentValues.Momentum > 0)
+        if (initialEncounterValues.Momentum > 0)
         {
-            energyReduction += Math.Min(currentValues.Momentum / 3, 3);
+            energyReduction += Math.Min(initialEncounterValues.Momentum / 3, 3);
         }
 
         // Ensure energy cost doesn't go below 0
@@ -64,9 +68,32 @@
         return actualCost;
     }
 
-    private List<ValueModification> CalculateAllValueChanges(EncounterChoice choice)
+    private List<ValueModification> CalculateAllValueChanges(EncounterChoice choice, EncounterValues initialEncounterValues)
     {
         List<ValueModification> modifications = new();
+        
+        bool applyPressure = choice.Approach switch
+        {
+            ChoiceApproaches.Aggressive => applyPressure = true,
+            ChoiceApproaches.Careful => applyPressure = true,
+            ChoiceApproaches.Desperate => applyPressure = true,
+            _ => false
+        };
+
+        if(!applyPressure) return modifications;
+
+        if (initialEncounterValues.Pressure > GameRules.GetArchetypeValue(choice.Archetype, initialEncounterValues))
+        {
+            int reduceBy = initialEncounterValues.Pressure - GameRules.GetArchetypeValue(choice.Archetype, initialEncounterValues);
+            reduceBy = reduceBy / 3;
+            reduceBy = Math.Max(0, reduceBy);
+
+            modifications.Add(new EncounterValueModification(
+                ValueTypes.Outcome,
+                -reduceBy,
+                "High Pressure"));
+
+        }
 
         return modifications;
     }
@@ -105,28 +132,6 @@
         return newState;
     }
 
-    private void ApplyValueChange(EncounterValues state, ValueTypes valueType, int amount)
-    {
-        switch (valueType)
-        {
-            case ValueTypes.Outcome:
-                state.Outcome = Math.Max(0, state.Outcome + amount);
-                break;
-            case ValueTypes.Momentum:
-                state.Momentum = Math.Max(0, state.Momentum + amount);
-                break;
-            case ValueTypes.Insight:
-                state.Insight = Math.Max(0, state.Insight + amount);
-                break;
-            case ValueTypes.Resonance:
-                state.Resonance = Math.Max(0, state.Resonance + amount);
-                break;
-            case ValueTypes.Pressure:
-                state.Pressure = Math.Clamp(state.Pressure + amount, 0, 8);
-                break;
-        }
-    }
-
     private EncounterValues CalculateNewState(
         EncounterValues currentValues,
         EncounterChoice choice,
@@ -143,8 +148,8 @@
     {
         List<Requirement> requirements = GetEnergyRequirements(choice, playerState);
 
-        List<Requirement> baseValueRequirements = GetBaseValueRequirements(valueModifications, choice, playerState, encounterValues);
-        requirements.AddRange(baseValueRequirements);
+        List<Requirement> ValueRequirements = GetValueRequirements(valueModifications, choice, playerState, encounterValues);
+        requirements.AddRange(ValueRequirements);
 
         List<Requirement> propertyRequirements = locationPropertyCalculator
             .CalculateLocationRequirements(choice, locationProperties);
@@ -154,7 +159,7 @@
         return requirements;
     }
 
-    private List<Requirement> GetBaseValueRequirements(List<ValueModification> valueModifications, EncounterChoice choice, PlayerState playerState, EncounterValues encounterValues)
+    private List<Requirement> GetValueRequirements(List<ValueModification> valueModifications, EncounterChoice choice, PlayerState playerState, EncounterValues encounterValues)
     {
         List<Requirement> requirements = new();
 
@@ -279,5 +284,29 @@
         List<Outcome> rewards = new List<Outcome>();
         return rewards;
     }
+
+
+    private void ApplyValueChange(EncounterValues state, ValueTypes valueType, int amount)
+    {
+        switch (valueType)
+        {
+            case ValueTypes.Outcome:
+                state.Outcome = Math.Max(0, state.Outcome + amount);
+                break;
+            case ValueTypes.Momentum:
+                state.Momentum = Math.Max(0, state.Momentum + amount);
+                break;
+            case ValueTypes.Insight:
+                state.Insight = Math.Max(0, state.Insight + amount);
+                break;
+            case ValueTypes.Resonance:
+                state.Resonance = Math.Max(0, state.Resonance + amount);
+                break;
+            case ValueTypes.Pressure:
+                state.Pressure = Math.Clamp(state.Pressure + amount, 0, 8);
+                break;
+        }
+    }
+
 
 }
