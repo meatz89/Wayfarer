@@ -179,15 +179,10 @@ public partial class GameUI : ComponentBase
     private void HandleActionSelection(UserActionOption action)
     {
         if (action.IsDisabled) return; // Prevent action if disabled
-        //else if (action.BasicAction.ActionType == BasicActionTypes.Wait)
-        //{
-        //    GameManager.AdvanceTime();
-        //    CompleteActionExecution();
-        //}
         else
         {
             // Execute the action immediately
-            ActionResult result = GameManager.ExecuteBasicAction(action, action.ActionImplementation);
+            ActionResult result = GameManager.ExecuteBasicAction(action);
             if (result.IsSuccess)
             {
                 CompleteActionExecution();

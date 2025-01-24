@@ -27,18 +27,5 @@
         AvailabilityConditions = availabilityConditions;
     }
 
-    // Method to create an ActionImplementation instance from the template
-    public ActionImplementation CreateActionImplementation()
-    {
-        return new ActionImplementation
-        {
-            Name = this.Name,
-            ActionType = this.ActionType,
-            TimeSlots = new List<TimeSlots>(this.TimeSlots),
-            LocationArchetype = LocationArchetype,
-            CrowdDensity = CrowdDensity,
-            LocationScale = LocationScale,
-            SpotAvailabilityConditions = this.AvailabilityConditions
-        };
-    }
+    
 }

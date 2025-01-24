@@ -1,26 +1,94 @@
-﻿@* NarrativeView.razor *@
-@inject GameManager GameManager
-@inject GameState GameState
+﻿@inherits NarrativeViewBase
 
 <div class="narrative-container">
     <div class="narrative-text">
         @if (ShowResult)
         {
-            @if (Result.encounterResults == EncounterResults.EncounterSuccess)
+            <h3>
+                @(Result.encounterResults switch
+                {
+                    EncounterResults.EncounterSuccess => "Encounter Won!",
+                    EncounterResults.EncounterFailure => "Encounter Lost",
+                    EncounterResults.GameOver => "Game Over",
+                    _ => ""
+                })
+            </h3>
+
+
+            @if (!string.IsNullOrEmpty(Result.EncounterEndMessage))
             {
-                <h3>Encounter Won!</h3>
+                <div class="narrative-message">
+                    @((MarkupString)Result.EncounterEndMessage)
+                </div>
             }
-            else if (Result.encounterResults == EncounterResults.EncounterFailure)
+
+            @if (Result.encounterResults == EncounterResults.EncounterSuccess && Result.encounter.Context.ActionImplementation.Rewards.Any())
             {
-                <h3>Encounter Lost</h3>
+                <div class="tooltip-section">
+                    <h5>Rewards</h5>
+                    <div class="tooltip-list">
+                        @foreach (Outcome reward in Result.encounter.Context.ActionImplementation.Rewards)
+                        {
+                            <div class="tooltip-item">
+                                <div class="tooltip-item-header">
+                                    <div class="tooltip-item-title">
+                                        @GetOutcomeIcon(reward)
+                                        <span class="tooltip-item-name">@reward.GetDescription()</span>
+                                    </div>
+                                    <span class="tooltip-item-value positive-change">
+                                        @reward.GetPreview(GameState.Player)
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
             }
-            else if (Result.encounterResults == EncounterResults.GameOver)
+
+            @if (Result.encounterResults == EncounterResults.EncounterFailure && Result.encounter.Context.ActionImplementation.Costs.Any())
             {
-                <h3>Game Over</h3>
+                <div class="tooltip-section">
+                    <h5>Costs</h5>
+                    <div class="tooltip-list">
+                        @foreach (Outcome cost in Result.encounter.Context.ActionImplementation.Costs)
+                        {
+                            <div class="tooltip-item">
+                                <div class="tooltip-item-header">
+                                    <div class="tooltip-item-title">
+                                        @GetOutcomeIcon(cost)
+                                        <span class="tooltip-item-name">@cost.GetDescription()</span>
+                                    </div>
+                                    <span class="tooltip-item-value negative-change">
+                                        @cost.GetPreview(GameState.Player)
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
             }
-                @* Display any additional information here, e.g., rewards gained, resources lost, etc. *@
+
+            <div class="tooltip-section">
+                <h5>Energy Costs</h5>
+                <div class="tooltip-list">
+                    @foreach (Outcome cost in GetEnergyCosts())
+                    {
+                        <div class="tooltip-item">
+                            <div class="tooltip-item-header">
+                                <div class="tooltip-item-title">
+                                    @GetOutcomeIcon(cost)
+                                    <span class="tooltip-item-name">@cost.GetDescription()</span>
+                                </div>
+                                <span class="tooltip-item-value negative-change">
+                                    @cost.GetPreview(GameState.Player)
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
         }
-        @if (!string.IsNullOrEmpty(NarrativeText))
+        else if (!string.IsNullOrEmpty(NarrativeText))
         {
             <p>@((MarkupString)NarrativeText)</p>
         }
@@ -31,24 +99,3 @@
     </button>
 </div>
 
-@code {
-    [Parameter] public LocationNames LocationName { get; set; }
-    [Parameter] public EventCallback OnNarrativeCompleted { get; set; }
-    // Add these properties:
-    [Parameter] public EncounterResult Result { get; set; }
-    [Parameter] public bool ShowResult { get; set; } = false;
-
-    private string NarrativeText { get; set; }
-
-    protected override void OnParametersSet()
-    {
-        // Fetch the narrative text based on the LocationName or result
-        if (!ShowResult)
-        {
-            NarrativeText = GameManager.GetLocationNarrative(LocationName);
-        }
-        else {
-            NarrativeText = Result.EncounterEndMessage;
-        }
-    }
-}

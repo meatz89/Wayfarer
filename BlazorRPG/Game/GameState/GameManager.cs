@@ -78,14 +78,29 @@ public class GameManager
         List<UserActionOption> options = new List<UserActionOption>();
         foreach (LocationSpot locationSpot in locationSpots)
         {
-            foreach (ActionImplementation action in locationSpot.Actions)
-            {
-                UserActionOption userActionOption = new UserActionOption(default, action.Name, false, action, locationSpot.LocationName, locationSpot.Name, default);
-                options.Add(userActionOption);
-            }
+            CreateActionsForLocationSpot(options, locationSpot);
         }
 
         return options;
+    }
+
+    private static void CreateActionsForLocationSpot(List<UserActionOption> options, LocationSpot locationSpot)
+    {
+        List<ActionImplementation> locationSpotActions = locationSpot.Actions;
+        foreach (ActionImplementation actionImplementation in locationSpotActions)
+        {
+            UserActionOption userActionOption =
+                new UserActionOption(
+                    default,
+                    actionImplementation.Name,
+                    false,
+                    actionImplementation,
+                    locationSpot.LocationName,
+                    locationSpot.Name,
+                    default);
+
+            options.Add(userActionOption);
+        }
     }
 
     public string GetLocationNarrative(LocationNames locationName)
@@ -175,7 +190,15 @@ public class GameManager
             ActionImplementation questAction = step.QuestAction;
             int actionIndex = 1;
 
-            UserActionOption ua = new UserActionOption(actionIndex++, questAction.Name, false, questAction, step.Location, default, step.Character);
+            UserActionOption ua = new UserActionOption(
+                actionIndex++, 
+                questAction.Name, 
+                false, 
+                questAction, 
+                step.Location, 
+                default, 
+                step.Character);
+
             userActions.Add(ua);
         }
 
@@ -243,15 +266,15 @@ public class GameManager
         gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
     }
 
-    public ActionResult ExecuteBasicAction(UserActionOption action, ActionImplementation actionImplementation)
+    public ActionResult ExecuteBasicAction(UserActionOption action)
     {
         Location location = LocationSystem.GetLocation(action.Location);
         gameState.Actions.SetCurrentUserAction(action);
 
-        if (!ContextEngine.CanExecuteInContext(actionImplementation))
+        if (!ContextEngine.CanExecuteInContext(action.ActionImplementation))
             return ActionResult.Failure("Current context prevents this action");
 
-        Encounter encounter = GenerateEncounter(actionImplementation, location, gameState.Player, action.LocationSpot);
+        Encounter encounter = GenerateEncounter(action.ActionImplementation, location, gameState.Player, action.LocationSpot);
         if (encounter != null)
         {
             // Set as active encounter
@@ -263,11 +286,14 @@ public class GameManager
             return ActionResult.Success("Action started!", new ActionResultMessages());
         }
 
-        return GenerateNormalAction(action, actionImplementation);
+        ActionResult actionResult = ExecuteAction(action);
+        return actionResult;
     }
 
-    private ActionResult GenerateNormalAction(UserActionOption action, ActionImplementation basicAction)
+    private ActionResult ExecuteAction(UserActionOption action)
     {
+        ActionImplementation basicAction = action.ActionImplementation;
+
         // 1. Check context requirements
         if (!ContextEngine.CanExecuteInContext(basicAction))
             return ActionResult.Failure("Current context prevents this action");
@@ -495,12 +521,21 @@ public class GameManager
         {
             foreach (LocationSpot locationSpot in locationSpots)
             {
-                if (actionTemplate.IsValidForSpot(location, locationSpot))
-                {
-                    ActionImplementation actionImplementation = ActionFactory.CreateAction(actionTemplate, location);
-                    locationSpot.AddAction(actionImplementation);
-                }
+                CreateActionForLocationSpot(location, actionTemplate, locationSpot);
             }
         }
+    }
+
+    private static void CreateActionForLocationSpot(Location location, ActionTemplate actionTemplate, LocationSpot locationSpot)
+    {
+        if (!actionTemplate.IsValidForSpot(location, locationSpot))
+        {
+            return;
+        }
+
+        ActionImplementation actionImplementation = 
+            ActionFactory.CreateAction(actionTemplate, location);
+
+        locationSpot.AddAction(actionImplementation);
     }
 }

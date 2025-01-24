@@ -12,14 +12,14 @@
     public bool CanExecuteInContext(ActionImplementation basicAction)
     {
         // Create a copy of the action to apply modifiers
-        ActionImplementation modifiedAction = ApplyModifiers(basicAction);
+        ActionImplementation modifiedAction = CreateModifiedAction(basicAction);
         return modifiedAction.CanExecute(gameState);
     }
 
     public ActionImplementation ProcessActionOutcome(ActionImplementation basicAction)
     {
         // Apply modifiers before processing the action
-        ActionImplementation modifiedAction = ApplyModifiers(basicAction);
+        ActionImplementation modifiedAction = CreateModifiedAction(basicAction);
 
         // Process costs first
         foreach (Outcome cost in modifiedAction.Costs)
@@ -40,37 +40,7 @@
         return modifiedAction;
     }
 
-    public ActionImplementation GetModifiedAction(ActionImplementation originalAction)
-    {
-        // Create a new action with the same base properties
-        ActionImplementation modifiedAction = new ActionImplementation
-        {
-            ActionType = originalAction.ActionType,
-            Name = originalAction.Name,
-
-            // Create new lists to avoid modifying the original
-            TimeSlots = new List<TimeSlots>(originalAction.TimeSlots),
-            Requirements = new List<Requirement>(originalAction.Requirements),
-            Costs = new List<Outcome>(originalAction.Costs),
-            Rewards = new List<Outcome>(originalAction.Rewards)
-        };
-
-        // Get all currently active modifiers
-        List<ActionModifier> activeModifiers = GetActiveModifiers();
-
-        // Apply each applicable modifier
-        foreach (ActionModifier modifier in activeModifiers)
-        {
-            if (IsModifierApplicable(modifier, modifiedAction))
-            {
-                modifier.ApplyModification(modifiedAction);
-            }
-        }
-
-        return modifiedAction;
-    }
-
-    private ActionImplementation ApplyModifiers(ActionImplementation originalAction)
+    private ActionImplementation CreateModifiedAction(ActionImplementation originalAction)
     {
         // Create a new action with the same base properties
         ActionImplementation modifiedAction = new ActionImplementation
