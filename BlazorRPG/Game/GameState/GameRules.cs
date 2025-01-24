@@ -334,6 +334,8 @@
                 break;
         }
 
+        modifications.Add(new EncounterValueModification(ValueTypes.Pressure, 1,
+                $"Base"));
         return modifications;
     }
 
@@ -352,7 +354,7 @@
         }
         if (approach == ChoiceApproaches.Tactical)
         {
-            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 4,
+            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 5,
                 $"{choice.Archetype} {choice.Approach}"));
 
             modifications.Add(new EncounterValueModification(ValueTypes.Momentum, -4,
@@ -368,7 +370,10 @@
         }
         else if (approach == ChoiceApproaches.Careful)
         {
-            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -1,
+            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, -1,
+                $"{choice.Archetype} {choice.Approach}"));
+
+            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -2,
                 $"{choice.Archetype} {choice.Approach}"));
 
             modifications.Add(new EncounterValueModification(ValueTypes.Momentum, 3,
@@ -384,10 +389,10 @@
         }
         else if (approach == ChoiceApproaches.Desperate)
         {
-            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, -2,
+            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, -1,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -4,
+            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -2,
                 $"{choice.Archetype} {choice.Approach}"));
         }
     }
@@ -407,7 +412,7 @@
         }
         if (approach == ChoiceApproaches.Tactical)
         {
-            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 4,
+            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 5,
                 $"{choice.Archetype} {choice.Approach}"));
 
             modifications.Add(new EncounterValueModification(ValueTypes.Insight, -4,
@@ -423,7 +428,10 @@
         }
         else if (approach == ChoiceApproaches.Careful)
         {
-            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -1,
+            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, -1,
+                $"{choice.Archetype} {choice.Approach}"));
+
+            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -2,
                 $"{choice.Archetype} {choice.Approach}"));
 
             modifications.Add(new EncounterValueModification(ValueTypes.Insight, 3,
@@ -443,7 +451,7 @@
             modifications.Add(new EncounterValueModification(ValueTypes.Outcome, -2,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -4,
+            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -3,
                 $"{choice.Archetype} {choice.Approach}"));
         }
     }
@@ -463,7 +471,7 @@
         }
         if (approach == ChoiceApproaches.Tactical)
         {
-            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 4,
+            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, 5,
                 $"{choice.Archetype} {choice.Approach}"));
 
             modifications.Add(new EncounterValueModification(ValueTypes.Resonance, -4,
@@ -478,7 +486,10 @@
         }
         else if (approach == ChoiceApproaches.Careful)
         {
-            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -1,
+            modifications.Add(new EncounterValueModification(ValueTypes.Outcome, -1,
+                $"{choice.Archetype} {choice.Approach}"));
+
+            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -2,
                 $"{choice.Archetype} {choice.Approach}"));
 
             modifications.Add(new EncounterValueModification(ValueTypes.Resonance, 3,
@@ -497,7 +508,7 @@
             modifications.Add(new EncounterValueModification(ValueTypes.Outcome, -2,
                 $"{choice.Archetype} {choice.Approach}"));
 
-            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -4,
+            modifications.Add(new EncounterValueModification(ValueTypes.Pressure, -3,
                 $"{choice.Archetype} {choice.Approach}"));
         }
     }

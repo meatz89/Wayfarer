@@ -211,6 +211,7 @@
         // Only generate desperate choices if the combination hasn't been used
         if (!usedCombinations.Any(c => c.archetype == pattern.PrimaryArchetype && c.approach == ChoiceApproaches.Desperate))
         {
+            choices.Add(CreateChoice(0, pattern.PrimaryArchetype, ChoiceApproaches.Careful));
             choices.Add(CreateChoice(0, pattern.PrimaryArchetype, ChoiceApproaches.Desperate));
             usedCombinations.Add((pattern.PrimaryArchetype, ChoiceApproaches.Desperate));
         }
