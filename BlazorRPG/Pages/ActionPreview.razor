@@ -24,25 +24,30 @@
                         </div>
                     </div>
                 }
-                <div class="tooltip-item">
-                    <div class="tooltip-item-header">
-                        <div class="tooltip-item-title">
-                            @GetValueTypeIcon(ChangeTypes.Outcome)
-                            <span class="tooltip-item-name">Success Requirement: Outcome ≥ @(10 + CurrentAction.LocationDifficulty)</span>
-                        </div>
+            </div>
+        </div>
+    }
+    <div class="tooltip-section">
+        <h5>Encounter Target</h5>
+        <div class="tooltip-list">
+            <div class="tooltip-item">
+                <div class="tooltip-item-header">
+                    <div class="tooltip-item-title">
+                        @GetValueTypeIcon(ChangeTypes.Outcome)
+                        <span class="tooltip-item-name">Success When: Outcome ≥ @(10 + CurrentAction.LocationDifficulty)</span>
                     </div>
                 </div>
-                <div class="tooltip-item">
-                    <div class="tooltip-item-header">
-                        <div class="tooltip-item-title">
-                            @GetValueTypeIcon(ChangeTypes.Outcome)
-                            <span class="tooltip-item-name">Failure Condition: Outcome ≤ 0</span>
-                        </div>
+            </div>
+            <div class="tooltip-item">
+                <div class="tooltip-item-header">
+                    <div class="tooltip-item-title">
+                        @GetValueTypeIcon(ChangeTypes.Outcome)
+                        <span class="tooltip-item-name">Failure When: Outcome ≤ 0</span>
                     </div>
                 </div>
             </div>
         </div>
-    }
+    </div>
 
     <div class="tooltip-section">
         <h5>Energy Costs</h5>
@@ -65,7 +70,7 @@
     </div>
 
     <div class="tooltip-section">
-        <h5>Success Rewards</h5>
+        <h5>On Success</h5>
         <div class="tooltip-list">
             @foreach (Outcome reward in CurrentAction.ActionImplementation.SuccessOutcomes)
             {
@@ -85,7 +90,7 @@
     </div>
 
     <div class="tooltip-section">
-        <h5>Failure Costs</h5>
+        <h5>On Failure</h5>
         <div class="tooltip-list">
             @foreach (Outcome cost in CurrentAction.ActionImplementation.FailureOutcomes)
             {
