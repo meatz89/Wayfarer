@@ -4,6 +4,7 @@
     private string description;
     private List<TimeSlots> timeSlots = new();
     public List<Requirement> requirements = new();
+    public List<Outcome> energyCosts = new();
     public List<Outcome> costs = new();
     public List<Outcome> rewards = new();
     public int hoursPassed = 1;
@@ -48,7 +49,7 @@
     public ActionBuilder ExpendsEnergy(int energyCost, EnergyTypes energyType)
     {
         requirements.Add(new EnergyRequirement(energyType, energyCost));
-        costs.Add(new EnergyOutcome(energyType, -energyCost));
+        energyCosts.Add(new EnergyOutcome(energyType, -energyCost));
         return this;
     }
 
@@ -134,9 +135,8 @@
             Name = description,
             TimeSlots = timeSlots,
             Requirements = requirements,
-            FailureOutcomes = costs,
-            SuccessOutcomes = rewards,
+            EnergyCosts = energyCosts,
+            OutcomeConditions = new()
         };
     }
-
 }

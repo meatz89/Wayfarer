@@ -9,8 +9,8 @@
     public TimeSlots TimeSlot { get; }
     public LocationSpotProperties LocationProperties { get; }
     public PlayerState PlayerState { get; }
-    public EncounterValues CurrentValues { get; set; } // Note: Now settable
-    public int StageNumber { get; set; } // Note: Now settable
+    public EncounterValues CurrentValues { get; set; }
+    public int StageNumber { get; set; } 
     public int LocationDifficulty { get; }
     public List<LocationPropertyChoiceEffect> LocationPropertyChoiceEffects { get; }
 

@@ -189,7 +189,7 @@ public class GameRules
 
     public static List<Outcome> CreateCostsForAction(ActionTemplate template)
     {
-        var costs = new List<Outcome>();
+        List<Outcome> costs = new List<Outcome>();
         switch (template.ActionType)
         {
             case BasicActionTypes.Labor:
@@ -215,7 +215,7 @@ public class GameRules
 
     public static List<Outcome> CreateRewardsForTemplate(ActionTemplate template)
     {
-        var rewards = new List<Outcome>();
+        List<Outcome> rewards = new List<Outcome>();
         switch (template.ActionType)
         {
             case BasicActionTypes.Labor:
@@ -243,10 +243,9 @@ public class GameRules
         return rewards;
     }
 
-    public static int GetBaseEnergyCost(BasicActionTypes actionType)
+    public static EnergyTypes GetEnergyTypeForAction(BasicActionTypes actionType)
     {
         EnergyTypes energyType = EnergyTypes.Social;
-
         energyType = actionType switch
         {
             BasicActionTypes.Labor => EnergyTypes.Physical,
@@ -258,13 +257,18 @@ public class GameRules
             BasicActionTypes.Investigate => EnergyTypes.Focus,
             BasicActionTypes.Study => EnergyTypes.Focus,
             BasicActionTypes.Reflect => EnergyTypes.Focus,
-            
+
             BasicActionTypes.Mingle => EnergyTypes.Social,
             BasicActionTypes.Discuss => EnergyTypes.Social,
             BasicActionTypes.Persuade => EnergyTypes.Social,
             BasicActionTypes.Perform => EnergyTypes.Social,
         };
+        return energyType;
+    }
 
+    public static int GetBaseEnergyCost(BasicActionTypes actionType)
+    {
+        
         int energycost = 2;
         energycost = actionType switch
         {

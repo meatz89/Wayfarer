@@ -1,56 +1,42 @@
-﻿
-using Microsoft.Extensions.Hosting;
-using System;
-
-public static class ActionFactory
+﻿public static class ActionFactory
 {
     public static ActionImplementation CreateAction(ActionTemplate template, Location location)
     {
-        // Create a new instance based on the template
-        ActionImplementation action = CreateActionImplementationFromTemplate(template);
+        ActionBuilder builder = new ActionBuilder()
+            .ForAction(template.ActionType)
+            .WithDescription(template.Name);
 
-        // Add rewards based on action type
-        switch (action.ActionType)
+        foreach (TimeSlots timeSlot in template.TimeSlots)
         {
-            case BasicActionTypes.Labor:
-                action.SuccessOutcomes.Add(new CoinsOutcome(3)); // Add 3 coins
-                break;
-            case BasicActionTypes.Gather:
-                break;
+            builder.AddTimeSlot(timeSlot);
         }
 
-        return action;
-    }
+        // Add energy costs
+        int energyCost = GameRules.GetBaseEnergyCost(template.ActionType);
+        builder.ExpendsEnergy(energyCost, GameRules.GetEnergyTypeForAction(template.ActionType));
 
-    private static ActionImplementation CreateActionImplementationFromTemplate(ActionTemplate template)
-    {
-        ActionImplementation actionImplementation = new ActionImplementation
+        // Add success/failure conditions
+        OutcomeCondition failureCondition = new OutcomeCondition
         {
-            Name = template.Name,
-            ActionType = template.ActionType,
-            TimeSlots = new List<TimeSlots>(template.TimeSlots),
-            SpotAvailabilityConditions = template.AvailabilityConditions,
-            LocationArchetype = template.LocationArchetype,
-            CrowdDensity = template.CrowdDensity,
-            LocationScale = template.LocationScale,
-            FailureOutcomes = GameRules.CreateCostsForAction(template),
-            SuccessOutcomes = GameRules.CreateRewardsForTemplate(template),
-            EnergyCosts = CreateEnergyCostsForAction(template),
+            ValueType = ValueTypes.Outcome,
+            MaxValue = 0,
+            MinValue = int.MinValue,
+            Outcomes = GameRules.CreateCostsForAction(template)
         };
+
+        OutcomeCondition successCondition = new OutcomeCondition
+        {
+            ValueType = ValueTypes.Outcome,
+            MinValue = 10 + location.DifficultyLevel,
+            MaxValue = int.MaxValue,
+            Outcomes = GameRules.CreateRewardsForTemplate(template)
+        };
+
+        ActionImplementation actionImplementation = builder.Build();
+        actionImplementation.OutcomeConditions.Add(failureCondition);
+        actionImplementation.OutcomeConditions.Add(successCondition);
+
         return actionImplementation;
     }
-
-    private static List<Outcome> CreateEnergyCostsForAction(ActionTemplate template)
-    {
-        var energyCosts = new List<Outcome>();
-
-        int cost = GameRules.GetBaseEnergyCost(template.ActionType);
-
-        var energy = new EnergyOutcome(EnergyTypes.Social, -cost);
-        energyCosts.Add(energy);
-
-        return energyCosts;
-    }
-
 
 }

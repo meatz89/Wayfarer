@@ -7,7 +7,7 @@ public class GameManager
     public EncounterSystem EncounterSystem { get; }
     public LocationSystem LocationSystem { get; }
     public ActionValidator ActionValidator { get; }
-    public ActionSystem ContextEngine { get; }
+    public ActionSystem ActionSystem { get; }
     public QuestSystem QuestSystem { get; }
     public ItemSystem ItemSystem { get; }
     public MessageSystem MessageSystem { get; }
@@ -35,7 +35,7 @@ public class GameManager
         this.EncounterSystem = encounterSystem;
         this.LocationSystem = locationSystem;
         this.ActionValidator = actionValidator;
-        this.ContextEngine = actionSystem;
+        this.ActionSystem = actionSystem;
         this.QuestSystem = questSystem;
         this.ItemSystem = itemSystem;
         this.MessageSystem = messageSystem;
@@ -131,11 +131,7 @@ public class GameManager
         EncounterResult encounterResult = EncounterSystem.ExecuteChoice(encounter, choice, locationSpot.SpotProperties);
         gameState.Actions.LastEncounterResult = encounterResult;
 
-        if (encounterResult.encounterResults != EncounterResults.Ongoing)
-        {
-            gameState.Actions.CompleteActiveEncounter();
-        }
-        else
+        if (encounterResult.encounterResults == EncounterResults.Ongoing)
         {
             if (IsGameOver(gameState.Player))
             {
@@ -149,6 +145,11 @@ public class GameManager
                 };
             }
             ProceedEncounter(encounter);
+        }
+        else
+        {
+            ApplyActionOutcomes(encounter.Context);
+            gameState.Actions.CompleteActiveEncounter();
         }
 
         return encounterResult;
@@ -178,7 +179,6 @@ public class GameManager
         gameState.Actions.SetGlobalActions(userActions);
     }
 
-
     public void CreateQuestActions()
     {
         List<UserActionOption> userActions = new List<UserActionOption>();
@@ -192,12 +192,12 @@ public class GameManager
             int actionIndex = 1;
 
             UserActionOption ua = new UserActionOption(
-                actionIndex++, 
-                questAction.Name, 
-                false, 
-                questAction, 
-                step.Location, 
-                default, 
+                actionIndex++,
+                questAction.Name,
+                false,
+                questAction,
+                step.Location,
+                default,
                 step.Character,
                 1
                 );
@@ -207,7 +207,6 @@ public class GameManager
 
         gameState.Actions.AddQuestActions(userActions);
     }
-
 
     private void UpdateActiveQuests()
     {
@@ -271,52 +270,44 @@ public class GameManager
 
     public ActionResult ExecuteBasicAction(UserActionOption action)
     {
+        if (!ActionSystem.CanExecuteInContext(action.ActionImplementation))
+            return ActionResult.Failure("Current context prevents this action");
+
         Location location = LocationSystem.GetLocation(action.Location);
         gameState.Actions.SetCurrentUserAction(action);
 
-        if (!ContextEngine.CanExecuteInContext(action.ActionImplementation))
-            return ActionResult.Failure("Current context prevents this action");
-
         Encounter encounter = GenerateEncounter(action.ActionImplementation, location, gameState.Player, action.LocationSpot);
-        if (encounter != null)
-        {
-            // Set as active encounter
-            EncounterSystem.SetActiveEncounter(encounter);
+        EncounterSystem.SetActiveEncounter(encounter);
+        SetEncounterChoices(encounter);
 
-            // Add this line to populate the initial choices
-            SetEncounterChoices(encounter);
-
-            return ActionResult.Success("Action started!", new ActionResultMessages());
-        }
-
-        ActionResult actionResult = ExecuteAction(action);
-        return actionResult;
+        return ActionResult.Success("Encounter started!", new ActionResultMessages());
     }
 
-    private ActionResult ExecuteAction(UserActionOption action)
+    public void ApplyActionOutcomes(EncounterContext context)
     {
-        ActionImplementation basicAction = action.ActionImplementation;
+        ActionImplementation action = context.ActionImplementation;
+        foreach (Outcome energyCost in action.EnergyCosts)
+        {
+            energyCost.Apply(gameState.Player);
+            MessageSystem.AddOutcome(energyCost);
+        }
 
-        // 1. Check context requirements
-        if (!ContextEngine.CanExecuteInContext(basicAction))
-            return ActionResult.Failure("Current context prevents this action");
+        foreach (OutcomeCondition condition in action.OutcomeConditions)
+        {
+            bool hasMinValue = condition.MinValue != int.MinValue;
+            bool hasMaxValue = condition.MaxValue != int.MaxValue;
 
-        // 2. Update quest progress if applicable
-        QuestSystem.ProcessAction(basicAction);
-
-        // 3. Apply character relationship effects
-        //CharacterSystem.ProcessActionImpact(basicAction);
-
-        // 4. Execute outcomes and check if day change is needed
-        ActionImplementation modifiedAction = ContextEngine.ProcessActionOutcome(basicAction);
-
-        ActionResultMessages allMessages = MessageSystem.GetAndClearChanges();
-        gameState.Actions.SetLastActionResultMessages(allMessages);
-
-        LocationNames location = action.Location;
-        bool stillAlive = AdvanceTime(1); // Normal time advance
-
-        return ActionResult.Success("Action success!", allMessages);
+            if ((!hasMinValue && !hasMaxValue) ||
+                (hasMinValue && context.CurrentValues.Outcome >= condition.MinValue) ||
+                (hasMaxValue && context.CurrentValues.Outcome <= condition.MaxValue))
+            {
+                foreach (Outcome outcome in condition.Outcomes)
+                {
+                    outcome.Apply(gameState.Player);
+                    MessageSystem.AddOutcome(outcome);
+                }
+            }
+        }
     }
 
     public ActionResult TravelToLocation(LocationNames locationName)
@@ -508,7 +499,7 @@ public class GameManager
         return Player.Health > Player.MinHealth;
     }
 
-    private static void PopulateLocationSpotActions(
+    private void PopulateLocationSpotActions(
         Location location,
         List<ActionTemplate> allActionTemplates,
         List<LocationSpot> locationSpots)
@@ -529,16 +520,16 @@ public class GameManager
         }
     }
 
-    private static void CreateActionForLocationSpot(Location location, ActionTemplate actionTemplate, LocationSpot locationSpot)
+    private void CreateActionForLocationSpot(Location location, ActionTemplate actionTemplate, LocationSpot locationSpot)
     {
         if (!actionTemplate.IsValidForSpot(location, locationSpot))
         {
             return;
         }
 
-        ActionImplementation actionImplementation = 
-            ActionFactory.CreateAction(actionTemplate, location);
+        ActionImplementation baseAction = ActionFactory.CreateAction(actionTemplate, location);
+        ActionImplementation modifiedAction = ActionSystem.ModifyAction(baseAction);
 
-        locationSpot.AddAction(actionImplementation);
+        locationSpot.AddAction(modifiedAction);
     }
 }

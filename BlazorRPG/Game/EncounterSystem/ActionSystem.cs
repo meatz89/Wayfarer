@@ -1,4 +1,5 @@
-﻿public class ActionSystem
+﻿
+public class ActionSystem
 {
     private readonly GameState gameState;
     private readonly MessageSystem messageSystem;
@@ -8,67 +9,43 @@
         this.gameState = gameState;
         this.messageSystem = messageSystem;
     }
-
     public bool CanExecuteInContext(ActionImplementation basicAction)
     {
-        // Create a copy of the action to apply modifiers
-        ActionImplementation modifiedAction = CreateModifiedAction(basicAction);
+        ActionImplementation modifiedAction = ModifyAction(basicAction);
         return modifiedAction.CanExecute(gameState);
     }
 
-    public ActionImplementation ProcessActionOutcome(ActionImplementation basicAction)
+    public ActionImplementation ModifyAction(ActionImplementation originalAction)
     {
-        // Apply modifiers before processing the action
-        ActionImplementation modifiedAction = CreateModifiedAction(basicAction);
-
-        // Process costs first
-        foreach (Outcome cost in modifiedAction.FailureOutcomes)
-        {
-            cost.Apply(gameState.Player);
-            messageSystem.AddOutcome(cost);
-        }
-
-        // Then process rewards
-        foreach (Outcome reward in modifiedAction.SuccessOutcomes)
-        {
-            reward.Apply(gameState.Player);
-            messageSystem.AddOutcome(reward);
-        }
-
-        // Check if this action triggered a day change
-        bool dayChange = modifiedAction.FailureOutcomes.Any(o => o is DayChangeOutcome);
-        return modifiedAction;
-    }
-
-    private ActionImplementation CreateModifiedAction(ActionImplementation originalAction)
-    {
-        // Create a new action with the same base properties
         ActionImplementation modifiedAction = new ActionImplementation
         {
             ActionType = originalAction.ActionType,
             Name = originalAction.Name,
-
-            // Create new lists to avoid modifying the original
             TimeSlots = new List<TimeSlots>(originalAction.TimeSlots),
-            FailureOutcomes = new List<Outcome>(originalAction.FailureOutcomes),
-            SuccessOutcomes = new List<Outcome>(originalAction.SuccessOutcomes)
+            Requirements = new List<Requirement>(originalAction.Requirements),
+            EnergyCosts = new List<Outcome>(originalAction.EnergyCosts),
+            OutcomeConditions = originalAction.OutcomeConditions.Select(oc =>
+                new OutcomeCondition
+                {
+                    ValueType = oc.ValueType,
+                    MinValue = oc.MinValue,
+                    MaxValue = oc.MaxValue,
+                    Outcomes = new List<Outcome>(oc.Outcomes)
+                }).ToList(),
+            LocationArchetype = originalAction.LocationArchetype,
+            CrowdDensity = originalAction.CrowdDensity,
+            LocationScale = originalAction.LocationScale,
+            SpotAvailabilityConditions = new List<LocationPropertyCondition>(originalAction.SpotAvailabilityConditions)
         };
 
-        // Get all currently active modifiers
-        List<ActionModifier> activeModifiers = GetActiveModifiers();
-
-        // Apply each applicable modifier
-        foreach (ActionModifier modifier in activeModifiers)
+        foreach (ActionModifier modifier in GetActiveModifiers())
         {
             if (IsModifierApplicable(modifier, modifiedAction))
-            {
                 modifier.ApplyModification(modifiedAction);
-            }
         }
 
         return modifiedAction;
     }
-
     public List<ActionModifier> GetActiveModifiers()
     {
         List<ActionModifier> modifiers = new();
@@ -86,6 +63,21 @@
         }
 
         return modifiers;
+    }
+
+    public bool ShouldApplyCondition(OutcomeCondition condition, EncounterContext context)
+    {
+        int currentValue = condition.ValueType switch
+        {
+            ValueTypes.Momentum => context.CurrentValues.Momentum,
+            ValueTypes.Insight => context.CurrentValues.Insight,
+            ValueTypes.Resonance => context.CurrentValues.Resonance,
+            ValueTypes.Outcome => context.CurrentValues.Outcome,
+            ValueTypes.Pressure => context.CurrentValues.Pressure,
+            _ => 0
+        };
+
+        return currentValue >= condition.MinValue && currentValue <= condition.MaxValue;
     }
 
     private bool IsModifierApplicable(ActionModifier modifier, ActionImplementation action)

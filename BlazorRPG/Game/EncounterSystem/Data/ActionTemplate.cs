@@ -27,5 +27,5 @@
         AvailabilityConditions = availabilityConditions;
     }
 
-    
+
 }

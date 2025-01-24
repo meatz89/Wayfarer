@@ -20,31 +20,16 @@ public partial class NarrativeViewBase : ComponentBase
         else
         {
             NarrativeText = Result.EncounterEndMessage;
-            ProcessOutcomes();
         }
     }
 
-    public void ProcessOutcomes()
+    public List<Outcome> GetActionOutcomes()
     {
-        if (Result.encounterResults == EncounterResults.EncounterSuccess)
-        {
-            foreach (Outcome reward in Result.encounter.Context.ActionImplementation.SuccessOutcomes)
-            {
-                reward.Apply(GameState.Player);
-            }
-        }
-        else if (Result.encounterResults == EncounterResults.EncounterFailure)
-        {
-            foreach (Outcome cost in Result.encounter.Context.ActionImplementation.FailureOutcomes)
-            {
-                cost.Apply(GameState.Player);
-            }
-        }
-
-        foreach (Outcome cost in GetEnergyCosts())
-        {
-            cost.Apply(GameState.Player);
-        }
+        EncounterContext context = Result.encounter.Context;
+        ActionImplementation actionImplementation = context.ActionImplementation;
+        List<OutcomeCondition> outcomeConditions = actionImplementation.OutcomeConditions;
+        List<Outcome> outcomes = outcomeConditions.FirstOrDefault(oc => oc.EncounterResults == Result.encounterResults).Outcomes;
+        return outcomes;
     }
 
     public List<Outcome> GetEnergyCosts()

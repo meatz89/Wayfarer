@@ -15,6 +15,23 @@ public partial class ActionPreviewBase : ComponentBase
         return name;
     }
 
+    public List<OutcomeCondition> GetOutcomeConditions()
+    {
+        return CurrentAction.ActionImplementation.OutcomeConditions;
+    }
+
+    public string GetConditionDescription(OutcomeCondition condition)
+    {
+        if (condition.MaxValue == int.MaxValue)
+            return $"{condition.ValueType} ≥ {condition.MinValue}";
+        else if (condition.MinValue == int.MinValue)
+            return $"{condition.ValueType} ≤ {condition.MaxValue}";
+        return $"{condition.MinValue} ≤ {condition.ValueType} ≤ {condition.MaxValue}";
+    }
+
+    public ChangeTypes ConvertValueTypeToChangeType(ValueTypes valueType) =>
+    (ChangeTypes)Enum.Parse(typeof(ChangeTypes), valueType.ToString());
+
     // Now we work directly with our strongly-typed classes
     public List<string> GetRequirementDescriptions()
     {
@@ -28,28 +45,6 @@ public partial class ActionPreviewBase : ComponentBase
             if (isSatisfied) { continue; }
             string color = isSatisfied ? "positive" : "negative";
             descriptions.Add($"<span class='{color}'>{description}</span>");
-        }
-        return descriptions;
-    }
-
-    public List<string> GetOutcomeCostsDescriptions()
-    {
-        List<string> descriptions = new();
-        ActionImplementation basicAction = CurrentAction.ActionImplementation;
-        foreach (Outcome outcome in basicAction.FailureOutcomes)
-        {
-            string description = outcome.GetDescription();
-            string preview = outcome.GetPreview(GameState.Player);
-
-            // Special handling for DayChangeOutcome to make it stand out
-            if (outcome is DayChangeOutcome)
-            {
-                descriptions.Add($"<strong>{description}</strong> {preview}");
-            }
-            else
-            {
-                descriptions.Add($"{description} {preview}");
-            }
         }
         return descriptions;
     }

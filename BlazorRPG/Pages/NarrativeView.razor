@@ -22,51 +22,25 @@
                 </div>
             }
 
-            @if (Result.encounterResults == EncounterResults.EncounterSuccess && Result.encounter.Context.ActionImplementation.SuccessOutcomes.Any())
-            {
-                <div class="tooltip-section">
-                    <h5>Rewards</h5>
-                    <div class="tooltip-list">
-                        @foreach (Outcome reward in Result.encounter.Context.ActionImplementation.SuccessOutcomes)
-                        {
-                            <div class="tooltip-item">
-                                <div class="tooltip-item-header">
-                                    <div class="tooltip-item-title">
-                                        @GetOutcomeIcon(reward)
-                                        <span class="tooltip-item-name">@reward.GetDescription()</span>
-                                    </div>
-                                    <span class="tooltip-item-value positive-change">
-                                        @reward.GetPreview(GameState.Player)
-                                    </span>
+            <div class="tooltip-section">
+                <h5>Rewards</h5>
+                <div class="tooltip-list">
+                    @foreach (Outcome reward in GetActionOutcomes())
+                    {
+                        <div class="tooltip-item">
+                            <div class="tooltip-item-header">
+                                <div class="tooltip-item-title">
+                                    @GetOutcomeIcon(reward)
+                                    <span class="tooltip-item-name">@reward.GetDescription()</span>
                                 </div>
+                                <span class="tooltip-item-value positive-change">
+                                    @reward.GetPreview(GameState.Player)
+                                </span>
                             </div>
-                        }
-                    </div>
+                        </div>
+                    }
                 </div>
-            }
-
-            @if (Result.encounterResults == EncounterResults.EncounterFailure && Result.encounter.Context.ActionImplementation.FailureOutcomes.Any())
-            {
-                <div class="tooltip-section">
-                    <h5>Costs</h5>
-                    <div class="tooltip-list">
-                        @foreach (Outcome cost in Result.encounter.Context.ActionImplementation.FailureOutcomes)
-                        {
-                            <div class="tooltip-item">
-                                <div class="tooltip-item-header">
-                                    <div class="tooltip-item-title">
-                                        @GetOutcomeIcon(cost)
-                                        <span class="tooltip-item-name">@cost.GetDescription()</span>
-                                    </div>
-                                    <span class="tooltip-item-value negative-change">
-                                        @cost.GetPreview(GameState.Player)
-                                    </span>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
+            </div>
 
             <div class="tooltip-section">
                 <h5>Energy Costs</h5>
