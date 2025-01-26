@@ -275,7 +275,7 @@
     {
     }
 
-    public bool HasStatus(PlayerStatusTypes status)
+    public bool HasStatus(PlayerStatus status)
     {
         return true;
     }

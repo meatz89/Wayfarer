@@ -1,24 +1,28 @@
 ﻿
 public class PlayerStatusSystem
 {
-    private List<PlayerStatusTypes> activeStatusList = new() { PlayerStatusTypes.Wet, PlayerStatusTypes.Cold };
+    private List<PlayerStatus> activeStatusList = new() { 
+        PlayerStatus.COLD,
+        PlayerStatus.TRUSTED,
+        PlayerStatus.EXHAUSTED
+    };
 
-    public void ApplyStatus(PlayerStatusTypes status)
+    public void ApplyStatus(PlayerStatus status)
     {
 
     }
 
-    public void RemoveStatus(PlayerStatusTypes status)
+    public void RemoveStatus(PlayerStatus status)
     {
 
     }
 
-    public bool HasStatus(PlayerStatusTypes status)
+    public bool HasStatus(PlayerStatus status)
     {
         return true;
     }
 
-    public List<PlayerStatusTypes> GetActiveStatusList()
+    public List<PlayerStatus> GetActiveStatusList()
     {
         return activeStatusList;
     }

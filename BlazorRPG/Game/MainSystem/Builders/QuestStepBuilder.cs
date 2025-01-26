@@ -49,7 +49,7 @@
         return this;
     }
 
-    public QuestStepBuilder RequiresStatus(PlayerStatusTypes status)
+    public QuestStepBuilder RequiresStatus(PlayerStatus status)
     {
         StatusRequirement item = new StatusRequirement(status);
         requirements.Add(item);

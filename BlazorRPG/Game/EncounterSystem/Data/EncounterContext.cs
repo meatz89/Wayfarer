@@ -28,7 +28,7 @@
         int locationDifficulty,
         List<LocationPropertyChoiceEffect> choiceEffects,
         int playerLevel,
-        List<PlayerStatusTypes> playerStatusTypes
+        List<PlayerStatus> playerStatusTypes
         )
     {
         ActionImplementation = actionImplementation;

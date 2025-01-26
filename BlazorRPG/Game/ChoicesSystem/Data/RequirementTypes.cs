@@ -36,9 +36,14 @@
     Metal,
 
     //Player Status
-    Wet,
-    Cold,
-    Hungry,
-    Tired,
-    Injured,
+    COLD,
+    HUNGRY,
+    INJURED,
+    EXHAUSTED,
+    STRESSED,
+    SHUNNED,
+    UNTRUSTWORTHY,
+    NEUTRAL,
+    TRUSTED,
+    RESPECTED,
 }

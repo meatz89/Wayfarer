@@ -4,7 +4,7 @@
         int difficulty,
         int playerLevel,
         LocationSpotProperties locationProperties,
-        List<PlayerStatusTypes> playerStatusTypes
+        List<PlayerStatus> playerStatusTypes
         )
     {
         int outgomeChange = 0;
@@ -32,8 +32,7 @@
             pressureChange -= 1;
         }
 
-        if (playerStatusTypes.Contains(PlayerStatusTypes.Wet) ||
-            playerStatusTypes.Contains(PlayerStatusTypes.Cold))
+        if (playerStatusTypes.Contains(PlayerStatus.COLD))
         {
             resonanceChange -= 1;
         }

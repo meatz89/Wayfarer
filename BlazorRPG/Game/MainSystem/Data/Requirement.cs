@@ -411,9 +411,9 @@ public class SkillLevelRequirement : Requirement
 
 public class StatusRequirement : Requirement
 {
-    public PlayerStatusTypes Status { get; }
+    public PlayerStatus Status { get; }
 
-    public StatusRequirement(PlayerStatusTypes status)
+    public StatusRequirement(PlayerStatus status)
     {
         Status = status;
     }

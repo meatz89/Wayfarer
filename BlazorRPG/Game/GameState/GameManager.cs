@@ -221,7 +221,7 @@ public class GameManager
 
         // Create initial context with our new value system
         int playerLevel = playerState.Level;
-        List<PlayerStatusTypes> playerStatusTypes = PlayerStatusSystem.GetActiveStatusList();
+        List<PlayerStatus> playerStatusTypes = PlayerStatusSystem.GetActiveStatusList();
 
         EncounterContext context = new EncounterContext(
             actionImplementation,
