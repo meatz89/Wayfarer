@@ -64,7 +64,7 @@ public class GameManager
 
     private void OnPlayerEnterLocation(Location location)
     {
-        List<ActionTemplate> allActionTemplates = LocationActionsContent.LoadLocationActionTemplates();
+        List<ActionTemplate> allActionTemplates = ActionsContent.LoadLocationActionTemplates();
 
         List<LocationSpot> locationSpots = location.LocationSpots;
         PopulateLocationSpotActions(location, allActionTemplates, locationSpots);

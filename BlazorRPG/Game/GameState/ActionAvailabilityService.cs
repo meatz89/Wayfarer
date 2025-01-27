@@ -63,6 +63,7 @@ public static class ActionTemplateExtensions
     public static bool IsValidForSpot(this ActionTemplate template, Location location, LocationSpot locationSpot, WorldState worldState, PlayerState playerState)
     {
         ActionAvailabilityService service = new ActionAvailabilityService();
-        return service.IsActionAvailable(template, location, locationSpot, worldState, playerState);
+        bool isValid = service.IsActionAvailable(template, location, locationSpot, worldState, playerState);
+        return isValid;
     }
 }

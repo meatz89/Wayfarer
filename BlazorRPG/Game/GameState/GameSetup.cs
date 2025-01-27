@@ -3,7 +3,7 @@
     public static GameState CreateNewGame()
     {
         GameState gameState = new GameState();
-        gameState.World.SetCurrentTime(0);
+        gameState.World.SetCurrentTime(22);
         gameState.World.ChangeWeather(WeatherTypes.Stormy);
 
         GameRules gameRules = GameRules.StandardRuleset;

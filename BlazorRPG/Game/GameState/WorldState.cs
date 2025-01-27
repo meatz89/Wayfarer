@@ -61,11 +61,6 @@
         WorldWeather = weatherType;
     }
 
-    public bool HasProperty(TimeWindows propertyValue)
-    {
-        throw new NotImplementedException();
-    }
-
     public bool HasProperty<T>(T worldStatusProperty) where T : struct, Enum
     {
         if (worldStatusProperty is TimeWindows timeWindow)

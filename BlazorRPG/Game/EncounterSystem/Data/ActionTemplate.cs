@@ -18,10 +18,10 @@
     {
         Name = name;
         ActionType = actionType;
-        LocationPropertyConditions.Add(locationPropertyCondition);
-        LocationSpotPropertyConditions.Add(locationSpotPropertyCondition);
-        WorldStatePropertyConditions.Add(worldStatePropertyCondition);
-        PlayerStatusPropertyConditions.Add(playerStatusPropertyCondition);
+        if (locationPropertyCondition != null) LocationPropertyConditions.Add(locationPropertyCondition);
+        if (locationSpotPropertyCondition != null) LocationSpotPropertyConditions.Add(locationSpotPropertyCondition);
+        if (worldStatePropertyCondition != null) WorldStatePropertyConditions.Add(worldStatePropertyCondition);
+        if (playerStatusPropertyCondition != null) PlayerStatusPropertyConditions.Add(playerStatusPropertyCondition);
     }
 
 

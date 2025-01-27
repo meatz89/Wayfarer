@@ -5,10 +5,10 @@
     public List<LocationNames> TravelConnections { get; set; }
     public List<LocationSpot> LocationSpots { get; set; } // Action groupings
     public int Difficulty { get; set; }
-    public LocationArchetypes LocationArchetype { get; set; }
-    public ResourceTypes ResourceType { get; set; }
-    public CrowdDensity CrowdDensity { get; set; }
-    public LocationScale LocationScale { get; set; }
+    public LocationArchetypes LocationArchetype { get; }
+    public CrowdDensity CrowdDensity { get; }
+    public LocationScale LocationScale { get; }
+    public ResourceTypes ResourceType { get; }
 
     public Location(
         LocationTypes locationType,
@@ -16,16 +16,20 @@
         List<LocationNames> travelConnections,
         List<LocationSpot> locationSpots,
         int difficultyLevel,
-        LocationArchetypes? locationArchetype,
-        CrowdDensity? crowdDensity,
-        LocationScale? locationScale,
-        ResourceTypes? resourceTypes)
+        LocationArchetypes locationArchetype,
+        CrowdDensity crowdDensity,
+        LocationScale locationScale,
+        ResourceTypes resourceTypes)
     {
         LocationType = locationType;
         LocationName = locationName;
         TravelConnections = travelConnections;
         LocationSpots = locationSpots;
         Difficulty = difficultyLevel;
+        LocationArchetype = locationArchetype;
+        CrowdDensity = crowdDensity;
+        LocationScale = locationScale;
+        ResourceType = resourceTypes;
     }
 
     public bool HasProperty<T>(T locationProperty)
