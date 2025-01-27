@@ -28,7 +28,7 @@
         return this;
     }
 
-    public ActionTemplateBuilder SetTimeSlot(TimeWindows timeSlot)
+    public ActionTemplateBuilder WithTimeSlot(TimeWindows timeSlot)
     {
         this.worldStatePropertyCondition = new WorldStatePropertyCondition
             (WorldStatusTypes.Time, timeSlot);
@@ -36,7 +36,7 @@
         return this;
     }
 
-    public ActionTemplateBuilder SetPlayerNegativeEffect(PlayerNegativeStatus playerNegativeStatus)
+    public ActionTemplateBuilder WithPlayerNegativeEffect(PlayerNegativeStatus playerNegativeStatus)
     {
         this.playerStatusPropertyCondition = new PlayerStatusPropertyCondition
             (PlayerStatusTypes.NegativeEffect, playerNegativeStatus);
@@ -44,7 +44,7 @@
         return this;
     }
 
-    public ActionTemplateBuilder SetPlayerReputationType(PlayerReputationTypes playerReputation)
+    public ActionTemplateBuilder WithPlayerReputationType(PlayerReputationTypes playerReputation)
     {
         this.playerStatusPropertyCondition = new PlayerStatusPropertyCondition
             (PlayerStatusTypes.Reputation, playerReputation);
@@ -52,7 +52,7 @@
         return this;
     }
 
-    public ActionTemplateBuilder SetLocationArchetype(LocationArchetypes archetype)
+    public ActionTemplateBuilder WithLocationArchetype(LocationArchetypes archetype)
     {
         this.locationPropertyCondition = new LocationPropertyCondition(
             LocationPropertyTypes.LocationArchetype, archetype);
@@ -60,7 +60,7 @@
         return this;
     }
 
-    public ActionTemplateBuilder SetCrowdDensity(CrowdDensity crowdDensity)
+    public ActionTemplateBuilder WithCrowdDensity(CrowdDensity crowdDensity)
     {
         this.locationPropertyCondition = new LocationPropertyCondition(
             LocationPropertyTypes.CrowdDensity, crowdDensity);
@@ -68,7 +68,7 @@
         return this;
     }
 
-    public ActionTemplateBuilder SetLocationScale(LocationScale locationScale)
+    public ActionTemplateBuilder WithLocationScale(LocationScale locationScale)
     {
         this.locationPropertyCondition = new LocationPropertyCondition(
             LocationPropertyTypes.LocationScale, locationScale);

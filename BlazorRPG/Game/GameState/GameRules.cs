@@ -175,8 +175,7 @@
             case BasicActionTypes.Persuade:
                 costs.Add(new ReputationOutcome(-1));
                 break;
-            case BasicActionTypes.Investigate:
-                costs.Add(new ConcentrationOutcome(-1));
+            case BasicActionTypes.Observe:
                 break;
             case BasicActionTypes.Mingle:
                 costs.Add(new ReputationOutcome(-1));
@@ -188,7 +187,6 @@
         }
         return costs;
     }
-
 
     public static List<Outcome> CreateRewardsForTemplate(ActionTemplate template)
     {
@@ -203,7 +201,7 @@
                 rewards.Add(new CoinsOutcome(3));
                 rewards.Add(new ReputationOutcome(2));
                 break;
-            case BasicActionTypes.Investigate:
+            case BasicActionTypes.Observe:
                 rewards.Add(new KnowledgeOutcome(KnowledgeTypes.LocalHistory, 1));
                 rewards.Add(new ReputationOutcome(1));
                 break;
@@ -230,7 +228,7 @@
             BasicActionTypes.Rest => EnergyTypes.Physical,
             BasicActionTypes.Recover => EnergyTypes.Physical,
 
-            BasicActionTypes.Investigate => EnergyTypes.Concentration,
+            BasicActionTypes.Observe => EnergyTypes.Concentration,
             BasicActionTypes.Study => EnergyTypes.Concentration,
             BasicActionTypes.Reflect => EnergyTypes.Concentration,
 
@@ -251,7 +249,7 @@
             BasicActionTypes.Labor => 3,
             BasicActionTypes.Gather => 2,
             BasicActionTypes.Travel => 1,
-            BasicActionTypes.Investigate => 2,
+            BasicActionTypes.Observe => 2,
             BasicActionTypes.Study => 3,
             BasicActionTypes.Reflect => 1,
             BasicActionTypes.Rest => 0,
@@ -286,7 +284,7 @@
                 };
                 break;
 
-            case BasicActionTypes.Investigate:
+            case BasicActionTypes.Observe:
             case BasicActionTypes.Study:
             case BasicActionTypes.Reflect:
             case BasicActionTypes.Rest:

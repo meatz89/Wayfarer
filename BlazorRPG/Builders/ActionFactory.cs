@@ -8,7 +8,7 @@
 
         // Add energy costs
         int energyCost = GameRules.GetBaseEnergyCost(template.ActionType);
-        
+
         EnergyTypes energyType = GameRules.GetEnergyTypeForAction(template.ActionType);
         if (energyType != EnergyTypes.None)
         {

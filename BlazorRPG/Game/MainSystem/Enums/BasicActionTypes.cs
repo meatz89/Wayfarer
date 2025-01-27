@@ -13,7 +13,7 @@
     Perform, // Entertainment/display. (Reward Type: Reputation/Social Energy)
 
     // Mental Actions cover intellectual activities:
-    Investigate, // Directed observation. (Reward Type: Knowledge/Opportunities)
+    Observe, // Directed observation. (Reward Type: Knowledge/Opportunities)
     Study, // Focused learning. (Reward Type: Knowledge/Skills)
     Reflect, // Processing/rest. (Reward Type: State Change/Energy Restoration)
     Recover,

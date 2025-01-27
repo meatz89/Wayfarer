@@ -87,7 +87,7 @@
                     gameState.Player.Concentration = 0;
                     gameState.Player.ModifyConcentration(concentrationCost);
                     break;
-            } 
+            }
         }
     }
 
