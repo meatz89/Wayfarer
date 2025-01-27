@@ -42,8 +42,8 @@
         <div class="tooltip-list">
             @foreach (DetailedChange dc in GetValueChanges(hoveredChoice.EncounterChoice)
             .Where(c => c.ChangeType != ChangeTypes.PhysicalEnergy
-            && c.ChangeType != ChangeTypes.FocusEnergy
-            && c.ChangeType != ChangeTypes.SocialEnergy))
+            && c.ChangeType != ChangeTypes.Concentration
+            && c.ChangeType != ChangeTypes.Reputation))
             {
                 <div class="tooltip-item">
                     <div class="tooltip-item-header">
@@ -72,8 +72,8 @@
     @{
         var energyChanges = GetValueChanges(hoveredChoice.EncounterChoice)
         .Where(c => c.ChangeType == ChangeTypes.PhysicalEnergy
-        || c.ChangeType == ChangeTypes.FocusEnergy
-        || c.ChangeType == ChangeTypes.SocialEnergy)
+        || c.ChangeType == ChangeTypes.Concentration
+        || c.ChangeType == ChangeTypes.Reputation)
         .ToList();
     }
     @if (energyChanges.Any())

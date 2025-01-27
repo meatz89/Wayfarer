@@ -100,8 +100,8 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
             ChangeTypes.Outcome,
             ChangeTypes.Pressure,
             ChangeTypes.PhysicalEnergy,
-            ChangeTypes.FocusEnergy,
-            ChangeTypes.SocialEnergy
+            ChangeTypes.Concentration,
+            ChangeTypes.Reputation
         };
 
         return changes.OrderBy(dc => order.IndexOf(dc.ChangeType)).ToList();
@@ -123,8 +123,8 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
             ChangeTypes.Resonance => new MarkupString("<i class='value-icon resonance-icon'>🤝</i>"),
             ChangeTypes.Pressure => new MarkupString("<i class='value-icon pressure-icon'>⚠</i>"),
             ChangeTypes.PhysicalEnergy => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
-            ChangeTypes.FocusEnergy => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
-            ChangeTypes.SocialEnergy => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
+            ChangeTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
+            ChangeTypes.Reputation => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
             _ => new MarkupString("")
         };
     }
@@ -175,8 +175,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         return energyType switch
         {
             EnergyTypes.Physical => ChangeTypes.PhysicalEnergy,
-            EnergyTypes.Focus => ChangeTypes.FocusEnergy,
-            EnergyTypes.Social => ChangeTypes.SocialEnergy,
+            EnergyTypes.Concentration => ChangeTypes.Concentration,
             _ => throw new ArgumentException("Invalid EnergyType")
         };
     }
@@ -186,8 +185,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         return energyType switch
         {
             EnergyTypes.Physical => new MarkupString("<i class='energy-icon physical-icon'>💪</i>"),
-            EnergyTypes.Focus => new MarkupString("<i class='energy-icon focus-icon'>🎯</i>"),
-            EnergyTypes.Social => new MarkupString("<i class='energy-icon social-icon'>👥</i>"),
+            EnergyTypes.Concentration => new MarkupString("<i class='energy-icon focus-icon'>🎯</i>"),
             _ => new MarkupString("")
         };
     }

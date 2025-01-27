@@ -2,6 +2,5 @@
 {
     None = 0,
     Physical,
-    Focus,
-    Social
+    Concentration
 }

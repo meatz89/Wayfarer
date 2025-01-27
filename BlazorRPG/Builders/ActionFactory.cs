@@ -8,7 +8,12 @@
 
         // Add energy costs
         int energyCost = GameRules.GetBaseEnergyCost(template.ActionType);
-        builder.ExpendsEnergy(energyCost, GameRules.GetEnergyTypeForAction(template.ActionType));
+        
+        EnergyTypes energyType = GameRules.GetEnergyTypeForAction(template.ActionType);
+        if (energyType != EnergyTypes.None)
+        {
+            builder.ExpendsEnergy(energyCost, energyType);
+        }
 
         // Add success/failure conditions
         OutcomeCondition failureCondition = new OutcomeCondition

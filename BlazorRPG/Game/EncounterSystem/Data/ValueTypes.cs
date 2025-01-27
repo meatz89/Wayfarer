@@ -15,6 +15,6 @@ public enum ChangeTypes
     Resonance,
     Pressure,
     PhysicalEnergy,
-    FocusEnergy,
-    SocialEnergy
+    Concentration,
+    Reputation
 }

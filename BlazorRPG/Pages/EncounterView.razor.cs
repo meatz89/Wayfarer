@@ -165,7 +165,6 @@ public partial class EncounterViewBase : ComponentBase
         }
     }
 
-
     public string GetEnergyDisplay(EncounterChoice choice)
     {
         int energyCost = choice.EnergyCost;
@@ -177,19 +176,14 @@ public partial class EncounterViewBase : ComponentBase
                 int healthLoss = energyCost - GameState.Player.PhysicalEnergy;
                 return $"-{healthLoss} Health";
 
-            case EnergyTypes.Focus when GameState.Player.Concentration < energyCost:
+            case EnergyTypes.Concentration when GameState.Player.Concentration < energyCost:
                 int concentrationLoss = energyCost - GameState.Player.Concentration;
                 return $"-{concentrationLoss} Concentration";
-
-            case EnergyTypes.Social when GameState.Player.Reputation < energyCost:
-                int reputationLoss = energyCost - GameState.Player.Reputation;
-                return $"{reputationLoss} Reputation";
 
             default:
                 return $"{energyCost} {choice.EnergyType}";
         }
     }
-
 
     public List<CombinedValue> GetCombinedValues(EncounterChoice choice)
     {
@@ -239,8 +233,8 @@ public partial class EncounterViewBase : ComponentBase
             ChangeTypes.Outcome,
             ChangeTypes.Pressure,
             ChangeTypes.PhysicalEnergy,
-            ChangeTypes.FocusEnergy,
-            ChangeTypes.SocialEnergy
+            ChangeTypes.Concentration,
+            ChangeTypes.Reputation
         };
 
         return changes.OrderBy(dc => order.IndexOf(dc.ChangeType)).ToList();
@@ -256,8 +250,8 @@ public partial class EncounterViewBase : ComponentBase
             ChangeTypes.Resonance => new MarkupString("<i class='value-icon resonance-icon'>🤝</i>"),
             ChangeTypes.Pressure => new MarkupString("<i class='value-icon pressure-icon'>⚠</i>"),
             ChangeTypes.PhysicalEnergy => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
-            ChangeTypes.FocusEnergy => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
-            ChangeTypes.SocialEnergy => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
+            ChangeTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
+            ChangeTypes.Reputation => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
             _ => new MarkupString("")
         };
     }
@@ -267,8 +261,7 @@ public partial class EncounterViewBase : ComponentBase
         return energyType switch
         {
             EnergyTypes.Physical => ChangeTypes.PhysicalEnergy,
-            EnergyTypes.Focus => ChangeTypes.FocusEnergy,
-            EnergyTypes.Social => ChangeTypes.SocialEnergy,
+            EnergyTypes.Concentration => ChangeTypes.Concentration,
             _ => throw new ArgumentException("Invalid EnergyType")
         };
     }

@@ -12,10 +12,10 @@ public partial class GameUI : ComponentBase
 
     public int physicalEnergyCurrent => GameState.Player.PhysicalEnergy;
     public int physicalEnergyMax => GameState.Player.MaxPhysicalEnergy;
-    public int focusEnergyCurrent => GameState.Player.Concentration;
-    public int focusEnergyMax => GameState.Player.MaxConcentration;
-    public int socialEnergyCurrent => GameState.Player.Reputation;
-    public int socialEnergyMax => GameState.Player.MaxReputation;
+    public int concentrationCurrent => GameState.Player.Concentration;
+    public int concentrationMax => GameState.Player.MaxConcentration;
+    public int repuationCurrent => GameState.Player.Reputation;
+    public int reputationMax => GameState.Player.MaxReputation;
     public int health => GameState.Player.Health;
     public int maxHealth => GameState.Player.MaxHealth;
     public int concentration => GameState.Player.Concentration;

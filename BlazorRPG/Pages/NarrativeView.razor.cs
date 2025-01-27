@@ -84,8 +84,7 @@ public partial class NarrativeViewBase : ComponentBase
         return energyType switch
         {
             EnergyTypes.Physical => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
-            EnergyTypes.Focus => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
-            EnergyTypes.Social => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
+            EnergyTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
             _ => new MarkupString("")
         };
     }

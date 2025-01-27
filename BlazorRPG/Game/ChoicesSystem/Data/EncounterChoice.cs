@@ -32,8 +32,7 @@
         EnergyType = archetype switch
         {
             ChoiceArchetypes.Physical => EnergyTypes.Physical,
-            ChoiceArchetypes.Focus => EnergyTypes.Focus,
-            ChoiceArchetypes.Social => EnergyTypes.Social,
+            ChoiceArchetypes.Focus => EnergyTypes.Concentration,
             _ => throw new ArgumentException("Invalid archetype")
         };
     }

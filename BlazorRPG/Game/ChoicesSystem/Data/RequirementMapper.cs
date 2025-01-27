@@ -9,7 +9,7 @@
             EnergyRequirement energyReq => energyReq.EnergyType switch
             {
                 EnergyTypes.Physical => RequirementTypes.PhysicalEnergy,
-                EnergyTypes.Focus => RequirementTypes.Concentration,
+                EnergyTypes.Concentration => RequirementTypes.Concentration,
                 _ => RequirementTypes.Other
             },
             HealthRequirement => RequirementTypes.Health,

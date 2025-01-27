@@ -5,11 +5,11 @@
     public List<ActionImplementation> Actions { get; set; } = new();
     public CharacterNames? Character { get; set; }
 
-    public Accessibility Accessibility { get; set; }
-    public Engagement Engagement { get; set; }
-    public Atmosphere Atmosphere { get; set; }
-    public RoomLayout RoomLayout { get; set; }
-    public Temperature Temperature { get; set; }
+    public Accessibility? Accessibility { get; set; }
+    public Engagement? Engagement { get; set; }
+    public Atmosphere? Atmosphere { get; set; }
+    public RoomLayout? RoomLayout { get; set; }
+    public Temperature? Temperature { get; set; }
 
     public void AddAction(ActionImplementation action)
     {
@@ -20,23 +20,23 @@
     {
         if (locationSpotProperty is Accessibility accessibility)
         {
-            return Accessibility == accessibility;
+            return Accessibility.HasValue && Accessibility == accessibility;
         }
         else if (locationSpotProperty is Engagement engagement)
         {
-            return Engagement == engagement;
+            return Engagement.HasValue && Engagement == engagement;
         }
         else if (locationSpotProperty is Atmosphere atmosphere)
         {
-            return Atmosphere == atmosphere;
+            return Atmosphere.HasValue && Atmosphere == atmosphere;
         }
         else if (locationSpotProperty is RoomLayout roomLayout)
         {
-            return RoomLayout == roomLayout;
+            return RoomLayout.HasValue && RoomLayout == roomLayout;
         }
         else if (locationSpotProperty is Temperature temperature)
         {
-            return Temperature == temperature;
+            return Temperature.HasValue && Temperature == temperature;
         }
         else
         {
@@ -48,11 +48,11 @@
     public LocationSpot(
         string name,
         LocationNames locationName,
-        Accessibility accessibility,
-        Engagement engagement,
-        Atmosphere atmosphere,
-        RoomLayout roomLayout,
-        Temperature temperature
+        Accessibility? accessibility,
+        Engagement? engagement,
+        Atmosphere? atmosphere,
+        RoomLayout? roomLayout,
+        Temperature? temperature
         )
     {
         Name = name;

@@ -83,35 +83,50 @@
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
-        properties.Add(new(
+        if (spot.Accessibility.HasValue)
+        {
+            properties.Add(new(
             "📐",
             FormatEnumString(spot.Accessibility.ToString()),
             ""
-        ));
+            ));
+        }
 
-        properties.Add(new(
+        if (spot.Engagement.HasValue)
+        {
+            properties.Add(new(
             "⚖️",
             FormatEnumString(spot.Engagement.ToString()),
             $"property-{spot.Engagement.ToString().ToLower()}"
-        ));
+            ));
+        }
 
-        properties.Add(new(
+        if (spot.Atmosphere.HasValue)
+        {
+            properties.Add(new(
             "😌",
             FormatEnumString(spot.Atmosphere.ToString()),
             $"property-{spot.Atmosphere.ToString().ToLower()}"
-        ));
+            ));
+        }
 
-        properties.Add(new(
+        if (spot.RoomLayout.HasValue)
+        {
+            properties.Add(new(
             "🧩",
             FormatEnumString(spot.RoomLayout.ToString()),
             ""
-        ));
+            ));
+        }
 
-        properties.Add(new(
+        if (spot.Temperature.HasValue)
+        {
+            properties.Add(new(
             spot.Temperature == Temperature.Warm ? "☀️" : "❄️",
             FormatEnumString(spot.Temperature.ToString()),
             ""
-        ));
+            ));
+        }
 
         return properties;
     }

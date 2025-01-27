@@ -94,6 +94,27 @@ public class PlayerState
         return false;
     }
 
+    public void ModifyEnergy(EnergyTypes energyType, int amount)
+    {
+        switch (energyType)
+        {
+            case EnergyTypes.Physical: ModifyPhysicalEnergy(amount); break;
+            case EnergyTypes.Concentration: ModifyConcentration(amount); break;
+            default: throw new NotImplementedException();
+        };
+    }
+
+    public bool ModifyPhysicalEnergy(int count)
+    {
+        int newEnergy = Math.Clamp(PhysicalEnergy + count, 0, MaxPhysicalEnergy);
+        if (newEnergy != PhysicalEnergy)
+        {
+            PhysicalEnergy = newEnergy;
+            return true;
+        }
+        return false;
+    }
+
     public bool ModifyConcentration(int count)
     {
         int newConcentration = Math.Clamp(Concentration + count, 0, MaxConcentration);
@@ -111,49 +132,6 @@ public class PlayerState
         if (newReputation != Reputation)
         {
             Reputation = newReputation;
-            return true;
-        }
-        return false;
-    }
-
-    public void ModifyEnergy(EnergyTypes energyType, int amount)
-    {
-        switch (energyType)
-        {
-            case EnergyTypes.Physical: ModifyPhysicalEnergy(amount); break;
-            case EnergyTypes.Focus: ModifyFocusEnergy(amount); break;
-            case EnergyTypes.Social: ModifySocialEnergy(amount); break;
-        };
-    }
-
-    public bool ModifyPhysicalEnergy(int count)
-    {
-        int newEnergy = Math.Clamp(PhysicalEnergy + count, 0, MaxPhysicalEnergy);
-        if (newEnergy != PhysicalEnergy)
-        {
-            PhysicalEnergy = newEnergy;
-            return true;
-        }
-        return false;
-    }
-
-    public bool ModifyFocusEnergy(int count)
-    {
-        int newEnergy = Math.Clamp(Concentration + count, 0, MaxConcentration);
-        if (newEnergy != Concentration)
-        {
-            Concentration = newEnergy;
-            return true;
-        }
-        return false;
-    }
-
-    public bool ModifySocialEnergy(int count)
-    {
-        int newEnergy = Math.Clamp(Reputation + count, 0, MaxReputation);
-        if (newEnergy != Reputation)
-        {
-            Reputation = newEnergy;
             return true;
         }
         return false;
@@ -200,8 +178,7 @@ public class PlayerState
         switch (energyType)
         {
             case EnergyTypes.Physical: return PhysicalEnergy >= amount;
-            case EnergyTypes.Focus: return Concentration >= amount;
-            case EnergyTypes.Social: return Reputation >= amount;
+            case EnergyTypes.Concentration: return Concentration >= amount;
         };
         return false;
     }

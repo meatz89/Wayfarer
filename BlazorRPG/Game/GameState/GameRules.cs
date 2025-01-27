@@ -159,8 +159,7 @@
         return energyType switch
         {
             EnergyTypes.Physical => ChangeTypes.PhysicalEnergy,
-            EnergyTypes.Focus => ChangeTypes.FocusEnergy,
-            EnergyTypes.Social => ChangeTypes.SocialEnergy,
+            EnergyTypes.Concentration => ChangeTypes.Concentration,
             _ => throw new ArgumentException("Invalid EnergyType")
         };
     }
@@ -213,8 +212,7 @@
                 break;
             case BasicActionTypes.Recover:
                 rewards.Add(new EnergyOutcome(EnergyTypes.Physical, 5));
-                rewards.Add(new EnergyOutcome(EnergyTypes.Focus, 5));
-                rewards.Add(new EnergyOutcome(EnergyTypes.Social, 5));
+                rewards.Add(new EnergyOutcome(EnergyTypes.Concentration, 5));
                 rewards.Add(new HealthOutcome(1));
                 break;
         }
@@ -223,7 +221,7 @@
 
     public static EnergyTypes GetEnergyTypeForAction(BasicActionTypes actionType)
     {
-        EnergyTypes energyType = EnergyTypes.Social;
+        EnergyTypes energyType = EnergyTypes.None;
         energyType = actionType switch
         {
             BasicActionTypes.Labor => EnergyTypes.Physical,
@@ -232,14 +230,14 @@
             BasicActionTypes.Rest => EnergyTypes.Physical,
             BasicActionTypes.Recover => EnergyTypes.Physical,
 
-            BasicActionTypes.Investigate => EnergyTypes.Focus,
-            BasicActionTypes.Study => EnergyTypes.Focus,
-            BasicActionTypes.Reflect => EnergyTypes.Focus,
+            BasicActionTypes.Investigate => EnergyTypes.Concentration,
+            BasicActionTypes.Study => EnergyTypes.Concentration,
+            BasicActionTypes.Reflect => EnergyTypes.Concentration,
 
-            BasicActionTypes.Mingle => EnergyTypes.Social,
-            BasicActionTypes.Discuss => EnergyTypes.Social,
-            BasicActionTypes.Persuade => EnergyTypes.Social,
-            BasicActionTypes.Perform => EnergyTypes.Social,
+            BasicActionTypes.Mingle => EnergyTypes.None,
+            BasicActionTypes.Discuss => EnergyTypes.None,
+            BasicActionTypes.Persuade => EnergyTypes.None,
+            BasicActionTypes.Perform => EnergyTypes.None,
         };
         return energyType;
     }
