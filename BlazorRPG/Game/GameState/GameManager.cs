@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics.Metrics;
+using System.Text;
 public class GameManager
 {
     public GameState gameState;
@@ -133,7 +134,7 @@ public class GameManager
                 choice,
                 locationSpot);
 
-        gameState.Actions.LastEncounterResult = encounterResult;
+        gameState.Actions.EncounterResult = encounterResult;
 
         if (encounterResult.encounterResults == EncounterResults.Ongoing)
         {
@@ -150,13 +151,15 @@ public class GameManager
             }
             ProceedEncounter(encounter);
         }
-        else
-        {
-            ApplyActionOutcomes(encounter.Context);
-            gameState.Actions.CompleteActiveEncounter();
-        }
 
+        gameState.Actions.EncounterResult = encounterResult;
         return encounterResult;
+    }
+
+    public void FinishEncounter(Encounter encounter)
+    {
+        ApplyActionOutcomes(encounter.Context);
+        gameState.Actions.CompleteActiveEncounter();
     }
 
     private bool IsGameOver(PlayerState player)

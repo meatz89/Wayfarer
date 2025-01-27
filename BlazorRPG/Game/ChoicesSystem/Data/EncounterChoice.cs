@@ -33,7 +33,7 @@
         {
             ChoiceArchetypes.Physical => EnergyTypes.Physical,
             ChoiceArchetypes.Focus => EnergyTypes.Concentration,
-            _ => throw new ArgumentException("Invalid archetype")
+            ChoiceArchetypes.Social => EnergyTypes.None,
         };
     }
 

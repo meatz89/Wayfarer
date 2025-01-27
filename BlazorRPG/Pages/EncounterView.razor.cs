@@ -181,7 +181,7 @@ public partial class EncounterViewBase : ComponentBase
                 return $"-{concentrationLoss} Concentration";
 
             default:
-                return $"{energyCost} {choice.EnergyType}";
+                return $"";
         }
     }
 
@@ -210,7 +210,6 @@ public partial class EncounterViewBase : ComponentBase
         }
 
         EncounterResult result = GameManager.ExecuteEncounterChoice(choice);
-
         OnEncounterCompleted.InvokeAsync(result);
         HideTooltip();
     }

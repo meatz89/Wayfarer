@@ -12,19 +12,13 @@
             <div class="meter-bar">
                 <div class="meter-fill physical" style="width: @(physicalEnergyCurrent * 100 / physicalEnergyMax)%"></div>
             </div>
-            <span>Physical (@physicalEnergyCurrent/@physicalEnergyMax)</span>
+            <span>Energy (@physicalEnergyCurrent/@physicalEnergyMax)</span>
         </div>
         <div class="energy-meter">
             <div class="meter-bar">
                 <div class="meter-fill focus" style="width: @(concentrationCurrent * 100 / concentrationMax)%"></div>
             </div>
-            <span>Focus (@concentrationCurrent/@concentrationMax)</span>
-        </div>
-        <div class="energy-meter">
-            <div class="meter-bar">
-                <div class="meter-fill social" style="width: @(repuationCurrent * 100 / reputationMax)%"></div>
-            </div>
-            <span>Social (@repuationCurrent/@reputationMax)</span>
+            <span>Concentration (@concentrationCurrent/@concentrationMax)</span>
         </div>
     </div>
 
@@ -44,11 +38,6 @@
             <span class="resource-value">@health/@maxHealth</span>
             <span class="resource-label">Health</span>
         </div>
-        <div class="resource concentration">
-            <span class="resource-icon">🎯</span>
-            <span class="resource-value">@concentration/@maxConcentration</span>
-            <span class="resource-label">Concentration</span>
-        </div>
         <div class="resource reputation">
             <span class="resource-icon">🏆</span>
             <span class="resource-value">@reputation/@maxReputation</span>
@@ -64,7 +53,7 @@
                 Travel 🗺️
             </button>
         </div>
-        @if (HasEncounter())
+        @if (CurrentEncounterOngoing())
         {
             <EncounterView Encounter="CurrentEncounter" OnEncounterCompleted="(result) => HandleEncounterCompleted(result)" />
         }
@@ -75,14 +64,14 @@
                 @if (showNarrative)
                 {
                     <NarrativeView LocationName="@selectedLocation"
-                    OnNarrativeCompleted="OnNarrativeContinue"
+                    OnNarrativeCompleted="OnNarrativeCompleted"
                     Result="@EncounterResult"
                     ShowResult="false" />
                 }
                 else if (ShowEncounterResult)
                 {
                     <NarrativeView LocationName="@selectedLocation"
-                    OnNarrativeCompleted="ContinueAfterEncounterResult"
+                                   OnNarrativeCompleted="FinishEncounter"
                     Result="@EncounterResult"
                     ShowResult="true" />
                 }
@@ -98,7 +87,7 @@
                 if (ShowEncounterResult)
                 {
                     <NarrativeView LocationName="@selectedLocation"
-                                   OnNarrativeCompleted="ContinueAfterEncounterResult"
+                                   OnNarrativeCompleted="FinishEncounter"
                                    Result="@EncounterResult"
                                    ShowResult="true" />
                 }

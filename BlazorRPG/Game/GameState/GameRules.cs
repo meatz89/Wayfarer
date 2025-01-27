@@ -160,6 +160,7 @@
         {
             EnergyTypes.Physical => ChangeTypes.PhysicalEnergy,
             EnergyTypes.Concentration => ChangeTypes.Concentration,
+            EnergyTypes.None => ChangeTypes.None,
             _ => throw new ArgumentException("Invalid EnergyType")
         };
     }

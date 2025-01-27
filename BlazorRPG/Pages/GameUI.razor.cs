@@ -33,10 +33,10 @@ public partial class GameUI : ComponentBase
     public Location CurrentLocation => GameState.World.CurrentLocation;
     public LocationSpot CurrentSpot => GameState.World.CurrentLocationSpot;
     public Encounter CurrentEncounter => GameState.Actions.CurrentEncounter;
+    public EncounterResult EncounterResult => GameState.Actions.EncounterResult;
     public TimeWindows CurrentTime => GameState.World.WorldTime;
     public int CurrentHour => GameState.World.CurrentTimeInHours;
     public bool ShowEncounterResult { get; set; } = false;
-    public EncounterResult EncounterResult { get; set; }
 
     // Tooltip Logic
     public bool showAreaMap = true;
@@ -70,7 +70,7 @@ public partial class GameUI : ComponentBase
         }
     }
 
-    private void OnNarrativeContinue()
+    private void OnNarrativeCompleted()
     {
         showNarrative = false;
         FinalizeLocationSelection(selectedLocation);
@@ -104,8 +104,6 @@ public partial class GameUI : ComponentBase
 
     private void HandleEncounterCompleted(EncounterResult result)
     {
-        EncounterResult = result;
-
         if (result.encounterResults != EncounterResults.Ongoing)
         {
             ShowEncounterResult = true;
@@ -115,22 +113,22 @@ public partial class GameUI : ComponentBase
         StateHasChanged();
     }
 
-    private void ContinueAfterEncounterResult()
+    private void FinishEncounter()
     {
         // Reset encounter logic
+        GameManager.FinishEncounter(EncounterResult.encounter);
         ShowEncounterResult = false;
-        EncounterResult = null;
-    }
 
-    public bool HasEncounter()
-    {
-        return CurrentEncounter != null;
-    }
-
-    private void HandleEncounterCompleted()
-    {
         // Force a re-render of the GameUI component
         StateHasChanged();
+    }
+
+    public bool CurrentEncounterOngoing()
+    {
+        if (CurrentEncounter == null) return false;
+        if (EncounterResult == null) return false;
+        if (EncounterResult.encounterResults == EncounterResults.Ongoing) { return true; }
+        return false;
     }
 
     public string GetModifierDescription(IGameStateModifier modifier)

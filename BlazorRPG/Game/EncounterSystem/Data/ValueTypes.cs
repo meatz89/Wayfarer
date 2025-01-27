@@ -16,5 +16,6 @@ public enum ChangeTypes
     Pressure,
     PhysicalEnergy,
     Concentration,
-    Reputation
+    Reputation,
+    None
 }

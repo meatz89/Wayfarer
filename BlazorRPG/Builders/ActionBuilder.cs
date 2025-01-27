@@ -23,7 +23,7 @@
 
     public ActionBuilder WithTimeInvestment(int hoursPassed)
     {
-        this.hoursPassed = 0;
+        this.hoursPassed = hoursPassed;
         return this;
     }
 
@@ -41,6 +41,8 @@
 
     public ActionBuilder ExpendsHealth(int cost)
     {
+        if (cost < 0) return this;
+
         requirements.Add(new HealthRequirement(cost));
         costs.Add(new HealthOutcome(cost));
         return this;
@@ -57,6 +59,8 @@
 
     public ActionBuilder ExpendsCoins(int cost)
     {
+        if (cost < 0) return this;
+
         requirements.Add(new CoinsRequirement(cost));
         costs.Add(new CoinsOutcome(-cost));
         return this;
@@ -64,15 +68,19 @@
 
     public ActionBuilder ExpendsFood(int cost)
     {
+        if (cost < 0) return this;
+
         requirements.Add(new ResourceRequirement(ResourceTypes.Food, cost));
         costs.Add(new ResourceOutcome(ResourceTypes.Food, -cost));
         return this;
     }
 
-    public ActionBuilder ExpendsItem(ResourceTypes item, int count)
+    public ActionBuilder ExpendsItem(ResourceTypes item, int cost)
     {
-        requirements.Add(new ResourceRequirement(item, count));
-        costs.Add(new ResourceOutcome(item, -count));
+        if (cost < 0) return this;
+
+        requirements.Add(new ResourceRequirement(item, cost));
+        costs.Add(new ResourceOutcome(item, -cost));
         return this;
     }
 

@@ -12,7 +12,7 @@
 
     public Encounter CurrentEncounter { get; private set; }
     public List<UserEncounterChoiceOption> CurrentChoiceOptions { get; private set; }
-    public EncounterResult LastEncounterResult { get; set; }
+    public EncounterResult EncounterResult { get; set; }
 
     public Encounter GetCurrentEncounter()
     {
@@ -27,11 +27,15 @@
     public void CompleteActiveEncounter()
     {
         SetActiveEncounter(null);
+        EncounterResult = null;
     }
 
     public void SetActiveEncounter(Encounter encounter)
     {
         CurrentEncounter = encounter;
+        EncounterResult = new EncounterResult()
+            { encounter = encounter, encounterResults = EncounterResults.Ongoing };
+
         CurrentChoiceOptions = new();
     }
 
