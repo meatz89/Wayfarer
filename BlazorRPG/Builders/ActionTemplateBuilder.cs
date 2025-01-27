@@ -43,7 +43,7 @@
 
         return this;
     }
-    
+
     public ActionTemplateBuilder SetPlayerReputationType(PlayerReputationTypes playerReputation)
     {
         this.playerStatusPropertyCondition = new PlayerStatusPropertyCondition
@@ -124,7 +124,7 @@
             throw new InvalidOperationException("ActionTemplate must have a name.");
         }
         return new ActionTemplate(
-            name, 
+            name,
             actionType,
             locationPropertyCondition,
             locationSpotPropertyCondition,

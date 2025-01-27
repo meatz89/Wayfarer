@@ -241,7 +241,7 @@ public class PlayerState
         return Coins >= value;
     }
 
-    internal int GetRelationshipLevel(CharacterTypes character)
+    public int GetRelationshipLevel(CharacterTypes character)
     {
         return 1;
     }

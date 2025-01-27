@@ -2,10 +2,10 @@
 {
     // Core method to check if an action can be performed at a location spot
     public bool IsActionAvailable(
-        ActionTemplate template, 
-        Location location, 
-        LocationSpot locationSpot, 
-        WorldState worldState, 
+        ActionTemplate template,
+        Location location,
+        LocationSpot locationSpot,
+        WorldState worldState,
         PlayerState playerState)
     {
         if (!DoesActionMatchLocation(template, location)) return false;
@@ -28,7 +28,7 @@
 
     private bool DoesActionMatchLocationSpot(ActionTemplate template, LocationSpot locationSpot)
     {
-        foreach (var locationSpotPropertyCondition in template.LocationSpotPropertyConditions)
+        foreach (LocationSpotPropertyCondition locationSpotPropertyCondition in template.LocationSpotPropertyConditions)
         {
             bool locationSpotPropertyMatch = locationSpotPropertyCondition.IsMet(locationSpot);
             if (!locationSpotPropertyMatch) return false;
@@ -38,7 +38,7 @@
 
     private bool DoesActionMatchWorldState(ActionTemplate template, WorldState worldState)
     {
-        foreach (var worldStatePropertyCondition in template.WorldStatePropertyConditions)
+        foreach (WorldStatePropertyCondition worldStatePropertyCondition in template.WorldStatePropertyConditions)
         {
             bool worldStatePropertyMatch = worldStatePropertyCondition.IsMet(worldState);
             if (!worldStatePropertyMatch) return false;
@@ -48,7 +48,7 @@
 
     private bool DoesActionMatchPlayerState(ActionTemplate template, PlayerState playerState)
     {
-        foreach (var playerStatusPropertyConditions in template.PlayerStatusPropertyConditions)
+        foreach (PlayerStatusPropertyCondition playerStatusPropertyConditions in template.PlayerStatusPropertyConditions)
         {
             bool playerStatusPropertyMatch = playerStatusPropertyConditions.IsMet(playerState);
             if (!playerStatusPropertyMatch) return false;

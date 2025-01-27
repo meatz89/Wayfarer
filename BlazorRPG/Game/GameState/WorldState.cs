@@ -61,7 +61,7 @@
         WorldWeather = weatherType;
     }
 
-    internal bool HasProperty(TimeWindows propertyValue)
+    public bool HasProperty(TimeWindows propertyValue)
     {
         throw new NotImplementedException();
     }
