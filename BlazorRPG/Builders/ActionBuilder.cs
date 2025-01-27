@@ -48,6 +48,8 @@
 
     public ActionBuilder ExpendsEnergy(int energyCost, EnergyTypes energyType)
     {
+        if (energyCost < 0 || energyType == EnergyTypes.None) return this;
+
         requirements.Add(new EnergyRequirement(energyType, energyCost));
         energyCosts.Add(new EnergyOutcome(energyType, -energyCost));
         return this;

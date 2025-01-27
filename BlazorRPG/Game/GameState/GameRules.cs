@@ -253,7 +253,7 @@
             BasicActionTypes.Study => 3,
             BasicActionTypes.Reflect => 1,
             BasicActionTypes.Rest => 0,
-            BasicActionTypes.Recover => 1,
+            BasicActionTypes.Recover => 0,
             BasicActionTypes.Mingle => 1,
             BasicActionTypes.Discuss => 2,
             BasicActionTypes.Persuade => 3,

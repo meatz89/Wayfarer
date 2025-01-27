@@ -10,7 +10,7 @@
         int energyCost = GameRules.GetBaseEnergyCost(template.ActionType);
 
         EnergyTypes energyType = GameRules.GetEnergyTypeForAction(template.ActionType);
-        if (energyType != EnergyTypes.None)
+        if (energyType != EnergyTypes.None && energyCost != 0)
         {
             builder.ExpendsEnergy(energyCost, energyType);
         }
