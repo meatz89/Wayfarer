@@ -4,7 +4,7 @@
 
     private BasicActionTypes applicableActionType;
     private LocationTypes applicableLocationType;
-    private PlayerStatus applicablePlayerStatusType;
+    private PlayerStatusTypes applicablePlayerStatusType;
 
     private ResourceTypes requiredResourceReward;
 
@@ -42,7 +42,7 @@
         return this;
     }
 
-    public ActionModifierBuilder ForPlayerStatus(PlayerStatus playerStatusType)
+    public ActionModifierBuilder ForPlayerStatus(PlayerStatusTypes playerStatusType)
     {
         this.applicablePlayerStatusType = playerStatusType;
         return this;
@@ -110,7 +110,7 @@ public class ModifierConfiguration
     public string Source { get; set; }
     public BasicActionTypes ActionType { get; set; }
     public LocationTypes LocationType { get; set; }
-    public PlayerStatus PlayerStatus { get; set; }
+    public PlayerStatusTypes PlayerStatus { get; set; }
     public TimeWindows TimeWindow { get; set; }
     public EnergyTypes EnergyType { get; set; }
     public int EnergyReduction { get; set; }

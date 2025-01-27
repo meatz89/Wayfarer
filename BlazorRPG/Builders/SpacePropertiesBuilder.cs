@@ -1,10 +1,10 @@
 ﻿public class SpacePropertiesBuilder
 {
-    private Accessability scale = Accessability.Communal;
+    private Accessibility scale = Accessibility.Communal;
     private Temperature exposure = Temperature.Warm;
     private CrowdDensity crowdLevel = CrowdDensity.Deserted;
 
-    public SpacePropertiesBuilder WithScale(Accessability scale)
+    public SpacePropertiesBuilder WithScale(Accessibility scale)
     {
         this.scale = scale;
         return this;

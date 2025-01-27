@@ -45,7 +45,6 @@
     {
         Location location = GetLocation(locationName);
         LocationSpot locationSpot = GetLocationSpotForLocation(locationName, locationSpotName);
-        LocationSpotProperties locationProperties = locationSpot.SpotProperties;
 
         List<LocationPropertyChoiceEffect> effects = new List<LocationPropertyChoiceEffect>();
         foreach (LocationPropertyChoiceEffect locationContextEffect in locationContextEffects)

@@ -19,7 +19,7 @@
         this.choiceCalculator = new ChoiceCalculator(gameState);
     }
 
-    public EncounterResult ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationSpotProperties locationProperties)
+    public EncounterResult ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationSpot locationSpot)
     {
         // Execute the choice with the actual modified values from the result
         choiceExecutor.ExecuteChoice(choice, choice.CalculationResult);
@@ -149,8 +149,8 @@
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
         foreach (EncounterChoice choice in choices)
         {
-            LocationNames locationName = encounter.Context.LocationName;
-            string locationSpotName = encounter.Context.LocationSpotName;
+            LocationNames locationName = encounter.Context.Location.LocationName;
+            string locationSpotName = encounter.Context.LocationSpot.Name;
 
             UserEncounterChoiceOption option = new UserEncounterChoiceOption(
                 choice.Index,

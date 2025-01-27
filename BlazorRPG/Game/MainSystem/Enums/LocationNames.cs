@@ -3,5 +3,6 @@
     None = 0,
     ForestRoad,
     AncientCrossroads,
-    WaysideInn
+    WaysideInn,
+    Market
 }

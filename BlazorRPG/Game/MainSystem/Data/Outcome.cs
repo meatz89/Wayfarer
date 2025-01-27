@@ -119,16 +119,16 @@ public class EnergyOutcome : Outcome
                     player.MaxPhysicalEnergy);
                 break;
             case EnergyTypes.Focus:
-                player.FocusEnergy = Math.Clamp(
-                    player.FocusEnergy + Amount,
+                player.Concentration = Math.Clamp(
+                    player.Concentration + Amount,
                     0,
-                    player.MaxFocusEnergy);
+                    player.MaxConcentration);
                 break;
             case EnergyTypes.Social:
-                player.SocialEnergy = Math.Clamp(
-                    player.SocialEnergy + Amount,
+                player.Reputation = Math.Clamp(
+                    player.Reputation + Amount,
                     0,
-                    player.MaxSocialEnergy);
+                    player.MaxReputation);
                 break;
         }
     }
@@ -143,16 +143,16 @@ public class EnergyOutcome : Outcome
         int currentValue = EnergyType switch
         {
             EnergyTypes.Physical => player.PhysicalEnergy,
-            EnergyTypes.Focus => player.FocusEnergy,
-            EnergyTypes.Social => player.SocialEnergy,
+            EnergyTypes.Focus => player.Concentration,
+            EnergyTypes.Social => player.Reputation,
             _ => 0
         };
 
         int maxValue = EnergyType switch
         {
             EnergyTypes.Physical => player.MaxPhysicalEnergy,
-            EnergyTypes.Focus => player.MaxFocusEnergy,
-            EnergyTypes.Social => player.MaxSocialEnergy,
+            EnergyTypes.Focus => player.MaxConcentration,
+            EnergyTypes.Social => player.MaxReputation,
             _ => 0
         };
 

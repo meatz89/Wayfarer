@@ -2,30 +2,32 @@
 {
     public static List<LocationPropertyChoiceEffect> AllEffects { get; set; } = new()
     {
-            // Atmosphere effects
-            new LocationPropertyChoiceEffect
+        /*
+        // Atmosphere effects
+        new LocationPropertyChoiceEffect
+        {
+            LocationProperty = new AtmosphereValue { Atmosphere = Atmosphere.Social },
+            ValueEffect = new EncounterValueModification(ValueTypes.Pressure, -2, "Relaxed Atmosphere") // Add source here
             {
-                LocationProperty = new AtmosphereValue { Atmosphere = Atmosphere.Social },
-                ValueEffect = new EncounterValueModification(ValueTypes.Pressure, -2, "Relaxed Atmosphere") // Add source here
-                {
-                },
-                Description = "The relaxed atmosphere helps keep pressure low"
             },
+            Description = "The relaxed atmosphere helps keep pressure low"
+        },
 
-            new LocationPropertyChoiceEffect
-            {
-                LocationProperty = new AtmosphereValue { Atmosphere = Atmosphere.Hostile },
-                ValueEffect = new EncounterValueModification(ValueTypes.Pressure, 2, "Tense Atmosphere"), // Add source here
-                Description = "The tense atmosphere increases pressure"
-            },
+        new LocationPropertyChoiceEffect
+        {
+            LocationProperty = new AtmosphereValue { Atmosphere = Atmosphere.Hostile },
+            ValueEffect = new EncounterValueModification(ValueTypes.Pressure, 2, "Tense Atmosphere"), // Add source here
+            Description = "The tense atmosphere increases pressure"
+        },
 
-            // Activity level effects
-            new LocationPropertyChoiceEffect
-            {
-                LocationProperty = new CrowdDensityValue { CrowdDensity = CrowdDensity.Quiet },
-                ValueEffect = new EncounterValueModification(ValueTypes.Insight, 2, "Quiet Atmosphere"),
-                Description = "The quiet space helps concentration"
-            },
+        // Activity level effects
+        new LocationPropertyChoiceEffect
+        {
+            LocationProperty = new CrowdDensityValue { CrowdDensity = CrowdDensity.Quiet },
+            ValueEffect = new EncounterValueModification(ValueTypes.Insight, 2, "Quiet Atmosphere"),
+            Description = "The quiet space helps concentration"
+        },
+        */
 
         //// Example of a requirement modification
         //new LocationPropertyChoiceEffect

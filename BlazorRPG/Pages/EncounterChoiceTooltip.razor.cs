@@ -133,15 +133,12 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     {
         return requirementType switch
         {
+            RequirementTypes.Health => new MarkupString("<i class='requirement-icon health-icon'>❤️</i>"),
+            RequirementTypes.Coins => new MarkupString("<i class='requirement-icon coins-icon'>💰</i>"),
             RequirementTypes.MaxPressure => new MarkupString("<i class='requirement-icon pressure-icon'>⚠</i>"),
             RequirementTypes.MinInsight => new MarkupString("<i class='requirement-icon insight-icon'>💡</i>"),
             RequirementTypes.PhysicalEnergy => new MarkupString("<i class='requirement-icon physical-icon'>💪</i>"),
-            RequirementTypes.FocusEnergy => new MarkupString("<i class='requirement-icon focus-icon'>🎯</i>"),
-            RequirementTypes.SocialEnergy => new MarkupString("<i class='requirement-icon social-icon'>👥</i>"),
-            RequirementTypes.Health => new MarkupString("<i class='requirement-icon health-icon'>❤️</i>"),
             RequirementTypes.Concentration => new MarkupString("<i class='requirement-icon concentration-icon'>🌀</i>"),
-            RequirementTypes.Reputation => new MarkupString("<i class='requirement-icon reputation-icon'>👤</i>"),
-            RequirementTypes.Coins => new MarkupString("<i class='requirement-icon coins-icon'>💰</i>"),
             RequirementTypes.Strength => new MarkupString("<i class='requirement-icon strength-icon'>💪</i>"),
             RequirementTypes.Perception => new MarkupString("<i class='requirement-icon perception-icon'>👁️</i>"),
             RequirementTypes.Charisma => new MarkupString("<i class='requirement-icon charisma-icon'>💬</i>"),
@@ -150,6 +147,11 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
             RequirementTypes.Metal => new MarkupString("<i class='requirement-icon metal-icon'>🔩</i>"),
             RequirementTypes.InventorySlots => new MarkupString("<i class='requirement-icon inventory-slots-icon'>🗄️</i>"),
             RequirementTypes.LocalHistory => new MarkupString("<i class='requirement-icon local-history-icon'>📜</i>"),
+            RequirementTypes.Shunned => new MarkupString("<i class='requirement-icon reputation-icon'>👤</i>"),
+            RequirementTypes.Untrustworthy => new MarkupString("<i class='requirement-icon reputation-icon'>👤</i>"),
+            RequirementTypes.Neutral => new MarkupString("<i class='requirement-icon reputation-icon'>👤</i>"),
+            RequirementTypes.Trusted => new MarkupString("<i class='requirement-icon reputation-icon'>👤</i>"),
+            RequirementTypes.Respected => new MarkupString("<i class='requirement-icon reputation-icon'>👤</i>"),
             _ => new MarkupString("")
         };
     }

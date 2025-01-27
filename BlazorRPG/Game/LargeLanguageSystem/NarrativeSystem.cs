@@ -23,7 +23,7 @@
     {
         LargeLanguageAdapter.Reset();
 
-        string initialSituation = $"The player is in the {context.LocationName}, a {context.LocationArchetype}, at the {context.LocationSpotName}. It is {context.TimeSlot.ToString()}. The player starts a {context.ActionType.ToString()} action.";
+        string initialSituation = $"The player is in the {context.Location}, a {context.Location.LocationArchetype}, at the {context.LocationSpot.Name}. The player starts a {context.ActionType.ToString()} action.";
         string actionGoal = $"{actionImplementation.Name}";
 
         JournalSystem.StartEncounter(initialSituation, actionGoal);

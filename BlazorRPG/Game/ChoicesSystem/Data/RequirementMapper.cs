@@ -9,13 +9,11 @@
             EnergyRequirement energyReq => energyReq.EnergyType switch
             {
                 EnergyTypes.Physical => RequirementTypes.PhysicalEnergy,
-                EnergyTypes.Focus => RequirementTypes.FocusEnergy,
-                EnergyTypes.Social => RequirementTypes.SocialEnergy,
+                EnergyTypes.Focus => RequirementTypes.Concentration,
                 _ => RequirementTypes.Other
             },
             HealthRequirement => RequirementTypes.Health,
             ConcentrationRequirement => RequirementTypes.Concentration,
-            ReputationRequirement => RequirementTypes.Reputation,
             CoinsRequirement => RequirementTypes.Coins,
             SkillRequirement skillReq => skillReq.SkillType switch
             {
@@ -48,19 +46,21 @@
                 SkillTypes.Charisma => RequirementTypes.Charisma,
                 _ => RequirementTypes.Other
             },
-            StatusRequirement statusReq => statusReq.Status switch
+            PlayerNegativeStatusRequirement statusReq => statusReq.Status switch
             {
-                PlayerStatus.COLD => RequirementTypes.COLD,
-                PlayerStatus.HUNGRY => RequirementTypes.HUNGRY,
-                PlayerStatus.INJURED => RequirementTypes.INJURED,
-                
-                PlayerStatus.EXHAUSTED => RequirementTypes.EXHAUSTED,
-                PlayerStatus.STRESSED => RequirementTypes.STRESSED,
-                PlayerStatus.SHUNNED => RequirementTypes.SHUNNED,
-                PlayerStatus.UNTRUSTWORTHY => RequirementTypes.UNTRUSTWORTHY,
-                PlayerStatus.NEUTRAL => RequirementTypes.NEUTRAL,
-                PlayerStatus.TRUSTED => RequirementTypes.TRUSTED,
-                PlayerStatus.RESPECTED => RequirementTypes.RESPECTED,
+                PlayerNegativeStatus.Cold => RequirementTypes.Cold,
+                PlayerNegativeStatus.Hungry => RequirementTypes.Hungry,
+                PlayerNegativeStatus.Injured => RequirementTypes.Injured,
+                PlayerNegativeStatus.Exhausted => RequirementTypes.Exhausted,
+                PlayerNegativeStatus.Stressed => RequirementTypes.Stressed,
+            },
+            PlayerReputationRequirement statusReq => statusReq.Reputation switch
+            {
+                PlayerReputationTypes.Shunned => RequirementTypes.Shunned,
+                PlayerReputationTypes.Untrustworthy => RequirementTypes.Untrustworthy,
+                PlayerReputationTypes.Neutral => RequirementTypes.Neutral,
+                PlayerReputationTypes.Trusted => RequirementTypes.Trusted,
+                PlayerReputationTypes.Respected => RequirementTypes.Respected,
                 _ => RequirementTypes.Other
             },
             _ => RequirementTypes.Other

@@ -8,5 +8,6 @@
     LocalHistory,
     CharacterBackground,
     HiddenPath,
-    ResourceLocation
+    ResourceLocation,
+    WorkOpportunity
 }

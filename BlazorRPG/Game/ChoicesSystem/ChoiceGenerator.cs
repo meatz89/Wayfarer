@@ -13,7 +13,7 @@
         this.usedCombinations = new List<(ChoiceArchetypes, ChoiceApproaches)>();
     }
 
-    public ChoiceSet Generate(ChoiceSetTemplate template, EncounterContext context)
+    public ChoiceSet Generate(SpecialChoiceTemplate template, EncounterContext context)
     {
         usedCombinations.Clear();
 
@@ -21,12 +21,12 @@
         EncounterValues initialValues = context.CurrentValues;
 
         List<EncounterChoice> choices = initialValues.Pressure >= 9
-            ? GenerateDesperateOnlyChoices(template.CompositionPattern)
+            ? GenerateDesperateOnlyChoices()
             : GenerateBaseChoices(template, initialValues, playerState, numberOfChoicesToGenerate);
 
         foreach (EncounterChoice choice in choices)
         {
-            choice.CalculationResult = calculator.CalculateChoiceEffects(choice, context.LocationProperties, initialValues);
+            choice.CalculationResult = calculator.CalculateChoiceEffects(choice, context, initialValues);
 
             EncounterValues projection = choice.CalculationResult.ProjectedEncounterState;
             choice.IsEncounterWinningChoice = IsEncounterWon(context, projection);
@@ -43,7 +43,7 @@
     private bool IsEncounterWon(EncounterContext context, EncounterValues projection)
     {
         const int WIN_BASE = 10;
-        int OUTCOME_WIN = context.LocationDifficulty + WIN_BASE;
+        int OUTCOME_WIN = context.Location.Difficulty + WIN_BASE;
 
         return projection.Outcome >= OUTCOME_WIN;
     }
@@ -51,7 +51,7 @@
     private bool IsEncounterLost(EncounterContext context, EncounterValues projection)
     {
         const int LOSE_BASE = 40;
-        int PRESSURE_LOOSE = LOSE_BASE - context.LocationDifficulty;
+        int PRESSURE_LOOSE = LOSE_BASE - context.Location.Difficulty;
 
         PlayerState player = gameState.Player;
 
@@ -67,13 +67,14 @@
     }
 
     private List<EncounterChoice> GenerateBaseChoices(
-        ChoiceSetTemplate template,
+        SpecialChoiceTemplate template,
         EncounterValues values,
         PlayerState playerState,
         int desiredChoiceCount)
     {
         List<EncounterChoice> choices = new();
-        CompositionPattern pattern = template.CompositionPattern;
+        CompositionPattern pattern = new CompositionPattern()
+        { PrimaryArchetype = ChoiceArchetypes.Social, SecondaryArchetype = ChoiceArchetypes.Focus };
 
         // First: Generate Primary Archetype choices
         int primaryChoiceCount = Math.Max(1, desiredChoiceCount / 2);
@@ -204,9 +205,11 @@
         return null;
     }
 
-    private List<EncounterChoice> GenerateDesperateOnlyChoices(CompositionPattern pattern)
+    private List<EncounterChoice> GenerateDesperateOnlyChoices()
     {
         List<EncounterChoice> choices = new();
+        CompositionPattern pattern = new CompositionPattern()
+        { PrimaryArchetype = ChoiceArchetypes.Social, SecondaryArchetype = ChoiceArchetypes.Focus };
 
         // Only generate desperate choices if the combination hasn't been used
         if (!usedCombinations.Any(c => c.archetype == pattern.PrimaryArchetype && c.approach == ChoiceApproaches.Desperate))

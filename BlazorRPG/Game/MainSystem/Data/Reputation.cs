@@ -1,10 +1,10 @@
 ﻿
 public class Reputation
 {
-    public ReputationTypes ReputationType { get; set; }
+    public PlayerReputationTypes ReputationType { get; set; }
     public int Value { get; set; }
 
-    public Reputation(ReputationTypes reputationType, int value)
+    public Reputation(PlayerReputationTypes reputationType, int value)
     {
         ReputationType = reputationType;
         Value = value;

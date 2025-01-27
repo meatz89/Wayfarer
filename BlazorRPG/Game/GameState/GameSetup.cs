@@ -17,22 +17,14 @@
         playerInfo.Health = gameRules.StartingHealth;
         playerInfo.MaxHealth = 20;
 
-        playerInfo.MinConcentration = 0;
-        playerInfo.Concentration = 10;
-        playerInfo.MaxConcentration = 20;
-
-        playerInfo.MinReputation = 0;
-        playerInfo.Reputation = 10;
-        playerInfo.MaxReputation = 20;
-
         playerInfo.PhysicalEnergy = gameRules.StartingPhysicalEnergy;
         playerInfo.MaxPhysicalEnergy = 10;
 
-        playerInfo.FocusEnergy = gameRules.StartingFocusEnergy;
-        playerInfo.MaxFocusEnergy = 10;
+        playerInfo.Concentration = gameRules.StartingConcentration;
+        playerInfo.MaxConcentration = 10;
 
-        playerInfo.SocialEnergy = gameRules.StartingSocialEnergy;
-        playerInfo.MaxSocialEnergy = 10;
+        playerInfo.Reputation = gameRules.StartingReputation;
+        playerInfo.MaxReputation = 10;
 
         playerInfo.Inventory.AddResources(ResourceTypes.Food, 5);
 

@@ -107,8 +107,8 @@ public class EnergyRequirement : Requirement
         return EnergyType switch
         {
             EnergyTypes.Physical => gameState.Player.PhysicalEnergy >= Amount,
-            EnergyTypes.Focus => gameState.Player.FocusEnergy >= Amount,
-            EnergyTypes.Social => gameState.Player.SocialEnergy >= Amount,
+            EnergyTypes.Focus => gameState.Player.Concentration >= Amount,
+            EnergyTypes.Social => gameState.Player.Reputation >= Amount,
             _ => false
         };
     }
@@ -156,26 +156,6 @@ public class ConcentrationRequirement : Requirement
     public override string GetDescription()
     {
         return $"Concentration Required: {Count}";
-    }
-}
-
-public class ReputationRequirement : Requirement
-{
-    public int Count { get; }
-
-    public ReputationRequirement(int count)
-    {
-        Count = count;
-    }
-
-    public override bool IsSatisfied(GameState gameState)
-    {
-        return gameState.Player.Reputation >= Count;
-    }
-
-    public override string GetDescription()
-    {
-        return $"Reputation Required: {Count}";
     }
 }
 
@@ -326,63 +306,43 @@ public class RelationshipRequirement : Requirement
     }
 }
 
-public class LocationPropertyRequirement : Requirement
+public class PlayerNegativeStatusRequirement : Requirement
 {
-    public LocationPropertyTypes Property { get; }
+    public PlayerNegativeStatus Status { get; }
 
-    public LocationPropertyRequirement(LocationPropertyTypes property)
+    public PlayerNegativeStatusRequirement(PlayerNegativeStatus property)
     {
-        Property = property;
+        Status = property;
     }
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.World.CurrentLocation.HasProperty(Property);
+        return gameState.Player.HasStatusEffect(Status);
     }
 
     public override string GetDescription()
     {
-        return $"Location Property Required: {Property}";
+        return $"Player Status Required: {Status}";
     }
 }
 
-public class WeatherRequirement : Requirement
+public class PlayerReputationRequirement : Requirement
 {
-    public WeatherTypes WeatherType { get; }
+    public PlayerReputationTypes Reputation { get; }
 
-    public WeatherRequirement(WeatherTypes weatherType)
+    public PlayerReputationRequirement(PlayerReputationTypes reputationType)
     {
-        WeatherType = weatherType;
+        Reputation = reputationType;
     }
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.World.WorldWeather == WeatherType;
+        return gameState.Player.HasReputation(Reputation);
     }
 
     public override string GetDescription()
     {
-        return $"Weather Required: {WeatherType}";
-    }
-}
-
-public class TimeWindowRequirement : Requirement
-{
-    public TimeWindows TimeWindow { get; }
-
-    public TimeWindowRequirement(TimeWindows timeWindow)
-    {
-        TimeWindow = timeWindow;
-    }
-
-    public override bool IsSatisfied(GameState gameState)
-    {
-        return gameState.World.WorldTime == TimeWindow;
-    }
-
-    public override string GetDescription()
-    {
-        return $"Time Required: {TimeWindow}";
+        return $"Reputation Required: {Reputation}";
     }
 }
 
@@ -406,25 +366,5 @@ public class SkillLevelRequirement : Requirement
     public override string GetDescription()
     {
         return $"{SkillType} Skill Level Required: {Count}";
-    }
-}
-
-public class StatusRequirement : Requirement
-{
-    public PlayerStatus Status { get; }
-
-    public StatusRequirement(PlayerStatus status)
-    {
-        Status = status;
-    }
-
-    public override bool IsSatisfied(GameState gameState)
-    {
-        return gameState.Player.HasStatus(Status);
-    }
-
-    public override string GetDescription()
-    {
-        return $"Status Required: {Status}";
     }
 }

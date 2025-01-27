@@ -1,14 +1,14 @@
 ﻿public class ReputationSystem
 {
     private int reputation;
-    private List<ReputationTypes> playerReputations;
+    private List<PlayerReputationTypes> playerReputations;
 
-    public void AddReputationPoint(ReputationTypes type)
+    public void AddReputationPoint(PlayerReputationTypes type)
     {
 
     }
 
-    public int GetLevel(ReputationTypes type)
+    public int GetLevel(PlayerReputationTypes type)
     {
         return 1;
     }

@@ -83,13 +83,13 @@
                     gameState.Player.ModifyHealth(-healthCost);
                     break;
                 case EnergyTypes.Focus:
-                    int concentrationCost = energyCost - gameState.Player.FocusEnergy;
-                    gameState.Player.FocusEnergy = 0;
+                    int concentrationCost = energyCost - gameState.Player.Concentration;
+                    gameState.Player.Concentration = 0;
                     gameState.Player.ModifyConcentration(concentrationCost);
                     break;
                 case EnergyTypes.Social:
-                    int reputationCost = energyCost - gameState.Player.SocialEnergy;
-                    gameState.Player.SocialEnergy = 0;
+                    int reputationCost = energyCost - gameState.Player.Reputation;
+                    gameState.Player.Reputation = 0;
                     gameState.Player.ModifyReputation(-reputationCost);
                     break;
             }

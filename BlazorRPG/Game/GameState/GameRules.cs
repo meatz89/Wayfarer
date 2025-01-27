@@ -7,8 +7,8 @@
         StartingInventorySize = 10,
 
         StartingPhysicalEnergy = 2,
-        StartingFocusEnergy = 3,
-        StartingSocialEnergy = 7,
+        StartingConcentration = 3,
+        StartingReputation = 7,
 
         MinimumHealth = 0,
         DailyFoodRequirement = 2,
@@ -21,8 +21,8 @@
     public int StartingInventorySize;
 
     public int StartingPhysicalEnergy;
-    public int StartingFocusEnergy;
-    public int StartingSocialEnergy;
+    public int StartingConcentration;
+    public int StartingReputation;
 
     public int MinimumHealth;
     public int DailyFoodRequirement;

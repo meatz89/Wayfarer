@@ -16,17 +16,6 @@
         return Requirements.All(r => r.IsSatisfied(gameState));
     }
 
-    // Method to check if the action is available at a location
-    public bool IsAvailableAt(Location location, LocationSpot locationSpot)
-    {
-        bool isMet = SpotAvailabilityConditions.All(c => c.IsMet(locationSpot.SpotProperties));
-
-        if (LocationArchetype != location.LocationArchetype) isMet = false;
-        if (CrowdDensity != location.CrowdDensity) isMet = false;
-        if (LocationScale != location.LocationScale) isMet = false;
-
-        return isMet;
-    }
     public List<Outcome> FailureOutcomes
     {
         get

@@ -1,57 +1,45 @@
 ﻿public class EncounterContext
 {
+    public GameState GameState { get; }
     public ActionImplementation ActionImplementation { get; }
-    public LocationNames LocationName { get; }
-    public string LocationSpotName { get; }
+    public Location Location { get; }
+    public LocationSpot LocationSpot { get; }
     public BasicActionTypes ActionType { get; }
-    public LocationTypes LocationType { get; }
-    public LocationArchetypes LocationArchetype { get; }
-    public TimeWindows TimeSlot { get; }
-    public LocationSpotProperties LocationProperties { get; }
     public PlayerState PlayerState { get; }
     public EncounterValues CurrentValues { get; set; }
     public int StageNumber { get; set; }
-    public int LocationDifficulty { get; }
+    public LocationSpotProperties Properties { get; set; }
     public List<LocationPropertyChoiceEffect> LocationPropertyChoiceEffects { get; }
 
     // Constructor remains the same but without value initialization
     public EncounterContext(
         ActionImplementation actionImplementation,
-        LocationNames locationName,
-        string locationSpotName,
+        Location location,
+        LocationSpot locationSpot,
         BasicActionTypes actionType,
-        LocationTypes locationType,
-        LocationArchetypes locationArchetype,
-        TimeWindows timeSlot,
-        LocationSpotProperties locationProperties,
         PlayerState playerState,
-        int locationDifficulty,
         List<LocationPropertyChoiceEffect> choiceEffects,
         int playerLevel,
-        List<PlayerStatus> playerStatusTypes
+        GameState gameState
         )
     {
         ActionImplementation = actionImplementation;
-        LocationName = locationName;
-        LocationSpotName = locationSpotName;
+        Location = location;
+        LocationSpot = locationSpot;
         ActionType = actionType;
-        LocationType = locationType;
-        LocationArchetype = locationArchetype;
-        TimeSlot = timeSlot;
-        LocationProperties = locationProperties;
         PlayerState = playerState;
-        LocationDifficulty = locationDifficulty;
         LocationPropertyChoiceEffects = choiceEffects;
+        GameState = gameState;
 
         // Initialize encounter values
         EncounterStateInitializer encounterStateInitializer = new EncounterStateInitializer();
         StageNumber = 0;
 
         CurrentValues = EncounterStateInitializer.Generate(
-                locationDifficulty,
-                playerLevel,
-                locationProperties,
-                playerStatusTypes
+                location,
+                locationSpot,
+                gameState,
+                playerLevel
                 );
     }
 }

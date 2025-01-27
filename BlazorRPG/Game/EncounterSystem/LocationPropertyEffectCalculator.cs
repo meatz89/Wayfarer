@@ -14,7 +14,7 @@
         //}
     }
 
-    public int CalculateEnergyCostModifier(EncounterChoice choice, LocationSpotProperties properties)
+    public int CalculateEnergyCostModifier(EncounterChoice choice, EncounterContext context)
     {
         int modifier = 0;
 
@@ -35,7 +35,7 @@
         return modifier;
     }
 
-    public List<Requirement> CalculateLocationRequirements(EncounterChoice choice, LocationSpotProperties properties)
+    public List<Requirement> CalculateLocationRequirements(EncounterChoice choice, EncounterContext context)
     {
         List<Requirement> requirements = new();
 
@@ -63,7 +63,7 @@
     }
 
 
-    public List<Outcome> CalculatePropertyCosts(EncounterChoice choice, LocationSpotProperties properties)
+    public List<Outcome> CalculatePropertyCosts(EncounterChoice choice, EncounterContext context)
     {
         List<Outcome> costs = new();
 
@@ -90,7 +90,7 @@
         return costs;
     }
 
-    public List<Outcome> CalculatePropertyRewards(EncounterChoice choice, LocationSpotProperties properties)
+    public List<Outcome> CalculatePropertyRewards(EncounterChoice choice, EncounterContext context)
     {
         List<Outcome> rewards = new();
 

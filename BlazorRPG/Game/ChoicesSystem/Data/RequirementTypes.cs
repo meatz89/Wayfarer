@@ -19,13 +19,10 @@
 
     //Player State
     Health,
-    Concentration,
-    Reputation,
 
     //Energy
     PhysicalEnergy,
-    FocusEnergy,
-    SocialEnergy,
+    Concentration,
 
     //Encounter States
     MaxPressure,
@@ -36,14 +33,18 @@
     Metal,
 
     //Player Status
-    COLD,
-    HUNGRY,
-    INJURED,
-    EXHAUSTED,
-    STRESSED,
-    SHUNNED,
-    UNTRUSTWORTHY,
-    NEUTRAL,
-    TRUSTED,
-    RESPECTED,
+    Cold,
+    Hungry,
+    Injured,
+
+    //Player Energy
+    Exhausted,
+    Stressed,
+
+    //Player Reputation
+    Shunned,
+    Untrustworthy,
+    Neutral,
+    Trusted,
+    Respected,
 }

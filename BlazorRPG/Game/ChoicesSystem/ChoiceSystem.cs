@@ -1,7 +1,8 @@
-﻿public class ChoiceSystem
+﻿
+public class ChoiceSystem
 {
     private readonly GameState gameState;
-    private readonly List<ChoiceSetTemplate> choiceSetTemplates;
+    private readonly List<SpecialChoiceTemplate> choiceSetTemplates;
     private ChoiceGenerator choiceSetGenerator;
     private readonly ChoiceSetSelector choiceSetSelector;
 
@@ -19,14 +20,14 @@
         EncounterContext context)
     {
         // 1. Select appropriate template based on context
-        ChoiceSetTemplate template = choiceSetSelector.SelectTemplate(
+        SpecialChoiceTemplate template = choiceSetSelector.SelectTemplate(
             choiceSetTemplates, context);
 
         ActionImplementation actionImplementation = context.ActionImplementation;
 
         if (template == null)
         {
-            template = GetStandardTemplate(context.ActionType, actionImplementation.Name);
+            template = GetStandardTemplate(actionImplementation.Name, context.ActionType);
         }
 
         // 2. Create base choices with unmodified values
@@ -36,18 +37,10 @@
         return choiceSet;
     }
 
-    private ChoiceSetTemplate GetStandardTemplate(BasicActionTypes actionType, string name)
+    private SpecialChoiceTemplate? GetStandardTemplate(string name, BasicActionTypes actionType)
     {
-        ChoiceSetTemplate template = new ChoiceSetTemplate()
-        {
-            ActionType = actionType,
-            Name = name,
-            CompositionPattern = new CompositionPattern()
-            {
-                SecondaryArchetype = ChoiceArchetypes.Physical,
-                PrimaryArchetype = ChoiceArchetypes.Social,
-            }
-        };
-        return template;
+        return new SpecialChoiceTemplate(name, actionType,
+            null, null, null, null, null
+            );
     }
 }

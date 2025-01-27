@@ -6,11 +6,6 @@
             .ForAction(template.ActionType)
             .WithDescription(template.Name);
 
-        foreach (TimeWindows timeSlot in template.TimeSlots)
-        {
-            builder.AddTimeSlot(timeSlot);
-        }
-
         // Add energy costs
         int energyCost = GameRules.GetBaseEnergyCost(template.ActionType);
         builder.ExpendsEnergy(energyCost, GameRules.GetEnergyTypeForAction(template.ActionType));
@@ -29,7 +24,7 @@
         {
             EncounterResults = EncounterResults.EncounterSuccess,
             ValueType = ValueTypes.Outcome,
-            MinValue = 10 + location.DifficultyLevel,
+            MinValue = 10 + location.Difficulty,
             MaxValue = int.MaxValue,
             Outcomes = GameRules.CreateRewardsForTemplate(template)
         };

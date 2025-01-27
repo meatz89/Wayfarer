@@ -2,29 +2,26 @@
 {
     public string Name { get; set; }
     public BasicActionTypes ActionType { get; set; }
-    public List<TimeWindows> TimeSlots { get; set; }
-    public LocationArchetypes LocationArchetype { get; set; }
-    public CrowdDensity CrowdDensity { get; set; }
-    public LocationScale LocationScale { get; set; }
-    public List<LocationPropertyCondition> AvailabilityConditions { get; set; }
+    public List<LocationPropertyCondition> LocationPropertyConditions { get; } = new();
+    public List<LocationSpotPropertyCondition> LocationSpotPropertyConditions { get; } = new();
+    public List<WorldStatePropertyCondition> WorldStatePropertyConditions { get; } = new();
+    public List<PlayerStatusPropertyCondition> PlayerStatusPropertyConditions { get; } = new();
 
-    // Make the constructor public so that only the builder can access it
     public ActionTemplate(
         string name,
         BasicActionTypes actionType,
-        List<TimeWindows> timeSlots,
-        LocationArchetypes locationArchetype,
-        CrowdDensity crowdDensity,
-        LocationScale locationScale,
-        List<LocationPropertyCondition> availabilityConditions)
+        LocationPropertyCondition locationPropertyCondition,
+        LocationSpotPropertyCondition locationSpotPropertyCondition,
+        WorldStatePropertyCondition worldStatePropertyCondition,
+        PlayerStatusPropertyCondition playerStatusPropertyCondition
+        )
     {
         Name = name;
         ActionType = actionType;
-        TimeSlots = timeSlots;
-        LocationArchetype = locationArchetype;
-        CrowdDensity = crowdDensity;
-        LocationScale = locationScale;
-        AvailabilityConditions = availabilityConditions;
+        LocationPropertyConditions.Add(locationPropertyCondition);
+        LocationSpotPropertyConditions.Add(locationSpotPropertyCondition);
+        WorldStatePropertyConditions.Add(worldStatePropertyCondition);
+        PlayerStatusPropertyConditions.Add(playerStatusPropertyCondition);
     }
 
 

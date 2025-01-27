@@ -177,12 +177,12 @@ public partial class EncounterViewBase : ComponentBase
                 int healthLoss = energyCost - GameState.Player.PhysicalEnergy;
                 return $"-{healthLoss} Health";
 
-            case EnergyTypes.Focus when GameState.Player.FocusEnergy < energyCost:
-                int concentrationLoss = energyCost - GameState.Player.FocusEnergy;
+            case EnergyTypes.Focus when GameState.Player.Concentration < energyCost:
+                int concentrationLoss = energyCost - GameState.Player.Concentration;
                 return $"-{concentrationLoss} Concentration";
 
-            case EnergyTypes.Social when GameState.Player.SocialEnergy < energyCost:
-                int reputationLoss = energyCost - GameState.Player.SocialEnergy;
+            case EnergyTypes.Social when GameState.Player.Reputation < energyCost:
+                int reputationLoss = energyCost - GameState.Player.Reputation;
                 return $"{reputationLoss} Reputation";
 
             default:

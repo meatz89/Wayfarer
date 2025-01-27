@@ -1,83 +1,68 @@
 ﻿public class ActionAvailabilityService
 {
     // Core method to check if an action can be performed at a location spot
-    public bool IsActionAvailable(ActionTemplate template, LocationSpotProperties locationProperties, LocationArchetypes locationArchetype)
+    public bool IsActionAvailable(
+        ActionTemplate template, 
+        Location location, 
+        LocationSpot locationSpot, 
+        WorldState worldState, 
+        PlayerState playerState)
     {
-        // First validate the basic location requirements
-        if (!AreBasicLocationRequirementsMet(locationArchetype, template, locationProperties))
-        {
-            return false;
-        }
-
-        // Then check specific spot requirements based on action type
-        return DoesActionMatchSpotProperties(template.ActionType, locationProperties);
-    }
-
-    private bool AreBasicLocationRequirementsMet(LocationArchetypes locationArchetype, ActionTemplate template, LocationSpotProperties properties)
-    {
-        // Check if archetype matches
-        if (template.LocationArchetype != locationArchetype)
-        {
-            return false;
-        }
+        if (!DoesActionMatchLocation(template, location)) return false;
+        if (!DoesActionMatchLocationSpot(template, locationSpot)) return false;
+        if (!DoesActionMatchWorldState(template, worldState)) return false;
+        if (!DoesActionMatchPlayerState(template, playerState)) return false;
 
         return true;
     }
 
-    private bool DoesActionMatchSpotProperties(BasicActionTypes actionType, LocationSpotProperties properties)
+    private bool DoesActionMatchLocation(ActionTemplate template, Location location)
     {
-        // Each action type has specific requirements for the spot it can be performed in
-        return actionType switch
+        foreach (LocationPropertyCondition locationPropertyCondition in template.LocationPropertyConditions)
         {
-            BasicActionTypes.Recover => IsRecoverActionValid(properties),
-            BasicActionTypes.Persuade => IsPersuadeActionValid(properties),
-            BasicActionTypes.Investigate => IsInvestigateActionValid(properties),
-            BasicActionTypes.Mingle => IsMingleActionValid(properties),
-            _ => false
-        };
+            bool locationPropertyMatch = locationPropertyCondition.IsMet(location);
+            if (!locationPropertyMatch) return false;
+        }
+        return true;
     }
 
-    private bool IsRecoverActionValid(LocationSpotProperties properties)
+    private bool DoesActionMatchLocationSpot(ActionTemplate template, LocationSpot locationSpot)
     {
-        bool isValid = properties.IsTemperatureSet
-                    && properties.Temperature == Temperature.Warm;
-        return isValid;
+        foreach (var locationSpotPropertyCondition in template.LocationSpotPropertyConditions)
+        {
+            bool locationSpotPropertyMatch = locationSpotPropertyCondition.IsMet(locationSpot);
+            if (!locationSpotPropertyMatch) return false;
+        }
+        return true;
     }
 
-    private bool IsPersuadeActionValid(LocationSpotProperties properties)
+    private bool DoesActionMatchWorldState(ActionTemplate template, WorldState worldState)
     {
-        bool isValid = properties.IsEngagementSet
-                    && properties.IsAccessabilitySet
-                    && properties.Engagement == Engagement.Service
-                    && properties.Accessibility == Accessability.Public;
-        return isValid;
+        foreach (var worldStatePropertyCondition in template.WorldStatePropertyConditions)
+        {
+            bool worldStatePropertyMatch = worldStatePropertyCondition.IsMet(worldState);
+            if (!worldStatePropertyMatch) return false;
+        }
+        return true;
     }
 
-    private bool IsInvestigateActionValid(LocationSpotProperties properties)
+    private bool DoesActionMatchPlayerState(ActionTemplate template, PlayerState playerState)
     {
-        bool isValid = properties.IsRoomLayoutSet
-                    && properties.IsAccessabilitySet
-                    && properties.RoomLayout == RoomLayout.Secluded
-                    && properties.Accessibility == Accessability.Private;
-        return isValid;
-    }
-
-    private bool IsMingleActionValid(LocationSpotProperties properties)
-    {
-        bool isValid = properties.IsAtmosphereSet
-                    && properties.IsAccessabilitySet
-                    && properties.Atmosphere == Atmosphere.Social
-                    && properties.Accessibility == Accessability.Public;
-        return isValid;
+        foreach (var playerStatusPropertyConditions in template.PlayerStatusPropertyConditions)
+        {
+            bool playerStatusPropertyMatch = playerStatusPropertyConditions.IsMet(playerState);
+            if (!playerStatusPropertyMatch) return false;
+        }
+        return true;
     }
 }
 
 // Extension to ActionTemplate to make the checking more elegant
 public static class ActionTemplateExtensions
 {
-    public static bool IsValidForSpot(this ActionTemplate template, Location location, LocationSpot spot)
+    public static bool IsValidForSpot(this ActionTemplate template, Location location, LocationSpot locationSpot, WorldState worldState, PlayerState playerState)
     {
         ActionAvailabilityService service = new ActionAvailabilityService();
-        return service.IsActionAvailable(template, spot.SpotProperties, location.LocationArchetype);
+        return service.IsActionAvailable(template, location, locationSpot, worldState, playerState);
     }
 }

@@ -1,29 +1,29 @@
-﻿
-public class PlayerStatusSystem
+﻿public class PlayerStatusSystem
 {
-    private List<PlayerStatus> activeStatusList = new() { 
-        PlayerStatus.COLD,
-        PlayerStatus.TRUSTED,
-        PlayerStatus.EXHAUSTED
+    public PlayerStatusSystem(GameState gameState)
+    {
+        GameState = gameState;
+    }
+
+    private List<PlayerNegativeStatus> activeStatusList = new() {
+        PlayerNegativeStatus.Cold,
+        PlayerNegativeStatus.Exhausted,
     };
 
-    public void ApplyStatus(PlayerStatus status)
+    public GameState GameState { get; }
+
+    public void ApplyStatus(PlayerStatusTypes status)
     {
 
     }
 
-    public void RemoveStatus(PlayerStatus status)
+    public void RemoveStatus(PlayerStatusTypes status)
     {
 
     }
 
-    public bool HasStatus(PlayerStatus status)
+    public bool HasStatus(PlayerStatusTypes status)
     {
         return true;
-    }
-
-    public List<PlayerStatus> GetActiveStatusList()
-    {
-        return activeStatusList;
     }
 }

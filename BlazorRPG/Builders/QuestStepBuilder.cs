@@ -34,9 +34,9 @@
         return this;
     }
 
-    public QuestStepBuilder RequiresReputation(int count)
+    public QuestStepBuilder RequiresReputation(PlayerReputationTypes reputation)
     {
-        ReputationRequirement item = new ReputationRequirement(count);
+        PlayerReputationRequirement item = new PlayerReputationRequirement(reputation);
         requirements.Add(item);
         return this;
     }
@@ -44,14 +44,6 @@
     public QuestStepBuilder RequiresCoins(int count)
     {
         CoinsRequirement item = new CoinsRequirement(count);
-        requirements.Add(item);
-
-        return this;
-    }
-
-    public QuestStepBuilder RequiresStatus(PlayerStatus status)
-    {
-        StatusRequirement item = new StatusRequirement(status);
         requirements.Add(item);
 
         return this;

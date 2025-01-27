@@ -11,7 +11,7 @@
     // Time tracking - moved here since it affects world state
     public int CurrentTimeInHours { get; set; }
     public TimeWindows WorldTime { get; private set; }
-    public WeatherTypes WorldWeather { get; private set; } 
+    public WeatherTypes WorldWeather { get; private set; }
 
     public void SetCurrentTime(int hours)
     {
@@ -60,4 +60,27 @@
     {
         WorldWeather = weatherType;
     }
+
+    internal bool HasProperty(TimeWindows propertyValue)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool HasProperty<T>(T worldStatusProperty) where T : struct, Enum
+    {
+        if (worldStatusProperty is TimeWindows timeWindow)
+        {
+            return WorldTime == timeWindow;
+        }
+        else if (worldStatusProperty is WeatherTypes weather)
+        {
+            return WorldWeather == weather;
+        }
+        else
+        {
+            // You can handle other types or throw an exception if needed
+            throw new ArgumentException($"Unsupported property type: {typeof(T)}");
+        }
+    }
 }
+

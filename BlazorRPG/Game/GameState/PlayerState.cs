@@ -1,4 +1,6 @@
-﻿public class PlayerState
+﻿using System.Linq;
+
+public class PlayerState
 {
     public int Level { get; set; } = 1;
     public int Coins { get; set; }
@@ -7,30 +9,24 @@
     public int MinHealth { get; set; }
     public int MaxHealth { get; set; }
 
-    public int Concentration { get; set; }
-    public int MinConcentration { get; set; }
-    public int MaxConcentration { get; set; }
-
-    public int Reputation { get; set; }
-    public int MinReputation { get; set; }
-    public int MaxReputation { get; set; }
-
     public int PhysicalEnergy { get; set; }
     public int MaxPhysicalEnergy { get; set; }
 
-    public int FocusEnergy { get; set; }
-    public int MaxFocusEnergy { get; set; }
+    public int Concentration { get; set; }
+    public int MaxConcentration { get; set; }
 
-    public int SocialEnergy { get; set; }
-    public int MaxSocialEnergy { get; set; }
+    public int Reputation { get; set; }
+    public int MaxReputation { get; set; }
 
     public Dictionary<SkillTypes, int> Skills { get; set; } = new();
     public Inventory Inventory { get; set; }
     public Equipment Equipment { get; set; }
     public List<Knowledge> Knowledge { get; set; } = new();
-    public Dictionary<ReputationTypes, int> Reputations { get; set; } = new();
     public Encounter CurrentEncounter { get; set; }
     public LocationNames StartingLocation { get; set; }
+
+    public List<PlayerNegativeStatus> NegativeStatusTypes { get; set; }
+    public PlayerReputationTypes ReputationType { get; set; }
 
     public PlayerState()
     {
@@ -41,18 +37,6 @@
         Skills.Add(SkillTypes.Perception, 5);
         Skills.Add(SkillTypes.Charisma, 8);
 
-        Reputations.Add(ReputationTypes.Honest, 3); // Initialize a reputation
-        Reputations.Add(ReputationTypes.Reliable, 5);
-        Reputations.Add(ReputationTypes.Trusted, 2);
-        Reputations.Add(ReputationTypes.Courageous, 1);
-        Reputations.Add(ReputationTypes.Generous, 1);
-        Reputations.Add(ReputationTypes.Sharp, 5);
-        Reputations.Add(ReputationTypes.Unbreakable, 1);
-        Reputations.Add(ReputationTypes.Wise, 1);
-        Reputations.Add(ReputationTypes.Pious, 1);
-        Reputations.Add(ReputationTypes.Ruthless, 1);
-
-        Knowledge.Add(new Knowledge(KnowledgeTypes.Clue));
         Knowledge.Add(new Knowledge(KnowledgeTypes.Secret));
 
         Coins = GameRules.StandardRuleset.StartingCoins;
@@ -64,22 +48,14 @@
         Health = GameRules.StandardRuleset.StartingHealth;
         Health = GameRules.StandardRuleset.StartingHealth;
 
-
         PhysicalEnergy = GameRules.StandardRuleset.StartingPhysicalEnergy;
-        MaxPhysicalEnergy = 40;
+        MaxPhysicalEnergy = 10;
 
-        FocusEnergy = GameRules.StandardRuleset.StartingFocusEnergy;
-        MaxFocusEnergy = 40;
+        Concentration = GameRules.StandardRuleset.StartingConcentration;
+        MaxConcentration = 10;
 
-        SocialEnergy = GameRules.StandardRuleset.StartingSocialEnergy;
-        MaxSocialEnergy = 40;
-
-        Concentration = MinConcentration = 0;
-        MaxConcentration = 40;
-
-        Reputation = 0;
-        MinReputation = 0;
-        MaxReputation = 40;
+        Reputation = GameRules.StandardRuleset.StartingReputation;
+        MaxReputation = 20;
     }
 
     public bool ModifyCoins(int count)
@@ -163,10 +139,10 @@
 
     public bool ModifyFocusEnergy(int count)
     {
-        int newEnergy = Math.Clamp(FocusEnergy + count, 0, MaxFocusEnergy);
-        if (newEnergy != FocusEnergy)
+        int newEnergy = Math.Clamp(Concentration + count, 0, MaxConcentration);
+        if (newEnergy != Concentration)
         {
-            FocusEnergy = newEnergy;
+            Concentration = newEnergy;
             return true;
         }
         return false;
@@ -174,10 +150,10 @@
 
     public bool ModifySocialEnergy(int count)
     {
-        int newEnergy = Math.Clamp(SocialEnergy + count, 0, MaxSocialEnergy);
-        if (newEnergy != SocialEnergy)
+        int newEnergy = Math.Clamp(Reputation + count, 0, MaxReputation);
+        if (newEnergy != Reputation)
         {
-            SocialEnergy = newEnergy;
+            Reputation = newEnergy;
             return true;
         }
         return false;
@@ -210,23 +186,6 @@
         return false;
     }
 
-    public int GetReputationLevel(ReputationTypes reputationType)
-    {
-        if (!Reputations.ContainsKey(reputationType))
-        {
-            return 0;
-        }
-        return Reputations[reputationType];
-    }
-
-    public void SetReputationLevel(ReputationTypes reputationType, int level)
-    {
-        if (Reputations.ContainsKey(reputationType))
-        {
-            Reputations[reputationType] = level;
-        }
-    }
-
     public void ModifyKnowledge(KnowledgeTypes knowledgeType, int count)
     {
         // Add the knowledge to the player's knowledge list
@@ -241,16 +200,12 @@
         switch (energyType)
         {
             case EnergyTypes.Physical: return PhysicalEnergy >= amount;
-            case EnergyTypes.Focus: return FocusEnergy >= amount;
-            case EnergyTypes.Social: return SocialEnergy >= amount;
+            case EnergyTypes.Focus: return Concentration >= amount;
+            case EnergyTypes.Social: return Reputation >= amount;
         };
         return false;
     }
 
-    public bool HasReputation(ReputationTypes reputationType)
-    {
-        return Reputations.ContainsKey(reputationType);
-    }
 
     public bool HasKnowledge(KnowledgeTypes knowledgeType)
     {
@@ -275,28 +230,29 @@
     {
     }
 
-    public bool HasStatus(PlayerStatus status)
-    {
-        return true;
-    }
-
     public bool HasResource(ResourceTypes resourceType, int v)
     {
         return true;
     }
 
-    public bool CanLoseReputation(ReputationTypes reputationType, object value)
-    {
-        return true;
-    }
 
-    public bool HasCoins(object value)
+    public bool HasCoins(int value)
     {
-        return true;
+        return Coins >= value;
     }
 
     internal int GetRelationshipLevel(CharacterTypes character)
     {
-        throw new NotImplementedException();
+        return 1;
+    }
+
+    public bool HasReputation(PlayerReputationTypes expectedValue)
+    {
+        return ReputationType == expectedValue;
+    }
+
+    public bool HasStatusEffect(PlayerNegativeStatus expectedValue)
+    {
+        return NegativeStatusTypes.Contains(expectedValue);
     }
 }

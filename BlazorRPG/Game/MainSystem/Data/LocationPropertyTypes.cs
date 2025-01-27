@@ -1,19 +1,4 @@
-﻿public enum LocationPropertyTypes
-{
-    Archetype,
-    Resource,
-    CrowdDensity,
-    LocationScale,
-
-    Accessibility,
-    Engagement,
-
-    Atmosphere,
-    RoomLayout,
-    Temperature,
-}
-
-public enum Accessability
+﻿public enum Accessibility
 {
     Private, Communal, Public
 }

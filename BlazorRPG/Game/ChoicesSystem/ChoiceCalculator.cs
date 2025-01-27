@@ -10,8 +10,8 @@
     }
 
     public ChoiceCalculationResult CalculateChoiceEffects(
-        EncounterChoice choice, 
-        LocationSpotProperties locationProperties, 
+        EncounterChoice choice,
+        EncounterContext context,
         EncounterValues initialEncounterValues)
     {
         // 1. Get base values that are inherent to the choice type
@@ -25,12 +25,12 @@
         // 3. Calculate new state after combining base values and modifications
         EncounterValues projectedEncounterState = CalculateNewState(initialEncounterValues, choice, choiceBaseChanges, valueModifications);
         PlayerState player = gameState.Player;
-        int energyCost = CalculateEnergyCost(choice, projectedEncounterState, player, locationProperties);
+        int energyCost = CalculateEnergyCost(choice, projectedEncounterState, player, context);
 
         // 4. Calculate final requirements, costs and rewards
-        List<Requirement> requirements = CalculateRequirements(valueModifications, choice, player, locationProperties, projectedEncounterState);
-        List<Outcome> costs = CalculateCosts(choice, locationProperties);
-        List<Outcome> rewards = CalculateRewards(choice, locationProperties);
+        List<Requirement> requirements = CalculateRequirements(valueModifications, choice, player, context, projectedEncounterState);
+        List<Outcome> costs = CalculateCosts(choice, context);
+        List<Outcome> rewards = CalculateRewards(choice, context);
 
         // 5. Return complete calculation result
         ChoiceCalculationResult choiceCalculationResult = new ChoiceCalculationResult(
@@ -47,11 +47,11 @@
     }
 
 
-    private int CalculateEnergyCost(EncounterChoice choice, EncounterValues initialEncounterValues, PlayerState player, LocationSpotProperties locationProperties)
+    private int CalculateEnergyCost(EncounterChoice choice, EncounterValues initialEncounterValues, PlayerState player, EncounterContext context)
     {
         int baseEnergyCost = 0; //GameRules.GetBaseEnergyCost(choice.Archetype, choice.Approach);
 
-        int propertyModifier = locationPropertyCalculator.CalculateEnergyCostModifier(choice, locationProperties);
+        int propertyModifier = locationPropertyCalculator.CalculateEnergyCostModifier(choice, context);
 
         // Apply energy cost reductions from modifications, using projected momentum
         int energyReduction = 0;
@@ -71,7 +71,7 @@
     private List<ValueModification> CalculateAllValueChanges(EncounterChoice choice, EncounterValues initialEncounterValues)
     {
         List<ValueModification> modifications = new();
-        
+
         bool applyPressure = choice.Approach switch
         {
             ChoiceApproaches.Aggressive => applyPressure = true,
@@ -80,7 +80,7 @@
             _ => false
         };
 
-        if(!applyPressure) return modifications;
+        if (!applyPressure) return modifications;
 
         if (initialEncounterValues.Pressure > GameRules.GetArchetypeValue(choice.Archetype, initialEncounterValues))
         {
@@ -144,15 +144,15 @@
         return newState;
     }
 
-    private List<Requirement> CalculateRequirements(List<ValueModification> valueModifications, EncounterChoice choice, PlayerState playerState, LocationSpotProperties locationProperties, EncounterValues encounterValues)
+    private List<Requirement> CalculateRequirements(List<ValueModification> valueModifications, EncounterChoice choice, PlayerState playerState, EncounterContext context, EncounterValues encounterValues)
     {
-        List<Requirement> requirements = GetEnergyRequirements(choice, playerState);
+        List<Requirement> requirements = new List<Requirement> { };
 
         List<Requirement> ValueRequirements = GetValueRequirements(valueModifications, choice, playerState, encounterValues);
         requirements.AddRange(ValueRequirements);
 
         List<Requirement> propertyRequirements = locationPropertyCalculator
-            .CalculateLocationRequirements(choice, locationProperties);
+            .CalculateLocationRequirements(choice, context);
 
         requirements.AddRange(propertyRequirements);
 
@@ -205,70 +205,19 @@
         return requirements;
     }
 
-    private List<Requirement> GetEnergyRequirements(EncounterChoice choice, PlayerState playerState)
-    {
-        List<Requirement> requirements = new List<Requirement>();
-
-        // Calculate energy cost
-        int energyCost = choice.EnergyCost;
-
-        // Only add energy requirements if the cost is greater than 0
-        if (energyCost > 0)
-        {
-            // Check if the player has enough energy to meet the requirement
-            if (choice.EnergyType == EnergyTypes.Physical)
-            {
-                if (gameState.Player.PhysicalEnergy < energyCost)
-                {
-                    int healthCost = energyCost - gameState.Player.PhysicalEnergy;
-                    requirements.Add(new HealthRequirement(healthCost));
-                }
-                else
-                {
-                    requirements.Add(new EnergyRequirement(EnergyTypes.Physical, energyCost));
-                }
-            }
-            else if (choice.EnergyType == EnergyTypes.Focus)
-            {
-                if (gameState.Player.FocusEnergy < energyCost)
-                {
-                    int concentrationCost = energyCost - gameState.Player.FocusEnergy;
-                    requirements.Add(new ConcentrationRequirement(concentrationCost));
-                }
-                else
-                {
-                    requirements.Add(new EnergyRequirement(EnergyTypes.Focus, energyCost));
-                }
-            }
-            else if (choice.EnergyType == EnergyTypes.Social)
-            {
-                if (gameState.Player.SocialEnergy < energyCost)
-                {
-                    int reputationCost = energyCost - gameState.Player.SocialEnergy;
-                    requirements.Add(new ReputationRequirement(reputationCost));
-                }
-                else
-                {
-                    requirements.Add(new EnergyRequirement(EnergyTypes.Social, energyCost));
-                }
-            }
-        }
-        return requirements;
-    }
-
-    private List<Outcome> CalculateCosts(EncounterChoice choice, LocationSpotProperties locationProperties)
+    private List<Outcome> CalculateCosts(EncounterChoice choice, EncounterContext context)
     {
         List<Outcome> costs = GenerateBaseCosts(choice.Archetype, choice.Approach);
 
-        List<Outcome> propertyCosts = locationPropertyCalculator.CalculatePropertyCosts(choice, locationProperties);
+        List<Outcome> propertyCosts = locationPropertyCalculator.CalculatePropertyCosts(choice, context);
         costs.AddRange(propertyCosts);
         return costs;
     }
 
-    private List<Outcome> CalculateRewards(EncounterChoice choice, LocationSpotProperties locationProperties)
+    private List<Outcome> CalculateRewards(EncounterChoice choice, EncounterContext context)
     {
         List<Outcome> rewards = GenerateBaseRewards(choice.Archetype, choice.Approach);
-        List<Outcome> propertyRewards = locationPropertyCalculator.CalculatePropertyRewards(choice, locationProperties);
+        List<Outcome> propertyRewards = locationPropertyCalculator.CalculatePropertyRewards(choice, context);
         rewards.AddRange(propertyRewards);
         return rewards;
     }
@@ -307,6 +256,4 @@
                 break;
         }
     }
-
-
 }

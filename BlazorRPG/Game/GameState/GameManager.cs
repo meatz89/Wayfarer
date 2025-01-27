@@ -98,7 +98,7 @@ public class GameManager
                     locationSpot.LocationName,
                     locationSpot.Name,
                     default,
-                    location.DifficultyLevel);
+                    location.Difficulty);
 
             options.Add(userActionOption);
         }
@@ -128,7 +128,11 @@ public class GameManager
         LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(choiceOption.LocationName, choiceOption.locationSpotName);
 
         // Execute the choice
-        EncounterResult encounterResult = EncounterSystem.ExecuteChoice(encounter, choice, locationSpot.SpotProperties);
+        EncounterResult encounterResult = EncounterSystem.ExecuteChoice(
+                encounter,
+                choice,
+                locationSpot);
+
         gameState.Actions.LastEncounterResult = encounterResult;
 
         if (encounterResult.encounterResults == EncounterResults.Ongoing)
@@ -158,8 +162,8 @@ public class GameManager
     private bool IsGameOver(PlayerState player)
     {
         bool canPayPhysical = player.PhysicalEnergy > 0 || player.Health > 1;
-        bool canPayFocus = player.FocusEnergy > 0 || player.Concentration > 1;
-        bool canPaySocial = player.SocialEnergy > 0 || player.Reputation > 1;
+        bool canPayFocus = player.Concentration > 0 || player.Concentration > 1;
+        bool canPaySocial = player.Reputation > 0 || player.Reputation > 1;
 
         bool isGameOver = !(canPayPhysical || canPayFocus || canPaySocial);
         return isGameOver;
@@ -221,22 +225,16 @@ public class GameManager
 
         // Create initial context with our new value system
         int playerLevel = playerState.Level;
-        List<PlayerStatus> playerStatusTypes = PlayerStatusSystem.GetActiveStatusList();
 
         EncounterContext context = new EncounterContext(
             actionImplementation,
-            location.LocationName,
-            locationSpotName,
+            location,
+            locationSpot,
             actionImplementation.ActionType,
-            location.LocationType,
-            location.LocationArchetype,
-            gameState.World.WorldTime,
-            locationSpot.SpotProperties,
             playerState,
-            location.DifficultyLevel,
             effects,
             playerLevel,
-            playerStatusTypes
+            gameState
         );
 
         UserActionOption action = gameState.Actions.LocationSpotActions.Where(x => x.LocationSpot == locationSpot.Name).First();
@@ -248,8 +246,8 @@ public class GameManager
 
     public List<LocationPropertyChoiceEffect> GetLocationEffects(Encounter encounter, EncounterChoice choice)
     {
-        LocationNames locationName = encounter.Context.LocationName;
-        string locationSpot = encounter.Context.LocationSpotName;
+        LocationNames locationName = encounter.Context.Location.LocationName;
+        string locationSpot = encounter.Context.LocationSpot.Name;
 
         return LocationSystem.GetLocationEffects(locationName, locationSpot);
     }
@@ -522,7 +520,7 @@ public class GameManager
 
     private void CreateActionForLocationSpot(Location location, ActionTemplate actionTemplate, LocationSpot locationSpot)
     {
-        if (!actionTemplate.IsValidForSpot(location, locationSpot))
+        if (!actionTemplate.IsValidForSpot(location, locationSpot, gameState.World, gameState.Player))
         {
             return;
         }

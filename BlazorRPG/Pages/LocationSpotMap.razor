@@ -83,50 +83,35 @@
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
-        if (spot.SpotProperties.IsAccessabilitySet)
-        {
-            properties.Add(new(
-                "📐",
-                FormatEnumString(spot.SpotProperties.Accessibility.ToString()),
-                ""
-            ));
-        }
+        properties.Add(new(
+            "📐",
+            FormatEnumString(spot.Accessibility.ToString()),
+            ""
+        ));
 
-        if (spot.SpotProperties.IsEngagementSet)
-        {
-            properties.Add(new(
-                "⚖️",
-                FormatEnumString(spot.SpotProperties.Engagement.ToString()),
-                $"property-{spot.SpotProperties.Engagement.ToString().ToLower()}"
-            ));
-        }
+        properties.Add(new(
+            "⚖️",
+            FormatEnumString(spot.Engagement.ToString()),
+            $"property-{spot.Engagement.ToString().ToLower()}"
+        ));
 
-        if (spot.SpotProperties.IsAtmosphereSet)
-        {
-            properties.Add(new(
-                "😌",
-                FormatEnumString(spot.SpotProperties.Atmosphere.ToString()),
-                $"property-{spot.SpotProperties.Atmosphere.ToString().ToLower()}"
-            ));
-        }
+        properties.Add(new(
+            "😌",
+            FormatEnumString(spot.Atmosphere.ToString()),
+            $"property-{spot.Atmosphere.ToString().ToLower()}"
+        ));
 
-        if (spot.SpotProperties.IsRoomLayoutSet)
-        {
-            properties.Add(new(
-                "🧩",
-                FormatEnumString(spot.SpotProperties.RoomLayout.ToString()),
-                ""
-            ));
-        }
+        properties.Add(new(
+            "🧩",
+            FormatEnumString(spot.RoomLayout.ToString()),
+            ""
+        ));
 
-        if (spot.SpotProperties.IsTemperatureSet)
-        {
-            properties.Add(new(
-                spot.SpotProperties.Temperature == Temperature.Warm ? "☀️" : "❄️",
-                FormatEnumString(spot.SpotProperties.Temperature.ToString()),
-                ""
-            ));
-        }
+        properties.Add(new(
+            spot.Temperature == Temperature.Warm ? "☀️" : "❄️",
+            FormatEnumString(spot.Temperature.ToString()),
+            ""
+        ));
 
         return properties;
     }
