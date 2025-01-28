@@ -3,6 +3,8 @@
     private List<LocationNarrative> narrativeContents;
     private string openAiApiKey;
     private const string NewLine = "\r\n";
+    public LargeLanguageAdapter LargeLanguageAdapter { get; }
+    public JournalSystem JournalSystem { get; }
 
     public NarrativeSystem(
         GameContentProvider gameContentProvider,
@@ -15,9 +17,6 @@
         openAiApiKey = configuration.GetValue<string>("OpenAiApiKey");
         LargeLanguageAdapter = new LargeLanguageAdapter(openAiApiKey);
     }
-
-    public LargeLanguageAdapter LargeLanguageAdapter { get; }
-    public JournalSystem JournalSystem { get; }
 
     public void NewEncounter(EncounterContext context, ActionImplementation actionImplementation)
     {

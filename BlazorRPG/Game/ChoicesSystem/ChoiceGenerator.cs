@@ -23,8 +23,8 @@
 
         List<EncounterChoice> choices = new List<EncounterChoice>();
 
-        List<EncounterChoice> forcedChoiceSubstitutions = GetForcedChoiceSubstituations(encounter, context);
-        choices.AddRange(forcedChoiceSubstitutions);
+        List<EncounterChoice> choiceSubstitutions = GetChoiceSubstituations(encounter, context);
+        choices.AddRange(choiceSubstitutions);
         if (choices.Count == 0)
         {
             List<EncounterChoice> baseChoices = GenerateBaseEncounterChoices(playerState, encounter, context, initialValues, pattern);
@@ -47,7 +47,7 @@
         return new ChoiceSet(context.ActionType.ToString(), choices);
     }
 
-    private List<EncounterChoice> GetForcedChoiceSubstituations(Encounter encounter, EncounterContext context)
+    private List<EncounterChoice> GetChoiceSubstituations(Encounter encounter, EncounterContext context)
     {
         List<EncounterChoiceTemplate> encounterChoiceTemplates =
             GetChoiceSubstitutions(encounter, context);
@@ -138,7 +138,7 @@
                 choices.Add(choiceSlot.GetChoiceTemplate());
 
                 EncounterChoiceTemplate choiceTemplate = choiceSlot.GetChoiceTemplate();
-                if (choiceTemplate.ChoiceSlotType == ChoiceSlotPersistence.Fleeting)
+                if (choiceTemplate.ChoiceSlotType == ChoiceSlotPersistence.Enduring)
                 {
                     encounter.BaseSlots.Remove(choiceSlot);
                 }

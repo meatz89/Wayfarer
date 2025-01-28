@@ -17,7 +17,10 @@
                         .WithArchetype(ChoiceArchetypes.Physical)
                         .WithApproach(ChoiceApproaches.Strategic)
                         .ExpendsCoins(5)
-                        .EndsEndcounter(EncounterResults.EncounterSuccess))))
+                        .EndsEndcounter(EncounterResults.EncounterSuccess)
+                    )
+                )
+            )
             .Build(),
 
         new EncounterChoiceSlotBuilder()
@@ -29,7 +32,8 @@
                 .WithChoiceSlotType(ChoiceSlotPersistence.Enduring)
                 .WithArchetype(ChoiceArchetypes.Social)
                 .WithApproach(ChoiceApproaches.Tactical)
-                .RewardsLocationInformation(LocationNames.Market))
+                .RewardsLocationInformation(LocationNames.Market)
+            )
             .Build(),
 
         new EncounterChoiceSlotBuilder()
@@ -41,11 +45,37 @@
                 .WithChoiceSlotType(ChoiceSlotPersistence.Enduring)
                 .WithArchetype(ChoiceArchetypes.Social)
                 .WithApproach(ChoiceApproaches.Tactical)
-                .EndsEndcounter(EncounterResults.EncounterSuccess))
+                .EndsEndcounter(EncounterResults.EncounterSuccess)
+            )
+            .Build(),
+
+        new EncounterChoiceSlotBuilder()
+            .WithLocationArchetype(LocationArchetypes.Tavern)
+            .WithLocationOpportunity(OpportunityTypes.Commercial)
+            .WithActionType(BasicActionTypes.Persuade)
+            .WithEncounterChoice(encounterChoiceBuilder => encounterChoiceBuilder
+                .WithName("Say Goodbye")
+                .WithChoiceSlotType(ChoiceSlotPersistence.Enduring)
+                .WithArchetype(ChoiceArchetypes.Social)
+                .WithApproach(ChoiceApproaches.Tactical)
+                .EndsEndcounter(EncounterResults.EncounterSuccess)
+            )
+            .Build(),
+
+        new EncounterChoiceSlotBuilder()
+            .WithLocationArchetype(LocationArchetypes.Tavern)
+            .WithLocationOpportunity(OpportunityTypes.Commercial)
+            .WithActionType(BasicActionTypes.Labor)
+            .WithEncounterStateCondition(encounterState => encounterState
+                .WithMaxMomentum(1)
+            )
+            .WithEncounterChoice(encounterChoiceBuilder => encounterChoiceBuilder
+                .WithName("Drop Tray")
+                .WithChoiceSlotType(ChoiceSlotPersistence.Enduring)
+                .WithArchetype(ChoiceArchetypes.Physical)
+                .WithApproach(ChoiceApproaches.Mistake)
+                .RewardsReputation(-1)
+            )
             .Build(),
     };
-}
-public enum ChoiceSlotPersistence
-{
-    Enduring, Fleeting
 }

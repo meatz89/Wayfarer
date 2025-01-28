@@ -11,6 +11,7 @@
     public bool IsEncounterFailingChoice { get; set; }
     public ChoiceCalculationResult CalculationResult { get; set; }
     public List<EncounterChoiceSlot> ChoiceSlotModifications { get; set; } = new();
+    public EncounterChoiceSlot ChoiceSlotToRemove { get; set; }
 
     // Constructor remains the same
     public EncounterChoice(
