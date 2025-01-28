@@ -341,8 +341,9 @@ public class GameManager
     public List<Location> GetPlayerKnownLocations()
     {
         List<Location> playerKnownLocations = new List<Location>();
-        
-        foreach (Location location in LocationSystem.GetAllLocations()) {
+
+        foreach (Location location in LocationSystem.GetAllLocations())
+        {
             if (!gameState.Player.KnownLocations.Contains(location.LocationName)) continue;
             playerKnownLocations.Add(location);
         }

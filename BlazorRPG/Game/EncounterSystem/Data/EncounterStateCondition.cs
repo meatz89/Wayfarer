@@ -14,13 +14,13 @@
         foreach ((ValueTypes valueType, int minValue) in MinValues)
         {
             int currentValue = GetValueFromState(state, valueType);
-            if (currentValue < minValue) return false;
+            if (currentValue <= minValue) return false;
         }
 
         foreach ((ValueTypes valueType, int maxValue) in MaxValues)
         {
             int currentValue = GetValueFromState(state, valueType);
-            if (currentValue > maxValue) return false;
+            if (currentValue >= maxValue) return false;
         }
 
         return true;
@@ -30,9 +30,10 @@
     {
         return type switch
         {
-            ValueTypes.Outcome => state.Outcome,
+            ValueTypes.Momentum => state.Momentum,
             ValueTypes.Insight => state.Insight,
             ValueTypes.Resonance => state.Resonance,
+            ValueTypes.Outcome => state.Outcome,
             ValueTypes.Pressure => state.Pressure,
             _ => 0
         };

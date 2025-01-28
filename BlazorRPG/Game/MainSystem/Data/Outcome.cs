@@ -170,7 +170,7 @@ public class InformationOutcome : Outcome
         {
             case InformationTypes.Location:
             {
-                if(Information is LocationInformation locationInformation)
+                if (Information is LocationInformation locationInformation)
                 {
                     player.AddLocationKnowledge(locationInformation.LocationNames);
                 }

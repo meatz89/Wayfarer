@@ -67,11 +67,11 @@
             .WithLocationOpportunity(OpportunityTypes.Commercial)
             .WithActionType(BasicActionTypes.Labor)
             .WithEncounterStateCondition(encounterState => encounterState
-                .WithMaxMomentum(1)
+                .WithMaxMomentum(2)
             )
             .WithEncounterChoice(encounterChoiceBuilder => encounterChoiceBuilder
                 .WithName("Drop Tray")
-                .WithChoiceSlotType(ChoiceSlotPersistence.Enduring)
+                .WithChoiceSlotType(ChoiceSlotPersistence.Fleeting)
                 .WithArchetype(ChoiceArchetypes.Physical)
                 .WithApproach(ChoiceApproaches.Mistake)
                 .RewardsReputation(-1)

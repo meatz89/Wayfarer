@@ -99,7 +99,7 @@
     {
         return this;
     }
-    
+
     public EncounterChoiceTemplateBuilder RewardsLocationInformation(LocationNames locationName)
     {
         rewards.Add(new InformationOutcome(InformationTypes.Location, new LocationInformation(locationName)));
