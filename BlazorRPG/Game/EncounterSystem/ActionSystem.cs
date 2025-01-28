@@ -21,7 +21,7 @@ public class ActionSystem
         {
             ActionType = originalAction.ActionType,
             Name = originalAction.Name,
-            TimeSlots = new List<TimeWindows>(originalAction.TimeSlots),
+            TimeWindows = new List<TimeWindows>(originalAction.TimeWindows),
             Requirements = new List<Requirement>(originalAction.Requirements),
             EnergyCosts = new List<Outcome>(originalAction.EnergyCosts),
             OutcomeConditions = originalAction.OutcomeConditions.ToList(),

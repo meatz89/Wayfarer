@@ -28,10 +28,10 @@
         return this;
     }
 
-    public ActionTemplateBuilder WithTimeSlot(TimeWindows timeSlot)
+    public ActionTemplateBuilder WithTimeWindow(TimeWindows timeWindow)
     {
         this.worldStatePropertyCondition = new WorldStatePropertyCondition
-            (WorldStatusTypes.Time, timeSlot);
+            (WorldStatusTypes.Time, timeWindow);
 
         return this;
     }

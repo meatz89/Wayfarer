@@ -431,9 +431,9 @@ public class GameManager
 
         const int timeWindowsPerDay = 4;
         const int hoursPerTimeWindow = 6;
-        int timeSlot = (gameState.World.CurrentTimeInHours / hoursPerTimeWindow) % timeWindowsPerDay;
+        int timeWindow = (gameState.World.CurrentTimeInHours / hoursPerTimeWindow) % timeWindowsPerDay;
 
-        gameState.World.DetermineCurrentTimeSlot(timeSlot);
+        gameState.World.DetermineCurrentTimeWindow(timeWindow);
 
         if (daySkip)
         {

@@ -10,8 +10,6 @@ public partial class EncounterViewBase : ComponentBase
     [Inject] public GameState GameState { get; set; }
     [Inject] public GameManager GameManager { get; set; }
 
-    private const string BaseValueChangeLabel = "Base";
-
     public UserEncounterChoiceOption hoveredChoice;
     public bool showTooltip;
     public double mouseX;

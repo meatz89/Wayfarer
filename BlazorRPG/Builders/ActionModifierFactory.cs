@@ -47,7 +47,7 @@
         // Create time slot modifier if configured
         if (config.TimeWindow != default)
         {
-            modifiers.Add(new TimeSlotModifier(
+            modifiers.Add(new TimeWindowModifier(
                 config.Description,
                 config.Source,
                 config.TimeWindow,

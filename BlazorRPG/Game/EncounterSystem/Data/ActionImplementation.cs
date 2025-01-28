@@ -4,7 +4,7 @@
     public BasicActionTypes ActionType { get; set; }
     public List<Requirement> Requirements { get; set; } = new();
     public List<Outcome> EnergyCosts { get; set; }
-    public List<TimeWindows> TimeSlots { get; set; } = new();
+    public List<TimeWindows> TimeWindows { get; set; } = new();
     public LocationArchetypes LocationArchetype { get; set; } = new();
     public CrowdDensity CrowdDensity { get; set; } = new();
     public LocationScale LocationScale { get; set; } = new();

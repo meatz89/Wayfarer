@@ -19,9 +19,9 @@
 
         const int timeWindowsPerDay = 4;
         const int hoursPerTimeWindow = 6;
-        int timeSlot = (CurrentTimeInHours / hoursPerTimeWindow) % timeWindowsPerDay;
+        int timeWindow = (CurrentTimeInHours / hoursPerTimeWindow) % timeWindowsPerDay;
 
-        DetermineCurrentTimeSlot(timeSlot);
+        DetermineCurrentTimeWindow(timeWindow);
     }
 
     public void SetNewLocation(Location location)
@@ -45,9 +45,9 @@
         CurrentLocationSpotOptions = options;
     }
 
-    public void DetermineCurrentTimeSlot(int timeSlot)
+    public void DetermineCurrentTimeWindow(int timeWindow)
     {
-        WorldTime = timeSlot switch
+        WorldTime = timeWindow switch
         {
             0 => TimeWindows.Night,
             1 => TimeWindows.Morning,

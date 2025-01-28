@@ -35,11 +35,11 @@ public class EnergyCostReducer : ActionModifier
     }
 }
 
-public class TimeSlotModifier : ActionModifier
+public class TimeWindowModifier : ActionModifier
 {
     private readonly TimeWindows timeWindowToAdd;
 
-    public TimeSlotModifier(string description, string source, TimeWindows timeWindow, BasicActionTypes actionType)
+    public TimeWindowModifier(string description, string source, TimeWindows timeWindow, BasicActionTypes actionType)
     {
         this.Source = source;
         this.Description = description;
@@ -50,9 +50,9 @@ public class TimeSlotModifier : ActionModifier
     public override void ApplyModification(ActionImplementation action)
     {
         // Only add the time window if it's not already present
-        if (!action.TimeSlots.Contains(timeWindowToAdd))
+        if (!action.TimeWindows.Contains(timeWindowToAdd))
         {
-            action.TimeSlots.Add(timeWindowToAdd);
+            action.TimeWindows.Add(timeWindowToAdd);
         }
     }
 }
