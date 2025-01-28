@@ -61,11 +61,6 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         List<DetailedChange> detailedChanges = new List<DetailedChange>();
 
         // Add base changes
-        foreach (BaseValueChange change in calculationResult.BaseValueChanges)
-        {
-            AddDetailedChange(detailedChanges, ConvertValueTypeToChangeType(change.ValueType), approach.ToString(), change.Amount);
-        }
-
         // Add modifications
         foreach (ValueModification change in calculationResult.ValueModifications)
         {
@@ -78,10 +73,6 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
                 AddDetailedChange(detailedChanges, ConvertEnergyTypeToChangeType(em.EnergyType), change.Source, em.Amount);
             }
         }
-
-        // Add Energy Cost as a negative modification
-        if (calculationResult.EnergyCost > 0)
-            AddDetailedChange(detailedChanges, ConvertEnergyTypeToChangeType(calculationResult.EnergyType), approach.ToString(), -calculationResult.EnergyCost);
 
         // Sort the detailed changes
         detailedChanges = SortDetailedChanges(detailedChanges);

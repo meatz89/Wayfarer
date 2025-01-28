@@ -10,7 +10,7 @@
             .WithEncounterStateCondition(builder => builder
                 .WithMinResonance(7))
             .WithEncounterChoice(builder => builder
-                .RewardsKnowledge(KnowledgeTypes.WorkOpportunity, LocationNames.Market))
+                .RewardsCoins(1))
             .Build(),
 
         new EncounterChoiceSlotBuilder()
@@ -21,7 +21,7 @@
             .WithEncounterStateCondition(builder => builder
                 .WithMinResonance(7))
             .WithEncounterChoice(builder => builder
-                .RewardsKnowledge(KnowledgeTypes.WorkOpportunity, LocationNames.Market))
+                .RewardsCoins(1))
             .Build(),
     };
 }

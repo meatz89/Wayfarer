@@ -1,4 +1,8 @@
-﻿public class ChoiceGenerator
+﻿using System;
+using System.Diagnostics.Metrics;
+using System.Security.AccessControl;
+
+public class ChoiceGenerator
 {
     private const int numberOfChoicesToGenerate = 4;
 
@@ -13,47 +17,110 @@
         this.alreadyUsedCombinations = new List<(ChoiceArchetypes, ChoiceApproaches)>();
     }
 
-    public ChoiceSet Generate(EncounterChoiceTemplate template, EncounterContext context)
+    public ChoiceSet Generate(Encounter encounter, EncounterContext context)
     {
         alreadyUsedCombinations.Clear();
 
         PlayerState playerState = gameState.Player;
         EncounterValues initialValues = context.CurrentValues;
+        CompositionPattern pattern = GameRules.GetCompositionPatternForActionType(context.ActionType);
 
-        CompositionPattern pattern = GameRules.GetCompositionPatternForActionType(template.ActionType);
+        List<EncounterChoice> choices = new List<EncounterChoice>();
 
-        List<EncounterChoice> choices = GenerateEncounterChoices(playerState, initialValues, pattern);
+        List<EncounterChoice> slotChoices = GetEncounterChoicesFromSlots(encounter, context);
+        choices.AddRange(slotChoices);
+        if (choices.Count == 0)
+        {
+            List<EncounterChoice> baseChoices = GenerateBaseEncounterChoices(playerState, encounter, context, initialValues, pattern);
+            choices.AddRange(baseChoices);
+
+            foreach (EncounterChoice choice in choices)
+            {
+                calculator.CalculateChoiceEffects(choice, context, initialValues);
+            }
+        }
 
         foreach (EncounterChoice choice in choices)
         {
-            choice.CalculationResult = calculator.CalculateChoiceEffects(choice, context, initialValues);
-
-            EncounterValues projection = choice.CalculationResult.ProjectedEncounterState;
+            EncounterValues projection = calculator.GetProjectedEncounterState(choice, initialValues, choice.CalculationResult.ValueModifications);
+            choice.CalculationResult.ProjectedEncounterState = projection;
             choice.IsEncounterWinningChoice = IsEncounterWon(context, projection);
-
             if (!choice.IsEncounterWinningChoice)
             {
                 choice.IsEncounterFailingChoice = IsEncounterLost(context, projection);
             }
         }
 
-        return new ChoiceSet(template.Name, choices);
+        return new ChoiceSet(context.ActionType.ToString(), choices);
     }
 
-    private List<EncounterChoice> GenerateEncounterChoices(PlayerState playerState, EncounterValues initialValues, CompositionPattern pattern)
+    private List<EncounterChoice> GetEncounterChoicesFromSlots(Encounter encounter, EncounterContext context)
     {
         List<EncounterChoice> encounterChoices = new List<EncounterChoice>();
+
+        List<EncounterChoiceTemplate> encounterChoiceTemplates =
+            GetEncounterChoicesFromBaseSlots(encounter, context);
+
+        if (encounterChoiceTemplates.Count != 0)
+        {
+            int index = 1;
+            foreach (EncounterChoiceTemplate template in encounterChoiceTemplates)
+            {
+                ChoiceArchetypes archetype = template.Archetype;
+                ChoiceApproaches approach = template.Approach;
+
+                EncounterChoice choice = new EncounterChoice(
+                    index,
+                    $"{archetype} - {approach}",
+                    $"{archetype} - {approach}",
+                    archetype,
+                    approach);
+
+                choice.CalculationResult = new ChoiceCalculationResult(
+                    template.ValueModifications,
+                    template.Requirements,
+                    template.Costs,
+                    template.Rewards);
+
+                encounterChoices.Add(choice);
+                index++;
+            }
+        }
+        return encounterChoices;
+    }
+
+    private List<EncounterChoice> GenerateBaseEncounterChoices(
+        PlayerState playerState,
+        Encounter encounter,
+        EncounterContext context,
+        EncounterValues initialValues,
+        CompositionPattern pattern)
+    {
+        List<EncounterChoice> encounterChoices = new List<EncounterChoice>();
+
         if (initialValues.Pressure < 9)
         {
-            encounterChoices =
-                GenerateBaseChoices(initialValues, playerState, numberOfChoicesToGenerate, pattern);
+            encounterChoices = GenerateBaseChoices(initialValues, playerState, numberOfChoicesToGenerate, pattern);
         }
         else
         {
             encounterChoices = GenerateDesperateOnlyChoices(pattern);
         }
-
         return encounterChoices;
+    }
+
+    private List<EncounterChoiceTemplate> GetEncounterChoicesFromBaseSlots(Encounter encounter, EncounterContext context)
+    {
+        EncounterValues currentValues = context.CurrentValues;
+
+        List<EncounterChoiceTemplate> choices = new List<EncounterChoiceTemplate>();
+        foreach (EncounterChoiceSlot choiceSlot in encounter.BaseSlots)
+        {
+            if (!choiceSlot.encounterStateProperty.IsMet(currentValues)) continue;
+            choices.Add(choiceSlot.encounterChoiceTemplate);
+        }
+
+        return choices;
     }
 
     private bool IsEncounterWon(EncounterContext context, EncounterValues projection)
@@ -85,7 +152,7 @@
     private List<EncounterChoice> GenerateBaseChoices(
         EncounterValues values,
         PlayerState playerState,
-        int desiredChoiceCount, 
+        int desiredChoiceCount,
         CompositionPattern pattern)
     {
         List<EncounterChoice> choices = new();
@@ -242,19 +309,19 @@
 
     private EncounterChoice CreateChoice(int index, ChoiceArchetypes archetype, ChoiceApproaches approach)
     {
-        bool requireTool = archetype == ChoiceArchetypes.Physical && approach == ChoiceApproaches.Strategic;
-        bool requireKnowledge = archetype == ChoiceArchetypes.Focus && approach == ChoiceApproaches.Strategic;
-        bool requireReputation = archetype == ChoiceArchetypes.Social && approach == ChoiceApproaches.Strategic;
-
-        EncounterChoice choice = new(
+        EncounterChoice choice = new EncounterChoice(
             index,
             $"{archetype} - {approach}",
             $"{archetype} - {approach}",
             archetype,
-            approach,
-            requireTool,
-            requireKnowledge,
-            requireReputation);
+            approach);
+
+        choice.CalculationResult = new ChoiceCalculationResult(
+            new List<ValueModification>(),
+            new List<Requirement>(),
+            new List<Outcome>(),
+            new List<Outcome>()
+            );
 
         return choice;
     }

@@ -13,9 +13,6 @@
         if (!AreRequirementsMet(result.Requirements))
             return;
 
-        // Apply energy cost or alternative cost
-        ApplyEnergyCost(choice, result);
-
         // Apply high pressure complications if needed
         if (gameState.Actions.CurrentEncounter.Context.CurrentValues.Pressure >= 7)
         {
@@ -63,32 +60,4 @@
     {
         return requirements.All(req => req.IsSatisfied(gameState));
     }
-
-    private void ApplyEnergyCost(EncounterChoice choice, ChoiceCalculationResult result)
-    {
-        int energyCost = result.EnergyCost;
-
-        if (gameState.Player.CanPayEnergy(choice.EnergyType, energyCost))
-        {
-            gameState.Player.ModifyEnergy(choice.EnergyType, -energyCost);
-        }
-        else
-        {
-            // Apply alternative costs based on energy type
-            switch (choice.EnergyType)
-            {
-                case EnergyTypes.Physical:
-                    int healthCost = energyCost - gameState.Player.PhysicalEnergy;
-                    gameState.Player.PhysicalEnergy = 0;
-                    gameState.Player.ModifyHealth(-healthCost);
-                    break;
-                case EnergyTypes.Concentration:
-                    int concentrationCost = energyCost - gameState.Player.Concentration;
-                    gameState.Player.Concentration = 0;
-                    gameState.Player.ModifyConcentration(concentrationCost);
-                    break;
-            }
-        }
-    }
-
 }

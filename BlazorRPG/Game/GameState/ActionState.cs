@@ -34,7 +34,7 @@
     {
         CurrentEncounter = encounter;
         EncounterResult = new EncounterResult()
-            { encounter = encounter, encounterResults = EncounterResults.Ongoing };
+        { encounter = encounter, encounterResults = EncounterResults.Ongoing };
 
         CurrentChoiceOptions = new();
     }

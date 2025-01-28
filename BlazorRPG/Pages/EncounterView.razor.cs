@@ -93,12 +93,6 @@ public partial class EncounterViewBase : ComponentBase
     {
         List<DetailedChange> detailedChanges = new List<DetailedChange>();
 
-        // Add base changes
-        foreach (BaseValueChange change in calculationResult.BaseValueChanges)
-        {
-            AddDetailedChange(detailedChanges, ConvertValueTypeToChangeType(change.ValueType), BaseValueChangeLabel, change.Amount);
-        }
-
         // Add modifications
         foreach (ValueModification change in calculationResult.ValueModifications)
         {
@@ -112,11 +106,6 @@ public partial class EncounterViewBase : ComponentBase
             }
         }
 
-        // Add Energy Cost as a negative modification
-        if (calculationResult.EnergyCost > 0)
-            AddDetailedChange(detailedChanges, ConvertEnergyTypeToChangeType(calculationResult.EnergyType), BaseValueChangeLabel, -calculationResult.EnergyCost);
-
-        // Sort the detailed changes
         detailedChanges = SortDetailedChanges(detailedChanges);
 
         return detailedChanges;
@@ -165,33 +154,6 @@ public partial class EncounterViewBase : ComponentBase
         }
     }
 
-    public string GetEnergyDisplay(EncounterChoice choice)
-    {
-        int energyCost = choice.EnergyCost;
-
-        // Calculate alternative costs if not enough energy
-        switch (choice.EnergyType)
-        {
-            case EnergyTypes.Physical when GameState.Player.PhysicalEnergy < energyCost:
-                int healthLoss = energyCost - GameState.Player.PhysicalEnergy;
-                return $"-{healthLoss} Health";
-
-            case EnergyTypes.Concentration when GameState.Player.Concentration < energyCost:
-                int concentrationLoss = energyCost - GameState.Player.Concentration;
-                return $"-{concentrationLoss} Concentration";
-
-            default:
-                return $"";
-        }
-    }
-
-    public List<CombinedValue> GetCombinedValues(EncounterChoice choice)
-    {
-        // Use the stored CalculationResult
-        if (choice.CalculationResult == null) return new List<CombinedValue>();
-
-        return ConvertCombinedValues(choice.CalculationResult.GetCombinedValues());
-    }
     public List<CombinedValue> ConvertCombinedValues(Dictionary<ChangeTypes, int> combinedValuesDict)
     {
         List<CombinedValue> combinedValuesList = new List<CombinedValue>();

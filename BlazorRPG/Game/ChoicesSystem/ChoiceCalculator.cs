@@ -9,13 +9,18 @@
         this.locationPropertyCalculator = new LocationPropertyEffectCalculator();
     }
 
-    public ChoiceCalculationResult CalculateChoiceEffects(
+    public EncounterValues GetProjectedEncounterState(EncounterChoice choice, EncounterValues initialValues, List<ValueModification> valueModifications)
+    {
+        EncounterValues projectedEncounterState = CalculateNewState(initialValues, choice, valueModifications);
+        return projectedEncounterState;
+    }
+
+    public void CalculateChoiceEffects(
         EncounterChoice choice,
         EncounterContext context,
         EncounterValues initialEncounterValues)
     {
         // 1. Get base values that are inherent to the choice type
-        List<BaseValueChange> choiceBaseChanges = new List<BaseValueChange>();
         List<ValueModification> valueModifications = GameRules.GetChoiceBaseValueEffects(choice);
 
         // 2. Calculate all modifications from game state and effects
@@ -23,27 +28,24 @@
         valueModifications.AddRange(modifications);
 
         // 3. Calculate new state after combining base values and modifications
-        EncounterValues projectedEncounterState = CalculateNewState(initialEncounterValues, choice, choiceBaseChanges, valueModifications);
-        PlayerState player = gameState.Player;
-        int energyCost = CalculateEnergyCost(choice, projectedEncounterState, player, context);
+        PlayerState playerState = gameState.Player;
 
         // 4. Calculate final requirements, costs and rewards
-        List<Requirement> requirements = CalculateRequirements(valueModifications, choice, player, context, projectedEncounterState);
+        List<Requirement> requirements = CalculateRequirements(context, choice, playerState, initialEncounterValues, valueModifications);
         List<Outcome> costs = CalculateCosts(choice, context);
         List<Outcome> rewards = CalculateRewards(choice, context);
 
         // 5. Return complete calculation result
         ChoiceCalculationResult choiceCalculationResult = new ChoiceCalculationResult(
-            projectedEncounterState,
-            choiceBaseChanges,     // Base values
             valueModifications,    // Modifications with sources
-            choice.EnergyType,     // Energy type
-            0,                     // Energy cost
             requirements,          // Requirements
             costs,                 // Costs
             rewards);              // Rewards
 
-        return choiceCalculationResult;
+        choice.CalculationResult.ValueModifications.AddRange(choiceCalculationResult.ValueModifications);
+        choice.CalculationResult.Requirements.AddRange(choiceCalculationResult.Requirements);
+        choice.CalculationResult.Costs.AddRange(choiceCalculationResult.Costs);
+        choice.CalculationResult.Rewards.AddRange(choiceCalculationResult.Rewards);
     }
 
 
@@ -100,7 +102,6 @@
 
     private EncounterValues ProjectNewState(
         EncounterValues currentValues,
-        List<BaseValueChange> baseChanges,
         List<ValueModification> modifications)
     {
         EncounterValues newState = EncounterValues.WithValues(
@@ -110,13 +111,6 @@
             outcome: currentValues.Outcome,
             pressure: currentValues.Pressure);
 
-        // Apply base changes first
-        foreach (BaseValueChange change in baseChanges)
-        {
-            ApplyValueChange(newState, change.ValueType, change.Amount);
-        }
-
-        // Then apply modifications
         foreach (ValueModification mod in modifications)
         {
             if (mod is EncounterValueModification evm)
@@ -135,17 +129,18 @@
     private EncounterValues CalculateNewState(
         EncounterValues currentValues,
         EncounterChoice choice,
-        List<BaseValueChange> baseChanges,
         List<ValueModification> modifications)
     {
-        EncounterValues newState = ProjectNewState(currentValues, baseChanges, modifications);
+        EncounterValues newState = ProjectNewState(currentValues, modifications);
         newState.LastChoiceType = choice.Archetype;
         newState.LastChoiceApproach = choice.Approach;
         return newState;
     }
 
-    private List<Requirement> CalculateRequirements(List<ValueModification> valueModifications, EncounterChoice choice, PlayerState playerState, EncounterContext context, EncounterValues encounterValues)
+    private List<Requirement> CalculateRequirements(EncounterContext context, EncounterChoice choice, PlayerState playerState, EncounterValues encounterValues, List<ValueModification> valueModifications)
     {
+        CalculateNewState(context.CurrentValues, choice, valueModifications);
+
         List<Requirement> requirements = new List<Requirement> { };
 
         List<Requirement> ValueRequirements = GetValueRequirements(valueModifications, choice, playerState, encounterValues);
@@ -256,4 +251,5 @@
                 break;
         }
     }
+
 }

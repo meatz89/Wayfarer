@@ -133,13 +133,7 @@
         string prompt = $"{index}. ({encounterChoice.Archetype} - {encounterChoice.Approach})";
         string effects = $": ";
 
-        List<BaseValueChange> baseValueChanges = encounterChoice.CalculationResult.BaseValueChanges;
         List<ValueModification> valueModifications = encounterChoice.CalculationResult.ValueModifications;
-
-        foreach (BaseValueChange baseValueChange in baseValueChanges)
-        {
-            effects += $"{baseValueChange.Amount} to {baseValueChange.ValueType}; ";
-        }
 
         foreach (ValueModification valueModification in valueModifications)
         {

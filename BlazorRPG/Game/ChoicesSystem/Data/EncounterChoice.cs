@@ -7,8 +7,6 @@
     public string Narrative { get; set; }
     public ChoiceArchetypes Archetype { get; }
     public ChoiceApproaches Approach { get; }
-    public EnergyTypes EnergyType { get; }
-    public int EnergyCost { get; set; }
     public bool IsEncounterWinningChoice { get; set; }
     public bool IsEncounterFailingChoice { get; set; }
     public ChoiceCalculationResult CalculationResult { get; set; }
@@ -19,22 +17,13 @@
         string choiceType,
         string description,
         ChoiceArchetypes archetype,
-        ChoiceApproaches approach,
-        bool requireTool,
-        bool requireKnowledge,
-        bool requireReputation)
+        ChoiceApproaches approach)
     {
         Index = index;
         ChoiceType = choiceType;
         Designation = description;
         Archetype = archetype;
         Approach = approach;
-        EnergyType = archetype switch
-        {
-            ChoiceArchetypes.Physical => EnergyTypes.Physical,
-            ChoiceArchetypes.Focus => EnergyTypes.Concentration,
-            ChoiceArchetypes.Social => EnergyTypes.None,
-        };
     }
 
     // Get Combined Values from Calculation Result

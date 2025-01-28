@@ -57,12 +57,12 @@ public class TimeSlotModifier : ActionModifier
     }
 }
 
-public class GATHERingBonusModifier : ActionModifier
+public class GatheringBonusModifier : ActionModifier
 {
     private readonly int bonusAmount;
     private readonly ResourceTypes resourceType;
 
-    public GATHERingBonusModifier(string description, string source, int bonusAmount, ResourceTypes resourceType, BasicActionTypes actionType)
+    public GatheringBonusModifier(string description, string source, int bonusAmount, ResourceTypes resourceType, BasicActionTypes actionType)
     {
         this.Source = source;
         this.Description = description;

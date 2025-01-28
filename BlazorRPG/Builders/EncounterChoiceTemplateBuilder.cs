@@ -2,13 +2,12 @@
 {
     private string name;
     private BasicActionTypes actionType;
-    private LocationPropertyCondition locationProperty;
-    private LocationSpotPropertyCondition locationSpotProperty;
-    private PlayerStatusPropertyCondition playerStatusProperty;
-    private WorldStatePropertyCondition worldStateProperty;
-    private EncounterStateCondition encounterStateProperty;
-
-    public HashSet<(LocationNames, KnowledgeTypes)> LocationKnowledge = new();
+    private ChoiceArchetypes archetype;
+    private ChoiceApproaches approach;
+    private List<ValueModification> valueModifications = new();
+    private List<Requirement> requirements = new();
+    private List<Outcome> costs = new();
+    private List<Outcome> rewards = new();
 
     public EncounterChoiceTemplateBuilder WithName(string name)
     {
@@ -22,9 +21,104 @@
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder RewardsKnowledge(KnowledgeTypes workOpportunity, LocationNames market)
+    public EncounterChoiceTemplateBuilder WithArchetype(ChoiceArchetypes archetype)
     {
-        this.LocationKnowledge.Add((market, workOpportunity));
+        this.archetype = archetype;
+        return this;
+    }
+
+    public EncounterChoiceTemplateBuilder WithApproach(ChoiceApproaches approach)
+    {
+        this.approach = approach;
+        return this;
+    }
+
+    public EncounterChoiceTemplateBuilder RequiresInventorySlots(int slots)
+    {
+        this.requirements.Add(new InventorySlotsRequirement(slots));
+        return this;
+    }
+
+    public EncounterChoiceTemplateBuilder ExpendsHealth(int cost)
+    {
+        if (cost < 0) return this;
+
+        requirements.Add(new HealthRequirement(cost));
+        costs.Add(new HealthOutcome(cost));
+        return this;
+    }
+
+    public EncounterChoiceTemplateBuilder ExpendsCoins(int cost)
+    {
+        if (cost < 0) return this;
+
+        requirements.Add(new CoinsRequirement(cost));
+        costs.Add(new CoinsOutcome(-cost));
+        return this;
+    }
+
+    public EncounterChoiceTemplateBuilder ExpendsFood(int cost)
+    {
+        if (cost < 0) return this;
+
+        requirements.Add(new ResourceRequirement(ResourceTypes.Food, cost));
+        costs.Add(new ResourceOutcome(ResourceTypes.Food, -cost));
+        return this;
+    }
+
+    public EncounterChoiceTemplateBuilder ExpendsItem(ResourceTypes item, int cost)
+    {
+        if (cost < 0) return this;
+
+        requirements.Add(new ResourceRequirement(item, cost));
+        costs.Add(new ResourceOutcome(item, -cost));
+        return this;
+    }
+
+    public EncounterChoiceTemplateBuilder RewardsResource(ResourceTypes resourceType, int count)
+    {
+        rewards.Add(new ResourceOutcome(resourceType, count));
+        return this;
+    }
+
+    public EncounterChoiceTemplateBuilder RewardsCoins(int count)
+    {
+        rewards.Add(new CoinsOutcome(count));
+        return this;
+    }
+
+    public EncounterChoiceTemplateBuilder RewardsFood(int count)
+    {
+        rewards.Add(new ResourceOutcome(ResourceTypes.Food, count));
+        return this;
+    }
+
+    public EncounterChoiceTemplateBuilder RewardsTrust(int count, CharacterNames characterNames)
+    {
+        return this;
+    }
+
+    public EncounterChoiceTemplateBuilder RewardsHealth(int count)
+    {
+        rewards.Add(new HealthOutcome(count));
+        return this;
+    }
+
+    public EncounterChoiceTemplateBuilder RewardsEnergy(int count, EnergyTypes energyType)
+    {
+        rewards.Add(new EnergyOutcome(energyType, count));
+        return this;
+    }
+
+    public EncounterChoiceTemplateBuilder RewardsReputation(int count)
+    {
+        rewards.Add(new ReputationOutcome(count));
+        return this;
+    }
+
+    public EncounterChoiceTemplateBuilder UnlocksAchievement(AchievementTypes achievementType)
+    {
+        rewards.Add(new AchievementOutcome(achievementType));
         return this;
     }
 
@@ -33,10 +127,12 @@
         return new EncounterChoiceTemplate(
             name,
             actionType,
-            locationProperty,
-            locationSpotProperty,
-            worldStateProperty,
-            playerStatusProperty,
-            encounterStateProperty);
+            archetype,
+            approach,
+            valueModifications,
+            requirements,
+            costs,
+            rewards
+        );
     }
 }

@@ -89,7 +89,7 @@ public class EncounterSystem
 
     private bool GetNextStage(Encounter encounter)
     {
-        EncounterStage newStage = GenerateStage(encounter.Context);
+        EncounterStage newStage = GenerateStage(encounter, encounter.Context);
         if (newStage == null)
             return false;
 
@@ -101,25 +101,23 @@ public class EncounterSystem
     {
         narrativeSystem.NewEncounter(context, actionImplementation);
 
-        // Generate initial stage
-        EncounterStage initialStage = GenerateStage(context);
-
         // Create encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
-        
-        List<EncounterChoiceSlot> baseSlots = GetEnocunterBaseSlots(context);
+
+        List<EncounterChoiceSlot> baseSlots = GetEncounterBaseSlots(context);
         Encounter encounter = new Encounter(context, situation, baseSlots);
+        EncounterStage initialStage = GenerateStage(encounter, context);
         encounter.AddStage(initialStage);
         return encounter;
     }
 
-    private List<EncounterChoiceSlot> GetEnocunterBaseSlots(EncounterContext context)
+    private List<EncounterChoiceSlot> GetEncounterBaseSlots(EncounterContext context)
     {
         List<EncounterChoiceSlot> baseSlots = new List<EncounterChoiceSlot>();
 
         foreach (EncounterChoiceSlot choiceSlot in encounterChoiceSlots)
         {
-            if(choiceSlot.IsValidFor(context))
+            if (choiceSlot.IsValidFor(context))
             {
                 baseSlots.Add(choiceSlot);
             }
@@ -127,10 +125,10 @@ public class EncounterSystem
         return baseSlots;
     }
 
-    private EncounterStage GenerateStage(EncounterContext context)
+    private EncounterStage GenerateStage(Encounter encounter, EncounterContext context)
     {
         // Get choice set from choice system
-        ChoiceSet choiceSet = choiceSystem.GenerateChoices(context);
+        ChoiceSet choiceSet = choiceSystem.GenerateChoices(encounter, context);
 
         if (choiceSet == null || choiceSet.Choices.Count == 0)
             return null;
