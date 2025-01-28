@@ -1,7 +1,6 @@
 ﻿public class EncounterChoiceTemplate
 {
     public string Name { get; set; }
-    public ChoiceSlotPersistence ChoiceSlotType { get; set; }
     public ChoiceArchetypes Archetype { get; set; }
     public ChoiceApproaches Approach { get; set; }
     public List<ValueModification> ValueModifications { get; } = new();
@@ -10,10 +9,10 @@
     public List<Outcome> Rewards { get; } = new();
     public List<EncounterChoiceSlot> ChoiceSlotModifications { get; } = new();
     public EncounterResults? EncounterResults { get; set; }
+    public EncounterChoiceSlot ChoiceSlotToRemove { get; internal set; }
 
     public EncounterChoiceTemplate(
         string name,
-        ChoiceSlotPersistence choiceSlotType,
         ChoiceArchetypes choiceArchetype,
         ChoiceApproaches choiceApproach,
         List<ValueModification> valueModifications,
@@ -25,7 +24,6 @@
         )
     {
         Name = name;
-        ChoiceSlotType = choiceSlotType;
         Archetype = choiceArchetype;
         Approach = choiceApproach;
         ValueModifications = valueModifications;

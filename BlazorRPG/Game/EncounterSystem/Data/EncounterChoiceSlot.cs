@@ -8,7 +8,9 @@
     private PlayerStatusPropertyCondition playerStatusProperty;
 
     private EncounterStateCondition encounterStateProperty;
-    private EncounterChoiceTemplate encounterChoiceTemplate;
+    private List<EncounterChoiceTemplate> encounterChoiceTemplates;
+
+    public ChoiceSlotPersistence ChoiceSlotPersistence { get; }
 
     public EncounterChoiceSlot(
         string name,
@@ -18,7 +20,9 @@
         WorldStatePropertyCondition worldStateProperty,
         PlayerStatusPropertyCondition playerStatusProperty,
         EncounterStateCondition encounterStateProperty,
-        EncounterChoiceTemplate encounterChoiceTemplate)
+        List<EncounterChoiceTemplate> encounterChoiceTemplates,
+        ChoiceSlotPersistence choiceSlotPersistence
+        )
     {
         this.slotName = name;
         this.actionType = actionType;
@@ -27,7 +31,8 @@
         this.worldStateProperty = worldStateProperty;
         this.playerStatusProperty = playerStatusProperty;
         this.encounterStateProperty = encounterStateProperty;
-        this.encounterChoiceTemplate = encounterChoiceTemplate;
+        this.encounterChoiceTemplates = encounterChoiceTemplates;
+        ChoiceSlotPersistence = choiceSlotPersistence;
     }
 
     public bool IsValidFor(EncounterContext context)
@@ -70,8 +75,8 @@
         return isValid;
     }
 
-    public EncounterChoiceTemplate GetChoiceTemplate()
+    public List<EncounterChoiceTemplate> GetChoiceTemplates()
     {
-        return encounterChoiceTemplate;
+        return encounterChoiceTemplates;
     }
 }

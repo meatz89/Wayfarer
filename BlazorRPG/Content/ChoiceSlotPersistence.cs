@@ -1,4 +1,4 @@
 ﻿public enum ChoiceSlotPersistence
 {
-    Enduring, Fleeting
+    Lasting, Fleeting
 }

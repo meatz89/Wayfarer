@@ -77,6 +77,7 @@
                     archetype,
                     approach);
 
+                choice.ChoiceSlotToRemove = template.ChoiceSlotToRemove;
                 choice.SetModifiedChoiceSlotUnlocks(template.ChoiceSlotModifications);
 
                 if (template.EncounterResults.HasValue
@@ -135,10 +136,15 @@
             {
                 EncounterChoiceSlot choiceSlot = encounter.BaseSlots[i];
                 if (!choiceSlot.MeetsEncounterStateConditions(currentValues)) continue;
-                choices.Add(choiceSlot.GetChoiceTemplate());
+                List<EncounterChoiceTemplate> choiceTemplates = choiceSlot.GetChoiceTemplates();
+                foreach(EncounterChoiceTemplate choiceTemplate in choiceTemplates)
+                {
+                    choiceTemplate.ChoiceSlotToRemove = choiceSlot;
+                }
 
-                EncounterChoiceTemplate choiceTemplate = choiceSlot.GetChoiceTemplate();
-                if (choiceTemplate.ChoiceSlotType == ChoiceSlotPersistence.Enduring)
+                choices.AddRange(choiceTemplates);
+
+                if (choiceSlot.ChoiceSlotPersistence == ChoiceSlotPersistence.Fleeting)
                 {
                     encounter.BaseSlots.Remove(choiceSlot);
                 }
@@ -150,10 +156,14 @@
             {
                 EncounterChoiceSlot choiceSlot = encounter.ModifiedSlots[i];
                 if (!choiceSlot.MeetsEncounterStateConditions(currentValues)) continue;
-                choices.Add(choiceSlot.GetChoiceTemplate());
+                List<EncounterChoiceTemplate> choiceTemplates = choiceSlot.GetChoiceTemplates();
+                foreach (EncounterChoiceTemplate choiceTemplate in choiceTemplates)
+                {
+                    choiceTemplate.ChoiceSlotToRemove = choiceSlot;
+                }
+                choices.AddRange(choiceTemplates);
 
-                EncounterChoiceTemplate choiceTemplate = choiceSlot.GetChoiceTemplate();
-                if (choiceTemplate.ChoiceSlotType == ChoiceSlotPersistence.Fleeting)
+                if (choiceSlot.ChoiceSlotPersistence == ChoiceSlotPersistence.Fleeting)
                 {
                     encounter.ModifiedSlots.Remove(choiceSlot);
                 }

@@ -1,7 +1,6 @@
 ﻿public class EncounterChoiceTemplateBuilder
 {
     private string name;
-    private ChoiceSlotPersistence choiceSlotType;
     private ChoiceArchetypes archetype;
     private ChoiceApproaches approach;
     private List<ValueModification> valueModifications = new();
@@ -14,12 +13,6 @@
     public EncounterChoiceTemplateBuilder WithName(string name)
     {
         this.name = name;
-        return this;
-    }
-
-    public EncounterChoiceTemplateBuilder WithChoiceSlotType(ChoiceSlotPersistence choiceSlotType)
-    {
-        this.choiceSlotType = choiceSlotType;
         return this;
     }
 
@@ -148,7 +141,6 @@
     {
         return new EncounterChoiceTemplate(
             name,
-            choiceSlotType,
             archetype,
             approach,
             valueModifications,

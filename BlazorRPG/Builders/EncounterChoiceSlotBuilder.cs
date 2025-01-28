@@ -10,11 +10,18 @@
     private EncounterStateCondition encounterStateProperty;
 
     public HashSet<(LocationNames, KnowledgeTypes)> LocationKnowledge = new();
-    private EncounterChoiceTemplate encounterChoiceTemplate;
+    private List<EncounterChoiceTemplate> encounterChoiceTemplates = new();
+    private ChoiceSlotPersistence choiceSlotType;
 
     public EncounterChoiceSlotBuilder WithName(string name)
     {
         this.name = name;
+        return this;
+    }
+
+    public EncounterChoiceSlotBuilder WithChoiceSlotType(ChoiceSlotPersistence choiceSlotType)
+    {
+        this.choiceSlotType = choiceSlotType;
         return this;
     }
 
@@ -137,11 +144,11 @@
         return this;
     }
 
-    public EncounterChoiceSlotBuilder WithEncounterChoice(Action<EncounterChoiceTemplateBuilder> buildChoiceTemplate)
+    public EncounterChoiceSlotBuilder AddEncounterChoice(Action<EncounterChoiceTemplateBuilder> buildChoiceTemplate)
     {
         EncounterChoiceTemplateBuilder builder = new EncounterChoiceTemplateBuilder();
         buildChoiceTemplate(builder);
-        encounterChoiceTemplate = builder.Build();
+        encounterChoiceTemplates.Add(builder.Build());
         return this;
     }
 
@@ -155,7 +162,8 @@
             worldStateProperty,
             playerStatusProperty,
             encounterStateProperty,
-            encounterChoiceTemplate
+            encounterChoiceTemplates,
+            choiceSlotType
             );
     }
 }
