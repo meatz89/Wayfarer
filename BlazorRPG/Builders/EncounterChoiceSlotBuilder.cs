@@ -1,5 +1,4 @@
-﻿
-public class SpecialChoiceTemplateBuilder
+﻿public class EncounterChoiceSlotBuilder
 {
     private string name;
     private BasicActionTypes actionType;
@@ -11,119 +10,120 @@ public class SpecialChoiceTemplateBuilder
     private EncounterStateCondition encounterStateProperty;
 
     public HashSet<(LocationNames, KnowledgeTypes)> LocationKnowledge = new();
+    private EncounterChoiceTemplate encounterChoiceTemplate;
 
-    public SpecialChoiceTemplateBuilder WithName(string name)
+    public EncounterChoiceSlotBuilder WithName(string name)
     {
         this.name = name;
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder WithActionType(BasicActionTypes actionType)
+    public EncounterChoiceSlotBuilder WithActionType(BasicActionTypes actionType)
     {
         this.actionType = actionType;
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder WithLocationProperty(LocationPropertyCondition condition)
+    public EncounterChoiceSlotBuilder WithLocationProperty(LocationPropertyCondition condition)
     {
         this.locationProperty = condition;
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder WithLocationArchetype(LocationArchetypes archetype)
+    public EncounterChoiceSlotBuilder WithLocationArchetype(LocationArchetypes archetype)
     {
         this.locationProperty = new LocationPropertyCondition(LocationPropertyTypes.LocationArchetype, archetype);
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder WithLocationCrowdDensity(CrowdDensity crowdDensity)
+    public EncounterChoiceSlotBuilder WithLocationCrowdDensity(CrowdDensity crowdDensity)
     {
         this.locationProperty = new LocationPropertyCondition(LocationPropertyTypes.CrowdDensity, crowdDensity);
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder WithLocationSpotProperty(LocationSpotPropertyCondition condition)
+    public EncounterChoiceSlotBuilder WithLocationSpotProperty(LocationSpotPropertyCondition condition)
     {
         this.locationSpotProperty = condition;
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder WithLocationSpotAccessability(Accessibility accessibility)
+    public EncounterChoiceSlotBuilder WithLocationSpotAccessability(Accessibility accessibility)
     {
         this.locationSpotProperty = new LocationSpotPropertyCondition(
             LocationSpotPropertyTypes.Accessibility, accessibility);
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder WithLocationSpotEngagement(Engagement engagement)
+    public EncounterChoiceSlotBuilder WithLocationSpotEngagement(Engagement engagement)
     {
         this.locationSpotProperty = new LocationSpotPropertyCondition(
             LocationSpotPropertyTypes.Engagement, engagement);
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder WithLocationSpotAtmosphere(Atmosphere atmosphere)
+    public EncounterChoiceSlotBuilder WithLocationSpotAtmosphere(Atmosphere atmosphere)
     {
         this.locationSpotProperty = new LocationSpotPropertyCondition(
             LocationSpotPropertyTypes.Atmosphere, atmosphere);
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder WithLocationSpotRoomLayout(RoomLayout roomLayout)
+    public EncounterChoiceSlotBuilder WithLocationSpotRoomLayout(RoomLayout roomLayout)
     {
         this.locationSpotProperty = new LocationSpotPropertyCondition(
             LocationSpotPropertyTypes.RoomLayout, roomLayout);
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder WithLocationSpotTemperature(Temperature temperature)
+    public EncounterChoiceSlotBuilder WithLocationSpotTemperature(Temperature temperature)
     {
         this.locationSpotProperty = new LocationSpotPropertyCondition(
             LocationSpotPropertyTypes.Temperature, temperature);
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder WithWorldStateProperty(WorldStatePropertyCondition condition)
+    public EncounterChoiceSlotBuilder WithWorldStateProperty(WorldStatePropertyCondition condition)
     {
         this.worldStateProperty = condition;
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder WithWorldStateTime(TimeWindows time)
+    public EncounterChoiceSlotBuilder WithWorldStateTime(TimeWindows time)
     {
         this.worldStateProperty = new WorldStatePropertyCondition(
             WorldStatusTypes.Time, time);
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder WithWorldStateTime(WeatherTypes weather)
+    public EncounterChoiceSlotBuilder WithWorldStateTime(WeatherTypes weather)
     {
         this.worldStateProperty = new WorldStatePropertyCondition(
             WorldStatusTypes.Weather, weather);
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder WithPlayerStatusProperty(PlayerStatusPropertyCondition condition)
+    public EncounterChoiceSlotBuilder WithPlayerStatusProperty(PlayerStatusPropertyCondition condition)
     {
         this.playerStatusProperty = condition;
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder WithPlayerNegativeEffect(PlayerStatusTypes negativeEffect)
+    public EncounterChoiceSlotBuilder WithPlayerNegativeEffect(PlayerStatusTypes negativeEffect)
     {
         this.playerStatusProperty = new PlayerStatusPropertyCondition(
             PlayerStatusTypes.NegativeEffect, negativeEffect);
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder WithPlayerNegativeEffect(PlayerReputationTypes reputationTypes)
+    public EncounterChoiceSlotBuilder WithPlayerNegativeEffect(PlayerReputationTypes reputationTypes)
     {
         this.playerStatusProperty = new PlayerStatusPropertyCondition(
             PlayerStatusTypes.Reputation, reputationTypes);
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder WithEncounterStateCondition(Action<EncounterStateConditionBuilder> buildCondition)
+    public EncounterChoiceSlotBuilder WithEncounterStateCondition(Action<EncounterStateConditionBuilder> buildCondition)
     {
         EncounterStateConditionBuilder builder = new();
         buildCondition(builder);
@@ -131,22 +131,24 @@ public class SpecialChoiceTemplateBuilder
         return this;
     }
 
-    public SpecialChoiceTemplateBuilder RewardsKnowledge(KnowledgeTypes workOpportunity, LocationNames market)
+    public EncounterChoiceSlotBuilder WithEncounterChoice(Action<EncounterChoiceTemplateBuilder> buildChoiceTemplate)
     {
-        this.LocationKnowledge.Add((market, workOpportunity));
+        EncounterChoiceTemplateBuilder builder = new EncounterChoiceTemplateBuilder();
+        buildChoiceTemplate(builder);
+        encounterChoiceTemplate = builder.Build();
         return this;
     }
 
-    public SpecialChoiceTemplate Build()
+    public EncounterChoiceSlot Build()
     {
-        return new SpecialChoiceTemplate(
+        return new EncounterChoiceSlot(
             name,
             actionType,
             locationProperty,
             locationSpotProperty,
             worldStateProperty,
             playerStatusProperty,
-            encounterStateProperty);
+            encounterStateProperty,
+            encounterChoiceTemplate);
     }
-
 }

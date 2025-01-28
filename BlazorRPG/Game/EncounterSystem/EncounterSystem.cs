@@ -1,22 +1,25 @@
-﻿public class EncounterSystem
+﻿using System.Collections.Generic;
+
+public class EncounterSystem
 {
     private readonly GameState gameState;
     private readonly ChoiceSystem choiceSystem;
     private readonly NarrativeSystem narrativeSystem;
-    private readonly ChoiceCalculator choiceCalculator;
     private readonly ChoiceExecutor choiceExecutor;
 
+    private readonly List<EncounterChoiceSlot> encounterChoiceSlots;
     public EncounterSystem(
         GameState gameState,
         ChoiceSystem choiceSystem,
         NarrativeSystem narrativeSystem,
-        MessageSystem messageSystemfabian)
+        MessageSystem messageSystem,
+        GameContentProvider contentProvider)
     {
         this.gameState = gameState;
         this.choiceSystem = choiceSystem;
         this.narrativeSystem = narrativeSystem;
         this.choiceExecutor = new ChoiceExecutor(gameState);
-        this.choiceCalculator = new ChoiceCalculator(gameState);
+        this.encounterChoiceSlots = contentProvider.GetChoiceSetTemplates();
     }
 
     public EncounterResult ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationSpot locationSpot)
@@ -100,17 +103,28 @@
 
         // Generate initial stage
         EncounterStage initialStage = GenerateStage(context);
-        if (initialStage == null)
-        {
-            return null;
-        }
 
         // Create encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
-
-        Encounter encounter = new Encounter(context, situation);
+        
+        List<EncounterChoiceSlot> baseSlots = GetEnocunterBaseSlots(context);
+        Encounter encounter = new Encounter(context, situation, baseSlots);
         encounter.AddStage(initialStage);
         return encounter;
+    }
+
+    private List<EncounterChoiceSlot> GetEnocunterBaseSlots(EncounterContext context)
+    {
+        List<EncounterChoiceSlot> baseSlots = new List<EncounterChoiceSlot>();
+
+        foreach (EncounterChoiceSlot choiceSlot in encounterChoiceSlots)
+        {
+            if(choiceSlot.IsValidFor(context))
+            {
+                baseSlots.Add(choiceSlot);
+            }
+        }
+        return baseSlots;
     }
 
     private EncounterStage GenerateStage(EncounterContext context)

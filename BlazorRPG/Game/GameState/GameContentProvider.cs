@@ -5,7 +5,7 @@
     private List<Item> items;
 
     private List<Quest> quests;
-    private List<SpecialChoiceTemplate> specialChoices;
+    private List<EncounterChoiceSlot> encounterSlots;
     private List<LocationNarrative> narrativeContents;
 
     private List<LocationPropertyChoiceEffect> locationArchetypeEffects = new();
@@ -48,7 +48,7 @@
         locationArchetypeEffects = new List<LocationPropertyChoiceEffect>();
         // LocationPropertyChoiceEffects.AllEffects;
 
-        specialChoices = SpecialChoicesTemplates.SpecialChoiceSet;
+        encounterSlots = EncounterChoiceSlots.EncounterBaseChoiceSlots;
 
     }
 
@@ -57,9 +57,9 @@
         return locationArchetypeEffects;
     }
 
-    public List<SpecialChoiceTemplate> GetChoiceSetTemplates()
+    public List<EncounterChoiceSlot> GetChoiceSetTemplates()
     {
-        return specialChoices;
+        return encounterSlots;
     }
 
     public List<Location> GetLocations()

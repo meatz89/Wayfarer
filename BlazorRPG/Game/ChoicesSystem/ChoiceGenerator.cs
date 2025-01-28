@@ -13,7 +13,7 @@
         this.alreadyUsedCombinations = new List<(ChoiceArchetypes, ChoiceApproaches)>();
     }
 
-    public ChoiceSet Generate(SpecialChoiceTemplate template, EncounterContext context)
+    public ChoiceSet Generate(EncounterChoiceTemplate template, EncounterContext context)
     {
         alreadyUsedCombinations.Clear();
 
@@ -22,9 +22,7 @@
 
         CompositionPattern pattern = GameRules.GetCompositionPatternForActionType(template.ActionType);
 
-        List<EncounterChoice> choices = initialValues.Pressure >= 9
-            ? GenerateDesperateOnlyChoices(pattern)
-            : GenerateBaseChoices(template, initialValues, playerState, numberOfChoicesToGenerate, pattern);
+        List<EncounterChoice> choices = GenerateEncounterChoices(playerState, initialValues, pattern);
 
         foreach (EncounterChoice choice in choices)
         {
@@ -40,6 +38,22 @@
         }
 
         return new ChoiceSet(template.Name, choices);
+    }
+
+    private List<EncounterChoice> GenerateEncounterChoices(PlayerState playerState, EncounterValues initialValues, CompositionPattern pattern)
+    {
+        List<EncounterChoice> encounterChoices = new List<EncounterChoice>();
+        if (initialValues.Pressure < 9)
+        {
+            encounterChoices =
+                GenerateBaseChoices(initialValues, playerState, numberOfChoicesToGenerate, pattern);
+        }
+        else
+        {
+            encounterChoices = GenerateDesperateOnlyChoices(pattern);
+        }
+
+        return encounterChoices;
     }
 
     private bool IsEncounterWon(EncounterContext context, EncounterValues projection)
@@ -69,7 +83,6 @@
     }
 
     private List<EncounterChoice> GenerateBaseChoices(
-        SpecialChoiceTemplate template,
         EncounterValues values,
         PlayerState playerState,
         int desiredChoiceCount, 

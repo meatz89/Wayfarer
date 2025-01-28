@@ -1,27 +1,20 @@
-﻿public class ChoiceSlot
-{
-    public BasicActionTypes BasicActionCondition;
-    public EncounterStateCondition EncounterStateCondition;
-    public SpecialChoiceTemplate ChoiceTemplate;
-}
-
-
-public class Encounter
+﻿public class Encounter
 {
     public string EncounterGoal { get; }
     public string Situation { get; }
     public EncounterContext Context { get; }
-    public List<ChoiceSlot> BaseSlots { get; set;  }
-    public List<ChoiceSlot> ModifiedSlots { get; set;  }
+    public List<EncounterChoiceSlot> BaseSlots { get; set;  }
+    public List<EncounterChoiceSlot> ModifiedSlots { get; set;  }
 
     private List<EncounterStage> stages = new();
     public int CurrentStageIndex { get; private set; }
 
-    public Encounter(EncounterContext context, string situation)
+    public Encounter(EncounterContext context, string goal, List<EncounterChoiceSlot> baseSlots)
     {
         Context = context;
-        Situation = situation;
+        EncounterGoal = goal;
         CurrentStageIndex = 0;
+        BaseSlots = baseSlots;
     }
 
     public void AddStage(EncounterStage stage)

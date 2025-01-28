@@ -8,11 +8,11 @@
         GameState = gameState;
     }
 
-    public SpecialChoiceTemplate SelectTemplate(List<SpecialChoiceTemplate> templates, EncounterContext context)
+    public EncounterChoiceTemplate SelectTemplate(List<EncounterChoiceTemplate> templates, EncounterContext context)
     {
         // Get valid sets
-        List<SpecialChoiceTemplate> validSets = new();
-        foreach (SpecialChoiceTemplate template in templates)
+        List<EncounterChoiceTemplate> validSets = new();
+        foreach (EncounterChoiceTemplate template in templates)
         {
             if (ChoiceMeetsConditions(template, context, GameState))
             {
@@ -21,19 +21,19 @@
         }
 
         // Pick randomly from top 2-3 scoring choices
-        List<SpecialChoiceTemplate> topChoices = validSets.Take(3).ToList();
+        List<EncounterChoiceTemplate> topChoices = validSets.Take(3).ToList();
         if (topChoices.Count() < 1)
         {
             return null;
         }
 
         int randomValue = random.Next(topChoices.Count);
-        SpecialChoiceTemplate randomTemplate = topChoices[randomValue];
+        EncounterChoiceTemplate randomTemplate = topChoices[randomValue];
 
         return randomTemplate;
     }
 
-    private bool ChoiceMeetsConditions(SpecialChoiceTemplate template, EncounterContext encounterContext, GameState gameState)
+    private bool ChoiceMeetsConditions(EncounterChoiceTemplate template, EncounterContext encounterContext, GameState gameState)
     {
         // Check action type matches
         if (encounterContext.ActionType != template.ActionType) return false;
