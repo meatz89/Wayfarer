@@ -1,4 +1,5 @@
-﻿public class EncounterChoiceTemplateBuilder
+﻿
+public class EncounterChoiceTemplateBuilder
 {
     private string name;
     private ChoiceArchetypes archetype;
@@ -7,6 +8,7 @@
     private List<Requirement> requirements = new();
     private List<Outcome> costs = new();
     private List<Outcome> rewards = new();
+    private EncounterResults? encounterResult;
 
     public EncounterChoiceTemplateBuilder WithName(string name)
     {
@@ -115,6 +117,11 @@
         return this;
     }
 
+    public void EndsEndcounter(EncounterResults encounterResult)
+    {
+        this.encounterResult = encounterResult;
+    }
+
     public EncounterChoiceTemplate Build()
     {
         return new EncounterChoiceTemplate(
@@ -124,7 +131,9 @@
             valueModifications,
             requirements,
             costs,
-            rewards
+            rewards,
+            encounterResult
         );
     }
+
 }

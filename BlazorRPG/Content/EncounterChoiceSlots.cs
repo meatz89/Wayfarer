@@ -12,7 +12,7 @@
             .WithEncounterChoice(builder => builder
                 .WithArchetype(ChoiceArchetypes.Physical)
                 .WithApproach(ChoiceApproaches.Mistake)
-                .RewardsCoins(1))
+                .EndsEndcounter(EncounterResults.EncounterFailure))
             .Build(),
 
     };

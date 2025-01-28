@@ -40,11 +40,8 @@
         {
             EncounterValues projection = calculator.GetProjectedEncounterState(choice, initialValues, choice.CalculationResult.ValueModifications);
             choice.CalculationResult.ProjectedEncounterState = projection;
-            choice.IsEncounterWinningChoice = IsEncounterWon(context, projection);
-            if (!choice.IsEncounterWinningChoice)
-            {
-                choice.IsEncounterFailingChoice = IsEncounterLost(context, projection);
-            }
+            if (!choice.IsEncounterFailingChoice && IsEncounterWon(context, projection)) choice.IsEncounterWinningChoice = true;
+            if (!choice.IsEncounterWinningChoice && IsEncounterLost(context, projection)) choice.IsEncounterFailingChoice = true;
         }
 
         return new ChoiceSet(context.ActionType.ToString(), choices);
@@ -77,6 +74,17 @@
                     $"{archetype} - {approach}",
                     archetype,
                     approach);
+
+                if(template.EncounterResults.HasValue
+                    && template.EncounterResults.Value == EncounterResults.EncounterFailure)
+                {
+                    choice.IsEncounterFailingChoice = true;
+                }
+                else if (template.EncounterResults.HasValue
+                    && template.EncounterResults.Value == EncounterResults.EncounterSuccess)
+                {
+                    choice.IsEncounterWinningChoice = true;
+                }
 
                 choice.CalculationResult = new ChoiceCalculationResult(
                     template.ValueModifications,

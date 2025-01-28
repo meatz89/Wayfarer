@@ -7,6 +7,7 @@
     public List<Requirement> Requirements { get; }
     public List<Outcome> Costs { get; }
     public List<Outcome> Rewards { get; }
+    public EncounterResults? EncounterResults { get; set; }
 
     public EncounterChoiceTemplate(
         string name,
@@ -15,7 +16,8 @@
         List<ValueModification> valueModifications,
         List<Requirement> requirements,
         List<Outcome> costs,
-        List<Outcome> rewards
+        List<Outcome> rewards,
+        EncounterResults? encounterResult
         )
     {
         Name = name;
@@ -25,6 +27,7 @@
         Requirements = requirements;
         Costs = costs;
         Rewards = rewards;
+        EncounterResults = encounterResult;
     }
 }
 
