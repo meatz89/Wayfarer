@@ -3,15 +3,15 @@
     public static List<EncounterChoiceSlot> EncounterBaseChoiceSlots => new()
     {
         new EncounterChoiceSlotBuilder()
-            .WithName("Overhear Merchant Plans")
-            .WithActionType(BasicActionTypes.Investigate)
+            .WithName("Spill Drinks")
+            .WithActionType(BasicActionTypes.Labor)
             .WithLocationArchetype(LocationArchetypes.Tavern)
-            .WithLocationSpotAccessability(Accessibility.Private)
+            .WithLocationSpotAccessability(Accessibility.Public)
             .WithEncounterStateCondition(builder => builder
-                .WithMinInsight(5))
+                .WithMaxMomentum(5))
             .WithEncounterChoice(builder => builder
-                .WithArchetype(ChoiceArchetypes.Focus)
-                .WithApproach(ChoiceApproaches.Strategic)
+                .WithArchetype(ChoiceArchetypes.Physical)
+                .WithApproach(ChoiceApproaches.Mistake)
                 .RewardsCoins(1))
             .Build(),
 

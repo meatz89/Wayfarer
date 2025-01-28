@@ -1,8 +1,4 @@
-﻿using System;
-using System.Diagnostics.Metrics;
-using System.Security.AccessControl;
-
-public class ChoiceGenerator
+﻿public class ChoiceGenerator
 {
     private const int numberOfChoicesToGenerate = 4;
 
@@ -27,8 +23,8 @@ public class ChoiceGenerator
 
         List<EncounterChoice> choices = new List<EncounterChoice>();
 
-        List<EncounterChoice> slotChoices = GetEncounterChoicesFromSlots(encounter, context);
-        choices.AddRange(slotChoices);
+        List<EncounterChoice> forcedChoiceSubstitutions = GetForcedChoiceSubstituations(encounter, context);
+        choices.AddRange(forcedChoiceSubstitutions);
         if (choices.Count == 0)
         {
             List<EncounterChoice> baseChoices = GenerateBaseEncounterChoices(playerState, encounter, context, initialValues, pattern);
@@ -54,12 +50,18 @@ public class ChoiceGenerator
         return new ChoiceSet(context.ActionType.ToString(), choices);
     }
 
-    private List<EncounterChoice> GetEncounterChoicesFromSlots(Encounter encounter, EncounterContext context)
+    private List<EncounterChoice> GetForcedChoiceSubstituations(Encounter encounter, EncounterContext context)
     {
-        List<EncounterChoice> encounterChoices = new List<EncounterChoice>();
-
         List<EncounterChoiceTemplate> encounterChoiceTemplates =
-            GetEncounterChoicesFromBaseSlots(encounter, context);
+            GetForcedChoiceSubstitutions(encounter, context);
+
+        List<EncounterChoice> encounterChoices = CreateChoicesFromTemplate(encounterChoiceTemplates);
+        return encounterChoices;
+    }
+
+    private List<EncounterChoice> CreateChoicesFromTemplate(List<EncounterChoiceTemplate> encounterChoiceTemplates)
+    {
+        var choices = new List<EncounterChoice>();
 
         if (encounterChoiceTemplates.Count != 0)
         {
@@ -82,11 +84,12 @@ public class ChoiceGenerator
                     template.Costs,
                     template.Rewards);
 
-                encounterChoices.Add(choice);
+                choices.Add(choice);
                 index++;
             }
         }
-        return encounterChoices;
+
+        return choices;
     }
 
     private List<EncounterChoice> GenerateBaseEncounterChoices(
@@ -109,7 +112,7 @@ public class ChoiceGenerator
         return encounterChoices;
     }
 
-    private List<EncounterChoiceTemplate> GetEncounterChoicesFromBaseSlots(Encounter encounter, EncounterContext context)
+    private List<EncounterChoiceTemplate> GetForcedChoiceSubstitutions(Encounter encounter, EncounterContext context)
     {
         EncounterValues currentValues = context.CurrentValues;
 

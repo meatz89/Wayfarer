@@ -6,7 +6,7 @@
         StartingCoins = 10,
         StartingInventorySize = 10,
 
-        StartingPhysicalEnergy = 2,
+        StartingPhysicalEnergy = 3,
         StartingConcentration = 3,
         StartingReputation = 7,
 

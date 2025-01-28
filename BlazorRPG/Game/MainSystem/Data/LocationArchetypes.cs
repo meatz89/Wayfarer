@@ -39,7 +39,7 @@ public enum LocationArchetypes
 
 public enum CrowdDensity
 {
-    Deserted, Quiet, Busy
+    Deserted, Quiet, Busy, Bustling
 }
 
 public enum LocationScale

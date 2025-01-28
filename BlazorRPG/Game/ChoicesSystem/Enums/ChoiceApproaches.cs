@@ -8,5 +8,6 @@
 
     Diplomatic, // Social, Needs Resonance and Insight
     Methodical, // Focus, Needs Insight and Momentum
-    Forceful    // Physical, Needs Momentum and Resonance
+    Forceful,    // Physical, Needs Momentum and Resonance
+    Mistake
 }

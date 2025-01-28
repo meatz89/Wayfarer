@@ -276,7 +276,7 @@ public partial class GameUI : ComponentBase
         {
             CrowdDensity.Deserted => "😶",
             CrowdDensity.Quiet => "🚶",
-            CrowdDensity.Busy => "👥",
+            CrowdDensity.Bustling => "👥",
             _ => "❓"
         };
     }
