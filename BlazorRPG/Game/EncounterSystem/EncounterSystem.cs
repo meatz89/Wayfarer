@@ -23,7 +23,7 @@
     public EncounterResult ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationSpot locationSpot)
     {
         // Execute the choice with the actual modified values from the result
-        choiceExecutor.ExecuteChoice(choice, choice.CalculationResult);
+        choiceExecutor.ExecuteChoice(encounter, choice, choice.CalculationResult);
 
         // Update last choice type
         encounter.Context.CurrentValues.LastChoiceType = choice.Archetype;

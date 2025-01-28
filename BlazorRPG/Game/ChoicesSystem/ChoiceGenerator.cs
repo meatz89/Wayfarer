@@ -53,6 +53,8 @@
             GetForcedChoiceSubstitutions(encounter, context);
 
         List<EncounterChoice> encounterChoices = CreateChoicesFromTemplate(encounterChoiceTemplates);
+
+
         return encounterChoices;
     }
 
@@ -74,6 +76,8 @@
                     $"{archetype} - {approach}",
                     archetype,
                     approach);
+
+                choice.SetModifiedChoiceSlotUnlocks(template.ChoiceSlotModifications);
 
                 if(template.EncounterResults.HasValue
                     && template.EncounterResults.Value == EncounterResults.EncounterFailure)
@@ -125,10 +129,27 @@
         EncounterValues currentValues = context.CurrentValues;
 
         List<EncounterChoiceTemplate> choices = new List<EncounterChoiceTemplate>();
-        foreach (EncounterChoiceSlot choiceSlot in encounter.BaseSlots)
+        if (encounter.BaseSlots.Count != 0)
         {
-            if (!choiceSlot.MeetsEncounterStateConditions(currentValues)) continue;
-            choices.Add(choiceSlot.GetChoiceTemplate());
+            for (int i = encounter.BaseSlots.Count - 1; i >= 0; i--)
+            {
+                EncounterChoiceSlot choiceSlot = encounter.BaseSlots[i];
+                if (!choiceSlot.MeetsEncounterStateConditions(currentValues)) continue;
+                choices.Add(choiceSlot.GetChoiceTemplate());
+
+                encounter.BaseSlots.Remove(choiceSlot);
+            }
+        }
+        if (encounter.ModifiedSlots.Count != 0)
+        {
+            for (int i = encounter.ModifiedSlots.Count - 1; i >= 0; i--)
+            {
+                EncounterChoiceSlot choiceSlot = encounter.ModifiedSlots[i];
+                if (!choiceSlot.MeetsEncounterStateConditions(currentValues)) continue;
+                choices.Add(choiceSlot.GetChoiceTemplate());
+
+                encounter.ModifiedSlots.Remove(choiceSlot);
+            }
         }
 
         return choices;

@@ -149,6 +149,7 @@
             worldStateProperty,
             playerStatusProperty,
             encounterStateProperty,
-            encounterChoiceTemplate);
+            encounterChoiceTemplate
+            );
     }
 }

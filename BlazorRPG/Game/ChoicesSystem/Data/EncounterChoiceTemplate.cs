@@ -3,10 +3,11 @@
     public string Name { get; set; }
     public ChoiceArchetypes Archetype { get; set; }
     public ChoiceApproaches Approach { get; set; }
-    public List<ValueModification> ValueModifications { get; }
-    public List<Requirement> Requirements { get; }
-    public List<Outcome> Costs { get; }
-    public List<Outcome> Rewards { get; }
+    public List<ValueModification> ValueModifications { get; } = new();
+    public List<Requirement> Requirements { get; } = new();
+    public List<Outcome> Costs { get; } = new();
+    public List<Outcome> Rewards { get; } = new();
+    public List<EncounterChoiceSlot> ChoiceSlotModifications { get; } = new();
     public EncounterResults? EncounterResults { get; set; }
 
     public EncounterChoiceTemplate(
@@ -17,7 +18,8 @@
         List<Requirement> requirements,
         List<Outcome> costs,
         List<Outcome> rewards,
-        EncounterResults? encounterResult
+        EncounterResults? encounterResult,
+        List<EncounterChoiceSlot> choiceSlotModifications
         )
     {
         Name = name;
@@ -28,6 +30,7 @@
         Costs = costs;
         Rewards = rewards;
         EncounterResults = encounterResult;
+        ChoiceSlotModifications = choiceSlotModifications;
     }
 }
 

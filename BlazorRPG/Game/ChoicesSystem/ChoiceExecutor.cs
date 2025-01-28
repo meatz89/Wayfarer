@@ -7,7 +7,7 @@
         this.gameState = gameState;
     }
 
-    public void ExecuteChoice(EncounterChoice choice, ChoiceCalculationResult result)
+    public void ExecuteChoice(Encounter encounter, EncounterChoice choice, ChoiceCalculationResult result)
     {
         // First verify all requirements are met
         if (!AreRequirementsMet(result.Requirements))
@@ -53,6 +53,11 @@
         foreach (Outcome reward in result.Rewards)
         {
             reward.Apply(gameState.Player);
+        }
+
+        foreach (EncounterChoiceSlot choiceSlotModification in choice.ChoiceSlotModifications)
+        {
+            encounter.ModifiedSlots.Add(choiceSlotModification);
         }
     }
 

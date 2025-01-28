@@ -1,5 +1,4 @@
-﻿
-public class EncounterChoiceSlot
+﻿public class EncounterChoiceSlot
 {
     public string slotName;
     private BasicActionTypes actionType;
@@ -11,7 +10,15 @@ public class EncounterChoiceSlot
     private EncounterStateCondition encounterStateProperty;
     private EncounterChoiceTemplate encounterChoiceTemplate;
 
-    public EncounterChoiceSlot(string name, BasicActionTypes actionType, LocationPropertyCondition locationProperty, LocationSpotPropertyCondition locationSpotProperty, WorldStatePropertyCondition worldStateProperty, PlayerStatusPropertyCondition playerStatusProperty, EncounterStateCondition encounterStateProperty, EncounterChoiceTemplate encounterChoiceTemplate)
+    public EncounterChoiceSlot(
+        string name, 
+        BasicActionTypes actionType, 
+        LocationPropertyCondition locationProperty, 
+        LocationSpotPropertyCondition locationSpotProperty, 
+        WorldStatePropertyCondition worldStateProperty, 
+        PlayerStatusPropertyCondition playerStatusProperty, 
+        EncounterStateCondition encounterStateProperty, 
+        EncounterChoiceTemplate encounterChoiceTemplate)
     {
         this.slotName = name;
         this.actionType = actionType;

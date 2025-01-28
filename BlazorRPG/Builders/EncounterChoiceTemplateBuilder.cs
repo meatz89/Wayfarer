@@ -1,5 +1,4 @@
-﻿
-public class EncounterChoiceTemplateBuilder
+﻿public class EncounterChoiceTemplateBuilder
 {
     private string name;
     private ChoiceArchetypes archetype;
@@ -8,7 +7,8 @@ public class EncounterChoiceTemplateBuilder
     private List<Requirement> requirements = new();
     private List<Outcome> costs = new();
     private List<Outcome> rewards = new();
-    private EncounterResults? encounterResult;
+    private EncounterResults? encounterResult = EncounterResults.Ongoing;
+    private List<EncounterChoiceSlot> modifiedChoiceSlots = new();
 
     public EncounterChoiceTemplateBuilder WithName(string name)
     {
@@ -117,9 +117,18 @@ public class EncounterChoiceTemplateBuilder
         return this;
     }
 
-    public void EndsEndcounter(EncounterResults encounterResult)
+    public EncounterChoiceTemplateBuilder UnlocksModifiedChoiceSlot(Action<EncounterChoiceSlotBuilder> buildModifiedChoiceSlot)
+    {
+        EncounterChoiceSlotBuilder builder = new EncounterChoiceSlotBuilder();
+        buildModifiedChoiceSlot(builder);
+        modifiedChoiceSlots.Add(builder.Build());
+        return this;
+    }
+
+    public EncounterChoiceTemplateBuilder EndsEndcounter(EncounterResults encounterResult)
     {
         this.encounterResult = encounterResult;
+        return this;
     }
 
     public EncounterChoiceTemplate Build()
@@ -132,7 +141,8 @@ public class EncounterChoiceTemplateBuilder
             requirements,
             costs,
             rewards,
-            encounterResult
+            encounterResult,
+            modifiedChoiceSlots
         );
     }
 
