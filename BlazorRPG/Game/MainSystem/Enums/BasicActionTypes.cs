@@ -1,22 +1,18 @@
 ﻿public enum BasicActionTypes
 {
+    Travel, // Traversing/positioning. (Reward Type: Position/State Change)
     Rest,
 
-    // Physical Actions define direct interaction with the world:
-    Labor, // Directed physical effort. (Reward Type: Wealth/Resources)
-    Gather, // Collecting/taking resources. (Reward Type: Resources)
-    Travel, // Traversing/positioning. (Reward Type: Position/State Change)
+    Labor, // Physical/Physical (Reward Type: Wealth/Resources)
+    Gather, // Physical/Focus (Reward Type: Items/Resources)
+    Fight, // Physical/Social
 
-    // Social Actions handle character interactions:
-    Mingle, // Casual interaction. (Reward Type: Relationships/Social Energy)
-    Persuade, // Directed influence. (Reward Type: Relationships/State Change)
-    Perform, // Entertainment/display. (Reward Type: Reputation/Social Energy)
+    Study, // Focus/Focus. (Reward Type: Knowledge/Skills)
+    Investigate, // Focus/Physical. (Reward Type: Knowledge/Opportunities)
+    Analyze, // Focus/Social
 
-    // Mental Actions cover intellectual activities:
-    Observe, // Directed observation. (Reward Type: Knowledge/Opportunities)
-    Study, // Focused learning. (Reward Type: Knowledge/Skills)
-    Reflect, // Processing/rest. (Reward Type: State Change/Energy Restoration)
-    Recover,
-    Discuss,
+    Discuss, // Social/Social (Reward Type: Relationships/Social Energy)
+    Persuade, // Social/Focus (Reward Type: Relationships/State Change)
+    Perform, // Social/Physical (Reward Type: Reputation/Social Energy)
 }
 

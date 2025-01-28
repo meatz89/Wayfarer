@@ -170,20 +170,41 @@
         List<Outcome> costs = new List<Outcome>();
         switch (template.ActionType)
         {
+            case BasicActionTypes.Travel:
+                break;
+
+            case BasicActionTypes.Rest:
+                costs.Add(new ResourceOutcome(ResourceTypes.Food, -1));
+                costs.Add(new CoinsOutcome(-5));
+                break;
+
             case BasicActionTypes.Labor:
                 costs.Add(new HealthOutcome(-1));
                 break;
+
+            case BasicActionTypes.Fight:
+                break;
+
+            case BasicActionTypes.Gather:
+                break;
+
+            case BasicActionTypes.Study:
+                break;
+
+            case BasicActionTypes.Investigate:
+                break;
+
+            case BasicActionTypes.Analyze:
+                break;
+
+            case BasicActionTypes.Discuss:
+                break;
+
             case BasicActionTypes.Persuade:
                 costs.Add(new ReputationOutcome(-1));
                 break;
-            case BasicActionTypes.Observe:
-                break;
-            case BasicActionTypes.Mingle:
-                costs.Add(new ReputationOutcome(-1));
-                break;
-            case BasicActionTypes.Recover:
-                costs.Add(new CoinsOutcome(-5));
-                costs.Add(new ResourceOutcome(ResourceTypes.Food, -1));
+
+            case BasicActionTypes.Perform:
                 break;
         }
         return costs;
@@ -194,25 +215,44 @@
         List<Outcome> rewards = new List<Outcome>();
         switch (template.ActionType)
         {
-            case BasicActionTypes.Labor:
-                rewards.Add(new CoinsOutcome(5));
-                rewards.Add(new ResourceOutcome(ResourceTypes.Wood, 1));
+            case BasicActionTypes.Travel:
                 break;
-            case BasicActionTypes.Persuade:
-                rewards.Add(new CoinsOutcome(3));
-                rewards.Add(new ReputationOutcome(2));
-                break;
-            case BasicActionTypes.Observe:
-                rewards.Add(new KnowledgeOutcome(KnowledgeTypes.LocalHistory, 1));
-                rewards.Add(new ReputationOutcome(1));
-                break;
-            case BasicActionTypes.Mingle:
-                rewards.Add(new ReputationOutcome(3));
-                break;
-            case BasicActionTypes.Recover:
+
+            case BasicActionTypes.Rest:
                 rewards.Add(new EnergyOutcome(EnergyTypes.Physical, 5));
                 rewards.Add(new EnergyOutcome(EnergyTypes.Concentration, 5));
                 rewards.Add(new HealthOutcome(1));
+                break;
+
+            case BasicActionTypes.Labor:
+                rewards.Add(new CoinsOutcome(5));
+                break;
+
+            case BasicActionTypes.Fight:
+                break;
+
+            case BasicActionTypes.Gather:
+                break;
+
+            case BasicActionTypes.Study:
+                break;
+
+            case BasicActionTypes.Investigate:
+                rewards.Add(new KnowledgeOutcome(KnowledgeTypes.LocalHistory, 1));
+                break;
+
+            case BasicActionTypes.Analyze:
+                break;
+
+            case BasicActionTypes.Discuss:
+                rewards.Add(new ReputationOutcome(3));
+                break;
+
+            case BasicActionTypes.Persuade:
+                break;
+
+            case BasicActionTypes.Perform:
+                rewards.Add(new ResourceOutcome(ResourceTypes.Wood, 1));
                 break;
         }
         return rewards;
@@ -223,40 +263,38 @@
         EnergyTypes energyType = EnergyTypes.None;
         energyType = actionType switch
         {
-            BasicActionTypes.Labor => EnergyTypes.Physical,
-            BasicActionTypes.Gather => EnergyTypes.Physical,
             BasicActionTypes.Travel => EnergyTypes.Physical,
             BasicActionTypes.Rest => EnergyTypes.Physical,
-            BasicActionTypes.Recover => EnergyTypes.Physical,
 
-            BasicActionTypes.Observe => EnergyTypes.Concentration,
+            BasicActionTypes.Labor => EnergyTypes.Physical,
+            BasicActionTypes.Fight => EnergyTypes.Physical,
+            BasicActionTypes.Gather => EnergyTypes.Physical,
+
             BasicActionTypes.Study => EnergyTypes.Concentration,
-            BasicActionTypes.Reflect => EnergyTypes.Concentration,
+            BasicActionTypes.Investigate => EnergyTypes.Concentration,
+            BasicActionTypes.Analyze => EnergyTypes.Concentration,
 
-            BasicActionTypes.Mingle => EnergyTypes.None,
             BasicActionTypes.Discuss => EnergyTypes.None,
-            BasicActionTypes.Persuade => EnergyTypes.None,
-            BasicActionTypes.Perform => EnergyTypes.None,
+            BasicActionTypes.Persuade => EnergyTypes.Concentration,
+            BasicActionTypes.Perform => EnergyTypes.Physical,
         };
         return energyType;
     }
 
     public static int GetBaseEnergyCost(BasicActionTypes actionType)
     {
-
         int energycost = 2;
         energycost = actionType switch
         {
-            BasicActionTypes.Labor => 3,
-            BasicActionTypes.Gather => 2,
             BasicActionTypes.Travel => 1,
-            BasicActionTypes.Observe => 2,
-            BasicActionTypes.Study => 3,
-            BasicActionTypes.Reflect => 1,
             BasicActionTypes.Rest => 0,
-            BasicActionTypes.Recover => 0,
-            BasicActionTypes.Mingle => 1,
-            BasicActionTypes.Discuss => 2,
+            BasicActionTypes.Labor => 3,
+            BasicActionTypes.Fight => 3,
+            BasicActionTypes.Gather => 2,
+            BasicActionTypes.Study => 3,
+            BasicActionTypes.Investigate => 2,
+            BasicActionTypes.Analyze => 2,
+            BasicActionTypes.Discuss => 1,
             BasicActionTypes.Persuade => 3,
             BasicActionTypes.Perform => 3,
         };
@@ -264,20 +302,27 @@
         return energycost;
     }
 
-    public static CompositionPattern SetDefaultCompositionForActionType(BasicActionTypes actionType)
+    public static CompositionPattern GetCompositionPatternForActionType(BasicActionTypes actionType)
     {
         CompositionPattern compositionPattern = new CompositionPattern
         {
-            PrimaryArchetype = ChoiceArchetypes.Social,
+            PrimaryArchetype = ChoiceArchetypes.Focus,
             SecondaryArchetype = ChoiceArchetypes.Focus,
         };
 
         switch (actionType)
         {
             case BasicActionTypes.Labor:
-            case BasicActionTypes.Gather:
+                compositionPattern = new CompositionPattern
+                {
+                    PrimaryArchetype = ChoiceArchetypes.Physical,
+                    SecondaryArchetype = ChoiceArchetypes.Physical,
+                };
+                break;
+
             case BasicActionTypes.Travel:
-                // Physical-focused composition
+            case BasicActionTypes.Rest:
+            case BasicActionTypes.Gather:
                 compositionPattern = new CompositionPattern
                 {
                     PrimaryArchetype = ChoiceArchetypes.Physical,
@@ -285,12 +330,30 @@
                 };
                 break;
 
-            case BasicActionTypes.Observe:
+            case BasicActionTypes.Fight:
+                compositionPattern = new CompositionPattern
+                {
+                    PrimaryArchetype = ChoiceArchetypes.Physical,
+                    SecondaryArchetype = ChoiceArchetypes.Social,
+                };
+                break;
+
             case BasicActionTypes.Study:
-            case BasicActionTypes.Reflect:
-            case BasicActionTypes.Rest:
-            case BasicActionTypes.Recover:
-                // Focus-focused composition
+                compositionPattern = new CompositionPattern
+                {
+                    PrimaryArchetype = ChoiceArchetypes.Focus,
+                    SecondaryArchetype = ChoiceArchetypes.Focus,
+                };
+                break;
+
+            case BasicActionTypes.Investigate:
+                compositionPattern = new CompositionPattern
+                {
+                    PrimaryArchetype = ChoiceArchetypes.Focus,
+                    SecondaryArchetype = ChoiceArchetypes.Physical,
+                };
+                break;
+            case BasicActionTypes.Analyze:
                 compositionPattern = new CompositionPattern
                 {
                     PrimaryArchetype = ChoiceArchetypes.Focus,
@@ -298,23 +361,37 @@
                 };
                 break;
 
-            case BasicActionTypes.Mingle:
             case BasicActionTypes.Discuss:
+                compositionPattern = new CompositionPattern
+                {
+                    PrimaryArchetype = ChoiceArchetypes.Social,
+                    SecondaryArchetype = ChoiceArchetypes.Social,
+                };
+                break;
+
             case BasicActionTypes.Persuade:
-            case BasicActionTypes.Perform:
-                // Social-focused composition
                 compositionPattern = new CompositionPattern
                 {
                     PrimaryArchetype = ChoiceArchetypes.Social,
                     SecondaryArchetype = ChoiceArchetypes.Focus,
                 };
                 break;
-            default:
-                // default composition pattern
+
+            case BasicActionTypes.Perform:
+                // Social-focused composition
                 compositionPattern = new CompositionPattern
                 {
                     PrimaryArchetype = ChoiceArchetypes.Social,
                     SecondaryArchetype = ChoiceArchetypes.Physical,
+                };
+                break;
+
+            default:
+                // default composition pattern
+                compositionPattern = new CompositionPattern
+                {
+                    PrimaryArchetype = ChoiceArchetypes.Focus,
+                    SecondaryArchetype = ChoiceArchetypes.Focus,
                 };
                 break;
         }

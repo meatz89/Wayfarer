@@ -1,7 +1,19 @@
-﻿public class Encounter
+﻿public class ChoiceSlot
 {
-    public EncounterContext Context { get; }
+    public BasicActionTypes BasicActionCondition;
+    public EncounterStateCondition EncounterStateCondition;
+    public SpecialChoiceTemplate ChoiceTemplate;
+}
+
+
+public class Encounter
+{
+    public string EncounterGoal { get; }
     public string Situation { get; }
+    public EncounterContext Context { get; }
+    public List<ChoiceSlot> BaseSlots { get; set;  }
+    public List<ChoiceSlot> ModifiedSlots { get; set;  }
+
     private List<EncounterStage> stages = new();
     public int CurrentStageIndex { get; private set; }
 

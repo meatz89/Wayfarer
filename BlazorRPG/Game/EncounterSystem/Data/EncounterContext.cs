@@ -8,7 +8,7 @@
     public PlayerState PlayerState { get; }
     public EncounterValues CurrentValues { get; set; }
     public int StageNumber { get; set; }
-    public LocationSpotProperties Properties { get; set; }
+    public LocationSpotAvailabilityConditions Properties { get; set; }
     public List<LocationPropertyChoiceEffect> LocationPropertyChoiceEffects { get; }
 
     // Constructor remains the same but without value initialization

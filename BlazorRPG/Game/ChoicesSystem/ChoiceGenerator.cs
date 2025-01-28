@@ -4,25 +4,27 @@
 
     private readonly GameState gameState;
     private readonly ChoiceCalculator calculator;
-    private readonly List<(ChoiceArchetypes archetype, ChoiceApproaches approach)> usedCombinations;
+    private readonly List<(ChoiceArchetypes archetype, ChoiceApproaches approach)> alreadyUsedCombinations;
 
     public ChoiceGenerator(GameState gameState)
     {
         this.gameState = gameState;
         this.calculator = new ChoiceCalculator(gameState);
-        this.usedCombinations = new List<(ChoiceArchetypes, ChoiceApproaches)>();
+        this.alreadyUsedCombinations = new List<(ChoiceArchetypes, ChoiceApproaches)>();
     }
 
     public ChoiceSet Generate(SpecialChoiceTemplate template, EncounterContext context)
     {
-        usedCombinations.Clear();
+        alreadyUsedCombinations.Clear();
 
         PlayerState playerState = gameState.Player;
         EncounterValues initialValues = context.CurrentValues;
 
+        CompositionPattern pattern = GameRules.GetCompositionPatternForActionType(template.ActionType);
+
         List<EncounterChoice> choices = initialValues.Pressure >= 9
-            ? GenerateDesperateOnlyChoices()
-            : GenerateBaseChoices(template, initialValues, playerState, numberOfChoicesToGenerate);
+            ? GenerateDesperateOnlyChoices(pattern)
+            : GenerateBaseChoices(template, initialValues, playerState, numberOfChoicesToGenerate, pattern);
 
         foreach (EncounterChoice choice in choices)
         {
@@ -70,11 +72,10 @@
         SpecialChoiceTemplate template,
         EncounterValues values,
         PlayerState playerState,
-        int desiredChoiceCount)
+        int desiredChoiceCount, 
+        CompositionPattern pattern)
     {
         List<EncounterChoice> choices = new();
-        CompositionPattern pattern = new CompositionPattern()
-        { PrimaryArchetype = ChoiceArchetypes.Social, SecondaryArchetype = ChoiceArchetypes.Focus };
 
         // First: Generate Primary Archetype choices
         int primaryChoiceCount = Math.Max(1, desiredChoiceCount / 2);
@@ -104,7 +105,7 @@
                 break;
 
             choices.Add(flexibleChoice);
-            usedCombinations.Add((flexibleChoice.Archetype, flexibleChoice.Approach));
+            alreadyUsedCombinations.Add((flexibleChoice.Archetype, flexibleChoice.Approach));
         }
 
         return choices;
@@ -131,7 +132,7 @@
 
             EncounterChoice choice = CreateChoice(choices.Count + 1, archetype, approach.Value);
             choices.Add(choice);
-            usedCombinations.Add((archetype, approach.Value));
+            alreadyUsedCombinations.Add((archetype, approach.Value));
             availableApproaches.Remove(approach.Value);
         }
     }
@@ -172,7 +173,7 @@
     {
         List<ChoiceApproaches> choiceApproaches = GameRules.GetAvailableApproaches(archetype, values, playerState);
         List<ChoiceApproaches> unusedChoiceApproaches = choiceApproaches
-                    .Where(approach => !usedCombinations.Any(used =>
+                    .Where(approach => !alreadyUsedCombinations.Any(used =>
                         used.archetype == archetype && used.approach == approach))
                     .ToList();
         return unusedChoiceApproaches;
@@ -196,33 +197,31 @@
         if (approach == null)
             return null;
 
-        if (!usedCombinations.Any(c => c.archetype == pattern.PrimaryArchetype && c.approach == approach))
+        if (!alreadyUsedCombinations.Any(c => c.archetype == pattern.PrimaryArchetype && c.approach == approach))
         {
-            EncounterChoice choice = CreateChoice(usedCombinations.Count + 1, archetype, approach.Value);
+            EncounterChoice choice = CreateChoice(alreadyUsedCombinations.Count + 1, archetype, approach.Value);
             return choice;
         }
 
         return null;
     }
 
-    private List<EncounterChoice> GenerateDesperateOnlyChoices()
+    private List<EncounterChoice> GenerateDesperateOnlyChoices(CompositionPattern pattern)
     {
         List<EncounterChoice> choices = new();
-        CompositionPattern pattern = new CompositionPattern()
-        { PrimaryArchetype = ChoiceArchetypes.Social, SecondaryArchetype = ChoiceArchetypes.Focus };
 
         // Only generate desperate choices if the combination hasn't been used
-        if (!usedCombinations.Any(c => c.archetype == pattern.PrimaryArchetype && c.approach == ChoiceApproaches.Desperate))
+        if (!alreadyUsedCombinations.Any(c => c.archetype == pattern.PrimaryArchetype && c.approach == ChoiceApproaches.Desperate))
         {
             choices.Add(CreateChoice(0, pattern.PrimaryArchetype, ChoiceApproaches.Careful));
             choices.Add(CreateChoice(0, pattern.PrimaryArchetype, ChoiceApproaches.Desperate));
-            usedCombinations.Add((pattern.PrimaryArchetype, ChoiceApproaches.Desperate));
+            alreadyUsedCombinations.Add((pattern.PrimaryArchetype, ChoiceApproaches.Desperate));
         }
 
-        if (!usedCombinations.Any(c => c.archetype == pattern.SecondaryArchetype && c.approach == ChoiceApproaches.Desperate))
+        if (!alreadyUsedCombinations.Any(c => c.archetype == pattern.SecondaryArchetype && c.approach == ChoiceApproaches.Desperate))
         {
             choices.Add(CreateChoice(choices.Count, pattern.SecondaryArchetype, ChoiceApproaches.Desperate));
-            usedCombinations.Add((pattern.SecondaryArchetype, ChoiceApproaches.Desperate));
+            alreadyUsedCombinations.Add((pattern.SecondaryArchetype, ChoiceApproaches.Desperate));
         }
 
         return choices;

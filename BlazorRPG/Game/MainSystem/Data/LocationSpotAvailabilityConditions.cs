@@ -1,4 +1,4 @@
-﻿public class LocationSpotProperties
+﻿public class LocationSpotAvailabilityConditions
 {
     public List<LocationPropertyChoiceEffect> ChoiceEffects { get; set; } = new();
 

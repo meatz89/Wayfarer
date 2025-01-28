@@ -3,34 +3,34 @@
     public static Item CharmingPendant => new ItemBuilder()
         .WithName(ItemNames.CharmingPendant)
         .WithDescription("A beautifully crafted pendant that catches everyone's eye")
-        .WithActionModifier(actionModifier => actionModifier
+        .WithActionModifier((Action<ActionModifierBuilder>)(actionModifier => actionModifier
             .WithDescription("People are more generous during social interactions")
-            .ForActionType(BasicActionTypes.Mingle)
-            .AdditionalCoinReward(1))
+            .ForActionType((BasicActionTypes)BasicActionTypes.Discuss)
+            .AdditionalCoinReward(1)))
         .Build();
 
     public static Item WoodcuttersAxe => new ItemBuilder()
         .WithName(ItemNames.WoodcuttersAxe)
         .WithDescription("A nice axe for cutting trees")
-        .WithActionModifier(actionModifier => actionModifier
+        .WithActionModifier((Action<ActionModifierBuilder>)(actionModifier => actionModifier
             .WithDescription("GATHERs more Wood when GATHERing")
-            .ForActionType(BasicActionTypes.Gather)
+            .ForActionType((BasicActionTypes)BasicActionTypes.Gather)
             .WhenResourceRewardHas(ResourceTypes.Wood)
             .AdditionalResourceReward(ResourceTypes.Wood, 1)
-            .ReduceActionCost(EnergyTypes.Physical, 1))
+            .ReduceActionCost(EnergyTypes.Physical, 1)))
         .Build();
 
     public static Item TorchLight => new ItemBuilder()
         .WithName(ItemNames.Torchlight)
         .WithDescription("A torchlight for nighttime gathering")
-        .WithActionModifier(actionModifier => actionModifier
+        .WithActionModifier((Action<ActionModifierBuilder>)(actionModifier => actionModifier
             .WithDescription("Allows gathering at night")
-            .ForActionType(BasicActionTypes.Gather)
-            .ForTimeWindow(TimeWindows.Night))
-        .WithActionModifier(actionModifier => actionModifier
+            .ForActionType((BasicActionTypes)BasicActionTypes.Gather)
+            .ForTimeWindow(TimeWindows.Night)))
+        .WithActionModifier((Action<ActionModifierBuilder>)(actionModifier => actionModifier
             .WithDescription("Removes Focus Requirement for gather actions")
-            .ForActionType(BasicActionTypes.Gather)
-            .ForTimeWindow(TimeWindows.Night))
+            .ForActionType((BasicActionTypes)BasicActionTypes.Gather)
+            .ForTimeWindow(TimeWindows.Night)))
         .Build();
 
     public static Item CraftingApron => new ItemBuilder()
