@@ -42,7 +42,7 @@ public enum CrowdDensity
     Deserted, Quiet, Busy, Bustling
 }
 
-public enum LocationScale
+public enum OpportunityTypes
 {
-    Small, Medium, Large
+    Charitable, Commercial, Healthcare
 }

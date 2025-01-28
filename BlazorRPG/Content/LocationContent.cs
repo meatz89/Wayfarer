@@ -5,7 +5,7 @@
         .ForLocation(LocationNames.WaysideInn)
         .WithArchetype(LocationArchetypes.Tavern)
         .WithCrowdLevel(CrowdDensity.Bustling)
-        .WithLocationScale(LocationScale.Medium)
+        .WithOpportunity(OpportunityTypes.Commercial)
         .AddLocationSpot(spot => spot
             .WithName("Hearth")
             .WithAccessibility(Accessibility.Communal)

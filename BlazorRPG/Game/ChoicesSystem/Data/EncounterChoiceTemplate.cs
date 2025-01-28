@@ -1,6 +1,7 @@
 ﻿public class EncounterChoiceTemplate
 {
     public string Name { get; set; }
+    public ChoiceSlotTypes ChoiceSlotType { get; set; }
     public ChoiceArchetypes Archetype { get; set; }
     public ChoiceApproaches Approach { get; set; }
     public List<ValueModification> ValueModifications { get; } = new();
@@ -12,6 +13,7 @@
 
     public EncounterChoiceTemplate(
         string name,
+        ChoiceSlotTypes choiceSlotType,
         ChoiceArchetypes choiceArchetype,
         ChoiceApproaches choiceApproach,
         List<ValueModification> valueModifications,
@@ -23,6 +25,7 @@
         )
     {
         Name = name;
+        ChoiceSlotType = choiceSlotType;
         Archetype = choiceArchetype;
         Approach = choiceApproach;
         ValueModifications = valueModifications;

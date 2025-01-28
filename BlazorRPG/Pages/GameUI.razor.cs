@@ -225,8 +225,8 @@ public partial class GameUI : ComponentBase
             ));
 
         properties.Add(new(
-                GetIconForLocationScale(location.LocationScale),
-                FormatEnumString(location.LocationScale.ToString()),
+                GetIconForOpportunity(location.Opportunity),
+                FormatEnumString(location.Opportunity.ToString()),
                 ""
             ));
 
@@ -281,13 +281,13 @@ public partial class GameUI : ComponentBase
         };
     }
 
-    private string GetIconForLocationScale(LocationScale scale)
+    private string GetIconForOpportunity(OpportunityTypes scale)
     {
         return scale switch
         {
-            LocationScale.Small => "🏠",
-            LocationScale.Medium => "🏘️",
-            LocationScale.Large => "🏙️",
+            OpportunityTypes.Charitable => "🏠",
+            OpportunityTypes.Commercial => "🏘️",
+            OpportunityTypes.Healthcare => "🏙️",
             _ => "❓"
         };
     }

@@ -27,7 +27,7 @@ public class ActionSystem
             OutcomeConditions = originalAction.OutcomeConditions.ToList(),
             LocationArchetype = originalAction.LocationArchetype,
             CrowdDensity = originalAction.CrowdDensity,
-            LocationScale = originalAction.LocationScale,
+            Opportunity = originalAction.Opportunity,
             SpotAvailabilityConditions = new List<LocationPropertyCondition>(originalAction.SpotAvailabilityConditions)
         };
 

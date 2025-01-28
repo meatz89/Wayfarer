@@ -42,6 +42,12 @@
         return this;
     }
 
+    public EncounterChoiceSlotBuilder WithLocationOpportunity(OpportunityTypes opportunityType)
+    {
+        this.locationProperty = new LocationPropertyCondition(LocationPropertyTypes.Opportunity, opportunityType);
+        return this;
+    }
+
     public EncounterChoiceSlotBuilder WithLocationSpotProperty(LocationSpotPropertyCondition condition)
     {
         this.locationSpotProperty = condition;

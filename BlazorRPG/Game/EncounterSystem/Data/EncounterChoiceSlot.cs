@@ -11,13 +11,13 @@
     private EncounterChoiceTemplate encounterChoiceTemplate;
 
     public EncounterChoiceSlot(
-        string name, 
-        BasicActionTypes actionType, 
-        LocationPropertyCondition locationProperty, 
-        LocationSpotPropertyCondition locationSpotProperty, 
-        WorldStatePropertyCondition worldStateProperty, 
-        PlayerStatusPropertyCondition playerStatusProperty, 
-        EncounterStateCondition encounterStateProperty, 
+        string name,
+        BasicActionTypes actionType,
+        LocationPropertyCondition locationProperty,
+        LocationSpotPropertyCondition locationSpotProperty,
+        WorldStatePropertyCondition worldStateProperty,
+        PlayerStatusPropertyCondition playerStatusProperty,
+        EncounterStateCondition encounterStateProperty,
         EncounterChoiceTemplate encounterChoiceTemplate)
     {
         this.slotName = name;

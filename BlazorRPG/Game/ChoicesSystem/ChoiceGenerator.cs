@@ -50,36 +50,38 @@
     private List<EncounterChoice> GetForcedChoiceSubstituations(Encounter encounter, EncounterContext context)
     {
         List<EncounterChoiceTemplate> encounterChoiceTemplates =
-            GetForcedChoiceSubstitutions(encounter, context);
+            GetChoiceSubstitutions(encounter, context);
 
         List<EncounterChoice> encounterChoices = CreateChoicesFromTemplate(encounterChoiceTemplates);
-
 
         return encounterChoices;
     }
 
     private List<EncounterChoice> CreateChoicesFromTemplate(List<EncounterChoiceTemplate> encounterChoiceTemplates)
     {
-        var choices = new List<EncounterChoice>();
+        List<EncounterChoice> choices = new List<EncounterChoice>();
 
         if (encounterChoiceTemplates.Count != 0)
         {
             int index = 1;
             foreach (EncounterChoiceTemplate template in encounterChoiceTemplates)
             {
+                ChoiceSlotTypes choiceSlotTypes = template.ChoiceSlotType;
+
                 ChoiceArchetypes archetype = template.Archetype;
                 ChoiceApproaches approach = template.Approach;
 
+                string name = template.Name;
                 EncounterChoice choice = new EncounterChoice(
                     index,
                     $"{archetype} - {approach}",
-                    $"{archetype} - {approach}",
+                    name,
                     archetype,
                     approach);
 
                 choice.SetModifiedChoiceSlotUnlocks(template.ChoiceSlotModifications);
 
-                if(template.EncounterResults.HasValue
+                if (template.EncounterResults.HasValue
                     && template.EncounterResults.Value == EncounterResults.EncounterFailure)
                 {
                     choice.IsEncounterFailingChoice = true;
@@ -124,7 +126,7 @@
         return encounterChoices;
     }
 
-    private List<EncounterChoiceTemplate> GetForcedChoiceSubstitutions(Encounter encounter, EncounterContext context)
+    private List<EncounterChoiceTemplate> GetChoiceSubstitutions(Encounter encounter, EncounterContext context)
     {
         EncounterValues currentValues = context.CurrentValues;
 

@@ -10,7 +10,7 @@
     // Location properties
     private LocationArchetypes locationArchetype;
     private CrowdDensity crowdDensity;
-    private LocationScale locationScale;
+    private OpportunityTypes opportunity;
 
     public LocationBuilder WithArchetype(LocationArchetypes archetype)
     {
@@ -24,9 +24,9 @@
         return this;
     }
 
-    public LocationBuilder WithLocationScale(LocationScale locationScale)
+    public LocationBuilder WithOpportunity(OpportunityTypes opportunity)
     {
-        this.locationScale = locationScale;
+        this.opportunity = opportunity;
         return this;
     }
 
@@ -81,7 +81,7 @@
             difficultyLevel,
             locationArchetype,
             crowdDensity,
-            locationScale,
+            opportunity,
             ResourceTypes.None
         );
     }

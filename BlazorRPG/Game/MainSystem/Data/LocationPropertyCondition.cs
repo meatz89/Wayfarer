@@ -16,7 +16,7 @@
             LocationPropertyTypes.LocationArchetype => location.HasProperty((LocationArchetypes)ExpectedValue),
             LocationPropertyTypes.ResourceType => location.HasProperty((ResourceTypes)ExpectedValue),
             LocationPropertyTypes.CrowdDensity => location.HasProperty((CrowdDensity)ExpectedValue),
-            LocationPropertyTypes.LocationScale => location.HasProperty((LocationScale)ExpectedValue),
+            LocationPropertyTypes.Opportunity => location.HasProperty((OpportunityTypes)ExpectedValue),
             _ => throw new ArgumentException($"Invalid LocationPropertyType: {PropertyType}")
         };
     }
@@ -117,7 +117,7 @@ public enum LocationPropertyTypes
     LocationArchetype,
     ResourceType,
     CrowdDensity,
-    LocationScale
+    Opportunity
 }
 
 public enum LocationSpotPropertyTypes

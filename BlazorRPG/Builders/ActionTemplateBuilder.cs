@@ -68,10 +68,10 @@
         return this;
     }
 
-    public ActionTemplateBuilder WithLocationScale(LocationScale locationScale)
+    public ActionTemplateBuilder WithOpportunity(OpportunityTypes opportunity)
     {
         this.locationPropertyCondition = new LocationPropertyCondition(
-            LocationPropertyTypes.LocationScale, locationScale);
+            LocationPropertyTypes.Opportunity, opportunity);
 
         return this;
     }

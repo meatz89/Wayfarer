@@ -7,7 +7,7 @@
     public int Difficulty { get; set; }
     public LocationArchetypes LocationArchetype { get; }
     public CrowdDensity CrowdDensity { get; }
-    public LocationScale LocationScale { get; }
+    public OpportunityTypes Opportunity { get; }
     public ResourceTypes ResourceType { get; }
 
     public Location(
@@ -18,7 +18,7 @@
         int difficultyLevel,
         LocationArchetypes locationArchetype,
         CrowdDensity crowdDensity,
-        LocationScale locationScale,
+        OpportunityTypes opportunity,
         ResourceTypes resourceTypes)
     {
         LocationType = locationType;
@@ -28,7 +28,7 @@
         Difficulty = difficultyLevel;
         LocationArchetype = locationArchetype;
         CrowdDensity = crowdDensity;
-        LocationScale = locationScale;
+        Opportunity = opportunity;
         ResourceType = resourceTypes;
     }
 
@@ -46,9 +46,9 @@
         {
             return CrowdDensity == density;
         }
-        else if (locationProperty is LocationScale scale)
+        else if (locationProperty is OpportunityTypes scale)
         {
-            return LocationScale == scale;
+            return Opportunity == scale;
         }
         else
         {

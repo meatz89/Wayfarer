@@ -3,26 +3,25 @@
     public static List<EncounterChoiceSlot> EncounterBaseChoiceSlots => new()
     {
         new EncounterChoiceSlotBuilder()
-            .WithName("Spill Drinks")
-            .WithActionType(BasicActionTypes.Labor)
             .WithLocationArchetype(LocationArchetypes.Tavern)
-            .WithLocationSpotAccessability(Accessibility.Public)
-            .WithEncounterStateCondition(encounterStateBuilder => encounterStateBuilder
-                .WithMaxMomentum(5))
+            .WithLocationOpportunity(OpportunityTypes.Commercial)
+            .WithActionType(BasicActionTypes.Persuade)
             .WithEncounterChoice(encounterChoiceBuilder => encounterChoiceBuilder
-                .WithArchetype(ChoiceArchetypes.Physical)
-                .WithApproach(ChoiceApproaches.Mistake)
+                .WithName("Ask about rates")
+                .WithChoiceSlotType(ChoiceSlotTypes.Opportunity)
+                .WithArchetype(ChoiceArchetypes.Social)
+                .WithApproach(ChoiceApproaches.Aggressive)
                 .UnlocksModifiedChoiceSlot(modifiedBuilder => modifiedBuilder
-                    .WithName("Spill Drinks Result")
-                    .WithActionType(BasicActionTypes.Labor)
-                    .WithLocationArchetype(LocationArchetypes.Tavern)
-                    .WithLocationSpotAccessability(Accessibility.Public)
-                    .WithEncounterStateCondition(modifiedEncounterStateBuilder => modifiedEncounterStateBuilder
-                        .WithMaxMomentum(5))
                     .WithEncounterChoice(modifiedEncounterChoiceBuilder => modifiedEncounterChoiceBuilder
+                        .WithName("Pay for room")
                         .WithArchetype(ChoiceArchetypes.Physical)
                         .WithApproach(ChoiceApproaches.Aggressive)
-                        .EndsEndcounter(EncounterResults.EncounterFailure))))
+                        .ExpendsCoins(5)
+                        .EndsEndcounter(EncounterResults.EncounterSuccess))))
             .Build(),
     };
+}
+public enum ChoiceSlotTypes
+{
+    Opportunity, Substitution
 }

@@ -29,7 +29,7 @@ public enum ModificationSource
 {
     LocationProperty,
     LocationType,
-    LocationScale,
+    Opportunity,
     LocationCrowdLevel,
     PlayerSkill,
     PlayerInsight,
