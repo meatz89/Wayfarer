@@ -153,6 +153,43 @@ public class EnergyOutcome : Outcome
     }
 }
 
+public class InformationOutcome : Outcome
+{
+    public InformationTypes InformationType { get; }
+    public Information Information { get; }
+
+    public InformationOutcome(InformationTypes informationType, Information information)
+    {
+        InformationType = informationType;
+        Information = information;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        switch (InformationType)
+        {
+            case InformationTypes.Location:
+            {
+                if(Information is LocationInformation locationInformation)
+                {
+                    player.AddLocationKnowledge(locationInformation.LocationNames);
+                }
+            }
+            break;
+        }
+    }
+
+    public override string GetDescription()
+    {
+        return $"{InformationType}";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        return $"{InformationType}";
+    }
+}
+
 public class HealthOutcome : Outcome
 {
     public int Count { get; }

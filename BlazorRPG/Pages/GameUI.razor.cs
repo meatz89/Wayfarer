@@ -25,7 +25,7 @@ public partial class GameUI : ComponentBase
     public int coins => GameState.Player.Coins;
     public int food => GameState.Player.Inventory.GetItemCount(ResourceTypes.Food);
 
-    public List<Location> Locations => GameManager.GetAllLocations();
+    public List<Location> Locations => GameManager.GetPlayerKnownLocations();
 
     private bool showNarrative = false;
     private LocationNames selectedLocation;

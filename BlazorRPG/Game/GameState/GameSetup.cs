@@ -10,6 +10,7 @@
 
         PlayerState playerInfo = new PlayerState();
         playerInfo.StartingLocation = LocationNames.WaysideInn;
+        playerInfo.AddLocationKnowledge(LocationNames.WaysideInn);
 
         playerInfo.Coins = gameRules.StartingCoins;
 

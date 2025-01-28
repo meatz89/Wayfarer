@@ -11,6 +11,7 @@
     private LocationArchetypes locationArchetype;
     private CrowdDensity crowdDensity;
     private OpportunityTypes opportunity;
+    private bool playerKnowledge;
 
     public LocationBuilder WithArchetype(LocationArchetypes archetype)
     {
@@ -64,6 +65,11 @@
         return this;
     }
 
+    public LocationBuilder WithPlayerKnowledge(bool playerKnowledge)
+    {
+        this.playerKnowledge = playerKnowledge;
+        return this;
+    }
 
     public LocationBuilder WithDifficultyLevel(int difficultyLevel)
     {
@@ -82,7 +88,8 @@
             locationArchetype,
             crowdDensity,
             opportunity,
-            ResourceTypes.None
+            ResourceTypes.None,
+            playerKnowledge
         );
     }
 }

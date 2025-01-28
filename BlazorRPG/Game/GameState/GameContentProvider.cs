@@ -24,6 +24,7 @@
         locations = new List<Location>
         {
             LocationContent.WaysideInn,
+            LocationContent.Market,
         };
 
         characters = new List<Character>

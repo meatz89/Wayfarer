@@ -8,7 +8,7 @@
             "The air holds the crisp promise of autumn, carrying hints of wood smoke from distant homesteads " +
             "and the sharp sweetness of fallen leaves turning to earth."),
 
-        new LocationNarrative(LocationNames.AncientCrossroads,
+        new LocationNarrative(LocationNames.Crossroads,
             "Three paths spread before you like the spokes of a wheel. At their heart stands the crossroads stone, " +
             "its surface etched with centuries of travelers' marks and official waypoints alike. Some are crisp as " +
             "yesterday's bread, others faded like memories of childhood songs. The stone leans slightly, as if listening " +

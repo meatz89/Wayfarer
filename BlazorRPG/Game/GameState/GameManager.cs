@@ -338,16 +338,22 @@ public class GameManager
     }
 
 
-    public List<Location> GetAllLocations()
+    public List<Location> GetPlayerKnownLocations()
     {
-        List<Location> loc = LocationSystem.GetLocations();
-        return loc;
+        List<Location> playerKnownLocations = new List<Location>();
+        
+        foreach (Location location in LocationSystem.GetAllLocations()) {
+            if (!gameState.Player.KnownLocations.Contains(location.LocationName)) continue;
+            playerKnownLocations.Add(location);
+        }
+
+        return playerKnownLocations;
     }
 
     public List<LocationNames> GetConnectedLocations()
     {
         List<LocationNames> loc =
-            LocationSystem.GetLocations()
+            LocationSystem.GetAllLocations()
             .Where(x => x != gameState.World.CurrentLocation)
             .Select(x => x.LocationName)
             .ToList();

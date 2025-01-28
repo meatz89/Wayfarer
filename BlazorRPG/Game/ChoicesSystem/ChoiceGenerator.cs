@@ -66,8 +66,6 @@
             int index = 1;
             foreach (EncounterChoiceTemplate template in encounterChoiceTemplates)
             {
-                ChoiceSlotTypes choiceSlotTypes = template.ChoiceSlotType;
-
                 ChoiceArchetypes archetype = template.Archetype;
                 ChoiceApproaches approach = template.Approach;
 
@@ -139,7 +137,11 @@
                 if (!choiceSlot.MeetsEncounterStateConditions(currentValues)) continue;
                 choices.Add(choiceSlot.GetChoiceTemplate());
 
-                encounter.BaseSlots.Remove(choiceSlot);
+                EncounterChoiceTemplate choiceTemplate = choiceSlot.GetChoiceTemplate();
+                if (choiceTemplate.ChoiceSlotType == ChoiceSlotPersistence.Fleeting)
+                {
+                    encounter.BaseSlots.Remove(choiceSlot);
+                }
             }
         }
         if (encounter.ModifiedSlots.Count != 0)
@@ -150,7 +152,11 @@
                 if (!choiceSlot.MeetsEncounterStateConditions(currentValues)) continue;
                 choices.Add(choiceSlot.GetChoiceTemplate());
 
-                encounter.ModifiedSlots.Remove(choiceSlot);
+                EncounterChoiceTemplate choiceTemplate = choiceSlot.GetChoiceTemplate();
+                if (choiceTemplate.ChoiceSlotType == ChoiceSlotPersistence.Fleeting)
+                {
+                    encounter.ModifiedSlots.Remove(choiceSlot);
+                }
             }
         }
 

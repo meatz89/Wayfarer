@@ -2,7 +2,7 @@
 {
     None = 0,
     ForestRoad,
-    AncientCrossroads,
+    Crossroads,
     WaysideInn,
     Market
 }

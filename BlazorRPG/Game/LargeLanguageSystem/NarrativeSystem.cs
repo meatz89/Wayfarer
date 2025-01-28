@@ -154,6 +154,11 @@
             .Where(x => x.LocationName == locationName)
             .FirstOrDefault();
 
+        if (locationNarrative == null)
+        {
+            return string.Empty;
+        }
+
         return locationNarrative.Description;
     }
 

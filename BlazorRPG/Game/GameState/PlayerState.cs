@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-public class PlayerState
+﻿public class PlayerState
 {
     public int Level { get; set; } = 1;
     public int Coins { get; set; }
@@ -24,6 +22,7 @@ public class PlayerState
     public List<Knowledge> Knowledge { get; set; } = new();
     public Encounter CurrentEncounter { get; set; }
     public LocationNames StartingLocation { get; set; }
+    public List<LocationNames> KnownLocations { get; set; } = new();
 
     public List<PlayerNegativeStatus> NegativeStatusTypes { get; set; }
     public PlayerReputationTypes ReputationType { get; set; }
@@ -231,5 +230,11 @@ public class PlayerState
     public bool HasStatusEffect(PlayerNegativeStatus expectedValue)
     {
         return NegativeStatusTypes.Contains(expectedValue);
+    }
+
+    public void AddLocationKnowledge(LocationNames locationName)
+    {
+        if (KnownLocations.Contains(locationName)) return;
+        KnownLocations.Add(locationName);
     }
 }

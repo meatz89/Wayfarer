@@ -9,6 +9,7 @@
     public CrowdDensity CrowdDensity { get; }
     public OpportunityTypes Opportunity { get; }
     public ResourceTypes ResourceType { get; }
+    public bool PlayerKnowledge { get; }
 
     public Location(
         LocationTypes locationType,
@@ -19,7 +20,9 @@
         LocationArchetypes locationArchetype,
         CrowdDensity crowdDensity,
         OpportunityTypes opportunity,
-        ResourceTypes resourceTypes)
+        ResourceTypes resourceTypes,
+        bool playerKnowledge
+        )
     {
         LocationType = locationType;
         LocationName = locationName;
@@ -30,6 +33,7 @@
         CrowdDensity = crowdDensity;
         Opportunity = opportunity;
         ResourceType = resourceTypes;
+        PlayerKnowledge = playerKnowledge;
     }
 
     public bool HasProperty<T>(T locationProperty)

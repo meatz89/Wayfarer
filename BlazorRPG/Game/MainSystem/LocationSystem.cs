@@ -11,7 +11,7 @@
         this.locationContextEffects = contentProvider.GetLocationArchetypeEffects();
     }
 
-    public List<Location> GetLocations()
+    public List<Location> GetAllLocations()
     {
         return allLocations;
     }

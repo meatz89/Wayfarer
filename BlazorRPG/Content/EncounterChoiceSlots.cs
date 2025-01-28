@@ -8,20 +8,44 @@
             .WithActionType(BasicActionTypes.Persuade)
             .WithEncounterChoice(encounterChoiceBuilder => encounterChoiceBuilder
                 .WithName("Ask about rates")
-                .WithChoiceSlotType(ChoiceSlotTypes.Opportunity)
+                .WithChoiceSlotType(ChoiceSlotPersistence.Enduring)
                 .WithArchetype(ChoiceArchetypes.Social)
                 .WithApproach(ChoiceApproaches.Aggressive)
                 .UnlocksModifiedChoiceSlot(modifiedBuilder => modifiedBuilder
                     .WithEncounterChoice(modifiedEncounterChoiceBuilder => modifiedEncounterChoiceBuilder
                         .WithName("Pay for room")
                         .WithArchetype(ChoiceArchetypes.Physical)
-                        .WithApproach(ChoiceApproaches.Aggressive)
+                        .WithApproach(ChoiceApproaches.Strategic)
                         .ExpendsCoins(5)
                         .EndsEndcounter(EncounterResults.EncounterSuccess))))
             .Build(),
+
+        new EncounterChoiceSlotBuilder()
+            .WithLocationArchetype(LocationArchetypes.Tavern)
+            .WithLocationOpportunity(OpportunityTypes.Commercial)
+            .WithActionType(BasicActionTypes.Persuade)
+            .WithEncounterChoice(encounterChoiceBuilder => encounterChoiceBuilder
+                .WithName("Ask about area")
+                .WithChoiceSlotType(ChoiceSlotPersistence.Enduring)
+                .WithArchetype(ChoiceArchetypes.Social)
+                .WithApproach(ChoiceApproaches.Tactical)
+                .RewardsLocationInformation(LocationNames.Market))
+            .Build(),
+
+        new EncounterChoiceSlotBuilder()
+            .WithLocationArchetype(LocationArchetypes.Tavern)
+            .WithLocationOpportunity(OpportunityTypes.Commercial)
+            .WithActionType(BasicActionTypes.Persuade)
+            .WithEncounterChoice(encounterChoiceBuilder => encounterChoiceBuilder
+                .WithName("Say Goodbye")
+                .WithChoiceSlotType(ChoiceSlotPersistence.Enduring)
+                .WithArchetype(ChoiceArchetypes.Social)
+                .WithApproach(ChoiceApproaches.Tactical)
+                .EndsEndcounter(EncounterResults.EncounterSuccess))
+            .Build(),
     };
 }
-public enum ChoiceSlotTypes
+public enum ChoiceSlotPersistence
 {
-    Opportunity, Substitution
+    Enduring, Fleeting
 }

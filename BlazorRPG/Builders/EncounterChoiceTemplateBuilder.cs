@@ -1,7 +1,7 @@
 ﻿public class EncounterChoiceTemplateBuilder
 {
     private string name;
-    private ChoiceSlotTypes choiceSlotType;
+    private ChoiceSlotPersistence choiceSlotType;
     private ChoiceArchetypes archetype;
     private ChoiceApproaches approach;
     private List<ValueModification> valueModifications = new();
@@ -17,7 +17,7 @@
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder WithChoiceSlotType(ChoiceSlotTypes choiceSlotType)
+    public EncounterChoiceTemplateBuilder WithChoiceSlotType(ChoiceSlotPersistence choiceSlotType)
     {
         this.choiceSlotType = choiceSlotType;
         return this;
@@ -97,6 +97,12 @@
 
     public EncounterChoiceTemplateBuilder RewardsTrust(int count, CharacterNames characterNames)
     {
+        return this;
+    }
+    
+    public EncounterChoiceTemplateBuilder RewardsLocationInformation(LocationNames locationName)
+    {
+        rewards.Add(new InformationOutcome(InformationTypes.Location, new LocationInformation(locationName)));
         return this;
     }
 
