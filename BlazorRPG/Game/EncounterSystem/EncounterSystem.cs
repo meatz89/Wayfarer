@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-public class EncounterSystem
+﻿public class EncounterSystem
 {
     private readonly GameState gameState;
     private readonly ChoiceSystem choiceSystem;

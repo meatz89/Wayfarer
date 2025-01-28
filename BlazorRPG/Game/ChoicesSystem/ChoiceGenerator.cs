@@ -116,8 +116,8 @@ public class ChoiceGenerator
         List<EncounterChoiceTemplate> choices = new List<EncounterChoiceTemplate>();
         foreach (EncounterChoiceSlot choiceSlot in encounter.BaseSlots)
         {
-            if (!choiceSlot.encounterStateProperty.IsMet(currentValues)) continue;
-            choices.Add(choiceSlot.encounterChoiceTemplate);
+            if (!choiceSlot.MeetsEncounterStateConditions(currentValues)) continue;
+            choices.Add(choiceSlot.GetChoiceTemplate());
         }
 
         return choices;

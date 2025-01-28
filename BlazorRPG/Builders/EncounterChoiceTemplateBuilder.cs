@@ -1,7 +1,6 @@
 ﻿public class EncounterChoiceTemplateBuilder
 {
     private string name;
-    private BasicActionTypes actionType;
     private ChoiceArchetypes archetype;
     private ChoiceApproaches approach;
     private List<ValueModification> valueModifications = new();
@@ -12,12 +11,6 @@
     public EncounterChoiceTemplateBuilder WithName(string name)
     {
         this.name = name;
-        return this;
-    }
-
-    public EncounterChoiceTemplateBuilder WithActionType(BasicActionTypes actionType)
-    {
-        this.actionType = actionType;
         return this;
     }
 
@@ -126,7 +119,6 @@
     {
         return new EncounterChoiceTemplate(
             name,
-            actionType,
             archetype,
             approach,
             valueModifications,

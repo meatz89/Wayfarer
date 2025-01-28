@@ -4,24 +4,16 @@
     {
         new EncounterChoiceSlotBuilder()
             .WithName("Overhear Merchant Plans")
-            .WithActionType(BasicActionTypes.Discuss)
+            .WithActionType(BasicActionTypes.Investigate)
             .WithLocationArchetype(LocationArchetypes.Tavern)
             .WithLocationSpotAccessability(Accessibility.Private)
             .WithEncounterStateCondition(builder => builder
-                .WithMinResonance(7))
+                .WithMinInsight(5))
             .WithEncounterChoice(builder => builder
+                .WithArchetype(ChoiceArchetypes.Focus)
+                .WithApproach(ChoiceApproaches.Strategic)
                 .RewardsCoins(1))
             .Build(),
 
-        new EncounterChoiceSlotBuilder()
-            .WithName("Overhear Merchant Plans")
-            .WithActionType(BasicActionTypes.Discuss)
-            .WithLocationArchetype(LocationArchetypes.Tavern)
-            .WithLocationSpotAccessability(Accessibility.Private)
-            .WithEncounterStateCondition(builder => builder
-                .WithMinResonance(7))
-            .WithEncounterChoice(builder => builder
-                .RewardsCoins(1))
-            .Build(),
     };
 }

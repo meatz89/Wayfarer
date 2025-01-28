@@ -1,14 +1,15 @@
-﻿public class EncounterChoiceSlot
+﻿
+public class EncounterChoiceSlot
 {
     public string slotName;
-    public BasicActionTypes actionType;
-    public LocationPropertyCondition locationProperty;
-    public LocationSpotPropertyCondition locationSpotProperty;
-    public WorldStatePropertyCondition worldStateProperty;
-    public PlayerStatusPropertyCondition playerStatusProperty;
+    private BasicActionTypes actionType;
+    private LocationPropertyCondition locationProperty;
+    private LocationSpotPropertyCondition locationSpotProperty;
+    private WorldStatePropertyCondition worldStateProperty;
+    private PlayerStatusPropertyCondition playerStatusProperty;
 
-    public EncounterStateCondition encounterStateProperty;
-    public EncounterChoiceTemplate encounterChoiceTemplate;
+    private EncounterStateCondition encounterStateProperty;
+    private EncounterChoiceTemplate encounterChoiceTemplate;
 
     public EncounterChoiceSlot(string name, BasicActionTypes actionType, LocationPropertyCondition locationProperty, LocationSpotPropertyCondition locationSpotProperty, WorldStatePropertyCondition worldStateProperty, PlayerStatusPropertyCondition playerStatusProperty, EncounterStateCondition encounterStateProperty, EncounterChoiceTemplate encounterChoiceTemplate)
     {
@@ -25,35 +26,45 @@
     public bool IsValidFor(EncounterContext context)
     {
         if (context.ActionType != actionType) return false;
-        if (!MeetsLocationPropertyConditions(context.CurrentValues)) return false;
-        if (!MeetsLocationSpotPropertyConditions(context.CurrentValues)) return false;
-        if (!MeetsWorldStateConditions(context.CurrentValues)) return false;
-        if (!MeetsPlayerStateConditions(context.CurrentValues)) return false;
+        if (!MeetsLocationPropertyConditions(context.Location)) return false;
+        if (!MeetsLocationSpotPropertyConditions(context.LocationSpot)) return false;
+        if (!MeetsWorldStateConditions(context.GameState.World)) return false;
+        if (!MeetsPlayerStateConditions(context.GameState.Player)) return false;
         return true;
     }
 
-    private bool MeetsLocationPropertyConditions(EncounterValues currentValues)
+    private bool MeetsLocationPropertyConditions(Location location)
     {
-        throw new NotImplementedException();
+        bool isValid = locationProperty == null || locationProperty.IsMet(location);
+        return isValid;
     }
 
-    private bool MeetsLocationSpotPropertyConditions(EncounterValues currentValues)
+    private bool MeetsLocationSpotPropertyConditions(LocationSpot locationSpot)
     {
-        throw new NotImplementedException();
+        bool isValid = locationSpotProperty == null || locationSpotProperty.IsMet(locationSpot);
+        return isValid;
     }
 
-    private bool MeetsWorldStateConditions(EncounterValues currentValues)
+    private bool MeetsWorldStateConditions(WorldState worldState)
     {
-        throw new NotImplementedException();
+        bool isValid = worldStateProperty == null || worldStateProperty.IsMet(worldState);
+        return isValid;
     }
 
-    private bool MeetsPlayerStateConditions(EncounterValues currentValues)
+    private bool MeetsPlayerStateConditions(PlayerState playerState)
     {
-        throw new NotImplementedException();
+        bool isValid = playerStatusProperty == null || playerStatusProperty.IsMet(playerState);
+        return isValid;
     }
 
-    private bool MeetsEncounterStateConditions(EncounterValues currentValues)
+    public bool MeetsEncounterStateConditions(EncounterValues encounterValues)
     {
-        throw new NotImplementedException();
+        bool isValid = encounterStateProperty == null || encounterStateProperty.IsMet(encounterValues);
+        return isValid;
+    }
+
+    public EncounterChoiceTemplate GetChoiceTemplate()
+    {
+        return encounterChoiceTemplate;
     }
 }

@@ -2,8 +2,6 @@
 {
     private Dictionary<ValueTypes, int> MinValues { get; }
     private Dictionary<ValueTypes, int> MaxValues { get; }
-    public int EnergyValueMin { get; }
-    public int EnergyValueMax { get; }
 
     public EncounterStateCondition(Dictionary<ValueTypes, int> minValues, Dictionary<ValueTypes, int> maxValues)
     {
@@ -38,5 +36,23 @@
             ValueTypes.Pressure => state.Pressure,
             _ => 0
         };
+    }
+
+    public override string ToString()
+    {
+        string explanation = string.Empty;
+
+        foreach (KeyValuePair<ValueTypes, int> minValue in MinValues)
+        {
+            if (!string.IsNullOrWhiteSpace(explanation)) explanation += Environment.NewLine;
+            explanation += $">{minValue.Value} {minValue.Key}";
+        }
+        foreach (KeyValuePair<ValueTypes, int> maxValue in MaxValues)
+        {
+            if (!string.IsNullOrWhiteSpace(explanation)) explanation += Environment.NewLine;
+            explanation += $"<{maxValue.Value} {maxValue.Key}";
+        }
+
+        return explanation;
     }
 }
