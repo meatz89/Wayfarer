@@ -49,10 +49,10 @@
     {
         WorldTime = timeWindow switch
         {
-            0 => TimeWindows.Night,
-            1 => TimeWindows.Morning,
-            2 => TimeWindows.Afternoon,
-            _ => TimeWindows.Evening
+            0 => TimeWindows.Midnight,
+            1 => TimeWindows.Dawn,
+            2 => TimeWindows.Noon,
+            _ => TimeWindows.Dusk
         };
     }
 

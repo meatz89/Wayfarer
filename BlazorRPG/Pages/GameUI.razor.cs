@@ -115,8 +115,8 @@ public partial class GameUI : ComponentBase
         // Reset encounter logic
         GameManager.FinishEncounter(EncounterResult.encounter);
         ShowEncounterResult = false;
-        
-        var result = GameManager.TravelToLocation(CurrentLocation.LocationName);
+
+        ActionResult result = GameManager.TravelToLocation(CurrentLocation.LocationName);
         StateHasChanged();
     }
 
@@ -293,10 +293,10 @@ public partial class GameUI : ComponentBase
     {
         return time switch
         {
-            TimeWindows.Night => "🌙",
-            TimeWindows.Morning => "🌄",
-            TimeWindows.Afternoon => "☀️",
-            TimeWindows.Evening => "🌆",
+            TimeWindows.Midnight => "🌙",
+            TimeWindows.Dawn => "🌄",
+            TimeWindows.Noon => "☀️",
+            TimeWindows.Dusk => "🌆",
             _ => "❓"
         };
     }

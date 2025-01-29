@@ -1,9 +1,9 @@
 ﻿public enum TimeWindows
 {
-    Night,
-    Morning,
-    Afternoon,
-    Evening
+    Midnight,
+    Dawn,
+    Noon,
+    Dusk
 }
 
 public enum WeatherTypes

@@ -19,7 +19,7 @@
 
     private bool IsLaborActionAvailable(ActionTemplate template, Location location, PlayerState playerState)
     {
-        if(template.ActionType == BasicActionTypes.Labor)
+        if (template.ActionType == BasicActionTypes.Labor)
         {
             (LocationNames LocationName, BasicActionTypes ActionType) item = (location.LocationName, template.ActionType);
             bool isLaborAllowedAtLocation = playerState.LocationActionAvailability.Contains(item);

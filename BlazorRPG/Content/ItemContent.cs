@@ -26,11 +26,11 @@
         .WithActionModifier((Action<ActionModifierBuilder>)(actionModifier => actionModifier
             .WithDescription("Allows gathering at night")
             .ForActionType((BasicActionTypes)BasicActionTypes.Gather)
-            .ForTimeWindow(TimeWindows.Night)))
+            .ForTimeWindow(TimeWindows.Midnight)))
         .WithActionModifier((Action<ActionModifierBuilder>)(actionModifier => actionModifier
             .WithDescription("Removes Focus Requirement for gather actions")
             .ForActionType((BasicActionTypes)BasicActionTypes.Gather)
-            .ForTimeWindow(TimeWindows.Night)))
+            .ForTimeWindow(TimeWindows.Midnight)))
         .Build();
 
     public static Item CraftingApron => new ItemBuilder()
@@ -45,6 +45,6 @@
             .WithDescription("Allows evening crafting")
             .ForActionType(BasicActionTypes.Labor)
             .ForLocationType(LocationTypes.Industrial)
-            .ForTimeWindow(TimeWindows.Evening))
+            .ForTimeWindow(TimeWindows.Dusk))
         .Build();
 }

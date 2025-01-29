@@ -95,9 +95,9 @@
 
     public EncounterChoiceTemplateBuilder UnlockLocationSpotActions(LocationNames locationName, BasicActionTypes actionType)
     {
-        rewards.Add(new InformationOutcome(InformationTypes.ActionOpportunity, 
+        rewards.Add(new InformationOutcome(InformationTypes.ActionOpportunity,
             new ActionOpportunityInformation(locationName, actionType)));
-        
+
         return this;
     }
 

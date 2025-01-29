@@ -137,7 +137,7 @@
                 EncounterChoiceSlot choiceSlot = encounter.BaseSlots[i];
                 if (!choiceSlot.MeetsEncounterStateConditions(currentValues)) continue;
                 List<EncounterChoiceTemplate> choiceTemplates = choiceSlot.GetChoiceTemplates();
-                foreach(EncounterChoiceTemplate choiceTemplate in choiceTemplates)
+                foreach (EncounterChoiceTemplate choiceTemplate in choiceTemplates)
                 {
                     choiceTemplate.ChoiceSlotToRemove = choiceSlot;
                 }
