@@ -23,6 +23,7 @@
     public Encounter CurrentEncounter { get; set; }
     public LocationNames StartingLocation { get; set; }
     public List<LocationNames> KnownLocations { get; set; } = new();
+    public HashSet<(LocationNames, BasicActionTypes)> LocationActionAvailability { get; set; } = new();
 
     public List<PlayerNegativeStatus> NegativeStatusTypes { get; set; }
     public PlayerReputationTypes ReputationType { get; set; }
@@ -236,5 +237,11 @@
     {
         if (KnownLocations.Contains(locationName)) return;
         KnownLocations.Add(locationName);
+    }
+
+    public void AddActionAvailabilityAt(LocationNames locationName, BasicActionTypes actionType)
+    {
+        if (LocationActionAvailability.Contains((locationName, actionType))) return;
+        LocationActionAvailability.Add((locationName, actionType));
     }
 }

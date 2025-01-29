@@ -1,6 +1,7 @@
 ﻿public enum InformationTypes
 {
-    Location
+    Location,
+    ActionOpportunity
 }
 
 public abstract class Information
@@ -16,5 +17,18 @@ public class LocationInformation : Information
         LocationNames = locationName;
     }
 
-    public LocationNames LocationNames;
+    public LocationNames LocationNames { get; }
+}
+
+public class ActionOpportunityInformation : Information
+{
+    public ActionOpportunityInformation(LocationNames locationName, BasicActionTypes actionType)
+    {
+        InformationType = InformationTypes.ActionOpportunity;
+        LocationName = locationName;
+        ActionType = actionType;
+    }
+
+    public LocationNames LocationName { get; }
+    public BasicActionTypes ActionType { get; }
 }

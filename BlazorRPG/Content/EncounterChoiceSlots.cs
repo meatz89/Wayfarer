@@ -29,6 +29,19 @@
             .WithLocationOpportunity(OpportunityTypes.Commercial)
             .WithActionType(BasicActionTypes.Persuade)
             .AddEncounterChoice(encounterChoiceBuilder => encounterChoiceBuilder
+                .WithName("Ask for work")
+                .WithArchetype(ChoiceArchetypes.Social)
+                .WithApproach(ChoiceApproaches.Tactical)
+                .UnlockLocationSpotActions(LocationNames.WaysideInn, BasicActionTypes.Labor)
+            )
+            .Build(),
+
+        new EncounterChoiceSlotBuilder()
+            .WithChoiceSlotType(ChoiceSlotPersistence.Lasting)
+            .WithLocationArchetype(LocationArchetypes.Tavern)
+            .WithLocationOpportunity(OpportunityTypes.Commercial)
+            .WithActionType(BasicActionTypes.Persuade)
+            .AddEncounterChoice(encounterChoiceBuilder => encounterChoiceBuilder
                 .WithName("Ask about area")
                 .WithArchetype(ChoiceArchetypes.Social)
                 .WithApproach(ChoiceApproaches.Tactical)

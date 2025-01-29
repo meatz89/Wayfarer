@@ -91,7 +91,6 @@ public partial class GameUI : ComponentBase
         else
         {
             UserLocationTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Location == locationName);
-            GameManager.TravelToLocation(location.Location);
             result = GameManager.TravelToLocation(location.Location);
         }
 
@@ -108,8 +107,6 @@ public partial class GameUI : ComponentBase
         {
             ShowEncounterResult = true;
         }
-
-        // Force a re-render of the GameUI component
         StateHasChanged();
     }
 
@@ -118,8 +115,8 @@ public partial class GameUI : ComponentBase
         // Reset encounter logic
         GameManager.FinishEncounter(EncounterResult.encounter);
         ShowEncounterResult = false;
-
-        // Force a re-render of the GameUI component
+        
+        var result = GameManager.TravelToLocation(CurrentLocation.LocationName);
         StateHasChanged();
     }
 

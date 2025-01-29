@@ -1,5 +1,20 @@
-﻿public static class ActionsContent
+﻿public static class ActionContent
 {
+    public static List<ActionTemplate> LoadUnlockableActionTemplates()
+    {
+        List<ActionTemplate> actionTemplates = new List<ActionTemplate>();
+
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName("Serve Drinks")
+            .WithActionType(BasicActionTypes.Labor)
+            .WithCrowdDensity(CrowdDensity.Bustling)
+            .WithAccessibility(Accessibility.Public)
+            .WithEngagement(Engagement.Service)
+            .Build());
+
+        return actionTemplates;
+    }
+
     public static List<ActionTemplate> LoadLocationActionTemplates()
     {
         List<ActionTemplate> actionTemplates = new List<ActionTemplate>();

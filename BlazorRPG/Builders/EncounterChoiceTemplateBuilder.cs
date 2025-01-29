@@ -93,6 +93,14 @@
         return this;
     }
 
+    public EncounterChoiceTemplateBuilder UnlockLocationSpotActions(LocationNames locationName, BasicActionTypes actionType)
+    {
+        rewards.Add(new InformationOutcome(InformationTypes.ActionOpportunity, 
+            new ActionOpportunityInformation(locationName, actionType)));
+        
+        return this;
+    }
+
     public EncounterChoiceTemplateBuilder RewardsLocationInformation(LocationNames locationName)
     {
         rewards.Add(new InformationOutcome(InformationTypes.Location, new LocationInformation(locationName)));

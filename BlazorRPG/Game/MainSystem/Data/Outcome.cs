@@ -174,8 +174,19 @@ public class InformationOutcome : Outcome
                 {
                     player.AddLocationKnowledge(locationInformation.LocationNames);
                 }
+                break;
             }
-            break;
+
+            case InformationTypes.ActionOpportunity:
+            {
+                if (Information is ActionOpportunityInformation actionOpportunityInformation)
+                {
+                    player.AddActionAvailabilityAt(
+                        actionOpportunityInformation.LocationName,
+                        actionOpportunityInformation.ActionType);
+                }
+                break;
+            }
         }
     }
 
