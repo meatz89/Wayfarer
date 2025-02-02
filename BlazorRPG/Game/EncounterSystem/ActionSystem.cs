@@ -21,9 +21,12 @@ public class ActionSystem
         {
             ActionType = originalAction.ActionType,
             Name = originalAction.Name,
+            Description = originalAction.Description,
             TimeWindows = new List<TimeWindows>(originalAction.TimeWindows),
             Requirements = new List<Requirement>(originalAction.Requirements),
             EnergyCosts = new List<Outcome>(originalAction.EnergyCosts),
+            Costs = new List<Outcome>(originalAction.Costs),
+            Rewards = new List<Outcome>(originalAction.Rewards),
             OutcomeConditions = originalAction.OutcomeConditions.ToList(),
             LocationArchetype = originalAction.LocationArchetype,
             CrowdDensity = originalAction.CrowdDensity,

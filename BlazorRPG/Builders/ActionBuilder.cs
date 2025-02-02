@@ -1,17 +1,26 @@
-﻿public class ActionBuilder
+﻿
+public class ActionBuilder
 {
     private BasicActionTypes actionType;
     private string description;
     private List<TimeWindows> timeWindows = new();
+
     public List<Requirement> requirements = new();
     public List<Outcome> energyCosts = new();
     public List<Outcome> costs = new();
     public List<Outcome> rewards = new();
     public int hoursPassed = 1;
+    private bool startsEncounter;
 
     public ActionBuilder ForAction(BasicActionTypes actionType)
     {
         this.actionType = actionType;
+        return this;
+    }
+
+    public ActionBuilder StartsEncounter(bool isEncounterAction)
+    {
+        this.startsEncounter = isEncounterAction;
         return this;
     }
 
@@ -142,11 +151,14 @@
         return new ActionImplementation
         {
             ActionType = actionType,
+            IsEncounterAction = startsEncounter,
             Name = description,
+            Description = description,
             TimeWindows = timeWindows,
             Requirements = requirements,
             EnergyCosts = energyCosts,
             OutcomeConditions = new()
         };
     }
+
 }

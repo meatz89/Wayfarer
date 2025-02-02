@@ -4,6 +4,7 @@
     {
         ActionBuilder builder = new ActionBuilder()
             .ForAction(template.ActionType)
+            .StartsEncounter(template.IsEncounterAction)
             .WithDescription(template.Name);
 
         // Add energy costs
@@ -37,6 +38,11 @@
         ActionImplementation actionImplementation = builder.Build();
         actionImplementation.OutcomeConditions.Add(failureCondition);
         actionImplementation.OutcomeConditions.Add(successCondition);
+
+        actionImplementation.Requirements = template.Requirements;
+        actionImplementation.EnergyCosts = template.Energy;
+        actionImplementation.Costs = template.Costs;
+        actionImplementation.Rewards = template.Rewards;
 
         return actionImplementation;
     }

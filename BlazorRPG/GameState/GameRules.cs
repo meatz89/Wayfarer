@@ -288,12 +288,15 @@
         {
             BasicActionTypes.Travel => 1,
             BasicActionTypes.Rest => 0,
+
             BasicActionTypes.Labor => 3,
             BasicActionTypes.Fight => 3,
             BasicActionTypes.Gather => 2,
+
             BasicActionTypes.Study => 3,
             BasicActionTypes.Investigate => 2,
             BasicActionTypes.Analyze => 2,
+
             BasicActionTypes.Discuss => 1,
             BasicActionTypes.Persuade => 3,
             BasicActionTypes.Perform => 3,

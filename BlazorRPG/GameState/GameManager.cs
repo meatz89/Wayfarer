@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.Metrics;
-using System.Text;
+﻿using System.Text;
 public class GameManager
 {
     public GameState gameState;
@@ -65,7 +64,8 @@ public class GameManager
 
     private void OnPlayerEnterLocation(Location location)
     {
-        List<ActionTemplate> allActionTemplates = ActionContent.LocationActionTemplates();
+        List<ActionTemplate> allActionTemplates = ActionContent.InnActionTemplates();
+        allActionTemplates.AddRange(ActionContent.MarketActionTemplates());
 
         List<LocationSpot> locationSpots = location.LocationSpots;
         PopulateLocationSpotActions(location, allActionTemplates, locationSpots);

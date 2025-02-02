@@ -36,7 +36,34 @@
         return actionTemplates;
     }
 
-    public static List<ActionTemplate> LocationActionTemplates()
+    public static List<ActionTemplate> InnActionTemplates()
+    {
+        List<ActionTemplate> actionTemplates = new List<ActionTemplate>();
+
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName("Pay for Room")
+            .WithActionType(BasicActionTypes.Persuade)
+            .WithCrowdDensity(CrowdDensity.Bustling)
+            .WithOpportunity(OpportunityTypes.Commercial)
+            .WithAccessibility(Accessibility.Public)
+            .WithEngagement(Engagement.Service)
+            .Build());
+
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName("Haggle price for room")
+            .WithDescription("Maybe I could get a discount for the room.")
+            .WithActionType(BasicActionTypes.Persuade)
+            .WithCrowdDensity(CrowdDensity.Bustling)
+            .WithOpportunity(OpportunityTypes.Commercial)
+            .WithAccessibility(Accessibility.Public)
+            .WithEngagement(Engagement.Service)
+            .StartsEncounter()
+            .Build());
+
+        return actionTemplates;
+    }
+
+    public static List<ActionTemplate> MarketActionTemplates()
     {
         List<ActionTemplate> actionTemplates = new List<ActionTemplate>();
 
