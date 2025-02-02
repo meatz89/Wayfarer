@@ -238,7 +238,7 @@
                 break;
 
             case BasicActionTypes.Investigate:
-                rewards.Add(new KnowledgeOutcome(KnowledgeTypes.LocalHistory, 1));
+                rewards.Add(new KnowledgeOutcome(KnowledgeTags.MarketRoutines, KnowledgeCategories.Commerce));
                 break;
 
             case BasicActionTypes.Analyze:

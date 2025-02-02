@@ -46,3 +46,15 @@ public enum OpportunityTypes
 {
     Charitable, Commercial, Healthcare
 }
+public enum LocationTypes
+{
+    Residential, Commercial, Industrial, Natural
+}
+public enum LocationNames
+{
+    None = 0,
+    ForestRoad,
+    Crossroads,
+    WaysideInn,
+    Market
+}

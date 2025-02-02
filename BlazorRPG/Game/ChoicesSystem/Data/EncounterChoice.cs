@@ -10,8 +10,6 @@
     public bool IsEncounterWinningChoice { get; set; }
     public bool IsEncounterFailingChoice { get; set; }
     public ChoiceCalculationResult CalculationResult { get; set; }
-    public List<EncounterChoiceSlot> ChoiceSlotModifications { get; set; } = new();
-    public EncounterChoiceSlot ChoiceSlotToRemove { get; set; }
 
     // Constructor remains the same
     public EncounterChoice(
@@ -54,10 +52,5 @@
             Description = req.GetDescription(),
             IsSatisfied = req.IsSatisfied(gameState)
         }).ToList();
-    }
-
-    public void SetModifiedChoiceSlotUnlocks(List<EncounterChoiceSlot> choiceSlotModifications)
-    {
-        this.ChoiceSlotModifications = choiceSlotModifications;
     }
 }

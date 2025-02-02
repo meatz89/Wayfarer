@@ -1,4 +1,4 @@
-﻿public class EncounterChoiceTemplateBuilder
+﻿public class EncounterChoiceBuilder
 {
     private string name;
     private ChoiceArchetypes archetype;
@@ -8,33 +8,50 @@
     private List<Outcome> costs = new();
     private List<Outcome> rewards = new();
     private EncounterResults? encounterResult = EncounterResults.Ongoing;
-    private List<EncounterChoiceSlot> modifiedChoiceSlots = new();
 
-    public EncounterChoiceTemplateBuilder WithName(string name)
+    private KnowledgeTags? requiredKnowledge;
+    private int requiredKnowledgeLevel;
+    private KnowledgeTags? rewardKnowledge;
+
+    public EncounterChoiceBuilder WithName(string name)
     {
         this.name = name;
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder WithArchetype(ChoiceArchetypes archetype)
+    public EncounterChoiceBuilder WithArchetype(ChoiceArchetypes archetype)
     {
         this.archetype = archetype;
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder WithApproach(ChoiceApproaches approach)
+    public EncounterChoiceBuilder WithApproach(ChoiceApproaches approach)
     {
         this.approach = approach;
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder RequiresInventorySlots(int slots)
+    public EncounterChoiceBuilder RequiresInventorySlots(int slots)
     {
         this.requirements.Add(new InventorySlotsRequirement(slots));
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder ExpendsHealth(int cost)
+    public EncounterChoiceBuilder RequiresKnowledge(KnowledgeTags tag, int level = 1)
+    {
+        requiredKnowledge = tag;
+        requiredKnowledgeLevel = level;
+        requirements.Add(new KnowledgeRequirement(requiredKnowledge.Value, requiredKnowledgeLevel));
+        return this;
+    }
+
+    public EncounterChoiceBuilder RewardsKnowledge(KnowledgeTags knowledgeTag, KnowledgeCategories knowledgeCategory)
+    {
+        rewards.Add(new KnowledgeOutcome(knowledgeTag, knowledgeCategory));
+        return this;
+    }
+
+    public EncounterChoiceBuilder ExpendsHealth(int cost)
     {
         if (cost < 0) return this;
 
@@ -43,7 +60,7 @@
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder ExpendsCoins(int cost)
+    public EncounterChoiceBuilder ExpendsCoins(int cost)
     {
         if (cost < 0) return this;
 
@@ -52,7 +69,7 @@
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder ExpendsFood(int cost)
+    public EncounterChoiceBuilder ExpendsFood(int cost)
     {
         if (cost < 0) return this;
 
@@ -61,7 +78,7 @@
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder ExpendsItem(ResourceTypes item, int cost)
+    public EncounterChoiceBuilder ExpendsItem(ResourceTypes item, int cost)
     {
         if (cost < 0) return this;
 
@@ -70,30 +87,30 @@
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder RewardsResource(ResourceTypes resourceType, int count)
+    public EncounterChoiceBuilder RewardsResource(ResourceTypes resourceType, int count)
     {
         rewards.Add(new ResourceOutcome(resourceType, count));
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder RewardsCoins(int count)
+    public EncounterChoiceBuilder RewardsCoins(int count)
     {
         rewards.Add(new CoinsOutcome(count));
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder RewardsFood(int count)
+    public EncounterChoiceBuilder RewardsFood(int count)
     {
         rewards.Add(new ResourceOutcome(ResourceTypes.Food, count));
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder RewardsTrust(int count, CharacterNames characterNames)
+    public EncounterChoiceBuilder RewardsTrust(int count, CharacterNames characterNames)
     {
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder UnlockLocationSpotActions(LocationNames locationName, BasicActionTypes actionType)
+    public EncounterChoiceBuilder UnlockLocationSpotActions(LocationNames locationName, BasicActionTypes actionType)
     {
         rewards.Add(new InformationOutcome(InformationTypes.ActionOpportunity,
             new ActionOpportunityInformation(locationName, actionType)));
@@ -101,45 +118,37 @@
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder RewardsLocationInformation(LocationNames locationName)
+    public EncounterChoiceBuilder RewardsLocationInformation(LocationNames locationName)
     {
         rewards.Add(new InformationOutcome(InformationTypes.Location, new LocationInformation(locationName)));
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder RewardsHealth(int count)
+    public EncounterChoiceBuilder RewardsHealth(int count)
     {
         rewards.Add(new HealthOutcome(count));
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder RewardsEnergy(int count, EnergyTypes energyType)
+    public EncounterChoiceBuilder RewardsEnergy(int count, EnergyTypes energyType)
     {
         rewards.Add(new EnergyOutcome(energyType, count));
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder RewardsReputation(int count)
+    public EncounterChoiceBuilder RewardsReputation(int count)
     {
         rewards.Add(new ReputationOutcome(count));
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder UnlocksAchievement(AchievementTypes achievementType)
+    public EncounterChoiceBuilder UnlocksAchievement(AchievementTypes achievementType)
     {
         rewards.Add(new AchievementOutcome(achievementType));
         return this;
     }
 
-    public EncounterChoiceTemplateBuilder UnlocksModifiedChoiceSlot(Action<EncounterChoiceSlotBuilder> buildModifiedChoiceSlot)
-    {
-        EncounterChoiceSlotBuilder builder = new EncounterChoiceSlotBuilder();
-        buildModifiedChoiceSlot(builder);
-        modifiedChoiceSlots.Add(builder.Build());
-        return this;
-    }
-
-    public EncounterChoiceTemplateBuilder EndsEndcounter(EncounterResults encounterResult)
+    public EncounterChoiceBuilder EndsEndcounter(EncounterResults encounterResult)
     {
         this.encounterResult = encounterResult;
         return this;
@@ -155,8 +164,7 @@
             requirements,
             costs,
             rewards,
-            encounterResult,
-            modifiedChoiceSlots
+            encounterResult
         );
     }
 }

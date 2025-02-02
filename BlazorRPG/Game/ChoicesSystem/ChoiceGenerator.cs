@@ -77,9 +77,6 @@
                     archetype,
                     approach);
 
-                choice.ChoiceSlotToRemove = template.ChoiceSlotToRemove;
-                choice.SetModifiedChoiceSlotUnlocks(template.ChoiceSlotModifications);
-
                 if (template.EncounterResults.HasValue
                     && template.EncounterResults.Value == EncounterResults.EncounterFailure)
                 {
@@ -130,46 +127,6 @@
         EncounterValues currentValues = context.CurrentValues;
 
         List<EncounterChoiceTemplate> choices = new List<EncounterChoiceTemplate>();
-        if (encounter.BaseSlots.Count != 0)
-        {
-            for (int i = encounter.BaseSlots.Count - 1; i >= 0; i--)
-            {
-                EncounterChoiceSlot choiceSlot = encounter.BaseSlots[i];
-                if (!choiceSlot.MeetsEncounterStateConditions(currentValues)) continue;
-                List<EncounterChoiceTemplate> choiceTemplates = choiceSlot.GetChoiceTemplates();
-                foreach (EncounterChoiceTemplate choiceTemplate in choiceTemplates)
-                {
-                    choiceTemplate.ChoiceSlotToRemove = choiceSlot;
-                }
-
-                choices.AddRange(choiceTemplates);
-
-                if (choiceSlot.ChoiceSlotPersistence == ChoiceSlotPersistence.Fleeting)
-                {
-                    encounter.BaseSlots.Remove(choiceSlot);
-                }
-            }
-        }
-        if (encounter.ModifiedSlots.Count != 0)
-        {
-            for (int i = encounter.ModifiedSlots.Count - 1; i >= 0; i--)
-            {
-                EncounterChoiceSlot choiceSlot = encounter.ModifiedSlots[i];
-                if (!choiceSlot.MeetsEncounterStateConditions(currentValues)) continue;
-                List<EncounterChoiceTemplate> choiceTemplates = choiceSlot.GetChoiceTemplates();
-                foreach (EncounterChoiceTemplate choiceTemplate in choiceTemplates)
-                {
-                    choiceTemplate.ChoiceSlotToRemove = choiceSlot;
-                }
-                choices.AddRange(choiceTemplates);
-
-                if (choiceSlot.ChoiceSlotPersistence == ChoiceSlotPersistence.Fleeting)
-                {
-                    encounter.ModifiedSlots.Remove(choiceSlot);
-                }
-            }
-        }
-
         return choices;
     }
 

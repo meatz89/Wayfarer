@@ -5,7 +5,6 @@
     private readonly NarrativeSystem narrativeSystem;
     private readonly ChoiceExecutor choiceExecutor;
 
-    private readonly List<EncounterChoiceSlot> encounterChoiceSlots;
     public EncounterSystem(
         GameState gameState,
         ChoiceSystem choiceSystem,
@@ -17,7 +16,6 @@
         this.choiceSystem = choiceSystem;
         this.narrativeSystem = narrativeSystem;
         this.choiceExecutor = new ChoiceExecutor(gameState);
-        this.encounterChoiceSlots = contentProvider.GetChoiceSetTemplates();
     }
 
     public EncounterResult ExecuteChoice(Encounter encounter, EncounterChoice choice, LocationSpot locationSpot)
@@ -102,25 +100,10 @@
         // Create encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
 
-        List<EncounterChoiceSlot> baseSlots = GetEncounterBaseSlots(context);
-        Encounter encounter = new Encounter(context, situation, baseSlots);
+        Encounter encounter = new Encounter(context, situation);
         EncounterStage initialStage = GenerateStage(encounter, context);
         encounter.AddStage(initialStage);
         return encounter;
-    }
-
-    private List<EncounterChoiceSlot> GetEncounterBaseSlots(EncounterContext context)
-    {
-        List<EncounterChoiceSlot> baseSlots = new List<EncounterChoiceSlot>();
-
-        foreach (EncounterChoiceSlot choiceSlot in encounterChoiceSlots)
-        {
-            if (choiceSlot.IsValidFor(context))
-            {
-                baseSlots.Add(choiceSlot);
-            }
-        }
-        return baseSlots;
     }
 
     private EncounterStage GenerateStage(Encounter encounter, EncounterContext context)

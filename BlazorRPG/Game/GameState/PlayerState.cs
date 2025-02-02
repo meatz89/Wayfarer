@@ -19,7 +19,7 @@
     public Dictionary<SkillTypes, int> Skills { get; set; } = new();
     public Inventory Inventory { get; set; }
     public Equipment Equipment { get; set; }
-    public List<Knowledge> Knowledge { get; set; } = new();
+    public List<KnowledgePiece> Knowledge { get; set; } = new();
     public Encounter CurrentEncounter { get; set; }
     public LocationNames StartingLocation { get; set; }
     public List<LocationNames> KnownLocations { get; set; } = new();
@@ -36,8 +36,6 @@
         Skills.Add(SkillTypes.Strength, 5);
         Skills.Add(SkillTypes.Perception, 5);
         Skills.Add(SkillTypes.Charisma, 8);
-
-        Knowledge.Add(new Knowledge(KnowledgeTypes.Secret));
 
         Coins = GameRules.StandardRuleset.StartingCoins;
 
@@ -164,15 +162,6 @@
         return false;
     }
 
-    public void ModifyKnowledge(KnowledgeTypes knowledgeType, int count)
-    {
-        // Add the knowledge to the player's knowledge list
-        for (int i = 0; i < count; i++)
-        {
-            Knowledge.Add(new Knowledge(knowledgeType));
-        }
-    }
-
     public bool CanPayEnergy(EnergyTypes energyType, int amount)
     {
         switch (energyType)
@@ -181,12 +170,6 @@
             case EnergyTypes.Concentration: return Concentration >= amount;
         };
         return false;
-    }
-
-
-    public bool HasKnowledge(KnowledgeTypes knowledgeType)
-    {
-        return Knowledge.Any(k => k.KnowledgeType == knowledgeType);
     }
 
     public int GetSkillLevel(SkillTypes primarySkillType)
@@ -243,5 +226,10 @@
     {
         if (LocationActionAvailability.Contains((locationName, actionType))) return;
         LocationActionAvailability.Add((locationName, actionType));
+    }
+
+    internal bool HasKnowledge(KnowledgeTags value, int requiredKnowledgeLevel)
+    {
+        return true;
     }
 }

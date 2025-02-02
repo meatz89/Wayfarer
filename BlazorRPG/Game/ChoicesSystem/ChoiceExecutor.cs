@@ -54,16 +54,6 @@
         {
             reward.Apply(gameState.Player);
         }
-
-        if (choice.ChoiceSlotToRemove != null)
-        {
-            encounter.BaseSlots.Remove(choice.ChoiceSlotToRemove);
-            encounter.ModifiedSlots.Remove(choice.ChoiceSlotToRemove);
-        }
-        foreach (EncounterChoiceSlot choiceSlotModification in choice.ChoiceSlotModifications)
-        {
-            encounter.ModifiedSlots.Add(choiceSlotModification);
-        }
     }
 
     private bool AreRequirementsMet(List<Requirement> requirements)

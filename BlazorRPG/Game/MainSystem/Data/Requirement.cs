@@ -266,16 +266,20 @@ public class InventorySlotsRequirement : Requirement
 
 public class KnowledgeRequirement : Requirement
 {
-    public KnowledgeTypes KnowledgeType { get; }
+    private KnowledgeTags value;
+    private int requiredKnowledgeLevel;
 
-    public KnowledgeRequirement(KnowledgeTypes knowledgeType)
+    public KnowledgeTags KnowledgeType { get; }
+
+    public KnowledgeRequirement(KnowledgeTags value, int requiredKnowledgeLevel)
     {
-        KnowledgeType = knowledgeType;
+        this.value = value;
+        this.requiredKnowledgeLevel = requiredKnowledgeLevel;
     }
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.Player.HasKnowledge(KnowledgeType);
+        return gameState.Player.HasKnowledge(value, requiredKnowledgeLevel);
     }
 
     public override string GetDescription()

@@ -3,18 +3,15 @@
     public string EncounterGoal { get; }
     public string Situation { get; }
     public EncounterContext Context { get; }
-    public List<EncounterChoiceSlot> BaseSlots { get; set; } = new();
-    public List<EncounterChoiceSlot> ModifiedSlots { get; set; } = new();
 
     private List<EncounterStage> stages = new();
     public int CurrentStageIndex { get; private set; }
 
-    public Encounter(EncounterContext context, string goal, List<EncounterChoiceSlot> baseSlots)
+    public Encounter(EncounterContext context, string goal)
     {
         Context = context;
         EncounterGoal = goal;
         CurrentStageIndex = 0;
-        BaseSlots = baseSlots;
     }
 
     public void AddStage(EncounterStage stage)

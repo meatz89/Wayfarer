@@ -36,7 +36,7 @@
             InventorySlotsRequirement => RequirementTypes.InventorySlots,
             KnowledgeRequirement knowledgeReq => knowledgeReq.KnowledgeType switch
             {
-                KnowledgeTypes.LocalHistory => RequirementTypes.LocalHistory,
+                KnowledgeTags.MarketRoutines => RequirementTypes.LocalHistory,
                 _ => RequirementTypes.Other
             },
             SkillLevelRequirement skillLevelReq => skillLevelReq.SkillType switch

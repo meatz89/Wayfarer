@@ -68,22 +68,18 @@ public class ItemOutcome : Outcome
 
 public class KnowledgeOutcome : Outcome
 {
-    public KnowledgeTypes KnowledgeType { get; set; }
-    public int Amount { get; set; }
+    private readonly KnowledgeTags knowledgeTag;
+    private readonly KnowledgeCategories knowledgeCategory;
 
-    public KnowledgeOutcome(KnowledgeTypes knowledgeType, int amount)
+    public KnowledgeOutcome(KnowledgeTags value, KnowledgeCategories knowledgeCategory)
     {
-        KnowledgeType = knowledgeType;
-        Amount = amount;
+        this.knowledgeTag = value;
+        this.knowledgeCategory = knowledgeCategory;
     }
 
     public override void Apply(PlayerState player)
     {
-        // Add the knowledge to the player's knowledge list
-        for (int i = 0; i < Amount; i++)
-        {
-            player.Knowledge.Add(new Knowledge(KnowledgeType));
-        }
+        player.Knowledge.Add(new KnowledgePiece(knowledgeTag, KnowledgeCategories.Commerce));
     }
 
     public override string GetDescription()

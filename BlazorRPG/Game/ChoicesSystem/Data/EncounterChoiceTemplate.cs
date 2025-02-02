@@ -7,9 +7,7 @@
     public List<Requirement> Requirements { get; } = new();
     public List<Outcome> Costs { get; } = new();
     public List<Outcome> Rewards { get; } = new();
-    public List<EncounterChoiceSlot> ChoiceSlotModifications { get; } = new();
     public EncounterResults? EncounterResults { get; set; }
-    public EncounterChoiceSlot ChoiceSlotToRemove { get; internal set; }
 
     public EncounterChoiceTemplate(
         string name,
@@ -19,8 +17,7 @@
         List<Requirement> requirements,
         List<Outcome> costs,
         List<Outcome> rewards,
-        EncounterResults? encounterResult,
-        List<EncounterChoiceSlot> choiceSlotModifications
+        EncounterResults? encounterResult
         )
     {
         Name = name;
@@ -31,7 +28,6 @@
         Costs = costs;
         Rewards = rewards;
         EncounterResults = encounterResult;
-        ChoiceSlotModifications = choiceSlotModifications;
     }
 }
 

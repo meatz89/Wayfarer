@@ -1,16 +1,18 @@
 ﻿public class GameSetup
 {
+    private const LocationNames StartingLocation = LocationNames.Market;
+
     public static GameState CreateNewGame()
     {
         GameState gameState = new GameState();
         gameState.World.SetCurrentTime(22);
-        gameState.World.ChangeWeather(WeatherTypes.Stormy);
+        gameState.World.ChangeWeather(WeatherTypes.Clear);
 
         GameRules gameRules = GameRules.StandardRuleset;
 
         PlayerState playerInfo = new PlayerState();
-        playerInfo.StartingLocation = LocationNames.WaysideInn;
-        playerInfo.AddLocationKnowledge(LocationNames.WaysideInn);
+        playerInfo.StartingLocation = StartingLocation;
+        playerInfo.AddLocationKnowledge(StartingLocation);
 
         playerInfo.Coins = gameRules.StartingCoins;
 
