@@ -1,6 +1,6 @@
 ﻿public class GameSetup
 {
-    private const LocationNames StartingLocation = LocationNames.Market;
+    private const LocationNames StartingLocation = LocationNames.WaysideInn;
 
     public static GameState CreateNewGame()
     {
@@ -11,8 +11,7 @@
         GameRules gameRules = GameRules.StandardRuleset;
 
         PlayerState playerInfo = new PlayerState();
-        playerInfo.StartingLocation = StartingLocation;
-        playerInfo.AddLocationKnowledge(StartingLocation);
+        playerInfo.SetStartingLocation(StartingLocation);
 
         playerInfo.Coins = gameRules.StartingCoins;
 

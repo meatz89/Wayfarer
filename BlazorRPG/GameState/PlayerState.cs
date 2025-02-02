@@ -21,7 +21,7 @@
     public Equipment Equipment { get; set; }
     public List<KnowledgePiece> Knowledge { get; set; } = new();
     public Encounter CurrentEncounter { get; set; }
-    public LocationNames StartingLocation { get; set; }
+    public LocationNames StartingLocation { get; private set; }
     public List<LocationNames> KnownLocations { get; set; } = new();
     public HashSet<(LocationNames, BasicActionTypes)> LocationActionAvailability { get; set; } = new();
 
@@ -228,8 +228,14 @@
         LocationActionAvailability.Add((locationName, actionType));
     }
 
-    internal bool HasKnowledge(KnowledgeTags value, int requiredKnowledgeLevel)
+    public bool HasKnowledge(KnowledgeTags value, int requiredKnowledgeLevel)
     {
         return true;
+    }
+
+    public void SetStartingLocation(LocationNames startingLocation)
+    {
+        StartingLocation = startingLocation;
+        AddLocationKnowledge(StartingLocation);
     }
 }
