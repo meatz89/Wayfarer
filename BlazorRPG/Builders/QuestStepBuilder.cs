@@ -13,15 +13,6 @@
         return this;
     }
 
-    public QuestStepBuilder WithAction(Action<ActionBuilder> buildAction)
-    {
-        ActionBuilder builder = new ActionBuilder();
-        buildAction(builder);
-        this.action = builder.Build();
-
-        return this;
-    }
-
     public QuestStepBuilder WithLocation(LocationNames location)
     {
         this.location = location;

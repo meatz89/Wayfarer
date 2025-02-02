@@ -26,32 +26,26 @@ public partial class NarrativeViewBase : ComponentBase
 
     public List<Outcome> GetActionOutcomesSuccess()
     {
-
         EncounterContext context = Result.encounter.Context;
         ActionImplementation actionImplementation = context.ActionImplementation;
-        List<OutcomeCondition> outcomeConditions = actionImplementation.OutcomeConditions;
-        if (outcomeConditions != null && outcomeConditions.Count > 0)
-        {
-            OutcomeCondition? outcome = outcomeConditions.FirstOrDefault(oc => oc.EncounterResults == EncounterResults.EncounterSuccess);
-            List<Outcome> outcomes = outcome.Outcomes;
-            return outcomes;
-        }
-        return new();
 
+        List<Outcome> outcomes = new List<Outcome>();
+        outcomes.AddRange(actionImplementation.Costs.ToList());
+        outcomes.AddRange(actionImplementation.Rewards.ToList());
+
+        return outcomes;
     }
 
     public List<Outcome> GetActionOutcomesFailure()
     {
         EncounterContext context = Result.encounter.Context;
         ActionImplementation actionImplementation = context.ActionImplementation;
-        List<OutcomeCondition> outcomeConditions = actionImplementation.OutcomeConditions;
-        if (outcomeConditions != null && outcomeConditions.Count > 0)
-        {
-            OutcomeCondition? outcome = outcomeConditions.FirstOrDefault(oc => oc.EncounterResults == EncounterResults.EncounterFailure);
-            List<Outcome> outcomes = outcome.Outcomes;
-            return outcomes;
-        }
-        return new();
+
+        List<Outcome> outcomes = new List<Outcome>();
+        outcomes.AddRange(actionImplementation.Costs.ToList());
+        outcomes.AddRange(actionImplementation.Rewards.ToList());
+
+        return outcomes;
     }
 
     public List<Outcome> GetEnergyCosts()

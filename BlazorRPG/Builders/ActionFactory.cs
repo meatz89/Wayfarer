@@ -2,48 +2,25 @@
 {
     public static ActionImplementation CreateAction(ActionTemplate template, Location location)
     {
-        ActionBuilder builder = new ActionBuilder()
-            .ForAction(template.ActionType)
-            .StartsEncounter(template.IsEncounterAction)
-            .WithName(template.Name)
-            .WithDescription(template.Description);
-
-        // Add energy costs
-        int energyCost = GameRules.GetBaseEnergyCost(template.ActionType);
-
-        EnergyTypes energyType = GameRules.GetEnergyTypeForAction(template.ActionType);
-        if (energyType != EnergyTypes.None && energyCost != 0)
+        ActionImplementation actionImplementation = new ActionImplementation()
         {
-            builder.ExpendsEnergy(energyCost, energyType);
-        }
-
-        // Add success/failure conditions
-        OutcomeCondition failureCondition = new OutcomeCondition
-        {
-            EncounterResults = EncounterResults.EncounterFailure,
-            ValueType = ValueTypes.Outcome,
-            MaxValue = 0,
-            MinValue = int.MinValue,
-            Outcomes = GameRules.CreateCostsForAction(template)
+            ActionType = template.ActionType,
+            IsEncounterAction = template.IsEncounterAction,
+            Name = template.Name,
+            Description = template.Description
         };
-
-        OutcomeCondition successCondition = new OutcomeCondition
-        {
-            EncounterResults = EncounterResults.EncounterSuccess,
-            ValueType = ValueTypes.Outcome,
-            MinValue = 10 + location.Difficulty,
-            MaxValue = int.MaxValue,
-            Outcomes = GameRules.CreateRewardsForTemplate(template)
-        };
-
-        ActionImplementation actionImplementation = builder.Build();
-        actionImplementation.OutcomeConditions.Add(failureCondition);
-        actionImplementation.OutcomeConditions.Add(successCondition);
 
         actionImplementation.Requirements = template.Requirements;
         actionImplementation.EnergyCosts = template.Energy;
         actionImplementation.Costs = template.Costs;
         actionImplementation.Rewards = template.Rewards;
+
+        // Add energy costs
+        EnergyTypes energyType = GameRules.GetEnergyTypeForAction(template.ActionType);
+        int energyCost = GameRules.GetBaseEnergyCost(template.ActionType);
+
+        actionImplementation.Requirements.Add(new EnergyRequirement(energyType, energyCost));
+        actionImplementation.EnergyCosts.Add(new EnergyOutcome(energyType, -energyCost));
 
         return actionImplementation;
     }

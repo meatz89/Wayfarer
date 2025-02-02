@@ -10,7 +10,6 @@
     public CrowdDensity CrowdDensity { get; set; } = new();
     public OpportunityTypes Opportunity { get; set; } = new();
     public List<LocationPropertyCondition> SpotAvailabilityConditions { get; set; } = new();
-    public List<OutcomeCondition> OutcomeConditions { get; set; }
     public List<Outcome> EnergyCosts { get; set; }
     public List<Outcome> Costs { get; set; }
     public List<Outcome> Rewards { get; set; }
@@ -20,23 +19,4 @@
         return Requirements.All(r => r.IsSatisfied(gameState));
     }
 
-    public List<Outcome> FailureOutcomes
-    {
-        get
-        {
-            List<Outcome> outcomes = OutcomeConditions
-                        .FirstOrDefault(x => x.EncounterResults == EncounterResults.EncounterFailure).Outcomes;
-            return outcomes;
-        }
-    }
-
-    public List<Outcome> SuccessOutcomes
-    {
-        get
-        {
-            List<Outcome> outcomes = OutcomeConditions
-                        .FirstOrDefault(x => x.EncounterResults == EncounterResults.EncounterSuccess).Outcomes;
-            return outcomes;
-        }
-    }
 }

@@ -23,11 +23,10 @@ public class ActionSystem
             Name = originalAction.Name,
             Description = originalAction.Description,
             TimeWindows = new List<TimeWindows>(originalAction.TimeWindows),
-            Requirements = new List<Requirement>(originalAction.Requirements),
-            EnergyCosts = new List<Outcome>(originalAction.EnergyCosts),
-            Costs = new List<Outcome>(originalAction.Costs),
-            Rewards = new List<Outcome>(originalAction.Rewards),
-            OutcomeConditions = originalAction.OutcomeConditions.ToList(),
+            Requirements = new List<Requirement>(originalAction.Requirements.ToList()),
+            EnergyCosts = new List<Outcome>(originalAction.EnergyCosts.ToList()),
+            Costs = new List<Outcome>(originalAction.Costs.ToList()),
+            Rewards = new List<Outcome>(originalAction.Rewards.ToList()),
             LocationArchetype = originalAction.LocationArchetype,
             CrowdDensity = originalAction.CrowdDensity,
             Opportunity = originalAction.Opportunity,
@@ -59,21 +58,6 @@ public class ActionSystem
         }
 
         return modifiers;
-    }
-
-    public bool ShouldApplyCondition(OutcomeCondition condition, EncounterContext context)
-    {
-        int currentValue = condition.ValueType switch
-        {
-            ValueTypes.Momentum => context.CurrentValues.Momentum,
-            ValueTypes.Insight => context.CurrentValues.Insight,
-            ValueTypes.Resonance => context.CurrentValues.Resonance,
-            ValueTypes.Outcome => context.CurrentValues.Outcome,
-            ValueTypes.Pressure => context.CurrentValues.Pressure,
-            _ => 0
-        };
-
-        return currentValue >= condition.MinValue && currentValue <= condition.MaxValue;
     }
 
     private bool IsModifierApplicable(ActionModifier modifier, ActionImplementation action)

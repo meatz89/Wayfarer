@@ -3,7 +3,6 @@ public class GameManager
 {
     public GameState gameState;
     private GameRules currentRules;
-
     public EncounterSystem EncounterSystem { get; }
     public LocationSystem LocationSystem { get; }
     public ActionValidator ActionValidator { get; }
@@ -72,6 +71,63 @@ public class GameManager
 
         List<UserActionOption> options = GetUserActionOptions(location, locationSpots);
         gameState.Actions.SetLocationSpotActions(options);
+    }
+
+    public Encounter GenerateEncounter(ActionImplementation actionImplementation, Location location, PlayerState playerState, string locationSpotName)
+    {
+        List<LocationPropertyChoiceEffect> effects = LocationSystem.GetLocationEffects(location.LocationName, locationSpotName);
+        LocationSpot? locationSpot = LocationSystem.GetLocationSpotForLocation(location.LocationName, locationSpotName);
+
+        // Create initial context with our new value system
+        int playerLevel = playerState.Level;
+
+        EncounterContext context = new EncounterContext(
+            actionImplementation,
+            location,
+            locationSpot,
+            actionImplementation.ActionType,
+            playerState,
+            effects,
+            playerLevel,
+            gameState
+        );
+
+        UserActionOption action = gameState.Actions.LocationSpotActions.Where(x => x.LocationSpot == locationSpot.Name).First();
+        ActionImplementation actionImpl = action.ActionImplementation;
+
+        return EncounterSystem.GenerateEncounter(context, actionImpl);
+    }
+
+    public void SetEncounterChoices(Encounter encounter)
+    {
+        List<UserEncounterChoiceOption> choiceOptions =
+            EncounterSystem.GetChoices(encounter);
+
+        gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
+    }
+
+    public ActionResult ExecuteBasicAction(UserActionOption action)
+    {
+        ActionImplementation actionImplementation = action.ActionImplementation;
+        if (!ActionSystem.CanExecuteInContext(actionImplementation))
+            return ActionResult.Failure("Current context prevents this action");
+
+        Location location = LocationSystem.GetLocation(action.Location);
+        gameState.Actions.SetCurrentUserAction(action);
+
+        bool startEncounter = actionImplementation.IsEncounterAction;
+        if (startEncounter)
+        {
+            Encounter encounter = GenerateEncounter(actionImplementation, location, gameState.Player, action.LocationSpot);
+            EncounterSystem.SetActiveEncounter(encounter);
+            SetEncounterChoices(encounter);
+        }
+        else
+        {
+            ApplyActionOutcomes(actionImplementation);
+        }
+
+        return ActionResult.Success("Encounter started!", new ActionResultMessages());
     }
 
     private static List<UserActionOption> GetUserActionOptions(Location location, List<LocationSpot> locationSpots)
@@ -158,9 +214,43 @@ public class GameManager
 
     public void FinishEncounter(Encounter encounter)
     {
-        ApplyActionOutcomes(encounter.Context);
+        ActionImplementation actionImplementation = encounter.Context.ActionImplementation;
+        ApplyActionOutcomes(actionImplementation);
         gameState.Actions.CompleteActiveEncounter();
     }
+
+    private void ProceedEncounter(Encounter encounter)
+    {
+        encounter.AdvanceStage();
+        SetEncounterChoices(encounter);
+    }
+
+    public ActionResult TravelToLocation(LocationNames locationName)
+    {
+        if (gameState.World.CurrentLocation == null ||
+            gameState.World.CurrentLocation.LocationName != locationName)
+        {
+            string narrative = GetLocationNarrative(locationName);
+            JournalSystem.WriteJourneyEntry(narrative);
+        }
+
+        Location location = LocationSystem.GetLocation(locationName);
+        gameState.World.SetNewLocation(location);
+        UpdateState();
+
+        ActionResult actionResult = ActionResult.Success($"Moved to {locationName}.", new ActionResultMessages());
+        OnPlayerEnterLocation(gameState.World.CurrentLocation);
+
+        return actionResult;
+    }
+
+    public void MoveToLocationSpot(LocationNames location, string locationSpotName)
+    {
+        LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(location, locationSpotName);
+        gameState.World.SetNewLocationSpot(locationSpot);
+        UpdateState();
+    }
+
 
     private bool IsGameOver(PlayerState player)
     {
@@ -172,10 +262,18 @@ public class GameManager
         return isGameOver;
     }
 
-    private void ProceedEncounter(Encounter encounter)
+    public List<LocationPropertyChoiceEffect> GetLocationEffects(Encounter encounter, EncounterChoice choice)
     {
-        encounter.AdvanceStage();
-        SetEncounterChoices(encounter);
+        LocationNames locationName = encounter.Context.Location.LocationName;
+        string locationSpot = encounter.Context.LocationSpot.Name;
+
+        return LocationSystem.GetLocationEffects(locationName, locationSpot);
+    }
+
+    public List<LocationPropertyChoiceEffect> GetLocationEffects(EncounterChoice choice, string locationSpotName)
+    {
+        Location location = gameState.World.CurrentLocation;
+        return LocationSystem.GetLocationEffects(location.LocationName, locationSpotName);
     }
 
     public void CreateGlobalActions()
@@ -215,128 +313,26 @@ public class GameManager
         gameState.Actions.AddQuestActions(userActions);
     }
 
-    private void UpdateActiveQuests()
+    public void ApplyActionOutcomes(ActionImplementation action)
     {
-        List<Quest> quests = QuestSystem.GetAvailableQuests();
-        gameState.Actions.ActiveQuests = quests;
-    }
-
-    public Encounter GenerateEncounter(ActionImplementation actionImplementation, Location location, PlayerState playerState, string locationSpotName)
-    {
-        List<LocationPropertyChoiceEffect> effects = LocationSystem.GetLocationEffects(location.LocationName, locationSpotName);
-        LocationSpot? locationSpot = LocationSystem.GetLocationSpotForLocation(location.LocationName, locationSpotName);
-
-        // Create initial context with our new value system
-        int playerLevel = playerState.Level;
-
-        EncounterContext context = new EncounterContext(
-            actionImplementation,
-            location,
-            locationSpot,
-            actionImplementation.ActionType,
-            playerState,
-            effects,
-            playerLevel,
-            gameState
-        );
-
-        UserActionOption action = gameState.Actions.LocationSpotActions.Where(x => x.LocationSpot == locationSpot.Name).First();
-        ActionImplementation actionImpl = action.ActionImplementation;
-
-        return EncounterSystem.GenerateEncounter(context, actionImpl);
-    }
-
-
-    public List<LocationPropertyChoiceEffect> GetLocationEffects(Encounter encounter, EncounterChoice choice)
-    {
-        LocationNames locationName = encounter.Context.Location.LocationName;
-        string locationSpot = encounter.Context.LocationSpot.Name;
-
-        return LocationSystem.GetLocationEffects(locationName, locationSpot);
-    }
-
-    public List<LocationPropertyChoiceEffect> GetLocationEffects(EncounterChoice choice, string locationSpotName)
-    {
-        Location location = gameState.World.CurrentLocation;
-        return LocationSystem.GetLocationEffects(location.LocationName, locationSpotName);
-    }
-
-    public void SetEncounterChoices(Encounter encounter)
-    {
-        List<UserEncounterChoiceOption> choiceOptions =
-            EncounterSystem.GetChoices(encounter);
-
-        gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
-    }
-
-    public ActionResult ExecuteBasicAction(UserActionOption action)
-    {
-        if (!ActionSystem.CanExecuteInContext(action.ActionImplementation))
-            return ActionResult.Failure("Current context prevents this action");
-
-        Location location = LocationSystem.GetLocation(action.Location);
-        gameState.Actions.SetCurrentUserAction(action);
-
-        Encounter encounter = GenerateEncounter(action.ActionImplementation, location, gameState.Player, action.LocationSpot);
-        EncounterSystem.SetActiveEncounter(encounter);
-        SetEncounterChoices(encounter);
-
-        return ActionResult.Success("Encounter started!", new ActionResultMessages());
-    }
-
-    public void ApplyActionOutcomes(EncounterContext context)
-    {
-        ActionImplementation action = context.ActionImplementation;
         foreach (Outcome energyCost in action.EnergyCosts)
         {
             energyCost.Apply(gameState.Player);
             MessageSystem.AddOutcome(energyCost);
         }
 
-        foreach (OutcomeCondition condition in action.OutcomeConditions)
+        foreach (Outcome cost in action.Costs)
         {
-            bool hasMinValue = condition.MinValue != int.MinValue;
-            bool hasMaxValue = condition.MaxValue != int.MaxValue;
-
-            if ((!hasMinValue && !hasMaxValue) ||
-                (hasMinValue && context.CurrentValues.Outcome >= condition.MinValue) ||
-                (hasMaxValue && context.CurrentValues.Outcome <= condition.MaxValue))
-            {
-                foreach (Outcome outcome in condition.Outcomes)
-                {
-                    outcome.Apply(gameState.Player);
-                    MessageSystem.AddOutcome(outcome);
-                }
-            }
-        }
-    }
-
-    public ActionResult TravelToLocation(LocationNames locationName)
-    {
-        if (gameState.World.CurrentLocation == null ||
-            gameState.World.CurrentLocation.LocationName != locationName)
-        {
-            string narrative = GetLocationNarrative(locationName);
-            JournalSystem.WriteJourneyEntry(narrative);
+            cost.Apply(gameState.Player);
+            MessageSystem.AddOutcome(cost);
         }
 
-        Location location = LocationSystem.GetLocation(locationName);
-        gameState.World.SetNewLocation(location);
-        UpdateState();
-
-        ActionResult actionResult = ActionResult.Success($"Moved to {locationName}.", new ActionResultMessages());
-        OnPlayerEnterLocation(gameState.World.CurrentLocation);
-
-        return actionResult;
+        foreach (Outcome reward in action.Rewards)
+        {
+            reward.Apply(gameState.Player);
+            MessageSystem.AddOutcome(reward);
+        }
     }
-
-    public void MoveToLocationSpot(LocationNames location, string locationSpotName)
-    {
-        LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(location, locationSpotName);
-        gameState.World.SetNewLocationSpot(locationSpot);
-        UpdateState();
-    }
-
 
     public List<Location> GetPlayerKnownLocations()
     {
@@ -540,4 +536,11 @@ public class GameManager
 
         locationSpot.AddAction(modifiedAction);
     }
+
+    private void UpdateActiveQuests()
+    {
+        List<Quest> quests = QuestSystem.GetAvailableQuests();
+        gameState.Actions.ActiveQuests = quests;
+    }
+
 }

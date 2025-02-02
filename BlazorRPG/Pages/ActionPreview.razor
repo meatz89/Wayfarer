@@ -49,29 +49,39 @@
         </div>
     }
 
-    @foreach (OutcomeCondition condition in GetOutcomeConditions())
+    @if (GetCosts().Count > 0)
     {
         <div class="tooltip-section">
-            <div class="tooltip-item-header">
-                <div class="tooltip-item-title">
-                    @GetValueTypeIcon(ConvertValueTypeToChangeType(condition.ValueType))
-                    <span class="tooltip-item-name">
-                        @GetConditionDescription(condition)
-                    </span>
-                </div>
-            </div>
+            <h5>Costs</h5>
             <div class="tooltip-list">
-                @foreach (Outcome outcome in condition.Outcomes)
+                @foreach (Outcome cost in GetCosts())
                 {
                     <div class="tooltip-item">
                         <div class="tooltip-item-header">
                             <div class="tooltip-item-title">
-                                @GetOutcomeIcon(outcome)
-                                <span class="tooltip-item-name">@outcome.GetDescription()</span>
+                                @GetOutcomeIcon(cost)
+                                <span class="tooltip-item-name">@cost.GetDescription()</span>
                             </div>
-                            <span class="tooltip-item-value @(condition.MinValue > 0 ? "positive-change" : "negative-change")">
-                                @outcome.GetPreview(GameState.Player)
-                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @if (GetRewards().Count > 0)
+    {
+        <div class="tooltip-section">
+            <h5>Rewards</h5>
+            <div class="tooltip-list">
+                @foreach (Outcome reward in GetRewards())
+                {
+                    <div class="tooltip-item">
+                        <div class="tooltip-item-header">
+                            <div class="tooltip-item-title">
+                                @GetOutcomeIcon(reward)
+                                <span class="tooltip-item-name">@reward.GetDescription()</span>
+                            </div>
                         </div>
                     </div>
                 }

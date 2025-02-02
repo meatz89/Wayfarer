@@ -23,19 +23,16 @@ public partial class ActionPreviewBase : ComponentBase
         return name;
     }
 
-    public List<OutcomeCondition> GetOutcomeConditions()
+    public List<Outcome> GetCosts()
     {
-        return CurrentAction.ActionImplementation.OutcomeConditions;
+        return CurrentAction.ActionImplementation.Costs;
     }
 
-    public string GetConditionDescription(OutcomeCondition condition)
+    public List<Outcome> GetRewards()
     {
-        if (condition.MaxValue == int.MaxValue)
-            return $"{condition.ValueType} ≥ {condition.MinValue}";
-        else if (condition.MinValue == int.MinValue)
-            return $"{condition.ValueType} ≤ {condition.MaxValue}";
-        return $"{condition.MinValue} ≤ {condition.ValueType} ≤ {condition.MaxValue}";
+        return CurrentAction.ActionImplementation.Rewards;
     }
+
 
     public ChangeTypes ConvertValueTypeToChangeType(ValueTypes valueType) =>
     (ChangeTypes)Enum.Parse(typeof(ChangeTypes), valueType.ToString());
@@ -91,28 +88,6 @@ public partial class ActionPreviewBase : ComponentBase
     {
         // Add icons for each requirement type like in EncounterChoiceTooltip
         return new MarkupString("");
-    }
-
-    public List<string> GetOutcomeRewardsDescriptions()
-    {
-        List<string> descriptions = new();
-        ActionImplementation basicAction = CurrentAction.ActionImplementation;
-        foreach (Outcome outcome in basicAction.SuccessOutcomes)
-        {
-            string description = outcome.GetDescription();
-            string preview = outcome.GetPreview(GameState.Player);
-
-            // Special handling for DayChangeOutcome to make it stand out
-            if (outcome is DayChangeOutcome)
-            {
-                descriptions.Add($"<strong>{description}</strong> {preview}");
-            }
-            else
-            {
-                descriptions.Add($"{description} {preview}");
-            }
-        }
-        return descriptions;
     }
 
     public async Task HandleConfirm()
