@@ -15,6 +15,14 @@ public partial class ActionPreviewBase : ComponentBase
         return name;
     }
 
+    public string GetActionDescription()
+    {
+        ActionImplementation action = CurrentAction.ActionImplementation;
+
+        string name = $"{action.Description}";
+        return name;
+    }
+
     public List<OutcomeCondition> GetOutcomeConditions()
     {
         return CurrentAction.ActionImplementation.OutcomeConditions;

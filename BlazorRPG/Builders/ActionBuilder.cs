@@ -2,8 +2,9 @@
 public class ActionBuilder
 {
     private BasicActionTypes actionType;
-    private string description;
     private List<TimeWindows> timeWindows = new();
+    private string name;
+    private string description;
 
     public List<Requirement> requirements = new();
     public List<Outcome> energyCosts = new();
@@ -21,6 +22,12 @@ public class ActionBuilder
     public ActionBuilder StartsEncounter(bool isEncounterAction)
     {
         this.startsEncounter = isEncounterAction;
+        return this;
+    }
+
+    public ActionBuilder WithName(string name)
+    {
+        this.name = name;
         return this;
     }
 
@@ -152,7 +159,7 @@ public class ActionBuilder
         {
             ActionType = actionType,
             IsEncounterAction = startsEncounter,
-            Name = description,
+            Name = name,
             Description = description,
             TimeWindows = timeWindows,
             Requirements = requirements,

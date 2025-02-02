@@ -1,5 +1,6 @@
 ﻿public static class ActionContent
 {
+
     public static List<ActionTemplate> UnlockableActionTemplates()
     {
         List<ActionTemplate> actionTemplates = new List<ActionTemplate>();
@@ -47,6 +48,8 @@
             .WithOpportunity(OpportunityTypes.Commercial)
             .WithAccessibility(Accessibility.Public)
             .WithEngagement(Engagement.Service)
+            .ExpendsCoins(5)
+            .UnlocksLocation(LocationNames.WaysideInn, LocationSpotTypes.Rest)
             .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
@@ -58,6 +61,8 @@
             .WithAccessibility(Accessibility.Public)
             .WithEngagement(Engagement.Service)
             .StartsEncounter()
+            .ExpendsCoins(5)
+            .UnlocksLocation(LocationNames.WaysideInn, LocationSpotTypes.Rest)
             .Build());
 
         return actionTemplates;

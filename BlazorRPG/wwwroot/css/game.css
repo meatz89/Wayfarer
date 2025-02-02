@@ -179,6 +179,10 @@ body {
     font-size: 0.9em;
 }
 
+.secondary-text {
+    color: var(--text-secondary);
+}
+
 .location-type {
     color: var(--text-secondary);
 }

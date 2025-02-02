@@ -229,6 +229,11 @@
         return this;
     }
 
+    public ActionTemplateBuilder UnlocksLocation(LocationNames location, LocationSpotTypes locationSpotType)
+    {
+        return this;
+    }
+
     public ActionTemplate Build()
     {
         // Add validation to ensure required properties are set
@@ -238,6 +243,7 @@
         }
         return new ActionTemplate(
             name,
+            description,
             actionType,
             IsEncounterAction,
             locationPropertyCondition,
@@ -250,5 +256,4 @@
             rewards
         );
     }
-
 }

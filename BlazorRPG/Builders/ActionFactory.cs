@@ -5,7 +5,8 @@
         ActionBuilder builder = new ActionBuilder()
             .ForAction(template.ActionType)
             .StartsEncounter(template.IsEncounterAction)
-            .WithDescription(template.Name);
+            .WithName(template.Name)
+            .WithDescription(template.Description);
 
         // Add energy costs
         int energyCost = GameRules.GetBaseEnergyCost(template.ActionType);
