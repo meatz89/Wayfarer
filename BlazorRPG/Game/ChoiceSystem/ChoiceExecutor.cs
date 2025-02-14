@@ -14,10 +14,6 @@
             return;
 
         // Apply high pressure complications if needed
-        if (gameState.Actions.CurrentEncounter.Context.CurrentValues.Pressure >= 7)
-        {
-            //ApplyComplications(choice);
-        }
 
         // Apply costs
         foreach (Outcome cost in result.Costs)
@@ -31,20 +27,7 @@
         {
             switch (kvp.Key)
             {
-                case ChangeTypes.Outcome:
-                    gameState.Actions.CurrentEncounter.ModifyValue(ValueTypes.Outcome, kvp.Value);
-                    break;
                 case ChangeTypes.Momentum:
-                    gameState.Actions.CurrentEncounter.ModifyValue(ValueTypes.Momentum, kvp.Value);
-                    break;
-                case ChangeTypes.Insight:
-                    gameState.Actions.CurrentEncounter.ModifyValue(ValueTypes.Insight, kvp.Value);
-                    break;
-                case ChangeTypes.Resonance:
-                    gameState.Actions.CurrentEncounter.ModifyValue(ValueTypes.Resonance, kvp.Value);
-                    break;
-                case ChangeTypes.Pressure:
-                    gameState.Actions.CurrentEncounter.ModifyValue(ValueTypes.Pressure, kvp.Value);
                     break;
             }
         }

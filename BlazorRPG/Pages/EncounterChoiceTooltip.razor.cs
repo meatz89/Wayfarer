@@ -64,9 +64,9 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         // Add modifications
         foreach (ValueModification change in calculationResult.ValueModifications)
         {
-            if (change is EncounterValueModification evm)
+            if (change is MomentumModification evm)
             {
-                AddDetailedChange(detailedChanges, ConvertValueTypeToChangeType(evm.ValueType), change.Source, change.Amount);
+                AddDetailedChange(detailedChanges, GetMomentumChangeType(), change.Source, change.Amount);
             }
             else if (change is EnergyCostReduction em)
             {
@@ -86,10 +86,6 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         List<ChangeTypes> order = new List<ChangeTypes>()
         {
             ChangeTypes.Momentum,
-            ChangeTypes.Insight,
-            ChangeTypes.Resonance,
-            ChangeTypes.Outcome,
-            ChangeTypes.Pressure,
             ChangeTypes.PhysicalEnergy,
             ChangeTypes.Concentration,
             ChangeTypes.Reputation
@@ -108,11 +104,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     {
         return valueType switch
         {
-            ChangeTypes.Outcome => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
-            ChangeTypes.Momentum => new MarkupString("<i class='value-icon momentum-icon'>⚡</i>"),
-            ChangeTypes.Insight => new MarkupString("<i class='value-icon insight-icon'>💡</i>"),
-            ChangeTypes.Resonance => new MarkupString("<i class='value-icon resonance-icon'>🤝</i>"),
-            ChangeTypes.Pressure => new MarkupString("<i class='value-icon pressure-icon'>⚠</i>"),
+            ChangeTypes.Momentum => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
             ChangeTypes.PhysicalEnergy => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
             ChangeTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
             ChangeTypes.Reputation => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
@@ -148,17 +140,9 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     }
 
 
-    public ChangeTypes ConvertValueTypeToChangeType(ValueTypes valueType)
+    public ChangeTypes GetMomentumChangeType()
     {
-        return valueType switch
-        {
-            ValueTypes.Outcome => ChangeTypes.Outcome,
-            ValueTypes.Momentum => ChangeTypes.Momentum,
-            ValueTypes.Insight => ChangeTypes.Insight,
-            ValueTypes.Resonance => ChangeTypes.Resonance,
-            ValueTypes.Pressure => ChangeTypes.Pressure,
-            _ => throw new ArgumentException("Invalid ValueType")
-        };
+        return ChangeTypes.Momentum;
     }
 
     public ChangeTypes ConvertEnergyTypeToChangeType(EnergyTypes energyType)

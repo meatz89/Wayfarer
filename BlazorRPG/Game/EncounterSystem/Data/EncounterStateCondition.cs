@@ -1,57 +1,25 @@
 ﻿public class EncounterStateCondition
 {
-    private Dictionary<ValueTypes, int> MinValues { get; }
-    private Dictionary<ValueTypes, int> MaxValues { get; }
+    public int? MaxValue;
+    public int? MinValue;
 
-    public EncounterStateCondition(Dictionary<ValueTypes, int> minValues, Dictionary<ValueTypes, int> maxValues)
+    public bool IsMet(EncounterStageState state)
     {
-        MinValues = minValues;
-        MaxValues = maxValues;
-    }
-
-    public bool IsMet(EncounterValues state)
-    {
-        foreach ((ValueTypes valueType, int minValue) in MinValues)
-        {
-            int currentValue = GetValueFromState(state, valueType);
-            if (currentValue <= minValue) return false;
-        }
-
-        foreach ((ValueTypes valueType, int maxValue) in MaxValues)
-        {
-            int currentValue = GetValueFromState(state, valueType);
-            if (currentValue >= maxValue) return false;
-        }
-
+        if ((MaxValue.HasValue && state.Momentum > MaxValue) || (MinValue.HasValue &&  state.Momentum < MinValue)) return false;
         return true;
-    }
-
-    private int GetValueFromState(EncounterValues state, ValueTypes type)
-    {
-        return type switch
-        {
-            ValueTypes.Momentum => state.Momentum,
-            ValueTypes.Insight => state.Insight,
-            ValueTypes.Resonance => state.Resonance,
-            ValueTypes.Outcome => state.Outcome,
-            ValueTypes.Pressure => state.Pressure,
-            _ => 0
-        };
     }
 
     public override string ToString()
     {
         string explanation = string.Empty;
 
-        foreach (KeyValuePair<ValueTypes, int> minValue in MinValues)
+        if(MinValue.HasValue)
         {
-            if (!string.IsNullOrWhiteSpace(explanation)) explanation += Environment.NewLine;
-            explanation += $">{minValue.Value} {minValue.Key}";
+            explanation += $"Momentum >{MinValue.Value}";
         }
-        foreach (KeyValuePair<ValueTypes, int> maxValue in MaxValues)
+        if(MaxValue.HasValue)
         {
-            if (!string.IsNullOrWhiteSpace(explanation)) explanation += Environment.NewLine;
-            explanation += $"<{maxValue.Value} {maxValue.Key}";
+            explanation += $"Momentum <{MaxValue.Value}";
         }
 
         return explanation;

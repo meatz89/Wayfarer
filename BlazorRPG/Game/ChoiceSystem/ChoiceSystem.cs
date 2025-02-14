@@ -15,18 +15,20 @@
 
     public ChoiceSet GenerateChoices(
         Encounter encounter,
-        EncounterContext context)
+        EncounterContext encounterContext,
+        EncounterStageContext encounterStageContext
+        )
     {
-        ChoiceSetTemplate template = GetChoiceSetTemplate(context);
-        EncounterValues currentValues = context.CurrentValues;
+        ChoiceSetTemplate template = GetChoiceSetTemplate(encounterContext);
+        EncounterStageState currentValues = encounterStageContext.StageValues;
 
-        List<EncounterChoice> choices = choiceSetGenerator.CreateEncounterChoices(encounter, context, template);
-        var choiceSet = CreateChoiceSet(currentValues, context, choices);
+        List<EncounterChoice> choices = choiceSetGenerator.CreateEncounterChoices(encounter, encounterContext, encounterStageContext, template);
+        var choiceSet = CreateChoiceSet(currentValues, encounterContext, choices);
 
         return choiceSet;
     }
 
-    public ChoiceSet CreateChoiceSet(EncounterValues initialValues, EncounterContext context, List<EncounterChoice> choices)
+    public ChoiceSet CreateChoiceSet(EncounterStageState initialValues, EncounterContext context, List<EncounterChoice> choices)
     {
         foreach (EncounterChoice choice in choices)
         {
@@ -35,7 +37,7 @@
 
         foreach (EncounterChoice choice in choices)
         {
-            EncounterValues projection = calculator.GetProjectedEncounterState(choice, initialValues, choice.CalculationResult.ValueModifications);
+            EncounterStageState projection = calculator.GetProjectedEncounterState(choice, initialValues, choice.CalculationResult.ValueModifications);
             choice.CalculationResult.ProjectedEncounterState = projection;
             if (!choice.IsEncounterFailingChoice && IsEncounterWon(context, projection)) choice.IsEncounterWinningChoice = true;
             if (!choice.IsEncounterWinningChoice && IsEncounterLost(context, projection)) choice.IsEncounterFailingChoice = true;
@@ -44,27 +46,21 @@
         return new ChoiceSet(context.ActionType.ToString(), choices);
     }
 
-    private bool IsEncounterWon(EncounterContext context, EncounterValues projection)
+    private bool IsEncounterWon(EncounterContext context, EncounterStageState projection)
     {
         const int WIN_BASE = 10;
         int OUTCOME_WIN = context.Location.Difficulty + WIN_BASE;
 
-        return projection.Outcome >= OUTCOME_WIN;
-    }
-
-    private bool IsEncounterLost(EncounterContext context, EncounterValues projection)
-    {
-        const int LOSE_BASE = 40;
-        int PRESSURE_LOOSE = LOSE_BASE - context.Location.Difficulty;
-
-        PlayerState player = gameState.Player;
-
-        // Immediate loss if outcome is 0
-        if (projection.Outcome <= 0)
+        if(projection.Momentum >= OUTCOME_WIN)
             return true;
 
-        // Immediate loss if pressure maxes out
-        if (projection.Pressure >= PRESSURE_LOOSE)
+        return false;
+    }
+
+    private bool IsEncounterLost(EncounterContext context, EncounterStageState projection)
+    {
+        const int LOSE_BASE = -10;
+        if (projection.Momentum <= LOSE_BASE)
             return true;
 
         return false;

@@ -33,10 +33,6 @@ public partial class ActionPreviewBase : ComponentBase
         return CurrentAction.ActionImplementation.Rewards;
     }
 
-
-    public ChangeTypes ConvertValueTypeToChangeType(ValueTypes valueType) =>
-    (ChangeTypes)Enum.Parse(typeof(ChangeTypes), valueType.ToString());
-
     // Now we work directly with our strongly-typed classes
     public List<string> GetRequirementDescriptions()
     {
@@ -58,11 +54,7 @@ public partial class ActionPreviewBase : ComponentBase
     {
         return valueType switch
         {
-            ChangeTypes.Outcome => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
-            ChangeTypes.Momentum => new MarkupString("<i class='value-icon momentum-icon'>⚡</i>"),
-            ChangeTypes.Insight => new MarkupString("<i class='value-icon insight-icon'>💡</i>"),
-            ChangeTypes.Resonance => new MarkupString("<i class='value-icon resonance-icon'>🤝</i>"),
-            ChangeTypes.Pressure => new MarkupString("<i class='value-icon pressure-icon'>⚠</i>"),
+            ChangeTypes.Momentum => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
             ChangeTypes.PhysicalEnergy => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
             ChangeTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
             ChangeTypes.Reputation => new MarkupString("<i class='value-icon social-icon'>👥</i>"),

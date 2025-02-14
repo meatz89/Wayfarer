@@ -4,6 +4,7 @@
     public string CurrentChoiceSetName { get; set; }
     public string ChoiceSetName { get; set; }
     public List<EncounterChoice> Choices { get; set; }
+    public EncounterStageContext EncounterStageContext { get; }
 
     public EncounterStage()
     {

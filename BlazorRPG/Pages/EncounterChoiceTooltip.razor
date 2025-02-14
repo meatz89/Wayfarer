@@ -51,9 +51,6 @@
                             @GetValueTypeIcon(dc.ChangeType)
                             <span class="tooltip-item-name">@dc.ChangeType</span>
                         </div>
-                        <span class="tooltip-item-value @((dc.ChangeType == ChangeTypes.Pressure) ? (dc.ChangeValues.TotalAmount >= 0 ? "negative-change" : "positive-change") : (dc.ChangeValues.TotalAmount >= 0 ? "positive-change" : "negative-change"))">
-                            @(dc.ChangeValues.TotalAmount >= 0 ? "+" : "")@dc.ChangeValues.TotalAmount
-                        </span>
                     </div>
                     @if (dc.ChangeValues.Sources.Any())
                     {

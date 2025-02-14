@@ -9,12 +9,12 @@
         this.alreadyUsedCombinations = new List<(ChoiceArchetypes, ChoiceApproaches)>();
     }
 
-    public List<EncounterChoice> CreateEncounterChoices(Encounter encounter, EncounterContext context, ChoiceSetTemplate template)
+    public List<EncounterChoice> CreateEncounterChoices(Encounter encounter, EncounterContext context, EncounterStageContext encounterStageContext, ChoiceSetTemplate template)
     {
         alreadyUsedCombinations.Clear();
 
         PlayerState playerState = gameState.Player;
-        EncounterValues initialValues = context.CurrentValues;
+        EncounterStageState initialValues = encounterStageContext.StageValues;
 
         List<EncounterChoice> choices = new List<EncounterChoice>();
 
@@ -23,7 +23,7 @@
     }
 
     private List<EncounterChoice> GenerateBaseChoices(
-        EncounterValues values,
+        EncounterStageState values,
         PlayerState playerState,
         int desiredChoiceCount,
         CompositionPattern pattern)
@@ -67,7 +67,7 @@
     private void GenerateArchetypeChoices(
         ChoiceArchetypes archetype,
         int count,
-        EncounterValues values,
+        EncounterStageState values,
         PlayerState playerState,
         CompositionPattern pattern,
         List<EncounterChoice> choices)
@@ -92,7 +92,7 @@
 
     private EncounterChoice TryGenerateFlexibleChoice(
         CompositionPattern pattern,
-        EncounterValues values,
+        EncounterStageState values,
         PlayerState playerState)
     {
         // Try primary archetype first
@@ -120,7 +120,7 @@
 
     private List<ChoiceApproaches> GetUnusedAvailableApproaches(
         ChoiceArchetypes archetype,
-        EncounterValues values,
+        EncounterStageState values,
         PlayerState playerState,
         CompositionPattern pattern)
     {
@@ -134,7 +134,7 @@
 
     private EncounterChoice TryGenerateChoiceForArchetype(
         ChoiceArchetypes archetype,
-        EncounterValues values,
+        EncounterStageState values,
         PlayerState playerState,
         CompositionPattern pattern)
     {

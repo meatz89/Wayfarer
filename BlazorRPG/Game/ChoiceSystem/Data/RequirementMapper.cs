@@ -4,8 +4,6 @@
     {
         return req switch
         {
-            PressureRequirement => RequirementTypes.MaxPressure,
-            InsightRequirement => RequirementTypes.MinInsight,
             EnergyRequirement energyReq => energyReq.EnergyType switch
             {
                 EnergyTypes.Physical => RequirementTypes.PhysicalEnergy,

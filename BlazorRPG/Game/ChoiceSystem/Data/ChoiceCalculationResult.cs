@@ -1,7 +1,7 @@
 ﻿public class ChoiceCalculationResult
 {
     // The new state after applying all changes
-    public EncounterValues ProjectedEncounterState { get; set; }
+    public EncounterStageState ProjectedEncounterState { get; set; }
 
     // Base values and modifications stored separately for UI/preview
     public List<ValueModification> ValueModifications { get; } = new();
@@ -43,9 +43,9 @@
         foreach (ValueModification modification in ValueModifications)
         {
             ChangeTypes changeType;
-            if (modification is EncounterValueModification evm)
+            if (modification is MomentumModification evm)
             {
-                changeType = GameRules.ConvertValueTypeToChangeType(evm.ValueType);
+                changeType = GameRules.GetMomentumChangeType();
             }
             else if (modification is EnergyCostReduction em)
             {

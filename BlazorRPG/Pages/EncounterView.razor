@@ -12,7 +12,7 @@
                     @GetValueTypeIcon(ChangeTypes.Momentum)
                     <span class="stat-label">Momentum</span>
                     <span class="stat-value">
-                        @GameState.Actions.CurrentEncounter.Context.CurrentValues.Momentum
+                        @GameState.Actions.CurrentEncounter.GetCurrentStage().EncounterStageContext.StageValues.Momentum
                         @if (hoveredChoice != null)
                         {
                             int projectedChange = GetProjectedChange(ChangeTypes.Momentum);
@@ -20,59 +20,7 @@
                             <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ChangeTypes.Momentum)</span>
                         }
                     </span>
-                </div>
-                <div class="stat">
-                    @GetValueTypeIcon(ChangeTypes.Insight)
-                    <span class="stat-label">Insight</span>
-                    <span class="stat-value">
-                        @GameState.Actions.CurrentEncounter.Context.CurrentValues.Insight
-                        @if (hoveredChoice != null)
-                        {
-                            int projectedChange = GetProjectedChange(ChangeTypes.Insight);
-                            string projectedClass = projectedChange > 0 ? "positive" : (projectedChange < 0 ? "negative" : "");
-                            <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ChangeTypes.Insight)</span>
-                        }
-                    </span>
-                </div>
-                <div class="stat">
-                    @GetValueTypeIcon(ChangeTypes.Resonance)
-                    <span class="stat-label">Resonance</span>
-                    <span class="stat-value">
-                        @GameState.Actions.CurrentEncounter.Context.CurrentValues.Resonance
-                        @if (hoveredChoice != null)
-                        {
-                            int projectedChange = GetProjectedChange(ChangeTypes.Resonance);
-                            string projectedClass = projectedChange > 0 ? "positive" : (projectedChange < 0 ? "negative" : "");
-                            <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ChangeTypes.Resonance)</span>
-                        }
-                    </span>
-                </div>
-                <div class="stat">
-                    @GetValueTypeIcon(ChangeTypes.Outcome)
-                    <span class="stat-label">Outcome</span>
-                    <span class="stat-value">
-                        @GameState.Actions.CurrentEncounter.Context.CurrentValues.Outcome
-                        @if (hoveredChoice != null)
-                        {
-                            int projectedChange = GetProjectedChange(ChangeTypes.Outcome);
-                            string projectedClass = projectedChange > 0 ? "positive" : (projectedChange < 0 ? "negative" : "");
-                            <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ChangeTypes.Outcome)</span>
-                        }
-                    </span>
-                </div>
-                <div class="stat">
-                    @GetValueTypeIcon(ChangeTypes.Pressure)
-                    <span class="stat-label">Pressure</span>
-                    <span class="stat-value">
-                        @GameState.Actions.CurrentEncounter.Context.CurrentValues.Pressure
-                        @if (hoveredChoice != null)
-                        {
-                            int projectedChange = GetProjectedChange(ChangeTypes.Pressure);
-                            string projectedClass = projectedChange > 0 ? "positive" : (projectedChange < 0 ? "negative" : "");
-                            <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ChangeTypes.Pressure)</span>
-                        }
-                    </span>
-                </div>
+                </div
             </div>
 
             <div class="encounter-stage">

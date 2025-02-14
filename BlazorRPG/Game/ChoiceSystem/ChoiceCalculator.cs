@@ -9,16 +9,16 @@
         this.locationPropertyCalculator = new LocationPropertyEffectCalculator();
     }
 
-    public EncounterValues GetProjectedEncounterState(EncounterChoice choice, EncounterValues initialValues, List<ValueModification> valueModifications)
+    public EncounterStageState GetProjectedEncounterState(EncounterChoice choice, EncounterStageState initialValues, List<ValueModification> valueModifications)
     {
-        EncounterValues projectedEncounterState = CalculateNewState(initialValues, choice, valueModifications);
+        EncounterStageState projectedEncounterState = CalculateNewState(initialValues, choice, valueModifications);
         return projectedEncounterState;
     }
 
     public void CalculateChoiceEffects(
         EncounterChoice choice,
         EncounterContext context,
-        EncounterValues initialEncounterValues)
+        EncounterStageState initialEncounterValues)
     {
         // 1. Get base values that are inherent to the choice type
         List<ValueModification> valueModifications = GameRules.GetChoiceBaseValueEffects(choice);
@@ -49,7 +49,7 @@
     }
 
 
-    private int CalculateEnergyCost(EncounterChoice choice, EncounterValues initialEncounterValues, PlayerState player, EncounterContext context)
+    private int CalculateEnergyCost(EncounterChoice choice, EncounterStageState initialEncounterValues, PlayerState player, EncounterContext context)
     {
         int baseEnergyCost = 0; //GameRules.GetBaseEnergyCost(choice.Archetype, choice.Approach);
 
@@ -70,7 +70,7 @@
         return actualCost;
     }
 
-    private List<ValueModification> CalculateAllValueChanges(EncounterChoice choice, EncounterValues initialEncounterValues)
+    private List<ValueModification> CalculateAllValueChanges(EncounterChoice choice, EncounterStageState initialEncounterValues)
     {
         List<ValueModification> modifications = new();
 
@@ -82,120 +82,55 @@
             _ => false
         };
 
-        if (!applyPressure) return modifications;
-
-        if (initialEncounterValues.Pressure > GameRules.GetArchetypeValue(choice.Archetype, initialEncounterValues))
-        {
-            int reduceBy = initialEncounterValues.Pressure - GameRules.GetArchetypeValue(choice.Archetype, initialEncounterValues);
-            reduceBy = reduceBy / 3;
-            reduceBy = Math.Max(0, reduceBy);
-
-            modifications.Add(new EncounterValueModification(
-                ValueTypes.Outcome,
-                -reduceBy,
-                "High Pressure"));
-
-        }
-
         return modifications;
     }
 
-    private EncounterValues ProjectNewState(
-        EncounterValues currentValues,
+    private EncounterStageState ProjectNewState(
+        EncounterStageState currentValues,
         List<ValueModification> modifications)
     {
-        EncounterValues newState = EncounterValues.WithValues(
-            momentum: currentValues.Momentum,
-            insight: currentValues.Insight,
-            resonance: currentValues.Resonance,
-            outcome: currentValues.Outcome,
-            pressure: currentValues.Pressure);
-
+        EncounterStageState newState = new EncounterStageState(currentValues.Momentum);
         foreach (ValueModification mod in modifications)
         {
-            if (mod is EncounterValueModification evm)
+            if (mod is MomentumModification evm)
             {
-                ApplyValueChange(newState, evm.ValueType, evm.Amount);
+                ApplyMomentumChange(newState, evm.Amount);
             }
             else if (mod is EnergyCostReduction em)
             {
                 // Do nothing here, energy modifications don't directly affect state values
             }
         }
-
         return newState;
     }
 
-    private EncounterValues CalculateNewState(
-        EncounterValues currentValues,
+    private void ApplyMomentumChange(EncounterStageState newState, int amount)
+    {
+        newState.Momentum += amount;
+    }
+
+    private EncounterStageState CalculateNewState(
+        EncounterStageState currentValues,
         EncounterChoice choice,
         List<ValueModification> modifications)
     {
-        EncounterValues newState = ProjectNewState(currentValues, modifications);
+        EncounterStageState newState = ProjectNewState(currentValues, modifications);
+        newState.LastChoice = choice;
         newState.LastChoiceType = choice.Archetype;
         newState.LastChoiceApproach = choice.Approach;
         return newState;
     }
 
-    private List<Requirement> CalculateRequirements(EncounterContext context, EncounterChoice choice, PlayerState playerState, EncounterValues encounterValues, List<ValueModification> valueModifications)
+    private List<Requirement> CalculateRequirements(EncounterContext context, EncounterChoice choice, PlayerState playerState, EncounterStageState encounterValues, List<ValueModification> valueModifications)
     {
-        CalculateNewState(context.CurrentValues, choice, valueModifications);
+        CalculateNewState(encounterValues, choice, valueModifications);
 
         List<Requirement> requirements = new List<Requirement> { };
-
-        List<Requirement> ValueRequirements = GetValueRequirements(valueModifications, choice, playerState, encounterValues);
-        requirements.AddRange(ValueRequirements);
 
         List<Requirement> propertyRequirements = locationPropertyCalculator
             .CalculateLocationRequirements(choice, context);
 
         requirements.AddRange(propertyRequirements);
-
-        return requirements;
-    }
-
-    private List<Requirement> GetValueRequirements(List<ValueModification> valueModifications, EncounterChoice choice, PlayerState playerState, EncounterValues encounterValues)
-    {
-        List<Requirement> requirements = new();
-
-        // Iterate through value modifications and add requirements for negative changes
-        foreach (ValueModification modification in valueModifications)
-        {
-            // Only consider EncounterValueModifications, not EnergyCostReductions
-            if (modification is EncounterValueModification change)
-            {
-                if (change.Amount < 0)
-                {
-                    switch (change.ValueType)
-                    {
-                        case ValueTypes.Momentum:
-                            requirements.Add(new MomentumRequirement(-change.Amount));
-                            break;
-                        case ValueTypes.Insight:
-                            requirements.Add(new InsightRequirement(-change.Amount));
-                            break;
-                        case ValueTypes.Resonance:
-                            requirements.Add(new ResonanceRequirement(-change.Amount));
-                            break;
-                        case ValueTypes.Pressure:
-                            // No requirement added for negative pressure change as reducing pressure is not a requirement.
-                            break;
-                        case ValueTypes.Outcome:
-                            // Outcome decrease can be considered as a risk or a different kind of cost
-                            // You might represent it differently or not add a direct requirement here
-                            break;
-                    }
-                }
-                else if (change.ValueType == ValueTypes.Pressure)
-                {
-                    // Pressure requirement: current pressure + change must not exceed 10
-                    if (encounterValues.Pressure + change.Amount > 20)
-                    {
-                        requirements.Add(new PressureRequirement(20 - change.Amount));
-                    }
-                }
-            }
-        }
 
         return requirements;
     }
@@ -229,27 +164,5 @@
         return rewards;
     }
 
-
-    private void ApplyValueChange(EncounterValues state, ValueTypes valueType, int amount)
-    {
-        switch (valueType)
-        {
-            case ValueTypes.Outcome:
-                state.Outcome = Math.Max(0, state.Outcome + amount);
-                break;
-            case ValueTypes.Momentum:
-                state.Momentum = Math.Max(0, state.Momentum + amount);
-                break;
-            case ValueTypes.Insight:
-                state.Insight = Math.Max(0, state.Insight + amount);
-                break;
-            case ValueTypes.Resonance:
-                state.Resonance = Math.Max(0, state.Resonance + amount);
-                break;
-            case ValueTypes.Pressure:
-                state.Pressure = Math.Clamp(state.Pressure + amount, 0, 8);
-                break;
-        }
-    }
 
 }

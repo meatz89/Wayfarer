@@ -2,14 +2,16 @@
 {
     public string EncounterGoal { get; }
     public string Situation { get; }
-    public EncounterContext Context { get; }
-
-    private List<EncounterStage> stages = new();
     public int CurrentStageIndex { get; private set; }
+    private List<EncounterStage> stages = new();
+    public EncounterContext EncounterContext { get; }
+    public EncounterStage LastStage { get; internal set; }
+    public EncounterChoice LastChoice { get; internal set; }
+    public ChoiceArchetypes LastChoiceType { get; internal set; }
+    public ChoiceApproaches LastChoiceApproach { get; internal set; }
 
-    public Encounter(EncounterContext context, string goal)
+    public Encounter(string goal)
     {
-        Context = context;
         EncounterGoal = goal;
         CurrentStageIndex = 0;
     }
@@ -31,27 +33,5 @@
     {
         CurrentStageIndex++;
     }
-
-    public void ModifyValue(ValueTypes valueType, int change)
-    {
-        switch (valueType)
-        {
-            case ValueTypes.Outcome:
-                Context.CurrentValues.Outcome += change;
-                break;
-            case ValueTypes.Momentum:
-                Context.CurrentValues.Momentum += change;
-                break;
-            case ValueTypes.Pressure:
-                Context.CurrentValues.Pressure += change;
-                break;
-            case ValueTypes.Insight:
-                Context.CurrentValues.Insight += change;
-                break;
-            case ValueTypes.Resonance:
-                Context.CurrentValues.Resonance += change;
-                break;
-        }
-        Context.CurrentValues.ClampValues();
-    }
+    
 }

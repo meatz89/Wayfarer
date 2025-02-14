@@ -28,7 +28,7 @@
         JournalSystem.StartEncounter(initialSituation, actionGoal);
     }
 
-    public ChoicesNarrativeResponse GetChoicesNarrative(EncounterContext context, List<EncounterChoice> choices)
+    public ChoicesNarrativeResponse GetChoicesNarrative(EncounterStageContext context, List<EncounterChoice> choices)
     {
         string encounterState = "Encounter State:" + GetEncounterState(context);
         string initialGoal = JournalSystem.GetCurrentEncounterGoal();
@@ -48,7 +48,7 @@
         return choicesNarrativeResponse;
     }
 
-    public string GetEncounterSuccessNarrative(EncounterContext context)
+    public string GetEncounterSuccessNarrative(EncounterStageContext context)
     {
         string encounterState = "Final Encounter State:" + GetEncounterState(context);
 
@@ -66,7 +66,7 @@
         return encounterEndNarrative;
     }
 
-    public string GetEncounterFailureNarrative(EncounterContext context)
+    public string GetEncounterFailureNarrative(EncounterStageContext context)
     {
         string encounterState = "Final Encounter State:" + GetEncounterState(context);
 
@@ -136,8 +136,8 @@
 
         foreach (ValueModification valueModification in valueModifications)
         {
-            if (valueModification is EncounterValueModification encounterValueMod)
-                effects += $"{encounterValueMod.Amount} to {encounterValueMod.ValueType}; ";
+            if (valueModification is MomentumModification encounterValueMod)
+                effects += $"{encounterValueMod.Amount} to Momentum; ";
 
             if (valueModification is EnergyCostReduction energyCostReduction)
                 effects += $"{energyCostReduction.Amount} to {energyCostReduction.EnergyType}; ";
@@ -161,15 +161,10 @@
         return locationNarrative.Description;
     }
 
-    private static string GetEncounterState(EncounterContext context)
+    private static string GetEncounterState(EncounterStageContext context)
     {
-        EncounterValues values = context.CurrentValues;
         string encounterState = $"{NewLine}" +
-            $"Outcome ({values.Outcome}/10), " +
-            $"Pressure ({values.Pressure}/10), " +
-            $"Momentum ({values.Momentum}/10), " +
-            $"Insight ({values.Insight}/10), " +
-            $"Resonance ({values.Resonance}/10)";
+            $"Outcome ({context.StageValues.Momentum})";
 
         return encounterState;
     }
