@@ -546,9 +546,7 @@ public class GameManager
         }
 
         ActionImplementation baseAction = ActionFactory.CreateAction(actionTemplate, location);
-        ActionImplementation modifiedAction = ActionSystem.ModifyAction(baseAction);
-
-        locationSpot.AddAction(modifiedAction);
+        locationSpot.AddAction(baseAction);
     }
 
     private void UpdateActiveQuests()
