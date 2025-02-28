@@ -9,13 +9,14 @@ Create a BRIEF, GROUNDED encounter framework for a [ENCOUNTER_TYPE] encounter at
    - AVOID romanticized descriptions ("charming," "nestled," "cozy")
 
 2. CHARACTER FRAMEWORK:
-   - One NPC: [NPC_ROLE] who is [NPC_TRAIT]
-   - Describe in maximum 2 sentences
+   - One NPC: [NPC_ROLE] who is [NPC_TRAIT] and [NPC_TRAIT]
+   - Describe npc in maximum 2 sentences if included
    - NPC should be SUSPICIOUS or NEUTRAL by default, not kind or welcoming
-   - For INTELLECTUAL AND PHYSICAL encounters: May have NO NPC (focus on environment)
+   - For INTELLECTUAL or PHYSICAL encounters: Focus primarily on the ENVIRONMENT, not social interaction
+   - For SOCIAL encounters: Focus primarily on the CHARACTER, not the environment
 
 3. ENCOUNTER GOAL:
-   - Goal: [SPECIFIC_GOAL]
+   - Determine the encounter goal from the encounter type, and location and npc present
    - State this plainly in 1-2 sentences maximum
 
 4. STARTING CONDITIONS:
@@ -27,11 +28,12 @@ FORMAT YOUR RESPONSE AS:
 1. A BRIEF title (3-5 words)
 2. ONE paragraph (3-4 sentences) introducing the situation
 3. ONE sentence stating your goal
-4. ONE sentence about the NPC's disposition (or key environmental feature for INTELLECTUAL)
+4. ONE sentence about the NPC's disposition (or key environmental feature for INTELLECTUAL or PHYSICAL)
 5. ONE sentence about a relevant environmental factor
 
 IMPORTANT:
-- Focus on BASIC SURVIVAL needs, not comfort
+- Use PRESENT TENSE ONLY
+- Focus on BASIC SURVIVAL NEEDS or CHALLENGES, not comfort
 - Use PLAIN LANGUAGE appropriate to a common traveler
 - Portray medieval life as DIFFICULT and HARSH
 - Keep total response under 150 words

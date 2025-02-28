@@ -1,20 +1,9 @@
 # SITUATION AND CHOICE GENERATION
 
-PREVIOUS CHOICE:
-- Player selected: "[CHOICE DESCRIPTION]" ([APPROACH] + [FOCUS] → [EFFECT])
-
-EFFECT APPLIED:
-- Momentum [+X] (New total: [UPDATED VALUE])
-- Pressure [+X] (New total: [UPDATED VALUE])
-- [APPROACH TAG] +1 (New value: [UPDATED VALUE])
-- [FOCUS TAG] +1 (New value: [UPDATED VALUE])
-- Balance state: [STABLE/UNSTABLE]
-
 CURRENT STATE:
 - Momentum: [X] / Pressure: [Y]
 - Approach tags: Force [X], Finesse [X], Wit [X], Charm [X], Stealth [X]
 - Focus tags: Relationship [X], Information [X], Physical [X], Environment [X], Resource [X]
-- Turn number: [X] of [TOTAL]
 - Encounter type: [SOCIAL/INTELLECTUAL/PHYSICAL]
 
 AVAILABLE MECHANICAL CHOICES:
@@ -26,29 +15,44 @@ AVAILABLE MECHANICAL CHOICES:
 6. [APPROACH] + [FOCUS] → [EFFECT TYPE] ([DESCRIPTION])
 
 Generate ONLY:
-1. ONE paragraph resolving the previous choice using:
-   - SOCIAL: Direct dialogue with simple, practical words (MUST use quotation marks)
-   - INTELLECTUAL: Brief thought process using common language
-   - PHYSICAL: Clear description of physical actions and immediate results
+1. ONE paragraph showing the Initial Description and Encounter Goal using:
+   - ONLY IF SOCIAL: Direct dialogue with simple, practical words
+   - ONLY IF INTELLECTUAL: Brief thought process using common language
+   - ONLY IF PHYSICAL: Clear description of physical actions and immediate results
 
 2. ONE paragraph showing current situation using:
-   - SOCIAL: Specific changes in NPC behavior and environment (not just facial expressions)
-   - INTELLECTUAL: Concrete details you can see, hear, smell, or touch
-   - PHYSICAL: Exact description of your body position, terrain, and nearby objects
+   - ONLY IF SOCIAL: Specific changes in NPC behavior and environment
+   - ONLY IF INTELLECTUAL: Concrete details you can see, hear, smell,
+   - ONLY IF PHYSICAL: Exact description of your body position, terrain, and nearby objects
 
 3. 6 choice labels that UNMISTAKABLY demonstrate their mechanical properties:
-   - SOCIAL: Exact words I would speak (5-15 words of simple dialogue)
-   - INTELLECTUAL: Specific thinking approach (examining, comparing, recalling, etc.)
-   - PHYSICAL: Precise physical action I would take (climbing, shifting weight, etc.)
+   - ONLY IF SOCIAL: Exact words I would speak (5-15 words of simple dialogue)
+   - ONLY IF INTELLECTUAL: Specific thinking approach (examining, comparing, recalling, etc.)
+   - ONLY IF PHYSICAL: Precise physical action I would take (climbing, shifting weight, etc.)
 
 CRITICAL REQUIREMENTS:
 - CHOICE LABELS MUST BE DISTINCTIVE: Each label must clearly show its unique approach+focus
-- PRESSURE CHOICES MUST BE CLEARLY RISKY: Show potential conflict, offense, or danger
+- FOR MOMENTUM CHOICES: Show positive progress toward goal
+- FOR PRESSURE CHOICES: Show risk, confrontation, or heightening tension
 - REFER ONLY to already established elements (do not invent new details)
 - USE MEDIEVAL TERMS appropriate for a common traveler (no modern concepts)
 
+- MATCH each approach tag using these characteristics:
+  * Force: Direct, assertive, physical, strong
+  * Finesse: Careful, precise, skilled, attentive
+  * Wit: Clever, observant, strategic, analytical
+  * Charm: Friendly, appealing, warm, personable
+  * Stealth: Subtle, quiet, unobtrusive, indirect
+
+- MATCH each focus tag using these characteristics:
+  * Relationship: Connection with people, status, trust
+  * Information: Facts, knowledge, secrets, details
+  * Physical: Bodies, items, direct interaction
+  * Environment: Surroundings, location features, conditions
+  * Resource: Money, supplies, time, valuables
+
 FORMAT:
-[Resolution paragraph in appropriate style]
+[Initial Setup paragraph in appropriate style]
 
 [Current situation paragraph with concrete details]
 
