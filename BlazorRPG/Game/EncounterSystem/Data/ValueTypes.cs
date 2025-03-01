@@ -1,4 +1,4 @@
-﻿public enum ChangeTypes
+﻿public enum ValueTypes
 {
     Momentum,
     Pressure,

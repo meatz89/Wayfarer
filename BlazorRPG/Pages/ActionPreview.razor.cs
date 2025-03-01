@@ -50,15 +50,15 @@ public partial class ActionPreviewBase : ComponentBase
         return descriptions;
     }
 
-    public MarkupString GetValueTypeIcon(ChangeTypes valueType)
+    public MarkupString GetValueTypeIcon(ValueTypes valueType)
     {
         return valueType switch
         {
-            ChangeTypes.Momentum => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
-            ChangeTypes.Pressure => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
-            ChangeTypes.PhysicalEnergy => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
-            ChangeTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
-            ChangeTypes.Reputation => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
+            ValueTypes.Momentum => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
+            ValueTypes.Pressure => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
+            ValueTypes.PhysicalEnergy => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
+            ValueTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
+            ValueTypes.Reputation => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
             _ => new MarkupString("")
         };
     }

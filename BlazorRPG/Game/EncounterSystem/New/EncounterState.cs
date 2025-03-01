@@ -24,10 +24,10 @@
 
     public EncounterState ApplyChoice(Choice choice, bool isStable)
     {
-        var newState = new EncounterState()
+        EncounterState newState = new EncounterState()
         {
-            ApproachTags = ApproachTags,
-            FocusTags = FocusTags,
+            ApproachTags = new Dictionary<ApproachTypes, int>(ApproachTags),
+            FocusTags = new Dictionary<FocusTypes, int>(FocusTags),
             Momentum = Momentum,
             Pressure = Pressure,
             CurrentTurn = CurrentTurn + 1
@@ -38,8 +38,8 @@
         else
             newState.Pressure += choice.GetEffectValue(isStable);
 
-        newState.ApproachTags[choice.Approach]++;
-        newState.FocusTags[choice.Focus]++;
+        newState.ApproachTags[choice.Approach] = newState.ApproachTags[choice.Approach] + 1;
+        newState.FocusTags[choice.Focus] = newState.FocusTags[choice.Focus] + 1;
 
         return newState;
     }

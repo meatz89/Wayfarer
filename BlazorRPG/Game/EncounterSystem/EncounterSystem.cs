@@ -66,7 +66,7 @@
         foreach (Choice choice in choices)
         {
             i++;
-            
+
             LocationNames locationName = encounter.EncounterContext.Location.LocationName;
             string locationSpotName = encounter.EncounterContext.LocationSpot.Name;
 

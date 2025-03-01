@@ -22,15 +22,15 @@
         }
 
         // Apply all value changes as a single transaction
-        Dictionary<ChangeTypes, int> combinedChanges = result.GetCombinedValues();
-        foreach (KeyValuePair<ChangeTypes, int> kvp in combinedChanges)
+        Dictionary<ValueTypes, int> combinedChanges = result.GetCombinedValues();
+        foreach (KeyValuePair<ValueTypes, int> kvp in combinedChanges)
         {
             switch (kvp.Key)
             {
-                case ChangeTypes.Momentum:
+                case ValueTypes.Momentum:
                     break;
 
-                case ChangeTypes.Pressure:
+                case ValueTypes.Pressure:
                     break;
             }
         }

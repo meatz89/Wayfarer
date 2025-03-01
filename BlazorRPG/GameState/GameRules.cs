@@ -113,13 +113,13 @@
         return values.Momentum;
     }
 
-    public static ChangeTypes ConvertEnergyTypeToChangeType(EnergyTypes energyType)
+    public static ValueTypes ConvertEnergyTypeToChangeType(EnergyTypes energyType)
     {
         return energyType switch
         {
-            EnergyTypes.Physical => ChangeTypes.PhysicalEnergy,
-            EnergyTypes.Concentration => ChangeTypes.Concentration,
-            EnergyTypes.None => ChangeTypes.None,
+            EnergyTypes.Physical => ValueTypes.PhysicalEnergy,
+            EnergyTypes.Concentration => ValueTypes.Concentration,
+            EnergyTypes.None => ValueTypes.None,
             _ => throw new ArgumentException("Invalid EnergyType")
         };
     }

@@ -9,31 +9,51 @@
         <div class="encounter-context">
             <div class="encounter-stats">
                 <div class="stat">
-                    @GetValueTypeIcon(ChangeTypes.Momentum)
+                    @GetValueTypeIcon(ValueTypes.Momentum)
                     <span class="stat-label">Momentum</span>
                     <span class="stat-value">
                         @GameState.Actions.CurrentEncounter.GetCurrentStage().EncounterState.Momentum
                         @if (hoveredChoice != null)
                         {
-                            int projectedChange = GetProjectedChange(ChangeTypes.Momentum);
+                            int projectedChange = GetProjectedChange(ValueTypes.Momentum);
                             string projectedClass = projectedChange > 0 ? "positive" : (projectedChange < 0 ? "negative" : "");
-                            <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ChangeTypes.Momentum)</span>
+                            <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ValueTypes.Momentum)</span>
                         }
                     </span>
-                </div
+                </div>
                 <div class="stat">
-                    @GetValueTypeIcon(ChangeTypes.Pressure)
+                    @GetValueTypeIcon(ValueTypes.Pressure)
                     <span class="stat-label">Pressure</span>
                     <span class="stat-value">
                         @GameState.Actions.CurrentEncounter.GetCurrentStage().EncounterState.Pressure
                         @if (hoveredChoice != null)
                         {
-                            int projectedChange = GetProjectedChange(ChangeTypes.Pressure);
+                            int projectedChange = GetProjectedChange(ValueTypes.Pressure);
                             string projectedClass = projectedChange > 0 ? "positive" : (projectedChange < 0 ? "negative" : "");
-                            <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ChangeTypes.Pressure)</span>
+                            <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ValueTypes.Pressure)</span>
                         }
                     </span>
-                </div
+                </div>
+
+                @foreach(KeyValuePair<ApproachTypes, int> approachTag in @GameState.Actions.CurrentEncounter.GetCurrentStage().EncounterState.ApproachTags)
+                {
+                    <div class="stat">
+                        <span class="stat-label">@approachTag.Key</span>
+                        <span class="stat-value">
+                            @approachTag.Value
+                        </span>
+                    </div>
+                }
+
+                @foreach (KeyValuePair<FocusTypes, int> focusTag in @GameState.Actions.CurrentEncounter.GetCurrentStage().EncounterState.FocusTags)
+                {
+                    <div class="stat">
+                        <span class="stat-label">@focusTag.Key</span>
+                        <span class="stat-value">
+                            @focusTag.Value
+                        </span>
+                    </div>
+                }
             </div>
 
             <div class="encounter-stage">

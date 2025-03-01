@@ -26,9 +26,9 @@
     }
 
     // Helper for execution to get combined changes
-    public Dictionary<ChangeTypes, int> GetCombinedValues()
+    public Dictionary<ValueTypes, int> GetCombinedValues()
     {
-        Dictionary<ChangeTypes, int> combined = new Dictionary<ChangeTypes, int>();
+        Dictionary<ValueTypes, int> combined = new Dictionary<ValueTypes, int>();
 
         // Add base values first
         //foreach (BaseValueChange baseChange in BaseValueChanges)
@@ -42,14 +42,14 @@
         // Add modifications
         foreach (ValueModification modification in ValueModifications)
         {
-            ChangeTypes changeType;
+            ValueTypes changeType;
             if (modification is MomentumModification evm)
             {
-                changeType = ChangeTypes.Momentum;
+                changeType = ValueTypes.Momentum;
             }
             if (modification is PressureModification evp)
             {
-                changeType = ChangeTypes.Pressure;
+                changeType = ValueTypes.Pressure;
             }
             else if (modification is EnergyCostReduction em)
             {

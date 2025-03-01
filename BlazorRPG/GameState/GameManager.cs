@@ -89,7 +89,7 @@ public class GameManager
             EncounterSystem.SetActiveEncounter(encounter);
 
             EncounterStage firstStage = encounter.GetCurrentStage();
-            
+
             List<UserEncounterChoiceOption> choiceOptions = EncounterSystem.GetChoices(encounter);
             gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
         }

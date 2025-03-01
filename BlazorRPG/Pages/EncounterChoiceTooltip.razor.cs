@@ -30,7 +30,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         return new List<DetailedRequirement>();
     }
 
-    public void AddDetailedChange(List<DetailedChange> combined, ChangeTypes changeType, string source, int amount)
+    public void AddDetailedChange(List<DetailedChange> combined, ValueTypes changeType, string source, int amount)
     {
         bool found = false;
         foreach (DetailedChange dc in combined)
@@ -68,11 +68,11 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         {
             if (change is MomentumModification evm)
             {
-                AddDetailedChange(detailedChanges, ChangeTypes.Momentum, change.Source, change.Amount);
+                AddDetailedChange(detailedChanges, ValueTypes.Momentum, change.Source, change.Amount);
             }
             if (change is PressureModification evp)
             {
-                AddDetailedChange(detailedChanges, ChangeTypes.Pressure, change.Source, change.Amount);
+                AddDetailedChange(detailedChanges, ValueTypes.Pressure, change.Source, change.Amount);
             }
             else if (change is EnergyCostReduction em)
             {
@@ -89,13 +89,13 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     public List<DetailedChange> SortDetailedChanges(List<DetailedChange> changes)
     {
         // Define the order of ChangeTypes
-        List<ChangeTypes> order = new List<ChangeTypes>()
+        List<ValueTypes> order = new List<ValueTypes>()
         {
-            ChangeTypes.Momentum,
-            ChangeTypes.Pressure,
-            ChangeTypes.PhysicalEnergy,
-            ChangeTypes.Concentration,
-            ChangeTypes.Reputation
+            ValueTypes.Momentum,
+            ValueTypes.Pressure,
+            ValueTypes.PhysicalEnergy,
+            ValueTypes.Concentration,
+            ValueTypes.Reputation
         };
 
         return changes.OrderBy(dc => order.IndexOf(dc.ChangeType)).ToList();
@@ -107,15 +107,15 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         return new MarkupString("");
     }
 
-    public MarkupString GetValueTypeIcon(ChangeTypes valueType)
+    public MarkupString GetValueTypeIcon(ValueTypes valueType)
     {
         return valueType switch
         {
-            ChangeTypes.Momentum => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
-            ChangeTypes.Pressure => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
-            ChangeTypes.PhysicalEnergy => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
-            ChangeTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
-            ChangeTypes.Reputation => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
+            ValueTypes.Momentum => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
+            ValueTypes.Pressure => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
+            ValueTypes.PhysicalEnergy => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
+            ValueTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
+            ValueTypes.Reputation => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
             _ => new MarkupString("")
         };
     }
@@ -147,12 +147,12 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         };
     }
 
-    public ChangeTypes ConvertEnergyTypeToChangeType(EnergyTypes energyType)
+    public ValueTypes ConvertEnergyTypeToChangeType(EnergyTypes energyType)
     {
         return energyType switch
         {
-            EnergyTypes.Physical => ChangeTypes.PhysicalEnergy,
-            EnergyTypes.Concentration => ChangeTypes.Concentration,
+            EnergyTypes.Physical => ValueTypes.PhysicalEnergy,
+            EnergyTypes.Concentration => ValueTypes.Concentration,
             _ => throw new ArgumentException("Invalid EnergyType")
         };
     }
