@@ -1,6 +1,4 @@
-﻿
-
-public class EncounterSystem
+﻿public class EncounterSystem
 {
     private readonly GameState gameState;
     private readonly ChoiceSystem choiceSystem;
@@ -47,6 +45,16 @@ public class EncounterSystem
         };
     }
 
+    public bool GetNextStage(Encounter encounter, EncounterState newState)
+    {
+        EncounterStage newStage = GenerateStage(encounter, encounter.EncounterContext, newState);
+        if (newStage == null)
+            return false;
+
+        encounter.AddStage(newStage);
+        return true;
+    }
+
     public List<UserEncounterChoiceOption> GetChoices(Encounter encounter)
     {
         EncounterStage stage = GetCurrentStage(encounter);
@@ -79,7 +87,7 @@ public class EncounterSystem
         return choiceOptions;
     }
 
-    public EncounterResult ExecuteChoice(
+    public EncounterStage ExecuteChoice(
         Encounter encounter,
         EncounterStage stage,
         Choice choice,
@@ -95,24 +103,20 @@ public class EncounterSystem
         encounter.LastChoiceApproach = choice.Approach;
         encounter.LastChoiceFocusType = choice.Focus;
 
-
         EncounterState encounterState = encounter.GetCurrentStage().EncounterState;
-        choiceSystem.ApplyChoice(encounterState, choice);
+
+        EncounterState newState = choiceSystem.ApplyChoice(encounterState, choice);
         narrativeSystem.MakeChoice(encounter.EncounterContext, choice);
 
+        GetNextStage(encounter, newState);
+        EncounterStage newStage = encounter.AdvanceStage(newState);
+
+        return newStage;
+
         // Check for game over conditions
-        return ProcessEncounterStageResult(encounter, stage, choice);
+        //return ProcessEncounterStageResult(encounter, stage, choice);
     }
 
-    private bool GetNextStage(Encounter encounter, EncounterStage lastStage)
-    {
-        EncounterStage newStage = GenerateStage(encounter, encounter.EncounterContext, lastStage.EncounterState);
-        if (newStage == null)
-            return false;
-
-        encounter.AddStage(newStage);
-        return true;
-    }
 
     private EncounterResult ProcessEncounterStageResult(Encounter encounter, EncounterStage lastStage, Choice choice)
     {
@@ -154,7 +158,7 @@ public class EncounterSystem
             }
         }
 
-        GetNextStage(encounter, lastStage);
+        //GetNextStage(encounter, lastStage);
         EncounterResult ongoingResult = new()
         {
             encounter = encounter,
@@ -174,9 +178,14 @@ public class EncounterSystem
         Encounter encounter = new Encounter(situation);
         encounter.EncounterContext = encounterContext;
 
-        EncounterState initialEncounterState = new EncounterState();
+        EncounterState initialState = new EncounterState()
+        {
+            Momentum = 0,
+            Pressure = 0,
+            CurrentTurn = 1
+        };
 
-        EncounterStage initialStage = GenerateStage(encounter, encounterContext, initialEncounterState);
+        EncounterStage initialStage = GenerateStage(encounter, encounterContext, initialState);
         encounter.AddStage(initialStage);
 
         return encounter;

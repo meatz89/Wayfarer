@@ -73,13 +73,6 @@ public class GameManager
         gameState.Actions.SetLocationSpotActions(options);
     }
 
-    public void GetEncounterChoices(Encounter encounter, EncounterStage stage)
-    {
-        List<UserEncounterChoiceOption> choiceOptions = EncounterSystem.GetChoices(encounter);
-
-        gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
-    }
-
     public ActionResult ExecuteBasicAction(UserActionOption action)
     {
         ActionImplementation actionImplementation = action.ActionImplementation;
@@ -96,7 +89,9 @@ public class GameManager
             EncounterSystem.SetActiveEncounter(encounter);
 
             EncounterStage firstStage = encounter.GetCurrentStage();
-            GetEncounterChoices(encounter, firstStage);
+            
+            List<UserEncounterChoiceOption> choiceOptions = EncounterSystem.GetChoices(encounter);
+            gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
         }
         else
         {
@@ -104,6 +99,57 @@ public class GameManager
         }
 
         return ActionResult.Success("Encounter started!", new ActionResultMessages());
+    }
+
+
+    public EncounterResult ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
+    {
+        Encounter encounter = choiceOption.Encounter;
+        EncounterStage stage = choiceOption.EncounterStage;
+
+        Location location = LocationSystem.GetLocation(choiceOption.LocationName);
+        LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(choiceOption.LocationName, choiceOption.locationSpotName);
+
+        // Execute the choice
+        EncounterResults encounterResults = EncounterResults.Ongoing;
+
+        EncounterStage newStage = EncounterSystem.ExecuteChoice(encounter, stage, choiceOption.Choice, locationSpot);
+
+        List<UserEncounterChoiceOption> choiceOptions = EncounterSystem.GetChoices(encounter);
+        gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
+
+        //EncounterResult encounterResult = EncounterSystem.ExecuteChoice(
+        //        encounter,
+        //        stage,
+        //        choice,
+        //        locationSpot);
+
+        //gameState.Actions.EncounterResult = encounterResult;
+        //encounterResults = encounterResult.encounterResults;
+
+        if (encounterResults == EncounterResults.Ongoing)
+        {
+            if (IsGameOver(gameState.Player))
+            {
+                gameState.Actions.CompleteActiveEncounter();
+
+                return new EncounterResult()
+                {
+                    encounter = encounter,
+                    encounterResults = EncounterResults.GameOver,
+                    EncounterEndMessage = "Game Over"
+                };
+            }
+
+        }
+
+        //gameState.Actions.EncounterResult = encounterResult;
+        return new EncounterResult()
+        {
+            encounter = encounter,
+            encounterResults = EncounterResults.Ongoing,
+            EncounterEndMessage = "Ongoing"
+        };
     }
 
     public Encounter GenerateEncounter(ActionImplementation actionImplementation, Location location, PlayerState playerState, string locationSpotName)
@@ -182,63 +228,11 @@ public class GameManager
         //CreateQuestActions();
     }
 
-    public EncounterResult ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
-    {
-        Encounter encounter = choiceOption.Encounter;
-        EncounterStage stage = choiceOption.EncounterStage;
-
-        Location location = LocationSystem.GetLocation(choiceOption.LocationName);
-        LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(choiceOption.LocationName, choiceOption.locationSpotName);
-        
-        EncounterSystem.ExecuteChoice(encounter, stage, choiceOption.Choice, locationSpot);
-
-        // Execute the choice
-        EncounterResults encounterResults = EncounterResults.Ongoing;
-        //EncounterResult encounterResult = EncounterSystem.ExecuteChoice(
-        //        encounter,
-        //        stage,
-        //        choice,
-        //        locationSpot);
-
-        //gameState.Actions.EncounterResult = encounterResult;
-        //encounterResults = encounterResult.encounterResults;
-
-        if (encounterResults == EncounterResults.Ongoing)
-        {
-            if (IsGameOver(gameState.Player))
-            {
-                gameState.Actions.CompleteActiveEncounter();
-
-                return new EncounterResult()
-                {
-                    encounter = encounter,
-                    encounterResults = EncounterResults.GameOver,
-                    EncounterEndMessage = "Game Over"
-                };
-            }
-            ProceedEncounter(encounter, stage);
-        }
-
-        //gameState.Actions.EncounterResult = encounterResult;
-        return new EncounterResult()
-        {
-            encounter = encounter,
-            encounterResults = EncounterResults.Ongoing,
-            EncounterEndMessage = "Ongoing"
-        };
-    }
-
     public void FinishEncounter(Encounter encounter)
     {
         ActionImplementation actionImplementation = encounter.EncounterContext.ActionImplementation;
         ApplyActionOutcomes(actionImplementation);
         gameState.Actions.CompleteActiveEncounter();
-    }
-
-    private void ProceedEncounter(Encounter encounter, EncounterStage stage)
-    {
-        encounter.AdvanceStage();
-        GetEncounterChoices(encounter, stage);
     }
 
     public ActionResult TravelToLocation(LocationNames locationName)

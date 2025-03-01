@@ -30,9 +30,10 @@
         return stages[CurrentStageIndex];
     }
 
-    public void AdvanceStage()
+    public EncounterStage AdvanceStage(EncounterState newState)
     {
         CurrentStageIndex++;
+        return GetCurrentStage();
     }
 
 }

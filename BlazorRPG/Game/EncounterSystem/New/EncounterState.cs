@@ -27,16 +27,25 @@ public class EncounterState
     }
 
     // Apply a choice's effects to this state
-    public void ApplyChoice(Choice choice, bool isStable)
+    public EncounterState ApplyChoice(Choice choice, bool isStable)
     {
+        var newState = new EncounterState()
+        {
+            ApproachTags = ApproachTags,
+            FocusTags = FocusTags,
+            Momentum = Momentum,
+            Pressure = Pressure,
+            CurrentTurn = CurrentTurn + 1
+        };
+
         if (choice.EffectType == EffectTypes.Momentum)
-            Momentum += choice.GetEffectValue(isStable);
+            newState.Momentum += choice.GetEffectValue(isStable);
         else
-            Pressure += choice.GetEffectValue(isStable);
+            newState.Pressure += choice.GetEffectValue(isStable);
 
-        ApproachTags[choice.Approach]++;
-        FocusTags[choice.Focus]++;
+        newState.ApproachTags[choice.Approach]++;
+        newState.FocusTags[choice.Focus]++;
 
-        CurrentTurn++;
+        return newState;
     }
 }

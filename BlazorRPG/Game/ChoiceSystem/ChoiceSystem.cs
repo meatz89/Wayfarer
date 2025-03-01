@@ -18,7 +18,7 @@ public class ChoiceSystem
     public ChoicesModel GenerateChoices(
         Encounter encounter,
         EncounterContext encounterContext,
-        EncounterState encounterState
+        EncounterState state
         )
     {
         ChoiceSetTemplate template = GetChoiceSetTemplate(encounterContext);
@@ -27,14 +27,6 @@ public class ChoiceSystem
         //ChoiceSet choiceSet = CreateChoiceSet(currentValues, encounterContext, choices);
 
         //RunExample();
-
-        // Create an initial encounter state
-        EncounterState state = new EncounterState
-        {
-            Momentum = 0,
-            Pressure = 0,
-            CurrentTurn = 1
-        };
 
         // Set some initial tag values
         state.ApproachTags[ApproachTypes.Force] = 1;
@@ -53,9 +45,10 @@ public class ChoiceSystem
         return choicesModel;
     }
 
-    public void ApplyChoice(EncounterState state, Choice selectedChoice)
+    public EncounterState ApplyChoice(EncounterState state, Choice selectedChoice)
     {
-        state.ApplyChoice(selectedChoice, state.IsStable);
+        EncounterState newState = state.ApplyChoice(selectedChoice, state.IsStable);
+        return newState;
     }
 
     private static void RunExample()
