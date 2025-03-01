@@ -87,7 +87,7 @@
         return choiceOptions;
     }
 
-    public EncounterStage ExecuteChoice(
+    public EncounterResult ExecuteChoice(
         Encounter encounter,
         EncounterStage stage,
         Choice choice,
@@ -111,10 +111,8 @@
         GetNextStage(encounter, newState);
         EncounterStage newStage = encounter.AdvanceStage(newState);
 
-        return newStage;
-
         // Check for game over conditions
-        //return ProcessEncounterStageResult(encounter, stage, choice);
+        return ProcessEncounterStageResult(encounter, stage, choice);
     }
 
 

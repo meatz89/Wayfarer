@@ -15,14 +15,32 @@ public class ChoiceSystem
         this.calculator = new ChoiceCalculator(gameState);
     }
 
+    private bool IsEncounterWon(EncounterContext context, int momentum)
+    {
+        const int WIN_BASE = 10;
+        int OUTCOME_WIN = context.Location.Difficulty + WIN_BASE;
+
+        if (momentum >= OUTCOME_WIN)
+            return true;
+
+        return false;
+    }
+
+    private bool IsEncounterLost(EncounterContext context, int pressure)
+    {
+        const int LOSE_BASE = 10;
+        if (pressure >= LOSE_BASE)
+            return true;
+
+        return false;
+    }
+
     public ChoicesModel GenerateChoices(
         Encounter encounter,
         EncounterContext encounterContext,
         EncounterState state
         )
     {
-        ChoiceSetTemplate template = GetChoiceSetTemplate(encounterContext);
-
         //List<EncounterChoice> choices = new List<EncounterChoice>(); // choiceSetGenerator.CreateEncounterChoices(encounter, encounterContext, encounterStageContext, template);
         //ChoiceSet choiceSet = CreateChoiceSet(currentValues, encounterContext, choices);
 
@@ -37,6 +55,14 @@ public class ChoiceSystem
 
         ChoiceGenerator generator = new ChoiceGenerator();
         List<Choice> choices = generator.GenerateChoiceSet(state);
+
+        foreach (Choice choice in choices)
+        {
+            EncounterState projectedState = state.ApplyChoice(choice, state.IsStable);
+            if (IsEncounterWon(encounterContext, projectedState.Momentum)) choice.IsEncounterWinningChoice = true;
+            if (IsEncounterLost(encounterContext, projectedState.Pressure)) choice.IsEncounterFailingChoice = true;
+        }
+
 
         ChoicesModel choicesModel = new ChoicesModel();
         choicesModel.Choices = choices;
@@ -126,30 +152,4 @@ public class ChoiceSystem
         return new ChoiceSet(context.ActionType.ToString(), choices);
     }
 
-    private bool IsEncounterWon(EncounterContext context, EncounterStageState projection)
-    {
-        const int WIN_BASE = 10;
-        int OUTCOME_WIN = context.Location.Difficulty + WIN_BASE;
-
-        if (projection.Momentum >= OUTCOME_WIN)
-            return true;
-
-        return false;
-    }
-
-    private bool IsEncounterLost(EncounterContext context, EncounterStageState projection)
-    {
-        const int LOSE_BASE = -10;
-        if (projection.Momentum <= LOSE_BASE)
-            return true;
-
-        return false;
-    }
-
-    private ChoiceSetTemplate GetChoiceSetTemplate(EncounterContext context)
-    {
-        CompositionPattern pattern = GameRules.GetCompositionPatternForActionType(context.ActionType);
-        ChoiceSetTemplate choiceSetTemplate = new ChoiceSetTemplate(4, pattern);
-        return choiceSetTemplate;
-    }
 }

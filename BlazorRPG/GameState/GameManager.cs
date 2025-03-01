@@ -111,23 +111,14 @@ public class GameManager
         LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(choiceOption.LocationName, choiceOption.locationSpotName);
 
         // Execute the choice
-        EncounterResults encounterResults = EncounterResults.Ongoing;
-
-        EncounterStage newStage = EncounterSystem.ExecuteChoice(encounter, stage, choiceOption.Choice, locationSpot);
+        EncounterResult encounterResult = EncounterSystem.ExecuteChoice(encounter, stage, choiceOption.Choice, locationSpot);
 
         List<UserEncounterChoiceOption> choiceOptions = EncounterSystem.GetChoices(encounter);
         gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
 
-        //EncounterResult encounterResult = EncounterSystem.ExecuteChoice(
-        //        encounter,
-        //        stage,
-        //        choice,
-        //        locationSpot);
+        gameState.Actions.EncounterResult = encounterResult;
 
-        //gameState.Actions.EncounterResult = encounterResult;
-        //encounterResults = encounterResult.encounterResults;
-
-        if (encounterResults == EncounterResults.Ongoing)
+        if (encounterResult.encounterResults == EncounterResults.Ongoing)
         {
             if (IsGameOver(gameState.Player))
             {

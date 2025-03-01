@@ -1,8 +1,4 @@
-﻿
-/// <summary>
-/// Represents the current state of an encounter
-/// </summary>
-public class EncounterState
+﻿public class EncounterState
 {
     public int Momentum { get; set; }
     public int Pressure { get; set; }
@@ -26,7 +22,6 @@ public class EncounterState
         }
     }
 
-    // Apply a choice's effects to this state
     public EncounterState ApplyChoice(Choice choice, bool isStable)
     {
         var newState = new EncounterState()
