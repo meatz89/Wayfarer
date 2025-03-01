@@ -99,7 +99,8 @@
             case EnergyTypes.Physical: ModifyPhysicalEnergy(amount); break;
             case EnergyTypes.Concentration: ModifyConcentration(amount); break;
             default: throw new NotImplementedException();
-        };
+        }
+        ;
     }
 
     public bool ModifyPhysicalEnergy(int count)
@@ -168,7 +169,8 @@
         {
             case EnergyTypes.Physical: return PhysicalEnergy >= amount;
             case EnergyTypes.Concentration: return Concentration >= amount;
-        };
+        }
+        ;
         return false;
     }
 

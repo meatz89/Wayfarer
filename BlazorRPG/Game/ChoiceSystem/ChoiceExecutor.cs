@@ -7,7 +7,7 @@
         this.gameState = gameState;
     }
 
-    public void ExecuteChoice(Encounter encounter, EncounterChoice choice, ChoiceCalculationResult result)
+    public void ExecuteChoice(Encounter encounter, Choice choice, ChoiceCalculationResult result)
     {
         // First verify all requirements are met
         if (!AreRequirementsMet(result.Requirements))

@@ -28,7 +28,7 @@
         JournalSystem.StartEncounter(initialSituation, actionGoal);
     }
 
-    public ChoicesNarrativeResponse GetChoicesNarrative(EncounterStageContext context, List<EncounterChoice> choices)
+    public ChoicesNarrativeResponse GetChoicesNarrative(EncounterState context, List<Choice> choices)
     {
         string encounterState = "Encounter State:" + GetEncounterState(context);
         string initialGoal = JournalSystem.GetCurrentEncounterGoal();
@@ -48,7 +48,7 @@
         return choicesNarrativeResponse;
     }
 
-    public string GetEncounterSuccessNarrative(EncounterStageContext context)
+    public string GetEncounterSuccessNarrative(EncounterState context)
     {
         string encounterState = "Final Encounter State:" + GetEncounterState(context);
 
@@ -66,9 +66,9 @@
         return encounterEndNarrative;
     }
 
-    public string GetEncounterFailureNarrative(EncounterStageContext context)
+    public string GetEncounterFailureNarrative(EncounterState encounterStates)
     {
-        string encounterState = "Final Encounter State:" + GetEncounterState(context);
+        string encounterState = "Final Encounter State:" + GetEncounterState(encounterStates);
 
         string prompt = $"The last player decision resulted in failing the encounter. " +
             $"Wrap up the encounter narrative.{NewLine}{NewLine}";
@@ -105,20 +105,20 @@
     }
 
 
-    public void MakeChoice(EncounterContext context, EncounterChoice encounterChoice)
+    public void MakeChoice(EncounterContext context, Choice encounterChoice)
     {
         string prompt =
-            $"{encounterChoice.Narrative} ({encounterChoice.Designation}){NewLine}" +
-            $"[{encounterChoice.Archetype.ToString().ToUpper()} - {encounterChoice.Approach.ToString().ToUpper()}]";
+            $"{encounterChoice.Narrative} ({encounterChoice.Description}){NewLine}" +
+            $"[{encounterChoice.ToString()}]";
 
         JournalSystem.NoteNewEncounterNarrative(prompt);
     }
 
-    private static string AddChoicesToPrompt(List<EncounterChoice> choices, string prompt)
+    private static string AddChoicesToPrompt(List<Choice> choices, string prompt)
     {
         int i = 1;
         prompt += $"Create the narrative descriptions for the new choice options:{NewLine}{NewLine}";
-        foreach (EncounterChoice choice in choices)
+        foreach (Choice choice in choices)
         {
             prompt += CreatePromptForChoice(i, choice);
             i++;
@@ -127,21 +127,21 @@
         return prompt;
     }
 
-    private static string CreatePromptForChoice(int index, EncounterChoice encounterChoice)
+    private static string CreatePromptForChoice(int index, Choice encounterChoice)
     {
-        string prompt = $"{index}. ({encounterChoice.Archetype} - {encounterChoice.Approach})";
+        string prompt = $"{index}. ({encounterChoice.ToString()})";
         string effects = $": ";
 
-        List<ValueModification> valueModifications = encounterChoice.CalculationResult.ValueModifications;
+        //List<ValueModification> valueModifications = encounterChoice.CalculationResult.ValueModifications;
 
-        foreach (ValueModification valueModification in valueModifications)
-        {
-            if (valueModification is MomentumModification encounterValueMod)
-                effects += $"{encounterValueMod.Amount} to Momentum; ";
+        //foreach (ValueModification valueModification in valueModifications)
+        //{
+        //    if (valueModification is MomentumModification encounterValueMod)
+        //        effects += $"{encounterValueMod.Amount} to Momentum; ";
 
-            if (valueModification is EnergyCostReduction energyCostReduction)
-                effects += $"{energyCostReduction.Amount} to {energyCostReduction.EnergyType}; ";
-        }
+        //    if (valueModification is EnergyCostReduction energyCostReduction)
+        //        effects += $"{energyCostReduction.Amount} to {energyCostReduction.EnergyType}; ";
+        //}
 
         prompt = prompt + effects + NewLine;
         return prompt;
@@ -161,10 +161,10 @@
         return locationNarrative.Description;
     }
 
-    private static string GetEncounterState(EncounterStageContext context)
+    private static string GetEncounterState(EncounterState context)
     {
         string encounterState = $"{NewLine}" +
-            $"Outcome ({context.StageValues.Momentum})";
+            $"Outcome ({context.Momentum})";
 
         return encounterState;
     }

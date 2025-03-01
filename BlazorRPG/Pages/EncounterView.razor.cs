@@ -70,16 +70,16 @@ public partial class EncounterViewBase : ComponentBase
     {
         Encounter currentEncounter = GameState.Actions.CurrentEncounter;
         EncounterStage encounterStage = currentEncounter.GetCurrentStage();
-        EncounterStageContext encounterStageContext = encounterStage.EncounterStageContext;
-        EncounterStageState currentValues = encounterStageContext.StageValues;
-        return currentValues.Momentum;
+        EncounterState encounterState = encounterStage.EncounterState;
+        return encounterState.Momentum;
     }
 
-    public List<DetailedChange> GetValueChanges(EncounterChoice choice)
+    public List<DetailedChange> GetValueChanges(Choice choice)
     {
         // Use the stored CalculationResult
-        if (choice.CalculationResult == null) return new List<DetailedChange>();
-        return ConvertDetailedChanges(choice.CalculationResult);
+        //if (choice.CalculationResult == null) return new List<DetailedChange>();
+        //return ConvertDetailedChanges(choice.CalculationResult);
+        return new List<DetailedChange>();
     }
 
     public List<DetailedChange> ConvertDetailedChanges(ChoiceCalculationResult calculationResult)
@@ -106,10 +106,10 @@ public partial class EncounterViewBase : ComponentBase
 
     public int GetProjectedChange(ChangeTypes changeType)
     {
-        if (hoveredChoice == null || hoveredChoice.EncounterChoice.CalculationResult == null) return 0;
+        //if (hoveredChoice == null || hoveredChoice.Choice.CalculationResult == null) return 0;
 
         int projectedChange = 0;
-        foreach (DetailedChange detailedChange in GetValueChanges(hoveredChoice.EncounterChoice))
+        foreach (DetailedChange detailedChange in GetValueChanges(hoveredChoice.Choice))
         {
             if (detailedChange.ChangeType == changeType)
             {
@@ -171,9 +171,10 @@ public partial class EncounterViewBase : ComponentBase
 
     public bool IsChoiceDisabled(UserEncounterChoiceOption choice)
     {
-        // Use the ModifiedRequirements for the disabled check
-        return choice.EncounterChoice.CalculationResult.Requirements.Any(req =>
-            !req.IsSatisfied(GameState));
+        return false;
+        //// Use the ModifiedRequirements for the disabled check
+        //return choice.Choice.CalculationResult.Requirements.Any(req =>
+        //    !req.IsSatisfied(GameState));
     }
 
     public List<DetailedChange> SortDetailedChanges(List<DetailedChange> changes)

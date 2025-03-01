@@ -1,6 +1,6 @@
 ﻿public class LocationPropertyEffectCalculator
 {
-    public void ApplyPropertyEffects(EncounterChoice choice, EncounterContext context)
+    public void ApplyPropertyEffects(Choice choice, EncounterContext context)
     {
         //// Iterate through all defined effects
         //foreach (LocationPropertyChoiceEffect effect in LocationPropertyChoiceEffects.AllEffects)
@@ -14,7 +14,7 @@
         //}
     }
 
-    public int CalculateEnergyCostModifier(EncounterChoice choice, EncounterContext context)
+    public int CalculateEnergyCostModifier(Choice choice, EncounterContext context)
     {
         int modifier = 0;
 
@@ -35,7 +35,7 @@
         return modifier;
     }
 
-    public List<Requirement> CalculateLocationRequirements(EncounterChoice choice, EncounterContext context)
+    public List<Requirement> CalculateLocationRequirements(Choice choice, EncounterContext context)
     {
         List<Requirement> requirements = new();
 
@@ -63,7 +63,7 @@
     }
 
 
-    public List<Outcome> CalculatePropertyCosts(EncounterChoice choice, EncounterContext context)
+    public List<Outcome> CalculatePropertyCosts(Choice choice, EncounterContext context)
     {
         List<Outcome> costs = new();
 
@@ -90,7 +90,7 @@
         return costs;
     }
 
-    public List<Outcome> CalculatePropertyRewards(EncounterChoice choice, EncounterContext context)
+    public List<Outcome> CalculatePropertyRewards(Choice choice, EncounterContext context)
     {
         List<Outcome> rewards = new();
 

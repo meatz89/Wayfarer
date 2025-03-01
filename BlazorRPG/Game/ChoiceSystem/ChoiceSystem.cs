@@ -1,4 +1,6 @@
-﻿public class ChoiceSystem
+﻿using System.Reflection.Emit;
+
+public class ChoiceSystem
 {
     private readonly GameState gameState;
     private readonly ChoiceCalculator calculator;
@@ -13,22 +15,47 @@
         this.calculator = new ChoiceCalculator(gameState);
     }
 
-    public ChoiceSet GenerateChoices(
+    public ChoicesModel GenerateChoices(
         Encounter encounter,
         EncounterContext encounterContext,
-        EncounterStageContext encounterStageContext
+        EncounterState encounterState
         )
     {
         ChoiceSetTemplate template = GetChoiceSetTemplate(encounterContext);
-        EncounterStageState currentValues = encounterStageContext.StageValues;
 
-        List<EncounterChoice> choices = new List<EncounterChoice>(); // choiceSetGenerator.CreateEncounterChoices(encounter, encounterContext, encounterStageContext, template);
+        //List<EncounterChoice> choices = new List<EncounterChoice>(); // choiceSetGenerator.CreateEncounterChoices(encounter, encounterContext, encounterStageContext, template);
+        //ChoiceSet choiceSet = CreateChoiceSet(currentValues, encounterContext, choices);
 
-        RunExample();
+        //RunExample();
 
-        var choiceSet = CreateChoiceSet(currentValues, encounterContext, choices);
+        // Create an initial encounter state
+        EncounterState state = new EncounterState
+        {
+            Momentum = 0,
+            Pressure = 0,
+            CurrentTurn = 1
+        };
 
-        return choiceSet;
+        // Set some initial tag values
+        state.ApproachTags[ApproachTypes.Force] = 1;
+        state.ApproachTags[ApproachTypes.Charm] = 2;
+        state.ApproachTags[ApproachTypes.Wit] = 1;
+        state.FocusTags[FocusTypes.Relationship] = 1;
+        state.FocusTags[FocusTypes.Information] = 2;
+
+        ChoiceGenerator generator = new ChoiceGenerator();
+        List<Choice> choices = generator.GenerateChoiceSet(state);
+
+        ChoicesModel choicesModel = new ChoicesModel();
+        choicesModel.Choices = choices;
+        choicesModel.EncounterState = state;
+
+        return choicesModel;
+    }
+
+    public void ApplyChoice(EncounterState state, Choice selectedChoice)
+    {
+        state.ApplyChoice(selectedChoice, state.IsStable);
     }
 
     private static void RunExample()
@@ -58,12 +85,12 @@
             Console.WriteLine($"Momentum: {state.Momentum}, Pressure: {state.Pressure}");
             Console.WriteLine("Tag Values:");
 
-            foreach (var pair in state.ApproachTags)
+            foreach (KeyValuePair<ApproachTypes, int> pair in state.ApproachTags)
             {
                 Console.WriteLine($"  {pair.Key}: {pair.Value}");
             }
 
-            foreach (var pair in state.FocusTags)
+            foreach (KeyValuePair<FocusTypes, int> pair in state.FocusTags)
             {
                 Console.WriteLine($"  {pair.Key}: {pair.Value}");
             }
@@ -88,19 +115,19 @@
         }
     }
 
-    public ChoiceSet CreateChoiceSet(EncounterStageState initialValues, EncounterContext context, List<EncounterChoice> choices)
+    public ChoiceSet CreateChoiceSet(EncounterStageState initialValues, EncounterContext context, List<Choice> choices)
     {
-        foreach (EncounterChoice choice in choices)
+        foreach (Choice choice in choices)
         {
             calculator.CalculateChoiceEffects(choice, context, initialValues);
         }
 
-        foreach (EncounterChoice choice in choices)
+        foreach (Choice choice in choices)
         {
-            EncounterStageState projection = calculator.GetProjectedEncounterState(choice, initialValues, choice.CalculationResult.ValueModifications);
-            choice.CalculationResult.ProjectedEncounterState = projection;
-            if (!choice.IsEncounterFailingChoice && IsEncounterWon(context, projection)) choice.IsEncounterWinningChoice = true;
-            if (!choice.IsEncounterWinningChoice && IsEncounterLost(context, projection)) choice.IsEncounterFailingChoice = true;
+            //EncounterStageState projection = calculator.GetProjectedEncounterState(choice, initialValues, choice.CalculationResult.ValueModifications);
+            ////choice.CalculationResult.ProjectedEncounterState = projection;
+            //if (!choice.IsEncounterFailingChoice && IsEncounterWon(context, projection)) choice.IsEncounterWinningChoice = true;
+            //if (!choice.IsEncounterWinningChoice && IsEncounterLost(context, projection)) choice.IsEncounterFailingChoice = true;
         }
 
         return new ChoiceSet(context.ActionType.ToString(), choices);
@@ -111,7 +138,7 @@
         const int WIN_BASE = 10;
         int OUTCOME_WIN = context.Location.Difficulty + WIN_BASE;
 
-        if(projection.Momentum >= OUTCOME_WIN)
+        if (projection.Momentum >= OUTCOME_WIN)
             return true;
 
         return false;

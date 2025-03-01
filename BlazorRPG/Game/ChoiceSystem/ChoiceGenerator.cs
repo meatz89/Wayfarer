@@ -158,7 +158,7 @@
 
 //        return null;
 //    }
-    
+
 //    private EncounterChoice CreateChoice(int index, ChoiceArchetypes archetype, ChoiceApproaches approach)
 //    {
 //        EncounterChoice choice = new EncounterChoice(

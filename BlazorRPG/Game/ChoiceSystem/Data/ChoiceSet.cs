@@ -1,9 +1,9 @@
 ﻿public class ChoiceSet
 {
     public string Name { get; }
-    public List<EncounterChoice> Choices { get; }
+    public List<Choice> Choices { get; }
 
-    public ChoiceSet(string name, List<EncounterChoice> choices)
+    public ChoiceSet(string name, List<Choice> choices)
     {
         Name = name;
         Choices = choices;
@@ -16,10 +16,10 @@
             int index = narrative.choiceNumber;
             if (Choices.Count >= index)
             {
-                EncounterChoice choice = Choices[index - 1];
-                string oldDesignation = choice.Designation;
+                Choice choice = Choices[index - 1];
+                string oldDescription = choice.Description;
 
-                choice.Designation = narrative.designation;
+                choice.Description = narrative.Description;
                 choice.Narrative = narrative.narrative;
             }
         }

@@ -407,17 +407,4 @@
             .First(a => a != first && a != second);
     }
 
-    public static List<ValueModification> GetChoiceBaseValueEffects(EncounterChoice choice)
-    {
-        List<ValueModification> modifications = new List<ValueModification>();
-
-        // Each archetype builds its specific mastery value
-        ChoiceApproaches approach = choice.Approach;
-
-        switch (choice.Archetype)
-        {
-        }
-
-        return modifications;
-    }
 }

@@ -73,7 +73,7 @@ public class GameManager
         gameState.Actions.SetLocationSpotActions(options);
     }
 
-    public void SetEncounterChoices(Encounter encounter, EncounterStage stage)
+    public void GetEncounterChoices(Encounter encounter, EncounterStage stage)
     {
         List<UserEncounterChoiceOption> choiceOptions = EncounterSystem.GetChoices(encounter);
 
@@ -94,9 +94,9 @@ public class GameManager
         {
             Encounter encounter = GenerateEncounter(actionImplementation, location, gameState.Player, action.LocationSpot);
             EncounterSystem.SetActiveEncounter(encounter);
-            
-            EncounterStage encounterStage = EncounterSystem.GenerateInitialStage(encounter);
-            SetEncounterChoices(encounter, encounterStage);
+
+            EncounterStage firstStage = encounter.GetCurrentStage();
+            GetEncounterChoices(encounter, firstStage);
         }
         else
         {
@@ -129,12 +129,6 @@ public class GameManager
                 gameState,
                 playerLevel
             );
-
-        EncounterStageContext stageContext = new EncounterStageContext()
-        {
-            LocationPropertyChoiceEffects = effects,
-            StageValues = StageValues
-        };
 
         UserActionOption action = gameState.Actions.LocationSpotActions.Where(x => x.LocationSpot == locationSpot.Name).First();
         ActionImplementation actionImpl = action.ActionImplementation;
@@ -192,21 +186,24 @@ public class GameManager
     {
         Encounter encounter = choiceOption.Encounter;
         EncounterStage stage = choiceOption.EncounterStage;
-        EncounterChoice choice = choiceOption.EncounterChoice;
 
         Location location = LocationSystem.GetLocation(choiceOption.LocationName);
         LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(choiceOption.LocationName, choiceOption.locationSpotName);
+        
+        EncounterSystem.ExecuteChoice(encounter, stage, choiceOption.Choice, locationSpot);
 
         // Execute the choice
-        EncounterResult encounterResult = EncounterSystem.ExecuteChoice(
-                encounter,
-                stage,
-                choice,
-                locationSpot);
+        EncounterResults encounterResults = EncounterResults.Ongoing;
+        //EncounterResult encounterResult = EncounterSystem.ExecuteChoice(
+        //        encounter,
+        //        stage,
+        //        choice,
+        //        locationSpot);
 
-        gameState.Actions.EncounterResult = encounterResult;
+        //gameState.Actions.EncounterResult = encounterResult;
+        //encounterResults = encounterResult.encounterResults;
 
-        if (encounterResult.encounterResults == EncounterResults.Ongoing)
+        if (encounterResults == EncounterResults.Ongoing)
         {
             if (IsGameOver(gameState.Player))
             {
@@ -222,8 +219,13 @@ public class GameManager
             ProceedEncounter(encounter, stage);
         }
 
-        gameState.Actions.EncounterResult = encounterResult;
-        return encounterResult;
+        //gameState.Actions.EncounterResult = encounterResult;
+        return new EncounterResult()
+        {
+            encounter = encounter,
+            encounterResults = EncounterResults.Ongoing,
+            EncounterEndMessage = "Ongoing"
+        };
     }
 
     public void FinishEncounter(Encounter encounter)
@@ -236,7 +238,7 @@ public class GameManager
     private void ProceedEncounter(Encounter encounter, EncounterStage stage)
     {
         encounter.AdvanceStage();
-        SetEncounterChoices(encounter, stage);
+        GetEncounterChoices(encounter, stage);
     }
 
     public ActionResult TravelToLocation(LocationNames locationName)
@@ -276,7 +278,7 @@ public class GameManager
         return isGameOver;
     }
 
-    public List<LocationPropertyChoiceEffect> GetLocationEffects(Encounter encounter, EncounterChoice choice)
+    public List<LocationPropertyChoiceEffect> GetLocationEffects(Encounter encounter, Choice choice)
     {
         LocationNames locationName = encounter.EncounterContext.Location.LocationName;
         string locationSpot = encounter.EncounterContext.LocationSpot.Name;
@@ -284,7 +286,7 @@ public class GameManager
         return LocationSystem.GetLocationEffects(locationName, locationSpot);
     }
 
-    public List<LocationPropertyChoiceEffect> GetLocationEffects(EncounterChoice choice, string locationSpotName)
+    public List<LocationPropertyChoiceEffect> GetLocationEffects(Choice choice, string locationSpotName)
     {
         Location location = gameState.World.CurrentLocation;
         return LocationSystem.GetLocationEffects(location.LocationName, locationSpotName);

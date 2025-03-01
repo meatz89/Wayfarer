@@ -6,7 +6,7 @@
         <div class="choice-narrative">@hoveredChoice.Narrative</div>
     </div>
 
-    @if (GetLocationSpotEffects(hoveredChoice.EncounterChoice).Any())
+    @if (GetLocationSpotEffects(hoveredChoice.Choice).Any())
     {
         <div class="tooltip-section">
             <h5>Location Effects</h5>
@@ -14,12 +14,12 @@
         </div>
     }
 
-    @if (hoveredChoice.EncounterChoice.CalculationResult.Requirements.Count > 0)
+@*     @if (hoveredChoice.Choice.CalculationResult.Requirements.Count > 0)
     {
         <div class="tooltip-section">
             <h5>Requirements</h5>
             <div class="tooltip-list">
-                @foreach (DetailedRequirement req in GetDetailedRequirements(hoveredChoice.EncounterChoice))
+                @foreach (DetailedRequirement req in GetDetailedRequirements(hoveredChoice.Choice))
                 {
                     <div class="tooltip-item">
                         <div class="tooltip-item-header">
@@ -35,12 +35,12 @@
                 }
             </div>
         </div>
-    }
+    } *@
 
     <div class="tooltip-section">
         <h5>Encounter Value Changes</h5>
         <div class="tooltip-list">
-            @foreach (DetailedChange dc in GetValueChanges(hoveredChoice.EncounterChoice)
+            @foreach (DetailedChange dc in GetValueChanges(hoveredChoice.Choice)
             .Where(c => c.ChangeType != ChangeTypes.PhysicalEnergy
             && c.ChangeType != ChangeTypes.Concentration
             && c.ChangeType != ChangeTypes.Reputation))
@@ -67,7 +67,7 @@
     </div>
 
     @{
-        var energyChanges = GetValueChanges(hoveredChoice.EncounterChoice)
+        var energyChanges = GetValueChanges(hoveredChoice.Choice)
         .Where(c => c.ChangeType == ChangeTypes.PhysicalEnergy
         || c.ChangeType == ChangeTypes.Concentration
         || c.ChangeType == ChangeTypes.Reputation)
@@ -104,13 +104,13 @@
             </div>
         </div>
     }
-
-    @if (hoveredChoice.EncounterChoice.CalculationResult.Costs.Count > 0)
+@* 
+    @if (hoveredChoice.Choice.CalculationResult.Costs.Count > 0)
     {
         <div class="tooltip-section">
             <h5>Costs</h5>
             <div class="tooltip-list">
-                @foreach (Outcome cost in hoveredChoice.EncounterChoice.CalculationResult.Costs)
+                @foreach (Outcome cost in hoveredChoice.Choice.CalculationResult.Costs)
                 {
                     <div class="tooltip-item">
                         <div class="tooltip-item-header">
@@ -125,12 +125,12 @@
         </div>
     }
 
-    @if (hoveredChoice.EncounterChoice.CalculationResult.Rewards.Count > 0)
+    @if (hoveredChoice.Choice.CalculationResult.Rewards.Count > 0)
     {
         <div class="tooltip-section">
             <h5>Rewards</h5>
             <div class="tooltip-list">
-                @foreach (Outcome reward in hoveredChoice.EncounterChoice.CalculationResult.Rewards)
+                @foreach (Outcome reward in hoveredChoice.Choice.CalculationResult.Rewards)
                 {
                     <div class="tooltip-item">
                         <div class="tooltip-item-header">
@@ -143,5 +143,5 @@
                 }
             </div>
         </div>
-    }
+    } *@
 </div>

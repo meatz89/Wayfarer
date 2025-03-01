@@ -1,8 +1,4 @@
-﻿
-/// <summary>
-/// Represents a single choice in the encounter system
-/// </summary>
-public class Choice
+﻿public class Choice
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -10,6 +6,9 @@ public class Choice
     public ApproachTypes Approach { get; set; }
     public FocusTypes Focus { get; set; }
     public string Description { get; set; }
+    public string Narrative { get; set; } = "None";
+    public bool IsEncounterWinningChoice { get; internal set; } = false;
+    public bool IsEncounterFailingChoice { get; internal set; } = false;
 
     // The effect value depends on the balance state
     public int GetEffectValue(bool isStable)

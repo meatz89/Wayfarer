@@ -10,22 +10,24 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     [Parameter] public double mouseY { get; set; }
 
 
-    public List<LocationPropertyChoiceEffect> GetLocationSpotEffects(EncounterChoice choice)
+    public List<LocationPropertyChoiceEffect> GetLocationSpotEffects(Choice choice)
     {
         return GameManager.GetLocationEffects(Encounter, choice);
     }
 
-    public List<DetailedChange> GetValueChanges(EncounterChoice choice)
+    public List<DetailedChange> GetValueChanges(Choice choice)
     {
         // Use the stored CalculationResult
-        if (choice.CalculationResult == null) return new List<DetailedChange>();
-        return ConvertDetailedChanges(choice.CalculationResult, choice.Approach);
+        //if (choice.CalculationResult == null) return new List<DetailedChange>();
+        //return ConvertDetailedChanges(choice.CalculationResult, choice.Approach);
+        return new List<DetailedChange>();
     }
 
-    public List<DetailedRequirement> GetDetailedRequirements(EncounterChoice choice)
+    public List<DetailedRequirement> GetDetailedRequirements(Choice choice)
     {
-        if (choice.CalculationResult == null) return new List<DetailedRequirement>();
-        return choice.GetDetailedRequirements(GameState);
+        //if (choice.CalculationResult == null) return new List<DetailedRequirement>();
+        //return choice.GetDetailedRequirements(GameState);
+        return new List<DetailedRequirement>();
     }
 
     public void AddDetailedChange(List<DetailedChange> combined, ChangeTypes changeType, string source, int amount)

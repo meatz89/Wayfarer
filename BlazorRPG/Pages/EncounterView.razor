@@ -12,7 +12,7 @@
                     @GetValueTypeIcon(ChangeTypes.Momentum)
                     <span class="stat-label">Momentum</span>
                     <span class="stat-value">
-                        @GameState.Actions.CurrentEncounter.GetCurrentStage().EncounterStageContext.StageValues.Momentum
+                        @GameState.Actions.CurrentEncounter.GetCurrentStage().EncounterState.Momentum
                         @if (hoveredChoice != null)
                         {
                             int projectedChange = GetProjectedChange(ChangeTypes.Momentum);
@@ -24,7 +24,7 @@
             </div>
 
             <div class="encounter-stage">
-                <h3 class="choice-set-name">@GameManager.EncounterSystem.GetCurrentStage(GameState.Actions.CurrentEncounter).CurrentChoiceSetName</h3>
+                <h3 class="choice-set-name">Choice Set Name</h3>
                 <div class="stage-description">
                     @GameManager.EncounterSystem.GetCurrentStage(GameState.Actions.CurrentEncounter).Situation
                 </div>
@@ -34,8 +34,8 @@
                 @foreach (var choice in GameState.Actions.CurrentChoiceOptions)
                 {
                     <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")
-                         @(choice.EncounterChoice.IsEncounterWinningChoice ? "winning" : "" )
-                         @(choice.EncounterChoice.IsEncounterFailingChoice ? "failing" : "")"
+                         @(false ? "winning" : "" )
+                         @(false ? "failing" : "")"
                          @onmousemove ="async (e) => await ShowTooltip(choice, e)"
                          @onmouseout="HideTooltip"
                          @onclick="() => HandleChoiceSelection(choice)">

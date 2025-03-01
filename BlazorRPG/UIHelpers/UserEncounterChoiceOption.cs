@@ -7,7 +7,7 @@
     string locationSpotName,
     Encounter Encounter,
     EncounterStage EncounterStage,
-    EncounterChoice EncounterChoice)
+    Choice Choice)
 {
     public string Display()
     {

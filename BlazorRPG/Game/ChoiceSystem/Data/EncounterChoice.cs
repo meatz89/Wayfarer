@@ -3,7 +3,7 @@
     // Core properties
     public int Index { get; }
     public string ChoiceType { get; set; }
-    public string Designation { get; set; }
+    public string Description { get; set; }
     public string Narrative { get; set; }
     public ChoiceArchetypes Archetype { get; }
     public ChoiceApproaches Approach { get; }
@@ -21,7 +21,7 @@
     {
         Index = index;
         ChoiceType = choiceType;
-        Designation = description;
+        Description = description;
         Archetype = archetype;
         Approach = approach;
     }

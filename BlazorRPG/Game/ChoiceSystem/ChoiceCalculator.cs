@@ -9,47 +9,47 @@
         this.locationPropertyCalculator = new LocationPropertyEffectCalculator();
     }
 
-    public EncounterStageState GetProjectedEncounterState(EncounterChoice choice, EncounterStageState initialValues, List<ValueModification> valueModifications)
+    public EncounterStageState GetProjectedEncounterState(Choice choice, EncounterStageState initialValues, List<ValueModification> valueModifications)
     {
         EncounterStageState projectedEncounterState = CalculateNewState(initialValues, choice, valueModifications);
         return projectedEncounterState;
     }
 
     public void CalculateChoiceEffects(
-        EncounterChoice choice,
+        Choice choice,
         EncounterContext context,
         EncounterStageState initialEncounterValues)
     {
         // 1. Get base values that are inherent to the choice type
-        List<ValueModification> valueModifications = GameRules.GetChoiceBaseValueEffects(choice);
+        //List<ValueModification> valueModifications = GameRules.GetChoiceBaseValueEffects(choice);
 
         // 2. Calculate all modifications from game state and effects
         List<ValueModification> modifications = CalculateAllValueChanges(choice, initialEncounterValues);
-        valueModifications.AddRange(modifications);
+        //valueModifications.AddRange(modifications);
 
         // 3. Calculate new state after combining base values and modifications
         PlayerState playerState = gameState.Player;
 
         // 4. Calculate final requirements, costs and rewards
-        List<Requirement> requirements = CalculateRequirements(context, choice, playerState, initialEncounterValues, valueModifications);
+        //List<Requirement> requirements = CalculateRequirements(context, choice, playerState, initialEncounterValues, valueModifications);
         List<Outcome> costs = CalculateCosts(choice, context);
         List<Outcome> rewards = CalculateRewards(choice, context);
 
         // 5. Return complete calculation result
-        ChoiceCalculationResult choiceCalculationResult = new ChoiceCalculationResult(
-            valueModifications,    // Modifications with sources
-            requirements,          // Requirements
-            costs,                 // Costs
-            rewards);              // Rewards
+        //ChoiceCalculationResult choiceCalculationResult = new ChoiceCalculationResult(
+        //    valueModifications,    // Modifications with sources
+        //    requirements,          // Requirements
+        //    costs,                 // Costs
+        //    rewards);              // Rewards
 
-        choice.CalculationResult.ValueModifications.AddRange(choiceCalculationResult.ValueModifications);
-        choice.CalculationResult.Requirements.AddRange(choiceCalculationResult.Requirements);
-        choice.CalculationResult.Costs.AddRange(choiceCalculationResult.Costs);
-        choice.CalculationResult.Rewards.AddRange(choiceCalculationResult.Rewards);
+        //choice.CalculationResult.ValueModifications.AddRange(choiceCalculationResult.ValueModifications);
+        //choice.CalculationResult.Requirements.AddRange(choiceCalculationResult.Requirements);
+        //choice.CalculationResult.Costs.AddRange(choiceCalculationResult.Costs);
+        //choice.CalculationResult.Rewards.AddRange(choiceCalculationResult.Rewards);
     }
 
 
-    private int CalculateEnergyCost(EncounterChoice choice, EncounterStageState initialEncounterValues, PlayerState player, EncounterContext context)
+    private int CalculateEnergyCost(Choice choice, EncounterStageState initialEncounterValues, PlayerState player, EncounterContext context)
     {
         int baseEnergyCost = 0; //GameRules.GetBaseEnergyCost(choice.Archetype, choice.Approach);
 
@@ -70,17 +70,11 @@
         return actualCost;
     }
 
-    private List<ValueModification> CalculateAllValueChanges(EncounterChoice choice, EncounterStageState initialEncounterValues)
+    private List<ValueModification> CalculateAllValueChanges(Choice choice, EncounterStageState initialEncounterValues)
     {
         List<ValueModification> modifications = new();
 
-        bool applyPressure = choice.Approach switch
-        {
-            ChoiceApproaches.Aggressive => applyPressure = true,
-            ChoiceApproaches.Careful => applyPressure = true,
-            ChoiceApproaches.Desperate => applyPressure = true,
-            _ => false
-        };
+        bool applyPressure = false;
 
         return modifications;
     }
@@ -111,17 +105,19 @@
 
     private EncounterStageState CalculateNewState(
         EncounterStageState currentValues,
-        EncounterChoice choice,
+        Choice choice,
         List<ValueModification> modifications)
     {
         EncounterStageState newState = ProjectNewState(currentValues, modifications);
         newState.LastChoice = choice;
-        newState.LastChoiceType = choice.Archetype;
+        newState.LastChoiceEffectType = choice.EffectType;
         newState.LastChoiceApproach = choice.Approach;
+        newState.LastChoiceFocusType = choice.Focus;
+
         return newState;
     }
 
-    private List<Requirement> CalculateRequirements(EncounterContext context, EncounterChoice choice, PlayerState playerState, EncounterStageState encounterValues, List<ValueModification> valueModifications)
+    private List<Requirement> CalculateRequirements(EncounterContext context, Choice choice, PlayerState playerState, EncounterStageState encounterValues, List<ValueModification> valueModifications)
     {
         CalculateNewState(encounterValues, choice, valueModifications);
 
@@ -135,21 +131,22 @@
         return requirements;
     }
 
-    private List<Outcome> CalculateCosts(EncounterChoice choice, EncounterContext context)
+    private List<Outcome> CalculateCosts(Choice choice, EncounterContext context)
     {
-        List<Outcome> costs = GenerateBaseCosts(choice.Archetype, choice.Approach);
-
-        List<Outcome> propertyCosts = locationPropertyCalculator.CalculatePropertyCosts(choice, context);
-        costs.AddRange(propertyCosts);
-        return costs;
+        //List<Outcome> costs = GenerateBaseCosts(choice.Archetype, choice.Approach);
+        //List<Outcome> propertyCosts = locationPropertyCalculator.CalculatePropertyCosts(choice, context);
+        //costs.AddRange(propertyCosts);
+        //return costs;
+        return new List<Outcome>();
     }
 
-    private List<Outcome> CalculateRewards(EncounterChoice choice, EncounterContext context)
+    private List<Outcome> CalculateRewards(Choice choice, EncounterContext context)
     {
-        List<Outcome> rewards = GenerateBaseRewards(choice.Archetype, choice.Approach);
-        List<Outcome> propertyRewards = locationPropertyCalculator.CalculatePropertyRewards(choice, context);
-        rewards.AddRange(propertyRewards);
-        return rewards;
+        //List<Outcome> rewards = GenerateBaseRewards(choice.Archetype, choice.Approach);
+        //List<Outcome> propertyRewards = locationPropertyCalculator.CalculatePropertyRewards(choice, context);
+        //rewards.AddRange(propertyRewards);
+        //return rewards;
+        return new List<Outcome>();
     }
 
     private List<Outcome> GenerateBaseCosts(ChoiceArchetypes archetype, ChoiceApproaches approach)

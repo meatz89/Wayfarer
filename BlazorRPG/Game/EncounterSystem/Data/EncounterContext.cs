@@ -8,5 +8,5 @@
 
     public ChoiceArchetypes LastChoiceType { get; internal set; }
     public ChoiceApproaches LastChoiceApproach { get; internal set; }
-    public EncounterChoice LastChoice { get; internal set; }
+    public Choice LastChoice { get; internal set; }
 }

@@ -5,7 +5,7 @@
 
     public bool IsMet(EncounterStageState state)
     {
-        if ((MaxValue.HasValue && state.Momentum > MaxValue) || (MinValue.HasValue &&  state.Momentum < MinValue)) return false;
+        if ((MaxValue.HasValue && state.Momentum > MaxValue) || (MinValue.HasValue && state.Momentum < MinValue)) return false;
         return true;
     }
 
@@ -13,11 +13,11 @@
     {
         string explanation = string.Empty;
 
-        if(MinValue.HasValue)
+        if (MinValue.HasValue)
         {
             explanation += $"Momentum >{MinValue.Value}";
         }
-        if(MaxValue.HasValue)
+        if (MaxValue.HasValue)
         {
             explanation += $"Momentum <{MaxValue.Value}";
         }
