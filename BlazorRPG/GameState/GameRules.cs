@@ -113,12 +113,6 @@
         return values.Momentum;
     }
 
-    // Conversion methods (copied from EncounterChoice for consistency)
-    public static ChangeTypes GetMomentumChangeType()
-    {
-        return ChangeTypes.Momentum;
-    }
-
     public static ChangeTypes ConvertEnergyTypeToChangeType(EnergyTypes energyType)
     {
         return energyType switch

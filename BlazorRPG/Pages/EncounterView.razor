@@ -21,6 +21,19 @@
                         }
                     </span>
                 </div
+                <div class="stat">
+                    @GetValueTypeIcon(ChangeTypes.Pressure)
+                    <span class="stat-label">Pressure</span>
+                    <span class="stat-value">
+                        @GameState.Actions.CurrentEncounter.GetCurrentStage().EncounterState.Pressure
+                        @if (hoveredChoice != null)
+                        {
+                            int projectedChange = GetProjectedChange(ChangeTypes.Pressure);
+                            string projectedClass = projectedChange > 0 ? "positive" : (projectedChange < 0 ? "negative" : "");
+                            <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ChangeTypes.Pressure)</span>
+                        }
+                    </span>
+                </div
             </div>
 
             <div class="encounter-stage">

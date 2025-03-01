@@ -35,6 +35,21 @@ public class MomentumModification : ValueModification
     }
 }
 
+// Modifications - track source and can be chained/combined
+public class PressureModification : ValueModification
+{
+    public PressureModification(int amount, string source)
+    {
+        Amount = amount;
+        Source = source;
+    }
+
+    public override string ToString()
+    {
+        return $"Pressure: {Amount} (from {Source}";
+    }
+}
+
 public class EnergyCostReduction : ValueModification
 {
     public EnergyTypes EnergyType { get; set; }

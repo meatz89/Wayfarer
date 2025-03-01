@@ -68,7 +68,11 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         {
             if (change is MomentumModification evm)
             {
-                AddDetailedChange(detailedChanges, GetMomentumChangeType(), change.Source, change.Amount);
+                AddDetailedChange(detailedChanges, ChangeTypes.Momentum, change.Source, change.Amount);
+            }
+            if (change is PressureModification evp)
+            {
+                AddDetailedChange(detailedChanges, ChangeTypes.Pressure, change.Source, change.Amount);
             }
             else if (change is EnergyCostReduction em)
             {
@@ -88,6 +92,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         List<ChangeTypes> order = new List<ChangeTypes>()
         {
             ChangeTypes.Momentum,
+            ChangeTypes.Pressure,
             ChangeTypes.PhysicalEnergy,
             ChangeTypes.Concentration,
             ChangeTypes.Reputation
@@ -107,6 +112,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         return valueType switch
         {
             ChangeTypes.Momentum => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
+            ChangeTypes.Pressure => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
             ChangeTypes.PhysicalEnergy => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
             ChangeTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
             ChangeTypes.Reputation => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
@@ -139,12 +145,6 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
             RequirementTypes.Respected => new MarkupString("<i class='requirement-icon reputation-icon'>👤</i>"),
             _ => new MarkupString("")
         };
-    }
-
-
-    public ChangeTypes GetMomentumChangeType()
-    {
-        return ChangeTypes.Momentum;
     }
 
     public ChangeTypes ConvertEnergyTypeToChangeType(EnergyTypes energyType)

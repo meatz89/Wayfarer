@@ -55,6 +55,7 @@ public partial class ActionPreviewBase : ComponentBase
         return valueType switch
         {
             ChangeTypes.Momentum => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
+            ChangeTypes.Pressure => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
             ChangeTypes.PhysicalEnergy => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
             ChangeTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
             ChangeTypes.Reputation => new MarkupString("<i class='value-icon social-icon'>👥</i>"),

@@ -45,7 +45,11 @@
             ChangeTypes changeType;
             if (modification is MomentumModification evm)
             {
-                changeType = GameRules.GetMomentumChangeType();
+                changeType = ChangeTypes.Momentum;
+            }
+            if (modification is PressureModification evp)
+            {
+                changeType = ChangeTypes.Pressure;
             }
             else if (modification is EnergyCostReduction em)
             {
