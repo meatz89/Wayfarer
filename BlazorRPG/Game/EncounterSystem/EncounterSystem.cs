@@ -47,11 +47,11 @@ public class EncounterSystem
         inn.ExceptionalSuccessThreshold = 12;
         
         Encounter = new Encounter(context, initialApproachTypess, initialFocusTypess);
-        
+        EncounterState encounterState = Encounter.State;
         narrativeSystem.NewEncounter(context, actionImplementation);
 
         // Create first ChoiceSet
-        List<Choice> currentChoices = choiceSystem.GenerateChoices(Encounter.State);
+        List<Choice> currentChoices = choiceSystem.GenerateChoices(encounterState);
         Encounter.SetChoices(currentChoices);
 
         // Create Encounter with initial stage
@@ -74,14 +74,12 @@ public class EncounterSystem
         Encounter.History.LastChoiceApproach = choice.ApproachType;
         Encounter.History.LastChoiceFocusType = choice.FocusType;
 
-        EncounterState EncounterState = Encounter.State;
-
-        Encounter.MakeChoice(choice);
+        EncounterState oldState = Encounter.State;
+        EncounterState newState = Encounter.MakeChoice(choice);
 
         // Create new ChoiceSet
-        List<Choice> currentChoices = choiceSystem.GenerateChoices(Encounter.State);
+        List<Choice> currentChoices = choiceSystem.GenerateChoices(newState);
         Encounter.SetChoices(currentChoices);
-
 
         narrativeSystem.MakeChoicePrompt(choice);
 
@@ -133,5 +131,10 @@ public class EncounterSystem
     {
         List<ChoicesNarrative> choicesNarrative = choicesNarrativeResponse.choices.ToList();
         return choicesNarrative;
+    }
+
+    public List<UserEncounterChoiceOption> GetCurrentChoices()
+    {
+        return gameState.Actions.CurrentChoiceOptions;
     }
 }

@@ -1,10 +1,10 @@
 ﻿@inherits EncounterViewBase
 
 <div class="Encounter-container" @onmousemove="OnMouseMove">
-    @if (GameState.Actions.CurrentEncounter != null)
+    @if (Model.CurrentEncounter != null)
     {
         <div class="Encounter-header">
-            <h2>@GameState.Actions.CurrentEncounter.History.InitialSituation</h2>
+            <h2>@Model.CurrentEncounter.History.InitialSituation</h2>
         </div>
         <div class="Encounter-context">
             <div class="Encounter-stats">
@@ -12,7 +12,7 @@
                     @GetValueTypeIcon(ValueTypes.Momentum)
                     <span class="stat-label">Momentum</span>
                     <span class="stat-value">
-                        @GameState.Actions.CurrentEncounter.State.Momentum
+                        @Model.State.Momentum
                         @if (hoveredChoice != null)
                         {
                             int projectedChange = GetProjectedChange(ValueTypes.Momentum);
@@ -25,7 +25,7 @@
                     @GetValueTypeIcon(ValueTypes.Pressure)
                     <span class="stat-label">Pressure</span>
                     <span class="stat-value">
-                        @GameState.Actions.CurrentEncounter.State.Pressure
+                        @Model.State.Pressure
                         @if (hoveredChoice != null)
                         {
                             int projectedChange = GetProjectedChange(ValueTypes.Pressure);
@@ -35,7 +35,7 @@
                     </span>
                 </div>
 
-                @foreach(KeyValuePair<ApproachTypes, int> ApproachType in @GameState.Actions.CurrentEncounter.State.ApproachTypesDic)
+                @foreach(KeyValuePair<ApproachTypes, int> ApproachType in @Model.State.ApproachTypesDic)
                 {
                     if (ApproachType.Value > 0)
                     {
@@ -48,7 +48,7 @@
                     }
                 }
 
-                @foreach (KeyValuePair<FocusTypes, int> FocusType in @GameState.Actions.CurrentEncounter.State.FocusTypesDic)
+                @foreach (KeyValuePair<FocusTypes, int> FocusType in @Model.State.FocusTypesDic)
                 {
                     if (FocusType.Value > 0)
                    {
@@ -65,12 +65,12 @@
             <div class="Encounter-stage">
                 <h3 class="choice-set-name">Choice Set Name</h3>
                 <div class="stage-description">
-                    @GameManager.EncounterSystem.GetActiveEncounter().History.InitialSituation
+                    @Model.CurrentEncounter.History.InitialSituation
                 </div>
             </div>
 
             <div class="Encounter-choices">
-                @foreach (UserEncounterChoiceOption choice in GameState.Actions.CurrentChoiceOptions)
+                @foreach (UserEncounterChoiceOption choice in Model.CurrentChoices)
                 {
                     <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")
                          @(false ? "winning" : "" )
@@ -87,7 +87,7 @@
 
         @if (showTooltip && hoveredChoice != null)
         {
-            <EncounterChoiceTooltip Encounter="encounter" hoveredChoice="hoveredChoice" mouseX="mouseX" mouseY="mouseY"/>
+            <EncounterChoiceTooltip encounter="Encounter" hoveredChoice="hoveredChoice" mouseX="mouseX" mouseY="mouseY"/>
         }
     }
 </div>

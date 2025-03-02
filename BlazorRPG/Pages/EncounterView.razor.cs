@@ -5,15 +5,16 @@ using Microsoft.JSInterop;
 public partial class EncounterViewBase : ComponentBase
 {
     [Inject] public IJSRuntime JSRuntime { get; set; } // Inject IJSRuntime
-    [Parameter] public EventCallback<EncounterResult> OnEncounterCompleted { get; set; }
-    [Parameter] public Encounter encounter { get; set; }
-    [Inject] public GameState GameState { get; set; }
     [Inject] public GameManager GameManager { get; set; }
+    [Parameter] public EventCallback<EncounterResult> OnEncounterCompleted { get; set; }
+    [Parameter] public Encounter Encounter { get; set; }
 
     public UserEncounterChoiceOption hoveredChoice;
     public bool showTooltip;
     public double mouseX;
     public double mouseY;
+
+    public EncounterViewModel Model => GameManager.GetEncounterViewModel();
 
     public async Task ShowTooltip(UserEncounterChoiceOption choice, MouseEventArgs e)
     {
@@ -68,8 +69,7 @@ public partial class EncounterViewBase : ComponentBase
 
     public int GetCurrentValue(ValueTypes changeType)
     {
-        Encounter encounter = GameState.Actions.CurrentEncounter;
-        EncounterState state = encounter.State;
+        EncounterState state = Model.State;
         switch(changeType)
         {
             case ValueTypes.Momentum:
@@ -226,10 +226,4 @@ public partial class EncounterViewBase : ComponentBase
         };
     }
 
-}
-
-public class Dimensions
-{
-    public int WindowHeight { get; set; }
-    public int TooltipHeight { get; set; }
 }

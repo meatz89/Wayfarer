@@ -1,19 +1,17 @@
-﻿
-/// <summary>
+﻿/// <summary>
 /// Manages the state and progression of an Encounter
 /// </summary>
 public class Encounter
 {
-    private EncounterState _state;
 
     private int _currentTurn = 1;
     private List<Choice> _currentChoices;
     public int CurrentTurn => _currentTurn;
-
-    public EncounterState State => _state;
+    
     public IReadOnlyList<Choice> CurrentChoices => _currentChoices.AsReadOnly();
     public EncounterContext EncounterContext = new EncounterContext();
     public EncounterHistory History = new EncounterHistory();
+    public EncounterState State;
 
     public Encounter(
         EncounterContext context,
@@ -21,12 +19,18 @@ public class Encounter
         Dictionary<FocusTypes, int> initialFocusTypesDict = null)
     {
         EncounterContext = context;
-        _state = new EncounterState();
+        State = new EncounterState();
+
+        // Set some initial tag values
+        State.ApproachTypesDic[ApproachTypes.Force] = 1;
+        State.ApproachTypesDic[ApproachTypes.Charm] = 2;
+        State.FocusTypesDic[FocusTypes.Relationship] = 1;
+        State.FocusTypesDic[FocusTypes.Information] = 2;
 
         // Set up initial tags if provided
         if (initialApproachTypesDict != null && initialFocusTypesDict != null)
         {
-            _state.SetInitialTags(initialApproachTypesDict, initialFocusTypesDict);
+            State.SetInitialTags(initialApproachTypesDict, initialFocusTypesDict);
         }
     }
 
@@ -47,7 +51,7 @@ public class Encounter
         }
 
         // Apply the choice effects
-        _state = _state.ApplyChoice(choice);
+        State = State.ApplyChoice(choice);
 
         // Advance to the next turn
         _currentTurn++;
@@ -61,7 +65,7 @@ public class Encounter
     public bool IsComplete()
     {
         // Encounter ends if we reach the duration or hit failure condition
-        return _currentTurn > EncounterContext.Location.Duration || _state.Pressure >= 10;
+        return _currentTurn > EncounterContext.Location.Duration || State.Pressure >= 10;
     }
 
     /// <summary>
@@ -69,7 +73,7 @@ public class Encounter
     /// </summary>
     public (bool Succeeded, string Result) GetOutcome()
     {
-        return _state.GetOutcome(EncounterContext.Location);
+        return State.GetOutcome(EncounterContext.Location);
     }
 }
 

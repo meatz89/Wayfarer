@@ -60,6 +60,7 @@ public class EncounterState
     /// </summary>
     public EncounterState ApplyChoice(Choice choice)
     {
+        EncounterState oldState = this;
         EncounterState newState = new EncounterState(Momentum, Pressure);
         newState.ApproachTypesDic = new Dictionary<ApproachTypes, int>(ApproachTypesDic);
         newState.FocusTypesDic = new Dictionary<FocusTypes, int>(FocusTypesDic);
@@ -96,7 +97,12 @@ public class EncounterState
             if (Pressure == 0)
                 return Momentum > 0 ? double.PositiveInfinity : 1.0;
 
-            return (double)Momentum / Pressure;
+            double value = 5;
+            
+            if(Pressure > 0)
+                Math.Clamp((double)Momentum / Pressure, 0, 5);
+
+            return value;
         }
     }
 
