@@ -133,27 +133,34 @@ public class NarrativeChoiceGenerator
     {
         float mRatio = state.Momentum / 10.0f;
         float pRatio = state.Pressure / 10.0f;
-        float mpBalance = mRatio - pRatio; // Direct momentum-to-pressure comparison
+        float mpBalance = mRatio - pRatio; // Momentum vs Pressure balance
 
-        if (mRatio < 0.2f && pRatio < 0.2f)
-            return NarrativePhases.Introduction;
-
-        if (mRatio > 0.6f && pRatio < 0.4f) // Strong momentum, fading pressure
+        // Resolution: Momentum is close to max, indicating the encounter is nearing its end.
+        if (mRatio >= 0.9f) // Momentum is near maximum, resolution is nearing
             return NarrativePhases.Resolution;
 
-        if (mpBalance > 0.2f && mRatio > 0.6f) // Momentum significantly outweighs pressure
-            return NarrativePhases.Breakthrough;
-
-        if (pRatio >= 0.6f && mRatio < 0.5f)
-            return NarrativePhases.Escalation;
-
-        if (mpBalance < -0.2f && pRatio > 0.6f) // Pressure remains dominant
-            return NarrativePhases.Escalation;
-
-        if (pRatio >= 0.8f && mRatio >= 0.7f)
+        // Crisis: Pressure is overwhelming (can happen even if Momentum is low)
+        if (pRatio >= 0.8f)
             return NarrativePhases.Crisis;
 
-        return NarrativePhases.Complication; // Default fallback
+        // Breakthrough: Momentum significantly outweighs Pressure (strong push through).
+        if (mpBalance > 0.2f && mRatio > 0.6f) // Momentum should strongly dominate
+            return NarrativePhases.Breakthrough;
+
+        // Escalation: Pressure significantly outweighs Momentum (pressure intensifies).
+        if (mpBalance < -0.1f && pRatio > 0.6f) // Pressure dominates, causing escalation
+            return NarrativePhases.Escalation;
+
+        // Complication: Pressure is high, but Momentum isn't making enough headway.
+        if (pRatio > 0.6f && mRatio < 0.4f) // Pressure is overwhelming, complications arise
+            return NarrativePhases.Complication;
+
+        // Introduction: When both Momentum and Pressure are low (or non-existent).
+        if (mRatio < 0.15f && pRatio < 0.15f)
+            return NarrativePhases.Introduction;
+
+        // Default to Complication if no phase is clearly matched, as it's a more neutral, ongoing phase
+        return NarrativePhases.Complication;
     }
 
     /// <summary>
