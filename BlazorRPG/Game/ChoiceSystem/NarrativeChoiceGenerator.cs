@@ -6,6 +6,7 @@ public class NarrativeChoiceGenerator
     private readonly ChoiceRepository _repository;
     private readonly Dictionary<NarrativeTypes, List<Choice>> _narrativeChoicesCache = new Dictionary<NarrativeTypes, List<Choice>>();
     private readonly Dictionary<NarrativePhases, List<Choice>> _phaseChoicesCache = new Dictionary<NarrativePhases, List<Choice>>();
+    public NarrativePhases NarrativePhase;
 
     public NarrativeChoiceGenerator(ChoiceRepository repository)
     {
@@ -20,6 +21,7 @@ public class NarrativeChoiceGenerator
     {
         // 1. Determine narrative context from current state
         NarrativeContext context = DetermineNarrativeContext(state);
+        NarrativePhase = context.Phase;
 
         // 2. Get primary choices that define narrative direction
         List<Choice> selectedChoices = SelectPrimaryChoices(state, context);
@@ -129,21 +131,29 @@ public class NarrativeChoiceGenerator
     /// </summary>
     private NarrativePhases DetermineNarrativePhase(EncounterState state)
     {
-        float mRatio = (float)state.Momentum / Math.Max(1, (int)state.MaxMomentum);
-        float pRatio = (float)state.Pressure / 10.0f;
+        float mRatio = state.Momentum / 10.0f;
+        float pRatio = state.Pressure / 10.0f;
+        float mpBalance = mRatio - pRatio; // Direct momentum-to-pressure comparison
 
-        if (pRatio > 0.8f && mRatio > 0.6f)
-            return NarrativePhases.Crisis;
-        else if (pRatio > 0.7f && mRatio < 0.4f)
-            return NarrativePhases.Escalation;
-        else if (pRatio > 0.5f && mRatio > 0.5f)
-            return NarrativePhases.Resolution;
-        else if (pRatio > 0.5f)
-            return NarrativePhases.Breakthrough;
-        else if (pRatio > 0.3f || mRatio > 0.3f)
-            return NarrativePhases.Complication;
-        else
+        if (mRatio < 0.2f && pRatio < 0.2f)
             return NarrativePhases.Introduction;
+
+        if (mRatio > 0.6f && pRatio < 0.4f) // Strong momentum, fading pressure
+            return NarrativePhases.Resolution;
+
+        if (mpBalance > 0.2f && mRatio > 0.6f) // Momentum significantly outweighs pressure
+            return NarrativePhases.Breakthrough;
+
+        if (pRatio >= 0.6f && mRatio < 0.5f)
+            return NarrativePhases.Escalation;
+
+        if (mpBalance < -0.2f && pRatio > 0.6f) // Pressure remains dominant
+            return NarrativePhases.Escalation;
+
+        if (pRatio >= 0.8f && mRatio >= 0.7f)
+            return NarrativePhases.Crisis;
+
+        return NarrativePhases.Complication; // Default fallback
     }
 
     /// <summary>

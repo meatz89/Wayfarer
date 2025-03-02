@@ -9,6 +9,9 @@ public class Encounter
     public int CurrentTurn => _currentTurn;
     
     public IReadOnlyList<Choice> CurrentChoices => _currentChoices.AsReadOnly();
+
+    public NarrativePhases NarrativePhase { get; internal set; }
+
     public EncounterContext EncounterContext = new EncounterContext();
     public EncounterHistory History = new EncounterHistory();
     public EncounterState State;

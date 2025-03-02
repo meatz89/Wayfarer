@@ -50,6 +50,7 @@
         // Create first ChoiceSet
         List<Choice> currentChoices = choiceSystem.GenerateChoices(encounterState);
         Encounter.SetChoices(currentChoices);
+        Encounter.NarrativePhase = choiceSystem.NarrativePhase;
 
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
@@ -80,23 +81,24 @@
         // Create new ChoiceSet
         List<Choice> currentChoices = choiceSystem.GenerateChoices(newState);
         Encounter.SetChoices(currentChoices);
+        Encounter.NarrativePhase = choiceSystem.NarrativePhase;
 
         narrativeSystem.MakeChoicePrompt(choice);
 
         // Check for game over conditions
         (bool Succeeded, string Result) outcome = Encounter.GetOutcome();
 
-        if (outcome.Succeeded)
-        {
-            return new()
-            {
-                Encounter = Encounter,
-                EncounterResults = EncounterResults.EncounterSuccess,
-                EncounterEndMessage = outcome.Result
-            };
-        }
-        else
-        {
+        //if (outcome.Succeeded)
+        //{
+        //    return new()
+        //    {
+        //        Encounter = Encounter,
+        //        EncounterResults = EncounterResults.EncounterSuccess,
+        //        EncounterEndMessage = outcome.Result
+        //    };
+        //}
+        //else
+        //{
             //gameState.Actions.EncounterResult = EncounterResult;
             return new EncounterResult()
             {
@@ -104,7 +106,7 @@
                 EncounterResults = EncounterResults.Ongoing,
                 EncounterEndMessage = "Ongoing"
             };
-        }
+        //}
     }
 
     public Encounter GetActiveEncounter()

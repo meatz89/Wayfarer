@@ -4,6 +4,8 @@
     private readonly ChoiceCalculator calculator;
     private readonly NarrativeChoiceGenerator choiceSetGenerator;
 
+    public NarrativePhases NarrativePhase;
+
     public ChoiceSystem(
         GameContentProvider contentProvider,
         GameState gameState)
@@ -19,6 +21,9 @@
         ChoiceRepository repository = new ChoiceRepository();
         NarrativeChoiceGenerator generator = new NarrativeChoiceGenerator(repository);
         List<Choice> choices = generator.GenerateChoiceSet(state);
+
+        NarrativePhase = generator.NarrativePhase;
+
         return choices;
     }
 

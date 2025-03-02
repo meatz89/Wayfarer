@@ -529,15 +529,6 @@ public class GameManager
         gameState.Actions.ActiveQuests = quests;
     }
 
-    public EncounterViewModel? GetEncounterViewModel()
-    {
-        EncounterViewModel model = new EncounterViewModel();
-        model.CurrentEncounter = EncounterSystem.GetActiveEncounter();
-        model.CurrentChoices = EncounterSystem.GetCurrentChoices();
-        model.State = model.CurrentEncounter.State;
-
-        return model;
-    }
 
     public ActionResult ExecuteBasicAction(UserActionOption action)
     {
@@ -559,5 +550,16 @@ public class GameManager
         }
 
         return ActionResult.Success("Encounter started!", new ActionResultMessages());
+    }
+
+    public EncounterViewModel? GetEncounterViewModel()
+    {
+        EncounterViewModel model = new EncounterViewModel();
+        model.CurrentEncounter = EncounterSystem.GetActiveEncounter();
+        model.CurrentChoices = EncounterSystem.GetCurrentChoices();
+        model.State = model.CurrentEncounter.State;
+        model.ChoiceSetName = model.CurrentEncounter.NarrativePhase.ToString();
+
+        return model;
     }
 }

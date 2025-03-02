@@ -9,7 +9,6 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     [Parameter] public double mouseX { get; set; }
     [Parameter] public double mouseY { get; set; }
 
-
     public List<LocationPropertyChoiceEffect> GetLocationSpotEffects(Choice choice)
     {
         return GameManager.GetLocationEffects(encounter, choice);

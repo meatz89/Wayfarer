@@ -20,10 +20,11 @@ public class EncounterState
     /// <summary>
     /// Creates a new Encounter state with optional initial values
     /// </summary>
-    public EncounterState(int momentum = 0, int pressure = 0)
+    public EncounterState(int momentum = 0, int pressure = 0, int maxMomentum = 10)
     {
         Momentum = momentum;
         Pressure = pressure;
+        MaxMomentum = maxMomentum;
 
         // Initialize all approach tags to 0
         ApproachTypesDic = new Dictionary<ApproachTypes, int>();
