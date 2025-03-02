@@ -1,6 +1,4 @@
-﻿using System.Reflection.Emit;
-
-public class EncounterSystem
+﻿public class EncounterSystem
 {
     private readonly GameState gameState;
     private readonly ChoiceSystem choiceSystem;
@@ -48,7 +46,6 @@ public class EncounterSystem
         
         Encounter = new Encounter(context, initialApproachTypess, initialFocusTypess);
         EncounterState encounterState = Encounter.State;
-        narrativeSystem.NewEncounter(context, actionImplementation);
 
         // Create first ChoiceSet
         List<Choice> currentChoices = choiceSystem.GenerateChoices(encounterState);
@@ -56,6 +53,9 @@ public class EncounterSystem
 
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
+        
+        gameState.Actions.SetActiveEncounter(Encounter);
+        narrativeSystem.NewEncounter(context, actionImplementation);
 
         return Encounter;
     }
@@ -97,11 +97,12 @@ public class EncounterSystem
         }
         else
         {
-            return new()
+            //gameState.Actions.EncounterResult = EncounterResult;
+            return new EncounterResult()
             {
-                Encounter = Encounter,
+                Encounter = encounter,
                 EncounterResults = EncounterResults.Ongoing,
-                EncounterEndMessage = ""
+                EncounterEndMessage = "Ongoing"
             };
         }
     }
@@ -109,28 +110,6 @@ public class EncounterSystem
     public Encounter GetActiveEncounter()
     {
         return gameState.Actions.CurrentEncounter;
-    }
-
-    public void SetActiveEncounter(Encounter encounter)
-    {
-        gameState.Actions.SetActiveEncounter(Encounter);
-    }
-
-    public Encounter GetEncounterForChoice(Choice choice)
-    {
-        return gameState.Actions.CurrentEncounter;
-    }
-
-    public string GetStageNarrative(ChoicesNarrativeResponse choicesNarrativeResponse)
-    {
-        string sceneNarrative = choicesNarrativeResponse.introductory_narrative;
-        return sceneNarrative;
-    }
-
-    public List<ChoicesNarrative> GetStageChoicesNarrative(ChoicesNarrativeResponse choicesNarrativeResponse)
-    {
-        List<ChoicesNarrative> choicesNarrative = choicesNarrativeResponse.choices.ToList();
-        return choicesNarrative;
     }
 
     public List<UserEncounterChoiceOption> GetCurrentChoices()

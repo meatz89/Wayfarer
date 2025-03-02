@@ -5,6 +5,7 @@ public class EncounterState
 {
     // Core resources
     public int Momentum { get; private set; }
+    public int MaxMomentum { get; internal set; }
     public int Pressure { get; private set; }
 
     // All approach tag values
@@ -105,6 +106,7 @@ public class EncounterState
             return value;
         }
     }
+
 
     /// <summary>
     /// Determine whether the Encounter has succeeded or failed

@@ -2,7 +2,7 @@
 {
     private readonly GameState gameState;
     private readonly ChoiceCalculator calculator;
-    private readonly ChoiceGenerator choiceSetGenerator;
+    private readonly NarrativeChoiceGenerator choiceSetGenerator;
 
     public ChoiceSystem(
         GameContentProvider contentProvider,
@@ -17,7 +17,7 @@
         )
     {
         ChoiceRepository repository = new ChoiceRepository();
-        ChoiceGenerator generator = new ChoiceGenerator(repository);
+        NarrativeChoiceGenerator generator = new NarrativeChoiceGenerator(repository);
         List<Choice> choices = generator.GenerateChoiceSet(state);
         return choices;
     }
