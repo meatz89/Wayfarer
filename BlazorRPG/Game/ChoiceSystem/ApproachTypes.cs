@@ -1,5 +1,4 @@
-﻿
-public enum ApproachTypes
+﻿public enum ApproachTypes
 {
     Force,
     Finesse,

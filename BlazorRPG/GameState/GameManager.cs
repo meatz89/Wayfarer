@@ -16,7 +16,7 @@ public class GameManager
 
     public GameManager(
         GameState gameState,
-        EncounterSystem encounterSystem,
+        EncounterSystem EncounterSystem,
         LocationSystem locationSystem,
         ActionValidator actionValidator,
         ActionSystem actionSystem,
@@ -31,7 +31,7 @@ public class GameManager
         this.gameState = gameState;
         this.currentRules = GameRules.StandardRuleset;
 
-        this.EncounterSystem = encounterSystem;
+        this.EncounterSystem = EncounterSystem;
         this.LocationSystem = locationSystem;
         this.ActionValidator = actionValidator;
         this.ActionSystem = actionSystem;
@@ -88,9 +88,7 @@ public class GameManager
             Encounter encounter = GenerateEncounter(actionImplementation, location, gameState.Player, action.LocationSpot);
             EncounterSystem.SetActiveEncounter(encounter);
 
-            EncounterStage firstStage = encounter.GetCurrentStage();
-
-            List<UserEncounterChoiceOption> choiceOptions = EncounterSystem.GetChoices(encounter);
+            List<UserEncounterChoiceOption> choiceOptions = GetChoices(encounter);
             gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
         }
         else
@@ -101,24 +99,50 @@ public class GameManager
         return ActionResult.Success("Encounter started!", new ActionResultMessages());
     }
 
+    public List<UserEncounterChoiceOption> GetChoices(Encounter encounter)
+    {
+        List<Choice> choices = encounter.CurrentChoices.ToList();
+        List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
+
+        int i = 0;
+        foreach (Choice choice in choices)
+        {
+            i++;
+
+            LocationNames locationName = encounter.EncounterContext.Location.LocationName;
+            string locationSpotName = encounter.EncounterContext.LocationSpot.Name;
+
+            UserEncounterChoiceOption option = new UserEncounterChoiceOption(
+                i,
+                choice.ToString(),
+                "Narrative",
+                locationName,
+                locationSpotName,
+                encounter,
+                choice);
+
+            choiceOptions.Add(option);
+        }
+
+        return choiceOptions;
+    }
 
     public EncounterResult ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
     {
         Encounter encounter = choiceOption.Encounter;
-        EncounterStage stage = choiceOption.EncounterStage;
 
         Location location = LocationSystem.GetLocation(choiceOption.LocationName);
         LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(choiceOption.LocationName, choiceOption.locationSpotName);
 
         // Execute the choice
-        EncounterResult encounterResult = EncounterSystem.ExecuteChoice(encounter, stage, choiceOption.Choice, locationSpot);
+        EncounterResult EncounterResult = EncounterSystem.ExecuteChoice(encounter, choiceOption.Choice, locationSpot);
 
-        List<UserEncounterChoiceOption> choiceOptions = EncounterSystem.GetChoices(encounter);
+        List<UserEncounterChoiceOption> choiceOptions = GetChoices(encounter);
         gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
 
-        gameState.Actions.EncounterResult = encounterResult;
+        gameState.Actions.EncounterResult = EncounterResult;
 
-        if (encounterResult.encounterResults == EncounterResults.Ongoing)
+        if (EncounterResult.EncounterResults == EncounterResults.Ongoing)
         {
             if (IsGameOver(gameState.Player))
             {
@@ -126,19 +150,19 @@ public class GameManager
 
                 return new EncounterResult()
                 {
-                    encounter = encounter,
-                    encounterResults = EncounterResults.GameOver,
+                    Encounter = encounter,
+                    EncounterResults = EncounterResults.GameOver,
                     EncounterEndMessage = "Game Over"
                 };
             }
 
         }
 
-        //gameState.Actions.EncounterResult = encounterResult;
+        //gameState.Actions.EncounterResult = EncounterResult;
         return new EncounterResult()
         {
-            encounter = encounter,
-            encounterResults = EncounterResults.Ongoing,
+            Encounter = encounter,
+            EncounterResults = EncounterResults.Ongoing,
             EncounterEndMessage = "Ongoing"
         };
     }
@@ -158,14 +182,6 @@ public class GameManager
             Location = location,
             LocationSpot = locationSpot,
         };
-
-        EncounterStateInitializer encounterStateInitializer = new EncounterStateInitializer();
-        EncounterStageState StageValues = EncounterStateInitializer.Generate(
-                location,
-                locationSpot,
-                gameState,
-                playerLevel
-            );
 
         UserActionOption action = gameState.Actions.LocationSpotActions.Where(x => x.LocationSpot == locationSpot.Name).First();
         ActionImplementation actionImpl = action.ActionImplementation;

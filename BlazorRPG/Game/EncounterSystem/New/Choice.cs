@@ -1,26 +1,22 @@
 ﻿public class Choice
 {
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public EffectTypes EffectType { get; set; }
-    public ApproachTypes Approach { get; set; }
-    public FocusTypes Focus { get; set; }
-    public string Description { get; set; }
-    public string Narrative { get; set; } = "None";
-    public bool IsEncounterWinningChoice { get; internal set; } = false;
-    public bool IsEncounterFailingChoice { get; internal set; } = false;
+    public string Id { get; }
+    public string Name { get; }
+    public ApproachTypes ApproachType { get; }
+    public FocusTypes FocusType { get; }
+    public EffectTypes EffectType { get; }
 
-    // The effect value depends on the balance state
-    public int GetEffectValue(bool isStable)
+    public Choice(string id, string name, ApproachTypes approach, FocusTypes focus, EffectTypes effect)
     {
-        if (EffectType == EffectTypes.Momentum && !isStable)
-            return 2; // Unstable momentum gives +2
-
-        return 1; // All other effects give +1
+        Id = id;
+        Name = name;
+        ApproachType = approach;
+        FocusType = focus;
+        EffectType = effect;
     }
 
     public override string ToString()
     {
-        return $"{Name} ({EffectType}, {Approach}, {Focus})";
+        return $"{Name} ({EffectType}, {ApproachType}, {FocusType})";
     }
 }

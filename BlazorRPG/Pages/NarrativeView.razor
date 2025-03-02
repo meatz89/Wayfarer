@@ -5,7 +5,7 @@
         @if (ShowResult)
         {
             <h3>
-                @(Result.encounterResults switch
+                @(Result.EncounterResults switch
                 {
                     EncounterResults.EncounterSuccess => "Encounter Won!",
                     EncounterResults.EncounterFailure => "Encounter Lost",
@@ -25,7 +25,7 @@
             <div class="tooltip-section">
                 <h5>Consequences</h5>
                 <div class="tooltip-list">
-                    @if (Result.encounterResults == EncounterResults.EncounterSuccess)
+                    @if (Result.EncounterResults == EncounterResults.EncounterSuccess)
                     {
                         foreach (Outcome reward in GetActionOutcomesSuccess())
                         {
@@ -44,7 +44,7 @@
                     }
                 </div>
                 <div class="tooltip-list">
-                    @if (Result.encounterResults == EncounterResults.EncounterFailure)
+                    @if (Result.EncounterResults == EncounterResults.EncounterFailure)
                     {
                         @foreach (Outcome reward in GetActionOutcomesFailure())
                         {

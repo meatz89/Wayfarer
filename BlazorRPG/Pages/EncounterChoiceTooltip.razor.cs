@@ -4,7 +4,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
 {
     [Inject] public GameManager GameManager { get; set; }
     [Inject] public GameState GameState { get; set; }
-    [Parameter] public Encounter Encounter { get; set; }
+    [Parameter] public Encounter encounter { get; set; }
     [Parameter] public UserEncounterChoiceOption hoveredChoice { get; set; }
     [Parameter] public double mouseX { get; set; }
     [Parameter] public double mouseY { get; set; }
@@ -12,7 +12,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
 
     public List<LocationPropertyChoiceEffect> GetLocationSpotEffects(Choice choice)
     {
-        return GameManager.GetLocationEffects(Encounter, choice);
+        return GameManager.GetLocationEffects(encounter, choice);
     }
 
     public List<DetailedChange> GetValueChanges(Choice choice)

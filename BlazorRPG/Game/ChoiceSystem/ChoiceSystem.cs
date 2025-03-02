@@ -1,6 +1,4 @@
-﻿using System.Reflection.Emit;
-
-public class ChoiceSystem
+﻿public class ChoiceSystem
 {
     private readonly GameState gameState;
     private readonly ChoiceCalculator calculator;
@@ -11,134 +9,41 @@ public class ChoiceSystem
         GameState gameState)
     {
         this.gameState = gameState;
-        //this.choiceSetGenerator = new ChoiceGenerator(gameState);
         this.calculator = new ChoiceCalculator(gameState);
     }
 
-    private bool IsEncounterWon(EncounterContext context, int momentum)
-    {
-        const int WIN_BASE = 10;
-        int OUTCOME_WIN = context.Location.Difficulty + WIN_BASE;
-
-        if (momentum >= OUTCOME_WIN)
-            return true;
-
-        return false;
-    }
-
-    private bool IsEncounterLost(EncounterContext context, int pressure)
-    {
-        const int LOSE_BASE = 10;
-        if (pressure >= LOSE_BASE)
-            return true;
-
-        return false;
-    }
-
-    public ChoicesModel GenerateChoices(
-        Encounter encounter,
-        EncounterContext encounterContext,
+    public List<Choice> GenerateChoices(
         EncounterState state
         )
     {
-        //List<EncounterChoice> choices = new List<EncounterChoice>(); // choiceSetGenerator.CreateEncounterChoices(encounter, encounterContext, encounterStageContext, template);
-        //ChoiceSet choiceSet = CreateChoiceSet(currentValues, encounterContext, choices);
+        //List<EncounterChoice> choices = new List<EncounterChoice>(); // choiceSetGenerator.CreateEncounterChoices(Encounter, EncounterContext, EncounterStageContext, template);
+        //ChoiceSet choiceSet = CreateChoiceSet(currentValues, EncounterContext, choices);
 
-        //RunExample();
+        ChoiceRepository repository = new ChoiceRepository();
+        ChoiceGenerator generator = new ChoiceGenerator(repository);
 
         // Set some initial tag values
-        state.ApproachTags[ApproachTypes.Force] = 1;
-        state.ApproachTags[ApproachTypes.Charm] = 2;
-        state.ApproachTags[ApproachTypes.Wit] = 1;
-        state.FocusTags[FocusTypes.Relationship] = 1;
-        state.FocusTags[FocusTypes.Information] = 2;
+        state.ApproachTypesDic[ApproachTypes.Force] = 1;
+        state.ApproachTypesDic[ApproachTypes.Charm] = 2;
+        state.ApproachTypesDic[ApproachTypes.Wit] = 1;
+        state.FocusTypesDic[FocusTypes.Relationship] = 1;
+        state.FocusTypesDic[FocusTypes.Information] = 2;
 
-        ChoiceGenerator generator = new ChoiceGenerator();
         List<Choice> choices = generator.GenerateChoiceSet(state);
 
         foreach (Choice choice in choices)
         {
-            EncounterState projectedState = state.ApplyChoice(choice, state.IsStable);
-            if (IsEncounterWon(encounterContext, projectedState.Momentum)) choice.IsEncounterWinningChoice = true;
-            if (IsEncounterLost(encounterContext, projectedState.Pressure)) choice.IsEncounterFailingChoice = true;
+            EncounterState projectedState = state.ApplyChoice(choice);
         }
 
-
-        ChoicesModel choicesModel = new ChoicesModel();
-        choicesModel.Choices = choices;
-        choicesModel.EncounterState = state;
-
-        return choicesModel;
+        return choices;
     }
 
-    public EncounterState ApplyChoice(EncounterState state, Choice selectedChoice)
-    {
-        EncounterState newState = state.ApplyChoice(selectedChoice, state.IsStable);
-        return newState;
-    }
-
-    private static void RunExample()
-    {
-        // Create an initial encounter state
-        EncounterState state = new EncounterState
-        {
-            Momentum = 0,
-            Pressure = 0,
-            CurrentTurn = 1
-        };
-
-        // Set some initial tag values
-        state.ApproachTags[ApproachTypes.Force] = 1;
-        state.ApproachTags[ApproachTypes.Charm] = 2;
-        state.ApproachTags[ApproachTypes.Wit] = 1;
-        state.FocusTags[FocusTypes.Relationship] = 1;
-        state.FocusTags[FocusTypes.Information] = 2;
-
-        // Create choice generator
-        ChoiceGenerator generator = new ChoiceGenerator();
-
-        // Example of running an encounter for 6 turns
-        for (int turn = 1; turn <= 6; turn++)
-        {
-            Console.WriteLine($"Turn {turn}");
-            Console.WriteLine($"Momentum: {state.Momentum}, Pressure: {state.Pressure}");
-            Console.WriteLine("Tag Values:");
-
-            foreach (KeyValuePair<ApproachTypes, int> pair in state.ApproachTags)
-            {
-                Console.WriteLine($"  {pair.Key}: {pair.Value}");
-            }
-
-            foreach (KeyValuePair<FocusTypes, int> pair in state.FocusTags)
-            {
-                Console.WriteLine($"  {pair.Key}: {pair.Value}");
-            }
-
-            // Generate choices for this turn
-            List<Choice> choices = generator.GenerateChoiceSet(state);
-
-            Console.WriteLine("Available Choices:");
-            for (int i = 0; i < choices.Count; i++)
-            {
-                Console.WriteLine($"  {i + 1}. {choices[i].Name} ({choices[i].EffectType}, {choices[i].Approach}, {choices[i].Focus})");
-            }
-
-            // Simulate player selecting the first choice
-            Choice selectedChoice = choices[0];
-            Console.WriteLine($"Selected: {selectedChoice.Name}");
-
-            // Apply the choice effects
-            state.ApplyChoice(selectedChoice, state.IsStable);
-
-            Console.WriteLine();
-        }
-    }
-
-    public ChoiceSet CreateChoiceSet(EncounterStageState initialValues, EncounterContext context, List<Choice> choices)
+    public ChoiceSet CreateChoiceSet(EncounterContext context, List<Choice> choices)
     {
         foreach (Choice choice in choices)
         {
-            calculator.CalculateChoiceEffects(choice, context, initialValues);
+            calculator.CalculateChoiceEffects(choice, context);
         }
 
         foreach (Choice choice in choices)
@@ -151,5 +56,5 @@ public class ChoiceSystem
 
         return new ChoiceSet(context.ActionType.ToString(), choices);
     }
-
 }
+

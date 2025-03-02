@@ -1,9 +1,13 @@
-﻿public class EncounterSystem
+﻿using System.Reflection.Emit;
+
+public class EncounterSystem
 {
     private readonly GameState gameState;
     private readonly ChoiceSystem choiceSystem;
     private readonly NarrativeSystem narrativeSystem;
     private readonly ChoiceExecutor choiceExecutor;
+
+    private Encounter Encounter;
 
     public EncounterSystem(
         GameState gameState,
@@ -18,186 +22,100 @@
         this.choiceExecutor = new ChoiceExecutor(gameState);
     }
 
-    private EncounterStage GenerateStage(Encounter encounter, EncounterContext encounterContext, EncounterState encounterState)
+    public Encounter GenerateEncounter(EncounterContext context, ActionImplementation actionImplementation)
     {
-        // Get choice set from choice system
-        //ChoiceSet choiceSet = choiceSystem.GenerateChoices(encounter, encounterContext, encounterStageContext);
-        ChoicesModel choicesModel = choiceSystem.GenerateChoices(encounter, encounterContext, encounterState);
+        // Initial tags for a social Encounter
+        Dictionary<ApproachTypes, int> initialApproachTypess = new Dictionary<ApproachTypes, int>
+            {
+                { ApproachTypes.Charm, 1 },
+                { ApproachTypes.Wit, 1 }
+            };
 
-        if (choicesModel == null || choicesModel.Choices.Count == 0)
-            return null;
+        Dictionary<FocusTypes, int> initialFocusTypess = new Dictionary<FocusTypes, int>
+            {
+                { FocusTypes.Relationship, 1 },
+                { FocusTypes.Resource, 1 }
+            };
 
-        // Create stage with pre-calculated choices
-        string newSituation = "situation";
-        if (gameState.GameMode != Modes.Debug)
-        {
-            //ChoicesNarrativeResponse choicesNarrativeResponse = narrativeSystem.GetChoicesNarrative(encounterStageContext, choicesModel.Choices);
-            //newSituation = GetStageNarrative(choicesNarrativeResponse);
-            //List<ChoicesNarrative> choicesTexts = GetStageChoicesNarrative(choicesNarrativeResponse);
-            //choicesModel.ApplyNarratives(choicesTexts);
-        }
+        
+        Location inn = context.Location;
+        inn.Name = "Harbor Tavern";
+        inn.Duration = 5;
+        inn.FailThreshold = 7;
+        inn.PartialSuccessThreshold = 8;
+        inn.StandardSuccessThreshold = 10;
+        inn.ExceptionalSuccessThreshold = 12;
+        
+        Encounter = new Encounter(context, initialApproachTypess, initialFocusTypess);
+        
+        narrativeSystem.NewEncounter(context, actionImplementation);
 
-        return new EncounterStage
-        {
-            Situation = newSituation,
-            EncounterState = choicesModel.EncounterState,
-            Choices = choicesModel.Choices
-        };
-    }
+        // Create first ChoiceSet
+        List<Choice> currentChoices = choiceSystem.GenerateChoices(Encounter.State);
+        Encounter.SetChoices(currentChoices);
 
-    public bool GetNextStage(Encounter encounter, EncounterState newState)
-    {
-        EncounterStage newStage = GenerateStage(encounter, encounter.EncounterContext, newState);
-        if (newStage == null)
-            return false;
+        // Create Encounter with initial stage
+        string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
 
-        encounter.AddStage(newStage);
-        return true;
-    }
-
-    public List<UserEncounterChoiceOption> GetChoices(Encounter encounter)
-    {
-        EncounterStage stage = GetCurrentStage(encounter);
-        List<Choice> choices = stage.Choices;
-
-        List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
-
-        int i = 0;
-        foreach (Choice choice in choices)
-        {
-            i++;
-
-            LocationNames locationName = encounter.EncounterContext.Location.LocationName;
-            string locationSpotName = encounter.EncounterContext.LocationSpot.Name;
-
-            UserEncounterChoiceOption option = new UserEncounterChoiceOption(
-                i,
-                choice.ToString(),
-                choice.Description,
-                choice.Narrative,
-                locationName,
-                locationSpotName,
-                encounter,
-                stage,
-                choice);
-
-            choiceOptions.Add(option);
-        }
-
-        return choiceOptions;
+        return Encounter;
     }
 
     public EncounterResult ExecuteChoice(
         Encounter encounter,
-        EncounterStage stage,
         Choice choice,
         LocationSpot locationSpot)
     {
         // Execute the choice with the actual modified values from the result
-        //choiceExecutor.ExecuteChoice(encounter, choice, choice.CalculationResult);
+        //choiceExecutor.ExecuteChoice(Encounter, choice, choice.CalculationResult);
 
         // Update last choice type
-        encounter.LastStage = stage;
-        encounter.LastChoice = choice;
-        encounter.LastChoiceEffectType = choice.EffectType;
-        encounter.LastChoiceApproach = choice.Approach;
-        encounter.LastChoiceFocusType = choice.Focus;
+        Encounter.History.LastChoice = choice;
+        Encounter.History.LastChoiceEffectType = choice.EffectType;
+        Encounter.History.LastChoiceApproach = choice.ApproachType;
+        Encounter.History.LastChoiceFocusType = choice.FocusType;
 
-        EncounterState encounterState = encounter.GetCurrentStage().EncounterState;
+        EncounterState EncounterState = Encounter.State;
 
-        EncounterState newState = choiceSystem.ApplyChoice(encounterState, choice);
-        narrativeSystem.MakeChoice(encounter.EncounterContext, choice);
+        Encounter.MakeChoice(choice);
 
-        GetNextStage(encounter, newState);
-        EncounterStage newStage = encounter.AdvanceStage(newState);
+        // Create new ChoiceSet
+        List<Choice> currentChoices = choiceSystem.GenerateChoices(Encounter.State);
+        Encounter.SetChoices(currentChoices);
+
+
+        narrativeSystem.MakeChoicePrompt(choice);
 
         // Check for game over conditions
-        return ProcessEncounterStageResult(encounter, stage, choice);
-    }
+        (bool Succeeded, string Result) outcome = Encounter.GetOutcome();
 
-
-    private EncounterResult ProcessEncounterStageResult(Encounter encounter, EncounterStage lastStage, Choice choice)
-    {
-        bool isEncounterEndingChoice = choice.IsEncounterFailingChoice || choice.IsEncounterWinningChoice;
-        if (isEncounterEndingChoice)
+        if (outcome.Succeeded)
         {
-            if (choice.IsEncounterFailingChoice)
+            return new()
             {
-                string narrative = "Failure";
-                if (gameState.GameMode != Modes.Debug)
-                {
-                    narrative = narrativeSystem.GetEncounterFailureNarrative(lastStage.EncounterState);
-                }
-                EncounterResult failResult = new()
-                {
-                    encounter = encounter,
-                    encounterResults = EncounterResults.EncounterFailure,
-                    EncounterEndMessage = ""
-                };
-                return failResult;
-            }
-
-            if (choice.IsEncounterWinningChoice)
-            {
-
-                string narrative = "Success";
-                if (gameState.GameMode != Modes.Debug)
-                {
-                    narrative = narrativeSystem.GetEncounterSuccessNarrative(lastStage.EncounterState);
-                }
-
-                EncounterResult successResult = new()
-                {
-                    encounter = encounter,
-                    encounterResults = EncounterResults.EncounterSuccess,
-                    EncounterEndMessage = narrative
-                };
-                return successResult;
-            }
+                Encounter = Encounter,
+                EncounterResults = EncounterResults.EncounterSuccess,
+                EncounterEndMessage = outcome.Result
+            };
         }
-
-        //GetNextStage(encounter, lastStage);
-        EncounterResult ongoingResult = new()
+        else
         {
-            encounter = encounter,
-            encounterResults = EncounterResults.Ongoing,
-            EncounterEndMessage = ""
-        };
-        return ongoingResult;
+            return new()
+            {
+                Encounter = Encounter,
+                EncounterResults = EncounterResults.Ongoing,
+                EncounterEndMessage = ""
+            };
+        }
     }
 
-    public Encounter GenerateEncounter(EncounterContext encounterContext, ActionImplementation actionImplementation)
+    public Encounter GetActiveEncounter()
     {
-        narrativeSystem.NewEncounter(encounterContext, actionImplementation);
-
-        // Create encounter with initial stage
-        string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
-
-        Encounter encounter = new Encounter(situation);
-        encounter.EncounterContext = encounterContext;
-
-        EncounterState initialState = new EncounterState()
-        {
-            Momentum = 0,
-            Pressure = 0,
-            CurrentTurn = 1
-        };
-
-        EncounterStage initialStage = GenerateStage(encounter, encounterContext, initialState);
-        encounter.AddStage(initialStage);
-
-        return encounter;
+        return gameState.Actions.CurrentEncounter;
     }
 
     public void SetActiveEncounter(Encounter encounter)
     {
-        gameState.Actions.SetActiveEncounter(encounter);
-        gameState.Player.CurrentEncounter = encounter;
-    }
-
-    public EncounterStage GetCurrentStage(Encounter encounter)
-    {
-        return encounter.GetCurrentStage();
+        gameState.Actions.SetActiveEncounter(Encounter);
     }
 
     public Encounter GetEncounterForChoice(Choice choice)
@@ -216,10 +134,4 @@
         List<ChoicesNarrative> choicesNarrative = choicesNarrativeResponse.choices.ToList();
         return choicesNarrative;
     }
-
-    internal EncounterStage GenerateInitialStage(Encounter encounter)
-    {
-        return new EncounterStage() { Situation = encounter.Situation };
-    }
-
 }

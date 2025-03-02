@@ -1,5 +1,12 @@
 ﻿public class Location
 {
+    public string Name { get; set; }
+    public int Duration { get; set; }
+    public int FailThreshold { get; set; }
+    public int PartialSuccessThreshold { get; set; }
+    public int StandardSuccessThreshold { get; set; }
+    public int ExceptionalSuccessThreshold { get; set; }
+
     public LocationTypes LocationType { get; set; } // Industrial/Commercial/etc
     public LocationNames LocationName { get; set; }
     public List<LocationNames> TravelConnections { get; set; }
@@ -21,9 +28,21 @@
         CrowdDensity crowdDensity,
         OpportunityTypes opportunity,
         ResourceTypes resourceTypes,
-        bool playerKnowledge
-        )
+        bool playerKnowledge,
+        string name = "None",
+        int duration = 5,
+        int failThreshold = 7,
+        int partialSuccessThreshold = 8,
+        int standardSuccessThreshold = 10,
+        int exceptionalSuccessThreshold = 12)
     {
+        Name = name;
+        Duration = duration;
+        FailThreshold = failThreshold;
+        PartialSuccessThreshold = partialSuccessThreshold;
+        StandardSuccessThreshold = standardSuccessThreshold;
+        ExceptionalSuccessThreshold = exceptionalSuccessThreshold;
+
         LocationType = locationType;
         LocationName = locationName;
         TravelConnections = travelConnections;

@@ -6,7 +6,7 @@ public partial class EncounterViewBase : ComponentBase
 {
     [Inject] public IJSRuntime JSRuntime { get; set; } // Inject IJSRuntime
     [Parameter] public EventCallback<EncounterResult> OnEncounterCompleted { get; set; }
-    [Parameter] public Encounter Encounter { get; set; }
+    [Parameter] public Encounter encounter { get; set; }
     [Inject] public GameState GameState { get; set; }
     [Inject] public GameManager GameManager { get; set; }
 
@@ -68,10 +68,17 @@ public partial class EncounterViewBase : ComponentBase
 
     public int GetCurrentValue(ValueTypes changeType)
     {
-        Encounter currentEncounter = GameState.Actions.CurrentEncounter;
-        EncounterStage encounterStage = currentEncounter.GetCurrentStage();
-        EncounterState encounterState = encounterStage.EncounterState;
-        return encounterState.Momentum;
+        Encounter encounter = GameState.Actions.CurrentEncounter;
+        EncounterState state = encounter.State;
+        switch(changeType)
+        {
+            case ValueTypes.Momentum:
+                return state.Momentum;
+
+            case ValueTypes.Pressure:
+                return state.Pressure;
+        }
+        return 0;
     }
 
     public List<DetailedChange> GetValueChanges(Choice choice)

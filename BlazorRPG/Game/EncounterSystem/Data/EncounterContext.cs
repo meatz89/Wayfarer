@@ -5,8 +5,5 @@
     public LocationSpot LocationSpot;
     public BasicActionTypes ActionType;
     public LocationSpotAvailabilityConditions LocationSpotAvailabilityConditions;
-
-    public ChoiceArchetypes LastChoiceType { get; internal set; }
-    public ChoiceApproaches LastChoiceApproach { get; internal set; }
-    public Choice LastChoice { get; internal set; }
+    public Choice LastChoice;
 }

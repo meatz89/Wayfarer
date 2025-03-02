@@ -103,7 +103,7 @@ public partial class GameUI : ComponentBase
 
     private void HandleEncounterCompleted(EncounterResult result)
     {
-        if (result.encounterResults != EncounterResults.Ongoing)
+        if (result.EncounterResults != EncounterResults.Ongoing)
         {
             ShowEncounterResult = true;
         }
@@ -112,8 +112,8 @@ public partial class GameUI : ComponentBase
 
     private void FinishEncounter()
     {
-        // Reset encounter logic
-        GameManager.FinishEncounter(EncounterResult.encounter);
+        // Reset Encounter logic
+        GameManager.FinishEncounter(EncounterResult.Encounter);
         ShowEncounterResult = false;
 
         ActionResult result = GameManager.TravelToLocation(CurrentLocation.LocationName);
@@ -124,7 +124,7 @@ public partial class GameUI : ComponentBase
     {
         if (CurrentEncounter == null) return false;
         if (EncounterResult == null) return false;
-        if (EncounterResult.encounterResults == EncounterResults.Ongoing) { return true; }
+        if (EncounterResult.EncounterResults == EncounterResults.Ongoing) { return true; }
         return false;
     }
 

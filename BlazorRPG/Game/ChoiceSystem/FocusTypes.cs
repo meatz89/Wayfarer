@@ -1,5 +1,4 @@
-﻿
-public enum FocusTypes
+﻿public enum FocusTypes
 {
     Relationship,
     Information,
@@ -7,4 +6,3 @@ public enum FocusTypes
     Environment,
     Resource
 }
-

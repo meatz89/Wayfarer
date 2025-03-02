@@ -34,7 +34,7 @@ body {
     margin: 0 auto;
 }
 
-.top-bar, .locations-grid, .sidebar-panel, .encounter-container {
+.top-bar, .locations-grid, .sidebar-panel, .Encounter-container {
     background-color: var(--bg-panel);
     border-radius: 5px;
     padding: 15px;
@@ -353,26 +353,26 @@ body {
 
 
 /* Encounter */
-.encounter-container {
+.Encounter-container {
     margin: 20px 0;
 }
 
-.encounter-header {
+.Encounter-header {
     margin-bottom: 20px;
 }
 
-    .encounter-header h2 {
+    .Encounter-header h2 {
         color: var(--text-primary);
         font-size: 1.5rem;
         margin: 0;
     }
 
-.encounter-stats, .encounter-stage, .choice-option, .stat {
+.Encounter-stats, .Encounter-stage, .choice-option, .stat {
     background-color: var(--bg-card);
     border-radius: 4px;
 }
 
-.encounter-stats {
+.Encounter-stats {
     display: flex;
     gap: 20px;
     padding: 15px;
@@ -423,7 +423,7 @@ body {
     color: var(--text-secondary); /* Lighter color */
 }
 
-.encounter-stage {
+.Encounter-stage {
     padding: 20px;
     margin-bottom: 20px;
 }
@@ -433,7 +433,7 @@ body {
     line-height: 1.6;
 }
 
-.encounter-choices {
+.Encounter-choices {
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -545,7 +545,7 @@ body {
     color: var(--resource-health);
 }
 
-.encounter-state-changes {
+.Encounter-state-changes {
     margin-top: 15px;
     padding-top: 15px;
     border-top: 1px solid var(--bg-panel);
@@ -1019,7 +1019,7 @@ body {
     margin: 0 4px;
 }
 
-.encounter-context {
+.Encounter-context {
     margin: 1rem 0;
     padding: 0.5rem;
     background-color: rgba(0, 0, 0, 0.1);
@@ -1141,7 +1141,7 @@ body {
     background-color: var(--bg-card);
 }
 
-.encounter-stats {
+.Encounter-stats {
     display: flex;
     gap: 20px;
     background-color: var(--bg-card);
@@ -1255,7 +1255,7 @@ body {
     }
 
 /* Encounter Result Overlay */
-.encounter-result-overlay {
+.Encounter-result-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -1268,7 +1268,7 @@ body {
     z-index: 100; /* Ensure it's above other elements */
 }
 
-.encounter-result-panel {
+.Encounter-result-panel {
     background-color: var(--bg-panel);
     padding: 30px;
     border-radius: 5px;

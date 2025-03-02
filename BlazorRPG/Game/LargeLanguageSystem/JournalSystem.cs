@@ -16,8 +16,8 @@
     public List<Narrative> GetDescriptionForCurrentEncounter()
     {
         List<Narrative> narratives = new();
-        EncounterHistory encounter = LastEncounter;
-        foreach (Narrative narrative in encounter.Narratives)
+        EncounterHistory Encounter = LastEncounter;
+        foreach (Narrative narrative in Encounter.Narratives)
         {
             narratives.Add(narrative);
         }
@@ -35,8 +35,8 @@
             AddToList(descriptions, journeyEntry);
         }
 
-        EncounterHistory encounter = LastEncounter;
-        string description2 = InitialSituation + NewLine + NewLine + encounter.InitialGoal;
+        EncounterHistory Encounter = LastEncounter;
+        string description2 = InitialSituation + NewLine + NewLine + Encounter.InitialGoal;
         AddToList(descriptions, description2);
 
         return descriptions;

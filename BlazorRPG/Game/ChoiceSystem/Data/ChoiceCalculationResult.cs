@@ -1,8 +1,5 @@
 ﻿public class ChoiceCalculationResult
 {
-    // The new state after applying all changes
-    public EncounterStageState ProjectedEncounterState { get; set; }
-
     // Base values and modifications stored separately for UI/preview
     public List<ValueModification> ValueModifications { get; } = new();
 

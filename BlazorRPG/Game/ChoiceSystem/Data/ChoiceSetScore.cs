@@ -19,7 +19,7 @@
         // How well does this set leverage player's built resources?
         score += ScorePlayerResources(context.PlayerState);
 
-        // How much does this set progress the encounter state?
+        // How much does this set progress the Encounter state?
         score += ScoreProgressPotential(context);
 
         */

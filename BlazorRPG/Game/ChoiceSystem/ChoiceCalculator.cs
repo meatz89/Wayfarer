@@ -9,22 +9,16 @@
         this.locationPropertyCalculator = new LocationPropertyEffectCalculator();
     }
 
-    public EncounterStageState GetProjectedEncounterState(Choice choice, EncounterStageState initialValues, List<ValueModification> valueModifications)
-    {
-        EncounterStageState projectedEncounterState = CalculateNewState(initialValues, choice, valueModifications);
-        return projectedEncounterState;
-    }
 
     public void CalculateChoiceEffects(
         Choice choice,
-        EncounterContext context,
-        EncounterStageState initialEncounterValues)
+        EncounterContext context)
     {
         // 1. Get base values that are inherent to the choice type
         //List<ValueModification> valueModifications = GameRules.GetChoiceBaseValueEffects(choice);
 
         // 2. Calculate all modifications from game state and effects
-        List<ValueModification> modifications = CalculateAllValueChanges(choice, initialEncounterValues);
+        List<ValueModification> modifications = CalculateAllValueChanges(choice);
         //valueModifications.AddRange(modifications);
 
         // 3. Calculate new state after combining base values and modifications
@@ -49,7 +43,7 @@
     }
 
 
-    private int CalculateEnergyCost(Choice choice, EncounterStageState initialEncounterValues, PlayerState player, EncounterContext context)
+    private int CalculateEnergyCost(Choice choice, PlayerState player, EncounterContext context)
     {
         int baseEnergyCost = 0; //GameRules.GetBaseEnergyCost(choice.Archetype, choice.Approach);
 
@@ -58,11 +52,6 @@
         // Apply energy cost reductions from modifications, using projected momentum
         int energyReduction = 0;
 
-        if (initialEncounterValues.Momentum > 0)
-        {
-            energyReduction += Math.Min(initialEncounterValues.Momentum / 3, 3);
-        }
-
         // Ensure energy cost doesn't go below 0
         int calculatedCost = baseEnergyCost + propertyModifier - energyReduction;
         int actualCost = Math.Max(0, calculatedCost);
@@ -70,7 +59,7 @@
         return actualCost;
     }
 
-    private List<ValueModification> CalculateAllValueChanges(Choice choice, EncounterStageState initialEncounterValues)
+    private List<ValueModification> CalculateAllValueChanges(Choice choice)
     {
         List<ValueModification> modifications = new();
 
@@ -79,48 +68,8 @@
         return modifications;
     }
 
-    private EncounterStageState ProjectNewState(
-        EncounterStageState currentValues,
-        List<ValueModification> modifications)
+    private List<Requirement> CalculateRequirements(EncounterContext context, Choice choice, PlayerState playerState, List<ValueModification> valueModifications)
     {
-        EncounterStageState newState = new EncounterStageState(currentValues.Momentum);
-        foreach (ValueModification mod in modifications)
-        {
-            if (mod is MomentumModification evm)
-            {
-                ApplyMomentumChange(newState, evm.Amount);
-            }
-            else if (mod is EnergyCostReduction em)
-            {
-                // Do nothing here, energy modifications don't directly affect state values
-            }
-        }
-        return newState;
-    }
-
-    private void ApplyMomentumChange(EncounterStageState newState, int amount)
-    {
-        newState.Momentum += amount;
-    }
-
-    private EncounterStageState CalculateNewState(
-        EncounterStageState currentValues,
-        Choice choice,
-        List<ValueModification> modifications)
-    {
-        EncounterStageState newState = ProjectNewState(currentValues, modifications);
-        newState.LastChoice = choice;
-        newState.LastChoiceEffectType = choice.EffectType;
-        newState.LastChoiceApproach = choice.Approach;
-        newState.LastChoiceFocusType = choice.Focus;
-
-        return newState;
-    }
-
-    private List<Requirement> CalculateRequirements(EncounterContext context, Choice choice, PlayerState playerState, EncounterStageState encounterValues, List<ValueModification> valueModifications)
-    {
-        CalculateNewState(encounterValues, choice, valueModifications);
-
         List<Requirement> requirements = new List<Requirement> { };
 
         List<Requirement> propertyRequirements = locationPropertyCalculator

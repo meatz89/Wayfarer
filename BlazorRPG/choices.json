@@ -14,7 +14,7 @@
 	"response_format": {
 		"type": "json_schema",
 		"json_schema": {
-			"name": "medieval_narrative_encounter",
+			"name": "medieval_narrative_Encounter",
 			"strict": true,
 			"schema": {
 				"type": "object",

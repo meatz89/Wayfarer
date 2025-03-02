@@ -40,8 +40,7 @@
     };
 
     public static List<ChoiceApproaches> GetPriorityOrder(
-        ChoiceArchetypes archetype,
-        EncounterStageState values)
+        ChoiceArchetypes archetype)
     {
         // Priority orders should only include approaches that are valid for the archetype
         List<ChoiceApproaches> baseOrder = archetype switch
@@ -78,7 +77,6 @@
 
     public static List<ChoiceApproaches> GetAvailableApproaches(
         ChoiceArchetypes archetype,
-        EncounterStageState values,
         PlayerState playerState)
     {
         // Start with base approaches
@@ -95,22 +93,16 @@
         };
 
         // Filter based on value requirements
-        return approaches.Where(approach => IsApproachAvailable(archetype, approach, values, playerState))
+        return approaches.Where(approach => IsApproachAvailable(archetype, approach, playerState))
                         .ToList();
     }
 
     private static bool IsApproachAvailable(
         ChoiceArchetypes archetype,
         ChoiceApproaches approach,
-        EncounterStageState values,
         PlayerState playerState)
     {
         return true;
-    }
-
-    public static int GetArchetypeValue(ChoiceArchetypes archetype, EncounterStageState values)
-    {
-        return values.Momentum;
     }
 
     public static ValueTypes ConvertEnergyTypeToChangeType(EnergyTypes energyType)

@@ -1,6 +1,6 @@
 ﻿public class EncounterResult
 {
-    public Encounter encounter;
-    public EncounterResults encounterResults;
+    public Encounter Encounter;
+    public EncounterResults EncounterResults;
     public string EncounterEndMessage;
 }

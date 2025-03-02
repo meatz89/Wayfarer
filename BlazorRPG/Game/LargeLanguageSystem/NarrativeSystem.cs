@@ -30,13 +30,13 @@
 
     public ChoicesNarrativeResponse GetChoicesNarrative(EncounterState context, List<Choice> choices)
     {
-        string encounterState = "Encounter State:" + GetEncounterState(context);
+        string EncounterState = "Encounter State:" + GetEncounterState(context);
         string initialGoal = JournalSystem.GetCurrentEncounterGoal();
 
         string prompt = $"{NewLine}";
-        prompt += $"Do NOT stray away to far from the initial goal of the encounter: '{initialGoal}' {NewLine}{NewLine}";
+        prompt += $"Do NOT stray away to far from the initial goal of the Encounter: '{initialGoal}' {NewLine}{NewLine}";
 
-        prompt += $"{encounterState}{NewLine}{NewLine}";
+        prompt += $"{EncounterState}{NewLine}{NewLine}";
         prompt = AddChoicesToPrompt(choices, prompt);
 
         List<CompletionMessage4o> previousPrompts = GetPreviousPrompts();
@@ -50,52 +50,52 @@
 
     public string GetEncounterSuccessNarrative(EncounterState context)
     {
-        string encounterState = "Final Encounter State:" + GetEncounterState(context);
+        string EncounterState = "Final Encounter State:" + GetEncounterState(context);
 
-        string prompt = $"The last player decision ended the encounter successfully. " +
-            $"Wrap up the encounter narrative.{NewLine}{NewLine}";
-        prompt += $"{encounterState}{NewLine}{NewLine}";
+        string prompt = $"The last player decision ended the Encounter successfully. " +
+            $"Wrap up the Encounter narrative.{NewLine}{NewLine}";
+        prompt += $"{EncounterState}{NewLine}{NewLine}";
 
         List<CompletionMessage4o> previousPrompts = GetPreviousPrompts();
 
         CompletionMessage4o choicesPrompt = OpenAiHelper.CreateCompletionMessage(Roles.user, prompt);
-        string encounterEndNarrative = LargeLanguageAdapter.EncounterEndNarrative(previousPrompts, choicesPrompt);
+        string EncounterEndNarrative = LargeLanguageAdapter.EncounterEndNarrative(previousPrompts, choicesPrompt);
 
-        JournalSystem.EndEncounter(encounterEndNarrative);
+        JournalSystem.EndEncounter(EncounterEndNarrative);
 
-        return encounterEndNarrative;
+        return EncounterEndNarrative;
     }
 
-    public string GetEncounterFailureNarrative(EncounterState encounterStates)
+    public string GetEncounterFailureNarrative(EncounterState EncounterStates)
     {
-        string encounterState = "Final Encounter State:" + GetEncounterState(encounterStates);
+        string EncounterState = "Final Encounter State:" + GetEncounterState(EncounterStates);
 
-        string prompt = $"The last player decision resulted in failing the encounter. " +
-            $"Wrap up the encounter narrative.{NewLine}{NewLine}";
-        prompt += $"{encounterState}{NewLine}{NewLine}";
+        string prompt = $"The last player decision resulted in failing the Encounter. " +
+            $"Wrap up the Encounter narrative.{NewLine}{NewLine}";
+        prompt += $"{EncounterState}{NewLine}{NewLine}";
 
         List<CompletionMessage4o> previousPrompts = GetPreviousPrompts();
 
         CompletionMessage4o choicesPrompt = OpenAiHelper.CreateCompletionMessage(Roles.user, prompt);
-        string encounterEndNarrative = LargeLanguageAdapter.EncounterEndNarrative(previousPrompts, choicesPrompt);
+        string EncounterEndNarrative = LargeLanguageAdapter.EncounterEndNarrative(previousPrompts, choicesPrompt);
 
-        JournalSystem.EndEncounter(encounterEndNarrative);
+        JournalSystem.EndEncounter(EncounterEndNarrative);
 
-        return encounterEndNarrative;
+        return EncounterEndNarrative;
     }
 
     private List<CompletionMessage4o> GetPreviousPrompts()
     {
         List<CompletionMessage4o> previousPrompts = new();
         List<string> initialDescriptions = JournalSystem.GetInitialEncounterDescriptions();
-        List<Narrative> encounterNarratives = JournalSystem.GetDescriptionForCurrentEncounter();
+        List<Narrative> EncounterNarratives = JournalSystem.GetDescriptionForCurrentEncounter();
         foreach (string description in initialDescriptions)
         {
             CompletionMessage4o previousPrompt =
                 OpenAiHelper.CreateCompletionMessage(Roles.user, description);
             previousPrompts.Add(previousPrompt);
         }
-        foreach (Narrative narrative in encounterNarratives)
+        foreach (Narrative narrative in EncounterNarratives)
         {
             CompletionMessage4o previousPrompt =
                 OpenAiHelper.CreateCompletionMessage(narrative.Role, narrative.Text);
@@ -105,11 +105,10 @@
     }
 
 
-    public void MakeChoice(EncounterContext context, Choice encounterChoice)
+    public void MakeChoicePrompt(Choice EncounterChoice)
     {
         string prompt =
-            $"{encounterChoice.Narrative} ({encounterChoice.Description}){NewLine}" +
-            $"[{encounterChoice.ToString()}]";
+            $"{EncounterChoice.ToString()}";
 
         JournalSystem.NoteNewEncounterNarrative(prompt);
     }
@@ -127,17 +126,17 @@
         return prompt;
     }
 
-    private static string CreatePromptForChoice(int index, Choice encounterChoice)
+    private static string CreatePromptForChoice(int index, Choice EncounterChoice)
     {
-        string prompt = $"{index}. ({encounterChoice.ToString()})";
+        string prompt = $"{index}. ({EncounterChoice.ToString()})";
         string effects = $": ";
 
-        //List<ValueModification> valueModifications = encounterChoice.CalculationResult.ValueModifications;
+        //List<ValueModification> valueModifications = EncounterChoice.CalculationResult.ValueModifications;
 
         //foreach (ValueModification valueModification in valueModifications)
         //{
-        //    if (valueModification is MomentumModification encounterValueMod)
-        //        effects += $"{encounterValueMod.Amount} to Momentum; ";
+        //    if (valueModification is MomentumModification EncounterValueMod)
+        //        effects += $"{EncounterValueMod.Amount} to Momentum; ";
 
         //    if (valueModification is EnergyCostReduction energyCostReduction)
         //        effects += $"{energyCostReduction.Amount} to {energyCostReduction.EnergyType}; ";
@@ -163,9 +162,9 @@
 
     private static string GetEncounterState(EncounterState context)
     {
-        string encounterState = $"{NewLine}" +
+        string EncounterState = $"{NewLine}" +
             $"Outcome ({context.Momentum})";
 
-        return encounterState;
+        return EncounterState;
     }
 }

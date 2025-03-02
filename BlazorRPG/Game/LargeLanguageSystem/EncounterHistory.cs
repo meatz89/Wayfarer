@@ -4,11 +4,8 @@
     public string InitialSituation { get; set; }
     public List<Narrative> Narratives = new();
     public string ResultSituation { get; set; }
-
-}
-
-public class Narrative
-{
-    public Roles Role { get; set; }
-    public string Text { get; set; }
+    public Choice LastChoice { get; internal set; }
+    public EffectTypes LastChoiceEffectType { get; internal set; }
+    public ApproachTypes LastChoiceApproach { get; internal set; }
+    public FocusTypes LastChoiceFocusType { get; internal set; }
 }
