@@ -1,5 +1,4 @@
-﻿
-/// <summary>
+﻿/// <summary>
 /// Types of signature elements that correspond to approach types
 /// </summary>
 public enum SignatureElementTypes

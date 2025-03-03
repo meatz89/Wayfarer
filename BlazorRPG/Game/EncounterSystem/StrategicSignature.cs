@@ -19,6 +19,15 @@ public class StrategicSignature
         Concealment = 0;
     }
 
+    public StrategicSignature(StrategicSignature source)
+    {
+        Dominance = source.Dominance;
+        Rapport = source.Rapport;
+        Analysis = source.Analysis;
+        Precision = source.Precision;
+        Concealment = source.Concealment;
+    }
+
     /// <summary>
     /// Get element value by type
     /// </summary>

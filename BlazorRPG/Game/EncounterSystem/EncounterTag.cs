@@ -31,6 +31,25 @@ public class EncounterTag
     }
 
     /// <summary>
+    /// Create a deep clone of the tag
+    /// </summary>
+    public EncounterTag(EncounterTag source)
+    {
+        Id = source.Id;
+        Name = source.Name;
+        Description = source.Description;
+        SourceElement = source.SourceElement;
+        ThresholdValue = source.ThresholdValue;
+        IsActive = source.IsActive;
+        Effect = source.Effect; // TagEffect is immutable so no need to clone
+        IsLocationReaction = source.IsLocationReaction;
+
+        // Clone trigger lists
+        ActivationTriggers = new List<TagTrigger>(source.ActivationTriggers);
+        RemovalTriggers = new List<TagTrigger>(source.RemovalTriggers);
+    }
+
+    /// <summary>
     /// Check if this tag should be active based on element value
     /// </summary>
     public bool ShouldBeActive(StrategicSignature signature)

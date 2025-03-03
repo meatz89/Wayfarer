@@ -5,143 +5,110 @@
         <h4>@hoveredChoice.Description</h4>
         <div class="choice-narrative">@hoveredChoice.Narrative</div>
     </div>
-
-    @if (GetLocationSpotEffects(hoveredChoice.Choice).Any())
-    {
-        <div class="tooltip-section">
-            <h5>Location Effects</h5>
-            @*TODO: List the location effects*@
-        </div>
-    }
-
-@*     @if (hoveredChoice.Choice.CalculationResult.Requirements.Count > 0)
-    {
-        <div class="tooltip-section">
-            <h5>Requirements</h5>
-            <div class="tooltip-list">
-                @foreach (DetailedRequirement req in GetDetailedRequirements(hoveredChoice.Choice))
-                {
-                    <div class="tooltip-item">
-                        <div class="tooltip-item-header">
-                            <div class="tooltip-item-title">
-                                @GetRequirementIcon(req.RequirementType)
-                                <span class="tooltip-item-name">@req.Description</span>
-                            </div>
-                            <span class="tooltip-item-value @(req.IsSatisfied ? "positive-change" : "negative-change")">
-                                @(req.IsSatisfied ? "✓" : "✗")
-                            </span>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-    } *@
-
     <div class="tooltip-section">
-        <h5>Encounter Value Changes</h5>
+
+        <h5>Changes</h5>
         <div class="tooltip-list">
-            @foreach (DetailedChange dc in GetValueChanges(hoveredChoice.Choice)
-            .Where(c => c.ChangeType != ValueTypes.PhysicalEnergy
-            && c.ChangeType != ValueTypes.Concentration
-            && c.ChangeType != ValueTypes.Reputation))
-            {
-                <div class="tooltip-item">
-                    <div class="tooltip-item-header">
-                        <div class="tooltip-item-title">
-                            @GetValueTypeIcon(dc.ChangeType)
-                            <span class="tooltip-item-name">@dc.ChangeType</span>
-                        </div>
+
+            <div class="tooltip-item">
+                <div class="tooltip-item-header">
+                    <div class="tooltip-item-title">
+                        <span class="tooltip-item-name">BaseMomentumChange</span>
                     </div>
-                    @if (dc.ChangeValues.Sources.Any())
+                </div>
+                <div class="tooltip-item-details">
+                    <div class="tooltip-detail-line">@Preview.BaseMomentumChange</div>
+                </div>
+            </div>
+
+            <div class="tooltip-item">
+                <div class="tooltip-item-header">
+                    <div class="tooltip-item-title">
+                        <span class="tooltip-item-name">BasePressureChange</span>
+                    </div>
+                </div>
+                <div class="tooltip-item-details">
+                    <div class="tooltip-detail-line">@Preview.BasePressureChange</div>
+                </div>
+            </div>
+
+            <div class="tooltip-item">
+                <div class="tooltip-item-header">
+                    <div class="tooltip-item-title">
+                        <span class="tooltip-item-name">TagsActivated</span>
+                    </div>
+                </div>
+                <div class="tooltip-item-details">
+                    @foreach(EncounterTag tag in @Preview.TagsActivated)
                     {
-                        <div class="tooltip-item-details">
-                            @foreach (var detail in dc.ChangeValues.Sources)
-                            {
-                                <div class="tooltip-detail-line">@detail</div>
-                            }
-                        </div>
+                        <div class="tooltip-detail-line">@tag.Name</div>
                     }
                 </div>
-            }
+            </div>
+
+            <div class="tooltip-item">
+                <div class="tooltip-item-header">
+                    <div class="tooltip-item-title">
+                        <span class="tooltip-item-name">TagsDeactivated</span>
+                    </div>
+                </div>
+                <div class="tooltip-item-details">
+                    @foreach (EncounterTag tag in @Preview.TagsDeactivated)
+                    {
+                        <div class="tooltip-detail-line">@tag.Name</div>
+                    }
+                </div>
+            </div>
+
+            <div class="tooltip-item">
+                <div class="tooltip-item-header">
+                    <div class="tooltip-item-title">
+                        <span class="tooltip-item-name">TagMomentumEffects</span>
+                    </div>
+                </div>
+                <div class="tooltip-item-details">
+                    @foreach (var tag in @Preview.TagMomentumEffects)
+                    {
+                        <div class="tooltip-detail-line">@tag.Key (@tag.Value)</div>
+                    }
+                </div>
+            </div>
+
+            <div class="tooltip-item">
+                <div class="tooltip-item-header">
+                    <div class="tooltip-item-title">
+                        <span class="tooltip-item-name">TagPressureEffects</span>
+                    </div>
+                </div>
+                <div class="tooltip-item-details">
+                    @foreach (var tag in @Preview.TagPressureEffects)
+                    {
+                        <div class="tooltip-detail-line">@tag.Key (@tag.Value)</div>
+                    }
+                </div>
+            </div>
+
+            <div class="tooltip-item">
+                <div class="tooltip-item-header">
+                    <div class="tooltip-item-title">
+                        <span class="tooltip-item-name">MomentumChange</span>
+                    </div>
+                </div>
+                <div class="tooltip-item-details">
+                    <div class="tooltip-detail-line">@Preview.MomentumChange</div>
+                </div>
+            </div>
+
+            <div class="tooltip-item">
+                <div class="tooltip-item-header">
+                    <div class="tooltip-item-title">
+                        <span class="tooltip-item-name">PressureChange</span>
+                    </div>
+                </div>
+                <div class="tooltip-item-details">
+                    <div class="tooltip-detail-line">@Preview.PressureChange</div>
+                </div>
+            </div>
         </div>
     </div>
-
-    @{
-        var energyChanges = GetValueChanges(hoveredChoice.Choice)
-        .Where(c => c.ChangeType == ValueTypes.PhysicalEnergy
-        || c.ChangeType == ValueTypes.Concentration
-        || c.ChangeType == ValueTypes.Reputation)
-        .ToList();
-    }
-    @if (energyChanges.Any())
-    {
-        <div class="tooltip-section">
-            <h5>Energy Costs</h5>
-            <div class="tooltip-list">
-                @foreach (DetailedChange energy in energyChanges)
-                {
-                    <div class="tooltip-item">
-                        <div class="tooltip-item-header">
-                            <div class="tooltip-item-title">
-                                @GetValueTypeIcon(energy.ChangeType)
-                                <span class="tooltip-item-name">@energy.ChangeType.ToString().Replace("Energy", "")</span>
-                            </div>
-                            <span class="tooltip-item-value negative-change">
-                                @energy.ChangeValues.TotalAmount
-                            </span>
-                        </div>
-                        @if (energy.ChangeValues.Sources.Any())
-                        {
-                            <div class="tooltip-item-details">
-                                @foreach (var detail in energy.ChangeValues.Sources)
-                                {
-                                    <div class="tooltip-detail-line">@detail</div>
-                                }
-                            </div>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
-    }
-@* 
-    @if (hoveredChoice.Choice.CalculationResult.Costs.Count > 0)
-    {
-        <div class="tooltip-section">
-            <h5>Costs</h5>
-            <div class="tooltip-list">
-                @foreach (Outcome cost in hoveredChoice.Choice.CalculationResult.Costs)
-                {
-                    <div class="tooltip-item">
-                        <div class="tooltip-item-header">
-                            <div class="tooltip-item-title">
-                                @GetOutcomeIcon(cost)
-                                <span class="tooltip-item-name">@cost.GetDescription()</span>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-    }
-
-    @if (hoveredChoice.Choice.CalculationResult.Rewards.Count > 0)
-    {
-        <div class="tooltip-section">
-            <h5>Rewards</h5>
-            <div class="tooltip-list">
-                @foreach (Outcome reward in hoveredChoice.Choice.CalculationResult.Rewards)
-                {
-                    <div class="tooltip-item">
-                        <div class="tooltip-item-header">
-                            <div class="tooltip-item-title">
-                                @GetOutcomeIcon(reward)
-                                <span class="tooltip-item-name">@reward.GetDescription()</span>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-    } *@
 </div>

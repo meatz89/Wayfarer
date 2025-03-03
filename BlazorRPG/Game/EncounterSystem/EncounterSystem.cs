@@ -66,6 +66,15 @@
         return Encounter;
     }
 
+    public ChoiceProjection GetChoiceProjection(
+        Encounter encounter,
+        Choice choice)
+    {
+        EncounterState oldState = encounterProcessor.GetState();
+        ChoiceProjection projection = encounterProcessor.ProjectChoice(choice);
+        return projection;
+    }
+
     public EncounterResult ExecuteChoice(
         Encounter encounter,
         Choice choice,
@@ -79,7 +88,6 @@
         Encounter.History.LastChoiceEffectType = choice.EffectType;
         Encounter.History.LastChoiceApproach = choice.ApproachType;
         Encounter.History.LastChoiceFocusType = choice.FocusType;
-
 
         EncounterState oldState = encounterProcessor.GetState();
         encounterProcessor.ProcessChoice(choice);

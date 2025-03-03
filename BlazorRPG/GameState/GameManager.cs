@@ -88,6 +88,18 @@ public class GameManager
         return encounter;
     }
 
+    public ChoiceProjection GetChoicePreview(UserEncounterChoiceOption choiceOption)
+    {
+        Encounter encounter = choiceOption.Encounter;
+
+        Location location = LocationSystem.GetLocation(choiceOption.LocationName);
+        LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(choiceOption.LocationName, choiceOption.locationSpotName);
+
+        // Execute the choice
+        ChoiceProjection choiceProjection = EncounterSystem.GetChoiceProjection(encounter, choiceOption.Choice);
+        return choiceProjection;
+    }
+
     public EncounterResult ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
     {
         Encounter encounter = choiceOption.Encounter;

@@ -47,6 +47,22 @@ public class StrategicLayer
     }
 
     /// <summary>
+    /// Get all available tags for this location
+    /// </summary>
+    public List<EncounterTag> GetAllAvailableTags()
+    {
+        return _availableTags;
+    }
+
+    /// <summary>
+    /// Check if a specific tag is active
+    /// </summary>
+    public bool IsTagActive(string tagId)
+    {
+        return _activeTags.Any(t => t.Id == tagId);
+    }
+
+    /// <summary>
     /// Process a choice from the strategic perspective
     /// </summary>
     public ChoiceOutcome ProcessChoice(Choice choice, EncounterState state)
@@ -72,7 +88,7 @@ public class StrategicLayer
     /// <summary>
     /// Calculate the base outcome for a choice
     /// </summary>
-    private ChoiceOutcome CalculateBaseOutcome(Choice choice, SignatureElementTypes elementType)
+    protected ChoiceOutcome CalculateBaseOutcome(Choice choice, SignatureElementTypes elementType)
     {
         int momentum = 0;
         int pressure = 0;
