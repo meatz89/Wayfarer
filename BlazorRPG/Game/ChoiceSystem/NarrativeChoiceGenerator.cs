@@ -69,7 +69,7 @@ public class NarrativeChoiceGenerator
     /// </summary>
     private (ApproachTypes dominant, ApproachTypes secondary) GetRankedApproaches(EncounterState state)
     {
-        var ranked = state.ApproachTypesDic
+        List<ApproachTypes> ranked = state.ApproachTypesDic
             .OrderByDescending(pair => pair.Value)
             .ThenBy(pair => GetApproachPriority(pair.Key))
             .Select(pair => pair.Key)
@@ -84,7 +84,7 @@ public class NarrativeChoiceGenerator
     /// </summary>
     private (FocusTypes dominant, FocusTypes secondary) GetRankedFocuses(EncounterState state)
     {
-        var ranked = state.FocusTypesDic
+        List<FocusTypes> ranked = state.FocusTypesDic
             .OrderByDescending(pair => pair.Value)
             .ThenBy(pair => GetFocusPriority(pair.Key))
             .Select(pair => pair.Key)

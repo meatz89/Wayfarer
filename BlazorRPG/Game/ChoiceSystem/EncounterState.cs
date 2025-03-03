@@ -72,8 +72,8 @@ public class EncounterState
                 return Momentum > 0 ? double.PositiveInfinity : 1.0;
 
             double value = 5;
-            
-            if(Pressure > 0)
+
+            if (Pressure > 0)
                 Math.Clamp((double)Momentum / Pressure, 0, 5);
 
             return value;

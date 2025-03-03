@@ -70,7 +70,7 @@ public partial class EncounterViewBase : ComponentBase
     public int GetCurrentValue(ValueTypes changeType)
     {
         EncounterState state = Model.State;
-        switch(changeType)
+        switch (changeType)
         {
             case ValueTypes.Momentum:
                 return state.Momentum;

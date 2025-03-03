@@ -36,7 +36,7 @@
                 { FocusTypes.Resource, 1 }
             };
 
-        
+
         Location inn = context.Location;
         inn.Name = "Harbor Tavern";
         inn.Duration = 5;
@@ -55,11 +55,11 @@
 
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
-        
+
         gameState.Actions.SetActiveEncounter(Encounter);
         narrativeSystem.NewEncounter(context, actionImplementation);
 
-        var _factory = new EncounterFactory();
+        EncounterFactory _factory = new EncounterFactory();
         encounterProcessor = _factory.CreateHarborWarehouseEncounter();
         EncounterState state = encounterProcessor.GetState();
 
@@ -112,13 +112,13 @@
         //}
         //else
         //{
-            //gameState.Actions.EncounterResult = EncounterResult;
-            return new EncounterResult()
-            {
-                Encounter = encounter,
-                EncounterResults = EncounterResults.Ongoing,
-                EncounterEndMessage = "Ongoing"
-            };
+        //gameState.Actions.EncounterResult = EncounterResult;
+        return new EncounterResult()
+        {
+            Encounter = encounter,
+            EncounterResults = EncounterResults.Ongoing,
+            EncounterEndMessage = "Ongoing"
+        };
         //}
     }
 

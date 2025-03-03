@@ -10,8 +10,8 @@
         GameContentProvider contentProvider,
         GameState gameState)
     {
-    //    this.gameState = gameState;
-    //    this.calculator = new ChoiceCalculator();
+        //    this.gameState = gameState;
+        //    this.calculator = new ChoiceCalculator();
     }
 
     public List<Choice> GenerateChoices(

@@ -25,5 +25,5 @@ public static class EncounterStateExtensions
     public static float MomentumToPressureRatio(this EncounterState state)
     {
         return state.Pressure > 0 ? (float)state.Momentum / state.Pressure : float.MaxValue;
-    } 
+    }
 }
