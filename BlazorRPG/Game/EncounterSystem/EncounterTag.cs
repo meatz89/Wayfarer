@@ -1,6 +1,6 @@
 ﻿
 /// <summary>
-/// Represents an encounter tag with persistent effects
+/// Extends EncounterTag with trigger conditions and whether it's a location reaction
 /// </summary>
 public class EncounterTag
 {
@@ -11,6 +11,9 @@ public class EncounterTag
     public int ThresholdValue { get; }
     public bool IsActive { get; set; }
     public TagEffect Effect { get; }
+    public bool IsLocationReaction { get; set; }
+    public List<TagTrigger> ActivationTriggers { get; }
+    public List<TagTrigger> RemovalTriggers { get; }
 
     public EncounterTag(string id, string name, string description, SignatureElementTypes sourceElement,
                        int thresholdValue, TagEffect effect)
@@ -22,6 +25,9 @@ public class EncounterTag
         ThresholdValue = thresholdValue;
         IsActive = false;
         Effect = effect;
+        IsLocationReaction = false;
+        ActivationTriggers = new List<TagTrigger>();
+        RemovalTriggers = new List<TagTrigger>();
     }
 
     /// <summary>
@@ -29,6 +35,11 @@ public class EncounterTag
     /// </summary>
     public bool ShouldBeActive(StrategicSignature signature)
     {
+        // If it's a location reaction, it doesn't use the threshold mechanic
+        if (IsLocationReaction)
+            return IsActive;
+
+        // Regular player tag uses threshold
         return signature.GetElementValue(SourceElement) >= ThresholdValue;
     }
 
@@ -75,8 +86,60 @@ public class EncounterTag
             {
                 modifiedOutcome.Momentum *= 2;
             }
+
+            // Apply negative effects
+            if (Effect.IsNegative)
+            {
+                if (Effect.BlockMomentum)
+                {
+                    modifiedOutcome.Momentum = 0;
+                }
+
+                if (Effect.DoublePressure)
+                {
+                    modifiedOutcome.Pressure *= 2;
+                }
+            }
         }
 
         return modifiedOutcome;
+    }
+
+    /// <summary>
+    /// Check if this tag should be activated by the given choice and state
+    /// </summary>
+    public bool ShouldBeActivated(Choice choice, EncounterState state, StrategicSignature signature)
+    {
+        if (!IsLocationReaction || IsActive)
+            return false;
+
+        foreach (TagTrigger trigger in ActivationTriggers)
+        {
+            if (trigger.IsTriggered(choice, state, signature))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Check if this tag should be removed by the given choice and state
+    /// </summary>
+    public bool ShouldBeRemoved(Choice choice, EncounterState state, StrategicSignature signature)
+    {
+        if (!IsLocationReaction || !IsActive)
+            return false;
+
+        foreach (TagTrigger trigger in RemovalTriggers)
+        {
+            if (trigger.IsTriggered(choice, state, signature))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

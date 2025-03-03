@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Describes what effect a tag has on choices
+/// Extended TagEffect class to include negative effects
 /// </summary>
 public class TagEffect
 {
@@ -15,6 +15,9 @@ public class TagEffect
     public bool DoubleMomentum { get; set; }
     public bool IsSpecialEffect { get; set; }
     public string SpecialEffectId { get; set; }
+    public bool IsNegative { get; set; }
+    public bool BlockMomentum { get; set; }
+    public bool DoublePressure { get; set; }
 
     public TagEffect()
     {
@@ -26,5 +29,8 @@ public class TagEffect
         DoubleMomentum = false;
         IsSpecialEffect = false;
         SpecialEffectId = string.Empty;
+        IsNegative = false;
+        BlockMomentum = false;
+        DoublePressure = false;
     }
 }

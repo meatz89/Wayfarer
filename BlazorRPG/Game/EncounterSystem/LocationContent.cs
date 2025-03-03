@@ -1,6 +1,6 @@
 ﻿
 /// <summary>
-/// Content definitions for locations
+/// Content definitions for locations with reaction tags
 /// </summary>
 public class LocationContent
 {
@@ -16,12 +16,16 @@ public class LocationContent
             .WithFavoredElement(SignatureElementTypes.Concealment)
             .WithDisfavoredElement(SignatureElementTypes.Dominance)
             .WithDisfavoredElement(SignatureElementTypes.Rapport)
+            // Positive player tags
             .WithAvailableTag("precision_footwork")
             .WithAvailableTag("flawless_execution")
             .WithAvailableTag("efficient_movement")
             .WithAvailableTag("shadow_movement")
             .WithAvailableTag("perfect_stealth")
             .WithAvailableTag("hidden_observation")
+            // Negative location reaction tags
+            .WithLocationReactionTag("security_alert")
+            .WithLocationReactionTag("narrow_passages")
             .Build();
     }
 
@@ -37,12 +41,16 @@ public class LocationContent
             .WithFavoredElement(SignatureElementTypes.Analysis)
             .WithDisfavoredElement(SignatureElementTypes.Dominance)
             .WithDisfavoredElement(SignatureElementTypes.Concealment)
+            // Positive player tags
             .WithAvailableTag("social_currency")
             .WithAvailableTag("network_leverage")
             .WithAvailableTag("emotional_insight")
             .WithAvailableTag("market_insight")
             .WithAvailableTag("negotiation_mastery")
             .WithAvailableTag("resource_optimization")
+            // Negative location reaction tags
+            .WithLocationReactionTag("social_faux_pas")
+            .WithLocationReactionTag("market_suspicion")
             .Build();
     }
 
@@ -58,12 +66,16 @@ public class LocationContent
             .WithFavoredElement(SignatureElementTypes.Concealment)
             .WithDisfavoredElement(SignatureElementTypes.Rapport)
             .WithDisfavoredElement(SignatureElementTypes.Precision)
+            // Positive player tags
             .WithAvailableTag("intimidation_tactics")
             .WithAvailableTag("overwhelming_presence")
             .WithAvailableTag("forceful_breakthrough")
             .WithAvailableTag("unseen_threat")
             .WithAvailableTag("perfect_ambush")
             .WithAvailableTag("shadow_movement")
+            // Negative location reaction tags
+            .WithLocationReactionTag("hostile_territory")
+            .WithLocationReactionTag("unstable_ground")
             .Build();
     }
 
@@ -79,33 +91,16 @@ public class LocationContent
             .WithFavoredElement(SignatureElementTypes.Precision)
             .WithDisfavoredElement(SignatureElementTypes.Dominance)
             .WithDisfavoredElement(SignatureElementTypes.Concealment)
+            // Positive player tags
             .WithAvailableTag("social_currency")
             .WithAvailableTag("emotional_insight")
             .WithAvailableTag("network_leverage")
             .WithAvailableTag("meticulous_approach")
             .WithAvailableTag("smooth_talker")
             .WithAvailableTag("careful_allocation")
-            .Build();
-    }
-
-    /// <summary>
-    /// Create Wilderness location properties
-    /// </summary>
-    public static LocationStrategicProperties CreateWilderness()
-    {
-        return new LocationStrategicBuilder()
-            .WithId("wilderness")
-            .WithName("Wilderness")
-            .WithFavoredElement(SignatureElementTypes.Dominance)
-            .WithFavoredElement(SignatureElementTypes.Precision)
-            .WithDisfavoredElement(SignatureElementTypes.Rapport)
-            .WithDisfavoredElement(SignatureElementTypes.Analysis)
-            .WithAvailableTag("direct_approach")
-            .WithAvailableTag("forceful_breakthrough")
-            .WithAvailableTag("precision_footwork")
-            .WithAvailableTag("efficient_movement")
-            .WithAvailableTag("perfect_technique")
-            .WithAvailableTag("forceful_authority")
+            // Negative location reaction tags
+            .WithLocationReactionTag("court_etiquette")
+            .WithLocationReactionTag("court_politics")
             .Build();
     }
 }

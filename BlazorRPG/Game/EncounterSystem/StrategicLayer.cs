@@ -1,6 +1,10 @@
 ﻿
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 /// <summary>
-/// Manages the strategic layer for encounters
+/// Extended strategic layer to handle location reaction tags
 /// </summary>
 public class StrategicLayer
 {
@@ -9,19 +13,31 @@ public class StrategicLayer
     private readonly List<EncounterTag> _activeTags;
     private readonly LocationStrategicProperties _locationProperties;
     private readonly EncounterTagRepository _tagRepository;
+    private readonly Dictionary<string, int> _cumulativeTriggers;
 
     public StrategicLayer(LocationStrategicProperties locationProperties, EncounterTagRepository tagRepository)
     {
         _signature = new StrategicSignature();
         _locationProperties = locationProperties;
         _tagRepository = tagRepository;
+        _cumulativeTriggers = new Dictionary<string, int>();
 
-        // Load available tags from repository using IDs
+        // Load available player tags from repository using IDs
         _availableTags = new List<EncounterTag>();
         foreach (string tagId in locationProperties.AvailableTagIds)
         {
             EncounterTag tag = tagRepository.GetTag(tagId);
             if (tag != null)
+            {
+                _availableTags.Add(tag);
+            }
+        }
+
+        // Add location reaction tags
+        foreach (string tagId in locationProperties.LocationReactionTagIds)
+        {
+            EncounterTag tag = tagRepository.GetTag(tagId);
+            if (tag != null && tag.IsLocationReaction)
             {
                 _availableTags.Add(tag);
             }
@@ -44,8 +60,8 @@ public class StrategicLayer
         // Calculate base outcome
         ChoiceOutcome outcome = CalculateBaseOutcome(choice, elementType);
 
-        // Update tag states
-        UpdateTagStates();
+        // Update tag states - both threshold-based and trigger-based
+        UpdateTagStates(choice, state);
 
         // Apply effects from active tags
         ChoiceOutcome modifiedOutcome = ApplyTagEffects(choice, outcome);
@@ -101,24 +117,67 @@ public class StrategicLayer
     }
 
     /// <summary>
-    /// Update which tags are active based on current signature values
+    /// Update which tags are active based on current signature values and triggers
     /// </summary>
-    private void UpdateTagStates()
+    private void UpdateTagStates(Choice choice, EncounterState state)
     {
         List<EncounterTag> tagsToActivate = new List<EncounterTag>();
         List<EncounterTag> tagsToDeactivate = new List<EncounterTag>();
 
+        // Check each tag for activation/deactivation
         foreach (EncounterTag tag in _availableTags)
         {
-            bool shouldBeActive = tag.ShouldBeActive(_signature);
+            // Handle threshold-based player tags
+            if (!tag.IsLocationReaction)
+            {
+                bool shouldBeActive = tag.ShouldBeActive(_signature);
 
-            if (shouldBeActive && !tag.IsActive)
-            {
-                tagsToActivate.Add(tag);
+                if (shouldBeActive && !tag.IsActive)
+                {
+                    tagsToActivate.Add(tag);
+                }
+                else if (!shouldBeActive && tag.IsActive)
+                {
+                    tagsToDeactivate.Add(tag);
+                }
             }
-            else if (!shouldBeActive && tag.IsActive)
+            // Handle trigger-based location reaction tags
+            else
             {
-                tagsToDeactivate.Add(tag);
+                // Process cumulative triggers
+                foreach (TagTrigger trigger in tag.ActivationTriggers)
+                {
+                    if (trigger.IsCumulative && trigger.IsTriggered(choice, state, _signature))
+                    {
+                        string triggerKey = $"{tag.Id}_{trigger.TriggerId}";
+                        if (!_cumulativeTriggers.ContainsKey(triggerKey))
+                        {
+                            _cumulativeTriggers[triggerKey] = 0;
+                        }
+                        _cumulativeTriggers[triggerKey]++;
+
+                        // Check if we've hit the threshold
+                        if (trigger.MinSignatureValue.HasValue &&
+                            _cumulativeTriggers[triggerKey] >= trigger.MinSignatureValue.Value)
+                        {
+                            // Tag should be activated
+                            if (!tag.IsActive)
+                            {
+                                tagsToActivate.Add(tag);
+                            }
+                        }
+                    }
+                }
+
+                // Process regular triggers
+                if (!tag.IsActive && tag.ShouldBeActivated(choice, state, _signature))
+                {
+                    tagsToActivate.Add(tag);
+                }
+                else if (tag.IsActive && tag.ShouldBeRemoved(choice, state, _signature))
+                {
+                    tagsToDeactivate.Add(tag);
+                }
             }
         }
 

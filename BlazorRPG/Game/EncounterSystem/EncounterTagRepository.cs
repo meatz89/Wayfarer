@@ -1,5 +1,6 @@
-﻿/// <summary>
-/// Repository of all encounter tags in the system
+﻿
+/// <summary>
+/// Repository of all encounter tags in the system, including negative location reaction tags
 /// </summary>
 public class EncounterTagRepository
 {
@@ -7,7 +8,8 @@ public class EncounterTagRepository
 
     public EncounterTagRepository()
     {
-        InitializeTags();
+        InitializePlayerTags();
+        InitializeLocationReactionTags();
     }
 
     public EncounterTag GetTag(string id)
@@ -25,15 +27,15 @@ public class EncounterTagRepository
         return _tags.Values.Where(t => t.SourceElement == elementType);
     }
 
-    public IEnumerable<EncounterTag> GetTagsByThreshold(int threshold)
+    public IEnumerable<EncounterTag> GetLocationReactionTags()
     {
-        return _tags.Values.Where(t => t.ThresholdValue == threshold);
+        return _tags.Values.Where(t => t.IsLocationReaction);
     }
 
     /// <summary>
-    /// Initialize all possible tags with their effects
+    /// Initialize positive player tags (threshold-based)
     /// </summary>
-    private void InitializeTags()
+    private void InitializePlayerTags()
     {
         // DOMINANCE TAGS (Force approach)
 
@@ -446,6 +448,276 @@ public class EncounterTagRepository
                 ZeroPressure = true
             }
         );
+    }
+
+    /// <summary>
+    /// Initialize negative location reaction tags
+    /// </summary>
+    private void InitializeLocationReactionTags()
+    {
+        // Harbor Warehouse negative tags
+
+        // Security Alert - Triggered by too much Force approach
+        EncounterTag securityAlertTag = new EncounterTag(
+            "security_alert",
+            "Security Alert",
+            "Guards are watching you carefully. Force-related choices generate double pressure.",
+            SignatureElementTypes.Dominance, // Not used for threshold, but for categorization
+            0, // No threshold
+            new TagEffect
+            {
+                IsNegative = true,
+                AffectedApproach = ApproachTypes.Force,
+                DoublePressure = true
+            }
+        );
+
+        // Add trigger for Force approach
+        securityAlertTag.ActivationTriggers.Add(new TagTrigger(
+            "force_trigger",
+            "Using Force approach in a warehouse triggers security",
+            ApproachTypes.Force
+        ));
+
+        // Add removal trigger for Stealth approach
+        securityAlertTag.RemovalTriggers.Add(new TagTrigger(
+            "stealth_removal",
+            "Using Stealth can shake off security attention",
+            ApproachTypes.Stealth
+        ));
+
+        securityAlertTag.IsLocationReaction = true;
+        _tags[securityAlertTag.Id] = securityAlertTag;
+
+        // Narrow Passages - Triggered by using Physical focus in the cramped warehouse
+        EncounterTag narrowPassagesTag = new EncounterTag(
+            "narrow_passages",
+            "Narrow Passages",
+            "The cramped spaces make physical actions difficult. Physical-focused choices generate +1 pressure.",
+            SignatureElementTypes.Precision,
+            0,
+            new TagEffect
+            {
+                IsNegative = true,
+                AffectedFocus = FocusTypes.Physical,
+                PressureModifier = 1
+            }
+        );
+
+        narrowPassagesTag.ActivationTriggers.Add(new TagTrigger(
+            "physical_trigger",
+            "Using Physical focus activates the cramped space disadvantage",
+            null,
+            FocusTypes.Physical
+        ));
+
+        narrowPassagesTag.RemovalTriggers.Add(new TagTrigger(
+            "precision_removal",
+            "Precision approach can help navigate the cramped spaces",
+            ApproachTypes.Finesse
+        ));
+
+        narrowPassagesTag.IsLocationReaction = true;
+        _tags[narrowPassagesTag.Id] = narrowPassagesTag;
+
+        // Merchant Guild negative tags
+
+        // Social Faux Pas - Triggered by Force approach in the refined Guild
+        EncounterTag socialFauxPasTag = new EncounterTag(
+            "social_faux_pas",
+            "Social Faux Pas",
+            "Your aggressive manner has offended the merchants. Relationship-focused choices generate no momentum.",
+            SignatureElementTypes.Rapport,
+            0,
+            new TagEffect
+            {
+                IsNegative = true,
+                AffectedFocus = FocusTypes.Relationship,
+                BlockMomentum = true
+            }
+        );
+
+        socialFauxPasTag.ActivationTriggers.Add(new TagTrigger(
+            "force_guild_trigger",
+            "Using Force in the Merchant Guild is a social blunder",
+            ApproachTypes.Force
+        ));
+
+        socialFauxPasTag.RemovalTriggers.Add(new TagTrigger(
+            "charm_removal",
+            "Charm can help recover from social mistakes",
+            ApproachTypes.Charm
+        ));
+
+        socialFauxPasTag.IsLocationReaction = true;
+        _tags[socialFauxPasTag.Id] = socialFauxPasTag;
+
+        // Market Suspicion - Triggered by Stealth approach in the watchful Guild
+        EncounterTag marketSuspicionTag = new EncounterTag(
+            "market_suspicion",
+            "Market Suspicion",
+            "The merchants are watching you carefully. All choices generate +1 pressure.",
+            SignatureElementTypes.Concealment,
+            0,
+            new TagEffect
+            {
+                IsNegative = true,
+                PressureModifier = 1
+            }
+        );
+
+        marketSuspicionTag.ActivationTriggers.Add(new TagTrigger(
+            "stealth_guild_trigger",
+            "Using Stealth in the Merchant Guild raises suspicion",
+            ApproachTypes.Stealth
+        ));
+
+        marketSuspicionTag.RemovalTriggers.Add(new TagTrigger(
+            "rapport_removal",
+            "Building enough Rapport can dispel suspicion",
+            null,
+            null,
+            3,
+            SignatureElementTypes.Rapport
+        ));
+
+        marketSuspicionTag.IsLocationReaction = true;
+        _tags[marketSuspicionTag.Id] = marketSuspicionTag;
+
+        // Bandit Camp negative tags
+
+        // Hostile Territory - Triggered by Charm approach in the distrustful camp
+        EncounterTag hostileTerritoryTag = new EncounterTag(
+            "hostile_territory",
+            "Hostile Territory",
+            "Your charming manner is seen as weakness. Relationship-focused choices generate +2 pressure.",
+            SignatureElementTypes.Rapport,
+            0,
+            new TagEffect
+            {
+                IsNegative = true,
+                AffectedFocus = FocusTypes.Relationship,
+                PressureModifier = 2
+            }
+        );
+
+        hostileTerritoryTag.ActivationTriggers.Add(new TagTrigger(
+            "charm_bandit_trigger",
+            "Using Charm in the Bandit Camp is seen as weakness",
+            ApproachTypes.Charm
+        ));
+
+        hostileTerritoryTag.RemovalTriggers.Add(new TagTrigger(
+            "force_removal",
+            "Show of Force can earn respect in the camp",
+            ApproachTypes.Force
+        ));
+
+        hostileTerritoryTag.IsLocationReaction = true;
+        _tags[hostileTerritoryTag.Id] = hostileTerritoryTag;
+
+        // Unstable Ground - Triggered by any environment focus in the chaotic camp
+        EncounterTag unstableGroundTag = new EncounterTag(
+            "unstable_ground",
+            "Unstable Ground",
+            "The chaotic environment works against you. Environment-focused choices generate no momentum.",
+            SignatureElementTypes.Precision,
+            0,
+            new TagEffect
+            {
+                IsNegative = true,
+                AffectedFocus = FocusTypes.Environment,
+                BlockMomentum = true
+            }
+        );
+
+        unstableGroundTag.ActivationTriggers.Add(new TagTrigger(
+            "environment_bandit_trigger",
+            "Focusing on the Environment in the chaotic camp is difficult",
+            null,
+            FocusTypes.Environment
+        ));
+
+        unstableGroundTag.RemovalTriggers.Add(new TagTrigger(
+            "wit_removal",
+            "Wit can help make sense of the chaotic environment",
+            ApproachTypes.Wit
+        ));
+
+        unstableGroundTag.IsLocationReaction = true;
+        _tags[unstableGroundTag.Id] = unstableGroundTag;
+
+        // Royal Court negative tags
+
+        // Court Etiquette - Triggered by Force or Stealth approaches in the formal court
+        EncounterTag courtEtiquetteTag = new EncounterTag(
+            "court_etiquette",
+            "Court Etiquette Violation",
+            "Your actions have violated court protocol. All choices generate +1 pressure.",
+            SignatureElementTypes.Rapport,
+            0,
+            new TagEffect
+            {
+                IsNegative = true,
+                PressureModifier = 1
+            }
+        );
+
+        courtEtiquetteTag.ActivationTriggers.Add(new TagTrigger(
+            "force_court_trigger",
+            "Using Force in court violates etiquette",
+            ApproachTypes.Force
+        ));
+
+        courtEtiquetteTag.ActivationTriggers.Add(new TagTrigger(
+            "stealth_court_trigger",
+            "Using Stealth in court violates etiquette",
+            ApproachTypes.Stealth
+        ));
+
+        courtEtiquetteTag.RemovalTriggers.Add(new TagTrigger(
+            "charm_court_removal",
+            "Charm can smooth over etiquette violations",
+            ApproachTypes.Charm
+        ));
+
+        courtEtiquetteTag.IsLocationReaction = true;
+        _tags[courtEtiquetteTag.Id] = courtEtiquetteTag;
+
+        // Court Politics - Triggered by focusing too much on Information
+        EncounterTag courtPoliticsTag = new EncounterTag(
+            "court_politics",
+            "Court Politics",
+            "Your questions have drawn unwanted attention. Information-focused choices generate double pressure.",
+            SignatureElementTypes.Analysis,
+            0,
+            new TagEffect
+            {
+                IsNegative = true,
+                AffectedFocus = FocusTypes.Information,
+                DoublePressure = true
+            }
+        );
+
+        courtPoliticsTag.ActivationTriggers.Add(new TagTrigger(
+            "information_court_trigger",
+            "Seeking too much information draws political attention",
+            null,
+            FocusTypes.Information,
+            2, // Requires at least 2 uses
+            null,
+            true // Cumulative effect
+        ));
+
+        courtPoliticsTag.RemovalTriggers.Add(new TagTrigger(
+            "relationship_court_removal",
+            "Building relationships can deflect political attention",
+            null,
+            FocusTypes.Relationship
+        ));
+
+        courtPoliticsTag.IsLocationReaction = true;
+        _tags[courtPoliticsTag.Id] = courtPoliticsTag;
     }
 
     private void AddTag(string id, string name, string description, SignatureElementTypes sourceElement,

@@ -78,22 +78,6 @@ public class EncounterFactory
     }
 
     /// <summary>
-    /// Create an encounter for the Wilderness location
-    /// </summary>
-    public EncounterProcessor CreateWildernessEncounter()
-    {
-        EncounterState state = new EncounterState
-        {
-            MaxTurns = 5,
-            MaxMomentum = 15
-        };
-
-        LocationStrategicProperties locationProperties = LocationContent.CreateWilderness();
-
-        return new EncounterProcessor(state, locationProperties, _tagRepository);
-    }
-
-    /// <summary>
     /// Create a custom encounter
     /// </summary>
     public EncounterProcessor CreateCustomEncounter(LocationStrategicProperties locationProperties, int maxTurns, int maxMomentum)

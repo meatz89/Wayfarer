@@ -60,7 +60,7 @@
         narrativeSystem.NewEncounter(context, actionImplementation);
 
         EncounterFactory _factory = new EncounterFactory();
-        encounterProcessor = _factory.CreateHarborWarehouseEncounter();
+        encounterProcessor = _factory.CreateBanditCampEncounter();
         EncounterState state = encounterProcessor.GetState();
 
         return Encounter;

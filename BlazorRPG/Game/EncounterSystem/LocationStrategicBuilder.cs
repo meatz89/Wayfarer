@@ -1,6 +1,6 @@
 ﻿
 /// <summary>
-/// Builder for creating location strategic properties
+/// Extended builder for location strategic properties
 /// </summary>
 public class LocationStrategicBuilder
 {
@@ -9,6 +9,7 @@ public class LocationStrategicBuilder
     private List<SignatureElementTypes> _favoredElements;
     private List<SignatureElementTypes> _disfavoredElements;
     private List<string> _availableTagIds;
+    private List<string> _locationReactionTagIds;
 
     public LocationStrategicBuilder()
     {
@@ -17,6 +18,7 @@ public class LocationStrategicBuilder
         _favoredElements = new List<SignatureElementTypes>();
         _disfavoredElements = new List<SignatureElementTypes>();
         _availableTagIds = new List<string>();
+        _locationReactionTagIds = new List<string>();
     }
 
     public LocationStrategicBuilder WithId(string id)
@@ -49,8 +51,21 @@ public class LocationStrategicBuilder
         return this;
     }
 
+    public LocationStrategicBuilder WithLocationReactionTag(string tagId)
+    {
+        _locationReactionTagIds.Add(tagId);
+        return this;
+    }
+
     public LocationStrategicProperties Build()
     {
-        return new LocationStrategicProperties(_id, _name, _favoredElements, _disfavoredElements, _availableTagIds);
+        return new LocationStrategicProperties(
+            _id,
+            _name,
+            _favoredElements,
+            _disfavoredElements,
+            _availableTagIds,
+            _locationReactionTagIds
+        );
     }
 }
