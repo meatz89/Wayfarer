@@ -17,7 +17,7 @@ public class EncounterRunner
     {
         // Create the Harbor Warehouse encounter
         Console.WriteLine("=== HARBOR WAREHOUSE ENCOUNTER EXAMPLE ===");
-        EncounterProcessor harborEncounter = _factory.CreateHarborWarehouseEncounter();
+        EncounterProcessor harborEncounter = _factory.CreateBanditCampEncounter();
         RunHarborWarehouseEncounter(harborEncounter);
     }
 

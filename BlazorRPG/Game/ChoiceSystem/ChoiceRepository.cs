@@ -72,68 +72,67 @@ public class ChoiceRepository
             default: return "X";
         }
     }
-
     private void InitializeChoices()
     {
         // Force Approach Choices
-        AddChoice("F-I-M", "Direct Questioning", ApproachTypes.Force, FocusTypes.Information, EffectTypes.Momentum);
-        AddChoice("F-I-P", "Intimidating Questions", ApproachTypes.Force, FocusTypes.Information, EffectTypes.Pressure);
-        AddChoice("F-R-M", "Commanding Presence", ApproachTypes.Force, FocusTypes.Relationship, EffectTypes.Momentum);
-        AddChoice("F-R-P", "Domineering Attitude", ApproachTypes.Force, FocusTypes.Relationship, EffectTypes.Pressure);
-        AddChoice("F-P-M", "Forceful Advance", ApproachTypes.Force, FocusTypes.Physical, EffectTypes.Momentum);
-        AddChoice("F-P-P", "Overwhelming Force", ApproachTypes.Force, FocusTypes.Physical, EffectTypes.Pressure);
-        AddChoice("F-E-M", "Overcome Barrier", ApproachTypes.Force, FocusTypes.Environment, EffectTypes.Momentum);
-        AddChoice("F-E-P", "Brute Force Approach", ApproachTypes.Force, FocusTypes.Environment, EffectTypes.Pressure);
-        AddChoice("F-Re-M", "Seize Resources", ApproachTypes.Force, FocusTypes.Resource, EffectTypes.Momentum);
-        AddChoice("F-Re-P", "Demand Resources", ApproachTypes.Force, FocusTypes.Resource, EffectTypes.Pressure);
+        AddChoice("F-I-M", "Direct Assertion (+momentum, +dominance)", ApproachTypes.Force, FocusTypes.Information, EffectTypes.Momentum);
+        AddChoice("F-I-P", "Forceful Interrogation (-pressure, +dominance)", ApproachTypes.Force, FocusTypes.Information, EffectTypes.Pressure);
+        AddChoice("F-R-M", "Dominant Engagement (+momentum, +dominance)", ApproachTypes.Force, FocusTypes.Relationship, EffectTypes.Momentum);
+        AddChoice("F-R-P", "Intimidate Opposition (-pressure, +dominance)", ApproachTypes.Force, FocusTypes.Relationship, EffectTypes.Pressure);
+        AddChoice("F-P-M", "Physical Imposition (+momentum, +dominance)", ApproachTypes.Force, FocusTypes.Physical, EffectTypes.Momentum);
+        AddChoice("F-P-P", "Overwhelming Maneuver (-pressure, +dominance)", ApproachTypes.Force, FocusTypes.Physical, EffectTypes.Pressure);
+        AddChoice("F-E-M", "Environmental Force (+momentum, +dominance)", ApproachTypes.Force, FocusTypes.Environment, EffectTypes.Momentum);
+        AddChoice("F-E-P", "Forcefully Clear Path (-pressure, +dominance)", ApproachTypes.Force, FocusTypes.Environment, EffectTypes.Pressure);
+        AddChoice("F-Re-M", "Forceful Acquisition (+momentum, +dominance)", ApproachTypes.Force, FocusTypes.Resource, EffectTypes.Momentum);
+        AddChoice("F-Re-P", "Demand Assets (-pressure, +dominance)", ApproachTypes.Force, FocusTypes.Resource, EffectTypes.Pressure);
 
         // Finesse Approach Choices
-        AddChoice("Fi-I-M", "Careful Analysis", ApproachTypes.Finesse, FocusTypes.Information, EffectTypes.Momentum);
-        AddChoice("Fi-I-P", "Detailed Scrutiny", ApproachTypes.Finesse, FocusTypes.Information, EffectTypes.Pressure);
-        AddChoice("Fi-R-M", "Diplomatic Approach", ApproachTypes.Finesse, FocusTypes.Relationship, EffectTypes.Momentum);
-        AddChoice("Fi-R-P", "Cautious Negotiation", ApproachTypes.Finesse, FocusTypes.Relationship, EffectTypes.Pressure);
-        AddChoice("Fi-P-M", "Precise Movements", ApproachTypes.Finesse, FocusTypes.Physical, EffectTypes.Momentum);
-        AddChoice("Fi-P-P", "Careful Positioning", ApproachTypes.Finesse, FocusTypes.Physical, EffectTypes.Pressure);
-        AddChoice("Fi-E-M", "Navigate Environment", ApproachTypes.Finesse, FocusTypes.Environment, EffectTypes.Momentum);
-        AddChoice("Fi-E-P", "Find Alternative Path", ApproachTypes.Finesse, FocusTypes.Environment, EffectTypes.Pressure);
-        AddChoice("Fi-Re-M", "Efficient Allocation", ApproachTypes.Finesse, FocusTypes.Resource, EffectTypes.Momentum);
-        AddChoice("Fi-Re-P", "Conserve Resources", ApproachTypes.Finesse, FocusTypes.Resource, EffectTypes.Pressure);
+        AddChoice("Fi-I-M", "Precise Assessment (+momentum, +precision)", ApproachTypes.Finesse, FocusTypes.Information, EffectTypes.Momentum);
+        AddChoice("Fi-I-P", "Careful Examination (-pressure, +precision)", ApproachTypes.Finesse, FocusTypes.Information, EffectTypes.Pressure);
+        AddChoice("Fi-R-M", "Skillful Connection (+momentum, +precision)", ApproachTypes.Finesse, FocusTypes.Relationship, EffectTypes.Momentum);
+        AddChoice("Fi-R-P", "Tactical Approach (-pressure, +precision)", ApproachTypes.Finesse, FocusTypes.Relationship, EffectTypes.Pressure);
+        AddChoice("Fi-P-M", "Precise Execution (+momentum, +precision)", ApproachTypes.Finesse, FocusTypes.Physical, EffectTypes.Momentum);
+        AddChoice("Fi-P-P", "Measured Adjustment (-pressure, +precision)", ApproachTypes.Finesse, FocusTypes.Physical, EffectTypes.Pressure);
+        AddChoice("Fi-E-M", "Skillful Navigation (+momentum, +precision)", ApproachTypes.Finesse, FocusTypes.Environment, EffectTypes.Momentum);
+        AddChoice("Fi-E-P", "Find Optimal Path (-pressure, +precision)", ApproachTypes.Finesse, FocusTypes.Environment, EffectTypes.Pressure);
+        AddChoice("Fi-Re-M", "Resource Optimization (+momentum, +precision)", ApproachTypes.Finesse, FocusTypes.Resource, EffectTypes.Momentum);
+        AddChoice("Fi-Re-P", "Efficient Utilization (-pressure, +precision)", ApproachTypes.Finesse, FocusTypes.Resource, EffectTypes.Pressure);
 
         // Wit Approach Choices
-        AddChoice("W-I-M", "Deduce Facts", ApproachTypes.Wit, FocusTypes.Information, EffectTypes.Momentum);
-        AddChoice("W-I-P", "Probe for Inconsistencies", ApproachTypes.Wit, FocusTypes.Information, EffectTypes.Pressure);
-        AddChoice("W-R-M", "Clever Persuasion", ApproachTypes.Wit, FocusTypes.Relationship, EffectTypes.Momentum);
-        AddChoice("W-R-P", "Outmaneuver Intellectually", ApproachTypes.Wit, FocusTypes.Relationship, EffectTypes.Pressure);
-        AddChoice("W-P-M", "Tactical Planning", ApproachTypes.Wit, FocusTypes.Physical, EffectTypes.Momentum);
-        AddChoice("W-P-P", "Exploit Weakness", ApproachTypes.Wit, FocusTypes.Physical, EffectTypes.Pressure);
-        AddChoice("W-E-M", "Identify Advantage", ApproachTypes.Wit, FocusTypes.Environment, EffectTypes.Momentum);
-        AddChoice("W-E-P", "Identify Hazard", ApproachTypes.Wit, FocusTypes.Environment, EffectTypes.Pressure);
-        AddChoice("W-Re-M", "Strategic Resource Use", ApproachTypes.Wit, FocusTypes.Resource, EffectTypes.Momentum);
-        AddChoice("W-Re-P", "Resource Assessment", ApproachTypes.Wit, FocusTypes.Resource, EffectTypes.Pressure);
+        AddChoice("W-I-M", "Analytical Insight (+momentum, +analysis)", ApproachTypes.Wit, FocusTypes.Information, EffectTypes.Momentum);
+        AddChoice("W-I-P", "Logical Deconstruction (-pressure, +analysis)", ApproachTypes.Wit, FocusTypes.Information, EffectTypes.Pressure);
+        AddChoice("W-R-M", "Strategic Interaction (+momentum, +analysis)", ApproachTypes.Wit, FocusTypes.Relationship, EffectTypes.Momentum);
+        AddChoice("W-R-P", "Intellectual Challenge (-pressure, +analysis)", ApproachTypes.Wit, FocusTypes.Relationship, EffectTypes.Pressure);
+        AddChoice("W-P-M", "Calculated Movement (+momentum, +analysis)", ApproachTypes.Wit, FocusTypes.Physical, EffectTypes.Momentum);
+        AddChoice("W-P-P", "Exploit Vulnerability (-pressure, +analysis)", ApproachTypes.Wit, FocusTypes.Physical, EffectTypes.Pressure);
+        AddChoice("W-E-M", "Environmental Analysis (+momentum, +analysis)", ApproachTypes.Wit, FocusTypes.Environment, EffectTypes.Momentum);
+        AddChoice("W-E-P", "Risk Assessment (-pressure, +analysis)", ApproachTypes.Wit, FocusTypes.Environment, EffectTypes.Pressure);
+        AddChoice("W-Re-M", "Strategic Allocation (+momentum, +analysis)", ApproachTypes.Wit, FocusTypes.Resource, EffectTypes.Momentum);
+        AddChoice("W-Re-P", "Resource Evaluation (-pressure, +analysis)", ApproachTypes.Wit, FocusTypes.Resource, EffectTypes.Pressure);
 
         // Charm Approach Choices
-        AddChoice("C-I-M", "Persuasive Questioning", ApproachTypes.Charm, FocusTypes.Information, EffectTypes.Momentum);
-        AddChoice("C-I-P", "Flattering Inquiry", ApproachTypes.Charm, FocusTypes.Information, EffectTypes.Pressure);
-        AddChoice("C-R-M", "Build Rapport", ApproachTypes.Charm, FocusTypes.Relationship, EffectTypes.Momentum);
-        AddChoice("C-R-P", "Appeal to Emotions", ApproachTypes.Charm, FocusTypes.Relationship, EffectTypes.Pressure);
-        AddChoice("C-P-M", "Graceful Execution", ApproachTypes.Charm, FocusTypes.Physical, EffectTypes.Momentum);
-        AddChoice("C-P-P", "Distracting Behavior", ApproachTypes.Charm, FocusTypes.Physical, EffectTypes.Pressure);
-        AddChoice("C-E-M", "Create Favorable Conditions", ApproachTypes.Charm, FocusTypes.Environment, EffectTypes.Momentum);
-        AddChoice("C-E-P", "Dramatic Gesture", ApproachTypes.Charm, FocusTypes.Environment, EffectTypes.Pressure);
-        AddChoice("C-Re-M", "Negotiate Better Terms", ApproachTypes.Charm, FocusTypes.Resource, EffectTypes.Momentum);
-        AddChoice("C-Re-P", "Request Assistance", ApproachTypes.Charm, FocusTypes.Resource, EffectTypes.Pressure);
+        AddChoice("C-I-M", "Persuasive Exchange (+momentum, +rapport)", ApproachTypes.Charm, FocusTypes.Information, EffectTypes.Momentum);
+        AddChoice("C-I-P", "Diplomatic Inquiry (-pressure, +rapport)", ApproachTypes.Charm, FocusTypes.Information, EffectTypes.Pressure);
+        AddChoice("C-R-M", "Social Connection (+momentum, +rapport)", ApproachTypes.Charm, FocusTypes.Relationship, EffectTypes.Momentum);
+        AddChoice("C-R-P", "Emotional Appeal (-pressure, +rapport)", ApproachTypes.Charm, FocusTypes.Relationship, EffectTypes.Pressure);
+        AddChoice("C-P-M", "Captivating Display (+momentum, +rapport)", ApproachTypes.Charm, FocusTypes.Physical, EffectTypes.Momentum);
+        AddChoice("C-P-P", "Charismatic Flourish (-pressure, +rapport)", ApproachTypes.Charm, FocusTypes.Physical, EffectTypes.Pressure);
+        AddChoice("C-E-M", "Social Positioning (+momentum, +rapport)", ApproachTypes.Charm, FocusTypes.Environment, EffectTypes.Momentum);
+        AddChoice("C-E-P", "Environmental Charm (-pressure, +rapport)", ApproachTypes.Charm, FocusTypes.Environment, EffectTypes.Pressure);
+        AddChoice("C-Re-M", "Advantageous Negotiation (+momentum, +rapport)", ApproachTypes.Charm, FocusTypes.Resource, EffectTypes.Momentum);
+        AddChoice("C-Re-P", "Resource Solicitation (-pressure, +rapport)", ApproachTypes.Charm, FocusTypes.Resource, EffectTypes.Pressure);
 
         // Stealth Approach Choices
-        AddChoice("S-I-M", "Gather Information Secretly", ApproachTypes.Stealth, FocusTypes.Information, EffectTypes.Momentum);
-        AddChoice("S-I-P", "Observe Secretly", ApproachTypes.Stealth, FocusTypes.Information, EffectTypes.Pressure);
-        AddChoice("S-R-M", "Subtle Influence", ApproachTypes.Stealth, FocusTypes.Relationship, EffectTypes.Momentum);
-        AddChoice("S-R-P", "Manipulate Indirectly", ApproachTypes.Stealth, FocusTypes.Relationship, EffectTypes.Pressure);
-        AddChoice("S-P-M", "Move Unnoticed", ApproachTypes.Stealth, FocusTypes.Physical, EffectTypes.Momentum);
-        AddChoice("S-P-P", "Hidden Approach", ApproachTypes.Stealth, FocusTypes.Physical, EffectTypes.Pressure);
-        AddChoice("S-E-M", "Find Concealment", ApproachTypes.Stealth, FocusTypes.Environment, EffectTypes.Momentum);
-        AddChoice("S-E-P", "Create Diversion", ApproachTypes.Stealth, FocusTypes.Environment, EffectTypes.Pressure);
-        AddChoice("S-Re-M", "Acquire Discreetly", ApproachTypes.Stealth, FocusTypes.Resource, EffectTypes.Momentum);
-        AddChoice("S-Re-P", "Take Resources Covertly", ApproachTypes.Stealth, FocusTypes.Resource, EffectTypes.Pressure);
+        AddChoice("S-I-M", "Covert Intelligence (+momentum, +concealment)", ApproachTypes.Stealth, FocusTypes.Information, EffectTypes.Momentum);
+        AddChoice("S-I-P", "Undetected Observation (-pressure, +concealment)", ApproachTypes.Stealth, FocusTypes.Information, EffectTypes.Pressure);
+        AddChoice("S-R-M", "Hidden Influence (+momentum, +concealment)", ApproachTypes.Stealth, FocusTypes.Relationship, EffectTypes.Momentum);
+        AddChoice("S-R-P", "Subtle Manipulation (-pressure, +concealment)", ApproachTypes.Stealth, FocusTypes.Relationship, EffectTypes.Pressure);
+        AddChoice("S-P-M", "Concealed Movement (+momentum, +concealment)", ApproachTypes.Stealth, FocusTypes.Physical, EffectTypes.Momentum);
+        AddChoice("S-P-P", "Evasive Action (-pressure, +concealment)", ApproachTypes.Stealth, FocusTypes.Physical, EffectTypes.Pressure);
+        AddChoice("S-E-M", "Stealthy Positioning (+momentum, +concealment)", ApproachTypes.Stealth, FocusTypes.Environment, EffectTypes.Momentum);
+        AddChoice("S-E-P", "Covert Distraction (-pressure, +concealment)", ApproachTypes.Stealth, FocusTypes.Environment, EffectTypes.Pressure);
+        AddChoice("S-Re-M", "Discreet Acquisition (+momentum, +concealment)", ApproachTypes.Stealth, FocusTypes.Resource, EffectTypes.Momentum);
+        AddChoice("S-Re-P", "Covert Appropriation (-pressure, +concealment)", ApproachTypes.Stealth, FocusTypes.Resource, EffectTypes.Pressure);
     }
 
     private void AddChoice(string id, string name, ApproachTypes approach, FocusTypes focus, EffectTypes effect)

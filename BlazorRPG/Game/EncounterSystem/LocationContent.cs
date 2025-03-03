@@ -1,36 +1,10 @@
-﻿
-/// <summary>
-/// Content definitions for locations with reaction tags
+﻿/// <summary>
+/// Content definitions for locations with type-safe tag handling
 /// </summary>
 public class LocationContent
 {
     /// <summary>
-    /// Create Harbor Warehouse location properties
-    /// </summary>
-    public static LocationStrategicProperties CreateHarborWarehouse()
-    {
-        return new LocationStrategicBuilder()
-            .WithId("harbor_warehouse")
-            .WithName("Harbor Warehouse")
-            .WithFavoredElement(SignatureElementTypes.Precision)
-            .WithFavoredElement(SignatureElementTypes.Concealment)
-            .WithDisfavoredElement(SignatureElementTypes.Dominance)
-            .WithDisfavoredElement(SignatureElementTypes.Rapport)
-            // Positive player tags
-            .WithAvailableTag("precision_footwork")
-            .WithAvailableTag("flawless_execution")
-            .WithAvailableTag("efficient_movement")
-            .WithAvailableTag("shadow_movement")
-            .WithAvailableTag("perfect_stealth")
-            .WithAvailableTag("hidden_observation")
-            // Negative location reaction tags
-            .WithLocationReactionTag("security_alert")
-            .WithLocationReactionTag("narrow_passages")
-            .Build();
-    }
-
-    /// <summary>
-    /// Create Merchant Guild location properties
+    /// Create Merchant Guild location properties with improved type safety
     /// </summary>
     public static LocationStrategicProperties CreateMerchantGuild()
     {
@@ -41,21 +15,25 @@ public class LocationContent
             .WithFavoredElement(SignatureElementTypes.Analysis)
             .WithDisfavoredElement(SignatureElementTypes.Dominance)
             .WithDisfavoredElement(SignatureElementTypes.Concealment)
-            // Positive player tags
-            .WithAvailableTag("social_currency")
-            .WithAvailableTag("network_leverage")
-            .WithAvailableTag("emotional_insight")
-            .WithAvailableTag("market_insight")
-            .WithAvailableTag("negotiation_mastery")
-            .WithAvailableTag("resource_optimization")
-            // Negative location reaction tags
-            .WithLocationReactionTag("social_faux_pas")
-            .WithLocationReactionTag("market_suspicion")
+            // Positive player tags - now with type checking
+            .WithRapportTags(
+                TagRegistry.Rapport.SocialCurrency,
+                TagRegistry.Rapport.NetworkLeverage,
+                TagRegistry.Rapport.EmotionalInsight
+            )
+            .WithAnalysisTags(
+                TagRegistry.Analysis.MarketInsight,
+                TagRegistry.Analysis.NegotiationMastery,
+                TagRegistry.Analysis.ResourceOptimization
+            )
+            // Negative location reaction tags - now with location-specific validation
+            .WithLocationReactionTag(TagRegistry.LocationReaction.SocialFauxPas)
+            .WithLocationReactionTag(TagRegistry.LocationReaction.MarketSuspicion)
             .Build();
     }
 
     /// <summary>
-    /// Create Bandit Camp location properties
+    /// Create Bandit Camp location properties with improved type safety
     /// </summary>
     public static LocationStrategicProperties CreateBanditCamp()
     {
@@ -66,41 +44,20 @@ public class LocationContent
             .WithFavoredElement(SignatureElementTypes.Concealment)
             .WithDisfavoredElement(SignatureElementTypes.Rapport)
             .WithDisfavoredElement(SignatureElementTypes.Precision)
-            // Positive player tags
-            .WithAvailableTag("intimidation_tactics")
-            .WithAvailableTag("overwhelming_presence")
-            .WithAvailableTag("forceful_breakthrough")
-            .WithAvailableTag("unseen_threat")
-            .WithAvailableTag("perfect_ambush")
-            .WithAvailableTag("shadow_movement")
-            // Negative location reaction tags
-            .WithLocationReactionTag("hostile_territory")
-            .WithLocationReactionTag("unstable_ground")
-            .Build();
-    }
-
-    /// <summary>
-    /// Create Royal Court location properties
-    /// </summary>
-    public static LocationStrategicProperties CreateRoyalCourt()
-    {
-        return new LocationStrategicBuilder()
-            .WithId("royal_court")
-            .WithName("Royal Court")
-            .WithFavoredElement(SignatureElementTypes.Rapport)
-            .WithFavoredElement(SignatureElementTypes.Precision)
-            .WithDisfavoredElement(SignatureElementTypes.Dominance)
-            .WithDisfavoredElement(SignatureElementTypes.Concealment)
-            // Positive player tags
-            .WithAvailableTag("social_currency")
-            .WithAvailableTag("emotional_insight")
-            .WithAvailableTag("network_leverage")
-            .WithAvailableTag("meticulous_approach")
-            .WithAvailableTag("smooth_talker")
-            .WithAvailableTag("careful_allocation")
-            // Negative location reaction tags
-            .WithLocationReactionTag("court_etiquette")
-            .WithLocationReactionTag("court_politics")
+            // Positive player tags - now with type checking
+            .WithDominanceTags(
+                TagRegistry.Dominance.IntimidationTactics,
+                TagRegistry.Dominance.OverwhelmingPresence,
+                TagRegistry.Dominance.ForcefulBreakthrough
+            )
+            .WithConcealmentTags(
+                TagRegistry.Concealment.UnseenThreat,
+                TagRegistry.Concealment.PerfectAmbush,
+                TagRegistry.Concealment.ShadowMovement
+            )
+            // Negative location reaction tags - now with location-specific validation
+            .WithLocationReactionTag(TagRegistry.LocationReaction.HostileTerritory)
+            .WithLocationReactionTag(TagRegistry.LocationReaction.UnstableGround)
             .Build();
     }
 }

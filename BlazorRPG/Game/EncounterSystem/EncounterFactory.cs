@@ -14,22 +14,6 @@ public class EncounterFactory
     }
 
     /// <summary>
-    /// Create an encounter for the Harbor Warehouse location
-    /// </summary>
-    public EncounterProcessor CreateHarborWarehouseEncounter()
-    {
-        EncounterState state = new EncounterState
-        {
-            MaxTurns = 5,
-            MaxMomentum = 15
-        };
-
-        LocationStrategicProperties locationProperties = LocationContent.CreateHarborWarehouse();
-
-        return new EncounterProcessor(state, locationProperties, _tagRepository);
-    }
-
-    /// <summary>
     /// Create an encounter for the Merchant Guild location
     /// </summary>
     public EncounterProcessor CreateMerchantGuildEncounter()
@@ -57,22 +41,6 @@ public class EncounterFactory
         };
 
         LocationStrategicProperties locationProperties = LocationContent.CreateBanditCamp();
-
-        return new EncounterProcessor(state, locationProperties, _tagRepository);
-    }
-
-    /// <summary>
-    /// Create an encounter for the Royal Court location
-    /// </summary>
-    public EncounterProcessor CreateRoyalCourtEncounter()
-    {
-        EncounterState state = new EncounterState
-        {
-            MaxTurns = 7,
-            MaxMomentum = 20
-        };
-
-        LocationStrategicProperties locationProperties = LocationContent.CreateRoyalCourt();
 
         return new EncounterProcessor(state, locationProperties, _tagRepository);
     }
