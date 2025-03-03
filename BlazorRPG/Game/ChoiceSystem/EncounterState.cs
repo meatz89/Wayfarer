@@ -4,9 +4,13 @@
 public class EncounterState
 {
     // Core resources
-    public int Momentum { get; private set; }
-    public int MaxMomentum { get; internal set; }
-    public int Pressure { get; private set; }
+    public int Momentum { get; set; }
+    public int MaxMomentum { get; set; }
+    public int Pressure { get; set; }
+
+    public int CurrentTurn = 1;
+
+    public List<Choice> CurrentChoices;
 
     // All approach tag values
     public Dictionary<ApproachTypes, int> ApproachTypesDic { get; set; }
@@ -58,38 +62,6 @@ public class EncounterState
     }
 
     /// <summary>
-    /// Apply a choice's effects to the Encounter state
-    /// </summary>
-    public EncounterState ApplyChoice(Choice choice)
-    {
-        EncounterState oldState = this;
-        EncounterState newState = new EncounterState(Momentum, Pressure);
-        newState.ApproachTypesDic = new Dictionary<ApproachTypes, int>(ApproachTypesDic);
-        newState.FocusTypesDic = new Dictionary<FocusTypes, int>(FocusTypesDic);
-
-        // Apply effect (momentum or pressure)
-        if (choice.EffectType == EffectTypes.Momentum)
-        {
-            // Base: +1 momentum
-            // Unstable State: +2 momentum instead
-            newState.Momentum += newState.IsStable ? 1 : 2;
-        }
-        else
-        {
-            // Always +1 pressure
-            newState.Pressure += 1;
-        }
-
-        // Increase approach tag
-        newState.ApproachTypesDic[choice.ApproachType] += 1;
-
-        // Increase focus tag
-        newState.FocusTypesDic[choice.FocusType] += 1;
-
-        return newState;
-    }
-
-    /// <summary>
     /// Momentum to Pressure ratio used for choice distribution
     /// </summary>
     public double MomentumToPressureRatio
@@ -107,6 +79,9 @@ public class EncounterState
             return value;
         }
     }
+
+    public EncounterStatus EncounterStatus { get; internal set; }
+    public int MaxTurns { get; internal set; }
 
 
     /// <summary>

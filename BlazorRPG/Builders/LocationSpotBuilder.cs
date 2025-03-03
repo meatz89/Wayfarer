@@ -4,11 +4,11 @@
     private LocationNames locationName;
     private CharacterNames? character;
 
-    public Accessibility? accessibility { get; private set; }
-    public Engagement? engagement { get; private set; }
-    public Atmosphere? atmosphere { get; private set; }
-    public RoomLayout? roomLayout { get; private set; }
-    public Temperature? temperature { get; private set; }
+    public Accessibility? accessibility { get; set; }
+    public Engagement? engagement { get; set; }
+    public Atmosphere? atmosphere { get; set; }
+    public RoomLayout? roomLayout { get; set; }
+    public Temperature? temperature { get; set; }
 
     public LocationSpotBuilder(LocationNames locationName)
     {

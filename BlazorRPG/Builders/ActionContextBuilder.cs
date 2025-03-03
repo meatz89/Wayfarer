@@ -1,11 +1,11 @@
 ﻿public class ActionContextBuilder
 {
-    public LocationTypes LocationType { get; private set; }
-    public BasicActionTypes BaseAction { get; private set; }
-    public SpaceProperties Space { get; private set; } = new();
-    public SocialProperties Social { get; private set; } = new();
-    public ActivityProperties Activity { get; private set; } = new();
-    public string LocationSpotName { get; private set; }
+    public LocationTypes LocationType { get; set; }
+    public BasicActionTypes BaseAction { get; set; }
+    public SpaceProperties Space { get; set; } = new();
+    public SocialProperties Social { get; set; } = new();
+    public ActivityProperties Activity { get; set; } = new();
+    public string LocationSpotName { get; set; }
 
     public ActionContextBuilder(LocationTypes locationType)
     {

@@ -3,13 +3,6 @@
 /// </summary>
 public class Encounter
 {
-
-    private int _currentTurn = 1;
-    private List<Choice> _currentChoices;
-    public int CurrentTurn => _currentTurn;
-    
-    public IReadOnlyList<Choice> CurrentChoices => _currentChoices.AsReadOnly();
-
     public NarrativePhases NarrativePhase { get; internal set; }
 
     public EncounterContext EncounterContext = new EncounterContext();
@@ -39,27 +32,7 @@ public class Encounter
 
     public void SetChoices(List<Choice> currentChoices)
     {
-        _currentChoices = currentChoices;
-    }
-
-    /// <summary>
-    /// Make a choice and advance to the next turn
-    /// </summary>
-    public EncounterState MakeChoice(Choice choice)
-    {
-        // Verify the choice is valid
-        if (!_currentChoices.Contains(choice))
-        {
-            throw new ArgumentException("Invalid choice: not in current choice set");
-        }
-
-        // Apply the choice effects
-        State = State.ApplyChoice(choice);
-
-        // Advance to the next turn
-        _currentTurn++;
-
-        return State;
+        State.CurrentChoices = currentChoices;
     }
 
     /// <summary>
@@ -68,7 +41,7 @@ public class Encounter
     public bool IsComplete()
     {
         // Encounter ends if we reach the duration or hit failure condition
-        return _currentTurn > EncounterContext.Location.Duration || State.Pressure >= 10;
+        return State.CurrentTurn > EncounterContext.Location.Duration || State.Pressure >= 10;
     }
 
     /// <summary>
@@ -79,4 +52,3 @@ public class Encounter
         return State.GetOutcome(EncounterContext.Location);
     }
 }
-

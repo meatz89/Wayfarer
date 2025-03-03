@@ -1,7 +1,7 @@
 ﻿public class Equipment
 {
-    public Item MainHand { get; private set; }
-    public Item Clothing { get; private set; }
+    public Item MainHand { get; set; }
+    public Item Clothing { get; set; }
 
     public Equipment()
     {

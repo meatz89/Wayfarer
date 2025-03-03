@@ -6,6 +6,7 @@
     private readonly ChoiceExecutor choiceExecutor;
 
     private Encounter Encounter;
+    private EncounterProcessor encounterProcessor;
 
     public EncounterSystem(
         GameState gameState,
@@ -43,7 +44,7 @@
         inn.PartialSuccessThreshold = 8;
         inn.StandardSuccessThreshold = 10;
         inn.ExceptionalSuccessThreshold = 12;
-        
+
         Encounter = new Encounter(context, initialApproachTypess, initialFocusTypess);
         EncounterState encounterState = Encounter.State;
 
@@ -57,6 +58,10 @@
         
         gameState.Actions.SetActiveEncounter(Encounter);
         narrativeSystem.NewEncounter(context, actionImplementation);
+
+        var _factory = new EncounterFactory();
+        encounterProcessor = _factory.CreateHarborWarehouseEncounter();
+        EncounterState state = encounterProcessor.GetState();
 
         return Encounter;
     }
@@ -75,11 +80,19 @@
         Encounter.History.LastChoiceApproach = choice.ApproachType;
         Encounter.History.LastChoiceFocusType = choice.FocusType;
 
-        EncounterState oldState = Encounter.State;
-        EncounterState newState = Encounter.MakeChoice(choice);
+
+        EncounterState oldState = encounterProcessor.GetState();
+        encounterProcessor.ProcessChoice(choice);
+
+        StrategicSignature signature = encounterProcessor.GetSignature();
+        List<EncounterTag> activeTags = encounterProcessor.GetActiveTags();
+
+        EncounterState newState = encounterProcessor.GetState();
+        Encounter.State = newState;
 
         // Create new ChoiceSet
         List<Choice> currentChoices = choiceSystem.GenerateChoices(newState);
+
         Encounter.SetChoices(currentChoices);
         Encounter.NarrativePhase = choiceSystem.NarrativePhase;
 

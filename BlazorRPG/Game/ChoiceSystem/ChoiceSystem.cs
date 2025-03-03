@@ -1,8 +1,8 @@
 ﻿public class ChoiceSystem
 {
-    private readonly GameState gameState;
-    private readonly ChoiceCalculator calculator;
-    private readonly NarrativeChoiceGenerator choiceSetGenerator;
+    //private readonly GameState gameState;
+    //private readonly ChoiceCalculator calculator;
+    //private readonly NarrativeChoiceGenerator choiceSetGenerator;
 
     public NarrativePhases NarrativePhase;
 
@@ -10,8 +10,8 @@
         GameContentProvider contentProvider,
         GameState gameState)
     {
-        this.gameState = gameState;
-        this.calculator = new ChoiceCalculator(gameState);
+    //    this.gameState = gameState;
+    //    this.calculator = new ChoiceCalculator();
     }
 
     public List<Choice> GenerateChoices(
@@ -27,14 +27,14 @@
         return choices;
     }
 
-    public ChoiceSet CreateChoiceSet(EncounterContext context, List<Choice> choices)
-    {
-        foreach (Choice choice in choices)
-        {
-            calculator.CalculateChoiceEffects(choice, context);
-        }
+    //public ChoiceSet CreateChoiceSet(EncounterContext context, List<Choice> choices)
+    //{
+    //    foreach (Choice choice in choices)
+    //    {
+    //        calculator.CalculateChoiceEffects(choice, context);
+    //    }
 
-        return new ChoiceSet(context.ActionType.ToString(), choices);
-    }
+    //    return new ChoiceSet(context.ActionType.ToString(), choices);
+    //}
 }
 

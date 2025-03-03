@@ -1,17 +1,17 @@
 ﻿public class ActionState
 {
-    public UserActionOption CurrentUserAction { get; private set; }
-    public List<UserActionOption> GlobalActions { get; private set; } = new();
-    public List<UserActionOption> LocationSpotActions { get; private set; } = new();
-    public List<UserActionOption> CharacterActions { get; private set; } = new();
-    public List<UserActionOption> QuestActions { get; private set; } = new();
-    public ActionResult LastActionResult { get; private set; }
-    public ActionResultMessages LastActionResultMessages { get; private set; }
+    public UserActionOption CurrentUserAction { get; set; }
+    public List<UserActionOption> GlobalActions { get; set; } = new();
+    public List<UserActionOption> LocationSpotActions { get; set; } = new();
+    public List<UserActionOption> CharacterActions { get; set; } = new();
+    public List<UserActionOption> QuestActions { get; set; } = new();
+    public ActionResult LastActionResult { get; set; }
+    public ActionResultMessages LastActionResultMessages { get; set; }
 
     public List<Quest> ActiveQuests { get; set; }
 
-    public Encounter CurrentEncounter { get; private set; }
-    public List<UserEncounterChoiceOption> CurrentChoiceOptions { get; private set; }
+    public Encounter CurrentEncounter { get; set; }
+    public List<UserEncounterChoiceOption> CurrentChoiceOptions { get; set; }
     public EncounterResult EncounterResult { get; set; }
 
     public Encounter GetCurrentEncounter()

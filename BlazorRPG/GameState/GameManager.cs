@@ -123,7 +123,7 @@ public class GameManager
 
     public List<UserEncounterChoiceOption> GetChoices(Encounter encounter)
     {
-        List<Choice> choices = encounter.CurrentChoices.ToList();
+        List<Choice> choices = encounter.State.CurrentChoices.ToList();
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
 
         int i = 0;

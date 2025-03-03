@@ -1,4 +1,4 @@
-﻿public class LocationContent
+﻿public class WorldLocationsContent
 {
     public static Location WaysideInn => new LocationBuilder()
         .ForLocation(LocationNames.WaysideInn)

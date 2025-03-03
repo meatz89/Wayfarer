@@ -4,15 +4,15 @@
 
     // Action Availability
     public Accessibility? Accessibility { get; set; }
-    public bool IsAccessabilitySet { get; private set; } = false;
+    public bool IsAccessabilitySet { get; set; } = false;
     public Engagement? Engagement { get; set; }
-    public bool IsEngagementSet { get; private set; } = false;
+    public bool IsEngagementSet { get; set; } = false;
     public Atmosphere? Atmosphere { get; set; }
-    public bool IsAtmosphereSet { get; private set; } = false;
+    public bool IsAtmosphereSet { get; set; } = false;
     public RoomLayout? RoomLayout { get; set; }
-    public bool IsRoomLayoutSet { get; private set; } = false;
+    public bool IsRoomLayoutSet { get; set; } = false;
     public Temperature? Temperature { get; set; }
-    public bool IsTemperatureSet { get; private set; } = false;
+    public bool IsTemperatureSet { get; set; } = false;
 
     public object GetProperty(LocationSpotPropertyTypes propertyType)
     {

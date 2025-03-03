@@ -2,7 +2,7 @@
 {
     public KnowledgeTags Tag { get; }
     public KnowledgeCategories Category { get; }
-    public int Level { get; private set; }
+    public int Level { get; set; }
     public List<LocationNames> UnlockedLocations { get; }
     public List<BasicActionTypes> UnlockedActions { get; }
 

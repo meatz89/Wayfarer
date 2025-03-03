@@ -20,7 +20,7 @@
     public Inventory Inventory { get; set; }
     public Equipment Equipment { get; set; }
     public List<KnowledgePiece> Knowledge { get; set; } = new();
-    public LocationNames StartingLocation { get; private set; }
+    public LocationNames StartingLocation { get; set; }
     public List<LocationNames> KnownLocations { get; set; } = new();
     public HashSet<(LocationNames, BasicActionTypes)> LocationActionAvailability { get; set; } = new();
 

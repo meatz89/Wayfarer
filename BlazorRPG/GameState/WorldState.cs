@@ -10,8 +10,8 @@
 
     // Time tracking - moved here since it affects world state
     public int CurrentTimeInHours { get; set; }
-    public TimeWindows WorldTime { get; private set; }
-    public WeatherTypes WorldWeather { get; private set; }
+    public TimeWindows WorldTime { get; set; }
+    public WeatherTypes WorldWeather { get; set; }
 
     public void SetCurrentTime(int hours)
     {

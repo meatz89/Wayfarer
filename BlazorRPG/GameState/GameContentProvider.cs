@@ -22,8 +22,8 @@
     {
         locations = new List<Location>
         {
-            LocationContent.WaysideInn,
-            LocationContent.Market,
+            WorldLocationsContent.WaysideInn,
+            WorldLocationsContent.Market,
         };
 
         characters = new List<Character>
