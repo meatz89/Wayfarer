@@ -25,18 +25,25 @@ public partial class EncounterViewBase : ComponentBase
         var processor = GameManager.EncounterSystem.GetActiveEncounterProcessor();
         List<EncounterTag> availableTags = processor.GetAllAvailableTags();
 
+        List<EncounterTag> activeTags = processor.GetActiveTags();
+
         foreach (EncounterTag tag in availableTags)
         {
+            if (activeTags.Contains(tag)) continue;
+
             TagDetailInfo tagInfo = processor.GetTagInformation(tag.Id);
             var activationDescription = tagInfo.GetActivationDescription();
 
             properties.Add(new PropertyDisplay(
                     "❓",
-                    tagInfo.Description,
+                    tagInfo.Name,
                     "",
-                    activationDescription
+                    tagInfo.Description 
+                    + Environment.NewLine 
+                    + activationDescription
             ));
         }
+
 
         return properties;
     }
@@ -55,9 +62,11 @@ public partial class EncounterViewBase : ComponentBase
 
             properties.Add(new PropertyDisplay(
                     "❓",
-                    tagInfo.Description,
+                    tagInfo.Name,
                     "",
-                    removalDescription
+                    tagInfo.Description
+                    + Environment.NewLine
+                    + removalDescription
             ));
         }
 
