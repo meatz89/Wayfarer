@@ -135,7 +135,7 @@ public class GameManager
 
     public List<UserEncounterChoiceOption> GetChoices(Encounter encounter)
     {
-        List<Choice> choices = encounter.State.CurrentChoices.ToList();
+        List<Choice> choices = EncounterSystem.GetActiveEncounterProcessor().State.CurrentChoices.ToList();
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
 
         int i = 0;
@@ -566,10 +566,12 @@ public class GameManager
 
     public EncounterViewModel? GetEncounterViewModel()
     {
+        EncounterProcessor encounterProcessor = EncounterSystem.GetActiveEncounterProcessor();
+        
         EncounterViewModel model = new EncounterViewModel();
         model.CurrentEncounter = EncounterSystem.GetActiveEncounter();
         model.CurrentChoices = EncounterSystem.GetCurrentChoices();
-        model.State = model.CurrentEncounter.State;
+        model.State = encounterProcessor.State;
         model.ChoiceSetName = model.CurrentEncounter.NarrativePhase.ToString();
 
         return model;

@@ -20,7 +20,6 @@
         services.AddSingleton<JournalSystem>();
         services.AddSingleton<NarrativeSystem>();
         services.AddSingleton<EncounterSystem>();
-        services.AddSingleton<ChoiceSystem>();
 
         services.AddSingleton<ActionValidator>();
         services.AddSingleton<MessageSystem>();

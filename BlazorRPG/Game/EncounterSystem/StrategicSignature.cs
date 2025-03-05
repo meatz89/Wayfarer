@@ -19,13 +19,17 @@ public class StrategicSignature
         Concealment = 0;
     }
 
-    public StrategicSignature(StrategicSignature source)
+    /// <summary>
+    /// Create a deep copy of another signature
+    /// </summary>
+    public StrategicSignature(StrategicSignature other)
     {
-        Dominance = source.Dominance;
-        Rapport = source.Rapport;
-        Analysis = source.Analysis;
-        Precision = source.Precision;
-        Concealment = source.Concealment;
+        // Copy all element values
+        Dominance = other.Dominance;
+        Rapport = other.Rapport;
+        Analysis = other.Analysis;
+        Precision = other.Precision;
+        Concealment = other.Concealment;
     }
 
     /// <summary>
@@ -109,6 +113,28 @@ public class StrategicSignature
             default:
                 throw new ArgumentException("Invalid approach type");
         }
+    }
+
+    /// <summary>
+    /// Set the values of this signature from another signature
+    /// </summary>
+    public void SetFromSignature(StrategicSignature other)
+    {
+        Dominance = other.Dominance;
+        Rapport = other.Rapport;
+        Analysis = other.Analysis;
+        Precision = other.Precision;
+        Concealment = other.Concealment;
+    }
+
+    /// <summary>
+    /// Creates a new signature instance with incremented value for the specified element
+    /// </summary>
+    public StrategicSignature WithIncrementedElement(SignatureElementTypes elementType)
+    {
+        StrategicSignature newSignature = new StrategicSignature(this);
+        newSignature.IncrementElement(elementType);
+        return newSignature;
     }
 }
 

@@ -31,22 +31,63 @@ public class EncounterTag
     }
 
     /// <summary>
-    /// Create a deep clone of the tag
+    /// Create a deep copy of another tag
     /// </summary>
-    public EncounterTag(EncounterTag source)
+    public EncounterTag(EncounterTag other)
     {
-        Id = source.Id;
-        Name = source.Name;
-        Description = source.Description;
-        SourceElement = source.SourceElement;
-        ThresholdValue = source.ThresholdValue;
-        IsActive = source.IsActive;
-        Effect = source.Effect; // TagEffect is immutable so no need to clone
-        IsLocationReaction = source.IsLocationReaction;
+        Id = other.Id;
+        Name = other.Name;
+        Description = other.Description;
+        SourceElement = other.SourceElement;
+        ThresholdValue = other.ThresholdValue;
+        IsLocationReaction = other.IsLocationReaction;
+        IsActive = other.IsActive;
 
-        // Clone trigger lists
-        ActivationTriggers = new List<TagTrigger>(source.ActivationTriggers);
-        RemovalTriggers = new List<TagTrigger>(source.RemovalTriggers);
+        // Deep copy the tag effect
+        Effect = new TagEffect
+        {
+            AffectedApproach = other.Effect.AffectedApproach,
+            AffectedFocus = other.Effect.AffectedFocus,
+            BlockMomentum = other.Effect.BlockMomentum,
+            DoubleMomentum = other.Effect.DoubleMomentum,
+            DoublePressure = other.Effect.DoublePressure,
+            IsNegative = other.Effect.IsNegative,
+            IsSpecialEffect = other.Effect.IsSpecialEffect,
+            MomentumModifier = other.Effect.MomentumModifier,
+            PressureModifier = other.Effect.PressureModifier,
+            SpecialEffectId = other.Effect.SpecialEffectId,
+            ZeroPressure = other.Effect.ZeroPressure
+        };
+
+        // Deep copy the activation triggers
+        ActivationTriggers = new List<TagTrigger>();
+        foreach (var trigger in other.ActivationTriggers)
+        {
+            ActivationTriggers.Add(new TagTrigger(
+                trigger.TriggerId,
+                trigger.Description,
+                trigger.TriggerApproach,
+                trigger.TriggerFocus,
+                trigger.MinSignatureValue,
+                trigger.SignatureElement,
+                trigger.IsCumulative
+            ));
+        }
+
+        // Deep copy the removal triggers
+        RemovalTriggers = new List<TagTrigger>();
+        foreach (var trigger in other.RemovalTriggers)
+        {
+            RemovalTriggers.Add(new TagTrigger(
+                trigger.TriggerId,
+                trigger.Description,
+                trigger.TriggerApproach,
+                trigger.TriggerFocus,
+                trigger.MinSignatureValue,
+                trigger.SignatureElement,
+                trigger.IsCumulative
+            ));
+        }
     }
 
     /// <summary>

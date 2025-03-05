@@ -3,12 +3,13 @@
 /// </summary>
 public class StrategicLayer
 {
-    private readonly StrategicSignature _signature;
-    private readonly List<EncounterTag> _availableTags;
-    private readonly List<EncounterTag> _activeTags;
-    private readonly LocationStrategicProperties _locationProperties;
-    private readonly EncounterTagRepository _tagRepository;
-    private readonly Dictionary<string, int> _cumulativeTriggers;
+    private const int endOfTurnPressureIncrease = 1;
+    protected readonly StrategicSignature _signature;
+    protected readonly List<EncounterTag> _availableTags;
+    protected readonly List<EncounterTag> _activeTags;
+    protected readonly LocationStrategicProperties _locationProperties;
+    protected readonly EncounterTagRepository _tagRepository;
+    protected readonly Dictionary<string, int> _cumulativeTriggers;
 
     public StrategicLayer(LocationStrategicProperties locationProperties, EncounterTagRepository tagRepository)
     {
@@ -42,42 +43,99 @@ public class StrategicLayer
     }
 
     /// <summary>
-    /// Get all available tags for this location
-    /// </summary>
-    public List<EncounterTag> GetAllAvailableTags()
-    {
-        return _availableTags;
-    }
-
-    /// <summary>
-    /// Check if a specific tag is active
-    /// </summary>
-    public bool IsTagActive(string tagId)
-    {
-        return _activeTags.Any(t => t.Id == tagId);
-    }
-
-    /// <summary>
-    /// Process a choice from the strategic perspective
+    /// Process a choice from the strategic perspective by first projecting then applying changes
     /// </summary>
     public ChoiceOutcome ProcessChoice(Choice choice, EncounterState state)
     {
+        // First create a projection of the choice's effects
+        ChoiceProjection projection = ProjectChoice(choice, state);
+
+        // Apply the projection to the actual state
+        ApplyProjection(projection);
+
+        // Return the outcome for the caller to use
+        return new ChoiceOutcome(projection.MomentumChange, projection.PressureChange);
+    }
+
+    /// <summary>
+    /// Projects the outcome of a choice without changing state
+    /// </summary>
+    public virtual ChoiceProjection ProjectChoice(Choice choice, EncounterState state)
+    {
+        ChoiceProjection projection = new ChoiceProjection();
+
+        // Capture current state
+        projection.CurrentMomentum = state.Momentum;
+        projection.CurrentPressure = state.Pressure;
+        projection.CurrentSignature = new StrategicSignature(_signature);
+
+        // Deep clone the state data to avoid modifying the actual state
+        StrategicSignature clonedSignature = new StrategicSignature(_signature);
+        List<EncounterTag> clonedTags = CloneActiveTags();
+
         // Map the choice's approach to a signature element
         SignatureElementTypes elementType = StrategicSignature.ApproachToElement(choice.ApproachType);
 
-        // Increment the corresponding signature element
-        _signature.IncrementElement(elementType);
+        // Calculate projected signature
+        clonedSignature.IncrementElement(elementType);
+        projection.ProjectedSignature = clonedSignature;
 
         // Calculate base outcome
-        ChoiceOutcome outcome = CalculateBaseOutcome(choice, elementType);
+        ChoiceOutcome baseOutcome = CalculateBaseOutcome(choice, elementType);
+        projection.BaseMomentumChange = baseOutcome.Momentum;
+        projection.BasePressureChange = baseOutcome.Pressure;
 
-        // Update tag states - both threshold-based and trigger-based
-        UpdateTagStates(choice, state);
+        // Project tag changes
+        ProjectTagChanges(choice, state, clonedSignature, clonedTags, projection);
 
         // Apply effects from active tags
-        ChoiceOutcome modifiedOutcome = ApplyTagEffects(choice, outcome);
+        ChoiceOutcome modifiedOutcome = ProjectTagEffects(choice, baseOutcome, clonedTags, projection);
 
-        return modifiedOutcome;
+        // Calculate final changes
+        projection.MomentumChange = modifiedOutcome.Momentum;
+        projection.PressureChange = modifiedOutcome.Pressure + endOfTurnPressureIncrease; // Include end-of-turn pressure
+
+        // Calculate projected values
+        projection.ProjectedMomentum = state.Momentum + projection.MomentumChange;
+        projection.ProjectedPressure = state.Pressure + projection.PressureChange;
+
+        return projection;
+    }
+
+    /// <summary>
+    /// Apply a projected choice outcome to the actual state
+    /// </summary>
+    public void ApplyProjection(ChoiceProjection projection)
+    {
+        // Apply signature changes
+        _signature.SetFromSignature(projection.ProjectedSignature);
+
+        // Apply tag activations/deactivations - using the actual tag objects
+        foreach (var projectedTag in projection.TagsActivated)
+        {
+            var actualTag = _availableTags.FirstOrDefault(t => t.Id == projectedTag.Id);
+            if (actualTag != null && !actualTag.IsActive)
+            {
+                actualTag.IsActive = true;
+                _activeTags.Add(actualTag);
+            }
+        }
+
+        foreach (var projectedTag in projection.TagsDeactivated)
+        {
+            var actualTag = _activeTags.FirstOrDefault(t => t.Id == projectedTag.Id);
+            if (actualTag != null)
+            {
+                actualTag.IsActive = false;
+                _activeTags.Remove(actualTag);
+            }
+        }
+
+        // Update cumulative triggers if needed
+        foreach (var tagTriggerPair in projection.CumulativeTriggerChanges)
+        {
+            _cumulativeTriggers[tagTriggerPair.Key] = tagTriggerPair.Value;
+        }
     }
 
     /// <summary>
@@ -91,119 +149,173 @@ public class StrategicLayer
         // Base effect from choice type
         if (choice.EffectType == EffectTypes.Momentum)
         {
-            momentum += 1;
+            momentum += 2; // Standard momentum gain
         }
         else if (choice.EffectType == EffectTypes.Pressure)
         {
-            pressure += 1;
+            pressure -= endOfTurnPressureIncrease; // Standard pressure reduction
         }
 
         // Check location favored/disfavored elements
         if (_locationProperties.FavoredElements.Contains(elementType))
         {
-            momentum += 1; // Bonus momentum for favored element
+            momentum += endOfTurnPressureIncrease; // Bonus momentum for favored element
         }
 
         if (_locationProperties.DisfavoredElements.Contains(elementType))
         {
-            pressure += 1; // Extra pressure for disfavored element
+            pressure += endOfTurnPressureIncrease; // Extra pressure for disfavored element
         }
 
         return new ChoiceOutcome(momentum, pressure);
     }
 
     /// <summary>
-    /// Apply effects from all active tags
+    /// Projects which tags would be activated or deactivated
     /// </summary>
-    private ChoiceOutcome ApplyTagEffects(Choice choice, ChoiceOutcome baseOutcome)
+    protected virtual void ProjectTagChanges(Choice choice, EncounterState state, StrategicSignature projectedSignature,
+                                     List<EncounterTag> clonedTags, ChoiceProjection projection)
+    {
+        // Check each tag for activation/deactivation
+        foreach (EncounterTag tag in _availableTags)
+        {
+            EncounterTag clonedTag = new EncounterTag(tag);
+            bool isCurrentlyActive = IsTagActive(tag.Id);
+
+            // Handle threshold-based player tags
+            if (!clonedTag.IsLocationReaction)
+            {
+                bool shouldBeActive = clonedTag.ShouldBeActive(projectedSignature);
+
+                if (shouldBeActive && !isCurrentlyActive)
+                {
+                    projection.TagsActivated.Add(clonedTag);
+                }
+                else if (!shouldBeActive && isCurrentlyActive)
+                {
+                    projection.TagsDeactivated.Add(clonedTag);
+                }
+            }
+            // Handle trigger-based location reaction tags
+            else
+            {
+                // Project cumulative triggers
+                Dictionary<string, int> projectedCumulativeTriggers = new Dictionary<string, int>(_cumulativeTriggers);
+
+                foreach (TagTrigger trigger in clonedTag.ActivationTriggers)
+                {
+                    if (trigger.IsCumulative && trigger.IsTriggered(choice, state, projectedSignature))
+                    {
+                        string triggerKey = $"{clonedTag.Id}_{trigger.TriggerId}";
+                        if (!projectedCumulativeTriggers.ContainsKey(triggerKey))
+                        {
+                            projectedCumulativeTriggers[triggerKey] = 0;
+                        }
+                        projectedCumulativeTriggers[triggerKey]++;
+
+                        // Record the change for later application
+                        projection.CumulativeTriggerChanges[triggerKey] = projectedCumulativeTriggers[triggerKey];
+
+                        // Check if we've hit the threshold
+                        if (trigger.MinSignatureValue.HasValue &&
+                            projectedCumulativeTriggers[triggerKey] >= trigger.MinSignatureValue.Value)
+                        {
+                            // Tag should be activated
+                            if (!isCurrentlyActive)
+                            {
+                                projection.TagsActivated.Add(clonedTag);
+                            }
+                        }
+                    }
+                }
+
+                // Project regular triggers
+                if (!isCurrentlyActive && clonedTag.ShouldBeActivated(choice, state, projectedSignature))
+                {
+                    projection.TagsActivated.Add(clonedTag);
+                }
+                else if (isCurrentlyActive && clonedTag.ShouldBeRemoved(choice, state, projectedSignature))
+                {
+                    projection.TagsDeactivated.Add(clonedTag);
+                }
+            }
+        }
+
+        // Update cloned tags list for effect calculation
+        foreach (var tag in projection.TagsActivated)
+        {
+            tag.IsActive = true;
+            clonedTags.Add(tag);
+        }
+
+        foreach (var tag in projection.TagsDeactivated)
+        {
+            var tagToRemove = clonedTags.FirstOrDefault(t => t.Id == tag.Id);
+            if (tagToRemove != null)
+            {
+                clonedTags.Remove(tagToRemove);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Projects the effects of active tags on the choice outcome
+    /// </summary>
+    protected ChoiceOutcome ProjectTagEffects(Choice choice, ChoiceOutcome baseOutcome,
+                                           List<EncounterTag> activeTags, ChoiceProjection projection)
     {
         ChoiceOutcome modifiedOutcome = new ChoiceOutcome(baseOutcome.Momentum, baseOutcome.Pressure);
 
-        foreach (EncounterTag tag in _activeTags)
+        foreach (EncounterTag tag in activeTags)
         {
+            ChoiceOutcome before = new ChoiceOutcome(modifiedOutcome.Momentum, modifiedOutcome.Pressure);
             modifiedOutcome = tag.ProcessEffect(choice, modifiedOutcome);
+
+            // Track the tag's effect
+            int momentumEffect = modifiedOutcome.Momentum - before.Momentum;
+            int pressureEffect = modifiedOutcome.Pressure - before.Pressure;
+
+            if (momentumEffect != 0)
+            {
+                projection.TagMomentumEffects[tag.Name] = momentumEffect;
+            }
+
+            if (pressureEffect != 0)
+            {
+                projection.TagPressureEffects[tag.Name] = pressureEffect;
+            }
         }
 
         return modifiedOutcome;
     }
 
     /// <summary>
-    /// Update which tags are active based on current signature values and triggers
+    /// Clone the current set of active tags
     /// </summary>
-    private void UpdateTagStates(Choice choice, EncounterState state)
+    protected List<EncounterTag> CloneActiveTags()
     {
-        List<EncounterTag> tagsToActivate = new List<EncounterTag>();
-        List<EncounterTag> tagsToDeactivate = new List<EncounterTag>();
-
-        // Check each tag for activation/deactivation
-        foreach (EncounterTag tag in _availableTags)
+        List<EncounterTag> clonedTags = new List<EncounterTag>();
+        foreach (var tag in _activeTags)
         {
-            // Handle threshold-based player tags
-            if (!tag.IsLocationReaction)
-            {
-                bool shouldBeActive = tag.ShouldBeActive(_signature);
-
-                if (shouldBeActive && !tag.IsActive)
-                {
-                    tagsToActivate.Add(tag);
-                }
-                else if (!shouldBeActive && tag.IsActive)
-                {
-                    tagsToDeactivate.Add(tag);
-                }
-            }
-            // Handle trigger-based location reaction tags
-            else
-            {
-                // Process cumulative triggers
-                foreach (TagTrigger trigger in tag.ActivationTriggers)
-                {
-                    if (trigger.IsCumulative && trigger.IsTriggered(choice, state, _signature))
-                    {
-                        string triggerKey = $"{tag.Id}_{trigger.TriggerId}";
-                        if (!_cumulativeTriggers.ContainsKey(triggerKey))
-                        {
-                            _cumulativeTriggers[triggerKey] = 0;
-                        }
-                        _cumulativeTriggers[triggerKey]++;
-
-                        // Check if we've hit the threshold
-                        if (trigger.MinSignatureValue.HasValue &&
-                            _cumulativeTriggers[triggerKey] >= trigger.MinSignatureValue.Value)
-                        {
-                            // Tag should be activated
-                            if (!tag.IsActive)
-                            {
-                                tagsToActivate.Add(tag);
-                            }
-                        }
-                    }
-                }
-
-                // Process regular triggers
-                if (!tag.IsActive && tag.ShouldBeActivated(choice, state, _signature))
-                {
-                    tagsToActivate.Add(tag);
-                }
-                else if (tag.IsActive && tag.ShouldBeRemoved(choice, state, _signature))
-                {
-                    tagsToDeactivate.Add(tag);
-                }
-            }
+            clonedTags.Add(new EncounterTag(tag));
         }
+        return clonedTags;
+    }
 
-        // Apply changes after iteration to avoid collection modification during enumeration
-        foreach (EncounterTag tag in tagsToActivate)
-        {
-            tag.IsActive = true;
-            _activeTags.Add(tag);
-        }
+    /// <summary>
+    /// Get all available tags for this location
+    /// </summary>
+    public List<EncounterTag> GetAllAvailableTags()
+    {
+        return _availableTags;
+    }
 
-        foreach (EncounterTag tag in tagsToDeactivate)
-        {
-            tag.IsActive = false;
-            _activeTags.Remove(tag);
-        }
+    /// <summary>
+    /// Check if a specific tag is active
+    /// </summary>
+    public bool IsTagActive(string tagId)
+    {
+        return _activeTags.Any(t => t.Id == tagId);
     }
 
     /// <summary>

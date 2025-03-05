@@ -82,6 +82,7 @@ public class EncounterState
 
     public EncounterStatus EncounterStatus { get; internal set; }
     public int MaxTurns { get; internal set; }
+    public NarrativePhases NarrativePhase { get; internal set; }
 
 
     /// <summary>

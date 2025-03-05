@@ -1,7 +1,6 @@
 ﻿public class EncounterSystem
 {
     private readonly GameState gameState;
-    private readonly ChoiceSystem choiceSystem;
     private readonly NarrativeSystem narrativeSystem;
     private readonly ChoiceExecutor choiceExecutor;
 
@@ -10,13 +9,11 @@
 
     public EncounterSystem(
         GameState gameState,
-        ChoiceSystem choiceSystem,
         NarrativeSystem narrativeSystem,
         MessageSystem messageSystem,
         GameContentProvider contentProvider)
     {
         this.gameState = gameState;
-        this.choiceSystem = choiceSystem;
         this.narrativeSystem = narrativeSystem;
         this.choiceExecutor = new ChoiceExecutor(gameState);
     }
@@ -46,22 +43,19 @@
         inn.ExceptionalSuccessThreshold = 12;
 
         Encounter = new Encounter(context, initialApproachTypess, initialFocusTypess);
-        EncounterState encounterState = Encounter.State;
+
+        EncounterFactory _factory = new EncounterFactory();
+        encounterProcessor = _factory.CreateBanditCampEncounter();
+        EncounterState state = encounterProcessor.GetState();
 
         // Create first ChoiceSet
-        List<Choice> currentChoices = choiceSystem.GenerateChoices(encounterState);
-        Encounter.SetChoices(currentChoices);
-        Encounter.NarrativePhase = choiceSystem.NarrativePhase;
+        encounterProcessor.GenerateChoices();
 
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
 
         gameState.Actions.SetActiveEncounter(Encounter);
         narrativeSystem.NewEncounter(context, actionImplementation);
-
-        EncounterFactory _factory = new EncounterFactory();
-        encounterProcessor = _factory.CreateBanditCampEncounter();
-        EncounterState state = encounterProcessor.GetState();
 
         return Encounter;
     }
@@ -92,42 +86,28 @@
         EncounterState oldState = encounterProcessor.GetState();
         encounterProcessor.ProcessChoice(choice);
 
+        // Check for encounter success/failure conditions
+        EncounterStatus encounterStatus = encounterProcessor.CheckEncounterConditions();
+
+        // Generate new choices for next turn if encounter is still in progress
+        if (encounterStatus == EncounterStatus.InProgress)
+        {
+            encounterProcessor.GenerateChoices();
+        }
+
         StrategicSignature signature = encounterProcessor.GetSignature();
         List<EncounterTag> activeTags = encounterProcessor.GetActiveTags();
 
         EncounterState newState = encounterProcessor.GetState();
-        Encounter.State = newState;
-
-        // Create new ChoiceSet
-        List<Choice> currentChoices = choiceSystem.GenerateChoices(newState);
-
-        Encounter.SetChoices(currentChoices);
-        Encounter.NarrativePhase = choiceSystem.NarrativePhase;
 
         narrativeSystem.MakeChoicePrompt(choice);
-
-        // Check for game over conditions
-        (bool Succeeded, string Result) outcome = Encounter.GetOutcome();
-
-        //if (outcome.Succeeded)
-        //{
-        //    return new()
-        //    {
-        //        Encounter = Encounter,
-        //        EncounterResults = EncounterResults.EncounterSuccess,
-        //        EncounterEndMessage = outcome.Result
-        //    };
-        //}
-        //else
-        //{
-        //gameState.Actions.EncounterResult = EncounterResult;
+        
         return new EncounterResult()
         {
             Encounter = encounter,
             EncounterResults = EncounterResults.Ongoing,
             EncounterEndMessage = "Ongoing"
         };
-        //}
     }
 
     public EncounterProcessor GetActiveEncounterProcessor()
