@@ -1,9 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-/// <summary>
+﻿/// <summary>
 /// Extended strategic layer to handle location reaction tags
 /// </summary>
 public class StrategicLayer

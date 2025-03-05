@@ -135,6 +135,14 @@ public class EncounterProcessor
     /// <summary>
     /// Get active tags for UI display
     /// </summary>
+    public List<EncounterTag> GetAllAvailableTags()
+    {
+        return _strategicLayer.GetAllAvailableTags();
+    }
+
+    /// <summary>
+    /// Get active tags for UI display
+    /// </summary>
     public List<EncounterTag> GetActiveTags()
     {
         return _strategicLayer.GetActiveTags();

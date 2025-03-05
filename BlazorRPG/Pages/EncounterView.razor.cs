@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using BlazorRPG.Pages;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using System.Collections.Generic;
 
 public partial class EncounterViewBase : ComponentBase
 {
@@ -15,6 +17,52 @@ public partial class EncounterViewBase : ComponentBase
     public double mouseY;
 
     public EncounterViewModel Model => GameManager.GetEncounterViewModel();
+
+    public List<PropertyDisplay> GetAvailableTags()
+    {
+        List<PropertyDisplay> properties = new List<PropertyDisplay>();
+
+        var processor = GameManager.EncounterSystem.GetActiveEncounterProcessor();
+        List<EncounterTag> availableTags = processor.GetAllAvailableTags();
+
+        foreach (EncounterTag tag in availableTags)
+        {
+            TagDetailInfo tagInfo = processor.GetTagInformation(tag.Id);
+            var activationDescription = tagInfo.GetActivationDescription();
+
+            properties.Add(new PropertyDisplay(
+                    "❓",
+                    tagInfo.Description,
+                    "",
+                    activationDescription
+            ));
+        }
+
+        return properties;
+    }
+
+    public List<PropertyDisplay> GetActiveTags()
+    {
+        List<PropertyDisplay> properties = new List<PropertyDisplay>();
+
+        var processor = GameManager.EncounterSystem.GetActiveEncounterProcessor();
+        List<EncounterTag> activeTags = processor.GetActiveTags();
+
+        foreach (EncounterTag tag in activeTags)
+        {
+            TagDetailInfo tagInfo = processor.GetTagInformation(tag.Id);
+            var removalDescription = tagInfo.GetRemovalDescription();
+
+            properties.Add(new PropertyDisplay(
+                    "❓",
+                    tagInfo.Description,
+                    "",
+                    removalDescription
+            ));
+        }
+
+        return properties;
+    }
 
     public async Task ShowTooltip(UserEncounterChoiceOption choice, MouseEventArgs e)
     {

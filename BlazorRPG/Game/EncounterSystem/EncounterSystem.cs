@@ -130,6 +130,11 @@
         //}
     }
 
+    public EncounterProcessor GetActiveEncounterProcessor()
+    {
+        return encounterProcessor;
+    }
+
     public Encounter GetActiveEncounter()
     {
         return gameState.Actions.CurrentEncounter;

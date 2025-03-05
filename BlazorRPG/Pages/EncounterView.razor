@@ -35,7 +35,7 @@
                     </span>
                 </div>
 
-                @foreach(KeyValuePair<ApproachTypes, int> ApproachType in @Model.State.ApproachTypesDic)
+@*                 @foreach(KeyValuePair<ApproachTypes, int> ApproachType in @Model.State.ApproachTypesDic)
                 {
                     if (ApproachType.Value > 0)
                     {
@@ -59,7 +59,35 @@
                             </span>
                         </div>
                     }
-                }
+                } *@
+
+                <div class="location-properties">
+                    <div class="properties-header">ActiveTags</div>
+                    <div class="properties-grid">
+                        @foreach (var prop in GetActiveTags())
+                        {
+                            <div class="property-tag @prop.CssClass" title="@prop.TooltipText">
+                                <span class="property-icon">@prop.Icon</span>
+                                <span class="property-text">@prop.Text</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="location-properties">
+                    <div class="properties-header">Available Tags</div>
+                    <div class="properties-grid">
+                        @foreach (var prop in GetAvailableTags())
+                        {
+                            <div class="property-tag @prop.CssClass" title="@prop.TooltipText">
+                                <span class="property-icon">@prop.Icon</span>
+                                <span class="property-text">@prop.Text</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+
             </div>
 
             <div class="Encounter-stage">

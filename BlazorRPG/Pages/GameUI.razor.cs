@@ -321,8 +321,3 @@ public partial class GameUI : ComponentBase
             .Replace("Types", "");
     }
 }
-
-public record struct PropertyDisplay(
-string Icon,
-string Text,
-string CssClass);
