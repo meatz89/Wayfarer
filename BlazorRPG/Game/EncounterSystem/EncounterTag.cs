@@ -52,10 +52,8 @@ public class EncounterTag
             DoubleMomentum = other.Effect.DoubleMomentum,
             DoublePressure = other.Effect.DoublePressure,
             IsNegative = other.Effect.IsNegative,
-            IsSpecialEffect = other.Effect.IsSpecialEffect,
             MomentumModifier = other.Effect.MomentumModifier,
             PressureModifier = other.Effect.PressureModifier,
-            SpecialEffectId = other.Effect.SpecialEffectId,
             ZeroPressure = other.Effect.ZeroPressure
         };
 

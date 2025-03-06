@@ -1,109 +1,106 @@
 ﻿/// <summary>
-/// Tracks the state of an Encounter
+/// Represents the complete state of an encounter
 /// </summary>
 public class EncounterState
 {
     // Core resources
     public int Momentum { get; set; }
-    public int MaxMomentum { get; set; }
     public int Pressure { get; set; }
 
-    public int CurrentTurn = 1;
+    // Turn tracking
+    public int CurrentTurn { get; set; }
+    public int MaxTurns { get; set; }
+    public int AdditionalTurnsRemaining { get; set; }
 
-    public List<Choice> CurrentChoices;
+    // Encounter status
+    public EncounterStatus EncounterStatus { get; set; }
 
-    // All approach tag values
-    public Dictionary<ApproachTypes, int> ApproachTypesDic { get; set; }
+    // Narrative tracking
+    public string NarrativePhase { get; set; }
+    public List<Choice> CurrentChoices { get; set; }
 
-    // All focus tag values
-    public Dictionary<FocusTypes, int> FocusTypesDic { get; set; }
+    // Approach and Focus tracking dictionaries
+    public Dictionary<ApproachTypes, int> ApproachTypesDic { get; private set; }
+    public Dictionary<FocusTypes, int> FocusTypesDic { get; private set; }
 
-    // Balance state (Stable or Unstable)
-    public bool IsStable => Pressure <= Momentum;
-
-    /// <summary>
-    /// Creates a new Encounter state with optional initial values
-    /// </summary>
-    public EncounterState(int momentum = 0, int pressure = 0, int maxMomentum = 10)
+    public EncounterState()
     {
-        Momentum = momentum;
-        Pressure = pressure;
-        MaxMomentum = maxMomentum;
+        // Initialize defaults
+        Momentum = 0;
+        Pressure = 1;
+        CurrentTurn = 0;
+        MaxTurns = 15;
+        AdditionalTurnsRemaining = 0;
+        EncounterStatus = EncounterStatus.InProgress;
+        CurrentChoices = new List<Choice>();
 
-        // Initialize all approach tags to 0
+        // Initialize tracking dictionaries
+        InitializeTrackingDictionaries();
+    }
+
+    private void InitializeTrackingDictionaries()
+    {
+        // Initialize approach tracking
         ApproachTypesDic = new Dictionary<ApproachTypes, int>();
-        foreach (ApproachTypes tag in Enum.GetValues(typeof(ApproachTypes)))
+        foreach (ApproachTypes approach in Enum.GetValues(typeof(ApproachTypes)))
         {
-            ApproachTypesDic[tag] = 0;
+            ApproachTypesDic[approach] = 0;
         }
 
-        // Initialize all focus tags to 0
+        // Initialize focus tracking
         FocusTypesDic = new Dictionary<FocusTypes, int>();
-        foreach (FocusTypes tag in Enum.GetValues(typeof(FocusTypes)))
+        foreach (FocusTypes focus in Enum.GetValues(typeof(FocusTypes)))
         {
-            FocusTypesDic[tag] = 0;
+            FocusTypesDic[focus] = 0;
         }
     }
 
     /// <summary>
-    /// Sets initial tag values for specific Encounter types
+    /// Get the most used approach type
     /// </summary>
-    public void SetInitialTags(Dictionary<ApproachTypes, int> ApproachTypess, Dictionary<FocusTypes, int> FocusTypess)
+    public ApproachTypes GetMostUsedApproach()
     {
-        foreach (KeyValuePair<ApproachTypes, int> pair in ApproachTypess)
-        {
-            ApproachTypess[pair.Key] = pair.Value;
-        }
-
-        foreach (KeyValuePair<FocusTypes, int> pair in FocusTypess)
-        {
-            FocusTypess[pair.Key] = pair.Value;
-        }
+        return ApproachTypesDic.OrderByDescending(kvp => kvp.Value).First().Key;
     }
 
     /// <summary>
-    /// Momentum to Pressure ratio used for choice distribution
+    /// Get the most used focus type
     /// </summary>
-    public double MomentumToPressureRatio
+    public FocusTypes GetMostUsedFocus()
     {
-        get
-        {
-            if (Pressure == 0)
-                return Momentum > 0 ? double.PositiveInfinity : 1.0;
-
-            double value = 5;
-
-            if (Pressure > 0)
-                Math.Clamp((double)Momentum / Pressure, 0, 5);
-
-            return value;
-        }
+        return FocusTypesDic.OrderByDescending(kvp => kvp.Value).First().Key;
     }
 
-    public EncounterStatus EncounterStatus { get; internal set; }
-    public int MaxTurns { get; internal set; }
-    public NarrativePhases NarrativePhase { get; internal set; }
-
-
     /// <summary>
-    /// Determine whether the Encounter has succeeded or failed
+    /// Create a deep copy of this encounter state
     /// </summary>
-    public (bool Succeeded, string Result) GetOutcome(Location location)
+    public EncounterState Clone()
     {
-        // Check for failure condition
-        if (Pressure >= 10)
-            return (false, "Failure");
+        EncounterState clone = new EncounterState
+        {
+            Momentum = this.Momentum,
+            Pressure = this.Pressure,
+            CurrentTurn = this.CurrentTurn,
+            MaxTurns = this.MaxTurns,
+            AdditionalTurnsRemaining = this.AdditionalTurnsRemaining,
+            EncounterStatus = this.EncounterStatus,
+            NarrativePhase = this.NarrativePhase
+        };
 
-        // Compare momentum to thresholds
-        int momentum = Momentum;
+        // Clone choices
+        clone.CurrentChoices = new List<Choice>(this.CurrentChoices);
 
-        if (momentum < location.FailThreshold)
-            return (false, "Failure");
-        else if (momentum < location.PartialSuccessThreshold)
-            return (true, "Partial Success");
-        else if (momentum < location.StandardSuccessThreshold)
-            return (true, "Standard Success");
-        else
-            return (true, "Exceptional Success");
+        // Clone tracking dictionaries
+        foreach (var kvp in this.ApproachTypesDic)
+        {
+            clone.ApproachTypesDic[kvp.Key] = kvp.Value;
+        }
+
+        foreach (var kvp in this.FocusTypesDic)
+        {
+            clone.FocusTypesDic[kvp.Key] = kvp.Value;
+        }
+
+        return clone;
     }
 }

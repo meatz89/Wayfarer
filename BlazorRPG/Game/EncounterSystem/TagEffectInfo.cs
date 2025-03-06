@@ -28,33 +28,9 @@ public class TagEffectInfo
         PressureModifier = effect.PressureModifier;
         ZeroPressure = effect.ZeroPressure;
         DoubleMomentum = effect.DoubleMomentum;
-        IsSpecialEffect = effect.IsSpecialEffect;
         IsNegative = effect.IsNegative;
         BlockMomentum = effect.BlockMomentum;
         DoublePressure = effect.DoublePressure;
-
-        // Map special effect IDs to human-readable descriptions
-        if (IsSpecialEffect && !string.IsNullOrEmpty(effect.SpecialEffectId))
-        {
-            switch (effect.SpecialEffectId)
-            {
-                case "convert_pressure_to_momentum":
-                    SpecialEffectDescription = "Convert all pressure to momentum";
-                    break;
-                case "reduce_pressure_each_turn":
-                    SpecialEffectDescription = "Reduce pressure by 1 at the end of each turn";
-                    break;
-                case "additional_turn_no_pressure":
-                    SpecialEffectDescription = "Take an additional turn with no pressure";
-                    break;
-                case "encounter_auto_success":
-                    SpecialEffectDescription = "Gain maximum momentum (encounter auto-success)";
-                    break;
-                default:
-                    SpecialEffectDescription = effect.SpecialEffectId.Replace('_', ' ');
-                    break;
-            }
-        }
     }
 
     /// <summary>

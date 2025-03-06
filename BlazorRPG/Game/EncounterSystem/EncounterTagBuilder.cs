@@ -151,12 +151,11 @@ public class EncounterTagBuilder
     }
 
     /// <summary>
-    /// Sets a special effect with ID
+    /// Sets a special effect type
     /// </summary>
-    public EncounterTagBuilder WithSpecialEffect(string specialEffectId)
+    public EncounterTagBuilder WithSpecialEffect(TagEffectType specialEffectId)
     {
-        _effect.IsSpecialEffect = true;
-        _effect.SpecialEffectId = specialEffectId;
+        _effect.EffectType = specialEffectId;
         return this;
     }
 
@@ -267,13 +266,13 @@ public class EncounterTagBuilder
         tag.IsLocationReaction = _isLocationReaction;
 
         // Add all activation triggers
-        foreach (TagTrigger trigger in _activationTriggers)
+        foreach (var trigger in _activationTriggers)
         {
             tag.ActivationTriggers.Add(trigger);
         }
 
         // Add all removal triggers
-        foreach (TagTrigger trigger in _removalTriggers)
+        foreach (var trigger in _removalTriggers)
         {
             tag.RemovalTriggers.Add(trigger);
         }

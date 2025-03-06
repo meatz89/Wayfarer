@@ -754,7 +754,7 @@ public class NarrativeChoiceGenerator
         int targetPressureCount = 3;
 
         // Adjust based on M:P ratio
-        float ratio = (float)state.MomentumToPressureRatio;
+        float ratio = (float)state.MomentumToPressureRatio();
         if (ratio > 2.0f)
         {
             // More pressure choices when momentum is high

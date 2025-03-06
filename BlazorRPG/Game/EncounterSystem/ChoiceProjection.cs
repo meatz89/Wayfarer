@@ -1,4 +1,5 @@
-﻿/// <summary>
+﻿
+/// <summary>
 /// Represents a projection of a choice's effects
 /// </summary>
 public class ChoiceProjection
@@ -15,6 +16,12 @@ public class ChoiceProjection
     // Tag effect modifiers
     public Dictionary<string, int> TagMomentumEffects { get; set; } = new Dictionary<string, int>();
     public Dictionary<string, int> TagPressureEffects { get; set; } = new Dictionary<string, int>();
+
+    // Special effects that were applied
+    public List<string> SpecialEffects { get; set; } = new List<string>();
+
+    // Special game mechanics flags
+    public bool GrantsAdditionalTurn { get; set; } = false;
 
     // Projected signature
     public StrategicSignature ProjectedSignature { get; set; }
@@ -47,7 +54,7 @@ public class ChoiceProjection
         // Tag momentum effects
         if (TagMomentumEffects.Count > 0)
         {
-            foreach (KeyValuePair<string, int> effect in TagMomentumEffects)
+            foreach (var effect in TagMomentumEffects)
             {
                 explanation[$"Tag: {effect.Key}"] = $"Momentum {(effect.Value >= 0 ? "+" : "")}{effect.Value}";
             }
@@ -59,7 +66,7 @@ public class ChoiceProjection
         // Tag pressure effects
         if (TagPressureEffects.Count > 0)
         {
-            foreach (KeyValuePair<string, int> effect in TagPressureEffects)
+            foreach (var effect in TagPressureEffects)
             {
                 explanation[$"Tag: {effect.Key}"] = $"Pressure {(effect.Value >= 0 ? "+" : "")}{effect.Value}";
             }
@@ -67,6 +74,18 @@ public class ChoiceProjection
 
         // End-of-turn pressure
         explanation["End-of-Turn Pressure"] = "+1";
+
+        // Special effects
+        if (SpecialEffects.Count > 0)
+        {
+            explanation["Special Effects"] = string.Join(", ", SpecialEffects);
+        }
+
+        // Additional turn info
+        if (GrantsAdditionalTurn)
+        {
+            explanation["Additional Turn"] = "Yes";
+        }
 
         // Total changes
         explanation["Total Momentum Change"] = $"{MomentumChange}";
@@ -95,5 +114,11 @@ public class ChoiceProjection
         // Update state values
         state.Momentum = ProjectedMomentum;
         state.Pressure = ProjectedPressure;
+
+        // Handle additional turn if granted
+        if (GrantsAdditionalTurn)
+        {
+            state.AdditionalTurnsRemaining++;
+        }
     }
 }

@@ -21,7 +21,6 @@ public class EncounterFactory
         EncounterState state = new EncounterState
         {
             MaxTurns = 6,
-            MaxMomentum = 18
         };
 
         LocationStrategicProperties locationProperties = LocationContent.CreateMerchantGuild();
@@ -37,7 +36,6 @@ public class EncounterFactory
         EncounterState state = new EncounterState
         {
             MaxTurns = 4,
-            MaxMomentum = 12
         };
 
         LocationStrategicProperties locationProperties = LocationContent.CreateBanditCamp();
@@ -53,7 +51,6 @@ public class EncounterFactory
         EncounterState state = new EncounterState
         {
             MaxTurns = maxTurns,
-            MaxMomentum = maxMomentum
         };
 
         return new EncounterProcessor(state, locationProperties, _tagRepository);

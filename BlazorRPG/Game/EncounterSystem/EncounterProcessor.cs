@@ -1,12 +1,11 @@
 ﻿/// <summary>
-/// Extended encounter processor with choice projection as single source of truth
+/// Extended encounter processor with choice projection and unified tag effects
 /// </summary>
 public class EncounterProcessor
 {
     public EncounterState State;
     private readonly StrategicLayer _strategicLayer;
     private readonly NarrativeChoiceGenerator _narrativeGenerator;
-    private readonly SpecialTagEffectProcessor _specialEffectProcessor;
     private readonly LocationStrategicProperties _locationProperties;
     private readonly EncounterTagRepository _tagRepository;
 
@@ -18,7 +17,6 @@ public class EncounterProcessor
         _tagRepository = tagRepository;
         _strategicLayer = new StrategicLayer(locationProperties, tagRepository);
         _narrativeGenerator = new NarrativeChoiceGenerator(new ChoiceRepository());
-        _specialEffectProcessor = new SpecialTagEffectProcessor();
 
         // Initialize state
         InitializeState();
@@ -33,7 +31,7 @@ public class EncounterProcessor
     }
 
     /// <summary>
-    /// Process a player's choice - now uses projection as single source of truth
+    /// Process a player's choice using unified projection approach
     /// </summary>
     public void ProcessChoice(Choice choice)
     {
@@ -41,7 +39,7 @@ public class EncounterProcessor
         State.ApproachTypesDic[choice.ApproachType] += 1;
         State.FocusTypesDic[choice.FocusType] += 1;
 
-        // Step 1: Generate a projection of the choice's effects
+        // Step 1: Generate a projection of all effects
         ChoiceProjection projection = ProjectChoice(choice);
 
         // Step 2: Apply the projection to the strategic layer
@@ -50,13 +48,18 @@ public class EncounterProcessor
         // Step 3: Apply the projection to the encounter state
         projection.ApplyToState(State);
 
-        // Step 4: Handle special tag effects that need encounter processor integration
-        _specialEffectProcessor.ProcessSpecialTagEffects(_strategicLayer.GetActiveTags(), State, projection);
+        // Step 4: Increment turn counter (unless additional turn granted)
+        if (!projection.GrantsAdditionalTurn)
+        {
+            State.CurrentTurn += 1;
+        }
+        else if (State.AdditionalTurnsRemaining > 0)
+        {
+            // Additional turn granted but not consumed yet
+            State.AdditionalTurnsRemaining--;
+        }
 
-        // Step 5: Increment turn counter
-        State.CurrentTurn += 1;
-
-        // Step 6: Generate next set of choices
+        // Step 5: Generate next set of choices
         GenerateChoices();
     }
 
@@ -73,7 +76,7 @@ public class EncounterProcessor
         }
 
         // Check if we've reached the end of turns
-        if (State.CurrentTurn >= State.MaxTurns)
+        if (State.CurrentTurn >= State.MaxTurns && State.AdditionalTurnsRemaining == 0)
         {
             // Determine success level based on momentum thresholds
             if (State.Momentum >= 12)
@@ -104,6 +107,7 @@ public class EncounterProcessor
     {
         State.EncounterStatus = EncounterStatus.InProgress;
         State.CurrentTurn = 0;
+        State.AdditionalTurnsRemaining = 0;
 
         // Generate initial choices
         GenerateChoices();
@@ -123,6 +127,18 @@ public class EncounterProcessor
 
         return projections;
     }
+
+    /// <summary>
+    /// Generate new choices based on current state
+    /// </summary>
+    public void GenerateChoices()
+    {
+        List<Choice> nextChoices = _narrativeGenerator.GenerateChoiceSet(State);
+        State.NarrativePhase = _narrativeGenerator.NarrativePhase.ToString();
+        State.CurrentChoices = nextChoices;
+    }
+
+    #region UI Information Methods
 
     /// <summary>
     /// Get active tags for UI display
@@ -154,16 +170,6 @@ public class EncounterProcessor
     public EncounterState GetState()
     {
         return State;
-    }
-
-    /// <summary>
-    /// Generate new choices based on current state
-    /// </summary>
-    public void GenerateChoices()
-    {
-        List<Choice> nextChoices = _narrativeGenerator.GenerateChoiceSet(State);
-        State.NarrativePhase = _narrativeGenerator.NarrativePhase;
-        State.CurrentChoices = nextChoices;
     }
 
     /// <summary>
@@ -262,4 +268,6 @@ public class EncounterProcessor
             .ThenBy(t => t.Name)
             .ToList();
     }
+
+    #endregion
 }

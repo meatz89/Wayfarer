@@ -1,5 +1,5 @@
 ﻿/// <summary>
-/// Extended strategic layer to handle location reaction tags
+/// Strategic layer to handle encounter mechanics with unified tag effects
 /// </summary>
 public class StrategicLayer
 {
@@ -76,11 +76,6 @@ public class StrategicLayer
         SignatureElementTypes elementType = StrategicSignature.ApproachToElement(choice.ApproachType);
 
         // Calculate projected signature
-
-        if (choice.EffectType == EffectTypes.Pressure)
-        {
-            clonedSignature.IncrementElement(elementType);
-        }
         clonedSignature.IncrementElement(elementType);
         projection.ProjectedSignature = clonedSignature;
 
@@ -89,19 +84,19 @@ public class StrategicLayer
         projection.BaseMomentumChange = baseOutcome.Momentum;
         projection.BasePressureChange = baseOutcome.Pressure;
 
-        // Apply effects from active tags
-        ChoiceOutcome modifiedOutcome = ProjectTagEffects(choice, baseOutcome, clonedTags, projection);
-
         // Project tag changes
         ProjectTagChanges(choice, state, clonedSignature, clonedTags, projection);
 
-        // Calculate final changes
-        projection.MomentumChange = modifiedOutcome.Momentum;
-        projection.PressureChange = modifiedOutcome.Pressure;
+        // Set initial momentum/pressure changes from base outcome
+        projection.MomentumChange = baseOutcome.Momentum;
+        projection.PressureChange = baseOutcome.Pressure + 1; // Include end-of-turn pressure
 
-        // Calculate projected values
+        // Calculate initial projected values
         projection.ProjectedMomentum = state.Momentum + projection.MomentumChange;
         projection.ProjectedPressure = state.Pressure + projection.PressureChange;
+
+        // Apply tag effects - now unified in a single system
+        ApplyTagEffects(choice, clonedTags, projection);
 
         return projection;
     }
@@ -115,9 +110,9 @@ public class StrategicLayer
         _signature.SetFromSignature(projection.ProjectedSignature);
 
         // Apply tag activations/deactivations - using the actual tag objects
-        foreach (EncounterTag projectedTag in projection.TagsActivated)
+        foreach (var projectedTag in projection.TagsActivated)
         {
-            EncounterTag? actualTag = _availableTags.FirstOrDefault(t => t.Id == projectedTag.Id);
+            var actualTag = _availableTags.FirstOrDefault(t => t.Id == projectedTag.Id);
             if (actualTag != null && !actualTag.IsActive)
             {
                 actualTag.IsActive = true;
@@ -125,9 +120,9 @@ public class StrategicLayer
             }
         }
 
-        foreach (EncounterTag projectedTag in projection.TagsDeactivated)
+        foreach (var projectedTag in projection.TagsDeactivated)
         {
-            EncounterTag? actualTag = _activeTags.FirstOrDefault(t => t.Id == projectedTag.Id);
+            var actualTag = _activeTags.FirstOrDefault(t => t.Id == projectedTag.Id);
             if (actualTag != null)
             {
                 actualTag.IsActive = false;
@@ -136,7 +131,7 @@ public class StrategicLayer
         }
 
         // Update cumulative triggers if needed
-        foreach (KeyValuePair<string, int> tagTriggerPair in projection.CumulativeTriggerChanges)
+        foreach (var tagTriggerPair in projection.CumulativeTriggerChanges)
         {
             _cumulativeTriggers[tagTriggerPair.Key] = tagTriggerPair.Value;
         }
@@ -157,7 +152,7 @@ public class StrategicLayer
         }
         else if (choice.EffectType == EffectTypes.Pressure)
         {
-            pressure += 1; // Standard pressure gain
+            pressure -= 1; // Standard pressure reduction
         }
 
         // Check location favored/disfavored elements
@@ -246,15 +241,15 @@ public class StrategicLayer
         }
 
         // Update cloned tags list for effect calculation
-        foreach (EncounterTag tag in projection.TagsActivated)
+        foreach (var tag in projection.TagsActivated)
         {
             tag.IsActive = true;
             clonedTags.Add(tag);
         }
 
-        foreach (EncounterTag tag in projection.TagsDeactivated)
+        foreach (var tag in projection.TagsDeactivated)
         {
-            EncounterTag? tagToRemove = clonedTags.FirstOrDefault(t => t.Id == tag.Id);
+            var tagToRemove = clonedTags.FirstOrDefault(t => t.Id == tag.Id);
             if (tagToRemove != null)
             {
                 clonedTags.Remove(tagToRemove);
@@ -263,34 +258,18 @@ public class StrategicLayer
     }
 
     /// <summary>
-    /// Projects the effects of active tags on the choice outcome
+    /// Apply all tag effects to the choice projection
     /// </summary>
-    protected ChoiceOutcome ProjectTagEffects(Choice choice, ChoiceOutcome baseOutcome,
-                                           List<EncounterTag> activeTags, ChoiceProjection projection)
+    protected void ApplyTagEffects(Choice choice, List<EncounterTag> activeTags, ChoiceProjection projection)
     {
-        ChoiceOutcome modifiedOutcome = new ChoiceOutcome(baseOutcome.Momentum, baseOutcome.Pressure);
-
         foreach (EncounterTag tag in activeTags)
         {
-            ChoiceOutcome before = new ChoiceOutcome(modifiedOutcome.Momentum, modifiedOutcome.Pressure);
-            modifiedOutcome = tag.ProcessEffect(choice, modifiedOutcome);
-
-            // Track the tag's effect
-            int momentumEffect = modifiedOutcome.Momentum - before.Momentum;
-            int pressureEffect = modifiedOutcome.Pressure - before.Pressure;
-
-            if (momentumEffect != 0)
+            if (tag.IsActive)
             {
-                projection.TagMomentumEffects[tag.Name] = momentumEffect;
-            }
-
-            if (pressureEffect != 0)
-            {
-                projection.TagPressureEffects[tag.Name] = pressureEffect;
+                // Apply effect using the unified tag effect system
+                tag.Effect.ApplyToProjection(choice, projection, tag.Name);
             }
         }
-
-        return modifiedOutcome;
     }
 
     /// <summary>
@@ -299,7 +278,7 @@ public class StrategicLayer
     protected List<EncounterTag> CloneActiveTags()
     {
         List<EncounterTag> clonedTags = new List<EncounterTag>();
-        foreach (EncounterTag tag in _activeTags)
+        foreach (var tag in _activeTags)
         {
             clonedTags.Add(new EncounterTag(tag));
         }

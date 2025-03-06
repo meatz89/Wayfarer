@@ -64,7 +64,7 @@ public static class TagContentFactory
             .WithDescription("Convert all pressure gain into momentum")
             .WithSourceElement(SignatureElementTypes.Dominance)
             .WithThreshold(5)
-            .WithSpecialEffect("convert_pressure_to_momentum")
+            .WithSpecialEffect(TagEffectType.ConvertPressureToMomentum)
             .Build();
         tagDictionary[overwhelmingPresence.Id] = overwhelmingPresence;
 
@@ -142,7 +142,7 @@ public static class TagContentFactory
             .WithDescription("Reduce pressure by 1 at end of each turn")
             .WithSourceElement(SignatureElementTypes.Rapport)
             .WithThreshold(5)
-            .WithSpecialEffect("reduce_pressure_each_turn")
+            .WithSpecialEffect(TagEffectType.ReducePressureEachTurn)
             .ReducePressure(1)
             .Build();
         tagDictionary[networkLeverage.Id] = networkLeverage;
@@ -300,7 +300,7 @@ public static class TagContentFactory
             .WithDescription("Reduce all pressure by 1 at the end of each turn")
             .WithSourceElement(SignatureElementTypes.Precision)
             .WithThreshold(5)
-            .WithSpecialEffect("reduce_pressure_each_turn")
+            .WithSpecialEffect(TagEffectType.ReducePressureEachTurn)
             .ReducePressure(1)
             .Build();
         tagDictionary[flawlessExecution.Id] = flawlessExecution;
@@ -354,7 +354,7 @@ public static class TagContentFactory
             .WithDescription("Take an additional turn with no pressure")
             .WithSourceElement(SignatureElementTypes.Concealment)
             .WithThreshold(3)
-            .WithSpecialEffect("additional_turn_no_pressure")
+            .WithSpecialEffect(TagEffectType.AdditionalTurnNoPressure)
             .ZeroPressure()
             .Build();
         tagDictionary[unseenThreat.Id] = unseenThreat;
@@ -390,7 +390,7 @@ public static class TagContentFactory
             .WithDescription("Gain maximum momentum (encounter auto-success)")
             .WithSourceElement(SignatureElementTypes.Concealment)
             .WithThreshold(5)
-            .WithSpecialEffect("encounter_auto_success")
+            .WithSpecialEffect(TagEffectType.EncounterAutoSuccess)
             .AddMomentum(15) // High value to ensure success
             .Build();
         tagDictionary[perfectAmbush.Id] = perfectAmbush;
