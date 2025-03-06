@@ -24,7 +24,7 @@ public class SpecialTagEffectProcessor
                         break;
 
                     case "additional_turn_no_pressure":
-                        ProcessAdditionalTurnNoPressure(state);
+                        ProcessAdditionalTurnNoPressure(state, choiceProjection);
                         break;
 
                     case "encounter_auto_success":
@@ -49,11 +49,11 @@ public class SpecialTagEffectProcessor
         }
     }
 
-    private void ProcessAdditionalTurnNoPressure(EncounterState state)
+    private void ProcessAdditionalTurnNoPressure(EncounterState state, ChoiceProjection choiceProjection)
     {
         // For the extra turn effect, we would need to integrate with the turn system
         // For now, just zero pressure
-        state.Pressure = 0;
+        state.Pressure -= choiceProjection.PressureChange;
     }
 
     private void ProcessEncounterAutoSuccess(EncounterState state)
