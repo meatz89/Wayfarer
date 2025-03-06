@@ -51,7 +51,7 @@ public class EncounterProcessor
         projection.ApplyToState(State);
 
         // Step 4: Handle special tag effects that need encounter processor integration
-        _specialEffectProcessor.ProcessSpecialTagEffects(_strategicLayer.GetActiveTags(), State);
+        _specialEffectProcessor.ProcessSpecialTagEffects(_strategicLayer.GetActiveTags(), State, projection);
 
         // Step 5: Increment turn counter
         State.CurrentTurn += 1;

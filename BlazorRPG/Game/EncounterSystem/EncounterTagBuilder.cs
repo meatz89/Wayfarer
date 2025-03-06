@@ -267,13 +267,13 @@ public class EncounterTagBuilder
         tag.IsLocationReaction = _isLocationReaction;
 
         // Add all activation triggers
-        foreach (var trigger in _activationTriggers)
+        foreach (TagTrigger trigger in _activationTriggers)
         {
             tag.ActivationTriggers.Add(trigger);
         }
 
         // Add all removal triggers
-        foreach (var trigger in _removalTriggers)
+        foreach (TagTrigger trigger in _removalTriggers)
         {
             tag.RemovalTriggers.Add(trigger);
         }

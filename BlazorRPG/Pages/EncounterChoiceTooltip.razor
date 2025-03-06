@@ -10,61 +10,73 @@
         <h5>Changes</h5>
         <div class="tooltip-list">
 
-            <div class="tooltip-item">
-                <div class="tooltip-item-header">
-                    <div class="tooltip-item-title">
-                        <span class="tooltip-item-name">TagsActivated</span>
+            @if(Preview.TagsActivated.Count > 0)
+            {
+                <div class="tooltip-item">
+                    <div class="tooltip-item-header">
+                        <div class="tooltip-item-title">
+                            <span class="tooltip-item-name">TagsActivated</span>
+                        </div>
+                    </div>
+                    <div class="tooltip-item-details">
+                        @foreach(EncounterTag tag in @Preview.TagsActivated)
+                        {
+                            <div class="tooltip-detail-line">@tag.Name</div>
+                        }
                     </div>
                 </div>
-                <div class="tooltip-item-details">
-                    @foreach(EncounterTag tag in @Preview.TagsActivated)
-                    {
-                        <div class="tooltip-detail-line">@tag.Name</div>
-                    }
-                </div>
-            </div>
+            }
 
-            <div class="tooltip-item">
-                <div class="tooltip-item-header">
-                    <div class="tooltip-item-title">
-                        <span class="tooltip-item-name">TagsDeactivated</span>
+            @if (Preview.TagsDeactivated.Count > 0)
+            {
+                <div class="tooltip-item">
+                    <div class="tooltip-item-header">
+                        <div class="tooltip-item-title">
+                            <span class="tooltip-item-name">TagsDeactivated</span>
+                        </div>
+                    </div>
+                    <div class="tooltip-item-details">
+                        @foreach (EncounterTag tag in @Preview.TagsDeactivated)
+                        {
+                            <div class="tooltip-detail-line">@tag.Name</div>
+                        }
                     </div>
                 </div>
-                <div class="tooltip-item-details">
-                    @foreach (EncounterTag tag in @Preview.TagsDeactivated)
-                    {
-                        <div class="tooltip-detail-line">@tag.Name</div>
-                    }
-                </div>
-            </div>
+            }
 
-            <div class="tooltip-item">
-                <div class="tooltip-item-header">
-                    <div class="tooltip-item-title">
-                        <span class="tooltip-item-name">TagMomentumEffects</span>
+            @if (Preview.TagMomentumEffects.Count > 0)
+            {
+                <div class="tooltip-item">
+                    <div class="tooltip-item-header">
+                        <div class="tooltip-item-title">
+                            <span class="tooltip-item-name">TagMomentumEffects</span>
+                        </div>
+                    </div>
+                    <div class="tooltip-item-details">
+                        @foreach (var tag in @Preview.TagMomentumEffects)
+                        {
+                            <div class="tooltip-detail-line">@tag.Key (@tag.Value)</div>
+                        }
                     </div>
                 </div>
-                <div class="tooltip-item-details">
-                    @foreach (var tag in @Preview.TagMomentumEffects)
-                    {
-                        <div class="tooltip-detail-line">@tag.Key (@tag.Value)</div>
-                    }
-                </div>
-            </div>
-
-            <div class="tooltip-item">
-                <div class="tooltip-item-header">
-                    <div class="tooltip-item-title">
-                        <span class="tooltip-item-name">TagPressureEffects</span>
+            }
+            
+            @if (Preview.TagPressureEffects.Count > 0)
+            {
+                <div class="tooltip-item">
+                    <div class="tooltip-item-header">
+                        <div class="tooltip-item-title">
+                            <span class="tooltip-item-name">TagPressureEffects</span>
+                        </div>
+                    </div>
+                    <div class="tooltip-item-details">
+                        @foreach (var tag in @Preview.TagPressureEffects)
+                        {
+                            <div class="tooltip-detail-line">@tag.Key (@tag.Value)</div>
+                        }
                     </div>
                 </div>
-                <div class="tooltip-item-details">
-                    @foreach (var tag in @Preview.TagPressureEffects)
-                    {
-                        <div class="tooltip-detail-line">@tag.Key (@tag.Value)</div>
-                    }
-                </div>
-            </div>
+            }
 
             <div class="tooltip-item">
                 <div class="tooltip-item-header">

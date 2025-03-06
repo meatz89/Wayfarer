@@ -3,7 +3,6 @@
 /// </summary>
 public class StrategicLayer
 {
-    private const int endOfTurnPressureIncrease = 1;
     protected readonly StrategicSignature _signature;
     protected readonly List<EncounterTag> _availableTags;
     protected readonly List<EncounterTag> _activeTags;
@@ -77,6 +76,11 @@ public class StrategicLayer
         SignatureElementTypes elementType = StrategicSignature.ApproachToElement(choice.ApproachType);
 
         // Calculate projected signature
+
+        if (choice.EffectType == EffectTypes.Pressure)
+        {
+            clonedSignature.IncrementElement(elementType);
+        }
         clonedSignature.IncrementElement(elementType);
         projection.ProjectedSignature = clonedSignature;
 
@@ -85,15 +89,15 @@ public class StrategicLayer
         projection.BaseMomentumChange = baseOutcome.Momentum;
         projection.BasePressureChange = baseOutcome.Pressure;
 
-        // Project tag changes
-        ProjectTagChanges(choice, state, clonedSignature, clonedTags, projection);
-
         // Apply effects from active tags
         ChoiceOutcome modifiedOutcome = ProjectTagEffects(choice, baseOutcome, clonedTags, projection);
 
+        // Project tag changes
+        ProjectTagChanges(choice, state, clonedSignature, clonedTags, projection);
+
         // Calculate final changes
         projection.MomentumChange = modifiedOutcome.Momentum;
-        projection.PressureChange = modifiedOutcome.Pressure + endOfTurnPressureIncrease; // Include end-of-turn pressure
+        projection.PressureChange = modifiedOutcome.Pressure;
 
         // Calculate projected values
         projection.ProjectedMomentum = state.Momentum + projection.MomentumChange;
@@ -111,9 +115,9 @@ public class StrategicLayer
         _signature.SetFromSignature(projection.ProjectedSignature);
 
         // Apply tag activations/deactivations - using the actual tag objects
-        foreach (var projectedTag in projection.TagsActivated)
+        foreach (EncounterTag projectedTag in projection.TagsActivated)
         {
-            var actualTag = _availableTags.FirstOrDefault(t => t.Id == projectedTag.Id);
+            EncounterTag? actualTag = _availableTags.FirstOrDefault(t => t.Id == projectedTag.Id);
             if (actualTag != null && !actualTag.IsActive)
             {
                 actualTag.IsActive = true;
@@ -121,9 +125,9 @@ public class StrategicLayer
             }
         }
 
-        foreach (var projectedTag in projection.TagsDeactivated)
+        foreach (EncounterTag projectedTag in projection.TagsDeactivated)
         {
-            var actualTag = _activeTags.FirstOrDefault(t => t.Id == projectedTag.Id);
+            EncounterTag? actualTag = _activeTags.FirstOrDefault(t => t.Id == projectedTag.Id);
             if (actualTag != null)
             {
                 actualTag.IsActive = false;
@@ -132,7 +136,7 @@ public class StrategicLayer
         }
 
         // Update cumulative triggers if needed
-        foreach (var tagTriggerPair in projection.CumulativeTriggerChanges)
+        foreach (KeyValuePair<string, int> tagTriggerPair in projection.CumulativeTriggerChanges)
         {
             _cumulativeTriggers[tagTriggerPair.Key] = tagTriggerPair.Value;
         }
@@ -153,18 +157,18 @@ public class StrategicLayer
         }
         else if (choice.EffectType == EffectTypes.Pressure)
         {
-            pressure -= endOfTurnPressureIncrease; // Standard pressure reduction
+            pressure += 1; // Standard pressure gain
         }
 
         // Check location favored/disfavored elements
         if (_locationProperties.FavoredElements.Contains(elementType))
         {
-            momentum += endOfTurnPressureIncrease; // Bonus momentum for favored element
+            momentum += 1; // Bonus momentum for favored element
         }
 
         if (_locationProperties.DisfavoredElements.Contains(elementType))
         {
-            pressure += endOfTurnPressureIncrease; // Extra pressure for disfavored element
+            pressure += 1; // Extra pressure for disfavored element
         }
 
         return new ChoiceOutcome(momentum, pressure);
@@ -242,15 +246,15 @@ public class StrategicLayer
         }
 
         // Update cloned tags list for effect calculation
-        foreach (var tag in projection.TagsActivated)
+        foreach (EncounterTag tag in projection.TagsActivated)
         {
             tag.IsActive = true;
             clonedTags.Add(tag);
         }
 
-        foreach (var tag in projection.TagsDeactivated)
+        foreach (EncounterTag tag in projection.TagsDeactivated)
         {
-            var tagToRemove = clonedTags.FirstOrDefault(t => t.Id == tag.Id);
+            EncounterTag? tagToRemove = clonedTags.FirstOrDefault(t => t.Id == tag.Id);
             if (tagToRemove != null)
             {
                 clonedTags.Remove(tagToRemove);
@@ -295,7 +299,7 @@ public class StrategicLayer
     protected List<EncounterTag> CloneActiveTags()
     {
         List<EncounterTag> clonedTags = new List<EncounterTag>();
-        foreach (var tag in _activeTags)
+        foreach (EncounterTag tag in _activeTags)
         {
             clonedTags.Add(new EncounterTag(tag));
         }

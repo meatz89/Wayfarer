@@ -7,7 +7,7 @@ public class SpecialTagEffectProcessor
     /// <summary>
     /// Process special tag effects after standard effects
     /// </summary>
-    public void ProcessSpecialTagEffects(List<EncounterTag> activeTags, EncounterState state)
+    public void ProcessSpecialTagEffects(List<EncounterTag> activeTags, EncounterState state, ChoiceProjection choiceProjection)
     {
         foreach (EncounterTag tag in activeTags)
         {
@@ -16,7 +16,7 @@ public class SpecialTagEffectProcessor
                 switch (tag.Effect.SpecialEffectId)
                 {
                     case "convert_pressure_to_momentum":
-                        ProcessConvertPressureToMomentum(state);
+                        ProcessConvertPressureToMomentum(state, choiceProjection);
                         break;
 
                     case "reduce_pressure_each_turn":
@@ -35,10 +35,10 @@ public class SpecialTagEffectProcessor
         }
     }
 
-    private void ProcessConvertPressureToMomentum(EncounterState state)
+    private void ProcessConvertPressureToMomentum(EncounterState state, ChoiceProjection choiceProjection)
     {
-        state.Momentum += state.Pressure;
-        state.Pressure = 0;
+        state.Momentum += choiceProjection.PressureChange;
+        state.Pressure -= choiceProjection.PressureChange;
     }
 
     private void ProcessReducePressureEachTurn(EncounterState state, int amount)

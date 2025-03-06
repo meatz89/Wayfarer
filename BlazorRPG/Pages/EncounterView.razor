@@ -35,37 +35,16 @@
                     </span>
                 </div>
 
-@*                 @foreach(KeyValuePair<ApproachTypes, int> ApproachType in @Model.State.ApproachTypesDic)
-                {
-                    if (ApproachType.Value > 0)
-                    {
-                        <div class="stat">
-                            <span class="stat-label">@ApproachType.Key</span>
-                        <span class="stat-value">
-                            @ApproachType.Value
-                        </span>
-                    </div>
-                    }
-                }
-
-                @foreach (KeyValuePair<FocusTypes, int> FocusType in @Model.State.FocusTypesDic)
-                {
-                    if (FocusType.Value > 0)
-                   {
-                       <div class="stat">
-                            <span class="stat-label">@FocusType.Key</span>
-                            <span class="stat-value">
-                                @FocusType.Value
-                            </span>
-                        </div>
-                    }
-                } *@
-
                 <div class="location-properties">
                     <div class="properties-header">ActiveTags</div>
                     <div class="properties-grid">
-                        @foreach (var prop in GetActiveTags())
+                        @foreach (var prop in GetLocationTags())
                         {
+                            
+
+                        }
+                        @foreach (var prop in GetActiveTags())
+                            {
                             <div class="property-tag @prop.CssClass" title="@prop.TooltipText">
                                 <span class="property-icon">@prop.Icon</span>
                                 <span class="property-text">@prop.Text</span>

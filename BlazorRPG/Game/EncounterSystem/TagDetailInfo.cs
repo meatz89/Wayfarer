@@ -54,12 +54,12 @@ public class TagDetailInfo
 
         if (tag.IsLocationReaction)
         {
-            foreach (var trigger in tag.ActivationTriggers)
+            foreach (TagTrigger trigger in tag.ActivationTriggers)
             {
                 ActivationTriggers.Add(new TagTriggerInfo(trigger));
             }
 
-            foreach (var trigger in tag.RemovalTriggers)
+            foreach (TagTrigger trigger in tag.RemovalTriggers)
             {
                 RemovalTriggers.Add(new TagTriggerInfo(trigger));
             }

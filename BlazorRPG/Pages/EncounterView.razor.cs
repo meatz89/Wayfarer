@@ -18,11 +18,25 @@ public partial class EncounterViewBase : ComponentBase
 
     public EncounterViewModel Model => GameManager.GetEncounterViewModel();
 
+    public List<PropertyDisplay> GetLocationTags()
+    {
+        List<PropertyDisplay> properties = new List<PropertyDisplay>();
+
+        EncounterProcessor processor = GameManager.EncounterSystem.GetActiveEncounterProcessor();
+        LocationTagInformation locationTagInfo = processor.GetLocationTagInformation();
+        List<TagDetailInfo> LocationReactionTags = locationTagInfo.LocationReactionTags;
+
+        List<TagDetailInfo> activeTags = locationTagInfo.PlayerTags;
+        List<TagDetailInfo> ActiveTags = locationTagInfo.ActiveTags;
+
+        return properties;
+    }
+
     public List<PropertyDisplay> GetAvailableTags()
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
-        var processor = GameManager.EncounterSystem.GetActiveEncounterProcessor();
+        EncounterProcessor processor = GameManager.EncounterSystem.GetActiveEncounterProcessor();
         List<EncounterTag> availableTags = processor.GetAllAvailableTags();
 
         List<EncounterTag> activeTags = processor.GetActiveTags();
@@ -32,18 +46,46 @@ public partial class EncounterViewBase : ComponentBase
             if (activeTags.Contains(tag)) continue;
 
             TagDetailInfo tagInfo = processor.GetTagInformation(tag.Id);
-            var activationDescription = tagInfo.GetActivationDescription();
+            string activationDescription = tagInfo.GetActivationDescription();
 
             properties.Add(new PropertyDisplay(
                     "❓",
                     tagInfo.Name,
                     "",
-                    tagInfo.Description 
-                    + Environment.NewLine 
+                    tagInfo.Description
+                    + Environment.NewLine
                     + activationDescription
             ));
         }
 
+        return properties;
+    }
+
+    public List<PropertyDisplay> GetAvailableTagsPlayer()
+    {
+        List<PropertyDisplay> properties = new List<PropertyDisplay>();
+
+        EncounterProcessor processor = GameManager.EncounterSystem.GetActiveEncounterProcessor();
+        List<EncounterTag> availableTags = processor.GetAllAvailableTags();
+
+        List<EncounterTag> activeTags = processor.GetActiveTags();
+
+        foreach (EncounterTag tag in availableTags)
+        {
+            if (activeTags.Contains(tag)) continue;
+
+            TagDetailInfo tagInfo = processor.GetTagInformation(tag.Id);
+            string activationDescription = tagInfo.GetActivationDescription();
+
+            properties.Add(new PropertyDisplay(
+                    "❓",
+                    tagInfo.Name,
+                    "",
+                    tagInfo.Description
+                    + Environment.NewLine
+                    + activationDescription
+            ));
+        }
 
         return properties;
     }
@@ -52,13 +94,13 @@ public partial class EncounterViewBase : ComponentBase
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
-        var processor = GameManager.EncounterSystem.GetActiveEncounterProcessor();
+        EncounterProcessor processor = GameManager.EncounterSystem.GetActiveEncounterProcessor();
         List<EncounterTag> activeTags = processor.GetActiveTags();
 
         foreach (EncounterTag tag in activeTags)
         {
             TagDetailInfo tagInfo = processor.GetTagInformation(tag.Id);
-            var removalDescription = tagInfo.GetRemovalDescription();
+            string removalDescription = tagInfo.GetRemovalDescription();
 
             properties.Add(new PropertyDisplay(
                     "❓",

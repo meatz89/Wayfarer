@@ -111,7 +111,7 @@ public class LocationStrategicBuilder
     // Bulk tag methods
     public LocationStrategicBuilder WithDominanceTags(params string[] tagIds)
     {
-        foreach (var tagId in tagIds)
+        foreach (string tagId in tagIds)
         {
             WithDominanceTag(tagId);
         }
@@ -120,7 +120,7 @@ public class LocationStrategicBuilder
 
     public LocationStrategicBuilder WithRapportTags(params string[] tagIds)
     {
-        foreach (var tagId in tagIds)
+        foreach (string tagId in tagIds)
         {
             WithRapportTag(tagId);
         }
@@ -129,7 +129,7 @@ public class LocationStrategicBuilder
 
     public LocationStrategicBuilder WithAnalysisTags(params string[] tagIds)
     {
-        foreach (var tagId in tagIds)
+        foreach (string tagId in tagIds)
         {
             WithAnalysisTag(tagId);
         }
@@ -138,7 +138,7 @@ public class LocationStrategicBuilder
 
     public LocationStrategicBuilder WithPrecisionTags(params string[] tagIds)
     {
-        foreach (var tagId in tagIds)
+        foreach (string tagId in tagIds)
         {
             WithPrecisionTag(tagId);
         }
@@ -147,7 +147,7 @@ public class LocationStrategicBuilder
 
     public LocationStrategicBuilder WithConcealmentTags(params string[] tagIds)
     {
-        foreach (var tagId in tagIds)
+        foreach (string tagId in tagIds)
         {
             WithConcealmentTag(tagId);
         }

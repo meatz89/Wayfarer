@@ -61,7 +61,7 @@ public class EncounterTag
 
         // Deep copy the activation triggers
         ActivationTriggers = new List<TagTrigger>();
-        foreach (var trigger in other.ActivationTriggers)
+        foreach (TagTrigger trigger in other.ActivationTriggers)
         {
             ActivationTriggers.Add(new TagTrigger(
                 trigger.TriggerId,
@@ -76,7 +76,7 @@ public class EncounterTag
 
         // Deep copy the removal triggers
         RemovalTriggers = new List<TagTrigger>();
-        foreach (var trigger in other.RemovalTriggers)
+        foreach (TagTrigger trigger in other.RemovalTriggers)
         {
             RemovalTriggers.Add(new TagTrigger(
                 trigger.TriggerId,

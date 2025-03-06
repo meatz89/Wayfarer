@@ -47,7 +47,7 @@ public class ChoiceProjection
         // Tag momentum effects
         if (TagMomentumEffects.Count > 0)
         {
-            foreach (var effect in TagMomentumEffects)
+            foreach (KeyValuePair<string, int> effect in TagMomentumEffects)
             {
                 explanation[$"Tag: {effect.Key}"] = $"Momentum {(effect.Value >= 0 ? "+" : "")}{effect.Value}";
             }
@@ -59,7 +59,7 @@ public class ChoiceProjection
         // Tag pressure effects
         if (TagPressureEffects.Count > 0)
         {
-            foreach (var effect in TagPressureEffects)
+            foreach (KeyValuePair<string, int> effect in TagPressureEffects)
             {
                 explanation[$"Tag: {effect.Key}"] = $"Pressure {(effect.Value >= 0 ? "+" : "")}{effect.Value}";
             }

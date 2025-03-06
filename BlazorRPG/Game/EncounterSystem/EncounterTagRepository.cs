@@ -115,48 +115,48 @@ public class EncounterTagRepository
         List<string> missingTags = new List<string>();
 
         // Check Dominance tags
-        foreach (var tagId in TagRegistry.Dominance.AllTags)
+        foreach (string tagId in TagRegistry.Dominance.AllTags)
         {
             if (!_tags.ContainsKey(tagId))
                 missingTags.Add(tagId);
         }
 
         // Check Rapport tags
-        foreach (var tagId in TagRegistry.Rapport.AllTags)
+        foreach (string tagId in TagRegistry.Rapport.AllTags)
         {
             if (!_tags.ContainsKey(tagId))
                 missingTags.Add(tagId);
         }
 
         // Check Analysis tags
-        foreach (var tagId in TagRegistry.Analysis.AllTags)
+        foreach (string tagId in TagRegistry.Analysis.AllTags)
         {
             if (!_tags.ContainsKey(tagId))
                 missingTags.Add(tagId);
         }
 
         // Check Precision tags
-        foreach (var tagId in TagRegistry.Precision.AllTags)
+        foreach (string tagId in TagRegistry.Precision.AllTags)
         {
             if (!_tags.ContainsKey(tagId))
                 missingTags.Add(tagId);
         }
 
         // Check Concealment tags
-        foreach (var tagId in TagRegistry.Concealment.AllTags)
+        foreach (string tagId in TagRegistry.Concealment.AllTags)
         {
             if (!_tags.ContainsKey(tagId))
                 missingTags.Add(tagId);
         }
 
         // Check Location Reaction tags
-        foreach (var tagId in TagRegistry.LocationReaction.MerchantGuild)
+        foreach (string tagId in TagRegistry.LocationReaction.MerchantGuild)
         {
             if (!_tags.ContainsKey(tagId))
                 missingTags.Add(tagId);
         }
 
-        foreach (var tagId in TagRegistry.LocationReaction.BanditCamp)
+        foreach (string tagId in TagRegistry.LocationReaction.BanditCamp)
         {
             if (!_tags.ContainsKey(tagId))
                 missingTags.Add(tagId);

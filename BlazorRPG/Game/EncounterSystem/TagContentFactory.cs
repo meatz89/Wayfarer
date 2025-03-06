@@ -22,7 +22,7 @@ public static class TagContentFactory
     private static void CreateDominanceTags(Dictionary<string, EncounterTag> tagDictionary)
     {
         // Level 3: Intimidation Tactics
-        var intimidationTactics = new EncounterTagBuilder()
+        EncounterTag intimidationTactics = new EncounterTagBuilder()
             .WithId(TagRegistry.Dominance.IntimidationTactics)
             .WithName("Dominance Boost: Physical Focus (+1 momentum)")
             .WithDescription("Physical-related choices give +1 additional momentum")
@@ -34,7 +34,7 @@ public static class TagContentFactory
         tagDictionary[intimidationTactics.Id] = intimidationTactics;
 
         // Level 3: Forceful Authority
-        var forcefulAuthority = new EncounterTagBuilder()
+        EncounterTag forcefulAuthority = new EncounterTagBuilder()
             .WithId(TagRegistry.Dominance.ForcefulAuthority)
             .WithName("Dominance Shield: Relationship Focus (no pressure)")
             .WithDescription("Relationship-related choices generate no pressure")
@@ -46,7 +46,7 @@ public static class TagContentFactory
         tagDictionary[forcefulAuthority.Id] = forcefulAuthority;
 
         // Level 3: Direct Approach
-        var directApproach = new EncounterTagBuilder()
+        EncounterTag directApproach = new EncounterTagBuilder()
             .WithId(TagRegistry.Dominance.DirectApproach)
             .WithName("Dominance Boost: Environment Focus (+1 momentum)")
             .WithDescription("Environment-related choices give +1 additional momentum")
@@ -58,10 +58,10 @@ public static class TagContentFactory
         tagDictionary[directApproach.Id] = directApproach;
 
         // Level 5: Overwhelming Presence
-        var overwhelmingPresence = new EncounterTagBuilder()
+        EncounterTag overwhelmingPresence = new EncounterTagBuilder()
             .WithId(TagRegistry.Dominance.OverwhelmingPresence)
             .WithName("Dominance Mastery: Pressure Conversion")
-            .WithDescription("Convert all pressure to momentum")
+            .WithDescription("Convert all pressure gain into momentum")
             .WithSourceElement(SignatureElementTypes.Dominance)
             .WithThreshold(5)
             .WithSpecialEffect("convert_pressure_to_momentum")
@@ -69,7 +69,7 @@ public static class TagContentFactory
         tagDictionary[overwhelmingPresence.Id] = overwhelmingPresence;
 
         // Level 5: Commanding Voice
-        var commandingVoice = new EncounterTagBuilder()
+        EncounterTag commandingVoice = new EncounterTagBuilder()
             .WithId(TagRegistry.Dominance.CommandingVoice)
             .WithName("Dominance Amplifier: Relationship Focus (2x momentum)")
             .WithDescription("Double momentum from relationship-related choices")
@@ -81,7 +81,7 @@ public static class TagContentFactory
         tagDictionary[commandingVoice.Id] = commandingVoice;
 
         // Level 5: Forceful Breakthrough
-        var forcefulBreakthrough = new EncounterTagBuilder()
+        EncounterTag forcefulBreakthrough = new EncounterTagBuilder()
             .WithId(TagRegistry.Dominance.ForcefulBreakthrough)
             .WithName("Dominance Immunity: Physical Focus (ignore pressure)")
             .WithDescription("Ignore pressure from physical-related choices")
@@ -100,7 +100,7 @@ public static class TagContentFactory
     private static void CreateRapportTags(Dictionary<string, EncounterTag> tagDictionary)
     {
         // Level 3: Social Currency
-        var socialCurrency = new EncounterTagBuilder()
+        EncounterTag socialCurrency = new EncounterTagBuilder()
             .WithId(TagRegistry.Rapport.SocialCurrency)
             .WithName("Rapport Boost: Resource Focus (+1 momentum)")
             .WithDescription("Resource-related choices give +1 additional momentum")
@@ -112,7 +112,7 @@ public static class TagContentFactory
         tagDictionary[socialCurrency.Id] = socialCurrency;
 
         // Level 3: Emotional Insight
-        var emotionalInsight = new EncounterTagBuilder()
+        EncounterTag emotionalInsight = new EncounterTagBuilder()
             .WithId(TagRegistry.Rapport.EmotionalInsight)
             .WithName("Rapport Boost: Relationship Focus (+1 momentum)")
             .WithDescription("Relationship-related choices give +1 additional momentum")
@@ -124,7 +124,7 @@ public static class TagContentFactory
         tagDictionary[emotionalInsight.Id] = emotionalInsight;
 
         // Level 3: Smooth Talker
-        var smoothTalker = new EncounterTagBuilder()
+        EncounterTag smoothTalker = new EncounterTagBuilder()
             .WithId(TagRegistry.Rapport.SmoothTalker)
             .WithName("Rapport Shield: Information Focus (no pressure)")
             .WithDescription("Information-related choices generate no pressure")
@@ -136,7 +136,7 @@ public static class TagContentFactory
         tagDictionary[smoothTalker.Id] = smoothTalker;
 
         // Level 5: Network Leverage
-        var networkLeverage = new EncounterTagBuilder()
+        EncounterTag networkLeverage = new EncounterTagBuilder()
             .WithId(TagRegistry.Rapport.NetworkLeverage)
             .WithName("Rapport Mastery: Pressure Reduction (-1 per turn)")
             .WithDescription("Reduce pressure by 1 at end of each turn")
@@ -148,7 +148,7 @@ public static class TagContentFactory
         tagDictionary[networkLeverage.Id] = networkLeverage;
 
         // Level 5: Captivating Presence
-        var captivatingPresence = new EncounterTagBuilder()
+        EncounterTag captivatingPresence = new EncounterTagBuilder()
             .WithId(TagRegistry.Rapport.CaptivatingPresence)
             .WithName("Rapport Amplifier: Information Focus (2x momentum)")
             .WithDescription("Double momentum from information-related choices")
@@ -160,7 +160,7 @@ public static class TagContentFactory
         tagDictionary[captivatingPresence.Id] = captivatingPresence;
 
         // Level 5: Charming Negotiator
-        var charmingNegotiator = new EncounterTagBuilder()
+        EncounterTag charmingNegotiator = new EncounterTagBuilder()
             .WithId(TagRegistry.Rapport.CharmingNegotiator)
             .WithName("Rapport Shield: Resource Focus (no pressure)")
             .WithDescription("Resource-related choices generate no pressure")
@@ -179,7 +179,7 @@ public static class TagContentFactory
     private static void CreateAnalysisTags(Dictionary<string, EncounterTag> tagDictionary)
     {
         // Level 3: Market Insight
-        var marketInsight = new EncounterTagBuilder()
+        EncounterTag marketInsight = new EncounterTagBuilder()
             .WithId(TagRegistry.Analysis.MarketInsight)
             .WithName("Analysis Shield: Information Focus (no pressure)")
             .WithDescription("Information-related choices generate no pressure")
@@ -191,7 +191,7 @@ public static class TagContentFactory
         tagDictionary[marketInsight.Id] = marketInsight;
 
         // Level 3: Strategic Planning
-        var strategicPlanning = new EncounterTagBuilder()
+        EncounterTag strategicPlanning = new EncounterTagBuilder()
             .WithId(TagRegistry.Analysis.StrategicPlanning)
             .WithName("Analysis Boost: Physical Focus (+1 momentum)")
             .WithDescription("Physical-related choices give +1 additional momentum")
@@ -203,7 +203,7 @@ public static class TagContentFactory
         tagDictionary[strategicPlanning.Id] = strategicPlanning;
 
         // Level 3: Resource Optimization
-        var resourceOptimization = new EncounterTagBuilder()
+        EncounterTag resourceOptimization = new EncounterTagBuilder()
             .WithId(TagRegistry.Analysis.ResourceOptimization)
             .WithName("Analysis Shield: Resource Focus (no pressure)")
             .WithDescription("Resource-related choices generate no pressure")
@@ -215,7 +215,7 @@ public static class TagContentFactory
         tagDictionary[resourceOptimization.Id] = resourceOptimization;
 
         // Level 5: Negotiation Mastery
-        var negotiationMastery = new EncounterTagBuilder()
+        EncounterTag negotiationMastery = new EncounterTagBuilder()
             .WithId(TagRegistry.Analysis.NegotiationMastery)
             .WithName("Analysis Amplifier: Resource Focus (2x momentum)")
             .WithDescription("Double momentum from resource-related choices")
@@ -227,7 +227,7 @@ public static class TagContentFactory
         tagDictionary[negotiationMastery.Id] = negotiationMastery;
 
         // Level 5: Tactical Advantage
-        var tacticalAdvantage = new EncounterTagBuilder()
+        EncounterTag tacticalAdvantage = new EncounterTagBuilder()
             .WithId(TagRegistry.Analysis.TacticalAdvantage)
             .WithName("Analysis Amplifier: Physical Focus (2x momentum)")
             .WithDescription("Double momentum from physical-related choices")
@@ -239,7 +239,7 @@ public static class TagContentFactory
         tagDictionary[tacticalAdvantage.Id] = tacticalAdvantage;
 
         // Level 5: Comprehensive Understanding
-        var comprehensiveUnderstanding = new EncounterTagBuilder()
+        EncounterTag comprehensiveUnderstanding = new EncounterTagBuilder()
             .WithId(TagRegistry.Analysis.ComprehensiveUnderstanding)
             .WithName("Analysis Boost: Information Focus (+2 momentum)")
             .WithDescription("Information choices give +2 additional momentum")
@@ -258,7 +258,7 @@ public static class TagContentFactory
     private static void CreatePrecisionTags(Dictionary<string, EncounterTag> tagDictionary)
     {
         // Level 3: Precision Footwork
-        var precisionFootwork = new EncounterTagBuilder()
+        EncounterTag precisionFootwork = new EncounterTagBuilder()
             .WithId(TagRegistry.Precision.PrecisionFootwork)
             .WithName("Precision Reducer: Environment Focus (-1 pressure)")
             .WithDescription("Ignore 1 pressure from environment-related choices")
@@ -270,7 +270,7 @@ public static class TagContentFactory
         tagDictionary[precisionFootwork.Id] = precisionFootwork;
 
         // Level 3: Efficient Movement
-        var efficientMovement = new EncounterTagBuilder()
+        EncounterTag efficientMovement = new EncounterTagBuilder()
             .WithId(TagRegistry.Precision.EfficientMovement)
             .WithName("Precision Shield: Physical Focus (no pressure)")
             .WithDescription("Physical-related choices generate no pressure")
@@ -282,7 +282,7 @@ public static class TagContentFactory
         tagDictionary[efficientMovement.Id] = efficientMovement;
 
         // Level 3: Careful Allocation
-        var carefulAllocation = new EncounterTagBuilder()
+        EncounterTag carefulAllocation = new EncounterTagBuilder()
             .WithId(TagRegistry.Precision.CarefulAllocation)
             .WithName("Precision Boost: Resource Focus (+1 momentum)")
             .WithDescription("Resource-related choices give +1 additional momentum")
@@ -294,7 +294,7 @@ public static class TagContentFactory
         tagDictionary[carefulAllocation.Id] = carefulAllocation;
 
         // Level 5: Flawless Execution
-        var flawlessExecution = new EncounterTagBuilder()
+        EncounterTag flawlessExecution = new EncounterTagBuilder()
             .WithId(TagRegistry.Precision.FlawlessExecution)
             .WithName("Precision Mastery: Pressure Reduction (-1 per turn)")
             .WithDescription("Reduce all pressure by 1 at the end of each turn")
@@ -306,7 +306,7 @@ public static class TagContentFactory
         tagDictionary[flawlessExecution.Id] = flawlessExecution;
 
         // Level 5: Perfect Technique
-        var perfectTechnique = new EncounterTagBuilder()
+        EncounterTag perfectTechnique = new EncounterTagBuilder()
             .WithId(TagRegistry.Precision.PerfectTechnique)
             .WithName("Precision Amplifier: Physical Focus (2x momentum)")
             .WithDescription("Double momentum from physical-related choices")
@@ -318,7 +318,7 @@ public static class TagContentFactory
         tagDictionary[perfectTechnique.Id] = perfectTechnique;
 
         // Level 5: Meticulous Approach
-        var meticulousApproach = new EncounterTagBuilder()
+        EncounterTag meticulousApproach = new EncounterTagBuilder()
             .WithId(TagRegistry.Precision.MeticulousApproach)
             .WithName("Precision Mastery: Universal Boost (+1 momentum)")
             .WithDescription("All choices generate +1 additional momentum")
@@ -336,7 +336,7 @@ public static class TagContentFactory
     private static void CreateConcealmentTags(Dictionary<string, EncounterTag> tagDictionary)
     {
         // Level 3: Shadow Movement
-        var shadowMovement = new EncounterTagBuilder()
+        EncounterTag shadowMovement = new EncounterTagBuilder()
             .WithId(TagRegistry.Concealment.ShadowMovement)
             .WithName("Concealment Boost: Stealth Actions (+1 momentum)")
             .WithDescription("+1 additional momentum for stealth choices")
@@ -348,7 +348,7 @@ public static class TagContentFactory
         tagDictionary[shadowMovement.Id] = shadowMovement;
 
         // Level 3: Unseen Threat
-        var unseenThreat = new EncounterTagBuilder()
+        EncounterTag unseenThreat = new EncounterTagBuilder()
             .WithId(TagRegistry.Concealment.UnseenThreat)
             .WithName("Concealment Mastery: Extra Turn (no pressure)")
             .WithDescription("Take an additional turn with no pressure")
@@ -360,7 +360,7 @@ public static class TagContentFactory
         tagDictionary[unseenThreat.Id] = unseenThreat;
 
         // Level 3: Hidden Observation
-        var hiddenObservation = new EncounterTagBuilder()
+        EncounterTag hiddenObservation = new EncounterTagBuilder()
             .WithId(TagRegistry.Concealment.HiddenObservation)
             .WithName("Concealment Boost: Information Focus (+1 momentum)")
             .WithDescription("Information-related choices give +1 additional momentum")
@@ -372,7 +372,7 @@ public static class TagContentFactory
         tagDictionary[hiddenObservation.Id] = hiddenObservation;
 
         // Level 5: Perfect Stealth
-        var perfectStealth = new EncounterTagBuilder()
+        EncounterTag perfectStealth = new EncounterTagBuilder()
             .WithId(TagRegistry.Concealment.PerfectStealth)
             .WithName("Concealment Immunity: Physical Focus (ignore pressure)")
             .WithDescription("Ignore all pressure from physical-related choices")
@@ -384,7 +384,7 @@ public static class TagContentFactory
         tagDictionary[perfectStealth.Id] = perfectStealth;
 
         // Level 5: Perfect Ambush
-        var perfectAmbush = new EncounterTagBuilder()
+        EncounterTag perfectAmbush = new EncounterTagBuilder()
             .WithId(TagRegistry.Concealment.PerfectAmbush)
             .WithName("Concealment Mastery: Auto-Success (max momentum)")
             .WithDescription("Gain maximum momentum (encounter auto-success)")
@@ -396,7 +396,7 @@ public static class TagContentFactory
         tagDictionary[perfectAmbush.Id] = perfectAmbush;
 
         // Level 5: Vanish
-        var vanish = new EncounterTagBuilder()
+        EncounterTag vanish = new EncounterTagBuilder()
             .WithId(TagRegistry.Concealment.Vanish)
             .WithName("Concealment Mastery: Pressure Immunity (one turn)")
             .WithDescription("Ignore all pressure for one turn")
@@ -414,7 +414,7 @@ public static class TagContentFactory
     private static void CreateMerchantGuildReactionTags(Dictionary<string, EncounterTag> tagDictionary)
     {
         // Social Faux Pas
-        var socialFauxPas = new EncounterTagBuilder()
+        EncounterTag socialFauxPas = new EncounterTagBuilder()
             .WithId(TagRegistry.LocationReaction.SocialFauxPas)
             .WithName("Momentum Block: Relationship Focus (0 momentum)")
             .WithDescription("Your aggressive manner has offended the merchants. Relationship-focused choices generate no momentum.")
@@ -437,7 +437,7 @@ public static class TagContentFactory
         tagDictionary[socialFauxPas.Id] = socialFauxPas;
 
         // Market Suspicion
-        var marketSuspicion = new EncounterTagBuilder()
+        EncounterTag marketSuspicion = new EncounterTagBuilder()
             .WithId(TagRegistry.LocationReaction.MarketSuspicion)
             .WithName("Pressure Increase: All Actions (+1 pressure)")
             .WithDescription("The merchants are watching you carefully. All choices generate +1 pressure.")
@@ -463,7 +463,7 @@ public static class TagContentFactory
     private static void CreateBanditCampReactionTags(Dictionary<string, EncounterTag> tagDictionary)
     {
         // Hostile Territory
-        var hostileTerritory = new EncounterTagBuilder()
+        EncounterTag hostileTerritory = new EncounterTagBuilder()
             .WithId(TagRegistry.LocationReaction.HostileTerritory)
             .WithName("Pressure Magnifier: Relationship Focus (+2 pressure)")
             .WithDescription("Your charming manner is seen as weakness. Relationship-focused choices generate +2 pressure.")
@@ -486,7 +486,7 @@ public static class TagContentFactory
         tagDictionary[hostileTerritory.Id] = hostileTerritory;
 
         // Unstable Ground
-        var unstableGround = new EncounterTagBuilder()
+        EncounterTag unstableGround = new EncounterTagBuilder()
             .WithId(TagRegistry.LocationReaction.UnstableGround)
             .WithName("Momentum Block: Environment Focus (0 momentum)")
             .WithDescription("The chaotic environment works against you. Environment-focused choices generate no momentum.")

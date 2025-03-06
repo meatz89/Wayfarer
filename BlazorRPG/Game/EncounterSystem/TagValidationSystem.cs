@@ -114,7 +114,7 @@ public static class TagValidationSystem
 
         // Get all tag IDs from the repository
         List<string> undefinedTags = new List<string>();
-        foreach (var tag in repository.GetAllTags())
+        foreach (EncounterTag tag in repository.GetAllTags())
         {
             if (!definedTagIds.Contains(tag.Id))
             {

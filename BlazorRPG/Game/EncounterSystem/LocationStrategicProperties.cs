@@ -1,9 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-/// <summary>
+﻿/// <summary>
 /// Extended location strategic properties to include reactive tags
 /// </summary>
 public class LocationStrategicProperties

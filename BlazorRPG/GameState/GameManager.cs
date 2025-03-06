@@ -567,7 +567,7 @@ public class GameManager
     public EncounterViewModel? GetEncounterViewModel()
     {
         EncounterProcessor encounterProcessor = EncounterSystem.GetActiveEncounterProcessor();
-        
+
         EncounterViewModel model = new EncounterViewModel();
         model.CurrentEncounter = EncounterSystem.GetActiveEncounter();
         model.CurrentChoices = EncounterSystem.GetCurrentChoices();

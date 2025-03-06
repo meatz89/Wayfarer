@@ -101,7 +101,7 @@
         EncounterState newState = encounterProcessor.GetState();
 
         narrativeSystem.MakeChoicePrompt(choice);
-        
+
         return new EncounterResult()
         {
             Encounter = encounter,
