@@ -1,11 +1,13 @@
-﻿public record UserEncounterChoiceOption(
+﻿using BlazorRPG.Game.EncounterManager;
+
+public record UserEncounterChoiceOption(
     int Index,
     string Description,
     string Narrative,
     LocationNames LocationName,
     string locationSpotName,
     Encounter Encounter,
-    Choice Choice)
+    IChoice Choice)
 {
     public string Display()
     {

@@ -2,6 +2,6 @@
 {
     public Encounter CurrentEncounter;
     public List<UserEncounterChoiceOption> CurrentChoices;
-    public EncounterState State;
     public string ChoiceSetName;
+    public EncounterState State;
 }

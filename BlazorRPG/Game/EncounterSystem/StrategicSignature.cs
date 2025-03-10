@@ -1,4 +1,6 @@
 ﻿
+using BlazorRPG.Game.EncounterManager;
+
 /// <summary>
 /// Represents the strategic signature of an encounter
 /// </summary>

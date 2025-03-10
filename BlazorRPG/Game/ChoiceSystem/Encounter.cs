@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using BlazorRPG.Game.EncounterManager;
+
+/// <summary>
 /// Manages the state and progression of an Encounter
 /// </summary>
 public class Encounter

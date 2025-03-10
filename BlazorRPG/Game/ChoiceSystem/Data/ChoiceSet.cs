@@ -1,4 +1,6 @@
-﻿public class ChoiceSet
+﻿using BlazorRPG.Game.EncounterManager;
+
+public class ChoiceSet
 {
     public string Name { get; }
     public List<Choice> Choices { get; }

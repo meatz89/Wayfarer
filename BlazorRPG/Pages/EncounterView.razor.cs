@@ -1,4 +1,5 @@
-﻿using BlazorRPG.Pages;
+﻿using BlazorRPG.Game.EncounterManager;
+using BlazorRPG.Pages;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
@@ -22,41 +23,12 @@ public partial class EncounterViewBase : ComponentBase
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
-        EncounterProcessor processor = GameManager.EncounterSystem.GetActiveEncounterProcessor();
-        LocationTagInformation locationTagInfo = processor.GetLocationTagInformation();
-        List<TagDetailInfo> LocationReactionTags = locationTagInfo.LocationReactionTags;
-
-        List<TagDetailInfo> activeTags = locationTagInfo.PlayerTags;
-        List<TagDetailInfo> ActiveTags = locationTagInfo.ActiveTags;
-
         return properties;
     }
 
     public List<PropertyDisplay> GetAvailableTags()
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
-
-        EncounterProcessor processor = GameManager.EncounterSystem.GetActiveEncounterProcessor();
-        List<EncounterTag> availableTags = processor.GetAllAvailableTags();
-
-        List<EncounterTag> activeTags = processor.GetActiveTags();
-
-        foreach (EncounterTag tag in availableTags)
-        {
-            if (activeTags.Contains(tag)) continue;
-
-            TagDetailInfo tagInfo = processor.GetTagInformation(tag.Id);
-            string activationDescription = tagInfo.GetActivationDescription();
-
-            properties.Add(new PropertyDisplay(
-                    "❓",
-                    tagInfo.Name,
-                    "",
-                    tagInfo.Description
-                    + Environment.NewLine
-                    + activationDescription
-            ));
-        }
 
         return properties;
     }
@@ -65,52 +37,12 @@ public partial class EncounterViewBase : ComponentBase
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
-        EncounterProcessor processor = GameManager.EncounterSystem.GetActiveEncounterProcessor();
-        List<EncounterTag> availableTags = processor.GetAllAvailableTags();
-
-        List<EncounterTag> activeTags = processor.GetActiveTags();
-
-        foreach (EncounterTag tag in availableTags)
-        {
-            if (activeTags.Contains(tag)) continue;
-
-            TagDetailInfo tagInfo = processor.GetTagInformation(tag.Id);
-            string activationDescription = tagInfo.GetActivationDescription();
-
-            properties.Add(new PropertyDisplay(
-                    "❓",
-                    tagInfo.Name,
-                    "",
-                    tagInfo.Description
-                    + Environment.NewLine
-                    + activationDescription
-            ));
-        }
-
         return properties;
     }
 
     public List<PropertyDisplay> GetActiveTags()
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
-
-        EncounterProcessor processor = GameManager.EncounterSystem.GetActiveEncounterProcessor();
-        List<EncounterTag> activeTags = processor.GetActiveTags();
-
-        foreach (EncounterTag tag in activeTags)
-        {
-            TagDetailInfo tagInfo = processor.GetTagInformation(tag.Id);
-            string removalDescription = tagInfo.GetRemovalDescription();
-
-            properties.Add(new PropertyDisplay(
-                    "❓",
-                    tagInfo.Name,
-                    "",
-                    tagInfo.Description
-                    + Environment.NewLine
-                    + removalDescription
-            ));
-        }
 
         return properties;
     }
@@ -168,19 +100,18 @@ public partial class EncounterViewBase : ComponentBase
 
     public int GetCurrentValue(ValueTypes changeType)
     {
-        EncounterState state = Model.State;
         switch (changeType)
         {
             case ValueTypes.Momentum:
-                return state.Momentum;
+                return Model.State.Momentum;
 
             case ValueTypes.Pressure:
-                return state.Pressure;
+                return Model.State.Pressure;
         }
         return 0;
     }
 
-    public List<DetailedChange> GetValueChanges(Choice choice)
+    public List<DetailedChange> GetValueChanges(IChoice choice)
     {
         // Use the stored CalculationResult
         //if (choice.CalculationResult == null) return new List<DetailedChange>();

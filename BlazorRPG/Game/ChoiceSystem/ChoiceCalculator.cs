@@ -3,7 +3,7 @@
     //private readonly GameState gameState;
     //private readonly LocationPropertyEffectCalculator locationPropertyCalculator;
 
-    //public ChoiceCalculator(GameState gameState)
+    //public IChoiceCalculator(GameState gameState)
     //{
     //    this.gameState = gameState;
     //    this.locationPropertyCalculator = new LocationPropertyEffectCalculator();

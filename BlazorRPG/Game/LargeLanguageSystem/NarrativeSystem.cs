@@ -1,4 +1,6 @@
-﻿public class NarrativeSystem
+﻿using BlazorRPG.Game.EncounterManager;
+
+public class NarrativeSystem
 {
     private List<LocationNarrative> narrativeContents;
     private string openAiApiKey;

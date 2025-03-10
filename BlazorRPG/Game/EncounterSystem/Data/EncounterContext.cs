@@ -1,9 +1,10 @@
-﻿public class EncounterContext
+﻿using BlazorRPG.Game.EncounterManager;
+
+public class EncounterContext
 {
     public ActionImplementation ActionImplementation;
     public Location Location;
     public LocationSpot LocationSpot;
     public BasicActionTypes ActionType;
-    public LocationSpotAvailabilityConditions LocationSpotAvailabilityConditions;
-    public Choice LastChoice;
+    public IChoice LastChoice;
 }

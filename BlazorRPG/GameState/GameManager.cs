@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using BlazorRPG.Game.EncounterManager;
+using System.Text;
 public class GameManager
 {
     public GameState gameState;
@@ -12,7 +13,6 @@ public class GameManager
     public MessageSystem MessageSystem { get; }
     public NarrativeSystem NarrativeSystem { get; }
     public JournalSystem JournalSystem { get; }
-    public PlayerStatusSystem PlayerStatusSystem { get; }
 
     public GameManager(
         GameState gameState,
@@ -24,8 +24,7 @@ public class GameManager
         ItemSystem itemSystem,
         MessageSystem messageSystem,
         NarrativeSystem narrativeSystem,
-        JournalSystem journalSystem,
-        PlayerStatusSystem playerStatusSystem
+        JournalSystem journalSystem
         )
     {
         this.gameState = gameState;
@@ -40,7 +39,6 @@ public class GameManager
         this.MessageSystem = messageSystem;
         this.NarrativeSystem = narrativeSystem;
         this.JournalSystem = journalSystem;
-        this.PlayerStatusSystem = playerStatusSystem;
     }
 
     public void StartGame()
@@ -135,11 +133,12 @@ public class GameManager
 
     public List<UserEncounterChoiceOption> GetChoices(Encounter encounter)
     {
-        List<Choice> choices = EncounterSystem.GetActiveEncounterProcessor().State.CurrentChoices.ToList();
+        List<IChoice> choices = EncounterSystem.GetChoices();
+
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
 
         int i = 0;
-        foreach (Choice choice in choices)
+        foreach (IChoice choice in choices)
         {
             i++;
 
@@ -566,13 +565,11 @@ public class GameManager
 
     public EncounterViewModel? GetEncounterViewModel()
     {
-        EncounterProcessor encounterProcessor = EncounterSystem.GetActiveEncounterProcessor();
-
         EncounterViewModel model = new EncounterViewModel();
         model.CurrentEncounter = EncounterSystem.GetActiveEncounter();
         model.CurrentChoices = EncounterSystem.GetCurrentChoices();
-        model.State = encounterProcessor.State;
         model.ChoiceSetName = model.CurrentEncounter.NarrativePhase.ToString();
+        model.State = EncounterSystem.EncounterManager._state;
 
         return model;
     }

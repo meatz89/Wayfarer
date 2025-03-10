@@ -1,4 +1,6 @@
-﻿public static class GameServicesExpressures
+﻿using BlazorRPG.Game.EncounterManager;
+
+public static class GameServicesExpressures
 {
     public static IServiceCollection AddGameServices(this IServiceCollection services)
     {
@@ -14,7 +16,6 @@
 
         services.AddSingleton<QuestSystem>();
         services.AddSingleton<ReputationSystem>();
-        services.AddSingleton<PlayerStatusSystem>();
         services.AddSingleton<AchievementSystem>();
 
         services.AddSingleton<JournalSystem>();

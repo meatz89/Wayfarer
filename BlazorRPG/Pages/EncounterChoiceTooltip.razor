@@ -8,104 +8,6 @@
     <div class="tooltip-section">
         <h5>Changes</h5>
         <div class="tooltip-list">
-            @if (Preview.TagsActivated.Count > 0)
-            {
-                <div class="tooltip-item">
-                    <div class="tooltip-item-header">
-                        <div class="tooltip-item-title">
-                            <span class="tooltip-item-name">Tags Activated</span>
-                        </div>
-                    </div>
-                    <div class="tooltip-item-details">
-                        @foreach (EncounterTag tag in @Preview.TagsActivated)
-                        {
-                            <div class="tooltip-detail-line">@tag.Name</div>
-                        }
-                    </div>
-                </div>
-            }
-
-            @if (Preview.TagsDeactivated.Count > 0)
-            {
-                <div class="tooltip-item">
-                    <div class="tooltip-item-header">
-                        <div class="tooltip-item-title">
-                            <span class="tooltip-item-name">Tags Deactivated</span>
-                        </div>
-                    </div>
-                    <div class="tooltip-item-details">
-                        @foreach (EncounterTag tag in @Preview.TagsDeactivated)
-                        {
-                            <div class="tooltip-detail-line">@tag.Name</div>
-                        }
-                    </div>
-                </div>
-            }
-
-            @if (Preview.TagMomentumEffects.Count > 0)
-            {
-                <div class="tooltip-item">
-                    <div class="tooltip-item-header">
-                        <div class="tooltip-item-title">
-                            <span class="tooltip-item-name">Tag Effects (Momentum)</span>
-                        </div>
-                    </div>
-                    <div class="tooltip-item-details">
-                        @foreach (var tag in @Preview.TagMomentumEffects)
-                        {
-                            <div class="tooltip-detail-line">@tag.Key (@(tag.Value >= 0 ? "+" : "")@tag.Value)</div>
-                        }
-                    </div>
-                </div>
-            }
-
-            @if (Preview.TagPressureEffects.Count > 0)
-            {
-                <div class="tooltip-item">
-                    <div class="tooltip-item-header">
-                        <div class="tooltip-item-title">
-                            <span class="tooltip-item-name">Tag Effects (Pressure)</span>
-                        </div>
-                    </div>
-                    <div class="tooltip-item-details">
-                        @foreach (var tag in @Preview.TagPressureEffects)
-                        {
-                            <div class="tooltip-detail-line">@tag.Key (@(tag.Value >= 0 ? "+" : "")@tag.Value)</div>
-                        }
-                    </div>
-                </div>
-            }
-
-            @if (Preview.SpecialEffects.Count > 0)
-            {
-                <div class="tooltip-item">
-                    <div class="tooltip-item-header">
-                        <div class="tooltip-item-title">
-                            <span class="tooltip-item-name">Special Effects</span>
-                        </div>
-                    </div>
-                    <div class="tooltip-item-details">
-                        @foreach (var effect in @Preview.SpecialEffects)
-                        {
-                            <div class="tooltip-detail-line">@effect</div>
-                        }
-                    </div>
-                </div>
-            }
-
-            @if (Preview.GrantsAdditionalTurn)
-            {
-                <div class="tooltip-item special-effect">
-                    <div class="tooltip-item-header">
-                        <div class="tooltip-item-title">
-                            <span class="tooltip-item-name">Additional Turn</span>
-                        </div>
-                    </div>
-                    <div class="tooltip-item-details">
-                        <div class="tooltip-detail-line">This choice grants an extra turn</div>
-                    </div>
-                </div>
-            }
 
             <div class="tooltip-item">
                 <div class="tooltip-item-header">
@@ -114,7 +16,7 @@
                     </div>
                 </div>
                 <div class="tooltip-item-details">
-                    <div class="tooltip-detail-line">@Preview.MomentumChange (@Preview.BaseMomentumChange + @(Preview.MomentumChange - Preview.BaseMomentumChange))</div>
+                    <div class="tooltip-detail-line">@Preview.MomentumGained</div>
                 </div>
             </div>
 
@@ -125,7 +27,7 @@
                     </div>
                 </div>
                 <div class="tooltip-item-details">
-                    <div class="tooltip-detail-line">@Preview.PressureChange (@Preview.BasePressureChange + @(Preview.PressureChange - Preview.BasePressureChange))</div>
+                    <div class="tooltip-detail-line">@Preview.PressureBuilt</div>
                 </div>
             </div>
         </div>

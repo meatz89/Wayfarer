@@ -7,7 +7,11 @@
   </PropertyGroup>
     
 	<ItemGroup>
+		<Compile Remove="Game\EncounterManager\**" />
+		<Content Remove="Game\EncounterManager\**" />
+		<EmbeddedResource Remove="Game\EncounterManager\**" />
 		<None Remove="**/*.ps1" />
+		<None Remove="Game\EncounterManager\**" />
 	</ItemGroup>
     
 	<ItemGroup>

@@ -30,7 +30,6 @@ public class ActionSystem
             LocationArchetype = originalAction.LocationArchetype,
             CrowdDensity = originalAction.CrowdDensity,
             Opportunity = originalAction.Opportunity,
-            SpotAvailabilityConditions = new List<LocationPropertyCondition>(originalAction.SpotAvailabilityConditions)
         };
 
         foreach (ActionModifier modifier in GetActiveModifiers())

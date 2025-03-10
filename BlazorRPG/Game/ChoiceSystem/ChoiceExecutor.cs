@@ -1,4 +1,6 @@
-﻿public class ChoiceExecutor
+﻿using BlazorRPG.Game.EncounterManager;
+
+public class ChoiceExecutor
 {
     private readonly GameState gameState;
 

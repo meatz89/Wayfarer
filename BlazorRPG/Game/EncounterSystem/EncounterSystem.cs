@@ -1,11 +1,13 @@
-﻿public class EncounterSystem
+﻿using BlazorRPG.Game.EncounterManager;
+using BlazorRPG.Game.EncounterManager.NarrativeAi;
+
+public class EncounterSystem
 {
     private readonly GameState gameState;
     private readonly NarrativeSystem narrativeSystem;
-    private readonly ChoiceExecutor choiceExecutor;
 
     private Encounter Encounter;
-    private EncounterProcessor encounterProcessor;
+    public EncounterManager EncounterManager;
 
     public EncounterSystem(
         GameState gameState,
@@ -15,7 +17,6 @@
     {
         this.gameState = gameState;
         this.narrativeSystem = narrativeSystem;
-        this.choiceExecutor = new ChoiceExecutor(gameState);
     }
 
     public Encounter GenerateEncounter(EncounterContext context, ActionImplementation actionImplementation)
@@ -35,21 +36,16 @@
 
 
         Location inn = context.Location;
-        inn.Name = "Harbor Tavern";
-        inn.Duration = 5;
-        inn.FailThreshold = 7;
-        inn.PartialSuccessThreshold = 8;
-        inn.StandardSuccessThreshold = 10;
-        inn.ExceptionalSuccessThreshold = 12;
-
         Encounter = new Encounter(context, initialApproachTypess, initialFocusTypess);
 
-        EncounterFactory _factory = new EncounterFactory();
-        encounterProcessor = _factory.CreateBanditCampEncounter();
-        EncounterState state = encounterProcessor.GetState();
+        // Create a location
+        LocationInfo villageMarket = LocationFactory.CreateVillageMarket();
+
+        // Create encounter manager
+        EncounterManager = StartEncounterAt(villageMarket);
 
         // Create first ChoiceSet
-        encounterProcessor.GenerateChoices();
+        List<IChoice> choices = EncounterManager.GetCurrentChoices();
 
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
@@ -60,68 +56,77 @@
         return Encounter;
     }
 
-    public ChoiceProjection GetChoiceProjection(
-        Encounter encounter,
-        Choice choice)
+    public EncounterManager StartEncounterAt(LocationInfo villageMarket)
     {
-        EncounterState oldState = encounterProcessor.GetState();
-        ChoiceProjection projection = encounterProcessor.ProjectChoice(choice);
-        return projection;
+        // Create the core components
+        ChoiceRepository choiceRepository = new ChoiceRepository();
+        CardSelectionAlgorithm cardSelector = new CardSelectionAlgorithm(choiceRepository);
+        NarrativePresenter narrativePresenter = new NarrativePresenter();
+
+        // Create encounter manager
+        EncounterManager encounterManager = new EncounterManager(cardSelector, choiceRepository, narrativePresenter);
+
+        // Add special choices for this location
+        SpecialChoice negotiatePriceChoice = new SpecialChoice(
+            "Negotiate Better Price",
+            "Use your market knowledge and rapport to secure a favorable deal",
+            ApproachTypes.Charm,
+            FocusTags.Resource,
+            new List<TagModification>
+            {
+                    TagModification.ForApproach(ApproachTags.Rapport, 1),
+                    TagModification.ForFocus(FocusTags.Resource, 2)
+            },
+            new List<Func<BaseTagSystem, bool>>
+            {
+                    ChoiceFactory.ApproachTagRequirement(ApproachTags.Rapport, 2),
+                    ChoiceFactory.FocusTagRequirement(FocusTags.Resource, 2)
+            }
+        );
+
+        choiceRepository.AddSpecialChoice(villageMarket.Name, negotiatePriceChoice);
+
+        // Start an encounter at the village market
+        encounterManager.StartEncounter(villageMarket);
+
+        return encounterManager;
     }
 
     public EncounterResult ExecuteChoice(
         Encounter encounter,
-        Choice choice,
+        IChoice choice,
         LocationSpot locationSpot)
     {
-        // Execute the choice with the actual modified values from the result
-        //choiceExecutor.ExecuteChoice(Encounter, choice, choice.CalculationResult);
-
-        // Update last choice type
-        Encounter.History.LastChoice = choice;
-        Encounter.History.LastChoiceEffectType = choice.EffectType;
-        Encounter.History.LastChoiceApproach = choice.ApproachType;
-        Encounter.History.LastChoiceFocusType = choice.FocusType;
-
-        EncounterState oldState = encounterProcessor.GetState();
-        encounterProcessor.ProcessChoice(choice);
-
-        // Check for encounter success/failure conditions
-        EncounterStatus encounterStatus = encounterProcessor.CheckEncounterConditions();
-
-        // Generate new choices for next turn if encounter is still in progress
-        if (encounterStatus == EncounterStatus.InProgress)
-        {
-            encounterProcessor.GenerateChoices();
-        }
-
-        StrategicSignature signature = encounterProcessor.GetSignature();
-        List<EncounterTag> activeTags = encounterProcessor.GetActiveTags();
-
-        EncounterState newState = encounterProcessor.GetState();
-
-        narrativeSystem.MakeChoicePrompt(choice);
+        ChoiceProjection choiceProjection = EncounterManager.GetChoiceProjection(choice);
+        ChoiceOutcome choiceOutcome = EncounterManager.ApplyChoiceProjection(choiceProjection);
 
         return new EncounterResult()
         {
             Encounter = encounter,
             EncounterResults = EncounterResults.Ongoing,
-            EncounterEndMessage = "Ongoing"
+            EncounterEndMessage = choiceOutcome.ToString()
         };
     }
 
-    public EncounterProcessor GetActiveEncounterProcessor()
-    {
-        return encounterProcessor;
-    }
 
     public Encounter GetActiveEncounter()
     {
         return gameState.Actions.CurrentEncounter;
     }
 
+    public List<IChoice> GetChoices()
+    {
+        return EncounterManager.GetCurrentChoices();
+    }
+
     public List<UserEncounterChoiceOption> GetCurrentChoices()
     {
         return gameState.Actions.CurrentChoiceOptions;
+    }
+
+    internal ChoiceProjection GetChoiceProjection(Encounter encounter, IChoice choice)
+    {
+        List<ChoiceProjection> projections = EncounterManager.GetChoiceProjections();
+        return projections.FirstOrDefault(x => x.Choice == choice);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using BlazorRPG.Game.EncounterManager;
+using Microsoft.AspNetCore.Components;
 
 public partial class EncounterChoiceTooltipBase : ComponentBase
 {
