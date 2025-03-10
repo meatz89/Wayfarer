@@ -5,158 +5,154 @@
     /// </summary>
     public static class LocationFactory
     {
-        // Create the Village Market location
-        public static LocationInfo CreateVillageMarket()
-        {
-            // Favored/disfavored approaches and focuses
-            List<ApproachTypes> favoredApproaches = new List<ApproachTypes> { ApproachTypes.Charm, ApproachTypes.Finesse };
-            List<ApproachTypes> disfavoredApproaches = new List<ApproachTypes> { ApproachTypes.Force, ApproachTypes.Stealth };
-            List<FocusTags> favoredFocuses = new List<FocusTags> { FocusTags.Relationship, FocusTags.Resource };
-            List<FocusTags> disfavoredFocuses = new List<FocusTags> { FocusTags.Physical };
-
-            // Encounter tags
-            List<IEncounterTag> tags = new List<IEncounterTag>();
-
-            // Narrative tags
-            tags.Add(new NarrativeTag(
-                "Open Marketplace",
-                _ => true, // Always active
-                ApproachTypes.Stealth // Blocks stealth approaches
-            ));
-
-            tags.Add(EncounterTagFactory.CreateApproachThresholdTag(
-                "Market Suspicion",
-                ApproachTags.Concealment,
-                EncounterTagFactory.MinorTagThreshold,
-                ApproachTypes.Charm // Blocks charm when concealment 2+
-            ));
-
-            tags.Add(EncounterTagFactory.CreateApproachThresholdTag(
-                "Guard Presence",
-                ApproachTags.Dominance,
-                EncounterTagFactory.MajorTagThreshold,
-                ApproachTypes.Stealth // Blocks stealth when dominance 4+
-            ));
-
-            // Strategic tags
-            tags.Add(new StrategicTag(
-                "Merchant's Respect",
-                tagSystem => tagSystem.GetApproachTagValue(ApproachTags.Rapport) >= EncounterTagFactory.MinorTagThreshold,
-                state => state.AddFocusMomentumBonus(FocusTags.Resource, 1)
-            ));
-
-            tags.Add(new StrategicTag(
-                "Haggler's Eye",
-                tagSystem => tagSystem.GetApproachTagValue(ApproachTags.Precision) >= EncounterTagFactory.MinorTagThreshold,
-                state => state.AddEndOfTurnPressureReduction(1)
-            ));
-
-            tags.Add(new StrategicTag(
-                "Market Wisdom",
-                tagSystem => tagSystem.GetApproachTagValue(ApproachTags.Analysis) >= EncounterTagFactory.MajorTagThreshold,
-                state => state.AddFocusMomentumBonus(FocusTags.Information, 1)
-            ));
-
-            tags.Add(new StrategicTag(
-                "Trading Network",
-                tagSystem => tagSystem.GetFocusTagValue(FocusTags.Relationship) >= EncounterTagFactory.MajorTagThreshold,
-                state => state.AddEndOfTurnPressureReduction(1)
-            ));
-
-            return new LocationInfo(
-                "Village Market",
-                favoredApproaches,
-                disfavoredApproaches,
-                favoredFocuses,
-                disfavoredFocuses,
-                tags,
-                8, // Partial threshold
-                10, // Standard threshold
-                12, // Exceptional threshold
-                5, // Duration in turns
-                LocationInfo.HostilityLevels.Friendly,
-                PresentationStyles.Social
-            );
-        }
-
-        // Create the Bandit Ambush location
         public static LocationInfo CreateBanditAmbush()
         {
-            // Favored/disfavored approaches and focuses
-            List<ApproachTypes> favoredApproaches = new List<ApproachTypes> { ApproachTypes.Force, ApproachTypes.Stealth };
-            List<ApproachTypes> disfavoredApproaches = new List<ApproachTypes> { ApproachTypes.Charm, ApproachTypes.Wit };
-            List<FocusTags> favoredFocuses = new List<FocusTags> { FocusTags.Physical, FocusTags.Environment };
-            List<FocusTags> disfavoredFocuses = new List<FocusTags> { FocusTags.Relationship };
-
-            // Encounter tags
-            List<IEncounterTag> tags = new List<IEncounterTag>();
+            // Core properties - note the hostility level is Hostile
+            LocationInfo location = new LocationInfo(
+                "Bandit Ambush",
+                new[] { ApproachTypes.Force, ApproachTypes.Concealment }.ToList(),
+                new[] { ApproachTypes.Charm, ApproachTypes.Wit }.ToList(),
+                new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),
+                new[] { FocusTags.Relationship }.ToList(),
+                4, // Duration
+                9, 12, 15, // Higher momentum thresholds for hostile locations
+                LocationInfo.HostilityLevels.Hostile,
+                PresentationStyles.Physical);
 
             // Narrative tags (restrictive)
-            tags.Add(new NarrativeTag(
+            location.AddTag(new NarrativeTag(
                 "Surrounded",
-                _ => true, // Always active
-                ApproachTypes.Stealth // Blocks stealth approaches
-            ));
+                tagSystem => true, // Always active
+                ApproachTypes.Concealment));
 
-            tags.Add(new NarrativeTag(
+            location.AddTag(new NarrativeTag(
                 "Threat of Violence",
-                _ => true, // Always active
-                ApproachTypes.Charm // Blocks charm approaches
-            ));
+                tagSystem => true, // Always active
+                ApproachTypes.Charm));
 
-            tags.Add(EncounterTagFactory.CreateApproachThresholdTag(
+            location.AddTag(EncounterTagFactory.CreateApproachThresholdTag(
                 "Drawn Weapons",
                 ApproachTags.Dominance,
                 EncounterTagFactory.MajorTagThreshold,
-                ApproachTypes.Wit // Blocks wit when dominance 4+
-            ));
+                ApproachTypes.Wit));
 
-            tags.Add(new NarrativeTag(
+            location.AddTag(new NarrativeTag(
                 "Fight Started",
                 tagSystem => tagSystem.GetFocusTagValue(FocusTags.Physical) >= EncounterTagFactory.MajorTagThreshold,
-                ApproachTypes.Finesse // Blocks finesse when physical 4+
-            ));
+                null)); // Special case - blocks all non-Force approaches
 
-            // Strategic tags (negative)
-            tags.Add(new StrategicTag(
+            // Strategic tags (restrictive)
+            location.AddTag(new StrategicTag(
                 "Numerical Advantage",
-                _ => true, // Always active
-                state => state.BuildPressure(1) // +1 pressure each turn
-            ));
+                tagSystem => true, // Always active
+                state => state.AddEndOfTurnPressureReduction(-1), // Adds pressure each turn
+                StrategicEffectTypes.AddPressurePerTurn,
+                1));
 
-            // Strategic tags (weaknesses)
-            tags.Add(new StrategicTag(
+            location.AddTag(new StrategicTag(
+                "Territorial Knowledge",
+                tagSystem => true, // Always active
+                state => { /* Implementation would reduce momentum */ },
+                StrategicEffectTypes.ReduceMomentumFromFocus,
+                1,
+                null,
+                FocusTags.Environment));
+
+            location.AddTag(new StrategicTag(
+                "Battle Ready",
+                tagSystem => tagSystem.GetApproachTagValue(ApproachTags.Dominance) >= EncounterTagFactory.MajorTagThreshold,
+                state => { /* Implementation would reduce momentum */ },
+                StrategicEffectTypes.ReduceMomentumFromApproach,
+                1,
+                ApproachTypes.Force));
+
+            // Strategic tags (beneficial - weaknesses)
+            location.AddTag(new StrategicTag(
                 "Superstitious",
                 tagSystem => tagSystem.GetApproachTagValue(ApproachTags.Analysis) >= EncounterTagFactory.MinorTagThreshold,
-                state => state.AddEndOfTurnPressureReduction(1)
-            ));
+                state => state.AddEndOfTurnPressureReduction(1),
+                StrategicEffectTypes.ReducePressurePerTurn,
+                1));
 
-            tags.Add(new StrategicTag(
+            location.AddTag(new StrategicTag(
                 "Poorly Coordinated",
                 tagSystem => tagSystem.GetApproachTagValue(ApproachTags.Precision) >= EncounterTagFactory.MajorTagThreshold,
-                state => state.AddApproachMomentumBonus(ApproachTypes.Force, 1)
-            ));
+                state => state.AddApproachMomentumBonus(ApproachTypes.Force, 1),
+                StrategicEffectTypes.AddMomentumToApproach,
+                1,
+                ApproachTypes.Force));
 
-            tags.Add(new StrategicTag(
+            location.AddTag(new StrategicTag(
                 "Easily Distracted",
                 tagSystem => tagSystem.GetApproachTagValue(ApproachTags.Concealment) >= EncounterTagFactory.MinorTagThreshold,
-                state => state.AddApproachMomentumBonus(ApproachTypes.Stealth, 1)
-            ));
+                state => state.AddApproachMomentumBonus(ApproachTypes.Concealment, 1),
+                StrategicEffectTypes.AddMomentumToApproach,
+                1,
+                ApproachTypes.Concealment));
 
-            return new LocationInfo(
-                "Bandit Ambush",
-                favoredApproaches,
-                disfavoredApproaches,
-                favoredFocuses,
-                disfavoredFocuses,
-                tags,
-                9, // Partial threshold
-                12, // Standard threshold
-                15, // Exceptional threshold
-                4, // Duration in turns
-                LocationInfo.HostilityLevels.Hostile,
-                PresentationStyles.Physical
-            );
+            return location;
+        }
+
+        public static LocationInfo CreateRoadsideInn()
+        {
+            // Core properties
+            LocationInfo location = new LocationInfo(
+                "Roadside Inn",
+                new[] { ApproachTypes.Charm, ApproachTypes.Wit }.ToList(),
+                new[] { ApproachTypes.Force }.ToList(),
+                new[] { FocusTags.Relationship, FocusTags.Information }.ToList(),
+                new[] { FocusTags.Physical }.ToList(),
+                4, // Duration
+                7, 10, 12, // Standard thresholds for friendly locations
+                LocationInfo.HostilityLevels.Friendly,
+                PresentationStyles.Social);
+
+            // Narrative tags
+            location.AddTag(new NarrativeTag(
+                "Common Room",
+                tagSystem => true, // Always active
+                ApproachTypes.Concealment));
+
+            location.AddTag(new NarrativeTag(
+                "Tavern Regulations",
+                tagSystem => true, // Always active
+                ApproachTypes.Force));
+
+            // Strategic tags
+            location.AddTag(new StrategicTag(
+                "Warm Hearth",
+                tagSystem => tagSystem.GetApproachTagValue(ApproachTags.Rapport) >= EncounterTagFactory.MinorTagThreshold,
+                state => state.AddFocusMomentumBonus(FocusTags.Relationship, 1),
+                StrategicEffectTypes.AddMomentumToFocus,
+                1,
+                null,
+                FocusTags.Relationship));
+
+            location.AddTag(new StrategicTag(
+                "Traveler's Rest",
+                tagSystem => tagSystem.GetFocusTagValue(FocusTags.Information) >= EncounterTagFactory.MajorTagThreshold,
+                state => state.AddFocusMomentumBonus(FocusTags.Information, 1),
+                StrategicEffectTypes.AddMomentumToFocus,
+                1,
+                null,
+                FocusTags.Information));
+
+            location.AddTag(new StrategicTag(
+                "Innkeeper's Favor",
+                tagSystem => tagSystem.GetApproachTagValue(ApproachTags.Rapport) >= EncounterTagFactory.MajorTagThreshold,
+                state => state.AddEndOfTurnPressureReduction(1),
+                StrategicEffectTypes.ReducePressurePerTurn,
+                1));
+
+            location.AddTag(new StrategicTag(
+                "Regular Patron",
+                tagSystem => tagSystem.GetFocusTagValue(FocusTags.Relationship) >= EncounterTagFactory.MajorTagThreshold,
+                state => state.AddApproachMomentumBonus(ApproachTypes.Charm, 1),
+                StrategicEffectTypes.AddMomentumToApproach,
+                1,
+                ApproachTypes.Charm));
+
+            return location;
         }
     }
 }

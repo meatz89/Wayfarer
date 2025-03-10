@@ -8,83 +8,98 @@
     <div class="tooltip-section">
         <h5>Effect</h5>
         <div class="tooltip-list">
-            <div class="tooltip-item">
-                <div class="tooltip-item-header">
-                    <div class="tooltip-item-title">
-                        <span class="tooltip-item-name">Momentum Change</span>
+            
+            @if (Preview.MomentumComponents.Count > 0)
+            {
+                <div class="tooltip-item">
+                    <div class="tooltip-item-header">
+                        <div class="tooltip-item-title">
+                            <span class="tooltip-item-name">Momentum Change</span>
+                        </div>
+                    </div>
+                    <div class="tooltip-item-details">
+                        <div class="tooltip-detail-line @(Preview.MomentumGained > 0 ? "positive" : Preview.MomentumGained < 0 ? "negative" : "")">
+                            @(Preview.MomentumGained > 0 ? "+" : "")@Preview.MomentumGained
+                        </div>
+                        @foreach (var component in Preview.MomentumComponents)
+                        {
+                            <div class="tooltip-detail-line calculation-component">
+                                <span class="component-source">@component.Source:</span>
+                                <span class="component-value @(component.Value > 0 ? "positive" : component.Value < 0 ? "negative" : "")">
+                                    @(component.Value > 0 ? "+" : "")@component.Value
+                                </span>
+                            </div>
+                        }
                     </div>
                 </div>
-                <div class="tooltip-item-details">
-                    <div class="tooltip-detail-line">+@Preview.MomentumGained</div>
-                    @foreach (var component in GetMomentumBreakdown())
-                    {
-                        <div class="tooltip-detail-line calculation-component">
-                            <span class="component-source">@component.Source:</span>
-                            <span class="component-value @(component.Value > 0 ? "positive" : component.Value < 0 ? "negative" : "")">
-                                @(component.Value > 0 ? "+" : "")@component.Value
-                            </span>
+            }
+
+            @if (Preview.PressureComponents.Count > 0)
+            {
+                <div class="tooltip-item">
+                    <div class="tooltip-item-header">
+                        <div class="tooltip-item-title">
+                            <span class="tooltip-item-name">Pressure Change</span>
                         </div>
-                    }
-                </div>
-            </div>
-            <div class="tooltip-item">
-                <div class="tooltip-item-header">
-                    <div class="tooltip-item-title">
-                        <span class="tooltip-item-name">Pressure Change</span>
+                    </div>
+                    <div class="tooltip-item-details">
+                        <div class="tooltip-detail-line @(Preview.PressureBuilt > 0 ? "positive" : Preview.PressureBuilt < 0 ? "negative" : "")">
+                            @(Preview.PressureBuilt > 0 ? "+" : "")@Preview.PressureBuilt
+                        </div>
+                        @foreach (var component in Preview.PressureComponents)
+                        {
+                            <div class="tooltip-detail-line calculation-component">
+                                <span class="component-source">@component.Source:</span>
+                                <span class="component-value @(component.Value > 0 ? "positive" : component.Value < 0 ? "negative" : "")">
+                                    @(component.Value > 0 ? "+" : "")@component.Value
+                                </span>
+                            </div>
+                        }
                     </div>
                 </div>
-                <div class="tooltip-item-details">
-                    <div class="tooltip-detail-line">+@Preview.PressureBuilt</div>
-                    @foreach (var component in GetPressureBreakdown())
-                    {
-                        <div class="tooltip-detail-line calculation-component">
-                            <span class="component-source">@component.Source:</span>
-                            <span class="component-value @(component.Value > 0 ? "positive" : component.Value < 0 ? "negative" : "")">
-                                @(component.Value > 0 ? "+" : "")@component.Value
-                            </span>
-                        </div>
-                    }
-                </div>
-            </div>
+            }
+
         </div>
     </div>
 
-    <!-- Tag Modifications Section -->
-    <div class="tooltip-section">
-        <h5>Tag Modifications</h5>
-        <div class="tooltip-list">
-            @foreach (var tagChange in GetApproachTagChanges())
-            {
-                <div class="tooltip-item">
-                    <div class="tooltip-item-header">
-                        <div class="tooltip-item-title">
-                            <span class="tooltip-item-name">@tagChange.Key</span>
+    @if (GetApproachTagChanges().Count + GetFocusTagChanges().Count > 0)
+    {
+        <div class="tooltip-section">
+            <h5>Tag Modifications</h5>
+            <div class="tooltip-list">
+                @foreach (var tagChange in GetApproachTagChanges())
+                {
+                    <div class="tooltip-item">
+                        <div class="tooltip-item-header">
+                            <div class="tooltip-item-title">
+                                <span class="tooltip-item-name">@tagChange.Key</span>
+                            </div>
+                        </div>
+                        <div class="tooltip-item-details">
+                            <div class="tooltip-detail-line @(tagChange.Value > 0 ? "positive" : "negative")">
+                                @(tagChange.Value > 0 ? "+" : "")@tagChange.Value
+                            </div>
                         </div>
                     </div>
-                    <div class="tooltip-item-details">
-                        <div class="tooltip-detail-line @(tagChange.Value > 0 ? "positive" : "negative")">
-                            @(tagChange.Value > 0 ? "+" : "")@tagChange.Value
+                }
+                @foreach (var tagChange in GetFocusTagChanges())
+                {
+                    <div class="tooltip-item">
+                        <div class="tooltip-item-header">
+                            <div class="tooltip-item-title">
+                                <span class="tooltip-item-name">@tagChange.Key</span>
+                            </div>
+                        </div>
+                        <div class="tooltip-item-details">
+                            <div class="tooltip-detail-line @(tagChange.Value > 0 ? "positive" : "negative")">
+                                @(tagChange.Value > 0 ? "+" : "")@tagChange.Value
+                            </div>
                         </div>
                     </div>
-                </div>
-            }
-            @foreach (var tagChange in GetFocusTagChanges())
-            {
-                <div class="tooltip-item">
-                    <div class="tooltip-item-header">
-                        <div class="tooltip-item-title">
-                            <span class="tooltip-item-name">@tagChange.Key</span>
-                        </div>
-                    </div>
-                    <div class="tooltip-item-details">
-                        <div class="tooltip-detail-line @(tagChange.Value > 0 ? "positive" : "negative")">
-                            @(tagChange.Value > 0 ? "+" : "")@tagChange.Value
-                        </div>
-                    </div>
-                </div>
-            }
+                }
+            </div>
         </div>
-    </div>
+    }
 
     @if (Preview.NewlyActivatedTags.Count > 0)
     {
@@ -101,6 +116,13 @@
                         </div>
                         <div class="tooltip-item-details">
                             <div class="tooltip-detail-line">@GetTagEffectDescription(tag)</div>
+
+                            @if (HasActivationEffect(tag))
+                            {
+                                <div class="tooltip-detail-line activation-effect">
+                                    <span class="activation-effect-text">@GetActivationEffectDescription(tag)</span>
+                                </div>
+                            }
                         </div>
                     </div>
                 }

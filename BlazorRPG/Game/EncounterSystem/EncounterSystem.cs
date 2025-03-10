@@ -23,7 +23,7 @@ public class EncounterSystem
         Location inn = context.Location;
 
         // Create a location
-        LocationInfo villageMarket = LocationFactory.CreateVillageMarket();
+        LocationInfo villageMarket = LocationFactory.CreateRoadsideInn();
 
         // Create encounter manager
         EncounterManager = StartEncounterAt(villageMarket);

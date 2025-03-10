@@ -104,29 +104,20 @@ public partial class EncounterViewBase : ComponentBase
         return "";
     }
 
+    // In EncounterViewBase.cs
     private string GetTagTooltipText(IEncounterTag tag)
     {
-        // Create tooltip based on tag type and effect
         StringBuilder tooltip = new StringBuilder();
         tooltip.AppendLine(tag.Name);
 
-        // Determine tag type and effects
         if (tag is NarrativeTag narrativeTag)
         {
             if (narrativeTag.BlockedApproach.HasValue)
                 tooltip.AppendLine($"Blocks {narrativeTag.BlockedApproach.Value} approaches");
         }
-        else if (tag is StrategicTag)
+        else if (tag is StrategicTag strategicTag)
         {
-            // Strategic tag effect descriptions
-            if (tag.Name.Contains("Respect"))
-                tooltip.AppendLine("+1 momentum to Resource choices");
-            else if (tag.Name.Contains("Eye"))
-                tooltip.AppendLine("-1 pressure from Resource choices");
-            else if (tag.Name.Contains("Wisdom"))
-                tooltip.AppendLine("+1 momentum to Information choices");
-            else if (tag.Name.Contains("Network"))
-                tooltip.AppendLine("-1 pressure at end of each turn");
+            tooltip.AppendLine(strategicTag.GetEffectDescription());
         }
 
         // Add activation information for inactive tags
@@ -134,8 +125,7 @@ public partial class EncounterViewBase : ComponentBase
         {
             tooltip.AppendLine("\nActivation Condition:");
 
-            // Determine activation condition based on tag name patterns
-            // In a real implementation, this would be part of the tag definition
+            // This would need to be expanded to include all possible activation conditions
             if (tag.Name.Contains("Respect") || tag.Name.Contains("Eye"))
                 tooltip.AppendLine("Requires Rapport 2+");
             else if (tag.Name.Contains("Wisdom"))
@@ -151,6 +141,23 @@ public partial class EncounterViewBase : ComponentBase
         }
 
         return tooltip.ToString();
+    }
+
+    // In EncounterChoiceTooltipBase.cs
+    public string GetTagEffectDescription(string tagName)
+    {
+        // Find the tag by name and use its description method
+        IEncounterTag tag = Encounter.State.ActiveTags.FirstOrDefault(t => t.Name == tagName);
+        if (tag is StrategicTag strategicTag)
+        {
+            return strategicTag.GetEffectDescription();
+        }
+        else if (tag is NarrativeTag narrativeTag && narrativeTag.BlockedApproach.HasValue)
+        {
+            return $"Blocks {narrativeTag.BlockedApproach.Value} approaches";
+        }
+
+        return "Affects encounter mechanics";
     }
 
     public async Task ShowTooltip(UserEncounterChoiceOption choice, MouseEventArgs e)

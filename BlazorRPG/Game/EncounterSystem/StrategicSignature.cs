@@ -110,7 +110,7 @@ public class StrategicSignature
                 return SignatureElementTypes.Analysis;
             case ApproachTypes.Finesse:
                 return SignatureElementTypes.Precision;
-            case ApproachTypes.Stealth:
+            case ApproachTypes.Concealment:
                 return SignatureElementTypes.Concealment;
             default:
                 throw new ArgumentException("Invalid approach type");

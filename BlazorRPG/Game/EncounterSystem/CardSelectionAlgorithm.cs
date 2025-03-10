@@ -208,7 +208,7 @@
                     case ApproachTypes.Finesse:
                         score += state.TagSystem.GetApproachTagValue(ApproachTags.Precision);
                         break;
-                    case ApproachTypes.Stealth:
+                    case ApproachTypes.Concealment:
                         score += state.TagSystem.GetApproachTagValue(ApproachTags.Concealment);
                         break;
                 }

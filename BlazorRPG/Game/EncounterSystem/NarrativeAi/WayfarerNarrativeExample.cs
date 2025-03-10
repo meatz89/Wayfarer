@@ -18,7 +18,7 @@
             Encounter encounterManager = new Encounter(cardSelector, choiceRepository, narrativePresenter);
 
             // Create a location
-            LocationInfo villageMarket = LocationFactory.CreateVillageMarket();
+            LocationInfo villageMarket = LocationFactory.CreateRoadsideInn();
 
             // Add special choices for this location
             SpecialChoice negotiatePriceChoice = new SpecialChoice(

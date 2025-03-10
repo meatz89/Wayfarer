@@ -11,6 +11,16 @@ public class ChoiceProjection
     public int MomentumGained { get; set; }
     public int PressureBuilt { get; set; }
 
+    // Detailed breakdown components
+    public class ValueComponent
+    {
+        public string Source { get; set; }
+        public int Value { get; set; }
+    }
+
+    public List<ValueComponent> MomentumComponents { get; } = new List<ValueComponent>();
+    public List<ValueComponent> PressureComponents { get; } = new List<ValueComponent>();
+
     // Tag changes
     public List<string> NewlyActivatedTags { get; }
     public List<string> DeactivatedTags { get; }

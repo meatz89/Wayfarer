@@ -6,11 +6,11 @@
 public class LocationInfo
 {
     public string Name { get; }
-    public List<ApproachTypes> FavoredApproaches { get; }
-    public List<ApproachTypes> DisfavoredApproaches { get; }
-    public List<FocusTags> FavoredFocuses { get; }
-    public List<FocusTags> DisfavoredFocuses { get; }
-    public List<IEncounterTag> AvailableTags { get; }
+    public List<ApproachTypes> FavoredApproaches { get; } = new List<ApproachTypes>();
+    public List<ApproachTypes> DisfavoredApproaches { get; } = new List<ApproachTypes>();
+    public List<FocusTags> FavoredFocuses { get; } = new List<FocusTags>();
+    public List<FocusTags> DisfavoredFocuses { get; } = new List<FocusTags>();
+    public List<IEncounterTag> AvailableTags { get; } = new List<IEncounterTag>();
 
     // Success thresholds
     public int PartialThreshold { get; }
@@ -44,11 +44,10 @@ public class LocationInfo
         List<ApproachTypes> disfavoredApproaches,
         List<FocusTags> favoredFocuses,
         List<FocusTags> disfavoredFocuses,
-        List<IEncounterTag> availableTags,
+        int duration,
         int partialThreshold,
         int standardThreshold,
         int exceptionalThreshold,
-        int duration,
         HostilityLevels hostility,
         PresentationStyles style)
     {
@@ -57,7 +56,6 @@ public class LocationInfo
         DisfavoredApproaches = disfavoredApproaches;
         FavoredFocuses = favoredFocuses;
         DisfavoredFocuses = disfavoredFocuses;
-        AvailableTags = availableTags;
 
         PartialThreshold = partialThreshold;
         StandardThreshold = standardThreshold;
@@ -66,5 +64,15 @@ public class LocationInfo
         Duration = duration;
         Hostility = hostility;
         Style = style;
+    }
+
+    public void AddTag(NarrativeTag narrativeTag)
+    {
+        AvailableTags.Add(narrativeTag);
+
+    }
+    public void AddTag(StrategicTag strategicTag)
+    {
+        AvailableTags.Add(strategicTag);
     }
 }
