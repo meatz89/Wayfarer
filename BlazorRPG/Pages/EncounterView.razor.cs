@@ -110,6 +110,7 @@ public partial class EncounterViewBase : ComponentBase
         StringBuilder tooltip = new StringBuilder();
         tooltip.AppendLine(tag.Name);
 
+        // Determine tag type and effects
         if (tag is NarrativeTag narrativeTag)
         {
             if (narrativeTag.BlockedApproach.HasValue)
@@ -117,8 +118,7 @@ public partial class EncounterViewBase : ComponentBase
         }
         else if (tag is StrategicTag)
         {
-            // For strategic tags, describe effect based on name patterns
-            // This is a simplified approach - ideally you'd have more structured data
+            // Strategic tag effect descriptions
             if (tag.Name.Contains("Respect"))
                 tooltip.AppendLine("+1 momentum to Resource choices");
             else if (tag.Name.Contains("Eye"))
@@ -127,6 +127,27 @@ public partial class EncounterViewBase : ComponentBase
                 tooltip.AppendLine("+1 momentum to Information choices");
             else if (tag.Name.Contains("Network"))
                 tooltip.AppendLine("-1 pressure at end of each turn");
+        }
+
+        // Add activation information for inactive tags
+        if (!Encounter.State.ActiveTags.Any(t => t.Name == tag.Name))
+        {
+            tooltip.AppendLine("\nActivation Condition:");
+
+            // Determine activation condition based on tag name patterns
+            // In a real implementation, this would be part of the tag definition
+            if (tag.Name.Contains("Respect") || tag.Name.Contains("Eye"))
+                tooltip.AppendLine("Requires Rapport 2+");
+            else if (tag.Name.Contains("Wisdom"))
+                tooltip.AppendLine("Requires Analysis 4+");
+            else if (tag.Name.Contains("Network"))
+                tooltip.AppendLine("Requires Relationship 4+");
+            else if (tag.Name.Contains("Suspicion"))
+                tooltip.AppendLine("Activates at Concealment 2+");
+            else if (tag.Name.Contains("Guard"))
+                tooltip.AppendLine("Activates at Dominance 4+");
+            else
+                tooltip.AppendLine("Activates under specific conditions");
         }
 
         return tooltip.ToString();

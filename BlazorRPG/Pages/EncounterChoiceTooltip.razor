@@ -16,6 +16,15 @@
                 </div>
                 <div class="tooltip-item-details">
                     <div class="tooltip-detail-line">+@Preview.MomentumGained</div>
+                    @foreach (var component in GetMomentumBreakdown())
+                    {
+                        <div class="tooltip-detail-line calculation-component">
+                            <span class="component-source">@component.Source:</span>
+                            <span class="component-value @(component.Value > 0 ? "positive" : component.Value < 0 ? "negative" : "")">
+                                @(component.Value > 0 ? "+" : "")@component.Value
+                            </span>
+                        </div>
+                    }
                 </div>
             </div>
             <div class="tooltip-item">
@@ -26,6 +35,15 @@
                 </div>
                 <div class="tooltip-item-details">
                     <div class="tooltip-detail-line">+@Preview.PressureBuilt</div>
+                    @foreach (var component in GetPressureBreakdown())
+                    {
+                        <div class="tooltip-detail-line calculation-component">
+                            <span class="component-source">@component.Source:</span>
+                            <span class="component-value @(component.Value > 0 ? "positive" : component.Value < 0 ? "negative" : "")">
+                                @(component.Value > 0 ? "+" : "")@component.Value
+                            </span>
+                        </div>
+                    }
                 </div>
             </div>
         </div>

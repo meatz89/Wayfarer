@@ -1566,3 +1566,105 @@ body {
 .negative-change {
     color: var(--resource-health);
 }
+
+/* Tooltip styling */
+.tooltip {
+    max-width: 350px;
+    background: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 5px;
+    padding: 12px;
+    color: #ddd;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.preview-header h4 {
+    margin-top: 0;
+    color: #fff;
+}
+
+.choice-narrative {
+    font-style: italic;
+    margin-bottom: 12px;
+    border-left: 3px solid #444;
+    padding-left: 8px;
+}
+
+.tooltip-section {
+    margin-bottom: 15px;
+}
+
+    .tooltip-section h5 {
+        margin: 0 0 6px 0;
+        color: #888;
+        font-size: 0.9em;
+        text-transform: uppercase;
+        border-bottom: 1px solid #333;
+        padding-bottom: 4px;
+    }
+
+
+.calculation-component {
+    display: flex;
+    justify-content: space-between;
+    padding-left: 10px;
+    font-size: 0.85em;
+}
+
+.component-source {
+    color: #888;
+}
+
+.positive {
+    color: #4CAF50;
+}
+
+.negative {
+    color: #F44336;
+}
+
+/* Tag styling in the main encounter view */
+.property-tag {
+    display: inline-flex;
+    align-items: center;
+    margin: 3px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background: #2c2c2c;
+    border: 1px solid #444;
+    font-size: 0.85em;
+}
+
+    .property-tag.active {
+        background: #2c3e50;
+        border-color: #3498db;
+    }
+
+    .property-tag.narrative-tag {
+        background: #2c2c3c;
+        border-color: #9b59b6;
+    }
+
+    .property-tag.strategic-tag {
+        background: #2c3c2c;
+        border-color: #2ecc71;
+    }
+
+.property-icon {
+    margin-right: 5px;
+    font-size: 1.1em;
+}
+
+.properties-header {
+    font-weight: 500;
+    margin: 10px 0 5px 0;
+    color: #888;
+    font-size: 0.9em;
+}
+
+.properties-grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
