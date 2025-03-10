@@ -6,8 +6,7 @@ public class EncounterSystem
     private readonly GameState gameState;
     private readonly NarrativeSystem narrativeSystem;
 
-    private Encounter Encounter;
-    public EncounterManager EncounterManager;
+    public Encounter EncounterManager;
 
     public EncounterSystem(
         GameState gameState,
@@ -21,22 +20,7 @@ public class EncounterSystem
 
     public Encounter GenerateEncounter(EncounterContext context, ActionImplementation actionImplementation)
     {
-        // Initial tags for a social Encounter
-        Dictionary<ApproachTypes, int> initialApproachTypess = new Dictionary<ApproachTypes, int>
-            {
-                { ApproachTypes.Charm, 1 },
-                { ApproachTypes.Wit, 1 }
-            };
-
-        Dictionary<FocusTypes, int> initialFocusTypess = new Dictionary<FocusTypes, int>
-            {
-                { FocusTypes.Relationship, 1 },
-                { FocusTypes.Resource, 1 }
-            };
-
-
         Location inn = context.Location;
-        Encounter = new Encounter(context, initialApproachTypess, initialFocusTypess);
 
         // Create a location
         LocationInfo villageMarket = LocationFactory.CreateVillageMarket();
@@ -44,19 +28,16 @@ public class EncounterSystem
         // Create encounter manager
         EncounterManager = StartEncounterAt(villageMarket);
 
-        // Create first ChoiceSet
-        List<IChoice> choices = EncounterManager.GetCurrentChoices();
-
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
 
-        gameState.Actions.SetActiveEncounter(Encounter);
+        gameState.Actions.SetActiveEncounter(EncounterManager);
         narrativeSystem.NewEncounter(context, actionImplementation);
 
-        return Encounter;
+        return EncounterManager;
     }
 
-    public EncounterManager StartEncounterAt(LocationInfo villageMarket)
+    public Encounter StartEncounterAt(LocationInfo villageMarket)
     {
         // Create the core components
         ChoiceRepository choiceRepository = new ChoiceRepository();
@@ -64,7 +45,7 @@ public class EncounterSystem
         NarrativePresenter narrativePresenter = new NarrativePresenter();
 
         // Create encounter manager
-        EncounterManager encounterManager = new EncounterManager(cardSelector, choiceRepository, narrativePresenter);
+        Encounter encounterManager = new Encounter(cardSelector, choiceRepository, narrativePresenter);
 
         // Add special choices for this location
         SpecialChoice negotiatePriceChoice = new SpecialChoice(
@@ -94,8 +75,7 @@ public class EncounterSystem
 
     public EncounterResult ExecuteChoice(
         Encounter encounter,
-        IChoice choice,
-        LocationSpot locationSpot)
+        IChoice choice)
     {
         ChoiceProjection choiceProjection = EncounterManager.GetChoiceProjection(choice);
         ChoiceOutcome choiceOutcome = EncounterManager.ApplyChoiceProjection(choiceProjection);
@@ -124,9 +104,8 @@ public class EncounterSystem
         return gameState.Actions.CurrentChoiceOptions;
     }
 
-    internal ChoiceProjection GetChoiceProjection(Encounter encounter, IChoice choice)
+    public ChoiceProjection GetChoiceProjection(Encounter encounter, IChoice choice)
     {
-        List<ChoiceProjection> projections = EncounterManager.GetChoiceProjections();
-        return projections.FirstOrDefault(x => x.Choice == choice);
+        return EncounterManager.GetChoiceProjection(choice);
     }
 }

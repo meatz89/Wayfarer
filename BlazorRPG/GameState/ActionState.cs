@@ -1,4 +1,6 @@
-﻿public class ActionState
+﻿using BlazorRPG.Game.EncounterManager;
+
+public class ActionState
 {
     public UserActionOption CurrentUserAction { get; set; }
     public List<UserActionOption> GlobalActions { get; set; } = new();

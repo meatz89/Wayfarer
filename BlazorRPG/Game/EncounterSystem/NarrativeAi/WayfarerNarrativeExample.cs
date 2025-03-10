@@ -15,7 +15,7 @@
             NarrativePresenter narrativePresenter = new NarrativePresenter();
 
             // Create encounter manager
-            EncounterManager encounterManager = new EncounterManager(cardSelector, choiceRepository, narrativePresenter);
+            Encounter encounterManager = new Encounter(cardSelector, choiceRepository, narrativePresenter);
 
             // Create a location
             LocationInfo villageMarket = LocationFactory.CreateVillageMarket();

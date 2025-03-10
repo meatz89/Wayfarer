@@ -26,8 +26,7 @@ public partial class NarrativeViewBase : ComponentBase
 
     public List<Outcome> GetActionOutcomesSuccess()
     {
-        EncounterContext context = Result.Encounter.EncounterContext;
-        ActionImplementation actionImplementation = context.ActionImplementation;
+        ActionImplementation actionImplementation = Result.Encounter.ActionImplementation;
 
         List<Outcome> outcomes = new List<Outcome>();
         outcomes.AddRange(actionImplementation.Costs.ToList());
@@ -38,8 +37,7 @@ public partial class NarrativeViewBase : ComponentBase
 
     public List<Outcome> GetActionOutcomesFailure()
     {
-        EncounterContext context = Result.Encounter.EncounterContext;
-        ActionImplementation actionImplementation = context.ActionImplementation;
+        ActionImplementation actionImplementation = Result.Encounter.ActionImplementation;
 
         List<Outcome> outcomes = new List<Outcome>();
         outcomes.AddRange(actionImplementation.Costs.ToList());
@@ -50,7 +48,7 @@ public partial class NarrativeViewBase : ComponentBase
 
     public List<Outcome> GetEnergyCosts()
     {
-        return Result.Encounter.EncounterContext.ActionImplementation.EnergyCosts
+        return Result.Encounter.ActionImplementation.EnergyCosts
             .ToList();
     }
 

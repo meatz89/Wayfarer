@@ -88,10 +88,9 @@ public class GameManager
 
     public ChoiceProjection GetChoicePreview(UserEncounterChoiceOption choiceOption)
     {
-        Encounter encounter = choiceOption.Encounter;
+        Encounter encounter = choiceOption.encounter;
 
         Location location = LocationSystem.GetLocation(choiceOption.LocationName);
-        LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(choiceOption.LocationName, choiceOption.locationSpotName);
 
         // Execute the choice
         ChoiceProjection choiceProjection = EncounterSystem.GetChoiceProjection(encounter, choiceOption.Choice);
@@ -100,13 +99,12 @@ public class GameManager
 
     public EncounterResult ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
     {
-        Encounter encounter = choiceOption.Encounter;
+        Encounter encounter = choiceOption.encounter;
 
         Location location = LocationSystem.GetLocation(choiceOption.LocationName);
-        LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(choiceOption.LocationName, choiceOption.locationSpotName);
 
         // Execute the choice
-        EncounterResult EncounterResult = EncounterSystem.ExecuteChoice(encounter, choiceOption.Choice, locationSpot);
+        EncounterResult EncounterResult = EncounterSystem.ExecuteChoice(encounter, choiceOption.Choice);
 
         List<UserEncounterChoiceOption> choiceOptions = GetChoices(encounter);
         gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
@@ -142,15 +140,14 @@ public class GameManager
         {
             i++;
 
-            LocationNames locationName = encounter.EncounterContext.Location.LocationName;
-            string locationSpotName = encounter.EncounterContext.LocationSpot.Name;
+            LocationNames locationName = encounter.State.Location.LocationName;
 
             UserEncounterChoiceOption option = new UserEncounterChoiceOption(
                 i,
                 choice.ToString(),
                 "Narrative",
                 locationName,
-                locationSpotName,
+                "locationSpotName",
                 encounter,
                 choice);
 
@@ -220,7 +217,7 @@ public class GameManager
 
     public void FinishEncounter(Encounter encounter)
     {
-        ActionImplementation actionImplementation = encounter.EncounterContext.ActionImplementation;
+        ActionImplementation actionImplementation = encounter.ActionImplementation;
         ApplyActionOutcomes(actionImplementation);
         gameState.Actions.CompleteActiveEncounter();
     }
@@ -263,8 +260,8 @@ public class GameManager
 
     public List<LocationPropertyChoiceEffect> GetLocationEffects(Encounter encounter, Choice choice)
     {
-        LocationNames locationName = encounter.EncounterContext.Location.LocationName;
-        string locationSpot = encounter.EncounterContext.LocationSpot.Name;
+        LocationNames locationName = encounter.State.Location.LocationName;
+        string locationSpot = encounter.State.LocationSpot.Name;
 
         return LocationSystem.GetLocationEffects(locationName, locationSpot);
     }
@@ -568,8 +565,8 @@ public class GameManager
         EncounterViewModel model = new EncounterViewModel();
         model.CurrentEncounter = EncounterSystem.GetActiveEncounter();
         model.CurrentChoices = EncounterSystem.GetCurrentChoices();
-        model.ChoiceSetName = model.CurrentEncounter.NarrativePhase.ToString();
-        model.State = EncounterSystem.EncounterManager._state;
+        model.ChoiceSetName = "choiceset";
+        model.State = EncounterSystem.EncounterManager.State;
 
         return model;
     }

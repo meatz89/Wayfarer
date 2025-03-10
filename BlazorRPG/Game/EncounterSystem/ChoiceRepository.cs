@@ -634,7 +634,7 @@
         }
 
         // Get all standard choices
-        public IReadOnlyList<Choice> GetStandardChoices() => _standardChoices;
+        public IReadOnlyList<IChoice> GetStandardChoices() => _standardChoices;
 
         // Get special choices for a specific location
         public IReadOnlyList<SpecialChoice> GetSpecialChoicesForLocation(string locationName, BaseTagSystem tagSystem)

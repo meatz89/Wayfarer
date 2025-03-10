@@ -10,7 +10,9 @@ public class EncounterState
     public BaseTagSystem TagSystem { get; }
     public List<IEncounterTag> ActiveTags { get; }
     public int CurrentTurn { get; private set; }
-    public LocationInfo CurrentLocation { get; }
+    public LocationInfo Location { get; }
+    public LocationSpot LocationSpot { get; internal set; }
+
     public const int MaxPressure = 10;
 
     // Momentums bonuses from active strategic tags
@@ -25,7 +27,7 @@ public class EncounterState
         TagSystem = new BaseTagSystem();
         ActiveTags = new List<IEncounterTag>();
         CurrentTurn = 0;
-        CurrentLocation = location;
+        Location = location;
     }
 
     // Build momentum (only increases, never decreases)
@@ -83,7 +85,7 @@ public class EncounterState
     // Add end-of-turn pressure reduction (from strategic tags)
     public void AddEndOfTurnPressureReduction(int reduction)
     {
-        _endOfTurnPressureReduction += reduction;
+        //_endOfTurnPressureReduction += reduction;
     }
 
     // Process end of turn effects
@@ -114,17 +116,17 @@ public class EncounterState
     // Check if encounter is over (pressure or turn limit)
     public bool IsEncounterOver()
     {
-        return Pressure >= MaxPressure || CurrentTurn >= CurrentLocation.Duration;
+        return Pressure >= MaxPressure || CurrentTurn >= Location.Duration;
     }
 
     // Get the encounter outcome based on momentum
     public EncounterOutcomes GetOutcome()
     {
-        if (Pressure >= MaxPressure || Momentum < CurrentLocation.PartialThreshold)
+        if (Pressure >= MaxPressure || Momentum < Location.PartialThreshold)
             return EncounterOutcomes.Failure;
-        if (Momentum < CurrentLocation.StandardThreshold)
+        if (Momentum < Location.StandardThreshold)
             return EncounterOutcomes.Partial;
-        if (Momentum < CurrentLocation.ExceptionalThreshold)
+        if (Momentum < Location.ExceptionalThreshold)
             return EncounterOutcomes.Exceptional;
 
         return EncounterOutcomes.Standard;
@@ -200,7 +202,7 @@ public class EncounterState
         // 3. Calculate tag activations/deactivations
         HashSet<string> currentlyActiveTags = new HashSet<string>(ActiveTags.Select(t => t.Name));
 
-        foreach (IEncounterTag tag in CurrentLocation.AvailableTags)
+        foreach (IEncounterTag tag in Location.AvailableTags)
         {
             bool wasActive = currentlyActiveTags.Contains(tag.Name);
             bool wouldBeActive = tag.IsActive(tempTagSystem);
@@ -255,16 +257,16 @@ public class EncounterState
         // 5. Check if encounter will end
         projection.EncounterWillEnd =
             projection.FinalPressure >= MaxPressure ||
-            projection.ProjectedTurn >= CurrentLocation.Duration;
+            projection.ProjectedTurn >= Location.Duration;
 
         // 6. Project outcome
         if (projection.FinalPressure >= MaxPressure)
             projection.ProjectedOutcome = EncounterOutcomes.Failure;
-        else if (projection.FinalMomentum < CurrentLocation.PartialThreshold)
+        else if (projection.FinalMomentum < Location.PartialThreshold)
             projection.ProjectedOutcome = EncounterOutcomes.Failure;
-        else if (projection.FinalMomentum < CurrentLocation.StandardThreshold)
+        else if (projection.FinalMomentum < Location.StandardThreshold)
             projection.ProjectedOutcome = EncounterOutcomes.Partial;
-        else if (projection.FinalMomentum < CurrentLocation.ExceptionalThreshold)
+        else if (projection.FinalMomentum < Location.ExceptionalThreshold)
             projection.ProjectedOutcome = EncounterOutcomes.Standard;
         else
             projection.ProjectedOutcome = EncounterOutcomes.Exceptional;
@@ -287,7 +289,7 @@ public class EncounterState
         Pressure += projection.PressureBuilt;
 
         // 3. Update active tags based on new tag values
-        UpdateActiveTags(CurrentLocation.AvailableTags);
+        UpdateActiveTags(Location.AvailableTags);
 
         // 4. Process end of turn effects
         EndTurn();

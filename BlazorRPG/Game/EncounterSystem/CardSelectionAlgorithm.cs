@@ -1,11 +1,10 @@
 ﻿namespace BlazorRPG.Game.EncounterManager
 {
-    /// <summary>
-    /// Handles selection of choices for the player's hand each turn
-    /// </summary>
     public class CardSelectionAlgorithm
     {
         private readonly ChoiceRepository _choiceRepository;
+        private readonly List<IChoice> _recentlyUsedChoices = new List<IChoice>(); // Track recent choices
+        private readonly Random _random = new Random();
 
         public CardSelectionAlgorithm(ChoiceRepository choiceRepository)
         {
@@ -24,101 +23,153 @@
                 .Where(choice => !blockedApproaches.Contains(choice.Approach))
                 .ToList();
 
-            // If all approaches are blocked, add emergency choices
-            if (availableChoices.Count == 0)
-            {
-                foreach (ApproachTypes approach in Enum.GetValues(typeof(ApproachTypes)).Cast<ApproachTypes>())
-                {
-                    EmergencyChoice emergencyChoice = _choiceRepository.GetEmergencyChoice(approach);
-                    if (emergencyChoice != null)
-                        result.Add(emergencyChoice);
-                }
+            // Remove recently used choices to enforce diversity
+            availableChoices = availableChoices
+                .Where(choice => !_recentlyUsedChoices.Contains(choice))
+                .ToList();
 
-                return result.Take(handSize).ToList();
+            // If all approaches are blocked or too few choices remain, add emergency choices
+            if (availableChoices.Count < handSize)
+            {
+                // Clear the recent choices list to avoid getting stuck
+                _recentlyUsedChoices.Clear();
+
+                // Re-populate available choices without the recency filter
+                availableChoices = _choiceRepository.GetStandardChoices()
+                    .Where(choice => !blockedApproaches.Contains(choice.Approach))
+                    .ToList();
+
+                // If still no valid choices, add emergency choices
+                if (availableChoices.Count == 0)
+                {
+                    foreach (ApproachTypes approach in Enum.GetValues(typeof(ApproachTypes)).Cast<ApproachTypes>())
+                    {
+                        EmergencyChoice emergencyChoice = _choiceRepository.GetEmergencyChoice(approach);
+                        if (emergencyChoice != null)
+                            result.Add(emergencyChoice);
+                    }
+
+                    return result.Take(handSize).ToList();
+                }
             }
 
             // 2. Calculate scores for each choice
             List<ChoiceScore> choiceScores = CalculateChoiceScores(availableChoices, state);
 
-            // 3. Select strategic diverse hand
+            // 3. Select strategic diverse hand with randomization
 
-            // A. One momentum choice from highest-scoring approach
-            ChoiceScore? highestScoringMomentum = choiceScores
-            .Where(cs => cs.Choice.EffectType == EffectTypes.Momentum)
-            .OrderByDescending(cs => cs.Score)
-            .FirstOrDefault();
+            // A. Get momentum choices for selection
+            List<ChoiceScore> momentumChoices = choiceScores
+                .Where(cs => cs.Choice.EffectType == EffectTypes.Momentum)
+                .ToList();
 
-            if (highestScoringMomentum != null)
+            // Get a random selection from top-scoring momentum choices
+            if (momentumChoices.Count > 0)
             {
-                result.Add(highestScoringMomentum.Choice);
-                availableChoices.Remove(highestScoringMomentum.Choice);
+                // Sort by score descending
+                momentumChoices = momentumChoices.OrderByDescending(cs => cs.Score).ToList();
+
+                // Take top 3 scoring choices (or all if fewer than 3)
+                int topCount = Math.Min(3, momentumChoices.Count);
+                int randomIndex = _random.Next(topCount);
+
+                // Add a random choice from the top performers
+                result.Add(momentumChoices[randomIndex].Choice);
+                momentumChoices.RemoveAt(randomIndex);
+                availableChoices.Remove(result[0]);
             }
 
-            // B. One momentum choice from a complementary approach
-            ChoiceScore? complementaryMomentum = choiceScores
-            .Where(cs => cs.Choice.EffectType == EffectTypes.Momentum &&
-                      cs.Choice.Approach != highestScoringMomentum?.Choice.Approach)
-            .OrderByDescending(cs => cs.Score)
-            .FirstOrDefault();
-
-            if (complementaryMomentum != null)
+            // B. Add a momentum choice from a different approach
+            if (momentumChoices.Count > 0 && result.Count > 0)
             {
-                result.Add(complementaryMomentum.Choice);
-                availableChoices.Remove(complementaryMomentum.Choice);
-            }
+                // Filter for different approaches
+                List<ChoiceScore> differentApproachChoices = momentumChoices
+                    .Where(cs => !result.Any(c => c.Approach == cs.Choice.Approach))
+                    .ToList();
 
-            // C. One pressure choice for tag building
-            ChoiceScore? pressureChoice = choiceScores
-            .Where(cs => cs.Choice.EffectType == EffectTypes.Pressure)
-            .OrderByDescending(cs => cs.Score)
-            .FirstOrDefault();
-
-            if (pressureChoice != null)
-            {
-                result.Add(pressureChoice.Choice);
-                availableChoices.Remove(pressureChoice.Choice);
-            }
-
-            // D. Special or situational choice
-            IReadOnlyList<SpecialChoice> specialChoices = _choiceRepository.GetSpecialChoicesForLocation(
-            state.CurrentLocation.Name, state.TagSystem);
-
-            if (specialChoices.Count > 0)
-            {
-                result.Add(specialChoices.First());
-            }
-            else
-            {
-                // If no special choices, add another momentum choice
-                IChoice? additionalChoice = choiceScores
-                .Where(cs => !result.Contains(cs.Choice))
-                .OrderByDescending(cs => cs.Score)
-                .FirstOrDefault()?.Choice;
-
-                if (additionalChoice != null)
-                    result.Add(additionalChoice);
-            }
-
-            // 4. Ensure hand diversity and fill to handSize
-            if (result.Count < handSize)
-            {
-                IOrderedEnumerable<ChoiceScore> remainingChoices = choiceScores
-                .Where(cs => !result.Contains(cs.Choice))
-                .OrderByDescending(cs => cs.Score);
-
-                foreach (ChoiceScore? choiceScore in remainingChoices)
+                if (differentApproachChoices.Count > 0)
                 {
-                    // Check for diversity - no more than 2 of the same approach
-                    if (result.Count(c => c.Approach == choiceScore.Choice.Approach) < 2)
-                    {
-                        result.Add(choiceScore.Choice);
-                        if (result.Count >= handSize)
-                            break;
-                    }
+                    // Randomize selection from top scoring different approaches
+                    differentApproachChoices = differentApproachChoices.OrderByDescending(cs => cs.Score).ToList();
+                    int topCount = Math.Min(3, differentApproachChoices.Count);
+                    int randomIndex = _random.Next(topCount);
+
+                    result.Add(differentApproachChoices[randomIndex].Choice);
+                    availableChoices.Remove(result[1]);
                 }
             }
 
-            // 5. Apply strategic tag effects (handled by EncounterState when choices are used)
+            // C. Add a pressure choice with randomization
+            List<ChoiceScore> pressureChoices = choiceScores
+                .Where(cs => cs.Choice.EffectType == EffectTypes.Pressure &&
+                       !result.Any(c => c.Approach == cs.Choice.Approach && c.Focus == cs.Choice.Focus))
+                .OrderByDescending(cs => cs.Score)
+                .ToList();
+
+            if (pressureChoices.Count > 0)
+            {
+                int topCount = Math.Min(3, pressureChoices.Count);
+                int randomIndex = _random.Next(topCount);
+
+                result.Add(pressureChoices[randomIndex].Choice);
+                availableChoices.Remove(result[2]);
+            }
+
+            // D. Special choice or another diverse option
+            IReadOnlyList<SpecialChoice> specialChoices = _choiceRepository.GetSpecialChoicesForLocation(
+                state.Location.Name, state.TagSystem);
+
+            if (specialChoices.Count > 0)
+            {
+                // Randomly select from available special choices
+                int randomIndex = _random.Next(specialChoices.Count);
+                result.Add(specialChoices[randomIndex]);
+            }
+            else
+            {
+                // Find a choice with approach and focus not yet in the hand
+                List<ChoiceScore> diverseChoices = choiceScores
+                    .Where(cs => !result.Contains(cs.Choice) &&
+                           !result.Any(c => c.Approach == cs.Choice.Approach && c.Focus == cs.Choice.Focus))
+                    .OrderByDescending(cs => cs.Score)
+                    .ToList();
+
+                if (diverseChoices.Count > 0)
+                {
+                    int topCount = Math.Min(3, diverseChoices.Count);
+                    int randomIndex = _random.Next(topCount);
+
+                    result.Add(diverseChoices[randomIndex].Choice);
+                }
+            }
+
+            // 4. Fill the hand if needed
+            while (result.Count < handSize && choiceScores.Any(cs => !result.Contains(cs.Choice)))
+            {
+                // Find remaining choices not in hand
+                List<ChoiceScore> remainingChoices = choiceScores
+                    .Where(cs => !result.Contains(cs.Choice))
+                    .OrderByDescending(cs => cs.Score)
+                    .ToList();
+
+                // Get a random choice from top scorers
+                if (remainingChoices.Count > 0)
+                {
+                    int topCount = Math.Min(3, remainingChoices.Count);
+                    int randomIndex = _random.Next(topCount);
+
+                    result.Add(remainingChoices[randomIndex].Choice);
+                }
+            }
+
+            // 5. Update recently used choices
+            _recentlyUsedChoices.AddRange(result);
+
+            // Maintain limited history (last 8 choices)
+            while (_recentlyUsedChoices.Count > 8)
+            {
+                _recentlyUsedChoices.RemoveAt(0);
+            }
 
             return result;
         }
@@ -133,13 +184,13 @@
                 int score = 10; // Base score
 
                 // Location preference bonuses
-                if (state.CurrentLocation.FavoredApproaches.Contains(choice.Approach))
+                if (state.Location.FavoredApproaches.Contains(choice.Approach))
                     score += 3;
-                if (state.CurrentLocation.DisfavoredApproaches.Contains(choice.Approach))
+                if (state.Location.DisfavoredApproaches.Contains(choice.Approach))
                     score -= 2;
-                if (state.CurrentLocation.FavoredFocuses.Contains(choice.Focus))
+                if (state.Location.FavoredFocuses.Contains(choice.Focus))
                     score += 3;
-                if (state.CurrentLocation.DisfavoredFocuses.Contains(choice.Focus))
+                if (state.Location.DisfavoredFocuses.Contains(choice.Focus))
                     score -= 2;
 
                 // Tag matching bonuses

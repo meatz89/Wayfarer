@@ -1,4 +1,6 @@
-﻿public class EncounterViewModel
+﻿using BlazorRPG.Game.EncounterManager;
+
+public class EncounterViewModel
 {
     public Encounter CurrentEncounter;
     public List<UserEncounterChoiceOption> CurrentChoices;

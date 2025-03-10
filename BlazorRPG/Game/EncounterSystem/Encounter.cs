@@ -5,58 +5,58 @@ namespace BlazorRPG.Game.EncounterManager
     /// <summary>
     /// Manages the overall encounter flow
     /// </summary>
-    public class EncounterManager
+    public class Encounter
     {
         private readonly CardSelectionAlgorithm _cardSelector;
-        private readonly ChoiceRepository _choiceRepository;
         private readonly NarrativePresenter _narrativePresenter;
-        public EncounterState _state;
+        public EncounterState State;
 
         private INarrativeAIService _narrativeService;
         private NarrativeContext _narrativeContext;
 
-        public EncounterManager(
+        public ActionImplementation ActionImplementation;
+
+        public Encounter(
             CardSelectionAlgorithm cardSelector,
             ChoiceRepository choiceRepository,
             NarrativePresenter narrativePresenter)
         {
             _cardSelector = cardSelector;
-            _choiceRepository = choiceRepository;
             _narrativePresenter = narrativePresenter;
         }
 
         // Start a new encounter at a specific location
         public void StartEncounter(LocationInfo location)
         {
-            _state = new EncounterState(location);
+            State = new EncounterState(location);
 
             // Activate initial tags
-            _state.UpdateActiveTags(location.AvailableTags);
+            State.UpdateActiveTags(location.AvailableTags);
         }
 
         // Get the current choices for the player
         public List<IChoice> GetCurrentChoices()
         {
-            return _cardSelector.SelectChoices(_state);
+            return _cardSelector.SelectChoices(State);
         }
 
         // Get formatted choice descriptions
         public string GetFormattedChoiceDescription(IChoice choice)
         {
-            return _narrativePresenter.FormatChoiceDescription(choice, _state.CurrentLocation.Style);
+            return _narrativePresenter.FormatChoiceDescription(choice, State.Location.Style);
         }
 
         // Get current encounter state information
         public EncounterStatus GetEncounterStatus()
         {
             return new EncounterStatus(
-                _state.CurrentTurn,
-                _state.CurrentLocation.Duration,
-                _state.Momentum,
-                _state.Pressure,
-                _state.TagSystem.GetAllApproachTags(),
-                _state.TagSystem.GetAllFocusTags(),
-                _state.ActiveTags.Select(t => t.Name).ToList()
+                State.CurrentTurn,
+                State.Location.Duration,
+                State.Momentum,
+                State.Pressure,
+                State.TagSystem.GetAllApproachTags(),
+                State.TagSystem.GetAllFocusTags(),
+                State.ActiveTags.Select(t => t.Name).ToList()
             );
         }
 
@@ -97,7 +97,7 @@ namespace BlazorRPG.Game.EncounterManager
 
             // Create first narrative event
             NarrativeEvent firstEvent = new NarrativeEvent(
-                _state.CurrentTurn,
+                State.CurrentTurn,
                 introduction,
                 null,
                 null,
@@ -140,7 +140,7 @@ namespace BlazorRPG.Game.EncounterManager
 
             // Create the narrative event for this turn
             NarrativeEvent narrativeEvent = new NarrativeEvent(
-                _state.CurrentTurn - 1, // The turn counter increases after application
+                State.CurrentTurn - 1, // The turn counter increases after application
                 narrative,
                 choice,
                 choiceDescription,
@@ -206,12 +206,12 @@ namespace BlazorRPG.Game.EncounterManager
 
             foreach (IChoice choice in choices)
             {
-                ChoiceProjection projection = _state.CreateChoiceProjection(choice);
+                ChoiceProjection projection = State.CreateChoiceProjection(choice);
 
                 // Add narrative description
                 projection.NarrativeDescription = _narrativePresenter.FormatOutcome(
                     choice,
-                    _state.CurrentLocation.Style,
+                    State.Location.Style,
                     projection.MomentumGained,
                     projection.PressureBuilt
                 );
@@ -225,7 +225,7 @@ namespace BlazorRPG.Game.EncounterManager
         // Apply a choice using its projection
         public ChoiceOutcome ApplyChoiceProjection(ChoiceProjection projection)
         {
-            _state.ApplyChoiceProjection(projection);
+            State.ApplyChoiceProjection(projection);
 
             return new ChoiceOutcome(
                 projection.MomentumGained,
@@ -238,7 +238,7 @@ namespace BlazorRPG.Game.EncounterManager
 
         public ChoiceProjection GetChoiceProjection(IChoice choice)
         {
-            return _state.CreateChoiceProjection(choice);
+            return State.CreateChoiceProjection(choice);
         }
     }
 }

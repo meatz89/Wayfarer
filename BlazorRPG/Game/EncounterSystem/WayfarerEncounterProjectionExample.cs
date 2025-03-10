@@ -6,7 +6,7 @@ using BlazorRPG.Game.EncounterManager;
 /// </summary>
 public class WayfarerEncounterProjectionExample
 {
-    public static void RunExample(EncounterManager encounterManager)
+    public static void RunExample(Encounter encounterManager)
     {
         // Run a simplified encounter loop with projections
         while (true)
