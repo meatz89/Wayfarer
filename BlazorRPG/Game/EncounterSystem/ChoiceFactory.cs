@@ -32,5 +32,6 @@
         {
             return tagSystem => tagSystem.GetFocusTagValue(tag) >= threshold;
         }
+
     }
 }

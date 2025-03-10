@@ -15,6 +15,8 @@ public class EncounterState
 
     public const int MaxPressure = 10;
 
+    private int _escalationLevel = 0;
+
     // Momentums bonuses from active strategic tags
     private readonly Dictionary<ApproachTypes, int> _approachMomentumBonuses = new();
     private readonly Dictionary<FocusTags, int> _focusMomentumBonuses = new();
@@ -150,6 +152,8 @@ public class EncounterState
     public void EndTurn()
     {
         CurrentTurn++;
+
+        _escalationLevel = Math.Min(3, (CurrentTurn - 1) / 2); // Caps at level 3 after 6 turns
 
         // Apply end of turn pressure reduction from strategic tags
         if (_endOfTurnPressureReduction > 0)
@@ -367,13 +371,34 @@ public class EncounterState
         // Base pressure for pressure choices or emergency choices
         if (choice.EffectType == EffectTypes.Pressure || choice is EmergencyChoice)
         {
-            int basePressure = 2; // Standard pressure
+            int basePressure = 3; // Standard pressure
             projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
             {
                 Source = "Base value",
                 Value = basePressure
             });
             pressureChange += basePressure;
+        }
+
+        if (choice.EffectType == EffectTypes.Pressure && _escalationLevel > 0)
+        {
+            projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
+            {
+                Source = "Escalation",
+                Value = _escalationLevel
+            });
+            pressureChange += _escalationLevel;
+        }
+
+        int environmentalPressure = Location.GetEnvironmentalPressure(CurrentTurn);
+        if (environmentalPressure > 0)
+        {
+            projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
+            {
+                Source = "Environmental pressure",
+                Value = environmentalPressure
+            });
+            pressureChange += environmentalPressure;
         }
 
         // Now apply tag effects to BOTH momentum and pressure for ALL choices

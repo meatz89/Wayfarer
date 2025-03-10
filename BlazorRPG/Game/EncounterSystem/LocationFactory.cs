@@ -36,6 +36,20 @@
                 EncounterTagFactory.MajorTagThreshold,
                 ApproachTypes.Wit));
 
+            location.AddTag(EncounterTagFactory.CreateApproachPressureIncrease(
+                "Hostile Territory",
+                ApproachTags.Concealment,
+                EncounterTagFactory.MinorTagThreshold,
+                ApproachTypes.Charm,
+                2));
+
+            location.AddTag(new StrategicTag(
+                "Growing Tension",
+                tagSystem => true, // Always active
+                state => state.AddEndOfTurnPressureReduction(-1), // Negative reduction = increase
+                StrategicEffectTypes.AddPressurePerTurn,
+                1));
+
             location.AddTag(new NarrativeTag(
                 "Fight Started",
                 tagSystem => tagSystem.GetFocusTagValue(FocusTags.Physical) >= EncounterTagFactory.MajorTagThreshold,

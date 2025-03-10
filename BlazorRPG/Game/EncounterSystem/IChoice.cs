@@ -58,7 +58,7 @@
             }
             else // Pressure
             {
-                state.BuildPressure(2); // Standard choices build 2 pressure
+                state.BuildPressure(3); // Standard choices build 2 pressure
             }
         }
 
@@ -147,11 +147,11 @@
                     state.TagSystem.ModifyFocusTag((FocusTags)mod.Tag, mod.Delta);
             }
 
-            // Emergency choices build 1 momentum and 2 pressure
+            // Emergency choices build 1 momentum and 5 pressure
             int baseMomentum = 1;
             int totalMomentum = state.GetTotalMomentum(this, baseMomentum);
             state.BuildMomentum(totalMomentum);
-            state.BuildPressure(2);
+            state.BuildPressure(5);
         }
 
         public override string ToString()

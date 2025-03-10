@@ -90,16 +90,16 @@
         }
 
         // Create a strategic tag that adds pressure to choices with a specific approach
-        public static StrategicTag CreateApproachPressureIncrease(string name, ApproachTags requiredTag, int threshold, ApproachTypes affectedApproach)
+        public static StrategicTag CreateApproachPressureIncrease(string name, ApproachTags requiredTag, int threshold, ApproachTypes affectedApproach, int pressureAmount = 1)
         {
             return new StrategicTag(
                 name,
                 tagSystem => tagSystem.GetApproachTagValue(requiredTag) >= threshold,
                 state => {
-                    // Implementation would be handled in ApplyChoice via GetPressureModifierForChoice
+                    // Implementation handled elsewhere
                 },
                 StrategicEffectTypes.AddPressureFromApproach,
-                1, // Standard +1 pressure
+                pressureAmount, // Allow variable amount
                 affectedApproach
             );
         }

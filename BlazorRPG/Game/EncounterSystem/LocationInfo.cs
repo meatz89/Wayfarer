@@ -1,4 +1,5 @@
 ﻿using BlazorRPG.Game.EncounterManager;
+using static LocationInfo;
 
 /// <summary>
 /// Represents a location in the game where encounters take place
@@ -74,5 +75,19 @@ public class LocationInfo
     public void AddTag(StrategicTag strategicTag)
     {
         AvailableTags.Add(strategicTag);
+    }
+
+    // In the LocationInfo class, add a method to get environmental pressure
+    public int GetEnvironmentalPressure(int turnNumber)
+    {
+        switch (Hostility)
+        {
+            case HostilityLevels.Hostile:
+                return 1; // +1 pressure per turn in hostile locations
+            case HostilityLevels.Neutral:
+                return turnNumber > 3 ? 1 : 0; // +1 pressure after turn 3 in neutral locations
+            default:
+                return 0; // No environmental pressure in friendly locations
+        }
     }
 }
