@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System.Collections.Generic;
+using System.Text;
 
 public partial class EncounterViewBase : ComponentBase
 {
@@ -30,12 +31,28 @@ public partial class EncounterViewBase : ComponentBase
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
-        return properties;
-    }
+        if (Encounter?.State?.Location?.AvailableTags == null)
+            return properties;
 
-    public List<PropertyDisplay> GetAvailableTagsPlayer()
-    {
-        List<PropertyDisplay> properties = new List<PropertyDisplay>();
+        // Get all available tags that aren't currently active
+        foreach (IEncounterTag tag in Encounter.State.Location.AvailableTags)
+        {
+            // Skip if the tag is already active
+            if (Encounter.State.ActiveTags.Any(t => t.Name == tag.Name))
+                continue;
+
+            string icon = GetTagIcon(tag);
+            string tooltipText = GetTagTooltipText(tag);
+            string cssClass = GetTagCssClass(tag);
+
+            properties.Add(new PropertyDisplay
+            {
+                Text = tag.Name,
+                Icon = icon,
+                TooltipText = tooltipText,
+                CssClass = cssClass
+            });
+        }
 
         return properties;
     }
@@ -44,7 +61,75 @@ public partial class EncounterViewBase : ComponentBase
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
+        if (Encounter?.State?.ActiveTags == null)
+            return properties;
+
+        foreach (IEncounterTag tag in Encounter.State.ActiveTags)
+        {
+            string icon = GetTagIcon(tag);
+            string tooltipText = GetTagTooltipText(tag);
+            string cssClass = GetTagCssClass(tag) + " active";
+
+            properties.Add(new PropertyDisplay
+            {
+                Text = tag.Name,
+                Icon = icon,
+                TooltipText = tooltipText,
+                CssClass = cssClass
+            });
+        }
+
         return properties;
+    }
+
+    private string GetTagIcon(IEncounterTag tag)
+    {
+        // Determine icon based on tag type
+        if (tag is NarrativeTag)
+            return "📜"; // Narrative tag icon
+        else if (tag is StrategicTag)
+            return "⚙️"; // Strategic tag icon
+
+        return "🏷️"; // Default tag icon
+    }
+
+    private string GetTagCssClass(IEncounterTag tag)
+    {
+        // Determine CSS class based on tag type
+        if (tag is NarrativeTag)
+            return "narrative-tag";
+        else if (tag is StrategicTag)
+            return "strategic-tag";
+
+        return "";
+    }
+
+    private string GetTagTooltipText(IEncounterTag tag)
+    {
+        // Create tooltip based on tag type and effect
+        StringBuilder tooltip = new StringBuilder();
+        tooltip.AppendLine(tag.Name);
+
+        if (tag is NarrativeTag narrativeTag)
+        {
+            if (narrativeTag.BlockedApproach.HasValue)
+                tooltip.AppendLine($"Blocks {narrativeTag.BlockedApproach.Value} approaches");
+        }
+        else if (tag is StrategicTag)
+        {
+            // For strategic tags, describe effect based on name patterns
+            // This is a simplified approach - ideally you'd have more structured data
+            if (tag.Name.Contains("Respect"))
+                tooltip.AppendLine("+1 momentum to Resource choices");
+            else if (tag.Name.Contains("Eye"))
+                tooltip.AppendLine("-1 pressure from Resource choices");
+            else if (tag.Name.Contains("Wisdom"))
+                tooltip.AppendLine("+1 momentum to Information choices");
+            else if (tag.Name.Contains("Network"))
+                tooltip.AppendLine("-1 pressure at end of each turn");
+        }
+
+        return tooltip.ToString();
     }
 
     public async Task ShowTooltip(UserEncounterChoiceOption choice, MouseEventArgs e)

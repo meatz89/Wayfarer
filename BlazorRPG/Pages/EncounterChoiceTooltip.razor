@@ -1,14 +1,13 @@
 ﻿@inherits EncounterChoiceTooltipBase
-
 <div class="tooltip" style="left: @(mouseX)px; top: @(mouseY)px;">
     <div class="preview-header">
         <h4>@hoveredChoice.Description</h4>
         <div class="choice-narrative">@hoveredChoice.Narrative</div>
     </div>
-    <div class="tooltip-section">
-        <h5>Changes</h5>
-        <div class="tooltip-list">
 
+    <div class="tooltip-section">
+        <h5>Effect</h5>
+        <div class="tooltip-list">
             <div class="tooltip-item">
                 <div class="tooltip-item-header">
                     <div class="tooltip-item-title">
@@ -16,10 +15,9 @@
                     </div>
                 </div>
                 <div class="tooltip-item-details">
-                    <div class="tooltip-detail-line">@Preview.MomentumGained</div>
+                    <div class="tooltip-detail-line">+@Preview.MomentumGained</div>
                 </div>
             </div>
-
             <div class="tooltip-item">
                 <div class="tooltip-item-header">
                     <div class="tooltip-item-title">
@@ -27,9 +25,68 @@
                     </div>
                 </div>
                 <div class="tooltip-item-details">
-                    <div class="tooltip-detail-line">@Preview.PressureBuilt</div>
+                    <div class="tooltip-detail-line">+@Preview.PressureBuilt</div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Tag Modifications Section -->
+    <div class="tooltip-section">
+        <h5>Tag Modifications</h5>
+        <div class="tooltip-list">
+            @foreach (var tagChange in GetApproachTagChanges())
+            {
+                <div class="tooltip-item">
+                    <div class="tooltip-item-header">
+                        <div class="tooltip-item-title">
+                            <span class="tooltip-item-name">@tagChange.Key</span>
+                        </div>
+                    </div>
+                    <div class="tooltip-item-details">
+                        <div class="tooltip-detail-line @(tagChange.Value > 0 ? "positive" : "negative")">
+                            @(tagChange.Value > 0 ? "+" : "")@tagChange.Value
+                        </div>
+                    </div>
+                </div>
+            }
+            @foreach (var tagChange in GetFocusTagChanges())
+            {
+                <div class="tooltip-item">
+                    <div class="tooltip-item-header">
+                        <div class="tooltip-item-title">
+                            <span class="tooltip-item-name">@tagChange.Key</span>
+                        </div>
+                    </div>
+                    <div class="tooltip-item-details">
+                        <div class="tooltip-detail-line @(tagChange.Value > 0 ? "positive" : "negative")">
+                            @(tagChange.Value > 0 ? "+" : "")@tagChange.Value
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (Preview.NewlyActivatedTags.Count > 0)
+    {
+        <div class="tooltip-section">
+            <h5>Newly Activated Tags</h5>
+            <div class="tooltip-list">
+                @foreach (var tag in Preview.NewlyActivatedTags)
+                {
+                    <div class="tooltip-item">
+                        <div class="tooltip-item-header">
+                            <div class="tooltip-item-title">
+                                <span class="tooltip-item-name">@tag</span>
+                            </div>
+                        </div>
+                        <div class="tooltip-item-details">
+                            <div class="tooltip-detail-line">@GetTagEffectDescription(tag)</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
 </div>
