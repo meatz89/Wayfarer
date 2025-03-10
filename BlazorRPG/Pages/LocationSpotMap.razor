@@ -88,6 +88,8 @@
             properties.Add(new(
             "📐",
             FormatEnumString(spot.Accessibility.ToString()),
+            "",
+            "",
             ""
             ));
         }
@@ -97,7 +99,9 @@
             properties.Add(new(
             "⚖️",
             FormatEnumString(spot.Engagement.ToString()),
-            $"property-{spot.Engagement.ToString().ToLower()}"
+            $"property-{spot.Engagement.ToString().ToLower()}",
+            "",
+            ""
             ));
         }
 
@@ -106,7 +110,9 @@
             properties.Add(new(
             "😌",
             FormatEnumString(spot.Atmosphere.ToString()),
-            $"property-{spot.Atmosphere.ToString().ToLower()}"
+            $"property-{spot.Atmosphere.ToString().ToLower()}",
+            "",
+            ""
             ));
         }
 
@@ -115,6 +121,8 @@
             properties.Add(new(
             "🧩",
             FormatEnumString(spot.RoomLayout.ToString()),
+            "",
+            "",
             ""
             ));
         }
@@ -124,6 +132,8 @@
             properties.Add(new(
             spot.Temperature == Temperature.Warm ? "☀️" : "❄️",
             FormatEnumString(spot.Temperature.ToString()),
+            "",
+            "",
             ""
             ));
         }

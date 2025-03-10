@@ -1,12 +1,11 @@
 ﻿using BlazorRPG.Game.EncounterManager;
 using Microsoft.AspNetCore.Components;
-using System.Collections.Generic;
 
 public partial class EncounterChoiceTooltipBase : ComponentBase
 {
     [Inject] public GameManager GameManager { get; set; }
     [Inject] public GameState GameState { get; set; }
-    [Parameter] public Encounter encounter { get; set; }
+    [Parameter] public Encounter Encounter { get; set; }
     [Parameter] public UserEncounterChoiceOption hoveredChoice { get; set; }
     [Parameter] public double mouseX { get; set; }
     [Parameter] public double mouseY { get; set; }
@@ -57,8 +56,8 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
 
     public bool HasActivationEffect(string tagName)
     {
-        IEncounterTag tag = encounter.State.ActiveTags
-            .Concat(encounter.State.Location.AvailableTags)
+        IEncounterTag tag = Encounter.State.ActiveTags
+            .Concat(Encounter.State.Location.AvailableTags)
             .FirstOrDefault(t => t.Name == tagName);
 
         return tag is StrategicTag strategicTag &&
@@ -68,8 +67,8 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
 
     public string GetActivationEffectDescription(string tagName)
     {
-        IEncounterTag tag = encounter.State.ActiveTags
-            .Concat(encounter.State.Location.AvailableTags)
+        IEncounterTag tag = Encounter.State.ActiveTags
+            .Concat(Encounter.State.Location.AvailableTags)
             .FirstOrDefault(t => t.Name == tagName);
 
         if (tag is StrategicTag strategicTag)
@@ -81,6 +80,19 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         }
 
         return string.Empty;
+    }
+
+
+    // Check if any tags are disabled by pressure
+    public bool AreTagsDisabledByPressure()
+    {
+        return Preview?.DisabledTagNames?.Count > 0;
+    }
+
+    // Check if a specific tag would be disabled
+    public bool IsTagDisabledInProjection(string tagName)
+    {
+        return Preview?.DisabledTagNames?.Contains(tagName) == true;
     }
 
     public string GetTagEffectDescription(string tagName)

@@ -9,6 +9,41 @@
         <h5>Effect</h5>
         <div class="tooltip-list">
             
+            <!-- Add this section before the momentum/pressure components -->
+            @if (Preview.DisabledTagNames.Count > 0)
+            {
+                <div class="tooltip-alert @(Preview.DisabledTagNames.Count > 1 ? "danger" : "warning")">
+                    <span class="alert-icon">⚠️</span>
+                    <span class="alert-text">
+                        @(Preview.DisabledTagNames.Count > 1 ? "High pressure has disabled beneficial tags!" : "High pressure has disabled a beneficial tag!")
+                    </span>
+                </div>
+            }
+
+            <!-- Add this section to show newly disabled tags in projection -->
+            @if (Preview.NewlyDisabledTags.Count > 0)
+            {
+                <div class="tooltip-section">
+                    <h5>Tags That Will Be Disabled</h5>
+                    <div class="tooltip-list">
+                        @foreach (var tagName in Preview.NewlyDisabledTags)
+                        {
+                            <div class="tooltip-item disabled-tag">
+                                <div class="tooltip-item-header">
+                                    <div class="tooltip-item-title">
+                                        <span class="tooltip-item-name">@tagName</span>
+                                        <span class="disabled-icon">❌</span>
+                                    </div>
+                                </div>
+                                <div class="tooltip-item-details">
+                                    <div class="tooltip-detail-line danger">Disabled by high pressure</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
             @if (Preview.MomentumComponents.Count > 0)
             {
                 <div class="tooltip-item">
@@ -28,6 +63,22 @@
                                 <span class="component-value @(component.Value > 0 ? "positive" : component.Value < 0 ? "negative" : "")">
                                     @(component.Value > 0 ? "+" : "")@component.Value
                                 </span>
+                            </div>
+                        }
+                        <!-- In EncounterChoiceTooltip.razor -->
+                        @if (Preview.MomentumComponents.Any(c => c.Source == "High pressure penalty"))
+                        {
+                            <div class="tooltip-alert warning">
+                                <span class="alert-icon">⚠️</span>
+                                <span class="alert-text">High pressure is reducing momentum gain!</span>
+                            </div>
+                        }
+
+                        @if (AreTagsDisabledByPressure())
+                        {
+                            <div class="tooltip-alert danger">
+                                <span class="alert-icon">❌</span>
+                                <span class="alert-text">High pressure has disabled beneficial tags!</span>
                             </div>
                         }
                     </div>

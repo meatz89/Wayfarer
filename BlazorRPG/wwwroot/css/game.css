@@ -1668,3 +1668,62 @@ body {
     flex-wrap: wrap;
     margin-bottom: 10px;
 }
+
+.pressure-effects {
+    margin-top: 8px;
+}
+
+.pressure-effect {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+    .pressure-effect.warning {
+        background-color: rgba(255, 165, 0, 0.2);
+        border-left: 3px solid orange;
+    }
+
+    .pressure-effect.danger {
+        background-color: rgba(255, 0, 0, 0.2);
+        border-left: 3px solid red;
+    }
+
+.effect-icon {
+    margin-right: 8px;
+}
+
+.property-tag.disabled {
+    opacity: 0.5;
+    background: #4a4a4a;
+    text-decoration: line-through;
+}
+
+.disabled-icon {
+    margin-left: 4px;
+    color: red;
+}
+
+.tooltip-alert {
+    margin-bottom: 12px;
+    padding: 8px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+}
+
+    .tooltip-alert.warning {
+        background-color: rgba(255, 165, 0, 0.2);
+        border-left: 3px solid orange;
+    }
+
+    .tooltip-alert.danger {
+        background-color: rgba(255, 0, 0, 0.2);
+        border-left: 3px solid red;
+    }
+
+.alert-icon {
+    margin-right: 8px;
+}

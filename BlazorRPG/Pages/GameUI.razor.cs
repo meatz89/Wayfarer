@@ -210,33 +210,43 @@ public partial class GameUI : ComponentBase
 
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
-        properties.Add(new(
+        properties.Add(new PropertyDisplay(
                 GetIconForLocationArchetype(location.LocationArchetype),
                 FormatEnumString(location.LocationArchetype.ToString()),
+                "",
+                "",
                 ""
             ));
 
-        properties.Add(new(
+        properties.Add(new PropertyDisplay(
                 GetIconForCrowdDensity(location.CrowdDensity),
                 FormatEnumString(location.CrowdDensity.ToString()),
+                "",
+                "",
                 ""
             ));
 
-        properties.Add(new(
+        properties.Add(new PropertyDisplay(
                 GetIconForOpportunity(location.Opportunity),
                 FormatEnumString(location.Opportunity.ToString()),
+                "",
+                "",
                 ""
             ));
 
-        properties.Add(new(
+        properties.Add(new PropertyDisplay(
                 GetIconForTimeWindow(world.WorldTime),
                 FormatEnumString(world.WorldTime.ToString()),
+                "",
+                "",
                 ""
             ));
 
-        properties.Add(new(
+        properties.Add(new PropertyDisplay(
                 GetIconForWeatherType(world.WorldWeather),
                 FormatEnumString(world.WorldWeather.ToString()),
+                "",
+                "",
                 ""
             ));
 

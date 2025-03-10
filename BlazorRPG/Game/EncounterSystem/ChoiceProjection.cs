@@ -11,7 +11,7 @@ public class ChoiceProjection
     public int MomentumGained { get; set; }
     public int PressureBuilt { get; set; }
 
-    // Detailed breakdown components
+    // Value components for detailed breakdowns
     public class ValueComponent
     {
         public string Source { get; set; }
@@ -24,6 +24,10 @@ public class ChoiceProjection
     // Tag changes
     public List<string> NewlyActivatedTags { get; }
     public List<string> DeactivatedTags { get; }
+
+    // Disabled tag tracking - add these properties
+    public List<string> DisabledTagNames { get; set; } = new List<string>();
+    public List<string> NewlyDisabledTags { get; set; } = new List<string>();
 
     // Projected state
     public int FinalMomentum { get; set; }
@@ -42,5 +46,7 @@ public class ChoiceProjection
         FocusTagChanges = new Dictionary<FocusTags, int>();
         NewlyActivatedTags = new List<string>();
         DeactivatedTags = new List<string>();
+        DisabledTagNames = new List<string>();
+        NewlyDisabledTags = new List<string>();
     }
 }

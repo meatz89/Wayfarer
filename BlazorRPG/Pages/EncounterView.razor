@@ -42,11 +42,15 @@
                             
 
                         }
-                        @foreach (var prop in GetActiveTags())
-                            {
-                            <div class="property-tag @prop.CssClass" title="@prop.TooltipText">
-                                <span class="property-icon">@prop.Icon</span>
-                                <span class="property-text">@prop.Text</span>
+                        @foreach (var tag in GetActiveTags())
+                        {
+                            <div class="property-tag @tag.CssClass" title="@tag.TooltipText">
+                                <span class="property-icon">@tag.Icon</span>
+                                <span class="property-text">@tag.Text</span>
+                                @if (IsTagDisabledByPressure(tag.TagName))
+                                {
+                                    <span class="disabled-icon">❌</span>
+                                }
                             </div>
                         }
                     </div>
@@ -63,7 +67,34 @@
                     </div>
                 </div>
 
+                <div class="pressure-status">
+                    <h3>Pressure Status: @GetPressureStatusText()</h3>
+                    <div class="pressure-effects">
+                        @if (Model.State.Pressure >= 3)
+                        {
+                            <div class="pressure-effect warning">
+                                <span class="effect-icon">⚠️</span>
+                                <span class="effect-text">High Pressure: -@(Model.State.Pressure / 2) to momentum gains</span>
+                            </div>
+                        }
 
+                        @if (Model.State.Pressure >= 6)
+                        {
+                            <div class="pressure-effect warning">
+                                <span class="effect-icon">⚠️</span>
+                                <span class="effect-text">Critical Pressure: Minor beneficial tags disabled</span>
+                            </div>
+                        }
+
+                        @if (Model.State.Pressure >= 8)
+                        {
+                            <div class="pressure-effect danger">
+                                <span class="effect-icon">⚠️</span>
+                                <span class="effect-text">Extreme Pressure: All beneficial tags disabled</span>
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
 
             <div class="Encounter-stage">
@@ -90,7 +121,7 @@
 
         @if (showTooltip && hoveredChoice != null)
         {
-            <EncounterChoiceTooltip encounter="Encounter" hoveredChoice="hoveredChoice" mouseX="mouseX" mouseY="mouseY"/>
+            <EncounterChoiceTooltip Encounter="Encounter" hoveredChoice="hoveredChoice" mouseX="mouseX" mouseY="mouseY"/>
         }
     }
 </div>

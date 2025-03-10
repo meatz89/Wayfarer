@@ -3,7 +3,6 @@ using BlazorRPG.Pages;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
-using System.Collections.Generic;
 using System.Text;
 
 public partial class EncounterViewBase : ComponentBase
@@ -50,37 +49,14 @@ public partial class EncounterViewBase : ComponentBase
                 Text = tag.Name,
                 Icon = icon,
                 TooltipText = tooltipText,
-                CssClass = cssClass
+                CssClass = cssClass,
+                TagName = "",
             });
         }
 
         return properties;
     }
 
-    public List<PropertyDisplay> GetActiveTags()
-    {
-        List<PropertyDisplay> properties = new List<PropertyDisplay>();
-
-        if (Encounter?.State?.ActiveTags == null)
-            return properties;
-
-        foreach (IEncounterTag tag in Encounter.State.ActiveTags)
-        {
-            string icon = GetTagIcon(tag);
-            string tooltipText = GetTagTooltipText(tag);
-            string cssClass = GetTagCssClass(tag) + " active";
-
-            properties.Add(new PropertyDisplay
-            {
-                Text = tag.Name,
-                Icon = icon,
-                TooltipText = tooltipText,
-                CssClass = cssClass
-            });
-        }
-
-        return properties;
-    }
 
     private string GetTagIcon(IEncounterTag tag)
     {
@@ -369,4 +345,71 @@ public partial class EncounterViewBase : ComponentBase
         };
     }
 
+    // Get the pressure status text
+    public string GetPressureStatusText()
+    {
+        if (Model.State.Pressure < 3)
+            return "Normal";
+        if (Model.State.Pressure < 6)
+            return "High";
+        if (Model.State.Pressure < 8)
+            return "Critical";
+        if (Model.State.Pressure < 10)
+            return "Extreme";
+        return "Failure Imminent";
+    }
+
+    // Check if a tag is disabled by pressure
+    public bool IsTagDisabledByPressure(string tagName)
+    {
+        return Model.State.IsTagDisabled(tagName);
+    }
+
+    // Modify GetActiveTags to include the tag name in PropertyDisplay
+    public List<PropertyDisplay> GetActiveTags()
+    {
+        List<PropertyDisplay> properties = new List<PropertyDisplay>();
+
+        if (Encounter?.State?.ActiveTags == null)
+            return properties;
+
+        foreach (IEncounterTag tag in Encounter.State.ActiveTags)
+        {
+            string icon = GetTagIcon(tag);
+            string tooltipText = GetTagTooltipText(tag);
+            string cssClass = GetTagCssClass(tag) + " active";
+
+            properties.Add(new PropertyDisplay
+            {
+                Text = tag.Name,
+                Icon = icon,
+                TooltipText = tooltipText,
+                CssClass = cssClass,
+                TagName = tag.Name // Add the tag name
+            });
+        }
+
+        // Add disabled tags (they're not in ActiveTags but should still be shown)
+        foreach (string tagName in Encounter.State.GetDisabledTagNames())
+        {
+            IEncounterTag tag = Encounter.State.Location.AvailableTags.FirstOrDefault(t => t.Name == tagName);
+            if (tag != null)
+            {
+                string icon = GetTagIcon(tag);
+                string tooltipText = GetTagTooltipText(tag) + "\n[DISABLED BY HIGH PRESSURE]";
+                string cssClass = GetTagCssClass(tag) + " active disabled";
+
+                properties.Add(new PropertyDisplay
+                {
+                    Text = tag.Name,
+                    Icon = icon,
+                    TooltipText = tooltipText,
+                    CssClass = cssClass,
+                    TagName = tag.Name
+                });
+            }
+        }
+
+        return properties;
+    }
 }

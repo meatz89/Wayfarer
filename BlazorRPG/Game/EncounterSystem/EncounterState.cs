@@ -26,6 +26,9 @@ public class EncounterState
     private readonly Dictionary<ApproachTypes, int> _approachPressureModifiers = new();
     private readonly Dictionary<FocusTags, int> _focusPressureModifiers = new();
 
+    // Add a list to track disabled tags
+    private List<string> _disabledTagNames = new List<string>();
+
     public EncounterState(LocationInfo location)
     {
         Momentum = 0;
@@ -34,6 +37,135 @@ public class EncounterState
         ActiveTags = new List<IEncounterTag>();
         CurrentTurn = 0;
         Location = location;
+    }
+
+
+    // Check if a tag is disabled by high pressure
+    public bool IsTagDisabled(string tagName)
+    {
+        return _disabledTagNames.Contains(tagName);
+    }
+
+    // Get all tags disabled by pressure
+    public List<string> GetDisabledTagNames()
+    {
+        return _disabledTagNames.ToList(); // Return a copy to prevent external modifications
+    }
+
+    // Add this method to update which tags are disabled based on pressure
+    private void UpdateDisabledTags()
+    {
+        _disabledTagNames.Clear();
+
+        // At pressure 6+, disable minor beneficial tags
+        if (Pressure >= 6)
+        {
+            foreach (IEncounterTag tag in Location.AvailableTags)
+            {
+                if (tag is StrategicTag strategicTag &&
+                    IsPositiveEffect(strategicTag.EffectType) &&
+                    strategicTag.EffectValue == 1 &&
+                    tag.IsActive(TagSystem))
+                {
+                    _disabledTagNames.Add(tag.Name);
+                }
+            }
+        }
+
+        // At pressure 8+, disable all beneficial tags
+        if (Pressure >= 8)
+        {
+            foreach (IEncounterTag tag in Location.AvailableTags)
+            {
+                if (tag is StrategicTag strategicTag &&
+                    IsPositiveEffect(strategicTag.EffectType) &&
+                    tag.IsActive(TagSystem) &&
+                    !_disabledTagNames.Contains(tag.Name))
+                {
+                    _disabledTagNames.Add(tag.Name);
+                }
+            }
+        }
+    }
+
+    // Determine if an effect type is positive (and can be disabled)
+    private bool IsPositiveEffect(StrategicEffectTypes effectType)
+    {
+        switch (effectType)
+        {
+            case StrategicEffectTypes.AddMomentumToApproach:
+            case StrategicEffectTypes.AddMomentumToFocus:
+            case StrategicEffectTypes.ReducePressureFromApproach:
+            case StrategicEffectTypes.ReducePressureFromFocus:
+            case StrategicEffectTypes.ReducePressurePerTurn:
+            case StrategicEffectTypes.AddMomentumPerTurn:
+            case StrategicEffectTypes.AddMomentumOnActivation:
+            case StrategicEffectTypes.ReducePressureOnActivation:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    // Update which tags are active based on current tag values
+    public void UpdateActiveTags(IEnumerable<IEncounterTag> locationTags)
+    {
+        // First update disabled tags based on current pressure
+        UpdateDisabledTags();
+
+        // Clear active tags
+        ActiveTags.Clear();
+        ResetTagEffects();
+
+        // Re-activate relevant tags that aren't disabled
+        foreach (IEncounterTag tag in locationTags)
+        {
+            if (tag.IsActive(TagSystem) && !IsTagDisabled(tag.Name))
+            {
+                ActiveTags.Add(tag);
+                tag.ApplyEffect(this);
+            }
+        }
+    }
+
+    // Add momentum penalty based on pressure
+    public int GetMomentumPenaltyFromPressure()
+    {
+        // No penalty below 3 pressure
+        if (Pressure < 3)
+            return 0;
+
+        // At 3-4 pressure: -1 momentum
+        // At 5-6 pressure: -2 momentum  
+        // At 7-8 pressure: -3 momentum
+        // At 9+ pressure: -4 momentum
+        return -(Pressure / 2);
+    }
+
+
+    // Update GetTotalMomentum to apply pressure penalties
+    public int GetTotalMomentum(IChoice choice, int baseMomentum)
+    {
+        int total = baseMomentum;
+
+        // Add approach/focus bonuses
+        if (_approachMomentumBonuses.ContainsKey(choice.Approach))
+            total += _approachMomentumBonuses[choice.Approach];
+
+        if (_focusMomentumBonuses.ContainsKey(choice.Focus))
+            total += _focusMomentumBonuses[choice.Focus];
+
+        // Apply pressure penalty (only for momentum choices)
+        if (choice.EffectType == EffectTypes.Momentum)
+        {
+            int pressurePenalty = GetMomentumPenaltyFromPressure();
+            total += pressurePenalty; // Add penalty (negative number)
+
+            // Ensure at least 1 momentum is gained
+            total = Math.Max(1, total);
+        }
+
+        return total;
     }
 
     // Build momentum (only increases, never decreases)
@@ -132,21 +264,6 @@ public class EncounterState
         _endOfTurnPressureReduction += reduction;
     }
 
-    // Get the total momentum for a choice, considering all active bonuses
-    public int GetTotalMomentum(IChoice choice, int baseMomentum)
-    {
-        int total = baseMomentum;
-
-        // Add approach-specific bonuses
-        if (_approachMomentumBonuses.ContainsKey(choice.Approach))
-            total += _approachMomentumBonuses[choice.Approach];
-
-        // Add focus-specific bonuses
-        if (_focusMomentumBonuses.ContainsKey(choice.Focus))
-            total += _focusMomentumBonuses[choice.Focus];
-
-        return total;
-    }
 
     // Process end of turn effects
     public void EndTurn()
@@ -158,42 +275,6 @@ public class EncounterState
         // Apply end of turn pressure reduction from strategic tags
         if (_endOfTurnPressureReduction > 0)
             ReducePressure(_endOfTurnPressureReduction);
-    }
-
-    // Update which tags are active based on current tag values
-    public void UpdateActiveTags(IEnumerable<IEncounterTag> locationTags)
-    {
-        // Find newly activated tags (not in active, but should be)
-        List<IEncounterTag> newlyActivatedTags = new List<IEncounterTag>();
-        foreach (IEncounterTag tag in locationTags)
-        {
-            if (tag.IsActive(TagSystem) && !ActiveTags.Contains(tag))
-            {
-                newlyActivatedTags.Add(tag);
-            }
-        }
-
-        // Clear active tags and re-populate
-        ActiveTags.Clear();
-        ResetTagEffects(); // Clear previous tag effects
-
-        foreach (IEncounterTag tag in locationTags)
-        {
-            if (tag.IsActive(TagSystem))
-            {
-                ActiveTags.Add(tag);
-                tag.ApplyEffect(this);
-            }
-        }
-
-        // Apply activation effects for newly activated tags
-        foreach (IEncounterTag tag in newlyActivatedTags)
-        {
-            if (tag is StrategicTag strategicTag)
-            {
-                strategicTag.ApplyActivationEffect(this);
-            }
-        }
     }
 
     // Handle the activation effect values
@@ -264,6 +345,41 @@ public class EncounterState
         // Other end-of-turn effects would go here
     }
 
+    public List<IEncounterTag> GetTagsDisabledByPressure()
+    {
+        List<IEncounterTag> disabledTags = new List<IEncounterTag>();
+
+        // At pressure 6+, minor beneficial tags become disabled
+        if (Pressure >= 6)
+        {
+            foreach (IEncounterTag tag in ActiveTags)
+            {
+                if (tag is StrategicTag strategicTag &&
+                    IsPositiveEffect(strategicTag.EffectType) &&
+                    strategicTag.EffectValue == 1) // Minor tags typically have value 1
+                {
+                    disabledTags.Add(tag);
+                }
+            }
+        }
+
+        // At pressure 8+, all beneficial tags become disabled
+        if (Pressure >= 8)
+        {
+            foreach (IEncounterTag tag in ActiveTags)
+            {
+                if (tag is StrategicTag strategicTag &&
+                    IsPositiveEffect(strategicTag.EffectType) &&
+                    !disabledTags.Contains(tag))
+                {
+                    disabledTags.Add(tag);
+                }
+            }
+        }
+
+        return disabledTags;
+    }
+
     public ChoiceProjection CreateChoiceProjection(IChoice choice)
     {
         ChoiceProjection projection = new ChoiceProjection(choice);
@@ -273,6 +389,12 @@ public class EncounterState
         int currentMomentum = Momentum;
         int currentPressure = Pressure;
         int currentTurn = CurrentTurn;
+
+        // Add the current disabled tag names to the projection
+        foreach (string disabledTag in GetDisabledTagNames())
+        {
+            projection.DisabledTagNames.Add(disabledTag);
+        }
 
         // Apply tag modifications to cloned system and track changes
         foreach (TagModification mod in choice.TagModifications)
@@ -322,6 +444,7 @@ public class EncounterState
             }
         }
 
+
         // Calculate momentum effects
         int momentumChange = 0;
 
@@ -336,25 +459,28 @@ public class EncounterState
             });
             momentumChange += baseMomentum;
 
-            // Add location bonuses
-            if (Location.FavoredApproaches.Contains(choice.Approach))
+            // Add pressure penalty for momentum choices
+            int pressurePenalty = GetMomentumPenaltyFromPressure();
+            if (pressurePenalty < 0)
             {
                 projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
                 {
-                    Source = "Favored approach",
-                    Value = 1
+                    Source = "High pressure penalty",
+                    Value = pressurePenalty
                 });
-                momentumChange += 1;
+                momentumChange += pressurePenalty;
             }
 
-            if (Location.FavoredFocuses.Contains(choice.Focus))
+            // Ensure at least 1 momentum gain
+            if (momentumChange < 1)
             {
+                int minimumBonus = 1 - momentumChange;
                 projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
                 {
-                    Source = "Favored focus",
-                    Value = 1
+                    Source = "Minimum momentum guarantee",
+                    Value = minimumBonus
                 });
-                momentumChange += 1;
+                momentumChange = 1;
             }
         }
         // For pressure choices, momentum is still tracked but starts at 0
@@ -543,8 +669,45 @@ public class EncounterState
             projection.PressureBuilt = -currentPressure;
         }
 
+        // Check if projected pressure would disable tags
+        int projectedPressure = currentPressure + projection.PressureBuilt;
+
+        // At pressure 6+, check for minor tags that would be disabled
+        if (projectedPressure >= 6)
+        {
+            foreach (IEncounterTag tag in Location.AvailableTags)
+            {
+                if (tag is StrategicTag strategicTag &&
+                    IsPositiveEffect(strategicTag.EffectType) &&
+                    strategicTag.EffectValue == 1 &&
+                    tag.IsActive(clonedTagSystem) &&
+                    !projection.DisabledTagNames.Contains(tag.Name))
+                {
+                    projection.DisabledTagNames.Add(tag.Name);
+                    projection.NewlyDisabledTags.Add(tag.Name);
+                }
+            }
+        }
+
+        // At pressure 8+, check for all beneficial tags that would be disabled
+        if (projectedPressure >= 8)
+        {
+            foreach (IEncounterTag tag in Location.AvailableTags)
+            {
+                if (tag is StrategicTag strategicTag &&
+                    IsPositiveEffect(strategicTag.EffectType) &&
+                    tag.IsActive(clonedTagSystem) &&
+                    !projection.DisabledTagNames.Contains(tag.Name))
+                {
+                    projection.DisabledTagNames.Add(tag.Name);
+                    projection.NewlyDisabledTags.Add(tag.Name);
+                }
+            }
+        }
+
+        projection.MomentumGained = momentumChange;
         projection.FinalMomentum = currentMomentum + momentumChange;
-        projection.FinalPressure = Math.Max(0, currentPressure + projection.PressureBuilt);
+        projection.FinalPressure = Math.Max(0, projectedPressure);
 
         // Project end of turn effects
         currentTurn++;
