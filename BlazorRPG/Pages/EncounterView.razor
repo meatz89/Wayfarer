@@ -1,7 +1,13 @@
 ﻿@inherits EncounterViewBase
 
 <div class="Encounter-container" @onmousemove="OnMouseMove">
-    @if (Model.CurrentEncounter != null)
+    @if (IsLoading)
+    {
+        <div>
+            Loading...
+        </div>
+    }
+    @if (Model.CurrentEncounter != null && !IsLoading)
     {
         <div class="Encounter-header">
         </div>
@@ -37,11 +43,6 @@
                 <div class="location-properties">
                     <div class="properties-header">ActiveTags</div>
                     <div class="properties-grid">
-                        @foreach (var prop in GetLocationTags())
-                        {
-                            
-
-                        }
                         @foreach (var tag in GetActiveTags())
                         {
                             <div class="property-tag @tag.CssClass" title="@tag.TooltipText">
@@ -100,11 +101,12 @@
             <div class="Encounter-stage">
                 <h3 class="choice-set-name">@Model.ChoiceSetName</h3>
                 <div class="stage-description">
+                    @Model.EncounterResult.NarrativeResult.Narrative
                 </div>
             </div>
 
             <div class="Encounter-choices">
-                @foreach (UserEncounterChoiceOption choice in Model.CurrentChoices)
+                @foreach (UserEncounterChoiceOption choice in GetChoices())
                 {
                     <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")
                          @(false ? "winning" : "" )
@@ -113,7 +115,7 @@
                          @onmouseout="HideTooltip"
                          @onclick="() => HandleChoiceSelection(choice)">
                         <span class="choice-index">@choice.Index.</span>
-                        <span class="choice-description">@choice.Description</span>
+                        <span class="choice-description">@GetChoiceDescription(choice)</span>
                     </div>
                 }
             </div>

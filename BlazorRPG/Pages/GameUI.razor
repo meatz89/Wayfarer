@@ -53,7 +53,7 @@
                 Travel 🗺️
             </button>
         </div>
-        @if (CurrentEncounterOngoing())
+        @if (OngoingEncounter)
         {
             <EncounterView Encounter="CurrentEncounter" OnEncounterCompleted="(result) => HandleEncounterCompleted(result)" />
         }

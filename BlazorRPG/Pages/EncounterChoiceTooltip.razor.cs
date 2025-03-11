@@ -5,7 +5,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
 {
     [Inject] public GameManager GameManager { get; set; }
     [Inject] public GameState GameState { get; set; }
-    [Parameter] public Encounter Encounter { get; set; }
+    [Parameter] public EncounterManager Encounter { get; set; }
     [Parameter] public UserEncounterChoiceOption hoveredChoice { get; set; }
     [Parameter] public double mouseX { get; set; }
     [Parameter] public double mouseY { get; set; }

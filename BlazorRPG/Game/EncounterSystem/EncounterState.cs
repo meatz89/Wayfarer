@@ -444,7 +444,6 @@ public class EncounterState
             }
         }
 
-
         // Calculate momentum effects
         int momentumChange = 0;
 

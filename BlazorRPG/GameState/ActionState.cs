@@ -12,11 +12,11 @@ public class ActionState
 
     public List<Quest> ActiveQuests { get; set; }
 
-    public Encounter CurrentEncounter { get; set; }
+    public EncounterManager CurrentEncounter { get; set; }
     public List<UserEncounterChoiceOption> CurrentChoiceOptions { get; set; }
     public EncounterResult EncounterResult { get; set; }
 
-    public Encounter GetCurrentEncounter()
+    public EncounterManager GetCurrentEncounter()
     {
         return this.CurrentEncounter;
     }
@@ -32,7 +32,7 @@ public class ActionState
         EncounterResult = null;
     }
 
-    public void SetActiveEncounter(Encounter encounter)
+    public void SetActiveEncounter(EncounterManager encounter)
     {
         CurrentEncounter = encounter;
         EncounterResult = new EncounterResult()

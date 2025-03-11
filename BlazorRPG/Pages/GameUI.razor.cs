@@ -33,7 +33,7 @@ public partial class GameUI : ComponentBase
     public PlayerState Player => GameState.Player;
     public Location CurrentLocation => GameState.World.CurrentLocation;
     public LocationSpot CurrentSpot => GameState.World.CurrentLocationSpot;
-    public Encounter CurrentEncounter => GameState.Actions.CurrentEncounter;
+    public EncounterManager CurrentEncounter => GameState.Actions.CurrentEncounter;
     public EncounterResult EncounterResult => GameState.Actions.EncounterResult;
     public TimeWindows CurrentTime => GameState.World.WorldTime;
     public int CurrentHour => GameState.World.CurrentTimeInHours;
@@ -50,6 +50,22 @@ public partial class GameUI : ComponentBase
     protected override void OnInitialized()
     {
         GameManager.StartGame();
+    }
+
+    public bool OngoingEncounter = false;
+
+    private async Task HandleActionSelection(UserActionOption action)
+    {
+        if (action.IsDisabled) return; // Prevent action if disabled
+        else
+        {
+            // Execute the action immediately
+            OngoingEncounter = await GameManager.ExecuteBasicAction(action);
+            if (!OngoingEncounter)
+            {
+                CompleteActionExecution();
+            }
+        }
     }
 
     private void HandleLocationSelection(LocationNames locationName)
@@ -106,6 +122,7 @@ public partial class GameUI : ComponentBase
     {
         if (result.EncounterResults != EncounterResults.Ongoing)
         {
+            OngoingEncounter = false;
             ShowEncounterResult = true;
         }
         StateHasChanged();
@@ -170,20 +187,6 @@ public partial class GameUI : ComponentBase
         }
 
         return list;
-    }
-
-    private void HandleActionSelection(UserActionOption action)
-    {
-        if (action.IsDisabled) return; // Prevent action if disabled
-        else
-        {
-            // Execute the action immediately
-            ActionResult result = GameManager.ExecuteBasicAction(action);
-            if (result.IsSuccess)
-            {
-                CompleteActionExecution();
-            }
-        }
     }
 
     public List<Quest> GetActiveQuests()

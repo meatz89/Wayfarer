@@ -6,7 +6,7 @@ public record UserEncounterChoiceOption(
     string Narrative,
     LocationNames LocationName,
     string locationSpotName,
-    Encounter encounter,
+    EncounterManager encounter,
     IChoice Choice)
 {
     public string Display()

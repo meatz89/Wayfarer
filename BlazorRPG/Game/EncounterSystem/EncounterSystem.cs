@@ -1,12 +1,16 @@
 ﻿using BlazorRPG.Game.EncounterManager;
 using BlazorRPG.Game.EncounterManager.NarrativeAi;
+using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.Metrics;
 
 public class EncounterSystem
 {
     private readonly GameState gameState;
     private readonly NarrativeSystem narrativeSystem;
+    private readonly GPTNarrativeService narrativeService;
 
-    public Encounter EncounterManager;
+    public EncounterManager Encounter;
+    public EncounterResult encounterResult;
 
     public EncounterSystem(
         GameState gameState,
@@ -16,28 +20,29 @@ public class EncounterSystem
     {
         this.gameState = gameState;
         this.narrativeSystem = narrativeSystem;
+        this.narrativeService = new GPTNarrativeService();
     }
 
-    public Encounter GenerateEncounter(EncounterContext context, ActionImplementation actionImplementation)
+    public async Task<EncounterResult> GenerateEncounter(EncounterContext context, ActionImplementation actionImplementation)
     {
         Location inn = context.Location;
 
         // Create a location
-        LocationInfo villageMarket = LocationFactory.CreateRoadsideInn();
+        LocationInfo location = LocationFactory.CreateBanditAmbush();
 
         // Create encounter manager
-        EncounterManager = StartEncounterAt(villageMarket);
+        encounterResult = await StartEncounterAt(location);
 
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
 
-        gameState.Actions.SetActiveEncounter(EncounterManager);
+        gameState.Actions.SetActiveEncounter(Encounter);
         narrativeSystem.NewEncounter(context, actionImplementation);
 
-        return EncounterManager;
+        return encounterResult;
     }
 
-    public Encounter StartEncounterAt(LocationInfo villageMarket)
+    public async Task<EncounterResult> StartEncounterAt(LocationInfo location)
     {
         // Create the core components
         ChoiceRepository choiceRepository = new ChoiceRepository();
@@ -45,10 +50,69 @@ public class EncounterSystem
         NarrativePresenter narrativePresenter = new NarrativePresenter();
 
         // Create encounter manager
-        Encounter encounterManager = new Encounter(cardSelector, choiceRepository, narrativePresenter);
+        EncounterManager encounter = new EncounterManager(cardSelector, choiceRepository, narrativePresenter);
+        this.Encounter = encounter;
+
+        SpecialChoice negotiatePriceChoice = GetSpecialChoiceFor(location);
+        choiceRepository.AddSpecialChoice(location.Name, negotiatePriceChoice);
+
+        // Start the encounter with narrative
+        string incitingAction = "decided to visit the market to purchase supplies";
+        NarrativeResult initialResult = await encounter.StartEncounterWithNarrativeAsync(
+            location,
+            incitingAction,
+            narrativeService);
+
+        return new EncounterResult()
+        {
+            Encounter = encounter,
+            EncounterResults = EncounterResults.Started,
+            EncounterEndMessage = "",
+            NarrativeResult = initialResult
+        };
+    }
+
+    public async Task<EncounterResult> ExecuteChoice(
+        EncounterManager encounter,
+        NarrativeResult narrativeResult,
+        IChoice choice)
+    {
+        NarrativeResult currentResult = narrativeResult;
+        string selectedDescription = currentResult.ChoiceDescriptions[choice];
+
+        if (!currentResult.IsEncounterOver)
+        {
+            currentResult = await Encounter.ApplyChoiceWithNarrativeAsync(
+                choice,
+                selectedDescription);
+
+            if (currentResult.IsEncounterOver)
+            {
+                return new EncounterResult()
+                {
+                    Encounter = encounter,
+                    EncounterResults = EncounterResults.EncounterSuccess,
+                    EncounterEndMessage = "=== Encounter Over: {currentResult.Outcome} ===",
+                    NarrativeResult = currentResult
+                };
+            }
+        }
+
+        return new EncounterResult()
+        {
+            Encounter = encounter,
+            EncounterResults = EncounterResults.Ongoing,
+            EncounterEndMessage = "",
+            NarrativeResult = currentResult
+        };
+    }
+
+
+    private static SpecialChoice GetSpecialChoiceFor(LocationInfo location)
+    {
 
         // Add special choices for this location
-        SpecialChoice negotiatePriceChoice = new SpecialChoice(
+        return new SpecialChoice(
             "Negotiate Better Price",
             "Use your market knowledge and rapport to secure a favorable deal",
             ApproachTypes.Charm,
@@ -64,39 +128,16 @@ public class EncounterSystem
                     ChoiceFactory.FocusTagRequirement(FocusTags.Resource, 2)
             }
         );
-
-        choiceRepository.AddSpecialChoice(villageMarket.Name, negotiatePriceChoice);
-
-        // Start an encounter at the village market
-        encounterManager.StartEncounter(villageMarket);
-
-        return encounterManager;
     }
-
-    public EncounterResult ExecuteChoice(
-        Encounter encounter,
-        IChoice choice)
-    {
-        ChoiceProjection choiceProjection = EncounterManager.GetChoiceProjection(choice);
-        ChoiceOutcome choiceOutcome = EncounterManager.ApplyChoiceProjection(choiceProjection);
-
-        return new EncounterResult()
-        {
-            Encounter = encounter,
-            EncounterResults = EncounterResults.Ongoing,
-            EncounterEndMessage = choiceOutcome.ToString()
-        };
-    }
-
-
-    public Encounter GetActiveEncounter()
+    
+    public EncounterManager GetActiveEncounter()
     {
         return gameState.Actions.CurrentEncounter;
     }
 
     public List<IChoice> GetChoices()
     {
-        return EncounterManager.GetCurrentChoices();
+        return Encounter.GetCurrentChoices();
     }
 
     public List<UserEncounterChoiceOption> GetCurrentChoices()
@@ -104,8 +145,8 @@ public class EncounterSystem
         return gameState.Actions.CurrentChoiceOptions;
     }
 
-    public ChoiceProjection GetChoiceProjection(Encounter encounter, IChoice choice)
+    public ChoiceProjection GetChoiceProjection(EncounterManager encounter, IChoice choice)
     {
-        return EncounterManager.GetChoiceProjection(choice);
+        return Encounter.ProjectChoice(choice);
     }
 }

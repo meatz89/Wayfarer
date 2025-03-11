@@ -13,6 +13,7 @@ public class GameManager
     public MessageSystem MessageSystem { get; }
     public NarrativeSystem NarrativeSystem { get; }
     public JournalSystem JournalSystem { get; }
+    public EncounterResult EncounterResult { get; set; }
 
     public GameManager(
         GameState gameState,
@@ -59,7 +60,7 @@ public class GameManager
         UpdateAvailableActions();
     }
 
-    public Encounter GenerateEncounter(ActionImplementation actionImplementation, Location location, PlayerState playerState, string locationSpotName)
+    public async Task<EncounterManager> GenerateEncounter(ActionImplementation actionImplementation, Location location, PlayerState playerState, string locationSpotName)
     {
         List<LocationPropertyChoiceEffect> effects = LocationSystem.GetLocationEffects(location.LocationName, locationSpotName);
         LocationSpot? locationSpot = LocationSystem.GetLocationSpotForLocation(location.LocationName, locationSpotName);
@@ -78,35 +79,26 @@ public class GameManager
         UserActionOption action = gameState.Actions.LocationSpotActions.Where(x => x.LocationSpot == locationSpot.Name).First();
         ActionImplementation actionImpl = action.ActionImplementation;
 
-        Encounter encounter = EncounterSystem.GenerateEncounter(context, actionImpl);
+        EncounterResult = await EncounterSystem.GenerateEncounter(context, actionImpl);
 
-        List<UserEncounterChoiceOption> choiceOptions = GetChoices(encounter);
+        List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(EncounterResult.Encounter);
         gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
 
-        return encounter;
+        return EncounterSystem.Encounter;
     }
 
-    public ChoiceProjection GetChoicePreview(UserEncounterChoiceOption choiceOption)
+    public async Task<EncounterResult> ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
     {
-        Encounter encounter = choiceOption.encounter;
-
+        EncounterManager encounter = choiceOption.encounter;
         Location location = LocationSystem.GetLocation(choiceOption.LocationName);
 
         // Execute the choice
-        ChoiceProjection choiceProjection = EncounterSystem.GetChoiceProjection(encounter, choiceOption.Choice);
-        return choiceProjection;
-    }
+        EncounterResult = await EncounterSystem.ExecuteChoice(
+            encounter,
+            EncounterResult.NarrativeResult,
+            choiceOption.Choice);
 
-    public EncounterResult ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
-    {
-        Encounter encounter = choiceOption.encounter;
-
-        Location location = LocationSystem.GetLocation(choiceOption.LocationName);
-
-        // Execute the choice
-        EncounterResult EncounterResult = EncounterSystem.ExecuteChoice(encounter, choiceOption.Choice);
-
-        List<UserEncounterChoiceOption> choiceOptions = GetChoices(encounter);
+        List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(EncounterResult.Encounter);
         gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
 
         gameState.Actions.EncounterResult = EncounterResult;
@@ -123,16 +115,14 @@ public class GameManager
                     EncounterEndMessage = "Game Over"
                 };
             }
-
         }
 
         return EncounterResult;
     }
 
-    public List<UserEncounterChoiceOption> GetChoices(Encounter encounter)
+    public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions(EncounterManager encounter)
     {
         List<IChoice> choices = EncounterSystem.GetChoices();
-
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
 
         int i = 0;
@@ -155,6 +145,16 @@ public class GameManager
         }
 
         return choiceOptions;
+    }
+
+    public ChoiceProjection GetChoicePreview(UserEncounterChoiceOption choiceOption)
+    {
+        EncounterManager encounter = choiceOption.encounter;
+        Location location = LocationSystem.GetLocation(choiceOption.LocationName);
+
+        // Execute the choice
+        ChoiceProjection choiceProjection = EncounterSystem.GetChoiceProjection(encounter, choiceOption.Choice);
+        return choiceProjection;
     }
 
     private static List<UserActionOption> GetUserActionOptions(Location location, List<LocationSpot> locationSpots)
@@ -215,7 +215,7 @@ public class GameManager
         //CreateQuestActions();
     }
 
-    public void FinishEncounter(Encounter encounter)
+    public void FinishEncounter(EncounterManager encounter)
     {
         ActionImplementation actionImplementation = encounter.ActionImplementation;
         ApplyActionOutcomes(actionImplementation);
@@ -258,7 +258,7 @@ public class GameManager
         return isGameOver;
     }
 
-    public List<LocationPropertyChoiceEffect> GetLocationEffects(Encounter encounter, Choice choice)
+    public List<LocationPropertyChoiceEffect> GetLocationEffects(EncounterManager encounter, Choice choice)
     {
         LocationNames locationName = encounter.State.Location.LocationName;
         string locationSpot = encounter.State.LocationSpot.Name;
@@ -537,26 +537,42 @@ public class GameManager
         gameState.Actions.ActiveQuests = quests;
     }
 
-
-    public ActionResult ExecuteBasicAction(UserActionOption action)
+    public async Task<bool> ExecuteBasicAction(UserActionOption action)
     {
-        ActionImplementation actionImplementation = action.ActionImplementation;
-        if (!ActionSystem.CanExecuteInContext(actionImplementation))
-            return ActionResult.Failure("Current context prevents this action");
+        actionImplementation = action.ActionImplementation;
+        locationSpot = action.LocationSpot;
 
-        Location location = LocationSystem.GetLocation(action.Location);
+        if (!ActionSystem.CanExecuteInContext(actionImplementation))
+            return false;
+
+        location = LocationSystem.GetLocation(action.Location);
         gameState.Actions.SetCurrentUserAction(action);
 
         bool startEncounter = actionImplementation.IsEncounterAction;
         if (startEncounter)
         {
-            Encounter encounter = GenerateEncounter(actionImplementation, location, gameState.Player, action.LocationSpot);
+            return true;
         }
         else
         {
             ApplyActionOutcomes(actionImplementation);
+            return false;
         }
 
+    }
+
+    public ActionImplementation actionImplementation;
+    public Location location;
+    public string locationSpot;
+
+    public async Task<ActionResult> GenerateEncounter()
+    {
+        EncounterManager encounter = await GenerateEncounter(
+            actionImplementation,
+            location,
+            gameState.Player,
+            locationSpot);
+        
         return ActionResult.Success("Encounter started!", new ActionResultMessages());
     }
 
@@ -566,7 +582,8 @@ public class GameManager
         model.CurrentEncounter = EncounterSystem.GetActiveEncounter();
         model.CurrentChoices = EncounterSystem.GetCurrentChoices();
         model.ChoiceSetName = "choiceset";
-        model.State = EncounterSystem.EncounterManager.State;
+        model.State = EncounterSystem.Encounter.State;
+        model.EncounterResult = EncounterResult;
 
         return model;
     }

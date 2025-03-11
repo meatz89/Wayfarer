@@ -10,20 +10,59 @@ public partial class EncounterViewBase : ComponentBase
     [Inject] public IJSRuntime JSRuntime { get; set; } // Inject IJSRuntime
     [Inject] public GameManager GameManager { get; set; }
     [Parameter] public EventCallback<EncounterResult> OnEncounterCompleted { get; set; }
-    [Parameter] public Encounter Encounter { get; set; }
+    [Parameter] public EncounterManager Encounter { get; set; }
 
     public UserEncounterChoiceOption hoveredChoice;
     public bool showTooltip;
     public double mouseX;
     public double mouseY;
 
+    public bool IsLoading = true;
+
     public EncounterViewModel Model => GameManager.GetEncounterViewModel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if(Encounter == null)
+        {
+            await GameManager.GenerateEncounter();
+            IsLoading = false;
+        }
+    }
+
+    public async Task HandleChoiceSelection(UserEncounterChoiceOption choice)
+    {
+        IsLoading = true;
+        if (IsChoiceDisabled(choice))
+        {
+            return;
+        }
+
+        EncounterResult result = await GameManager.ExecuteEncounterChoice(choice);
+
+        await OnEncounterCompleted.InvokeAsync(result);
+        HideTooltip();
+        IsLoading = false;
+    }
 
     public List<PropertyDisplay> GetLocationTags()
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
         return properties;
+    }
+
+    public List<UserEncounterChoiceOption> GetChoices()
+    {
+        List<UserEncounterChoiceOption> userEncounterChoiceOptions = Model.CurrentChoices;
+        return userEncounterChoiceOptions;
+    }
+
+    public string GetChoiceDescription(UserEncounterChoiceOption choice)
+    {
+        IChoice choice1 = choice.Choice;
+        string description = Model.EncounterResult.NarrativeResult.ChoiceDescriptions[choice1];
+        return description;
     }
 
     public List<PropertyDisplay> GetAvailableTags()
@@ -269,18 +308,6 @@ public partial class EncounterViewBase : ComponentBase
             combinedValuesList.Add(new CombinedValue { ChangeType = kvp.Key, Amount = kvp.Value });
         }
         return combinedValuesList;
-    }
-
-    public void HandleChoiceSelection(UserEncounterChoiceOption choice)
-    {
-        if (IsChoiceDisabled(choice))
-        {
-            return;
-        }
-
-        EncounterResult result = GameManager.ExecuteEncounterChoice(choice);
-        OnEncounterCompleted.InvokeAsync(result);
-        HideTooltip();
     }
 
     public bool IsChoiceDisabled(UserEncounterChoiceOption choice)

@@ -5,8 +5,10 @@ namespace BlazorRPG.Game.EncounterManager
     /// <summary>
     /// Manages the overall encounter flow
     /// </summary>
-    public class Encounter
+    public class EncounterManager
     {
+        public bool useAiNarrative = true;
+
         private readonly CardSelectionAlgorithm _cardSelector;
         private readonly NarrativePresenter _narrativePresenter;
         public EncounterState State;
@@ -16,7 +18,9 @@ namespace BlazorRPG.Game.EncounterManager
 
         public ActionImplementation ActionImplementation;
 
-        public Encounter(
+        public List<IChoice> CurrentChoices = new List<IChoice>();
+
+        public EncounterManager(
             CardSelectionAlgorithm cardSelector,
             ChoiceRepository choiceRepository,
             NarrativePresenter narrativePresenter)
@@ -25,19 +29,29 @@ namespace BlazorRPG.Game.EncounterManager
             _narrativePresenter = narrativePresenter;
         }
 
-        // Start a new encounter at a specific location
-        public void StartEncounter(LocationInfo location)
-        {
-            State = new EncounterState(location);
-
-            // Activate initial tags
-            State.UpdateActiveTags(location.AvailableTags);
-        }
-
         // Get the current choices for the player
         public List<IChoice> GetCurrentChoices()
         {
-            return _cardSelector.SelectChoices(State);
+            return CurrentChoices;
+        }
+
+        public void GenerateChoices()
+        {
+            CurrentChoices = _cardSelector.SelectChoices(State);
+        }
+
+        // Apply a choice using its projection
+        private ChoiceOutcome ApplyChoiceProjection(ChoiceProjection projection)
+        {
+            State.ApplyChoiceProjection(projection);
+
+            return new ChoiceOutcome(
+                projection.MomentumGained,
+                projection.PressureBuilt,
+                projection.NarrativeDescription,
+                projection.EncounterWillEnd,
+                projection.ProjectedOutcome
+            );
         }
 
         // Get formatted choice descriptions
@@ -61,6 +75,39 @@ namespace BlazorRPG.Game.EncounterManager
         }
 
         /// <summary>
+        /// Gets the current narrative context
+        /// </summary>
+        public NarrativeContext GetNarrativeContext()
+        {
+            return _narrativeContext;
+        }
+
+        public ChoiceProjection ProjectChoice(IChoice choice)
+        {
+            ChoiceProjection projection = State.CreateChoiceProjection(choice);
+
+            // Add narrative description
+            projection.NarrativeDescription = _narrativePresenter.FormatOutcome(
+                choice,
+                State.Location.Style,
+                projection.MomentumGained,
+                projection.PressureBuilt
+            );
+
+            return projection;
+        }
+
+
+        // Start a new encounter at a specific location
+        private void StartEncounter(LocationInfo location)
+        {
+            State = new EncounterState(location);
+
+            // Activate initial tags
+            State.UpdateActiveTags(location.AvailableTags);
+        }
+
+        /// <summary>
         /// Starts an encounter with narrative AI generation for the introduction
         /// </summary>
         public async Task<NarrativeResult> StartEncounterWithNarrativeAsync(
@@ -79,21 +126,33 @@ namespace BlazorRPG.Game.EncounterManager
 
             // Generate introduction
             EncounterStatus status = GetEncounterStatus();
-            string introduction = await _narrativeService.GenerateIntroductionAsync(
-                location.Name,
-                incitingAction,
-                status);
+
+            string introduction = "introduction";
+            if (useAiNarrative)
+            {
+                introduction =
+                    await _narrativeService.GenerateIntroductionAsync(
+                        location.Name,
+                        incitingAction,
+                        status);
+            }
 
             // Get available choices
+            GenerateChoices();
             List<IChoice> choices = GetCurrentChoices();
             List<ChoiceProjection> projections = choices.Select(ProjectChoice).ToList();
 
             // Generate choice descriptions
-            Dictionary<IChoice, string> choiceDescriptions = await _narrativeService.GenerateChoiceDescriptionsAsync(
-                _narrativeContext,
-                choices,
-                projections,
-                status);
+            Dictionary<IChoice, string> choiceDescriptions = null;
+            if (useAiNarrative)
+            {
+                choiceDescriptions =
+                    await _narrativeService.GenerateChoiceDescriptionsAsync(
+                        _narrativeContext,
+                        choices,
+                        projections,
+                        status);
+            }
 
             // Create first narrative event
             NarrativeEvent firstEvent = new NarrativeEvent(
@@ -101,8 +160,8 @@ namespace BlazorRPG.Game.EncounterManager
                 introduction,
                 null,
                 null,
-            null,
-            choiceDescriptions);
+                null,
+                choiceDescriptions);
 
             _narrativeContext.AddEvent(firstEvent);
 
@@ -131,12 +190,18 @@ namespace BlazorRPG.Game.EncounterManager
             EncounterStatus newStatus = GetEncounterStatus();
 
             // Generate narrative for the reaction and new scene
-            string narrative = await _narrativeService.GenerateReactionAndSceneAsync(
-                _narrativeContext,
-                choice,
-                choiceDescription,
-                outcome,
-                newStatus);
+            string narrative = "Continued Narrative";
+
+            if (useAiNarrative)
+            {
+                narrative =
+                    await _narrativeService.GenerateReactionAndSceneAsync(
+                        _narrativeContext,
+                        choice,
+                        choiceDescription,
+                        outcome,
+                        newStatus);
+            }
 
             // Create the narrative event for this turn
             NarrativeEvent narrativeEvent = new NarrativeEvent(
@@ -161,16 +226,22 @@ namespace BlazorRPG.Game.EncounterManager
             }
 
             // Get the new choices and projections
+            GenerateChoices();
             List<IChoice> newChoices = GetCurrentChoices();
             List<ChoiceProjection> newProjections = newChoices.Select(ProjectChoice).ToList();
 
             // Generate descriptive narratives for each choice
-            Dictionary<IChoice, string> newChoiceDescriptions = await _narrativeService.GenerateChoiceDescriptionsAsync(
-                _narrativeContext,
-                newChoices,
-                newProjections,
-                newStatus);
-
+            Dictionary<IChoice, string> newChoiceDescriptions = null;
+            if(useAiNarrative)
+            {
+                newChoiceDescriptions =
+                    await _narrativeService.GenerateChoiceDescriptionsAsync(
+                        _narrativeContext,
+                        newChoices,
+                        newProjections,
+                        newStatus);
+            }
+            
             // Add the choice descriptions to the latest event
             narrativeEvent.AvailableChoiceDescriptions.Clear();
             foreach (KeyValuePair<IChoice, string> kvp in newChoiceDescriptions)
@@ -186,59 +257,5 @@ namespace BlazorRPG.Game.EncounterManager
                 newChoiceDescriptions);
         }
 
-        private ChoiceProjection ProjectChoice(IChoice choice)
-        {
-            return GetChoiceProjections().Where(c => c.Choice == choice).FirstOrDefault();
-        }
-
-        /// <summary>
-        /// Gets the current narrative context
-        /// </summary>
-        public NarrativeContext GetNarrativeContext()
-        {
-            return _narrativeContext;
-        }
-
-        public List<ChoiceProjection> GetChoiceProjections()
-        {
-            List<IChoice> choices = GetCurrentChoices();
-            List<ChoiceProjection> projections = new List<ChoiceProjection>();
-
-            foreach (IChoice choice in choices)
-            {
-                ChoiceProjection projection = State.CreateChoiceProjection(choice);
-
-                // Add narrative description
-                projection.NarrativeDescription = _narrativePresenter.FormatOutcome(
-                    choice,
-                    State.Location.Style,
-                    projection.MomentumGained,
-                    projection.PressureBuilt
-                );
-
-                projections.Add(projection);
-            }
-
-            return projections;
-        }
-
-        // Apply a choice using its projection
-        public ChoiceOutcome ApplyChoiceProjection(ChoiceProjection projection)
-        {
-            State.ApplyChoiceProjection(projection);
-
-            return new ChoiceOutcome(
-                projection.MomentumGained,
-                projection.PressureBuilt,
-                projection.NarrativeDescription,
-                projection.EncounterWillEnd,
-                projection.ProjectedOutcome
-            );
-        }
-
-        public ChoiceProjection GetChoiceProjection(IChoice choice)
-        {
-            return State.CreateChoiceProjection(choice);
-        }
     }
 }

@@ -2,8 +2,9 @@
 
 public class EncounterViewModel
 {
-    public Encounter CurrentEncounter;
+    public EncounterManager CurrentEncounter;
     public List<UserEncounterChoiceOption> CurrentChoices;
     public string ChoiceSetName;
     public EncounterState State;
+    public EncounterResult EncounterResult;
 }
