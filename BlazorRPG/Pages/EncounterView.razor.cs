@@ -57,7 +57,6 @@ public partial class EncounterViewBase : ComponentBase
         return properties;
     }
 
-
     private string GetTagIcon(IEncounterTag tag)
     {
         // Determine icon based on tag type
@@ -80,7 +79,6 @@ public partial class EncounterViewBase : ComponentBase
         return "";
     }
 
-    // In EncounterViewBase.cs
     private string GetTagTooltipText(IEncounterTag tag)
     {
         StringBuilder tooltip = new StringBuilder();
@@ -100,26 +98,12 @@ public partial class EncounterViewBase : ComponentBase
         if (!Encounter.State.ActiveTags.Any(t => t.Name == tag.Name))
         {
             tooltip.AppendLine("\nActivation Condition:");
-
-            // This would need to be expanded to include all possible activation conditions
-            if (tag.Name.Contains("Respect") || tag.Name.Contains("Eye"))
-                tooltip.AppendLine("Requires Rapport 2+");
-            else if (tag.Name.Contains("Wisdom"))
-                tooltip.AppendLine("Requires Analysis 4+");
-            else if (tag.Name.Contains("Network"))
-                tooltip.AppendLine("Requires Relationship 4+");
-            else if (tag.Name.Contains("Suspicion"))
-                tooltip.AppendLine("Activates at Concealment 2+");
-            else if (tag.Name.Contains("Guard"))
-                tooltip.AppendLine("Activates at Dominance 4+");
-            else
-                tooltip.AppendLine("Activates under specific conditions");
+            tooltip.AppendLine(tag.GetActivationDescription());
         }
 
         return tooltip.ToString();
     }
 
-    // In EncounterChoiceTooltipBase.cs
     public string GetTagEffectDescription(string tagName)
     {
         // Find the tag by name and use its description method

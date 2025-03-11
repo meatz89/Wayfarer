@@ -399,7 +399,7 @@
             _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
                 "Observe Interactions",
                 "Secretly watch how people relate to understand them",
-                ApproachTypes.Concealment,
+                ApproachTypes.Stealth,
                 FocusTags.Relationship,
                 TagModification.ForApproach(ApproachTags.Concealment, 1),
                 TagModification.ForApproach(ApproachTags.Analysis, 1)
@@ -408,7 +408,7 @@
             _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
                 "Avoid Detection",
                 "Remain unnoticed in social situations",
-                ApproachTypes.Concealment,
+                ApproachTypes.Stealth,
                 FocusTags.Relationship,
                 TagModification.ForApproach(ApproachTags.Concealment, 2),
                 TagModification.ForApproach(ApproachTags.Rapport, -1)
@@ -418,7 +418,7 @@
             _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
                 "Eavesdrop",
                 "Listen in on conversations without being noticed",
-                ApproachTypes.Concealment,
+                ApproachTypes.Stealth,
                 FocusTags.Information,
                 TagModification.ForApproach(ApproachTags.Concealment, 1),
                 TagModification.ForApproach(ApproachTags.Analysis, 1)
@@ -427,7 +427,7 @@
             _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
                 "Hidden Research",
                 "Investigate without leaving traces",
-                ApproachTypes.Concealment,
+                ApproachTypes.Stealth,
                 FocusTags.Information,
                 TagModification.ForApproach(ApproachTags.Concealment, 1),
                 TagModification.ForApproach(ApproachTags.Analysis, 2)
@@ -437,7 +437,7 @@
             _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
                 "Silent Movement",
                 "Move without making sound",
-                ApproachTypes.Concealment,
+                ApproachTypes.Stealth,
                 FocusTags.Physical,
                 TagModification.ForApproach(ApproachTags.Concealment, 2),
                 TagModification.ForApproach(ApproachTags.Precision, 1)
@@ -446,7 +446,7 @@
             _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
                 "Conceal Presence",
                 "Hide your physical presence entirely",
-                ApproachTypes.Concealment,
+                ApproachTypes.Stealth,
                 FocusTags.Physical,
                 TagModification.ForApproach(ApproachTags.Concealment, 2),
                 TagModification.ForApproach(ApproachTags.Dominance, -1)
@@ -456,7 +456,7 @@
             _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
                 "Use Cover",
                 "Utilize environmental features to hide",
-                ApproachTypes.Concealment,
+                ApproachTypes.Stealth,
                 FocusTags.Environment,
                 TagModification.ForApproach(ApproachTags.Concealment, 2),
                 TagModification.ForApproach(ApproachTags.Precision, 1)
@@ -465,7 +465,7 @@
             _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
                 "Create Diversion",
                 "Set up a distraction in another location",
-                ApproachTypes.Concealment,
+                ApproachTypes.Stealth,
                 FocusTags.Environment,
                 TagModification.ForApproach(ApproachTags.Concealment, 1),
                 TagModification.ForApproach(ApproachTags.Dominance, -1)
@@ -475,7 +475,7 @@
             _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
                 "Secret Acquisition",
                 "Obtain resources without others noticing",
-                ApproachTypes.Concealment,
+                ApproachTypes.Stealth,
                 FocusTags.Resource,
                 TagModification.ForApproach(ApproachTags.Concealment, 1),
                 TagModification.ForApproach(ApproachTags.Precision, 1)
@@ -484,7 +484,7 @@
             _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
                 "Hide Resources",
                 "Conceal valuable items or information",
-                ApproachTypes.Concealment,
+                ApproachTypes.Stealth,
                 FocusTags.Resource,
                 TagModification.ForApproach(ApproachTags.Concealment, 2),
                 TagModification.ForApproach(ApproachTags.Analysis, 1)
@@ -558,7 +558,7 @@
             _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
                 "Fade from Attention",
                 "Socially extract yourself and become less noticeable",
-                ApproachTypes.Concealment,
+                ApproachTypes.Stealth,
                 FocusTags.Relationship,
                 TagModification.ForApproach(ApproachTags.Concealment, 2),
                 TagModification.ForApproach(ApproachTags.Rapport, -1)
@@ -601,12 +601,12 @@
                 ApproachTypes.Force
             );
 
-            _emergencyChoices[ApproachTypes.Concealment] = new EmergencyChoice(
+            _emergencyChoices[ApproachTypes.Stealth] = new EmergencyChoice(
                 "Quick Withdrawal",
                 "Rapidly retreat from a difficult situation",
-                ApproachTypes.Concealment,
+                ApproachTypes.Stealth,
                 new[] { TagModification.ForApproach(ApproachTags.Concealment, 2) },
-                ApproachTypes.Concealment
+                ApproachTypes.Stealth
             );
 
             _emergencyChoices[ApproachTypes.Wit] = new EmergencyChoice(

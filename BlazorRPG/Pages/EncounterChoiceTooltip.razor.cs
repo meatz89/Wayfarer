@@ -97,21 +97,28 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
 
     public string GetTagEffectDescription(string tagName)
     {
-        // Map tag names to their effects (same as before)
-        if (tagName.Contains("Respect"))
-            return "+1 momentum to Resource choices";
-        else if (tagName.Contains("Eye"))
-            return "-1 pressure from Resource choices";
-        else if (tagName.Contains("Wisdom"))
-            return "+1 momentum to Information choices";
-        else if (tagName.Contains("Network"))
-            return "-1 pressure at end of each turn";
-        else if (tagName.Contains("Marketplace"))
-            return "Blocks Concealment approaches";
-        else if (tagName.Contains("Suspicion"))
-            return "Blocks Charm approaches";
-        else if (tagName.Contains("Guard"))
-            return "Blocks Stealth approaches";
+        // Find the actual tag object by name
+        IEncounterTag tag = Encounter.State.ActiveTags
+            .Concat(Encounter.State.Location.AvailableTags)
+            .FirstOrDefault(t => t.Name == tagName);
+
+        if (tag == null)
+            return "Unknown tag effect";
+
+        // Use the tag's own description method
+        if (tag is StrategicTag strategicTag)
+        {
+            return strategicTag.GetEffectDescription();
+        }
+        else if (tag is NarrativeTag narrativeTag && narrativeTag.BlockedApproach.HasValue)
+        {
+            return $"Blocks {narrativeTag.BlockedApproach.Value} approaches";
+        }
+        else if (tag is NarrativeTag narrativeTag2 && narrativeTag2.Name == "Fight Started")
+        {
+            // Special handling for the special "Fight Started" tag
+            return "Blocks all non-Force approaches";
+        }
 
         return "Affects encounter mechanics";
     }

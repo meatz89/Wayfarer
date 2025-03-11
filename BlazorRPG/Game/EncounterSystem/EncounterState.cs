@@ -495,6 +495,17 @@ public class EncounterState
         int pressureChange = 0;
 
         // Base pressure for pressure choices or emergency choices
+        if (choice.EffectType == EffectTypes.Momentum)
+        {
+            int basePressure = 1; // Standard pressure
+            projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
+            {
+                Source = "Base value",
+                Value = basePressure
+            });
+            pressureChange += basePressure;
+        }
+
         if (choice.EffectType == EffectTypes.Pressure || choice is EmergencyChoice)
         {
             int basePressure = 3; // Standard pressure

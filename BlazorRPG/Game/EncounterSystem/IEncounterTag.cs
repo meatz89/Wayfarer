@@ -1,213 +1,237 @@
-﻿namespace BlazorRPG.Game.EncounterManager
+﻿using BlazorRPG.Game.EncounterManager;
+
+public interface IEncounterTag
 {
-    public interface IEncounterTag
+    string Name { get; }
+    bool IsActive(BaseTagSystem tagSystem);
+    void ApplyEffect(EncounterState state);
+    string GetActivationDescription();
+}
+
+public class NarrativeTag : IEncounterTag
+{
+    public string Name { get; }
+    public ApproachTypes? BlockedApproach { get; }
+    public ActivationCondition Condition { get; }
+
+    public NarrativeTag(string name, ActivationCondition condition, ApproachTypes? blockedApproach = null)
     {
-        string Name { get; }
-        bool IsActive(BaseTagSystem tagSystem);
-        void ApplyEffect(EncounterState state);
+        Name = name;
+        Condition = condition;
+        BlockedApproach = blockedApproach;
     }
 
-    public class StrategicTag : IEncounterTag
+    public bool IsActive(BaseTagSystem tagSystem)
     {
-        public string Name { get; }
-        private readonly Func<BaseTagSystem, bool> _activationCondition;
-        private readonly Action<EncounterState> _effectAction;
+        return Condition.IsActive(tagSystem);
+    }
 
-        public StrategicEffectTypes EffectType { get; }
-        public ApproachTypes? AffectedApproach { get; }
-        public FocusTags? AffectedFocus { get; }
-        public int EffectValue { get; }
+    public void ApplyEffect(EncounterState state)
+    {
+        // Narrative tags don't directly affect state, only card selection
+    }
 
-        // Track if this tag has already applied its activation effect
-        private bool _activationEffectApplied = false;
+    public string GetActivationDescription()
+    {
+        return Condition.GetDescription();
+    }
+}
 
-        // Constructor remains largely the same
-        public StrategicTag(
-            string name,
-            Func<BaseTagSystem, bool> activationCondition,
-            Action<EncounterState> effectAction,
-            StrategicEffectTypes effectType = StrategicEffectTypes.None,
-            int effectValue = 1,
-            ApproachTypes? affectedApproach = null,
-            FocusTags? affectedFocus = null)
+public class StrategicTag : IEncounterTag
+{
+    public string Name { get; }
+    public ActivationCondition Condition { get; }
+    public StrategicEffectTypes EffectType { get; }
+    public ApproachTypes? AffectedApproach { get; }
+    public FocusTags? AffectedFocus { get; }
+    public int EffectValue { get; }
+
+    private bool _activationEffectApplied = false;
+
+    public StrategicTag(
+        string name,
+        ActivationCondition condition,
+        StrategicEffectTypes effectType,
+        int effectValue = 1,
+        ApproachTypes? affectedApproach = null,
+        FocusTags? affectedFocus = null)
+    {
+        Name = name;
+        Condition = condition;
+        EffectType = effectType;
+        EffectValue = effectValue;
+        AffectedApproach = affectedApproach;
+        AffectedFocus = affectedFocus;
+    }
+
+    public bool IsActive(BaseTagSystem tagSystem)
+    {
+        return Condition.IsActive(tagSystem);
+    }
+
+    public void ApplyEffect(EncounterState state)
+    {
+        switch (EffectType)
         {
-            Name = name;
-            _activationCondition = activationCondition;
-            _effectAction = effectAction;
-            EffectType = effectType;
-            EffectValue = effectValue;
-            AffectedApproach = affectedApproach;
-            AffectedFocus = affectedFocus;
+            case StrategicEffectTypes.AddMomentumToApproach:
+                if (AffectedApproach.HasValue)
+                    state.AddApproachMomentumBonus(AffectedApproach.Value, EffectValue);
+                break;
+
+            case StrategicEffectTypes.AddMomentumToFocus:
+                if (AffectedFocus.HasValue)
+                    state.AddFocusMomentumBonus(AffectedFocus.Value, EffectValue);
+                break;
+
+            case StrategicEffectTypes.ReducePressurePerTurn:
+                state.AddEndOfTurnPressureReduction(EffectValue);
+                break;
+
+            case StrategicEffectTypes.AddPressurePerTurn:
+                state.AddEndOfTurnPressureReduction(-EffectValue);
+                break;
+
+            case StrategicEffectTypes.AddPressureFromApproach:
+                if (AffectedApproach.HasValue)
+                    state.AddApproachPressureModifier(AffectedApproach.Value, EffectValue);
+                break;
+
+            case StrategicEffectTypes.AddPressureFromFocus:
+                if (AffectedFocus.HasValue)
+                    state.AddFocusPressureModifier(AffectedFocus.Value, EffectValue);
+                break;
+
+            case StrategicEffectTypes.ReducePressureFromApproach:
+                if (AffectedApproach.HasValue)
+                    state.AddApproachPressureModifier(AffectedApproach.Value, -EffectValue);
+                break;
+
+            case StrategicEffectTypes.ReducePressureFromFocus:
+                if (AffectedFocus.HasValue)
+                    state.AddFocusPressureModifier(AffectedFocus.Value, -EffectValue);
+                break;
+        }
+    }
+
+    public void ApplyActivationEffect(EncounterState state)
+    {
+        if (_activationEffectApplied)
+            return;
+
+        switch (EffectType)
+        {
+            case StrategicEffectTypes.AddMomentumOnActivation:
+                state.BuildMomentum(EffectValue);
+                break;
+
+            case StrategicEffectTypes.ReducePressureOnActivation:
+                state.ReducePressure(EffectValue);
+                break;
         }
 
-        public bool IsActive(BaseTagSystem tagSystem) => _activationCondition(tagSystem);
+        _activationEffectApplied = true;
+    }
 
-        public void ApplyEffect(EncounterState state)
+    public int GetMomentumModifierForChoice(IChoice choice)
+    {
+        switch (EffectType)
         {
-            // Call the original effect action
-            _effectAction(state);
+            case StrategicEffectTypes.AddMomentumToApproach:
+                return AffectedApproach.HasValue && choice.Approach == AffectedApproach.Value
+                    ? EffectValue : 0;
 
-            // Also apply the typed effects
-            switch (EffectType)
-            {
-                case StrategicEffectTypes.AddMomentumToApproach:
-                    if (AffectedApproach.HasValue)
-                        state.AddApproachMomentumBonus(AffectedApproach.Value, EffectValue);
-                    break;
+            case StrategicEffectTypes.AddMomentumToFocus:
+                return AffectedFocus.HasValue && choice.Focus == AffectedFocus.Value
+                    ? EffectValue : 0;
 
-                case StrategicEffectTypes.AddMomentumToFocus:
-                    if (AffectedFocus.HasValue)
-                        state.AddFocusMomentumBonus(AffectedFocus.Value, EffectValue);
-                    break;
+            case StrategicEffectTypes.ReduceMomentumFromApproach:
+                return AffectedApproach.HasValue && choice.Approach == AffectedApproach.Value
+                    ? -EffectValue : 0;
 
-                case StrategicEffectTypes.ReducePressurePerTurn:
-                    state.AddEndOfTurnPressureReduction(EffectValue);
-                    break;
+            case StrategicEffectTypes.ReduceMomentumFromFocus:
+                return AffectedFocus.HasValue && choice.Focus == AffectedFocus.Value
+                    ? -EffectValue : 0;
 
-                case StrategicEffectTypes.AddPressurePerTurn:
-                    state.AddEndOfTurnPressureReduction(-EffectValue);
-                    break;
-
-                case StrategicEffectTypes.AddPressureFromApproach:
-                    if (AffectedApproach.HasValue)
-                        state.AddApproachPressureModifier(AffectedApproach.Value, EffectValue);
-                    break;
-
-                case StrategicEffectTypes.AddPressureFromFocus:
-                    if (AffectedFocus.HasValue)
-                        state.AddFocusPressureModifier(AffectedFocus.Value, EffectValue);
-                    break;
-
-                case StrategicEffectTypes.ReducePressureFromApproach:
-                    if (AffectedApproach.HasValue)
-                        state.AddApproachPressureModifier(AffectedApproach.Value, -EffectValue);
-                    break;
-
-                case StrategicEffectTypes.ReducePressureFromFocus:
-                    if (AffectedFocus.HasValue)
-                        state.AddFocusPressureModifier(AffectedFocus.Value, -EffectValue);
-                    break;
-            }
+            default:
+                return 0;
         }
+    }
 
-        // Apply one-time activation effects
-        public void ApplyActivationEffect(EncounterState state)
+    public int GetPressureModifierForChoice(IChoice choice)
+    {
+        switch (EffectType)
         {
-            if (_activationEffectApplied)
-                return;
+            case StrategicEffectTypes.ReducePressureFromApproach:
+                return AffectedApproach.HasValue && choice.Approach == AffectedApproach.Value
+                    ? -EffectValue : 0;
 
-            switch (EffectType)
-            {
-                case StrategicEffectTypes.AddMomentumOnActivation:
-                    state.BuildMomentum(EffectValue);
-                    break;
+            case StrategicEffectTypes.ReducePressureFromFocus:
+                return AffectedFocus.HasValue && choice.Focus == AffectedFocus.Value
+                    ? -EffectValue : 0;
 
-                case StrategicEffectTypes.ReducePressureOnActivation:
-                    state.ReducePressure(EffectValue);
-                    break;
-            }
+            case StrategicEffectTypes.AddPressureFromApproach:
+                return AffectedApproach.HasValue && choice.Approach == AffectedApproach.Value
+                    ? EffectValue : 0;
 
-            _activationEffectApplied = true;
+            case StrategicEffectTypes.AddPressureFromFocus:
+                return AffectedFocus.HasValue && choice.Focus == AffectedFocus.Value
+                    ? EffectValue : 0;
+
+            default:
+                return 0;
         }
+    }
 
-        // Get momentum modifier for a specific choice
-        public int GetMomentumModifierForChoice(IChoice choice)
+    public string GetEffectDescription()
+    {
+        switch (EffectType)
         {
-            switch (EffectType)
-            {
-                case StrategicEffectTypes.AddMomentumToApproach:
-                    return AffectedApproach.HasValue && choice.Approach == AffectedApproach.Value
-                        ? EffectValue : 0;
+            case StrategicEffectTypes.AddMomentumToApproach:
+                return $"+{EffectValue} momentum to {AffectedApproach} approaches";
 
-                case StrategicEffectTypes.AddMomentumToFocus:
-                    return AffectedFocus.HasValue && choice.Focus == AffectedFocus.Value
-                        ? EffectValue : 0;
+            case StrategicEffectTypes.AddMomentumToFocus:
+                return $"+{EffectValue} momentum to {AffectedFocus} choices";
 
-                case StrategicEffectTypes.ReduceMomentumFromApproach:
-                    return AffectedApproach.HasValue && choice.Approach == AffectedApproach.Value
-                        ? -EffectValue : 0;
+            case StrategicEffectTypes.ReducePressureFromApproach:
+                return $"-{EffectValue} pressure from {AffectedApproach} approaches";
 
-                case StrategicEffectTypes.ReduceMomentumFromFocus:
-                    return AffectedFocus.HasValue && choice.Focus == AffectedFocus.Value
-                        ? -EffectValue : 0;
+            case StrategicEffectTypes.ReducePressureFromFocus:
+                return $"-{EffectValue} pressure from {AffectedFocus} choices";
 
-                default:
-                    return 0;
-            }
+            case StrategicEffectTypes.ReducePressurePerTurn:
+                return $"-{EffectValue} pressure at end of each turn";
+
+            case StrategicEffectTypes.AddMomentumPerTurn:
+                return $"+{EffectValue} momentum at end of each turn";
+
+            case StrategicEffectTypes.ReduceMomentumFromApproach:
+                return $"-{EffectValue} momentum from {AffectedApproach} approaches";
+
+            case StrategicEffectTypes.ReduceMomentumFromFocus:
+                return $"-{EffectValue} momentum from {AffectedFocus} choices";
+
+            case StrategicEffectTypes.AddPressurePerTurn:
+                return $"+{EffectValue} pressure at end of each turn";
+
+            case StrategicEffectTypes.AddPressureFromApproach:
+                return $"+{EffectValue} pressure from {AffectedApproach} approaches";
+
+            case StrategicEffectTypes.AddPressureFromFocus:
+                return $"+{EffectValue} pressure from {AffectedFocus} choices";
+
+            case StrategicEffectTypes.AddMomentumOnActivation:
+                return $"+{EffectValue} momentum when activated";
+
+            case StrategicEffectTypes.ReducePressureOnActivation:
+                return $"-{EffectValue} pressure when activated";
+
+            default:
+                return "Affects encounter mechanics";
         }
+    }
 
-        // Get pressure modifier for a specific choice
-        public int GetPressureModifierForChoice(IChoice choice)
-        {
-            switch (EffectType)
-            {
-                case StrategicEffectTypes.ReducePressureFromApproach:
-                    return AffectedApproach.HasValue && choice.Approach == AffectedApproach.Value
-                        ? -EffectValue : 0;
-
-                case StrategicEffectTypes.ReducePressureFromFocus:
-                    return AffectedFocus.HasValue && choice.Focus == AffectedFocus.Value
-                        ? -EffectValue : 0;
-
-                case StrategicEffectTypes.AddPressureFromApproach:
-                    return AffectedApproach.HasValue && choice.Approach == AffectedApproach.Value
-                        ? EffectValue : 0;
-
-                case StrategicEffectTypes.AddPressureFromFocus:
-                    return AffectedFocus.HasValue && choice.Focus == AffectedFocus.Value
-                        ? EffectValue : 0;
-
-                default:
-                    return 0;
-            }
-        }
-
-        public string GetEffectDescription()
-        {
-            switch (EffectType)
-            {
-                case StrategicEffectTypes.AddMomentumToApproach:
-                    return $"+{EffectValue} momentum to {AffectedApproach} approaches";
-
-                case StrategicEffectTypes.AddMomentumToFocus:
-                    return $"+{EffectValue} momentum to {AffectedFocus} choices";
-
-                case StrategicEffectTypes.ReducePressureFromApproach:
-                    return $"-{EffectValue} pressure from {AffectedApproach} approaches";
-
-                case StrategicEffectTypes.ReducePressureFromFocus:
-                    return $"-{EffectValue} pressure from {AffectedFocus} choices";
-
-                case StrategicEffectTypes.ReducePressurePerTurn:
-                    return $"-{EffectValue} pressure at end of each turn";
-
-                case StrategicEffectTypes.AddMomentumPerTurn:
-                    return $"+{EffectValue} momentum at end of each turn";
-
-                case StrategicEffectTypes.ReduceMomentumFromApproach:
-                    return $"-{EffectValue} momentum from {AffectedApproach} approaches";
-
-                case StrategicEffectTypes.ReduceMomentumFromFocus:
-                    return $"-{EffectValue} momentum from {AffectedFocus} choices";
-
-                case StrategicEffectTypes.AddPressurePerTurn:
-                    return $"+{EffectValue} pressure at end of each turn";
-
-                case StrategicEffectTypes.AddPressureFromApproach:
-                    return $"+{EffectValue} pressure from {AffectedApproach} approaches";
-
-                case StrategicEffectTypes.AddPressureFromFocus:
-                    return $"+{EffectValue} pressure from {AffectedFocus} choices";
-
-                case StrategicEffectTypes.AddMomentumOnActivation:
-                    return $"+{EffectValue} momentum when activated";
-
-                case StrategicEffectTypes.ReducePressureOnActivation:
-                    return $"-{EffectValue} pressure when activated";
-
-                default:
-                    return "Affects encounter mechanics";
-            }
-        }
+    public string GetActivationDescription()
+    {
+        return Condition.GetDescription();
     }
 }

@@ -10,7 +10,7 @@
             // Core properties - note the hostility level is Hostile
             LocationInfo location = new LocationInfo(
                 "Bandit Ambush",
-                new[] { ApproachTypes.Force, ApproachTypes.Concealment }.ToList(),
+                new[] { ApproachTypes.Force, ApproachTypes.Stealth }.ToList(),
                 new[] { ApproachTypes.Charm, ApproachTypes.Wit }.ToList(),
                 new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),
                 new[] { FocusTags.Relationship }.ToList(),
@@ -22,12 +22,12 @@
             // Narrative tags (restrictive)
             location.AddTag(new NarrativeTag(
                 "Surrounded",
-                tagSystem => true, // Always active
-                ApproachTypes.Concealment));
+                new AlwaysActiveCondition(),
+                ApproachTypes.Stealth));
 
             location.AddTag(new NarrativeTag(
                 "Threat of Violence",
-                tagSystem => true, // Always active
+                new AlwaysActiveCondition(),
                 ApproachTypes.Charm));
 
             location.AddTag(EncounterTagFactory.CreateApproachThresholdTag(
@@ -45,28 +45,25 @@
 
             location.AddTag(new StrategicTag(
                 "Growing Tension",
-                tagSystem => true, // Always active
-                state => state.AddEndOfTurnPressureReduction(-1), // Negative reduction = increase
+                new AlwaysActiveCondition(),
                 StrategicEffectTypes.AddPressurePerTurn,
                 1));
 
             location.AddTag(new NarrativeTag(
                 "Fight Started",
-                tagSystem => tagSystem.GetFocusTagValue(FocusTags.Physical) >= EncounterTagFactory.MajorTagThreshold,
+                new FocusThresholdCondition(FocusTags.Physical, EncounterTagFactory.MajorTagThreshold),
                 null)); // Special case - blocks all non-Force approaches
 
             // Strategic tags (restrictive)
             location.AddTag(new StrategicTag(
                 "Numerical Advantage",
-                tagSystem => true, // Always active
-                state => state.AddEndOfTurnPressureReduction(-1), // Adds pressure each turn
+                new AlwaysActiveCondition(),
                 StrategicEffectTypes.AddPressurePerTurn,
                 1));
 
             location.AddTag(new StrategicTag(
                 "Territorial Knowledge",
-                tagSystem => true, // Always active
-                state => { /* Implementation would reduce momentum */ },
+                new AlwaysActiveCondition(),
                 StrategicEffectTypes.ReduceMomentumFromFocus,
                 1,
                 null,
@@ -74,8 +71,7 @@
 
             location.AddTag(new StrategicTag(
                 "Battle Ready",
-                tagSystem => tagSystem.GetApproachTagValue(ApproachTags.Dominance) >= EncounterTagFactory.MajorTagThreshold,
-                state => { /* Implementation would reduce momentum */ },
+                new ApproachThresholdCondition(ApproachTags.Dominance, EncounterTagFactory.MajorTagThreshold),
                 StrategicEffectTypes.ReduceMomentumFromApproach,
                 1,
                 ApproachTypes.Force));
@@ -83,26 +79,23 @@
             // Strategic tags (beneficial - weaknesses)
             location.AddTag(new StrategicTag(
                 "Superstitious",
-                tagSystem => tagSystem.GetApproachTagValue(ApproachTags.Analysis) >= EncounterTagFactory.MinorTagThreshold,
-                state => state.AddEndOfTurnPressureReduction(1),
+                new ApproachThresholdCondition(ApproachTags.Analysis, EncounterTagFactory.MinorTagThreshold),
                 StrategicEffectTypes.ReducePressurePerTurn,
                 1));
 
             location.AddTag(new StrategicTag(
                 "Poorly Coordinated",
-                tagSystem => tagSystem.GetApproachTagValue(ApproachTags.Precision) >= EncounterTagFactory.MajorTagThreshold,
-                state => state.AddApproachMomentumBonus(ApproachTypes.Force, 1),
+                new ApproachThresholdCondition(ApproachTags.Precision, EncounterTagFactory.MajorTagThreshold),
                 StrategicEffectTypes.AddMomentumToApproach,
                 1,
                 ApproachTypes.Force));
 
             location.AddTag(new StrategicTag(
                 "Easily Distracted",
-                tagSystem => tagSystem.GetApproachTagValue(ApproachTags.Concealment) >= EncounterTagFactory.MinorTagThreshold,
-                state => state.AddApproachMomentumBonus(ApproachTypes.Concealment, 1),
+                new ApproachThresholdCondition(ApproachTags.Concealment, EncounterTagFactory.MinorTagThreshold),
                 StrategicEffectTypes.AddMomentumToApproach,
                 1,
-                ApproachTypes.Concealment));
+                ApproachTypes.Stealth));
 
             return location;
         }
@@ -124,19 +117,18 @@
             // Narrative tags
             location.AddTag(new NarrativeTag(
                 "Common Room",
-                tagSystem => true, // Always active
-                ApproachTypes.Concealment));
+                new AlwaysActiveCondition(),
+                ApproachTypes.Stealth));
 
             location.AddTag(new NarrativeTag(
                 "Tavern Regulations",
-                tagSystem => true, // Always active
+                new AlwaysActiveCondition(),
                 ApproachTypes.Force));
 
             // Strategic tags
             location.AddTag(new StrategicTag(
                 "Warm Hearth",
-                tagSystem => tagSystem.GetApproachTagValue(ApproachTags.Rapport) >= EncounterTagFactory.MinorTagThreshold,
-                state => state.AddFocusMomentumBonus(FocusTags.Relationship, 1),
+                new ApproachThresholdCondition(ApproachTags.Rapport, EncounterTagFactory.MinorTagThreshold),
                 StrategicEffectTypes.AddMomentumToFocus,
                 1,
                 null,
@@ -144,8 +136,7 @@
 
             location.AddTag(new StrategicTag(
                 "Traveler's Rest",
-                tagSystem => tagSystem.GetFocusTagValue(FocusTags.Information) >= EncounterTagFactory.MajorTagThreshold,
-                state => state.AddFocusMomentumBonus(FocusTags.Information, 1),
+                new FocusThresholdCondition(FocusTags.Information, EncounterTagFactory.MajorTagThreshold),
                 StrategicEffectTypes.AddMomentumToFocus,
                 1,
                 null,
@@ -153,18 +144,80 @@
 
             location.AddTag(new StrategicTag(
                 "Innkeeper's Favor",
-                tagSystem => tagSystem.GetApproachTagValue(ApproachTags.Rapport) >= EncounterTagFactory.MajorTagThreshold,
-                state => state.AddEndOfTurnPressureReduction(1),
+                new ApproachThresholdCondition(ApproachTags.Rapport, EncounterTagFactory.MajorTagThreshold),
                 StrategicEffectTypes.ReducePressurePerTurn,
                 1));
 
             location.AddTag(new StrategicTag(
                 "Regular Patron",
-                tagSystem => tagSystem.GetFocusTagValue(FocusTags.Relationship) >= EncounterTagFactory.MajorTagThreshold,
-                state => state.AddApproachMomentumBonus(ApproachTypes.Charm, 1),
+                new FocusThresholdCondition(FocusTags.Relationship, EncounterTagFactory.MajorTagThreshold),
                 StrategicEffectTypes.AddMomentumToApproach,
                 1,
                 ApproachTypes.Charm));
+
+            return location;
+        }
+
+        public static LocationInfo CreateVillageMarket()
+        {
+            // Core properties
+            LocationInfo location = new LocationInfo(
+                "Village Market",
+                new[] { ApproachTypes.Charm, ApproachTypes.Finesse }.ToList(),
+                new[] { ApproachTypes.Force, ApproachTypes.Stealth }.ToList(),
+                new[] { FocusTags.Relationship, FocusTags.Resource }.ToList(),
+                new[] { FocusTags.Physical }.ToList(),
+                5, // Duration
+                8, 10, 12, // Momentum thresholds
+                LocationInfo.HostilityLevels.Neutral,
+                PresentationStyles.Social);
+
+            // Narrative tags
+            location.AddTag(new NarrativeTag(
+                "Open Marketplace",
+                new AlwaysActiveCondition(),
+                ApproachTypes.Stealth));
+
+            location.AddTag(new NarrativeTag(
+                "Market Suspicion",
+                new ApproachThresholdCondition(ApproachTags.Concealment, EncounterTagFactory.MinorTagThreshold),
+                ApproachTypes.Charm));
+
+            location.AddTag(new NarrativeTag(
+                "Guard Presence",
+                new ApproachThresholdCondition(ApproachTags.Dominance, EncounterTagFactory.MajorTagThreshold),
+                ApproachTypes.Stealth));
+
+            // Strategic tags
+            location.AddTag(new StrategicTag(
+                "Merchant's Respect",
+                new ApproachThresholdCondition(ApproachTags.Rapport, EncounterTagFactory.MinorTagThreshold),
+                StrategicEffectTypes.AddMomentumToFocus,
+                1,
+                null,
+                FocusTags.Resource));
+
+            location.AddTag(new StrategicTag(
+                "Haggler's Eye",
+                new ApproachThresholdCondition(ApproachTags.Precision, EncounterTagFactory.MinorTagThreshold),
+                StrategicEffectTypes.ReducePressureFromFocus,
+                1,
+                null,
+                FocusTags.Resource));
+
+            location.AddTag(new StrategicTag(
+                "Market Wisdom",
+                new ApproachThresholdCondition(ApproachTags.Analysis, EncounterTagFactory.MajorTagThreshold),
+                StrategicEffectTypes.AddMomentumToFocus,
+                1,
+                null,
+                FocusTags.Information));
+
+            location.AddTag(new StrategicTag(
+                "Trading Network",
+                new ApproachThresholdCondition(ApproachTags.Rapport, EncounterTagFactory.MajorTagThreshold),
+                StrategicEffectTypes.ReducePressurePerTurn,
+                1));
 
             return location;
         }
