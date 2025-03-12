@@ -1,6 +1,7 @@
-﻿public class ConversationEntry
+﻿// Main service class - slim coordinator
+// Conversation entry model
+public class ConversationEntry
 {
     public string Role { get; set; }
     public string Content { get; set; }
-    public DateTime Timestamp { get; set; } = DateTime.Now;
 }

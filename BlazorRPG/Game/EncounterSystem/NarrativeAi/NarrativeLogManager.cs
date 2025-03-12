@@ -1,19 +1,17 @@
-﻿public class NarrativeLogManager
+﻿
+// This class will come from your existing codebase
+public class NarrativeLogManager
 {
-    private readonly string _instanceFolder;
-    private int _requestCounter = 0;
-
-    public NarrativeLogManager()
-    {
-        // Create a unique folder for this game instance
-        string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-        _instanceFolder = Path.Combine("C:\\Logs", $"Game_{timestamp}");
-        Directory.CreateDirectory(_instanceFolder);
-    }
-
     public string GetNextLogFilePath()
     {
-        _requestCounter++;
-        return Path.Combine(_instanceFolder, $"Request_{_requestCounter}.json");
+        string logsDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Logs", "NarrativeAI");
+
+        if (!Directory.Exists(logsDirectory))
+        {
+            Directory.CreateDirectory(logsDirectory);
+        }
+
+        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
+        return Path.Combine(logsDirectory, $"narrative_log_{timestamp}.txt");
     }
 }

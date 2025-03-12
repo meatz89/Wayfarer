@@ -1,75 +1,41 @@
 ﻿using BlazorRPG.Game.EncounterManager.NarrativeAi;
 using BlazorRPG.Game.EncounterManager;
-using System.Net.Http.Headers;
-using System.Text.Json;
 using System.Text;
 
 public class GPTNarrativeService : INarrativeAIService
 {
-    private readonly HttpClient _httpClient;
-    private readonly string _modelName;
-    private readonly string _apiKey;
+    private readonly AIClientService _aiClient;
+    private readonly PromptBuilder _promptBuilder;
+    private readonly NarrativeContextManager _contextManager;
     private readonly ILogger<GPTNarrativeService> _logger;
-    private readonly NarrativeLogManager _logManager;
-    private readonly Dictionary<string, List<ConversationEntry>> _conversationHistories = new();
 
-    public GPTNarrativeService(IConfiguration configuration, ILogger<GPTNarrativeService> logger)
+    public GPTNarrativeService(
+        IConfiguration configuration,
+        ILogger<GPTNarrativeService> logger)
     {
-        _httpClient = new HttpClient();
-        _modelName = "gpt-4";
-        _apiKey = configuration.GetValue<string>("OpenAiApiKey");
         _logger = logger;
-        _logManager = new NarrativeLogManager();
+        _aiClient = new AIClientService(configuration);
+        _promptBuilder = new PromptBuilder();
+        _contextManager = new NarrativeContextManager();
     }
 
     public async Task<string> GenerateIntroductionAsync(string location, string incitingAction, EncounterStatus state)
     {
         string conversationId = $"{location}_{DateTime.Now.Ticks}";
 
-        // Enhanced system message with tag explanation
-        string systemMessage = @"You are the narrative engine for Wayfarer, a medieval life simulation RPG. Your writing style should be:
-- Vivid and sensory, emphasizing sights, sounds, smells, and atmosphere
-- Character-focused, with NPCs that feel real and distinctive
-- Historically grounded, avoiding fantasy tropes
-- Socially realistic, reflecting medieval social hierarchies and tensions
+        // Build prompt via PromptBuilder
+        string systemMessage = _promptBuilder.GetSystemMessage();
+        string prompt = _promptBuilder.BuildIntroductionPrompt(location, incitingAction, state);
 
-UNDERSTANDING TAGS:
-- Approach Tags represent HOW the player acts (Dominance, Rapport, Analysis, Precision, Concealment)
-- Focus Tags represent WHAT the player focuses on (Relationship, Information, Physical, Environment, Resource)
-- Active Tags represent special conditions in the current scene
+        // Store conversation context
+        _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
 
-Higher tag values (3-5) should strongly influence your description, while lower values (1-2) should subtly color it.";
+        // Call AI service and get response
+        string response = await _aiClient.GetCompletionAsync(
+            _contextManager.GetConversationHistory(conversationId));
 
-        // Format tags with explanations
-        string formattedTags = FormatTagsWithExplanations(state);
-
-        // Construct improved prompt
-        string prompt = $@"
-Create an introduction scene for the player character (PC) who has just {incitingAction} at the {location}.
-
-{formattedTags}
-
-Your introduction should:
-1. Establish a vivid sense of place with sensory details
-2. Hint at opportunities and challenges matching the active tags
-3. Be 2-3 paragraphs in length
-
-Make higher-value tags more prominent in your description. A tag value of 4-5 should strongly influence the scene, while 1-2 should be more subtle.";
-
-        // Initialize new conversation
-        List<ConversationEntry> history = new()
-        {
-            new ConversationEntry { Role = "system", Content = systemMessage },
-            new ConversationEntry { Role = "user", Content = prompt }
-        };
-
-        _conversationHistories[conversationId] = history;
-
-        // Call GPT and log
-        string response = await CallGPTWithLoggingAsync(conversationId);
-
-        // Add assistant message to history
-        history.Add(new ConversationEntry { Role = "assistant", Content = response });
+        // Update conversation history with response
+        _contextManager.AddAssistantMessage(conversationId, response);
 
         return response;
     }
@@ -83,99 +49,28 @@ Make higher-value tags more prominent in your description. A tag value of 4-5 sh
     {
         string conversationId = context.LocationName;
 
-        // Enhanced system message with tag interpretation guidelines
-        string systemMessage = @"You are the narrative engine for Wayfarer, a medieval life simulation. Your role is to create coherent, immersive narrative that responds to player choices. Your writing style:
+        // Build prompt via PromptBuilder
+        string systemMessage = _promptBuilder.GetSystemMessage();
+        string prompt = _promptBuilder.BuildReactionPrompt(
+            context, chosenOption, choiceDescription, outcome, newState);
 
-- Consequences-focused: Every choice affects the world and NPCs
-- Historically authentic: Reflect medieval social dynamics and realities
-- Character-driven: NPCs, if present, have consistent personalities, desires, and reactions
-- Sensory and immersive: Rich descriptions create a tangible world
-
-INTERPRETING TAGS:
-- Approach Tags (HOW): 
-  * Dominance: Force, authority, intimidation
-  * Rapport: Social connection, charm, persuasion
-  * Analysis: Intelligence, observation, problem-solving
-  * Precision: Careful execution, finesse, accuracy
-  * Concealment: Stealth, hiding, subterfuge
-
-- Focus Tags (WHAT):
-  * Relationship: Social dynamics, connections with others
-  * Information: Knowledge, facts, understanding
-  * Physical: Bodies, movement, physical objects
-  * Environment: Surroundings, spaces, terrain
-  * Resource: Items, money, supplies, valuables
-
-- Active Tags: Special conditions influencing the scene and available options
-
-Changes in tag values reflect the player's evolving approach. Incorporate these changes naturally in your narrative.";
-
-        // Format tags with explanations
-        string formattedTags = FormatTagsWithExplanations(newState);
-
-        // Create a concise narrative summary instead of using raw context
-        string narrativeSummary = CreateNarrativeSummary(context);
-
-        // Construct improved prompt
-        string prompt = $@"
-### Narrative Summary
-{narrativeSummary}
-
-### Player's Latest Choice
-The player chose: {chosenOption.Name} ({chosenOption.Approach} approach focused on {chosenOption.Focus})
-Specific action: {choiceDescription}
-
-### Outcome and Tag Changes
-{outcome.Description}
-- Momentum Gained: {outcome.MomentumGain} (Progress toward success)
-- Pressure Built: {outcome.PressureGain} (Complications or tension)
-
-{formattedTags}
-
-### Your Task
-1. Write how the environment and NPCs react to the player's specific choice ({chosenOption.Name})
-2. Show how the changes in tags manifest in the scene (especially: {GetSignificantTagChanges(newState)})
-3. Set up the next stage of the encounter
-4. Create 2-3 paragraphs that maintain narrative continuity
-
-Make your response feel like a natural continuation of the ongoing story.";
-
-        // Check if this is a new conversation or continuation
-        List<ConversationEntry> history;
-        if (!_conversationHistories.ContainsKey(conversationId))
+        // Initialize or update conversation context
+        if (!_contextManager.ConversationExists(conversationId))
         {
-            // New conversation - only system and current user message
-            history = new List<ConversationEntry>
-            {
-                new ConversationEntry { Role = "system", Content = systemMessage },
-                new ConversationEntry { Role = "user", Content = prompt }
-            };
-            _conversationHistories[conversationId] = history;
+            _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
         }
         else
         {
-            // Update existing conversation
-            history = _conversationHistories[conversationId];
-
-            // Replace system message with updated version
-            if (history.Count > 0 && history[0].Role == "system")
-            {
-                history[0] = new ConversationEntry { Role = "system", Content = systemMessage };
-            }
-            else
-            {
-                history.Insert(0, new ConversationEntry { Role = "system", Content = systemMessage });
-            }
-
-            // Add new user message
-            history.Add(new ConversationEntry { Role = "user", Content = prompt });
+            _contextManager.UpdateSystemMessage(conversationId, systemMessage);
+            _contextManager.AddUserMessage(conversationId, prompt);
         }
 
-        // Call GPT and log
-        string response = await CallGPTWithLoggingAsync(conversationId);
+        // Call AI service and get response
+        string response = await _aiClient.GetCompletionAsync(
+            _contextManager.GetConversationHistory(conversationId));
 
-        // Add assistant message
-        history.Add(new ConversationEntry { Role = "assistant", Content = response });
+        // Update conversation history with response
+        _contextManager.AddAssistantMessage(conversationId, response);
 
         return response;
     }
@@ -188,453 +83,282 @@ Make your response feel like a natural continuation of the ongoing story.";
     {
         string conversationId = context.LocationName;
 
-        // Enhanced system message with clearer guidance
-        string systemMessage = @"You are the narrative engine for Wayfarer, a medieval life simulation. Your task is to translate game choices into vivid, specific actions the player character (PC) can visualize.
+        // Build prompt via PromptBuilder
+        string systemMessage = _promptBuilder.GetSystemMessage();
+        string prompt = _promptBuilder.BuildChoicesPrompt(context, choices, projections, state);
 
-For each choice, create narrative text that:
-1. Shows exactly what the player character would DO or SAY
-2. Matches the approach (HOW) and focus (WHAT) of the choice
-3. Feels organic within the current scene
-4. Is written in second person perspective
+        // Initialize or update conversation context
+        if (!_contextManager.ConversationExists(conversationId))
+        {
+            _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
+        }
+        else
+        {
+            _contextManager.UpdateSystemMessage(conversationId, systemMessage);
+            _contextManager.AddUserMessage(conversationId, prompt);
+        }
 
-APPROACH TYPES (HOW):
-- Force: Authoritative, direct, sometimes physically imposing
-- Charm: Persuasive, friendly, socially adept
-- Wit: Analytical, observant, intellectually focused
-- Finesse: Careful, precise, skillful
-- Stealth: Hidden, subtle, secretive
+        // Call AI service and get response
+        string response = await _aiClient.GetCompletionAsync(
+            _contextManager.GetConversationHistory(conversationId));
 
-FOCUS TYPES (WHAT):
-- Relationship: Interactions with others, social dynamics
-- Information: Knowledge, learning, understanding
-- Physical: Bodies, items, physical manipulation
-- Environment: Surroundings, terrain, physical space
-- Resource: Items, money, supplies
+        // Update conversation history with response
+        _contextManager.AddAssistantMessage(conversationId, response);
 
-WRITING STYLE:
-- For social encounters: Use direct speech with quotation marks
-- For intellectual encounters: Use internal monologue
-- For physical encounters: Use action descriptions
-- Keep descriptions concise (1-2 sentences)
-- Make each choice distinct and true to its approach/focus";
+        // Process response into dictionary
+        return ChoiceResponseParser.ParseResponse(response, choices);
+    }
+}
 
-        // Create a concise narrative summary instead of using raw context
-        string narrativeSummary = CreateNarrativeSummary(context);
+// Handles building prompts for different narrative needs
+public class PromptBuilder
+{
+    private readonly TagFormatter _tagFormatter;
+    private readonly NarrativeSummaryBuilder _summaryBuilder;
+    private readonly EncounterTypeDetector _encounterDetector;
 
-        // Format tags with explanations
-        string formattedTags = FormatTagsWithExplanations(state);
+    public PromptBuilder()
+    {
+        _tagFormatter = new TagFormatter();
+        _summaryBuilder = new NarrativeSummaryBuilder();
+        _encounterDetector = new EncounterTypeDetector();
+    }
 
-        // Format choices with better explanations
-        StringBuilder choicesPrompt = new StringBuilder();
+    public string GetSystemMessage()
+    {
+        // Core system message with game principles
+        return @"# WAYFARER NARRATIVE ENGINE - SYSTEM CONTEXT
+
+You generate narrative content for ""Wayfarer,"" a medieval life simulation about a LONE, ORDINARY TRAVELER making their way in the world. This foundational concept must permeate all your writing:
+
+- SOLITARY JOURNEY: The player is a lone traveler with no companions or group
+- NO HEROES: The character is explicitly NOT special, chosen, or destined for greatness
+- NO EPIC QUESTS: Focus exclusively on everyday medieval challenges that ordinary people faced
+- SURVIVAL FOCUS: Emphasize basic needs - food, shelter, safety, modest income, social standing
+- GROUNDED REALITY: Depict authentic medieval life with its hardships, small victories, and mundane concerns
+- FINDING ONE'S PLACE: Center narratives on establishing modest security and belonging in a harsh world
+
+Every narrative you generate MUST adhere to this ordinary, SOLITARY traveler identity. No companions, no saving villages, no exceptional talents, no recognition beyond local connections. The character is simply trying to survive alone and find small comforts in a challenging world.
+
+## WORLD CONTEXT
+Wayfarer takes place in a strictly historical medieval setting (1200-1300 CE) without any magic, fantasy elements, or anachronisms. The world is unforgiving but not hopeless. Small kindnesses exist alongside daily struggles. Status and wealth differences are vast and largely fixed - social mobility is extremely limited. Most people never travel more than 20 miles from their birthplace. Survival often depends on community bonds and practical skills rather than heroic actions.
+
+## ENCOUNTER STRUCTURE
+Each encounter must maintain these strict structural elements:
+- ONE LOCATION: A single, specific setting (tavern, road, marketplace, etc.)
+- ONE GOAL: A clear, modest objective (secure a night's lodging, barter for supplies, avoid a thief)
+- LIMITED CHARACTERS: For social encounters, exactly ONE NPC. For intellectual or physical encounters, ZERO or ONE NPC (no groups)
+
+## NARRATIVE STYLE GUIDELINES
+- PRESENT TENSE ONLY: ALL narration MUST be in present tense (""I notice..."" not ""I noticed..."")
+- FIRST-PERSON VOICE: All content must be in first-person (""I see..."" not ""You see..."")
+- IMMEDIATE EXPERIENCE: Describe events as they are happening, not as recollections
+- LITERARY QUALITY: Use vivid imagery, varied sentence structure, and evocative language
+- HISTORICAL AUTHENTICITY: Maintain rigorous medieval accuracy in social structures and limitations
+- MODEST STAKES: Keep challenges personal and local, never world-changing or heroic
+- CONSISTENCY: Track established narrative elements and don't contradict previous content
+- ORDINARY PERSPECTIVE: Always frame events from the viewpoint of a common traveler";
+    }
+
+    public string BuildIntroductionPrompt(string location, string incitingAction, EncounterStatus state)
+    {
+        EncounterTypes encounterType = _encounterDetector.DetermineEncounterType(location, state);
+
+        // Get primary and secondary tags for initial emphasis
+        (string primaryApproach, string secondaryApproach) = _tagFormatter.GetSignificantApproachTags(state);
+        (string primaryFocus, string secondaryFocus) = _tagFormatter.GetSignificantFocusTags(state);
+
+        return $@"# ENCOUNTER INITIAL SETUP
+
+Create a BRIEF, GROUNDED encounter framework for a {encounterType} encounter at a {location} with:
+
+1. SETTING DETAILS:
+   - One specific medieval location with REALISTIC, HARSH conditions
+   - Maximum 3-4 sentences total on setting
+   - Include 1-2 practical sensory details 
+   - AVOID romanticized descriptions (""charming,"" ""nestled,"" ""cozy"")
+
+2. CHARACTER FRAMEWORK:
+   - One NPC who is SUSPICIOUS or NEUTRAL by default, not kind or welcoming
+   - Describe NPC in maximum 2 sentences if included
+   - For {encounterType} encounters: Focus primarily on the {(encounterType == EncounterTypes.Social ? "CHARACTER" : "ENVIRONMENT")}, not {(encounterType == EncounterTypes.Social ? "the environment" : "social interaction")}
+
+3. ENCOUNTER GOAL:
+   - The player has just {incitingAction} at this location
+   - State the encounter goal plainly in 1-2 sentences maximum
+
+4. STARTING CONDITIONS:
+   - Initial approach tag emphasis: {primaryApproach}, {secondaryApproach}
+   - Initial focus tag emphasis: {primaryFocus}, {secondaryFocus}
+   - Initial momentum/pressure: 0/0
+
+FORMAT YOUR RESPONSE AS A COHESIVE NARRATIVE:
+- Start with a brief title (3-5 words) on its own line
+- Write a continuous narrative (NOT a numbered list) that incorporates all the elements above naturally
+- Begin with the setting introduction, then weave in the NPC (if present), your goal, and relevant details
+- Use PRESENT TENSE ONLY and FIRST PERSON
+- Keep total response under 150 words
+
+IMPORTANT:
+- Remember the player is a LONE TRAVELER with NO COMPANIONS
+- Focus on BASIC SURVIVAL NEEDS or CHALLENGES, not comfort
+- Use PLAIN LANGUAGE appropriate to a common traveler
+- Portray medieval life as DIFFICULT and HARSH
+- For PHYSICAL encounters: Emphasize bodily sensations and physical effort, prefer action-oriented language
+- For INTELLECTUAL encounters: Focus on observations and mental challenges, prefer inner monologues and environment observations
+- For SOCIAL encounters: Focus on interaction dynamics and social pressure, prefer direct speech and NPC descriptions";
+    }
+
+    public string BuildReactionPrompt(
+        NarrativeContext context,
+        IChoice chosenOption,
+        string choiceDescription,
+        ChoiceOutcome outcome,
+        EncounterStatus newState)
+    {
+        EncounterTypes encounterType = _encounterDetector.DetermineEncounterType(context.LocationName, newState);
+
+        // Create a concise narrative summary
+        string narrativeSummary = _summaryBuilder.CreateSummary(context);
+
+        return $@"
+Generate a PURE NARRATIVE continuation using:
+- {GetEncounterStyleGuidance(encounterType)}
+- {GetSituationStyleGuidance(encounterType)}
+
+Location: {context.LocationName}
+Current Action: Player just chose ""{chosenOption.Name}"" ({chosenOption.Approach} + {chosenOption.Focus})
+Specific action taken: {choiceDescription}
+
+Result:
+- Momentum Gained: {outcome.MomentumGain} (Progress toward success)
+- Pressure Built: {outcome.PressureGain} (Complications or tension)
+- Current Momentum/Pressure: {newState.Momentum}/{newState.Pressure}
+- Significant Tags: {_tagFormatter.GetSignificantTagsFormatted(newState)}
+
+Recent Scene Context:
+{narrativeSummary}
+
+IMPORTANT REQUIREMENTS:
+- WRITE CONTINUOUS NARRATIVE with no mechanical labels, section breaks, or formatting
+- USE FIRST-PERSON PRESENT TENSE ONLY (""I notice..."" not ""You notice..."")
+- PORTRAY the character as a LONE TRAVELER with NO COMPANIONS
+- FOCUS on HARSH MEDIEVAL REALITIES (difficult conditions, social barriers, basic survival)
+- LIMIT to 2-3 paragraphs total
+- SHOW how {chosenOption.Approach} approach and {chosenOption.Focus} focus manifest in the scene
+- MAINTAIN historical accuracy for 1200-1300 CE (no fantasy elements or anachronisms)
+- EMPHASIZE the ordinary traveler perspective (no heroics, no special treatment)";
+    }
+
+    public string BuildChoicesPrompt(
+        NarrativeContext context,
+        List<IChoice> choices,
+        List<ChoiceProjection> projections,
+        EncounterStatus state)
+    {
+        EncounterTypes encounterType = _encounterDetector.DetermineEncounterType(context.LocationName, state);
+
+        // Create a concise narrative summary
+        string narrativeSummary = _summaryBuilder.CreateSummary(context);
+
+        StringBuilder prompt = new StringBuilder();
+        prompt.AppendLine($@"
+Generate PURE NARRATIVE descriptions for 6 choices. Each should be a concrete action the lone traveler might take:
+- {GetChoiceStyleGuidance(encounterType)}
+
+Current Scene: {context.LocationName}
+Current Situation: {narrativeSummary}
+Current Tags: {_tagFormatter.GetSignificantTagsFormatted(state)}
+
+Available Choices:");
+
+        // Add each choice with its mechanical properties
         for (int i = 0; i < choices.Count; i++)
         {
             IChoice choice = choices[i];
             ChoiceProjection projection = projections[i];
 
-            choicesPrompt.AppendLine($"Choice {i + 1}: {choice.Name}");
-            choicesPrompt.AppendLine($"- Core Concept: {choice.Description}");
-            choicesPrompt.AppendLine($"- Approach: {choice.Approach} (HOW they act)");
-            choicesPrompt.AppendLine($"- Focus: {choice.Focus} (WHAT they focus on)");
+            prompt.AppendLine($@"
 
-            if (choice.EffectType == EffectTypes.Momentum)
-                choicesPrompt.AppendLine($"- Effect: Makes progress (+{projection.MomentumGained} Momentum)");
-            else
-                choicesPrompt.AppendLine($"- Effect: Increases complications (+{projection.PressureBuilt} Pressure)");
-
-            if (projection.ApproachTagChanges.Count > 0 || projection.FocusTagChanges.Count > 0)
-            {
-                choicesPrompt.AppendLine("- Changes to player's approach:");
-                foreach (KeyValuePair<ApproachTags, int> change in projection.ApproachTagChanges)
-                    choicesPrompt.AppendLine($"  * {ExplainApproachTag(change.Key)}: {(change.Value > 0 ? "+" : "")}{change.Value}");
-                foreach (KeyValuePair<FocusTags, int> change in projection.FocusTagChanges)
-                    choicesPrompt.AppendLine($"  * {ExplainFocusTag(change.Key)}: {(change.Value > 0 ? "+" : "")}{change.Value}");
-            }
-
-            if (projection.NewlyActivatedTags.Count > 0)
-            {
-                choicesPrompt.AppendLine("- New conditions that will trigger:");
-                foreach (string tag in projection.NewlyActivatedTags)
-                {
-                    string tagExplanation = ExplainTag(tag);
-                    choicesPrompt.AppendLine($"  * {tag}: {tagExplanation}");
-                }
-            }
-
-            choicesPrompt.AppendLine();
+Choice {i + 1}: {choice.Name}
+- Approach: {choice.Approach} ({TagCharacteristicsProvider.GetApproachCharacteristics(choice.Approach.ToString())})
+- Focus: {choice.Focus} ({TagCharacteristicsProvider.GetFocusCharacteristics(choice.Focus.ToString())})
+- Effect: {(choice.EffectType == EffectTypes.Momentum ? $"MOMENTUM +{projection.MomentumGained}" : $"PRESSURE +{projection.PressureBuilt}")}
+- Key Tag Changes: {_tagFormatter.FormatKeyTagChanges(projection)}");
         }
 
-        // Construct improved prompt
-        string prompt = $@"
-### Current Scene
-{narrativeSummary}
+        // Add critical requirements
+        prompt.AppendLine($@"
 
-### Current State
-- Turn: {state.CurrentTurn}/{state.MaxTurns}
-- Momentum: {state.Momentum} (Progress toward success)
-- Pressure: {state.Pressure} (Level of complication/tension)
+CRITICAL REQUIREMENTS:
+- CREATE PURE NARRATIVE DESCRIPTIONS with NO mechanical labels or numbers
+- Format each choice simply as 'Choice 1: [Your description]', 'Choice 2: [Your description]', etc.
+- CHOICE DESCRIPTIONS MUST BE DISTINCTIVE: Each must clearly show its unique approach+focus
+- FOR MOMENTUM CHOICES: Show positive progress toward goal
+- FOR PRESSURE CHOICES: Show risk, confrontation, or heightening tension
+- REFER ONLY to already established elements (do not invent new details)
+- USE MEDIEVAL TERMS appropriate for a common traveler (no modern concepts)
+- EMPHASIZE the LONE TRAVELER - never imply companions or group activities
 
-{formattedTags}
+- MATCH each approach tag using these characteristics:
+  * Force: Direct, assertive, physical, strong
+  * Finesse: Careful, precise, skilled, attentive
+  * Wit: Clever, observant, strategic, analytical
+  * Charm: Friendly, appealing, warm, personable
+  * Stealth: Subtle, quiet, unobtrusive, indirect
 
-### Available Choices
-{choicesPrompt}
+- MATCH each focus tag using these characteristics:
+  * Relationship: Connection with people, status, trust
+  * Information: Facts, knowledge, secrets, details
+  * Physical: Bodies, items, direct interaction
+  * Environment: Surroundings, location features, conditions
+  * Resource: Money, supplies, time, valuables");
 
-### Your Task
-For each choice, write a vivid description of what the player character would specifically do or say if they selected this option. 
-
-Format your response exactly as:
-Choice 1: [Your vivid action description]
-Choice 2: [Your vivid action description]
-...and so on.
-
-Make sure each description:
-- Matches the approach and focus of the choice
-- Fits naturally in the current scene
-- Shows the specific action, not just the intention
-- Is written from first person perspective";
-
-        // Check if this is a new conversation or continuation
-        List<ConversationEntry> history;
-        if (!_conversationHistories.ContainsKey(conversationId))
-        {
-            // New conversation - only system and current user message
-            history = new List<ConversationEntry>
-            {
-                new ConversationEntry { Role = "system", Content = systemMessage },
-                new ConversationEntry { Role = "user", Content = prompt }
-            };
-            _conversationHistories[conversationId] = history;
-        }
-        else
-        {
-            // Update existing conversation
-            history = _conversationHistories[conversationId];
-
-            // Replace system message with updated version
-            if (history.Count > 0 && history[0].Role == "system")
-            {
-                history[0] = new ConversationEntry { Role = "system", Content = systemMessage };
-            }
-            else
-            {
-                history.Insert(0, new ConversationEntry { Role = "system", Content = systemMessage });
-            }
-
-            // Add new user message
-            history.Add(new ConversationEntry { Role = "user", Content = prompt });
-        }
-
-        // Call GPT and log
-        string response = await CallGPTWithLoggingAsync(conversationId);
-
-        // Add assistant message
-        history.Add(new ConversationEntry { Role = "assistant", Content = response });
-
-        // Parse the response into a dictionary (using existing parsing logic)
-        Dictionary<IChoice, string> result = new Dictionary<IChoice, string>();
-        string[] lines = response.Split('\n');
-
-        int currentChoice = -1;
-        StringBuilder currentDescription = new StringBuilder();
-
-        foreach (string line in lines)
-        {
-            string trimmedLine = line.Trim();
-
-            // Check if this is a new choice marker
-            if (trimmedLine.StartsWith("Choice ") && trimmedLine.Contains(":"))
-            {
-                // Save previous choice if exists
-                if (currentChoice >= 0 && currentChoice < choices.Count && currentDescription.Length > 0)
-                {
-                    result[choices[currentChoice]] = currentDescription.ToString().Trim();
-                    currentDescription.Clear();
-                }
-
-                // Parse new choice number
-                string[] parts = trimmedLine.Split(':', 2);
-                string choiceNumStr = parts[0].Substring("Choice ".Length).Trim();
-
-                if (int.TryParse(choiceNumStr, out int choiceNum) && choiceNum > 0 && choiceNum <= choices.Count)
-                {
-                    currentChoice = choiceNum - 1;
-                    if (parts.Length > 1)
-                    {
-                        currentDescription.AppendLine(parts[1].Trim());
-                    }
-                }
-            }
-            else if (currentChoice >= 0 && currentChoice < choices.Count && !string.IsNullOrWhiteSpace(trimmedLine))
-            {
-                // Add to current description
-                currentDescription.AppendLine(trimmedLine);
-            }
-        }
-
-        // Add the last choice if not added
-        if (currentChoice >= 0 && currentChoice < choices.Count && currentDescription.Length > 0)
-        {
-            result[choices[currentChoice]] = currentDescription.ToString().Trim();
-        }
-
-        // Fill in any missing choices with defaults
-        foreach (IChoice choice in choices.Where(c => !result.ContainsKey(c)))
-        {
-            result[choice] = choice.Description;
-        }
-
-        return result;
+        return prompt.ToString();
     }
 
-    // Helper method to format tags with explanations
-    private string FormatTagsWithExplanations(EncounterStatus state)
+    private string GetEncounterStyleGuidance(EncounterTypes type)
     {
-        StringBuilder tagInfo = new StringBuilder("### Current Game State\n");
-
-        // Format Approach Tags with explanations
-        tagInfo.AppendLine("APPROACH TAGS (how the player acts):");
-        foreach (var tag in state.ApproachTags.OrderByDescending(t => t.Value))
+        switch (type)
         {
-            string explanation = ExplainApproachTag((ApproachTags)Enum.Parse(typeof(ApproachTags), tag.Key.ToString()));
-            string significance = tag.Value >= 4 ? " (MAJOR)" : tag.Value >= 2 ? " (significant)" : " (minor)";
-            tagInfo.AppendLine($"- {tag.Key}: {tag.Value}{significance} - {explanation}");
-        }
-
-        // Format Focus Tags with explanations
-        tagInfo.AppendLine("\nFOCUS TAGS (what the player focuses on):");
-        foreach (var tag in state.FocusTags.OrderByDescending(t => t.Value))
-        {
-            string explanation = ExplainFocusTag((FocusTags)Enum.Parse(typeof(FocusTags), tag.Key.ToString()));
-            string significance = tag.Value >= 4 ? " (MAJOR)" : tag.Value >= 2 ? " (significant)" : " (minor)";
-            tagInfo.AppendLine($"- {tag.Key}: {tag.Value}{significance} - {explanation}");
-        }
-
-        // Format Active Tags with explanations
-        if (state.ActiveTagNames.Any())
-        {
-            tagInfo.AppendLine("\nACTIVE TAGS (special conditions):");
-            foreach (var tag in state.ActiveTagNames)
-            {
-                string explanation = ExplainTag(tag);
-                tagInfo.AppendLine($"- {tag}: {explanation}");
-            }
-        }
-
-        return tagInfo.ToString();
-    }
-
-    // Create a narrative summary from context
-    private string CreateNarrativeSummary(NarrativeContext context)
-    {
-        // Extract the most recent narrative events (up to 3)
-        var recentEvents = context.Events
-            .OrderByDescending(e => e.TurnNumber)
-            .Take(3)
-            .OrderBy(e => e.TurnNumber)
-            .ToList();
-
-        if (!recentEvents.Any())
-            return "The encounter has just begun.";
-
-        StringBuilder summary = new StringBuilder();
-
-        // Get location and initial action
-        summary.AppendLine($"Location: {context.LocationName}");
-        summary.AppendLine($"Initial action: {context.IncitingAction}");
-        summary.AppendLine();
-
-        // Add recent narrative events
-        foreach (var evt in recentEvents)
-        {
-            // If it's the first event, include its description
-            if (evt.TurnNumber == 0)
-            {
-                summary.AppendLine("Scene began:");
-                summary.AppendLine(evt.SceneDescription.Trim());
-                summary.AppendLine();
-            }
-            else if (!string.IsNullOrEmpty(evt.ChosenOption.Description))
-            {
-                summary.AppendLine($"Turn {evt.TurnNumber}: Player chose \"{evt.ChosenOption?.Name}\"");
-                summary.AppendLine($"Action: {evt.ChosenOption.Description}");
-                summary.AppendLine($"Result: {evt.SceneDescription.Trim()}");
-                summary.AppendLine();
-            }
-        }
-
-        return summary.ToString();
-    }
-
-    // Helper method to get significant tag changes
-    private string GetSignificantTagChanges(EncounterStatus state)
-    {
-        // In a real implementation, you would compare with previous state
-        // For now, return tags with high values as a placeholder
-        var highApproachTags = state.ApproachTags
-            .Where(t => t.Value >= 3)
-            .OrderByDescending(t => t.Value)
-            .Take(2)
-            .Select(t => $"{t.Key} ({t.Value})");
-
-        var highFocusTags = state.FocusTags
-            .Where(t => t.Value >= 3)
-            .OrderByDescending(t => t.Value)
-            .Take(2)
-            .Select(t => $"{t.Key} ({t.Value})");
-
-        return string.Join(", ", highApproachTags.Concat(highFocusTags));
-    }
-
-    // Helper methods to explain tags
-    private string ExplainApproachTag(ApproachTags tag)
-    {
-        switch (tag)
-        {
-            case ApproachTags.Dominance:
-                return "Using authority, force, or intimidation";
-            case ApproachTags.Rapport:
-                return "Building social connections through charm and empathy";
-            case ApproachTags.Analysis:
-                return "Using intelligence and careful observation";
-            case ApproachTags.Precision:
-                return "Acting with careful skill and finesse";
-            case ApproachTags.Concealment:
-                return "Using stealth or hiding intentions";
+            case EncounterTypes.Social:
+                return "Direct dialogue with simple, practical words";
+            case EncounterTypes.Intellectual:
+                return "Brief thought process using common language";
+            case EncounterTypes.Physical:
+                return "Clear description of physical actions and immediate results";
             default:
-                return tag.ToString();
+                return "Practical description focusing on immediate situation";
         }
     }
 
-    private string ExplainFocusTag(FocusTags tag)
+    private string GetSituationStyleGuidance(EncounterTypes type)
     {
-        switch (tag)
+        switch (type)
         {
-            case FocusTags.Relationship:
-                return "Focusing on social connections and dynamics";
-            case FocusTags.Information:
-                return "Seeking knowledge and understanding";
-            case FocusTags.Physical:
-                return "Engaging with bodies, movement, or physical objects";
-            case FocusTags.Environment:
-                return "Interacting with surroundings and spaces";
-            case FocusTags.Resource:
-                return "Managing items, money, or supplies";
+            case EncounterTypes.Social:
+                return "Specific changes in NPC behavior and environment";
+            case EncounterTypes.Intellectual:
+                return "Concrete details you can see, hear, smell";
+            case EncounterTypes.Physical:
+                return "Exact description of your body position, terrain, and nearby objects";
             default:
-                return tag.ToString();
+                return "Concrete, observable details in your immediate surroundings";
         }
     }
 
-    private string ExplainTag(string tagName)
+    private string GetChoiceStyleGuidance(EncounterTypes type)
     {
-        // Map common tag names to explanations
-        if (tagName.Contains("Respect"))
-            return "The player has earned respect through social skills";
-        else if (tagName.Contains("Eye") || tagName.Contains("Haggler"))
-            return "The player shows skill in negotiations";
-        else if (tagName.Contains("Wisdom"))
-            return "The player demonstrates intellectual insight";
-        else if (tagName.Contains("Network"))
-            return "The player has established social connections";
-        else if (tagName.Contains("Guard"))
-            return "Security presence is heightened";
-        else if (tagName.Contains("Suspicion"))
-            return "Others are wary of the player's intentions";
-        else if (tagName.Contains("Surrounded"))
-            return "The player has limited movement options";
-        else if (tagName.Contains("Drawn Weapons"))
-            return "The situation has escalated to potential violence";
-        else if (tagName.Contains("Marketplace"))
-            return "Open public setting with many witnesses";
-        else if (tagName.Contains("Room"))
-            return "Indoor setting with limited privacy";
-
-        // Generate a reasonable explanation for unknown tags
-        if (tagName.Contains("Tension"))
-            return "The situation is becoming more volatile";
-        else if (tagName.Contains("Ready"))
-            return "Prepared for conflict or challenge";
-        else if (tagName.Contains("Favor"))
-            return "Someone has a positive disposition toward the player";
-        else if (tagName.Contains("Patron"))
-            return "The player has established a privileged position";
-
-        return "Special condition affecting available options";
-    }
-
-    private async Task<string> CallGPTWithLoggingAsync(string conversationId)
-    {
-        // Get a unique log file path for this request
-        string logFilePath = _logManager.GetNextLogFilePath();
-
-        // Get conversation history
-        var history = _conversationHistories[conversationId];
-
-        // Prepare API messages - including full history
-        var messages = history.Select(m => new { role = m.Role, content = m.Content }).ToArray();
-
-        var requestBody = new
+        switch (type)
         {
-            model = _modelName,
-            messages = messages,
-            temperature = 0.7
-        };
-
-        // Log conversation history to file
-        using (StreamWriter writer = File.CreateText(logFilePath))
-        {
-            var options = new JsonSerializerOptions { WriteIndented = true };
-
-            // Write conversation history
-            writer.WriteLine("// Full Conversation History");
-            writer.WriteLine(JsonSerializer.Serialize(history, options));
-
-            // Write API request
-            writer.WriteLine("\n// API Request");
-            writer.WriteLine(JsonSerializer.Serialize(requestBody, options));
+            case EncounterTypes.Social:
+                return "Exact words I would speak (5-15 words of simple dialogue)";
+            case EncounterTypes.Intellectual:
+                return "Specific thinking approach (examining, comparing, recalling, etc.)";
+            case EncounterTypes.Physical:
+                return "Precise physical action I would take (climbing, shifting weight, etc.)";
+            default:
+                return "Specific action I would take in this situation";
         }
-
-        // Make API call
-        StringContent content = new StringContent(
-            JsonSerializer.Serialize(requestBody),
-            Encoding.UTF8,
-            "application/json");
-
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-        HttpResponseMessage response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content);
-
-        if (response.IsSuccessStatusCode)
-        {
-            string jsonResponse = await response.Content.ReadAsStringAsync();
-
-            // Parse response
-            using (JsonDocument document = JsonDocument.Parse(jsonResponse))
-            {
-                JsonElement root = document.RootElement;
-                JsonElement choices = root.GetProperty("choices");
-                JsonElement firstChoice = choices[0];
-                JsonElement message = firstChoice.GetProperty("message");
-                string? generatedContent = message.GetProperty("content").GetString();
-
-                // Append response to log file
-                using (StreamWriter writer = File.AppendText(logFilePath))
-                {
-                    writer.WriteLine("\n// API Response");
-                    writer.WriteLine(jsonResponse);
-                    writer.WriteLine("\n// Final Content");
-                    writer.WriteLine(generatedContent);
-                }
-
-                return generatedContent;
-            }
-        }
-
-        // Log error
-        using (StreamWriter writer = File.AppendText(logFilePath))
-        {
-            writer.WriteLine("\n// API Error");
-            writer.WriteLine($"Status Code: {response.StatusCode}");
-            writer.WriteLine(await response.Content.ReadAsStringAsync());
-        }
-
-        throw new Exception($"Failed to get response from GPT: {response.StatusCode}");
     }
 }
