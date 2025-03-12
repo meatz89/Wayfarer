@@ -1,5 +1,4 @@
-﻿// Updated parser to handle first-person action summaries
-using BlazorRPG.Game.EncounterManager;
+﻿using BlazorRPG.Game.EncounterManager;
 using System.Text;
 
 public static class ChoiceResponseParser
@@ -10,7 +9,6 @@ public static class ChoiceResponseParser
         string[] lines = response.Split('\n');
 
         int currentChoice = -1;
-        string currentSummary = string.Empty;
         StringBuilder currentDescription = new StringBuilder();
 
         foreach (string line in lines)
@@ -23,9 +21,12 @@ public static class ChoiceResponseParser
                 // Save previous choice if exists
                 if (currentChoice >= 0 && currentChoice < choices.Count && currentDescription.Length > 0)
                 {
-                    result[choices[currentChoice]] = new ChoiceNarrative(currentSummary, currentDescription.ToString().Trim());
+                    string fullDescription = currentDescription.ToString().Trim();
+                    // Generate a meaningful action summary from the first portion of description
+                    string actionSummary = CreateActionSummaryFromDescription(fullDescription);
+
+                    result[choices[currentChoice]] = new ChoiceNarrative(actionSummary, fullDescription);
                     currentDescription.Clear();
-                    currentSummary = string.Empty;
                 }
 
                 // Parse new choice number
@@ -35,93 +36,79 @@ public static class ChoiceResponseParser
                 if (int.TryParse(choiceNumStr, out int choiceNum) && choiceNum > 0 && choiceNum <= choices.Count)
                 {
                     currentChoice = choiceNum - 1;
-
                     if (parts.Length > 1)
                     {
-                        string content = parts[1].Trim();
-
-                        // Check if there's a summary: full format with " - " separator
-                        if (content.Contains(" - "))
-                        {
-                            string[] contentParts = content.Split(new[] { " - " }, 2, StringSplitOptions.None);
-                            currentSummary = contentParts[0].Trim();
-
-                            if (contentParts.Length > 1)
-                            {
-                                currentDescription.AppendLine(contentParts[1].Trim());
-                            }
-                        }
-                        else
-                        {
-                            // If no separator, the whole line is the summary and description starts with next line
-                            currentSummary = content;
-                        }
+                        currentDescription.AppendLine(parts[1].Trim());
                     }
                 }
             }
             else if (currentChoice >= 0 && currentChoice < choices.Count && !string.IsNullOrWhiteSpace(trimmedLine))
             {
-                // If we have a summary but no description yet, and this is the first content line,
-                // check if it might be a continuation of the summary (no " - " separator)
-                if (currentDescription.Length == 0 && !string.IsNullOrEmpty(currentSummary) && !currentSummary.StartsWith("I "))
-                {
-                    // If current summary doesn't start with "I" but this line does, it might be the real summary
-                    if (trimmedLine.StartsWith("I "))
-                    {
-                        // Move the previous "summary" to the description
-                        currentDescription.AppendLine(currentSummary);
-                        // Set the new summary
-                        currentSummary = trimmedLine;
-                    }
-                    else
-                    {
-                        // Just add to description
-                        currentDescription.AppendLine(trimmedLine);
-                    }
-                }
-                else
-                {
-                    // Add to current description
-                    currentDescription.AppendLine(trimmedLine);
-                }
+                // Add to current description
+                currentDescription.AppendLine(trimmedLine);
             }
         }
 
         // Add the last choice if not added
         if (currentChoice >= 0 && currentChoice < choices.Count && currentDescription.Length > 0)
         {
-            result[choices[currentChoice]] = new ChoiceNarrative(currentSummary, currentDescription.ToString().Trim());
+            string fullDescription = currentDescription.ToString().Trim();
+            string actionSummary = CreateActionSummaryFromDescription(fullDescription);
+
+            result[choices[currentChoice]] = new ChoiceNarrative(actionSummary, fullDescription);
         }
 
         // Fill in any missing choices with defaults
         foreach (IChoice choice in choices.Where(c => !result.ContainsKey(c)))
         {
-            // Create a default first-person summary from the choice name if missing
-            string summary = $"I {choice.Name.ToLower()}";
-            result[choice] = new ChoiceNarrative(summary, choice.Description);
-        }
+            string actionSummary = $"I {choice.Approach.ToString().ToLower()} with {choice.Focus.ToString().ToLower()}";
+            string description = $"I use my {choice.Approach} approach focused on {choice.Focus} to address the situation.";
 
-        // Ensure all summaries start with "I" and are within length guidelines
-        foreach (var key in result.Keys.ToList())
-        {
-            var narrative = result[key];
-
-            // Ensure summary starts with "I"
-            if (!narrative.ShorthandName.StartsWith("I ", StringComparison.OrdinalIgnoreCase))
-            {
-                narrative.ShorthandName = $"I {narrative.ShorthandName.ToLower()}";
-            }
-
-            // Trim summary to reasonable length if too long
-            if (narrative.ShorthandName.Split(' ').Length > 10)
-            {
-                var words = narrative.ShorthandName.Split(' ').Take(10).ToArray();
-                narrative.ShorthandName = string.Join(" ", words);
-            }
-
-            result[key] = narrative;
+            result[choice] = new ChoiceNarrative(actionSummary, description);
         }
 
         return result;
+    }
+
+    private static string CreateActionSummaryFromDescription(string description)
+    {
+        // Remove any text that appears after punctuation marks
+        int firstPunctuation = FindFirstMajorPunctuation(description);
+        string firstSentenceOrClause = firstPunctuation > 0
+            ? description.Substring(0, firstPunctuation).Trim()
+            : description;
+
+        // Take first 6-10 words as summary
+        string[] words = firstSentenceOrClause.Split(' ');
+        int wordCount = Math.Min(words.Length, words.Length < 8 ? words.Length : 8);
+
+        string summary = string.Join(" ", words.Take(wordCount));
+
+        // Ensure it starts with "I"
+        if (!summary.StartsWith("I ", StringComparison.OrdinalIgnoreCase))
+        {
+            summary = "I " + summary;
+        }
+
+        // Add ellipsis if we truncated
+        if (words.Length > wordCount)
+        {
+            summary += "...";
+        }
+
+        return summary;
+    }
+
+    private static int FindFirstMajorPunctuation(string text)
+    {
+        int commaPos = text.IndexOf(',');
+        int periodPos = text.IndexOf('.');
+        int semicolonPos = text.IndexOf(';');
+        int dashPos = text.IndexOf(" - ");
+
+        List<int> positions = new List<int> { commaPos, periodPos, semicolonPos, dashPos };
+        positions = positions.Where(p => p > 0).ToList();
+
+        return positions.Any() ? positions.Min() : text.Length;
     }
 }
