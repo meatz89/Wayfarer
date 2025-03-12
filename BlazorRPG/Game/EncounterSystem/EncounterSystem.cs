@@ -30,7 +30,7 @@ public class EncounterSystem
         LocationInfo location = LocationFactory.CreateBanditAmbush();
 
         // Create encounter manager
-        encounterResult = await StartEncounterAt(location);
+        encounterResult = await StartEncounterAt(location, actionImplementation);
 
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
@@ -41,7 +41,7 @@ public class EncounterSystem
         return encounterResult;
     }
 
-    public async Task<EncounterResult> StartEncounterAt(LocationInfo location)
+    public async Task<EncounterResult> StartEncounterAt(LocationInfo location, ActionImplementation actionImplementation)
     {
         // Create the core components
         ChoiceRepository choiceRepository = new ChoiceRepository();
@@ -49,7 +49,7 @@ public class EncounterSystem
         NarrativePresenter narrativePresenter = new NarrativePresenter();
 
         // Create encounter manager
-        EncounterManager encounter = new EncounterManager(cardSelector, choiceRepository, narrativePresenter);
+        EncounterManager encounter = new EncounterManager(actionImplementation, cardSelector, narrativePresenter);
         this.Encounter = encounter;
 
         SpecialChoice negotiatePriceChoice = GetSpecialChoiceFor(location);

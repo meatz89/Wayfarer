@@ -9,6 +9,7 @@ namespace BlazorRPG.Game.EncounterManager
     {
         public bool useAiNarrative = true;
 
+        public ActionImplementation ActionImplementation;
         private readonly CardSelectionAlgorithm _cardSelector;
         private readonly NarrativePresenter _narrativePresenter;
         public EncounterState State;
@@ -16,15 +17,15 @@ namespace BlazorRPG.Game.EncounterManager
         private INarrativeAIService _narrativeService;
         private NarrativeContext _narrativeContext;
 
-        public ActionImplementation ActionImplementation;
 
         public List<IChoice> CurrentChoices = new List<IChoice>();
 
         public EncounterManager(
+            ActionImplementation actionImplementation,
             CardSelectionAlgorithm cardSelector,
-            ChoiceRepository choiceRepository,
             NarrativePresenter narrativePresenter)
         {
+            ActionImplementation = actionImplementation;
             _cardSelector = cardSelector;
             _narrativePresenter = narrativePresenter;
         }
