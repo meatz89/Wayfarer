@@ -325,7 +325,7 @@ public class AIClientService
         string lastUserMessage = conversationHistory
             .LastOrDefault(e => e.Role == "user")?.Content ?? string.Empty;
 
-        if (lastUserMessage.Contains("Generate PURE NARRATIVE descriptions for 6 choices"))
+        if (lastUserMessage.Contains("Generate PURE NARRATIVE descriptions for 4 choices"))
         {
             return "choices";
         }

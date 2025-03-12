@@ -1,3 +1,3 @@
 {
-	"prompt": "Generate detailed first-person action descriptions for 6 choices. Each description should vividly capture what the traveler would specifically do:\n- {CHOICE_STYLE_GUIDANCE}\n\nCurrent Scene: {LOCATION}\nCurrent Situation: {NARRATIVE_SUMMARY}\nCurrent Tags: {SIGNIFICANT_TAGS}\n\nAvailable Choices:{CHOICES_INFO}\n\n{CHOICE_REQUIREMENTS}"
+	"prompt": "Generate detailed first-person action descriptions for 4 choices. Each description should vividly capture what the traveler would specifically do:\n- {CHOICE_STYLE_GUIDANCE}\n\nCurrent Scene: {LOCATION}\nCurrent Situation: {NARRATIVE_SUMMARY}\nCurrent Tags: {SIGNIFICANT_TAGS}\n\nAvailable Choices:{CHOICES_INFO}\n\n{CHOICE_REQUIREMENTS}"
 }
