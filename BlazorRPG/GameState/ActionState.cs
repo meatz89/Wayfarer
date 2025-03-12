@@ -2,6 +2,7 @@
 
 public class ActionState
 {
+    public List<UserEncounterChoiceOption> UserEncounterChoiceOptions;
     public UserActionOption CurrentUserAction { get; set; }
     public List<UserActionOption> GlobalActions { get; set; } = new();
     public List<UserActionOption> LocationSpotActions { get; set; } = new();
@@ -13,17 +14,11 @@ public class ActionState
     public List<Quest> ActiveQuests { get; set; }
 
     public EncounterManager CurrentEncounter { get; set; }
-    public List<UserEncounterChoiceOption> CurrentChoiceOptions { get; set; }
     public EncounterResult EncounterResult { get; set; }
 
     public EncounterManager GetCurrentEncounter()
     {
         return this.CurrentEncounter;
-    }
-
-    public void SetEncounterChoiceOptions(List<UserEncounterChoiceOption> options)
-    {
-        CurrentChoiceOptions = options;
     }
 
     public void CompleteActiveEncounter()
@@ -37,8 +32,6 @@ public class ActionState
         CurrentEncounter = encounter;
         EncounterResult = new EncounterResult()
         { Encounter = encounter, EncounterResults = EncounterResults.Ongoing };
-
-        CurrentChoiceOptions = new();
     }
 
     public void SetLastActionResultMessages(ActionResultMessages allMessages)
@@ -86,4 +79,8 @@ public class ActionState
         QuestActions.AddRange(actions);
     }
 
+    public void SetEncounterChoiceOptions(List<UserEncounterChoiceOption> choiceOptions)
+    {
+        this.UserEncounterChoiceOptions = choiceOptions;
+    }
 }

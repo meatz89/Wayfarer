@@ -579,11 +579,16 @@ public class GameManager
     public EncounterViewModel? GetEncounterViewModel()
     {
         EncounterViewModel model = new EncounterViewModel();
-        model.CurrentEncounter = EncounterSystem.GetActiveEncounter();
-        model.CurrentChoices = EncounterSystem.GetCurrentChoices();
+        EncounterManager encounterManager = EncounterSystem.GetActiveEncounter();
+        List<UserEncounterChoiceOption> userEncounterChoiceOptions = EncounterSystem.GetUserEncounterChoiceOptions();
+        EncounterState state = EncounterSystem.Encounter.State;
+        EncounterResult encounterResult = EncounterResult;
+
+        model.CurrentEncounter = encounterManager;
+        model.CurrentChoices = userEncounterChoiceOptions;
         model.ChoiceSetName = "choiceset";
-        model.State = EncounterSystem.Encounter.State;
-        model.EncounterResult = EncounterResult;
+        model.State = state;
+        model.EncounterResult = encounterResult;
 
         return model;
     }

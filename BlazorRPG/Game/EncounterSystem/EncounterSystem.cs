@@ -1,13 +1,11 @@
 ﻿using BlazorRPG.Game.EncounterManager;
 using BlazorRPG.Game.EncounterManager.NarrativeAi;
-using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics.Metrics;
 
 public class EncounterSystem
 {
     private readonly GameState gameState;
     private readonly NarrativeSystem narrativeSystem;
-    private readonly GPTNarrativeService narrativeService;
+    private readonly INarrativeAIService narrativeService;
 
     public EncounterManager Encounter;
     public EncounterResult encounterResult;
@@ -17,11 +15,11 @@ public class EncounterSystem
         NarrativeSystem narrativeSystem,
         MessageSystem messageSystem,
         GameContentProvider contentProvider,
-        GPTNarrativeService gptNarrativeService)
+        INarrativeAIService narrativeService)
     {
         this.gameState = gameState;
         this.narrativeSystem = narrativeSystem;
-        this.narrativeService = gptNarrativeService;
+        this.narrativeService = narrativeService;
     }
 
     public async Task<EncounterResult> GenerateEncounter(EncounterContext context, ActionImplementation actionImplementation)
@@ -141,9 +139,9 @@ public class EncounterSystem
         return Encounter.GetCurrentChoices();
     }
 
-    public List<UserEncounterChoiceOption> GetCurrentChoices()
+    public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions()
     {
-        return gameState.Actions.CurrentChoiceOptions;
+        return gameState.Actions.UserEncounterChoiceOptions;
     }
 
     public ChoiceProjection GetChoiceProjection(EncounterManager encounter, IChoice choice)

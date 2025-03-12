@@ -7,14 +7,14 @@ namespace BlazorRPG.Game.EncounterManager.NarrativeAi
     /// </summary>
     public class NarrativeContext
     {
-        public string Location { get; }
+        public string LocationName { get; }
         public string IncitingAction { get; }
         public List<NarrativeEvent> Events { get; } = new List<NarrativeEvent>();
         public PresentationStyles CurrentStyle { get; set; }
 
         public NarrativeContext(string location, string incitingAction, PresentationStyles style)
         {
-            Location = location;
+            LocationName = location;
             IncitingAction = incitingAction;
             CurrentStyle = style;
         }
@@ -35,7 +35,7 @@ namespace BlazorRPG.Game.EncounterManager.NarrativeAi
         public string ToPrompt()
         {
             StringBuilder prompt = new StringBuilder();
-            prompt.AppendLine($"Location: {Location}");
+            prompt.AppendLine($"Location: {LocationName}");
             prompt.AppendLine($"Inciting Action: {IncitingAction}");
             prompt.AppendLine($"Presentation Style: {CurrentStyle}");
             prompt.AppendLine();

@@ -1,7 +1,4 @@
 using Serilog;
-using Serilog.Events;
-using Serilog.Filters;
-using Serilog.Formatting.Json;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +10,7 @@ var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
     .Build();
 
+builder.Services.AddGameServices();
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
@@ -28,7 +26,6 @@ AppDomain.CurrentDomain.ProcessExit += (s, e) => Log.CloseAndFlush();
 
 
 // Register your game services
-builder.Services.AddGameServices();
 builder.Host.UseSerilog();
 
 WebApplication app = builder.Build();

@@ -61,7 +61,8 @@ public partial class EncounterViewBase : ComponentBase
     public string GetChoiceDescription(UserEncounterChoiceOption choice)
     {
         IChoice choice1 = choice.Choice;
-        string description = Model.EncounterResult.NarrativeResult.ChoiceDescriptions[choice1];
+        Dictionary<IChoice, string> choiceDescriptions = Model.EncounterResult.NarrativeResult.ChoiceDescriptions;
+        string description = choiceDescriptions[choice1];
         return description;
     }
 

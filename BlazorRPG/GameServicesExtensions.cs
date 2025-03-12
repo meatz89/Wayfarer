@@ -27,8 +27,13 @@ public static class GameServicesExpressures
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<ActionSystem>();
         services.AddSingleton<GameManager>();
-        
-        services.AddSingleton<GPTNarrativeService>();
+
+        // Add this before your existing logger configuration
+        services.AddSingleton<NarrativeLogManager>();
+
+        // Update your existing registration of GPTNarrativeService:
+        services.AddSingleton<INarrativeAIService, GPTNarrativeService>();
+
 
         return services;
     }
