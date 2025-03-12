@@ -1,6 +1,8 @@
-﻿using System.Net.Http.Headers;
+﻿using Microsoft.Extensions.Logging;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace BlazorRPG.Game.EncounterManager.NarrativeAi
 {
@@ -9,15 +11,20 @@ namespace BlazorRPG.Game.EncounterManager.NarrativeAi
     /// </summary>
     public class GPTNarrativeService : INarrativeAIService
     {
-        private const string _apiKey = "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";
+        private string _apiKey = "";
 
         private readonly HttpClient _httpClient;
         private readonly string _modelName;
+        private string modelName = "gpt-4";
 
-        public GPTNarrativeService(string modelName = "gpt-4")
+        public ILogger<GPTNarrativeService> Logger { get; }
+
+        public GPTNarrativeService(IConfiguration configuration, ILogger<GPTNarrativeService> logger)
         {
             _httpClient = new HttpClient();
             _modelName = modelName;
+            _apiKey = configuration.GetValue<string>("OpenAiApiKey");
+            Logger = logger;
         }
 
         public async Task<string> GenerateIntroductionAsync(string location, string incitingAction, EncounterStatus state)
@@ -37,7 +44,23 @@ namespace BlazorRPG.Game.EncounterManager.NarrativeAi
                 any relevant NPCs or environmental elements the player will interact with.
                 ";
 
+            LogToFile("system", prompt);
+
             return await CallGPTAsync(prompt);
+        }
+
+        private void LogToFile(string role, string prompt)
+        {
+            // Pre-process the prompt to collapse extra whitespace if needed:
+            string compactPrompt = Regex.Replace(prompt, @"\s+", " ").Trim();
+
+            // Log the JSON message:
+            var options = new JsonSerializerOptions { WriteIndented = false };
+            Logger.LogInformation(JsonSerializer.Serialize(new
+            {
+                role = role,
+                content = compactPrompt
+            }, options));
         }
 
         public async Task<string> GenerateReactionAndSceneAsync(
@@ -76,6 +99,8 @@ namespace BlazorRPG.Game.EncounterManager.NarrativeAi
                 For intellectual encounters, use internal monologue.
                 For physical encounters, use action descriptions.
                 ";
+
+            LogToFile("user", prompt);
 
             return await CallGPTAsync(prompt);
         }
@@ -144,6 +169,8 @@ namespace BlazorRPG.Game.EncounterManager.NarrativeAi
 
                 Each description should be 1-2 sentences that fit naturally with the established scene and context.
                 ";
+
+            LogToFile("user", prompt);
 
             string response = await CallGPTAsync(prompt);
 

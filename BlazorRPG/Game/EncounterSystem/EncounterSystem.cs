@@ -16,11 +16,12 @@ public class EncounterSystem
         GameState gameState,
         NarrativeSystem narrativeSystem,
         MessageSystem messageSystem,
-        GameContentProvider contentProvider)
+        GameContentProvider contentProvider,
+        GPTNarrativeService gptNarrativeService)
     {
         this.gameState = gameState;
         this.narrativeSystem = narrativeSystem;
-        this.narrativeService = new GPTNarrativeService();
+        this.narrativeService = gptNarrativeService;
     }
 
     public async Task<EncounterResult> GenerateEncounter(EncounterContext context, ActionImplementation actionImplementation)

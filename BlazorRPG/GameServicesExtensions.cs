@@ -1,4 +1,5 @@
 ﻿using BlazorRPG.Game.EncounterManager;
+using BlazorRPG.Game.EncounterManager.NarrativeAi;
 
 public static class GameServicesExpressures
 {
@@ -26,6 +27,8 @@ public static class GameServicesExpressures
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<ActionSystem>();
         services.AddSingleton<GameManager>();
+        
+        services.AddSingleton<GPTNarrativeService>();
 
         return services;
     }
