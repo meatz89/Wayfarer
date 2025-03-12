@@ -77,7 +77,7 @@ public class EncounterSystem
         IChoice choice)
     {
         NarrativeResult currentResult = narrativeResult;
-        string selectedDescription = currentResult.ChoiceDescriptions[choice];
+        ChoiceNarrative selectedDescription = currentResult.ChoiceDescriptions[choice];
 
         if (!currentResult.IsEncounterOver)
         {

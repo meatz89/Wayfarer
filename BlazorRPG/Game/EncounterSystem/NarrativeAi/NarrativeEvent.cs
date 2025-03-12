@@ -8,24 +8,24 @@
         public int TurnNumber { get; }
         public string SceneDescription { get; }
         public IChoice ChosenOption { get; }
-        public string ChosenOptionDescription { get; }
+        public ChoiceNarrative ChoiceNarrative { get; }
         public string Outcome { get; }
-        public Dictionary<IChoice, string> AvailableChoiceDescriptions { get; }
+        public Dictionary<IChoice, ChoiceNarrative> AvailableChoiceDescriptions { get; }
 
         public NarrativeEvent(
             int turnNumber,
             string sceneDescription,
             IChoice chosenOption = null,
-            string chosenOptionDescription = null,
+            ChoiceNarrative choiceNarrative = null,
             string outcome = null,
-            Dictionary<IChoice, string> availableChoiceDescriptions = null)
+            Dictionary<IChoice, ChoiceNarrative> availableChoiceDescriptions = null)
         {
             TurnNumber = turnNumber;
             SceneDescription = sceneDescription;
             ChosenOption = chosenOption;
-            ChosenOptionDescription = chosenOptionDescription;
+            ChoiceNarrative = choiceNarrative;
             Outcome = outcome;
-            AvailableChoiceDescriptions = availableChoiceDescriptions ?? new Dictionary<IChoice, string>();
+            AvailableChoiceDescriptions = availableChoiceDescriptions ?? new Dictionary<IChoice, ChoiceNarrative>();
         }
     }
 }

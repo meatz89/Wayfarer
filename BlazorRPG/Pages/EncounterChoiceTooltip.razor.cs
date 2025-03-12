@@ -1,5 +1,6 @@
 ﻿using BlazorRPG.Game.EncounterManager;
 using Microsoft.AspNetCore.Components;
+using System.Reflection;
 
 public partial class EncounterChoiceTooltipBase : ComponentBase
 {
@@ -52,6 +53,17 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         }
 
         return formattedChanges;
+    }
+
+    public string GetChoiceDescription(UserEncounterChoiceOption choice)
+    {
+        IChoice choice1 = choice.Choice;
+
+        var narrativeResult = GameManager.EncounterResult.NarrativeResult;
+        Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = narrativeResult.ChoiceDescriptions;
+        ChoiceNarrative choiceNarrative = choiceDescriptions[choice1];
+        string description = choiceNarrative.FullDescription;
+        return description;
     }
 
     public bool HasActivationEffect(string tagName)

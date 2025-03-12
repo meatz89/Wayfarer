@@ -50,7 +50,7 @@ namespace BlazorRPG.Game.EncounterManager.NarrativeAi
                 if (evt.ChosenOption != null)
                 {
                     prompt.AppendLine("Player Choice:");
-                    prompt.AppendLine($"- {evt.ChosenOption.Name}: {evt.ChosenOptionDescription}");
+                    prompt.AppendLine($"- {evt.ChosenOption.Name}: {evt.ChoiceNarrative}");
                     prompt.AppendLine();
 
                     if (!string.IsNullOrEmpty(evt.Outcome))

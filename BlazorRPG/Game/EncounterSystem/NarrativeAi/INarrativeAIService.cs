@@ -16,14 +16,14 @@
         Task<string> GenerateReactionAndSceneAsync(
             NarrativeContext context,
             IChoice chosenOption,
-            string choiceDescription,
+            ChoiceNarrative choiceDescription,
             ChoiceOutcome outcome,
             EncounterStatus newState);
 
         /// <summary>
         /// Generate narrative descriptions for choices
         /// </summary>
-        Task<Dictionary<IChoice, string>> GenerateChoiceDescriptionsAsync(
+        Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
             NarrativeContext context,
             List<IChoice> choices,
             List<ChoiceProjection> projections,

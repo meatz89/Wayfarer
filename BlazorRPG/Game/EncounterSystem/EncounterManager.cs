@@ -143,7 +143,7 @@ namespace BlazorRPG.Game.EncounterManager
             List<ChoiceProjection> projections = choices.Select(ProjectChoice).ToList();
 
             // Generate choice descriptions
-            Dictionary<IChoice, string> choiceDescriptions = null;
+            Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = null;
             if (useAiNarrative)
             {
                 choiceDescriptions =
@@ -178,7 +178,7 @@ namespace BlazorRPG.Game.EncounterManager
         /// </summary>
         public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
             IChoice choice,
-            string choiceDescription)
+            ChoiceNarrative choiceDescription)
         {
             // Get projection
             ChoiceProjection projection = ProjectChoice(choice);
@@ -220,7 +220,7 @@ namespace BlazorRPG.Game.EncounterManager
                     narrative,
                     new List<IChoice>(),
                     new List<ChoiceProjection>(),
-                    new Dictionary<IChoice, string>(),
+                    new Dictionary<IChoice, ChoiceNarrative>(),
                     outcome.IsEncounterOver,
                     outcome.Outcome);
             }
@@ -231,7 +231,7 @@ namespace BlazorRPG.Game.EncounterManager
             List<ChoiceProjection> newProjections = newChoices.Select(ProjectChoice).ToList();
 
             // Generate descriptive narratives for each choice
-            Dictionary<IChoice, string> newChoiceDescriptions = null;
+            Dictionary<IChoice, ChoiceNarrative> newChoiceDescriptions = null;
             if(useAiNarrative)
             {
                 newChoiceDescriptions =
@@ -244,7 +244,7 @@ namespace BlazorRPG.Game.EncounterManager
             
             // Add the choice descriptions to the latest event
             narrativeEvent.AvailableChoiceDescriptions.Clear();
-            foreach (KeyValuePair<IChoice, string> kvp in newChoiceDescriptions)
+            foreach (KeyValuePair<IChoice, ChoiceNarrative> kvp in newChoiceDescriptions)
             {
                 narrativeEvent.AvailableChoiceDescriptions[kvp.Key] = kvp.Value;
             }

@@ -58,12 +58,14 @@ public partial class EncounterViewBase : ComponentBase
         return userEncounterChoiceOptions;
     }
 
-    public string GetChoiceDescription(UserEncounterChoiceOption choice)
+    public string GetChoiceName(UserEncounterChoiceOption choice)
     {
         IChoice choice1 = choice.Choice;
-        Dictionary<IChoice, string> choiceDescriptions = Model.EncounterResult.NarrativeResult.ChoiceDescriptions;
-        string description = choiceDescriptions[choice1];
-        return description;
+        BlazorRPG.Game.EncounterManager.NarrativeAi.NarrativeResult narrativeResult = Model.EncounterResult.NarrativeResult;
+        Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = narrativeResult.ChoiceDescriptions;
+        ChoiceNarrative choiceNarrative = choiceDescriptions[choice1];
+        string name = choiceNarrative.ShorthandName;
+        return name;
     }
 
     public List<PropertyDisplay> GetAvailableTags()
