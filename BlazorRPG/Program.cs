@@ -13,12 +13,8 @@ var configuration = new ConfigurationBuilder()
 builder.Services.AddGameServices();
 
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Debug()
-    .WriteTo.Console(new PrettyJsonFormatter())
-    .WriteTo.Sink(new JsonArrayFileSink("C:\\Logs\\NarrativeAI.json", new PrettyJsonFormatter()))
-    .Filter.ByIncludingOnly(evt =>
-        evt.Properties.ContainsKey("SourceContext") &&
-        evt.Properties["SourceContext"].ToString().Contains("BlazorRPG.Game.EncounterManager.NarrativeAi"))
+    .MinimumLevel.Information()
+    .WriteTo.Console()
     .CreateLogger();
 
 // Ensure proper disposal on exit:

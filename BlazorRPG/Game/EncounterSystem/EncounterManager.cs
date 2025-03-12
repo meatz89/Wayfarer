@@ -174,7 +174,7 @@ namespace BlazorRPG.Game.EncounterManager
         }
 
         /// <summary>
-        /// Applies a player choice and generates narrative for the result
+        /// Applies the player character (PC) choice and generates narrative for the result
         /// </summary>
         public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
             IChoice choice,

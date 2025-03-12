@@ -11,8 +11,6 @@ public class GPTNarrativeService : INarrativeAIService
     private readonly string _apiKey;
     private readonly ILogger<GPTNarrativeService> _logger;
     private readonly NarrativeLogManager _logManager;
-
-    // Dictionary to track conversation history per encounter context
     private readonly Dictionary<string, List<ConversationEntry>> _conversationHistories = new();
 
     public GPTNarrativeService(IConfiguration configuration, ILogger<GPTNarrativeService> logger)
@@ -26,27 +24,39 @@ public class GPTNarrativeService : INarrativeAIService
 
     public async Task<string> GenerateIntroductionAsync(string location, string incitingAction, EncounterStatus state)
     {
-        // Create conversation ID from location
         string conversationId = $"{location}_{DateTime.Now.Ticks}";
 
-        // Create a custom system message for introduction generation
-        string systemMessage = "You are the narrator for a medieval life simulation game called Wayfarer. Your task is to create immersive, atmospheric scene descriptions that set the stage for player interactions. Focus on sensory details, NPCs, and environmental elements that will influence the player's choices.";
+        // Enhanced system message with tag explanation
+        string systemMessage = @"You are the narrative engine for Wayfarer, a medieval life simulation RPG. Your writing style should be:
+- Vivid and sensory, emphasizing sights, sounds, smells, and atmosphere
+- Character-focused, with NPCs that feel real and distinctive
+- Historically grounded, avoiding fantasy tropes
+- Socially realistic, reflecting medieval social hierarchies and tensions
 
-        // Construct prompt
+UNDERSTANDING TAGS:
+- Approach Tags represent HOW the player acts (Dominance, Rapport, Analysis, Precision, Concealment)
+- Focus Tags represent WHAT the player focuses on (Relationship, Information, Physical, Environment, Resource)
+- Active Tags represent special conditions in the current scene
+
+Higher tag values (3-5) should strongly influence your description, while lower values (1-2) should subtly color it.";
+
+        // Format tags with explanations
+        string formattedTags = FormatTagsWithExplanations(state);
+
+        // Construct improved prompt
         string prompt = $@"
-            The player is at the {location} and has just {incitingAction}.
+Create an introduction scene for the player character (PC) who has just {incitingAction} at the {location}.
 
-            Create an introduction scene that sets up this encounter. Use vivid descriptive language.
-            Consider the following game state in your description:
-            - Active Tags: {string.Join(", ", state.ActiveTagNames)}
-            - Approach Tags: {string.Join(", ", state.ApproachTags.Select(t => $"{t.Key}: {t.Value}"))}
-            - Focus Tags: {string.Join(", ", state.FocusTags.Select(t => $"{t.Key}: {t.Value}"))}
+{formattedTags}
 
-            Your introduction should be 2-3 paragraphs long and should establish the scene, introducing 
-            any relevant NPCs or environmental elements the player will interact with.
-        ";
+Your introduction should:
+1. Establish a vivid sense of place with sensory details
+2. Hint at opportunities and challenges matching the active tags
+3. Be 2-3 paragraphs in length
 
-        // This is a new conversation, initialize history with just system and user messages
+Make higher-value tags more prominent in your description. A tag value of 4-5 should strongly influence the scene, while 1-2 should be more subtle.";
+
+        // Initialize new conversation
         List<ConversationEntry> history = new()
         {
             new ConversationEntry { Role = "system", Content = systemMessage },
@@ -73,35 +83,62 @@ public class GPTNarrativeService : INarrativeAIService
     {
         string conversationId = context.LocationName;
 
-        // Create a custom system message for generating reactions
-        string systemMessage = "You are the narrator for a medieval life simulation game called Wayfarer. Your task is to describe how the environment and NPCs react to player choices, maintaining narrative continuity and setting up the next scene. Focus on consequences, changing dynamics, and the evolving situation based on the player's approach.";
+        // Enhanced system message with tag interpretation guidelines
+        string systemMessage = @"You are the narrative engine for Wayfarer, a medieval life simulation. Your role is to create coherent, immersive narrative that responds to player choices. Your writing style:
 
-        // Construct prompt
+- Consequences-focused: Every choice affects the world and NPCs
+- Historically authentic: Reflect medieval social dynamics and realities
+- Character-driven: NPCs, if present, have consistent personalities, desires, and reactions
+- Sensory and immersive: Rich descriptions create a tangible world
+
+INTERPRETING TAGS:
+- Approach Tags (HOW): 
+  * Dominance: Force, authority, intimidation
+  * Rapport: Social connection, charm, persuasion
+  * Analysis: Intelligence, observation, problem-solving
+  * Precision: Careful execution, finesse, accuracy
+  * Concealment: Stealth, hiding, subterfuge
+
+- Focus Tags (WHAT):
+  * Relationship: Social dynamics, connections with others
+  * Information: Knowledge, facts, understanding
+  * Physical: Bodies, movement, physical objects
+  * Environment: Surroundings, spaces, terrain
+  * Resource: Items, money, supplies, valuables
+
+- Active Tags: Special conditions influencing the scene and available options
+
+Changes in tag values reflect the player's evolving approach. Incorporate these changes naturally in your narrative.";
+
+        // Format tags with explanations
+        string formattedTags = FormatTagsWithExplanations(newState);
+
+        // Create a concise narrative summary instead of using raw context
+        string narrativeSummary = CreateNarrativeSummary(context);
+
+        // Construct improved prompt
         string prompt = $@"
-            ### Full Encounter Context
-            {context.ToPrompt()}
+### Narrative Summary
+{narrativeSummary}
 
-            ### Player's Latest Choice
-            The player has chosen: {chosenOption.Name}
-            Player action: {choiceDescription}
+### Player's Latest Choice
+The player chose: {chosenOption.Name} ({chosenOption.Approach} approach focused on {chosenOption.Focus})
+Specific action: {choiceDescription}
 
-            ### Outcome
-            {outcome.Description}
-            - Momentum Gained: {outcome.MomentumGain}
-            - Pressure Built: {outcome.PressureGain}
+### Outcome and Tag Changes
+{outcome.Description}
+- Momentum Gained: {outcome.MomentumGain} (Progress toward success)
+- Pressure Built: {outcome.PressureGain} (Complications or tension)
 
-            ### Current Game State
-            - Active Tags: {string.Join(", ", newState.ActiveTagNames)}
-            - Approach Tags: {string.Join(", ", newState.ApproachTags.Select(t => $"{t.Key}: {t.Value}"))}
-            - Focus Tags: {string.Join(", ", newState.FocusTags.Select(t => $"{t.Key}: {t.Value}"))}
+{formattedTags}
 
-            ### Your Task
-            Please generate:
-            1. A narrative description of how the environment and NPCs react to the player's choice
-            2. A description of the new scene that sets up the next set of choices the player will face
+### Your Task
+1. Write how the environment and NPCs react to the player's specific choice ({chosenOption.Name})
+2. Show how the changes in tags manifest in the scene (especially: {GetSignificantTagChanges(newState)})
+3. Set up the next stage of the encounter
+4. Create 2-3 paragraphs that maintain narrative continuity
 
-            Your response should be 2-3 paragraphs that maintain narrative continuity with previous events.
-        ";
+Make your response feel like a natural continuation of the ongoing story.";
 
         // Check if this is a new conversation or continuation
         List<ConversationEntry> history;
@@ -117,17 +154,16 @@ public class GPTNarrativeService : INarrativeAIService
         }
         else
         {
-            // Existing conversation - update system message and add new user message
+            // Update existing conversation
             history = _conversationHistories[conversationId];
 
-            // Replace the system message with the task-specific one
+            // Replace system message with updated version
             if (history.Count > 0 && history[0].Role == "system")
             {
                 history[0] = new ConversationEntry { Role = "system", Content = systemMessage };
             }
             else
             {
-                // Insert system message at the beginning if not present
                 history.Insert(0, new ConversationEntry { Role = "system", Content = systemMessage });
             }
 
@@ -152,10 +188,43 @@ public class GPTNarrativeService : INarrativeAIService
     {
         string conversationId = context.LocationName;
 
-        // Create a custom system message for generating choice descriptions
-        string systemMessage = "You are the narrator for a medieval life simulation game called Wayfarer. Your task is to transform abstract game choices into vivid, context-specific actions the player can imagine performing. Focus on what each action would look like, sound like, and feel like in the current scene, maintaining consistency with the established narrative.";
+        // Enhanced system message with clearer guidance
+        string systemMessage = @"You are the narrative engine for Wayfarer, a medieval life simulation. Your task is to translate game choices into vivid, specific actions the player character (PC) can visualize.
 
-        // Construct detailed choice descriptions
+For each choice, create narrative text that:
+1. Shows exactly what the player character would DO or SAY
+2. Matches the approach (HOW) and focus (WHAT) of the choice
+3. Feels organic within the current scene
+4. Is written in second person perspective
+
+APPROACH TYPES (HOW):
+- Force: Authoritative, direct, sometimes physically imposing
+- Charm: Persuasive, friendly, socially adept
+- Wit: Analytical, observant, intellectually focused
+- Finesse: Careful, precise, skillful
+- Stealth: Hidden, subtle, secretive
+
+FOCUS TYPES (WHAT):
+- Relationship: Interactions with others, social dynamics
+- Information: Knowledge, learning, understanding
+- Physical: Bodies, items, physical manipulation
+- Environment: Surroundings, terrain, physical space
+- Resource: Items, money, supplies
+
+WRITING STYLE:
+- For social encounters: Use direct speech with quotation marks
+- For intellectual encounters: Use internal monologue
+- For physical encounters: Use action descriptions
+- Keep descriptions concise (1-2 sentences)
+- Make each choice distinct and true to its approach/focus";
+
+        // Create a concise narrative summary instead of using raw context
+        string narrativeSummary = CreateNarrativeSummary(context);
+
+        // Format tags with explanations
+        string formattedTags = FormatTagsWithExplanations(state);
+
+        // Format choices with better explanations
         StringBuilder choicesPrompt = new StringBuilder();
         for (int i = 0; i < choices.Count; i++)
         {
@@ -163,51 +232,65 @@ public class GPTNarrativeService : INarrativeAIService
             ChoiceProjection projection = projections[i];
 
             choicesPrompt.AppendLine($"Choice {i + 1}: {choice.Name}");
-            choicesPrompt.AppendLine($"- Description: {choice.Description}");
-            choicesPrompt.AppendLine($"- Approach: {choice.Approach}, Focus: {choice.Focus}, Type: {choice.EffectType}");
-            choicesPrompt.AppendLine($"- Effect: {(choice.EffectType == EffectTypes.Momentum ? $"+{projection.MomentumGained} Momentum" : $"+{projection.PressureBuilt} Pressure")}");
+            choicesPrompt.AppendLine($"- Core Concept: {choice.Description}");
+            choicesPrompt.AppendLine($"- Approach: {choice.Approach} (HOW they act)");
+            choicesPrompt.AppendLine($"- Focus: {choice.Focus} (WHAT they focus on)");
+
+            if (choice.EffectType == EffectTypes.Momentum)
+                choicesPrompt.AppendLine($"- Effect: Makes progress (+{projection.MomentumGained} Momentum)");
+            else
+                choicesPrompt.AppendLine($"- Effect: Increases complications (+{projection.PressureBuilt} Pressure)");
 
             if (projection.ApproachTagChanges.Count > 0 || projection.FocusTagChanges.Count > 0)
             {
-                choicesPrompt.AppendLine("- Tag Changes:");
+                choicesPrompt.AppendLine("- Changes to player's approach:");
                 foreach (KeyValuePair<ApproachTags, int> change in projection.ApproachTagChanges)
-                    choicesPrompt.AppendLine($"  * {change.Key}: {(change.Value > 0 ? "+" : "")}{change.Value}");
+                    choicesPrompt.AppendLine($"  * {ExplainApproachTag(change.Key)}: {(change.Value > 0 ? "+" : "")}{change.Value}");
                 foreach (KeyValuePair<FocusTags, int> change in projection.FocusTagChanges)
-                    choicesPrompt.AppendLine($"  * {change.Key}: {(change.Value > 0 ? "+" : "")}{change.Value}");
+                    choicesPrompt.AppendLine($"  * {ExplainFocusTag(change.Key)}: {(change.Value > 0 ? "+" : "")}{change.Value}");
             }
 
             if (projection.NewlyActivatedTags.Count > 0)
             {
-                choicesPrompt.AppendLine("- New Tags:");
+                choicesPrompt.AppendLine("- New conditions that will trigger:");
                 foreach (string tag in projection.NewlyActivatedTags)
-                    choicesPrompt.AppendLine($"  * {tag}");
+                {
+                    string tagExplanation = ExplainTag(tag);
+                    choicesPrompt.AppendLine($"  * {tag}: {tagExplanation}");
+                }
             }
 
             choicesPrompt.AppendLine();
         }
 
-        // Construct the full prompt
+        // Construct improved prompt
         string prompt = $@"
-            ### Full Encounter Context
-            {context.ToPrompt()}
+### Current Scene
+{narrativeSummary}
 
-            ### Current Game State
-            - Current Turn: {state.CurrentTurn}/{state.MaxTurns}
-            - Momentum: {state.Momentum}, Pressure: {state.Pressure}
-            - Active Tags: {string.Join(", ", state.ActiveTagNames)}
+### Current State
+- Turn: {state.CurrentTurn}/{state.MaxTurns}
+- Momentum: {state.Momentum} (Progress toward success)
+- Pressure: {state.Pressure} (Level of complication/tension)
 
-            ### Available Choices
-            {choicesPrompt}
+{formattedTags}
 
-            ### Your Task
-            For each choice, create a vivid, context-appropriate description of what this action would look like.
-            Maintain consistency with the established narrative and previous events.
-            
-            Format your response as:
-            Choice 1: [Your narrative description]
-            Choice 2: [Your narrative description]
-            ...and so on.
-        ";
+### Available Choices
+{choicesPrompt}
+
+### Your Task
+For each choice, write a vivid description of what the player character would specifically do or say if they selected this option. 
+
+Format your response exactly as:
+Choice 1: [Your vivid action description]
+Choice 2: [Your vivid action description]
+...and so on.
+
+Make sure each description:
+- Matches the approach and focus of the choice
+- Fits naturally in the current scene
+- Shows the specific action, not just the intention
+- Is written from first person perspective";
 
         // Check if this is a new conversation or continuation
         List<ConversationEntry> history;
@@ -223,17 +306,16 @@ public class GPTNarrativeService : INarrativeAIService
         }
         else
         {
-            // Existing conversation - update system message and add new user message
+            // Update existing conversation
             history = _conversationHistories[conversationId];
 
-            // Replace the system message with the task-specific one
+            // Replace system message with updated version
             if (history.Count > 0 && history[0].Role == "system")
             {
                 history[0] = new ConversationEntry { Role = "system", Content = systemMessage };
             }
             else
             {
-                // Insert system message at the beginning if not present
                 history.Insert(0, new ConversationEntry { Role = "system", Content = systemMessage });
             }
 
@@ -247,7 +329,7 @@ public class GPTNarrativeService : INarrativeAIService
         // Add assistant message
         history.Add(new ConversationEntry { Role = "assistant", Content = response });
 
-        // Parse the response into a dictionary
+        // Parse the response into a dictionary (using existing parsing logic)
         Dictionary<IChoice, string> result = new Dictionary<IChoice, string>();
         string[] lines = response.Split('\n');
 
@@ -303,6 +385,181 @@ public class GPTNarrativeService : INarrativeAIService
         return result;
     }
 
+    // Helper method to format tags with explanations
+    private string FormatTagsWithExplanations(EncounterStatus state)
+    {
+        StringBuilder tagInfo = new StringBuilder("### Current Game State\n");
+
+        // Format Approach Tags with explanations
+        tagInfo.AppendLine("APPROACH TAGS (how the player acts):");
+        foreach (var tag in state.ApproachTags.OrderByDescending(t => t.Value))
+        {
+            string explanation = ExplainApproachTag((ApproachTags)Enum.Parse(typeof(ApproachTags), tag.Key.ToString()));
+            string significance = tag.Value >= 4 ? " (MAJOR)" : tag.Value >= 2 ? " (significant)" : " (minor)";
+            tagInfo.AppendLine($"- {tag.Key}: {tag.Value}{significance} - {explanation}");
+        }
+
+        // Format Focus Tags with explanations
+        tagInfo.AppendLine("\nFOCUS TAGS (what the player focuses on):");
+        foreach (var tag in state.FocusTags.OrderByDescending(t => t.Value))
+        {
+            string explanation = ExplainFocusTag((FocusTags)Enum.Parse(typeof(FocusTags), tag.Key.ToString()));
+            string significance = tag.Value >= 4 ? " (MAJOR)" : tag.Value >= 2 ? " (significant)" : " (minor)";
+            tagInfo.AppendLine($"- {tag.Key}: {tag.Value}{significance} - {explanation}");
+        }
+
+        // Format Active Tags with explanations
+        if (state.ActiveTagNames.Any())
+        {
+            tagInfo.AppendLine("\nACTIVE TAGS (special conditions):");
+            foreach (var tag in state.ActiveTagNames)
+            {
+                string explanation = ExplainTag(tag);
+                tagInfo.AppendLine($"- {tag}: {explanation}");
+            }
+        }
+
+        return tagInfo.ToString();
+    }
+
+    // Create a narrative summary from context
+    private string CreateNarrativeSummary(NarrativeContext context)
+    {
+        // Extract the most recent narrative events (up to 3)
+        var recentEvents = context.Events
+            .OrderByDescending(e => e.TurnNumber)
+            .Take(3)
+            .OrderBy(e => e.TurnNumber)
+            .ToList();
+
+        if (!recentEvents.Any())
+            return "The encounter has just begun.";
+
+        StringBuilder summary = new StringBuilder();
+
+        // Get location and initial action
+        summary.AppendLine($"Location: {context.LocationName}");
+        summary.AppendLine($"Initial action: {context.IncitingAction}");
+        summary.AppendLine();
+
+        // Add recent narrative events
+        foreach (var evt in recentEvents)
+        {
+            // If it's the first event, include its description
+            if (evt.TurnNumber == 0)
+            {
+                summary.AppendLine("Scene began:");
+                summary.AppendLine(evt.SceneDescription.Trim());
+                summary.AppendLine();
+            }
+            else if (!string.IsNullOrEmpty(evt.ChosenOption.Description))
+            {
+                summary.AppendLine($"Turn {evt.TurnNumber}: Player chose \"{evt.ChosenOption?.Name}\"");
+                summary.AppendLine($"Action: {evt.ChosenOption.Description}");
+                summary.AppendLine($"Result: {evt.SceneDescription.Trim()}");
+                summary.AppendLine();
+            }
+        }
+
+        return summary.ToString();
+    }
+
+    // Helper method to get significant tag changes
+    private string GetSignificantTagChanges(EncounterStatus state)
+    {
+        // In a real implementation, you would compare with previous state
+        // For now, return tags with high values as a placeholder
+        var highApproachTags = state.ApproachTags
+            .Where(t => t.Value >= 3)
+            .OrderByDescending(t => t.Value)
+            .Take(2)
+            .Select(t => $"{t.Key} ({t.Value})");
+
+        var highFocusTags = state.FocusTags
+            .Where(t => t.Value >= 3)
+            .OrderByDescending(t => t.Value)
+            .Take(2)
+            .Select(t => $"{t.Key} ({t.Value})");
+
+        return string.Join(", ", highApproachTags.Concat(highFocusTags));
+    }
+
+    // Helper methods to explain tags
+    private string ExplainApproachTag(ApproachTags tag)
+    {
+        switch (tag)
+        {
+            case ApproachTags.Dominance:
+                return "Using authority, force, or intimidation";
+            case ApproachTags.Rapport:
+                return "Building social connections through charm and empathy";
+            case ApproachTags.Analysis:
+                return "Using intelligence and careful observation";
+            case ApproachTags.Precision:
+                return "Acting with careful skill and finesse";
+            case ApproachTags.Concealment:
+                return "Using stealth or hiding intentions";
+            default:
+                return tag.ToString();
+        }
+    }
+
+    private string ExplainFocusTag(FocusTags tag)
+    {
+        switch (tag)
+        {
+            case FocusTags.Relationship:
+                return "Focusing on social connections and dynamics";
+            case FocusTags.Information:
+                return "Seeking knowledge and understanding";
+            case FocusTags.Physical:
+                return "Engaging with bodies, movement, or physical objects";
+            case FocusTags.Environment:
+                return "Interacting with surroundings and spaces";
+            case FocusTags.Resource:
+                return "Managing items, money, or supplies";
+            default:
+                return tag.ToString();
+        }
+    }
+
+    private string ExplainTag(string tagName)
+    {
+        // Map common tag names to explanations
+        if (tagName.Contains("Respect"))
+            return "The player has earned respect through social skills";
+        else if (tagName.Contains("Eye") || tagName.Contains("Haggler"))
+            return "The player shows skill in negotiations";
+        else if (tagName.Contains("Wisdom"))
+            return "The player demonstrates intellectual insight";
+        else if (tagName.Contains("Network"))
+            return "The player has established social connections";
+        else if (tagName.Contains("Guard"))
+            return "Security presence is heightened";
+        else if (tagName.Contains("Suspicion"))
+            return "Others are wary of the player's intentions";
+        else if (tagName.Contains("Surrounded"))
+            return "The player has limited movement options";
+        else if (tagName.Contains("Drawn Weapons"))
+            return "The situation has escalated to potential violence";
+        else if (tagName.Contains("Marketplace"))
+            return "Open public setting with many witnesses";
+        else if (tagName.Contains("Room"))
+            return "Indoor setting with limited privacy";
+
+        // Generate a reasonable explanation for unknown tags
+        if (tagName.Contains("Tension"))
+            return "The situation is becoming more volatile";
+        else if (tagName.Contains("Ready"))
+            return "Prepared for conflict or challenge";
+        else if (tagName.Contains("Favor"))
+            return "Someone has a positive disposition toward the player";
+        else if (tagName.Contains("Patron"))
+            return "The player has established a privileged position";
+
+        return "Special condition affecting available options";
+    }
+
     private async Task<string> CallGPTWithLoggingAsync(string conversationId)
     {
         // Get a unique log file path for this request
@@ -311,41 +568,13 @@ public class GPTNarrativeService : INarrativeAIService
         // Get conversation history
         var history = _conversationHistories[conversationId];
 
-        // Prepare API messages
-        var messages = new List<object>();
-
-        // Always include the system message
-        var systemMessage = history.FirstOrDefault(m => m.Role == "system");
-        if (systemMessage != null)
-        {
-            messages.Add(new { role = "system", content = systemMessage.Content });
-        }
-
-        // For conversation continuity, include previous exchanges (but not system message again)
-        if (history.Count > 2) // More than just system + current user message
-        {
-            // Get all previous exchanges except system message and the latest user message
-            var previousExchanges = history
-                .Where(m => m.Role != "system" && m != history.Last())
-                .ToList();
-
-            foreach (var entry in previousExchanges)
-            {
-                messages.Add(new { role = entry.Role, content = entry.Content });
-            }
-        }
-
-        // Add current user message (last in history)
-        var currentUserMessage = history.LastOrDefault(m => m.Role == "user");
-        if (currentUserMessage != null)
-        {
-            messages.Add(new { role = "user", content = currentUserMessage.Content });
-        }
+        // Prepare API messages - including full history
+        var messages = history.Select(m => new { role = m.Role, content = m.Content }).ToArray();
 
         var requestBody = new
         {
             model = _modelName,
-            messages = messages.ToArray(),
+            messages = messages,
             temperature = 0.7
         };
 
@@ -358,7 +587,7 @@ public class GPTNarrativeService : INarrativeAIService
             writer.WriteLine("// Full Conversation History");
             writer.WriteLine(JsonSerializer.Serialize(history, options));
 
-            // Write API request (what's actually being sent)
+            // Write API request
             writer.WriteLine("\n// API Request");
             writer.WriteLine(JsonSerializer.Serialize(requestBody, options));
         }

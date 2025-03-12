@@ -1,7 +1,7 @@
 ﻿namespace BlazorRPG.Game.EncounterManager
 {
     /// <summary>
-    /// Represents the outcome of a player's choice
+    /// Represents the outcome of the player character (PC)'s choice
     /// </summary>
     public class ChoiceOutcome
     {
