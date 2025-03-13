@@ -78,7 +78,6 @@ public class PromptManager
         return _systemMessage;
     }
 
-    // Simplified BuildChoicesPrompt method
     public string BuildChoicesPrompt(
         NarrativeContext context,
         List<IChoice> choices,
@@ -101,27 +100,36 @@ public class PromptManager
         // Create a concise narrative summary
         string narrativeSummary = _summaryBuilder.CreateSummary(context);
 
-        // Get only significant tags and active narrative tags with effects
-        string significantTags = _tagFormatter.GetSignificantTagsFormatted(state);
-        string activeNarrativeTags = _tagFormatter.FormatActiveNarrativeTags(state);
+        // Get the most recent reaction narrative - THIS IS THE KEY ADDITION
+        string mostRecentReaction = context.GetLastScene() != string.Empty ? context.GetLastScene() : "The Situation begins";
 
-        // Create encounter goal based on location
+        // Format tag state information
+        string approachTagValues = _tagFormatter.FormatTagValues(state.ApproachTags);
+        string focusTagValues = _tagFormatter.FormatTagValues(state.FocusTags);
+        string encounterStateTagValues = _tagFormatter.FormatTagValues(state.EncounterStateTags);
+
+        // Format active tags information
+        string activeNarrativeTags = _tagFormatter.FormatNarrativeTags(state);
+        string activeStrategicTags = _tagFormatter.FormatStrategicTags(state);
+
+        // Create encounter goal
         string encounterGoal = "";
 
         StringBuilder choicesInfo = new StringBuilder();
 
-        // Add each choice with simplified mechanical properties
+        // Add each choice with its mechanical properties
         for (int i = 0; i < choices.Count; i++)
         {
             IChoice choice = choices[i];
             ChoiceProjection projection = projections[i];
 
             choicesInfo.AppendLine($@"
+
 Choice {i + 1}: {choice.Name}
 - Approach: {choice.Approach} ({TagCharacteristicsProvider.GetApproachCharacteristics(choice.Approach.ToString())})
 - Focus: {choice.Focus} ({TagCharacteristicsProvider.GetFocusCharacteristics(choice.Focus.ToString())})
-- Effect: {(choice.EffectType == EffectTypes.Momentum ? $"Progress +{projection.MomentumGained}" : $"Risk +{projection.PressureBuilt}")}"
-            );
+- Effect: {(choice.EffectType == EffectTypes.Momentum ? $"MOMENTUM +{projection.MomentumGained}" : $"PRESSURE +{projection.PressureBuilt}")}
+- Key Tag Changes: {_tagFormatter.FormatKeyTagChanges(projection)}");
         }
 
         // Replace placeholders in template
@@ -129,8 +137,13 @@ Choice {i + 1}: {choice.Name}
             .Replace("{LOCATION}", context.LocationName)
             .Replace("{ENCOUNTER_GOAL}", encounterGoal)
             .Replace("{NARRATIVE_SUMMARY}", narrativeSummary)
-            .Replace("{SIGNIFICANT_TAGS}", significantTags)
+            .Replace("{MOST_RECENT_REACTION}", mostRecentReaction) // Add the most recent reaction
+            .Replace("{APPROACH_TAG_VALUES}", approachTagValues)
+            .Replace("{FOCUS_TAG_VALUES}", focusTagValues)
+            .Replace("{ENCOUNTER_STATE_TAG_VALUES}", encounterStateTagValues)
             .Replace("{ACTIVE_NARRATIVE_TAGS}", activeNarrativeTags)
+            .Replace("{ACTIVE_STRATEGIC_TAGS}", activeStrategicTags)
+            .Replace("{SIGNIFICANT_TAGS}", _tagFormatter.GetSignificantTagsFormatted(state))
             .Replace("{CHOICE_STYLE_GUIDANCE}", choiceStyleGuidance)
             .Replace("{CHOICES_INFO}", choicesInfo.ToString())
             .Replace("{CHOICE_REQUIREMENTS}", choiceRequirements);
@@ -278,4 +291,6 @@ Choice {i + 1}: {choice.Name}
             ? guidance
             : "Specific action I would take in this situation";
     }
+
+
 }
