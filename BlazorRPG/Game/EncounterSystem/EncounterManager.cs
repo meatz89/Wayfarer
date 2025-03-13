@@ -41,10 +41,42 @@ namespace BlazorRPG.Game.EncounterManager
             CurrentChoices = _cardSelector.SelectChoices(State);
         }
 
+        // Update this method in EncounterManager class
         private ChoiceOutcome ApplyChoiceProjection(ChoiceProjection projection)
         {
             State.ApplyChoiceProjection(projection);
-            return new ChoiceOutcome(projection);
+
+            // Create outcome with health changes directly from the projection
+            ChoiceOutcome outcome = new ChoiceOutcome(
+                projection.MomentumGained,
+                projection.PressureBuilt,
+                projection.NarrativeDescription,
+                projection.EncounterWillEnd,
+                projection.ProjectedOutcome,
+                projection.HealthChange,
+                projection.ConcentrationChange,
+                projection.ReputationChange);
+
+            // Copy all tag changes from the projection
+            foreach (var kvp in projection.ApproachTagChanges)
+            {
+                outcome.ApproachTagChanges[kvp.Key] = kvp.Value;
+            }
+
+            foreach (var kvp in projection.FocusTagChanges)
+            {
+                outcome.FocusTagChanges[kvp.Key] = kvp.Value;
+            }
+
+            foreach (var kvp in projection.EncounterStateTagChanges)
+            {
+                outcome.EncounterStateTagChanges[kvp.Key] = kvp.Value;
+            }
+
+            outcome.NewlyActivatedTags.AddRange(projection.NewlyActivatedTags);
+            outcome.DeactivatedTags.AddRange(projection.DeactivatedTags);
+
+            return outcome;
         }
 
         // Get current encounter state information

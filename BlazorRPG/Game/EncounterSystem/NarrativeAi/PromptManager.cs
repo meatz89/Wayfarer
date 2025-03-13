@@ -139,13 +139,12 @@ Choice {i + 1}: {choice.Name}
         return _systemMessage + "\n\n" + prompt;
     }
 
-    // Simplified BuildReactionPrompt method
     public string BuildReactionPrompt(
-        NarrativeContext context,
-        IChoice chosenOption,
-        ChoiceNarrative choiceDescription,
-        ChoiceOutcome outcome,
-        EncounterStatus newState)
+    NarrativeContext context,
+    IChoice chosenOption,
+    ChoiceNarrative choiceDescription,
+    ChoiceOutcome outcome,
+    EncounterStatus newState)
     {
         if (!_promptTemplates.TryGetValue(REACTION_KEY, out string template))
         {
@@ -159,14 +158,22 @@ Choice {i + 1}: {choice.Name}
         // Create a concise narrative summary
         string narrativeSummary = _summaryBuilder.CreateSummary(context);
 
-        // Only include significant tag modifications
+        // Format tag modifications
         string approachTagsModified = _tagFormatter.FormatTagModifications(outcome.ApproachTagChanges);
+        string focusTagsModified = _tagFormatter.FormatTagModifications(outcome.FocusTagChanges);
+        string encounterStateTagsModified = _tagFormatter.FormatTagModifications(outcome.EncounterStateTagChanges);
 
-        // Format newly activated tags - these are important for the narrative
+        // Format newly activated tags
         string newlyActivatedTags = string.Join(", ", outcome.NewlyActivatedTags);
+        string deactivatedTags = string.Join(", ", outcome.DeactivatedTags);
 
         // Create encounter goal
         string encounterGoal = "";
+
+        // Get resource changes directly from the outcome
+        string healthChange = outcome.HealthChange.ToString();
+        string concentrationChange = outcome.ConcentrationChange.ToString();
+        string reputationChange = outcome.ReputationChange.ToString();
 
         // Replace placeholders in template
         string prompt = template
@@ -176,46 +183,22 @@ Choice {i + 1}: {choice.Name}
             .Replace("{CHOICE_APPROACH}", chosenOption.Approach.ToString())
             .Replace("{CHOICE_FOCUS}", chosenOption.Focus.ToString())
             .Replace("{CHOICE_DESCRIPTION}", choiceDescription.FullDescription)
+            .Replace("{MOMENTUM_GAIN}", outcome.MomentumGain.ToString())
+            .Replace("{PRESSURE_GAIN}", outcome.PressureGain.ToString())
             .Replace("{CURRENT_MOMENTUM}", newState.Momentum.ToString())
             .Replace("{CURRENT_PRESSURE}", newState.Pressure.ToString())
+            .Replace("{HEALTH_CHANGE}", healthChange)
+            .Replace("{CONCENTRATION_CHANGE}", concentrationChange)
+            .Replace("{REPUTATION_CHANGE}", reputationChange)
             .Replace("{APPROACH_TAGS_MODIFIED}", approachTagsModified)
+            .Replace("{FOCUS_TAGS_MODIFIED}", focusTagsModified)
+            .Replace("{ENCOUNTER_STATE_TAGS_MODIFIED}", encounterStateTagsModified)
             .Replace("{NEWLY_ACTIVATED_TAGS}", newlyActivatedTags)
+            .Replace("{DEACTIVATED_TAGS}", deactivatedTags)
+            .Replace("{SIGNIFICANT_TAGS}", _tagFormatter.GetSignificantTagsFormatted(newState))
             .Replace("{NARRATIVE_SUMMARY}", narrativeSummary)
             .Replace("{ENCOUNTER_STYLE_GUIDANCE}", encounterStyleGuidance)
             .Replace("{SITUATION_STYLE_GUIDANCE}", situationStyleGuidance);
-
-        // Always include system message
-        return _systemMessage + "\n\n" + prompt;
-    }
-
-    public string BuildIntroductionPrompt(string location, string incitingAction, EncounterStatus state)
-    {
-        if (!_promptTemplates.TryGetValue(INTRO_KEY, out string template))
-        {
-            throw new InvalidOperationException($"Introduction prompt template not found");
-        }
-
-        EncounterTypes encounterType = _encounterDetector.DetermineEncounterType(location, state);
-
-        // Get primary and secondary tags for initial emphasis
-        (string primaryApproach, string secondaryApproach) = _tagFormatter.GetSignificantApproachTags(state);
-        (string primaryFocus, string secondaryFocus) = _tagFormatter.GetSignificantFocusTags(state);
-
-        // Add encounter goal based on location
-        string encounterGoal = "";
-
-        // Replace placeholders in template
-        string prompt = template
-            .Replace("{LOCATION}", location)
-            .Replace("{INCITING_ACTION}", incitingAction)
-            .Replace("{ENCOUNTER_TYPE}", encounterType.ToString())
-            .Replace("{PRIMARY_APPROACH}", primaryApproach)
-            .Replace("{SECONDARY_APPROACH}", secondaryApproach)
-            .Replace("{PRIMARY_FOCUS}", primaryFocus)
-            .Replace("{SECONDARY_FOCUS}", secondaryFocus)
-            .Replace("{CHARACTER_OR_ENVIRONMENT_FOCUS}", (encounterType == EncounterTypes.Social ? "CHARACTER" : "ENVIRONMENT"))
-            .Replace("{OPPOSITE_FOCUS}", (encounterType == EncounterTypes.Social ? "the environment" : "social interaction"))
-            .Replace("{ENCOUNTER_GOAL}", encounterGoal);
 
         // Always include system message
         return _systemMessage + "\n\n" + prompt;
