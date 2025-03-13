@@ -6,8 +6,6 @@ public class GameManager
     private GameRules currentRules;
     public EncounterSystem EncounterSystem { get; }
     public LocationSystem LocationSystem { get; }
-    public ActionValidator ActionValidator { get; }
-    public ActionSystem ActionSystem { get; }
     public QuestSystem QuestSystem { get; }
     public ItemSystem ItemSystem { get; }
     public MessageSystem MessageSystem { get; }
@@ -17,8 +15,6 @@ public class GameManager
         GameState gameState,
         EncounterSystem EncounterSystem,
         LocationSystem locationSystem,
-        ActionValidator actionValidator,
-        ActionSystem actionSystem,
         QuestSystem questSystem,
         ItemSystem itemSystem,
         MessageSystem messageSystem
@@ -29,8 +25,6 @@ public class GameManager
 
         this.EncounterSystem = EncounterSystem;
         this.LocationSystem = locationSystem;
-        this.ActionValidator = actionValidator;
-        this.ActionSystem = actionSystem;
         this.QuestSystem = questSystem;
         this.ItemSystem = itemSystem;
         this.MessageSystem = messageSystem;
@@ -507,9 +501,6 @@ public class GameManager
     {
         actionImplementation = action.ActionImplementation;
         locationSpot = action.LocationSpot;
-
-        if (!ActionSystem.CanExecuteInContext(actionImplementation))
-            return false;
 
         location = LocationSystem.GetLocation(action.Location);
         gameState.Actions.SetCurrentUserAction(action);

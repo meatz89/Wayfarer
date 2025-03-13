@@ -21,9 +21,7 @@ public static class GameServicesExpressures
 
         services.AddSingleton<EncounterSystem>();
 
-        services.AddSingleton<ActionValidator>();
         services.AddSingleton<MessageSystem>();
-        services.AddSingleton<ActionSystem>();
         services.AddSingleton<GameManager>();
 
         // Add this before your existing logger configuration

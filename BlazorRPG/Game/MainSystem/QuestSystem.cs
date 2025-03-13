@@ -2,18 +2,16 @@
 {
     private readonly GameState gameState;
     private readonly List<Quest> allQuests = new();
-    private readonly ActionValidator actionValidator;
     private readonly List<Quest> activeQuests = new();
     private readonly int maxActiveQuests = 3;  // Fixed limit
     private int activeQuestCount;
 
     public QuestSystem(
         GameState gameState,
-        GameContentProvider contentProvider,
-        ActionValidator actionValidator)
+        GameContentProvider contentProvider
+        )
     {
         this.gameState = gameState;
-        this.actionValidator = actionValidator;
         this.allQuests = contentProvider.GetQuests();
 
         foreach (Quest quest in allQuests)
@@ -32,8 +30,7 @@
             QuestStep questStep = quest.GetCurrentStep();
 
             ActionImplementation questAction = questStep.QuestAction;
-            if (questAction.ActionType == action.ActionType &&
-                actionValidator.CanExecuteAction(questStep.QuestAction))
+            if (questAction.ActionType == action.ActionType)
             {
                 quest.AdvanceQuest();
             }
