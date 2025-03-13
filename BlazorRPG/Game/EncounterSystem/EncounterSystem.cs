@@ -128,7 +128,7 @@ public class EncounterSystem
             }
         );
     }
-    
+
     public EncounterManager GetActiveEncounter()
     {
         return gameState.Actions.CurrentEncounter;

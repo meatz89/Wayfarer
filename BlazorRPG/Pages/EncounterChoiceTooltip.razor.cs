@@ -32,7 +32,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         if (Preview?.ApproachTagChanges == null)
             return formattedChanges;
 
-        foreach (var tagChange in Preview.ApproachTagChanges)
+        foreach (KeyValuePair<ApproachTags, int> tagChange in Preview.ApproachTagChanges)
         {
             formattedChanges[tagChange.Key.ToString()] = tagChange.Value;
         }
@@ -47,7 +47,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         if (Preview?.FocusTagChanges == null)
             return formattedChanges;
 
-        foreach (var tagChange in Preview.FocusTagChanges)
+        foreach (KeyValuePair<FocusTags, int> tagChange in Preview.FocusTagChanges)
         {
             formattedChanges[tagChange.Key.ToString()] = tagChange.Value;
         }
@@ -59,7 +59,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     {
         IChoice choice1 = choice.Choice;
 
-        var narrativeResult = GameManager.EncounterResult.NarrativeResult;
+        BlazorRPG.Game.EncounterManager.NarrativeAi.NarrativeResult narrativeResult = GameManager.EncounterResult.NarrativeResult;
         Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = narrativeResult.ChoiceDescriptions;
         ChoiceNarrative choiceNarrative = choiceDescriptions[choice1];
         string description = choiceNarrative.FullDescription;

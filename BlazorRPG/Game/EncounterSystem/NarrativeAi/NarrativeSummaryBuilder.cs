@@ -6,7 +6,7 @@ public class NarrativeSummaryBuilder
     public string CreateSummary(NarrativeContext context)
     {
         // Get only the most recent event to keep things concise
-        var mostRecentEvent = context.Events
+        NarrativeEvent? mostRecentEvent = context.Events
             .OrderByDescending(e => e.TurnNumber)
             .FirstOrDefault();
 

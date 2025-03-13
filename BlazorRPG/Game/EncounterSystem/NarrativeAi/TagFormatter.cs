@@ -9,19 +9,19 @@ public class TagFormatter
         List<string> significantTags = new List<string>();
 
         // Get high approach tags
-        foreach (var tag in state.ApproachTags.Where(t => t.Value >= 2).OrderByDescending(t => t.Value))
+        foreach (KeyValuePair<ApproachTags, int> tag in state.ApproachTags.Where(t => t.Value >= 2).OrderByDescending(t => t.Value))
         {
             significantTags.Add($"{tag.Key} {tag.Value}{(tag.Value >= 4 ? " (MAJOR)" : "")}");
         }
 
         // Get high focus tags
-        foreach (var tag in state.FocusTags.Where(t => t.Value >= 2).OrderByDescending(t => t.Value))
+        foreach (KeyValuePair<FocusTags, int> tag in state.FocusTags.Where(t => t.Value >= 2).OrderByDescending(t => t.Value))
         {
             significantTags.Add($"{tag.Key} {tag.Value}{(tag.Value >= 4 ? " (MAJOR)" : "")}");
         }
 
         // Get active tags
-        foreach (var tag in state.ActiveTagNames)
+        foreach (string tag in state.ActiveTagNames)
         {
             significantTags.Add($"{tag} (ACTIVE)");
         }
@@ -31,7 +31,7 @@ public class TagFormatter
 
     public (string, string) GetSignificantApproachTags(EncounterStatus state)
     {
-        var orderedTags = state.ApproachTags
+        List<KeyValuePair<ApproachTags, int>> orderedTags = state.ApproachTags
             .OrderByDescending(t => t.Value)
             .ToList();
 
@@ -43,7 +43,7 @@ public class TagFormatter
 
     public (string, string) GetSignificantFocusTags(EncounterStatus state)
     {
-        var orderedTags = state.FocusTags
+        List<KeyValuePair<FocusTags, int>> orderedTags = state.FocusTags
             .OrderByDescending(t => t.Value)
             .ToList();
 

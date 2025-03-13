@@ -233,7 +233,7 @@ namespace BlazorRPG.Game.EncounterManager
 
             // Generate descriptive narratives for each choice
             Dictionary<IChoice, ChoiceNarrative> newChoiceDescriptions = null;
-            if(useAiNarrative)
+            if (useAiNarrative)
             {
                 newChoiceDescriptions =
                     await _narrativeService.GenerateChoiceDescriptionsAsync(
@@ -242,7 +242,7 @@ namespace BlazorRPG.Game.EncounterManager
                         newProjections,
                         newStatus);
             }
-            
+
             // Add the choice descriptions to the latest event
             narrativeEvent.AvailableChoiceDescriptions.Clear();
             foreach (KeyValuePair<IChoice, ChoiceNarrative> kvp in newChoiceDescriptions)

@@ -23,7 +23,7 @@ public class NarrativeContextManager
 
     public void UpdateSystemMessage(string conversationId, string systemMessage)
     {
-        var history = _conversationHistories[conversationId];
+        List<ConversationEntry> history = _conversationHistories[conversationId];
 
         if (history.Count > 0 && history[0].Role == "system")
         {

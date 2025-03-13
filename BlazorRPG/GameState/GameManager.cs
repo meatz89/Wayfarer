@@ -572,7 +572,7 @@ public class GameManager
             location,
             gameState.Player,
             locationSpot);
-        
+
         return ActionResult.Success("Encounter started!", new ActionResultMessages());
     }
 

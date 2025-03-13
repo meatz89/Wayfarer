@@ -4,7 +4,7 @@ public class PropertyDisplay
 {
     public PropertyDisplay()
     {
-        
+
     }
 
     public PropertyDisplay(string v1, string v2, string v3, string v4, string v5)
@@ -20,5 +20,5 @@ public class PropertyDisplay
     public string Icon { get; set; }
     public string TooltipText { get; set; }
     public string CssClass { get; set; }
-    public string TagName { get; set; } 
+    public string TagName { get; set; }
 }

@@ -124,7 +124,7 @@ public class AIClientService
                         {
                             // Parse retry-after header if available, or use exponential backoff
                             TimeSpan delay = _retryDelay;
-                            if (response.Headers.TryGetValues("Retry-After", out var values) &&
+                            if (response.Headers.TryGetValues("Retry-After", out IEnumerable<string>? values) &&
                                 int.TryParse(values.FirstOrDefault(), out int seconds))
                             {
                                 delay = TimeSpan.FromSeconds(seconds);
@@ -325,7 +325,7 @@ public class AIClientService
         string lastUserMessage = conversationHistory
             .LastOrDefault(e => e.Role == "user")?.Content ?? string.Empty;
 
-        if (lastUserMessage.Contains("Generate PURE NARRATIVE descriptions for 4 choices"))
+        if (lastUserMessage.Contains("Generate PURE NARRATIVE descriptions for 6 choices"))
         {
             return "choices";
         }

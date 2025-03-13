@@ -307,7 +307,7 @@ public class EncounterState
 
         return EncounterOutcomes.Standard;
     }
-    
+
     public void ApplyChoiceProjection(ChoiceProjection projection)
     {
         // 1. Record pre-change state

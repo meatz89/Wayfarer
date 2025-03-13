@@ -23,7 +23,7 @@ public partial class EncounterViewBase : ComponentBase
 
     protected override async Task OnInitializedAsync()
     {
-        if(Encounter == null)
+        if (Encounter == null)
         {
             await GameManager.GenerateEncounter();
             IsLoading = false;

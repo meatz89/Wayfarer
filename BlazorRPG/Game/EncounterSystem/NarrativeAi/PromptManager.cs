@@ -1,8 +1,8 @@
 ﻿// Main service class - slim coordinator
-using BlazorRPG.Game.EncounterManager.NarrativeAi;
 using BlazorRPG.Game.EncounterManager;
-using System.Text.Json;
+using BlazorRPG.Game.EncounterManager.NarrativeAi;
 using System.Text;
+using System.Text.Json;
 // Loads and manages prompts from JSON files
 public class PromptManager
 {

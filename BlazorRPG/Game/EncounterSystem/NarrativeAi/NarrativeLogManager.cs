@@ -64,7 +64,7 @@ public class NarrativeLogManager
     {
         string logFilePath = GetNextLogFilePath(conversationId);
 
-        var logEntry = new NarrativeLogEntry
+        NarrativeLogEntry logEntry = new NarrativeLogEntry
         {
             ConversationId = conversationId,
             ConversationHistory = history,

@@ -145,7 +145,7 @@ public class GPTNarrativeService : INarrativeAIService
             // Create more realistic fallback choices based on the mechanical choices
             Dictionary<IChoice, ChoiceNarrative> fallbackChoices = new Dictionary<IChoice, ChoiceNarrative>();
 
-            foreach (var (choice, index) in choices.Select((c, i) => (c, i)))
+            foreach ((IChoice choice, int index) in choices.Select((c, i) => (c, i)))
             {
                 // Create more detailed and specific fallback descriptions
                 string description = "fallback";
