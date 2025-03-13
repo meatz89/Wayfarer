@@ -2,6 +2,97 @@
 using BlazorRPG.Game.EncounterManager;
 public class TagFormatter
 {
+
+    // Format significant tags - keep this existing method but enhance it
+    public string GetSignificantTagsFormatted(EncounterStatus state)
+    {
+        List<string> significantTags = new List<string>();
+
+        // Only include approach tags with values of 2 or higher
+        foreach (KeyValuePair<EncounterStateTags, int> tag in state.EncounterStateTags.Where(t => t.Value >= 2).OrderByDescending(t => t.Value))
+        {
+            significantTags.Add($"{tag.Key} {tag.Value}");
+        }
+        // Only include approach tags with values of 2 or higher
+        foreach (KeyValuePair<ApproachTags, int> tag in state.ApproachTags.Where(t => t.Value >= 2).OrderByDescending(t => t.Value))
+        {
+            significantTags.Add($"{tag.Key} {tag.Value}");
+        }
+        // Only include focus tags with values of 2 or higher
+        foreach (KeyValuePair<FocusTags, int> tag in state.FocusTags.Where(t => t.Value >= 2).OrderByDescending(t => t.Value))
+        {
+            significantTags.Add($"{tag.Key} {tag.Value}");
+        }
+
+        // Include only active tags that have gameplay effects
+        foreach (string tag in state.ActiveTagNames)
+        {
+            // Add a note for important tag effects
+            if (tag.Contains("Open Marketplace"))
+                significantTags.Add($"{tag} (blocks Stealth)");
+            else if (tag.Contains("Drawn Weapons"))
+                significantTags.Add($"{tag} (blocks Wit)");
+            else if (tag.Contains("Hostile Territory"))
+                significantTags.Add($"{tag} (blocks Charm)");
+            else if (tag.Contains("Fight Started"))
+                significantTags.Add($"{tag} (only Force allowed)");
+            else if (tag.Contains("Tension"))
+                significantTags.Add($"{tag} (adds pressure)");
+            else if (tag.Contains("Coordinated"))
+                significantTags.Add($"{tag} (boosts Force)");
+            else if (tag.Contains("Distracted"))
+                significantTags.Add($"{tag} (boosts Stealth)");
+            else
+                significantTags.Add(tag);
+        }
+
+        return significantTags.Count > 0 ? string.Join(", ", significantTags) : "None";
+    }
+
+    // Simplified tag modifications format
+    public string FormatTagModifications<TKey>(Dictionary<TKey, int> tagChanges) where TKey : notnull
+    {
+        if (tagChanges == null || tagChanges.Count == 0)
+            return "None";
+
+        // Only include significant changes (value > 1)
+        var significantChanges = tagChanges.Where(c => Math.Abs(c.Value) > 1).ToList();
+        if (significantChanges.Count == 0)
+            return "Minor changes only";
+
+        List<string> modificationStrings = new List<string>();
+        foreach (var change in significantChanges)
+        {
+            string direction = change.Value > 0 ? "increased" : "decreased";
+            modificationStrings.Add($"{change.Key} {direction} by {Math.Abs(change.Value)}");
+        }
+
+        return string.Join(", ", modificationStrings);
+    }
+
+    // Simplified active narrative tags format
+    public string FormatActiveNarrativeTags(EncounterStatus state)
+    {
+        // Only include narrative tags that block approaches
+        List<string> activeTagsWithEffects = new List<string>();
+
+        foreach (string tag in state.ActiveTagNames)
+        {
+            if (tag.Contains("Open Marketplace"))
+                activeTagsWithEffects.Add($"{tag} (blocks Stealth approaches)");
+            else if (tag.Contains("Drawn Weapons"))
+                activeTagsWithEffects.Add($"{tag} (blocks Wit approaches)");
+            else if (tag.Contains("Hostile Territory"))
+                activeTagsWithEffects.Add($"{tag} (blocks Charm approaches)");
+            else if (tag.Contains("Fight Started"))
+                activeTagsWithEffects.Add($"{tag} (only Force approaches allowed)");
+        }
+
+        return activeTagsWithEffects.Count > 0 ?
+            string.Join(", ", activeTagsWithEffects) :
+            "No approach restrictions";
+    }
+
     public (string, string) GetSignificantApproachTags(EncounterStatus state)
     {
         List<KeyValuePair<ApproachTags, int>> orderedTags = state.ApproachTags
@@ -52,20 +143,6 @@ public class TagFormatter
             tagStrings.Add($"{tag.Key}: {tag.Value}");
         }
         return string.Join(", ", tagStrings);
-    }
-
-    public string FormatTagModifications<TKey>(Dictionary<TKey, int> tagChanges) where TKey : notnull
-    {
-        if (tagChanges.Count == 0)
-            return "None";
-
-        List<string> modificationStrings = new List<string>();
-        foreach (var change in tagChanges)
-        {
-            string direction = change.Value > 0 ? "increased" : "decreased";
-            modificationStrings.Add($"{change.Key} {direction} by {Math.Abs(change.Value)}");
-        }
-        return string.Join(", ", modificationStrings);
     }
 
     public string FormatNarrativeTags(EncounterStatus state)
