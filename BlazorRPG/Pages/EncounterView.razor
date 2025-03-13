@@ -28,45 +28,6 @@
                     </span>
                 </div>
 
-                <div class="approach-tags">
-                    <div class="properties-header">Approach Tags</div>
-                    <div class="tag-grid">
-                        @foreach (var tag in GetEncounterStateTags())
-                        {
-                            <div class="tag-value">
-                                <span class="tag-name">@tag</span>
-                                <span class="tag-level">@Model.State.TagSystem.GetEncounterStateTagValue(tag)</span>
-                            </div>
-                        }
-                    </div>
-                </div>
-
-                <div class="approach-tags">
-                    <div class="properties-header">Approach Tags</div>
-                    <div class="tag-grid">
-                        @foreach (var tag in GetApproachTags())
-                        {
-                            <div class="tag-value">
-                                <span class="tag-name">@tag</span>
-                                <span class="tag-level">@Model.State.TagSystem.GetApproachTagValue(tag)</span>
-                            </div>
-                        }
-                    </div>
-                </div>
-
-                <div class="focus-tags">
-                    <div class="properties-header">Focus Tags</div>
-                    <div class="tag-grid">
-                        @foreach (var tag in GetFocusTags())
-                        {
-                            <div class="tag-value">
-                                <span class="tag-name">@tag</span>
-                                <span class="tag-level">@Model.State.TagSystem.GetFocusTagValue(tag)</span>
-                            </div>
-                        }
-                    </div>
-                </div>
-
                 <div class="location-properties">
                     <div class="properties-header">ActiveTags</div>
                     <div class="properties-grid">
@@ -115,6 +76,47 @@
                 }
             </div>
         </div>
+
+        
+        <div class="encounter-state-tags">
+            <div class="properties-header">Encounter State Tags</div>
+            <div class="tag-grid">
+                @foreach (var tag in GetEncounterStateTags())
+                {
+                    <div class="tag-value">
+                        <span class="tag-name">@tag</span>
+                        <span class="tag-level">@Model.State.TagSystem.GetEncounterStateTagValue(tag)</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="approach-tags">
+            <div class="properties-header">Approach Tags</div>
+            <div class="tag-grid">
+                @foreach (var tag in GetApproachTags())
+                {
+                    <div class="tag-value">
+                        <span class="tag-name">@tag</span>
+                        <span class="tag-level">@Model.State.TagSystem.GetApproachTagValue(tag)</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="focus-tags">
+            <div class="properties-header">Focus Tags</div>
+            <div class="tag-grid">
+                @foreach (var tag in GetFocusTags())
+                {
+                    <div class="tag-value">
+                        <span class="tag-name">@tag</span>
+                        <span class="tag-level">@Model.State.TagSystem.GetFocusTagValue(tag)</span>
+                    </div>
+                }
+            </div>
+        </div>
+
 
         @if (showTooltip && hoveredChoice != null)
         {
