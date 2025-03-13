@@ -6,7 +6,7 @@ public class StrategicTag : IEncounterTag
     public ApproachTypes? AffectedApproach { get; } // What approach this affects
     public FocusTags? AffectedFocus { get; } // What focus this affects
     public StrategicEffectTypes EffectType { get; }
-    public ApproachTags? ScalingApproachTag { get; } // Which tag it scales with
+    public EncounterStateTags? ScalingApproachTag { get; } // Which tag it scales with
     public int EffectValue { get; }
 
     private bool _activationEffectApplied = false;
@@ -16,7 +16,7 @@ public class StrategicTag : IEncounterTag
         StrategicEffectTypes effectType,
         ApproachTypes? affectedApproach = null,
         FocusTags? affectedFocus = null,
-        ApproachTags? scalingApproachTag = null)
+        EncounterStateTags? scalingApproachTag = null)
     {
         Name = name;
         EffectType = effectType;

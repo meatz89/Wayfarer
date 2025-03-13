@@ -10,7 +10,7 @@
         ApproachTypes Approach { get; }
         FocusTags Focus { get; }
         EffectTypes EffectType { get; }
-        IReadOnlyList<TagModification> TagModifications { get; }
+        IReadOnlyList<EncounterStateModification> TagModifications { get; }
         void ApplyChoice(EncounterState state);
 
     }
@@ -25,10 +25,10 @@
         public ApproachTypes Approach { get; }
         public FocusTags Focus { get; }
         public EffectTypes EffectType { get; }
-        public IReadOnlyList<TagModification> TagModifications { get; }
+        public IReadOnlyList<EncounterStateModification> TagModifications { get; }
 
         public Choice(string name, string description, ApproachTypes approach, FocusTags focus,
-                      EffectTypes effectType, IReadOnlyList<TagModification> tagModifications)
+                      EffectTypes effectType, IReadOnlyList<EncounterStateModification> tagModifications)
         {
             Name = name;
             Description = description;
@@ -41,10 +41,10 @@
         public virtual void ApplyChoice(EncounterState state)
         {
             // Apply tag modifications
-            foreach (TagModification mod in TagModifications)
+            foreach (EncounterStateModification mod in TagModifications)
             {
-                if (mod.Type == TagModification.TagTypes.Approach)
-                    state.TagSystem.ModifyApproachTag((ApproachTags)mod.Tag, mod.Delta);
+                if (mod.Type == EncounterStateModification.TagTypes.Approach)
+                    state.TagSystem.ModifyApproachTag((EncounterStateTags)mod.Tag, mod.Delta);
                 else
                     state.TagSystem.ModifyFocusTag((FocusTags)mod.Tag, mod.Delta);
             }
@@ -76,7 +76,7 @@
         public IReadOnlyList<Func<BaseTagSystem, bool>> Requirements { get; }
 
         public SpecialChoice(string name, string description, ApproachTypes approach, FocusTags focus,
-                            IReadOnlyList<TagModification> tagModifications,
+                            IReadOnlyList<EncounterStateModification> tagModifications,
                             IReadOnlyList<Func<BaseTagSystem, bool>> requirements)
             : base(name, description, approach, focus, EffectTypes.Momentum, tagModifications)
         {
@@ -91,10 +91,10 @@
         public override void ApplyChoice(EncounterState state)
         {
             // Apply tag modifications
-            foreach (TagModification mod in TagModifications)
+            foreach (EncounterStateModification mod in TagModifications)
             {
-                if (mod.Type == TagModification.TagTypes.Approach)
-                    state.TagSystem.ModifyApproachTag((ApproachTags)mod.Tag, mod.Delta);
+                if (mod.Type == EncounterStateModification.TagTypes.Approach)
+                    state.TagSystem.ModifyApproachTag((EncounterStateTags)mod.Tag, mod.Delta);
                 else
                     state.TagSystem.ModifyFocusTag((FocusTags)mod.Tag, mod.Delta);
             }
@@ -121,11 +121,11 @@
         public ApproachTypes Approach { get; }
         public FocusTags Focus { get; }
         public EffectTypes EffectType => EffectTypes.Momentum; // Always momentum
-        public IReadOnlyList<TagModification> TagModifications { get; }
+        public IReadOnlyList<EncounterStateModification> TagModifications { get; }
         public ApproachTypes BlockedApproach { get; }
 
         public EmergencyChoice(string name, string description, ApproachTypes approach,
-                              IReadOnlyList<TagModification> tagModifications,
+                              IReadOnlyList<EncounterStateModification> tagModifications,
                               ApproachTypes blockedApproach)
         {
             Name = name;
@@ -139,10 +139,10 @@
         public void ApplyChoice(EncounterState state)
         {
             // Apply tag modifications
-            foreach (TagModification mod in TagModifications)
+            foreach (EncounterStateModification mod in TagModifications)
             {
-                if (mod.Type == TagModification.TagTypes.Approach)
-                    state.TagSystem.ModifyApproachTag((ApproachTags)mod.Tag, mod.Delta);
+                if (mod.Type == EncounterStateModification.TagTypes.Approach)
+                    state.TagSystem.ModifyApproachTag((EncounterStateTags)mod.Tag, mod.Delta);
                 else
                     state.TagSystem.ModifyFocusTag((FocusTags)mod.Tag, mod.Delta);
             }

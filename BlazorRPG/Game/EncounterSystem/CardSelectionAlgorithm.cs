@@ -197,19 +197,19 @@
                 switch (choice.Approach)
                 {
                     case ApproachTypes.Force:
-                        score += state.TagSystem.GetApproachTagValue(ApproachTags.Dominance);
+                        score += state.TagSystem.GetApproachTagValue(EncounterStateTags.Dominance);
                         break;
                     case ApproachTypes.Charm:
-                        score += state.TagSystem.GetApproachTagValue(ApproachTags.Rapport);
+                        score += state.TagSystem.GetApproachTagValue(EncounterStateTags.Rapport);
                         break;
                     case ApproachTypes.Wit:
-                        score += state.TagSystem.GetApproachTagValue(ApproachTags.Analysis);
+                        score += state.TagSystem.GetApproachTagValue(EncounterStateTags.Analysis);
                         break;
                     case ApproachTypes.Finesse:
-                        score += state.TagSystem.GetApproachTagValue(ApproachTags.Precision);
+                        score += state.TagSystem.GetApproachTagValue(EncounterStateTags.Precision);
                         break;
                     case ApproachTypes.Stealth:
-                        score += state.TagSystem.GetApproachTagValue(ApproachTags.Concealment);
+                        score += state.TagSystem.GetApproachTagValue(EncounterStateTags.Concealment);
                         break;
                 }
 

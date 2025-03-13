@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents a tag modification to be applied when a choice is made
     /// </summary>
-    public class TagModification
+    public class EncounterStateModification
     {
         public enum TagTypes { Approach, Focus }
 
@@ -11,21 +11,21 @@
         public object Tag { get; } // Either ApproachTags or FocusTags
         public int Delta { get; }
 
-        private TagModification(TagTypes type, object tag, int delta)
+        private EncounterStateModification(TagTypes type, object tag, int delta)
         {
             Type = type;
             Tag = tag;
             Delta = delta;
         }
 
-        public static TagModification ForApproach(ApproachTags tag, int delta)
+        public static EncounterStateModification ForApproach(EncounterStateTags tag, int delta)
         {
-            return new TagModification(TagTypes.Approach, tag, delta);
+            return new EncounterStateModification(TagTypes.Approach, tag, delta);
         }
 
-        public static TagModification ForFocus(FocusTags tag, int delta)
+        public static EncounterStateModification ForFocus(FocusTags tag, int delta)
         {
-            return new TagModification(TagTypes.Focus, tag, delta);
+            return new EncounterStateModification(TagTypes.Focus, tag, delta);
         }
 
         public override string ToString()

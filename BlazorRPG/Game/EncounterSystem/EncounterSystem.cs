@@ -140,14 +140,14 @@ public class EncounterSystem
             "Use your market knowledge and rapport to secure a favorable deal",
             ApproachTypes.Charm,
             FocusTags.Resource,
-            new List<TagModification>
+            new List<EncounterStateModification>
             {
-                    TagModification.ForApproach(ApproachTags.Rapport, 1),
-                    TagModification.ForFocus(FocusTags.Resource, 2)
+                    EncounterStateModification.ForApproach(EncounterStateTags.Rapport, 1),
+                    EncounterStateModification.ForFocus(FocusTags.Resource, 2)
             },
             new List<Func<BaseTagSystem, bool>>
             {
-                    ChoiceFactory.ApproachTagRequirement(ApproachTags.Rapport, 2),
+                    ChoiceFactory.ApproachTagRequirement(EncounterStateTags.Rapport, 2),
                     ChoiceFactory.FocusTagRequirement(FocusTags.Resource, 2)
             }
         );

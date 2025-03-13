@@ -31,7 +31,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         if (Preview?.ApproachTagChanges == null)
             return formattedChanges;
 
-        foreach (KeyValuePair<ApproachTags, int> tagChange in Preview.ApproachTagChanges)
+        foreach (KeyValuePair<EncounterStateTags, int> tagChange in Preview.ApproachTagChanges)
         {
             formattedChanges[tagChange.Key.ToString()] = tagChange.Value;
         }

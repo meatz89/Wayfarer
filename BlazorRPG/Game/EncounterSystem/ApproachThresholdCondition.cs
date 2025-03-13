@@ -2,10 +2,10 @@
 {
     public class ApproachThresholdCondition : ActivationCondition
     {
-        public ApproachTags ApproachTag { get; }
+        public EncounterStateTags ApproachTag { get; }
         public int Threshold { get; }
 
-        public ApproachThresholdCondition(ApproachTags approachTag, int threshold)
+        public ApproachThresholdCondition(EncounterStateTags approachTag, int threshold)
         {
             ApproachTag = approachTag;
             Threshold = threshold;

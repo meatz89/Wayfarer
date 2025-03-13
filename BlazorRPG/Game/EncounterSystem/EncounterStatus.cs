@@ -9,7 +9,7 @@
         public int MaxTurns { get; }
         public int Momentum { get; }
         public int Pressure { get; }
-        public IReadOnlyDictionary<ApproachTags, int> ApproachTags { get; }
+        public IReadOnlyDictionary<EncounterStateTags, int> ApproachTags { get; }
         public IReadOnlyDictionary<FocusTags, int> FocusTags { get; }
         public List<string> ActiveTagNames { get; }
 
@@ -18,7 +18,7 @@
             int maxTurns,
             int momentum,
             int pressure,
-            IReadOnlyDictionary<ApproachTags, int> approachTags,
+            IReadOnlyDictionary<EncounterStateTags, int> approachTags,
             IReadOnlyDictionary<FocusTags, int> focusTags,
             List<string> activeTagNames)
         {

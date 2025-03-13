@@ -112,7 +112,7 @@ public class EncounterState
         lastChoice = projection.Choice;
 
         // 1. Apply tag changes first
-        foreach (KeyValuePair<ApproachTags, int> pair in projection.ApproachTagChanges)
+        foreach (KeyValuePair<EncounterStateTags, int> pair in projection.ApproachTagChanges)
             TagSystem.ModifyApproachTag(pair.Key, pair.Value);
 
         foreach (KeyValuePair<FocusTags, int> pair in projection.FocusTagChanges)
@@ -374,11 +374,11 @@ public class EncounterState
         int currentTurn = CurrentTurn;
 
         // Apply tag modifications to cloned system and track changes
-        foreach (TagModification mod in choice.TagModifications)
+        foreach (EncounterStateModification mod in choice.TagModifications)
         {
-            if (mod.Type == TagModification.TagTypes.Approach)
+            if (mod.Type == EncounterStateModification.TagTypes.Approach)
             {
-                ApproachTags tag = (ApproachTags)mod.Tag;
+                EncounterStateTags tag = (EncounterStateTags)mod.Tag;
                 int oldValue = clonedTagSystem.GetApproachTagValue(tag);
                 clonedTagSystem.ModifyApproachTag(tag, mod.Delta);
                 int newValue = clonedTagSystem.GetApproachTagValue(tag);

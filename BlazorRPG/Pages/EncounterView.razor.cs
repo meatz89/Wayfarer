@@ -23,11 +23,11 @@ public partial class EncounterViewBase : ComponentBase
     public EncounterViewModel Model => GameManager.GetEncounterViewModel();
 
     // Add these methods to expose the enum values to the view
-    public ApproachTags[] GetApproachTags() => Enum.GetValues<ApproachTags>();
+    public EncounterStateTags[] GetApproachTags() => Enum.GetValues<EncounterStateTags>();
     public FocusTags[] GetFocusTags() => Enum.GetValues<FocusTags>();
 
     // Updated tag value class method
-    public string GetTagValueClass(ApproachTags tag)
+    public string GetTagValueClass(EncounterStateTags tag)
     {
         int value = Model.State.TagSystem.GetApproachTagValue(tag);
         if (value >= 4) return "tag-level-major";

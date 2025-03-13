@@ -9,7 +9,7 @@ public class TagFormatter
         List<string> significantTags = new List<string>();
 
         // Get high approach tags
-        foreach (KeyValuePair<ApproachTags, int> tag in state.ApproachTags.Where(t => t.Value >= 2).OrderByDescending(t => t.Value))
+        foreach (KeyValuePair<EncounterStateTags, int> tag in state.ApproachTags.Where(t => t.Value >= 2).OrderByDescending(t => t.Value))
         {
             significantTags.Add($"{tag.Key} {tag.Value}{(tag.Value >= 4 ? " (MAJOR)" : "")}");
         }
@@ -31,7 +31,7 @@ public class TagFormatter
 
     public (string, string) GetSignificantApproachTags(EncounterStatus state)
     {
-        List<KeyValuePair<ApproachTags, int>> orderedTags = state.ApproachTags
+        List<KeyValuePair<EncounterStateTags, int>> orderedTags = state.ApproachTags
             .OrderByDescending(t => t.Value)
             .ToList();
 
@@ -58,7 +58,7 @@ public class TagFormatter
         List<string> changes = new List<string>();
 
         // Format approach tag changes
-        foreach (KeyValuePair<ApproachTags, int> change in projection.ApproachTagChanges.Where(c => c.Value != 0))
+        foreach (KeyValuePair<EncounterStateTags, int> change in projection.ApproachTagChanges.Where(c => c.Value != 0))
         {
             changes.Add($"{change.Key} {(change.Value > 0 ? "+" : "")}{change.Value}");
         }
