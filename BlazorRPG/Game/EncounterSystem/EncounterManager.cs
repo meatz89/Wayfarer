@@ -41,18 +41,10 @@ namespace BlazorRPG.Game.EncounterManager
             CurrentChoices = _cardSelector.SelectChoices(State);
         }
 
-        // Apply a choice using its projection
         private ChoiceOutcome ApplyChoiceProjection(ChoiceProjection projection)
         {
             State.ApplyChoiceProjection(projection);
-
-            return new ChoiceOutcome(
-                projection.MomentumGained,
-                projection.PressureBuilt,
-                projection.NarrativeDescription,
-                projection.EncounterWillEnd,
-                projection.ProjectedOutcome
-            );
+            return new ChoiceOutcome(projection);
         }
 
         // Get current encounter state information
@@ -64,6 +56,7 @@ namespace BlazorRPG.Game.EncounterManager
                 State.Momentum,
                 State.Pressure,
                 State.TagSystem.GetAllEncounterStateTags(),
+                State.TagSystem.GetAllApproachTags(),
                 State.TagSystem.GetAllFocusTags(),
                 State.ActiveTags.Select(t => t.Name).ToList()
             );

@@ -38,6 +38,7 @@ public class LocationInfo
     public OpportunityTypes Opportunity { get; }
     public ItemTypes ResourceType { get; }
     public bool PlayerKnowledge { get; }
+    public EncounterTypes EncounterType { get; internal set; }
 
     public LocationInfo(
         string name,

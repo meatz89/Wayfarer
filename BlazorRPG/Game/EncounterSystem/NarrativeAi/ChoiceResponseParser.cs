@@ -7,102 +7,91 @@ public static class ChoiceResponseParser
     {
         Dictionary<IChoice, ChoiceNarrative> result = new Dictionary<IChoice, ChoiceNarrative>();
 
-        // Split the response by choice identifiers
-        string[] choiceSections = SplitIntoChoiceSections(response);
+        // Split the response by lines to process one line at a time
+        string[] lines = response.Split('\n');
+        int currentChoice = -1;
+        StringBuilder currentContent = new StringBuilder();
 
-        // Process each choice section
-        for (int i = 0; i < choiceSections.Length && i < choices.Count; i++)
+        // Process each line
+        foreach (string line in lines)
         {
-            string section = choiceSections[i];
-            int choiceNumber = i + 1;
+            string trimmedLine = line.Trim();
 
-            // Try to extract name and description
-            if (TryExtractNameAndDescription(section, out string name, out string description))
+            // Check if this line starts a new choice
+            if (trimmedLine.StartsWith("Choice ") && trimmedLine.Contains(":"))
             {
-                result[choices[i]] = new ChoiceNarrative(name, description);
-            }
-            else
-            {
-                // Fallback with default formatting
-                string fallbackName = $"I {choices[i].Approach.ToString().ToLower()} with {choices[i].Focus.ToString().ToLower()}";
-                string fallbackDescription = section.Trim();
-
-                // If we couldn't extract a description either, provide a generic one
-                if (string.IsNullOrWhiteSpace(fallbackDescription))
+                // Process the previous choice if we were building one
+                if (currentChoice >= 0 && currentChoice < choices.Count && currentContent.Length > 0)
                 {
-                    fallbackDescription = $"I use my {choices[i].Approach} approach focused on {choices[i].Focus} to address the situation.";
+                    ProcessChoiceContent(result, choices, currentChoice, currentContent.ToString().Trim());
+                    currentContent.Clear();
                 }
 
-                result[choices[i]] = new ChoiceNarrative(fallbackName, fallbackDescription);
+                // Extract the choice number
+                string choicePrefix = "Choice ";
+                int colonIndex = trimmedLine.IndexOf(':');
+                if (colonIndex > choicePrefix.Length)
+                {
+                    string numberPart = trimmedLine.Substring(choicePrefix.Length, colonIndex - choicePrefix.Length).Trim();
+                    if (int.TryParse(numberPart, out int choiceNum) && choiceNum >= 1 && choiceNum <= choices.Count)
+                    {
+                        currentChoice = choiceNum - 1;
+
+                        // Add content after the colon to our buffer
+                        if (colonIndex < trimmedLine.Length - 1)
+                        {
+                            currentContent.Append(trimmedLine.Substring(colonIndex + 1).Trim());
+                            currentContent.Append(' ');
+                        }
+                    }
+                }
+            }
+            else if (currentChoice >= 0 && currentChoice < choices.Count && !string.IsNullOrWhiteSpace(trimmedLine))
+            {
+                // Add content to the current choice being built
+                currentContent.Append(trimmedLine);
+                currentContent.Append(' ');
             }
         }
 
-        // Fill in any missing choices with defaults
+        // Process the last choice if we were building one
+        if (currentChoice >= 0 && currentChoice < choices.Count && currentContent.Length > 0)
+        {
+            ProcessChoiceContent(result, choices, currentChoice, currentContent.ToString().Trim());
+        }
+
+        // Fill in any missing choices with defaults based on approach and focus tags
         for (int i = 0; i < choices.Count; i++)
         {
             if (!result.ContainsKey(choices[i]))
             {
-                string defaultName = $"I {choices[i].Approach.ToString().ToLower()} with {choices[i].Focus.ToString().ToLower()}";
-                string defaultDescription = $"I use my {choices[i].Approach} approach focused on {choices[i].Focus} to address the situation.";
-                result[choices[i]] = new ChoiceNarrative(defaultName, defaultDescription);
+                result[choices[i]] = new ChoiceNarrative("defaultName", "defaultDescription");
             }
         }
 
         return result;
     }
 
-    private static string[] SplitIntoChoiceSections(string response)
+    private static void ProcessChoiceContent(Dictionary<IChoice, ChoiceNarrative> result, List<IChoice> choices, int choiceIndex, string content)
     {
-        List<string> sections = new List<string>();
+        IChoice choice = choices[choiceIndex];
 
-        // Find starting positions of each "Choice #:" section
-        List<int> startPositions = new List<int>();
-
-        for (int i = 1; i <= 4; i++)
+        // Split by the dash separator
+        int dashPosition = content.IndexOf(" - ");
+        if (dashPosition > 0 && dashPosition < content.Length - 3) // Ensure there's content after the dash
         {
-            string marker = $"Choice {i}:";
-            int pos = response.IndexOf(marker);
-            if (pos >= 0)
+            string name = content.Substring(0, dashPosition).Trim();
+            string description = content.Substring(dashPosition + 3).Trim(); // +3 to skip " - "
+
+            // Ensure both parts start with "I"
+            if (name.StartsWith("I ", StringComparison.OrdinalIgnoreCase) &&
+                description.StartsWith("I ", StringComparison.OrdinalIgnoreCase))
             {
-                startPositions.Add(pos);
+                result[choice] = new ChoiceNarrative(name, description);
+                return;
             }
         }
 
-        // Sort by position in the text
-        startPositions.Sort();
-
-        // Extract each section
-        for (int i = 0; i < startPositions.Count; i++)
-        {
-            int startPos = startPositions[i];
-            int endPos = (i < startPositions.Count - 1) ? startPositions[i + 1] : response.Length;
-
-            sections.Add(response.Substring(startPos, endPos - startPos));
-        }
-
-        return sections.ToArray();
-    }
-
-    private static bool TryExtractNameAndDescription(string section, out string name, out string description)
-    {
-        name = string.Empty;
-        description = string.Empty;
-
-        // Skip the "Choice #:" prefix
-        int colonPos = section.IndexOf(':');
-        if (colonPos < 0) return false;
-
-        string content = section.Substring(colonPos + 1).Trim();
-
-        // Find the separator dash
-        int dashPos = content.IndexOf(" - ");
-        if (dashPos < 0) return false;
-
-        // Extract name and description
-        name = content.Substring(0, dashPos).Trim();
-        description = content.Substring(dashPos + 3).Trim();
-
-        // Verify both start with "I"
-        return name.StartsWith("I ") && description.StartsWith("I ");
+        result[choice] = new ChoiceNarrative("fallbackName", "fallbackDescription");
     }
 }

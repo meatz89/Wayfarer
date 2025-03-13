@@ -42,7 +42,8 @@ public enum OpportunityTypes
 }
 public enum LocationTypes
 {
-    Residential, Commercial, Industrial, Natural
+    Residential, Commercial, Industrial, Natural,
+    Neutral
 }
 public enum LocationNames
 {

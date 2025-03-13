@@ -11,7 +11,7 @@ public class EncounterTypeDetector
             location.Contains("Village") || location.Contains("Court"))
         {
             // Consider more social locations or high rapport/dominance as social
-            if (state.ApproachTags.TryGetValue(EncounterStateTags.Rapport, out int rapport) &&
+            if (state.EncounterStateTags.TryGetValue(EncounterStateTags.Rapport, out int rapport) &&
                 rapport > state.ApproachTags.Values.Where(v => v != rapport).DefaultIfEmpty(0).Max())
             {
                 return EncounterTypes.Social;
@@ -19,26 +19,26 @@ public class EncounterTypeDetector
         }
 
         // Consider high analysis as intellectual
-        if (state.ApproachTags.TryGetValue(EncounterStateTags.Analysis, out int analysis) &&
+        if (state.EncounterStateTags.TryGetValue(EncounterStateTags.Analysis, out int analysis) &&
             analysis > state.ApproachTags.Values.Where(v => v != analysis).DefaultIfEmpty(0).Max())
         {
             return EncounterTypes.Intellectual;
         }
 
         // Consider high dominance, precision, or concealment as physical
-        if (state.ApproachTags.TryGetValue(EncounterStateTags.Dominance, out int dominance) &&
+        if (state.EncounterStateTags.TryGetValue(EncounterStateTags.Dominance, out int dominance) &&
             dominance > state.ApproachTags.Values.Where(v => v != dominance).DefaultIfEmpty(0).Max())
         {
             return EncounterTypes.Physical;
         }
 
-        if (state.ApproachTags.TryGetValue(EncounterStateTags.Precision, out int precision) &&
+        if (state.EncounterStateTags.TryGetValue(EncounterStateTags.Precision, out int precision) &&
             precision > state.ApproachTags.Values.Where(v => v != precision).DefaultIfEmpty(0).Max())
         {
             return EncounterTypes.Physical;
         }
 
-        if (state.ApproachTags.TryGetValue(EncounterStateTags.Concealment, out int concealment) &&
+        if (state.EncounterStateTags.TryGetValue(EncounterStateTags.Concealment, out int concealment) &&
             concealment > state.ApproachTags.Values.Where(v => v != concealment).DefaultIfEmpty(0).Max())
         {
             return EncounterTypes.Physical;

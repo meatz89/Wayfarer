@@ -50,9 +50,9 @@
             _focusTags[tag] = Math.Clamp(newValue, MinTagValue, MaxTagValue);
         }
 
-        public IReadOnlyDictionary<EncounterStateTags, int> GetAllEncounterStateTags() => _encounterStateTags;
-        public IReadOnlyDictionary<ApproachTags, int> GetAllApproachTags() => _approachTags;
-        public IReadOnlyDictionary<FocusTags, int> GetAllFocusTags() => _focusTags;
+        public Dictionary<EncounterStateTags, int> GetAllEncounterStateTags() => _encounterStateTags;
+        public Dictionary<ApproachTags, int> GetAllApproachTags() => _approachTags;
+        public Dictionary<FocusTags, int> GetAllFocusTags() => _focusTags;
 
         public BaseTagSystem Clone()
         {
