@@ -69,7 +69,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         string description = choice.Description;
         if (choiceNarrative != null)
         {
-            description = choiceNarrative.ShorthandName;
+            description = choiceNarrative.FullDescription;
         }
         return description;
     }

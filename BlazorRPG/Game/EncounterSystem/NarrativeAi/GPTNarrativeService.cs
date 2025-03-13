@@ -115,6 +115,9 @@ public class GPTNarrativeService : INarrativeAIService
         string systemMessage = _promptManager.GetSystemMessage();
         string prompt = _promptManager.BuildChoicesPrompt(context, choices, projections, state);
 
+        // Add explicit formatting reminder
+        prompt += "\n\nCRITICAL: You MUST format EACH choice response as 'Choice #: [NAME] - [DESCRIPTION]' where [NAME] is a brief action summary and [DESCRIPTION] is a detailed narrative explanation, both starting with 'I'. This exact format is required for the game to function correctly.";
+
         // Initialize or update conversation context
         if (!_contextManager.ConversationExists(conversationId))
         {
@@ -126,39 +129,15 @@ public class GPTNarrativeService : INarrativeAIService
             _contextManager.AddUserMessage(conversationId, prompt);
         }
 
-        try
-        {
-            // Call AI service and get response
-            string response = await _aiClient.GetCompletionAsync(
-                _contextManager.GetConversationHistory(conversationId));
+        // Call AI service and get response
+        string response = await _aiClient.GetCompletionAsync(
+            _contextManager.GetConversationHistory(conversationId));
 
-            // Update conversation history with response
-            _contextManager.AddAssistantMessage(conversationId, response);
+        // Update conversation history with response
+        _contextManager.AddAssistantMessage(conversationId, response);
 
-            // Process response into dictionary with action summaries and descriptions
-            return ChoiceResponseParser.ParseChoiceNarratives(response, choices);
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex, $"Error generating choices for {context.LocationName}");
-
-            // Create more realistic fallback choices based on the mechanical choices
-            Dictionary<IChoice, ChoiceNarrative> fallbackChoices = new Dictionary<IChoice, ChoiceNarrative>();
-
-            foreach ((IChoice choice, int index) in choices.Select((c, i) => (c, i)))
-            {
-                // Create more detailed and specific fallback descriptions
-                string description = "fallback";
-
-                // Create a summary from the description
-                string[] words = description.Split(' ');
-                string actionSummary = string.Join(" ", words.Take(Math.Min(8, words.Length)));
-
-                fallbackChoices[choice] = new ChoiceNarrative(actionSummary, description);
-            }
-
-            return fallbackChoices;
-        }
+        // Process response into dictionary with action summaries and descriptions
+        return ChoiceResponseParser.ParseChoiceNarratives(response, choices);
     }
 
     // Method to get the current game instance ID
