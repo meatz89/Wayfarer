@@ -10,8 +10,8 @@
             // Core properties - note the hostility level is Hostile
             LocationInfo location = new LocationInfo(
                 "Bandit Ambush",
-                new[] { ApproachTypes.Force, ApproachTypes.Stealth }.ToList(),
-                new[] { ApproachTypes.Charm, ApproachTypes.Wit }.ToList(),
+                new[] { ApproachTags.Force, ApproachTags.Stealth }.ToList(),
+                new[] { ApproachTags.Charm, ApproachTags.Wit }.ToList(),
                 new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),
                 new[] { FocusTags.Relationship }.ToList(),
                 10, // Duration
@@ -36,8 +36,8 @@
             // Core properties
             LocationInfo location = new LocationInfo(
                 "Village Market",
-                new[] { ApproachTypes.Charm, ApproachTypes.Finesse }.ToList(),
-                new[] { ApproachTypes.Force, ApproachTypes.Stealth }.ToList(),
+                new[] { ApproachTags.Charm, ApproachTags.Finesse }.ToList(),
+                new[] { ApproachTags.Force, ApproachTags.Stealth }.ToList(),
                 new[] { FocusTags.Relationship, FocusTags.Resource }.ToList(),
                 new[] { FocusTags.Physical }.ToList(),
                 11, // Duration

@@ -23,17 +23,9 @@ public partial class EncounterViewBase : ComponentBase
     public EncounterViewModel Model => GameManager.GetEncounterViewModel();
 
     // Add these methods to expose the enum values to the view
-    public EncounterStateTags[] GetApproachTags() => Enum.GetValues<EncounterStateTags>();
+    public EncounterStateTags[] GetEncounterStateTags() => Enum.GetValues<EncounterStateTags>();
+    public ApproachTags[] GetApproachTags() => Enum.GetValues<ApproachTags>();
     public FocusTags[] GetFocusTags() => Enum.GetValues<FocusTags>();
-
-    // Updated tag value class method
-    public string GetTagValueClass(EncounterStateTags tag)
-    {
-        int value = Model.State.TagSystem.GetApproachTagValue(tag);
-        if (value >= 4) return "tag-level-major";
-        if (value >= 2) return "tag-level-minor";
-        return "";
-    }
 
     protected override async Task OnInitializedAsync()
     {

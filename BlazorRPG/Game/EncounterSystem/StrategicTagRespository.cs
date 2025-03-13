@@ -12,21 +12,21 @@
         public static StrategicTag CombatExhaustion = new StrategicTag(
                 "Combat Exhaustion",
                 StrategicEffectTypes.ReduceHealthByPressure,
-                ApproachTypes.Force,
+                ApproachTags.Force,
                 null,
                 EncounterStateTags.Dominance);
 
         public static StrategicTag PoorlyCoordinated = new StrategicTag(
                 "Poorly Coordinated",
                 StrategicEffectTypes.AddMomentumToApproach,
-                ApproachTypes.Force,
+                ApproachTags.Force,
                 null,
                 EncounterStateTags.Precision);
 
         public static StrategicTag EasilyDistracted = new StrategicTag(
                 "Easily Distracted",
                 StrategicEffectTypes.AddMomentumToApproach,
-                ApproachTypes.Stealth,
+                ApproachTags.Stealth,
                 null,
                 EncounterStateTags.Concealment);
 

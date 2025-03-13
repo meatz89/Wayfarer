@@ -31,9 +31,22 @@
                 <div class="approach-tags">
                     <div class="properties-header">Approach Tags</div>
                     <div class="tag-grid">
+                        @foreach (var tag in GetEncounterStateTags())
+                        {
+                            <div class="tag-value">
+                                <span class="tag-name">@tag</span>
+                                <span class="tag-level">@Model.State.TagSystem.GetEncounterStateTagValue(tag)</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="approach-tags">
+                    <div class="properties-header">Approach Tags</div>
+                    <div class="tag-grid">
                         @foreach (var tag in GetApproachTags())
                         {
-                            <div class="tag-value @GetTagValueClass(tag)">
+                            <div class="tag-value">
                                 <span class="tag-name">@tag</span>
                                 <span class="tag-level">@Model.State.TagSystem.GetApproachTagValue(tag)</span>
                             </div>

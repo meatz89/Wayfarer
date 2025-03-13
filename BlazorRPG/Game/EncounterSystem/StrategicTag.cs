@@ -3,7 +3,7 @@
 public class StrategicTag : IEncounterTag
 {
     public string Name { get; }
-    public ApproachTypes? AffectedApproach { get; } // What approach this affects
+    public ApproachTags? AffectedApproach { get; } // What approach this affects
     public FocusTags? AffectedFocus { get; } // What focus this affects
     public StrategicEffectTypes EffectType { get; }
     public EncounterStateTags? ScalingApproachTag { get; } // Which tag it scales with
@@ -14,7 +14,7 @@ public class StrategicTag : IEncounterTag
     public StrategicTag(
         string name,
         StrategicEffectTypes effectType,
-        ApproachTypes? affectedApproach = null,
+        ApproachTags? affectedApproach = null,
         FocusTags? affectedFocus = null,
         EncounterStateTags? scalingApproachTag = null)
     {
@@ -128,7 +128,7 @@ public class StrategicTag : IEncounterTag
             return EffectValue;
 
         // Get the scaled value from the specified approach tag
-        return state.TagSystem.GetApproachTagValue(ScalingApproachTag.Value);
+        return state.TagSystem.GetEncounterStateTagValue(ScalingApproachTag.Value);
     }
 
     public string GetEffectDescription()

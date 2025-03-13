@@ -7,8 +7,8 @@ using static LocationInfo;
 public class LocationInfo
 {
     public string Name { get; }
-    public List<ApproachTypes> FavoredApproaches { get; } = new List<ApproachTypes>();
-    public List<ApproachTypes> DisfavoredApproaches { get; } = new List<ApproachTypes>();
+    public List<ApproachTags> FavoredApproaches { get; } = new List<ApproachTags>();
+    public List<ApproachTags> DisfavoredApproaches { get; } = new List<ApproachTags>();
     public List<FocusTags> FavoredFocuses { get; } = new List<FocusTags>();
     public List<FocusTags> DisfavoredFocuses { get; } = new List<FocusTags>();
     public List<IEncounterTag> AvailableTags { get; } = new List<IEncounterTag>();
@@ -41,8 +41,8 @@ public class LocationInfo
 
     public LocationInfo(
         string name,
-        List<ApproachTypes> favoredApproaches,
-        List<ApproachTypes> disfavoredApproaches,
+        List<ApproachTags> favoredApproaches,
+        List<ApproachTags> disfavoredApproaches,
         List<FocusTags> favoredFocuses,
         List<FocusTags> disfavoredFocuses,
         int duration,

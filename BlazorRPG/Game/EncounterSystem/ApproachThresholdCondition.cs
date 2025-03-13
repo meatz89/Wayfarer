@@ -13,7 +13,7 @@
 
         public override bool IsActive(BaseTagSystem tagSystem)
         {
-            return tagSystem.GetApproachTagValue(ApproachTag) >= Threshold;
+            return tagSystem.GetEncounterStateTagValue(ApproachTag) >= Threshold;
         }
 
         public override string GetDescription()

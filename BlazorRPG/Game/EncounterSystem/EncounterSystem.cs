@@ -138,16 +138,18 @@ public class EncounterSystem
         return new SpecialChoice(
             "Negotiate Better Price",
             "Use your market knowledge and rapport to secure a favorable deal",
-            ApproachTypes.Charm,
+            ApproachTags.Charm,
             FocusTags.Resource,
-            new List<EncounterStateModification>
+            new List<TagModification>
             {
-                    EncounterStateModification.ForApproach(EncounterStateTags.Rapport, 1),
-                    EncounterStateModification.ForFocus(FocusTags.Resource, 2)
+                    TagModification.ForEncounterState(EncounterStateTags.Rapport, 1),
+                    TagModification.ForApproach(ApproachTags.Force, 2),
+                    TagModification.ForFocus(FocusTags.Resource, 2)
             },
             new List<Func<BaseTagSystem, bool>>
             {
-                    ChoiceFactory.ApproachTagRequirement(EncounterStateTags.Rapport, 2),
+                    ChoiceFactory.EncounterStateTagRequirement(EncounterStateTags.Rapport, 2),
+                    ChoiceFactory.ApproachTagRequirement(ApproachTags.Force, 2),
                     ChoiceFactory.FocusTagRequirement(FocusTags.Resource, 2)
             }
         );

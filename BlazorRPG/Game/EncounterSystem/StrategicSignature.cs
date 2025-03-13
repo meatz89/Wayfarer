@@ -98,19 +98,19 @@ public class StrategicSignature
     /// <summary>
     /// Map approach type to signature element type
     /// </summary>
-    public static SignatureElementTypes ApproachToElement(ApproachTypes approach)
+    public static SignatureElementTypes ApproachToElement(ApproachTags approach)
     {
         switch (approach)
         {
-            case ApproachTypes.Force:
+            case ApproachTags.Force:
                 return SignatureElementTypes.Dominance;
-            case ApproachTypes.Charm:
+            case ApproachTags.Charm:
                 return SignatureElementTypes.Rapport;
-            case ApproachTypes.Wit:
+            case ApproachTags.Wit:
                 return SignatureElementTypes.Analysis;
-            case ApproachTypes.Finesse:
+            case ApproachTags.Finesse:
                 return SignatureElementTypes.Precision;
-            case ApproachTypes.Stealth:
+            case ApproachTags.Stealth:
                 return SignatureElementTypes.Concealment;
             default:
                 throw new ArgumentException("Invalid approach type");

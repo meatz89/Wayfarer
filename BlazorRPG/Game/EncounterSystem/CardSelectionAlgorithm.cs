@@ -18,7 +18,7 @@
             List<IChoice> availableChoices = new List<IChoice>(_choiceRepository.GetStandardChoices());
 
             // 1. Apply narrative tag filters
-            List<ApproachTypes> blockedApproaches = GetBlockedApproaches(state.ActiveTags);
+            List<ApproachTags> blockedApproaches = GetBlockedApproaches(state.ActiveTags);
             availableChoices = availableChoices
                 .Where(choice => !blockedApproaches.Contains(choice.Approach))
                 .ToList();
@@ -42,7 +42,7 @@
                 // If still no valid choices, add emergency choices
                 if (availableChoices.Count == 0)
                 {
-                    foreach (ApproachTypes approach in Enum.GetValues(typeof(ApproachTypes)).Cast<ApproachTypes>())
+                    foreach (ApproachTags approach in Enum.GetValues(typeof(ApproachTags)).Cast<ApproachTags>())
                     {
                         EmergencyChoice emergencyChoice = _choiceRepository.GetEmergencyChoice(approach);
                         if (emergencyChoice != null)
@@ -196,20 +196,20 @@
                 // Tag matching bonuses
                 switch (choice.Approach)
                 {
-                    case ApproachTypes.Force:
-                        score += state.TagSystem.GetApproachTagValue(EncounterStateTags.Dominance);
+                    case ApproachTags.Force:
+                        score += state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Dominance);
                         break;
-                    case ApproachTypes.Charm:
-                        score += state.TagSystem.GetApproachTagValue(EncounterStateTags.Rapport);
+                    case ApproachTags.Charm:
+                        score += state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Rapport);
                         break;
-                    case ApproachTypes.Wit:
-                        score += state.TagSystem.GetApproachTagValue(EncounterStateTags.Analysis);
+                    case ApproachTags.Wit:
+                        score += state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Analysis);
                         break;
-                    case ApproachTypes.Finesse:
-                        score += state.TagSystem.GetApproachTagValue(EncounterStateTags.Precision);
+                    case ApproachTags.Finesse:
+                        score += state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Precision);
                         break;
-                    case ApproachTypes.Stealth:
-                        score += state.TagSystem.GetApproachTagValue(EncounterStateTags.Concealment);
+                    case ApproachTags.Stealth:
+                        score += state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Concealment);
                         break;
                 }
 
@@ -223,9 +223,9 @@
         }
 
         // Get the list of approaches blocked by narrative tags
-        private List<ApproachTypes> GetBlockedApproaches(List<IEncounterTag> activeTags)
+        private List<ApproachTags> GetBlockedApproaches(List<IEncounterTag> activeTags)
         {
-            List<ApproachTypes> blockedApproaches = new List<ApproachTypes>();
+            List<ApproachTags> blockedApproaches = new List<ApproachTags>();
 
             foreach (IEncounterTag tag in activeTags)
             {

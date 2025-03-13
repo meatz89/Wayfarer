@@ -63,7 +63,7 @@ namespace BlazorRPG.Game.EncounterManager
                 State.Location.TurnDuration,
                 State.Momentum,
                 State.Pressure,
-                State.TagSystem.GetAllApproachTags(),
+                State.TagSystem.GetAllEncounterStateTags(),
                 State.TagSystem.GetAllFocusTags(),
                 State.ActiveTags.Select(t => t.Name).ToList()
             );

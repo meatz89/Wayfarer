@@ -3,10 +3,10 @@
 public class NarrativeTag : IEncounterTag
 {
     public string Name { get; }
-    public ApproachTypes? BlockedApproach { get; }
+    public ApproachTags? BlockedApproach { get; }
     public ActivationCondition Condition { get; }
 
-    public NarrativeTag(string name, ActivationCondition condition, ApproachTypes? blockedApproach = null)
+    public NarrativeTag(string name, ActivationCondition condition, ApproachTags? blockedApproach = null)
     {
         Name = name;
         Condition = condition;

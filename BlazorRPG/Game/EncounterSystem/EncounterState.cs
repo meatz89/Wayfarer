@@ -1,4 +1,5 @@
 ﻿using BlazorRPG.Game.EncounterManager;
+using static BlazorRPG.Game.EncounterManager.TagModification;
 
 /// <summary>
 /// Represents the current state of an encounter
@@ -18,12 +19,12 @@ public class EncounterState
     private int _escalationLevel = 0;
 
     // Momentums bonuses from active strategic tags
-    private readonly Dictionary<ApproachTypes, int> _approachMomentumBonuses = new();
+    private readonly Dictionary<ApproachTags, int> _approachMomentumBonuses = new();
     private readonly Dictionary<FocusTags, int> _focusMomentumBonuses = new();
     private int _endOfTurnPressureReduction = 0;
 
     // Pressure modifiers
-    private readonly Dictionary<ApproachTypes, int> _approachPressureModifiers = new();
+    private readonly Dictionary<ApproachTags, int> _approachPressureModifiers = new();
     private readonly Dictionary<FocusTags, int> _focusPressureModifiers = new();
 
     // Track the last choice for effect application
@@ -80,7 +81,7 @@ public class EncounterState
                     case StrategicEffectTypes.ReduceHealthByApproachValue:
                         if (strategicTag.ScalingApproachTag.HasValue)
                         {
-                            int value = TagSystem.GetApproachTagValue(strategicTag.ScalingApproachTag.Value);
+                            int value = TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
                             PlayerState.ModifyHealth(-value);
                         }
                         break;
@@ -88,7 +89,7 @@ public class EncounterState
                     case StrategicEffectTypes.ReduceConcentrationByApproachValue:
                         if (strategicTag.ScalingApproachTag.HasValue)
                         {
-                            int value = TagSystem.GetApproachTagValue(strategicTag.ScalingApproachTag.Value);
+                            int value = TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
                             PlayerState.ModifyConcentration(-value);
                         }
                         break;
@@ -96,7 +97,7 @@ public class EncounterState
                     case StrategicEffectTypes.ReduceReputationByApproachValue:
                         if (strategicTag.ScalingApproachTag.HasValue)
                         {
-                            int value = TagSystem.GetApproachTagValue(strategicTag.ScalingApproachTag.Value);
+                            int value = TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
                             PlayerState.ModifyReputation(-value);
                         }
                         break;
@@ -105,14 +106,16 @@ public class EncounterState
         }
     }
 
-    // Modified ApplyChoiceProjection method to track the choice
     public void ApplyChoiceProjection(ChoiceProjection projection)
     {
         // Store the choice for resource effects
         lastChoice = projection.Choice;
 
         // 1. Apply tag changes first
-        foreach (KeyValuePair<EncounterStateTags, int> pair in projection.ApproachTagChanges)
+        foreach (KeyValuePair<EncounterStateTags, int> pair in projection.EncounterStateTagChanges)
+            TagSystem.ModifyEncounterStateTag(pair.Key, pair.Value);
+
+        foreach (KeyValuePair<ApproachTags, int> pair in projection.ApproachTagChanges)
             TagSystem.ModifyApproachTag(pair.Key, pair.Value);
 
         foreach (KeyValuePair<FocusTags, int> pair in projection.FocusTagChanges)
@@ -162,7 +165,7 @@ public class EncounterState
                         else if (strategicTag.EffectType == StrategicEffectTypes.ReduceHealthByApproachValue &&
                                  strategicTag.ScalingApproachTag.HasValue)
                         {
-                            change -= TagSystem.GetApproachTagValue(strategicTag.ScalingApproachTag.Value);
+                            change -= TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
                         }
                         break;
 
@@ -174,7 +177,7 @@ public class EncounterState
                         else if (strategicTag.EffectType == StrategicEffectTypes.ReduceConcentrationByApproachValue &&
                                  strategicTag.ScalingApproachTag.HasValue)
                         {
-                            change -= TagSystem.GetApproachTagValue(strategicTag.ScalingApproachTag.Value);
+                            change -= TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
                         }
                         break;
 
@@ -186,7 +189,7 @@ public class EncounterState
                         else if (strategicTag.EffectType == StrategicEffectTypes.ReduceReputationByApproachValue &&
                                  strategicTag.ScalingApproachTag.HasValue)
                         {
-                            change -= TagSystem.GetApproachTagValue(strategicTag.ScalingApproachTag.Value);
+                            change -= TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
                         }
                         break;
                 }
@@ -270,7 +273,7 @@ public class EncounterState
     }
 
     // Add approach momentum bonus
-    public void AddApproachMomentumBonus(ApproachTypes approach, int bonus)
+    public void AddApproachMomentumBonus(ApproachTags approach, int bonus)
     {
         if (!_approachMomentumBonuses.ContainsKey(approach))
             _approachMomentumBonuses[approach] = 0;
@@ -288,7 +291,7 @@ public class EncounterState
     }
 
     // Add approach pressure modifier
-    public void AddApproachPressureModifier(ApproachTypes approach, int modifier)
+    public void AddApproachPressureModifier(ApproachTags approach, int modifier)
     {
         if (!_approachPressureModifiers.ContainsKey(approach))
             _approachPressureModifiers[approach] = 0;
@@ -315,14 +318,14 @@ public class EncounterState
     public void ResetTagEffects()
     {
         // Reset momentum bonuses
-        foreach (ApproachTypes approach in Enum.GetValues(typeof(ApproachTypes)))
+        foreach (ApproachTags approach in Enum.GetValues(typeof(ApproachTags)))
             _approachMomentumBonuses[approach] = 0;
 
         foreach (FocusTags focus in Enum.GetValues(typeof(FocusTags)))
             _focusMomentumBonuses[focus] = 0;
 
         // Reset pressure modifiers
-        foreach (ApproachTypes approach in Enum.GetValues(typeof(ApproachTypes)))
+        foreach (ApproachTags approach in Enum.GetValues(typeof(ApproachTags)))
             _approachPressureModifiers[approach] = 0;
 
         foreach (FocusTags focus in Enum.GetValues(typeof(FocusTags)))
@@ -373,12 +376,39 @@ public class EncounterState
         int currentPressure = Pressure;
         int currentTurn = CurrentTurn;
 
+        TagModification approachTagMod = ForApproach(choice.Approach, 1);
+        ApproachTags tagApproach = (ApproachTags)approachTagMod.Tag;
+        int oldValueApproach = clonedTagSystem.GetApproachTagValue(tagApproach);
+        clonedTagSystem.ModifyApproachTag(tagApproach, approachTagMod.Delta);
+        int newValueApproach = clonedTagSystem.GetApproachTagValue(tagApproach);
+        int actualDeltaApproach = newValueApproach - oldValueApproach;
+        if (actualDeltaApproach != 0) projection.ApproachTagChanges[tagApproach] = actualDeltaApproach;
+
+        TagModification focusTagMod = ForFocus(choice.Focus, 1);
+        FocusTags tagFocus = (FocusTags)focusTagMod.Tag;
+        int oldValueFocus = clonedTagSystem.GetFocusTagValue(tagFocus);
+        clonedTagSystem.ModifyFocusTag(tagFocus, focusTagMod.Delta);
+        int newValueFocus = clonedTagSystem.GetFocusTagValue(tagFocus);
+        int actualDeltaFocus = newValueFocus - oldValueFocus;
+        if (actualDeltaFocus != 0) projection.FocusTagChanges[tagFocus] = actualDeltaFocus;
+
         // Apply tag modifications to cloned system and track changes
-        foreach (EncounterStateModification mod in choice.TagModifications)
+        foreach (TagModification mod in choice.TagModifications)
         {
-            if (mod.Type == EncounterStateModification.TagTypes.Approach)
+            if (mod.Type == TagModification.TagTypes.EncounterState)
             {
                 EncounterStateTags tag = (EncounterStateTags)mod.Tag;
+                int oldValue = clonedTagSystem.GetEncounterStateTagValue(tag);
+                clonedTagSystem.ModifyEncounterStateTag(tag, mod.Delta);
+                int newValue = clonedTagSystem.GetEncounterStateTagValue(tag);
+                int actualDelta = newValue - oldValue;
+
+                if (actualDelta != 0)
+                    projection.EncounterStateTagChanges[tag] = actualDelta;
+            }
+            else if (mod.Type == TagModification.TagTypes.Approach)
+            {
+                ApproachTags tag = (ApproachTags)mod.Tag;
                 int oldValue = clonedTagSystem.GetApproachTagValue(tag);
                 clonedTagSystem.ModifyApproachTag(tag, mod.Delta);
                 int newValue = clonedTagSystem.GetApproachTagValue(tag);
@@ -387,7 +417,7 @@ public class EncounterState
                 if (actualDelta != 0)
                     projection.ApproachTagChanges[tag] = actualDelta;
             }
-            else
+            else if (mod.Type == TagModification.TagTypes.Focus)
             {
                 FocusTags tag = (FocusTags)mod.Tag;
                 int oldValue = clonedTagSystem.GetFocusTagValue(tag);

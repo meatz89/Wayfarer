@@ -6,7 +6,8 @@ public class ChoiceProjection
     public IChoice Choice { get; }
 
     // State changes
-    public Dictionary<EncounterStateTags, int> ApproachTagChanges { get; }
+    public Dictionary<EncounterStateTags, int> EncounterStateTagChanges { get; }
+    public Dictionary<ApproachTags, int> ApproachTagChanges { get; }
     public Dictionary<FocusTags, int> FocusTagChanges { get; }
     public int MomentumGained { get; set; }
     public int PressureBuilt { get; set; }
@@ -47,7 +48,8 @@ public class ChoiceProjection
     public ChoiceProjection(IChoice choice)
     {
         Choice = choice;
-        ApproachTagChanges = new Dictionary<EncounterStateTags, int>();
+        EncounterStateTagChanges = new Dictionary<EncounterStateTags, int>();
+        ApproachTagChanges = new Dictionary<ApproachTags, int>();
         FocusTagChanges = new Dictionary<FocusTags, int>();
         NewlyActivatedTags = new List<string>();
         DeactivatedTags = new List<string>();
