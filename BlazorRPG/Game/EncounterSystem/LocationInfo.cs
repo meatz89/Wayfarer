@@ -19,7 +19,7 @@ public class LocationInfo
     public int ExceptionalThreshold { get; }
 
     // Encounter duration in turns
-    public int Duration { get; }
+    public int TurnDuration { get; }
 
     // How hostile is this location (affects tag balance)
     public enum HostilityLevels { Friendly, Neutral, Hostile }
@@ -36,7 +36,7 @@ public class LocationInfo
     public LocationArchetypes LocationArchetype { get; }
     public CrowdDensity CrowdDensity { get; }
     public OpportunityTypes Opportunity { get; }
-    public ResourceTypes ResourceType { get; }
+    public ItemTypes ResourceType { get; }
     public bool PlayerKnowledge { get; }
 
     public LocationInfo(
@@ -62,7 +62,7 @@ public class LocationInfo
         StandardThreshold = standardThreshold;
         ExceptionalThreshold = exceptionalThreshold;
 
-        Duration = duration;
+        TurnDuration = duration;
         Hostility = hostility;
         Style = style;
     }

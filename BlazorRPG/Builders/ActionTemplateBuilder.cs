@@ -66,12 +66,12 @@
     {
         if (cost < 0) return this;
 
-        requirements.Add(new ResourceRequirement(ResourceTypes.Food, cost));
-        costs.Add(new ResourceOutcome(ResourceTypes.Food, -cost));
+        requirements.Add(new ResourceRequirement(ItemTypes.Food, cost));
+        costs.Add(new ResourceOutcome(ItemTypes.Food, -cost));
         return this;
     }
 
-    public ActionTemplateBuilder ExpendsItem(ResourceTypes item, int cost)
+    public ActionTemplateBuilder ExpendsItem(ItemTypes item, int cost)
     {
         if (cost < 0) return this;
 
@@ -80,7 +80,7 @@
         return this;
     }
 
-    public ActionTemplateBuilder RewardsResource(ResourceTypes resourceType, int count)
+    public ActionTemplateBuilder RewardsItem(ItemTypes resourceType, int count)
     {
         rewards.Add(new ResourceOutcome(resourceType, count));
         return this;
@@ -94,7 +94,7 @@
 
     public ActionTemplateBuilder RewardsFood(int count)
     {
-        rewards.Add(new ResourceOutcome(ResourceTypes.Food, count));
+        rewards.Add(new ResourceOutcome(ItemTypes.Food, count));
         return this;
     }
 

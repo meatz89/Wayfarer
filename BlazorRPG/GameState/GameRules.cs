@@ -2,18 +2,15 @@
 {
     public static GameRules StandardRuleset = new GameRules
     {
-        StartingHealth = 10,
-        StartingCoins = 10,
+        StartingHealth = 20,
+        StartingCoins = 5,
         StartingInventorySize = 10,
 
         StartingPhysicalEnergy = 3,
-        StartingConcentration = 3,
-        StartingReputation = 7,
+        StartingFocus = 3,
+        StartingConfidence = 7,
 
         MinimumHealth = 0,
-        DailyFoodRequirement = 2,
-        NoFoodEffectOnHealth = -2,
-        NoShelterEffectOnHealth = -2,
     };
 
     public int StartingHealth;
@@ -21,8 +18,8 @@
     public int StartingInventorySize;
 
     public int StartingPhysicalEnergy;
-    public int StartingConcentration;
-    public int StartingReputation;
+    public int StartingFocus;
+    public int StartingConfidence;
 
     public int MinimumHealth;
     public int DailyFoodRequirement;
@@ -125,7 +122,7 @@
                 break;
 
             case BasicActionTypes.Rest:
-                costs.Add(new ResourceOutcome(ResourceTypes.Food, -1));
+                costs.Add(new ResourceOutcome(ItemTypes.Food, -1));
                 costs.Add(new CoinsOutcome(-5));
                 break;
 
@@ -203,7 +200,6 @@
                 break;
 
             case BasicActionTypes.Perform:
-                rewards.Add(new ResourceOutcome(ResourceTypes.Wood, 1));
                 break;
         }
         return rewards;

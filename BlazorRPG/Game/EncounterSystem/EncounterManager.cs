@@ -7,11 +7,10 @@ namespace BlazorRPG.Game.EncounterManager
     /// </summary>
     public class EncounterManager
     {
-        public bool useAiNarrative = true;
+        public bool _useAiNarrative = false;
 
         public ActionImplementation ActionImplementation;
         private readonly CardSelectionAlgorithm _cardSelector;
-        private readonly NarrativePresenter _narrativePresenter;
         public EncounterState State;
 
         private INarrativeAIService _narrativeService;
@@ -23,11 +22,12 @@ namespace BlazorRPG.Game.EncounterManager
         public EncounterManager(
             ActionImplementation actionImplementation,
             CardSelectionAlgorithm cardSelector,
-            NarrativePresenter narrativePresenter)
+            bool useAiNarrative
+            )
         {
             ActionImplementation = actionImplementation;
             _cardSelector = cardSelector;
-            _narrativePresenter = narrativePresenter;
+            _useAiNarrative = useAiNarrative;
         }
 
         // Get the current choices for the player
@@ -55,18 +55,12 @@ namespace BlazorRPG.Game.EncounterManager
             );
         }
 
-        // Get formatted choice descriptions
-        public string GetFormattedChoiceDescription(IChoice choice)
-        {
-            return _narrativePresenter.FormatChoiceDescription(choice, State.Location.Style);
-        }
-
         // Get current encounter state information
         public EncounterStatus GetEncounterStatus()
         {
             return new EncounterStatus(
                 State.CurrentTurn,
-                State.Location.Duration,
+                State.Location.TurnDuration,
                 State.Momentum,
                 State.Pressure,
                 State.TagSystem.GetAllApproachTags(),
@@ -88,23 +82,16 @@ namespace BlazorRPG.Game.EncounterManager
             ChoiceProjection projection = State.CreateChoiceProjection(choice);
 
             // Add narrative description
-            projection.NarrativeDescription = _narrativePresenter.FormatOutcome(
-                choice,
-                State.Location.Style,
-                projection.MomentumGained,
-                projection.PressureBuilt
-            );
+            projection.NarrativeDescription = choice.Name + " " + choice.Description;
 
             return projection;
         }
 
 
         // Start a new encounter at a specific location
-        private void StartEncounter(LocationInfo location)
+        private void StartEncounter(LocationInfo location, PlayerState playerState)
         {
-            State = new EncounterState(location);
-
-            // Activate initial tags
+            State = new EncounterState(location, playerState);
             State.UpdateActiveTags(location.AvailableTags);
         }
 
@@ -113,6 +100,7 @@ namespace BlazorRPG.Game.EncounterManager
         /// </summary>
         public async Task<NarrativeResult> StartEncounterWithNarrativeAsync(
             LocationInfo location,
+            PlayerState playerState,
             string incitingAction,
             INarrativeAIService narrativeService)
         {
@@ -120,7 +108,7 @@ namespace BlazorRPG.Game.EncounterManager
             _narrativeService = narrativeService;
 
             // Start the encounter mechanically
-            StartEncounter(location);
+            StartEncounter(location, playerState);
 
             // Create narrative context
             _narrativeContext = new NarrativeContext(location.Name, incitingAction, location.Style);
@@ -129,7 +117,7 @@ namespace BlazorRPG.Game.EncounterManager
             EncounterStatus status = GetEncounterStatus();
 
             string introduction = "introduction";
-            if (useAiNarrative)
+            if (_useAiNarrative)
             {
                 introduction =
                     await _narrativeService.GenerateIntroductionAsync(
@@ -145,7 +133,7 @@ namespace BlazorRPG.Game.EncounterManager
 
             // Generate choice descriptions
             Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = null;
-            if (useAiNarrative)
+            if (_useAiNarrative)
             {
                 choiceDescriptions =
                     await _narrativeService.GenerateChoiceDescriptionsAsync(
@@ -193,7 +181,7 @@ namespace BlazorRPG.Game.EncounterManager
             // Generate narrative for the reaction and new scene
             string narrative = "Continued Narrative";
 
-            if (useAiNarrative)
+            if (_useAiNarrative)
             {
                 narrative =
                     await _narrativeService.GenerateReactionAndSceneAsync(
@@ -233,7 +221,7 @@ namespace BlazorRPG.Game.EncounterManager
 
             // Generate descriptive narratives for each choice
             Dictionary<IChoice, ChoiceNarrative> newChoiceDescriptions = null;
-            if (useAiNarrative)
+            if (_useAiNarrative)
             {
                 newChoiceDescriptions =
                     await _narrativeService.GenerateChoiceDescriptionsAsync(
@@ -245,9 +233,12 @@ namespace BlazorRPG.Game.EncounterManager
 
             // Add the choice descriptions to the latest event
             narrativeEvent.AvailableChoiceDescriptions.Clear();
-            foreach (KeyValuePair<IChoice, ChoiceNarrative> kvp in newChoiceDescriptions)
+            if (newChoiceDescriptions != null)
             {
-                narrativeEvent.AvailableChoiceDescriptions[kvp.Key] = kvp.Value;
+                foreach (KeyValuePair<IChoice, ChoiceNarrative> kvp in newChoiceDescriptions)
+                {
+                    narrativeEvent.AvailableChoiceDescriptions[kvp.Key] = kvp.Value;
+                }
             }
 
             // Return the narrative result

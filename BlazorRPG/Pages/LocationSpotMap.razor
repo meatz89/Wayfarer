@@ -150,13 +150,10 @@
         _ => "❓"
     };
 
-    private string GetResourceIcon(ResourceTypes? resource) => resource switch
+    private string GetResourceIcon(ItemTypes? resource) => resource switch
     {
-        ResourceTypes.Food => "🍖",
-        ResourceTypes.Wood => "🪵",
-        ResourceTypes.Fish => "🐟",
-        ResourceTypes.Herbs => "🌿",
-        ResourceTypes.Cloth => "🧵",
+        ItemTypes.Food => "🍖",
+        ItemTypes.Wood => "🪵",
         _ => "📦"
     };
 

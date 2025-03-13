@@ -3,15 +3,9 @@
 // --- Resource ---
 public enum ResourceTypes
 {
-    None = 0,
-    Food,
-    Wood,
-    Fish,
-    Herbs,
-    Cloth,
-    Any,
-    Ale,
-    Metal
+    Health,
+    Focus,
+    Confidence
 }
 
 // --- Archetype ---

@@ -9,7 +9,10 @@
     Ingredient,
     Document,
     Key,
-    Contraband
+    Contraband,
+    Food,
+    None,
+    Wood
 }
 
 public enum ItemConditionChangeTypes

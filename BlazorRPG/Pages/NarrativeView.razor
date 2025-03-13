@@ -84,10 +84,6 @@
                 </div>
             </div>
         }
-        else if (!string.IsNullOrEmpty(NarrativeText))
-        {
-            <p>@((MarkupString)NarrativeText)</p>
-        }
     </div>
 
     <button class="narrative-button" @onclick="OnNarrativeCompleted">

@@ -21,13 +21,18 @@ public class ChoiceProjection
     public List<ValueComponent> MomentumComponents { get; } = new List<ValueComponent>();
     public List<ValueComponent> PressureComponents { get; } = new List<ValueComponent>();
 
+    // Resource change tracking
+    public List<ValueComponent> HealthComponents { get; } = new List<ValueComponent>();
+    public List<ValueComponent> ConcentrationComponents { get; } = new List<ValueComponent>();
+    public List<ValueComponent> ReputationComponents { get; } = new List<ValueComponent>();
+
+    public int HealthChange { get; set; }
+    public int ConcentrationChange { get; set; }
+    public int ReputationChange { get; set; }
+
     // Tag changes
     public List<string> NewlyActivatedTags { get; }
     public List<string> DeactivatedTags { get; }
-
-    // Disabled tag tracking - add these properties
-    public List<string> DisabledTagNames { get; set; } = new List<string>();
-    public List<string> NewlyDisabledTags { get; set; } = new List<string>();
 
     // Projected state
     public int FinalMomentum { get; set; }
@@ -46,7 +51,5 @@ public class ChoiceProjection
         FocusTagChanges = new Dictionary<FocusTags, int>();
         NewlyActivatedTags = new List<string>();
         DeactivatedTags = new List<string>();
-        DisabledTagNames = new List<string>();
-        NewlyDisabledTags = new List<string>();
     }
 }

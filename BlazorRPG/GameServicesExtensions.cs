@@ -19,8 +19,6 @@ public static class GameServicesExpressures
         services.AddSingleton<ReputationSystem>();
         services.AddSingleton<AchievementSystem>();
 
-        services.AddSingleton<JournalSystem>();
-        services.AddSingleton<NarrativeSystem>();
         services.AddSingleton<EncounterSystem>();
 
         services.AddSingleton<ActionValidator>();

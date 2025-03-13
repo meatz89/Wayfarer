@@ -60,9 +60,9 @@ public class TimeWindowModifier : ActionModifier
 public class GatheringBonusModifier : ActionModifier
 {
     private readonly int bonusAmount;
-    private readonly ResourceTypes resourceType;
+    private readonly ItemTypes resourceType;
 
-    public GatheringBonusModifier(string description, string source, int bonusAmount, ResourceTypes resourceType, BasicActionTypes actionType)
+    public GatheringBonusModifier(string description, string source, int bonusAmount, ItemTypes resourceType, BasicActionTypes actionType)
     {
         this.Source = source;
         this.Description = description;
@@ -123,16 +123,16 @@ public class CoinsRewardModifier : ActionModifier
 
 public class ConditionalResourceBonusModifier : ActionModifier
 {
-    private readonly ResourceTypes requiredResourceType;
-    private readonly ResourceTypes bonusResourceType;
+    private readonly ItemTypes requiredResourceType;
+    private readonly ItemTypes bonusResourceType;
     private readonly int bonusAmount;
 
     public ConditionalResourceBonusModifier(
         string description,
         string source,
         BasicActionTypes actionType,
-        ResourceTypes requiredResource,
-        ResourceTypes bonusResource,
+        ItemTypes requiredResource,
+        ItemTypes bonusResource,
         int bonusAmount)
     {
         this.Source = source;

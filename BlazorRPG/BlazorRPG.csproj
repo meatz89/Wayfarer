@@ -21,15 +21,6 @@
 	</ItemGroup>
     
 	<ItemGroup>
-	  <Content Update="endEncounter.json">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
-	  <Content Update="choices.json">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
-	</ItemGroup>
-    
-	<ItemGroup>
 	  <Folder Include="Game\MainSystem\Builders\" />
 	</ItemGroup>
 

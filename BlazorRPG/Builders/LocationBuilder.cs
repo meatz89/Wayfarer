@@ -90,7 +90,7 @@ public class LocationBuilder
             locationArchetype,
             crowdDensity,
             opportunity,
-            ResourceTypes.None,
+            ItemTypes.None,
             playerKnowledge
         );
     }

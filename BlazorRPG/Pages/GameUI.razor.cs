@@ -13,18 +13,18 @@ public partial class GameUI : ComponentBase
 
     public int physicalEnergyCurrent => GameState.Player.PhysicalEnergy;
     public int physicalEnergyMax => GameState.Player.MaxPhysicalEnergy;
-    public int concentrationCurrent => GameState.Player.Concentration;
-    public int concentrationMax => GameState.Player.MaxConcentration;
-    public int repuationCurrent => GameState.Player.Reputation;
-    public int reputationMax => GameState.Player.MaxReputation;
+    public int concentrationCurrent => GameState.Player.Focus;
+    public int concentrationMax => GameState.Player.MaxFocus;
+    public int repuationCurrent => GameState.Player.Confidence;
+    public int reputationMax => GameState.Player.MaxConfidence;
     public int health => GameState.Player.Health;
     public int maxHealth => GameState.Player.MaxHealth;
-    public int concentration => GameState.Player.Concentration;
-    public int maxConcentration => GameState.Player.MaxConcentration;
-    public int reputation => GameState.Player.Reputation;
-    public int maxReputation => GameState.Player.MaxReputation;
+    public int concentration => GameState.Player.Focus;
+    public int maxConcentration => GameState.Player.MaxFocus;
+    public int reputation => GameState.Player.Confidence;
+    public int maxReputation => GameState.Player.MaxConfidence;
     public int coins => GameState.Player.Coins;
-    public int food => GameState.Player.Inventory.GetItemCount(ResourceTypes.Food);
+    public int food => GameState.Player.Inventory.GetItemCount(ItemTypes.Food);
 
     public List<Location> Locations => GameManager.GetPlayerKnownLocations();
 
@@ -72,19 +72,9 @@ public partial class GameUI : ComponentBase
     {
         selectedLocation = locationName;
 
-        // Check if the location has a narrative
-        string narrative = GameManager.GetLocationNarrative(locationName);
-        if (narrative != string.Empty)
-        {
-            showNarrative = true;
-            showAreaMap = true;
-        }
-        else
-        {
-            // If no narrative, proceed as before
-            showNarrative = false;
-            FinalizeLocationSelection(locationName);
-        }
+        // If no narrative, proceed as before
+        showNarrative = false;
+        FinalizeLocationSelection(locationName);
     }
 
     private void OnNarrativeCompleted()

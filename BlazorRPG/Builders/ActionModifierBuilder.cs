@@ -5,13 +5,13 @@
     private BasicActionTypes applicableActionType;
     private LocationTypes applicableLocationType;
 
-    private ResourceTypes requiredResourceReward;
+    private ItemTypes requiredResourceReward;
 
-    private ResourceTypes resourceReward;
+    private ItemTypes resourceReward;
     private TimeWindows timeWindowToAdd;
     private EnergyTypes reducedEnergyType;
     private int reducedEnergyAmount;
-    private ResourceTypes additionalResourceReward;
+    private ItemTypes additionalResourceReward;
     private int additionalResourceRewardAmount;
     private int additionalCoinReward;
 
@@ -41,13 +41,13 @@
         return this;
     }
 
-    public ActionModifierBuilder WhenResourceRewardHas(ResourceTypes resourceType)
+    public ActionModifierBuilder WhenResourceRewardHas(ItemTypes resourceType)
     {
         this.requiredResourceReward = resourceType;
         return this;
     }
 
-    public ActionModifierBuilder AdditionalResourceReward(ResourceTypes resourceType, int amount)
+    public ActionModifierBuilder AdditionalResourceReward(ItemTypes resourceType, int amount)
     {
         this.additionalResourceReward = resourceType;
         this.additionalResourceRewardAmount = amount;
@@ -106,8 +106,8 @@ public class ModifierConfiguration
     public EnergyTypes EnergyType { get; set; }
     public int EnergyReduction { get; set; }
 
-    public ResourceTypes RequiredResourceReward { get; set; } // Condition: action must reward this
-    public ResourceTypes AdditionalResource { get; set; }     // The extra resource to give
+    public ItemTypes RequiredResourceReward { get; set; } // Condition: action must reward this
+    public ItemTypes AdditionalResource { get; set; }     // The extra resource to give
     public int AdditionalResourceAmount { get; set; }         // How much extra to give
     public int AdditionalCoins { get; set; }
 }

@@ -15,7 +15,7 @@
     public LocationArchetypes LocationArchetype { get; }
     public CrowdDensity CrowdDensity { get; }
     public OpportunityTypes Opportunity { get; }
-    public ResourceTypes ResourceType { get; }
+    public ItemTypes ItemType { get; }
     public bool PlayerKnowledge { get; }
 
     public Location(
@@ -27,7 +27,7 @@
         LocationArchetypes locationArchetype,
         CrowdDensity crowdDensity,
         OpportunityTypes opportunity,
-        ResourceTypes resourceTypes,
+        ItemTypes ItemTypes,
         bool playerKnowledge,
         string name = "None",
         int duration = 5,
@@ -51,7 +51,7 @@
         LocationArchetype = locationArchetype;
         CrowdDensity = crowdDensity;
         Opportunity = opportunity;
-        ResourceType = resourceTypes;
+        ItemType = ItemTypes;
         PlayerKnowledge = playerKnowledge;
     }
 
@@ -61,9 +61,9 @@
         {
             return LocationArchetype == archetype;
         }
-        else if (locationProperty is ResourceTypes resource)
+        else if (locationProperty is ItemTypes resource)
         {
-            return ResourceType == resource;
+            return ItemType == resource;
         }
         else if (locationProperty is CrowdDensity density)
         {

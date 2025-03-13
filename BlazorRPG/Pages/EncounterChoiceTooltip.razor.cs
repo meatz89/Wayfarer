@@ -6,11 +6,10 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
 {
     [Inject] public GameManager GameManager { get; set; }
     [Inject] public GameState GameState { get; set; }
-    [Parameter] public EncounterManager Encounter { get; set; }
     [Parameter] public UserEncounterChoiceOption hoveredChoice { get; set; }
     [Parameter] public double mouseX { get; set; }
     [Parameter] public double mouseY { get; set; }
-
+    public EncounterManager Encounter => GameManager.EncounterSystem.Encounter;
     public ChoiceProjection Preview => GameManager.GetChoicePreview(hoveredChoice);
 
     public List<ChoiceProjection.ValueComponent> GetMomentumBreakdown()
@@ -61,77 +60,18 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
 
         BlazorRPG.Game.EncounterManager.NarrativeAi.NarrativeResult narrativeResult = GameManager.EncounterResult.NarrativeResult;
         Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = narrativeResult.ChoiceDescriptions;
-        ChoiceNarrative choiceNarrative = choiceDescriptions[choice1];
-        string description = choiceNarrative.FullDescription;
+
+        ChoiceNarrative choiceNarrative = null;
+
+        if (choiceDescriptions != null && choiceDescriptions.ContainsKey(choice1))
+            choiceNarrative = choiceDescriptions[choice1];
+
+        string description = choice.Description;
+        if (choiceNarrative != null)
+        {
+            description = choiceNarrative.ShorthandName;
+        }
         return description;
     }
 
-    public bool HasActivationEffect(string tagName)
-    {
-        IEncounterTag tag = Encounter.State.ActiveTags
-            .Concat(Encounter.State.Location.AvailableTags)
-            .FirstOrDefault(t => t.Name == tagName);
-
-        return tag is StrategicTag strategicTag &&
-               (strategicTag.EffectType == StrategicEffectTypes.AddMomentumOnActivation ||
-                strategicTag.EffectType == StrategicEffectTypes.ReducePressureOnActivation);
-    }
-
-    public string GetActivationEffectDescription(string tagName)
-    {
-        IEncounterTag tag = Encounter.State.ActiveTags
-            .Concat(Encounter.State.Location.AvailableTags)
-            .FirstOrDefault(t => t.Name == tagName);
-
-        if (tag is StrategicTag strategicTag)
-        {
-            if (strategicTag.EffectType == StrategicEffectTypes.AddMomentumOnActivation)
-                return $"+{strategicTag.EffectValue} momentum immediately";
-            else if (strategicTag.EffectType == StrategicEffectTypes.ReducePressureOnActivation)
-                return $"-{strategicTag.EffectValue} pressure immediately";
-        }
-
-        return string.Empty;
-    }
-
-
-    // Check if any tags are disabled by pressure
-    public bool AreTagsDisabledByPressure()
-    {
-        return Preview?.DisabledTagNames?.Count > 0;
-    }
-
-    // Check if a specific tag would be disabled
-    public bool IsTagDisabledInProjection(string tagName)
-    {
-        return Preview?.DisabledTagNames?.Contains(tagName) == true;
-    }
-
-    public string GetTagEffectDescription(string tagName)
-    {
-        // Find the actual tag object by name
-        IEncounterTag tag = Encounter.State.ActiveTags
-            .Concat(Encounter.State.Location.AvailableTags)
-            .FirstOrDefault(t => t.Name == tagName);
-
-        if (tag == null)
-            return "Unknown tag effect";
-
-        // Use the tag's own description method
-        if (tag is StrategicTag strategicTag)
-        {
-            return strategicTag.GetEffectDescription();
-        }
-        else if (tag is NarrativeTag narrativeTag && narrativeTag.BlockedApproach.HasValue)
-        {
-            return $"Blocks {narrativeTag.BlockedApproach.Value} approaches";
-        }
-        else if (tag is NarrativeTag narrativeTag2 && narrativeTag2.Name == "Fight Started")
-        {
-            // Special handling for the special "Fight Started" tag
-            return "Blocks all non-Force approaches";
-        }
-
-        return "Affects encounter mechanics";
-    }
 }

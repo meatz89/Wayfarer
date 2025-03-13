@@ -27,8 +27,7 @@
             },
             ResourceRequirement resourceReq => resourceReq.ResourceType switch
             {
-                ResourceTypes.Wood => RequirementTypes.Wood,
-                ResourceTypes.Metal => RequirementTypes.Metal,
+                ItemTypes.Wood => RequirementTypes.Wood,
                 _ => RequirementTypes.Other
             },
             InventorySlotsRequirement => RequirementTypes.InventorySlots,

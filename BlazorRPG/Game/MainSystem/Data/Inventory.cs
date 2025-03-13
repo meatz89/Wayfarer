@@ -1,38 +1,38 @@
 ﻿public class Inventory
 {
-    private ResourceTypes[] Slots;
+    private ItemTypes[] Slots;
 
     public int MaxCapacity { get { return Slots.Length; } }
-    public int UsedCapacity { get { return Slots.Count(s => s != ResourceTypes.None); } }
+    public int UsedCapacity { get { return Slots.Count(s => s != ItemTypes.None); } }
 
     public Inventory(int size)
     {
-        Slots = new ResourceTypes[size];
+        Slots = new ItemTypes[size];
         for (int i = 0; i < Slots.Length; i++)
         {
-            Slots[i] = ResourceTypes.None; // Initialize slots as empty
+            Slots[i] = ItemTypes.None; // Initialize slots as empty
         }
     }
 
-    public int GetCapacityFor(ResourceTypes item)
+    public int GetCapacityFor(ItemTypes item)
     {
         return Slots.Length;
     }
 
-    public void SetItemCount(ResourceTypes item, int count)
+    public void SetItemCount(ItemTypes item, int count)
     {
         int currentCount = GetItemCount(item);
 
         if (count > currentCount) // Adding items
         {
-            while (currentCount < count && AddResource(item))
+            while (currentCount < count && AddItem(item))
             {
                 currentCount++;
             }
         }
         else if (count < currentCount) // Removing items
         {
-            while (currentCount > count && RemoveResource(item))
+            while (currentCount > count && RemoveItem(item))
             {
                 currentCount--;
             }
@@ -40,13 +40,13 @@
     }
 
     // Method to add multiple items of the same type to the inventory
-    public int AddResources(ResourceTypes resource, int count)
+    public int AddItems(ItemTypes resource, int count)
     {
         int addedCount = 0;
 
         for (int i = 0; i < count; i++)
         {
-            if (AddResource(resource))
+            if (AddItem(resource))
             {
                 addedCount++;
             }
@@ -60,13 +60,13 @@
     }
 
     // Method to remove multiple items of the same type from the inventory
-    public int RemoveResources(ResourceTypes resource, int count)
+    public int RemoveItems(ItemTypes resource, int count)
     {
         int removedCount = 0;
 
         for (int i = 0; i < count; i++)
         {
-            if (RemoveResource(resource))
+            if (RemoveItem(resource))
             {
                 removedCount++;
             }
@@ -80,11 +80,11 @@
     }
 
     // Method to add an item to the inventory
-    private bool AddResource(ResourceTypes item)
+    public bool AddItem(ItemTypes item)
     {
         for (int i = 0; i < Slots.Length; i++)
         {
-            if (Slots[i] == ResourceTypes.None)
+            if (Slots[i] == ItemTypes.None)
             {
                 Slots[i] = item;
                 return true; // Successfully added
@@ -94,13 +94,13 @@
     }
 
     // Method to remove an item from the inventory
-    public bool RemoveResource(ResourceTypes item)
+    public bool RemoveItem(ItemTypes item)
     {
         for (int i = 0; i < Slots.Length; i++)
         {
             if (Slots[i] == item)
             {
-                Slots[i] = ResourceTypes.None;
+                Slots[i] = ItemTypes.None;
                 return true; // Successfully removed
             }
         }
@@ -108,9 +108,9 @@
     }
 
     // Method to check if the inventory contains a specific item
-    public bool ContainsItem(ResourceTypes item)
+    public bool ContainsItem(ItemTypes item)
     {
-        foreach (ResourceTypes slot in Slots)
+        foreach (ItemTypes slot in Slots)
         {
             if (slot == item)
             {
@@ -124,9 +124,9 @@
     public int GetEmptySlots()
     {
         int emptyCount = 0;
-        foreach (ResourceTypes slot in Slots)
+        foreach (ItemTypes slot in Slots)
         {
-            if (slot == ResourceTypes.None)
+            if (slot == ItemTypes.None)
             {
                 emptyCount++;
             }
@@ -147,26 +147,6 @@
         }
         return count;
     }
-
-    public int GetItemCount(ResourceTypes item)
-    {
-        int count = 0;
-        foreach (ResourceTypes slot in Slots)
-        {
-            if (slot == item)
-            {
-                count++;
-            }
-        }
-        return count;
-    }
-
-
-    public void AddItem(ItemTypes itemName)
-    {
-
-    }
-
     public bool HasItemOfType(ItemTypes weapon)
     {
         return true;

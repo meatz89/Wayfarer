@@ -4,25 +4,29 @@ using BlazorRPG.Game.EncounterManager.NarrativeAi;
 public class EncounterSystem
 {
     private readonly GameState gameState;
-    private readonly NarrativeSystem narrativeSystem;
     private readonly INarrativeAIService narrativeService;
 
     public EncounterManager Encounter;
     public EncounterResult encounterResult;
 
+    private bool useAiNarrative = false;
+
     public EncounterSystem(
         GameState gameState,
-        NarrativeSystem narrativeSystem,
         MessageSystem messageSystem,
         GameContentProvider contentProvider,
-        INarrativeAIService narrativeService)
+        INarrativeAIService narrativeService,
+        IConfiguration configuration)
     {
         this.gameState = gameState;
-        this.narrativeSystem = narrativeSystem;
         this.narrativeService = narrativeService;
+        useAiNarrative = configuration.GetValue<bool>("useAiNarrative");
     }
 
-    public async Task<EncounterResult> GenerateEncounter(EncounterContext context, ActionImplementation actionImplementation)
+    public async Task<EncounterResult> GenerateEncounter(
+        EncounterContext context, 
+        PlayerState playerState,
+        ActionImplementation actionImplementation)
     {
         Location inn = context.Location;
 
@@ -30,26 +34,27 @@ public class EncounterSystem
         LocationInfo location = LocationFactory.CreateBanditAmbush();
 
         // Create encounter manager
-        encounterResult = await StartEncounterAt(location, actionImplementation);
+        encounterResult = await StartEncounterAt(location, playerState, actionImplementation);
 
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
 
         gameState.Actions.SetActiveEncounter(Encounter);
-        narrativeSystem.NewEncounter(context, actionImplementation);
 
         return encounterResult;
     }
 
-    public async Task<EncounterResult> StartEncounterAt(LocationInfo location, ActionImplementation actionImplementation)
+    public async Task<EncounterResult> StartEncounterAt(
+        LocationInfo location, 
+        PlayerState playerState,
+        ActionImplementation actionImplementation)
     {
         // Create the core components
         ChoiceRepository choiceRepository = new ChoiceRepository();
         CardSelectionAlgorithm cardSelector = new CardSelectionAlgorithm(choiceRepository);
-        NarrativePresenter narrativePresenter = new NarrativePresenter();
 
         // Create encounter manager
-        EncounterManager encounter = new EncounterManager(actionImplementation, cardSelector, narrativePresenter);
+        EncounterManager encounter = new EncounterManager(actionImplementation, cardSelector, useAiNarrative);
         this.Encounter = encounter;
 
         SpecialChoice negotiatePriceChoice = GetSpecialChoiceFor(location);
@@ -59,6 +64,7 @@ public class EncounterSystem
         string incitingAction = "decided to visit the market to purchase supplies";
         NarrativeResult initialResult = await encounter.StartEncounterWithNarrativeAsync(
             location,
+            playerState,
             incitingAction,
             narrativeService);
 
@@ -77,7 +83,14 @@ public class EncounterSystem
         IChoice choice)
     {
         NarrativeResult currentResult = narrativeResult;
-        ChoiceNarrative selectedDescription = currentResult.ChoiceDescriptions[choice];
+        ChoiceNarrative selectedDescription = null;
+
+        Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = currentResult.ChoiceDescriptions;
+
+        if (currentResult.ChoiceDescriptions != null && choiceDescriptions.ContainsKey(choice))
+        {
+            selectedDescription = currentResult.ChoiceDescriptions[choice];
+        }
 
         if (!currentResult.IsEncounterOver)
         {
@@ -87,11 +100,22 @@ public class EncounterSystem
 
             if (currentResult.IsEncounterOver)
             {
+                if(currentResult.Outcome == EncounterOutcomes.Failure)
+                {
+                    return new EncounterResult()
+                    {
+                        Encounter = encounter,
+                        EncounterResults = EncounterResults.EncounterFailure,
+                        EncounterEndMessage = $"=== Encounter Over: {currentResult.Outcome} ===",
+                        NarrativeResult = currentResult
+                    };
+                }
+
                 return new EncounterResult()
                 {
                     Encounter = encounter,
                     EncounterResults = EncounterResults.EncounterSuccess,
-                    EncounterEndMessage = "=== Encounter Over: {currentResult.Outcome} ===",
+                    EncounterEndMessage = $"=== Encounter Over: {currentResult.Outcome} ===",
                     NarrativeResult = currentResult
                 };
             }

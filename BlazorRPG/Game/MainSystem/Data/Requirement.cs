@@ -20,7 +20,7 @@ public class EnergyRequirement : Requirement
         return EnergyType switch
         {
             EnergyTypes.Physical => gameState.Player.PhysicalEnergy >= Amount,
-            EnergyTypes.Concentration => gameState.Player.Concentration >= Amount,
+            EnergyTypes.Concentration => gameState.Player.Focus >= Amount,
             _ => false
         };
     }
@@ -62,7 +62,7 @@ public class ConcentrationRequirement : Requirement
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.Player.Concentration >= Count;
+        return gameState.Player.Focus >= Count;
     }
 
     public override string GetDescription()
@@ -137,10 +137,10 @@ public class ItemRequirement : Requirement
 
 public class ResourceRequirement : Requirement
 {
-    public ResourceTypes ResourceType { get; }
+    public ItemTypes ResourceType { get; }
     public int Count { get; }
 
-    public ResourceRequirement(ResourceTypes resourceType, int count)
+    public ResourceRequirement(ItemTypes resourceType, int count)
     {
         ResourceType = resourceType;
         Count = count;

@@ -18,12 +18,6 @@
                     <span class="stat-label">Momentum</span>
                     <span class="stat-value">
                         @Model.State.Momentum
-                        @if (hoveredChoice != null)
-                        {
-                            int projectedChange = GetProjectedChange(ValueTypes.Momentum);
-                            string projectedClass = projectedChange > 0 ? "positive" : (projectedChange < 0 ? "negative" : "");
-                            <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ValueTypes.Momentum)</span>
-                        }
                     </span>
                 </div>
                 <div class="stat">
@@ -31,13 +25,33 @@
                     <span class="stat-label">Pressure</span>
                     <span class="stat-value">
                         @Model.State.Pressure
-                        @if (hoveredChoice != null)
-                        {
-                            int projectedChange = GetProjectedChange(ValueTypes.Pressure);
-                            string projectedClass = projectedChange > 0 ? "positive" : (projectedChange < 0 ? "negative" : "");
-                            <span class="stat-projected-change @projectedClass"> @GetProjectedValue(ValueTypes.Pressure)</span>
-                        }
                     </span>
+                </div>
+
+                <div class="approach-tags">
+                    <div class="properties-header">Approach Tags</div>
+                    <div class="tag-grid">
+                        @foreach (var tag in GetApproachTags())
+                        {
+                            <div class="tag-value @GetTagValueClass(tag)">
+                                <span class="tag-name">@tag</span>
+                                <span class="tag-level">@Model.State.TagSystem.GetApproachTagValue(tag)</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="focus-tags">
+                    <div class="properties-header">Focus Tags</div>
+                    <div class="tag-grid">
+                        @foreach (var tag in GetFocusTags())
+                        {
+                            <div class="tag-value">
+                                <span class="tag-name">@tag</span>
+                                <span class="tag-level">@Model.State.TagSystem.GetFocusTagValue(tag)</span>
+                            </div>
+                        }
+                    </div>
                 </div>
 
                 <div class="location-properties">
@@ -48,10 +62,6 @@
                             <div class="property-tag @tag.CssClass" title="@tag.TooltipText">
                                 <span class="property-icon">@tag.Icon</span>
                                 <span class="property-text">@tag.Text</span>
-                                @if (IsTagDisabledByPressure(tag.TagName))
-                                {
-                                    <span class="disabled-icon">❌</span>
-                                }
                             </div>
                         }
                     </div>
@@ -68,34 +78,6 @@
                     </div>
                 </div>
 
-                <div class="pressure-status">
-                    <h3>Pressure Status: @GetPressureStatusText()</h3>
-                    <div class="pressure-effects">
-                        @if (Model.State.Pressure >= 3)
-                        {
-                            <div class="pressure-effect warning">
-                                <span class="effect-icon">⚠️</span>
-                                <span class="effect-text">High Pressure: -@(Model.State.Pressure / 2) to momentum gains</span>
-                            </div>
-                        }
-
-                        @if (Model.State.Pressure >= 6)
-                        {
-                            <div class="pressure-effect warning">
-                                <span class="effect-icon">⚠️</span>
-                                <span class="effect-text">Critical Pressure: Minor beneficial tags disabled</span>
-                            </div>
-                        }
-
-                        @if (Model.State.Pressure >= 8)
-                        {
-                            <div class="pressure-effect danger">
-                                <span class="effect-icon">⚠️</span>
-                                <span class="effect-text">Extreme Pressure: All beneficial tags disabled</span>
-                            </div>
-                        }
-                    </div>
-                </div>
             </div>
 
             <div class="Encounter-stage">
@@ -123,7 +105,7 @@
 
         @if (showTooltip && hoveredChoice != null)
         {
-            <EncounterChoiceTooltip Encounter="Encounter" hoveredChoice="hoveredChoice" mouseX="mouseX" mouseY="mouseY"/>
+            <EncounterChoiceTooltip hoveredChoice="hoveredChoice" mouseX="mouseX" mouseY="mouseY"/>
         }
     }
 </div>

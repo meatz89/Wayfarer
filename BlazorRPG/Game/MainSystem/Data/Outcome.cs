@@ -47,7 +47,7 @@ public class ItemOutcome : Outcome
                         item.Condition -= 10; // Example: Reduce condition
                         break;
                     case ItemConditionChangeTypes.Consume:
-                        player.Inventory.RemoveResources(ResourceTypes.Food, 1); // Consume/remove the item
+                        player.Inventory.RemoveItems(ItemTypes.Food, 1); // Consume/remove the item
                         break;
                         // Handle other condition change types
                 }
@@ -115,10 +115,10 @@ public class EnergyOutcome : Outcome
                     player.MaxPhysicalEnergy);
                 break;
             case EnergyTypes.Concentration:
-                player.Concentration = Math.Clamp(
-                    player.Concentration + Amount,
+                player.Focus = Math.Clamp(
+                    player.Focus + Amount,
                     0,
-                    player.MaxConcentration);
+                    player.MaxFocus);
                 break;
         }
     }
@@ -133,14 +133,14 @@ public class EnergyOutcome : Outcome
         int currentValue = EnergyType switch
         {
             EnergyTypes.Physical => player.PhysicalEnergy,
-            EnergyTypes.Concentration => player.Concentration,
+            EnergyTypes.Concentration => player.Focus,
             _ => 0
         };
 
         int maxValue = EnergyType switch
         {
             EnergyTypes.Physical => player.MaxPhysicalEnergy,
-            EnergyTypes.Concentration => player.MaxConcentration,
+            EnergyTypes.Concentration => player.MaxFocus,
             _ => 0
         };
 
@@ -244,8 +244,8 @@ public class ConcentrationOutcome : Outcome
 
     public override string GetPreview(PlayerState player)
     {
-        int newValue = Math.Clamp(player.Concentration + Count, 0, player.MaxConcentration);
-        return $"({player.Concentration} -> {newValue})";
+        int newValue = Math.Clamp(player.Focus + Count, 0, player.MaxFocus);
+        return $"({player.Focus} -> {newValue})";
     }
 }
 
@@ -270,8 +270,8 @@ public class ReputationOutcome : Outcome
 
     public override string GetPreview(PlayerState player)
     {
-        int newValue = Math.Clamp(player.Reputation + Count, 0, player.MaxReputation);
-        return $"({player.Reputation} -> {newValue})";
+        int newValue = Math.Clamp(player.Confidence + Count, 0, player.MaxConfidence);
+        return $"({player.Confidence} -> {newValue})";
     }
 }
 
@@ -305,10 +305,10 @@ public class CoinsOutcome : Outcome
 public class ResourceOutcome : Outcome
 {
     public ResourceChangeTypes ChangeType { get; }
-    public ResourceTypes ResourceType { get; }
+    public ItemTypes ResourceType { get; }
     public int Amount { get; set; }
 
-    public ResourceOutcome(ResourceTypes resource, int count)
+    public ResourceOutcome(ItemTypes resource, int count)
     {
         ResourceType = resource;
         Amount = Math.Abs(count); // Store count as positive

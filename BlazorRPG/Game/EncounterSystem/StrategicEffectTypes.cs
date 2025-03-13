@@ -1,23 +1,29 @@
-﻿namespace BlazorRPG.Game.EncounterManager
+﻿public enum StrategicEffectTypes
 {
-    /// <summary>
-    /// Types of strategic tag effects
-    /// </summary>
-    public enum StrategicEffectTypes
-    {
-        None,                      // Default/special case
-        AddMomentumToApproach,     // Add momentum to specific approach choices
-        AddMomentumToFocus,        // Add momentum to specific focus choices
-        ReducePressureFromApproach, // Reduce pressure from specific approach choices
-        ReducePressureFromFocus,    // Reduce pressure from specific focus choices
-        ReducePressurePerTurn,      // Reduce pressure at end of each turn
-        AddMomentumPerTurn,         // Add momentum at end of each turn
-        ReduceMomentumFromApproach, // Negative tag: reduce momentum from approach
-        ReduceMomentumFromFocus,    // Negative tag: reduce momentum from focus
-        AddPressurePerTurn,          // Negative tag: add pressure each turn
-        AddPressureFromApproach,
-        AddPressureFromFocus,
-        AddMomentumOnActivation,
-        ReducePressureOnActivation
-    }
+    // Momentum effects
+    AddMomentumToApproach,
+    AddMomentumToFocus,
+    ReduceMomentumFromApproach,
+    ReduceMomentumFromFocus,
+    AddMomentumOnActivation,
+    AddMomentumPerTurn,
+
+    // Pressure effects
+    ReducePressurePerTurn,
+    AddPressurePerTurn,
+    ReducePressureFromApproach,
+    ReducePressureFromFocus,
+    AddPressureFromApproach,
+    AddPressureFromFocus,
+    ReducePressureOnActivation,
+
+    // New persistent resource effects
+    ReduceHealthByPressure,          // Reduce health by X where X is current pressure
+    ReduceConcentrationByPressure,   // Reduce concentration by X where X is current pressure
+    ReduceReputationByPressure,      // Reduce reputation by X where X is current pressure
+    ReduceHealthByApproachValue,     // Reduce health by X where X is approach tag value
+    ReduceConcentrationByApproachValue,  // Reduce concentration by X where X is approach tag value
+    ReduceReputationByApproachValue,      // Reduce reputation by X where X is approach tag value
+    ReduceConfidenceByPressure,
+    ReduceHealthByApproach
 }

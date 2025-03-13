@@ -10,11 +10,11 @@
     public int PhysicalEnergy { get; set; }
     public int MaxPhysicalEnergy { get; set; }
 
-    public int Concentration { get; set; }
-    public int MaxConcentration { get; set; }
+    public int Focus { get; set; }
+    public int MaxFocus { get; set; }
 
-    public int Reputation { get; set; }
-    public int MaxReputation { get; set; }
+    public int Confidence { get; set; }
+    public int MaxConfidence { get; set; }
 
     public Dictionary<SkillTypes, int> Skills { get; set; } = new();
     public Inventory Inventory { get; set; }
@@ -42,17 +42,14 @@
         MinHealth = GameRules.StandardRuleset.MinimumHealth;
         MaxHealth = 40;
 
-        Health = GameRules.StandardRuleset.StartingHealth;
-        Health = GameRules.StandardRuleset.StartingHealth;
-
         PhysicalEnergy = GameRules.StandardRuleset.StartingPhysicalEnergy;
-        MaxPhysicalEnergy = 10;
+        MaxPhysicalEnergy = 20;
 
-        Concentration = GameRules.StandardRuleset.StartingConcentration;
-        MaxConcentration = 10;
+        Focus = GameRules.StandardRuleset.StartingFocus;
+        MaxFocus = 20;
 
-        Reputation = GameRules.StandardRuleset.StartingReputation;
-        MaxReputation = 20;
+        Confidence = GameRules.StandardRuleset.StartingConfidence;
+        MaxConfidence = 20;
     }
 
     public bool ModifyCoins(int count)
@@ -69,12 +66,12 @@
     public bool ModifyFood(int count)
     {
         Inventory inventory = Inventory;
-        int currentFood = inventory.GetItemCount(ResourceTypes.Food);
+        int currentFood = inventory.GetItemCount(ItemTypes.Food);
 
-        int updatedFood = Math.Clamp(currentFood + count, 0, inventory.GetCapacityFor(ResourceTypes.Food));
+        int updatedFood = Math.Clamp(currentFood + count, 0, inventory.GetCapacityFor(ItemTypes.Food));
         if (updatedFood != currentFood)
         {
-            inventory.SetItemCount(ResourceTypes.Food, updatedFood);
+            inventory.SetItemCount(ItemTypes.Food, updatedFood);
             return true;
         }
         return false;
@@ -115,10 +112,10 @@
 
     public bool ModifyConcentration(int count)
     {
-        int newConcentration = Math.Clamp(Concentration + count, 0, MaxConcentration);
-        if (newConcentration != Concentration)
+        int newConcentration = Math.Clamp(Focus + count, 0, MaxFocus);
+        if (newConcentration != Focus)
         {
-            Concentration = newConcentration;
+            Focus = newConcentration;
             return true;
         }
         return false;
@@ -126,10 +123,10 @@
 
     public bool ModifyReputation(int count)
     {
-        int newReputation = Math.Clamp(Reputation + count, 0, MaxReputation);
-        if (newReputation != Reputation)
+        int newReputation = Math.Clamp(Confidence + count, 0, MaxConfidence);
+        if (newReputation != Confidence)
         {
-            Reputation = newReputation;
+            Confidence = newReputation;
             return true;
         }
         return false;
@@ -146,16 +143,16 @@
         return false;
     }
 
-    public bool ModifyItem(ResourceChangeTypes itemChange, ResourceTypes resourceType, int count)
+    public bool ModifyItem(ResourceChangeTypes itemChange, ItemTypes resourceType, int count)
     {
         if (itemChange == ResourceChangeTypes.Added)
         {
-            int itemsAdded = Inventory.AddResources(resourceType, count);
+            int itemsAdded = Inventory.AddItems(resourceType, count);
             return itemsAdded == count;
         }
         else if (itemChange == ResourceChangeTypes.Removed)
         {
-            int itemsRemoved = Inventory.RemoveResources(resourceType, count);
+            int itemsRemoved = Inventory.RemoveItems(resourceType, count);
             return itemsRemoved == count;
         }
 
@@ -167,7 +164,7 @@
         switch (energyType)
         {
             case EnergyTypes.Physical: return PhysicalEnergy >= amount;
-            case EnergyTypes.Concentration: return Concentration >= amount;
+            case EnergyTypes.Concentration: return Focus >= amount;
         }
         ;
         return false;
@@ -187,11 +184,11 @@
     {
     }
 
-    public void ModifyResource(ResourceChangeTypes changeType, ResourceTypes resourceType, int amount)
+    public void ModifyResource(ResourceChangeTypes changeType, ItemTypes resourceType, int amount)
     {
     }
 
-    public bool HasResource(ResourceTypes resourceType, int v)
+    public bool HasResource(ItemTypes resourceType, int v)
     {
         return true;
     }

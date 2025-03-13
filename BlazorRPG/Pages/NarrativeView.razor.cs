@@ -10,18 +10,8 @@ public partial class NarrativeViewBase : ComponentBase
     [Parameter] public EncounterResult Result { get; set; }
     [Parameter] public bool ShowResult { get; set; } = false;
 
-    public string NarrativeText { get; set; }
-
     protected override void OnParametersSet()
     {
-        if (!ShowResult)
-        {
-            NarrativeText = GameManager.GetLocationNarrative(LocationName);
-        }
-        else
-        {
-            NarrativeText = Result.EncounterEndMessage;
-        }
     }
 
     public List<Outcome> GetActionOutcomesSuccess()

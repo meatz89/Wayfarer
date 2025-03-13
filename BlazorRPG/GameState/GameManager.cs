@@ -11,8 +11,6 @@ public class GameManager
     public QuestSystem QuestSystem { get; }
     public ItemSystem ItemSystem { get; }
     public MessageSystem MessageSystem { get; }
-    public NarrativeSystem NarrativeSystem { get; }
-    public JournalSystem JournalSystem { get; }
     public EncounterResult EncounterResult { get; set; }
 
     public GameManager(
@@ -23,9 +21,7 @@ public class GameManager
         ActionSystem actionSystem,
         QuestSystem questSystem,
         ItemSystem itemSystem,
-        MessageSystem messageSystem,
-        NarrativeSystem narrativeSystem,
-        JournalSystem journalSystem
+        MessageSystem messageSystem
         )
     {
         this.gameState = gameState;
@@ -38,8 +34,6 @@ public class GameManager
         this.QuestSystem = questSystem;
         this.ItemSystem = itemSystem;
         this.MessageSystem = messageSystem;
-        this.NarrativeSystem = narrativeSystem;
-        this.JournalSystem = journalSystem;
     }
 
     public void StartGame()
@@ -79,7 +73,7 @@ public class GameManager
         UserActionOption action = gameState.Actions.LocationSpotActions.Where(x => x.LocationSpot == locationSpot.Name).First();
         ActionImplementation actionImpl = action.ActionImplementation;
 
-        EncounterResult = await EncounterSystem.GenerateEncounter(context, actionImpl);
+        EncounterResult = await EncounterSystem.GenerateEncounter(context, playerState, actionImpl);
 
         List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(EncounterResult.Encounter);
         gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
@@ -200,11 +194,6 @@ public class GameManager
         }
     }
 
-    public string GetLocationNarrative(LocationNames locationName)
-    {
-        return NarrativeSystem.GetLocationNarrative(locationName);
-    }
-
     public void UpdateAvailableActions()
     {
         gameState.Actions.SetCharacterActions(new List<UserActionOption>());
@@ -224,13 +213,6 @@ public class GameManager
 
     public ActionResult TravelToLocation(LocationNames locationName)
     {
-        if (gameState.World.CurrentLocation == null ||
-            gameState.World.CurrentLocation.LocationName != locationName)
-        {
-            string narrative = GetLocationNarrative(locationName);
-            JournalSystem.WriteJourneyEntry(narrative);
-        }
-
         Location location = LocationSystem.GetLocation(locationName);
         gameState.World.SetNewLocation(location);
         UpdateState();
@@ -251,8 +233,8 @@ public class GameManager
     private bool IsGameOver(PlayerState player)
     {
         bool canPayPhysical = player.PhysicalEnergy > 0 || player.Health > 1;
-        bool canPayFocus = player.Concentration > 0 || player.Concentration > 1;
-        bool canPaySocial = player.Reputation > 0 || player.Reputation > 1;
+        bool canPayFocus = player.Focus > 0 || player.Focus > 1;
+        bool canPaySocial = player.Confidence > 0 || player.Confidence > 1;
 
         bool isGameOver = !(canPayPhysical || canPayFocus || canPaySocial);
         return isGameOver;
@@ -463,17 +445,6 @@ public class GameManager
             endDayMessage.AppendLine($"- {foodModfier.GetSource}: +{foodModfier.AdditionalFood}");
         }
 
-        // Show outcomes
-        int food = Player.Inventory.GetItemCount(ResourceTypes.Food);
-        if (food >= currentRules.DailyFoodRequirement)
-        {
-            endDayMessage.AppendLine("You have enough food for everyone.");
-        }
-        else
-        {
-            endDayMessage.AppendLine($"You only have {food} food - not enough for everyone!");
-        }
-
         // Show quest condition updates
         foreach (IQuestCondition condition in QuestSystem.GetActiveConditions())
         {
@@ -485,16 +456,11 @@ public class GameManager
         MessageSystem.AddSystemMessage(endDayMessage.ToString());
 
         int foodNeeded = currentRules.DailyFoodRequirement;
-        bool hasFood = food >= foodNeeded;
-
-        food = hasFood ? food - foodNeeded : 0;
 
         int health = Player.Health;
         int minHealth = Player.MinHealth;
         int noFoodHealthLoss = currentRules.NoFoodEffectOnHealth;
         int noShelterHealthLoss = currentRules.NoShelterEffectOnHealth;
-
-        if (!hasFood) gameState.Player.ModifyHealth(currentRules.NoFoodEffectOnHealth);
 
         return Player.Health > Player.MinHealth;
     }

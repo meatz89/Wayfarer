@@ -22,13 +22,13 @@
         playerInfo.PhysicalEnergy = gameRules.StartingPhysicalEnergy;
         playerInfo.MaxPhysicalEnergy = 10;
 
-        playerInfo.Concentration = gameRules.StartingConcentration;
-        playerInfo.MaxConcentration = 10;
+        playerInfo.Focus = gameRules.StartingFocus;
+        playerInfo.MaxFocus = 10;
 
-        playerInfo.Reputation = gameRules.StartingReputation;
-        playerInfo.MaxReputation = 10;
+        playerInfo.Confidence = gameRules.StartingConfidence;
+        playerInfo.MaxConfidence = 10;
 
-        playerInfo.Inventory.AddResources(ResourceTypes.Food, 5);
+        playerInfo.Inventory.AddItems(ItemTypes.Food, 5);
 
         gameState.Player = playerInfo;
 

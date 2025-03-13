@@ -84,12 +84,6 @@ public static class ChoiceResponseParser
 
         string summary = string.Join(" ", words.Take(wordCount));
 
-        // Ensure it starts with "I"
-        if (!summary.StartsWith("I ", StringComparison.OrdinalIgnoreCase))
-        {
-            summary = "I " + summary;
-        }
-
         // Add ellipsis if we truncated
         if (words.Length > wordCount)
         {

@@ -5,7 +5,6 @@
     private List<Item> items;
 
     private List<Quest> quests;
-    private List<LocationNarrative> narrativeContents;
 
     private List<LocationPropertyChoiceEffect> locationArchetypeEffects = new();
 
@@ -42,9 +41,7 @@
         };
 
 
-        narrativeContents = NarrativeContent.LocationNarratives;
         locationArchetypeEffects = new List<LocationPropertyChoiceEffect>();
-        // LocationPropertyChoiceEffects.AllEffects;
     }
 
     public List<LocationPropertyChoiceEffect> GetLocationArchetypeEffects()
@@ -70,10 +67,5 @@
     public List<Quest> GetQuests()
     {
         return quests;
-    }
-
-    public List<LocationNarrative> GetNarratives()
-    {
-        return narrativeContents;
     }
 }
