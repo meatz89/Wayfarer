@@ -1,97 +1,71 @@
-﻿
-using System.Text;
+﻿using System.Text.RegularExpressions;
 
 public static class ChoiceResponseParser
 {
+    // Regex pattern to match choices in the expected format
+    private static readonly Regex ChoicePattern = new Regex(
+        @"Choice\s+(\d+)\s*:\s*(I[^-]+)\s+-\s*(I.+?)(?=\s*Choice\s+\d+\s*:|$)",
+        RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
     public static Dictionary<IChoice, ChoiceNarrative> ParseChoiceNarratives(string response, List<IChoice> choices)
     {
         Dictionary<IChoice, ChoiceNarrative> result = new Dictionary<IChoice, ChoiceNarrative>();
 
-        // Split the response by lines to process one line at a time
-        string[] lines = response.Split('\n');
-        int currentChoice = -1;
-        StringBuilder currentContent = new StringBuilder();
+        // Use regex to find all choices in the response
+        MatchCollection matches = ChoicePattern.Matches(response);
 
-        // Process each line
-        foreach (string line in lines)
+        // Process each match
+        foreach (Match match in matches)
         {
-            string trimmedLine = line.Trim();
-
-            // Check if this line starts a new choice
-            if (trimmedLine.StartsWith("Choice ") && trimmedLine.Contains(":"))
+            if (match.Groups.Count >= 4)
             {
-                // Process the previous choice if we were building one
-                if (currentChoice >= 0 && currentChoice < choices.Count && currentContent.Length > 0)
+                // Extract choice number (1-based), name, and description
+                if (int.TryParse(match.Groups[1].Value, out int choiceNum) &&
+                    choiceNum >= 1 && choiceNum <= choices.Count)
                 {
-                    ProcessChoiceContent(result, choices, currentChoice, currentContent.ToString().Trim());
-                    currentContent.Clear();
-                }
+                    int index = choiceNum - 1;
+                    string name = match.Groups[2].Value.Trim();
+                    string description = match.Groups[3].Value.Trim();
 
-                // Extract the choice number
-                string choicePrefix = "Choice ";
-                int colonIndex = trimmedLine.IndexOf(':');
-                if (colonIndex > choicePrefix.Length)
-                {
-                    string numberPart = trimmedLine.Substring(choicePrefix.Length, colonIndex - choicePrefix.Length).Trim();
-                    if (int.TryParse(numberPart, out int choiceNum) && choiceNum >= 1 && choiceNum <= choices.Count)
-                    {
-                        currentChoice = choiceNum - 1;
-
-                        // Add content after the colon to our buffer
-                        if (colonIndex < trimmedLine.Length - 1)
-                        {
-                            currentContent.Append(trimmedLine.Substring(colonIndex + 1).Trim());
-                            currentContent.Append(' ');
-                        }
-                    }
+                    // Store the narrative for this choice
+                    result[choices[index]] = new ChoiceNarrative(name, description);
                 }
-            }
-            else if (currentChoice >= 0 && currentChoice < choices.Count && !string.IsNullOrWhiteSpace(trimmedLine))
-            {
-                // Add content to the current choice being built
-                currentContent.Append(trimmedLine);
-                currentContent.Append(' ');
             }
         }
 
-        // Process the last choice if we were building one
-        if (currentChoice >= 0 && currentChoice < choices.Count && currentContent.Length > 0)
-        {
-            ProcessChoiceContent(result, choices, currentChoice, currentContent.ToString().Trim());
-        }
-
-        // Fill in any missing choices with defaults based on approach and focus tags
+        // Handle any missing choices with generated narratives based on approach and focus
         for (int i = 0; i < choices.Count; i++)
         {
             if (!result.ContainsKey(choices[i]))
             {
-                result[choices[i]] = new ChoiceNarrative("defaultName", "defaultDescription");
+                // Generate a reasonable fallback based on the approach and focus tags
+                result[choices[i]] = GenerateFallbackNarrative(choices[i]);
             }
         }
 
         return result;
     }
 
-    private static void ProcessChoiceContent(Dictionary<IChoice, ChoiceNarrative> result, List<IChoice> choices, int choiceIndex, string content)
+    private static ChoiceNarrative GenerateFallbackNarrative(IChoice choice)
     {
-        IChoice choice = choices[choiceIndex];
+        string approach = choice.Approach.ToString();
+        string focus = choice.Focus.ToString();
+        string effectType = choice.EffectType.ToString();
 
-        // Split by the dash separator
-        int dashPosition = content.IndexOf(" - ");
-        if (dashPosition > 0 && dashPosition < content.Length - 3) // Ensure there's content after the dash
+        // Create a basic name and description based on tags
+        string name = $"I use {approach} approach";
+        string description = $"I focus on {focus} using {approach} to make progress.";
+
+        // Add effect type information
+        if (effectType == "Momentum")
         {
-            string name = content.Substring(0, dashPosition).Trim();
-            string description = content.Substring(dashPosition + 3).Trim(); // +3 to skip " - "
-
-            // Ensure both parts start with "I"
-            if (name.StartsWith("I ", StringComparison.OrdinalIgnoreCase) &&
-                description.StartsWith("I ", StringComparison.OrdinalIgnoreCase))
-            {
-                result[choice] = new ChoiceNarrative(name, description);
-                return;
-            }
+            description += " This should help me advance toward my goal.";
+        }
+        else if (effectType == "Pressure")
+        {
+            description += " This might be risky but could yield valuable results.";
         }
 
-        result[choice] = new ChoiceNarrative("fallbackName", "fallbackDescription");
+        return new ChoiceNarrative(name, description);
     }
 }

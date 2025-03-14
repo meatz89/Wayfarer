@@ -1,10 +1,6 @@
-﻿// Main service class - slim coordinator
-
-
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 
-// Loads and manages prompts from JSON files
 public class PromptManager
 {
     private readonly TagFormatter _tagFormatter;
@@ -15,7 +11,8 @@ public class PromptManager
 
     private const string SYSTEM_KEY = "system_message";
     private const string INTRO_KEY = "introduction_prompt";
-    private const string REACTION_KEY = "reaction_prompt";
+    private const string ACTION_OUTCOME_KEY = "action_outcome_prompt";
+    private const string NEW_SITUATION_KEY = "new_situation_prompt";
     private const string CHOICES_KEY = "choices_prompt";
     private const string ENCOUNTER_SOCIAL_KEY = "encounter_style_social";
     private const string ENCOUNTER_INTELLECTUAL_KEY = "encounter_style_intellectual";
@@ -26,7 +23,6 @@ public class PromptManager
     private const string CHOICE_SOCIAL_KEY = "choice_style_social";
     private const string CHOICE_INTELLECTUAL_KEY = "choice_style_intellectual";
     private const string CHOICE_PHYSICAL_KEY = "choice_style_physical";
-    private const string CHOICE_REQUIREMENTS_KEY = "choice_requirements";
 
     public PromptManager(IConfiguration configuration)
     {
@@ -89,132 +85,115 @@ public class PromptManager
             throw new InvalidOperationException($"Choices prompt template not found");
         }
 
-        if (!_promptTemplates.TryGetValue(CHOICE_REQUIREMENTS_KEY, out string choiceRequirements))
-        {
-            throw new InvalidOperationException($"Choice requirements template not found");
-        }
-
+        // Determine encounter type and get appropriate style guidance
         EncounterTypes encounterType = _encounterDetector.DetermineEncounterType(context.LocationName, state);
         string choiceStyleGuidance = GetChoiceStyleGuidance(encounterType);
 
-        // Create a concise narrative summary
+        // Create a narrative summary and get most recent reaction
         string narrativeSummary = _summaryBuilder.CreateSummary(context);
+        string mostRecentReaction = context.GetLastScene() ?? "The situation begins";
 
-        // Get the most recent reaction narrative - THIS IS THE KEY ADDITION
-        string mostRecentReaction = context.GetLastScene() != string.Empty ? context.GetLastScene() : "The Situation begins";
-
-        // Format tag state information
-        string approachTagValues = _tagFormatter.FormatTagValues(state.ApproachTags);
-        string focusTagValues = _tagFormatter.FormatTagValues(state.FocusTags);
-        string encounterStateTagValues = _tagFormatter.FormatTagValues(state.EncounterStateTags);
-
-        // Format active tags information
-        string activeNarrativeTags = _tagFormatter.FormatNarrativeTags(state);
-        string activeStrategicTags = _tagFormatter.FormatStrategicTags(state);
-
-        // Create encounter goal
-        string encounterGoal = "";
-
+        // Format choices info
         StringBuilder choicesInfo = new StringBuilder();
-
-        // Add each choice with its mechanical properties
         for (int i = 0; i < choices.Count; i++)
         {
             IChoice choice = choices[i];
             ChoiceProjection projection = projections[i];
 
-            choicesInfo.AppendLine($@"
+            string approachDesc = TagCharacteristicsProvider.GetApproachCharacteristics(choice.Approach.ToString());
+            string focusDesc = TagCharacteristicsProvider.GetFocusCharacteristics(choice.Focus.ToString());
+            string effectDesc = choice.EffectType == EffectTypes.Momentum ?
+                $"MOMENTUM +{projection.MomentumGained}" :
+                $"PRESSURE +{projection.PressureBuilt}";
 
-Choice {i + 1}: {choice.Name}
-- Approach: {choice.Approach} ({TagCharacteristicsProvider.GetApproachCharacteristics(choice.Approach.ToString())})
-- Focus: {choice.Focus} ({TagCharacteristicsProvider.GetFocusCharacteristics(choice.Focus.ToString())})
-- Effect: {(choice.EffectType == EffectTypes.Momentum ? $"MOMENTUM +{projection.MomentumGained}" : $"PRESSURE +{projection.PressureBuilt}")}
-- Key Tag Changes: {_tagFormatter.FormatKeyTagChanges(projection)}");
+            choicesInfo.AppendLine($@"
+Choice {i + 1}: 
+- Approach: {choice.Approach} ({approachDesc})
+- Focus: {choice.Focus} ({focusDesc})
+- Effect: {effectDesc}
+- Key Changes: {_tagFormatter.FormatKeyTagChanges(projection)}");
         }
 
         // Replace placeholders in template
         string prompt = template
             .Replace("{LOCATION}", context.LocationName)
-            .Replace("{ENCOUNTER_GOAL}", encounterGoal)
             .Replace("{NARRATIVE_SUMMARY}", narrativeSummary)
-            .Replace("{MOST_RECENT_REACTION}", mostRecentReaction) // Add the most recent reaction
-            .Replace("{APPROACH_TAG_VALUES}", approachTagValues)
-            .Replace("{FOCUS_TAG_VALUES}", focusTagValues)
-            .Replace("{ENCOUNTER_STATE_TAG_VALUES}", encounterStateTagValues)
-            .Replace("{ACTIVE_NARRATIVE_TAGS}", activeNarrativeTags)
-            .Replace("{ACTIVE_STRATEGIC_TAGS}", activeStrategicTags)
-            .Replace("{SIGNIFICANT_TAGS}", _tagFormatter.GetSignificantTagsFormatted(state))
-            .Replace("{CHOICE_STYLE_GUIDANCE}", choiceStyleGuidance)
+            .Replace("{MOST_RECENT_REACTION}", mostRecentReaction)
             .Replace("{CHOICES_INFO}", choicesInfo.ToString())
-            .Replace("{CHOICE_REQUIREMENTS}", choiceRequirements);
+            .Replace("{CHOICE_STYLE_GUIDANCE}", choiceStyleGuidance);
 
-        // Always include system message
-        return _systemMessage + "\n\n" + prompt;
+        return prompt;
     }
 
-    public string BuildReactionPrompt(
-    NarrativeContext context,
-    IChoice chosenOption,
-    ChoiceNarrative choiceDescription,
-    ChoiceOutcome outcome,
-    EncounterStatus newState)
+    // New method for action outcome prompt
+    public string BuildActionOutcomePrompt(
+        NarrativeContext context,
+        IChoice chosenOption,
+        ChoiceNarrative choiceDescription,
+        ChoiceOutcome outcome,
+        EncounterStatus newState)
     {
-        if (!_promptTemplates.TryGetValue(REACTION_KEY, out string template))
+        if (!_promptTemplates.TryGetValue(ACTION_OUTCOME_KEY, out string template))
         {
-            throw new InvalidOperationException($"Reaction prompt template not found");
+            throw new InvalidOperationException($"Action outcome prompt template not found");
         }
 
+        // Determine encounter type
         EncounterTypes encounterType = _encounterDetector.DetermineEncounterType(context.LocationName, newState);
         string encounterStyleGuidance = GetEncounterStyleGuidance(encounterType);
-        string situationStyleGuidance = GetSituationStyleGuidance(encounterType);
 
-        // Create a concise narrative summary
+        // Create a narrative summary
         string narrativeSummary = _summaryBuilder.CreateSummary(context);
-
-        // Format tag modifications
-        string approachTagsModified = _tagFormatter.FormatTagModifications(outcome.ApproachTagChanges);
-        string focusTagsModified = _tagFormatter.FormatTagModifications(outcome.FocusTagChanges);
-        string encounterStateTagsModified = _tagFormatter.FormatTagModifications(outcome.EncounterStateTagChanges);
-
-        // Format newly activated tags
-        string newlyActivatedTags = string.Join(", ", outcome.NewlyActivatedTags);
-        string deactivatedTags = string.Join(", ", outcome.DeactivatedTags);
-
-        // Create encounter goal
-        string encounterGoal = "";
-
-        // Get resource changes directly from the outcome
-        string healthChange = outcome.HealthChange.ToString();
-        string concentrationChange = outcome.FocusChange.ToString();
-        string reputationChange = outcome.ConfidenceChange.ToString();
 
         // Replace placeholders in template
         string prompt = template
             .Replace("{LOCATION}", context.LocationName)
-            .Replace("{ENCOUNTER_GOAL}", encounterGoal)
             .Replace("{CHOICE_NAME}", chosenOption.Name)
             .Replace("{CHOICE_APPROACH}", chosenOption.Approach.ToString())
             .Replace("{CHOICE_FOCUS}", chosenOption.Focus.ToString())
             .Replace("{CHOICE_DESCRIPTION}", choiceDescription.FullDescription)
             .Replace("{MOMENTUM_GAIN}", outcome.MomentumGain.ToString())
             .Replace("{PRESSURE_GAIN}", outcome.PressureGain.ToString())
-            .Replace("{CURRENT_MOMENTUM}", newState.Momentum.ToString())
-            .Replace("{CURRENT_PRESSURE}", newState.Pressure.ToString())
-            .Replace("{HEALTH_CHANGE}", healthChange)
-            .Replace("{CONCENTRATION_CHANGE}", concentrationChange)
-            .Replace("{REPUTATION_CHANGE}", reputationChange)
-            .Replace("{APPROACH_TAGS_MODIFIED}", approachTagsModified)
-            .Replace("{FOCUS_TAGS_MODIFIED}", focusTagsModified)
-            .Replace("{ENCOUNTER_STATE_TAGS_MODIFIED}", encounterStateTagsModified)
-            .Replace("{NEWLY_ACTIVATED_TAGS}", newlyActivatedTags)
-            .Replace("{DEACTIVATED_TAGS}", deactivatedTags)
-            .Replace("{SIGNIFICANT_TAGS}", _tagFormatter.GetSignificantTagsFormatted(newState))
+            .Replace("{HEALTH_CHANGE}", outcome.HealthChange.ToString())
+            .Replace("{CONCENTRATION_CHANGE}", outcome.FocusChange.ToString())
+            .Replace("{REPUTATION_CHANGE}", outcome.ConfidenceChange.ToString())
             .Replace("{NARRATIVE_SUMMARY}", narrativeSummary)
-            .Replace("{ENCOUNTER_STYLE_GUIDANCE}", encounterStyleGuidance)
+            .Replace("{ENCOUNTER_TYPE}", encounterType.ToString())
+            .Replace("{ENCOUNTER_STYLE_GUIDANCE}", encounterStyleGuidance);
+
+        return prompt;
+    }
+
+    // New method for new situation prompt
+    public string BuildNewSituationPrompt(
+        NarrativeContext context,
+        EncounterStatus state,
+        string recentOutcome)
+    {
+        if (!_promptTemplates.TryGetValue(NEW_SITUATION_KEY, out string template))
+        {
+            throw new InvalidOperationException($"New situation prompt template not found");
+        }
+
+        // Determine encounter type
+        EncounterTypes encounterType = _encounterDetector.DetermineEncounterType(context.LocationName, state);
+        string situationStyleGuidance = GetSituationStyleGuidance(encounterType);
+
+        // Create a narrative summary
+        string narrativeSummary = _summaryBuilder.CreateSummary(context);
+
+        // Replace placeholders in template
+        string prompt = template
+            .Replace("{LOCATION}", context.LocationName)
+            .Replace("{CURRENT_MOMENTUM}", state.Momentum.ToString())
+            .Replace("{CURRENT_PRESSURE}", state.Pressure.ToString())
+            .Replace("{RECENT_OUTCOME}", recentOutcome)
+            .Replace("{SIGNIFICANT_TAGS}", _tagFormatter.GetSignificantTagsFormatted(state))
+            .Replace("{NARRATIVE_SUMMARY}", narrativeSummary)
+            .Replace("{ENCOUNTER_TYPE}", encounterType.ToString())
             .Replace("{SITUATION_STYLE_GUIDANCE}", situationStyleGuidance);
 
-        // Always include system message
-        return _systemMessage + "\n\n" + prompt;
+        return prompt;
     }
 
     public string BuildIntroductionPrompt(string location, string incitingAction, EncounterStatus state, string encounterGoal = "")
@@ -243,8 +222,7 @@ Choice {i + 1}: {choice.Name}
             .Replace("{OPPOSITE_FOCUS}", (encounterType == EncounterTypes.Social ? "the environment" : "social interaction"))
             .Replace("{ENCOUNTER_GOAL}", encounterGoal);
 
-        // Always include system message
-        return _systemMessage + "\n\n" + prompt;
+        return prompt;
     }
 
     private string GetEncounterStyleGuidance(EncounterTypes type)
@@ -291,6 +269,4 @@ Choice {i + 1}: {choice.Name}
             ? guidance
             : "Specific action I would take in this situation";
     }
-
-
 }
