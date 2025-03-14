@@ -107,7 +107,7 @@
         return energyType switch
         {
             EnergyTypes.Physical => ValueTypes.PhysicalEnergy,
-            EnergyTypes.Concentration => ValueTypes.Concentration,
+            EnergyTypes.Focus => ValueTypes.Focus,
             EnergyTypes.None => ValueTypes.None,
             _ => throw new ArgumentException("Invalid EnergyType")
         };
@@ -149,7 +149,7 @@
                 break;
 
             case BasicActionTypes.Persuade:
-                costs.Add(new ReputationOutcome(-1));
+                costs.Add(new ConfidenceOutcome(-1));
                 break;
 
             case BasicActionTypes.Perform:
@@ -168,7 +168,7 @@
 
             case BasicActionTypes.Rest:
                 rewards.Add(new EnergyOutcome(EnergyTypes.Physical, 5));
-                rewards.Add(new EnergyOutcome(EnergyTypes.Concentration, 5));
+                rewards.Add(new EnergyOutcome(EnergyTypes.Focus, 5));
                 rewards.Add(new HealthOutcome(1));
                 break;
 
@@ -193,7 +193,7 @@
                 break;
 
             case BasicActionTypes.Discuss:
-                rewards.Add(new ReputationOutcome(3));
+                rewards.Add(new ConfidenceOutcome(3));
                 break;
 
             case BasicActionTypes.Persuade:
@@ -217,12 +217,12 @@
             BasicActionTypes.Fight => EnergyTypes.Physical,
             BasicActionTypes.Gather => EnergyTypes.Physical,
 
-            BasicActionTypes.Study => EnergyTypes.Concentration,
-            BasicActionTypes.Investigate => EnergyTypes.Concentration,
-            BasicActionTypes.Analyze => EnergyTypes.Concentration,
+            BasicActionTypes.Study => EnergyTypes.Focus,
+            BasicActionTypes.Investigate => EnergyTypes.Focus,
+            BasicActionTypes.Analyze => EnergyTypes.Focus,
 
             BasicActionTypes.Discuss => EnergyTypes.None,
-            BasicActionTypes.Persuade => EnergyTypes.Concentration,
+            BasicActionTypes.Persuade => EnergyTypes.Focus,
             BasicActionTypes.Perform => EnergyTypes.Physical,
         };
         return energyType;

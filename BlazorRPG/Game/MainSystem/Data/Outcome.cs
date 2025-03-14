@@ -114,7 +114,7 @@ public class EnergyOutcome : Outcome
                     0,
                     player.MaxPhysicalEnergy);
                 break;
-            case EnergyTypes.Concentration:
+            case EnergyTypes.Focus:
                 player.Focus = Math.Clamp(
                     player.Focus + Amount,
                     0,
@@ -133,14 +133,14 @@ public class EnergyOutcome : Outcome
         int currentValue = EnergyType switch
         {
             EnergyTypes.Physical => player.PhysicalEnergy,
-            EnergyTypes.Concentration => player.Focus,
+            EnergyTypes.Focus => player.Focus,
             _ => 0
         };
 
         int maxValue = EnergyType switch
         {
             EnergyTypes.Physical => player.MaxPhysicalEnergy,
-            EnergyTypes.Concentration => player.MaxFocus,
+            EnergyTypes.Focus => player.MaxFocus,
             _ => 0
         };
 
@@ -223,23 +223,23 @@ public class HealthOutcome : Outcome
     }
 }
 
-public class ConcentrationOutcome : Outcome
+public class FocusOutcome : Outcome
 {
     public int Count { get; }
 
-    public ConcentrationOutcome(int count)
+    public FocusOutcome(int count)
     {
         Count = count;
     }
 
     public override void Apply(PlayerState player)
     {
-        player.ModifyConcentration(Count);
+        player.ModifyFocus(Count);
     }
 
     public override string GetDescription()
     {
-        return $"{(Count >= 0 ? "+" : "")}{Count} Concentration";
+        return $"{(Count >= 0 ? "+" : "")}{Count} Focus";
     }
 
     public override string GetPreview(PlayerState player)
@@ -249,23 +249,23 @@ public class ConcentrationOutcome : Outcome
     }
 }
 
-public class ReputationOutcome : Outcome
+public class ConfidenceOutcome : Outcome
 {
     public int Count { get; }
 
-    public ReputationOutcome(int count)
+    public ConfidenceOutcome(int count)
     {
         Count = count;
     }
 
     public override void Apply(PlayerState player)
     {
-        player.ModifyReputation(Count);
+        player.ModifyConfidence(Count);
     }
 
     public override string GetDescription()
     {
-        return $"{(Count >= 0 ? "+" : "")}{Count} Reputation";
+        return $"{(Count >= 0 ? "+" : "")}{Count} Confidence";
     }
 
     public override string GetPreview(PlayerState player)

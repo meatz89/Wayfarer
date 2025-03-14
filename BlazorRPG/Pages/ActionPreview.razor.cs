@@ -57,8 +57,8 @@ public partial class ActionPreviewBase : ComponentBase
             ValueTypes.Momentum => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
             ValueTypes.Pressure => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
             ValueTypes.PhysicalEnergy => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
-            ValueTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
-            ValueTypes.Reputation => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
+            ValueTypes.Focus => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
+            ValueTypes.Confidence => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
             _ => new MarkupString("")
         };
     }
@@ -70,7 +70,7 @@ public partial class ActionPreviewBase : ComponentBase
             return energyOutcome.EnergyType switch
             {
                 EnergyTypes.Physical => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
-                EnergyTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
+                EnergyTypes.Focus => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
                 _ => new MarkupString("")
             };
         }

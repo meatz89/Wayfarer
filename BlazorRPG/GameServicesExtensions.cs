@@ -16,7 +16,7 @@ public static class GameServicesExpressures
         services.AddSingleton<CharacterRelationshipSystem>();
 
         services.AddSingleton<QuestSystem>();
-        services.AddSingleton<ReputationSystem>();
+        services.AddSingleton<ConfidenceSystem>();
         services.AddSingleton<AchievementSystem>();
 
         services.AddSingleton<EncounterSystem>();

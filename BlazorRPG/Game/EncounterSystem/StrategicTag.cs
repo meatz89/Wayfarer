@@ -159,19 +159,19 @@ public class StrategicTag : IEncounterTag
             case StrategicEffectTypes.ReduceHealthByPressure:
                 return $"Reduce health by current pressure when using {AffectedApproach} approach";
 
-            case StrategicEffectTypes.ReduceConcentrationByPressure:
+            case StrategicEffectTypes.ReduceFocusByPressure:
                 return $"Reduce concentration by current pressure when using {AffectedApproach} approach";
 
-            case StrategicEffectTypes.ReduceReputationByPressure:
+            case StrategicEffectTypes.ReduceConfidenceByPressure:
                 return $"Reduce reputation by current pressure when using {AffectedApproach} approach";
 
             case StrategicEffectTypes.ReduceHealthByApproachValue:
                 return $"Reduce health by {ScalingApproachTag} value when using {AffectedApproach} approach";
 
-            case StrategicEffectTypes.ReduceConcentrationByApproachValue:
+            case StrategicEffectTypes.ReduceFocusByApproachValue:
                 return $"Reduce concentration by {ScalingApproachTag} value when using {AffectedApproach} approach";
 
-            case StrategicEffectTypes.ReduceReputationByApproachValue:
+            case StrategicEffectTypes.ReduceConfidenceByApproachValue:
                 return $"Reduce reputation by {ScalingApproachTag} value when using {AffectedApproach} approach";
 
             default:

@@ -13,6 +13,6 @@
 
     Discuss, // Social/Social (Reward Type: Relationships/Social Energy)
     Persuade, // Social/Focus (Reward Type: Relationships/State Change)
-    Perform, // Social/Physical (Reward Type: Reputation/Social Energy)
+    Perform, // Social/Physical (Reward Type: Confidence/Social Energy)
 }
 

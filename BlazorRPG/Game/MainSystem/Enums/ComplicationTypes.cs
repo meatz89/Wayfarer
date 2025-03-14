@@ -2,7 +2,7 @@
 {
     MinorInjury,
     StressIncrease,
-    ReputationLoss,
+    ConfidenceLoss,
     EquipmentDamage,
     ResourceLoss,
     TimeDelay

@@ -70,12 +70,12 @@ public class EncounterState
                         PlayerState.ModifyHealth(-Pressure);
                         break;
 
-                    case StrategicEffectTypes.ReduceConcentrationByPressure:
-                        PlayerState.ModifyConcentration(-Pressure);
+                    case StrategicEffectTypes.ReduceFocusByPressure:
+                        PlayerState.ModifyFocus(-Pressure);
                         break;
 
-                    case StrategicEffectTypes.ReduceReputationByPressure:
-                        PlayerState.ModifyReputation(-Pressure);
+                    case StrategicEffectTypes.ReduceConfidenceByPressure:
+                        PlayerState.ModifyConfidence(-Pressure);
                         break;
 
                     case StrategicEffectTypes.ReduceHealthByApproachValue:
@@ -86,19 +86,19 @@ public class EncounterState
                         }
                         break;
 
-                    case StrategicEffectTypes.ReduceConcentrationByApproachValue:
+                    case StrategicEffectTypes.ReduceFocusByApproachValue:
                         if (strategicTag.ScalingApproachTag.HasValue)
                         {
                             int value = TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
-                            PlayerState.ModifyConcentration(-value);
+                            PlayerState.ModifyFocus(-value);
                         }
                         break;
 
-                    case StrategicEffectTypes.ReduceReputationByApproachValue:
+                    case StrategicEffectTypes.ReduceConfidenceByApproachValue:
                         if (strategicTag.ScalingApproachTag.HasValue)
                         {
                             int value = TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
-                            PlayerState.ModifyReputation(-value);
+                            PlayerState.ModifyConfidence(-value);
                         }
                         break;
                 }
@@ -170,11 +170,11 @@ public class EncounterState
                         break;
 
                     case ResourceTypes.Focus:
-                        if (strategicTag.EffectType == StrategicEffectTypes.ReduceConcentrationByPressure)
+                        if (strategicTag.EffectType == StrategicEffectTypes.ReduceFocusByPressure)
                         {
                             change -= Pressure;
                         }
-                        else if (strategicTag.EffectType == StrategicEffectTypes.ReduceConcentrationByApproachValue &&
+                        else if (strategicTag.EffectType == StrategicEffectTypes.ReduceFocusByApproachValue &&
                                  strategicTag.ScalingApproachTag.HasValue)
                         {
                             change -= TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
@@ -182,11 +182,11 @@ public class EncounterState
                         break;
 
                     case ResourceTypes.Confidence:
-                        if (strategicTag.EffectType == StrategicEffectTypes.ReduceReputationByPressure)
+                        if (strategicTag.EffectType == StrategicEffectTypes.ReduceConfidenceByPressure)
                         {
                             change -= Pressure;
                         }
-                        else if (strategicTag.EffectType == StrategicEffectTypes.ReduceReputationByApproachValue &&
+                        else if (strategicTag.EffectType == StrategicEffectTypes.ReduceConfidenceByApproachValue &&
                                  strategicTag.ScalingApproachTag.HasValue)
                         {
                             change -= TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
@@ -596,7 +596,7 @@ public class EncounterState
                     int reduction = -strategicTag.GetEffectValueForState(this);
                     projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
                     {
-                        Source = $"{tag.Name} (new, end of turn)",
+                        Source = $"{tag.Name}",
                         Value = reduction
                     });
                     endOfTurnPressureChange += reduction;
@@ -606,7 +606,7 @@ public class EncounterState
                     int increase = strategicTag.GetEffectValueForState(this);
                     projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
                     {
-                        Source = $"{tag.Name} (new, end of turn)",
+                        Source = $"{tag.Name}",
                         Value = increase
                     });
                     endOfTurnPressureChange += increase;
@@ -668,8 +668,8 @@ public class EncounterState
 
         // Calculate resource changes before returning
         projection.HealthChange = CalculateResourceChange(choice, ResourceTypes.Health);
-        projection.ConcentrationChange = CalculateResourceChange(choice, ResourceTypes.Focus);
-        projection.ReputationChange = CalculateResourceChange(choice, ResourceTypes.Confidence);
+        projection.FocusChange = CalculateResourceChange(choice, ResourceTypes.Focus);
+        projection.ConfidenceChange = CalculateResourceChange(choice, ResourceTypes.Confidence);
 
         // Add resource change components to the projection
         if (projection.HealthChange != 0)
@@ -681,21 +681,21 @@ public class EncounterState
             });
         }
 
-        if (projection.ConcentrationChange != 0)
+        if (projection.FocusChange != 0)
         {
-            projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
+            projection.FocusComponents.Add(new ChoiceProjection.ValueComponent
             {
                 Source = "Strategic tag effects",
-                Value = projection.ConcentrationChange
+                Value = projection.FocusChange
             });
         }
 
-        if (projection.ReputationChange != 0)
+        if (projection.ConfidenceChange != 0)
         {
-            projection.ReputationComponents.Add(new ChoiceProjection.ValueComponent
+            projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
             {
                 Source = "Strategic tag effects",
-                Value = projection.ReputationChange
+                Value = projection.ConfidenceChange
             });
         }
 

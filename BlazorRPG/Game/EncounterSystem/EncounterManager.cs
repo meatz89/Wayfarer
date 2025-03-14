@@ -54,8 +54,8 @@ namespace BlazorRPG.Game.EncounterManager
                 projection.EncounterWillEnd,
                 projection.ProjectedOutcome,
                 projection.HealthChange,
-                projection.ConcentrationChange,
-                projection.ReputationChange);
+                projection.FocusChange,
+                projection.ConfidenceChange);
 
             // Copy all tag changes from the projection
             foreach (var kvp in projection.ApproachTagChanges)

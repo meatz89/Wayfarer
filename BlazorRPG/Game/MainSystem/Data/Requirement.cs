@@ -20,7 +20,7 @@ public class EnergyRequirement : Requirement
         return EnergyType switch
         {
             EnergyTypes.Physical => gameState.Player.PhysicalEnergy >= Amount,
-            EnergyTypes.Concentration => gameState.Player.Focus >= Amount,
+            EnergyTypes.Focus => gameState.Player.Focus >= Amount,
             _ => false
         };
     }
@@ -51,11 +51,11 @@ public class HealthRequirement : Requirement
     }
 }
 
-public class ConcentrationRequirement : Requirement
+public class FocusRequirement : Requirement
 {
     public int Count { get; }
 
-    public ConcentrationRequirement(int count)
+    public FocusRequirement(int count)
     {
         Count = count;
     }
@@ -67,7 +67,7 @@ public class ConcentrationRequirement : Requirement
 
     public override string GetDescription()
     {
-        return $"Concentration Required: {Count}";
+        return $"Focus Required: {Count}";
     }
 }
 
@@ -242,23 +242,23 @@ public class PlayerNegativeStatusRequirement : Requirement
     }
 }
 
-public class PlayerReputationRequirement : Requirement
+public class PlayerConfidenceRequirement : Requirement
 {
-    public PlayerReputationTypes Reputation { get; }
+    public PlayerConfidenceTypes Confidence { get; }
 
-    public PlayerReputationRequirement(PlayerReputationTypes reputationType)
+    public PlayerConfidenceRequirement(PlayerConfidenceTypes reputationType)
     {
-        Reputation = reputationType;
+        Confidence = reputationType;
     }
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.Player.HasReputation(Reputation);
+        return gameState.Player.HasConfidence(Confidence);
     }
 
     public override string GetDescription()
     {
-        return $"Reputation Required: {Reputation}";
+        return $"Confidence Required: {Confidence}";
     }
 }
 

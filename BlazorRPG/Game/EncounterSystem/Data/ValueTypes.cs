@@ -3,7 +3,7 @@
     Momentum,
     Pressure,
     PhysicalEnergy,
-    Concentration,
-    Reputation,
+    Focus,
+    Confidence,
     None
 }

@@ -19,11 +19,10 @@
 
     // New persistent resource effects
     ReduceHealthByPressure,          // Reduce health by X where X is current pressure
-    ReduceConcentrationByPressure,   // Reduce concentration by X where X is current pressure
-    ReduceReputationByPressure,      // Reduce reputation by X where X is current pressure
+    ReduceFocusByPressure,   // Reduce concentration by X where X is current pressure
+    ReduceConfidenceByPressure,      // Reduce reputation by X where X is current pressure
     ReduceHealthByApproachValue,     // Reduce health by X where X is approach tag value
-    ReduceConcentrationByApproachValue,  // Reduce concentration by X where X is approach tag value
-    ReduceReputationByApproachValue,      // Reduce reputation by X where X is approach tag value
-    ReduceConfidenceByPressure,
+    ReduceFocusByApproachValue,  // Reduce concentration by X where X is approach tag value
+    ReduceConfidenceByApproachValue,      // Reduce reputation by X where X is approach tag value
     ReduceHealthByApproach
 }

@@ -1,12 +1,12 @@
 ﻿
-public class Reputation
+public class Confidence
 {
-    public PlayerReputationTypes ReputationType { get; set; }
+    public PlayerConfidenceTypes ConfidenceType { get; set; }
     public int Value { get; set; }
 
-    public Reputation(PlayerReputationTypes reputationType, int value)
+    public Confidence(PlayerConfidenceTypes reputationType, int value)
     {
-        ReputationType = reputationType;
+        ConfidenceType = reputationType;
         Value = value;
     }
 }

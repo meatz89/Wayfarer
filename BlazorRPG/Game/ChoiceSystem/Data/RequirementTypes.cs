@@ -22,7 +22,7 @@
 
     //Energy
     PhysicalEnergy,
-    Concentration,
+    Focus,
 
     //Encounter States
     MaxPressure,
@@ -41,7 +41,7 @@
     Exhausted,
     Stressed,
 
-    //Player Reputation
+    //Player Confidence
     Shunned,
     Untrustworthy,
     Neutral,

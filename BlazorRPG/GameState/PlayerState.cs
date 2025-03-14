@@ -25,7 +25,7 @@
     public HashSet<(LocationNames, BasicActionTypes)> LocationActionAvailability { get; set; } = new();
 
     public List<PlayerNegativeStatus> NegativeStatusTypes { get; set; }
-    public PlayerReputationTypes ReputationType { get; set; }
+    public PlayerConfidenceTypes ConfidenceType { get; set; }
 
     public PlayerState()
     {
@@ -93,7 +93,7 @@
         switch (energyType)
         {
             case EnergyTypes.Physical: ModifyPhysicalEnergy(amount); break;
-            case EnergyTypes.Concentration: ModifyConcentration(amount); break;
+            case EnergyTypes.Focus: ModifyFocus(amount); break;
             default: throw new NotImplementedException();
         }
         ;
@@ -110,23 +110,23 @@
         return false;
     }
 
-    public bool ModifyConcentration(int count)
+    public bool ModifyFocus(int count)
     {
-        int newConcentration = Math.Clamp(Focus + count, 0, MaxFocus);
-        if (newConcentration != Focus)
+        int newFocus = Math.Clamp(Focus + count, 0, MaxFocus);
+        if (newFocus != Focus)
         {
-            Focus = newConcentration;
+            Focus = newFocus;
             return true;
         }
         return false;
     }
 
-    public bool ModifyReputation(int count)
+    public bool ModifyConfidence(int count)
     {
-        int newReputation = Math.Clamp(Confidence + count, 0, MaxConfidence);
-        if (newReputation != Confidence)
+        int newConfidence = Math.Clamp(Confidence + count, 0, MaxConfidence);
+        if (newConfidence != Confidence)
         {
-            Confidence = newReputation;
+            Confidence = newConfidence;
             return true;
         }
         return false;
@@ -164,7 +164,7 @@
         switch (energyType)
         {
             case EnergyTypes.Physical: return PhysicalEnergy >= amount;
-            case EnergyTypes.Concentration: return Focus >= amount;
+            case EnergyTypes.Focus: return Focus >= amount;
         }
         ;
         return false;
@@ -204,9 +204,9 @@
         return 1;
     }
 
-    public bool HasReputation(PlayerReputationTypes expectedValue)
+    public bool HasConfidence(PlayerConfidenceTypes expectedValue)
     {
-        return ReputationType == expectedValue;
+        return ConfidenceType == expectedValue;
     }
 
     public bool HasStatusEffect(PlayerNegativeStatus expectedValue)

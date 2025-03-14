@@ -52,8 +52,8 @@ public partial class NarrativeViewBase : ComponentBase
         return outcome switch
         {
             HealthOutcome => new MarkupString("<i class='value-icon health-icon'>❤️</i>"),
-            ConcentrationOutcome => new MarkupString("<i class='value-icon concentration-icon'>🌀</i>"),
-            ReputationOutcome => new MarkupString("<i class='value-icon reputation-icon'>👤</i>"),
+            FocusOutcome => new MarkupString("<i class='value-icon concentration-icon'>🌀</i>"),
+            ConfidenceOutcome => new MarkupString("<i class='value-icon reputation-icon'>👤</i>"),
             CoinsOutcome => new MarkupString("<i class='value-icon coins-icon'>💰</i>"),
             ResourceOutcome => new MarkupString("<i class='value-icon resource-icon'>📦</i>"),
             KnowledgeOutcome => new MarkupString("<i class='value-icon knowledge-icon'>📚</i>"),
@@ -66,7 +66,7 @@ public partial class NarrativeViewBase : ComponentBase
         return energyType switch
         {
             EnergyTypes.Physical => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
-            EnergyTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
+            EnergyTypes.Focus => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
             _ => new MarkupString("")
         };
     }

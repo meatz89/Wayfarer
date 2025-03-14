@@ -7,11 +7,11 @@
             EnergyRequirement energyReq => energyReq.EnergyType switch
             {
                 EnergyTypes.Physical => RequirementTypes.PhysicalEnergy,
-                EnergyTypes.Concentration => RequirementTypes.Concentration,
+                EnergyTypes.Focus => RequirementTypes.Focus,
                 _ => RequirementTypes.Other
             },
             HealthRequirement => RequirementTypes.Health,
-            ConcentrationRequirement => RequirementTypes.Concentration,
+            FocusRequirement => RequirementTypes.Focus,
             CoinsRequirement => RequirementTypes.Coins,
             SkillRequirement skillReq => skillReq.SkillType switch
             {
@@ -51,13 +51,13 @@
                 PlayerNegativeStatus.Exhausted => RequirementTypes.Exhausted,
                 PlayerNegativeStatus.Stressed => RequirementTypes.Stressed,
             },
-            PlayerReputationRequirement statusReq => statusReq.Reputation switch
+            PlayerConfidenceRequirement statusReq => statusReq.Confidence switch
             {
-                PlayerReputationTypes.Shunned => RequirementTypes.Shunned,
-                PlayerReputationTypes.Untrustworthy => RequirementTypes.Untrustworthy,
-                PlayerReputationTypes.Neutral => RequirementTypes.Neutral,
-                PlayerReputationTypes.Trusted => RequirementTypes.Trusted,
-                PlayerReputationTypes.Respected => RequirementTypes.Respected,
+                PlayerConfidenceTypes.Shunned => RequirementTypes.Shunned,
+                PlayerConfidenceTypes.Untrustworthy => RequirementTypes.Untrustworthy,
+                PlayerConfidenceTypes.Neutral => RequirementTypes.Neutral,
+                PlayerConfidenceTypes.Trusted => RequirementTypes.Trusted,
+                PlayerConfidenceTypes.Respected => RequirementTypes.Respected,
                 _ => RequirementTypes.Other
             },
             _ => RequirementTypes.Other

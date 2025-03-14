@@ -20,9 +20,9 @@ public partial class GameUI : ComponentBase
     public int health => GameState.Player.Health;
     public int maxHealth => GameState.Player.MaxHealth;
     public int concentration => GameState.Player.Focus;
-    public int maxConcentration => GameState.Player.MaxFocus;
+    public int maxFocus => GameState.Player.MaxFocus;
     public int reputation => GameState.Player.Confidence;
-    public int maxReputation => GameState.Player.MaxConfidence;
+    public int maxConfidence => GameState.Player.MaxConfidence;
     public int coins => GameState.Player.Coins;
     public int food => GameState.Player.Inventory.GetItemCount(ItemTypes.Food);
 

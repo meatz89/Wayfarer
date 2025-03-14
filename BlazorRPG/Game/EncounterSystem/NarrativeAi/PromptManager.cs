@@ -185,8 +185,8 @@ Choice {i + 1}: {choice.Name}
 
         // Get resource changes directly from the outcome
         string healthChange = outcome.HealthChange.ToString();
-        string concentrationChange = outcome.ConcentrationChange.ToString();
-        string reputationChange = outcome.ReputationChange.ToString();
+        string concentrationChange = outcome.FocusChange.ToString();
+        string reputationChange = outcome.ConfidenceChange.ToString();
 
         // Replace placeholders in template
         string prompt = template

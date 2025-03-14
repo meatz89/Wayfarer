@@ -1,14 +1,14 @@
-﻿public class ReputationSystem
+﻿public class ConfidenceSystem
 {
     private int reputation;
-    private List<PlayerReputationTypes> playerReputations;
+    private List<PlayerConfidenceTypes> playerConfidences;
 
-    public void AddReputationPoint(PlayerReputationTypes type)
+    public void AddConfidencePoint(PlayerConfidenceTypes type)
     {
 
     }
 
-    public int GetLevel(PlayerReputationTypes type)
+    public int GetLevel(PlayerConfidenceTypes type)
     {
         return 1;
     }

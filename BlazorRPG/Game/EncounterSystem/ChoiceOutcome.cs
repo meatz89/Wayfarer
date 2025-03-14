@@ -5,11 +5,16 @@
     /// </summary>
     public class ChoiceOutcome
     {
-        public int MomentumGain { get; }
-        public int PressureGain { get; }
         public string Description { get; }
         public bool IsEncounterOver { get; }
         public EncounterOutcomes Outcome { get; }
+
+        public int MomentumGain { get; }
+        public int PressureGain { get; }
+
+        public int HealthChange { get; }
+        public int FocusChange { get; }
+        public int ConfidenceChange { get; }
 
         // Added tag-related fields
         public Dictionary<ApproachTags, int> ApproachTagChanges { get; }
@@ -17,11 +22,6 @@
         public Dictionary<EncounterStateTags, int> EncounterStateTagChanges { get; }
         public List<string> NewlyActivatedTags { get; }
         public List<string> DeactivatedTags { get; }
-
-        // Add resource change fields directly to ChoiceOutcome
-        public int HealthChange { get; }
-        public int ConcentrationChange { get; }
-        public int ReputationChange { get; }
 
         public ChoiceOutcome(
             int momentumGained,
@@ -39,8 +39,8 @@
             IsEncounterOver = isEncounterOver;
             Outcome = outcome;
             HealthChange = healthChange;
-            ConcentrationChange = concentrationChange;
-            ReputationChange = reputationChange;
+            FocusChange = concentrationChange;
+            ConfidenceChange = reputationChange;
 
             // Initialize empty collections
             ApproachTagChanges = new Dictionary<ApproachTags, int>();

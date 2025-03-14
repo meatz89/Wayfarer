@@ -1,4 +1,4 @@
-﻿public enum PlayerReputationTypes
+﻿public enum PlayerConfidenceTypes
 {
     Shunned,
     Untrustworthy,
