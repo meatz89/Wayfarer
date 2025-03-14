@@ -53,6 +53,9 @@ public class EncounterState
     {
         _lastChoice = projection.Choice;
 
+        // Apply resource changes from pressure at start of turn (based on current pressure)
+        ApplyPressureResourceDamage();
+
         // 1. Apply tag changes
         foreach (KeyValuePair<EncounterStateTags, int> pair in projection.EncounterStateTagChanges)
             TagSystem.ModifyEncounterStateTag(pair.Key, pair.Value);
@@ -84,6 +87,29 @@ public class EncounterState
         // 5. Increment turn counter
         CurrentTurn++;
         _escalationLevel = Math.Min(3, (CurrentTurn - 1) / 2);
+    }
+
+    private void ApplyPressureResourceDamage()
+    {
+        // Skip if no pressure or location doesn't apply pressure damage
+        if (Pressure <= 0)
+            return;
+
+        // Different resource affected based on encounter type
+        switch (Location.EncounterType)
+        {
+            case EncounterTypes.Physical:
+                PlayerState.ModifyHealth(-Pressure);
+                break;
+
+            case EncounterTypes.Intellectual:
+                PlayerState.ModifyFocus(-Pressure);
+                break;
+
+            case EncounterTypes.Social:
+                PlayerState.ModifyConfidence(-Pressure);
+                break;
+        }
     }
 
     public void UpdateActiveTags(IEnumerable<IEncounterTag> locationTags)
@@ -260,6 +286,34 @@ public class EncounterState
         return change;
     }
 
+    private int CalculatePressureResourceDamage(ResourceTypes resourceType)
+    {
+        // Skip if no pressure or location doesn't apply pressure damage
+        if (Pressure <= 0)
+            return 0;
+
+        // Only return a value for the resource type affected by this encounter type
+        switch (Location.EncounterType)
+        {
+            case EncounterTypes.Physical:
+                if (resourceType == ResourceTypes.Health)
+                    return -Pressure;
+                break;
+
+            case EncounterTypes.Intellectual:
+                if (resourceType == ResourceTypes.Focus)
+                    return -Pressure;
+                break;
+
+            case EncounterTypes.Social:
+                if (resourceType == ResourceTypes.Confidence)
+                    return -Pressure;
+                break;
+        }
+
+        return 0;
+    }
+
     public ChoiceProjection CreateChoiceProjection(IChoice choice)
     {
         ChoiceProjection projection = new ChoiceProjection(choice);
@@ -269,6 +323,39 @@ public class EncounterState
         int currentMomentum = Momentum;
         int currentPressure = Pressure;
         int currentTurn = CurrentTurn;
+
+        // Calculate pressure-based resource damage that will apply at start of turn
+        int pressureHealthDamage = CalculatePressureResourceDamage(ResourceTypes.Health);
+        int pressureFocusDamage = CalculatePressureResourceDamage(ResourceTypes.Focus);
+        int pressureConfidenceDamage = CalculatePressureResourceDamage(ResourceTypes.Confidence);
+
+        // Add pressure resource components to projection
+        if (pressureHealthDamage != 0)
+        {
+            projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
+            {
+                Source = "Pressure damage",
+                Value = pressureHealthDamage
+            });
+        }
+
+        if (pressureFocusDamage != 0)
+        {
+            projection.FocusComponents.Add(new ChoiceProjection.ValueComponent
+            {
+                Source = "Pressure damage",
+                Value = pressureFocusDamage
+            });
+        }
+
+        if (pressureConfidenceDamage != 0)
+        {
+            projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
+            {
+                Source = "Pressure damage",
+                Value = pressureConfidenceDamage
+            });
+        }
 
         // Add implicit tag modifications for approach and focus
         TagModification approachTagMod = ForApproach(choice.Approach, 1);
@@ -408,6 +495,9 @@ public class EncounterState
         // Apply effects from currently active tags only, NOT newly activated ones
         foreach (IEncounterTag tag in ActiveTags)
         {
+            if (newlyActivatedTags.Any(t => t.Name == tag.Name))
+                continue;
+
             if (tag is StrategicTag strategicTag)
             {
                 bool affectsChoice = true;
@@ -450,6 +540,9 @@ public class EncounterState
 
         foreach (IEncounterTag tag in ActiveTags)
         {
+            if (newlyActivatedTags.Any(t => t.Name == tag.Name))
+                continue;
+
             if (tag is StrategicTag strategicTag)
             {
                 if (strategicTag.EffectType == StrategicEffectTypes.ReducePressurePerTurn)
@@ -524,36 +617,41 @@ public class EncounterState
             }
         }
 
-        // Calculate resource changes using current active tags only (not newly activated ones)
-        projection.HealthChange = CalculateResourceChange(choice, ResourceTypes.Health);
-        projection.FocusChange = CalculateResourceChange(choice, ResourceTypes.Focus);
-        projection.ConfidenceChange = CalculateResourceChange(choice, ResourceTypes.Confidence);
+        // Calculate tag-based resource changes (from currently active tags only, NOT newly activated ones)
+        int tagHealthChange = CalculateResourceChange(choice, ResourceTypes.Health);
+        int tagFocusChange = CalculateResourceChange(choice, ResourceTypes.Focus);
+        int tagConfidenceChange = CalculateResourceChange(choice, ResourceTypes.Confidence);
 
-        // Add resource change components to the projection
-        if (projection.HealthChange != 0)
+        // Set total resource changes (pressure damage + tag effects)
+        projection.HealthChange = pressureHealthDamage + tagHealthChange;
+        projection.FocusChange = pressureFocusDamage + tagFocusChange;
+        projection.ConfidenceChange = pressureConfidenceDamage + tagConfidenceChange;
+
+        // Add tag-based resource change components to the projection
+        if (tagHealthChange != 0)
         {
             projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
             {
                 Source = "Strategic tag effects",
-                Value = projection.HealthChange
+                Value = tagHealthChange
             });
         }
 
-        if (projection.FocusChange != 0)
+        if (tagFocusChange != 0)
         {
             projection.FocusComponents.Add(new ChoiceProjection.ValueComponent
             {
                 Source = "Strategic tag effects",
-                Value = projection.FocusChange
+                Value = tagFocusChange
             });
         }
 
-        if (projection.ConfidenceChange != 0)
+        if (tagConfidenceChange != 0)
         {
             projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
             {
                 Source = "Strategic tag effects",
-                Value = projection.ConfidenceChange
+                Value = tagConfidenceChange
             });
         }
 
