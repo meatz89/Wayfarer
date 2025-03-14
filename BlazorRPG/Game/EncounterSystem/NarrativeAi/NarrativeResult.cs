@@ -1,7 +1,4 @@
-﻿/// <summary>
-/// Represents the result of a narrative-enhanced action
-/// </summary>
-public class NarrativeResult
+﻿public class NarrativeResult
 {
     public string Narrative { get; }
     public List<IChoice> Choices { get; }

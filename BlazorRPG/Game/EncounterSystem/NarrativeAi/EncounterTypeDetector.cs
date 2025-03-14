@@ -1,8 +1,4 @@
-﻿
-// Handles encounter type detection
-
-
-public class EncounterTypeDetector
+﻿public class EncounterTypeDetector
 {
     public EncounterTypes DetermineEncounterType(string location, EncounterStatus state)
     {

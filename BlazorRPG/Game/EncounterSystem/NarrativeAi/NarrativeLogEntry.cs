@@ -1,7 +1,4 @@
 ﻿using System.Text.Json.Serialization;
-/// <summary>
-/// Represents a complete log entry for a narrative API interaction
-/// </summary>
 public class NarrativeLogEntry
 {
     [JsonPropertyName("conversation_id")]

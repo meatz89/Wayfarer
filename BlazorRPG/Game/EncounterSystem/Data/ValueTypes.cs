@@ -2,7 +2,7 @@
 {
     Momentum,
     Pressure,
-    PhysicalEnergy,
+    Health,
     Focus,
     Confidence,
     None

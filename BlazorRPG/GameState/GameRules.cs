@@ -106,7 +106,7 @@
     {
         return energyType switch
         {
-            EnergyTypes.Physical => ValueTypes.PhysicalEnergy,
+            EnergyTypes.Physical => ValueTypes.Health,
             EnergyTypes.Focus => ValueTypes.Focus,
             EnergyTypes.None => ValueTypes.None,
             _ => throw new ArgumentException("Invalid EnergyType")

@@ -1,7 +1,4 @@
-﻿// Creates concise narrative summaries from context
-
-
-public class NarrativeSummaryBuilder
+﻿public class NarrativeSummaryBuilder
 {
     public string CreateSummary(NarrativeContext context)
     {
