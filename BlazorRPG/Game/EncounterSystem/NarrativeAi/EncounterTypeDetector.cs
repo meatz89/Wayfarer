@@ -1,6 +1,6 @@
 ﻿
 // Handles encounter type detection
-using BlazorRPG.Game.EncounterManager;
+
 
 public class EncounterTypeDetector
 {

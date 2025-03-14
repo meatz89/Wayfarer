@@ -1,4 +1,4 @@
-﻿using BlazorRPG.Game.EncounterManager;
+﻿
 using System.Text;
 
 public static class ChoiceResponseParser

@@ -1,4 +1,4 @@
-﻿using BlazorRPG.Game.EncounterManager;
+﻿
 using Microsoft.AspNetCore.Components;
 using System.Reflection;
 
@@ -58,7 +58,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     {
         IChoice choice1 = choice.Choice;
 
-        BlazorRPG.Game.EncounterManager.NarrativeAi.NarrativeResult narrativeResult = GameManager.EncounterResult.NarrativeResult;
+        NarrativeResult narrativeResult = GameManager.EncounterResult.NarrativeResult;
         Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = narrativeResult.ChoiceDescriptions;
 
         ChoiceNarrative choiceNarrative = null;

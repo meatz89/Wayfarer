@@ -1,4 +1,4 @@
-﻿using BlazorRPG.Game.EncounterManager;
+﻿
 using BlazorRPG.Pages;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -62,15 +62,15 @@ public partial class EncounterViewBase : ComponentBase
     public string GetChoiceName(UserEncounterChoiceOption choice)
     {
         IChoice choice1 = choice.Choice;
-        BlazorRPG.Game.EncounterManager.NarrativeAi.NarrativeResult narrativeResult = Model.EncounterResult.NarrativeResult;
+        NarrativeResult narrativeResult = Model.EncounterResult.NarrativeResult;
         Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = narrativeResult.ChoiceDescriptions;
         ChoiceNarrative choiceNarrative = null;
-        
-        if(choiceDescriptions != null && choiceDescriptions.ContainsKey(choice1)) 
+
+        if (choiceDescriptions != null && choiceDescriptions.ContainsKey(choice1))
             choiceNarrative = choiceDescriptions[choice1];
 
         string name = choice.Description;
-        if(choiceNarrative != null)
+        if (choiceNarrative != null)
         {
             name = choiceNarrative.ShorthandName;
         }

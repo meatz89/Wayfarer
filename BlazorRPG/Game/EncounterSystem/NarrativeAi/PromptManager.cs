@@ -1,6 +1,6 @@
 ﻿// Main service class - slim coordinator
-using BlazorRPG.Game.EncounterManager;
-using BlazorRPG.Game.EncounterManager.NarrativeAi;
+
+
 using System.Text;
 using System.Text.Json;
 

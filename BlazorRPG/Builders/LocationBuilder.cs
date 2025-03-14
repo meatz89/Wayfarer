@@ -1,6 +1,4 @@
-﻿using BlazorRPG.Game.EncounterManager;
-
-public class LocationBuilder
+﻿public class LocationBuilder
 {
     private LocationTypes locationType;
     private LocationNames locationName;

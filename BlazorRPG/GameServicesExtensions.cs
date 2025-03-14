@@ -1,7 +1,4 @@
-﻿using BlazorRPG.Game.EncounterManager;
-using BlazorRPG.Game.EncounterManager.NarrativeAi;
-
-public static class GameServicesExpressures
+﻿public static class GameServicesExpressures
 {
     public static IServiceCollection AddGameServices(this IServiceCollection services)
     {

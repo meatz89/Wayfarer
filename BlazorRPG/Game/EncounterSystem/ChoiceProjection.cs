@@ -1,4 +1,4 @@
-﻿using BlazorRPG.Game.EncounterManager;
+﻿
 
 public class ChoiceProjection
 {

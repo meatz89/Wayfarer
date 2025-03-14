@@ -1,0 +1,172 @@
+﻿public class TagManager
+{
+    public BaseTagSystem TagSystem { get; }
+    public List<IEncounterTag> ActiveTags { get; }
+
+    private readonly Dictionary<ApproachTags, int> _approachMomentumBonuses = new Dictionary<ApproachTags, int>();
+    private readonly Dictionary<FocusTags, int> _focusMomentumBonuses = new Dictionary<FocusTags, int>();
+    private readonly Dictionary<ApproachTags, int> _approachPressureModifiers = new Dictionary<ApproachTags, int>();
+    private readonly Dictionary<FocusTags, int> _focusPressureModifiers = new Dictionary<FocusTags, int>();
+    private int _endOfTurnPressureReduction = 0;
+
+    public TagManager()
+    {
+        TagSystem = new BaseTagSystem();
+        ActiveTags = new List<IEncounterTag>();
+        InitializeDictionaries();
+    }
+
+    private void InitializeDictionaries()
+    {
+        foreach (ApproachTags approach in Enum.GetValues(typeof(ApproachTags)))
+        {
+            _approachMomentumBonuses[approach] = 0;
+            _approachPressureModifiers[approach] = 0;
+        }
+
+        foreach (FocusTags focus in Enum.GetValues(typeof(FocusTags)))
+        {
+            _focusMomentumBonuses[focus] = 0;
+            _focusPressureModifiers[focus] = 0;
+        }
+    }
+
+    public void UpdateActiveTags(IEnumerable<IEncounterTag> locationTags, EncounterState state = null)
+    {
+        HashSet<string> previouslyActive = new HashSet<string>(ActiveTags.Select(t => t.Name));
+
+        ActiveTags.Clear();
+        ResetTagEffects();
+
+        foreach (IEncounterTag tag in locationTags)
+        {
+            bool shouldActivate = tag is StrategicTag || (tag is NarrativeTag && tag.IsActive(TagSystem));
+
+            if (shouldActivate)
+            {
+                ActiveTags.Add(tag);
+
+                // Apply effect to the provided state or directly to this manager
+                if (state != null)
+                    tag.ApplyEffect(state);
+            }
+        }
+    }
+
+    public void ResetTagEffects()
+    {
+        foreach (ApproachTags approach in Enum.GetValues(typeof(ApproachTags)))
+            _approachMomentumBonuses[approach] = 0;
+
+        foreach (FocusTags focus in Enum.GetValues(typeof(FocusTags)))
+            _focusMomentumBonuses[focus] = 0;
+
+        foreach (ApproachTags approach in Enum.GetValues(typeof(ApproachTags)))
+            _approachPressureModifiers[approach] = 0;
+
+        foreach (FocusTags focus in Enum.GetValues(typeof(FocusTags)))
+            _focusPressureModifiers[focus] = 0;
+
+        _endOfTurnPressureReduction = 0;
+    }
+
+    public int GetTotalMomentum(IChoice choice, int baseMomentum)
+    {
+        int total = baseMomentum;
+
+        if (_approachMomentumBonuses.ContainsKey(choice.Approach))
+            total += _approachMomentumBonuses[choice.Approach];
+
+        if (_focusMomentumBonuses.ContainsKey(choice.Focus))
+            total += _focusMomentumBonuses[choice.Focus];
+
+        return total;
+    }
+
+    public int GetTotalPressure(IChoice choice, int basePressure)
+    {
+        int total = basePressure;
+
+        if (_approachPressureModifiers.ContainsKey(choice.Approach))
+            total += _approachPressureModifiers[choice.Approach];
+
+        if (_focusPressureModifiers.ContainsKey(choice.Focus))
+            total += _focusPressureModifiers[choice.Focus];
+
+        return Math.Max(0, total);
+    }
+
+    public int GetEndOfTurnPressureReduction() => _endOfTurnPressureReduction;
+
+    public void AddApproachMomentumBonus(ApproachTags approach, int bonus)
+    {
+        if (!_approachMomentumBonuses.ContainsKey(approach))
+            _approachMomentumBonuses[approach] = 0;
+
+        _approachMomentumBonuses[approach] += bonus;
+    }
+
+    public void AddFocusMomentumBonus(FocusTags focus, int bonus)
+    {
+        if (!_focusMomentumBonuses.ContainsKey(focus))
+            _focusMomentumBonuses[focus] = 0;
+
+        _focusMomentumBonuses[focus] += bonus;
+    }
+
+    public void AddApproachPressureModifier(ApproachTags approach, int modifier)
+    {
+        if (!_approachPressureModifiers.ContainsKey(approach))
+            _approachPressureModifiers[approach] = 0;
+
+        _approachPressureModifiers[approach] += modifier;
+    }
+
+    public void AddFocusPressureModifier(FocusTags focus, int modifier)
+    {
+        if (!_focusPressureModifiers.ContainsKey(focus))
+            _focusPressureModifiers[focus] = 0;
+
+        _focusPressureModifiers[focus] += modifier;
+    }
+
+    public void AddEndOfTurnPressureReduction(int reduction) => _endOfTurnPressureReduction += reduction;
+
+    public List<IEncounterTag> GetNewlyActivatedTags(BaseTagSystem projectedTags, IEnumerable<IEncounterTag> locationTags)
+    {
+        List<IEncounterTag> newlyActivated = new List<IEncounterTag>();
+
+        foreach (IEncounterTag tag in locationTags)
+        {
+            bool wasActive = ActiveTags.Any(t => t.Name == tag.Name);
+            bool willBeActive = tag is StrategicTag || (tag is NarrativeTag && tag.IsActive(projectedTags));
+
+            if (!wasActive && willBeActive)
+            {
+                newlyActivated.Add(tag);
+            }
+        }
+
+        return newlyActivated;
+    }
+
+    public List<IEncounterTag> GetDeactivatedTags(BaseTagSystem projectedTags, IEnumerable<IEncounterTag> locationTags)
+    {
+        List<IEncounterTag> deactivated = new List<IEncounterTag>();
+
+        foreach (IEncounterTag tag in locationTags)
+        {
+            bool wasActive = ActiveTags.Any(t => t.Name == tag.Name);
+            bool willBeActive = tag is StrategicTag || (tag is NarrativeTag && tag.IsActive(projectedTags));
+
+            if (wasActive && !willBeActive)
+            {
+                deactivated.Add(tag);
+            }
+        }
+
+        return deactivated;
+    }
+
+    public BaseTagSystem CloneTagSystem() => TagSystem.Clone();
+}

@@ -1,5 +1,4 @@
-﻿using BlazorRPG.Game.EncounterManager;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 
 namespace BlazorRPG.Pages;
 

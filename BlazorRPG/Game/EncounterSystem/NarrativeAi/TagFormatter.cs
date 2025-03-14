@@ -1,5 +1,5 @@
 ﻿// Formats tags for presentation in prompts
-using BlazorRPG.Game.EncounterManager;
+
 public class TagFormatter
 {
 
@@ -56,12 +56,12 @@ public class TagFormatter
             return "None";
 
         // Only include significant changes (value > 1)
-        var significantChanges = tagChanges.Where(c => Math.Abs(c.Value) > 1).ToList();
+        List<KeyValuePair<TKey, int>> significantChanges = tagChanges.Where(c => Math.Abs(c.Value) > 1).ToList();
         if (significantChanges.Count == 0)
             return "Minor changes only";
 
         List<string> modificationStrings = new List<string>();
-        foreach (var change in significantChanges)
+        foreach (KeyValuePair<TKey, int> change in significantChanges)
         {
             string direction = change.Value > 0 ? "increased" : "decreased";
             modificationStrings.Add($"{change.Key} {direction} by {Math.Abs(change.Value)}");
@@ -137,7 +137,7 @@ public class TagFormatter
     public string FormatTagValues<TKey>(Dictionary<TKey, int> tags) where TKey : notnull
     {
         List<string> tagStrings = new List<string>();
-        foreach (var tag in tags)
+        foreach (KeyValuePair<TKey, int> tag in tags)
         {
             // Include all tags, even those with 0 value
             tagStrings.Add($"{tag.Key}: {tag.Value}");
@@ -215,7 +215,7 @@ public class TagFormatter
             return "None";
 
         List<string> tagStrings = new List<string>();
-        foreach (var tag in narrativeTags)
+        foreach (NarrativeTag tag in narrativeTags)
         {
             if (tag.BlockedApproach.HasValue)
             {
@@ -236,7 +236,7 @@ public class TagFormatter
             return "None";
 
         List<string> tagStrings = new List<string>();
-        foreach (var tag in strategicTags)
+        foreach (StrategicTag tag in strategicTags)
         {
             string effectDescription = "Strategic effect";
             switch (tag.EffectType)

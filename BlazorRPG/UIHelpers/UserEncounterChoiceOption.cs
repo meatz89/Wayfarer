@@ -1,4 +1,4 @@
-﻿using BlazorRPG.Game.EncounterManager;
+﻿
 
 public record UserEncounterChoiceOption(
     int Index,

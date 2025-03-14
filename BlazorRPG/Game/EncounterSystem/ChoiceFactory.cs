@@ -1,43 +1,40 @@
-﻿namespace BlazorRPG.Game.EncounterManager
+﻿/// <summary>
+/// Factory for creating common choice types
+/// </summary>
+public static class ChoiceFactory
 {
-    /// <summary>
-    /// Factory for creating common choice types
-    /// </summary>
-    public static class ChoiceFactory
+    // Create a standard momentum choice
+    public static Choice CreateMomentumChoice(string name, string description,
+                                                ApproachTags approach, FocusTags focus,
+                                                params TagModification[] tagModifications)
     {
-        // Create a standard momentum choice
-        public static Choice CreateMomentumChoice(string name, string description,
-                                                 ApproachTags approach, FocusTags focus,
-                                                 params TagModification[] tagModifications)
-        {
-            return new Choice(name, description, approach, focus, EffectTypes.Momentum, tagModifications);
-        }
-
-        // Create a standard pressure choice
-        public static Choice CreatePressureChoice(string name, string description,
-                                                 ApproachTags approach, FocusTags focus,
-                                                 params TagModification[] tagModifications)
-        {
-            return new Choice(name, description, approach, focus, EffectTypes.Pressure, tagModifications);
-        }
-
-        // Create a tag requirement function for a specific approach tag threshold
-        public static Func<BaseTagSystem, bool> EncounterStateTagRequirement(EncounterStateTags tag, int threshold)
-        {
-            return tagSystem => tagSystem.GetEncounterStateTagValue(tag) >= threshold;
-        }
-
-        // Create a tag requirement function for a specific focus tag threshold
-        public static Func<BaseTagSystem, bool> ApproachTagRequirement(ApproachTags tag, int threshold)
-        {
-            return tagSystem => tagSystem.GetApproachTagValue(tag) >= threshold;
-        }
-
-        // Create a tag requirement function for a specific focus tag threshold
-        public static Func<BaseTagSystem, bool> FocusTagRequirement(FocusTags tag, int threshold)
-        {
-            return tagSystem => tagSystem.GetFocusTagValue(tag) >= threshold;
-        }
-
+        return new Choice(name, description, approach, focus, EffectTypes.Momentum, tagModifications);
     }
+
+    // Create a standard pressure choice
+    public static Choice CreatePressureChoice(string name, string description,
+                                                ApproachTags approach, FocusTags focus,
+                                                params TagModification[] tagModifications)
+    {
+        return new Choice(name, description, approach, focus, EffectTypes.Pressure, tagModifications);
+    }
+
+    // Create a tag requirement function for a specific approach tag threshold
+    public static Func<BaseTagSystem, bool> EncounterStateTagRequirement(EncounterStateTags tag, int threshold)
+    {
+        return tagSystem => tagSystem.GetEncounterStateTagValue(tag) >= threshold;
+    }
+
+    // Create a tag requirement function for a specific focus tag threshold
+    public static Func<BaseTagSystem, bool> ApproachTagRequirement(ApproachTags tag, int threshold)
+    {
+        return tagSystem => tagSystem.GetApproachTagValue(tag) >= threshold;
+    }
+
+    // Create a tag requirement function for a specific focus tag threshold
+    public static Func<BaseTagSystem, bool> FocusTagRequirement(FocusTags tag, int threshold)
+    {
+        return tagSystem => tagSystem.GetFocusTagValue(tag) >= threshold;
+    }
+
 }

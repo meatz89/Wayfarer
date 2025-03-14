@@ -1,5 +1,5 @@
-﻿using BlazorRPG.Game.EncounterManager;
-using BlazorRPG.Game.EncounterManager.NarrativeAi;
+﻿
+
 
 public class EncounterResult
 {

@@ -1,5 +1,5 @@
 ﻿// Creates concise narrative summaries from context
-using BlazorRPG.Game.EncounterManager.NarrativeAi;
+
 
 public class NarrativeSummaryBuilder
 {

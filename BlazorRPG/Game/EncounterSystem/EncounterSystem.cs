@@ -1,5 +1,5 @@
-﻿using BlazorRPG.Game.EncounterManager;
-using BlazorRPG.Game.EncounterManager.NarrativeAi;
+﻿
+
 
 public class EncounterSystem
 {
@@ -24,7 +24,7 @@ public class EncounterSystem
     }
 
     public async Task<EncounterResult> GenerateEncounter(
-        EncounterContext context, 
+        EncounterContext context,
         PlayerState playerState,
         ActionImplementation actionImplementation)
     {
@@ -45,7 +45,7 @@ public class EncounterSystem
     }
 
     public async Task<EncounterResult> StartEncounterAt(
-        LocationInfo location, 
+        LocationInfo location,
         PlayerState playerState,
         ActionImplementation actionImplementation)
     {
@@ -100,7 +100,7 @@ public class EncounterSystem
 
             if (currentResult.IsEncounterOver)
             {
-                if(currentResult.Outcome == EncounterOutcomes.Failure)
+                if (currentResult.Outcome == EncounterOutcomes.Failure)
                 {
                     return new EncounterResult()
                     {

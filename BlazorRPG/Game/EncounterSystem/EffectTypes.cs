@@ -1,7 +1,4 @@
-﻿namespace BlazorRPG.Game.EncounterManager
+﻿public enum EffectTypes
 {
-    public enum EffectTypes
-    {
-        Momentum, Pressure
-    }
+    Momentum, Pressure
 }
