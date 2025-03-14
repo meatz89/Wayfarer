@@ -46,22 +46,5 @@ namespace BlazorRPG.Game.EncounterManager
             Location = null;
         }
 
-        // Enhanced constructor with additional information
-        public EncounterStatus(
-            int currentTurn,
-            int maxTurns,
-            int momentum,
-            int pressure,
-            Dictionary<EncounterStateTags, int> encounterStateTags,
-            Dictionary<ApproachTags, int> approachTags,
-            Dictionary<FocusTags, int> focusTags,
-            List<string> activeTagNames,
-            List<IEncounterTag> activeTags,
-            LocationInfo location)
-            : this(currentTurn, maxTurns, momentum, pressure, encounterStateTags, approachTags, focusTags, activeTagNames)
-        {
-            ActiveTags = activeTags;
-            Location = location;
-        }
     }
 }
