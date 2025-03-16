@@ -1,12 +1,4 @@
-﻿
-
-
-
-
-/// <summary>
-/// Represents a single narrative event in the encounter timeline
-/// </summary>
-public class NarrativeEvent
+﻿public class NarrativeEvent
 {
     public int TurnNumber { get; }
     public string SceneDescription { get; }
@@ -14,6 +6,10 @@ public class NarrativeEvent
     public IChoice ChosenOption { get; set; }
     public ChoiceNarrative ChoiceNarrative { get; set; }
     public string Outcome { get; set; }
+    public string ActionOutcome { get; internal set; }
+    public string WorldReaction { get; internal set; }
+    public string SituationChange { get; internal set; }
+    public string NewChallenge { get; internal set; }
 
     public NarrativeEvent(
         int turnNumber,

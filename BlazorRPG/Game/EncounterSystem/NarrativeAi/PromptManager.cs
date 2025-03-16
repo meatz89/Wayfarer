@@ -16,9 +16,6 @@ public class PromptManager
     private const string ENCOUNTER_SOCIAL_KEY = "encounter_style_social";
     private const string ENCOUNTER_INTELLECTUAL_KEY = "encounter_style_intellectual";
     private const string ENCOUNTER_PHYSICAL_KEY = "encounter_style_physical";
-    private const string SITUATION_SOCIAL_KEY = "situation_style_social";
-    private const string SITUATION_INTELLECTUAL_KEY = "situation_style_intellectual";
-    private const string SITUATION_PHYSICAL_KEY = "situation_style_physical";
     private const string CHOICE_SOCIAL_KEY = "choice_style_social";
     private const string CHOICE_INTELLECTUAL_KEY = "choice_style_intellectual";
     private const string CHOICE_PHYSICAL_KEY = "choice_style_physical";
@@ -73,20 +70,24 @@ public class PromptManager
         return _systemMessage;
     }
 
-    // JSON-BASED METHODS
-
     public string BuildJsonNarrativePrompt(
-        NarrativeContext context,
-        IChoice chosenOption,
-        ChoiceNarrative choiceDescription,
-        ChoiceOutcome outcome,
-        EncounterStatus newState)
+    NarrativeContext context,
+    IChoice chosenOption,
+    ChoiceNarrative choiceDescription,
+    ChoiceOutcome outcome,
+    EncounterStatus newState)
     {
         string template = _promptTemplates[JSON_NARRATIVE_KEY];
 
         // Determine encounter type
         EncounterTypes encounterType = _encounterDetector.DetermineEncounterType(context.LocationName, newState);
         string encounterStyleGuidance = GetEncounterStyleGuidance(encounterType);
+
+        // Format tag changes to ensure they're represented in the narrative
+        string tagChangesGuidance = FormatTagChangesForNarrative(outcome);
+
+        // Format newly activated and deactivated tags
+        string tagActivationGuidance = FormatTagActivationForNarrative(outcome);
 
         // Create a narrative summary
         string narrativeSummary = _summaryBuilder.CreateSummary(context);
@@ -104,10 +105,146 @@ public class PromptManager
             .Replace("{CONCENTRATION_CHANGE}", outcome.FocusChange.ToString())
             .Replace("{REPUTATION_CHANGE}", outcome.ConfidenceChange.ToString())
             .Replace("{NARRATIVE_SUMMARY}", narrativeSummary)
+            .Replace("{TAG_CHANGES_GUIDANCE}", tagChangesGuidance)
+            .Replace("{TAG_ACTIVATION_GUIDANCE}", tagActivationGuidance)
             .Replace("{ENCOUNTER_TYPE}", encounterType.ToString())
             .Replace("{ENCOUNTER_STYLE_GUIDANCE}", encounterStyleGuidance);
 
         return prompt;
+    }
+
+    private string FormatTagChangesForNarrative(ChoiceOutcome outcome)
+    {
+        StringBuilder guidance = new StringBuilder();
+
+        // Add significant approach tag changes
+        foreach (var change in outcome.ApproachTagChanges)
+        {
+            if (Math.Abs(change.Value) >= 2)
+            {
+                string direction = change.Value > 0 ? "+" : "";
+                guidance.AppendLine($"- {change.Key} {direction}{change.Value}: Show this as {GetApproachTagChangeDescription(change.Key, change.Value > 0)}");
+            }
+        }
+
+        // Add significant focus tag changes
+        foreach (var change in outcome.FocusTagChanges)
+        {
+            if (Math.Abs(change.Value) >= 2)
+            {
+                string direction = change.Value > 0 ? "+" : "";
+                guidance.AppendLine($"- {change.Key} {direction}{change.Value}: Show this as {GetFocusTagChangeDescription(change.Key, change.Value > 0)}");
+            }
+        }
+
+        // Add significant encounter state tag changes
+        foreach (var change in outcome.EncounterStateTagChanges)
+        {
+            if (Math.Abs(change.Value) >= 2)
+            {
+                string direction = change.Value > 0 ? "+" : "";
+                guidance.AppendLine($"- {change.Key} {direction}{change.Value}: Show this as {GetEncounterStateTagChangeDescription(change.Key, change.Value > 0)}");
+            }
+        }
+
+        // Add resource changes that need to be represented
+        if (outcome.HealthChange <= -3)
+        {
+            guidance.AppendLine($"- Health {outcome.HealthChange}: Describe specific injuries, pain, or physical limitations");
+        }
+
+        if (outcome.ConfidenceChange <= -3)
+        {
+            guidance.AppendLine($"- Reputation {outcome.ConfidenceChange}: Show how people's attitudes have visibly changed");
+        }
+
+        if (outcome.FocusChange <= -3)
+        {
+            guidance.AppendLine($"- Focus {outcome.FocusChange}: Indicate mental fatigue, confusion, or distraction");
+        }
+
+        return guidance.ToString();
+    }
+
+    private string FormatTagActivationForNarrative(ChoiceOutcome outcome)
+    {
+        StringBuilder guidance = new StringBuilder();
+
+        // Add newly activated tags
+        if (outcome.NewlyActivatedTags.Count > 0)
+        {
+            guidance.AppendLine("## NEWLY ACTIVATED TAGS");
+            foreach (var tag in outcome.NewlyActivatedTags)
+            {
+                guidance.AppendLine($"- {tag}: Introduce narrative elements that reflect this new tag's activation");
+            }
+        }
+
+        // Add deactivated tags
+        if (outcome.DeactivatedTags.Count > 0)
+        {
+            guidance.AppendLine("## DEACTIVATED TAGS");
+            foreach (var tag in outcome.DeactivatedTags)
+            {
+                guidance.AppendLine($"- {tag}: Show how this aspect has diminished or is no longer relevant");
+            }
+        }
+
+        return guidance.ToString();
+    }
+
+    private string GetApproachTagChangeDescription(ApproachTags tag, bool isPositive)
+    {
+        return (tag, isPositive) switch
+        {
+            (ApproachTags.Force, true) => "increased assertiveness, physical presence, or commanding tone",
+            (ApproachTags.Force, false) => "reduced assertiveness, physical vulnerability, or diminished authority",
+            (ApproachTags.Charm, true) => "enhanced charisma, persuasiveness, or social appeal",
+            (ApproachTags.Charm, false) => "reduced likability, social awkwardness, or diminished influence",
+            (ApproachTags.Wit, true) => "sharper thinking, better problem-solving, or increased cleverness",
+            (ApproachTags.Wit, false) => "mental fog, confusion, or poor decision-making",
+            (ApproachTags.Finesse, true) => "improved dexterity, careful technique, or graceful movement",
+            (ApproachTags.Finesse, false) => "clumsiness, poor coordination, or lack of technique",
+            (ApproachTags.Stealth, true) => "better concealment, quieter movement, or reduced visibility",
+            (ApproachTags.Stealth, false) => "increased visibility, noisier movement, or more obvious presence",
+            _ => "notable change in approach"
+        };
+    }
+
+    private string GetFocusTagChangeDescription(FocusTags tag, bool isPositive)
+    {
+        return (tag, isPositive) switch
+        {
+            (FocusTags.Relationship, true) => "improved social connections, trust building, or mutual understanding",
+            (FocusTags.Relationship, false) => "damaged relationships, distrust, or social isolation",
+            (FocusTags.Information, true) => "gained knowledge, clearer understanding, or valuable insights",
+            (FocusTags.Information, false) => "misinformation, confusion, or loss of critical details",
+            (FocusTags.Physical, true) => "better bodily awareness, physical control, or direct interaction",
+            (FocusTags.Physical, false) => "reduced physical capabilities, awkwardness, or loss of control",
+            (FocusTags.Environment, true) => "better awareness of surroundings, tactical advantage, or control of space",
+            (FocusTags.Environment, false) => "environmental disadvantage, poor positioning, or spatial disorientation",
+            (FocusTags.Resource, true) => "acquired valuables, better equipment, or resource advantage",
+            (FocusTags.Resource, false) => "depleted supplies, lost items, or resource disadvantage",
+            _ => "notable change in focus"
+        };
+    }
+
+    private string GetEncounterStateTagChangeDescription(EncounterStateTags tag, bool isPositive)
+    {
+        return (tag, isPositive) switch
+        {
+            (EncounterStateTags.Dominance, true) => "increased authority, command, or intimidation factor",
+            (EncounterStateTags.Dominance, false) => "diminished influence, weakened position, or reduced credibility",
+            (EncounterStateTags.Rapport, true) => "improved social connection, trust, or relationship building",
+            (EncounterStateTags.Rapport, false) => "damaged relationships, distrust, or social distance",
+            (EncounterStateTags.Analysis, true) => "enhanced understanding, insights gained, or clarity of thought",
+            (EncounterStateTags.Analysis, false) => "confusion, misunderstanding, or incomplete information",
+            (EncounterStateTags.Precision, true) => "refined control, careful movement, or improved accuracy",
+            (EncounterStateTags.Precision, false) => "clumsiness, imprecision, or reduced physical control",
+            (EncounterStateTags.Concealment, true) => "improved stealth, deeper shadows, or reduced visibility",
+            (EncounterStateTags.Concealment, false) => "increased exposure, visibility, or attention drawn",
+            _ => "notable change in encounter state"
+        };
     }
 
     public string BuildJsonChoicesPrompt(
@@ -134,7 +271,7 @@ public class PromptManager
             var lastEvent = context.Events[context.Events.Count - 1];
             mostRecentNarrative = lastEvent.SceneDescription;
         }
-        
+
         // Format choices info
         StringBuilder choicesInfo = new StringBuilder();
         for (int i = 0; i < choices.Count; i++)
@@ -184,7 +321,7 @@ Choice {i + 1}:
     public string BuildIntroductionPrompt(string location, string incitingAction, EncounterStatus state, string encounterGoal = "")
     {
         string template = _promptTemplates[INTRO_KEY];
-        
+
         EncounterTypes encounterType = _encounterDetector.DetermineEncounterType(location, state);
 
         // Get primary and secondary tags for initial emphasis
@@ -220,21 +357,6 @@ Choice {i + 1}:
         return _promptTemplates.TryGetValue(key, out string guidance)
             ? guidance
             : "Practical description focusing on immediate situation";
-    }
-
-    private string GetSituationStyleGuidance(EncounterTypes type)
-    {
-        string key = type switch
-        {
-            EncounterTypes.Social => SITUATION_SOCIAL_KEY,
-            EncounterTypes.Intellectual => SITUATION_INTELLECTUAL_KEY,
-            EncounterTypes.Physical => SITUATION_PHYSICAL_KEY,
-            _ => SITUATION_SOCIAL_KEY
-        };
-
-        return _promptTemplates.TryGetValue(key, out string guidance)
-            ? guidance
-            : "Concrete, observable details in your immediate surroundings";
     }
 
     private string GetChoiceStyleGuidance(EncounterTypes type)

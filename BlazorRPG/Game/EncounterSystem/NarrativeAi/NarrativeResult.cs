@@ -1,6 +1,6 @@
 ﻿public class NarrativeResult
 {
-    public string Narrative { get; }
+    public string SceneNarrative { get; }
     public List<IChoice> Choices { get; }
     public List<ChoiceProjection> Projections { get; }
     public Dictionary<IChoice, ChoiceNarrative> ChoiceDescriptions { get; }
@@ -15,7 +15,7 @@
         bool isEncounterOver = false,
         EncounterOutcomes? outcome = null)
     {
-        Narrative = narrative;
+        SceneNarrative = narrative;
         Choices = choices;
         Projections = projections;
         ChoiceDescriptions = choiceDescriptions;

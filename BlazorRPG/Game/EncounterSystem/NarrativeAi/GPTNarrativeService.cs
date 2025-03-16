@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-
-public class GPTNarrativeService : INarrativeAIService
+﻿public class GPTNarrativeService : INarrativeAIService
 {
     private readonly AIClientService _aiClient;
     private readonly PromptManager _promptManager;
@@ -55,7 +49,7 @@ public class GPTNarrativeService : INarrativeAIService
     {
         string conversationId = $"{context.LocationName}_narrative";
 
-        // Get system message and JSON narrative prompt
+        // Get system message and narrative prompt
         string systemMessage = _promptManager.GetSystemMessage();
         string prompt = _promptManager.BuildJsonNarrativePrompt(
             context, chosenOption, choiceDescription, outcome, newState);
@@ -72,22 +66,16 @@ public class GPTNarrativeService : INarrativeAIService
         }
 
         // Call AI service and get response
-        string jsonResponse = await _aiClient.GetCompletionAsync(
+        string narrativeResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetConversationHistory(conversationId));
 
         // Update conversation history
-        _contextManager.AddAssistantMessage(conversationId, jsonResponse);
+        _contextManager.AddAssistantMessage(conversationId, narrativeResponse);
 
-        // Parse the JSON response
-        var narrativeResponse = NarrativeJsonParser.ParseNarrativeResponse(jsonResponse);
-
-        // Create a combined narrative from the JSON response
-        string combinedNarrative = NarrativeJsonParser.CreateCombinedNarrative(narrativeResponse);
-
-        // Create a new NarrativeEvent with the combined narrative
+        // Create and store the narrative event
         NarrativeEvent narrativeEvent = new NarrativeEvent(
             turnNumber: context.Events.Count + 1,
-            sceneDescription: combinedNarrative);
+            sceneDescription: narrativeResponse);
 
         narrativeEvent.SetChosenOption(chosenOption);
         narrativeEvent.SetChoiceNarrative(choiceDescription);
@@ -96,7 +84,7 @@ public class GPTNarrativeService : INarrativeAIService
         // Add the event to the context
         context.AddEvent(narrativeEvent);
 
-        return combinedNarrative;
+        return narrativeResponse;
     }
 
     public async Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(

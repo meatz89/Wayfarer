@@ -56,38 +56,7 @@
 
             <div class="Encounter-stage">
                 <h3 class="choice-set-name">@Model.ChoiceSetName</h3>
-
-                @{
-                    var narrative = Model.EncounterResult.NarrativeResult.Narrative;
-                    var sections = NarrativeDisplayUtility.GetNarrativeSections(narrative);
-                }
-
-                <div class="stage-description">
-                    @if (!string.IsNullOrEmpty(sections.ActionOutcome))
-                    {
-                        <div class="stage-outcome">@sections.ActionOutcome</div>
-                    }
-
-                    @if (!string.IsNullOrEmpty(sections.NewSituation))
-                    {
-                        <div class="stage-situation">@sections.NewSituation</div>
-                    }
-
-                    @if (sections.KeyPoints != null && sections.KeyPoints.Count > 0)
-                    {
-                        <div class="key-points">
-                            @foreach (var point in sections.KeyPoints)
-                            {
-                                <div>• @point</div>
-                            }
-                        </div>
-                    }
-
-                    @if (!string.IsNullOrEmpty(sections.Atmosphere))
-                    {
-                        <div class="atmosphere">@sections.Atmosphere</div>
-                    }
-                </div>
+                <div class="stage-situation">@Model.EncounterResult.NarrativeResult.SceneNarrative</div>
             </div>
 
             <div class="Encounter-choices">
