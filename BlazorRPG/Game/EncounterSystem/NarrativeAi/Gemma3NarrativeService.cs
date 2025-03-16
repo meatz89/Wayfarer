@@ -1,29 +1,21 @@
-﻿public class GPTNarrativeService : BaseNarrativeAIService
+﻿public class Gemma3NarrativeService : BaseNarrativeAIService
 {
-    public GPTNarrativeService(IConfiguration configuration, ILogger<GPTNarrativeService> logger = null)
-        : base(new OpenAIProvider(configuration), configuration, logger)
+    public Gemma3NarrativeService(IConfiguration configuration, ILogger<Gemma3NarrativeService> logger = null)
+        : base(new Gemma3Provider(configuration), configuration, logger)
     {
     }
 
+    // Implementation identical to GPTNarrativeService but with appropriate Gemma-specific tweaks if needed
     public override async Task<string> GenerateIntroductionAsync(string location, string incitingAction, EncounterStatus state)
     {
+        // Same implementation as GPTNarrativeService
         string conversationId = $"{location}_{DateTime.Now.Ticks}";
-
-        // Get system message and introduction prompt
         string systemMessage = _promptManager.GetSystemMessage();
         string prompt = _promptManager.BuildIntroductionPrompt(location, incitingAction, state);
-
-        // Store conversation context
         _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
-
-        // Call AI service and get response
-        string response = await _aiClient.GetCompletionAsync(
-            _contextManager.GetConversationHistory(conversationId));
-
-        // Update conversation history
-        _contextManager.AddAssistantMessage(conversationId, response);
-
-        return response;
+        string jsonResponse = await _aiClient.GetCompletionAsync(_contextManager.GetConversationHistory(conversationId));
+        _contextManager.AddAssistantMessage(conversationId, jsonResponse);
+        return jsonResponse;
     }
 
     public override async Task<string> GenerateReactionAndSceneAsync(
@@ -33,14 +25,11 @@
         ChoiceOutcome outcome,
         EncounterStatus newState)
     {
+        // Same implementation as GPTNarrativeService
         string conversationId = $"{context.LocationName}_narrative";
-
-        // Get system message and narrative prompt
         string systemMessage = _promptManager.GetSystemMessage();
-        string prompt = _promptManager.BuildJsonNarrativePrompt(
-            context, chosenOption, choiceDescription, outcome, newState);
+        string prompt = _promptManager.BuildJsonNarrativePrompt(context, chosenOption, choiceDescription, outcome, newState);
 
-        // Initialize or update conversation context
         if (!_contextManager.ConversationExists(conversationId))
         {
             _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
@@ -51,26 +40,20 @@
             _contextManager.AddUserMessage(conversationId, prompt);
         }
 
-        // Call AI service and get response
-        string narrativeResponse = await _aiClient.GetCompletionAsync(
-            _contextManager.GetConversationHistory(conversationId));
+        string jsonResponse = await _aiClient.GetCompletionAsync(_contextManager.GetConversationHistory(conversationId));
+        _contextManager.AddAssistantMessage(conversationId, jsonResponse);
 
-        // Update conversation history
-        _contextManager.AddAssistantMessage(conversationId, narrativeResponse);
-
-        // Create and store the narrative event
         NarrativeEvent narrativeEvent = new NarrativeEvent(
             turnNumber: context.Events.Count + 1,
-            sceneDescription: narrativeResponse);
+            sceneDescription: jsonResponse);
 
         narrativeEvent.SetChosenOption(chosenOption);
         narrativeEvent.SetChoiceNarrative(choiceDescription);
         narrativeEvent.SetOutcome(outcome.Description);
 
-        // Add the event to the context
         context.AddEvent(narrativeEvent);
 
-        return narrativeResponse;
+        return jsonResponse;
     }
 
     public override async Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
@@ -79,18 +62,11 @@
         List<ChoiceProjection> projections,
         EncounterStatus state)
     {
+        // Same implementation as GPTNarrativeService
         string conversationId = $"{context.LocationName}_choices";
         string systemMessage = _promptManager.GetSystemMessage();
+        string prompt = _promptManager.BuildJsonChoicesPrompt(context, choices, projections, state);
 
-        // Pass the most recent narrative explicitly to the prompt builder
-        string prompt = _promptManager.BuildJsonChoicesPrompt(
-            context,
-            choices,
-            projections,
-            state
-            );
-
-        // Initialize or update conversation context
         if (!_contextManager.ConversationExists(conversationId))
         {
             _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
@@ -101,14 +77,8 @@
             _contextManager.AddUserMessage(conversationId, prompt);
         }
 
-        // Call AI service and get response
-        string jsonResponse = await _aiClient.GetCompletionAsync(
-            _contextManager.GetConversationHistory(conversationId));
-
-        // Update conversation history
+        string jsonResponse = await _aiClient.GetCompletionAsync(_contextManager.GetConversationHistory(conversationId));
         _contextManager.AddAssistantMessage(conversationId, jsonResponse);
-
-        // Parse the JSON response into choice narratives
         return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
     }
 }

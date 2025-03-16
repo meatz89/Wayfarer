@@ -118,7 +118,7 @@ public class PromptManager
         StringBuilder guidance = new StringBuilder();
 
         // Add significant approach tag changes
-        foreach (var change in outcome.ApproachTagChanges)
+        foreach (KeyValuePair<ApproachTags, int> change in outcome.ApproachTagChanges)
         {
             if (Math.Abs(change.Value) >= 2)
             {
@@ -128,7 +128,7 @@ public class PromptManager
         }
 
         // Add significant focus tag changes
-        foreach (var change in outcome.FocusTagChanges)
+        foreach (KeyValuePair<FocusTags, int> change in outcome.FocusTagChanges)
         {
             if (Math.Abs(change.Value) >= 2)
             {
@@ -138,7 +138,7 @@ public class PromptManager
         }
 
         // Add significant encounter state tag changes
-        foreach (var change in outcome.EncounterStateTagChanges)
+        foreach (KeyValuePair<EncounterStateTags, int> change in outcome.EncounterStateTagChanges)
         {
             if (Math.Abs(change.Value) >= 2)
             {
@@ -174,7 +174,7 @@ public class PromptManager
         if (outcome.NewlyActivatedTags.Count > 0)
         {
             guidance.AppendLine("## NEWLY ACTIVATED TAGS");
-            foreach (var tag in outcome.NewlyActivatedTags)
+            foreach (string tag in outcome.NewlyActivatedTags)
             {
                 guidance.AppendLine($"- {tag}: Introduce narrative elements that reflect this new tag's activation");
             }
@@ -184,7 +184,7 @@ public class PromptManager
         if (outcome.DeactivatedTags.Count > 0)
         {
             guidance.AppendLine("## DEACTIVATED TAGS");
-            foreach (var tag in outcome.DeactivatedTags)
+            foreach (string tag in outcome.DeactivatedTags)
             {
                 guidance.AppendLine($"- {tag}: Show how this aspect has diminished or is no longer relevant");
             }
@@ -268,7 +268,7 @@ public class PromptManager
         // Extract the most recent narrative from context
         if (context.Events.Count > 0)
         {
-            var lastEvent = context.Events[context.Events.Count - 1];
+            NarrativeEvent lastEvent = context.Events[context.Events.Count - 1];
             mostRecentNarrative = lastEvent.SceneDescription;
         }
 

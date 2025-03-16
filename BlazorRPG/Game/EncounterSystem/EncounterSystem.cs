@@ -1,10 +1,9 @@
-﻿
-
-
-public class EncounterSystem
+﻿public class EncounterSystem
 {
     private readonly GameState gameState;
-    private readonly INarrativeAIService narrativeService;
+    private readonly IConfiguration configuration;
+    private readonly SwitchableNarrativeService narrativeService;
+    private AIProviderType currentAIProvider;
 
     public EncounterManager Encounter;
     public EncounterResult encounterResult;
@@ -15,12 +14,38 @@ public class EncounterSystem
         GameState gameState,
         MessageSystem messageSystem,
         GameContentProvider contentProvider,
-        INarrativeAIService narrativeService,
         IConfiguration configuration)
     {
         this.gameState = gameState;
-        this.narrativeService = narrativeService;
+        this.configuration = configuration;
+
+        // Create the switchable narrative service
+        this.narrativeService = new SwitchableNarrativeService(configuration);
+
+        // Initialize with the default provider from config
+        string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "OpenAI";
+        currentAIProvider = defaultProvider == "Gemma" ? AIProviderType.Gemma3 : AIProviderType.OpenAI;
+
         useAiNarrative = configuration.GetValue<bool>("useAiNarrative");
+    }
+
+    // New method to switch AI providers
+    public void SwitchAIProvider(AIProviderType providerType)
+    {
+        currentAIProvider = providerType;
+        narrativeService.SwitchProvider(providerType);
+
+        // If we have an active encounter, update its provider too
+        if (Encounter != null)
+        {
+            Encounter.SwitchAIProvider(providerType);
+        }
+    }
+
+    // New method to get current AI provider name for UI
+    public string GetCurrentAIProviderName()
+    {
+        return narrativeService.GetCurrentProviderName();
     }
 
     public async Task<EncounterResult> GenerateEncounter(
@@ -53,8 +78,16 @@ public class EncounterSystem
         ChoiceRepository choiceRepository = new ChoiceRepository();
         CardSelectionAlgorithm cardSelector = new CardSelectionAlgorithm(choiceRepository);
 
-        // Create encounter manager
-        EncounterManager encounter = new EncounterManager(actionImplementation, cardSelector, useAiNarrative);
+        // Create encounter manager with the switchable service
+        EncounterManager encounter = new EncounterManager(
+            actionImplementation,
+            cardSelector,
+            useAiNarrative,
+            configuration);
+
+        // Set the current AI provider
+        encounter.SwitchAIProvider(currentAIProvider);
+
         this.Encounter = encounter;
 
         SpecialChoice negotiatePriceChoice = GetSpecialChoiceFor(location);
@@ -66,7 +99,7 @@ public class EncounterSystem
             location,
             playerState,
             incitingAction,
-            narrativeService);
+            currentAIProvider);  // Pass the current provider type
 
         return new EncounterResult()
         {
@@ -133,7 +166,6 @@ public class EncounterSystem
 
     private static SpecialChoice GetSpecialChoiceFor(LocationInfo location)
     {
-
         // Add special choices for this location
         return new SpecialChoice(
             "Negotiate Better Price",
@@ -142,15 +174,15 @@ public class EncounterSystem
             FocusTags.Resource,
             new List<TagModification>
             {
-                    TagModification.ForEncounterState(EncounterStateTags.Rapport, 1),
-                    TagModification.ForApproach(ApproachTags.Force, 2),
-                    TagModification.ForFocus(FocusTags.Resource, 2)
+                TagModification.ForEncounterState(EncounterStateTags.Rapport, 1),
+                TagModification.ForApproach(ApproachTags.Force, 2),
+                TagModification.ForFocus(FocusTags.Resource, 2)
             },
             new List<Func<BaseTagSystem, bool>>
             {
-                    ChoiceFactory.EncounterStateTagRequirement(EncounterStateTags.Rapport, 2),
-                    ChoiceFactory.ApproachTagRequirement(ApproachTags.Force, 2),
-                    ChoiceFactory.FocusTagRequirement(FocusTags.Resource, 2)
+                ChoiceFactory.EncounterStateTagRequirement(EncounterStateTags.Rapport, 2),
+                ChoiceFactory.ApproachTagRequirement(ApproachTags.Force, 2),
+                ChoiceFactory.FocusTagRequirement(FocusTags.Resource, 2)
             }
         );
     }
@@ -173,5 +205,16 @@ public class EncounterSystem
     public ChoiceProjection GetChoiceProjection(EncounterManager encounter, IChoice choice)
     {
         return Encounter.ProjectChoice(choice);
+    }
+
+    // New method to toggle AI providers from the UI or elsewhere
+    public void ToggleAIProvider()
+    {
+        // Switch between OpenAI and Gemma
+        AIProviderType newProvider = currentAIProvider == AIProviderType.OpenAI
+            ? AIProviderType.Gemma3
+            : AIProviderType.OpenAI;
+
+        SwitchAIProvider(newProvider);
     }
 }

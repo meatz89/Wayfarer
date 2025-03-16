@@ -1,5 +1,4 @@
-﻿
-public class MessageSystem
+﻿public class MessageSystem
 {
     private ActionResultMessages currentChanges = new();
 

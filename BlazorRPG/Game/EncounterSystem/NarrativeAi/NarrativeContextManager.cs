@@ -1,7 +1,4 @@
-﻿
-
-// Manages conversation history and context
-public class NarrativeContextManager
+﻿public class NarrativeContextManager
 {
     private readonly Dictionary<string, List<ConversationEntry>> _conversationHistories = new();
 

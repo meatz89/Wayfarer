@@ -1,9 +1,4 @@
-﻿
-
-/// <summary>
-/// Manages the overall encounter flow
-/// </summary>
-public class EncounterManager
+﻿public class EncounterManager
 {
     public bool _useAiNarrative = false;
 
@@ -11,24 +6,48 @@ public class EncounterManager
     private readonly CardSelectionAlgorithm _cardSelector;
     public EncounterState State;
 
-    private INarrativeAIService _narrativeService;
+    private SwitchableNarrativeService _narrativeService;
     private NarrativeContext _narrativeContext;
-
 
     public List<IChoice> CurrentChoices = new List<IChoice>();
 
     public EncounterManager(
         ActionImplementation actionImplementation,
         CardSelectionAlgorithm cardSelector,
-        bool useAiNarrative
-        )
+        bool useAiNarrative,
+        IConfiguration configuration,
+        ILogger logger = null)
     {
         ActionImplementation = actionImplementation;
         _cardSelector = cardSelector;
         _useAiNarrative = useAiNarrative;
+
+        if (_useAiNarrative)
+        {
+            _narrativeService = new SwitchableNarrativeService(configuration, logger);
+        }
     }
 
-    // Get the current choices for the player
+    // Add methods to control AI provider selection
+    public void SwitchAIProvider(AIProviderType providerType)
+    {
+        if (_narrativeService != null)
+        {
+            _narrativeService.SwitchProvider(providerType);
+        }
+    }
+
+    public AIProviderType GetCurrentAIProvider()
+    {
+        return _narrativeService?.CurrentProvider ?? AIProviderType.OpenAI;
+    }
+
+    public string GetCurrentAIProviderName()
+    {
+        return _narrativeService?.GetCurrentProviderName() ?? "None";
+    }
+
+    // Existing methods remain the same
     public List<IChoice> GetCurrentChoices()
     {
         return CurrentChoices;
@@ -39,12 +58,10 @@ public class EncounterManager
         CurrentChoices = _cardSelector.SelectChoices(State);
     }
 
-    // Update this method in EncounterManager class
     private ChoiceOutcome ApplyChoiceProjection(ChoiceProjection projection)
     {
         State.ApplyChoiceProjection(projection);
 
-        // Create outcome with health changes directly from the projection
         ChoiceOutcome outcome = new ChoiceOutcome(
             projection.MomentumGained,
             projection.PressureBuilt,
@@ -55,7 +72,6 @@ public class EncounterManager
             projection.FocusChange,
             projection.ConfidenceChange);
 
-        // Copy all tag changes from the projection
         foreach (KeyValuePair<ApproachTags, int> kvp in projection.ApproachTagChanges)
         {
             outcome.ApproachTagChanges[kvp.Key] = kvp.Value;
@@ -77,7 +93,6 @@ public class EncounterManager
         return outcome;
     }
 
-    // Get current encounter state information
     public EncounterStatus GetEncounterStatus()
     {
         return new EncounterStatus(
@@ -92,9 +107,6 @@ public class EncounterManager
         );
     }
 
-    /// <summary>
-    /// Gets the current narrative context
-    /// </summary>
     public NarrativeContext GetNarrativeContext()
     {
         return _narrativeContext;
@@ -103,32 +115,26 @@ public class EncounterManager
     public ChoiceProjection ProjectChoice(IChoice choice)
     {
         ChoiceProjection projection = State.CreateChoiceProjection(choice);
-
-        // Add narrative description
         projection.NarrativeDescription = choice.Name + " " + choice.Description;
-
         return projection;
     }
 
-
-    // Start a new encounter at a specific location
     private void StartEncounter(LocationInfo location, PlayerState playerState)
     {
         State = new EncounterState(location, playerState);
         State.UpdateActiveTags(location.AvailableTags);
     }
 
-    /// <summary>
-    /// Starts an encounter with narrative AI generation for the introduction
-    /// </summary>
     public async Task<NarrativeResult> StartEncounterWithNarrativeAsync(
         LocationInfo location,
         PlayerState playerState,
         string incitingAction,
-        INarrativeAIService narrativeService)
+        AIProviderType providerType)
     {
-        // Store the narrative service
-        _narrativeService = narrativeService;
+        if (_narrativeService != null)
+        {
+            _narrativeService.SwitchProvider(providerType);
+        }
 
         // Start the encounter mechanically
         StartEncounter(location, playerState);
@@ -140,13 +146,12 @@ public class EncounterManager
         EncounterStatus status = GetEncounterStatus();
 
         string introduction = "introduction";
-        if (_useAiNarrative)
+        if (_useAiNarrative && _narrativeService != null)
         {
-            introduction =
-                await _narrativeService.GenerateIntroductionAsync(
-                    location.Name,
-                    incitingAction,
-                    status);
+            introduction = await _narrativeService.GenerateIntroductionAsync(
+                location.Name,
+                incitingAction,
+                status);
         }
 
         // Get available choices
@@ -163,31 +168,25 @@ public class EncounterManager
 
         // Generate choice descriptions
         Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = null;
-        if (_useAiNarrative)
+        if (_useAiNarrative && _narrativeService != null)
         {
-            choiceDescriptions =
-                await _narrativeService.GenerateChoiceDescriptionsAsync(
-                    _narrativeContext,
-                    choices,
-                    projections,
-                    status);
+            choiceDescriptions = await _narrativeService.GenerateChoiceDescriptionsAsync(
+                _narrativeContext,
+                choices,
+                projections,
+                status);
 
             firstEvent.SetAvailableChoiceDescriptions(choiceDescriptions);
         }
 
         // Return the narrative result
-        NarrativeResult narrativeResult = new(
+        return new NarrativeResult(
             introduction,
             choices,
             projections,
             choiceDescriptions);
-
-        return narrativeResult;
     }
 
-    /// <summary>
-    /// Applies the player character (PC) choice and generates narrative for the result
-    /// </summary>
     public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
         IChoice choice,
         ChoiceNarrative choiceDescription)
@@ -204,15 +203,14 @@ public class EncounterManager
         // Generate narrative for the reaction and new scene
         string narrative = "Continued Narrative";
 
-        if (_useAiNarrative)
+        if (_useAiNarrative && _narrativeService != null)
         {
-            narrative =
-                await _narrativeService.GenerateReactionAndSceneAsync(
-                    _narrativeContext,
-                    choice,
-                    choiceDescription,
-                    outcome,
-                    newStatus);
+            narrative = await _narrativeService.GenerateReactionAndSceneAsync(
+                _narrativeContext,
+                choice,
+                choiceDescription,
+                outcome,
+                newStatus);
         }
 
         NarrativeEvent narrativeEvent = new NarrativeEvent(
@@ -244,14 +242,13 @@ public class EncounterManager
 
         // Generate descriptive narratives for each choice
         Dictionary<IChoice, ChoiceNarrative> newChoiceDescriptions = null;
-        if (_useAiNarrative)
+        if (_useAiNarrative && _narrativeService != null)
         {
-            newChoiceDescriptions =
-                await _narrativeService.GenerateChoiceDescriptionsAsync(
-                    _narrativeContext,
-                    newChoices,
-                    newProjections,
-                    newStatus);
+            newChoiceDescriptions = await _narrativeService.GenerateChoiceDescriptionsAsync(
+                _narrativeContext,
+                newChoices,
+                newProjections,
+                newStatus);
         }
 
         // Add the choice descriptions to the latest event
@@ -271,5 +268,4 @@ public class EncounterManager
             newProjections,
             newChoiceDescriptions);
     }
-
 }
