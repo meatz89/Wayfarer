@@ -11,9 +11,8 @@ public class PromptManager
 
     private const string SYSTEM_KEY = "system_message";
     private const string INTRO_KEY = "introduction_prompt";
-    private const string ACTION_OUTCOME_KEY = "action_outcome_prompt";
-    private const string NEW_SITUATION_KEY = "new_situation_prompt";
-    private const string CHOICES_KEY = "choices_prompt";
+    private const string JSON_NARRATIVE_KEY = "json_narrative_prompt";
+    private const string JSON_CHOICES_KEY = "json_choices_prompt";
     private const string ENCOUNTER_SOCIAL_KEY = "encounter_style_social";
     private const string ENCOUNTER_INTELLECTUAL_KEY = "encounter_style_intellectual";
     private const string ENCOUNTER_PHYSICAL_KEY = "encounter_style_physical";
@@ -74,69 +73,16 @@ public class PromptManager
         return _systemMessage;
     }
 
-    public string BuildChoicesPrompt(
-        NarrativeContext context,
-        List<IChoice> choices,
-        List<ChoiceProjection> projections,
-        EncounterStatus state)
-    {
-        if (!_promptTemplates.TryGetValue(CHOICES_KEY, out string template))
-        {
-            throw new InvalidOperationException($"Choices prompt template not found");
-        }
+    // JSON-BASED METHODS
 
-        // Determine encounter type and get appropriate style guidance
-        EncounterTypes encounterType = _encounterDetector.DetermineEncounterType(context.LocationName, state);
-        string choiceStyleGuidance = GetChoiceStyleGuidance(encounterType);
-
-        // Create a narrative summary and get most recent reaction
-        string narrativeSummary = _summaryBuilder.CreateSummary(context);
-        string mostRecentReaction = context.GetLastScene() ?? "The situation begins";
-
-        // Format choices info
-        StringBuilder choicesInfo = new StringBuilder();
-        for (int i = 0; i < choices.Count; i++)
-        {
-            IChoice choice = choices[i];
-            ChoiceProjection projection = projections[i];
-
-            string approachDesc = TagCharacteristicsProvider.GetApproachCharacteristics(choice.Approach.ToString());
-            string focusDesc = TagCharacteristicsProvider.GetFocusCharacteristics(choice.Focus.ToString());
-            string effectDesc = choice.EffectType == EffectTypes.Momentum ?
-                $"MOMENTUM +{projection.MomentumGained}" :
-                $"PRESSURE +{projection.PressureBuilt}";
-
-            choicesInfo.AppendLine($@"
-Choice {i + 1}: 
-- Approach: {choice.Approach} ({approachDesc})
-- Focus: {choice.Focus} ({focusDesc})
-- Effect: {effectDesc}
-- Key Changes: {_tagFormatter.FormatKeyTagChanges(projection)}");
-        }
-
-        // Replace placeholders in template
-        string prompt = template
-            .Replace("{LOCATION}", context.LocationName)
-            .Replace("{NARRATIVE_SUMMARY}", narrativeSummary)
-            .Replace("{MOST_RECENT_REACTION}", mostRecentReaction)
-            .Replace("{CHOICES_INFO}", choicesInfo.ToString())
-            .Replace("{CHOICE_STYLE_GUIDANCE}", choiceStyleGuidance);
-
-        return prompt;
-    }
-
-    // New method for action outcome prompt
-    public string BuildActionOutcomePrompt(
+    public string BuildJsonNarrativePrompt(
         NarrativeContext context,
         IChoice chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         EncounterStatus newState)
     {
-        if (!_promptTemplates.TryGetValue(ACTION_OUTCOME_KEY, out string template))
-        {
-            throw new InvalidOperationException($"Action outcome prompt template not found");
-        }
+        string template = _promptTemplates[JSON_NARRATIVE_KEY];
 
         // Determine encounter type
         EncounterTypes encounterType = _encounterDetector.DetermineEncounterType(context.LocationName, newState);
@@ -164,45 +110,81 @@ Choice {i + 1}:
         return prompt;
     }
 
-    // New method for new situation prompt
-    public string BuildNewSituationPrompt(
-        NarrativeContext context,
-        EncounterStatus state,
-        string recentOutcome)
+    public string BuildJsonChoicesPrompt(
+    NarrativeContext context,
+    List<IChoice> choices,
+    List<ChoiceProjection> projections,
+    EncounterStatus state)
     {
-        if (!_promptTemplates.TryGetValue(NEW_SITUATION_KEY, out string template))
-        {
-            throw new InvalidOperationException($"New situation prompt template not found");
-        }
+        string template = _promptTemplates[JSON_CHOICES_KEY];
 
-        // Determine encounter type
+        // Determine encounter type and get appropriate style guidance
         EncounterTypes encounterType = _encounterDetector.DetermineEncounterType(context.LocationName, state);
-        string situationStyleGuidance = GetSituationStyleGuidance(encounterType);
+        string choiceStyleGuidance = GetChoiceStyleGuidance(encounterType);
 
-        // Create a narrative summary
+        // Create a narrative summary 
         string narrativeSummary = _summaryBuilder.CreateSummary(context);
+
+        // Get the last narrative event to ensure continuity
+        string mostRecentNarrative = "No previous narrative available.";
+
+        // Extract the most recent narrative from context
+        if (context.Events.Count > 0)
+        {
+            var lastEvent = context.Events[context.Events.Count - 1];
+            mostRecentNarrative = lastEvent.SceneDescription;
+        }
+        
+        // Format choices info
+        StringBuilder choicesInfo = new StringBuilder();
+        for (int i = 0; i < choices.Count; i++)
+        {
+            IChoice choice = choices[i];
+            ChoiceProjection projection = projections[i];
+
+            string approachDesc = TagCharacteristicsProvider.GetApproachCharacteristics(choice.Approach.ToString());
+            string focusDesc = TagCharacteristicsProvider.GetFocusCharacteristics(choice.Focus.ToString());
+            string effectDesc = choice.EffectType == EffectTypes.Momentum ?
+                $"MOMENTUM +{projection.MomentumGained}" :
+                $"PRESSURE +{projection.PressureBuilt}";
+
+            choicesInfo.AppendLine($@"
+Choice {i + 1}: 
+- Approach: {choice.Approach} ({approachDesc})
+- Focus: {choice.Focus} ({focusDesc})
+- Effect: {effectDesc}
+- Key Changes: {_tagFormatter.FormatKeyTagChanges(projection)}");
+
+            // Add resource changes if present
+            if (projection.HealthChange != 0)
+            {
+                choicesInfo.AppendLine($"- Health Change: {projection.HealthChange}");
+            }
+            if (projection.FocusChange != 0)
+            {
+                choicesInfo.AppendLine($"- Focus Change: {projection.FocusChange}");
+            }
+            if (projection.ConfidenceChange != 0)
+            {
+                choicesInfo.AppendLine($"- Reputation Change: {projection.ConfidenceChange}");
+            }
+        }
 
         // Replace placeholders in template
         string prompt = template
             .Replace("{LOCATION}", context.LocationName)
-            .Replace("{CURRENT_MOMENTUM}", state.Momentum.ToString())
-            .Replace("{CURRENT_PRESSURE}", state.Pressure.ToString())
-            .Replace("{RECENT_OUTCOME}", recentOutcome)
-            .Replace("{SIGNIFICANT_TAGS}", _tagFormatter.GetSignificantTagsFormatted(state))
             .Replace("{NARRATIVE_SUMMARY}", narrativeSummary)
-            .Replace("{ENCOUNTER_TYPE}", encounterType.ToString())
-            .Replace("{SITUATION_STYLE_GUIDANCE}", situationStyleGuidance);
+            .Replace("{MOST_RECENT_REACTION}", mostRecentNarrative)
+            .Replace("{CHOICES_INFO}", choicesInfo.ToString())
+            .Replace("{CHOICE_STYLE_GUIDANCE}", choiceStyleGuidance);
 
         return prompt;
     }
 
     public string BuildIntroductionPrompt(string location, string incitingAction, EncounterStatus state, string encounterGoal = "")
     {
-        if (!_promptTemplates.TryGetValue(INTRO_KEY, out string template))
-        {
-            throw new InvalidOperationException($"Introduction prompt template not found");
-        }
-
+        string template = _promptTemplates[INTRO_KEY];
+        
         EncounterTypes encounterType = _encounterDetector.DetermineEncounterType(location, state);
 
         // Get primary and secondary tags for initial emphasis

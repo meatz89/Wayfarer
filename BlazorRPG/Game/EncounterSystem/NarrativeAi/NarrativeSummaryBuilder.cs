@@ -8,7 +8,7 @@
             .FirstOrDefault();
 
         if (mostRecentEvent == null)
-            return $"I've just {context.IncitingAction} at {context.LocationName}.";
+            return $"{context.IncitingAction} at {context.LocationName}.";
 
         // Keep the summary extremely focused
         if (mostRecentEvent.TurnNumber == 0)
@@ -19,7 +19,7 @@
         else
         {
             // Latest action and result
-            return $"I just {mostRecentEvent.ChosenOption?.Description}. {mostRecentEvent.SceneDescription.Trim()}";
+            return $"{mostRecentEvent.ChosenOption?.Description}. {mostRecentEvent.SceneDescription.Trim()}";
         }
     }
 }

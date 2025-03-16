@@ -1,28 +1,45 @@
-﻿/// <summary>
+﻿
+
+
+
+
+/// <summary>
 /// Represents a single narrative event in the encounter timeline
 /// </summary>
 public class NarrativeEvent
 {
     public int TurnNumber { get; }
     public string SceneDescription { get; }
-    public IChoice ChosenOption { get; }
-    public ChoiceNarrative ChoiceNarrative { get; }
-    public string Outcome { get; }
-    public Dictionary<IChoice, ChoiceNarrative> AvailableChoiceDescriptions { get; }
+    public Dictionary<IChoice, ChoiceNarrative> ChoiceDescriptions { get; set; } = new ();
+    public IChoice ChosenOption { get; set; }
+    public ChoiceNarrative ChoiceNarrative { get; set; }
+    public string Outcome { get; set; }
 
     public NarrativeEvent(
         int turnNumber,
-        string sceneDescription,
-        IChoice chosenOption = null,
-        ChoiceNarrative choiceNarrative = null,
-        string outcome = null,
-        Dictionary<IChoice, ChoiceNarrative> availableChoiceDescriptions = null)
+        string sceneDescription)
     {
         TurnNumber = turnNumber;
         SceneDescription = sceneDescription;
+    }
+
+    public void SetAvailableChoiceDescriptions(Dictionary<IChoice, ChoiceNarrative> choiceDescriptions)
+    {
+        ChoiceDescriptions = choiceDescriptions;
+    }
+
+    internal void SetChosenOption(IChoice chosenOption)
+    {
         ChosenOption = chosenOption;
-        ChoiceNarrative = choiceNarrative;
+    }
+
+    internal void SetChoiceNarrative(ChoiceNarrative choiceNarrative)
+    {
+        this.ChoiceNarrative = choiceNarrative;
+    }
+
+    internal void SetOutcome(string? outcome)
+    {
         Outcome = outcome;
-        AvailableChoiceDescriptions = availableChoiceDescriptions ?? new Dictionary<IChoice, ChoiceNarrative>();
     }
 }

@@ -1,4 +1,5 @@
 ﻿@inherits EncounterViewBase
+@using Microsoft.AspNetCore.Components.Web
 
 <div class="Encounter-container" @onmousemove="OnMouseMove">
     @if (IsLoading)
@@ -51,13 +52,41 @@
                         }
                     </div>
                 </div>
-
             </div>
 
             <div class="Encounter-stage">
                 <h3 class="choice-set-name">@Model.ChoiceSetName</h3>
+
+                @{
+                    var narrative = Model.EncounterResult.NarrativeResult.Narrative;
+                    var sections = NarrativeDisplayUtility.GetNarrativeSections(narrative);
+                }
+
                 <div class="stage-description">
-                    @Model.EncounterResult.NarrativeResult.Narrative
+                    @if (!string.IsNullOrEmpty(sections.ActionOutcome))
+                    {
+                        <div class="stage-outcome">@sections.ActionOutcome</div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(sections.NewSituation))
+                    {
+                        <div class="stage-situation">@sections.NewSituation</div>
+                    }
+
+                    @if (sections.KeyPoints != null && sections.KeyPoints.Count > 0)
+                    {
+                        <div class="key-points">
+                            @foreach (var point in sections.KeyPoints)
+                            {
+                                <div>• @point</div>
+                            }
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(sections.Atmosphere))
+                    {
+                        <div class="atmosphere">@sections.Atmosphere</div>
+                    }
                 </div>
             </div>
 
@@ -67,7 +96,7 @@
                     <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")
                          @(false ? "winning" : "" )
                          @(false ? "failing" : "")"
-                         @onmousemove ="async (e) => await ShowTooltip(choice, e)"
+                         @onmousemove="async (e) => await ShowTooltip(choice, e)"
                          @onmouseout="HideTooltip"
                          @onclick="() => HandleChoiceSelection(choice)">
                         <span class="choice-index">@choice.Index.</span>
@@ -76,7 +105,7 @@
                 }
             </div>
         </div>
-        
+
         <div class="encounter-state-tags">
             <div class="properties-header">Encounter State Tags</div>
             <div class="tag-grid">
@@ -116,10 +145,9 @@
             </div>
         </div>
 
-
         @if (showTooltip && hoveredChoice != null)
         {
-            <EncounterChoiceTooltip hoveredChoice="hoveredChoice" mouseX="mouseX" mouseY="mouseY"/>
+            <EncounterChoiceTooltip hoveredChoice="hoveredChoice" mouseX="mouseX" mouseY="mouseY" />
         }
     }
 </div>

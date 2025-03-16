@@ -154,6 +154,13 @@ public class EncounterManager
         List<IChoice> choices = GetCurrentChoices();
         List<ChoiceProjection> projections = choices.Select(ProjectChoice).ToList();
 
+        // Create first narrative event
+        NarrativeEvent firstEvent = new NarrativeEvent(
+            State.CurrentTurn,
+            introduction);
+
+        _narrativeContext.AddEvent(firstEvent);
+
         // Generate choice descriptions
         Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = null;
         if (_useAiNarrative)
@@ -164,25 +171,18 @@ public class EncounterManager
                     choices,
                     projections,
                     status);
+
+            firstEvent.SetAvailableChoiceDescriptions(choiceDescriptions);
         }
 
-        // Create first narrative event
-        NarrativeEvent firstEvent = new NarrativeEvent(
-            State.CurrentTurn,
-            introduction,
-            null,
-            null,
-            null,
-            choiceDescriptions);
-
-        _narrativeContext.AddEvent(firstEvent);
-
         // Return the narrative result
-        return new NarrativeResult(
+        NarrativeResult narrativeResult = new(
             introduction,
             choices,
             projections,
             choiceDescriptions);
+
+        return narrativeResult;
     }
 
     /// <summary>
@@ -215,13 +215,13 @@ public class EncounterManager
                     newStatus);
         }
 
-        // Create the narrative event for this turn
         NarrativeEvent narrativeEvent = new NarrativeEvent(
             State.CurrentTurn - 1, // The turn counter increases after application
-            narrative,
-            choice,
-            choiceDescription,
-        outcome.Description);
+            narrative);
+
+        narrativeEvent.SetChosenOption(choice);
+        narrativeEvent.SetChoiceNarrative(choiceDescription);
+        narrativeEvent.SetOutcome(outcome.Description);
 
         _narrativeContext.AddEvent(narrativeEvent);
 
@@ -255,12 +255,12 @@ public class EncounterManager
         }
 
         // Add the choice descriptions to the latest event
-        narrativeEvent.AvailableChoiceDescriptions.Clear();
+        narrativeEvent.ChoiceDescriptions.Clear();
         if (newChoiceDescriptions != null)
         {
             foreach (KeyValuePair<IChoice, ChoiceNarrative> kvp in newChoiceDescriptions)
             {
-                narrativeEvent.AvailableChoiceDescriptions[kvp.Key] = kvp.Value;
+                narrativeEvent.ChoiceDescriptions[kvp.Key] = kvp.Value;
             }
         }
 
