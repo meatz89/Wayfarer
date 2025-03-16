@@ -24,7 +24,7 @@
 
         if (_useAiNarrative)
         {
-            _narrativeService = new SwitchableNarrativeService(configuration, logger);
+            _narrativeService = new SwitchableNarrativeService(configuration);
         }
     }
 

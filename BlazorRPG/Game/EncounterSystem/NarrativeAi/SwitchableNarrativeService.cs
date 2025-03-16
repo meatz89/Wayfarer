@@ -1,58 +1,87 @@
 ﻿public class SwitchableNarrativeService : INarrativeAIService
 {
-    private readonly INarrativeAIService _openAIService;
-    private readonly INarrativeAIService _gemma3Service;
+    private readonly Dictionary<AIProviderType, INarrativeAIService> _providers;
     private AIProviderType _currentProvider;
     private readonly ILogger _logger;
 
-    public SwitchableNarrativeService(IConfiguration configuration, ILogger logger = null)
+    public SwitchableNarrativeService(IConfiguration configuration)
     {
-        _openAIService = new GPTNarrativeService(configuration);
-        _gemma3Service = new Gemma3NarrativeService(configuration);
-        _currentProvider = AIProviderType.OpenAI; // Default to OpenAI
-        _logger = logger;
+        // Initialize all providers in a dictionary for easier access
+        _providers = new Dictionary<AIProviderType, INarrativeAIService>
+        {
+            { AIProviderType.OpenAI, new GPTNarrativeService(configuration) },
+            { AIProviderType.Gemma3, new Gemma3NarrativeService(configuration) },
+            { AIProviderType.Claude, new ClaudeNarrativeService(configuration) }
+        };
+
+        // Set default provider from configuration
+        string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "OpenAI";
+
+        // Map string provider name to enum
+        switch (defaultProvider.ToLower())
+        {
+            case "claude":
+                _currentProvider = AIProviderType.Claude;
+                break;
+            case "gemma":
+                _currentProvider = AIProviderType.Gemma3;
+                break;
+            default:
+                _currentProvider = AIProviderType.OpenAI;
+                break;
+        }
+
+        _logger?.LogInformation($"Initialized with {GetCurrentProviderName()} provider");
     }
 
     public void SwitchProvider(AIProviderType providerType)
     {
-        _currentProvider = providerType;
-        _logger?.LogInformation($"Switched to {GetCurrentProviderName()} AI provider");
+        if (_providers.ContainsKey(providerType))
+        {
+            _currentProvider = providerType;
+            _logger?.LogInformation($"Switched to {GetCurrentProviderName()} AI provider");
+        }
+        else
+        {
+            _logger?.LogWarning($"Provider {providerType} not implemented, staying with current provider");
+        }
     }
 
     public AIProviderType CurrentProvider => _currentProvider;
 
     public string GetCurrentProviderName()
     {
-        return _currentProvider == AIProviderType.OpenAI
-            ? (_openAIService as BaseNarrativeAIService).GetProviderName()
-            : (_gemma3Service as BaseNarrativeAIService).GetProviderName();
+        return (_providers[_currentProvider] as BaseNarrativeAIService)?.GetProviderName() ?? "Unknown Provider";
     }
 
     public string GetGameInstanceId()
     {
-        return _currentProvider == AIProviderType.OpenAI
-            ? (_openAIService as BaseNarrativeAIService).GetGameInstanceId()
-            : (_gemma3Service as BaseNarrativeAIService).GetGameInstanceId();
+        return (_providers[_currentProvider] as BaseNarrativeAIService)?.GetGameInstanceId() ?? "Unknown";
     }
 
     public async Task<string> GenerateIntroductionAsync(string location, string incitingAction, EncounterStatus state)
     {
-        return _currentProvider == AIProviderType.OpenAI
-            ? await _openAIService.GenerateIntroductionAsync(location, incitingAction, state)
-            : await _gemma3Service.GenerateIntroductionAsync(location, incitingAction, state);
+        return await _providers[_currentProvider].GenerateIntroductionAsync(location, incitingAction, state);
     }
 
-    public async Task<string> GenerateReactionAndSceneAsync(NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatus newState)
+    public async Task<string> GenerateReactionAndSceneAsync(
+        NarrativeContext context,
+        IChoice chosenOption,
+        ChoiceNarrative choiceDescription,
+        ChoiceOutcome outcome,
+        EncounterStatus newState)
     {
-        return _currentProvider == AIProviderType.OpenAI
-            ? await _openAIService.GenerateReactionAndSceneAsync(context, chosenOption, choiceDescription, outcome, newState)
-            : await _gemma3Service.GenerateReactionAndSceneAsync(context, chosenOption, choiceDescription, outcome, newState);
+        return await _providers[_currentProvider].GenerateReactionAndSceneAsync(
+            context, chosenOption, choiceDescription, outcome, newState);
     }
 
-    public async Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(NarrativeContext context, List<IChoice> choices, List<ChoiceProjection> projections, EncounterStatus state)
+    public async Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+        NarrativeContext context,
+        List<IChoice> choices,
+        List<ChoiceProjection> projections,
+        EncounterStatus state)
     {
-        return _currentProvider == AIProviderType.OpenAI
-            ? await _openAIService.GenerateChoiceDescriptionsAsync(context, choices, projections, state)
-            : await _gemma3Service.GenerateChoiceDescriptionsAsync(context, choices, projections, state);
+        return await _providers[_currentProvider].GenerateChoiceDescriptionsAsync(
+            context, choices, projections, state);
     }
 }

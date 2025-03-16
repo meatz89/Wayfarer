@@ -24,9 +24,43 @@
 
         // Initialize with the default provider from config
         string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "OpenAI";
-        currentAIProvider = defaultProvider == "Gemma" ? AIProviderType.Gemma3 : AIProviderType.OpenAI;
+
+        // Set current provider based on configuration value
+        switch (defaultProvider.ToLower())
+        {
+            case "claude":
+                currentAIProvider = AIProviderType.Claude;
+                break;
+            case "gemma":
+                currentAIProvider = AIProviderType.Gemma3;
+                break;
+            default:
+                currentAIProvider = AIProviderType.OpenAI;
+                break;
+        }
 
         useAiNarrative = configuration.GetValue<bool>("useAiNarrative");
+    }
+
+    // Update toggle method to cycle through all three providers
+    public void ToggleAIProvider()
+    {
+        // Cycle through providers: OpenAI -> Gemma3 -> Claude -> OpenAI
+        switch (currentAIProvider)
+        {
+            case AIProviderType.OpenAI:
+                SwitchAIProvider(AIProviderType.Gemma3);
+                break;
+            case AIProviderType.Gemma3:
+                SwitchAIProvider(AIProviderType.Claude);
+                break;
+            case AIProviderType.Claude:
+                SwitchAIProvider(AIProviderType.OpenAI);
+                break;
+            default:
+                SwitchAIProvider(AIProviderType.OpenAI);
+                break;
+        }
     }
 
     // New method to switch AI providers
@@ -207,14 +241,4 @@
         return Encounter.ProjectChoice(choice);
     }
 
-    // New method to toggle AI providers from the UI or elsewhere
-    public void ToggleAIProvider()
-    {
-        // Switch between OpenAI and Gemma
-        AIProviderType newProvider = currentAIProvider == AIProviderType.OpenAI
-            ? AIProviderType.Gemma3
-            : AIProviderType.OpenAI;
-
-        SwitchAIProvider(newProvider);
-    }
 }

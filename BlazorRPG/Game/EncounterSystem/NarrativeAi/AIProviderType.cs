@@ -1,5 +1,6 @@
 ﻿public enum AIProviderType
 {
     OpenAI,
-    Gemma3
+    Gemma3,
+    Claude
 }

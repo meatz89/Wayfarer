@@ -1,7 +1,4 @@
-﻿// For message handling between different providers
-
-
-public abstract class BaseNarrativeAIService : INarrativeAIService
+﻿public abstract class BaseNarrativeAIService : INarrativeAIService
 {
     protected readonly AIClientService _aiClient;
     protected readonly PromptManager _promptManager;
