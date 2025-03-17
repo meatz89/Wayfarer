@@ -1,2 +1,4 @@
 ﻿public enum FocusTags { Relationship, Information, Physical, Environment, Resource }
-public enum EncounterStateTags { Dominance, Rapport, Analysis, Precision, Concealment }
+public enum EncounterStateTags { Dominance, Rapport, Analysis, Precision, Concealment,
+    None
+}

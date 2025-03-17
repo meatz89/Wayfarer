@@ -9,7 +9,7 @@
     public EncounterResult encounterResult;
 
     private bool useAiNarrative = false;
-
+    private CardSelectionAlgorithm cardSelector;
     public EncounterSystem(
         GameState gameState,
         MessageSystem messageSystem,
@@ -134,7 +134,7 @@
     {
         // Create the core components
         ChoiceRepository choiceRepository = new ChoiceRepository();
-        CardSelectionAlgorithm cardSelector = new CardSelectionAlgorithm(choiceRepository);
+        cardSelector = new CardSelectionAlgorithm(choiceRepository);
 
         // Create encounter manager with the switchable service
         EncounterManager encounterManager = new EncounterManager(

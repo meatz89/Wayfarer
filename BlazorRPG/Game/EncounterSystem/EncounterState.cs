@@ -1,6 +1,12 @@
-﻿
-public class EncounterState
+﻿public class EncounterState
 {
+    // Added properties for history tracking
+    public IChoice PreviousChoice { get; set; }
+    public int PreviousMomentum { get; set; }
+    public int PreviousPressure { get; set; }
+    public Dictionary<EncounterStateTags, int> PreviousApproachValues { get; set; } = new Dictionary<EncounterStateTags, int>();
+    public Dictionary<FocusTags, int> PreviousFocusValues { get; set; } = new Dictionary<FocusTags, int>();
+
     public int Momentum { get; private set; }
     public int Pressure { get; private set; }
     public int CurrentTurn { get; private set; }
@@ -49,7 +55,18 @@ public class EncounterState
     public int GetTotalPressure(IChoice choice, int basePressure) =>
         _tagManager.GetTotalPressure(choice, basePressure);
 
-    public void ApplyChoiceProjection(ChoiceProjection projection)
+    public ChoiceProjection ApplyChoice(IChoice choice)
+    {
+        // Store the current state before making changes
+        this.UpdateStateHistory(choice);
+
+        // Then apply the choice as normal
+        ChoiceProjection projection = CreateChoiceProjection(choice);
+        ApplyChoiceProjection(projection);
+        return projection;
+    }
+
+    private void ApplyChoiceProjection(ChoiceProjection projection)
     {
         _lastChoice = projection.Choice;
 
@@ -79,6 +96,37 @@ public class EncounterState
 
         // 5. Increment turn counter
         CurrentTurn++;
+    }
+
+    public void UpdateStateHistory(IChoice selectedChoice)
+    {
+        // Store previous choice
+        PreviousChoice = selectedChoice;
+
+        // Store previous values
+        PreviousMomentum = Momentum;
+        PreviousPressure = Pressure;
+
+        // Store previous approach tag values
+        PreviousApproachValues = new Dictionary<EncounterStateTags, int>();
+        foreach (EncounterStateTags approach in Enum.GetValues(typeof(EncounterStateTags)))
+        {
+            if (approach == EncounterStateTags.Dominance ||
+                approach == EncounterStateTags.Rapport ||
+                approach == EncounterStateTags.Analysis ||
+                approach == EncounterStateTags.Precision ||
+                approach == EncounterStateTags.Concealment)
+            {
+                PreviousApproachValues[approach] = TagSystem.GetEncounterStateTagValue(approach);
+            }
+        }
+
+        // Store previous focus tag values
+        PreviousFocusValues = new Dictionary<FocusTags, int>();
+        foreach (FocusTags focus in Enum.GetValues(typeof(FocusTags)))
+        {
+            PreviousFocusValues[focus] = TagSystem.GetFocusTagValue(focus);
+        }
     }
 
     public void UpdateActiveTags(IEnumerable<IEncounterTag> locationTags)

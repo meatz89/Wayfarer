@@ -9,19 +9,34 @@ public class BaseTagSystem
     public const int MinTagValue = 0;
     public const int MaxTagValue = 5;
 
+    public static BaseTagSystem FromPreviousState(
+        Dictionary<EncounterStateTags, int> previousApproachValues, 
+        Dictionary<FocusTags, int> previousFocusValues)
+    {
+        BaseTagSystem fromState = new BaseTagSystem();
+        foreach (EncounterStateTags tag in previousApproachValues.Keys)
+            fromState.SetEncounterStateTagValue(tag, previousApproachValues[tag]);
+
+        foreach (FocusTags tag in previousFocusValues.Keys)
+            fromState.SetFocusTagValue(tag, previousFocusValues[tag]);
+
+        return fromState;
+    }
+
     public BaseTagSystem()
     {
         _ApproachTags = new Dictionary<EncounterStateTags, int>();
         _focusTags = new Dictionary<FocusTags, int>();
 
-        // Initialize all tags to 0
         foreach (EncounterStateTags tag in Enum.GetValues(typeof(EncounterStateTags)))
-            _ApproachTags[tag] = 0;
+            SetEncounterStateTagValue(tag, 0);
 
         foreach (FocusTags tag in Enum.GetValues(typeof(FocusTags)))
-            _focusTags[tag] = 0;
+            SetFocusTagValue(tag, 0);
     }
 
+    public Dictionary<EncounterStateTags, int> GetAllApproachTags() => _ApproachTags;
+    public Dictionary<FocusTags, int> GetAllFocusTags() => _focusTags;
     public int GetEncounterStateTagValue(EncounterStateTags tag) => _ApproachTags[tag];
     public int GetFocusTagValue(FocusTags tag) => _focusTags[tag];
 
@@ -36,9 +51,6 @@ public class BaseTagSystem
         int newValue = _focusTags[tag] + delta;
         _focusTags[tag] = Math.Clamp(newValue, MinTagValue, MaxTagValue);
     }
-
-    public Dictionary<EncounterStateTags, int> GetAllApproachTags() => _ApproachTags;
-    public Dictionary<FocusTags, int> GetAllFocusTags() => _focusTags;
 
     public BaseTagSystem Clone()
     {
@@ -63,5 +75,4 @@ public class BaseTagSystem
     {
         _focusTags[tag] = Math.Clamp(value, MinTagValue, MaxTagValue);
     }
-
 }

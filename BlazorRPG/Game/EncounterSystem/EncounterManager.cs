@@ -58,9 +58,9 @@
         CurrentChoices = _cardSelector.SelectChoices(State);
     }
 
-    private ChoiceOutcome ApplyChoiceProjection(ChoiceProjection projection)
+    private ChoiceOutcome ApplyChoiceProjection(IChoice choice)
     {
-        State.ApplyChoiceProjection(projection);
+        ChoiceProjection projection = State.ApplyChoice(choice);
 
         ChoiceOutcome outcome = new ChoiceOutcome(
             projection.MomentumGained,
@@ -190,11 +190,8 @@
         IChoice choice,
         ChoiceNarrative choiceDescription)
     {
-        // Get projection
-        ChoiceProjection projection = ProjectChoice(choice);
-
         // Apply the choice
-        ChoiceOutcome outcome = ApplyChoiceProjection(projection);
+        ChoiceOutcome outcome = ApplyChoiceProjection(choice);
 
         // Get status after the choice
         EncounterStatus newStatus = GetEncounterStatus();
