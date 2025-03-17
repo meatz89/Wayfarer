@@ -1,6 +1,6 @@
 ﻿public enum ChoiceArchetypes
 {
     Physical,
-    Focus,
+    Intellectual,
     Social
 }

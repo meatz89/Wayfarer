@@ -67,19 +67,19 @@ public class EncounterState
         foreach (KeyValuePair<FocusTags, int> pair in projection.FocusTagChanges)
             TagSystem.ModifyFocusTag(pair.Key, pair.Value);
 
-        // 2. Update active tags based on new tag values
-        _tagManager.ResetTagEffects();
-        _tagManager.UpdateActiveTags(Location.AvailableTags);
-
-        // 3. Apply exactly the values from the projection
+        // 2. Apply exactly the values from the projection
         Momentum = projection.FinalMomentum;
         Pressure = projection.FinalPressure;
 
-        // 4. Apply resource changes directly from the projection
+        // 3. Apply resource changes directly from the projection
         _resourceManager.ApplyResourceChanges(
             projection.HealthChange,
-            projection.FocusChange,
+            projection.ConcentrationChange,
             projection.ConfidenceChange);
+
+        // 4. Update active tags based on new tag values
+        _tagManager.ResetTagEffects();
+        _tagManager.UpdateActiveTags(Location.AvailableTags);
 
         // 5. Increment turn counter
         CurrentTurn++;

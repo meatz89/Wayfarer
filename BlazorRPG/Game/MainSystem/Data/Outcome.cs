@@ -114,11 +114,11 @@ public class EnergyOutcome : Outcome
                     0,
                     player.MaxPhysicalEnergy);
                 break;
-            case EnergyTypes.Focus:
-                player.Focus = Math.Clamp(
-                    player.Focus + Amount,
+            case EnergyTypes.Concentration:
+                player.Concentration = Math.Clamp(
+                    player.Concentration + Amount,
                     0,
-                    player.MaxFocus);
+                    player.MaxConcentration);
                 break;
         }
     }
@@ -133,14 +133,14 @@ public class EnergyOutcome : Outcome
         int currentValue = EnergyType switch
         {
             EnergyTypes.Physical => player.PhysicalEnergy,
-            EnergyTypes.Focus => player.Focus,
+            EnergyTypes.Concentration => player.Concentration,
             _ => 0
         };
 
         int maxValue = EnergyType switch
         {
             EnergyTypes.Physical => player.MaxPhysicalEnergy,
-            EnergyTypes.Focus => player.MaxFocus,
+            EnergyTypes.Concentration => player.MaxConcentration,
             _ => 0
         };
 
@@ -223,29 +223,29 @@ public class HealthOutcome : Outcome
     }
 }
 
-public class FocusOutcome : Outcome
+public class ConcentrationOutcome : Outcome
 {
     public int Count { get; }
 
-    public FocusOutcome(int count)
+    public ConcentrationOutcome(int count)
     {
         Count = count;
     }
 
     public override void Apply(PlayerState player)
     {
-        player.ModifyFocus(Count);
+        player.ModifyConcentratin(Count);
     }
 
     public override string GetDescription()
     {
-        return $"{(Count >= 0 ? "+" : "")}{Count} Focus";
+        return $"{(Count >= 0 ? "+" : "")}{Count} Concentration";
     }
 
     public override string GetPreview(PlayerState player)
     {
-        int newValue = Math.Clamp(player.Focus + Count, 0, player.MaxFocus);
-        return $"({player.Focus} -> {newValue})";
+        int newValue = Math.Clamp(player.Concentration + Count, 0, player.MaxConcentration);
+        return $"({player.Concentration} -> {newValue})";
     }
 }
 

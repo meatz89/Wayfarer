@@ -225,7 +225,7 @@ public class GameManager
     private bool IsGameOver(PlayerState player)
     {
         bool canPayPhysical = player.PhysicalEnergy > 0 || player.Health > 1;
-        bool canPayFocus = player.Focus > 0 || player.Focus > 1;
+        bool canPayFocus = player.Concentration > 0 || player.Concentration > 1;
         bool canPaySocial = player.Confidence > 0 || player.Confidence > 1;
 
         bool isGameOver = !(canPayPhysical || canPayFocus || canPaySocial);

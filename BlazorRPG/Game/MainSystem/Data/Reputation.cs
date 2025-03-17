@@ -4,9 +4,9 @@ public class Confidence
     public PlayerConfidenceTypes ConfidenceType { get; set; }
     public int Value { get; set; }
 
-    public Confidence(PlayerConfidenceTypes reputationType, int value)
+    public Confidence(PlayerConfidenceTypes confidenceType, int value)
     {
-        ConfidenceType = reputationType;
+        ConfidenceType = confidenceType;
         Value = value;
     }
 }

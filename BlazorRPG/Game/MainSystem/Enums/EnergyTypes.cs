@@ -2,5 +2,5 @@
 {
     None = 0,
     Physical,
-    Focus
+    Concentration
 }

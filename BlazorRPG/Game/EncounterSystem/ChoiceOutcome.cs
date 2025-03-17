@@ -11,7 +11,7 @@ public class ChoiceOutcome
     public int PressureGain { get; }
 
     public int HealthChange { get; }
-    public int FocusChange { get; }
+    public int ConcentrationChange { get; }
     public int ConfidenceChange { get; }
 
     // Added tag-related fields
@@ -28,7 +28,7 @@ public class ChoiceOutcome
         EncounterOutcomes outcome,
         int healthChange = 0,
         int concentrationChange = 0,
-        int reputationChange = 0)
+        int confidenceChange = 0)
     {
         MomentumGain = momentumGained;
         PressureGain = pressureBuilt;
@@ -36,8 +36,8 @@ public class ChoiceOutcome
         IsEncounterOver = isEncounterOver;
         Outcome = outcome;
         HealthChange = healthChange;
-        FocusChange = concentrationChange;
-        ConfidenceChange = reputationChange;
+        ConcentrationChange = concentrationChange;
+        ConfidenceChange = confidenceChange;
 
         // Initialize empty collections
         FocusTagChanges = new Dictionary<FocusTags, int>();

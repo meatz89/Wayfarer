@@ -679,7 +679,7 @@ body {
     color: var(--danger);
 }
 
-.reputation-loss {
+.confidence-loss {
     color: var(--resource-health);
 }
 

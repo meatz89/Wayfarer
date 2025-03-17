@@ -3,7 +3,7 @@
     Momentum,
     Pressure,
     Health,
-    Focus,
+    Concentration,
     Confidence,
     None
 }

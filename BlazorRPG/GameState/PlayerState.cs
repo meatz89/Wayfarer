@@ -10,8 +10,8 @@
     public int PhysicalEnergy { get; set; }
     public int MaxPhysicalEnergy { get; set; }
 
-    public int Focus { get; set; }
-    public int MaxFocus { get; set; }
+    public int Concentration { get; set; }
+    public int MaxConcentration { get; set; }
 
     public int Confidence { get; set; }
     public int MaxConfidence { get; set; }
@@ -45,8 +45,8 @@
         PhysicalEnergy = GameRules.StandardRuleset.StartingPhysicalEnergy;
         MaxPhysicalEnergy = 20;
 
-        Focus = GameRules.StandardRuleset.StartingFocus;
-        MaxFocus = 20;
+        Concentration = GameRules.StandardRuleset.StartingFocus;
+        MaxConcentration = 20;
 
         Confidence = GameRules.StandardRuleset.StartingConfidence;
         MaxConfidence = 20;
@@ -93,7 +93,7 @@
         switch (energyType)
         {
             case EnergyTypes.Physical: ModifyPhysicalEnergy(amount); break;
-            case EnergyTypes.Focus: ModifyFocus(amount); break;
+            case EnergyTypes.Concentration: ModifyConcentratin(amount); break;
             default: throw new NotImplementedException();
         }
         ;
@@ -110,12 +110,12 @@
         return false;
     }
 
-    public bool ModifyFocus(int count)
+    public bool ModifyConcentratin(int count)
     {
-        int newFocus = Math.Clamp(Focus + count, 0, MaxFocus);
-        if (newFocus != Focus)
+        int newConcentration = Math.Clamp(Concentration + count, 0, MaxConcentration);
+        if (newConcentration != Concentration)
         {
-            Focus = newFocus;
+            Concentration = newConcentration;
             return true;
         }
         return false;
@@ -164,7 +164,7 @@
         switch (energyType)
         {
             case EnergyTypes.Physical: return PhysicalEnergy >= amount;
-            case EnergyTypes.Focus: return Focus >= amount;
+            case EnergyTypes.Concentration: return Concentration >= amount;
         }
         ;
         return false;

@@ -20,7 +20,7 @@
 
         // Calculate pressure-based resource damage that will apply at start of turn
         int pressureHealthDamage = _resourceManager.CalculatePressureResourceDamage(ResourceTypes.Health, currentPressure);
-        int pressureFocusDamage = _resourceManager.CalculatePressureResourceDamage(ResourceTypes.Concentration, currentPressure);
+        int pressureConcentrationDamage = _resourceManager.CalculatePressureResourceDamage(ResourceTypes.Concentration, currentPressure);
         int pressureConfidenceDamage = _resourceManager.CalculatePressureResourceDamage(ResourceTypes.Confidence, currentPressure);
 
         // Add pressure resource components to projection
@@ -33,12 +33,12 @@
             });
         }
 
-        if (pressureFocusDamage != 0)
+        if (pressureConcentrationDamage != 0)
         {
-            projection.FocusComponents.Add(new ChoiceProjection.ValueComponent
+            projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
             {
                 Source = "Pressure damage",
-                Value = pressureFocusDamage
+                Value = pressureConcentrationDamage
             });
         }
 
@@ -50,40 +50,6 @@
                 Value = pressureConfidenceDamage
             });
         }
-
-        // Apply all explicit tag modifications from the choice
-        foreach (TagModification mod in choice.TagModifications)
-        {
-            if (mod.Type == TagModification.TagTypes.EncounterState)
-            {
-                ApproachTags tag = (ApproachTags)mod.Tag;
-                int oldValue = clonedTagSystem.GetEncounterStateTagValue(tag);
-                clonedTagSystem.ModifyEncounterStateTag(tag, mod.Delta);
-                int newValue = clonedTagSystem.GetEncounterStateTagValue(tag);
-                int actualDelta = newValue - oldValue;
-
-                if (actualDelta != 0)
-                    projection.EncounterStateTagChanges[tag] = actualDelta;
-            }
-            else if (mod.Type == TagModification.TagTypes.Focus)
-            {
-                FocusTags tag = (FocusTags)mod.Tag;
-                int oldValue = clonedTagSystem.GetFocusTagValue(tag);
-                clonedTagSystem.ModifyFocusTag(tag, mod.Delta);
-                int newValue = clonedTagSystem.GetFocusTagValue(tag);
-                int actualDelta = newValue - oldValue;
-
-                if (actualDelta != 0)
-                    projection.FocusTagChanges[tag] = actualDelta;
-            }
-        }
-
-        // Determine which tags will be active based on new tag values
-        List<IEncounterTag> newlyActivatedTags = _tagManager.GetNewlyActivatedTags(clonedTagSystem, encounterInfo.AvailableTags);
-        List<IEncounterTag> deactivatedTags = _tagManager.GetDeactivatedTags(clonedTagSystem, encounterInfo.AvailableTags);
-
-        newlyActivatedTags.ForEach(tag => projection.NewlyActivatedTags.Add(tag.Name));
-        deactivatedTags.ForEach(tag => projection.DeactivatedTags.Add(tag.Name));
 
         // Calculate momentum effects
         int momentumChange = 0;
@@ -134,12 +100,8 @@
             pressureChange += environmentalPressure;
         }
 
-        // Apply effects from active tags, excluding newly activated ones
         foreach (IEncounterTag tag in _tagManager.ActiveTags)
         {
-            if (newlyActivatedTags.Any(t => t.Name == tag.Name))
-                continue;
-
             if (tag is StrategicTag strategicTag)
             {
                 bool affectsChoice = true;
@@ -237,8 +199,42 @@
 
         // Set total resource changes (pressure damage + tag effects)
         projection.HealthChange = pressureHealthDamage;
-        projection.FocusChange = pressureFocusDamage;
+        projection.ConcentrationChange = pressureConcentrationDamage;
         projection.ConfidenceChange = pressureConfidenceDamage;
+
+        // Determine which tags will be active based on new tag values
+        List<IEncounterTag> newlyActivatedTags = _tagManager.GetNewlyActivatedTags(clonedTagSystem, encounterInfo.AvailableTags);
+        List<IEncounterTag> deactivatedTags = _tagManager.GetDeactivatedTags(clonedTagSystem, encounterInfo.AvailableTags);
+
+        newlyActivatedTags.ForEach(tag => projection.NewlyActivatedTags.Add(tag.Name));
+        deactivatedTags.ForEach(tag => projection.DeactivatedTags.Add(tag.Name));
+
+        // Apply all explicit tag modifications from the choice
+        foreach (TagModification mod in choice.TagModifications)
+        {
+            if (mod.Type == TagModification.TagTypes.EncounterState)
+            {
+                ApproachTags tag = (ApproachTags)mod.Tag;
+                int oldValue = clonedTagSystem.GetEncounterStateTagValue(tag);
+                clonedTagSystem.ModifyEncounterStateTag(tag, mod.Delta);
+                int newValue = clonedTagSystem.GetEncounterStateTagValue(tag);
+                int actualDelta = newValue - oldValue;
+
+                if (actualDelta != 0)
+                    projection.EncounterStateTagChanges[tag] = actualDelta;
+            }
+            else if (mod.Type == TagModification.TagTypes.Focus)
+            {
+                FocusTags tag = (FocusTags)mod.Tag;
+                int oldValue = clonedTagSystem.GetFocusTagValue(tag);
+                clonedTagSystem.ModifyFocusTag(tag, mod.Delta);
+                int newValue = clonedTagSystem.GetFocusTagValue(tag);
+                int actualDelta = newValue - oldValue;
+
+                if (actualDelta != 0)
+                    projection.FocusTagChanges[tag] = actualDelta;
+            }
+        }
 
         return projection;
     }

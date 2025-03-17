@@ -1,6 +1,6 @@
 ﻿public class ConfidenceSystem
 {
-    private int reputation;
+    private int confidence;
     private List<PlayerConfidenceTypes> playerConfidences;
 
     public void AddConfidencePoint(PlayerConfidenceTypes type)

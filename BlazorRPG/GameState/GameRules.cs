@@ -50,7 +50,7 @@
                 ChoiceApproaches.Careful
             },
 
-            ChoiceArchetypes.Focus => new List<ChoiceApproaches>
+            ChoiceArchetypes.Intellectual => new List<ChoiceApproaches>
             {
                 ChoiceApproaches.Methodical,
                 ChoiceApproaches.Tactical,
@@ -107,7 +107,7 @@
         return energyType switch
         {
             EnergyTypes.Physical => ValueTypes.Health,
-            EnergyTypes.Focus => ValueTypes.Focus,
+            EnergyTypes.Concentration => ValueTypes.Concentration,
             EnergyTypes.None => ValueTypes.None,
             _ => throw new ArgumentException("Invalid EnergyType")
         };
@@ -168,7 +168,7 @@
 
             case BasicActionTypes.Rest:
                 rewards.Add(new EnergyOutcome(EnergyTypes.Physical, 5));
-                rewards.Add(new EnergyOutcome(EnergyTypes.Focus, 5));
+                rewards.Add(new EnergyOutcome(EnergyTypes.Concentration, 5));
                 rewards.Add(new HealthOutcome(1));
                 break;
 
@@ -217,12 +217,12 @@
             BasicActionTypes.Fight => EnergyTypes.Physical,
             BasicActionTypes.Gather => EnergyTypes.Physical,
 
-            BasicActionTypes.Study => EnergyTypes.Focus,
-            BasicActionTypes.Investigate => EnergyTypes.Focus,
-            BasicActionTypes.Analyze => EnergyTypes.Focus,
+            BasicActionTypes.Study => EnergyTypes.Concentration,
+            BasicActionTypes.Investigate => EnergyTypes.Concentration,
+            BasicActionTypes.Analyze => EnergyTypes.Concentration,
 
             BasicActionTypes.Discuss => EnergyTypes.None,
-            BasicActionTypes.Persuade => EnergyTypes.Focus,
+            BasicActionTypes.Persuade => EnergyTypes.Concentration,
             BasicActionTypes.Perform => EnergyTypes.Physical,
         };
         return energyType;
@@ -256,8 +256,8 @@
     {
         CompositionPattern compositionPattern = new CompositionPattern
         {
-            PrimaryArchetype = ChoiceArchetypes.Focus,
-            SecondaryArchetype = ChoiceArchetypes.Focus,
+            PrimaryArchetype = ChoiceArchetypes.Intellectual,
+            SecondaryArchetype = ChoiceArchetypes.Intellectual,
         };
 
         switch (actionType)
@@ -276,7 +276,7 @@
                 compositionPattern = new CompositionPattern
                 {
                     PrimaryArchetype = ChoiceArchetypes.Physical,
-                    SecondaryArchetype = ChoiceArchetypes.Focus,
+                    SecondaryArchetype = ChoiceArchetypes.Intellectual,
                 };
                 break;
 
@@ -291,22 +291,22 @@
             case BasicActionTypes.Study:
                 compositionPattern = new CompositionPattern
                 {
-                    PrimaryArchetype = ChoiceArchetypes.Focus,
-                    SecondaryArchetype = ChoiceArchetypes.Focus,
+                    PrimaryArchetype = ChoiceArchetypes.Intellectual,
+                    SecondaryArchetype = ChoiceArchetypes.Intellectual,
                 };
                 break;
 
             case BasicActionTypes.Investigate:
                 compositionPattern = new CompositionPattern
                 {
-                    PrimaryArchetype = ChoiceArchetypes.Focus,
+                    PrimaryArchetype = ChoiceArchetypes.Intellectual,
                     SecondaryArchetype = ChoiceArchetypes.Physical,
                 };
                 break;
             case BasicActionTypes.Analyze:
                 compositionPattern = new CompositionPattern
                 {
-                    PrimaryArchetype = ChoiceArchetypes.Focus,
+                    PrimaryArchetype = ChoiceArchetypes.Intellectual,
                     SecondaryArchetype = ChoiceArchetypes.Social,
                 };
                 break;
@@ -323,7 +323,7 @@
                 compositionPattern = new CompositionPattern
                 {
                     PrimaryArchetype = ChoiceArchetypes.Social,
-                    SecondaryArchetype = ChoiceArchetypes.Focus,
+                    SecondaryArchetype = ChoiceArchetypes.Intellectual,
                 };
                 break;
 
@@ -340,8 +340,8 @@
                 // default composition pattern
                 compositionPattern = new CompositionPattern
                 {
-                    PrimaryArchetype = ChoiceArchetypes.Focus,
-                    SecondaryArchetype = ChoiceArchetypes.Focus,
+                    PrimaryArchetype = ChoiceArchetypes.Intellectual,
+                    SecondaryArchetype = ChoiceArchetypes.Intellectual,
                 };
                 break;
         }

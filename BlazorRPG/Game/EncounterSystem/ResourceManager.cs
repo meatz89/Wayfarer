@@ -23,7 +23,7 @@
                 break;
 
             case EncounterTypes.Intellectual:
-                _playerState.ModifyFocus(-currentPressure);
+                _playerState.ModifyConcentratin(-currentPressure);
                 break;
 
             case EncounterTypes.Social:
@@ -66,7 +66,7 @@
             _playerState.ModifyHealth(healthChange);
 
         if (focusChange != 0)
-            _playerState.ModifyFocus(focusChange);
+            _playerState.ModifyConcentratin(focusChange);
 
         if (confidenceChange != 0)
             _playerState.ModifyConfidence(confidenceChange);

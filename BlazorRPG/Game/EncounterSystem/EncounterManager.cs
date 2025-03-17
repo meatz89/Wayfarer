@@ -69,7 +69,7 @@
             projection.EncounterWillEnd,
             projection.ProjectedOutcome,
             projection.HealthChange,
-            projection.FocusChange,
+            projection.ConcentrationChange,
             projection.ConfidenceChange);
 
         foreach (KeyValuePair<FocusTags, int> kvp in projection.FocusTagChanges)

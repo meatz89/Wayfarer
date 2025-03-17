@@ -100,12 +100,12 @@ public class PromptManager
 
         if (outcome.ConfidenceChange <= -3)
         {
-            guidance.AppendLine($"- Reputation {outcome.ConfidenceChange}: Show how people's attitudes have visibly changed");
+            guidance.AppendLine($"- Confidence {outcome.ConfidenceChange}: Show how people's attitudes have visibly changed");
         }
 
-        if (outcome.FocusChange <= -3)
+        if (outcome.ConcentrationChange <= -3)
         {
-            guidance.AppendLine($"- Focus {outcome.FocusChange}: Indicate mental fatigue, confusion, or distraction");
+            guidance.AppendLine($"- Concentration {outcome.ConcentrationChange}: Indicate mental fatigue, confusion, or distraction");
         }
 
         return guidance.ToString();
@@ -205,7 +205,7 @@ public class PromptManager
             .Replace("{MOMENTUM_GAIN}", outcome.MomentumGain.ToString())
             .Replace("{PRESSURE_GAIN}", outcome.PressureGain.ToString())
             .Replace("{HEALTH_CHANGE}", outcome.HealthChange.ToString())
-            .Replace("{CONCENTRATION_CHANGE}", outcome.FocusChange.ToString())
+            .Replace("{CONCENTRATION_CHANGE}", outcome.ConcentrationChange.ToString())
             .Replace("{REPUTATION_CHANGE}", outcome.ConfidenceChange.ToString())
             .Replace("{NARRATIVE_SUMMARY}", narrativeSummary)
             .Replace("{TAG_CHANGES_GUIDANCE}", tagChangesGuidance)
@@ -265,13 +265,13 @@ Choice {i + 1}:
             {
                 choicesInfo.AppendLine($"- Health Change: {projection.HealthChange}");
             }
-            if (projection.FocusChange != 0)
+            if (projection.ConcentrationChange != 0)
             {
-                choicesInfo.AppendLine($"- Focus Change: {projection.FocusChange}");
+                choicesInfo.AppendLine($"- Concnetration Change: {projection.ConcentrationChange}");
             }
             if (projection.ConfidenceChange != 0)
             {
-                choicesInfo.AppendLine($"- Reputation Change: {projection.ConfidenceChange}");
+                choicesInfo.AppendLine($"- Confidence Change: {projection.ConfidenceChange}");
             }
         }
 

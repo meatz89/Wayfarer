@@ -7,11 +7,11 @@
             EnergyRequirement energyReq => energyReq.EnergyType switch
             {
                 EnergyTypes.Physical => RequirementTypes.PhysicalEnergy,
-                EnergyTypes.Focus => RequirementTypes.Focus,
+                EnergyTypes.Concentration => RequirementTypes.Concentration,
                 _ => RequirementTypes.Other
             },
             HealthRequirement => RequirementTypes.Health,
-            FocusRequirement => RequirementTypes.Focus,
+            FocusRequirement => RequirementTypes.Concentration,
             CoinsRequirement => RequirementTypes.Coins,
             SkillRequirement skillReq => skillReq.SkillType switch
             {

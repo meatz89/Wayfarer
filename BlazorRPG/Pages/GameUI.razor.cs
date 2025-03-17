@@ -12,15 +12,15 @@ public partial class GameUI : ComponentBase
 
     public int physicalEnergyCurrent => GameState.Player.PhysicalEnergy;
     public int physicalEnergyMax => GameState.Player.MaxPhysicalEnergy;
-    public int concentrationCurrent => GameState.Player.Focus;
-    public int concentrationMax => GameState.Player.MaxFocus;
+    public int concentrationCurrent => GameState.Player.Concentration;
+    public int concentrationMax => GameState.Player.MaxConcentration;
     public int repuationCurrent => GameState.Player.Confidence;
-    public int reputationMax => GameState.Player.MaxConfidence;
+    public int confidenceMax => GameState.Player.MaxConfidence;
     public int health => GameState.Player.Health;
     public int maxHealth => GameState.Player.MaxHealth;
-    public int concentration => GameState.Player.Focus;
-    public int maxFocus => GameState.Player.MaxFocus;
-    public int reputation => GameState.Player.Confidence;
+    public int concentration => GameState.Player.Concentration;
+    public int maxFocus => GameState.Player.MaxConcentration;
+    public int confidence => GameState.Player.Confidence;
     public int maxConfidence => GameState.Player.MaxConfidence;
     public int coins => GameState.Player.Coins;
     public int food => GameState.Player.Inventory.GetItemCount(ItemTypes.Food);

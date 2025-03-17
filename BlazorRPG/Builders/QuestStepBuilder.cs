@@ -25,9 +25,9 @@
         return this;
     }
 
-    public QuestStepBuilder RequiresConfidence(PlayerConfidenceTypes reputation)
+    public QuestStepBuilder RequiresConfidence(PlayerConfidenceTypes confidence)
     {
-        PlayerConfidenceRequirement item = new PlayerConfidenceRequirement(reputation);
+        PlayerConfidenceRequirement item = new PlayerConfidenceRequirement(confidence);
         requirements.Add(item);
         return this;
     }

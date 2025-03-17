@@ -22,8 +22,8 @@
         playerInfo.PhysicalEnergy = gameRules.StartingPhysicalEnergy;
         playerInfo.MaxPhysicalEnergy = 10;
 
-        playerInfo.Focus = gameRules.StartingFocus;
-        playerInfo.MaxFocus = 10;
+        playerInfo.Concentration = gameRules.StartingFocus;
+        playerInfo.MaxConcentration = 10;
 
         playerInfo.Confidence = gameRules.StartingConfidence;
         playerInfo.MaxConfidence = 10;

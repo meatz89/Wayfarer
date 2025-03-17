@@ -22,7 +22,7 @@
 
     //Energy
     PhysicalEnergy,
-    Focus,
+    Concentration,
 
     //Encounter States
     MaxPressure,

@@ -21,11 +21,11 @@
 
     // Resource change tracking
     public List<ValueComponent> HealthComponents { get; } = new List<ValueComponent>();
-    public List<ValueComponent> FocusComponents { get; } = new List<ValueComponent>();
+    public List<ValueComponent> ConcentrationComponents { get; } = new List<ValueComponent>();
     public List<ValueComponent> ConfidenceComponents { get; } = new List<ValueComponent>();
 
     public int HealthChange { get; set; }
-    public int FocusChange { get; set; }
+    public int ConcentrationChange { get; set; }
     public int ConfidenceChange { get; set; }
 
     // Tag changes
