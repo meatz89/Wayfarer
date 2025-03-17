@@ -90,7 +90,7 @@
         Location inn = context.LocationName;
 
         // Create a location
-        LocationInfo location = LocationFactory.CreateBanditAmbush();
+        LocationInfo location = LocationFactory.CreateAncientLibrary();
 
         // Create encounter manager
         encounterResult = await StartEncounterAt(location, playerState, actionImplementation);
