@@ -78,8 +78,8 @@ public class PromptManager
         // Format activated/deactivated tags
         string tagActivationGuidance = FormatTagActivationForNarrative(outcome);
 
-        // Create a narrative summary for context
-        string narrativeSummary = CreateSummary(context);
+        // Create a complete encounter history for context
+        string completeHistory = CreateCompleteHistory(context);
 
         // Get encounter type from presentation style
         string encounterType = GetEncounterStyleGuidance(context.EncounterType);
@@ -117,12 +117,17 @@ public class PromptManager
         // Extract encounter goal from inciting action
         string encounterGoal = context.IncitingAction;
 
+        // Get the choice narrative description
+        string choiceNarrativeDesc = choiceDescription?.FullDescription ?? chosenOption.Name;
+
         // Replace placeholders in template
         string prompt = template
+            .Replace("{ENCOUNTER_HISTORY}", completeHistory)
             .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
             .Replace("{LOCATION}", context.LocationName)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
             .Replace("{SELECTED_CHOICE}", chosenOption.Name)
+            .Replace("{CHOICE_DESCRIPTION}", choiceNarrativeDesc)
             .Replace("{APPROACH}", primaryApproach.ToString())
             .Replace("{FOCUS}", chosenOption.Focus.ToString())
             .Replace("{EFFECT_TYPE}", chosenOption.EffectType.ToString())
@@ -149,8 +154,8 @@ public class PromptManager
     {
         string template = _promptTemplates[CHOICES_KEY];
 
-        // Create a narrative summary for context
-        string narrativeSummary = CreateSummary(context);
+        // Create a complete encounter history for context
+        string completeHistory = CreateCompleteHistory(context);
 
         // Get the most recent narrative event
         string currentSituation = "No previous narrative available.";
@@ -231,9 +236,9 @@ Choice {i + 1}: {choice.Name}
 
         // Replace placeholders in template
         string prompt = template
+            .Replace("{ENCOUNTER_HISTORY}", completeHistory)
             .Replace("{LOCATION}", context.LocationName)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
-            .Replace("{NARRATIVE_SUMMARY}", narrativeSummary)
             .Replace("{CURRENT_SITUATION}", currentSituation)
             .Replace("{ACTIVE_TAGS}", narrativeTagsInfo.ToString())
             .Replace("{MOMENTUM}", state.Momentum.ToString())
@@ -296,6 +301,63 @@ Choice {i + 1}: {choice.Name}
             .Replace("{ADDITIONAL_CHALLENGES}", additionalChallenges);
 
         return prompt;
+    }
+
+    // Helper method for creating a complete encounter history
+    private string CreateCompleteHistory(NarrativeContext context)
+    {
+        if (context.Events.Count == 0)
+        {
+            return $"Beginning a new encounter at {context.LocationName} after {context.IncitingAction}.";
+        }
+
+        StringBuilder history = new StringBuilder();
+        history.AppendLine("# Complete Encounter History");
+        history.AppendLine($"Location: {context.LocationName} | Encounter Type: {context.EncounterType} | Goal: {context.IncitingAction}");
+        history.AppendLine();
+
+        // Create detailed history of all events
+        for (int i = 0; i < context.Events.Count; i++)
+        {
+            NarrativeEvent evt = context.Events[i];
+
+            history.AppendLine($"## Turn {evt.TurnNumber}");
+
+            // Add initial scene description
+            if (i == 0)
+            {
+                history.AppendLine("### Initial Scene");
+                history.AppendLine(evt.SceneDescription);
+                history.AppendLine();
+            }
+            else
+            {
+                // For other turns, add chosen option and outcome
+                if (evt.ChosenOption != null)
+                {
+                    history.AppendLine($"### Choice: {evt.ChosenOption.Name}");
+
+                    // Add choice narrative description if available
+                    if (evt.ChoiceNarrative != null && !string.IsNullOrEmpty(evt.ChoiceNarrative.FullDescription))
+                    {
+                        history.AppendLine($"Description: {evt.ChoiceNarrative.FullDescription}");
+                    }
+
+                    // Add outcome
+                    if (!string.IsNullOrEmpty(evt.Outcome))
+                    {
+                        history.AppendLine($"Outcome: {evt.Outcome}");
+                    }
+                }
+
+                // Add scene description
+                history.AppendLine("### Scene");
+                history.AppendLine(evt.SceneDescription);
+                history.AppendLine();
+            }
+        }
+
+        return history.ToString();
     }
 
     // Helper methods for formatting ChoiceOutcome data
@@ -495,43 +557,6 @@ Choice {i + 1}: {choice.Name}
                tag == EncounterStateTags.Analysis ||
                tag == EncounterStateTags.Precision ||
                tag == EncounterStateTags.Concealment;
-    }
-
-    private string CreateSummary(NarrativeContext context)
-    {
-        // Basic summary from the context's events
-        if (context.Events.Count == 0)
-        {
-            return $"Beginning a new encounter at {context.LocationName} after {context.IncitingAction}.";
-        }
-
-        // Get the most recent events (up to 3)
-        int eventCount = Math.Min(3, context.Events.Count);
-        List<string> recentEvents = new List<string>();
-
-        for (int i = context.Events.Count - eventCount; i < context.Events.Count; i++)
-        {
-            NarrativeEvent evt = context.Events[i];
-            recentEvents.Add($"Turn {evt.TurnNumber}: {SummarizeEvent(evt)}");
-        }
-
-        return string.Join("\n", recentEvents);
-    }
-
-    private string SummarizeEvent(NarrativeEvent evt)
-    {
-        // Extract key points from the event
-        if (evt.ChosenOption != null)
-        {
-            return $"Used {evt.ChosenOption.Name}. {evt.Outcome}";
-        }
-        else
-        {
-            // For events without a chosen option (like the intro)
-            return evt.SceneDescription.Length > 100
-                ? evt.SceneDescription.Substring(0, 100) + "..."
-                : evt.SceneDescription;
-        }
     }
 
     private string GetApproachChangeDescription(EncounterStateTags approach, bool isPositive)
