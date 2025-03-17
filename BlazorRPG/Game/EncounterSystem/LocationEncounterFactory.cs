@@ -8,7 +8,9 @@ public static class LocationEncounterFactory
     /// <summary>
     /// Creates the Ancient Library location from the Wayfarer example
     /// </summary>
-    public static LocationEncounterInfo CreateAncientLibraryEncounter(LocationNames locationName)
+    public static LocationEncounterInfo CreateAncientLibraryEncounter(
+        LocationNames locationName,
+        PresentationStyles presentationStyle)
     {
         // Core properties for the Ancient Library
         LocationEncounterInfo location = new LocationEncounterInfo(
@@ -18,7 +20,7 @@ public static class LocationEncounterFactory
             6, // Duration (6 turns)
             12, 16, 20, // Momentum thresholds: 12+ (Partial), 16+ (Standard), 20+ (Exceptional)
             LocationEncounterInfo.HostilityLevels.Neutral,
-            PresentationStyles.Intellectual);
+            presentationStyle);
 
         // Difficulty level 2 (adds +2 pressure per turn)
         location.SetDifficulty(2);

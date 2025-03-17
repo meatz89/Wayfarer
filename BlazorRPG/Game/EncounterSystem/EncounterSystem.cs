@@ -90,8 +90,26 @@
     {
         Location inn = context.LocationName;
 
-        // Create a location
-        LocationEncounterInfo encounter = LocationEncounterFactory.CreateAncientLibraryEncounter(location.LocationName);
+        PresentationStyles presentationStyles = actionImplementation.ActionType switch
+        {
+            BasicActionTypes.Labor => PresentationStyles.Physical,
+            BasicActionTypes.Gather => PresentationStyles.Physical,
+            BasicActionTypes.Fight => PresentationStyles.Physical,
+
+            BasicActionTypes.Study => PresentationStyles.Intellectual,
+            BasicActionTypes.Investigate => PresentationStyles.Intellectual,
+            BasicActionTypes.Analyze => PresentationStyles.Intellectual,
+
+            BasicActionTypes.Discuss => PresentationStyles.Social,
+            BasicActionTypes.Persuade => PresentationStyles.Social,
+            BasicActionTypes.Perform => PresentationStyles.Social,
+        };
+
+        // Create encounter from location and action
+        LocationNames locationName = location.LocationName;
+
+        LocationEncounterInfo encounter = LocationEncounterFactory
+            .CreateAncientLibraryEncounter(locationName, presentationStyles);
 
         // Create encounter manager
         encounterResult = await StartEncounterAt(location, encounter, playerState, actionImplementation);

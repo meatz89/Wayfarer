@@ -32,7 +32,7 @@
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName("Find the ancient tome")
             .WithDescription("I need to find the sacred scripture.")
-            .WithActionType(BasicActionTypes.Persuade)
+            .WithActionType(BasicActionTypes.Analyze)
             .StartsEncounter()
             .ExpendsCoins(5)
             .Build());
