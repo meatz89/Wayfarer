@@ -152,7 +152,7 @@
         //choiceRepository.AddSpecialChoice(encounter.Name, negotiatePriceChoice);
 
         // Start the encounter with narrative
-        string incitingAction = "decided to visit the market to purchase supplies";
+        string incitingAction = actionImplementation.Description;
         NarrativeResult initialResult = await encounterManager.StartEncounterWithNarrativeAsync(
             location,
             encounter,

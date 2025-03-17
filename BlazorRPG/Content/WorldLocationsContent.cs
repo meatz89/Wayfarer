@@ -1,7 +1,7 @@
 ﻿public class WorldLocationsContent
 {
     public static Location Library => new LocationBuilder()
-        .ForLocation(LocationNames.WaysideInn)
+        .ForLocation(LocationNames.AncientLibrary)
         .AddLocationSpot(spot => spot
             .WithName("Entrance")
             .WithAccessibility(Accessibility.Public)

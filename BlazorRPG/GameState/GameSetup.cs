@@ -1,6 +1,6 @@
 ﻿public class GameSetup
 {
-    private const LocationNames StartingLocation = LocationNames.WaysideInn;
+    private const LocationNames StartingLocation = LocationNames.AncientLibrary;
 
     public static GameState CreateNewGame()
     {
