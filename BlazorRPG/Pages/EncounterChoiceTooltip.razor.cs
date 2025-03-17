@@ -1,6 +1,5 @@
 ﻿
 using Microsoft.AspNetCore.Components;
-using System.Reflection;
 
 public partial class EncounterChoiceTooltipBase : ComponentBase
 {

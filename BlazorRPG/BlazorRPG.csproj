@@ -8,20 +8,20 @@
     
 	<ItemGroup>
 		<Compile Remove="Game\EncounterManager\**" />
+		<Compile Remove="Game\MainSystem\Builders\**" />
 		<Content Remove="Game\EncounterManager\**" />
+		<Content Remove="Game\MainSystem\Builders\**" />
 		<EmbeddedResource Remove="Game\EncounterManager\**" />
+		<EmbeddedResource Remove="Game\MainSystem\Builders\**" />
 		<None Remove="**/*.ps1" />
 		<None Remove="Game\EncounterManager\**" />
+		<None Remove="Game\MainSystem\Builders\**" />
 	</ItemGroup>
     
 	<ItemGroup>
 	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	  <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
 	  <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-	</ItemGroup>
-    
-	<ItemGroup>
-	  <Folder Include="Game\MainSystem\Builders\" />
 	</ItemGroup>
 
 </Project>

@@ -43,7 +43,7 @@
 
         // 3. Select strategic diverse hand with randomization
 
-        // A. Get momentum choices for selection
+        // 3.A Get momentum choices for selection
         List<ChoiceScore> momentumChoices = choiceScores
             .Where(cs => cs.Choice.EffectType == EffectTypes.Momentum)
             .ToList();
@@ -64,7 +64,7 @@
             availableChoices.Remove(result[0]);
         }
 
-        // B. Add a momentum choice from a different approach
+        // 3.B Add a momentum choice from a different approach
         if (momentumChoices.Count > 0 && result.Count > 0)
         {
             // Filter for different approaches
@@ -84,7 +84,7 @@
             }
         }
 
-        // C. Add a pressure choice with randomization
+        // 3.C Add a pressure choice with randomization
         List<ChoiceScore> pressureChoices = choiceScores
             .Where(cs => cs.Choice.EffectType == EffectTypes.Pressure &&
                     !result.Any(c => c.Approach == cs.Choice.Approach && c.Focus == cs.Choice.Focus))
@@ -100,7 +100,7 @@
             availableChoices.Remove(result[2]);
         }
 
-        // D. Special choice or another diverse option
+        // 3.D Special choice or another diverse option
         //IReadOnlyList<SpecialChoice> specialChoices = _choiceRepository.GetSpecialChoicesForLocation(
         //    state.Location.Name, state.TagSystem);
 
@@ -112,6 +112,7 @@
         //}
         //else
         //{
+
         // Find a choice with approach and focus not yet in the hand
         List<ChoiceScore> diverseChoices = choiceScores
             .Where(cs => !result.Contains(cs.Choice) &&
@@ -126,6 +127,7 @@
 
             result.Add(diverseChoices[randomIndex].Choice);
         }
+
         //}
 
         // 4. Fill the hand if needed
@@ -217,18 +219,5 @@
         }
 
         return blockedApproaches;
-    }
-
-    // Helper class for scoring choices
-    private class ChoiceScore
-    {
-        public IChoice Choice { get; }
-        public int Score { get; }
-
-        public ChoiceScore(IChoice choice, int score)
-        {
-            Choice = choice;
-            Score = score;
-        }
     }
 }
