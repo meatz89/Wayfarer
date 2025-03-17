@@ -15,6 +15,7 @@ public class LocationEncounterInfo
 
     // Encounter duration in turns
     public int TurnDuration { get; }
+    public int MaxPressure { get; }
 
     // How hostile is this location (affects tag balance)
     public enum HostilityLevels { Friendly, Neutral, Hostile }
@@ -33,7 +34,8 @@ public class LocationEncounterInfo
         int standardThreshold,
         int exceptionalThreshold,
         HostilityLevels hostility,
-        EncounterTypes style)
+        EncounterTypes style,
+        int maxPressure = 10)
     {
         LocationName = locationName;
         FavoredApproaches = favoreApproaches;
@@ -46,6 +48,7 @@ public class LocationEncounterInfo
         TurnDuration = duration;
         Hostility = hostility;
         EncounterType = style;
+        MaxPressure = maxPressure;
     }
 
     public void AddTag(NarrativeTag narrativeTag)
