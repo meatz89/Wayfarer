@@ -38,7 +38,11 @@ public partial class EncounterViewBase : ComponentBase
 
     public EncounterManager GetEncounter()
     {
-        return GameManager.GetEncounter();
+        if (IsLoading)
+            return null;
+
+        EncounterManager encounterManager = GameManager.GetEncounter();
+        return encounterManager;
     }
 
     public async Task HandleChoiceSelection(UserEncounterChoiceOption choice)

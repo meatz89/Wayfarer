@@ -8,12 +8,12 @@
             Loading...
         </div>
     }
-    @if (GetEncounter() != null && !IsLoading)
+    @if (GetEncounter() != null)
     {
-        <div class="Encounter-header">
+        <div class="encounter-header">
         </div>
-        <div class="Encounter-context">
-            <div class="Encounter-stats">
+        <div class="encounter-context">
+            <div class="encounter-stats">
                 <div class="stat">
                     @GetValueTypeIcon(ValueTypes.Momentum)
                     <span class="stat-label">Momentum</span>
@@ -54,37 +54,39 @@
                 </div>
             </div>
 
-            <div class="Encounter-stage">
-                <h3 class="choice-set-name">@GetModel().ChoiceSetName</h3>
-                <div class="stage-situation">@GetModel().EncounterResult.NarrativeResult.SceneNarrative</div>
+            <div class="encounter-details">
+                <div class="encounter-stage">
+                    <h3 class="choice-set-name">@GetModel().ChoiceSetName</h3>
+                    <div class="stage-situation">@GetModel().EncounterResult.NarrativeResult.SceneNarrative</div>
+                </div>
+
+                <div class="encounter-choices">
+                    @foreach (UserEncounterChoiceOption choice in GetChoices())
+                    {
+                         <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")
+                             @(false ? "winning" : "" )
+                             @(false ? "failing" : "")"
+                             @onmousemove="async (e) => await ShowTooltip(choice, e)"
+                             @onmouseout="HideTooltip"
+                             @onclick="() => HandleChoiceSelection(choice)">
+                            <span class="choice-index">@choice.Index.</span>
+                            <span class="choice-description">@GetChoiceName(choice)</span>
+                        </div>
+                    }
+                </div>
             </div>
 
-            <div class="Encounter-choices">
-                @foreach (UserEncounterChoiceOption choice in GetChoices())
-                {
-                     <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")
-                         @(false ? "winning" : "" )
-                         @(false ? "failing" : "")"
-                         @onmousemove="async (e) => await ShowTooltip(choice, e)"
-                         @onmouseout="HideTooltip"
-                         @onclick="() => HandleChoiceSelection(choice)">
-                        <span class="choice-index">@choice.Index.</span>
-                        <span class="choice-description">@GetChoiceName(choice)</span>
-                    </div>
-                }
-            </div>
-        </div>
-
-        <div class="encounter-state-tags">
-            <div class="properties-header">Encounter State Tags</div>
-            <div class="tag-grid">
-                @foreach (var tag in GetApproachTags())
-                {
-                    <div class="tag-value">
-                        <span class="tag-name">@tag</span>
-                        <span class="tag-level">@GetModel().State.TagSystem.GetEncounterStateTagValue(tag)</span>
-                    </div>
-                }
+            <div class="encounter-state-tags">
+                <div class="properties-header">Encounter State Tags</div>
+                <div class="tag-grid">
+                    @foreach (var tag in GetApproachTags())
+                    {
+                        <div class="tag-value">
+                            <span class="tag-name">@tag</span>
+                            <span class="tag-level">@GetModel().State.TagSystem.GetEncounterStateTagValue(tag)</span>
+                        </div>
+                    }
+                </div>
             </div>
         </div>
 

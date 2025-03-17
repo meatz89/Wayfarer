@@ -22,7 +22,7 @@ body {
     padding: 20px;
     background-color: var(--bg-dark);
     color: var(--text-primary);
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Layout containers */
@@ -34,7 +34,7 @@ body {
     margin: 0 auto;
 }
 
-.top-bar, .locations-grid, .sidebar-panel, .Encounter-container {
+.top-bar, .locations-grid, .sidebar-panel, .encounter-container {
     background-color: var(--bg-panel);
     border-radius: 5px;
     padding: 15px;
@@ -297,21 +297,21 @@ body {
     margin-left: 10px;
 }
 
-/* Encounter */
-.Encounter-container {
+/* encounter */
+.encounter-container {
     margin: 20px 0;
 }
 
-.Encounter-header {
+.encounter-header {
     margin-bottom: 20px;
 }
 
-.Encounter-stats, .Encounter-stage, .choice-option, .stat {
+.encounter-stats, .encounter-stage, .choice-option, .stat {
     background-color: var(--bg-card);
     border-radius: 4px;
 }
 
-.Encounter-stats {
+.encounter-stats {
     display: flex;
     gap: 20px;
     padding: 15px;
@@ -339,27 +339,45 @@ body {
     font-weight: bold;
 }
 
-.Encounter-stage {
-    padding: 20px;
-    margin-bottom: 20px;
+.encounter-details {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    color: --bg-panel;
+}
+
+.encounter-stage {
+    padding-left: 1rem;
+    color: #e6e6e6;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.choice-set-name {
+    font-size: 1.2rem;
+    color: #666;
+    font-style: italic;
+    margin-bottom: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 0.5rem;
 }
 
 .stage-situation {
-    font-weight: 100;
-    line-height: 24px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 16px;
-    color: #e6e6e6;
+    padding-bottom: 0.5rem;
     margin-top: 1rem;
+    margin-bottom: 1rem;
+    line-height: 24px;
+    font-size: 1.0em;
 }
 
-.Encounter-choices {
+.encounter-choices {
+    color: --bg-panel;
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
 .choice-option {
+    font-size: 1.0rem;
     padding: 15px;
     cursor: pointer;
     transition: background-color 0.2s, border-color 0.2s;
@@ -412,12 +430,6 @@ body {
     margin-top: 8px;
 }
 
-.choice-set-name {
-    font-size: 1.2rem;
-    color: #666;
-    font-style: italic;
-    margin: 0;
-}
 
 .requirement {
     border-left: 3px solid;
@@ -662,8 +674,8 @@ body {
         background-color: var(--border-active);
     }
 
-/* Encounter context */
-.Encounter-context {
+/* encounter context */
+.encounter-context {
     margin: 1rem 0;
     padding: 0.5rem;
     background-color: rgba(0, 0, 0, 0.1);
