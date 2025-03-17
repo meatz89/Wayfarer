@@ -1825,6 +1825,11 @@ body {
 }
 
 .stage-situation {
+    font-weight: 100;
+    line-height: 22px;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 16px;
+    color: #e6e6e6;
     margin-top: 1rem;
 }
 
