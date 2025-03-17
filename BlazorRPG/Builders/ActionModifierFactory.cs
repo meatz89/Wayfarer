@@ -5,7 +5,7 @@
         List<ActionModifier> modifiers = new();
 
         // No modifier conditions specified
-        if (config.ActionType == default && config.LocationType == default)
+        if (config.ActionType == default)
         {
             return modifiers;
         }

@@ -203,30 +203,6 @@ public partial class GameUI : ComponentBase
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
         properties.Add(new PropertyDisplay(
-                GetIconForLocationArchetype(location.LocationArchetype),
-                FormatEnumString(location.LocationArchetype.ToString()),
-                "",
-                "",
-                ""
-            ));
-
-        properties.Add(new PropertyDisplay(
-                GetIconForCrowdDensity(location.CrowdDensity),
-                FormatEnumString(location.CrowdDensity.ToString()),
-                "",
-                "",
-                ""
-            ));
-
-        properties.Add(new PropertyDisplay(
-                GetIconForOpportunity(location.Opportunity),
-                FormatEnumString(location.Opportunity.ToString()),
-                "",
-                "",
-                ""
-            ));
-
-        properties.Add(new PropertyDisplay(
                 GetIconForTimeWindow(world.WorldTime),
                 FormatEnumString(world.WorldTime.ToString()),
                 "",
@@ -243,53 +219,6 @@ public partial class GameUI : ComponentBase
             ));
 
         return properties;
-    }
-
-    // Helper methods to get icons for different property types
-    private string GetIconForLocationArchetype(LocationArchetypes type)
-    {
-        return type switch
-        {
-            LocationArchetypes.Tavern => "🍺",
-            LocationArchetypes.Market => "🛒",
-            LocationArchetypes.Forest => "🌲",
-            LocationArchetypes.Road => "🛣️",
-            LocationArchetypes.Field => "🌾",
-            LocationArchetypes.Dock => "⚓",
-            LocationArchetypes.Warehouse => "🏭",
-            LocationArchetypes.Factory => "🏭",
-            LocationArchetypes.Workshop => "🔨",
-            LocationArchetypes.Shop => "🛍️",
-            LocationArchetypes.Garden => "🌷",
-            LocationArchetypes.Library => "📚",
-            LocationArchetypes.ConstructionSite => "🚧",
-            LocationArchetypes.Docks => "🚢",
-            LocationArchetypes.CraftsmanWorkshop => "🛠️",
-            LocationArchetypes.Crossroads => "🔀",
-            _ => "❓"
-        };
-    }
-
-    private string GetIconForCrowdDensity(CrowdDensity density)
-    {
-        return density switch
-        {
-            CrowdDensity.Deserted => "😶",
-            CrowdDensity.Quiet => "🚶",
-            CrowdDensity.Bustling => "👥",
-            _ => "❓"
-        };
-    }
-
-    private string GetIconForOpportunity(OpportunityTypes scale)
-    {
-        return scale switch
-        {
-            OpportunityTypes.Charitable => "🏠",
-            OpportunityTypes.Commercial => "🏘️",
-            OpportunityTypes.Healthcare => "🏙️",
-            _ => "❓"
-        };
     }
 
     private string GetIconForTimeWindow(TimeWindows time)

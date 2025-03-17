@@ -7,7 +7,7 @@ public class EncounterState
     public int Momentum { get; private set; }
     public int Pressure { get; private set; }
     public int CurrentTurn { get; private set; }
-    public LocationInfo Location { get; }
+    public LocationEncounterInfo Location { get; }
     public LocationSpot LocationSpot { get; internal set; }
     public PlayerState PlayerState { get; }
 
@@ -23,7 +23,7 @@ public class EncounterState
     private int _escalationLevel = 0;
     private IChoice _lastChoice;
 
-    public EncounterState(LocationInfo location, PlayerState playerState)
+    public EncounterState(LocationEncounterInfo location, PlayerState playerState)
     {
         Momentum = 0;
         Pressure = 0;

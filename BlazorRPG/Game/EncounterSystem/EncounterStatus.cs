@@ -13,8 +13,7 @@ public class EncounterStatus
 
     // Added properties
     public List<IEncounterTag> ActiveTags { get; }
-    public LocationInfo Location { get; }
-    public LocationTypes LocationType => Location?.LocationType ?? LocationTypes.Neutral;
+    public LocationEncounterInfo Location { get; }
     public EncounterTypes EncounterType => Location?.EncounterType ?? EncounterTypes.Physical;
 
     public EncounterStatus(

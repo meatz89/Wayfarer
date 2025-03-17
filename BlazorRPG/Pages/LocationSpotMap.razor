@@ -157,15 +157,6 @@
         _ => "📦"
     };
 
-    private string GetCrowdIcon(CrowdDensity? crowdLevel) => crowdLevel switch
-    {
-        CrowdDensity.Deserted => "🕸️",
-        CrowdDensity.Quiet => "👤",
-        CrowdDensity.Bustling => "👥",
-        _ => "❓"
-    };
-
-
     private string FormatEnumString(string value)
     {
         return string.Concat(value

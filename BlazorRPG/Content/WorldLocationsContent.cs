@@ -2,10 +2,6 @@
 {
     public static Location WaysideInn => new LocationBuilder()
         .ForLocation(LocationNames.WaysideInn)
-        .WithArchetype(LocationArchetypes.Tavern)
-        .SetLocationType(LocationTypes.Residential)
-        .WithOpportunity(OpportunityTypes.Commercial)
-        .WithCrowdLevel(CrowdDensity.Bustling)
         .AddLocationSpot(spot => spot
             .WithName("Hearth")
             .WithAccessibility(Accessibility.Communal)
@@ -28,10 +24,6 @@
 
     public static Location Market => new LocationBuilder()
     .ForLocation(LocationNames.Market)
-    .WithArchetype(LocationArchetypes.Market)
-    .SetLocationType(LocationTypes.Commercial)
-    .WithOpportunity(OpportunityTypes.Commercial)
-    .WithCrowdLevel(CrowdDensity.Bustling)
     .AddLocationSpot(spot => spot
         .WithName("Market Stalls")
         .WithAccessibility(Accessibility.Public)

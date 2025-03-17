@@ -3,8 +3,6 @@
     private string description;
 
     private BasicActionTypes applicableActionType;
-    private LocationTypes applicableLocationType;
-
     private ItemTypes requiredResourceReward;
 
     private ItemTypes resourceReward;
@@ -32,12 +30,6 @@
     public ActionModifierBuilder ForActionType(BasicActionTypes actionType)
     {
         this.applicableActionType = actionType;
-        return this;
-    }
-
-    public ActionModifierBuilder ForLocationType(LocationTypes locationType)
-    {
-        this.applicableLocationType = locationType;
         return this;
     }
 
@@ -81,7 +73,6 @@
             Description = description,
             Source = source,
             ActionType = applicableActionType,
-            LocationType = applicableLocationType,
             TimeWindow = timeWindowToAdd,
             EnergyType = reducedEnergyType,
             EnergyReduction = reducedEnergyAmount,
@@ -101,7 +92,6 @@ public class ModifierConfiguration
     public string Description { get; set; }
     public string Source { get; set; }
     public BasicActionTypes ActionType { get; set; }
-    public LocationTypes LocationType { get; set; }
     public TimeWindows TimeWindow { get; set; }
     public EnergyTypes EnergyType { get; set; }
     public int EnergyReduction { get; set; }

@@ -90,7 +90,7 @@
         Location inn = context.LocationName;
 
         // Create a location
-        LocationInfo location = LocationFactory.CreateAncientLibrary();
+        LocationEncounterInfo location = LocationEncounterFactory.CreateAncientLibraryEncounter();
 
         // Create encounter manager
         encounterResult = await StartEncounterAt(location, playerState, actionImplementation);
@@ -104,7 +104,7 @@
     }
 
     public async Task<EncounterResult> StartEncounterAt(
-        LocationInfo location,
+        LocationEncounterInfo location,
         PlayerState playerState,
         ActionImplementation actionImplementation)
     {
@@ -198,7 +198,7 @@
     }
 
 
-    private static SpecialChoice GetSpecialChoiceFor(LocationInfo location)
+    private static SpecialChoice GetSpecialChoiceFor(LocationEncounterInfo location)
     {
         // Add special choices for this location
         return null;

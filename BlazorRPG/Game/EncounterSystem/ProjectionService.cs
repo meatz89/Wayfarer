@@ -4,9 +4,9 @@ public class ProjectionService
 {
     private readonly TagManager _tagManager;
     private readonly ResourceManager _resourceManager;
-    private readonly LocationInfo _location;
+    private readonly LocationEncounterInfo _location;
 
-    public ProjectionService(TagManager tagManager, ResourceManager resourceManager, LocationInfo location)
+    public ProjectionService(TagManager tagManager, ResourceManager resourceManager, LocationEncounterInfo location)
     {
         _tagManager = tagManager;
         _resourceManager = resourceManager;

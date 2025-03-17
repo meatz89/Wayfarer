@@ -39,12 +39,10 @@
         .WithActionModifier(actionModifier => actionModifier
             .WithDescription("Reduces physical strain when crafting")
             .ForActionType(BasicActionTypes.Labor)
-            .ForLocationType(LocationTypes.Industrial)
             .ReduceActionCost(EnergyTypes.Physical, 1))
         .WithActionModifier(actionModifier => actionModifier
             .WithDescription("Allows evening crafting")
             .ForActionType(BasicActionTypes.Labor)
-            .ForLocationType(LocationTypes.Industrial)
             .ForTimeWindow(TimeWindows.Dusk))
         .Build();
 }

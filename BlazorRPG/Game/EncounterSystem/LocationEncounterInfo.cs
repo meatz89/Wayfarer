@@ -1,7 +1,7 @@
 ﻿/// <summary>
 /// Represents a location in the game where encounters take place
 /// </summary>
-public class LocationInfo
+public class LocationEncounterInfo
 {
     public string Name { get; }
     public List<ApproachTags> FavoredApproaches { get; } = new List<ApproachTags>();
@@ -19,23 +19,15 @@ public class LocationInfo
     // How hostile is this location (affects tag balance)
     public enum HostilityLevels { Friendly, Neutral, Hostile }
     public HostilityLevels Hostility { get; }
+    public int Difficulty { get; set; }
 
     // Presentation style for this location
     public PresentationStyles Style { get; }
 
-    public LocationTypes LocationType { get; set; } // Industrial/Commercial/etc
     public LocationNames LocationName { get; set; }
-    public List<LocationNames> TravelConnections { get; set; }
-    public List<LocationSpot> LocationSpots { get; set; } // Action groupings
-    public int Difficulty { get; set; }
-    public LocationArchetypes LocationArchetype { get; }
-    public CrowdDensity CrowdDensity { get; }
-    public OpportunityTypes Opportunity { get; }
-    public ItemTypes ResourceType { get; }
-    public bool PlayerKnowledge { get; }
     public EncounterTypes EncounterType { get; internal set; }
 
-    public LocationInfo(
+    public LocationEncounterInfo(
         string name,
         List<ApproachTags> favoreApproaches,
         List<ApproachTags> disfavoredApproaches,

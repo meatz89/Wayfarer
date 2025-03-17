@@ -4,9 +4,9 @@ public class ResourceManager
 {
     private readonly PlayerState _playerState;
     private readonly TagManager _tagManager;
-    private readonly LocationInfo _location;
+    private readonly LocationEncounterInfo _location;
 
-    public ResourceManager(PlayerState playerState, TagManager tagManager, LocationInfo location)
+    public ResourceManager(PlayerState playerState, TagManager tagManager, LocationEncounterInfo location)
     {
         _playerState = playerState;
         _tagManager = tagManager;

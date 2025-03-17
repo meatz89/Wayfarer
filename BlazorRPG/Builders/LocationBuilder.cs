@@ -1,6 +1,5 @@
 ﻿public class LocationBuilder
 {
-    private LocationTypes locationType;
     private LocationNames locationName;
 
     private List<LocationNames> travelConnections = new();
@@ -8,34 +7,7 @@
     private int difficultyLevel;
 
     // Location properties
-    private LocationArchetypes locationArchetype;
-    private CrowdDensity crowdDensity;
-    private OpportunityTypes opportunity;
     private bool playerKnowledge;
-
-    public LocationBuilder WithArchetype(LocationArchetypes archetype)
-    {
-        this.locationArchetype = archetype;
-        return this;
-    }
-
-    public LocationBuilder WithCrowdLevel(CrowdDensity crowdDensity)
-    {
-        this.crowdDensity = crowdDensity;
-        return this;
-    }
-
-    public LocationBuilder WithOpportunity(OpportunityTypes opportunity)
-    {
-        this.opportunity = opportunity;
-        return this;
-    }
-
-    public LocationBuilder SetLocationType(LocationTypes type)
-    {
-        this.locationType = type;
-        return this;
-    }
 
     public LocationBuilder ForLocation(LocationNames name)
     {
@@ -80,15 +52,10 @@
     public Location Build()
     {
         return new Location(
-            locationType,
             locationName,
             travelConnections,
             locationSpots,
             difficultyLevel,
-            locationArchetype,
-            crowdDensity,
-            opportunity,
-            ItemTypes.None,
             playerKnowledge
         );
     }
