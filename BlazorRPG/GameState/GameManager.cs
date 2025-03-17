@@ -60,7 +60,7 @@ public class GameManager
         {
             ActionImplementation = actionImplementation,
             ActionType = actionImplementation.ActionType,
-            LocationName = location,
+            Location = location,
             LocationSpot = locationSpot,
         };
 

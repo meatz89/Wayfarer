@@ -88,22 +88,8 @@
         PlayerState playerState,
         ActionImplementation actionImplementation)
     {
-        Location inn = context.LocationName;
-
-        PresentationStyles presentationStyles = actionImplementation.ActionType switch
-        {
-            BasicActionTypes.Labor => PresentationStyles.Physical,
-            BasicActionTypes.Gather => PresentationStyles.Physical,
-            BasicActionTypes.Fight => PresentationStyles.Physical,
-
-            BasicActionTypes.Study => PresentationStyles.Intellectual,
-            BasicActionTypes.Investigate => PresentationStyles.Intellectual,
-            BasicActionTypes.Analyze => PresentationStyles.Intellectual,
-
-            BasicActionTypes.Discuss => PresentationStyles.Social,
-            BasicActionTypes.Persuade => PresentationStyles.Social,
-            BasicActionTypes.Perform => PresentationStyles.Social,
-        };
+        Location loc = context.Location;
+        PresentationStyles presentationStyles = GetPresentationStyleFromBaseAction(actionImplementation);
 
         // Create encounter from location and action
         LocationNames locationName = location.LocationName;
@@ -120,6 +106,24 @@
         gameState.Actions.SetActiveEncounter(Encounter);
 
         return encounterResult;
+    }
+
+    private static PresentationStyles GetPresentationStyleFromBaseAction(ActionImplementation actionImplementation)
+    {
+        return actionImplementation.ActionType switch
+        {
+            BasicActionTypes.Labor => PresentationStyles.Physical,
+            BasicActionTypes.Gather => PresentationStyles.Physical,
+            BasicActionTypes.Fight => PresentationStyles.Physical,
+
+            BasicActionTypes.Study => PresentationStyles.Intellectual,
+            BasicActionTypes.Investigate => PresentationStyles.Intellectual,
+            BasicActionTypes.Analyze => PresentationStyles.Intellectual,
+
+            BasicActionTypes.Discuss => PresentationStyles.Social,
+            BasicActionTypes.Persuade => PresentationStyles.Social,
+            BasicActionTypes.Perform => PresentationStyles.Social,
+        };
     }
 
     public async Task<EncounterResult> StartEncounterAt(
