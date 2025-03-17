@@ -22,9 +22,7 @@ public class LocationEncounterInfo
     public int Difficulty { get; set; }
 
     // Presentation style for this location
-    public PresentationStyles Style { get; }
-
-    public EncounterTypes EncounterType { get; internal set; }
+    public EncounterTypes EncounterType { get; set; }
 
     public LocationEncounterInfo(
         LocationNames locationName,
@@ -35,7 +33,7 @@ public class LocationEncounterInfo
         int standardThreshold,
         int exceptionalThreshold,
         HostilityLevels hostility,
-        PresentationStyles style)
+        EncounterTypes style)
     {
         LocationName = locationName;
         FavoredApproaches = favoreApproaches;
@@ -47,7 +45,7 @@ public class LocationEncounterInfo
 
         TurnDuration = duration;
         Hostility = hostility;
-        Style = style;
+        EncounterType = style;
     }
 
     public void AddTag(NarrativeTag narrativeTag)

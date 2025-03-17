@@ -135,7 +135,11 @@
         StartEncounter(encounter, playerState);
 
         // Create narrative context
-        _narrativeContext = new NarrativeContext(encounter.LocationName.ToString(), encounter.EncounterType, incitingAction, encounter.Style);
+        _narrativeContext =
+            new NarrativeContext(
+                encounter.LocationName.ToString(),
+                encounter.EncounterType,
+                incitingAction);
 
         // Generate introduction
         EncounterStatus status = GetEncounterStatus();

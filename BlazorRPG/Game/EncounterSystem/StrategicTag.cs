@@ -2,19 +2,16 @@
 {
     public string Name { get; }
     public StrategicEffectTypes EffectType { get; }
-    public FocusTags? AffectedFocus { get; }
-    public ApproachTags? ScalingApproachTag { get; }
+    public ApproachTags AffectedApproach { get; }
 
     public StrategicTag(
         string name,
         StrategicEffectTypes effectType,
-        FocusTags? affectedFocus = null,
-        ApproachTags? scalingApproachTag = null)
+        ApproachTags scalingApproachTag)
     {
         Name = name;
         EffectType = effectType;
-        AffectedFocus = affectedFocus;
-        ScalingApproachTag = scalingApproachTag;
+        AffectedApproach = scalingApproachTag;
     }
 
     // Strategic tags are ALWAYS active
@@ -29,47 +26,40 @@
         // Their effects are calculated during projection and then applied through the projection
     }
 
-    public int GetMomentumModifierForChoice(IChoice choice)
+    public int GetMomentumModifierForChoice(IChoice choice, BaseTagSystem tagSystem)
     {
         // Only apply if the focus matches (or if no focus is specified)
-        if (AffectedFocus.HasValue && choice.Focus != AffectedFocus.Value)
+        if (choice.Approach != AffectedApproach)
             return 0;
 
+        int approachValue = tagSystem.GetEncounterStateTagValue(AffectedApproach);
         switch (EffectType)
         {
             case StrategicEffectTypes.IncreaseMomentum:
-                return 1; // Base value, will be scaled by approach tag in ProjectionService
+                return 1 * approachValue;
             case StrategicEffectTypes.DecreaseMomentum:
-                return -1; // Base value, will be scaled by approach tag in ProjectionService
+                return -1 * approachValue;
             default:
                 return 0;
         }
     }
 
-    public int GetPressureModifierForChoice(IChoice choice)
+    public int GetPressureModifierForChoice(IChoice choice, BaseTagSystem tagSystem)
     {
         // Only apply if the focus matches (or if no focus is specified)
-        if (AffectedFocus.HasValue && choice.Focus != AffectedFocus.Value)
+        if (choice.Approach != AffectedApproach)
             return 0;
 
+        int approachValue = tagSystem.GetEncounterStateTagValue(AffectedApproach);
         switch (EffectType)
         {
             case StrategicEffectTypes.DecreasePressure:
-                return -1; // Base value, will be scaled by approach tag in ProjectionService
+                return -1 * approachValue;
             case StrategicEffectTypes.IncreasePressure:
-                return 1; // Base value, will be scaled by approach tag in ProjectionService
+                return 1 * approachValue;
             default:
                 return 0;
         }
-    }
-
-    public int GetScaledEffect(BaseTagSystem tagSystem)
-    {
-        if (!ScalingApproachTag.HasValue)
-            return 1; // Default value if no scaling is specified
-
-        int approachValue = tagSystem.GetEncounterStateTagValue(ScalingApproachTag.Value);
-        return approachValue / 2; // 1 effect point per 2 approach points
     }
 
     public string GetEffectDescription()
@@ -78,25 +68,20 @@
         switch (EffectType)
         {
             case StrategicEffectTypes.IncreaseMomentum:
-                baseDesc = "Adds momentum proportional to {0} value";
+                baseDesc = $"Adds momentum proportional to {AffectedApproach} value";
                 break;
             case StrategicEffectTypes.DecreasePressure:
-                baseDesc = "Reduces pressure proportional to {0} value";
+                baseDesc = $"Reduces pressure proportional to {AffectedApproach} value";
                 break;
             case StrategicEffectTypes.DecreaseMomentum:
-                baseDesc = "Reduces momentum proportional to {0} value";
+                baseDesc = $"Reduces momentum proportional to a{AffectedApproach}pproach value";
                 break;
             case StrategicEffectTypes.IncreasePressure:
-                baseDesc = "Adds pressure proportional to {0} value";
+                baseDesc = $"Adds pressure proportional to {AffectedApproach} value";
                 break;
         }
 
-        if (ScalingApproachTag.HasValue)
-        {
-            return string.Format(baseDesc, ScalingApproachTag.Value);
-        }
-
-        return baseDesc.Replace("{0}", "approach");
+        return baseDesc;
     }
 
     public string GetActivationDescription()

@@ -3,7 +3,7 @@
 public enum ResourceTypes
 {
     Health,
-    Focus,
+    Concentration,
     Confidence
 }
 

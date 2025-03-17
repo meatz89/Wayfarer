@@ -1,15 +1,11 @@
-﻿
-
-public class ResourceManager
+﻿public class ResourceManager
 {
     private readonly PlayerState _playerState;
-    private readonly TagManager _tagManager;
     private readonly LocationEncounterInfo _location;
 
-    public ResourceManager(PlayerState playerState, TagManager tagManager, LocationEncounterInfo location)
+    public ResourceManager(PlayerState playerState, LocationEncounterInfo location)
     {
         _playerState = playerState;
-        _tagManager = tagManager;
         _location = location;
     }
 
@@ -39,7 +35,7 @@ public class ResourceManager
     public int CalculatePressureResourceDamage(ResourceTypes resourceType, int currentPressure)
     {
         // Skip if no pressure or location doesn't apply pressure damage
-        if (currentPressure <= 0)
+        if (currentPressure <= 2)
             return 0;
 
         // Only return a value for the resource type affected by this encounter type
@@ -47,69 +43,23 @@ public class ResourceManager
         {
             case EncounterTypes.Physical:
                 if (resourceType == ResourceTypes.Health)
-                    return -currentPressure;
+                    return (int)-currentPressure / 3;
                 break;
 
             case EncounterTypes.Intellectual:
-                if (resourceType == ResourceTypes.Focus)
-                    return -currentPressure;
+                if (resourceType == ResourceTypes.Concentration)
+                    return (int)-currentPressure / 3;
                 break;
 
             case EncounterTypes.Social:
                 if (resourceType == ResourceTypes.Confidence)
-                    return -currentPressure;
+                    return (int)-currentPressure / 3;
                 break;
         }
 
         return 0;
     }
 
-    public int CalculateTagResourceChange(IChoice choice, ResourceTypes resourceType, int currentPressure, List<IEncounterTag> excludedTags = null)
-    {
-        int change = 0;
-
-        foreach (IEncounterTag tag in _tagManager.ActiveTags)
-        {
-            // Skip excluded tags (like newly activated ones)
-            if (excludedTags != null && excludedTags.Contains(tag))
-                continue;
-
-            if (tag is StrategicTag strategicTag)
-            {
-                if (strategicTag.AffectedFocus.HasValue && choice.Focus != strategicTag.AffectedFocus.Value)
-                    continue;
-
-                switch (resourceType)
-                {
-                    //case ResourceTypes.Health:
-                    //    if (strategicTag.EffectType == StrategicEffectTypes.ReduceHealthByPressure)
-                    //        change -= currentPressure;
-                    //    else if (strategicTag.EffectType == StrategicEffectTypes.ReduceHealthByApproachValue &&
-                    //             strategicTag.ScalingApproachTag.HasValue)
-                    //        change -= _tagManager.TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
-                    //    break;
-
-                    //case ResourceTypes.Focus:
-                    //    if (strategicTag.EffectType == StrategicEffectTypes.ReduceFocusByPressure)
-                    //        change -= currentPressure;
-                    //    else if (strategicTag.EffectType == StrategicEffectTypes.ReduceFocusByApproachValue &&
-                    //             strategicTag.ScalingApproachTag.HasValue)
-                    //        change -= _tagManager.TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
-                    //    break;
-
-                    //case ResourceTypes.Confidence:
-                    //    if (strategicTag.EffectType == StrategicEffectTypes.ReduceConfidenceByPressure)
-                    //        change -= currentPressure;
-                    //    else if (strategicTag.EffectType == StrategicEffectTypes.ReduceConfidenceByApproachValue &&
-                    //             strategicTag.ScalingApproachTag.HasValue)
-                    //        change -= _tagManager.TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
-                    //    break;
-                }
-            }
-        }
-
-        return change;
-    }
     public void ApplyResourceChanges(int healthChange, int focusChange, int confidenceChange)
     {
         if (healthChange != 0)

@@ -33,7 +33,7 @@ public class EncounterState
 
         // Initialize managers
         _tagManager = new TagManager();
-        _resourceManager = new ResourceManager(playerState, _tagManager, location);
+        _resourceManager = new ResourceManager(playerState, location);
         _projectionService = new ProjectionService(_tagManager, _resourceManager, location);
     }
 

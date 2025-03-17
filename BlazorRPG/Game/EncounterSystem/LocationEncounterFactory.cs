@@ -10,7 +10,7 @@ public static class LocationEncounterFactory
     /// </summary>
     public static LocationEncounterInfo CreateAncientLibraryEncounter(
         LocationNames locationName,
-        PresentationStyles presentationStyle)
+        EncounterTypes presentationStyle)
     {
         // Core properties for the Ancient Library
         LocationEncounterInfo location = new LocationEncounterInfo(

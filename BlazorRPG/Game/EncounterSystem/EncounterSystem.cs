@@ -89,7 +89,7 @@
         ActionImplementation actionImplementation)
     {
         Location loc = context.Location;
-        PresentationStyles presentationStyles = GetPresentationStyleFromBaseAction(actionImplementation);
+        EncounterTypes presentationStyles = GetPresentationStyleFromBaseAction(actionImplementation);
 
         // Create encounter from location and action
         LocationNames locationName = location.LocationName;
@@ -108,21 +108,21 @@
         return encounterResult;
     }
 
-    private static PresentationStyles GetPresentationStyleFromBaseAction(ActionImplementation actionImplementation)
+    private static EncounterTypes GetPresentationStyleFromBaseAction(ActionImplementation actionImplementation)
     {
         return actionImplementation.ActionType switch
         {
-            BasicActionTypes.Labor => PresentationStyles.Physical,
-            BasicActionTypes.Gather => PresentationStyles.Physical,
-            BasicActionTypes.Fight => PresentationStyles.Physical,
+            BasicActionTypes.Labor => EncounterTypes.Physical,
+            BasicActionTypes.Gather => EncounterTypes.Physical,
+            BasicActionTypes.Fight => EncounterTypes.Physical,
 
-            BasicActionTypes.Study => PresentationStyles.Intellectual,
-            BasicActionTypes.Investigate => PresentationStyles.Intellectual,
-            BasicActionTypes.Analyze => PresentationStyles.Intellectual,
+            BasicActionTypes.Study => EncounterTypes.Intellectual,
+            BasicActionTypes.Investigate => EncounterTypes.Intellectual,
+            BasicActionTypes.Analyze => EncounterTypes.Intellectual,
 
-            BasicActionTypes.Discuss => PresentationStyles.Social,
-            BasicActionTypes.Persuade => PresentationStyles.Social,
-            BasicActionTypes.Perform => PresentationStyles.Social,
+            BasicActionTypes.Discuss => EncounterTypes.Social,
+            BasicActionTypes.Persuade => EncounterTypes.Social,
+            BasicActionTypes.Perform => EncounterTypes.Social,
         };
     }
 

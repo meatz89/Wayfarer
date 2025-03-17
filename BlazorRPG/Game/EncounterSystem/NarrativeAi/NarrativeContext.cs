@@ -9,14 +9,12 @@ public class NarrativeContext
     public EncounterTypes EncounterType { get; }
     public string IncitingAction { get; }
     public List<NarrativeEvent> Events { get; } = new List<NarrativeEvent>();
-    public PresentationStyles CurrentStyle { get; set; }
 
-    public NarrativeContext(string location, EncounterTypes encounterType, string incitingAction, PresentationStyles style)
+    public NarrativeContext(string location, EncounterTypes encounterType, string incitingAction)
     {
         LocationName = location;
         EncounterType = encounterType;
         IncitingAction = incitingAction;
-        CurrentStyle = style;
     }
 
     public void AddEvent(NarrativeEvent narrativeEvent)
@@ -37,7 +35,7 @@ public class NarrativeContext
         StringBuilder prompt = new StringBuilder();
         prompt.AppendLine($"Location: {LocationName}");
         prompt.AppendLine($"Inciting Action: {IncitingAction}");
-        prompt.AppendLine($"Presentation Style: {CurrentStyle}");
+        prompt.AppendLine($"Presentation Style: {EncounterType}");
         prompt.AppendLine();
 
         foreach (NarrativeEvent evt in Events)
