@@ -74,7 +74,7 @@
                 baseDesc = $"Reduces pressure proportional to {AffectedApproach} value";
                 break;
             case StrategicEffectTypes.DecreaseMomentum:
-                baseDesc = $"Reduces momentum proportional to a{AffectedApproach}pproach value";
+                baseDesc = $"Reduces momentum proportional to {AffectedApproach} value";
                 break;
             case StrategicEffectTypes.IncreasePressure:
                 baseDesc = $"Adds pressure proportional to {AffectedApproach} value";
