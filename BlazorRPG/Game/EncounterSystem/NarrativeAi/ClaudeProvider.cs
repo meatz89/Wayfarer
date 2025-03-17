@@ -14,7 +14,7 @@ public class ClaudeProvider : IAIProvider
     {
         _httpClient = new HttpClient();
         _apiKey = configuration.GetValue<string>("Anthropic:ApiKey");
-        _model = configuration.GetValue<string>("Anthropic:Model") ?? "claude-3-haiku-20240307";
+        _model = configuration.GetValue<string>("Anthropic:Model") ?? "claude-3-5-haiku-latest";
         _logger = logger;
 
         // Anthropic uses different headers than OpenAI and Gemini

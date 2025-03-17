@@ -13,7 +13,7 @@
     {
         _gameInstanceId = $"game_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString().Substring(0, 8)}";
 
-        _aiClient = new AIClientService(aiProvider, _gameInstanceId);
+        _aiClient = new AIClientService(aiProvider, _gameInstanceId, logger);
         _promptManager = new PromptManager(configuration);
         _contextManager = new NarrativeContextManager();
         _logger = logger;
