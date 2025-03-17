@@ -3,13 +3,13 @@
     protected readonly AIClientService _aiClient;
     protected readonly PromptManager _promptManager;
     protected readonly NarrativeContextManager _contextManager;
-    protected readonly ILogger _logger;
+    protected readonly ILogger<EncounterSystem> _logger;
     protected readonly string _gameInstanceId;
 
     protected BaseNarrativeAIService(
         IAIProvider aiProvider,
         IConfiguration configuration,
-        ILogger logger = null)
+        ILogger<EncounterSystem> logger)
     {
         _gameInstanceId = $"game_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString().Substring(0, 8)}";
 

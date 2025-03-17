@@ -1,7 +1,7 @@
 ﻿public class Gemma3NarrativeService : BaseNarrativeAIService
 {
-    public Gemma3NarrativeService(IConfiguration configuration, ILogger<Gemma3NarrativeService> logger = null)
-        : base(new Gemma3Provider(configuration), configuration, logger)
+    public Gemma3NarrativeService(IConfiguration configuration, ILogger<EncounterSystem> logger)
+        : base(new Gemma3Provider(configuration, logger), configuration, logger)
     {
     }
 
@@ -79,6 +79,6 @@
 
         string jsonResponse = await _aiClient.GetCompletionAsync(_contextManager.GetConversationHistory(conversationId));
         _contextManager.AddAssistantMessage(conversationId, jsonResponse);
-        return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
+        return NarrativeJsonChoicesParser.ParseChoiceResponse(jsonResponse, choices);
     }
 }

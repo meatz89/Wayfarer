@@ -1,6 +1,6 @@
 ﻿public class GPTNarrativeService : BaseNarrativeAIService
 {
-    public GPTNarrativeService(IConfiguration configuration, ILogger<GPTNarrativeService> logger = null)
+    public GPTNarrativeService(IConfiguration configuration, ILogger<EncounterSystem> logger)
         : base(new OpenAIProvider(configuration), configuration, logger)
     {
     }
@@ -109,6 +109,6 @@
         _contextManager.AddAssistantMessage(conversationId, jsonResponse);
 
         // Parse the JSON response into choice narratives
-        return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
+        return NarrativeJsonChoicesParser.ParseChoiceResponse(jsonResponse, choices);
     }
 }

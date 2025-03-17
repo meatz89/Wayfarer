@@ -10,7 +10,7 @@ public class BaseTagSystem
     public const int MaxTagValue = 5;
 
     public static BaseTagSystem FromPreviousState(
-        Dictionary<EncounterStateTags, int> previousApproachValues, 
+        Dictionary<EncounterStateTags, int> previousApproachValues,
         Dictionary<FocusTags, int> previousFocusValues)
     {
         BaseTagSystem fromState = new BaseTagSystem();

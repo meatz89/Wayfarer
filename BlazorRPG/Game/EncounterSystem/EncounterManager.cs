@@ -14,18 +14,15 @@
     public EncounterManager(
         ActionImplementation actionImplementation,
         CardSelectionAlgorithm cardSelector,
+        SwitchableNarrativeService narrativeService,
         bool useAiNarrative,
         IConfiguration configuration,
-        ILogger logger = null)
+        ILogger<EncounterSystem> logger)
     {
         ActionImplementation = actionImplementation;
         _cardSelector = cardSelector;
         _useAiNarrative = useAiNarrative;
-
-        if (_useAiNarrative)
-        {
-            _narrativeService = new SwitchableNarrativeService(configuration);
-        }
+        _narrativeService = narrativeService;
     }
 
     // Add methods to control AI provider selection
@@ -222,13 +219,16 @@
         // If the encounter is over, return the outcome
         if (outcome.IsEncounterOver)
         {
-            return new NarrativeResult(
+            NarrativeResult narrativeResult = new(
                 narrative,
                 new List<IChoice>(),
                 new List<ChoiceProjection>(),
-                new Dictionary<IChoice, ChoiceNarrative>(),
-                outcome.IsEncounterOver,
-                outcome.Outcome);
+                new Dictionary<IChoice, ChoiceNarrative>());
+
+            narrativeResult.SetOutcome(outcome.Outcome);
+            narrativeResult.SetIsEncounterOver(outcome.IsEncounterOver);
+
+            return narrativeResult;
         }
 
         // Get the new choices and projections

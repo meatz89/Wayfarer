@@ -2,16 +2,18 @@
 {
     private readonly Dictionary<AIProviderType, INarrativeAIService> _providers;
     private AIProviderType _currentProvider;
-    private readonly ILogger _logger;
+    private readonly ILogger<EncounterSystem> _logger;
 
-    public SwitchableNarrativeService(IConfiguration configuration)
+    public SwitchableNarrativeService(IConfiguration configuration, ILogger<EncounterSystem> logger)
     {
+        _logger = logger;
+
         // Initialize all providers in a dictionary for easier access
         _providers = new Dictionary<AIProviderType, INarrativeAIService>
         {
-            { AIProviderType.OpenAI, new GPTNarrativeService(configuration) },
-            { AIProviderType.Gemma3, new Gemma3NarrativeService(configuration) },
-            { AIProviderType.Claude, new ClaudeNarrativeService(configuration) }
+            { AIProviderType.OpenAI, new GPTNarrativeService(configuration, _logger) },
+            { AIProviderType.Gemma3, new Gemma3NarrativeService(configuration, _logger) },
+            { AIProviderType.Claude, new ClaudeNarrativeService(configuration, _logger) }
         };
 
         // Set default provider from configuration

@@ -35,7 +35,6 @@ public class EncounterStatus
 
         // Initialize empty collections for the added properties
         ActiveTags = new List<IEncounterTag>();
-        Location = null;
     }
 
 }

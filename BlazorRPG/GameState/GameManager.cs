@@ -69,7 +69,7 @@ public class GameManager
 
         EncounterManager encounterManager = GetEncounter();
         List<UserEncounterChoiceOption> userEncounterChoiceOptions = EncounterSystem.GetUserEncounterChoiceOptions();
-        
+
         EncounterState state = encounterManager.State;
         EncounterResult encounterResult = EncounterResult;
 

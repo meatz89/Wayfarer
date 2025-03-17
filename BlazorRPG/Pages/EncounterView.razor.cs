@@ -15,7 +15,7 @@ public partial class EncounterViewBase : ComponentBase
     public double mouseY;
 
     public bool IsLoading = true;
-    
+
 
     // Add these methods to expose the enum values to the view
     public EncounterStateTags[] GetApproachTags() => Enum.GetValues<EncounterStateTags>();
@@ -26,7 +26,7 @@ public partial class EncounterViewBase : ComponentBase
     {
         return GameManager.GetEncounterViewModel();
     }
-    
+
     protected override async Task OnInitializedAsync()
     {
         if (GetEncounter() == null)
@@ -188,7 +188,7 @@ public partial class EncounterViewBase : ComponentBase
             mouseY = e.ClientY - dimensions.TooltipHeight - 10; // Position above, with offset
         }
     }
-    
+
     public void HideTooltip()
     {
         hoveredChoice = null;

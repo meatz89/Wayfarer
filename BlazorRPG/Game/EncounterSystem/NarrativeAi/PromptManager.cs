@@ -83,7 +83,7 @@ public class PromptManager
         string narrativeSummary = CreateSummary(context);
 
         // Get encounter type from presentation style
-        string encounterStyleGuidance = GetEncounterStyleGuidance(context.EncounterType);
+        string encounterType = GetEncounterStyleGuidance(context.EncounterType);
 
         // Determine turn information from events
         int currentTurn = context.Events.Count > 0 ? context.Events.Count : 1;
@@ -137,7 +137,7 @@ public class PromptManager
             .Replace("{STRATEGIC_EFFECTS}", strategicEffects.ToString())
             .Replace("{CURRENT_TURN}", currentTurn.ToString())
             .Replace("{MAX_TURNS}", maxTurns.ToString())
-            .Replace("{ENCOUNTER_STYLE_GUIDANCE}", encounterStyleGuidance);
+            .Replace("{ENCOUNTER_STYLE_GUIDANCE}", encounterType);
 
         return prompt;
     }
@@ -167,7 +167,7 @@ public class PromptManager
         // Format the active narrative tags for choice blocking awareness
         StringBuilder narrativeTagsInfo = new StringBuilder();
         narrativeTagsInfo.AppendLine("## Active Narrative Tags:");
-        foreach (var tag in state.ActiveTags.Where(t => t is NarrativeTag))
+        foreach (IEncounterTag? tag in state.ActiveTags.Where(t => t is NarrativeTag))
         {
             NarrativeTag narrativeTag = (NarrativeTag)tag;
             narrativeTagsInfo.AppendLine($"- {tag.Name}: Blocks {narrativeTag.BlockedFocus} focus choices");
@@ -206,17 +206,17 @@ Choice {i + 1}: {choice.Name}
             }
 
             // Add any strategic tag effects
-            var momentumComponents = projection.MomentumComponents.Where(c => c.Source != "Momentum Choice Base").ToList();
-            var pressureComponents = projection.PressureComponents.Where(c => c.Source != "Pressure Choice Base").ToList();
+            List<ChoiceProjection.ValueComponent> momentumComponents = projection.MomentumComponents.Where(c => c.Source != "Momentum Choice Base").ToList();
+            List<ChoiceProjection.ValueComponent> pressureComponents = projection.PressureComponents.Where(c => c.Source != "Pressure Choice Base").ToList();
 
             if (momentumComponents.Any() || pressureComponents.Any())
             {
                 choicesInfo.AppendLine("- Strategic Effects:");
-                foreach (var comp in momentumComponents)
+                foreach (ChoiceProjection.ValueComponent? comp in momentumComponents)
                 {
                     choicesInfo.AppendLine($"  * {comp.Source}: {comp.Value} momentum");
                 }
-                foreach (var comp in pressureComponents)
+                foreach (ChoiceProjection.ValueComponent? comp in pressureComponents)
                 {
                     choicesInfo.AppendLine($"  * {comp.Source}: {comp.Value} pressure");
                 }
@@ -258,16 +258,13 @@ Choice {i + 1}: {choice.Name}
     {
         string template = _promptTemplates[INTRO_KEY];
 
-        // Get encounter type from presentation style if available, otherwise use Physical as default
-        EncounterTypes encounterType = state.Location?.EncounterType ?? EncounterTypes.Physical;
-
         // Get primary approach values
-        var primaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).First().Key.ToString();
-        var secondaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).Skip(1).First().Key.ToString();
+        string primaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).First().Key.ToString();
+        string secondaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).Skip(1).First().Key.ToString();
 
         // Get significant focus tags
-        var primaryFocus = state.FocusTags.OrderByDescending(t => t.Value).First().Key.ToString();
-        var secondaryFocus = state.FocusTags.OrderByDescending(t => t.Value).Skip(1).First().Key.ToString();
+        string primaryFocus = state.FocusTags.OrderByDescending(t => t.Value).First().Key.ToString();
+        string secondaryFocus = state.FocusTags.OrderByDescending(t => t.Value).Skip(1).First().Key.ToString();
 
         // Format environment and NPC details
         string environmentDetails = $"A {context.LocationName.ToLower()} with difficulty level {state.Location?.Difficulty ?? 1}";
@@ -291,7 +288,7 @@ Choice {i + 1}: {choice.Name}
 
         // Replace placeholders in template
         string prompt = template
-            .Replace("{ENCOUNTER_TYPE}", encounterType.ToString())
+            .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
             .Replace("{LOCATION_NAME}", context.LocationName)
             .Replace("{CHARACTER_ARCHETYPE}", characterArchetype)
             .Replace("{APPROACH_STATS}", approachStats)
@@ -313,7 +310,7 @@ Choice {i + 1}: {choice.Name}
         if (outcome.EncounterStateTagChanges.Any())
         {
             changes.AppendLine("Tag changes that should be reflected in narrative:");
-            foreach (var change in outcome.EncounterStateTagChanges)
+            foreach (KeyValuePair<EncounterStateTags, int> change in outcome.EncounterStateTagChanges)
             {
                 if (Math.Abs(change.Value) >= 2) // Only emphasize significant changes
                 {
@@ -331,7 +328,7 @@ Choice {i + 1}: {choice.Name}
                 changes.AppendLine("Tag changes that should be reflected in narrative:");
             }
 
-            foreach (var change in outcome.FocusTagChanges)
+            foreach (KeyValuePair<FocusTags, int> change in outcome.FocusTagChanges)
             {
                 if (Math.Abs(change.Value) >= 2) // Only emphasize significant changes
                 {
@@ -366,7 +363,7 @@ Choice {i + 1}: {choice.Name}
             return "No significant approach changes";
 
         StringBuilder builder = new StringBuilder();
-        foreach (var change in approachChanges)
+        foreach (KeyValuePair<EncounterStateTags, int> change in approachChanges)
         {
             builder.AppendLine($"- {change.Key}: {(change.Value > 0 ? "+" : "")}{change.Value}");
         }
@@ -380,7 +377,7 @@ Choice {i + 1}: {choice.Name}
             return "No significant focus changes";
 
         StringBuilder builder = new StringBuilder();
-        foreach (var change in focusChanges)
+        foreach (KeyValuePair<FocusTags, int> change in focusChanges)
         {
             builder.AppendLine($"- {change.Key}: {(change.Value > 0 ? "+" : "")}{change.Value}");
         }
@@ -394,7 +391,7 @@ Choice {i + 1}: {choice.Name}
             return "No newly activated tags";
 
         StringBuilder builder = new StringBuilder();
-        foreach (var tag in newTags)
+        foreach (string tag in newTags)
         {
             builder.AppendLine($"- {tag}");
         }
@@ -430,7 +427,7 @@ Choice {i + 1}: {choice.Name}
     private string FormatApproachValues(EncounterStatus state)
     {
         List<string> approaches = new List<string>();
-        foreach (var approach in state.ApproachTags)
+        foreach (KeyValuePair<EncounterStateTags, int> approach in state.ApproachTags)
         {
             approaches.Add($"{approach.Key} {approach.Value}");
         }
@@ -479,7 +476,7 @@ Choice {i + 1}: {choice.Name}
     private EncounterStateTags GetPrimaryApproach(IChoice choice)
     {
         // Find the approach tag with the largest modification
-        var approachMods = choice.TagModifications
+        List<TagModification> approachMods = choice.TagModifications
             .Where(m => m.Type == TagModification.TagTypes.EncounterState)
             .Where(m => IsApproachTag((EncounterStateTags)m.Tag))
             .OrderByDescending(m => m.Delta)
@@ -517,7 +514,7 @@ Choice {i + 1}: {choice.Name}
 
         for (int i = context.Events.Count - eventCount; i < context.Events.Count; i++)
         {
-            var evt = context.Events[i];
+            NarrativeEvent evt = context.Events[i];
             recentEvents.Add($"Turn {evt.TurnNumber}: {SummarizeEvent(evt)}");
         }
 

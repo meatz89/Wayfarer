@@ -1,7 +1,7 @@
 ﻿public class ClaudeNarrativeService : BaseNarrativeAIService
 {
-    public ClaudeNarrativeService(IConfiguration configuration, ILogger<ClaudeNarrativeService> logger = null)
-        : base(new ClaudeProvider(configuration), configuration, logger)
+    public ClaudeNarrativeService(IConfiguration configuration, ILogger<EncounterSystem> logger)
+        : base(new ClaudeProvider(configuration, logger), configuration, logger)
     {
     }
     public override async Task<string> GenerateIntroductionAsync(NarrativeContext context, string incitingAction, EncounterStatus state)
@@ -89,6 +89,6 @@
 
         _contextManager.AddAssistantMessage(conversationId, jsonResponse);
 
-        return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
+        return NarrativeJsonChoicesParser.ParseChoiceResponse(jsonResponse, choices);
     }
 }

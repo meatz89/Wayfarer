@@ -3,14 +3,15 @@ using System.Text.Json;
 
 public class ClaudeProvider : IAIProvider
 {
+    private const string RequestUri = "https://api.anthropic.com/v1/messages";
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
     private readonly string _model;
-    private readonly ILogger<ClaudeProvider> _logger;
+    private readonly ILogger<EncounterSystem> _logger;
 
     public string Name => "Anthropic Claude";
 
-    public ClaudeProvider(IConfiguration configuration, ILogger<ClaudeProvider> logger = null)
+    public ClaudeProvider(IConfiguration configuration, ILogger<EncounterSystem> logger)
     {
         _httpClient = new HttpClient();
         _apiKey = configuration.GetValue<string>("Anthropic:ApiKey");
@@ -25,11 +26,12 @@ public class ClaudeProvider : IAIProvider
     public async Task<string> GetCompletionAsync(IEnumerable<ConversationEntry> messages)
     {
         // Extract system message if present
-        string systemMessage = null;
         List<ConversationEntry> messagesList = messages.ToList();
 
         // Find and extract system message
         ConversationEntry systemEntry = messagesList.FirstOrDefault(m => m.Role.ToLower() == "system");
+        
+        string systemMessage = null;
         if (systemEntry != null)
         {
             systemMessage = systemEntry.Content;
@@ -59,7 +61,7 @@ public class ClaudeProvider : IAIProvider
         try
         {
             _logger?.LogInformation($"Sending request to Anthropic API for model {_model}");
-            HttpResponseMessage response = await _httpClient.PostAsync("https://api.anthropic.com/v1/messages", content);
+            HttpResponseMessage response = await TalkToClaude(content);
 
             _logger?.LogInformation($"Received response with status code: {response.StatusCode}");
 
@@ -87,5 +89,16 @@ public class ClaudeProvider : IAIProvider
             _logger?.LogError($"Key Not Found Error: {ex.Message}");
             throw;
         }
+    }
+
+    /// <summary>
+    /// Talk to Claude
+    /// </summary>
+    /// <param name="content"></param>
+    /// <returns></returns>
+    private async Task<HttpResponseMessage> TalkToClaude(StringContent content)
+    {
+        // Talk to Claude
+        return await _httpClient.PostAsync(RequestUri, content);
     }
 }

@@ -23,7 +23,7 @@
         }
     }
 
-    public void UpdateActiveTags(IEnumerable<IEncounterTag> locationTags, EncounterState state = null)
+    public void UpdateActiveTags(IEnumerable<IEncounterTag> locationTags)
     {
         HashSet<string> previouslyActive = new HashSet<string>(ActiveTags.Select(t => t.Name));
 
@@ -37,10 +37,6 @@
             if (shouldActivate)
             {
                 ActiveTags.Add(tag);
-
-                // Apply effect to the provided state or directly to this manager
-                if (state != null)
-                    tag.ApplyEffect(state);
             }
         }
     }

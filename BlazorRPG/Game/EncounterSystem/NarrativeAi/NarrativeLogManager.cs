@@ -7,8 +7,10 @@ public class NarrativeLogManager
     private readonly string _gameInstanceId;
     private readonly JsonSerializerOptions _jsonOptions;
 
-    public NarrativeLogManager(string gameInstanceId = null)
+    public NarrativeLogManager()
     {
+        var gameInstanceId = string.Empty;
+
         // Set base directory to C:\Logs
         _baseLogDirectory = Path.Combine("C:", "Logs");
 
@@ -40,7 +42,7 @@ public class NarrativeLogManager
     /// <summary>
     /// Gets the full path for the next log file
     /// </summary>
-    public string GetNextLogFilePath(string conversationId = null)
+    public string GetNextLogFilePath(string conversationId)
     {
         string gameInstanceDir = GetGameInstanceDirectory();
         string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
@@ -58,9 +60,9 @@ public class NarrativeLogManager
         string conversationId,
         List<ConversationEntry> history,
         object requestBody,
-        string jsonResponse = null,
-        string generatedContent = null,
-        string errorMessage = null)
+        string jsonResponse,
+        string generatedContent,
+        string errorMessage)
     {
         string logFilePath = GetNextLogFilePath(conversationId);
 

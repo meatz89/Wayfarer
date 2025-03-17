@@ -2,6 +2,7 @@
 {
     private readonly GameState gameState;
     private readonly IConfiguration configuration;
+    private readonly ILogger<EncounterSystem> logger;
     private readonly SwitchableNarrativeService narrativeService;
     private AIProviderType currentAIProvider;
 
@@ -14,13 +15,15 @@
         GameState gameState,
         MessageSystem messageSystem,
         GameContentProvider contentProvider,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ILogger<EncounterSystem> logger)
     {
         this.gameState = gameState;
         this.configuration = configuration;
+        this.logger = logger;
 
         // Create the switchable narrative service
-        this.narrativeService = new SwitchableNarrativeService(configuration);
+        this.narrativeService = new SwitchableNarrativeService(configuration, logger);
 
         // Initialize with the default provider from config
         string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "OpenAI";
@@ -139,8 +142,10 @@
         EncounterManager encounterManager = new EncounterManager(
             actionImplementation,
             cardSelector,
+            narrativeService,
             useAiNarrative,
-            configuration);
+            configuration,
+            logger);
 
         // Set the current AI provider
         encounterManager.SwitchAIProvider(currentAIProvider);
@@ -174,10 +179,10 @@
         IChoice choice)
     {
         NarrativeResult currentResult = narrativeResult;
-        ChoiceNarrative selectedDescription = null;
 
         Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = currentResult.ChoiceDescriptions;
 
+        ChoiceNarrative selectedDescription = null;
         if (currentResult.ChoiceDescriptions != null && choiceDescriptions.ContainsKey(choice))
         {
             selectedDescription = currentResult.ChoiceDescriptions[choice];

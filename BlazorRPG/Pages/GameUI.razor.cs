@@ -42,7 +42,7 @@ public partial class GameUI : ComponentBase
     // Tooltip Logic
     public bool showAreaMap = true;
     public bool showTooltip = false;
-    public UserActionOption hoveredAction = null;
+    public UserActionOption hoveredAction;
 
     private double mouseX;
     private double mouseY;

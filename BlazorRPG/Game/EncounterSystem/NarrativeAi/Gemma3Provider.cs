@@ -6,11 +6,11 @@ public class Gemma3Provider : IAIProvider
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
     private readonly string _endpoint;
-    private readonly ILogger<Gemma3Provider> _logger;
+    private readonly ILogger<EncounterSystem> _logger;
 
     public string Name => "Google Gemma 3 27B";
 
-    public Gemma3Provider(IConfiguration configuration, ILogger<Gemma3Provider> logger = null)
+    public Gemma3Provider(IConfiguration configuration, ILogger<EncounterSystem> logger)
     {
         _httpClient = new HttpClient();
         _apiKey = configuration.GetValue<string>("Gemma:ApiKey");
