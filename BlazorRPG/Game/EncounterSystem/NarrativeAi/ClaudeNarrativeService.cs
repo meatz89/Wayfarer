@@ -20,9 +20,6 @@
         return response;
     }
 
-    // Implement the remaining methods identically to GPTNarrativeService
-    // (GenerateReactionAndSceneAsync and GenerateChoiceDescriptionsAsync)
-    // since the implementation logic is the same across providers
     public override async Task<string> GenerateReactionAndSceneAsync(
         NarrativeContext context,
         IChoice chosenOption,
