@@ -83,7 +83,7 @@ public class PromptManager
         }
 
         // Add significant encounter state tag changes
-        foreach (KeyValuePair<ApproachTags, int> change in outcome.EncounterStateTagChanges)
+        foreach (KeyValuePair<EncounterStateTags, int> change in outcome.EncounterStateTagChanges)
         {
             if (Math.Abs(change.Value) >= 2)
             {
@@ -156,20 +156,20 @@ public class PromptManager
         };
     }
 
-    private string GetEncounterStateTagChangeDescription(ApproachTags tag, bool isPositive)
+    private string GetEncounterStateTagChangeDescription(EncounterStateTags tag, bool isPositive)
     {
         return (tag, isPositive) switch
         {
-            (ApproachTags.Dominance, true) => "increased authority, command, or intimidation factor",
-            (ApproachTags.Dominance, false) => "diminished influence, weakened position, or reduced credibility",
-            (ApproachTags.Rapport, true) => "improved social connection, trust, or relationship building",
-            (ApproachTags.Rapport, false) => "damaged relationships, distrust, or social distance",
-            (ApproachTags.Analysis, true) => "enhanced understanding, insights gained, or clarity of thought",
-            (ApproachTags.Analysis, false) => "confusion, misunderstanding, or incomplete information",
-            (ApproachTags.Precision, true) => "refined control, careful movement, or improved accuracy",
-            (ApproachTags.Precision, false) => "clumsiness, imprecision, or reduced physical control",
-            (ApproachTags.Concealment, true) => "improved stealth, deeper shadows, or reduced visibility",
-            (ApproachTags.Concealment, false) => "increased exposure, visibility, or attention drawn",
+            (EncounterStateTags.Dominance, true) => "increased authority, command, or intimidation factor",
+            (EncounterStateTags.Dominance, false) => "diminished influence, weakened position, or reduced credibility",
+            (EncounterStateTags.Rapport, true) => "improved social connection, trust, or relationship building",
+            (EncounterStateTags.Rapport, false) => "damaged relationships, distrust, or social distance",
+            (EncounterStateTags.Analysis, true) => "enhanced understanding, insights gained, or clarity of thought",
+            (EncounterStateTags.Analysis, false) => "confusion, misunderstanding, or incomplete information",
+            (EncounterStateTags.Precision, true) => "refined control, careful movement, or improved accuracy",
+            (EncounterStateTags.Precision, false) => "clumsiness, imprecision, or reduced physical control",
+            (EncounterStateTags.Concealment, true) => "improved stealth, deeper shadows, or reduced visibility",
+            (EncounterStateTags.Concealment, false) => "increased exposure, visibility, or attention drawn",
             _ => "notable change in encounter state"
         };
     }

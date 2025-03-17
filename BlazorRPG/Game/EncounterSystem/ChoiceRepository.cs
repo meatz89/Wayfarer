@@ -18,7 +18,7 @@ public class ChoiceRepository
             "Display of Force",
             "You demonstrate your physical power and authority to intimidate others.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Dominance, 2),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
@@ -26,7 +26,7 @@ public class ChoiceRepository
             "Command Attention",
             "You take control of the conversation through sheer force of personality.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Dominance, 2),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
@@ -34,7 +34,7 @@ public class ChoiceRepository
             "Forceful Interrogation",
             "You demand answers, making it clear that evasion will not be tolerated.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Dominance, 2),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
@@ -42,7 +42,7 @@ public class ChoiceRepository
             "Control Territory",
             "You secure key positions in the area, establishing dominance over the physical space.",
             FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Dominance, 2),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
@@ -50,7 +50,7 @@ public class ChoiceRepository
             "Forceful Acquisition",
             "You seize resources through superior strength, making it clear they now belong to you.",
             FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Dominance, 2),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
@@ -59,7 +59,7 @@ public class ChoiceRepository
             "Stand Ground",
             "You refuse to be intimidated, standing tall and maintaining your position despite challenges.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Dominance, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
@@ -67,7 +67,7 @@ public class ChoiceRepository
             "Establish Boundaries",
             "You clearly establish what you will and won't tolerate, setting firm expectations.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Dominance, 1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
@@ -75,7 +75,7 @@ public class ChoiceRepository
             "Silence Doubts",
             "You shut down skepticism with authoritative statements, preventing uncertainty from spreading.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Dominance, 1),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
@@ -83,7 +83,7 @@ public class ChoiceRepository
             "Secure Position",
             "You take control of defensible terrain, reducing vulnerability to attacks or surprises.",
             FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Dominance, 1),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
@@ -91,7 +91,7 @@ public class ChoiceRepository
             "Control Resources",
             "You guard important supplies, ensuring they remain secure and available when needed.",
             FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Dominance, 1),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
@@ -100,7 +100,7 @@ public class ChoiceRepository
             "Charming Words",
             "You engage with warmth and genuine interest, making others feel valued and understood.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Rapport, 2),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
@@ -108,7 +108,7 @@ public class ChoiceRepository
             "Friendly Inquiry",
             "You ask questions with warmth and interest that encourages others to share information.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Rapport, 2),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
@@ -116,7 +116,7 @@ public class ChoiceRepository
             "Coordinated Effort",
             "You foster teamwork that makes physical coordination feel natural and effortless.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Rapport, 2),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
@@ -124,7 +124,7 @@ public class ChoiceRepository
             "Create Ambiance",
             "You transform the atmosphere through your social presence, making the environment work in your favor.",
             FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Rapport, 2),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
@@ -132,7 +132,7 @@ public class ChoiceRepository
             "Negotiate Terms",
             "You propose a mutually beneficial arrangement regarding resources or payment.",
             FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Rapport, 2),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
@@ -141,7 +141,7 @@ public class ChoiceRepository
             "Smooth Over",
             "You defuse tension with well-chosen words and genuine empathy, easing strained relationships.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Rapport, 1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
@@ -149,7 +149,7 @@ public class ChoiceRepository
             "Reassuring Words",
             "You share information in a calming manner that alleviates fears and reduces pressure.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Rapport, 1),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
@@ -157,7 +157,7 @@ public class ChoiceRepository
             "Gentle Approach",
             "Your non-threatening body language helps others relax their guard around you.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Rapport, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
@@ -165,7 +165,7 @@ public class ChoiceRepository
             "Create Safe Space",
             "You cultivate an atmosphere where everyone feels secure enough to let their guard down.",
             FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Rapport, 1),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
@@ -173,7 +173,7 @@ public class ChoiceRepository
             "Fair Distribution",
             "You ensure everyone feels fairly treated in how resources are shared or allocated.",
             FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Rapport, 1),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
@@ -182,7 +182,7 @@ public class ChoiceRepository
             "Analytical Insight",
             "You identify critical connections between seemingly unrelated pieces of information.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Analysis, 2),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
@@ -190,7 +190,7 @@ public class ChoiceRepository
             "Systematic Approach",
             "You develop a step-by-step methodology to tackle the complex problem efficiently.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Analysis, 2),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
@@ -198,7 +198,7 @@ public class ChoiceRepository
             "Assess Relationships",
             "You methodically map out the relationships and power dynamics at play in the social situation.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Analysis, 2),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
@@ -206,7 +206,7 @@ public class ChoiceRepository
             "Environmental Analysis",
             "You critically examine how the environment contains clues relevant to your investigation.",
             FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Analysis, 2),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
@@ -214,7 +214,7 @@ public class ChoiceRepository
             "Resource Evaluation",
             "You assess which resources and assets will be most valuable in the current context.",
             FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Analysis, 2),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
@@ -223,7 +223,7 @@ public class ChoiceRepository
             "Careful Consideration",
             "You consider all available information before acting, avoiding potential missteps.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Analysis, 1),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
@@ -231,7 +231,7 @@ public class ChoiceRepository
             "Calculate Risks",
             "You assess potential risks and pitfalls before taking action, avoiding mistakes.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Analysis, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
@@ -239,7 +239,7 @@ public class ChoiceRepository
             "Understand Motivations",
             "You discern underlying motivations, helping you avoid unnecessary social conflicts.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Analysis, 1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
@@ -247,7 +247,7 @@ public class ChoiceRepository
             "Identify Safe Zones",
             "You locate areas of safety or advantage within the environment, reducing vulnerability.",
             FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Analysis, 1),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
@@ -255,7 +255,7 @@ public class ChoiceRepository
             "Efficient Resource Use",
             "You conserve energy and supplies through careful planning, ensuring nothing is wasted.",
             FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Analysis, 1),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
@@ -264,7 +264,7 @@ public class ChoiceRepository
             "Precise Strike",
             "You execute a perfectly timed movement with flawless technique for maximum effect.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Precision, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Precision, 2),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
@@ -272,7 +272,7 @@ public class ChoiceRepository
             "Targeted Question",
             "You ask the perfect question that gets directly to the heart of what you need to know.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Precision, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Precision, 2),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
@@ -280,7 +280,7 @@ public class ChoiceRepository
             "Perfect Timing",
             "You choose the perfect moment to make your request or share your thoughts.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Precision, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Precision, 2),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
@@ -288,7 +288,7 @@ public class ChoiceRepository
             "Pinpoint Weakness",
             "You locate the exact structural weakness or advantage in the environment to exploit.",
             FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Precision, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Precision, 2),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
@@ -296,7 +296,7 @@ public class ChoiceRepository
             "Exact Measurement",
             "You use resources with perfect economy, achieving maximum effect with minimum waste.",
             FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Precision, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Precision, 2),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
@@ -305,7 +305,7 @@ public class ChoiceRepository
             "Measured Response",
             "You move with deliberate control, minimizing strain and risk of injury.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Precision, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Precision, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
@@ -313,7 +313,7 @@ public class ChoiceRepository
             "Clear Communication",
             "You express yourself with perfect clarity, preventing misunderstandings that could cause complications.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Precision, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Precision, 1),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
@@ -321,7 +321,7 @@ public class ChoiceRepository
             "Targeted Reassurance",
             "You address the exact concerns that are causing tension in the relationship.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Precision, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Precision, 1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
@@ -329,7 +329,7 @@ public class ChoiceRepository
             "Minor Adjustment",
             "You make small but crucial adjustments to the environment that reduce hazards.",
             FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Precision, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Precision, 1),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
@@ -337,7 +337,7 @@ public class ChoiceRepository
             "Careful Allocation",
             "You distribute resources with perfect efficiency, ensuring nothing is wasted or lacking.",
             FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Precision, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Precision, 1),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
@@ -346,7 +346,7 @@ public class ChoiceRepository
             "Hidden Advantage",
             "You move stealthily, positioning yourself for an advantageous approach.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Concealment, 2),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
@@ -354,7 +354,7 @@ public class ChoiceRepository
             "Gather Secrets",
             "You listen more than you speak, gathering valuable information others don't realize they're sharing.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Concealment, 2),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
@@ -362,7 +362,7 @@ public class ChoiceRepository
             "Veiled Intentions",
             "You maintain a carefully crafted persona, revealing only what serves your purposes.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Concealment, 2),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
@@ -370,7 +370,7 @@ public class ChoiceRepository
             "Blend With Surroundings",
             "You use the environment to mask your presence, becoming nearly invisible.",
             FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Concealment, 2),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
@@ -378,7 +378,7 @@ public class ChoiceRepository
             "Secret Resources",
             "You have hidden tools or supplies that can be deployed at the perfect moment.",
             FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 2),
+            TagModification.ForEncounterState(EncounterStateTags.Concealment, 2),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
@@ -387,7 +387,7 @@ public class ChoiceRepository
             "Fade Away",
             "You slip into the shadows, removing yourself from immediate danger.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Concealment, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
@@ -395,7 +395,7 @@ public class ChoiceRepository
             "Conceal Weaknesses",
             "You carefully control what information about yourself is revealed, hiding vulnerabilities.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Concealment, 1),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
@@ -403,7 +403,7 @@ public class ChoiceRepository
             "Maintain Privacy",
             "You establish comfortable boundaries, preventing others from prying into sensitive areas.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Concealment, 1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
@@ -411,7 +411,7 @@ public class ChoiceRepository
             "Find Cover",
             "You locate physical cover or shelter that protects you from immediate threats.",
             FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Concealment, 1),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
@@ -419,7 +419,7 @@ public class ChoiceRepository
             "Hide Resources",
             "You conceal valuable resources, ensuring they remain available when truly needed.",
             FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Concealment, 1),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
@@ -428,8 +428,8 @@ public class ChoiceRepository
             "Tactical Force",
             "You apply force with calculated precision, maximizing impact while minimizing wasted effort.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 1),
-            TagModification.ForEncounterState(ApproachTags.Analysis, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Dominance, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Analysis, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
@@ -437,8 +437,8 @@ public class ChoiceRepository
             "Charming Insight",
             "You blend emotional intelligence with analytical thinking, gaining insights others miss.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 1),
-            TagModification.ForEncounterState(ApproachTags.Analysis, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Rapport, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Analysis, 1),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
@@ -446,8 +446,8 @@ public class ChoiceRepository
             "Precise Stealth",
             "You move with perfect control and silence, achieving the impossible without being detected.",
             FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Precision, 1),
-            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Precision, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Concealment, 1),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
@@ -455,8 +455,8 @@ public class ChoiceRepository
             "Calculated Charm",
             "You use a carefully calibrated approach to social interactions, defusing tensions through strategic empathy.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 1),
-            TagModification.ForEncounterState(ApproachTags.Rapport, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Analysis, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Rapport, 1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
@@ -464,13 +464,13 @@ public class ChoiceRepository
             "Forceful Precision",
             "You combine strength with perfect control, creating an imposing presence that deters threats.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 1),
-            TagModification.ForEncounterState(ApproachTags.Precision, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Dominance, 1),
+            TagModification.ForEncounterState(EncounterStateTags.Precision, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
     }
 
-    public IReadOnlyList<IChoice> GetStandardChoices()
+    public IReadOnlyList<IChoice> GetAllStandardChoices()
     {
         return _standardChoices.AsReadOnly();
     }

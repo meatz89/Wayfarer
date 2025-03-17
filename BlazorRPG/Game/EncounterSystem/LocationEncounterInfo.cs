@@ -4,8 +4,8 @@
 public class LocationEncounterInfo
 {
     public LocationNames LocationName { get; set; }
-    public List<ApproachTags> FavoredApproaches { get; } = new List<ApproachTags>();
-    public List<ApproachTags> DisfavoredApproaches { get; } = new List<ApproachTags>();
+    public List<EncounterStateTags> FavoredApproaches { get; } = new List<EncounterStateTags>();
+    public List<EncounterStateTags> DisfavoredApproaches { get; } = new List<EncounterStateTags>();
     public List<IEncounterTag> AvailableTags { get; } = new List<IEncounterTag>();
 
     // Success thresholds
@@ -26,8 +26,8 @@ public class LocationEncounterInfo
 
     public LocationEncounterInfo(
         LocationNames locationName,
-        List<ApproachTags> favoreApproaches,
-        List<ApproachTags> disfavoredApproaches,
+        List<EncounterStateTags> favoreApproaches,
+        List<EncounterStateTags> disfavoredApproaches,
         int duration,
         int partialThreshold,
         int standardThreshold,

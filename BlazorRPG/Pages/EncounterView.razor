@@ -62,7 +62,7 @@
             <div class="Encounter-choices">
                 @foreach (UserEncounterChoiceOption choice in GetChoices())
                 {
-                    <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")
+                     <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")
                          @(false ? "winning" : "" )
                          @(false ? "failing" : "")"
                          @onmousemove="async (e) => await ShowTooltip(choice, e)"

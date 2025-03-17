@@ -77,7 +77,7 @@
             outcome.FocusTagChanges[kvp.Key] = kvp.Value;
         }
 
-        foreach (KeyValuePair<ApproachTags, int> kvp in projection.EncounterStateTagChanges)
+        foreach (KeyValuePair<EncounterStateTags, int> kvp in projection.EncounterStateTagChanges)
         {
             outcome.EncounterStateTagChanges[kvp.Key] = kvp.Value;
         }

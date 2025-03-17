@@ -7,104 +7,104 @@ public class StrategicTagRepository
     public static readonly StrategicTag OverwhelmingForce = new(
         "Overwhelming Force",
         StrategicEffectTypes.IncreaseMomentum,
-        ApproachTags.Dominance);
+        EncounterStateTags.Dominance);
 
     public static readonly StrategicTag CommandingPresence = new(
         "Commanding Presence",
         StrategicEffectTypes.DecreasePressure,
-        ApproachTags.Dominance);
+        EncounterStateTags.Dominance);
 
     public static readonly StrategicTag BruteForceBackfire = new(
         "Brute Force Backfire",
         StrategicEffectTypes.DecreaseMomentum,
-        ApproachTags.Dominance);
+        EncounterStateTags.Dominance);
 
     public static readonly StrategicTag EscalatingTension = new(
         "Escalating Tension",
         StrategicEffectTypes.IncreasePressure,
-        ApproachTags.Dominance);
+        EncounterStateTags.Dominance);
 
     // RAPPORT-BASED STRATEGIC TAGS
     public static readonly StrategicTag SocialCurrency = new(
         "Social Currency",
         StrategicEffectTypes.IncreaseMomentum,
-        ApproachTags.Rapport);
+        EncounterStateTags.Rapport);
 
     public static readonly StrategicTag CalmingInfluence = new(
         "Calming Influence",
         StrategicEffectTypes.DecreasePressure,
-        ApproachTags.Rapport);
+        EncounterStateTags.Rapport);
 
     public static readonly StrategicTag SocialDistraction = new(
         "Social Distraction",
         StrategicEffectTypes.DecreaseMomentum,
-        ApproachTags.Rapport);
+        EncounterStateTags.Rapport);
 
     public static readonly StrategicTag SocialAwkwardness = new(
         "Social Awkwardness",
         StrategicEffectTypes.IncreasePressure,
-        ApproachTags.Rapport);
+        EncounterStateTags.Rapport);
 
     // ANALYSIS-BASED STRATEGIC TAGS
     public static readonly StrategicTag InsightfulApproach = new(
         "Insightful Approach",
         StrategicEffectTypes.IncreaseMomentum,
-        ApproachTags.Analysis);
+        EncounterStateTags.Analysis);
 
     public static readonly StrategicTag CalculatedResponse = new(
         "Calculated Response",
         StrategicEffectTypes.DecreasePressure,
-        ApproachTags.Analysis);
+        EncounterStateTags.Analysis);
 
     public static readonly StrategicTag Overthinking = new(
         "Overthinking",
         StrategicEffectTypes.DecreaseMomentum,
-        ApproachTags.Analysis);
+        EncounterStateTags.Analysis);
 
     public static readonly StrategicTag AnalyticalAnxiety = new(
         "Analytical Anxiety",
         StrategicEffectTypes.IncreasePressure,
-        ApproachTags.Analysis);
+        EncounterStateTags.Analysis);
 
     // PRECISION-BASED STRATEGIC TAGS
     public static readonly StrategicTag MasterfulExecution = new(
         "Masterful Execution",
         StrategicEffectTypes.IncreaseMomentum,
-        ApproachTags.Precision);
+        EncounterStateTags.Precision);
 
     public static readonly StrategicTag CarefulPositioning = new(
         "Careful Positioning",
         StrategicEffectTypes.DecreasePressure,
-        ApproachTags.Precision);
+        EncounterStateTags.Precision);
 
     public static readonly StrategicTag RigidMethodology = new(
         "Rigid Methodology",
         StrategicEffectTypes.DecreaseMomentum,
-        ApproachTags.Precision);
+        EncounterStateTags.Precision);
 
     public static readonly StrategicTag PerfectionistPressure = new(
         "Perfectionist Pressure",
         StrategicEffectTypes.IncreasePressure,
-        ApproachTags.Precision);
+        EncounterStateTags.Precision);
 
     // CONCEALMENT-BASED STRATEGIC TAGS
     public static readonly StrategicTag TacticalAdvantage = new(
         "Tactical Advantage",
         StrategicEffectTypes.IncreaseMomentum,
-        ApproachTags.Concealment);
+        EncounterStateTags.Concealment);
 
     public static readonly StrategicTag InvisiblePresence = new(
         "Invisible Presence",
         StrategicEffectTypes.DecreasePressure,
-        ApproachTags.Concealment);
+        EncounterStateTags.Concealment);
 
     public static readonly StrategicTag OvercautiousApproach = new(
         "Overcautious Approach",
         StrategicEffectTypes.DecreaseMomentum,
-        ApproachTags.Concealment);
+        EncounterStateTags.Concealment);
 
     public static readonly StrategicTag SuspiciousBehavior = new(
         "Suspicious Behavior",
         StrategicEffectTypes.IncreasePressure,
-        ApproachTags.Concealment);
+        EncounterStateTags.Concealment);
 }

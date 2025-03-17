@@ -1,9 +1,9 @@
 ﻿public class FocusThresholdCondition : ActivationCondition
 {
-    public ApproachTags EncounterStateTag { get; }
+    public EncounterStateTags EncounterStateTag { get; }
     public int Threshold { get; }
 
-    public FocusThresholdCondition(ApproachTags encounterStateTag, int threshold)
+    public FocusThresholdCondition(EncounterStateTags encounterStateTag, int threshold)
     {
         EncounterStateTag = encounterStateTag;
         Threshold = threshold;

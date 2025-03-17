@@ -57,7 +57,7 @@ public class EncounterState
         _resourceManager.ApplyPressureResourceDamage(Pressure);
 
         // 1. Apply tag changes
-        foreach (KeyValuePair<ApproachTags, int> pair in projection.EncounterStateTagChanges)
+        foreach (KeyValuePair<EncounterStateTags, int> pair in projection.EncounterStateTagChanges)
             TagSystem.ModifyEncounterStateTag(pair.Key, pair.Value);
 
         foreach (KeyValuePair<FocusTags, int> pair in projection.FocusTagChanges)

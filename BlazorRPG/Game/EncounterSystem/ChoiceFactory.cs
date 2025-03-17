@@ -19,7 +19,7 @@ public static class ChoiceFactory
     }
 
     // Create a tag requirement function for a specific approach tag threshold
-    public static Func<BaseTagSystem, bool> EncounterStateTagRequirement(ApproachTags tag, int threshold)
+    public static Func<BaseTagSystem, bool> EncounterStateTagRequirement(EncounterStateTags tag, int threshold)
     {
         return tagSystem => tagSystem.GetEncounterStateTagValue(tag) >= threshold;
     }

@@ -2,16 +2,16 @@
 {
     public string Name { get; }
     public StrategicEffectTypes EffectType { get; }
-    public ApproachTags AffectedApproach { get; }
+    public EncounterStateTags ScalingApproachTag { get; }
 
     public StrategicTag(
         string name,
         StrategicEffectTypes effectType,
-        ApproachTags scalingApproachTag)
+        EncounterStateTags scalingApproachTag)
     {
         Name = name;
         EffectType = effectType;
-        AffectedApproach = scalingApproachTag;
+        ScalingApproachTag = scalingApproachTag;
     }
 
     // Strategic tags are ALWAYS active
@@ -29,10 +29,10 @@
     public int GetMomentumModifierForChoice(IChoice choice, BaseTagSystem tagSystem)
     {
         // Only apply if the focus matches (or if no focus is specified)
-        if (choice.Approach != AffectedApproach)
+        if (choice.Approach != ScalingApproachTag)
             return 0;
 
-        int approachValue = tagSystem.GetEncounterStateTagValue(AffectedApproach);
+        int approachValue = tagSystem.GetEncounterStateTagValue(ScalingApproachTag);
         switch (EffectType)
         {
             case StrategicEffectTypes.IncreaseMomentum:
@@ -47,10 +47,10 @@
     public int GetPressureModifierForChoice(IChoice choice, BaseTagSystem tagSystem)
     {
         // Only apply if the focus matches (or if no focus is specified)
-        if (choice.Approach != AffectedApproach)
+        if (choice.Approach != ScalingApproachTag)
             return 0;
 
-        int approachValue = tagSystem.GetEncounterStateTagValue(AffectedApproach);
+        int approachValue = tagSystem.GetEncounterStateTagValue(ScalingApproachTag);
         switch (EffectType)
         {
             case StrategicEffectTypes.DecreasePressure:
@@ -68,16 +68,16 @@
         switch (EffectType)
         {
             case StrategicEffectTypes.IncreaseMomentum:
-                baseDesc = $"Adds momentum proportional to {AffectedApproach} value";
+                baseDesc = $"Adds momentum proportional to {ScalingApproachTag} value";
                 break;
             case StrategicEffectTypes.DecreasePressure:
-                baseDesc = $"Reduces pressure proportional to {AffectedApproach} value";
+                baseDesc = $"Reduces pressure proportional to {ScalingApproachTag} value";
                 break;
             case StrategicEffectTypes.DecreaseMomentum:
-                baseDesc = $"Reduces momentum proportional to {AffectedApproach} value";
+                baseDesc = $"Reduces momentum proportional to {ScalingApproachTag} value";
                 break;
             case StrategicEffectTypes.IncreasePressure:
-                baseDesc = $"Adds pressure proportional to {AffectedApproach} value";
+                baseDesc = $"Adds pressure proportional to {ScalingApproachTag} value";
                 break;
         }
 

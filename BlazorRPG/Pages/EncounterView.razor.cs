@@ -18,11 +18,11 @@ public partial class EncounterViewBase : ComponentBase
 
     public bool IsLoading = true;
 
-    public bool IsChoiceDisabled(UserEncounterChoiceOption userEncounterChoiceOption) => false;
+    public bool IsChoiceDisabled(UserEncounterChoiceOption userEncounterChoiceOption) => userEncounterChoiceOption.Choice.IsBlocked;
     public EncounterViewModel Model => GameManager.GetEncounterViewModel();
 
     // Add these methods to expose the enum values to the view
-    public ApproachTags[] GetApproachTags() => Enum.GetValues<ApproachTags>();
+    public EncounterStateTags[] GetApproachTags() => Enum.GetValues<EncounterStateTags>();
     public FocusTags[] GetFocusTags() => Enum.GetValues<FocusTags>();
 
     protected override async Task OnInitializedAsync()

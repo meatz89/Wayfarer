@@ -17,7 +17,7 @@ public class TagModification
         Delta = delta;
     }
 
-    public static TagModification ForEncounterState(ApproachTags tag, int delta)
+    public static TagModification ForEncounterState(EncounterStateTags tag, int delta)
     {
         return new TagModification(TagTypes.EncounterState, tag, delta);
     }

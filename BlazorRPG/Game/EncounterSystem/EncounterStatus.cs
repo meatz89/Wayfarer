@@ -7,7 +7,7 @@ public class EncounterStatus
     public int MaxTurns { get; }
     public int Momentum { get; }
     public int Pressure { get; }
-    public Dictionary<ApproachTags, int> ApproachTags { get; }
+    public Dictionary<EncounterStateTags, int> ApproachTags { get; }
     public Dictionary<FocusTags, int> FocusTags { get; }
     public List<string> ActiveTagNames { get; }
 
@@ -21,7 +21,7 @@ public class EncounterStatus
         int maxTurns,
         int momentum,
         int pressure,
-        Dictionary<ApproachTags, int> approachTags,
+        Dictionary<EncounterStateTags, int> approachTags,
         Dictionary<FocusTags, int> focusTags,
         List<string> activeTagNames)
     {

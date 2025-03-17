@@ -15,8 +15,8 @@ public static class LocationEncounterFactory
         // Core properties for the Ancient Library
         LocationEncounterInfo location = new LocationEncounterInfo(
             locationName,
-            new[] { ApproachTags.Analysis, ApproachTags.Precision }.ToList(),
-            new[] { ApproachTags.Dominance }.ToList(),
+            new[] { EncounterStateTags.Analysis, EncounterStateTags.Precision }.ToList(),
+            new[] { EncounterStateTags.Dominance }.ToList(),
             6, // Duration (6 turns)
             12, 16, 20, // Momentum thresholds: 12+ (Partial), 16+ (Standard), 20+ (Exceptional)
             LocationEncounterInfo.HostilityLevels.Neutral,

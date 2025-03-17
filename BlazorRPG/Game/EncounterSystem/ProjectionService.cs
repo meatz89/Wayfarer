@@ -96,7 +96,7 @@
             {
                 bool affectsChoice = true;
 
-                if (choice.Approach != strategicTag.AffectedApproach)
+                if (choice.Approach != strategicTag.ScalingApproachTag)
                     affectsChoice = false;
 
                 if (affectsChoice)
@@ -204,7 +204,7 @@
         {
             if (mod.Type == TagModification.TagTypes.EncounterState)
             {
-                ApproachTags tag = (ApproachTags)mod.Tag;
+                EncounterStateTags tag = (EncounterStateTags)mod.Tag;
                 int oldValue = clonedTagSystem.GetEncounterStateTagValue(tag);
                 clonedTagSystem.ModifyEncounterStateTag(tag, mod.Delta);
                 int newValue = clonedTagSystem.GetEncounterStateTagValue(tag);
