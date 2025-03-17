@@ -59,9 +59,9 @@
         return (_providers[_currentProvider] as BaseNarrativeAIService)?.GetGameInstanceId() ?? "Unknown";
     }
 
-    public async Task<string> GenerateIntroductionAsync(string location, string incitingAction, EncounterStatus state)
+    public async Task<string> GenerateIntroductionAsync(NarrativeContext context, string incitingAction, EncounterStatus state)
     {
-        return await _providers[_currentProvider].GenerateIntroductionAsync(location, incitingAction, state);
+        return await _providers[_currentProvider].GenerateIntroductionAsync(context, incitingAction, state);
     }
 
     public async Task<string> GenerateReactionAndSceneAsync(
@@ -84,4 +84,5 @@
         return await _providers[_currentProvider].GenerateChoiceDescriptionsAsync(
             context, choices, projections, state);
     }
+
 }

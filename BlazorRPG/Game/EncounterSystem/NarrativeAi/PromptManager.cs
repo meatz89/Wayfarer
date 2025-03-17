@@ -68,42 +68,6 @@ public class PromptManager
         return _systemMessage;
     }
 
-    public string BuildJsonNarrativePrompt(
-    NarrativeContext context,
-    IChoice chosenOption,
-    ChoiceNarrative choiceDescription,
-    ChoiceOutcome outcome,
-    EncounterStatus newState)
-    {
-        string template = _promptTemplates[JSON_NARRATIVE_KEY];
-
-        // Format tag changes to ensure they're represented in the narrative
-        string tagChangesGuidance = FormatTagChangesForNarrative(outcome);
-
-        // Format newly activated and deactivated tags
-        string tagActivationGuidance = FormatTagActivationForNarrative(outcome);
-
-        // Create a narrative summary
-        string narrativeSummary = _summaryBuilder.CreateSummary(context);
-
-        // Replace placeholders in template
-        string prompt = template
-            .Replace("{LOCATION}", context.LocationName)
-            .Replace("{CHOICE_NAME}", chosenOption.Name)
-            .Replace("{CHOICE_FOCUS}", chosenOption.Focus.ToString())
-            .Replace("{CHOICE_DESCRIPTION}", choiceDescription.FullDescription)
-            .Replace("{MOMENTUM_GAIN}", outcome.MomentumGain.ToString())
-            .Replace("{PRESSURE_GAIN}", outcome.PressureGain.ToString())
-            .Replace("{HEALTH_CHANGE}", outcome.HealthChange.ToString())
-            .Replace("{CONCENTRATION_CHANGE}", outcome.FocusChange.ToString())
-            .Replace("{REPUTATION_CHANGE}", outcome.ConfidenceChange.ToString())
-            .Replace("{NARRATIVE_SUMMARY}", narrativeSummary)
-            .Replace("{TAG_CHANGES_GUIDANCE}", tagChangesGuidance)
-            .Replace("{TAG_ACTIVATION_GUIDANCE}", tagActivationGuidance);
-
-        return prompt;
-    }
-
     private string FormatTagChangesForNarrative(ChoiceOutcome outcome)
     {
         StringBuilder guidance = new StringBuilder();
@@ -210,13 +174,58 @@ public class PromptManager
         };
     }
 
-    public string BuildJsonChoicesPrompt(
-    NarrativeContext context,
-    List<IChoice> choices,
-    List<ChoiceProjection> projections,
-    EncounterStatus state)
+    public string BuildNarrativePrompt(
+        NarrativeContext context,
+        IChoice chosenOption,
+        ChoiceNarrative choiceDescription,
+        ChoiceOutcome outcome,
+        EncounterStatus newState)
+    {
+        string template = _promptTemplates[JSON_NARRATIVE_KEY];
+
+        EncounterTypes encounterType = context.EncounterType;
+        string encounterStyleGuidance = GetEncounterStyleGuidance(encounterType);
+
+        // Format tag changes to ensure they're represented in the narrative
+        string tagChangesGuidance = FormatTagChangesForNarrative(outcome);
+
+        // Format newly activated and deactivated tags
+        string tagActivationGuidance = FormatTagActivationForNarrative(outcome);
+
+        // Create a narrative summary
+        string narrativeSummary = _summaryBuilder.CreateSummary(context);
+
+        // Replace placeholders in template
+        string prompt = template
+            .Replace("{LOCATION}", context.LocationName)
+            .Replace("{CHOICE_NAME}", chosenOption.Name)
+            .Replace("{CHOICE_APPROACH}", chosenOption.Approach.ToString())
+            .Replace("{CHOICE_FOCUS}", chosenOption.Focus.ToString())
+            .Replace("{CHOICE_DESCRIPTION}", choiceDescription.FullDescription)
+            .Replace("{MOMENTUM_GAIN}", outcome.MomentumGain.ToString())
+            .Replace("{PRESSURE_GAIN}", outcome.PressureGain.ToString())
+            .Replace("{HEALTH_CHANGE}", outcome.HealthChange.ToString())
+            .Replace("{CONCENTRATION_CHANGE}", outcome.FocusChange.ToString())
+            .Replace("{REPUTATION_CHANGE}", outcome.ConfidenceChange.ToString())
+            .Replace("{NARRATIVE_SUMMARY}", narrativeSummary)
+            .Replace("{TAG_CHANGES_GUIDANCE}", tagChangesGuidance)
+            .Replace("{TAG_ACTIVATION_GUIDANCE}", tagActivationGuidance)
+            .Replace("{ENCOUNTER_TYPE}", encounterType.ToString())
+            .Replace("{ENCOUNTER_STYLE_GUIDANCE}", encounterStyleGuidance);
+
+        return prompt;
+    }
+
+    public string BuildChoicesPrompt(
+        NarrativeContext context,
+        List<IChoice> choices,
+        List<ChoiceProjection> projections,
+        EncounterStatus state)
     {
         string template = _promptTemplates[JSON_CHOICES_KEY];
+
+        EncounterTypes encounterType = context.EncounterType;
+        string choiceStyleGuidance = GetChoiceStyleGuidance(encounterType);
 
         // Create a narrative summary 
         string narrativeSummary = _summaryBuilder.CreateSummary(context);
@@ -277,16 +286,19 @@ Choice {i + 1}:
         return prompt;
     }
 
-    public string BuildIntroductionPrompt(string location, string incitingAction, EncounterStatus state, string encounterGoal = "")
+    public string BuildIntroductionPrompt(NarrativeContext context, string incitingAction, EncounterStatus state, string encounterGoal = "")
     {
         string template = _promptTemplates[INTRO_KEY];
 
-        // Get primary and secondary tags for initial emphasis
-        (string primaryFocus, string secondaryFocus) = _tagFormatter.GetSignificantFocusTags(state);
+        EncounterTypes encounterType = context.EncounterType;
 
+        // Get primary and secondary tags for initial emphasis
+        (string primaryApproach, string secondaryApproach) = _tagFormatter.GetSignificantApproachTags(state);
+        (string primaryFocus, string secondaryFocus) = _tagFormatter.GetSignificantFocusTags(state);
+        
         // Replace placeholders in template
         string prompt = template
-            .Replace("{LOCATION}", location)
+            .Replace("{LOCATION}", context.LocationName)
             .Replace("{INCITING_ACTION}", incitingAction)
             .Replace("{ENCOUNTER_TYPE}", encounterType.ToString())
             .Replace("{PRIMARY_APPROACH}", primaryApproach)

@@ -87,7 +87,7 @@
         PlayerState playerState,
         ActionImplementation actionImplementation)
     {
-        Location inn = context.Location;
+        Location inn = context.LocationName;
 
         // Create a location
         LocationInfo location = LocationFactory.CreateBanditAmbush();
@@ -124,8 +124,8 @@
 
         this.Encounter = encounter;
 
-        SpecialChoice negotiatePriceChoice = GetSpecialChoiceFor(location);
-        choiceRepository.AddSpecialChoice(location.Name, negotiatePriceChoice);
+        //SpecialChoice negotiatePriceChoice = GetSpecialChoiceFor(location);
+        //choiceRepository.AddSpecialChoice(location.Name, negotiatePriceChoice);
 
         // Start the encounter with narrative
         string incitingAction = "decided to visit the market to purchase supplies";
@@ -201,24 +201,7 @@
     private static SpecialChoice GetSpecialChoiceFor(LocationInfo location)
     {
         // Add special choices for this location
-        return new SpecialChoice(
-            "Negotiate Better Price",
-            "Use your market knowledge and rapport to secure a favorable deal",
-            EncounterStateTags.Charm,
-            FocusTags.Resource,
-            new List<TagModification>
-            {
-                TagModification.ForEncounterState(EncounterStateTags.Rapport, 1),
-                TagModification.ForApproach(EncounterStateTags.Force, 2),
-                TagModification.ForFocus(FocusTags.Resource, 2)
-            },
-            new List<Func<BaseTagSystem, bool>>
-            {
-                ChoiceFactory.EncounterStateTagRequirement(EncounterStateTags.Rapport, 2),
-                ChoiceFactory.ApproachTagRequirement(EncounterStateTags.Force, 2),
-                ChoiceFactory.FocusTagRequirement(FocusTags.Resource, 2)
-            }
-        );
+        return null;
     }
 
     public EncounterManager GetActiveEncounter()

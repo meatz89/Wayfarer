@@ -48,13 +48,11 @@ public static class ChoiceResponseParser
 
     private static ChoiceNarrative GenerateFallbackNarrative(IChoice choice)
     {
-        string approach = choice.Approach.ToString();
         string focus = choice.Focus.ToString();
         string effectType = choice.EffectType.ToString();
 
         // Create a basic name and description based on tags
-        string name = $"I use {approach} approach";
-        string description = $"I focus on {focus} using {approach} to make progress.";
+        string description = $"I focus on {focus} to make progress.";
 
         // Add effect type information
         if (effectType == "Momentum")
@@ -66,6 +64,6 @@ public static class ChoiceResponseParser
             description += " This might be risky but could yield valuable results.";
         }
 
-        return new ChoiceNarrative(name, description);
+        return new ChoiceNarrative(choice.Name, description);
     }
 }

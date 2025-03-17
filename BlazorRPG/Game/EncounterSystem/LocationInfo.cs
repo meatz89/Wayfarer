@@ -1,7 +1,4 @@
-﻿
-using static LocationInfo;
-
-/// <summary>
+﻿/// <summary>
 /// Represents a location in the game where encounters take place
 /// </summary>
 public class LocationInfo

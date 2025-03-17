@@ -212,9 +212,9 @@ public class TagFormatter
         List<string> tagStrings = new List<string>();
         foreach (NarrativeTag tag in narrativeTags)
         {
-            if (tag.BlockedApproach.HasValue)
+            if (tag.BlockedFocus != null)
             {
-                tagStrings.Add($"{tag.Name} (Blocks {tag.BlockedApproach.Value} approaches)");
+                tagStrings.Add($"{tag.Name} (Blocks {tag.BlockedFocus} focus)");
             }
             else
             {
@@ -224,46 +224,4 @@ public class TagFormatter
         return string.Join(", ", tagStrings);
     }
 
-    // Format strategic tags with effect descriptions - for when you have direct access to StrategicTag objects
-    public string FormatStrategicTagsExtended(List<StrategicTag> strategicTags)
-    {
-        if (strategicTags == null || strategicTags.Count == 0)
-            return "None";
-
-        List<string> tagStrings = new List<string>();
-        foreach (StrategicTag tag in strategicTags)
-        {
-            string effectDescription = "Strategic effect";
-            switch (tag.EffectType)
-            {
-                case StrategicEffectTypes.AddMomentumToApproach:
-                    effectDescription = $"+{tag.EffectValue} momentum to {tag.AffectedApproach} approaches";
-                    break;
-                case StrategicEffectTypes.AddMomentumToFocus:
-                    effectDescription = $"+{tag.EffectValue} momentum to {tag.AffectedFocus} focuses";
-                    break;
-                case StrategicEffectTypes.ReducePressureFromApproach:
-                    effectDescription = $"-{tag.EffectValue} pressure from {tag.AffectedApproach} approaches";
-                    break;
-                case StrategicEffectTypes.ReducePressureFromFocus:
-                    effectDescription = $"-{tag.EffectValue} pressure from {tag.AffectedFocus} focuses";
-                    break;
-                case StrategicEffectTypes.ReducePressurePerTurn:
-                    effectDescription = $"-{tag.EffectValue} pressure each turn";
-                    break;
-                case StrategicEffectTypes.AddPressurePerTurn:
-                    effectDescription = $"+{tag.EffectValue} pressure each turn";
-                    break;
-                case StrategicEffectTypes.ReduceHealthByPressure:
-                    effectDescription = $"Reduces health based on pressure";
-                    break;
-                case StrategicEffectTypes.ReduceHealthByApproachValue:
-                    effectDescription = $"Reduces health based on {tag.ScalingApproachTag} value";
-                    break;
-            }
-
-            tagStrings.Add($"{tag.Name} ({effectDescription})");
-        }
-        return string.Join(", ", tagStrings);
-    }
 }

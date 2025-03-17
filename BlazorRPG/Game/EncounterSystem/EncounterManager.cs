@@ -96,9 +96,8 @@
             State.Momentum,
             State.Pressure,
             State.TagSystem.GetAllApproachTags(),
-            State.TagSystem.GetAllApproachTags(),
             State.TagSystem.GetAllFocusTags(),
-            State.ActiveTags.Select(t => t.Name).ToList()
+            State.GetActiveTagsNames()
         );
     }
 
@@ -135,7 +134,7 @@
         StartEncounter(location, playerState);
 
         // Create narrative context
-        _narrativeContext = new NarrativeContext(location.Name, incitingAction, location.Style);
+        _narrativeContext = new NarrativeContext(location.Name, location.EncounterType, incitingAction, location.Style);
 
         // Generate introduction
         EncounterStatus status = GetEncounterStatus();
@@ -144,7 +143,7 @@
         if (_useAiNarrative && _narrativeService != null)
         {
             introduction = await _narrativeService.GenerateIntroductionAsync(
-                location.Name,
+                _narrativeContext,
                 incitingAction,
                 status);
         }

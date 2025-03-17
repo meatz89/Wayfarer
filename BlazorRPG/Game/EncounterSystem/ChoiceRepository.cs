@@ -470,7 +470,7 @@ public class ChoiceRepository
         ));
     }
 
-    public IReadOnlyList<Choice> GetAllStandardChoices()
+    public IReadOnlyList<IChoice> GetStandardChoices()
     {
         return _standardChoices.AsReadOnly();
     }

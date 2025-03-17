@@ -5,13 +5,13 @@
     {
     }
 
-    public override async Task<string> GenerateIntroductionAsync(string location, string incitingAction, EncounterStatus state)
+    public override async Task<string> GenerateIntroductionAsync(NarrativeContext context, string incitingAction, EncounterStatus state)
     {
-        string conversationId = $"{location}_{DateTime.Now.Ticks}";
+        string conversationId = $"{context.LocationName}_{DateTime.Now.Ticks}";
 
         // Get system message and introduction prompt
         string systemMessage = _promptManager.GetSystemMessage();
-        string prompt = _promptManager.BuildIntroductionPrompt(location, incitingAction, state);
+        string prompt = _promptManager.BuildIntroductionPrompt(context, incitingAction, state);
 
         // Store conversation context
         _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
@@ -37,7 +37,7 @@
 
         // Get system message and narrative prompt
         string systemMessage = _promptManager.GetSystemMessage();
-        string prompt = _promptManager.BuildJsonNarrativePrompt(
+        string prompt = _promptManager.BuildNarrativePrompt(
             context, chosenOption, choiceDescription, outcome, newState);
 
         // Initialize or update conversation context
@@ -83,7 +83,7 @@
         string systemMessage = _promptManager.GetSystemMessage();
 
         // Pass the most recent narrative explicitly to the prompt builder
-        string prompt = _promptManager.BuildJsonChoicesPrompt(
+        string prompt = _promptManager.BuildChoicesPrompt(
             context,
             choices,
             projections,

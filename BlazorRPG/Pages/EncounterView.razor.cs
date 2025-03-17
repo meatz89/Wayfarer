@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System.Text;
-
 public partial class EncounterViewBase : ComponentBase
 {
     [Inject] public IJSRuntime JSRuntime { get; set; } // Inject IJSRuntime

@@ -40,7 +40,6 @@ public class ChoiceOutcome
         ConfidenceChange = reputationChange;
 
         // Initialize empty collections
-        ApproachTagChanges = new Dictionary<EncounterStateTags, int>();
         FocusTagChanges = new Dictionary<FocusTags, int>();
         EncounterStateTagChanges = new Dictionary<EncounterStateTags, int>();
         NewlyActivatedTags = new List<string>();

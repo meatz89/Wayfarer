@@ -4,12 +4,11 @@
         : base(new ClaudeProvider(configuration), configuration, logger)
     {
     }
-
-    public override async Task<string> GenerateIntroductionAsync(string location, string incitingAction, EncounterStatus state)
+    public override async Task<string> GenerateIntroductionAsync(NarrativeContext context, string incitingAction, EncounterStatus state)
     {
-        string conversationId = $"{location}_{DateTime.Now.Ticks}";
+        string conversationId = $"{context.LocationName}_{DateTime.Now.Ticks}";
         string systemMessage = _promptManager.GetSystemMessage();
-        string prompt = _promptManager.BuildIntroductionPrompt(location, incitingAction, state);
+        string prompt = _promptManager.BuildIntroductionPrompt(context, incitingAction, state);
 
         _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
 
@@ -33,7 +32,7 @@
     {
         string conversationId = $"{context.LocationName}_narrative";
         string systemMessage = _promptManager.GetSystemMessage();
-        string prompt = _promptManager.BuildJsonNarrativePrompt(
+        string prompt = _promptManager.BuildNarrativePrompt(
             context, chosenOption, choiceDescription, outcome, newState);
 
         if (!_contextManager.ConversationExists(conversationId))
@@ -72,7 +71,7 @@
     {
         string conversationId = $"{context.LocationName}_choices";
         string systemMessage = _promptManager.GetSystemMessage();
-        string prompt = _promptManager.BuildJsonChoicesPrompt(
+        string prompt = _promptManager.BuildChoicesPrompt(
             context, choices, projections, state);
 
         if (!_contextManager.ConversationExists(conversationId))

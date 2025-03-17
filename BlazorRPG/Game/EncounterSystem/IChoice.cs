@@ -5,19 +5,22 @@ public interface IChoice
 {
     string Name { get; }
     string Description { get; }
+    EncounterStateTags Approach { get; }
     FocusTags Focus { get; }
     EffectTypes EffectType { get; }
     IReadOnlyList<TagModification> TagModifications { get; }
     void ApplyChoice(EncounterState state);
+
 }
 
 /// <summary>
-/// Standard choice implementation - either builds momentum or reduces pressure
+/// Standard choice implementation - either builds momentum or pressure
 /// </summary>
 public class Choice : IChoice
 {
     public string Name { get; }
     public string Description { get; }
+    public EncounterStateTags Approach => this.GetPrimaryApproach();
     public FocusTags Focus { get; }
     public EffectTypes EffectType { get; }
     public IReadOnlyList<TagModification> TagModifications { get; }
@@ -32,7 +35,6 @@ public class Choice : IChoice
         TagModifications = tagModifications;
     }
 
-    // This method is ONLY used through the projection system and should not be called directly
     public virtual void ApplyChoice(EncounterState state)
     {
         // Apply tag modifications
@@ -47,15 +49,13 @@ public class Choice : IChoice
         // Apply momentum or pressure effect
         if (EffectType == EffectTypes.Momentum)
         {
-            int baseMomentum = 2; // Standard choices build 2 momentum as per project knowledge
+            int baseMomentum = 2; // Standard choices build 2 momentum
             int totalMomentum = state.GetTotalMomentum(this, baseMomentum);
             state.BuildMomentum(totalMomentum);
         }
         else // Pressure
         {
-            int basePressureReduction = 1; // Standard choices reduce 1 pressure as per project knowledge
-            int totalPressureReduction = state.GetTotalPressure(this, basePressureReduction);
-            state.ReducePressure(totalPressureReduction); // REDUCE pressure, not increase
+            state.BuildPressure(3); // Standard choices build 2 pressure
         }
     }
 
@@ -104,6 +104,6 @@ public class SpecialChoice : Choice
 
     public override string ToString()
     {
-        return $"{Name} - {TagModifications.Select(x => x.Type).ToList().ToString()} - {Focus.ToString()} - {EffectType.ToString()}";
+        return $"{Name} - {Focus.ToString()} - {EffectType.ToString()}";
     }
 }

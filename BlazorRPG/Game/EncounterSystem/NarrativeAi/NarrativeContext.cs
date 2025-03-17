@@ -6,13 +6,15 @@
 public class NarrativeContext
 {
     public string LocationName { get; }
+    public EncounterTypes EncounterType { get; }
     public string IncitingAction { get; }
     public List<NarrativeEvent> Events { get; } = new List<NarrativeEvent>();
     public PresentationStyles CurrentStyle { get; set; }
 
-    public NarrativeContext(string location, string incitingAction, PresentationStyles style)
+    public NarrativeContext(string location, EncounterTypes encounterType, string incitingAction, PresentationStyles style)
     {
         LocationName = location;
+        EncounterType = encounterType;
         IncitingAction = incitingAction;
         CurrentStyle = style;
     }

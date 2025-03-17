@@ -64,9 +64,6 @@ public class EncounterState
         foreach (KeyValuePair<EncounterStateTags, int> pair in projection.EncounterStateTagChanges)
             TagSystem.ModifyEncounterStateTag(pair.Key, pair.Value);
 
-        foreach (KeyValuePair<EncounterStateTags, int> pair in projection.ApproachTagChanges)
-            TagSystem.ModifyApproachTag(pair.Key, pair.Value);
-
         foreach (KeyValuePair<FocusTags, int> pair in projection.FocusTagChanges)
             TagSystem.ModifyFocusTag(pair.Key, pair.Value);
 
@@ -96,7 +93,7 @@ public class EncounterState
 
     public void BuildMomentum(int amount) => Momentum += amount;
 
-    public void IncreasePressure(int amount) => Pressure += amount;
+    public void BuildPressure(int amount) => Pressure += amount;
 
     public void ReducePressure(int amount) => Pressure = Math.Max(0, Pressure - amount);
 
@@ -132,5 +129,10 @@ public class EncounterState
             Pressure,
             CurrentTurn,
             _escalationLevel);
+    }
+
+    public List<string> GetActiveTagsNames()
+    {
+        return ActiveTags.Select(t => t.Name).ToList();
     }
 }

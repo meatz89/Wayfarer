@@ -6,12 +6,12 @@
     }
 
     // Implementation identical to GPTNarrativeService but with appropriate Gemma-specific tweaks if needed
-    public override async Task<string> GenerateIntroductionAsync(string location, string incitingAction, EncounterStatus state)
+    public override async Task<string> GenerateIntroductionAsync(NarrativeContext context, string incitingAction, EncounterStatus state)
     {
         // Same implementation as GPTNarrativeService
-        string conversationId = $"{location}_{DateTime.Now.Ticks}";
+        string conversationId = $"{context.LocationName}_{DateTime.Now.Ticks}";
         string systemMessage = _promptManager.GetSystemMessage();
-        string prompt = _promptManager.BuildIntroductionPrompt(location, incitingAction, state);
+        string prompt = _promptManager.BuildIntroductionPrompt(context, incitingAction, state);
         _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
         string jsonResponse = await _aiClient.GetCompletionAsync(_contextManager.GetConversationHistory(conversationId));
         _contextManager.AddAssistantMessage(conversationId, jsonResponse);
@@ -28,7 +28,7 @@
         // Same implementation as GPTNarrativeService
         string conversationId = $"{context.LocationName}_narrative";
         string systemMessage = _promptManager.GetSystemMessage();
-        string prompt = _promptManager.BuildJsonNarrativePrompt(context, chosenOption, choiceDescription, outcome, newState);
+        string prompt = _promptManager.BuildNarrativePrompt(context, chosenOption, choiceDescription, outcome, newState);
 
         if (!_contextManager.ConversationExists(conversationId))
         {
@@ -65,7 +65,7 @@
         // Same implementation as GPTNarrativeService
         string conversationId = $"{context.LocationName}_choices";
         string systemMessage = _promptManager.GetSystemMessage();
-        string prompt = _promptManager.BuildJsonChoicesPrompt(context, choices, projections, state);
+        string prompt = _promptManager.BuildChoicesPrompt(context, choices, projections, state);
 
         if (!_contextManager.ConversationExists(conversationId))
         {

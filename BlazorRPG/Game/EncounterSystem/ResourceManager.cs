@@ -76,44 +76,40 @@ public class ResourceManager
 
             if (tag is StrategicTag strategicTag)
             {
-                if (strategicTag.AffectedApproach.HasValue && choice.Approach != strategicTag.AffectedApproach.Value)
-                    continue;
-
                 if (strategicTag.AffectedFocus.HasValue && choice.Focus != strategicTag.AffectedFocus.Value)
                     continue;
 
                 switch (resourceType)
                 {
-                    case ResourceTypes.Health:
-                        if (strategicTag.EffectType == StrategicEffectTypes.ReduceHealthByPressure)
-                            change -= currentPressure;
-                        else if (strategicTag.EffectType == StrategicEffectTypes.ReduceHealthByApproachValue &&
-                                 strategicTag.ScalingApproachTag.HasValue)
-                            change -= _tagManager.TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
-                        break;
+                    //case ResourceTypes.Health:
+                    //    if (strategicTag.EffectType == StrategicEffectTypes.ReduceHealthByPressure)
+                    //        change -= currentPressure;
+                    //    else if (strategicTag.EffectType == StrategicEffectTypes.ReduceHealthByApproachValue &&
+                    //             strategicTag.ScalingApproachTag.HasValue)
+                    //        change -= _tagManager.TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
+                    //    break;
 
-                    case ResourceTypes.Focus:
-                        if (strategicTag.EffectType == StrategicEffectTypes.ReduceFocusByPressure)
-                            change -= currentPressure;
-                        else if (strategicTag.EffectType == StrategicEffectTypes.ReduceFocusByApproachValue &&
-                                 strategicTag.ScalingApproachTag.HasValue)
-                            change -= _tagManager.TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
-                        break;
+                    //case ResourceTypes.Focus:
+                    //    if (strategicTag.EffectType == StrategicEffectTypes.ReduceFocusByPressure)
+                    //        change -= currentPressure;
+                    //    else if (strategicTag.EffectType == StrategicEffectTypes.ReduceFocusByApproachValue &&
+                    //             strategicTag.ScalingApproachTag.HasValue)
+                    //        change -= _tagManager.TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
+                    //    break;
 
-                    case ResourceTypes.Confidence:
-                        if (strategicTag.EffectType == StrategicEffectTypes.ReduceConfidenceByPressure)
-                            change -= currentPressure;
-                        else if (strategicTag.EffectType == StrategicEffectTypes.ReduceConfidenceByApproachValue &&
-                                 strategicTag.ScalingApproachTag.HasValue)
-                            change -= _tagManager.TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
-                        break;
+                    //case ResourceTypes.Confidence:
+                    //    if (strategicTag.EffectType == StrategicEffectTypes.ReduceConfidenceByPressure)
+                    //        change -= currentPressure;
+                    //    else if (strategicTag.EffectType == StrategicEffectTypes.ReduceConfidenceByApproachValue &&
+                    //             strategicTag.ScalingApproachTag.HasValue)
+                    //        change -= _tagManager.TagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
+                    //    break;
                 }
             }
         }
 
         return change;
     }
-
     public void ApplyResourceChanges(int healthChange, int focusChange, int confidenceChange)
     {
         if (healthChange != 0)

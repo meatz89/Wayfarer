@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-/// <summary>
+﻿/// <summary>
 /// Represents the current status of an encounter
 /// </summary>
 public class EncounterStatus
@@ -24,7 +22,7 @@ public class EncounterStatus
         int maxTurns,
         int momentum,
         int pressure,
-        Dictionary<EncounterStateTags, int> ApproachTags,
+        Dictionary<EncounterStateTags, int> approachTags,
         Dictionary<FocusTags, int> focusTags,
         List<string> activeTagNames)
     {
@@ -32,7 +30,7 @@ public class EncounterStatus
         MaxTurns = maxTurns;
         Momentum = momentum;
         Pressure = pressure;
-        ApproachTags = ApproachTags;
+        ApproachTags = approachTags;
         FocusTags = focusTags;
         ActiveTagNames = activeTagNames;
 
