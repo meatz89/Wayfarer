@@ -11,7 +11,7 @@
         encounterInfo = location;
     }
 
-    public ChoiceProjection CreateChoiceProjection(IChoice choice, int currentMomentum, int currentPressure, int currentTurn, int escalationLevel)
+    public ChoiceProjection CreateChoiceProjection(IChoice choice, int currentMomentum, int currentPressure, int currentTurn)
     {
         ChoiceProjection projection = new ChoiceProjection(choice);
 
@@ -59,7 +59,7 @@
             int baseMomentum = choice is SpecialChoice ? 3 : (2);
             projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
             {
-                Source = "Momentum Choice Base",
+                Source = "Momentum Type Choice",
                 Value = baseMomentum
             });
             momentumChange += baseMomentum;
@@ -73,20 +73,10 @@
             int basePressure = 1;
             projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
             {
-                Source = "Pressure Choice Base",
+                Source = "Pressure Type Choice",
                 Value = basePressure
             });
             pressureChange += basePressure;
-        }
-
-        if (choice.EffectType == EffectTypes.Pressure && escalationLevel > 0)
-        {
-            projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-            {
-                Source = "Escalation Pressure",
-                Value = escalationLevel
-            });
-            pressureChange += escalationLevel;
         }
 
         int environmentalPressure = encounterInfo.GetEnvironmentalPressure(currentTurn);

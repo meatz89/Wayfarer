@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
+﻿
 public class EncounterState
 {
     public int Momentum { get; private set; }
@@ -20,7 +17,6 @@ public class EncounterState
     private readonly TagManager _tagManager;
     private readonly ResourceManager _resourceManager;
     private readonly ProjectionService _projectionService;
-    private int _escalationLevel = 0;
     private IChoice _lastChoice;
 
     public EncounterState(LocationEncounterInfo location, PlayerState playerState)
@@ -83,7 +79,6 @@ public class EncounterState
 
         // 5. Increment turn counter
         CurrentTurn++;
-        _escalationLevel = Math.Min(3, (CurrentTurn - 1) / 2);
     }
 
     public void UpdateActiveTags(IEnumerable<IEncounterTag> locationTags)
@@ -100,7 +95,6 @@ public class EncounterState
     public void EndTurn()
     {
         CurrentTurn++;
-        _escalationLevel = Math.Min(3, (CurrentTurn - 1) / 2);
 
         int endOfTurnPressureReduction = _tagManager.GetEndOfTurnPressureReduction();
         if (endOfTurnPressureReduction > 0)
@@ -127,8 +121,7 @@ public class EncounterState
             choice,
             Momentum,
             Pressure,
-            CurrentTurn,
-            _escalationLevel);
+            CurrentTurn);
     }
 
     public List<string> GetActiveTagsNames()
