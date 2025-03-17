@@ -17,16 +17,16 @@
 
         playerInfo.MinHealth = gameRules.MinimumHealth;
         playerInfo.Health = gameRules.StartingHealth;
-        playerInfo.MaxHealth = 20;
+        playerInfo.MaxHealth = 100;
 
         playerInfo.PhysicalEnergy = gameRules.StartingPhysicalEnergy;
-        playerInfo.MaxPhysicalEnergy = 10;
+        playerInfo.MaxPhysicalEnergy = 100;
 
-        playerInfo.Concentration = gameRules.StartingFocus;
-        playerInfo.MaxConcentration = 10;
+        playerInfo.Concentration = gameRules.StartingConcentration;
+        playerInfo.MaxConcentration = 100;
 
         playerInfo.Confidence = gameRules.StartingConfidence;
-        playerInfo.MaxConfidence = 10;
+        playerInfo.MaxConfidence = 100;
 
         playerInfo.Inventory.AddItems(ItemTypes.Food, 5);
 
