@@ -38,14 +38,8 @@ public class EncounterState
     }
 
     // Forward methods used by IEncounterTag.ApplyEffect and Choice.ApplyChoice
-    public void AddApproachMomentumBonus(ApproachTags approach, int bonus) =>
-        _tagManager.AddApproachMomentumBonus(approach, bonus);
-
     public void AddFocusMomentumBonus(FocusTags focus, int bonus) =>
         _tagManager.AddFocusMomentumBonus(focus, bonus);
-
-    public void AddApproachPressureModifier(ApproachTags approach, int modifier) =>
-        _tagManager.AddApproachPressureModifier(approach, modifier);
 
     public void AddFocusPressureModifier(FocusTags focus, int modifier) =>
         _tagManager.AddFocusPressureModifier(focus, modifier);
@@ -67,7 +61,7 @@ public class EncounterState
         _resourceManager.ApplyPressureResourceDamage(Pressure);
 
         // 1. Apply tag changes
-        foreach (KeyValuePair<EncounterStateTags, int> pair in projection.EncounterStateTagChanges)
+        foreach (KeyValuePair<ApproachTags, int> pair in projection.EncounterStateTagChanges)
             TagSystem.ModifyEncounterStateTag(pair.Key, pair.Value);
 
         foreach (KeyValuePair<ApproachTags, int> pair in projection.ApproachTagChanges)

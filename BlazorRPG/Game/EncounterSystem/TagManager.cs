@@ -3,9 +3,7 @@
     public BaseTagSystem TagSystem { get; }
     public List<IEncounterTag> ActiveTags { get; }
 
-    private readonly Dictionary<ApproachTags, int> _approachMomentumBonuses = new Dictionary<ApproachTags, int>();
     private readonly Dictionary<FocusTags, int> _focusMomentumBonuses = new Dictionary<FocusTags, int>();
-    private readonly Dictionary<ApproachTags, int> _approachPressureModifiers = new Dictionary<ApproachTags, int>();
     private readonly Dictionary<FocusTags, int> _focusPressureModifiers = new Dictionary<FocusTags, int>();
     private int _endOfTurnPressureReduction = 0;
 
@@ -18,12 +16,6 @@
 
     private void InitializeDictionaries()
     {
-        foreach (ApproachTags approach in Enum.GetValues(typeof(ApproachTags)))
-        {
-            _approachMomentumBonuses[approach] = 0;
-            _approachPressureModifiers[approach] = 0;
-        }
-
         foreach (FocusTags focus in Enum.GetValues(typeof(FocusTags)))
         {
             _focusMomentumBonuses[focus] = 0;
@@ -55,14 +47,8 @@
 
     public void ResetTagEffects()
     {
-        foreach (ApproachTags approach in Enum.GetValues(typeof(ApproachTags)))
-            _approachMomentumBonuses[approach] = 0;
-
         foreach (FocusTags focus in Enum.GetValues(typeof(FocusTags)))
             _focusMomentumBonuses[focus] = 0;
-
-        foreach (ApproachTags approach in Enum.GetValues(typeof(ApproachTags)))
-            _approachPressureModifiers[approach] = 0;
 
         foreach (FocusTags focus in Enum.GetValues(typeof(FocusTags)))
             _focusPressureModifiers[focus] = 0;
@@ -74,9 +60,6 @@
     {
         int total = baseMomentum;
 
-        if (_approachMomentumBonuses.ContainsKey(choice.Approach))
-            total += _approachMomentumBonuses[choice.Approach];
-
         if (_focusMomentumBonuses.ContainsKey(choice.Focus))
             total += _focusMomentumBonuses[choice.Focus];
 
@@ -87,9 +70,6 @@
     {
         int total = basePressure;
 
-        if (_approachPressureModifiers.ContainsKey(choice.Approach))
-            total += _approachPressureModifiers[choice.Approach];
-
         if (_focusPressureModifiers.ContainsKey(choice.Focus))
             total += _focusPressureModifiers[choice.Focus];
 
@@ -98,28 +78,12 @@
 
     public int GetEndOfTurnPressureReduction() => _endOfTurnPressureReduction;
 
-    public void AddApproachMomentumBonus(ApproachTags approach, int bonus)
-    {
-        if (!_approachMomentumBonuses.ContainsKey(approach))
-            _approachMomentumBonuses[approach] = 0;
-
-        _approachMomentumBonuses[approach] += bonus;
-    }
-
     public void AddFocusMomentumBonus(FocusTags focus, int bonus)
     {
         if (!_focusMomentumBonuses.ContainsKey(focus))
             _focusMomentumBonuses[focus] = 0;
 
         _focusMomentumBonuses[focus] += bonus;
-    }
-
-    public void AddApproachPressureModifier(ApproachTags approach, int modifier)
-    {
-        if (!_approachPressureModifiers.ContainsKey(approach))
-            _approachPressureModifiers[approach] = 0;
-
-        _approachPressureModifiers[approach] += modifier;
     }
 
     public void AddFocusPressureModifier(FocusTags focus, int modifier)

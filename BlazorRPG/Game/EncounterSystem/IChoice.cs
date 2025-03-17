@@ -20,17 +20,15 @@ public class Choice : IChoice
 {
     public string Name { get; }
     public string Description { get; }
-    public ApproachTags Approach { get; }
     public FocusTags Focus { get; }
     public EffectTypes EffectType { get; }
     public IReadOnlyList<TagModification> TagModifications { get; }
 
-    public Choice(string name, string description, ApproachTags approach, FocusTags focus,
+    public Choice(string name, string description, FocusTags focus,
                   EffectTypes effectType, IReadOnlyList<TagModification> tagModifications)
     {
         Name = name;
         Description = description;
-        Approach = approach;
         Focus = focus;
         EffectType = effectType;
         TagModifications = tagModifications;
@@ -42,7 +40,7 @@ public class Choice : IChoice
         foreach (TagModification mod in TagModifications)
         {
             if (mod.Type == TagModification.TagTypes.EncounterState)
-                state.TagSystem.ModifyEncounterStateTag((EncounterStateTags)mod.Tag, mod.Delta);
+                state.TagSystem.ModifyEncounterStateTag((ApproachTags)mod.Tag, mod.Delta);
             else
                 state.TagSystem.ModifyFocusTag((FocusTags)mod.Tag, mod.Delta);
         }
@@ -73,10 +71,10 @@ public class SpecialChoice : Choice
 {
     public IReadOnlyList<Func<BaseTagSystem, bool>> Requirements { get; }
 
-    public SpecialChoice(string name, string description, ApproachTags approach, FocusTags focus,
+    public SpecialChoice(string name, string description, FocusTags focus,
                         IReadOnlyList<TagModification> tagModifications,
                         IReadOnlyList<Func<BaseTagSystem, bool>> requirements)
-        : base(name, description, approach, focus, EffectTypes.Momentum, tagModifications)
+        : base(name, description, focus, EffectTypes.Momentum, tagModifications)
     {
         Requirements = requirements;
     }
@@ -92,7 +90,7 @@ public class SpecialChoice : Choice
         foreach (TagModification mod in TagModifications)
         {
             if (mod.Type == TagModification.TagTypes.EncounterState)
-                state.TagSystem.ModifyEncounterStateTag((EncounterStateTags)mod.Tag, mod.Delta);
+                state.TagSystem.ModifyEncounterStateTag((ApproachTags)mod.Tag, mod.Delta);
             else
                 state.TagSystem.ModifyFocusTag((FocusTags)mod.Tag, mod.Delta);
         }
@@ -101,55 +99,6 @@ public class SpecialChoice : Choice
         int baseMomentum = 3;
         int totalMomentum = state.GetTotalMomentum(this, baseMomentum);
         state.BuildMomentum(totalMomentum);
-    }
-
-    public override string ToString()
-    {
-        return $"{Name} - {Approach.ToString()} - {Focus.ToString()} - {EffectType.ToString()}";
-    }
-}
-
-/// <summary>
-/// Emergency choice for when approaches are blocked
-/// </summary>
-public class EmergencyChoice : IChoice
-{
-    public string Name { get; }
-    public string Description { get; }
-    public ApproachTags Approach { get; }
-    public FocusTags Focus { get; }
-    public EffectTypes EffectType => EffectTypes.Momentum; // Always momentum
-    public IReadOnlyList<TagModification> TagModifications { get; }
-    public ApproachTags BlockedApproach { get; }
-
-    public EmergencyChoice(string name, string description, ApproachTags approach,
-                          IReadOnlyList<TagModification> tagModifications,
-                          ApproachTags blockedApproach)
-    {
-        Name = name;
-        Description = description;
-        Approach = approach;
-        Focus = FocusTags.Physical; // Default
-        TagModifications = tagModifications;
-        BlockedApproach = blockedApproach;
-    }
-
-    public void ApplyChoice(EncounterState state)
-    {
-        // Apply tag modifications
-        foreach (TagModification mod in TagModifications)
-        {
-            if (mod.Type == TagModification.TagTypes.EncounterState)
-                state.TagSystem.ModifyEncounterStateTag((EncounterStateTags)mod.Tag, mod.Delta);
-            else
-                state.TagSystem.ModifyFocusTag((FocusTags)mod.Tag, mod.Delta);
-        }
-
-        // Emergency choices build 1 momentum and 5 pressure
-        int baseMomentum = 1;
-        int totalMomentum = state.GetTotalMomentum(this, baseMomentum);
-        state.BuildMomentum(totalMomentum);
-        state.BuildPressure(5);
     }
 
     public override string ToString()

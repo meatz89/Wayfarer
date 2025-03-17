@@ -12,20 +12,7 @@
             StrategicEffectTypes.ReduceHealthByPressure,
             ApproachTags.Force,
             null,
-            EncounterStateTags.Dominance);
+            ApproachTags.Dominance);
 
-    public static StrategicTag PoorlyCoordinated = new StrategicTag(
-            "Poorly Coordinated",
-            StrategicEffectTypes.AddMomentumToApproach,
-            ApproachTags.Force,
-            null,
-            EncounterStateTags.Precision);
-
-    public static StrategicTag EasilyDistracted = new StrategicTag(
-            "Easily Distracted",
-            StrategicEffectTypes.AddMomentumToApproach,
-            ApproachTags.Stealth,
-            null,
-            EncounterStateTags.Concealment);
 
 }

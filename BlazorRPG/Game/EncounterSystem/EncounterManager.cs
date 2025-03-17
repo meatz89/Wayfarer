@@ -72,17 +72,12 @@
             projection.FocusChange,
             projection.ConfidenceChange);
 
-        foreach (KeyValuePair<ApproachTags, int> kvp in projection.ApproachTagChanges)
-        {
-            outcome.ApproachTagChanges[kvp.Key] = kvp.Value;
-        }
-
         foreach (KeyValuePair<FocusTags, int> kvp in projection.FocusTagChanges)
         {
             outcome.FocusTagChanges[kvp.Key] = kvp.Value;
         }
 
-        foreach (KeyValuePair<EncounterStateTags, int> kvp in projection.EncounterStateTagChanges)
+        foreach (KeyValuePair<ApproachTags, int> kvp in projection.EncounterStateTagChanges)
         {
             outcome.EncounterStateTagChanges[kvp.Key] = kvp.Value;
         }
@@ -100,7 +95,7 @@
             State.Location.TurnDuration,
             State.Momentum,
             State.Pressure,
-            State.TagSystem.GetAllEncounterStateTags(),
+            State.TagSystem.GetAllApproachTags(),
             State.TagSystem.GetAllApproachTags(),
             State.TagSystem.GetAllFocusTags(),
             State.ActiveTags.Select(t => t.Name).ToList()

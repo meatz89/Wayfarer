@@ -54,14 +54,6 @@ public class ProjectionService
         }
 
         // Add implicit tag modifications for approach and focus
-        TagModification approachTagMod = TagModification.ForApproach(choice.Approach, 1);
-        ApproachTags tagApproach = (ApproachTags)approachTagMod.Tag;
-        int oldValueApproach = clonedTagSystem.GetApproachTagValue(tagApproach);
-        clonedTagSystem.ModifyApproachTag(tagApproach, approachTagMod.Delta);
-        int newValueApproach = clonedTagSystem.GetApproachTagValue(tagApproach);
-        int actualDeltaApproach = newValueApproach - oldValueApproach;
-        if (actualDeltaApproach != 0) projection.ApproachTagChanges[tagApproach] = actualDeltaApproach;
-
         TagModification focusTagMod = TagModification.ForFocus(choice.Focus, 1);
         FocusTags tagFocus = (FocusTags)focusTagMod.Tag;
         int oldValueFocus = clonedTagSystem.GetFocusTagValue(tagFocus);
@@ -75,7 +67,7 @@ public class ProjectionService
         {
             if (mod.Type == TagModification.TagTypes.EncounterState)
             {
-                EncounterStateTags tag = (EncounterStateTags)mod.Tag;
+                ApproachTags tag = (ApproachTags)mod.Tag;
                 int oldValue = clonedTagSystem.GetEncounterStateTagValue(tag);
                 clonedTagSystem.ModifyEncounterStateTag(tag, mod.Delta);
                 int newValue = clonedTagSystem.GetEncounterStateTagValue(tag);
@@ -83,17 +75,6 @@ public class ProjectionService
 
                 if (actualDelta != 0)
                     projection.EncounterStateTagChanges[tag] = actualDelta;
-            }
-            else if (mod.Type == TagModification.TagTypes.Approach)
-            {
-                ApproachTags tag = (ApproachTags)mod.Tag;
-                int oldValue = clonedTagSystem.GetApproachTagValue(tag);
-                clonedTagSystem.ModifyApproachTag(tag, mod.Delta);
-                int newValue = clonedTagSystem.GetApproachTagValue(tag);
-                int actualDelta = newValue - oldValue;
-
-                if (actualDelta != 0)
-                    projection.ApproachTagChanges[tag] = actualDelta;
             }
             else if (mod.Type == TagModification.TagTypes.Focus)
             {

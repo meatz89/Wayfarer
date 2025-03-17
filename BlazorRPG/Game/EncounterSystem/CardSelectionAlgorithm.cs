@@ -36,19 +36,6 @@
             availableChoices = _choiceRepository.GetStandardChoices()
                 .Where(choice => !blockedApproaches.Contains(choice.Approach))
                 .ToList();
-
-            // If still no valid choices, add emergency choices
-            if (availableChoices.Count == 0)
-            {
-                foreach (ApproachTags approach in Enum.GetValues(typeof(ApproachTags)).Cast<ApproachTags>())
-                {
-                    EmergencyChoice emergencyChoice = _choiceRepository.GetEmergencyChoice(approach);
-                    if (emergencyChoice != null)
-                        result.Add(emergencyChoice);
-                }
-
-                return result.Take(handSize).ToList();
-            }
         }
 
         // 2. Calculate scores for each choice
@@ -182,9 +169,9 @@
             int score = 10; // Base score
 
             // Location preference bonuses
-            if (state.Location.FavoredApproaches.Contains(choice.Approach))
+            if (state.Location.Contains(choice.Approach))
                 score += 3;
-            if (state.Location.DisfavoredApproaches.Contains(choice.Approach))
+            if (state.Location.Contains(choice.Approach))
                 score -= 2;
             if (state.Location.FavoredFocuses.Contains(choice.Focus))
                 score += 3;
@@ -194,20 +181,20 @@
             // Tag matching bonuses
             switch (choice.Approach)
             {
-                case ApproachTags.Force:
-                    score += state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Dominance);
+                case ApproachTags.Dominance:
+                    score += state.TagSystem.GetEncounterStateTagValue(ApproachTags.Dominance);
                     break;
-                case ApproachTags.Charm:
-                    score += state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Rapport);
+                case ApproachTags.Rapport:
+                    score += state.TagSystem.GetEncounterStateTagValue(ApproachTags.Rapport);
                     break;
-                case ApproachTags.Wit:
-                    score += state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Analysis);
+                case ApproachTags.Analysis:
+                    score += state.TagSystem.GetEncounterStateTagValue(ApproachTags.Analysis);
                     break;
-                case ApproachTags.Finesse:
-                    score += state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Precision);
+                case ApproachTags.Precision:
+                    score += state.TagSystem.GetEncounterStateTagValue(ApproachTags.Precision);
                     break;
-                case ApproachTags.Stealth:
-                    score += state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Concealment);
+                case ApproachTags.Concealment:
+                    score += state.TagSystem.GetEncounterStateTagValue(ApproachTags.Concealment);
                     break;
             }
 
@@ -221,15 +208,15 @@
     }
 
     // Get the list of approaches blocked by narrative tags
-    private List<ApproachTags> GetBlockedApproaches(List<IEncounterTag> activeTags)
+    private List<FocusTags> GetBlockedChoices(List<IEncounterTag> activeTags)
     {
-        List<ApproachTags> blockedApproaches = new List<ApproachTags>();
+        List<FocusTags> blockedApproaches = new List<FocusTags>();
 
         foreach (IEncounterTag tag in activeTags)
         {
-            if (tag is NarrativeTag narrativeTag && narrativeTag.BlockedApproach.HasValue)
+            if (tag is NarrativeTag narrativeTag && narrativeTag.BlockedApproach != null)
             {
-                blockedApproaches.Add(narrativeTag.BlockedApproach.Value);
+                blockedApproaches.Add(narrativeTag.BlockedApproach);
             }
         }
 

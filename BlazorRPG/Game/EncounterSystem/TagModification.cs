@@ -4,7 +4,7 @@
 /// </summary>
 public class TagModification
 {
-    public enum TagTypes { EncounterState, Approach, Focus }
+    public enum TagTypes { EncounterState, Focus }
 
     public TagTypes Type { get; }
     public object Tag { get; }
@@ -17,14 +17,9 @@ public class TagModification
         Delta = delta;
     }
 
-    public static TagModification ForEncounterState(EncounterStateTags tag, int delta)
+    public static TagModification ForEncounterState(ApproachTags tag, int delta)
     {
         return new TagModification(TagTypes.EncounterState, tag, delta);
-    }
-
-    public static TagModification ForApproach(ApproachTags tag, int delta)
-    {
-        return new TagModification(TagTypes.Approach, tag, delta);
     }
 
     public static TagModification ForFocus(FocusTags tag, int delta)

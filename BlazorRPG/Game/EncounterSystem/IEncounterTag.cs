@@ -1,6 +1,4 @@
-﻿
-
-public interface IEncounterTag
+﻿public interface IEncounterTag
 {
     string Name { get; }
     bool IsActive(BaseTagSystem tagSystem);

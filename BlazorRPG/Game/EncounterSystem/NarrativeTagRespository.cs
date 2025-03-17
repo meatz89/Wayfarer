@@ -2,13 +2,13 @@
 {
     public static NarrativeTag DrawnWeapons = new NarrativeTag(
             "Drawn Weapons",
-            new ApproachThresholdCondition(EncounterStateTags.Dominance, 1),
-            ApproachTags.Wit);
+            new FocusThresholdCondition(ApproachTags.Dominance, 1),
+            FocusTags.Information);
 
     public static NarrativeTag HostileTerritory = new NarrativeTag(
             "Hostile Territory",
-            new ApproachThresholdCondition(EncounterStateTags.Concealment, 1),
-            ApproachTags.Charm);
+            new FocusThresholdCondition(ApproachTags.Concealment, 1),
+            FocusTags.Charm);
 
     public static NarrativeTag FightStarted = new NarrativeTag(
             "Fight Started",
@@ -18,11 +18,11 @@
     public static NarrativeTag OpenMarketplace = new NarrativeTag(
             "Open Marketplace",
             new AlwaysActiveCondition(),
-            ApproachTags.Stealth);
+            FocusTags.Stealth);
 
     public static NarrativeTag MarketSuspicion = new NarrativeTag(
             "Market Suspicion",
-            new ApproachThresholdCondition(EncounterStateTags.Concealment, 2),
-            ApproachTags.Charm);
+            new FocusThresholdCondition(ApproachTags.Concealment, 2),
+            FocusTags.Charm);
 
 }

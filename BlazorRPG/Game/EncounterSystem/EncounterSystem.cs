@@ -208,13 +208,13 @@
             FocusTags.Resource,
             new List<TagModification>
             {
-                TagModification.ForEncounterState(EncounterStateTags.Rapport, 1),
+                TagModification.ForEncounterState(ApproachTags.Rapport, 1),
                 TagModification.ForApproach(ApproachTags.Force, 2),
                 TagModification.ForFocus(FocusTags.Resource, 2)
             },
             new List<Func<BaseTagSystem, bool>>
             {
-                ChoiceFactory.EncounterStateTagRequirement(EncounterStateTags.Rapport, 2),
+                ChoiceFactory.EncounterStateTagRequirement(ApproachTags.Rapport, 2),
                 ChoiceFactory.ApproachTagRequirement(ApproachTags.Force, 2),
                 ChoiceFactory.FocusTagRequirement(FocusTags.Resource, 2)
             }

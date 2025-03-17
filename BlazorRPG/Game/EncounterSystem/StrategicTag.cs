@@ -1,12 +1,9 @@
-﻿
-
-public class StrategicTag : IEncounterTag
+﻿public class StrategicTag : IEncounterTag
 {
     public string Name { get; }
-    public ApproachTags? AffectedApproach { get; } // What approach this affects
     public FocusTags? AffectedFocus { get; } // What focus this affects
     public StrategicEffectTypes EffectType { get; }
-    public EncounterStateTags? ScalingApproachTag { get; } // Which tag it scales with
+    public ApproachTags? ScalingApproachTag { get; } // Which tag it scales with
     public int EffectValue { get; }
 
     private bool _activationEffectApplied = false;
@@ -14,13 +11,11 @@ public class StrategicTag : IEncounterTag
     public StrategicTag(
         string name,
         StrategicEffectTypes effectType,
-        ApproachTags? affectedApproach = null,
         FocusTags? affectedFocus = null,
-        EncounterStateTags? scalingApproachTag = null)
+        ApproachTags? scalingApproachTag = null)
     {
         Name = name;
         EffectType = effectType;
-        AffectedApproach = affectedApproach;
         AffectedFocus = affectedFocus;
         ScalingApproachTag = scalingApproachTag;
         EffectValue = 1; // Default value when not scaling
@@ -38,11 +33,6 @@ public class StrategicTag : IEncounterTag
 
         switch (EffectType)
         {
-            case StrategicEffectTypes.AddMomentumToApproach:
-                if (AffectedApproach.HasValue)
-                    state.AddApproachMomentumBonus(AffectedApproach.Value, effectValue);
-                break;
-
             case StrategicEffectTypes.AddMomentumToFocus:
                 if (AffectedFocus.HasValue)
                     state.AddFocusMomentumBonus(AffectedFocus.Value, effectValue);
@@ -86,7 +76,6 @@ public class StrategicTag : IEncounterTag
 
         switch (EffectType)
         {
-            case StrategicEffectTypes.AddMomentumToApproach:
             case StrategicEffectTypes.AddMomentumToFocus:
                 return GetEffectValueForState(null); // Will be properly applied in the state
             default:
@@ -101,7 +90,6 @@ public class StrategicTag : IEncounterTag
 
         switch (EffectType)
         {
-            case StrategicEffectTypes.ReducePressureFromApproach:
             case StrategicEffectTypes.ReducePressureFromFocus:
                 return -GetEffectValueForState(null); // Will be properly applied in the state
             default:
@@ -111,9 +99,6 @@ public class StrategicTag : IEncounterTag
 
     private bool ShouldAffectChoice(IChoice choice)
     {
-        if (AffectedApproach.HasValue && choice.Approach != AffectedApproach.Value)
-            return false;
-
         if (AffectedFocus.HasValue && choice.Focus != AffectedFocus.Value)
             return false;
 
@@ -147,32 +132,11 @@ public class StrategicTag : IEncounterTag
     {
         switch (EffectType)
         {
-            case StrategicEffectTypes.AddMomentumToApproach:
-                return $"+X momentum to {AffectedApproach} approaches";
-
             case StrategicEffectTypes.AddMomentumToFocus:
                 return $"+X momentum to {AffectedFocus} choices";
 
             case StrategicEffectTypes.ReducePressurePerTurn:
                 return $"-X pressure at end of each turn";
-
-            case StrategicEffectTypes.ReduceHealthByPressure:
-                return $"Reduce health by current pressure when using {AffectedApproach} approach";
-
-            case StrategicEffectTypes.ReduceFocusByPressure:
-                return $"Reduce concentration by current pressure when using {AffectedApproach} approach";
-
-            case StrategicEffectTypes.ReduceConfidenceByPressure:
-                return $"Reduce reputation by current pressure when using {AffectedApproach} approach";
-
-            case StrategicEffectTypes.ReduceHealthByApproachValue:
-                return $"Reduce health by {ScalingApproachTag} value when using {AffectedApproach} approach";
-
-            case StrategicEffectTypes.ReduceFocusByApproachValue:
-                return $"Reduce concentration by {ScalingApproachTag} value when using {AffectedApproach} approach";
-
-            case StrategicEffectTypes.ReduceConfidenceByApproachValue:
-                return $"Reduce reputation by {ScalingApproachTag} value when using {AffectedApproach} approach";
 
             default:
                 return "Affects encounter mechanics";

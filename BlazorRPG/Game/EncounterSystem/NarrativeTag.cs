@@ -1,12 +1,10 @@
-﻿
-
-public class NarrativeTag : IEncounterTag
+﻿public class NarrativeTag : IEncounterTag
 {
     public string Name { get; }
-    public ApproachTags? BlockedApproach { get; }
     public ActivationCondition Condition { get; }
+    public FocusTags BlockedApproach { get; }
 
-    public NarrativeTag(string name, ActivationCondition condition, ApproachTags? blockedApproach = null)
+    public NarrativeTag(string name, ActivationCondition condition, FocusTags blockedApproach)
     {
         Name = name;
         Condition = condition;
