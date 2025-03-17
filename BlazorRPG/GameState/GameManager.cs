@@ -11,6 +11,10 @@ public class GameManager
     public MessageSystem MessageSystem { get; }
     public EncounterResult EncounterResult { get; set; }
 
+    public ActionImplementation actionImplementation;
+    public Location location;
+    public string locationSpot;
+
     public GameManager(
         GameState gameState,
         EncounterSystem EncounterSystem,
@@ -48,6 +52,43 @@ public class GameManager
         UpdateAvailableActions();
     }
 
+    public async Task<ActionResult> GenerateEncounter()
+    {
+        EncounterManager encounter = await GenerateEncounter(
+            actionImplementation,
+            location,
+            gameState.Player,
+            locationSpot);
+
+        return ActionResult.Success("Encounter started!", new ActionResultMessages());
+    }
+
+    public EncounterViewModel? GetEncounterViewModel()
+    {
+        EncounterViewModel model = new EncounterViewModel();
+
+        EncounterManager encounterManager = GetEncounter();
+        List<UserEncounterChoiceOption> userEncounterChoiceOptions = EncounterSystem.GetUserEncounterChoiceOptions();
+        
+        EncounterState state = encounterManager.State;
+        EncounterResult encounterResult = EncounterResult;
+
+        model.CurrentEncounter = encounterManager;
+        model.CurrentChoices = userEncounterChoiceOptions;
+        model.ChoiceSetName = "choiceset";
+        model.State = state;
+        model.EncounterResult = encounterResult;
+
+        return model;
+    }
+
+    public void FinishEncounter(EncounterManager encounter)
+    {
+        ActionImplementation actionImplementation = encounter.ActionImplementation;
+        ApplyActionOutcomes(actionImplementation);
+        gameState.Actions.CompleteActiveEncounter();
+    }
+
     public async Task<EncounterManager> GenerateEncounter(ActionImplementation actionImplementation, Location location, PlayerState playerState, string locationSpotName)
     {
         List<LocationPropertyChoiceEffect> effects = LocationSystem.GetLocationEffects(location.LocationName, locationSpotName);
@@ -72,7 +113,7 @@ public class GameManager
         List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(EncounterResult.Encounter);
         gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
 
-        return EncounterSystem.Encounter;
+        return GetEncounter();
     }
 
     public async Task<EncounterResult> ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
@@ -194,13 +235,6 @@ public class GameManager
         CreateGlobalActions();
         //CreateCharacterActions();
         //CreateQuestActions();
-    }
-
-    public void FinishEncounter(EncounterManager encounter)
-    {
-        ActionImplementation actionImplementation = encounter.ActionImplementation;
-        ApplyActionOutcomes(actionImplementation);
-        gameState.Actions.CompleteActiveEncounter();
     }
 
     public ActionResult TravelToLocation(LocationNames locationName)
@@ -516,35 +550,8 @@ public class GameManager
 
     }
 
-    public ActionImplementation actionImplementation;
-    public Location location;
-    public string locationSpot;
-
-    public async Task<ActionResult> GenerateEncounter()
+    public EncounterManager GetEncounter()
     {
-        EncounterManager encounter = await GenerateEncounter(
-            actionImplementation,
-            location,
-            gameState.Player,
-            locationSpot);
-
-        return ActionResult.Success("Encounter started!", new ActionResultMessages());
-    }
-
-    public EncounterViewModel? GetEncounterViewModel()
-    {
-        EncounterViewModel model = new EncounterViewModel();
-        EncounterManager encounterManager = EncounterSystem.GetActiveEncounter();
-        List<UserEncounterChoiceOption> userEncounterChoiceOptions = EncounterSystem.GetUserEncounterChoiceOptions();
-        EncounterState state = EncounterSystem.Encounter.State;
-        EncounterResult encounterResult = EncounterResult;
-
-        model.CurrentEncounter = encounterManager;
-        model.CurrentChoices = userEncounterChoiceOptions;
-        model.ChoiceSetName = "choiceset";
-        model.State = state;
-        model.EncounterResult = encounterResult;
-
-        return model;
+        return gameState.Actions.GetCurrentEncounter();
     }
 }

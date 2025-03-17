@@ -32,11 +32,12 @@ public partial class GameUI : ComponentBase
     public PlayerState Player => GameState.Player;
     public Location CurrentLocation => GameState.World.CurrentLocation;
     public LocationSpot CurrentSpot => GameState.World.CurrentLocationSpot;
-    public EncounterManager CurrentEncounter => GameState.Actions.CurrentEncounter;
-    public EncounterResult EncounterResult => GameState.Actions.EncounterResult;
     public TimeWindows CurrentTime => GameState.World.WorldTime;
     public int CurrentHour => GameState.World.CurrentTimeInHours;
     public bool ShowEncounterResult { get; set; } = false;
+    public bool OngoingEncounter = false;
+
+    public EncounterResult EncounterResult => GameState.Actions.EncounterResult;
 
     // Tooltip Logic
     public bool showAreaMap = true;
@@ -51,7 +52,10 @@ public partial class GameUI : ComponentBase
         GameManager.StartGame();
     }
 
-    public bool OngoingEncounter = false;
+    public EncounterManager GetCurrentEncounter()
+    {
+        return GameManager.GetEncounter();
+    }
 
     private async Task HandleActionSelection(UserActionOption action)
     {
@@ -67,6 +71,16 @@ public partial class GameUI : ComponentBase
         }
     }
 
+    private void HandleEncounterCompleted(EncounterResult result)
+    {
+        if (result.EncounterResults != EncounterResults.Ongoing)
+        {
+            OngoingEncounter = false;
+            ShowEncounterResult = true;
+        }
+        StateHasChanged();
+    }
+
     private void HandleLocationSelection(LocationNames locationName)
     {
         selectedLocation = locationName;
@@ -80,6 +94,8 @@ public partial class GameUI : ComponentBase
     {
         showNarrative = false;
         FinalizeLocationSelection(selectedLocation);
+
+        FinishEncounter();
     }
 
     private void FinalizeLocationSelection(LocationNames locationName)
@@ -107,16 +123,6 @@ public partial class GameUI : ComponentBase
         }
     }
 
-    private void HandleEncounterCompleted(EncounterResult result)
-    {
-        if (result.EncounterResults != EncounterResults.Ongoing)
-        {
-            OngoingEncounter = false;
-            ShowEncounterResult = true;
-        }
-        StateHasChanged();
-    }
-
     private void FinishEncounter()
     {
         // Reset Encounter logic
@@ -129,7 +135,7 @@ public partial class GameUI : ComponentBase
 
     public bool CurrentEncounterOngoing()
     {
-        if (CurrentEncounter == null) return false;
+        if (GetCurrentEncounter == null) return false;
         if (EncounterResult == null) return false;
         if (EncounterResult.EncounterResults == EncounterResults.Ongoing) { return true; }
         return false;

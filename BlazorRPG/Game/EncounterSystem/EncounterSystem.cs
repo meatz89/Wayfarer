@@ -5,7 +5,7 @@
     private readonly SwitchableNarrativeService narrativeService;
     private AIProviderType currentAIProvider;
 
-    public EncounterManager Encounter;
+    private EncounterManager Encounter;
     public EncounterResult encounterResult;
 
     private bool useAiNarrative = false;
@@ -104,7 +104,6 @@
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
 
         gameState.Actions.SetActiveEncounter(Encounter);
-
         return encounterResult;
     }
 
@@ -227,11 +226,6 @@
     {
         // Add special choices for this location
         return null;
-    }
-
-    public EncounterManager GetActiveEncounter()
-    {
-        return gameState.Actions.CurrentEncounter;
     }
 
     public List<IChoice> GetChoices()

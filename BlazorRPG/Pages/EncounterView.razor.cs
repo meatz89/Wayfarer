@@ -1,5 +1,4 @@
-﻿
-using BlazorRPG.Pages;
+﻿using BlazorRPG.Pages;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
@@ -9,7 +8,6 @@ public partial class EncounterViewBase : ComponentBase
     [Inject] public IJSRuntime JSRuntime { get; set; } // Inject IJSRuntime
     [Inject] public GameManager GameManager { get; set; }
     [Parameter] public EventCallback<EncounterResult> OnEncounterCompleted { get; set; }
-    public EncounterManager Encounter => GameManager.EncounterSystem.Encounter;
 
     public UserEncounterChoiceOption hoveredChoice;
     public bool showTooltip;
@@ -17,9 +15,7 @@ public partial class EncounterViewBase : ComponentBase
     public double mouseY;
 
     public bool IsLoading = true;
-
-    public bool IsChoiceDisabled(UserEncounterChoiceOption userEncounterChoiceOption) => userEncounterChoiceOption.Choice.IsBlocked;
-    public EncounterViewModel Model => GameManager.GetEncounterViewModel();
+    
 
     // Add these methods to expose the enum values to the view
     public EncounterStateTags[] GetApproachTags() => Enum.GetValues<EncounterStateTags>();
@@ -27,14 +23,25 @@ public partial class EncounterViewBase : ComponentBase
 
     protected override async Task OnInitializedAsync()
     {
-        if (Encounter == null)
+        if (GetEncounter() == null)
         {
             await GameManager.GenerateEncounter();
             IsLoading = false;
         }
     }
+
+    public bool IsChoiceDisabled(UserEncounterChoiceOption userEncounterChoiceOption) => userEncounterChoiceOption.Choice.IsBlocked;
+    public EncounterViewModel Model => GameManager.GetEncounterViewModel();
+
+    public EncounterManager GetEncounter()
+    {
+        return GameManager.GetEncounter();
+    }
+
     public async Task HandleChoiceSelection(UserEncounterChoiceOption choice)
     {
+        hoveredChoice = null;
+        showTooltip = false;
         IsLoading = true;
 
         EncounterResult result = await GameManager.ExecuteEncounterChoice(choice);
@@ -79,14 +86,14 @@ public partial class EncounterViewBase : ComponentBase
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
-        if (Encounter?.State?.Location?.AvailableTags == null)
+        if (GetEncounter().State?.Location?.AvailableTags == null)
             return properties;
 
         // Get all available tags that aren't currently active
-        foreach (IEncounterTag tag in Encounter.State.Location.AvailableTags)
+        foreach (IEncounterTag tag in GetEncounter().State.Location.AvailableTags)
         {
             // Skip if the tag is already active
-            if (Encounter.State.ActiveTags.Any(t => t.Name == tag.Name))
+            if (GetEncounter().State.ActiveTags.Any(t => t.Name == tag.Name))
                 continue;
 
             string icon = GetTagIcon(tag);
@@ -149,7 +156,7 @@ public partial class EncounterViewBase : ComponentBase
     public string GetTagEffectDescription(string tagName)
     {
         // Find the tag by name and use its description method
-        IEncounterTag tag = Encounter.State.ActiveTags.FirstOrDefault(t => t.Name == tagName);
+        IEncounterTag tag = GetEncounter().State.ActiveTags.FirstOrDefault(t => t.Name == tagName);
         if (tag is StrategicTag strategicTag)
         {
             return strategicTag.GetEffectDescription();
@@ -178,20 +185,18 @@ public partial class EncounterViewBase : ComponentBase
             mouseY = e.ClientY - dimensions.TooltipHeight - 10; // Position above, with offset
         }
     }
-
+    
     public void HideTooltip()
     {
         hoveredChoice = null;
         showTooltip = false;
     }
 
-
     public void OnMouseMove(MouseEventArgs e)
     {
         mouseX = e.ClientX + 10;
         mouseY = e.ClientY + 10;
     }
-
 
     public int GetCurrentValue(ValueTypes changeType)
     {
@@ -205,8 +210,6 @@ public partial class EncounterViewBase : ComponentBase
         }
         return 0;
     }
-
-
 
     public MarkupString GetValueTypeIcon(ValueTypes valueType)
     {
@@ -224,11 +227,12 @@ public partial class EncounterViewBase : ComponentBase
     public List<PropertyDisplay> GetActiveTags()
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
+        EncounterManager encounterManager = GetEncounter();
 
-        if (Encounter?.State?.ActiveTags == null)
+        if (encounterManager.State?.ActiveTags == null)
             return properties;
 
-        foreach (IEncounterTag tag in Encounter.State.ActiveTags)
+        foreach (IEncounterTag tag in encounterManager.State.ActiveTags)
         {
             string icon = GetTagIcon(tag);
             string tooltipText = GetTagTooltipText(tag);

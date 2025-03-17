@@ -13,8 +13,8 @@ public class ActionState
 
     public List<Quest> ActiveQuests { get; set; }
 
-    public EncounterManager CurrentEncounter { get; set; }
     public EncounterResult EncounterResult { get; set; }
+    private EncounterManager CurrentEncounter { get; set; }
 
     public EncounterManager GetCurrentEncounter()
     {

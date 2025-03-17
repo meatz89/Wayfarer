@@ -3,7 +3,7 @@
     public static GameRules StandardRuleset = new GameRules
     {
         StartingHealth = 100,
-        StartingCoins = 5,
+        StartingCoins = 50,
         StartingInventorySize = 10,
 
         StartingPhysicalEnergy = 100,

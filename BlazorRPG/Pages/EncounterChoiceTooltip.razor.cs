@@ -8,7 +8,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     [Parameter] public UserEncounterChoiceOption hoveredChoice { get; set; }
     [Parameter] public double mouseX { get; set; }
     [Parameter] public double mouseY { get; set; }
-    public EncounterManager Encounter => GameManager.EncounterSystem.Encounter;
+
     public ChoiceProjection Preview => GameManager.GetChoicePreview(hoveredChoice);
 
     public List<ChoiceProjection.ValueComponent> GetMomentumBreakdown()
@@ -21,6 +21,11 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     {
         // Now we can directly use the detailed components from the projection
         return Preview?.PressureComponents ?? new List<ChoiceProjection.ValueComponent>();
+    }
+
+    public EncounterManager GetEncounter()
+    {
+        return GameManager.GetEncounter();
     }
 
     public Dictionary<string, int> GetApproachTagChanges()

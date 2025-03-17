@@ -64,14 +64,14 @@
                 @if (showNarrative)
                 {
                     <NarrativeView LocationName="@selectedLocation"
-                    OnNarrativeCompleted="OnNarrativeCompleted"
+                                   OnNarrativeCompleted="OnNarrativeCompleted"
                     Result="@EncounterResult"
                     ShowResult="false" />
                 }
                 else if (ShowEncounterResult)
                 {
                     <NarrativeView LocationName="@selectedLocation"
-                                   OnNarrativeCompleted="FinishEncounter"
+                                   OnNarrativeCompleted="OnNarrativeCompleted"
                     Result="@EncounterResult"
                     ShowResult="true" />
                 }
@@ -87,7 +87,7 @@
                 if (ShowEncounterResult)
                 {
                     <NarrativeView LocationName="@selectedLocation"
-                                   OnNarrativeCompleted="FinishEncounter"
+                                   OnNarrativeCompleted="OnNarrativeCompleted"
                                    Result="@EncounterResult"
                                    ShowResult="true" />
                 }
