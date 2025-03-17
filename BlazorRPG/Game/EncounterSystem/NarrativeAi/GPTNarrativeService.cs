@@ -109,6 +109,6 @@
         _contextManager.AddAssistantMessage(conversationId, jsonResponse);
 
         // Parse the JSON response into choice narratives
-        return NarrativeJsonChoicesParser.ParseChoiceResponse(jsonResponse, choices);
+        return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
     }
 }

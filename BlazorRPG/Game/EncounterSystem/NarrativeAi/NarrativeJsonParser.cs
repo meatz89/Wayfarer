@@ -1,99 +1,67 @@
 ﻿using System.Text.Json;
-using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using System.Linq;
 
-public static class NarrativeJsonChoicesParser
+public static class NarrativeJsonParser
 {
-    private static readonly Regex ChoiceRegex = new Regex(@"Choice\s*(\d+):\s*(.*?)\s*-\s*(.*)", RegexOptions.Compiled);
-
     public static Dictionary<IChoice, ChoiceNarrative> ParseChoiceResponse(string response, List<IChoice> choices)
     {
-        // First, try JSON parsing
-        var jsonResult = TryParseJson(response, choices);
-        if (jsonResult.Count > 0) return jsonResult;
+        // Extract JSON content
+        string jsonContent = ExtractJsonContent(response);
 
-        // If JSON fails, try markdown-style parsing
-        return ParseChoiceFromMarkdown(response, choices);
-    }
+        // Parse the JSON
+        JsonSerializerOptions options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
 
-    private static Dictionary<IChoice, ChoiceNarrative> TryParseJson(string response, List<IChoice> choices)
-    {
+        ChoicesResponse parsedResponse = JsonSerializer.Deserialize<ChoicesResponse>(jsonContent, options);
+
+        // Map to choices
         Dictionary<IChoice, ChoiceNarrative> result = new Dictionary<IChoice, ChoiceNarrative>();
 
-        try
+        if (parsedResponse?.Choices != null)
         {
-            // Remove any text before or after the JSON if present
-            response = response.Trim();
-            if (!response.StartsWith("{"))
+            for (int i = 0; i < choices.Count && i < parsedResponse.Choices.Count; i++)
             {
-                int jsonStartIndex = response.IndexOf('{');
-                int jsonEndIndex = response.LastIndexOf('}');
-
-                if (jsonStartIndex != -1 && jsonEndIndex != -1)
-                {
-                    response = response.Substring(jsonStartIndex, jsonEndIndex - jsonStartIndex + 1);
-                }
+                ChoiceData choiceData = parsedResponse.Choices[i];
+                result[choices[i]] = new ChoiceNarrative(choiceData.Name, choiceData.Description);
             }
-
-            // Parse the JSON
-            using JsonDocument doc = JsonDocument.Parse(response);
-            JsonElement root = doc.RootElement;
-
-            // Ensure we have a 'choices' array
-            if (root.TryGetProperty("choices", out JsonElement choicesArray))
-            {
-                for (int i = 0; i < Math.Min(choices.Count, choicesArray.GetArrayLength()); i++)
-                {
-                    JsonElement choiceObj = choicesArray[i];
-
-                    // Extract name, defaulting to original choice name if not found
-                    string name = choiceObj.TryGetProperty("name", out var nameElem)
-                        ? nameElem.GetString()
-                        : choices[i].Name;
-
-                    // Extract description, using a fallback if not found
-                    string description = choiceObj.TryGetProperty("description", out var descElem)
-                        ? descElem.GetString()
-                        : "No description available";
-
-                    result[choices[i]] = new ChoiceNarrative(name, description);
-                }
-            }
-
-            return result;
-        }
-        catch
-        {
-            return new Dictionary<IChoice, ChoiceNarrative>();
-        }
-    }
-
-    private static Dictionary<IChoice, ChoiceNarrative> ParseChoiceFromMarkdown(string response, List<IChoice> choices)
-    {
-        Dictionary<IChoice, ChoiceNarrative> result = new Dictionary<IChoice, ChoiceNarrative>();
-
-        // Extract all choice matches
-        var matches = ChoiceRegex.Matches(response);
-
-        for (int i = 0; i < Math.Min(matches.Count, choices.Count); i++)
-        {
-            Match match = matches[i];
-
-            // Extract parts of the choice
-            string name = match.Groups[2].Value.Trim();
-            string description = match.Groups[3].Value.Trim();
-
-            result[choices[i]] = new ChoiceNarrative(name, description);
         }
 
         return result;
     }
 
+    private static string ExtractJsonContent(string text)
+    {
+        // Remove markdown code blocks if present
+        string content = text.Trim();
+
+        // Remove leading ```json or similar
+        int startMarker = content.IndexOf('{');
+        if (startMarker > 0)
+        {
+            content = content.Substring(startMarker);
+        }
+
+        // Remove trailing ``` if present
+        int endMarker = content.LastIndexOf('}');
+        if (endMarker >= 0 && endMarker < content.Length - 1)
+        {
+            content = content.Substring(0, endMarker + 1);
+        }
+
+        return content;
+    }
+
     public static string ExtractNarrativeContext(string fullText)
     {
-        // Split the text by "Choice" to separate narrative from choices
-        string[] parts = fullText.Split(new[] { "Choice" }, StringSplitOptions.RemoveEmptyEntries);
+        int jsonStart = fullText.IndexOf('{');
+        if (jsonStart <= 0)
+        {
+            return fullText.Trim();
+        }
 
-        // Return the first part (narrative context)
-        return parts.Length > 0 ? parts[0].Trim() : string.Empty;
+        return fullText.Substring(0, jsonStart).Trim();
     }
 }

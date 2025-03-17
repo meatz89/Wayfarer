@@ -1,5 +1,4 @@
 ﻿
-
 /// <summary>
 /// Model class for choice responses
 /// </summary>

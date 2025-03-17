@@ -79,6 +79,6 @@
 
         string jsonResponse = await _aiClient.GetCompletionAsync(_contextManager.GetConversationHistory(conversationId));
         _contextManager.AddAssistantMessage(conversationId, jsonResponse);
-        return NarrativeJsonChoicesParser.ParseChoiceResponse(jsonResponse, choices);
+        return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
     }
 }

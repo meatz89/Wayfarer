@@ -30,7 +30,7 @@ public class ClaudeProvider : IAIProvider
 
         // Find and extract system message
         ConversationEntry systemEntry = messagesList.FirstOrDefault(m => m.Role.ToLower() == "system");
-        
+
         string systemMessage = null;
         if (systemEntry != null)
         {

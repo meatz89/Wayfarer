@@ -89,6 +89,6 @@
 
         _contextManager.AddAssistantMessage(conversationId, jsonResponse);
 
-        return NarrativeJsonChoicesParser.ParseChoiceResponse(jsonResponse, choices);
+        return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
     }
 }

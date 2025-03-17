@@ -9,7 +9,7 @@ public class NarrativeLogManager
 
     public NarrativeLogManager()
     {
-        var gameInstanceId = string.Empty;
+        string gameInstanceId = string.Empty;
 
         // Set base directory to C:\Logs
         _baseLogDirectory = Path.Combine("C:", "Logs");
