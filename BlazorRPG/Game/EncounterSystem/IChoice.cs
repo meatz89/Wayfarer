@@ -5,7 +5,7 @@ public interface IChoice
 {
     string Name { get; }
     string Description { get; }
-    EncounterStateTags Approach { get; }
+    ApproachTags Approach { get; }
     FocusTags Focus { get; }
     EffectTypes EffectType { get; }
     IReadOnlyList<TagModification> TagModifications { get; }
@@ -20,7 +20,7 @@ public class Choice : IChoice
 {
     public string Name { get; }
     public string Description { get; }
-    public EncounterStateTags Approach => this.GetPrimaryApproach();
+    public ApproachTags Approach => this.GetPrimaryApproach();
     public FocusTags Focus { get; }
     public EffectTypes EffectType { get; }
     public IReadOnlyList<TagModification> TagModifications { get; }
@@ -41,7 +41,7 @@ public class Choice : IChoice
         foreach (TagModification mod in TagModifications)
         {
             if (mod.Type == TagModification.TagTypes.EncounterState)
-                state.TagSystem.ModifyEncounterStateTag((EncounterStateTags)mod.Tag, mod.Delta);
+                state.TagSystem.ModifyEncounterStateTag((ApproachTags)mod.Tag, mod.Delta);
             else
                 state.TagSystem.ModifyFocusTag((FocusTags)mod.Tag, mod.Delta);
         }
@@ -91,7 +91,7 @@ public class SpecialChoice : Choice
         foreach (TagModification mod in TagModifications)
         {
             if (mod.Type == TagModification.TagTypes.EncounterState)
-                state.TagSystem.ModifyEncounterStateTag((EncounterStateTags)mod.Tag, mod.Delta);
+                state.TagSystem.ModifyEncounterStateTag((ApproachTags)mod.Tag, mod.Delta);
             else
                 state.TagSystem.ModifyFocusTag((FocusTags)mod.Tag, mod.Delta);
         }

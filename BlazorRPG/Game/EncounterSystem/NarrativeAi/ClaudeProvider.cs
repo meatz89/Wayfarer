@@ -40,7 +40,8 @@ public class ClaudeProvider : IAIProvider
         var requestBody = new
         {
             model = _model,
-            messages = messagesList.Select(m => new {
+            messages = messagesList.Select(m => new
+            {
                 role = m.Role.ToLower() == "assistant" ? "assistant" : "user",
                 content = m.Content
             }).ToArray(),

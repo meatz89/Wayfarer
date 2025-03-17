@@ -14,8 +14,8 @@ public static class LocationFactory
         // Core properties for the Ancient Library
         LocationInfo location = new LocationInfo(
             "Ancient Library",
-            new[] { FocusTags.Information, FocusTags.Relationship }.ToList(), // Favored focuses for intellectual encounter
-            new[] { FocusTags.Physical }.ToList(), // Disfavored focus
+            new[] { ApproachTags.Analysis, ApproachTags.Precision }.ToList(),
+            new[] { ApproachTags.Dominance }.ToList(),
             6, // Duration (6 turns)
             12, 16, 20, // Momentum thresholds: 12+ (Partial), 16+ (Standard), 20+ (Exceptional)
             LocationInfo.HostilityLevels.Neutral,

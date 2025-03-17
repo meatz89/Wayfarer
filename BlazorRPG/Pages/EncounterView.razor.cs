@@ -22,7 +22,7 @@ public partial class EncounterViewBase : ComponentBase
     public EncounterViewModel Model => GameManager.GetEncounterViewModel();
 
     // Add these methods to expose the enum values to the view
-    public EncounterStateTags[] GetApproachTags() => Enum.GetValues<EncounterStateTags>();
+    public ApproachTags[] GetApproachTags() => Enum.GetValues<ApproachTags>();
     public FocusTags[] GetFocusTags() => Enum.GetValues<FocusTags>();
 
     protected override async Task OnInitializedAsync()

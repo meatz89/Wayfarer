@@ -4,8 +4,8 @@
 public class LocationInfo
 {
     public string Name { get; }
-    public List<FocusTags> FavoredFocuses { get; } = new List<FocusTags>();
-    public List<FocusTags> DisfavoredFocuses { get; } = new List<FocusTags>();
+    public List<ApproachTags> FavoredApproaches { get; } = new List<ApproachTags>();
+    public List<ApproachTags> DisfavoredApproaches { get; } = new List<ApproachTags>();
     public List<IEncounterTag> AvailableTags { get; } = new List<IEncounterTag>();
 
     // Success thresholds
@@ -37,8 +37,8 @@ public class LocationInfo
 
     public LocationInfo(
         string name,
-        List<FocusTags> favoredFocuses,
-        List<FocusTags> disfavoredFocuses,
+        List<ApproachTags> favoreApproaches,
+        List<ApproachTags> disfavoredApproaches,
         int duration,
         int partialThreshold,
         int standardThreshold,
@@ -47,8 +47,8 @@ public class LocationInfo
         PresentationStyles style)
     {
         Name = name;
-        FavoredFocuses = favoredFocuses;
-        DisfavoredFocuses = disfavoredFocuses;
+        FavoredApproaches = favoreApproaches;
+        DisfavoredApproaches = disfavoredApproaches;
 
         PartialThreshold = partialThreshold;
         StandardThreshold = standardThreshold;

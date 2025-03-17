@@ -4,7 +4,7 @@
 public static class ChoiceFactory
 {
     // Create a standard momentum choice
-    public static Choice CreateMomentumChoice(string name, string description,FocusTags focus,
+    public static Choice CreateMomentumChoice(string name, string description, FocusTags focus,
                                                 params TagModification[] tagModifications)
     {
         return new Choice(name, description, focus, EffectTypes.Momentum, tagModifications);
@@ -19,7 +19,7 @@ public static class ChoiceFactory
     }
 
     // Create a tag requirement function for a specific approach tag threshold
-    public static Func<BaseTagSystem, bool> EncounterStateTagRequirement(EncounterStateTags tag, int threshold)
+    public static Func<BaseTagSystem, bool> EncounterStateTagRequirement(ApproachTags tag, int threshold)
     {
         return tagSystem => tagSystem.GetEncounterStateTagValue(tag) >= threshold;
     }

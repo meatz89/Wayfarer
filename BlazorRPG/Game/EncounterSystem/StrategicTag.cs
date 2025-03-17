@@ -3,13 +3,13 @@
     public string Name { get; }
     public StrategicEffectTypes EffectType { get; }
     public FocusTags? AffectedFocus { get; }
-    public EncounterStateTags? ScalingApproachTag { get; }
+    public ApproachTags? ScalingApproachTag { get; }
 
     public StrategicTag(
         string name,
         StrategicEffectTypes effectType,
         FocusTags? affectedFocus = null,
-        EncounterStateTags? scalingApproachTag = null)
+        ApproachTags? scalingApproachTag = null)
     {
         Name = name;
         EffectType = effectType;

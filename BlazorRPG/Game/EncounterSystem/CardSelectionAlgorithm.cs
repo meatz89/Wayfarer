@@ -112,20 +112,20 @@
         //}
         //else
         //{
-            // Find a choice with approach and focus not yet in the hand
-            List<ChoiceScore> diverseChoices = choiceScores
-                .Where(cs => !result.Contains(cs.Choice) &&
-                        !result.Any(c => c.Approach == cs.Choice.Approach && c.Focus == cs.Choice.Focus))
-                .OrderByDescending(cs => cs.Score)
-                .ToList();
+        // Find a choice with approach and focus not yet in the hand
+        List<ChoiceScore> diverseChoices = choiceScores
+            .Where(cs => !result.Contains(cs.Choice) &&
+                    !result.Any(c => c.Approach == cs.Choice.Approach && c.Focus == cs.Choice.Focus))
+            .OrderByDescending(cs => cs.Score)
+            .ToList();
 
-            if (diverseChoices.Count > 0)
-            {
-                int topCount = Math.Min(3, diverseChoices.Count);
-                int randomIndex = _random.Next(topCount);
+        if (diverseChoices.Count > 0)
+        {
+            int topCount = Math.Min(3, diverseChoices.Count);
+            int randomIndex = _random.Next(topCount);
 
-                result.Add(diverseChoices[randomIndex].Choice);
-            }
+            result.Add(diverseChoices[randomIndex].Choice);
+        }
         //}
 
         // 4. Fill the hand if needed
@@ -169,32 +169,28 @@
             int score = 10; // Base score
 
             // Location preference bonuses
-            if (state.Location.Contains(choice.Approach))
+            if (state.Location.FavoredApproaches.Contains(choice.Approach))
                 score += 3;
-            if (state.Location.Contains(choice.Approach))
-                score -= 2;
-            if (state.Location.FavoredFocuses.Contains(choice.Focus))
-                score += 3;
-            if (state.Location.DisfavoredFocuses.Contains(choice.Focus))
+            if (state.Location.DisfavoredApproaches.Contains(choice.Approach))
                 score -= 2;
 
             // Tag matching bonuses
             switch (choice.Approach)
             {
-                case EncounterStateTags.Dominance:
-                    score += state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Dominance);
+                case ApproachTags.Dominance:
+                    score += state.TagSystem.GetEncounterStateTagValue(ApproachTags.Dominance);
                     break;
-                case EncounterStateTags.Rapport:
-                    score += state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Rapport);
+                case ApproachTags.Rapport:
+                    score += state.TagSystem.GetEncounterStateTagValue(ApproachTags.Rapport);
                     break;
-                case EncounterStateTags.Analysis:
-                    score += state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Analysis);
+                case ApproachTags.Analysis:
+                    score += state.TagSystem.GetEncounterStateTagValue(ApproachTags.Analysis);
                     break;
-                case EncounterStateTags.Precision:
-                    score += state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Precision);
+                case ApproachTags.Precision:
+                    score += state.TagSystem.GetEncounterStateTagValue(ApproachTags.Precision);
                     break;
-                case EncounterStateTags.Concealment:
-                    score += state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Concealment);
+                case ApproachTags.Concealment:
+                    score += state.TagSystem.GetEncounterStateTagValue(ApproachTags.Concealment);
                     break;
             }
 
