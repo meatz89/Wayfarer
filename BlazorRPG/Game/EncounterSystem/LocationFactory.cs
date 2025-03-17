@@ -1,47 +1,42 @@
-﻿/// <summary>
+﻿
+/// <summary>
 /// Factory for creating common location types
 /// </summary>
 public static class LocationFactory
 {
-    public static LocationInfo CreateBanditAmbush()
+    // Other location methods remain unchanged
+
+    /// <summary>
+    /// Creates the Ancient Library location from the Wayfarer example
+    /// </summary>
+    public static LocationInfo CreateAncientLibrary()
     {
-        // Core properties - note the hostility level is Hostile
+        // Core properties for the Ancient Library
         LocationInfo location = new LocationInfo(
-            "Bandit Ambush",
-            new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),
-            new[] { FocusTags.Relationship }.ToList(),
-            10, // Duration
-            9, 12, 15, // Higher momentum thresholds for hostile locations
-            LocationInfo.HostilityLevels.Hostile,
-            PresentationStyles.Physical);
-
-        location.AddTag(NarrativeTagRespository.DrawnWeapons);
-        location.AddTag(NarrativeTagRespository.HostileTerritory);
-        location.AddTag(NarrativeTagRespository.FightStarted);
-
-        location.AddTag(StrategicTagRespository.GrowingTension);
-        location.AddTag(StrategicTagRespository.CombatExhaustion);
-        location.AddTag(StrategicTagRespository.PoorlyCoordinated);
-        location.AddTag(StrategicTagRespository.EasilyDistracted);
-
-        return location;
-    }
-
-    public static LocationInfo CreateVillageMarket()
-    {
-        // Core properties
-        LocationInfo location = new LocationInfo(
-            "Village Market",
-            new[] { FocusTags.Relationship, FocusTags.Resource }.ToList(),
-            new[] { FocusTags.Physical }.ToList(),
-            11, // Duration
-            8, 10, 12, // Momentum thresholds
+            "Ancient Library",
+            new[] { FocusTags.Information, FocusTags.Relationship }.ToList(), // Favored focuses for intellectual encounter
+            new[] { FocusTags.Physical }.ToList(), // Disfavored focus
+            6, // Duration (6 turns)
+            12, 16, 20, // Momentum thresholds: 12+ (Partial), 16+ (Standard), 20+ (Exceptional)
             LocationInfo.HostilityLevels.Neutral,
-            PresentationStyles.Social);
+            PresentationStyles.Intellectual);
 
-        location.AddTag(NarrativeTagRespository.OpenMarketplace);
-        location.AddTag(NarrativeTagRespository.MarketSuspicion);
+        // Difficulty level 2 (adds +2 pressure per turn)
+        location.SetDifficulty(2);
+
+        // Add narrative tags
+        location.AddTag(NarrativeTagRepository.DetailFixation);
+        location.AddTag(NarrativeTagRepository.TheoreticalMindset);
+        location.AddTag(NarrativeTagRepository.ParanoidMindset);
+
+        // Add strategic tags
+        location.AddTag(StrategicTagRepository.InsightfulApproach);    // Analysis → Increases Momentum
+        location.AddTag(StrategicTagRepository.CarefulPositioning);    // Precision → Decreases Pressure
+        location.AddTag(StrategicTagRepository.EscalatingTension);     // Dominance → Increases Pressure
+        location.AddTag(StrategicTagRepository.SocialDistraction);     // Rapport → Decreases Momentum
+                                                                       // Note: Concealment approach has no strategic tag (neutral)
 
         return location;
     }
+
 }

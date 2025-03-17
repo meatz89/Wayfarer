@@ -1,15 +1,10 @@
 ﻿public enum StrategicEffectTypes
 {
-    // Momentum effects
-    AddMomentumToFocus,
-    ReduceMomentumFromFocus,
-    AddMomentumOnActivation,
-    AddMomentumPerTurn,
+    // Beneficial effects
+    IncreaseMomentum,    // Adds momentum proportional to approach value
+    DecreasePressure,    // Reduces pressure proportional to approach value
 
-    // Pressure effects
-    ReducePressurePerTurn,
-    AddPressurePerTurn,
-    ReducePressureFromFocus,
-    AddPressureFromFocus,
-    ReducePressureOnActivation,
+    // Detrimental effects
+    DecreaseMomentum,    // Reduces momentum proportional to approach value
+    IncreasePressure     // Adds pressure proportional to approach value
 }

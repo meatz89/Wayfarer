@@ -61,10 +61,10 @@ public class EncounterState
         _resourceManager.ApplyPressureResourceDamage(Pressure);
 
         // 1. Apply tag changes
-        foreach (KeyValuePair<ApproachTags, int> pair in projection.EncounterStateTagChanges)
+        foreach (KeyValuePair<EncounterStateTags, int> pair in projection.EncounterStateTagChanges)
             TagSystem.ModifyEncounterStateTag(pair.Key, pair.Value);
 
-        foreach (KeyValuePair<ApproachTags, int> pair in projection.ApproachTagChanges)
+        foreach (KeyValuePair<EncounterStateTags, int> pair in projection.ApproachTagChanges)
             TagSystem.ModifyApproachTag(pair.Key, pair.Value);
 
         foreach (KeyValuePair<FocusTags, int> pair in projection.FocusTagChanges)
@@ -96,7 +96,7 @@ public class EncounterState
 
     public void BuildMomentum(int amount) => Momentum += amount;
 
-    public void BuildPressure(int amount) => Pressure += amount;
+    public void IncreasePressure(int amount) => Pressure += amount;
 
     public void ReducePressure(int amount) => Pressure = Math.Max(0, Pressure - amount);
 

@@ -1,6 +1,4 @@
-﻿
-
-public class ProjectionService
+﻿public class ProjectionService
 {
     private readonly TagManager _tagManager;
     private readonly ResourceManager _resourceManager;
@@ -53,21 +51,12 @@ public class ProjectionService
             });
         }
 
-        // Add implicit tag modifications for approach and focus
-        TagModification focusTagMod = TagModification.ForFocus(choice.Focus, 1);
-        FocusTags tagFocus = (FocusTags)focusTagMod.Tag;
-        int oldValueFocus = clonedTagSystem.GetFocusTagValue(tagFocus);
-        clonedTagSystem.ModifyFocusTag(tagFocus, focusTagMod.Delta);
-        int newValueFocus = clonedTagSystem.GetFocusTagValue(tagFocus);
-        int actualDeltaFocus = newValueFocus - oldValueFocus;
-        if (actualDeltaFocus != 0) projection.FocusTagChanges[tagFocus] = actualDeltaFocus;
-
         // Apply all explicit tag modifications from the choice
         foreach (TagModification mod in choice.TagModifications)
         {
             if (mod.Type == TagModification.TagTypes.EncounterState)
             {
-                ApproachTags tag = (ApproachTags)mod.Tag;
+                EncounterStateTags tag = (EncounterStateTags)mod.Tag;
                 int oldValue = clonedTagSystem.GetEncounterStateTagValue(tag);
                 clonedTagSystem.ModifyEncounterStateTag(tag, mod.Delta);
                 int newValue = clonedTagSystem.GetEncounterStateTagValue(tag);
@@ -101,7 +90,8 @@ public class ProjectionService
 
         if (choice.EffectType == EffectTypes.Momentum)
         {
-            int baseMomentum = choice is SpecialChoice ? 3 : (choice is EmergencyChoice ? 1 : 2);
+            // Standard choice builds +2 momentum, special choices +3
+            int baseMomentum = choice is SpecialChoice ? 3 : 2;
             projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
             {
                 Source = "Momentum Choice Base",
@@ -113,29 +103,21 @@ public class ProjectionService
         // Calculate pressure effects
         int pressureChange = 0;
 
-        if (choice.EffectType == EffectTypes.Pressure || choice is EmergencyChoice)
+        if (choice.EffectType == EffectTypes.Pressure)
         {
-            int basePressure = 1;
+            // Standard choices REDUCE -1 pressure (project knowledge)
+            int basePressureReduction = -1;
             projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
             {
                 Source = "Pressure Choice Base",
-                Value = basePressure
+                Value = basePressureReduction
             });
-            pressureChange += basePressure;
+            pressureChange += basePressureReduction;
         }
 
-        if (choice.EffectType == EffectTypes.Pressure && escalationLevel > 0)
-        {
-            projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-            {
-                Source = "Escalation Pressure",
-                Value = escalationLevel
-            });
-            pressureChange += escalationLevel;
-        }
-
+        // Environmental pressure happens regardless of choice type
         int environmentalPressure = _location.GetEnvironmentalPressure(currentTurn);
-        if (environmentalPressure > 0)
+        if (environmentalPressure != 0)
         {
             projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
             {
@@ -153,36 +135,72 @@ public class ProjectionService
 
             if (tag is StrategicTag strategicTag)
             {
+                // Check if this tag affects this choice's focus (if specified)
                 bool affectsChoice = true;
-
-                if (strategicTag.AffectedApproach.HasValue && choice.Approach != strategicTag.AffectedApproach.Value)
-                    affectsChoice = false;
-
                 if (strategicTag.AffectedFocus.HasValue && choice.Focus != strategicTag.AffectedFocus.Value)
                     affectsChoice = false;
 
                 if (affectsChoice)
                 {
-                    int momentumEffect = strategicTag.GetMomentumModifierForChoice(choice);
-                    if (momentumEffect != 0)
+                    // Strategic tags scale effects at 1 effect point per 2 approach points
+                    int approachValue = 0;
+                    if (strategicTag.ScalingApproachTag.HasValue)
                     {
-                        projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
-                        {
-                            Source = tag.Name,
-                            Value = momentumEffect
-                        });
-                        momentumChange += momentumEffect;
+                        approachValue = clonedTagSystem.GetEncounterStateTagValue(strategicTag.ScalingApproachTag.Value);
                     }
 
-                    int pressureEffect = strategicTag.GetPressureModifierForChoice(choice);
-                    if (pressureEffect != 0)
+                    int scalingFactor = Math.Max(0, approachValue / 2); // 1 effect point per 2 approach points
+
+                    // Apply strategic tag effects based on type
+                    switch (strategicTag.EffectType)
                     {
-                        projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-                        {
-                            Source = tag.Name,
-                            Value = pressureEffect
-                        });
-                        pressureChange += pressureEffect;
+                        case StrategicEffectTypes.IncreaseMomentum:
+                            if (scalingFactor > 0)
+                            {
+                                projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
+                                {
+                                    Source = tag.Name,
+                                    Value = scalingFactor
+                                });
+                                momentumChange += scalingFactor;
+                            }
+                            break;
+
+                        case StrategicEffectTypes.DecreaseMomentum:
+                            if (scalingFactor > 0)
+                            {
+                                projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
+                                {
+                                    Source = tag.Name,
+                                    Value = -scalingFactor
+                                });
+                                momentumChange -= scalingFactor;
+                            }
+                            break;
+
+                        case StrategicEffectTypes.DecreasePressure:
+                            if (scalingFactor > 0)
+                            {
+                                projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
+                                {
+                                    Source = tag.Name,
+                                    Value = -scalingFactor
+                                });
+                                pressureChange -= scalingFactor;
+                            }
+                            break;
+
+                        case StrategicEffectTypes.IncreasePressure:
+                            if (scalingFactor > 0)
+                            {
+                                projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
+                                {
+                                    Source = tag.Name,
+                                    Value = scalingFactor
+                                });
+                                pressureChange += scalingFactor;
+                            }
+                            break;
                     }
                 }
             }
@@ -207,14 +225,14 @@ public class ProjectionService
         // Ensure pressure can't go below 0
         if (currentPressure + projection.PressureBuilt < 0)
         {
-            if (projection.PressureBuilt < 0)
+            int minimumAdjustment = -currentPressure - projection.PressureBuilt;
+
+            projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
             {
-                projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-                {
-                    Source = "Minimum pressure limit",
-                    Value = -currentPressure - projection.PressureBuilt
-                });
-            }
+                Source = "Minimum pressure limit",
+                Value = minimumAdjustment
+            });
+
             projection.PressureBuilt = -currentPressure;
         }
 

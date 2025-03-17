@@ -1,24 +1,20 @@
 ﻿public class StrategicTag : IEncounterTag
 {
     public string Name { get; }
-    public FocusTags? AffectedFocus { get; } // What focus this affects
     public StrategicEffectTypes EffectType { get; }
-    public ApproachTags? ScalingApproachTag { get; } // Which tag it scales with
-    public int EffectValue { get; }
-
-    private bool _activationEffectApplied = false;
+    public FocusTags? AffectedFocus { get; }
+    public EncounterStateTags? ScalingApproachTag { get; }
 
     public StrategicTag(
         string name,
         StrategicEffectTypes effectType,
         FocusTags? affectedFocus = null,
-        ApproachTags? scalingApproachTag = null)
+        EncounterStateTags? scalingApproachTag = null)
     {
         Name = name;
         EffectType = effectType;
         AffectedFocus = affectedFocus;
         ScalingApproachTag = scalingApproachTag;
-        EffectValue = 1; // Default value when not scaling
     }
 
     // Strategic tags are ALWAYS active
@@ -29,55 +25,22 @@
 
     public void ApplyEffect(EncounterState state)
     {
-        int effectValue = GetEffectValueForState(state);
-
-        switch (EffectType)
-        {
-            case StrategicEffectTypes.AddMomentumToFocus:
-                if (AffectedFocus.HasValue)
-                    state.AddFocusMomentumBonus(AffectedFocus.Value, effectValue);
-                break;
-
-            case StrategicEffectTypes.ReducePressurePerTurn:
-                state.AddEndOfTurnPressureReduction(effectValue);
-                break;
-
-            case StrategicEffectTypes.AddPressurePerTurn:
-                state.AddEndOfTurnPressureReduction(-effectValue);
-                break;
-
-                // Resource effects are handled in ApplyPersistentResourceEffects
-        }
-    }
-
-    public void ApplyActivationEffect(EncounterState state)
-    {
-        if (_activationEffectApplied)
-            return;
-
-        switch (EffectType)
-        {
-            case StrategicEffectTypes.AddMomentumOnActivation:
-                state.BuildMomentum(GetEffectValueForState(state));
-                break;
-
-            case StrategicEffectTypes.ReducePressureOnActivation:
-                state.ReducePressure(GetEffectValueForState(state));
-                break;
-        }
-
-        _activationEffectApplied = true;
+        // Strategic tags don't directly apply effects to the state
+        // Their effects are calculated during projection and then applied through the projection
     }
 
     public int GetMomentumModifierForChoice(IChoice choice)
     {
-        if (!ShouldAffectChoice(choice))
+        // Only apply if the focus matches (or if no focus is specified)
+        if (AffectedFocus.HasValue && choice.Focus != AffectedFocus.Value)
             return 0;
 
         switch (EffectType)
         {
-            case StrategicEffectTypes.AddMomentumToFocus:
-                return GetEffectValueForState(null); // Will be properly applied in the state
+            case StrategicEffectTypes.IncreaseMomentum:
+                return 1; // Base value, will be scaled by approach tag in ProjectionService
+            case StrategicEffectTypes.DecreaseMomentum:
+                return -1; // Base value, will be scaled by approach tag in ProjectionService
             default:
                 return 0;
         }
@@ -85,62 +48,55 @@
 
     public int GetPressureModifierForChoice(IChoice choice)
     {
-        if (!ShouldAffectChoice(choice))
+        // Only apply if the focus matches (or if no focus is specified)
+        if (AffectedFocus.HasValue && choice.Focus != AffectedFocus.Value)
             return 0;
 
         switch (EffectType)
         {
-            case StrategicEffectTypes.ReducePressureFromFocus:
-                return -GetEffectValueForState(null); // Will be properly applied in the state
+            case StrategicEffectTypes.DecreasePressure:
+                return -1; // Base value, will be scaled by approach tag in ProjectionService
+            case StrategicEffectTypes.IncreasePressure:
+                return 1; // Base value, will be scaled by approach tag in ProjectionService
             default:
                 return 0;
         }
     }
 
-    private bool ShouldAffectChoice(IChoice choice)
+    public int GetScaledEffect(BaseTagSystem tagSystem)
     {
-        if (AffectedFocus.HasValue && choice.Focus != AffectedFocus.Value)
-            return false;
+        if (!ScalingApproachTag.HasValue)
+            return 1; // Default value if no scaling is specified
 
-        return true;
-    }
-
-    // Get the actual effect value based on scaling
-    public int GetEffectValueForState(EncounterState state)
-    {
-        // If no scaling tag is specified or we don't have state, use the base effect value
-        if (!ScalingApproachTag.HasValue || state == null)
-            return EffectValue;
-
-        // Get the scaled value from the specified approach tag
-        return state.TagSystem.GetEncounterStateTagValue(ScalingApproachTag.Value);
+        int approachValue = tagSystem.GetEncounterStateTagValue(ScalingApproachTag.Value);
+        return approachValue / 2; // 1 effect point per 2 approach points
     }
 
     public string GetEffectDescription()
     {
-        string baseDesc = GetBaseEffectDescription();
+        string baseDesc = "";
+        switch (EffectType)
+        {
+            case StrategicEffectTypes.IncreaseMomentum:
+                baseDesc = "Adds momentum proportional to {0} value";
+                break;
+            case StrategicEffectTypes.DecreasePressure:
+                baseDesc = "Reduces pressure proportional to {0} value";
+                break;
+            case StrategicEffectTypes.DecreaseMomentum:
+                baseDesc = "Reduces momentum proportional to {0} value";
+                break;
+            case StrategicEffectTypes.IncreasePressure:
+                baseDesc = "Adds pressure proportional to {0} value";
+                break;
+        }
 
         if (ScalingApproachTag.HasValue)
         {
-            return baseDesc.Replace("{X}", $"{ScalingApproachTag.Value} value");
+            return string.Format(baseDesc, ScalingApproachTag.Value);
         }
 
-        return baseDesc.Replace("{X}", EffectValue.ToString());
-    }
-
-    private string GetBaseEffectDescription()
-    {
-        switch (EffectType)
-        {
-            case StrategicEffectTypes.AddMomentumToFocus:
-                return $"+X momentum to {AffectedFocus} choices";
-
-            case StrategicEffectTypes.ReducePressurePerTurn:
-                return $"-X pressure at end of each turn";
-
-            default:
-                return "Affects encounter mechanics";
-        }
+        return baseDesc.Replace("{0}", "approach");
     }
 
     public string GetActivationDescription()

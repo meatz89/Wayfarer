@@ -5,16 +5,14 @@ public interface IChoice
 {
     string Name { get; }
     string Description { get; }
-    ApproachTags Approach { get; }
     FocusTags Focus { get; }
     EffectTypes EffectType { get; }
     IReadOnlyList<TagModification> TagModifications { get; }
     void ApplyChoice(EncounterState state);
-
 }
 
 /// <summary>
-/// Standard choice implementation - either builds momentum or pressure
+/// Standard choice implementation - either builds momentum or reduces pressure
 /// </summary>
 public class Choice : IChoice
 {
@@ -34,13 +32,14 @@ public class Choice : IChoice
         TagModifications = tagModifications;
     }
 
+    // This method is ONLY used through the projection system and should not be called directly
     public virtual void ApplyChoice(EncounterState state)
     {
         // Apply tag modifications
         foreach (TagModification mod in TagModifications)
         {
             if (mod.Type == TagModification.TagTypes.EncounterState)
-                state.TagSystem.ModifyEncounterStateTag((ApproachTags)mod.Tag, mod.Delta);
+                state.TagSystem.ModifyEncounterStateTag((EncounterStateTags)mod.Tag, mod.Delta);
             else
                 state.TagSystem.ModifyFocusTag((FocusTags)mod.Tag, mod.Delta);
         }
@@ -48,19 +47,21 @@ public class Choice : IChoice
         // Apply momentum or pressure effect
         if (EffectType == EffectTypes.Momentum)
         {
-            int baseMomentum = 2; // Standard choices build 2 momentum
+            int baseMomentum = 2; // Standard choices build 2 momentum as per project knowledge
             int totalMomentum = state.GetTotalMomentum(this, baseMomentum);
             state.BuildMomentum(totalMomentum);
         }
         else // Pressure
         {
-            state.BuildPressure(3); // Standard choices build 2 pressure
+            int basePressureReduction = 1; // Standard choices reduce 1 pressure as per project knowledge
+            int totalPressureReduction = state.GetTotalPressure(this, basePressureReduction);
+            state.ReducePressure(totalPressureReduction); // REDUCE pressure, not increase
         }
     }
 
     public override string ToString()
     {
-        return $"{Name} - {Approach.ToString()} - {Focus.ToString()} - {EffectType.ToString()}";
+        return $"{Name} - {Focus.ToString()} - {EffectType.ToString()}";
     }
 }
 
@@ -90,7 +91,7 @@ public class SpecialChoice : Choice
         foreach (TagModification mod in TagModifications)
         {
             if (mod.Type == TagModification.TagTypes.EncounterState)
-                state.TagSystem.ModifyEncounterStateTag((ApproachTags)mod.Tag, mod.Delta);
+                state.TagSystem.ModifyEncounterStateTag((EncounterStateTags)mod.Tag, mod.Delta);
             else
                 state.TagSystem.ModifyFocusTag((FocusTags)mod.Tag, mod.Delta);
         }
@@ -103,6 +104,6 @@ public class SpecialChoice : Choice
 
     public override string ToString()
     {
-        return $"{Name} - {Approach.ToString()} - {Focus.ToString()} - {EffectType.ToString()}";
+        return $"{Name} - {TagModifications.Select(x => x.Type).ToList().ToString()} - {Focus.ToString()} - {EffectType.ToString()}";
     }
 }

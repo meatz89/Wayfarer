@@ -23,8 +23,7 @@ public partial class EncounterViewBase : ComponentBase
     public EncounterViewModel Model => GameManager.GetEncounterViewModel();
 
     // Add these methods to expose the enum values to the view
-    public ApproachTags[] GetApproachTags() => Enum.GetValues<ApproachTags>();
-    public ApproachTags[] GetApproachTags() => Enum.GetValues<ApproachTags>();
+    public EncounterStateTags[] GetApproachTags() => Enum.GetValues<EncounterStateTags>();
     public FocusTags[] GetFocusTags() => Enum.GetValues<FocusTags>();
 
     protected override async Task OnInitializedAsync()
@@ -137,8 +136,8 @@ public partial class EncounterViewBase : ComponentBase
 
         if (tag is NarrativeTag narrativeTag)
         {
-            if (narrativeTag.BlockedApproach.HasValue)
-                tooltip.AppendLine($"Blocks {narrativeTag.BlockedApproach.Value} approaches");
+            if (narrativeTag.BlockedFocus != null)
+                tooltip.AppendLine($"Blocks {narrativeTag.BlockedFocus} focus");
         }
         else if (tag is StrategicTag strategicTag)
         {
@@ -156,9 +155,9 @@ public partial class EncounterViewBase : ComponentBase
         {
             return strategicTag.GetEffectDescription();
         }
-        else if (tag is NarrativeTag narrativeTag && narrativeTag.BlockedApproach.HasValue)
+        else if (tag is NarrativeTag narrativeTag && narrativeTag.BlockedFocus != null)
         {
-            return $"Blocks {narrativeTag.BlockedApproach.Value} approaches";
+            return $"Blocks {narrativeTag.BlockedFocus} focus";
         }
 
         return "Affects encounter mechanics";

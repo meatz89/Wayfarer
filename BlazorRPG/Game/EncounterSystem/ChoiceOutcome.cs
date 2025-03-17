@@ -16,7 +16,7 @@ public class ChoiceOutcome
 
     // Added tag-related fields
     public Dictionary<FocusTags, int> FocusTagChanges { get; }
-    public Dictionary<ApproachTags, int> EncounterStateTagChanges { get; }
+    public Dictionary<EncounterStateTags, int> EncounterStateTagChanges { get; }
     public List<string> NewlyActivatedTags { get; }
     public List<string> DeactivatedTags { get; }
 
@@ -40,9 +40,9 @@ public class ChoiceOutcome
         ConfidenceChange = reputationChange;
 
         // Initialize empty collections
-        ApproachTagChanges = new Dictionary<ApproachTags, int>();
+        ApproachTagChanges = new Dictionary<EncounterStateTags, int>();
         FocusTagChanges = new Dictionary<FocusTags, int>();
-        EncounterStateTagChanges = new Dictionary<ApproachTags, int>();
+        EncounterStateTagChanges = new Dictionary<EncounterStateTags, int>();
         NewlyActivatedTags = new List<string>();
         DeactivatedTags = new List<string>();
     }

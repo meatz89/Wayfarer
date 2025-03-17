@@ -72,17 +72,32 @@ public class LocationInfo
         AvailableTags.Add(strategicTag);
     }
 
-    // In the LocationInfo class, add a method to get environmental pressure
+    internal void SetDifficulty(int difficulty)
+    {
+        this.Difficulty = difficulty;
+    }
+
     public int GetEnvironmentalPressure(int turnNumber)
     {
+        // Difficulty is the base pressure added each turn
+        int pressureFromDifficulty = Difficulty;
+
+        // Additional pressure from hostility (could be used for escalating difficulty)
+        int pressureFromHostility = 0;
         switch (Hostility)
         {
             case HostilityLevels.Hostile:
-                return 1; // +1 pressure per turn in hostile locations
+                pressureFromHostility = 1; // +1 additional pressure in hostile locations
+                break;
             case HostilityLevels.Neutral:
-                return turnNumber > 3 ? 1 : 0; // +1 pressure after turn 3 in neutral locations
+                pressureFromHostility = turnNumber > 3 ? 1 : 0; // +1 additional pressure after turn 3
+                break;
             default:
-                return 0; // No environmental pressure in friendly locations
+                pressureFromHostility = 0;
+                break;
         }
+
+        return pressureFromDifficulty + pressureFromHostility;
     }
+
 }

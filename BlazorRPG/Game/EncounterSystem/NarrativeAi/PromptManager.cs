@@ -77,10 +77,6 @@ public class PromptManager
     {
         string template = _promptTemplates[JSON_NARRATIVE_KEY];
 
-        // Determine encounter type
-        EncounterTypes encounterType = _encounterDetector.DetermineEncounterType(context.LocationName, newState);
-        string encounterStyleGuidance = GetEncounterStyleGuidance(encounterType);
-
         // Format tag changes to ensure they're represented in the narrative
         string tagChangesGuidance = FormatTagChangesForNarrative(outcome);
 
@@ -94,7 +90,6 @@ public class PromptManager
         string prompt = template
             .Replace("{LOCATION}", context.LocationName)
             .Replace("{CHOICE_NAME}", chosenOption.Name)
-            .Replace("{CHOICE_APPROACH}", chosenOption.Approach.ToString())
             .Replace("{CHOICE_FOCUS}", chosenOption.Focus.ToString())
             .Replace("{CHOICE_DESCRIPTION}", choiceDescription.FullDescription)
             .Replace("{MOMENTUM_GAIN}", outcome.MomentumGain.ToString())
@@ -104,9 +99,7 @@ public class PromptManager
             .Replace("{REPUTATION_CHANGE}", outcome.ConfidenceChange.ToString())
             .Replace("{NARRATIVE_SUMMARY}", narrativeSummary)
             .Replace("{TAG_CHANGES_GUIDANCE}", tagChangesGuidance)
-            .Replace("{TAG_ACTIVATION_GUIDANCE}", tagActivationGuidance)
-            .Replace("{ENCOUNTER_TYPE}", encounterType.ToString())
-            .Replace("{ENCOUNTER_STYLE_GUIDANCE}", encounterStyleGuidance);
+            .Replace("{TAG_ACTIVATION_GUIDANCE}", tagActivationGuidance);
 
         return prompt;
     }
@@ -126,7 +119,7 @@ public class PromptManager
         }
 
         // Add significant encounter state tag changes
-        foreach (KeyValuePair<ApproachTags, int> change in outcome.EncounterStateTagChanges)
+        foreach (KeyValuePair<EncounterStateTags, int> change in outcome.EncounterStateTagChanges)
         {
             if (Math.Abs(change.Value) >= 2)
             {
@@ -199,20 +192,20 @@ public class PromptManager
         };
     }
 
-    private string GetEncounterStateTagChangeDescription(ApproachTags tag, bool isPositive)
+    private string GetEncounterStateTagChangeDescription(EncounterStateTags tag, bool isPositive)
     {
         return (tag, isPositive) switch
         {
-            (ApproachTags.Dominance, true) => "increased authority, command, or intimidation factor",
-            (ApproachTags.Dominance, false) => "diminished influence, weakened position, or reduced credibility",
-            (ApproachTags.Rapport, true) => "improved social connection, trust, or relationship building",
-            (ApproachTags.Rapport, false) => "damaged relationships, distrust, or social distance",
-            (ApproachTags.Analysis, true) => "enhanced understanding, insights gained, or clarity of thought",
-            (ApproachTags.Analysis, false) => "confusion, misunderstanding, or incomplete information",
-            (ApproachTags.Precision, true) => "refined control, careful movement, or improved accuracy",
-            (ApproachTags.Precision, false) => "clumsiness, imprecision, or reduced physical control",
-            (ApproachTags.Concealment, true) => "improved stealth, deeper shadows, or reduced visibility",
-            (ApproachTags.Concealment, false) => "increased exposure, visibility, or attention drawn",
+            (EncounterStateTags.Dominance, true) => "increased authority, command, or intimidation factor",
+            (EncounterStateTags.Dominance, false) => "diminished influence, weakened position, or reduced credibility",
+            (EncounterStateTags.Rapport, true) => "improved social connection, trust, or relationship building",
+            (EncounterStateTags.Rapport, false) => "damaged relationships, distrust, or social distance",
+            (EncounterStateTags.Analysis, true) => "enhanced understanding, insights gained, or clarity of thought",
+            (EncounterStateTags.Analysis, false) => "confusion, misunderstanding, or incomplete information",
+            (EncounterStateTags.Precision, true) => "refined control, careful movement, or improved accuracy",
+            (EncounterStateTags.Precision, false) => "clumsiness, imprecision, or reduced physical control",
+            (EncounterStateTags.Concealment, true) => "improved stealth, deeper shadows, or reduced visibility",
+            (EncounterStateTags.Concealment, false) => "increased exposure, visibility, or attention drawn",
             _ => "notable change in encounter state"
         };
     }
@@ -224,10 +217,6 @@ public class PromptManager
     EncounterStatus state)
     {
         string template = _promptTemplates[JSON_CHOICES_KEY];
-
-        // Determine encounter type and get appropriate style guidance
-        EncounterTypes encounterType = _encounterDetector.DetermineEncounterType(context.LocationName, state);
-        string choiceStyleGuidance = GetChoiceStyleGuidance(encounterType);
 
         // Create a narrative summary 
         string narrativeSummary = _summaryBuilder.CreateSummary(context);
@@ -291,8 +280,6 @@ Choice {i + 1}:
     public string BuildIntroductionPrompt(string location, string incitingAction, EncounterStatus state, string encounterGoal = "")
     {
         string template = _promptTemplates[INTRO_KEY];
-
-        EncounterTypes encounterType = _encounterDetector.DetermineEncounterType(location, state);
 
         // Get primary and secondary tags for initial emphasis
         (string primaryFocus, string secondaryFocus) = _tagFormatter.GetSignificantFocusTags(state);

@@ -1,21 +1,21 @@
 ﻿public class FocusThresholdCondition : ActivationCondition
 {
-    public FocusTags FocusTag { get; }
+    public EncounterStateTags EncounterStateTag { get; }
     public int Threshold { get; }
 
-    public FocusThresholdCondition(FocusTags focusTag, int threshold)
+    public FocusThresholdCondition(EncounterStateTags encounterStateTag, int threshold)
     {
-        FocusTag = focusTag;
+        EncounterStateTag = encounterStateTag;
         Threshold = threshold;
     }
 
     public override bool IsActive(BaseTagSystem tagSystem)
     {
-        return tagSystem.GetFocusTagValue(FocusTag) >= Threshold;
+        return tagSystem.GetEncounterStateTagValue(EncounterStateTag) >= Threshold;
     }
 
     public override string GetDescription()
     {
-        return $"Requires {FocusTag} {Threshold}+";
+        return $"Requires {EncounterStateTag} {Threshold}+";
     }
 }
