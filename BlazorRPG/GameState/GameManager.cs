@@ -67,7 +67,7 @@ public class GameManager
         UserActionOption action = gameState.Actions.LocationSpotActions.Where(x => x.LocationSpot == locationSpot.Name).First();
         ActionImplementation actionImpl = action.ActionImplementation;
 
-        EncounterResult = await EncounterSystem.GenerateEncounter(context, playerState, actionImpl);
+        EncounterResult = await EncounterSystem.GenerateEncounter(location, context, playerState, actionImpl);
 
         List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(EncounterResult.Encounter);
         gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
@@ -158,9 +158,7 @@ public class GameManager
 
     private void OnPlayerEnterLocation(Location location)
     {
-        List<ActionTemplate> allActionTemplates = ActionContent.InnActionTemplates();
-        allActionTemplates.AddRange(ActionContent.MarketActionTemplates());
-
+        List<ActionTemplate> allActionTemplates = ActionContent.LibraryActions();
         List<LocationSpot> locationSpots = location.LocationSpots;
         PopulateLocationSpotActions(location, allActionTemplates, locationSpots);
 

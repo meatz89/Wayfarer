@@ -25,19 +25,13 @@
         return actionTemplates;
     }
 
-    public static List<ActionTemplate> InnActionTemplates()
+    public static List<ActionTemplate> LibraryActions()
     {
         List<ActionTemplate> actionTemplates = new List<ActionTemplate>();
 
         actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Pay for Room")
-            .WithActionType(BasicActionTypes.Persuade)
-            .ExpendsCoins(5)
-            .Build());
-
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Haggle price for room")
-            .WithDescription("Maybe I could get a discount for the room.")
+            .WithName("Find the ancient tome")
+            .WithDescription("I need to find the sacred scripture.")
             .WithActionType(BasicActionTypes.Persuade)
             .StartsEncounter()
             .ExpendsCoins(5)
@@ -46,33 +40,4 @@
         return actionTemplates;
     }
 
-    public static List<ActionTemplate> MarketActionTemplates()
-    {
-        List<ActionTemplate> actionTemplates = new List<ActionTemplate>();
-
-        // Basic observation and investigation - available to everyone
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Browse Wares")
-            .WithActionType(BasicActionTypes.Investigate)
-            .Build());
-
-        // Opportunity to gain initial market knowledge
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Observe Market Activity")
-            .WithActionType(BasicActionTypes.Investigate)
-            .Build());
-
-        // Basic social interactions - available to everyone
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Chat With Vendors")
-            .WithActionType(BasicActionTypes.Discuss)
-            .Build());
-
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Buy Food")
-            .WithActionType(BasicActionTypes.Discuss)
-            .Build());
-
-        return actionTemplates;
-    }
 }

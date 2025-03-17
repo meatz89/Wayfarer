@@ -83,6 +83,7 @@
     }
 
     public async Task<EncounterResult> GenerateEncounter(
+        Location location,
         EncounterContext context,
         PlayerState playerState,
         ActionImplementation actionImplementation)
@@ -90,10 +91,10 @@
         Location inn = context.LocationName;
 
         // Create a location
-        LocationEncounterInfo location = LocationEncounterFactory.CreateAncientLibraryEncounter();
+        LocationEncounterInfo encounter = LocationEncounterFactory.CreateAncientLibraryEncounter(location.LocationName);
 
         // Create encounter manager
-        encounterResult = await StartEncounterAt(location, playerState, actionImplementation);
+        encounterResult = await StartEncounterAt(location, encounter, playerState, actionImplementation);
 
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
@@ -104,7 +105,8 @@
     }
 
     public async Task<EncounterResult> StartEncounterAt(
-        LocationEncounterInfo location,
+        Location location,
+        LocationEncounterInfo encounter,
         PlayerState playerState,
         ActionImplementation actionImplementation)
     {
@@ -113,31 +115,32 @@
         CardSelectionAlgorithm cardSelector = new CardSelectionAlgorithm(choiceRepository);
 
         // Create encounter manager with the switchable service
-        EncounterManager encounter = new EncounterManager(
+        EncounterManager encounterManager = new EncounterManager(
             actionImplementation,
             cardSelector,
             useAiNarrative,
             configuration);
 
         // Set the current AI provider
-        encounter.SwitchAIProvider(currentAIProvider);
+        encounterManager.SwitchAIProvider(currentAIProvider);
 
-        this.Encounter = encounter;
+        this.Encounter = encounterManager;
 
-        //SpecialChoice negotiatePriceChoice = GetSpecialChoiceFor(location);
-        //choiceRepository.AddSpecialChoice(location.Name, negotiatePriceChoice);
+        //SpecialChoice negotiatePriceChoice = GetSpecialChoiceFor(encounter);
+        //choiceRepository.AddSpecialChoice(encounter.Name, negotiatePriceChoice);
 
         // Start the encounter with narrative
         string incitingAction = "decided to visit the market to purchase supplies";
-        NarrativeResult initialResult = await encounter.StartEncounterWithNarrativeAsync(
+        NarrativeResult initialResult = await encounterManager.StartEncounterWithNarrativeAsync(
             location,
+            encounter,
             playerState,
             incitingAction,
             currentAIProvider);  // Pass the current provider type
 
         return new EncounterResult()
         {
-            Encounter = encounter,
+            Encounter = encounterManager,
             EncounterResults = EncounterResults.Started,
             EncounterEndMessage = "",
             NarrativeResult = initialResult

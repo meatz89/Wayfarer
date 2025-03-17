@@ -120,7 +120,8 @@
     }
 
     public async Task<NarrativeResult> StartEncounterWithNarrativeAsync(
-        LocationEncounterInfo location,
+        Location location,
+        LocationEncounterInfo encounter,
         PlayerState playerState,
         string incitingAction,
         AIProviderType providerType)
@@ -131,10 +132,10 @@
         }
 
         // Start the encounter mechanically
-        StartEncounter(location, playerState);
+        StartEncounter(encounter, playerState);
 
         // Create narrative context
-        _narrativeContext = new NarrativeContext(location.Name, location.EncounterType, incitingAction, location.Style);
+        _narrativeContext = new NarrativeContext(encounter.LocationName.ToString(), encounter.EncounterType, incitingAction, encounter.Style);
 
         // Generate introduction
         EncounterStatus status = GetEncounterStatus();

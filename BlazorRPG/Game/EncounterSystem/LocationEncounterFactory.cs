@@ -8,11 +8,11 @@ public static class LocationEncounterFactory
     /// <summary>
     /// Creates the Ancient Library location from the Wayfarer example
     /// </summary>
-    public static LocationEncounterInfo CreateAncientLibraryEncounter()
+    public static LocationEncounterInfo CreateAncientLibraryEncounter(LocationNames locationName)
     {
         // Core properties for the Ancient Library
         LocationEncounterInfo location = new LocationEncounterInfo(
-            "Ancient Library",
+            locationName,
             new[] { ApproachTags.Analysis, ApproachTags.Precision }.ToList(),
             new[] { ApproachTags.Dominance }.ToList(),
             6, // Duration (6 turns)

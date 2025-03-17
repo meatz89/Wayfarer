@@ -3,7 +3,7 @@
 /// </summary>
 public class LocationEncounterInfo
 {
-    public string Name { get; }
+    public LocationNames LocationName { get; set; }
     public List<ApproachTags> FavoredApproaches { get; } = new List<ApproachTags>();
     public List<ApproachTags> DisfavoredApproaches { get; } = new List<ApproachTags>();
     public List<IEncounterTag> AvailableTags { get; } = new List<IEncounterTag>();
@@ -24,11 +24,10 @@ public class LocationEncounterInfo
     // Presentation style for this location
     public PresentationStyles Style { get; }
 
-    public LocationNames LocationName { get; set; }
     public EncounterTypes EncounterType { get; internal set; }
 
     public LocationEncounterInfo(
-        string name,
+        LocationNames locationName,
         List<ApproachTags> favoreApproaches,
         List<ApproachTags> disfavoredApproaches,
         int duration,
@@ -38,7 +37,7 @@ public class LocationEncounterInfo
         HostilityLevels hostility,
         PresentationStyles style)
     {
-        Name = name;
+        LocationName = locationName;
         FavoredApproaches = favoreApproaches;
         DisfavoredApproaches = disfavoredApproaches;
 
