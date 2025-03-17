@@ -1,6 +1,4 @@
-﻿
-
-public class EncounterViewModel
+﻿public class EncounterViewModel
 {
     public EncounterManager CurrentEncounter { get; set; }
     public List<UserEncounterChoiceOption> CurrentChoices { get; set; }

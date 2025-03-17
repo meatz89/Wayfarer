@@ -21,6 +21,12 @@ public partial class EncounterViewBase : ComponentBase
     public EncounterStateTags[] GetApproachTags() => Enum.GetValues<EncounterStateTags>();
     public FocusTags[] GetFocusTags() => Enum.GetValues<FocusTags>();
 
+    public bool IsChoiceDisabled(UserEncounterChoiceOption userEncounterChoiceOption) => userEncounterChoiceOption.Choice.IsBlocked;
+    public EncounterViewModel GetModel()
+    {
+        return GameManager.GetEncounterViewModel();
+    }
+    
     protected override async Task OnInitializedAsync()
     {
         if (GetEncounter() == null)
@@ -29,9 +35,6 @@ public partial class EncounterViewBase : ComponentBase
             IsLoading = false;
         }
     }
-
-    public bool IsChoiceDisabled(UserEncounterChoiceOption userEncounterChoiceOption) => userEncounterChoiceOption.Choice.IsBlocked;
-    public EncounterViewModel Model => GameManager.GetEncounterViewModel();
 
     public EncounterManager GetEncounter()
     {
@@ -60,14 +63,14 @@ public partial class EncounterViewBase : ComponentBase
 
     public List<UserEncounterChoiceOption> GetChoices()
     {
-        List<UserEncounterChoiceOption> userEncounterChoiceOptions = Model.CurrentChoices;
+        List<UserEncounterChoiceOption> userEncounterChoiceOptions = GetModel().CurrentChoices;
         return userEncounterChoiceOptions;
     }
 
     public string GetChoiceName(UserEncounterChoiceOption choice)
     {
         IChoice choice1 = choice.Choice;
-        NarrativeResult narrativeResult = Model.EncounterResult.NarrativeResult;
+        NarrativeResult narrativeResult = GetModel().EncounterResult.NarrativeResult;
         Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = narrativeResult.ChoiceDescriptions;
         ChoiceNarrative choiceNarrative = null;
 
@@ -200,13 +203,14 @@ public partial class EncounterViewBase : ComponentBase
 
     public int GetCurrentValue(ValueTypes changeType)
     {
+        EncounterState state = GetModel().State;
         switch (changeType)
         {
             case ValueTypes.Momentum:
-                return Model.State.Momentum;
+                return state.Momentum;
 
             case ValueTypes.Pressure:
-                return Model.State.Pressure;
+                return state.Pressure;
         }
         return 0;
     }

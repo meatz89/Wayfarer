@@ -8,7 +8,7 @@
             Loading...
         </div>
     }
-    @if (Model.CurrentEncounter != null && !IsLoading)
+    @if (GetEncounter() != null && !IsLoading)
     {
         <div class="Encounter-header">
         </div>
@@ -18,14 +18,14 @@
                     @GetValueTypeIcon(ValueTypes.Momentum)
                     <span class="stat-label">Momentum</span>
                     <span class="stat-value">
-                        @Model.State.Momentum
+                        @GetModel().State.Momentum
                     </span>
                 </div>
                 <div class="stat">
                     @GetValueTypeIcon(ValueTypes.Pressure)
                     <span class="stat-label">Pressure</span>
                     <span class="stat-value">
-                        @Model.State.Pressure
+                        @GetModel().State.Pressure
                     </span>
                 </div>
 
@@ -55,8 +55,8 @@
             </div>
 
             <div class="Encounter-stage">
-                <h3 class="choice-set-name">@Model.ChoiceSetName</h3>
-                <div class="stage-situation">@Model.EncounterResult.NarrativeResult.SceneNarrative</div>
+                <h3 class="choice-set-name">@GetModel().ChoiceSetName</h3>
+                <div class="stage-situation">@GetModel().EncounterResult.NarrativeResult.SceneNarrative</div>
             </div>
 
             <div class="Encounter-choices">
@@ -82,7 +82,7 @@
                 {
                     <div class="tag-value">
                         <span class="tag-name">@tag</span>
-                        <span class="tag-level">@Model.State.TagSystem.GetEncounterStateTagValue(tag)</span>
+                        <span class="tag-level">@GetModel().State.TagSystem.GetEncounterStateTagValue(tag)</span>
                     </div>
                 }
             </div>
@@ -95,7 +95,7 @@
                 {
                     <div class="tag-value">
                         <span class="tag-name">@tag</span>
-                        <span class="tag-level">@Model.State.TagSystem.GetFocusTagValue(tag)</span>
+                        <span class="tag-level">@GetModel().State.TagSystem.GetFocusTagValue(tag)</span>
                     </div>
                 }
             </div>
