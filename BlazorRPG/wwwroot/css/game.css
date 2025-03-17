@@ -73,14 +73,6 @@ body {
     gap: 10px;
 }
 
-.energy-meter {
-    gap: 10px;
-}
-
-.resource {
-    gap: 5px;
-}
-
 .meter-bar {
     width: 100px;
     height: 20px;
@@ -100,10 +92,6 @@ body {
 
     .meter-fill.focus {
         background-color: var(--energy-focus);
-    }
-
-    .meter-fill.social {
-        background-color: var(--energy-social);
     }
 
 /* Resources */
@@ -132,7 +120,6 @@ body {
     padding: 20px;
 }
 
-/* Ensure location card can receive clicks */
 .location-card {
     background-color: var(--bg-card);
     border-radius: 5px;
@@ -159,7 +146,7 @@ body {
             background-color: var(--bg-panel);
             opacity: 0.3;
             border-radius: 5px;
-            pointer-events: none; /* This is crucial - allows clicks to pass through */
+            pointer-events: none;
         }
 
 .location-spot-properties {
@@ -167,36 +154,17 @@ body {
     top: 10px;
     right: 10px;
     display: flex;
-    flex-direction: row; /* Stack properties vertically */
-    align-items: flex-end; /* Align to the right */
+    flex-direction: row;
+    align-items: flex-end;
 }
 
-    .location-spot-properties .property-tag {
-        margin-bottom: 5px; /* Add some spacing between property tags */
-    }
-
-.location-type, .location-time, .location-warning, .location-shelter {
+.location-type {
+    color: var(--text-secondary);
     font-size: 0.9em;
 }
 
 .secondary-text {
     color: var(--text-secondary);
-}
-
-.location-type {
-    color: var(--text-secondary);
-}
-
-.location-time {
-    color: var(--text-muted);
-}
-
-.location-warning {
-    color: var(--danger);
-}
-
-.location-shelter {
-    color: var(--resource-shelter);
 }
 
 .action-button {
@@ -209,15 +177,22 @@ body {
     width: 100%;
     text-align: center;
     margin-top: auto;
-    position: relative; /* Ensure button stays above overlay */
-    z-index: 1; /* Ensure button stays above overlay */
+    position: relative;
+    z-index: 1;
 }
 
-    /* Ensure the button stays clickable when disabled */
     .action-button:disabled {
         opacity: 0.5;
         cursor: not-allowed;
-        pointer-events: auto !important; /* Force pointer events */
+        pointer-events: auto !important;
+    }
+
+    .action-button:hover {
+        background-color: var(--bg-active);
+    }
+
+    .action-button:disabled:hover {
+        background-color: var(--bg-panel);
     }
 
 /* Sidebar */
@@ -227,7 +202,7 @@ body {
     gap: 20px;
 }
 
-.sidebar-panel.current-location {
+.sidebar-panel.location-panel {
     background-color: var(--bg-active);
 }
 
@@ -251,30 +226,17 @@ body {
     border-radius: 4px;
     z-index: 1000;
     min-width: 300px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    max-width: calc(100vw - 40px);
-    /* Reduce maximum height to prevent overflow */
-    max-height: 60vh; /* Adjust this value as needed */
     max-width: 400px;
+    max-height: 60vh;
     overflow-y: auto;
     pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
     .tooltip h4, .action-preview h4 {
         margin-top: 0;
         color: var(--text-secondary);
         font-size: 1em;
-    }
-
-    .tooltip ul, .action-preview ul {
-        list-style: none;
-        padding: 0;
-        margin: 0 0 15px 0;
-    }
-
-    .tooltip li, .action-preview li, .requirement {
-        margin: 5px 0;
-        font-size: 0.9em;
     }
 
 /* Action Preview Styles */
@@ -295,30 +257,15 @@ body {
     color: #ff6b6b;
 }
 
-
-/* Color overrides for requirements and outcomes */
-.action-preview li[style*="color: green"] {
-    color: #4ecdc4 !important;
+.positive-change {
+    color: var(--energy-social);
 }
 
-.action-preview li[style*="color: red"] {
-    color: #ff6b6b !important;
+.negative-change {
+    color: var(--resource-health);
 }
 
-/* Make sure buttons stay clickable */
-.action-button {
-    position: relative;
-    z-index: 2;
-}
-
-    .action-button:hover {
-        background-color: var(--bg-active);
-    }
-
-    .action-button:disabled:hover {
-        background-color: var(--bg-panel);
-    }
-
+/* Map container */
 .map-container {
     position: relative;
 }
@@ -346,11 +293,9 @@ body {
         border: 1px solid var(--border-active);
     }
 
-.modifier-effect {
-    color: lightblue; /* Or any color that indicates a modifier effect */
-    font-style: italic;
+.modifier {
+    margin-left: 10px;
 }
-
 
 /* Encounter */
 .Encounter-container {
@@ -360,12 +305,6 @@ body {
 .Encounter-header {
     margin-bottom: 20px;
 }
-
-    .Encounter-header h2 {
-        color: var(--text-primary);
-        font-size: 1.5rem;
-        margin: 0;
-    }
 
 .Encounter-stats, .Encounter-stage, .choice-option, .stat {
     background-color: var(--bg-card);
@@ -386,41 +325,18 @@ body {
     flex-direction: column;
     align-items: center;
     padding-top: 30px;
+    min-width: 80px;
+    position: relative;
 }
 
-    /* Position the icon above the stat */
-    .stat .value-icon {
-        /* ... other icon styles */
-        top: -4px;
-        font-size: 1.2em;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        background-color: var(--bg-panel);
-    }
-
 .stat-label {
-    /* ... other stat label styles */
     color: var(--text-secondary);
     font-size: 0.9rem;
-    margin: 4px 0; /* Adjust spacing */
+    margin: 4px 0;
 }
 
 .stat-value {
-    /* ... other stat-value styles */
     font-weight: bold;
-    display: flex; /* Use flexbox */
-    align-items: center; /* Center vertically */
-    gap: 4px; /* Space between value and projected change */
-}
-
-.stat-projected-change {
-    font-size: 0.8rem; /* Smaller font size */
-    font-weight: normal; /* Lighter weight */
-    color: var(--text-secondary); /* Lighter color */
 }
 
 .Encounter-stage {
@@ -428,9 +344,13 @@ body {
     margin-bottom: 20px;
 }
 
-.stage-description {
-    color: var(--text-primary);
-    line-height: 1.6;
+.stage-situation {
+    font-weight: 100;
+    line-height: 22px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 16px;
+    color: #e6e6e6;
+    margin-top: 1rem;
 }
 
 .Encounter-choices {
@@ -457,23 +377,22 @@ body {
     }
 
     .choice-option.disabled {
-        background-color: var(--bg-card); /* Or any desired color */
+        background-color: var(--bg-card);
         color: var(--text-muted);
         cursor: not-allowed;
     }
 
         .choice-option.disabled:hover {
-            background-color: var(--bg-card); /* Prevent hover effect */
+            background-color: var(--bg-card);
             cursor: not-allowed;
         }
 
         .choice-option.disabled .choice-index,
         .choice-option.disabled .choice-description {
-            color: var(--text-muted); /* Lighter text color */
+            color: var(--text-muted);
         }
 
-    .choice-option:hover,
-    .choice-option.hovered {
+    .choice-option:hover {
         background-color: var(--bg-active);
     }
 
@@ -490,540 +409,7 @@ body {
 .choice-narrative {
     color: var(--text-secondary);
     font-size: 0.9em;
-    flex: 1;
-    padding-top: 10px;
-    padding-bottom: 1px;
-}
-
-.preview-container {
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-    .preview-container h4 {
-        color: var(--text-primary);
-        margin: 0 0 15px 0;
-    }
-
-    .preview-container h5, .choice-type {
-        color: var(--text-secondary);
-        font-size: 0.9em;
-    }
-
-    .preview-container h5 {
-        margin: 10px 0 5px 0;
-    }
-
-.requirements,
-.costs,
-.rewards {
-    margin-bottom: 15px;
-}
-
-.requirement {
-    border-left: 3px solid;
-    padding-left: 6px;
-}
-
-    .requirement.positive {
-        color: var(--energy-social);
-        border-color: var(--energy-social);
-    }
-
-    .requirement.negative {
-        color: var(--resource-health);
-        border-color: var(--resource-health);
-    }
-
-.rewards {
-    color: var(--energy-social);
-}
-
-.costs {
-    color: var(--resource-health);
-}
-
-.Encounter-state-changes {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid var(--bg-panel);
-}
-
-.state-change {
-    display: flex;
-    justify-content: space-between;
-    margin: 5px 0;
-    color: var(--text-secondary);
-}
-
-    .state-change.positive .state-preview {
-        color: var(--energy-social);
-    }
-
-    .state-change.negative .state-preview {
-        color: var(--resource-health);
-    }
-
-.state-label {
-    margin-right: 10px;
-}
-
-.state-preview {
-    font-family: monospace;
-}
-
-/* Icons for requirements */
-.green-checkmark {
-    color: var(--energy-social);
-    margin-right: 5px;
-}
-
-.red-x {
-    color: var(--resource-health);
-    margin-right: 5px;
-}
-
-.energy-cost-preview {
-    margin-bottom: 5px;
-    color: var(--resource-health); /* Example: Color for energy cost */
-}
-
-.value-type {
-    font-weight: bold;
-    color: var(--text-primary);
-    margin-bottom: 5px;
-}
-
-.value-breakdown {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    margin-bottom: 10px;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-}
-
-.modifier {
-    margin-left: 10px;
-}
-
-.total {
-    margin-left: 10px;
-    font-weight: bold;
-}
-
-/* Cost/Reward Modifications Formatting */
-.cost-modifications, .reward-modifications {
-    margin-bottom: 20px;
-}
-
-.cost-modification, .reward-modification {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 5px;
-}
-
-.cost-type, .reward-type {
-    font-weight: bold;
-}
-
-.base-cost, .base-reward {
-    color: var(--text-secondary);
-}
-
-.final-cost, .final-reward {
-    font-weight: bold;
-}
-
-.preview {
-    font-style: italic;
-    color: var(--text-secondary);
-}
-
-/* Energy Costs Formatting */
-.energy-costs {
-    margin-bottom: 20px;
-    border-top: 1px solid #eee;
-    padding-top: 8px;
-}
-
-.energy-cost {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 5px;
-    padding: 4px 0;
-}
-
-.energy-type {
-    font-weight: bold;
-}
-
-.energy-preview {
-    font-family: monospace;
-}
-
-.energy-warning {
-    color: var(--danger);
-    font-size: 0.8rem;
-}
-
-.health-loss {
-    color: var(--resource-health);
-}
-
-.pressure-gain {
-    color: var(--danger);
-}
-
-.confidence-loss {
-    color: var(--resource-health);
-}
-
-/* Other Requirements Formatting */
-.other-requirements {
-    margin-bottom: 20px;
-}
-
-.requirement.met {
-    color: var(--energy-social);
-    border-color: var(--energy-social);
-}
-
-.requirement.unmet {
-    color: var(--resource-health);
-    border-color: var(--resource-health);
-}
-
-.location-effects {
-    padding: 8px;
-    border-radius: 4px;
-}
-
-.transformation {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 0;
-}
-
-.transform-icon {
-    color: #666;
-}
-
-.value-changes .value-change {
-    margin: 8px 0;
-}
-
-.value-breakdown {
-    margin-left: 24px;
-    font-size: 0.9em;
-}
-
-.transformation.positive {
-    color: #22c55e;
-}
-
-.transformation.negative {
-    color: #ef4444;
-}
-
-.energy-preview.negative {
-    color: #ef4444;
-}
-
-.energy-preview.positive {
-    color: #22c55e;
-}
-
-.value-icon, .energy-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    font-style: normal;
-}
-
-.outcome-icon {
-    color: #2563eb; /* blue-600 */
-}
-
-.momentum-icon {
-    color: #ff7f50; /* Coral color for momentum */
-}
-
-.insight-icon {
-    color: #7c3aed; /* violet-600 */
-}
-
-.resonance-icon {
-    color: #db2777; /* pink-600 */
-}
-
-.pressure-icon {
-    color: #dc2626; /* red-600 */
-}
-
-.physical-icon {
-    color: #ea580c; /* orange-600 */
-}
-
-.focus-icon {
-    color: #0284c7; /* sky-600 */
-}
-
-.social-icon {
-    color: #16a34a; /* green-600 */
-}
-
-/* Base tooltip structure */
-.value-list {
-    display: flex;
-    flex-direction: column;
     margin-top: 8px;
-    gap: 0px;
-}
-
-/* Individual value change item */
-.value-item {
-    display: flex;
-    flex-direction: column; /* Changed to column for better organization */
-    background-color: var(--bg-panel);
-    padding: 12px;
-    border-radius: 4px;
-    align-items: flex-start;
-}
-
-/* Main value row with icon and total */
-.value-main {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-}
-
-.value-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.value-icon {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--bg-card);
-    border-radius: 4px;
-}
-
-.value-total {
-    font-weight: bold;
-}
-
-/* Value details/breakdown section */
-.value-details {
-    margin-left: 32px; /* Aligns with the value type text */
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.detail-line {
-    color: var(--text-secondary);
-    font-size: 0.9em;
-    display: flex;
-}
-.value-section {
-    background-color: var(--bg-card);
-    padding: 12px;
-    margin-top: 8px;
-}
-
-.final-results {
-    background-color: var(--bg-card);
-    padding-top: 1px;
-    padding-bottom: 12px;
-    padding-left: 12px;
-    padding-right: 12px;
-    border-radius: 4px;
-}
-
-.value-result {
-    display: flex;
-    align-items: center;
-    gap: 0px;
-}
-
-.value-breakdown {
-    font-size: 0.9em;
-    color: var(--text-secondary);
-    margin-left: 4px;
-}
-
-.location-effect {
-    padding: 2px 0;
-    font-size: 0.9em;
-    color: var(--text-muted);
-}
-
-    .location-effect:hover {
-        color: var(--text-primary);
-    }
-
-    /* Color coding for different property types */
-    .location-effect[data-property="CrowdLevel"] {
-        color: var(--crowd-color);
-    }
-
-    .location-effect[data-property="Scale"] {
-        color: var(--scale-color);
-    }
-
-    .location-effect[data-property="Exposure"] {
-        color: var(--exposure-color);
-    }
-
-    .location-effect[data-property="Resource"] {
-        color: var(--resource-color);
-    }
-/* Location Panel Styles */
-.location-name {
-    font-size: 1.25rem;
-    font-weight: 500;
-    color: #e2e8f0; /* Slightly muted white */
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid #2d3748; /* Subtle divider */
-}
-
-.location-effects-container {
-    margin-top: 0.5rem;
-}
-
-.location-effects-header {
-    font-size: 0.9rem;
-    color: #718096; /* Muted text */
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-}
-
-.location-effect {
-    display: flex;
-    align-items: flex-start;
-    padding: 0.25rem 0;
-    font-size: 0.9rem;
-    color: #a0aec0; /* Default effect text color */
-    line-height: 1.4;
-}
-
-.effect-bullet {
-    margin-right: 0.5rem;
-    color: #4a5568; /* Very muted bullet point */
-}
-
-/* Effect type colors */
-.effect-value {
-    color: #9f7aea; /* Purple for value modifications */
-}
-
-.effect-energy {
-    color: #4299e1; /* Blue for energy effects */
-}
-
-.effect-convert {
-    color: #48bb78; /* Green for conversions */
-}
-
-.effect-bonus {
-    color: #ecc94b; /* Yellow for bonuses */
-}
-
-/* Hover effects */
-.location-effect:hover {
-    color: #e2e8f0; /* Brighten text on hover */
-}
-
-    .location-effect:hover .effect-bullet {
-        color: #718096; /* Brighten bullet on hover */
-    }
-/* Location Panel Styles */
-.location-panel {
-    padding: 1rem;
-}
-
-/* Properties Section */
-.properties-header {
-    font-size: 0.9rem;
-    color: #718096;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-}
-
-.properties-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    display: flex; /* Arrange the icons in a row */
-    flex-wrap: wrap; /* Allow wrapping to the next line */
-}
-
-
-.property-tag {
-    position: relative;
-    cursor: help;
-    display: inline-flex; /* Align icon and indicator horizontally */
-    align-items: center;
-    padding: 1px 5px;
-    border-radius: 10px;
-    box-shadow: 1px 1px 2px #666666, -1px -1px 2px rgba(0, 0, 0, 0.2);
-}
-
-    .property-tag[data-tooltip] {
-        position: relative;
-    }
-
-        .property-tag[data-tooltip]:hover::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 8px;
-            background-color: #1a202c;
-            color: white;
-            border-radius: 4px;
-            font-size: 14px;
-            white-space: pre-wrap;
-            width: max-content;
-            max-width: 300px;
-            z-index: 1000;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-.effect-indicator {
-    font-size: 0.8em;
-    margin-left: 4px;
-    opacity: 0.7;
-    margin-left: 5px; /* Add a small space between icon and indicator */
-    color: #daa520;
-}
-
-.property-text {
-    margin: 0 4px;
-}
-
-.Encounter-context {
-    margin: 1rem 0;
-    padding: 0.5rem;
-    background-color: rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
 }
 
 .choice-set-name {
@@ -1033,439 +419,113 @@ body {
     margin: 0;
 }
 
-.property-icon {
-    font-size: 1.2em;
+.requirement {
+    border-left: 3px solid;
+    padding-left: 6px;
 }
 
-.property-effects {
-    list-style-type: disc;
-    margin: 20px 0 0 20px; /* Indent the list */
-    padding-left: 0;
-    font-size: 0.8em;
-    color: #a0aec0;
-}
-
-    .property-effects li {
-        margin-top: 10px;
-    }
-
-/* Add clear section separation */
-.preview-header {
-    border-bottom: 1px solid #eee;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--bg-card);
-    margin-bottom: 12px;
-}
-
-    .preview-header h4 {
-        margin: 0;
-        color: var(--text-primary);
-    }
-
-    .preview-header .choice-type {
-        color: var(--text-secondary);
-        font-size: 0.9em;
-        margin-top: 4px;
-    }
-
-.location-effects {
+.encounter-state-tags, .focus-tags {
     background-color: var(--bg-card);
-    margin: 15px 0;
     padding: 12px;
     border-radius: 4px;
+    margin-top: 12px;
 }
 
-/* First, let's create a distinct section for energy costs */
-.energy-cost-section {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid var(--bg-panel); /* Creates a visual separator */
-}
-
-/* Style the energy cost display differently from regular values */
-.energy-cost-display {
+.tag-grid {
     display: flex;
-    align-items: center;
-    padding: 12px;
-    background-color: var(--bg-panel);
-    border-radius: 4px;
-    border-left: 3px solid transparent; /* Color set by energy type classes */
-    gap: 12px; /* Creates consistent spacing between elements */
-}
-
-    /* Each energy type gets its own visual identity */
-    .energy-cost-display.physical {
-        border-color: var(--energy-physical);
-    }
-
-        .energy-cost-display.physical .value-type {
-            color: var(--energy-physical);
-        }
-
-    .energy-cost-display.focus {
-        border-color: var(--energy-focus);
-    }
-
-        .energy-cost-display.focus .value-type {
-            color: var(--energy-focus);
-        }
-
-    .energy-cost-display.social {
-        border-color: var(--energy-social);
-    }
-
-        .energy-cost-display.social .value-type {
-            color: var(--energy-social);
-        }
-
-.energy-cost-value {
-    margin-left: auto;
-    font-weight: bold;
-    font-size: 1.1em;
-}
-
-.energy-modification {
-    font-size: 0.9em;
-    color: var(--text-secondary);
-    margin-left: 8px;
-}
-
-/* Energy icon styling */
-.energy-icon {
-    width: 24px;
-    height: 24px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    background-color: var(--bg-card);
-}
-
-.Encounter-stats {
-    display: flex;
-    gap: 20px;
-    background-color: var(--bg-card);
-    padding: 15px;
-    border-radius: 4px;
-    margin-bottom: 20px;
-}
-
-.stat {
-    min-width: 80px; /* Ensures consistent spacing */
-    position: relative; /* For icon positioning */
-    padding-top: 24px; /* Makes room for the icon */
-}
-
-.stat-label {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin: 4px 0;
-}
-
-.stat-value {
-    font-weight: bold;
-}
-
-/* Color the values based on their type */
-.stat:has(.outcome-icon) .stat-value {
-    color: #2563eb; /* Same blue as the outcome icon */
-}
-
-.stat:has(.momentum-icon) .stat-value {
-    color: #ff7f50; /* Same blue as the outcome icon */
-}
-
-.stat:has(.insight-icon) .stat-value {
-    color: #7c3aed; /* Same violet as the insight icon */
-}
-
-.stat:has(.resonance-icon) .stat-value {
-    color: #db2777; /* Same pink as the resonance icon */
-}
-
-.stat:has(.pressure-icon) .stat-value {
-    color: #dc2626; /* Same red as the pressure icon */
-}
-
-.outcomes-preview, .energy-costs-preview {
-    margin: 12px 0;
-    font-size: 0.9em; /* Smaller font size for the whole section */
-}
-
-.outcomes-list, .energy-costs-list {
-    list-style-type: none;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 8px;
 }
 
-    .outcomes-list li {
-        margin-bottom: 8px; /* Spacing between items */
-    }
-
-    .outcomes-list .value-item, .energy-costs-list .value-item {
-        background-color: transparent; /* Removes background */
-        padding: 0; /* Removes padding */
-        border: none; /* Removes border */
-        background-color: var(--bg-panel);
-        padding: 8px;
-        border-radius: 4px;
-    }
-
-    .outcomes-list .value-main, .energy-costs-list .value-header {
-        align-items: center; /* Align items to the same baseline */
-        gap: 4px; /* Reduced gap */
-        gap: 8px;
-    }
-
-    .outcomes-list .value-header {
-        gap: 4px; /* Reduced gap */
-    }
-
-    .outcomes-list .value-icon, .energy-costs-list .value-icon {
-        width: 20px; /* Smaller icon size */
-        height: 20px;
-        font-size: 0.9em; /* Smaller icon font size */
-        background-color: transparent;
-        background-color: var(--bg-card);
-        width: 20px;
-        height: 20px;
-        font-size: 0.9em;
-    }
-
-    .outcomes-list .value-type, .energy-costs-list .value-type {
-        font-size: 0.9em; /* Smaller font size for type */
-        color: var(--text-secondary); /* Dimmed text color */
-        margin-bottom: 0px;
-        font-size: 0.9em;
-        color: var(--text-secondary);
-    }
-
-    .outcomes-list .value-total, .energy-costs-list .value-total {
-        font-size: 0.9em; /* Smaller font size for total */
-        margin-left: auto; /* Push the total to the right */
-        font-size: 0.9em;
-    }
-
-    .energy-costs-list .value-details {
-        margin-left: 28px;
-        font-size: 0.85em;
-        color: var(--text-muted);
-    }
-
-/* Encounter Result Overlay */
-.Encounter-result-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+.tag-value {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    background-color: var(--bg-panel);
+    padding: 6px 10px;
+    border-radius: 4px;
+    min-width: 120px;
+}
+
+.tag-name {
+    color: var(--text-secondary);
+}
+
+.tag-level {
+    font-weight: bold;
+}
+
+/* Location Properties */
+.location-name {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #e2e8f0;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #2d3748;
+}
+
+.location-properties {
+    margin-top: 0.5rem;
+}
+
+.properties-header {
+    font-size: 0.9rem;
+    color: #718096;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.properties-grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.property-tag {
+    display: inline-flex;
     align-items: center;
-    z-index: 100; /* Ensure it's above other elements */
+    margin: 3px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background: #2c2c2c;
+    border: 1px solid #444;
+    font-size: 0.85em;
 }
 
-.Encounter-result-panel {
-    background-color: var(--bg-panel);
-    padding: 30px;
-    border-radius: 5px;
-    text-align: center;
-    max-width: 700px;
-    line-height: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-}
-
-.result-message {
-    text-align: left;
-    margin-bottom: 20px;
-}
-
-    .result-message h3 {
-        margin-top: 0;
-    }
-
-.requirements-preview {
-    margin-top: 10px;
-    border-top: 1px solid lightgray;
-    padding-top: 10px;
-}
-
-.requirements-list {
-    list-style: none;
-    padding: 0;
-}
-
-.requirement-icon {
+.property-icon {
     margin-right: 5px;
+    font-size: 1.2em;
 }
 
-/* Example icon styles - customize these */
-.pressure-icon {
-    color: red;
+.property-text {
+    margin: 0 4px;
 }
 
-.insight-icon {
-    color: orange;
+/* Quest Effects */
+.quest-effects {
+    margin-top: 8px;
 }
 
-.physical-icon {
-    color: brown;
-}
-
-.focus-icon {
-    color: blue;
-}
-
-.social-icon {
-    color: green;
-}
-
-/* Color the values based on their type AND positive/negative */
-.stat:has(.outcome-icon) .stat-value {
-    color: #2563eb; /* Same blue as the outcome icon */
-}
-
-.stat:has(.outcome-icon) .stat-projected-change.positive {
-    color: var(--energy-social);
-}
-
-.stat:has(.outcome-icon) .stat-projected-change.negative {
-    color: var(--resource-health);
-}
-
-.stat:has(.momentum-icon) .stat-value {
-    color: #ff7f50; /* Same coral as the momentum icon */
-}
-
-.stat:has(.momentum-icon) .stat-projected-change.positive {
-    color: var(--energy-social);
-}
-
-.stat:has(.momentum-icon) .stat-projected-change.negative {
-    color: var(--resource-health);
-}
-
-.stat:has(.insight-icon) .stat-value {
-    color: #7c3aed; /* Same violet as the insight icon */
-}
-
-.stat:has(.insight-icon) .stat-projected-change.positive {
-    color: var(--energy-social);
-}
-
-.stat:has(.insight-icon) .stat-projected-change.negative {
-    color: var(--resource-health);
-}
-
-.stat:has(.resonance-icon) .stat-value {
-    color: #db2777; /* Same pink as the resonance icon */
-}
-
-.stat:has(.resonance-icon) .stat-projected-change.positive {
-    color: var(--energy-social);
-}
-
-.stat:has(.resonance-icon) .stat-projected-change.negative {
-    color: var(--resource-health);
-}
-
-.stat:has(.pressure-icon) .stat-value {
-    color: #dc2626; /* Same red as the pressure icon */
-}
-
-.stat:has(.pressure-icon) .stat-projected-change.positive {
-    color: var(--resource-health); /* Inverted for pressure */
-}
-
-.stat:has(.pressure-icon) .stat-projected-change.negative {
-    color: var(--energy-social); /* Inverted for pressure */
-}
-/* Narrative View Styles */
-.narrative-container {
-    background-color: var(--bg-panel);
-    padding: 20px;
-    border-radius: 5px;
+.quest-effect {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center content horizontally */
-    height: 100%; /* Ensure it takes up the available height */
-    justify-content: center; /* Center content vertically */
-}
-
-.narrative-text {
-    color: var(--text-primary);
-    font-size: 1.1em;
-    line-height: 1.6;
-    margin-bottom: 20px;
-    text-align: center; /* Center text */
-    max-width: 80%; /* Limit text width for readability */
-}
-
-    .narrative-text p {
-        margin-bottom: 10px;
-    }
-
-.narrative-button {
-    background-color: var(--bg-active);
-    border: none;
-    color: var(--text-primary);
-    padding: 10px 20px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.2s;
-}
-
-    .narrative-button:hover {
-        background-color: var(--border-active);
-    }
-
-.energy-costs-preview {
-    padding: 12px;
+    padding: 6px 10px;
     background-color: var(--bg-card);
     border-radius: 4px;
+    margin-bottom: 6px;
 }
 
-    .energy-costs-preview h6 {
-        margin: 0 0 8px 0;
-        color: var(--text-primary);
-    }
-
-/* Ensure proper section spacing */
-.final-results,
-.requirements-preview,
-.energy-costs-preview,
-.outcomes-preview {
-    border-top: 1px solid var(--bg-card);
+.effect-source {
+    font-weight: bold;
+    margin-bottom: 4px;
 }
 
-    .final-results:first-child,
-    .requirements-preview:first-child,
-    .energy-costs-preview:first-child,
-    .outcomes-preview:first-child {
-        border-top: none;
-        margin-top: 0;
-        padding-top: 0;
-    }
-
-.tooltip {
-    position: fixed;
-    background-color: var(--bg-panel);
-    border: 1px solid var(--border-active);
-    padding: 15px;
-    border-radius: 4px;
-    z-index: 1000;
-    min-width: 300px;
-    max-width: 400px;
-    max-height: 60vh;
-    overflow-y: auto;
-    pointer-events: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+.effect-description {
+    color: var(--text-secondary);
+    font-size: 0.9em;
 }
 
+/* Preview Header */
 .preview-header {
     border-bottom: 1px solid var(--bg-card);
     padding-bottom: 12px;
@@ -1477,12 +537,7 @@ body {
         color: var(--text-primary);
     }
 
-.choice-narrative {
-    color: var(--text-secondary);
-    font-size: 0.9em;
-    margin-top: 8px;
-}
-
+/* Tooltip Section */
 .tooltip-section {
     padding: 12px;
     background-color: var(--bg-card);
@@ -1504,7 +559,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin: 10px 0px 0px 0px;
+    margin: 10px 0 0 0;
 }
 
 .tooltip-item {
@@ -1513,6 +568,10 @@ body {
     border-radius: 4px;
     min-width: 300px;
 }
+
+    .tooltip-item.wide {
+        width: 100%;
+    }
 
 .tooltip-item-header {
     display: flex;
@@ -1525,17 +584,6 @@ body {
     align-items: center;
     gap: 8px;
 }
-
-    .tooltip-item-title .value-icon {
-        width: 20px;
-        height: 20px;
-        font-size: 0.9em;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: var(--bg-card);
-        border-radius: 4px;
-    }
 
 .tooltip-item-name {
     font-size: 0.9em;
@@ -1559,52 +607,6 @@ body {
     padding: 2px 0;
 }
 
-.positive-change {
-    color: var(--energy-social);
-}
-
-.negative-change {
-    color: var(--resource-health);
-}
-
-/* Tooltip styling */
-.tooltip {
-    max-width: 350px;
-    background: #1a1a1a;
-    border: 1px solid #444;
-    border-radius: 5px;
-    padding: 12px;
-    color: #ddd;
-    z-index: 1000;
-    pointer-events: none;
-}
-
-.preview-header h4 {
-    margin-top: 0;
-    color: #fff;
-}
-
-.choice-narrative {
-    font-style: italic;
-    margin-bottom: 12px;
-    border-left: 3px solid #444;
-    padding-left: 8px;
-}
-
-.tooltip-section {
-    margin-bottom: 15px;
-}
-
-    .tooltip-section h5 {
-        margin: 0 0 6px 0;
-        color: #888;
-        font-size: 0.9em;
-        text-transform: uppercase;
-        border-bottom: 1px solid #333;
-        padding-bottom: 4px;
-    }
-
-
 .calculation-component {
     display: flex;
     justify-content: space-between;
@@ -1616,240 +618,54 @@ body {
     color: #888;
 }
 
-.positive {
-    color: #4CAF50;
+.component-value {
+    font-weight: bold;
 }
 
-.negative {
-    color: #F44336;
-}
-
-/* Tag styling in the main encounter view */
-.property-tag {
-    display: inline-flex;
-    align-items: center;
-    margin: 3px;
-    padding: 3px 8px;
-    border-radius: 12px;
-    background: #2c2c2c;
-    border: 1px solid #444;
-    font-size: 0.85em;
-}
-
-    .property-tag.active {
-        background: #2c3e50;
-        border-color: #3498db;
-    }
-
-    .property-tag.narrative-tag {
-        background: #2c2c3c;
-        border-color: #9b59b6;
-    }
-
-    .property-tag.strategic-tag {
-        background: #2c3c2c;
-        border-color: #2ecc71;
-    }
-
-.property-icon {
-    margin-right: 5px;
-    font-size: 1.1em;
-}
-
-.properties-header {
-    font-weight: 500;
-    margin: 10px 0 5px 0;
-    color: #888;
-    font-size: 0.9em;
-}
-
-.properties-grid {
-    display: flex;
-    flex-wrap: wrap;
-    margin-bottom: 10px;
-}
-
-.pressure-effects {
-    margin-top: 8px;
-}
-
-.pressure-effect {
-    display: flex;
-    align-items: center;
-    margin-bottom: 4px;
-    padding: 4px 8px;
-    border-radius: 4px;
-}
-
-    .pressure-effect.warning {
-        background-color: rgba(255, 165, 0, 0.2);
-        border-left: 3px solid orange;
-    }
-
-    .pressure-effect.danger {
-        background-color: rgba(255, 0, 0, 0.2);
-        border-left: 3px solid red;
-    }
-
-.effect-icon {
-    margin-right: 8px;
-}
-
-.property-tag.disabled {
-    opacity: 0.5;
-    background: #4a4a4a;
-    text-decoration: line-through;
-}
-
-.disabled-icon {
-    margin-left: 4px;
-    color: red;
-}
-
-.tooltip-alert {
-    margin-bottom: 12px;
-    padding: 8px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-}
-
-    .tooltip-alert.warning {
-        background-color: rgba(255, 165, 0, 0.2);
-        border-left: 3px solid orange;
-    }
-
-    .tooltip-alert.danger {
-        background-color: rgba(255, 0, 0, 0.2);
-        border-left: 3px solid red;
-    }
-
-.alert-icon {
-    margin-right: 8px;
-}
-
+/* Narrative container */
 .narrative-container {
+    background-color: var(--bg-panel);
+    padding: 20px;
+    border-radius: 5px;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    width: 100%;
+    align-items: center;
+    height: 100%;
+    justify-content: center;
 }
 
-.narrative-sections {
-    display: flex;
-    gap: 1.5rem;
-}
-
-.narrative-main {
-    flex: 3;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.narrative-outcome {
-    font-size: 1.05rem;
+.narrative-text {
+    color: var(--text-primary);
+    font-size: 1.1em;
     line-height: 1.6;
-    margin-bottom: 0.5rem;
+    margin-bottom: 20px;
+    text-align: center;
+    max-width: 80%;
 }
 
-.narrative-situation {
-    font-size: 1.05rem;
-    line-height: 1.6;
-    border-top: 1px solid rgba(255,255,255,0.1);
-    padding-top: 1rem;
+.narrative-message {
+    margin-bottom: 15px;
 }
 
-.narrative-sidebar {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    font-size: 0.9rem;
-    border-left: 1px solid rgba(255,255,255,0.1);
-    padding-left: 1rem;
+.narrative-button {
+    background-color: var(--bg-active);
+    border: none;
+    color: var(--text-primary);
+    padding: 10px 20px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s;
 }
 
-.narrative-key-points h4,
-.narrative-atmosphere h4 {
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-    color: #aaa;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.narrative-key-points ul {
-    margin: 0;
-    padding-left: 1.2rem;
-}
-
-.narrative-key-points li {
-    margin-bottom: 0.4rem;
-}
-
-.narrative-atmosphere p {
-    margin: 0;
-    font-size: 0.95rem;
-    color: #bbb;
-}
-
-.narrative-fallback {
-    width: 100%;
-    white-space: pre-wrap;
-    line-height: 1.6;
-}
-
-@media (max-width: 768px) {
-    .narrative-sections {
-        flex-direction: column;
+    .narrative-button:hover {
+        background-color: var(--border-active);
     }
 
-    .narrative-sidebar {
-        border-left: none;
-        border-top: 1px solid rgba(255,255,255,0.1);
-        padding-left: 0;
-        padding-top: 1rem;
-    }
-}
-/* Narrative sections styling */
-.stage-description {
-    white-space: pre-line;
-}
-
-.stage-outcome {
-    margin-bottom: 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.stage-situation {
-    font-weight: 100;
-    line-height: 22px;
-    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 16px;
-    color: #e6e6e6;
-    margin-top: 1rem;
-}
-
-.key-points {
-    margin-top: 1rem;
-    padding: 0.75rem;
-    background-color: rgba(30, 30, 30, 0.3);
-    border-radius: 0.25rem;
-    font-size: 0.9rem;
-}
-
-.atmosphere {
-    margin-top: 0.75rem;
-    font-style: italic;
-    color: #aaa;
-    text-align: right;
-}
-
-@media (max-width: 768px) {
-    .stage-outcome, .stage-situation {
-        padding: 0.5rem;
-    }
+/* Encounter context */
+.Encounter-context {
+    margin: 1rem 0;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
 }
