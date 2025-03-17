@@ -60,7 +60,6 @@ public class PromptManager
         return _systemMessage;
     }
 
-    // Updated to work with the actual NarrativeContext class
     public string BuildNarrativePrompt(
         NarrativeContext context,
         IChoice chosenOption,
@@ -185,11 +184,9 @@ public class PromptManager
 
             // Determine if this choice is blocked by a narrative tag
             bool isBlocked = state.ActiveTags.Any(t => t is NarrativeTag nt && nt.BlockedFocus == choice.Focus);
-            string blockStatus = isBlocked ? "BLOCKED BY NARRATIVE TAG" : "Available";
 
             choicesInfo.AppendLine($@"
 Choice {i + 1}: {choice.Name}
-- Status: {blockStatus}
 - Approach: {primaryApproach} 
 - Focus: {choice.Focus}
 - Effect Type: {choice.EffectType}
