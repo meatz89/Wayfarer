@@ -10,7 +10,8 @@
     public List<Outcome> costs = new();
     public List<Outcome> rewards = new();
 
-    public bool IsEncounterAction = false;
+    public bool IsEncounterAction = true;
+    public EncounterTemplate encounterTemplate;
 
     public ActionTemplateBuilder WithName(ActionNames name)
     {
@@ -36,12 +37,12 @@
         return this;
     }
 
-    public ActionTemplateBuilder StartsEncounter()
+    public ActionTemplateBuilder StartsEncounter(EncounterTemplate encounterTemplate)
     {
         this.IsEncounterAction = true;
+        this.encounterTemplate = encounterTemplate;
         return this;
     }
-
 
     public ActionTemplateBuilder ExpendsCoins(int cost)
     {
@@ -60,6 +61,7 @@
             complication,
             actionType,
             IsEncounterAction,
+            encounterTemplate,
             requirements,
             energy,
             costs,

@@ -1,9 +1,9 @@
 ﻿public class ResourceManager
 {
     private readonly PlayerState _playerState;
-    private readonly LocationEncounterInfo _location;
+    private readonly EncounterInfo _location;
 
-    public ResourceManager(PlayerState playerState, LocationEncounterInfo location)
+    public ResourceManager(PlayerState playerState, EncounterInfo location)
     {
         _playerState = playerState;
         _location = location;

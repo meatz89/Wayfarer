@@ -1,7 +1,7 @@
 ﻿/// <summary>
 /// Represents a location in the game where encounters take place
 /// </summary>
-public class LocationEncounterInfo
+public class EncounterInfo
 {
     public LocationNames LocationName { get; set; }
     public string LocationSpotName { get; set; }
@@ -26,7 +26,7 @@ public class LocationEncounterInfo
     // Presentation style for this location
     public EncounterTypes EncounterType { get; set; }
 
-    public LocationEncounterInfo(
+    public EncounterInfo(
         LocationNames locationName,
         string locationSpot,
         List<ApproachTags> favoreApproaches,

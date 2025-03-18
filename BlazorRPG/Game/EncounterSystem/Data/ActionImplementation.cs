@@ -10,6 +10,7 @@
     public List<Outcome> EnergyCosts { get; set; }
     public List<Outcome> Costs { get; set; }
     public List<Outcome> Rewards { get; set; }
+    public EncounterTemplate EncounterTemplate { get; set; }
 
     public bool CanExecute(GameState gameState)
     {

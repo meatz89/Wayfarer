@@ -17,7 +17,7 @@
             .WithGoal("find the sacred scripture")
             .WithComplication("the libaray is vast and he doesn't know where to look")
             .WithActionType(BasicActionTypes.Analyze)
-            .StartsEncounter()
+            .StartsEncounter(EncounterContent.LibraryEncounter)
             .ExpendsCoins(5)
             .Build());
 
@@ -26,7 +26,7 @@
             .WithGoal("reach the docks without harm")
             .WithComplication("a bandit is blocking the way")
             .WithActionType(BasicActionTypes.Fight)
-            .StartsEncounter()
+            .StartsEncounter(EncounterContent.BanditEncounter)
             .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
@@ -34,7 +34,7 @@
             .WithGoal("buy food but he has limited funds")
             .WithComplication("the prices of the merchants are too high")
             .WithActionType(BasicActionTypes.Persuade)
-            .StartsEncounter()
+            .StartsEncounter(EncounterContent.MerchantEncounter)
             .ExpendsCoins(5)
             .Build());
 
