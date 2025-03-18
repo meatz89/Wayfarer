@@ -194,6 +194,7 @@ Choice {i + 1}: {choice.Name}
             {
                 choicesInfo.AppendLine($"- Encounter Will End: True");
                 choicesInfo.AppendLine($"- Final Outcome: {projection.ProjectedOutcome}");
+                choicesInfo.AppendLine($"- Goal Achievement: {(projection.ProjectedOutcome != EncounterOutcomes.Failure ? "Will achieve goal to" : "Will fail to")} {encounterGoal}");
             }
 
             // Add any new narrative tags that would activate
@@ -333,6 +334,11 @@ Choice {i + 1}: {choice.Name}
         // Get final choice name
         string finalChoiceName = finalChoice?.Name ?? "No final choice available";
 
+        // Add goal achievement status
+        string goalAchievementStatus = outcome != EncounterOutcomes.Failure
+            ? $"You have successfully achieved your goal to {encounterGoal}"
+            : $"You have failed to {encounterGoal}";
+
         // Replace placeholders in template
         string prompt = template
             .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
@@ -344,6 +350,7 @@ Choice {i + 1}: {choice.Name}
             .Replace("{APPROACH_VALUES}", approachValues)
             .Replace("{FOCUS_VALUES}", formattedFocusValues)
             .Replace("{LAST_NARRATIVE}", lastNarrative)
+            .Replace("{GOAL_ACHIEVEMENT_STATUS}", goalAchievementStatus)
             .Replace("{FINAL_CHOICE}", finalChoiceName);
 
         return prompt;
