@@ -25,18 +25,18 @@
     private readonly ProjectionService _projectionService;
     private IChoice _lastChoice;
 
-    public EncounterState(EncounterInfo location, PlayerState playerState)
+    public EncounterState(EncounterInfo encounterInfo, PlayerState playerState)
     {
         Momentum = 0;
         Pressure = 0;
         CurrentTurn = 0;
-        Location = location;
+        Location = encounterInfo;
         PlayerState = playerState;
 
         // Initialize managers
         _tagManager = new TagManager();
-        _resourceManager = new ResourceManager(playerState, location);
-        _projectionService = new ProjectionService(_tagManager, _resourceManager, location);
+        _resourceManager = new ResourceManager(playerState, encounterInfo);
+        _projectionService = new ProjectionService(_tagManager, _resourceManager, encounterInfo);
     }
 
     // Forward methods used by IEncounterTag.ApplyEffect and Choice.ApplyChoice

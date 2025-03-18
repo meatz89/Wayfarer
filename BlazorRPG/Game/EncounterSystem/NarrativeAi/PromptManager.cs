@@ -134,12 +134,11 @@ public class PromptManager
 
         return prompt;
     }
-
     public string BuildChoicesPrompt(
-        NarrativeContext context,
-        List<IChoice> choices,
-        List<ChoiceProjection> projections,
-        EncounterStatus state)
+    NarrativeContext context,
+    List<IChoice> choices,
+    List<ChoiceProjection> projections,
+    EncounterStatus state)
     {
         string template = _promptTemplates[CHOICES_MD];
 
@@ -164,6 +163,34 @@ public class PromptManager
         {
             NarrativeTag narrativeTag = (NarrativeTag)tag;
             narrativeTagsInfo.AppendLine($"- {tag.Name}: Blocks {narrativeTag.BlockedFocus} focus choices");
+        }
+
+        // Add location strategic preferences
+        StringBuilder locationPreferences = new StringBuilder();
+        locationPreferences.AppendLine("## Location Strategic Information:");
+
+        if (state.EncounterInfo?.FavoredApproaches?.Any() == true)
+        {
+            locationPreferences.AppendLine($"- Favored Approaches: {string.Join(", ", state.EncounterInfo.FavoredApproaches)}");
+            locationPreferences.AppendLine("  These approaches work particularly well in this location.");
+        }
+
+        if (state.EncounterInfo?.DisfavoredApproaches?.Any() == true)
+        {
+            locationPreferences.AppendLine($"- Disfavored Approaches: {string.Join(", ", state.EncounterInfo.DisfavoredApproaches)}");
+            locationPreferences.AppendLine("  These approaches are challenging or risky here.");
+        }
+
+        if (state.EncounterInfo?.FavoredFocuses?.Any() == true)
+        {
+            locationPreferences.AppendLine($"- Favored Focuses: {string.Join(", ", state.EncounterInfo.FavoredFocuses)}");
+            locationPreferences.AppendLine("  These focuses are particularly effective here.");
+        }
+
+        if (state.EncounterInfo?.DisfavoredFocuses?.Any() == true)
+        {
+            locationPreferences.AppendLine($"- Disfavored Focuses: {string.Join(", ", state.EncounterInfo.DisfavoredFocuses)}");
+            locationPreferences.AppendLine("  These focuses may lead to resource loss or complications.");
         }
 
         // Format choices info
@@ -228,6 +255,7 @@ Choice {i + 1}: {choice.Name}
             .Replace("{CHARACTER_GOAL}", encounterGoal)
             .Replace("{CURRENT_SITUATION}", currentSituation)
             .Replace("{ACTIVE_TAGS}", narrativeTagsInfo.ToString())
+            .Replace("{LOCATION_PREFERENCES}", locationPreferences.ToString())
             .Replace("{MOMENTUM}", state.Momentum.ToString())
             .Replace("{PRESSURE}", state.Pressure.ToString())
             .Replace("{APPROACH_VALUES}", approachValues)
@@ -254,11 +282,11 @@ Choice {i + 1}: {choice.Name}
         string secondaryFocus = state.FocusTags.OrderByDescending(t => t.Value).Skip(1).First().Key.ToString();
 
         // Format environment and NPC details
-        string environmentDetails = $"A {context.LocationName.ToLower()} with difficulty level {state.Location?.Difficulty ?? 1}";
+        string environmentDetails = $"A {context.LocationName.ToLower()} with difficulty level {state.EncounterInfo?.Difficulty ?? 1}";
         string npcList = "Local individuals relevant to the encounter";
         string timeConstraints = $"Maximum {state.MaxTurns} turns";
-        string additionalChallenges = state.Location != null
-            ? $"Difficulty level {state.Location.Difficulty} (adds +{state.Location.Difficulty} pressure per turn)"
+        string additionalChallenges = state.EncounterInfo != null
+            ? $"Difficulty level {state.EncounterInfo.Difficulty} (adds +{state.EncounterInfo.Difficulty} pressure per turn)"
             : "Standard difficulty";
 
         // Format character archetype based on primary approach

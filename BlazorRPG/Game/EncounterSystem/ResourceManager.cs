@@ -34,11 +34,11 @@
 
     public int CalculatePressureResourceDamage(ResourceTypes resourceType, int currentPressure)
     {
-        // Skip if no pressure or location doesn't apply pressure damage
-        if (currentPressure <= 2)
+        if(currentPressure <= 2)
+        {
             return 0;
+        }
 
-        // Only return a value for the resource type affected by this encounter type
         switch (_location.EncounterType)
         {
             case EncounterTypes.Physical:

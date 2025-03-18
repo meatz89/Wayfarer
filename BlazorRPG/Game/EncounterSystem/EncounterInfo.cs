@@ -5,6 +5,8 @@ public class EncounterInfo
 {
     public LocationNames LocationName { get; set; }
     public string LocationSpotName { get; set; }
+    public List<FocusTags> FavoredFocuses { get; } = new List<FocusTags>();
+    public List<FocusTags> DisfavoredFocuses { get; } = new List<FocusTags>();
     public List<ApproachTags> FavoredApproaches { get; } = new List<ApproachTags>();
     public List<ApproachTags> DisfavoredApproaches { get; } = new List<ApproachTags>();
     public List<IEncounterTag> AvailableTags { get; } = new List<IEncounterTag>();
@@ -31,6 +33,8 @@ public class EncounterInfo
         string locationSpot,
         List<ApproachTags> favoreApproaches,
         List<ApproachTags> disfavoredApproaches,
+        List<FocusTags> favoredFocuses,
+        List<FocusTags> disfavoredFocuses,
         int duration,
         int partialThreshold,
         int standardThreshold,
@@ -41,8 +45,11 @@ public class EncounterInfo
     {
         LocationName = locationName;
         LocationSpotName = locationSpot;
+
         FavoredApproaches = favoreApproaches;
         DisfavoredApproaches = disfavoredApproaches;
+        FavoredFocuses = favoredFocuses;
+        DisfavoredFocuses = disfavoredFocuses;
 
         PartialThreshold = partialThreshold;
         StandardThreshold = standardThreshold;
