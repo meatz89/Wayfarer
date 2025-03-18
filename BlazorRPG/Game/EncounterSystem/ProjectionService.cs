@@ -276,7 +276,7 @@
             if (encounterInfo.FavoredFocuses.Contains(choice.Focus))
             {
                 int favoredBonus = -2;
-                projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
+                projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
                 {
                     Source = "Correct Focus",
                     Value = favoredBonus
@@ -286,13 +286,13 @@
 
             if (encounterInfo.DangerousApproaches.Contains(choice.Approach))
             {
-                int disfavoredBonus = 3;
+                int dangerousApproachBonus = 3;
                 projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
                 {
                     Source = "Dangerous Approach",
-                    Value = disfavoredBonus
+                    Value = dangerousApproachBonus
                 });
-                pressureChange += disfavoredBonus;
+                pressureChange += dangerousApproachBonus;
             }
         }
     }

@@ -14,6 +14,30 @@ Turn: {CURRENT_TURN} of {MAX_TURNS}
 
 Write 3-4 paragraphs of grounded, realistic first-person narrative that:
 
+## NPC ACTION REQUIREMENTS:
+1. APPROPRIATE ESCALATION:
+   - NPCs MUST take actions consistent with their established character type and intentions
+   - Hostile NPCs (bandits, thieves, aggressive guards) should become increasingly threatening
+   - Friendly/neutral NPCs should respond proportionally to player approach
+   - NO STATIC NPCs: Every encounter turn, NPCs must take at least one concrete action
+
+2. ACTION BEFORE REACTION:
+   - Begin NPC responses with THEIR actions, not just reactions to the player
+   - Show NPCs pursuing their own goals and intentions
+   - Include appropriate verbal statements or demands consistent with NPC type
+   - Physical encounters MUST include physical actions between parties
+
+3. ENCOUNTER-APPROPRIATE LANGUAGE:
+   - Threatening situations REQUIRE words and actions that convey genuine danger
+   - Combat/confrontation requires specific descriptions of physical danger
+   - High-pressure situations should use language reflecting real stakes
+   - Injuries should come from NPC actions, not just environmental factors
+
+4. SCENE OWNERSHIP BALANCE:
+   - Environment details are important but NEVER at the expense of NPC behavior
+   - NPCs should control and influence the environment, not just exist within it
+   - Show power dynamics through physical positioning and control of space
+
 ## CRITICAL WRITING RULES - VIOLATE THESE AND YOUR RESPONSE WILL BE REJECTED
 
 1. STRICTLY LIMITED REACTIONS:
@@ -29,10 +53,10 @@ Write 3-4 paragraphs of grounded, realistic first-person narrative that:
    - "My statement draws attention from surrounding stalls"
 
 2. MICRO-SCALE OBSERVATIONS:
-   - Focus ONLY on small, subtle details directly in front of you
-   - Describe small hand movements, slight facial expressions, changes in voice tone
-   - NO broad environmental changes or dramatic shifts
-   - NO collective reactions from groups of people
+   - Focus on detailed observations directly in front of you
+   - Describe NPC movements, expressions, actions, and dialogue with specificity
+   - Include meaningful NPC actions that alter the situation
+   - Show how NPC actions directly affect you and your options
    
    VIOLATIONS TO REJECT:
    - "The entire marketplace seems to shift in response"
@@ -40,7 +64,19 @@ Write 3-4 paragraphs of grounded, realistic first-person narrative that:
    - "The atmosphere of the tavern changes"
    - "People move aside as I walk through"
 
-3. MUNDANE, REALISTIC LANGUAGE:
+3. APPROPRIATE DRAMATIC LANGUAGE:
+   - Use language proportional to the actual threat level
+   - Dangerous situations should feel genuinely dangerous
+   - Threatening NPCs should speak and act in threatening ways
+   - Injuries should reflect their true source (NPC weapons, environmental hazards)
+   
+   VIOLATIONS TO REJECT:
+   - Overwrought language unmatched to the situation
+   - Exaggerated reactions from uninvolved characters
+   - Unrealistic physical impacts or injuries
+   - Melodramatic internal monologues
+
+4. MUNDANE, REALISTIC LANGUAGE:
    - Write as if describing an ordinary conversation in a normal day
    - Use simple descriptions focused on basic physical details
    - NO dramatic, cinematic, or literary flourishes
@@ -52,7 +88,7 @@ Write 3-4 paragraphs of grounded, realistic first-person narrative that:
    - "The weight of his judgment hangs in the air"
    - "Time seems to slow as I consider my response"
 
-4. END WITH SPECIFIC NEW SITUATION:
+5. END WITH SPECIFIC NEW SITUATION:
    - The final paragraph MUST present a clear new situation requiring player reaction
    - Include physical details that create 2-3 distinct potential response options
    - Show exactly what the NPC does or says that requires immediate response
@@ -63,37 +99,6 @@ Write 3-4 paragraphs of grounded, realistic first-person narrative that:
    - Ending without a specific NPC action or statement requiring response
    - Not showing a concrete situation with visible options
    - Dramatic events unrelated to the player's previous action
-
-## CORE REQUIREMENTS - ESSENTIAL TO THE NARRATIVE
-
-1. FOCUS ON IMMEDIATE, PERSONAL INTERACTIONS
-   - Keep reactions realistic and proportional - not everyone reacts to your actions
-   - Concentrate on the 1-3 people directly involved in your interaction
-   - Show subtle rather than dramatic changes in the immediate environment
-   - Maintain a personal, down-to-earth perspective
-
-2. USE CONCRETE OBSERVABLE DETAILS
-   - Describe what you directly see, hear, smell, taste, and physically feel
-   - Show NPC emotions through specific facial expressions, tone of voice, and small gestures
-   - Describe body language and positioning without interpreting its meaning
-
-3. USE SIMPLE, PERIOD-APPROPRIATE LANGUAGE
-   - Write as a common traveler would speak and think
-   - Include occasional medieval expressions where natural
-   - Avoid modern concepts or perspectives
-
-4. SHOW APPROACH/FOCUS CHANGES THROUGH SUBTLE DETAILS
-   - Analysis: Small details you notice about the person, their possessions, or environment
-   - Rapport: Small shifts in how they speak to you or their willingness to share
-   - Dominance: Minor changes in posture, speaking volume, or space given to you
-   - Precision: Careful attention to specific timings or positions
-   - Concealment: Small signs of information being withheld or protected
-
-5. END WITH A NEW SITUATION THAT:
-   - Shows what specific actions the NPCs take in response to your choice
-   - Creates a concrete scenario with visible options for different approaches
-   - Gives the player clear details to react to in their next turn
-   - Maintains the tension and stakes of the current objective
 
 ## AVOID THESE NARRATIVE PROBLEMS
 
