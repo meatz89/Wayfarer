@@ -78,7 +78,7 @@ APPROACHES (HOW situations evolve):
 - Rapport: The atmosphere highlights social connections, empathy, and relationships
 - Analysis: The environment reveals patterns, logical connections, and observable details
 - Precision: The situation rewards careful execution, exact positioning, and accuracy
-- Concealment: The environment emphasizes hidden information, subtlety, and indirect methods
+- Evasion: The environment emphasizes hidden information, subtlety, and indirect methods
 
 FOCUSES (WHICH aspects become influential):
 - Relationship: Social hierarchies and interpersonal dynamics are central

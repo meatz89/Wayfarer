@@ -101,10 +101,13 @@ public class CardSelectionAlgorithm
             selectedChoices.Add(fourthChoice);
         }
 
-        // STEP 4: Validate Hand Composition
+        // STEP 4: Apply Diversity Improvements
         selectedChoices = EnsureViableChoices(selectedChoices, blockedFocuses, poolC1, choiceScores);
         selectedChoices = GuaranteeStrategicOptions(selectedChoices, blockedFocuses, allChoices, choiceScores);
         selectedChoices = EnforceCharacterIdentity(selectedChoices, approachRanking[0], poolB1, choiceScores);
+        selectedChoices = EnforceFocusDiversity(selectedChoices, allChoices, blockedFocuses, choiceScores);
+        selectedChoices = EnforceApproachDiversity(selectedChoices, allChoices, blockedFocuses, choiceScores);
+        selectedChoices = EnsureStrategicOptionDiversity(selectedChoices, allChoices, state, blockedFocuses, choiceScores);
 
         // STEP 5: Handle Edge Cases
         selectedChoices = HandleCriticalPressure(selectedChoices, state, poolA2, choiceScores);
@@ -213,65 +216,241 @@ public class CardSelectionAlgorithm
             // 5. Narrative Tag Modifier (-15 or 0)
             int narrativeTagModifier = blockedFocuses.Contains(choice.Focus) ? -15 : 0;
 
-            // 6. Contextual Modifiers
-            int contextualModifier = 0;
+            // 6. Location Preference Modifiers
+            int locationPreferenceModifier = 0;
 
-            // Previous Choice Influence
+            // Strongly respect location preferences
+            if (state.Location.DisfavoredFocuses.Contains(choice.Focus))
+            {
+                locationPreferenceModifier -= 15;
+            }
+
+            if (state.Location.FavoredFocuses.Contains(choice.Focus))
+            {
+                locationPreferenceModifier += 8;
+            }
+
+            // Dangerous approaches become increasingly problematic as pressure builds
+            if (state.Location.DangerousApproaches.Contains(primaryApproach))
+            {
+                double dangerPressureRatio = (double)state.Pressure / state.Location.MaxPressure;
+                locationPreferenceModifier -= (int)(15 * dangerPressureRatio);
+            }
+
+            if (state.Location.MomentumBoostApproaches.Contains(primaryApproach))
+            {
+                locationPreferenceModifier += 8;
+            }
+
+            // 7. Previous Choice Influence
+            int previousChoiceModifier = 0;
             if (state.PreviousChoice != null)
             {
                 // Continuity bonus for same approach
                 if (GetPrimaryApproach(state.PreviousChoice) == primaryApproach)
-                    contextualModifier += 3;
+                    previousChoiceModifier += 3;
 
                 // Focus development bonus
                 if (state.PreviousChoice.Focus == choice.Focus)
-                    contextualModifier += 2;
+                    previousChoiceModifier += 2;
 
                 // Effect type variety
                 if (state.PreviousChoice.EffectType != choice.EffectType)
-                    contextualModifier += 1;
+                    previousChoiceModifier += 1;
+
+                // Penalize repetitive choice patterns
+                bool sameApproach = primaryApproach == GetPrimaryApproach(state.PreviousChoice);
+                bool sameFocus = choice.Focus == state.PreviousChoice.Focus;
+                bool sameEffectType = choice.EffectType == state.PreviousChoice.EffectType;
+
+                if (sameApproach && sameFocus && sameEffectType)
+                {
+                    previousChoiceModifier -= 25; // Severe penalty for identical choice pattern
+                }
+                else if (sameApproach && sameFocus)
+                {
+                    previousChoiceModifier -= 10; // Moderate penalty for similar choice pattern
+                }
             }
 
-            // Approach Diversification
+            // 8. Approach Diversification
             int approachUsageCount = GetApproachUsageCount(state, primaryApproach);
-            if (approachUsageCount == 0)
-                contextualModifier += 3; // Exploration bonus for unused approaches
-            else if (approachUsageCount > 2)
-                contextualModifier -= (approachUsageCount - 2); // Penalty for overspecialization
+            int approachDiversificationModifier = 0;
 
-            // Pressure Trend
+            if (approachUsageCount == 0)
+                approachDiversificationModifier += 3; // Exploration bonus for unused approaches
+            else if (approachUsageCount > 2)
+                approachDiversificationModifier -= (approachUsageCount - 2); // Penalty for overspecialization
+
+            // 9. Pressure Trend Context
+            int pressureTrendModifier = 0;
             double pressureTrend = CalculatePressureTrend(state);
             if (choice.EffectType == EffectTypes.Pressure && pressureTrend > 0)
-                contextualModifier += (int)(pressureTrend * 3); // Rising pressure increases value of pressure-reducing choices
-
-            // Focus Diversity
-            int focusUsageCount = GetFocusUsageCount(state, choice.Focus);
-            if (focusUsageCount == 0)
-                contextualModifier += 2; // Bonus for unused focuses
-
-            // Strategic Tag Utilization 
-            if (choice.EffectType == EffectTypes.Momentum &&
-                IsMomentumIncreasingApproach(primaryApproach, state) &&
-                approachValue >= 3)
             {
-                contextualModifier += 2; // Bonus for leveraging high momentum-increasing approach
-            }
-
-            if (choice.EffectType == EffectTypes.Pressure &&
-                IsPressureDecreasingApproach(primaryApproach, state) &&
-                approachValue >= 3)
-            {
-                contextualModifier += 2; // Bonus for leveraging high pressure-decreasing approach
+                pressureTrendModifier += (int)(pressureTrend * 5);
             }
 
             // Calculate total score
-            int totalScore = strategicAlignmentScore + characterProficiencyScore +
-                            situationalScore + focusRelevanceScore + narrativeTagModifier + contextualModifier;
+            int totalScore = strategicAlignmentScore +
+                            characterProficiencyScore +
+                            situationalScore +
+                            focusRelevanceScore +
+                            narrativeTagModifier +
+                            locationPreferenceModifier +
+                            previousChoiceModifier +
+                            approachDiversificationModifier +
+                            pressureTrendModifier;
 
             scores[choice] = totalScore;
         }
 
         return scores;
+    }
+
+    private List<IChoice> EnforceFocusDiversity(List<IChoice> selectedChoices, List<IChoice> allChoices,
+                                              List<FocusTags> blockedFocuses, Dictionary<IChoice, int> choiceScores)
+    {
+        // Count focus distribution
+        var focusCounts = selectedChoices.GroupBy(c => c.Focus)
+                                      .ToDictionary(g => g.Key, g => g.Count());
+
+        // If any focus appears in more than 2 choices, replace one
+        foreach (var focusPair in focusCounts.Where(f => f.Value > 2))
+        {
+            FocusTags overrepresentedFocus = focusPair.Key;
+
+            // Find choices with this focus
+            var sameFocusChoices = selectedChoices.Where(c => c.Focus == overrepresentedFocus)
+                                                .OrderBy(c => choiceScores[c])
+                                                .ToList();
+
+            // Find all possible focuses 
+            var allFocusValues = Enum.GetValues(typeof(FocusTags))
+                                    .Cast<FocusTags>()
+                                    .Where(f => f != overrepresentedFocus &&
+                                              !blockedFocuses.Contains(f))
+                                    .ToList();
+
+            // Find choices with underrepresented focuses
+            var diverseFocusChoices = allChoices
+                .Where(c => allFocusValues.Contains(c.Focus) &&
+                          !selectedChoices.Contains(c))
+                .OrderByDescending(c => choiceScores[c])
+                .Take(1)
+                .ToList();
+
+            if (diverseFocusChoices.Any() && sameFocusChoices.Count() > 2)
+            {
+                selectedChoices.Remove(sameFocusChoices.First());
+                selectedChoices.Add(diverseFocusChoices.First());
+            }
+        }
+
+        return selectedChoices;
+    }
+
+    private List<IChoice> EnforceApproachDiversity(List<IChoice> selectedChoices, List<IChoice> allChoices,
+                                                 List<FocusTags> blockedFocuses, Dictionary<IChoice, int> choiceScores)
+    {
+        // Count approach distribution
+        var approachCounts = selectedChoices.GroupBy(c => GetPrimaryApproach(c))
+                                         .ToDictionary(g => g.Key, g => g.Count());
+
+        // Count unique approaches
+        int uniqueApproachCount = approachCounts.Keys.Count;
+
+        // If less than 3 unique approaches, try to add more
+        if (uniqueApproachCount < 3)
+        {
+            // Find missing approaches
+            var representedApproaches = approachCounts.Keys.ToList();
+            var allApproaches = new List<ApproachTags> {
+                ApproachTags.Dominance, ApproachTags.Rapport,
+                ApproachTags.Analysis, ApproachTags.Precision,
+                ApproachTags.Evasion
+            };
+
+            var missingApproaches = allApproaches
+                .Where(a => !representedApproaches.Contains(a))
+                .ToList();
+
+            // Find choices with missing approaches
+            var approachDiversityChoices = allChoices
+                .Where(c => missingApproaches.Contains(GetPrimaryApproach(c)) &&
+                          !selectedChoices.Contains(c) &&
+                          !blockedFocuses.Contains(c.Focus))
+                .OrderByDescending(c => choiceScores[c])
+                .Take(1)
+                .ToList();
+
+            if (approachDiversityChoices.Any())
+            {
+                // Find choice to replace - take from most represented approach
+                var mostUsedApproach = approachCounts
+                    .OrderByDescending(a => a.Value)
+                    .First().Key;
+
+                var redundantChoices = selectedChoices
+                    .Where(c => GetPrimaryApproach(c) == mostUsedApproach)
+                    .OrderBy(c => choiceScores[c])
+                    .Take(1)
+                    .ToList();
+
+                if (redundantChoices.Any())
+                {
+                    selectedChoices.Remove(redundantChoices.First());
+                    selectedChoices.Add(approachDiversityChoices.First());
+                }
+            }
+        }
+
+        return selectedChoices;
+    }
+
+    private List<IChoice> EnsureStrategicOptionDiversity(List<IChoice> selectedChoices, List<IChoice> allChoices,
+                                                       EncounterState state, List<FocusTags> blockedFocuses,
+                                                       Dictionary<IChoice, int> choiceScores)
+    {
+        // In hostile encounters, ensure we have non-physical options
+        if (state.Location.Hostility == EncounterInfo.HostilityLevels.Hostile &&
+            state.Location.EncounterType == EncounterTypes.Physical)
+        {
+            // Check if we have strategic diversity
+            bool hasPhysicalOption = selectedChoices.Any(c => c.Focus == FocusTags.Physical);
+            bool hasRelationshipOption = selectedChoices.Any(c => c.Focus == FocusTags.Relationship);
+            bool hasResourceOption = selectedChoices.Any(c => c.Focus == FocusTags.Resource);
+
+            // If we have ONLY physical options, add a social/resource option
+            if (hasPhysicalOption && !hasRelationshipOption && !hasResourceOption)
+            {
+                // Find social/resource choices
+                var socialChoices = allChoices
+                    .Where(c => (c.Focus == FocusTags.Relationship || c.Focus == FocusTags.Resource) &&
+                              !selectedChoices.Contains(c) &&
+                              !blockedFocuses.Contains(c.Focus))
+                    .OrderByDescending(c => choiceScores[c])
+                    .Take(1)
+                    .ToList();
+
+                if (socialChoices.Any())
+                {
+                    // Replace lowest scoring physical choice
+                    var physicalChoices = selectedChoices
+                        .Where(c => c.Focus == FocusTags.Physical)
+                        .OrderBy(c => choiceScores[c])
+                        .Take(1)
+                        .ToList();
+
+                    if (physicalChoices.Any())
+                    {
+                        selectedChoices.Remove(physicalChoices.First());
+                        selectedChoices.Add(socialChoices.First());
+                    }
+                }
+            }
+        }
+
+        return selectedChoices;
     }
 
     private int GetApproachUsageCount(EncounterState state, ApproachTags approach)
@@ -786,13 +965,13 @@ public class CardSelectionAlgorithm
     }
 
     private List<IChoice> FinalizeHand(List<IChoice> selectedChoices, List<FocusTags> blockedFocuses,
-        Dictionary<IChoice, int> choiceScores)
+        Dictionary<IChoice, int> scores)
     {
         // Sort choices: unblocked momentum first, unblocked pressure second, blocked last
         return selectedChoices
             .OrderBy(c => blockedFocuses.Contains(c.Focus)) // Unblocked first (false comes before true)
             .ThenBy(c => c.EffectType != EffectTypes.Momentum) // Momentum first
-            .ThenByDescending(c => choiceScores[c]) // Higher score first
+            .ThenByDescending(c => scores[c]) // Higher score first
             .ToList();
     }
 
@@ -804,7 +983,7 @@ public class CardSelectionAlgorithm
             { ApproachTags.Rapport, state.TagSystem.GetEncounterStateTagValue(ApproachTags.Rapport) },
             { ApproachTags.Analysis, state.TagSystem.GetEncounterStateTagValue(ApproachTags.Analysis) },
             { ApproachTags.Precision, state.TagSystem.GetEncounterStateTagValue(ApproachTags.Precision) },
-            { ApproachTags.Concealment, state.TagSystem.GetEncounterStateTagValue(ApproachTags.Concealment) }
+            { ApproachTags.Evasion, state.TagSystem.GetEncounterStateTagValue(ApproachTags.Evasion) }
         };
 
         return approachValues
@@ -943,7 +1122,7 @@ public class CardSelectionAlgorithm
                tag == ApproachTags.Rapport ||
                tag == ApproachTags.Analysis ||
                tag == ApproachTags.Precision ||
-               tag == ApproachTags.Concealment;
+               tag == ApproachTags.Evasion;
     }
 
     private bool IsMomentumIncreasingApproach(ApproachTags approach, EncounterState state)

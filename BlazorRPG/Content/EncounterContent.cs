@@ -30,7 +30,7 @@
             StrategicTagRepository.CarefulPositioning,    // Precision → Decreases Pressure
             StrategicTagRepository.EscalatingTension,     // Dominance → Increases Pressure
             StrategicTagRepository.SocialDistraction,     // Rapport → Decreases Momentum
-                                                                            // Note: Concealment approach has no strategic tag (neutral)
+                                                                            // Note: Evasion approach has no strategic tag (neutral)
         ]
     };
 
@@ -44,7 +44,7 @@
         hostility = EncounterInfo.HostilityLevels.Hostile,
 
         MomentumBoostApproaches = new[] { ApproachTags.Analysis, ApproachTags.Precision }.ToList(),
-        DangerousApproaches = new[] { ApproachTags.Dominance, ApproachTags.Concealment }.ToList(),
+        DangerousApproaches = new[] { ApproachTags.Dominance, ApproachTags.Evasion }.ToList(),
 
         favoredFocuses = new[] { FocusTags.Physical }.ToList(),
         disfavoredFocuses = new[] { FocusTags.Environment }.ToList(),
@@ -77,7 +77,7 @@
         hostility = EncounterInfo.HostilityLevels.Neutral,
 
         MomentumBoostApproaches = new[] { ApproachTags.Rapport, ApproachTags.Analysis }.ToList(),
-        DangerousApproaches = new[] { ApproachTags.Concealment, ApproachTags.Precision }.ToList(),
+        DangerousApproaches = new[] { ApproachTags.Evasion, ApproachTags.Precision }.ToList(),
 
         favoredFocuses = new[] { FocusTags.Relationship, FocusTags.Resource }.ToList(),
         disfavoredFocuses = new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),

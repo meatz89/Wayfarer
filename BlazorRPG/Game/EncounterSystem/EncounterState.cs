@@ -21,7 +21,6 @@
     private readonly TagManager _tagManager;
     private readonly ResourceManager _resourceManager;
     private readonly ProjectionService _projectionService;
-    private IChoice _lastChoice;
 
     public EncounterState(EncounterInfo encounterInfo, PlayerState playerState)
     {
@@ -64,8 +63,6 @@
 
     private void ApplyChoiceProjection(ChoiceProjection projection)
     {
-        _lastChoice = projection.Choice;
-
         // Apply resource changes from pressure at start of turn (based on current pressure)
         _resourceManager.ApplyPressureResourceDamage(Pressure);
 
@@ -111,7 +108,7 @@
                 approach == ApproachTags.Rapport ||
                 approach == ApproachTags.Analysis ||
                 approach == ApproachTags.Precision ||
-                approach == ApproachTags.Concealment)
+                approach == ApproachTags.Evasion)
             {
                 PreviousApproachValues[approach] = TagSystem.GetEncounterStateTagValue(approach);
             }

@@ -25,7 +25,7 @@ Write 3-4 paragraphs of grounded, first-person narrative that:
    - Rapport: Reflect how social connections helped or hindered reaching the goal
    - Analysis: Demonstrate how understanding patterns contributed to goal success or failure
    - Precision: Show how careful execution impacted the outcome related to the goal
-   - Concealment: Reveal how hidden methods affected goal achievement
+   - Evasion: Reveal how evasive methods affected goal achievement
 
 3. PROVIDES CONCRETE DETAILS about what the character gained or lost:
    - For resource-based goals: Specify exactly what was obtained or forfeited
