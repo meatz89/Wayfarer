@@ -3,7 +3,7 @@
     private string name;
     private LocationNames locationName;
     private CharacterNames? character;
-    
+
     private List<ActionNames> actionNames = new();
 
     public Accessibility? accessibility { get; set; }

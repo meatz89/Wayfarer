@@ -200,8 +200,8 @@ public class GameManager
     }
 
     private static void CreateActionsForLocationSpot(
-        List<UserActionOption> options, 
-        Location location, 
+        List<UserActionOption> options,
+        Location location,
         LocationSpot locationSpot)
     {
         locationSpot.Actions.Clear();
@@ -211,7 +211,7 @@ public class GameManager
         List<ActionNames> locationSpotActions = locationSpot.ActionNames;
         foreach (ActionNames locationSpotAction in locationSpotActions)
         {
-            var actionTemplate = allActionTemplates
+            ActionTemplate? actionTemplate = allActionTemplates
                 .Where(x => x.Name == locationSpotAction).FirstOrDefault();
 
             ActionImplementation actionImplementation = ActionFactory.CreateAction(actionTemplate);
@@ -227,7 +227,7 @@ public class GameManager
                     locationSpot.Name,
                     default,
                     location.Difficulty);
-            
+
             options.Add(userActionOption);
         }
     }
