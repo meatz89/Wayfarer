@@ -8,7 +8,7 @@ public class EncounterInfo
     public List<FocusTags> FavoredFocuses { get; } = new List<FocusTags>();
     public List<FocusTags> DisfavoredFocuses { get; } = new List<FocusTags>();
     public List<ApproachTags> FavoredApproaches { get; } = new List<ApproachTags>();
-    public List<ApproachTags> DisfavoredApproaches { get; } = new List<ApproachTags>();
+    public List<ApproachTags> DangerousApproaches { get; } = new List<ApproachTags>();
     public List<IEncounterTag> AvailableTags { get; } = new List<IEncounterTag>();
 
     // Success thresholds
@@ -47,7 +47,7 @@ public class EncounterInfo
         LocationSpotName = locationSpot;
 
         FavoredApproaches = favoreApproaches;
-        DisfavoredApproaches = disfavoredApproaches;
+        DangerousApproaches = disfavoredApproaches;
         FavoredFocuses = favoredFocuses;
         DisfavoredFocuses = disfavoredFocuses;
 

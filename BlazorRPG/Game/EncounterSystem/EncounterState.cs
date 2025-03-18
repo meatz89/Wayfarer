@@ -44,9 +44,6 @@
     public void AddFocusPressureModifier(FocusTags focus, int modifier) =>
         _tagManager.AddFocusPressureModifier(focus, modifier);
 
-    public void AddEndOfTurnPressureReduction(int reduction) =>
-        _tagManager.AddEndOfTurnPressureReduction(reduction);
-
     public int GetTotalMomentum(IChoice choice, int baseMomentum) =>
         _tagManager.GetTotalMomentum(choice, baseMomentum);
 
