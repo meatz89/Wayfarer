@@ -1,6 +1,6 @@
 # WAYFARER ENCOUNTER ENDING
 
-Generate a concluding narrative for a {ENCOUNTER_TYPE} encounter that has just ended with an outcome of {ENCOUNTER_OUTCOME}. The encounter took place in {LOCATION} with the objective to {CHARACTER_GOAL}.
+Generate a concluding narrative for a {ENCOUNTER_TYPE} encounter that has ended with an outcome of {ENCOUNTER_OUTCOME}. The encounter took place in {LOCATION} with the objective to {CHARACTER_GOAL}.
 
 Final state: Momentum {FINAL_MOMENTUM}, Pressure {FINAL_PRESSURE}
 Resource states: Health {HEALTH}, Concentration {CONCENTRATION}, Confidence {CONFIDENCE}
@@ -13,30 +13,30 @@ Final choice made: {FINAL_CHOICE}
 
 Write 3-4 paragraphs of grounded, first-person narrative that:
 
-1. PROVIDES A CLEAR RESOLUTION based on the {ENCOUNTER_OUTCOME} result:
-   - FAILURE: Show how the character must accept defeat, retreat, or compromise severely
-   - PARTIAL: Depict a mixed outcome with some success but clear limitations or drawbacks
-   - STANDARD: Show a solid success that achieves the main objective satisfactorily
-   - EXCEPTIONAL: Portray an outstanding success that exceeds expectations
+1. BEGINS BY DIRECTLY ADDRESSING GOAL ACHIEVEMENT:
+   - The first paragraph MUST explicitly state whether the goal to {CHARACTER_GOAL} was achieved
+   - FAILURE: Clearly show how the character failed to {CHARACTER_GOAL} and what was lost
+   - PARTIAL: Show how the character partially achieved the goal to {CHARACTER_GOAL} with limitations
+   - STANDARD: Demonstrate full achievement of the goal to {CHARACTER_GOAL} as intended
+   - EXCEPTIONAL: Show how the character not only achieved {CHARACTER_GOAL} but gained additional benefits
 
 2. SHOWS THE DIRECT CONSEQUENCES of the character's approach emphasis:
-   - Dominance: Show how forceful methods affected relationships and reputation
-   - Rapport: Reflect how social connections were enhanced or strained
-   - Analysis: Demonstrate how understanding patterns led to insights or overthinking
-   - Precision: Show how careful execution created control or rigidity
-   - Concealment: Reveal how hidden methods created advantages or suspicion
+   - Dominance: Show how forceful methods affected goal achievement and relationships
+   - Rapport: Reflect how social connections helped or hindered reaching the goal
+   - Analysis: Demonstrate how understanding patterns contributed to goal success or failure
+   - Precision: Show how careful execution impacted the outcome related to the goal
+   - Concealment: Reveal how hidden methods affected goal achievement
 
-3. MAINTAINS THE SAME REALISTIC TONE established throughout the encounter:
-   - Use concrete, observable details instead of abstract concepts
-   - Show consequences through specific physical and social details
-   - Keep language simple and period-appropriate
-   - Focus on immediate personal outcomes, not broad impacts
-   - Include sensory details that ground the conclusion
+3. PROVIDES CONCRETE DETAILS about what the character gained or lost:
+   - For resource-based goals: Specify exactly what was obtained or forfeited
+   - For social goals: Show exactly how relationships changed
+   - For information goals: Detail what knowledge was gained or missed
+   - Use specific quantities, descriptions, and tangible outcomes
+   - Avoid vague results - be specific about the goal outcome
 
-4. PROVIDES A SENSE OF CLOSURE while hinting at future implications:
-   - Resolve the immediate situation completely
-   - Show how this outcome affects the character's immediate future
-   - Suggest small, realistic consequences that might follow
+4. CONCLUDES with immediate future implications:
+   - Show the next 1-2 immediate steps the character will take following this outcome
+   - Keep these steps directly connected to having achieved/failed the goal
    - Maintain the modest, survival-focused tone of everyday medieval life
 
 ## WRITING REQUIREMENTS

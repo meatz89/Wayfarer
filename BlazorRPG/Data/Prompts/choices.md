@@ -24,12 +24,13 @@ For each choice, write a 1-2 sentence description that:
 ## ENCOUNTER ENDINGS
 
 For choices that will end the encounter (marked with "Encounter Will End: True"), adjust the description to:
-1. Clearly indicate this is a concluding action without directly stating it
-2. Use language appropriate to the projected outcome:
-   * Failure: Show tone of defeat, last desperate attempt, or resignation
-   * Partial: Suggest compromise, modest achievement, or acceptable outcome
-   * Standard: Indicate solid resolution or clear success
-   * Exceptional: Convey triumph, mastery, or perfect execution
+1. DIRECTLY REFERENCE THE GOAL: Explicitly state how this choice will conclude the character's attempt to {CHARACTER_GOAL}
+2. MATCH LANGUAGE TO THE PROJECTED OUTCOME:
+   * Failure: Show the goal will NOT be achieved - "I'll walk away without the food I need..."
+   * Partial: Suggest incomplete goal achievement - "This small loaf isn't much, but it'll keep me from starving..."
+   * Standard: Indicate full goal achievement - "This bread will solve my hunger problem nicely."
+   * Exceptional: Convey exceeding the goal - "With this much food, I'll eat well for days."
+3. MAKE THE FINALITY CLEAR without explicitly stating "this ends the encounter"
 
 Write in FIRST PERSON, PRESENT TENSE. Focus on how the ENVIRONMENT has evolved to respond to certain approaches, not on any skills or abilities the character has developed.
 
