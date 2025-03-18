@@ -9,12 +9,12 @@ public class TagFormatter
         List<string> significantTags = new List<string>();
 
         // Only include approach tags with values of 2 or higher
-        foreach (KeyValuePair<EncounterStateTags, int> tag in state.ApproachTags.Where(t => t.Value >= 2).OrderByDescending(t => t.Value))
+        foreach (KeyValuePair<ApproachTags, int> tag in state.ApproachTags.Where(t => t.Value >= 2).OrderByDescending(t => t.Value))
         {
             significantTags.Add($"{tag.Key} {tag.Value}");
         }
         // Only include approach tags with values of 2 or higher
-        foreach (KeyValuePair<EncounterStateTags, int> tag in state.ApproachTags.Where(t => t.Value >= 2).OrderByDescending(t => t.Value))
+        foreach (KeyValuePair<ApproachTags, int> tag in state.ApproachTags.Where(t => t.Value >= 2).OrderByDescending(t => t.Value))
         {
             significantTags.Add($"{tag.Key} {tag.Value}");
         }
@@ -95,7 +95,7 @@ public class TagFormatter
 
     public (string, string) GetSignificantApproachTags(EncounterStatus state)
     {
-        List<KeyValuePair<EncounterStateTags, int>> orderedTags = state.ApproachTags
+        List<KeyValuePair<ApproachTags, int>> orderedTags = state.ApproachTags
             .OrderByDescending(t => t.Value)
             .ToList();
         string primary = orderedTags.Count > 0 ? orderedTags[0].Key.ToString() : "None";
@@ -117,7 +117,7 @@ public class TagFormatter
     {
         List<string> changes = new List<string>();
         // Format approach tag changes
-        foreach (KeyValuePair<EncounterStateTags, int> change in projection.EncounterStateTagChanges.Where(c => c.Value != 0))
+        foreach (KeyValuePair<ApproachTags, int> change in projection.EncounterStateTagChanges.Where(c => c.Value != 0))
         {
             changes.Add($"{change.Key} {(change.Value > 0 ? "+" : "")}{change.Value}");
         }

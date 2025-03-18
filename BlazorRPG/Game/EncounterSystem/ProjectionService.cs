@@ -204,7 +204,7 @@
         {
             if (mod.Type == TagModification.TagTypes.EncounterState)
             {
-                EncounterStateTags tag = (EncounterStateTags)mod.Tag;
+                ApproachTags tag = (ApproachTags)mod.Tag;
                 int oldValue = clonedTagSystem.GetEncounterStateTagValue(tag);
                 clonedTagSystem.ModifyEncounterStateTag(tag, mod.Delta);
                 int newValue = clonedTagSystem.GetEncounterStateTagValue(tag);

@@ -1,29 +1,29 @@
 ﻿public static class ChoiceExtensions
 {
-    public static EncounterStateTags GetPrimaryApproach(this IChoice choice)
+    public static ApproachTags GetPrimaryApproach(this IChoice choice)
     {
         // Find the approach tag with the largest modification
         List<TagModification> approachMods = choice.TagModifications
             .Where(m => m.Type == TagModification.TagTypes.EncounterState)
-            .Where(m => IsApproachTag((EncounterStateTags)m.Tag))
+            .Where(m => IsApproachTag((ApproachTags)m.Tag))
             .OrderByDescending(m => m.Delta)
             .ToList();
 
         if (approachMods.Any())
         {
-            return (EncounterStateTags)approachMods.First().Tag;
+            return (ApproachTags)approachMods.First().Tag;
         }
 
         // Default to Analysis if no approach is found (fallback)
-        return EncounterStateTags.Analysis;
+        return ApproachTags.Analysis;
     }
 
-    private static bool IsApproachTag(EncounterStateTags tag)
+    private static bool IsApproachTag(ApproachTags tag)
     {
-        return tag == EncounterStateTags.Dominance ||
-               tag == EncounterStateTags.Rapport ||
-               tag == EncounterStateTags.Analysis ||
-               tag == EncounterStateTags.Precision ||
-               tag == EncounterStateTags.Concealment;
+        return tag == ApproachTags.Dominance ||
+               tag == ApproachTags.Rapport ||
+               tag == ApproachTags.Analysis ||
+               tag == ApproachTags.Precision ||
+               tag == ApproachTags.Concealment;
     }
 }

@@ -4,7 +4,7 @@
     public IChoice PreviousChoice { get; set; }
     public int PreviousMomentum { get; set; }
     public int PreviousPressure { get; set; }
-    public Dictionary<EncounterStateTags, int> PreviousApproachValues { get; set; } = new Dictionary<EncounterStateTags, int>();
+    public Dictionary<ApproachTags, int> PreviousApproachValues { get; set; } = new Dictionary<ApproachTags, int>();
     public Dictionary<FocusTags, int> PreviousFocusValues { get; set; } = new Dictionary<FocusTags, int>();
 
     public int Momentum { get; private set; }
@@ -74,7 +74,7 @@
         _resourceManager.ApplyPressureResourceDamage(Pressure);
 
         // 1. Apply tag changes
-        foreach (KeyValuePair<EncounterStateTags, int> pair in projection.EncounterStateTagChanges)
+        foreach (KeyValuePair<ApproachTags, int> pair in projection.EncounterStateTagChanges)
             TagSystem.ModifyEncounterStateTag(pair.Key, pair.Value);
 
         foreach (KeyValuePair<FocusTags, int> pair in projection.FocusTagChanges)
@@ -108,14 +108,14 @@
         PreviousPressure = Pressure;
 
         // Store previous approach tag values
-        PreviousApproachValues = new Dictionary<EncounterStateTags, int>();
-        foreach (EncounterStateTags approach in Enum.GetValues(typeof(EncounterStateTags)))
+        PreviousApproachValues = new Dictionary<ApproachTags, int>();
+        foreach (ApproachTags approach in Enum.GetValues(typeof(ApproachTags)))
         {
-            if (approach == EncounterStateTags.Dominance ||
-                approach == EncounterStateTags.Rapport ||
-                approach == EncounterStateTags.Analysis ||
-                approach == EncounterStateTags.Precision ||
-                approach == EncounterStateTags.Concealment)
+            if (approach == ApproachTags.Dominance ||
+                approach == ApproachTags.Rapport ||
+                approach == ApproachTags.Analysis ||
+                approach == ApproachTags.Precision ||
+                approach == ApproachTags.Concealment)
             {
                 PreviousApproachValues[approach] = TagSystem.GetEncounterStateTagValue(approach);
             }

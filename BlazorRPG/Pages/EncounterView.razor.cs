@@ -18,8 +18,8 @@ public partial class EncounterViewBase : ComponentBase
 
 
     // Add these methods to expose the enum values to the view
-    public EncounterStateTags[] GetApproachTags() => Enum.GetValues<EncounterStateTags>();
-    public FocusTags[] GetFocusTags() => Enum.GetValues<FocusTags>();
+    public ApproachTags[] GetApproachTags() => Enum.GetValues<ApproachTags>().Where(x => x != ApproachTags.None).ToArray();
+    public FocusTags[] GetFocusTags() => Enum.GetValues<FocusTags>().Where(x => true).ToArray();
 
     public bool IsChoiceDisabled(UserEncounterChoiceOption userEncounterChoiceOption) => userEncounterChoiceOption.Choice.IsBlocked;
     public EncounterViewModel GetModel()

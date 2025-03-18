@@ -2,12 +2,12 @@
 {
     public string Name { get; }
     public StrategicEffectTypes EffectType { get; }
-    public EncounterStateTags ScalingApproachTag { get; }
+    public ApproachTags ScalingApproachTag { get; }
 
     public StrategicTag(
         string name,
         StrategicEffectTypes effectType,
-        EncounterStateTags scalingApproachTag)
+        ApproachTags scalingApproachTag)
     {
         Name = name;
         EffectType = effectType;

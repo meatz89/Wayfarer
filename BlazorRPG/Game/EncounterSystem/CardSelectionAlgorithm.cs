@@ -37,7 +37,7 @@ public class CardSelectionAlgorithm
         List<IChoice> poolA6 = GetPressureChoicesWithNegativeAlignment(allChoices, state);
 
         // Pool B: By Approach
-        List<EncounterStateTags> approachRanking = GetCharacterApproachRanking(state);
+        List<ApproachTags> approachRanking = GetCharacterApproachRanking(state);
         List<IChoice> poolB1 = GetChoicesByApproach(allChoices, approachRanking[0]);
         List<IChoice> poolB2 = GetChoicesByApproach(allChoices, approachRanking[1]);
         List<IChoice> poolB3 = GetChoicesByApproach(allChoices, approachRanking[2]);
@@ -134,7 +134,7 @@ public class CardSelectionAlgorithm
 
         foreach (IChoice choice in choices)
         {
-            EncounterStateTags primaryApproach = GetPrimaryApproach(choice);
+            ApproachTags primaryApproach = GetPrimaryApproach(choice);
 
             // 1. Strategic Alignment Score (1-6 points)
             int strategicAlignmentScore;
@@ -274,7 +274,7 @@ public class CardSelectionAlgorithm
         return scores;
     }
 
-    private int GetApproachUsageCount(EncounterState state, EncounterStateTags approach)
+    private int GetApproachUsageCount(EncounterState state, ApproachTags approach)
     {
         int approachValue = state.TagSystem.GetEncounterStateTagValue(approach);
         return (approachValue + 1) / 2; // Each 2 points counts as a use, rounded up
@@ -321,7 +321,7 @@ public class CardSelectionAlgorithm
         return null;
     }
 
-    private bool IsApproachOverused(EncounterState state, EncounterStateTags approach)
+    private bool IsApproachOverused(EncounterState state, ApproachTags approach)
     {
         int approachValue = state.TagSystem.GetEncounterStateTagValue(approach);
         return approachValue >= 6; // Consider an approach overused at 6+ points
@@ -357,7 +357,7 @@ public class CardSelectionAlgorithm
             return null;
 
         // Create a list of choices with approaches different from the first two
-        List<EncounterStateTags> approachesToExclude = selectedChoices
+        List<ApproachTags> approachesToExclude = selectedChoices
             .Select(c => GetPrimaryApproach(c))
             .Distinct()
             .ToList();
@@ -553,7 +553,7 @@ public class CardSelectionAlgorithm
         return selectedChoices;
     }
 
-    private List<IChoice> EnforceCharacterIdentity(List<IChoice> selectedChoices, EncounterStateTags highestApproach,
+    private List<IChoice> EnforceCharacterIdentity(List<IChoice> selectedChoices, ApproachTags highestApproach,
         List<IChoice> poolB1, Dictionary<IChoice, int> choiceScores)
     {
         // Character Identity Rule - ensure highest approach is represented
@@ -686,7 +686,7 @@ public class CardSelectionAlgorithm
                     if (isActive && !wasActive)
                     {
                         // Find approach that's most likely responsible for activation 
-                        EncounterStateTags activatingApproach = FindActivatingApproach(narrativeTag, state);
+                        ApproachTags activatingApproach = FindActivatingApproach(narrativeTag, state);
 
                         // Check if we have a choice with this approach in the hand
                         bool hasChoiceWithActivatingApproach = selectedChoices.Any(c =>
@@ -725,10 +725,10 @@ public class CardSelectionAlgorithm
         return selectedChoices;
     }
 
-    private EncounterStateTags FindActivatingApproach(NarrativeTag narrativeTag, EncounterState state)
+    private ApproachTags FindActivatingApproach(NarrativeTag narrativeTag, EncounterState state)
     {
         // Check all approach tags to see which one changed enough to activate the narrative tag
-        foreach (EncounterStateTags approach in Enum.GetValues(typeof(EncounterStateTags)))
+        foreach (ApproachTags approach in Enum.GetValues(typeof(ApproachTags)))
         {
             if (IsApproachTag(approach))
             {
@@ -762,10 +762,10 @@ public class CardSelectionAlgorithm
         }
 
         // If we can't find a clear activating approach, return the approach that changed the most
-        EncounterStateTags mostChangedApproach = EncounterStateTags.None;
+        ApproachTags mostChangedApproach = ApproachTags.None;
         int largestChange = 0;
 
-        foreach (EncounterStateTags approach in Enum.GetValues(typeof(EncounterStateTags)))
+        foreach (ApproachTags approach in Enum.GetValues(typeof(ApproachTags)))
         {
             if (IsApproachTag(approach))
             {
@@ -796,15 +796,15 @@ public class CardSelectionAlgorithm
             .ToList();
     }
 
-    private List<EncounterStateTags> GetCharacterApproachRanking(EncounterState state)
+    private List<ApproachTags> GetCharacterApproachRanking(EncounterState state)
     {
-        Dictionary<EncounterStateTags, int> approachValues = new Dictionary<EncounterStateTags, int>
+        Dictionary<ApproachTags, int> approachValues = new Dictionary<ApproachTags, int>
         {
-            { EncounterStateTags.Dominance, state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Dominance) },
-            { EncounterStateTags.Rapport, state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Rapport) },
-            { EncounterStateTags.Analysis, state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Analysis) },
-            { EncounterStateTags.Precision, state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Precision) },
-            { EncounterStateTags.Concealment, state.TagSystem.GetEncounterStateTagValue(EncounterStateTags.Concealment) }
+            { ApproachTags.Dominance, state.TagSystem.GetEncounterStateTagValue(ApproachTags.Dominance) },
+            { ApproachTags.Rapport, state.TagSystem.GetEncounterStateTagValue(ApproachTags.Rapport) },
+            { ApproachTags.Analysis, state.TagSystem.GetEncounterStateTagValue(ApproachTags.Analysis) },
+            { ApproachTags.Precision, state.TagSystem.GetEncounterStateTagValue(ApproachTags.Precision) },
+            { ApproachTags.Concealment, state.TagSystem.GetEncounterStateTagValue(ApproachTags.Concealment) }
         };
 
         return approachValues
@@ -815,7 +815,7 @@ public class CardSelectionAlgorithm
 
     private List<IChoice> GetChoicesBySameApproach(List<IChoice> choices, IChoice referenceChoice)
     {
-        EncounterStateTags referenceApproach = GetPrimaryApproach(referenceChoice);
+        ApproachTags referenceApproach = GetPrimaryApproach(referenceChoice);
         return choices.Where(c => GetPrimaryApproach(c) == referenceApproach).ToList();
     }
 
@@ -876,7 +876,7 @@ public class CardSelectionAlgorithm
             .ToList();
     }
 
-    private List<IChoice> GetChoicesByApproach(List<IChoice> choices, EncounterStateTags approach)
+    private List<IChoice> GetChoicesByApproach(List<IChoice> choices, ApproachTags approach)
     {
         return choices.Where(c => GetPrimaryApproach(c) == approach).ToList();
     }
@@ -919,34 +919,34 @@ public class CardSelectionAlgorithm
         return pool.Any() ? pool.First() : null;
     }
 
-    private EncounterStateTags GetPrimaryApproach(IChoice choice)
+    private ApproachTags GetPrimaryApproach(IChoice choice)
     {
         // Find the approach tag with the largest modification
         List<TagModification> approachMods = choice.TagModifications
             .Where(m => m.Type == TagModification.TagTypes.EncounterState)
-            .Where(m => IsApproachTag((EncounterStateTags)m.Tag))
+            .Where(m => IsApproachTag((ApproachTags)m.Tag))
             .OrderByDescending(m => m.Delta)
             .ToList();
 
         if (approachMods.Any())
         {
-            return (EncounterStateTags)approachMods.First().Tag;
+            return (ApproachTags)approachMods.First().Tag;
         }
 
         // Default to Analysis if no approach is found (fallback)
-        return EncounterStateTags.Analysis;
+        return ApproachTags.Analysis;
     }
 
-    private bool IsApproachTag(EncounterStateTags tag)
+    private bool IsApproachTag(ApproachTags tag)
     {
-        return tag == EncounterStateTags.Dominance ||
-               tag == EncounterStateTags.Rapport ||
-               tag == EncounterStateTags.Analysis ||
-               tag == EncounterStateTags.Precision ||
-               tag == EncounterStateTags.Concealment;
+        return tag == ApproachTags.Dominance ||
+               tag == ApproachTags.Rapport ||
+               tag == ApproachTags.Analysis ||
+               tag == ApproachTags.Precision ||
+               tag == ApproachTags.Concealment;
     }
 
-    private bool IsMomentumIncreasingApproach(EncounterStateTags approach, EncounterState state)
+    private bool IsMomentumIncreasingApproach(ApproachTags approach, EncounterState state)
     {
         foreach (IEncounterTag tag in state.ActiveTags)
         {
@@ -958,7 +958,7 @@ public class CardSelectionAlgorithm
         return false;
     }
 
-    private bool IsMomentumDecreasingApproach(EncounterStateTags approach, EncounterState state)
+    private bool IsMomentumDecreasingApproach(ApproachTags approach, EncounterState state)
     {
         foreach (IEncounterTag tag in state.ActiveTags)
         {
@@ -970,7 +970,7 @@ public class CardSelectionAlgorithm
         return false;
     }
 
-    private bool IsPressureDecreasingApproach(EncounterStateTags approach, EncounterState state)
+    private bool IsPressureDecreasingApproach(ApproachTags approach, EncounterState state)
     {
         foreach (IEncounterTag tag in state.ActiveTags)
         {
@@ -982,7 +982,7 @@ public class CardSelectionAlgorithm
         return false;
     }
 
-    private bool IsPressureIncreasingApproach(EncounterStateTags approach, EncounterState state)
+    private bool IsPressureIncreasingApproach(ApproachTags approach, EncounterState state)
     {
         foreach (IEncounterTag tag in state.ActiveTags)
         {

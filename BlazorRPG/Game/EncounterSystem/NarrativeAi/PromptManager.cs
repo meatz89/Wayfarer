@@ -33,7 +33,7 @@ public class PromptManager
         {
             string key = Path.GetFileNameWithoutExtension(filePath);
             string mdContent = LoadPromptFile(filePath);
-            var jsonContent = CreatePromptJson(mdContent);
+            string jsonContent = CreatePromptJson(mdContent);
             _promptTemplates[key] = jsonContent;
         }
     }
@@ -60,7 +60,7 @@ public class PromptManager
         string template = _promptTemplates[NARRATIVE_MD];
 
         // Extract primary approach tag
-        EncounterStateTags primaryApproach = GetPrimaryApproach(chosenOption);
+        ApproachTags primaryApproach = GetPrimaryApproach(chosenOption);
 
         // Format tag changes for narrative representation
         string tagChangesGuidance = FormatTagChangesForNarrative(outcome);
@@ -175,7 +175,7 @@ public class PromptManager
             ChoiceProjection projection = projections[i];
 
             // Get the primary approach tag
-            EncounterStateTags primaryApproach = GetPrimaryApproach(choice);
+            ApproachTags primaryApproach = GetPrimaryApproach(choice);
 
             // Determine if this choice is blocked by a narrative tag
             bool isBlocked = state.ActiveTags.Any(t => t is NarrativeTag nt && nt.BlockedFocus == choice.Focus);
@@ -359,7 +359,7 @@ Choice {i + 1}: {choice.Name}
         if (outcome.EncounterStateTagChanges.Any())
         {
             changes.AppendLine("Tag changes that should be reflected in narrative:");
-            foreach (KeyValuePair<EncounterStateTags, int> change in outcome.EncounterStateTagChanges)
+            foreach (KeyValuePair<ApproachTags, int> change in outcome.EncounterStateTagChanges)
             {
                 if (Math.Abs(change.Value) >= 2) // Only emphasize significant changes
                 {
@@ -406,13 +406,13 @@ Choice {i + 1}: {choice.Name}
         return changes.ToString();
     }
 
-    private string FormatApproachChanges(Dictionary<EncounterStateTags, int> approachChanges)
+    private string FormatApproachChanges(Dictionary<ApproachTags, int> approachChanges)
     {
         if (approachChanges == null || !approachChanges.Any())
             return "No significant approach changes";
 
         StringBuilder builder = new StringBuilder();
-        foreach (KeyValuePair<EncounterStateTags, int> change in approachChanges)
+        foreach (KeyValuePair<ApproachTags, int> change in approachChanges)
         {
             builder.AppendLine($"- {change.Key}: {(change.Value > 0 ? "+" : "")}{change.Value}");
         }
@@ -476,7 +476,7 @@ Choice {i + 1}: {choice.Name}
     private string FormatApproachValues(EncounterStatus state)
     {
         List<string> approaches = new List<string>();
-        foreach (KeyValuePair<EncounterStateTags, int> approach in state.ApproachTags)
+        foreach (KeyValuePair<ApproachTags, int> approach in state.ApproachTags)
         {
             approaches.Add($"{approach.Key} {approach.Value}");
         }
@@ -518,47 +518,47 @@ Choice {i + 1}: {choice.Name}
         };
     }
 
-    private EncounterStateTags GetPrimaryApproach(IChoice choice)
+    private ApproachTags GetPrimaryApproach(IChoice choice)
     {
         // Find the approach tag with the largest modification
         List<TagModification> approachMods = choice.TagModifications
             .Where(m => m.Type == TagModification.TagTypes.EncounterState)
-            .Where(m => IsApproachTag((EncounterStateTags)m.Tag))
+            .Where(m => IsApproachTag((ApproachTags)m.Tag))
             .OrderByDescending(m => m.Delta)
             .ToList();
 
         if (approachMods.Any())
         {
-            return (EncounterStateTags)approachMods.First().Tag;
+            return (ApproachTags)approachMods.First().Tag;
         }
 
         // Default to Analysis if no approach is found (fallback)
-        return EncounterStateTags.Analysis;
+        return ApproachTags.Analysis;
     }
 
-    private bool IsApproachTag(EncounterStateTags tag)
+    private bool IsApproachTag(ApproachTags tag)
     {
-        return tag == EncounterStateTags.Dominance ||
-               tag == EncounterStateTags.Rapport ||
-               tag == EncounterStateTags.Analysis ||
-               tag == EncounterStateTags.Precision ||
-               tag == EncounterStateTags.Concealment;
+        return tag == ApproachTags.Dominance ||
+               tag == ApproachTags.Rapport ||
+               tag == ApproachTags.Analysis ||
+               tag == ApproachTags.Precision ||
+               tag == ApproachTags.Concealment;
     }
 
-    private string GetApproachChangeDescription(EncounterStateTags approach, bool isPositive)
+    private string GetApproachChangeDescription(ApproachTags approach, bool isPositive)
     {
         return (approach, isPositive) switch
         {
-            (EncounterStateTags.Dominance, true) => "increased authority, commanding presence, or intimidation factor",
-            (EncounterStateTags.Dominance, false) => "diminished authority, lessened presence, or reduced intimidation factor",
-            (EncounterStateTags.Rapport, true) => "improved charm, likeability, or social influence",
-            (EncounterStateTags.Rapport, false) => "reduced charm, awkwardness, or social disconnection",
-            (EncounterStateTags.Analysis, true) => "sharper observation, clearer thinking, or deeper understanding",
-            (EncounterStateTags.Analysis, false) => "confusion, overlooking details, or failing to make connections",
-            (EncounterStateTags.Precision, true) => "improved accuracy, careful execution, or greater control",
-            (EncounterStateTags.Precision, false) => "clumsiness, carelessness, or lack of control",
-            (EncounterStateTags.Concealment, true) => "better stealth, secrecy, or ability to hide intentions",
-            (EncounterStateTags.Concealment, false) => "exposure, visibility, or inability to hide",
+            (ApproachTags.Dominance, true) => "increased authority, commanding presence, or intimidation factor",
+            (ApproachTags.Dominance, false) => "diminished authority, lessened presence, or reduced intimidation factor",
+            (ApproachTags.Rapport, true) => "improved charm, likeability, or social influence",
+            (ApproachTags.Rapport, false) => "reduced charm, awkwardness, or social disconnection",
+            (ApproachTags.Analysis, true) => "sharper observation, clearer thinking, or deeper understanding",
+            (ApproachTags.Analysis, false) => "confusion, overlooking details, or failing to make connections",
+            (ApproachTags.Precision, true) => "improved accuracy, careful execution, or greater control",
+            (ApproachTags.Precision, false) => "clumsiness, carelessness, or lack of control",
+            (ApproachTags.Concealment, true) => "better stealth, secrecy, or ability to hide intentions",
+            (ApproachTags.Concealment, false) => "exposure, visibility, or inability to hide",
             _ => "significant change in approach"
         };
     }
