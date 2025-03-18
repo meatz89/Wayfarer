@@ -12,8 +12,8 @@ public class NarrativeContext
     public List<NarrativeEvent> Events { get; } = new List<NarrativeEvent>();
 
     public NarrativeContext(
-        string location, 
-        string locationSpot, 
+        string location,
+        string locationSpot,
         EncounterTypes encounterType,
         ActionImplementation incitingAction)
     {

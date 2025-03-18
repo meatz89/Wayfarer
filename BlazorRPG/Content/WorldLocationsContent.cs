@@ -5,7 +5,7 @@
         .AddLocationSpot(spot => spot
             .WithName("Entrance")
             .WithAccessibility(Accessibility.Public)
-            .WithEngagement(Engagement.Service)
+            .WithEngagement(LocationType.Service)
             .AddAction(ActionNames.LibraryResearch))
         .WithPlayerKnowledge(true)
         .WithDifficultyLevel(1)
@@ -17,12 +17,12 @@
         .AddLocationSpot(spot => spot
             .WithName("Marketplace")
             .WithAccessibility(Accessibility.Public)
-            .WithEngagement(Engagement.Entertainment)
+            .WithEngagement(LocationType.Commercial)
             .AddAction(ActionNames.MerchantPersuasion))
         .AddLocationSpot(spot => spot
             .WithName("Backalleys")
             .WithAccessibility(Accessibility.Private)
-            .WithEngagement(Engagement.Idle)
+            .WithEngagement(LocationType.Rest)
             .AddAction(ActionNames.BackalleyTravel))
         .WithPlayerKnowledge(true)
         .WithDifficultyLevel(1)

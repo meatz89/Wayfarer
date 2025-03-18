@@ -7,7 +7,7 @@
     private List<ActionNames> actionNames = new();
 
     public Accessibility? accessibility { get; set; }
-    public Engagement? engagement { get; set; }
+    public LocationType? engagement { get; set; }
     public Atmosphere? atmosphere { get; set; }
     public RoomLayout? roomLayout { get; set; }
     public Temperature? temperature { get; set; }
@@ -35,7 +35,7 @@
         return this;
     }
 
-    public LocationSpotBuilder WithEngagement(Engagement engagement)
+    public LocationSpotBuilder WithEngagement(LocationType engagement)
     {
         this.engagement = engagement;
         return this;
