@@ -69,7 +69,7 @@
             int baseMomentum = choice is SpecialChoice ? 3 : (2);
             projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
             {
-                Source = "Momentum Type Choice",
+                Source = "Momentum Building Choice",
                 Value = baseMomentum
             });
             momentumChange += baseMomentum;
@@ -94,10 +94,10 @@
 
         if (choice.EffectType == EffectTypes.Pressure)
         {
-            int basePressure = 1;
+            int basePressure = -1;
             projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
             {
-                Source = "Pressure Type Choice",
+                Source = "Pressure Reduction Choice",
                 Value = basePressure
             });
             pressureChange += basePressure;
@@ -106,22 +106,15 @@
         int environmentalPressure = encounterInfo.GetEnvironmentalPressure(currentTurn);
         if (environmentalPressure > 0)
         {
-            projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
+            if (encounterInfo.DisfavoredFocuses.Contains(choice.Focus))
             {
-                Source = "Pressure From Location",
-                Value = environmentalPressure
-            });
-            pressureChange += environmentalPressure;
-        }
-
-        if (encounterInfo.DisfavoredFocuses.Contains(choice.Focus))
-        {
-            projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-            {
-                Source = "Disfavored Choice",
-                Value = 1
-            });
-            pressureChange += 1;
+                projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
+                {
+                    Source = "Disfavored Choice",
+                    Value = environmentalPressure
+                });
+                pressureChange += environmentalPressure;
+            }
         }
 
         foreach (IEncounterTag tag in _tagManager.ActiveTags)
