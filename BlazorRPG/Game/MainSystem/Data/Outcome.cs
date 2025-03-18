@@ -1,0 +1,415 @@
+﻿public abstract class Outcome
+{
+    public abstract void Apply(PlayerState player);
+    public abstract string GetDescription();
+
+    // Method to preview outcome without applying it
+    public abstract string GetPreview(PlayerState player);
+
+    public override string ToString()
+    {
+        return GetDescription();
+    }
+}
+
+public class ItemOutcome : Outcome
+{
+    public ItemTypes ItemType { get; set; }
+    public int QuantityChange { get; set; }
+    public ItemConditionChangeTypes ConditionChangeType { get; set; }
+
+    public ItemOutcome(ItemTypes itemType, int quantityChange, ItemConditionChangeTypes conditionChangeType)
+    {
+        ItemType = itemType;
+        QuantityChange = quantityChange;
+        ConditionChangeType = conditionChangeType;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        if (QuantityChange > 0)
+        {
+            // Add item(s)
+            for (int i = 0; i < QuantityChange; i++)
+            {
+                player.Inventory.AddItem(ItemType);
+            }
+        }
+        else
+        {
+            // Remove or damage item(s)
+            List<Item> itemsToRemove = player.Inventory.GetItemsOfType(ItemType).Take(Math.Abs(QuantityChange)).ToList();
+            foreach (Item? item in itemsToRemove)
+            {
+                switch (ConditionChangeType)
+                {
+                    case ItemConditionChangeTypes.Damage:
+                        item.Condition -= 10; // Example: Reduce condition
+                        break;
+                    case ItemConditionChangeTypes.Consume:
+                        player.Inventory.RemoveItems(ItemTypes.Food, 1); // Consume/remove the item
+                        break;
+                        // Handle other condition change types
+                }
+            }
+        }
+    }
+
+    public override string GetDescription()
+    {
+        return "Item Change";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        return "Item Change";
+    }
+}
+
+public class KnowledgeOutcome : Outcome
+{
+    private readonly KnowledgeTags knowledgeTag;
+    private readonly KnowledgeCategories knowledgeCategory;
+
+    public KnowledgeOutcome(KnowledgeTags value, KnowledgeCategories knowledgeCategory)
+    {
+        this.knowledgeTag = value;
+        this.knowledgeCategory = knowledgeCategory;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        player.Knowledge.Add(new KnowledgePiece(knowledgeTag, KnowledgeCategories.Commerce));
+    }
+
+    public override string GetDescription()
+    {
+        return "Knowledge";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        return "Knowledge";
+    }
+}
+
+public class EnergyOutcome : Outcome
+{
+    public EnergyTypes EnergyType { get; }
+    public int Amount { get; set; }
+
+    public EnergyOutcome(EnergyTypes type, int count)
+    {
+        EnergyType = type;
+        Amount = count;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        switch (EnergyType)
+        {
+            case EnergyTypes.Physical:
+                player.PhysicalEnergy = Math.Clamp(
+                    player.PhysicalEnergy + Amount,
+                    0,
+                    player.MaxPhysicalEnergy);
+                break;
+            case EnergyTypes.Concentration:
+                player.Concentration = Math.Clamp(
+                    player.Concentration + Amount,
+                    0,
+                    player.MaxConcentration);
+                break;
+        }
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(Amount >= 0 ? "+" : "")}{Amount} {EnergyType} Energy";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        int currentValue = EnergyType switch
+        {
+            EnergyTypes.Physical => player.PhysicalEnergy,
+            EnergyTypes.Concentration => player.Concentration,
+            _ => 0
+        };
+
+        int maxValue = EnergyType switch
+        {
+            EnergyTypes.Physical => player.MaxPhysicalEnergy,
+            EnergyTypes.Concentration => player.MaxConcentration,
+            _ => 0
+        };
+
+        int newValue = Math.Clamp(currentValue + Amount, 0, maxValue);
+        return $"({currentValue} -> {newValue})";
+    }
+}
+
+public class InformationOutcome : Outcome
+{
+    public InformationTypes InformationType { get; }
+    public Information Information { get; }
+
+    public InformationOutcome(InformationTypes informationType, Information information)
+    {
+        InformationType = informationType;
+        Information = information;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        switch (InformationType)
+        {
+            case InformationTypes.Location:
+            {
+                if (Information is LocationInformation locationInformation)
+                {
+                    player.AddLocationKnowledge(locationInformation.LocationNames);
+                }
+                break;
+            }
+
+            case InformationTypes.ActionOpportunity:
+            {
+                if (Information is ActionOpportunityInformation actionOpportunityInformation)
+                {
+                    player.AddActionAvailabilityAt(
+                        actionOpportunityInformation.LocationName,
+                        actionOpportunityInformation.ActionType);
+                }
+                break;
+            }
+        }
+    }
+
+    public override string GetDescription()
+    {
+        return $"{InformationType}";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        return $"{InformationType}";
+    }
+}
+
+public class HealthOutcome : Outcome
+{
+    public int Count { get; }
+
+    public HealthOutcome(int count)
+    {
+        Count = count;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        player.ModifyHealth(Count);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(Count >= 0 ? "+" : "")}{Count} Health";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        int newValue = Math.Clamp(player.Health + Count, 0, player.MaxHealth);
+        return $"({player.Health} -> {newValue})";
+    }
+}
+
+public class ConcentrationOutcome : Outcome
+{
+    public int Count { get; }
+
+    public ConcentrationOutcome(int count)
+    {
+        Count = count;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        player.ModifyConcentratin(Count);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(Count >= 0 ? "+" : "")}{Count} Concentration";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        int newValue = Math.Clamp(player.Concentration + Count, 0, player.MaxConcentration);
+        return $"({player.Concentration} -> {newValue})";
+    }
+}
+
+public class ConfidenceOutcome : Outcome
+{
+    public int Count { get; }
+
+    public ConfidenceOutcome(int count)
+    {
+        Count = count;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        player.ModifyConfidence(Count);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(Count >= 0 ? "+" : "")}{Count} Confidence";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        int newValue = Math.Clamp(player.Confidence + Count, 0, player.MaxConfidence);
+        return $"({player.Confidence} -> {newValue})";
+    }
+}
+
+public class CoinsOutcome : Outcome
+{
+    public int Amount { get; }
+
+    public CoinsOutcome(int count)
+    {
+        Amount = count;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        player.ModifyCoins(Amount);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(Amount >= 0 ? "+" : "")}{Amount} Coins";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        // Coins can't go below 0
+        int newValue = Math.Max(0, player.Coins + Amount);
+        return $"({player.Coins} -> {newValue})";
+    }
+}
+
+public class ResourceOutcome : Outcome
+{
+    public ResourceChangeTypes ChangeType { get; }
+    public ItemTypes ResourceType { get; }
+    public int Amount { get; set; }
+
+    public ResourceOutcome(ItemTypes resource, int count)
+    {
+        ResourceType = resource;
+        Amount = Math.Abs(count); // Store count as positive
+        ChangeType = count >= 0 ? ResourceChangeTypes.Added : ResourceChangeTypes.Removed;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        player.ModifyResource(ChangeType, ResourceType, Amount);
+    }
+
+    public override string GetDescription()
+    {
+        string action = ChangeType == ResourceChangeTypes.Added ? "Gain" : "Lose";
+        return $"{action} {Amount} {ResourceType}";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        int current = player.Inventory.GetItemCount(ResourceType);
+        int change = ChangeType == ResourceChangeTypes.Added ? Amount : -Amount;
+        int newValue = Math.Max(0, current + change);
+        return $"({current} -> {newValue})";
+    }
+}
+
+public class SkillLevelOutcome : Outcome
+{
+    public SkillTypes SkillType { get; }
+    public int Count { get; }
+
+    public SkillLevelOutcome(SkillTypes skillType, int count)
+    {
+        SkillType = skillType;
+        Count = count;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        player.ModifySkillLevel(SkillType, Count);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(Count >= 0 ? "+" : "")}{Count} {SkillType} Skill";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        bool hasKey = player.Skills.ContainsKey(SkillType);
+        if (!hasKey) { return $"(0 -> {Count})"; }
+
+        int current = player.Skills[SkillType];
+        int newValue = Math.Max(0, current + Count);
+        return $"({current} -> {newValue})";
+    }
+}
+
+
+// Achievements are one-time unlocks
+public class AchievementOutcome : Outcome
+{
+    public AchievementTypes AchievementType { get; }
+
+    public AchievementOutcome(AchievementTypes type)
+    {
+        AchievementType = type;
+    }
+
+    public override void Apply(PlayerState player)
+    {
+        player.UnlockAchievement(AchievementType);
+    }
+
+    public override string GetDescription()
+    {
+        return $"Achievement: {AchievementType}";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        bool hasAchievement = player.HasAchievement(AchievementType);
+        return hasAchievement ? "(Already Unlocked)" : "(Will Unlock)";
+    }
+}
+
+public class DayChangeOutcome : Outcome
+{
+    public override void Apply(PlayerState player)
+    {
+        // This outcome is just a marker - it doesn't actually do anything
+        // The GameManager will see this outcome and handle day change effects
+    }
+
+    public override string GetDescription()
+    {
+        return "End the day";
+    }
+
+    public override string GetPreview(PlayerState player)
+    {
+        return "(Time will advance to morning)";
+    }
+}

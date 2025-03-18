@@ -1,0 +1,168 @@
+﻿@* LocationSpotMap.razor *@
+<div class="locations-grid">
+    @foreach (LocationSpot spot in CurrentLocation.LocationSpots)
+    {
+        <div class="location-card @(spot.Name == CurrentSpot.Name ? "current" : "reachable")">
+            <div class="location-spot-properties">
+                @foreach (var prop in GetSpotProperties(spot))
+                {
+                    <div class="property-tag @prop.CssClass">
+                        <span class="property-icon">@prop.Icon</span>
+                        <span class="property-text">@prop.Text</span>
+                    </div>
+                }
+            </div>
+            <div class="location-name">
+                @spot.Name @(spot.Name == CurrentSpot.Name ? "(Current)" : "")
+            </div>
+            <div class="location-type">@spot.Name</div>
+
+            @* Add travel option if not current spot *@
+            @if (spot.Name != CurrentSpot.Name)
+            {
+                <button class="action-button"
+                        @onclick="() => OnSpotSelected.InvokeAsync(spot)"
+                        disabled="@(!GameManager.CanMoveToSpot(spot.Name))">
+                    MOVE HERE
+                </button>
+            }
+
+            @* Always show spot actions *@
+            @foreach (UserActionOption action in GameState.GetActions(spot))
+            {
+                <button class="action-button"
+                        @onclick="() => OnActionSelected.InvokeAsync(action)"
+                        disabled="@(spot.Name != CurrentSpot.Name || !GameManager.AreRequirementsMet(action))"
+                        @onmouseover="(e) => HandleShowTooltip(action, e)"
+                        @onmouseout="HandleHideTooltip">
+                    @action.ActionImplementation.Name (@action.ActionImplementation.ActionType)
+                </button>
+            }
+
+        </div>
+    }
+</div>
+
+@if (showTooltip && hoveredAction != null)
+{
+    <div class="tooltip" style="left: @(mouseX + 10)px; top: @(mouseY + 10)px">
+        <ActionPreview CurrentAction="@hoveredAction"
+                       GameState="@GameState" />
+    </div>
+}
+
+@code {
+    [Inject] private GameManager GameManager { get; set; }
+    [Inject] private GameState GameState { get; set; }
+
+    [Parameter] public Location CurrentLocation { get; set; }
+    [Parameter] public LocationSpot CurrentSpot { get; set; }
+    [Parameter] public EventCallback<LocationSpot> OnSpotSelected { get; set; }
+    [Parameter] public EventCallback<UserActionOption> OnActionSelected { get; set; }
+
+    private bool showTooltip;
+    private UserActionOption hoveredAction;
+    private double mouseX;
+    private double mouseY;
+
+    private void HandleShowTooltip(UserActionOption action, MouseEventArgs e)
+    {
+        hoveredAction = action;
+        mouseX = e.ClientX;
+        mouseY = e.ClientY;
+        showTooltip = true;
+    }
+
+    private void HandleHideTooltip()
+    {
+        hoveredAction = null;
+        showTooltip = false;
+    }
+
+    private List<PropertyDisplay> GetSpotProperties(LocationSpot spot)
+    {
+        List<PropertyDisplay> properties = new List<PropertyDisplay>();
+
+        if (spot.Accessibility.HasValue)
+        {
+            properties.Add(new(
+            "📐",
+            FormatEnumString(spot.Accessibility.ToString()),
+            "",
+            "",
+            ""
+            ));
+        }
+
+        if (spot.Engagement.HasValue)
+        {
+            properties.Add(new(
+            "⚖️",
+            FormatEnumString(spot.Engagement.ToString()),
+            $"property-{spot.Engagement.ToString().ToLower()}",
+            "",
+            ""
+            ));
+        }
+
+        if (spot.Atmosphere.HasValue)
+        {
+            properties.Add(new(
+            "😌",
+            FormatEnumString(spot.Atmosphere.ToString()),
+            $"property-{spot.Atmosphere.ToString().ToLower()}",
+            "",
+            ""
+            ));
+        }
+
+        if (spot.RoomLayout.HasValue)
+        {
+            properties.Add(new(
+            "🧩",
+            FormatEnumString(spot.RoomLayout.ToString()),
+            "",
+            "",
+            ""
+            ));
+        }
+
+        if (spot.Temperature.HasValue)
+        {
+            properties.Add(new(
+            spot.Temperature == Temperature.Warm ? "☀️" : "❄️",
+            FormatEnumString(spot.Temperature.ToString()),
+            "",
+            "",
+            ""
+            ));
+        }
+
+        return properties;
+    }
+
+
+    private string GetPressureIcon(Atmosphere? pressure) => pressure switch
+    {
+        Atmosphere.Social => "😌",
+        Atmosphere.Aloof => "⚠️",
+        Atmosphere.Hostile => "⚔️",
+        _ => "❓"
+    };
+
+    private string GetResourceIcon(ItemTypes? resource) => resource switch
+    {
+        ItemTypes.Food => "🍖",
+        ItemTypes.Wood => "🪵",
+        _ => "📦"
+    };
+
+    private string FormatEnumString(string value)
+    {
+        return string.Concat(value
+            .Select((x, i) => i > 0 && char.IsUpper(x) ? " " + x : x.ToString()))
+            .Replace("Type", "")
+            .Replace("Types", "");
+    }
+
+}

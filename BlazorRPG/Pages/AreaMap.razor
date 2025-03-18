@@ -1,0 +1,36 @@
+﻿@* AreaMap.razor *@
+@inject GameManager ActionManager
+@inject GameState GameState
+
+<div class="locations-grid">
+    @foreach (Location location in Locations)
+    {
+        <div class="location-card @(location.LocationName == CurrentLocation.LocationName ? "current" : "reachable")">
+            <div class="location-name">
+                @location.LocationName @(location.LocationName == CurrentLocation.LocationName ? "(Current)" : "")
+            </div>
+
+            @if (location.LocationName == CurrentLocation.LocationName)
+            {
+                <button class="action-button"
+                        @onclick="() => OnTravel.InvokeAsync(location.LocationName)">
+                    ---- ENTER LOCATION ----
+                </button>
+            }
+            else
+            {
+                <button class="action-button"
+                        @onclick="() => OnTravel.InvokeAsync(location.LocationName)"
+                        disabled="@(!ActionManager.CanTravelTo(location.LocationName))">
+                    TRAVEL HERE
+                </button>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Location CurrentLocation { get; set; }
+    [Parameter] public List<Location> Locations { get; set; }
+    [Parameter] public EventCallback<LocationNames> OnTravel { get; set; }
+}

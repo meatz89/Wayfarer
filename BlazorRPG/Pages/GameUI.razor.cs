@@ -5,231 +5,257 @@ namespace BlazorRPG.Pages;
 public partial class GameUI : ComponentBase
 {
     [Inject] private GameState GameState { get; set; }
-    [Inject] private ActionManager ActionManager { get; set; }
+    [Inject] private GameManager GameManager { get; set; }
     [Inject] private NavigationManager NavigationManager { get; set; }
 
-    private Stack<UIScreens> screenStack = new();
     public List<string> ResultMessages => GetResultMessages();
 
-    public Player Player => GameState.Player;
-    public LocationNames CurrentLocation => GameState.CurrentLocation;
-    public TimeWindows CurrentTime => GameState.CurrentTimeSlot;
-    public List<UserActionOption> CurrentActions => GameState.ValidUserActions;
-    public UserActionOption CurrentUserAction => GameState.CurrentUserAction;
-    public List<UserTravelOption> CurrentTravelOptions => GameState.CurrentTravelOptions;
-    public ActionResult LastActionResult => GameState.LastActionResult;
+    public int physicalEnergyCurrent => GameState.Player.PhysicalEnergy;
+    public int physicalEnergyMax => GameState.Player.MaxPhysicalEnergy;
 
-    private UIScreens CurrentScreen => screenStack.Count > 0 ? screenStack.Peek() : UIScreens.MainGame;
+    public int health => GameState.Player.Health;
+    public int maxHealth => GameState.Player.MaxHealth;
+
+    public int concentration => GameState.Player.Concentration;
+    public int maxConcentration => GameState.Player.MaxConcentration;
+
+    public int confidence => GameState.Player.Confidence;
+    public int maxConfidence => GameState.Player.MaxConfidence;
+
+    public int coins => GameState.Player.Coins;
+    public int food => GameState.Player.Inventory.GetItemCount(ItemTypes.Food);
+
+    public List<Location> Locations => GameManager.GetPlayerKnownLocations();
+
+    private bool showNarrative = false;
+    private LocationNames selectedLocation;
+    public PlayerState Player => GameState.Player;
+    public Location CurrentLocation => GameState.World.CurrentLocation;
+    public LocationSpot CurrentSpot => GameState.World.CurrentLocationSpot;
+    public TimeWindows CurrentTime => GameState.World.WorldTime;
+    public int CurrentHour => GameState.World.CurrentTimeInHours;
+    public bool ShowEncounterResult { get; set; } = false;
+    public bool OngoingEncounter = false;
+
+    public EncounterResult EncounterResult => GameState.Actions.EncounterResult;
 
     // Tooltip Logic
-    private bool showTooltip = false;
-    private UserActionOption hoveredAction = null;
+    public bool showAreaMap = true;
+    public bool showTooltip = false;
+    public UserActionOption hoveredAction;
 
-    private void ShowTooltip(UserActionOption action)
-    {
-        hoveredAction = action;
-        showTooltip = true;
-    }
-
-    private void HideTooltip()
-    {
-        hoveredAction = null;
-        showTooltip = false;
-    }
-
-    protected bool AreRequirementsMet(UserActionOption action)
-    {
-        return action.BasicAction.Requirements.All(requirement => requirement switch
-        {
-            PhysicalEnergyRequirement r => Player.PhysicalEnergy >= r.Amount,
-            FocusEnergyRequirement r => Player.FocusEnergy >= r.Amount,
-            SocialEnergyRequirement r => Player.SocialEnergy >= r.Amount,
-            InventorySlotsRequirement r => Player.Inventory.GetEmptySlots() >= r.Count,
-            HealthRequirement r => Player.Health >= r.Amount,
-            CoinsRequirement r => Player.Coins >= r.Amount,
-            FoodRequirement r => Player.Inventory.GetItemCount(ResourceTypes.Food) >= r.Amount,
-            SkillLevelRequirement r => Player.Skills.ContainsKey(r.SkillType) && Player.Skills[r.SkillType] >= r.Amount,
-            ItemRequirement r => Player.Inventory.GetItemCount(r.ResourceType) >= r.Count,
-            _ => false 
-        });
-    }
-
+    private double mouseX;
+    private double mouseY;
 
     protected override void OnInitialized()
     {
-        ActionManager.Initialize();
+        GameManager.StartGame();
     }
 
-    public string GetActionDescription(UserActionOption userActionOption)
+    public EncounterManager GetCurrentEncounter()
     {
-        string description = string.Empty;
+        return GameManager.GetEncounter();
+    }
 
-        if (userActionOption.IsDisabled)
+    private async Task HandleActionSelection(UserActionOption action)
+    {
+        if (action.IsDisabled) return; // Prevent action if disabled
+        else
         {
-            description = "";
+            // Execute the action immediately
+            OngoingEncounter = await GameManager.ExecuteBasicAction(action);
+            if (!OngoingEncounter)
+            {
+                CompleteActionExecution();
+            }
+        }
+    }
+
+    private void HandleEncounterCompleted(EncounterResult result)
+    {
+        if (result.EncounterResults != EncounterResults.Ongoing)
+        {
+            OngoingEncounter = false;
+            ShowEncounterResult = true;
+        }
+        StateHasChanged();
+    }
+
+    private void HandleLocationSelection(LocationNames locationName)
+    {
+        selectedLocation = locationName;
+
+        // If no narrative, proceed as before
+        showNarrative = false;
+        FinalizeLocationSelection(locationName);
+    }
+
+    private void OnNarrativeCompleted()
+    {
+        showNarrative = false;
+        FinalizeLocationSelection(selectedLocation);
+
+        FinishEncounter();
+    }
+
+    private void FinalizeLocationSelection(LocationNames locationName)
+    {
+        List<UserLocationTravelOption> currentTravelOptions = GameState.World.CurrentTravelOptions;
+
+        bool enterLocation = locationName == GameState.World.CurrentLocation.LocationName;
+        ActionResult result;
+
+        if (enterLocation)
+        {
+            result = GameManager.TravelToLocation(locationName);
+            GameManager.TravelToLocation(locationName);
+        }
+        else
+        {
+            UserLocationTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Location == locationName);
+            result = GameManager.TravelToLocation(location.Location);
         }
 
-        description += userActionOption.Description;
-        return description;
+        if (result.IsSuccess)
+        {
+            CompleteActionExecution();
+            showAreaMap = false;
+        }
+    }
+
+    private void FinishEncounter()
+    {
+        // Reset Encounter logic
+        GameManager.FinishEncounter(EncounterResult.Encounter);
+        ShowEncounterResult = false;
+
+        ActionResult result = GameManager.TravelToLocation(CurrentLocation.LocationName);
+        StateHasChanged();
+    }
+
+    public bool CurrentEncounterOngoing()
+    {
+        if (GetCurrentEncounter == null) return false;
+        if (EncounterResult == null) return false;
+        if (EncounterResult.EncounterResults == EncounterResults.Ongoing) { return true; }
+        return false;
+    }
+
+    public string GetModifierDescription(IGameStateModifier modifier)
+    {
+        if (modifier is FoodModfier modfier)
+        {
+            return $"Need additional Food: {modfier.AdditionalFood}";
+        }
+
+        return string.Empty;
     }
 
     public List<string> GetResultMessages()
     {
-        ActionResultMessages messages = GameState.LastActionResult.Messages;
-        List<string> list = new List<string>();
+        ActionResultMessages messages = GameState.Actions.LastActionResultMessages;
 
-        foreach (HealthOutcome health in messages.Health)
+        List<string> list = new();
+        if (messages == null) return list;
+
+        // Show outcomes with their previews
+        foreach (Outcome outcome in messages.Outcomes)
         {
-            string s = $"Health changed by {health.Amount}";
-            list.Add(s);
+            string description = outcome.GetDescription();
+            string preview = outcome.GetPreview(Player);
+            list.Add($"{description}");
         }
-        foreach (FoodOutcome food in messages.Food)
+
+        foreach (SystemMessage sysMsg in messages.SystemMessages)
         {
-            string s = $"Food changed by {food.Amount}";
-            list.Add(s);
-        }
-        foreach (CoinsOutcome money in messages.Coins)
-        {
-            string s = $"Coins changed by {money.Amount}";
-            list.Add(s);
-        }
-        foreach (PhysicalEnergyOutcome physicalEnergy in messages.PhysicalEnergy)
-        {
-            string s = $"P. Energy changed by {physicalEnergy.Amount}";
-            list.Add(s);
-        }
-        foreach (FocusEnergyOutcome focusEnergy in messages.FocusEnergy)
-        {
-            string s = $"F. Energy changed by {focusEnergy.Amount}";
-            list.Add(s);
-        }
-        foreach (SocialEnergyOutcome socialEnergy in messages.SocialEnergy)
-        {
-            string s = $"S. Energy changed by {socialEnergy.Amount}";
-            list.Add(s);
-        }
-        foreach (SkillLevelOutcome skillLevel in messages.SkillLevel)
-        {
-            string s = $"Skill Level in {skillLevel.SkillType} changed by {skillLevel.Amount}";
-            list.Add(s);
-        }
-        foreach (ItemOutcome item in messages.Item)
-        {
-            string s = $"Item {item.ChangeType.ToString()} : {item.ResourceType.ToString()} ({item.Count})";
-            list.Add(s);
+            // Add CSS class based on message type
+            string cssClass = sysMsg.Type switch
+            {
+                SystemMessageTypes.Warning => "warning",
+                SystemMessageTypes.Danger => "danger",
+                SystemMessageTypes.Success => "success",
+                _ => "info"
+            };
+
+            list.Add($"{sysMsg.Message}");
+            //list.Add($"<span class='{cssClass}'>{sysMsg.Message}</span>");
         }
 
         return list;
     }
 
-    private void HandleActionSelection(UserActionOption action)
+    public List<Quest> GetActiveQuests()
     {
-        if (action.IsDisabled) return; // Prevent action if disabled
-
-        if (action.BasicAction.ActionType == BasicActionTypes.CheckStatus)
-        {
-            PushScreen(UIScreens.Status);
-        }
-        else if (action.BasicAction.ActionType == BasicActionTypes.Travel)
-        {
-            PushScreen(UIScreens.Travel);
-        }
-        else if (action.BasicAction.ActionType == BasicActionTypes.Wait)
-        {
-            ActionManager.AdvanceTime();
-            CompleteActionExecution();
-        }
-        else
-        {
-            GameState.SetCurrentUserAction(action);
-
-            // Execute the action immediately
-            bool hasNarrative = ActionManager.HasNarrative(action.BasicAction);
-            if (hasNarrative)
-            {
-                bool startedNarrative = ActionManager.StartNarrativeFor(action.BasicAction);
-                if (startedNarrative)
-                {
-                    PushScreen(UIScreens.ActionNarrative);
-                }
-            }
-            else
-            {
-                ActionResult result = ActionManager.ExecuteBasicAction(action.BasicAction);
-
-                if (result.IsSuccess)
-                {
-                    PushScreen(UIScreens.ActionResult);
-                    CompleteActionExecution();
-                }
-            }
-        }
+        return GameState.Actions.ActiveQuests;
     }
 
-    private void HandleNarrativeChoice(int choiceIndex)
+    private void HandleSpotSelection(LocationSpot locationSpot)
     {
-        ActionResult result = ActionManager.MakeChoiceForNarrative(
-            GameState.CurrentNarrative,
-            GameState.CurrentNarrativeStage,
-            choiceIndex);
+        List<UserLocationSpotOption> userLocationSpotOptions = GameState.World.CurrentLocationSpotOptions;
+        UserLocationSpotOption userLocationSpot = userLocationSpotOptions.FirstOrDefault(x => x.LocationSpot == locationSpot.Name);
 
-
-        if (result.IsSuccess)
-        {
-            PopScreen();
-            PushScreen(UIScreens.ActionResult);
-            CompleteActionExecution();
-        }
-    }
-
-    private void HandleTravel(int locationIndex)
-    {
-        List<UserTravelOption> currentTravelOptions = GameState.CurrentTravelOptions;
-        UserTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Index == locationIndex);
-
-        ActionResult result = ActionManager.MoveToLocation(location.Location);
-
-        if (result.IsSuccess)
-        {
-            PopScreen();
-            CompleteActionExecution();
-        }
+        GameManager.MoveToLocationSpot(userLocationSpot.Location, locationSpot.Name);
     }
 
     private void CompleteActionExecution()
     {
-        GameState.ClearCurrentUserAction();
-
-        GameState.ClearCurrentNarrative();
-
-        ActionManager.UpdateTavelOptions();
-        ActionManager.UpdateAvailableActions();
+        GameManager.UpdateState();
     }
 
-    private void PushScreen(UIScreens screen)
+    private List<PropertyDisplay> GetLocationProperties(Location location)
     {
-        screenStack.Push(screen);
-        StateHasChanged();
+        WorldState world = GameState.World;
+
+        List<PropertyDisplay> properties = new List<PropertyDisplay>();
+
+        properties.Add(new PropertyDisplay(
+                GetIconForTimeWindow(world.WorldTime),
+                FormatEnumString(world.WorldTime.ToString()),
+                "",
+                "",
+                ""
+            ));
+
+        properties.Add(new PropertyDisplay(
+                GetIconForWeatherType(world.WorldWeather),
+                FormatEnumString(world.WorldWeather.ToString()),
+                "",
+                "",
+                ""
+            ));
+
+        return properties;
     }
 
-    private void PopScreen()
+    private string GetIconForTimeWindow(TimeWindows time)
     {
-        if (screenStack.Count > 1)
+        return time switch
         {
-            screenStack.Pop();
-            StateHasChanged();
-        }
+            TimeWindows.Midnight => "🌙",
+            TimeWindows.Dawn => "🌄",
+            TimeWindows.Noon => "☀️",
+            TimeWindows.Dusk => "🌆",
+            _ => "❓"
+        };
     }
 
-    private void ToActionSelection()
+    private string GetIconForWeatherType(WeatherTypes type)
     {
-        GameState.ClearLastActionResult();
-        PushScreen(UIScreens.ActionSelection);
+        return type switch
+        {
+            WeatherTypes.Clear => "🌤️",
+            WeatherTypes.Sunny => "☀️",
+            WeatherTypes.Windy => "💨",
+            WeatherTypes.Stormy => "⛈️",
+            _ => "❓"
+        };
     }
 
-    private void ExitGame()
+    private string FormatEnumString(string value)
     {
-        NavigationManager.NavigateTo("/");
+        return string.Concat(value
+            .Select((x, i) => i > 0 && char.IsUpper(x) ? " " + x : x.ToString()))
+            .Replace("Type", "")
+            .Replace("Types", "");
     }
-
 }
