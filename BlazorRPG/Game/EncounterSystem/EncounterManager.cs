@@ -110,7 +110,7 @@
         return projection;
     }
 
-    private void StartEncounter(LocationEncounterInfo location, PlayerState playerState)
+    private void StartEncounter(EncounterInfo location, PlayerState playerState)
     {
         State = new EncounterState(location, playerState);
         State.UpdateActiveTags(location.AvailableTags);
@@ -118,7 +118,7 @@
 
     public async Task<NarrativeResult> StartEncounterWithNarrativeAsync(
         Location location,
-        LocationEncounterInfo encounter,
+        EncounterInfo encounter,
         PlayerState playerState,
         ActionImplementation incitingAction,
         AIProviderType providerType)

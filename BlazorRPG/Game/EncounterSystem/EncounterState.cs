@@ -10,7 +10,7 @@
     public int Momentum { get; private set; }
     public int Pressure { get; private set; }
     public int CurrentTurn { get; private set; }
-    public LocationEncounterInfo Location { get; }
+    public EncounterInfo Location { get; }
     public LocationSpot LocationSpot { get; internal set; }
     public PlayerState PlayerState { get; }
 
@@ -25,7 +25,7 @@
     private readonly ProjectionService _projectionService;
     private IChoice _lastChoice;
 
-    public EncounterState(LocationEncounterInfo location, PlayerState playerState)
+    public EncounterState(EncounterInfo location, PlayerState playerState)
     {
         Momentum = 0;
         Pressure = 0;

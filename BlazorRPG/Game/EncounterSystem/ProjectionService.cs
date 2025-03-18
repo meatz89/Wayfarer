@@ -2,9 +2,9 @@
 {
     private readonly TagManager _tagManager;
     private readonly ResourceManager _resourceManager;
-    private readonly LocationEncounterInfo encounterInfo;
+    private readonly EncounterInfo encounterInfo;
 
-    public ProjectionService(TagManager tagManager, ResourceManager resourceManager, LocationEncounterInfo location)
+    public ProjectionService(TagManager tagManager, ResourceManager resourceManager, EncounterInfo location)
     {
         _tagManager = tagManager;
         _resourceManager = resourceManager;

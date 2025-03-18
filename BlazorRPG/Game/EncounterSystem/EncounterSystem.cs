@@ -98,9 +98,10 @@
         // Create encounter from location and action
         LocationNames locationName = location.LocationName;
 
-        LocationEncounterInfo encounter = LocationEncounterFactory
-            .CreateEncounter(
-            locationName, locationSpot, encounterType);
+        EncounterTemplate template = actionImplementation.EncounterTemplate;
+
+        EncounterInfo encounter = EncounterInfoFactory.CreateEncounter(
+            locationName, locationSpot, encounterType, template);
 
         // Create encounter manager
         encounterResult = await StartEncounterAt(location, encounter, playerState, actionImplementation);
@@ -132,7 +133,7 @@
 
     public async Task<EncounterResult> StartEncounterAt(
         Location location,
-        LocationEncounterInfo encounter,
+        EncounterInfo encounter,
         PlayerState playerState,
         ActionImplementation actionImplementation)
     {
@@ -228,7 +229,7 @@
     }
 
 
-    private static SpecialChoice GetSpecialChoiceFor(LocationEncounterInfo location)
+    private static SpecialChoice GetSpecialChoiceFor(EncounterInfo location)
     {
         // Add special choices for this location
         return null;

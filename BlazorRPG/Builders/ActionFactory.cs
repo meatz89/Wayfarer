@@ -7,7 +7,6 @@ public static class ActionFactory
         ActionImplementation actionImplementation = new ActionImplementation();
 
         actionImplementation.ActionType = template.ActionType;
-        actionImplementation.IsEncounterAction = template.IsEncounterAction;
         actionImplementation.Name = template.Name;
         actionImplementation.Requirements = template.Requirements;
         actionImplementation.EnergyCosts = template.Energy;
@@ -17,6 +16,8 @@ public static class ActionFactory
         actionImplementation.Goal = template.Goal;
         actionImplementation.Complication = template.Complication;
 
+        actionImplementation.IsEncounterAction = template.IsEncounterAction;
+        actionImplementation.EncounterTemplate = template.EncounterTemplate;
 
         // Add energy costs
         EnergyTypes energyType = GameRules.GetEnergyTypeForAction(template.ActionType);
