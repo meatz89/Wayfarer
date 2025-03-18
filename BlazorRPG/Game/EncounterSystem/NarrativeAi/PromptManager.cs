@@ -4,39 +4,37 @@ using System.Text.Json;
 public class PromptManager
 {
     private readonly Dictionary<string, string> _promptTemplates;
-    private readonly string _systemMessage;
 
-    private const string SYSTEM_KEY = "system_message";
-    private const string INTRO_KEY = "introduction_prompt";
-    private const string NARRATIVE_KEY = "narrative_prompt";
-    private const string CHOICES_KEY = "choices_prompt";
-    private const string ENCOUNTER_SOCIAL_KEY = "encounter_style_social";
-    private const string ENCOUNTER_INTELLECTUAL_KEY = "encounter_style_intellectual";
-    private const string ENCOUNTER_PHYSICAL_KEY = "encounter_style_physical";
+    private const string SYSTEM_MD = "system";
+    private const string INTRO_MD = "introduction";
+    private const string NARRATIVE_MD = "resolution";
+    private const string CHOICES_MD = "choices";
 
     public PromptManager(IConfiguration configuration)
     {
         // Load prompts from JSON files
         string promptsPath = configuration.GetValue<string>("NarrativePromptsPath") ?? "Data/Prompts";
 
-        // Load system message
-        _systemMessage = LoadPromptFile(Path.Combine(promptsPath, SYSTEM_KEY + ".json"));
-
         // Load all prompt templates
         _promptTemplates = new Dictionary<string, string>();
         LoadPromptTemplates(promptsPath);
     }
 
+    public string GetSystemMessage()
+    {
+        string template = _promptTemplates[SYSTEM_MD];
+        return template;
+    }
+
     private void LoadPromptTemplates(string basePath)
     {
         // Load all JSON files in the prompts directory
-        foreach (string filePath in Directory.GetFiles(basePath, "*.json"))
+        foreach (string filePath in Directory.GetFiles(basePath, "*.md"))
         {
             string key = Path.GetFileNameWithoutExtension(filePath);
-            if (key != SYSTEM_KEY) // System message already loaded separately
-            {
-                _promptTemplates[key] = LoadPromptFile(filePath);
-            }
+            string mdContent = LoadPromptFile(filePath);
+            var jsonContent = CreatePromptJson(mdContent);
+            _promptTemplates[key] = jsonContent;
         }
     }
 
@@ -47,18 +45,10 @@ public class PromptManager
             throw new FileNotFoundException($"Prompt file not found: {filePath}");
         }
 
-        string jsonContent = File.ReadAllText(filePath);
-        using (JsonDocument document = JsonDocument.Parse(jsonContent))
-        {
-            JsonElement root = document.RootElement;
-            return root.GetProperty("prompt").GetString() ?? string.Empty;
-        }
+        string mdContent = File.ReadAllText(filePath);
+        return mdContent;
     }
 
-    public string GetSystemMessage()
-    {
-        return _systemMessage;
-    }
 
     public string BuildNarrativePrompt(
         NarrativeContext context,
@@ -67,7 +57,7 @@ public class PromptManager
         ChoiceOutcome outcome,
         EncounterStatus newState)
     {
-        string template = _promptTemplates[NARRATIVE_KEY];
+        string template = _promptTemplates[NARRATIVE_MD];
 
         // Extract primary approach tag
         EncounterStateTags primaryApproach = GetPrimaryApproach(chosenOption);
@@ -152,7 +142,7 @@ public class PromptManager
         List<ChoiceProjection> projections,
         EncounterStatus state)
     {
-        string template = _promptTemplates[CHOICES_KEY];
+        string template = _promptTemplates[CHOICES_MD];
 
         // Create a complete encounter history for context
         string completeHistory = CreateCompleteHistory(context);
@@ -258,7 +248,7 @@ Choice {i + 1}: {choice.Name}
         EncounterStatus state,
         string encounterGoal = "")
     {
-        string template = _promptTemplates[INTRO_KEY];
+        string template = _promptTemplates[INTRO_MD];
 
         // Get primary approach values
         string primaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).First().Key.ToString();
@@ -508,17 +498,13 @@ Choice {i + 1}: {choice.Name}
 
     private string GetEncounterStyleGuidance(EncounterTypes type)
     {
-        string key = type switch
+        return type switch
         {
-            EncounterTypes.Social => ENCOUNTER_SOCIAL_KEY,
-            EncounterTypes.Intellectual => ENCOUNTER_INTELLECTUAL_KEY,
-            EncounterTypes.Physical => ENCOUNTER_PHYSICAL_KEY,
-            _ => ENCOUNTER_SOCIAL_KEY
+            EncounterTypes.Social => "Direct dialogue with simple, practical words that reflect medieval speech patterns. Focus on social dynamics, status differences, and the traveler's attempt to navigate social hierarchies. Include some direct speech with quotation marks, showing the exact words exchanged between the player character and NPC.",
+            EncounterTypes.Intellectual => "Brief thought process using common language appropriate to a medieval traveler. Express observations, deductions, and problem-solving through inner monologue. Focus on practical knowledge and survival-oriented thinking rather than academic or scholarly reasoning.",
+            EncounterTypes.Physical => "Clear description of physical actions and immediate results. Emphasize bodily sensations, physical effort, fatigue, and the mechanical realities of movement and exertion. Include details about weight, texture, temperature, and other tactile elements that ground the narrative in physical reality.",
+            _ => "Practical description focusing on immediate situation"
         };
-
-        return _promptTemplates.TryGetValue(key, out string guidance)
-            ? guidance
-            : "Focus on immediate practical situation using sensory details appropriate to encounter type";
     }
 
     private string GetChoiceStyleGuidance(EncounterTypes type)
@@ -593,5 +579,40 @@ Choice {i + 1}: {choice.Name}
             (FocusTags.Resource, false) => "resource depletion, loss of valuable items, or material disadvantage",
             _ => "significant change in focus"
         };
+    }
+
+    public static string CreatePromptJson(string markdownContent)
+    {
+        // First normalize all newlines to \n
+        string normalized = markdownContent.Replace("\r\n", "\n");
+
+        // Now build the JSON string manually with proper escaping
+        StringBuilder jsonBuilder = new StringBuilder();
+        jsonBuilder.Append("{\n");
+        jsonBuilder.Append("\t\"prompt\": \"");
+
+        // Process each character to ensure proper escaping
+        foreach (char c in normalized)
+        {
+            switch (c)
+            {
+                case '\\':
+                    jsonBuilder.Append("\\\\"); // Escape backslash
+                    break;
+                case '\"':
+                    jsonBuilder.Append("\\\""); // Escape double quote
+                    break;
+                case '\n':
+                    jsonBuilder.Append("\\n"); // Replace newline with \n
+                    break;
+                default:
+                    jsonBuilder.Append(c);
+                    break;
+            }
+        }
+
+        jsonBuilder.Append("\"\n}");
+
+        return jsonBuilder.ToString();
     }
 }
