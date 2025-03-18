@@ -4,5 +4,5 @@
     public EncounterResults EncounterResults;
     public string EncounterEndMessage;
 
-    public NarrativeResult NarrativeResult { get; internal set; }
+    public NarrativeResult NarrativeResult;
 }
