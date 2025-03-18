@@ -52,17 +52,17 @@ Write 3-4 paragraphs of grounded, realistic first-person narrative that:
    - "The weight of his judgment hangs in the air"
    - "Time seems to slow as I consider my response"
 
-4. END WITH MODEST, PERSONAL CHALLENGES:
-   - Create a small, believable obstacle directly related to your immediate goal
-   - Keep the challenge proportional and realistic
-   - NO dramatic coincidences or contrived developments
-   - NO market-wide or large-scale consequences
+4. END WITH SPECIFIC NEW SITUATION:
+   - The final paragraph MUST present a clear new situation requiring player reaction
+   - Include physical details that create 2-3 distinct potential response options
+   - Show exactly what the NPC does or says that requires immediate response
+   - Make this situation directly result from the player's last choice
    
    VIOLATIONS TO REJECT:
-   - "A crowd suddenly gathers, blocking my path"
-   - "The guards notice our exchange and approach"
-   - "Our conversation has drawn unwanted attention"
-   - "The merchant signals to others in some kind of code"
+   - Vague problems with no clear options: "I need to find a way forward"
+   - Ending without a specific NPC action or statement requiring response
+   - Not showing a concrete situation with visible options
+   - Dramatic events unrelated to the player's previous action
 
 ## CORE REQUIREMENTS - ESSENTIAL TO THE NARRATIVE
 
@@ -89,11 +89,11 @@ Write 3-4 paragraphs of grounded, realistic first-person narrative that:
    - Precision: Careful attention to specific timings or positions
    - Concealment: Small signs of information being withheld or protected
 
-5. END WITH A PRACTICAL PROBLEM REQUIRING IMMEDIATE ACTION
-   - Create a realistic, modest obstacle or decision point
-   - Make it directly connected to your recent action
-   - Keep the stakes personal and immediate, not grandiose
-   - Present a small but meaningful challenge
+5. END WITH A NEW SITUATION THAT:
+   - Shows what specific actions the NPCs take in response to your choice
+   - Creates a concrete scenario with visible options for different approaches
+   - Gives the player clear details to react to in their next turn
+   - Maintains the tension and stakes of the current objective
 
 ## AVOID THESE NARRATIVE PROBLEMS
 
