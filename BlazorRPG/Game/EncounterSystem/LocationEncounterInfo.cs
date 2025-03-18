@@ -4,6 +4,7 @@
 public class LocationEncounterInfo
 {
     public LocationNames LocationName { get; set; }
+    public string LocationSpotName { get; set; }
     public List<ApproachTags> FavoredApproaches { get; } = new List<ApproachTags>();
     public List<ApproachTags> DisfavoredApproaches { get; } = new List<ApproachTags>();
     public List<IEncounterTag> AvailableTags { get; } = new List<IEncounterTag>();
@@ -27,6 +28,7 @@ public class LocationEncounterInfo
 
     public LocationEncounterInfo(
         LocationNames locationName,
+        string locationSpot,
         List<ApproachTags> favoreApproaches,
         List<ApproachTags> disfavoredApproaches,
         int duration,
@@ -38,6 +40,7 @@ public class LocationEncounterInfo
         int maxPressure = 10)
     {
         LocationName = locationName;
+        LocationSpotName = locationSpot;
         FavoredApproaches = favoreApproaches;
         DisfavoredApproaches = disfavoredApproaches;
 

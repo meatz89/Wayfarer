@@ -19,7 +19,7 @@ public partial class ActionPreviewBase : ComponentBase
     {
         ActionImplementation action = CurrentAction.ActionImplementation;
 
-        string name = $"{action.Description}";
+        string name = $"{action.Goal}";
         return name;
     }
 

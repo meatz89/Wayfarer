@@ -1,7 +1,6 @@
 ﻿public class ActionTemplate
 {
     public ActionNames Name { get; set; }
-    public string Description { get; set; }
     public BasicActionTypes ActionType { get; set; }
     public bool IsEncounterAction { get; }
     public List<Requirement> Requirements { get; }
@@ -9,9 +8,13 @@
     public List<Outcome> Costs { get; }
     public List<Outcome> Rewards { get; }
 
+    public string Goal { get; set; }
+    public string Complication { get; set; }
+
     public ActionTemplate(
         ActionNames actionName,
-        string description,
+        string goal,
+        string complication,
         BasicActionTypes actionType,
         bool isEncounterAction,
         List<Requirement> requirements,
@@ -20,7 +23,8 @@
         List<Outcome> rewards)
     {
         Name = actionName;
-        Description = description;
+        Goal = goal;
+        Complication = complication;
         ActionType = actionType;
         IsEncounterAction = isEncounterAction;
         Requirements = requirements;

@@ -1,8 +1,9 @@
 ﻿public class ActionTemplateBuilder
 {
     private ActionNames name;
-    private string description;
     private BasicActionTypes actionType;
+    private string goal;
+    private string complication;
 
     public List<Requirement> requirements = new();
     public List<Outcome> energy = new();
@@ -17,9 +18,15 @@
         return this;
     }
 
-    public ActionTemplateBuilder WithDescription(string description)
+    public ActionTemplateBuilder WithGoal(string goal)
     {
-        this.description = description;
+        this.goal = goal;
+        return this;
+    }
+
+    public ActionTemplateBuilder WithComplication(string complication)
+    {
+        this.complication = complication;
         return this;
     }
 
@@ -49,7 +56,8 @@
     {
         return new ActionTemplate(
             name,
-            description,
+            goal,
+            complication,
             actionType,
             IsEncounterAction,
             requirements,

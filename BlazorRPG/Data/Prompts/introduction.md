@@ -1,6 +1,8 @@
 # WAYFARER ENCOUNTER SETUP
 
-Create an immersive introductory scene for a {ENCOUNTER_TYPE} encounter in a {LOCATION_NAME}. The character is a {CHARACTER_ARCHETYPE} seeking to {CHARACTER_GOAL}.
+Create an immersive introductory scene for a {ENCOUNTER_TYPE} encounter at a {LOCATION_SPOT} inside a {LOCATION_NAME}.
+The player is a {CHARACTER_ARCHETYPE} seeking to {CHARACTER_GOAL}.
+But the player is facing a challenge: {ENCOUNTER_COMPLICATION}
 
 The location contains {ENVIRONMENT_DETAILS} and key NPCs include {NPC_LIST}. The character faces {TIME_CONSTRAINTS} and {ADDITIONAL_CHALLENGES}.
 

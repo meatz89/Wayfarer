@@ -5,15 +5,19 @@
     {
     }
 
-    public override async Task<string> GenerateIntroductionAsync(NarrativeContext context, string incitingAction, EncounterStatus state)
+    public override async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatus state)
     {
         string conversationId = $"{context.LocationName}_encounter"; // Consistent ID
         string systemMessage = _promptManager.GetSystemMessage();
-        string prompt = _promptManager.BuildIntroductionPrompt(context, incitingAction, state);
+        string prompt = _promptManager.BuildIntroductionPrompt(context, state);
+
         _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
+
         string response = await _aiClient.GetCompletionAsync(
             _contextManager.GetConversationHistory(conversationId));
+
         _contextManager.AddAssistantMessage(conversationId, response);
+        
         return response;
     }
 

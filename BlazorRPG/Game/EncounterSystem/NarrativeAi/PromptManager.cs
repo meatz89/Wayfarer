@@ -105,7 +105,7 @@ public class PromptManager
         int previousPressure = newState.Pressure - outcome.PressureGain;
 
         // Extract encounter goal from inciting action
-        string encounterGoal = context.IncitingAction;
+        string encounterGoal = context.ActionImplementation.Goal;
 
         // Get the choice narrative description
         string choiceNarrativeDesc = choiceDescription?.FullDescription ?? chosenOption.Name;
@@ -220,8 +220,7 @@ Choice {i + 1}: {choice.Name}
         // Format active tag names
         string activeTags = string.Join(", ", state.ActiveTagNames);
 
-        // Extract encounter goal from inciting action
-        string encounterGoal = context.IncitingAction;
+        string encounterGoal = context.ActionImplementation.Goal;
 
         // Replace placeholders in template
         string prompt = template
@@ -242,9 +241,7 @@ Choice {i + 1}: {choice.Name}
 
     public string BuildIntroductionPrompt(
         NarrativeContext context,
-        string incitingAction,
-        EncounterStatus state,
-        string encounterGoal = "")
+        EncounterStatus state)
     {
         string template = _promptTemplates[INTRO_MD];
 
@@ -270,23 +267,23 @@ Choice {i + 1}: {choice.Name}
         // Format approach stats
         string approachStats = FormatApproachValues(state);
 
-        // If encounterGoal is empty, use incitingAction
-        if (string.IsNullOrEmpty(encounterGoal))
-        {
-            encounterGoal = incitingAction;
-        }
+        ActionImplementation actionImplementation = context.ActionImplementation;
+        string encounterGoal = actionImplementation.Goal;
+        string encounterComplication = actionImplementation.Complication;
 
         // Replace placeholders in template
         string prompt = template
             .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
             .Replace("{LOCATION_NAME}", context.LocationName)
+            .Replace("{LOCATION_SPOT}", context.locationSpotName)
             .Replace("{CHARACTER_ARCHETYPE}", characterArchetype)
             .Replace("{APPROACH_STATS}", approachStats)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
             .Replace("{ENVIRONMENT_DETAILS}", environmentDetails)
             .Replace("{NPC_LIST}", npcList)
             .Replace("{TIME_CONSTRAINTS}", timeConstraints)
-            .Replace("{ADDITIONAL_CHALLENGES}", additionalChallenges);
+            .Replace("{ADDITIONAL_CHALLENGES}", additionalChallenges)
+            .Replace("{ENCOUNTER_COMPLICATION}", encounterComplication);
 
         return prompt;
     }
@@ -296,12 +293,12 @@ Choice {i + 1}: {choice.Name}
     {
         if (context.Events.Count == 0)
         {
-            return $"Beginning a new encounter at {context.LocationName} after {context.IncitingAction}.";
+            return $"Beginning a new encounter at {context.LocationName} after {context.ActionImplementation}.";
         }
 
         StringBuilder history = new StringBuilder();
         history.AppendLine("# Complete Encounter History");
-        history.AppendLine($"Location: {context.LocationName} | Encounter Type: {context.EncounterType} | Goal: {context.IncitingAction}");
+        history.AppendLine($"Location: {context.LocationName} | Encounter Type: {context.EncounterType} | Goal: {context.ActionImplementation}");
         history.AppendLine();
 
         // Create detailed history of all events

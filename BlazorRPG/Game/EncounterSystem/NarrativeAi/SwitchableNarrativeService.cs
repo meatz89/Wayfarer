@@ -11,8 +11,6 @@
         // Initialize all providers in a dictionary for easier access
         _providers = new Dictionary<AIProviderType, INarrativeAIService>
         {
-            { AIProviderType.OpenAI, new GPTNarrativeService(configuration, _logger) },
-            { AIProviderType.Gemma3, new Gemma3NarrativeService(configuration, _logger) },
             { AIProviderType.Claude, new ClaudeNarrativeService(configuration, _logger) }
         };
 
@@ -53,17 +51,20 @@
 
     public string GetCurrentProviderName()
     {
-        return (_providers[_currentProvider] as BaseNarrativeAIService)?.GetProviderName() ?? "Unknown Provider";
+        BaseNarrativeAIService? baseNarrativeAIService = (_providers[_currentProvider] as BaseNarrativeAIService);
+        return baseNarrativeAIService?.GetProviderName() ?? "Unknown Provider";
     }
 
     public string GetGameInstanceId()
     {
-        return (_providers[_currentProvider] as BaseNarrativeAIService)?.GetGameInstanceId() ?? "Unknown";
+        BaseNarrativeAIService? baseNarrativeAIService = (_providers[_currentProvider] as BaseNarrativeAIService);
+        return baseNarrativeAIService?.GetGameInstanceId() ?? "Unknown";
     }
 
-    public async Task<string> GenerateIntroductionAsync(NarrativeContext context, string incitingAction, EncounterStatus state)
+    public async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatus state)
     {
-        return await _providers[_currentProvider].GenerateIntroductionAsync(context, incitingAction, state);
+        INarrativeAIService narrativeAIService = _providers[_currentProvider];
+        return await narrativeAIService.GenerateIntroductionAsync(context, state);
     }
 
     public async Task<string> GenerateReactionAndSceneAsync(

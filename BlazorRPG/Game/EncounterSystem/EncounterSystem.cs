@@ -87,18 +87,20 @@
 
     public async Task<EncounterResult> GenerateEncounter(
         Location location,
+        string locationSpot,
         EncounterContext context,
         PlayerState playerState,
         ActionImplementation actionImplementation)
     {
         Location loc = context.Location;
-        EncounterTypes presentationStyles = GetPresentationStyleFromBaseAction(actionImplementation);
+        EncounterTypes encounterType = GetPresentationStyleFromBaseAction(actionImplementation);
 
         // Create encounter from location and action
         LocationNames locationName = location.LocationName;
 
         LocationEncounterInfo encounter = LocationEncounterFactory
-            .CreateAncientLibraryEncounter(locationName, presentationStyles);
+            .CreateEncounter(
+            locationName, locationSpot, encounterType);
 
         // Create encounter manager
         encounterResult = await StartEncounterAt(location, encounter, playerState, actionImplementation);
@@ -156,12 +158,11 @@
         //choiceRepository.AddSpecialChoice(encounter.Name, negotiatePriceChoice);
 
         // Start the encounter with narrative
-        string incitingAction = actionImplementation.Description;
         NarrativeResult initialResult = await encounterManager.StartEncounterWithNarrativeAsync(
             location,
             encounter,
             playerState,
-            incitingAction,
+            actionImplementation,
             currentAIProvider);  // Pass the current provider type
 
         return new EncounterResult()
