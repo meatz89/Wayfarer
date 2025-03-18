@@ -2,7 +2,7 @@
 {
     public static List<ActionTemplate> GetAllTemplates()
     {
-        List<ActionTemplate> actionTemplates = 
+        List<ActionTemplate> actionTemplates =
             [.. AllActions()];
 
         return actionTemplates;
