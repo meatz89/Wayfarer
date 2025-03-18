@@ -1,11 +1,9 @@
 # WAYFARER TURN RESOLUTION
 
-Generate a narrative outcome for a character in a {ENCOUNTER_TYPE} encounter who JUST chose {SELECTED_CHOICE} ({APPROACH} + {FOCUS}, {EFFECT_TYPE}). The encounter takes place in {LOCATION} with the objective to {CHARACTER_GOAL}.
+Generate a narrative outcome for a character in a {ENCOUNTER_TYPE} encounter who chose {SELECTED_CHOICE} ({APPROACH} + {FOCUS}, {EFFECT_TYPE}). The encounter takes place in {LOCATION} with the objective to {CHARACTER_GOAL}.
 
 Urgent situation that prompted the choice: {CURRENT_SITUATION}
-
 Player's choice description: {CHOICE_DESCRIPTION}
-
 Previous state: Momentum {M_OLD}, Pressure {P_OLD}
 New state: Momentum {M_NEW}, Pressure {P_NEW}
 Approach changes: {APPROACH_CHANGES}
@@ -14,41 +12,97 @@ Narrative tags activated: {NEW_NARRATIVE_TAGS}
 Strategic effects triggered: {STRATEGIC_EFFECTS}
 Turn: {CURRENT_TURN} of {MAX_TURNS}
 
-Write a continuous narrative response that follows this structure (but DO NOT include any section labels or headings):
+Write 3-4 paragraphs of grounded, realistic first-person narrative that:
 
-First 2-3 paragraphs: 
-- Show the immediate results of this choice through detailed description
-- Demonstrate how the approach increase manifests as a SHIFT IN THE SITUATION'S DYNAMICS
-  * For Dominance: "The atmosphere shifts as power dynamics become more prominent"
-  * For Rapport: "The social fabric of the encounter becomes more influential"
-  * For Analysis: "The environment reveals more patterns and logical connections"
-  * For Precision: "The situation now emphasizes careful positioning and exact timing"
-  * For Concealment: "The encounter now centers around what remains hidden and unsaid"
-- Illustrate the focus increase by showing how that aspect of the situation has become more influential
-- Represent momentum/pressure changes through environmental responses and NPC reactions
-- Include NPC reactions with psychological depth (thoughts, emotions, calculations visible through expressions)
-- Show how strategic tag effects manifest through the location's natural responses
+## CRITICAL WRITING RULES - VIOLATE THESE AND YOUR RESPONSE WILL BE REJECTED
 
-Final paragraph: 
-- Present a NEW DIRECT PROBLEM that emerges as a direct result of the action just taken
-- Create multiple potential pathways forward (breadcrumbs) aligned with different approaches
-- Update NPC positions/attitudes with psychological nuance
-- Introduce new environmental elements or changes to existing ones
-- Subtly hint at which approaches might be particularly effective
-- If near end (turn {CURRENT_TURN}/{MAX_TURNS}), increase tension appropriately
-- Make the problem different from previous challenges, create urgency, and directly relate to what just happened
+1. STRICTLY LIMITED REACTIONS:
+   - ONLY the 1-3 people you're directly speaking with react to your words
+   - NO bystanders turning to look, pausing, or reacting in any way
+   - NO "cutting through noise" or "silencing conversations"
+   - NO "catching attention" of uninvolved people
+   
+   VIOLATIONS TO REJECT:
+   - "My words cause nearby merchants to pause and look"
+   - "The market's ambient noise quiets as I speak"
+   - "Other customers turn to watch our exchange"
+   - "My statement draws attention from surrounding stalls"
 
-REMEMBER:
-- This is the FIRST TIME this action is being described - it is NOT a summary of past events
-- Write in FIRST PERSON, PRESENT TENSE as the action unfolds NOW
-- Write as a continuous narrative with NO section headings, labels, or breaks
-- Be historically accurate to medieval life
-- Focus on ordinary challenges, not heroic or epic quests
-- The character is a solitary traveler seeking modest security
-- Include sensory details and physical sensations
-- Show a DIRECT progression from the player's choice
-- The final paragraph MUST present a clear problem requiring immediate action
-- Create a NEW problem that is DIFFERENT from the previous urgent situation
+2. MICRO-SCALE OBSERVATIONS:
+   - Focus ONLY on small, subtle details directly in front of you
+   - Describe small hand movements, slight facial expressions, changes in voice tone
+   - NO broad environmental changes or dramatic shifts
+   - NO collective reactions from groups of people
+   
+   VIOLATIONS TO REJECT:
+   - "The entire marketplace seems to shift in response"
+   - "A wave of whispers spreads through the crowd"
+   - "The atmosphere of the tavern changes"
+   - "People move aside as I walk through"
 
-Maintain the tone appropriate for a {ENCOUNTER_TYPE} encounter.
-{ENCOUNTER_STYLE_GUIDANCE}
+3. MUNDANE, REALISTIC LANGUAGE:
+   - Write as if describing an ordinary conversation in a normal day
+   - Use simple descriptions focused on basic physical details
+   - NO dramatic, cinematic, or literary flourishes
+   - NO hyperbole or exaggeration
+   
+   VIOLATIONS TO REJECT:
+   - "His eyes flash with sudden understanding"
+   - "Her voice cuts like a knife through the tension"
+   - "The weight of his judgment hangs in the air"
+   - "Time seems to slow as I consider my response"
+
+4. END WITH MODEST, PERSONAL CHALLENGES:
+   - Create a small, believable obstacle directly related to your immediate goal
+   - Keep the challenge proportional and realistic
+   - NO dramatic coincidences or contrived developments
+   - NO market-wide or large-scale consequences
+   
+   VIOLATIONS TO REJECT:
+   - "A crowd suddenly gathers, blocking my path"
+   - "The guards notice our exchange and approach"
+   - "Our conversation has drawn unwanted attention"
+   - "The merchant signals to others in some kind of code"
+
+## CORE REQUIREMENTS - ESSENTIAL TO THE NARRATIVE
+
+1. FOCUS ON IMMEDIATE, PERSONAL INTERACTIONS
+   - Keep reactions realistic and proportional - not everyone reacts to your actions
+   - Concentrate on the 1-3 people directly involved in your interaction
+   - Show subtle rather than dramatic changes in the immediate environment
+   - Maintain a personal, down-to-earth perspective
+
+2. USE CONCRETE OBSERVABLE DETAILS
+   - Describe what you directly see, hear, smell, taste, and physically feel
+   - Show NPC emotions through specific facial expressions, tone of voice, and small gestures
+   - Describe body language and positioning without interpreting its meaning
+
+3. USE SIMPLE, PERIOD-APPROPRIATE LANGUAGE
+   - Write as a common traveler would speak and think
+   - Include occasional medieval expressions where natural
+   - Avoid modern concepts or perspectives
+
+4. SHOW APPROACH/FOCUS CHANGES THROUGH SUBTLE DETAILS
+   - Analysis: Small details you notice about the person, their possessions, or environment
+   - Rapport: Small shifts in how they speak to you or their willingness to share
+   - Dominance: Minor changes in posture, speaking volume, or space given to you
+   - Precision: Careful attention to specific timings or positions
+   - Concealment: Small signs of information being withheld or protected
+
+5. END WITH A PRACTICAL PROBLEM REQUIRING IMMEDIATE ACTION
+   - Create a realistic, modest obstacle or decision point
+   - Make it directly connected to your recent action
+   - Keep the stakes personal and immediate, not grandiose
+   - Present a small but meaningful challenge
+
+## AVOID THESE NARRATIVE PROBLEMS
+
+- NO UNREALISTIC REACTIONS: Don't have the entire location respond to your actions
+- NO MIND-READING: Never state what NPCs are thinking or feeling - only what they physically do
+- NO ABSTRACTIONS: Never mention "patterns," "dynamics," "atmospheres," or "tensions"
+- NO INTERPRETATIONS: Show what happens, not what it means
+- NO TELLING: "I realize the merchant is hiding something" (BAD)
+          vs. "The merchant tucks a small ledger under a cloth when I approach" (GOOD)
+- NO DRAMATIC LEAPS: Keep changes small, believable, and directly connected to your action
+
+Write naturally in first-person present tense with the authentic voice of an ordinary medieval traveler facing everyday challenges.

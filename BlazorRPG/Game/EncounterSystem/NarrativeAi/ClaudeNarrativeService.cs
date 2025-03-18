@@ -30,7 +30,7 @@
     {
         string conversationId = $"{context.LocationName}_encounter"; // Same ID as introduction
         string systemMessage = _promptManager.GetSystemMessage();
-        string prompt = _promptManager.BuildNarrativePrompt(
+        string prompt = _promptManager.BuildReactionPrompt(
             context, chosenOption, choiceDescription, outcome, newState);
         if (!_contextManager.ConversationExists(conversationId))
         {

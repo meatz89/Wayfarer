@@ -20,37 +20,7 @@ public class PromptManager
         LoadPromptTemplates(promptsPath);
     }
 
-    public string GetSystemMessage()
-    {
-        string template = _promptTemplates[SYSTEM_MD];
-        return template;
-    }
-
-    private void LoadPromptTemplates(string basePath)
-    {
-        // Load all JSON files in the prompts directory
-        foreach (string filePath in Directory.GetFiles(basePath, "*.md"))
-        {
-            string key = Path.GetFileNameWithoutExtension(filePath);
-            string mdContent = LoadPromptFile(filePath);
-            string jsonContent = CreatePromptJson(mdContent);
-            _promptTemplates[key] = jsonContent;
-        }
-    }
-
-    private string LoadPromptFile(string filePath)
-    {
-        if (!File.Exists(filePath))
-        {
-            throw new FileNotFoundException($"Prompt file not found: {filePath}");
-        }
-
-        string mdContent = File.ReadAllText(filePath);
-        return mdContent;
-    }
-
-
-    public string BuildNarrativePrompt(
+    public string BuildReactionPrompt(
         NarrativeContext context,
         IChoice chosenOption,
         ChoiceNarrative choiceDescription,
@@ -638,4 +608,36 @@ Choice {i + 1}: {choice.Name}
 
         return jsonBuilder.ToString();
     }
+
+
+
+    public string GetSystemMessage()
+    {
+        string template = _promptTemplates[SYSTEM_MD];
+        return template;
+    }
+
+    private void LoadPromptTemplates(string basePath)
+    {
+        // Load all JSON files in the prompts directory
+        foreach (string filePath in Directory.GetFiles(basePath, "*.md"))
+        {
+            string key = Path.GetFileNameWithoutExtension(filePath);
+            string mdContent = LoadPromptFile(filePath);
+            string jsonContent = CreatePromptJson(mdContent);
+            _promptTemplates[key] = jsonContent;
+        }
+    }
+
+    private string LoadPromptFile(string filePath)
+    {
+        if (!File.Exists(filePath))
+        {
+            throw new FileNotFoundException($"Prompt file not found: {filePath}");
+        }
+
+        string mdContent = File.ReadAllText(filePath);
+        return mdContent;
+    }
+
 }
