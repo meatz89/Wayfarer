@@ -8,7 +8,7 @@
             .FirstOrDefault();
 
         if (mostRecentEvent == null)
-            return $"{context.IncitingAction} at {context.LocationName}.";
+            return $"{context.ActionImplementation} at {context.LocationName}.";
 
         // Keep the summary extremely focused
         if (mostRecentEvent.TurnNumber == 0)

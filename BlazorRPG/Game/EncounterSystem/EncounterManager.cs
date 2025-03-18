@@ -120,7 +120,7 @@
         Location location,
         LocationEncounterInfo encounter,
         PlayerState playerState,
-        string incitingAction,
+        ActionImplementation incitingAction,
         AIProviderType providerType)
     {
         if (_narrativeService != null)
@@ -135,6 +135,7 @@
         _narrativeContext =
             new NarrativeContext(
                 encounter.LocationName.ToString(),
+                encounter.LocationSpotName.ToString(),
                 encounter.EncounterType,
                 incitingAction);
 
@@ -146,7 +147,6 @@
         {
             introduction = await _narrativeService.GenerateIntroductionAsync(
                 _narrativeContext,
-                incitingAction,
                 status);
         }
 

@@ -1,7 +1,8 @@
 ﻿public record ActionImplementation
 {
     public ActionNames Name { get; set; }
-    public string Description { get; internal set; }
+    public string Goal { get; internal set; }
+    public string Complication { get; internal set; }
     public BasicActionTypes ActionType { get; set; }
     public bool IsEncounterAction { get; internal set; }
     public List<Requirement> Requirements { get; set; } = new();

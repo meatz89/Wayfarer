@@ -108,7 +108,8 @@ public class GameManager
         UserActionOption action = gameState.Actions.LocationSpotActions.Where(x => x.LocationSpot == locationSpot.Name).First();
         ActionImplementation actionImpl = action.ActionImplementation;
 
-        EncounterResult = await EncounterSystem.GenerateEncounter(location, context, playerState, actionImpl);
+        EncounterResult = await EncounterSystem
+            .GenerateEncounter(location, locationSpot.Name, context, playerState, actionImpl);
 
         List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(EncounterResult.Encounter);
         gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
