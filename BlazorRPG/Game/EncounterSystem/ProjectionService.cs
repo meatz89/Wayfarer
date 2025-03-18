@@ -64,6 +64,9 @@
         // Calculate momentum effects
         int momentumChange = 0;
 
+        // Calculate pressure effects
+        int pressureChange = 0;
+
         if (choice.EffectType == EffectTypes.Momentum)
         {
             int baseMomentum = choice is SpecialChoice ? 3 : (2);
@@ -73,6 +76,15 @@
                 Value = baseMomentum
             });
             momentumChange += baseMomentum;
+
+            int basePressure = 2;
+            projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
+            {
+                Source = "Momentum Building Choice",
+                Value = basePressure
+            });
+            pressureChange += basePressure;
+
         }
 
         if (encounterInfo.FavoredFocuses.Contains(choice.Focus))
@@ -82,15 +94,12 @@
             {
                 projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
                 {
-                    Source = "Favored Choice",
+                    Source = "Fitting the encounter",
                     Value = favoredBonus
                 });
                 momentumChange += favoredBonus;
             }
         }
-
-        // Calculate pressure effects
-        int pressureChange = 0;
 
         if (choice.EffectType == EffectTypes.Pressure)
         {
@@ -110,7 +119,7 @@
             {
                 projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
                 {
-                    Source = "Disfavored Choice",
+                    Source = "Not fitting the encounter",
                     Value = environmentalPressure
                 });
                 pressureChange += environmentalPressure;
