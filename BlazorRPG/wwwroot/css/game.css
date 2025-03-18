@@ -4,7 +4,7 @@
     --bg-panel: #2a2a2a;
     --bg-card: #3a3a3a;
     --bg-active: #4a6b8a;
-    --border-active: #6a8ba9;
+    --border-active: #3a3a3a;
     --text-primary: #ffffff;
     --text-secondary: #888888;
     --text-muted: #666666;
@@ -220,8 +220,8 @@ body {
 .tooltip {
     position: fixed;
     background-color: var(--bg-panel);
-    border: 1px solid var(--border-active);
-    padding: 1.5rem;
+    border: 2px solid var(--border-active);
+    padding: 1.0rem;
     border-radius: 4px;
     z-index: 1000;
     min-width: 300px;
