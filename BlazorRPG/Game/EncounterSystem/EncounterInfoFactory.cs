@@ -1,8 +1,4 @@
-﻿
-/// <summary>
-/// Factory for creating common location types
-/// </summary>
-public static class EncounterInfoFactory
+﻿public static class EncounterInfoFactory
 {
     /// <summary>
     /// Creates the encounter for the given location
@@ -18,6 +14,8 @@ public static class EncounterInfoFactory
             locationSpot,
             template.favoredApproaches,
             template.disfavoredApproaches,
+            template.favoredFocuses,
+            template.disfavoredFocuses,
             template.Duration,
             template.PartialThreshold, template.StandardThreshold, template.ExceptionalThreshold, // Momentum thresholds: 12+ (Partial), 16+ (Standard), 20+ (Exceptional)
             template.hostility,

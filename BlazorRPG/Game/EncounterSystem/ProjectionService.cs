@@ -11,7 +11,11 @@
         encounterInfo = location;
     }
 
-    public ChoiceProjection CreateChoiceProjection(IChoice choice, int currentMomentum, int currentPressure, int currentTurn)
+    public ChoiceProjection CreateChoiceProjection(
+        IChoice choice, 
+        int currentMomentum, 
+        int currentPressure, 
+        int currentTurn)
     {
         ChoiceProjection projection = new ChoiceProjection(choice);
 
@@ -24,31 +28,37 @@
         int pressureConfidenceDamage = _resourceManager.CalculatePressureResourceDamage(ResourceTypes.Confidence, currentPressure);
 
         // Add pressure resource components to projection
-        if (pressureHealthDamage != 0)
+        if (encounterInfo.DisfavoredFocuses.Contains(choice.Focus))
         {
-            projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
+            if (pressureHealthDamage != 0)
             {
-                Source = "Pressure damage",
-                Value = pressureHealthDamage
-            });
-        }
+                projection.HealthChange = pressureHealthDamage;
+                projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
+                {
+                    Source = "Pressure health damage",
+                    Value = pressureHealthDamage
+                });
+            }
 
-        if (pressureConcentrationDamage != 0)
-        {
-            projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
+            if (pressureConcentrationDamage != 0)
             {
-                Source = "Pressure damage",
-                Value = pressureConcentrationDamage
-            });
-        }
+                projection.ConcentrationChange = pressureConcentrationDamage;
+                projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
+                {
+                    Source = "Pressure concentration damage",
+                    Value = pressureConcentrationDamage
+                });
+            }
 
-        if (pressureConfidenceDamage != 0)
-        {
-            projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
+            if (pressureConfidenceDamage != 0)
             {
-                Source = "Pressure damage",
-                Value = pressureConfidenceDamage
-            });
+                projection.ConfidenceChange = pressureConfidenceDamage;
+                projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
+                {
+                    Source = "Pressure confidence damage",
+                    Value = pressureConfidenceDamage
+                });
+            }
         }
 
         // Calculate momentum effects
@@ -63,6 +73,20 @@
                 Value = baseMomentum
             });
             momentumChange += baseMomentum;
+        }
+
+        if (encounterInfo.FavoredFocuses.Contains(choice.Focus))
+        {
+            int favoredBonus = 1;
+            if (choice.EffectType == EffectTypes.Momentum)
+            {
+                projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
+                {
+                    Source = "Favored Choice",
+                    Value = favoredBonus
+                });
+                momentumChange += favoredBonus;
+            }
         }
 
         // Calculate pressure effects
@@ -88,6 +112,16 @@
                 Value = environmentalPressure
             });
             pressureChange += environmentalPressure;
+        }
+
+        if (encounterInfo.DisfavoredFocuses.Contains(choice.Focus))
+        {
+            projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
+            {
+                Source = "Disfavored Choice",
+                Value = 1
+            });
+            pressureChange += 1;
         }
 
         foreach (IEncounterTag tag in _tagManager.ActiveTags)
@@ -186,11 +220,6 @@
                     projection.ProjectedOutcome = EncounterOutcomes.Failure;
             }
         }
-
-        // Set total resource changes (pressure damage + tag effects)
-        projection.HealthChange = pressureHealthDamage;
-        projection.ConcentrationChange = pressureConcentrationDamage;
-        projection.ConfidenceChange = pressureConfidenceDamage;
 
         // Determine which tags will be active based on new tag values
         List<IEncounterTag> newlyActivatedTags = _tagManager.GetNewlyActivatedTags(clonedTagSystem, encounterInfo.AvailableTags);
