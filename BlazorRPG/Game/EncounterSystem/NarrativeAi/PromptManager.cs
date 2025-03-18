@@ -147,9 +147,9 @@ public class PromptManager
             locationPreferences.AppendLine("  These approaches work particularly well in this location.");
         }
 
-        if (state.EncounterInfo?.DisfavoredApproaches?.Any() == true)
+        if (state.EncounterInfo?.DangerousApproaches?.Any() == true)
         {
-            locationPreferences.AppendLine($"- Disfavored Approaches: {string.Join(", ", state.EncounterInfo.DisfavoredApproaches)}");
+            locationPreferences.AppendLine($"- Disfavored Approaches: {string.Join(", ", state.EncounterInfo.DangerousApproaches)}");
             locationPreferences.AppendLine("  These approaches are challenging or risky here.");
         }
 

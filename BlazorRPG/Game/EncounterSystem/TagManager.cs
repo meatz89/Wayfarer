@@ -5,7 +5,6 @@
 
     private readonly Dictionary<FocusTags, int> _focusMomentumBonuses = new Dictionary<FocusTags, int>();
     private readonly Dictionary<FocusTags, int> _focusPressureModifiers = new Dictionary<FocusTags, int>();
-    private int _endOfTurnPressureReduction = 0;
 
     public TagManager()
     {
@@ -49,7 +48,6 @@
         foreach (FocusTags focus in Enum.GetValues(typeof(FocusTags)))
             _focusPressureModifiers[focus] = 0;
 
-        _endOfTurnPressureReduction = 0;
     }
 
     public int GetTotalMomentum(IChoice choice, int baseMomentum)
@@ -72,8 +70,6 @@
         return Math.Max(0, total);
     }
 
-    public int GetEndOfTurnPressureReduction() => _endOfTurnPressureReduction;
-
     public void AddFocusMomentumBonus(FocusTags focus, int bonus)
     {
         if (!_focusMomentumBonuses.ContainsKey(focus))
@@ -89,8 +85,6 @@
 
         _focusPressureModifiers[focus] += modifier;
     }
-
-    public void AddEndOfTurnPressureReduction(int reduction) => _endOfTurnPressureReduction += reduction;
 
     public List<IEncounterTag> GetNewlyActivatedTags(BaseTagSystem projectedTags, IEnumerable<IEncounterTag> locationTags)
     {
