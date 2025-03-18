@@ -1,0 +1,93 @@
+﻿@inherits NarrativeViewBase
+
+<div class="narrative-container">
+    <div class="narrative-text">
+        @if (ShowResult)
+        {
+            <h3>
+                @(Result.EncounterResults switch
+                {
+                    EncounterResults.EncounterSuccess => "Encounter Won!",
+                    EncounterResults.EncounterFailure => "Encounter Lost",
+                    EncounterResults.GameOver => "Game Over",
+                    _ => ""
+                })
+            </h3>
+
+
+            @if (!string.IsNullOrEmpty(Result.EncounterEndMessage))
+            {
+                <div class="narrative-message">
+                    @((MarkupString)Result.EncounterEndMessage)
+                </div>
+            }
+
+            <div class="tooltip-section">
+                <h5>Consequences</h5>
+                <div class="tooltip-list">
+                    @if (Result.EncounterResults == EncounterResults.EncounterSuccess)
+                    {
+                        foreach (Outcome reward in GetActionOutcomesSuccess())
+                        {
+                            <div class="tooltip-item wide">
+                                <div class="tooltip-item-header">
+                                    <div class="tooltip-item-title">
+                                        @GetOutcomeIcon(reward)
+                                        <span class="tooltip-item-name">@reward.GetDescription()</span>
+                                    </div>
+                                    <span class="tooltip-item-value positive-change">
+                                        @reward.GetPreview(GameState.Player)
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+                <div class="tooltip-list">
+                    @if (Result.EncounterResults == EncounterResults.EncounterFailure)
+                    {
+                        @foreach (Outcome reward in GetActionOutcomesFailure())
+                        {
+                            <div class="tooltip-item wide">
+                                <div class="tooltip-item-header">
+                                    <div class="tooltip-item-title">
+                                        @GetOutcomeIcon(reward)
+                                        <span class="tooltip-item-name">@reward.GetDescription()</span>
+                                    </div>
+                                    <span class="tooltip-item-value negative-change">
+                                        @reward.GetPreview(GameState.Player)
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <div class="tooltip-section">
+                <h5>Energy Costs</h5>
+                <div class="tooltip-list">
+                    @foreach (Outcome cost in GetEnergyCosts())
+                    {
+                        <div class="tooltip-item wide">
+                            <div class="tooltip-item-header">
+                                <div class="tooltip-item-title">
+                                    @GetOutcomeIcon(cost)
+                                    <span class="tooltip-item-name">@cost.GetDescription()</span>
+                                </div>
+                                <span class="tooltip-item-value negative-change">
+                                    @cost.GetPreview(GameState.Player)
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <button class="narrative-button" @onclick="OnNarrativeCompleted">
+        Continue
+    </button>
+</div>
+

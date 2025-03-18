@@ -1,11 +1,15 @@
-﻿
-public class UserActionOption
+﻿public record UserActionOption
+    (
+    int Index,
+    string Description,
+    bool IsDisabled,
+    ActionImplementation ActionImplementation,
+    LocationNames Location,
+    string LocationSpot,
+    CharacterNames Character,
+    int LocationDifficulty
+    )
 {
-    public int Index { get; set; }
-    public string Description { get; set; }
-    public BasicAction BasicAction { get; set; }
-    public bool IsDisabled { get; set; }
-
     public string Display()
     {
         return $"{Index}. {Description}";

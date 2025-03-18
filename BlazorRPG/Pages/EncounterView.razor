@@ -1,0 +1,113 @@
+﻿@inherits EncounterViewBase
+@using Microsoft.AspNetCore.Components.Web
+
+<div class="Encounter-container" @onmousemove="OnMouseMove">
+    @if (IsLoading)
+    {
+        <div>
+            Loading...
+        </div>
+    }
+    @if (GetEncounter() != null)
+    {
+        <div class="encounter-header">
+        </div>
+        <div class="encounter-context">
+            <div class="encounter-stats">
+                <div class="stat">
+                    @GetValueTypeIcon(ValueTypes.Momentum)
+                    <span class="stat-label">Momentum</span>
+                    <span class="stat-value">
+                        @GetModel().State.Momentum
+                    </span>
+                </div>
+                <div class="stat">
+                    @GetValueTypeIcon(ValueTypes.Pressure)
+                    <span class="stat-label">Pressure</span>
+                    <span class="stat-value">
+                        @GetModel().State.Pressure
+                    </span>
+                </div>
+
+                <div class="location-properties">
+                    <div class="properties-header">ActiveTags</div>
+                    <div class="properties-grid">
+                        @foreach (var tag in GetActiveTags())
+                        {
+                            <div class="property-tag @tag.CssClass" title="@tag.TooltipText">
+                                <span class="property-icon">@tag.Icon</span>
+                                <span class="property-text">@tag.Text</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="properties-header">Non-Active Tags</div>
+                    <div class="properties-grid">
+                        @foreach (var prop in GetAvailableTags())
+                        {
+                            <div class="property-tag @prop.CssClass" title="@prop.TooltipText">
+                                <span class="property-icon">@prop.Icon</span>
+                                <span class="property-text">@prop.Text</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="encounter-details">
+                <div class="encounter-stage">
+                    <h3 class="choice-set-name">@GetModel().ChoiceSetName</h3>
+                    <div class="stage-situation">@GetModel().EncounterResult.NarrativeResult.SceneNarrative</div>
+                </div>
+
+                <div class="encounter-choices">
+                    @foreach (UserEncounterChoiceOption choice in GetChoices())
+                    {
+                         <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")
+                             @(false ? "winning" : "" )
+                             @(false ? "failing" : "")"
+                             @onmousemove="async (e) => await ShowTooltip(choice, e)"
+                             @onmouseout="HideTooltip"
+                             @onclick="() => HandleChoiceSelection(choice)">
+                            <span class="choice-index">@choice.Index.</span>
+                            <span class="choice-description">@GetChoiceName(choice)</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="focus-tags">
+                <div class="properties-header">Approach Tags</div>
+                <div class="tag-grid">
+                    @foreach (var tag in GetApproachTags())
+                    {
+                        <div class="tag-value">
+                            <span class="tag-name">@tag</span>
+                            <span class="tag-level">@GetModel().State.TagSystem.GetEncounterStateTagValue(tag)</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="focus-tags">
+                <div class="properties-header">Focus Tags</div>
+                <div class="tag-grid">
+                    @foreach (var tag in GetFocusTags())
+                    {
+                        <div class="tag-value">
+                            <span class="tag-name">@tag</span>
+                            <span class="tag-level">@GetModel().State.TagSystem.GetFocusTagValue(tag)</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (showTooltip && hoveredChoice != null)
+        {
+            <EncounterChoiceTooltip hoveredChoice="hoveredChoice" mouseX="mouseX" mouseY="mouseY" />
+        }
+    }
+</div>
+
+<script src="js/tooltip.js"></script>
