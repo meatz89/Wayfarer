@@ -107,10 +107,10 @@ public class PromptManager
     }
 
     public string BuildChoicesPrompt(
-    NarrativeContext context,
-    List<IChoice> choices,
-    List<ChoiceProjection> projections,
-    EncounterStatus state)
+        NarrativeContext context,
+        List<IChoice> choices,
+        List<ChoiceProjection> projections,
+        EncounterStatus state)
     {
         string template = _promptTemplates[CHOICES_MD];
 
@@ -194,7 +194,9 @@ Choice {i + 1}: {choice.Name}
             {
                 choicesInfo.AppendLine($"- Encounter Will End: True");
                 choicesInfo.AppendLine($"- Final Outcome: {projection.ProjectedOutcome}");
-                choicesInfo.AppendLine($"- Goal Achievement: {(projection.ProjectedOutcome != EncounterOutcomes.Failure ? "Will achieve goal to" : "Will fail to")} {encounterGoal}");
+                choicesInfo.AppendLine($"- Goal Achievement: " +
+                    $"{(projection.ProjectedOutcome != EncounterOutcomes.Failure ? 
+                    "Will achieve goal to" : "Will fail to")} {context.ActionImplementation.Goal}");
             }
 
             // Add any new narrative tags that would activate
