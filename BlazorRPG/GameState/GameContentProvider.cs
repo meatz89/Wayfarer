@@ -20,6 +20,7 @@
         locations = new List<Location>
         {
             WorldLocationsContent.Library,
+            WorldLocationsContent.Marketplace,
         };
 
         characters = new List<Character>

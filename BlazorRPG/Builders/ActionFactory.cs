@@ -1,6 +1,6 @@
 ﻿public static class ActionFactory
 {
-    public static ActionImplementation CreateAction(ActionTemplate template, Location location)
+    public static ActionImplementation CreateAction(ActionTemplate template)
     {
         ActionImplementation actionImplementation = new ActionImplementation()
         {

@@ -2,7 +2,7 @@
 {
     public LocationNames LocationName { get; set; }
     public List<LocationNames> TravelConnections { get; set; }
-    public List<LocationSpot> LocationSpots { get; set; } // Action groupings
+    public List<LocationSpot> LocationSpots { get; set; }
     public int Difficulty { get; set; }
     public ItemTypes ItemType { get; }
     public bool PlayerKnowledge { get; }

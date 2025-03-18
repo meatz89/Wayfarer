@@ -1,6 +1,6 @@
 ﻿public class ActionTemplateBuilder
 {
-    private string name;
+    private ActionNames name;
     private string description;
     private BasicActionTypes actionType;
 
@@ -11,7 +11,7 @@
 
     public bool IsEncounterAction = false;
 
-    public ActionTemplateBuilder WithName(string name)
+    public ActionTemplateBuilder WithName(ActionNames name)
     {
         this.name = name;
         return this;
@@ -47,11 +47,6 @@
 
     public ActionTemplate Build()
     {
-        // Add validation to ensure required properties are set
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new InvalidOperationException("ActionTemplate must have a name.");
-        }
         return new ActionTemplate(
             name,
             description,

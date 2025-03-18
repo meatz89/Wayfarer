@@ -314,7 +314,6 @@ body {
     display: flex;
     gap: 20px;
     padding: 1.0rem;
-    margin-bottom: 20px;
     align-items: flex-start;
 }
 
@@ -323,9 +322,9 @@ body {
     flex-direction: column;
     align-items: center;
     vertical-align: middle;
-    min-width: 80px;
+    min-width: 100px;
     position: relative;
-    padding-top: 2.0rem;
+    padding-top: 5rem;
 }
 
 .stat-label {
@@ -347,7 +346,6 @@ body {
 .encounter-stage {
     padding-left: 2rem;
     color: #e6e6e6;
-    margin-top: 1rem;
     margin-bottom: 1rem;
 }
 
@@ -357,14 +355,12 @@ body {
     font-style: italic;
     margin-bottom: 1rem;
     padding-top: 1rem;
-    padding-bottom: 0.5rem;
 }
 
 .stage-situation {
-    margin-top: 1rem;
-    margin-bottom: 1rem;
     line-height: 24px;
     font-size: 1.0em;
+    padding-top: 0rem;
     padding-right: 2.0rem;
     padding-bottom: 2.0rem;
 }
@@ -609,7 +605,7 @@ body {
 }
 
 .tooltip-item-details {
-    margin-left: 28px;
+    margin-left: 14px;
     margin-top: 4px;
 }
 
