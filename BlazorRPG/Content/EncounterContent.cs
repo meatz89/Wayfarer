@@ -9,8 +9,8 @@
 
         hostility = EncounterInfo.HostilityLevels.Friendly,
 
-        favoredApproaches = new[] { ApproachTags.Analysis, ApproachTags.Precision }.ToList(),
-        disfavoredApproaches = new[] { ApproachTags.Dominance }.ToList(),
+        MomentumBoostApproaches = new[] { ApproachTags.Analysis, ApproachTags.Precision }.ToList(),
+        DangerousApproaches = new[] { ApproachTags.Dominance }.ToList(),
         
         favoredFocuses = new[] { FocusTags.Environment, FocusTags.Information }.ToList(),
         disfavoredFocuses = new[] { FocusTags.Physical, FocusTags.Resource }.ToList(),
@@ -43,11 +43,11 @@
 
         hostility = EncounterInfo.HostilityLevels.Hostile,
 
-        favoredApproaches = new[] { ApproachTags.Dominance, ApproachTags.Precision }.ToList(),
-        disfavoredApproaches = new[] { ApproachTags.Rapport }.ToList(),
+        MomentumBoostApproaches = new[] { ApproachTags.Analysis, ApproachTags.Precision }.ToList(),
+        DangerousApproaches = new[] { ApproachTags.Dominance, ApproachTags.Concealment }.ToList(),
 
-        favoredFocuses = new[] { FocusTags.Environment, FocusTags.Physical }.ToList(),
-        disfavoredFocuses = new[] { FocusTags.Information, FocusTags.Relationship }.ToList(),
+        favoredFocuses = new[] { FocusTags.Physical }.ToList(),
+        disfavoredFocuses = new[] { FocusTags.Environment }.ToList(),
 
         encounterNarrativeTags =
         [
@@ -76,8 +76,8 @@
 
         hostility = EncounterInfo.HostilityLevels.Neutral,
 
-        favoredApproaches = new[] { ApproachTags.Rapport, ApproachTags.Analysis }.ToList(),
-        disfavoredApproaches = new[] { ApproachTags.Concealment, ApproachTags.Precision }.ToList(),
+        MomentumBoostApproaches = new[] { ApproachTags.Rapport, ApproachTags.Analysis }.ToList(),
+        DangerousApproaches = new[] { ApproachTags.Concealment, ApproachTags.Precision }.ToList(),
 
         favoredFocuses = new[] { FocusTags.Relationship, FocusTags.Resource }.ToList(),
         disfavoredFocuses = new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),

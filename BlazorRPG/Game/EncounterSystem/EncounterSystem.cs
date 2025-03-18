@@ -133,7 +133,7 @@
 
     public async Task<EncounterResult> StartEncounterAt(
         Location location,
-        EncounterInfo encounter,
+        EncounterInfo encounterInfo,
         PlayerState playerState,
         ActionImplementation actionImplementation)
     {
@@ -161,7 +161,7 @@
         // Start the encounter with narrative
         NarrativeResult initialResult = await encounterManager.StartEncounterWithNarrativeAsync(
             location,
-            encounter,
+            encounterInfo,
             playerState,
             actionImplementation,
             currentAIProvider);  // Pass the current provider type

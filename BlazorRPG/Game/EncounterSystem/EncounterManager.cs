@@ -110,15 +110,15 @@
         return projection;
     }
 
-    private void StartEncounter(EncounterInfo location, PlayerState playerState)
+    private void StartEncounter(EncounterInfo encounterInfo, PlayerState playerState)
     {
-        State = new EncounterState(location, playerState);
-        State.UpdateActiveTags(location.AvailableTags);
+        State = new EncounterState(encounterInfo, playerState);
+        State.UpdateActiveTags(encounterInfo.AvailableTags);
     }
 
     public async Task<NarrativeResult> StartEncounterWithNarrativeAsync(
         Location location,
-        EncounterInfo encounter,
+        EncounterInfo encounterInfo,
         PlayerState playerState,
         ActionImplementation incitingAction,
         AIProviderType providerType)
@@ -129,14 +129,14 @@
         }
 
         // Start the encounter mechanically
-        StartEncounter(encounter, playerState);
+        StartEncounter(encounterInfo, playerState);
 
         // Create narrative context
         _narrativeContext =
             new NarrativeContext(
-                encounter.LocationName.ToString(),
-                encounter.LocationSpotName.ToString(),
-                encounter.EncounterType,
+                encounterInfo.LocationName.ToString(),
+                encounterInfo.LocationSpotName.ToString(),
+                encounterInfo.EncounterType,
                 incitingAction);
 
         // Generate introduction
