@@ -107,29 +107,29 @@ public class NarrativeTagRepository
         new FocusThresholdCondition(ApproachTags.Precision, 2),
         FocusTags.Resource);
 
-    // CONCEALMENT-BASED NARRATIVE TAGS
+    // EVASION-BASED NARRATIVE TAGS
     public static readonly NarrativeTag ShadowVeil = new(
         "Shadow Veil",
-        new FocusThresholdCondition(ApproachTags.Concealment, 1),
+        new FocusThresholdCondition(ApproachTags.Evasion, 1),
         FocusTags.Relationship);
 
     public static readonly NarrativeTag ParanoidMindset = new(
         "Paranoid Mindset",
-        new FocusThresholdCondition(ApproachTags.Concealment, 1),
+        new FocusThresholdCondition(ApproachTags.Evasion, 1),
         FocusTags.Information);
 
     public static readonly NarrativeTag CautiousRestraint = new(
         "Cautious Restraint",
-        new FocusThresholdCondition(ApproachTags.Concealment, 1),
+        new FocusThresholdCondition(ApproachTags.Evasion, 1),
         FocusTags.Physical);
 
     public static readonly NarrativeTag HidingPlaceFixation = new(
         "Hiding Place Fixation",
-        new FocusThresholdCondition(ApproachTags.Concealment, 2),
+        new FocusThresholdCondition(ApproachTags.Evasion, 2),
         FocusTags.Environment);
 
     public static readonly NarrativeTag HoardingInstinct = new(
         "Hoarding Instinct",
-        new FocusThresholdCondition(ApproachTags.Concealment, 1),
+        new FocusThresholdCondition(ApproachTags.Evasion, 1),
         FocusTags.Resource);
 }

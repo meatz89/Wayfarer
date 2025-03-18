@@ -20,7 +20,7 @@ public class ChoiceRepository
             "You unleash your full physical and authoritative might, completely dominating the situation at the cost of any subtlety or social nuance.",
             FocusTags.Physical,
             TagModification.ForEncounterState(ApproachTags.Dominance, 3),
-            TagModification.ForEncounterState(ApproachTags.Concealment, -2),
+            TagModification.ForEncounterState(ApproachTags.Evasion, -2),
             TagModification.ForEncounterState(ApproachTags.Rapport, -1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
@@ -109,7 +109,7 @@ public class ChoiceRepository
             "You create a moment of profound connection and authentic vulnerability that deeply resonates, but leaves you exposed and unable to maintain distance.",
             FocusTags.Relationship,
             TagModification.ForEncounterState(ApproachTags.Rapport, 3),
-            TagModification.ForEncounterState(ApproachTags.Concealment, -2),
+            TagModification.ForEncounterState(ApproachTags.Evasion, -2),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
@@ -226,13 +226,13 @@ public class ChoiceRepository
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
-        // MODIFIED WITH TRADEOFF: Analysis over concealment
+        // MODIFIED WITH TRADEOFF: Analysis over evasion
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Resource Optimization",
             "You quickly assess resource value and utility with such thoroughness that your intense scrutiny becomes noticeable to others.",
             FocusTags.Resource,
             TagModification.ForEncounterState(ApproachTags.Analysis, 2),
-            TagModification.ForEncounterState(ApproachTags.Concealment, -1),
+            TagModification.ForEncounterState(ApproachTags.Evasion, -1),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
@@ -259,7 +259,7 @@ public class ChoiceRepository
             "You deduce others' underlying motivations so thoroughly that your focused attention becomes noticeable, sacrificing some stealth.",
             FocusTags.Relationship,
             TagModification.ForEncounterState(ApproachTags.Analysis, 1),
-            TagModification.ForEncounterState(ApproachTags.Concealment, -1),
+            TagModification.ForEncounterState(ApproachTags.Evasion, -1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
@@ -367,12 +367,12 @@ public class ChoiceRepository
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
-        // CONCEALMENT-BASED OFFENSIVE CHOICES (MOMENTUM)
+        // EVASION-BASED OFFENSIVE CHOICES (MOMENTUM)
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Hidden Advantage",
             "You move with invisible purpose, positioning yourself to capitalize on opportunities others don't even perceive.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 2),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
@@ -380,7 +380,7 @@ public class ChoiceRepository
             "Gather Secrets",
             "You observe and absorb vital information others reveal unknowingly, collecting intelligence while appearing disinterested.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 2),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
@@ -389,7 +389,7 @@ public class ChoiceRepository
             "False Persona",
             "You present a carefully crafted persona that conceals your true purpose while building advantageous but ultimately deceptive relationships.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 2),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
             TagModification.ForEncounterState(ApproachTags.Rapport, -1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
@@ -399,7 +399,7 @@ public class ChoiceRepository
             "Become Shadow",
             "You vanish so completely into your surroundings that you practically cease to exist, sacrificing any ability to assert presence or maintain connections.",
             FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 3),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 3),
             TagModification.ForEncounterState(ApproachTags.Dominance, -2),
             TagModification.ForEncounterState(ApproachTags.Rapport, -1),
             TagModification.ForFocus(FocusTags.Environment, 1)
@@ -410,17 +410,17 @@ public class ChoiceRepository
             "Hidden Resources",
             "You reveal concealed tools or supplies at the perfect moment, prioritizing stealth over a more dominant approach.",
             FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 2),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
             TagModification.ForEncounterState(ApproachTags.Dominance, -1),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
-        // CONCEALMENT-BASED DEFENSIVE CHOICES (PRESSURE)
+        // EVASION-BASED DEFENSIVE CHOICES (PRESSURE)
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Fade Away",
             "You make yourself scarce at the critical moment, removing yourself from danger by seemingly vanishing.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
@@ -429,7 +429,7 @@ public class ChoiceRepository
             "Information Blackout",
             "You masterfully control all information about yourself, revealing nothing while learning everything, at the cost of forming genuine connections.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 2),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
             TagModification.ForEncounterState(ApproachTags.Rapport, -1),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
@@ -438,7 +438,7 @@ public class ChoiceRepository
             "Maintain Privacy",
             "You establish subtle but effective boundaries that keep others from probing sensitive areas without seeming distant.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
@@ -447,7 +447,7 @@ public class ChoiceRepository
             "Disappear",
             "You identify and utilize overlooked environmental features to vanish completely, relying on instinct rather than thorough analysis.",
             FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
             TagModification.ForEncounterState(ApproachTags.Analysis, -1),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
@@ -456,7 +456,7 @@ public class ChoiceRepository
             "Hide Resources",
             "You secretively stash valuable resources where only you can access them, ensuring they remain available when needed.",
             FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
@@ -486,7 +486,7 @@ public class ChoiceRepository
             "You move with perfect control and silence, achieving the impossible without being detected.",
             FocusTags.Environment,
             TagModification.ForEncounterState(ApproachTags.Precision, 1),
-            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
             TagModification.ForEncounterState(ApproachTags.Dominance, -1),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
@@ -498,7 +498,7 @@ public class ChoiceRepository
             FocusTags.Relationship,
             TagModification.ForEncounterState(ApproachTags.Analysis, 2),
             TagModification.ForEncounterState(ApproachTags.Rapport, 2),
-            TagModification.ForEncounterState(ApproachTags.Concealment, -2),
+            TagModification.ForEncounterState(ApproachTags.Evasion, -2),
             TagModification.ForEncounterState(ApproachTags.Dominance, -1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
@@ -509,7 +509,7 @@ public class ChoiceRepository
             FocusTags.Physical,
             TagModification.ForEncounterState(ApproachTags.Dominance, 1),
             TagModification.ForEncounterState(ApproachTags.Precision, 1),
-            TagModification.ForEncounterState(ApproachTags.Concealment, -1),
+            TagModification.ForEncounterState(ApproachTags.Evasion, -1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
     }

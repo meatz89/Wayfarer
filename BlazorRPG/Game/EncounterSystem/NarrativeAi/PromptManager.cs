@@ -556,7 +556,7 @@ Choice {i + 1}: {choice.Name}
             "Rapport" => "Bard",
             "Analysis" => "Scholar",
             "Precision" => "Ranger",
-            "Concealment" => "Thief",
+            "Evasion" => "Thief",
             _ => "Traveler"
         };
     }
@@ -607,7 +607,7 @@ Choice {i + 1}: {choice.Name}
                tag == ApproachTags.Rapport ||
                tag == ApproachTags.Analysis ||
                tag == ApproachTags.Precision ||
-               tag == ApproachTags.Concealment;
+               tag == ApproachTags.Evasion;
     }
 
     private string GetApproachChangeDescription(ApproachTags approach, bool isPositive)
@@ -622,8 +622,8 @@ Choice {i + 1}: {choice.Name}
             (ApproachTags.Analysis, false) => "confusion, overlooking details, or failing to make connections",
             (ApproachTags.Precision, true) => "improved accuracy, careful execution, or greater control",
             (ApproachTags.Precision, false) => "clumsiness, carelessness, or lack of control",
-            (ApproachTags.Concealment, true) => "better stealth, secrecy, or ability to hide intentions",
-            (ApproachTags.Concealment, false) => "exposure, visibility, or inability to hide",
+            (ApproachTags.Evasion, true) => "better stealth, secrecy, or ability to hide intentions",
+            (ApproachTags.Evasion, false) => "exposure, visibility, or inability to hide",
             _ => "significant change in approach"
         };
     }
