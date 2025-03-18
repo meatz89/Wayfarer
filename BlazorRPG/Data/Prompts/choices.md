@@ -28,19 +28,21 @@ CHOICES:
 {CHOICES_INFO}
 
 ## CHOICE NAMING GUIDELINES:
-Based on the encounter type, name each choice as follows:
 
-- For INTELLECTUAL encounters:
-  * Analysis/Precision with Information focus: Use COMPLETE INNER THOUGHTS exactly as they would occur in the player's mind
-    CORRECT: "These shelves seem organized by topic..."
+Names should capture the player's authentic voice - their actual thoughts, words, or action intentions - NOT descriptions of what they're doing. Avoid labels, general descriptions, or third-person perspective entirely.
+
+Based on the choice, name each choice as follows:
+
+  * Analytical or Observational choices: Use COMPLETE INNER THOUGHTS exactly as they would occur in the player's mind.
+    CORRECT: These shelves seem organized by topic...
     INCORRECT: "Observing the Manuscript Organization"
     
-  * Dominance/Rapport with social elements: Use the EXACT WORDS the player would speak
+  * Social choices: Use the EXACT WORDS the player would speak. Use quotation marks for direct speech.
     CORRECT: "I demand you show me the scripture now."
-    INCORRECT: "Making a Forceful Demand"
+    INCORRECT: Making a Forceful Demand
     
   * Physical actions: Use FIRST-PERSON ACTION INTENTIONS
-    CORRECT: "I'll search behind that loose panel..."
+    CORRECT: I'll search behind that loose panel...
     INCORRECT: "Searching the Hidden Panel"
 
 ## CRITICAL GUIDELINES:
@@ -91,8 +93,6 @@ REMEMBER:
   * Health -3: Major injury language
   * Health -5: Life-threatening language
 - Each choice should feel distinct and appropriate to both the approach/focus combination
-
-Names should capture the player's authentic voice - their actual thoughts, words, or action intentions - NOT descriptions of what they're doing. Avoid labels, general descriptions, or third-person perspective entirely.
 
 Format the output as a JSON object with four choice objects containing 'index', 'name', 'description', 'approach', and 'focus'.
 
