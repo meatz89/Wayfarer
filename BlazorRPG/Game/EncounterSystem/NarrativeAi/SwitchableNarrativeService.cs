@@ -67,6 +67,16 @@
         return await narrativeAIService.GenerateIntroductionAsync(context, state);
     }
 
+    public async Task<string> GenerateEndingAsync(
+        NarrativeContext context,
+        IChoice chosenOption,
+        ChoiceOutcome outcome,
+        EncounterStatus newState)
+    {
+        return await _providers[_currentProvider].GenerateEndingAsync(
+            context, chosenOption, outcome, newState);
+    }
+
     public async Task<string> GenerateReactionAndSceneAsync(
         NarrativeContext context,
         IChoice chosenOption,

@@ -18,8 +18,6 @@
     public BaseTagSystem TagSystem => _tagManager.TagSystem;
     public List<IEncounterTag> ActiveTags => _tagManager.ActiveTags;
 
-    public const int MaxPressure = 30;
-
     private readonly TagManager _tagManager;
     private readonly ResourceManager _resourceManager;
     private readonly ProjectionService _projectionService;
@@ -63,6 +61,7 @@
         // Then apply the choice as normal
         ChoiceProjection projection = CreateChoiceProjection(choice);
         ApplyChoiceProjection(projection);
+
         return projection;
     }
 
@@ -139,29 +138,6 @@
     public void BuildPressure(int amount) => Pressure += amount;
 
     public void ReducePressure(int amount) => Pressure = Math.Max(0, Pressure - amount);
-
-    public void EndTurn()
-    {
-        CurrentTurn++;
-
-        int endOfTurnPressureReduction = _tagManager.GetEndOfTurnPressureReduction();
-        if (endOfTurnPressureReduction > 0)
-            ReducePressure(endOfTurnPressureReduction);
-    }
-
-    public bool IsEncounterOver() => Pressure >= MaxPressure || CurrentTurn >= Location.TurnDuration;
-
-    public EncounterOutcomes GetOutcome()
-    {
-        if (Pressure >= MaxPressure || Momentum < Location.PartialThreshold)
-            return EncounterOutcomes.Failure;
-        if (Momentum < Location.StandardThreshold)
-            return EncounterOutcomes.Partial;
-        if (Momentum < Location.ExceptionalThreshold)
-            return EncounterOutcomes.Standard;
-
-        return EncounterOutcomes.Exceptional;
-    }
 
     public ChoiceProjection CreateChoiceProjection(IChoice choice)
     {

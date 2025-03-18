@@ -10,6 +10,7 @@ Approach values: {APPROACH_VALUES}
 Active narrative tags: {LIST_TAGS}
 Key NPCs present: {NPC_LIST}
 {ACTIVE_TAGS}
+{LOCATION_PREFERENCES}
 
 For each choice, write a 1-2 sentence description that:
 1. Shows how this approach would interact with the CURRENT SITUATION'S STATE
@@ -19,6 +20,16 @@ For each choice, write a 1-2 sentence description that:
 5. References relevant environmental elements or NPC dynamics
 6. Is appropriate for the encounter type (Social/Intellectual/Physical)
 7. Shows how the character would execute this choice given the current situation's dynamics
+
+## ENCOUNTER ENDINGS
+
+For choices that will end the encounter (marked with "Encounter Will End: True"), adjust the description to:
+1. Clearly indicate this is a concluding action without directly stating it
+2. Use language appropriate to the projected outcome:
+   * Failure: Show tone of defeat, last desperate attempt, or resignation
+   * Partial: Suggest compromise, modest achievement, or acceptable outcome
+   * Standard: Indicate solid resolution or clear success
+   * Exceptional: Convey triumph, mastery, or perfect execution
 
 Write in FIRST PERSON, PRESENT TENSE. Focus on how the ENVIRONMENT has evolved to respond to certain approaches, not on any skills or abilities the character has developed.
 
@@ -71,14 +82,17 @@ Based on the choice, name each choice as follows:
    - Example: "Your bread smells good. Had a busy morning?"
 
 6. KEEP DIALOGUE REALISTIC AND GROUNDED:
-   - Write how real people actually talk in marketplaces
+   - Write how real people actually talk in everyday situations
    - Avoid dialogue that sounds "written" or literary
    - Use natural, conversational rhythm
 
-7. NAME CHOICES AS FOLLOWS:
-   - Analysis/Precision + Information: Use direct thoughts
-   - Dominance/Rapport with social elements: Use EXACT WORDS the player would speak
-   - Physical actions: Use first-person action intentions
+7. IF A CHOICE WILL END THE ENCOUNTER:
+   - Indicate the finality without explicitly mentioning the encounter ending
+   - Adapt tone to match the projected outcome (failure, partial, standard, exceptional)
+   - For Failure: "I'll take whatever scraps you'll give me..."
+   - For Partial: "This deal isn't great, but it'll do for now."
+   - For Standard: "This bread will keep me fed for days."
+   - For Exceptional: "I couldn't have hoped for a better outcome."
 
 REMEMBER:
 - Write in FIRST PERSON, PRESENT TENSE

@@ -219,6 +219,12 @@
         // If the encounter is over, return the outcome
         if (outcome.IsEncounterOver)
         {
+            narrative = await _narrativeService.GenerateEndingAsync(
+                _narrativeContext,
+                choice,
+                outcome,
+                newStatus);
+
             NarrativeResult narrativeResult = new(
                 narrative,
                 new List<IChoice>(),
