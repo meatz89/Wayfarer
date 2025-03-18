@@ -32,22 +32,21 @@ CHOICES:
 
 CHOICE NAMING GUIDELINES:
 Based on the encounter type, name each choice as follows:
+
 - For INTELLECTUAL encounters:
-  * Analysis/Precision with Information focus: Use INNER THOUGHTS (Example: "The patterns in these manuscripts...")
-  * Dominance/Rapport with social elements: Use DIRECT SPEECH (Example: "I require access to these texts.")
-  * Physical actions: Use ACTION DESCRIPTIONS (Example: "Examine the hidden panel closely")
+  * Analysis/Precision with Information focus: Use COMPLETE INNER THOUGHTS exactly as they would occur in the player's mind
+    CORRECT: "These shelves seem organized by topic..."
+    INCORRECT: "Observing the Manuscript Organization"
+    
+  * Dominance/Rapport with social elements: Use the EXACT WORDS the player would speak
+    CORRECT: "I demand you show me the scripture now."
+    INCORRECT: "Making a Forceful Demand"
+    
+  * Physical actions: Use FIRST-PERSON ACTION INTENTIONS
+    CORRECT: "I'll search behind that loose panel..."
+    INCORRECT: "Searching the Hidden Panel"
 
-- For SOCIAL encounters:
-  * All approaches with Relationship focus: Use DIRECT SPEECH of what the character would say
-  * Analysis approaches: Use INNER THOUGHTS about people's motivations
-  * Physical approaches: Use descriptions of BODY LANGUAGE and GESTURES
-
-- For PHYSICAL encounters:
-  * All approaches: Use ACTION DESCRIPTIONS of physical movements
-  * Analysis approaches: Add brief observational thoughts
-  * Social approaches: Include brief verbal elements when applicable
-
-Names should be specific to the current situation, first-person, and feel like natural thought processes, speech, or actions - NOT abstract skill descriptions.
+Names should capture the player's authentic voice - their actual thoughts, words, or action intentions - NOT descriptions of what they're doing. Avoid labels, general descriptions, or third-person perspective entirely.
 
 REMEMBER:
 - Write in FIRST PERSON, PRESENT TENSE
