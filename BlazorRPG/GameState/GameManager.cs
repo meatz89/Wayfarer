@@ -75,7 +75,7 @@ public class GameManager
 
         model.CurrentEncounter = encounterManager;
         model.CurrentChoices = userEncounterChoiceOptions;
-        model.ChoiceSetName = "choiceset";
+        model.ChoiceSetName = "Current Situation";
         model.State = state;
         model.EncounterResult = encounterResult;
 

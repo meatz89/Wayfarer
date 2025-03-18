@@ -112,7 +112,6 @@ public class PromptManager
 
         // Replace placeholders in template
         string prompt = template
-            .Replace("{ENCOUNTER_HISTORY}", completeHistory)
             .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
             .Replace("{LOCATION}", context.LocationName)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
@@ -226,7 +225,6 @@ Choice {i + 1}: {choice.Name}
 
         // Replace placeholders in template
         string prompt = template
-            .Replace("{ENCOUNTER_HISTORY}", completeHistory)
             .Replace("{LOCATION}", context.LocationName)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
             .Replace("{CURRENT_SITUATION}", currentSituation)

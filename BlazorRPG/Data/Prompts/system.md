@@ -57,19 +57,25 @@ Every narrative scene should follow this progression:
 - PHYSICAL: Detailed physical actions, bodily sensations, and environment interactions
 
 ## KEY TAGS REFERENCE
-- APPROACHES (HOW the player acts):
-  * Dominance: Direct power, authority, intimidation, aggression
-  * Rapport: Social grace, persuasion, empathy, appeal
-  * Analysis: Intelligence, observation, problem-solving, strategy
-  * Precision: Careful execution, skill, attention to detail, accuracy
-  * Concealment: Subtlety, stealth, indirect methods, avoidance
 
-- FOCUSES (WHAT the player focuses on):
-  * Relationship: Social connections, status, trust, interactions
-  * Information: Knowledge, facts, observations, understanding
-  * Physical: Bodies, items, direct physical interaction
-  * Environment: Surroundings, location features, terrain
-  * Resource: Money, supplies, time, valuables
+APPROACHES (HOW situations evolve):
+- Dominance: The situation emphasizes power dynamics, authority, and direct confrontation
+- Rapport: The atmosphere highlights social connections, empathy, and relationships
+- Analysis: The environment reveals patterns, logical connections, and observable details
+- Precision: The situation rewards careful execution, exact positioning, and accuracy
+- Concealment: The environment emphasizes hidden information, subtlety, and indirect methods
+
+FOCUSES (WHICH aspects become influential):
+- Relationship: Social hierarchies and interpersonal dynamics are central
+- Information: Knowledge, facts, and understanding are at the forefront
+- Physical: Bodies, items, and direct physical interaction have prominence
+- Environment: Surroundings, spatial arrangements, and terrain are key
+- Resource: Money, supplies, and valuables have increased significance
+
+Tag increases represent how the ENVIRONMENT and SITUATION evolve in response to player choices, NOT player skill development. When describing tag increases:
+- Show how the location/NPCs respond differently to certain approaches
+- Illustrate which aspects of the situation have become more influential
+- Depict the evolution of the scene's dynamics, not player improvement
 
 ## WRITING REQUIREMENTS
 - ALWAYS PRESENT TENSE: "I notice" not "I noticed"

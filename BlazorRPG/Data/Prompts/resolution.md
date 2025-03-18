@@ -1,7 +1,5 @@
 # WAYFARER TURN RESOLUTION
 
-{ENCOUNTER_HISTORY}
-
 Generate a narrative outcome for a character in a {ENCOUNTER_TYPE} encounter who JUST chose {SELECTED_CHOICE} ({APPROACH} + {FOCUS}, {EFFECT_TYPE}). The encounter takes place in {LOCATION} with the objective to {CHARACTER_GOAL}.
 
 Urgent situation that prompted the choice: {CURRENT_SITUATION}
@@ -20,13 +18,16 @@ Write a continuous narrative response that follows this structure (but DO NOT in
 
 First 2-3 paragraphs: 
 - Show the immediate results of this choice through detailed description
-- Demonstrate how the approach increase manifests as developing skill or mastery, not just a numeric change
-- Illustrate the focus increase through selective attention or enhanced capability
-- Represent momentum/pressure changes through narrative developments with clear cause-effect relationships
-- If narrative tags activated, subtly show their effects emerging as natural limitations
+- Demonstrate how the approach increase manifests as a SHIFT IN THE SITUATION'S DYNAMICS
+  * For Dominance: "The atmosphere shifts as power dynamics become more prominent"
+  * For Rapport: "The social fabric of the encounter becomes more influential"
+  * For Analysis: "The environment reveals more patterns and logical connections"
+  * For Precision: "The situation now emphasizes careful positioning and exact timing"
+  * For Concealment: "The encounter now centers around what remains hidden and unsaid"
+- Illustrate the focus increase by showing how that aspect of the situation has become more influential
+- Represent momentum/pressure changes through environmental responses and NPC reactions
 - Include NPC reactions with psychological depth (thoughts, emotions, calculations visible through expressions)
-- Show how strategic tag effects manifest through environmental or situational responses
-- Reference how previous choices and their consequences continue to influence the current situation
+- Show how strategic tag effects manifest through the location's natural responses
 
 Final paragraph: 
 - Present a NEW DIRECT PROBLEM that emerges as a direct result of the action just taken
