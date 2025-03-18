@@ -12,8 +12,8 @@
         favoredApproaches = new[] { ApproachTags.Analysis, ApproachTags.Precision }.ToList(),
         disfavoredApproaches = new[] { ApproachTags.Dominance }.ToList(),
         
-        favoredFocuses = new[] { FocusTags.Relationship, FocusTags.Resource }.ToList(),
-        disfavoredFocuses = new[] { FocusTags.Physical }.ToList(),
+        favoredFocuses = new[] { FocusTags.Environment, FocusTags.Information }.ToList(),
+        disfavoredFocuses = new[] { FocusTags.Physical, FocusTags.Resource }.ToList(),
 
         encounterNarrativeTags =
         [
@@ -43,12 +43,11 @@
 
         hostility = EncounterInfo.HostilityLevels.Hostile,
 
-        favoredApproaches = new[] { ApproachTags.Concealment, ApproachTags.Precision }.ToList(),
-        disfavoredApproaches = new[] { ApproachTags.Dominance }.ToList(),
+        favoredApproaches = new[] { ApproachTags.Dominance, ApproachTags.Precision }.ToList(),
+        disfavoredApproaches = new[] { ApproachTags.Rapport }.ToList(),
 
-        // New properties - Physical actions risk injury in a fight
-        favoredFocuses = new[] { FocusTags.Environment, FocusTags.Information }.ToList(),
-        disfavoredFocuses = new[] { FocusTags.Physical }.ToList(),
+        favoredFocuses = new[] { FocusTags.Environment, FocusTags.Physical }.ToList(),
+        disfavoredFocuses = new[] { FocusTags.Information, FocusTags.Relationship }.ToList(),
 
         encounterNarrativeTags =
         [
@@ -78,11 +77,10 @@
         hostility = EncounterInfo.HostilityLevels.Neutral,
 
         favoredApproaches = new[] { ApproachTags.Rapport, ApproachTags.Analysis }.ToList(),
-        disfavoredApproaches = new[] { ApproachTags.Concealment }.ToList(),
+        disfavoredApproaches = new[] { ApproachTags.Concealment, ApproachTags.Precision }.ToList(),
 
-        // New properties - Physical actions might be seen as threatening
         favoredFocuses = new[] { FocusTags.Relationship, FocusTags.Resource }.ToList(),
-        disfavoredFocuses = new[] { FocusTags.Physical }.ToList(),
+        disfavoredFocuses = new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),
 
         encounterNarrativeTags =
         [
