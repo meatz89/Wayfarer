@@ -4,7 +4,7 @@
     public LocationNames LocationName { get; set; }
     public CharacterNames? Character { get; set; }
     public Accessibility? Accessibility { get; set; }
-    public Engagement? Engagement { get; set; }
+    public LocationType? Engagement { get; set; }
     public Atmosphere? Atmosphere { get; set; }
     public RoomLayout? RoomLayout { get; set; }
     public Temperature? Temperature { get; set; }
@@ -22,7 +22,7 @@
         {
             return Accessibility.HasValue && Accessibility == accessibility;
         }
-        else if (locationSpotProperty is Engagement engagement)
+        else if (locationSpotProperty is LocationType engagement)
         {
             return Engagement.HasValue && Engagement == engagement;
         }
@@ -48,7 +48,7 @@
         string name,
         LocationNames locationName,
         Accessibility? accessibility,
-        Engagement? engagement,
+        LocationType? engagement,
         Atmosphere? atmosphere,
         RoomLayout? roomLayout,
         Temperature? temperature,

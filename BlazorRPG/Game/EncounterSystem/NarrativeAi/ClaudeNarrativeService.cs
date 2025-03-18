@@ -17,7 +17,7 @@
             _contextManager.GetConversationHistory(conversationId));
 
         _contextManager.AddAssistantMessage(conversationId, response);
-        
+
         return response;
     }
 
