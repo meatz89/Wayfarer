@@ -141,9 +141,9 @@ public class PromptManager
         StringBuilder locationPreferences = new StringBuilder();
         locationPreferences.AppendLine("## Location Strategic Information:");
 
-        if (state.EncounterInfo?.FavoredApproaches?.Any() == true)
+        if (state.EncounterInfo?.MomentumBoostApproaches?.Any() == true)
         {
-            locationPreferences.AppendLine($"- Favored Approaches: {string.Join(", ", state.EncounterInfo.FavoredApproaches)}");
+            locationPreferences.AppendLine($"- Favored Approaches: {string.Join(", ", state.EncounterInfo.MomentumBoostApproaches)}");
             locationPreferences.AppendLine("  These approaches work particularly well in this location.");
         }
 

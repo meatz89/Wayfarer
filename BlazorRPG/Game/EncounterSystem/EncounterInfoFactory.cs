@@ -12,8 +12,8 @@
         EncounterInfo encounterInfo = new EncounterInfo(
             locationName,
             locationSpot,
-            template.favoredApproaches,
-            template.disfavoredApproaches,
+            template.MomentumBoostApproaches,
+            template.DangerousApproaches,
             template.favoredFocuses,
             template.disfavoredFocuses,
             template.Duration,

@@ -7,8 +7,8 @@
 
     public EncounterInfo.HostilityLevels hostility = EncounterInfo.HostilityLevels.Neutral;
 
-    public List<ApproachTags> favoredApproaches { get; set; } = new List<ApproachTags>();
-    public List<ApproachTags> disfavoredApproaches { get; set; } = new List<ApproachTags>();
+    public List<ApproachTags> MomentumBoostApproaches { get; set; } = new List<ApproachTags>();
+    public List<ApproachTags> DangerousApproaches { get; set; } = new List<ApproachTags>();
 
     // New properties
     public List<FocusTags> favoredFocuses { get; set; } = new List<FocusTags>();

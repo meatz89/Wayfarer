@@ -39,20 +39,20 @@
         projection.PressureBuilt = pressureChange;
 
         // Ensure pressure can't go below 0
-        EnsureNoNegativeEncounterPressure(currentPressure, projection);
+        EnsureNoNegativeEncounterValues(currentMomentum, currentPressure, projection);
 
         // Set final calculated values
         projection.FinalMomentum = currentMomentum + momentumChange;
         projection.FinalPressure = Math.Max(0, currentPressure + projection.PressureBuilt);
 
         // Calculate pressure-based resource damage that will apply at start of turn
-        CalculateDamageFromPressure(choice, projection);
+        CalculateDamageFromPressure(choice, projection, currentPressure);
 
         // Calculate projected turn and check if encounter will end
         int projectedTurn = currentTurn + 1;
         projection.ProjectedTurn = projectedTurn;
 
-        projection = DetermineEncounterEnd(projection, projectedTurn);
+        DetermineEncounterEnd(projection, projectedTurn);
 
         // Apply all explicit tag modifications from the choice
         ProcessChoiceTagIncreases(choice, projection, clonedTagSystem);
@@ -96,11 +96,11 @@
         }
     }
 
-    private void CalculateDamageFromPressure(IChoice choice, ChoiceProjection projection)
+    private void CalculateDamageFromPressure(IChoice choice, ChoiceProjection projection, int currentPressure)
     {
-        int pressureHealthDamage = _resourceManager.CalculatePressureResourceDamage(ResourceTypes.Health, projection.FinalPressure);
-        int pressureConcentrationDamage = _resourceManager.CalculatePressureResourceDamage(ResourceTypes.Concentration, projection.FinalPressure);
-        int pressureConfidenceDamage = _resourceManager.CalculatePressureResourceDamage(ResourceTypes.Confidence, projection.FinalPressure);
+        int pressureHealthDamage = _resourceManager.CalculatePressureResourceDamage(ResourceTypes.Health, currentPressure);
+        int pressureConcentrationDamage = _resourceManager.CalculatePressureResourceDamage(ResourceTypes.Concentration, currentPressure);
+        int pressureConfidenceDamage = _resourceManager.CalculatePressureResourceDamage(ResourceTypes.Confidence, currentPressure);
 
         // Add pressure resource components to projection
         if (encounterInfo.DangerousApproaches.Contains(choice.Approach))
@@ -137,8 +137,20 @@
         }
     }
 
-    private static void EnsureNoNegativeEncounterPressure(int currentPressure, ChoiceProjection projection)
+    private static void EnsureNoNegativeEncounterValues(int currentMomentum, int currentPressure, ChoiceProjection projection)
     {
+        if (currentMomentum + projection.MomentumGained < 0)
+        {
+            if (projection.MomentumGained < 0)
+            {
+                projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
+                {
+                    Source = "Minimum momentum limit",
+                    Value = -currentMomentum - projection.MomentumGained
+                });
+            }
+            projection.MomentumGained = -currentMomentum;
+        }
         if (currentPressure + projection.PressureBuilt < 0)
         {
             if (projection.PressureBuilt < 0)
@@ -214,6 +226,28 @@
             });
             momentumChange += baseMomentum;
 
+            if (encounterInfo.MomentumBoostApproaches.Contains(choice.Approach))
+            {
+                int favoredBonus = 2;
+                projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
+                {
+                    Source = "Correct Approach",
+                    Value = favoredBonus
+                });
+                momentumChange += favoredBonus;
+            }
+
+            if (encounterInfo.DisfavoredFocuses.Contains(choice.Focus))
+            {
+                int disfavoredBonus = -3;
+                projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
+                {
+                    Source = "Incorrect Focus",
+                    Value = disfavoredBonus
+                });
+                momentumChange += disfavoredBonus;
+            }
+
             int environmentalPressure = encounterInfo.GetEnvironmentalPressure(currentTurn);
             if (environmentalPressure > 0)
             {
@@ -223,28 +257,6 @@
                     Value = environmentalPressure
                 });
                 pressureChange += environmentalPressure;
-            }
-
-            if (encounterInfo.FavoredFocuses.Contains(choice.Focus))
-            {
-                int favoredBonus = 2;
-                projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
-                {
-                    Source = "Correct Focus",
-                    Value = favoredBonus
-                });
-                momentumChange += favoredBonus;
-            }
-
-            if (encounterInfo.DangerousApproaches.Contains(choice.Approach))
-            {
-                int disfavoredBonus = 3;
-                projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-                {
-                    Source = "Incorrect Approach",
-                    Value = disfavoredBonus
-                });
-                pressureChange += disfavoredBonus;
             }
 
         }
@@ -261,23 +273,23 @@
             });
             pressureChange += basePressure;
 
-            if (encounterInfo.FavoredApproaches.Contains(choice.Approach))
+            if (encounterInfo.FavoredFocuses.Contains(choice.Focus))
             {
-                int favoredBonus = 2;
-                projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
+                int favoredBonus = -2;
+                projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
                 {
-                    Source = "Correct Approach",
+                    Source = "Correct Focus",
                     Value = favoredBonus
                 });
-                momentumChange += favoredBonus;
+                pressureChange += favoredBonus;
             }
 
-            if (encounterInfo.DisfavoredFocuses.Contains(choice.Focus))
+            if (encounterInfo.DangerousApproaches.Contains(choice.Approach))
             {
                 int disfavoredBonus = 3;
-                projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
+                projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
                 {
-                    Source = "Incorrect Focus",
+                    Source = "Dangerous Approach",
                     Value = disfavoredBonus
                 });
                 pressureChange += disfavoredBonus;
@@ -285,7 +297,7 @@
         }
     }
 
-    private ChoiceProjection DetermineEncounterEnd(
+    private void DetermineEncounterEnd(
         ChoiceProjection projection, 
         int projectedTurn)
     {
@@ -315,7 +327,5 @@
                     projection.ProjectedOutcome = EncounterOutcomes.Failure;
             }
         }
-
-        return projection;
     }
 }

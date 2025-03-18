@@ -7,7 +7,7 @@ public class EncounterInfo
     public string LocationSpotName { get; set; }
     public List<FocusTags> FavoredFocuses { get; } = new List<FocusTags>();
     public List<FocusTags> DisfavoredFocuses { get; } = new List<FocusTags>();
-    public List<ApproachTags> FavoredApproaches { get; } = new List<ApproachTags>();
+    public List<ApproachTags> MomentumBoostApproaches { get; } = new List<ApproachTags>();
     public List<ApproachTags> DangerousApproaches { get; } = new List<ApproachTags>();
     public List<IEncounterTag> AvailableTags { get; } = new List<IEncounterTag>();
 
@@ -32,7 +32,7 @@ public class EncounterInfo
         LocationNames locationName,
         string locationSpot,
         List<ApproachTags> favoreApproaches,
-        List<ApproachTags> disfavoredApproaches,
+        List<ApproachTags> dangerousApproaches,
         List<FocusTags> favoredFocuses,
         List<FocusTags> disfavoredFocuses,
         int duration,
@@ -43,22 +43,22 @@ public class EncounterInfo
         EncounterTypes style,
         int maxPressure = 10)
     {
-        LocationName = locationName;
-        LocationSpotName = locationSpot;
+        this.LocationName = locationName;
+        this.LocationSpotName = locationSpot;
 
-        FavoredApproaches = favoreApproaches;
-        DangerousApproaches = disfavoredApproaches;
-        FavoredFocuses = favoredFocuses;
-        DisfavoredFocuses = disfavoredFocuses;
+        this.MomentumBoostApproaches = favoreApproaches;
+        this.DangerousApproaches = dangerousApproaches;
+        this.FavoredFocuses = favoredFocuses;
+        this.DisfavoredFocuses = disfavoredFocuses;
 
-        PartialThreshold = partialThreshold;
-        StandardThreshold = standardThreshold;
-        ExceptionalThreshold = exceptionalThreshold;
+        this.PartialThreshold = partialThreshold;
+        this.StandardThreshold = standardThreshold;
+        this.ExceptionalThreshold = exceptionalThreshold;
 
-        TurnDuration = duration;
-        Hostility = hostility;
-        EncounterType = style;
-        MaxPressure = maxPressure;
+        this.TurnDuration = duration;
+        this.Hostility = hostility;
+        this.EncounterType = style;
+        this.MaxPressure = maxPressure;
     }
 
     public void AddTag(NarrativeTag narrativeTag)
