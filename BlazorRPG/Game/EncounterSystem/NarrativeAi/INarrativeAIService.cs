@@ -20,6 +20,12 @@ public interface INarrativeAIService
         ChoiceOutcome outcome,
         EncounterStatus newState);
 
+    Task<string> GenerateEndingAsync(
+        NarrativeContext context,
+        IChoice chosenOption,
+        ChoiceOutcome outcome,
+        EncounterStatus newState);
+
     /// <summary>
     /// Generate narrative descriptions for choices
     /// </summary>

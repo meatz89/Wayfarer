@@ -197,29 +197,8 @@
         // Calculate projected turn and check if encounter will end
         int projectedTurn = currentTurn + 1;
         projection.ProjectedTurn = projectedTurn;
-
-        bool encounterEnds = (projectedTurn >= encounterInfo.TurnDuration) || (projection.FinalPressure >= EncounterState.MaxPressure);
-        projection.EncounterWillEnd = encounterEnds;
-
-        // Determine outcome if encounter ends
-        if (encounterEnds)
-        {
-            if (projection.FinalPressure >= EncounterState.MaxPressure)
-            {
-                projection.ProjectedOutcome = EncounterOutcomes.Failure;
-            }
-            else
-            {
-                if (projection.FinalMomentum >= encounterInfo.ExceptionalThreshold)
-                    projection.ProjectedOutcome = EncounterOutcomes.Exceptional;
-                else if (projection.FinalMomentum >= encounterInfo.StandardThreshold)
-                    projection.ProjectedOutcome = EncounterOutcomes.Standard;
-                else if (projection.FinalMomentum >= encounterInfo.PartialThreshold)
-                    projection.ProjectedOutcome = EncounterOutcomes.Partial;
-                else
-                    projection.ProjectedOutcome = EncounterOutcomes.Failure;
-            }
-        }
+        
+        projection = DetermineEncounterEnd(projection, projectedTurn);
 
         // Determine which tags will be active based on new tag values
         List<IEncounterTag> newlyActivatedTags = _tagManager.GetNewlyActivatedTags(clonedTagSystem, encounterInfo.AvailableTags);
@@ -252,6 +231,40 @@
 
                 if (actualDelta != 0)
                     projection.FocusTagChanges[tag] = actualDelta;
+            }
+        }
+
+        return projection;
+    }
+
+    private ChoiceProjection DetermineEncounterEnd(
+        ChoiceProjection projection, 
+        int projectedTurn)
+    {
+        bool encounterEnds = 
+            (projectedTurn >= encounterInfo.TurnDuration)
+            || (projection.FinalMomentum >= encounterInfo.ExceptionalThreshold)
+            || (projection.FinalPressure >= encounterInfo.MaxPressure);
+
+        projection.EncounterWillEnd = encounterEnds;
+
+        // Determine outcome if encounter ends
+        if (encounterEnds)
+        {
+            if (projection.FinalPressure >= encounterInfo.MaxPressure)
+            {
+                projection.ProjectedOutcome = EncounterOutcomes.Failure;
+            }
+            else
+            {
+                if (projection.FinalMomentum >= encounterInfo.ExceptionalThreshold)
+                    projection.ProjectedOutcome = EncounterOutcomes.Exceptional;
+                else if (projection.FinalMomentum >= encounterInfo.StandardThreshold)
+                    projection.ProjectedOutcome = EncounterOutcomes.Standard;
+                else if (projection.FinalMomentum >= encounterInfo.PartialThreshold)
+                    projection.ProjectedOutcome = EncounterOutcomes.Partial;
+                else
+                    projection.ProjectedOutcome = EncounterOutcomes.Failure;
             }
         }
 

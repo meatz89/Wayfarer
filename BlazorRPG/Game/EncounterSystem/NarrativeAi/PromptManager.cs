@@ -9,6 +9,7 @@ public class PromptManager
     private const string INTRO_MD = "introduction";
     private const string NARRATIVE_MD = "resolution";
     private const string CHOICES_MD = "choices";
+    private const string ENDING_MD = "ending";
 
     public PromptManager(IConfiguration configuration)
     {
@@ -104,6 +105,7 @@ public class PromptManager
 
         return prompt;
     }
+
     public string BuildChoicesPrompt(
     NarrativeContext context,
     List<IChoice> choices,
@@ -186,6 +188,13 @@ Choice {i + 1}: {choice.Name}
 - Health Change: {projection.HealthChange}
 - Concentration Change: {projection.ConcentrationChange}
 - Confidence Change: {projection.ConfidenceChange}");
+
+            // Add encounter ending information if this choice will end the encounter
+            if (projection.EncounterWillEnd)
+            {
+                choicesInfo.AppendLine($"- Encounter Will End: True");
+                choicesInfo.AppendLine($"- Final Outcome: {projection.ProjectedOutcome}");
+            }
 
             // Add any new narrative tags that would activate
             if (projection.NewlyActivatedTags.Any())
@@ -282,6 +291,60 @@ Choice {i + 1}: {choice.Name}
             .Replace("{TIME_CONSTRAINTS}", timeConstraints)
             .Replace("{ADDITIONAL_CHALLENGES}", additionalChallenges)
             .Replace("{ENCOUNTER_COMPLICATION}", encounterComplication);
+
+        return prompt;
+    }
+
+    public string BuildEncounterEndPrompt(
+        NarrativeContext context,
+        EncounterStatus finalState,
+        EncounterOutcomes outcome,
+        IChoice finalChoice)
+    {
+        string template = _promptTemplates[ENDING_MD];
+
+        // Get the last narrative event
+        string lastNarrative = "No previous narrative available.";
+        if (context.Events.Count > 0)
+        {
+            NarrativeEvent lastEvent = context.Events[context.Events.Count - 1];
+            lastNarrative = lastEvent.SceneDescription;
+        }
+
+        // Format approach values
+        string approachValues = FormatApproachValues(finalState);
+
+        // Format focus values
+        StringBuilder focusValues = new StringBuilder();
+        foreach (KeyValuePair<FocusTags, int> focus in finalState.FocusTags)
+        {
+            focusValues.Append($"{focus.Key} {focus.Value}, ");
+        }
+
+        // Remove trailing comma
+        string formattedFocusValues = focusValues.ToString().TrimEnd(',', ' ');
+
+        // Get encounter type from presentation style
+        string encounterType = GetEncounterStyleGuidance(context.EncounterType);
+
+        // Extract encounter goal from inciting action
+        string encounterGoal = context.ActionImplementation.Goal;
+
+        // Get final choice name
+        string finalChoiceName = finalChoice?.Name ?? "No final choice available";
+
+        // Replace placeholders in template
+        string prompt = template
+            .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
+            .Replace("{ENCOUNTER_OUTCOME}", outcome.ToString())
+            .Replace("{LOCATION}", context.LocationName)
+            .Replace("{CHARACTER_GOAL}", encounterGoal)
+            .Replace("{FINAL_MOMENTUM}", finalState.Momentum.ToString())
+            .Replace("{FINAL_PRESSURE}", finalState.Pressure.ToString())
+            .Replace("{APPROACH_VALUES}", approachValues)
+            .Replace("{FOCUS_VALUES}", formattedFocusValues)
+            .Replace("{LAST_NARRATIVE}", lastNarrative)
+            .Replace("{FINAL_CHOICE}", finalChoiceName);
 
         return prompt;
     }
