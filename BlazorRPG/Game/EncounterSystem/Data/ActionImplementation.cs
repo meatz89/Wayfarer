@@ -1,6 +1,6 @@
 ﻿public record ActionImplementation
 {
-    public string Name { get; set; }
+    public ActionNames Name { get; set; }
     public string Description { get; internal set; }
     public BasicActionTypes ActionType { get; set; }
     public bool IsEncounterAction { get; internal set; }

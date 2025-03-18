@@ -16,7 +16,7 @@
         return allLocations;
     }
 
-    public List<LocationNames> GetLocationConnections(LocationNames currentLocation)
+    public List<LocationNames> GetTravelLocations(LocationNames currentLocation)
     {
         Location location = GetLocation(currentLocation);
         return location.TravelConnections;

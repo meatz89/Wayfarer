@@ -1,38 +1,36 @@
 ﻿public static class ActionContent
 {
-
-    public static List<ActionTemplate> UnlockableActionTemplates()
+    public static List<ActionTemplate> GetAllTemplates()
     {
-        List<ActionTemplate> actionTemplates = new List<ActionTemplate>();
-
-        // Labor actions require understanding of market operations
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Help Unload Wagons")
-            .WithActionType(BasicActionTypes.Labor)
-            .Build());
-
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Prepare Food")
-            .WithActionType(BasicActionTypes.Labor)
-            .Build());
-
-        // Advanced social interactions require trading knowledge
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Haggle With Merchants")
-            .WithActionType(BasicActionTypes.Persuade)
-            .Build());
+        List<ActionTemplate> actionTemplates = 
+            [.. AllActions()];
 
         return actionTemplates;
     }
 
-    public static List<ActionTemplate> LibraryActions()
+    public static List<ActionTemplate> AllActions()
     {
         List<ActionTemplate> actionTemplates = new List<ActionTemplate>();
 
         actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Find the ancient tome")
+            .WithName(ActionNames.LibraryResearch)
             .WithDescription("I need to find the sacred scripture.")
             .WithActionType(BasicActionTypes.Analyze)
+            .StartsEncounter()
+            .ExpendsCoins(5)
+            .Build());
+
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName(ActionNames.BackalleyTravel)
+            .WithDescription("Navigate past the bandit and reach your destination without harm.")
+            .WithActionType(BasicActionTypes.Fight)
+            .StartsEncounter()
+            .Build());
+
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName(ActionNames.MerchantPersuasion)
+            .WithDescription("Convince a merchant to sell you food at a discounted price despite your limited funds.")
+            .WithActionType(BasicActionTypes.Persuade)
             .StartsEncounter()
             .ExpendsCoins(5)
             .Build());

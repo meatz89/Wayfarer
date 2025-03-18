@@ -15,9 +15,9 @@
         return this;
     }
 
-    public LocationBuilder AddTravelResonance(LocationNames resonance)
+    public LocationBuilder AddTravelConnection(LocationNames connection)
     {
-        this.travelConnections.Add(resonance);
+        this.travelConnections.Add(connection);
         return this;
     }
 
