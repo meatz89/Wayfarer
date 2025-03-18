@@ -137,13 +137,7 @@ public class GameManager
             if (IsGameOver(gameState.Player))
             {
                 gameState.Actions.CompleteActiveEncounter();
-
-                return new EncounterResult()
-                {
-                    Encounter = encounter,
-                    EncounterResults = EncounterResults.GameOver,
-                    EncounterEndMessage = "Game Over"
-                };
+                return EncounterResult;
             }
         }
 
