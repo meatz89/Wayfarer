@@ -6,7 +6,7 @@ public class PromptManager
 
     private const string SYSTEM_MD = "system";
     private const string INTRO_MD = "introduction";
-    private const string NARRATIVE_MD = "resolution";
+    private const string REACTION_MD = "reaction";
     private const string CHOICES_MD = "choices";
     private const string ENDING_MD = "ending";
     private const string MEMORY_MD = "memory";
@@ -223,7 +223,7 @@ Choice {i + 1}: {choice.Name}
         ChoiceOutcome outcome,
         EncounterStatus newState)
     {
-        string template = _promptTemplates[NARRATIVE_MD];
+        string template = _promptTemplates[REACTION_MD];
 
         // Extract primary approach tag
         ApproachTags primaryApproach = GetPrimaryApproach(chosenOption);
@@ -280,7 +280,8 @@ Choice {i + 1}: {choice.Name}
         // Replace placeholders in template
         string prompt = template
             .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
-            .Replace("{LOCATION}", context.LocationName)
+            .Replace("{LOCATION_NAME}", context.LocationName)
+            .Replace("{LOCATION_SPOT}", context.locationSpotName)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
             .Replace("{SELECTED_CHOICE}", chosenOption.Name)
             .Replace("{CHOICE_DESCRIPTION}", choiceNarrativeDesc)
@@ -345,11 +346,16 @@ Choice {i + 1}: {choice.Name}
             ? $"You have successfully achieved your goal to {encounterGoal}"
             : $"You have failed to {encounterGoal}";
 
+        string choiceNarrativeDesc = finalChoice.Description ?? finalChoice.Name;
+
         // Replace placeholders in template
         string prompt = template
             .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
             .Replace("{ENCOUNTER_OUTCOME}", outcome.ToString())
-            .Replace("{LOCATION}", context.LocationName)
+            .Replace("{LOCATION_NAME}", context.LocationName)
+            .Replace("{LOCATION_SPOT}", context.locationSpotName)
+            .Replace("{SELECTED_CHOICE}", finalChoice.Name)
+            .Replace("{CHOICE_DESCRIPTION}", choiceNarrativeDesc)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
             .Replace("{FINAL_MOMENTUM}", finalState.Momentum.ToString())
             .Replace("{FINAL_PRESSURE}", finalState.Pressure.ToString())
