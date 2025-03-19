@@ -1,12 +1,10 @@
-# WAYFARER TURN RESOLUTION
+The player chose: {SELECTED_CHOICE} ({CHOICE_DESCRIPTION})
+The Previous choice has NOT YET HAPPENED. It must be executed DURING THIS SCENE.
 
 Generate a narrative outcome for a character in a {ENCOUNTER_TYPE} encounter who chose {SELECTED_CHOICE}. 
 The encounter takes place at the {LOCATION_SPOT} of the {LOCATION_NAME} with the objective to {CHARACTER_GOAL}.
 
 Previous state: Momentum {M_OLD}, Pressure {P_OLD}
-
-Previous choice made: {SELECTED_CHOICE} ({CHOICE_DESCRIPTION})
-The Previous choice has NOT YET HAPPENED. It must be executed DURING THIS SCENE.
 
 New state: Momentum {M_NEW}, Pressure {P_NEW}
 Approach changes: {APPROACH_CHANGES}

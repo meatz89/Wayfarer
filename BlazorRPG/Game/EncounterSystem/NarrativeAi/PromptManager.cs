@@ -281,12 +281,12 @@ Choice {i + 1}: {choice.Name}
 
         // Replace placeholders in template
         string prompt = template
+            .Replace("{SELECTED_CHOICE}", chosenOption.Name)
+            .Replace("{CHOICE_DESCRIPTION}", choiceNarrativeDesc)
             .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
             .Replace("{LOCATION_NAME}", context.LocationName)
             .Replace("{LOCATION_SPOT}", context.locationSpotName)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
-            .Replace("{SELECTED_CHOICE}", chosenOption.Name)
-            .Replace("{CHOICE_DESCRIPTION}", choiceNarrativeDesc)
             .Replace("{APPROACH}", primaryApproach.ToString())
             .Replace("{FOCUS}", chosenOption.Focus.ToString())
             .Replace("{EFFECT_TYPE}", chosenOption.EffectType.ToString())

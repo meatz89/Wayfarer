@@ -1,4 +1,7 @@
-# WAYFARER ENCOUNTER SETUP
+Your memory of past events:
+"{MEMORY_CONTENT}"
+
+Your job is to use this memory, if possible, to enhance your NARRATIVE CONTEXT for the encounter. Try to weave the contained context into the narrative. 
 
 Create an immersive introductory scene for a {ENCOUNTER_TYPE} encounter at the {LOCATION_SPOT} of the {LOCATION_NAME}.
 The player is a {CHARACTER_ARCHETYPE} seeking to {CHARACTER_GOAL}.
@@ -19,21 +22,6 @@ Additional requirements:
 - Include at least 3 distinct sensory details from different senses
 - Plant subtle hints about effective approaches without explicitly stating them
 - Suggest multiple possible paths forward aligned with different approach types
-
-## CURRENT NARRATIVE MEMORY
-
-I am supplying you with the current Memory for Wayfarer, that tracks important narrative information across ALL encounters. This file is continuously updated, with outdated information removed and replaced with new discoveries.
-
-This approach:
-1. Organizes information by **narrative significance** rather than by encounters
-2. Provides a **living document** that evolves as the player's journey progresses
-
-The global memory file is a dynamic representation of the current world state, character knowledge, and ongoing narrative threads, ensuring continuity and coherence across the entire gameplay experience.
-Your job is to use this memory, if possible, to enhance your NARRATIVE CONTEXT for the encounter. Try to weave the contained context into the narrative. 
-
-This is the current memory content:
-"{MEMORY_CONTENT}"
-
 
 ## SUMMARY
 
