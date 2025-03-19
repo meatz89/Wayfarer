@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using System.Text.Json;
 
 public class PromptManager
 {
@@ -22,89 +21,6 @@ public class PromptManager
         LoadPromptTemplates(promptsPath);
     }
 
-    public string BuildMemoryPrompt(
-        NarrativeContext context,
-        ChoiceOutcome outcome,
-        EncounterStatus newState)
-    {
-        string template = _promptTemplates[NARRATIVE_MD];
-
-        // Extract primary approach tag
-        ApproachTags primaryApproach = GetPrimaryApproach(chosenOption);
-
-        // Format tag changes for narrative representation
-        string tagChangesGuidance = FormatTagChangesForNarrative(outcome);
-
-        // Format activated/deactivated tags
-        string tagActivationGuidance = FormatTagActivationForNarrative(outcome);
-
-        // Create a complete encounter history for context
-        string completeHistory = CreateCompleteHistory(context);
-
-        // Get encounter type from presentation style
-        string encounterType = GetEncounterStyleGuidance(context.EncounterType);
-
-        // Determine turn information from events
-        int currentTurn = context.Events.Count > 0 ? context.Events.Count : 1;
-        // Default to 6 turns if we can't determine it
-        int maxTurns = 6;
-
-        // Format outcome components to represent momentum and pressure changes
-        StringBuilder strategicEffects = new StringBuilder();
-        strategicEffects.AppendLine("## Momentum and Pressure Changes:");
-        strategicEffects.AppendLine($"- Momentum Gained: {outcome.MomentumGain}");
-        strategicEffects.AppendLine($"- Pressure Gained: {outcome.PressureGain}");
-
-        if (outcome.HealthChange != 0)
-        {
-            strategicEffects.AppendLine($"- Health Change: {outcome.HealthChange}");
-        }
-
-        if (outcome.ConcentrationChange != 0)
-        {
-            strategicEffects.AppendLine($"- Focus Change: {outcome.ConcentrationChange}");
-        }
-
-        if (outcome.ConfidenceChange != 0)
-        {
-            strategicEffects.AppendLine($"- Confidence Change: {outcome.ConfidenceChange}");
-        }
-
-        // Get previous momentum and pressure from the context's last state
-        int previousMomentum = newState.Momentum - outcome.MomentumGain;
-        int previousPressure = newState.Pressure - outcome.PressureGain;
-
-        // Extract encounter goal from inciting action
-        string encounterGoal = context.ActionImplementation.Goal;
-
-        // Get the choice narrative description
-        string choiceNarrativeDesc = choiceDescription?.FullDescription ?? chosenOption.Name;
-
-        // Replace placeholders in template
-        string prompt = template
-            .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
-            .Replace("{LOCATION}", context.LocationName)
-            .Replace("{CHARACTER_GOAL}", encounterGoal)
-            .Replace("{SELECTED_CHOICE}", chosenOption.Name)
-            .Replace("{CHOICE_DESCRIPTION}", choiceNarrativeDesc)
-            .Replace("{APPROACH}", primaryApproach.ToString())
-            .Replace("{FOCUS}", chosenOption.Focus.ToString())
-            .Replace("{EFFECT_TYPE}", chosenOption.EffectType.ToString())
-            .Replace("{M_OLD}", previousMomentum.ToString())
-            .Replace("{P_OLD}", previousPressure.ToString())
-            .Replace("{M_NEW}", newState.Momentum.ToString())
-            .Replace("{P_NEW}", newState.Pressure.ToString())
-            .Replace("{APPROACH_CHANGES}", FormatApproachChanges(outcome.EncounterStateTagChanges))
-            .Replace("{FOCUS_CHANGES}", FormatFocusChanges(outcome.FocusTagChanges))
-            .Replace("{NEW_NARRATIVE_TAGS}", FormatNewlyActivatedTags(outcome.NewlyActivatedTags))
-            .Replace("{STRATEGIC_EFFECTS}", strategicEffects.ToString())
-            .Replace("{CURRENT_TURN}", currentTurn.ToString())
-            .Replace("{MAX_TURNS}", maxTurns.ToString())
-            .Replace("{ENCOUNTER_STYLE_GUIDANCE}", encounterType);
-
-        return prompt;
-    }
-
     public string BuildReactionPrompt(
         NarrativeContext context,
         IChoice chosenOption,
@@ -124,7 +40,8 @@ public class PromptManager
         string tagActivationGuidance = FormatTagActivationForNarrative(outcome);
 
         // Create a complete encounter history for context
-        string completeHistory = CreateCompleteHistory(context);
+        NarrativeSummaryBuilder builder = new NarrativeSummaryBuilder();
+        string completeHistory = builder.CreateCompleteHistory(context);
 
         // Get encounter type from presentation style
         string encounterType = GetEncounterStyleGuidance(context.EncounterType);
@@ -199,7 +116,8 @@ public class PromptManager
         string template = _promptTemplates[CHOICES_MD];
 
         // Create a complete encounter history for context
-        string completeHistory = CreateCompleteHistory(context);
+        NarrativeSummaryBuilder builder = new NarrativeSummaryBuilder();
+        string completeHistory = builder.CreateCompleteHistory(context);
 
         // Get the most recent narrative event
         string currentSituation = "No previous narrative available.";
@@ -442,62 +360,25 @@ Choice {i + 1}: {choice.Name}
         return prompt;
     }
 
-    // Helper method for creating a complete encounter history
-    private string CreateCompleteHistory(NarrativeContext context)
+    public string BuildMemoryPrompt(
+        NarrativeContext context,
+        ChoiceOutcome outcome,
+        EncounterStatus newState,
+        string oldMemory)
     {
-        if (context.Events.Count == 0)
-        {
-            return $"Beginning a new encounter at {context.LocationName} after {context.ActionImplementation}.";
-        }
+        string template = _promptTemplates[MEMORY_MD];
 
-        StringBuilder history = new StringBuilder();
-        history.AppendLine("# Complete Encounter History");
-        history.AppendLine($"Location: {context.LocationName} | Encounter Type: {context.EncounterType} | Goal: {context.ActionImplementation}");
-        history.AppendLine();
+        NarrativeSummaryBuilder builder = new NarrativeSummaryBuilder();
+        string completeHistory = builder.CreateCompleteHistory(context);
+        var summary = builder.CreateSummary(context);
 
-        // Create detailed history of all events
-        for (int i = 0; i < context.Events.Count; i++)
-        {
-            NarrativeEvent evt = context.Events[i];
+        // Replace placeholders in template
+        string prompt = template
+            .Replace("{FILE_CONTENT}", oldMemory);
 
-            history.AppendLine($"## Turn {evt.TurnNumber}");
-
-            // Add initial scene description
-            if (i == 0)
-            {
-                history.AppendLine("### Initial Scene");
-                history.AppendLine(evt.SceneDescription);
-                history.AppendLine();
-            }
-            else
-            {
-                // For other turns, add chosen option and outcome
-                if (evt.ChosenOption != null)
-                {
-                    history.AppendLine($"### Choice: {evt.ChosenOption.Name}");
-
-                    // Add choice narrative description if available
-                    if (evt.ChoiceNarrative != null && !string.IsNullOrEmpty(evt.ChoiceNarrative.FullDescription))
-                    {
-                        history.AppendLine($"Description: {evt.ChoiceNarrative.FullDescription}");
-                    }
-
-                    // Add outcome
-                    if (!string.IsNullOrEmpty(evt.Outcome))
-                    {
-                        history.AppendLine($"Outcome: {evt.Outcome}");
-                    }
-                }
-
-                // Add scene description
-                history.AppendLine("### Scene");
-                history.AppendLine(evt.SceneDescription);
-                history.AppendLine();
-            }
-        }
-
-        return history.ToString();
+        return prompt;
     }
+
 
     // Helper methods for formatting ChoiceOutcome data
     private string FormatTagChangesForNarrative(ChoiceOutcome outcome)
