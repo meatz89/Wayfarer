@@ -163,11 +163,11 @@ public class EncounterManager
         List<ChoiceProjection> projections = choices.Select(ProjectChoice).ToList();
 
         // Create first narrative event
-        NarrativeEvent firstEvent = new NarrativeEvent(
+        NarrativeEvent firstNarrative = new NarrativeEvent(
             State.CurrentTurn,
             introduction);
 
-        _narrativeContext.AddEvent(firstEvent);
+        _narrativeContext.AddEvent(firstNarrative);
 
         // Generate choice descriptions
         Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = null;
@@ -179,7 +179,7 @@ public class EncounterManager
                 projections,
                 status);
 
-            firstEvent.SetAvailableChoiceDescriptions(choiceDescriptions);
+            firstNarrative.SetAvailableChoiceDescriptions(choiceDescriptions);
         }
 
         // Return the narrative result
@@ -187,7 +187,8 @@ public class EncounterManager
             introduction,
             choices,
             projections,
-            choiceDescriptions);
+            choiceDescriptions,
+            firstNarrative.ChoiceNarrative);
     }
 
     public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
@@ -213,19 +214,21 @@ public class EncounterManager
                 outcome,
                 newStatus);
 
-            NarrativeResult narrativeResultFinished = new(
-                narrative,
-                new List<IChoice>(),
-                new List<ChoiceProjection>(),
-                new Dictionary<IChoice, ChoiceNarrative>());
-
-            narrativeResultFinished.SetOutcome(outcome.Outcome);
-            narrativeResultFinished.SetIsEncounterOver(outcome.IsEncounterOver);
             
             await UpdateMemoryFile(outcome, newStatus);
 
             NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
             _narrativeContext.AddEvent(narrativeEvent);
+
+            NarrativeResult narrativeResultFinished = new(
+                narrative,
+                new List<IChoice>(),
+                new List<ChoiceProjection>(),
+                new Dictionary<IChoice, ChoiceNarrative>(),
+                narrativeEvent.ChoiceNarrative);
+
+            narrativeResultFinished.SetOutcome(outcome.Outcome);
+            narrativeResultFinished.SetIsEncounterOver(outcome.IsEncounterOver);
 
             return narrativeResultFinished;
         }
@@ -270,12 +273,15 @@ public class EncounterManager
                 }
             }
 
+            ChoiceNarrative lastChoiceNarrative = narrativeEvent.ChoiceNarrative;
+
             // Return the narrative result
             NarrativeResult narrativeResultOngoing = new(
                 narrative,
                 newChoices,
                 newProjections,
-                newChoiceDescriptions);
+                newChoiceDescriptions,
+                narrativeEvent.ChoiceNarrative);
 
             return narrativeResultOngoing;
         }
