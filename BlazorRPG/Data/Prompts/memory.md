@@ -42,7 +42,7 @@ This is only an example. You may adjust it to your needs.
 }
 ```
 
-## CURRENT NARRATIVE FILE CONTEN
+## CURRENT NARRATIVE FILE CONTENT
 
 This is the current memory content. Your job is to return an updated version of this file, with outdated information removed and replaced with new discoveries.
 

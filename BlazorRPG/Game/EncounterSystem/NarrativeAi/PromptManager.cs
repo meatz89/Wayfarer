@@ -21,88 +21,53 @@ public class PromptManager
         LoadPromptTemplates(promptsPath);
     }
 
-    public string BuildReactionPrompt(
+    public string BuildIntroductionPrompt(
         NarrativeContext context,
-        IChoice chosenOption,
-        ChoiceNarrative choiceDescription,
-        ChoiceOutcome outcome,
-        EncounterStatus newState)
+        EncounterStatus state,
+        string memoryContent)
     {
-        string template = _promptTemplates[NARRATIVE_MD];
+        string template = _promptTemplates[INTRO_MD];
 
-        // Extract primary approach tag
-        ApproachTags primaryApproach = GetPrimaryApproach(chosenOption);
+        // Get primary approach values
+        string primaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).First().Key.ToString();
+        string secondaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).Skip(1).First().Key.ToString();
 
-        // Format tag changes for narrative representation
-        string tagChangesGuidance = FormatTagChangesForNarrative(outcome);
+        // Get significant focus tags
+        string primaryFocus = state.FocusTags.OrderByDescending(t => t.Value).First().Key.ToString();
+        string secondaryFocus = state.FocusTags.OrderByDescending(t => t.Value).Skip(1).First().Key.ToString();
 
-        // Format activated/deactivated tags
-        string tagActivationGuidance = FormatTagActivationForNarrative(outcome);
+        // Format environment and NPC details
+        string environmentDetails = $"A {context.LocationName.ToLower()} with difficulty level {state.EncounterInfo?.Difficulty ?? 1}";
+        string npcList = "Local individuals relevant to the encounter";
+        string timeConstraints = $"Maximum {state.MaxTurns} turns";
+        string additionalChallenges = state.EncounterInfo != null
+            ? $"Difficulty level {state.EncounterInfo.Difficulty} (adds +{state.EncounterInfo.Difficulty} pressure per turn)"
+            : "Standard difficulty";
 
-        // Create a complete encounter history for context
-        NarrativeSummaryBuilder builder = new NarrativeSummaryBuilder();
-        string completeHistory = builder.CreateCompleteHistory(context);
+        // Format character archetype based on primary approach
+        string characterArchetype = GetCharacterArchetype(primaryApproach);
 
-        // Get encounter type from presentation style
-        string encounterType = GetEncounterStyleGuidance(context.EncounterType);
+        // Format approach stats
+        string approachStats = FormatApproachValues(state);
 
-        // Determine turn information from events
-        int currentTurn = context.Events.Count > 0 ? context.Events.Count : 1;
-        // Default to 6 turns if we can't determine it
-        int maxTurns = 6;
-
-        // Format outcome components to represent momentum and pressure changes
-        StringBuilder strategicEffects = new StringBuilder();
-        strategicEffects.AppendLine("## Momentum and Pressure Changes:");
-        strategicEffects.AppendLine($"- Momentum Gained: {outcome.MomentumGain}");
-        strategicEffects.AppendLine($"- Pressure Gained: {outcome.PressureGain}");
-
-        if (outcome.HealthChange != 0)
-        {
-            strategicEffects.AppendLine($"- Health Change: {outcome.HealthChange}");
-        }
-
-        if (outcome.ConcentrationChange != 0)
-        {
-            strategicEffects.AppendLine($"- Focus Change: {outcome.ConcentrationChange}");
-        }
-
-        if (outcome.ConfidenceChange != 0)
-        {
-            strategicEffects.AppendLine($"- Confidence Change: {outcome.ConfidenceChange}");
-        }
-
-        // Get previous momentum and pressure from the context's last state
-        int previousMomentum = newState.Momentum - outcome.MomentumGain;
-        int previousPressure = newState.Pressure - outcome.PressureGain;
-
-        // Extract encounter goal from inciting action
-        string encounterGoal = context.ActionImplementation.Goal;
-
-        // Get the choice narrative description
-        string choiceNarrativeDesc = choiceDescription?.FullDescription ?? chosenOption.Name;
+        ActionImplementation actionImplementation = context.ActionImplementation;
+        string encounterGoal = actionImplementation.Goal;
+        string encounterComplication = actionImplementation.Complication;
 
         // Replace placeholders in template
         string prompt = template
             .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
-            .Replace("{LOCATION}", context.LocationName)
+            .Replace("{LOCATION_NAME}", context.LocationName)
+            .Replace("{LOCATION_SPOT}", context.locationSpotName)
+            .Replace("{CHARACTER_ARCHETYPE}", characterArchetype)
+            .Replace("{APPROACH_STATS}", approachStats)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
-            .Replace("{SELECTED_CHOICE}", chosenOption.Name)
-            .Replace("{CHOICE_DESCRIPTION}", choiceNarrativeDesc)
-            .Replace("{APPROACH}", primaryApproach.ToString())
-            .Replace("{FOCUS}", chosenOption.Focus.ToString())
-            .Replace("{EFFECT_TYPE}", chosenOption.EffectType.ToString())
-            .Replace("{M_OLD}", previousMomentum.ToString())
-            .Replace("{P_OLD}", previousPressure.ToString())
-            .Replace("{M_NEW}", newState.Momentum.ToString())
-            .Replace("{P_NEW}", newState.Pressure.ToString())
-            .Replace("{APPROACH_CHANGES}", FormatApproachChanges(outcome.EncounterStateTagChanges))
-            .Replace("{FOCUS_CHANGES}", FormatFocusChanges(outcome.FocusTagChanges))
-            .Replace("{NEW_NARRATIVE_TAGS}", FormatNewlyActivatedTags(outcome.NewlyActivatedTags))
-            .Replace("{STRATEGIC_EFFECTS}", strategicEffects.ToString())
-            .Replace("{CURRENT_TURN}", currentTurn.ToString())
-            .Replace("{MAX_TURNS}", maxTurns.ToString())
-            .Replace("{ENCOUNTER_STYLE_GUIDANCE}", encounterType);
+            .Replace("{ENVIRONMENT_DETAILS}", environmentDetails)
+            .Replace("{NPC_LIST}", npcList)
+            .Replace("{TIME_CONSTRAINTS}", timeConstraints)
+            .Replace("{ADDITIONAL_CHALLENGES}", additionalChallenges)
+            .Replace("{ENCOUNTER_COMPLICATION}", encounterComplication)
+            .Replace("{MEMORY_CONTENT}", memoryContent);
 
         return prompt;
     }
@@ -251,51 +216,88 @@ Choice {i + 1}: {choice.Name}
         return prompt;
     }
 
-    public string BuildIntroductionPrompt(
+    public string BuildReactionPrompt(
         NarrativeContext context,
-        EncounterStatus state)
+        IChoice chosenOption,
+        ChoiceNarrative choiceDescription,
+        ChoiceOutcome outcome,
+        EncounterStatus newState)
     {
-        string template = _promptTemplates[INTRO_MD];
+        string template = _promptTemplates[NARRATIVE_MD];
 
-        // Get primary approach values
-        string primaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).First().Key.ToString();
-        string secondaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).Skip(1).First().Key.ToString();
+        // Extract primary approach tag
+        ApproachTags primaryApproach = GetPrimaryApproach(chosenOption);
 
-        // Get significant focus tags
-        string primaryFocus = state.FocusTags.OrderByDescending(t => t.Value).First().Key.ToString();
-        string secondaryFocus = state.FocusTags.OrderByDescending(t => t.Value).Skip(1).First().Key.ToString();
+        // Format tag changes for narrative representation
+        string tagChangesGuidance = FormatTagChangesForNarrative(outcome);
 
-        // Format environment and NPC details
-        string environmentDetails = $"A {context.LocationName.ToLower()} with difficulty level {state.EncounterInfo?.Difficulty ?? 1}";
-        string npcList = "Local individuals relevant to the encounter";
-        string timeConstraints = $"Maximum {state.MaxTurns} turns";
-        string additionalChallenges = state.EncounterInfo != null
-            ? $"Difficulty level {state.EncounterInfo.Difficulty} (adds +{state.EncounterInfo.Difficulty} pressure per turn)"
-            : "Standard difficulty";
+        // Format activated/deactivated tags
+        string tagActivationGuidance = FormatTagActivationForNarrative(outcome);
 
-        // Format character archetype based on primary approach
-        string characterArchetype = GetCharacterArchetype(primaryApproach);
+        // Create a complete encounter history for context
+        NarrativeSummaryBuilder builder = new NarrativeSummaryBuilder();
+        string completeHistory = builder.CreateCompleteHistory(context);
 
-        // Format approach stats
-        string approachStats = FormatApproachValues(state);
+        // Get encounter type from presentation style
+        string encounterType = GetEncounterStyleGuidance(context.EncounterType);
 
-        ActionImplementation actionImplementation = context.ActionImplementation;
-        string encounterGoal = actionImplementation.Goal;
-        string encounterComplication = actionImplementation.Complication;
+        // Determine turn information from events
+        int currentTurn = context.Events.Count > 0 ? context.Events.Count : 1;
+        // Default to 6 turns if we can't determine it
+        int maxTurns = 6;
+
+        // Format outcome components to represent momentum and pressure changes
+        StringBuilder strategicEffects = new StringBuilder();
+        strategicEffects.AppendLine("## Momentum and Pressure Changes:");
+        strategicEffects.AppendLine($"- Momentum Gained: {outcome.MomentumGain}");
+        strategicEffects.AppendLine($"- Pressure Gained: {outcome.PressureGain}");
+
+        if (outcome.HealthChange != 0)
+        {
+            strategicEffects.AppendLine($"- Health Change: {outcome.HealthChange}");
+        }
+
+        if (outcome.ConcentrationChange != 0)
+        {
+            strategicEffects.AppendLine($"- Focus Change: {outcome.ConcentrationChange}");
+        }
+
+        if (outcome.ConfidenceChange != 0)
+        {
+            strategicEffects.AppendLine($"- Confidence Change: {outcome.ConfidenceChange}");
+        }
+
+        // Get previous momentum and pressure from the context's last state
+        int previousMomentum = newState.Momentum - outcome.MomentumGain;
+        int previousPressure = newState.Pressure - outcome.PressureGain;
+
+        // Extract encounter goal from inciting action
+        string encounterGoal = context.ActionImplementation.Goal;
+
+        // Get the choice narrative description
+        string choiceNarrativeDesc = choiceDescription?.FullDescription ?? chosenOption.Name;
 
         // Replace placeholders in template
         string prompt = template
             .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
-            .Replace("{LOCATION_NAME}", context.LocationName)
-            .Replace("{LOCATION_SPOT}", context.locationSpotName)
-            .Replace("{CHARACTER_ARCHETYPE}", characterArchetype)
-            .Replace("{APPROACH_STATS}", approachStats)
+            .Replace("{LOCATION}", context.LocationName)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
-            .Replace("{ENVIRONMENT_DETAILS}", environmentDetails)
-            .Replace("{NPC_LIST}", npcList)
-            .Replace("{TIME_CONSTRAINTS}", timeConstraints)
-            .Replace("{ADDITIONAL_CHALLENGES}", additionalChallenges)
-            .Replace("{ENCOUNTER_COMPLICATION}", encounterComplication);
+            .Replace("{SELECTED_CHOICE}", chosenOption.Name)
+            .Replace("{CHOICE_DESCRIPTION}", choiceNarrativeDesc)
+            .Replace("{APPROACH}", primaryApproach.ToString())
+            .Replace("{FOCUS}", chosenOption.Focus.ToString())
+            .Replace("{EFFECT_TYPE}", chosenOption.EffectType.ToString())
+            .Replace("{M_OLD}", previousMomentum.ToString())
+            .Replace("{P_OLD}", previousPressure.ToString())
+            .Replace("{M_NEW}", newState.Momentum.ToString())
+            .Replace("{P_NEW}", newState.Pressure.ToString())
+            .Replace("{APPROACH_CHANGES}", FormatApproachChanges(outcome.EncounterStateTagChanges))
+            .Replace("{FOCUS_CHANGES}", FormatFocusChanges(outcome.FocusTagChanges))
+            .Replace("{NEW_NARRATIVE_TAGS}", FormatNewlyActivatedTags(outcome.NewlyActivatedTags))
+            .Replace("{STRATEGIC_EFFECTS}", strategicEffects.ToString())
+            .Replace("{CURRENT_TURN}", currentTurn.ToString())
+            .Replace("{MAX_TURNS}", maxTurns.ToString())
+            .Replace("{ENCOUNTER_STYLE_GUIDANCE}", encounterType);
 
         return prompt;
     }
