@@ -1,8 +1,11 @@
 ﻿public class ClaudeNarrativeService : BaseNarrativeAIService
 {
+    private readonly NarrativeContextManager _contextManager;
+
     public ClaudeNarrativeService(IConfiguration configuration, ILogger<EncounterSystem> logger)
         : base(new ClaudeProvider(configuration, logger), configuration, logger)
     {
+        _contextManager = new NarrativeContextManager();
     }
 
     public override async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatus state, string memoryContent)
@@ -14,9 +17,9 @@
         _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
 
         string response = await _aiClient.GetCompletionAsync(
-            _contextManager.GetConversationHistory(conversationId));
+            _contextManager.GetOptimizedConversationHistory(conversationId));
 
-        _contextManager.AddAssistantMessage(conversationId, response);
+        _contextManager.AddAssistantMessage(conversationId, response, MessageType.Introduction);
 
         return response;
     }
@@ -27,10 +30,11 @@
         List<ChoiceProjection> projections,
         EncounterStatus state)
     {
-        string conversationId = $"{context.LocationName}_encounter"; // Same ID for whole encounter
+        string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage();
         string prompt = _promptManager.BuildChoicesPrompt(
             context, choices, projections, state);
+
         if (!_contextManager.ConversationExists(conversationId))
         {
             _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
@@ -38,12 +42,13 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            _contextManager.AddUserMessage(conversationId, prompt);
+            _contextManager.AddUserMessage(conversationId, prompt, MessageType.ChoiceGeneration);
         }
-        string jsonResponse = await _aiClient.GetCompletionAsync(
-            _contextManager.GetConversationHistory(conversationId));
 
-        _contextManager.AddAssistantMessage(conversationId, jsonResponse);
+        string jsonResponse = await _aiClient.GetCompletionAsync(
+            _contextManager.GetOptimizedConversationHistory(conversationId));
+
+        _contextManager.AddAssistantMessage(conversationId, jsonResponse, MessageType.ChoiceGeneration);
         return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
     }
 
@@ -54,10 +59,11 @@
         ChoiceOutcome outcome,
         EncounterStatus newState)
     {
-        string conversationId = $"{context.LocationName}_encounter"; // Same ID as introduction
+        string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage();
         string prompt = _promptManager.BuildReactionPrompt(
             context, chosenOption, choiceDescription, outcome, newState);
+
         if (!_contextManager.ConversationExists(conversationId))
         {
             _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
@@ -65,12 +71,13 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            _contextManager.AddUserMessage(conversationId, prompt);
+            _contextManager.AddUserMessage(conversationId, prompt, MessageType.PlayerChoice);
         }
-        string narrativeResponse = await _aiClient.GetCompletionAsync(
-            _contextManager.GetConversationHistory(conversationId));
 
-        _contextManager.AddAssistantMessage(conversationId, narrativeResponse);
+        string narrativeResponse = await _aiClient.GetCompletionAsync(
+            _contextManager.GetOptimizedConversationHistory(conversationId));
+
+        _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
     }
 
@@ -81,9 +88,8 @@
         ChoiceOutcome outcome,
         EncounterStatus newState)
     {
-        string conversationId = $"{context.LocationName}_encounter"; // Same ID as introduction
+        string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage();
-
         string prompt = _promptManager.BuildEncounterEndPrompt(
             context, newState, outcome.Outcome, chosenOption, choiceDescription);
 
@@ -94,12 +100,13 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            _contextManager.AddUserMessage(conversationId, prompt);
+            _contextManager.AddUserMessage(conversationId, prompt, MessageType.PlayerChoice);
         }
-        string narrativeResponse = await _aiClient.GetCompletionAsync(
-            _contextManager.GetConversationHistory(conversationId));
 
-        _contextManager.AddAssistantMessage(conversationId, narrativeResponse);
+        string narrativeResponse = await _aiClient.GetCompletionAsync(
+            _contextManager.GetOptimizedConversationHistory(conversationId));
+
+        _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
     }
 
@@ -122,10 +129,10 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            _contextManager.AddUserMessage(conversationId, prompt);
+            _contextManager.AddUserMessage(conversationId, prompt, MessageType.MemoryUpdate);
         }
         string memoryContentResponse = await _aiClient.GetCompletionAsync(
-            _contextManager.GetConversationHistory(conversationId));
+            _contextManager.GetOptimizedConversationHistory(conversationId));
 
         return memoryContentResponse;
     }
