@@ -138,6 +138,10 @@ The following words and phrases are NEVER to be used in responses as they are to
    - "Her voice cuts like a knife through the tension"
    - "The weight of his judgment hangs in the air"
    - "Time seems to slow as I consider my response"
+   
+4. PLAYER CHARACTER CONDITION:
+   - The Strategic effects may mention the player's health, confidence or concentration changing as a result of the previous choice
+   - You MUST weave these changes naturally and believable into the reaction narrative as a DIRECT RESULT of the player's choice
 
 5. END WITH SPECIFIC NEW SITUATION:
    - The final paragraph MUST present a clear new situation requiring player reaction

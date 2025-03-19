@@ -1,9 +1,6 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-
-public class MemoryFileAccess
+﻿public class MemoryFileAccess
 {
-    const string fileName = $"memory.json";
+    const string fileName = "memory.txt";
 
     public static async Task<string> ReadFromMemoryFile()
     {
@@ -13,37 +10,37 @@ public class MemoryFileAccess
             string _baseLogDirectory = Path.Combine("C:", "Logs");
             string filePath = Path.Combine(_baseLogDirectory, fileName);
 
-            // Configure JSON serialization options
-            var _jsonOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            };
+            // Ensure directory exists
+            Directory.CreateDirectory(_baseLogDirectory);
 
+            // Read all text from the file
             memoryContent = await File.ReadAllTextAsync(filePath);
         }
-        catch(Exception e)
+        catch (Exception e)
         {
-
+            // Log or handle the exception as needed
+            Console.WriteLine($"Error reading memory file: {e.Message}");
         }
         return memoryContent;
     }
 
     public static async Task WriteToMemoryFile(ChoiceOutcome outcome, EncounterStatus newStatus, string memoryContent)
     {
-        string _baseLogDirectory = Path.Combine("C:", "Logs");
-        string filePath = Path.Combine(_baseLogDirectory, fileName);
-
-        // Configure JSON serialization options
-        var _jsonOptions = new JsonSerializerOptions
+        try
         {
-            WriteIndented = true,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
+            string _baseLogDirectory = Path.Combine("C:", "Logs");
+            string filePath = Path.Combine(_baseLogDirectory, fileName);
 
-        await File.WriteAllTextAsync(
-            filePath,
-            JsonSerializer.Serialize(memoryContent, _jsonOptions)
-        );
+            // Ensure directory exists
+            Directory.CreateDirectory(_baseLogDirectory);
+
+            // Write the memory content directly to the file
+            await File.WriteAllTextAsync(filePath, memoryContent);
+        }
+        catch (Exception e)
+        {
+            // Log or handle the exception as needed
+            Console.WriteLine($"Error writing to memory file: {e.Message}");
+        }
     }
 }

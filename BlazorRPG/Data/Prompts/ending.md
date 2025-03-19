@@ -4,7 +4,6 @@ Generate a concluding narrative for a {ENCOUNTER_TYPE} encounter that has ended 
 The encounter takes place at the {LOCATION_SPOT} of the {LOCATION_NAME} with the objective to {CHARACTER_GOAL}.
 
 Final state: Momentum {FINAL_MOMENTUM}, Pressure {FINAL_PRESSURE}
-Resource states: Health {HEALTH}, Concentration {CONCENTRATION}, Confidence {CONFIDENCE}
 Approach values: {APPROACH_VALUES}
 Focus values: {FOCUS_VALUES}
 
