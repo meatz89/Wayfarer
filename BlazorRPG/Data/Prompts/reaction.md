@@ -5,7 +5,6 @@ The encounter takes place at the {LOCATION_SPOT} of the {LOCATION_NAME} with the
 
 Previous state: Momentum {M_OLD}, Pressure {P_OLD}
 
-Urgent situation that prompted the previous choice: {CURRENT_SITUATION}
 Previous choice made: {SELECTED_CHOICE} ({CHOICE_DESCRIPTION})
 The Previous choice has NOT YET HAPPENED. It must be executed DURING THIS SCENE.
 

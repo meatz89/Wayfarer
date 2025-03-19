@@ -9,7 +9,7 @@ Approach values: {APPROACH_VALUES}
 Focus values: {FOCUS_VALUES}
 
 Final choice made: {SELECTED_CHOICE} ({CHOICE_DESCRIPTION})
-The Final choice has NOT YET HAPPENED. It must be executed DURING THIS ENDING SCENE.
+The final choice has NOT YET HAPPENED. It must happen DURING THIS SCENE.
 
 ## ENCOUNTER OUTCOME GUIDANCE
 
@@ -17,10 +17,10 @@ Write 3-4 paragraphs of grounded, first-person narrative that:
 
 1. BEGINS BY DIRECTLY ADDRESSING GOAL ACHIEVEMENT:
    - The first paragraph MUST explicitly state whether the goal to {CHARACTER_GOAL} was achieved
-   - FAILURE: Clearly show how the character failed to {CHARACTER_GOAL} and what was lost
-   - PARTIAL: Show how the character partially achieved the goal to {CHARACTER_GOAL} with limitations
-   - STANDARD: Demonstrate full achievement of the goal to {CHARACTER_GOAL} as intended
-   - EXCEPTIONAL: Show how the character not only achieved {CHARACTER_GOAL} but gained additional benefits
+   - FAILURE: Failing the encounter is NOT the end of the world. The player may have failed to reach his goal for now, but may have opened up new narrative opportunities or alternatives ways.
+   - PARTIAL: Show how the character partially achieved the goal with limitations
+   - STANDARD: Demonstrate full achievement of the goal as intended
+   - EXCEPTIONAL: Show how the character not only achieved his goal but gained additional benefits
 
 2. SHOWS THE DIRECT CONSEQUENCES of the character's approach emphasis:
    - Dominance: Show how forceful methods affected goal achievement and relationships

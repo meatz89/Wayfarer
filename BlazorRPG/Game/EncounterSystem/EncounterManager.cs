@@ -203,26 +203,6 @@ public class EncounterManager
         // Generate narrative for the reaction and new scene
         string narrative = "Continued Narrative";
 
-        if (_useAiNarrative && _narrativeService != null)
-        {
-            narrative = await _narrativeService.GenerateReactionAndSceneAsync(
-                _narrativeContext,
-                choice,
-                choiceDescription,
-                outcome,
-                newStatus);
-        }
-
-        NarrativeEvent narrativeEvent = new NarrativeEvent(
-            State.CurrentTurn - 1, // The turn counter increases after application
-            narrative);
-
-        narrativeEvent.SetChosenOption(choice);
-        narrativeEvent.SetChoiceNarrative(choiceDescription);
-        narrativeEvent.SetOutcome(outcome.Description);
-
-        _narrativeContext.AddEvent(narrativeEvent);
-
         // If the encounter is over, return the outcome
         if (outcome.IsEncounterOver)
         {
@@ -232,61 +212,97 @@ public class EncounterManager
                 outcome,
                 newStatus);
 
-            NarrativeResult narrativeResult = new(
+            NarrativeResult narrativeResultFinished = new(
                 narrative,
                 new List<IChoice>(),
                 new List<ChoiceProjection>(),
                 new Dictionary<IChoice, ChoiceNarrative>());
 
-            narrativeResult.SetOutcome(outcome.Outcome);
-            narrativeResult.SetIsEncounterOver(outcome.IsEncounterOver);
+            narrativeResultFinished.SetOutcome(outcome.Outcome);
+            narrativeResultFinished.SetIsEncounterOver(outcome.IsEncounterOver);
+            
+            await UpdateMemoryFile(outcome, newStatus);
 
-            var oldMemory = await MemoryFileAccess.ReadFromMemoryFile();
+            NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
+            _narrativeContext.AddEvent(narrativeEvent);
 
-            string memoryContent = await _narrativeService.GenerateMemoryFileAsync(
-                _narrativeContext,
-                outcome,
-                newStatus,
-                oldMemory
-                );
-
-            await MemoryFileAccess.WriteToMemoryFile(outcome, newStatus, memoryContent);
-
-            return narrativeResult;
+            return narrativeResultFinished;
         }
-
-        // Get the new choices and projections
-        GenerateChoices();
-        List<IChoice> newChoices = GetCurrentChoices();
-        List<ChoiceProjection> newProjections = newChoices.Select(ProjectChoice).ToList();
-
-        // Generate descriptive narratives for each choice
-        Dictionary<IChoice, ChoiceNarrative> newChoiceDescriptions = null;
-        if (_useAiNarrative && _narrativeService != null)
+        else
         {
-            newChoiceDescriptions = await _narrativeService.GenerateChoiceDescriptionsAsync(
-                _narrativeContext,
+            if (_useAiNarrative && _narrativeService != null)
+            {
+                narrative = await _narrativeService.GenerateReactionAndSceneAsync(
+                    _narrativeContext,
+                    choice,
+                    choiceDescription,
+                    outcome,
+                    newStatus);
+            }
+            
+            NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
+            _narrativeContext.AddEvent(narrativeEvent);
+
+            // Get the new choices and projections
+            GenerateChoices();
+            List<IChoice> newChoices = GetCurrentChoices();
+            List<ChoiceProjection> newProjections = newChoices.Select(ProjectChoice).ToList();
+
+            // Generate descriptive narratives for each choice
+            Dictionary<IChoice, ChoiceNarrative> newChoiceDescriptions = null;
+            if (_useAiNarrative && _narrativeService != null)
+            {
+                newChoiceDescriptions = await _narrativeService.GenerateChoiceDescriptionsAsync(
+                    _narrativeContext,
+                    newChoices,
+                    newProjections,
+                    newStatus);
+            }
+
+            // Add the choice descriptions to the latest event
+            narrativeEvent.ChoiceDescriptions.Clear();
+            if (newChoiceDescriptions != null)
+            {
+                foreach (KeyValuePair<IChoice, ChoiceNarrative> kvp in newChoiceDescriptions)
+                {
+                    narrativeEvent.ChoiceDescriptions[kvp.Key] = kvp.Value;
+                }
+            }
+
+            // Return the narrative result
+            NarrativeResult narrativeResultOngoing = new(
+                narrative,
                 newChoices,
                 newProjections,
-                newStatus);
-        }
+                newChoiceDescriptions);
 
-        // Add the choice descriptions to the latest event
-        narrativeEvent.ChoiceDescriptions.Clear();
-        if (newChoiceDescriptions != null)
-        {
-            foreach (KeyValuePair<IChoice, ChoiceNarrative> kvp in newChoiceDescriptions)
-            {
-                narrativeEvent.ChoiceDescriptions[kvp.Key] = kvp.Value;
-            }
+            return narrativeResultOngoing;
         }
-
-        // Return the narrative result
-        return new NarrativeResult(
-            narrative,
-            newChoices,
-            newProjections,
-            newChoiceDescriptions);
     }
 
+    private NarrativeEvent GetNarrativeEvent(IChoice choice, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, string narrative)
+    {
+        NarrativeEvent narrativeEvent = new NarrativeEvent(
+            State.CurrentTurn - 1, // The turn counter increases after application
+            narrative);
+
+        narrativeEvent.SetChosenOption(choice);
+        narrativeEvent.SetChoiceNarrative(choiceDescription);
+        narrativeEvent.SetOutcome(outcome.Description);
+        return narrativeEvent;
+    }
+
+    private async Task UpdateMemoryFile(ChoiceOutcome outcome, EncounterStatus newStatus)
+    {
+        var oldMemory = await MemoryFileAccess.ReadFromMemoryFile();
+
+        string memoryContent = await _narrativeService.GenerateMemoryFileAsync(
+            _narrativeContext,
+            outcome,
+            newStatus,
+            oldMemory
+            );
+
+        await MemoryFileAccess.WriteToMemoryFile(outcome, newStatus, memoryContent);
+    }
 }
