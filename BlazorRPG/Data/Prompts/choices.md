@@ -1,14 +1,18 @@
 # WAYFARER CHOICE DESCRIPTIONS
 
-Transform the following 4 mechanical choices into narrative descriptions for a {ENCOUNTER_TYPE} encounter in {LOCATION}. 
+Transform the following 4 mechanical choices into narrative descriptions.
+The encounter of type {ENCOUNTER_TYPE} takes place at the {LOCATION_SPOT} of the {LOCATION_NAME} with the objective to {CHARACTER_GOAL}.
 
 The character is currently facing this URGENT SITUATION:
 {CURRENT_SITUATION}
+
 Objective: {CHARACTER_GOAL}
+
 Current state: Momentum {MOMENTUM}, Pressure {PRESSURE}
 Approach values: {APPROACH_VALUES}
 Active narrative tags: {LIST_TAGS}
 Key NPCs present: {NPC_LIST}
+
 {ACTIVE_TAGS}
 {LOCATION_PREFERENCES}
 
@@ -106,7 +110,7 @@ REMEMBER:
   * Health/Concentration/Confidence <= -5: Life-threatening injury / mental breakdown language
 - Each choice should feel distinct and appropriate to both the approach/focus combination
 
-## FINAL DIFFERENTIATION CHECK
+## SUMMARY
 
 Before submitting your response, verify that all four choices meet these requirements:
 
