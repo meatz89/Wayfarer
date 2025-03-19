@@ -66,8 +66,37 @@ Choice names MUST sound like genuine thoughts a real person would have in the sp
    - GOOD: "That leg looks weak..." 
    - BAD: "I shall analyze his physical vulnerability"
    
-2. UNIQUE THOUGHT PATTERNS:
-   - Each choice name must use a DIFFERENT thought structure
+2. UNIQUE THOUGHT PATTERNS FOR EACH APPROACH:
+
+   FOR ANALYTICAL CHOICES:
+   - NEVER use vague phrases like "Something's not right..." or "Something doesn't add up..."
+   - Instead, use specific observations: "His left hand keeps twitching while he talks..."
+   - Use varied analytical patterns:
+     * DIRECT OBSERVATIONS: "He keeps touching that pocket..."
+     * CAUSE-EFFECT THOUGHTS: "If those guards are nervous, then..."
+     * COMPARISON THINKING: "The other merchants don't act this way..."
+     * QUESTIONS: "Why would he hide those goods now?"
+     * PATTERN RECOGNITION: "Every time she mentions the church, she looks down..."
+
+   FOR PHYSICAL ACTION CHOICES:
+   - NEVER default to the same action verb structure
+   - Avoid repetitive "I'll try to..." or "I need to..." formulations
+   - Use varied physical intention patterns:
+     * DIRECT ACTION INTENTIONS: "Going to slip around that corner..."
+     * CONDITIONAL MOVEMENTS: "If I move quickly enough..."
+     * TOOL/OBJECT USAGE: "That loose brick could work as..."
+     * SPECIFIC BODY MOVEMENTS: "Just need to slide my arm through..."
+     * TIMING-BASED ACTIONS: "Wait for his head to turn, then..."
+
+   FOR SOCIAL/DIALOGUE CHOICES:
+   - NEVER default to the same conversation opening 
+   - Avoid generic greetings or questions
+   - Use varied speech patterns:
+     * DIRECT REQUESTS: "Let me see what's under the counter."
+     * OFFERS: "I can help you with that heavy load."
+     * PERSONAL STATEMENTS: "Lost my way trying to find the cathedral."
+     * EMOTIONAL APPEALS: "Please, I haven't eaten in two days."
+     * OBSERVATIONS AS CONVERSATION: "Your bread smells better than any in town."
 
 ## CRITICAL GUIDELINES:
 
@@ -85,12 +114,18 @@ Choice names MUST sound like genuine thoughts a real person would have in the sp
    - Avoid dialogue that sounds "written" or literary
    - Use natural, conversational rhythm
 
-5. IF A CHOICE WILL END THE ENCOUNTER:
+5. ENSURE CHOICE NAME DIVERSITY:
+   - ANALYSIS CHOICES must use specific observations, not vague feelings
+   - PHYSICAL CHOICES must show diverse action intentions, not repetitive patterns
+   - SOCIAL CHOICES must use varied speech formats, not identical conversation openers
+   - No two choices should begin with the same words or sentence structure
+
+6. IF A CHOICE WILL END THE ENCOUNTER:
    - Indicate the finality without explicitly mentioning the encounter ending
    - Adapt tone to match the projected outcome (failure, partial, standard, exceptional)
    - For Failure: "I'll take whatever scraps you'll give me..."
    - For Partial: "This deal isn't great, but it'll do for now."
-   - For Standard: "This bread will keep me fed for days."
+   - For Standard: "This bread will solve my hunger problem nicely."
    - For Exceptional: "I couldn't have hoped for a better outcome."
 
 REMEMBER:
@@ -115,7 +150,10 @@ Before submitting your response, verify that all four choices meet these require
 2. Each choice has its OWN UNIQUE language and vocabulary - no repeated phrasing
 3. Each choice focuses on DIFFERENT elements of the situation
 4. Choice names sound like AUTHENTIC thoughts, not literary descriptions
-5. A reader could easily tell these choices apart and understand how they differ tactically
+5. Analysis choices NEVER use "something seems wrong" or "something doesn't add up" patterns
+6. Physical choices NEVER all begin with "I'll try to..." or similar repetitive structures
+7. Social choices NEVER all use the same conversation opening pattern
+8. A reader could easily tell these choices apart and understand how they differ tactically
 
 If any choices fail these tests, rewrite them to increase differentiation.
 
