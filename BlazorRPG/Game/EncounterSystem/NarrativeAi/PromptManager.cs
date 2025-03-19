@@ -153,15 +153,15 @@ public class PromptManager
             locationPreferences.AppendLine("  These approaches are challenging or risky here.");
         }
 
-        if (state.EncounterInfo?.FavoredFocuses?.Any() == true)
+        if (state.EncounterInfo?.PressureReducingFocuses?.Any() == true)
         {
-            locationPreferences.AppendLine($"- Favored Focuses: {string.Join(", ", state.EncounterInfo.FavoredFocuses)}");
+            locationPreferences.AppendLine($"- Favored Focuses: {string.Join(", ", state.EncounterInfo.PressureReducingFocuses)}");
             locationPreferences.AppendLine("  These focuses are particularly effective here.");
         }
 
-        if (state.EncounterInfo?.DisfavoredFocuses?.Any() == true)
+        if (state.EncounterInfo?.MomentumReducingFocuses?.Any() == true)
         {
-            locationPreferences.AppendLine($"- Disfavored Focuses: {string.Join(", ", state.EncounterInfo.DisfavoredFocuses)}");
+            locationPreferences.AppendLine($"- Disfavored Focuses: {string.Join(", ", state.EncounterInfo.MomentumReducingFocuses)}");
             locationPreferences.AppendLine("  These focuses may lead to resource loss or complications.");
         }
 

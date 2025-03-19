@@ -3,17 +3,18 @@
     public static EncounterTemplate LibraryEncounter => new EncounterTemplate()
     {
         Duration = 6,
+        MaxPressure = 13,
         PartialThreshold = 12,
         StandardThreshold = 16,
         ExceptionalThreshold = 20,
 
-        hostility = EncounterInfo.HostilityLevels.Friendly,
+        Hostility = EncounterInfo.HostilityLevels.Friendly,
 
         MomentumBoostApproaches = new[] { ApproachTags.Analysis, ApproachTags.Rapport }.ToList(),
         DangerousApproaches = new[] { ApproachTags.Dominance, ApproachTags.Evasion }.ToList(),
         
-        favoredFocuses = new[] { FocusTags.Environment, FocusTags.Information }.ToList(),
-        disfavoredFocuses = new[] { FocusTags.Physical, FocusTags.Resource }.ToList(),
+        PressureReducingFocuses = new[] { FocusTags.Environment, FocusTags.Information }.ToList(),
+        MomentumReducingFocuses = new[] { FocusTags.Physical, FocusTags.Resource }.ToList(),
 
         encounterNarrativeTags =
         [
@@ -37,17 +38,18 @@
     public static EncounterTemplate BanditEncounter => new EncounterTemplate()
     {
         Duration = 6,
+        MaxPressure = 13,
         PartialThreshold = 12,
         StandardThreshold = 16,
         ExceptionalThreshold = 20,
 
-        hostility = EncounterInfo.HostilityLevels.Hostile,
+        Hostility = EncounterInfo.HostilityLevels.Hostile,
 
         MomentumBoostApproaches = new[] { ApproachTags.Analysis, ApproachTags.Precision }.ToList(),
         DangerousApproaches = new[] { ApproachTags.Dominance, ApproachTags.Evasion }.ToList(),
 
-        favoredFocuses = new[] { FocusTags.Physical }.ToList(),
-        disfavoredFocuses = new[] { FocusTags.Environment }.ToList(),
+        PressureReducingFocuses = new[] { FocusTags.Physical }.ToList(),
+        MomentumReducingFocuses = new[] { FocusTags.Environment }.ToList(),
 
         encounterNarrativeTags =
         [
@@ -70,17 +72,18 @@
     public static EncounterTemplate MerchantEncounter => new EncounterTemplate()
     {
         Duration = 6,
+        MaxPressure = 13,
         PartialThreshold = 12,
         StandardThreshold = 16,
         ExceptionalThreshold = 20,
 
-        hostility = EncounterInfo.HostilityLevels.Neutral,
+        Hostility = EncounterInfo.HostilityLevels.Neutral,
 
         MomentumBoostApproaches = new[] { ApproachTags.Rapport, ApproachTags.Analysis }.ToList(),
         DangerousApproaches = new[] { ApproachTags.Evasion, ApproachTags.Precision }.ToList(),
 
-        favoredFocuses = new[] { FocusTags.Relationship, FocusTags.Resource }.ToList(),
-        disfavoredFocuses = new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),
+        PressureReducingFocuses = new[] { FocusTags.Relationship, FocusTags.Resource }.ToList(),
+        MomentumReducingFocuses = new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),
 
         encounterNarrativeTags =
         [

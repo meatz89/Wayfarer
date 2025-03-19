@@ -5,8 +5,8 @@ public class EncounterInfo
 {
     public LocationNames LocationName { get; set; }
     public string LocationSpotName { get; set; }
-    public List<FocusTags> FavoredFocuses { get; } = new List<FocusTags>();
-    public List<FocusTags> DisfavoredFocuses { get; } = new List<FocusTags>();
+    public List<FocusTags> PressureReducingFocuses { get; } = new List<FocusTags>();
+    public List<FocusTags> MomentumReducingFocuses { get; } = new List<FocusTags>();
     public List<ApproachTags> MomentumBoostApproaches { get; } = new List<ApproachTags>();
     public List<ApproachTags> DangerousApproaches { get; } = new List<ApproachTags>();
     public List<IEncounterTag> AvailableTags { get; } = new List<IEncounterTag>();
@@ -33,23 +33,23 @@ public class EncounterInfo
         string locationSpot,
         List<ApproachTags> favoreApproaches,
         List<ApproachTags> dangerousApproaches,
-        List<FocusTags> favoredFocuses,
-        List<FocusTags> disfavoredFocuses,
+        List<FocusTags> PressureReducingFocuses,
+        List<FocusTags> MomentumReducingFocuses,
         int duration,
+        int maxPressure,
         int partialThreshold,
         int standardThreshold,
         int exceptionalThreshold,
         HostilityLevels hostility,
-        EncounterTypes style,
-        int maxPressure = 10)
+        EncounterTypes style)
     {
         this.LocationName = locationName;
         this.LocationSpotName = locationSpot;
 
         this.MomentumBoostApproaches = favoreApproaches;
         this.DangerousApproaches = dangerousApproaches;
-        this.FavoredFocuses = favoredFocuses;
-        this.DisfavoredFocuses = disfavoredFocuses;
+        this.PressureReducingFocuses = PressureReducingFocuses;
+        this.MomentumReducingFocuses = MomentumReducingFocuses;
 
         this.PartialThreshold = partialThreshold;
         this.StandardThreshold = standardThreshold;
