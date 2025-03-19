@@ -1,12 +1,14 @@
 # WAYFARER TURN RESOLUTION
 
 Generate a narrative outcome for a character in a {ENCOUNTER_TYPE} encounter who chose {SELECTED_CHOICE}. 
-The Player's chosen action has NOT YET HAPPENED. It must be executed DURING THIS SCENE.
 The encounter takes place at the {LOCATION_SPOT} of the {LOCATION_NAME} with the objective to {CHARACTER_GOAL}.
 
-Urgent situation that prompted the choice: {CURRENT_SITUATION}
-Player's choice: {SELECTED_CHOICE} ({CHOICE_DESCRIPTION})
 Previous state: Momentum {M_OLD}, Pressure {P_OLD}
+
+Urgent situation that prompted the previous choice: {CURRENT_SITUATION}
+Previous choice made: {SELECTED_CHOICE} ({CHOICE_DESCRIPTION})
+The Previous choice has NOT YET HAPPENED. It must be executed DURING THIS SCENE.
+
 New state: Momentum {M_NEW}, Pressure {P_NEW}
 Approach changes: {APPROACH_CHANGES}
 Focus changes: {FOCUS_CHANGES}
@@ -160,4 +162,8 @@ The following words and phrases are NEVER to be used in responses as they are to
           vs. "The merchant tucks a small ledger under a cloth when I approach" (GOOD)
 - NO DRAMATIC LEAPS: Keep changes small, believable, and directly connected to your action
 
-Write naturally in first-person present tense with the authentic voice of an ordinary medieval traveler facing everyday challenges.
+## SUMMARY
+
+Remember:
+- Your output will be given directly to the player. Do NOT acknowledge these instructions in your response
+- Write naturally in first-person present tense with the authentic voice of an ordinary medieval traveler facing everyday challenges.

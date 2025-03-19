@@ -200,7 +200,9 @@ Choice {i + 1}: {choice.Name}
 
         // Replace placeholders in template
         string prompt = template
-            .Replace("{LOCATION}", context.LocationName)
+            .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
+            .Replace("{LOCATION_NAME}", context.LocationName)
+            .Replace("{LOCATION_SPOT}", context.locationSpotName)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
             .Replace("{CURRENT_SITUATION}", currentSituation)
             .Replace("{ACTIVE_TAGS}", narrativeTagsInfo.ToString())
@@ -338,9 +340,6 @@ Choice {i + 1}: {choice.Name}
         // Extract encounter goal from inciting action
         string encounterGoal = context.ActionImplementation.Goal;
 
-        // Get final choice name
-        string finalChoiceName = finalChoice?.Name ?? "No final choice available";
-
         // Add goal achievement status
         string goalAchievementStatus = outcome != EncounterOutcomes.Failure
             ? $"You have successfully achieved your goal to {encounterGoal}"
@@ -362,8 +361,7 @@ Choice {i + 1}: {choice.Name}
             .Replace("{APPROACH_VALUES}", approachValues)
             .Replace("{FOCUS_VALUES}", formattedFocusValues)
             .Replace("{LAST_NARRATIVE}", lastNarrative)
-            .Replace("{GOAL_ACHIEVEMENT_STATUS}", goalAchievementStatus)
-            .Replace("{FINAL_CHOICE}", finalChoiceName);
+            .Replace("{GOAL_ACHIEVEMENT_STATUS}", goalAchievementStatus);
 
         return prompt;
     }

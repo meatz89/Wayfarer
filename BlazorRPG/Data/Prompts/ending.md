@@ -1,16 +1,15 @@
 # WAYFARER ENCOUNTER ENDING
 
 Generate a concluding narrative for a {ENCOUNTER_TYPE} encounter that has ended with an outcome of {ENCOUNTER_OUTCOME}. 
-The last player choice was {SELECTED_CHOICE}. The Player's chosen action has NOT YET HAPPENED. It must be executed DURING THIS ENDING SCENE.
 The encounter takes place at the {LOCATION_SPOT} of the {LOCATION_NAME} with the objective to {CHARACTER_GOAL}.
 
 Final state: Momentum {FINAL_MOMENTUM}, Pressure {FINAL_PRESSURE}
-Player's final choice: {SELECTED_CHOICE} ({CHOICE_DESCRIPTION})
 Resource states: Health {HEALTH}, Concentration {CONCENTRATION}, Confidence {CONFIDENCE}
 Approach values: {APPROACH_VALUES}
 Focus values: {FOCUS_VALUES}
-Last narrative: {LAST_NARRATIVE}
-Final choice made: {FINAL_CHOICE}
+
+Final choice made: {SELECTED_CHOICE} ({CHOICE_DESCRIPTION})
+The Final choice has NOT YET HAPPENED. It must be executed DURING THIS ENDING SCENE.
 
 ## ENCOUNTER OUTCOME GUIDANCE
 
@@ -52,4 +51,8 @@ Write 3-4 paragraphs of grounded, first-person narrative that:
 - FIRST PERSON, PRESENT TENSE: "I count my remaining coins..." not "I counted..."
 - CONCRETE DETAILS: Use specific sensory information, not abstract concepts
 
-Write naturally in the authentic voice of an ordinary medieval traveler concluding an everyday challenge.
+## SUMMARY
+
+Remember:
+- Your output will be given directly to the player. Do NOT acknowledge these instructions in your response
+- Write naturally in the authentic voice of an ordinary medieval traveler concluding an everyday challenge.
