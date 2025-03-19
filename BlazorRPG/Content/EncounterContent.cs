@@ -2,7 +2,7 @@
 {
     public static EncounterTemplate LibraryEncounter => new EncounterTemplate()
     {
-        Duration = 2,
+        Duration = 6,
         MaxPressure = 13,
         PartialThreshold = 12,
         StandardThreshold = 16,
@@ -37,7 +37,7 @@
 
     public static EncounterTemplate BanditEncounter => new EncounterTemplate()
     {
-        Duration = 2,
+        Duration = 6,
         MaxPressure = 13,
         PartialThreshold = 12,
         StandardThreshold = 16,
@@ -71,7 +71,7 @@
 
     public static EncounterTemplate MerchantEncounter => new EncounterTemplate()
     {
-        Duration = 2,
+        Duration = 6,
         MaxPressure = 13,
         PartialThreshold = 12,
         StandardThreshold = 16,
