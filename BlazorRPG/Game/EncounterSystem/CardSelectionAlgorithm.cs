@@ -233,12 +233,6 @@ public class CardSelectionAlgorithm
                 locationPreferenceModifier += 8;
             }
 
-            // Dangerous approaches become increasingly problematic as pressure builds
-            if (state.Location.DangerousApproaches.Contains(primaryApproach))
-            {
-                locationPreferenceModifier -= 15;
-            }
-
             if (state.Location.MomentumBoostApproaches.Contains(primaryApproach))
             {
                 locationPreferenceModifier += 8;
