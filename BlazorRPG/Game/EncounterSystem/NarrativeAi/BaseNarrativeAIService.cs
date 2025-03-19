@@ -26,7 +26,7 @@
     public abstract Task<string> GenerateReactionAndSceneAsync(
         NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatus newState);
     public abstract Task<string> GenerateEndingAsync(
-        NarrativeContext context, IChoice chosenOption, ChoiceOutcome outcome, EncounterStatus newState);
+        NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatus newState );
     public abstract Task<string> GenerateMemoryFileAsync(
         NarrativeContext context, ChoiceOutcome outcome, EncounterStatus newState, string oldMemory);
     public abstract Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(NarrativeContext context, List<IChoice> choices, List<ChoiceProjection> projections, EncounterStatus state);

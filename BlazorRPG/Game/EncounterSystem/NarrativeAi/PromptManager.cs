@@ -309,7 +309,9 @@ Choice {i + 1}: {choice.Name}
         NarrativeContext context,
         EncounterStatus finalState,
         EncounterOutcomes outcome,
-        IChoice finalChoice)
+        IChoice finalChoice,
+        ChoiceNarrative choiceDescription
+        )
     {
         string template = _promptTemplates[ENDING_MD];
 
@@ -345,16 +347,17 @@ Choice {i + 1}: {choice.Name}
             ? $"You have successfully achieved your goal to {encounterGoal}"
             : $"You have failed to {encounterGoal}";
 
-        string choiceNarrativeDesc = finalChoice.Description ?? finalChoice.Name;
+        // Get the choice narrative description
+        string choiceNarrativeDesc = choiceDescription?.FullDescription ?? finalChoice.Name;
 
         // Replace placeholders in template
         string prompt = template
+            .Replace("{SELECTED_CHOICE}", finalChoice.Name)
+            .Replace("{CHOICE_DESCRIPTION}", choiceNarrativeDesc)
             .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
             .Replace("{ENCOUNTER_OUTCOME}", outcome.ToString())
             .Replace("{LOCATION_NAME}", context.LocationName)
             .Replace("{LOCATION_SPOT}", context.locationSpotName)
-            .Replace("{SELECTED_CHOICE}", finalChoice.Name)
-            .Replace("{CHOICE_DESCRIPTION}", choiceNarrativeDesc)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
             .Replace("{FINAL_MOMENTUM}", finalState.Momentum.ToString())
             .Replace("{FINAL_PRESSURE}", finalState.Pressure.ToString())

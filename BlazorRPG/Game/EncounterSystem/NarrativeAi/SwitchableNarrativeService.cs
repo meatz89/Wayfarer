@@ -91,11 +91,12 @@
     public async Task<string> GenerateEndingAsync(
         NarrativeContext context,
         IChoice chosenOption,
+        ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         EncounterStatus newState)
     {
         return await _providers[_currentProvider].GenerateEndingAsync(
-            context, chosenOption, outcome, newState);
+            context, chosenOption, choiceDescription, outcome, newState);
     }
 
     public async Task<string> GenerateMemoryFileAsync(
