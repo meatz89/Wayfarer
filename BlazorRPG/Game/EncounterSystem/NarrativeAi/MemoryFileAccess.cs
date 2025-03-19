@@ -42,7 +42,7 @@ public class MemoryFileAccess
         };
 
         await File.WriteAllTextAsync(
-            _baseLogDirectory,
+            filePath,
             JsonSerializer.Serialize(memoryContent, _jsonOptions)
         );
     }
