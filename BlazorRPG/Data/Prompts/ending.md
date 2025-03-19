@@ -1,4 +1,5 @@
-# WAYFARER ENCOUNTER ENDING
+The player chose: {SELECTED_CHOICE} ({CHOICE_DESCRIPTION})
+The Previous choice has NOT YET HAPPENED. It must be executed DURING THIS SCENE.
 
 Generate a concluding narrative for a {ENCOUNTER_TYPE} encounter that has ended with an outcome of {ENCOUNTER_OUTCOME}. 
 The encounter takes place at the {LOCATION_SPOT} of the {LOCATION_NAME} with the objective to {CHARACTER_GOAL}.
@@ -6,9 +7,6 @@ The encounter takes place at the {LOCATION_SPOT} of the {LOCATION_NAME} with the
 Final state: Momentum {FINAL_MOMENTUM}, Pressure {FINAL_PRESSURE}
 Approach values: {APPROACH_VALUES}
 Focus values: {FOCUS_VALUES}
-
-Final choice made: {SELECTED_CHOICE} ({CHOICE_DESCRIPTION})
-The final choice has NOT YET HAPPENED. It must happen DURING THIS SCENE.
 
 ## ENCOUNTER OUTCOME GUIDANCE
 

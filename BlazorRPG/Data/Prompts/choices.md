@@ -1,11 +1,7 @@
-# WAYFARER CHOICE DESCRIPTIONS
-
-Transform the following 4 mechanical choices into narrative descriptions.
-The encounter of type {ENCOUNTER_TYPE} takes place at the {LOCATION_SPOT} of the {LOCATION_NAME} with the objective to {CHARACTER_GOAL}.
+Objective: {CHARACTER_GOAL}
 
 The character is currently facing AN URGENT SITUATION THAT REQUIRES A DECISION. The player can react to this situation using DIFFERENT APPROACHES.
-
-Objective: {CHARACTER_GOAL}
+The encounter of type {ENCOUNTER_TYPE} takes place at the {LOCATION_SPOT} of the {LOCATION_NAME} with the objective to {CHARACTER_GOAL}.
 
 Current state: Momentum {MOMENTUM}, Pressure {PRESSURE}
 Approach values: {APPROACH_VALUES}
@@ -14,6 +10,8 @@ Key NPCs present: {NPC_LIST}
 
 {ACTIVE_TAGS}
 {LOCATION_PREFERENCES}
+
+Transform the following 4 mechanical choices into narrative descriptions.
 
 For each choice, write a 1-2 sentence description that:
 1. Shows how this approach would interact with the CURRENT SITUATION'S STATE
