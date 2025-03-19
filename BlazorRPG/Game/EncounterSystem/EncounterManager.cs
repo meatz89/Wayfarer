@@ -1,4 +1,8 @@
-﻿public class EncounterManager
+﻿using Microsoft.Extensions.Logging.Abstractions;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+public class EncounterManager
 {
     public bool _useAiNarrative = false;
 
@@ -234,6 +238,17 @@
             narrativeResult.SetOutcome(outcome.Outcome);
             narrativeResult.SetIsEncounterOver(outcome.IsEncounterOver);
 
+            var oldMemory = await MemoryFileAccess.ReadFromMemoryFile(outcome, newStatus);
+
+            string memoryContent = await _narrativeService.GenerateMemoryFileAsync(
+                _narrativeContext,
+                outcome,
+                newStatus,
+                oldMemory
+                );
+
+            await MemoryFileAccess.WriteToMemoryFile(outcome, newStatus, memoryContent);
+
             return narrativeResult;
         }
 
@@ -270,4 +285,5 @@
             newProjections,
             newChoiceDescriptions);
     }
+
 }
