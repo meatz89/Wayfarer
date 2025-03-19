@@ -70,27 +70,28 @@ Choice names MUST sound like genuine thoughts a real person would have in the sp
 
    FOR ANALYTICAL CHOICES:
    - NEVER use vague phrases like "Something's not right..." or "Something doesn't add up..."
-   - Instead, use specific observations: "His left hand keeps twitching while he talks..."
+   - Instead, use specific observations: "His left hand keeps twitching while he talks...
    - Use varied analytical patterns:
-     * DIRECT OBSERVATIONS: "He keeps touching that pocket..."
-     * CAUSE-EFFECT THOUGHTS: "If those guards are nervous, then..."
-     * COMPARISON THINKING: "The other merchants don't act this way..."
-     * QUESTIONS: "Why would he hide those goods now?"
-     * PATTERN RECOGNITION: "Every time she mentions the church, she looks down..."
+     * DIRECT OBSERVATIONS: He keeps touching that pocket...
+     * CAUSE-EFFECT THOUGHTS: If those guards are nervous, then...
+     * COMPARISON THINKING: The other merchants don't act this way...
+     * QUESTIONS: Why would he hide those goods now?
+     * PATTERN RECOGNITION: Every time she mentions the church, she looks down...
 
    FOR PHYSICAL ACTION CHOICES:
    - NEVER default to the same action verb structure
    - Avoid repetitive "I'll try to..." or "I need to..." formulations
    - Use varied physical intention patterns:
-     * DIRECT ACTION INTENTIONS: "Going to slip around that corner..."
-     * CONDITIONAL MOVEMENTS: "If I move quickly enough..."
-     * TOOL/OBJECT USAGE: "That loose brick could work as..."
-     * SPECIFIC BODY MOVEMENTS: "Just need to slide my arm through..."
-     * TIMING-BASED ACTIONS: "Wait for his head to turn, then..."
+     * DIRECT ACTION INTENTIONS: Going to slip around that corner...
+     * CONDITIONAL MOVEMENTS: If I move quickly enough...
+     * TOOL/OBJECT USAGE: That loose brick could work as...
+     * SPECIFIC BODY MOVEMENTS: Just need to slide my arm through...
+     * TIMING-BASED ACTIONS: Wait for his head to turn, then...
 
    FOR SOCIAL/DIALOGUE CHOICES:
    - NEVER default to the same conversation opening 
    - Avoid generic greetings or questions
+   - Put spoken words in quotation marks
    - Use varied speech patterns:
      * DIRECT REQUESTS: "Let me see what's under the counter."
      * OFFERS: "I can help you with that heavy load."
