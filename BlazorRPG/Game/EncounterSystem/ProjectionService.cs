@@ -237,7 +237,7 @@
                 momentumChange += favoredBonus;
             }
 
-            if (encounterInfo.DisfavoredFocuses.Contains(choice.Focus))
+            if (encounterInfo.MomentumReducingFocuses.Contains(choice.Focus))
             {
                 int disfavoredBonus = -3;
                 projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
@@ -273,7 +273,7 @@
             });
             pressureChange += basePressure;
 
-            if (encounterInfo.FavoredFocuses.Contains(choice.Focus))
+            if (encounterInfo.PressureReducingFocuses.Contains(choice.Focus))
             {
                 int favoredBonus = -2;
                 projection.PressureComponents.Add(new ChoiceProjection.ValueComponent

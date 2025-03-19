@@ -220,12 +220,12 @@ public class CardSelectionAlgorithm
             int locationPreferenceModifier = 0;
 
             // Strongly respect location preferences
-            if (state.Location.DisfavoredFocuses.Contains(choice.Focus))
+            if (state.Location.MomentumReducingFocuses.Contains(choice.Focus))
             {
                 locationPreferenceModifier -= 15;
             }
 
-            if (state.Location.FavoredFocuses.Contains(choice.Focus))
+            if (state.Location.PressureReducingFocuses.Contains(choice.Focus))
             {
                 locationPreferenceModifier += 8;
             }
@@ -233,8 +233,7 @@ public class CardSelectionAlgorithm
             // Dangerous approaches become increasingly problematic as pressure builds
             if (state.Location.DangerousApproaches.Contains(primaryApproach))
             {
-                double dangerPressureRatio = (double)state.Pressure / state.Location.MaxPressure;
-                locationPreferenceModifier -= (int)(15 * dangerPressureRatio);
+                locationPreferenceModifier -= 15;
             }
 
             if (state.Location.MomentumBoostApproaches.Contains(primaryApproach))

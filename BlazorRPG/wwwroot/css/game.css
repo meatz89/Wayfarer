@@ -363,6 +363,7 @@ body {
     padding-top: 0rem;
     padding-right: 2.0rem;
     padding-bottom: 2.0rem;
+    white-space: pre-line;
 }
 
 .encounter-choices {

@@ -14,11 +14,12 @@
             locationSpot,
             template.MomentumBoostApproaches,
             template.DangerousApproaches,
-            template.favoredFocuses,
-            template.disfavoredFocuses,
+            template.PressureReducingFocuses,
+            template.MomentumReducingFocuses,
             template.Duration,
+            template.MaxPressure,
             template.PartialThreshold, template.StandardThreshold, template.ExceptionalThreshold, // Momentum thresholds: 12+ (Partial), 16+ (Standard), 20+ (Exceptional)
-            template.hostility,
+            template.Hostility,
             presentationStyle);
 
         // Difficulty level 2 (adds +2 pressure per turn)
