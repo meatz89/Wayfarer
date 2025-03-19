@@ -10,6 +10,7 @@ public class PromptManager
     private const string NARRATIVE_MD = "resolution";
     private const string CHOICES_MD = "choices";
     private const string ENDING_MD = "ending";
+    private const string MEMORY_MD = "memory";
 
     public PromptManager(IConfiguration configuration)
     {
@@ -19,6 +20,89 @@ public class PromptManager
         // Load all prompt templates
         _promptTemplates = new Dictionary<string, string>();
         LoadPromptTemplates(promptsPath);
+    }
+
+    public string BuildMemoryPrompt(
+        NarrativeContext context,
+        ChoiceOutcome outcome,
+        EncounterStatus newState)
+    {
+        string template = _promptTemplates[NARRATIVE_MD];
+
+        // Extract primary approach tag
+        ApproachTags primaryApproach = GetPrimaryApproach(chosenOption);
+
+        // Format tag changes for narrative representation
+        string tagChangesGuidance = FormatTagChangesForNarrative(outcome);
+
+        // Format activated/deactivated tags
+        string tagActivationGuidance = FormatTagActivationForNarrative(outcome);
+
+        // Create a complete encounter history for context
+        string completeHistory = CreateCompleteHistory(context);
+
+        // Get encounter type from presentation style
+        string encounterType = GetEncounterStyleGuidance(context.EncounterType);
+
+        // Determine turn information from events
+        int currentTurn = context.Events.Count > 0 ? context.Events.Count : 1;
+        // Default to 6 turns if we can't determine it
+        int maxTurns = 6;
+
+        // Format outcome components to represent momentum and pressure changes
+        StringBuilder strategicEffects = new StringBuilder();
+        strategicEffects.AppendLine("## Momentum and Pressure Changes:");
+        strategicEffects.AppendLine($"- Momentum Gained: {outcome.MomentumGain}");
+        strategicEffects.AppendLine($"- Pressure Gained: {outcome.PressureGain}");
+
+        if (outcome.HealthChange != 0)
+        {
+            strategicEffects.AppendLine($"- Health Change: {outcome.HealthChange}");
+        }
+
+        if (outcome.ConcentrationChange != 0)
+        {
+            strategicEffects.AppendLine($"- Focus Change: {outcome.ConcentrationChange}");
+        }
+
+        if (outcome.ConfidenceChange != 0)
+        {
+            strategicEffects.AppendLine($"- Confidence Change: {outcome.ConfidenceChange}");
+        }
+
+        // Get previous momentum and pressure from the context's last state
+        int previousMomentum = newState.Momentum - outcome.MomentumGain;
+        int previousPressure = newState.Pressure - outcome.PressureGain;
+
+        // Extract encounter goal from inciting action
+        string encounterGoal = context.ActionImplementation.Goal;
+
+        // Get the choice narrative description
+        string choiceNarrativeDesc = choiceDescription?.FullDescription ?? chosenOption.Name;
+
+        // Replace placeholders in template
+        string prompt = template
+            .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
+            .Replace("{LOCATION}", context.LocationName)
+            .Replace("{CHARACTER_GOAL}", encounterGoal)
+            .Replace("{SELECTED_CHOICE}", chosenOption.Name)
+            .Replace("{CHOICE_DESCRIPTION}", choiceNarrativeDesc)
+            .Replace("{APPROACH}", primaryApproach.ToString())
+            .Replace("{FOCUS}", chosenOption.Focus.ToString())
+            .Replace("{EFFECT_TYPE}", chosenOption.EffectType.ToString())
+            .Replace("{M_OLD}", previousMomentum.ToString())
+            .Replace("{P_OLD}", previousPressure.ToString())
+            .Replace("{M_NEW}", newState.Momentum.ToString())
+            .Replace("{P_NEW}", newState.Pressure.ToString())
+            .Replace("{APPROACH_CHANGES}", FormatApproachChanges(outcome.EncounterStateTagChanges))
+            .Replace("{FOCUS_CHANGES}", FormatFocusChanges(outcome.FocusTagChanges))
+            .Replace("{NEW_NARRATIVE_TAGS}", FormatNewlyActivatedTags(outcome.NewlyActivatedTags))
+            .Replace("{STRATEGIC_EFFECTS}", strategicEffects.ToString())
+            .Replace("{CURRENT_TURN}", currentTurn.ToString())
+            .Replace("{MAX_TURNS}", maxTurns.ToString())
+            .Replace("{ENCOUNTER_STYLE_GUIDANCE}", encounterType);
+
+        return prompt;
     }
 
     public string BuildReactionPrompt(
