@@ -1,10 +1,10 @@
-﻿public class SwitchableNarrativeService : INarrativeAIService
+﻿public class NarrativeService : INarrativeAIService
 {
     private readonly Dictionary<AIProviderType, INarrativeAIService> _providers;
     private AIProviderType _currentProvider;
     private readonly ILogger<EncounterSystem> _logger;
 
-    public SwitchableNarrativeService(IConfiguration configuration, ILogger<EncounterSystem> logger)
+    public NarrativeService(IConfiguration configuration, ILogger<EncounterSystem> logger)
     {
         _logger = logger;
 

@@ -10,7 +10,7 @@ public class EncounterManager
     private readonly CardSelectionAlgorithm _cardSelector;
     public EncounterState State;
 
-    private SwitchableNarrativeService _narrativeService;
+    private NarrativeService _narrativeService;
     private NarrativeContext _narrativeContext;
 
     public List<IChoice> CurrentChoices = new List<IChoice>();
@@ -18,7 +18,7 @@ public class EncounterManager
     public EncounterManager(
         ActionImplementation actionImplementation,
         CardSelectionAlgorithm cardSelector,
-        SwitchableNarrativeService narrativeService,
+        NarrativeService narrativeService,
         bool useAiNarrative,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)

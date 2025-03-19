@@ -3,7 +3,7 @@
     private readonly GameState gameState;
     private readonly IConfiguration configuration;
     private readonly ILogger<EncounterSystem> logger;
-    private readonly SwitchableNarrativeService narrativeService;
+    private readonly NarrativeService narrativeService;
     private AIProviderType currentAIProvider;
 
     private EncounterManager Encounter;
@@ -23,7 +23,7 @@
         this.logger = logger;
 
         // Create the switchable narrative service
-        this.narrativeService = new SwitchableNarrativeService(configuration, logger);
+        this.narrativeService = new NarrativeService(configuration, logger);
 
         // Initialize with the default provider from config
         string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "OpenAI";
