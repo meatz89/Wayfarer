@@ -77,6 +77,7 @@
     public override async Task<string> GenerateEndingAsync(
         NarrativeContext context,
         IChoice chosenOption,
+        ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         EncounterStatus newState)
     {
@@ -84,7 +85,7 @@
         string systemMessage = _promptManager.GetSystemMessage();
 
         string prompt = _promptManager.BuildEncounterEndPrompt(
-            context, newState, outcome.Outcome, chosenOption);
+            context, newState, outcome.Outcome, chosenOption, choiceDescription);
 
         if (!_contextManager.ConversationExists(conversationId))
         {

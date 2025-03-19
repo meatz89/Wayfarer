@@ -209,6 +209,7 @@ public class EncounterManager
             narrative = await _narrativeService.GenerateEndingAsync(
                 _narrativeContext,
                 choice,
+                choiceDescription,
                 outcome,
                 newStatus);
 
