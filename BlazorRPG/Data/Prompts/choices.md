@@ -3,8 +3,7 @@
 Transform the following 4 mechanical choices into narrative descriptions.
 The encounter of type {ENCOUNTER_TYPE} takes place at the {LOCATION_SPOT} of the {LOCATION_NAME} with the objective to {CHARACTER_GOAL}.
 
-The character is currently facing this URGENT SITUATION:
-{CURRENT_SITUATION}
+The character is currently facing AN URGENT SITUATION THAT REQUIRES A DECISION. The player can react to this situation using DIFFERENT APPROACHES.
 
 Objective: {CHARACTER_GOAL}
 
