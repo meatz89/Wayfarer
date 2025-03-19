@@ -5,11 +5,11 @@
     {
     }
 
-    public override async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatus state)
+    public override async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatus state, string memoryContent)
     {
         string conversationId = $"{context.LocationName}_encounter"; // Consistent ID
         string systemMessage = _promptManager.GetSystemMessage();
-        string prompt = _promptManager.BuildIntroductionPrompt(context, state);
+        string prompt = _promptManager.BuildIntroductionPrompt(context, state, memoryContent);
 
         _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
 

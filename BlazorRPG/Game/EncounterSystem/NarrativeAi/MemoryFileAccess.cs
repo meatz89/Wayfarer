@@ -5,7 +5,7 @@ public class MemoryFileAccess
 {
     const string fileName = $"memory.json";
 
-    public static async Task<string> ReadFromMemoryFile(ChoiceOutcome outcome, EncounterStatus newStatus)
+    public static async Task<string> ReadFromMemoryFile()
     {
         string memoryContent = string.Empty;
         try

@@ -31,3 +31,19 @@ Remember:
 - Your final paragraph MUST present a clear problem requiring decision
 
 The tone should match a {ENCOUNTER_TYPE} encounter - [for Social: conversational and interpersonal; for Intellectual: analytical and observational; for Physical: action-oriented and environmental].
+
+
+## CURRENT NARRATIVE FILE CONTENT
+
+I am supplying you with the current Memory File for Wayfarer, that tracks important narrative information across ALL encounters. This file is continuously updated, with outdated information removed and replaced with new discoveries.
+
+This approach:
+
+1. Organizes information by **narrative significance** rather than by encounters
+2. Provides a **living document** that evolves as the player's journey progresses
+
+The global memory file is a dynamic representation of the current world state, character knowledge, and ongoing narrative threads, ensuring continuity and coherence across the entire gameplay experience.
+
+This is the current memory content. Your job is to use this memory, IF APPRORIATE, to give the encounter greater NARRATIVE CONTEXT.
+
+{MEMORY_CONTENT}

@@ -22,7 +22,7 @@
     }
 
     public abstract Task<string> GenerateIntroductionAsync(
-        NarrativeContext context, EncounterStatus state);
+        NarrativeContext context, EncounterStatus state, string memoryContent);
     public abstract Task<string> GenerateReactionAndSceneAsync(
         NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatus newState);
     public abstract Task<string> GenerateEndingAsync(

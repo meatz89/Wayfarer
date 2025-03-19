@@ -8,11 +8,9 @@ public interface INarrativeAIService
     /// </summary>
     Task<string> GenerateIntroductionAsync(
         NarrativeContext context,
-        EncounterStatus state);
-
-    /// <summary>
-    /// Generate reaction to player's choice and setup for next choices
-    /// </summary>
+        EncounterStatus state, 
+        string memoryContent);
+    
     Task<string> GenerateReactionAndSceneAsync(
         NarrativeContext context,
         IChoice chosenOption,

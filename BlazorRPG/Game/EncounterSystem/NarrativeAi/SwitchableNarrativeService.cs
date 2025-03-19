@@ -61,10 +61,10 @@
         return baseNarrativeAIService?.GetGameInstanceId() ?? "Unknown";
     }
 
-    public async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatus state)
+    public async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatus state, string memoryContent)
     {
         INarrativeAIService narrativeAIService = _providers[_currentProvider];
-        return await narrativeAIService.GenerateIntroductionAsync(context, state);
+        return await narrativeAIService.GenerateIntroductionAsync(context, state, memoryContent);
     }
     
     public async Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(

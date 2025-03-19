@@ -149,9 +149,12 @@ public class EncounterManager
         string introduction = "introduction";
         if (_useAiNarrative && _narrativeService != null)
         {
+            string memoryContent = await MemoryFileAccess.ReadFromMemoryFile();
+
             introduction = await _narrativeService.GenerateIntroductionAsync(
                 _narrativeContext,
-                status);
+                status,
+                memoryContent);
         }
 
         // Get available choices
@@ -238,7 +241,7 @@ public class EncounterManager
             narrativeResult.SetOutcome(outcome.Outcome);
             narrativeResult.SetIsEncounterOver(outcome.IsEncounterOver);
 
-            var oldMemory = await MemoryFileAccess.ReadFromMemoryFile(outcome, newStatus);
+            var oldMemory = await MemoryFileAccess.ReadFromMemoryFile();
 
             string memoryContent = await _narrativeService.GenerateMemoryFileAsync(
                 _narrativeContext,
