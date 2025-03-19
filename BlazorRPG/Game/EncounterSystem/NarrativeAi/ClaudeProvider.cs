@@ -9,6 +9,11 @@ public class ClaudeProvider : IAIProvider
     private readonly string _model;
     private readonly ILogger<EncounterSystem> _logger;
 
+    // Retry configuration
+    private const int MaxRetryAttempts = 10;
+    private const int InitialDelayMilliseconds = 1000; // 1 second
+    private readonly Random _jitterer = new Random();
+
     public string Name => "Anthropic Claude";
 
     public ClaudeProvider(IConfiguration configuration, ILogger<EncounterSystem> logger)
@@ -30,7 +35,6 @@ public class ClaudeProvider : IAIProvider
 
         // Find and extract system message
         ConversationEntry systemEntry = messagesList.FirstOrDefault(m => m.Role.ToLower() == "system");
-
         string systemMessage = null;
         if (systemEntry != null)
         {
@@ -58,47 +62,98 @@ public class ClaudeProvider : IAIProvider
             "application/json"
         );
 
-        try
-        {
-            _logger?.LogInformation($"Sending request to Anthropic API for model {_model}");
-            HttpResponseMessage response = await TalkToClaude(content);
+        return await ExecuteWithRetryAsync(content);
+    }
 
-            _logger?.LogInformation($"Received response with status code: {response.StatusCode}");
+    private async Task<string> ExecuteWithRetryAsync(StringContent content)
+    {
+        int attempts = 0;
+        int delay = InitialDelayMilliseconds;
 
-            response.EnsureSuccessStatusCode();
-            string responseBody = await response.Content.ReadAsStringAsync();
+        while (true)
+        {
+            try
+            {
+                _logger?.LogInformation($"Sending request to Anthropic API (Attempt {attempts + 1}) for model {_model}");
+                HttpResponseMessage response = await TalkToClaude(content);
+                _logger?.LogInformation($"Received response with status code: {response.StatusCode}");
 
-            _logger?.LogInformation($"Raw response first 100 chars: {responseBody.Substring(0, Math.Min(100, responseBody.Length))}...");
+                // Check if the request was successful
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    _logger?.LogInformation($"Raw response first 100 chars: {responseBody.Substring(0, Math.Min(100, responseBody.Length))}...");
 
-            JsonElement responseObject = JsonSerializer.Deserialize<JsonElement>(responseBody);
-            return responseObject.GetProperty("content")[0].GetProperty("text").GetString();
+                    JsonElement responseObject = JsonSerializer.Deserialize<JsonElement>(responseBody);
+                    return responseObject.GetProperty("content")[0].GetProperty("text").GetString();
+                }
+
+                // If not successful and max attempts reached, throw
+                if (++attempts >= MaxRetryAttempts)
+                {
+                    response.EnsureSuccessStatusCode(); // This will throw an exception
+                }
+
+                // Calculate exponential backoff with jitter
+                delay = CalculateDelay(attempts, delay);
+
+                _logger?.LogWarning($"Request failed. Retrying in {delay} ms. Status code: {response.StatusCode}");
+                await Task.Delay(delay);
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger?.LogError($"HTTP Request Error (Attempt {attempts + 1}): {ex.Message}");
+
+                // If max attempts reached, rethrow
+                if (++attempts >= MaxRetryAttempts)
+                {
+                    _logger?.LogError($"Final attempt failed. Inner Exception: {ex.InnerException?.Message}");
+                    throw;
+                }
+
+                // Calculate exponential backoff with jitter
+                delay = CalculateDelay(attempts, delay);
+
+                _logger?.LogWarning($"Retrying in {delay} ms after HTTP error");
+                await Task.Delay(delay);
+            }
+            catch (JsonException ex)
+            {
+                _logger?.LogError($"JSON Parsing Error: {ex.Message}");
+                throw;
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger?.LogError($"Key Not Found Error: {ex.Message}");
+                throw;
+            }
         }
-        catch (HttpRequestException ex)
-        {
-            _logger?.LogError($"HTTP Request Error: {ex.Message}");
-            _logger?.LogError($"Inner Exception: {ex.InnerException?.Message}");
-            throw;
-        }
-        catch (JsonException ex)
-        {
-            _logger?.LogError($"JSON Parsing Error: {ex.Message}");
-            throw;
-        }
-        catch (KeyNotFoundException ex)
-        {
-            _logger?.LogError($"Key Not Found Error: {ex.Message}");
-            throw;
-        }
+    }
+
+    /// <summary>
+    /// Calculates delay with exponential backoff and adds jitter to prevent thundering herd problem
+    /// </summary>
+    /// <param name="attempt">Current retry attempt</param>
+    /// <param name="currentDelay">Current delay</param>
+    /// <returns>Calculated delay with jitter</returns>
+    private int CalculateDelay(int attempt, int currentDelay)
+    {
+        // Exponential backoff
+        int exponentialDelay = currentDelay * 2;
+
+        // Add randomness to prevent synchronized retries
+        double jitterFactor = 1 + (0.1 * _jitterer.NextDouble());
+
+        return (int)(exponentialDelay * jitterFactor);
     }
 
     /// <summary>
     /// Talk to Claude
     /// </summary>
-    /// <param name="content"></param>
-    /// <returns></returns>
+    /// <param name="content">Request content</param>
+    /// <returns>HTTP response</returns>
     private async Task<HttpResponseMessage> TalkToClaude(StringContent content)
     {
-        // Talk to Claude
         return await _httpClient.PostAsync(RequestUri, content);
     }
 }
