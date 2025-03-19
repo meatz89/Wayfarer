@@ -12,7 +12,7 @@ public class ClaudeProvider : IAIProvider
 
     // Retry configuration
     private const int MaxRetryAttempts = 10;
-    private const int FallbackToBackupAfterAttempts = 2; 
+    private const int FallbackToBackupAfterAttempts = 5; 
     private const int InitialDelayMilliseconds = 1000; 
     private readonly Random _jitterer = new Random();
 
