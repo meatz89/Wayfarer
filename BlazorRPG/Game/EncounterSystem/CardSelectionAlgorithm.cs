@@ -4,6 +4,7 @@ using System.Linq;
 
 /// <summary>
 /// Deterministic card selection algorithm that follows the Wayfarer design document
+/// with improved diversity requirements
 /// </summary>
 public class CardSelectionAlgorithm
 {
@@ -23,82 +24,98 @@ public class CardSelectionAlgorithm
     public List<IChoice> SelectChoices(EncounterState state, int handSize = 4)
     {
         List<IChoice> allChoices = new List<IChoice>(_choiceRepository.GetAllStandardChoices());
-        Dictionary<IChoice, int> choiceScores = CalculateChoiceScores(allChoices, state);
-        List<FocusTags> blockedFocuses = GetBlockedFocuses(state.ActiveTags);
 
-        // STEP 1: Select initial choices with basic diversity
+        // STEP 1: Calculate scores for all choices with contextual modifiers
+        Dictionary<IChoice, int> choiceScores = CalculateChoiceScores(allChoices, state);
+
+        // STEP 2: Categorize choices into pools
+        // Pool A: By Effect Type and Strategic Alignment
+        List<IChoice> poolA1 = GetMomentumChoicesWithPositiveAlignment(allChoices, state);
+        List<IChoice> poolA2 = GetPressureChoicesWithPositiveAlignment(allChoices, state);
+        List<IChoice> poolA3 = GetMomentumChoicesWithNeutralAlignment(allChoices, state);
+        List<IChoice> poolA4 = GetPressureChoicesWithNeutralAlignment(allChoices, state);
+        List<IChoice> poolA5 = GetMomentumChoicesWithNegativeAlignment(allChoices, state);
+        List<IChoice> poolA6 = GetPressureChoicesWithNegativeAlignment(allChoices, state);
+
+        // Pool B: By Approach
+        List<ApproachTags> approachRanking = GetCharacterApproachRanking(state);
+        List<IChoice> poolB1 = GetChoicesByApproach(allChoices, approachRanking[0]);
+        List<IChoice> poolB2 = GetChoicesByApproach(allChoices, approachRanking[1]);
+        List<IChoice> poolB3 = GetChoicesByApproach(allChoices, approachRanking[2]);
+        List<IChoice> poolB4 = GetChoicesByApproach(allChoices, approachRanking[3]);
+        List<IChoice> poolB5 = GetChoicesByApproach(allChoices, approachRanking[4]);
+
+        // Pool C: By Narrative Tag Status
+        List<FocusTags> blockedFocuses = GetBlockedFocuses(state.ActiveTags);
+        List<IChoice> poolC1 = GetUnblockedChoices(allChoices, blockedFocuses);
+        List<IChoice> poolC2 = GetBlockedChoices(allChoices, blockedFocuses);
+
+        // Pool D: By Previous Choice Context (if any)
+        List<IChoice> poolD1 = state.PreviousChoice != null ? GetChoicesBySameApproach(allChoices, state.PreviousChoice) : new List<IChoice>();
+        List<IChoice> poolD2 = state.PreviousChoice != null ? GetChoicesBySameFocus(allChoices, state.PreviousChoice) : new List<IChoice>();
+
+        // Sort all pools by score
+        SortPoolByScore(poolA1, choiceScores);
+        SortPoolByScore(poolA2, choiceScores);
+        SortPoolByScore(poolA3, choiceScores);
+        SortPoolByScore(poolA4, choiceScores);
+        SortPoolByScore(poolA5, choiceScores);
+        SortPoolByScore(poolA6, choiceScores);
+        SortPoolByScore(poolB1, choiceScores);
+        SortPoolByScore(poolB2, choiceScores);
+        SortPoolByScore(poolB3, choiceScores);
+        SortPoolByScore(poolB4, choiceScores);
+        SortPoolByScore(poolB5, choiceScores);
+        SortPoolByScore(poolC1, choiceScores);
+        SortPoolByScore(poolC2, choiceScores);
+        SortPoolByScore(poolD1, choiceScores);
+        SortPoolByScore(poolD2, choiceScores);
+
+        // STEP 3: Select Initial Choices
         List<IChoice> selectedChoices = new List<IChoice>();
 
-        // Approach diversity - select one choice for each of the top 3 approaches
-        List<ApproachTags> approachRanking = GetCharacterApproachRanking(state);
-        for (int i = 0; i < Math.Min(3, approachRanking.Count); i++)
+        // First Choice: Continuity or Character Strength
+        IChoice firstChoice = SelectFirstChoice(poolD1, poolB1, poolB2, state);
+        if (firstChoice != null)
         {
-            ApproachTags approach = approachRanking[i];
-
-            // Find best choice for this approach
-            IChoice? bestChoice = allChoices
-                .Where(c => GetPrimaryApproach(c) == approach &&
-                           !blockedFocuses.Contains(c.Focus) &&
-                           !selectedChoices.Contains(c))
-                .OrderByDescending(c => choiceScores[c])
-                .FirstOrDefault();
-
-            if (bestChoice != null)
-                selectedChoices.Add(bestChoice);
+            selectedChoices.Add(firstChoice);
         }
 
-        // Effect type diversity - ensure at least one momentum and one pressure choice
-        bool hasMomentum = selectedChoices.Any(c => c.EffectType == EffectTypes.Momentum);
-        bool hasPressure = selectedChoices.Any(c => c.EffectType == EffectTypes.Pressure);
-
-        if (!hasMomentum)
+        // Second Choice: Strategic Advantage
+        IChoice secondChoice = SelectSecondChoice(firstChoice, poolA1, poolA2, poolA3, poolA4, poolA5, poolA6);
+        if (secondChoice != null)
         {
-            IChoice? momentumChoice = allChoices
-                .Where(c => c.EffectType == EffectTypes.Momentum &&
-                           !blockedFocuses.Contains(c.Focus) &&
-                           !selectedChoices.Contains(c))
-                .OrderByDescending(c => choiceScores[c])
-                .FirstOrDefault();
-
-            if (momentumChoice != null)
-                selectedChoices.Add(momentumChoice);
+            selectedChoices.Add(secondChoice);
         }
 
-        if (!hasPressure)
+        // Third Choice: Approach Diversity
+        IChoice thirdChoice = SelectThirdChoice(selectedChoices, allChoices, choiceScores, poolA1, poolA2, poolA3, poolA4, poolA5, poolA6);
+        if (thirdChoice != null)
         {
-            IChoice? pressureChoice = allChoices
-                .Where(c => c.EffectType == EffectTypes.Pressure &&
-                           !blockedFocuses.Contains(c.Focus) &&
-                           !selectedChoices.Contains(c))
-                .OrderByDescending(c => choiceScores[c])
-                .FirstOrDefault();
-
-            if (pressureChoice != null)
-                selectedChoices.Add(pressureChoice);
+            selectedChoices.Add(thirdChoice);
         }
 
-        // Fill remaining slots with highest scoring choices
-        while (selectedChoices.Count < handSize)
+        // Fourth Choice: Focus Diversity or Narrative Tag Impact
+        IChoice fourthChoice = SelectFourthChoice(state, selectedChoices, blockedFocuses, poolC1, poolC2, poolD2, allChoices, choiceScores);
+        if (fourthChoice != null)
         {
-            IChoice? nextChoice = allChoices
-                .Where(c => !selectedChoices.Contains(c))
-                .OrderByDescending(c => choiceScores[c])
-                .FirstOrDefault();
-
-            if (nextChoice != null)
-                selectedChoices.Add(nextChoice);
-            else
-                break;
+            selectedChoices.Add(fourthChoice);
         }
 
-        // STEP 2: Apply more aggressive diversity requirements
-        selectedChoices = EnforceApproachDiversity(selectedChoices, allChoices, blockedFocuses, choiceScores);
-        selectedChoices = EnforceFocusDiversity(selectedChoices, allChoices, blockedFocuses, choiceScores);
+        // STEP 4: Apply Diversity Improvements
+        selectedChoices = EnsureViableChoices(selectedChoices, blockedFocuses, poolC1, choiceScores);
         selectedChoices = GuaranteeStrategicOptions(selectedChoices, blockedFocuses, allChoices, choiceScores);
+        selectedChoices = EnforceCharacterIdentity(selectedChoices, approachRanking[0], poolB1, choiceScores);
+        selectedChoices = EnforceFocusDiversity(selectedChoices, allChoices, blockedFocuses, choiceScores);
+        selectedChoices = EnforceApproachDiversity(selectedChoices, allChoices, blockedFocuses, choiceScores);
+        selectedChoices = EnsureStrategicOptionDiversity(selectedChoices, allChoices, state, blockedFocuses, choiceScores);
+        selectedChoices = EnsureTacticalDistinctiveness(selectedChoices, allChoices, choiceScores);
+        selectedChoices = EnforcePressureAwareChoiceDistribution(selectedChoices, allChoices, state, choiceScores);
 
-        // STEP 3: Handle edge cases
-        selectedChoices = HandleCriticalPressure(selectedChoices, state, GetPressureChoicesWithPositiveAlignment(allChoices, state), choiceScores);
+        // STEP 5: Handle Edge Cases
+        selectedChoices = HandleCriticalPressure(selectedChoices, state, poolA2, choiceScores);
         selectedChoices = HandleSuccessWithinReach(selectedChoices, state, allChoices, choiceScores);
+        selectedChoices = HandleRecentlyActivatedTags(selectedChoices, state, allChoices, choiceScores);
 
         // Mark blocked choices
         foreach (IChoice choice in selectedChoices)
@@ -109,7 +126,7 @@ public class CardSelectionAlgorithm
             }
         }
 
-        // STEP 4: Output Finalized Hand
+        // STEP 6: Output Finalized Hand
         return FinalizeHand(selectedChoices, blockedFocuses, choiceScores);
     }
 
@@ -275,6 +292,26 @@ public class CardSelectionAlgorithm
                 pressureTrendModifier += (int)(pressureTrend * 5);
             }
 
+            // 10. NEW: Diversity Penalty to discourage overused approaches/focuses
+            int diversityPenalty = 0;
+
+            // Stronger penalty for approaches that are already dominant
+            int approachCount = state.TagSystem.GetEncounterStateTagValue(primaryApproach);
+            if (approachCount >= 3)
+            {
+                // Apply increasing penalty when an approach is already high
+                diversityPenalty -= approachCount * 3;
+            }
+
+            // Penalize choices that use focuses already heavily represented
+            FocusTags thisFocus = choice.Focus;
+            int focusCount = state.TagSystem.GetFocusTagValue(thisFocus);
+            if (focusCount >= 2)
+            {
+                // Apply penalty when a focus is already high
+                diversityPenalty -= focusCount * 3;
+            }
+
             // Calculate total score
             int totalScore = strategicAlignmentScore +
                             characterProficiencyScore +
@@ -284,7 +321,8 @@ public class CardSelectionAlgorithm
                             locationPreferenceModifier +
                             previousChoiceModifier +
                             approachDiversificationModifier +
-                            pressureTrendModifier;
+                            pressureTrendModifier +
+                            diversityPenalty;
 
             scores[choice] = totalScore;
         }
@@ -292,8 +330,11 @@ public class CardSelectionAlgorithm
         return scores;
     }
 
+    /// <summary>
+    /// IMPROVED: Ensures sufficient focus diversity among chosen cards
+    /// </summary>
     private List<IChoice> EnforceFocusDiversity(List<IChoice> selectedChoices, List<IChoice> allChoices,
-                                          List<FocusTags> blockedFocuses, Dictionary<IChoice, int> choiceScores)
+                                              List<FocusTags> blockedFocuses, Dictionary<IChoice, int> choiceScores)
     {
         // Count focus distribution
         var focusCounts = selectedChoices.GroupBy(c => c.Focus)
@@ -352,7 +393,7 @@ public class CardSelectionAlgorithm
 
             if (missingFocuses.Any())
             {
-                // Find the focus with the most choices
+                // Find the focus with the most choices (if there's a tie, take any)
                 var mostRepresentedFocus = focusCounts
                     .OrderByDescending(f => f.Value)
                     .First().Key;
@@ -365,7 +406,7 @@ public class CardSelectionAlgorithm
 
                 foreach (var choiceToReplace in choicesToReplace)
                 {
-                    foreach (var missingFocus in missingFocuses)
+                    foreach (var missingFocus in missingFocuses.ToList())
                     {
                         var replacementChoice = allChoices
                             .Where(c => c.Focus == missingFocus &&
@@ -391,8 +432,11 @@ public class CardSelectionAlgorithm
         return selectedChoices;
     }
 
+    /// <summary>
+    /// IMPROVED: Ensures approach diversity among chosen cards
+    /// </summary>
     private List<IChoice> EnforceApproachDiversity(List<IChoice> selectedChoices, List<IChoice> allChoices,
-                                             List<FocusTags> blockedFocuses, Dictionary<IChoice, int> choiceScores)
+                                                 List<FocusTags> blockedFocuses, Dictionary<IChoice, int> choiceScores)
     {
         // Count approach distribution
         var approachCounts = selectedChoices.GroupBy(c => GetPrimaryApproach(c))
@@ -465,7 +509,7 @@ public class CardSelectionAlgorithm
 
                 foreach (var choiceToReplace in choicesToReplace)
                 {
-                    foreach (var missingApproach in missingApproaches)
+                    foreach (var missingApproach in missingApproaches.ToList())
                     {
                         var replacementChoice = allChoices
                             .Where(c => GetPrimaryApproach(c) == missingApproach &&
@@ -485,6 +529,81 @@ public class CardSelectionAlgorithm
 
                     if (missingApproaches.Count == 0)
                         break;
+                }
+            }
+        }
+
+        return selectedChoices;
+    }
+
+    /// <summary>
+    /// NEW: Ensures choices don't feel like variations of the same tactic
+    /// </summary>
+    private List<IChoice> EnsureTacticalDistinctiveness(List<IChoice> selectedChoices, List<IChoice> allChoices,
+                                                     Dictionary<IChoice, int> choiceScores)
+    {
+        // Check for approach+focus combinations that appear multiple times
+        var tacticalCombos = selectedChoices
+            .GroupBy(c => new { Approach = GetPrimaryApproach(c), Focus = c.Focus })
+            .Where(g => g.Count() > 1)
+            .ToList();
+
+        foreach (var combo in tacticalCombos)
+        {
+            // We have multiple choices with the same approach+focus combo
+            var similarChoices = combo.OrderBy(c => choiceScores[c]).ToList();
+
+            // Keep the highest scoring one
+            var choiceToKeep = similarChoices.Last();
+            similarChoices.Remove(choiceToKeep);
+
+            // Replace the others
+            foreach (var similarChoice in similarChoices)
+            {
+                // Find choices with different approach+focus combinations
+                var tacticallyDistinctChoices = allChoices
+                    .Where(c => GetPrimaryApproach(c) != combo.Key.Approach &&
+                              c.Focus != combo.Key.Focus &&
+                              !selectedChoices.Contains(c))
+                    .OrderByDescending(c => choiceScores[c])
+                    .Take(1)
+                    .ToList();
+
+                if (tacticallyDistinctChoices.Any())
+                {
+                    selectedChoices.Remove(similarChoice);
+                    selectedChoices.Add(tacticallyDistinctChoices.First());
+                }
+            }
+        }
+
+        // Also check for same approach+effectType combinations
+        var approachEffectCombos = selectedChoices
+            .GroupBy(c => new { Approach = GetPrimaryApproach(c), EffectType = c.EffectType })
+            .Where(g => g.Count() > 2) // Allow at most 2 of same approach+effect
+            .ToList();
+
+        foreach (var combo in approachEffectCombos)
+        {
+            // We have too many of the same approach+effect combo
+            var similarChoices = combo.OrderBy(c => choiceScores[c]).ToList();
+
+            while (similarChoices.Count > 2)
+            {
+                var lowestChoice = similarChoices.First();
+                similarChoices.Remove(lowestChoice);
+
+                // Find a tactically different choice
+                var differentChoice = allChoices
+                    .Where(c => GetPrimaryApproach(c) != combo.Key.Approach &&
+                              !selectedChoices.Contains(c))
+                    .OrderByDescending(c => choiceScores[c])
+                    .FirstOrDefault();
+
+                if (differentChoice != null)
+                {
+                    selectedChoices.Remove(lowestChoice);
+                    selectedChoices.Add(differentChoice);
                 }
             }
         }
@@ -538,170 +657,134 @@ public class CardSelectionAlgorithm
         return selectedChoices;
     }
 
-    private int GetApproachUsageCount(EncounterState state, ApproachTags approach)
+    /// <summary>
+    /// Ensures pressure reduction choices only appear when there's meaningful pressure to reduce
+    /// </summary>
+    private List<IChoice> EnforcePressureAwareChoiceDistribution(List<IChoice> selectedChoices, List<IChoice> allChoices,
+                                                               EncounterState state, Dictionary<IChoice, int> choiceScores)
     {
-        int approachValue = state.TagSystem.GetEncounterStateTagValue(approach);
-        return (approachValue + 1) / 2; // Each 2 points counts as a use, rounded up
-    }
+        // Determine current pressure context
+        double pressureRatio = (double)state.Pressure / state.Location.MaxPressure;
 
-    private int GetFocusUsageCount(EncounterState state, FocusTags focus)
-    {
-        return state.TagSystem.GetFocusTagValue(focus);
-    }
-
-    private double CalculatePressureTrend(EncounterState state)
-    {
-        // If no previous pressure data, assume neutral trend
-        if (state.PreviousPressure == 0)
-            return 0;
-
-        // Calculate change relative to max pressure
-        double normalizedChange = (double)(state.Pressure - state.PreviousPressure) / state.Location.MaxPressure;
-
-        // Return value between -1 and 1, scaled for sensitivity
-        return Math.Max(-1, Math.Min(1, normalizedChange * 4));
-    }
-
-    private IChoice SelectFirstChoice(List<IChoice> poolD1, List<IChoice> poolB1, List<IChoice> poolB2, EncounterState state)
-    {
-        // If previous choice exists and continuity would be valuable, select from same approach
-        if (state.PreviousChoice != null && poolD1.Any() &&
-            !IsApproachOverused(state, GetPrimaryApproach(state.PreviousChoice)))
+        // Different selection strategies based on pressure levels
+        if (pressureRatio < 0.2) // Low pressure (0-20% of max)
         {
-            return poolD1.First();
-        }
+            // At low pressure, focus primarily on momentum-building choices
+            int pressureChoiceCount = selectedChoices.Count(c => c.EffectType == EffectTypes.Pressure);
 
-        // Otherwise default to highest approach
-        if (poolB1.Any())
-        {
-            return poolB1.First();
-        }
-        // If highest approach has no choices, select from second highest
-        else if (poolB2.Any())
-        {
-            return poolB2.First();
-        }
-
-        return null;
-    }
-
-    private bool IsApproachOverused(EncounterState state, ApproachTags approach)
-    {
-        int approachValue = state.TagSystem.GetEncounterStateTagValue(approach);
-        return approachValue >= 6; // Consider an approach overused at 6+ points
-    }
-
-    private IChoice SelectSecondChoice(IChoice firstChoice, List<IChoice> poolA1, List<IChoice> poolA2,
-        List<IChoice> poolA3, List<IChoice> poolA4, List<IChoice> poolA5, List<IChoice> poolA6)
-    {
-        if (firstChoice == null)
-            return null;
-
-        // If First Choice builds momentum, select from pressure-reducing choices
-        if (firstChoice.EffectType == EffectTypes.Momentum)
-        {
-            return GetFirstAvailableChoice(poolA2) ??
-                   GetFirstAvailableChoice(poolA4) ??
-                   GetFirstAvailableChoice(poolA6);
-        }
-        // If First Choice reduces pressure, select from momentum-building choices
-        else
-        {
-            return GetFirstAvailableChoice(poolA1) ??
-                   GetFirstAvailableChoice(poolA3) ??
-                   GetFirstAvailableChoice(poolA5);
-        }
-    }
-
-    private IChoice SelectThirdChoice(List<IChoice> selectedChoices, List<IChoice> allChoices,
-        Dictionary<IChoice, int> choiceScores, List<IChoice> poolA1, List<IChoice> poolA2,
-        List<IChoice> poolA3, List<IChoice> poolA4, List<IChoice> poolA5, List<IChoice> poolA6)
-    {
-        if (selectedChoices.Count < 2)
-            return null;
-
-        // Create a list of choices with approaches different from the first two
-        List<ApproachTags> approachesToExclude = selectedChoices
-            .Select(c => GetPrimaryApproach(c))
-            .Distinct()
-            .ToList();
-
-        List<IChoice> diverseApproachChoices = allChoices
-            .Where(c => !approachesToExclude.Contains(GetPrimaryApproach(c)) &&
-                        !selectedChoices.Contains(c))
-            .ToList();
-
-        SortPoolByScore(diverseApproachChoices, choiceScores);
-
-        if (diverseApproachChoices.Any())
-        {
-            return diverseApproachChoices.First();
-        }
-
-        // If no diverse approach choices, select highest from general pools
-        return GetFirstAvailableChoice(poolA1) ??
-               GetFirstAvailableChoice(poolA2) ??
-               GetFirstAvailableChoice(poolA3) ??
-               GetFirstAvailableChoice(poolA4) ??
-               GetFirstAvailableChoice(poolA5) ??
-               GetFirstAvailableChoice(poolA6);
-    }
-
-    private IChoice SelectFourthChoice(EncounterState state, List<IChoice> selectedChoices,
-        List<FocusTags> blockedFocuses, List<IChoice> poolC1, List<IChoice> poolC2, List<IChoice> poolD2,
-        List<IChoice> allChoices, Dictionary<IChoice, int> choiceScores)
-    {
-        int blockedChoicesInHand = selectedChoices.Count(c => blockedFocuses.Contains(c.Focus));
-
-        // If we have a previous choice and no focus continuity yet, prioritize focus continuity
-        if (state.PreviousChoice != null &&
-            !selectedChoices.Any(c => c.Focus == state.PreviousChoice.Focus) &&
-            poolD2.Any(c => !selectedChoices.Contains(c) && !blockedFocuses.Contains(c.Focus)))
-        {
-            List<IChoice> focusContinuityChoices = poolD2
-                .Where(c => !selectedChoices.Contains(c) && !blockedFocuses.Contains(c.Focus))
-                .ToList();
-
-            SortPoolByScore(focusContinuityChoices, choiceScores);
-
-            if (focusContinuityChoices.Any())
-                return focusContinuityChoices.First();
-        }
-
-        // On odd turns OR if fewer than 2 choices are blocked, try to include a blocked choice
-        if (state.CurrentTurn % 2 == 1 || blockedChoicesInHand < 2)
-        {
-            // If any active narrative tags, select highest-scoring choice from C2
-            if (blockedFocuses.Any() && poolC2.Any())
+            // Keep at most 1 pressure choice at low pressure
+            if (pressureChoiceCount > 1)
             {
-                IChoice? blockedChoiceNotSelected = poolC2
-                    .Where(c => !selectedChoices.Contains(c))
-                    .FirstOrDefault();
+                // Get all pressure choices, ordered by score
+                var pressureChoices = selectedChoices
+                    .Where(c => c.EffectType == EffectTypes.Pressure)
+                    .OrderBy(c => choiceScores[c])
+                    .ToList();
 
-                if (blockedChoiceNotSelected != null)
+                // Keep only the highest-scoring pressure choice
+                for (int i = 0; i < pressureChoices.Count - 1; i++)
                 {
-                    return blockedChoiceNotSelected;
+                    // Find momentum choices not currently in the selection
+                    var replacementChoice = allChoices
+                        .Where(c => c.EffectType == EffectTypes.Momentum &&
+                                  !selectedChoices.Contains(c))
+                        .OrderByDescending(c => choiceScores[c])
+                        .FirstOrDefault();
+
+                    if (replacementChoice != null)
+                    {
+                        selectedChoices.Remove(pressureChoices[i]);
+                        selectedChoices.Add(replacementChoice);
+                    }
                 }
             }
-
-            // Otherwise, select highest-scoring choice not yet selected
-            List<IChoice> remainingChoices = allChoices
-                .Where(c => !selectedChoices.Contains(c))
-                .ToList();
-
-            SortPoolByScore(remainingChoices, choiceScores);
-            return remainingChoices.FirstOrDefault();
         }
-        else // On even turns AND 2 choices already blocked
+        else if (pressureRatio >= 0.5) // High pressure (50%+ of max)
         {
-            // Select highest-scoring choice from C1 not already selected
-            List<IChoice> unblockedNotSelected = poolC1
-                .Where(c => !selectedChoices.Contains(c))
-                .ToList();
+            // At high pressure, ensure enough pressure-reducing choices
+            int pressureChoiceCount = selectedChoices.Count(c => c.EffectType == EffectTypes.Pressure);
 
-            SortPoolByScore(unblockedNotSelected, choiceScores);
-            return unblockedNotSelected.FirstOrDefault();
+            // Aim for at least 2 pressure choices at high pressure
+            if (pressureChoiceCount < 2)
+            {
+                // Find how many pressure choices to add
+                int pressureChoicesToAdd = 2 - pressureChoiceCount;
+
+                // Find lowest-scoring momentum choices 
+                var momentumChoices = selectedChoices
+                    .Where(c => c.EffectType == EffectTypes.Momentum)
+                    .OrderBy(c => choiceScores[c])
+                    .Take(pressureChoicesToAdd)
+                    .ToList();
+
+                // Find pressure choices not in selection
+                var pressureChoicesNotSelected = allChoices
+                    .Where(c => c.EffectType == EffectTypes.Pressure &&
+                              !selectedChoices.Contains(c))
+                    .OrderByDescending(c => choiceScores[c])
+                    .Take(pressureChoicesToAdd)
+                    .ToList();
+
+                // Replace momentum choices with pressure choices
+                for (int i = 0; i < Math.Min(momentumChoices.Count, pressureChoicesNotSelected.Count); i++)
+                {
+                    selectedChoices.Remove(momentumChoices[i]);
+                    selectedChoices.Add(pressureChoicesNotSelected[i]);
+                }
+            }
         }
+        else // Medium pressure (20-50% of max)
+        {
+            // At medium pressure, aim for balanced distribution
+            int pressureChoiceCount = selectedChoices.Count(c => c.EffectType == EffectTypes.Pressure);
+
+            // Aim for 1-2 pressure choices at medium pressure
+            if (pressureChoiceCount < 1)
+            {
+                // Add a pressure choice
+                var momentumChoice = selectedChoices
+                    .Where(c => c.EffectType == EffectTypes.Momentum)
+                    .OrderBy(c => choiceScores[c])
+                    .FirstOrDefault();
+
+                var pressureChoice = allChoices
+                    .Where(c => c.EffectType == EffectTypes.Pressure &&
+                              !selectedChoices.Contains(c))
+                    .OrderByDescending(c => choiceScores[c])
+                    .FirstOrDefault();
+
+                if (momentumChoice != null && pressureChoice != null)
+                {
+                    selectedChoices.Remove(momentumChoice);
+                    selectedChoices.Add(pressureChoice);
+                }
+            }
+            else if (pressureChoiceCount > 2)
+            {
+                // Too many pressure choices, replace some with momentum choices
+                var pressureChoices = selectedChoices
+                    .Where(c => c.EffectType == EffectTypes.Pressure)
+                    .OrderBy(c => choiceScores[c])
+                    .ToList();
+
+                for (int i = 0; i < pressureChoices.Count - 2; i++)
+                {
+                    var momentumChoice = allChoices
+                        .Where(c => c.EffectType == EffectTypes.Momentum &&
+                                  !selectedChoices.Contains(c))
+                        .OrderByDescending(c => choiceScores[c])
+                        .FirstOrDefault();
+
+                    if (momentumChoice != null)
+                    {
+                        selectedChoices.Remove(pressureChoices[i]);
+                        selectedChoices.Add(momentumChoice);
+                    }
+                }
+            }
+        }
+
+        return selectedChoices;
     }
 
     private List<IChoice> EnsureViableChoices(List<IChoice> selectedChoices, List<FocusTags> blockedFocuses,
@@ -1208,6 +1291,172 @@ public class CardSelectionAlgorithm
                tag == ApproachTags.Analysis ||
                tag == ApproachTags.Precision ||
                tag == ApproachTags.Evasion;
+    }
+
+    private int GetApproachUsageCount(EncounterState state, ApproachTags approach)
+    {
+        int approachValue = state.TagSystem.GetEncounterStateTagValue(approach);
+        return (approachValue + 1) / 2; // Each 2 points counts as a use, rounded up
+    }
+
+    private int GetFocusUsageCount(EncounterState state, FocusTags focus)
+    {
+        return state.TagSystem.GetFocusTagValue(focus);
+    }
+
+    private double CalculatePressureTrend(EncounterState state)
+    {
+        // If no previous pressure data, assume neutral trend
+        if (state.PreviousPressure == 0)
+            return 0;
+
+        // Calculate change relative to max pressure
+        double normalizedChange = (double)(state.Pressure - state.PreviousPressure) / state.Location.MaxPressure;
+
+        // Return value between -1 and 1, scaled for sensitivity
+        return Math.Max(-1, Math.Min(1, normalizedChange * 4));
+    }
+
+    private IChoice SelectFirstChoice(List<IChoice> poolD1, List<IChoice> poolB1, List<IChoice> poolB2, EncounterState state)
+    {
+        // If previous choice exists and continuity would be valuable, select from same approach
+        if (state.PreviousChoice != null && poolD1.Any() &&
+            !IsApproachOverused(state, GetPrimaryApproach(state.PreviousChoice)))
+        {
+            return poolD1.First();
+        }
+
+        // Otherwise default to highest approach
+        if (poolB1.Any())
+        {
+            return poolB1.First();
+        }
+        // If highest approach has no choices, select from second highest
+        else if (poolB2.Any())
+        {
+            return poolB2.First();
+        }
+
+        return null;
+    }
+
+    private bool IsApproachOverused(EncounterState state, ApproachTags approach)
+    {
+        int approachValue = state.TagSystem.GetEncounterStateTagValue(approach);
+        return approachValue >= 6; // Consider an approach overused at 6+ points
+    }
+
+    private IChoice SelectSecondChoice(IChoice firstChoice, List<IChoice> poolA1, List<IChoice> poolA2,
+        List<IChoice> poolA3, List<IChoice> poolA4, List<IChoice> poolA5, List<IChoice> poolA6)
+    {
+        if (firstChoice == null)
+            return null;
+
+        // If First Choice builds momentum, select from pressure-reducing choices
+        if (firstChoice.EffectType == EffectTypes.Momentum)
+        {
+            return GetFirstAvailableChoice(poolA2) ??
+                   GetFirstAvailableChoice(poolA4) ??
+                   GetFirstAvailableChoice(poolA6);
+        }
+        // If First Choice reduces pressure, select from momentum-building choices
+        else
+        {
+            return GetFirstAvailableChoice(poolA1) ??
+                   GetFirstAvailableChoice(poolA3) ??
+                   GetFirstAvailableChoice(poolA5);
+        }
+    }
+
+    private IChoice SelectThirdChoice(List<IChoice> selectedChoices, List<IChoice> allChoices,
+        Dictionary<IChoice, int> choiceScores, List<IChoice> poolA1, List<IChoice> poolA2,
+        List<IChoice> poolA3, List<IChoice> poolA4, List<IChoice> poolA5, List<IChoice> poolA6)
+    {
+        if (selectedChoices.Count < 2)
+            return null;
+
+        // Create a list of choices with approaches different from the first two
+        List<ApproachTags> approachesToExclude = selectedChoices
+            .Select(c => GetPrimaryApproach(c))
+            .Distinct()
+            .ToList();
+
+        List<IChoice> diverseApproachChoices = allChoices
+            .Where(c => !approachesToExclude.Contains(GetPrimaryApproach(c)) &&
+                        !selectedChoices.Contains(c))
+            .ToList();
+
+        SortPoolByScore(diverseApproachChoices, choiceScores);
+
+        if (diverseApproachChoices.Any())
+        {
+            return diverseApproachChoices.First();
+        }
+
+        // If no diverse approach choices, select highest from general pools
+        return GetFirstAvailableChoice(poolA1) ??
+               GetFirstAvailableChoice(poolA2) ??
+               GetFirstAvailableChoice(poolA3) ??
+               GetFirstAvailableChoice(poolA4) ??
+               GetFirstAvailableChoice(poolA5) ??
+               GetFirstAvailableChoice(poolA6);
+    }
+
+    private IChoice SelectFourthChoice(EncounterState state, List<IChoice> selectedChoices,
+        List<FocusTags> blockedFocuses, List<IChoice> poolC1, List<IChoice> poolC2, List<IChoice> poolD2,
+        List<IChoice> allChoices, Dictionary<IChoice, int> choiceScores)
+    {
+        int blockedChoicesInHand = selectedChoices.Count(c => blockedFocuses.Contains(c.Focus));
+
+        // If we have a previous choice and no focus continuity yet, prioritize focus continuity
+        if (state.PreviousChoice != null &&
+            !selectedChoices.Any(c => c.Focus == state.PreviousChoice.Focus) &&
+            poolD2.Any(c => !selectedChoices.Contains(c) && !blockedFocuses.Contains(c.Focus)))
+        {
+            List<IChoice> focusContinuityChoices = poolD2
+                .Where(c => !selectedChoices.Contains(c) && !blockedFocuses.Contains(c.Focus))
+                .ToList();
+
+            SortPoolByScore(focusContinuityChoices, choiceScores);
+
+            if (focusContinuityChoices.Any())
+                return focusContinuityChoices.First();
+        }
+
+        // On odd turns OR if fewer than 2 choices are blocked, try to include a blocked choice
+        if (state.CurrentTurn % 2 == 1 || blockedChoicesInHand < 2)
+        {
+            // If any active narrative tags, select highest-scoring choice from C2
+            if (blockedFocuses.Any() && poolC2.Any())
+            {
+                IChoice? blockedChoiceNotSelected = poolC2
+                    .Where(c => !selectedChoices.Contains(c))
+                    .FirstOrDefault();
+
+                if (blockedChoiceNotSelected != null)
+                {
+                    return blockedChoiceNotSelected;
+                }
+            }
+
+            // Otherwise, select highest-scoring choice not yet selected
+            List<IChoice> remainingChoices = allChoices
+                .Where(c => !selectedChoices.Contains(c))
+                .ToList();
+
+            SortPoolByScore(remainingChoices, choiceScores);
+            return remainingChoices.FirstOrDefault();
+        }
+        else // On even turns AND 2 choices already blocked
+        {
+            // Select highest-scoring choice from C1 not already selected
+            List<IChoice> unblockedNotSelected = poolC1
+                .Where(c => !selectedChoices.Contains(c))
+                .ToList();
+
+            SortPoolByScore(unblockedNotSelected, choiceScores);
+            return unblockedNotSelected.FirstOrDefault();
+        }
     }
 
     private bool IsMomentumIncreasingApproach(ApproachTags approach, EncounterState state)
