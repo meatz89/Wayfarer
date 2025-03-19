@@ -56,38 +56,39 @@ Based on the choice, name each choice as follows:
   * Physical actions: Use FIRST-PERSON ACTION INTENTIONS
     CORRECT: I'll search behind that loose panel...
     INCORRECT: "Searching the Hidden Panel"
+  * 
+Choice names MUST sound like genuine thoughts a real person would have in the specific situation:
+
+1. USE SIMPLE, EVERYDAY THOUGHTS:
+   - Use how real people actually think under stress - incomplete sentences, simple words
+   - NO literary or formal phrasing - write exactly how you'd think in danger
+   - GOOD: "That leg looks weak..." 
+   - BAD: "I shall analyze his physical vulnerability"
+   
+2. UNIQUE THOUGHT PATTERNS:
+   - Each choice name must use a DIFFERENT thought structure:
+     * Direct observation: "His knife hand is shaking..."
+     * Question: "Wonder if I can slip past?"
+     * Action intention: "Gonna try the wall route..."
+     * Conditional: "If I time it right..."
 
 ## CRITICAL GUIDELINES:
 
 1. USE NATURAL, EVERYDAY SPEECH that an ordinary person would actually say
-   - BAD: "I require sustenance, and I will be heard."
-   - GOOD: "These prices are too high. I need food."
 
-2. AVOID PRETENTIOUS LANGUAGE OR CONCEPTS:
-   - BAD: "Perhaps we could negotiate a mutually beneficial arrangement..."
-   - GOOD: "Maybe we can work something out that helps us both."
+2. AVOID PRETENTIOUS LANGUAGE OR CONCEPTS
 
 3. MATCH THE CHARACTER'S SOCIAL STATUS AND EDUCATION:
    - Common travelers use simple, direct language
    - No fancy words, complex sentences, or abstract concepts
    - Speak as ordinary people speak in daily life
 
-4. FOR DOMINANCE APPROACHES:
-   - Use plain, direct demands or statements
-   - Show boldness through simplicity, not grand language
-   - Example: "Your price is unfair. Look at me when we talk."
-
-5. FOR RAPPORT APPROACHES:
-   - Use friendly, casual conversation
-   - Show warmth through simple, relatable words
-   - Example: "Your bread smells good. Had a busy morning?"
-
-6. KEEP DIALOGUE REALISTIC AND GROUNDED:
+4. KEEP DIALOGUE REALISTIC AND GROUNDED:
    - Write how real people actually talk in everyday situations
    - Avoid dialogue that sounds "written" or literary
    - Use natural, conversational rhythm
 
-7. IF A CHOICE WILL END THE ENCOUNTER:
+5. IF A CHOICE WILL END THE ENCOUNTER:
    - Indicate the finality without explicitly mentioning the encounter ending
    - Adapt tone to match the projected outcome (failure, partial, standard, exceptional)
    - For Failure: "I'll take whatever scraps you'll give me..."
@@ -108,6 +109,18 @@ REMEMBER:
   * Health -3: Major injury language
   * Health -5: Life-threatening language
 - Each choice should feel distinct and appropriate to both the approach/focus combination
+
+## FINAL DIFFERENTIATION CHECK
+
+Before submitting your response, verify that all four choices meet these requirements:
+
+1. Each choice feels like a COMPLETELY DIFFERENT tactic, not variations of the same approach
+2. Each choice has its OWN UNIQUE language and vocabulary - no repeated phrasing
+3. Each choice focuses on DIFFERENT elements of the situation
+4. Choice names sound like AUTHENTIC thoughts, not literary descriptions
+5. A reader could easily tell these choices apart and understand how they differ tactically
+
+If any choices fail these tests, rewrite them to increase differentiation.
 
 Format the output as a JSON object with four choice objects containing 'index', 'name', 'description', 'approach', and 'focus'.
 
