@@ -1,9 +1,11 @@
 # WAYFARER TURN RESOLUTION
 
-Generate a narrative outcome for a character in a {ENCOUNTER_TYPE} encounter who chose {SELECTED_CHOICE} ({APPROACH} + {FOCUS}, {EFFECT_TYPE}). The encounter takes place in {LOCATION} with the objective to {CHARACTER_GOAL}.
+Generate a narrative outcome for a character in a {ENCOUNTER_TYPE} encounter who chose {SELECTED_CHOICE}. 
+The Player's chosen action has NOT YET HAPPENED. It must be executed DURING THIS SCENE.
+The encounter takes place at the {LOCATION_SPOT} of the {LOCATION_NAME} with the objective to {CHARACTER_GOAL}.
 
 Urgent situation that prompted the choice: {CURRENT_SITUATION}
-Player's choice description: {CHOICE_DESCRIPTION}
+Player's choice: {SELECTED_CHOICE} ({CHOICE_DESCRIPTION})
 Previous state: Momentum {M_OLD}, Pressure {P_OLD}
 New state: Momentum {M_NEW}, Pressure {P_NEW}
 Approach changes: {APPROACH_CHANGES}
@@ -37,7 +39,6 @@ Write 3-4 paragraphs of grounded, realistic first-person narrative that:
    - Environment details are important but NEVER at the expense of NPC behavior
    - NPCs should control and influence the environment, not just exist within it
    - Show power dynamics through physical positioning and control of space
-
 
 ## LANGUAGE REQUIREMENTS
 

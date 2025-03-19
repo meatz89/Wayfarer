@@ -1,8 +1,11 @@
 # WAYFARER ENCOUNTER ENDING
 
-Generate a concluding narrative for a {ENCOUNTER_TYPE} encounter that has ended with an outcome of {ENCOUNTER_OUTCOME}. The encounter took place in {LOCATION} with the objective to {CHARACTER_GOAL}.
+Generate a concluding narrative for a {ENCOUNTER_TYPE} encounter that has ended with an outcome of {ENCOUNTER_OUTCOME}. 
+The last player choice was {SELECTED_CHOICE}. The Player's chosen action has NOT YET HAPPENED. It must be executed DURING THIS ENDING SCENE.
+The encounter takes place at the {LOCATION_SPOT} of the {LOCATION_NAME} with the objective to {CHARACTER_GOAL}.
 
 Final state: Momentum {FINAL_MOMENTUM}, Pressure {FINAL_PRESSURE}
+Player's final choice: {SELECTED_CHOICE} ({CHOICE_DESCRIPTION})
 Resource states: Health {HEALTH}, Concentration {CONCENTRATION}, Confidence {CONFIDENCE}
 Approach values: {APPROACH_VALUES}
 Focus values: {FOCUS_VALUES}
