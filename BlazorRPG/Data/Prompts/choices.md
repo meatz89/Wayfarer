@@ -66,11 +66,7 @@ Choice names MUST sound like genuine thoughts a real person would have in the sp
    - BAD: "I shall analyze his physical vulnerability"
    
 2. UNIQUE THOUGHT PATTERNS:
-   - Each choice name must use a DIFFERENT thought structure:
-     * Direct observation: "His knife hand is shaking..."
-     * Question: "Wonder if I can slip past?"
-     * Action intention: "Gonna try the wall route..."
-     * Conditional: "If I time it right..."
+   - Each choice name must use a DIFFERENT thought structure
 
 ## CRITICAL GUIDELINES:
 
@@ -101,13 +97,13 @@ REMEMBER:
 - Each choice MUST respond to the IMMEDIATE PROBLEM, not general exploration
 - Reflect the urgency of the situation in your descriptions
 - Include appropriate risk language based on pressure/health effects:
-  * Momentum choices: Mild caution language
+  * Momentum choices: Progression language
   * Pressure +1: Low risk language
   * Pressure +2: Medium risk language
-  * Pressure +3: High risk language
-  * Health -1: Minor injury language
-  * Health -3: Major injury language
-  * Health -5: Life-threatening language
+  * Pressure >= +3: High risk language
+  * Health/Concentration/Confidence -1: Minor injury/confusion/shame language
+  * Health/Concentration/Confidence -3: Major injury/confusion/shame language
+  * Health/Concentration/Confidence <= -5: Life-threatening injury / mental breakdown language
 - Each choice should feel distinct and appropriate to both the approach/focus combination
 
 ## FINAL DIFFERENTIATION CHECK

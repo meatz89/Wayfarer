@@ -23,7 +23,7 @@
 
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName(ActionNames.BackalleyTravel)
-            .WithGoal("reach the docks without harm")
+            .WithGoal("reach the ancient library without harm")
             .WithComplication("A bandit blocks the way, clearly intending to rob you")
             .WithActionType(BasicActionTypes.Fight)
             .StartsEncounter(EncounterContent.BanditEncounter)
