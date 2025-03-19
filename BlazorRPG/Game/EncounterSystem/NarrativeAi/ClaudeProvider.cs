@@ -7,11 +7,13 @@ public class ClaudeProvider : IAIProvider
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
     private readonly string _model;
+    private readonly string _backupModel;
     private readonly ILogger<EncounterSystem> _logger;
 
     // Retry configuration
     private const int MaxRetryAttempts = 10;
-    private const int InitialDelayMilliseconds = 1000; // 1 second
+    private const int FallbackToBackupAfterAttempts = 2; 
+    private const int InitialDelayMilliseconds = 1000; 
     private readonly Random _jitterer = new Random();
 
     public string Name => "Anthropic Claude";
@@ -20,7 +22,8 @@ public class ClaudeProvider : IAIProvider
     {
         _httpClient = new HttpClient();
         _apiKey = configuration.GetValue<string>("Anthropic:ApiKey");
-        _model = configuration.GetValue<string>("Anthropic:Model") ?? "claude-3-5-haiku-latest";
+        _model = configuration.GetValue<string>("Anthropic:Model") ?? "claude-3-7-sonnet-latest";
+        _backupModel = configuration.GetValue<string>("Anthropic:BackupModel") ?? "claude-3-5-haiku-latest";
         _logger = logger;
 
         // Anthropic uses different headers than OpenAI and Gemini
@@ -42,39 +45,50 @@ public class ClaudeProvider : IAIProvider
             messagesList.Remove(systemEntry);
         }
 
-        // Format the request according to Anthropic's API requirements
-        var requestBody = new
+        // Format messages for Claude API
+        var formattedMessages = messagesList.Select(m => new
         {
-            model = _model,
-            messages = messagesList.Select(m => new
-            {
-                role = m.Role.ToLower() == "assistant" ? "assistant" : "user",
-                content = m.Content
-            }).ToArray(),
-            system = systemMessage,
-            max_tokens = 500,
-            temperature = 0.7
-        };
+            role = m.Role.ToLower() == "assistant" ? "assistant" : "user",
+            content = m.Content
+        }).ToArray();
 
-        StringContent content = new StringContent(
-            JsonSerializer.Serialize(requestBody),
-            Encoding.UTF8,
-            "application/json"
-        );
-
-        return await ExecuteWithRetryAsync(content);
+        return await ExecuteWithRetryAsync(formattedMessages, systemMessage);
     }
 
-    private async Task<string> ExecuteWithRetryAsync(StringContent content)
+    private async Task<string> ExecuteWithRetryAsync(object[] messages, string systemMessage)
     {
         int attempts = 0;
         int delay = InitialDelayMilliseconds;
+        string currentModel = _model; // Start with primary model
 
         while (true)
         {
+            // Switch to backup model after specified number of attempts
+            if (attempts >= FallbackToBackupAfterAttempts)
+            {
+                currentModel = _backupModel;
+            }
+
             try
             {
-                _logger?.LogInformation($"Sending request to Anthropic API (Attempt {attempts + 1}) for model {_model}");
+                _logger?.LogInformation($"Sending request to Anthropic API (Attempt {attempts + 1}) using model: {currentModel}");
+
+                // Format the request with the current model
+                var requestBody = new
+                {
+                    model = currentModel,
+                    messages = messages,
+                    system = systemMessage,
+                    max_tokens = 500,
+                    temperature = 0.7
+                };
+
+                StringContent content = new StringContent(
+                    JsonSerializer.Serialize(requestBody),
+                    Encoding.UTF8,
+                    "application/json"
+                );
+
                 HttpResponseMessage response = await TalkToClaude(content);
                 _logger?.LogInformation($"Received response with status code: {response.StatusCode}");
 
@@ -102,7 +116,7 @@ public class ClaudeProvider : IAIProvider
             }
             catch (HttpRequestException ex)
             {
-                _logger?.LogError($"HTTP Request Error (Attempt {attempts + 1}): {ex.Message}");
+                _logger?.LogError($"HTTP Request Error (Attempt {attempts + 1}) with model {currentModel}: {ex.Message}");
 
                 // If max attempts reached, rethrow
                 if (++attempts >= MaxRetryAttempts)
@@ -114,17 +128,17 @@ public class ClaudeProvider : IAIProvider
                 // Calculate exponential backoff with jitter
                 delay = CalculateDelay(attempts, delay);
 
-                _logger?.LogWarning($"Retrying in {delay} ms after HTTP error");
+                _logger?.LogWarning($"Retrying in {delay} ms after HTTP error. Will use {(attempts >= FallbackToBackupAfterAttempts ? _backupModel : currentModel)}");
                 await Task.Delay(delay);
             }
             catch (JsonException ex)
             {
-                _logger?.LogError($"JSON Parsing Error: {ex.Message}");
+                _logger?.LogError($"JSON Parsing Error with model {currentModel}: {ex.Message}");
                 throw;
             }
             catch (KeyNotFoundException ex)
             {
-                _logger?.LogError($"Key Not Found Error: {ex.Message}");
+                _logger?.LogError($"Key Not Found Error with model {currentModel}: {ex.Message}");
                 throw;
             }
         }
