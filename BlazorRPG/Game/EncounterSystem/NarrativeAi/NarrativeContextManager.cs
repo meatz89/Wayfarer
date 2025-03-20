@@ -127,21 +127,6 @@
             return $"The Player chose: '{choiceNarrative.ShorthandName}'. Generate the narrative response.";
         }
 
-        // Extract the choice name from the full prompt
-        // This is a simplified approach - you'll need to adapt based on your exact prompt format
-        if (fullPrompt.Contains("The player chose:"))
-        {
-            // Find the selected choice part
-            int startIndex = fullPrompt.IndexOf("The player chose:");
-            int endIndex = fullPrompt.IndexOf("\n", startIndex);
-            if (endIndex < 0) endIndex = fullPrompt.Length;
-
-            string choiceLine = fullPrompt.Substring(startIndex, endIndex - startIndex);
-
-            // Create a simplified prompt
-            return $"Player chose {choiceLine.Replace("The player chose:", "").Trim()}. Generate narrative response.";
-        }
-
         // If we can't parse it properly, return a default simplified version
         return "Player made a choice. Generate narrative response.";
     }

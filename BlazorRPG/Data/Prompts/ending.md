@@ -1,4 +1,4 @@
-The player chose: {SELECTED_CHOICE} ({
+The player chose: '{SELECTED_CHOICE}' ({
 })
 The Previous choice has NOT YET HAPPENED. It must be executed DURING THIS SCENE.
 

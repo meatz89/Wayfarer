@@ -456,31 +456,6 @@ CHOICE {i + 1}:
         return builder.ToString();
     }
 
-    private string FormatTagActivationForNarrative(ChoiceOutcome outcome)
-    {
-        StringBuilder result = new StringBuilder();
-
-        if (outcome.NewlyActivatedTags.Count > 0)
-        {
-            result.AppendLine("Newly activated tags to incorporate in narrative:");
-            foreach (string tag in outcome.NewlyActivatedTags)
-            {
-                result.AppendLine($"- {tag}: Introduce narrative elements that reflect this tag's activation");
-            }
-        }
-
-        if (outcome.DeactivatedTags.Count > 0)
-        {
-            result.AppendLine("Deactivated tags to acknowledge in narrative:");
-            foreach (string tag in outcome.DeactivatedTags)
-            {
-                result.AppendLine($"- {tag}: Show how this aspect has diminished or is no longer relevant");
-            }
-        }
-
-        return result.ToString();
-    }
-
     private string FormatApproachValues(EncounterStatusModel state)
     {
         List<string> approaches = new List<string>();
@@ -511,17 +486,6 @@ CHOICE {i + 1}:
             EncounterTypes.Social => "Direct dialogue with simple, practical words that reflect medieval speech patterns. Focus on social dynamics, status differences, and the traveler's attempt to navigate social hierarchies. Include some direct speech with quotation marks, showing the exact words exchanged between the player character and NPC.",
             EncounterTypes.Intellectual => "Brief thought process using common language appropriate to a medieval traveler. Express observations, deductions, and problem-solving through inner monologue. Focus on practical knowledge and survival-oriented thinking rather than academic or scholarly reasoning.",
             EncounterTypes.Physical => "Clear description of physical actions and immediate results. Emphasize bodily sensations, physical effort, fatigue, and the mechanical realities of movement and exertion. Include details about weight, texture, temperature, and other tactile elements that ground the narrative in physical reality.",
-            _ => "Practical description focusing on immediate situation"
-        };
-    }
-
-    private string GetChoiceStyleGuidance(EncounterTypes type)
-    {
-        return type switch
-        {
-            EncounterTypes.Social => "Direct speech with dialogue in quotes, focus on status and relationships",
-            EncounterTypes.Intellectual => "Observations and problem-solving as inner thoughts, practical knowledge",
-            EncounterTypes.Physical => "Detailed physical actions, bodily sensations, and environment interactions",
             _ => "Practical description focusing on immediate situation"
         };
     }
