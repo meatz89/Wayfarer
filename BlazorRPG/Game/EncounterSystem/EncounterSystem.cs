@@ -9,7 +9,7 @@
     private EncounterManager Encounter;
     public EncounterResult encounterResult;
 
-    private bool useAiNarrative = false;
+
     private CardSelectionAlgorithm cardSelector;
     public EncounterSystem(
         GameState gameState,
@@ -41,8 +41,6 @@
                 currentAIProvider = AIProviderType.OpenAI;
                 break;
         }
-
-        useAiNarrative = configuration.GetValue<bool>("useAiNarrative");
     }
 
     // Update toggle method to cycle through all three providers
@@ -146,7 +144,6 @@
             actionImplementation,
             cardSelector,
             narrativeService,
-            useAiNarrative,
             configuration,
             logger);
 
