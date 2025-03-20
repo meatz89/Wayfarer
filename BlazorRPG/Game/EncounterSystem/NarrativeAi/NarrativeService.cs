@@ -66,7 +66,7 @@
         INarrativeAIService narrativeAIService = _providers[_currentProvider];
         return await narrativeAIService.GenerateIntroductionAsync(context, state, memoryContent);
     }
-    
+
     public async Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
         NarrativeContext context,
         List<IChoice> choices,

@@ -25,12 +25,12 @@
         // Difficulty level 2 (adds +2 pressure per turn)
         encounterInfo.SetDifficulty(2);
 
-        foreach(var narrativeTag in template.encounterNarrativeTags)
+        foreach (NarrativeTag narrativeTag in template.encounterNarrativeTags)
         {
             encounterInfo.AddTag(narrativeTag);
         }
 
-        foreach (var strategicTag in template.encounterStrategicTags)
+        foreach (StrategicTag strategicTag in template.encounterStrategicTags)
         {
             encounterInfo.AddTag(strategicTag);
         }

@@ -94,7 +94,7 @@
             maxPressure: State.Location.MaxPressure,
             successThreshold: State.Location.StandardThreshold,
             maxTurns: State.Location.TurnDuration,
-            momentum: State.Momentum, 
+            momentum: State.Momentum,
             pressure: State.Pressure,
             health: State.PlayerState.Health,
             maxHealth: State.PlayerState.MaxHealth,
@@ -161,7 +161,7 @@
 
         if (_useAiNarrative && _narrativeService != null)
         {
-            
+
             introduction = await _narrativeService.GenerateIntroductionAsync(
                 _narrativeContext,
                 status,
@@ -257,7 +257,7 @@
                     outcome,
                     newStatus);
             }
-            
+
             NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
             _narrativeContext.AddEvent(narrativeEvent);
 
@@ -315,7 +315,7 @@
 
     private async Task UpdateMemoryFile(ChoiceOutcome outcome, EncounterStatusModel newStatus)
     {
-        var oldMemory = await MemoryFileAccess.ReadFromMemoryFile();
+        string oldMemory = await MemoryFileAccess.ReadFromMemoryFile();
 
         string memoryContent = await _narrativeService.GenerateMemoryFileAsync(
             _narrativeContext,

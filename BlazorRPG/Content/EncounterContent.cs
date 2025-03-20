@@ -12,7 +12,7 @@
 
         MomentumBoostApproaches = new[] { ApproachTags.Analysis, ApproachTags.Rapport }.ToList(),
         DangerousApproaches = new[] { ApproachTags.Dominance, ApproachTags.Evasion }.ToList(),
-        
+
         PressureReducingFocuses = new[] { FocusTags.Environment, FocusTags.Information }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Physical, FocusTags.Resource }.ToList(),
 

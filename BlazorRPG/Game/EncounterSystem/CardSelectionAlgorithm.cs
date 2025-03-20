@@ -331,21 +331,21 @@ public class CardSelectionAlgorithm
                                               List<FocusTags> blockedFocuses, Dictionary<IChoice, int> choiceScores)
     {
         // Count focus distribution
-        var focusCounts = selectedChoices.GroupBy(c => c.Focus)
+        Dictionary<FocusTags, int> focusCounts = selectedChoices.GroupBy(c => c.Focus)
                                       .ToDictionary(g => g.Key, g => g.Count());
 
         // STRICTER REQUIREMENT: No more than 2 choices with same focus
-        foreach (var focusPair in focusCounts.Where(f => f.Value > 2))
+        foreach (KeyValuePair<FocusTags, int> focusPair in focusCounts.Where(f => f.Value > 2))
         {
             FocusTags overrepresentedFocus = focusPair.Key;
 
             // Find choices with this focus
-            var sameFocusChoices = selectedChoices.Where(c => c.Focus == overrepresentedFocus)
+            List<IChoice> sameFocusChoices = selectedChoices.Where(c => c.Focus == overrepresentedFocus)
                                                .OrderBy(c => choiceScores[c])
                                                .ToList();
 
             // Find all possible focuses that are underrepresented
-            var focusesNeeded = Enum.GetValues(typeof(FocusTags))
+            List<FocusTags> focusesNeeded = Enum.GetValues(typeof(FocusTags))
                                   .Cast<FocusTags>()
                                   .Where(f => !blockedFocuses.Contains(f) &&
                                             (!focusCounts.ContainsKey(f) || focusCounts[f] < 1))
@@ -354,10 +354,10 @@ public class CardSelectionAlgorithm
             if (!focusesNeeded.Any())
                 continue;
 
-            foreach (var neededFocus in focusesNeeded)
+            foreach (FocusTags neededFocus in focusesNeeded)
             {
                 // Find best choice with needed focus
-                var diverseFocusChoice = allChoices
+                IChoice? diverseFocusChoice = allChoices
                     .Where(c => c.Focus == neededFocus &&
                               !selectedChoices.Contains(c))
                     .OrderByDescending(c => choiceScores[c])
@@ -374,13 +374,13 @@ public class CardSelectionAlgorithm
         }
 
         // NEW REQUIREMENT: Ensure at least 3 different focuses are represented
-        var uniqueFocuses = selectedChoices.Select(c => c.Focus).Distinct().Count();
+        int uniqueFocuses = selectedChoices.Select(c => c.Focus).Distinct().Count();
 
         if (uniqueFocuses < 3)
         {
             // Find focuses not represented
-            var representedFocuses = selectedChoices.Select(c => c.Focus).Distinct().ToList();
-            var missingFocuses = Enum.GetValues(typeof(FocusTags))
+            List<FocusTags> representedFocuses = selectedChoices.Select(c => c.Focus).Distinct().ToList();
+            List<FocusTags> missingFocuses = Enum.GetValues(typeof(FocusTags))
                                .Cast<FocusTags>()
                                .Where(f => !blockedFocuses.Contains(f) && !representedFocuses.Contains(f))
                                .ToList();
@@ -388,21 +388,21 @@ public class CardSelectionAlgorithm
             if (missingFocuses.Any())
             {
                 // Find the focus with the most choices (if there's a tie, take any)
-                var mostRepresentedFocus = focusCounts
+                FocusTags mostRepresentedFocus = focusCounts
                     .OrderByDescending(f => f.Value)
                     .First().Key;
 
-                var choicesToReplace = selectedChoices
+                List<IChoice> choicesToReplace = selectedChoices
                     .Where(c => c.Focus == mostRepresentedFocus)
                     .OrderBy(c => choiceScores[c])
                     .Take(3 - uniqueFocuses)
                     .ToList();
 
-                foreach (var choiceToReplace in choicesToReplace)
+                foreach (IChoice? choiceToReplace in choicesToReplace)
                 {
-                    foreach (var missingFocus in missingFocuses.ToList())
+                    foreach (FocusTags missingFocus in missingFocuses.ToList())
                     {
-                        var replacementChoice = allChoices
+                        IChoice? replacementChoice = allChoices
                             .Where(c => c.Focus == missingFocus &&
                                       !selectedChoices.Contains(c))
                             .OrderByDescending(c => choiceScores[c])
@@ -433,21 +433,21 @@ public class CardSelectionAlgorithm
                                                  List<FocusTags> blockedFocuses, Dictionary<IChoice, int> choiceScores)
     {
         // Count approach distribution
-        var approachCounts = selectedChoices.GroupBy(c => GetPrimaryApproach(c))
+        Dictionary<ApproachTags, int> approachCounts = selectedChoices.GroupBy(c => GetPrimaryApproach(c))
                                          .ToDictionary(g => g.Key, g => g.Count());
 
         // STRICTER REQUIREMENT: No more than 2 choices can use the same approach
-        foreach (var approachPair in approachCounts.Where(a => a.Value > 2))
+        foreach (KeyValuePair<ApproachTags, int> approachPair in approachCounts.Where(a => a.Value > 2))
         {
             ApproachTags overrepresentedApproach = approachPair.Key;
 
             // Find choices with this approach
-            var sameApproachChoices = selectedChoices.Where(c => GetPrimaryApproach(c) == overrepresentedApproach)
+            List<IChoice> sameApproachChoices = selectedChoices.Where(c => GetPrimaryApproach(c) == overrepresentedApproach)
                                                 .OrderBy(c => choiceScores[c])
                                                 .ToList();
 
             // Get all approaches not yet represented or underrepresented
-            var approachesNeeded = Enum.GetValues(typeof(ApproachTags))
+            List<ApproachTags> approachesNeeded = Enum.GetValues(typeof(ApproachTags))
                                     .Cast<ApproachTags>()
                                     .Where(a => IsApproachTag(a) &&
                                               (!approachCounts.ContainsKey(a) || approachCounts[a] < 1))
@@ -456,10 +456,10 @@ public class CardSelectionAlgorithm
             if (!approachesNeeded.Any())
                 continue;
 
-            foreach (var neededApproach in approachesNeeded)
+            foreach (ApproachTags neededApproach in approachesNeeded)
             {
                 // Find best choice with needed approach
-                var diverseApproachChoice = allChoices
+                IChoice? diverseApproachChoice = allChoices
                     .Where(c => GetPrimaryApproach(c) == neededApproach &&
                               !selectedChoices.Contains(c) &&
                               !blockedFocuses.Contains(c.Focus))
@@ -477,13 +477,13 @@ public class CardSelectionAlgorithm
         }
 
         // NEW REQUIREMENT: Ensure at least 3 different approaches are represented
-        var uniqueApproaches = selectedChoices.Select(c => GetPrimaryApproach(c)).Distinct().Count();
+        int uniqueApproaches = selectedChoices.Select(c => GetPrimaryApproach(c)).Distinct().Count();
 
         if (uniqueApproaches < 3)
         {
             // Find approaches not represented
-            var representedApproaches = selectedChoices.Select(c => GetPrimaryApproach(c)).Distinct().ToList();
-            var missingApproaches = Enum.GetValues(typeof(ApproachTags))
+            List<ApproachTags> representedApproaches = selectedChoices.Select(c => GetPrimaryApproach(c)).Distinct().ToList();
+            List<ApproachTags> missingApproaches = Enum.GetValues(typeof(ApproachTags))
                                   .Cast<ApproachTags>()
                                   .Where(a => IsApproachTag(a) && !representedApproaches.Contains(a))
                                   .ToList();
@@ -491,21 +491,21 @@ public class CardSelectionAlgorithm
             if (missingApproaches.Any())
             {
                 // Find the approach with the most choices (if there's a tie, take any)
-                var mostRepresentedApproach = approachCounts
+                ApproachTags mostRepresentedApproach = approachCounts
                     .OrderByDescending(a => a.Value)
                     .First().Key;
 
-                var choicesToReplace = selectedChoices
+                List<IChoice> choicesToReplace = selectedChoices
                     .Where(c => GetPrimaryApproach(c) == mostRepresentedApproach)
                     .OrderBy(c => choiceScores[c])
                     .Take(3 - uniqueApproaches)
                     .ToList();
 
-                foreach (var choiceToReplace in choicesToReplace)
+                foreach (IChoice? choiceToReplace in choicesToReplace)
                 {
-                    foreach (var missingApproach in missingApproaches.ToList())
+                    foreach (ApproachTags missingApproach in missingApproaches.ToList())
                     {
-                        var replacementChoice = allChoices
+                        IChoice? replacementChoice = allChoices
                             .Where(c => GetPrimaryApproach(c) == missingApproach &&
                                       !selectedChoices.Contains(c) &&
                                       !blockedFocuses.Contains(c.Focus))
@@ -545,17 +545,17 @@ public class CardSelectionAlgorithm
         foreach (var combo in tacticalCombos)
         {
             // We have multiple choices with the same approach+focus combo
-            var similarChoices = combo.OrderBy(c => choiceScores[c]).ToList();
+            List<IChoice> similarChoices = combo.OrderBy(c => choiceScores[c]).ToList();
 
             // Keep the highest scoring one
-            var choiceToKeep = similarChoices.Last();
+            IChoice choiceToKeep = similarChoices.Last();
             similarChoices.Remove(choiceToKeep);
 
             // Replace the others
-            foreach (var similarChoice in similarChoices)
+            foreach (IChoice? similarChoice in similarChoices)
             {
                 // Find choices with different approach+focus combinations
-                var tacticallyDistinctChoices = allChoices
+                List<IChoice> tacticallyDistinctChoices = allChoices
                     .Where(c => GetPrimaryApproach(c) != combo.Key.Approach &&
                               c.Focus != combo.Key.Focus &&
                               !selectedChoices.Contains(c))
@@ -580,15 +580,15 @@ public class CardSelectionAlgorithm
         foreach (var combo in approachEffectCombos)
         {
             // We have too many of the same approach+effect combo
-            var similarChoices = combo.OrderBy(c => choiceScores[c]).ToList();
+            List<IChoice> similarChoices = combo.OrderBy(c => choiceScores[c]).ToList();
 
             while (similarChoices.Count > 2)
             {
-                var lowestChoice = similarChoices.First();
+                IChoice lowestChoice = similarChoices.First();
                 similarChoices.Remove(lowestChoice);
 
                 // Find a tactically different choice
-                var differentChoice = allChoices
+                IChoice? differentChoice = allChoices
                     .Where(c => GetPrimaryApproach(c) != combo.Key.Approach &&
                               !selectedChoices.Contains(c))
                     .OrderByDescending(c => choiceScores[c])
@@ -622,7 +622,7 @@ public class CardSelectionAlgorithm
             if (hasPhysicalOption && !hasRelationshipOption && !hasResourceOption)
             {
                 // Find social/resource choices
-                var socialChoices = allChoices
+                List<IChoice> socialChoices = allChoices
                     .Where(c => (c.Focus == FocusTags.Relationship || c.Focus == FocusTags.Resource) &&
                               !selectedChoices.Contains(c) &&
                               !blockedFocuses.Contains(c.Focus))
@@ -633,7 +633,7 @@ public class CardSelectionAlgorithm
                 if (socialChoices.Any())
                 {
                     // Replace lowest scoring physical choice
-                    var physicalChoices = selectedChoices
+                    List<IChoice> physicalChoices = selectedChoices
                         .Where(c => c.Focus == FocusTags.Physical)
                         .OrderBy(c => choiceScores[c])
                         .Take(1)
@@ -670,7 +670,7 @@ public class CardSelectionAlgorithm
             if (pressureChoiceCount > 1)
             {
                 // Get all pressure choices, ordered by score
-                var pressureChoices = selectedChoices
+                List<IChoice> pressureChoices = selectedChoices
                     .Where(c => c.EffectType == EffectTypes.Pressure)
                     .OrderBy(c => choiceScores[c])
                     .ToList();
@@ -679,7 +679,7 @@ public class CardSelectionAlgorithm
                 for (int i = 0; i < pressureChoices.Count - 1; i++)
                 {
                     // Find momentum choices not currently in the selection
-                    var replacementChoice = allChoices
+                    IChoice? replacementChoice = allChoices
                         .Where(c => c.EffectType == EffectTypes.Momentum &&
                                   !selectedChoices.Contains(c))
                         .OrderByDescending(c => choiceScores[c])
@@ -705,14 +705,14 @@ public class CardSelectionAlgorithm
                 int pressureChoicesToAdd = 2 - pressureChoiceCount;
 
                 // Find lowest-scoring momentum choices 
-                var momentumChoices = selectedChoices
+                List<IChoice> momentumChoices = selectedChoices
                     .Where(c => c.EffectType == EffectTypes.Momentum)
                     .OrderBy(c => choiceScores[c])
                     .Take(pressureChoicesToAdd)
                     .ToList();
 
                 // Find pressure choices not in selection
-                var pressureChoicesNotSelected = allChoices
+                List<IChoice> pressureChoicesNotSelected = allChoices
                     .Where(c => c.EffectType == EffectTypes.Pressure &&
                               !selectedChoices.Contains(c))
                     .OrderByDescending(c => choiceScores[c])
@@ -736,12 +736,12 @@ public class CardSelectionAlgorithm
             if (pressureChoiceCount < 1)
             {
                 // Add a pressure choice
-                var momentumChoice = selectedChoices
+                IChoice? momentumChoice = selectedChoices
                     .Where(c => c.EffectType == EffectTypes.Momentum)
                     .OrderBy(c => choiceScores[c])
                     .FirstOrDefault();
 
-                var pressureChoice = allChoices
+                IChoice? pressureChoice = allChoices
                     .Where(c => c.EffectType == EffectTypes.Pressure &&
                               !selectedChoices.Contains(c))
                     .OrderByDescending(c => choiceScores[c])
@@ -756,14 +756,14 @@ public class CardSelectionAlgorithm
             else if (pressureChoiceCount > 2)
             {
                 // Too many pressure choices, replace some with momentum choices
-                var pressureChoices = selectedChoices
+                List<IChoice> pressureChoices = selectedChoices
                     .Where(c => c.EffectType == EffectTypes.Pressure)
                     .OrderBy(c => choiceScores[c])
                     .ToList();
 
                 for (int i = 0; i < pressureChoices.Count - 2; i++)
                 {
-                    var momentumChoice = allChoices
+                    IChoice? momentumChoice = allChoices
                         .Where(c => c.EffectType == EffectTypes.Momentum &&
                                   !selectedChoices.Contains(c))
                         .OrderByDescending(c => choiceScores[c])
