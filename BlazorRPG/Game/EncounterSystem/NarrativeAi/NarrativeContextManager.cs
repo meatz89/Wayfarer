@@ -33,13 +33,14 @@
     }
 
     // Add a message with type tracking
-    public void AddUserMessage(string conversationId, string message, MessageType type)
+    public void AddUserMessage(string conversationId, string message, MessageType type, ChoiceNarrative choiceNarrative)
     {
         _fullConversationHistories[conversationId].Add(new ConversationEntry
         {
             Role = "user",
             Content = message,
-            Type = type
+            Type = type,
+            ChoiceNarrative = choiceNarrative
         });
     }
 
@@ -56,22 +57,22 @@
     // Get optimized conversation history for AI calls
     public List<ConversationEntry> GetOptimizedConversationHistory(string conversationId)
     {
-        var fullHistory = _fullConversationHistories[conversationId];
-        var optimizedHistory = new List<ConversationEntry>();
+        List<ConversationEntry> fullHistory = _fullConversationHistories[conversationId];
+        List<ConversationEntry> optimizedHistory = new List<ConversationEntry>();
 
         // Keep track of the last player choice that was processed
         IChoice lastProcessedChoice = null;
 
         // Always include system message
-        var systemMessage = fullHistory.FirstOrDefault(m => m.Type == MessageType.System);
+        ConversationEntry? systemMessage = fullHistory.FirstOrDefault(m => m.Type == MessageType.System);
         if (systemMessage != null)
         {
             optimizedHistory.Add(new ConversationEntry { Role = systemMessage.Role, Content = systemMessage.Content });
         }
 
         // Always include introduction with memory and its response
-        var introPrompt = fullHistory.FirstOrDefault(m => m.Type == MessageType.Introduction && m.Role == "user");
-        var introResponse = fullHistory.FirstOrDefault(m => m.Type == MessageType.Introduction && m.Role == "assistant");
+        ConversationEntry? introPrompt = fullHistory.FirstOrDefault(m => m.Type == MessageType.Introduction && m.Role == "user");
+        ConversationEntry? introResponse = fullHistory.FirstOrDefault(m => m.Type == MessageType.Introduction && m.Role == "assistant");
 
         if (introPrompt != null)
             optimizedHistory.Add(new ConversationEntry { Role = introPrompt.Role, Content = introPrompt.Content });
@@ -82,7 +83,7 @@
         // For each player choice and narrative response pair
         for (int i = 0; i < fullHistory.Count; i++)
         {
-            var entry = fullHistory[i];
+            ConversationEntry entry = fullHistory[i];
 
             // Skip all choice generation prompts and responses
             if (entry.Type == MessageType.ChoiceGeneration)
@@ -92,7 +93,7 @@
             if (entry.Type == MessageType.PlayerChoice && entry.Role == "user")
             {
                 // Extract just the choice information
-                string simplifiedChoice = SimplifyPlayerChoicePrompt(entry.Content);
+                string simplifiedChoice = SimplifyPlayerChoicePrompt(entry.Content, entry.ChoiceNarrative);
                 optimizedHistory.Add(new ConversationEntry { Role = entry.Role, Content = simplifiedChoice });
             }
 
@@ -104,11 +105,11 @@
         }
 
         // Include the current prompt we're about to send
-        var currentPrompt = fullHistory.LastOrDefault(m => m.Role == "user");
+        ConversationEntry? currentPrompt = fullHistory.LastOrDefault(m => m.Role == "user");
         if (currentPrompt != null)
         {
             // Don't add it again if it's already the last one we added
-            var lastAdded = optimizedHistory.LastOrDefault();
+            ConversationEntry? lastAdded = optimizedHistory.LastOrDefault();
             if (lastAdded == null || lastAdded.Role != "user" || lastAdded.Content != currentPrompt.Content)
             {
                 optimizedHistory.Add(new ConversationEntry { Role = currentPrompt.Role, Content = currentPrompt.Content });
@@ -119,8 +120,13 @@
     }
 
     // Simplify player choice prompt to just "Player chose X"
-    private string SimplifyPlayerChoicePrompt(string fullPrompt)
+    private string SimplifyPlayerChoicePrompt(string fullPrompt, ChoiceNarrative choiceNarrative)
     {
+        if (choiceNarrative != null)
+        {
+            return $"The Player chose: '{choiceNarrative.ShorthandName}'. Generate the narrative response.";
+        }
+
         // Extract the choice name from the full prompt
         // This is a simplified approach - you'll need to adapt based on your exact prompt format
         if (fullPrompt.Contains("The player chose:"))

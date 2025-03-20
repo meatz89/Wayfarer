@@ -12,9 +12,9 @@
     }
 
     public ChoiceProjection CreateChoiceProjection(
-        IChoice choice, 
-        int currentMomentum, 
-        int currentPressure, 
+        IChoice choice,
+        int currentMomentum,
+        int currentPressure,
         int currentTurn)
     {
         ChoiceProjection projection = new ChoiceProjection(choice);
@@ -298,10 +298,10 @@
     }
 
     private void DetermineEncounterEnd(
-        ChoiceProjection projection, 
+        ChoiceProjection projection,
         int projectedTurn)
     {
-        bool encounterEnds = 
+        bool encounterEnds =
             (projectedTurn >= encounterInfo.TurnDuration)
             || (projection.FinalMomentum >= encounterInfo.ExceptionalThreshold)
             || (projection.FinalPressure >= encounterInfo.MaxPressure);

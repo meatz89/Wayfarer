@@ -348,7 +348,7 @@ CHOICE {i + 1}:
 
         NarrativeSummaryBuilder builder = new NarrativeSummaryBuilder();
         string completeHistory = builder.CreateCompleteHistory(context);
-        var summary = builder.CreateSummary(context);
+        string summary = builder.CreateSummary(context);
 
         // Replace placeholders in template
         string prompt = template

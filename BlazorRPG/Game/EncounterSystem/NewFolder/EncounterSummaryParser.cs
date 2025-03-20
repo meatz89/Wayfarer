@@ -49,13 +49,13 @@ public class EncounterSummaryParser
 
     public EncounterSummaryResult ParseSummary(string aiResponse)
     {
-        var result = new EncounterSummaryResult();
+        EncounterSummaryResult result = new EncounterSummaryResult();
 
         // Extract each section
-        var sections = ExtractSections(aiResponse);
+        Dictionary<string, string> sections = ExtractSections(aiResponse);
 
         // Process each section independently
-        foreach (var sectionName in SectionNames)
+        foreach (string sectionName in SectionNames)
         {
             // Skip if section is missing
             if (!sections.ContainsKey(sectionName))
@@ -207,11 +207,11 @@ public class EncounterSummaryParser
 
     private Dictionary<string, string> ExtractSections(string aiResponse)
     {
-        var sections = new Dictionary<string, string>();
+        Dictionary<string, string> sections = new Dictionary<string, string>();
 
         // This pattern matches sections like: ### SECTION NAME\n```json\n[content]\n```
         string pattern = @"###\s+([A-Z\s]+)\s*\n```json\s*\n([\s\S]*?)\n```";
-        var matches = Regex.Matches(aiResponse, pattern);
+        MatchCollection matches = Regex.Matches(aiResponse, pattern);
 
         foreach (Match match in matches)
         {

@@ -11,22 +11,20 @@ ENCOUNTER STATUS:
 - Encounter Stage: {ENCOUNTER_STAGE} (Early/Middle/Late)
 
 PLAYER'S CHOICE:
-The player selected: {SELECTED_CHOICE} - {CHOICE_DESCRIPTION}
-- Approach: {CHOICE_APPROACH}
-- Focus: {CHOICE_FOCUS}
+The player selected: '{SELECTED_CHOICE} ({CHOICE_DESCRIPTION})'
 
-MECHANICAL OUTCOMES:
+MECHANICAL CHOICE EFFECTS:
 - Momentum Change: {MOMENTUM_CHANGE} (Previous: {OLD_MOMENTUM}, New: {NEW_MOMENTUM})
 - Pressure Change: {PRESSURE_CHANGE} (Previous: {OLD_PRESSURE}, New: {NEW_PRESSURE})
 - Approach Changes: {APPROACH_CHANGES}
 - Focus Changes: {FOCUS_CHANGES}
 - Resource Changes: Health {HEALTH_CHANGE}, Confidence {CONFIDENCE_CHANGE}, Concentration {CONCENTRATION_CHANGE}
-- New Tags Activated: {NEW_TAGS_ACTIVATED}
-- Strategic Effects: {STRATEGIC_EFFECTS}
+- New Tags Activated: '{NEW_TAGS_ACTIVATED}'
+- Strategic Effects: '{STRATEGIC_EFFECTS}'
 
 ENCOUNTER CONTEXT:
-- Character Goal: {CHARACTER_GOAL}
-- Player Condition: {INJURIES/STATUS}
+- Player Character (PC) Goal: '{CHARACTER_GOAL}'
+- Player Condition: '{INJURIES/STATUS}'
 
 NPC CHARACTERIZATION:
 - Each NPC should act with their own agency and initiative
@@ -46,9 +44,10 @@ Write three paragraphs in first-person present tense from a medieval commoner's 
   
 KEY REQUIREMENTS:
 - The chosen action has NOT HAPPENED YET. Begin with the player's physical action from the chosen option
-- Show how the selected approach+focus combination manifests in the character's actions
+- The narrative is told from the PC's first person perspective. ONLY write in the narrative what the player may reasonably know, i.e from the memory or the encounter history
+- Show how the selected approach+focus combination manifests in the PC's actions
 - Demonstrate the outcomes mechanically indicated (momentum/pressure/resource changes)
-- If new tags activated, subtly show their effects on the character's perspective
+- If new tags activated, subtly show their effects from the PC's perspective
 - Present a new situation that logically follows from these developments
 - NPCs must respond in ways consistent with their established character
 - Show NPCs making decisions and taking actions of their own

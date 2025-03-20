@@ -8,9 +8,9 @@ public interface INarrativeAIService
     /// </summary>
     Task<string> GenerateIntroductionAsync(
         NarrativeContext context,
-        EncounterStatusModel state, 
+        EncounterStatusModel state,
         string memoryContent);
-    
+
     Task<string> GenerateReactionAndSceneAsync(
         NarrativeContext context,
         IChoice chosenOption,
@@ -26,8 +26,8 @@ public interface INarrativeAIService
         EncounterStatusModel newState);
 
     Task<string> GenerateMemoryFileAsync(
-        NarrativeContext context, 
-        ChoiceOutcome outcome, 
+        NarrativeContext context,
+        ChoiceOutcome outcome,
         EncounterStatusModel newState,
         string oldMemory);
 

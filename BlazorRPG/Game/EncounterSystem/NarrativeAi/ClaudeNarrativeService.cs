@@ -42,7 +42,7 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            _contextManager.AddUserMessage(conversationId, prompt, MessageType.ChoiceGeneration);
+            _contextManager.AddUserMessage(conversationId, prompt, MessageType.ChoiceGeneration, null);
         }
 
         string jsonResponse = await _aiClient.GetCompletionAsync(
@@ -55,14 +55,14 @@
     public override async Task<string> GenerateReactionAndSceneAsync(
         NarrativeContext context,
         IChoice chosenOption,
-        ChoiceNarrative choiceDescription,
+        ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
         EncounterStatusModel newState)
     {
         string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage();
         string prompt = _promptManager.BuildReactionPrompt(
-            context, chosenOption, choiceDescription, outcome, newState);
+            context, chosenOption, choiceNarrative, outcome, newState);
 
         if (!_contextManager.ConversationExists(conversationId))
         {
@@ -71,7 +71,7 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            _contextManager.AddUserMessage(conversationId, prompt, MessageType.PlayerChoice);
+            _contextManager.AddUserMessage(conversationId, prompt, MessageType.PlayerChoice, choiceNarrative);
         }
 
         string narrativeResponse = await _aiClient.GetCompletionAsync(
@@ -84,14 +84,14 @@
     public override async Task<string> GenerateEndingAsync(
         NarrativeContext context,
         IChoice chosenOption,
-        ChoiceNarrative choiceDescription,
+        ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
         EncounterStatusModel newState)
     {
         string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage();
         string prompt = _promptManager.BuildEncounterEndPrompt(
-            context, newState, outcome.Outcome, chosenOption, choiceDescription);
+            context, newState, outcome.Outcome, chosenOption, choiceNarrative);
 
         if (!_contextManager.ConversationExists(conversationId))
         {
@@ -100,7 +100,7 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            _contextManager.AddUserMessage(conversationId, prompt, MessageType.PlayerChoice);
+            _contextManager.AddUserMessage(conversationId, prompt, MessageType.PlayerChoice, choiceNarrative);
         }
 
         string narrativeResponse = await _aiClient.GetCompletionAsync(
@@ -129,7 +129,7 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            _contextManager.AddUserMessage(conversationId, prompt, MessageType.MemoryUpdate);
+            _contextManager.AddUserMessage(conversationId, prompt, MessageType.MemoryUpdate, null);
         }
         string memoryContentResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId));
