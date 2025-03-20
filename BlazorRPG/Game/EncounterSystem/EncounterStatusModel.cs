@@ -1,12 +1,24 @@
 ﻿/// <summary>
 /// Represents the current status of an encounter
 /// </summary>
-public class EncounterStatus
+public class EncounterStatusModel
 {
+    public int MaxMomentum { get; set; } = 20;
+    public int MaxPressure { get; set; } = 15;
+    public int SuccessThreshold { get; set; } = 15;
+    public int MaxTurns { get; set; } = 6;
+
+    public int Health { get; set; } = 10;
+    public int MaxHealth { get; set; } = 10;
+    public int Confidence { get; set; } = 10;
+    public int MaxConfidence { get; set; } = 10;
+    public int Concentration { get; set; } = 10;
+    public int MaxConcentration { get; set; } = 10;
+
     public int CurrentTurn { get; }
-    public int MaxTurns { get; }
     public int Momentum { get; }
     public int Pressure { get; }
+
     public Dictionary<ApproachTags, int> ApproachTags { get; }
     public Dictionary<FocusTags, int> FocusTags { get; }
     public List<string> ActiveTagNames { get; }
@@ -16,19 +28,39 @@ public class EncounterStatus
     public EncounterInfo EncounterInfo { get; }
     public EncounterTypes EncounterType => EncounterInfo?.EncounterType ?? EncounterTypes.Physical;
 
-    public EncounterStatus(
+    public EncounterStatusModel(
         int currentTurn,
+        int maxMomentum,
+        int maxPressure,
+        int successThreshold,
         int maxTurns,
         int momentum,
         int pressure,
+        int health,
+        int maxHealth,
+        int concentration,
+        int maxConcentration,
+        int confidence,
+        int maxConfidence,
         Dictionary<ApproachTags, int> approachTags,
         Dictionary<FocusTags, int> focusTags,
         List<string> activeTagNames)
     {
         CurrentTurn = currentTurn;
+
+        MaxMomentum = maxMomentum;
+        MaxPressure = maxPressure;
+        SuccessThreshold = successThreshold;
         MaxTurns = maxTurns;
         Momentum = momentum;
         Pressure = pressure;
+        Health = health;
+        MaxHealth = maxHealth;
+        Concentration = concentration;
+        MaxConcentration = maxConcentration;
+        Confidence = confidence;
+        MaxConfidence = maxConfidence;
+
         ApproachTags = approachTags;
         FocusTags = focusTags;
         ActiveTagNames = activeTagNames;

@@ -8,7 +8,7 @@
         _contextManager = new NarrativeContextManager();
     }
 
-    public override async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatus state, string memoryContent)
+    public override async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatusModel state, string memoryContent)
     {
         string conversationId = $"{context.LocationName}_encounter"; // Consistent ID
         string systemMessage = _promptManager.GetSystemMessage();
@@ -28,7 +28,7 @@
         NarrativeContext context,
         List<IChoice> choices,
         List<ChoiceProjection> projections,
-        EncounterStatus state)
+        EncounterStatusModel state)
     {
         string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage();
@@ -57,7 +57,7 @@
         IChoice chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
-        EncounterStatus newState)
+        EncounterStatusModel newState)
     {
         string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage();
@@ -86,7 +86,7 @@
         IChoice chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
-        EncounterStatus newState)
+        EncounterStatusModel newState)
     {
         string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage();
@@ -113,7 +113,7 @@
     public override async Task<string> GenerateMemoryFileAsync(
         NarrativeContext context,
         ChoiceOutcome outcome,
-        EncounterStatus newState,
+        EncounterStatusModel newState,
         string oldMemory)
     {
         string conversationId = $"{context.LocationName}_encounter"; // Same ID as introduction

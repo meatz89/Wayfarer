@@ -8,7 +8,7 @@ public interface INarrativeAIService
     /// </summary>
     Task<string> GenerateIntroductionAsync(
         NarrativeContext context,
-        EncounterStatus state, 
+        EncounterStatusModel state, 
         string memoryContent);
     
     Task<string> GenerateReactionAndSceneAsync(
@@ -16,19 +16,19 @@ public interface INarrativeAIService
         IChoice chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
-        EncounterStatus newState);
+        EncounterStatusModel newState);
 
     Task<string> GenerateEndingAsync(
         NarrativeContext context,
         IChoice chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
-        EncounterStatus newState);
+        EncounterStatusModel newState);
 
     Task<string> GenerateMemoryFileAsync(
         NarrativeContext context, 
         ChoiceOutcome outcome, 
-        EncounterStatus newState,
+        EncounterStatusModel newState,
         string oldMemory);
 
     /// <summary>
@@ -38,5 +38,5 @@ public interface INarrativeAIService
         NarrativeContext context,
         List<IChoice> choices,
         List<ChoiceProjection> projections,
-        EncounterStatus state);
+        EncounterStatusModel state);
 }

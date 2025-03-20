@@ -30,7 +30,7 @@ public class NarrativeContext
 
     public string GetLastScene()
     {
-        return Events.Count > 0 ? Events[Events.Count - 1].SceneDescription : string.Empty;
+        return Events.Count > 0 ? Events[Events.Count - 1].Summary : string.Empty;
     }
 
     /// <summary>
@@ -48,7 +48,7 @@ public class NarrativeContext
         {
             prompt.AppendLine($"--- Turn {evt.TurnNumber} ---");
             prompt.AppendLine("Scene:");
-            prompt.AppendLine(evt.SceneDescription);
+            prompt.AppendLine(evt.Summary);
             prompt.AppendLine();
 
             if (evt.ChosenOption != null)

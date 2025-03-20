@@ -38,18 +38,18 @@
 
         Coins = GameRules.StandardRuleset.StartingCoins;
 
+        PhysicalEnergy = GameRules.StandardRuleset.StartingPhysicalEnergy;
+        MaxPhysicalEnergy = 10;
+
         Health = GameRules.StandardRuleset.StartingHealth;
         MinHealth = GameRules.StandardRuleset.MinimumHealth;
-        MaxHealth = 100;
-
-        PhysicalEnergy = GameRules.StandardRuleset.StartingPhysicalEnergy;
-        MaxPhysicalEnergy = 100;
+        MaxHealth = 20;
 
         Concentration = GameRules.StandardRuleset.StartingConcentration;
-        MaxConcentration = 100;
+        MaxConcentration = 20;
 
         Confidence = GameRules.StandardRuleset.StartingConfidence;
-        MaxConfidence = 100;
+        MaxConfidence = 20;
     }
 
     public bool ModifyCoins(int count)

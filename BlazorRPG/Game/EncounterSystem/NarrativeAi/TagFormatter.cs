@@ -4,7 +4,7 @@ public class TagFormatter
 {
 
     // Format significant tags - keep this existing method but enhance it
-    public string GetSignificantTagsFormatted(EncounterStatus state)
+    public string GetSignificantTagsFormatted(EncounterStatusModel state)
     {
         List<string> significantTags = new List<string>();
 
@@ -71,7 +71,7 @@ public class TagFormatter
     }
 
     // Simplified active narrative tags format
-    public string FormatActiveNarrativeTags(EncounterStatus state)
+    public string FormatActiveNarrativeTags(EncounterStatusModel state)
     {
         // Only include narrative tags that block approaches
         List<string> activeTagsWithEffects = new List<string>();
@@ -93,7 +93,7 @@ public class TagFormatter
             "No approach restrictions";
     }
 
-    public (string, string) GetSignificantApproachTags(EncounterStatus state)
+    public (string, string) GetSignificantApproachTags(EncounterStatusModel state)
     {
         List<KeyValuePair<ApproachTags, int>> orderedTags = state.ApproachTags
             .OrderByDescending(t => t.Value)
@@ -103,7 +103,7 @@ public class TagFormatter
         return (primary, secondary);
     }
 
-    public (string, string) GetSignificantFocusTags(EncounterStatus state)
+    public (string, string) GetSignificantFocusTags(EncounterStatusModel state)
     {
         List<KeyValuePair<FocusTags, int>> orderedTags = state.FocusTags
             .OrderByDescending(t => t.Value)
@@ -140,7 +140,7 @@ public class TagFormatter
         return string.Join(", ", tagStrings);
     }
 
-    public string FormatNarrativeTags(EncounterStatus state)
+    public string FormatNarrativeTags(EncounterStatusModel state)
     {
         // Since EncounterStatus doesn't expose tag objects directly, work with names
         List<string> activeNarrativeTagNames = state.ActiveTagNames
@@ -171,7 +171,7 @@ public class TagFormatter
     }
 
     // Format strategic tags with effect descriptions
-    public string FormatStrategicTags(EncounterStatus state)
+    public string FormatStrategicTags(EncounterStatusModel state)
     {
         // Since EncounterStatus doesn't expose tag objects directly, work with names
         List<string> activeStrategicTagNames = state.ActiveTagNames

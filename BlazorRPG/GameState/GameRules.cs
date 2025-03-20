@@ -2,13 +2,14 @@
 {
     public static GameRules StandardRuleset = new GameRules
     {
-        StartingHealth = 100,
-        StartingCoins = 50,
+        StartingPhysicalEnergy = 20,
+
+        StartingCoins = 5,
         StartingInventorySize = 10,
 
-        StartingPhysicalEnergy = 100,
-        StartingConcentration = 100,
-        StartingConfidence = 100,
+        StartingHealth = 20,
+        StartingConcentration = 20,
+        StartingConfidence = 20,
 
         MinimumHealth = 0,
     };
