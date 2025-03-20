@@ -40,7 +40,7 @@ Remember:
 - Focus on BASIC SURVIVAL and PRACTICAL CHALLENGES, not comfort
 - Portray medieval life as DIFFICULT and HARSH
 - The character is a SOLITARY TRAVELER with NO COMPANIONS
-- Write in PRESENT TENSE and FIRST PERSON
+- PRESENT TENSE and FIRST PERSON PERSPECTIVE
 - Focus on CONCRETE DETAILS, not abstract concepts
 - Use language appropriate to a common medieval traveler
 - DO NOT include any numbered or bulleted choices in your response

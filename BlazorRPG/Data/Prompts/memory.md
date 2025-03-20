@@ -50,49 +50,45 @@ You are the Memory Manager for this narrative experience. Your primary responsib
 
 ## EXAMPLE FORMAT
 ```
-# MEMORY
-
-## Player Character (PC) Knowledge
+# Player Character (PC) Knowledge
 - Player Character Name
 
-## Active Objectives
+# Active Objectives
 - Current primary objective name
   * Possible complications or things to look out for
   * Known critical background details
 
-## Enocunter History
+# Enocunter History
 - Past Encounter Name
   * Initial encounter goal
   * What happened during the encounter
   * How the encounter concluded
   * Next Steps
 
-## Known Locations
+# Known Locations
 - Location name
   * Already visited or only heard about
 
-## Important Relationships
+# Important Relationships
 - NPC character name
   * Known critical background details
 
-## Current Opportunities
+# Current Opportunities
 - Opportunity name
   * What, where and who
   * Background details
+  
+# Recent Achievements
+- Achievement name
+  * ...
 
-## World State
-- Current primary location
-  * Political climate
-  * Immediate threats
+# Unresolved Mysteries
+- Mystery name
+  * ...
 
-## Resource Tracking
-- Food
-- Money
-- Work
-
-## Recent Achievements
-
-## Unresolved Mysteries
+# World State
+- ...
+  * ...
 ```
 
 GENERATE THE MEMORY FILE USING THESE STRICT GUIDELINES. FOCUS ON NARRATIVE RELEVANCE AND CURRENT OPERATIONAL STATUS.
