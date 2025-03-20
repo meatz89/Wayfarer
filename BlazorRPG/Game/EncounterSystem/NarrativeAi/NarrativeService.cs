@@ -1,18 +1,16 @@
-﻿public class SwitchableNarrativeService : INarrativeAIService
+﻿public class NarrativeService : INarrativeAIService
 {
     private readonly Dictionary<AIProviderType, INarrativeAIService> _providers;
     private AIProviderType _currentProvider;
     private readonly ILogger<EncounterSystem> _logger;
 
-    public SwitchableNarrativeService(IConfiguration configuration, ILogger<EncounterSystem> logger)
+    public NarrativeService(IConfiguration configuration, ILogger<EncounterSystem> logger)
     {
         _logger = logger;
 
         // Initialize all providers in a dictionary for easier access
         _providers = new Dictionary<AIProviderType, INarrativeAIService>
         {
-            { AIProviderType.OpenAI, new GPTNarrativeService(configuration, _logger) },
-            { AIProviderType.Gemma3, new Gemma3NarrativeService(configuration, _logger) },
             { AIProviderType.Claude, new ClaudeNarrativeService(configuration, _logger) }
         };
 
@@ -53,17 +51,30 @@
 
     public string GetCurrentProviderName()
     {
-        return (_providers[_currentProvider] as BaseNarrativeAIService)?.GetProviderName() ?? "Unknown Provider";
+        BaseNarrativeAIService? baseNarrativeAIService = (_providers[_currentProvider] as BaseNarrativeAIService);
+        return baseNarrativeAIService?.GetProviderName() ?? "Unknown Provider";
     }
 
     public string GetGameInstanceId()
     {
-        return (_providers[_currentProvider] as BaseNarrativeAIService)?.GetGameInstanceId() ?? "Unknown";
+        BaseNarrativeAIService? baseNarrativeAIService = (_providers[_currentProvider] as BaseNarrativeAIService);
+        return baseNarrativeAIService?.GetGameInstanceId() ?? "Unknown";
     }
 
-    public async Task<string> GenerateIntroductionAsync(NarrativeContext context, string incitingAction, EncounterStatus state)
+    public async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatus state, string memoryContent)
     {
-        return await _providers[_currentProvider].GenerateIntroductionAsync(context, incitingAction, state);
+        INarrativeAIService narrativeAIService = _providers[_currentProvider];
+        return await narrativeAIService.GenerateIntroductionAsync(context, state, memoryContent);
+    }
+    
+    public async Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+        NarrativeContext context,
+        List<IChoice> choices,
+        List<ChoiceProjection> projections,
+        EncounterStatus state)
+    {
+        return await _providers[_currentProvider].GenerateChoiceDescriptionsAsync(
+            context, choices, projections, state);
     }
 
     public async Task<string> GenerateReactionAndSceneAsync(
@@ -77,14 +88,25 @@
             context, chosenOption, choiceDescription, outcome, newState);
     }
 
-    public async Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+    public async Task<string> GenerateEndingAsync(
         NarrativeContext context,
-        List<IChoice> choices,
-        List<ChoiceProjection> projections,
-        EncounterStatus state)
+        IChoice chosenOption,
+        ChoiceNarrative choiceDescription,
+        ChoiceOutcome outcome,
+        EncounterStatus newState)
     {
-        return await _providers[_currentProvider].GenerateChoiceDescriptionsAsync(
-            context, choices, projections, state);
+        return await _providers[_currentProvider].GenerateEndingAsync(
+            context, chosenOption, choiceDescription, outcome, newState);
     }
 
+    public async Task<string> GenerateMemoryFileAsync(
+        NarrativeContext context,
+        ChoiceOutcome outcome,
+        EncounterStatus newState,
+        string oldMemory
+        )
+    {
+        return await _providers[_currentProvider].GenerateMemoryFileAsync(
+            context, outcome, newState, oldMemory);
+    }
 }

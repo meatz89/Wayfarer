@@ -108,7 +108,8 @@ public class GameManager
         UserActionOption action = gameState.Actions.LocationSpotActions.Where(x => x.LocationSpot == locationSpot.Name).First();
         ActionImplementation actionImpl = action.ActionImplementation;
 
-        EncounterResult = await EncounterSystem.GenerateEncounter(location, context, playerState, actionImpl);
+        EncounterResult = await EncounterSystem
+            .GenerateEncounter(location, locationSpot.Name, context, playerState, actionImpl);
 
         List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(EncounterResult.Encounter);
         gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
@@ -136,13 +137,7 @@ public class GameManager
             if (IsGameOver(gameState.Player))
             {
                 gameState.Actions.CompleteActiveEncounter();
-
-                return new EncounterResult()
-                {
-                    Encounter = encounter,
-                    EncounterResults = EncounterResults.GameOver,
-                    EncounterEndMessage = "Game Over"
-                };
+                return EncounterResult;
             }
         }
 
@@ -186,36 +181,41 @@ public class GameManager
         return choiceProjection;
     }
 
-    private static List<UserActionOption> GetUserActionOptions(Location location, List<LocationSpot> locationSpots)
+    private void OnPlayerEnterLocation(Location location)
     {
         List<UserActionOption> options = new List<UserActionOption>();
+        List<LocationSpot> locationSpots = location.LocationSpots;
+
         foreach (LocationSpot locationSpot in locationSpots)
         {
             CreateActionsForLocationSpot(options, location, locationSpot);
         }
 
-        return options;
-    }
-
-    private void OnPlayerEnterLocation(Location location)
-    {
-        List<ActionTemplate> allActionTemplates = ActionContent.LibraryActions();
-        List<LocationSpot> locationSpots = location.LocationSpots;
-        PopulateLocationSpotActions(location, allActionTemplates, locationSpots);
-
-        List<UserActionOption> options = GetUserActionOptions(location, locationSpots);
         gameState.Actions.SetLocationSpotActions(options);
     }
 
-    private static void CreateActionsForLocationSpot(List<UserActionOption> options, Location location, LocationSpot locationSpot)
+    private static void CreateActionsForLocationSpot(
+        List<UserActionOption> options,
+        Location location,
+        LocationSpot locationSpot)
     {
-        List<ActionImplementation> locationSpotActions = locationSpot.Actions;
-        foreach (ActionImplementation actionImplementation in locationSpotActions)
+        locationSpot.Actions.Clear();
+
+        List<ActionTemplate> allActionTemplates = ActionContent.GetAllTemplates();
+
+        List<ActionNames> locationSpotActions = locationSpot.ActionNames;
+        foreach (ActionNames locationSpotAction in locationSpotActions)
         {
+            ActionTemplate? actionTemplate = allActionTemplates
+                .Where(x => x.Name == locationSpotAction).FirstOrDefault();
+
+            ActionImplementation actionImplementation = ActionFactory.CreateAction(actionTemplate);
+            locationSpot.AddAction(actionImplementation);
+
             UserActionOption userActionOption =
                 new UserActionOption(
                     default,
-                    actionImplementation.Name,
+                    actionImplementation.Name.ToString(),
                     false,
                     actionImplementation,
                     locationSpot.LocationName,
@@ -302,7 +302,7 @@ public class GameManager
 
             UserActionOption ua = new UserActionOption(
                 actionIndex++,
-                questAction.Name,
+                questAction.Name.ToString(),
                 false,
                 questAction,
                 step.Location,
@@ -344,7 +344,6 @@ public class GameManager
 
         foreach (Location location in LocationSystem.GetAllLocations())
         {
-            if (!gameState.Player.KnownLocations.Contains(location.LocationName)) continue;
             playerKnownLocations.Add(location);
         }
 
@@ -491,37 +490,6 @@ public class GameManager
         return Player.Health > Player.MinHealth;
     }
 
-    private void PopulateLocationSpotActions(
-        Location location,
-        List<ActionTemplate> allActionTemplates,
-        List<LocationSpot> locationSpots)
-    {
-        // Clear existing actions in each LocationSpot
-        foreach (LocationSpot spot in locationSpots)
-        {
-            spot.Actions.Clear();
-        }
-
-        // For each action template, find matching spots and create actions
-        foreach (ActionTemplate actionTemplate in allActionTemplates)
-        {
-            foreach (LocationSpot locationSpot in locationSpots)
-            {
-                CreateActionForLocationSpot(location, actionTemplate, locationSpot);
-            }
-        }
-    }
-
-    private void CreateActionForLocationSpot(Location location, ActionTemplate actionTemplate, LocationSpot locationSpot)
-    {
-        if (!actionTemplate.IsValidForSpot(location, locationSpot, gameState.World, gameState.Player))
-        {
-            return;
-        }
-
-        ActionImplementation baseAction = ActionFactory.CreateAction(actionTemplate, location);
-        locationSpot.AddAction(baseAction);
-    }
 
     private void UpdateActiveQuests()
     {

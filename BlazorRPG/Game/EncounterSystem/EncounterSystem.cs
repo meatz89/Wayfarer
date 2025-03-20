@@ -3,7 +3,7 @@
     private readonly GameState gameState;
     private readonly IConfiguration configuration;
     private readonly ILogger<EncounterSystem> logger;
-    private readonly SwitchableNarrativeService narrativeService;
+    private readonly NarrativeService narrativeService;
     private AIProviderType currentAIProvider;
 
     private EncounterManager Encounter;
@@ -23,7 +23,7 @@
         this.logger = logger;
 
         // Create the switchable narrative service
-        this.narrativeService = new SwitchableNarrativeService(configuration, logger);
+        this.narrativeService = new NarrativeService(configuration, logger);
 
         // Initialize with the default provider from config
         string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "OpenAI";
@@ -87,18 +87,21 @@
 
     public async Task<EncounterResult> GenerateEncounter(
         Location location,
+        string locationSpot,
         EncounterContext context,
         PlayerState playerState,
         ActionImplementation actionImplementation)
     {
         Location loc = context.Location;
-        EncounterTypes presentationStyles = GetPresentationStyleFromBaseAction(actionImplementation);
+        EncounterTypes encounterType = GetPresentationStyleFromBaseAction(actionImplementation);
 
         // Create encounter from location and action
         LocationNames locationName = location.LocationName;
 
-        LocationEncounterInfo encounter = LocationEncounterFactory
-            .CreateAncientLibraryEncounter(locationName, presentationStyles);
+        EncounterTemplate template = actionImplementation.EncounterTemplate;
+
+        EncounterInfo encounter = EncounterInfoFactory.CreateEncounter(
+            locationName, locationSpot, encounterType, template);
 
         // Create encounter manager
         encounterResult = await StartEncounterAt(location, encounter, playerState, actionImplementation);
@@ -130,7 +133,7 @@
 
     public async Task<EncounterResult> StartEncounterAt(
         Location location,
-        LocationEncounterInfo encounter,
+        EncounterInfo encounterInfo,
         PlayerState playerState,
         ActionImplementation actionImplementation)
     {
@@ -156,12 +159,11 @@
         //choiceRepository.AddSpecialChoice(encounter.Name, negotiatePriceChoice);
 
         // Start the encounter with narrative
-        string incitingAction = actionImplementation.Description;
         NarrativeResult initialResult = await encounterManager.StartEncounterWithNarrativeAsync(
             location,
-            encounter,
+            encounterInfo,
             playerState,
-            incitingAction,
+            actionImplementation,
             currentAIProvider);  // Pass the current provider type
 
         return new EncounterResult()
@@ -227,7 +229,7 @@
     }
 
 
-    private static SpecialChoice GetSpecialChoiceFor(LocationEncounterInfo location)
+    private static SpecialChoice GetSpecialChoiceFor(EncounterInfo location)
     {
         // Add special choices for this location
         return null;

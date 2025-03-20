@@ -13,8 +13,8 @@ public class EncounterStatus
 
     // Added properties
     public List<IEncounterTag> ActiveTags { get; }
-    public LocationEncounterInfo Location { get; }
-    public EncounterTypes EncounterType => Location?.EncounterType ?? EncounterTypes.Physical;
+    public EncounterInfo EncounterInfo { get; }
+    public EncounterTypes EncounterType => EncounterInfo?.EncounterType ?? EncounterTypes.Physical;
 
     public EncounterStatus(
         int currentTurn,

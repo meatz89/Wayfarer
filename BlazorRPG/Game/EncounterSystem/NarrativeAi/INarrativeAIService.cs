@@ -6,17 +6,30 @@ public interface INarrativeAIService
     /// <summary>
     /// Set the initial scene based on location and inciting action
     /// </summary>
-    Task<string> GenerateIntroductionAsync(NarrativeContext context, string incitingAction, EncounterStatus state);
-
-    /// <summary>
-    /// Generate reaction to player's choice and setup for next choices
-    /// </summary>
+    Task<string> GenerateIntroductionAsync(
+        NarrativeContext context,
+        EncounterStatus state, 
+        string memoryContent);
+    
     Task<string> GenerateReactionAndSceneAsync(
         NarrativeContext context,
         IChoice chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         EncounterStatus newState);
+
+    Task<string> GenerateEndingAsync(
+        NarrativeContext context,
+        IChoice chosenOption,
+        ChoiceNarrative choiceDescription,
+        ChoiceOutcome outcome,
+        EncounterStatus newState);
+
+    Task<string> GenerateMemoryFileAsync(
+        NarrativeContext context, 
+        ChoiceOutcome outcome, 
+        EncounterStatus newState,
+        string oldMemory);
 
     /// <summary>
     /// Generate narrative descriptions for choices

@@ -1,20 +1,55 @@
 ﻿public class ClaudeNarrativeService : BaseNarrativeAIService
 {
+    private readonly NarrativeContextManager _contextManager;
+
     public ClaudeNarrativeService(IConfiguration configuration, ILogger<EncounterSystem> logger)
         : base(new ClaudeProvider(configuration, logger), configuration, logger)
     {
+        _contextManager = new NarrativeContextManager();
     }
 
-    public override async Task<string> GenerateIntroductionAsync(NarrativeContext context, string incitingAction, EncounterStatus state)
+    public override async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatus state, string memoryContent)
     {
         string conversationId = $"{context.LocationName}_encounter"; // Consistent ID
         string systemMessage = _promptManager.GetSystemMessage();
-        string prompt = _promptManager.BuildIntroductionPrompt(context, incitingAction, state);
+        string prompt = _promptManager.BuildIntroductionPrompt(context, state, memoryContent);
+
         _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
+
         string response = await _aiClient.GetCompletionAsync(
-            _contextManager.GetConversationHistory(conversationId));
-        _contextManager.AddAssistantMessage(conversationId, response);
+            _contextManager.GetOptimizedConversationHistory(conversationId));
+
+        _contextManager.AddAssistantMessage(conversationId, response, MessageType.Introduction);
+
         return response;
+    }
+
+    public override async Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+        NarrativeContext context,
+        List<IChoice> choices,
+        List<ChoiceProjection> projections,
+        EncounterStatus state)
+    {
+        string conversationId = $"{context.LocationName}_encounter";
+        string systemMessage = _promptManager.GetSystemMessage();
+        string prompt = _promptManager.BuildChoicesPrompt(
+            context, choices, projections, state);
+
+        if (!_contextManager.ConversationExists(conversationId))
+        {
+            _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
+        }
+        else
+        {
+            _contextManager.UpdateSystemMessage(conversationId, systemMessage);
+            _contextManager.AddUserMessage(conversationId, prompt, MessageType.ChoiceGeneration);
+        }
+
+        string jsonResponse = await _aiClient.GetCompletionAsync(
+            _contextManager.GetOptimizedConversationHistory(conversationId));
+
+        _contextManager.AddAssistantMessage(conversationId, jsonResponse, MessageType.ChoiceGeneration);
+        return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
     }
 
     public override async Task<string> GenerateReactionAndSceneAsync(
@@ -24,10 +59,11 @@
         ChoiceOutcome outcome,
         EncounterStatus newState)
     {
-        string conversationId = $"{context.LocationName}_encounter"; // Same ID as introduction
+        string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage();
-        string prompt = _promptManager.BuildNarrativePrompt(
+        string prompt = _promptManager.BuildReactionPrompt(
             context, chosenOption, choiceDescription, outcome, newState);
+
         if (!_contextManager.ConversationExists(conversationId))
         {
             _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
@@ -35,24 +71,28 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            _contextManager.AddUserMessage(conversationId, prompt);
+            _contextManager.AddUserMessage(conversationId, prompt, MessageType.PlayerChoice);
         }
+
         string narrativeResponse = await _aiClient.GetCompletionAsync(
-            _contextManager.GetConversationHistory(conversationId));
-        _contextManager.AddAssistantMessage(conversationId, narrativeResponse);
+            _contextManager.GetOptimizedConversationHistory(conversationId));
+
+        _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
     }
 
-    public override async Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+    public override async Task<string> GenerateEndingAsync(
         NarrativeContext context,
-        List<IChoice> choices,
-        List<ChoiceProjection> projections,
-        EncounterStatus state)
+        IChoice chosenOption,
+        ChoiceNarrative choiceDescription,
+        ChoiceOutcome outcome,
+        EncounterStatus newState)
     {
-        string conversationId = $"{context.LocationName}_encounter"; // Same ID for whole encounter
+        string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage();
-        string prompt = _promptManager.BuildChoicesPrompt(
-            context, choices, projections, state);
+        string prompt = _promptManager.BuildEncounterEndPrompt(
+            context, newState, outcome.Outcome, chosenOption, choiceDescription);
+
         if (!_contextManager.ConversationExists(conversationId))
         {
             _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
@@ -60,11 +100,41 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            _contextManager.AddUserMessage(conversationId, prompt);
+            _contextManager.AddUserMessage(conversationId, prompt, MessageType.PlayerChoice);
         }
-        string jsonResponse = await _aiClient.GetCompletionAsync(
-            _contextManager.GetConversationHistory(conversationId));
-        _contextManager.AddAssistantMessage(conversationId, jsonResponse);
-        return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
+
+        string narrativeResponse = await _aiClient.GetCompletionAsync(
+            _contextManager.GetOptimizedConversationHistory(conversationId));
+
+        _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
+        return narrativeResponse;
     }
+
+    public override async Task<string> GenerateMemoryFileAsync(
+        NarrativeContext context,
+        ChoiceOutcome outcome,
+        EncounterStatus newState,
+        string oldMemory)
+    {
+        string conversationId = $"{context.LocationName}_encounter"; // Same ID as introduction
+        string systemMessage = _promptManager.GetSystemMessage();
+
+        string prompt = _promptManager.BuildMemoryPrompt(
+            context, outcome, newState, oldMemory);
+
+        if (!_contextManager.ConversationExists(conversationId))
+        {
+            _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
+        }
+        else
+        {
+            _contextManager.UpdateSystemMessage(conversationId, systemMessage);
+            _contextManager.AddUserMessage(conversationId, prompt, MessageType.MemoryUpdate);
+        }
+        string memoryContentResponse = await _aiClient.GetCompletionAsync(
+            _contextManager.GetOptimizedConversationHistory(conversationId));
+
+        return memoryContentResponse;
+    }
+
 }

@@ -10,7 +10,7 @@
     public int Momentum { get; private set; }
     public int Pressure { get; private set; }
     public int CurrentTurn { get; private set; }
-    public LocationEncounterInfo Location { get; }
+    public EncounterInfo Location { get; }
     public LocationSpot LocationSpot { get; internal set; }
     public PlayerState PlayerState { get; }
 
@@ -18,25 +18,22 @@
     public BaseTagSystem TagSystem => _tagManager.TagSystem;
     public List<IEncounterTag> ActiveTags => _tagManager.ActiveTags;
 
-    public const int MaxPressure = 30;
-
     private readonly TagManager _tagManager;
     private readonly ResourceManager _resourceManager;
     private readonly ProjectionService _projectionService;
-    private IChoice _lastChoice;
 
-    public EncounterState(LocationEncounterInfo location, PlayerState playerState)
+    public EncounterState(EncounterInfo encounterInfo, PlayerState playerState)
     {
         Momentum = 0;
         Pressure = 0;
         CurrentTurn = 0;
-        Location = location;
+        Location = encounterInfo;
         PlayerState = playerState;
 
         // Initialize managers
         _tagManager = new TagManager();
-        _resourceManager = new ResourceManager(playerState, location);
-        _projectionService = new ProjectionService(_tagManager, _resourceManager, location);
+        _resourceManager = new ResourceManager(playerState, encounterInfo);
+        _projectionService = new ProjectionService(_tagManager, _resourceManager, encounterInfo);
     }
 
     // Forward methods used by IEncounterTag.ApplyEffect and Choice.ApplyChoice
@@ -45,9 +42,6 @@
 
     public void AddFocusPressureModifier(FocusTags focus, int modifier) =>
         _tagManager.AddFocusPressureModifier(focus, modifier);
-
-    public void AddEndOfTurnPressureReduction(int reduction) =>
-        _tagManager.AddEndOfTurnPressureReduction(reduction);
 
     public int GetTotalMomentum(IChoice choice, int baseMomentum) =>
         _tagManager.GetTotalMomentum(choice, baseMomentum);
@@ -63,13 +57,12 @@
         // Then apply the choice as normal
         ChoiceProjection projection = CreateChoiceProjection(choice);
         ApplyChoiceProjection(projection);
+
         return projection;
     }
 
     private void ApplyChoiceProjection(ChoiceProjection projection)
     {
-        _lastChoice = projection.Choice;
-
         // Apply resource changes from pressure at start of turn (based on current pressure)
         _resourceManager.ApplyPressureResourceDamage(Pressure);
 
@@ -115,7 +108,7 @@
                 approach == ApproachTags.Rapport ||
                 approach == ApproachTags.Analysis ||
                 approach == ApproachTags.Precision ||
-                approach == ApproachTags.Concealment)
+                approach == ApproachTags.Evasion)
             {
                 PreviousApproachValues[approach] = TagSystem.GetEncounterStateTagValue(approach);
             }
@@ -139,29 +132,6 @@
     public void BuildPressure(int amount) => Pressure += amount;
 
     public void ReducePressure(int amount) => Pressure = Math.Max(0, Pressure - amount);
-
-    public void EndTurn()
-    {
-        CurrentTurn++;
-
-        int endOfTurnPressureReduction = _tagManager.GetEndOfTurnPressureReduction();
-        if (endOfTurnPressureReduction > 0)
-            ReducePressure(endOfTurnPressureReduction);
-    }
-
-    public bool IsEncounterOver() => Pressure >= MaxPressure || CurrentTurn >= Location.TurnDuration;
-
-    public EncounterOutcomes GetOutcome()
-    {
-        if (Pressure >= MaxPressure || Momentum < Location.PartialThreshold)
-            return EncounterOutcomes.Failure;
-        if (Momentum < Location.StandardThreshold)
-            return EncounterOutcomes.Partial;
-        if (Momentum < Location.ExceptionalThreshold)
-            return EncounterOutcomes.Standard;
-
-        return EncounterOutcomes.Exceptional;
-    }
 
     public ChoiceProjection CreateChoiceProjection(IChoice choice)
     {

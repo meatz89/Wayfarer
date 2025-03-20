@@ -1,39 +1,40 @@
 ﻿public static class ActionContent
 {
-
-    public static List<ActionTemplate> UnlockableActionTemplates()
+    public static List<ActionTemplate> GetAllTemplates()
     {
-        List<ActionTemplate> actionTemplates = new List<ActionTemplate>();
-
-        // Labor actions require understanding of market operations
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Help Unload Wagons")
-            .WithActionType(BasicActionTypes.Labor)
-            .Build());
-
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Prepare Food")
-            .WithActionType(BasicActionTypes.Labor)
-            .Build());
-
-        // Advanced social interactions require trading knowledge
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Haggle With Merchants")
-            .WithActionType(BasicActionTypes.Persuade)
-            .Build());
+        List<ActionTemplate> actionTemplates =
+            [.. AllActions()];
 
         return actionTemplates;
     }
 
-    public static List<ActionTemplate> LibraryActions()
+    public static List<ActionTemplate> AllActions()
     {
         List<ActionTemplate> actionTemplates = new List<ActionTemplate>();
 
         actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Find the ancient tome")
-            .WithDescription("I need to find the sacred scripture.")
+            .WithName(ActionNames.LibraryResearch)
+            .WithGoal("find the sacred scripture")
+            .WithComplication("the libaray is vast and he doesn't know where to look")
             .WithActionType(BasicActionTypes.Analyze)
-            .StartsEncounter()
+            .StartsEncounter(EncounterContent.LibraryEncounter)
+            .ExpendsCoins(5)
+            .Build());
+
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName(ActionNames.BackalleyTravel)
+            .WithGoal("reach the ancient library without harm")
+            .WithComplication("A bandit blocks the way, clearly intending to rob you")
+            .WithActionType(BasicActionTypes.Fight)
+            .StartsEncounter(EncounterContent.BanditEncounter)
+            .Build());
+
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName(ActionNames.MerchantPersuasion)
+            .WithGoal("buy food but he has limited funds")
+            .WithComplication("the prices of the merchants are too high")
+            .WithActionType(BasicActionTypes.Persuade)
+            .StartsEncounter(EncounterContent.MerchantEncounter)
             .ExpendsCoins(5)
             .Build());
 

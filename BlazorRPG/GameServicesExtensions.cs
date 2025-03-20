@@ -24,10 +24,6 @@
         // Add this before your existing logger configuration
         services.AddSingleton<NarrativeLogManager>();
 
-        // Update your existing registration of GPTNarrativeService:
-        services.AddSingleton<INarrativeAIService, GPTNarrativeService>();
-
-
         return services;
     }
 }
