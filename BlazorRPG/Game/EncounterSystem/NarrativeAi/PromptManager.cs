@@ -357,63 +357,6 @@ CHOICE {i + 1}:
         return prompt;
     }
 
-
-    // Helper methods for formatting ChoiceOutcome data
-    private string FormatTagChangesForNarrative(ChoiceOutcome outcome)
-    {
-        StringBuilder changes = new StringBuilder();
-
-        // Format approach tag changes
-        if (outcome.EncounterStateTagChanges.Any())
-        {
-            changes.AppendLine("Tag changes that should be reflected in narrative:");
-            foreach (KeyValuePair<ApproachTags, int> change in outcome.EncounterStateTagChanges)
-            {
-                if (Math.Abs(change.Value) >= 2) // Only emphasize significant changes
-                {
-                    string direction = change.Value > 0 ? "increased" : "decreased";
-                    changes.AppendLine($"- {change.Key} {direction} by {Math.Abs(change.Value)}: Show this as {GetApproachChangeDescription(change.Key, change.Value > 0)}");
-                }
-            }
-        }
-
-        // Format focus tag changes
-        if (outcome.FocusTagChanges.Any())
-        {
-            if (!changes.ToString().Contains("Tag changes")) // Add header if not already added
-            {
-                changes.AppendLine("Tag changes that should be reflected in narrative:");
-            }
-
-            foreach (KeyValuePair<FocusTags, int> change in outcome.FocusTagChanges)
-            {
-                if (Math.Abs(change.Value) >= 2) // Only emphasize significant changes
-                {
-                    string direction = change.Value > 0 ? "increased" : "decreased";
-                    changes.AppendLine($"- {change.Key} {direction} by {Math.Abs(change.Value)}: Show this as {GetFocusChangeDescription(change.Key, change.Value > 0)}");
-                }
-            }
-        }
-
-        // Add resource changes if significant
-        if (outcome.HealthChange <= -2)
-        {
-            changes.AppendLine($"- Health {outcome.HealthChange}: Show physical injury or pain");
-        }
-
-        if (outcome.ConcentrationChange <= -2)
-        {
-            changes.AppendLine($"- Focus {outcome.ConcentrationChange}: Show mental fatigue or distraction");
-        }
-
-        if (outcome.ConfidenceChange <= -2)
-        {
-            changes.AppendLine($"- Confidence {outcome.ConfidenceChange}: Show social embarrassment or loss of status");
-        }
-
-        return changes.ToString();
-    }
-
     private string FormatApproachChanges(Dictionary<ApproachTags, int> approachChanges)
     {
         if (approachChanges == null || !approachChanges.Any())
