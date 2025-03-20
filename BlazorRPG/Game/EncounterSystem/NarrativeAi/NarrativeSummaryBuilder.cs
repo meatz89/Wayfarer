@@ -25,7 +25,7 @@ public class NarrativeSummaryBuilder
             if (i == 0)
             {
                 history.AppendLine("### Initial Scene");
-                history.AppendLine(evt.SceneDescription);
+                history.AppendLine(evt.Summary);
                 history.AppendLine();
             }
             else
@@ -50,7 +50,7 @@ public class NarrativeSummaryBuilder
 
                 // Add scene description
                 history.AppendLine("### Scene");
-                history.AppendLine(evt.SceneDescription);
+                history.AppendLine(evt.Summary);
                 history.AppendLine();
             }
         }
@@ -72,12 +72,12 @@ public class NarrativeSummaryBuilder
         if (mostRecentEvent.TurnNumber == 0)
         {
             // Initial scene
-            return mostRecentEvent.SceneDescription.Trim();
+            return mostRecentEvent.Summary.Trim();
         }
         else
         {
             // Latest action and result
-            return $"{mostRecentEvent.ChosenOption?.Description}. {mostRecentEvent.SceneDescription.Trim()}";
+            return $"{mostRecentEvent.ChosenOption?.Description}. {mostRecentEvent.Summary.Trim()}";
         }
     }
 }

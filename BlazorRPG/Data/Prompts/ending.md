@@ -1,4 +1,5 @@
-The player chose: {SELECTED_CHOICE} ({CHOICE_DESCRIPTION})
+The player chose: {SELECTED_CHOICE} ({
+})
 The Previous choice has NOT YET HAPPENED. It must be executed DURING THIS SCENE.
 
 Generate a concluding narrative for a {ENCOUNTER_TYPE} encounter that has ended with an outcome of {ENCOUNTER_OUTCOME}. 

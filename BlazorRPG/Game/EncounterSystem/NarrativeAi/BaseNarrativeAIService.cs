@@ -22,14 +22,14 @@
     }
 
     public abstract Task<string> GenerateIntroductionAsync(
-        NarrativeContext context, EncounterStatus state, string memoryContent);
+        NarrativeContext context, EncounterStatusModel state, string memoryContent);
     public abstract Task<string> GenerateReactionAndSceneAsync(
-        NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatus newState);
+        NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatusModel newState);
     public abstract Task<string> GenerateEndingAsync(
-        NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatus newState );
+        NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatusModel newState );
     public abstract Task<string> GenerateMemoryFileAsync(
-        NarrativeContext context, ChoiceOutcome outcome, EncounterStatus newState, string oldMemory);
-    public abstract Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(NarrativeContext context, List<IChoice> choices, List<ChoiceProjection> projections, EncounterStatus state);
+        NarrativeContext context, ChoiceOutcome outcome, EncounterStatusModel newState, string oldMemory);
+    public abstract Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(NarrativeContext context, List<IChoice> choices, List<ChoiceProjection> projections, EncounterStatusModel state);
 
     public string GetProviderName()
     {

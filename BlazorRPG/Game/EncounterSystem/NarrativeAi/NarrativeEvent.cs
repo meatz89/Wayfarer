@@ -1,7 +1,7 @@
 ﻿public class NarrativeEvent
 {
     public int TurnNumber { get; }
-    public string SceneDescription { get; }
+    public string Summary { get; }
     public Dictionary<IChoice, ChoiceNarrative> ChoiceDescriptions { get; set; } = new();
     public IChoice ChosenOption { get; set; }
     public ChoiceNarrative ChoiceNarrative { get; set; }
@@ -12,7 +12,7 @@
         string sceneDescription)
     {
         TurnNumber = turnNumber;
-        SceneDescription = sceneDescription;
+        Summary = sceneDescription;
     }
 
     public void SetAvailableChoiceDescriptions(Dictionary<IChoice, ChoiceNarrative> choiceDescriptions)

@@ -23,7 +23,7 @@ public class PromptManager
 
     public string BuildIntroductionPrompt(
         NarrativeContext context,
-        EncounterStatus state,
+        EncounterStatusModel state,
         string memoryContent)
     {
         string template = _promptTemplates[INTRO_MD];
@@ -73,36 +73,25 @@ public class PromptManager
     }
 
     public string BuildReactionPrompt(
-        NarrativeContext context,
-        IChoice chosenOption,
-        ChoiceNarrative choiceDescription,
-        ChoiceOutcome outcome,
-        EncounterStatus newState)
+    NarrativeContext context,
+    IChoice chosenOption,
+    ChoiceNarrative choiceDescription,
+    ChoiceOutcome outcome,
+    EncounterStatusModel state)
     {
         string template = _promptTemplates[REACTION_MD];
 
         // Extract primary approach tag
         ApproachTags primaryApproach = GetPrimaryApproach(chosenOption);
 
-        // Format tag changes for narrative representation
-        string tagChangesGuidance = FormatTagChangesForNarrative(outcome);
+        // Calculate encounter stage
+        string encounterStage = DetermineEncounterStage(state.CurrentTurn, state.MaxTurns, state.Momentum, state.MaxMomentum, state.Pressure, state.MaxPressure);
 
-        // Format activated/deactivated tags
-        string tagActivationGuidance = FormatTagActivationForNarrative(outcome);
+        // Get previous momentum and pressure
+        int previousMomentum = state.Momentum - outcome.MomentumGain;
+        int previousPressure = state.Pressure - outcome.PressureGain;
 
-        // Create a complete encounter history for context
-        NarrativeSummaryBuilder builder = new NarrativeSummaryBuilder();
-        string completeHistory = builder.CreateCompleteHistory(context);
-
-        // Get encounter type from presentation style
-        string encounterType = GetEncounterStyleGuidance(context.EncounterType);
-
-        // Determine turn information from events
-        int currentTurn = context.Events.Count > 0 ? context.Events.Count : 1;
-        // Default to 6 turns if we can't determine it
-        int maxTurns = 6;
-
-        // Format outcome components to represent momentum and pressure changes
+        // Format strategic effects
         StringBuilder strategicEffects = new StringBuilder();
         strategicEffects.AppendLine("## Momentum and Pressure Changes:");
         strategicEffects.AppendLine($"- Momentum Gained: {outcome.MomentumGain}");
@@ -115,7 +104,7 @@ public class PromptManager
 
         if (outcome.ConcentrationChange != 0)
         {
-            strategicEffects.AppendLine($"- Focus Change: {outcome.ConcentrationChange}");
+            strategicEffects.AppendLine($"- Concentration Change: {outcome.ConcentrationChange}");
         }
 
         if (outcome.ConfidenceChange != 0)
@@ -123,35 +112,46 @@ public class PromptManager
             strategicEffects.AppendLine($"- Confidence Change: {outcome.ConfidenceChange}");
         }
 
-        // Get previous momentum and pressure from the context's last state
-        int previousMomentum = newState.Momentum - outcome.MomentumGain;
-        int previousPressure = newState.Pressure - outcome.PressureGain;
-
         // Extract encounter goal from inciting action
         string encounterGoal = context.ActionImplementation.Goal;
 
+        // Get character status summary
+        string characterStatus = BuildCharacterStatusSummary(state);
+
         // Replace placeholders in template
         string prompt = template
+            .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
+            .Replace("{CURRENT_TURN}", context.Events.Count.ToString())
+            .Replace("{MAX_TURNS}", state.MaxTurns.ToString())
+            .Replace("{NEW_MOMENTUM}", state.Momentum.ToString())
+            .Replace("{MAX_MOMENTUM}", state.MaxMomentum.ToString())
+            .Replace("{SUCCESS_THRESHOLD}", state.SuccessThreshold.ToString())
+            .Replace("{NEW_PRESSURE}", state.Pressure.ToString())
+            .Replace("{MAX_PRESSURE}", state.MaxPressure.ToString())
+            .Replace("{CURRENT_HEALTH}", state.Health.ToString())
+            .Replace("{MAX_HEALTH}", state.MaxHealth.ToString())
+            .Replace("{CURRENT_CONFIDENCE}", state.Confidence.ToString())
+            .Replace("{MAX_CONFIDENCE}", state.MaxConfidence.ToString())
+            .Replace("{CURRENT_CONCENTRATION}", state.Concentration.ToString())
+            .Replace("{MAX_CONCENTRATION}", state.MaxConcentration.ToString())
+            .Replace("{ENCOUNTER_STAGE}", encounterStage)
             .Replace("{SELECTED_CHOICE}", choiceDescription.ShorthandName)
             .Replace("{CHOICE_DESCRIPTION}", choiceDescription.FullDescription)
-            .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
-            .Replace("{LOCATION_NAME}", context.LocationName)
-            .Replace("{LOCATION_SPOT}", context.locationSpotName)
-            .Replace("{CHARACTER_GOAL}", encounterGoal)
-            .Replace("{APPROACH}", primaryApproach.ToString())
-            .Replace("{FOCUS}", chosenOption.Focus.ToString())
-            .Replace("{EFFECT_TYPE}", chosenOption.EffectType.ToString())
-            .Replace("{M_OLD}", previousMomentum.ToString())
-            .Replace("{P_OLD}", previousPressure.ToString())
-            .Replace("{M_NEW}", newState.Momentum.ToString())
-            .Replace("{P_NEW}", newState.Pressure.ToString())
+            .Replace("{CHOICE_APPROACH}", primaryApproach.ToString())
+            .Replace("{CHOICE_FOCUS}", chosenOption.Focus.ToString())
+            .Replace("{MOMENTUM_CHANGE}", outcome.MomentumGain.ToString())
+            .Replace("{OLD_MOMENTUM}", previousMomentum.ToString())
+            .Replace("{PRESSURE_CHANGE}", outcome.PressureGain.ToString())
+            .Replace("{OLD_PRESSURE}", previousPressure.ToString())
             .Replace("{APPROACH_CHANGES}", FormatApproachChanges(outcome.EncounterStateTagChanges))
             .Replace("{FOCUS_CHANGES}", FormatFocusChanges(outcome.FocusTagChanges))
-            .Replace("{NEW_NARRATIVE_TAGS}", FormatNewlyActivatedTags(outcome.NewlyActivatedTags))
+            .Replace("{HEALTH_CHANGE}", outcome.HealthChange.ToString())
+            .Replace("{CONFIDENCE_CHANGE}", outcome.ConfidenceChange.ToString())
+            .Replace("{CONCENTRATION_CHANGE}", outcome.ConcentrationChange.ToString())
+            .Replace("{NEW_TAGS_ACTIVATED}", FormatNewlyActivatedTags(outcome.NewlyActivatedTags))
             .Replace("{STRATEGIC_EFFECTS}", strategicEffects.ToString())
-            .Replace("{CURRENT_TURN}", currentTurn.ToString())
-            .Replace("{MAX_TURNS}", maxTurns.ToString())
-            .Replace("{ENCOUNTER_STYLE_GUIDANCE}", encounterType);
+            .Replace("{CHARACTER_GOAL}", encounterGoal)
+            .Replace("{INJURIES/STATUS}", characterStatus);
 
         return prompt;
     }
@@ -160,61 +160,32 @@ public class PromptManager
         NarrativeContext context,
         List<IChoice> choices,
         List<ChoiceProjection> projections,
-        EncounterStatus state)
+        EncounterStatusModel state)
     {
         string template = _promptTemplates[CHOICES_MD];
 
-        // Create a complete encounter history for context
-        NarrativeSummaryBuilder builder = new NarrativeSummaryBuilder();
-        string completeHistory = builder.CreateCompleteHistory(context);
+        // Calculate encounter stage
+        string encounterStage = DetermineEncounterStage(state.CurrentTurn, state.MaxTurns, state.Momentum, state.MaxMomentum, state.Pressure, state.MaxPressure);
 
-        // Get the most recent narrative event
+        // Get the most recent narrative event for current situation
         string currentSituation = "No previous narrative available.";
         if (context.Events.Count > 0)
         {
             NarrativeEvent lastEvent = context.Events[context.Events.Count - 1];
-            currentSituation = lastEvent.SceneDescription;
+            currentSituation = lastEvent.Summary;
         }
 
-        // Get encounter type from presentation style
-        string choiceStyleGuidance = GetChoiceStyleGuidance(context.EncounterType);
-
-        // Format the active narrative tags for choice blocking awareness
+        // Format the active narrative tags
         StringBuilder narrativeTagsInfo = new StringBuilder();
-        narrativeTagsInfo.AppendLine("## Active Narrative Tags:");
         foreach (IEncounterTag? tag in state.ActiveTags.Where(t => t is NarrativeTag))
         {
             NarrativeTag narrativeTag = (NarrativeTag)tag;
             narrativeTagsInfo.AppendLine($"- {tag.Name}: Blocks {narrativeTag.BlockedFocus} focus choices");
         }
 
-        // Add location strategic preferences
-        StringBuilder locationPreferences = new StringBuilder();
-        locationPreferences.AppendLine("## Location Strategic Information:");
-
-        if (state.EncounterInfo?.MomentumBoostApproaches?.Any() == true)
-        {
-            locationPreferences.AppendLine($"- Favored Approaches: {string.Join(", ", state.EncounterInfo.MomentumBoostApproaches)}");
-            locationPreferences.AppendLine("  These approaches work particularly well in this location.");
-        }
-
-        if (state.EncounterInfo?.DangerousApproaches?.Any() == true)
-        {
-            locationPreferences.AppendLine($"- Disfavored Approaches: {string.Join(", ", state.EncounterInfo.DangerousApproaches)}");
-            locationPreferences.AppendLine("  These approaches are challenging or risky here.");
-        }
-
-        if (state.EncounterInfo?.PressureReducingFocuses?.Any() == true)
-        {
-            locationPreferences.AppendLine($"- Favored Focuses: {string.Join(", ", state.EncounterInfo.PressureReducingFocuses)}");
-            locationPreferences.AppendLine("  These focuses are particularly effective here.");
-        }
-
-        if (state.EncounterInfo?.MomentumReducingFocuses?.Any() == true)
-        {
-            locationPreferences.AppendLine($"- Disfavored Focuses: {string.Join(", ", state.EncounterInfo.MomentumReducingFocuses)}");
-            locationPreferences.AppendLine("  These focuses may lead to resource loss or complications.");
-        }
+        // Get favorable and dangerous approaches
+        string favorableApproaches = FormatFavorableApproaches(state);
+        string dangerousApproaches = FormatDangerousApproaches(state);
 
         // Format choices info
         StringBuilder choicesInfo = new StringBuilder();
@@ -226,21 +197,17 @@ public class PromptManager
             // Get the primary approach tag
             ApproachTags primaryApproach = GetPrimaryApproach(choice);
 
-            // Determine if this choice is blocked by a narrative tag
-            bool isBlocked = state.ActiveTags.Any(t => t is NarrativeTag nt && nt.BlockedFocus == choice.Focus);
-
             choicesInfo.AppendLine($@"
-Choice {i + 1}: {choice.Name}
+CHOICE {i + 1}:
 - Approach: {primaryApproach} 
 - Focus: {choice.Focus}
-- Effect Type: {choice.EffectType}
 - Momentum Change: {projection.MomentumGained}
 - Pressure Change: {projection.PressureBuilt}
 - Health Change: {projection.HealthChange}
 - Concentration Change: {projection.ConcentrationChange}
 - Confidence Change: {projection.ConfidenceChange}");
 
-            // Add encounter ending information if this choice will end the encounter
+            // Add encounter ending information if applicable
             if (projection.EncounterWillEnd)
             {
                 choicesInfo.AppendLine($"- Encounter Will End: True");
@@ -257,54 +224,62 @@ Choice {i + 1}: {choice.Name}
             }
 
             // Add any strategic tag effects
-            List<ChoiceProjection.ValueComponent> momentumComponents = projection.MomentumComponents.Where(c => c.Source != "Momentum Choice Base").ToList();
-            List<ChoiceProjection.ValueComponent> pressureComponents = projection.PressureComponents.Where(c => c.Source != "Pressure Choice Base").ToList();
+            List<ChoiceProjection.ValueComponent> momentumComponents = projection.MomentumComponents
+                .Where(c => c.Source != "Momentum Choice Base").ToList();
+            List<ChoiceProjection.ValueComponent> pressureComponents = projection.PressureComponents
+                .Where(c => c.Source != "Pressure Choice Base").ToList();
 
             if (momentumComponents.Any() || pressureComponents.Any())
             {
                 choicesInfo.AppendLine("- Strategic Effects:");
-                foreach (ChoiceProjection.ValueComponent? comp in momentumComponents)
+                foreach (ChoiceProjection.ValueComponent comp in momentumComponents)
                 {
                     choicesInfo.AppendLine($"  * {comp.Source}: {comp.Value} momentum");
                 }
-                foreach (ChoiceProjection.ValueComponent? comp in pressureComponents)
+                foreach (ChoiceProjection.ValueComponent comp in pressureComponents)
                 {
                     choicesInfo.AppendLine($"  * {comp.Source}: {comp.Value} pressure");
                 }
             }
         }
 
-        // Format approach values
-        string approachValues = FormatApproachValues(state);
+        // Get character condition/resources
+        string characterCondition = BuildCharacterStatusSummary(state);
 
-        // Format active tag names
-        string activeTags = string.Join(", ", state.ActiveTagNames);
-
-        string encounterGoal = context.ActionImplementation.Goal;
+        // Get the approach and focus for each choice
+        Dictionary<int, string> choiceApproaches = ExtractChoiceApproaches(choices);
+        Dictionary<int, string> choiceFocuses = ExtractChoiceFocuses(choices);
 
         // Replace placeholders in template
         string prompt = template
             .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
-            .Replace("{LOCATION_NAME}", context.LocationName)
-            .Replace("{LOCATION_SPOT}", context.locationSpotName)
-            .Replace("{CHARACTER_GOAL}", encounterGoal)
-            .Replace("{CURRENT_SITUATION}", currentSituation)
+            .Replace("{CURRENT_TURN}", context.Events.Count.ToString())
+            .Replace("{MAX_TURNS}", state.MaxTurns.ToString())
+            .Replace("{CURRENT_MOMENTUM}", state.Momentum.ToString())
+            .Replace("{MAX_MOMENTUM}", state.MaxMomentum.ToString())
+            .Replace("{SUCCESS_THRESHOLD}", state.SuccessThreshold.ToString())
+            .Replace("{CURRENT_PRESSURE}", state.Pressure.ToString())
+            .Replace("{MAX_PRESSURE}", state.MaxPressure.ToString())
+            .Replace("{CURRENT_HEALTH}", state.Health.ToString())
+            .Replace("{MAX_HEALTH}", state.MaxHealth.ToString())
+            .Replace("{CURRENT_CONFIDENCE}", state.Confidence.ToString())
+            .Replace("{MAX_CONFIDENCE}", state.MaxConfidence.ToString())
+            .Replace("{CURRENT_CONCENTRATION}", state.Concentration.ToString())
+            .Replace("{MAX_CONCENTRATION}", state.MaxConcentration.ToString())
+            .Replace("{ENCOUNTER_STAGE}", encounterStage)
+            .Replace("{FAVORABLE_APPROACHES}", favorableApproaches)
+            .Replace("{DANGEROUS_APPROACHES}", dangerousApproaches)
             .Replace("{ACTIVE_TAGS}", narrativeTagsInfo.ToString())
-            .Replace("{LOCATION_PREFERENCES}", locationPreferences.ToString())
-            .Replace("{MOMENTUM}", state.Momentum.ToString())
-            .Replace("{PRESSURE}", state.Pressure.ToString())
-            .Replace("{APPROACH_VALUES}", approachValues)
-            .Replace("{LIST_TAGS}", activeTags)
-            .Replace("{NPC_LIST}", "relevant individuals in the scene")
-            .Replace("{CHOICES_INFO}", choicesInfo.ToString())
-            .Replace("{CHOICE_STYLE_GUIDANCE}", choiceStyleGuidance);
+            .Replace("{INJURIES/RESOURCES/CONDITION}", characterCondition)
+            .Replace("{CHARACTER_GOAL}", context.ActionImplementation.Goal)
+            .Replace("{CHOICES_INFO}", choicesInfo.ToString());
 
         return prompt;
     }
 
     public string BuildEncounterEndPrompt(
         NarrativeContext context,
-        EncounterStatus finalState,
+        EncounterStatusModel finalState,
         EncounterOutcomes outcome,
         IChoice finalChoice,
         ChoiceNarrative choiceDescription
@@ -317,7 +292,7 @@ Choice {i + 1}: {choice.Name}
         if (context.Events.Count > 0)
         {
             NarrativeEvent lastEvent = context.Events[context.Events.Count - 1];
-            lastNarrative = lastEvent.SceneDescription;
+            lastNarrative = lastEvent.Summary;
         }
 
         // Format approach values
@@ -366,7 +341,7 @@ Choice {i + 1}: {choice.Name}
     public string BuildMemoryPrompt(
         NarrativeContext context,
         ChoiceOutcome outcome,
-        EncounterStatus newState,
+        EncounterStatusModel newState,
         string oldMemory)
     {
         string template = _promptTemplates[MEMORY_MD];
@@ -506,7 +481,7 @@ Choice {i + 1}: {choice.Name}
         return result.ToString();
     }
 
-    private string FormatApproachValues(EncounterStatus state)
+    private string FormatApproachValues(EncounterStatusModel state)
     {
         List<string> approaches = new List<string>();
         foreach (KeyValuePair<ApproachTags, int> approach in state.ApproachTags)
@@ -649,8 +624,6 @@ Choice {i + 1}: {choice.Name}
         return jsonBuilder.ToString();
     }
 
-
-
     public string GetSystemMessage()
     {
         string template = _promptTemplates[SYSTEM_MD];
@@ -680,4 +653,71 @@ Choice {i + 1}: {choice.Name}
         return mdContent;
     }
 
+    private string DetermineEncounterStage(int currentTurn, int maxTurns, int currentMomentum, int maxMomentum, int currentPressure, int maxPressure)
+    {
+        double highestProgress = 0;
+
+        double progressMomentum = (double)currentMomentum / maxMomentum;
+        double progressPressure = (double)currentPressure / maxPressure;
+        double progressTurns = (double)currentTurn / maxTurns;
+
+        highestProgress = double.Max(progressMomentum, progressPressure);
+        highestProgress = double.Max(highestProgress, progressTurns);
+
+        if (highestProgress < 0.33) return "Early";
+        if (highestProgress < 0.67) return "Middle";
+        return "Late";
+    }
+
+    private string BuildCharacterStatusSummary(EncounterStatusModel state)
+    {
+        StringBuilder status = new StringBuilder();
+
+        if (state.Health < state.MaxHealth)
+            status.Append($"Health: {state.Health}/{state.MaxHealth}. ");
+
+        if (state.Confidence < state.MaxConfidence)
+            status.Append($"Confidence: {state.Confidence}/{state.MaxConfidence}. ");
+
+        if (state.Concentration < state.MaxConcentration)
+            status.Append($"Concentration: {state.Concentration}/{state.MaxConcentration}. ");
+
+        return status.Length > 0 ? status.ToString() : "In good condition";
+    }
+
+    private string FormatFavorableApproaches(EncounterStatusModel state)
+    {
+        if (state.EncounterInfo?.MomentumBoostApproaches == null || !state.EncounterInfo.MomentumBoostApproaches.Any())
+            return "None specifically";
+
+        return string.Join(", ", state.EncounterInfo.MomentumBoostApproaches);
+    }
+
+    private string FormatDangerousApproaches(EncounterStatusModel state)
+    {
+        if (state.EncounterInfo?.DangerousApproaches == null || !state.EncounterInfo.DangerousApproaches.Any())
+            return "None specifically";
+
+        return string.Join(", ", state.EncounterInfo.DangerousApproaches);
+    }
+
+    private Dictionary<int, string> ExtractChoiceApproaches(List<IChoice> choices)
+    {
+        Dictionary<int, string> approaches = new Dictionary<int, string>();
+        for (int i = 0; i < choices.Count; i++)
+        {
+            approaches[i + 1] = GetPrimaryApproach(choices[i]).ToString();
+        }
+        return approaches;
+    }
+
+    private Dictionary<int, string> ExtractChoiceFocuses(List<IChoice> choices)
+    {
+        Dictionary<int, string> focuses = new Dictionary<int, string>();
+        for (int i = 0; i < choices.Count; i++)
+        {
+            focuses[i + 1] = choices[i].Focus.ToString();
+        }
+        return focuses;
+    }
 }

@@ -61,7 +61,7 @@
         return baseNarrativeAIService?.GetGameInstanceId() ?? "Unknown";
     }
 
-    public async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatus state, string memoryContent)
+    public async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatusModel state, string memoryContent)
     {
         INarrativeAIService narrativeAIService = _providers[_currentProvider];
         return await narrativeAIService.GenerateIntroductionAsync(context, state, memoryContent);
@@ -71,7 +71,7 @@
         NarrativeContext context,
         List<IChoice> choices,
         List<ChoiceProjection> projections,
-        EncounterStatus state)
+        EncounterStatusModel state)
     {
         return await _providers[_currentProvider].GenerateChoiceDescriptionsAsync(
             context, choices, projections, state);
@@ -82,7 +82,7 @@
         IChoice chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
-        EncounterStatus newState)
+        EncounterStatusModel newState)
     {
         return await _providers[_currentProvider].GenerateReactionAndSceneAsync(
             context, chosenOption, choiceDescription, outcome, newState);
@@ -93,7 +93,7 @@
         IChoice chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
-        EncounterStatus newState)
+        EncounterStatusModel newState)
     {
         return await _providers[_currentProvider].GenerateEndingAsync(
             context, chosenOption, choiceDescription, outcome, newState);
@@ -102,7 +102,7 @@
     public async Task<string> GenerateMemoryFileAsync(
         NarrativeContext context,
         ChoiceOutcome outcome,
-        EncounterStatus newState,
+        EncounterStatusModel newState,
         string oldMemory
         )
     {

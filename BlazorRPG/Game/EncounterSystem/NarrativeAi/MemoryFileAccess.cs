@@ -24,7 +24,7 @@
         return memoryContent;
     }
 
-    public static async Task WriteToMemoryFile(ChoiceOutcome outcome, EncounterStatus newStatus, string memoryContent)
+    public static async Task WriteToMemoryFile(ChoiceOutcome outcome, EncounterStatusModel newStatus, string memoryContent)
     {
         try
         {

@@ -86,16 +86,25 @@
         return outcome;
     }
 
-    public EncounterStatus GetEncounterStatus()
+    public EncounterStatusModel GetEncounterStatusModel()
     {
-        return new EncounterStatus(
-            State.CurrentTurn,
-            State.Location.TurnDuration,
-            State.Momentum,
-            State.Pressure,
-            State.TagSystem.GetAllApproachTags(),
-            State.TagSystem.GetAllFocusTags(),
-            State.GetActiveTagsNames()
+        return new EncounterStatusModel(
+            currentTurn: State.CurrentTurn,
+            maxMomentum: State.Location.ExceptionalThreshold,
+            maxPressure: State.Location.MaxPressure,
+            successThreshold: State.Location.StandardThreshold,
+            maxTurns: State.Location.TurnDuration,
+            momentum: State.Momentum, 
+            pressure: State.Pressure,
+            health: State.PlayerState.Health,
+            maxHealth: State.PlayerState.MaxHealth,
+            concentration: State.PlayerState.Concentration,
+            maxConcentration: State.PlayerState.MaxConcentration,
+            confidence: State.PlayerState.Confidence,
+            maxConfidence: State.PlayerState.MaxConfidence,
+            approachTags: State.TagSystem.GetAllApproachTags(),
+            focusTags: State.TagSystem.GetAllFocusTags(),
+            activeTagNames: State.GetActiveTagsNames()
         );
     }
 
@@ -141,7 +150,7 @@
                 incitingAction);
 
         // Generate introduction
-        EncounterStatus status = GetEncounterStatus();
+        EncounterStatusModel status = GetEncounterStatusModel();
 
         string introduction = "introduction";
         string memoryContent = string.Empty;
@@ -201,7 +210,7 @@
         ChoiceOutcome outcome = ApplyChoiceProjection(choice);
 
         // Get status after the choice
-        EncounterStatus newStatus = GetEncounterStatus();
+        EncounterStatusModel newStatus = GetEncounterStatusModel();
 
         // Generate narrative for the reaction and new scene
         string narrative = "Continued Narrative";
@@ -304,7 +313,7 @@
         return narrativeEvent;
     }
 
-    private async Task UpdateMemoryFile(ChoiceOutcome outcome, EncounterStatus newStatus)
+    private async Task UpdateMemoryFile(ChoiceOutcome outcome, EncounterStatusModel newStatus)
     {
         var oldMemory = await MemoryFileAccess.ReadFromMemoryFile();
 
