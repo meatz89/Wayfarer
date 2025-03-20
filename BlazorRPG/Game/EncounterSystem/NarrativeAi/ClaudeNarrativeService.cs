@@ -137,4 +137,28 @@
         return memoryContentResponse;
     }
 
+    public override async Task<string> GenerateStateChangesAsync(
+        NarrativeContext context,
+        ChoiceOutcome outcome,
+        EncounterStatusModel newState)
+    {
+        string conversationId = $"{context.LocationName}_encounter"; // Same ID as introduction
+        string systemMessage = _promptManager.GetSystemMessage();
+
+        string prompt = _promptManager.BuildStateChangesPrompt(
+            context, outcome, newState);
+
+        if (!_contextManager.ConversationExists(conversationId))
+        {
+            _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
+        }
+        else
+        {
+            _contextManager.UpdateSystemMessage(conversationId, systemMessage);
+        }
+        string memoryContentResponse = await _aiClient.GetCompletionAsync(
+            _contextManager.GetOptimizedConversationHistory(conversationId));
+
+        return memoryContentResponse;
+    }
 }

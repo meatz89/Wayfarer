@@ -31,6 +31,11 @@ public interface INarrativeAIService
         EncounterStatusModel newState,
         string oldMemory);
 
+    Task<string> GenerateStateChangesAsync(
+        NarrativeContext context,
+        ChoiceOutcome outcome,
+        EncounterStatusModel newState);
+
     /// <summary>
     /// Generate narrative descriptions for choices
     /// </summary>

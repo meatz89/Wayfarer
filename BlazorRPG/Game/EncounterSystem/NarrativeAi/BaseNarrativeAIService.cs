@@ -29,6 +29,8 @@
         NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatusModel newState);
     public abstract Task<string> GenerateMemoryFileAsync(
         NarrativeContext context, ChoiceOutcome outcome, EncounterStatusModel newState, string oldMemory);
+    public abstract Task<string> GenerateStateChangesAsync(
+        NarrativeContext context, ChoiceOutcome outcome, EncounterStatusModel newState);
     public abstract Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(NarrativeContext context, List<IChoice> choices, List<ChoiceProjection> projections, EncounterStatusModel state);
 
     public string GetProviderName()
