@@ -225,16 +225,15 @@
                 outcome,
                 newStatus);
 
+            bool _processStateChanges = true;
+            if (_processStateChanges)
+            {
+                EncounterSummaryResult stateChanges = await GenerateStateChanges(outcome, newStatus);
+            }
 
             if (_useMemory)
             {
                 await UpdateMemoryFile(outcome, newStatus);
-            }
-
-            bool _processStateChanges = true;
-            if(_processStateChanges)
-            {
-                EncounterSummaryResult stateChanges = await GenerateStateChanges(outcome, newStatus);
             }
 
             NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);

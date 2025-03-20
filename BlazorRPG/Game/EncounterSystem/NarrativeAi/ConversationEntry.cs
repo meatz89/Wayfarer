@@ -13,5 +13,6 @@ public enum MessageType
     ChoiceGeneration,
     PlayerChoice,
     Narrative,
-    MemoryUpdate
+    MemoryUpdate,
+    StateChanges
 }

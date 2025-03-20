@@ -155,10 +155,11 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
+            _contextManager.AddUserMessage(conversationId, prompt, MessageType.StateChanges, null);
         }
         string memoryContentResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId));
 
-        return memoryContentResponse;
+        return prompt;
     }
 }
