@@ -1,25 +1,33 @@
 ﻿public class ActionTemplateBuilder
 {
-    private string name;
-    private string description;
+    private ActionNames name;
     private BasicActionTypes actionType;
+    private string goal;
+    private string complication;
 
     public List<Requirement> requirements = new();
     public List<Outcome> energy = new();
     public List<Outcome> costs = new();
     public List<Outcome> rewards = new();
 
-    public bool IsEncounterAction = false;
+    public bool IsEncounterAction = true;
+    public EncounterTemplate encounterTemplate;
 
-    public ActionTemplateBuilder WithName(string name)
+    public ActionTemplateBuilder WithName(ActionNames name)
     {
         this.name = name;
         return this;
     }
 
-    public ActionTemplateBuilder WithDescription(string description)
+    public ActionTemplateBuilder WithGoal(string goal)
     {
-        this.description = description;
+        this.goal = goal;
+        return this;
+    }
+
+    public ActionTemplateBuilder WithComplication(string complication)
+    {
+        this.complication = complication;
         return this;
     }
 
@@ -29,12 +37,12 @@
         return this;
     }
 
-    public ActionTemplateBuilder StartsEncounter()
+    public ActionTemplateBuilder StartsEncounter(EncounterTemplate encounterTemplate)
     {
         this.IsEncounterAction = true;
+        this.encounterTemplate = encounterTemplate;
         return this;
     }
-
 
     public ActionTemplateBuilder ExpendsCoins(int cost)
     {
@@ -47,16 +55,13 @@
 
     public ActionTemplate Build()
     {
-        // Add validation to ensure required properties are set
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new InvalidOperationException("ActionTemplate must have a name.");
-        }
         return new ActionTemplate(
             name,
-            description,
+            goal,
+            complication,
             actionType,
             IsEncounterAction,
+            encounterTemplate,
             requirements,
             energy,
             costs,

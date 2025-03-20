@@ -14,25 +14,30 @@ public class ChoiceRepository
     private void InitializeStandardChoices()
     {
         // DOMINANCE-BASED OFFENSIVE CHOICES (MOMENTUM)
+        // HIGH-COMMITMENT CHOICE: Enhanced benefit (+3) with greater cost (-2, -1)
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Display of Force",
-            "You demonstrate your physical power and authority to intimidate others.",
+            "Overwhelming Force",
+            "You unleash your full physical and authoritative might, completely dominating the situation at the cost of any subtlety or social nuance.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 2),
+            TagModification.ForEncounterState(ApproachTags.Dominance, 3),
+            TagModification.ForEncounterState(ApproachTags.Evasion, -2),
+            TagModification.ForEncounterState(ApproachTags.Rapport, -1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
+        // MODIFIED WITH TRADEOFF: Sacrificing subtlety for dominance
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Command Attention",
-            "You take control of the conversation through sheer force of personality.",
+            "Command Presence",
+            "You assert dominance in the interaction, your commanding tone making clear you expect obedience at the cost of building rapport.",
             FocusTags.Relationship,
             TagModification.ForEncounterState(ApproachTags.Dominance, 2),
+            TagModification.ForEncounterState(ApproachTags.Rapport, -1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Forceful Interrogation",
-            "You demand answers, making it clear that evasion will not be tolerated.",
+            "You press aggressively for answers, making evasion seem a worse option than compliance.",
             FocusTags.Information,
             TagModification.ForEncounterState(ApproachTags.Dominance, 2),
             TagModification.ForFocus(FocusTags.Information, 1)
@@ -40,7 +45,7 @@ public class ChoiceRepository
 
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Control Territory",
-            "You secure key positions in the area, establishing dominance over the physical space.",
+            "You claim and secure key positions in the area, establishing clear dominance over the space.",
             FocusTags.Environment,
             TagModification.ForEncounterState(ApproachTags.Dominance, 2),
             TagModification.ForFocus(FocusTags.Environment, 1)
@@ -48,7 +53,7 @@ public class ChoiceRepository
 
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Forceful Acquisition",
-            "You seize resources through superior strength, making it clear they now belong to you.",
+            "You assert rightful ownership through superior strength, making it clear these resources now serve your purpose.",
             FocusTags.Resource,
             TagModification.ForEncounterState(ApproachTags.Dominance, 2),
             TagModification.ForFocus(FocusTags.Resource, 1)
@@ -57,7 +62,7 @@ public class ChoiceRepository
         // DOMINANCE-BASED DEFENSIVE CHOICES (PRESSURE)
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Stand Ground",
-            "You refuse to be intimidated, standing tall and maintaining your position despite challenges.",
+            "You plant yourself firmly, refusing to yield an inch despite mounting pressure or challenges.",
             FocusTags.Physical,
             TagModification.ForEncounterState(ApproachTags.Dominance, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
@@ -65,7 +70,7 @@ public class ChoiceRepository
 
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Establish Boundaries",
-            "You clearly establish what you will and won't tolerate, setting firm expectations.",
+            "You decisively declare your limits and expectations, leaving no room for negotiation or misunderstanding.",
             FocusTags.Relationship,
             TagModification.ForEncounterState(ApproachTags.Dominance, 1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
@@ -73,7 +78,7 @@ public class ChoiceRepository
 
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Silence Doubts",
-            "You shut down skepticism with authoritative statements, preventing uncertainty from spreading.",
+            "You decisively quash uncertainty with authoritative statements, preventing any spread of hesitation.",
             FocusTags.Information,
             TagModification.ForEncounterState(ApproachTags.Dominance, 1),
             TagModification.ForFocus(FocusTags.Information, 1)
@@ -81,48 +86,54 @@ public class ChoiceRepository
 
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Secure Position",
-            "You take control of defensible terrain, reducing vulnerability to attacks or surprises.",
+            "You occupy and fortify defensible terrain, minimizing vulnerability to external threats.",
             FocusTags.Environment,
             TagModification.ForEncounterState(ApproachTags.Dominance, 1),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
+        // MODIFIED WITH TRADEOFF: Becoming too controlling
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Control Resources",
-            "You guard important supplies, ensuring they remain secure and available when needed.",
+            "Absolute Control",
+            "You take strict charge of critical supplies, ensuring they're distributed according to your judgment, reducing detailed analysis in favor of authority.",
             FocusTags.Resource,
             TagModification.ForEncounterState(ApproachTags.Dominance, 1),
+            TagModification.ForEncounterState(ApproachTags.Analysis, -1),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
         // RAPPORT-BASED OFFENSIVE CHOICES (MOMENTUM)
+        // HIGH-COMMITMENT CHOICE: Enhanced benefit (+3) with greater cost (-2)
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Charming Words",
-            "You engage with warmth and genuine interest, making others feel valued and understood.",
+            "Heart-to-Heart",
+            "You create a moment of profound connection and authentic vulnerability that deeply resonates, but leaves you exposed and unable to maintain distance.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 2),
+            TagModification.ForEncounterState(ApproachTags.Rapport, 3),
+            TagModification.ForEncounterState(ApproachTags.Evasion, -2),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Friendly Inquiry",
-            "You ask questions with warmth and interest that encourages others to share information.",
+            "You pose questions with such warmth that sharing information feels like a natural part of pleasant conversation.",
             FocusTags.Information,
             TagModification.ForEncounterState(ApproachTags.Rapport, 2),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
+        // MODIFIED WITH TRADEOFF: Being too friendly makes precise execution difficult
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Coordinated Effort",
-            "You foster teamwork that makes physical coordination feel natural and effortless.",
+            "Team Spirit",
+            "You inspire natural teamwork through positive connection, trading technical precision for enthusiastic cooperation.",
             FocusTags.Physical,
             TagModification.ForEncounterState(ApproachTags.Rapport, 2),
+            TagModification.ForEncounterState(ApproachTags.Precision, -1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Create Ambiance",
-            "You transform the atmosphere through your social presence, making the environment work in your favor.",
+            "You transform the atmosphere through your social presence, making everyone feel the environment is working in their favor.",
             FocusTags.Environment,
             TagModification.ForEncounterState(ApproachTags.Rapport, 2),
             TagModification.ForFocus(FocusTags.Environment, 1)
@@ -130,7 +141,7 @@ public class ChoiceRepository
 
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Negotiate Terms",
-            "You propose a mutually beneficial arrangement regarding resources or payment.",
+            "You propose arrangements that genuinely benefit all parties, making resource allocation feel like a win-win scenario.",
             FocusTags.Resource,
             TagModification.ForEncounterState(ApproachTags.Rapport, 2),
             TagModification.ForFocus(FocusTags.Resource, 1)
@@ -139,7 +150,7 @@ public class ChoiceRepository
         // RAPPORT-BASED DEFENSIVE CHOICES (PRESSURE)
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Smooth Over",
-            "You defuse tension with well-chosen words and genuine empathy, easing strained relationships.",
+            "You ease tensions with well-timed empathy and honest recognition of feelings, dissolving potential conflicts.",
             FocusTags.Relationship,
             TagModification.ForEncounterState(ApproachTags.Rapport, 1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
@@ -147,23 +158,25 @@ public class ChoiceRepository
 
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Reassuring Words",
-            "You share information in a calming manner that alleviates fears and reduces pressure.",
+            "You communicate critical information with a calming tone that alleviates fear while maintaining honesty.",
             FocusTags.Information,
             TagModification.ForEncounterState(ApproachTags.Rapport, 1),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
+        // HIGH-COMMITMENT CHOICE: Enhanced benefit (+2) with cost (-1)
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Gentle Approach",
-            "Your non-threatening body language helps others relax their guard around you.",
+            "Disarming Vulnerability",
+            "You lower all social defenses to create such genuine connection that even hostility dissolves, though it leaves you unable to analyze situations critically.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 1),
+            TagModification.ForEncounterState(ApproachTags.Rapport, 2),
+            TagModification.ForEncounterState(ApproachTags.Analysis, -1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Create Safe Space",
-            "You cultivate an atmosphere where everyone feels secure enough to let their guard down.",
+            "You cultivate an atmosphere of mutual trust where everyone feels secure enough to lower their guards.",
             FocusTags.Environment,
             TagModification.ForEncounterState(ApproachTags.Rapport, 1),
             TagModification.ForFocus(FocusTags.Environment, 1)
@@ -171,24 +184,27 @@ public class ChoiceRepository
 
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Fair Distribution",
-            "You ensure everyone feels fairly treated in how resources are shared or allocated.",
+            "You allocate resources with transparent fairness that acknowledges everyone's needs and contributions.",
             FocusTags.Resource,
             TagModification.ForEncounterState(ApproachTags.Rapport, 1),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
         // ANALYSIS-BASED OFFENSIVE CHOICES (MOMENTUM)
+        // HIGH-COMMITMENT CHOICE: Enhanced benefit (+3) with greater cost (-1, -1)
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Analytical Insight",
-            "You identify critical connections between seemingly unrelated pieces of information.",
+            "Perfect Deduction",
+            "You enter a state of complete analytical focus, making brilliant connections while becoming oblivious to social cues and physical surroundings.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 2),
+            TagModification.ForEncounterState(ApproachTags.Analysis, 3),
+            TagModification.ForEncounterState(ApproachTags.Rapport, -1),
+            TagModification.ForEncounterState(ApproachTags.Dominance, -1),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Systematic Approach",
-            "You develop a step-by-step methodology to tackle the complex problem efficiently.",
+            "You methodically break down a complex physical challenge into a series of manageable, efficient steps.",
             FocusTags.Physical,
             TagModification.ForEncounterState(ApproachTags.Analysis, 2),
             TagModification.ForFocus(FocusTags.Physical, 1)
@@ -196,7 +212,7 @@ public class ChoiceRepository
 
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Assess Relationships",
-            "You methodically map out the relationships and power dynamics at play in the social situation.",
+            "You mentally map the social dynamics at play, identifying leverage points and influence patterns.",
             FocusTags.Relationship,
             TagModification.ForEncounterState(ApproachTags.Analysis, 2),
             TagModification.ForFocus(FocusTags.Relationship, 1)
@@ -204,24 +220,26 @@ public class ChoiceRepository
 
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Environmental Analysis",
-            "You critically examine how the environment contains clues relevant to your investigation.",
+            "You carefully examine how your surroundings function, discovering hidden aspects that can be leveraged.",
             FocusTags.Environment,
             TagModification.ForEncounterState(ApproachTags.Analysis, 2),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
+        // MODIFIED WITH TRADEOFF: Analysis over evasion
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Resource Evaluation",
-            "You assess which resources and assets will be most valuable in the current context.",
+            "Resource Optimization",
+            "You quickly assess resource value and utility with such thoroughness that your intense scrutiny becomes noticeable to others.",
             FocusTags.Resource,
             TagModification.ForEncounterState(ApproachTags.Analysis, 2),
+            TagModification.ForEncounterState(ApproachTags.Evasion, -1),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
         // ANALYSIS-BASED DEFENSIVE CHOICES (PRESSURE)
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Careful Consideration",
-            "You consider all available information before acting, avoiding potential missteps.",
+            "You pause to process all available information, avoiding hasty conclusions that could lead to error.",
             FocusTags.Information,
             TagModification.ForEncounterState(ApproachTags.Analysis, 1),
             TagModification.ForFocus(FocusTags.Information, 1)
@@ -229,23 +247,25 @@ public class ChoiceRepository
 
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Calculate Risks",
-            "You assess potential risks and pitfalls before taking action, avoiding mistakes.",
+            "You assess potential hazards and their probabilities, selecting the physical approach with optimal risk-benefit ratio.",
             FocusTags.Physical,
             TagModification.ForEncounterState(ApproachTags.Analysis, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
+        // MODIFIED WITH TRADEOFF: Analysis over stealth
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Understand Motivations",
-            "You discern underlying motivations, helping you avoid unnecessary social conflicts.",
+            "Behavioral Analysis",
+            "You deduce others' underlying motivations so thoroughly that your focused attention becomes noticeable, sacrificing some stealth.",
             FocusTags.Relationship,
             TagModification.ForEncounterState(ApproachTags.Analysis, 1),
+            TagModification.ForEncounterState(ApproachTags.Evasion, -1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Identify Safe Zones",
-            "You locate areas of safety or advantage within the environment, reducing vulnerability.",
+            "You locate areas within the environment that provide maximum protection or advantage with minimal exposure.",
             FocusTags.Environment,
             TagModification.ForEncounterState(ApproachTags.Analysis, 1),
             TagModification.ForFocus(FocusTags.Environment, 1)
@@ -253,24 +273,26 @@ public class ChoiceRepository
 
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Efficient Resource Use",
-            "You conserve energy and supplies through careful planning, ensuring nothing is wasted.",
+            "You optimize resource allocation with careful planning, ensuring nothing is wasted and critical needs are met.",
             FocusTags.Resource,
             TagModification.ForEncounterState(ApproachTags.Analysis, 1),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
         // PRECISION-BASED OFFENSIVE CHOICES (MOMENTUM)
+        // HIGH-COMMITMENT CHOICE: Enhanced benefit (+3) with greater cost (-2)
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Precise Strike",
-            "You execute a perfectly timed movement with flawless technique for maximum effect.",
+            "Surgical Precision",
+            "You execute with such perfect technique and timing that it seems almost supernatural, but this level of focus blinds you to broader considerations.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Precision, 2),
+            TagModification.ForEncounterState(ApproachTags.Precision, 3),
+            TagModification.ForEncounterState(ApproachTags.Analysis, -2),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Targeted Question",
-            "You ask the perfect question that gets directly to the heart of what you need to know.",
+            "You formulate an incisive query that cuts directly to the heart of what you need to know, wasting no words.",
             FocusTags.Information,
             TagModification.ForEncounterState(ApproachTags.Precision, 2),
             TagModification.ForFocus(FocusTags.Information, 1)
@@ -278,7 +300,7 @@ public class ChoiceRepository
 
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Perfect Timing",
-            "You choose the perfect moment to make your request or share your thoughts.",
+            "You intuitively identify the exact moment when your words or actions will have maximum impact on others.",
             FocusTags.Relationship,
             TagModification.ForEncounterState(ApproachTags.Precision, 2),
             TagModification.ForFocus(FocusTags.Relationship, 1)
@@ -286,40 +308,44 @@ public class ChoiceRepository
 
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Pinpoint Weakness",
-            "You locate the exact structural weakness or advantage in the environment to exploit.",
+            "Your keen eye instantly identifies the exact structural vulnerability that can be leveraged for advantage.",
             FocusTags.Environment,
             TagModification.ForEncounterState(ApproachTags.Precision, 2),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
+        // MODIFIED WITH TRADEOFF: Too precise to see alternatives
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Exact Measurement",
-            "You use resources with perfect economy, achieving maximum effect with minimum waste.",
+            "Perfect Allocation",
+            "You utilize resources with surgical precision, achieving exactly the intended outcome but becoming less adaptable to alternative approaches.",
             FocusTags.Resource,
             TagModification.ForEncounterState(ApproachTags.Precision, 2),
+            TagModification.ForEncounterState(ApproachTags.Analysis, -1),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
         // PRECISION-BASED DEFENSIVE CHOICES (PRESSURE)
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Measured Response",
-            "You move with deliberate control, minimizing strain and risk of injury.",
+            "You move with deliberate control and economy, each action calibrated to provide maximum protection with minimal exposure.",
             FocusTags.Physical,
             TagModification.ForEncounterState(ApproachTags.Precision, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
+        // HIGH-COMMITMENT CHOICE: Enhanced benefit (+2) with cost (-1)
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Clear Communication",
-            "You express yourself with perfect clarity, preventing misunderstandings that could cause complications.",
+            "Flawless Articulation",
+            "You communicate with such perfect clarity and exactitude that misunderstanding becomes impossible, though social warmth suffers.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Precision, 1),
+            TagModification.ForEncounterState(ApproachTags.Precision, 2),
+            TagModification.ForEncounterState(ApproachTags.Rapport, -1),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Targeted Reassurance",
-            "You address the exact concerns that are causing tension in the relationship.",
+            "You identify and address the exact concerns causing relational tension, without unnecessary emotional expenditure.",
             FocusTags.Relationship,
             TagModification.ForEncounterState(ApproachTags.Precision, 1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
@@ -327,7 +353,7 @@ public class ChoiceRepository
 
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Minor Adjustment",
-            "You make small but crucial adjustments to the environment that reduce hazards.",
+            "You make small but crucial modifications to your surroundings that significantly reduce environmental threats.",
             FocusTags.Environment,
             TagModification.ForEncounterState(ApproachTags.Precision, 1),
             TagModification.ForFocus(FocusTags.Environment, 1)
@@ -335,110 +361,123 @@ public class ChoiceRepository
 
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Careful Allocation",
-            "You distribute resources with perfect efficiency, ensuring nothing is wasted or lacking.",
+            "You distribute limited resources with perfect efficiency, ensuring each allocation serves its exact intended purpose.",
             FocusTags.Resource,
             TagModification.ForEncounterState(ApproachTags.Precision, 1),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
-        // CONCEALMENT-BASED OFFENSIVE CHOICES (MOMENTUM)
+        // EVASION-BASED OFFENSIVE CHOICES (MOMENTUM)
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Hidden Advantage",
-            "You move stealthily, positioning yourself for an advantageous approach.",
+            "You move with invisible purpose, positioning yourself to capitalize on opportunities others don't even perceive.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 2),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Gather Secrets",
-            "You listen more than you speak, gathering valuable information others don't realize they're sharing.",
+            "You observe and absorb vital information others reveal unknowingly, collecting intelligence while appearing disinterested.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 2),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
+        // MODIFIED WITH TRADEOFF: Deception reduces authentic connection
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Veiled Intentions",
-            "You maintain a carefully crafted persona, revealing only what serves your purposes.",
+            "False Persona",
+            "You present a carefully crafted persona that conceals your true purpose while building advantageous but ultimately deceptive relationships.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 2),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
+            TagModification.ForEncounterState(ApproachTags.Rapport, -1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
+        // HIGH-COMMITMENT CHOICE: Enhanced benefit (+3) with greater cost (-2, -1)
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Blend With Surroundings",
-            "You use the environment to mask your presence, becoming nearly invisible.",
+            "Become Shadow",
+            "You vanish so completely into your surroundings that you practically cease to exist, sacrificing any ability to assert presence or maintain connections.",
             FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 2),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 3),
+            TagModification.ForEncounterState(ApproachTags.Dominance, -2),
+            TagModification.ForEncounterState(ApproachTags.Rapport, -1),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
+        // MODIFIED WITH TRADEOFF: Hiding vs forcing
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Secret Resources",
-            "You have hidden tools or supplies that can be deployed at the perfect moment.",
+            "Hidden Resources",
+            "You reveal concealed tools or supplies at the perfect moment, prioritizing stealth over a more dominant approach.",
             FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 2),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
+            TagModification.ForEncounterState(ApproachTags.Dominance, -1),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
-        // CONCEALMENT-BASED DEFENSIVE CHOICES (PRESSURE)
+        // EVASION-BASED DEFENSIVE CHOICES (PRESSURE)
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Fade Away",
-            "You slip into the shadows, removing yourself from immediate danger.",
+            "You make yourself scarce at the critical moment, removing yourself from danger by seemingly vanishing.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
+        // HIGH-COMMITMENT CHOICE: Enhanced benefit (+2) with cost (-1)
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Conceal Weaknesses",
-            "You carefully control what information about yourself is revealed, hiding vulnerabilities.",
+            "Information Blackout",
+            "You masterfully control all information about yourself, revealing nothing while learning everything, at the cost of forming genuine connections.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
+            TagModification.ForEncounterState(ApproachTags.Rapport, -1),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Maintain Privacy",
-            "You establish comfortable boundaries, preventing others from prying into sensitive areas.",
+            "You establish subtle but effective boundaries that keep others from probing sensitive areas without seeming distant.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
+        // MODIFIED WITH TRADEOFF: Hiding vs analyzing
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Find Cover",
-            "You locate physical cover or shelter that protects you from immediate threats.",
+            "Disappear",
+            "You identify and utilize overlooked environmental features to vanish completely, relying on instinct rather than thorough analysis.",
             FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
+            TagModification.ForEncounterState(ApproachTags.Analysis, -1),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Hide Resources",
-            "You conceal valuable resources, ensuring they remain available when truly needed.",
+            "You secretively stash valuable resources where only you can access them, ensuring they remain available when needed.",
             FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
             TagModification.ForFocus(FocusTags.Resource, 1)
         ));
 
         // ADVANCED HYBRID CHOICES
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Tactical Force",
-            "You apply force with calculated precision, maximizing impact while minimizing wasted effort.",
+            "You apply force with calculated precision, sacrificing social graces for effective action.",
             FocusTags.Physical,
             TagModification.ForEncounterState(ApproachTags.Dominance, 1),
             TagModification.ForEncounterState(ApproachTags.Analysis, 1),
+            TagModification.ForEncounterState(ApproachTags.Rapport, -1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
         _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
             "Charming Insight",
-            "You blend emotional intelligence with analytical thinking, gaining insights others miss.",
+            "You blend emotional intelligence with analytical observation, revealing insights that connect with others deeply.",
             FocusTags.Information,
             TagModification.ForEncounterState(ApproachTags.Rapport, 1),
             TagModification.ForEncounterState(ApproachTags.Analysis, 1),
+            TagModification.ForEncounterState(ApproachTags.Precision, -1),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
@@ -447,25 +486,30 @@ public class ChoiceRepository
             "You move with perfect control and silence, achieving the impossible without being detected.",
             FocusTags.Environment,
             TagModification.ForEncounterState(ApproachTags.Precision, 1),
-            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
+            TagModification.ForEncounterState(ApproachTags.Dominance, -1),
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
+        // HIGH-COMMITMENT HYBRID: Enhanced benefit (+2/+2) with greater cost (-2, -1) 
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Calculated Charm",
-            "You use a carefully calibrated approach to social interactions, defusing tensions through strategic empathy.",
+            "Calculated Vulnerability",
+            "You create a perfectly calibrated emotional connection through analytical understanding of human psychology, sacrificing any pretense or self-protection.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 1),
-            TagModification.ForEncounterState(ApproachTags.Rapport, 1),
+            TagModification.ForEncounterState(ApproachTags.Analysis, 2),
+            TagModification.ForEncounterState(ApproachTags.Rapport, 2),
+            TagModification.ForEncounterState(ApproachTags.Evasion, -2),
+            TagModification.ForEncounterState(ApproachTags.Dominance, -1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
         _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
             "Forceful Precision",
-            "You combine strength with perfect control, creating an imposing presence that deters threats.",
+            "You combine strength with perfect control, sacrificing stealth for effective controlled power.",
             FocusTags.Physical,
             TagModification.ForEncounterState(ApproachTags.Dominance, 1),
             TagModification.ForEncounterState(ApproachTags.Precision, 1),
+            TagModification.ForEncounterState(ApproachTags.Evasion, -1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
     }

@@ -1,9 +1,9 @@
 ﻿public class ResourceManager
 {
     private readonly PlayerState _playerState;
-    private readonly LocationEncounterInfo _location;
+    private readonly EncounterInfo _location;
 
-    public ResourceManager(PlayerState playerState, LocationEncounterInfo location)
+    public ResourceManager(PlayerState playerState, EncounterInfo location)
     {
         _playerState = playerState;
         _location = location;
@@ -32,28 +32,23 @@
         }
     }
 
-    public int CalculatePressureResourceDamage(ResourceTypes resourceType, int currentPressure)
+    public int CalculatePressureResourceDamage(ResourceTypes resourceType, int choicePressureValue)
     {
-        // Skip if no pressure or location doesn't apply pressure damage
-        if (currentPressure <= 2)
-            return 0;
-
-        // Only return a value for the resource type affected by this encounter type
         switch (_location.EncounterType)
         {
             case EncounterTypes.Physical:
                 if (resourceType == ResourceTypes.Health)
-                    return (int)-currentPressure / 3;
+                    return (int)-choicePressureValue;
                 break;
 
             case EncounterTypes.Intellectual:
                 if (resourceType == ResourceTypes.Concentration)
-                    return (int)-currentPressure / 3;
+                    return (int)-choicePressureValue;
                 break;
 
             case EncounterTypes.Social:
                 if (resourceType == ResourceTypes.Confidence)
-                    return (int)-currentPressure / 3;
+                    return (int)-choicePressureValue;
                 break;
         }
 

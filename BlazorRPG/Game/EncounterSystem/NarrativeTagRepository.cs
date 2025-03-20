@@ -6,12 +6,12 @@ public class NarrativeTagRepository
     // DOMINANCE-BASED NARRATIVE TAGS
     public static readonly NarrativeTag IntimidatingPresence = new(
         "Intimidating Presence",
-        new FocusThresholdCondition(ApproachTags.Dominance, 3),
+        new FocusThresholdCondition(ApproachTags.Dominance, 2),
         FocusTags.Relationship);
 
     public static readonly NarrativeTag BattleRage = new(
         "Battle Rage",
-        new FocusThresholdCondition(ApproachTags.Dominance, 3),
+        new FocusThresholdCondition(ApproachTags.Dominance, 4),
         FocusTags.Information);
 
     public static readonly NarrativeTag BruteForceFixation = new(
@@ -21,12 +21,12 @@ public class NarrativeTagRepository
 
     public static readonly NarrativeTag TunnelVision = new(
         "Tunnel Vision",
-        new FocusThresholdCondition(ApproachTags.Dominance, 3),
+        new FocusThresholdCondition(ApproachTags.Dominance, 2),
         FocusTags.Environment);
 
     public static readonly NarrativeTag DestructiveImpulse = new(
         "Destructive Impulse",
-        new FocusThresholdCondition(ApproachTags.Dominance, 3),
+        new FocusThresholdCondition(ApproachTags.Dominance, 2),
         FocusTags.Resource);
 
     // RAPPORT-BASED NARRATIVE TAGS
@@ -35,19 +35,19 @@ public class NarrativeTagRepository
         new FocusThresholdCondition(ApproachTags.Rapport, 4),
         FocusTags.Relationship);
 
-    public static readonly NarrativeTag SocialDistraction = new(
-        "Social Distraction",
-        new FocusThresholdCondition(ApproachTags.Rapport, 3),
+    public static readonly NarrativeTag SocialAwkwardness = new(
+        "Social Awkwardness",
+        new FocusThresholdCondition(ApproachTags.Rapport, 2),
         FocusTags.Information);
 
     public static readonly NarrativeTag HesitantPoliteness = new(
         "Hesitant Politeness",
-        new FocusThresholdCondition(ApproachTags.Rapport, 3),
+        new FocusThresholdCondition(ApproachTags.Rapport, 2),
         FocusTags.Physical);
 
     public static readonly NarrativeTag PublicAwareness = new(
         "Public Awareness",
-        new FocusThresholdCondition(ApproachTags.Rapport, 3),
+        new FocusThresholdCondition(ApproachTags.Rapport, 2),
         FocusTags.Environment);
 
     public static readonly NarrativeTag GenerousSpirit = new(
@@ -58,7 +58,7 @@ public class NarrativeTagRepository
     // ANALYSIS-BASED NARRATIVE TAGS
     public static readonly NarrativeTag ColdCalculation = new(
         "Cold Calculation",
-        new FocusThresholdCondition(ApproachTags.Analysis, 3),
+        new FocusThresholdCondition(ApproachTags.Analysis, 2),
         FocusTags.Relationship);
 
     public static readonly NarrativeTag AnalysisParalysis = new(
@@ -68,12 +68,12 @@ public class NarrativeTagRepository
 
     public static readonly NarrativeTag Overthinking = new(
         "Overthinking",
-        new FocusThresholdCondition(ApproachTags.Analysis, 3),
+        new FocusThresholdCondition(ApproachTags.Analysis, 2),
         FocusTags.Physical);
 
     public static readonly NarrativeTag DetailFixation = new(
         "Detail Fixation",
-        new FocusThresholdCondition(ApproachTags.Analysis, 3),
+        new FocusThresholdCondition(ApproachTags.Analysis, 2),
         FocusTags.Environment);
 
     public static readonly NarrativeTag TheoreticalMindset = new(
@@ -84,12 +84,12 @@ public class NarrativeTagRepository
     // PRECISION-BASED NARRATIVE TAGS
     public static readonly NarrativeTag MechanicalInteraction = new(
         "Mechanical Interaction",
-        new FocusThresholdCondition(ApproachTags.Precision, 3),
+        new FocusThresholdCondition(ApproachTags.Precision, 2),
         FocusTags.Relationship);
 
     public static readonly NarrativeTag NarrowFocus = new(
         "Narrow Focus",
-        new FocusThresholdCondition(ApproachTags.Precision, 3),
+        new FocusThresholdCondition(ApproachTags.Precision, 2),
         FocusTags.Information);
 
     public static readonly NarrativeTag PerfectionistParalysis = new(
@@ -99,7 +99,7 @@ public class NarrativeTagRepository
 
     public static readonly NarrativeTag DetailObsession = new(
         "Detail Obsession",
-        new FocusThresholdCondition(ApproachTags.Precision, 3),
+        new FocusThresholdCondition(ApproachTags.Precision, 2),
         FocusTags.Environment);
 
     public static readonly NarrativeTag InefficientPerfectionism = new(
@@ -107,29 +107,29 @@ public class NarrativeTagRepository
         new FocusThresholdCondition(ApproachTags.Precision, 4),
         FocusTags.Resource);
 
-    // CONCEALMENT-BASED NARRATIVE TAGS
+    // EVASION-BASED NARRATIVE TAGS
     public static readonly NarrativeTag ShadowVeil = new(
         "Shadow Veil",
-        new FocusThresholdCondition(ApproachTags.Concealment, 3),
+        new FocusThresholdCondition(ApproachTags.Evasion, 2),
         FocusTags.Relationship);
 
     public static readonly NarrativeTag ParanoidMindset = new(
         "Paranoid Mindset",
-        new FocusThresholdCondition(ApproachTags.Concealment, 3),
+        new FocusThresholdCondition(ApproachTags.Evasion, 2),
         FocusTags.Information);
 
     public static readonly NarrativeTag CautiousRestraint = new(
         "Cautious Restraint",
-        new FocusThresholdCondition(ApproachTags.Concealment, 3),
+        new FocusThresholdCondition(ApproachTags.Evasion, 2),
         FocusTags.Physical);
 
     public static readonly NarrativeTag HidingPlaceFixation = new(
         "Hiding Place Fixation",
-        new FocusThresholdCondition(ApproachTags.Concealment, 4),
+        new FocusThresholdCondition(ApproachTags.Evasion, 4),
         FocusTags.Environment);
 
     public static readonly NarrativeTag HoardingInstinct = new(
         "Hoarding Instinct",
-        new FocusThresholdCondition(ApproachTags.Concealment, 3),
+        new FocusThresholdCondition(ApproachTags.Evasion, 2),
         FocusTags.Resource);
 }

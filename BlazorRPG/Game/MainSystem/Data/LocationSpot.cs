@@ -2,18 +2,18 @@
 {
     public string Name { get; set; }
     public LocationNames LocationName { get; set; }
-    public List<ActionImplementation> Actions { get; set; } = new();
     public CharacterNames? Character { get; set; }
-
     public Accessibility? Accessibility { get; set; }
-    public Engagement? Engagement { get; set; }
+    public LocationType? Engagement { get; set; }
     public Atmosphere? Atmosphere { get; set; }
     public RoomLayout? RoomLayout { get; set; }
     public Temperature? Temperature { get; set; }
+    public List<ActionNames> ActionNames { get; } = new();
+    public List<ActionImplementation> Actions { get; } = new();
 
-    public void AddAction(ActionImplementation action)
+    public void AddAction(ActionImplementation baseAction)
     {
-        Actions.Add(action);
+        Actions.Add(baseAction);
     }
 
     public bool HasProperty<T>(T locationSpotProperty) where T : struct, Enum // Added constraint for enum
@@ -22,7 +22,7 @@
         {
             return Accessibility.HasValue && Accessibility == accessibility;
         }
-        else if (locationSpotProperty is Engagement engagement)
+        else if (locationSpotProperty is LocationType engagement)
         {
             return Engagement.HasValue && Engagement == engagement;
         }
@@ -44,16 +44,15 @@
             throw new ArgumentException($"Unsupported property type: {typeof(T)}");
         }
     }
-
     public LocationSpot(
         string name,
         LocationNames locationName,
         Accessibility? accessibility,
-        Engagement? engagement,
+        LocationType? engagement,
         Atmosphere? atmosphere,
         RoomLayout? roomLayout,
-        Temperature? temperature
-        )
+        Temperature? temperature,
+        List<ActionNames> actionNames)
     {
         Name = name;
         LocationName = locationName;
@@ -62,5 +61,6 @@
         Atmosphere = atmosphere;
         RoomLayout = roomLayout;
         Temperature = temperature;
+        ActionNames = actionNames;
     }
 }

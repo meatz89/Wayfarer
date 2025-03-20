@@ -3,9 +3,9 @@
     Private, Communal, Public
 }
 
-public enum Engagement
+public enum LocationType
 {
-    Idle, Entertainment, Service
+    Rest, Commercial, Service
 }
 
 public enum Atmosphere

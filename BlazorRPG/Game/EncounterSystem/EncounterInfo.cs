@@ -1,11 +1,14 @@
 ﻿/// <summary>
 /// Represents a location in the game where encounters take place
 /// </summary>
-public class LocationEncounterInfo
+public class EncounterInfo
 {
     public LocationNames LocationName { get; set; }
-    public List<ApproachTags> FavoredApproaches { get; } = new List<ApproachTags>();
-    public List<ApproachTags> DisfavoredApproaches { get; } = new List<ApproachTags>();
+    public string LocationSpotName { get; set; }
+    public List<FocusTags> PressureReducingFocuses { get; } = new List<FocusTags>();
+    public List<FocusTags> MomentumReducingFocuses { get; } = new List<FocusTags>();
+    public List<ApproachTags> MomentumBoostApproaches { get; } = new List<ApproachTags>();
+    public List<ApproachTags> DangerousApproaches { get; } = new List<ApproachTags>();
     public List<IEncounterTag> AvailableTags { get; } = new List<IEncounterTag>();
 
     // Success thresholds
@@ -25,30 +28,37 @@ public class LocationEncounterInfo
     // Presentation style for this location
     public EncounterTypes EncounterType { get; set; }
 
-    public LocationEncounterInfo(
+    public EncounterInfo(
         LocationNames locationName,
+        string locationSpot,
         List<ApproachTags> favoreApproaches,
-        List<ApproachTags> disfavoredApproaches,
+        List<ApproachTags> dangerousApproaches,
+        List<FocusTags> PressureReducingFocuses,
+        List<FocusTags> MomentumReducingFocuses,
         int duration,
+        int maxPressure,
         int partialThreshold,
         int standardThreshold,
         int exceptionalThreshold,
         HostilityLevels hostility,
-        EncounterTypes style,
-        int maxPressure = 10)
+        EncounterTypes style)
     {
-        LocationName = locationName;
-        FavoredApproaches = favoreApproaches;
-        DisfavoredApproaches = disfavoredApproaches;
+        this.LocationName = locationName;
+        this.LocationSpotName = locationSpot;
 
-        PartialThreshold = partialThreshold;
-        StandardThreshold = standardThreshold;
-        ExceptionalThreshold = exceptionalThreshold;
+        this.MomentumBoostApproaches = favoreApproaches;
+        this.DangerousApproaches = dangerousApproaches;
+        this.PressureReducingFocuses = PressureReducingFocuses;
+        this.MomentumReducingFocuses = MomentumReducingFocuses;
 
-        TurnDuration = duration;
-        Hostility = hostility;
-        EncounterType = style;
-        MaxPressure = maxPressure;
+        this.PartialThreshold = partialThreshold;
+        this.StandardThreshold = standardThreshold;
+        this.ExceptionalThreshold = exceptionalThreshold;
+
+        this.TurnDuration = duration;
+        this.Hostility = hostility;
+        this.EncounterType = style;
+        this.MaxPressure = maxPressure;
     }
 
     public void AddTag(NarrativeTag narrativeTag)

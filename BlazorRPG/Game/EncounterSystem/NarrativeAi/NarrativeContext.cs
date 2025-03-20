@@ -6,15 +6,21 @@
 public class NarrativeContext
 {
     public string LocationName { get; }
+    public string locationSpotName { get; }
     public EncounterTypes EncounterType { get; }
-    public string IncitingAction { get; }
+    public ActionImplementation ActionImplementation { get; }
     public List<NarrativeEvent> Events { get; } = new List<NarrativeEvent>();
 
-    public NarrativeContext(string location, EncounterTypes encounterType, string incitingAction)
+    public NarrativeContext(
+        string location,
+        string locationSpot,
+        EncounterTypes encounterType,
+        ActionImplementation incitingAction)
     {
         LocationName = location;
+        locationSpotName = locationSpot;
         EncounterType = encounterType;
-        IncitingAction = incitingAction;
+        ActionImplementation = incitingAction;
     }
 
     public void AddEvent(NarrativeEvent narrativeEvent)
@@ -34,7 +40,7 @@ public class NarrativeContext
     {
         StringBuilder prompt = new StringBuilder();
         prompt.AppendLine($"Location: {LocationName}");
-        prompt.AppendLine($"Inciting Action: {IncitingAction}");
+        prompt.AppendLine($"Inciting Action: {ActionImplementation}");
         prompt.AppendLine($"Presentation Style: {EncounterType}");
         prompt.AppendLine();
 

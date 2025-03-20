@@ -87,24 +87,24 @@ public class StrategicTagRepository
         StrategicEffectTypes.IncreasePressure,
         ApproachTags.Precision);
 
-    // CONCEALMENT-BASED STRATEGIC TAGS
+    // EVASION-BASED STRATEGIC TAGS
     public static readonly StrategicTag TacticalAdvantage = new(
         "Tactical Advantage",
         StrategicEffectTypes.IncreaseMomentum,
-        ApproachTags.Concealment);
+        ApproachTags.Evasion);
 
     public static readonly StrategicTag InvisiblePresence = new(
         "Invisible Presence",
         StrategicEffectTypes.DecreasePressure,
-        ApproachTags.Concealment);
+        ApproachTags.Evasion);
 
     public static readonly StrategicTag OvercautiousApproach = new(
         "Overcautious Approach",
         StrategicEffectTypes.DecreaseMomentum,
-        ApproachTags.Concealment);
+        ApproachTags.Evasion);
 
     public static readonly StrategicTag SuspiciousBehavior = new(
         "Suspicious Behavior",
         StrategicEffectTypes.IncreasePressure,
-        ApproachTags.Concealment);
+        ApproachTags.Evasion);
 }

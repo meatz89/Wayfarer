@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using System.Text.Json;
 
 public class PromptManager
 {
@@ -7,8 +6,10 @@ public class PromptManager
 
     private const string SYSTEM_MD = "system";
     private const string INTRO_MD = "introduction";
-    private const string NARRATIVE_MD = "resolution";
+    private const string REACTION_MD = "reaction";
     private const string CHOICES_MD = "choices";
+    private const string ENDING_MD = "ending";
+    private const string MEMORY_MD = "memory";
 
     public PromptManager(IConfiguration configuration)
     {
@@ -20,44 +21,211 @@ public class PromptManager
         LoadPromptTemplates(promptsPath);
     }
 
-    public string GetSystemMessage()
+    public string BuildIntroductionPrompt(
+        NarrativeContext context,
+        EncounterStatus state,
+        string memoryContent)
     {
-        string template = _promptTemplates[SYSTEM_MD];
-        return template;
+        string template = _promptTemplates[INTRO_MD];
+
+        // Get primary approach values
+        string primaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).First().Key.ToString();
+        string secondaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).Skip(1).First().Key.ToString();
+
+        // Get significant focus tags
+        string primaryFocus = state.FocusTags.OrderByDescending(t => t.Value).First().Key.ToString();
+        string secondaryFocus = state.FocusTags.OrderByDescending(t => t.Value).Skip(1).First().Key.ToString();
+
+        // Format environment and NPC details
+        string environmentDetails = $"A {context.LocationName.ToLower()} with difficulty level {state.EncounterInfo?.Difficulty ?? 1}";
+        string npcList = "Local individuals relevant to the encounter";
+        string timeConstraints = $"Maximum {state.MaxTurns} turns";
+        string additionalChallenges = state.EncounterInfo != null
+            ? $"Difficulty level {state.EncounterInfo.Difficulty} (adds +{state.EncounterInfo.Difficulty} pressure per turn)"
+            : "Standard difficulty";
+
+        // Format character archetype based on primary approach
+        string characterArchetype = GetCharacterArchetype(primaryApproach);
+
+        // Format approach stats
+        string approachStats = FormatApproachValues(state);
+
+        ActionImplementation actionImplementation = context.ActionImplementation;
+        string encounterGoal = actionImplementation.Goal;
+        string encounterComplication = actionImplementation.Complication;
+
+        // Replace placeholders in template
+        string prompt = template
+            .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
+            .Replace("{LOCATION_NAME}", context.LocationName)
+            .Replace("{LOCATION_SPOT}", context.locationSpotName)
+            .Replace("{CHARACTER_ARCHETYPE}", characterArchetype)
+            .Replace("{APPROACH_STATS}", approachStats)
+            .Replace("{CHARACTER_GOAL}", encounterGoal)
+            .Replace("{ENVIRONMENT_DETAILS}", environmentDetails)
+            .Replace("{NPC_LIST}", npcList)
+            .Replace("{TIME_CONSTRAINTS}", timeConstraints)
+            .Replace("{ADDITIONAL_CHALLENGES}", additionalChallenges)
+            .Replace("{ENCOUNTER_COMPLICATION}", encounterComplication)
+            .Replace("{MEMORY_CONTENT}", memoryContent);
+
+        return prompt;
     }
 
-    private void LoadPromptTemplates(string basePath)
+    public string BuildChoicesPrompt(
+        NarrativeContext context,
+        List<IChoice> choices,
+        List<ChoiceProjection> projections,
+        EncounterStatus state)
     {
-        // Load all JSON files in the prompts directory
-        foreach (string filePath in Directory.GetFiles(basePath, "*.md"))
+        string template = _promptTemplates[CHOICES_MD];
+
+        // Create a complete encounter history for context
+        NarrativeSummaryBuilder builder = new NarrativeSummaryBuilder();
+        string completeHistory = builder.CreateCompleteHistory(context);
+
+        // Get the most recent narrative event
+        string currentSituation = "No previous narrative available.";
+        if (context.Events.Count > 0)
         {
-            string key = Path.GetFileNameWithoutExtension(filePath);
-            string mdContent = LoadPromptFile(filePath);
-            string jsonContent = CreatePromptJson(mdContent);
-            _promptTemplates[key] = jsonContent;
+            NarrativeEvent lastEvent = context.Events[context.Events.Count - 1];
+            currentSituation = lastEvent.SceneDescription;
         }
-    }
 
-    private string LoadPromptFile(string filePath)
-    {
-        if (!File.Exists(filePath))
+        // Get encounter type from presentation style
+        string choiceStyleGuidance = GetChoiceStyleGuidance(context.EncounterType);
+
+        // Format the active narrative tags for choice blocking awareness
+        StringBuilder narrativeTagsInfo = new StringBuilder();
+        narrativeTagsInfo.AppendLine("## Active Narrative Tags:");
+        foreach (IEncounterTag? tag in state.ActiveTags.Where(t => t is NarrativeTag))
         {
-            throw new FileNotFoundException($"Prompt file not found: {filePath}");
+            NarrativeTag narrativeTag = (NarrativeTag)tag;
+            narrativeTagsInfo.AppendLine($"- {tag.Name}: Blocks {narrativeTag.BlockedFocus} focus choices");
         }
 
-        string mdContent = File.ReadAllText(filePath);
-        return mdContent;
+        // Add location strategic preferences
+        StringBuilder locationPreferences = new StringBuilder();
+        locationPreferences.AppendLine("## Location Strategic Information:");
+
+        if (state.EncounterInfo?.MomentumBoostApproaches?.Any() == true)
+        {
+            locationPreferences.AppendLine($"- Favored Approaches: {string.Join(", ", state.EncounterInfo.MomentumBoostApproaches)}");
+            locationPreferences.AppendLine("  These approaches work particularly well in this location.");
+        }
+
+        if (state.EncounterInfo?.DangerousApproaches?.Any() == true)
+        {
+            locationPreferences.AppendLine($"- Disfavored Approaches: {string.Join(", ", state.EncounterInfo.DangerousApproaches)}");
+            locationPreferences.AppendLine("  These approaches are challenging or risky here.");
+        }
+
+        if (state.EncounterInfo?.PressureReducingFocuses?.Any() == true)
+        {
+            locationPreferences.AppendLine($"- Favored Focuses: {string.Join(", ", state.EncounterInfo.PressureReducingFocuses)}");
+            locationPreferences.AppendLine("  These focuses are particularly effective here.");
+        }
+
+        if (state.EncounterInfo?.MomentumReducingFocuses?.Any() == true)
+        {
+            locationPreferences.AppendLine($"- Disfavored Focuses: {string.Join(", ", state.EncounterInfo.MomentumReducingFocuses)}");
+            locationPreferences.AppendLine("  These focuses may lead to resource loss or complications.");
+        }
+
+        // Format choices info
+        StringBuilder choicesInfo = new StringBuilder();
+        for (int i = 0; i < choices.Count; i++)
+        {
+            IChoice choice = choices[i];
+            ChoiceProjection projection = projections[i];
+
+            // Get the primary approach tag
+            ApproachTags primaryApproach = GetPrimaryApproach(choice);
+
+            // Determine if this choice is blocked by a narrative tag
+            bool isBlocked = state.ActiveTags.Any(t => t is NarrativeTag nt && nt.BlockedFocus == choice.Focus);
+
+            choicesInfo.AppendLine($@"
+Choice {i + 1}: {choice.Name}
+- Approach: {primaryApproach} 
+- Focus: {choice.Focus}
+- Effect Type: {choice.EffectType}
+- Momentum Change: {projection.MomentumGained}
+- Pressure Change: {projection.PressureBuilt}
+- Health Change: {projection.HealthChange}
+- Concentration Change: {projection.ConcentrationChange}
+- Confidence Change: {projection.ConfidenceChange}");
+
+            // Add encounter ending information if this choice will end the encounter
+            if (projection.EncounterWillEnd)
+            {
+                choicesInfo.AppendLine($"- Encounter Will End: True");
+                choicesInfo.AppendLine($"- Final Outcome: {projection.ProjectedOutcome}");
+                choicesInfo.AppendLine($"- Goal Achievement: " +
+                    $"{(projection.ProjectedOutcome != EncounterOutcomes.Failure ? 
+                    "Will achieve goal to" : "Will fail to")} {context.ActionImplementation.Goal}");
+            }
+
+            // Add any new narrative tags that would activate
+            if (projection.NewlyActivatedTags.Any())
+            {
+                choicesInfo.AppendLine("- Would Activate Tags: " + string.Join(", ", projection.NewlyActivatedTags));
+            }
+
+            // Add any strategic tag effects
+            List<ChoiceProjection.ValueComponent> momentumComponents = projection.MomentumComponents.Where(c => c.Source != "Momentum Choice Base").ToList();
+            List<ChoiceProjection.ValueComponent> pressureComponents = projection.PressureComponents.Where(c => c.Source != "Pressure Choice Base").ToList();
+
+            if (momentumComponents.Any() || pressureComponents.Any())
+            {
+                choicesInfo.AppendLine("- Strategic Effects:");
+                foreach (ChoiceProjection.ValueComponent? comp in momentumComponents)
+                {
+                    choicesInfo.AppendLine($"  * {comp.Source}: {comp.Value} momentum");
+                }
+                foreach (ChoiceProjection.ValueComponent? comp in pressureComponents)
+                {
+                    choicesInfo.AppendLine($"  * {comp.Source}: {comp.Value} pressure");
+                }
+            }
+        }
+
+        // Format approach values
+        string approachValues = FormatApproachValues(state);
+
+        // Format active tag names
+        string activeTags = string.Join(", ", state.ActiveTagNames);
+
+        string encounterGoal = context.ActionImplementation.Goal;
+
+        // Replace placeholders in template
+        string prompt = template
+            .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
+            .Replace("{LOCATION_NAME}", context.LocationName)
+            .Replace("{LOCATION_SPOT}", context.locationSpotName)
+            .Replace("{CHARACTER_GOAL}", encounterGoal)
+            .Replace("{CURRENT_SITUATION}", currentSituation)
+            .Replace("{ACTIVE_TAGS}", narrativeTagsInfo.ToString())
+            .Replace("{LOCATION_PREFERENCES}", locationPreferences.ToString())
+            .Replace("{MOMENTUM}", state.Momentum.ToString())
+            .Replace("{PRESSURE}", state.Pressure.ToString())
+            .Replace("{APPROACH_VALUES}", approachValues)
+            .Replace("{LIST_TAGS}", activeTags)
+            .Replace("{NPC_LIST}", "relevant individuals in the scene")
+            .Replace("{CHOICES_INFO}", choicesInfo.ToString())
+            .Replace("{CHOICE_STYLE_GUIDANCE}", choiceStyleGuidance);
+
+        return prompt;
     }
 
-
-    public string BuildNarrativePrompt(
+    public string BuildReactionPrompt(
         NarrativeContext context,
         IChoice chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         EncounterStatus newState)
     {
-        string template = _promptTemplates[NARRATIVE_MD];
+        string template = _promptTemplates[REACTION_MD];
 
         // Extract primary approach tag
         ApproachTags primaryApproach = GetPrimaryApproach(chosenOption);
@@ -69,7 +237,8 @@ public class PromptManager
         string tagActivationGuidance = FormatTagActivationForNarrative(outcome);
 
         // Create a complete encounter history for context
-        string completeHistory = CreateCompleteHistory(context);
+        NarrativeSummaryBuilder builder = new NarrativeSummaryBuilder();
+        string completeHistory = builder.CreateCompleteHistory(context);
 
         // Get encounter type from presentation style
         string encounterType = GetEncounterStyleGuidance(context.EncounterType);
@@ -105,18 +274,19 @@ public class PromptManager
         int previousPressure = newState.Pressure - outcome.PressureGain;
 
         // Extract encounter goal from inciting action
-        string encounterGoal = context.IncitingAction;
+        string encounterGoal = context.ActionImplementation.Goal;
 
         // Get the choice narrative description
         string choiceNarrativeDesc = choiceDescription?.FullDescription ?? chosenOption.Name;
 
         // Replace placeholders in template
         string prompt = template
-            .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
-            .Replace("{LOCATION}", context.LocationName)
-            .Replace("{CHARACTER_GOAL}", encounterGoal)
             .Replace("{SELECTED_CHOICE}", chosenOption.Name)
             .Replace("{CHOICE_DESCRIPTION}", choiceNarrativeDesc)
+            .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
+            .Replace("{LOCATION_NAME}", context.LocationName)
+            .Replace("{LOCATION_SPOT}", context.locationSpotName)
+            .Replace("{CHARACTER_GOAL}", encounterGoal)
             .Replace("{APPROACH}", primaryApproach.ToString())
             .Replace("{FOCUS}", chosenOption.Focus.ToString())
             .Replace("{EFFECT_TYPE}", chosenOption.EffectType.ToString())
@@ -135,218 +305,89 @@ public class PromptManager
         return prompt;
     }
 
-    public string BuildChoicesPrompt(
+    public string BuildEncounterEndPrompt(
         NarrativeContext context,
-        List<IChoice> choices,
-        List<ChoiceProjection> projections,
-        EncounterStatus state)
+        EncounterStatus finalState,
+        EncounterOutcomes outcome,
+        IChoice finalChoice,
+        ChoiceNarrative choiceDescription
+        )
     {
-        string template = _promptTemplates[CHOICES_MD];
+        string template = _promptTemplates[ENDING_MD];
 
-        // Create a complete encounter history for context
-        string completeHistory = CreateCompleteHistory(context);
-
-        // Get the most recent narrative event
-        string currentSituation = "No previous narrative available.";
+        // Get the last narrative event
+        string lastNarrative = "No previous narrative available.";
         if (context.Events.Count > 0)
         {
             NarrativeEvent lastEvent = context.Events[context.Events.Count - 1];
-            currentSituation = lastEvent.SceneDescription;
-        }
-
-        // Get encounter type from presentation style
-        string choiceStyleGuidance = GetChoiceStyleGuidance(context.EncounterType);
-
-        // Format the active narrative tags for choice blocking awareness
-        StringBuilder narrativeTagsInfo = new StringBuilder();
-        narrativeTagsInfo.AppendLine("## Active Narrative Tags:");
-        foreach (IEncounterTag? tag in state.ActiveTags.Where(t => t is NarrativeTag))
-        {
-            NarrativeTag narrativeTag = (NarrativeTag)tag;
-            narrativeTagsInfo.AppendLine($"- {tag.Name}: Blocks {narrativeTag.BlockedFocus} focus choices");
-        }
-
-        // Format choices info
-        StringBuilder choicesInfo = new StringBuilder();
-        for (int i = 0; i < choices.Count; i++)
-        {
-            IChoice choice = choices[i];
-            ChoiceProjection projection = projections[i];
-
-            // Get the primary approach tag
-            ApproachTags primaryApproach = GetPrimaryApproach(choice);
-
-            // Determine if this choice is blocked by a narrative tag
-            bool isBlocked = state.ActiveTags.Any(t => t is NarrativeTag nt && nt.BlockedFocus == choice.Focus);
-
-            choicesInfo.AppendLine($@"
-Choice {i + 1}: {choice.Name}
-- Approach: {primaryApproach} 
-- Focus: {choice.Focus}
-- Effect Type: {choice.EffectType}
-- Momentum Change: {projection.MomentumGained}
-- Pressure Change: {projection.PressureBuilt}
-- Health Change: {projection.HealthChange}
-- Concentration Change: {projection.ConcentrationChange}
-- Confidence Change: {projection.ConfidenceChange}");
-
-            // Add any new narrative tags that would activate
-            if (projection.NewlyActivatedTags.Any())
-            {
-                choicesInfo.AppendLine("- Would Activate Tags: " + string.Join(", ", projection.NewlyActivatedTags));
-            }
-
-            // Add any strategic tag effects
-            List<ChoiceProjection.ValueComponent> momentumComponents = projection.MomentumComponents.Where(c => c.Source != "Momentum Choice Base").ToList();
-            List<ChoiceProjection.ValueComponent> pressureComponents = projection.PressureComponents.Where(c => c.Source != "Pressure Choice Base").ToList();
-
-            if (momentumComponents.Any() || pressureComponents.Any())
-            {
-                choicesInfo.AppendLine("- Strategic Effects:");
-                foreach (ChoiceProjection.ValueComponent? comp in momentumComponents)
-                {
-                    choicesInfo.AppendLine($"  * {comp.Source}: {comp.Value} momentum");
-                }
-                foreach (ChoiceProjection.ValueComponent? comp in pressureComponents)
-                {
-                    choicesInfo.AppendLine($"  * {comp.Source}: {comp.Value} pressure");
-                }
-            }
+            lastNarrative = lastEvent.SceneDescription;
         }
 
         // Format approach values
-        string approachValues = FormatApproachValues(state);
+        string approachValues = FormatApproachValues(finalState);
 
-        // Format active tag names
-        string activeTags = string.Join(", ", state.ActiveTagNames);
+        // Format focus values
+        StringBuilder focusValues = new StringBuilder();
+        foreach (KeyValuePair<FocusTags, int> focus in finalState.FocusTags)
+        {
+            focusValues.Append($"{focus.Key} {focus.Value}, ");
+        }
+
+        // Remove trailing comma
+        string formattedFocusValues = focusValues.ToString().TrimEnd(',', ' ');
+
+        // Get encounter type from presentation style
+        string encounterType = GetEncounterStyleGuidance(context.EncounterType);
 
         // Extract encounter goal from inciting action
-        string encounterGoal = context.IncitingAction;
+        string encounterGoal = context.ActionImplementation.Goal;
+
+        // Add goal achievement status
+        string goalAchievementStatus = outcome != EncounterOutcomes.Failure
+            ? $"You have successfully achieved your goal to {encounterGoal}"
+            : $"You have failed to {encounterGoal}";
+
+        // Get the choice narrative description
+        string choiceNarrativeDesc = choiceDescription?.FullDescription ?? finalChoice.Name;
 
         // Replace placeholders in template
         string prompt = template
-            .Replace("{LOCATION}", context.LocationName)
-            .Replace("{CHARACTER_GOAL}", encounterGoal)
-            .Replace("{CURRENT_SITUATION}", currentSituation)
-            .Replace("{ACTIVE_TAGS}", narrativeTagsInfo.ToString())
-            .Replace("{MOMENTUM}", state.Momentum.ToString())
-            .Replace("{PRESSURE}", state.Pressure.ToString())
-            .Replace("{APPROACH_VALUES}", approachValues)
-            .Replace("{LIST_TAGS}", activeTags)
-            .Replace("{NPC_LIST}", "relevant individuals in the scene")
-            .Replace("{CHOICES_INFO}", choicesInfo.ToString())
-            .Replace("{CHOICE_STYLE_GUIDANCE}", choiceStyleGuidance);
-
-        return prompt;
-    }
-
-    public string BuildIntroductionPrompt(
-        NarrativeContext context,
-        string incitingAction,
-        EncounterStatus state,
-        string encounterGoal = "")
-    {
-        string template = _promptTemplates[INTRO_MD];
-
-        // Get primary approach values
-        string primaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).First().Key.ToString();
-        string secondaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).Skip(1).First().Key.ToString();
-
-        // Get significant focus tags
-        string primaryFocus = state.FocusTags.OrderByDescending(t => t.Value).First().Key.ToString();
-        string secondaryFocus = state.FocusTags.OrderByDescending(t => t.Value).Skip(1).First().Key.ToString();
-
-        // Format environment and NPC details
-        string environmentDetails = $"A {context.LocationName.ToLower()} with difficulty level {state.Location?.Difficulty ?? 1}";
-        string npcList = "Local individuals relevant to the encounter";
-        string timeConstraints = $"Maximum {state.MaxTurns} turns";
-        string additionalChallenges = state.Location != null
-            ? $"Difficulty level {state.Location.Difficulty} (adds +{state.Location.Difficulty} pressure per turn)"
-            : "Standard difficulty";
-
-        // Format character archetype based on primary approach
-        string characterArchetype = GetCharacterArchetype(primaryApproach);
-
-        // Format approach stats
-        string approachStats = FormatApproachValues(state);
-
-        // If encounterGoal is empty, use incitingAction
-        if (string.IsNullOrEmpty(encounterGoal))
-        {
-            encounterGoal = incitingAction;
-        }
-
-        // Replace placeholders in template
-        string prompt = template
+            .Replace("{SELECTED_CHOICE}", finalChoice.Name)
+            .Replace("{CHOICE_DESCRIPTION}", choiceNarrativeDesc)
             .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
+            .Replace("{ENCOUNTER_OUTCOME}", outcome.ToString())
             .Replace("{LOCATION_NAME}", context.LocationName)
-            .Replace("{CHARACTER_ARCHETYPE}", characterArchetype)
-            .Replace("{APPROACH_STATS}", approachStats)
+            .Replace("{LOCATION_SPOT}", context.locationSpotName)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
-            .Replace("{ENVIRONMENT_DETAILS}", environmentDetails)
-            .Replace("{NPC_LIST}", npcList)
-            .Replace("{TIME_CONSTRAINTS}", timeConstraints)
-            .Replace("{ADDITIONAL_CHALLENGES}", additionalChallenges);
+            .Replace("{FINAL_MOMENTUM}", finalState.Momentum.ToString())
+            .Replace("{FINAL_PRESSURE}", finalState.Pressure.ToString())
+            .Replace("{APPROACH_VALUES}", approachValues)
+            .Replace("{FOCUS_VALUES}", formattedFocusValues)
+            .Replace("{LAST_NARRATIVE}", lastNarrative)
+            .Replace("{GOAL_ACHIEVEMENT_STATUS}", goalAchievementStatus);
 
         return prompt;
     }
 
-    // Helper method for creating a complete encounter history
-    private string CreateCompleteHistory(NarrativeContext context)
+    public string BuildMemoryPrompt(
+        NarrativeContext context,
+        ChoiceOutcome outcome,
+        EncounterStatus newState,
+        string oldMemory)
     {
-        if (context.Events.Count == 0)
-        {
-            return $"Beginning a new encounter at {context.LocationName} after {context.IncitingAction}.";
-        }
+        string template = _promptTemplates[MEMORY_MD];
 
-        StringBuilder history = new StringBuilder();
-        history.AppendLine("# Complete Encounter History");
-        history.AppendLine($"Location: {context.LocationName} | Encounter Type: {context.EncounterType} | Goal: {context.IncitingAction}");
-        history.AppendLine();
+        NarrativeSummaryBuilder builder = new NarrativeSummaryBuilder();
+        string completeHistory = builder.CreateCompleteHistory(context);
+        var summary = builder.CreateSummary(context);
 
-        // Create detailed history of all events
-        for (int i = 0; i < context.Events.Count; i++)
-        {
-            NarrativeEvent evt = context.Events[i];
+        // Replace placeholders in template
+        string prompt = template
+            .Replace("{FILE_CONTENT}", oldMemory);
 
-            history.AppendLine($"## Turn {evt.TurnNumber}");
-
-            // Add initial scene description
-            if (i == 0)
-            {
-                history.AppendLine("### Initial Scene");
-                history.AppendLine(evt.SceneDescription);
-                history.AppendLine();
-            }
-            else
-            {
-                // For other turns, add chosen option and outcome
-                if (evt.ChosenOption != null)
-                {
-                    history.AppendLine($"### Choice: {evt.ChosenOption.Name}");
-
-                    // Add choice narrative description if available
-                    if (evt.ChoiceNarrative != null && !string.IsNullOrEmpty(evt.ChoiceNarrative.FullDescription))
-                    {
-                        history.AppendLine($"Description: {evt.ChoiceNarrative.FullDescription}");
-                    }
-
-                    // Add outcome
-                    if (!string.IsNullOrEmpty(evt.Outcome))
-                    {
-                        history.AppendLine($"Outcome: {evt.Outcome}");
-                    }
-                }
-
-                // Add scene description
-                history.AppendLine("### Scene");
-                history.AppendLine(evt.SceneDescription);
-                history.AppendLine();
-            }
-        }
-
-        return history.ToString();
+        return prompt;
     }
+
 
     // Helper methods for formatting ChoiceOutcome data
     private string FormatTagChangesForNarrative(ChoiceOutcome outcome)
@@ -489,7 +530,7 @@ Choice {i + 1}: {choice.Name}
             "Rapport" => "Bard",
             "Analysis" => "Scholar",
             "Precision" => "Ranger",
-            "Concealment" => "Thief",
+            "Evasion" => "Thief",
             _ => "Traveler"
         };
     }
@@ -540,7 +581,7 @@ Choice {i + 1}: {choice.Name}
                tag == ApproachTags.Rapport ||
                tag == ApproachTags.Analysis ||
                tag == ApproachTags.Precision ||
-               tag == ApproachTags.Concealment;
+               tag == ApproachTags.Evasion;
     }
 
     private string GetApproachChangeDescription(ApproachTags approach, bool isPositive)
@@ -555,8 +596,8 @@ Choice {i + 1}: {choice.Name}
             (ApproachTags.Analysis, false) => "confusion, overlooking details, or failing to make connections",
             (ApproachTags.Precision, true) => "improved accuracy, careful execution, or greater control",
             (ApproachTags.Precision, false) => "clumsiness, carelessness, or lack of control",
-            (ApproachTags.Concealment, true) => "better stealth, secrecy, or ability to hide intentions",
-            (ApproachTags.Concealment, false) => "exposure, visibility, or inability to hide",
+            (ApproachTags.Evasion, true) => "better stealth, secrecy, or ability to hide intentions",
+            (ApproachTags.Evasion, false) => "exposure, visibility, or inability to hide",
             _ => "significant change in approach"
         };
     }
@@ -613,4 +654,36 @@ Choice {i + 1}: {choice.Name}
 
         return jsonBuilder.ToString();
     }
+
+
+
+    public string GetSystemMessage()
+    {
+        string template = _promptTemplates[SYSTEM_MD];
+        return template;
+    }
+
+    private void LoadPromptTemplates(string basePath)
+    {
+        // Load all JSON files in the prompts directory
+        foreach (string filePath in Directory.GetFiles(basePath, "*.md"))
+        {
+            string key = Path.GetFileNameWithoutExtension(filePath);
+            string mdContent = LoadPromptFile(filePath);
+            string jsonContent = CreatePromptJson(mdContent);
+            _promptTemplates[key] = jsonContent;
+        }
+    }
+
+    private string LoadPromptFile(string filePath)
+    {
+        if (!File.Exists(filePath))
+        {
+            throw new FileNotFoundException($"Prompt file not found: {filePath}");
+        }
+
+        string mdContent = File.ReadAllText(filePath);
+        return mdContent;
+    }
+
 }
