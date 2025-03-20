@@ -109,4 +109,14 @@
         return await _providers[_currentProvider].GenerateMemoryFileAsync(
             context, outcome, newState, oldMemory);
     }
+
+    public async Task<string> GenerateStateChangesAsync(
+        NarrativeContext context,
+        ChoiceOutcome outcome,
+        EncounterStatusModel newState
+        )
+    {
+        return await _providers[_currentProvider].GenerateStateChangesAsync(
+            context, outcome, newState);
+    }
 }

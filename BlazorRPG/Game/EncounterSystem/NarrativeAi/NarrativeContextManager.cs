@@ -73,7 +73,7 @@
         // Always include introduction with memory and its response
         ConversationEntry? introPrompt = fullHistory.FirstOrDefault(m => m.Type == MessageType.Introduction && m.Role == "user");
         string simplifiedIntro = SimplifyIntroductionPrompt(introPrompt.Content);
-        
+
         ConversationEntry? introResponse = fullHistory.FirstOrDefault(m => m.Type == MessageType.Introduction && m.Role == "assistant");
 
         if (introPrompt != null)

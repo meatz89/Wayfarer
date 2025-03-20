@@ -231,6 +231,12 @@
                 await UpdateMemoryFile(outcome, newStatus);
             }
 
+            bool _processStateChanges = true;
+            if(_processStateChanges)
+            {
+                EncounterSummaryResult stateChanges = await GenerateStateChanges(outcome, newStatus);
+            }
+
             NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
             _narrativeContext.AddEvent(narrativeEvent);
 
@@ -325,5 +331,19 @@
             );
 
         await MemoryFileAccess.WriteToMemoryFile(outcome, newStatus, memoryContent);
+    }
+
+    private async Task<EncounterSummaryResult> GenerateStateChanges(ChoiceOutcome outcome, EncounterStatusModel newStatus)
+    {
+        string stateChangesJson = await _narrativeService.GenerateStateChangesAsync(
+            _narrativeContext,
+            outcome,
+            newStatus
+            );
+
+        EncounterSummaryParser parser = new EncounterSummaryParser();
+        EncounterSummaryResult summary = parser.ParseSummary(stateChangesJson);
+
+        return summary;
     }
 }

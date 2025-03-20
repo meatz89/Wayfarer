@@ -10,6 +10,7 @@ public class PromptManager
     private const string CHOICES_MD = "choices";
     private const string ENDING_MD = "ending";
     private const string MEMORY_MD = "memory";
+    private const string STATE_CHANGES_MD = "state-changes";
 
     public PromptManager(IConfiguration configuration)
     {
@@ -73,11 +74,11 @@ public class PromptManager
     }
 
     public string BuildReactionPrompt(
-    NarrativeContext context,
-    IChoice chosenOption,
-    ChoiceNarrative choiceDescription,
-    ChoiceOutcome outcome,
-    EncounterStatusModel state)
+        NarrativeContext context,
+        IChoice chosenOption,
+        ChoiceNarrative choiceDescription,
+        ChoiceOutcome outcome,
+        EncounterStatusModel state)
     {
         string template = _promptTemplates[REACTION_MD];
 
@@ -346,14 +347,19 @@ CHOICE {i + 1}:
     {
         string template = _promptTemplates[MEMORY_MD];
 
-        NarrativeSummaryBuilder builder = new NarrativeSummaryBuilder();
-        string completeHistory = builder.CreateCompleteHistory(context);
-        string summary = builder.CreateSummary(context);
-
-        // Replace placeholders in template
         string prompt = template
             .Replace("{FILE_CONTENT}", oldMemory);
 
+        return prompt;
+    }
+
+    public string BuildStateChangesPrompt(
+        NarrativeContext context,
+        ChoiceOutcome outcome,
+        EncounterStatusModel newState)
+    {
+        string template = _promptTemplates[STATE_CHANGES_MD];
+        string prompt = template;
         return prompt;
     }
 
