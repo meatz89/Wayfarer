@@ -1,11 +1,5 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-
-public class EncounterManager
+﻿public class EncounterManager
 {
-    public bool _useAiNarrative = false;
-
     public ActionImplementation ActionImplementation;
     private readonly CardSelectionAlgorithm _cardSelector;
     public EncounterState State;
@@ -15,18 +9,21 @@ public class EncounterManager
 
     public List<IChoice> CurrentChoices = new List<IChoice>();
 
+    private bool _useAiNarrative = false;
+    private bool _useMemory = false;
     public EncounterManager(
         ActionImplementation actionImplementation,
         CardSelectionAlgorithm cardSelector,
         NarrativeService narrativeService,
-        bool useAiNarrative,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {
         ActionImplementation = actionImplementation;
         _cardSelector = cardSelector;
-        _useAiNarrative = useAiNarrative;
         _narrativeService = narrativeService;
+
+        _useAiNarrative = configuration.GetValue<bool>("useAiNarrative");
+        _useMemory = configuration.GetValue<bool>("useMemory");
     }
 
     // Add methods to control AI provider selection
@@ -147,10 +144,15 @@ public class EncounterManager
         EncounterStatus status = GetEncounterStatus();
 
         string introduction = "introduction";
+        string memoryContent = string.Empty;
+        if (_useMemory)
+        {
+            memoryContent = await MemoryFileAccess.ReadFromMemoryFile();
+        }
+
         if (_useAiNarrative && _narrativeService != null)
         {
-            string memoryContent = await MemoryFileAccess.ReadFromMemoryFile();
-
+            
             introduction = await _narrativeService.GenerateIntroductionAsync(
                 _narrativeContext,
                 status,
@@ -214,8 +216,11 @@ public class EncounterManager
                 outcome,
                 newStatus);
 
-            
-            await UpdateMemoryFile(outcome, newStatus);
+
+            if (_useMemory)
+            {
+                await UpdateMemoryFile(outcome, newStatus);
+            }
 
             NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
             _narrativeContext.AddEvent(narrativeEvent);
