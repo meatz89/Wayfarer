@@ -1,4 +1,4 @@
-﻿public enum StrategicEffectTypes
+﻿public enum StrategicTagEffectType
 {
     // Beneficial effects
     IncreaseMomentum,    // Adds momentum proportional to approach value

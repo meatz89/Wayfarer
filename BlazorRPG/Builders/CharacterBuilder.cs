@@ -3,7 +3,6 @@
     private CharacterNames character;
     private LocationNames location;
     private List<ActionImplementation> actions = new();
-    private List<Schedule> schedules = new();
 
     public CharacterBuilder ForCharacter(CharacterNames character)
     {
@@ -19,14 +18,6 @@
 
     public CharacterBuilder SetCharacterType(CharacterTypes characterType)
     {
-        return this;
-    }
-
-    public CharacterBuilder AddSchedule(Action<ScheduleBuilder> buildSchedule)
-    {
-        ScheduleBuilder builder = new ScheduleBuilder();
-        buildSchedule(builder);
-        schedules.Add(builder.Build());
         return this;
     }
 

@@ -24,15 +24,6 @@ public class CardSelectionAlgorithm
         // STEP 1: Calculate scores for all choices with contextual modifiers
         Dictionary<IChoice, int> choiceScores = CalculateChoiceScores(availableChoices, state);
 
-        // STEP 2: Categorize choices into pools
-        // Pool A: By Effect Type and Strategic Alignment
-        List<IChoice> poolA1 = GetMomentumChoicesWithPositiveAlignment(availableChoices, state);
-        List<IChoice> poolA2 = GetPressureChoicesWithPositiveAlignment(availableChoices, state);
-        List<IChoice> poolA3 = GetMomentumChoicesWithNeutralAlignment(availableChoices, state);
-        List<IChoice> poolA4 = GetPressureChoicesWithNeutralAlignment(availableChoices, state);
-        List<IChoice> poolA5 = GetMomentumChoicesWithNegativeAlignment(availableChoices, state);
-        List<IChoice> poolA6 = GetPressureChoicesWithNegativeAlignment(availableChoices, state);
-
         // Pool B: By Approach
         List<ApproachTags> approachRanking = GetCharacterApproachRanking(state);
         List<IChoice> poolB1 = GetChoicesByApproach(availableChoices, approachRanking[0]);
@@ -58,12 +49,6 @@ public class CardSelectionAlgorithm
         List<IChoice> poolE5 = GetChoicesByTier(availableChoices, CardTiers.Novice);  // Tier 1
 
         // Sort all pools by score
-        SortPoolByScore(poolA1, choiceScores);
-        SortPoolByScore(poolA2, choiceScores);
-        SortPoolByScore(poolA3, choiceScores);
-        SortPoolByScore(poolA4, choiceScores);
-        SortPoolByScore(poolA5, choiceScores);
-        SortPoolByScore(poolA6, choiceScores);
         SortPoolByScore(poolB1, choiceScores);
         SortPoolByScore(poolB2, choiceScores);
         SortPoolByScore(poolB3, choiceScores);
@@ -87,13 +72,6 @@ public class CardSelectionAlgorithm
         if (firstChoice != null)
         {
             selectedChoices.Add(firstChoice);
-        }
-
-        // Second Choice: Strategic Balance
-        IChoice secondChoice = SelectSecondChoice(firstChoice, poolA1, poolA2, poolA3, poolA4, poolA5, poolA6);
-        if (secondChoice != null)
-        {
-            selectedChoices.Add(secondChoice);
         }
 
         // Third Choice: Progression Enabler
@@ -121,7 +99,6 @@ public class CardSelectionAlgorithm
         selectedChoices = EnforcePressureAwareChoiceDistribution(selectedChoices, availableChoices, state, choiceScores);
 
         // STEP 5: Handle Edge Cases
-        selectedChoices = HandleCriticalPressure(selectedChoices, state, poolA2, choiceScores);
         selectedChoices = HandleSuccessWithinReach(selectedChoices, state, availableChoices, choiceScores);
 
         // Mark blocked choices
@@ -195,27 +172,6 @@ public class CardSelectionAlgorithm
         foreach (IChoice choice in choices)
         {
             ApproachTags primaryApproach = GetPrimaryApproach(choice);
-
-            // 1. Strategic Alignment Score (1-6 points)
-            int strategicAlignmentScore;
-            if (choice.EffectType == EffectTypes.Momentum)
-            {
-                if (IsMomentumIncreasingApproach(primaryApproach, state))
-                    strategicAlignmentScore = 6;
-                else if (IsMomentumDecreasingApproach(primaryApproach, state))
-                    strategicAlignmentScore = 1;
-                else
-                    strategicAlignmentScore = 3; // Neutral
-            }
-            else // Pressure
-            {
-                if (IsPressureDecreasingApproach(primaryApproach, state))
-                    strategicAlignmentScore = 5;
-                else if (IsPressureIncreasingApproach(primaryApproach, state))
-                    strategicAlignmentScore = 1;
-                else
-                    strategicAlignmentScore = 3; // Neutral
-            }
 
             // 2. Character Proficiency Score (0-8 points)
             int approachValue = state.TagSystem.GetEncounterStateTagValue(primaryApproach);
@@ -312,8 +268,7 @@ public class CardSelectionAlgorithm
             }
 
             // Calculate total score
-            int totalScore = strategicAlignmentScore +
-                            characterProficiencyScore +
+            int totalScore = characterProficiencyScore +
                             situationalScore +
                             focusRelevanceScore +
                             narrativeTagModifier +
@@ -1104,42 +1059,6 @@ public class CardSelectionAlgorithm
         return selectedChoices;
     }
 
-    private List<IChoice> HandleCriticalPressure(List<IChoice> selectedChoices, EncounterState state,
-        List<IChoice> poolA2, Dictionary<IChoice, int> choiceScores)
-    {
-        // Critical Pressure Rule
-        double pressureRatio = (double)state.Pressure / state.Location.MaxPressure;
-
-        if (pressureRatio >= 0.8)
-        {
-            bool hasPressureReducingChoice = selectedChoices.Any(c =>
-                c.EffectType == EffectTypes.Pressure &&
-                IsPressureDecreasingApproach(GetPrimaryApproach(c), state));
-
-            if (!hasPressureReducingChoice && poolA2.Any())
-            {
-                // Remove lowest scoring choice
-                SortPoolByScore(selectedChoices, choiceScores, ascending: true);
-                IChoice? lowestScoringChoice = selectedChoices.FirstOrDefault();
-
-                if (lowestScoringChoice != null)
-                {
-                    selectedChoices.Remove(lowestScoringChoice);
-
-                    // Add highest scoring choice from A2 (pressure-reducing using favorable approach)
-                    IChoice? replacementChoice = poolA2.FirstOrDefault();
-
-                    if (replacementChoice != null)
-                    {
-                        selectedChoices.Add(replacementChoice);
-                    }
-                }
-            }
-        }
-
-        return selectedChoices;
-    }
-
     private List<IChoice> HandleSuccessWithinReach(List<IChoice> selectedChoices, EncounterState state,
         List<IChoice> allChoices, Dictionary<IChoice, int> choiceScores)
     {
@@ -1339,58 +1258,6 @@ public class CardSelectionAlgorithm
     private List<IChoice> GetChoicesBySameFocus(List<IChoice> choices, IChoice referenceChoice)
     {
         return choices.Where(c => c.Focus == referenceChoice.Focus).ToList();
-    }
-
-    private List<IChoice> GetMomentumChoicesWithPositiveAlignment(List<IChoice> choices, EncounterState state)
-    {
-        return choices
-            .Where(c => c.EffectType == EffectTypes.Momentum &&
-                   IsMomentumIncreasingApproach(GetPrimaryApproach(c), state))
-            .ToList();
-    }
-
-    private List<IChoice> GetPressureChoicesWithPositiveAlignment(List<IChoice> choices, EncounterState state)
-    {
-        return choices
-            .Where(c => c.EffectType == EffectTypes.Pressure &&
-                   IsPressureDecreasingApproach(GetPrimaryApproach(c), state))
-            .ToList();
-    }
-
-    private List<IChoice> GetMomentumChoicesWithNeutralAlignment(List<IChoice> choices, EncounterState state)
-    {
-        return choices
-            .Where(c => c.EffectType == EffectTypes.Momentum &&
-                   !IsMomentumIncreasingApproach(GetPrimaryApproach(c), state) &&
-                   !IsMomentumDecreasingApproach(GetPrimaryApproach(c), state))
-            .ToList();
-    }
-
-    private List<IChoice> GetPressureChoicesWithNeutralAlignment(List<IChoice> choices, EncounterState state)
-    {
-        return choices
-            .Where(c => c.EffectType == EffectTypes.Pressure &&
-                   !IsPressureDecreasingApproach(GetPrimaryApproach(c), state) &&
-                   !IsPressureIncreasingApproach(GetPrimaryApproach(c), state))
-            .ToList();
-    }
-
-    private List<IChoice> GetMomentumChoicesWithNegativeAlignment(List<IChoice> choices, EncounterState state)
-    {
-        return choices
-            .Where(c => c.EffectType == EffectTypes.Momentum &&
-                   (IsMomentumDecreasingApproach(GetPrimaryApproach(c), state) ||
-                    IsPressureIncreasingApproach(GetPrimaryApproach(c), state)))
-            .ToList();
-    }
-
-    private List<IChoice> GetPressureChoicesWithNegativeAlignment(List<IChoice> choices, EncounterState state)
-    {
-        return choices
-            .Where(c => c.EffectType == EffectTypes.Pressure &&
-                   (IsPressureIncreasingApproach(GetPrimaryApproach(c), state) ||
-                    IsMomentumDecreasingApproach(GetPrimaryApproach(c), state)))
-            .ToList();
     }
 
     private List<IChoice> GetChoicesByApproach(List<IChoice> choices, ApproachTags approach)
@@ -1629,51 +1496,4 @@ public class CardSelectionAlgorithm
         }
     }
 
-    private bool IsMomentumIncreasingApproach(ApproachTags approach, EncounterState state)
-    {
-        foreach (IEncounterTag tag in state.ActiveTags)
-        {
-            if (tag is StrategicTag strategicTag &&
-                strategicTag.EffectType == StrategicEffectTypes.IncreaseMomentum &&
-                strategicTag.ScalingApproachTag == approach)
-                return true;
-        }
-        return false;
-    }
-
-    private bool IsMomentumDecreasingApproach(ApproachTags approach, EncounterState state)
-    {
-        foreach (IEncounterTag tag in state.ActiveTags)
-        {
-            if (tag is StrategicTag strategicTag &&
-                strategicTag.EffectType == StrategicEffectTypes.DecreaseMomentum &&
-                strategicTag.ScalingApproachTag == approach)
-                return true;
-        }
-        return false;
-    }
-
-    private bool IsPressureDecreasingApproach(ApproachTags approach, EncounterState state)
-    {
-        foreach (IEncounterTag tag in state.ActiveTags)
-        {
-            if (tag is StrategicTag strategicTag &&
-                strategicTag.EffectType == StrategicEffectTypes.DecreasePressure &&
-                strategicTag.ScalingApproachTag == approach)
-                return true;
-        }
-        return false;
-    }
-
-    private bool IsPressureIncreasingApproach(ApproachTags approach, EncounterState state)
-    {
-        foreach (IEncounterTag tag in state.ActiveTags)
-        {
-            if (tag is StrategicTag strategicTag &&
-                strategicTag.EffectType == StrategicEffectTypes.IncreasePressure &&
-                strategicTag.ScalingApproachTag == approach)
-                return true;
-        }
-        return false;
-    }
 }

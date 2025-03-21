@@ -91,7 +91,6 @@ public class GameManager
 
     public async Task<EncounterManager> GenerateEncounter(ActionImplementation actionImplementation, Location location, PlayerState playerState, string locationSpotName)
     {
-        List<LocationPropertyChoiceEffect> effects = LocationSystem.GetLocationEffects(location.LocationName, locationSpotName);
         LocationSpot? locationSpot = LocationSystem.GetLocationSpotForLocation(location.LocationName, locationSpotName);
 
         // Create initial context with our new value system
@@ -264,20 +263,6 @@ public class GameManager
 
         bool isGameOver = !(canPayPhysical || canPayFocus || canPaySocial);
         return isGameOver;
-    }
-
-    public List<LocationPropertyChoiceEffect> GetLocationEffects(EncounterManager encounter, Choice choice)
-    {
-        LocationNames locationName = encounter.State.Location.LocationName;
-        string locationSpot = encounter.State.LocationSpot.Name;
-
-        return LocationSystem.GetLocationEffects(locationName, locationSpot);
-    }
-
-    public List<LocationPropertyChoiceEffect> GetLocationEffects(Choice choice, string locationSpotName)
-    {
-        Location location = gameState.World.CurrentLocation;
-        return LocationSystem.GetLocationEffects(location.LocationName, locationSpotName);
     }
 
     public void CreateGlobalActions()
