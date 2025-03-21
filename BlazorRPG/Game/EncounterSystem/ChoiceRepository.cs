@@ -22,7 +22,7 @@ public class ChoiceRepository
             "You attempt to assert dominance through simple physical intimidation.",
             FocusTags.Physical,
             CardTiers.Novice, 0, // Tier 1, +0 momentum
-            new StrategicEffect(StrategicTagRepository.PublicSpectacle, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
+            new StrategicEffect(Population.Crowded, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
             TagModification.ForEncounterState(ApproachTags.Dominance, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
@@ -32,7 +32,7 @@ public class ChoiceRepository
             "You plant your feet and refuse to back down.",
             FocusTags.Physical,
             CardTiers.Novice, 0, // Tier 1, -0 pressure
-            new StrategicEffect(StrategicTagRepository.SocialPressure, StrategicTagEffectType.DecreasePressure, ApproachTags.Dominance),
+            new StrategicEffect(Atmosphere.Tense, StrategicTagEffectType.DecreasePressure, ApproachTags.Dominance),
             TagModification.ForEncounterState(ApproachTags.Dominance, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
@@ -44,7 +44,7 @@ public class ChoiceRepository
             FocusTags.Physical,
             CardTiers.Trained, 2, // Tier 2, +2 momentum
             ApproachTags.Dominance, 1, 0, // Requires Dominance 1+, no reduction
-            new StrategicEffect(StrategicTagRepository.OpenManeuver, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
+            new StrategicEffect(Physical.Hazardous, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
             TagModification.ForEncounterState(ApproachTags.Dominance, 2),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
@@ -55,7 +55,7 @@ public class ChoiceRepository
             FocusTags.Relationship,
             CardTiers.Trained, 1, // Tier 2, -1 pressure
             ApproachTags.Dominance, 1, 0, // Requires Dominance 1+, no reduction
-            new StrategicEffect(StrategicTagRepository.SocialPressure, StrategicTagEffectType.DecreasePressure, ApproachTags.Dominance),
+            new StrategicEffect(Atmosphere.Tense, StrategicTagEffectType.DecreasePressure, ApproachTags.Dominance),
             TagModification.ForEncounterState(ApproachTags.Dominance, 1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
@@ -67,7 +67,7 @@ public class ChoiceRepository
             FocusTags.Relationship,
             CardTiers.Adept, 3, // Tier 3, +3 momentum
             ApproachTags.Dominance, 3, 1, // Requires Dominance 3+, reduces by 1
-            new StrategicEffect(StrategicTagRepository.PublicSpectacle, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
+            new StrategicEffect(Population.Crowded, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
             TagModification.ForEncounterState(ApproachTags.Dominance, -1), // Negative modification!
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
@@ -78,7 +78,7 @@ public class ChoiceRepository
             FocusTags.Physical,
             CardTiers.Adept, 2, // Tier 3, -2 pressure
             ApproachTags.Dominance, 3, 1, // Requires Dominance 3+, reduces by 1
-            new StrategicEffect(StrategicTagRepository.SocialPressure, StrategicTagEffectType.DecreasePressure, ApproachTags.Dominance),
+            new StrategicEffect(Atmosphere.Tense, StrategicTagEffectType.DecreasePressure, ApproachTags.Dominance),
             TagModification.ForEncounterState(ApproachTags.Dominance, -1), // Negative modification!
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
@@ -89,7 +89,7 @@ public class ChoiceRepository
             FocusTags.Environment,
             CardTiers.Adept, 3, // Tier 3, +3 momentum
             FocusTags.Environment, 2, 1, // Requires Environment 2+, reduces by 1
-            new StrategicEffect(StrategicTagRepository.OpenManeuver, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
+            new StrategicEffect(Physical.Hazardous, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
             TagModification.ForEncounterState(ApproachTags.Dominance, 2),
             TagModification.ForFocus(FocusTags.Environment, -1) // Negative modification!
         ));
@@ -104,7 +104,7 @@ public class ChoiceRepository
             "You attempt to make a friendly connection with basic pleasantries.",
             FocusTags.Relationship,
             CardTiers.Novice, 0, // Tier 1, +0 momentum
-            new StrategicEffect(StrategicTagRepository.PublicSpectacle, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
+            new StrategicEffect(Population.Crowded, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
             TagModification.ForEncounterState(ApproachTags.Rapport, 1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
@@ -114,7 +114,7 @@ public class ChoiceRepository
             "You offer simple comforting words to ease tension.",
             FocusTags.Relationship,
             CardTiers.Novice, 0, // Tier 1, -0 pressure
-            new StrategicEffect(StrategicTagRepository.SocialPressure, StrategicTagEffectType.DecreasePressure, ApproachTags.Rapport),
+            new StrategicEffect(Atmosphere.Tense, StrategicTagEffectType.DecreasePressure, ApproachTags.Rapport),
             TagModification.ForEncounterState(ApproachTags.Rapport, 1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
@@ -126,7 +126,7 @@ public class ChoiceRepository
             FocusTags.Relationship,
             CardTiers.Trained, 2, // Tier 2, +2 momentum
             ApproachTags.Rapport, 1, 0, // Requires Rapport 1+, no reduction
-            new StrategicEffect(StrategicTagRepository.PublicSpectacle, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
+            new StrategicEffect(Population.Crowded, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
             TagModification.ForEncounterState(ApproachTags.Rapport, 2),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
@@ -137,7 +137,7 @@ public class ChoiceRepository
             FocusTags.Relationship,
             CardTiers.Trained, 1, // Tier 2, -1 pressure
             ApproachTags.Rapport, 1, 0, // Requires Rapport 1+, no reduction
-            new StrategicEffect(StrategicTagRepository.SocialPressure, StrategicTagEffectType.DecreasePressure, ApproachTags.Rapport),
+            new StrategicEffect(Atmosphere.Tense, StrategicTagEffectType.DecreasePressure, ApproachTags.Rapport),
             TagModification.ForEncounterState(ApproachTags.Rapport, 1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
@@ -149,7 +149,7 @@ public class ChoiceRepository
             FocusTags.Relationship,
             CardTiers.Adept, 3, // Tier 3, +3 momentum
             ApproachTags.Rapport, 3, 1, // Requires Rapport 3+, reduces by 1
-            new StrategicEffect(StrategicTagRepository.PublicSpectacle, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
+            new StrategicEffect(Population.Crowded, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
             TagModification.ForEncounterState(ApproachTags.Rapport, -1), // Negative modification!
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
@@ -160,7 +160,7 @@ public class ChoiceRepository
             FocusTags.Information,
             CardTiers.Adept, 2, // Tier 3, -2 pressure
             ApproachTags.Rapport, 3, 1, // Requires Rapport 3+, reduces by 1
-            new StrategicEffect(StrategicTagRepository.SocialPressure, StrategicTagEffectType.DecreasePressure, ApproachTags.Rapport),
+            new StrategicEffect(Atmosphere.Tense, StrategicTagEffectType.DecreasePressure, ApproachTags.Rapport),
             TagModification.ForEncounterState(ApproachTags.Rapport, -1), // Negative modification!
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
@@ -171,7 +171,7 @@ public class ChoiceRepository
             FocusTags.Information,
             CardTiers.Adept, 3, // Tier 3, +3 momentum
             FocusTags.Information, 2, 1, // Requires Information 2+, reduces by 1
-            new StrategicEffect(StrategicTagRepository.WhisperedDeals, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
+            new StrategicEffect(Economic.Commercial, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
             TagModification.ForEncounterState(ApproachTags.Rapport, 2),
             TagModification.ForFocus(FocusTags.Information, -1) // Negative modification!
         ));
@@ -186,7 +186,7 @@ public class ChoiceRepository
             "You make a simple observation about the situation.",
             FocusTags.Information,
             CardTiers.Novice, 0, // Tier 1, +0 momentum
-            new StrategicEffect(StrategicTagRepository.WhisperedDeals, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
+            new StrategicEffect(Economic.Commercial, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
             TagModification.ForEncounterState(ApproachTags.Analysis, 1),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
@@ -196,7 +196,7 @@ public class ChoiceRepository
             "You take a moment to quickly assess the situation.",
             FocusTags.Information,
             CardTiers.Novice, 0, // Tier 1, -0 pressure
-            new StrategicEffect(StrategicTagRepository.ProperProtocol, StrategicTagEffectType.DecreasePressure, ApproachTags.Analysis),
+            new StrategicEffect(Atmosphere.Formal, StrategicTagEffectType.DecreasePressure, ApproachTags.Analysis),
             TagModification.ForEncounterState(ApproachTags.Analysis, 1),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
@@ -208,7 +208,7 @@ public class ChoiceRepository
             FocusTags.Information,
             CardTiers.Trained, 2, // Tier 2, +2 momentum
             ApproachTags.Analysis, 1, 0, // Requires Analysis 1+, no reduction
-            new StrategicEffect(StrategicTagRepository.WhisperedDeals, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
+            new StrategicEffect(Economic.Commercial, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
             TagModification.ForEncounterState(ApproachTags.Analysis, 2),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
@@ -219,7 +219,7 @@ public class ChoiceRepository
             FocusTags.Information,
             CardTiers.Trained, 1, // Tier 2, -1 pressure
             ApproachTags.Analysis, 1, 0, // Requires Analysis 1+, no reduction
-            new StrategicEffect(StrategicTagRepository.ProperProtocol, StrategicTagEffectType.DecreasePressure, ApproachTags.Analysis),
+            new StrategicEffect(Atmosphere.Formal, StrategicTagEffectType.DecreasePressure, ApproachTags.Analysis),
             TagModification.ForEncounterState(ApproachTags.Analysis, 1),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
@@ -231,7 +231,7 @@ public class ChoiceRepository
             FocusTags.Information,
             CardTiers.Adept, 3, // Tier 3, +3 momentum
             ApproachTags.Analysis, 3, 1, // Requires Analysis 3+, reduces by 1
-            new StrategicEffect(StrategicTagRepository.WhisperedDeals, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
+            new StrategicEffect(Economic.Commercial, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
             TagModification.ForEncounterState(ApproachTags.Analysis, -1), // Negative modification!
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
@@ -242,7 +242,7 @@ public class ChoiceRepository
             FocusTags.Environment,
             CardTiers.Adept, 2, // Tier 3, -2 pressure
             ApproachTags.Analysis, 3, 1, // Requires Analysis 3+, reduces by 1
-            new StrategicEffect(StrategicTagRepository.ProperProtocol, StrategicTagEffectType.DecreasePressure, ApproachTags.Analysis),
+            new StrategicEffect(Atmosphere.Formal, StrategicTagEffectType.DecreasePressure, ApproachTags.Analysis),
             TagModification.ForEncounterState(ApproachTags.Analysis, -1), // Negative modification!
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
@@ -253,7 +253,7 @@ public class ChoiceRepository
             FocusTags.Resource,
             CardTiers.Adept, 3, // Tier 3, +3 momentum
             FocusTags.Resource, 2, 1, // Requires Resource 2+, reduces by 1
-            new StrategicEffect(StrategicTagRepository.MerchantEye, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
+            new StrategicEffect(Economic.Wealthy, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
             TagModification.ForEncounterState(ApproachTags.Analysis, 2),
             TagModification.ForFocus(FocusTags.Resource, -1) // Negative modification!
         ));
@@ -268,7 +268,7 @@ public class ChoiceRepository
             "You attempt a simple, careful movement.",
             FocusTags.Physical,
             CardTiers.Novice, 0, // Tier 1, +0 momentum
-            new StrategicEffect(StrategicTagRepository.TightQuarters, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
+            new StrategicEffect(Physical.Confined, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
             TagModification.ForEncounterState(ApproachTags.Precision, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
@@ -278,7 +278,7 @@ public class ChoiceRepository
             "You proceed with basic caution and care.",
             FocusTags.Physical,
             CardTiers.Novice, 0, // Tier 1, -0 pressure
-            new StrategicEffect(StrategicTagRepository.DangerousEnvironment, StrategicTagEffectType.DecreasePressure, ApproachTags.Precision),
+            new StrategicEffect(Physical.Hazardous, StrategicTagEffectType.DecreasePressure, ApproachTags.Precision),
             TagModification.ForEncounterState(ApproachTags.Precision, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
@@ -290,7 +290,7 @@ public class ChoiceRepository
             FocusTags.Physical,
             CardTiers.Trained, 2, // Tier 2, +2 momentum
             ApproachTags.Precision, 1, 0, // Requires Precision 1+, no reduction
-            new StrategicEffect(StrategicTagRepository.TightQuarters, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
+            new StrategicEffect(Physical.Confined, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
             TagModification.ForEncounterState(ApproachTags.Precision, 2),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
@@ -301,7 +301,7 @@ public class ChoiceRepository
             FocusTags.Physical,
             CardTiers.Trained, 1, // Tier 2, -1 pressure
             ApproachTags.Precision, 1, 0, // Requires Precision 1+, no reduction
-            new StrategicEffect(StrategicTagRepository.DangerousEnvironment, StrategicTagEffectType.DecreasePressure, ApproachTags.Precision),
+            new StrategicEffect(Physical.Hazardous, StrategicTagEffectType.DecreasePressure, ApproachTags.Precision),
             TagModification.ForEncounterState(ApproachTags.Precision, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
@@ -313,7 +313,7 @@ public class ChoiceRepository
             FocusTags.Physical,
             CardTiers.Adept, 3, // Tier 3, +3 momentum
             ApproachTags.Precision, 3, 1, // Requires Precision 3+, reduces by 1
-            new StrategicEffect(StrategicTagRepository.TightQuarters, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
+            new StrategicEffect(Physical.Confined, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
             TagModification.ForEncounterState(ApproachTags.Precision, -1), // Negative modification!
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
@@ -324,7 +324,7 @@ public class ChoiceRepository
             FocusTags.Environment,
             CardTiers.Adept, 2, // Tier 3, -2 pressure
             ApproachTags.Precision, 3, 1, // Requires Precision 3+, reduces by 1
-            new StrategicEffect(StrategicTagRepository.DangerousEnvironment, StrategicTagEffectType.DecreasePressure, ApproachTags.Precision),
+            new StrategicEffect(Physical.Hazardous, StrategicTagEffectType.DecreasePressure, ApproachTags.Precision),
             TagModification.ForEncounterState(ApproachTags.Precision, -1), // Negative modification!
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
@@ -335,7 +335,7 @@ public class ChoiceRepository
             FocusTags.Environment,
             CardTiers.Adept, 3, // Tier 3, +3 momentum
             FocusTags.Environment, 2, 1, // Requires Environment 2+, reduces by 1
-            new StrategicEffect(StrategicTagRepository.TightQuarters, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
+            new StrategicEffect(Physical.Confined, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
             TagModification.ForEncounterState(ApproachTags.Precision, 2),
             TagModification.ForFocus(FocusTags.Environment, -1) // Negative modification!
         ));
@@ -350,7 +350,7 @@ public class ChoiceRepository
             "You attempt to stay unnoticed with simple stealth techniques.",
             FocusTags.Physical,
             CardTiers.Novice, 0, // Tier 1, +0 momentum
-            new StrategicEffect(StrategicTagRepository.ShadowyCorners, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Evasion),
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Evasion),
             TagModification.ForEncounterState(ApproachTags.Evasion, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
@@ -360,7 +360,7 @@ public class ChoiceRepository
             "You try to make yourself less noticeable.",
             FocusTags.Physical,
             CardTiers.Novice, 0, // Tier 1, -0 pressure
-            new StrategicEffect(StrategicTagRepository.ShadowyCorners, StrategicTagEffectType.DecreasePressure, ApproachTags.Evasion),
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.DecreasePressure, ApproachTags.Evasion),
             TagModification.ForEncounterState(ApproachTags.Evasion, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
@@ -372,7 +372,7 @@ public class ChoiceRepository
             FocusTags.Physical,
             CardTiers.Trained, 2, // Tier 2, +2 momentum
             ApproachTags.Evasion, 1, 0, // Requires Concealment 1+, no reduction
-            new StrategicEffect(StrategicTagRepository.ShadowyCorners, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Evasion),
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Evasion),
             TagModification.ForEncounterState(ApproachTags.Evasion, 2),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
@@ -383,7 +383,7 @@ public class ChoiceRepository
             FocusTags.Physical,
             CardTiers.Trained, 1, // Tier 2, -1 pressure
             ApproachTags.Evasion, 1, 0, // Requires Concealment 1+, no reduction
-            new StrategicEffect(StrategicTagRepository.ShadowyCorners, StrategicTagEffectType.DecreasePressure, ApproachTags.Evasion),
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.DecreasePressure, ApproachTags.Evasion),
             TagModification.ForEncounterState(ApproachTags.Evasion, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
@@ -395,7 +395,7 @@ public class ChoiceRepository
             FocusTags.Physical,
             CardTiers.Adept, 3, // Tier 3, +3 momentum
             ApproachTags.Evasion, 3, 1, // Requires Concealment 3+, reduces by 1
-            new StrategicEffect(StrategicTagRepository.ShadowyCorners, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Evasion),
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Evasion),
             TagModification.ForEncounterState(ApproachTags.Evasion, -1), // Negative modification!
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
@@ -406,7 +406,7 @@ public class ChoiceRepository
             FocusTags.Environment,
             CardTiers.Adept, 2, // Tier 3, -2 pressure
             ApproachTags.Evasion, 3, 1, // Requires Concealment 3+, reduces by 1
-            new StrategicEffect(StrategicTagRepository.ShadowyCorners, StrategicTagEffectType.DecreasePressure, ApproachTags.Evasion),
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.DecreasePressure, ApproachTags.Evasion),
             TagModification.ForEncounterState(ApproachTags.Evasion, -1), // Negative modification!
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
@@ -417,7 +417,7 @@ public class ChoiceRepository
             FocusTags.Information,
             CardTiers.Adept, 3, // Tier 3, +3 momentum
             FocusTags.Information, 2, 1, // Requires Information 2+, reduces by 1
-            new StrategicEffect(StrategicTagRepository.WhisperedDeals, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Evasion),
+            new StrategicEffect(Economic.Commercial, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Evasion),
             TagModification.ForEncounterState(ApproachTags.Evasion, 2),
             TagModification.ForFocus(FocusTags.Information, -1) // Negative modification!
         ));

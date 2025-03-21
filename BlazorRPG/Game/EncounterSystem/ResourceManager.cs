@@ -32,23 +32,23 @@
         }
     }
 
-    public int CalculatePressureResourceDamage(ResourceTypes resourceType, int choicePressureValue)
+    public int CalculatePressureResourceDamage(ResourceTypes resourceType, int pressureValue)
     {
         switch (_location.EncounterType)
         {
             case EncounterTypes.Physical:
                 if (resourceType == ResourceTypes.Health)
-                    return (int)-choicePressureValue;
+                    return (int)-pressureValue / 2;
                 break;
 
             case EncounterTypes.Intellectual:
                 if (resourceType == ResourceTypes.Concentration)
-                    return (int)-choicePressureValue;
+                    return (int)-pressureValue / 2;
                 break;
 
             case EncounterTypes.Social:
                 if (resourceType == ResourceTypes.Confidence)
-                    return (int)-choicePressureValue;
+                    return (int)-pressureValue / 2;
                 break;
         }
 
