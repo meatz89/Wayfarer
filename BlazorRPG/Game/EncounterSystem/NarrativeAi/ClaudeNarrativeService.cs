@@ -157,9 +157,9 @@
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
             _contextManager.AddUserMessage(conversationId, prompt, MessageType.StateChanges, null);
         }
-        string memoryContentResponse = await _aiClient.GetCompletionAsync(
+        string stateChangesResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId));
 
-        return prompt;
+        return stateChangesResponse;
     }
 }
