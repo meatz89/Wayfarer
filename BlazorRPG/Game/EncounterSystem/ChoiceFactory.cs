@@ -1,33 +1,68 @@
-﻿/// <summary>
+﻿
+/// <summary>
 /// Factory for creating common choice types
 /// </summary>
 public static class ChoiceFactory
 {
-    // Create a standard momentum choice
+    // Create a low tier momentum choice with no requirements
     public static Choice CreateMomentumChoice(string name, string description, FocusTags focus,
-                                                params TagModification[] tagModifications)
+                                             CardTiers tier, int baseEffectValue,
+                                             params TagModification[] tagModifications)
     {
-        return new Choice(name, description, focus, EffectTypes.Momentum, tagModifications);
+        return new Choice(name, description, focus, EffectTypes.Momentum, tier, baseEffectValue,
+                         new RequirementInfo(), tagModifications);
     }
 
-    // Create a standard pressure choice
-    public static Choice CreatePressureChoice(string name, string description,
-                                                FocusTags focus,
-                                                params TagModification[] tagModifications)
+    // Create a low tier pressure choice with no requirements
+    public static Choice CreatePressureChoice(string name, string description, FocusTags focus,
+                                             CardTiers tier, int baseEffectValue,
+                                             params TagModification[] tagModifications)
     {
-        return new Choice(name, description, focus, EffectTypes.Pressure, tagModifications);
+        return new Choice(name, description, focus, EffectTypes.Pressure, tier, baseEffectValue,
+                         new RequirementInfo(), tagModifications);
     }
 
-    // Create a tag requirement function for a specific approach tag threshold
-    public static Func<BaseTagSystem, bool> EncounterStateTagRequirement(ApproachTags tag, int threshold)
+    // Create a higher tier momentum choice with approach requirement
+    public static Choice CreateMomentumChoiceWithApproachRequirement(
+        string name, string description, FocusTags focus,
+        CardTiers tier, int baseEffectValue, ApproachTags requirementApproach,
+        int requirementValue, int reductionAmount, params TagModification[] tagModifications)
     {
-        return tagSystem => tagSystem.GetEncounterStateTagValue(tag) >= threshold;
+        return new Choice(name, description, focus, EffectTypes.Momentum, tier, baseEffectValue,
+                         new RequirementInfo(requirementApproach, requirementValue, reductionAmount),
+                         tagModifications);
     }
 
-    // Create a tag requirement function for a specific focus tag threshold
-    public static Func<BaseTagSystem, bool> FocusTagRequirement(FocusTags tag, int threshold)
+    // Create a higher tier pressure choice with approach requirement
+    public static Choice CreatePressureChoiceWithApproachRequirement(
+        string name, string description, FocusTags focus,
+        CardTiers tier, int baseEffectValue, ApproachTags requirementApproach,
+        int requirementValue, int reductionAmount, params TagModification[] tagModifications)
     {
-        return tagSystem => tagSystem.GetFocusTagValue(tag) >= threshold;
+        return new Choice(name, description, focus, EffectTypes.Pressure, tier, baseEffectValue,
+                         new RequirementInfo(requirementApproach, requirementValue, reductionAmount),
+                         tagModifications);
     }
 
+    // Create a higher tier momentum choice with focus requirement
+    public static Choice CreateMomentumChoiceWithFocusRequirement(
+        string name, string description, FocusTags focus,
+        CardTiers tier, int baseEffectValue, FocusTags requirementFocus,
+        int requirementValue, int reductionAmount, params TagModification[] tagModifications)
+    {
+        return new Choice(name, description, focus, EffectTypes.Momentum, tier, baseEffectValue,
+                         new RequirementInfo(requirementFocus, requirementValue, reductionAmount),
+                         tagModifications);
+    }
+
+    // Create a higher tier pressure choice with focus requirement
+    public static Choice CreatePressureChoiceWithFocusRequirement(
+        string name, string description, FocusTags focus,
+        CardTiers tier, int baseEffectValue, FocusTags requirementFocus,
+        int requirementValue, int reductionAmount, params TagModification[] tagModifications)
+    {
+        return new Choice(name, description, focus, EffectTypes.Pressure, tier, baseEffectValue,
+                         new RequirementInfo(requirementFocus, requirementValue, reductionAmount),
+                         tagModifications);
+    }
 }

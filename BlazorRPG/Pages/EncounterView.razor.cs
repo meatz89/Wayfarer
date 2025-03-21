@@ -71,17 +71,17 @@ public partial class EncounterViewBase : ComponentBase
         return userEncounterChoiceOptions;
     }
 
-    public string GetChoiceName(UserEncounterChoiceOption choice)
+    public string GetChoiceName(UserEncounterChoiceOption choiceOption)
     {
-        IChoice choice1 = choice.Choice;
+        IChoice card = choiceOption.Choice;
         NarrativeResult narrativeResult = GetModel().EncounterResult.NarrativeResult;
         Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = narrativeResult.ChoiceDescriptions;
         ChoiceNarrative choiceNarrative = null;
 
-        if (choiceDescriptions != null && choiceDescriptions.ContainsKey(choice1))
-            choiceNarrative = choiceDescriptions[choice1];
+        if (choiceDescriptions != null && choiceDescriptions.ContainsKey(card))
+            choiceNarrative = choiceDescriptions[card];
 
-        string name = choice.Description;
+        string name = choiceOption.Description;
         if (choiceNarrative != null)
         {
             name = choiceNarrative.ShorthandName;

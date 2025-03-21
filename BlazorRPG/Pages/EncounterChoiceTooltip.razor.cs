@@ -58,6 +58,18 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         return formattedChanges;
     }
 
+    public string GetTierName(CardTiers tier)
+    {
+        return tier switch
+        {
+            CardTiers.Novice => "Tier 1 (Novice)",
+            CardTiers.Trained => "Tier 2 (Trained)",
+            CardTiers.Adept => "Tier 3 (Adept)",
+            CardTiers.Expert => "Tier 4 (Expert)",
+            CardTiers.Master => "Tier 5 (Master)",
+            _ => "Unknown"
+        };
+    }
     public string GetChoiceDescription(UserEncounterChoiceOption choice)
     {
         IChoice choice1 = choice.Choice;

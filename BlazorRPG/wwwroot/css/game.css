@@ -681,3 +681,56 @@ body {
     background-color: rgba(0, 0, 0, 0.1);
     border-radius: 4px;
 }
+
+/* Card tier styles */
+.choice-option.tier-1 { /* Novice */
+    border-left: 4px solid #999999;
+}
+
+.choice-option.tier-2 { /* Trained */
+    border-left: 4px solid #1eff00;
+}
+
+.choice-option.tier-3 { /* Adept */
+    border-left: 4px solid #0070dd;
+}
+
+.choice-option.tier-4 { /* Expert */
+    border-left: 4px solid #a335ee;
+}
+
+.choice-option.tier-5 { /* Master */
+    border-left: 4px solid #ff8000;
+    box-shadow: 0 0 5px rgba(255, 128, 0, 0.5);
+}
+
+/* Tier badges */
+.tier-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+    margin-left: 6px;
+    color: white;
+}
+
+    .tier-badge.tier-1 {
+        background-color: #999999;
+    }
+
+    .tier-badge.tier-2 {
+        background-color: #1eff00;
+    }
+
+    .tier-badge.tier-3 {
+        background-color: #0070dd;
+    }
+
+    .tier-badge.tier-4 {
+        background-color: #a335ee;
+    }
+
+    .tier-badge.tier-5 {
+        background-color: #ff8000;
+    }

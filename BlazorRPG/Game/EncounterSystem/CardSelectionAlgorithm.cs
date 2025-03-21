@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-/// <summary>
-/// Deterministic card selection algorithm that follows the Wayfarer design document
-/// with improved diversity requirements
+﻿/// <summary>
+/// Deterministic card selection algorithm updated for the tiered card system
 /// </summary>
 public class CardSelectionAlgorithm
 {
@@ -23,36 +18,44 @@ public class CardSelectionAlgorithm
     /// <returns>List of selected choices</returns>
     public List<IChoice> SelectChoices(EncounterState state, int handSize = 4)
     {
-        List<IChoice> allChoices = new List<IChoice>(_choiceRepository.GetAllStandardChoices());
+        // Get all choices that the player has unlocked AND can play based on requirements
+        List<IChoice> availableChoices = _choiceRepository.GetAvailableChoices(state);
 
         // STEP 1: Calculate scores for all choices with contextual modifiers
-        Dictionary<IChoice, int> choiceScores = CalculateChoiceScores(allChoices, state);
+        Dictionary<IChoice, int> choiceScores = CalculateChoiceScores(availableChoices, state);
 
         // STEP 2: Categorize choices into pools
         // Pool A: By Effect Type and Strategic Alignment
-        List<IChoice> poolA1 = GetMomentumChoicesWithPositiveAlignment(allChoices, state);
-        List<IChoice> poolA2 = GetPressureChoicesWithPositiveAlignment(allChoices, state);
-        List<IChoice> poolA3 = GetMomentumChoicesWithNeutralAlignment(allChoices, state);
-        List<IChoice> poolA4 = GetPressureChoicesWithNeutralAlignment(allChoices, state);
-        List<IChoice> poolA5 = GetMomentumChoicesWithNegativeAlignment(allChoices, state);
-        List<IChoice> poolA6 = GetPressureChoicesWithNegativeAlignment(allChoices, state);
+        List<IChoice> poolA1 = GetMomentumChoicesWithPositiveAlignment(availableChoices, state);
+        List<IChoice> poolA2 = GetPressureChoicesWithPositiveAlignment(availableChoices, state);
+        List<IChoice> poolA3 = GetMomentumChoicesWithNeutralAlignment(availableChoices, state);
+        List<IChoice> poolA4 = GetPressureChoicesWithNeutralAlignment(availableChoices, state);
+        List<IChoice> poolA5 = GetMomentumChoicesWithNegativeAlignment(availableChoices, state);
+        List<IChoice> poolA6 = GetPressureChoicesWithNegativeAlignment(availableChoices, state);
 
         // Pool B: By Approach
         List<ApproachTags> approachRanking = GetCharacterApproachRanking(state);
-        List<IChoice> poolB1 = GetChoicesByApproach(allChoices, approachRanking[0]);
-        List<IChoice> poolB2 = GetChoicesByApproach(allChoices, approachRanking[1]);
-        List<IChoice> poolB3 = GetChoicesByApproach(allChoices, approachRanking[2]);
-        List<IChoice> poolB4 = GetChoicesByApproach(allChoices, approachRanking[3]);
-        List<IChoice> poolB5 = GetChoicesByApproach(allChoices, approachRanking[4]);
+        List<IChoice> poolB1 = GetChoicesByApproach(availableChoices, approachRanking[0]);
+        List<IChoice> poolB2 = GetChoicesByApproach(availableChoices, approachRanking[1]);
+        List<IChoice> poolB3 = GetChoicesByApproach(availableChoices, approachRanking[2]);
+        List<IChoice> poolB4 = GetChoicesByApproach(availableChoices, approachRanking[3]);
+        List<IChoice> poolB5 = GetChoicesByApproach(availableChoices, approachRanking[4]);
 
         // Pool C: By Narrative Tag Status
         List<FocusTags> blockedFocuses = GetBlockedFocuses(state.ActiveTags);
-        List<IChoice> poolC1 = GetUnblockedChoices(allChoices, blockedFocuses);
-        List<IChoice> poolC2 = GetBlockedChoices(allChoices, blockedFocuses);
+        List<IChoice> poolC1 = GetUnblockedChoices(availableChoices, blockedFocuses);
+        List<IChoice> poolC2 = GetBlockedChoices(availableChoices, blockedFocuses);
 
         // Pool D: By Previous Choice Context (if any)
-        List<IChoice> poolD1 = state.PreviousChoice != null ? GetChoicesBySameApproach(allChoices, state.PreviousChoice) : new List<IChoice>();
-        List<IChoice> poolD2 = state.PreviousChoice != null ? GetChoicesBySameFocus(allChoices, state.PreviousChoice) : new List<IChoice>();
+        List<IChoice> poolD1 = state.PreviousChoice != null ? GetChoicesBySameApproach(availableChoices, state.PreviousChoice) : new List<IChoice>();
+        List<IChoice> poolD2 = state.PreviousChoice != null ? GetChoicesBySameFocus(availableChoices, state.PreviousChoice) : new List<IChoice>();
+
+        // NEW Pool E: By Tier
+        List<IChoice> poolE1 = GetChoicesByTier(availableChoices, CardTiers.Master); // Tier 5
+        List<IChoice> poolE2 = GetChoicesByTier(availableChoices, CardTiers.Expert); // Tier 4
+        List<IChoice> poolE3 = GetChoicesByTier(availableChoices, CardTiers.Adept);  // Tier 3
+        List<IChoice> poolE4 = GetChoicesByTier(availableChoices, CardTiers.Trained); // Tier 2
+        List<IChoice> poolE5 = GetChoicesByTier(availableChoices, CardTiers.Novice);  // Tier 1
 
         // Sort all pools by score
         SortPoolByScore(poolA1, choiceScores);
@@ -70,33 +73,38 @@ public class CardSelectionAlgorithm
         SortPoolByScore(poolC2, choiceScores);
         SortPoolByScore(poolD1, choiceScores);
         SortPoolByScore(poolD2, choiceScores);
+        SortPoolByScore(poolE1, choiceScores);
+        SortPoolByScore(poolE2, choiceScores);
+        SortPoolByScore(poolE3, choiceScores);
+        SortPoolByScore(poolE4, choiceScores);
+        SortPoolByScore(poolE5, choiceScores);
 
         // STEP 3: Select Initial Choices
         List<IChoice> selectedChoices = new List<IChoice>();
 
-        // First Choice: Continuity or Character Strength
-        IChoice firstChoice = SelectFirstChoice(poolD1, poolB1, poolB2, state);
+        // First Choice: Highest Tier Strategic Advantage
+        IChoice firstChoice = SelectHighestTierChoice(poolE1, poolE2, poolE3, poolE4, poolE5);
         if (firstChoice != null)
         {
             selectedChoices.Add(firstChoice);
         }
 
-        // Second Choice: Strategic Advantage
+        // Second Choice: Strategic Balance
         IChoice secondChoice = SelectSecondChoice(firstChoice, poolA1, poolA2, poolA3, poolA4, poolA5, poolA6);
         if (secondChoice != null)
         {
             selectedChoices.Add(secondChoice);
         }
 
-        // Third Choice: Approach Diversity
-        IChoice thirdChoice = SelectThirdChoice(selectedChoices, allChoices, choiceScores, poolA1, poolA2, poolA3, poolA4, poolA5, poolA6);
+        // Third Choice: Progression Enabler
+        IChoice thirdChoice = SelectProgressionChoice(selectedChoices, availableChoices, state, choiceScores);
         if (thirdChoice != null)
         {
             selectedChoices.Add(thirdChoice);
         }
 
-        // Fourth Choice: Focus Diversity or Narrative Tag Impact
-        IChoice fourthChoice = SelectFourthChoice(state, selectedChoices, blockedFocuses, poolC1, poolC2, poolD2, allChoices, choiceScores);
+        // Fourth Choice: Approach/Focus Diversity
+        IChoice fourthChoice = SelectDiversityChoice(selectedChoices, availableChoices, choiceScores);
         if (fourthChoice != null)
         {
             selectedChoices.Add(fourthChoice);
@@ -104,18 +112,17 @@ public class CardSelectionAlgorithm
 
         // STEP 4: Apply Diversity Improvements
         selectedChoices = EnsureViableChoices(selectedChoices, blockedFocuses, poolC1, choiceScores);
-        selectedChoices = GuaranteeStrategicOptions(selectedChoices, blockedFocuses, allChoices, choiceScores);
+        selectedChoices = GuaranteeStrategicOptions(selectedChoices, blockedFocuses, availableChoices, choiceScores);
         selectedChoices = EnforceCharacterIdentity(selectedChoices, approachRanking[0], poolB1, choiceScores);
-        selectedChoices = EnforceFocusDiversity(selectedChoices, allChoices, blockedFocuses, choiceScores);
-        selectedChoices = EnforceApproachDiversity(selectedChoices, allChoices, blockedFocuses, choiceScores);
-        selectedChoices = EnsureStrategicOptionDiversity(selectedChoices, allChoices, state, blockedFocuses, choiceScores);
-        selectedChoices = EnsureTacticalDistinctiveness(selectedChoices, allChoices, choiceScores);
-        selectedChoices = EnforcePressureAwareChoiceDistribution(selectedChoices, allChoices, state, choiceScores);
+        selectedChoices = EnforceFocusDiversity(selectedChoices, availableChoices, blockedFocuses, choiceScores);
+        selectedChoices = EnforceApproachDiversity(selectedChoices, availableChoices, blockedFocuses, choiceScores);
+        selectedChoices = EnsureStrategicOptionDiversity(selectedChoices, availableChoices, state, blockedFocuses, choiceScores);
+        selectedChoices = EnsureTacticalDistinctiveness(selectedChoices, availableChoices, choiceScores);
+        selectedChoices = EnforcePressureAwareChoiceDistribution(selectedChoices, availableChoices, state, choiceScores);
 
         // STEP 5: Handle Edge Cases
         selectedChoices = HandleCriticalPressure(selectedChoices, state, poolA2, choiceScores);
-        selectedChoices = HandleSuccessWithinReach(selectedChoices, state, allChoices, choiceScores);
-        selectedChoices = HandleRecentlyActivatedTags(selectedChoices, state, allChoices, choiceScores);
+        selectedChoices = HandleSuccessWithinReach(selectedChoices, state, availableChoices, choiceScores);
 
         // Mark blocked choices
         foreach (IChoice choice in selectedChoices)
@@ -132,11 +139,58 @@ public class CardSelectionAlgorithm
 
     /// <summary>
     /// Calculates scores for all choices based on the Wayfarer design document scoring formula
+    /// and updated with tier bonus scoring
     /// </summary>
     private Dictionary<IChoice, int> CalculateChoiceScores(List<IChoice> choices, EncounterState state)
     {
         Dictionary<IChoice, int> scores = new Dictionary<IChoice, int>();
         List<FocusTags> blockedFocuses = GetBlockedFocuses(state.ActiveTags);
+
+        // Identify requirements that the player is close to meeting
+        Dictionary<ApproachTags, int> approachRequirementTarget = new Dictionary<ApproachTags, int>();
+        Dictionary<FocusTags, int> focusRequirementTarget = new Dictionary<FocusTags, int>();
+
+        // Get the player's full collection to identify locked cards
+        List<IChoice> allPlayerCards = _choiceRepository.GetAllChoices();
+        foreach (IChoice card in allPlayerCards)
+        {
+            // Check if this is a card that can't be played yet
+            if (card.Requirement != null && card.Requirement.Type != RequirementInfo.RequirementTypes.None)
+            {
+                if (card.Requirement.Type == RequirementInfo.RequirementTypes.Approach)
+                {
+                    ApproachTags approach = card.Requirement.ApproachTag;
+                    int requiredValue = card.Requirement.Value;
+                    int currentValue = state.TagSystem.GetEncounterStateTagValue(approach);
+
+                    // If we're 1-2 points away from unlocking this card
+                    if (currentValue < requiredValue && currentValue >= requiredValue - 2)
+                    {
+                        if (!approachRequirementTarget.ContainsKey(approach) ||
+                            approachRequirementTarget[approach] < requiredValue)
+                        {
+                            approachRequirementTarget[approach] = requiredValue;
+                        }
+                    }
+                }
+                else if (card.Requirement.Type == RequirementInfo.RequirementTypes.Focus)
+                {
+                    FocusTags focus = card.Requirement.FocusTag;
+                    int requiredValue = card.Requirement.Value;
+                    int currentValue = state.TagSystem.GetFocusTagValue(focus);
+
+                    // If we're 1-2 points away from unlocking this card
+                    if (currentValue < requiredValue && currentValue >= requiredValue - 2)
+                    {
+                        if (!focusRequirementTarget.ContainsKey(focus) ||
+                            focusRequirementTarget[focus] < requiredValue)
+                        {
+                            focusRequirementTarget[focus] = requiredValue;
+                        }
+                    }
+                }
+            }
+        }
 
         foreach (IChoice choice in choices)
         {
@@ -219,91 +273,42 @@ public class CardSelectionAlgorithm
             // 5. Narrative Tag Modifier (-15 or 0)
             int narrativeTagModifier = blockedFocuses.Contains(choice.Focus) ? -15 : 0;
 
-            // 6. Location Preference Modifiers
-            int locationPreferenceModifier = 0;
+            // 6. NEW: Tier Bonus (0-20 points)
+            int tierBonus = ((int)choice.Tier - 1) * 5; // 0, 5, 10, 15, 20 points for tiers 1-5
 
-            // Strongly respect location preferences
-            if (state.Location.MomentumReducingFocuses.Contains(choice.Focus))
+            // 7. NEW: Progression Value (0-8 points)
+            int progressionValue = 0;
+
+            // Check if this choice builds an approach we need for a requirement
+            foreach (var approachTarget in approachRequirementTarget)
             {
-                locationPreferenceModifier -= 15;
-            }
-
-            if (state.Location.PressureReducingFocuses.Contains(choice.Focus))
-            {
-                locationPreferenceModifier += 8;
-            }
-
-            if (state.Location.MomentumBoostApproaches.Contains(primaryApproach))
-            {
-                locationPreferenceModifier += 8;
-            }
-
-            // 7. Previous Choice Influence
-            int previousChoiceModifier = 0;
-            if (state.PreviousChoice != null)
-            {
-                // Continuity bonus for same approach
-                if (GetPrimaryApproach(state.PreviousChoice) == primaryApproach)
-                    previousChoiceModifier += 3;
-
-                // Focus development bonus
-                if (state.PreviousChoice.Focus == choice.Focus)
-                    previousChoiceModifier += 2;
-
-                // Effect type variety
-                if (state.PreviousChoice.EffectType != choice.EffectType)
-                    previousChoiceModifier += 1;
-
-                // Penalize repetitive choice patterns
-                bool sameApproach = primaryApproach == GetPrimaryApproach(state.PreviousChoice);
-                bool sameFocus = choice.Focus == state.PreviousChoice.Focus;
-                bool sameEffectType = choice.EffectType == state.PreviousChoice.EffectType;
-
-                if (sameApproach && sameFocus && sameEffectType)
+                if (GetTagModificationValue(choice, approachTarget.Key) > 0)
                 {
-                    previousChoiceModifier -= 25; // Severe penalty for identical choice pattern
-                }
-                else if (sameApproach && sameFocus)
-                {
-                    previousChoiceModifier -= 10; // Moderate penalty for similar choice pattern
+                    // Higher bonus the closer we are to meeting the requirement
+                    int currentValue = state.TagSystem.GetEncounterStateTagValue(approachTarget.Key);
+                    int pointsAway = approachTarget.Value - currentValue;
+
+                    if (pointsAway <= 1)
+                        progressionValue = 8; // Just 1 point away
+                    else if (pointsAway <= 2)
+                        progressionValue = 5; // 2 points away
                 }
             }
 
-            // 8. Approach Diversification
-            int approachUsageCount = GetApproachUsageCount(state, primaryApproach);
-            int approachDiversificationModifier = 0;
-
-            if (approachUsageCount == 0)
-                approachDiversificationModifier += 3; // Exploration bonus for unused approaches
-            else if (approachUsageCount > 2)
-                approachDiversificationModifier -= (approachUsageCount - 2); // Penalty for overspecialization
-
-            // 9. Pressure Trend Context
-            int pressureTrendModifier = 0;
-            double pressureTrend = CalculatePressureTrend(state);
-            if (choice.EffectType == EffectTypes.Pressure && pressureTrend > 0)
+            // Check if this choice builds a focus we need for a requirement
+            foreach (var focusTarget in focusRequirementTarget)
             {
-                pressureTrendModifier += (int)(pressureTrend * 5);
-            }
+                if (choice.Focus == focusTarget.Key)
+                {
+                    // Higher bonus the closer we are to meeting the requirement
+                    int currentValue = state.TagSystem.GetFocusTagValue(focusTarget.Key);
+                    int pointsAway = focusTarget.Value - currentValue;
 
-            // 10. NEW: Diversity Penalty to discourage overused approaches/focuses
-            int diversityPenalty = 0;
-
-            // Stronger penalty for approaches that are already dominant
-            int approachCount = state.TagSystem.GetEncounterStateTagValue(primaryApproach);
-            if (approachCount >= 3)
-            {
-                // Apply increasing penalty when an approach is already high
-                diversityPenalty -= approachCount * 3;
-            }
-
-            // Penalize choices that use focuses already heavily represented
-            FocusTags thisFocus = choice.Focus;
-            int focusCount = state.TagSystem.GetFocusTagValue(thisFocus);
-            if (focusCount >= 2)
-            {
-                // Apply penalty when a focus is already high
-                diversityPenalty -= focusCount * 3;
+                    if (pointsAway <= 1)
+                        progressionValue = Math.Max(progressionValue, 8); // Just 1 point away
+                    else if (pointsAway <= 2)
+                        progressionValue = Math.Max(progressionValue, 5); // 2 points away
+                }
             }
 
             // Calculate total score
@@ -312,16 +317,187 @@ public class CardSelectionAlgorithm
                             situationalScore +
                             focusRelevanceScore +
                             narrativeTagModifier +
-                            locationPreferenceModifier +
-                            previousChoiceModifier +
-                            approachDiversificationModifier +
-                            pressureTrendModifier +
-                            diversityPenalty;
+                            tierBonus +
+                            progressionValue;
 
             scores[choice] = totalScore;
         }
 
         return scores;
+    }
+
+    /// <summary>
+    /// Gets the modification value for a specific approach tag
+    /// </summary>
+    private int GetTagModificationValue(IChoice choice, ApproachTags approach)
+    {
+        foreach (var mod in choice.TagModifications)
+        {
+            if (mod.Type == TagModification.TagTypes.EncounterState && (ApproachTags)mod.Tag == approach)
+            {
+                return mod.Delta;
+            }
+        }
+        return 0;
+    }
+
+    /// <summary>
+    /// Gets choices of a specific tier
+    /// </summary>
+    private List<IChoice> GetChoicesByTier(List<IChoice> choices, CardTiers tier)
+    {
+        return choices.Where(c => c.Tier == tier).ToList();
+    }
+
+    /// <summary>
+    /// Selects the highest tier choice available, prioritizing strategic advantage
+    /// </summary>
+    private IChoice SelectHighestTierChoice(List<IChoice> tier5, List<IChoice> tier4,
+                                         List<IChoice> tier3, List<IChoice> tier2, List<IChoice> tier1)
+    {
+        // Try to select from each tier, starting with highest
+        if (tier5.Any()) return tier5.First();
+        if (tier4.Any()) return tier4.First();
+        if (tier3.Any()) return tier3.First();
+        if (tier2.Any()) return tier2.First();
+        if (tier1.Any()) return tier1.First();
+
+        return null;
+    }
+
+    /// <summary>
+    /// Selects a choice that helps build toward requirements for locked cards
+    /// </summary>
+    private IChoice SelectProgressionChoice(List<IChoice> selectedChoices, List<IChoice> availableChoices,
+                                         EncounterState state, Dictionary<IChoice, int> choiceScores)
+    {
+        // Get all choices that aren't already selected
+        List<IChoice> remainingChoices = availableChoices
+            .Where(c => !selectedChoices.Contains(c))
+            .ToList();
+
+        // Extract progression-oriented scores from choice scores
+        var progressionScores = remainingChoices
+            .Select(c => new { Choice = c, ProgressionScore = GetProgressionScore(c, state) })
+            .Where(c => c.ProgressionScore > 0)
+            .OrderByDescending(c => c.ProgressionScore)
+            .ThenByDescending(c => choiceScores[c.Choice])
+            .ToList();
+
+        if (progressionScores.Any())
+        {
+            return progressionScores.First().Choice;
+        }
+
+        // If no progression choices, try diversity
+        return SelectDiversityChoice(selectedChoices, availableChoices, choiceScores);
+    }
+
+    /// <summary>
+    /// Calculates a progression score for a choice based on how it helps reach requirements
+    /// </summary>
+    private int GetProgressionScore(IChoice choice, EncounterState state)
+    {
+        int score = 0;
+        ApproachTags primaryApproach = GetPrimaryApproach(choice);
+
+        // Get all player cards
+        List<IChoice> allPlayerCards = _choiceRepository.GetAllChoices();
+
+        // Check if this choice helps with approach requirements
+        foreach (IChoice card in allPlayerCards)
+        {
+            if (card.Requirement != null &&
+                card.Requirement.Type == RequirementInfo.RequirementTypes.Approach &&
+                card.Requirement.ApproachTag == primaryApproach)
+            {
+                int currentValue = state.TagSystem.GetEncounterStateTagValue(primaryApproach);
+                int requiredValue = card.Requirement.Value;
+
+                if (currentValue < requiredValue)
+                {
+                    int pointsAway = requiredValue - currentValue;
+                    if (pointsAway <= 2)
+                        score += (3 - pointsAway) * 3; // More points for being closer
+                }
+            }
+        }
+
+        // Check if this choice helps with focus requirements
+        foreach (IChoice card in allPlayerCards)
+        {
+            if (card.Requirement != null &&
+                card.Requirement.Type == RequirementInfo.RequirementTypes.Focus &&
+                card.Requirement.FocusTag == choice.Focus)
+            {
+                int currentValue = state.TagSystem.GetFocusTagValue(choice.Focus);
+                int requiredValue = card.Requirement.Value;
+
+                if (currentValue < requiredValue)
+                {
+                    int pointsAway = requiredValue - currentValue;
+                    if (pointsAway <= 2)
+                        score += (3 - pointsAway) * 3; // More points for being closer
+                }
+            }
+        }
+
+        return score;
+    }
+
+    /// <summary>
+    /// Selects a choice that provides approach/focus diversity
+    /// </summary>
+    private IChoice SelectDiversityChoice(List<IChoice> selectedChoices, List<IChoice> availableChoices,
+                                       Dictionary<IChoice, int> choiceScores)
+    {
+        // Get approaches and focuses already in the selection
+        List<ApproachTags> approachesInSelection = selectedChoices
+            .Select(c => GetPrimaryApproach(c))
+            .Distinct()
+            .ToList();
+
+        List<FocusTags> focusesInSelection = selectedChoices
+            .Select(c => c.Focus)
+            .Distinct()
+            .ToList();
+
+        // Find choices with different approach AND focus
+        List<IChoice> diverseChoices = availableChoices
+            .Where(c => !selectedChoices.Contains(c) &&
+                      !approachesInSelection.Contains(GetPrimaryApproach(c)) &&
+                      !focusesInSelection.Contains(c.Focus))
+            .OrderByDescending(c => choiceScores[c])
+            .ToList();
+
+        if (diverseChoices.Any())
+            return diverseChoices.First();
+
+        // If no completely diverse choice, prioritize approach diversity
+        diverseChoices = availableChoices
+            .Where(c => !selectedChoices.Contains(c) &&
+                      !approachesInSelection.Contains(GetPrimaryApproach(c)))
+            .OrderByDescending(c => choiceScores[c])
+            .ToList();
+
+        if (diverseChoices.Any())
+            return diverseChoices.First();
+
+        // Otherwise prioritize focus diversity
+        diverseChoices = availableChoices
+            .Where(c => !selectedChoices.Contains(c) &&
+                      !focusesInSelection.Contains(c.Focus))
+            .OrderByDescending(c => choiceScores[c])
+            .ToList();
+
+        if (diverseChoices.Any())
+            return diverseChoices.First();
+
+        // If all else fails, pick the highest scoring remaining choice
+        return availableChoices
+            .Where(c => !selectedChoices.Contains(c))
+            .OrderByDescending(c => choiceScores[c])
+            .FirstOrDefault();
     }
 
     /// <summary>
