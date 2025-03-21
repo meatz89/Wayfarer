@@ -1,80 +1,4 @@
-﻿/// <summary>
-/// Represents the tier level of a card
-/// </summary>
-public enum CardTiers
-{
-    Novice = 1,
-    Trained = 2,
-    Adept = 3,
-    Expert = 4,
-    Master = 5
-}
-
-/// <summary>
-/// Holds information about card requirements
-/// </summary>
-public class RequirementInfo
-{
-    public enum RequirementTypes
-    {
-        None,
-        Approach,
-        Focus
-    }
-
-    public RequirementTypes Type { get; }
-    public ApproachTags ApproachTag { get; }
-    public FocusTags FocusTag { get; }
-    public int Value { get; }
-    public int ReductionAmount { get; }
-
-    // No requirement constructor
-    public RequirementInfo()
-    {
-        Type = RequirementTypes.None;
-        ApproachTag = ApproachTags.Dominance;
-        FocusTag = FocusTags.Physical;
-        Value = 0;
-        ReductionAmount = 0;
-    }
-
-    // Approach requirement constructor
-    public RequirementInfo(ApproachTags approach, int value, int reductionAmount)
-    {
-        Type = RequirementTypes.Approach;
-        ApproachTag = approach;
-        FocusTag = FocusTags.Physical; // Default
-        Value = value;
-        ReductionAmount = reductionAmount;
-    }
-
-    // Focus requirement constructor
-    public RequirementInfo(FocusTags focus, int value, int reductionAmount)
-    {
-        Type = RequirementTypes.Focus;
-        ApproachTag = ApproachTags.Dominance; // Default
-        FocusTag = focus;
-        Value = value;
-        ReductionAmount = reductionAmount;
-    }
-
-    public bool IsMet(BaseTagSystem tagSystem)
-    {
-        if (Type == RequirementTypes.None)
-            return true;
-
-        if (Type == RequirementTypes.Approach)
-            return tagSystem.GetEncounterStateTagValue(ApproachTag) >= Value;
-
-        // Focus requirement
-        return tagSystem.GetFocusTagValue(FocusTag) >= Value;
-    }
-}
-
-/// <summary>
-/// Base interface for all choices
-/// </summary>
-public interface IChoice
+﻿public interface IChoice
 {
     string Name { get; }
     string Description { get; }
@@ -86,6 +10,7 @@ public interface IChoice
     int BaseEffectValue { get; }
     IReadOnlyList<TagModification> TagModifications { get; }
     RequirementInfo Requirement { get; }
+    StrategicEffect StrategicEffect { get; }
     void ApplyChoice(EncounterState state);
     void SetBlocked();
 }
@@ -105,10 +30,11 @@ public class Choice : IChoice
     public int BaseEffectValue { get; }
     public IReadOnlyList<TagModification> TagModifications { get; }
     public RequirementInfo Requirement { get; }
+    public StrategicEffect StrategicEffect { get; }
 
     public Choice(string name, string description, FocusTags focus,
                  EffectTypes effectType, CardTiers tier, int baseEffectValue,
-                 RequirementInfo requirement, IReadOnlyList<TagModification> tagModifications)
+                 RequirementInfo requirement, StrategicEffect strategicEffect, IReadOnlyList<TagModification> tagModifications)
     {
         Name = name;
         Description = description;
@@ -118,6 +44,7 @@ public class Choice : IChoice
         BaseEffectValue = baseEffectValue;
         Requirement = requirement;
         TagModifications = tagModifications;
+        StrategicEffect = strategicEffect;
     }
 
     public virtual void ApplyChoice(EncounterState state)

@@ -26,12 +26,11 @@
 
         encounterStrategicTags =
         [
-            // Add strategic tags
-            StrategicTagRepository.InsightfulApproach,    // Analysis → Increases Momentum
-            StrategicTagRepository.CarefulPositioning,    // Precision → Decreases Pressure
-            StrategicTagRepository.EscalatingTension,     // Dominance → Increases Pressure
-            StrategicTagRepository.SocialDistraction,     // Rapport → Decreases Momentum
-                                                                            // Note: Evasion approach has no strategic tag (neutral)
+            // Environment-based strategic tags with library-specific names
+            new StrategicTag("Scholar's Light", Illumination.Bright),
+            new StrategicTag("Hushed Atmosphere", Population.Quiet),
+            new StrategicTag("Academic Decorum", Atmosphere.Formal),
+            new StrategicTag("Narrow Bookshelves", Physical.Confined)
         ]
     };
 
@@ -61,11 +60,11 @@
 
         encounterStrategicTags =
         [
-            // Add strategic tags
-            StrategicTagRepository.TacticalAdvantage,
-            StrategicTagRepository.CarefulPositioning,
-            StrategicTagRepository.EscalatingTension,
-            StrategicTagRepository.SocialDistraction,
+            // Environment-based strategic tags with bandit-specific names
+            new StrategicTag("Lurking Shadows", Illumination.Shadowy),
+            new StrategicTag("Secluded Ambush", Population.Isolated),
+            new StrategicTag("Deadly Threat", Atmosphere.Tense),
+            new StrategicTag("Treacherous Ground", Physical.Hazardous)
         ]
     };
 
@@ -95,11 +94,11 @@
 
         encounterStrategicTags =
         [
-            // Add strategic tags
-            StrategicTagRepository.SocialCurrency,
-            StrategicTagRepository.CalculatedResponse,
-            StrategicTagRepository.RigidMethodology,
-            StrategicTagRepository.SuspiciousBehavior,
+            // Environment-based strategic tags with merchant-specific names
+            new StrategicTag("Market Daylight", Illumination.Bright),
+            new StrategicTag("Bustling Shoppers", Population.Crowded),
+            new StrategicTag("Trading Post", Economic.Commercial),
+            new StrategicTag("Market Commotion", Atmosphere.Chaotic)
         ]
     };
 }

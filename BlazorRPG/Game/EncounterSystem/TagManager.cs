@@ -123,4 +123,14 @@
     }
 
     public BaseTagSystem CloneTagSystem() => TagSystem.Clone();
+
+    public List<StrategicTag> GetStrategicActiveTags()
+    {
+        List<StrategicTag> list = ActiveTags
+            .Where(x => x is StrategicTag strategicTag)
+            .Select(x => (StrategicTag)x)
+            .ToList();
+
+        return list;
+    }
 }

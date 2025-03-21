@@ -105,17 +105,6 @@
             ));
         }
 
-        if (spot.Atmosphere.HasValue)
-        {
-            properties.Add(new(
-            "😌",
-            FormatEnumString(spot.Atmosphere.ToString()),
-            $"property-{spot.Atmosphere.ToString().ToLower()}",
-            "",
-            ""
-            ));
-        }
-
         if (spot.RoomLayout.HasValue)
         {
             properties.Add(new(
@@ -140,15 +129,6 @@
 
         return properties;
     }
-
-
-    private string GetPressureIcon(Atmosphere? pressure) => pressure switch
-    {
-        Atmosphere.Social => "😌",
-        Atmosphere.Aloof => "⚠️",
-        Atmosphere.Hostile => "⚔️",
-        _ => "❓"
-    };
 
     private string GetResourceIcon(ItemTypes? resource) => resource switch
     {

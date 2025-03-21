@@ -1,5 +1,4 @@
-﻿
-public class Item
+﻿public class Item
 {
     public string Name { get; set; }
     public ItemTypes ItemType { get; set; }

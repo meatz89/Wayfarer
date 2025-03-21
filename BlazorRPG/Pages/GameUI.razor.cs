@@ -231,10 +231,10 @@ public partial class GameUI : ComponentBase
     {
         return time switch
         {
-            TimeWindows.Midnight => "🌙",
-            TimeWindows.Dawn => "🌄",
-            TimeWindows.Noon => "☀️",
-            TimeWindows.Dusk => "🌆",
+            TimeWindows.Night => "🌙",
+            TimeWindows.Morning => "🌄",
+            TimeWindows.Afternoon => "☀️",
+            TimeWindows.Evening => "🌆",
             _ => "❓"
         };
     }

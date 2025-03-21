@@ -165,41 +165,33 @@
         }
     }
 
-    private void ProcessStrategicTagEffects(IChoice choice, ChoiceProjection projection, BaseTagSystem clonedTagSystem, ref int momentumChange, ref int pressureChange)
+    private void ProcessStrategicTagEffects(IChoice choice, ChoiceProjection projection, BaseTagSystem baseTagSystem, ref int momentumChange, ref int pressureChange)
     {
-        foreach (IEncounterTag tag in _tagManager.ActiveTags)
+        StrategicEffect effect = choice.StrategicEffect;
+        List<StrategicTag> strategicTags = _tagManager.GetStrategicActiveTags();
+
+        foreach (StrategicTag tag in strategicTags)
         {
-            if (tag is StrategicTag strategicTag)
+            int momentumEffect = effect.GetMomentumModifierForTag(tag, baseTagSystem);
+            if (momentumEffect != 0)
             {
-                bool affectsChoice = true;
-
-                if (choice.Approach != strategicTag.ScalingApproachTag)
-                    affectsChoice = false;
-
-                if (affectsChoice)
+                projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
                 {
-                    int momentumEffect = strategicTag.GetMomentumModifierForChoice(choice, clonedTagSystem);
-                    if (momentumEffect != 0)
-                    {
-                        projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
-                        {
-                            Source = tag.Name,
-                            Value = momentumEffect
-                        });
-                        momentumChange += momentumEffect;
-                    }
+                    Source = $"{tag.Name} ({tag.EnvironmentalProperty.GetPropertyType()})",
+                    Value = momentumEffect
+                });
+                momentumChange += momentumEffect;
+            }
 
-                    int pressureEffect = strategicTag.GetPressureModifierForChoice(choice, clonedTagSystem);
-                    if (pressureEffect != 0)
-                    {
-                        projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-                        {
-                            Source = tag.Name,
-                            Value = pressureEffect
-                        });
-                        pressureChange += pressureEffect;
-                    }
-                }
+            int pressureEffect = effect.GetPressureModifierForTag(tag, baseTagSystem);
+            if (pressureEffect != 0)
+            {
+                projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
+                {
+                    Source = $"{tag.Name} ({tag.EnvironmentalProperty.GetPropertyType()})",
+                    Value = pressureEffect
+                });
+                pressureChange += pressureEffect;
             }
         }
     }

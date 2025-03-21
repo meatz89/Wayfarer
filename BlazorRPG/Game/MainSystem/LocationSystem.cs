@@ -2,13 +2,11 @@
 {
     private readonly GameState gameState;
     private readonly List<Location> allLocations;
-    private readonly List<LocationPropertyChoiceEffect> locationContextEffects;
 
     public LocationSystem(GameState gameState, GameContentProvider contentProvider)
     {
         this.gameState = gameState;
         this.allLocations = contentProvider.GetLocations();
-        this.locationContextEffects = contentProvider.GetLocationArchetypeEffects();
     }
 
     public List<Location> GetAllLocations()
@@ -41,17 +39,12 @@
         return locationSpot1;
     }
 
-    public List<LocationPropertyChoiceEffect> GetLocationEffects(LocationNames locationName, string locationSpotName)
+    public List<StrategicTag> GetEnvironmentalProperties(LocationNames locationName, string locationSpotName)
     {
         Location location = GetLocation(locationName);
         LocationSpot locationSpot = GetLocationSpotForLocation(locationName, locationSpotName);
 
-        List<LocationPropertyChoiceEffect> effects = new List<LocationPropertyChoiceEffect>();
-        foreach (LocationPropertyChoiceEffect locationContextEffect in locationContextEffects)
-        {
-            effects.Add(locationContextEffect);
-        }
-        return effects;
+        return new List<StrategicTag>();
     }
 
 }

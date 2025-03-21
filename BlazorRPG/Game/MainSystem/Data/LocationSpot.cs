@@ -26,10 +26,6 @@
         {
             return Engagement.HasValue && Engagement == engagement;
         }
-        else if (locationSpotProperty is Atmosphere atmosphere)
-        {
-            return Atmosphere.HasValue && Atmosphere == atmosphere;
-        }
         else if (locationSpotProperty is RoomLayout roomLayout)
         {
             return RoomLayout.HasValue && RoomLayout == roomLayout;
