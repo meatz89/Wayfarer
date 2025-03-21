@@ -91,6 +91,14 @@
             if (entry.Type == MessageType.ChoiceGeneration)
                 continue;
 
+            // Skip all choice generation prompts and responses
+            if (entry.Type == MessageType.MemoryUpdate)
+                continue;
+
+            // Skip all choice generation prompts and responses
+            if (entry.Type == MessageType.StateChanges)
+                continue;
+
             // For player choices, simplify to just "Player chose X"
             if (entry.Type == MessageType.PlayerChoice && entry.Role == "user")
             {

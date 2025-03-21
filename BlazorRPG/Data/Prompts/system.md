@@ -135,7 +135,7 @@ ENCOUNTER TYPES (same mechanics, different presentation):
    * Use present tense consistently ("I see" not "I saw")
 
 4. AVOID LITERARY/ABSTRACT TERMS:
-   * No words like "landscape," "dynamics," "configuration"
+   * No words like "landscape," "dynamics," "configuration", or "patterns"
    * No abstract nouns for concrete situations
    * Favor simple, direct language
 
