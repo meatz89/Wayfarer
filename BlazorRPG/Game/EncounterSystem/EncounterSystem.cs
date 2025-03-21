@@ -225,13 +225,6 @@
         };
     }
 
-
-    private static SpecialChoice GetSpecialChoiceFor(EncounterInfo location)
-    {
-        // Add special choices for this location
-        return null;
-    }
-
     public List<IChoice> GetChoices()
     {
         return Encounter.GetCurrentChoices();

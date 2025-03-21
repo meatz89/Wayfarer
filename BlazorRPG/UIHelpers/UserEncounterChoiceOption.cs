@@ -1,6 +1,4 @@
-﻿
-
-public record UserEncounterChoiceOption(
+﻿public record UserEncounterChoiceOption(
     int Index,
     string Description,
     string Narrative,

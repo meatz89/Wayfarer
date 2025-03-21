@@ -1,9 +1,51 @@
 ﻿@inherits EncounterChoiceTooltipBase
 <div class="tooltip" style="left: @(mouseX)px; top: @(mouseY)px;">
     <div class="preview-header">
-        <h4>@hoveredChoice.Description</h4>
+        <h4>
+            @hoveredChoice.Description
+            @if (hoveredChoice.Choice is Choice cardChoiceTier)
+            {
+                <span class="tier-badge tier-@((int)cardChoiceTier.Tier)">
+                    @GetTierName(cardChoiceTier.Tier)
+                </span>
+            }
+        </h4>
         <div class="choice-narrative">@GetChoiceDescription(@hoveredChoice)</div>
     </div>
+
+    @if (hoveredChoice.Choice is Choice cardChoice && cardChoice.Requirement != null &&
+    cardChoice.Requirement.Type != RequirementInfo.RequirementTypes.None)
+    {
+        <div class="tooltip-section">
+            <h5>Card Requirements</h5>
+            <div class="tooltip-list">
+                <div class="tooltip-item">
+                    <div class="tooltip-item-header">
+                        <div class="tooltip-item-title">
+                            <span class="tooltip-item-name">
+                                @if (cardChoice.Requirement.Type == RequirementInfo.RequirementTypes.Approach)
+                                {
+                                    <span>Requires @cardChoice.Requirement.ApproachTag @cardChoice.Requirement.Value+</span>
+                                }
+                                else
+                                {
+                                    <span>Requires @cardChoice.Requirement.FocusTag @cardChoice.Requirement.Value+</span>
+                                }
+                            </span>
+                        </div>
+                    </div>
+                    @if (cardChoice.Requirement.ReductionAmount > 0)
+                    {
+                        <div class="tooltip-item-details">
+                            <div class="tooltip-detail-line negative">
+                                Reduces by @cardChoice.Requirement.ReductionAmount when used
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
 
     <div class="tooltip-section">
         <h5>Effect</h5>
