@@ -7,8 +7,8 @@
     {
         this.gameState = gameState;
         this.allLocations = contentProvider.GetLocations();
-        
-        foreach(var location in allLocations)
+
+        foreach (Location location in allLocations)
         {
             gameState.WorldState.AddLocation(location.Name, location);
         }
