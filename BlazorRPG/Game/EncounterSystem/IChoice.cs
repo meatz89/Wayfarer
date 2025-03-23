@@ -18,7 +18,7 @@
 /// <summary>
 /// Standard choice implementation - either builds momentum or pressure
 /// </summary>
-public class Choice : IChoice
+public class ChoiceCard : IChoice
 {
     public string Name { get; }
     public string Description { get; }
@@ -32,7 +32,7 @@ public class Choice : IChoice
     public RequirementInfo Requirement { get; }
     public StrategicEffect StrategicEffect { get; }
 
-    public Choice(string name, string description, FocusTags focus,
+    public ChoiceCard(string name, string description, FocusTags focus,
                  EffectTypes effectType, CardTiers tier, int baseEffectValue,
                  RequirementInfo requirement, StrategicEffect strategicEffect, IReadOnlyList<TagModification> tagModifications)
     {

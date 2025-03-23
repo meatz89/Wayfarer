@@ -1,28 +1,54 @@
 ﻿public class PlayerState
 {
-    public int Level { get; set; } = 1;
+    // Core identity
+    public string Name { get; set; }
+    public string Background { get; set; }
+
+    // Progression systems
+    public int Level { get; set; }
+    public int ExperiencePoints { get; set; }
+    public Dictionary<string, int> Skills { get; set; } = new Dictionary<string, int>();
+
+    // Resources
+    public int Money { get; set; }
+    public int Food { get; set; }
+    public Inventory Inventory { get; set; } = new Inventory(10);
+
+    // Encounter resources (reset at start of encounters)
+    public int MaxHealth { get; set; }
+    public int MaxConcentration { get; set; }
+    public int MaxConfidence { get; set; }
+
+    // Relationships with characters
+    public Dictionary<string, Relationship> Relationships { get; set; } = new Dictionary<string, Relationship>();
+
+    // Card collection (player skills)
+    public List<ChoiceCard> UnlockedCards { get; set; } = new List<ChoiceCard>();
+
+    // Location knowledge
+    public List<string> DiscoveredLocationIds { get; set; } = new List<string>();
+    public string CurrentLocationId { get; set; }
+
+    // Travel capabilities
+    public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
+
     public int Coins { get; set; }
 
     public int Health { get; set; }
     public int MinHealth { get; set; }
-    public int MaxHealth { get; set; }
 
     public int PhysicalEnergy { get; set; }
     public int MaxPhysicalEnergy { get; set; }
 
     public int Concentration { get; set; }
-    public int MaxConcentration { get; set; }
 
     public int Confidence { get; set; }
-    public int MaxConfidence { get; set; }
 
-    public Dictionary<SkillTypes, int> Skills { get; set; } = new();
-    public Inventory Inventory { get; set; }
     public Equipment Equipment { get; set; }
     public List<KnowledgePiece> Knowledge { get; set; } = new();
-    public LocationNames StartingLocation { get; set; }
-    public List<LocationNames> KnownLocations { get; set; } = new();
-    public HashSet<(LocationNames, BasicActionTypes)> LocationActionAvailability { get; set; } = new();
+    public string StartingLocation { get; set; }
+    public List<string> KnownLocations { get; set; } = new();
+    public HashSet<(string, BasicActionTypes)> LocationActionAvailability { get; set; } = new();
 
     public List<PlayerNegativeStatus> NegativeStatusTypes { get; set; }
     public PlayerConfidenceTypes ConfidenceType { get; set; }
@@ -31,10 +57,6 @@
     {
         Inventory = new Inventory(GameRules.StandardRuleset.StartingInventorySize);
         Equipment = new Equipment();
-
-        Skills.Add(SkillTypes.Strength, 5);
-        Skills.Add(SkillTypes.Perception, 5);
-        Skills.Add(SkillTypes.Charisma, 8);
 
         Coins = GameRules.StandardRuleset.StartingCoins;
 
@@ -132,17 +154,6 @@
         return false;
     }
 
-    public bool ModifySkillLevel(SkillTypes skillType, int count)
-    {
-        int newSkillLevel = Math.Max(0, Skills[skillType] + count);
-        if (newSkillLevel != Skills[skillType])
-        {
-            Skills[skillType] = newSkillLevel;
-            return true;
-        }
-        return false;
-    }
-
     public bool ModifyItem(ResourceChangeTypes itemChange, ItemTypes resourceType, int count)
     {
         if (itemChange == ResourceChangeTypes.Added)
@@ -168,11 +179,6 @@
         }
         ;
         return false;
-    }
-
-    public int GetSkillLevel(SkillTypes primarySkillType)
-    {
-        return Skills[primarySkillType];
     }
 
     public bool HasAchievement(AchievementTypes achievementType)
@@ -214,13 +220,13 @@
         return NegativeStatusTypes.Contains(expectedValue);
     }
 
-    public void AddLocationKnowledge(LocationNames locationName)
+    public void AddLocationKnowledge(string locationName)
     {
         if (KnownLocations.Contains(locationName)) return;
         KnownLocations.Add(locationName);
     }
 
-    public void AddActionAvailabilityAt(LocationNames locationName, BasicActionTypes actionType)
+    public void AddActionAvailabilityAt(string locationName, BasicActionTypes actionType)
     {
         if (LocationActionAvailability.Contains((locationName, actionType))) return;
         LocationActionAvailability.Add((locationName, actionType));
@@ -231,9 +237,14 @@
         return true;
     }
 
-    public void SetStartingLocation(LocationNames startingLocation)
+    public void SetStartingLocation(string startingLocation)
     {
         StartingLocation = startingLocation;
         AddLocationKnowledge(StartingLocation);
+    }
+
+    internal void ApplySkillExperience(string skill)
+    {
+
     }
 }

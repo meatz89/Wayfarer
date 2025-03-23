@@ -1,40 +1,32 @@
-﻿public class ResourceManager
+﻿
+public class ResourceManager
 {
-    private readonly PlayerState _playerState;
-    private readonly EncounterInfo _location;
-
-    public ResourceManager(PlayerState playerState, EncounterInfo location)
-    {
-        _playerState = playerState;
-        _location = location;
-    }
-
-    public void ApplyPressureResourceDamage(int currentPressure)
+    public void ApplyPressureResourceDamage(PlayerState playerState, EncounterInfo encounterInfo, int currentPressure)
     {
         // Skip if no pressure or location doesn't apply pressure damage
         if (currentPressure <= 0)
             return;
 
         // Different resource affected based on encounter type
-        switch (_location.EncounterType)
+        switch (encounterInfo.EncounterType)
         {
             case EncounterTypes.Physical:
-                _playerState.ModifyHealth(-currentPressure);
+                playerState.ModifyHealth(-currentPressure);
                 break;
 
             case EncounterTypes.Intellectual:
-                _playerState.ModifyConcentratin(-currentPressure);
+                playerState.ModifyConcentratin(-currentPressure);
                 break;
 
             case EncounterTypes.Social:
-                _playerState.ModifyConfidence(-currentPressure);
+                playerState.ModifyConfidence(-currentPressure);
                 break;
         }
     }
 
-    public int CalculatePressureResourceDamage(ResourceTypes resourceType, int pressureValue)
+    public int CalculatePressureResourceDamage(EncounterInfo encounterInfo, ResourceTypes resourceType, int pressureValue)
     {
-        switch (_location.EncounterType)
+        switch (encounterInfo.EncounterType)
         {
             case EncounterTypes.Physical:
                 if (resourceType == ResourceTypes.Health)
@@ -55,15 +47,20 @@
         return 0;
     }
 
-    public void ApplyResourceChanges(int healthChange, int focusChange, int confidenceChange)
+    public void ApplyResourceChanges(PlayerState playerState, int healthChange, int focusChange, int confidenceChange)
     {
         if (healthChange != 0)
-            _playerState.ModifyHealth(healthChange);
+            playerState.ModifyHealth(healthChange);
 
         if (focusChange != 0)
-            _playerState.ModifyConcentratin(focusChange);
+            playerState.ModifyConcentratin(focusChange);
 
         if (confidenceChange != 0)
-            _playerState.ModifyConfidence(confidenceChange);
+            playerState.ModifyConfidence(confidenceChange);
+    }
+
+    internal void ApplyResourceChanges(string key, int value)
+    {
+        throw new NotImplementedException();
     }
 }

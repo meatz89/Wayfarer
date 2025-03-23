@@ -13,13 +13,6 @@
             HealthRequirement => RequirementTypes.Health,
             FocusRequirement => RequirementTypes.Concentration,
             CoinsRequirement => RequirementTypes.Coins,
-            SkillRequirement skillReq => skillReq.SkillType switch
-            {
-                SkillTypes.Strength => RequirementTypes.Strength,
-                SkillTypes.Perception => RequirementTypes.Perception,
-                SkillTypes.Charisma => RequirementTypes.Charisma,
-                _ => RequirementTypes.Other
-            },
             ItemRequirement itemReq => itemReq.ResourceType switch
             {
                 ItemTypes.Tool => RequirementTypes.Tool,
@@ -34,13 +27,6 @@
             KnowledgeRequirement knowledgeReq => knowledgeReq.KnowledgeType switch
             {
                 KnowledgeTags.MarketRoutines => RequirementTypes.LocalHistory,
-                _ => RequirementTypes.Other
-            },
-            SkillLevelRequirement skillLevelReq => skillLevelReq.SkillType switch
-            {
-                SkillTypes.Strength => RequirementTypes.Strength,
-                SkillTypes.Perception => RequirementTypes.Perception,
-                SkillTypes.Charisma => RequirementTypes.Charisma,
                 _ => RequirementTypes.Other
             },
             PlayerNegativeStatusRequirement statusReq => statusReq.Status switch

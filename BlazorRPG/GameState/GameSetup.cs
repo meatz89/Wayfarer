@@ -5,13 +5,13 @@
     public static GameState CreateNewGame()
     {
         GameState gameState = new GameState();
-        gameState.World.SetCurrentTime(22);
-        gameState.World.ChangeWeather(WeatherTypes.Clear);
+        gameState.WorldState.SetCurrentTime(22);
+        gameState.WorldState.ChangeWeather(WeatherTypes.Clear);
 
         GameRules gameRules = GameRules.StandardRuleset;
 
         PlayerState playerInfo = new PlayerState();
-        playerInfo.SetStartingLocation(StartingLocation);
+        playerInfo.SetStartingLocation(StartingLocation.ToString());
 
         playerInfo.Coins = gameRules.StartingCoins;
 
@@ -30,7 +30,7 @@
 
         playerInfo.Inventory.AddItems(ItemTypes.Food, 5);
 
-        gameState.Player = playerInfo;
+        gameState.PlayerState = playerInfo;
 
         return gameState;
     }

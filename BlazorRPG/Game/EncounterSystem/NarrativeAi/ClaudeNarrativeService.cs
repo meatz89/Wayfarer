@@ -52,7 +52,7 @@
         return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
     }
 
-    public override async Task<string> GenerateReactionAndSceneAsync(
+    public override async Task<string> GenerateEncounterNarrative(
         NarrativeContext context,
         IChoice chosenOption,
         ChoiceNarrative choiceNarrative,
@@ -161,5 +161,20 @@
             _contextManager.GetOptimizedConversationHistory(conversationId));
 
         return stateChangesResponse;
+    }
+
+    public override Task<DiscoveredEntities> ExtractWorldDiscoveries(string encounterNarrative, WorldContext worldContext)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override Task<EntityDetails> DevelopEntityDetails(string entityType, string entityId, EntityContext entityContext)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override Task<StateChangeRecommendations> GenerateStateChanges(string encounterOutcome, EncounterContext context)
+    {
+        throw new NotImplementedException();
     }
 }

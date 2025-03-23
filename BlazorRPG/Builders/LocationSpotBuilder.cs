@@ -1,8 +1,10 @@
-﻿public class LocationSpotBuilder
+﻿using System.Xml.Linq;
+
+public class LocationSpotBuilder
 {
     private string name;
-    private LocationNames locationName;
-    private CharacterNames? character;
+    private string locationName;
+    private string? character;
 
     private List<ActionNames> actionNames = new();
 
@@ -12,7 +14,7 @@
     public RoomLayout? roomLayout { get; set; }
     public Temperature? temperature { get; set; }
 
-    public LocationSpotBuilder(LocationNames locationName)
+    public LocationSpotBuilder(string locationName)
     {
         this.locationName = locationName;
     }
@@ -23,7 +25,7 @@
         return this;
     }
 
-    public LocationSpotBuilder WithCharacter(CharacterNames? character)
+    public LocationSpotBuilder WithCharacter(string? character)
     {
         this.character = character;
         return this;
@@ -91,5 +93,6 @@
         }
         return locationSpot;
     }
+
 }
 

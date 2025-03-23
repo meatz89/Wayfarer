@@ -5,6 +5,6 @@
     public List<Requirement> Requirements = new();
     public List<Outcome> Outcomes = new();
     public List<IGameStateModifier> StateModifiers = new();
-    public LocationNames Location { get; set; }
-    public CharacterNames Character { get; set; }
+    public string Location { get; set; }
+    public string Character { get; set; }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using System.Runtime.CompilerServices;
 
 namespace BlazorRPG.Pages;
 
@@ -10,30 +11,30 @@ public partial class GameUI : ComponentBase
 
     public List<string> ResultMessages => GetResultMessages();
 
-    public int physicalEnergyCurrent => GameState.Player.PhysicalEnergy;
-    public int physicalEnergyMax => GameState.Player.MaxPhysicalEnergy;
+    public int physicalEnergyCurrent => GameState.PlayerState.PhysicalEnergy;
+    public int physicalEnergyMax => GameState.PlayerState.MaxPhysicalEnergy;
 
-    public int health => GameState.Player.Health;
-    public int maxHealth => GameState.Player.MaxHealth;
+    public int health => GameState.PlayerState.Health;
+    public int maxHealth => GameState.PlayerState.MaxHealth;
 
-    public int concentration => GameState.Player.Concentration;
-    public int maxConcentration => GameState.Player.MaxConcentration;
+    public int concentration => GameState.PlayerState.Concentration;
+    public int maxConcentration => GameState.PlayerState.MaxConcentration;
 
-    public int confidence => GameState.Player.Confidence;
-    public int maxConfidence => GameState.Player.MaxConfidence;
+    public int confidence => GameState.PlayerState.Confidence;
+    public int maxConfidence => GameState.PlayerState.MaxConfidence;
 
-    public int coins => GameState.Player.Coins;
-    public int food => GameState.Player.Inventory.GetItemCount(ItemTypes.Food);
+    public int coins => GameState.PlayerState.Coins;
+    public int food => GameState.PlayerState.Inventory.GetItemCount(ItemTypes.Food);
 
     public List<Location> Locations => GameManager.GetPlayerKnownLocations();
 
     private bool showNarrative = false;
-    private LocationNames selectedLocation;
-    public PlayerState Player => GameState.Player;
-    public Location CurrentLocation => GameState.World.CurrentLocation;
-    public LocationSpot CurrentSpot => GameState.World.CurrentLocationSpot;
-    public TimeWindows CurrentTime => GameState.World.WorldTime;
-    public int CurrentHour => GameState.World.CurrentTimeInHours;
+    private string selectedLocation;
+    public PlayerState Player => GameState.PlayerState;
+    public Location CurrentLocation => GameState.WorldState.CurrentLocation;
+    public LocationSpot CurrentSpot => GameState.WorldState.CurrentLocationSpot;
+    public TimeWindows CurrentTime => GameState.WorldState.WorldTime;
+    public int CurrentHour => GameState.WorldState.CurrentTimeInHours;
     public bool ShowEncounterResult { get; set; } = false;
     public bool OngoingEncounter = false;
 
@@ -47,9 +48,9 @@ public partial class GameUI : ComponentBase
     private double mouseX;
     private double mouseY;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        GameManager.StartGame();
+        await GameManager.StartGame();
     }
 
     public EncounterManager GetCurrentEncounter()
@@ -81,7 +82,7 @@ public partial class GameUI : ComponentBase
         StateHasChanged();
     }
 
-    private void HandleLocationSelection(LocationNames locationName)
+    private void HandleLocationSelection(string locationName)
     {
         selectedLocation = locationName;
 
@@ -98,38 +99,35 @@ public partial class GameUI : ComponentBase
         FinishEncounter();
     }
 
-    private void FinalizeLocationSelection(LocationNames locationName)
+    private async Task FinalizeLocationSelection(string locationName)
     {
-        List<UserLocationTravelOption> currentTravelOptions = GameState.World.CurrentTravelOptions;
+        List<UserLocationTravelOption> currentTravelOptions = GameState.WorldState.CurrentTravelOptions;
 
-        bool enterLocation = locationName == GameState.World.CurrentLocation.LocationName;
+        bool enterLocation = locationName == GameState.WorldState.CurrentLocation.Name;
         ActionResult result;
 
         if (enterLocation)
         {
-            result = GameManager.TravelToLocation(locationName);
+            await GameManager.TravelToLocation(locationName);
             GameManager.TravelToLocation(locationName);
         }
         else
         {
             UserLocationTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Location == locationName);
-            result = GameManager.TravelToLocation(location.Location);
+            await GameManager.TravelToLocation(location.Location);
         }
 
-        if (result.IsSuccess)
-        {
-            CompleteActionExecution();
-            showAreaMap = false;
-        }
+        CompleteActionExecution();
+        showAreaMap = false;
     }
 
-    private void FinishEncounter()
+    private async Task FinishEncounter()
     {
         // Reset Encounter logic
         GameManager.FinishEncounter(EncounterResult.Encounter);
         ShowEncounterResult = false;
 
-        ActionResult result = GameManager.TravelToLocation(CurrentLocation.LocationName);
+        await GameManager.TravelToLocation(CurrentLocation.Name);
         StateHasChanged();
     }
 
@@ -191,7 +189,7 @@ public partial class GameUI : ComponentBase
 
     private void HandleSpotSelection(LocationSpot locationSpot)
     {
-        List<UserLocationSpotOption> userLocationSpotOptions = GameState.World.CurrentLocationSpotOptions;
+        List<UserLocationSpotOption> userLocationSpotOptions = GameState.WorldState.CurrentLocationSpotOptions;
         UserLocationSpotOption userLocationSpot = userLocationSpotOptions.FirstOrDefault(x => x.LocationSpot == locationSpot.Name);
 
         GameManager.MoveToLocationSpot(userLocationSpot.Location, locationSpot.Name);
@@ -204,7 +202,7 @@ public partial class GameUI : ComponentBase
 
     private List<PropertyDisplay> GetLocationProperties(Location location)
     {
-        WorldState world = GameState.World;
+        WorldState world = GameState.WorldState;
 
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 

@@ -7,6 +7,11 @@
     {
         this.gameState = gameState;
         this.allLocations = contentProvider.GetLocations();
+        
+        foreach(var location in allLocations)
+        {
+            gameState.WorldState.AddLocation(location.Name, location);
+        }
     }
 
     public List<Location> GetAllLocations()
@@ -14,32 +19,32 @@
         return allLocations;
     }
 
-    public List<LocationNames> GetTravelLocations(LocationNames currentLocation)
+    public List<string> GetTravelLocations(string currentLocation)
     {
         Location location = GetLocation(currentLocation);
-        return location.TravelConnections;
+        return location.ConnectedLocationIds;
     }
 
-    public Location GetLocation(LocationNames locationName)
+    public Location GetLocation(string locationName)
     {
-        Location location = allLocations.FirstOrDefault(x => x.LocationName == locationName);
+        Location location = allLocations.FirstOrDefault(x => x.Name == locationName);
         return location;
     }
 
     public List<LocationSpot> GetLocationSpots(Location location)
     {
-        return location.LocationSpots;
+        return location.Spots;
     }
 
-    public LocationSpot GetLocationSpotForLocation(LocationNames locationName, string locationSpot)
+    public LocationSpot GetLocationSpotForLocation(string locationName, string locationSpotName)
     {
         Location location = GetLocation(locationName);
         List<LocationSpot> spots = GetLocationSpots(location);
-        LocationSpot? locationSpot1 = spots.FirstOrDefault(x => x.Name == locationSpot);
-        return locationSpot1;
+        LocationSpot? locationSpot = spots.FirstOrDefault(x => x.Name == locationSpotName);
+        return locationSpot;
     }
 
-    public List<StrategicTag> GetEnvironmentalProperties(LocationNames locationName, string locationSpotName)
+    public List<StrategicTag> GetEnvironmentalProperties(string locationName, string locationSpotName)
     {
         Location location = GetLocation(locationName);
         LocationSpot locationSpot = GetLocationSpotForLocation(locationName, locationSpotName);

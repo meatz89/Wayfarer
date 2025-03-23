@@ -17,7 +17,7 @@
     {
         if (template.ActionType == BasicActionTypes.Labor)
         {
-            (LocationNames LocationName, BasicActionTypes ActionType) item = (location.LocationName, template.ActionType);
+            (string LocationName, BasicActionTypes ActionType) item = (location.Name, template.ActionType);
             bool isLaborAllowedAtLocation = playerState.LocationActionAvailability.Contains(item);
             return isLaborAllowedAtLocation;
         }

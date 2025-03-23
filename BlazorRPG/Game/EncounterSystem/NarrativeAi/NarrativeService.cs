@@ -1,6 +1,6 @@
-﻿public class NarrativeService : INarrativeAIService
+﻿public class NarrativeService : IAIService
 {
-    private readonly Dictionary<AIProviderType, INarrativeAIService> _providers;
+    private readonly Dictionary<AIProviderType, IAIService> _providers;
     private AIProviderType _currentProvider;
     private readonly ILogger<EncounterSystem> _logger;
 
@@ -9,7 +9,7 @@
         _logger = logger;
 
         // Initialize all providers in a dictionary for easier access
-        _providers = new Dictionary<AIProviderType, INarrativeAIService>
+        _providers = new Dictionary<AIProviderType, IAIService>
         {
             { AIProviderType.Claude, new ClaudeNarrativeService(configuration, _logger) }
         };
@@ -63,7 +63,7 @@
 
     public async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatusModel state, string memoryContent)
     {
-        INarrativeAIService narrativeAIService = _providers[_currentProvider];
+        IAIService narrativeAIService = _providers[_currentProvider];
         return await narrativeAIService.GenerateIntroductionAsync(context, state, memoryContent);
     }
 
@@ -77,14 +77,14 @@
             context, choices, projections, state);
     }
 
-    public async Task<string> GenerateReactionAndSceneAsync(
+    public async Task<string> GenerateEncounterNarrative(
         NarrativeContext context,
         IChoice chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         EncounterStatusModel newState)
     {
-        return await _providers[_currentProvider].GenerateReactionAndSceneAsync(
+        return await _providers[_currentProvider].GenerateEncounterNarrative(
             context, chosenOption, choiceDescription, outcome, newState);
     }
 
@@ -118,5 +118,20 @@
     {
         return await _providers[_currentProvider].GenerateStateChangesAsync(
             context, outcome, newState);
+    }
+
+    public Task<DiscoveredEntities> ExtractWorldDiscoveries(string encounterNarrative, WorldContext worldContext)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<EntityDetails> DevelopEntityDetails(string entityType, string entityId, EntityContext entityContext)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<StateChangeRecommendations> GenerateStateChanges(string encounterOutcome, EncounterContext context)
+    {
+        throw new NotImplementedException();
     }
 }

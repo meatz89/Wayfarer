@@ -93,14 +93,14 @@ public partial class EncounterViewBase : ComponentBase
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
-        if (GetEncounter().State?.Location?.AvailableTags == null)
+        if (GetEncounter().encounterState?.Location?.AvailableTags == null)
             return properties;
 
         // Get all available tags that aren't currently active
-        foreach (IEncounterTag tag in GetEncounter().State.Location.AvailableTags)
+        foreach (IEncounterTag tag in GetEncounter().encounterState.Location.AvailableTags)
         {
             // Skip if the tag is already active
-            if (GetEncounter().State.ActiveTags.Any(t => t.Name == tag.Name))
+            if (GetEncounter().encounterState.ActiveTags.Any(t => t.Name == tag.Name))
                 continue;
 
             string icon = GetTagIcon(tag);
@@ -163,7 +163,7 @@ public partial class EncounterViewBase : ComponentBase
     public string GetTagEffectDescription(string tagName)
     {
         // Find the tag by name and use its description method
-        IEncounterTag tag = GetEncounter().State.ActiveTags.FirstOrDefault(t => t.Name == tagName);
+        IEncounterTag tag = GetEncounter().encounterState.ActiveTags.FirstOrDefault(t => t.Name == tagName);
         if (tag is StrategicTag strategicTag)
         {
             return strategicTag.GetEffectDescription();
@@ -237,10 +237,10 @@ public partial class EncounterViewBase : ComponentBase
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
         EncounterManager encounterManager = GetEncounter();
 
-        if (encounterManager.State?.ActiveTags == null)
+        if (encounterManager.encounterState?.ActiveTags == null)
             return properties;
 
-        foreach (IEncounterTag tag in encounterManager.State.ActiveTags)
+        foreach (IEncounterTag tag in encounterManager.encounterState.ActiveTags)
         {
             string icon = GetTagIcon(tag);
             string tooltipText = GetTagTooltipText(tag);

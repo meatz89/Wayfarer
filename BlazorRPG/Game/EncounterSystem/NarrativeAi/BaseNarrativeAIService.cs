@@ -1,4 +1,4 @@
-﻿public abstract class BaseNarrativeAIService : INarrativeAIService
+﻿public abstract class BaseNarrativeAIService : IAIService
 {
     protected readonly AIClientService _aiClient;
     protected readonly PromptManager _promptManager;
@@ -23,7 +23,7 @@
 
     public abstract Task<string> GenerateIntroductionAsync(
         NarrativeContext context, EncounterStatusModel state, string memoryContent);
-    public abstract Task<string> GenerateReactionAndSceneAsync(
+    public abstract Task<string> GenerateEncounterNarrative(
         NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatusModel newState);
     public abstract Task<string> GenerateEndingAsync(
         NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatusModel newState);
@@ -42,4 +42,8 @@
     {
         return _gameInstanceId;
     }
+
+    public abstract Task<DiscoveredEntities> ExtractWorldDiscoveries(string encounterNarrative, WorldContext worldContext);
+    public abstract Task<EntityDetails> DevelopEntityDetails(string entityType, string entityId, EntityContext entityContext);
+    public abstract Task<StateChangeRecommendations> GenerateStateChanges(string encounterOutcome, EncounterContext context);
 }

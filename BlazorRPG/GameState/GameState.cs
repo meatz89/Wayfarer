@@ -2,15 +2,15 @@
 {
     public Modes GameMode = Modes.Debug;
 
-    public PlayerState Player { get; set; }
+    public PlayerState PlayerState { get; set; }
     public ActionState Actions { get; }
-    public WorldState World { get; }
+    public WorldState WorldState { get; }
 
     public GameState()
     {
-        Player = new PlayerState();
+        PlayerState = new PlayerState();
         Actions = new ActionState();
-        World = new WorldState();
+        WorldState = new WorldState();
     }
 
     public List<UserActionOption> GetActions(LocationSpot locationSpot)

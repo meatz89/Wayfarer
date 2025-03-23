@@ -46,7 +46,7 @@
         projection.FinalPressure = Math.Max(0, currentPressure + projection.PressureBuilt);
 
         // Calculate pressure-based resource damage that will apply at start of turn
-        CalculateDamageFromPressure(choice, projection, currentPressure, projection.PressureBuilt);
+        CalculateDamageFromPressure(choice, encounterInfo, projection, currentPressure, projection.PressureBuilt);
 
         // Calculate projected turn and check if encounter will end
         int projectedTurn = currentTurn + 1;
@@ -96,11 +96,11 @@
         }
     }
 
-    private void CalculateDamageFromPressure(IChoice choice, ChoiceProjection projection, int currentPressure, int choicePressure)
+    private void CalculateDamageFromPressure(IChoice choice, EncounterInfo encounterInfo, ChoiceProjection projection, int currentPressure, int choicePressure)
     {
-        int pressureHealthDamage = _resourceManager.CalculatePressureResourceDamage(ResourceTypes.Health, currentPressure + choicePressure);
-        int pressureConcentrationDamage = _resourceManager.CalculatePressureResourceDamage(ResourceTypes.Concentration, currentPressure + choicePressure);
-        int pressureConfidenceDamage = _resourceManager.CalculatePressureResourceDamage(ResourceTypes.Confidence, currentPressure + choicePressure);
+        int pressureHealthDamage = _resourceManager.CalculatePressureResourceDamage(encounterInfo, ResourceTypes.Health, currentPressure + choicePressure);
+        int pressureConcentrationDamage = _resourceManager.CalculatePressureResourceDamage(encounterInfo, ResourceTypes.Concentration, currentPressure + choicePressure);
+        int pressureConfidenceDamage = _resourceManager.CalculatePressureResourceDamage(encounterInfo, ResourceTypes.Confidence, currentPressure + choicePressure);
 
         // Add pressure resource components to projection
         if (encounterInfo.DangerousApproaches.Contains(choice.Approach))

@@ -4,8 +4,8 @@
 
     private List<Requirement> requirements = new();
     private ActionImplementation action;
-    private LocationNames location;
-    private CharacterNames character;
+    private string location;
+    private string character;
 
     public QuestStepBuilder WithDescription(string description)
     {
@@ -13,13 +13,13 @@
         return this;
     }
 
-    public QuestStepBuilder WithLocation(LocationNames location)
+    public QuestStepBuilder WithLocation(string location)
     {
         this.location = location;
         return this;
     }
 
-    public QuestStepBuilder WithCharacter(CharacterNames character)
+    public QuestStepBuilder WithCharacter(string character)
     {
         this.character = character;
         return this;

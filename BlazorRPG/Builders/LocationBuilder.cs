@@ -1,8 +1,8 @@
 ﻿public class LocationBuilder
 {
-    private LocationNames locationName;
+    private string locationName;
 
-    private List<LocationNames> travelConnections = new();
+    private List<string> travelConnections = new();
     private List<LocationSpot> locationSpots = new();
     private int difficultyLevel;
 
@@ -11,13 +11,13 @@
 
     public LocationBuilder ForLocation(LocationNames name)
     {
-        this.locationName = name;
+        this.locationName = name.ToString();
         return this;
     }
 
     public LocationBuilder AddTravelConnection(LocationNames connection)
     {
-        this.travelConnections.Add(connection);
+        this.travelConnections.Add(connection.ToString());
         return this;
     }
 
