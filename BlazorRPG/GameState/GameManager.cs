@@ -53,6 +53,7 @@ public class GameManager
         Item item = ItemSystem.GetItemFromName(ItemNames.CharmingPendant);
         if (item != null) gameState.PlayerState.Equipment.SetMainHand(item);
     }
+
     public async Task TravelToLocation(string locationName, TravelMethods travelMethod = TravelMethods.Walking)
     {
         string startLocationId = playerState.CurrentLocationId;

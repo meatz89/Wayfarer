@@ -17,8 +17,9 @@
     {
         locations = new List<Location>
         {
-            WorldLocationsContent.Library,
-            WorldLocationsContent.Marketplace,
+            WorldLocationsContent.Village,
+            WorldLocationsContent.Forest,
+            WorldLocationsContent.Tavern
         };
 
         characters = new List<Character>
