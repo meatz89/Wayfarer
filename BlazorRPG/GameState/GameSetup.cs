@@ -1,6 +1,6 @@
 ﻿public class GameSetup
 {
-    private const LocationNames StartingLocation = LocationNames.AncientLibrary;
+    private const LocationNames StartingLocation = LocationNames.Village;
 
     public static GameState CreateNewGame()
     {

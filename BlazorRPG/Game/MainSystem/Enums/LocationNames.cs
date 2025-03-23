@@ -1,5 +1,7 @@
 ﻿public enum LocationNames
 {
-    AncientLibrary,
-    Market
+    None = 0,
+    Village,
+    Forest,
+    Tavern
 }
