@@ -238,11 +238,11 @@ public class DiscoveryManager
         }
 
         // Create spots for existing opportunities at this location
-        var opportunitiesAtLocation = worldState.GetOpportunities()
+        List<Opportunity> opportunitiesAtLocation = worldState.GetOpportunities()
             .Where(o => o.LocationId == location.Name)
             .ToList();
 
-        foreach (var opportunity in opportunitiesAtLocation)
+        foreach (Opportunity? opportunity in opportunitiesAtLocation)
         {
             AddOpportunityToLocationSpot(opportunity.Name, location.Name, opportunity.RelatedCharacterIds);
         }
