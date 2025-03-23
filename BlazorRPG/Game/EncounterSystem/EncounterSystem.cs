@@ -9,12 +9,21 @@
     private EncounterManager Encounter;
     public EncounterResult encounterResult;
 
+    public DiscoveryManager discoveryManager;
 
+    private ResourceManager resourceManager;
+    private RelationshipManager relationshipManager;
     private CardSelectionAlgorithm cardSelector;
+
+    public WorldState worldState { get; private set; }
+
     public EncounterSystem(
         GameState gameState,
         MessageSystem messageSystem,
         GameContentProvider contentProvider,
+        DiscoveryManager discoveryManager,
+        ResourceManager resourceManager,
+        RelationshipManager relationshipManager,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {
@@ -24,6 +33,9 @@
 
         // Create the switchable narrative service
         this.narrativeService = new NarrativeService(configuration, logger);
+        this.discoveryManager = discoveryManager;
+        this.resourceManager = resourceManager;
+        this.relationshipManager = relationshipManager;
 
         // Initialize with the default provider from config
         string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "OpenAI";
@@ -43,66 +55,29 @@
         }
     }
 
-    // Update toggle method to cycle through all three providers
-    public void ToggleAIProvider()
-    {
-        // Cycle through providers: OpenAI -> Gemma3 -> Claude -> OpenAI
-        switch (currentAIProvider)
-        {
-            case AIProviderType.OpenAI:
-                SwitchAIProvider(AIProviderType.Gemma3);
-                break;
-            case AIProviderType.Gemma3:
-                SwitchAIProvider(AIProviderType.Claude);
-                break;
-            case AIProviderType.Claude:
-                SwitchAIProvider(AIProviderType.OpenAI);
-                break;
-            default:
-                SwitchAIProvider(AIProviderType.OpenAI);
-                break;
-        }
-    }
-
-    // New method to switch AI providers
-    public void SwitchAIProvider(AIProviderType providerType)
-    {
-        currentAIProvider = providerType;
-        narrativeService.SwitchProvider(providerType);
-
-        // If we have an active encounter, update its provider too
-        if (Encounter != null)
-        {
-            Encounter.SwitchAIProvider(providerType);
-        }
-    }
-
-    // New method to get current AI provider name for UI
-    public string GetCurrentAIProviderName()
-    {
-        return narrativeService.GetCurrentProviderName();
-    }
-
     public async Task<EncounterResult> GenerateEncounter(
         Location location,
         string locationSpot,
         EncounterContext context,
+        WorldState worldState,
         PlayerState playerState,
         ActionImplementation actionImplementation)
     {
+        this.worldState = worldState;
+
         Location loc = context.Location;
         EncounterTypes encounterType = GetPresentationStyleFromBaseAction(actionImplementation);
 
         // Create encounter from location and action
-        LocationNames locationName = location.LocationName;
+        string locationName = location.Name;
 
         EncounterTemplate template = actionImplementation.EncounterTemplate;
 
-        EncounterInfo encounter = EncounterInfoFactory.CreateEncounter(
+        EncounterInfo encounter = EncounterFactory.CreateEncounter(
             locationName, locationSpot, encounterType, template);
 
         // Create encounter manager
-        encounterResult = await StartEncounterAt(location, encounter, playerState, actionImplementation);
+        encounterResult = await StartEncounterAt(location, encounter, this.worldState, playerState, actionImplementation);
 
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
@@ -111,27 +86,36 @@
         return encounterResult;
     }
 
-    private static EncounterTypes GetPresentationStyleFromBaseAction(ActionImplementation actionImplementation)
+
+    public List<StrategicTag> GetActiveStrategicTags(string locationId, EncounterContext encounterContext)
     {
-        return actionImplementation.ActionType switch
+        Location location = worldState.GetLocation(locationId);
+        List<IEnvironmentalProperty> properties = GetCurrentEnvironmentalProperties(locationId, encounterContext.TimeOfDay);
+
+        // Base tags from location
+        List<StrategicTag> activeTags = new List<StrategicTag>(location.StrategicTags);
+
+        return activeTags;
+    }
+
+    public List<IEnvironmentalProperty> GetCurrentEnvironmentalProperties(string locationId, string timeOfDay)
+    {
+        Location location = worldState.GetLocation(locationId);
+
+        // Get time-specific properties if available
+        if (location.TimeProperties.ContainsKey(timeOfDay))
         {
-            BasicActionTypes.Labor => EncounterTypes.Physical,
-            BasicActionTypes.Gather => EncounterTypes.Physical,
-            BasicActionTypes.Fight => EncounterTypes.Physical,
+            return location.TimeProperties[timeOfDay];
+        }
 
-            BasicActionTypes.Study => EncounterTypes.Intellectual,
-            BasicActionTypes.Investigate => EncounterTypes.Intellectual,
-            BasicActionTypes.Analyze => EncounterTypes.Intellectual,
-
-            BasicActionTypes.Discuss => EncounterTypes.Social,
-            BasicActionTypes.Persuade => EncounterTypes.Social,
-            BasicActionTypes.Perform => EncounterTypes.Social,
-        };
+        // Fall back to general properties
+        return location.EnvironmentalProperties;
     }
 
     public async Task<EncounterResult> StartEncounterAt(
         Location location,
         EncounterInfo encounterInfo,
+        WorldState worldState,
         PlayerState playerState,
         ActionImplementation actionImplementation)
     {
@@ -143,7 +127,10 @@
         EncounterManager encounterManager = new EncounterManager(
             actionImplementation,
             cardSelector,
+            discoveryManager,
             narrativeService,
+            resourceManager,
+            relationshipManager,
             configuration,
             logger);
 
@@ -159,6 +146,7 @@
         NarrativeResult initialResult = await encounterManager.StartEncounterWithNarrativeAsync(
             location,
             encounterInfo,
+            worldState,
             playerState,
             actionImplementation,
             currentAIProvider);  // Pass the current provider type
@@ -240,4 +228,63 @@
         return Encounter.ProjectChoice(choice);
     }
 
+
+    // Update toggle method to cycle through all three providers
+    public void ToggleAIProvider()
+    {
+        // Cycle through providers: OpenAI -> Gemma3 -> Claude -> OpenAI
+        switch (currentAIProvider)
+        {
+            case AIProviderType.OpenAI:
+                SwitchAIProvider(AIProviderType.Gemma3);
+                break;
+            case AIProviderType.Gemma3:
+                SwitchAIProvider(AIProviderType.Claude);
+                break;
+            case AIProviderType.Claude:
+                SwitchAIProvider(AIProviderType.OpenAI);
+                break;
+            default:
+                SwitchAIProvider(AIProviderType.OpenAI);
+                break;
+        }
+    }
+
+    // New method to switch AI providers
+    public void SwitchAIProvider(AIProviderType providerType)
+    {
+        currentAIProvider = providerType;
+        narrativeService.SwitchProvider(providerType);
+
+        // If we have an active encounter, update its provider too
+        if (Encounter != null)
+        {
+            Encounter.SwitchAIProvider(providerType);
+        }
+    }
+
+    // New method to get current AI provider name for UI
+    public string GetCurrentAIProviderName()
+    {
+        return narrativeService.GetCurrentProviderName();
+    }
+
+
+    private static EncounterTypes GetPresentationStyleFromBaseAction(ActionImplementation actionImplementation)
+    {
+        return actionImplementation.ActionType switch
+        {
+            BasicActionTypes.Labor => EncounterTypes.Physical,
+            BasicActionTypes.Gather => EncounterTypes.Physical,
+            BasicActionTypes.Fight => EncounterTypes.Physical,
+
+            BasicActionTypes.Study => EncounterTypes.Intellectual,
+            BasicActionTypes.Investigate => EncounterTypes.Intellectual,
+            BasicActionTypes.Analyze => EncounterTypes.Intellectual,
+
+            BasicActionTypes.Discuss => EncounterTypes.Social,
+            BasicActionTypes.Persuade => EncounterTypes.Social,
+            BasicActionTypes.Perform => EncounterTypes.Social,
+        };
+    }
 }

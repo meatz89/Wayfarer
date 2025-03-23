@@ -1,10 +1,10 @@
-﻿public static class EncounterInfoFactory
+﻿public static class EncounterFactory
 {
     /// <summary>
     /// Creates the encounter for the given location
     /// </summary>
     public static EncounterInfo CreateEncounter(
-        LocationNames locationName,
+        string locationName,
         string locationSpot,
         EncounterTypes presentationStyle,
         EncounterTemplate template)
@@ -37,5 +37,7 @@
 
         return encounterInfo;
     }
+
+
 
 }

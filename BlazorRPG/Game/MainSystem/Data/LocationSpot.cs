@@ -1,8 +1,21 @@
 ﻿public class LocationSpot
 {
+    // Identity
     public string Name { get; set; }
-    public LocationNames LocationName { get; set; }
-    public CharacterNames? Character { get; set; }
+    public string Description { get; set; }
+
+    // Connections
+    public string LocationName { get; set; }
+    public List<string> ResidentCharacterIds { get; set; } = new List<string>();
+    public List<string> AssociatedOpportunityIds { get; set; } = new List<string>();
+
+    // Interaction
+    public string InteractionType { get; set; }  // "Character", "Quest", "Shop", "Feature", etc.
+    public string InteractionDescription { get; set; }
+
+    // Visual/positioning data (for map display)
+    public string Position { get; set; }  // "North", "Center", "Southeast", etc.
+
     public Accessibility? Accessibility { get; set; }
     public LocationType? Engagement { get; set; }
     public Atmosphere? Atmosphere { get; set; }
@@ -10,6 +23,7 @@
     public Temperature? Temperature { get; set; }
     public List<ActionNames> ActionNames { get; } = new();
     public List<ActionImplementation> Actions { get; } = new();
+    public string Character { get; internal set; }
 
     public void AddAction(ActionImplementation baseAction)
     {
@@ -40,9 +54,15 @@
             throw new ArgumentException($"Unsupported property type: {typeof(T)}");
         }
     }
+
+    public LocationSpot()
+    {
+
+    }
+
     public LocationSpot(
         string name,
-        LocationNames locationName,
+        string locationName,
         Accessibility? accessibility,
         LocationType? engagement,
         Atmosphere? atmosphere,

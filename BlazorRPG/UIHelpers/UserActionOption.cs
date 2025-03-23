@@ -4,9 +4,9 @@
     string Description,
     bool IsDisabled,
     ActionImplementation ActionImplementation,
-    LocationNames Location,
+    string Location,
     string LocationSpot,
-    CharacterNames Character,
+    string Character,
     int LocationDifficulty
     )
 {

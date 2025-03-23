@@ -149,54 +149,6 @@ public class EnergyOutcome : Outcome
     }
 }
 
-public class InformationOutcome : Outcome
-{
-    public InformationTypes InformationType { get; }
-    public Information Information { get; }
-
-    public InformationOutcome(InformationTypes informationType, Information information)
-    {
-        InformationType = informationType;
-        Information = information;
-    }
-
-    public override void Apply(PlayerState player)
-    {
-        switch (InformationType)
-        {
-            case InformationTypes.Location:
-            {
-                if (Information is LocationInformation locationInformation)
-                {
-                    player.AddLocationKnowledge(locationInformation.LocationNames);
-                }
-                break;
-            }
-
-            case InformationTypes.ActionOpportunity:
-            {
-                if (Information is ActionOpportunityInformation actionOpportunityInformation)
-                {
-                    player.AddActionAvailabilityAt(
-                        actionOpportunityInformation.LocationName,
-                        actionOpportunityInformation.ActionType);
-                }
-                break;
-            }
-        }
-    }
-
-    public override string GetDescription()
-    {
-        return $"{InformationType}";
-    }
-
-    public override string GetPreview(PlayerState player)
-    {
-        return $"{InformationType}";
-    }
-}
-
 public class HealthOutcome : Outcome
 {
     public int Count { get; }
@@ -335,40 +287,6 @@ public class ResourceOutcome : Outcome
     }
 }
 
-public class SkillLevelOutcome : Outcome
-{
-    public SkillTypes SkillType { get; }
-    public int Count { get; }
-
-    public SkillLevelOutcome(SkillTypes skillType, int count)
-    {
-        SkillType = skillType;
-        Count = count;
-    }
-
-    public override void Apply(PlayerState player)
-    {
-        player.ModifySkillLevel(SkillType, Count);
-    }
-
-    public override string GetDescription()
-    {
-        return $"{(Count >= 0 ? "+" : "")}{Count} {SkillType} Skill";
-    }
-
-    public override string GetPreview(PlayerState player)
-    {
-        bool hasKey = player.Skills.ContainsKey(SkillType);
-        if (!hasKey) { return $"(0 -> {Count})"; }
-
-        int current = player.Skills[SkillType];
-        int newValue = Math.Max(0, current + Count);
-        return $"({current} -> {newValue})";
-    }
-}
-
-
-// Achievements are one-time unlocks
 public class AchievementOutcome : Outcome
 {
     public AchievementTypes AchievementType { get; }

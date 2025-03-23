@@ -77,7 +77,7 @@ public enum ResourceTypes
     Confidence
 }
 
-public enum LocationNames
+public enum LocationTypes
 {
     None = 0,
     ForestRoad,

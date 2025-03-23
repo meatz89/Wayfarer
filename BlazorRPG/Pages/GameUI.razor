@@ -4,7 +4,7 @@
 <div class="top-bar">
     <div class="time-display">
         @CurrentHour:00
-        @CurrentTime @GetIconForTimeWindow(@GameState.World.WorldTime)
+        @CurrentTime @GetIconForTimeWindow(@GameState.WorldState.WorldTime)
     </div>
 
     <div class="energy-meters">
@@ -105,7 +105,7 @@
     <div class="sidebar">
         <div class="sidebar-panel location-panel">
         <div class="location-name">
-            @CurrentLocation.LocationName
+            @CurrentLocation.Name
         </div>
 
             <div class="location-properties">

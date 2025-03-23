@@ -3,7 +3,7 @@
 /// </summary>
 public class EncounterInfo
 {
-    public LocationNames LocationName { get; set; }
+    public string LocationName { get; set; }
     public string LocationSpotName { get; set; }
     public List<FocusTags> PressureReducingFocuses { get; } = new List<FocusTags>();
     public List<FocusTags> MomentumReducingFocuses { get; } = new List<FocusTags>();
@@ -29,7 +29,7 @@ public class EncounterInfo
     public EncounterTypes EncounterType { get; set; }
 
     public EncounterInfo(
-        LocationNames locationName,
+        string locationName,
         string locationSpot,
         List<ApproachTags> favoreApproaches,
         List<ApproachTags> dangerousApproaches,

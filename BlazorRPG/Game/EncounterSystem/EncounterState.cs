@@ -22,7 +22,7 @@
     private readonly ResourceManager _resourceManager;
     private readonly ProjectionService _projectionService;
 
-    public EncounterState(EncounterInfo encounterInfo, PlayerState playerState)
+    public EncounterState(EncounterInfo encounterInfo, PlayerState playerState, ResourceManager resourceManager)
     {
         Momentum = 0;
         Pressure = 0;
@@ -32,7 +32,7 @@
 
         // Initialize managers
         _tagManager = new TagManager();
-        _resourceManager = new ResourceManager(playerState, encounterInfo);
+        _resourceManager = new ResourceManager();
         _projectionService = new ProjectionService(_tagManager, _resourceManager, encounterInfo);
     }
 
@@ -49,22 +49,22 @@
     public int GetTotalPressure(IChoice choice, int basePressure) =>
         _tagManager.GetTotalPressure(choice, basePressure);
 
-    public ChoiceProjection ApplyChoice(IChoice choice)
+    public ChoiceProjection ApplyChoice(PlayerState playerState, EncounterInfo encounterInfo, IChoice choice)
     {
         // Store the current state before making changes
         this.UpdateStateHistory(choice);
 
         // Then apply the choice as normal
         ChoiceProjection projection = CreateChoiceProjection(choice);
-        ApplyChoiceProjection(projection);
+        ApplyChoiceProjection(playerState, encounterInfo, projection);
 
         return projection;
     }
 
-    private void ApplyChoiceProjection(ChoiceProjection projection)
+    private void ApplyChoiceProjection(PlayerState playerState, EncounterInfo encounterInfo, ChoiceProjection projection)
     {
         // Apply resource changes from pressure at start of turn (based on current pressure)
-        _resourceManager.ApplyPressureResourceDamage(Pressure);
+        _resourceManager.ApplyPressureResourceDamage(playerState, encounterInfo, Pressure);
 
         // 1. Apply tag changes
         foreach (KeyValuePair<ApproachTags, int> pair in projection.EncounterStateTagChanges)
@@ -79,6 +79,7 @@
 
         // 3. Apply resource changes directly from the projection
         _resourceManager.ApplyResourceChanges(
+            playerState,
             projection.HealthChange,
             projection.ConcentrationChange,
             projection.ConfidenceChange);

@@ -3,7 +3,7 @@
     <div class="preview-header">
         <h4>
             @hoveredChoice.Description
-            @if (hoveredChoice.Choice is Choice cardChoiceTier)
+            @if (hoveredChoice.Choice is ChoiceCard cardChoiceTier)
             {
                 <span class="tier-badge tier-@((int)cardChoiceTier.Tier)">
                     @GetTierName(cardChoiceTier.Tier)
@@ -13,7 +13,7 @@
         <div class="choice-narrative">@GetChoiceDescription(@hoveredChoice)</div>
     </div>
 
-    @if (hoveredChoice.Choice is Choice cardChoice && cardChoice.Requirement != null &&
+    @if (hoveredChoice.Choice is ChoiceCard cardChoice && cardChoice.Requirement != null &&
     cardChoice.Requirement.Type != RequirementInfo.RequirementTypes.None)
     {
         <div class="tooltip-section">

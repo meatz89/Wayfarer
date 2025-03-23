@@ -236,7 +236,7 @@ public class CardSelectionAlgorithm
             int progressionValue = 0;
 
             // Check if this choice builds an approach we need for a requirement
-            foreach (var approachTarget in approachRequirementTarget)
+            foreach (KeyValuePair<ApproachTags, int> approachTarget in approachRequirementTarget)
             {
                 if (GetTagModificationValue(choice, approachTarget.Key) > 0)
                 {
@@ -252,7 +252,7 @@ public class CardSelectionAlgorithm
             }
 
             // Check if this choice builds a focus we need for a requirement
-            foreach (var focusTarget in focusRequirementTarget)
+            foreach (KeyValuePair<FocusTags, int> focusTarget in focusRequirementTarget)
             {
                 if (choice.Focus == focusTarget.Key)
                 {
@@ -286,7 +286,7 @@ public class CardSelectionAlgorithm
     /// </summary>
     private int GetTagModificationValue(IChoice choice, ApproachTags approach)
     {
-        foreach (var mod in choice.TagModifications)
+        foreach (TagModification mod in choice.TagModifications)
         {
             if (mod.Type == TagModification.TagTypes.EncounterState && (ApproachTags)mod.Tag == approach)
             {

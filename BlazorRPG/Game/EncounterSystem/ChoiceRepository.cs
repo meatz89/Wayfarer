@@ -3,7 +3,7 @@
 /// </summary>
 public class ChoiceRepository
 {
-    private readonly List<Choice> _choices = new();
+    private readonly List<ChoiceCard> _choices = new();
 
     public ChoiceRepository()
     {

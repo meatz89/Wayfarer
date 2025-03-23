@@ -7,8 +7,8 @@
     //        .WithDescription("Prove yourself as reliable to the merchant")
     //        .RequiresConfidence(2)
     //        .RequiresCoins(50)
-    //        .WithLocation(LocationNames.GenericMarket)
-    //        .WithCharacter(CharacterNames.WealthyMerchant)
+    //        .WithLocation(string.GenericMarket)
+    //        .WithCharacter(string.WealthyMerchant)
     //        .WithAction(action => action
     //            .ForAction(BasicActionTypes.Persuade)
     //            .WithDescription("Prove yourself to Merchant")

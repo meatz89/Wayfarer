@@ -1,6 +1,6 @@
 ﻿@* LocationSpotMap.razor *@
 <div class="locations-grid">
-    @foreach (LocationSpot spot in CurrentLocation.LocationSpots)
+    @foreach (LocationSpot spot in CurrentLocation.Spots)
     {
         <div class="location-card @(spot.Name == CurrentSpot.Name ? "current" : "reachable")">
             <div class="location-spot-properties">

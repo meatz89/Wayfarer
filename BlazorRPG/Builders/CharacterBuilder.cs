@@ -1,16 +1,16 @@
 ﻿public class CharacterBuilder
 {
-    private CharacterNames character;
-    private LocationNames location;
+    private string character;
+    private string location;
     private List<ActionImplementation> actions = new();
 
-    public CharacterBuilder ForCharacter(CharacterNames character)
+    public CharacterBuilder ForCharacter(string character)
     {
         this.character = character;
         return this;
     }
 
-    public CharacterBuilder InLocation(LocationNames location)
+    public CharacterBuilder InLocation(string location)
     {
         this.location = location;
         return this;
@@ -25,8 +25,8 @@
     {
         return new Character
         {
-            CharacterName = character,
-            Location = location,
+            Name = character,
+            HomeLocationId = location,
         };
     }
 }

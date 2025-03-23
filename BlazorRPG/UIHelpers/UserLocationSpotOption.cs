@@ -1,2 +1,2 @@
 ﻿
-public record UserLocationSpotOption(int Index, LocationNames Location, string LocationSpot);
+public record UserLocationSpotOption(int Index, string Location, string LocationSpot);

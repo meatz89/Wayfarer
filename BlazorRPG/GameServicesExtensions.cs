@@ -6,7 +6,6 @@
         services.AddSingleton<GameState>(_ => GameSetup.CreateNewGame());
 
         services.AddSingleton<LocationSystem>();
-        services.AddSingleton<CharacterSystem>();
         services.AddSingleton<ItemSystem>();
 
         services.AddSingleton<KnowledgeSystem>();
@@ -23,6 +22,11 @@
 
         // Add this before your existing logger configuration
         services.AddSingleton<NarrativeLogManager>();
+
+        services.AddSingleton<DiscoveryManager>();
+        services.AddSingleton<ResourceManager>();
+        services.AddSingleton<NarrativeService>();
+        services.AddSingleton<RelationshipManager>();
 
         return services;
     }
