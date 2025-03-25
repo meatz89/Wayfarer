@@ -24,22 +24,22 @@ public class ResourceManager
         }
     }
 
-    public int CalculatePressureResourceDamage(EncounterInfo encounterInfo, ResourceTypes resourceType, int pressureValue)
+    public int CalculatePressureResourceDamage(EncounterInfo encounterInfo, PlayerStatusResources resourceType, int pressureValue)
     {
         switch (encounterInfo.EncounterType)
         {
             case EncounterTypes.Physical:
-                if (resourceType == ResourceTypes.Health)
+                if (resourceType == PlayerStatusResources.Health)
                     return (int)-pressureValue / 2;
                 break;
 
             case EncounterTypes.Intellectual:
-                if (resourceType == ResourceTypes.Concentration)
+                if (resourceType == PlayerStatusResources.Concentration)
                     return (int)-pressureValue / 2;
                 break;
 
             case EncounterTypes.Social:
-                if (resourceType == ResourceTypes.Confidence)
+                if (resourceType == PlayerStatusResources.Confidence)
                     return (int)-pressureValue / 2;
                 break;
         }

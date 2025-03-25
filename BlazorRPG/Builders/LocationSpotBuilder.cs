@@ -1,5 +1,4 @@
-﻿using System.Xml.Linq;
-
+﻿
 public class LocationSpotBuilder
 {
     private string name;
@@ -8,11 +7,11 @@ public class LocationSpotBuilder
 
     private List<ActionNames> actionNames = new();
 
-    public Accessibility? accessibility { get; set; }
-    public LocationType? engagement { get; set; }
+    public Illumination? illumination { get; set; }
+    public Population? population { get; set; }
+    public Economic? economic { get; set; }
+    public Physical? physical { get; set; }
     public Atmosphere? atmosphere { get; set; }
-    public RoomLayout? roomLayout { get; set; }
-    public Temperature? temperature { get; set; }
 
     public LocationSpotBuilder(string locationName)
     {
@@ -31,41 +30,42 @@ public class LocationSpotBuilder
         return this;
     }
 
-    public LocationSpotBuilder WithAccessibility(Accessibility accessability)
-    {
-        accessibility = accessability;
-        return this;
-    }
-
-    public LocationSpotBuilder WithEngagement(LocationType engagement)
-    {
-        this.engagement = engagement;
-        return this;
-    }
-
     public LocationSpotBuilder AddAction(ActionNames actionNames)
     {
         this.actionNames.Add(actionNames);
         return this;
     }
 
+    public LocationSpotBuilder WithIllumination(Illumination temperature)
+    {
+        this.illumination = temperature;
+        return this;
+    }
+
+    public LocationSpotBuilder WithPopulation(Population accessability)
+    {
+        this.population = accessability;
+        return this;
+    }
+
+    public LocationSpotBuilder WithEconomic(Economic engagement)
+    {
+        this.economic = engagement;
+        return this;
+    }
+
+    public LocationSpotBuilder WithPhysical(Physical roomLayout)
+    {
+        this.physical = roomLayout;
+        return this;
+    }
+
     public LocationSpotBuilder WithAtmosphere(Atmosphere socialDynamics)
     {
-        atmosphere = socialDynamics;
+        this.atmosphere = socialDynamics;
         return this;
     }
 
-    public LocationSpotBuilder WithRoomLayout(RoomLayout roomLayout)
-    {
-        this.roomLayout = roomLayout;
-        return this;
-    }
-
-    public LocationSpotBuilder WithTemperature(Temperature temperature)
-    {
-        this.temperature = temperature;
-        return this;
-    }
 
     public LocationSpot Build()
     {
@@ -79,11 +79,11 @@ public class LocationSpotBuilder
             new LocationSpot(
                 name,
                 locationName,
-                accessibility,
-                engagement,
+                population,
+                economic,
                 atmosphere,
-                roomLayout,
-                temperature,
+                physical,
+                illumination,
                 actionNames
             );
 

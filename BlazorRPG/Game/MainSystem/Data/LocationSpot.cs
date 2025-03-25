@@ -16,11 +16,11 @@
     // Visual/positioning data (for map display)
     public string Position { get; set; }  // "North", "Center", "Southeast", etc.
 
-    public Accessibility? Accessibility { get; set; }
-    public LocationType? Engagement { get; set; }
+    public Population? Accessibility { get; set; }
+    public Economic? Engagement { get; set; }
     public Atmosphere? Atmosphere { get; set; }
-    public RoomLayout? RoomLayout { get; set; }
-    public Temperature? Temperature { get; set; }
+    public Physical? RoomLayout { get; set; }
+    public Illumination? Temperature { get; set; }
     public List<ActionNames> ActionNames { get; } = new();
     public List<ActionImplementation> Actions { get; } = new();
     public string Character { get; internal set; }
@@ -30,23 +30,23 @@
         Actions.Add(baseAction);
     }
 
-    public bool HasProperty<T>(T locationSpotProperty) where T : struct, Enum // Added constraint for enum
+    public bool HasProperty<T>(T locationSpotProperty) where T : IEnvironmentalProperty
     {
-        if (locationSpotProperty is Accessibility accessibility)
+        if (locationSpotProperty is Population accessibility)
         {
-            return Accessibility.HasValue && Accessibility == accessibility;
+            return Accessibility != null && Accessibility == accessibility;
         }
-        else if (locationSpotProperty is LocationType engagement)
+        else if (locationSpotProperty is Economic engagement)
         {
-            return Engagement.HasValue && Engagement == engagement;
+            return Engagement != null && Engagement == engagement;
         }
-        else if (locationSpotProperty is RoomLayout roomLayout)
+        else if (locationSpotProperty is Physical roomLayout)
         {
-            return RoomLayout.HasValue && RoomLayout == roomLayout;
+            return RoomLayout != null && RoomLayout == roomLayout;
         }
-        else if (locationSpotProperty is Temperature temperature)
+        else if (locationSpotProperty is Illumination temperature)
         {
-            return Temperature.HasValue && Temperature == temperature;
+            return Temperature != null && Temperature == temperature;
         }
         else
         {
@@ -63,11 +63,11 @@
     public LocationSpot(
         string name,
         string locationName,
-        Accessibility? accessibility,
-        LocationType? engagement,
+        Population? accessibility,
+        Economic? engagement,
         Atmosphere? atmosphere,
-        RoomLayout? roomLayout,
-        Temperature? temperature,
+        Physical? roomLayout,
+        Illumination? temperature,
         List<ActionNames> actionNames)
     {
         Name = name;

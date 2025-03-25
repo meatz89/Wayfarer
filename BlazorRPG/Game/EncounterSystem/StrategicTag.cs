@@ -25,7 +25,7 @@
 
     public string GetEffectDescription()
     {
-        string baseDesc = EnvironmentalProperty.ForDisplay();
+        string baseDesc = EnvironmentalProperty.ToString();
         return baseDesc;
     }
 
@@ -33,55 +33,4 @@
     {
         return "Always active"; // Strategic tags are always active
     }
-}
-
-public enum TimeWindows
-{
-    Night,
-    Morning,
-    Afternoon,
-    Evening
-}
-
-public enum WeatherTypes
-{
-    Clear,
-    Sunny,
-    Windy,
-    Stormy
-}
-
-public enum Accessibility
-{
-    Private, Communal, Public
-}
-
-public enum LocationType
-{
-    Rest, Commercial, Service
-}
-
-public enum RoomLayout
-{
-    Open, Cramped, Hazardous, Secluded
-}
-
-public enum Temperature
-{
-    Warm, Cold
-}
-public enum ResourceTypes
-{
-    Health,
-    Concentration,
-    Confidence
-}
-
-public enum LocationTypes
-{
-    None = 0,
-    ForestRoad,
-    Crossroads,
-    AncientLibrary,
-    Market
 }

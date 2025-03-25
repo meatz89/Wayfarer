@@ -98,9 +98,9 @@
 
     private void CalculateDamageFromPressure(IChoice choice, EncounterInfo encounterInfo, ChoiceProjection projection, int currentPressure, int choicePressure)
     {
-        int pressureHealthDamage = _resourceManager.CalculatePressureResourceDamage(encounterInfo, ResourceTypes.Health, currentPressure + choicePressure);
-        int pressureConcentrationDamage = _resourceManager.CalculatePressureResourceDamage(encounterInfo, ResourceTypes.Concentration, currentPressure + choicePressure);
-        int pressureConfidenceDamage = _resourceManager.CalculatePressureResourceDamage(encounterInfo, ResourceTypes.Confidence, currentPressure + choicePressure);
+        int pressureHealthDamage = _resourceManager.CalculatePressureResourceDamage(encounterInfo, PlayerStatusResources.Health, currentPressure + choicePressure);
+        int pressureConcentrationDamage = _resourceManager.CalculatePressureResourceDamage(encounterInfo, PlayerStatusResources.Concentration, currentPressure + choicePressure);
+        int pressureConfidenceDamage = _resourceManager.CalculatePressureResourceDamage(encounterInfo, PlayerStatusResources.Confidence, currentPressure + choicePressure);
 
         // Add pressure resource components to projection
         if (encounterInfo.DangerousApproaches.Contains(choice.Approach))
