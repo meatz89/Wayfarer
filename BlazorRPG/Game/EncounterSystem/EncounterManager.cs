@@ -158,7 +158,6 @@
                 if (_processStateChanges)
                 {
                     await ProcessEncounterOutcome(narrative, outcome.Description, encounterState);
-                    //EncounterSummaryResult stateChanges = await GenerateStateChanges(outcome, newStatus);
                 }
 
                 if (_useMemory)
@@ -337,8 +336,6 @@
         return projection;
     }
 
-
-    // Add methods to control AI provider selection
     public void SwitchAIProvider(AIProviderType providerType)
     {
         if (narrativeService != null)
