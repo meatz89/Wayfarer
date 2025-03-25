@@ -36,11 +36,11 @@ This layered architecture creates a clean separation of concerns while allowing 
 
 ## Base Tag System
 
-The foundation of the Wayfarer system is its tag-based approach to character capabilities and actions.
+The foundation of the Wayfarer system is its tag-based approach to **temporary encounter state tracking**. Unlike traditional character attribute systems, these tags exist only during encounters and reset afterward.
 
-### Approach Tags (HOW)
+### Approach Tags (HOW) - Temporary Encounter State
 
-Approach tags represent how the character tackles challenges. Each tag ranges from 0 to 10, with higher values indicating greater proficiency.
+Approach tags represent how the character is currently tackling the specific challenge within this encounter only. Each tag ranges from 0 to 10 within a single encounter, with higher values indicating greater emphasis on that approach in the current situation.
 
 | Approach Tag  | Description                               |
 |---------------|-------------------------------------------|
@@ -50,9 +50,9 @@ Approach tags represent how the character tackles challenges. Each tag ranges fr
 | Precision     | Careful execution, finesse, accuracy      |
 | Concealment   | Stealth, hiding, subterfuge               |
 
-### Focus Tags (WHAT)
+### Focus Tags (WHAT) - Temporary Encounter State
 
-Focus tags represent what the character concentrates on during encounters. Each tag ranges from 0 to 10.
+Focus tags represent what the character is concentrating on during the current encounter only. Each tag ranges from 0 to 10 within a single encounter.
 
 | Focus Tag     | Description                               |
 |---------------|-------------------------------------------|
@@ -62,23 +62,23 @@ Focus tags represent what the character concentrates on during encounters. Each 
 | Environment   | Surroundings, spaces, terrain             |
 | Resource      | Items, money, supplies, valuables         |
 
-### Tag Interaction
+### Tag Interaction During Encounters
 
-Every choice in the game affects the base tag system in three ways:
+Every choice in an encounter affects the encounter's tag values in three ways:
 1. Every choice increases one focus tag by 1
 2. Every choice increases one primary approach tag by 1-2
 3. Some choices may modify a secondary approach tag by ±1-2
 
-These tag modifications are the primary way characters develop during gameplay, and tag values determine how effective different approaches are in different locations.
+These tag modifications are temporary and only relevant during the current encounter. They determine how effective different approaches are in the current location and how narrative tags activate. When the encounter ends, these tag values are discarded.
 
 ### Design Rationale
 
-The approach and focus tag system was chosen for several key reasons:
-- It provides a vocabulary for describing character actions in terms of how they approach challenges and what they focus on
-- It allows for natural specialization without class-based restrictions
-- It creates a foundation for both strategic and narrative tags to interact with
-- It supports diverse character builds that excel in different situations
-- It avoids traditional attribute systems that often fail to capture the nuance of different problem-solving approaches
+The temporary approach and focus tag system was chosen for several key reasons:
+- It provides a vocabulary for describing character actions in the current encounter
+- It allows the same underlying system to handle all types of encounters
+- It creates a foundation for strategic and narrative tags to interact with
+- It supports diverse approaches to different encounters
+- It keeps persistence simple by not tracking these values between encounters
 
 ## Encounter Resources and States
 

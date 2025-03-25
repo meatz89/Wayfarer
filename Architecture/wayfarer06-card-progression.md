@@ -1,50 +1,32 @@
 # Wayfarer Card-Based Progression System
 
-## Overview
-
-The Wayfarer encounter system has been refined with a card-based progression system that transforms choices into tiered ability cards of varying power levels. This system creates a meaningful progression path for character development while introducing strategic trade-offs between immediate power and long-term potential.
+The Wayfarer card system represents the player's persistent skills and abilities. Unlike approach and focus tags (which are temporary encounter state variables), cards persist between encounters and form the core of character development.
 
 ## Motivation
 
 The card-based progression system addresses several design goals:
 
-1. **Meaningful Progression**: Rather than all choices being equally powerful, the tiered card system creates a progression path where characters unlock more powerful abilities as they develop.
+1. **Meaningful Progression**: Cards represent skills and abilities the player permanently acquires through gameplay.
+2. **Strategic Depth**: The system introduces meaningful decisions about which cards to use during encounters.
+3. **Character Specialization**: Players develop a collection of cards that define their character's capabilities.
+4. **Elegant Integration**: Cards interact with the temporary encounter state (approach/focus tags) without requiring complex persistence of those tags.
 
-2. **Strategic Depth**: The system introduces meaningful decisions about when to use powerful cards versus conserving approach/focus values for future turns.
+## Card Structure
 
-3. **Character Specialization**: The requirement system encourages specialization in specific approaches and focuses, creating distinct character builds.
-
-4. **Elegant Integration**: The system works seamlessly with existing strategic and narrative tag mechanics, creating rich interactions without adding unnecessary complexity.
-
-## Tiered Card Structure
-
-Choices are now organized into five tiers of increasing power:
+Choice cards are organized into five tiers of increasing power. These represent the player's actual skills:
 
 ### Tier 1: Novice Cards
-- **Momentum Type**: +0 momentum, +1 primary approach, +1 focus
-- **Pressure Type**: -0 pressure, +1 primary approach, +1 focus
-- **Requirements**: None
-- **Purpose**: Build approach/focus values to unlock better cards
+- Basic abilities available to all players
+- Simple effects with no special requirements
 
 ### Tier 2: Trained Cards
-- **Momentum Type**: +2 momentum, +2 primary approach, +1 focus
-- **Pressure Type**: -1 pressure, +1 primary approach, +1 focus
-- **Requirements**: None (or minimal)
+- Standard abilities representing fundamental skills
+- More powerful effects than Novice cards
 
-### Tier 3: Adept Cards
-- **Momentum Type**: +3 momentum, +2 approach, +1 focus, -1 required approach/focus
-- **Pressure Type**: -2 pressure, +1 approach, +1 focus, -1 required approach/focus
-- **Requirements**: Either approach 3+ OR focus 2+ (single requirement only)
-
-### Tier 4: Expert Cards
-- **Momentum Type**: +4 momentum, +2 approach, +1 focus, -2 required approach/focus
-- **Pressure Type**: -3 pressure, +1 approach, +1 focus, -2 required approach/focus
-- **Requirements**: Either approach 5+ OR focus 3+ (single requirement only)
-
-### Tier 5: Master Cards
-- **Momentum Type**: +5 momentum, +3 approach, +1 focus, -3 required approach/focus
-- **Pressure Type**: -4 pressure, +2 approach, +1 focus, -3 required approach/focus
-- **Requirements**: Either approach 8+ OR focus 5+ (single requirement only)
+### Tier 3-5: Advanced Cards
+- Powerful abilities representing specialized skills
+- Have requirements based on player level and skill development
+- Provide significant tactical advantages in appropriate situations
 
 ## Core Mechanics
 
@@ -129,13 +111,16 @@ Narrative tags create additional strategic considerations for the card system:
 - Using high-tier cards that reduce approach values might deactivate narrative tags, creating a benefit
 - This creates a push-pull dynamic where high approach values enable powerful cards but might trigger limiting tags
 
-## Character Development and Progression
+## Player Development and Progression
 
-Characters begin with access to Tier 1 and possibly Tier 2 cards. Through character development:
+Player progression in Wayfarer consists of:
 
-1. **Approach Building**: As players increase approach values, they unlock more powerful approach-requirement cards
-2. **Focus Development**: As players invest in specific focuses, they unlock specialized focus-requirement cards
-3. **Strategic Choices**: Players face meaningful decisions about which approaches or focuses to prioritize
+1. Level: Overall character advancement
+2. Card Collection: Unlocked skills / abilities that can be used in encounters
+3. Relationships: Connections with NPCs (numerical values with defined states)
+4. Resources: Money, food, items, and encounter resources (health, concentration, confidence)
+
+Unlike the temporary approach/focus tags used in encounters, these elements persist between encounters and represent actual character development.
 
 ## Gameplay Impact
 
