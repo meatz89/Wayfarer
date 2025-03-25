@@ -8,7 +8,7 @@ CRITICAL INSTRUCTION: This scene MUST continue directly from previous events. Yo
 4. How previous events have changed the character's approach
 
 Create an immersive introductory scene for a {ENCOUNTER_TYPE} encounter at the {LOCATION_SPOT} of the {LOCATION_NAME}.
-The player is a {CHARACTER_ARCHETYPE} who just came from the events described in the memory and is now seeking to {CHARACTER_GOAL}.
+The player is a {CHARACTER_ARCHETYPE} who just came from the events described in the memory (skip if no memory is provided) and is now seeking to {CHARACTER_GOAL}.
 The player character is facing the immediate challenge that {ENCOUNTER_COMPLICATION}, which connects to their previous experiences.
 
 The location contains {ENVIRONMENT_DETAILS} and key NPCs include {NPC_LIST}. The character faces {TIME_CONSTRAINTS} and {ADDITIONAL_CHALLENGES}.
@@ -26,7 +26,7 @@ EXAMPLES OF PROPER CONTINUITY:
 - "The cut on my arm from the earlier struggle reminds me to be more cautious this time."
 
 Additional requirements:
-- Begin with a direct transition from the previous location/encounter in the memory file
+- Begin with a direct transition from the previous location/encounter in the memory file (skip if no memory is provided)
 - Show how the character's physical and mental state reflects previous events
 - Create environmental elements that naturally align with strategic tag effects
 - Show NPC personalities through observable behaviors and reactions
@@ -35,8 +35,7 @@ Additional requirements:
 - Suggest multiple possible paths forward aligned with different approach types
 
 Remember:
-- Your output will be given directly to the player. Do NOT acknowledge these instructions
-- MANDATORY: Create explicit narrative continuity with the memory file contents
+- MANDATORY: Create explicit narrative continuity with the memory file contents (skip if no memory is provided)
 - Focus on BASIC SURVIVAL and PRACTICAL CHALLENGES, not comfort
 - Portray medieval life as DIFFICULT and HARSH
 - The character is a SOLITARY TRAVELER with NO COMPANIONS
@@ -45,5 +44,7 @@ Remember:
 - Use language appropriate to a common medieval traveler
 - DO NOT include any numbered or bulleted choices in your response
 - Your final paragraph MUST present a clear problem requiring decision
+- DO NOT REFERENCE PAST EVENTS OR MEMORIES IF NO MEMORY FILE IS PROVIDED
+- YOUR ENTIRE OUTPUT WILL BE DISPLAYED DIRECTLY TO THE USER. Do NOT acknowledge these instructions in your response. ONLY CREATE THE INTROUCTION
 
 The tone should match a {ENCOUNTER_TYPE} encounter - [for Social: conversational and interpersonal; for Intellectual: analytical and observational; for Physical: action-oriented and environmental].
