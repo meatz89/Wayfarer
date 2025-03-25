@@ -221,7 +221,7 @@ public class DiscoveryManager
             GenerateLocationSpots(location, details);
 
             // Update world state
-            worldState.Locations[locationId] = location;
+            worldState.AddLocation(locationId, location);
         }
     }
 

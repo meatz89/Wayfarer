@@ -272,8 +272,10 @@
 
     private static EncounterTypes GetPresentationStyleFromBaseAction(ActionImplementation actionImplementation)
     {
-        return actionImplementation.ActionType switch
+        EncounterTypes encounterTypes = actionImplementation.ActionType switch
         {
+            BasicActionTypes.Travel => EncounterTypes.Physical,
+
             BasicActionTypes.Labor => EncounterTypes.Physical,
             BasicActionTypes.Gather => EncounterTypes.Physical,
             BasicActionTypes.Fight => EncounterTypes.Physical,
@@ -286,5 +288,6 @@
             BasicActionTypes.Persuade => EncounterTypes.Social,
             BasicActionTypes.Perform => EncounterTypes.Social,
         };
+        return encounterTypes;
     }
 }

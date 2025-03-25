@@ -2,7 +2,7 @@
 public class WorldState
 {
     // Core data collections
-    public Dictionary<string, Location> Locations { get; set; } = new Dictionary<string, Location>();
+    public Dictionary<string, Location> Locations { get; private set; } = new Dictionary<string, Location>();
     private Dictionary<string, Character> characters { get; set; } = new Dictionary<string, Character>();
     private Dictionary<string, Opportunity> opportunities { get; set; } = new Dictionary<string, Opportunity>();
 
@@ -80,9 +80,11 @@ public class WorldState
         DetermineCurrentTimeWindow(timeWindow);
     }
 
-    public void SetNewLocation(Location location)
+    public void SetCurrentLocation(Location location)
     {
         CurrentLocation = location;
+
+        if (location == null) return;
         CurrentLocationSpot = location.Spots.FirstOrDefault();
     }
 

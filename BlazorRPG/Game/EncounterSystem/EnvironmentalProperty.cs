@@ -38,7 +38,7 @@ public class Illumination : IEnvironmentalProperty, IEquatable<Illumination>
 
     public override bool Equals(object? obj)
     {
-        var other = (Illumination)obj;
+        Illumination? other = (Illumination)obj;
         return this.Value == other.Value;
     }
     public Illumination(string value)
@@ -77,7 +77,7 @@ public class Population : IEnvironmentalProperty, IEquatable<Population>
 
     public override bool Equals(object? obj)
     {
-        var other = (Population)obj;
+        Population? other = (Population)obj;
         return this.Value == other.Value;
     }
 
@@ -117,7 +117,7 @@ public class Economic : IEnvironmentalProperty, IEquatable<Economic>
 
     public override bool Equals(object? obj)
     {
-        var other = (Economic)obj;
+        Economic? other = (Economic)obj;
         return this.Value == other.Value;
     }
 
@@ -158,7 +158,7 @@ public class Physical : IEnvironmentalProperty, IEquatable<Physical>
 
     public override bool Equals(object? obj)
     {
-        var other = (Physical)obj;
+        Physical? other = (Physical)obj;
         return this.Value == other.Value;
     }
 
@@ -198,7 +198,7 @@ public class Atmosphere : IEnvironmentalProperty, IEquatable<Atmosphere>
 
     public override bool Equals(object? obj)
     {
-        var other = (Atmosphere)obj;
+        Atmosphere? other = (Atmosphere)obj;
         return this.Value == other.Value;
     }
 
