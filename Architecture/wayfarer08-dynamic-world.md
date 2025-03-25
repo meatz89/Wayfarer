@@ -62,16 +62,33 @@ New locations join the world map when:
 
 This ensures that map expansion feels natural and story-driven rather than arbitrary.
 
-### The Significance of Travel
+## Travel System
 
-Travel in Wayfarer isn't merely a loading screen between locations. The journey itself is meaningful:
+Travel in Wayfarer isn't merely a loading screen between locations. Players move between locations through a map interface:
+
+The journey itself is meaningful:
 
 - Travel methods reflect the character's development (walking → horseback → carriage)
 - Travel time passes in the game world, affecting locations upon arrival
 - Resources are consumed during longer journeys
 - Travel encounters may occur, especially on less-traveled paths
+- Initially limited to foot travel (slowest)
+- Can unlock faster travel methods through gameplay
+- Travel takes game time (measured in minutes/hours)
+- Resource consumption occurs during travel
+- Random encounters may occur during travel
 
 This makes distance meaningful and gives weight to decisions about when and where to travel.
+
+##  Resource System
+The player manages several persistent resources:
+
+- Money: Currency for purchases
+- Food: Required for travel and survival
+- Items: Equipment and quest items
+- Health: Physical wellbeing (resets at beginning of physical encounters)
+- Concentration: Mental focus (resets at beginning of intellectual encounters)
+- Confidence: Social standing (resets at beginning of social encounters)
 
 ### Environmental Properties and Time
 
@@ -87,13 +104,24 @@ These changes aren't merely aesthetic—they fundamentally alter how encounters 
 
 ### Authentic Character Placement
 
-Characters in Wayfarer aren't wandering NPCs but people with specific places in the world:
+Characters in Wayfarer are fixed entities with specific places in the world:
 
-- Every character has a home location where they can reliably be found
-- Characters occupy specific spots within locations that match their role and status
-- A blacksmith is found at the forge, a merchant at their stall, an innkeeper behind the bar
+- **Fixed Location**: Every character has exactly one home location where they will always be found
+- **Specific Spot**: Each character occupies a specific interaction spot within their location
+- **No Movement**: Characters do not move between locations or have schedules
+- **Role-Appropriate Placement**: A blacksmith is found at the forge, a merchant at their stall, etc.
 
-This creates a world that feels logically structured and authentic, where finding someone doesn't rely on random chance or scripted schedules.
+This creates a deterministic world where finding someone doesn't rely on timing or chance. Players always know where to find a specific character once discovered.
+
+### Location-Opportunity Connection
+
+Every quest, job, or mystery is anchored to specific spots within the world:
+
+- A quest from the village elder begins at the elder's spot in the village
+- A mysterious disturbance is investigated at the specific location where it was reported
+- A job opportunity is found at a logical spot for that type of work
+
+This creates a world where opportunities feel naturally integrated into the environment.
 
 ### Role-Based Interactions
 
@@ -123,12 +151,12 @@ These relationships create meaningful social progression where building connecti
 
 Every location is organized around interaction spots—specific places where meaningful gameplay occurs:
 
-- The village well where locals gather to share gossip
-- The merchant's stall where trade takes place
-- The tavern hearth where travelers share stories
-- The blacksmith's forge where weapons are repaired
+- **Character Spots**: Where specific NPCs can be found
+- **Service Spots**: Where game services are provided (shops, inns, etc.)
+- **Feature Spots**: Physical features of interest in the location
+- **Opportunity Spots**: Where quests and jobs can be initiated
 
-These spots create a sense of place and purpose, making locations feel like lived-in environments rather than merely decorative backdrops.
+These spots are the primary method of interaction with the game world. When new locations are discovered, appropriate spots must be generated for that location.
 
 ### Spot Discovery and Development
 
