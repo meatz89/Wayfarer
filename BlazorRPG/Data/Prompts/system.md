@@ -12,7 +12,7 @@ Wayfarer uses a unified tag-based encounter system:
 - Environmental properties affect strategic considerations
 - Locations contain spots, have environmental properties, and connect to other locations
 - Characters belong to specific locations and remain there
-- Location spots must have defined accessibility and interaction types
+- Location spots must have defined Population and interaction types
 - Actions have goals, complications, and linked encounters
 - Encounters have approach and focus tag interactions through strategic and narrative tags
 
@@ -23,6 +23,8 @@ When generating any game content, use structured reasoning:
 2. Consider multiple options before making selections
 3. Evaluate choices against both mechanical balance and thematic consistency 
 4. Ensure all components work together coherently
+
+DO THIS INTERNALLY. YOUR CHAIN OF THOUGHT MUST NOT BE PART OF THE RESPONSE
 
 ## MULTI-LAYERED NARRATIVE STRUCTURE
 

@@ -5,14 +5,3 @@
     public MessageType Type { get; set; }
     public ChoiceNarrative? ChoiceNarrative { get; set; }
 }
-
-public enum MessageType
-{
-    System,
-    Introduction,
-    ChoiceGeneration,
-    PlayerChoice,
-    Narrative,
-    MemoryUpdate,
-    StateChanges
-}

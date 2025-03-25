@@ -16,13 +16,13 @@
     // Visual/positioning data (for map display)
     public string Position { get; set; }  // "North", "Center", "Southeast", etc.
 
-    public Population? Accessibility { get; set; }
-    public Economic? Engagement { get; set; }
+    public Population? Population { get; set; }
+    public Economic? Economic { get; set; }
     public Atmosphere? Atmosphere { get; set; }
-    public Physical? RoomLayout { get; set; }
-    public Illumination? Temperature { get; set; }
-    public List<ActionNames> ActionNames { get; set;  } = new();
-    public List<ActionImplementation> Actions { get; set;  } = new();
+    public Physical? Physical { get; set; }
+    public Illumination? Illumination { get; set; }
+    public List<ActionNames> ActionNames { get; set; } = new();
+    public List<ActionImplementation> Actions { get; set; } = new();
     public string Character { get; internal set; }
 
     public void AddAction(ActionImplementation baseAction)
@@ -32,21 +32,21 @@
 
     public bool HasProperty<T>(T locationSpotProperty) where T : IEnvironmentalProperty
     {
-        if (locationSpotProperty is Population accessibility)
+        if (locationSpotProperty is Population Population)
         {
-            return Accessibility != null && Accessibility == accessibility;
+            return Population != null && Population == Population;
         }
-        else if (locationSpotProperty is Economic engagement)
+        else if (locationSpotProperty is Economic Economic)
         {
-            return Engagement != null && Engagement == engagement;
+            return Economic != null && Economic == Economic;
         }
-        else if (locationSpotProperty is Physical roomLayout)
+        else if (locationSpotProperty is Physical Physical)
         {
-            return RoomLayout != null && RoomLayout == roomLayout;
+            return Physical != null && Physical == Physical;
         }
-        else if (locationSpotProperty is Illumination temperature)
+        else if (locationSpotProperty is Illumination Illumination)
         {
-            return Temperature != null && Temperature == temperature;
+            return Illumination != null && Illumination == Illumination;
         }
         else
         {
@@ -63,20 +63,20 @@
     public LocationSpot(
         string name,
         string locationName,
-        Population? accessibility,
-        Economic? engagement,
+        Population? Population,
+        Economic? Economic,
         Atmosphere? atmosphere,
-        Physical? roomLayout,
-        Illumination? temperature,
+        Physical? Physical,
+        Illumination? Illumination,
         List<ActionNames> actionNames)
     {
         Name = name;
         LocationName = locationName;
-        Accessibility = accessibility;
-        Engagement = engagement;
+        Population = Population;
+        Economic = Economic;
         Atmosphere = atmosphere;
-        RoomLayout = roomLayout;
-        Temperature = temperature;
+        Physical = Physical;
+        Illumination = Illumination;
         ActionNames = actionNames;
     }
 }

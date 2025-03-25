@@ -134,4 +134,9 @@
     {
         throw new NotImplementedException();
     }
+
+    public async Task<LocationDetails> GenerateLocationDetailsAsync(LocationGenerationContext context)
+    {
+        return await _providers[_currentProvider].GenerateLocationDetailsAsync(context);
+    }
 }

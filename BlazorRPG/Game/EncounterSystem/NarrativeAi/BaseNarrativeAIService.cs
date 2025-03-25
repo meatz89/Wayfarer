@@ -46,4 +46,6 @@
     public abstract Task<DiscoveredEntities> ExtractWorldDiscoveries(string encounterNarrative, WorldContext worldContext);
     public abstract Task<EntityDetails> DevelopEntityDetails(string entityType, string entityId, EntityContext entityContext);
     public abstract Task<StateChangeRecommendations> GenerateStateChanges(string encounterOutcome, EncounterContext context);
+
+    public abstract Task<LocationDetails> GenerateLocationDetailsAsync(LocationGenerationContext context);
 }
