@@ -83,7 +83,7 @@
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
-        if (spot.Accessibility.HasValue)
+        if (spot.Accessibility != null)
         {
             properties.Add(new(
             "📐",
@@ -94,7 +94,7 @@
             ));
         }
 
-        if (spot.Engagement.HasValue)
+        if (spot.Engagement != null)
         {
             properties.Add(new(
             "⚖️",
@@ -105,7 +105,7 @@
             ));
         }
 
-        if (spot.RoomLayout.HasValue)
+        if (spot.RoomLayout != null)
         {
             properties.Add(new(
             "🧩",
@@ -116,10 +116,10 @@
             ));
         }
 
-        if (spot.Temperature.HasValue)
+        if (spot.Temperature != null)
         {
             properties.Add(new(
-            spot.Temperature == Temperature.Warm ? "☀️" : "❄️",
+            "☀️",
             FormatEnumString(spot.Temperature.ToString()),
             "",
             "",

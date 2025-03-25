@@ -1,4 +1,7 @@
-﻿/// <summary>
+﻿using System;
+using System.Collections;
+
+/// <summary>
 /// 
 /// ### Example Location Combinations
 /// 
@@ -18,10 +21,9 @@ public interface IEnvironmentalProperty
 {
     string GetPropertyType();
     string GetPropertyValue();
-    string ForDisplay();
 }
 
-public class Illumination : IEnvironmentalProperty
+public class Illumination : IEnvironmentalProperty, IEquatable<Illumination>
 {
     public static Illumination Bright = new Illumination("Bright");
     public static Illumination Shadowy = new Illumination("Shadowy");
@@ -29,6 +31,16 @@ public class Illumination : IEnvironmentalProperty
 
     private string Value;
 
+    public bool Equals(Illumination? other)
+    {
+        return Equals(other);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        var other = (Illumination)obj;
+        return this.Value == other.Value;
+    }
     public Illumination(string value)
     {
         this.Value = value;
@@ -44,19 +56,30 @@ public class Illumination : IEnvironmentalProperty
         return Value;
     }
 
-    public string ForDisplay()
+    public string ToString()
     {
-        return $"{GetPropertyType()}: {GetPropertyValue()}";
+        return $"{GetPropertyValue()}";
     }
 }
 
-public class Population : IEnvironmentalProperty
+public class Population : IEnvironmentalProperty, IEquatable<Population>
 {
     public static Population Crowded = new Population("Crowded");
     public static Population Quiet = new Population("Quiet");
     public static Population Isolated = new Population("Isolated");
 
     private string Value;
+
+    public bool Equals(Population? other)
+    {
+        return Equals(other);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        var other = (Population)obj;
+        return this.Value == other.Value;
+    }
 
     public Population(string value)
     {
@@ -73,20 +96,30 @@ public class Population : IEnvironmentalProperty
         return Value;
     }
 
-    public string ForDisplay()
+    public override string ToString()
     {
-        return $"{GetPropertyType()}: {GetPropertyValue()}";
+        return $"{GetPropertyValue()}";
     }
 }
 
-
-public class Economic : IEnvironmentalProperty
+public class Economic : IEnvironmentalProperty, IEquatable<Economic>
 {
     public static Economic Wealthy = new Economic("Wealthy");
     public static Economic Commercial = new Economic("Commercial");
     public static Economic Humble = new Economic("Humble");
 
     private string Value;
+
+    public bool Equals(Economic? other)
+    {
+        return Equals(other);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        var other = (Economic)obj;
+        return this.Value == other.Value;
+    }
 
     public Economic(string value)
     {
@@ -103,20 +136,31 @@ public class Economic : IEnvironmentalProperty
         return Value;
     }
 
-    public string ForDisplay()
+    public override string ToString()
     {
-        return $"{GetPropertyType()}: {GetPropertyValue()}";
+        return $"{GetPropertyValue()}";
     }
 }
 
 
-public class Physical : IEnvironmentalProperty
+public class Physical : IEnvironmentalProperty, IEquatable<Physical>
 {
     public static Physical Confined = new Physical("Confined");
     public static Physical Expansive = new Physical("Expansive");
     public static Physical Hazardous = new Physical("Hazardous");
 
     private string Value;
+
+    public bool Equals(Physical? other)
+    {
+        return Equals(other);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        var other = (Physical)obj;
+        return this.Value == other.Value;
+    }
 
     public Physical(string value)
     {
@@ -133,19 +177,30 @@ public class Physical : IEnvironmentalProperty
         return Value;
     }
 
-    public string ForDisplay()
+    public override string ToString()
     {
-        return $"{GetPropertyType()}: {GetPropertyValue()}";
+        return $"{GetPropertyValue()}";
     }
 }
 
-public class Atmosphere : IEnvironmentalProperty
+public class Atmosphere : IEnvironmentalProperty, IEquatable<Atmosphere>
 {
     public static Atmosphere Tense = new Atmosphere("Tense");
     public static Atmosphere Formal = new Atmosphere("Formal");
     public static Atmosphere Chaotic = new Atmosphere("Chaotic");
 
     private string Value;
+
+    public bool Equals(Atmosphere? other)
+    {
+        return Equals(other);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        var other = (Atmosphere)obj;
+        return this.Value == other.Value;
+    }
 
     public Atmosphere(string value)
     {
@@ -162,8 +217,8 @@ public class Atmosphere : IEnvironmentalProperty
         return Value;
     }
 
-    public string ForDisplay()
+    public override string ToString()
     {
-        return $"{GetPropertyType()}: {GetPropertyValue()}";
+        return $"{GetPropertyValue()}";
     }
 }
