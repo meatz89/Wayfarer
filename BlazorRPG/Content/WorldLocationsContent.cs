@@ -6,6 +6,7 @@
             .WithName("Village Square")
             .WithPopulation(Population.Crowded)
             .WithEconomic(Economic.Wealthy)
+            .WithAtmosphere(Atmosphere.Formal)
             .AddAction(ActionNames.VillageGathering))
         .AddLocationSpot(spot => spot
             .WithName("Market Stall")
@@ -22,8 +23,8 @@
         .ForLocation(LocationNames.Forest)
         .AddLocationSpot(spot => spot
             .WithName("Forest Path")
-            .WithIllumination(Illumination.Shadowy)
             .WithPopulation(Population.Isolated)
+            .WithPhysical(Physical.Hazardous)
             .AddAction(ActionNames.ForestTravel))
         .AddLocationSpot(spot => spot
             .WithName("Hidden Clearing")

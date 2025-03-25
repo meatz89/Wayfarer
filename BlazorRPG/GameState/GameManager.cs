@@ -74,11 +74,14 @@ public class GameManager
         }
 
         // Update player location
-        playerState.CurrentLocationId = locationName;
 
         // Old Logic
         Location location = LocationSystem.GetLocation(locationName);
-        gameState.WorldState.SetNewLocation(location);
+        if (location == null)
+            location = LocationSystem.GetAllLocations().FirstOrDefault();
+        gameState.WorldState.SetCurrentLocation(location);
+        
+        playerState.SetCurrentLocation(location.Name);
 
         UpdateState();
         OnPlayerEnterLocation(gameState.WorldState.CurrentLocation);
@@ -276,6 +279,8 @@ public class GameManager
     private void OnPlayerEnterLocation(Location location)
     {
         List<UserActionOption> options = new List<UserActionOption>();
+        if (location == null) return;
+
         List<LocationSpot> locationSpots = location.Spots;
 
         foreach (LocationSpot locationSpot in locationSpots)
@@ -737,3 +742,4 @@ public class GameManager
     }
 
 }
+

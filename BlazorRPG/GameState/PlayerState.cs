@@ -27,7 +27,7 @@
 
     // Location knowledge
     public List<string> DiscoveredLocationIds { get; set; } = new List<string>();
-    public string CurrentLocationId { get; set; }
+    public string CurrentLocationId { get; private set; }
 
     // Travel capabilities
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
@@ -246,5 +246,10 @@
     internal void ApplySkillExperience(string skill)
     {
 
+    }
+
+    internal void SetCurrentLocation(string name)
+    {
+        CurrentLocationId = name;
     }
 }

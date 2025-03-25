@@ -108,17 +108,13 @@ public partial class GameUI : ComponentBase
 
         if (enterLocation)
         {
-            await GameManager.TravelToLocation(locationName);
-            GameManager.TravelToLocation(locationName);
+            showAreaMap = false;
         }
         else
         {
             UserLocationTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Location == locationName);
             await GameManager.TravelToLocation(location.Location);
         }
-
-        CompleteActionExecution();
-        showAreaMap = false;
     }
 
     private async Task FinishEncounter()

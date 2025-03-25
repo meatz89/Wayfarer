@@ -21,8 +21,8 @@
     public Atmosphere? Atmosphere { get; set; }
     public Physical? RoomLayout { get; set; }
     public Illumination? Temperature { get; set; }
-    public List<ActionNames> ActionNames { get; } = new();
-    public List<ActionImplementation> Actions { get; } = new();
+    public List<ActionNames> ActionNames { get; set;  } = new();
+    public List<ActionImplementation> Actions { get; set;  } = new();
     public string Character { get; internal set; }
 
     public void AddAction(ActionImplementation baseAction)
