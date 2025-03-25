@@ -36,9 +36,9 @@ public class LocationSpotBuilder
         return this;
     }
 
-    public LocationSpotBuilder WithIllumination(Illumination temperature)
+    public LocationSpotBuilder WithIllumination(Illumination Illumination)
     {
-        this.illumination = temperature;
+        this.illumination = Illumination;
         return this;
     }
 
@@ -48,15 +48,15 @@ public class LocationSpotBuilder
         return this;
     }
 
-    public LocationSpotBuilder WithEconomic(Economic engagement)
+    public LocationSpotBuilder WithEconomic(Economic Economic)
     {
-        this.economic = engagement;
+        this.economic = Economic;
         return this;
     }
 
-    public LocationSpotBuilder WithPhysical(Physical roomLayout)
+    public LocationSpotBuilder WithPhysical(Physical Physical)
     {
-        this.physical = roomLayout;
+        this.physical = Physical;
         return this;
     }
 

@@ -11,6 +11,7 @@ public class PromptManager
     private const string ENDING_MD = "ending";
     private const string MEMORY_MD = "memory";
     private const string STATE_CHANGES_MD = "state-changes";
+    private const string LOCATION_GENERATION_MD = "location-generation";
 
     public PromptManager(IConfiguration configuration)
     {
@@ -434,7 +435,7 @@ CHOICE {i + 1}:
         {
             EncounterTypes.Social => "Direct dialogue with simple, practical words that reflect medieval speech patterns. Focus on social dynamics, status differences, and the traveler's attempt to navigate social hierarchies. Include some direct speech with quotation marks, showing the exact words exchanged between the player character and NPC.",
             EncounterTypes.Intellectual => "Brief thought process using common language appropriate to a medieval traveler. Express observations, deductions, and problem-solving through inner monologue. Focus on practical knowledge and survival-oriented thinking rather than academic or scholarly reasoning.",
-            EncounterTypes.Physical => "Clear description of physical actions and immediate results. Emphasize bodily sensations, physical effort, fatigue, and the mechanical realities of movement and exertion. Include details about weight, texture, temperature, and other tactile elements that ground the narrative in physical reality.",
+            EncounterTypes.Physical => "Clear description of physical actions and immediate results. Emphasize bodily sensations, physical effort, fatigue, and the mechanical realities of movement and exertion. Include details about weight, texture, Illumination, and other tactile elements that ground the narrative in physical reality.",
             _ => "Practical description focusing on immediate situation"
         };
     }
@@ -632,5 +633,18 @@ CHOICE {i + 1}:
             focuses[i + 1] = choices[i].Focus.ToString();
         }
         return focuses;
+    }
+
+    public string BuildLocationGenerationPrompt(LocationGenerationContext context)
+    {
+        string template = _promptTemplates[LOCATION_GENERATION_MD];
+
+        // Replace placeholders in template
+        string prompt = template
+            .Replace("{LOCATION_TYPE}", context.LocationType)
+            .Replace("{DIFFICULTY}", context.Difficulty.ToString())
+            .Replace("{REQUESTED_SPOT_COUNT}", context.RequestedSpotCount.ToString());
+
+        return prompt;
     }
 }

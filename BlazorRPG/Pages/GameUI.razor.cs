@@ -31,7 +31,7 @@ public partial class GameUI : ComponentBase
     private bool showNarrative = false;
     private string selectedLocation;
     public PlayerState Player => GameState.PlayerState;
-    public Location CurrentLocation => GameState.WorldState.CurrentLocation;
+
     public LocationSpot CurrentSpot => GameState.WorldState.CurrentLocationSpot;
     public TimeWindows CurrentTime => GameState.WorldState.WorldTime;
     public int CurrentHour => GameState.WorldState.CurrentTimeInHours;
@@ -51,6 +51,17 @@ public partial class GameUI : ComponentBase
     protected override async Task OnInitializedAsync()
     {
         await GameManager.StartGame();
+        await GameManager.InitializeLocationSystem();
+    }
+
+    public Location GetCurrentLocation()
+    {
+        Location loc = GameState.WorldState.CurrentLocation;
+        if (loc != null)
+        {
+            return loc;
+        }
+        return new Location() { Name = "Default" };
     }
 
     public EncounterManager GetCurrentEncounter()
@@ -123,7 +134,7 @@ public partial class GameUI : ComponentBase
         GameManager.FinishEncounter(EncounterResult.Encounter);
         ShowEncounterResult = false;
 
-        await GameManager.TravelToLocation(CurrentLocation.Name);
+        await GameManager.TravelToLocation(GetCurrentLocation().Name);
         StateHasChanged();
     }
 

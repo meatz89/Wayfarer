@@ -79,7 +79,7 @@ public class ClaudeProvider : IAIProvider
                     model = currentModel,
                     messages = messages,
                     system = systemMessage,
-                    max_tokens = 500,
+                    max_tokens = 1500,
                     temperature = 0.7
                 };
 
@@ -100,6 +100,12 @@ public class ClaudeProvider : IAIProvider
 
                     JsonElement responseObject = JsonSerializer.Deserialize<JsonElement>(responseBody);
                     return responseObject.GetProperty("content")[0].GetProperty("text").GetString();
+                }
+                else if (response.StatusCode.ToString() != "529")
+                {
+                    string content400 = await response.Content.ReadAsStringAsync();
+                    _logger?.LogInformation($"Received response with status code: {content400}");
+                    return string.Empty;
                 }
 
                 // If not successful and max attempts reached, throw

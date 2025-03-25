@@ -74,17 +74,22 @@ public class GameManager
         }
 
         // Update player location
+        if (!LocationSystem.IsInitialized) await InitializeLocationSystem();
 
-        // Old Logic
         Location location = LocationSystem.GetLocation(locationName);
         if (location == null)
             location = LocationSystem.GetAllLocations().FirstOrDefault();
         gameState.WorldState.SetCurrentLocation(location);
-        
+
         playerState.SetCurrentLocation(location.Name);
 
         UpdateState();
         OnPlayerEnterLocation(gameState.WorldState.CurrentLocation);
+    }
+
+    internal async Task InitializeLocationSystem()
+    {
+        if (!LocationSystem.IsInitialized) await LocationSystem.Initialize();
     }
 
     public async Task<bool> ExecuteBasicAction(UserActionOption action)
@@ -740,6 +745,5 @@ public class GameManager
 
         return model;
     }
-
 }
 

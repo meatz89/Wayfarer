@@ -77,7 +77,7 @@
                 }
                 else
                 {
-                    <AreaMap CurrentLocation="@CurrentLocation"
+                    <AreaMap CurrentLocation="@GetCurrentLocation()"
                     Locations="@Locations"
                     OnTravel="@HandleLocationSelection" />
                 }
@@ -93,7 +93,7 @@
                 }
                 else
                 {
-                    <LocationSpotMap CurrentLocation="@CurrentLocation"
+                    <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
                                  CurrentSpot="@CurrentSpot"
                                  OnSpotSelected="@HandleSpotSelection"
                                  OnActionSelected="@HandleActionSelection" />
@@ -105,13 +105,13 @@
     <div class="sidebar">
         <div class="sidebar-panel location-panel">
         <div class="location-name">
-            @CurrentLocation.Name
+                @GetCurrentLocation().Name
         </div>
 
             <div class="location-properties">
                 <div class="properties-header">Properties</div>
                 <div class="properties-grid">
-                    @foreach (var prop in GetLocationProperties(CurrentLocation))
+                    @foreach (var prop in GetLocationProperties(GetCurrentLocation()))
                     {
                         <div class="property-tag @prop.CssClass">
                             <span class="property-icon">@prop.Icon</span>
@@ -154,27 +154,6 @@
                 </div>
             </div>
 
-            <div class="sidebar-panel quest-effects">
-                <div class="panel-title">Quest Effects</div>
-                <div class="panel-content">
-                    @foreach (Quest activeQuest in GetActiveQuests())
-                    {
-                        QuestStep questStep = activeQuest.GetCurrentStep();
-                        @if(questStep != null)
-                        {
-                            @foreach (IGameStateModifier modifier in questStep.StateModifiers)
-                            {
-                                <div class="quest-effect">
-                                    <div class="effect-source">@activeQuest.Title:</div>
-                                    <div class="effect-description">
-                                        @GetModifierDescription(modifier)
-                                    </div>
-                                </div>
-                            }
-                        }
-                    }
-                </div>
-            </div>
         </div>
     </div>
 </div>
