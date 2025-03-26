@@ -1,13 +1,16 @@
-﻿using System.Text.Json;
-
+﻿
 public class ClaudeNarrativeService : BaseNarrativeAIService
 {
-    private readonly NarrativeContextManager _contextManager;
+    public NarrativeContextManager _contextManager { get; }
 
-    public ClaudeNarrativeService(IConfiguration configuration, ILogger<EncounterSystem> logger)
-        : base(new ClaudeProvider(configuration, logger), configuration, logger)
+    public ClaudeNarrativeService(
+        NarrativeContextManager narrativeContextManager,
+        IConfiguration configuration,
+        ILogger<EncounterSystem> logger
+        )
+        : base(new ClaudeProvider(configuration, logger), configuration, narrativeContextManager, logger)
     {
-        _contextManager = new NarrativeContextManager();
+        _contextManager = narrativeContextManager;
     }
 
     public override async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatusModel state, string memoryContent)

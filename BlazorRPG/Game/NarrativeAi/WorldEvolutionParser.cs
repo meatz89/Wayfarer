@@ -9,7 +9,7 @@ public static class WorldEvolutionParser
     /// </summary>
     public static WorldEvolutionResponse ParseWorldEvolutionResponse(string response)
     {
-        var result = InitializeEmptyResponse();
+        WorldEvolutionResponse result = InitializeEmptyResponse();
 
         try
         {
@@ -41,7 +41,7 @@ public static class WorldEvolutionParser
     {
         ProcessArrayProperty(root, "newLocationSpots", element =>
         {
-            var spot = ParseLocationSpot(element);
+            LocationSpot spot = ParseLocationSpot(element);
             if (spot != null)
             {
                 result.NewLocationSpots.Add(spot);
@@ -53,7 +53,7 @@ public static class WorldEvolutionParser
     {
         ProcessArrayProperty(root, "newActions", element =>
         {
-            var action = ParseNewAction(element);
+            NewAction action = ParseNewAction(element);
             if (action != null)
             {
                 result.NewActions.Add(action);
@@ -65,7 +65,7 @@ public static class WorldEvolutionParser
     {
         ProcessArrayProperty(root, "newCharacters", element =>
         {
-            var character = ParseCharacter(element);
+            Character character = ParseCharacter(element);
             if (character != null)
             {
                 result.NewCharacters.Add(character);
@@ -77,7 +77,7 @@ public static class WorldEvolutionParser
     {
         ProcessArrayProperty(root, "newLocations", element =>
         {
-            var location = ParseLocation(element);
+            Location location = ParseLocation(element);
             if (location != null)
             {
                 result.NewLocations.Add(location);
@@ -89,7 +89,7 @@ public static class WorldEvolutionParser
     {
         ProcessArrayProperty(root, "newOpportunities", element =>
         {
-            var opportunity = ParseOpportunity(element);
+            Opportunity opportunity = ParseOpportunity(element);
             if (opportunity != null)
             {
                 result.NewOpportunities.Add(opportunity);
@@ -105,7 +105,7 @@ public static class WorldEvolutionParser
     {
         return SafeParseEntity("location spot", () =>
         {
-            var spot = new LocationSpot
+            LocationSpot spot = new LocationSpot
             {
                 Name = GetStringProperty(element, "name", "Unnamed Spot"),
                 Description = GetStringProperty(element, "description", "No description available."),
@@ -116,7 +116,7 @@ public static class WorldEvolutionParser
             // Process actions for this spot
             ProcessArrayProperty(element, "actions", actionElement =>
             {
-                var action = ParseAction(actionElement);
+                ActionImplementation action = ParseAction(actionElement);
                 if (action != null)
                 {
                     spot.Actions.Add(action);
@@ -152,7 +152,7 @@ public static class WorldEvolutionParser
     {
         return SafeParseEntity("location", () =>
         {
-            var location = new Location
+            Location location = new Location
             {
                 Name = GetStringProperty(element, "name", "Unnamed Location"),
                 Description = GetStringProperty(element, "description", "No description available."),
@@ -170,7 +170,7 @@ public static class WorldEvolutionParser
             // Parse location spots
             ProcessArrayProperty(element, "spots", spotElement =>
             {
-                var spot = ParseLocationSpot(spotElement);
+                LocationSpot spot = ParseLocationSpot(spotElement);
                 if (spot != null)
                 {
                     location.Spots.Add(spot);
@@ -206,7 +206,7 @@ public static class WorldEvolutionParser
             BasicActionTypes actionType = ParseActionType(element);
 
             // Create action template and convert to implementation
-            var template = new ActionTemplateBuilder()
+            ActionTemplate template = new ActionTemplateBuilder()
                 .WithName(ParseActionName(actionName))
                 .WithGoal(goal)
                 .WithComplication(complication)
@@ -318,7 +318,7 @@ public static class WorldEvolutionParser
     private static IEnvironmentalProperty ParseEnvironmentalProperty(string propertyString)
     {
         // Create a dictionary to map property strings to their respective objects
-        var propertyMap = new Dictionary<string, IEnvironmentalProperty>(StringComparer.OrdinalIgnoreCase)
+        Dictionary<string, IEnvironmentalProperty> propertyMap = new Dictionary<string, IEnvironmentalProperty>(StringComparer.OrdinalIgnoreCase)
         {
             // Illumination properties
             { "Bright", Illumination.Bright },
@@ -347,7 +347,7 @@ public static class WorldEvolutionParser
         };
 
         // Look up the property in the dictionary
-        if (propertyMap.TryGetValue(propertyString, out var property))
+        if (propertyMap.TryGetValue(propertyString, out IEnvironmentalProperty? property))
         {
             return property;
         }
@@ -359,13 +359,13 @@ public static class WorldEvolutionParser
     private static ActionNames ParseActionName(string actionName)
     {
         // Try direct enum parse first
-        if (Enum.TryParse<ActionNames>(actionName.Replace(" ", ""), true, out var result))
+        if (Enum.TryParse<ActionNames>(actionName.Replace(" ", ""), true, out ActionNames result))
         {
             return result;
         }
 
         // Create a dictionary to map keywords to ActionNames
-        var keywordMap = new Dictionary<string, ActionNames>
+        Dictionary<string, ActionNames> keywordMap = new Dictionary<string, ActionNames>
         {
             { "Trade", ActionNames.TradeGoods },
             { "Gather", ActionNames.VillageGathering },
@@ -382,7 +382,7 @@ public static class WorldEvolutionParser
         };
 
         // Check for keyword matches
-        foreach (var keyword in keywordMap.Keys)
+        foreach (string keyword in keywordMap.Keys)
         {
             if (actionName.Contains(keyword, StringComparison.OrdinalIgnoreCase))
             {
@@ -399,7 +399,7 @@ public static class WorldEvolutionParser
         // Try to get the action type directly from the element
         string actionTypeStr = GetStringProperty(element, "actionType", "");
 
-        if (Enum.TryParse<BasicActionTypes>(actionTypeStr, true, out var actionType))
+        if (Enum.TryParse<BasicActionTypes>(actionTypeStr, true, out BasicActionTypes actionType))
         {
             return actionType;
         }
@@ -413,7 +413,7 @@ public static class WorldEvolutionParser
 
     private static BasicActionTypes DetermineActionType(string name, string description)
     {
-        var keywordMap = new Dictionary<BasicActionTypes, List<string>>
+        Dictionary<BasicActionTypes, List<string>> keywordMap = new Dictionary<BasicActionTypes, List<string>>
         {
             {
                 BasicActionTypes.Discuss,
@@ -440,9 +440,9 @@ public static class WorldEvolutionParser
         // Combine name and description for keyword matching
         string combined = $"{name} {description}".ToLowerInvariant();
 
-        foreach (var actionType in keywordMap.Keys)
+        foreach (BasicActionTypes actionType in keywordMap.Keys)
         {
-            foreach (var keyword in keywordMap[actionType])
+            foreach (string keyword in keywordMap[actionType])
             {
                 if (combined.Contains(keyword, StringComparison.OrdinalIgnoreCase))
                 {
