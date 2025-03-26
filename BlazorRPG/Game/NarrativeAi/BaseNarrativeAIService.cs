@@ -27,10 +27,6 @@
         NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatusModel newState);
     public abstract Task<string> GenerateEndingAsync(
         NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatusModel newState);
-    public abstract Task<string> GenerateMemoryFileAsync(
-        NarrativeContext context, ChoiceOutcome outcome, EncounterStatusModel newState, string oldMemory);
-    public abstract Task<string> GenerateStateChangesAsync(
-        NarrativeContext context, ChoiceOutcome outcome, EncounterStatusModel newState);
     public abstract Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(NarrativeContext context, List<IChoice> choices, List<ChoiceProjection> projections, EncounterStatusModel state);
 
     public string GetProviderName()
@@ -43,9 +39,11 @@
         return _gameInstanceId;
     }
 
-    public abstract Task<DiscoveredEntities> ExtractWorldDiscoveries(string encounterNarrative, WorldContext worldContext);
-    public abstract Task<EntityDetails> DevelopEntityDetails(string entityType, string entityId, EntityContext entityContext);
-    public abstract Task<StateChangeRecommendations> GenerateStateChanges(string encounterOutcome, EncounterContext context);
-
     public abstract Task<LocationDetails> GenerateLocationDetailsAsync(LocationGenerationContext context);
+    public abstract Task<WorldEvolutionResponse> ProcessWorldEvolution(
+        NarrativeContext context,
+        WorldEvolutionInput input);
+    public abstract Task<string> ProcessMemoryConsolidation(
+        NarrativeContext context,
+        MemoryConsolidationInput input);
 }

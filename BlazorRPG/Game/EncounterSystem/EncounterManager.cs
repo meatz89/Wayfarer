@@ -3,7 +3,6 @@
     public ActionImplementation ActionImplementation;
 
     private CardSelectionAlgorithm cardSelectionAlgorithm;
-    private DiscoveryManager discoveryManager;
     public EncounterState encounterState;
 
     private NarrativeService narrativeService;
@@ -20,12 +19,10 @@
 
     private bool _useAiNarrative = false;
     private bool _useMemory = false;
-    private bool _processStateChanges = false;
 
     public EncounterManager(
         ActionImplementation actionImplementation,
         CardSelectionAlgorithm cardSelector,
-        DiscoveryManager discoveryManager,
         NarrativeService narrativeService,
         ResourceManager resourceManager,
         RelationshipManager relationshipManager,
@@ -34,13 +31,12 @@
     {
         ActionImplementation = actionImplementation;
         cardSelectionAlgorithm = cardSelector;
-        this.discoveryManager = discoveryManager;
         this.narrativeService = narrativeService;
         this.resourceManager = resourceManager;
         this.relationshipManager = relationshipManager;
+
         _useAiNarrative = configuration.GetValue<bool>("useAiNarrative");
         _useMemory = configuration.GetValue<bool>("useMemory");
-        _processStateChanges = configuration.GetValue<bool>("processStateChanges");
     }
 
     private void StartEncounter(WorldState worldState, PlayerState playerState, EncounterInfo encounterInfo)
@@ -155,15 +151,6 @@
                     outcome,
                     newStatus);
 
-                if (_processStateChanges)
-                {
-                    await ProcessEncounterOutcome(narrative, outcome.Description, encounterState);
-                }
-
-                if (_useMemory)
-                {
-                    await UpdateMemoryFile(outcome, newStatus);
-                }
             }
 
             NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
@@ -270,21 +257,6 @@
     }
 
 
-    private async Task UpdateMemoryFile(ChoiceOutcome outcome, EncounterStatusModel newStatus)
-    {
-        string oldMemory = await MemoryFileAccess.ReadFromMemoryFile();
-
-        string memoryContent = await narrativeService.GenerateMemoryFileAsync(
-            narrativeContext,
-            outcome,
-            newStatus,
-            oldMemory
-            );
-
-        await MemoryFileAccess.WriteToMemoryFile(outcome, newStatus, memoryContent);
-    }
-
-
     private NarrativeEvent GetNarrativeEvent(
         IChoice choice,
         ChoiceNarrative choiceDescription,
@@ -363,49 +335,5 @@
     public void GenerateChoices()
     {
         CurrentChoices = cardSelectionAlgorithm.SelectChoices(encounterState);
-    }
-
-
-    public async Task ProcessEncounterOutcome(string encounterNarrative, string encounterOutcome, EncounterState finalState)
-    {
-        // First, discover new entities
-        await discoveryManager.ProcessEncounterForDiscoveries(encounterNarrative + "\n" + encounterOutcome);
-
-        // Create encounter context
-        EncounterContext context = new EncounterContext { /* populate from encounter state */ };
-
-        // Get state change recommendations
-        StateChangeRecommendations recommendations = await this.narrativeService.GenerateStateChanges(encounterOutcome, context);
-
-        // Apply resource changes
-        foreach (KeyValuePair<string, int> resource in recommendations.ResourceChanges)
-        {
-            resourceManager.ApplyResourceChanges(resource.Key, resource.Value);
-        }
-
-        // Apply relationship changes
-        foreach (KeyValuePair<string, int> relationship in recommendations.RelationshipChanges)
-        {
-            relationshipManager.ApplyRelationshipChange(relationship.Key, relationship.Value);
-        }
-
-        // Apply skill experience
-        foreach (string skill in recommendations.SkillExperienceGained)
-        {
-            playerState.ApplySkillExperience(skill);
-        }
-
-        // Record world events
-        foreach (string worldEvent in recommendations.SuggestedWorldEvents)
-        {
-            worldState.WorldEvents.Add(worldEvent);
-        }
-
-        // Record interaction with location and characters
-        discoveryManager.RecordLocationInteraction(context.Location.Name, encounterOutcome);
-        foreach (Character character in context.PresentCharacters)
-        {
-            discoveryManager.RecordCharacterInteraction(character.Name, encounterOutcome);
-        }
     }
 }

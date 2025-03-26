@@ -5,5 +5,5 @@
     public string InteractionType { get; set; }
     public string InteractionDescription { get; set; }
     public string Position { get; set; }
-    public List<ActionNames> ActionNames { get; set; } = new List<ActionNames>();
+    public List<string> ActionNames { get; set; } = new List<string>();
 }

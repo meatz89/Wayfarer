@@ -22,8 +22,9 @@
 
         // Add this before your existing logger configuration
         services.AddSingleton<NarrativeLogManager>();
+        services.AddSingleton<LocationGenerator>();
+        services.AddSingleton<WorldEvolutionService>();
 
-        services.AddSingleton<DiscoveryManager>();
         services.AddSingleton<ResourceManager>();
         services.AddSingleton<NarrativeService>();
         services.AddSingleton<RelationshipManager>();

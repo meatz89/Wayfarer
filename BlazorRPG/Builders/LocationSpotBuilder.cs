@@ -5,7 +5,7 @@ public class LocationSpotBuilder
     private string locationName;
     private string? character;
 
-    private List<ActionNames> actionNames = new();
+    private List<string> actionNames = new();
 
     public Illumination? illumination { get; set; }
     public Population? population { get; set; }
@@ -30,9 +30,9 @@ public class LocationSpotBuilder
         return this;
     }
 
-    public LocationSpotBuilder AddAction(ActionNames actionNames)
+    public LocationSpotBuilder AddAction(ActionNames actionName)
     {
-        this.actionNames.Add(actionNames);
+        this.actionNames.Add(actionName.ToString());
         return this;
     }
 

@@ -99,44 +99,19 @@
             context, chosenOption, choiceDescription, outcome, newState);
     }
 
-    public async Task<string> GenerateMemoryFileAsync(
-        NarrativeContext context,
-        ChoiceOutcome outcome,
-        EncounterStatusModel newState,
-        string oldMemory
-        )
-    {
-        return await _providers[_currentProvider].GenerateMemoryFileAsync(
-            context, outcome, newState, oldMemory);
-    }
-
-    public async Task<string> GenerateStateChangesAsync(
-        NarrativeContext context,
-        ChoiceOutcome outcome,
-        EncounterStatusModel newState
-        )
-    {
-        return await _providers[_currentProvider].GenerateStateChangesAsync(
-            context, outcome, newState);
-    }
-
-    public Task<DiscoveredEntities> ExtractWorldDiscoveries(string encounterNarrative, WorldContext worldContext)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<EntityDetails> DevelopEntityDetails(string entityType, string entityId, EntityContext entityContext)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<StateChangeRecommendations> GenerateStateChanges(string encounterOutcome, EncounterContext context)
-    {
-        throw new NotImplementedException();
-    }
 
     public async Task<LocationDetails> GenerateLocationDetailsAsync(LocationGenerationContext context)
     {
         return await _providers[_currentProvider].GenerateLocationDetailsAsync(context);
+    }
+
+    public async Task<WorldEvolutionResponse> ProcessWorldEvolution(NarrativeContext context, WorldEvolutionInput input)
+    {
+        return await _providers[_currentProvider].ProcessWorldEvolution(context, input);
+    }
+
+    public async Task<string> ProcessMemoryConsolidation(NarrativeContext context, MemoryConsolidationInput input)
+    {
+        return await _providers[_currentProvider].ProcessMemoryConsolidation(context, input);
     }
 }

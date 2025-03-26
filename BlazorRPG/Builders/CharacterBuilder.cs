@@ -26,7 +26,7 @@
         return new Character
         {
             Name = character,
-            HomeLocationId = location,
+            Location = location,
         };
     }
 }

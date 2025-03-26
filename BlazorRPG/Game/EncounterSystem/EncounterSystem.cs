@@ -9,21 +9,20 @@
     private EncounterManager Encounter;
     public EncounterResult encounterResult;
 
-    public DiscoveryManager discoveryManager;
-
     private ResourceManager resourceManager;
     private RelationshipManager relationshipManager;
+    private WorldEvolutionService evolutionService;
     private CardSelectionAlgorithm cardSelector;
 
-    public WorldState worldState { get; private set; }
+    public WorldState worldState;
 
     public EncounterSystem(
         GameState gameState,
         MessageSystem messageSystem,
         GameContentProvider contentProvider,
-        DiscoveryManager discoveryManager,
         ResourceManager resourceManager,
         RelationshipManager relationshipManager,
+        WorldEvolutionService worldEvolutionService,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {
@@ -33,9 +32,9 @@
 
         // Create the switchable narrative service
         this.narrativeService = new NarrativeService(configuration, logger);
-        this.discoveryManager = discoveryManager;
         this.resourceManager = resourceManager;
         this.relationshipManager = relationshipManager;
+        this.evolutionService = worldEvolutionService;
 
         // Initialize with the default provider from config
         string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "OpenAI";
@@ -102,12 +101,6 @@
     {
         Location location = worldState.GetLocation(locationId);
 
-        // Get time-specific properties if available
-        if (location.TimeProperties.ContainsKey(timeOfDay))
-        {
-            return location.TimeProperties[timeOfDay];
-        }
-
         // Fall back to general properties
         return location.EnvironmentalProperties;
     }
@@ -127,7 +120,6 @@
         EncounterManager encounterManager = new EncounterManager(
             actionImplementation,
             cardSelector,
-            discoveryManager,
             narrativeService,
             resourceManager,
             relationshipManager,
@@ -151,12 +143,14 @@
             actionImplementation,
             currentAIProvider);  // Pass the current provider type
 
+
         return new EncounterResult()
         {
             Encounter = encounterManager,
             EncounterResults = EncounterResults.Started,
             EncounterEndMessage = "",
-            NarrativeResult = initialResult
+            NarrativeResult = initialResult,
+            NarrativeContext = encounterManager.GetNarrativeContext()
         };
     }
 
@@ -175,31 +169,42 @@
             selectedDescription = currentResult.ChoiceDescriptions[choice];
         }
 
-        if (!currentResult.IsEncounterOver)
+        if (currentResult.IsEncounterOver)
         {
-            currentResult = await Encounter.ApplyChoiceWithNarrativeAsync(
-                choice,
-                selectedDescription);
-
-            if (currentResult.IsEncounterOver)
+            return new EncounterResult()
             {
-                if (currentResult.Outcome == EncounterOutcomes.Failure)
-                {
-                    return new EncounterResult()
-                    {
-                        Encounter = encounter,
-                        EncounterResults = EncounterResults.EncounterFailure,
-                        EncounterEndMessage = $"=== Encounter Over: {currentResult.Outcome} ===",
-                        NarrativeResult = currentResult
-                    };
-                }
+                Encounter = encounter,
+                EncounterResults = EncounterResults.EncounterSuccess,
+                EncounterEndMessage = $"=== Encounter Over: {currentResult.Outcome} ===",
+                NarrativeResult = currentResult,
+                NarrativeContext = encounter.GetNarrativeContext()
+            };
+        }
 
+        currentResult = await Encounter.ApplyChoiceWithNarrativeAsync(choice, selectedDescription);
+
+        if (currentResult.IsEncounterOver)
+        {
+            if (currentResult.Outcome == EncounterOutcomes.Failure)
+            {
+                return new EncounterResult()
+                {
+                    Encounter = encounter,
+                    EncounterResults = EncounterResults.EncounterFailure,
+                    EncounterEndMessage = $"=== Encounter Over: {currentResult.Outcome} ===",
+                    NarrativeResult = currentResult,
+                    NarrativeContext = encounter.GetNarrativeContext()
+                };
+            }
+            else
+            {
                 return new EncounterResult()
                 {
                     Encounter = encounter,
                     EncounterResults = EncounterResults.EncounterSuccess,
                     EncounterEndMessage = $"=== Encounter Over: {currentResult.Outcome} ===",
-                    NarrativeResult = currentResult
+                    NarrativeResult = currentResult,
+                    NarrativeContext = encounter.GetNarrativeContext()
                 };
             }
         }
@@ -209,7 +214,8 @@
             Encounter = encounter,
             EncounterResults = EncounterResults.Ongoing,
             EncounterEndMessage = "",
-            NarrativeResult = currentResult
+            NarrativeResult = currentResult,
+            NarrativeContext = encounter.GetNarrativeContext()
         };
     }
 

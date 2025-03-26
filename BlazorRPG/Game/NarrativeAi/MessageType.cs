@@ -6,6 +6,6 @@
     PlayerChoice,
     Narrative,
     MemoryUpdate,
-    StateChanges,
+    WorldEvolution,
     LocationGeneration
 }

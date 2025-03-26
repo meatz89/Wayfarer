@@ -1,54 +1,69 @@
-﻿
-public class WorldState
+﻿public class WorldState
 {
     // Core data collections
-    public Dictionary<string, Location> Locations { get; private set; } = new Dictionary<string, Location>();
-    private Dictionary<string, Character> characters { get; set; } = new Dictionary<string, Character>();
-    private Dictionary<string, Opportunity> opportunities { get; set; } = new Dictionary<string, Opportunity>();
+    public List<Location> Locations { get; private set; } = new();
+    private List<Character> characters { get; set; } = new();
+    private List<Opportunity> opportunities { get; set; } = new();
 
     internal List<Location> GetLocations()
     {
-        return Locations.Values.ToList();
+        return Locations.ToList();
     }
 
     internal List<Opportunity> GetOpportunities()
     {
-        return opportunities.Values.ToList();
+        return opportunities.ToList();
     }
 
     public List<Character> GetCharacters()
     {
-        return characters.Values.ToList();
+        return characters.ToList();
     }
 
     public Location GetLocation(string name)
     {
-        return Locations[name];
+        return Locations.FirstOrDefault(x => x.Name == name); ;
     }
 
     public Character GetCharacter(string name)
     {
-        return characters[name];
+        return characters.FirstOrDefault(x => x.Name == name);
     }
 
     public Opportunity GetOpportunity(string name)
     {
-        return opportunities[name];
+        return opportunities.FirstOrDefault(x => x.Name == name);
     }
 
-    public void AddLocation(string name, Location location)
+
+    public void AddLocations(List<Location> newLocations)
     {
-        Locations.Add(name, location);
+        Locations.AddRange(newLocations);
     }
 
-    public void AddCharacter(string name, Character character)
+    public void AddCharacters(List<Character> newCharacters)
     {
-        characters.Add(name, character);
+        characters.AddRange(newCharacters);
     }
 
-    public void AddOpportunity(string name, Opportunity opportunity)
+    public void AddOpportunities(List<Opportunity> newOpportunities)
     {
-        opportunities.Add(name, opportunity);
+        opportunities.AddRange(newOpportunities);
+    }
+
+    public void AddLocation(Location location)
+    {
+        Locations.Add(location);
+    }
+
+    public void AddCharacter(Character character)
+    {
+        characters.Add(character);
+    }
+
+    public void AddOpportunity(Opportunity opportunity)
+    {
+        opportunities.Add(opportunity);
     }
 
     // Game time
@@ -135,6 +150,5 @@ public class WorldState
             throw new ArgumentException($"Unsupported property type: {typeof(T)}");
         }
     }
-
 }
 

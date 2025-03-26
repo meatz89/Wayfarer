@@ -1,11 +1,13 @@
-﻿
-/// <summary>
-/// Minimal location generator that creates a single location with basic properties.
-/// Uses the NarrativeService to fill in details based on a general location type.
-/// </summary>
-public class LocationGenerator
+﻿public class LocationGenerator
 {
-    public async Task<Location> GenerateNewLocationAsync(string locationType, NarrativeService narrativeService)
+    public NarrativeService narrativeService { get; }
+
+    public LocationGenerator(NarrativeService narrativeService)
+    {
+        this.narrativeService = narrativeService;
+    }
+
+    public async Task<Location> GenerateNewLocationAsync(string locationType)
     {
         // Create context for location generation
         LocationGenerationContext context = new LocationGenerationContext
@@ -30,7 +32,7 @@ public class LocationGenerator
                 InteractionType = spotDetail.InteractionType,
                 InteractionDescription = spotDetail.InteractionDescription,
                 Position = spotDetail.Position,
-                ActionNames = new List<ActionNames>(spotDetail.ActionNames)
+                ActionNames = new List<string>(spotDetail.ActionNames)
             };
 
             locationSpots.Add(spot);
@@ -47,9 +49,8 @@ public class LocationGenerator
             Difficulty = context.Difficulty,
             TravelTimeMinutes = details.TravelTimeMinutes,
             TravelDescription = details.TravelDescription,
-            ConnectedLocationIds = details.ConnectedLocationIds,
+            ConnectedTo = details.ConnectedLocationIds,
             EnvironmentalProperties = details.EnvironmentalProperties,
-            TimeProperties = details.TimeProperties,
             Spots = locationSpots,
             StrategicTags = details.StrategicTags,
             NarrativeTags = details.NarrativeTags

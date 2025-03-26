@@ -9,9 +9,11 @@ public class PromptManager
     private const string REACTION_MD = "reaction";
     private const string CHOICES_MD = "choices";
     private const string ENDING_MD = "ending";
-    private const string MEMORY_MD = "memory";
     private const string STATE_CHANGES_MD = "state-changes";
     private const string LOCATION_GENERATION_MD = "location-generation";
+
+    private const string WORLD_EVOLUTION_MD = "world-evolution";
+    private const string MEMORY_CONSOLIDATION_MD = "memory-consolidation";
 
     public PromptManager(IConfiguration configuration)
     {
@@ -340,20 +342,6 @@ CHOICE {i + 1}:
         return prompt;
     }
 
-    public string BuildMemoryPrompt(
-        NarrativeContext context,
-        ChoiceOutcome outcome,
-        EncounterStatusModel newState,
-        string oldMemory)
-    {
-        string template = _promptTemplates[MEMORY_MD];
-
-        string prompt = template
-            .Replace("{FILE_CONTENT}", oldMemory);
-
-        return prompt;
-    }
-
     public string BuildStateChangesPrompt(
         NarrativeContext context,
         ChoiceOutcome outcome,
@@ -465,42 +453,6 @@ CHOICE {i + 1}:
                tag == ApproachTags.Analysis ||
                tag == ApproachTags.Precision ||
                tag == ApproachTags.Evasion;
-    }
-
-    private string GetApproachChangeDescription(ApproachTags approach, bool isPositive)
-    {
-        return (approach, isPositive) switch
-        {
-            (ApproachTags.Dominance, true) => "increased authority, commanding presence, or intimidation factor",
-            (ApproachTags.Dominance, false) => "diminished authority, lessened presence, or reduced intimidation factor",
-            (ApproachTags.Rapport, true) => "improved charm, likeability, or social influence",
-            (ApproachTags.Rapport, false) => "reduced charm, awkwardness, or social disconnection",
-            (ApproachTags.Analysis, true) => "sharper observation, clearer thinking, or deeper understanding",
-            (ApproachTags.Analysis, false) => "confusion, overlooking details, or failing to make connections",
-            (ApproachTags.Precision, true) => "improved accuracy, careful execution, or greater control",
-            (ApproachTags.Precision, false) => "clumsiness, carelessness, or lack of control",
-            (ApproachTags.Evasion, true) => "better stealth, secrecy, or ability to hide intentions",
-            (ApproachTags.Evasion, false) => "exposure, visibility, or inability to hide",
-            _ => "significant change in approach"
-        };
-    }
-
-    private string GetFocusChangeDescription(FocusTags focus, bool isPositive)
-    {
-        return (focus, isPositive) switch
-        {
-            (FocusTags.Relationship, true) => "better social connections, trust, or understanding of others",
-            (FocusTags.Relationship, false) => "damaged relationships, broken trust, or social isolation",
-            (FocusTags.Information, true) => "greater knowledge, awareness, or understanding of facts",
-            (FocusTags.Information, false) => "confusion, misinformation, or lack of awareness",
-            (FocusTags.Physical, true) => "improved physical capability, bodily awareness, or strength",
-            (FocusTags.Physical, false) => "physical limitation, discomfort, or weakness",
-            (FocusTags.Environment, true) => "better awareness of surroundings, control of space, or environmental advantage",
-            (FocusTags.Environment, false) => "environmental disadvantage, disorientation, or lack of spatial awareness",
-            (FocusTags.Resource, true) => "better resource management, acquisition of valuable items, or material advantage",
-            (FocusTags.Resource, false) => "resource depletion, loss of valuable items, or material disadvantage",
-            _ => "significant change in focus"
-        };
     }
 
     public static string CreatePromptJson(string markdownContent)
@@ -644,6 +596,29 @@ CHOICE {i + 1}:
             .Replace("{LOCATION_TYPE}", context.LocationType)
             .Replace("{DIFFICULTY}", context.Difficulty.ToString())
             .Replace("{REQUESTED_SPOT_COUNT}", context.RequestedSpotCount.ToString());
+
+        return prompt;
+    }
+
+    public string BuildWorldEvolutionPrompt(WorldEvolutionInput input)
+    {
+        string template = _promptTemplates[WORLD_EVOLUTION_MD];
+
+        // Your prompt template with replaced placeholders
+        return template
+            .Replace("{characterBackground}", input.CharacterBackground)
+            .Replace("{currentLocation}", input.CurrentLocation)
+            .Replace("{knownLocations}", input.KnownLocations)
+            .Replace("{knownCharacters}", input.KnownCharacters)
+            .Replace("{activeOpportunities}", input.ActiveOpportunities);
+    }
+
+    public string BuildMemoryPrompt(MemoryConsolidationInput input)
+    {
+        string template = _promptTemplates[MEMORY_CONSOLIDATION_MD];
+
+        string prompt = template
+            .Replace("{FILE_CONTENT}", input.OldMemory);
 
         return prompt;
     }
