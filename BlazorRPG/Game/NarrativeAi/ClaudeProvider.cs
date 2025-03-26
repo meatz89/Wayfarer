@@ -130,7 +130,7 @@ public class ClaudeProvider : IAIProvider
                 // Calculate exponential backoff with jitter
                 delay = CalculateDelay(attempts, delay);
 
-                _logger?.LogWarning($"Retrying in {delay} ms after HTTP error. Will use {(attempts >= FallbackToBackupAfterAttempts ? _modelLow : currentModel)}");
+                _logger?.LogWarning($"Retrying in {delay} ms after HTTP error. Will use {(attempts >= FallbackToBackupAfterAttempts ? fallbackModel : currentModel)}");
                 await Task.Delay(delay);
             }
             catch (JsonException ex)

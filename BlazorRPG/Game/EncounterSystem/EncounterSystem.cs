@@ -11,7 +11,6 @@
 
     private ResourceManager resourceManager;
     private RelationshipManager relationshipManager;
-    private WorldEvolutionService evolutionService;
     private NarrativeContextManager _contextManager;
     private CardSelectionAlgorithm cardSelector;
 
@@ -23,7 +22,6 @@
         GameContentProvider contentProvider,
         ResourceManager resourceManager,
         RelationshipManager relationshipManager,
-        WorldEvolutionService worldEvolutionService,
         NarrativeContextManager narrativeContextManager,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
@@ -34,10 +32,10 @@
         this._contextManager = narrativeContextManager;
 
         // Create the switchable narrative service
-        this.narrativeService = new NarrativeService(_contextManager, configuration, logger);
         this.resourceManager = resourceManager;
         this.relationshipManager = relationshipManager;
-        this.evolutionService = worldEvolutionService;
+
+        this.narrativeService = new NarrativeService(_contextManager, configuration, logger);
 
         // Initialize with the default provider from config
         string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "OpenAI";
@@ -283,6 +281,7 @@
     {
         EncounterTypes encounterTypes = actionImplementation.ActionType switch
         {
+            BasicActionTypes.Rest => EncounterTypes.Social,
             BasicActionTypes.Travel => EncounterTypes.Physical,
 
             BasicActionTypes.Labor => EncounterTypes.Physical,
