@@ -36,7 +36,7 @@
 
             // Read all text from the file
             string memoryContentToWrite = await File.ReadAllTextAsync(filePath);
-            memoryContentToWrite += Environment.NewLine + memoryContent;
+            memoryContentToWrite += Environment.NewLine + "- " + memoryContent;
 
             // Write the memory content directly to the file
             await File.WriteAllTextAsync(filePath, memoryContentToWrite);

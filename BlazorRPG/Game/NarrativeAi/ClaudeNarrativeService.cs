@@ -30,7 +30,7 @@ public class ClaudeNarrativeService : BaseNarrativeAIService
 
         string response = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            _modelHigh, _modelLow);
+            _modelLow, _modelLow);
 
         _contextManager.AddAssistantMessage(conversationId, response, MessageType.Introduction);
 
@@ -60,7 +60,7 @@ public class ClaudeNarrativeService : BaseNarrativeAIService
 
         string jsonResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            _modelHigh, _modelLow);
+            _modelLow, _modelLow);
 
         _contextManager.AddAssistantMessage(conversationId, jsonResponse, MessageType.ChoiceGeneration);
         return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
@@ -90,7 +90,7 @@ public class ClaudeNarrativeService : BaseNarrativeAIService
 
         string narrativeResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            _modelHigh, _modelLow);
+            _modelLow, _modelLow);
 
         _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
@@ -120,7 +120,7 @@ public class ClaudeNarrativeService : BaseNarrativeAIService
 
         string narrativeResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            _modelHigh, _modelLow);
+            _modelLow, _modelLow);
 
         _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
