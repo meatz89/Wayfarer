@@ -11,7 +11,7 @@
         new() { IsSuccess = false, Message = message, Messages = new() };
 }
 
-public class ActionAndEncounterResult
+public class ActionCreationResult
 {
     public ActionModel Action { get; set; }
     public EncounterTemplateModel EncounterTemplate { get; set; }
