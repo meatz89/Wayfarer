@@ -34,8 +34,12 @@
             // Ensure directory exists
             Directory.CreateDirectory(_baseLogDirectory);
 
+            // Read all text from the file
+            string memoryContentToWrite = await File.ReadAllTextAsync(filePath);
+            memoryContentToWrite += Environment.NewLine + memoryContent;
+
             // Write the memory content directly to the file
-            await File.WriteAllTextAsync(filePath, memoryContent);
+            await File.WriteAllTextAsync(filePath, memoryContentToWrite);
         }
         catch (Exception e)
         {

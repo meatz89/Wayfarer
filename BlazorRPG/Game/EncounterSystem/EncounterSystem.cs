@@ -12,6 +12,7 @@
     private ResourceManager resourceManager;
     private RelationshipManager relationshipManager;
     private WorldEvolutionService evolutionService;
+    private NarrativeContextManager _contextManager;
     private CardSelectionAlgorithm cardSelector;
 
     public WorldState worldState;
@@ -23,15 +24,17 @@
         ResourceManager resourceManager,
         RelationshipManager relationshipManager,
         WorldEvolutionService worldEvolutionService,
+        NarrativeContextManager narrativeContextManager,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {
         this.gameState = gameState;
         this.configuration = configuration;
         this.logger = logger;
+        this._contextManager = narrativeContextManager;
 
         // Create the switchable narrative service
-        this.narrativeService = new NarrativeService(configuration, logger);
+        this.narrativeService = new NarrativeService(_contextManager, configuration, logger);
         this.resourceManager = resourceManager;
         this.relationshipManager = relationshipManager;
         this.evolutionService = worldEvolutionService;

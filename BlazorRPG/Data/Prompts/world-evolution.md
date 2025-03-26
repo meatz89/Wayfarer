@@ -25,6 +25,11 @@ FOR EACH NEW ELEMENT:
 - Keep descriptions brief but evocative
 - Ensure it has a clear purpose
 
+CHARACTER NAMING:
+- Character names should be SIMPLE FIRST NAMES ONLY (e.g., "Giles", "Marta")
+- Do NOT include titles or occupations in the name field (NO "Giles the merchant" or "widow Marta")
+- Put occupations, titles, or roles in the dedicated "role" field instead
+
 IMPORTANT FORMAT REQUIREMENTS:
 - ActionNames must use predefined types: VillageGathering, TradeGoods, ForestTravel, SecretMeeting, SecretDeal, RentRoom, or FindQuests
 - Action types must be one of: Discuss, Travel, Persuade, Rest, Investigate
@@ -67,8 +72,8 @@ Respond with ONLY a valid JSON object following this exact structure:
   ],
   "newCharacters": [
     {
-      "name": "Character name",
-      "role": "Character's occupation",
+      "name": "Giles",
+      "role": "Merchant",
       "description": "Brief physical and personality description",
       "location": "Name of existing location where they can be found"
     }

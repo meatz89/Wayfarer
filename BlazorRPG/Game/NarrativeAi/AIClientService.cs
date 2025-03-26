@@ -81,7 +81,6 @@
         }
     }
 
-    // Overload to handle NarrativeContextManager's conversation history format
     public async Task<string> GetCompletionAsync(IEnumerable<ConversationEntry> conversationMessages)
     {
         // Convert from ConversationMessage to Message format

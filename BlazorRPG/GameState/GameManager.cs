@@ -748,7 +748,7 @@ public class GameManager
 
     public async Task ProcessEncounterOutcome(EncounterResult encounterResult)
     {
-        var narrativeResult = encounterResult.NarrativeResult;
+        NarrativeResult narrativeResult = encounterResult.NarrativeResult;
 
         string narrative = narrativeResult.SceneNarrative;
         if (_processStateChanges)
