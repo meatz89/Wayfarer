@@ -122,6 +122,7 @@ Player progression in Wayfarer consists of:
 
 Unlike the temporary approach/focus tags used in encounters, these elements persist between encounters and represent actual character development.
 
+
 ## Gameplay Impact
 
 The card-based progression system transforms gameplay in several ways:
