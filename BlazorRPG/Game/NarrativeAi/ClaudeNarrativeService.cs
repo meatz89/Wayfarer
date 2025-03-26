@@ -1,5 +1,4 @@
-﻿
-public class ClaudeNarrativeService : BaseNarrativeAIService
+﻿public class ClaudeNarrativeService : BaseNarrativeAIService
 {
     public NarrativeContextManager _contextManager { get; }
 
@@ -11,10 +10,9 @@ public class ClaudeNarrativeService : BaseNarrativeAIService
         IConfiguration configuration,
         ILogger<EncounterSystem> logger
         )
-        : base(new ClaudeProvider(configuration, logger), configuration, narrativeContextManager, logger)
+        : base(new ClaudeProvider(configuration, logger), configuration, logger)
     {
         _contextManager = narrativeContextManager;
-
         _modelHigh = configuration.GetValue<string>("Anthropic:Model") ?? "claude-3-7-sonnet-latest";
         _modelLow = configuration.GetValue<string>("Anthropic:BackupModel") ?? "claude-3-5-haiku-latest";
 
@@ -145,6 +143,22 @@ public class ClaudeNarrativeService : BaseNarrativeAIService
         return LocationJsonParser.ParseLocationDetails(jsonResponse);
     }
 
+    public override async Task<string> GenerateActionsAsync(ActionGenerationContext context)
+    {
+        string conversationId = $"action_generation_{context.SpotName}"; // Unique conversation ID
+        string systemMessage = _promptManager.GetSystemMessage();
+        string prompt = _promptManager.BuildActionGenerationPrompt(context);
+
+        ConversationEntry entrySystem = new ConversationEntry { Role = "system", Content = systemMessage };
+        ConversationEntry entryUser = new ConversationEntry { Role = "user", Content = prompt };
+
+        List<ConversationEntry> messages = [entrySystem, entryUser];
+
+        string jsonResponse = await _aiClient.GetCompletionAsync(messages,
+            _modelHigh, _modelLow);
+
+        return jsonResponse;
+    }
 
     public override async Task<WorldEvolutionResponse> ProcessWorldEvolution(
         NarrativeContext context,
@@ -197,3 +211,4 @@ public class ClaudeNarrativeService : BaseNarrativeAIService
         return memoryContentResponse;
     }
 }
+

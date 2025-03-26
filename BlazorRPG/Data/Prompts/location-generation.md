@@ -15,7 +15,7 @@ For each interaction spot, define:
 - InteractionType: Character, Quest, Shop, Feature, or Travel
 - InteractionDescription: What the player can do here
 - Position: North, South, East, West, Center, etc.
-- ActionNames: Possible actions at this location, i.e. TradeGoods, ForestTravel, RentRoom, MeetContact
+- ActionNames: 1 Possible action at this location, i.e. TradeGoods, ForestTravel, RentRoom, MeetContact
 
 ## Output Format
 Respond with a complete JSON object containing all location details.

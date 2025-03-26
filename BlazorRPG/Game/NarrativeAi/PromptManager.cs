@@ -11,6 +11,7 @@ public class PromptManager
     private const string ENDING_MD = "ending";
     private const string STATE_CHANGES_MD = "state-changes";
     private const string LOCATION_GENERATION_MD = "location-generation";
+    private const string ACTION_GENERATION_MD = "action-generation";
 
     private const string WORLD_EVOLUTION_MD = "world-evolution";
     private const string MEMORY_CONSOLIDATION_MD = "memory-consolidation";
@@ -23,6 +24,39 @@ public class PromptManager
         // Load all prompt templates
         _promptTemplates = new Dictionary<string, string>();
         LoadPromptTemplates(promptsPath);
+    }
+
+    public string BuildLocationGenerationPrompt(LocationGenerationContext context)
+    {
+        string template = _promptTemplates[LOCATION_GENERATION_MD];
+
+        // Replace placeholders in template
+        string prompt = template
+            .Replace("{LOCATION_TYPE}", context.LocationType)
+            .Replace("{DIFFICULTY}", context.Difficulty.ToString())
+            .Replace("{REQUESTED_SPOT_COUNT}", context.RequestedSpotCount.ToString());
+
+        return prompt;
+    }
+
+    public string BuildActionGenerationPrompt(ActionGenerationContext context)
+    {
+        string template = _promptTemplates["action-generation"];
+
+        // Convert environmental properties to a comma-separated list
+        string envProps = string.Join(", ", context.EnvironmentalProperties);
+
+        // Replace placeholders in template
+        string prompt = template
+            .Replace("{LOCATION_NAME}", context.LocationName)
+            .Replace("{LOCATION_DESCRIPTION}", context.LocationDescription)
+            .Replace("{SPOT_NAME}", context.SpotName)
+            .Replace("{SPOT_DESCRIPTION}", context.SpotDescription)
+            .Replace("{INTERACTION_TYPE}", context.InteractionType)
+            .Replace("{ENVIRONMENTAL_PROPERTIES}", envProps)
+            .Replace("{REQUEST_COUNT}", context.RequestedActionCount.ToString());
+
+        return prompt;
     }
 
     public string BuildIntroductionPrompt(
@@ -587,18 +621,6 @@ CHOICE {i + 1}:
         return focuses;
     }
 
-    public string BuildLocationGenerationPrompt(LocationGenerationContext context)
-    {
-        string template = _promptTemplates[LOCATION_GENERATION_MD];
-
-        // Replace placeholders in template
-        string prompt = template
-            .Replace("{LOCATION_TYPE}", context.LocationType)
-            .Replace("{DIFFICULTY}", context.Difficulty.ToString())
-            .Replace("{REQUESTED_SPOT_COUNT}", context.RequestedSpotCount.ToString());
-
-        return prompt;
-    }
 
     public string BuildWorldEvolutionPrompt(WorldEvolutionInput input)
     {

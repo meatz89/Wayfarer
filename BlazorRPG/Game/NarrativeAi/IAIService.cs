@@ -35,5 +35,5 @@
     Task<WorldEvolutionResponse> ProcessWorldEvolution(NarrativeContext context, WorldEvolutionInput input);
     Task<string> ProcessMemoryConsolidation(NarrativeContext context, MemoryConsolidationInput input);
     Task<LocationDetails> GenerateLocationDetailsAsync(LocationGenerationContext context);
-
+    Task<string> GenerateActionsAsync(ActionGenerationContext input);
 }

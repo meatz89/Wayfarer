@@ -2,33 +2,22 @@
 {
     protected readonly AIClientService _aiClient;
     protected readonly PromptManager _promptManager;
-    private readonly NarrativeContextManager _contextManager;
     protected readonly ILogger<EncounterSystem> _logger;
     protected readonly string _gameInstanceId;
 
     protected BaseNarrativeAIService(
         IAIProvider aiProvider,
         IConfiguration configuration,
-        NarrativeContextManager contextManager,
         ILogger<EncounterSystem> logger)
     {
         _gameInstanceId = $"game_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString().Substring(0, 8)}";
 
         _aiClient = new AIClientService(aiProvider, _gameInstanceId, logger);
         _promptManager = new PromptManager(configuration);
-        _contextManager = contextManager;
         _logger = logger;
 
         _logger?.LogInformation($"Initialized NarrativeAIService with {aiProvider.Name} and game instance ID: {_gameInstanceId}");
     }
-
-    public abstract Task<string> GenerateIntroductionAsync(
-        NarrativeContext context, EncounterStatusModel state, string memoryContent);
-    public abstract Task<string> GenerateEncounterNarrative(
-        NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatusModel newState);
-    public abstract Task<string> GenerateEndingAsync(
-        NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatusModel newState);
-    public abstract Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(NarrativeContext context, List<IChoice> choices, List<ChoiceProjection> projections, EncounterStatusModel state);
 
     public string GetProviderName()
     {
@@ -40,7 +29,16 @@
         return _gameInstanceId;
     }
 
+    public abstract Task<string> GenerateIntroductionAsync(
+        NarrativeContext context, EncounterStatusModel state, string memoryContent);
+    public abstract Task<string> GenerateEncounterNarrative(
+        NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatusModel newState);
+    public abstract Task<string> GenerateEndingAsync(
+        NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatusModel newState);
+    public abstract Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(NarrativeContext context, List<IChoice> choices, List<ChoiceProjection> projections, EncounterStatusModel state);
+
     public abstract Task<LocationDetails> GenerateLocationDetailsAsync(LocationGenerationContext context);
+    public abstract Task<string> GenerateActionsAsync(ActionGenerationContext context);
     public abstract Task<WorldEvolutionResponse> ProcessWorldEvolution(
         NarrativeContext context,
         WorldEvolutionInput input);

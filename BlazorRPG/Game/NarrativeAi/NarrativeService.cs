@@ -119,4 +119,9 @@
     {
         return await _providers[_currentProvider].ProcessMemoryConsolidation(context, input);
     }
+
+    public async Task<string> GenerateActionsAsync(ActionGenerationContext input)
+    {
+        return await _providers[_currentProvider].GenerateActionsAsync(input);
+    }
 }
