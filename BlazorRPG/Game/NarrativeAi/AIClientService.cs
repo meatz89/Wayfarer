@@ -16,7 +16,7 @@
         logger?.LogInformation($"Logging conversation to: {_logManager.GetGameInstanceDirectory()}");
     }
 
-    public async Task<string> GetCompletionAsync(List<ConversationEntry> messages)
+    public async Task<string> GetCompletionAsync(List<ConversationEntry> messages, string model, string fallbackModel)
     {
         string conversationId = Guid.NewGuid().ToString();
         string jsonResponse = null;
@@ -39,7 +39,7 @@
             _logger?.LogInformation($"Sending prompt to {_aiProvider.Name} (Game ID: {_gameInstanceId}). Message count: {messages.Count}");
 
             // The actual API call is delegated to the provider implementation
-            string result = await _aiProvider.GetCompletionAsync(messages);
+            string result = await _aiProvider.GetCompletionAsync(messages, model, fallbackModel);
 
             // Trim any potential whitespace
             result = result?.Trim();
@@ -81,7 +81,7 @@
         }
     }
 
-    public async Task<string> GetCompletionAsync(IEnumerable<ConversationEntry> conversationMessages)
+    public async Task<string> GetCompletionAsync(IEnumerable<ConversationEntry> conversationMessages, string model, string fallbackModel)
     {
         // Convert from ConversationMessage to Message format
         List<ConversationEntry> messages = conversationMessages.Select(conversationMessage => new ConversationEntry
@@ -90,7 +90,7 @@
             Content = conversationMessage.Content
         }).ToList();
 
-        return await GetCompletionAsync(messages);
+        return await GetCompletionAsync(messages, model, fallbackModel);
     }
 
     public string GetProviderName()

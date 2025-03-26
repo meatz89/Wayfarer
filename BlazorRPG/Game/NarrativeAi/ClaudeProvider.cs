@@ -6,8 +6,6 @@ public class ClaudeProvider : IAIProvider
     private const string RequestUri = "https://api.anthropic.com/v1/messages";
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
-    private readonly string _model;
-    private readonly string _backupModel;
     private readonly ILogger<EncounterSystem> _logger;
 
     // Retry configuration
@@ -24,24 +22,12 @@ public class ClaudeProvider : IAIProvider
         _apiKey = configuration.GetValue<string>("Anthropic:ApiKey");
         _logger = logger;
 
-        bool _costSaving = configuration.GetValue<bool>("costSaving");
-        if (!_costSaving)
-        {
-            _model = configuration.GetValue<string>("Anthropic:Model") ?? "claude-3-7-sonnet-latest";
-            _backupModel = configuration.GetValue<string>("Anthropic:BackupModel") ?? "claude-3-5-haiku-latest";
-        }
-        else
-        {
-            _model = configuration.GetValue<string>("Anthropic:BackupModel") ?? "claude-3-5-haiku-latest";
-            _backupModel = configuration.GetValue<string>("Anthropic:BackupModel") ?? "claude-3-5-haiku-latest";
-        }
-
         // Anthropic uses different headers than OpenAI and Gemini
         _httpClient.DefaultRequestHeaders.Add("x-api-key", _apiKey);
         _httpClient.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
     }
 
-    public async Task<string> GetCompletionAsync(IEnumerable<ConversationEntry> messages)
+    public async Task<string> GetCompletionAsync(IEnumerable<ConversationEntry> messages, string model, string fallbackModel)
     {
         // Extract system message if present
         List<ConversationEntry> messagesList = messages.ToList();
@@ -62,21 +48,21 @@ public class ClaudeProvider : IAIProvider
             content = m.Content
         }).ToArray();
 
-        return await ExecuteWithRetryAsync(formattedMessages, systemMessage);
+        return await ExecuteWithRetryAsync(formattedMessages, systemMessage, model, fallbackModel);
     }
 
-    private async Task<string> ExecuteWithRetryAsync(object[] messages, string systemMessage)
+    private async Task<string> ExecuteWithRetryAsync(object[] messages, string systemMessage, string model, string fallbackModel)
     {
         int attempts = 0;
         int delay = InitialDelayMilliseconds;
-        string currentModel = _model; // Start with primary model
+        string currentModel = model; // Start with primary model
 
         while (true)
         {
             // Switch to backup model after specified number of attempts
             if (attempts >= FallbackToBackupAfterAttempts)
             {
-                currentModel = _backupModel;
+                currentModel = fallbackModel;
             }
 
             try
@@ -144,7 +130,7 @@ public class ClaudeProvider : IAIProvider
                 // Calculate exponential backoff with jitter
                 delay = CalculateDelay(attempts, delay);
 
-                _logger?.LogWarning($"Retrying in {delay} ms after HTTP error. Will use {(attempts >= FallbackToBackupAfterAttempts ? _backupModel : currentModel)}");
+                _logger?.LogWarning($"Retrying in {delay} ms after HTTP error. Will use {(attempts >= FallbackToBackupAfterAttempts ? _modelLow : currentModel)}");
                 await Task.Delay(delay);
             }
             catch (JsonException ex)
