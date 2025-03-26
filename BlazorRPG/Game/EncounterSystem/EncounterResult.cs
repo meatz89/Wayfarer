@@ -1,8 +1,9 @@
 ﻿public class EncounterResult
 {
-    public EncounterManager Encounter;
-    public EncounterResults EncounterResults;
-    public string EncounterEndMessage;
+    public EncounterManager Encounter { get; set; }
+    public EncounterResults EncounterResults { get; set; }
+    public string EncounterEndMessage { get; set; }
 
-    public NarrativeResult NarrativeResult;
+    public NarrativeContext NarrativeContext { get; set; }
+    public NarrativeResult NarrativeResult { get; set; }
 }

@@ -3,6 +3,8 @@
     // Identity
     public string Name { get; set; }
     public string Description { get; set; }
+    public string InteractionType { get; set; }  // "Character", "Quest", "Shop", "Feature", etc.
+    public List<ActionImplementation> Actions { get; set; } = new();
 
     // Connections
     public string LocationName { get; set; }
@@ -10,7 +12,6 @@
     public List<string> AssociatedOpportunityIds { get; set; } = new List<string>();
 
     // Interaction
-    public string InteractionType { get; set; }  // "Character", "Quest", "Shop", "Feature", etc.
     public string InteractionDescription { get; set; }
 
     // Visual/positioning data (for map display)
@@ -21,8 +22,7 @@
     public Atmosphere? Atmosphere { get; set; }
     public Physical? Physical { get; set; }
     public Illumination? Illumination { get; set; }
-    public List<ActionNames> ActionNames { get; set; } = new();
-    public List<ActionImplementation> Actions { get; set; } = new();
+    public List<string> ActionNames { get; set; } = new();
     public string Character { get; internal set; }
 
     public void AddAction(ActionImplementation baseAction)
@@ -68,7 +68,7 @@
         Atmosphere? atmosphere,
         Physical? Physical,
         Illumination? Illumination,
-        List<ActionNames> actionNames)
+        List<string> actionNames)
     {
         Name = name;
         LocationName = locationName;

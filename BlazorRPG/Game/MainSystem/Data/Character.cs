@@ -2,16 +2,15 @@
 {
     // Identity
     public string Name { get; set; }
+    public string Role { get; set; }
     public string Description { get; set; }
+    public string Location { get; set; }
+
 
     // Narrative elements
-    public string Role { get; set; }  // Not an enum - flexible text
     public string Personality { get; set; }
     public string Background { get; set; }
     public string Appearance { get; set; }
-
-    // Location
-    public string HomeLocationId { get; set; }
 
     // Relationships
     public Dictionary<string, string> RelationshipsWithOthers { get; set; } = new Dictionary<string, string>();

@@ -1,29 +1,33 @@
-﻿public class LocationSystem
+﻿
+
+public class LocationSystem
 {
     private readonly GameState gameState;
-    private readonly NarrativeService narrativeService;
-
+    private readonly LocationGenerator initialLocationGenerator;
     public bool IsInitialized = false;
 
     public LocationSystem(
     GameState gameState,
     GameContentProvider contentProvider,
-    NarrativeService narrativeService)
+    LocationGenerator initialLocationGenerator)
     {
         this.gameState = gameState;
-        this.narrativeService = narrativeService;
-
+        this.initialLocationGenerator = initialLocationGenerator;
         List<Location> allLocations = contentProvider.GetLocations();
     }
 
     public async Task Initialize()
     {
-        LocationGenerator initialLocationGenerator = new LocationGenerator();
-
-        Location location = await initialLocationGenerator.GenerateNewLocationAsync("village", narrativeService);
-        gameState.WorldState.AddLocation(location.Name, location);
+        Location location = await initialLocationGenerator.GenerateNewLocationAsync("village");
+        gameState.WorldState.AddLocation(location);
 
         IsInitialized = true;
+    }
+
+    internal void SetCurrentLocation(string locationName)
+    {
+        Location location = GetLocation(locationName);
+        gameState.WorldState.SetCurrentLocation(location);
     }
 
     public List<Location> GetAllLocations()
@@ -34,12 +38,13 @@
     public List<string> GetTravelLocations(string currentLocation)
     {
         Location location = GetLocation(currentLocation);
-        return location.ConnectedLocationIds;
+        return location.ConnectedTo;
     }
 
     public Location GetLocation(string locationName)
     {
-        Location location = GetAllLocations().FirstOrDefault(x => x.Name == locationName);
+        List<Location> locations = GetAllLocations();
+        Location location = locations.FirstOrDefault(x => x.Name == locationName);
         return location;
     }
 
@@ -65,4 +70,11 @@
 
         return new List<StrategicTag>();
     }
+
+    internal void AddSpot(string locationName, LocationSpot spot)
+    {
+        Location location = gameState.WorldState.GetLocation(locationName);
+        location.AddSpot(spot);
+    }
+
 }

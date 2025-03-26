@@ -1,6 +1,6 @@
 ﻿public class ActionTemplate
 {
-    public ActionNames Name { get; set; }
+    public string Name { get; set; }
     public BasicActionTypes ActionType { get; set; }
     public bool IsEncounterAction { get; }
     public List<Requirement> Requirements { get; }
@@ -13,7 +13,7 @@
     public EncounterTemplate EncounterTemplate { get; set; }
 
     public ActionTemplate(
-        ActionNames actionName,
+        string actionName,
         string goal,
         string complication,
         BasicActionTypes actionType,

@@ -2,16 +2,16 @@
 {
     // Identity
     public string Name { get; set; }
+    public string Type { get; set; }  // "Quest", "Mystery", "Job" - flexible text
     public string Description { get; set; }
+    public string Location { get; set; }
+    public string LocationSpot { get; set; }  // Specific spot where this opportunity is found
+    public string RelatedCharacter { get; set; }
 
     // Classification
-    public string Type { get; set; }  // "Quest", "Mystery", "Job" - flexible text
     public string Status { get; set; } = "Available";
 
     // Connections
-    public string LocationId { get; set; }
-    public string LocationSpotId { get; set; }  // Specific spot where this opportunity is found
-    public List<string> RelatedCharacterIds { get; set; } = new List<string>();
 
     // Narrative details
     public string DetailedDescription { get; set; }

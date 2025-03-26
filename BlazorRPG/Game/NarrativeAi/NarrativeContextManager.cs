@@ -96,7 +96,7 @@
                 continue;
 
             // Skip all choice generation prompts and responses
-            if (entry.Type == MessageType.StateChanges)
+            if (entry.Type == MessageType.WorldEvolution)
                 continue;
 
             // For player choices, simplify to just "Player chose X"

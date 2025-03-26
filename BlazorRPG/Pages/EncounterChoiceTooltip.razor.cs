@@ -74,7 +74,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     {
         IChoice choice1 = choice.Choice;
 
-        NarrativeResult narrativeResult = GameManager.EncounterResult.NarrativeResult;
+        NarrativeResult narrativeResult = GameManager.currentResult.NarrativeResult;
         Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = narrativeResult.ChoiceDescriptions;
 
         ChoiceNarrative choiceNarrative = null;

@@ -1,6 +1,8 @@
 ﻿public record ActionImplementation
 {
-    public ActionNames Name { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+
     public string Goal { get; internal set; }
     public string Complication { get; internal set; }
     public BasicActionTypes ActionType { get; set; }

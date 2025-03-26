@@ -3,18 +3,23 @@
     // Identity
     public string Name { get; set; }
     public string Description { get; set; }
-
-    // Physical connections
-    public List<string> ConnectedLocationIds { get; set; } = new List<string>();
-    public int TravelTimeMinutes { get; set; }
-    public string TravelDescription { get; set; }
+    public List<string> ConnectedTo { get; set; } = new List<string>();
+    public List<IEnvironmentalProperty> EnvironmentalProperties { get; set; } = new List<IEnvironmentalProperty>();
 
     // Interaction spots within the location
     public List<LocationSpot> Spots { get; set; } = new List<LocationSpot>();
 
+    public void AddSpot(LocationSpot spot)
+    {
+        Spots.Add(spot);
+    }
+
+    // Physical connections
+    public int TravelTimeMinutes { get; set; }
+    public string TravelDescription { get; set; }
+
+
     // Mechanical properties
-    public List<IEnvironmentalProperty> EnvironmentalProperties { get; set; } = new List<IEnvironmentalProperty>();
-    public Dictionary<string, List<IEnvironmentalProperty>> TimeProperties { get; set; } = new Dictionary<string, List<IEnvironmentalProperty>>();
     public int Difficulty { get; set; }
 
     // Narrative elements (directly from AI)
@@ -41,7 +46,7 @@
         bool playerKnowledge)
     {
         Name = locationName.ToString();
-        ConnectedLocationIds = travelConnections;
+        ConnectedTo = travelConnections;
         Spots = locationSpots;
         Difficulty = difficultyLevel;
         PlayerKnowledge = playerKnowledge;

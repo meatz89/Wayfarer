@@ -1,12 +1,6 @@
 ﻿public interface IAIService
 {
     // Core AI functions
-    Task<DiscoveredEntities> ExtractWorldDiscoveries(string encounterNarrative, WorldContext worldContext);
-    Task<EntityDetails> DevelopEntityDetails(string entityType, string entityId, EntityContext entityContext);
-    Task<StateChangeRecommendations> GenerateStateChanges(string encounterOutcome, EncounterContext context);
-
-    Task<LocationDetails> GenerateLocationDetailsAsync(LocationGenerationContext context);
-
     /// <summary>
     /// Set the initial scene based on location and inciting action
     /// </summary>
@@ -29,17 +23,6 @@
         ChoiceOutcome outcome,
         EncounterStatusModel newState);
 
-    Task<string> GenerateMemoryFileAsync(
-        NarrativeContext context,
-        ChoiceOutcome outcome,
-        EncounterStatusModel newState,
-        string oldMemory);
-
-    Task<string> GenerateStateChangesAsync(
-        NarrativeContext context,
-        ChoiceOutcome outcome,
-        EncounterStatusModel newState);
-
     /// <summary>
     /// Generate narrative descriptions for choices
     /// </summary>
@@ -48,4 +31,9 @@
         List<IChoice> choices,
         List<ChoiceProjection> projections,
         EncounterStatusModel state);
+
+    Task<WorldEvolutionResponse> ProcessWorldEvolution(NarrativeContext context, WorldEvolutionInput input);
+    Task<string> ProcessMemoryConsolidation(NarrativeContext context, MemoryConsolidationInput input);
+    Task<LocationDetails> GenerateLocationDetailsAsync(LocationGenerationContext context);
+
 }

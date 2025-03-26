@@ -56,7 +56,7 @@
     public ActionTemplate Build()
     {
         return new ActionTemplate(
-            name,
+            name.ToString(),
             goal,
             complication,
             actionType,
