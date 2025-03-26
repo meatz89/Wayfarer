@@ -3,6 +3,9 @@ public class ClaudeNarrativeService : BaseNarrativeAIService
 {
     public NarrativeContextManager _contextManager { get; }
 
+    private readonly string _modelHigh;
+    private readonly string _modelLow;
+
     public ClaudeNarrativeService(
         NarrativeContextManager narrativeContextManager,
         IConfiguration configuration,
@@ -11,6 +14,10 @@ public class ClaudeNarrativeService : BaseNarrativeAIService
         : base(new ClaudeProvider(configuration, logger), configuration, narrativeContextManager, logger)
     {
         _contextManager = narrativeContextManager;
+
+        _modelHigh = configuration.GetValue<string>("Anthropic:Model") ?? "claude-3-7-sonnet-latest";
+        _modelLow = configuration.GetValue<string>("Anthropic:BackupModel") ?? "claude-3-5-haiku-latest";
+
     }
 
     public override async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatusModel state, string memoryContent)
@@ -22,7 +29,8 @@ public class ClaudeNarrativeService : BaseNarrativeAIService
         _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
 
         string response = await _aiClient.GetCompletionAsync(
-            _contextManager.GetOptimizedConversationHistory(conversationId));
+            _contextManager.GetOptimizedConversationHistory(conversationId),
+            _modelHigh, _modelLow);
 
         _contextManager.AddAssistantMessage(conversationId, response, MessageType.Introduction);
 
@@ -51,7 +59,8 @@ public class ClaudeNarrativeService : BaseNarrativeAIService
         }
 
         string jsonResponse = await _aiClient.GetCompletionAsync(
-            _contextManager.GetOptimizedConversationHistory(conversationId));
+            _contextManager.GetOptimizedConversationHistory(conversationId),
+            _modelHigh, _modelLow);
 
         _contextManager.AddAssistantMessage(conversationId, jsonResponse, MessageType.ChoiceGeneration);
         return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
@@ -80,7 +89,8 @@ public class ClaudeNarrativeService : BaseNarrativeAIService
         }
 
         string narrativeResponse = await _aiClient.GetCompletionAsync(
-            _contextManager.GetOptimizedConversationHistory(conversationId));
+            _contextManager.GetOptimizedConversationHistory(conversationId),
+            _modelHigh, _modelLow);
 
         _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
@@ -109,7 +119,8 @@ public class ClaudeNarrativeService : BaseNarrativeAIService
         }
 
         string narrativeResponse = await _aiClient.GetCompletionAsync(
-            _contextManager.GetOptimizedConversationHistory(conversationId));
+            _contextManager.GetOptimizedConversationHistory(conversationId),
+            _modelHigh, _modelLow);
 
         _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
@@ -127,8 +138,8 @@ public class ClaudeNarrativeService : BaseNarrativeAIService
 
         List<ConversationEntry> messages = [entrySystem, entryUser];
 
-        string jsonResponse = await _aiClient.GetCompletionAsync(
-            messages);
+        string jsonResponse = await _aiClient.GetCompletionAsync(messages,
+            _modelHigh, _modelLow);
 
         // Parse the JSON response into location details
         return LocationJsonParser.ParseLocationDetails(jsonResponse);
@@ -154,7 +165,8 @@ public class ClaudeNarrativeService : BaseNarrativeAIService
             _contextManager.AddUserMessage(conversationId, prompt, MessageType.WorldEvolution, null);
         }
         string jsonResponse = await _aiClient.GetCompletionAsync(
-            _contextManager.GetOptimizedConversationHistory(conversationId));
+            _contextManager.GetOptimizedConversationHistory(conversationId),
+            _modelHigh, _modelLow);
 
         WorldEvolutionResponse worldEvolutionResponse = WorldEvolutionParser.ParseWorldEvolutionResponse(jsonResponse);
         return worldEvolutionResponse;
@@ -179,7 +191,8 @@ public class ClaudeNarrativeService : BaseNarrativeAIService
             _contextManager.AddUserMessage(conversationId, prompt, MessageType.MemoryUpdate, null);
         }
         string memoryContentResponse = await _aiClient.GetCompletionAsync(
-            _contextManager.GetOptimizedConversationHistory(conversationId));
+            _contextManager.GetOptimizedConversationHistory(conversationId),
+            _modelHigh, _modelLow);
 
         return memoryContentResponse;
     }
