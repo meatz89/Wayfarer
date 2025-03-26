@@ -1,10 +1,12 @@
 ﻿public class LocationGenerator
 {
     public NarrativeService narrativeService { get; }
+    public ActionGenerator actionGenerator { get; }
 
-    public LocationGenerator(NarrativeService narrativeService)
+    public LocationGenerator(NarrativeService narrativeService, ActionGenerator actionGenerator)
     {
         this.narrativeService = narrativeService;
+        this.actionGenerator = actionGenerator;
     }
 
     public async Task<Location> GenerateNewLocationAsync(string locationType)
@@ -55,6 +57,12 @@
             StrategicTags = details.StrategicTags,
             NarrativeTags = details.NarrativeTags
         };
+
+        foreach (LocationSpot spot in location.Spots)
+        {
+            ActionImplementation action = await actionGenerator.GenerateActionForSpotAsync(location, spot);
+            spot.Actions.Add(action);
+        }
 
         return location;
     }

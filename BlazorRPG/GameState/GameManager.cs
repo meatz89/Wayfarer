@@ -760,7 +760,7 @@ public class GameManager
             WorldEvolutionResponse evolutionResponse = await evolutionService.ProcessWorldEvolution(encounterResult.NarrativeContext, input);
 
             // Update world state
-            IntegrateWorldEvolution(evolutionResponse);
+            evolutionService.IntegrateWorldEvolution(evolutionResponse, worldState, LocationSystem);
 
         }
         if (_useMemory)
@@ -790,47 +790,6 @@ public class GameManager
         };
     }
 
-    private void IntegrateWorldEvolution(WorldEvolutionResponse evolution)
-    {
-        // Add new location spots to current location
-        string locationName = worldState.CurrentLocation.Name;
-        if (locationName != null)
-        {
-            foreach (LocationSpot spot in evolution.NewLocationSpots)
-            {
-                LocationSystem.AddSpot(locationName, spot);
-            }
-        }
-
-        // Add new actions to existing spots
-        foreach (NewAction newAction in evolution.NewActions)
-        {
-            if (worldState.CurrentLocation != null && worldState.CurrentLocation.Spots != null)
-            {
-                LocationSpot? spotToUpdate = worldState.CurrentLocation.Spots.FirstOrDefault(s => s.Name == newAction.SpotName);
-                if (spotToUpdate != null)
-                {
-                    if (spotToUpdate.Actions == null)
-                        spotToUpdate.Actions = new List<ActionImplementation>();
-
-                    spotToUpdate.Actions.Add(new ActionImplementation
-                    {
-                        Name = newAction.Name,
-                        Description = newAction.Description
-                    });
-                }
-            }
-        }
-
-        // Add new characters
-        worldState.AddCharacters(evolution.NewCharacters);
-
-        // Add new locations
-        worldState.AddLocations(evolution.NewLocations);
-
-        // Add new opportunities
-        worldState.AddOpportunities(evolution.NewOpportunities);
-    }
 
     private async Task GenerateTravelEncounter(string startLocationId, string locationName, TravelMethods travelMethod = TravelMethods.Walking)
     {

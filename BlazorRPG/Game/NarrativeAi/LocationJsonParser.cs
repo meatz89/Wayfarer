@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-// Add this class to parse the location JSON response
 public static class LocationJsonParser
 {
     public static LocationDetails ParseLocationDetails(string jsonResponse)

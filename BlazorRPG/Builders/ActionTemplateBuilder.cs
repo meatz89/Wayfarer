@@ -1,21 +1,27 @@
 ﻿public class ActionTemplateBuilder
 {
-    private ActionNames name;
+    private string customName; // New field for custom names
     private BasicActionTypes actionType;
     private string goal;
     private string complication;
-
     public List<Requirement> requirements = new();
     public List<Outcome> energy = new();
     public List<Outcome> costs = new();
     public List<Outcome> rewards = new();
-
     public bool IsEncounterAction = true;
     public EncounterTemplate encounterTemplate;
 
+    // Keep the enum-based method for backward compatibility
     public ActionTemplateBuilder WithName(ActionNames name)
     {
-        this.name = name;
+        this.customName = name.ToString();
+        return this;
+    }
+
+    // Add a new method for custom string names
+    public ActionTemplateBuilder WithCustomName(string name)
+    {
+        this.customName = name;
         return this;
     }
 
@@ -56,7 +62,7 @@
     public ActionTemplate Build()
     {
         return new ActionTemplate(
-            name.ToString(),
+            customName, // Use the string name directly
             goal,
             complication,
             actionType,
