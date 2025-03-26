@@ -31,7 +31,7 @@
         string jsonResponse = await _narrativeService.GenerateActionsAsync(context);
 
         // Parse the response
-        ActionAndEncounterResult result = ActionJsonParser.Parse(jsonResponse);
+        ActionCreationResult result = ActionJsonParser.Parse(jsonResponse);
 
         // Create and register the encounter template
         EncounterTemplate encounterTemplate = CreateEncounterTemplate(result.EncounterTemplate);
