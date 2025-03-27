@@ -5,15 +5,14 @@
     private readonly ILogger _logger;
     private readonly NarrativeLogManager _logManager;
 
-    public AIClientService(IAIProvider aiProvider, string gameInstanceId, ILogger logger)
+    public AIClientService(IAIProvider aiProvider, string gameInstanceId, ILogger logger, NarrativeLogManager logManager)
     {
         _aiProvider = aiProvider ?? throw new ArgumentNullException(nameof(aiProvider));
         _gameInstanceId = gameInstanceId;
         _logger = logger;
-        _logManager = new NarrativeLogManager();
-
+        this._logManager = logManager;
         logger?.LogInformation($"Initialized AIClientService with provider: {aiProvider.Name}, game instance ID: {_gameInstanceId}");
-        logger?.LogInformation($"Logging conversation to: {_logManager.GetGameInstanceDirectory()}");
+        logger?.LogInformation($"Logging conversation to: {_logManager.GetSessionDirectory()}");
     }
 
     public async Task<string> GetCompletionAsync(List<ConversationEntry> messages, string model, string fallbackModel)

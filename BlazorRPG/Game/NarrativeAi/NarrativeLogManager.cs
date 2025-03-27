@@ -4,18 +4,19 @@ using System.Text.Json.Serialization;
 public class NarrativeLogManager
 {
     private string _baseLogDirectory;
-    private readonly string _gameInstanceId;
+    private string _sessionDirectory;
     private readonly JsonSerializerOptions _jsonOptions;
 
     public NarrativeLogManager()
     {
-        string gameInstanceId = string.Empty;
-
-        // Set base directory to C:\Logs
+        // Set base directory for all logs
         _baseLogDirectory = Path.Combine("C:", "Logs");
 
-        // Generate a unique game instance ID if not provided
-        _gameInstanceId = gameInstanceId ?? $"game_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString().Substring(0, 8)}";
+        // Create a unique session ID for this game session
+        string sessionId = $"session_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString().Substring(0, 8)}";
+
+        // Create the dedicated session directory
+        _sessionDirectory = Path.Combine(_baseLogDirectory, sessionId);
 
         // Configure JSON serialization options
         _jsonOptions = new JsonSerializerOptions
@@ -27,30 +28,32 @@ public class NarrativeLogManager
         // Ensure base directory exists
         EnsureDirectoryExists(_baseLogDirectory);
 
-        // Ensure game instance directory exists
-        EnsureDirectoryExists(GetGameInstanceDirectory());
+        // Ensure session directory exists
+        EnsureDirectoryExists(_sessionDirectory);
+
+        // Log session start for easier tracking
+        LogSessionStart(sessionId);
     }
 
     /// <summary>
-    /// Gets the full path to the game instance directory
+    /// Gets the full path to the session directory for the current game session
     /// </summary>
-    public string GetGameInstanceDirectory()
+    public string GetSessionDirectory()
     {
-        return Path.Combine(_baseLogDirectory, _gameInstanceId);
+        return _sessionDirectory;
     }
 
     /// <summary>
-    /// Gets the full path for the next log file
+    /// Gets the full path for the next log file within the current session
     /// </summary>
     public string GetNextLogFilePath(string conversationId)
     {
-        string gameInstanceDir = GetGameInstanceDirectory();
         string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
         string fileName = conversationId != null
             ? $"narrative_log_{timestamp}_{SanitizeFileName(conversationId)}.json"
             : $"narrative_log_{timestamp}.json";
 
-        return Path.Combine(gameInstanceDir, fileName);
+        return Path.Combine(_sessionDirectory, fileName);
     }
 
     /// <summary>
@@ -73,7 +76,8 @@ public class NarrativeLogManager
             Request = requestBody,
             RawResponse = jsonResponse,
             GeneratedContent = generatedContent,
-            ErrorMessage = errorMessage
+            ErrorMessage = errorMessage,
+            Timestamp = DateTime.Now
         };
 
         try
@@ -89,7 +93,7 @@ public class NarrativeLogManager
             try
             {
                 string errorLogPath = Path.Combine(
-                    GetGameInstanceDirectory(),
+                    _sessionDirectory,
                     $"error_log_{DateTime.Now:yyyyMMdd_HHmmss_fff}.txt"
                 );
                 await File.WriteAllTextAsync(errorLogPath, $"Error writing log: {ex}");
@@ -98,6 +102,25 @@ public class NarrativeLogManager
             {
                 // At this point we can't do much else
             }
+        }
+    }
+
+    /// <summary>
+    /// Logs session start information
+    /// </summary>
+    private void LogSessionStart(string sessionId)
+    {
+        try
+        {
+            string sessionInfoPath = Path.Combine(_sessionDirectory, "session_info.txt");
+            File.WriteAllText(sessionInfoPath,
+                $"Session ID: {sessionId}\n" +
+                $"Started: {DateTime.Now}\n" +
+                $"Game Version: {GetGameVersion()}\n");
+        }
+        catch
+        {
+            // If we can't log session info, continue anyway
         }
     }
 
@@ -115,11 +138,27 @@ public class NarrativeLogManager
             catch (Exception ex)
             {
                 // If we're on a system without permission to C:, fall back to app directory
-                if (_baseLogDirectory.StartsWith("C:"))
+                if (directory.StartsWith(Path.Combine("C:", "Logs")))
                 {
-                    _baseLogDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
+                    string appDataPath = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                        "Wayfarer", "Logs");
+
+                    if (directory == _baseLogDirectory)
+                    {
+                        // This is the base directory, so update both paths
+                        _baseLogDirectory = appDataPath;
+                        _sessionDirectory = Path.Combine(appDataPath, Path.GetFileName(_sessionDirectory));
+                    }
+                    else if (directory == _sessionDirectory)
+                    {
+                        // This is the session directory
+                        _sessionDirectory = Path.Combine(_baseLogDirectory, Path.GetFileName(_sessionDirectory));
+                    }
+
+                    // Retry with the new paths
                     EnsureDirectoryExists(_baseLogDirectory);
-                    EnsureDirectoryExists(GetGameInstanceDirectory());
+                    EnsureDirectoryExists(_sessionDirectory);
                 }
                 else
                 {
@@ -141,4 +180,14 @@ public class NarrativeLogManager
         }
         return fileName;
     }
+
+    /// <summary>
+    /// Gets the current game version
+    /// </summary>
+    private string GetGameVersion()
+    {
+        // Replace with your actual version retrieval code
+        return "1.0.0";
+    }
+
 }

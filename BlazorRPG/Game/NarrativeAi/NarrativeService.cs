@@ -4,19 +4,22 @@
     private AIProviderType _currentProvider;
 
     private readonly NarrativeContextManager _contextManager;
+    private readonly NarrativeLogManager narrativeLogManager;
     private readonly ILogger<EncounterSystem> _logger;
 
     public NarrativeService(
         NarrativeContextManager narrativeContextManager,
+        NarrativeLogManager narrativeLogManager,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {
         _contextManager = narrativeContextManager;
+        this.narrativeLogManager = narrativeLogManager;
         _logger = logger;
 
         _providers = new Dictionary<AIProviderType, IAIService>
         {
-            { AIProviderType.Claude, new ClaudeNarrativeService(_contextManager, configuration, _logger) }
+            { AIProviderType.Claude, new ClaudeNarrativeService(_contextManager, configuration, _logger, narrativeLogManager) }
         };
 
         // Set default provider from configuration
