@@ -16,8 +16,14 @@
 
     public async Task Initialize()
     {
-        Location location = await initialLocationGenerator.GenerateNewLocationAsync("village");
-        gameState.WorldState.AddLocation(location);
+        List<Location> locations = new List<Location>
+        {
+            WorldLocationsContent.Forest,
+            WorldLocationsContent.Village,
+            WorldLocationsContent.Tavern
+        };
+
+        gameState.WorldState.AddLocations(locations);
 
         IsInitialized = true;
     }
