@@ -1,6 +1,7 @@
 ﻿public class ClaudeNarrativeService : BaseNarrativeAIService
 {
     public NarrativeContextManager _contextManager { get; }
+    public NarrativeLogManager NarrativeLogManager { get; }
     public IConfiguration Configuration { get; }
 
     private readonly string _modelHigh;
@@ -9,11 +10,13 @@
     public ClaudeNarrativeService(
         NarrativeContextManager narrativeContextManager,
         IConfiguration configuration,
-        ILogger<EncounterSystem> logger
+        ILogger<EncounterSystem> logger,
+        NarrativeLogManager narrativeLogManager
         )
-        : base(new ClaudeProvider(configuration, logger), configuration, logger)
+        : base(new ClaudeProvider(configuration, logger), configuration, logger, narrativeLogManager)
     {
         _contextManager = narrativeContextManager;
+        NarrativeLogManager = narrativeLogManager;
         Configuration = configuration;
         _modelHigh = configuration.GetValue<string>("Anthropic:Model") ?? "claude-3-7-sonnet-latest";
         _modelLow = configuration.GetValue<string>("Anthropic:BackupModel") ?? "claude-3-5-haiku-latest";

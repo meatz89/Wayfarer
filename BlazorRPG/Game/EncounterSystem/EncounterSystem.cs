@@ -3,7 +3,6 @@
     private readonly GameState gameState;
     private readonly IConfiguration configuration;
     private readonly ILogger<EncounterSystem> logger;
-    private readonly NarrativeService narrativeService;
     private AIProviderType currentAIProvider;
 
     private EncounterManager Encounter;
@@ -11,7 +10,7 @@
 
     private ResourceManager resourceManager;
     private RelationshipManager relationshipManager;
-    private NarrativeContextManager _contextManager;
+    private readonly NarrativeService narrativeService;
     private CardSelectionAlgorithm cardSelector;
 
     public WorldState worldState;
@@ -23,19 +22,18 @@
         ResourceManager resourceManager,
         RelationshipManager relationshipManager,
         NarrativeContextManager narrativeContextManager,
+        NarrativeService narrativeService,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {
         this.gameState = gameState;
         this.configuration = configuration;
         this.logger = logger;
-        this._contextManager = narrativeContextManager;
 
         // Create the switchable narrative service
         this.resourceManager = resourceManager;
         this.relationshipManager = relationshipManager;
-
-        this.narrativeService = new NarrativeService(_contextManager, configuration, logger);
+        this.narrativeService = narrativeService;
 
         // Initialize with the default provider from config
         string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "OpenAI";

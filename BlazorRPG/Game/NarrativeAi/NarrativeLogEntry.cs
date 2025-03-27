@@ -18,4 +18,6 @@ public class NarrativeLogEntry
 
     [JsonPropertyName("error")]
     public string ErrorMessage { get; set; }
+    [JsonPropertyName("timestamp")]
+    public DateTime Timestamp { get; set; }
 }
