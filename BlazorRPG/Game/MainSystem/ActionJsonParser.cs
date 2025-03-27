@@ -7,7 +7,7 @@ public static class ActionJsonParser
     public static ActionCreationResult Parse(string json)
     {
         // Initialize with default values in case parsing fails
-        var result = new ActionCreationResult
+        ActionCreationResult result = new ActionCreationResult
         {
             Action = new ActionModel
             {
@@ -51,7 +51,7 @@ public static class ActionJsonParser
 
     private static ActionModel ParseActionModel(JsonElement element)
     {
-        var model = new ActionModel
+        ActionModel model = new ActionModel
         {
             Name = "Explore Area",
             Goal = "Discover what's available in this location",
@@ -83,7 +83,7 @@ public static class ActionJsonParser
             typeElement.ValueKind == JsonValueKind.String)
         {
             string typeStr = typeElement.GetString() ?? "";
-            if (Enum.TryParse<BasicActionTypes>(typeStr, true, out var type))
+            if (Enum.TryParse<BasicActionTypes>(typeStr, true, out BasicActionTypes type))
             {
                 model.ActionType = type;
             }
@@ -107,7 +107,7 @@ public static class ActionJsonParser
 
     private static EncounterTemplateModel ParseEncounterTemplate(JsonElement element)
     {
-        var template = CreateDefaultEncounterTemplate();
+        EncounterTemplateModel template = CreateDefaultEncounterTemplate();
 
         // Parse simple numeric properties - fixing the ref error
         template.Duration = GetInt32Property(element, "duration", template.Duration);
@@ -134,11 +134,11 @@ public static class ActionJsonParser
         if (element.TryGetProperty("strategicTags", out JsonElement tagsElement) &&
             tagsElement.ValueKind == JsonValueKind.Array)
         {
-            var strategicTags = new List<StrategicTagModel>();
+            List<StrategicTagModel> strategicTags = new List<StrategicTagModel>();
 
             foreach (JsonElement tagElement in tagsElement.EnumerateArray())
             {
-                var tag = new StrategicTagModel
+                StrategicTagModel tag = new StrategicTagModel
                 {
                     Name = "Default Tag",
                     EnvironmentalProperty = "Bright"
@@ -190,7 +190,7 @@ public static class ActionJsonParser
     // New non-ref method to replace ParseStringArray
     private static List<string> GetStringArray(JsonElement element, string propertyName, List<string> defaults)
     {
-        var result = new List<string>();
+        List<string> result = new List<string>();
 
         if (element.TryGetProperty(propertyName, out JsonElement arrayElement))
         {

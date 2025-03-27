@@ -1,6 +1,7 @@
 ﻿public class ClaudeNarrativeService : BaseNarrativeAIService
 {
     public NarrativeContextManager _contextManager { get; }
+    public IConfiguration Configuration { get; }
 
     private readonly string _modelHigh;
     private readonly string _modelLow;
@@ -13,6 +14,7 @@
         : base(new ClaudeProvider(configuration, logger), configuration, logger)
     {
         _contextManager = narrativeContextManager;
+        Configuration = configuration;
         _modelHigh = configuration.GetValue<string>("Anthropic:Model") ?? "claude-3-7-sonnet-latest";
         _modelLow = configuration.GetValue<string>("Anthropic:BackupModel") ?? "claude-3-5-haiku-latest";
 
@@ -26,9 +28,16 @@
 
         _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
 
+        string model = _modelHigh;
+        string fallbackModel = _modelLow;
+        if (Configuration.GetValue<bool>("introductionLow"))
+        {
+            model = _modelLow;
+        }
+
         string response = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            _modelLow, _modelLow);
+            model, fallbackModel);
 
         _contextManager.AddAssistantMessage(conversationId, response, MessageType.Introduction);
 
@@ -56,9 +65,16 @@
             _contextManager.AddUserMessage(conversationId, prompt, MessageType.ChoiceGeneration, null);
         }
 
+        string model = _modelHigh;
+        string fallbackModel = _modelLow;
+        if (Configuration.GetValue<bool>("choicesLow"))
+        {
+            model = _modelLow;
+        }
+
         string jsonResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            _modelLow, _modelLow);
+            model, fallbackModel);
 
         _contextManager.AddAssistantMessage(conversationId, jsonResponse, MessageType.ChoiceGeneration);
         return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
@@ -86,9 +102,16 @@
             _contextManager.AddUserMessage(conversationId, prompt, MessageType.PlayerChoice, choiceNarrative);
         }
 
+        string model = _modelHigh;
+        string fallbackModel = _modelLow;
+        if (Configuration.GetValue<bool>("reactionLow"))
+        {
+            model = _modelLow;
+        }
+
         string narrativeResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            _modelLow, _modelLow);
+            model, fallbackModel);
 
         _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
@@ -116,9 +139,16 @@
             _contextManager.AddUserMessage(conversationId, prompt, MessageType.PlayerChoice, choiceNarrative);
         }
 
+        string model = _modelHigh;
+        string fallbackModel = _modelLow;
+        if (Configuration.GetValue<bool>("endingLow"))
+        {
+            model = _modelLow;
+        }
+
         string narrativeResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            _modelLow, _modelLow);
+            model, fallbackModel);
 
         _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
@@ -136,8 +166,15 @@
 
         List<ConversationEntry> messages = [entrySystem, entryUser];
 
+        string model = _modelHigh;
+        string fallbackModel = _modelLow;
+        if (Configuration.GetValue<bool>("locationLow"))
+        {
+            model = _modelLow;
+        }
+
         string jsonResponse = await _aiClient.GetCompletionAsync(messages,
-            _modelHigh, _modelLow);
+            model, fallbackModel);
 
         // Parse the JSON response into location details
         return LocationJsonParser.ParseLocationDetails(jsonResponse);
@@ -154,8 +191,15 @@
 
         List<ConversationEntry> messages = [entrySystem, entryUser];
 
+        string model = _modelHigh;
+        string fallbackModel = _modelLow;
+        if (Configuration.GetValue<bool>("actionsLow"))
+        {
+            model = _modelLow;
+        }
+
         string jsonResponse = await _aiClient.GetCompletionAsync(messages,
-            _modelHigh, _modelLow);
+            model, fallbackModel);
 
         return jsonResponse;
     }
@@ -178,9 +222,17 @@
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
             _contextManager.AddUserMessage(conversationId, prompt, MessageType.WorldEvolution, null);
         }
+
+        string model = _modelHigh;
+        string fallbackModel = _modelLow;
+        if (Configuration.GetValue<bool>("worldLow"))
+        {
+            model = _modelLow;
+        }
+
         string jsonResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            _modelHigh, _modelLow);
+            model, fallbackModel);
 
         WorldEvolutionResponse worldEvolutionResponse = WorldEvolutionParser.ParseWorldEvolutionResponse(jsonResponse);
         return worldEvolutionResponse;
@@ -204,9 +256,17 @@
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
             _contextManager.AddUserMessage(conversationId, prompt, MessageType.MemoryUpdate, null);
         }
+
+        string model = _modelHigh;
+        string fallbackModel = _modelLow;
+        if (Configuration.GetValue<bool>("memoryLow"))
+        {
+            model = _modelLow;
+        }
+
         string memoryContentResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            _modelHigh, _modelLow);
+            model, fallbackModel);
 
         return memoryContentResponse;
     }
