@@ -9,7 +9,6 @@ public class PromptManager
     private const string REACTION_MD = "reaction";
     private const string CHOICES_MD = "choices";
     private const string ENDING_MD = "ending";
-    private const string STATE_CHANGES_MD = "state-changes";
     private const string LOCATION_GENERATION_MD = "location-generation";
     private const string ACTION_GENERATION_MD = "action-generation";
 
@@ -41,7 +40,7 @@ public class PromptManager
 
     public string BuildActionGenerationPrompt(ActionGenerationContext context)
     {
-        string template = _promptTemplates["action-generation"];
+        string template = _promptTemplates[ACTION_GENERATION_MD];
 
         // Convert environmental properties to a comma-separated list
         string envProps = string.Join(", ", context.EnvironmentalProperties);
@@ -373,16 +372,6 @@ CHOICE {i + 1}:
             .Replace("{LAST_NARRATIVE}", lastNarrative)
             .Replace("{GOAL_ACHIEVEMENT_STATUS}", goalAchievementStatus);
 
-        return prompt;
-    }
-
-    public string BuildStateChangesPrompt(
-        NarrativeContext context,
-        ChoiceOutcome outcome,
-        EncounterStatusModel newState)
-    {
-        string template = _promptTemplates[STATE_CHANGES_MD];
-        string prompt = template;
         return prompt;
     }
 

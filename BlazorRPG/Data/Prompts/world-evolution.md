@@ -1,45 +1,37 @@
-Using the player choices and actions from our conversation, determine how the world should evolve in response.
+# WORLD EVOLUTION
 
-CHARACTER BACKGROUND:
-{{characterBackground}}
+Determine how the world should evolve in response to the player's choices and actions.
 
-CURRENT WORLD STATE:
+## Context
+- Character Background: {{characterBackground}}
 - Current location: {{currentLocation}}
 - Known locations: {{knownLocations}}
 - Known characters: {{knownCharacters}}
 - Active opportunities: {{activeOpportunities}}
 
-INSTRUCTIONS:
+## Guidelines
 1. Identify what interested the player during this conversation
 2. Apply "Purpose or Perish" - only include elements that advance the plot OR reinforce tone
 3. Create world evolutions maintaining proper references:
-   - New location spots (0-2) can only be added to existing locations or new locations you define
-   - New actions (0-3) can only be added to existing spots or new spots you define
+   - New location spots (0-2) can only be added to existing locations or new locations
+   - New actions (0-3) can only be added to existing spots or new spots
    - New characters (0-2) must be placed at existing locations
    - New locations (0-1) must connect to known locations
    - New opportunities (0-2) must connect to existing locations and characters
 
-FOR EACH NEW ELEMENT:
-- Make it require player interaction
-- Connect it to the player's choices or background
-- Keep descriptions brief but evocative
-- Ensure it has a clear purpose
-
-CHARACTER NAMING:
-- Character names should be SIMPLE FIRST NAMES ONLY (e.g., "Giles", "Marta")
-- Do NOT include titles or occupations in the name field (NO "Giles the merchant" or "widow Marta")
-- Put occupations, titles, or roles in the dedicated "role" field instead
-
-IMPORTANT FORMAT REQUIREMENTS:
-- ActionNames must use predefined types: VillageGathering, TradeGoods, ForestTravel, SecretMeeting, SecretDeal, RentRoom, or FindQuests
+## Critical Format Requirements
+- Character names must be SIMPLE FIRST NAMES ONLY (e.g., "Giles", not "Giles the merchant")
+- ActionNames must use predefined types: VillageGathering, TradeGoods, ForestTravel, etc.
 - Action types must be one of: Discuss, Travel, Persuade, Rest, Investigate
-- Environmental properties must specifically use these exact values: Bright, Shadowy, Dark, Crowded, Quiet, Isolated, Tense, Formal, Chaotic, Wealthy, Commercial, Humble, Confined, Expansive, or Hazardous
-- ConnectedTo should be an array of existing location names
-- Every action must belong to an existing spot OR a new spot defined in this response
-- Every spot must belong to an existing location OR a new location defined in this response
+- Environmental properties must specifically use these exact values:
+  * Illumination: Bright, Shadowy, Dark
+  * Population: Crowded, Quiet, Isolated
+  * Atmosphere: Tense, Formal, Chaotic
+  * Economic: Wealthy, Commercial, Humble
+  * Physical: Confined, Expansive, Hazardous
 
-RESPONSE FORMAT:
-Respond with ONLY a valid JSON object following this exact structure:
+## Response Format
+Respond with ONLY a valid JSON object following the exact structure in the example.
 
 {
   "newLocationSpots": [

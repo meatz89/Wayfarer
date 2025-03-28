@@ -1,25 +1,23 @@
 # LOCATION CREATION TASK
 
-Create a detailed '{LOCATION_TYPE}' location for the Wayfarer game.
+Create a detailed '{LOCATION_TYPE}' location for Wayfarer.
 
 ## Location Requirements
-- Difficulty Level: {DIFFICULTY} (on a scale of 1-3)
-- Number of Spots: {REQUESTED_SPOT_COUNT} interaction areas within the location
-- Environmental Properties: Select appropriate properties for this location type
-- Connected Locations: Determine logical connections to other location types
+- Difficulty Level: {DIFFICULTY} (1-3)
+- Spots: {REQUESTED_SPOT_COUNT} interaction areas
+- Choose appropriate environmental properties from:
+  * Illumination: Bright, Shadowy, Dark
+  * Population: Crowded, Quiet, Isolated
+  * Atmosphere: Tense, Formal, Chaotic
+  * Economic: Wealthy, Commercial, Humble
+  * Physical: Confined, Expansive, Hazardous
+- Determine logical connections to other location types
 
-## Location Spot Requirements
-For each interaction spot, define:
-- Name: Descriptive name for this area
-- Description: Brief description of this specific area
-- InteractionType: Character, Quest, Shop, Feature, or Travel
-- InteractionDescription: What the player can do here
-- Position: North, South, East, West, Center, etc.
-- ActionNames: 1 Possible action at this location, i.e. TradeGoods, ForestTravel, RentRoom, MeetContact
+## Each Spot Must Include:
+- Name and description
+- InteractionType: Character/Quest/Shop/Feature/Travel
+- Position: North/South/East/West/Center
+- Initial action possibility (TradeGoods, ForestTravel, RentRoom, etc.)
 
-## Output Format
-Respond with a complete JSON object containing all location details.
-
-Format the output as a JSON object with 
-an object containing 'name', 'description', 'detailedDescription', 'history', 'pointsOfInterest', 'travelTimeMinutes', 'travelDescription', 'connectedLocationIds' and 'spots'
-where spots is an array of objects containing 'name', 'description', 'interactionType', 'description', 'interactionDescription', 'description', 'position' and 'actionNames'
+## Response Format
+A JSON object with 'name', 'description', 'detailedDescription', 'history', 'pointsOfInterest', 'travelTimeMinutes', 'travelDescription', 'connectedLocationIds' and 'spots' array.
