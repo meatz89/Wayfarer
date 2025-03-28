@@ -260,7 +260,7 @@ public class GameManager
         {
             i++;
 
-            string locationName = encounter.encounterState.Location.LocationName;
+            string locationName = encounter.encounterState.Location.Name;
 
             UserEncounterChoiceOption option = new UserEncounterChoiceOption(
                 i,
@@ -771,7 +771,16 @@ public class GameManager
             MemoryConsolidationInput memoryInput = new MemoryConsolidationInput { OldMemory = oldMemory };
             string memoryEntry = await evolutionService.ConsolidateMemory(encounterResult.NarrativeContext, memoryInput);
 
-            await MemoryFileAccess.WriteToMemoryFile(memoryEntry);
+            string location = encounterResult.Encounter.encounterState.Location.Name;
+            string locationSpot = encounterResult.Encounter.encounterState.LocationSpot.Name;
+            string action = encounterResult.Encounter.ActionImplementation.Name;
+            string goal = encounterResult.Encounter.ActionImplementation.Goal;
+
+            string title = $"{location} - {locationSpot}, {action} - {goal}" + Environment.NewLine;
+
+            var memoryEntryToWrite = title + memoryEntry;
+
+            await MemoryFileAccess.WriteToMemoryFile(memoryEntryToWrite);
         }
     }
 

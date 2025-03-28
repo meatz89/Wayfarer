@@ -1,5 +1,4 @@
-﻿
-public class ActionRepository
+﻿public class ActionRepository
 {
     private Dictionary<string, ActionTemplate> _actionTemplates = new Dictionary<string, ActionTemplate>();
     private Dictionary<string, EncounterTemplate> _encounterTemplates = new Dictionary<string, EncounterTemplate>();
