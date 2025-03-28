@@ -3,7 +3,7 @@
 /// </summary>
 public class EncounterInfo
 {
-    public string LocationName { get; set; }
+    public string Name { get; set; }
     public string LocationSpotName { get; set; }
     public List<FocusTags> PressureReducingFocuses { get; } = new List<FocusTags>();
     public List<FocusTags> MomentumReducingFocuses { get; } = new List<FocusTags>();
@@ -43,7 +43,7 @@ public class EncounterInfo
         HostilityLevels hostility,
         EncounterTypes style)
     {
-        this.LocationName = locationName;
+        this.Name = locationName;
         this.LocationSpotName = locationSpot;
 
         this.MomentumBoostApproaches = favoreApproaches;

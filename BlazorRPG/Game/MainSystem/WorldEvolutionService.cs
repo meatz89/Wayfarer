@@ -20,6 +20,7 @@
         string response = await narrativeService.ProcessMemoryConsolidation(context, input);
         return response;
     }
+    
     public void IntegrateWorldEvolution(WorldEvolutionResponse evolution, WorldState worldState, LocationSystem locationSystem)
     {
         // Add new location spots to current location
@@ -168,7 +169,7 @@
 
             // Create and add the default action
             ActionImplementation defaultAction = ProcessSingleAction(
-                actionName, description, spotName, location, goal, complication, actionType);
+                actionName, description, spotName, location, goal, complication, actionType.ToString());
 
             spot.Actions.Add(defaultAction);
         }

@@ -67,7 +67,7 @@
         // Create narrative context
         narrativeContext =
             new NarrativeContext(
-                encounterInfo.LocationName.ToString(),
+                encounterInfo.Name.ToString(),
                 encounterInfo.LocationSpotName.ToString(),
                 encounterInfo.EncounterType,
                 actionImplementation);
