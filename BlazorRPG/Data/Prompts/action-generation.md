@@ -1,55 +1,47 @@
-# ACTION AND ENCOUNTER GENERATION TASK
+# ACTION AND ENCOUNTER GENERATION
 
-Create a complete action and matching encounter for the spot '{SPOT_NAME}' at location '{LOCATION_NAME}'.
+Create an action and matching encounter for '{SPOT_NAME}' at '{LOCATION_NAME}'.
 
-## Context Information
-- Location Name: {LOCATION_NAME}
-- Location Description: {LOCATION_DESCRIPTION}
-- Spot Name: {SPOT_NAME}
-- Spot Description: {SPOT_DESCRIPTION}
-- Spot Interaction Type: {INTERACTION_TYPE}
+## Context
+- Location: {LOCATION_NAME} - {LOCATION_DESCRIPTION}
+- Spot: {SPOT_NAME} - {SPOT_DESCRIPTION}
+- Interaction Type: {INTERACTION_TYPE}
 - Environmental Properties: {ENVIRONMENTAL_PROPERTIES}
 
-## Action Requirements
-- Name: A brief, descriptive name for this action (3-4 words maximum)
-- Goal: What the player aims to achieve through this action
-- Complication: What challenge or obstacle makes this interesting
+## Create an Action with:
+- Name: A brief, descriptive name (3-4 words maximum)
+- Goal: What the player aims to achieve
+- Complication: What challenge makes this interesting
 - ActionType: Must be one of: Travel, Rest, Investigate, Discuss, Persuade
-- CoinCost: The amount of coins required to perform this action (0 if none)
+- CoinCost: Amount required (0 if none)
 
-## Encounter Template Requirements
-Each action needs a matching encounter template with:
-
-1. Basic Parameters:
-   - Duration: How many turns the encounter lasts (3-7)
-   - MaxPressure: Maximum pressure before failure (8-15)
-   - PartialThreshold: Momentum needed for partial success (typically MaxPressure - 3)
-   - StandardThreshold: Momentum needed for standard success (typically PartialThreshold + 4)
-   - ExceptionalThreshold: Momentum needed for exceptional success (typically StandardThreshold + 4)
+## Create a Matching Encounter Template with:
+1. Parameters:
+   - Duration: How many turns (3-7)
+   - MaxPressure: Failure threshold (8-15)
+   - Success thresholds: Partial, Standard, Exceptional (typically spaced 4 points apart)
    - Hostility: Friendly, Neutral, or Hostile
 
-2. Approach Specifications:
-   - MomentumBoostApproaches: Which approaches increase momentum (pick 1-2 from Dominance, Rapport, Analysis, Precision, Evasion)
-   - DangerousApproaches: Which approaches have negative effects (pick 1-2 different from above)
-   - PressureReducingFocuses: Which focuses reduce pressure (pick 1-2 from Relationship, Information, Physical, Environment, Resource)
-   - MomentumReducingFocuses: Which focuses reduce momentum (pick 1-2 different from above)
+2. Approach specifications:
+   - MomentumBoostApproaches: Which approaches increase momentum (pick 1-2)
+   - DangerousApproaches: Which approaches have negative effects (pick 1-2 different)
+   - PressureReducingFocuses: Which focuses reduce pressure (pick 1-2)
+   - MomentumReducingFocuses: Which focuses reduce momentum (pick 1-2 different)
 
-3. Strategic Tags (4-5 tags describing the environment):
-   Each strategic tag needs:
-   - Name: Descriptive name for this environmental aspect
-   - Environmental Property: Must use one of the following (match to the location's properties when possible):
+3. Strategic Tags (4-5):
+   - Must use standard environmental properties exactly as listed:
      * Illumination: Bright, Shadowy, Dark
      * Population: Crowded, Quiet, Isolated
      * Atmosphere: Tense, Formal, Chaotic
      * Economic: Wealthy, Commercial, Humble
      * Physical: Confined, Expansive, Hazardous
 
-4. Narrative Tags (2-3 tags that activate at approach thresholds):
-   Each narrative tag should:
-   - Use an existing tag from: IntimidatingPresence, BattleRage, SuperficialCharm, SocialAwkwardness, DetailFixation, Overthinking, ShadowVeil, ParanoidMindset (or others you see appropriate)
-   - Consider which approach might be overused in this encounter
+4. Narrative Tags (2-3):
+   - Use existing tags like: IntimidatingPresence, BattleRage, SuperficialCharm, 
+     SocialAwkwardness, DetailFixation, Overthinking, ShadowVeil, ParanoidMindset
+   - Consider which approaches might be overused in this encounter
 
-## Output Format
+## Response Format
 Respond with a JSON object containing both action and encounter details:
 
 {
