@@ -133,7 +133,10 @@ public static class WorldEvolutionParser
         {
             SpotName = GetStringProperty(element, "spotName", "Unknown Spot"),
             Name = GetStringProperty(element, "name", "Unnamed Action"),
-            Description = GetStringProperty(element, "description", "No description available.")
+            Description = GetStringProperty(element, "description", "No description available."),
+            Goal = GetStringProperty(element, "goal", "Unknown goal"),
+            Complication = GetStringProperty(element, "complication", "Unknown complication"),
+            ActionType = GetStringProperty(element, "actionType", "Unkown Action Type")
         });
     }
 

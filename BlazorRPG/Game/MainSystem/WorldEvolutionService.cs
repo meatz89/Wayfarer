@@ -20,15 +20,17 @@
         string response = await narrativeService.ProcessMemoryConsolidation(context, input);
         return response;
     }
-
     public void IntegrateWorldEvolution(WorldEvolutionResponse evolution, WorldState worldState, LocationSystem locationSystem)
     {
         // Add new location spots to current location
-        string locationName = worldState.CurrentLocation.Name;
+        string locationName = worldState.CurrentLocation?.Name;
         if (locationName != null)
         {
             foreach (LocationSpot spot in evolution.NewLocationSpots)
             {
+                // Ensure the spot has at least one action
+                EnsureSpotHasActions(spot, spot.Name, worldState.CurrentLocation);
+
                 // Process actions before adding spot
                 ProcessActionsForSpot(spot, spot.Name, worldState.CurrentLocation);
 
@@ -47,9 +49,15 @@
                     if (spotToUpdate.Actions == null)
                         spotToUpdate.Actions = new List<ActionImplementation>();
 
-
                     // Process the action and get a proper implementation
-                    ActionImplementation action = ProcessSingleAction(newAction.Name, newAction.Description, spotToUpdate.Name, worldState.CurrentLocation);
+                    ActionImplementation action = ProcessSingleAction(
+                        newAction.Name,
+                        newAction.Description,
+                        spotToUpdate.Name,
+                        worldState.CurrentLocation,
+                        newAction.Goal,
+                        newAction.Complication,
+                        newAction.ActionType);
 
                     spotToUpdate.Actions.Add(action);
                 }
@@ -59,11 +67,24 @@
         // Add new locations
         foreach (Location location in evolution.NewLocations)
         {
+            // Ensure each location has at least one spot
+            if (location.Spots == null || !location.Spots.Any())
+            {
+                location.Spots = new List<LocationSpot>
+            {
+                CreateDefaultSpot(location.Name)
+            };
+            }
+
             // Process actions in each spot of the new location
             if (location.Spots != null)
             {
                 foreach (LocationSpot spot in location.Spots)
                 {
+                    // Ensure the spot has at least one action
+                    EnsureSpotHasActions(spot, spot.Name, location);
+
+                    // Process actions
                     ProcessActionsForSpot(spot, spot.Name, location);
                 }
             }
@@ -76,6 +97,112 @@
 
         // Add new opportunities
         worldState.AddOpportunities(evolution.NewOpportunities);
+    }
+
+    private void EnsureSpotHasActions(LocationSpot spot, string spotName, Location location)
+    {
+        // Initialize actions list if null
+        if (spot.Actions == null)
+            spot.Actions = new List<ActionImplementation>();
+
+        // If no actions exist, create a default one based on spot type
+        if (!spot.Actions.Any())
+        {
+            string actionName;
+            string description;
+            string goal;
+            string complication;
+            BasicActionTypes actionType;
+
+            // Determine appropriate default action based on interaction type
+            switch (spot.InteractionType?.ToLower())
+            {
+                case "shop":
+                    actionName = "TradeGoods";
+                    description = $"Trade at {spotName}";
+                    goal = $"Acquire or sell goods at {spotName}";
+                    complication = "Getting fair prices requires negotiation";
+                    actionType = BasicActionTypes.Persuade;
+                    break;
+
+                case "character":
+                    actionName = "VillageGathering";
+                    description = $"Speak with locals at {spotName}";
+                    goal = $"Gather information from locals at {spotName}";
+                    complication = "People may not readily share what they know";
+                    actionType = BasicActionTypes.Discuss;
+                    break;
+
+                case "feature":
+                    actionName = "Investigate";
+                    description = $"Examine {spotName}";
+                    goal = $"Discover what {spotName} has to offer";
+                    complication = "Careful observation is required";
+                    actionType = BasicActionTypes.Investigate;
+                    break;
+
+                case "service":
+                    actionName = "RentRoom";
+                    description = $"Use services at {spotName}";
+                    goal = $"Benefit from the services at {spotName}";
+                    complication = "Service quality may vary";
+                    actionType = BasicActionTypes.Rest;
+                    break;
+
+                case "travel":
+                    actionName = "ForestTravel";
+                    description = $"Travel through {spotName}";
+                    goal = $"Navigate safely through {spotName}";
+                    complication = "The journey may present unexpected challenges";
+                    actionType = BasicActionTypes.Travel;
+                    break;
+
+                default:
+                    actionName = "VillageGathering";
+                    description = $"Explore {spotName}";
+                    goal = $"Discover what this area has to offer";
+                    complication = "The unfamiliar environment presents challenges";
+                    actionType = BasicActionTypes.Investigate;
+                    break;
+            }
+
+            // Create and add the default action
+            ActionImplementation defaultAction = ProcessSingleAction(
+                actionName, description, spotName, location, goal, complication, actionType);
+
+            spot.Actions.Add(defaultAction);
+        }
+    }
+
+    private LocationSpot CreateDefaultSpot(string locationName)
+    {
+        // Create a default spot for locations that don't have any
+        string spotName = $"Main Area";
+
+        LocationSpot defaultSpot = new LocationSpot
+        {
+            Name = spotName,
+            Description = $"The main area of {locationName}",
+            InteractionType = "Feature",
+            InteractionDescription = $"Explore this area to see what {locationName} has to offer",
+            Position = "Center",
+            LocationName = locationName,
+            Actions = new List<ActionImplementation>()
+        };
+
+        // Add a default action to the spot
+        ActionImplementation defaultAction = ProcessSingleAction(
+            "VillageGathering",
+            $"Explore {spotName}",
+            spotName,
+            new Location { Name = locationName },
+            $"Discover what this area has to offer",
+            "The unfamiliar environment presents challenges",
+            BasicActionTypes.Investigate.ToString());
+
+        defaultSpot.Actions.Add(defaultAction);
+
+        return defaultSpot;
     }
 
     private void ProcessActionsForSpot(LocationSpot spot, string spotName, Location location)
@@ -97,7 +224,7 @@
 
             // Process the action
             ActionImplementation processedAction = ProcessSingleAction(
-                actionName, description, spotName, location, goal, complication, actionType);
+                actionName, description, spotName, location, goal, complication, actionType.ToString());
 
             // Add to the processed list
             processedActions.Add(processedAction);
@@ -114,8 +241,10 @@
         Location location,
         string goal = "",
         string complication = "",
-        BasicActionTypes actionType = BasicActionTypes.Discuss)
+        string actionTypeStr = "Discuss")
     {
+        BasicActionTypes actionType = ParseActionType(actionTypeStr);
+
         // Check if this action already exists in the repository
         if (_actionRepository.TryGetActionTemplate(actionName, out ActionTemplate? existingTemplate))
         {
