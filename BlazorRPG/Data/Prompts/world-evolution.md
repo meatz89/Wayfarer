@@ -9,21 +9,25 @@ Determine how the world should evolve in response to the player's choices and ac
 - Known characters: {{knownCharacters}}
 - Active opportunities: {{activeOpportunities}}
 
-## Guidelines
-1. Identify what interested the player during this conversation
-2. Apply "Purpose or Perish" - only include elements that advance the plot OR reinforce tone
-3. Create world evolutions maintaining proper references:
-   - New location spots (0-2) can only be added to existing locations or new locations
-   - New actions (0-3) can only be added to existing spots or new spots
-   - New characters (0-2) must be placed at existing locations
-   - New locations (0-1) must connect to known locations
-   - New opportunities (0-2) must connect to existing locations and characters
+## Critical Requirements
+1. EVERY new location MUST have at least one spot with at least one action
+2. EVERY new location spot MUST have at least one action
+3. All actions MUST have name, description, goal, complication, and actionType
+4. New locations MUST connect to at least one existing location
+5. All elements must have a clear purpose related to player choices
 
-## Critical Format Requirements
+## Evolution Guidelines
+- Create 0-2 new location spots at existing locations
+- Create 0-3 new actions at existing spots
+- Create 0-2 new characters at existing locations
+- Create 0-1 new locations with required spots and actions
+- Create 0-2 new opportunities linked to existing locations and characters
+
+## Format Requirements
 - Character names must be SIMPLE FIRST NAMES ONLY (e.g., "Giles", not "Giles the merchant")
-- ActionNames must use predefined types: VillageGathering, TradeGoods, ForestTravel, etc.
 - Action types must be one of: Discuss, Travel, Persuade, Rest, Investigate
-- Environmental properties must specifically use these exact values:
+- All actions must specify a goal and complication
+- Environmental properties must use these exact values:
   * Illumination: Bright, Shadowy, Dark
   * Population: Crowded, Quiet, Isolated
   * Atmosphere: Tense, Formal, Chaotic
@@ -31,8 +35,6 @@ Determine how the world should evolve in response to the player's choices and ac
   * Physical: Confined, Expansive, Hazardous
 
 ## Response Format
-Respond with ONLY a valid JSON object following the exact structure in the example.
-
 {
   "newLocationSpots": [
     {
