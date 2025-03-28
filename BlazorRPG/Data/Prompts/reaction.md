@@ -17,10 +17,16 @@ CRITICAL: This choice has NOT YET HAPPENED and must be executed in this scene.
 - Goal: {CHARACTER_GOAL}
 - Character Status: {INJURIES/STATUS}
 
+## Character Continuity
+- Limit new NAMED characters to 1-2 per encounter (not per turn)
+- Focus primarily on developing characters already established in previous turns
+- Feel free to include unnamed villagers, patrons, guards, etc. as needed
+- Background characters can take actions and react, but keep the focus on main NPCs
+- When introducing a named character, give them distinctive traits and motivations
+
 ## NPC CHARACTERIZATION
-- Each NPC should act with their own agency and initiative
-- NPCs must pursue their own goals, not just react to the player
-- Show NPC emotions through physical details (gestures, expressions, posture)
+- NPCs must act with agency and pursue their own goals
+- Show emotions through physical details (gestures, expressions, posture)
 - NPCs should speak in distinctive voices appropriate to their character
 - Every turn, NPCs must take at least one independent action
 - NPCs should influence and utilize the environment
@@ -31,12 +37,9 @@ Write three paragraphs in first-person present tense:
 2. Demonstrate situation evolution with NPCs taking independent actions
 3. Present a new challenge requiring decision with NPC involvement
 
-Requirements:
+Additional requirements:
 - Begin with the player's physical action from the chosen option
 - Show how the selected approach+focus combination manifests in actions
 - Demonstrate momentum/pressure/resource changes narratively
 - If new tags activated, subtly show their effects from PC's perspective
-- For early-stage encounters, establish the encounter complication
-- For mid-stage encounters, develop the narrative threats
-- For late-stage encounters, work toward appropriate resolution
 - Maintain medieval perspective with appropriate language
