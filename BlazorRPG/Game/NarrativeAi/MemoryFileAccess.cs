@@ -35,7 +35,12 @@
             Directory.CreateDirectory(_baseLogDirectory);
 
             // Read all text from the file
-            string memoryContentToWrite = await File.ReadAllTextAsync(filePath);
+            string memoryContentToWrite = string.Empty;
+            if (File.Exists(filePath))
+            {
+                memoryContentToWrite = await File.ReadAllTextAsync(filePath);
+            }
+            
             memoryContentToWrite += Environment.NewLine;
             memoryContentToWrite += Environment.NewLine + memoryContent;
 

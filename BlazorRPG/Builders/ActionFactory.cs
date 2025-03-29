@@ -15,7 +15,7 @@ public class ActionFactory
 
         actionImplementation.ActionType = template.ActionType;
         actionImplementation.Name = template.Name;
-        actionImplementation.Requirements = template.Requirements;
+        actionImplementation.Requirements = new List<Requirement>();
         actionImplementation.EnergyCosts = template.Energy;
         actionImplementation.Costs = template.Costs;
         actionImplementation.Rewards = template.Rewards;

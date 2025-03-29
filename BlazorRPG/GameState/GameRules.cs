@@ -105,21 +105,21 @@
 
     public static EnergyTypes GetEnergyTypeForAction(BasicActionTypes actionType)
     {
-        EnergyTypes energyType = EnergyTypes.None;
+        EnergyTypes energyType = EnergyTypes.Physical;
         energyType = actionType switch
         {
             BasicActionTypes.Travel => EnergyTypes.Physical,
             BasicActionTypes.Rest => EnergyTypes.Physical,
 
             BasicActionTypes.Labor => EnergyTypes.Physical,
-            BasicActionTypes.Fight => EnergyTypes.Physical,
             BasicActionTypes.Gather => EnergyTypes.Physical,
+            BasicActionTypes.Fight => EnergyTypes.Physical,
 
             BasicActionTypes.Study => EnergyTypes.Concentration,
             BasicActionTypes.Investigate => EnergyTypes.Concentration,
             BasicActionTypes.Analyze => EnergyTypes.Concentration,
 
-            BasicActionTypes.Discuss => EnergyTypes.None,
+            BasicActionTypes.Discuss => EnergyTypes.Concentration,
             BasicActionTypes.Persuade => EnergyTypes.Concentration,
             BasicActionTypes.Perform => EnergyTypes.Physical,
         };
