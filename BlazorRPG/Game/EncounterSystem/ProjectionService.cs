@@ -253,32 +253,10 @@
             int favoredBonus = 2;
             projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
             {
-                Source = "Correct Approach",
+                Source = "Favored Approach",
                 Value = favoredBonus
             });
             momentumChange += favoredBonus;
-        }
-
-        if (encounterInfo.MomentumReducingFocuses.Contains(choice.Focus))
-        {
-            int disfavoredBonus = -3;
-            projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
-            {
-                Source = "Incorrect Focus",
-                Value = disfavoredBonus
-            });
-            momentumChange += disfavoredBonus;
-        }
-
-        if (encounterInfo.PressureReducingFocuses.Contains(choice.Focus))
-        {
-            int favoredBonus = -2;
-            projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-            {
-                Source = "Correct Focus",
-                Value = favoredBonus
-            });
-            pressureChange += favoredBonus;
         }
 
         if (encounterInfo.DangerousApproaches.Contains(choice.Approach))

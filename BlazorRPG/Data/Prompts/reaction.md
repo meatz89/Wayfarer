@@ -2,10 +2,9 @@
 
 ## Player's Choice
 '{SELECTED_CHOICE}' ({CHOICE_DESCRIPTION})
-CRITICAL: This choice has NOT YET HAPPENED and must be executed in this scene.
+CRITICAL: This choice represents the player's INTENT only, not what actually happens. The actual outcome must be driven by the mechanical changes below.
 
-## Encounter Status
-- Type: {ENCOUNTER_TYPE} | Turn: {CURRENT_TURN}/{MAX_TURNS} | Stage: {ENCOUNTER_STAGE}
+## Mechanical Changes (Must Be Reflected In Narrative)
 - Momentum: {OLD_MOMENTUM} → {NEW_MOMENTUM}/{MAX_MOMENTUM}
 - Pressure: {OLD_PRESSURE} → {NEW_PRESSURE}/{MAX_PRESSURE}
 - Resources: Health {HEALTH_CHANGE}, Confidence {CONFIDENCE_CHANGE}, Concentration {CONCENTRATION_CHANGE}
@@ -14,6 +13,7 @@ CRITICAL: This choice has NOT YET HAPPENED and must be executed in this scene.
 - Strategic Effects: {STRATEGIC_EFFECTS}
 
 ## Encounter Context
+- Type: {ENCOUNTER_TYPE} | Turn: {CURRENT_TURN}/{MAX_TURNS} | Stage: {ENCOUNTER_STAGE}
 - Goal: {CHARACTER_GOAL}
 - Character Status: {INJURIES/STATUS}
 
@@ -33,13 +33,16 @@ CRITICAL: This choice has NOT YET HAPPENED and must be executed in this scene.
 
 ## Writing Requirements
 Write three paragraphs in first-person present tense:
-1. Show the chosen action and immediate results with NPC reactions
+1. Show the player's attempted action and the ACTUAL results (which may differ from expectations)
 2. Demonstrate situation evolution with NPCs taking independent actions
 3. Present a new challenge requiring decision with NPC involvement
 
-Additional requirements:
-- Begin with the player's physical action from the chosen option
-- Show how the selected approach+focus combination manifests in actions
-- Demonstrate momentum/pressure/resource changes narratively
-- If new tags activated, subtly show their effects from PC's perspective
-- Maintain medieval perspective with appropriate language
+## Narrative Implementation of Mechanical Changes:
+- MOMENTUM CHANGES must be shown as progress (or setbacks) toward the character's goal
+- PRESSURE CHANGES must be reflected as situational escalation or de-escalation
+- RESOURCE CHANGES (Health/Confidence/Concentration) are CRITICALLY IMPORTANT and must be shown as actual injuries or impacts to the character
+- APPROACH CHANGES must be reflected in how the environment and NPCs react to the player
+- NEW TAGS must manifest as situational constraints or new opportunities
+- STRATEGIC EFFECTS must be shown as contextual advantages or disadvantages
+
+Start with acknowledging the player's intent, but then show what ACTUALLY happens based on the mechanical outcomes.
