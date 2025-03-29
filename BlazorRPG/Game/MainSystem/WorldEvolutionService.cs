@@ -262,6 +262,7 @@
         // Create a basic template with reasonable defaults
         EncounterTemplate template = new EncounterTemplate
         {
+            Name = actionName,
             Duration = 5,
             MaxPressure = 10,
             PartialThreshold = 10,
