@@ -11,7 +11,7 @@
         _repository = repository;
     }
 
-    public async Task<ActionImplementation> GenerateActionForSpotAsync(
+    public async Task<string> GenerateActionForSpotAsync(
         Location location, LocationSpot spot)
     {
         // Create context for generation
@@ -35,6 +35,7 @@
 
         // Create and register the encounter template
         EncounterTemplate encounterTemplate = CreateEncounterTemplate(result.EncounterTemplate);
+
         string encounterName = $"{result.Action.Name}Encounter";
         _repository.RegisterEncounterTemplate(encounterName, encounterTemplate);
 
@@ -44,17 +45,17 @@
             result.Action.Goal,
             result.Action.Complication,
             result.Action.ActionType,
-            encounterTemplate,
+            encounterTemplate.Name,
             result.Action.CoinCost);
 
-        // Convert to implementation
-        return ActionFactory.CreateAction(actionTemplate);
+        return actionTemplate.Name;
     }
 
     private EncounterTemplate CreateEncounterTemplate(EncounterTemplateModel model)
     {
         EncounterTemplate template = new EncounterTemplate
         {
+            Name = model.Name,
             Duration = model.Duration,
             MaxPressure = model.MaxPressure,
             PartialThreshold = model.PartialThreshold,

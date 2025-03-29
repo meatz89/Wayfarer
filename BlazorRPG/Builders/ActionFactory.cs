@@ -1,8 +1,15 @@
 ﻿using System.Xml.Linq;
 
-public static class ActionFactory
+public class ActionFactory
 {
-    public static ActionImplementation CreateAction(ActionTemplate template)
+    public ActionFactory(ActionRepository actionRepository)
+    {
+        ActionRepository = actionRepository;
+    }
+
+    public ActionRepository ActionRepository { get; }
+
+    public ActionImplementation CreateActionFromTemplate(ActionTemplate template)
     {
         ActionImplementation actionImplementation = new ActionImplementation();
 
@@ -17,7 +24,12 @@ public static class ActionFactory
         actionImplementation.Complication = template.Complication;
 
         actionImplementation.IsEncounterAction = template.IsEncounterAction;
-        actionImplementation.EncounterTemplate = template.EncounterTemplate;
+
+        EncounterTemplate encounterTemplate = ActionRepository.GetEncounterTemplate(template.EncounterTemplateName);
+        if (encounterTemplate != null)
+        {
+            actionImplementation.EncounterTemplate = encounterTemplate;
+        }
 
         // Add energy costs
         EnergyTypes energyType = GameRules.GetEnergyTypeForAction(template.ActionType);

@@ -1,5 +1,6 @@
 ﻿public class ClaudeNarrativeService : BaseNarrativeAIService
 {
+    public WorldEvolutionParser WorldEvolutionParser { get; }
     public NarrativeContextManager _contextManager { get; }
     public NarrativeLogManager NarrativeLogManager { get; }
     public IConfiguration Configuration { get; }
@@ -8,6 +9,7 @@
     private readonly string _modelLow;
 
     public ClaudeNarrativeService(
+        WorldEvolutionParser worldEvolutionParser,
         NarrativeContextManager narrativeContextManager,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger,
@@ -15,6 +17,7 @@
         )
         : base(new ClaudeProvider(configuration, logger), configuration, logger, narrativeLogManager)
     {
+        WorldEvolutionParser = worldEvolutionParser;
         _contextManager = narrativeContextManager;
         NarrativeLogManager = narrativeLogManager;
         Configuration = configuration;

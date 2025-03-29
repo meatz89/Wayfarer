@@ -9,7 +9,9 @@
     public List<Outcome> costs = new();
     public List<Outcome> rewards = new();
     public bool IsEncounterAction = true;
-    public EncounterTemplate encounterTemplate;
+    public string encounterTemplateName;
+
+    public ActionRepository ActionRepository { get; }
 
     // Keep the enum-based method for backward compatibility
     public ActionTemplateBuilder WithName(ActionNames name)
@@ -43,10 +45,10 @@
         return this;
     }
 
-    public ActionTemplateBuilder StartsEncounter(EncounterTemplate encounterTemplate)
+    public ActionTemplateBuilder StartsEncounter(string encounterTemplate)
     {
         this.IsEncounterAction = true;
-        this.encounterTemplate = encounterTemplate;
+        this.encounterTemplateName = encounterTemplate;
         return this;
     }
 
@@ -67,7 +69,7 @@
             complication,
             actionType,
             IsEncounterAction,
-            encounterTemplate,
+            encounterTemplateName,
             requirements,
             energy,
             costs,

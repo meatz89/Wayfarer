@@ -110,6 +110,12 @@ public static class ActionJsonParser
         EncounterTemplateModel template = CreateDefaultEncounterTemplate();
 
         // Parse simple numeric properties - fixing the ref error
+        if (element.TryGetProperty("name", out JsonElement encounterNameElement) &&
+            encounterNameElement.ValueKind == JsonValueKind.String)
+        {
+            template.Name = encounterNameElement.GetString() ?? string.Empty;
+        }
+
         template.Duration = GetInt32Property(element, "duration", template.Duration);
         template.MaxPressure = GetInt32Property(element, "maxPressure", template.MaxPressure);
         template.PartialThreshold = GetInt32Property(element, "partialThreshold", template.PartialThreshold);
@@ -227,6 +233,7 @@ public static class ActionJsonParser
     {
         return new EncounterTemplateModel
         {
+            Name = "Encounter Template",
             Duration = 4,
             MaxPressure = 10,
             PartialThreshold = 8,

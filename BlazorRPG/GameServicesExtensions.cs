@@ -5,6 +5,7 @@
         services.AddSingleton<GameContentProvider>();
         services.AddSingleton<GameState>(_ => GameSetup.CreateNewGame());
 
+        services.AddSingleton<ActionFactory>();
         services.AddSingleton<ActionGenerator>();
         services.AddSingleton<ActionRepository>();
 
@@ -33,6 +34,8 @@
         services.AddSingleton<ResourceManager>();
         services.AddSingleton<NarrativeService>();
         services.AddSingleton<RelationshipManager>();
+
+        services.AddSingleton<WorldEvolutionParser>();
 
         return services;
     }

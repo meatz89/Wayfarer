@@ -13,6 +13,8 @@ public class GameManager
     public NarrativeService NarrativeService { get; }
     public MessageSystem MessageSystem { get; }
     public WorldEvolutionService evolutionService { get; }
+    public ActionFactory ActionFactory { get; }
+    public ActionRepository ActionRepository { get; }
     public EncounterSystem EncounterSystem { get; }
     public EncounterResult currentResult { get; set; }
 
@@ -33,6 +35,8 @@ public class GameManager
         NarrativeService narrativeService,
         MessageSystem messageSystem,
         WorldEvolutionService worldEvolutionService,
+        ActionFactory actionFactory,
+        ActionRepository actionRepository,
         IConfiguration configuration
         )
     {
@@ -46,7 +50,8 @@ public class GameManager
         this.NarrativeService = narrativeService;
         this.MessageSystem = messageSystem;
         evolutionService = worldEvolutionService;
-
+        ActionFactory = actionFactory;
+        ActionRepository = actionRepository;
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
         _useMemory = configuration.GetValue<bool>("useMemory");
     }
@@ -302,25 +307,16 @@ public class GameManager
         gameState.Actions.SetLocationSpotActions(options);
     }
 
-    private static void CreateActionsForLocationSpot(
+    private void CreateActionsForLocationSpot(
         List<UserActionOption> options,
         Location location,
         LocationSpot locationSpot)
     {
-        locationSpot.Actions.Clear();
-
-        List<ActionTemplate> allActionTemplates = ActionContent.GetAllTemplates();
-
-        List<string> locationSpotActions = locationSpot.ActionNames;
+        List<string> locationSpotActions = locationSpot.ActionTemplates.ToList();
         foreach (string locationSpotAction in locationSpotActions)
         {
-            ActionTemplate? actionTemplate = allActionTemplates
-                .Where(x => x.Name == locationSpotAction).FirstOrDefault();
-
-            if (actionTemplate == null) actionTemplate = allActionTemplates.FirstOrDefault();
-
-            ActionImplementation actionImplementation = ActionFactory.CreateAction(actionTemplate);
-            locationSpot.AddAction(actionImplementation);
+            ActionTemplate actionTemplate = ActionRepository.GetAction(locationSpotAction);
+            ActionImplementation actionImplementation = ActionFactory.CreateActionFromTemplate(actionTemplate);
 
             UserActionOption userActionOption =
                 new UserActionOption(
@@ -778,7 +774,7 @@ public class GameManager
 
             string title = $"{location} - {locationSpot}, {action} - {goal}" + Environment.NewLine;
 
-            var memoryEntryToWrite = title + memoryEntry;
+            string memoryEntryToWrite = title + memoryEntry;
 
             await MemoryFileAccess.WriteToMemoryFile(memoryEntryToWrite);
         }

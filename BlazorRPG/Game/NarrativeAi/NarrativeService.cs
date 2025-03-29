@@ -2,24 +2,26 @@
 {
     private readonly Dictionary<AIProviderType, IAIService> _providers;
     private AIProviderType _currentProvider;
-
+    private readonly WorldEvolutionParser worldEvolutionParser;
     private readonly NarrativeContextManager _contextManager;
     private readonly NarrativeLogManager narrativeLogManager;
     private readonly ILogger<EncounterSystem> _logger;
 
     public NarrativeService(
+        WorldEvolutionParser worldEvolutionParser,
         NarrativeContextManager narrativeContextManager,
         NarrativeLogManager narrativeLogManager,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {
+        this.worldEvolutionParser = worldEvolutionParser;
         _contextManager = narrativeContextManager;
         this.narrativeLogManager = narrativeLogManager;
         _logger = logger;
 
         _providers = new Dictionary<AIProviderType, IAIService>
         {
-            { AIProviderType.Claude, new ClaudeNarrativeService(_contextManager, configuration, _logger, narrativeLogManager) }
+            { AIProviderType.Claude, new ClaudeNarrativeService(worldEvolutionParser, _contextManager, configuration, _logger, narrativeLogManager) }
         };
 
         // Set default provider from configuration
