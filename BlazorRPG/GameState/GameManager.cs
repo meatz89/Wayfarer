@@ -767,8 +767,8 @@ public class GameManager
             MemoryConsolidationInput memoryInput = new MemoryConsolidationInput { OldMemory = oldMemory };
             string memoryEntry = await evolutionService.ConsolidateMemory(encounterResult.NarrativeContext, memoryInput);
 
-            string location = encounterResult.Encounter.encounterState.Location.Name;
-            string locationSpot = encounterResult.Encounter.encounterState.LocationSpot.Name;
+            string location = encounterResult.Encounter.GetNarrativeContext().LocationName;
+            string locationSpot = encounterResult.Encounter.GetNarrativeContext().locationSpotName;
             string action = encounterResult.Encounter.ActionImplementation.Name;
             string goal = encounterResult.Encounter.ActionImplementation.Goal;
 
