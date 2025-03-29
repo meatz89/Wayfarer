@@ -24,10 +24,18 @@ For each choice, create:
    - Physical: Action thoughts without quotation marks (I'll charge at him...)
    - Intellectual: Observational thoughts without quotation marks (Those symbols match...)
    - Social: Direct speech in quotation marks ("Let me help with that...")
-2. DESCRIPTION (1-2 sentences) showing what would happen and NPC responses
-3. Each choice must reflect its approach and focus combination
-4. Consider NPC responses based on their established motivations
-5. Show present NPCs as independent actors with their own agendas
+
+2. DESCRIPTION (1-2 sentences):
+   - Show what the character HOPES or INTENDS to accomplish
+   - Express UNCERTAINTY about actual outcomes
+   - Include what the character THINKS might happen, not what will happen
+   - Avoid definitive statements about NPC reactions or consequences
+   - Use language like "might," "could," "hope to," or "attempt to"
+
+3. Other requirements:
+   - Each choice must reflect its approach and focus combination
+   - The description should match the player's perspective and knowledge
+   - Do not telegraph actual mechanical outcomes
 
 ## RESPONSE FORMAT
 You must respond with a SINGLE JSON object containing a "choices" array:
