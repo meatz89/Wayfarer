@@ -1,5 +1,7 @@
 ﻿public class EncounterTemplate
 {
+    public string Name;
+
     public int MaxPressure = 13;
     public int Duration = 7;
     public int PartialThreshold = 12;

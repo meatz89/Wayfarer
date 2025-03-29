@@ -1,8 +1,27 @@
-﻿public class EncounterContent
+﻿public class WorldEncounterContent
 {
-    // VILLAGE ENCOUNTERS
-    public static EncounterTemplate VillageSquareEncounter => new EncounterTemplate()
+    public static List<EncounterTemplate> GetAllTemplates()
     {
+        List<EncounterTemplate> encounterTemplates = new() {
+            VillageSquareEncounter,
+            WellEncounter,
+            BanditEncounter,
+            HuntingEncounter,
+            HerbalismEncounter,
+            MerchantEncounter,
+            InformantEncounter,
+            QuestBoardEncounter,
+            InnRoomEncounter,
+            ShadyDealEncounter,
+            TavernGossipEncounter
+            };
+        return encounterTemplates;
+    }
+
+    // VILLAGE ENCOUNTERS
+    private static EncounterTemplate VillageSquareEncounter => new EncounterTemplate()
+    {
+        Name = "VillageSquare",
         Duration = 4,
         MaxPressure = 10,
         PartialThreshold = 8,
@@ -32,39 +51,9 @@
         ]
     };
 
-    public static EncounterTemplate ElderEncounter => new EncounterTemplate()
+    private static EncounterTemplate WellEncounter => new EncounterTemplate()
     {
-        Duration = 5,
-        MaxPressure = 10,
-        PartialThreshold = 10,
-        StandardThreshold = 14,
-        ExceptionalThreshold = 18,
-
-        Hostility = EncounterInfo.HostilityLevels.Friendly,
-
-        MomentumBoostApproaches = new[] { ApproachTags.Analysis }.ToList(),
-        DangerousApproaches = new[] { ApproachTags.Dominance }.ToList(),
-
-        PressureReducingFocuses = new[] { FocusTags.Information }.ToList(),
-        MomentumReducingFocuses = new[] { FocusTags.Physical }.ToList(),
-
-        encounterNarrativeTags =
-        [
-            NarrativeTagRepository.DetailFixation,
-            NarrativeTagRepository.BattleRage
-        ],
-
-        encounterStrategicTags =
-        [
-            new StrategicTag("Dim Cottage", Illumination.Shadowy),
-            new StrategicTag("Private Home", Population.Quiet),
-            new StrategicTag("Respected Elder", Atmosphere.Formal),
-            new StrategicTag("Modest Dwelling", Economic.Humble)
-        ]
-    };
-
-    public static EncounterTemplate WellEncounter => new EncounterTemplate()
-    {
+        Name = "Well",
         Duration = 4,
         MaxPressure = 8,
         PartialThreshold = 8,
@@ -95,8 +84,9 @@
     };
 
     // FOREST ENCOUNTERS
-    public static EncounterTemplate BanditEncounter => new EncounterTemplate()
+    private static EncounterTemplate BanditEncounter => new EncounterTemplate()
     {
+        Name = "Bandit",
         Duration = 6,
         MaxPressure = 13,
         PartialThreshold = 12,
@@ -127,8 +117,9 @@
         ]
     };
 
-    public static EncounterTemplate HuntingEncounter => new EncounterTemplate()
+    private static EncounterTemplate HuntingEncounter => new EncounterTemplate()
     {
+        Name = "Hunting",
         Duration = 5,
         MaxPressure = 12,
         PartialThreshold = 10,
@@ -158,8 +149,9 @@
         ]
     };
 
-    public static EncounterTemplate HerbalismEncounter => new EncounterTemplate()
+    private static EncounterTemplate HerbalismEncounter => new EncounterTemplate()
     {
+        Name = "Herbalism",
         Duration = 4,
         MaxPressure = 10,
         PartialThreshold = 8,
@@ -189,40 +181,11 @@
         ]
     };
 
-    public static EncounterTemplate SecretMeetingEncounter => new EncounterTemplate()
-    {
-        Duration = 5,
-        MaxPressure = 12,
-        PartialThreshold = 10,
-        StandardThreshold = 14,
-        ExceptionalThreshold = 18,
-
-        Hostility = EncounterInfo.HostilityLevels.Neutral,
-
-        MomentumBoostApproaches = new[] { ApproachTags.Analysis, ApproachTags.Dominance }.ToList(),
-        DangerousApproaches = new[] { ApproachTags.Rapport }.ToList(),
-
-        PressureReducingFocuses = new[] { FocusTags.Information }.ToList(),
-        MomentumReducingFocuses = new[] { FocusTags.Environment, FocusTags.Physical }.ToList(),
-
-        encounterNarrativeTags =
-        [
-            NarrativeTagRepository.ShadowVeil,
-            NarrativeTagRepository.ParanoidMindset
-        ],
-
-        encounterStrategicTags =
-        [
-            new StrategicTag("Hidden Place", Illumination.Shadowy),
-            new StrategicTag("Secret Meeting", Population.Isolated),
-            new StrategicTag("Cautious Exchange", Atmosphere.Tense),
-            new StrategicTag("Natural Cover", Physical.Confined)
-        ]
-    };
 
     // TAVERN ENCOUNTERS
-    public static EncounterTemplate TavernGossipEncounter => new EncounterTemplate()
+    private static EncounterTemplate TavernGossipEncounter => new EncounterTemplate()
     {
+        Name = "TavernGossip",
         Duration = 4,
         MaxPressure = 10,
         PartialThreshold = 8,
@@ -252,8 +215,9 @@
         ]
     };
 
-    public static EncounterTemplate ShadyDealEncounter => new EncounterTemplate()
+    private static EncounterTemplate ShadyDealEncounter => new EncounterTemplate()
     {
+        Name = "ShadyDeal",
         Duration = 4,
         MaxPressure = 12,
         PartialThreshold = 10,
@@ -283,8 +247,9 @@
         ]
     };
 
-    public static EncounterTemplate InnRoomEncounter => new EncounterTemplate()
+    private static EncounterTemplate InnRoomEncounter => new EncounterTemplate()
     {
+        Name = "InnRoom",
         Duration = 3,
         MaxPressure = 8,
         PartialThreshold = 6,
@@ -314,8 +279,9 @@
         ]
     };
 
-    public static EncounterTemplate QuestBoardEncounter => new EncounterTemplate()
+    private static EncounterTemplate QuestBoardEncounter => new EncounterTemplate()
     {
+        Name = "QuestBoard",
         Duration = 4,
         MaxPressure = 8,
         PartialThreshold = 8,
@@ -345,8 +311,9 @@
         ]
     };
 
-    public static EncounterTemplate InformantEncounter => new EncounterTemplate()
+    private static EncounterTemplate InformantEncounter => new EncounterTemplate()
     {
+        Name = "Informant",
         Duration = 5,
         MaxPressure = 12,
         PartialThreshold = 10,
@@ -377,8 +344,9 @@
     };
 
     // MerchantEncounter is explicitly requested to keep in the code
-    public static EncounterTemplate MerchantEncounter => new EncounterTemplate()
+    private static EncounterTemplate MerchantEncounter => new EncounterTemplate()
     {
+        Name = "Merchant",
         Duration = 5,
         MaxPressure = 10,
         PartialThreshold = 10,

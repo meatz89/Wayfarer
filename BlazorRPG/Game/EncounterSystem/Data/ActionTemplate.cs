@@ -10,7 +10,7 @@
 
     public string Goal { get; set; }
     public string Complication { get; set; }
-    public EncounterTemplate EncounterTemplate { get; set; }
+    public string EncounterTemplateName { get; set; }
 
     public ActionTemplate(
         string actionName,
@@ -18,7 +18,7 @@
         string complication,
         BasicActionTypes actionType,
         bool isEncounterAction,
-        EncounterTemplate encounterTemplate,
+        string encounterTemplateName,
         List<Requirement> requirements,
         List<Outcome> energy,
         List<Outcome> costs,
@@ -29,7 +29,7 @@
         Complication = complication;
         ActionType = actionType;
         IsEncounterAction = isEncounterAction;
-        EncounterTemplate = encounterTemplate;
+        EncounterTemplateName = encounterTemplateName;
         Requirements = requirements;
         Energy = energy;
         Costs = costs;

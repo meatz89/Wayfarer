@@ -1,26 +1,31 @@
 ﻿public class WorldEvolutionService
 {
-    public NarrativeService narrativeService { get; }
+    public NarrativeService _narrativeService { get; }
     public ActionRepository _actionRepository { get; }
+    public ActionFactory _actionFactory { get; }
 
-    public WorldEvolutionService(NarrativeService narrativeService, ActionRepository actionRepository)
+    public WorldEvolutionService(
+        NarrativeService narrativeService,
+        ActionRepository actionRepository,
+        ActionFactory actionFactory)
     {
-        this.narrativeService = narrativeService;
-        this._actionRepository = actionRepository;
+        _narrativeService = narrativeService;
+        _actionRepository = actionRepository;
+        _actionFactory = actionFactory;
     }
 
     public async Task<WorldEvolutionResponse> ProcessWorldEvolution(NarrativeContext context, WorldEvolutionInput input)
     {
-        WorldEvolutionResponse response = await narrativeService.ProcessWorldEvolution(context, input);
+        WorldEvolutionResponse response = await _narrativeService.ProcessWorldEvolution(context, input);
         return response;
     }
 
     public async Task<string> ConsolidateMemory(NarrativeContext context, MemoryConsolidationInput input)
     {
-        string response = await narrativeService.ProcessMemoryConsolidation(context, input);
+        string response = await _narrativeService.ProcessMemoryConsolidation(context, input);
         return response;
     }
-    
+
     public void IntegrateWorldEvolution(WorldEvolutionResponse evolution, WorldState worldState, LocationSystem locationSystem)
     {
         // Add new location spots to current location
@@ -31,9 +36,6 @@
             {
                 // Ensure the spot has at least one action
                 EnsureSpotHasActions(spot, spot.Name, worldState.CurrentLocation);
-
-                // Process actions before adding spot
-                ProcessActionsForSpot(spot, spot.Name, worldState.CurrentLocation);
 
                 locationSystem.AddSpot(locationName, spot);
             }
@@ -47,11 +49,11 @@
                 LocationSpot? spotToUpdate = worldState.CurrentLocation.Spots.FirstOrDefault(s => s.Name == newAction.SpotName);
                 if (spotToUpdate != null)
                 {
-                    if (spotToUpdate.Actions == null)
-                        spotToUpdate.Actions = new List<ActionImplementation>();
+                    if (spotToUpdate.ActionTemplates == null)
+                        spotToUpdate.ActionTemplates = new List<string>();
 
                     // Process the action and get a proper implementation
-                    ActionImplementation action = ProcessSingleAction(
+                    string action = CreateSingleAction(
                         newAction.Name,
                         newAction.Description,
                         spotToUpdate.Name,
@@ -60,7 +62,7 @@
                         newAction.Complication,
                         newAction.ActionType);
 
-                    spotToUpdate.Actions.Add(action);
+                    spotToUpdate.ActionTemplates.Add(action);
                 }
             }
         }
@@ -84,9 +86,6 @@
                 {
                     // Ensure the spot has at least one action
                     EnsureSpotHasActions(spot, spot.Name, location);
-
-                    // Process actions
-                    ProcessActionsForSpot(spot, spot.Name, location);
                 }
             }
 
@@ -103,11 +102,11 @@
     private void EnsureSpotHasActions(LocationSpot spot, string spotName, Location location)
     {
         // Initialize actions list if null
-        if (spot.Actions == null)
-            spot.Actions = new List<ActionImplementation>();
+        if (spot.ActionTemplates == null)
+            spot.ActionTemplates = new List<string>();
 
         // If no actions exist, create a default one based on spot type
-        if (!spot.Actions.Any())
+        if (!spot.ActionTemplates.Any())
         {
             string actionName;
             string description;
@@ -168,10 +167,10 @@
             }
 
             // Create and add the default action
-            ActionImplementation defaultAction = ProcessSingleAction(
+            string defaultAction = CreateSingleAction(
                 actionName, description, spotName, location, goal, complication, actionType.ToString());
 
-            spot.Actions.Add(defaultAction);
+            spot.ActionTemplates.Add(defaultAction);
         }
     }
 
@@ -188,11 +187,11 @@
             InteractionDescription = $"Explore this area to see what {locationName} has to offer",
             Position = "Center",
             LocationName = locationName,
-            Actions = new List<ActionImplementation>()
+            ActionTemplates = new List<string>()
         };
 
         // Add a default action to the spot
-        ActionImplementation defaultAction = ProcessSingleAction(
+        string defaultAction = CreateSingleAction(
             "VillageGathering",
             $"Explore {spotName}",
             spotName,
@@ -201,41 +200,12 @@
             "The unfamiliar environment presents challenges",
             BasicActionTypes.Investigate.ToString());
 
-        defaultSpot.Actions.Add(defaultAction);
+        defaultSpot.ActionTemplates.Add(defaultAction);
 
         return defaultSpot;
     }
 
-    private void ProcessActionsForSpot(LocationSpot spot, string spotName, Location location)
-    {
-        if (spot.Actions == null)
-            return;
-
-        // Create a new list to hold the processed actions
-        List<ActionImplementation> processedActions = new List<ActionImplementation>();
-
-        foreach (ActionImplementation action in spot.Actions)
-        {
-            // Extract values from the action
-            string actionName = action.Name;
-            string description = action.Description;
-            string goal = action.Goal ?? description;
-            string complication = action.Complication ?? "Unexpected complications may arise";
-            BasicActionTypes actionType = action.ActionType;
-
-            // Process the action
-            ActionImplementation processedAction = ProcessSingleAction(
-                actionName, description, spotName, location, goal, complication, actionType.ToString());
-
-            // Add to the processed list
-            processedActions.Add(processedAction);
-        }
-
-        // Replace the original actions with processed ones
-        spot.Actions = processedActions;
-    }
-
-    private ActionImplementation ProcessSingleAction(
+    private string CreateSingleAction(
         string actionName,
         string description,
         string spotName,
@@ -247,10 +217,11 @@
         BasicActionTypes actionType = ParseActionType(actionTypeStr);
 
         // Check if this action already exists in the repository
-        if (_actionRepository.TryGetActionTemplate(actionName, out ActionTemplate? existingTemplate))
+        ActionTemplate existingTemplate = _actionRepository.GetAction(actionName);
+        if (existingTemplate != null)
         {
-            // If it exists, use the existing template
-            return ActionFactory.CreateAction(existingTemplate);
+            return existingTemplate.Name;
+
         }
 
         // If not, we need to create an encounter template for it
@@ -265,10 +236,10 @@
 
         // Create and register the action template
         ActionTemplate template = _actionRepository.GetOrCreateAction(
-            actionName, goal, complication, actionType, encounterTemplate);
+            actionName, goal, complication, actionType, encounterTemplate.Name);
 
         // Create and return the action implementation
-        return ActionFactory.CreateAction(template);
+        return _actionFactory.CreateActionFromTemplate(template).Name;
     }
 
     private BasicActionTypes ParseActionType(string actionTypeStr)

@@ -1,4 +1,4 @@
-﻿public static class ActionContent
+﻿public static class WorldActionContent
 {
     public static List<ActionTemplate> GetAllTemplates()
     {
@@ -16,7 +16,7 @@
             .WithGoal("gather information about recent events")
             .WithComplication("villagers have conflicting accounts")
             .WithActionType(BasicActionTypes.Discuss)
-            .StartsEncounter(EncounterContent.VillageSquareEncounter)
+            .StartsEncounter("VillageSquare")
             .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
@@ -24,7 +24,7 @@
             .WithGoal("acquire necessary supplies for your journey")
             .WithComplication("the merchant is suspicious of outsiders")
             .WithActionType(BasicActionTypes.Persuade)
-            .StartsEncounter(EncounterContent.MerchantEncounter)
+            .StartsEncounter("Merchant")
             .ExpendsCoins(5)
             .Build());
 
@@ -34,7 +34,7 @@
             .WithGoal("traverse the dangerous forest path")
             .WithComplication("bandits are known to ambush travelers")
             .WithActionType(BasicActionTypes.Travel)
-            .StartsEncounter(EncounterContent.BanditEncounter)
+            .StartsEncounter("Bandit")
             .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
@@ -42,7 +42,7 @@
             .WithGoal("meet with a mysterious contact")
             .WithComplication("you're uncertain if they can be trusted")
             .WithActionType(BasicActionTypes.Discuss)
-            .StartsEncounter(EncounterContent.SecretMeetingEncounter)
+            .StartsEncounter("SecretMeeting")
             .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
@@ -50,7 +50,7 @@
             .WithGoal("negotiate for contraband or restricted information")
             .WithComplication("authorities may be watching the transaction")
             .WithActionType(BasicActionTypes.Persuade)
-            .StartsEncounter(EncounterContent.ShadyDealEncounter)
+            .StartsEncounter("ShadyDeal")
             .ExpendsCoins(8)
             .Build());
 
@@ -59,7 +59,7 @@
             .WithGoal("secure safe lodging for the night")
             .WithComplication("strange noises from the adjacent room")
             .WithActionType(BasicActionTypes.Rest)
-            .StartsEncounter(EncounterContent.InnRoomEncounter)
+            .StartsEncounter("InnRoom")
             .ExpendsCoins(5)
             .Build());
 
@@ -68,7 +68,7 @@
             .WithGoal("discover opportunities for work")
             .WithComplication("some jobs are dangerous or morally questionable")
             .WithActionType(BasicActionTypes.Investigate)
-            .StartsEncounter(EncounterContent.QuestBoardEncounter)
+            .StartsEncounter("QuestBoard")
             .Build());
 
         return actionTemplates;

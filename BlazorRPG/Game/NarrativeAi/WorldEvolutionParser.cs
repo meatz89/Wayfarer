@@ -2,12 +2,19 @@
 using System.Collections.Generic;
 using System.Text.Json;
 
-public static class WorldEvolutionParser
+public class WorldEvolutionParser
 {
+    public ActionRepository ActionRepository { get; }
+
+    public WorldEvolutionParser(ActionRepository actionRepository)
+    {
+        ActionRepository = actionRepository;
+    }
+
     /// <summary>
     /// Parses the AI response into a structured WorldEvolutionResponse object.
     /// </summary>
-    public static WorldEvolutionResponse ParseWorldEvolutionResponse(string response)
+    public WorldEvolutionResponse ParseWorldEvolutionResponse(string response)
     {
         WorldEvolutionResponse result = InitializeEmptyResponse();
 
@@ -37,7 +44,7 @@ public static class WorldEvolutionParser
 
     #region Entity Processing Methods
 
-    private static void ProcessLocationSpots(JsonElement root, WorldEvolutionResponse result)
+    private void ProcessLocationSpots(JsonElement root, WorldEvolutionResponse result)
     {
         ProcessArrayProperty(root, "newLocationSpots", element =>
         {
@@ -49,7 +56,7 @@ public static class WorldEvolutionParser
         });
     }
 
-    private static void ProcessNewActions(JsonElement root, WorldEvolutionResponse result)
+    private void ProcessNewActions(JsonElement root, WorldEvolutionResponse result)
     {
         ProcessArrayProperty(root, "newActions", element =>
         {
@@ -61,7 +68,7 @@ public static class WorldEvolutionParser
         });
     }
 
-    private static void ProcessNewCharacters(JsonElement root, WorldEvolutionResponse result)
+    private void ProcessNewCharacters(JsonElement root, WorldEvolutionResponse result)
     {
         ProcessArrayProperty(root, "newCharacters", element =>
         {
@@ -73,7 +80,7 @@ public static class WorldEvolutionParser
         });
     }
 
-    private static void ProcessNewLocations(JsonElement root, WorldEvolutionResponse result)
+    private void ProcessNewLocations(JsonElement root, WorldEvolutionResponse result)
     {
         ProcessArrayProperty(root, "newLocations", element =>
         {
@@ -85,7 +92,7 @@ public static class WorldEvolutionParser
         });
     }
 
-    private static void ProcessNewOpportunities(JsonElement root, WorldEvolutionResponse result)
+    private void ProcessNewOpportunities(JsonElement root, WorldEvolutionResponse result)
     {
         ProcessArrayProperty(root, "newOpportunities", element =>
         {
@@ -101,7 +108,7 @@ public static class WorldEvolutionParser
 
     #region Entity Parsers
 
-    private static LocationSpot ParseLocationSpot(JsonElement element)
+    private LocationSpot ParseLocationSpot(JsonElement element)
     {
         return SafeParseEntity("location spot", () =>
         {
@@ -110,16 +117,24 @@ public static class WorldEvolutionParser
                 Name = GetStringProperty(element, "name", "Unnamed Spot"),
                 Description = GetStringProperty(element, "description", "No description available."),
                 InteractionType = GetStringProperty(element, "interactionType", "Feature"),
-                Actions = new List<ActionImplementation>()
+                ActionTemplates = new List<string>()
             };
 
             // Process actions for this spot
             ProcessArrayProperty(element, "actions", actionElement =>
             {
-                ActionImplementation action = ParseAction(actionElement);
-                if (action != null)
+                ActionTemplate actionTemplate = ParseAction(actionElement);
+                ActionRepository.GetOrCreateAction(
+                    actionTemplate.Name,
+                    actionTemplate.Goal,
+                    actionTemplate.Complication,
+                    actionTemplate.ActionType,
+                    actionTemplate.EncounterTemplateName
+                );
+
+                if (actionTemplate != null)
                 {
-                    spot.Actions.Add(action);
+                    spot.ActionTemplates.Add(actionTemplate.Name);
                 }
             });
 
@@ -127,7 +142,7 @@ public static class WorldEvolutionParser
         });
     }
 
-    private static NewAction ParseNewAction(JsonElement element)
+    private NewAction ParseNewAction(JsonElement element)
     {
         return SafeParseEntity("new action", () => new NewAction
         {
@@ -140,7 +155,7 @@ public static class WorldEvolutionParser
         });
     }
 
-    private static Character ParseCharacter(JsonElement element)
+    private Character ParseCharacter(JsonElement element)
     {
         return SafeParseEntity("character", () => new Character
         {
@@ -151,7 +166,7 @@ public static class WorldEvolutionParser
         });
     }
 
-    private static Location ParseLocation(JsonElement element)
+    private Location ParseLocation(JsonElement element)
     {
         return SafeParseEntity("location", () =>
         {
@@ -184,7 +199,7 @@ public static class WorldEvolutionParser
         });
     }
 
-    private static Opportunity ParseOpportunity(JsonElement element)
+    private Opportunity ParseOpportunity(JsonElement element)
     {
         return SafeParseEntity("opportunity", () => new Opportunity
         {
@@ -196,7 +211,7 @@ public static class WorldEvolutionParser
         });
     }
 
-    private static ActionImplementation ParseAction(JsonElement element)
+    private ActionTemplate ParseAction(JsonElement element)
     {
         return SafeParseEntity("action", () =>
         {
@@ -216,7 +231,7 @@ public static class WorldEvolutionParser
                 .WithActionType(actionType)
                 .Build();
 
-            return ActionFactory.CreateAction(template);
+            return template;
         });
     }
 
@@ -224,7 +239,7 @@ public static class WorldEvolutionParser
 
     #region Helper Methods
 
-    private static WorldEvolutionResponse InitializeEmptyResponse()
+    private WorldEvolutionResponse InitializeEmptyResponse()
     {
         return new WorldEvolutionResponse
         {
@@ -236,7 +251,7 @@ public static class WorldEvolutionParser
         };
     }
 
-    private static void ProcessArrayProperty(JsonElement element, string propertyName, Action<JsonElement> processor)
+    private void ProcessArrayProperty(JsonElement element, string propertyName, Action<JsonElement> processor)
     {
         if (element.TryGetProperty(propertyName, out JsonElement arrayElement) &&
             arrayElement.ValueKind == JsonValueKind.Array)
@@ -248,7 +263,7 @@ public static class WorldEvolutionParser
         }
     }
 
-    private static T SafeParseEntity<T>(string entityType, Func<T> parser) where T : class
+    private T SafeParseEntity<T>(string entityType, Func<T> parser) where T : class
     {
         try
         {
@@ -261,7 +276,7 @@ public static class WorldEvolutionParser
         }
     }
 
-    private static void ParseConnectedLocations(JsonElement element, Location location)
+    private void ParseConnectedLocations(JsonElement element, Location location)
     {
         if (element.TryGetProperty("connectedTo", out JsonElement connectedToElement))
         {
@@ -283,7 +298,7 @@ public static class WorldEvolutionParser
         }
     }
 
-    private static void ParseEnvironmentalProperties(JsonElement element, Location location)
+    private void ParseEnvironmentalProperties(JsonElement element, Location location)
     {
         ProcessArrayProperty(element, "environmentalProperties", prop =>
         {
@@ -298,7 +313,7 @@ public static class WorldEvolutionParser
         });
     }
 
-    private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
+    private string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
     {
         if (element.TryGetProperty(propertyName, out JsonElement property) &&
             property.ValueKind == JsonValueKind.String)
@@ -309,7 +324,7 @@ public static class WorldEvolutionParser
         return defaultValue;
     }
 
-    private static void LogError(string message, Exception ex)
+    private void LogError(string message, Exception ex)
     {
         Console.WriteLine($"{message}: {ex.Message}");
     }
@@ -318,7 +333,7 @@ public static class WorldEvolutionParser
 
     #region Type Conversion Methods
 
-    private static IEnvironmentalProperty ParseEnvironmentalProperty(string propertyString)
+    private IEnvironmentalProperty ParseEnvironmentalProperty(string propertyString)
     {
         // Create a dictionary to map property strings to their respective objects
         Dictionary<string, IEnvironmentalProperty> propertyMap = new Dictionary<string, IEnvironmentalProperty>(StringComparer.OrdinalIgnoreCase)
@@ -359,7 +374,7 @@ public static class WorldEvolutionParser
         return Illumination.Bright; // Provide a default rather than null
     }
 
-    private static ActionNames ParseActionName(string actionName)
+    private ActionNames ParseActionName(string actionName)
     {
         // Try direct enum parse first
         if (Enum.TryParse<ActionNames>(actionName.Replace(" ", ""), true, out ActionNames result))
@@ -397,7 +412,7 @@ public static class WorldEvolutionParser
         return ActionNames.VillageGathering;
     }
 
-    private static BasicActionTypes ParseActionType(JsonElement element)
+    private BasicActionTypes ParseActionType(JsonElement element)
     {
         // Try to get the action type directly from the element
         string actionTypeStr = GetStringProperty(element, "actionType", "");
@@ -414,7 +429,7 @@ public static class WorldEvolutionParser
         return DetermineActionType(name, description);
     }
 
-    private static BasicActionTypes DetermineActionType(string name, string description)
+    private BasicActionTypes DetermineActionType(string name, string description)
     {
         Dictionary<BasicActionTypes, List<string>> keywordMap = new Dictionary<BasicActionTypes, List<string>>
         {

@@ -34,7 +34,7 @@
                 InteractionType = spotDetail.InteractionType,
                 InteractionDescription = spotDetail.InteractionDescription,
                 Position = spotDetail.Position,
-                ActionNames = new List<string>(spotDetail.ActionNames)
+                ActionTemplates = new List<string>(spotDetail.ActionNames)
             };
 
             locationSpots.Add(spot);
@@ -60,8 +60,8 @@
 
         foreach (LocationSpot spot in location.Spots)
         {
-            ActionImplementation action = await actionGenerator.GenerateActionForSpotAsync(location, spot);
-            spot.Actions.Add(action);
+            string action = await actionGenerator.GenerateActionForSpotAsync(location, spot);
+            spot.ActionTemplates.Add(action);
         }
 
         return location;

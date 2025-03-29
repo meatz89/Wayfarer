@@ -4,7 +4,7 @@
     public string Name { get; set; }
     public string Description { get; set; }
     public string InteractionType { get; set; }  // "Character", "Quest", "Shop", "Feature", etc.
-    public List<ActionImplementation> Actions { get; set; } = new();
+    public List<string> ActionTemplates { get; set; } = new();
 
     // Connections
     public string LocationName { get; set; }
@@ -22,13 +22,7 @@
     public Atmosphere? Atmosphere { get; set; }
     public Physical? Physical { get; set; }
     public Illumination? Illumination { get; set; }
-    public List<string> ActionNames { get; set; } = new();
     public string Character { get; internal set; }
-
-    public void AddAction(ActionImplementation baseAction)
-    {
-        Actions.Add(baseAction);
-    }
 
     public bool HasProperty<T>(T locationSpotProperty) where T : IEnvironmentalProperty
     {
@@ -77,6 +71,6 @@
         Atmosphere = atmosphere;
         Physical = Physical;
         Illumination = Illumination;
-        ActionNames = actionNames;
+        ActionTemplates = actionNames;
     }
 }

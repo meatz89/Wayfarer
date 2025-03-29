@@ -1,5 +1,6 @@
 ﻿public class EncounterTemplateModel
 {
+    public string Name { get; set; }
     public int Duration { get; set; }
     public int MaxPressure { get; set; }
     public int PartialThreshold { get; set; }
