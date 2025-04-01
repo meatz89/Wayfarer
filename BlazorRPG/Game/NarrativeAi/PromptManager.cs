@@ -226,10 +226,6 @@ public class PromptManager
             narrativeTagsInfo.AppendLine($"- {tag.Name}: Blocks {narrativeTag.BlockedFocus} focus choices");
         }
 
-        string characterArchetype = state.PlayerState.Archetype.ToString();
-        string naturalApproaches = state.PlayerState.GetNaturalApproachesText(context.EncounterType);
-        string dangerousApproaches = state.PlayerState.GetDangerousApproachesText(context.EncounterType);
-
         // Format choices info
         StringBuilder choicesInfo = new StringBuilder();
         for (int i = 0; i < choices.Count; i++)
@@ -286,6 +282,10 @@ CHOICE {i + 1}:
             }
         }
 
+        string characterArchetype = state.PlayerState.Archetype.ToString();
+        string naturalApproaches = state.PlayerState.GetNaturalApproachesText(context.EncounterType);
+        string dangerousApproaches = state.PlayerState.GetDangerousApproachesText(context.EncounterType);
+
         // Get character condition/resources
         string characterCondition = BuildCharacterStatusSummary(state);
 
@@ -310,7 +310,7 @@ CHOICE {i + 1}:
             .Replace("{CURRENT_CONCENTRATION}", state.Concentration.ToString())
             .Replace("{MAX_CONCENTRATION}", state.MaxConcentration.ToString())
             .Replace("{ENCOUNTER_STAGE}", encounterStage)
-            .Replace("{CHARACTER_ARCHETYPE}", archetype)
+            .Replace("{CHARACTER_ARCHETYPE}", characterArchetype)
             .Replace("{NATURAL_APPROACHES}", naturalApproaches)
             .Replace("{DANGEROUS_APPROACHES}", dangerousApproaches)
             .Replace("{ACTIVE_TAGS}", narrativeTagsInfo.ToString())

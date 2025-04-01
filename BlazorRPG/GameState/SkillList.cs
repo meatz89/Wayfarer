@@ -5,7 +5,7 @@ public class SkillList
 
     public int GetSkillLevel(string skillName)
     {
-        foreach (var skill in _skills)
+        foreach (Skill skill in _skills)
         {
             if (skill.Name == skillName)
                 return skill.Level;
@@ -15,7 +15,7 @@ public class SkillList
 
     public void SetSkillLevel(string skillName, int level)
     {
-        foreach (var skill in _skills)
+        foreach (Skill skill in _skills)
         {
             if (skill.Name == skillName)
             {
