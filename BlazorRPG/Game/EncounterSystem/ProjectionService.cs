@@ -273,7 +273,7 @@
         if (encounterInfo.PressureReducingFocuses.Contains(choice.Focus))
         {
             int favoredBonus = -2;
-            projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
+            projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
             {
                 Source = "Favored Focus at Location",
                 Value = favoredBonus
