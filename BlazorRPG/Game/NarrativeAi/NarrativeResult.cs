@@ -10,6 +10,7 @@
 
     public NarrativeResult(
         string narrative,
+        string initialGoal,
         List<IChoice> choices,
         List<ChoiceProjection> projections,
         Dictionary<IChoice, ChoiceNarrative> choiceDescriptions,
@@ -21,7 +22,7 @@
         ChoiceDescriptions = choiceDescriptions;
         LastChoiceNarrative = lastChoiceNarrative;
         if (LastChoiceNarrative == null)
-            LastChoiceNarrative = new ChoiceNarrative("Encounter Started", "");
+            LastChoiceNarrative = new ChoiceNarrative(initialGoal, "");
     }
 
     public void SetOutcome(EncounterOutcomes outcome)

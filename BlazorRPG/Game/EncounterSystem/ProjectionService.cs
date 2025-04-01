@@ -134,7 +134,7 @@
             projection.HealthChange = pressureHealthDamage;
             projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
             {
-                Source = "Pressure health damage",
+                Source = "Dangerous Move",
                 Value = pressureHealthDamage
             });
         }
@@ -144,7 +144,7 @@
             projection.ConcentrationChange = pressureConcentrationDamage;
             projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
             {
-                Source = "Pressure concentration damage",
+                Source = "Dangerous Move",
                 Value = pressureConcentrationDamage
             });
         }
@@ -154,7 +154,7 @@
             projection.ConfidenceChange = pressureConfidenceDamage;
             projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
             {
-                Source = "Pressure confidence damage",
+                Source = "Dangerous Move",
                 Value = pressureConfidenceDamage
             });
         }
