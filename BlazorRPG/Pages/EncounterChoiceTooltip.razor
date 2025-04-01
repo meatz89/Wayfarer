@@ -43,14 +43,12 @@
 
     <div class="tooltip-section">
         <h5>Effect</h5>
-        <div>
-            @if (hoveredChoice.Choice is ChoiceCard cardChoiceTier)
-            {
-                <span class="tier-badge tier-@((int)cardChoiceTier.Tier)">
-                    @GetTierName(cardChoiceTier.Tier)
-                </span>
-            }
-        </div>
+        @if (hoveredChoice.Choice is ChoiceCard cardChoiceTier)
+        {
+            <span class="tier-badge tier-@((int)cardChoiceTier.Tier)">
+                @GetTierName(cardChoiceTier.Tier)
+            </span>
+        }
         <div class="tooltip-list">
             @if (Preview.HealthChange != 0)
             {
@@ -202,9 +200,9 @@
                     affinity == AffinityTypes.Dangerous ? "Dangerous" :
                     "Neutral";
                 }
-                <span class="affinity-badge @affinityClass">
+                <div class="affinity-badge @affinityClass">
                     @affinityText Affinity
-                </span>
+                </div>
 
                 <div class="tooltip-list">
                     @foreach (var tagChange in GetApproachTagChanges())
