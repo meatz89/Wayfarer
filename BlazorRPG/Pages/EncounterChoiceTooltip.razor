@@ -9,6 +9,29 @@
                     @GetTierName(cardChoiceTier.Tier)
                 </span>
             }
+
+            @{
+                // Get the approach affinity for this choice
+                AffinityTypes affinity = GameState.PlayerState.GetApproachAffinity(
+                hoveredChoice.Choice.Approach,
+                hoveredChoice.encounter.encounterInfo.Type);
+
+                // Determine CSS class and text
+                string affinityClass =
+                affinity == AffinityTypes.Natural ? "natural-affinity" :
+                affinity == AffinityTypes.Unnatural ? "unnatural-affinity" :
+                affinity == AffinityTypes.Dangerous ? "dangerous-affinity" :
+                "neutral-affinity";
+
+                string affinityText =
+                affinity == AffinityTypes.Natural ? "Natural" :
+                affinity == AffinityTypes.Unnatural ? "Unnatural" :
+                affinity == AffinityTypes.Dangerous ? "Dangerous" :
+                "Neutral";
+            }
+            <span class="affinity-badge @affinityClass">
+                @affinityText for @GameState.PlayerState.Archetype
+            </span>
         </h4>
         <div class="choice-narrative">@GetChoiceDescription(@hoveredChoice)</div>
     </div>

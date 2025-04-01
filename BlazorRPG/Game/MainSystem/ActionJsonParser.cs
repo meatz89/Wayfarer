@@ -131,7 +131,6 @@ public static class ActionJsonParser
 
         // Parse string arrays - fixing the ref error
         template.MomentumBoostApproaches = GetStringArray(element, "momentumBoostApproaches", template.MomentumBoostApproaches);
-        template.DangerousApproaches = GetStringArray(element, "dangerousApproaches", template.DangerousApproaches);
         template.PressureReducingFocuses = GetStringArray(element, "pressureReducingFocuses", template.PressureReducingFocuses);
         template.MomentumReducingFocuses = GetStringArray(element, "momentumReducingFocuses", template.MomentumReducingFocuses);
         template.NarrativeTags = GetStringArray(element, "narrativeTags", template.NarrativeTags);
@@ -241,7 +240,6 @@ public static class ActionJsonParser
             ExceptionalThreshold = 16,
             Hostility = "Neutral",
             MomentumBoostApproaches = new List<string> { "Analysis" },
-            DangerousApproaches = new List<string> { "Dominance" },
             PressureReducingFocuses = new List<string> { "Information" },
             MomentumReducingFocuses = new List<string> { "Physical" },
             StrategicTags = new List<StrategicTagModel>

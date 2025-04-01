@@ -270,7 +270,6 @@
             ExceptionalThreshold = 18,
             Hostility = EncounterInfo.HostilityLevels.Neutral,
             MomentumBoostApproaches = new List<ApproachTags>(),
-            DangerousApproaches = new List<ApproachTags>(),
             PressureReducingFocuses = new List<FocusTags>(),
             MomentumReducingFocuses = new List<FocusTags>(),
             encounterNarrativeTags = new List<NarrativeTag>(),
@@ -282,7 +281,6 @@
         {
             case BasicActionTypes.Discuss:
                 template.MomentumBoostApproaches.AddRange(new[] { ApproachTags.Rapport, ApproachTags.Analysis });
-                template.DangerousApproaches.Add(ApproachTags.Dominance);
                 template.PressureReducingFocuses.AddRange(new[] { FocusTags.Relationship, FocusTags.Information });
                 template.MomentumReducingFocuses.Add(FocusTags.Physical);
                 template.encounterNarrativeTags.AddRange(new[]
@@ -291,7 +289,6 @@
 
             case BasicActionTypes.Persuade:
                 template.MomentumBoostApproaches.AddRange(new[] { ApproachTags.Rapport, ApproachTags.Dominance });
-                template.DangerousApproaches.Add(ApproachTags.Analysis);
                 template.PressureReducingFocuses.AddRange(new[] { FocusTags.Relationship, FocusTags.Resource });
                 template.MomentumReducingFocuses.Add(FocusTags.Environment);
                 template.encounterNarrativeTags.AddRange(new[]
@@ -300,7 +297,6 @@
 
             case BasicActionTypes.Travel:
                 template.MomentumBoostApproaches.AddRange(new[] { ApproachTags.Analysis, ApproachTags.Precision });
-                template.DangerousApproaches.Add(ApproachTags.Dominance);
                 template.PressureReducingFocuses.AddRange(new[] { FocusTags.Environment, FocusTags.Physical });
                 template.MomentumReducingFocuses.Add(FocusTags.Relationship);
                 template.encounterNarrativeTags.AddRange(new[]
@@ -309,7 +305,6 @@
 
             case BasicActionTypes.Rest:
                 template.MomentumBoostApproaches.Add(ApproachTags.Analysis);
-                template.DangerousApproaches.AddRange(new[] { ApproachTags.Rapport, ApproachTags.Dominance });
                 template.PressureReducingFocuses.Add(FocusTags.Environment);
                 template.MomentumReducingFocuses.Add(FocusTags.Relationship);
                 template.encounterNarrativeTags.AddRange(new[]
@@ -318,7 +313,6 @@
 
             case BasicActionTypes.Investigate:
                 template.MomentumBoostApproaches.Add(ApproachTags.Analysis);
-                template.DangerousApproaches.Add(ApproachTags.Dominance);
                 template.PressureReducingFocuses.Add(FocusTags.Information);
                 template.MomentumReducingFocuses.AddRange(new[] { FocusTags.Relationship, FocusTags.Physical });
                 template.encounterNarrativeTags.AddRange(new[]

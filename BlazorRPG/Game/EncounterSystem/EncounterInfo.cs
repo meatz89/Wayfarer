@@ -31,7 +31,6 @@ public class EncounterInfo
         string locationName,
         string locationSpot,
         List<ApproachTags> favoreApproaches,
-        List<ApproachTags> dangerousApproaches,
         List<FocusTags> PressureReducingFocuses,
         List<FocusTags> MomentumReducingFocuses,
         int duration,
