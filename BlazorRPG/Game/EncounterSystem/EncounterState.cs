@@ -21,10 +21,13 @@
     private readonly ResourceManager _resourceManager;
     private readonly ProjectionService _projectionService;
 
-    public EncounterState(EncounterInfo encounterInfo, PlayerState playerState, ResourceManager resourceManager)
+    public EncounterState(
+        EncounterInfo encounterInfo, 
+        PlayerState playerState, 
+        ResourceManager resourceManager)
     {
-        Momentum = 0;
-        Pressure = 0;
+        Momentum = 5;
+        Pressure = encounterInfo.Difficulty;
         CurrentTurn = 0;
         Location = encounterInfo;
 
