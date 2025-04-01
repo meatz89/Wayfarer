@@ -8,19 +8,6 @@
         WorldState worldState,
         PlayerState playerState)
     {
-        if (!IsLaborActionAvailable(template, location, playerState)) return false;
-
-        return true;
-    }
-
-    private bool IsLaborActionAvailable(ActionTemplate template, Location location, PlayerState playerState)
-    {
-        if (template.ActionType == BasicActionTypes.Labor)
-        {
-            (string LocationName, BasicActionTypes ActionType) item = (location.Name, template.ActionType);
-            bool isLaborAllowedAtLocation = playerState.LocationActionAvailability.Contains(item);
-            return isLaborAllowedAtLocation;
-        }
         return true;
     }
 }

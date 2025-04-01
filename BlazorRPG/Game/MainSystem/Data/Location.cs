@@ -40,12 +40,14 @@
 
     public Location(
         string locationName,
+        string description,
         List<string> travelConnections,
         List<LocationSpot> locationSpots,
         int difficultyLevel,
         bool playerKnowledge)
     {
         Name = locationName.ToString();
+        Description = description;
         ConnectedTo = travelConnections;
         Spots = locationSpots;
         Difficulty = difficultyLevel;

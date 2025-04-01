@@ -6,11 +6,11 @@ public enum ActionNames
     TradeGoods,
 
     // Forest actions
-    ForestTravel,
+    DirectForestTravel,
     SecretMeeting,
 
     // Tavern actions
-    SecretDeal,
+    ScenicForestTravel,
     RentRoom,
     FindQuests,
 }

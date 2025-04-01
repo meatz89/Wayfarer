@@ -56,21 +56,23 @@
 
     public LocationSpot(
         string name,
+        string description,
         string locationName,
-        Population? Population,
-        Economic? Economic,
+        Population? population,
+        Economic? economic,
         Atmosphere? atmosphere,
-        Physical? Physical,
-        Illumination? Illumination,
+        Physical? physical,
+        Illumination? illumination,
         List<string> actionNames)
     {
         Name = name;
+        Description = description;
         LocationName = locationName;
-        Population = Population;
-        Economic = Economic;
+        Population = population;
+        Economic = economic;
         Atmosphere = atmosphere;
-        Physical = Physical;
-        Illumination = Illumination;
+        Physical = physical;
+        Illumination = illumination;
         ActionTemplates = actionNames;
     }
 }

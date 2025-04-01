@@ -8,10 +8,24 @@
 
     // Location properties
     private bool playerKnowledge;
+    private string description;
+    private string detailedDescription;
 
     public LocationBuilder ForLocation(LocationNames name)
     {
         this.locationName = name.ToString();
+        return this;
+    }
+
+    public LocationBuilder WithDescription(string description)
+    {
+        this.description = description;
+        return this;
+    }
+
+    public LocationBuilder WithDetailedDescription(string description)
+    {
+        this.detailedDescription = description;
         return this;
     }
 
@@ -53,6 +67,7 @@
     {
         return new Location(
             locationName,
+            description,
             travelConnections,
             locationSpots,
             difficultyLevel,

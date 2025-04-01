@@ -19,7 +19,6 @@
         {
             WorldLocationsContent.Village,
             WorldLocationsContent.Forest,
-            WorldLocationsContent.Tavern
         };
 
         characters = new List<Character>

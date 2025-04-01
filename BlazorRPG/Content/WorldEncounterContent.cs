@@ -78,6 +78,35 @@
     };
 
     // FOREST ENCOUNTERS
+    public static EncounterTemplate HermitEncounter => new EncounterTemplate()
+    {
+        Name = "HermitEncounter",
+        Duration = 5,
+        MaxPressure = 10,
+        PartialThreshold = 10,
+        StandardThreshold = 14,
+        ExceptionalThreshold = 18,
+
+        Hostility = EncounterInfo.HostilityLevels.Neutral,
+
+        PressureReducingFocuses = new[] { FocusTags.Relationship, FocusTags.Information }.ToList(),
+        MomentumReducingFocuses = new[] { FocusTags.Physical, FocusTags.Resource }.ToList(),
+
+        EncounterNarrativeTags =
+        [
+            NarrativeTagRepository.ColdCalculation,
+            NarrativeTagRepository.Overthinking
+        ],
+
+        encounterStrategicTags =
+        [
+            new StrategicTag("Forest Light", Illumination.Bright),
+            new StrategicTag("Ancient Knowledge", Population.Isolated),
+            new StrategicTag("Sacred Ground", Atmosphere.Formal),
+            new StrategicTag("Wilderness Wisdom", Economic.Humble)
+        ]
+    };
+
     private static EncounterTemplate BanditEncounter => new EncounterTemplate()
     {
         Name = "Bandit",
