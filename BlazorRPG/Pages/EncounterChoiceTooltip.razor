@@ -3,13 +3,6 @@
     <div class="preview-header">
         <h4>
             @hoveredChoice.Description
-            @if (hoveredChoice.Choice is ChoiceCard cardChoiceTier)
-            {
-                <span class="tier-badge tier-@((int)cardChoiceTier.Tier)">
-                    @GetTierName(cardChoiceTier.Tier)
-                </span>
-            }
-
         </h4>
         <div class="choice-narrative">@GetChoiceDescription(@hoveredChoice)</div>
     </div>
@@ -50,8 +43,15 @@
 
     <div class="tooltip-section">
         <h5>Effect</h5>
+        <div>
+            @if (hoveredChoice.Choice is ChoiceCard cardChoiceTier)
+            {
+                <span class="tier-badge tier-@((int)cardChoiceTier.Tier)">
+                    @GetTierName(cardChoiceTier.Tier)
+                </span>
+            }
+        </div>
         <div class="tooltip-list">
-            
             @if (Preview.HealthChange != 0)
             {
                 <div class="tooltip-item">
