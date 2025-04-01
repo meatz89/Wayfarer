@@ -397,7 +397,7 @@ public class WorldEvolutionParser
             { "Gather", ActionNames.VillageGathering },
             { "Travel", ActionNames.DirectForestTravel },
             { "Path", ActionNames.DirectForestTravel },
-            { "Meet", ActionNames.SecretMeeting },
+            { "Meet", ActionNames.ScenicForestTravel },
             { "Deal", ActionNames.ScenicForestTravel },
             { "Bargain", ActionNames.ScenicForestTravel },
             { "Rest", ActionNames.RentRoom },
