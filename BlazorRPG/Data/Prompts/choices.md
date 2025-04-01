@@ -12,8 +12,8 @@
 - Dangerous Approaches: {DANGEROUS_APPROACHES}
 
 ## Strategic Encounter Information
-- Favorable Approaches: {FAVORABLE_APPROACHES}
 - Active Narrative Tags: {ACTIVE_TAGS}
+
 ## Current Situation
 - Character Goal: {CHARACTER_GOAL}
 - Character State: {INJURIES/RESOURCES/CONDITION}

@@ -114,38 +114,49 @@
         switch (affinity)
         {
             case AffinityTypes.Unnatural:
-            case AffinityTypes.Dangerous:
-
-                if (pressureHealthDamage != 0)
-                {
-                    projection.HealthChange = pressureHealthDamage;
-                    projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = "Pressure health damage",
-                        Value = pressureHealthDamage
-                    });
-                }
-
-                if (pressureConcentrationDamage != 0)
-                {
-                    projection.ConcentrationChange = pressureConcentrationDamage;
-                    projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = "Pressure concentration damage",
-                        Value = pressureConcentrationDamage
-                    });
-                }
-
-                if (pressureConfidenceDamage != 0)
-                {
-                    projection.ConfidenceChange = pressureConfidenceDamage;
-                    projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = "Pressure confidence damage",
-                        Value = pressureConfidenceDamage
-                    });
-                }
+                pressureHealthDamage = pressureHealthDamage > 1 ?(int)(pressureHealthDamage / 2) : 0;
+                pressureConcentrationDamage = pressureConcentrationDamage > 1 ?(int)(pressureConcentrationDamage / 2) : 0;
+                pressureConfidenceDamage = pressureConfidenceDamage > 1 ?(int)(pressureConfidenceDamage / 2) : 0;
                 break;
+
+            case AffinityTypes.Dangerous:
+                break;
+
+            default:
+                pressureHealthDamage = 0;
+                pressureConcentrationDamage = 0;
+                pressureConfidenceDamage = 0;
+            break;
+        }
+
+        if (pressureHealthDamage != 0)
+            {
+            projection.HealthChange = pressureHealthDamage;
+            projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
+            {
+                Source = "Pressure health damage",
+                Value = pressureHealthDamage
+            });
+        }
+
+        if (pressureConcentrationDamage != 0)
+        {
+            projection.ConcentrationChange = pressureConcentrationDamage;
+            projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
+            {
+                Source = "Pressure concentration damage",
+                Value = pressureConcentrationDamage
+            });
+        }
+
+        if (pressureConfidenceDamage != 0)
+        {
+            projection.ConfidenceChange = pressureConfidenceDamage;
+            projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
+            {
+                Source = "Pressure confidence damage",
+                Value = pressureConfidenceDamage
+            });
         }
     }
 
@@ -247,7 +258,6 @@
         }
 
         // Pressure Reduction Choice
-
         if (choice.EffectType == EffectTypes.Pressure)
         {
             int basePressure = -choice.BaseEffectValue;
@@ -259,23 +269,34 @@
             pressureChange += basePressure;
 
         }
-        // Existing location-based checks
-        if (encounterInfo.MomentumBoostApproaches.Contains(choice.Approach))
+
+        if (encounterInfo.PressureReducingFocuses.Contains(choice.Focus))
         {
-            int favoredBonus = 2;
+            int favoredBonus = -2;
             projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
             {
-                Source = "Favored Location Approach",
+                Source = "Favored Focus at Location",
                 Value = favoredBonus
             });
-            momentumChange += favoredBonus;
+            pressureChange += favoredBonus;
+        }
+
+        if (encounterInfo.MomentumReducingFocuses.Contains(choice.Focus))
+        {
+            int disfavoredBonus = -2;
+            projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
+            {
+                Source = "Disfavored Focus at Location",
+                Value = disfavoredBonus
+            });
+            momentumChange += disfavoredBonus;
         }
 
         AffinityTypes affinity = playerState.GetApproachAffinity(choice.Approach, encounterInfo.Type);
         switch (affinity)
         {
             case AffinityTypes.Natural:
-                int naturalBonus = 1;
+                int naturalBonus = 2;
                 projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
                 {
                     Source = "Natural Archetype Approach",

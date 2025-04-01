@@ -62,7 +62,6 @@
             StandardThreshold = model.StandardThreshold,
             ExceptionalThreshold = model.ExceptionalThreshold,
             Hostility = ParseHostility(model.Hostility),
-            MomentumBoostApproaches = model.MomentumBoostApproaches.Select(ParseApproachTag).ToList(),
             PressureReducingFocuses = model.PressureReducingFocuses.Select(ParseFocusTag).ToList(),
             MomentumReducingFocuses = model.MomentumReducingFocuses.Select(ParseFocusTag).ToList(),
             encounterStrategicTags = model.StrategicTags.Select(t =>
@@ -70,7 +69,7 @@
                     t.Name,
                     ParseEnvironmentalProperty(t.EnvironmentalProperty))
             ).ToList(),
-            encounterNarrativeTags = model.NarrativeTags.Select(GetNarrativeTag).ToList()
+            EncounterNarrativeTags = model.NarrativeTags.Select(GetNarrativeTag).ToList()
         };
 
         return template;

@@ -30,12 +30,10 @@
 
         Hostility = EncounterInfo.HostilityLevels.Friendly,
 
-        MomentumBoostApproaches = new[] { ApproachTags.Rapport, ApproachTags.Analysis }.ToList(),
-
         PressureReducingFocuses = new[] { FocusTags.Relationship, FocusTags.Information }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Resource }.ToList(),
 
-        encounterNarrativeTags =
+        EncounterNarrativeTags =
         [
             NarrativeTagRepository.IntimidatingPresence,
             NarrativeTagRepository.SocialAwkwardness
@@ -61,12 +59,10 @@
 
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
-        MomentumBoostApproaches = new[] { ApproachTags.Rapport }.ToList(),
-
         PressureReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Resource }.ToList(),
 
-        encounterNarrativeTags =
+        EncounterNarrativeTags =
         [
             NarrativeTagRepository.ShadowVeil,
             NarrativeTagRepository.IntimidatingPresence
@@ -93,12 +89,10 @@
 
         Hostility = EncounterInfo.HostilityLevels.Hostile,
 
-        MomentumBoostApproaches = new[] { ApproachTags.Analysis, ApproachTags.Dominance }.ToList(),
-
         PressureReducingFocuses = new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
 
-        encounterNarrativeTags =
+        EncounterNarrativeTags =
         [
             NarrativeTagRepository.TunnelVision,
             NarrativeTagRepository.HesitantPoliteness,
@@ -125,12 +119,10 @@
 
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
-        MomentumBoostApproaches = new[] { ApproachTags.Analysis }.ToList(),
-
         PressureReducingFocuses = new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
 
-        encounterNarrativeTags =
+        EncounterNarrativeTags =
         [
             NarrativeTagRepository.HesitantPoliteness,
             NarrativeTagRepository.PublicAwareness
@@ -156,12 +148,10 @@
 
         Hostility = EncounterInfo.HostilityLevels.Friendly,
 
-        MomentumBoostApproaches = new[] { ApproachTags.Analysis }.ToList(),
-
         PressureReducingFocuses = new[] { FocusTags.Information, FocusTags.Environment }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
 
-        encounterNarrativeTags =
+        EncounterNarrativeTags =
         [
             NarrativeTagRepository.DetailFixation,
             NarrativeTagRepository.Overthinking
@@ -189,12 +179,10 @@
 
         Hostility = EncounterInfo.HostilityLevels.Friendly,
 
-        MomentumBoostApproaches = new[] { ApproachTags.Rapport }.ToList(),
-
         PressureReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Information, FocusTags.Physical }.ToList(),
 
-        encounterNarrativeTags =
+        EncounterNarrativeTags =
         [
             NarrativeTagRepository.ColdCalculation,
             NarrativeTagRepository.IntimidatingPresence
@@ -220,12 +208,10 @@
 
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
-        MomentumBoostApproaches = new[] { ApproachTags.Dominance, ApproachTags.Analysis }.ToList(),
-
         PressureReducingFocuses = new[] { FocusTags.Resource, FocusTags.Environment }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Physical, FocusTags.Relationship }.ToList(),
 
-        encounterNarrativeTags =
+        EncounterNarrativeTags =
         [
             NarrativeTagRepository.SuperficialCharm,
             NarrativeTagRepository.ParanoidMindset
@@ -251,12 +237,10 @@
 
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
-        MomentumBoostApproaches = new[] { ApproachTags.Analysis }.ToList(),
-
         PressureReducingFocuses = new[] { FocusTags.Environment }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
 
-        encounterNarrativeTags =
+        EncounterNarrativeTags =
         [
             NarrativeTagRepository.ParanoidMindset,
             NarrativeTagRepository.DetailFixation
@@ -282,12 +266,10 @@
 
         Hostility = EncounterInfo.HostilityLevels.Friendly,
 
-        MomentumBoostApproaches = new[] { ApproachTags.Analysis }.ToList(),
-
         PressureReducingFocuses = new[] { FocusTags.Information }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Relationship, FocusTags.Physical }.ToList(),
 
-        encounterNarrativeTags =
+        EncounterNarrativeTags =
         [
             NarrativeTagRepository.Overthinking,
             NarrativeTagRepository.DetailFixation
@@ -313,12 +295,10 @@
 
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
-        MomentumBoostApproaches = new[] { ApproachTags.Rapport, ApproachTags.Dominance }.ToList(),
-
         PressureReducingFocuses = new[] { FocusTags.Relationship, FocusTags.Resource }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Environment, FocusTags.Physical }.ToList(),
 
-        encounterNarrativeTags =
+        EncounterNarrativeTags =
         [
             NarrativeTagRepository.ColdCalculation,
             NarrativeTagRepository.ShadowVeil
@@ -345,12 +325,10 @@
 
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
-        MomentumBoostApproaches = new[] { ApproachTags.Rapport, ApproachTags.Analysis }.ToList(),
-
         PressureReducingFocuses = new[] { FocusTags.Relationship, FocusTags.Resource }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),
 
-        encounterNarrativeTags =
+        EncounterNarrativeTags =
         [
             NarrativeTagRepository.SuperficialCharm,
             NarrativeTagRepository.ColdCalculation

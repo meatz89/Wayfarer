@@ -734,3 +734,33 @@ body {
     .tier-badge.tier-5 {
         background-color: #ff8000;
     }
+
+.affinity-badge
+{
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    margin-left: 8px;
+}
+
+.natural-affinity {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.unnatural-affinity {
+    background-color: #FFC107;
+    color: black;
+}
+
+.dangerous-affinity {
+    background-color: #F44336;
+    color: white;
+}
+
+.neutral-affinity {
+    background-color: #9E9E9E;
+    color: white;
+}
+    }

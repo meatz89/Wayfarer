@@ -12,7 +12,6 @@
         EncounterInfo encounterInfo = new EncounterInfo(
             locationName,
             locationSpot,
-            template.MomentumBoostApproaches,
             template.PressureReducingFocuses,
             template.MomentumReducingFocuses,
             template.Duration,
@@ -24,7 +23,7 @@
         // Difficulty level 2 (adds +2 pressure per turn)
         encounterInfo.SetDifficulty(2);
 
-        foreach (NarrativeTag narrativeTag in template.encounterNarrativeTags)
+        foreach (NarrativeTag narrativeTag in template.EncounterNarrativeTags)
         {
             encounterInfo.AddTag(narrativeTag);
         }
