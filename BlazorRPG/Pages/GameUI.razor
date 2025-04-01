@@ -1,45 +1,6 @@
 ﻿@page "/"
 @inherits ComponentBase
 
-<div class="top-bar">
-    <div class="time-display">
-        @CurrentHour:00
-        @CurrentTime @GetIconForTimeWindow(@GameState.WorldState.WorldTime)
-    </div>
-
-    <div class="energy-meters">
-        <div class="energy-meter">
-            <div class="meter-bar">
-                <div class="meter-fill physical" style="width: @(energyCurrent * 100 / energyMax)%"></div>
-            </div>
-            <span>Energy (@energyCurrent/@energyMax)</span>
-        </div>
-    </div>
-
-    <div class="resources">
-        <div class="resource coins">
-            <span class="resource-icon">🪙</span>
-            <span class="resource-value">@coins</span>
-            <span class="resource-label">Coins</span>
-        </div>
-        <div class="resource health">
-            <span class="resource-icon">❤️</span>
-            <span class="resource-value">@health/@maxHealth</span>
-            <span class="resource-label">Health</span>
-        </div>
-        <div class="resource confidence">
-            <span class="resource-icon">🚀</span>
-            <span class="resource-value">@confidence/@maxConfidence</span>
-            <span class="resource-label">Confidence</span>
-        </div>
-        <div class="resource concentration">
-            <span class="resource-icon">🎯</span>
-            <span class="resource-value">@concentration/@maxConcentration</span>
-            <span class="resource-label">Concentration</span>
-        </div>
-    </div>
-</div>
-
 <div class="game-container">
     <div class="map-container">
         <div class="map-toggle">
@@ -98,9 +59,14 @@
 
     <div class="sidebar">
         <div class="sidebar-panel location-panel">
-        <div class="location-name">
-                @GetCurrentLocation().Name
-        </div>
+            <div class="location-name">
+                    @GetCurrentLocation().Name
+            </div>
+
+            <div class="time-display">
+                @CurrentHour:00
+                @CurrentTime @GetIconForTimeWindow(@GameState.WorldState.WorldTime)
+            </div>
 
             <div class="location-properties">
                 <div class="properties-header">Properties</div>

@@ -120,6 +120,7 @@
         // Return the narrative result
         return new NarrativeResult(
             introduction,
+            actionImplementation.Goal,
             choices,
             projections,
             choiceDescriptions,
