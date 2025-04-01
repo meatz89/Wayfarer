@@ -13,6 +13,7 @@
              .WithPopulation(Population.Isolated)
              .WithPhysical(Physical.Hazardous)
              .AddAction(ActionNames.DirectForestTravel))
+
          .AddLocationSpot(spot => spot
              .WithName("Scenic Route")
              .WithDescription("A winding trail that takes longer but avoids the most dangerous areas.")
@@ -21,14 +22,7 @@
              .WithPopulation(Population.Quiet)
              .WithPhysical(Physical.Expansive)
              .AddAction(ActionNames.ScenicForestTravel))
-         .AddLocationSpot(spot => spot
-             .WithName("Hidden Clearing")
-             .WithDescription("A secluded open space surrounded by dense foliage.")
-             .WithIllumination(Illumination.Bright)
-             .WithAtmosphere(Atmosphere.Tense)
-             .WithPopulation(Population.Isolated)
-             .WithPhysical(Physical.Expansive)
-             .AddAction(ActionNames.SecretMeeting))
+
          .WithPlayerKnowledge(true)
          .AddTravelConnection(LocationNames.Village)
          .Build();

@@ -7,10 +7,9 @@ public enum ActionNames
 
     // Forest actions
     DirectForestTravel,
-    SecretMeeting,
+    ScenicForestTravel,
 
     // Tavern actions
-    ScenicForestTravel,
     RentRoom,
     FindQuests,
 }
