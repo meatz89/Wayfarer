@@ -7,7 +7,6 @@ public class EncounterInfo
     public string LocationSpotName { get; set; }
     public List<FocusTags> PressureReducingFocuses { get; } = new List<FocusTags>();
     public List<FocusTags> MomentumReducingFocuses { get; } = new List<FocusTags>();
-    public List<ApproachTags> MomentumBoostApproaches { get; } = new List<ApproachTags>();
     public List<IEncounterTag> AvailableTags { get; } = new List<IEncounterTag>();
 
     // Success thresholds
@@ -30,7 +29,6 @@ public class EncounterInfo
     public EncounterInfo(
         string locationName,
         string locationSpot,
-        List<ApproachTags> favoreApproaches,
         List<FocusTags> PressureReducingFocuses,
         List<FocusTags> MomentumReducingFocuses,
         int duration,
@@ -44,7 +42,6 @@ public class EncounterInfo
         this.Name = locationName;
         this.LocationSpotName = locationSpot;
 
-        this.MomentumBoostApproaches = favoreApproaches;
         this.PressureReducingFocuses = PressureReducingFocuses;
         this.MomentumReducingFocuses = MomentumReducingFocuses;
 

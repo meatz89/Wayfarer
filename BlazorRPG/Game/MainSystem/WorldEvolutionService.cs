@@ -269,10 +269,9 @@
             StandardThreshold = 14,
             ExceptionalThreshold = 18,
             Hostility = EncounterInfo.HostilityLevels.Neutral,
-            MomentumBoostApproaches = new List<ApproachTags>(),
             PressureReducingFocuses = new List<FocusTags>(),
             MomentumReducingFocuses = new List<FocusTags>(),
-            encounterNarrativeTags = new List<NarrativeTag>(),
+            EncounterNarrativeTags = new List<NarrativeTag>(),
             encounterStrategicTags = new List<StrategicTag>()
         };
 
@@ -280,42 +279,37 @@
         switch (actionType)
         {
             case BasicActionTypes.Discuss:
-                template.MomentumBoostApproaches.AddRange(new[] { ApproachTags.Rapport, ApproachTags.Analysis });
                 template.PressureReducingFocuses.AddRange(new[] { FocusTags.Relationship, FocusTags.Information });
                 template.MomentumReducingFocuses.Add(FocusTags.Physical);
-                template.encounterNarrativeTags.AddRange(new[]
+                template.EncounterNarrativeTags.AddRange(new[]
                     { NarrativeTagRepository.ColdCalculation, NarrativeTagRepository.IntimidatingPresence });
                 break;
 
             case BasicActionTypes.Persuade:
-                template.MomentumBoostApproaches.AddRange(new[] { ApproachTags.Rapport, ApproachTags.Dominance });
                 template.PressureReducingFocuses.AddRange(new[] { FocusTags.Relationship, FocusTags.Resource });
                 template.MomentumReducingFocuses.Add(FocusTags.Environment);
-                template.encounterNarrativeTags.AddRange(new[]
+                template.EncounterNarrativeTags.AddRange(new[]
                     { NarrativeTagRepository.SuperficialCharm, NarrativeTagRepository.DetailFixation });
                 break;
 
             case BasicActionTypes.Travel:
-                template.MomentumBoostApproaches.AddRange(new[] { ApproachTags.Analysis, ApproachTags.Precision });
                 template.PressureReducingFocuses.AddRange(new[] { FocusTags.Environment, FocusTags.Physical });
                 template.MomentumReducingFocuses.Add(FocusTags.Relationship);
-                template.encounterNarrativeTags.AddRange(new[]
+                template.EncounterNarrativeTags.AddRange(new[]
                     { NarrativeTagRepository.TunnelVision, NarrativeTagRepository.ParanoidMindset });
                 break;
 
             case BasicActionTypes.Rest:
-                template.MomentumBoostApproaches.Add(ApproachTags.Analysis);
                 template.PressureReducingFocuses.Add(FocusTags.Environment);
                 template.MomentumReducingFocuses.Add(FocusTags.Relationship);
-                template.encounterNarrativeTags.AddRange(new[]
+                template.EncounterNarrativeTags.AddRange(new[]
                     { NarrativeTagRepository.ParanoidMindset, NarrativeTagRepository.DetailFixation });
                 break;
 
             case BasicActionTypes.Investigate:
-                template.MomentumBoostApproaches.Add(ApproachTags.Analysis);
                 template.PressureReducingFocuses.Add(FocusTags.Information);
                 template.MomentumReducingFocuses.AddRange(new[] { FocusTags.Relationship, FocusTags.Physical });
-                template.encounterNarrativeTags.AddRange(new[]
+                template.EncounterNarrativeTags.AddRange(new[]
                     { NarrativeTagRepository.Overthinking, NarrativeTagRepository.DetailFixation });
                 break;
         }
