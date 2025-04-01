@@ -6,4 +6,5 @@
     public string Goal { get; set; }
     public string Complication { get; set; }
     public string ActionType { get; set; }
+    public string LocationName { get; internal set; }
 }

@@ -18,7 +18,7 @@
             .WithActionType(BasicActionTypes.Travel)
             .StartsEncounter("Bandit")
             .Build());
-            
+
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName(ActionNames.ScenicForestTravel)
             .WithGoal("travel through the forest by a safer but longer route")
@@ -26,7 +26,7 @@
             .WithActionType(BasicActionTypes.Travel)
             .StartsEncounter("HermitEncounter")
             .Build());
-            
+
         return actionTemplates;
     }
 }

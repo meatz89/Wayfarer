@@ -1,52 +1,44 @@
 ﻿# WORLD EVOLUTION
 
-Determine how the world should evolve in response to the player's choices and actions.
+After analyzing the full encounter narrative, determine how the world should evolve based on the outcome.
 
-## Context
-- Character Background: {characterBackground}
+## Character Context
 - Current location: {currentLocation}
 - Known locations: {knownLocations}
 - Known characters: {knownCharacters}
 - Active opportunities: {activeOpportunities}
-- Encounter Outcome: {encounterOutcome} (Success/Partial/Failure)
+- Encounter outcome: {encounterOutcome} (Success/Partial/Failure)
 
-## Guidelines
-1. Identify player interests during this conversation
-2. Apply "Purpose or Perish" - only include elements with clear purpose
-3. Character names must be SIMPLE FIRST NAMES ONLY
-4. Action types must be standardized (Discuss, Travel, Persuade, Rest, Investigate)
-5. Use standard environmental property values
+## Player Location Changes
+- Carefully review the encounter narrative to determine if the player ended at a DIFFERENT LOCATION than where they started
+- If player moved to a new location, specify this location name in your response
+- If this new location does not exist in the known locations list, you MUST create it with spots and actions
 
-## Coin Changes
-- If the narrative mentioned the player gaining or losing coins, specify the amount
-- Use positive values for coins gained (e.g., 10 for finding 10 coins)
-- Use negative values for coins spent/lost (e.g., -5 for paying 5 coins)
-- Only include this if coins were explicitly mentioned in the narrative
+## Resource Changes
+- Extract ANY mention of coin transactions (gains or losses)
+- Note inventory items ADDED during the encounter
+- Note inventory items REMOVED or USED during the encounter
+- Only include resources explicitly mentioned in the narrative
 
-## World Structure Requirements:
+## World Evolution Focus
+- Extract only the MOST SIGNIFICANT world elements (max 1-2 of each type)
+- Focus on elements that enable FUTURE GAMEPLAY, not decorative details
+- Prioritize elements directly connected to the encounter outcome
+- IF SUCCESS: Create elements that advance the player's goals
+- IF FAILURE: Create alternative paths to achieve similar goals
+
+## World Structure Requirements
 - EVERY new location MUST have at least one spot
 - EVERY new spot MUST have at least one action
 - EVERY action must either provide direct benefit or start an encounter
 - Location → Spot → Action hierarchy must be maintained
-- If encounter failed, create ALTERNATIVE PATHS to same/similar goals
+- New elements must connect logically to existing world elements
 
-## Create (as appropriate):
-- New location spots (0-2) at existing or new locations
-- New actions (0-3) at existing or new spots
-- New characters (0-2) at existing locations
-- New locations (0-1) connected to known locations
-- New opportunities (0-2) linked to existing elements
-
-## For Failed Encounters:
-- Create alternative paths (new actions at different spots/locations)
-- These must offer different approaches to similar goals
-- Should feel like natural world evolution, not artificial second chances
-
-## Format Requirements
-- Character names must be SIMPLE FIRST NAMES ONLY (e.g., "Giles", not "Giles the merchant")
-- Action types must be one of: Discuss, Travel, Persuade, Rest, Investigate
-- All actions must specify a goal and complication
-- Environmental properties must use these exact values:
+## Format Standards
+- Character names: SIMPLE FIRST NAMES ONLY (e.g., "Giles", not "Giles the merchant")
+- Action types: Discuss, Travel, Persuade, Rest, Investigate only
+- All actions require goal and complication fields
+- Environmental properties must use standard values only:
   * Illumination: Bright, Shadowy, Dark
   * Population: Crowded, Quiet, Isolated
   * Atmosphere: Tense, Formal, Chaotic
@@ -55,6 +47,15 @@ Determine how the world should evolve in response to the player's choices and ac
 
 ## Response Format
 {
+  "playerLocationUpdate": {
+    "newLocationName": "Name of location player is now at (if changed)",
+    "locationChanged": true/false
+  },
+  "resourceChanges": {
+    "coinChange": 5,  // Positive for gains, negative for losses
+    "itemsAdded": ["ItemName1", "ItemName2"],  // Items added to inventory
+    "itemsRemoved": ["ItemName3"]  // Items removed from inventory
+  },
   "newLocationSpots": [
     {
       "name": "Spot name",
@@ -76,7 +77,7 @@ Determine how the world should evolve in response to the player's choices and ac
     {
       "spotName": "Name of existing spot this action belongs to",
       "locationName": "Name of the location containing this spot",
-      "name": "SecretMeeting",
+      "name": "ActionName",
       "description": "What this action involves",
       "goal": "The player's goal in this action",
       "complication": "What makes this challenging",
@@ -104,7 +105,7 @@ Determine how the world should evolve in response to the player's choices and ac
           "interactionType": "Character/Shop/Feature/Service",
           "actions": [
             {
-              "name": "VillageGathering",
+              "name": "ActionName",
               "description": "What this action involves",
               "goal": "The player's goal in this action",
               "complication": "What makes this challenging",
@@ -123,6 +124,5 @@ Determine how the world should evolve in response to the player's choices and ac
       "location": "Name of existing location where it takes place",
       "relatedCharacter": "Name of existing character involved"
     }
-  ],
-  "coinChange": 0  // Positive for coins gained, negative for coins spent/lost
+  ]
 }
