@@ -6,11 +6,14 @@
 - Pressure: {CURRENT_PRESSURE}/{MAX_PRESSURE}
 - Resources: Health {CURRENT_HEALTH}, Confidence {CURRENT_CONFIDENCE}, Concentration {CURRENT_CONCENTRATION}
 
-## Strategic Information
-- Favorable Approaches: {FAVORABLE_APPROACHES}
+## Player Character Context
+- Archetype: {CHARACTER_ARCHETYPE}
+- Natural Approaches: {NATURAL_APPROACHES}
 - Dangerous Approaches: {DANGEROUS_APPROACHES}
-- Active Narrative Tags: {ACTIVE_TAGS}
 
+## Strategic Encounter Information
+- Favorable Approaches: {FAVORABLE_APPROACHES}
+- Active Narrative Tags: {ACTIVE_TAGS}
 ## Current Situation
 - Character Goal: {CHARACTER_GOAL}
 - Character State: {INJURIES/RESOURCES/CONDITION}
@@ -31,6 +34,8 @@ For each choice, create:
    - Include what the character THINKS might happen, not what will happen
    - Avoid definitive statements about NPC reactions or consequences
    - Use language like "might," "could," "hope to," or "attempt to"
+   - For natural archetype approaches: Write with greater confidence and comfort
+   - For dangerous archetype approaches: Express hesitation or discomfort
 
 3. Other requirements:
    - Each choice must reflect its approach and focus combination

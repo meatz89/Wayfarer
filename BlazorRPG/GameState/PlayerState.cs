@@ -8,7 +8,7 @@ public class PlayerState
 
     // Archetype
     public ArchetypeTypes Archetype { get; set; }
-    private ArchetypeConfig ArchetypeConfig { get; set; }
+    public ArchetypeConfig ArchetypeConfig { get; set; }
 
     // Progression systems
     public int Level { get; set; }
@@ -104,6 +104,28 @@ public class PlayerState
             default:
                 throw new ArgumentOutOfRangeException(nameof(archetype));
         }
+    }
+
+    public List<ApproachTags> GetNaturalApproaches(EncounterTypes encounterType)
+    {
+        return ArchetypeConfig.GetApproachesWithAffinity(AffinityTypes.Natural, encounterType);
+    }
+
+    public List<ApproachTags> GetDangerousApproaches(EncounterTypes encounterType)
+    {
+        return ArchetypeConfig.GetApproachesWithAffinity(AffinityTypes.Dangerous, encounterType);
+    }
+
+    public string GetNaturalApproachesText(EncounterTypes encounterType)
+    {
+        List<ApproachTags> approaches = GetNaturalApproaches(encounterType);
+        return string.Join(", ", approaches);
+    }
+
+    public string GetDangerousApproachesText(EncounterTypes encounterType)
+    {
+        List<ApproachTags> approaches = GetDangerousApproaches(encounterType);
+        return string.Join(", ", approaches);
     }
 
     public AffinityTypes GetApproachAffinity(ApproachTags approach, EncounterTypes encounterType)

@@ -22,11 +22,13 @@ public class EncounterStatusModel
     public Dictionary<ApproachTags, int> ApproachTags { get; }
     public Dictionary<FocusTags, int> FocusTags { get; }
     public List<string> ActiveTagNames { get; }
+    public PlayerState PlayerState { get; }
 
     // Added properties
     public List<IEncounterTag> ActiveTags { get; }
     public EncounterInfo EncounterInfo { get; }
     public EncounterTypes EncounterType => EncounterInfo?.Type ?? EncounterTypes.Physical;
+
 
     public EncounterStatusModel(
         int currentTurn,
@@ -44,7 +46,8 @@ public class EncounterStatusModel
         int maxConfidence,
         Dictionary<ApproachTags, int> approachTags,
         Dictionary<FocusTags, int> focusTags,
-        List<string> activeTagNames)
+        List<string> activeTagNames,
+        PlayerState playerState)
     {
         CurrentTurn = currentTurn;
 
@@ -64,6 +67,7 @@ public class EncounterStatusModel
         ApproachTags = approachTags;
         FocusTags = focusTags;
         ActiveTagNames = activeTagNames;
+        PlayerState = playerState;
 
         // Initialize empty collections for the added properties
         ActiveTags = new List<IEncounterTag>();

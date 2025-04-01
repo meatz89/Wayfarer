@@ -4,7 +4,7 @@
     public ApproachTags PrimaryApproach { get; private set; }
 
     // Fixed-size array of affinities for all approach contexts
-    private AffinityTypes[] AffinityValues;
+    public AffinityTypes[] AffinityValues;
 
     // Static factory method for Warrior archetype
     public static ArchetypeConfig CreateWarrior()
@@ -155,9 +155,33 @@
         return AffinityValues[(int)context];
     }
 
+    public List<ApproachTags> GetApproachesWithAffinity(AffinityTypes affinity, EncounterTypes encounterType)
+    {
+        List<ApproachTags> approaches = new List<ApproachTags>();
+
+        // Check each approach type
+        foreach (ApproachTags approach in Enum.GetValues(typeof(ApproachTags)))
+        {
+            if (IsApproachTag(approach) && GetAffinity(approach, encounterType) == affinity)
+            {
+                approaches.Add(approach);
+            }
+        }
+
+        return approaches;
+    }
+
+    private bool IsApproachTag(ApproachTags tag)
+    {
+        return tag == ApproachTags.Dominance ||
+               tag == ApproachTags.Rapport ||
+               tag == ApproachTags.Analysis ||
+               tag == ApproachTags.Precision ||
+               tag == ApproachTags.Evasion;
+    }
+
     private ApproachContexts ConvertToApproachContext(ApproachTags approach, EncounterTypes encounterType)
     {
-        // Convert approach and encounter type to the appropriate enum value
         switch (approach)
         {
             case ApproachTags.Dominance:
