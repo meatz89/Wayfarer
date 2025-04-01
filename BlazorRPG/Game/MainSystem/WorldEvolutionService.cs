@@ -25,52 +25,42 @@
         string response = await _narrativeService.ProcessMemoryConsolidation(context, input);
         return response;
     }
-    public void IntegrateWorldEvolution(
-    WorldEvolutionResponse evolution,
-    WorldState worldState,
-    LocationSystem locationSystem,
-    PlayerState playerState) 
-    {
-        // Add new location spots to current location
-        string locationName = worldState.CurrentLocation?.Name;
-        if (locationName != null)
-        {
-            foreach (LocationSpot spot in evolution.NewLocationSpots)
-            {
-                // Ensure the spot has at least one action
-                EnsureSpotHasActions(spot, spot.Name, worldState.CurrentLocation);
 
-                locationSystem.AddSpot(locationName, spot);
-            }
+    public void IntegrateWorldEvolution(
+        WorldEvolutionResponse evolution,
+        WorldState worldState,
+        LocationSystem locationSystem,
+        PlayerState playerState)
+    {
+        // Process coin change
+        if (evolution.CoinChange != 0)
+        {
+            playerState.ModifyCoins(evolution.CoinChange);
         }
 
-        // Add new actions to existing spots
-        foreach (NewAction newAction in evolution.NewActions)
+        // Process inventory changes
+        if (evolution.ResourceChanges != null)
         {
-            if (worldState.CurrentLocation != null && worldState.CurrentLocation.Spots != null)
+            // Add items to inventory
+            foreach (string itemName in evolution.ResourceChanges.ItemsAdded)
             {
-                LocationSpot? spotToUpdate = worldState.CurrentLocation.Spots.FirstOrDefault(s => s.Name == newAction.SpotName);
-                if (spotToUpdate != null)
+                if (Enum.TryParse<ItemTypes>(itemName.Replace(" ", ""), true, out ItemTypes itemType))
                 {
-                    if (spotToUpdate.ActionTemplates == null)
-                        spotToUpdate.ActionTemplates = new List<string>();
+                    playerState.Inventory.AddItem(itemType);
+                }
+            }
 
-                    // Process the action and get a proper implementation
-                    string action = CreateSingleAction(
-                        newAction.Name,
-                        newAction.Description,
-                        spotToUpdate.Name,
-                        worldState.CurrentLocation,
-                        newAction.Goal,
-                        newAction.Complication,
-                        newAction.ActionType);
-
-                    spotToUpdate.ActionTemplates.Add(action);
+            // Remove items from inventory
+            foreach (string itemName in evolution.ResourceChanges.ItemsRemoved)
+            {
+                if (Enum.TryParse<ItemTypes>(itemName.Replace(" ", ""), true, out ItemTypes itemType))
+                {
+                    playerState.Inventory.RemoveItem(itemType);
                 }
             }
         }
 
-        // Add new locations
+        // Process new locations first (may be needed for player location change)
         foreach (Location location in evolution.NewLocations)
         {
             // Ensure each location has at least one spot
@@ -91,7 +81,67 @@
                     EnsureSpotHasActions(spot, spot.Name, location);
                 }
             }
+
             worldState.AddLocations(new List<Location> { location });
+        }
+
+        // Add new location spots to current location
+        string currentLocationName = worldState.CurrentLocation?.Name;
+        if (currentLocationName != null)
+        {
+            foreach (LocationSpot spot in evolution.NewLocationSpots.Where(s =>
+                string.IsNullOrEmpty(s.LocationName) ||
+                s.LocationName.Equals(currentLocationName, StringComparison.OrdinalIgnoreCase)))
+            {
+                // Ensure the spot has at least one action
+                EnsureSpotHasActions(spot, spot.Name, worldState.CurrentLocation);
+                locationSystem.AddSpot(currentLocationName, spot);
+            }
+
+            // Handle spots for other existing locations
+            IEnumerable<LocationSpot> spotsForOtherLocations = evolution.NewLocationSpots.Where(s =>
+                !string.IsNullOrEmpty(s.LocationName) &&
+                !s.LocationName.Equals(currentLocationName, StringComparison.OrdinalIgnoreCase));
+
+            foreach (LocationSpot spot in spotsForOtherLocations)
+            {
+                Location? targetLocation = worldState.GetLocation(spot.LocationName);
+                if (targetLocation != null)
+                {
+                    // Ensure the spot has at least one action
+                    EnsureSpotHasActions(spot, spot.Name, targetLocation);
+                    locationSystem.AddSpot(spot.LocationName, spot);
+                }
+            }
+        }
+
+        // Add new actions to existing spots
+        foreach (NewAction newAction in evolution.NewActions)
+        {
+            Location? targetLocation = worldState.GetLocation(newAction.LocationName);
+            if (targetLocation != null && targetLocation.Spots != null)
+            {
+                LocationSpot? spotToUpdate = targetLocation.Spots.FirstOrDefault(s =>
+                    s.Name.Equals(newAction.SpotName, StringComparison.OrdinalIgnoreCase));
+
+                if (spotToUpdate != null)
+                {
+                    if (spotToUpdate.ActionTemplates == null)
+                        spotToUpdate.ActionTemplates = new List<string>();
+
+                    // Process the action and get a proper implementation
+                    string action = CreateSingleAction(
+                        newAction.Name,
+                        newAction.Description,
+                        spotToUpdate.Name,
+                        targetLocation,
+                        newAction.Goal,
+                        newAction.Complication,
+                        newAction.ActionType);
+
+                    spotToUpdate.ActionTemplates.Add(action);
+                }
+            }
         }
 
         // Add new characters
@@ -100,10 +150,32 @@
         // Add new opportunities
         worldState.AddOpportunities(evolution.NewOpportunities);
 
-        // Apply coin change to player state
-        if (evolution.CoinChange != 0)
+        // Process player location change (must be done last after all locations are set up)
+        if (evolution.LocationUpdate.LocationChanged && !string.IsNullOrEmpty(evolution.LocationUpdate.NewLocationName))
         {
-            playerState.ModifyCoins(evolution.CoinChange);
+            // Find the location (should exist now after processing new locations)
+            Location? newPlayerLocation = worldState.GetLocation(evolution.LocationUpdate.NewLocationName);
+            if (newPlayerLocation != null)
+            {
+                worldState.SetCurrentLocation(newPlayerLocation);
+                // Also update player's knowledge of this location
+                playerState.AddLocationKnowledge(evolution.LocationUpdate.NewLocationName);
+            }
+            else
+            {
+                // If location doesn't exist, create a minimal one with a default spot and action
+                Location newLocation = new Location
+                {
+                    Name = evolution.LocationUpdate.NewLocationName,
+                    Description = $"A location the player traveled to during an encounter.",
+                    Spots = new List<LocationSpot> { CreateDefaultSpot(evolution.LocationUpdate.NewLocationName) },
+                    ConnectedTo = new List<string> { worldState.CurrentLocation?.Name ?? string.Empty }
+                };
+
+                worldState.AddLocations(new List<Location> { newLocation });
+                worldState.SetCurrentLocation(newLocation);
+                playerState.AddLocationKnowledge(evolution.LocationUpdate.NewLocationName);
+            }
         }
     }
 

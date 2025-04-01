@@ -21,6 +21,10 @@ public class WorldEvolutionParser
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
+            // Process player location update and resource changes
+            ProcessPlayerLocationUpdate(root, result);
+            ProcessResourceChanges(root, result);
+
             // Process each entity type separately
             ProcessLocationSpots(root, result);
             ProcessNewActions(root, result);
@@ -42,6 +46,73 @@ public class WorldEvolutionParser
     }
 
     #region Entity Processing Methods
+
+    private void ProcessPlayerLocationUpdate(JsonElement root, WorldEvolutionResponse result)
+    {
+        if (root.TryGetProperty("playerLocationUpdate", out JsonElement locationUpdateElement) &&
+            locationUpdateElement.ValueKind == JsonValueKind.Object)
+        {
+            PlayerLocationUpdate locationUpdate = new PlayerLocationUpdate();
+
+            if (locationUpdateElement.TryGetProperty("newLocationName", out JsonElement newLocationNameElement) &&
+                newLocationNameElement.ValueKind == JsonValueKind.String)
+            {
+                locationUpdate.NewLocationName = newLocationNameElement.GetString() ?? string.Empty;
+            }
+
+            if (locationUpdateElement.TryGetProperty("locationChanged", out JsonElement locationChangedElement) &&
+                locationChangedElement.ValueKind == JsonValueKind.True)
+            {
+                locationUpdate.LocationChanged = true;
+            }
+
+            result.LocationUpdate = locationUpdate;
+        }
+    }
+
+    private void ProcessResourceChanges(JsonElement root, WorldEvolutionResponse result)
+    {
+        if (root.TryGetProperty("resourceChanges", out JsonElement resourceChangesElement) &&
+            resourceChangesElement.ValueKind == JsonValueKind.Object)
+        {
+            ResourceChanges resourceChanges = new ResourceChanges();
+
+            // Process items added
+            ProcessArrayProperty(resourceChangesElement, "itemsAdded", itemElement =>
+            {
+                if (itemElement.ValueKind == JsonValueKind.String)
+                {
+                    string item = itemElement.GetString() ?? string.Empty;
+                    if (!string.IsNullOrWhiteSpace(item))
+                    {
+                        resourceChanges.ItemsAdded.Add(item);
+                    }
+                }
+            });
+
+            // Process items removed
+            ProcessArrayProperty(resourceChangesElement, "itemsRemoved", itemElement =>
+            {
+                if (itemElement.ValueKind == JsonValueKind.String)
+                {
+                    string item = itemElement.GetString() ?? string.Empty;
+                    if (!string.IsNullOrWhiteSpace(item))
+                    {
+                        resourceChanges.ItemsRemoved.Add(item);
+                    }
+                }
+            });
+
+            // Process coin change (also maintain the top-level coinChange for backward compatibility)
+            if (resourceChangesElement.TryGetProperty("coinChange", out JsonElement coinChangeElement) &&
+                coinChangeElement.ValueKind == JsonValueKind.Number)
+            {
+                result.CoinChange = coinChangeElement.GetInt32();
+            }
+
+            result.ResourceChanges = resourceChanges;
+        }
+    }
 
     private void ProcessLocationSpots(JsonElement root, WorldEvolutionResponse result)
     {
@@ -103,6 +174,7 @@ public class WorldEvolutionParser
         });
     }
 
+
     #endregion
 
     #region Entity Parsers
@@ -116,6 +188,7 @@ public class WorldEvolutionParser
                 Name = GetStringProperty(element, "name", "Unnamed Spot"),
                 Description = GetStringProperty(element, "description", "No description available."),
                 InteractionType = GetStringProperty(element, "interactionType", "Feature"),
+                LocationName = GetStringProperty(element, "locationName", ""),
                 ActionTemplates = new List<string>()
             };
 
@@ -146,14 +219,17 @@ public class WorldEvolutionParser
         return SafeParseEntity("new action", () => new NewAction
         {
             SpotName = GetStringProperty(element, "spotName", "Unknown Spot"),
+            LocationName = GetStringProperty(element, "locationName", "Unknown Location"),
             Name = GetStringProperty(element, "name", "Unnamed Action"),
             Description = GetStringProperty(element, "description", "No description available."),
             Goal = GetStringProperty(element, "goal", "Unknown goal"),
             Complication = GetStringProperty(element, "complication", "Unknown complication"),
-            ActionType = GetStringProperty(element, "actionType", "Unkown Action Type")
+            ActionType = GetStringProperty(element, "actionType", "Unknown Action Type")
         });
     }
 
+
+    // Existing parser methods remain unchanged
     private Character ParseCharacter(JsonElement element)
     {
         return SafeParseEntity("character", () => new Character
@@ -246,9 +322,28 @@ public class WorldEvolutionParser
             NewActions = new List<NewAction>(),
             NewCharacters = new List<Character>(),
             NewLocations = new List<Location>(),
-            NewOpportunities = new List<Opportunity>()
+            NewOpportunities = new List<Opportunity>(),
+            LocationUpdate = new PlayerLocationUpdate(),
+            ResourceChanges = new ResourceChanges()
         };
     }
+
+    // Other helper methods remain the same
+
+    private void ProcessCoinChange(JsonElement root, WorldEvolutionResponse result)
+    {
+        if (root.TryGetProperty("coinChange", out JsonElement coinChangeElement) &&
+            coinChangeElement.ValueKind == JsonValueKind.Number)
+        {
+            result.CoinChange = coinChangeElement.GetInt32();
+        }
+    }
+
+    // Existing helper methods remain unchanged
+    #endregion
+
+    #region Helper Methods
+
 
     private void ProcessArrayProperty(JsonElement element, string propertyName, Action<JsonElement> processor)
     {
@@ -323,14 +418,6 @@ public class WorldEvolutionParser
         return defaultValue;
     }
 
-    private void ProcessCoinChange(JsonElement root, WorldEvolutionResponse result)
-    {
-        if (root.TryGetProperty("coinChange", out JsonElement coinChangeElement) &&
-            coinChangeElement.ValueKind == JsonValueKind.Number)
-        {
-            result.CoinChange = coinChangeElement.GetInt32();
-        }
-    }
 
     private void LogError(string message, Exception ex)
     {

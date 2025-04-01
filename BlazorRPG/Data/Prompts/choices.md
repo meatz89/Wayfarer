@@ -37,11 +37,15 @@ For each choice, create:
    - For dangerous archetype approaches: Show hesitation
 
 3. Context requirements:
+   - ALWAYS acknowledge the most immediate situation from the narrative in ALL choices
+   - Each choice must explicitly address or respond to the most recent development
+   - Choices may accept, reject, or sidestep the development, but must acknowledge it
+   - Review the encounter history to ensure narrative continuity with the previous scene
+   - For NPC interactions, show a direct response (even if declining)
+   - For environmental or situational developments, show appropriate awareness
    - HIGH THREAT situations require choices that acknowledge the immediate danger
    - Choices must be PLAUSIBLE within the timeframe available
    - Even intellectual approaches must manifest as QUICK THINKING during urgent situations
-   - INTELLECTUAL actions during physical encounters should focus on split-second assessments
-   - SOCIAL actions during physical encounters should be brief and immediate
 
 4. Approach manifestation:
    - Analysis: Quick calculations, rapid pattern recognition, instant recall

@@ -13,7 +13,7 @@
             HealthRequirement => RequirementTypes.Health,
             FocusRequirement => RequirementTypes.Concentration,
             CoinsRequirement => RequirementTypes.Coins,
-            
+
             InventorySlotsRequirement => RequirementTypes.InventorySlots,
             KnowledgeRequirement knowledgeReq => knowledgeReq.KnowledgeType switch
             {

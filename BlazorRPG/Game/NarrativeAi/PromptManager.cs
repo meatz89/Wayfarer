@@ -157,7 +157,7 @@ public class PromptManager
         }
 
         // Format items with counts
-        foreach (var item in itemCounts)
+        foreach (KeyValuePair<ItemTypes, int> item in itemCounts)
         {
             string itemName = GetItemName(item.Key);
 
