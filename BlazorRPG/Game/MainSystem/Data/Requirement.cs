@@ -19,7 +19,7 @@ public class EnergyRequirement : Requirement
     {
         return EnergyType switch
         {
-            EnergyTypes.Physical => gameState.PlayerState.PhysicalEnergy >= Amount,
+            EnergyTypes.Physical => gameState.PlayerState.Energy >= Amount,
             EnergyTypes.Concentration => gameState.PlayerState.Concentration >= Amount,
             _ => false
         };

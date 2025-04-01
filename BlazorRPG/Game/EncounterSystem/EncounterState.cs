@@ -12,7 +12,6 @@
     public int CurrentTurn { get; private set; }
     public EncounterInfo Location { get; }
     public LocationSpot LocationSpot { get; internal set; }
-    public PlayerState PlayerState { get; }
 
     // Expose tag system through the TagManager
     public BaseTagSystem TagSystem => _tagManager.TagSystem;
@@ -28,12 +27,11 @@
         Pressure = 0;
         CurrentTurn = 0;
         Location = encounterInfo;
-        PlayerState = playerState;
 
         // Initialize managers
         _tagManager = new TagManager();
         _resourceManager = new ResourceManager();
-        _projectionService = new ProjectionService(_tagManager, _resourceManager, encounterInfo);
+        _projectionService = new ProjectionService(_tagManager, _resourceManager, encounterInfo, playerState);
     }
 
     // Forward methods used by IEncounterTag.ApplyEffect and Choice.ApplyChoice

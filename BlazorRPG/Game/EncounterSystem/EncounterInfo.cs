@@ -26,7 +26,7 @@ public class EncounterInfo
     public int Difficulty { get; set; }
 
     // Presentation style for this location
-    public EncounterTypes EncounterType { get; set; }
+    public EncounterTypes Type { get; set; }
 
     public EncounterInfo(
         string locationName,
@@ -57,7 +57,7 @@ public class EncounterInfo
 
         this.TurnDuration = duration;
         this.Hostility = hostility;
-        this.EncounterType = style;
+        this.Type = style;
         this.MaxPressure = maxPressure;
     }
 

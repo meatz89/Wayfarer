@@ -192,7 +192,7 @@ public class CardSelectionAlgorithm
             // 4. Focus Relevance Score (1-3 points)
             int focusRelevanceScore;
 
-            switch (state.Location.EncounterType)
+            switch (state.Location.Type)
             {
                 case EncounterTypes.Physical:
                     if (choice.Focus == FocusTags.Physical)
@@ -742,7 +742,7 @@ public class CardSelectionAlgorithm
     {
         // In hostile encounters, ensure we have non-physical options
         if (state.Location.Hostility == EncounterInfo.HostilityLevels.Hostile &&
-            state.Location.EncounterType == EncounterTypes.Physical)
+            state.Location.Type == EncounterTypes.Physical)
         {
             // Check if we have strategic diversity
             bool hasPhysicalOption = selectedChoices.Any(c => c.Focus == FocusTags.Physical);

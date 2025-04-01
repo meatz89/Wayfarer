@@ -11,8 +11,8 @@ public partial class GameUI : ComponentBase
 
     public List<string> ResultMessages => GetResultMessages();
 
-    public int physicalEnergyCurrent => GameState.PlayerState.PhysicalEnergy;
-    public int physicalEnergyMax => GameState.PlayerState.MaxPhysicalEnergy;
+    public int physicalEnergyCurrent => GameState.PlayerState.Energy;
+    public int physicalEnergyMax => GameState.PlayerState.MaxEnergy;
 
     public int health => GameState.PlayerState.Health;
     public int maxHealth => GameState.PlayerState.MaxHealth;

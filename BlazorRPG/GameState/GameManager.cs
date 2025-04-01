@@ -352,7 +352,7 @@ public class GameManager
 
     private bool IsGameOver(PlayerState player)
     {
-        bool canPayPhysical = player.PhysicalEnergy > 0 || player.Health > 1;
+        bool canPayPhysical = player.Energy > 0 || player.Health > 1;
         bool canPayFocus = player.Concentration > 0 || player.Concentration > 1;
         bool canPaySocial = player.Confidence > 0 || player.Confidence > 1;
 
@@ -605,28 +605,6 @@ public class GameManager
             case TravelMethods.Walking: return 1.0;
             default: return 1.0;
         }
-    }
-
-    public void ApplyRelationshipChange(PlayerState playerState, string characterId, int change)
-    {
-        // Ensure relationship exists
-        if (!playerState.Relationships.ContainsKey(characterId))
-        {
-            playerState.Relationships[characterId] = new Relationship
-            {
-                CharacterId = characterId,
-                Value = 0,
-                Status = "Stranger",
-                SharedHistory = new List<string>()
-            };
-        }
-
-        // Apply change
-        Relationship relationship = playerState.Relationships[characterId];
-        relationship.Value = Math.Clamp(relationship.Value + change, -100, 100);
-
-        // Update status based on value
-        relationship.Status = GetRelationshipStatus(relationship.Value);
     }
 
     private string GetRelationshipStatus(int value)

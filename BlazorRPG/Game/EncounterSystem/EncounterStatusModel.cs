@@ -26,7 +26,7 @@ public class EncounterStatusModel
     // Added properties
     public List<IEncounterTag> ActiveTags { get; }
     public EncounterInfo EncounterInfo { get; }
-    public EncounterTypes EncounterType => EncounterInfo?.EncounterType ?? EncounterTypes.Physical;
+    public EncounterTypes EncounterType => EncounterInfo?.Type ?? EncounterTypes.Physical;
 
     public EncounterStatusModel(
         int currentTurn,

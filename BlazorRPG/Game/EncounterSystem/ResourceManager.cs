@@ -8,14 +8,14 @@ public class ResourceManager
             return;
 
         // Different resource affected based on encounter type
-        switch (encounterInfo.EncounterType)
+        switch (encounterInfo.Type)
         {
             case EncounterTypes.Physical:
                 playerState.ModifyHealth(-currentPressure);
                 break;
 
             case EncounterTypes.Intellectual:
-                playerState.ModifyConcentratin(-currentPressure);
+                playerState.ModifyConcentration(-currentPressure);
                 break;
 
             case EncounterTypes.Social:
@@ -26,7 +26,7 @@ public class ResourceManager
 
     public int CalculatePressureResourceDamage(EncounterInfo encounterInfo, PlayerStatusResources resourceType, int pressureValue)
     {
-        switch (encounterInfo.EncounterType)
+        switch (encounterInfo.Type)
         {
             case EncounterTypes.Physical:
                 if (resourceType == PlayerStatusResources.Health)
@@ -53,7 +53,7 @@ public class ResourceManager
             playerState.ModifyHealth(healthChange);
 
         if (focusChange != 0)
-            playerState.ModifyConcentratin(focusChange);
+            playerState.ModifyConcentration(focusChange);
 
         if (confidenceChange != 0)
             playerState.ModifyConfidence(confidenceChange);
