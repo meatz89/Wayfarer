@@ -3,7 +3,7 @@
 Your memory of past events:
 "{MEMORY_CONTENT}"
 
-Create an BRIEF, immersive introductory scene for a {ENCOUNTER_TYPE} encounter at {LOCATION_SPOT} of {LOCATION_NAME}.
+Create a BRIEF, immersive introductory scene for a {ENCOUNTER_TYPE} encounter at {LOCATION_SPOT} of {LOCATION_NAME}.
 
 ## Character Context
 - Archetype: {CHARACTER_ARCHETYPE} ({APPROACH_STATS})
@@ -25,18 +25,18 @@ Create an BRIEF, immersive introductory scene for a {ENCOUNTER_TYPE} encounter a
 - NPCs: {NPC_LIST}
 - Constraints: {TIME_CONSTRAINTS} and {ADDITIONAL_CHALLENGES}
 
-## Narrative Guidelines
-- If the narrative mentions costs, keep them reasonable relative to player's coins
-- For {CHARACTER_ARCHETYPE}, reference appropriate inventory items in natural ways
-- Ensure narrative reflects character's current status (health, energy, etc.)
-- If the encounter involves spending coins, make spending limits clear
+## Resource Guidelines
+- Only mention player's resources (coins, health, energy, etc.) if directly relevant
+- Only reference inventory items when naturally applicable to the situation
+- If the encounter involves purchasing or trading, subtly establish spending context without stating exact coin amounts
+- Reflect resource limitations (low health, energy, etc.) through character's feelings or physical state rather than numbers
 
-## Encounter Clarification:
+## Encounter Clarification
 - Set up the challenge requiring approach/focus choices
 - Make clear what success would accomplish
 - Hint at consequences of failure
 
-## Chekhov's Gun Integration Requirements:
+## Chekhov's Gun Integration
 1. SELECT 0-1 Chekhov's Guns from the list that would naturally fit this encounter
 2. If including a Chekhov's Gun:
    - For Introduced elements: Reference and develop them further
