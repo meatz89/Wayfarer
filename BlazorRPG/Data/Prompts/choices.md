@@ -11,7 +11,7 @@
 - Natural Approaches: {NATURAL_APPROACHES}
 - Dangerous Approaches: {DANGEROUS_APPROACHES}
 
-## Strategic Encounter Information
+## Strategic Information
 - Active Narrative Tags: {ACTIVE_TAGS}
 
 ## Current Situation
@@ -29,19 +29,34 @@ For each choice, create:
    - Social: Direct speech in quotation marks ("Let me help with that...")
 
 2. DESCRIPTION (1-2 sentences):
-   - Show what the character HOPES or INTENDS to accomplish
-   - Express UNCERTAINTY about actual outcomes
-   - Include what the character THINKS might happen, not what will happen
-   - Avoid definitive statements about NPC reactions or consequences
-   - Use language like "might," "could," "hope to," or "attempt to"
-   - For natural archetype approaches: Write with greater confidence and comfort
-   - For dangerous archetype approaches: Express hesitation or discomfort
+   - Match the URGENCY level of the encounter situation
+   - Physical encounters with threats require IMMEDIATE actions, not contemplative ones
+   - Analysis in physical encounters must be QUICK calculations, not careful study
+   - Express uncertainty using "might," "could," or "hope to"
+   - For natural archetype approaches: Show greater confidence
+   - For dangerous archetype approaches: Show hesitation
 
-3. Other requirements:
-   - Each choice must reflect its approach and focus combination
-   - The description should match the player's perspective and knowledge
-   - Do not telegraph actual mechanical outcomes
+3. Context requirements:
+   - HIGH THREAT situations require choices that acknowledge the immediate danger
+   - Choices must be PLAUSIBLE within the timeframe available
+   - Even intellectual approaches must manifest as QUICK THINKING during urgent situations
+   - INTELLECTUAL actions during physical encounters should focus on split-second assessments
+   - SOCIAL actions during physical encounters should be brief and immediate
 
+4. Approach manifestation:
+   - Analysis: Quick calculations, rapid pattern recognition, instant recall
+   - Precision: Careful but swift movements, targeted actions
+   - Rapport: Immediate emotional appeals, quick social reads
+   - Evasion: Fast, stealthy movements, deception
+   - Dominance: Forceful presence, intimidation, direct confrontation
+
+5. Focus manifestation:
+   - Relationship: Reading intentions, leveraging trust, exploiting social bonds, targeting loyalties
+   - Information: Recalling crucial knowledge, spotting patterns, applying expertise, identifying weaknesses
+   - Physical: Assessing bodily capabilities, targeting vulnerable points, exploiting physical properties
+   - Environment: Utilizing terrain advantages, spotting environmental hazards, creating positional leverage
+   - Resource: Deploying carried items, identifying valuable objects, weaponizing available resources
+ 
 ## RESPONSE FORMAT
 You must respond with a SINGLE JSON object containing a "choices" array:
 ```json
@@ -69,5 +84,3 @@ You must respond with a SINGLE JSON object containing a "choices" array:
     }
   ]
 }
-
-Do NOT add approach and focus fields to the JSON - they are provided for your reference only.
