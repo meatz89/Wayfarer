@@ -1,60 +1,44 @@
 ﻿public class WorldLocationsContent
 {
+    public static Location Forest => new LocationBuilder()
+         .ForLocation(LocationNames.Forest)
+         .WithDescription("An ancient forest with towering trees and winding paths.")
+         .WithDetailedDescription("The forest stretches before you, thick with ancient trees and a carpet of fallen leaves. The canopy above filters the sunlight, creating a dappled pattern on the forest floor. Animal sounds echo occasionally in the distance, punctuating the otherwise eerie silence.")
+         .WithDifficultyLevel(1)
+         .AddLocationSpot(spot => spot
+             .WithName("Direct Path")
+             .WithDescription("A narrow dirt path cutting directly through the woods.")
+             .WithIllumination(Illumination.Shadowy)
+             .WithAtmosphere(Atmosphere.Tense)
+             .WithPopulation(Population.Isolated)
+             .WithPhysical(Physical.Hazardous)
+             .AddAction(ActionNames.DirectForestTravel))
+         .AddLocationSpot(spot => spot
+             .WithName("Scenic Route")
+             .WithDescription("A winding trail that takes longer but avoids the most dangerous areas.")
+             .WithIllumination(Illumination.Bright)
+             .WithAtmosphere(Atmosphere.Formal)
+             .WithPopulation(Population.Quiet)
+             .WithPhysical(Physical.Expansive)
+             .AddAction(ActionNames.ScenicForestTravel))
+         .AddLocationSpot(spot => spot
+             .WithName("Hidden Clearing")
+             .WithDescription("A secluded open space surrounded by dense foliage.")
+             .WithIllumination(Illumination.Bright)
+             .WithAtmosphere(Atmosphere.Tense)
+             .WithPopulation(Population.Isolated)
+             .WithPhysical(Physical.Expansive)
+             .AddAction(ActionNames.SecretMeeting))
+         .WithPlayerKnowledge(true)
+         .AddTravelConnection(LocationNames.Village)
+         .Build();
+
     public static Location Village => new LocationBuilder()
         .ForLocation(LocationNames.Village)
-        .AddLocationSpot(spot => spot
-            .WithName("Village Square")
-            .WithPopulation(Population.Crowded)
-            .WithEconomic(Economic.Wealthy)
-            .WithAtmosphere(Atmosphere.Formal)
-            .AddAction(ActionNames.VillageGathering))
-        .AddLocationSpot(spot => spot
-            .WithName("Market Stall")
-            .WithPopulation(Population.Crowded)
-            .WithEconomic(Economic.Commercial)
-            .AddAction(ActionNames.TradeGoods))
-        .WithPlayerKnowledge(true)
+        .WithDescription("A small rural settlement with modest wooden buildings.")
         .WithDifficultyLevel(1)
+        .WithPlayerKnowledge(false) // Unknown initially
         .AddTravelConnection(LocationNames.Forest)
-        .AddTravelConnection(LocationNames.Tavern)
-        .Build();
+        .Build(); // Village spots will be defined elsewhere
 
-    public static Location Forest => new LocationBuilder()
-        .ForLocation(LocationNames.Forest)
-        .AddLocationSpot(spot => spot
-            .WithName("Forest Path")
-            .WithPopulation(Population.Isolated)
-            .WithPhysical(Physical.Hazardous)
-            .AddAction(ActionNames.ForestTravel))
-        .AddLocationSpot(spot => spot
-            .WithName("Hidden Clearing")
-            .WithIllumination(Illumination.Bright)
-            .WithPopulation(Population.Isolated)
-            .AddAction(ActionNames.SecretMeeting))
-        .WithPlayerKnowledge(false)
-        .WithDifficultyLevel(2)
-        .AddTravelConnection(LocationNames.Village)
-        .Build();
-
-    public static Location Tavern => new LocationBuilder()
-        .ForLocation(LocationNames.Tavern)
-        .AddLocationSpot(spot => spot
-            .WithName("Private Corner")
-            .WithIllumination(Illumination.Dark)
-            .WithPopulation(Population.Isolated)
-            .AddAction(ActionNames.SecretDeal))
-        .AddLocationSpot(spot => spot
-            .WithName("Innkeeper's Counter")
-            .WithPopulation(Population.Quiet)
-            .WithEconomic(Economic.Commercial)
-            .AddAction(ActionNames.RentRoom))
-        .AddLocationSpot(spot => spot
-            .WithName("Notice Board")
-            .WithPopulation(Population.Quiet)
-            .WithEconomic(Economic.Humble)
-            .AddAction(ActionNames.FindQuests))
-        .WithPlayerKnowledge(true)
-        .WithDifficultyLevel(1)
-        .AddTravelConnection(LocationNames.Village)
-        .Build();
 }

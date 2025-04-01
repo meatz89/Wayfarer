@@ -20,7 +20,6 @@
         {
             WorldLocationsContent.Forest,
             WorldLocationsContent.Village,
-            WorldLocationsContent.Tavern
         };
 
         gameState.WorldState.AddLocations(locations);

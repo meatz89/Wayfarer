@@ -160,6 +160,7 @@
 
             NarrativeResult narrativeResultFinished = new(
                 narrative,
+                string.Empty,
                 new List<IChoice>(),
                 new List<ChoiceProjection>(),
                 new Dictionary<IChoice, ChoiceNarrative>(),
@@ -217,6 +218,7 @@
             // Return the narrative result
             NarrativeResult narrativeResultOngoing = new(
                 narrative,
+                string.Empty,
                 newChoices,
                 newProjections,
                 newChoiceDescriptions,

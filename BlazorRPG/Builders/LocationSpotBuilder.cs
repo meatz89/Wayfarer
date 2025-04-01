@@ -2,6 +2,7 @@
 public class LocationSpotBuilder
 {
     private string name;
+    private string description;
     private string locationName;
     private string? character;
 
@@ -23,6 +24,12 @@ public class LocationSpotBuilder
         this.name = name;
         return this;
     }
+    public LocationSpotBuilder WithDescription(string description)
+    {
+        this.description = description;
+        return this;
+    }
+
 
     public LocationSpotBuilder WithCharacter(string? character)
     {
@@ -78,6 +85,7 @@ public class LocationSpotBuilder
         LocationSpot locationSpot =
             new LocationSpot(
                 name,
+                description,
                 locationName,
                 population,
                 economic,
