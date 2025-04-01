@@ -115,39 +115,99 @@
                 </div>
             </div>
 
-            <div class="sidebar-panel">
-                <div class="panel-title">Daily Requirements</div>
+            <div class="sidebar-panel player-panel">
+                <div class="panel-title">Character Stats</div>
                 <div class="panel-content">
-                    @*                 <div class="requirement">
-                        <span style="color: var(--resource-food)">
-                            • @baseRequirements.DailyFood Food by Night
-                            @if (modifiedRequirements.DailyFood > baseRequirements.DailyFood)
+                    <!-- Core Stats -->
+                    <div class="stat-grid">
+                        <div class="player-stat">
+                            <span class="stat-icon">❤️</span>
+                            <span class="stat-label">Health</span>
+                            <span class="stat-value @(PlayerState.Health < PlayerState.MaxHealth / 3 ? "danger" : "")">
+                                @PlayerState.Health / @PlayerState.MaxHealth
+                            </span>
+                        </div>
+                        <div class="player-stat">
+                            <span class="stat-icon">🧠</span>
+                            <span class="stat-label">Concentration</span>
+                            <span class="stat-value">
+                                @PlayerState.Concentration / @PlayerState.MaxConcentration
+                            </span>
+                        </div>
+                        <div class="player-stat">
+                            <span class="stat-icon">🗣️</span>
+                            <span class="stat-label">Confidence</span>
+                            <span class="stat-value">
+                                @PlayerState.Confidence / @PlayerState.MaxConfidence
+                            </span>
+                        </div>
+                        <div class="player-stat">
+                            <span class="stat-icon">⚡</span>
+                            <span class="stat-label">Energy</span>
+                            <span class="stat-value @(PlayerState.Energy < PlayerState.MaxEnergy / 3 ? "danger" : "")">
+                                @PlayerState.Energy / @PlayerState.MaxEnergy
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Resources -->
+                    <div class="properties-header">Resources</div>
+                    <div class="resource-grid">
+                        <div class="player-resource">
+                            <span class="resource-icon" style="color: var(--resource-coins)">💰</span>
+                            <span class="resource-label">Coins</span>
+                            <span class="resource-value">@PlayerState.Coins</span>
+                        </div>
+                        <div class="player-resource">
+                            <span class="resource-icon" style="color: var(--resource-food)">🍖</span>
+                            <span class="resource-label">Food</span>
+                            <span class="resource-value">@PlayerState.Food</span>
+                        </div>
+                    </div>
+
+                    <!-- Archetype -->
+                    <div class="properties-header">Archetype</div>
+                    <div class="player-archetype">
+                        <span class="archetype-icon">@GetArchetypeIcon(PlayerState.Archetype)</span>
+                        <span class="archetype-name">@PlayerState.Archetype</span>
+                    </div>
+
+                    <!-- Inventory -->
+                    <div class="properties-header">Inventory (@PlayerState.Inventory.UsedCapacity / @PlayerState.Inventory.MaxCapacity)</div>
+                    <div class="inventory-grid">
+                        @foreach (ItemTypes itemType in Enum.GetValues(typeof(ItemTypes)))
+                        {
+                            if (itemType != ItemTypes.None)
                             {
-                                <span class="modifier">
-                                    (+@(modifiedRequirements.DailyFood - baseRequirements.DailyFood)
-                                    from @GetModifierSource())
-                                </span>
+                                int count = PlayerState.Inventory.GetItemCount(itemType);
+                                if (count > 0)
+                                {
+                                    <div class="inventory-item" title="@GetItemDescription(itemType)">
+                                        <span class="item-icon">@GetItemIcon(itemType)</span>
+                                        <span class="item-name">@FormatItemName(itemType)</span>
+                                        <span class="item-count">@count</span>
+                                    </div>
+                                }
                             }
-                        </span>
-                    </div> *@
-                    <div class="requirement">
-                        <span style="color: var(--resource-food)">• 1 Food by Night</span>
+                        }
                     </div>
-                    <div class="requirement">
-                        <span style="color: var(--resource-shelter)">• Shelter during Night</span>
-                    </div>
+
+                    <!-- Status Effects -->
+                    @if (PlayerState.NegativeStatusTypes != null && PlayerState.NegativeStatusTypes.Any())
+                    {
+                        <div class="properties-header">Status Effects</div>
+                        <div class="status-effects-grid">
+                            @foreach (var status in PlayerState.NegativeStatusTypes)
+                            {
+                                <div class="status-effect negative">
+                                    <span class="status-icon">⚠️</span>
+                                    <span class="status-name">@status</span>
+                                </div>
+                            }
+                        </div>
+                    }
                 </div>
             </div>
-
-            <div class="sidebar-panel">
-                <div class="panel-title">Time Management</div>
-                <div class="panel-content">
-                    <div>• Travel takes time</div>
-                    <div>• Actions advance time</div>
-                    <div>• Plan your day carefully</div>
-                </div>
-            </div>
-
         </div>
     </div>
 </div>

@@ -33,10 +33,17 @@ body {
     margin: 0 auto;
 }
 
-.top-bar, .locations-grid, .sidebar-panel, .encounter-container {
+.top-bar, .locations-grid, .encounter-container {
     background-color: var(--bg-panel);
     border-radius: 5px;
     padding: 1rem;
+}   
+
+.sidebar-panel {
+    background-color: var(--bg-panel);
+    border-radius: 5px;
+    padding: 1rem;
+    margin-bottom: 5px;
 }
 
 .top-bar {
@@ -763,4 +770,81 @@ body {
     background-color: #9E9E9E;
     color: white;
 }
-    
+
+/* Player panel styles */
+.sidebar-panel.player-panel {
+    background-color: var(--bg-panel);
+    margin-top: 15px;
+}
+
+.stat-grid, .resource-grid, .inventory-grid, .status-effects-grid {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.player-stat, .player-resource, .inventory-item, .status-effect {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background-color: var(--bg-card);
+    padding: 5px 8px;
+    border-radius: 4px;
+}
+
+.stat-icon, .resource-icon, .item-icon, .status-icon, .archetype-icon {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 20px;
+    font-size: 1em;
+}
+
+.stat-label, .resource-label, .item-name, .status-name, .archetype-name {
+    flex-grow: 1;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+}
+
+.stat-value, .resource-value, .item-count {
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.item-count {
+    background: var(--bg-panel);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8em;
+}
+
+.danger {
+    color: var(--resource-health);
+}
+
+.player-archetype {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: var(--bg-card);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.archetype-icon {
+    font-size: 1.2em;
+}
+
+.archetype-name {
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.status-effect.negative {
+    border-left: 3px solid var(--resource-health);
+}

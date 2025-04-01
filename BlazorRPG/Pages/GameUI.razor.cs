@@ -11,6 +11,8 @@ public partial class GameUI : ComponentBase
 
     public List<string> ResultMessages => GetResultMessages();
 
+    public PlayerState PlayerState => GameState.PlayerState;
+
     public int energyCurrent => GameState.PlayerState.Energy;
     public int energyMax => GameState.PlayerState.MaxEnergy;
 
@@ -244,5 +246,79 @@ public partial class GameUI : ComponentBase
             .Select((x, i) => i > 0 && char.IsUpper(x) ? " " + x : x.ToString()))
             .Replace("Type", "")
             .Replace("Types", "");
+    }
+    private string GetArchetypeIcon(ArchetypeTypes archetype)
+    {
+        return archetype switch
+        {
+            ArchetypeTypes.Warrior => "⚔️",
+            ArchetypeTypes.Scholar => "📚",
+            ArchetypeTypes.Ranger => "🏹",
+            ArchetypeTypes.Bard => "🎵",
+            ArchetypeTypes.Thief => "🗝️",
+            _ => "❓"
+        };
+    }
+
+    private string GetItemIcon(ItemTypes itemType)
+    {
+        return itemType switch
+        {
+            ItemTypes.Sword => "⚔️",
+            ItemTypes.Shield => "🛡️",
+            ItemTypes.Bow => "🏹",
+            ItemTypes.Arrow => "🪶",
+            ItemTypes.Dagger => "🔪",
+            ItemTypes.Lockpicks => "🗝️",
+            ItemTypes.Book => "📚",
+            ItemTypes.Scroll => "📜",
+            ItemTypes.Lute => "🎵",
+            ItemTypes.Rope => "🧶",
+            ItemTypes.Rations => "🍖",
+            ItemTypes.LeatherArmor => "👕",
+            ItemTypes.WritingKit => "✒️",
+            ItemTypes.HuntingKnife => "🔪",
+            ItemTypes.HealingHerbs => "🍃",
+            ItemTypes.FineClothes => "👘",
+            ItemTypes.WineBottle => "🍷",
+            ItemTypes.ClimbingGear => "⛏️",
+            _ => "📦"
+        };
+    }
+
+    private string FormatItemName(ItemTypes itemType)
+    {
+        // Convert enum names to readable text
+        return System.Text.RegularExpressions.Regex.Replace(
+            itemType.ToString(),
+            "([A-Z])",
+            " $1",
+            System.Text.RegularExpressions.RegexOptions.Compiled).Trim();
+    }
+
+    private string GetItemDescription(ItemTypes itemType)
+    {
+        return itemType switch
+        {
+            ItemTypes.Sword => "A sturdy steel sword",
+            ItemTypes.Shield => "A wooden shield with metal binding",
+            ItemTypes.Bow => "A hunting bow made of yew",
+            ItemTypes.Arrow => "Sharp arrows with fletching",
+            ItemTypes.Dagger => "A small but sharp blade",
+            ItemTypes.Lockpicks => "Tools for picking locks",
+            ItemTypes.Book => "A tome of knowledge",
+            ItemTypes.Scroll => "A rolled parchment with writing",
+            ItemTypes.Lute => "A stringed musical instrument",
+            ItemTypes.Rope => "Strong hemp rope",
+            ItemTypes.Rations => "Dried food for travel",
+            ItemTypes.LeatherArmor => "Protective leather garments",
+            ItemTypes.WritingKit => "Quill, ink and parchment",
+            ItemTypes.HuntingKnife => "A knife for skinning game",
+            ItemTypes.HealingHerbs => "Medicinal plants",
+            ItemTypes.FineClothes => "Well-made attire suitable for performance",
+            ItemTypes.WineBottle => "A bottle of reasonably good wine",
+            ItemTypes.ClimbingGear => "Tools for scaling walls",
+            _ => "A common item"
+        };
     }
 }
