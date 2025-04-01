@@ -3,12 +3,14 @@
     private readonly TagManager _tagManager;
     private readonly ResourceManager _resourceManager;
     private readonly EncounterInfo encounterInfo;
+    private readonly PlayerState playerState;
 
-    public ProjectionService(TagManager tagManager, ResourceManager resourceManager, EncounterInfo location)
+    public ProjectionService(TagManager tagManager, ResourceManager resourceManager, EncounterInfo encounterInfo, PlayerState playerState)
     {
         _tagManager = tagManager;
         _resourceManager = resourceManager;
-        encounterInfo = location;
+        this.encounterInfo = encounterInfo;
+        this.playerState = playerState;
     }
 
     public ChoiceProjection CreateChoiceProjection(
@@ -209,7 +211,12 @@
     /// <param name="projection"></param>
     /// <param name="momentumChange"></param>
     /// <param name="pressureChange"></param>
-    private void ProcessApproachAndFocusEffects(IChoice choice, int currentTurn, ChoiceProjection projection, ref int momentumChange, ref int pressureChange)
+    private void ProcessApproachAndFocusEffects(
+        IChoice choice, 
+        int currentTurn, 
+        ChoiceProjection projection, 
+        ref int momentumChange, 
+        ref int pressureChange)
     {
         // Momentum Choice
         if (choice.EffectType == EffectTypes.Momentum)
@@ -247,24 +254,60 @@
             pressureChange += basePressure;
 
         }
-
+        // Existing location-based checks
         if (encounterInfo.MomentumBoostApproaches.Contains(choice.Approach))
         {
             int favoredBonus = 2;
             projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
             {
-                Source = "Favored Approach",
+                Source = "Favored Location Approach",
                 Value = favoredBonus
             });
             momentumChange += favoredBonus;
         }
 
+        AffinityTypes affinity = playerState.GetApproachAffinity(choice.Approach, encounterInfo.Type);
+
+        switch (affinity)
+        {
+            case AffinityTypes.Natural:
+                int naturalBonus = 1;
+                projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
+                {
+                    Source = "Natural Archetype Approach",
+                    Value = naturalBonus
+                });
+                momentumChange += naturalBonus;
+                break;
+
+            case AffinityTypes.Unnatural:
+                int unnaturalPenalty = 1;
+                projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
+                {
+                    Source = "Unnatural Archetype Approach",
+                    Value = unnaturalPenalty
+                });
+                pressureChange += unnaturalPenalty;
+                break;
+
+            case AffinityTypes.Dangerous:
+                int dangerousPenalty = 2;
+                projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
+                {
+                    Source = "Dangerous Archetype Approach",
+                    Value = dangerousPenalty
+                });
+                pressureChange += dangerousPenalty;
+                break;
+        }
+
+        // Existing danger check
         if (encounterInfo.DangerousApproaches.Contains(choice.Approach))
         {
             int dangerousApproachBonus = 3;
             projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
             {
-                Source = "Dangerous Approach",
+                Source = "Dangerous Location Approach",
                 Value = dangerousApproachBonus
             });
             pressureChange += dangerousApproachBonus;

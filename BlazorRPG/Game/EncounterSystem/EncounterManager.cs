@@ -69,11 +69,11 @@
             new NarrativeContext(
                 encounterInfo.Name.ToString(),
                 encounterInfo.LocationSpotName.ToString(),
-                encounterInfo.EncounterType,
+                encounterInfo.Type,
                 actionImplementation);
 
         // Generate introduction
-        EncounterStatusModel status = GetEncounterStatusModel();
+        EncounterStatusModel status = GetEncounterStatusModel(playerState);
 
         string introduction = "introduction";
 
@@ -128,13 +128,14 @@
 
     public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
         IChoice choice,
+        PlayerState playerState,
         ChoiceNarrative choiceDescription)
     {
         // Apply the choice
         ChoiceOutcome outcome = ApplyChoiceProjection(playerState, encounterInfo, choice);
 
         // Get status after the choice
-        EncounterStatusModel newStatus = GetEncounterStatusModel();
+        EncounterStatusModel newStatus = GetEncounterStatusModel(playerState);
 
         // Generate narrative for the reaction and new scene
         string narrative = "Continued Narrative";
@@ -274,7 +275,7 @@
     }
 
 
-    public EncounterStatusModel GetEncounterStatusModel()
+    public EncounterStatusModel GetEncounterStatusModel(PlayerState playerState)
     {
         return new EncounterStatusModel(
             currentTurn: encounterState.CurrentTurn,
@@ -284,12 +285,12 @@
             maxTurns: encounterState.Location.TurnDuration,
             momentum: encounterState.Momentum,
             pressure: encounterState.Pressure,
-            health: encounterState.PlayerState.Health,
-            maxHealth: encounterState.PlayerState.MaxHealth,
-            concentration: encounterState.PlayerState.Concentration,
-            maxConcentration: encounterState.PlayerState.MaxConcentration,
-            confidence: encounterState.PlayerState.Confidence,
-            maxConfidence: encounterState.PlayerState.MaxConfidence,
+            health: playerState.Health,
+            maxHealth: playerState.MaxHealth,
+            concentration: playerState.Concentration,
+            maxConcentration: playerState.MaxConcentration,
+            confidence: playerState.Confidence,
+            maxConfidence: playerState.MaxConfidence,
             approachTags: encounterState.TagSystem.GetAllApproachTags(),
             focusTags: encounterState.TagSystem.GetAllFocusTags(),
             activeTagNames: encounterState.GetActiveTagsNames()

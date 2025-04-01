@@ -109,10 +109,10 @@ public class EnergyOutcome : Outcome
         switch (EnergyType)
         {
             case EnergyTypes.Physical:
-                player.PhysicalEnergy = Math.Clamp(
-                    player.PhysicalEnergy + Amount,
+                player.Energy = Math.Clamp(
+                    player.Energy + Amount,
                     0,
-                    player.MaxPhysicalEnergy);
+                    player.MaxEnergy);
                 break;
             case EnergyTypes.Concentration:
                 player.Concentration = Math.Clamp(
@@ -132,14 +132,14 @@ public class EnergyOutcome : Outcome
     {
         int currentValue = EnergyType switch
         {
-            EnergyTypes.Physical => player.PhysicalEnergy,
+            EnergyTypes.Physical => player.Energy,
             EnergyTypes.Concentration => player.Concentration,
             _ => 0
         };
 
         int maxValue = EnergyType switch
         {
-            EnergyTypes.Physical => player.MaxPhysicalEnergy,
+            EnergyTypes.Physical => player.MaxEnergy,
             EnergyTypes.Concentration => player.MaxConcentration,
             _ => 0
         };
@@ -186,7 +186,7 @@ public class ConcentrationOutcome : Outcome
 
     public override void Apply(PlayerState player)
     {
-        player.ModifyConcentratin(Count);
+        player.ModifyConcentration(Count);
     }
 
     public override string GetDescription()

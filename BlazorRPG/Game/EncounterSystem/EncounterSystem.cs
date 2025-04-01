@@ -180,7 +180,7 @@
             };
         }
 
-        currentResult = await Encounter.ApplyChoiceWithNarrativeAsync(choice, selectedDescription);
+        currentResult = await Encounter.ApplyChoiceWithNarrativeAsync(choice, encounter.playerState, selectedDescription);
 
         if (currentResult.IsEncounterOver)
         {

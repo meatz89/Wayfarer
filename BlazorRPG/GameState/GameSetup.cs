@@ -19,8 +19,8 @@
         playerInfo.Health = gameRules.StartingHealth;
         playerInfo.MaxHealth = 20;
 
-        playerInfo.PhysicalEnergy = gameRules.StartingPhysicalEnergy;
-        playerInfo.MaxPhysicalEnergy = 20;
+        playerInfo.Energy = gameRules.StartingPhysicalEnergy;
+        playerInfo.MaxEnergy = 20;
 
         playerInfo.Concentration = gameRules.StartingConcentration;
         playerInfo.MaxConcentration = 20;
