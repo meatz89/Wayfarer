@@ -1,29 +1,6 @@
 ﻿
 public class ResourceManager
 {
-    public void ApplyPressureResourceDamage(PlayerState playerState, EncounterInfo encounterInfo, int currentPressure)
-    {
-        // Skip if no pressure or location doesn't apply pressure damage
-        if (currentPressure <= 0)
-            return;
-
-        // Different resource affected based on encounter type
-        switch (encounterInfo.Type)
-        {
-            case EncounterTypes.Physical:
-                playerState.ModifyHealth(-currentPressure);
-                break;
-
-            case EncounterTypes.Intellectual:
-                playerState.ModifyConcentration(-currentPressure);
-                break;
-
-            case EncounterTypes.Social:
-                playerState.ModifyConfidence(-currentPressure);
-                break;
-        }
-    }
-
     public int CalculatePressureResourceDamage(EncounterInfo encounterInfo, PlayerStatusResources resourceType, int pressureValue)
     {
         switch (encounterInfo.Type)
