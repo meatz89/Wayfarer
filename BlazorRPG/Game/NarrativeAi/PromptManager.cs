@@ -621,7 +621,8 @@ CHOICE {i + 1}:
             .Replace("{currentLocation}", input.CurrentLocation)
             .Replace("{knownLocations}", input.KnownLocations)
             .Replace("{knownCharacters}", input.KnownCharacters)
-            .Replace("{activeOpportunities}", input.ActiveOpportunities);
+            .Replace("{activeOpportunities}", input.ActiveOpportunities)
+            .Replace("{encounterOutcome}", input.EncounterOutcome);
     }
 
     public string BuildMemoryPrompt(MemoryConsolidationInput input)

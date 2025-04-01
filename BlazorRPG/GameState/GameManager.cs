@@ -747,10 +747,11 @@ public class GameManager
         NarrativeResult narrativeResult = encounterResult.NarrativeResult;
 
         string narrative = narrativeResult.SceneNarrative;
+        string outcome = narrativeResult.Outcome.ToString();
         if (_processStateChanges)
         {
             // Prepare the input
-            WorldEvolutionInput input = PrepareWorldEvolutionInput(narrative);
+            WorldEvolutionInput input = PrepareWorldEvolutionInput(narrative, outcome);
 
             // Process world evolution
             WorldEvolutionResponse evolutionResponse = await evolutionService.ProcessWorldEvolution(encounterResult.NarrativeContext, input);
@@ -781,17 +782,17 @@ public class GameManager
     }
 
 
-    private WorldEvolutionInput PrepareWorldEvolutionInput(string encounterNarrative)
+    private WorldEvolutionInput PrepareWorldEvolutionInput(string encounterNarrative, string encounterOutcome)
     {
         return new WorldEvolutionInput
         {
             EncounterNarrative = encounterNarrative,
             CharacterBackground = "The player is a former soldier turned merchant seeking new opportunities.",  // Get from player state
             CurrentLocation = worldState.CurrentLocation.Name ?? "Unknown",
-
             KnownLocations = string.Join(", ", worldState.GetLocations().Select(l => l.Name)),
-            //KnownCharacters = string.Join(", ", worldState.GetCharacter().Select(c => c.Name)),
-            //ActiveOpportunities = string.Join(", ", worldState.GetOpportunities().Select(o => o.Name))
+            KnownCharacters = string.Join(", ", worldState.GetCharacters().Select(c => c.Name)),
+            ActiveOpportunities = string.Join(", ", worldState.GetOpportunities().Select(o => o.Name)),
+            EncounterOutcome = encounterOutcome
         };
     }
 

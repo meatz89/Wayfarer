@@ -1,27 +1,40 @@
-# WORLD EVOLUTION
+﻿# WORLD EVOLUTION
 
 Determine how the world should evolve in response to the player's choices and actions.
 
 ## Context
-- Character Background: {{characterBackground}}
-- Current location: {{currentLocation}}
-- Known locations: {{knownLocations}}
-- Known characters: {{knownCharacters}}
-- Active opportunities: {{activeOpportunities}}
+- Character Background: {characterBackground}
+- Current location: {currentLocation}
+- Known locations: {knownLocations}
+- Known characters: {knownCharacters}
+- Active opportunities: {activeOpportunities}
+- Encounter Outcome: {encounterOutcome} (Success/Partial/Failure)
 
-## Critical Requirements
-1. EVERY new location MUST have at least one spot with at least one action
-2. EVERY new location spot MUST have at least one action
-3. All actions MUST have name, description, goal, complication, and actionType
-4. New locations MUST connect to at least one existing location
-5. All elements must have a clear purpose related to player choices
+## Guidelines
+1. Identify player interests during this conversation
+2. Apply "Purpose or Perish" - only include elements with clear purpose
+3. Character names must be SIMPLE FIRST NAMES ONLY
+4. Action types must be standardized (Discuss, Travel, Persuade, Rest, Investigate)
+5. Use standard environmental property values
 
-## Evolution Guidelines
-- Create 0-2 new location spots at existing locations
-- Create 0-3 new actions at existing spots
-- Create 0-2 new characters at existing locations
-- Create 0-1 new locations with required spots and actions
-- Create 0-2 new opportunities linked to existing locations and characters
+## World Structure Requirements:
+- EVERY new location MUST have at least one spot
+- EVERY new spot MUST have at least one action
+- EVERY action must either provide direct benefit or start an encounter
+- Location → Spot → Action hierarchy must be maintained
+- If encounter failed, create ALTERNATIVE PATHS to same/similar goals
+
+## Create (as appropriate):
+- New location spots (0-2) at existing or new locations
+- New actions (0-3) at existing or new spots
+- New characters (0-2) at existing locations
+- New locations (0-1) connected to known locations
+- New opportunities (0-2) linked to existing elements
+
+## For Failed Encounters:
+- Create alternative paths (new actions at different spots/locations)
+- These must offer different approaches to similar goals
+- Should feel like natural world evolution, not artificial second chances
 
 ## Format Requirements
 - Character names must be SIMPLE FIRST NAMES ONLY (e.g., "Giles", not "Giles the merchant")

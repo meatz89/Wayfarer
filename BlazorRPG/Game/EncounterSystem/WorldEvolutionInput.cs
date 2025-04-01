@@ -8,4 +8,5 @@ public class WorldEvolutionInput
     public string KnownLocations { get; set; }
     public string KnownCharacters { get; set; }
     public string ActiveOpportunities { get; set; }
+    public string EncounterOutcome { get; set; }
 }

@@ -12,8 +12,14 @@ Create an action and matching encounter for '{SPOT_NAME}' at '{LOCATION_NAME}'.
 - Name: A brief, descriptive name (3-4 words maximum)
 - Goal: What the player aims to achieve
 - Complication: What challenge makes this interesting
-- ActionType: Must be one of: Travel, Rest, Investigate, Discuss, Persuade
-- CoinCost: Amount required (0 if none)
+- ActionType: Travel/Rest/Investigate/Discuss/Persuade
+
+## Action Type Clarification:
+- DIRECT ACTION: Provides immediate benefits (rest, purchase, etc.) with defined costs
+- ENCOUNTER ACTION: Triggers an encounter with the tag-based system
+- Specify which type this action will be
+- For Direct Actions, define exact costs and benefits
+- For Encounter Actions, define exact success outcomes
 
 ## Create a Matching Encounter Template with:
 1. Parameters:
@@ -40,6 +46,11 @@ Create an action and matching encounter for '{SPOT_NAME}' at '{LOCATION_NAME}'.
    - Use existing tags like: IntimidatingPresence, BattleRage, SuperficialCharm, 
      SocialAwkwardness, DetailFixation, Overthinking, ShadowVeil, ParanoidMindset
    - Consider which approaches might be overused in this encounter
+
+## Success and Failure Paths:
+- Define SPECIFIC success outcome (new location, spot, character, knowledge, etc.)
+- Define ALTERNATIVE PATH if encounter fails (new action elsewhere that achieves similar goal)
+- Failure alternatives must provide different approach to similar objective
 
 ## Response Format
 Respond with a JSON object containing both action and encounter details:
