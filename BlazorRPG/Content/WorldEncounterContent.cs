@@ -157,7 +157,6 @@
         Hostility = EncounterInfo.HostilityLevels.Friendly,
 
         MomentumBoostApproaches = new[] { ApproachTags.Analysis }.ToList(),
-        DangerousApproaches = new[] { ApproachTags.Dominance }.ToList(),
 
         PressureReducingFocuses = new[] { FocusTags.Information, FocusTags.Environment }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
