@@ -13,7 +13,6 @@
             locationName,
             locationSpot,
             template.MomentumBoostApproaches,
-            template.DangerousApproaches,
             template.PressureReducingFocuses,
             template.MomentumReducingFocuses,
             template.Duration,

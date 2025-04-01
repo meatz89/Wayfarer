@@ -30,7 +30,6 @@ Create an action and matching encounter for '{SPOT_NAME}' at '{LOCATION_NAME}'.
 
 2. Approach specifications:
    - MomentumBoostApproaches: Which approaches increase momentum (pick 1-2)
-   - DangerousApproaches: Which approaches have negative effects (pick 1-2 different)
    - PressureReducingFocuses: Which focuses reduce pressure (pick 1-2)
    - MomentumReducingFocuses: Which focuses reduce momentum (pick 1-2 different)
 
@@ -71,7 +70,6 @@ Respond with a JSON object containing both action and encounter details:
     "exceptionalThreshold": 18,
     "hostility": "Neutral",
     "momentumBoostApproaches": ["Rapport", "Analysis"],
-    "dangerousApproaches": ["Dominance"],
     "pressureReducingFocuses": ["Relationship", "Resource"],
     "momentumReducingFocuses": ["Physical", "Environment"],
     "strategicTags": [

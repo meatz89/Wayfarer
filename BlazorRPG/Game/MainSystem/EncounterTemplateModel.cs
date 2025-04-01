@@ -8,7 +8,6 @@
     public int ExceptionalThreshold { get; set; }
     public string Hostility { get; set; }
     public List<string> MomentumBoostApproaches { get; set; }
-    public List<string> DangerousApproaches { get; set; }
     public List<string> PressureReducingFocuses { get; set; }
     public List<string> MomentumReducingFocuses { get; set; }
     public List<StrategicTagModel> StrategicTags { get; set; }

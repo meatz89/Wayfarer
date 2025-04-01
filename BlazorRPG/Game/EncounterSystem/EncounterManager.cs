@@ -15,7 +15,7 @@
 
     public PlayerState playerState;
     public WorldState worldState;
-    private EncounterInfo encounterInfo;
+    public EncounterInfo encounterInfo;
 
     private bool _useAiNarrative = false;
     private bool _useMemory = false;

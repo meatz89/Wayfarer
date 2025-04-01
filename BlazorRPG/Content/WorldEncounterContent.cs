@@ -31,7 +31,6 @@
         Hostility = EncounterInfo.HostilityLevels.Friendly,
 
         MomentumBoostApproaches = new[] { ApproachTags.Rapport, ApproachTags.Analysis }.ToList(),
-        DangerousApproaches = new[] { ApproachTags.Dominance }.ToList(),
 
         PressureReducingFocuses = new[] { FocusTags.Relationship, FocusTags.Information }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Resource }.ToList(),
@@ -63,7 +62,6 @@
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
         MomentumBoostApproaches = new[] { ApproachTags.Rapport }.ToList(),
-        DangerousApproaches = new[] { ApproachTags.Dominance }.ToList(),
 
         PressureReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Resource }.ToList(),
@@ -96,7 +94,6 @@
         Hostility = EncounterInfo.HostilityLevels.Hostile,
 
         MomentumBoostApproaches = new[] { ApproachTags.Analysis, ApproachTags.Dominance }.ToList(),
-        DangerousApproaches = new[] { ApproachTags.Rapport }.ToList(),
 
         PressureReducingFocuses = new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
@@ -129,7 +126,6 @@
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
         MomentumBoostApproaches = new[] { ApproachTags.Analysis }.ToList(),
-        DangerousApproaches = new[] { ApproachTags.Rapport }.ToList(),
 
         PressureReducingFocuses = new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
@@ -195,7 +191,6 @@
         Hostility = EncounterInfo.HostilityLevels.Friendly,
 
         MomentumBoostApproaches = new[] { ApproachTags.Rapport }.ToList(),
-        DangerousApproaches = new[] { ApproachTags.Analysis, ApproachTags.Dominance }.ToList(),
 
         PressureReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Information, FocusTags.Physical }.ToList(),
@@ -227,7 +222,6 @@
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
         MomentumBoostApproaches = new[] { ApproachTags.Dominance, ApproachTags.Analysis }.ToList(),
-        DangerousApproaches = new[] { ApproachTags.Rapport }.ToList(),
 
         PressureReducingFocuses = new[] { FocusTags.Resource, FocusTags.Environment }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Physical, FocusTags.Relationship }.ToList(),
@@ -259,7 +253,6 @@
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
         MomentumBoostApproaches = new[] { ApproachTags.Analysis }.ToList(),
-        DangerousApproaches = new[] { ApproachTags.Rapport, ApproachTags.Dominance }.ToList(),
 
         PressureReducingFocuses = new[] { FocusTags.Environment }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
@@ -291,7 +284,6 @@
         Hostility = EncounterInfo.HostilityLevels.Friendly,
 
         MomentumBoostApproaches = new[] { ApproachTags.Analysis }.ToList(),
-        DangerousApproaches = new[] { ApproachTags.Dominance }.ToList(),
 
         PressureReducingFocuses = new[] { FocusTags.Information }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Relationship, FocusTags.Physical }.ToList(),
@@ -323,7 +315,6 @@
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
         MomentumBoostApproaches = new[] { ApproachTags.Rapport, ApproachTags.Dominance }.ToList(),
-        DangerousApproaches = new[] { ApproachTags.Analysis }.ToList(),
 
         PressureReducingFocuses = new[] { FocusTags.Relationship, FocusTags.Resource }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Environment, FocusTags.Physical }.ToList(),
@@ -356,7 +347,6 @@
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
         MomentumBoostApproaches = new[] { ApproachTags.Rapport, ApproachTags.Analysis }.ToList(),
-        DangerousApproaches = new[] { ApproachTags.Dominance }.ToList(),
 
         PressureReducingFocuses = new[] { FocusTags.Relationship, FocusTags.Resource }.ToList(),
         MomentumReducingFocuses = new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),
