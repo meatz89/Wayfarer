@@ -16,13 +16,11 @@ public class ItemOutcome : Outcome
 {
     public ItemTypes ItemType { get; set; }
     public int QuantityChange { get; set; }
-    public ItemConditionChangeTypes ConditionChangeType { get; set; }
 
-    public ItemOutcome(ItemTypes itemType, int quantityChange, ItemConditionChangeTypes conditionChangeType)
+    public ItemOutcome(ItemTypes itemType, int quantityChange)
     {
         ItemType = itemType;
         QuantityChange = quantityChange;
-        ConditionChangeType = conditionChangeType;
     }
 
     public override void Apply(PlayerState player)
@@ -37,21 +35,6 @@ public class ItemOutcome : Outcome
         }
         else
         {
-            // Remove or damage item(s)
-            List<Item> itemsToRemove = player.Inventory.GetItemsOfType(ItemType).Take(Math.Abs(QuantityChange)).ToList();
-            foreach (Item? item in itemsToRemove)
-            {
-                switch (ConditionChangeType)
-                {
-                    case ItemConditionChangeTypes.Damage:
-                        item.Condition -= 10; // Example: Reduce condition
-                        break;
-                    case ItemConditionChangeTypes.Consume:
-                        player.Inventory.RemoveItems(ItemTypes.Food, 1); // Consume/remove the item
-                        break;
-                        // Handle other condition change types
-                }
-            }
         }
     }
 

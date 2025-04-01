@@ -28,8 +28,6 @@
         playerInfo.Confidence = gameRules.StartingConfidence;
         playerInfo.MaxConfidence = 20;
 
-        playerInfo.Inventory.AddItems(ItemTypes.Food, 5);
-
         gameState.PlayerState = playerInfo;
 
         return gameState;

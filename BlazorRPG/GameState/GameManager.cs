@@ -735,7 +735,7 @@ public class GameManager
             WorldEvolutionResponse evolutionResponse = await evolutionService.ProcessWorldEvolution(encounterResult.NarrativeContext, input);
 
             // Update world state
-            evolutionService.IntegrateWorldEvolution(evolutionResponse, worldState, LocationSystem);
+            evolutionService.IntegrateWorldEvolution(evolutionResponse, worldState, LocationSystem, playerState);
 
         }
         if (_useMemory)

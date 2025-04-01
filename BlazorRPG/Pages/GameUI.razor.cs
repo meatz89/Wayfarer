@@ -11,8 +11,8 @@ public partial class GameUI : ComponentBase
 
     public List<string> ResultMessages => GetResultMessages();
 
-    public int physicalEnergyCurrent => GameState.PlayerState.Energy;
-    public int physicalEnergyMax => GameState.PlayerState.MaxEnergy;
+    public int energyCurrent => GameState.PlayerState.Energy;
+    public int energyMax => GameState.PlayerState.MaxEnergy;
 
     public int health => GameState.PlayerState.Health;
     public int maxHealth => GameState.PlayerState.MaxHealth;
@@ -24,7 +24,6 @@ public partial class GameUI : ComponentBase
     public int maxConfidence => GameState.PlayerState.MaxConfidence;
 
     public int coins => GameState.PlayerState.Coins;
-    public int food => GameState.PlayerState.Inventory.GetItemCount(ItemTypes.Food);
 
     public List<Location> Locations => GameManager.GetPlayerKnownLocations();
 
@@ -138,23 +137,6 @@ public partial class GameUI : ComponentBase
         StateHasChanged();
     }
 
-    public bool CurrentEncounterOngoing()
-    {
-        if (GetCurrentEncounter == null) return false;
-        if (EncounterResult == null) return false;
-        if (EncounterResult.EncounterResults == EncounterResults.Ongoing) { return true; }
-        return false;
-    }
-
-    public string GetModifierDescription(IGameStateModifier modifier)
-    {
-        if (modifier is FoodModfier modfier)
-        {
-            return $"Need additional Food: {modfier.AdditionalFood}";
-        }
-
-        return string.Empty;
-    }
 
     public List<string> GetResultMessages()
     {

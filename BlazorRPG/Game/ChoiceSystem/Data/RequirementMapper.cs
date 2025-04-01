@@ -13,16 +13,7 @@
             HealthRequirement => RequirementTypes.Health,
             FocusRequirement => RequirementTypes.Concentration,
             CoinsRequirement => RequirementTypes.Coins,
-            ItemRequirement itemReq => itemReq.ResourceType switch
-            {
-                ItemTypes.Tool => RequirementTypes.Tool,
-                _ => RequirementTypes.Other
-            },
-            ResourceRequirement resourceReq => resourceReq.ResourceType switch
-            {
-                ItemTypes.Wood => RequirementTypes.Wood,
-                _ => RequirementTypes.Other
-            },
+            
             InventorySlotsRequirement => RequirementTypes.InventorySlots,
             KnowledgeRequirement knowledgeReq => knowledgeReq.KnowledgeType switch
             {

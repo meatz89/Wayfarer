@@ -87,21 +87,102 @@ public class PlayerState
         {
             case ArchetypeTypes.Warrior:
                 ArchetypeConfig = ArchetypeConfig.CreateWarrior();
+                InitializeWarriorInventory();
                 break;
             case ArchetypeTypes.Scholar:
                 ArchetypeConfig = ArchetypeConfig.CreateScholar();
+                InitializeScholarInventory();
                 break;
             case ArchetypeTypes.Ranger:
                 ArchetypeConfig = ArchetypeConfig.CreateRanger();
+                InitializeRangerInventory();
                 break;
             case ArchetypeTypes.Bard:
                 ArchetypeConfig = ArchetypeConfig.CreateBard();
+                InitializeBardInventory();
                 break;
             case ArchetypeTypes.Thief:
                 ArchetypeConfig = ArchetypeConfig.CreateThief();
+                InitializeThiefInventory();
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(archetype));
+        }
+    }
+
+    private void InitializeWarriorInventory()
+    {
+        // Clear existing inventory first
+        ClearInventory();
+
+        // Add warrior-specific items
+        Inventory.AddItem(ItemTypes.Sword);
+        Inventory.AddItem(ItemTypes.Shield);
+        Inventory.AddItem(ItemTypes.LeatherArmor);
+        Inventory.AddItem(ItemTypes.Rations);
+    }
+
+    private void InitializeScholarInventory()
+    {
+        // Clear existing inventory first
+        ClearInventory();
+
+        // Add scholar-specific items
+        Inventory.AddItem(ItemTypes.Book);
+        Inventory.AddItem(ItemTypes.Scroll);
+        Inventory.AddItem(ItemTypes.WritingKit);
+        Inventory.AddItem(ItemTypes.Dagger);
+        Inventory.AddItem(ItemTypes.Rations);
+    }
+
+    private void InitializeRangerInventory()
+    {
+        // Clear existing inventory first
+        ClearInventory();
+
+        // Add ranger-specific items
+        Inventory.AddItem(ItemTypes.Bow);
+        Inventory.AddItem(ItemTypes.Arrow);
+        Inventory.AddItem(ItemTypes.HuntingKnife);
+        Inventory.AddItem(ItemTypes.Rations);
+        Inventory.AddItem(ItemTypes.HealingHerbs);
+    }
+
+    private void InitializeBardInventory()
+    {
+        // Clear existing inventory first
+        ClearInventory();
+
+        // Add bard-specific items
+        Inventory.AddItem(ItemTypes.Lute);
+        Inventory.AddItem(ItemTypes.FineClothes);
+        Inventory.AddItem(ItemTypes.WineBottle);
+        Inventory.AddItem(ItemTypes.Dagger);
+        Inventory.AddItem(ItemTypes.Rations);
+    }
+
+    private void InitializeThiefInventory()
+    {
+        // Clear existing inventory first
+        ClearInventory();
+
+        // Add thief-specific items
+        Inventory.AddItem(ItemTypes.Lockpicks);
+        Inventory.AddItem(ItemTypes.Rope);
+        Inventory.AddItem(ItemTypes.Dagger);
+        Inventory.AddItem(ItemTypes.ClimbingGear);
+        Inventory.AddItem(ItemTypes.Rations);
+    }
+
+    private void ClearInventory()
+    {
+        // Simple method to clear all slots
+        for (int i = 0; i < Inventory.MaxCapacity; i++)
+        {
+            if (Inventory.ContainsItem(ItemTypes.None) == false)
+            {
+                Inventory.RemoveItem(Inventory.GetFirstItem());
+            }
         }
     }
 

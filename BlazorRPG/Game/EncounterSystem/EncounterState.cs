@@ -22,8 +22,8 @@
     private readonly ProjectionService _projectionService;
 
     public EncounterState(
-        EncounterInfo encounterInfo, 
-        PlayerState playerState, 
+        EncounterInfo encounterInfo,
+        PlayerState playerState,
         ResourceManager resourceManager)
     {
         Momentum = 5;
