@@ -64,9 +64,6 @@
 
     private void ApplyChoiceProjection(PlayerState playerState, EncounterInfo encounterInfo, ChoiceProjection projection)
     {
-        // Apply resource changes from pressure at start of turn (based on current pressure)
-        _resourceManager.ApplyPressureResourceDamage(playerState, encounterInfo, Pressure);
-
         // 1. Apply tag changes
         foreach (KeyValuePair<ApproachTags, int> pair in projection.EncounterStateTagChanges)
             TagSystem.ModifyEncounterStateTag(pair.Key, pair.Value);
