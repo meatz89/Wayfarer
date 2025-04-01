@@ -109,38 +109,43 @@
         int pressureConfidenceDamage = _resourceManager.CalculatePressureResourceDamage(
             encounterInfo, PlayerStatusResources.Confidence, currentPressure);
 
-        // Add pressure resource components to projection
-        if (encounterInfo.DangerousApproaches.Contains(choice.Approach))
+        AffinityTypes affinity = playerState.GetApproachAffinity(choice.Approach, encounterInfo.Type);
+
+        switch (affinity)
         {
-            if (pressureHealthDamage != 0)
-            {
-                projection.HealthChange = pressureHealthDamage;
-                projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
-                {
-                    Source = "Pressure health damage",
-                    Value = pressureHealthDamage
-                });
-            }
+            case AffinityTypes.Unnatural:
+            case AffinityTypes.Dangerous:
 
-            if (pressureConcentrationDamage != 0)
-            {
-                projection.ConcentrationChange = pressureConcentrationDamage;
-                projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
+                if (pressureHealthDamage != 0)
                 {
-                    Source = "Pressure concentration damage",
-                    Value = pressureConcentrationDamage
-                });
-            }
+                    projection.HealthChange = pressureHealthDamage;
+                    projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
+                    {
+                        Source = "Pressure health damage",
+                        Value = pressureHealthDamage
+                    });
+                }
 
-            if (pressureConfidenceDamage != 0)
-            {
-                projection.ConfidenceChange = pressureConfidenceDamage;
-                projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
+                if (pressureConcentrationDamage != 0)
                 {
-                    Source = "Pressure confidence damage",
-                    Value = pressureConfidenceDamage
-                });
-            }
+                    projection.ConcentrationChange = pressureConcentrationDamage;
+                    projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
+                    {
+                        Source = "Pressure concentration damage",
+                        Value = pressureConcentrationDamage
+                    });
+                }
+
+                if (pressureConfidenceDamage != 0)
+                {
+                    projection.ConfidenceChange = pressureConfidenceDamage;
+                    projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
+                    {
+                        Source = "Pressure confidence damage",
+                        Value = pressureConfidenceDamage
+                    });
+                }
+                break;
         }
     }
 
@@ -212,10 +217,10 @@
     /// <param name="momentumChange"></param>
     /// <param name="pressureChange"></param>
     private void ProcessApproachAndFocusEffects(
-        IChoice choice, 
-        int currentTurn, 
-        ChoiceProjection projection, 
-        ref int momentumChange, 
+        IChoice choice,
+        int currentTurn,
+        ChoiceProjection projection,
+        ref int momentumChange,
         ref int pressureChange)
     {
         // Momentum Choice
@@ -267,7 +272,6 @@
         }
 
         AffinityTypes affinity = playerState.GetApproachAffinity(choice.Approach, encounterInfo.Type);
-
         switch (affinity)
         {
             case AffinityTypes.Natural:
@@ -299,18 +303,6 @@
                 });
                 pressureChange += dangerousPenalty;
                 break;
-        }
-
-        // Existing danger check
-        if (encounterInfo.DangerousApproaches.Contains(choice.Approach))
-        {
-            int dangerousApproachBonus = 3;
-            projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-            {
-                Source = "Dangerous Location Approach",
-                Value = dangerousApproachBonus
-            });
-            pressureChange += dangerousApproachBonus;
         }
     }
 

@@ -9,7 +9,7 @@
     // Static factory method for Warrior archetype
     public static ArchetypeConfig CreateWarrior()
     {
-        var config = new ArchetypeConfig();
+        ArchetypeConfig config = new ArchetypeConfig();
         config.PrimaryApproach = ApproachTags.Dominance;
 
         // Initialize with default neutral values
@@ -35,7 +35,7 @@
 
     public static ArchetypeConfig CreateScholar()
     {
-        var config = new ArchetypeConfig();
+        ArchetypeConfig config = new ArchetypeConfig();
         config.PrimaryApproach = ApproachTags.Analysis;
 
         // Initialize with default neutral values
@@ -64,7 +64,7 @@
 
     public static ArchetypeConfig CreateRanger()
     {
-        var config = new ArchetypeConfig();
+        ArchetypeConfig config = new ArchetypeConfig();
         config.PrimaryApproach = ApproachTags.Precision;
 
         // Initialize with default neutral values
@@ -90,7 +90,7 @@
 
     public static ArchetypeConfig CreateBard()
     {
-        var config = new ArchetypeConfig();
+        ArchetypeConfig config = new ArchetypeConfig();
         config.PrimaryApproach = ApproachTags.Rapport;
 
         // Initialize with default neutral values
@@ -116,7 +116,7 @@
 
     public static ArchetypeConfig CreateThief()
     {
-        var config = new ArchetypeConfig();
+        ArchetypeConfig config = new ArchetypeConfig();
         config.PrimaryApproach = ApproachTags.Evasion;
 
         // Initialize with default neutral values

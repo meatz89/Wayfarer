@@ -285,15 +285,10 @@
             maxTurns: encounterState.Location.TurnDuration,
             momentum: encounterState.Momentum,
             pressure: encounterState.Pressure,
-            health: playerState.Health,
-            maxHealth: playerState.MaxHealth,
-            concentration: playerState.Concentration,
-            maxConcentration: playerState.MaxConcentration,
-            confidence: playerState.Confidence,
-            maxConfidence: playerState.MaxConfidence,
             approachTags: encounterState.TagSystem.GetAllApproachTags(),
             focusTags: encounterState.TagSystem.GetAllFocusTags(),
-            activeTagNames: encounterState.GetActiveTagsNames()
+            activeTagNames: encounterState.GetActiveTagsNames(),
+            playerState: playerState
         );
     }
 

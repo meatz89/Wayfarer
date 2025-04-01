@@ -14,7 +14,7 @@
 
     public void SetLevel(string characterName, int level)
     {
-        foreach (var relationship in _relationships)
+        foreach (Relationship relationship in _relationships)
         {
             if (relationship.Character == characterName)
             {

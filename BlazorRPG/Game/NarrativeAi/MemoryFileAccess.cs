@@ -40,7 +40,7 @@
             {
                 memoryContentToWrite = await File.ReadAllTextAsync(filePath);
             }
-            
+
             memoryContentToWrite += Environment.NewLine;
             memoryContentToWrite += Environment.NewLine + memoryContent;
 

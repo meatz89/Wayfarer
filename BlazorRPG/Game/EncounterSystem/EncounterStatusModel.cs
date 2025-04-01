@@ -38,12 +38,6 @@ public class EncounterStatusModel
         int maxTurns,
         int momentum,
         int pressure,
-        int health,
-        int maxHealth,
-        int concentration,
-        int maxConcentration,
-        int confidence,
-        int maxConfidence,
         Dictionary<ApproachTags, int> approachTags,
         Dictionary<FocusTags, int> focusTags,
         List<string> activeTagNames,
@@ -57,12 +51,12 @@ public class EncounterStatusModel
         MaxTurns = maxTurns;
         Momentum = momentum;
         Pressure = pressure;
-        Health = health;
-        MaxHealth = maxHealth;
-        Concentration = concentration;
-        MaxConcentration = maxConcentration;
-        Confidence = confidence;
-        MaxConfidence = maxConfidence;
+        Health = playerState.Health;
+        MaxHealth = playerState.MaxHealth;
+        Concentration = playerState.Concentration;
+        MaxConcentration = playerState.MaxConcentration;
+        Confidence = playerState.Confidence;
+        MaxConfidence = playerState.MaxConfidence;
 
         ApproachTags = approachTags;
         FocusTags = focusTags;
