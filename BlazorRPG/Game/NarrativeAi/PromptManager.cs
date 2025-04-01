@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Security.AccessControl;
+using System.Text;
 
 public class PromptManager
 {
@@ -81,8 +82,7 @@ public class PromptManager
             ? $"Difficulty level {state.EncounterInfo.Difficulty} (adds +{state.EncounterInfo.Difficulty} pressure per turn)"
             : "Standard difficulty";
 
-        // Format character archetype based on primary approach
-        string characterArchetype = GetCharacterArchetype(primaryApproach);
+        string characterArchetype = state.PlayerState.Archetype.ToString();
 
         // Format approach stats
         string approachStats = FormatApproachValues(state);
@@ -155,6 +155,10 @@ public class PromptManager
         // Get character status summary
         string characterStatus = BuildCharacterStatusSummary(state);
 
+        string characterArchetype = state.PlayerState.Archetype.ToString();
+        string naturalApproaches = state.PlayerState.GetNaturalApproachesText(context.EncounterType);
+        string dangerousApproaches = state.PlayerState.GetDangerousApproachesText(context.EncounterType);
+
         // Replace placeholders in template
         string prompt = template
             .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
@@ -188,7 +192,9 @@ public class PromptManager
             .Replace("{NEW_TAGS_ACTIVATED}", FormatNewlyActivatedTags(outcome.NewlyActivatedTags))
             .Replace("{STRATEGIC_EFFECTS}", strategicEffects.ToString())
             .Replace("{CHARACTER_GOAL}", encounterGoal)
-            .Replace("{INJURIES/STATUS}", characterStatus);
+            .Replace("{CHARACTER_ARCHETYPE}", characterArchetype)
+            .Replace("{NATURAL_APPROACHES}", naturalApproaches)
+            .Replace("{DANGEROUS_APPROACHES}", dangerousApproaches);
 
         return prompt;
     }
@@ -220,9 +226,9 @@ public class PromptManager
             narrativeTagsInfo.AppendLine($"- {tag.Name}: Blocks {narrativeTag.BlockedFocus} focus choices");
         }
 
-        // Get favorable and dangerous approaches
-        string favorableApproaches = FormatFavorableApproaches(state);
-        string dangerousApproaches = FormatDangerousApproaches(state);
+        string characterArchetype = state.PlayerState.Archetype.ToString();
+        string naturalApproaches = state.PlayerState.GetNaturalApproachesText(context.EncounterType);
+        string dangerousApproaches = state.PlayerState.GetDangerousApproachesText(context.EncounterType);
 
         // Format choices info
         StringBuilder choicesInfo = new StringBuilder();
@@ -304,7 +310,8 @@ CHOICE {i + 1}:
             .Replace("{CURRENT_CONCENTRATION}", state.Concentration.ToString())
             .Replace("{MAX_CONCENTRATION}", state.MaxConcentration.ToString())
             .Replace("{ENCOUNTER_STAGE}", encounterStage)
-            .Replace("{FAVORABLE_APPROACHES}", favorableApproaches)
+            .Replace("{CHARACTER_ARCHETYPE}", archetype)
+            .Replace("{NATURAL_APPROACHES}", naturalApproaches)
             .Replace("{DANGEROUS_APPROACHES}", dangerousApproaches)
             .Replace("{ACTIVE_TAGS}", narrativeTagsInfo.ToString())
             .Replace("{INJURIES/RESOURCES/CONDITION}", characterCondition)
@@ -425,19 +432,6 @@ CHOICE {i + 1}:
             approaches.Add($"{approach.Key} {approach.Value}");
         }
         return string.Join(", ", approaches);
-    }
-
-    private string GetCharacterArchetype(string primaryApproach)
-    {
-        return primaryApproach switch
-        {
-            "Dominance" => "Warrior",
-            "Rapport" => "Bard",
-            "Analysis" => "Scholar",
-            "Precision" => "Ranger",
-            "Evasion" => "Thief",
-            _ => "Traveler"
-        };
     }
 
     private string GetEncounterStyleGuidance(EncounterTypes type)
@@ -572,22 +566,6 @@ CHOICE {i + 1}:
             status.Append($"Concentration: {state.Concentration}/{state.MaxConcentration}. ");
 
         return status.Length > 0 ? status.ToString() : "In good condition";
-    }
-
-    private string FormatFavorableApproaches(EncounterStatusModel state)
-    {
-        if (state.EncounterInfo?.MomentumBoostApproaches == null || !state.EncounterInfo.MomentumBoostApproaches.Any())
-            return "None specifically";
-
-        return string.Join(", ", state.EncounterInfo.MomentumBoostApproaches);
-    }
-
-    private string FormatDangerousApproaches(EncounterStatusModel state)
-    {
-        if (state.EncounterInfo?.DangerousApproaches == null || !state.EncounterInfo.DangerousApproaches.Any())
-            return "None specifically";
-
-        return string.Join(", ", state.EncounterInfo.DangerousApproaches);
     }
 
     private Dictionary<int, string> ExtractChoiceApproaches(List<IChoice> choices)
