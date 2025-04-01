@@ -292,11 +292,11 @@
             else
             {
                 if (projection.FinalMomentum >= encounterInfo.ExceptionalThreshold)
-                    projection.ProjectedOutcome = EncounterOutcomes.Exceptional;
+                    projection.ProjectedOutcome = EncounterOutcomes.ExceptionalSuccess;
                 else if (projection.FinalMomentum >= encounterInfo.StandardThreshold)
-                    projection.ProjectedOutcome = EncounterOutcomes.Standard;
+                    projection.ProjectedOutcome = EncounterOutcomes.StandardSuccess;
                 else if (projection.FinalMomentum >= encounterInfo.PartialThreshold)
-                    projection.ProjectedOutcome = EncounterOutcomes.Partial;
+                    projection.ProjectedOutcome = EncounterOutcomes.PartialSuccess;
                 else
                     projection.ProjectedOutcome = EncounterOutcomes.Failure;
             }

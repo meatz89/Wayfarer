@@ -72,7 +72,7 @@
 
         // Always include introduction with memory and its response
         ConversationEntry? introPrompt = fullHistory.FirstOrDefault(m => m.Type == MessageType.Introduction && m.Role == "user");
-        string simplifiedIntro = SimplifyIntroductionPrompt(introPrompt.Content);
+        string simplifiedIntro = introPrompt.Content;
 
         ConversationEntry? introResponse = fullHistory.FirstOrDefault(m => m.Type == MessageType.Introduction && m.Role == "assistant");
 
@@ -127,14 +127,6 @@
         }
 
         return optimizedHistory;
-    }
-
-    private string SimplifyIntroductionPrompt(string introductionPrompt)
-    {
-        const string Separator = "Write";
-        string[] parts = introductionPrompt.Split(Separator);
-        string simplifiedPrompt = parts[0];
-        return simplifiedPrompt;
     }
 
     // Simplify player choice prompt to just "Player chose X"
