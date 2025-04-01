@@ -25,8 +25,11 @@
         string response = await _narrativeService.ProcessMemoryConsolidation(context, input);
         return response;
     }
-
-    public void IntegrateWorldEvolution(WorldEvolutionResponse evolution, WorldState worldState, LocationSystem locationSystem)
+    public void IntegrateWorldEvolution(
+    WorldEvolutionResponse evolution,
+    WorldState worldState,
+    LocationSystem locationSystem,
+    PlayerState playerState) 
     {
         // Add new location spots to current location
         string locationName = worldState.CurrentLocation?.Name;
@@ -88,7 +91,6 @@
                     EnsureSpotHasActions(spot, spot.Name, location);
                 }
             }
-
             worldState.AddLocations(new List<Location> { location });
         }
 
@@ -97,6 +99,12 @@
 
         // Add new opportunities
         worldState.AddOpportunities(evolution.NewOpportunities);
+
+        // Apply coin change to player state
+        if (evolution.CoinChange != 0)
+        {
+            playerState.ModifyCoins(evolution.CoinChange);
+        }
     }
 
     private void EnsureSpotHasActions(LocationSpot spot, string spotName, Location location)

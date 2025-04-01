@@ -10,10 +10,26 @@ Create an BRIEF, immersive introductory scene for a {ENCOUNTER_TYPE} encounter a
 - Goal: {CHARACTER_GOAL}
 - Challenge: {ENCOUNTER_COMPLICATION}
 
+## Player Resources
+- Coins: {PLAYER_COINS} (Use this to inform narrative about spending capacity)
+- Health: {PLAYER_HEALTH}/{PLAYER_MAX_HEALTH}
+- Concentration: {PLAYER_CONCENTRATION}/{PLAYER_MAX_CONCENTRATION}
+- Confidence: {PLAYER_CONFIDENCE}/{PLAYER_MAX_CONFIDENCE}
+- Energy: {PLAYER_ENERGY}/{PLAYER_MAX_ENERGY}
+
+## Player Inventory
+{PLAYER_INVENTORY}
+
 ## Location Context
 - Environment: {ENVIRONMENT_DETAILS}
 - NPCs: {NPC_LIST}
 - Constraints: {TIME_CONSTRAINTS} and {ADDITIONAL_CHALLENGES}
+
+## Narrative Guidelines
+- If the narrative mentions costs, keep them reasonable relative to player's coins
+- For {CHARACTER_ARCHETYPE}, reference appropriate inventory items in natural ways
+- Ensure narrative reflects character's current status (health, energy, etc.)
+- If the encounter involves spending coins, make spending limits clear
 
 ## Encounter Clarification:
 - Set up the challenge requiring approach/focus choices
@@ -31,7 +47,7 @@ Create an BRIEF, immersive introductory scene for a {ENCOUNTER_TYPE} encounter a
 4. The Chekhov's Gun should enhance but not dominate the primary encounter goal
 
 ## General Requirements
-1. Reference at least 3-4 specific details from the memory file
+1. Reference at least 1-2 specific details from the memory file
 2. Use multiple sensory details across at least three senses
 3. Show NPCs through observable behaviors that hint at motivations
 4. End with a situation requiring a decision shaped by previous experiences

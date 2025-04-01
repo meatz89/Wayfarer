@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 public class WorldEvolutionParser
 {
@@ -29,6 +27,7 @@ public class WorldEvolutionParser
             ProcessNewCharacters(root, result);
             ProcessNewLocations(root, result);
             ProcessNewOpportunities(root, result);
+            ProcessCoinChange(root, result);
         }
         catch (JsonException ex)
         {
@@ -322,6 +321,15 @@ public class WorldEvolutionParser
             return !string.IsNullOrWhiteSpace(value) ? value : defaultValue;
         }
         return defaultValue;
+    }
+
+    private void ProcessCoinChange(JsonElement root, WorldEvolutionResponse result)
+    {
+        if (root.TryGetProperty("coinChange", out JsonElement coinChangeElement) &&
+            coinChangeElement.ValueKind == JsonValueKind.Number)
+        {
+            result.CoinChange = coinChangeElement.GetInt32();
+        }
     }
 
     private void LogError(string message, Exception ex)

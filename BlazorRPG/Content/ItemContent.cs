@@ -15,8 +15,6 @@
         .WithActionModifier((Action<ActionModifierBuilder>)(actionModifier => actionModifier
             .WithDescription("GATHERs more Wood when GATHERing")
             .ForActionType((BasicActionTypes)BasicActionTypes.Gather)
-            .WhenResourceRewardHas(ItemTypes.Wood)
-            .AdditionalResourceReward(ItemTypes.Wood, 1)
             .ReduceActionCost(EnergyTypes.Physical, 1)))
         .Build();
 

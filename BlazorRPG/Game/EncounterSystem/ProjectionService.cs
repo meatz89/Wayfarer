@@ -114,9 +114,9 @@
         switch (affinity)
         {
             case AffinityTypes.Unnatural:
-                pressureHealthDamage = pressureHealthDamage > 1 ?(int)(pressureHealthDamage / 2) : 0;
-                pressureConcentrationDamage = pressureConcentrationDamage > 1 ?(int)(pressureConcentrationDamage / 2) : 0;
-                pressureConfidenceDamage = pressureConfidenceDamage > 1 ?(int)(pressureConfidenceDamage / 2) : 0;
+                pressureHealthDamage = pressureHealthDamage > 1 ? (int)(pressureHealthDamage / 2) : 0;
+                pressureConcentrationDamage = pressureConcentrationDamage > 1 ? (int)(pressureConcentrationDamage / 2) : 0;
+                pressureConfidenceDamage = pressureConfidenceDamage > 1 ? (int)(pressureConfidenceDamage / 2) : 0;
                 break;
 
             case AffinityTypes.Dangerous:
@@ -126,11 +126,11 @@
                 pressureHealthDamage = 0;
                 pressureConcentrationDamage = 0;
                 pressureConfidenceDamage = 0;
-            break;
+                break;
         }
 
         if (pressureHealthDamage != 0)
-            {
+        {
             projection.HealthChange = pressureHealthDamage;
             projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
             {

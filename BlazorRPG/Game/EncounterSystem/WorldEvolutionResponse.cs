@@ -5,4 +5,5 @@
     public List<Character> NewCharacters { get; set; } = new List<Character>();
     public List<Location> NewLocations { get; set; } = new List<Location>();
     public List<Opportunity> NewOpportunities { get; set; } = new List<Opportunity>();
+    public int CoinChange { get; set; } = 0;
 }

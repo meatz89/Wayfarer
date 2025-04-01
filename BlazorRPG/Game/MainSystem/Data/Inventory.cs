@@ -1,4 +1,5 @@
-﻿public class Inventory
+﻿
+public class Inventory
 {
     private ItemTypes[] Slots;
 
@@ -12,6 +13,18 @@
         {
             Slots[i] = ItemTypes.None; // Initialize slots as empty
         }
+    }
+
+    public ItemTypes GetFirstItem()
+    {
+        foreach (ItemTypes itemType in Enum.GetValues(typeof(ItemTypes)))
+        {
+            if (itemType != ItemTypes.None && ContainsItem(itemType))
+            {
+                return itemType;
+            }
+        }
+        return ItemTypes.None;
     }
 
     public int GetCapacityFor(ItemTypes item)

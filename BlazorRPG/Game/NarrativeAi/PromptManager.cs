@@ -58,7 +58,6 @@ public class PromptManager
 
         return prompt;
     }
-
     public string BuildIntroductionPrompt(
         NarrativeContext context,
         EncounterStatusModel state,
@@ -82,11 +81,25 @@ public class PromptManager
             ? $"Difficulty level {state.EncounterInfo.Difficulty} (adds +{state.EncounterInfo.Difficulty} pressure per turn)"
             : "Standard difficulty";
 
+        // Format player character info
         string characterArchetype = state.PlayerState.Archetype.ToString();
-
-        // Format approach stats
         string approachStats = FormatApproachValues(state);
 
+        // Format player resources
+        string playerCoins = state.PlayerState.Coins.ToString();
+        string playerHealth = state.Health.ToString();
+        string playerMaxHealth = state.MaxHealth.ToString();
+        string playerConcentration = state.Concentration.ToString();
+        string playerMaxConcentration = state.MaxConcentration.ToString();
+        string playerConfidence = state.Confidence.ToString();
+        string playerMaxConfidence = state.MaxConfidence.ToString();
+        string playerEnergy = state.PlayerState.Energy.ToString();
+        string playerMaxEnergy = state.PlayerState.MaxEnergy.ToString();
+
+        // Format player inventory
+        string playerInventory = FormatPlayerInventory(state.PlayerState.Inventory);
+
+        // Format encounter goal and complication
         ActionImplementation actionImplementation = context.ActionImplementation;
         string encounterGoal = actionImplementation.Goal;
         string encounterComplication = actionImplementation.Complication;
@@ -104,9 +117,76 @@ public class PromptManager
             .Replace("{TIME_CONSTRAINTS}", timeConstraints)
             .Replace("{ADDITIONAL_CHALLENGES}", additionalChallenges)
             .Replace("{ENCOUNTER_COMPLICATION}", encounterComplication)
-            .Replace("{MEMORY_CONTENT}", memoryContent);
+            .Replace("{MEMORY_CONTENT}", memoryContent)
+            .Replace("{PLAYER_COINS}", playerCoins)
+            .Replace("{PLAYER_HEALTH}", playerHealth)
+            .Replace("{PLAYER_MAX_HEALTH}", playerMaxHealth)
+            .Replace("{PLAYER_CONCENTRATION}", playerConcentration)
+            .Replace("{PLAYER_MAX_CONCENTRATION}", playerMaxConcentration)
+            .Replace("{PLAYER_CONFIDENCE}", playerConfidence)
+            .Replace("{PLAYER_MAX_CONFIDENCE}", playerMaxConfidence)
+            .Replace("{PLAYER_ENERGY}", playerEnergy)
+            .Replace("{PLAYER_MAX_ENERGY}", playerMaxEnergy)
+            .Replace("{PLAYER_INVENTORY}", playerInventory);
 
         return prompt;
+    }
+
+    private string FormatPlayerInventory(Inventory inventory)
+    {
+        if (inventory == null || inventory.UsedCapacity == 0)
+        {
+            return "No significant items";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.AppendLine("Carrying:");
+
+        // Group items by type and count them
+        Dictionary<ItemTypes, int> itemCounts = new Dictionary<ItemTypes, int>();
+        foreach (ItemTypes itemType in Enum.GetValues(typeof(ItemTypes)))
+        {
+            if (itemType != ItemTypes.None)
+            {
+                int count = inventory.GetItemCount(itemType);
+                if (count > 0)
+                {
+                    itemCounts[itemType] = count;
+                }
+            }
+        }
+
+        // Format items with counts
+        foreach (var item in itemCounts)
+        {
+            string itemName = GetItemName(item.Key);
+
+            if (item.Value > 1)
+            {
+                sb.AppendLine($"- {itemName} ({item.Value})");
+            }
+            else
+            {
+                sb.AppendLine($"- {itemName}");
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    private string GetItemName(ItemTypes itemType)
+    {
+        // Convert enum to display name
+        return SplitCamelCase(itemType.ToString());
+    }
+
+    public static string SplitCamelCase(string str)
+    {
+        return System.Text.RegularExpressions.Regex.Replace(
+            str,
+            "([A-Z])",
+            " $1",
+            System.Text.RegularExpressions.RegexOptions.Compiled).Trim();
     }
 
     public string BuildReactionPrompt(

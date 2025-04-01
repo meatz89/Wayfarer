@@ -10,15 +10,9 @@
     <div class="energy-meters">
         <div class="energy-meter">
             <div class="meter-bar">
-                <div class="meter-fill physical" style="width: @(physicalEnergyCurrent * 100 / physicalEnergyMax)%"></div>
+                <div class="meter-fill physical" style="width: @(energyCurrent * 100 / energyMax)%"></div>
             </div>
-            <span>Energy (@physicalEnergyCurrent/@physicalEnergyMax)</span>
-        </div>
-        <div class="energy-meter">
-            <div class="meter-bar">
-                <div class="meter-fill focus" style="width: @(concentration * 100 / maxConcentration)%"></div>
-            </div>
-            <span>Focus (@concentration/@maxConcentration)</span>
+            <span>Energy (@energyCurrent/@energyMax)</span>
         </div>
     </div>
 
@@ -28,20 +22,20 @@
             <span class="resource-value">@coins</span>
             <span class="resource-label">Coins</span>
         </div>
-        <div class="resource food">
-            <span class="resource-icon">🍖</span>
-            <span class="resource-value">@food</span>
-            <span class="resource-label">Food</span>
-        </div>
         <div class="resource health">
             <span class="resource-icon">❤️</span>
             <span class="resource-value">@health/@maxHealth</span>
             <span class="resource-label">Health</span>
         </div>
         <div class="resource confidence">
-            <span class="resource-icon">🏆</span>
+            <span class="resource-icon">🚀</span>
             <span class="resource-value">@confidence/@maxConfidence</span>
             <span class="resource-label">Confidence</span>
+        </div>
+        <div class="resource concentration">
+            <span class="resource-icon">🎯</span>
+            <span class="resource-value">@concentration/@maxConcentration</span>
+            <span class="resource-label">Concentration</span>
         </div>
     </div>
 </div>

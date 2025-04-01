@@ -130,13 +130,6 @@
         return properties;
     }
 
-    private string GetResourceIcon(ItemTypes? resource) => resource switch
-    {
-        ItemTypes.Food => "🍖",
-        ItemTypes.Wood => "🪵",
-        _ => "📦"
-    };
-
     private string FormatEnumString(string value)
     {
         return string.Concat(value

@@ -17,6 +17,12 @@ Determine how the world should evolve in response to the player's choices and ac
 4. Action types must be standardized (Discuss, Travel, Persuade, Rest, Investigate)
 5. Use standard environmental property values
 
+## Coin Changes
+- If the narrative mentioned the player gaining or losing coins, specify the amount
+- Use positive values for coins gained (e.g., 10 for finding 10 coins)
+- Use negative values for coins spent/lost (e.g., -5 for paying 5 coins)
+- Only include this if coins were explicitly mentioned in the narrative
+
 ## World Structure Requirements:
 - EVERY new location MUST have at least one spot
 - EVERY new spot MUST have at least one action
@@ -117,5 +123,6 @@ Determine how the world should evolve in response to the player's choices and ac
       "location": "Name of existing location where it takes place",
       "relatedCharacter": "Name of existing character involved"
     }
-  ]
+  ],
+  "coinChange": 0  // Positive for coins gained, negative for coins spent/lost
 }
