@@ -1004,6 +1004,13 @@ body {
 .archetype-name {
     color: var(--text-secondary);
 }
+
+.archetype-name-bold {
+    margin-top: 1rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
 .archetype-description {
     font-size: 0.9em;
     color: var(--text-secondary);
