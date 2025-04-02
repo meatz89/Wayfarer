@@ -172,7 +172,7 @@ public class Physical : IEnvironmentalProperty, IEquatable<Physical>
     }
 
     public override bool Equals(object? obj)
-    {   
+    {
         Physical? other = obj as Physical;
         return this.Value == other!.Value;
     }

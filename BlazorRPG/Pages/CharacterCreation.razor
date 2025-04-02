@@ -1,0 +1,151 @@
+﻿@if (IsVisible)
+{
+    <div class="narrative-container">
+        <h2>Create Your Character</h2>
+        <p class="secondary-text">Choose your name and profession to begin your journey</p>
+
+        <div class="tooltip-section">
+            <h4>Your Identity</h4>
+            <div class="player-stat">
+                <span class="stat-icon">👤</span>
+                <span class="stat-label">Your Name</span>
+                <input id="playerName" @bind="playerName" class="character-input" placeholder="Enter your name..." />
+            </div>
+        </div>
+
+        <div class="tooltip-section">
+            <h4>Choose Your Profession</h4>
+            <div class="archetype-grid">
+                @foreach (ArchetypeTypes archetype in Enum.GetValues(typeof(ArchetypeTypes)))
+                {
+                    <div class="archetype-card @(selectedArchetype == archetype ? "selected" : "")"
+                         @onclick="() => SelectArchetype(archetype)">
+                        <div class="archetype-icon">@GetArchetypeIcon(archetype)</div>
+                        <div class="archetype-name">@FormatArchetypeName(archetype)</div>
+                        <div class="archetype-description">@GetArchetypeDescription(archetype)</div>
+                        <div>
+                            <strong>Natural Approaches:</strong>
+                            <div class="secondary-text">@GetNaturalApproaches(archetype)</div>
+                        </div>
+                        <div class="starting-items">
+                            <strong>Starting Items:</strong>
+                            <div class="items-list">
+                                @foreach (string item in GetStartingItems(archetype))
+                                {
+                                    <div class="item">@item</div>
+                                }
+                            </div>
+                        </div>
+                        @if (selectedArchetype == archetype)
+                        {
+                            <div class="selected-indicator">✓</div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="action-button-container">
+            <button class="narrative-button" @onclick="CreateCharacter" disabled="@(!IsValid())">
+                Begin Your Journey
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<PlayerState> OnCharacterCreated { get; set; }
+    [Inject] protected GameState GameState { get; set; }
+
+    private string playerName = "";
+    private ArchetypeTypes selectedArchetype = ArchetypeTypes.Scholar;
+
+    private void SelectArchetype(ArchetypeTypes archetype)
+    {
+        selectedArchetype = archetype;
+    }
+
+    private bool IsValid()
+    {
+        return !string.IsNullOrWhiteSpace(playerName);
+    }
+
+    private async Task CreateCharacter()
+    {
+        // Set player name and archetype
+        GameState.PlayerState.Name = playerName;
+        GameState.PlayerState.SetArchetype(selectedArchetype);
+
+        // Notify parent component that character creation is complete
+        await OnCharacterCreated.InvokeAsync(GameState.PlayerState);
+    }
+
+    private string GetArchetypeIcon(ArchetypeTypes archetype)
+    {
+        return archetype switch
+        {
+            ArchetypeTypes.Warrior => "⚔️",
+            ArchetypeTypes.Scholar => "📚",
+            ArchetypeTypes.Ranger => "🏹",
+            ArchetypeTypes.Bard => "🎵",
+            ArchetypeTypes.Thief => "🗝️",
+            _ => "❓"
+        };
+    }
+
+    private string FormatArchetypeName(ArchetypeTypes archetype)
+    {
+        // Convert enum name to a formatted string (e.g., "WarriorType" to "Warrior Type")
+        return System.Text.RegularExpressions.Regex.Replace(
+            archetype.ToString(),
+            "([A-Z])",
+            " $1",
+            System.Text.RegularExpressions.RegexOptions.Compiled).Trim();
+    }
+
+    private string GetArchetypeDescription(ArchetypeTypes archetype)
+    {
+        return archetype switch
+        {
+            ArchetypeTypes.Warrior => "Masters of combat who rely on strength and intimidation.",
+            ArchetypeTypes.Scholar => "Intellectuals who rely on knowledge and careful analysis.",
+            ArchetypeTypes.Ranger => "Hunters and scouts with exceptional awareness and precision.",
+            ArchetypeTypes.Bard => "Charismatic performers skilled in social interaction and persuasion.",
+            ArchetypeTypes.Thief => "Stealthy operators who excel at subterfuge and evasion.",
+            _ => "Unknown archetype"
+        };
+    }
+
+    private string GetNaturalApproaches(ArchetypeTypes archetype)
+    {
+        return archetype switch
+        {
+            ArchetypeTypes.Warrior => "Dominance, Physical",
+            ArchetypeTypes.Scholar => "Analysis, Information",
+            ArchetypeTypes.Ranger => "Precision, Environment",
+            ArchetypeTypes.Bard => "Rapport, Relationship",
+            ArchetypeTypes.Thief => "Concealment, Resource",
+            _ => "None"
+        };
+    }
+
+    private string GetStartingItemsText(ArchetypeTypes archetype)
+    {
+        List<string> items = GetStartingItems(archetype);
+        return string.Join(", ", items);
+    }
+
+    private List<string> GetStartingItems(ArchetypeTypes archetype)
+    {
+        return archetype switch
+        {
+            ArchetypeTypes.Warrior => new List<string> { "Sword", "Shield", "Leather Armor", "Rations" },
+            ArchetypeTypes.Scholar => new List<string> { "Book", "Scroll", "Writing Kit", "Dagger", "Rations" },
+            ArchetypeTypes.Ranger => new List<string> { "Bow", "Arrows", "Hunting Knife", "Healing Herbs", "Rations" },
+            ArchetypeTypes.Bard => new List<string> { "Lute", "Fine Clothes", "Wine Bottle", "Dagger", "Rations" },
+            ArchetypeTypes.Thief => new List<string> { "Lockpicks", "Rope", "Dagger", "Climbing Gear", "Rations" },
+            _ => new List<string> { "Rations" }
+        };
+    }
+}
