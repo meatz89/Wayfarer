@@ -27,6 +27,25 @@ After analyzing the full encounter narrative, determine how the world should evo
 - IF SUCCESS: Create elements that advance the player's goals
 - IF FAILURE: Create alternative paths to achieve similar goals
 
+## Location Requirements
+- Difficulty Level: {DIFFICULTY} (1-3)
+- Choose appropriate environmental properties (Bright/Shadowy/Dark, Crowded/Quiet/Isolated, etc.)
+- Determine logical connections to other location types
+
+## Each Spot Must Include:
+- Name and description
+- InteractionType: Character/Quest/Shop/Feature/Travel
+- Position: North/South/East/West/Center
+- Initial action possibility (TradeGoods, ForestTravel, RentRoom, etc.)
+- EACH SPOT MUST HAVE AT LEAST ONE ACTION
+
+## Action Requirements
+- Actions must be either:
+  * Direct Actions: Provide immediate benefits with clear costs (time/money/energy)
+  * Encounter Actions: Start encounters with specific goals and complications
+- Direct examples: Sleep (restores energy, costs time), Purchase (costs money, provides items)
+- Encounter examples: Gather Information, Negotiate Price, Search Area
+
 ## World Structure Requirements
 - EVERY new location MUST have at least one spot
 - EVERY new spot MUST have at least one action
@@ -38,6 +57,10 @@ After analyzing the full encounter narrative, determine how the world should evo
 - Character names: SIMPLE FIRST NAMES ONLY (e.g., "Giles", not "Giles the merchant")
 - Action types: Discuss, Travel, Persuade, Rest, Investigate only
 - All actions require goal and complication fields
+- Action Type must only be one of:
+  * physical: Travel, Rest, Labor, Gather, Fight
+  * social: Discuss, Persuade, Perform
+  * intellectual: Study, Investigate, Analyze
 - Environmental properties must use standard values only:
   * Illumination: Bright, Shadowy, Dark
   * Population: Crowded, Quiet, Isolated
@@ -96,6 +119,7 @@ After analyzing the full encounter narrative, determine how the world should evo
     {
       "name": "Location name",
       "description": "Brief description",
+      "difficulty": "Location Difficulty (number)"
       "connectedTo": ["First Connected Location", "Second Connected Location"],
       "environmentalProperties": ["Bright", "Crowded", "Commercial", "Chaotic"],
       "spots": [
@@ -119,7 +143,7 @@ After analyzing the full encounter narrative, determine how the world should evo
   "newOpportunities": [
     {
       "name": "Opportunity name",
-      "type": "Quest/Job/Mystery",
+      "type": "Quest/Job/Mystery/Investigation",
       "description": "Brief description",
       "location": "Name of existing location where it takes place",
       "relatedCharacter": "Name of existing character involved"
