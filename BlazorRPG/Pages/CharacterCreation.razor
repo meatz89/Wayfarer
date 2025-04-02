@@ -21,7 +21,7 @@
                     <div class="archetype-card @(selectedArchetype == archetype ? "selected" : "")"
                          @onclick="() => SelectArchetype(archetype)">
                         <div class="archetype-icon">@GetArchetypeIcon(archetype)</div>
-                        <div class="archetype-name">@FormatArchetypeName(archetype)</div>
+                        <div class="archetype-name-bold">@FormatArchetypeName(archetype)</div>
                         <div class="archetype-description">@GetArchetypeDescription(archetype)</div>
                         <div>
                             <strong>Natural Approaches:</strong>
