@@ -23,7 +23,7 @@
             .WithName(ActionNames.WindingRoad.ToString())
             .WithGoal("travel through the forest by a safer but longer route")
             .WithComplication("a strange hermit claims you're trespassing on sacred ground")
-            .WithActionType(BasicActionTypes.Travel)
+            .WithActionType(BasicActionTypes.Discuss)
             .StartsEncounter("HermitEncounter")
             .Build());
 

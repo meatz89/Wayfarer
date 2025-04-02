@@ -62,17 +62,15 @@
 
     public ActionTemplate Build()
     {
-        return new ActionTemplate(
-            customName, // Use the string name directly
-            goal,
-            complication,
-            actionType,
-            IsEncounterAction,
-            encounterTemplateName,
-            requirements,
-            energy,
-            costs,
-            rewards
-        );
+        return new ActionTemplate()
+        {
+            Name = customName,
+            Goal = goal,
+            Complication = complication,
+            BasicActionType = actionType,
+            ActionType = IsEncounterAction ? ActionTypes.Encounter : ActionTypes.Basic,
+            EncounterTemplateName = encounterTemplateName,
+            CoinCost = 0
+        };
     }
 }

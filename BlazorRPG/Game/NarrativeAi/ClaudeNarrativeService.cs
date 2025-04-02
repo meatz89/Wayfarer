@@ -26,6 +26,30 @@
 
     }
 
+    public override async Task<string> GenerateActionsAsync(ActionGenerationContext context)
+    {
+        string conversationId = $"action_generation_{context.SpotName}"; // Unique conversation ID
+        string systemMessage = _promptManager.GetSystemMessage();
+        string prompt = _promptManager.BuildActionGenerationPrompt(context);
+
+        ConversationEntry entrySystem = new ConversationEntry { Role = "system", Content = systemMessage };
+        ConversationEntry entryUser = new ConversationEntry { Role = "user", Content = prompt };
+
+        List<ConversationEntry> messages = [entrySystem, entryUser];
+
+        string model = _modelHigh;
+        string fallbackModel = _modelLow;
+        if (Configuration.GetValue<bool>("actionsLow"))
+        {
+            model = _modelLow;
+        }
+
+        string jsonResponse = await _aiClient.GetCompletionAsync(messages,
+            model, fallbackModel);
+
+        return jsonResponse;
+    }
+
     public override async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatusModel state, string memoryContent)
     {
         string conversationId = $"{context.LocationName}_encounter"; // Consistent ID
@@ -186,29 +210,6 @@
         return LocationJsonParser.ParseLocationDetails(jsonResponse);
     }
 
-    public override async Task<string> GenerateActionsAsync(ActionGenerationContext context)
-    {
-        string conversationId = $"action_generation_{context.SpotName}"; // Unique conversation ID
-        string systemMessage = _promptManager.GetSystemMessage();
-        string prompt = _promptManager.BuildActionGenerationPrompt(context);
-
-        ConversationEntry entrySystem = new ConversationEntry { Role = "system", Content = systemMessage };
-        ConversationEntry entryUser = new ConversationEntry { Role = "user", Content = prompt };
-
-        List<ConversationEntry> messages = [entrySystem, entryUser];
-
-        string model = _modelHigh;
-        string fallbackModel = _modelLow;
-        if (Configuration.GetValue<bool>("actionsLow"))
-        {
-            model = _modelLow;
-        }
-
-        string jsonResponse = await _aiClient.GetCompletionAsync(messages,
-            model, fallbackModel);
-
-        return jsonResponse;
-    }
 
     public override async Task<WorldEvolutionResponse> ProcessWorldEvolution(
         NarrativeContext context,
@@ -240,7 +241,7 @@
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel);
 
-        WorldEvolutionResponse worldEvolutionResponse = WorldEvolutionParser.ParseWorldEvolutionResponse(jsonResponse);
+        WorldEvolutionResponse worldEvolutionResponse = await WorldEvolutionParser.ParseWorldEvolutionResponseAsync(jsonResponse);
         return worldEvolutionResponse;
     }
 

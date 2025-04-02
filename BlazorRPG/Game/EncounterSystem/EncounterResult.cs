@@ -6,4 +6,5 @@
 
     public NarrativeContext NarrativeContext { get; set; }
     public NarrativeResult NarrativeResult { get; set; }
+    public Location TravelLocation { get; internal set; }
 }

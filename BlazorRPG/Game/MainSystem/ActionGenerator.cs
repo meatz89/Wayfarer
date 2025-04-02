@@ -11,20 +11,19 @@
         _repository = repository;
     }
 
-    public async Task<string> GenerateActionForSpotAsync(
-        Location location, LocationSpot spot)
+    public async Task<string> GenerateActionAndEncounter(
+        string name, string goal, string complication, string basicActionType,
+        string locationSpotName, string locationName)
     {
         // Create context for generation
         ActionGenerationContext context = new ActionGenerationContext
         {
-            LocationName = location.Name,
-            LocationDescription = location.Description,
-            SpotName = spot.Name,
-            SpotDescription = spot.Description,
-            InteractionType = spot.InteractionType,
-            EnvironmentalProperties = location.EnvironmentalProperties
-                .Select(p => p.GetPropertyValue())
-                .ToList()
+            ActionName = name,
+            Goal = goal,
+            Complication = complication,
+            BasicActionType = basicActionType,
+            SpotName = locationSpotName,
+            LocationName = locationName,
         };
 
         // Get action and encounter details from AI
@@ -40,10 +39,11 @@
         _repository.RegisterEncounterTemplate(encounterName, encounterTemplate);
 
         // Create action template linked to the encounter
-        string actionTemplate = _repository.GetOrCreateActionTemplate(
+        string actionTemplate = _repository.CreateActionTemplate(
             result.Action.Name,
             result.Action.Goal,
             result.Action.Complication,
+            result.Action.BasicActionType,
             result.Action.ActionType,
             encounterTemplate.Name,
             result.Action.CoinCost);

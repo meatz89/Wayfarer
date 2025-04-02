@@ -10,6 +10,6 @@
     public List<string> PreviousInteractions { get; internal set; }
 
     public ActionImplementation ActionImplementation;
-    public BasicActionTypes ActionType;
+    public BasicActionTypes BasicActionType;
     public IChoice LastChoice;
 }

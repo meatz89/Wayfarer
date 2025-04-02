@@ -13,6 +13,6 @@
 
 public class ActionCreationResult
 {
-    public ActionModel Action { get; set; }
+    public ActionTemplate Action { get; set; }
     public EncounterTemplateModel EncounterTemplate { get; set; }
 }

@@ -109,6 +109,12 @@ public partial class GameUI : ComponentBase
         {
             OngoingEncounter = false;
             ShowEncounterResult = true;
+
+            if(result.TravelLocation != null)
+            {
+                GameManager.TravelToLocation(result.TravelLocation.Name);
+                showAreaMap = true;
+            }
         }
         StateHasChanged();
     }
