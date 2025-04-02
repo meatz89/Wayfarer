@@ -556,6 +556,7 @@ body {
 
 /* Tooltip Section */
 .tooltip-section {
+    background-color: var(--bg-panel);
     width: 100%;
     border-radius: 4px;
 }
@@ -578,10 +579,10 @@ body {
 }
 
 .tooltip-item {
-    background-color: var(--bg-panel);
-    padding: 0.5rem;
-    border-radius: 4px;
+    padding: 0.7rem;
+    border-radius: 16px;
     min-width: 300px;
+    background-color: var(--bg-card);
 }
 
     .tooltip-item.wide {
