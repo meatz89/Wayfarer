@@ -2,10 +2,8 @@
 {
     public string Name { get; set; }
     public ItemTypes ItemType { get; set; }
-    public int Condition { get; set; } // Could be a percentage or a discrete value
-    public List<ActionModifier> ActionModifiers = new();
+    public int Condition { get; set; } 
 
-    // Add other properties as needed (e.g., effects, value)
     public Item(string name, ItemTypes itemType)
     {
         Name = name;

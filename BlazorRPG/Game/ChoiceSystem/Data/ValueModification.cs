@@ -52,17 +52,15 @@ public class PressureModification : ValueModification
 
 public class EnergyCostReduction : ValueModification
 {
-    public EnergyTypes EnergyType { get; set; }
 
-    public EnergyCostReduction(EnergyTypes type, int amount, string source)
+    public EnergyCostReduction(int amount, string source)
     {
-        EnergyType = type;
         Amount = amount;
         Source = source;
     }
 
     public override string ToString()
     {
-        return $"{EnergyType}: {Amount} (from {Source}";
+        return $"{Amount} (from {Source}";
     }
 }

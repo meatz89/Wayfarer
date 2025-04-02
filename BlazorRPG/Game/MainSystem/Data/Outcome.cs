@@ -1,4 +1,6 @@
-﻿public abstract class Outcome
+﻿using System.Xml.Schema;
+
+public abstract class Outcome
 {
     public abstract void Apply(PlayerState player);
     public abstract string GetDescription();
@@ -78,56 +80,30 @@ public class KnowledgeOutcome : Outcome
 
 public class EnergyOutcome : Outcome
 {
-    public EnergyTypes EnergyType { get; }
     public int Amount { get; set; }
 
-    public EnergyOutcome(EnergyTypes type, int count)
+    public EnergyOutcome(int count)
     {
-        EnergyType = type;
         Amount = count;
     }
 
     public override void Apply(PlayerState player)
     {
-        switch (EnergyType)
-        {
-            case EnergyTypes.Physical:
-                player.Energy = Math.Clamp(
-                    player.Energy + Amount,
-                    0,
-                    player.MaxEnergy);
-                break;
-            case EnergyTypes.Concentration:
-                player.Concentration = Math.Clamp(
-                    player.Concentration + Amount,
-                    0,
-                    player.MaxConcentration);
-                break;
-        }
+        player.Energy = Math.Clamp(
+            player.Energy + Amount,
+            0,
+            player.MaxEnergy);
     }
 
     public override string GetDescription()
     {
-        return $"{(Amount >= 0 ? "+" : "")}{Amount} {EnergyType} Energy";
+        return $"{(Amount >= 0 ? "+" : "")}{Amount} Energy";
     }
 
     public override string GetPreview(PlayerState player)
     {
-        int currentValue = EnergyType switch
-        {
-            EnergyTypes.Physical => player.Energy,
-            EnergyTypes.Concentration => player.Concentration,
-            _ => 0
-        };
-
-        int maxValue = EnergyType switch
-        {
-            EnergyTypes.Physical => player.MaxEnergy,
-            EnergyTypes.Concentration => player.MaxConcentration,
-            _ => 0
-        };
-
-        int newValue = Math.Clamp(currentValue + Amount, 0, maxValue);
+        int currentValue = player.Energy;
+        int newValue = Math.Clamp(currentValue + Amount, 0, player.MaxEnergy);
         return $"({currentValue} -> {newValue})";
     }
 }

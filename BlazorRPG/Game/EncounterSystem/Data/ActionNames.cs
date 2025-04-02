@@ -1,13 +1,13 @@
-﻿
-public enum ActionNames
+﻿public enum ActionNames
 {
+    None, 
+
     // Village actions
-    VillageGathering,
-    TradeGoods,
+    MarketPurchasing,
 
     // Forest actions
-    DirectForestTravel,
-    ScenicForestTravel,
+    DirectPath,
+    WindingRoad,
 
     // Tavern actions
     RentRoom,

@@ -3,8 +3,6 @@
     public static List<EncounterTemplate> GetAllTemplates()
     {
         List<EncounterTemplate> encounterTemplates = new() {
-            VillageSquareEncounter,
-            WellEncounter,
             BanditEncounter,
             HuntingEncounter,
             HerbalismEncounter,
@@ -12,76 +10,16 @@
             InformantEncounter,
             QuestBoardEncounter,
             InnRoomEncounter,
-            ShadyDealEncounter,
             TavernGossipEncounter
             };
         return encounterTemplates;
     }
 
-    // VILLAGE ENCOUNTERS
-    private static EncounterTemplate VillageSquareEncounter => new EncounterTemplate()
-    {
-        Name = "VillageSquare",
-        Duration = 4,
-        MaxPressure = 10,
-        PartialThreshold = 8,
-        StandardThreshold = 12,
-        ExceptionalThreshold = 16,
-
-        Hostility = EncounterInfo.HostilityLevels.Friendly,
-
-        PressureReducingFocuses = new[] { FocusTags.Relationship, FocusTags.Information }.ToList(),
-        MomentumReducingFocuses = new[] { FocusTags.Resource }.ToList(),
-
-        EncounterNarrativeTags =
-        [
-            NarrativeTagRepository.IntimidatingPresence,
-            NarrativeTagRepository.SocialAwkwardness
-        ],
-
-        encounterStrategicTags =
-        [
-            new StrategicTag("Morning Sun", Illumination.Bright),
-            new StrategicTag("Village Gathering", Population.Crowded),
-            new StrategicTag("Community Space", Atmosphere.Formal),
-            new StrategicTag("Open Plaza", Physical.Expansive)
-        ]
-    };
-
-    private static EncounterTemplate WellEncounter => new EncounterTemplate()
-    {
-        Name = "Well",
-        Duration = 4,
-        MaxPressure = 8,
-        PartialThreshold = 8,
-        StandardThreshold = 12,
-        ExceptionalThreshold = 16,
-
-        Hostility = EncounterInfo.HostilityLevels.Neutral,
-
-        PressureReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
-        MomentumReducingFocuses = new[] { FocusTags.Resource }.ToList(),
-
-        EncounterNarrativeTags =
-        [
-            NarrativeTagRepository.ShadowVeil,
-            NarrativeTagRepository.IntimidatingPresence
-        ],
-
-        encounterStrategicTags =
-        [
-            new StrategicTag("Open Air", Illumination.Bright),
-            new StrategicTag("Social Gathering", Population.Crowded),
-            new StrategicTag("Communal Space", Atmosphere.Chaotic),
-            new StrategicTag("Water Source", Physical.Confined)
-        ]
-    };
-
     // FOREST ENCOUNTERS
     public static EncounterTemplate HermitEncounter => new EncounterTemplate()
     {
         Name = "HermitEncounter",
-        Duration = 5,
+        Duration = 4,
         MaxPressure = 10,
         PartialThreshold = 10,
         StandardThreshold = 14,
@@ -110,11 +48,11 @@
     private static EncounterTemplate BanditEncounter => new EncounterTemplate()
     {
         Name = "Bandit",
-        Duration = 6,
+        Duration = 4,
         MaxPressure = 13,
-        PartialThreshold = 12,
-        StandardThreshold = 16,
-        ExceptionalThreshold = 20,
+        PartialThreshold = 10,
+        StandardThreshold = 12,
+        ExceptionalThreshold = 14,
 
         Hostility = EncounterInfo.HostilityLevels.Hostile,
 
@@ -226,35 +164,6 @@
         ]
     };
 
-    private static EncounterTemplate ShadyDealEncounter => new EncounterTemplate()
-    {
-        Name = "ShadyDeal",
-        Duration = 4,
-        MaxPressure = 12,
-        PartialThreshold = 10,
-        StandardThreshold = 14,
-        ExceptionalThreshold = 18,
-
-        Hostility = EncounterInfo.HostilityLevels.Neutral,
-
-        PressureReducingFocuses = new[] { FocusTags.Resource, FocusTags.Environment }.ToList(),
-        MomentumReducingFocuses = new[] { FocusTags.Physical, FocusTags.Relationship }.ToList(),
-
-        EncounterNarrativeTags =
-        [
-            NarrativeTagRepository.SuperficialCharm,
-            NarrativeTagRepository.ParanoidMindset
-        ],
-
-        encounterStrategicTags =
-        [
-            new StrategicTag("Dark Corner", Illumination.Dark),
-            new StrategicTag("Private Booth", Population.Isolated),
-            new StrategicTag("Illicit Trade", Atmosphere.Tense),
-            new StrategicTag("Confined Space", Physical.Confined)
-        ]
-    };
-
     private static EncounterTemplate InnRoomEncounter => new EncounterTemplate()
     {
         Name = "InnRoom",
@@ -342,7 +251,6 @@
         ]
     };
 
-    // MerchantEncounter is explicitly requested to keep in the code
     private static EncounterTemplate MerchantEncounter => new EncounterTemplate()
     {
         Name = "Merchant",

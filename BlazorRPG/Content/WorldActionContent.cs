@@ -12,7 +12,7 @@
 
         // Forest actions
         actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName(ActionNames.DirectForestTravel)
+            .WithName(ActionNames.DirectPath.ToString())
             .WithGoal("traverse the dangerous forest path")
             .WithComplication("bandits are known to ambush travelers")
             .WithActionType(BasicActionTypes.Travel)
@@ -20,7 +20,7 @@
             .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName(ActionNames.ScenicForestTravel)
+            .WithName(ActionNames.WindingRoad.ToString())
             .WithGoal("travel through the forest by a safer but longer route")
             .WithComplication("a strange hermit claims you're trespassing on sacred ground")
             .WithActionType(BasicActionTypes.Travel)

@@ -6,28 +6,21 @@
 
 public class EnergyRequirement : Requirement
 {
-    public EnergyTypes EnergyType { get; }
     public int Amount { get; set; }
 
-    public EnergyRequirement(EnergyTypes type, int count)
+    public EnergyRequirement(int count)
     {
-        EnergyType = type;
         Amount = count;
     }
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return EnergyType switch
-        {
-            EnergyTypes.Physical => gameState.PlayerState.Energy >= Amount,
-            EnergyTypes.Concentration => gameState.PlayerState.Concentration >= Amount,
-            _ => false
-        };
+        return gameState.PlayerState.Energy >= Amount;
     }
 
     public override string GetDescription()
     {
-        return $"{EnergyType} Energy Required: {Amount}";
+        return $"Energy Required: {Amount}";
     }
 }
 
