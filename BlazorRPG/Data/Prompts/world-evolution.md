@@ -1,13 +1,36 @@
 ﻿# WORLD EVOLUTION
 
-After analyzing the full encounter narrative, determine how the world should evolve based on the outcome.
+After analyzing the full encounter narrative, determine how the world should evolve based on the outcome. Every encounter MUST add at least one action.
 
-## Character Context
+## Context
 - Current location: {currentLocation}
 - Known locations: {knownLocations}
 - Known characters: {knownCharacters}
 - Active opportunities: {activeOpportunities}
 - Encounter outcome: {encounterOutcome} (Success/Partial/Failure)
+
+## Guidelines
+1. Identify player interests during this conversation
+2. Apply "Purpose or Perish" - only include elements with clear purpose
+3. Character names must be SIMPLE FIRST NAMES ONLY
+4. Action types must be standardized (Discuss, Travel, Persuade, Rest, Investigate)
+5. Use standard environmental property values
+
+## For Failed Encounters:
+- Create alternative paths (new actions at different spots/locations)
+- These must offer different approaches to similar goals
+- Should feel like natural world evolution, not artificial second chances
+
+## Format Requirements
+- Character names must be SIMPLE FIRST NAMES ONLY (e.g., "Giles", not "Giles the merchant")
+- Action types must be one of: Discuss, Travel, Persuade, Rest, Investigate
+- All actions must specify a goal and complication
+- Environmental properties must use these exact values:
+  * Illumination: Bright, Shadowy, Dark
+  * Population: Crowded, Quiet, Isolated
+  * Atmosphere: Tense, Formal, Chaotic
+  * Economic: Wealthy, Commercial, Humble
+  * Physical: Confined, Expansive, Hazardous
 
 ## Player Location Changes
 - Carefully review the encounter narrative to determine if the player ended at a DIFFERENT LOCATION than where they started
@@ -22,6 +45,7 @@ After analyzing the full encounter narrative, determine how the world should evo
 
 ## Relationship Changes
 - Identify ALL character relationship changes suggested in the narrative
+- ONLY include characters explicitly named in the narrative
 - For EACH character the player interacted with, determine if the relationship improved or worsened
 - Look for explicit statements about relationship changes
 - Also infer changes from:
@@ -31,7 +55,6 @@ After analyzing the full encounter narrative, determine how the world should evo
   * Player failing to help a character when promised (-1)
   * Player actions that upset or harm a character's interests (-1 or -2)
   * Player deceiving or betraying a character (-2)
-- Only include characters explicitly named in the narrative
 - Indicate relationship change as a positive or negative integer from -3 to +3
 
 ## World Evolution Focus
@@ -42,16 +65,16 @@ After analyzing the full encounter narrative, determine how the world should evo
 - IF FAILURE: Create alternative paths to achieve similar goals
 
 ## Location Requirements
-- Difficulty Level: {DIFFICULTY} (1-3)
+- Difficulty Level: {DIFFICULTY} (1-5)
 - Choose appropriate environmental properties (Bright/Shadowy/Dark, Crowded/Quiet/Isolated, etc.)
 - Determine logical connections to other location types
 
 ## Each Spot Must Include:
 - Name and description
+- At least 1 action
 - InteractionType: Character/Quest/Shop/Feature/Travel
 - Position: North/South/East/West/Center
 - Initial action possibility (TradeGoods, ForestTravel, RentRoom, etc.)
-- EACH SPOT MUST HAVE AT LEAST ONE ACTION
 
 ## Action Requirements
 - Actions must be either:
@@ -61,6 +84,7 @@ After analyzing the full encounter narrative, determine how the world should evo
 - Encounter examples: Gather Information, Negotiate Price, Search Area
 
 ## World Structure Requirements
+- You must generate at least one new action
 - EVERY new location MUST have at least one spot
 - EVERY new spot MUST have at least one action
 - EVERY action must either provide direct benefit or start an encounter

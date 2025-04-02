@@ -119,7 +119,7 @@ public class PromptManager
             .ToList();
 
         if (locationCharacters.Count == 0)
-            return "No known characters are present at this location, but you may include 1-2 unnamed locals if appropriate";
+            return "No known characters are present at this location, but you may include 1-2 named characters if appropriate";
 
         StringBuilder characterInfo = new StringBuilder();
         characterInfo.AppendLine("Characters known to be at this location:");
