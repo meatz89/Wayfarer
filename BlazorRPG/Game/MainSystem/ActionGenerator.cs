@@ -40,7 +40,7 @@
         _repository.RegisterEncounterTemplate(encounterName, encounterTemplate);
 
         // Create action template linked to the encounter
-        ActionTemplate actionTemplate = _repository.GetOrCreateAction(
+        string actionTemplate = _repository.GetOrCreateActionTemplate(
             result.Action.Name,
             result.Action.Goal,
             result.Action.Complication,
@@ -48,7 +48,7 @@
             encounterTemplate.Name,
             result.Action.CoinCost);
 
-        return actionTemplate.Name;
+        return actionTemplate;
     }
 
     private EncounterTemplate CreateEncounterTemplate(EncounterTemplateModel model)

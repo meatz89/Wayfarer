@@ -1,29 +1,61 @@
 ﻿public class WorldEvolutionService
 {
-    public NarrativeService _narrativeService { get; }
-    public ActionRepository _actionRepository { get; }
-    public ActionFactory _actionFactory { get; }
+    private readonly NarrativeService _narrativeService;
+    private readonly ActionRepository _actionRepository;
 
     public WorldEvolutionService(
         NarrativeService narrativeService,
-        ActionRepository actionRepository,
-        ActionFactory actionFactory)
+        ActionRepository actionRepository)
     {
         _narrativeService = narrativeService;
         _actionRepository = actionRepository;
-        _actionFactory = actionFactory;
     }
 
-    public async Task<WorldEvolutionResponse> ProcessWorldEvolution(NarrativeContext context, WorldEvolutionInput input)
+    public async Task<WorldEvolutionResponse> ProcessWorldEvolution(
+        NarrativeContext context,
+        WorldEvolutionInput input)
     {
+        // Get world evolution response from narrative service
         WorldEvolutionResponse response = await _narrativeService.ProcessWorldEvolution(context, input);
+
+        // Register encounter templates for any new actions
+        foreach (NewAction newAction in response.NewActions)
+        {
+            // Create a basic encounter template if one doesn't exist
+            string encounterTemplateName = $"{newAction.Name}Encounter";
+            if (_actionRepository.GetEncounterTemplate(encounterTemplateName) == null)
+            {
+                EncounterTemplate template = CreateBasicEncounterTemplate(encounterTemplateName);
+                _actionRepository.RegisterEncounterTemplate(encounterTemplateName, template);
+            }
+        }
+
         return response;
     }
 
-    public async Task<string> ConsolidateMemory(NarrativeContext context, MemoryConsolidationInput input)
+    public async Task<string> ConsolidateMemory(
+        NarrativeContext context,
+        MemoryConsolidationInput input)
     {
-        string response = await _narrativeService.ProcessMemoryConsolidation(context, input);
-        return response;
+        return await _narrativeService.ProcessMemoryConsolidation(context, input);
+    }
+
+    private EncounterTemplate CreateBasicEncounterTemplate(string name)
+    {
+        return new EncounterTemplate
+        {
+            Name = name,
+            Duration = 5,
+            MaxPressure = 13,
+            PartialThreshold = 12,
+            StandardThreshold = 16,
+            ExceptionalThreshold = 20,
+            Hostility = EncounterInfo.HostilityLevels.Neutral,
+            PressureReducingFocuses = new List<FocusTags>(),
+            MomentumReducingFocuses = new List<FocusTags>(),
+            EncounterNarrativeTags = new List<NarrativeTag>(),
+            encounterStrategicTags = new List<StrategicTag>()
+        };
     }
 
     public void IntegrateWorldEvolution(
@@ -36,31 +68,6 @@
         if (evolution.CoinChange != 0)
         {
             playerState.ModifyCoins(evolution.CoinChange);
-        }
-
-        // Process relationship changes
-        if (evolution.RelationshipChanges != null && evolution.RelationshipChanges.Any())
-        {
-            foreach (RelationshipChange relationshipChange in evolution.RelationshipChanges)
-            {
-                // Get current relationship level
-                int currentLevel = playerState.Relationships.GetLevel(relationshipChange.CharacterName);
-
-                // Apply the change
-                int newLevel = currentLevel + relationshipChange.ChangeAmount;
-
-                // Update relationship
-                playerState.Relationships.SetLevel(relationshipChange.CharacterName, newLevel);
-
-                // Optional: Log relationship changes for debugging or history tracking
-                Console.WriteLine($"Relationship with {relationshipChange.CharacterName} changed from {currentLevel} to {newLevel}: {relationshipChange.Reason}");
-            }
-        }
-
-        // Process new locations first (may be needed for player location change)
-        foreach (Location location in evolution.NewLocations)
-        {
-            worldState.AddLocations(new List<Location> { location });
         }
 
         // Process inventory changes
@@ -85,39 +92,58 @@
             }
         }
 
-        // Add new location spots to current location
-        string currentLocationName = worldState.CurrentLocation?.Name;
-        if (currentLocationName != null)
+        // Process relationship changes
+        if (evolution.RelationshipChanges != null && evolution.RelationshipChanges.Any())
         {
-            foreach (LocationSpot spot in evolution.NewLocationSpots.Where(s =>
-                string.IsNullOrEmpty(s.LocationName) ||
-                s.LocationName.Equals(currentLocationName, StringComparison.OrdinalIgnoreCase)))
+            foreach (RelationshipChange relationshipChange in evolution.RelationshipChanges)
             {
-                locationSystem.AddSpot(currentLocationName, spot);
-            }
+                // Skip if character name is empty
+                if (string.IsNullOrEmpty(relationshipChange.CharacterName))
+                    continue;
 
-            // Handle spots for other existing locations
-            IEnumerable<LocationSpot> spotsForOtherLocations = evolution.NewLocationSpots.Where(s =>
-                !string.IsNullOrEmpty(s.LocationName) &&
-                !s.LocationName.Equals(currentLocationName, StringComparison.OrdinalIgnoreCase));
+                // Get current relationship level
+                int currentLevel = playerState.Relationships.GetLevel(relationshipChange.CharacterName);
 
-            foreach (LocationSpot spot in spotsForOtherLocations)
-            {
-                Location? targetLocation = worldState.GetLocation(spot.LocationName);
-                if (targetLocation != null)
-                {
-                    locationSystem.AddSpot(spot.LocationName, spot);
-                }
+                // Apply the change
+                int newLevel = currentLevel + relationshipChange.ChangeAmount;
+
+                // Update relationship
+                playerState.Relationships.SetLevel(relationshipChange.CharacterName, newLevel);
             }
         }
 
-        // Add new actions to existing spots
+        // Process new locations first (may be needed for player location change)
+        foreach (Location location in evolution.NewLocations)
+        {
+            // Ensure each location has at least one spot
+            if (location.Spots == null || !location.Spots.Any())
+            {
+                location.Spots = new List<LocationSpot>();
+            }
+
+            worldState.AddLocations(new List<Location> { location });
+        }
+
+        // Add new location spots to appropriate locations
+        foreach (LocationSpot spot in evolution.NewLocationSpots)
+        {
+            string targetLocationName = !string.IsNullOrEmpty(spot.LocationName)
+                ? spot.LocationName
+                : worldState.CurrentLocation?.Name;
+
+            if (!string.IsNullOrEmpty(targetLocationName))
+            {
+                locationSystem.AddSpot(targetLocationName, spot);
+            }
+        }
+
+        // Add new actions to existing spots - CORRECTED TO USE TEMPLATES ONLY
         foreach (NewAction newAction in evolution.NewActions)
         {
-            Location? targetLocation = worldState.GetLocation(newAction.LocationName);
+            Location targetLocation = worldState.GetLocation(newAction.LocationName);
             if (targetLocation != null && targetLocation.Spots != null)
             {
-                LocationSpot? spotToUpdate = targetLocation.Spots.FirstOrDefault(s =>
+                LocationSpot spotToUpdate = targetLocation.Spots.FirstOrDefault(s =>
                     s.Name.Equals(newAction.SpotName, StringComparison.OrdinalIgnoreCase));
 
                 if (spotToUpdate != null)
@@ -125,17 +151,17 @@
                     if (spotToUpdate.ActionTemplates == null)
                         spotToUpdate.ActionTemplates = new List<string>();
 
-                    // Process the action and get a proper implementation
-                    string action = CreateSingleAction(
+                    // Create and store an action template name - NOT an implementation
+                    string actionTemplateName = _actionRepository.GetOrCreateActionTemplate(
                         newAction.Name,
-                        newAction.Description,
-                        spotToUpdate.Name,
-                        targetLocation,
                         newAction.Goal,
                         newAction.Complication,
-                        newAction.ActionType);
+                        ParseActionType(newAction.ActionType),
+                        $"{newAction.Name}Encounter" // Default encounter template name
+                    );
 
-                    spotToUpdate.ActionTemplates.Add(action);
+                    // Add the template name to the spot's action templates
+                    spotToUpdate.ActionTemplates.Add(actionTemplateName);
                 }
             }
         }
@@ -150,7 +176,7 @@
         if (evolution.LocationUpdate.LocationChanged && !string.IsNullOrEmpty(evolution.LocationUpdate.NewLocationName))
         {
             // Find the location (should exist now after processing new locations)
-            Location? newPlayerLocation = worldState.GetLocation(evolution.LocationUpdate.NewLocationName);
+            Location newPlayerLocation = worldState.GetLocation(evolution.LocationUpdate.NewLocationName);
             if (newPlayerLocation != null)
             {
                 worldState.SetCurrentLocation(newPlayerLocation);
@@ -164,7 +190,7 @@
                 {
                     Name = evolution.LocationUpdate.NewLocationName,
                     Description = $"A location the player traveled to during an encounter.",
-                    Spots = new List<LocationSpot> { },
+                    Spots = new List<LocationSpot>(),
                     ConnectedTo = new List<string> { worldState.CurrentLocation?.Name ?? string.Empty }
                 };
 
@@ -175,53 +201,18 @@
         }
     }
 
-    private string CreateSingleAction(
-        string actionName,
-        string description,
-        string spotName,
-        Location location,
-        string goal = "",
-        string complication = "",
-        string actionTypeStr = "Discuss")
-    {
-        BasicActionTypes actionType = ParseActionType(actionTypeStr);
-
-        // Check if this action already exists in the repository
-        ActionTemplate existingTemplate = _actionRepository.GetAction(actionName);
-        if (existingTemplate != null)
-        {
-            return existingTemplate.Name;
-
-        }
-
-        // If not, we need to create an encounter template for it
-        string encounterName = $"{actionName}Encounter";
-
-        // Generate an appropriate encounter template based on action type and spot
-        EncounterTemplate encounterTemplate = GenerateEncounterTemplateForAction(
-            actionName, actionType, spotName, location);
-
-        // Register the encounter template
-        _actionRepository.RegisterEncounterTemplate(encounterName, encounterTemplate);
-
-        // Create and register the action template
-        ActionTemplate template = _actionRepository.GetOrCreateAction(
-            actionName, goal, complication, actionType, encounterTemplate.Name);
-
-        // Create and return the action implementation
-        return _actionFactory.CreateActionFromTemplate(template).Name;
-    }
 
     private BasicActionTypes ParseActionType(string actionTypeStr)
     {
-        if (string.IsNullOrEmpty(actionTypeStr) ||
-            !Enum.TryParse<BasicActionTypes>(actionTypeStr, true, out BasicActionTypes actionType))
+        if (Enum.TryParse<BasicActionTypes>(actionTypeStr, true, out BasicActionTypes actionType))
         {
-            return BasicActionTypes.Discuss; // Default
+            return actionType;
         }
 
-        return actionType;
+        // Default fallback
+        return BasicActionTypes.Discuss;
     }
+
 
     private EncounterTemplate GenerateEncounterTemplateForAction(
     string actionName,

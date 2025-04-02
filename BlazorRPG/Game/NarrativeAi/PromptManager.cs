@@ -35,7 +35,7 @@ public class PromptManager
             .Replace("{DIFFICULTY}", context.Difficulty.ToString())
             .Replace("{REQUESTED_SPOT_COUNT}", context.RequestedSpotCount.ToString());
 
-        return prompt;
+        return CreatePromptJson(prompt);
     }
 
     public string BuildActionGenerationPrompt(ActionGenerationContext context)
@@ -55,7 +55,7 @@ public class PromptManager
             .Replace("{ENVIRONMENTAL_PROPERTIES}", envProps)
             .Replace("{REQUEST_COUNT}", context.RequestedActionCount.ToString());
 
-        return prompt;
+        return CreatePromptJson(prompt);
     }
 
     public string BuildIntroductionPrompt(
@@ -105,7 +105,7 @@ public class PromptManager
             .Replace("{MEMORY_CONTENT}", memoryContent)
             .Replace("{PLAYER_INVENTORY}", playerInventory);
 
-        return prompt;
+        return CreatePromptJson(prompt);
     }
 
     private string GetCharactersAtLocation(string locationName, WorldState worldState, PlayerState playerState)
@@ -331,7 +331,7 @@ public class PromptManager
             .Replace("{NATURAL_APPROACHES}", naturalApproaches)
             .Replace("{DANGEROUS_APPROACHES}", dangerousApproaches);
 
-        return prompt;
+        return CreatePromptJson(prompt);
     }
 
     public string BuildChoicesPrompt(
@@ -453,7 +453,7 @@ CHOICE {i + 1}:
             .Replace("{CHARACTER_GOAL}", context.ActionImplementation.Goal)
             .Replace("{CHOICES_INFO}", choicesInfo.ToString());
 
-        return prompt;
+        return CreatePromptJson(prompt);
     }
 
     public string BuildEncounterEndPrompt(
@@ -514,7 +514,7 @@ CHOICE {i + 1}:
             .Replace("{LAST_NARRATIVE}", lastNarrative)
             .Replace("{GOAL_ACHIEVEMENT_STATUS}", goalAchievementStatus);
 
-        return prompt;
+        return CreatePromptJson(prompt);
     }
 
     private string FormatApproachChanges(Dictionary<ApproachTags, int> approachChanges)

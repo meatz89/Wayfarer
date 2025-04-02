@@ -1,7 +1,7 @@
 ﻿# NARRATIVE REACTION
 
 ## Player's Choice
-'{SELECTED_CHOICE}' ({CHOICE_DESCRIPTION})
+'{SELECTED_CHOICE}' (Player Intent: '{CHOICE_DESCRIPTION}')
 CRITICAL: This choice represents the player's INTENT only, not what actually happens. The actual outcome must be driven by the mechanical changes below.
 This choice has NOT YET HAPPENED and must be executed in this scene.
 

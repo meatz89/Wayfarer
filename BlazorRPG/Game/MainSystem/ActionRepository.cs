@@ -19,7 +19,7 @@ public class ActionRepository
         }
     }
 
-    public ActionTemplate GetOrCreateAction(
+    public string GetOrCreateActionTemplate(
         string actionName,
         string goal,
         string complication,
@@ -46,10 +46,10 @@ public class ActionRepository
 
             ActionTemplate newTemplate = builder.Build();
             _actionTemplates.Add(newTemplate);
-            return newTemplate;
+            return newTemplate.Name;
         }
 
-        return existingTemplate;
+        return existingTemplate.Name;
     }
 
     public void RegisterEncounterTemplate(string name, EncounterTemplate template)

@@ -131,7 +131,7 @@
     {
         if (choiceNarrative != null)
         {
-            return $"The Player chose: '{choiceNarrative.ShorthandName}'. Generate the narrative response.";
+            return $"The Player chose: '{choiceNarrative.ShorthandName}'. The players intention was: '{choiceNarrative.FullDescription}'. Generate the narrative response.";
         }
 
         // If we can't parse it properly, return a default simplified version
