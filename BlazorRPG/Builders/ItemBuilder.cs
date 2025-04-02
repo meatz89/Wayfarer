@@ -3,7 +3,6 @@
     private ItemNames itemName;
     private ItemTypes itemType;
     private string description;
-    private List<ActionModifier> modifiers = new();
 
     public ItemBuilder WithName(ItemNames itemName)
     {
@@ -20,17 +19,6 @@
     public ItemBuilder WithDescription(string description)
     {
         this.description = description;
-        return this;
-    }
-
-    public ItemBuilder WithActionModifier(Action<ActionModifierBuilder> buildModifier)
-    {
-        ActionModifierBuilder builder = new();
-
-        builder.WithSource(itemName.ToString());
-
-        buildModifier(builder);
-        modifiers.AddRange(builder.Build());
         return this;
     }
 

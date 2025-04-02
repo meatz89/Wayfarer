@@ -7,7 +7,7 @@
 - Resources: Health {CURRENT_HEALTH}, Confidence {CURRENT_CONFIDENCE}, Concentration {CURRENT_CONCENTRATION}
 
 ## Player Character Context
-- Archetype: {CHARACTER_ARCHETYPE}
+- Archetype: {CHARACTER_ARCHETYPE} (Avoid announcing directly)
 - Natural Approaches: {NATURAL_APPROACHES}
 - Dangerous Approaches: {DANGEROUS_APPROACHES}
 

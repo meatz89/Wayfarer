@@ -12,7 +12,7 @@
              .WithAtmosphere(Atmosphere.Tense)
              .WithPopulation(Population.Isolated)
              .WithPhysical(Physical.Hazardous)
-             .AddAction(ActionNames.DirectForestTravel))
+             .AddAction(ActionNames.DirectPath))
 
          .AddLocationSpot(spot => spot
              .WithName("Scenic Route")
@@ -21,7 +21,7 @@
              .WithAtmosphere(Atmosphere.Formal)
              .WithPopulation(Population.Quiet)
              .WithPhysical(Physical.Expansive)
-             .AddAction(ActionNames.ScenicForestTravel))
+             .AddAction(ActionNames.WindingRoad))
 
          .WithPlayerKnowledge(true)
          .AddTravelConnection(LocationNames.Village)

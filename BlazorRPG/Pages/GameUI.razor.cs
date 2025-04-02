@@ -124,8 +124,9 @@ public partial class GameUI : ComponentBase
         }
         else
         {
-            UserLocationTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Location == locationName);
-            await GameManager.TravelToLocation(location.Location);
+            List<Location> locations = GameManager.LocationSystem.GetAllLocations();
+            Location? location = locations.FirstOrDefault(x => x.Name == locationName);
+            await GameManager.TravelToLocation(location.Name);
         }
     }
 

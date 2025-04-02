@@ -6,7 +6,7 @@ Your memory of past events:
 Create a BRIEF, immersive introductory scene for a {ENCOUNTER_TYPE} encounter at {LOCATION_SPOT} of {LOCATION_NAME}.
 
 ## Character Context
-- Archetype: {CHARACTER_ARCHETYPE} ({APPROACH_STATS})
+- Archetype: {CHARACTER_ARCHETYPE} ({APPROACH_STATS}) (Avoid announcing directly)
 - Goal: {CHARACTER_GOAL}
 - Challenge: {ENCOUNTER_COMPLICATION}
 

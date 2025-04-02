@@ -32,11 +32,10 @@ public class ActionFactory
         }
 
         // Add energy costs
-        EnergyTypes energyType = GameRules.GetEnergyTypeForAction(template.ActionType);
         int energyCost = GameRules.GetBaseEnergyCost(template.ActionType);
 
-        actionImplementation.Requirements.Add(new EnergyRequirement(energyType, energyCost));
-        actionImplementation.EnergyCosts.Add(new EnergyOutcome(energyType, -energyCost));
+        actionImplementation.Requirements.Add(new EnergyRequirement(energyCost));
+        actionImplementation.EnergyCosts.Add(new EnergyOutcome(-energyCost));
 
         return actionImplementation;
     }

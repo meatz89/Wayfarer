@@ -21,7 +21,7 @@ After analyzing the full encounter narrative, determine how the world should evo
 - Only include resources explicitly mentioned in the narrative
 
 ## World Evolution Focus
-- Extract only the MOST SIGNIFICANT world elements (max 1-2 of each type)
+- Extract only the MOST SIGNIFICANT world elements (max 0-4 of each type)
 - Focus on elements that enable FUTURE GAMEPLAY, not decorative details
 - Prioritize elements directly connected to the encounter outcome
 - IF SUCCESS: Create elements that advance the player's goals

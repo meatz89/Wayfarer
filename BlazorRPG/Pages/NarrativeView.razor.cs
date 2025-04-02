@@ -45,7 +45,7 @@ public partial class NarrativeViewBase : ComponentBase
     {
         if (outcome is EnergyOutcome energyOutcome)
         {
-            return GetEnergyTypeIcon(energyOutcome.EnergyType);
+            return GetEnergyTypeIcon();
         }
 
         return outcome switch
@@ -60,13 +60,8 @@ public partial class NarrativeViewBase : ComponentBase
         };
     }
 
-    public MarkupString GetEnergyTypeIcon(EnergyTypes energyType)
+    public MarkupString GetEnergyTypeIcon()
     {
-        return energyType switch
-        {
-            EnergyTypes.Physical => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
-            EnergyTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
-            _ => new MarkupString("")
-        };
+        return new MarkupString("<i class='value-icon physical-icon'>💪</i>");
     }
 }

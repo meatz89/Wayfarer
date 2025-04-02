@@ -13,10 +13,9 @@
 
     public ActionRepository ActionRepository { get; }
 
-    // Keep the enum-based method for backward compatibility
-    public ActionTemplateBuilder WithName(ActionNames name)
+    public ActionTemplateBuilder WithName(string name)
     {
-        this.customName = name.ToString();
+        this.customName = name;
         return this;
     }
 

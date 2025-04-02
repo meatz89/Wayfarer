@@ -300,7 +300,7 @@ public class WorldEvolutionParser
 
             // Create action template and convert to implementation
             ActionTemplate template = new ActionTemplateBuilder()
-                .WithName(ParseActionName(actionName))
+                .WithName(actionName)
                 .WithGoal(goal)
                 .WithComplication(complication)
                 .WithActionType(actionType)
@@ -467,44 +467,6 @@ public class WorldEvolutionParser
 
         // Default fallback
         return Illumination.Bright; // Provide a default rather than null
-    }
-
-    private ActionNames ParseActionName(string actionName)
-    {
-        // Try direct enum parse first
-        if (Enum.TryParse<ActionNames>(actionName.Replace(" ", ""), true, out ActionNames result))
-        {
-            return result;
-        }
-
-        // Create a dictionary to map keywords to ActionNames
-        Dictionary<string, ActionNames> keywordMap = new Dictionary<string, ActionNames>
-        {
-            { "Trade", ActionNames.TradeGoods },
-            { "Gather", ActionNames.VillageGathering },
-            { "Travel", ActionNames.DirectForestTravel },
-            { "Path", ActionNames.DirectForestTravel },
-            { "Meet", ActionNames.ScenicForestTravel },
-            { "Deal", ActionNames.ScenicForestTravel },
-            { "Bargain", ActionNames.ScenicForestTravel },
-            { "Rest", ActionNames.RentRoom },
-            { "Room", ActionNames.RentRoom },
-            { "Sleep", ActionNames.RentRoom },
-            { "Quest", ActionNames.FindQuests },
-            { "Job", ActionNames.FindQuests }
-        };
-
-        // Check for keyword matches
-        foreach (string keyword in keywordMap.Keys)
-        {
-            if (actionName.Contains(keyword, StringComparison.OrdinalIgnoreCase))
-            {
-                return keywordMap[keyword];
-            }
-        }
-
-        // Default fallback
-        return ActionNames.VillageGathering;
     }
 
     private BasicActionTypes ParseActionType(JsonElement element)

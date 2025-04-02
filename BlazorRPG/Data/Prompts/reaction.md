@@ -6,7 +6,7 @@ CRITICAL: This choice represents the player's INTENT only, not what actually hap
 This choice has NOT YET HAPPENED and must be executed in this scene.
 
 ## Player Character Context
-- Archetype: {CHARACTER_ARCHETYPE}
+- Archetype: {CHARACTER_ARCHETYPE} (Avoid announcing directly)
 - Natural Approaches: {NATURAL_APPROACHES}
 - Dangerous Approaches: {DANGEROUS_APPROACHES}
 

@@ -4,14 +4,8 @@
     {
         return req switch
         {
-            EnergyRequirement energyReq => energyReq.EnergyType switch
-            {
-                EnergyTypes.Physical => RequirementTypes.PhysicalEnergy,
-                EnergyTypes.Concentration => RequirementTypes.Concentration,
-                _ => RequirementTypes.Other
-            },
+            EnergyRequirement => RequirementTypes.Energy,
             HealthRequirement => RequirementTypes.Health,
-            FocusRequirement => RequirementTypes.Concentration,
             CoinsRequirement => RequirementTypes.Coins,
 
             InventorySlotsRequirement => RequirementTypes.InventorySlots,

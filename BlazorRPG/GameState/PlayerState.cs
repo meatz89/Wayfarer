@@ -75,7 +75,7 @@ public class PlayerState
         Confidence = GameRules.StandardRuleset.StartingConfidence;
         MaxConfidence = 20;
 
-        SetArchetype(ArchetypeTypes.Scholar);
+        SetArchetype(GameRules.StandardRuleset.PlayerArchetype);
     }
 
     public void SetArchetype(ArchetypeTypes archetype)
