@@ -56,6 +56,7 @@ public partial class GameUI : ComponentBase
 
         if (!needsCharacterCreation)
         {
+            GameState.PlayerState.Name = "meatz";
             await InitializeGame();
         }
     }
