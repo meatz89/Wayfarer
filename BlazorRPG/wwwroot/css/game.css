@@ -1018,6 +1018,7 @@ body {
 }
 
 .archetype-approaches {
+    font-size: 0.9em;
     color: var(--text-secondary);
     margin: 1rem;
 }
