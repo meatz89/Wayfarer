@@ -2,13 +2,16 @@
 {
     private readonly NarrativeService _narrativeService;
     private readonly ActionRepository _actionRepository;
+    private readonly ActionGenerator _actionGenerator; 
 
     public WorldEvolutionService(
         NarrativeService narrativeService,
-        ActionRepository actionRepository)
+        ActionRepository actionRepository,
+        ActionGenerator actionGenerator) 
     {
         _narrativeService = narrativeService;
         _actionRepository = actionRepository;
+        _actionGenerator = actionGenerator;
     }
 
     public async Task<WorldEvolutionResponse> ProcessWorldEvolution(
@@ -17,19 +20,6 @@
     {
         // Get world evolution response from narrative service
         WorldEvolutionResponse response = await _narrativeService.ProcessWorldEvolution(context, input);
-
-        // Register encounter templates for any new actions
-        foreach (NewAction newAction in response.NewActions)
-        {
-            // Create a basic encounter template if one doesn't exist
-            string encounterTemplateName = $"{newAction.Name}Encounter";
-            if (_actionRepository.GetEncounterTemplate(encounterTemplateName) == null)
-            {
-                EncounterTemplate template = CreateBasicEncounterTemplate(encounterTemplateName);
-                _actionRepository.RegisterEncounterTemplate(encounterTemplateName, template);
-            }
-        }
-
         return response;
     }
 
@@ -40,25 +30,7 @@
         return await _narrativeService.ProcessMemoryConsolidation(context, input);
     }
 
-    private EncounterTemplate CreateBasicEncounterTemplate(string name)
-    {
-        return new EncounterTemplate
-        {
-            Name = name,
-            Duration = 5,
-            MaxPressure = 13,
-            PartialThreshold = 12,
-            StandardThreshold = 16,
-            ExceptionalThreshold = 20,
-            Hostility = EncounterInfo.HostilityLevels.Neutral,
-            PressureReducingFocuses = new List<FocusTags>(),
-            MomentumReducingFocuses = new List<FocusTags>(),
-            EncounterNarrativeTags = new List<NarrativeTag>(),
-            encounterStrategicTags = new List<StrategicTag>()
-        };
-    }
-
-    public void IntegrateWorldEvolution(
+    public async Task IntegrateWorldEvolution(
         WorldEvolutionResponse evolution,
         WorldState worldState,
         LocationSystem locationSystem,
@@ -71,46 +43,10 @@
         }
 
         // Process inventory changes
-        if (evolution.ResourceChanges != null)
-        {
-            // Add items to inventory
-            foreach (string itemName in evolution.ResourceChanges.ItemsAdded)
-            {
-                if (Enum.TryParse<ItemTypes>(itemName.Replace(" ", ""), true, out ItemTypes itemType))
-                {
-                    playerState.Inventory.AddItem(itemType);
-                }
-            }
-
-            // Remove items from inventory
-            foreach (string itemName in evolution.ResourceChanges.ItemsRemoved)
-            {
-                if (Enum.TryParse<ItemTypes>(itemName.Replace(" ", ""), true, out ItemTypes itemType))
-                {
-                    playerState.Inventory.RemoveItem(itemType);
-                }
-            }
-        }
+        ProcessInventoryChanges(evolution, playerState);
 
         // Process relationship changes
-        if (evolution.RelationshipChanges != null && evolution.RelationshipChanges.Any())
-        {
-            foreach (RelationshipChange relationshipChange in evolution.RelationshipChanges)
-            {
-                // Skip if character name is empty
-                if (string.IsNullOrEmpty(relationshipChange.CharacterName))
-                    continue;
-
-                // Get current relationship level
-                int currentLevel = playerState.Relationships.GetLevel(relationshipChange.CharacterName);
-
-                // Apply the change
-                int newLevel = currentLevel + relationshipChange.ChangeAmount;
-
-                // Update relationship
-                playerState.Relationships.SetLevel(relationshipChange.CharacterName, newLevel);
-            }
-        }
+        ProcessRelationshipChanges(evolution, playerState);
 
         // Process new locations first (may be needed for player location change)
         foreach (Location location in evolution.NewLocations)
@@ -137,7 +73,21 @@
             }
         }
 
-        // Add new actions to existing spots - CORRECTED TO USE TEMPLATES ONLY
+        // Process new actions using ActionGenerator
+        await ProcessNewActions(evolution, worldState);
+
+        // Add new characters
+        worldState.AddCharacters(evolution.NewCharacters);
+
+        // Add new opportunities
+        worldState.AddOpportunities(evolution.NewOpportunities);
+
+        // Process player location change (must be done last after all locations are set up)
+        ProcessPlayerLocationChange(evolution, worldState, playerState);
+    }
+
+    private async Task ProcessNewActions(WorldEvolutionResponse evolution, WorldState worldState)
+    {
         foreach (NewAction newAction in evolution.NewActions)
         {
             Location targetLocation = worldState.GetLocation(newAction.LocationName);
@@ -151,13 +101,35 @@
                     if (spotToUpdate.ActionTemplates == null)
                         spotToUpdate.ActionTemplates = new List<string>();
 
-                    // Create and store an action template name - NOT an implementation
+                    // Create a context for ActionGenerator
+                    ActionGenerationContext context = new ActionGenerationContext
+                    {
+                        LocationName = targetLocation.Name,
+                        LocationDescription = targetLocation.Description,
+                        SpotName = spotToUpdate.Name,
+                        SpotDescription = spotToUpdate.Description,
+                        InteractionType = spotToUpdate.InteractionType,
+                        EnvironmentalProperties = targetLocation.EnvironmentalProperties
+                            .Select(p => p.GetPropertyValue())
+                            .ToList()
+                    };
+
+                    // Create a mock action creation result to pass to ActionGenerator
+                    // This ensures proper creation of both action and encounter templates
+                    EncounterTemplateModel encounterModel = CreateDefaultEncounterModel(newAction);
+
+                    // Create and register the encounter template
+                    EncounterTemplate encounterTemplate = _actionGenerator.CreateEncounterTemplate(encounterModel);
+                    string encounterName = $"{newAction.Name}Encounter";
+                    _actionRepository.RegisterEncounterTemplate(encounterName, encounterTemplate);
+
+                    // Create action template linked to the encounter
                     string actionTemplateName = _actionRepository.GetOrCreateActionTemplate(
                         newAction.Name,
                         newAction.Goal,
                         newAction.Complication,
                         ParseActionType(newAction.ActionType),
-                        $"{newAction.Name}Encounter" // Default encounter template name
+                        encounterName
                     );
 
                     // Add the template name to the spot's action templates
@@ -165,14 +137,166 @@
                 }
             }
         }
+    }
 
-        // Add new characters
-        worldState.AddCharacters(evolution.NewCharacters);
+    private EncounterTemplateModel CreateDefaultEncounterModel(NewAction newAction)
+    {
+        // Create a default encounter template model based on the action type
+        return new EncounterTemplateModel
+        {
+            Name = $"{newAction.Name}Encounter",
+            Duration = 5,
+            MaxPressure = 12,
+            PartialThreshold = 10,
+            StandardThreshold = 14,
+            ExceptionalThreshold = 18,
+            Hostility = "Neutral",
+            PressureReducingFocuses = GetDefaultPressureReducingFocuses(newAction.ActionType),
+            MomentumReducingFocuses = GetDefaultMomentumReducingFocuses(newAction.ActionType),
+            StrategicTags = GetDefaultStrategicTags(newAction.ActionType),
+            NarrativeTags = GetDefaultNarrativeTags(newAction.ActionType)
+        };
+    }
 
-        // Add new opportunities
-        worldState.AddOpportunities(evolution.NewOpportunities);
+    private List<string> GetDefaultPressureReducingFocuses(string actionType)
+    {
+        switch (ParseActionType(actionType))
+        {
+            case BasicActionTypes.Discuss:
+                return new List<string> { "Relationship", "Information" };
+            case BasicActionTypes.Persuade:
+                return new List<string> { "Relationship", "Resource" };
+            case BasicActionTypes.Travel:
+                return new List<string> { "Environment", "Physical" };
+            case BasicActionTypes.Rest:
+                return new List<string> { "Physical", "Resource" };
+            case BasicActionTypes.Investigate:
+                return new List<string> { "Information", "Environment" };
+            default:
+                return new List<string> { "Information", "Relationship" };
+        }
+    }
 
-        // Process player location change (must be done last after all locations are set up)
+    private List<string> GetDefaultMomentumReducingFocuses(string actionType)
+    {
+        switch (ParseActionType(actionType))
+        {
+            case BasicActionTypes.Discuss:
+                return new List<string> { "Physical", "Environment" };
+            case BasicActionTypes.Persuade:
+                return new List<string> { "Physical", "Environment" };
+            case BasicActionTypes.Travel:
+                return new List<string> { "Relationship", "Information" };
+            case BasicActionTypes.Rest:
+                return new List<string> { "Relationship", "Information" };
+            case BasicActionTypes.Investigate:
+                return new List<string> { "Relationship", "Physical" };
+            default:
+                return new List<string> { "Physical", "Environment" };
+        }
+    }
+
+    private List<StrategicTagModel> GetDefaultStrategicTags(string actionType)
+    {
+        List<StrategicTagModel> tags = new List<StrategicTagModel>();
+
+        switch (ParseActionType(actionType))
+        {
+            case BasicActionTypes.Discuss:
+                tags.Add(new StrategicTagModel { Name = "Social Currency", EnvironmentalProperty = "Crowded" });
+                tags.Add(new StrategicTagModel { Name = "Cold Calculation", EnvironmentalProperty = "Formal" });
+                tags.Add(new StrategicTagModel { Name = "Social Distraction", EnvironmentalProperty = "Chaotic" });
+                tags.Add(new StrategicTagModel { Name = "Tactical Advantage", EnvironmentalProperty = "Quiet" });
+                break;
+            case BasicActionTypes.Persuade:
+                tags.Add(new StrategicTagModel { Name = "Social Currency", EnvironmentalProperty = "Crowded" });
+                tags.Add(new StrategicTagModel { Name = "Calming Influence", EnvironmentalProperty = "Tense" });
+                tags.Add(new StrategicTagModel { Name = "Trading Post", EnvironmentalProperty = "Commercial" });
+                tags.Add(new StrategicTagModel { Name = "Overthinking", EnvironmentalProperty = "Formal" });
+                break;
+            // Add other action types with appropriate tags
+            default:
+                tags.Add(new StrategicTagModel { Name = "Insightful Approach", EnvironmentalProperty = "Bright" });
+                tags.Add(new StrategicTagModel { Name = "Calculated Response", EnvironmentalProperty = "Quiet" });
+                tags.Add(new StrategicTagModel { Name = "Tactical Advantage", EnvironmentalProperty = "Isolated" });
+                tags.Add(new StrategicTagModel { Name = "Overthinking", EnvironmentalProperty = "Tense" });
+                break;
+        }
+
+        return tags;
+    }
+
+    private List<string> GetDefaultNarrativeTags(string actionType)
+    {
+        switch (ParseActionType(actionType))
+        {
+            case BasicActionTypes.Discuss:
+                return new List<string> { "SuperficialCharm", "ColdCalculation" };
+            case BasicActionTypes.Persuade:
+                return new List<string> { "SuperficialCharm", "GenerousSpirit" };
+            case BasicActionTypes.Travel:
+                return new List<string> { "DetailFixation", "TunnelVision" };
+            case BasicActionTypes.Rest:
+                return new List<string> { "DetailFixation", "HesitantPoliteness" };
+            case BasicActionTypes.Investigate:
+                return new List<string> { "DetailFixation", "AnalysisParalysis" };
+            default:
+                return new List<string> { "DetailFixation", "Overthinking" };
+        }
+    }
+
+    // Helper methods for handling player state changes
+    private void ProcessInventoryChanges(WorldEvolutionResponse evolution, PlayerState playerState)
+    {
+        if (evolution.ResourceChanges != null)
+        {
+            // Add items to inventory
+            foreach (string itemName in evolution.ResourceChanges.ItemsAdded)
+            {
+                if (Enum.TryParse<ItemTypes>(itemName.Replace(" ", ""), true, out ItemTypes itemType))
+                {
+                    playerState.Inventory.AddItem(itemType);
+                }
+            }
+
+            // Remove items from inventory
+            foreach (string itemName in evolution.ResourceChanges.ItemsRemoved)
+            {
+                if (Enum.TryParse<ItemTypes>(itemName.Replace(" ", ""), true, out ItemTypes itemType))
+                {
+                    playerState.Inventory.RemoveItem(itemType);
+                }
+            }
+        }
+    }
+
+    private void ProcessRelationshipChanges(WorldEvolutionResponse evolution, PlayerState playerState)
+    {
+        if (evolution.RelationshipChanges != null && evolution.RelationshipChanges.Any())
+        {
+            foreach (RelationshipChange relationshipChange in evolution.RelationshipChanges)
+            {
+                // Skip if character name is empty
+                if (string.IsNullOrEmpty(relationshipChange.CharacterName))
+                    continue;
+
+                // Get current relationship level
+                int currentLevel = playerState.Relationships.GetLevel(relationshipChange.CharacterName);
+
+                // Apply the change
+                int newLevel = currentLevel + relationshipChange.ChangeAmount;
+
+                // Update relationship
+                playerState.Relationships.SetLevel(relationshipChange.CharacterName, newLevel);
+            }
+        }
+    }
+
+    private void ProcessPlayerLocationChange(
+        WorldEvolutionResponse evolution,
+        WorldState worldState,
+        PlayerState playerState)
+    {
         if (evolution.LocationUpdate.LocationChanged && !string.IsNullOrEmpty(evolution.LocationUpdate.NewLocationName))
         {
             // Find the location (should exist now after processing new locations)
@@ -180,7 +304,6 @@
             if (newPlayerLocation != null)
             {
                 worldState.SetCurrentLocation(newPlayerLocation);
-                // Also update player's knowledge of this location
                 playerState.AddLocationKnowledge(evolution.LocationUpdate.NewLocationName);
             }
             else
@@ -201,7 +324,6 @@
         }
     }
 
-
     private BasicActionTypes ParseActionType(string actionTypeStr)
     {
         if (Enum.TryParse<BasicActionTypes>(actionTypeStr, true, out BasicActionTypes actionType))
@@ -212,99 +334,4 @@
         // Default fallback
         return BasicActionTypes.Discuss;
     }
-
-
-    private EncounterTemplate GenerateEncounterTemplateForAction(
-    string actionName,
-    BasicActionTypes actionType,
-    string spotName,
-    Location location)
-    {
-        // Create a basic template with reasonable defaults
-        EncounterTemplate template = new EncounterTemplate
-        {
-            Name = actionName,
-            Duration = 5,
-            MaxPressure = 10,
-            PartialThreshold = 10,
-            StandardThreshold = 14,
-            ExceptionalThreshold = 18,
-            Hostility = EncounterInfo.HostilityLevels.Neutral,
-            PressureReducingFocuses = new List<FocusTags>(),
-            MomentumReducingFocuses = new List<FocusTags>(),
-            EncounterNarrativeTags = new List<NarrativeTag>(),
-            encounterStrategicTags = new List<StrategicTag>()
-        };
-
-        // Configure approaches based on action type
-        switch (actionType)
-        {
-            case BasicActionTypes.Discuss:
-                template.PressureReducingFocuses.AddRange(new[] { FocusTags.Relationship, FocusTags.Information });
-                template.MomentumReducingFocuses.Add(FocusTags.Physical);
-                template.EncounterNarrativeTags.AddRange(new[]
-                    { NarrativeTagRepository.ColdCalculation, NarrativeTagRepository.IntimidatingPresence });
-                break;
-
-            case BasicActionTypes.Persuade:
-                template.PressureReducingFocuses.AddRange(new[] { FocusTags.Relationship, FocusTags.Resource });
-                template.MomentumReducingFocuses.Add(FocusTags.Environment);
-                template.EncounterNarrativeTags.AddRange(new[]
-                    { NarrativeTagRepository.SuperficialCharm, NarrativeTagRepository.DetailFixation });
-                break;
-
-            case BasicActionTypes.Travel:
-                template.PressureReducingFocuses.AddRange(new[] { FocusTags.Environment, FocusTags.Physical });
-                template.MomentumReducingFocuses.Add(FocusTags.Relationship);
-                template.EncounterNarrativeTags.AddRange(new[]
-                    { NarrativeTagRepository.TunnelVision, NarrativeTagRepository.ParanoidMindset });
-                break;
-
-            case BasicActionTypes.Rest:
-                template.PressureReducingFocuses.Add(FocusTags.Environment);
-                template.MomentumReducingFocuses.Add(FocusTags.Relationship);
-                template.EncounterNarrativeTags.AddRange(new[]
-                    { NarrativeTagRepository.ParanoidMindset, NarrativeTagRepository.DetailFixation });
-                break;
-
-            case BasicActionTypes.Investigate:
-                template.PressureReducingFocuses.Add(FocusTags.Information);
-                template.MomentumReducingFocuses.AddRange(new[] { FocusTags.Relationship, FocusTags.Physical });
-                template.EncounterNarrativeTags.AddRange(new[]
-                    { NarrativeTagRepository.Overthinking, NarrativeTagRepository.DetailFixation });
-                break;
-        }
-
-        // Add strategic tags based on spot type and location properties
-        template.encounterStrategicTags.AddRange(GenerateStrategicTagsFromLocation(spotName, location));
-
-        return template;
-    }
-
-    private List<StrategicTag> GenerateStrategicTagsFromLocation(string spotName, Location location)
-    {
-        List<StrategicTag> tags = new List<StrategicTag>();
-
-        // Get existing environmental properties from the location
-        if (location.EnvironmentalProperties != null && location.EnvironmentalProperties.Count > 0)
-        {
-            // Use existing location properties to create strategic tags
-            foreach (IEnvironmentalProperty prop in location.EnvironmentalProperties)
-            {
-                string tagName = $"{spotName} {prop.GetPropertyType()}";
-                tags.Add(new StrategicTag(tagName, prop));
-            }
-        }
-        else
-        {
-            // Create some default tags if no properties exist
-            tags.Add(new StrategicTag("Natural Light", Illumination.Bright));
-            tags.Add(new StrategicTag("Open Space", Physical.Expansive));
-            tags.Add(new StrategicTag("Common Area", Population.Quiet));
-            tags.Add(new StrategicTag("Neutral Setting", Atmosphere.Formal));
-        }
-
-        return tags;
-    }
-
 }

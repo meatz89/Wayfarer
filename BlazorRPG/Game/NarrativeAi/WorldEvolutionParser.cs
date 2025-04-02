@@ -200,24 +200,29 @@ public class WorldEvolutionParser
                 ActionTemplates = new List<string>()
             };
 
-            // Process actions for this spot
+            // Process actions as a simple string array
             if (element.TryGetProperty("actions", out JsonElement actionsElement) &&
                 actionsElement.ValueKind == JsonValueKind.Array)
             {
                 foreach (JsonElement actionElement in actionsElement.EnumerateArray())
                 {
-                    ActionTemplate actionTemplate = ParseAction(actionElement);
-                    if (actionTemplate != null)
+                    if (actionElement.ValueKind == JsonValueKind.String)
                     {
-                        string actionName = _actionRepository.GetOrCreateActionTemplate(
-                            actionTemplate.Name,
-                            actionTemplate.Goal,
-                            actionTemplate.Complication,
-                            actionTemplate.ActionType,
-                            actionTemplate.EncounterTemplateName
-                        );
-
-                        spot.ActionTemplates.Add(actionName);
+                        // If the action is a simple string, add it directly
+                        string actionName = actionElement.GetString();
+                        if (!string.IsNullOrWhiteSpace(actionName))
+                        {
+                            spot.ActionTemplates.Add(actionName);
+                        }
+                    }
+                    else if (actionElement.ValueKind == JsonValueKind.Object)
+                    {
+                        // If the action is an object, extract the name
+                        string actionName = GetStringProperty(actionElement, "name", "");
+                        if (!string.IsNullOrWhiteSpace(actionName))
+                        {
+                            spot.ActionTemplates.Add(actionName);
+                        }
                     }
                 }
             }
