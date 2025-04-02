@@ -1,22 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 public static class ActionJsonParser
 {
     public static ActionCreationResult Parse(string json)
     {
+        json = json.Replace("```json", "");
+        json = json.Replace("```", "");
+
         // Initialize with default values in case parsing fails
         ActionCreationResult result = new ActionCreationResult
         {
-            Action = new ActionModel
-            {
-                Name = "Explore Area",
-                Goal = "Discover what's available in this location",
-                Complication = "Limited visibility and unknown terrain",
-                ActionType = BasicActionTypes.Investigate,
-                CoinCost = 0
-            },
+            Action = CreateDefaultActionTemplate(),
             EncounterTemplate = CreateDefaultEncounterTemplate()
         };
 
@@ -29,14 +23,22 @@ public static class ActionJsonParser
             // Extract action data if available
             if (root.TryGetProperty("action", out JsonElement actionElement))
             {
-                result.Action = ParseActionModel(actionElement);
+                result.Action = ParseActionTemplate(actionElement);
             }
 
             // Extract encounter template data if available
             if (root.TryGetProperty("encounterTemplate", out JsonElement templateElement))
             {
                 result.EncounterTemplate = ParseEncounterTemplate(templateElement);
+
+                // Link the encounter template name to the action
+                if (!string.IsNullOrEmpty(result.EncounterTemplate.Name))
+                {
+                    result.Action.EncounterTemplateName = result.EncounterTemplate.Name;
+                }
             }
+
+            ValidateEncounterTemplate(result.EncounterTemplate);
 
             return result;
         }
@@ -49,73 +51,118 @@ public static class ActionJsonParser
         }
     }
 
-    private static ActionModel ParseActionModel(JsonElement element)
+    private static ActionTemplate ParseActionTemplate(JsonElement element)
     {
-        ActionModel model = new ActionModel
-        {
-            Name = "Explore Area",
-            Goal = "Discover what's available in this location",
-            Complication = "Limited visibility and unknown terrain",
-            ActionType = BasicActionTypes.Investigate,
-            CoinCost = 0
-        };
+        ActionTemplate model = CreateDefaultActionTemplate();
 
-        // Extract values if they exist
-        if (element.TryGetProperty("name", out JsonElement nameElement) &&
-            nameElement.ValueKind == JsonValueKind.String)
+        // Extract basic text fields
+        model.Name = GetStringProperty(element, "name", model.Name);
+        model.Description = GetStringProperty(element, "description", model.Description);
+        model.Goal = GetStringProperty(element, "goal", model.Goal);
+        model.Complication = GetStringProperty(element, "complication", model.Complication);
+        model.LocationName = GetStringProperty(element, "locationName", model.LocationName);
+        model.LocationSpotName = GetStringProperty(element, "spotName", model.LocationSpotName);
+        model.EncounterTemplateName = GetStringProperty(element, "encounterTemplateName", model.EncounterTemplateName);
+
+        // Parse action type
+        string actionTypeStr = GetStringProperty(element, "actionType", "Encounter");
+        if (string.Equals(actionTypeStr, "basic", StringComparison.OrdinalIgnoreCase))
         {
-            model.Name = nameElement.GetString() ?? model.Name;
+            model.ActionType = ActionTypes.Basic;
+        }
+        else
+        {
+            model.ActionType = ActionTypes.Encounter;
         }
 
-        if (element.TryGetProperty("goal", out JsonElement goalElement) &&
-            goalElement.ValueKind == JsonValueKind.String)
+        // Parse basic action type
+        if (element.TryGetProperty("basicActionType", out JsonElement basicTypeElement) &&
+            basicTypeElement.ValueKind == JsonValueKind.String)
         {
-            model.Goal = goalElement.GetString() ?? model.Goal;
+            string basicTypeStr = basicTypeElement.GetString() ?? "";
+            model.BasicActionType = ParseBasicActionType(basicTypeStr);
         }
-
-        if (element.TryGetProperty("complication", out JsonElement compElement) &&
-            compElement.ValueKind == JsonValueKind.String)
+        else
         {
-            model.Complication = compElement.GetString() ?? model.Complication;
-        }
-
-        if (element.TryGetProperty("actionType", out JsonElement typeElement) &&
-            typeElement.ValueKind == JsonValueKind.String)
-        {
-            string typeStr = typeElement.GetString() ?? "";
-            if (Enum.TryParse<BasicActionTypes>(typeStr, true, out BasicActionTypes type))
-            {
-                model.ActionType = type;
-            }
-        }
-
-        if (element.TryGetProperty("coinCost", out JsonElement costElement))
-        {
-            if (costElement.ValueKind == JsonValueKind.Number)
-            {
-                model.CoinCost = costElement.GetInt32();
-            }
-            else if (costElement.ValueKind == JsonValueKind.String &&
-                     int.TryParse(costElement.GetString(), out int cost))
-            {
-                model.CoinCost = cost;
-            }
+            // Try to infer from actionType if basicActionType isn't specified
+            model.BasicActionType = ParseBasicActionType(actionTypeStr);
         }
 
         return model;
     }
 
+    private static BasicActionTypes ParseBasicActionType(string actionType)
+    {
+        // Direct enum parsing
+        if (Enum.TryParse<BasicActionTypes>(actionType, true, out BasicActionTypes type))
+        {
+            return type;
+        }
+
+        // Handle common action type strings
+        return actionType.ToLower() switch
+        {
+            "discuss" => BasicActionTypes.Discuss,
+            "talk" => BasicActionTypes.Discuss,
+            "conversation" => BasicActionTypes.Discuss,
+            "persuade" => BasicActionTypes.Persuade,
+            "negotiate" => BasicActionTypes.Persuade,
+            "trade" => BasicActionTypes.Persuade,
+            "investigate" => BasicActionTypes.Investigate,
+            "search" => BasicActionTypes.Investigate,
+            "examine" => BasicActionTypes.Investigate,
+            "travel" => BasicActionTypes.Travel,
+            "journey" => BasicActionTypes.Travel,
+            "move" => BasicActionTypes.Travel,
+            "rest" => BasicActionTypes.Rest,
+            "sleep" => BasicActionTypes.Rest,
+            "recover" => BasicActionTypes.Rest,
+            _ => BasicActionTypes.Investigate // Default fallback
+        };
+    }
+
+
+    private static ActionTemplate CreateDefaultActionTemplate()
+    {
+        return new ActionTemplate
+        {
+            Name = "Explore Area",
+            Description = "Look around and search for points of interest",
+            Goal = "Discover what's available in this location",
+            Complication = "Limited visibility and unknown terrain",
+            BasicActionType = BasicActionTypes.Investigate,
+            ActionType = ActionTypes.Encounter,
+            LocationName = "Unknown Location",
+            LocationSpotName = "Unknown Spot",
+            EncounterTemplateName = "DefaultEncounter",
+            CoinCost = 0,
+        };
+    }
+
+    private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
+    {
+        if (element.TryGetProperty(propertyName, out JsonElement property) &&
+            property.ValueKind == JsonValueKind.String)
+        {
+            string value = property.GetString();
+            return !string.IsNullOrEmpty(value) ? value : defaultValue;
+        }
+        return defaultValue;
+    }
+
+
     private static EncounterTemplateModel ParseEncounterTemplate(JsonElement element)
     {
         EncounterTemplateModel template = CreateDefaultEncounterTemplate();
 
-        // Parse simple numeric properties - fixing the ref error
+        // Parse name
         if (element.TryGetProperty("name", out JsonElement encounterNameElement) &&
             encounterNameElement.ValueKind == JsonValueKind.String)
         {
-            template.Name = encounterNameElement.GetString() ?? string.Empty;
+            template.Name = encounterNameElement.GetString() ?? template.Name;
         }
 
+        // Parse numeric properties
         template.Duration = GetInt32Property(element, "duration", template.Duration);
         template.MaxPressure = GetInt32Property(element, "maxPressure", template.MaxPressure);
         template.PartialThreshold = GetInt32Property(element, "partialThreshold", template.PartialThreshold);
@@ -129,7 +176,7 @@ public static class ActionJsonParser
             template.Hostility = hostilityElement.GetString() ?? template.Hostility;
         }
 
-        // Parse string arrays - fixing the ref error
+        // Parse focus arrays
         template.PressureReducingFocuses = GetStringArray(element, "pressureReducingFocuses", template.PressureReducingFocuses);
         template.MomentumReducingFocuses = GetStringArray(element, "momentumReducingFocuses", template.MomentumReducingFocuses);
         template.NarrativeTags = GetStringArray(element, "narrativeTags", template.NarrativeTags);
@@ -173,7 +220,77 @@ public static class ActionJsonParser
         return template;
     }
 
-    // New non-ref method to replace TryGetInt32Property
+    private static void ValidateEncounterTemplate(EncounterTemplateModel template)
+    {
+        // Ensure name is not empty
+        if (string.IsNullOrWhiteSpace(template.Name))
+        {
+            template.Name = "GeneratedEncounter";
+        }
+
+        // Ensure duration is within reasonable bounds
+        if (template.Duration < 3 || template.Duration > 7)
+        {
+            template.Duration = Math.Clamp(template.Duration, 3, 7);
+        }
+
+        // Ensure thresholds make sense and have proper spacing
+        if (template.PartialThreshold >= template.StandardThreshold)
+        {
+            template.StandardThreshold = template.PartialThreshold + 4;
+        }
+
+        if (template.StandardThreshold >= template.ExceptionalThreshold)
+        {
+            template.ExceptionalThreshold = template.StandardThreshold + 4;
+        }
+
+        // Ensure max pressure is appropriate
+        if (template.MaxPressure < template.StandardThreshold)
+        {
+            template.MaxPressure = template.StandardThreshold * 2;
+        }
+
+        // Ensure we have at least one item in each focus list
+        if (template.PressureReducingFocuses.Count == 0)
+        {
+            template.PressureReducingFocuses.Add("Information");
+        }
+
+        if (template.MomentumReducingFocuses.Count == 0)
+        {
+            template.MomentumReducingFocuses.Add("Physical");
+        }
+
+        // Ensure we have enough strategic tags
+        if (template.StrategicTags.Count < 4)
+        {
+            // Add default tags to reach at least 4
+            string[] defaultProps = { "Bright", "Quiet", "Neutral", "Commercial" };
+            string[] defaultNames = { "Natural Light", "Calm Setting", "Standard Atmosphere", "Trading Area" };
+
+            for (int i = template.StrategicTags.Count; i < 4; i++)
+            {
+                template.StrategicTags.Add(new StrategicTagModel
+                {
+                    Name = defaultNames[i],
+                    EnvironmentalProperty = defaultProps[i]
+                });
+            }
+        }
+
+        // Ensure we have at least two narrative tags
+        if (template.NarrativeTags.Count < 2)
+        {
+            template.NarrativeTags.Add("DetailFixation");
+
+            if (template.NarrativeTags.Count < 2)
+            {
+                template.NarrativeTags.Add("ColdCalculation");
+            }
+        }
+    }
+
     private static int GetInt32Property(JsonElement element, string propertyName, int defaultValue)
     {
         if (element.TryGetProperty(propertyName, out JsonElement valueElement))
@@ -191,7 +308,6 @@ public static class ActionJsonParser
         return defaultValue;
     }
 
-    // New non-ref method to replace ParseStringArray
     private static List<string> GetStringArray(JsonElement element, string propertyName, List<string> defaults)
     {
         List<string> result = new List<string>();
@@ -231,7 +347,7 @@ public static class ActionJsonParser
     {
         return new EncounterTemplateModel
         {
-            Name = "Encounter Template",
+            Name = "GeneratedEncounter",
             Duration = 4,
             MaxPressure = 10,
             PartialThreshold = 8,

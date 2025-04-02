@@ -63,13 +63,10 @@
         Location loc = context.Location;
         EncounterTypes encounterType = GetPresentationStyleFromBaseAction(actionImplementation);
 
-        // Create encounter from location and action
-        string locationName = location.Name;
-
         EncounterTemplate template = actionImplementation.EncounterTemplate;
 
-        EncounterInfo encounter = EncounterFactory.CreateEncounter(
-            locationName, locationSpot, encounterType, template);
+        EncounterInfo encounter = EncounterFactory.CreateEncounterFromTemplate(template,
+            location, locationSpot, encounterType);
 
         // Create encounter manager
         encounterResult = await StartEncounterAt(location, encounter, this.worldState, playerState, actionImplementation);
@@ -277,7 +274,7 @@
 
     private static EncounterTypes GetPresentationStyleFromBaseAction(ActionImplementation actionImplementation)
     {
-        EncounterTypes encounterTypes = actionImplementation.ActionType switch
+        EncounterTypes encounterTypes = actionImplementation.BasicActionType switch
         {
             BasicActionTypes.Rest => EncounterTypes.Social,
             BasicActionTypes.Travel => EncounterTypes.Physical,

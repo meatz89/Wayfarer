@@ -17,14 +17,14 @@ After analyzing the full encounter narrative, determine how the world should evo
 5. Use standard environmental property values
 
 ## For Failed Encounters:
-- Create alternative paths (new actions at different spots/locations)
+- Create alternative paths (new action at different spots/locations)
 - These must offer different approaches to similar goals
 - Should feel like natural world evolution, not artificial second chances
 
 ## Player Location Changes
 - Carefully review the encounter narrative to determine if the player ended at a DIFFERENT LOCATION than where they started
 - If player moved to a new location, specify this location name in your response
-- If this new location does not exist in the known locations list, you MUST create it with spots and actions
+- If this new location does not exist in the known locations list, you MUST create it with spots and action
 
 ## Resource Changes
 - Extract ANY mention of coin transactions (gains or losses)
@@ -47,7 +47,7 @@ After analyzing the full encounter narrative, determine how the world should evo
 - Indicate relationship change as a positive or negative integer from -3 to +3
 
 ## World Evolution Focus
-- Extract only the MOST SIGNIFICANT world elements (max 0-4 of each type)
+- Extract only the MOST SIGNIFICANT world elements (maximum 0-2 of each type)
 - Focus on elements that enable FUTURE GAMEPLAY, not decorative details
 - Prioritize elements directly connected to the encounter outcome
 - IF SUCCESS: Create elements that advance the player's goals
@@ -87,49 +87,54 @@ After analyzing the full encounter narrative, determine how the world should evo
   * Physical: Confined, Expansive, Hazardous
 
 ## Response Format
+You must provide your response as a valid JSON object with the following flat structure:
+
 {
   "playerLocationUpdate": {
     "newLocationName": "Name of location player is now at (if changed)",
     "locationChanged": true/false
   },
   "resourceChanges": {
-    "coinChange": 5,  // Positive for gains, negative for losses
-    "itemsAdded": ["ItemName1", "ItemName2"],  // Items added to inventory
-    "itemsRemoved": ["ItemName3"]  // Items removed from inventory
+    "coinChange": 5,
+    "itemsAdded": ["ItemName1", "ItemName2"],
+    "itemsRemoved": ["ItemName3"]
   },
   "relationshipChanges": [
     {
       "characterName": "Giles",
-      "changeAmount": 2,  // Positive for improved relationship, negative for worsened
+      "changeAmount": 2,
       "reason": "Brief description of why the relationship changed"
-    },
-    {
-      "characterName": "Marta",
-      "changeAmount": -1,
-      "reason": "Brief description of why the relationship worsened"
     }
   ],
-  "newLocationSpots": [
+  "locations": [
+    {
+      "name": "Location name",
+      "description": "Brief description",
+      "difficulty": 3,
+      "connectedTo": ["First Connected Location", "Second Connected Location"],
+      "environmentalProperties": ["Bright", "Crowded", "Commercial", "Chaotic"]
+    }
+  ],
+  "locationSpots": [
     {
       "name": "Spot name",
       "description": "Brief description",
       "interactionType": "Character/Shop/Feature/Service",
-      "locationName": "Name of existing location this spot belongs to",
-      "actions": ["TradeGoods", "HagglePrice", "GatherInformation"]
+      "locationName": "Location name"
     }
   ],
-  "newActions": [
+  "actionDefinitions": [
     {
-      "spotName": "Name of existing spot this action belongs to",
-      "locationName": "Name of the location containing this spot",
       "name": "ActionName",
       "description": "What this action involves",
       "goal": "The player's goal in this action",
       "complication": "What makes this challenging",
-      "actionType": "Discuss"
+      "actionType": "Discuss",
+      "spotName": "Spot name",
+      "locationName": "Location name"
     }
   ],
-  "newCharacters": [
+  "characters": [
     {
       "name": "Giles",
       "role": "Merchant",
@@ -137,24 +142,7 @@ After analyzing the full encounter narrative, determine how the world should evo
       "location": "Name of existing location where they can be found"
     }
   ],
-  "newLocations": [
-    {
-      "name": "Location name",
-      "description": "Brief description",
-      "difficulty": "Location Difficulty (number)",
-      "connectedTo": ["First Connected Location", "Second Connected Location"],
-      "environmentalProperties": ["Bright", "Crowded", "Commercial", "Chaotic"],
-      "spots": [
-        {
-          "name": "Spot name",
-          "description": "Brief description",
-          "interactionType": "Character/Shop/Feature/Service",
-          "actions": ["TradeGoods", "HagglePrice", "GatherInformation"]
-        }
-      ]
-    }
-  ],
-  "newOpportunities": [
+  "opportunities": [
     {
       "name": "Opportunity name",
       "type": "Quest/Job/Mystery/Investigation",

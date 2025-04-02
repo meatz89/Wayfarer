@@ -25,6 +25,21 @@ public class PromptManager
         LoadPromptTemplates(promptsPath);
     }
 
+    public string BuildActionGenerationPrompt(ActionGenerationContext context)
+    {
+        string template = _promptTemplates[ACTION_GENERATION_MD];
+
+        string prompt = template
+            .Replace("{ACTIONNAME}", context.ActionName)
+            .Replace("{GOAL}", context.Goal)
+            .Replace("{COMPLICATION}", context.Complication)
+            .Replace("{ACTION_TYPE}", context.BasicActionType)
+            .Replace("{SPOT_NAME}", context.SpotName)
+            .Replace("{LOCATION_NAME}", context.LocationName);
+
+        return CreatePromptJson(prompt);
+    }
+
     public string BuildLocationGenerationPrompt(LocationGenerationContext context)
     {
         string template = _promptTemplates[LOCATION_GENERATION_MD];
@@ -34,26 +49,6 @@ public class PromptManager
             .Replace("{LOCATION_TYPE}", context.LocationType)
             .Replace("{DIFFICULTY}", context.Difficulty.ToString())
             .Replace("{REQUESTED_SPOT_COUNT}", context.RequestedSpotCount.ToString());
-
-        return CreatePromptJson(prompt);
-    }
-
-    public string BuildActionGenerationPrompt(ActionGenerationContext context)
-    {
-        string template = _promptTemplates[ACTION_GENERATION_MD];
-
-        // Convert environmental properties to a comma-separated list
-        string envProps = string.Join(", ", context.EnvironmentalProperties);
-
-        // Replace placeholders in template
-        string prompt = template
-            .Replace("{LOCATION_NAME}", context.LocationName)
-            .Replace("{LOCATION_DESCRIPTION}", context.LocationDescription)
-            .Replace("{SPOT_NAME}", context.SpotName)
-            .Replace("{SPOT_DESCRIPTION}", context.SpotDescription)
-            .Replace("{INTERACTION_TYPE}", context.InteractionType)
-            .Replace("{ENVIRONMENTAL_PROPERTIES}", envProps)
-            .Replace("{REQUEST_COUNT}", context.RequestedActionCount.ToString());
 
         return CreatePromptJson(prompt);
     }

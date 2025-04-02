@@ -2,180 +2,204 @@
 
 public class WorldEvolutionParser
 {
-    private readonly ActionRepository _actionRepository;
     private readonly ILogger<WorldEvolutionParser> _logger;
 
-    public WorldEvolutionParser(ActionRepository actionRepository, ILogger<WorldEvolutionParser> logger = null)
+    public WorldEvolutionParser(
+        ILogger<WorldEvolutionParser> logger = null)
     {
-        _actionRepository = actionRepository;
         _logger = logger;
     }
 
-    /// <summary>
-    /// Parses the AI response into a structured WorldEvolutionResponse object.
-    /// </summary>
-    public WorldEvolutionResponse ParseWorldEvolutionResponse(string response)
+    public async Task<WorldEvolutionResponse> ParseWorldEvolutionResponseAsync(string response)
     {
-        WorldEvolutionResponse result = InitializeEmptyResponse();
+        FlatWorldEvolutionResponse flatResponse = ParseFlatResponse(response);
+        return await BuildNestedResponseAsync(flatResponse);
+    }
 
+    private FlatWorldEvolutionResponse ParseFlatResponse(string response)
+    {
+        FlatWorldEvolutionResponse result = new FlatWorldEvolutionResponse();
+        response = response.Replace("```json", "");
+        response = response.Replace("```", "");
+        
         try
         {
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
-            // Process all entity types
-            ProcessAllEntityTypes(root, result);
-        }
-        catch (JsonException ex)
-        {
-            LogError("Error parsing JSON response", ex);
+            // Parse player state changes
+            if (root.TryGetProperty("playerLocationUpdate", out JsonElement locationUpdateElement))
+            {
+                result.PlayerLocationUpdate = new PlayerLocationUpdate
+                {
+                    NewLocationName = GetStringProperty(locationUpdateElement, "newLocationName", string.Empty),
+                    LocationChanged = GetBoolProperty(locationUpdateElement, "locationChanged", false)
+                };
+            }
+
+            // Parse resource changes
+            if (root.TryGetProperty("resourceChanges", out JsonElement resourceElement))
+            {
+                result.ResourceChanges = new ResourceChanges
+                {
+                    CoinChange = GetIntProperty(resourceElement, "coinChange", 0),
+                    ItemsAdded = GetStringArray(resourceElement, "itemsAdded"),
+                    ItemsRemoved = GetStringArray(resourceElement, "itemsRemoved")
+                };
+            }
+
+            // Parse relationship changes
+            result.RelationshipChanges = GetArrayOfType(
+                root,
+                "relationshipChanges",
+                element => ParseRelationshipChange(element));
+
+            // Parse locations
+            result.Locations = GetArrayOfType(
+                root,
+                "locations",
+                element => ParseLocationDefinition(element));
+
+            // Parse location spots
+            result.LocationSpots = GetArrayOfType(
+                root,
+                "locationSpots",
+                element => ParseLocationSpotDefinition(element));
+
+            // Parse action definitions
+            result.ActionDefinitions = GetArrayOfType(
+                root,
+                "actionDefinitions",
+                element => ParseActionDefinition(element));
+
+            // Parse characters
+            result.Characters = GetArrayOfType(
+                root,
+                "characters",
+                element => ParseCharacter(element));
+
+            // Parse opportunities
+            result.Opportunities = GetArrayOfType(
+                root,
+                "opportunities",
+                element => ParseOpportunity(element));
         }
         catch (Exception ex)
         {
-            LogError("Unexpected error parsing response", ex);
+            LogError("Error parsing flat response", ex);
         }
 
         return result;
     }
 
-    #region Main Processing Methods
 
-    private void ProcessAllEntityTypes(JsonElement root, WorldEvolutionResponse result)
+    private async Task<WorldEvolutionResponse> BuildNestedResponseAsync(FlatWorldEvolutionResponse flatResponse)
     {
-        // Process player status changes
-        ProcessPlayerLocationUpdate(root, result);
-        ProcessResourceChanges(root, result);
-        ProcessRelationshipChanges(root, result);
-        ProcessCoinChange(root, result);
-
-        // Process world entity changes
-        ProcessLocationSpots(root, result);
-        ProcessNewActions(root, result);
-        ProcessNewCharacters(root, result);
-        ProcessNewLocations(root, result);
-        ProcessNewOpportunities(root, result);
-    }
-
-    private WorldEvolutionResponse InitializeEmptyResponse()
-    {
-        return new WorldEvolutionResponse
+        WorldEvolutionResponse result = new WorldEvolutionResponse
         {
+            LocationUpdate = flatResponse.PlayerLocationUpdate ?? new PlayerLocationUpdate(),
+            ResourceChanges = flatResponse.ResourceChanges ?? new ResourceChanges(),
+            RelationshipChanges = flatResponse.RelationshipChanges ?? new List<RelationshipChange>(),
+            CoinChange = flatResponse.ResourceChanges?.CoinChange ?? 0,
             NewLocationSpots = new List<LocationSpot>(),
             NewActions = new List<NewAction>(),
-            NewCharacters = new List<Character>(),
+            NewCharacters = flatResponse.Characters ?? new List<Character>(),
             NewLocations = new List<Location>(),
-            NewOpportunities = new List<Opportunity>(),
-            LocationUpdate = new PlayerLocationUpdate(),
-            ResourceChanges = new ResourceChanges(),
-            RelationshipChanges = new List<RelationshipChange>(),
-            CoinChange = 0
+            NewOpportunities = flatResponse.Opportunities ?? new List<Opportunity>()
         };
-    }
 
-    #endregion
+        // Step 1: Process all action definitions first
+        Dictionary<string, Dictionary<string, List<string>>> actionsByLocationAndSpot =
+            new Dictionary<string, Dictionary<string, List<string>>>();
 
-    #region Player State Change Processors
-
-    private void ProcessPlayerLocationUpdate(JsonElement root, WorldEvolutionResponse result)
-    {
-        if (root.TryGetProperty("playerLocationUpdate", out JsonElement locationUpdateElement) &&
-            locationUpdateElement.ValueKind == JsonValueKind.Object)
+        foreach (ActionDefinition actionDef in flatResponse.ActionDefinitions)
         {
-            PlayerLocationUpdate locationUpdate = new PlayerLocationUpdate();
-
-            locationUpdate.NewLocationName = GetStringProperty(locationUpdateElement, "newLocationName", string.Empty);
-            locationUpdate.LocationChanged = GetBoolProperty(locationUpdateElement, "locationChanged", false);
-
-            result.LocationUpdate = locationUpdate;
-        }
-    }
-
-    private void ProcessResourceChanges(JsonElement root, WorldEvolutionResponse result)
-    {
-        if (root.TryGetProperty("resourceChanges", out JsonElement resourceChangesElement) &&
-            resourceChangesElement.ValueKind == JsonValueKind.Object)
-        {
-            ResourceChanges resourceChanges = new ResourceChanges();
-
-            // Process items added and removed
-            resourceChanges.ItemsAdded = GetStringArray(resourceChangesElement, "itemsAdded");
-            resourceChanges.ItemsRemoved = GetStringArray(resourceChangesElement, "itemsRemoved");
-
-            // Process coin change (also maintain the top-level coinChange for backward compatibility)
-            if (resourceChangesElement.TryGetProperty("coinChange", out JsonElement coinChangeElement) &&
-                coinChangeElement.ValueKind == JsonValueKind.Number)
+            try
             {
-                result.CoinChange = coinChangeElement.GetInt32();
+                if (!actionsByLocationAndSpot.ContainsKey(actionDef.LocationName))
+                {
+                    actionsByLocationAndSpot[actionDef.LocationName] = new Dictionary<string, List<string>>();
+                }
+
+                if (!actionsByLocationAndSpot[actionDef.LocationName].ContainsKey(actionDef.SpotName))
+                {
+                    actionsByLocationAndSpot[actionDef.LocationName][actionDef.SpotName] = new List<string>();
+                }
+
+                actionsByLocationAndSpot[actionDef.LocationName][actionDef.SpotName].Add(actionDef.Name);
+
+                // Also add to the NewActions collection for standalone tracking
+                result.NewActions.Add(new NewAction
+                {
+                    SpotName = actionDef.SpotName,
+                    LocationName = actionDef.LocationName,
+                    Name = actionDef.Name,
+                    Description = actionDef.Description,
+                    Goal = actionDef.Goal,
+                    Complication = actionDef.Complication,
+                    ActionType = actionDef.ActionType
+                });
+            }
+            catch (Exception ex)
+            {
+                LogError($"Failed to generate action for {actionDef.Name}", ex);
+            }
+        }
+
+        // Step 2: Create location spots (referencing actions by name)
+        Dictionary<string, List<LocationSpot>> spotsByLocation = new Dictionary<string, List<LocationSpot>>();
+
+        foreach (LocationSpotDefinition spotDef in flatResponse.LocationSpots)
+        {
+            LocationSpot spot = new LocationSpot
+            {
+                Name = spotDef.Name,
+                Description = spotDef.Description,
+                InteractionType = spotDef.InteractionType,
+                LocationName = spotDef.LocationName,
+                ActionTemplates = new List<string>()
+            };
+
+            // Add to spots by location
+            if (!spotsByLocation.ContainsKey(spotDef.LocationName))
+            {
+                spotsByLocation[spotDef.LocationName] = new List<LocationSpot>();
+            }
+            spotsByLocation[spotDef.LocationName].Add(spot);
+
+            // Also add to NewLocationSpots if it's not part of a new location
+            if (!flatResponse.Locations.Any(l => l.Name == spotDef.LocationName))
+            {
+                result.NewLocationSpots.Add(spot);
+            }
+        }
+
+        // Step 3: Create locations with their spots
+        foreach (LocationDefinition locDef in flatResponse.Locations)
+        {
+            Location location = new Location
+            {
+                Name = locDef.Name,
+                Description = locDef.Description,
+                Difficulty = locDef.Difficulty,
+                ConnectedTo = locDef.ConnectedTo,
+                EnvironmentalProperties = ParseEnvironmentalProperties(locDef.EnvironmentalProperties),
+                Spots = new List<LocationSpot>()
+            };
+
+            // Add spots for this location
+            if (spotsByLocation.TryGetValue(locDef.Name, out List<LocationSpot>? spots))
+            {
+                location.Spots.AddRange(spots);
             }
 
-            result.ResourceChanges = resourceChanges;
+            result.NewLocations.Add(location);
         }
+
+        return result;
     }
 
-    private void ProcessRelationshipChanges(JsonElement root, WorldEvolutionResponse result)
-    {
-        result.RelationshipChanges = GetArrayOfType(
-            root,
-            "relationshipChanges",
-            element => ParseRelationshipChange(element));
-    }
-
-    private void ProcessCoinChange(JsonElement root, WorldEvolutionResponse result)
-    {
-        if (root.TryGetProperty("coinChange", out JsonElement coinChangeElement) &&
-            coinChangeElement.ValueKind == JsonValueKind.Number)
-        {
-            result.CoinChange = coinChangeElement.GetInt32();
-        }
-    }
-
-    #endregion
-
-    #region World Entity Processors
-
-    private void ProcessLocationSpots(JsonElement root, WorldEvolutionResponse result)
-    {
-        result.NewLocationSpots = GetArrayOfType(
-            root,
-            "newLocationSpots",
-            element => ParseLocationSpot(element));
-    }
-
-    private void ProcessNewActions(JsonElement root, WorldEvolutionResponse result)
-    {
-        result.NewActions = GetArrayOfType(
-            root,
-            "newActions",
-            element => ParseNewAction(element));
-    }
-
-    private void ProcessNewCharacters(JsonElement root, WorldEvolutionResponse result)
-    {
-        result.NewCharacters = GetArrayOfType(
-            root,
-            "newCharacters",
-            element => ParseCharacter(element));
-    }
-
-    private void ProcessNewLocations(JsonElement root, WorldEvolutionResponse result)
-    {
-        result.NewLocations = GetArrayOfType(
-            root,
-            "newLocations",
-            element => ParseLocation(element));
-    }
-
-    private void ProcessNewOpportunities(JsonElement root, WorldEvolutionResponse result)
-    {
-        result.NewOpportunities = GetArrayOfType(
-            root,
-            "newOpportunities",
-            element => ParseOpportunity(element));
-    }
-
-    #endregion
-
-    #region Entity Parsers
+    #region Parser Helper Methods
 
     private RelationshipChange ParseRelationshipChange(JsonElement element)
     {
@@ -187,61 +211,40 @@ public class WorldEvolutionParser
         });
     }
 
-    private LocationSpot ParseLocationSpot(JsonElement element)
+    private LocationDefinition ParseLocationDefinition(JsonElement element)
     {
-        return SafeParseEntity("location spot", () =>
+        return SafeParseEntity("location", () => new LocationDefinition
         {
-            LocationSpot spot = new LocationSpot
-            {
-                Name = GetStringProperty(element, "name", "Unnamed Spot"),
-                Description = GetStringProperty(element, "description", "No description available."),
-                InteractionType = GetStringProperty(element, "interactionType", "Feature"),
-                LocationName = GetStringProperty(element, "locationName", ""),
-                ActionTemplates = new List<string>()
-            };
-
-            // Process actions as a simple string array
-            if (element.TryGetProperty("actions", out JsonElement actionsElement) &&
-                actionsElement.ValueKind == JsonValueKind.Array)
-            {
-                foreach (JsonElement actionElement in actionsElement.EnumerateArray())
-                {
-                    if (actionElement.ValueKind == JsonValueKind.String)
-                    {
-                        // If the action is a simple string, add it directly
-                        string actionName = actionElement.GetString();
-                        if (!string.IsNullOrWhiteSpace(actionName))
-                        {
-                            spot.ActionTemplates.Add(actionName);
-                        }
-                    }
-                    else if (actionElement.ValueKind == JsonValueKind.Object)
-                    {
-                        // If the action is an object, extract the name
-                        string actionName = GetStringProperty(actionElement, "name", "");
-                        if (!string.IsNullOrWhiteSpace(actionName))
-                        {
-                            spot.ActionTemplates.Add(actionName);
-                        }
-                    }
-                }
-            }
-
-            return spot;
+            Name = GetStringProperty(element, "name", "Unnamed Location"),
+            Description = GetStringProperty(element, "description", "No description available."),
+            Difficulty = GetIntProperty(element, "difficulty", 1),
+            ConnectedTo = GetStringArrayOrSingle(element, "connectedTo"),
+            EnvironmentalProperties = GetStringArray(element, "environmentalProperties")
         });
     }
 
-    private NewAction ParseNewAction(JsonElement element)
+    private LocationSpotDefinition ParseLocationSpotDefinition(JsonElement element)
     {
-        return SafeParseEntity("new action", () => new NewAction
+        return SafeParseEntity("location spot", () => new LocationSpotDefinition
         {
-            SpotName = GetStringProperty(element, "spotName", "Unknown Spot"),
-            LocationName = GetStringProperty(element, "locationName", "Unknown Location"),
+            Name = GetStringProperty(element, "name", "Unnamed Spot"),
+            Description = GetStringProperty(element, "description", "No description available."),
+            InteractionType = GetStringProperty(element, "interactionType", "Feature"),
+            LocationName = GetStringProperty(element, "locationName", "Unknown Location")
+        });
+    }
+
+    private ActionDefinition ParseActionDefinition(JsonElement element)
+    {
+        return SafeParseEntity("action definition", () => new ActionDefinition
+        {
             Name = GetStringProperty(element, "name", "Unnamed Action"),
             Description = GetStringProperty(element, "description", "No description available."),
             Goal = GetStringProperty(element, "goal", "Unknown goal"),
             Complication = GetStringProperty(element, "complication", "Unknown complication"),
-            ActionType = GetStringProperty(element, "actionType", "Unknown Action Type")
+            ActionType = GetStringProperty(element, "actionType", "Discuss"),
+            SpotName = GetStringProperty(element, "spotName", "Unknown Spot"),
+            LocationName = GetStringProperty(element, "locationName", "Unknown Location")
         });
     }
 
@@ -253,52 +256,6 @@ public class WorldEvolutionParser
             Role = GetStringProperty(element, "role", "Unknown Role"),
             Description = GetStringProperty(element, "description", "No description available."),
             Location = GetStringProperty(element, "location", "Unknown Location")
-        });
-    }
-
-    private Location ParseLocation(JsonElement element)
-    {
-        return SafeParseEntity("location", () =>
-        {
-            Location location = new Location
-            {
-                Name = GetStringProperty(element, "name", "Unnamed Location"),
-                Description = GetStringProperty(element, "description", "No description available."),
-                EnvironmentalProperties = new List<IEnvironmentalProperty>(),
-                ConnectedTo = new List<string>(),
-                Spots = new List<LocationSpot>()
-            };
-
-            // Parse difficulty level
-            if (element.TryGetProperty("difficulty", out JsonElement difficultyElement))
-            {
-                if (difficultyElement.ValueKind == JsonValueKind.Number)
-                {
-                    location.Difficulty = difficultyElement.GetInt32();
-                }
-                else if (difficultyElement.ValueKind == JsonValueKind.String &&
-                         int.TryParse(difficultyElement.GetString(), out int difficultyValue))
-                {
-                    location.Difficulty = difficultyValue;
-                }
-            }
-
-            // Parse connected locations
-            location.ConnectedTo = GetStringArrayOrSingle(element, "connectedTo");
-
-            // Parse environmental properties
-            location.EnvironmentalProperties = GetArrayOfType(
-                element,
-                "environmentalProperties",
-                prop => ParseEnvironmentalProperty(prop.GetString() ?? ""));
-
-            // Parse location spots
-            location.Spots = GetArrayOfType(
-                element,
-                "spots",
-                spotElement => ParseLocationSpot(spotElement));
-
-            return location;
         });
     }
 
@@ -314,31 +271,73 @@ public class WorldEvolutionParser
         });
     }
 
-    private ActionTemplate ParseAction(JsonElement element)
+    private List<IEnvironmentalProperty> ParseEnvironmentalProperties(List<string> propertyStrings)
     {
-        return SafeParseEntity("action", () =>
+        List<IEnvironmentalProperty> properties = new List<IEnvironmentalProperty>();
+
+        foreach (string propString in propertyStrings)
         {
-            string actionName = GetStringProperty(element, "name", "Unnamed Action");
-            string actionDesc = GetStringProperty(element, "description", "No description available.");
-            string goal = GetStringProperty(element, "goal", actionDesc);
-            string complication = GetStringProperty(element, "complication", "AI-generated action");
+            IEnvironmentalProperty property = ParseEnvironmentalProperty(propString);
+            if (property != null)
+            {
+                properties.Add(property);
+            }
+        }
 
-            // Try to get the action type directly, or infer it
-            BasicActionTypes actionType = ParseActionType(element);
+        return properties;
+    }
 
-            // Create action template
-            return new ActionTemplateBuilder()
-                .WithName(actionName)
-                .WithGoal(goal)
-                .WithComplication(complication)
-                .WithActionType(actionType)
-                .Build();
-        });
+    private IEnvironmentalProperty ParseEnvironmentalProperty(string propertyString)
+    {
+        Dictionary<string, IEnvironmentalProperty> propertyMap = new Dictionary<string, IEnvironmentalProperty>(StringComparer.OrdinalIgnoreCase)
+        {
+            // Illumination properties
+            { "Bright", Illumination.Bright },
+            { "Shadowy", Illumination.Shadowy },
+            { "Dark", Illumination.Dark },
+            
+            // Population properties
+            { "Crowded", Population.Crowded },
+            { "Quiet", Population.Quiet },
+            { "Isolated", Population.Isolated },
+            
+            // Economic properties
+            { "Wealthy", Economic.Wealthy },
+            { "Commercial", Economic.Commercial },
+            { "Humble", Economic.Humble },
+            
+            // Physical properties
+            { "Confined", Physical.Confined },
+            { "Expansive", Physical.Expansive },
+            { "Hazardous", Physical.Hazardous },
+            
+            // Atmosphere properties
+            { "Tense", Atmosphere.Tense },
+            { "Formal", Atmosphere.Formal },
+            { "Chaotic", Atmosphere.Chaotic }
+        };
+
+        if (propertyMap.TryGetValue(propertyString, out IEnvironmentalProperty property))
+        {
+            return property;
+        }
+
+        return Illumination.Bright; // Default fallback
+    }
+
+    private BasicActionTypes ParseActionType(string actionTypeStr)
+    {
+        if (Enum.TryParse<BasicActionTypes>(actionTypeStr, true, out BasicActionTypes actionType))
+        {
+            return actionType;
+        }
+
+        return BasicActionTypes.Discuss;
     }
 
     #endregion
 
-    #region Helper Methods
+    #region Utility Methods
 
     private T SafeParseEntity<T>(string entityType, Func<T> parser) where T : class
     {
@@ -448,10 +447,17 @@ public class WorldEvolutionParser
 
     private int GetIntProperty(JsonElement element, string propertyName, int defaultValue)
     {
-        if (element.TryGetProperty(propertyName, out JsonElement property) &&
-            property.ValueKind == JsonValueKind.Number)
+        if (element.TryGetProperty(propertyName, out JsonElement property))
         {
-            return property.GetInt32();
+            if (property.ValueKind == JsonValueKind.Number)
+            {
+                return property.GetInt32();
+            }
+            else if (property.ValueKind == JsonValueKind.String &&
+                     int.TryParse(property.GetString(), out int value))
+            {
+                return value;
+            }
         }
         return defaultValue;
     }
@@ -464,111 +470,54 @@ public class WorldEvolutionParser
                 return true;
             else if (property.ValueKind == JsonValueKind.False)
                 return false;
+            else if (property.ValueKind == JsonValueKind.String &&
+                     bool.TryParse(property.GetString(), out bool value))
+            {
+                return value;
+            }
         }
         return defaultValue;
     }
 
-    private BasicActionTypes ParseActionType(JsonElement element)
-    {
-        // Try to get the action type directly from the element
-        string actionTypeStr = GetStringProperty(element, "actionType", "");
-
-        if (Enum.TryParse<BasicActionTypes>(actionTypeStr, true, out BasicActionTypes actionType))
-        {
-            return actionType;
-        }
-
-        // If not found, infer from name and description
-        string name = GetStringProperty(element, "name", "");
-        string description = GetStringProperty(element, "description", "");
-
-        return DetermineActionType(name, description);
-    }
-
-    private BasicActionTypes DetermineActionType(string name, string description)
-    {
-        Dictionary<BasicActionTypes, List<string>> keywordMap = new Dictionary<BasicActionTypes, List<string>>
-        {
-            {
-                BasicActionTypes.Discuss,
-                new List<string> { "talk", "discuss", "meet", "conversation", "speak", "chat" }
-            },
-            {
-                BasicActionTypes.Persuade,
-                new List<string> { "trade", "bargain", "persuade", "negotiate", "convince", "deal" }
-            },
-            {
-                BasicActionTypes.Travel,
-                new List<string> { "travel", "journey", "path", "road", "trek", "walk" }
-            },
-            {
-                BasicActionTypes.Rest,
-                new List<string> { "rest", "sleep", "recover", "relax", "lodge" }
-            },
-            {
-                BasicActionTypes.Investigate,
-                new List<string> { "investigate", "search", "examine", "clues", "discover", "find", "look" }
-            }
-        };
-
-        // Combine name and description for keyword matching
-        string combined = $"{name} {description}".ToLowerInvariant();
-
-        foreach (BasicActionTypes actionType in keywordMap.Keys)
-        {
-            foreach (string keyword in keywordMap[actionType])
-            {
-                if (combined.Contains(keyword, StringComparison.OrdinalIgnoreCase))
-                {
-                    return actionType;
-                }
-            }
-        }
-
-        // Default
-        return BasicActionTypes.Discuss;
-    }
-
-    private IEnvironmentalProperty ParseEnvironmentalProperty(string propertyString)
-    {
-        // Create a dictionary to map property strings to their respective objects
-        Dictionary<string, IEnvironmentalProperty> propertyMap = new Dictionary<string, IEnvironmentalProperty>(StringComparer.OrdinalIgnoreCase)
-        {
-            // Illumination properties
-            { "Bright", Illumination.Bright },
-            { "Shadowy", Illumination.Shadowy },
-            { "Dark", Illumination.Dark },
-            
-            // Population properties
-            { "Crowded", Population.Crowded },
-            { "Quiet", Population.Quiet },
-            { "Isolated", Population.Isolated },
-            
-            // Economic properties
-            { "Wealthy", Economic.Wealthy },
-            { "Commercial", Economic.Commercial },
-            { "Humble", Economic.Humble },
-            
-            // Physical properties
-            { "Confined", Physical.Confined },
-            { "Expansive", Physical.Expansive },
-            { "Hazardous", Physical.Hazardous },
-            
-            // Atmosphere properties
-            { "Tense", Atmosphere.Tense },
-            { "Formal", Atmosphere.Formal },
-            { "Chaotic", Atmosphere.Chaotic }
-        };
-
-        // Look up the property in the dictionary
-        if (propertyMap.TryGetValue(propertyString, out IEnvironmentalProperty property))
-        {
-            return property;
-        }
-
-        // Default fallback
-        return Illumination.Bright; // Provide a default rather than null
-    }
-
     #endregion
+}
+
+public class FlatWorldEvolutionResponse
+{
+    public PlayerLocationUpdate PlayerLocationUpdate { get; set; }
+    public ResourceChanges ResourceChanges { get; set; }
+    public List<RelationshipChange> RelationshipChanges { get; set; } = new List<RelationshipChange>();
+    public List<LocationDefinition> Locations { get; set; } = new List<LocationDefinition>();
+    public List<LocationSpotDefinition> LocationSpots { get; set; } = new List<LocationSpotDefinition>();
+    public List<ActionDefinition> ActionDefinitions { get; set; } = new List<ActionDefinition>();
+    public List<Character> Characters { get; set; } = new List<Character>();
+    public List<Opportunity> Opportunities { get; set; } = new List<Opportunity>();
+}
+
+public class LocationDefinition
+{
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public int Difficulty { get; set; }
+    public List<string> ConnectedTo { get; set; } = new List<string>();
+    public List<string> EnvironmentalProperties { get; set; } = new List<string>();
+}
+
+public class LocationSpotDefinition
+{
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string InteractionType { get; set; }
+    public string LocationName { get; set; }
+}
+
+public class ActionDefinition
+{
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string Goal { get; set; }
+    public string Complication { get; set; }
+    public string ActionType { get; set; }
+    public string SpotName { get; set; }
+    public string LocationName { get; set; }
 }

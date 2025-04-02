@@ -58,12 +58,6 @@
             NarrativeTags = details.NarrativeTags
         };
 
-        foreach (LocationSpot spot in location.Spots)
-        {
-            string action = await actionGenerator.GenerateActionForSpotAsync(location, spot);
-            spot.ActionTemplates.Add(action);
-        }
-
         return location;
     }
 

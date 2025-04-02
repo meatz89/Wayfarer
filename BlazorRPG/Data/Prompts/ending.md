@@ -1,6 +1,8 @@
 # ENCOUNTER CONCLUSION
 
-The player chose '{SELECTED_CHOICE}' ({CHOICE_DESCRIPTION})
+Create a BRIEF, immersive Conclusion to the prior encounter, no longer than 3 sections.
+
+The player concluded the encoutner with his last choice: '{SELECTED_CHOICE}' ({CHOICE_DESCRIPTION})
 CRITICAL: This scene must directly continue from the player's final choice.
 
 ## Final State

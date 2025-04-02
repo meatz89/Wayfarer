@@ -3,14 +3,14 @@
     /// <summary>
     /// Creates the encounter for the given location
     /// </summary>
-    public static EncounterInfo CreateEncounter(
-        string locationName,
+    public static EncounterInfo CreateEncounterFromTemplate(
+        EncounterTemplate template,
+        Location location,
         string locationSpot,
-        EncounterTypes presentationStyle,
-        EncounterTemplate template)
+        EncounterTypes EncounterType)
     {
         EncounterInfo encounterInfo = new EncounterInfo(
-            locationName,
+            location.Name,
             locationSpot,
             template.PressureReducingFocuses,
             template.MomentumReducingFocuses,
@@ -18,10 +18,9 @@
             template.MaxPressure,
             template.PartialThreshold, template.StandardThreshold, template.ExceptionalThreshold, // Momentum thresholds: 12+ (Partial), 16+ (Standard), 20+ (Exceptional)
             template.Hostility,
-            presentationStyle);
+            EncounterType);
 
-        // Difficulty level 2 (adds +2 pressure per turn)
-        encounterInfo.SetDifficulty(2);
+        encounterInfo.SetDifficulty(location.Difficulty);
 
         foreach (NarrativeTag narrativeTag in template.EncounterNarrativeTags)
         {

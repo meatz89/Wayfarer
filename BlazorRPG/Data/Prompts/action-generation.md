@@ -1,54 +1,56 @@
 # ACTION AND ENCOUNTER GENERATION
 
-Create an action and matching encounter for '{SPOT_NAME}' at '{LOCATION_NAME}'.
+Create a complete action and encounter template for '{ACTIONNAME}' at the location spot '{SPOT_NAME}' in '{LOCATION_NAME}'.
 
-## Context
-- Location: {LOCATION_NAME} - {LOCATION_DESCRIPTION}
-- Spot: {SPOT_NAME} - {SPOT_DESCRIPTION}
-- Interaction Type: {INTERACTION_TYPE}
-- Environmental Properties: {ENVIRONMENTAL_PROPERTIES}
+## Core Action Details
+- Name: "{ACTIONNAME}"
+- Goal: "{GOAL}"
+- Complication: "{COMPLICATION}" 
+- BasicActionType: "{ACTION_TYPE}"
 
-## Create an Action with:
-- Name: A brief, descriptive name (3-4 words maximum)
-- Goal: What the player aims to achieve
-- Complication: What challenge makes this interesting
-- ActionType: Travel/Rest/Investigate/Discuss/Persuade
+## Encounter Design Task
 
-## Action Type Clarification:
-- DIRECT ACTION: Provides immediate benefits (rest, purchase, etc.) with defined costs
-- ENCOUNTER ACTION: Triggers an encounter with the tag-based system
-- Specify which type this action will be
-- For Direct Actions, define exact costs and benefits
-- For Encounter Actions, define exact success outcomes
+Design a complete encounter that implements this action, providing all required mechanical values.
 
-## Create a Matching Encounter Template with:
-1. Parameters:
-   - Duration: How many turns (3-7)
-   - MaxPressure: Failure threshold (8-15)
-   - Success thresholds: Partial, Standard, Exceptional (typically spaced 4 points apart)
-   - Hostility: Friendly, Neutral, or Hostile
+### ActionTemplate Values Needed
+- **ActionType**: Choose between:
+  * "Basic" - Direct action with immediate effects (rest, purchase, travel)
+  * "Encounter" - Triggers the tag-based encounter system (most actions are this type)
+- **CoinCost**: Any upfront coin cost to attempt the action (often 0)
 
-2. Approach specifications:
-   - PressureReducingFocuses: Which focuses reduce pressure (pick 1-2)
-   - MomentumReducingFocuses: Which focuses reduce momentum (pick 1-2 different)
+### EncounterTemplate Values Needed
+- **Name**: Unique identifier for this encounter (typically ActionName + "Encounter")
+- **Duration**: Number of turns (3-7) based on complexity
+- **MaxPressure**: Failure threshold (usually 10-15)
+- **PartialThreshold**: Minimum momentum for partial success (usually 8-12)
+- **StandardThreshold**: Momentum needed for standard success (usually 12-16)
+- **ExceptionalThreshold**: Momentum needed for exceptional success (usually 16-20)
+- **Hostility**: "Friendly", "Neutral", or "Hostile" - affects starting pressure and momentum
+- **PressureReducingFocuses**: 1-2 focus tags that are effective at reducing pressure
+- **MomentumReducingFocuses**: 1-2 focus tags that are ineffective (reduce momentum)
+- **StrategicTags**: 4-5 environmental properties that affect which approaches work well:
+  * Must use EXACT standard property names:
+    - Illumination: Bright, Shadowy, Dark
+    - Population: Crowded, Quiet, Isolated
+    - Atmosphere: Tense, Formal, Chaotic
+    - Economic: Wealthy, Commercial, Humble
+    - Physical: Confined, Expansive, Hazardous
+  * Each strategic tag needs a descriptive name and environmental property
+- **NarrativeTags**: 2-3 tags that activate when approaches reach thresholds:
+  * Must use EXACT tag names from: IntimidatingPresence, BattleRage, BruteForceFixation, 
+    TunnelVision, DestructiveImpulse, SuperficialCharm, SocialAwkwardness, HesitantPoliteness, 
+    PublicAwareness, GenerousSpirit, ColdCalculation, AnalysisParalysis, Overthinking, 
+    DetailFixation, TheoreticalMindset, MechanicalInteraction, NarrowFocus, PerfectionistParalysis, 
+    DetailObsession, InefficientPerfectionism, ShadowVeil, ParanoidMindset, CautiousRestraint, 
+    HidingPlaceFixation, HoardingInstinct
 
-3. Strategic Tags (4-5):
-   - Must use standard environmental properties exactly as listed:
-     * Illumination: Bright, Shadowy, Dark
-     * Population: Crowded, Quiet, Isolated
-     * Atmosphere: Tense, Formal, Chaotic
-     * Economic: Wealthy, Commercial, Humble
-     * Physical: Confined, Expansive, Hazardous
-
-4. Narrative Tags (2-3):
-   - Use existing tags like: IntimidatingPresence, BattleRage, SuperficialCharm, 
-     SocialAwkwardness, DetailFixation, Overthinking, ShadowVeil, ParanoidMindset
-   - Consider which approaches might be overused in this encounter
-
-## Success and Failure Paths:
-- Define SPECIFIC success outcome (new location, spot, character, knowledge, etc.)
-- Define ALTERNATIVE PATH if encounter fails (new action elsewhere that achieves similar goal)
-- Failure alternatives must provide different approach to similar objective
+## Encounter Balance Guidelines
+- Duration should match complexity (simple=3-4 turns, complex=5-7 turns)
+- Thresholds should be spaced 4 points apart (e.g., 10, 14, 18)
+- MaxPressure should be roughly 2× StandardThreshold
+- Strategic tags should include 2 beneficial and 2 detrimental approach effects
+- Narrative tags should activate at approach values 3+ or 4+
+- PressureReducingFocuses and MomentumReducingFocuses should be different focus tags
 
 ## Response Format
 Respond with a JSON object containing both action and encounter details:
@@ -58,10 +60,11 @@ Respond with a JSON object containing both action and encounter details:
     "name": "Negotiate with Merchants",
     "goal": "Secure favorable trade terms for your goods",
     "complication": "Established traders are suspicious of newcomers",
-    "actionType": "Persuade",
+    "actionType": "Encounter",
     "coinCost": 5
   },
   "encounterTemplate": {
+    "name": "NegotiateWithMerchantsEncounter",
     "duration": 5,
     "maxPressure": 10,
     "partialThreshold": 10,

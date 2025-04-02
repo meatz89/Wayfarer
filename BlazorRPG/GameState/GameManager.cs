@@ -53,13 +53,13 @@ public class GameManager
         _useMemory = configuration.GetValue<bool>("useMemory");
     }
 
-    public async Task StartGame()
+    public void StartGame()
     {
-        await TravelToLocation(gameState.PlayerState.StartingLocation);
+        TravelToLocation(gameState.PlayerState.StartingLocation);
         UpdateState();
     }
 
-    public async Task TravelToLocation(string locationName, TravelMethods travelMethod = TravelMethods.Walking)
+    public void TravelToLocation(string locationName, TravelMethods travelMethod = TravelMethods.Walking)
     {
         if (worldState.CurrentLocation != null)
         {
@@ -73,16 +73,10 @@ public class GameManager
 
             // Consume resources
             ConsumeTravelResources(travelMinutes, travelMethod);
-
-            // Determine if travel encounter occurs
-            if (ShouldGenerateTravelEncounter(startLocationId, locationName, travelMethod))
-            {
-                await GenerateTravelEncounter(startLocationId, locationName, travelMethod);
-            }
         }
 
         // Update player location
-        if (!LocationSystem.IsInitialized) await InitializeLocationSystem();
+        if (!LocationSystem.IsInitialized) InitializeLocationSystem();
 
         Location location = LocationSystem.GetLocation(locationName);
         if (location == null)
@@ -95,7 +89,7 @@ public class GameManager
         OnPlayerEnterLocation(gameState.WorldState.CurrentLocation);
     }
 
-    internal async Task InitializeLocationSystem()
+    internal async void InitializeLocationSystem()
     {
         if (!LocationSystem.IsInitialized) await LocationSystem.Initialize();
     }
@@ -108,7 +102,7 @@ public class GameManager
         location = LocationSystem.GetLocation(action.Location);
         gameState.Actions.SetCurrentUserAction(action);
 
-        bool startEncounter = actionImplementation.IsEncounterAction;
+        bool startEncounter = actionImplementation.ActionType == ActionTypes.Encounter;
         if (startEncounter)
         {
             return true;
@@ -154,7 +148,7 @@ public class GameManager
             PreviousInteractions = previousInteractions
         };
 
-        EncounterManager encounterContextOld = await GenerateEncounter(
+        EncounterManager encounterContext = await GenerateEncounter(
             actionImplementation,
             location,
             gameState.PlayerState,
@@ -173,7 +167,7 @@ public class GameManager
         EncounterContext context = new EncounterContext()
         {
             ActionImplementation = actionImplementation,
-            ActionType = actionImplementation.ActionType,
+            BasicActionType = actionImplementation.BasicActionType,
             Location = location,
             LocationSpot = locationSpot,
         };
@@ -225,13 +219,7 @@ public class GameManager
             choiceOption.Choice);
 
         EncounterResults currentEncounterResult = currentResult.EncounterResults;
-        if (currentEncounterResult != EncounterResults.Ongoing)
-        {
-            // Encounter is Over
-            gameState.Actions.EncounterResult = currentResult;
-            await ProcessEncounterOutcome(currentResult);
-        }
-        else
+        if (currentEncounterResult == EncounterResults.Ongoing)
         {
             // Encounter is Ongoing
             if (IsGameOver(gameState.PlayerState))
@@ -244,6 +232,13 @@ public class GameManager
 
             List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(currentResult.Encounter);
             gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
+        }
+        else
+        {
+            // Encounter is Over
+            gameState.Actions.EncounterResult = currentResult;
+            Location travelLocation = await ProcessEncounterOutcome(currentResult);
+            currentResult.TravelLocation = travelLocation;
         }
 
         return currentResult;
@@ -523,19 +518,6 @@ public class GameManager
         }
     }
 
-    private string GetRelationshipStatus(int value)
-    {
-        if (value <= -75) return "Nemesis";
-        if (value <= -50) return "Enemy";
-        if (value <= -25) return "Hostile";
-        if (value <= -10) return "Distrusting";
-        if (value < 10) return "Neutral";
-        if (value < 25) return "Acquaintance";
-        if (value < 50) return "Friend";
-        if (value < 75) return "Trusted Friend";
-        return "Ally";
-    }
-
     public string GetTimeOfDay(int totalMinutes)
     {
         // Calculate hours (24-hour clock)
@@ -545,61 +527,6 @@ public class GameManager
         if (totalHours >= 12 && totalHours < 17) return "Afternoon";
         if (totalHours >= 17 && totalHours < 21) return "Evening";
         return "Night";
-    }
-
-    public List<InteractionOption> GetSpotInteractions(string locationId, string spotId)
-    {
-        Location location = worldState.GetLocation(locationId);
-        LocationSpot? spot = location.Spots.FirstOrDefault(s => s.Name == spotId);
-
-        if (spot == null)
-            return new List<InteractionOption>();
-
-        List<InteractionOption> interactions = new List<InteractionOption>();
-
-        // Add character interactions
-        foreach (string characterId in spot.ResidentCharacterIds)
-        {
-            Character character = worldState.GetCharacter(characterId);
-            interactions.Add(new InteractionOption
-            {
-                Type = "Character",
-                Name = $"Speak with {character.Name}",
-                Description = $"Initiate a conversation with {character.Name}, {character.Role}",
-                TargetId = characterId
-            });
-        }
-
-        // Add opportunity interactions
-        foreach (string opportunityId in spot.AssociatedOpportunityIds)
-        {
-            Opportunity opportunity = worldState.GetOpportunity(opportunityId);
-
-            if (opportunity.Status == "Available" || opportunity.Status == "In Progress")
-            {
-                interactions.Add(new InteractionOption
-                {
-                    Type = opportunity.Type,
-                    Name = opportunity.Name,
-                    Description = opportunity.Description,
-                    TargetId = opportunityId
-                });
-            }
-        }
-
-        // Add spot-specific interactions
-        if (spot.InteractionType == "Feature")
-        {
-            interactions.Add(new InteractionOption
-            {
-                Type = "Examine",
-                Name = $"Examine {spot.Name}",
-                Description = spot.InteractionDescription,
-                TargetId = spotId
-            });
-        }
-
-        return interactions;
     }
 
     public void UpdateState()
@@ -629,30 +556,13 @@ public class GameManager
         return model;
     }
 
-
-    public void SetCurrentLocation(string locationName)
-    {
-        LocationSystem.SetCurrentLocation(locationName);
-    }
-
-    public async Task ProcessEncounterOutcome(EncounterResult encounterResult)
+    public async Task<Location> ProcessEncounterOutcome(EncounterResult encounterResult)
     {
         NarrativeResult narrativeResult = encounterResult.NarrativeResult;
 
         string narrative = narrativeResult.SceneNarrative;
         string outcome = narrativeResult.Outcome.ToString();
-        if (_processStateChanges)
-        {
-            // Prepare the input
-            WorldEvolutionInput input = PrepareWorldEvolutionInput(narrative, outcome);
-
-            // Process world evolution
-            WorldEvolutionResponse evolutionResponse = await evolutionService.ProcessWorldEvolution(encounterResult.NarrativeContext, input);
-
-            // Update world state
-            evolutionService.IntegrateWorldEvolution(evolutionResponse, worldState, LocationSystem, playerState);
-
-        }
+        
         if (_useMemory)
         {
             string oldMemory = await MemoryFileAccess.ReadFromMemoryFile();
@@ -672,8 +582,20 @@ public class GameManager
 
             await MemoryFileAccess.WriteToMemoryFile(memoryEntryToWrite);
         }
-    }
+        if (_processStateChanges)
+        {
+            // Prepare the input
+            WorldEvolutionInput input = PrepareWorldEvolutionInput(narrative, outcome);
 
+            // Process world evolution
+            WorldEvolutionResponse evolutionResponse = await evolutionService.ProcessWorldEvolution(encounterResult.NarrativeContext, input);
+
+            // Update world state
+            return await evolutionService.IntegrateWorldEvolution(evolutionResponse, worldState, LocationSystem, playerState);
+        }
+
+        return null;
+    }
 
     private WorldEvolutionInput PrepareWorldEvolutionInput(string encounterNarrative, string encounterOutcome)
     {
@@ -688,7 +610,6 @@ public class GameManager
             EncounterOutcome = encounterOutcome
         };
     }
-
 
     private async Task GenerateTravelEncounter(string startLocationId, string locationName, TravelMethods travelMethod = TravelMethods.Walking)
     {

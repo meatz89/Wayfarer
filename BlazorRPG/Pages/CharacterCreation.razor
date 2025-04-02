@@ -5,15 +5,6 @@
         <p class="secondary-text">Choose your name and profession to begin your journey</p>
 
         <div class="tooltip-section">
-            <h4>Your Identity</h4>
-            <div class="player-stat">
-                <span class="stat-icon">👤</span>
-                <span class="stat-label">Your Name</span>
-                <input id="playerName" @bind="playerName" class="character-input" placeholder="Enter your name..." />
-            </div>
-        </div>
-
-        <div class="tooltip-section">
             <h4>Choose Your Profession</h4>
             <div class="archetype-grid">
                 @foreach (ArchetypeTypes archetype in Enum.GetValues(typeof(ArchetypeTypes)))
@@ -42,6 +33,15 @@
                         }
                     </div>
                 }
+            </div>
+        </div>
+
+        <div class="tooltip-section">
+            <h4>Choose Your Name</h4>
+            <div class="player-stat">
+                <span class="stat-icon">👤</span>
+                <span class="stat-label">Your Name</span>
+                <input id="playerName" @bind="playerName" class="character-input" placeholder="Enter your name..." />
             </div>
         </div>
 
