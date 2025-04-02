@@ -42,7 +42,7 @@
     }
 
     <div class="tooltip-section">
-        <h5>Effect</h5>
+        <h5>Effects</h5>
         @if (hoveredChoice.Choice is ChoiceCard cardChoiceTier)
         {
             <span class="tier-badge tier-@((int)cardChoiceTier.Tier)">
@@ -203,8 +203,6 @@
         @if (GetApproachTagChanges().Count + GetFocusTagChanges().Count > 0)
         {
             <div class="tooltip-section">
-                <h5>Choice Style</h5>
-
                 <div class="tooltip-list">
                     @foreach (var tagChange in GetApproachTagChanges())
                     {
