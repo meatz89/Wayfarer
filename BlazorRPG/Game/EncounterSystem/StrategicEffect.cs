@@ -17,7 +17,7 @@
         if (PropertyMatches(tag.EnvironmentalProperty))
         {
             int approachValue = tagSystem.GetEncounterStateTagValue(ScaleWithApproach);
-            int effect = approachValue / 2; // Scale at 1 per 2 points
+            int effect = approachValue; // Scale at 1 per 1 points
 
             return EffectType == StrategicTagEffectType.IncreaseMomentum ? effect :
                    EffectType == StrategicTagEffectType.DecreaseMomentum ? -effect : 0;
@@ -31,7 +31,7 @@
         if (PropertyMatches(tag.EnvironmentalProperty))
         {
             int approachValue = tagSystem.GetEncounterStateTagValue(ScaleWithApproach);
-            int effect = approachValue / 2; // Scale at 1 per 2 points
+            int effect = approachValue; // Scale at 1 per 1 points
 
             return EffectType == StrategicTagEffectType.IncreasePressure ? effect :
                    EffectType == StrategicTagEffectType.DecreasePressure ? -effect : 0;
