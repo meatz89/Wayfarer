@@ -21,17 +21,6 @@ After analyzing the full encounter narrative, determine how the world should evo
 - These must offer different approaches to similar goals
 - Should feel like natural world evolution, not artificial second chances
 
-## Format Requirements
-- Character names must be SIMPLE FIRST NAMES ONLY (e.g., "Giles", not "Giles the merchant")
-- Action types must be one of: Discuss, Travel, Persuade, Rest, Investigate
-- All actions must specify a goal and complication
-- Environmental properties must use these exact values:
-  * Illumination: Bright, Shadowy, Dark
-  * Population: Crowded, Quiet, Isolated
-  * Atmosphere: Tense, Formal, Chaotic
-  * Economic: Wealthy, Commercial, Humble
-  * Physical: Confined, Expansive, Hazardous
-
 ## Player Location Changes
 - Carefully review the encounter narrative to determine if the player ended at a DIFFERENT LOCATION than where they started
 - If player moved to a new location, specify this location name in your response
@@ -71,17 +60,9 @@ After analyzing the full encounter narrative, determine how the world should evo
 
 ## Each Spot Must Include:
 - Name and description
-- At least 1 action
 - InteractionType: Character/Quest/Shop/Feature/Travel
 - Position: North/South/East/West/Center
-- Initial action possibility (TradeGoods, ForestTravel, RentRoom, etc.)
-
-## Action Requirements
-- Actions must be either:
-  * Direct Actions: Provide immediate benefits with clear costs (time/money/energy)
-  * Encounter Actions: Start encounters with specific goals and complications
-- Direct examples: Sleep (restores energy, costs time), Purchase (costs money, provides items)
-- Encounter examples: Gather Information, Negotiate Price, Search Area
+- At least 1 initial action possibility as action name (TradeGoods, ForestTravel, RentRoom, etc.)
 
 ## World Structure Requirements
 - You must generate at least one new action
@@ -91,14 +72,13 @@ After analyzing the full encounter narrative, determine how the world should evo
 - Location → Spot → Action hierarchy must be maintained
 - New elements must connect logically to existing world elements
 
-## Format Standards
+## Format Requirements
 - Character names: SIMPLE FIRST NAMES ONLY (e.g., "Giles", not "Giles the merchant")
-- Action types: Discuss, Travel, Persuade, Rest, Investigate only
 - All actions require goal and complication fields
 - Action Type must only be one of:
-  * physical: Travel, Rest, Labor, Gather, Fight
-  * social: Discuss, Persuade, Perform
-  * intellectual: Study, Investigate, Analyze
+  * Travel, Rest, Labor, Gather, Fight (physical actions)
+  * Discuss, Persuade, Perform (social actions)
+  * Study, Investigate, Analyze (intellectual actions)
 - Environmental properties must use standard values only:
   * Illumination: Bright, Shadowy, Dark
   * Population: Crowded, Quiet, Isolated
@@ -135,15 +115,7 @@ After analyzing the full encounter narrative, determine how the world should evo
       "description": "Brief description",
       "interactionType": "Character/Shop/Feature/Service",
       "locationName": "Name of existing location this spot belongs to",
-      "actions": [
-        {
-          "name": "TradeGoods",
-          "description": "What this action involves",
-          "goal": "The player's goal in this action",
-          "complication": "What makes this challenging", 
-          "actionType": "Persuade"
-        }
-      ]
+      "actions": ["TradeGoods", "HagglePrice", "GatherInformation"]
     }
   ],
   "newActions": [
@@ -177,15 +149,7 @@ After analyzing the full encounter narrative, determine how the world should evo
           "name": "Spot name",
           "description": "Brief description",
           "interactionType": "Character/Shop/Feature/Service",
-          "actions": [
-            {
-              "name": "ActionName",
-              "description": "What this action involves",
-              "goal": "The player's goal in this action",
-              "complication": "What makes this challenging",
-              "actionType": "Discuss"
-            }
-          ]
+          "actions": ["TradeGoods", "HagglePrice", "GatherInformation"]
         }
       ]
     }

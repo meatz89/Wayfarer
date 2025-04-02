@@ -51,7 +51,7 @@
         return actionTemplate;
     }
 
-    private EncounterTemplate CreateEncounterTemplate(EncounterTemplateModel model)
+    public EncounterTemplate CreateEncounterTemplate(EncounterTemplateModel model)
     {
         EncounterTemplate template = new EncounterTemplate
         {
