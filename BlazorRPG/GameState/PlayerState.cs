@@ -1,6 +1,4 @@
-﻿using System.Security.AccessControl;
-
-public class PlayerState
+﻿public class PlayerState
 {
     // Core identity
     public string Name { get; set; }
@@ -59,7 +57,6 @@ public class PlayerState
     {
         StartingLocation = GameRules.StandardRuleset.StartingLocation.ToString();
 
-        Name = GameRules.StandardRuleset.Name;
         Background = GameRules.StandardRuleset.Background;
 
         Inventory = new Inventory(GameRules.StandardRuleset.StartingInventorySize);
@@ -82,10 +79,13 @@ public class PlayerState
 
         NegativeStatusTypes = new();
         ConfidenceType = PlayerConfidenceTypes.Neutral;
+    }
 
-        Archetype = GameRules.StandardRuleset.PlayerArchetype;
+    public void SetArchetype(ArchetypeTypes archetype)
+    {
+        this.Archetype = archetype;
 
-        switch (Archetype)
+        switch (archetype)
         {
             case ArchetypeTypes.Warrior:
                 ArchetypeConfig = ArchetypeConfig.CreateWarrior();
@@ -108,7 +108,7 @@ public class PlayerState
                 InitializeThiefInventory();
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(Archetype));
+                throw new ArgumentOutOfRangeException(nameof(archetype));
         }
     }
 

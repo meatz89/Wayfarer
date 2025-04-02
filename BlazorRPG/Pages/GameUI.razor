@@ -2,76 +2,82 @@
 @inherits ComponentBase
 
 <div class="top-bar">
-
 </div>
 
 <div class="game-container">
-    <div class="map-container">
-        <div class="map-toggle">
-            <button class="toggle-button @(showAreaMap ? "active" : "")" @onclick="() => showAreaMap = true">
-                Travel 🗺️
-            </button>
-        </div>
-        @if (OngoingEncounter)
-        {
-            <EncounterView OnEncounterCompleted="(result) => HandleEncounterCompleted(result)" />
-        }
-        else
-        {
-            @if (showAreaMap)
+    @if (needsCharacterCreation)
+    {
+        <CharacterCreation IsVisible="true" OnCharacterCreated="HandleCharacterCreated" />
+    }
+    else
+    {
+        <div class="map-container">
+            <div class="map-toggle">
+                <button class="toggle-button @(showAreaMap ? "active" : "")" @onclick="() => showAreaMap = true">
+                    Travel 🗺️
+                </button>
+            </div>
+            @if (OngoingEncounter)
             {
-                @if (showNarrative)
-                {
-                    <NarrativeView LocationName="@selectedLocation"
-                                   OnNarrativeCompleted="OnNarrativeCompleted"
-                    Result="@EncounterResult"
-                    ShowResult="false" />
-                }
-                else if (ShowEncounterResult)
-                {
-                    <NarrativeView LocationName="@selectedLocation"
-                                   OnNarrativeCompleted="OnNarrativeCompleted"
-                                   Result="@EncounterResult"
-                    ShowResult="true" />
-                }
-                else
-                {
-                    <AreaMap CurrentLocation="@GetCurrentLocation()"
-                    Locations="@Locations"
-                    OnTravel="@HandleLocationSelection" />
-                }
+                <EncounterView OnEncounterCompleted="(result) => HandleEncounterCompleted(result)" />
             }
             else
             {
-                if (ShowEncounterResult)
+                @if (showAreaMap)
                 {
-                    <NarrativeView LocationName="@selectedLocation"
-                                   OnNarrativeCompleted="OnNarrativeCompleted"
-                                   Result="@EncounterResult"
-                                   ShowResult="true" />
+                    @if (showNarrative)
+                    {
+                        <NarrativeView LocationName="@selectedLocation"
+                                       OnNarrativeCompleted="OnNarrativeCompleted"
+                                       Result="@EncounterResult"
+                                       ShowResult="false" />
+                    }
+                    else if (ShowEncounterResult)
+                    {
+                        <NarrativeView LocationName="@selectedLocation"
+                                       OnNarrativeCompleted="OnNarrativeCompleted"
+                                       Result="@EncounterResult"
+                                       ShowResult="true" />
+                    }
+                    else
+                    {
+                        <AreaMap CurrentLocation="@GetCurrentLocation()"
+                                 Locations="@Locations"
+                                 OnTravel="@HandleLocationSelection" />
+                    }
                 }
                 else
                 {
-                    <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
-                                 CurrentSpot="@CurrentSpot"
-                                 OnSpotSelected="@HandleSpotSelection"
-                                 OnActionSelected="@HandleActionSelection" />
+                    if (ShowEncounterResult)
+                    {
+                        <NarrativeView LocationName="@selectedLocation"
+                                       OnNarrativeCompleted="OnNarrativeCompleted"
+                                       Result="@EncounterResult"
+                                       ShowResult="true" />
+                    }
+                    else
+                    {
+                        <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
+                                         CurrentSpot="@CurrentSpot"
+                                         OnSpotSelected="@HandleSpotSelection"
+                                         OnActionSelected="@HandleActionSelection" />
+                    }
                 }
             }
-        }
-    </div>
+        </div>
 
-    <div class="sidebar">
-        <div class="sidebar-panel location-panel">
-            <div class="location-name">
+        <div class="sidebar">
+            <div class="sidebar-panel location-panel">
+                <div class="location-name">
                     @GetCurrentLocation().Name
-            </div>
+                </div>
 
-            <div class="time-display">
-                @CurrentHour:00
-                @CurrentTime @GetIconForTimeWindow(@GameState.WorldState.WorldTime)
-            </div>
+                <div class="time-display">
+                    @CurrentHour:00
+                    @CurrentTime @GetIconForTimeWindow(@GameState.WorldState.WorldTime)
+                </div>
 
+                
             <div class="location-properties">
                 <div class="properties-header">Properties</div>
                 <div class="properties-grid">
@@ -180,6 +186,7 @@
             </div>
         </div>
     </div>
+    }
 </div>
 
 @if (showTooltip && hoveredAction != null)

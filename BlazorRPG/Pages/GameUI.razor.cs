@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using System.Runtime.CompilerServices;
-
 namespace BlazorRPG.Pages;
 
 public partial class GameUI : ComponentBase
@@ -49,7 +47,27 @@ public partial class GameUI : ComponentBase
     private double mouseX;
     private double mouseY;
 
+    private bool needsCharacterCreation = false;
+
     protected override async Task OnInitializedAsync()
+    {
+        // Check if character has been created
+        needsCharacterCreation = string.IsNullOrEmpty(GameState.PlayerState.Name);
+
+        if (!needsCharacterCreation)
+        {
+            await InitializeGame();
+        }
+    }
+
+    private async Task HandleCharacterCreated(PlayerState playerState)
+    {
+        needsCharacterCreation = false;
+        await InitializeGame();
+        StateHasChanged();
+    }
+
+    private async Task InitializeGame()
     {
         await GameManager.StartGame();
         await GameManager.InitializeLocationSystem();

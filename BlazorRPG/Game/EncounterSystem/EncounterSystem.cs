@@ -177,7 +177,7 @@
         }
 
         currentResult = await Encounter.ApplyChoiceWithNarrativeAsync(
-            choice, 
+            choice,
             encounter.playerState,
             encounter.worldState,
             selectedDescription);

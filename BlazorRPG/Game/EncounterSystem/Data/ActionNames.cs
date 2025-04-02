@@ -1,6 +1,6 @@
 ﻿public enum ActionNames
 {
-    None, 
+    None,
 
     // Village actions
     MarketPurchasing,

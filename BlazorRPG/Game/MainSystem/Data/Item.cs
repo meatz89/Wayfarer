@@ -2,7 +2,7 @@
 {
     public string Name { get; set; }
     public ItemTypes ItemType { get; set; }
-    public int Condition { get; set; } 
+    public int Condition { get; set; }
 
     public Item(string name, ItemTypes itemType)
     {

@@ -847,3 +847,111 @@ body {
 .status-effect.negative {
     border-left: 3px solid var(--resource-health);
 }
+
+/* Character Creation Styles */
+.character-creation {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: var(--bg-panel);
+    border-radius: 5px;
+}
+
+.input-section {
+    margin-bottom: 20px;
+}
+
+/* Character Creation Specific Styles */
+.character-input {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-active);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 1em;
+    margin-top: 5px;
+}
+
+.tooltip-item.wide {
+    width: 100%;
+}
+
+.tooltip-item.archetype-card {
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 8px;
+}
+
+    .tooltip-item.archetype-card:hover {
+        background-color: var(--bg-active);
+    }
+
+    .tooltip-item.archetype-card.selected {
+        border-left: 4px solid var(--resource-coins);
+        background-color: var(--bg-active);
+    }
+
+.action-button-container {
+    margin-top: 20px;
+    text-align: center;
+}
+
+
+.archetype-selection {
+    margin-bottom: 20px;
+}
+
+.archetype-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.archetype-card {
+    background-color: var(--bg-card);
+    border: 2px solid transparent;
+    border-radius: 5px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+    .archetype-card:hover {
+        background-color: var(--bg-active);
+    }
+
+    .archetype-card.selected {
+        border-color: var(--resource-coins);
+        background-color: var(--bg-active);
+    }
+
+.archetype-icon {
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+
+.archetype-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.archetype-description {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.starting-items {
+    font-size: 0.9em;
+}
+
+.items-list {
+    margin-top: 5px;
+    color: var(--text-secondary);
+}
+
+    .items-list .item {
+        margin-bottom: 2px;
+    }

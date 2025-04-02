@@ -165,7 +165,7 @@ public class PromptManager
 
     private string GetRelationshipDescription(int relationshipLevel)
     {
-        var desc = relationshipLevel switch
+        string desc = relationshipLevel switch
         {
             < 0 => "Hostile",
             0 => "Stranger",
