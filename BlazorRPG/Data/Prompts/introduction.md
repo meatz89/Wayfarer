@@ -10,6 +10,8 @@ Create a BRIEF, immersive introductory scene for a {ENCOUNTER_TYPE} encounter at
 - Goal: {CHARACTER_GOAL}
 - Challenge: {ENCOUNTER_COMPLICATION}
 
+Talk in the voice of the player character archetype. The narration of a warrior, scholar, ranger, bard and thief should be remarkably different.
+
 ## Player Resources
 - Coins: {PLAYER_COINS} (Use this to inform narrative about spending capacity)
 - Health: {PLAYER_HEALTH}/{PLAYER_MAX_HEALTH}
