@@ -22,6 +22,7 @@ public class EncounterStatusModel
     public Dictionary<ApproachTags, int> ApproachTags { get; }
     public Dictionary<FocusTags, int> FocusTags { get; }
     public List<string> ActiveTagNames { get; }
+    public WorldState WorldState { get; }
     public PlayerState PlayerState { get; }
 
     // Added properties
@@ -41,7 +42,8 @@ public class EncounterStatusModel
         Dictionary<ApproachTags, int> approachTags,
         Dictionary<FocusTags, int> focusTags,
         List<string> activeTagNames,
-        PlayerState playerState)
+        PlayerState playerState,
+        WorldState worldState)
     {
         CurrentTurn = currentTurn;
 
@@ -65,6 +67,7 @@ public class EncounterStatusModel
 
         // Initialize empty collections for the added properties
         ActiveTags = new List<IEncounterTag>();
+        WorldState = worldState;
     }
 
 }

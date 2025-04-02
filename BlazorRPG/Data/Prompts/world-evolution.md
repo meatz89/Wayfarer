@@ -20,6 +20,20 @@ After analyzing the full encounter narrative, determine how the world should evo
 - Note inventory items REMOVED or USED during the encounter
 - Only include resources explicitly mentioned in the narrative
 
+## Relationship Changes
+- Identify ALL character relationship changes suggested in the narrative
+- For EACH character the player interacted with, determine if the relationship improved or worsened
+- Look for explicit statements about relationship changes
+- Also infer changes from:
+  * Player helping a character (+1 or +2)
+  * Character providing valuable assistance to player (+1)
+  * Player completing a task for a character (+1 or +2)
+  * Player failing to help a character when promised (-1)
+  * Player actions that upset or harm a character's interests (-1 or -2)
+  * Player deceiving or betraying a character (-2)
+- Only include characters explicitly named in the narrative
+- Indicate relationship change as a positive or negative integer from -3 to +3
+
 ## World Evolution Focus
 - Extract only the MOST SIGNIFICANT world elements (max 0-4 of each type)
 - Focus on elements that enable FUTURE GAMEPLAY, not decorative details
@@ -79,6 +93,18 @@ After analyzing the full encounter narrative, determine how the world should evo
     "itemsAdded": ["ItemName1", "ItemName2"],  // Items added to inventory
     "itemsRemoved": ["ItemName3"]  // Items removed from inventory
   },
+  "relationshipChanges": [
+    {
+      "characterName": "Giles",
+      "changeAmount": 2,  // Positive for improved relationship, negative for worsened
+      "reason": "Brief description of why the relationship changed"
+    },
+    {
+      "characterName": "Marta",
+      "changeAmount": -1,
+      "reason": "Brief description of why the relationship worsened"
+    }
+  ],
   "newLocationSpots": [
     {
       "name": "Spot name",
@@ -119,7 +145,7 @@ After analyzing the full encounter narrative, determine how the world should evo
     {
       "name": "Location name",
       "description": "Brief description",
-      "difficulty": "Location Difficulty (number)"
+      "difficulty": "Location Difficulty (number)",
       "connectedTo": ["First Connected Location", "Second Connected Location"],
       "environmentalProperties": ["Bright", "Crowded", "Commercial", "Chaotic"],
       "spots": [

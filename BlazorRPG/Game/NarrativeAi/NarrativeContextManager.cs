@@ -33,7 +33,7 @@
     }
 
     // Add a message with type tracking
-    public void AddUserMessage(string conversationId, string message, MessageType type, ChoiceNarrative choiceNarrative)
+    public void AddUserMessage(string conversationId, string message, MessageType type, ChoiceNarrative? choiceNarrative)
     {
         _fullConversationHistories[conversationId].Add(new ConversationEntry
         {
@@ -60,9 +60,6 @@
         List<ConversationEntry> fullHistory = _fullConversationHistories[conversationId];
         List<ConversationEntry> optimizedHistory = new List<ConversationEntry>();
 
-        // Keep track of the last player choice that was processed
-        IChoice lastProcessedChoice = null;
-
         // Always include system message
         ConversationEntry? systemMessage = fullHistory.FirstOrDefault(m => m.Type == MessageType.System);
         if (systemMessage != null)
@@ -72,7 +69,7 @@
 
         // Always include introduction with memory and its response
         ConversationEntry? introPrompt = fullHistory.FirstOrDefault(m => m.Type == MessageType.Introduction && m.Role == "user");
-        string simplifiedIntro = introPrompt.Content;
+        string simplifiedIntro = introPrompt!.Content;
 
         ConversationEntry? introResponse = fullHistory.FirstOrDefault(m => m.Type == MessageType.Introduction && m.Role == "assistant");
 
@@ -103,7 +100,7 @@
             if (entry.Type == MessageType.PlayerChoice && entry.Role == "user")
             {
                 // Extract just the choice information
-                string simplifiedChoice = SimplifyPlayerChoicePrompt(entry.Content, entry.ChoiceNarrative);
+                string simplifiedChoice = SimplifyPlayerChoicePrompt(entry.Content, entry.ChoiceNarrative!);
                 optimizedHistory.Add(new ConversationEntry { Role = entry.Role, Content = simplifiedChoice });
             }
 

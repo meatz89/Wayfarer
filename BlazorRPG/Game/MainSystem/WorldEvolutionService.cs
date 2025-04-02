@@ -38,6 +38,31 @@
             playerState.ModifyCoins(evolution.CoinChange);
         }
 
+        // Process relationship changes
+        if (evolution.RelationshipChanges != null && evolution.RelationshipChanges.Any())
+        {
+            foreach (RelationshipChange relationshipChange in evolution.RelationshipChanges)
+            {
+                // Get current relationship level
+                int currentLevel = playerState.Relationships.GetLevel(relationshipChange.CharacterName);
+
+                // Apply the change
+                int newLevel = currentLevel + relationshipChange.ChangeAmount;
+
+                // Update relationship
+                playerState.Relationships.SetLevel(relationshipChange.CharacterName, newLevel);
+
+                // Optional: Log relationship changes for debugging or history tracking
+                Console.WriteLine($"Relationship with {relationshipChange.CharacterName} changed from {currentLevel} to {newLevel}: {relationshipChange.Reason}");
+            }
+        }
+
+        // Process new locations first (may be needed for player location change)
+        foreach (Location location in evolution.NewLocations)
+        {
+            worldState.AddLocations(new List<Location> { location });
+        }
+
         // Process inventory changes
         if (evolution.ResourceChanges != null)
         {
@@ -58,12 +83,6 @@
                     playerState.Inventory.RemoveItem(itemType);
                 }
             }
-        }
-
-        // Process new locations first (may be needed for player location change)
-        foreach (Location location in evolution.NewLocations)
-        {
-            worldState.AddLocations(new List<Location> { location });
         }
 
         // Add new location spots to current location

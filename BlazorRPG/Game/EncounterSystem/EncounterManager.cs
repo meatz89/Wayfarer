@@ -9,7 +9,6 @@
     private NarrativeContext narrativeContext;
 
     private ResourceManager resourceManager;
-    private RelationshipManager relationshipManager;
 
     public List<IChoice> CurrentChoices = new List<IChoice>();
 
@@ -25,7 +24,6 @@
         CardSelectionAlgorithm cardSelector,
         NarrativeService narrativeService,
         ResourceManager resourceManager,
-        RelationshipManager relationshipManager,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {
@@ -33,7 +31,6 @@
         cardSelectionAlgorithm = cardSelector;
         this.narrativeService = narrativeService;
         this.resourceManager = resourceManager;
-        this.relationshipManager = relationshipManager;
 
         _useAiNarrative = configuration.GetValue<bool>("useAiNarrative");
         _useMemory = configuration.GetValue<bool>("useMemory");
@@ -73,7 +70,7 @@
                 actionImplementation);
 
         // Generate introduction
-        EncounterStatusModel status = GetEncounterStatusModel(playerState);
+        EncounterStatusModel status = GetEncounterStatusModel(playerState, worldState);
 
         string introduction = "introduction";
 
@@ -130,13 +127,14 @@
     public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
         IChoice choice,
         PlayerState playerState,
+        WorldState worldState,
         ChoiceNarrative choiceDescription)
     {
         // Apply the choice
         ChoiceOutcome outcome = ApplyChoiceProjection(playerState, encounterInfo, choice);
 
         // Get status after the choice
-        EncounterStatusModel newStatus = GetEncounterStatusModel(playerState);
+        EncounterStatusModel newStatus = GetEncounterStatusModel(playerState, worldState);
 
         // Generate narrative for the reaction and new scene
         string narrative = "Continued Narrative";
@@ -278,7 +276,7 @@
     }
 
 
-    public EncounterStatusModel GetEncounterStatusModel(PlayerState playerState)
+    public EncounterStatusModel GetEncounterStatusModel(PlayerState playerState, WorldState worldState)
     {
         return new EncounterStatusModel(
             currentTurn: encounterState.CurrentTurn,
@@ -291,7 +289,8 @@
             approachTags: encounterState.TagSystem.GetAllApproachTags(),
             focusTags: encounterState.TagSystem.GetAllFocusTags(),
             activeTagNames: encounterState.GetActiveTagsNames(),
-            playerState: playerState
+            playerState: playerState,
+            worldState: worldState
         );
     }
 
