@@ -332,6 +332,7 @@ body {
     min-width: 100px;
     position: relative;
     padding-top: 5rem;
+    text-align: center;
 }
 
 .stat-label {
@@ -796,13 +797,13 @@ body {
     align-items: center;
     width: 20px;
     font-size: 1em;
-    margin-bottom: 1rem;
 }
 
 .stat-label, .resource-label, .item-name, .status-name {
     flex-grow: 1;
     font-size: 0.9em;
     color: var(--text-secondary);
+    min-width: 7rem;
 }
 
 .stat-value, .resource-value, .item-count {
