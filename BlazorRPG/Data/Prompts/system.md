@@ -50,6 +50,3 @@ Wayfarer uses a unified tag-based approach for all encounters:
 - Maintain continuity with memory elements when provided
 - NPCs must have agency and pursue their own goals
 - The environment should be dynamic and interactive
-
-## Chain of Thought
-Use structured reasoning for all content generation, but keep your reasoning process internal.
