@@ -825,21 +825,6 @@ body {
     color: var(--resource-health);
 }
 
-.player-archetype {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background-color: var(--bg-card);
-    padding: 8px 12px;
-    border-radius: 4px;
-    margin-bottom: 10px;
-}
-
-.archetype-name {
-    font-weight: bold;
-    color: var(--text-primary);
-    margin-bottom: 1rem;
-}
 
 .status-effect.negative {
     border-left: 3px solid var(--resource-health);
@@ -1005,14 +990,20 @@ body {
 
 .archetype-icon {
     font-size: 2em;
-    margin-bottom: 1rem;
+}
+
+.player-archetype {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background-color: var(--bg-card);
+    padding: 8px 12px;
+    border-radius: 4px;
 }
 
 .archetype-name {
-    font-weight: bold;
-    margin-bottom: 1rem;
+    color: var(--text-secondary);
 }
-
 .archetype-description {
     font-size: 0.9em;
     color: var(--text-secondary);
