@@ -1,4 +1,5 @@
-﻿public class GameRules
+﻿
+public class GameRules
 {
     public static GameRules StandardRuleset = new GameRules
     {
@@ -32,6 +33,10 @@
     public static int StrategicResonanceRequirement = 4;
 
     public ArchetypeTypes PlayerArchetype = ArchetypeTypes.Ranger;
+    public LocationNames StartingLocation = LocationNames.Forest;
+
+    public string Background = string.Empty;
+    public string Name = "Wayfarer";
 
     public static int GetBaseEnergyCost(BasicActionTypes actionType)
     {
@@ -52,6 +57,7 @@
             BasicActionTypes.Discuss => 1,
             BasicActionTypes.Persuade => 3,
             BasicActionTypes.Perform => 3,
+            _ => throw new NotImplementedException(),
         };
 
         return energycost;

@@ -174,11 +174,6 @@ public partial class GameUI : ComponentBase
         return list;
     }
 
-    public List<Quest> GetActiveQuests()
-    {
-        return GameState.Actions.ActiveQuests;
-    }
-
     private void HandleSpotSelection(LocationSpot locationSpot)
     {
         List<UserLocationSpotOption> userLocationSpotOptions = GameState.WorldState.CurrentLocationSpotOptions;

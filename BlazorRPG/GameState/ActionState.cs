@@ -8,8 +8,6 @@
     public List<UserActionOption> QuestActions { get; set; } = new();
     public ActionResultMessages LastActionResultMessages { get; set; }
 
-    public List<Quest> ActiveQuests { get; set; }
-
     public EncounterResult EncounterResult { get; set; }
     private EncounterManager CurrentEncounter { get; set; }
 

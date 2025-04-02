@@ -38,8 +38,8 @@ public class Illumination : IEnvironmentalProperty, IEquatable<Illumination>
 
     public override bool Equals(object? obj)
     {
-        Illumination? other = (Illumination)obj;
-        return this.Value == other.Value;
+        Illumination? other = obj as Illumination;
+        return this.Value == other!.Value;
     }
     public Illumination(string value)
     {
@@ -56,9 +56,14 @@ public class Illumination : IEnvironmentalProperty, IEquatable<Illumination>
         return Value;
     }
 
-    public string ToString()
+    public override string ToString()
     {
         return $"{GetPropertyValue()}";
+    }
+
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -77,8 +82,8 @@ public class Population : IEnvironmentalProperty, IEquatable<Population>
 
     public override bool Equals(object? obj)
     {
-        Population? other = (Population)obj;
-        return this.Value == other.Value;
+        Population? other = obj as Population;
+        return this.Value == other!.Value;
     }
 
     public Population(string value)
@@ -100,6 +105,11 @@ public class Population : IEnvironmentalProperty, IEquatable<Population>
     {
         return $"{GetPropertyValue()}";
     }
+
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public class Economic : IEnvironmentalProperty, IEquatable<Economic>
@@ -117,8 +127,8 @@ public class Economic : IEnvironmentalProperty, IEquatable<Economic>
 
     public override bool Equals(object? obj)
     {
-        Economic? other = (Economic)obj;
-        return this.Value == other.Value;
+        Economic? other = obj as Economic;
+        return this.Value == other!.Value;
     }
 
     public Economic(string value)
@@ -140,6 +150,11 @@ public class Economic : IEnvironmentalProperty, IEquatable<Economic>
     {
         return $"{GetPropertyValue()}";
     }
+
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
+    }
 }
 
 
@@ -157,9 +172,9 @@ public class Physical : IEnvironmentalProperty, IEquatable<Physical>
     }
 
     public override bool Equals(object? obj)
-    {
-        Physical? other = (Physical)obj;
-        return this.Value == other.Value;
+    {   
+        Physical? other = obj as Physical;
+        return this.Value == other!.Value;
     }
 
     public Physical(string value)
@@ -181,6 +196,11 @@ public class Physical : IEnvironmentalProperty, IEquatable<Physical>
     {
         return $"{GetPropertyValue()}";
     }
+
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public class Atmosphere : IEnvironmentalProperty, IEquatable<Atmosphere>
@@ -198,8 +218,8 @@ public class Atmosphere : IEnvironmentalProperty, IEquatable<Atmosphere>
 
     public override bool Equals(object? obj)
     {
-        Atmosphere? other = (Atmosphere)obj;
-        return this.Value == other.Value;
+        Atmosphere? other = obj as Atmosphere;
+        return this.Value == other!.Value;
     }
 
     public Atmosphere(string value)
@@ -220,5 +240,10 @@ public class Atmosphere : IEnvironmentalProperty, IEquatable<Atmosphere>
     public override string ToString()
     {
         return $"{GetPropertyValue()}";
+    }
+
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
     }
 }

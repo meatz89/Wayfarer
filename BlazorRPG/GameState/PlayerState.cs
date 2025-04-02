@@ -57,6 +57,11 @@ public class PlayerState
 
     public PlayerState()
     {
+        StartingLocation = GameRules.StandardRuleset.StartingLocation.ToString();
+
+        Name = GameRules.StandardRuleset.Name;
+        Background = GameRules.StandardRuleset.Background;
+
         Inventory = new Inventory(GameRules.StandardRuleset.StartingInventorySize);
         Equipment = new Equipment();
 
@@ -75,15 +80,12 @@ public class PlayerState
         Confidence = GameRules.StandardRuleset.StartingConfidence;
         MaxConfidence = 20;
 
-        SetArchetype(GameRules.StandardRuleset.PlayerArchetype);
-    }
+        NegativeStatusTypes = new();
+        ConfidenceType = PlayerConfidenceTypes.Neutral;
 
-    public void SetArchetype(ArchetypeTypes archetype)
-    {
-        Archetype = archetype;
+        Archetype = GameRules.StandardRuleset.PlayerArchetype;
 
-        // Set archetype configuration based on type
-        switch (archetype)
+        switch (Archetype)
         {
             case ArchetypeTypes.Warrior:
                 ArchetypeConfig = ArchetypeConfig.CreateWarrior();
@@ -106,7 +108,7 @@ public class PlayerState
                 InitializeThiefInventory();
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(archetype));
+                throw new ArgumentOutOfRangeException(nameof(Archetype));
         }
     }
 

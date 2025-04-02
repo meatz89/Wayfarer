@@ -1,5 +1,4 @@
-﻿using System.Security.AccessControl;
-using System.Text;
+﻿using System.Text;
 
 public class PromptManager
 {
@@ -58,10 +57,11 @@ public class PromptManager
 
         return prompt;
     }
+
     public string BuildIntroductionPrompt(
-        NarrativeContext context,
-        EncounterStatusModel state,
-        string memoryContent)
+    NarrativeContext context,
+    EncounterStatusModel state,
+    string memoryContent)
     {
         string template = _promptTemplates[INTRO_MD];
 
@@ -69,36 +69,21 @@ public class PromptManager
         string primaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).First().Key.ToString();
         string secondaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).Skip(1).First().Key.ToString();
 
-        // Get significant focus tags
-        string primaryFocus = state.FocusTags.OrderByDescending(t => t.Value).First().Key.ToString();
-        string secondaryFocus = state.FocusTags.OrderByDescending(t => t.Value).Skip(1).First().Key.ToString();
-
         // Format environment and NPC details
-        string environmentDetails = $"A {context.LocationName.ToLower()} with difficulty level {state.EncounterInfo?.Difficulty ?? 1}";
-        string npcList = "Local individuals relevant to the encounter";
+        string environmentDetails = $"A {context.locationSpotName.ToLower()} in a {context.LocationName.ToLower()} with difficulty level {state.EncounterInfo?.Difficulty ?? 1}";
         string timeConstraints = $"Maximum {state.MaxTurns} turns";
         string additionalChallenges = state.EncounterInfo != null
-            ? $"Difficulty level {state.EncounterInfo.Difficulty} (adds +{state.EncounterInfo.Difficulty} pressure per turn)"
+            ? $"Difficulty level {state.EncounterInfo.Difficulty} (starts with +{state.EncounterInfo.Difficulty} pressure)"
             : "Standard difficulty";
+
+        string npcList = GetCharactersAtLocation(context.LocationName, state.WorldState, state.PlayerState);
 
         // Format player character info
         string characterArchetype = state.PlayerState.Archetype.ToString();
         string approachStats = FormatApproachValues(state);
 
-        // Format player resources
-        string playerCoins = state.PlayerState.Coins.ToString();
-        string playerHealth = state.Health.ToString();
-        string playerMaxHealth = state.MaxHealth.ToString();
-        string playerConcentration = state.Concentration.ToString();
-        string playerMaxConcentration = state.MaxConcentration.ToString();
-        string playerConfidence = state.Confidence.ToString();
-        string playerMaxConfidence = state.MaxConfidence.ToString();
-        string playerEnergy = state.PlayerState.Energy.ToString();
-        string playerMaxEnergy = state.PlayerState.MaxEnergy.ToString();
-
         // Format player inventory
         string playerInventory = FormatPlayerInventory(state.PlayerState.Inventory);
-
         // Format encounter goal and complication
         ActionImplementation actionImplementation = context.ActionImplementation;
         string encounterGoal = actionImplementation.Goal;
@@ -118,18 +103,88 @@ public class PromptManager
             .Replace("{ADDITIONAL_CHALLENGES}", additionalChallenges)
             .Replace("{ENCOUNTER_COMPLICATION}", encounterComplication)
             .Replace("{MEMORY_CONTENT}", memoryContent)
-            .Replace("{PLAYER_COINS}", playerCoins)
-            .Replace("{PLAYER_HEALTH}", playerHealth)
-            .Replace("{PLAYER_MAX_HEALTH}", playerMaxHealth)
-            .Replace("{PLAYER_CONCENTRATION}", playerConcentration)
-            .Replace("{PLAYER_MAX_CONCENTRATION}", playerMaxConcentration)
-            .Replace("{PLAYER_CONFIDENCE}", playerConfidence)
-            .Replace("{PLAYER_MAX_CONFIDENCE}", playerMaxConfidence)
-            .Replace("{PLAYER_ENERGY}", playerEnergy)
-            .Replace("{PLAYER_MAX_ENERGY}", playerMaxEnergy)
             .Replace("{PLAYER_INVENTORY}", playerInventory);
 
         return prompt;
+    }
+
+    private string GetCharactersAtLocation(string locationName, WorldState worldState, PlayerState playerState)
+    {
+        if (worldState == null)
+            return "Local individuals relevant to the encounter";
+
+        // Filter characters by current location
+        List<Character> locationCharacters = worldState.GetCharacters()
+            .Where(c => c.Location.Equals(locationName, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (locationCharacters.Count == 0)
+            return "No known characters are present at this location, but you may include 1-2 unnamed locals if appropriate";
+
+        StringBuilder characterInfo = new StringBuilder();
+        characterInfo.AppendLine("Characters known to be at this location:");
+
+        foreach (Character character in locationCharacters)
+        {
+            // Get relationship level and description
+            int relationshipLevel = 0;
+            string relationshipDescription = "Stranger";
+
+            if (playerState?.Relationships != null)
+            {
+                relationshipLevel = playerState.Relationships.GetLevel(character.Name);
+                relationshipDescription = GetRelationshipDescription(relationshipLevel);
+            }
+
+            characterInfo.AppendLine($"- {character.Name}: {character.Role}. {character.Description}");
+            characterInfo.AppendLine($"  Relationship: {relationshipDescription} (Level {relationshipLevel})");
+
+            // Add personality traits if available
+            if (!string.IsNullOrEmpty(character.Personality))
+                characterInfo.AppendLine($"  Personality: {character.Personality}");
+
+            // Add appearance if available
+            if (!string.IsNullOrEmpty(character.Appearance))
+                characterInfo.AppendLine($"  Appearance: {character.Appearance}");
+
+            // Add recent interaction history if available
+            if (character.InteractionHistory != null && character.InteractionHistory.Count > 0)
+            {
+                string? lastInteraction = character!.InteractionHistory!.LastOrDefault();
+                if (!string.IsNullOrEmpty(lastInteraction))
+                    characterInfo.AppendLine($"  Last interaction: {lastInteraction}");
+            }
+        }
+
+        characterInfo.AppendLine("Include these characters in the narrative with appropriate reactions based on relationship level.");
+        characterInfo.AppendLine("Characters with higher relationship levels should be more helpful and friendly.");
+        characterInfo.AppendLine("Characters with negative relationship levels should be wary, suspicious, or hostile.");
+
+        return characterInfo.ToString();
+    }
+
+    private string GetRelationshipDescription(int relationshipLevel)
+    {
+        var desc = relationshipLevel switch
+        {
+            < 0 => "Hostile",
+            0 => "Stranger",
+            1 => "Acquaintance",
+            2 => "Familiar face",
+            3 => "Friendly",
+            4 => "Trusted",
+            5 => "Ally",
+            6 => "Close ally",
+            7 => "Loyal friend",
+            8 => "Confidant",
+            9 => "Devoted supporter",
+            >= 10 => "Unwavering ally",
+        };
+
+        if (desc != string.Empty)
+            return desc;
+        else
+            return "Unkown";
     }
 
     private string FormatPlayerInventory(Inventory inventory)

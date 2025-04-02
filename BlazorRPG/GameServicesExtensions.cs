@@ -15,10 +15,6 @@
         services.AddSingleton<KnowledgeSystem>();
         services.AddSingleton<CharacterRelationshipSystem>();
 
-        services.AddSingleton<QuestSystem>();
-        services.AddSingleton<ConfidenceSystem>();
-        services.AddSingleton<AchievementSystem>();
-
         services.AddSingleton<EncounterSystem>();
 
         services.AddSingleton<MessageSystem>();
@@ -33,7 +29,6 @@
 
         services.AddSingleton<ResourceManager>();
         services.AddSingleton<NarrativeService>();
-        services.AddSingleton<RelationshipManager>();
 
         services.AddSingleton<WorldEvolutionParser>();
 

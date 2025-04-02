@@ -6,9 +6,16 @@
     public List<Location> NewLocations { get; set; } = new List<Location>();
     public List<Opportunity> NewOpportunities { get; set; } = new List<Opportunity>();
     public int CoinChange { get; set; } = 0;
-
     public PlayerLocationUpdate LocationUpdate { get; set; } = new PlayerLocationUpdate();
     public ResourceChanges ResourceChanges { get; set; } = new ResourceChanges();
+    public List<RelationshipChange> RelationshipChanges { get; set; } = new List<RelationshipChange>();
+}
+
+public class RelationshipChange
+{
+    public string CharacterName { get; set; } = string.Empty;
+    public int ChangeAmount { get; set; } = 0;
+    public string Reason { get; set; } = string.Empty;
 }
 
 public class PlayerLocationUpdate

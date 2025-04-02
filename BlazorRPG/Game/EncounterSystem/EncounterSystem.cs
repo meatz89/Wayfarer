@@ -9,7 +9,6 @@
     public EncounterResult encounterResult;
 
     private ResourceManager resourceManager;
-    private RelationshipManager relationshipManager;
     private readonly NarrativeService narrativeService;
     private CardSelectionAlgorithm cardSelector;
 
@@ -20,7 +19,6 @@
         MessageSystem messageSystem,
         GameContentProvider contentProvider,
         ResourceManager resourceManager,
-        RelationshipManager relationshipManager,
         NarrativeContextManager narrativeContextManager,
         NarrativeService narrativeService,
         IConfiguration configuration,
@@ -32,7 +30,6 @@
 
         // Create the switchable narrative service
         this.resourceManager = resourceManager;
-        this.relationshipManager = relationshipManager;
         this.narrativeService = narrativeService;
 
         // Initialize with the default provider from config
@@ -121,7 +118,6 @@
             cardSelector,
             narrativeService,
             resourceManager,
-            relationshipManager,
             configuration,
             logger);
 
@@ -162,7 +158,7 @@
 
         Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = currentResult.ChoiceDescriptions;
 
-        ChoiceNarrative selectedDescription = null;
+        ChoiceNarrative? selectedDescription = null;
         if (currentResult.ChoiceDescriptions != null && choiceDescriptions.ContainsKey(choice))
         {
             selectedDescription = currentResult.ChoiceDescriptions[choice];
@@ -180,7 +176,11 @@
             };
         }
 
-        currentResult = await Encounter.ApplyChoiceWithNarrativeAsync(choice, encounter.playerState, selectedDescription);
+        currentResult = await Encounter.ApplyChoiceWithNarrativeAsync(
+            choice, 
+            encounter.playerState,
+            encounter.worldState,
+            selectedDescription);
 
         if (currentResult.IsEncounterOver)
         {

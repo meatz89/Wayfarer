@@ -24,6 +24,7 @@ public class WorldEvolutionParser
             // Process player location update and resource changes
             ProcessPlayerLocationUpdate(root, result);
             ProcessResourceChanges(root, result);
+            ProcessRelationshipChanges(root, result); // New method for relationship changes
 
             // Process each entity type separately
             ProcessLocationSpots(root, result);
@@ -174,6 +175,55 @@ public class WorldEvolutionParser
         });
     }
 
+    // New method for processing relationship changes
+    private void ProcessRelationshipChanges(JsonElement root, WorldEvolutionResponse result)
+    {
+        ProcessArrayProperty(root, "relationshipChanges", element =>
+        {
+            RelationshipChange relationshipChange = ParseRelationshipChange(element);
+            if (relationshipChange != null)
+            {
+                result.RelationshipChanges.Add(relationshipChange);
+            }
+        });
+    }
+
+    // New method for parsing a relationship change
+    private RelationshipChange ParseRelationshipChange(JsonElement element)
+    {
+        return SafeParseEntity("relationship change", () => new RelationshipChange
+        {
+            CharacterName = GetStringProperty(element, "characterName", "Unknown Character"),
+            ChangeAmount = GetIntProperty(element, "changeAmount", 0),
+            Reason = GetStringProperty(element, "reason", "Unspecified reason")
+        });
+    }
+
+    // New helper method for getting integer properties
+    private int GetIntProperty(JsonElement element, string propertyName, int defaultValue)
+    {
+        if (element.TryGetProperty(propertyName, out JsonElement property) &&
+            property.ValueKind == JsonValueKind.Number)
+        {
+            return property.GetInt32();
+        }
+        return defaultValue;
+    }
+
+    private WorldEvolutionResponse InitializeEmptyResponse()
+    {
+        return new WorldEvolutionResponse
+        {
+            NewLocationSpots = new List<LocationSpot>(),
+            NewActions = new List<NewAction>(),
+            NewCharacters = new List<Character>(),
+            NewLocations = new List<Location>(),
+            NewOpportunities = new List<Opportunity>(),
+            LocationUpdate = new PlayerLocationUpdate(),
+            ResourceChanges = new ResourceChanges(),
+            RelationshipChanges = new List<RelationshipChange>()
+        };
+    }
 
     #endregion
 
@@ -313,20 +363,6 @@ public class WorldEvolutionParser
     #endregion
 
     #region Helper Methods
-
-    private WorldEvolutionResponse InitializeEmptyResponse()
-    {
-        return new WorldEvolutionResponse
-        {
-            NewLocationSpots = new List<LocationSpot>(),
-            NewActions = new List<NewAction>(),
-            NewCharacters = new List<Character>(),
-            NewLocations = new List<Location>(),
-            NewOpportunities = new List<Opportunity>(),
-            LocationUpdate = new PlayerLocationUpdate(),
-            ResourceChanges = new ResourceChanges()
-        };
-    }
 
     // Other helper methods remain the same
 

@@ -8,7 +8,6 @@ public class GameManager
 
     private GameRules currentRules;
     public LocationSystem LocationSystem { get; }
-    public QuestSystem QuestSystem { get; }
     public ItemSystem ItemSystem { get; }
     public NarrativeService NarrativeService { get; }
     public MessageSystem MessageSystem { get; }
@@ -30,7 +29,6 @@ public class GameManager
         GameState gameState,
         EncounterSystem EncounterSystem,
         LocationSystem locationSystem,
-        QuestSystem questSystem,
         ItemSystem itemSystem,
         NarrativeService narrativeService,
         MessageSystem messageSystem,
@@ -45,7 +43,6 @@ public class GameManager
 
         this.EncounterSystem = EncounterSystem;
         this.LocationSystem = locationSystem;
-        this.QuestSystem = questSystem;
         this.ItemSystem = itemSystem;
         this.NarrativeService = narrativeService;
         this.MessageSystem = messageSystem;
@@ -368,35 +365,6 @@ public class GameManager
         gameState.Actions.SetGlobalActions(userActions);
     }
 
-    public void CreateQuestActions()
-    {
-        List<UserActionOption> userActions = new List<UserActionOption>();
-
-        List<Quest> quests = QuestSystem.GetAvailableQuests();
-        foreach (Quest quest in quests)
-        {
-            QuestStep step = quest.GetCurrentStep();
-
-            ActionImplementation questAction = step.QuestAction;
-            int actionIndex = 1;
-
-            UserActionOption ua = new UserActionOption(
-                actionIndex++,
-                questAction.Name.ToString(),
-                false,
-                questAction,
-                step.Location,
-                default,
-                step.Character,
-                1
-                );
-
-            userActions.Add(ua);
-        }
-
-        gameState.Actions.AddQuestActions(userActions);
-    }
-
     public void ApplyActionOutcomes(ActionImplementation action)
     {
         foreach (Outcome energyCost in action.EnergyCosts)
@@ -523,58 +491,9 @@ public class GameManager
 
         if (daySkip)
         {
-            bool stillAlive = StartNewDay();
-            if (!stillAlive) Environment.Exit(0);
-            return stillAlive;
         }
 
         return true;
-    }
-
-    private bool StartNewDay()
-    {
-        PlayerState Player = gameState.PlayerState;
-
-        // Get quest-modified game rules
-        GameRules modifiedRules = QuestSystem.GetModifiedRules(currentRules);
-
-        StringBuilder endDayMessage = new();
-        endDayMessage.AppendLine("Night falls...");
-
-        // Show base and modified requirements
-        endDayMessage.AppendLine($"You need {currentRules.DailyFoodRequirement} food:");
-        endDayMessage.AppendLine($"- Base requirement: {currentRules.DailyFoodRequirement}");
-        foreach (IGameStateModifier modifier in QuestSystem.GetActiveModifiers())
-        {
-            FoodModfier foodModfier = (FoodModfier)modifier;
-            endDayMessage.AppendLine($"- {foodModfier.GetSource}: +{foodModfier.AdditionalFood}");
-        }
-
-        // Show quest condition updates
-        foreach (IQuestCondition condition in QuestSystem.GetActiveConditions())
-        {
-            QuestCondidtion cond = (QuestCondidtion)condition;
-            endDayMessage.AppendLine(cond.GetStatusMessage());
-        }
-
-        // Display the message through your UI system
-        MessageSystem.AddSystemMessage(endDayMessage.ToString());
-
-        int foodNeeded = currentRules.DailyFoodRequirement;
-
-        int health = Player.Health;
-        int minHealth = Player.MinHealth;
-        int noFoodHealthLoss = currentRules.NoFoodEffectOnHealth;
-        int noShelterHealthLoss = currentRules.NoShelterEffectOnHealth;
-
-        return Player.Health > Player.MinHealth;
-    }
-
-
-    private void UpdateActiveQuests()
-    {
-        List<Quest> quests = QuestSystem.GetAvailableQuests();
-        gameState.Actions.ActiveQuests = quests;
     }
 
 
@@ -689,7 +608,6 @@ public class GameManager
     public void UpdateState()
     {
         gameState.Actions.ClearCurrentUserAction();
-        UpdateActiveQuests();
         UpdateLocationTravelOptions();
         UpdateLocationSpotOptions();
         UpdateAvailableActions();

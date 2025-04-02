@@ -7,17 +7,17 @@ public class ResourceManager
         {
             case EncounterTypes.Physical:
                 if (resourceType == PlayerStatusResources.Health)
-                    return (int)-pressureValue / 2;
+                    return (int)-pressureValue;
                 break;
 
             case EncounterTypes.Intellectual:
                 if (resourceType == PlayerStatusResources.Concentration)
-                    return (int)-pressureValue / 2;
+                    return (int)-pressureValue;
                 break;
 
             case EncounterTypes.Social:
                 if (resourceType == PlayerStatusResources.Confidence)
-                    return (int)-pressureValue / 2;
+                    return (int)-pressureValue;
                 break;
         }
 
