@@ -94,7 +94,16 @@
             <div class="sidebar-panel player-panel">
                 <div class="panel-title">Character Stats</div>
                 <div class="panel-content">
+                    
+                    <!-- Archetype -->
+                    <div class="properties-header">Archetype</div>
+                    <div class="player-archetype">
+                        <span class="archetype-icon">@GetArchetypeIcon(PlayerState.Archetype)</span>
+                        <span class="archetype-name">@PlayerState.Archetype</span>
+                    </div>
+
                     <!-- Core Stats -->
+                    <div class="properties-header">Status</div>
                     <div class="stat-grid">
                         <div class="player-stat">
                             <span class="stat-icon">❤️</span>
@@ -139,13 +148,6 @@
                             <span class="resource-label">Food</span>
                             <span class="resource-value">@PlayerState.Food</span>
                         </div>
-                    </div>
-
-                    <!-- Archetype -->
-                    <div class="properties-header">Archetype</div>
-                    <div class="player-archetype">
-                        <span class="archetype-icon">@GetArchetypeIcon(PlayerState.Archetype)</span>
-                        <span class="archetype-name">@PlayerState.Archetype</span>
                     </div>
 
                     <!-- Inventory -->
