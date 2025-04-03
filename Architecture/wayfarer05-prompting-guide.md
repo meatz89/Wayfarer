@@ -218,7 +218,7 @@ The conclusion should feel earned through the character's choices while deliveri
 
 In both exemplary encounters, approach increases manifested as visible skill development:
 
-**Example (Bandit)**: *"Your heightened awareness of the environment and skill at concealment have created a tactical advantage, giving you options for your next move. The bandit is now off-balance, unsure of your capabilities and struggling to maintain control of the situation."*
+**Example (Bandit)**: *"Your heightened awareness of the environment and skill at evasion have created a tactical advantage, giving you options for your next move. The bandit is now off-balance, unsure of your capabilities and struggling to maintain control of the situation."*
 
 The narrative should show progressively sophisticated applications of approaches, not just statistical increases. A character with Rapport 2 uses basic charm; with Rapport 8, they demonstrate masterful social manipulation. Each increase should be visible in behavior.
 
@@ -266,7 +266,7 @@ The narrative should subtly indicate which approaches might be effective:
 
 **Example (Bandit)**: *"The confines of the alley offer limited movement options, but your ranger's eye notes several potential advantages: deep shadows that could conceal movement, stacked crates that could provide cover or obstacles, and uneven footing that might challenge someone unfamiliar with the terrain."*
 
-This hints at Concealment, Analysis, and Environmental approaches without breaking immersion.
+This hints at Evasion, Analysis, and Environmental approaches without breaking immersion.
 
 ### 6. Narrative Breadcrumbs
 
@@ -277,7 +277,7 @@ Each situation should present multiple potential pathways aligned with different
 This sets up possibilities for:
 - Rapport-based negotiation
 - Analysis-based value assessment
-- Concealment-based selective information sharing
+- Evasion-based selective information sharing
 - Precision-based targeted requests
 
 ### 7. Emergent Narrative Arc

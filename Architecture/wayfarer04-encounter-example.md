@@ -24,7 +24,7 @@
 **Narrative Tags**:
 - "Detail Fixation" (Analysis 3+ → Blocks Environment focus): Your intense focus on specific analytical details blinds you to the broader environment
 - "Theoretical Mindset" (Analysis 4+ → Blocks Resource focus): You're lost in abstract theory, ignoring practical resource concerns
-- "Paranoid Mindset" (Concealment 3+ → Blocks Information focus): Your secretive approach makes you question all information you receive
+- "Paranoid Mindset" (Evasion 3+ → Blocks Information focus): Your secretive approach makes you question all information you receive
 
 **Goal**: Find the correct ancient text that reveals the location of a lost artifact before your academic rival who is also searching the library. The library is vast, poorly organized, and contains many false leads.
 
@@ -89,7 +89,7 @@
 3. **Command Attention** (Dominance + Relationship, Momentum)
    - *You approach the caretaker with authoritative confidence, presenting your academic credentials and expressing your need for immediate access to the eastern wing.*
 
-4. **Gather Secrets** (Concealment + Information, Momentum)
+4. **Gather Secrets** (Evasion + Information, Momentum)
    - *You pretend to browse nearby shelves while eavesdropping on your rival's conversation with an assistant, hoping to glean valuable information about what they've already discovered.*
 
 **Player Selects: "Targeted Question"**
@@ -208,7 +208,7 @@
 3. **Precise Strike** (Precision + Physical, Momentum)
    - *You focus on a specific, easily-overlooked detail in the navigational charts—perhaps a notation system or symbol that others might miss—applying your expertise with laser precision.*
 
-4. **Hide Resources** (Concealment + Resource, Pressure)
+4. **Hide Resources** (Evasion + Resource, Pressure)
    - [Blocked by "Theoretical Mindset" narrative tag]
 
 **Player Selects: "Precise Strike"**
@@ -243,7 +243,7 @@
 1. **Calculated Risks** (Analysis + Physical, Pressure)
    - *You carefully unfold an ancient map referenced in the text, balancing the physical risk to the document against the need to confirm your interpretation of the coordinates.*
 
-2. **Veiled Intentions** (Concealment + Relationship, Momentum)
+2. **Veiled Intentions** (Evasion + Relationship, Momentum)
    - *You engage the caretaker in discussion about an unrelated topic while continuing your work, concealing your progress from your rival while maintaining your privileged access.*
 
 3. **Targeted Question** (Precision + Information, Momentum)
@@ -281,7 +281,7 @@
 - Momentum: 16 (Standard Success)
 - Pressure: 6
 - Concentration: 10 (Undamaged)
-- Approach Tags: Analysis 6, Precision 6, Rapport 2, Dominance 0, Concealment 0
+- Approach Tags: Analysis 6, Precision 6, Rapport 2, Dominance 0, Evasion 0
 - Focus Tags: Information 3, Physical 2, Relationship 1, Environment 0, Resource 0
 
 **Narrative Conclusion**:

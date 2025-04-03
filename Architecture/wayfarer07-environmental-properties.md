@@ -14,11 +14,11 @@ Strategic tags are now based on properties that can be combined to create varied
   - *Locations*: Open market (day), noble court, temples
   
 - **Shadowy** - Areas with mixed lighting and many shadows
-  - *Effect Example*: Enhances Concealment approach, creates tension
+  - *Effect Example*: Enhances Evasion approach, creates tension
   - *Locations*: Forest edge, taverns, evening streets
   
 - **Dark** - Poorly lit or nighttime environments
-  - *Effect Example*: Significantly boosts Concealment, penalizes Precision
+  - *Effect Example*: Significantly boosts Evasion, penalizes Precision
   - *Locations*: Night environments, caves, cellars
 
 ### Population Properties
@@ -31,7 +31,7 @@ Strategic tags are now based on properties that can be combined to create varied
   - *Locations*: Libraries, private studies, early morning streets
   
 - **Isolated** - Completely private or secluded environments
-  - *Effect Example*: Boosts extreme approaches (very high Dominance or Concealment)
+  - *Effect Example*: Boosts extreme approaches (very high Dominance or Evasion)
   - *Locations*: Wilderness, abandoned buildings, private chambers
 
 ### Atmosphere Properties
@@ -91,9 +91,9 @@ Strategic tags are defined by:
   - *Description*: The formal setting creates social pressure when trying to be charming
   - *Effect*: +1 pressure per 2 Rapport points
 
-- **"Shadow's Embrace"** (Shadowy, Decreases Pressure, scales with Concealment)
+- **"Shadow's Embrace"** (Shadowy, Decreases Pressure, scales with Evasion)
   - *Description*: The mixed lighting provides ample hiding spots, reducing risk
-  - *Effect*: -1 pressure per 2 Concealment points
+  - *Effect*: -1 pressure per 2 Evasion points
 
 - **"Crowd Command"** (Crowded, Increases Momentum, scales with Dominance)
   - *Description*: The presence of observers amplifies dominant displays
@@ -143,7 +143,7 @@ Locations combine multiple properties to create unique strategic environments:
   - "Merchant's Eye" (Commercial, Increases Momentum, scales with Analysis)
   - "Public Spectacle" (Crowded, Increases Momentum, scales with Dominance)
   - "Overwhelming Stimuli" (Chaotic, Increases Pressure, scales with Precision)
-  - "Clear Visibility" (Bright, Decreases Momentum, scales with Concealment)
+  - "Clear Visibility" (Bright, Decreases Momentum, scales with Evasion)
 
 **Afternoon Market** (12pm-5pm)
 - Properties: Bright + Crowded + Commercial + Tense
@@ -151,7 +151,7 @@ Locations combine multiple properties to create unique strategic environments:
   - "Merchant's Eye" (Commercial, Increases Momentum, scales with Analysis)
   - "Public Spectacle" (Crowded, Increases Momentum, scales with Dominance)
   - "Social Pressure" (Tense, Increases Pressure, scales with Rapport)
-  - "Clear Visibility" (Bright, Decreases Momentum, scales with Concealment)
+  - "Clear Visibility" (Bright, Decreases Momentum, scales with Evasion)
 
 **Evening Market** (6pm-9pm)
 - Properties: Shadowy + Crowded + Commercial + Chaotic
@@ -159,7 +159,7 @@ Locations combine multiple properties to create unique strategic environments:
   - "Merchant's Eye" (Commercial, Increases Momentum, scales with Analysis)
   - "Public Spectacle" (Crowded, Increases Momentum, scales with Dominance)
   - "Overwhelming Stimuli" (Chaotic, Increases Pressure, scales with Precision)
-  - "Shadow's Embrace" (Shadowy, Decreases Pressure, scales with Concealment)
+  - "Shadow's Embrace" (Shadowy, Decreases Pressure, scales with Evasion)
 
 **Night Market** (10pm-12am)
 - Properties: Dark + Quiet + Commercial + Tense
@@ -167,7 +167,7 @@ Locations combine multiple properties to create unique strategic environments:
   - "Merchant's Eye" (Commercial, Increases Momentum, scales with Analysis)
   - "Whispered Deals" (Quiet, Increases Momentum, scales with Rapport)
   - "Social Pressure" (Tense, Increases Pressure, scales with Rapport)
-  - "Cloak of Darkness" (Dark, Increases Momentum, scales with Concealment)
+  - "Cloak of Darkness" (Dark, Increases Momentum, scales with Evasion)
 
 ## Gameplay Impact
 
