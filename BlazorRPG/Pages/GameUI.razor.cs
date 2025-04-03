@@ -70,8 +70,8 @@ public partial class GameUI : ComponentBase
 
     private async Task InitializeGame()
     {
-        await GameManager.StartGame();
-        await GameManager.InitializeLocationSystem();
+        GameManager.StartGame();
+        GameManager.InitializeLocationSystem();
     }
 
     public Location GetCurrentLocation()
@@ -151,17 +151,17 @@ public partial class GameUI : ComponentBase
         {
             List<Location> locations = GameManager.LocationSystem.GetAllLocations();
             Location? location = locations.FirstOrDefault(x => x.Name == locationName);
-            await GameManager.TravelToLocation(location.Name);
+            GameManager.TravelToLocation(location.Name);
         }
     }
 
-    private async Task FinishEncounter()
+    private async void FinishEncounter()
     {
         // Reset Encounter logic
         GameManager.FinishEncounter(EncounterResult.Encounter);
         ShowEncounterResult = false;
 
-        await GameManager.TravelToLocation(GetCurrentLocation().Name);
+        GameManager.TravelToLocation(GetCurrentLocation().Name);
         StateHasChanged();
     }
 
