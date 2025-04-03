@@ -21,46 +21,58 @@
 ## Choices to Transform
 {CHOICES_INFO}
 
+## Core Narrative Principles
+- EVERY choice must CHANGE the encounter state and advance the narrative
+- Choices should introduce NEW elements or transform existing ones
+- AVOID passive observation, static analysis, or waiting
+- Create meaningful CONSEQUENCES for each potential choice
+- Each choice should feel like a true BRANCH in the story
+
 ## Format Requirements
 For each choice, create:
+
 1. NAME based on encounter type:
-   - Physical: Action thoughts without quotation marks (I'll charge at him...)
-   - Intellectual: Observational thoughts without quotation marks (Those symbols match...)
-   - Social: Direct speech in quotation marks ("Let me help with that...")
+   - Physical: Action thoughts without quotation marks (I'll create a distraction with that barrel...)
+   - Intellectual: Insight thoughts without quotation marks (That merchant's ledger has a hidden meaning...)
+   - Social: Direct speech in quotation marks ("Perhaps we could come to an arrangement...")
 
 2. DESCRIPTION (1-2 sentences):
+   - Must CREATE a NEW SITUATION or CHANGE the existing one
+   - Show potential CONSEQUENCES of the action
    - Match the URGENCY level of the encounter situation
-   - Physical encounters with threats require IMMEDIATE actions, not contemplative ones
-   - Analysis in physical encounters must be QUICK calculations, not careful study
+   - Physical encounters require IMMEDIATE, CONSEQUENTIAL actions
    - Express uncertainty using "might," "could," or "hope to"
    - For natural archetype approaches: Show greater confidence
    - For dangerous archetype approaches: Show hesitation
 
-3. Context requirements:
-   - ALWAYS acknowledge the most immediate situation from the narrative in ALL choices
-   - Each choice must explicitly address or respond to the most recent development
-   - Choices may accept, reject, or sidestep the development, but must acknowledge it
-   - Review the encounter history to ensure narrative continuity with the previous scene
-   - For NPC interactions, show a direct response (even if declining)
-   - For environmental or situational developments, show appropriate awareness
-   - HIGH THREAT situations require choices that acknowledge the immediate danger
-   - Choices must be PLAUSIBLE within the timeframe available
-   - Even intellectual approaches must manifest as QUICK THINKING during urgent situations
+3. DYNAMIC ACTION requirements:
+   - Each choice must CHANGE something in the scene
+   - AVOID choices that only gather information without using it
+   - TRANSFORM static observation into action with immediate effects
+   - Show how each choice creates a NEW NARRATIVE BRANCH
+   - Analysis should lead to IMMEDIATE insight and advantage, not just information
+   - For tense situations, all choices must maintain or escalate tension
 
-4. Approach manifestation:
-   - Analysis: Quick calculations, rapid pattern recognition, instant recall
-   - Precision: Careful but swift movements, targeted actions
-   - Rapport: Immediate emotional appeals, quick social reads
-   - Evasion: Fast, stealthy movements, deception
-   - Dominance: Forceful presence, intimidation, direct confrontation
+4. PERIOD AUTHENTICITY:
+   - Use language true to a medieval character of the archetype
+   - Describe observations through concrete sensory details, not abstract systems
+   - Frame tactics through experience and instinct, not modern analytical terms
+   - Avoid modern concepts like "scanning," "monitoring," or "surveillance"
 
-5. Focus manifestation:
-   - Relationship: Reading intentions, leveraging trust, exploiting social bonds, targeting loyalties
-   - Information: Recalling crucial knowledge, spotting patterns, applying expertise, identifying weaknesses
-   - Physical: Assessing bodily capabilities, targeting vulnerable points, exploiting physical properties
-   - Environment: Utilizing terrain advantages, spotting environmental hazards, creating positional leverage
-   - Resource: Deploying carried items, identifying valuable objects, weaponizing available resources
- 
+5. Approach manifestation:
+   - Analysis: Noticing crucial details that create IMMEDIATE advantage, spotting a weakness to exploit NOW
+   - Precision: Swift, targeted movements that change the encounter state
+   - Rapport: Emotional appeals that provoke immediate reactions
+   - Evasion: Deceptive actions that create new opportunities
+   - Dominance: Forceful interventions that alter power dynamics
+
+6. Focus manifestation:
+   - Relationship: Provoking specific reactions from NPCs that change the encounter
+   - Information: Using knowledge to CREATE an advantage, not just gather more data
+   - Physical: Manipulating bodies or objects to transform the situation
+   - Environment: Changing terrain, creating new paths, or altering surroundings
+   - Resource: Transforming objects into tools that change encounter dynamics
+
 ## RESPONSE FORMAT
 You must respond with a SINGLE JSON object containing a "choices" array:
 ```json
@@ -88,3 +100,4 @@ You must respond with a SINGLE JSON object containing a "choices" array:
     }
   ]
 }
+```
