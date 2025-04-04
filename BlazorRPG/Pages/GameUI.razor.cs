@@ -117,7 +117,7 @@ public partial class GameUI : ComponentBase
 
 
     // Modify HandleLocationSelection method
-    private void HandleLocationSelection(string locationName)
+    private void HandleTravelStart(string locationName)
     {
         selectedLocation = locationName;
 
@@ -131,6 +131,7 @@ public partial class GameUI : ComponentBase
 
         // Otherwise initiate travel
         GameManager.InitiateTravelToLocation(locationName);
+
         OngoingEncounter = true;
         StateHasChanged();
     }

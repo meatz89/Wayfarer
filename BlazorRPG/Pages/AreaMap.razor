@@ -6,7 +6,10 @@
     @foreach (var location in GetTravelableLocations())
     {
         <div class="location-card reachable">
-            <!-- Location card UI -->
+            <div class="location-name">
+                @location.Name @(location.Name == CurrentLocation.Name ? "(Current)" : "")
+            </div>
+
             <button class="action-button"
                     @onclick="() => OnTravel.InvokeAsync(location.Name)">
                 TRAVEL
@@ -23,8 +26,10 @@
 
     private IEnumerable<Location> GetTravelableLocations()
     {
-        return Locations.Where(loc => 
-            loc.Name != CurrentLocation.Name && 
-            GameManager.CanTravelTo(loc.Name));
+        List<Location> enumerable = Locations.Where(loc =>
+            loc.Name != CurrentLocation.Name &&
+            GameManager.CanTravelTo(loc.Name)).ToList();
+
+        return enumerable;
     }
 }
