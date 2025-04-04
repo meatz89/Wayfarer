@@ -10,6 +10,15 @@
     {
         List<ActionTemplate> actionTemplates = new List<ActionTemplate>();
 
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName(ActionNames.Travel.ToString())
+            .WithActionType(BasicActionTypes.Travel)
+            .StartsEncounter("Travel")
+            .WithGoal("Travel safely to your destination")
+            .IsRepeatable()
+            .ExpendsEnergy(1)
+            .Build());
+
         // Forest actions
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName(ActionNames.DirectPath.ToString())

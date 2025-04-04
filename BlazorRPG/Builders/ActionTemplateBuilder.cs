@@ -1,4 +1,8 @@
-﻿public class ActionTemplateBuilder
+﻿
+
+using Microsoft.Extensions.Hosting;
+
+public class ActionTemplateBuilder
 {
     private string customName; // New field for custom names
     private BasicActionTypes actionType;
@@ -10,6 +14,7 @@
     public List<Outcome> rewards = new();
     public bool IsEncounterAction = true;
     public string encounterTemplateName;
+    private bool isRepeatable;
 
     public ActionRepository ActionRepository { get; }
 
@@ -60,6 +65,21 @@
         return this;
     }
 
+    internal ActionTemplateBuilder ExpendsEnergy(int energy)
+    {
+        if (energy < 0) return this;
+
+        requirements.Add(new EnergyRequirement(energy));
+        costs.Add(new EnergyOutcome(-energy));
+        return this;
+    }
+
+    internal ActionTemplateBuilder IsRepeatable()
+    {
+        this.isRepeatable = true;
+        return this;
+    }
+
     public ActionTemplate Build()
     {
         return new ActionTemplate()
@@ -70,7 +90,9 @@
             BasicActionType = actionType,
             ActionType = IsEncounterAction ? ActionTypes.Encounter : ActionTypes.Basic,
             EncounterTemplateName = encounterTemplateName,
-            CoinCost = 0
+            CoinCost = 0,
+            IsRepeatable = isRepeatable
         };
     }
+
 }

@@ -10,6 +10,7 @@
 
     public EncounterResult EncounterResult { get; set; }
     private EncounterManager CurrentEncounter { get; set; }
+    public bool IsActiveEncounter { get; internal set; }
 
     public EncounterManager GetCurrentEncounter()
     {
@@ -18,12 +19,17 @@
 
     public void CompleteActiveEncounter()
     {
+        IsActiveEncounter = false;
+
         SetActiveEncounter(null);
+
         EncounterResult = null;
     }
 
     public void SetActiveEncounter(EncounterManager encounter)
     {
+        IsActiveEncounter = true;
+
         CurrentEncounter = encounter;
         EncounterResult = new EncounterResult()
         { Encounter = encounter, EncounterResults = EncounterResults.Ongoing };
