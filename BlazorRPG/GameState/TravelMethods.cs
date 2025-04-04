@@ -1,4 +1,6 @@
 ﻿public enum TravelMethods
 {
-    Walking
+    Walking,
+    Horseback,
+    Carriage
 }

@@ -92,7 +92,6 @@ public class WorldEvolutionParser
         return result;
     }
 
-
     private async Task<WorldEvolutionResponse> BuildNestedResponseAsync(FlatWorldEvolutionResponse flatResponse)
     {
         WorldEvolutionResponse result = new WorldEvolutionResponse
@@ -108,27 +107,12 @@ public class WorldEvolutionParser
             NewOpportunities = flatResponse.Opportunities ?? new List<Opportunity>()
         };
 
-        // Step 1: Process all action definitions first
-        Dictionary<string, Dictionary<string, List<string>>> actionsByLocationAndSpot =
-            new Dictionary<string, Dictionary<string, List<string>>>();
-
+        // Process action definitions
         foreach (ActionDefinition actionDef in flatResponse.ActionDefinitions)
         {
             try
             {
-                if (!actionsByLocationAndSpot.ContainsKey(actionDef.LocationName))
-                {
-                    actionsByLocationAndSpot[actionDef.LocationName] = new Dictionary<string, List<string>>();
-                }
-
-                if (!actionsByLocationAndSpot[actionDef.LocationName].ContainsKey(actionDef.SpotName))
-                {
-                    actionsByLocationAndSpot[actionDef.LocationName][actionDef.SpotName] = new List<string>();
-                }
-
-                actionsByLocationAndSpot[actionDef.LocationName][actionDef.SpotName].Add(actionDef.Name);
-
-                // Also add to the NewActions collection for standalone tracking
+                // Add to the NewActions collection
                 result.NewActions.Add(new NewAction
                 {
                     SpotName = actionDef.SpotName,
@@ -137,7 +121,10 @@ public class WorldEvolutionParser
                     Description = actionDef.Description,
                     Goal = actionDef.Goal,
                     Complication = actionDef.Complication,
-                    ActionType = actionDef.ActionType
+                    ActionType = actionDef.ActionType,
+                    // Forward progression additions
+                    IsRepeatable = actionDef.IsRepeatable,
+                    EnergyCost = actionDef.EnergyCost
                 });
             }
             catch (Exception ex)
@@ -146,7 +133,7 @@ public class WorldEvolutionParser
             }
         }
 
-        // Step 2: Create location spots (referencing actions by name)
+        // Create location spots
         Dictionary<string, List<LocationSpot>> spotsByLocation = new Dictionary<string, List<LocationSpot>>();
 
         foreach (LocationSpotDefinition spotDef in flatResponse.LocationSpots)
@@ -174,7 +161,7 @@ public class WorldEvolutionParser
             }
         }
 
-        // Step 3: Create locations with their spots
+        // Create locations with their spots
         foreach (LocationDefinition locDef in flatResponse.Locations)
         {
             Location location = new Location
@@ -182,6 +169,14 @@ public class WorldEvolutionParser
                 Name = locDef.Name,
                 Description = locDef.Description,
                 Difficulty = locDef.Difficulty,
+                // Forward progression additions
+                Depth = locDef.Depth,
+                LocationType = ParseLocationType(locDef.LocationType),
+                AvailableServices = ParseServices(locDef.AvailableServices),
+                DiscoveryBonusXP = locDef.DiscoveryBonusXP,
+                DiscoveryBonusCoins = locDef.DiscoveryBonusCoins,
+                HasBeenVisited = false,
+                VisitCount = 0,
                 ConnectedTo = locDef.ConnectedTo,
                 EnvironmentalProperties = ParseEnvironmentalProperties(locDef.EnvironmentalProperties),
                 Spots = new List<LocationSpot>()
@@ -197,6 +192,30 @@ public class WorldEvolutionParser
         }
 
         return result;
+    }
+
+    private LocationTypes ParseLocationType(string locationTypeStr)
+    {
+        if (Enum.TryParse<LocationTypes>(locationTypeStr, true, out LocationTypes locationType))
+        {
+            return locationType;
+        }
+        return LocationTypes.Connective; // Default fallback
+    }
+
+    private List<ServiceTypes> ParseServices(List<string> serviceStrings)
+    {
+        List<ServiceTypes> services = new List<ServiceTypes>();
+
+        foreach (string serviceStr in serviceStrings)
+        {
+            if (Enum.TryParse<ServiceTypes>(serviceStr, true, out ServiceTypes service))
+            {
+                services.Add(service);
+            }
+        }
+
+        return services;
     }
 
     #region Parser Helper Methods
@@ -218,6 +237,11 @@ public class WorldEvolutionParser
             Name = GetStringProperty(element, "name", "Unnamed Location"),
             Description = GetStringProperty(element, "description", "No description available."),
             Difficulty = GetIntProperty(element, "difficulty", 1),
+            Depth = GetIntProperty(element, "depth", 0),
+            LocationType = GetStringProperty(element, "locationType", "Connective"),
+            AvailableServices = GetStringArray(element, "availableServices"),
+            DiscoveryBonusXP = GetIntProperty(element, "discoveryBonusXP", 10),
+            DiscoveryBonusCoins = GetIntProperty(element, "discoveryBonusCoins", 5),
             ConnectedTo = GetStringArrayOrSingle(element, "connectedTo"),
             EnvironmentalProperties = GetStringArray(element, "environmentalProperties")
         });
@@ -244,7 +268,9 @@ public class WorldEvolutionParser
             Complication = GetStringProperty(element, "complication", "Unknown complication"),
             ActionType = GetStringProperty(element, "actionType", "Discuss"),
             SpotName = GetStringProperty(element, "spotName", "Unknown Spot"),
-            LocationName = GetStringProperty(element, "locationName", "Unknown Location")
+            LocationName = GetStringProperty(element, "locationName", "Unknown Location"),
+            IsRepeatable = GetBoolProperty(element, "isRepeatable", false),
+            EnergyCost = GetIntProperty(element, "energyCost", 1)
         });
     }
 
@@ -499,16 +525,14 @@ public class LocationDefinition
     public string Name { get; set; }
     public string Description { get; set; }
     public int Difficulty { get; set; }
+    // Forward progression additions
+    public int Depth { get; set; }
+    public string LocationType { get; set; }
+    public List<string> AvailableServices { get; set; } = new List<string>();
+    public int DiscoveryBonusXP { get; set; }
+    public int DiscoveryBonusCoins { get; set; }
     public List<string> ConnectedTo { get; set; } = new List<string>();
     public List<string> EnvironmentalProperties { get; set; } = new List<string>();
-}
-
-public class LocationSpotDefinition
-{
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public string InteractionType { get; set; }
-    public string LocationName { get; set; }
 }
 
 public class ActionDefinition
@@ -519,5 +543,30 @@ public class ActionDefinition
     public string Complication { get; set; }
     public string ActionType { get; set; }
     public string SpotName { get; set; }
+    public string LocationName { get; set; }
+    public bool IsRepeatable { get; set; }
+    public int EnergyCost { get; set; }
+}
+
+
+public class NewAction
+{
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string Goal { get; set; }
+    public string Complication { get; set; }
+    public string ActionType { get; set; }
+    public string SpotName { get; set; }
+    public string LocationName { get; set; }
+    public bool IsRepeatable { get; set; }
+    public int EnergyCost { get; set; }
+}
+
+
+public class LocationSpotDefinition
+{
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string InteractionType { get; set; }
     public string LocationName { get; set; }
 }

@@ -197,7 +197,7 @@ public class CoinsOutcome : Outcome
 
     public override void Apply(PlayerState player)
     {
-        player.ModifyCoins(Amount);
+        player.AddCoins(Amount);
     }
 
     public override string GetDescription()

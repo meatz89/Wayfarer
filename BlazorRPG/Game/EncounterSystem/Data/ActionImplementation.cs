@@ -13,9 +13,31 @@
     public List<Outcome> Rewards { get; set; }
     public EncounterTemplate EncounterTemplate { get; set; }
 
+    // Forward progression properties
+    public bool IsRepeatable { get; set; } = false;
+    public string CompletionId { get; set; } // Track if this specific action has been completed
+    public ActionExperienceTypes ExperienceType { get; set; } = ActionExperienceTypes.Normal;
+
+    // Check if action is completed
+    public bool IsCompleted(WorldState worldState)
+    {
+        if (IsRepeatable) return false;
+        if (string.IsNullOrEmpty(CompletionId)) return false;
+
+        return worldState.IsEncounterCompleted(CompletionId);
+    }
+
     public bool CanExecute(GameState gameState)
     {
         return Requirements.All(r => r.IsSatisfied(gameState));
     }
 
+}
+
+public enum ActionExperienceTypes
+{
+    Normal,           // Standard action
+    StoryProgress,    // Advances main story
+    Discovery,        // Reveals new information/locations
+    ResourceManagement // Basic resource action (rest, trade, etc)
 }

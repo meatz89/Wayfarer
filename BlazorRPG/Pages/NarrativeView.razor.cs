@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+
 public partial class NarrativeViewBase : ComponentBase
 {
     [Inject] public GameState GameState { get; set; }
@@ -10,6 +11,116 @@ public partial class NarrativeViewBase : ComponentBase
 
     protected override void OnParametersSet()
     {
+    }
+
+    public bool HasWorldEvolution()
+    {
+        return Result?.WorldEvolution != null;
+    }
+
+    // In NarrativeViewBase
+    public string GetLocationTypeDisplay(LocationTypes locationType)
+    {
+        return locationType switch
+        {
+            LocationTypes.Hub => "Settlement Hub",
+            LocationTypes.Landmark => "Notable Location",
+            LocationTypes.Hazard => "Dangerous Area",
+            _ => "Path"
+        };
+    }
+
+    public string GetDepthDisplay(int depth)
+    {
+        return depth switch
+        {
+            0 => "Starting Area",
+            1 => "Nearby",
+            2 => "Short Journey",
+            3 => "Moderate Journey",
+            4 => "Distant",
+            5 => "Far",
+            _ => $"Deep Journey (Depth {depth})"
+        };
+    }
+
+    public string GetServiceIcon(ServiceTypes service)
+    {
+        return service switch
+        {
+            ServiceTypes.Rest => "🛌",
+            ServiceTypes.Trade => "🛒",
+            ServiceTypes.Healing => "❤️",
+            ServiceTypes.Information => "📖",
+            ServiceTypes.Training => "⚔️",
+            ServiceTypes.EquipmentRepair => "🔨",
+            ServiceTypes.FoodProduction => "🍲",
+            _ => "⚙️"
+        };
+    }
+
+    public List<LocationChangeWithDepth> GetLocationChangesWithDepth()
+    {
+        if (!HasWorldEvolution()) return new List<LocationChangeWithDepth>();
+
+        var changes = new List<LocationChangeWithDepth>();
+
+        foreach (var location in Result.WorldEvolution.NewLocations)
+        {
+            changes.Add(new LocationChangeWithDepth
+            {
+                Name = location.Name,
+                Description = location.Description,
+                Type = location.LocationType.ToString(),
+                Depth = location.Depth,
+                DepthDisplay = GetDepthDisplay(location.Depth),
+                TypeDisplay = GetLocationTypeDisplay(location.LocationType),
+                AvailableServices = location.AvailableServices
+            });
+        }
+
+        return changes;
+    }
+
+    public class LocationChangeWithDepth
+    {
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Type { get; set; }
+        public int Depth { get; set; }
+        public string DepthDisplay { get; set; }
+        public string TypeDisplay { get; set; }
+        public List<ServiceTypes> AvailableServices { get; set; }
+    }
+
+    public List<ActionWithEnergy> GetActionChangesWithEnergy()
+    {
+        if (!HasWorldEvolution()) return new List<ActionWithEnergy>();
+
+        var changes = new List<ActionWithEnergy>();
+
+        foreach (var action in Result.WorldEvolution.NewActions)
+        {
+            changes.Add(new ActionWithEnergy
+            {
+                Name = action.Name,
+                Description = action.Description,
+                Type = action.ActionType,
+                IsRepeatable = action.IsRepeatable,
+                EnergyCost = action.EnergyCost
+            });
+        }
+
+        return changes;
+    }
+
+    public class ActionWithEnergy
+    {
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Type { get; set; }
+        public bool IsRepeatable { get; set; }
+        public int EnergyCost { get; set; }
     }
 
     public List<Outcome> GetActionOutcomesSuccess()
@@ -64,61 +175,6 @@ public partial class NarrativeViewBase : ComponentBase
         return new MarkupString("<i class='value-icon physical-icon'>💪</i>");
     }
 
-    public bool HasWorldEvolution()
-    {
-        return Result?.WorldEvolution != null;
-    }
-
-    public List<LocationChangeDisplay> GetLocationChanges()
-    {
-        if (!HasWorldEvolution()) return new List<LocationChangeDisplay>();
-
-        var changes = new List<LocationChangeDisplay>();
-
-        // Add new locations
-        foreach (var location in Result.WorldEvolution.NewLocations)
-        {
-            changes.Add(new LocationChangeDisplay
-            {
-                Name = location.Name,
-                Description = $"New location discovered",
-                Type = "Location"
-            });
-        }
-
-        // Add new location spots
-        foreach (var spot in Result.WorldEvolution.NewLocationSpots)
-        {
-            changes.Add(new LocationChangeDisplay
-            {
-                Name = spot.Name,
-                Description = $"New area in {spot.LocationName}",
-                Type = "Spot"
-            });
-        }
-
-        return changes;
-    }
-
-    public List<ActionChangeDisplay> GetActionChanges()
-    {
-        if (!HasWorldEvolution()) return new List<ActionChangeDisplay>();
-
-        var changes = new List<ActionChangeDisplay>();
-
-        // Add new actions
-        foreach (var action in Result.WorldEvolution.NewActions)
-        {
-            changes.Add(new ActionChangeDisplay
-            {
-                Name = action.Name,
-                Description = $"New action at {action.SpotName}",
-                Type = action.ActionType
-            });
-        }
-
-        return changes;
-    }
 
     public List<CharacterChangeDisplay> GetCharacterChanges()
     {

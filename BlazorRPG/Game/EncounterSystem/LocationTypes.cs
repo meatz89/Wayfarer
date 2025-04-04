@@ -1,8 +1,18 @@
 ﻿public enum LocationTypes
 {
-    None = 0,
-    ForestRoad,
-    Crossroads,
-    AncientLibrary,
-    Market
+    Hub,
+    Connective,
+    Landmark,
+    Hazard
+}
+
+public enum ServiceTypes
+{
+    Rest,
+    Trade,
+    Healing,
+    Information,
+    Training,
+    EquipmentRepair,
+    FoodProduction
 }

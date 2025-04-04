@@ -9,6 +9,7 @@
         services.AddSingleton<ActionGenerator>();
         services.AddSingleton<ActionRepository>();
 
+        services.AddSingleton<TravelManager>();
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<ItemSystem>();
 

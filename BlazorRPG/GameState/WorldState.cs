@@ -5,6 +5,66 @@
     private List<Character> characters { get; set; } = new();
     private List<Opportunity> opportunities { get; set; } = new();
 
+    // Forward progression tracking
+    private HashSet<string> CompletedEncounterIds { get; } = new HashSet<string>();
+    private Dictionary<string, int> LocationVisitCounts { get; } = new Dictionary<string, int>();
+
+    // Track last hub visited and depth
+
+    private Dictionary<string, int> LocationDepths { get; } = new Dictionary<string, int>();
+    public string LastHubLocationId { get; set; }
+    public int LastHubDepth { get; set; } = 0;
+
+    public void SetLocationDepth(string locationId, int depth)
+    {
+        LocationDepths[locationId] = depth;
+    }
+
+    public int GetLocationDepth(string locationId)
+    {
+        return LocationDepths.TryGetValue(locationId, out int depth) ? depth : 0;
+    }
+
+    public void UpdateHubTracking(Location location)
+    {
+        if (location.LocationType == LocationTypes.Hub && location.Depth > LastHubDepth)
+        {
+            LastHubLocationId = location.Name;
+            LastHubDepth = location.Depth;
+        }
+    }
+
+    public void MarkEncounterCompleted(string encounterId)
+    {
+        CompletedEncounterIds.Add(encounterId);
+    }
+
+    public bool IsEncounterCompleted(string encounterId)
+    {
+        return CompletedEncounterIds.Contains(encounterId);
+    }
+
+
+    public void RecordLocationVisit(string locationId)
+    {
+        if (!LocationVisitCounts.ContainsKey(locationId))
+        {
+            LocationVisitCounts[locationId] = 0;
+        }
+
+        LocationVisitCounts[locationId]++;
+    }
+
+    public int GetLocationVisitCount(string locationId)
+    {
+        return LocationVisitCounts.TryGetValue(locationId, out int count) ? count : 0;
+    }
+
+    public bool IsFirstVisit(string locationId)
+    {
+        return GetLocationVisitCount(locationId) == 0;
+    }
+    
     internal List<Location> GetLocations()
     {
         return Locations.ToList();
