@@ -16,7 +16,8 @@
 
     public async Task<WorldEvolutionResponse> ProcessWorldEvolution(
         NarrativeContext context,
-        WorldEvolutionInput input)
+        WorldEvolutionInput input,
+        EncounterResult encounterResult)
     {
         // Get world evolution response from narrative service
         WorldEvolutionResponse response = await _narrativeService.ProcessWorldEvolution(context, input);
@@ -39,7 +40,7 @@
         // Process coin change
         if (evolution.CoinChange != 0)
         {
-            playerState.ModifyCoins(evolution.CoinChange);
+            playerState.AddCoins(evolution.CoinChange);
         }
 
         // Process inventory changes
@@ -48,7 +49,7 @@
         // Process relationship changes
         ProcessRelationshipChanges(evolution, playerState);
 
-        // Process new locations first (may be needed for player location change)
+        // Process new locations
         foreach (Location location in evolution.NewLocations)
         {
             // Ensure each location has at least one spot
@@ -58,6 +59,10 @@
             }
 
             worldState.AddLocations(new List<Location> { location });
+
+            worldState.SetLocationDepth(location.Name, location.Depth);
+
+            worldState.UpdateHubTracking(location);
         }
 
         // Add new location spots to appropriate locations

@@ -1,6 +1,7 @@
 ﻿public class LocationSystem
 {
     private readonly GameState gameState;
+    private readonly WorldState worldState;
     private readonly LocationGenerator initialLocationGenerator;
     public bool IsInitialized = false;
 
@@ -10,6 +11,7 @@
     LocationGenerator initialLocationGenerator)
     {
         this.gameState = gameState;
+        this.worldState = gameState.WorldState;
         this.initialLocationGenerator = initialLocationGenerator;
         List<Location> allLocations = contentProvider.GetLocations();
     }
@@ -24,7 +26,39 @@
 
         gameState.WorldState.AddLocations(locations);
 
+        InitializeLocationDepths();
+
         IsInitialized = true;
+    }
+
+    private void InitializeLocationDepths()
+    {
+        // Get the starting location
+        string startingLocation = GameRules.StandardRuleset.StartingLocation.ToString();
+
+        // Set the starting location to depth 0
+        worldState.SetLocationDepth(startingLocation, 0);
+
+        // Initialize it as a hub
+        Location startLoc = GetLocation(startingLocation);
+        if (startLoc != null)
+        {
+            startLoc.LocationType = LocationTypes.Hub;
+            worldState.LastHubLocationId = startingLocation;
+            worldState.LastHubDepth = 0;
+        }
+
+        // Set depths for connected locations
+        foreach (Location location in GetAllLocations())
+        {
+            if (location.Name != startingLocation)
+            {
+                bool isDirectlyConnected = location.ConnectedTo?.Contains(startingLocation) ?? false;
+                int depth = isDirectlyConnected ? 1 : 2;
+
+                worldState.SetLocationDepth(location.Name, depth);
+            }
+        }
     }
 
     internal void SetCurrentLocation(string locationName)

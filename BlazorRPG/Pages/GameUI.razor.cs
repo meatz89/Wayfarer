@@ -71,7 +71,6 @@ public partial class GameUI : ComponentBase
     private async Task InitializeGame()
     {
         GameManager.StartGame();
-        GameManager.InitializeLocationSystem();
     }
 
     public Location GetCurrentLocation()

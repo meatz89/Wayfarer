@@ -88,12 +88,11 @@
                 <div class="tooltip-section">
                     <h5>World Changes</h5>
 
-                    @* Display new locations and spots *@
-                    @if (GetLocationChanges().Any())
+                    @if (GetLocationChangesWithDepth().Any())
                     {
                         <h6>Discovered Places</h6>
                         <div class="tooltip-list">
-                            @foreach (var location in GetLocationChanges())
+                            @foreach (var location in GetLocationChangesWithDepth())
                             {
                                 <div class="tooltip-item wide">
                                     <div class="tooltip-item-header">
@@ -102,29 +101,43 @@
                                             <span class="tooltip-item-name">@location.Name</span>
                                         </div>
                                         <span class="tooltip-item-value info-change">
-                                            @location.Description
+                                            @location.TypeDisplay (@location.DepthDisplay)
                                         </span>
+                                    </div>
+                                    <div class="tooltip-item-detail">
+                                        @if (location.AvailableServices != null && location.AvailableServices.Any())
+                                        {
+                                            <span class="service-icons">
+                                                @foreach (var service in location.AvailableServices)
+                                                {
+                                                    <span class="service-icon" title="@service">@GetServiceIcon(service)</span>
+                                                }
+                                            </span>
+                                        }
                                     </div>
                                 </div>
                             }
                         </div>
                     }
 
-                    @* Display new actions *@
-                    @if (GetActionChanges().Any())
+                    @if (GetActionChangesWithEnergy().Any())
                     {
                         <h6>New Actions</h6>
                         <div class="tooltip-list">
-                            @foreach (var action in GetActionChanges())
+                            @foreach (var action in GetActionChangesWithEnergy())
                             {
                                 <div class="tooltip-item wide">
                                     <div class="tooltip-item-header">
                                         <div class="tooltip-item-title">
                                             @GetEvolutionIcon("Action")
                                             <span class="tooltip-item-name">@action.Name</span>
+                                            @if (action.IsRepeatable)
+                                            {
+                                                <span class="repeatable-icon" title="Repeatable">🔄</span>
+                                            }
                                         </div>
-                                        <span class="tooltip-item-value info-change">
-                                            @action.Description
+                                        <span class="tooltip-item-value @(action.EnergyCost > 0 ? "negative-change" : "info-change")">
+                                            @(action.EnergyCost > 0 ? $"-{action.EnergyCost} Energy" : "No Energy Cost")
                                         </span>
                                     </div>
                                 </div>

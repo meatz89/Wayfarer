@@ -3,26 +3,35 @@
 After analyzing the full encounter narrative, determine how the world should evolve based on the outcome. Every encounter MUST add at least one action.
 
 ## Context
-- Current location: {currentLocation}
+- Current location: {currentLocation} (Depth: {currentDepth})
+- Last hub depth: {lastHubDepth}
+- Current player resources: Health {health}/{maxHealth}, Energy {energy}/{maxEnergy}
 - Known locations: {knownLocations}
 - Known characters: {knownCharacters}
 - Active opportunities: {activeOpportunities}
 - Encounter outcome: {encounterOutcome} (Success/Partial/Failure)
 
-## Guidelines
-1. Identify player interests during this conversation
-2. Apply "Purpose or Perish" - only include elements with clear purpose
-3. Character names must be SIMPLE FIRST NAMES ONLY
-4. Action types must be standardized (Discuss, Travel, Persuade, Rest, Investigate)
-5. Use standard environmental property values
+## Forward Progression Rules
+- New locations MUST have depth = current_depth or current_depth + 1
+- Difficulty scales with depth (base difficulty = depth/2 + 1, minimum 1)
+- Hub locations should appear every 3-4 depth levels
+- If current_depth - lastHubDepth >= 3, YOU MUST CREATE A HUB LOCATION at depth {currentDepth + 1}
+- Hub locations require 3+ spots with Rest/Trade/Healing services
+- If player health or energy < 30%, include a rest or healing action
+- Rest locations should be available every 2 depth levels
+
+## Location Types
+- Hub: Major settlement with multiple services (Rest, Trade, Healing)
+- Connective: Minor location connecting other locations
+- Landmark: Special location with unique encounters
+- Hazard: Dangerous area with high risk/reward
 
 ## For Failed Encounters:
 - Create alternative paths (new action at different spots/locations)
 - These must offer different approaches to similar goals
-- Should feel like natural world evolution, not artificial second chances
 
 ## Player Location Changes
-- Carefully review the encounter narrative to determine if the player ended at a DIFFERENT LOCATION than where they started
+- Carefully review the encounter narrative to determine if the player ended at a DIFFERENT LOCATION
 - If player moved to a new location, specify this location name in your response
 - If this new location does not exist in the known locations list, you MUST create it with spots and action
 
@@ -30,7 +39,11 @@ After analyzing the full encounter narrative, determine how the world should evo
 - Extract ANY mention of coin transactions (gains or losses)
 - Note inventory items ADDED during the encounter
 - Note inventory items REMOVED or USED during the encounter
-- Only include resources explicitly mentioned in the narrative
+
+## Discovery Rewards
+- All new locations should have discoveryBonusXP (10 × depth) 
+- All new locations should have discoveryBonusCoins (5 × depth)
+- Hubs should have double these discovery bonuses
 
 ## Relationship Changes
 - Identify ALL character relationship changes suggested in the narrative
@@ -54,21 +67,11 @@ After analyzing the full encounter narrative, determine how the world should evo
 - IF FAILURE: Create alternative paths to achieve similar goals
 
 ## Location Requirements
-- Difficulty Level: {DIFFICULTY} (1-5)
 - Choose appropriate environmental properties (Bright/Shadowy/Dark, Crowded/Quiet/Isolated, etc.)
 - Determine logical connections to other location types
 
-## Each Spot Must Include:
-- Name and description
-- InteractionType: Character/Quest/Shop/Feature/Travel
-- Position: North/South/East/West/Center
-- At least 1 initial action possibility as action name (TradeGoods, ForestTravel, RentRoom, etc.)
-
 ## World Structure Requirements
-- You must generate at least one new action
 - EVERY new location MUST have at least one spot
-- EVERY new spot MUST have at least one action
-- EVERY action must either provide direct benefit or start an encounter
 - Location → Spot → Action hierarchy must be maintained
 - New elements must connect logically to existing world elements
 
@@ -87,7 +90,7 @@ After analyzing the full encounter narrative, determine how the world should evo
   * Physical: Confined, Expansive, Hazardous
 
 ## Response Format
-You must provide your response as a valid JSON object with the following flat structure:
+You must provide your response as a valid JSON object with the following structure:
 
 {
   "playerLocationUpdate": {
@@ -111,6 +114,11 @@ You must provide your response as a valid JSON object with the following flat st
       "name": "Location name",
       "description": "Brief description",
       "difficulty": 3,
+      "depth": 2,
+      "locationType": "Hub/Connective/Landmark/Hazard",
+      "availableServices": ["Rest", "Trade", "Healing"],
+      "discoveryBonusXP": 20,
+      "discoveryBonusCoins": 10,
       "connectedTo": ["First Connected Location", "Second Connected Location"],
       "environmentalProperties": ["Bright", "Crowded", "Commercial", "Chaotic"]
     }
@@ -130,6 +138,8 @@ You must provide your response as a valid JSON object with the following flat st
       "goal": "The player's goal in this action",
       "complication": "What makes this challenging",
       "actionType": "Discuss",
+      "isRepeatable": true/false,
+      "energyCost": 1,
       "spotName": "Spot name",
       "locationName": "Location name"
     }

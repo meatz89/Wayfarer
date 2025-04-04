@@ -718,19 +718,23 @@ CHOICE {i + 1}:
         return focuses;
     }
 
-
     public string BuildWorldEvolutionPrompt(WorldEvolutionInput input)
     {
         string template = _promptTemplates[WORLD_EVOLUTION_MD];
 
-        // Your prompt template with replaced placeholders
         return template
             .Replace("{characterBackground}", input.CharacterBackground)
             .Replace("{currentLocation}", input.CurrentLocation)
             .Replace("{knownLocations}", input.KnownLocations)
             .Replace("{knownCharacters}", input.KnownCharacters)
             .Replace("{activeOpportunities}", input.ActiveOpportunities)
-            .Replace("{encounterOutcome}", input.EncounterOutcome);
+            .Replace("{encounterOutcome}", input.EncounterOutcome)
+            .Replace("{currentDepth}", input.CurrentDepth.ToString())
+            .Replace("{lastHubDepth}", input.LastHubDepth.ToString())
+            .Replace("{health}", input.Health.ToString())
+            .Replace("{maxHealth}", input.MaxHealth.ToString())
+            .Replace("{energy}", input.Energy.ToString())
+            .Replace("{maxEnergy}", input.MaxEnergy.ToString());
     }
 
     public string BuildMemoryPrompt(MemoryConsolidationInput input)

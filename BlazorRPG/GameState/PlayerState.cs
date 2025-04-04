@@ -215,17 +215,6 @@
         return ArchetypeConfig.GetAffinity(approach, encounterType);
     }
 
-    public bool ModifyCoins(int count)
-    {
-        int newCoins = Math.Max(0, Coins + count);
-        if (newCoins != Coins)
-        {
-            Coins = newCoins;
-            return true;
-        }
-        return false;
-    }
-
     public bool ModifyHealth(int count)
     {
         int newHealth = Math.Clamp(Health + count, 0, MaxHealth);
@@ -318,4 +307,21 @@
         AddLocationKnowledge(StartingLocation);
     }
 
+    internal void AddExperiencePoints(int xpBonus)
+    {
+        int newExperiencePoints = Math.Max(0, ExperiencePoints + xpBonus);
+        if (newExperiencePoints != ExperiencePoints)
+        {
+            ExperiencePoints = newExperiencePoints;
+        }
+    }
+
+    public void AddCoins(int count)
+    {
+        int newCoins = Math.Max(0, Coins + count);
+        if (newCoins != Coins)
+        {
+            Coins = newCoins;
+        }
+    }
 }
