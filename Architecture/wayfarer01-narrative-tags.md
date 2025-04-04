@@ -124,30 +124,30 @@ Each location will typically utilize 2-3 narrative tags from this list, creating
 
 ---
 
-## Concealment-Based Narrative Tags
+## Evasion-Based Narrative Tags
 
-### 21. "Shadow Veil" (Concealment → Blocks Relationship)
-- **Activation**: Concealment 3+
+### 21. "Shadow Veil" (Evasion → Blocks Relationship)
+- **Activation**: Evasion 3+
 - **Effect**: Blocks Relationship focus choices
 - **Description**: Your hidden approach prevents genuine relationship building. You're too guarded to form meaningful connections with others.
 
-### 22. "Paranoid Mindset" (Concealment → Blocks Information)
-- **Activation**: Concealment 3+
+### 22. "Paranoid Mindset" (Evasion → Blocks Information)
+- **Activation**: Evasion 3+
 - **Effect**: Blocks Information focus choices
 - **Description**: Your secretive approach makes you question all information you receive. You can't process new data when you're constantly looking for traps and lies.
 
-### 23. "Cautious Restraint" (Concealment → Blocks Physical)
-- **Activation**: Concealment 3+
+### 23. "Cautious Restraint" (Evasion → Blocks Physical)
+- **Activation**: Evasion 3+
 - **Effect**: Blocks Physical focus choices
 - **Description**: Your hidden approach prevents direct physical action. You're too concerned with maintaining cover to act decisively.
 
-### 24. "Hiding Place Fixation" (Concealment → Blocks Environment)
-- **Activation**: Concealment 4+
+### 24. "Hiding Place Fixation" (Evasion → Blocks Environment)
+- **Activation**: Evasion 4+
 - **Effect**: Blocks Environment focus choices
 - **Description**: Your focus on remaining concealed limits your environmental awareness. You only see the environment in terms of places to hide.
 
-### 25. "Hoarding Instinct" (Concealment → Blocks Resource)
-- **Activation**: Concealment 3+
+### 25. "Hoarding Instinct" (Evasion → Blocks Resource)
+- **Activation**: Evasion 3+
 - **Effect**: Blocks Resource focus choices
 - **Description**: Your secretive approach makes you hide rather than use resources effectively. You'd rather keep resources hidden than risk revealing yourself by using them.
 

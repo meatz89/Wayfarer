@@ -1,17 +1,16 @@
 ﻿public class CharacterBuilder
 {
-    private CharacterNames character;
-    private LocationNames location;
+    private string character;
+    private string location;
     private List<ActionImplementation> actions = new();
-    private List<Schedule> schedules = new();
 
-    public CharacterBuilder ForCharacter(CharacterNames character)
+    public CharacterBuilder ForCharacter(string character)
     {
         this.character = character;
         return this;
     }
 
-    public CharacterBuilder InLocation(LocationNames location)
+    public CharacterBuilder InLocation(string location)
     {
         this.location = location;
         return this;
@@ -22,19 +21,11 @@
         return this;
     }
 
-    public CharacterBuilder AddSchedule(Action<ScheduleBuilder> buildSchedule)
-    {
-        ScheduleBuilder builder = new ScheduleBuilder();
-        buildSchedule(builder);
-        schedules.Add(builder.Build());
-        return this;
-    }
-
     public Character Build()
     {
         return new Character
         {
-            CharacterName = character,
+            Name = character,
             Location = location,
         };
     }

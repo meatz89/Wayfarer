@@ -3,529 +3,435 @@
 /// </summary>
 public class ChoiceRepository
 {
-    private readonly List<Choice> _standardChoices = new();
-    private readonly Dictionary<string, SpecialChoice> _specialChoices = new();
+    private readonly List<ChoiceCard> _choices = new();
 
     public ChoiceRepository()
     {
-        InitializeStandardChoices();
+        InitializeChoices();
     }
 
-    private void InitializeStandardChoices()
+    private void InitializeChoices()
     {
-        // DOMINANCE-BASED OFFENSIVE CHOICES (MOMENTUM)
-        // HIGH-COMMITMENT CHOICE: Enhanced benefit (+3) with greater cost (-2, -1)
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Overwhelming Force",
-            "You unleash your full physical and authoritative might, completely dominating the situation at the cost of any subtlety or social nuance.",
+        // =============================================
+        // DOMINANCE-BASED CHOICES
+        // =============================================
+
+        // Tier 1: Novice
+        _choices.Add(ChoiceFactory.CreateMomentumChoice(
+            "Basic Force",
+            "You attempt to assert dominance through simple physical intimidation.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 3),
-            TagModification.ForEncounterState(ApproachTags.Evasion, -2),
-            TagModification.ForEncounterState(ApproachTags.Rapport, -1),
-            TagModification.ForFocus(FocusTags.Physical, 1)
-        ));
-
-        // MODIFIED WITH TRADEOFF: Sacrificing subtlety for dominance
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Command Presence",
-            "You assert dominance in the interaction, your commanding tone making clear you expect obedience at the cost of building rapport.",
-            FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 2),
-            TagModification.ForEncounterState(ApproachTags.Rapport, -1),
-            TagModification.ForFocus(FocusTags.Relationship, 1)
-        ));
-
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Forceful Interrogation",
-            "You press aggressively for answers, making evasion seem a worse option than compliance.",
-            FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 2),
-            TagModification.ForFocus(FocusTags.Information, 1)
-        ));
-
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Control Territory",
-            "You claim and secure key positions in the area, establishing clear dominance over the space.",
-            FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 2),
-            TagModification.ForFocus(FocusTags.Environment, 1)
-        ));
-
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Forceful Acquisition",
-            "You assert rightful ownership through superior strength, making it clear these resources now serve your purpose.",
-            FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 2),
-            TagModification.ForFocus(FocusTags.Resource, 1)
-        ));
-
-        // DOMINANCE-BASED DEFENSIVE CHOICES (PRESSURE)
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Stand Ground",
-            "You plant yourself firmly, refusing to yield an inch despite mounting pressure or challenges.",
-            FocusTags.Physical,
+            CardTiers.Novice, 0, // Tier 1, +0 momentum
+            new StrategicEffect(Population.Crowded, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
             TagModification.ForEncounterState(ApproachTags.Dominance, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
+        _choices.Add(ChoiceFactory.CreatePressureChoice(
+            "Stand Firm",
+            "You plant your feet and refuse to back down.",
+            FocusTags.Physical,
+            CardTiers.Novice, 0, // Tier 1, -0 pressure
+            new StrategicEffect(Atmosphere.Tense, StrategicTagEffectType.DecreasePressure, ApproachTags.Dominance),
+            TagModification.ForEncounterState(ApproachTags.Dominance, 1),
+            TagModification.ForFocus(FocusTags.Physical, 1)
+        ));
+
+        // Tier 2: Trained
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Display of Force",
+            "You demonstrate your physical power and authority, making it clear you won't back down.",
+            FocusTags.Physical,
+            CardTiers.Trained, 2, // Tier 2, +2 momentum
+            FocusTags.Resource, 1, 0, // Requires Dominance 1+, no reduction
+            new StrategicEffect(Physical.Hazardous, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
+            TagModification.ForEncounterState(ApproachTags.Dominance, 2),
+            TagModification.ForFocus(FocusTags.Physical, 1)
+        ));
+
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
             "Establish Boundaries",
-            "You decisively declare your limits and expectations, leaving no room for negotiation or misunderstanding.",
+            "You clearly establish what you will and won't tolerate.",
             FocusTags.Relationship,
+            CardTiers.Trained, 1, // Tier 2, -1 pressure
+            FocusTags.Resource, 1, 0, // Requires Dominance 1+, no reduction
+            new StrategicEffect(Atmosphere.Tense, StrategicTagEffectType.DecreasePressure, ApproachTags.Dominance),
             TagModification.ForEncounterState(ApproachTags.Dominance, 1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Silence Doubts",
-            "You decisively quash uncertainty with authoritative statements, preventing any spread of hesitation.",
-            FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 1),
-            TagModification.ForFocus(FocusTags.Information, 1)
-        ));
-
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Secure Position",
-            "You occupy and fortify defensible terrain, minimizing vulnerability to external threats.",
-            FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 1),
-            TagModification.ForFocus(FocusTags.Environment, 1)
-        ));
-
-        // MODIFIED WITH TRADEOFF: Becoming too controlling
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Absolute Control",
-            "You take strict charge of critical supplies, ensuring they're distributed according to your judgment, reducing detailed analysis in favor of authority.",
-            FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 1),
-            TagModification.ForEncounterState(ApproachTags.Analysis, -1),
-            TagModification.ForFocus(FocusTags.Resource, 1)
-        ));
-
-        // RAPPORT-BASED OFFENSIVE CHOICES (MOMENTUM)
-        // HIGH-COMMITMENT CHOICE: Enhanced benefit (+3) with greater cost (-2)
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Heart-to-Heart",
-            "You create a moment of profound connection and authentic vulnerability that deeply resonates, but leaves you exposed and unable to maintain distance.",
+        // Tier 3: Adept
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Overwhelming Presence",
+            "Your commanding presence fills the room, forcing others to take notice and respect your authority.",
             FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 3),
-            TagModification.ForEncounterState(ApproachTags.Evasion, -2),
+            CardTiers.Adept, 3, // Tier 3, +3 momentum
+            FocusTags.Resource, 2, 1, // Requires Dominance 4+, reduces by 2
+            new StrategicEffect(Population.Crowded, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
+            TagModification.ForEncounterState(ApproachTags.Dominance, -1), // Negative modification!
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Friendly Inquiry",
-            "You pose questions with such warmth that sharing information feels like a natural part of pleasant conversation.",
-            FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 2),
-            TagModification.ForFocus(FocusTags.Information, 1)
-        ));
-
-        // MODIFIED WITH TRADEOFF: Being too friendly makes precise execution difficult
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Team Spirit",
-            "You inspire natural teamwork through positive connection, trading technical precision for enthusiastic cooperation.",
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Controlled Aggression",
+            "You channel your aggressive energy precisely, defusing a tense situation through focused intimidation.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 2),
-            TagModification.ForEncounterState(ApproachTags.Precision, -1),
+            CardTiers.Adept, 2, // Tier 3, -2 pressure
+            FocusTags.Resource, 2, 1, // Requires Dominance 4+, reduces by 2
+            new StrategicEffect(Atmosphere.Tense, StrategicTagEffectType.DecreasePressure, ApproachTags.Dominance),
+            TagModification.ForEncounterState(ApproachTags.Dominance, -1), // Negative modification!
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Create Ambiance",
-            "You transform the atmosphere through your social presence, making everyone feel the environment is working in their favor.",
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Territorial Command",
+            "You take control of the physical space, demonstrating mastery over the environment.",
             FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 2),
-            TagModification.ForFocus(FocusTags.Environment, 1)
+            CardTiers.Adept, 3, // Tier 3, +3 momentum
+            FocusTags.Resource, 3, 1, // Requires Environment 3+, reduces by 1
+            new StrategicEffect(Physical.Hazardous, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
+            TagModification.ForEncounterState(ApproachTags.Dominance, 2),
+            TagModification.ForFocus(FocusTags.Environment, -1) // Negative modification!
         ));
 
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Negotiate Terms",
-            "You propose arrangements that genuinely benefit all parties, making resource allocation feel like a win-win scenario.",
-            FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 2),
-            TagModification.ForFocus(FocusTags.Resource, 1)
+        // =============================================
+        // RAPPORT-BASED CHOICES
+        // =============================================
+
+        // Tier 1: Novice
+        _choices.Add(ChoiceFactory.CreateMomentumChoice(
+            "Basic Charm",
+            "You attempt to make a friendly connection with basic pleasantries.",
+            FocusTags.Relationship,
+            CardTiers.Novice, 0, // Tier 1, +0 momentum
+            new StrategicEffect(Population.Crowded, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
+            TagModification.ForEncounterState(ApproachTags.Rapport, 1),
+            TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
-        // RAPPORT-BASED DEFENSIVE CHOICES (PRESSURE)
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
+        _choices.Add(ChoiceFactory.CreatePressureChoice(
+            "Simple Reassurance",
+            "You offer simple comforting words to ease tension.",
+            FocusTags.Relationship,
+            CardTiers.Novice, 0, // Tier 1, -0 pressure
+            new StrategicEffect(Atmosphere.Tense, StrategicTagEffectType.DecreasePressure, ApproachTags.Rapport),
+            TagModification.ForEncounterState(ApproachTags.Rapport, 1),
+            TagModification.ForFocus(FocusTags.Relationship, 1)
+        ));
+
+        // Tier 2: Trained
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Charming Words",
+            "You engage with warmth and genuine interest, making others feel valued.",
+            FocusTags.Relationship,
+            CardTiers.Trained, 2, // Tier 2, +2 momentum
+            FocusTags.Relationship, 1, 0, // Requires Rapport 2+, no reduction
+            new StrategicEffect(Population.Crowded, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
+            TagModification.ForEncounterState(ApproachTags.Rapport, 2),
+            TagModification.ForFocus(FocusTags.Relationship, 1)
+        ));
+
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
             "Smooth Over",
-            "You ease tensions with well-timed empathy and honest recognition of feelings, dissolving potential conflicts.",
+            "You defuse tension with well-chosen words and genuine empathy.",
             FocusTags.Relationship,
+            CardTiers.Trained, 1, // Tier 2, -1 pressure
+            FocusTags.Relationship, 1, 0, // Requires Rapport 2+, no reduction
+            new StrategicEffect(Atmosphere.Tense, StrategicTagEffectType.DecreasePressure, ApproachTags.Rapport),
             TagModification.ForEncounterState(ApproachTags.Rapport, 1),
             TagModification.ForFocus(FocusTags.Relationship, 1)
         ));
 
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Reassuring Words",
-            "You communicate critical information with a calming tone that alleviates fear while maintaining honesty.",
+        // Tier 3: Adept
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Winning Personality",
+            "Your natural charisma draws others in, creating an instant connection that advances your goals.",
+            FocusTags.Relationship,
+            CardTiers.Adept, 3, // Tier 3, +3 momentum
+            FocusTags.Relationship, 2, 1, // Requires Rapport 4+, reduces by 2
+            new StrategicEffect(Population.Crowded, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
+            TagModification.ForEncounterState(ApproachTags.Rapport, -1), // Negative modification!
+            TagModification.ForFocus(FocusTags.Relationship, 1)
+        ));
+
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Diplomatic Solution",
+            "You defuse a tense situation with perfectly chosen words that address everyone's concerns.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 1),
+            CardTiers.Adept, 2, // Tier 3, -2 pressure
+            FocusTags.Relationship, 2, 1, // Requires Rapport 4+, reduces by 2
+            new StrategicEffect(Atmosphere.Tense, StrategicTagEffectType.DecreasePressure, ApproachTags.Rapport),
+            TagModification.ForEncounterState(ApproachTags.Rapport, -1), // Negative modification!
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
-        // HIGH-COMMITMENT CHOICE: Enhanced benefit (+2) with cost (-1)
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Disarming Vulnerability",
-            "You lower all social defenses to create such genuine connection that even hostility dissolves, though it leaves you unable to analyze situations critically.",
-            FocusTags.Physical,
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Information Exchange",
+            "Your practiced ability to extract information through friendly conversation yields valuable insights.",
+            FocusTags.Information,
+            CardTiers.Adept, 3, // Tier 3, +3 momentum
+            FocusTags.Relationship, 3, 1, // Requires Information 3+, reduces by 1
+            new StrategicEffect(Economic.Commercial, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
             TagModification.ForEncounterState(ApproachTags.Rapport, 2),
-            TagModification.ForEncounterState(ApproachTags.Analysis, -1),
-            TagModification.ForFocus(FocusTags.Physical, 1)
+            TagModification.ForFocus(FocusTags.Information, -1) // Negative modification!
         ));
 
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Create Safe Space",
-            "You cultivate an atmosphere of mutual trust where everyone feels secure enough to lower their guards.",
-            FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 1),
-            TagModification.ForFocus(FocusTags.Environment, 1)
-        ));
+        // =============================================
+        // ANALYSIS-BASED CHOICES
+        // =============================================
 
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Fair Distribution",
-            "You allocate resources with transparent fairness that acknowledges everyone's needs and contributions.",
-            FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 1),
-            TagModification.ForFocus(FocusTags.Resource, 1)
-        ));
-
-        // ANALYSIS-BASED OFFENSIVE CHOICES (MOMENTUM)
-        // HIGH-COMMITMENT CHOICE: Enhanced benefit (+3) with greater cost (-1, -1)
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Perfect Deduction",
-            "You enter a state of complete analytical focus, making brilliant connections while becoming oblivious to social cues and physical surroundings.",
+        // Tier 1: Novice
+        _choices.Add(ChoiceFactory.CreateMomentumChoice(
+            "Basic Observation",
+            "You make a simple observation about the situation.",
             FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 3),
-            TagModification.ForEncounterState(ApproachTags.Rapport, -1),
-            TagModification.ForEncounterState(ApproachTags.Dominance, -1),
+            CardTiers.Novice, 0, // Tier 1, +0 momentum
+            new StrategicEffect(Economic.Commercial, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
+            TagModification.ForEncounterState(ApproachTags.Analysis, 1),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Systematic Approach",
-            "You methodically break down a complex physical challenge into a series of manageable, efficient steps.",
-            FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 2),
-            TagModification.ForFocus(FocusTags.Physical, 1)
+        _choices.Add(ChoiceFactory.CreatePressureChoice(
+            "Simple Assessment",
+            "You take a moment to quickly assess the situation.",
+            FocusTags.Information,
+            CardTiers.Novice, 0, // Tier 1, -0 pressure
+            new StrategicEffect(Atmosphere.Formal, StrategicTagEffectType.DecreasePressure, ApproachTags.Analysis),
+            TagModification.ForEncounterState(ApproachTags.Analysis, 1),
+            TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Assess Relationships",
-            "You mentally map the social dynamics at play, identifying leverage points and influence patterns.",
-            FocusTags.Relationship,
+        // Tier 2: Trained
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Analytical Insight",
+            "You observe subtle patterns and connections, gaining crucial insights.",
+            FocusTags.Information,
+            CardTiers.Trained, 2, // Tier 2, +2 momentum
+            FocusTags.Information, 1, 0, // Requires Analysis 2+, no reduction
+            new StrategicEffect(Economic.Commercial, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
             TagModification.ForEncounterState(ApproachTags.Analysis, 2),
-            TagModification.ForFocus(FocusTags.Relationship, 1)
+            TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Environmental Analysis",
-            "You carefully examine how your surroundings function, discovering hidden aspects that can be leveraged.",
-            FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 2),
-            TagModification.ForFocus(FocusTags.Environment, 1)
-        ));
-
-        // MODIFIED WITH TRADEOFF: Analysis over evasion
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Resource Optimization",
-            "You quickly assess resource value and utility with such thoroughness that your intense scrutiny becomes noticeable to others.",
-            FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 2),
-            TagModification.ForEncounterState(ApproachTags.Evasion, -1),
-            TagModification.ForFocus(FocusTags.Resource, 1)
-        ));
-
-        // ANALYSIS-BASED DEFENSIVE CHOICES (PRESSURE)
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
             "Careful Consideration",
-            "You pause to process all available information, avoiding hasty conclusions that could lead to error.",
+            "You methodically rule out incorrect interpretations, preventing wasted effort.",
             FocusTags.Information,
+            CardTiers.Trained, 1, // Tier 2, -1 pressure
+            FocusTags.Information, 1, 0, // Requires Analysis 2+, no reduction
+            new StrategicEffect(Atmosphere.Formal, StrategicTagEffectType.DecreasePressure, ApproachTags.Analysis),
             TagModification.ForEncounterState(ApproachTags.Analysis, 1),
             TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Calculate Risks",
-            "You assess potential hazards and their probabilities, selecting the physical approach with optimal risk-benefit ratio.",
-            FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 1),
-            TagModification.ForFocus(FocusTags.Physical, 1)
+        // Tier 3: Adept
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Deep Analysis",
+            "You perceive connections and patterns that others miss entirely, giving you a significant advantage.",
+            FocusTags.Information,
+            CardTiers.Adept, 3, // Tier 3, +3 momentum
+            FocusTags.Information, 2, 1, // Requires Analysis 4+, reduces by 2
+            new StrategicEffect(Economic.Commercial, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
+            TagModification.ForEncounterState(ApproachTags.Analysis, -1), // Negative modification!
+            TagModification.ForFocus(FocusTags.Information, 1)
         ));
 
-        // MODIFIED WITH TRADEOFF: Analysis over stealth
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Behavioral Analysis",
-            "You deduce others' underlying motivations so thoroughly that your focused attention becomes noticeable, sacrificing some stealth.",
-            FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 1),
-            TagModification.ForEncounterState(ApproachTags.Evasion, -1),
-            TagModification.ForFocus(FocusTags.Relationship, 1)
-        ));
-
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Identify Safe Zones",
-            "You locate areas within the environment that provide maximum protection or advantage with minimal exposure.",
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Strategic Assessment",
+            "Your systematic evaluation of all variables reveals the optimal approach, eliminating potential pitfalls.",
             FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 1),
+            CardTiers.Adept, 2, // Tier 3, -2 pressure
+            FocusTags.Information, 2, 1, // Requires Analysis 4+, reduces by 2
+            new StrategicEffect(Atmosphere.Formal, StrategicTagEffectType.DecreasePressure, ApproachTags.Analysis),
+            TagModification.ForEncounterState(ApproachTags.Analysis, -1), // Negative modification!
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Efficient Resource Use",
-            "You optimize resource allocation with careful planning, ensuring nothing is wasted and critical needs are met.",
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Resource Optimization",
+            "Your deep understanding of efficient resource allocation creates maximum advantage.",
             FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Analysis, 1),
-            TagModification.ForFocus(FocusTags.Resource, 1)
-        ));
-
-        // PRECISION-BASED OFFENSIVE CHOICES (MOMENTUM)
-        // HIGH-COMMITMENT CHOICE: Enhanced benefit (+3) with greater cost (-2)
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Surgical Precision",
-            "You execute with such perfect technique and timing that it seems almost supernatural, but this level of focus blinds you to broader considerations.",
-            FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Precision, 3),
-            TagModification.ForEncounterState(ApproachTags.Analysis, -2),
-            TagModification.ForFocus(FocusTags.Physical, 1)
-        ));
-
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Targeted Question",
-            "You formulate an incisive query that cuts directly to the heart of what you need to know, wasting no words.",
-            FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Precision, 2),
-            TagModification.ForFocus(FocusTags.Information, 1)
-        ));
-
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Perfect Timing",
-            "You intuitively identify the exact moment when your words or actions will have maximum impact on others.",
-            FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Precision, 2),
-            TagModification.ForFocus(FocusTags.Relationship, 1)
-        ));
-
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Pinpoint Weakness",
-            "Your keen eye instantly identifies the exact structural vulnerability that can be leveraged for advantage.",
-            FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Precision, 2),
-            TagModification.ForFocus(FocusTags.Environment, 1)
-        ));
-
-        // MODIFIED WITH TRADEOFF: Too precise to see alternatives
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Perfect Allocation",
-            "You utilize resources with surgical precision, achieving exactly the intended outcome but becoming less adaptable to alternative approaches.",
-            FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Precision, 2),
-            TagModification.ForEncounterState(ApproachTags.Analysis, -1),
-            TagModification.ForFocus(FocusTags.Resource, 1)
-        ));
-
-        // PRECISION-BASED DEFENSIVE CHOICES (PRESSURE)
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Measured Response",
-            "You move with deliberate control and economy, each action calibrated to provide maximum protection with minimal exposure.",
-            FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Precision, 1),
-            TagModification.ForFocus(FocusTags.Physical, 1)
-        ));
-
-        // HIGH-COMMITMENT CHOICE: Enhanced benefit (+2) with cost (-1)
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Flawless Articulation",
-            "You communicate with such perfect clarity and exactitude that misunderstanding becomes impossible, though social warmth suffers.",
-            FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Precision, 2),
-            TagModification.ForEncounterState(ApproachTags.Rapport, -1),
-            TagModification.ForFocus(FocusTags.Information, 1)
-        ));
-
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Targeted Reassurance",
-            "You identify and address the exact concerns causing relational tension, without unnecessary emotional expenditure.",
-            FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Precision, 1),
-            TagModification.ForFocus(FocusTags.Relationship, 1)
-        ));
-
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Minor Adjustment",
-            "You make small but crucial modifications to your surroundings that significantly reduce environmental threats.",
-            FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Precision, 1),
-            TagModification.ForFocus(FocusTags.Environment, 1)
-        ));
-
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Careful Allocation",
-            "You distribute limited resources with perfect efficiency, ensuring each allocation serves its exact intended purpose.",
-            FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Precision, 1),
-            TagModification.ForFocus(FocusTags.Resource, 1)
-        ));
-
-        // EVASION-BASED OFFENSIVE CHOICES (MOMENTUM)
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Hidden Advantage",
-            "You move with invisible purpose, positioning yourself to capitalize on opportunities others don't even perceive.",
-            FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
-            TagModification.ForFocus(FocusTags.Physical, 1)
-        ));
-
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Gather Secrets",
-            "You observe and absorb vital information others reveal unknowingly, collecting intelligence while appearing disinterested.",
-            FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
-            TagModification.ForFocus(FocusTags.Information, 1)
-        ));
-
-        // MODIFIED WITH TRADEOFF: Deception reduces authentic connection
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "False Persona",
-            "You present a carefully crafted persona that conceals your true purpose while building advantageous but ultimately deceptive relationships.",
-            FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
-            TagModification.ForEncounterState(ApproachTags.Rapport, -1),
-            TagModification.ForFocus(FocusTags.Relationship, 1)
-        ));
-
-        // HIGH-COMMITMENT CHOICE: Enhanced benefit (+3) with greater cost (-2, -1)
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Become Shadow",
-            "You vanish so completely into your surroundings that you practically cease to exist, sacrificing any ability to assert presence or maintain connections.",
-            FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Evasion, 3),
-            TagModification.ForEncounterState(ApproachTags.Dominance, -2),
-            TagModification.ForEncounterState(ApproachTags.Rapport, -1),
-            TagModification.ForFocus(FocusTags.Environment, 1)
-        ));
-
-        // MODIFIED WITH TRADEOFF: Hiding vs forcing
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Hidden Resources",
-            "You reveal concealed tools or supplies at the perfect moment, prioritizing stealth over a more dominant approach.",
-            FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
-            TagModification.ForEncounterState(ApproachTags.Dominance, -1),
-            TagModification.ForFocus(FocusTags.Resource, 1)
-        ));
-
-        // EVASION-BASED DEFENSIVE CHOICES (PRESSURE)
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Fade Away",
-            "You make yourself scarce at the critical moment, removing yourself from danger by seemingly vanishing.",
-            FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
-            TagModification.ForFocus(FocusTags.Physical, 1)
-        ));
-
-        // HIGH-COMMITMENT CHOICE: Enhanced benefit (+2) with cost (-1)
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Information Blackout",
-            "You masterfully control all information about yourself, revealing nothing while learning everything, at the cost of forming genuine connections.",
-            FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
-            TagModification.ForEncounterState(ApproachTags.Rapport, -1),
-            TagModification.ForFocus(FocusTags.Information, 1)
-        ));
-
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Maintain Privacy",
-            "You establish subtle but effective boundaries that keep others from probing sensitive areas without seeming distant.",
-            FocusTags.Relationship,
-            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
-            TagModification.ForFocus(FocusTags.Relationship, 1)
-        ));
-
-        // MODIFIED WITH TRADEOFF: Hiding vs analyzing
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Disappear",
-            "You identify and utilize overlooked environmental features to vanish completely, relying on instinct rather than thorough analysis.",
-            FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
-            TagModification.ForEncounterState(ApproachTags.Analysis, -1),
-            TagModification.ForFocus(FocusTags.Environment, 1)
-        ));
-
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Hide Resources",
-            "You secretively stash valuable resources where only you can access them, ensuring they remain available when needed.",
-            FocusTags.Resource,
-            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
-            TagModification.ForFocus(FocusTags.Resource, 1)
-        ));
-
-        // ADVANCED HYBRID CHOICES
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Tactical Force",
-            "You apply force with calculated precision, sacrificing social graces for effective action.",
-            FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 1),
-            TagModification.ForEncounterState(ApproachTags.Analysis, 1),
-            TagModification.ForEncounterState(ApproachTags.Rapport, -1),
-            TagModification.ForFocus(FocusTags.Physical, 1)
-        ));
-
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Charming Insight",
-            "You blend emotional intelligence with analytical observation, revealing insights that connect with others deeply.",
-            FocusTags.Information,
-            TagModification.ForEncounterState(ApproachTags.Rapport, 1),
-            TagModification.ForEncounterState(ApproachTags.Analysis, 1),
-            TagModification.ForEncounterState(ApproachTags.Precision, -1),
-            TagModification.ForFocus(FocusTags.Information, 1)
-        ));
-
-        _standardChoices.Add(ChoiceFactory.CreateMomentumChoice(
-            "Precise Stealth",
-            "You move with perfect control and silence, achieving the impossible without being detected.",
-            FocusTags.Environment,
-            TagModification.ForEncounterState(ApproachTags.Precision, 1),
-            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
-            TagModification.ForEncounterState(ApproachTags.Dominance, -1),
-            TagModification.ForFocus(FocusTags.Environment, 1)
-        ));
-
-        // HIGH-COMMITMENT HYBRID: Enhanced benefit (+2/+2) with greater cost (-2, -1) 
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Calculated Vulnerability",
-            "You create a perfectly calibrated emotional connection through analytical understanding of human psychology, sacrificing any pretense or self-protection.",
-            FocusTags.Relationship,
+            CardTiers.Adept, 3, // Tier 3, +3 momentum
+            FocusTags.Information, 3, 1, // Requires Resource 3+, reduces by 1
+            new StrategicEffect(Economic.Wealthy, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
             TagModification.ForEncounterState(ApproachTags.Analysis, 2),
-            TagModification.ForEncounterState(ApproachTags.Rapport, 2),
-            TagModification.ForEncounterState(ApproachTags.Evasion, -2),
-            TagModification.ForEncounterState(ApproachTags.Dominance, -1),
-            TagModification.ForFocus(FocusTags.Relationship, 1)
+            TagModification.ForFocus(FocusTags.Resource, -1) // Negative modification!
         ));
 
-        _standardChoices.Add(ChoiceFactory.CreatePressureChoice(
-            "Forceful Precision",
-            "You combine strength with perfect control, sacrificing stealth for effective controlled power.",
+        // =============================================
+        // PRECISION-BASED CHOICES
+        // =============================================
+
+        // Tier 1: Novice
+        _choices.Add(ChoiceFactory.CreateMomentumChoice(
+            "Basic Accuracy",
+            "You attempt a simple, careful movement.",
             FocusTags.Physical,
-            TagModification.ForEncounterState(ApproachTags.Dominance, 1),
+            CardTiers.Novice, 0, // Tier 1, +0 momentum
+            new StrategicEffect(Physical.Confined, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
             TagModification.ForEncounterState(ApproachTags.Precision, 1),
-            TagModification.ForEncounterState(ApproachTags.Evasion, -1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
+
+        _choices.Add(ChoiceFactory.CreatePressureChoice(
+            "Simple Care",
+            "You proceed with basic caution and care.",
+            FocusTags.Physical,
+            CardTiers.Novice, 0, // Tier 1, -0 pressure
+            new StrategicEffect(Physical.Hazardous, StrategicTagEffectType.DecreasePressure, ApproachTags.Precision),
+            TagModification.ForEncounterState(ApproachTags.Precision, 1),
+            TagModification.ForFocus(FocusTags.Physical, 1)
+        ));
+
+        // Tier 2: Trained
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Precise Strike",
+            "You execute a perfectly timed movement with flawless technique.",
+            FocusTags.Physical,
+            CardTiers.Trained, 2, // Tier 2, +2 momentum
+            FocusTags.Physical, 1, 0, // Requires Precision 2+, no reduction
+            new StrategicEffect(Physical.Confined, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
+            TagModification.ForEncounterState(ApproachTags.Precision, 2),
+            TagModification.ForFocus(FocusTags.Physical, 1)
+        ));
+
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Measured Response",
+            "You calibrate your response perfectly to minimize risk.",
+            FocusTags.Physical,
+            CardTiers.Trained, 1, // Tier 2, -1 pressure
+            FocusTags.Physical, 1, 0, // Requires Precision 2+, no reduction
+            new StrategicEffect(Physical.Hazardous, StrategicTagEffectType.DecreasePressure, ApproachTags.Precision),
+            TagModification.ForEncounterState(ApproachTags.Precision, 1),
+            TagModification.ForFocus(FocusTags.Physical, 1)
+        ));
+
+        // Tier 3: Adept
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Flawless Execution",
+            "Your movements flow with perfect precision, achieving exactly the result you intended.",
+            FocusTags.Physical,
+            CardTiers.Adept, 3, // Tier 3, +3 momentum
+            FocusTags.Physical, 2, 1, // Requires Precision 4+, reduces by 2
+            new StrategicEffect(Physical.Confined, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
+            TagModification.ForEncounterState(ApproachTags.Precision, -1), // Negative modification!
+            TagModification.ForFocus(FocusTags.Physical, 1)
+        ));
+
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Perfect Calibration",
+            "Your exacting adjustments to the situation eliminate multiple sources of pressure simultaneously.",
+            FocusTags.Environment,
+            CardTiers.Adept, 2, // Tier 3, -2 pressure
+            FocusTags.Physical, 2, 1, // Requires Precision 4+, reduces by 2
+            new StrategicEffect(Physical.Hazardous, StrategicTagEffectType.DecreasePressure, ApproachTags.Precision),
+            TagModification.ForEncounterState(ApproachTags.Precision, -1), // Negative modification!
+            TagModification.ForFocus(FocusTags.Environment, 1)
+        ));
+
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Environmental Precision",
+            "Your practiced ability to leverage the environment with perfect precision creates significant advantage.",
+            FocusTags.Environment,
+            CardTiers.Adept, 3, // Tier 3, +3 momentum
+            FocusTags.Physical, 3, 1, // Requires Environment 3+, reduces by 1
+            new StrategicEffect(Physical.Confined, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
+            TagModification.ForEncounterState(ApproachTags.Precision, 2),
+            TagModification.ForFocus(FocusTags.Environment, -1) // Negative modification!
+        ));
+
+        // =============================================
+        // Evasion-BASED CHOICES
+        // =============================================
+
+        // Tier 1: Novice
+        _choices.Add(ChoiceFactory.CreateMomentumChoice(
+            "Basic Stealth",
+            "You attempt to stay unnoticed with simple stealth techniques.",
+            FocusTags.Physical,
+            CardTiers.Novice, 0, // Tier 1, +0 momentum
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Evasion),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
+            TagModification.ForFocus(FocusTags.Physical, 1)
+        ));
+
+        _choices.Add(ChoiceFactory.CreatePressureChoice(
+            "Simple Hiding",
+            "You try to make yourself less noticeable.",
+            FocusTags.Physical,
+            CardTiers.Novice, 0, // Tier 1, -0 pressure
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.DecreasePressure, ApproachTags.Evasion),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
+            TagModification.ForFocus(FocusTags.Physical, 1)
+        ));
+
+        // Tier 2: Trained
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Hidden Advantage",
+            "You move stealthily, positioning yourself for an advantageous approach.",
+            FocusTags.Physical,
+            CardTiers.Trained, 2, // Tier 2, +2 momentum
+            FocusTags.Environment, 1, 0, // Requires Evasion 2+, no reduction
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Evasion),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
+            TagModification.ForFocus(FocusTags.Physical, 1)
+        ));
+
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Fade Away",
+            "You slip into the shadows, removing yourself from immediate danger.",
+            FocusTags.Physical,
+            CardTiers.Trained, 1, // Tier 2, -1 pressure
+            FocusTags.Environment, 1, 0, // Requires Evasion 2+, no reduction
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.DecreasePressure, ApproachTags.Evasion),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
+            TagModification.ForFocus(FocusTags.Physical, 1)
+        ));
+
+        // Tier 3: Adept
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Perfect Stealth",
+            "You move with such stealth that even those looking for you cannot detect your presence.",
+            FocusTags.Physical,
+            CardTiers.Adept, 3, // Tier 3, +3 momentum
+            FocusTags.Environment, 2, 1, // Requires Evasion 4+, reduces by 2
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Evasion),
+            TagModification.ForEncounterState(ApproachTags.Evasion, -1), // Negative modification!
+            TagModification.ForFocus(FocusTags.Physical, 1)
+        ));
+
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Vanishing Act",
+            "You disappear from perception entirely, eliminating immediate threats through complete evasion.",
+            FocusTags.Environment,
+            CardTiers.Adept, 2, // Tier 3, -2 pressure
+            FocusTags.Environment, 2, 1, // Requires Evasion 4+, reduces by 2
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.DecreasePressure, ApproachTags.Evasion),
+            TagModification.ForEncounterState(ApproachTags.Evasion, -1), // Negative modification!
+            TagModification.ForFocus(FocusTags.Environment, 1)
+        ));
+
+        _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
+            "Hidden Knowledge",
+            "Your practiced ability to uncover concealed information gives you a significant tactical advantage.",
+            FocusTags.Information,
+            CardTiers.Adept, 3, // Tier 3, +3 momentum
+            FocusTags.Environment, 3, 1, // Requires Information 3+, reduces by 1
+            new StrategicEffect(Economic.Commercial, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Evasion),
+            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
+            TagModification.ForFocus(FocusTags.Information, -1) // Negative modification!
+        ));
     }
 
-    public IReadOnlyList<IChoice> GetAllStandardChoices()
+    public List<IChoice> GetAllChoices()
     {
-        return _standardChoices.AsReadOnly();
+        return new List<IChoice>(_choices);
     }
 
-    public Choice GetChoiceByName(string name)
+    public List<IChoice> GetAvailableChoices(EncounterState state)
     {
-        return _standardChoices.FirstOrDefault(c => c.Name == name);
-    }
-
-    public SpecialChoice GetSpecialChoiceByName(string name)
-    {
-        return _specialChoices.ContainsKey(name) ? _specialChoices[name] : null;
+        return _choices.Where(c => c.Requirement.IsMet(state.TagSystem))
+            .Select(choice => (IChoice)choice)
+            .ToList();
     }
 }

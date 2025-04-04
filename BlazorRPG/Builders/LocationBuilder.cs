@@ -1,23 +1,37 @@
 ﻿public class LocationBuilder
 {
-    private LocationNames locationName;
+    private string locationName;
 
-    private List<LocationNames> travelConnections = new();
+    private List<string> travelConnections = new();
     private List<LocationSpot> locationSpots = new();
     private int difficultyLevel;
 
     // Location properties
     private bool playerKnowledge;
+    private string description;
+    private string detailedDescription;
 
     public LocationBuilder ForLocation(LocationNames name)
     {
-        this.locationName = name;
+        this.locationName = name.ToString();
+        return this;
+    }
+
+    public LocationBuilder WithDescription(string description)
+    {
+        this.description = description;
+        return this;
+    }
+
+    public LocationBuilder WithDetailedDescription(string description)
+    {
+        this.detailedDescription = description;
         return this;
     }
 
     public LocationBuilder AddTravelConnection(LocationNames connection)
     {
-        this.travelConnections.Add(connection);
+        this.travelConnections.Add(connection.ToString());
         return this;
     }
 
@@ -53,6 +67,7 @@
     {
         return new Location(
             locationName,
+            description,
             travelConnections,
             locationSpots,
             difficultyLevel,

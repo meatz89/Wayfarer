@@ -1,7 +1,4 @@
-﻿/// <summary>
-/// Base interface for all choices
-/// </summary>
-public interface IChoice
+﻿public interface IChoice
 {
     string Name { get; }
     string Description { get; }
@@ -9,7 +6,11 @@ public interface IChoice
     ApproachTags Approach { get; }
     FocusTags Focus { get; }
     EffectTypes EffectType { get; }
+    CardTiers Tier { get; }
+    int BaseEffectValue { get; }
     IReadOnlyList<TagModification> TagModifications { get; }
+    RequirementInfo Requirement { get; }
+    StrategicEffect StrategicEffect { get; }
     void ApplyChoice(EncounterState state);
     void SetBlocked();
 }
@@ -17,7 +18,7 @@ public interface IChoice
 /// <summary>
 /// Standard choice implementation - either builds momentum or pressure
 /// </summary>
-public class Choice : IChoice
+public class ChoiceCard : IChoice
 {
     public string Name { get; }
     public string Description { get; }
@@ -25,16 +26,25 @@ public class Choice : IChoice
     public ApproachTags Approach => this.GetPrimaryApproach();
     public FocusTags Focus { get; }
     public EffectTypes EffectType { get; }
+    public CardTiers Tier { get; }
+    public int BaseEffectValue { get; }
     public IReadOnlyList<TagModification> TagModifications { get; }
+    public RequirementInfo Requirement { get; }
+    public StrategicEffect StrategicEffect { get; }
 
-    public Choice(string name, string description, FocusTags focus,
-                  EffectTypes effectType, IReadOnlyList<TagModification> tagModifications)
+    public ChoiceCard(string name, string description, FocusTags focus,
+                 EffectTypes effectType, CardTiers tier, int baseEffectValue,
+                 RequirementInfo requirement, StrategicEffect strategicEffect, IReadOnlyList<TagModification> tagModifications)
     {
         Name = name;
         Description = description;
         Focus = focus;
         EffectType = effectType;
+        Tier = tier;
+        BaseEffectValue = baseEffectValue;
+        Requirement = requirement;
         TagModifications = tagModifications;
+        StrategicEffect = strategicEffect;
     }
 
     public virtual void ApplyChoice(EncounterState state)
@@ -51,66 +61,34 @@ public class Choice : IChoice
         // Apply momentum or pressure effect
         if (EffectType == EffectTypes.Momentum)
         {
-            int baseMomentum = 2; // Standard choices build 2 momentum
-            int totalMomentum = state.GetTotalMomentum(this, baseMomentum);
+            int totalMomentum = state.GetTotalMomentum(this, BaseEffectValue);
             state.BuildMomentum(totalMomentum);
         }
         else // Pressure
         {
-            state.BuildPressure(3); // Standard choices build 2 pressure
+            int basePressure = -BaseEffectValue; // Negative because it reduces pressure
+            int totalPressure = state.GetTotalPressure(this, basePressure);
+            state.BuildPressure(totalPressure);
         }
-    }
 
-    public override string ToString()
-    {
-        return $"{Name} - {Focus.ToString()} - {EffectType.ToString()}";
+        // Apply requirement reduction if applicable
+        if (Requirement.Type == RequirementInfo.RequirementTypes.Approach)
+        {
+            state.TagSystem.ModifyEncounterStateTag(Requirement.ApproachTag, -Requirement.ReductionAmount);
+        }
+        else if (Requirement.Type == RequirementInfo.RequirementTypes.Focus)
+        {
+            state.TagSystem.ModifyFocusTag(Requirement.FocusTag, -Requirement.ReductionAmount);
+        }
     }
 
     public void SetBlocked()
     {
         IsBlocked = true;
     }
-}
-
-/// <summary>
-/// Special choice that requires specific tag values and builds more momentum
-/// </summary>
-public class SpecialChoice : Choice
-{
-    public IReadOnlyList<Func<BaseTagSystem, bool>> Requirements { get; }
-
-    public SpecialChoice(string name, string description, FocusTags focus,
-                        IReadOnlyList<TagModification> tagModifications,
-                        IReadOnlyList<Func<BaseTagSystem, bool>> requirements)
-        : base(name, description, focus, EffectTypes.Momentum, tagModifications)
-    {
-        Requirements = requirements;
-    }
-
-    public bool CanBeSelected(BaseTagSystem tagSystem)
-    {
-        return Requirements.All(req => req(tagSystem));
-    }
-
-    public override void ApplyChoice(EncounterState state)
-    {
-        // Apply tag modifications
-        foreach (TagModification mod in TagModifications)
-        {
-            if (mod.Type == TagModification.TagTypes.EncounterState)
-                state.TagSystem.ModifyEncounterStateTag((ApproachTags)mod.Tag, mod.Delta);
-            else
-                state.TagSystem.ModifyFocusTag((FocusTags)mod.Tag, mod.Delta);
-        }
-
-        // Special choices build 3 momentum (plus bonuses)
-        int baseMomentum = 3;
-        int totalMomentum = state.GetTotalMomentum(this, baseMomentum);
-        state.BuildMomentum(totalMomentum);
-    }
 
     public override string ToString()
     {
-        return $"{Name} - {Focus.ToString()} - {EffectType.ToString()}";
+        return $"{Name} - Tier {(int)Tier} - {Focus.ToString()} - {EffectType.ToString()}";
     }
 }

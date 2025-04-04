@@ -1,5 +1,11 @@
-﻿public class LocationActions
+﻿public class LocationAction
 {
-    public LocationNames Location { get; set; }
-    public List<BasicActionTypes> Actions { get; set; } = new();
+    public string LocationId { get; private set; }
+    public BasicActionTypes ActionType { get; private set; }
+
+    public LocationAction(string locationId, BasicActionTypes actionType)
+    {
+        LocationId = locationId;
+        ActionType = actionType;
+    }
 }

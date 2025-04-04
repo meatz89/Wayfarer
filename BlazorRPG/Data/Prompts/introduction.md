@@ -1,49 +1,59 @@
+# ENCOUNTER INTRODUCTION
+
 Your memory of past events:
 "{MEMORY_CONTENT}"
 
-CRITICAL INSTRUCTION: This scene MUST continue directly from previous events. You MUST weave in at least 3-4 specific details from the memory file, including:
-1. Direct references to previous locations or encounters
-2. Physical or emotional states resulting from prior events
-3. Knowledge or insights gained from previous successes/failures
-4. How previous events have changed the character's approach
+Create a BRIEF, immersive introductory scene for a {ENCOUNTER_TYPE} encounter at {LOCATION_SPOT} of {LOCATION_NAME}.
 
-Create an immersive introductory scene for a {ENCOUNTER_TYPE} encounter at the {LOCATION_SPOT} of the {LOCATION_NAME}.
-The player is a {CHARACTER_ARCHETYPE} who just came from the events described in the memory and is now seeking to {CHARACTER_GOAL}.
-The player character is facing the immediate challenge that {ENCOUNTER_COMPLICATION}, which connects to their previous experiences.
+## Character Context
+- Archetype: {CHARACTER_ARCHETYPE} ({APPROACH_STATS}) (Avoid announcing directly)
+- Goal: {CHARACTER_GOAL}
+- Challenge: {ENCOUNTER_COMPLICATION}
 
-The location contains {ENVIRONMENT_DETAILS} and key NPCs include {NPC_LIST}. The character faces {TIME_CONSTRAINTS} and {ADDITIONAL_CHALLENGES}.
+Talk in the voice of the player character archetype. The narration of a warrior, scholar, ranger, bard and thief should be remarkably different.
 
-Write 2-3 paragraphs that:
-1. Establish the scene using multiple sensory details across at least three senses (sight, sound, smell, touch, taste) while explicitly connecting to previous events
-2. Introduce NPCs through observable behaviors that hint at their motivations, relating to any relevant previous encounters
-3. Present the objective as an organic part of the narrative while subtly indicating which approaches might be effective based on lessons from previous attempts
-4. Create environmental elements that could be strategically utilized or might pose challenges
-5. End with a clear situation that requires a decision, directly shaped by previous experiences
+## Player Resources
+- Coins: {PLAYER_COINS} (Use this to inform narrative about spending capacity)
+- Health: {PLAYER_HEALTH}/{PLAYER_MAX_HEALTH}
+- Concentration: {PLAYER_CONCENTRATION}/{PLAYER_MAX_CONCENTRATION}
+- Confidence: {PLAYER_CONFIDENCE}/{PLAYER_MAX_CONFIDENCE}
+- Energy: {PLAYER_ENERGY}/{PLAYER_MAX_ENERGY}
 
-EXAMPLES OF PROPER CONTINUITY:
-- "My hands still shake from the bandit confrontation as I reach the library entrance."
-- "After failing to get through the market alleys, this new path to the library seems more promising."
-- "The cut on my arm from the earlier struggle reminds me to be more cautious this time."
+## Player Inventory
+{PLAYER_INVENTORY}
 
-Additional requirements:
-- Begin with a direct transition from the previous location/encounter in the memory file
-- Show how the character's physical and mental state reflects previous events
-- Create environmental elements that naturally align with strategic tag effects
-- Show NPC personalities through observable behaviors and reactions
-- Include at least 3 distinct sensory details from different senses
-- Plant subtle hints about effective approaches without explicitly stating them
-- Suggest multiple possible paths forward aligned with different approach types
+## Location Context
+- Environment: {ENVIRONMENT_DETAILS}
+- NPCs: {NPC_LIST}
+- Constraints: {TIME_CONSTRAINTS} and {ADDITIONAL_CHALLENGES}
 
-Remember:
-- Your output will be given directly to the player. Do NOT acknowledge these instructions
-- MANDATORY: Create explicit narrative continuity with the memory file contents
-- Focus on BASIC SURVIVAL and PRACTICAL CHALLENGES, not comfort
-- Portray medieval life as DIFFICULT and HARSH
-- The character is a SOLITARY TRAVELER with NO COMPANIONS
-- Write in PRESENT TENSE and FIRST PERSON
-- Focus on CONCRETE DETAILS, not abstract concepts
-- Use language appropriate to a common medieval traveler
-- DO NOT include any numbered or bulleted choices in your response
-- Your final paragraph MUST present a clear problem requiring decision
+## Resource Guidelines
+- Only mention player's resources (coins, health, energy, etc.) if directly relevant
+- Only reference inventory items when naturally applicable to the situation
+- If the encounter involves purchasing or trading, subtly establish spending context without stating exact coin amounts
+- Reflect resource limitations (low health, energy, etc.) through character's feelings or physical state rather than numbers
 
-The tone should match a {ENCOUNTER_TYPE} encounter - [for Social: conversational and interpersonal; for Intellectual: analytical and observational; for Physical: action-oriented and environmental].
+## Encounter Clarification
+- Set up the challenge requiring approach/focus choices
+- Make clear what success would accomplish
+- Hint at consequences of failure
+
+## Chekhov's Gun Integration
+1. SELECT 0-1 Chekhov's Guns from the list that would naturally fit this encounter
+2. If including a Chekhov's Gun:
+   - For Introduced elements: Reference and develop them further
+   - For Developed elements: Advance them meaningfully
+   - For Fired elements: Only reference if directly relevant
+   - ONLY Resolve an element if this encounter naturally concludes its arc
+3. Never force inclusion if it doesn't fit the encounter context
+4. The Chekhov's Gun should enhance but not dominate the primary encounter goal
+
+## General Requirements
+1. Reference at least 1-2 specific details from the memory file
+2. Use multiple sensory details across at least three senses
+3. Show NPCs through observable behaviors that hint at motivations
+4. End with a situation requiring a decision shaped by previous experiences
+5. Write in first-person present tense from a medieval perspective
+6. Include environmental elements that align with strategic tag effects
+
+The tone should match a {ENCOUNTER_TYPE} encounter.

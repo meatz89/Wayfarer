@@ -120,29 +120,29 @@ Strategic tag effects scale with the related approach tag value, creating strong
 
 ---
 
-## Concealment-Based Strategic Tags
+## Evasion-Based Strategic Tags
 
-### 17. "Tactical Advantage" (Concealment → Increases Momentum)
-- **Effect**: Adds momentum proportional to Concealment value
-- **Scaling**: +1 momentum per 2 points in Concealment
+### 17. "Tactical Advantage" (Evasion → Increases Momentum)
+- **Effect**: Adds momentum proportional to Evasion value
+- **Scaling**: +1 momentum per 2 points in Evasion
 - **Description**: Your hidden approach provides the element of surprise, creating opportunities for progress. Remaining undetected gives you control over the situation.
 - **Ideal Locations**: Infiltration, ambushes, surveillance, theft
 
-### 18. "Invisible Presence" (Concealment → Decreases Pressure)
-- **Effect**: Reduces pressure proportional to Concealment value
-- **Scaling**: -1 pressure per 2 points in Concealment
+### 18. "Invisible Presence" (Evasion → Decreases Pressure)
+- **Effect**: Reduces pressure proportional to Evasion value
+- **Scaling**: -1 pressure per 2 points in Evasion
 - **Description**: Your stealthy approach prevents complications from arising. By avoiding detection, you sidestep many potential problems.
 - **Ideal Locations**: Enemy territory, restricted areas, avoiding conflict
 
-### 19. "Overcautious Approach" (Concealment → Decreases Momentum)
-- **Effect**: Reduces momentum proportional to Concealment value
-- **Scaling**: -1 momentum per 2 points in Concealment
+### 19. "Overcautious Approach" (Evasion → Decreases Momentum)
+- **Effect**: Reduces momentum proportional to Evasion value
+- **Scaling**: -1 momentum per 2 points in Evasion
 - **Description**: Your hidden approach is unnecessarily cautious for this situation. You waste time hiding when direct action would be more effective.
 - **Ideal Locations**: Time-sensitive missions, straightforward challenges, open confrontations
 
-### 20. "Suspicious Behavior" (Concealment → Increases Pressure)
-- **Effect**: Adds pressure proportional to Concealment value
-- **Scaling**: +1 pressure per 2 points in Concealment
+### 20. "Suspicious Behavior" (Evasion → Increases Pressure)
+- **Effect**: Adds pressure proportional to Evasion value
+- **Scaling**: +1 pressure per 2 points in Evasion
 - **Description**: Your secretive approach raises suspicions and creates complications. The more you try to hide, the more attention you draw to yourself.
 - **Ideal Locations**: Public areas, transparent negotiations, trustbuilding exercises
 

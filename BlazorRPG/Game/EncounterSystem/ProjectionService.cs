@@ -3,18 +3,20 @@
     private readonly TagManager _tagManager;
     private readonly ResourceManager _resourceManager;
     private readonly EncounterInfo encounterInfo;
+    private readonly PlayerState playerState;
 
-    public ProjectionService(TagManager tagManager, ResourceManager resourceManager, EncounterInfo location)
+    public ProjectionService(TagManager tagManager, ResourceManager resourceManager, EncounterInfo encounterInfo, PlayerState playerState)
     {
         _tagManager = tagManager;
         _resourceManager = resourceManager;
-        encounterInfo = location;
+        this.encounterInfo = encounterInfo;
+        this.playerState = playerState;
     }
 
     public ChoiceProjection CreateChoiceProjection(
-        IChoice choice, 
-        int currentMomentum, 
-        int currentPressure, 
+        IChoice choice,
+        int currentMomentum,
+        int currentPressure,
         int currentTurn)
     {
         ChoiceProjection projection = new ChoiceProjection(choice);
@@ -46,7 +48,7 @@
         projection.FinalPressure = Math.Max(0, currentPressure + projection.PressureBuilt);
 
         // Calculate pressure-based resource damage that will apply at start of turn
-        CalculateDamageFromPressure(choice, projection, currentPressure);
+        CalculateDamageFromPressure(choice, encounterInfo, projection, currentPressure, projection.PressureBuilt);
 
         // Calculate projected turn and check if encounter will end
         int projectedTurn = currentTurn + 1;
@@ -96,44 +98,65 @@
         }
     }
 
-    private void CalculateDamageFromPressure(IChoice choice, ChoiceProjection projection, int currentPressure)
+    private void CalculateDamageFromPressure(IChoice choice, EncounterInfo encounterInfo, ChoiceProjection projection, int currentPressure, int choicePressure)
     {
-        int pressureHealthDamage = _resourceManager.CalculatePressureResourceDamage(ResourceTypes.Health, currentPressure);
-        int pressureConcentrationDamage = _resourceManager.CalculatePressureResourceDamage(ResourceTypes.Concentration, currentPressure);
-        int pressureConfidenceDamage = _resourceManager.CalculatePressureResourceDamage(ResourceTypes.Confidence, currentPressure);
+        int pressureHealthDamage = _resourceManager.CalculatePressureResourceDamage(
+            encounterInfo, PlayerStatusResources.Health, currentPressure);
 
-        // Add pressure resource components to projection
-        if (encounterInfo.DangerousApproaches.Contains(choice.Approach))
+        int pressureConcentrationDamage = _resourceManager.CalculatePressureResourceDamage(
+            encounterInfo, PlayerStatusResources.Concentration, currentPressure);
+
+        int pressureConfidenceDamage = _resourceManager.CalculatePressureResourceDamage(
+            encounterInfo, PlayerStatusResources.Confidence, currentPressure);
+
+        AffinityTypes affinity = playerState.GetApproachAffinity(choice.Approach, encounterInfo.Type);
+
+        switch (affinity)
         {
-            if (pressureHealthDamage != 0)
-            {
-                projection.HealthChange = pressureHealthDamage;
-                projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
-                {
-                    Source = "Pressure health damage",
-                    Value = pressureHealthDamage
-                });
-            }
+            case AffinityTypes.Unnatural:
+                pressureHealthDamage = pressureHealthDamage > 1 ? (int)(pressureHealthDamage / 2) : 0;
+                pressureConcentrationDamage = pressureConcentrationDamage > 1 ? (int)(pressureConcentrationDamage / 2) : 0;
+                pressureConfidenceDamage = pressureConfidenceDamage > 1 ? (int)(pressureConfidenceDamage / 2) : 0;
+                break;
 
-            if (pressureConcentrationDamage != 0)
-            {
-                projection.ConcentrationChange = pressureConcentrationDamage;
-                projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
-                {
-                    Source = "Pressure concentration damage",
-                    Value = pressureConcentrationDamage
-                });
-            }
+            case AffinityTypes.Dangerous:
+                break;
 
-            if (pressureConfidenceDamage != 0)
+            default:
+                pressureHealthDamage = 0;
+                pressureConcentrationDamage = 0;
+                pressureConfidenceDamage = 0;
+                break;
+        }
+
+        if (pressureHealthDamage != 0)
+        {
+            projection.HealthChange = pressureHealthDamage;
+            projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
             {
-                projection.ConfidenceChange = pressureConfidenceDamage;
-                projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
-                {
-                    Source = "Pressure confidence damage",
-                    Value = pressureConfidenceDamage
-                });
-            }
+                Source = "Dangerous Move",
+                Value = pressureHealthDamage
+            });
+        }
+
+        if (pressureConcentrationDamage != 0)
+        {
+            projection.ConcentrationChange = pressureConcentrationDamage;
+            projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
+            {
+                Source = "Dangerous Move",
+                Value = pressureConcentrationDamage
+            });
+        }
+
+        if (pressureConfidenceDamage != 0)
+        {
+            projection.ConfidenceChange = pressureConfidenceDamage;
+            projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
+            {
+                Source = "Dangerous Move",
+                Value = pressureConfidenceDamage
+            });
         }
     }
 
@@ -165,41 +188,33 @@
         }
     }
 
-    private void ProcessStrategicTagEffects(IChoice choice, ChoiceProjection projection, BaseTagSystem clonedTagSystem, ref int momentumChange, ref int pressureChange)
+    private void ProcessStrategicTagEffects(IChoice choice, ChoiceProjection projection, BaseTagSystem baseTagSystem, ref int momentumChange, ref int pressureChange)
     {
-        foreach (IEncounterTag tag in _tagManager.ActiveTags)
+        StrategicEffect effect = choice.StrategicEffect;
+        List<StrategicTag> strategicTags = _tagManager.GetStrategicActiveTags();
+
+        foreach (StrategicTag tag in strategicTags)
         {
-            if (tag is StrategicTag strategicTag)
+            int momentumEffect = effect.GetMomentumModifierForTag(tag, baseTagSystem);
+            if (momentumEffect != 0)
             {
-                bool affectsChoice = true;
-
-                if (choice.Approach != strategicTag.ScalingApproachTag)
-                    affectsChoice = false;
-
-                if (affectsChoice)
+                projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
                 {
-                    int momentumEffect = strategicTag.GetMomentumModifierForChoice(choice, clonedTagSystem);
-                    if (momentumEffect != 0)
-                    {
-                        projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
-                        {
-                            Source = tag.Name,
-                            Value = momentumEffect
-                        });
-                        momentumChange += momentumEffect;
-                    }
+                    Source = $"{tag.Name} ({tag.EnvironmentalProperty.GetPropertyType()})",
+                    Value = momentumEffect
+                });
+                momentumChange += momentumEffect;
+            }
 
-                    int pressureEffect = strategicTag.GetPressureModifierForChoice(choice, clonedTagSystem);
-                    if (pressureEffect != 0)
-                    {
-                        projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-                        {
-                            Source = tag.Name,
-                            Value = pressureEffect
-                        });
-                        pressureChange += pressureEffect;
-                    }
-                }
+            int pressureEffect = effect.GetPressureModifierForTag(tag, baseTagSystem);
+            if (pressureEffect != 0)
+            {
+                projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
+                {
+                    Source = $"{tag.Name} ({tag.EnvironmentalProperty.GetPropertyType()})",
+                    Value = pressureEffect
+                });
+                pressureChange += pressureEffect;
             }
         }
     }
@@ -212,41 +227,23 @@
     /// <param name="projection"></param>
     /// <param name="momentumChange"></param>
     /// <param name="pressureChange"></param>
-    private void ProcessApproachAndFocusEffects(IChoice choice, int currentTurn, ChoiceProjection projection, ref int momentumChange, ref int pressureChange)
+    private void ProcessApproachAndFocusEffects(
+        IChoice choice,
+        int currentTurn,
+        ChoiceProjection projection,
+        ref int momentumChange,
+        ref int pressureChange)
     {
         // Momentum Choice
-
         if (choice.EffectType == EffectTypes.Momentum)
         {
-            int baseMomentum = 1;
+            int baseMomentum = choice.BaseEffectValue;
             projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
             {
-                Source = "Momentum Building Choice",
+                Source = $"Momentum Building Choice (Tier {(int)choice.Tier})",
                 Value = baseMomentum
             });
             momentumChange += baseMomentum;
-
-            if (encounterInfo.MomentumBoostApproaches.Contains(choice.Approach))
-            {
-                int favoredBonus = 2;
-                projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
-                {
-                    Source = "Correct Approach",
-                    Value = favoredBonus
-                });
-                momentumChange += favoredBonus;
-            }
-
-            if (encounterInfo.MomentumReducingFocuses.Contains(choice.Focus))
-            {
-                int disfavoredBonus = -3;
-                projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
-                {
-                    Source = "Incorrect Focus",
-                    Value = disfavoredBonus
-                });
-                momentumChange += disfavoredBonus;
-            }
 
             int environmentalPressure = encounterInfo.GetEnvironmentalPressure(currentTurn);
             if (environmentalPressure > 0)
@@ -258,50 +255,83 @@
                 });
                 pressureChange += environmentalPressure;
             }
-
         }
 
         // Pressure Reduction Choice
-
         if (choice.EffectType == EffectTypes.Pressure)
         {
-            int basePressure = -2;
+            int basePressure = -choice.BaseEffectValue;
             projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
             {
-                Source = "Pressure Reduction Choice",
+                Source = $"Pressure Reduction Choice (Tier {(int)choice.Tier})",
                 Value = basePressure
             });
             pressureChange += basePressure;
 
-            if (encounterInfo.PressureReducingFocuses.Contains(choice.Focus))
-            {
-                int favoredBonus = -2;
-                projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-                {
-                    Source = "Correct Focus",
-                    Value = favoredBonus
-                });
-                pressureChange += favoredBonus;
-            }
+        }
 
-            if (encounterInfo.DangerousApproaches.Contains(choice.Approach))
+        if (encounterInfo.PressureReducingFocuses.Contains(choice.Focus))
+        {
+            int favoredBonus = -2;
+            projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
             {
-                int dangerousApproachBonus = 3;
+                Source = "Favored Focus at Location",
+                Value = favoredBonus
+            });
+            pressureChange += favoredBonus;
+        }
+
+        if (encounterInfo.MomentumReducingFocuses.Contains(choice.Focus))
+        {
+            int disfavoredBonus = -2;
+            projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
+            {
+                Source = "Disfavored Focus at Location",
+                Value = disfavoredBonus
+            });
+            momentumChange += disfavoredBonus;
+        }
+
+        AffinityTypes affinity = playerState.GetApproachAffinity(choice.Approach, encounterInfo.Type);
+        switch (affinity)
+        {
+            case AffinityTypes.Natural:
+                int naturalBonus = 2;
+                projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
+                {
+                    Source = "Natural Archetype Approach",
+                    Value = naturalBonus
+                });
+                momentumChange += naturalBonus;
+                break;
+
+            case AffinityTypes.Unnatural:
+                int unnaturalPenalty = 1;
                 projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
                 {
-                    Source = "Dangerous Approach",
-                    Value = dangerousApproachBonus
+                    Source = "Unnatural Archetype Approach",
+                    Value = unnaturalPenalty
                 });
-                pressureChange += dangerousApproachBonus;
-            }
+                pressureChange += unnaturalPenalty;
+                break;
+
+            case AffinityTypes.Dangerous:
+                int dangerousPenalty = 2;
+                projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
+                {
+                    Source = "Dangerous Archetype Approach",
+                    Value = dangerousPenalty
+                });
+                pressureChange += dangerousPenalty;
+                break;
         }
     }
 
     private void DetermineEncounterEnd(
-        ChoiceProjection projection, 
+        ChoiceProjection projection,
         int projectedTurn)
     {
-        bool encounterEnds = 
+        bool encounterEnds =
             (projectedTurn >= encounterInfo.TurnDuration)
             || (projection.FinalMomentum >= encounterInfo.ExceptionalThreshold)
             || (projection.FinalPressure >= encounterInfo.MaxPressure);
@@ -318,11 +348,11 @@
             else
             {
                 if (projection.FinalMomentum >= encounterInfo.ExceptionalThreshold)
-                    projection.ProjectedOutcome = EncounterOutcomes.Exceptional;
+                    projection.ProjectedOutcome = EncounterOutcomes.ExceptionalSuccess;
                 else if (projection.FinalMomentum >= encounterInfo.StandardThreshold)
-                    projection.ProjectedOutcome = EncounterOutcomes.Standard;
+                    projection.ProjectedOutcome = EncounterOutcomes.StandardSuccess;
                 else if (projection.FinalMomentum >= encounterInfo.PartialThreshold)
-                    projection.ProjectedOutcome = EncounterOutcomes.Partial;
+                    projection.ProjectedOutcome = EncounterOutcomes.PartialSuccess;
                 else
                     projection.ProjectedOutcome = EncounterOutcomes.Failure;
             }

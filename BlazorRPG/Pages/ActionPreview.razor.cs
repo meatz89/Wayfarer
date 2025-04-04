@@ -67,12 +67,7 @@ public partial class ActionPreviewBase : ComponentBase
     {
         if (outcome is EnergyOutcome energyOutcome)
         {
-            return energyOutcome.EnergyType switch
-            {
-                EnergyTypes.Physical => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
-                EnergyTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
-                _ => new MarkupString("")
-            };
+            return new MarkupString("<i class='value-icon physical-icon'>⚡</i>");
         }
         return new MarkupString("");
     }

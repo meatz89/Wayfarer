@@ -21,8 +21,7 @@
     Health,
 
     //Energy
-    PhysicalEnergy,
-    Concentration,
+    Energy,
 
     //Encounter States
     MaxPressure,

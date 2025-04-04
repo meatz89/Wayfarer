@@ -5,16 +5,15 @@
         services.AddSingleton<GameContentProvider>();
         services.AddSingleton<GameState>(_ => GameSetup.CreateNewGame());
 
+        services.AddSingleton<ActionFactory>();
+        services.AddSingleton<ActionGenerator>();
+        services.AddSingleton<ActionRepository>();
+
         services.AddSingleton<LocationSystem>();
-        services.AddSingleton<CharacterSystem>();
         services.AddSingleton<ItemSystem>();
 
         services.AddSingleton<KnowledgeSystem>();
         services.AddSingleton<CharacterRelationshipSystem>();
-
-        services.AddSingleton<QuestSystem>();
-        services.AddSingleton<ConfidenceSystem>();
-        services.AddSingleton<AchievementSystem>();
 
         services.AddSingleton<EncounterSystem>();
 
@@ -23,6 +22,15 @@
 
         // Add this before your existing logger configuration
         services.AddSingleton<NarrativeLogManager>();
+        services.AddSingleton<NarrativeContextManager>();
+
+        services.AddSingleton<LocationGenerator>();
+        services.AddSingleton<WorldEvolutionService>();
+
+        services.AddSingleton<ResourceManager>();
+        services.AddSingleton<NarrativeService>();
+
+        services.AddSingleton<WorldEvolutionParser>();
 
         return services;
     }

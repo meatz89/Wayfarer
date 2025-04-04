@@ -1,6 +1,15 @@
 ﻿public enum ActionNames
 {
-    LibraryResearch,
-    BackalleyTravel,
-    MerchantPersuasion
+    None,
+
+    // Village actions
+    MarketPurchasing,
+
+    // Forest actions
+    DirectPath,
+    WindingRoad,
+
+    // Tavern actions
+    RentRoom,
+    FindQuests,
 }
