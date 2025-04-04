@@ -723,6 +723,7 @@ CHOICE {i + 1}:
         string template = _promptTemplates[WORLD_EVOLUTION_MD];
 
         return template
+            // Existing replacements
             .Replace("{characterBackground}", input.CharacterBackground)
             .Replace("{currentLocation}", input.CurrentLocation)
             .Replace("{knownLocations}", input.KnownLocations)
@@ -734,7 +735,16 @@ CHOICE {i + 1}:
             .Replace("{health}", input.Health.ToString())
             .Replace("{maxHealth}", input.MaxHealth.ToString())
             .Replace("{energy}", input.Energy.ToString())
-            .Replace("{maxEnergy}", input.MaxEnergy.ToString());
+            .Replace("{maxEnergy}", input.MaxEnergy.ToString())
+
+            // New replacements for world context
+            .Replace("{currentLocationSpots}", input.CurrentLocationSpots ?? "None")
+            .Replace("{allKnownLocationSpots}", input.AllKnownLocationSpots ?? "None")
+            .Replace("{allExistingActions}", input.AllExistingActions ?? "None")
+
+            // New replacements for travel information
+            .Replace("{wasTravelEncounter}", input.WasTravelEncounter.ToString().ToLower())
+            .Replace("{travelDestination}", input.TravelDestination ?? "None");
     }
 
     public string BuildMemoryPrompt(MemoryConsolidationInput input)

@@ -1,14 +1,20 @@
 ﻿# WORLD EVOLUTION
 
-After analyzing the full encounter narrative, determine how the world should evolve based on the outcome. Every encounter MUST add at least one action.
+## HIGHEST PRIORITY INSTRUCTION FOR TRAVEL ENCOUNTERS
+If this was a travel encounter ({wasTravelEncounter} = true) with destination "{travelDestination}":
+1. YOU MUST set locationChanged = true and newLocationName = "{travelDestination}"
+2. YOU MUST create AT LEAST ONE locationSpot AT "{travelDestination}" SPECIFICALLY describing the arrival point
+3. YOU MUST create AT LEAST ONE actionDefinition at this arrival spot that represents the player's FIRST POSSIBLE ACTION after arriving
+4. FAILURE TO DO THIS WILL BREAK THE GAME AND IS UNACCEPTABLE
+
+## MANDATORY ACTION REQUIREMENT
+Every encounter MUST result in at least one new actionDefinition being created
+FAILURE TO INCLUDE AT LEAST ONE ACTION WILL BREAK THE GAME
 
 ## Context
 - Current location: {currentLocation} (Depth: {currentDepth})
 - Last hub depth: {lastHubDepth}
 - Current player resources: Health {health}/{maxHealth}, Energy {energy}/{maxEnergy}
-- Known locations: {knownLocations}
-- Known characters: {knownCharacters}
-- Active opportunities: {activeOpportunities}
 - Encounter outcome: {encounterOutcome} (Success/Partial/Failure)
 
 ## Forward Progression Rules
@@ -30,20 +36,31 @@ After analyzing the full encounter narrative, determine how the world should evo
 - Create alternative paths (new action at different spots/locations)
 - These must offer different approaches to similar goals
 
-## Player Location Changes
-- Carefully review the encounter narrative to determine if the player ended at a DIFFERENT LOCATION
-- If player moved to a new location, specify this location name in your response
-- If this new location does not exist in the known locations list, you MUST create it with spots and action
+- 
+## Known Locations
+{knownLocations}
+
+## Known Characters 
+{knownCharacters}
+
+## Current Location Spots
+{currentLocationSpots}
+
+## Travel Information
+- Was this a travel encounter: {wasTravelEncounter}
+- Travel destination: {travelDestination}
 
 ## Resource Changes
 - Extract ANY mention of coin transactions (gains or losses)
 - Note inventory items ADDED during the encounter
 - Note inventory items REMOVED or USED during the encounter
 
-## Discovery Rewards
-- All new locations should have discoveryBonusXP (10 × depth) 
-- All new locations should have discoveryBonusCoins (5 × depth)
-- Hubs should have double these discovery bonuses
+## CRITICAL INSTRUCTIONS FOR TRAVEL
+When creating elements for a travel destination:
+1. The FIRST spot you create MUST represent the ARRIVAL POINT (e.g., "Village Gate", "Forest Entrance", "Cave Mouth")
+2. The FIRST action you create MUST be available at this arrival point
+3. This action should represent the player's first interaction with the new location
+4. The arrival spot and action MUST BE TAGGED with the EXACT destination location name
 
 ## Relationship Changes
 - Identify ALL character relationship changes suggested in the narrative
@@ -65,15 +82,16 @@ After analyzing the full encounter narrative, determine how the world should evo
 - Prioritize elements directly connected to the encounter outcome
 - IF SUCCESS: Create elements that advance the player's goals
 - IF FAILURE: Create alternative paths to achieve similar goals
-
 ## Location Requirements
 - Choose appropriate environmental properties (Bright/Shadowy/Dark, Crowded/Quiet/Isolated, etc.)
 - Determine logical connections to other location types
 
-## World Structure Requirements
-- EVERY new location MUST have at least one spot
-- Location → Spot → Action hierarchy must be maintained
-- New elements must connect logically to existing world elements
+## JSON VERIFICATION FOR TRAVEL ENCOUNTERS
+If wasTravelEncounter = true, your response MUST include:
+1. playerLocationUpdate.locationChanged = true
+2. playerLocationUpdate.newLocationName = "{travelDestination}"
+3. At least one locationSpot with locationName = "{travelDestination}"
+4. At least one actionDefinition with locationName = "{travelDestination}" and spotName matching a created spot
 
 ## Format Requirements
 - Character names: SIMPLE FIRST NAMES ONLY (e.g., "Giles", not "Giles the merchant")
@@ -89,6 +107,15 @@ After analyzing the full encounter narrative, determine how the world should evo
   * Economic: Wealthy, Commercial, Humble
   * Physical: Confined, Expansive, Hazardous
 
+## FINAL VERIFICATION STEPS
+Before submitting your response for a travel encounter:
+1. Verify playerLocationUpdate.newLocationName EXACTLY matches "{travelDestination}"
+2. Verify at least one locationSpot exists with locationName EXACTLY matching "{travelDestination}"
+3. Verify at least one actionDefinition has:
+   - locationName EXACTLY matching "{travelDestination}"
+   - spotName matching one of your created spots
+   - a meaningful description of the first possible interaction at this location
+   
 ## Response Format
 You must provide your response as a valid JSON object with the following structure:
 
