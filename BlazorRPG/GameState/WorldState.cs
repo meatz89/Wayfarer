@@ -160,10 +160,20 @@
         CurrentLocation = location;
 
         if (location == null) return;
-        CurrentLocationSpot = location.Spots.FirstOrDefault();
+
+        if (location.Spots == null || !location.Spots.Any())
+        {
+            Console.WriteLine($"WARNING: Location {location.Name} has no spots!");
+            return;
+        }
+
+        // Set current spot to first spot and log
+        LocationSpot firstSpot = location.Spots.FirstOrDefault();
+        SetCurrentLocationSpot(firstSpot);
+        Console.WriteLine($"Set current location spot to: {firstSpot?.Name ?? "NULL"}");
     }
 
-    public void SetNewLocationSpot(LocationSpot locationSpot)
+    public void SetCurrentLocationSpot(LocationSpot locationSpot)
     {
         CurrentLocationSpot = locationSpot;
     }
@@ -210,5 +220,6 @@
             throw new ArgumentException($"Unsupported property type: {typeof(T)}");
         }
     }
+
 }
 

@@ -18,14 +18,14 @@
 
     public async Task Initialize()
     {
+        // Create the starting locations
         List<Location> locations = new List<Location>
-        {
-            WorldLocationsContent.Forest,
-            WorldLocationsContent.Village,
-        };
+    {
+        WorldLocationsContent.Forest,
+        WorldLocationsContent.Village,
+    };
 
         gameState.WorldState.AddLocations(locations);
-
         InitializeLocationDepths();
 
         IsInitialized = true;
@@ -61,10 +61,9 @@
         }
     }
 
-    internal void SetCurrentLocation(string locationName)
+    public void SetCurrentLocation(Location location)
     {
-        Location location = GetLocation(locationName);
-        gameState.WorldState.SetCurrentLocation(location);
+        worldState.SetCurrentLocation(location);
     }
 
     public List<Location> GetAllLocations()

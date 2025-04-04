@@ -10,7 +10,7 @@
                 @foreach (ArchetypeTypes archetype in Enum.GetValues(typeof(ArchetypeTypes)))
                 {
                     <div class="archetype-card @(selectedArchetype == archetype ? "selected" : "")"
-                         @onclick="() => SelectArchetype(archetype)">
+                    @onclick="() => SelectArchetype(archetype)">
                         <div class="archetype-icon">@GetArchetypeIcon(archetype)</div>
                         <div class="archetype-name-bold">@FormatArchetypeName(archetype)</div>
                         <div class="archetype-description">@GetArchetypeDescription(archetype)</div>
@@ -74,9 +74,8 @@
     private async Task CreateCharacter()
     {
         // Set player name and archetype
-        GameState.PlayerState.Name = playerName;
-        GameState.PlayerState.SetArchetype(selectedArchetype);
-
+        GameState.PlayerState.Initialize(playerName, selectedArchetype);
+        
         // Notify parent component that character creation is complete
         await OnCharacterCreated.InvokeAsync(GameState.PlayerState);
     }

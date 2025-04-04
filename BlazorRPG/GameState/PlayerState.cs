@@ -52,6 +52,7 @@
 
     public List<PlayerNegativeStatus> NegativeStatusTypes { get; set; }
     public PlayerConfidenceTypes ConfidenceType { get; set; }
+    public bool IsInitialized { get; internal set; } = false;
 
     public PlayerState()
     {
@@ -79,6 +80,13 @@
 
         NegativeStatusTypes = new();
         ConfidenceType = PlayerConfidenceTypes.Neutral;
+    }
+
+    public void Initialize(string playerName, ArchetypeTypes selectedArchetype)
+    {
+        Name = playerName;
+        SetArchetype(selectedArchetype);
+        IsInitialized = true;
     }
 
     public void SetArchetype(ArchetypeTypes archetype)
