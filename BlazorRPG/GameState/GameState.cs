@@ -5,6 +5,7 @@
     public PlayerState PlayerState { get; set; }
     public ActionState Actions { get; }
     public WorldState WorldState { get; }
+    public PendingTravel PendingTravel { get; set; } = new PendingTravel();
 
     public GameState()
     {

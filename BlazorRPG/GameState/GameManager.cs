@@ -60,7 +60,59 @@
     public void StartGame()
     {
         TravelToLocation(gameState.PlayerState.StartingLocation);
+
+        // Verify current location spot was set
+        if (worldState.CurrentLocationSpot == null && worldState.CurrentLocation?.Spots?.Any() == true)
+        {
+            Console.WriteLine("Current location spot is null despite spots existing - manually setting");
+            worldState.SetCurrentLocationSpot(worldState.CurrentLocation.Spots.First());
+        }
+
         UpdateState();
+
+        // Debug info - print current state
+        var currentLoc = worldState.CurrentLocation;
+        Console.WriteLine($"Game started at: {currentLoc?.Name}, Current spot: {worldState.CurrentLocationSpot?.Name}");
+    }
+
+    public void InitiateTravelToLocation(string locationName)
+    {
+        // Store the travel destination
+        gameState.PendingTravel.Destination = locationName;
+        gameState.PendingTravel.TravelMethod = TravelMethods.Walking;
+
+        // Get the travel action template
+        ActionTemplate travelTemplate = ActionRepository.GetAction("Travel");
+        if (travelTemplate == null)
+        {
+            travelTemplate = new ActionTemplate
+            {
+                Name = "Travel",
+                ActionType = ActionTypes.Encounter, // Using existing encounter type
+                BasicActionType = BasicActionTypes.Travel,
+                Goal = "Travel safely to your destination",
+                IsRepeatable = true,
+                Costs = new()
+                {
+                    new EnergyOutcome(-1)
+                    {
+                        Amount = -1
+                    }
+                },
+            };
+        }
+
+        // Create travel action
+        ActionImplementation travelAction = ActionFactory.CreateActionFromTemplate(travelTemplate);
+
+        // Create option
+        UserActionOption travelOption = new UserActionOption(
+            0, "Travel to " + locationName, false, travelAction,
+            worldState.CurrentLocation.Name, worldState.CurrentLocationSpot.Name,
+            null, worldState.CurrentLocation.Difficulty);
+
+        // Execute to start travel encounter
+        _ = ExecuteBasicAction(travelOption);
     }
 
     private void OnPlayerEnterLocation(Location location)
@@ -68,7 +120,15 @@
         List<UserActionOption> options = new List<UserActionOption>();
         if (location == null) return;
 
+        // Ensure we have a current location spot
+        if (gameState.WorldState.CurrentLocationSpot == null && location.Spots?.Any() == true)
+        {
+            Console.WriteLine($"Setting location spot to {location.Spots.First().Name} in OnPlayerEnterLocation");
+            gameState.WorldState.SetCurrentLocationSpot(location.Spots.First());
+        }
+
         List<LocationSpot> locationSpots = location.Spots;
+        Console.WriteLine($"Location {location.Name} has {locationSpots?.Count ?? 0} spots");
 
         foreach (LocationSpot locationSpot in locationSpots)
         {
@@ -205,6 +265,12 @@
         ActionImplementation actionImplementation = encounter.ActionImplementation;
         ApplyActionOutcomes(actionImplementation);
         gameState.Actions.CompleteActiveEncounter();
+
+        // Check if there was pending travel and clear it
+        if (gameState.PendingTravel.IsTravelPending)
+        {
+            gameState.PendingTravel.Clear();
+        }
     }
 
     private WorldEvolutionInput PrepareWorldEvolutionInput(string encounterNarrative, string encounterOutcome)
@@ -231,6 +297,7 @@
         };
     }
 
+    // Modify ExecuteEncounterChoice in GameManager
     public async Task<EncounterResult> ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
     {
         EncounterManager encounter = choiceOption.encounter;
@@ -245,7 +312,7 @@
         EncounterResults currentEncounterResult = currentResult.EncounterResults;
         if (currentEncounterResult == EncounterResults.Ongoing)
         {
-            // Encounter is Ongoing
+            // Encounter is Ongoing - unchanged
             if (IsGameOver(gameState.PlayerState))
             {
                 gameState.Actions.CompleteActiveEncounter();
@@ -261,7 +328,18 @@
         {
             // Encounter is Over
             gameState.Actions.EncounterResult = currentResult;
+
+            // Process world changes from encounter
             Location travelLocation = await ProcessEncounterOutcome(currentResult);
+
+            // Check if this was a travel encounter
+            if (gameState.PendingTravel.IsTravelPending &&
+                currentResult.EncounterResults == EncounterResults.EncounterSuccess)
+            {
+                // Use the pending travel destination as the travel location
+                travelLocation = LocationSystem.GetLocation(gameState.PendingTravel.Destination);
+            }
+
             currentResult.TravelLocation = travelLocation;
         }
 
@@ -316,7 +394,7 @@
     public void MoveToLocationSpot(string location, string locationSpotName)
     {
         LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(location, locationSpotName);
-        gameState.WorldState.SetNewLocationSpot(locationSpot);
+        gameState.WorldState.SetCurrentLocationSpot(locationSpot);
         UpdateState();
     }
 
@@ -382,14 +460,14 @@
         return loc;
     }
 
-    public bool CanTravelTo(string locationName)
+    // 4. Add this method to TravelManager.cs
+    public bool CanTravelTo(string destinationName)
     {
-        List<string> locs = GetConnectedLocations();
-        bool canTravel = locs.Contains(locationName);
+        if (worldState.CurrentLocation == null)
+            return false;
 
-        int cost = GetTravelCostForLocation(locationName);
-
-        return canTravel;
+        // Check if locations are directly connected
+        return worldState.CurrentLocation.ConnectedTo?.Contains(destinationName) ?? false;
     }
 
     private int GetTravelCostForLocation(string locationName)

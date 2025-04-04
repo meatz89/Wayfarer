@@ -5,8 +5,7 @@ public partial class GameUI : ComponentBase
 {
     [Inject] private GameState GameState { get; set; }
     [Inject] private GameManager GameManager { get; set; }
-    [Inject] private NavigationManager NavigationManager { get; set; }
-
+    
     public List<string> ResultMessages => GetResultMessages();
 
     public PlayerState PlayerState => GameState.PlayerState;
@@ -52,11 +51,9 @@ public partial class GameUI : ComponentBase
     protected override async Task OnInitializedAsync()
     {
         // Check if character has been created
-        needsCharacterCreation = string.IsNullOrEmpty(GameState.PlayerState.Name);
-
+        needsCharacterCreation = !GameState.PlayerState.IsInitialized;
         if (!needsCharacterCreation)
         {
-            GameState.PlayerState.Name = "meatz";
             await InitializeGame();
         }
     }
@@ -65,12 +62,17 @@ public partial class GameUI : ComponentBase
     {
         needsCharacterCreation = false;
         await InitializeGame();
-        StateHasChanged();
     }
 
     private async Task InitializeGame()
     {
         GameManager.StartGame();
+
+        // Ensure the user sees the location spot view initially, not the travel view
+        showAreaMap = false;
+
+        // Make sure UI refreshes
+        StateHasChanged();
     }
 
     public Location GetCurrentLocation()
@@ -108,32 +110,50 @@ public partial class GameUI : ComponentBase
         {
             OngoingEncounter = false;
             ShowEncounterResult = true;
-
-            if(result.TravelLocation != null)
-            {
-                GameManager.TravelToLocation(result.TravelLocation.Name);
-                showAreaMap = true;
-            }
         }
         StateHasChanged();
     }
 
+
+
+    // Modify HandleLocationSelection method
     private void HandleLocationSelection(string locationName)
     {
         selectedLocation = locationName;
 
-        // If no narrative, proceed as before
-        showNarrative = false;
-        FinalizeLocationSelection(locationName);
+        // If current location, just switch to spot view
+        if (locationName == GameState.WorldState.CurrentLocation.Name)
+        {
+            showAreaMap = false;
+            StateHasChanged();
+            return;
+        }
+
+        // Otherwise initiate travel
+        GameManager.InitiateTravelToLocation(locationName);
+        OngoingEncounter = true;
+        StateHasChanged();
     }
 
+    // Update OnNarrativeCompleted method
     private void OnNarrativeCompleted()
     {
         showNarrative = false;
-        FinalizeLocationSelection(selectedLocation);
+        ShowEncounterResult = false;
+
+        // If this was a travel encounter that completed successfully
+        if (EncounterResult.TravelLocation != null)
+        {
+            GameManager.TravelToLocation(EncounterResult.TravelLocation.Name);
+        }
+
+        // Always return to location spot view after any encounter
+        showAreaMap = false;
 
         FinishEncounter();
+        StateHasChanged();
     }
+
 
     private async Task FinalizeLocationSelection(string locationName)
     {

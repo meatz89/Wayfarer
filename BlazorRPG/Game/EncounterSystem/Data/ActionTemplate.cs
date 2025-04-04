@@ -15,11 +15,12 @@
     public string EncounterTemplateName { get; set; }
 
     // If Basic Action
-    public List<Requirement> Requirements { get; }
-    public List<Outcome> Energy { get; }
-    public List<Outcome> Costs { get; }
-    public List<Outcome> Rewards { get; }
+    public List<Requirement> Requirements { get; set; }
+    public List<Outcome> Energy { get; set; }
+    public List<Outcome> Costs { get; set; }
+    public List<Outcome> Rewards { get; set; }
     public int CoinCost { get; set; }
+    public bool IsRepeatable { get; set; }
 
     public ActionTemplate()
     {

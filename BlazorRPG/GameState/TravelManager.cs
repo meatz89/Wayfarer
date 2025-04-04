@@ -20,6 +20,20 @@
         this.ActionFactory = actionFactory;
     }
 
+    public void TravelToLocationWithEncounter(string locationName, TravelMethods travelMethod = TravelMethods.Walking)
+    {
+        // Store destination for encounter system to use
+        gameState.PendingTravel = new PendingTravel
+        {
+            Destination = locationName,
+            TravelMethod = travelMethod
+        };
+
+        // Start travel encounter
+        // The encounter system should check gameState.PendingTravel
+        // to determine the appropriate travel encounter
+    }
+
     public void TravelToLocation(string locationName, TravelMethods travelMethod = TravelMethods.Walking)
     {
         if (worldState.CurrentLocation != null)
@@ -63,9 +77,8 @@
                 worldState.LastHubDepth = locationDepth;
             }
         }
-
-        gameState.WorldState.SetCurrentLocation(location);
-        LocationSystem.SetCurrentLocation(location.Name);
+        
+        LocationSystem.SetCurrentLocation(location);
     }
 
     private void ApplyDiscoveryBonus(Location location)
@@ -121,22 +134,6 @@
                                                              // TODO: Implement food consumption when available
         }
     }
-
-    private void ConsumeTravelResources(int travelMinutes, int depthDifference, TravelMethods travelMethod)
-    {
-        // Base energy cost
-        int baseCost = Math.Max(1, travelMinutes / 15); // 1 energy per 15 minutes of travel
-
-        // Depth scaling (higher depths cost more)
-        double depthMultiplier = 1.0 + (depthDifference * 0.1);
-
-        // Calculate final energy cost
-        int energyCost = (int)Math.Ceiling(baseCost * depthMultiplier);
-
-        // Apply the cost
-        gameState.PlayerState.ModifyEnergy(-energyCost);
-    }
-
 
     internal async void InitializeLocationSystem()
     {

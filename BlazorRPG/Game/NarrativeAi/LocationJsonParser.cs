@@ -3,34 +3,26 @@ public static class LocationJsonParser
 {
     public static LocationDetails ParseLocationDetails(string jsonResponse)
     {
-        try
-        {
-            // Extract JSON from text response if needed
-            string json = ExtractJsonFromText(jsonResponse);
-            JsonElement jsonObj = JsonDocument.Parse(json).RootElement;
+        // Extract JSON from text response if needed
+        string json = ExtractJsonFromText(jsonResponse);
+        JsonElement jsonObj = JsonDocument.Parse(json).RootElement;
 
-            // Create the location details
-            LocationDetails details = new LocationDetails
-            {
-                Name = GetStringProperty(jsonObj, "name") ?? "UnknownLocation",
-                Description = GetStringProperty(jsonObj, "description") ?? "",
-                DetailedDescription = GetStringProperty(jsonObj, "detailedDescription") ?? "",
-                History = GetStringProperty(jsonObj, "history") ?? "",
-                PointsOfInterest = GetStringProperty(jsonObj, "pointsOfInterest") ?? "",
-                TravelTimeMinutes = GetIntProperty(jsonObj, "travelTimeMinutes") ?? 120,
-                TravelDescription = GetStringProperty(jsonObj, "travelDescription") ?? "",
-                ConnectedLocationIds = ParseStringArray(jsonObj, "connectedLocationIds"),
-                TimeProperties = ParseTimeProperties(jsonObj, "timeProperties"),
-                Spots = ParseSpots(jsonObj, "spots"),
-            };
-
-            return details;
-        }
-        catch (Exception ex)
+        // Create the location details
+        LocationDetails details = new LocationDetails
         {
-            // Return a default location if parsing fails
-            return CreateDefaultLocation("DefaultLocation");
-        }
+            Name = GetStringProperty(jsonObj, "name") ?? "UnknownLocation",
+            Description = GetStringProperty(jsonObj, "description") ?? "",
+            DetailedDescription = GetStringProperty(jsonObj, "detailedDescription") ?? "",
+            History = GetStringProperty(jsonObj, "history") ?? "",
+            PointsOfInterest = GetStringProperty(jsonObj, "pointsOfInterest") ?? "",
+            TravelTimeMinutes = GetIntProperty(jsonObj, "travelTimeMinutes") ?? 120,
+            TravelDescription = GetStringProperty(jsonObj, "travelDescription") ?? "",
+            ConnectedLocationIds = ParseStringArray(jsonObj, "connectedLocationIds"),
+            TimeProperties = ParseTimeProperties(jsonObj, "timeProperties"),
+            Spots = ParseSpots(jsonObj, "spots"),
+        };
+
+        return details;
     }
 
     private static string? GetStringProperty(JsonElement element, string propertyName)
@@ -198,53 +190,6 @@ public static class LocationJsonParser
             default:
                 return null;
         }
-    }
-
-    private static LocationDetails CreateDefaultLocation(string name)
-    {
-        // Create a basic default location if parsing fails
-        LocationDetails details = new LocationDetails
-        {
-            Name = name,
-            Description = "A basic location",
-            DetailedDescription = "This location was created as a fallback due to parsing errors.",
-            TravelTimeMinutes = 60,
-            TravelDescription = "A simple path leads to this location.",
-            ConnectedLocationIds = new List<string> { "Village" },
-            EnvironmentalProperties = new List<IEnvironmentalProperty>
-        {
-            Illumination.Bright,
-            Population.Quiet,
-            Atmosphere.Formal,
-            Economic.Humble,
-            Physical.Confined
-        }
-        };
-
-        // Add default time properties
-        details.TimeProperties = new Dictionary<string, List<IEnvironmentalProperty>>
-    {
-        { "Morning", new List<IEnvironmentalProperty> { Illumination.Bright, Population.Quiet } },
-        { "Afternoon", new List<IEnvironmentalProperty> { Illumination.Bright, Population.Crowded } },
-        { "Evening", new List<IEnvironmentalProperty> { Illumination.Shadowy, Population.Crowded } },
-        { "Night", new List<IEnvironmentalProperty> { Illumination.Dark, Population.Quiet } }
-    };
-
-        // Add a default spot
-        details.Spots = new List<SpotDetails>
-        {
-            new SpotDetails
-            {
-                Name = "Central Area",
-                Description = "The main area of this location.",
-                InteractionType = "Feature",
-                InteractionDescription = "Explore the area",
-                Position = "Center",
-                ActionNames = new List<string> { ActionNames.RentRoom.ToString() }
-            }
-        };
-
-        return details;
     }
 
     // Helper to extract JSON from text that might contain other content
