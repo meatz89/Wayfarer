@@ -1,4 +1,6 @@
-﻿public class GameManager
+﻿using System.Text;
+
+public class GameManager
 {
     public PlayerState playerState => gameState.PlayerState;
     public WorldState worldState => gameState.WorldState;
@@ -293,15 +295,31 @@
         // Get current depth and hub depth
         int currentDepth = worldState.GetLocationDepth(worldState.CurrentLocation?.Name ?? "");
 
+        // Check if this was a travel encounter
+        bool wasTravelEncounter = gameState.PendingTravel?.IsTravelPending ?? false;
+        string travelDestination = gameState.PendingTravel?.Destination ?? "";
+
+        // Get all locations
+        List<Location> allLocations = worldState.GetLocations();
+
         return new WorldEvolutionInput
         {
             EncounterNarrative = encounterNarrative,
             CharacterBackground = playerState.Archetype.ToString(),
             CurrentLocation = worldState.CurrentLocation?.Name ?? "Unknown",
-            KnownLocations = string.Join(", ", worldState.GetLocations().Select(l => l.Name)),
-            KnownCharacters = string.Join(", ", worldState.GetCharacters().Select(c => c.Name)),
-            ActiveOpportunities = string.Join(", ", worldState.GetOpportunities().Select(o => o.Name)),
+            KnownLocations = FormatKnownLocations(allLocations),
+            KnownCharacters = FormatKnownCharacters(worldState.GetCharacters()),
+            ActiveOpportunities = FormatActiveOpportunities(worldState.GetOpportunities()),
             EncounterOutcome = encounterOutcome,
+
+            // Format world context information
+            CurrentLocationSpots = FormatLocationSpots(worldState.CurrentLocation),
+            AllKnownLocationSpots = FormatAllLocationSpots(allLocations),
+            AllExistingActions = FormatExistingActions(allLocations),
+
+            // Add travel-specific information
+            WasTravelEncounter = wasTravelEncounter,
+            TravelDestination = travelDestination,
 
             CurrentDepth = currentDepth,
             LastHubDepth = worldState.LastHubDepth,
@@ -312,7 +330,6 @@
         };
     }
 
-    // Modify ExecuteEncounterChoice in GameManager
     public async Task<EncounterResult> ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
     {
         EncounterManager encounter = choiceOption.encounter;
@@ -359,6 +376,125 @@
         }
 
         return currentResult;
+    }
+
+    private string FormatKnownLocations(List<Location> locations)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if (locations == null || !locations.Any())
+            return "None";
+
+        foreach (var loc in locations)
+        {
+            sb.AppendLine($"- {loc.Name}: {loc.Description} (Depth: {worldState.GetLocationDepth(loc.Name)})");
+        }
+
+        return sb.ToString();
+    }
+
+    private string FormatKnownCharacters(List<Character> characters)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if (characters == null || !characters.Any())
+            return "None";
+
+        foreach (var character in characters)
+        {
+            sb.AppendLine($"- {character.Name}: {character.Role} at {character.Location}");
+            if (!string.IsNullOrEmpty(character.Description))
+                sb.AppendLine($"  Description: {character.Description}");
+        }
+
+        return sb.ToString();
+    }
+
+    private string FormatLocationSpots(Location location)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if (location == null || location.Spots == null || !location.Spots.Any())
+            return "None";
+
+        foreach (var spot in location.Spots)
+        {
+            sb.AppendLine($"- {spot.Name}: {spot.Description}");
+        }
+
+        return sb.ToString();
+    }
+
+    private string FormatAllLocationSpots(List<Location> locations)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if (locations == null || !locations.Any())
+            return "None";
+
+        foreach (var location in locations)
+        {
+            if (location.Spots == null || !location.Spots.Any())
+                continue;
+
+            sb.AppendLine($"## {location.Name} Spots:");
+            foreach (var spot in location.Spots)
+            {
+                sb.AppendLine($"- {spot.Name}: {spot.Description}");
+            }
+            sb.AppendLine();
+        }
+
+        return sb.Length > 0 ? sb.ToString() : "None";
+    }
+
+    private string FormatExistingActions(List<Location> locations)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if (locations == null || !locations.Any())
+            return "None";
+
+        foreach (var location in locations)
+        {
+            if (location.Spots == null || !location.Spots.Any())
+                continue;
+
+            foreach (var spot in location.Spots)
+            {
+                if (spot.ActionTemplates == null || !spot.ActionTemplates.Any())
+                    continue;
+
+                sb.AppendLine($"## Actions at {location.Name} / {spot.Name}:");
+
+                foreach (var actionTemplate in spot.ActionTemplates)
+                {
+                    var action = ActionRepository.GetAction(actionTemplate);
+                    if (action != null)
+                    {
+                        sb.AppendLine($"- {action.Name}: {action.Goal}");
+                    }
+                }
+                sb.AppendLine();
+            }
+        }
+
+        return sb.Length > 0 ? sb.ToString() : "None";
+    }
+
+    private string FormatActiveOpportunities(List<Opportunity> opportunities)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if (opportunities == null || !opportunities.Any())
+            return "None";
+
+        foreach (var opportunity in opportunities.Where(o => o.Status == "Available"))
+        {
+            sb.AppendLine($"- {opportunity.Name}: {opportunity.Description} (at {opportunity.Location})");
+        }
+
+        return sb.ToString();
     }
 
     public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions(EncounterManager encounter)

@@ -32,10 +32,10 @@
     }
 
     public async Task<Location> IntegrateWorldEvolution(
-        WorldEvolutionResponse evolution,
-        WorldState worldState,
-        LocationSystem locationSystem,
-        PlayerState playerState)
+    WorldEvolutionResponse evolution,
+    WorldState worldState,
+    LocationSystem locationSystem,
+    PlayerState playerState)
     {
         // Process coin change
         if (evolution.CoinChange != 0)
@@ -49,19 +49,34 @@
         // Process relationship changes
         ProcessRelationshipChanges(evolution, playerState);
 
-        // Process new locations
+        Location travelLocation = null;
+
+        // First, process new locations so they exist before processing spots
         foreach (Location location in evolution.NewLocations)
         {
-            // Ensure each location has at least one spot
-            if (location.Spots == null || !location.Spots.Any())
+            // Check if this location might be a travel destination
+            bool isTravelDestination = evolution.LocationUpdate?.LocationChanged == true &&
+                                      evolution.LocationUpdate?.NewLocationName == location.Name;
+
+            // Store reference if this is a travel destination
+            if (isTravelDestination)
+            {
+                travelLocation = location;
+            }
+
+            // Verify location has spots collection (shouldn't be needed with proper prompting)
+            if (location.Spots == null)
             {
                 location.Spots = new List<LocationSpot>();
             }
 
-            worldState.AddLocations(new List<Location> { location });
+            // Add location to world state
+            worldState.AddLocation(location);
 
+            // Set location depth
             worldState.SetLocationDepth(location.Name, location.Depth);
 
+            // Update hub tracking if applicable
             worldState.UpdateHubTracking(location);
         }
 
@@ -75,20 +90,61 @@
             if (!string.IsNullOrEmpty(targetLocationName))
             {
                 locationSystem.AddSpot(targetLocationName, spot);
+
+                // If this spot belongs to our travel destination, update reference
+                if (travelLocation != null && targetLocationName == travelLocation.Name)
+                {
+                    // No need to add the spot again as it's already added above,
+                    // but we ensure our travelLocation reference is up to date
+                }
             }
         }
 
-        // Process new actions
+        // Process new actions and associate them with the appropriate spots
         await ProcessNewActions(evolution, worldState);
 
         // Add new characters
-        worldState.AddCharacters(evolution.NewCharacters);
+        foreach (Character character in evolution.NewCharacters)
+        {
+            worldState.AddCharacter(character);
+        }
 
         // Add new opportunities
-        worldState.AddOpportunities(evolution.NewOpportunities);
+        foreach (Opportunity opportunity in evolution.NewOpportunities)
+        {
+            worldState.AddOpportunity(opportunity);
+        }
 
-        // Process player location change (must be done last after all locations are set up)
-        return ProcessPlayerLocationChange(evolution, worldState, playerState);
+        // Process player location change
+        if (evolution.LocationUpdate?.LocationChanged == true &&
+            !string.IsNullOrEmpty(evolution.LocationUpdate.NewLocationName))
+        {
+            // Get the location to move to (either new or existing)
+            string targetLocationName = evolution.LocationUpdate.NewLocationName;
+            Location newPlayerLocation = worldState.GetLocation(targetLocationName);
+
+            if (newPlayerLocation != null)
+            {
+                travelLocation = newPlayerLocation;
+
+                // Log for debugging purposes
+                Console.WriteLine($"Player moved to location: {newPlayerLocation.Name}");
+
+                // Verify this location has spots (shouldn't be needed with proper prompting)
+                if (newPlayerLocation.Spots == null || !newPlayerLocation.Spots.Any())
+                {
+                    // This should never happen with proper prompting
+                    Console.WriteLine($"WARNING: Travel location {newPlayerLocation.Name} has no spots! Check world evolution prompt.");
+                }
+            }
+            else
+            {
+                // This should never happen with proper prompting
+                Console.WriteLine($"ERROR: Travel location {targetLocationName} was not created or doesn't exist!");
+            }
+        }
+
+        return travelLocation;
     }
 
     private async Task ProcessNewActions(WorldEvolutionResponse evolution, WorldState worldState)
@@ -104,7 +160,9 @@
                 if (spotForAction != null)
                 {
                     if (spotForAction.ActionTemplates == null)
+                    {
                         spotForAction.ActionTemplates = new List<string>();
+                    }
 
                     // Create action template linked to the encounter
                     string actionTemplateName = await _actionGenerator.GenerateActionAndEncounter(
@@ -120,7 +178,17 @@
 
                     EncounterTemplate encounterTemplate = _actionRepository.GetEncounterTemplate(encounterTemplateName);
                     spotForAction.ActionTemplates.Add(actionTemplate.Name);
+
+                    Console.WriteLine($"Created new action {newAction.Name} at {newAction.LocationName}/{newAction.SpotName}");
                 }
+                else
+                {
+                    Console.WriteLine($"WARNING: Could not find spot {newAction.SpotName} at location {newAction.LocationName} for action {newAction.Name}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"WARNING: Could not find location {newAction.LocationName} for action {newAction.Name}");
             }
         }
     }
@@ -168,42 +236,12 @@
 
                 // Update relationship
                 playerState.Relationships.SetLevel(relationshipChange.CharacterName, newLevel);
+
+                Console.WriteLine($"Updated relationship with {relationshipChange.CharacterName}: {currentLevel} -> {newLevel} ({relationshipChange.ChangeAmount:+0;-0})");
             }
         }
     }
 
-    private Location ProcessPlayerLocationChange(
-        WorldEvolutionResponse evolution,
-        WorldState worldState,
-        PlayerState playerState)
-    {
-        Location travelLocation = null;
-
-        if (evolution.LocationUpdate.LocationChanged && !string.IsNullOrEmpty(evolution.LocationUpdate.NewLocationName))
-        {
-            // Find the location (should exist now after processing new locations)
-            Location newPlayerLocation = worldState.GetLocation(evolution.LocationUpdate.NewLocationName);
-            if (newPlayerLocation != null)
-            {
-                travelLocation = newPlayerLocation;
-            }
-            else
-            {
-                // If location doesn't exist, create a minimal one with a default spot and action
-                Location newLocation = new Location
-                {
-                    Name = evolution.LocationUpdate.NewLocationName,
-                    Description = $"A location the player traveled to during an encounter.",
-                    Spots = new List<LocationSpot>(),
-                    ConnectedTo = new List<string> { worldState.CurrentLocation?.Name ?? string.Empty }
-                };
-                worldState.AddLocations(new List<Location> { newLocation });
-                travelLocation = newLocation;
-            }
-        }
-
-        return travelLocation;
-    }
 
     private BasicActionTypes ParseActionType(string actionTypeStr)
     {
