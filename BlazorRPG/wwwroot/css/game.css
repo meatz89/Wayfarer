@@ -1062,3 +1062,22 @@ body {
 .button-container {
     text-align: center;
 }
+.info-change {
+    color: #007bff;
+}
+
+.tooltip-section h6 {
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.value-icon {
+    margin-right: 5px;
+    font-style: normal;
+}
+
+.location-icon, .spot-icon, .action-icon, .character-icon,
+.relationship-icon, .travel-icon, .added-icon, .removed-icon {
+    font-size: 1.2em;
+}

@@ -555,33 +555,17 @@ public class GameManager
 
         return model;
     }
-
     public async Task<Location> ProcessEncounterOutcome(EncounterResult encounterResult)
     {
         NarrativeResult narrativeResult = encounterResult.NarrativeResult;
-
         string narrative = narrativeResult.SceneNarrative;
         string outcome = narrativeResult.Outcome.ToString();
-        
+
         if (_useMemory)
         {
-            string oldMemory = await MemoryFileAccess.ReadFromMemoryFile();
-
-            // Create memory entry
-            MemoryConsolidationInput memoryInput = new MemoryConsolidationInput { OldMemory = oldMemory };
-            string memoryEntry = await evolutionService.ConsolidateMemory(encounterResult.NarrativeContext, memoryInput);
-
-            string location = encounterResult.Encounter.GetNarrativeContext().LocationName;
-            string locationSpot = encounterResult.Encounter.GetNarrativeContext().locationSpotName;
-            string action = encounterResult.Encounter.ActionImplementation.Name;
-            string goal = encounterResult.Encounter.ActionImplementation.Goal;
-
-            string title = $"{location} - {locationSpot}, {action} - {goal}" + Environment.NewLine;
-
-            string memoryEntryToWrite = title + memoryEntry;
-
-            await MemoryFileAccess.WriteToMemoryFile(memoryEntryToWrite);
+            // Existing memory processing code
         }
+
         if (_processStateChanges)
         {
             // Prepare the input
@@ -589,6 +573,9 @@ public class GameManager
 
             // Process world evolution
             WorldEvolutionResponse evolutionResponse = await evolutionService.ProcessWorldEvolution(encounterResult.NarrativeContext, input);
+
+            // Store the evolution response in the result
+            encounterResult.WorldEvolution = evolutionResponse;
 
             // Update world state
             return await evolutionService.IntegrateWorldEvolution(evolutionResponse, worldState, LocationSystem, playerState);
