@@ -3,17 +3,41 @@
     public static List<EncounterTemplate> GetAllTemplates()
     {
         List<EncounterTemplate> encounterTemplates = new() {
-            BanditEncounter,
-            HuntingEncounter,
-            HerbalismEncounter,
-            MerchantEncounter,
-            InformantEncounter,
-            QuestBoardEncounter,
-            InnRoomEncounter,
-            TavernGossipEncounter
-            };
+            TravelEncounter,
+        };
+
         return encounterTemplates;
     }
+
+    public static EncounterTemplate TravelEncounter => new EncounterTemplate()
+    {
+        Name = "Travel",
+        Duration = 3,
+        MaxPressure = 10,
+        PartialThreshold = 4,
+        StandardThreshold = 8,
+        ExceptionalThreshold = 12,
+
+        Hostility = EncounterInfo.HostilityLevels.Neutral,
+
+        PressureReducingFocuses = new[] { FocusTags.Environment, FocusTags.Physical }.ToList(),
+        MomentumReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
+
+        EncounterNarrativeTags =
+        [
+            NarrativeTagRepository.TunnelVision,
+            NarrativeTagRepository.Overthinking,
+            NarrativeTagRepository.CautiousRestraint
+        ],
+
+        encounterStrategicTags =
+        [
+            new StrategicTag("Changing Light", Illumination.Shadowy),
+            new StrategicTag("Open Road", Population.Quiet),
+            new StrategicTag("Journey Hazards", Atmosphere.Tense),
+            new StrategicTag("Varied Terrain", Physical.Hazardous)
+        ]
+    };
 
     // FOREST ENCOUNTERS
     public static EncounterTemplate HermitEncounter => new EncounterTemplate()

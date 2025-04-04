@@ -34,9 +34,10 @@ public partial class GameUI : ComponentBase
     public TimeWindows CurrentTime => GameState.WorldState.WorldTime;
     public int CurrentHour => GameState.WorldState.CurrentTimeInHours;
     public bool ShowEncounterResult { get; set; } = false;
-    public bool OngoingEncounter = false;
 
     public EncounterResult EncounterResult => GameState.Actions.EncounterResult;
+
+    public bool OngoingEncounter { get; private set; }
 
     // Tooltip Logic
     public bool showAreaMap = true;
@@ -66,7 +67,7 @@ public partial class GameUI : ComponentBase
 
     private async Task InitializeGame()
     {
-        GameManager.StartGame();
+        await GameManager.StartGame();
 
         // Ensure the user sees the location spot view initially, not the travel view
         showAreaMap = false;
@@ -96,7 +97,9 @@ public partial class GameUI : ComponentBase
         else
         {
             // Execute the action immediately
-            OngoingEncounter = await GameManager.ExecuteBasicAction(action);
+            GameManager.ExecuteBasicAction(action);
+            
+            OngoingEncounter = GameState.Actions.IsActiveEncounter; 
             if (!OngoingEncounter)
             {
                 CompleteActionExecution();
@@ -113,8 +116,6 @@ public partial class GameUI : ComponentBase
         }
         StateHasChanged();
     }
-
-
 
     // Modify HandleLocationSelection method
     private void HandleTravelStart(string locationName)
@@ -136,8 +137,7 @@ public partial class GameUI : ComponentBase
         StateHasChanged();
     }
 
-    // Update OnNarrativeCompleted method
-    private void OnNarrativeCompleted()
+    private async Task OnNarrativeCompleted()
     {
         showNarrative = false;
         ShowEncounterResult = false;
@@ -145,46 +145,25 @@ public partial class GameUI : ComponentBase
         // If this was a travel encounter that completed successfully
         if (EncounterResult.TravelLocation != null)
         {
-            GameManager.TravelToLocation(EncounterResult.TravelLocation.Name);
+            await GameManager.TravelToLocation(EncounterResult.TravelLocation.Name);
         }
 
         // Always return to location spot view after any encounter
         showAreaMap = false;
 
-        FinishEncounter();
+        await FinishEncounter();
         StateHasChanged();
     }
 
-
-    private async Task FinalizeLocationSelection(string locationName)
-    {
-        List<UserLocationTravelOption> currentTravelOptions = GameState.WorldState.CurrentTravelOptions;
-
-        bool enterLocation = locationName == GameState.WorldState.CurrentLocation.Name;
-        ActionResult result;
-
-        if (enterLocation)
-        {
-            showAreaMap = false;
-        }
-        else
-        {
-            List<Location> locations = GameManager.LocationSystem.GetAllLocations();
-            Location? location = locations.FirstOrDefault(x => x.Name == locationName);
-            GameManager.TravelToLocation(location.Name);
-        }
-    }
-
-    private async void FinishEncounter()
+    private async Task FinishEncounter()
     {
         // Reset Encounter logic
         GameManager.FinishEncounter(EncounterResult.Encounter);
         ShowEncounterResult = false;
 
-        GameManager.TravelToLocation(GetCurrentLocation().Name);
+        await GameManager.TravelToLocation(GetCurrentLocation().Name);
         StateHasChanged();
     }
-
 
     public List<string> GetResultMessages()
     {

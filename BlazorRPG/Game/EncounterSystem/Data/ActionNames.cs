@@ -12,4 +12,5 @@
     // Tavern actions
     RentRoom,
     FindQuests,
+    Travel,
 }

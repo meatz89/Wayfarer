@@ -1,6 +1,4 @@
-﻿using System.Xml.Linq;
-
-public class ActionFactory
+﻿public class ActionFactory
 {
     public ActionFactory(ActionRepository actionRepository)
     {
@@ -9,7 +7,7 @@ public class ActionFactory
 
     public ActionRepository ActionRepository { get; }
 
-    public ActionImplementation CreateActionFromTemplate(ActionTemplate template)
+    public ActionImplementation CreateActionFromTemplate(ActionTemplate template, EncounterTemplate encounterTemplate)
     {
         ActionImplementation actionImplementation = new ActionImplementation();
 
@@ -25,18 +23,16 @@ public class ActionFactory
         actionImplementation.BasicActionType = template.BasicActionType;
         actionImplementation.ActionType = template.ActionType;
 
-        string encounterTemplateName = template.EncounterTemplateName;
-        EncounterTemplate encounterTemplate = ActionRepository.GetEncounterTemplate(encounterTemplateName);
-        if (encounterTemplate != null)
-        {
-            actionImplementation.EncounterTemplate = encounterTemplate;
-        }
-
         // Add energy costs
         int energyCost = GameRules.GetBaseEnergyCost(template.BasicActionType);
 
         actionImplementation.Requirements.Add(new EnergyRequirement(energyCost));
         actionImplementation.EnergyCosts.Add(new EnergyOutcome(-energyCost));
+
+        if (encounterTemplate != null)
+        {
+            actionImplementation.EncounterTemplate = encounterTemplate;
+        }
 
         return actionImplementation;
     }

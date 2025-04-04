@@ -13,6 +13,7 @@
     public ActionFactory ActionFactory { get; }
     public ActionRepository ActionRepository { get; }
     public TravelManager TravelManager { get; }
+    public ActionGenerator ActionGenerator { get; }
     public EncounterSystem EncounterSystem { get; }
     public EncounterResult currentResult { get; set; }
 
@@ -34,6 +35,7 @@
         ActionFactory actionFactory,
         ActionRepository actionRepository,
         TravelManager travelManager,
+        ActionGenerator actionGenerator,
         IConfiguration configuration
         )
     {
@@ -47,13 +49,14 @@
         ActionFactory = actionFactory;
         ActionRepository = actionRepository;
         TravelManager = travelManager;
+        ActionGenerator = actionGenerator;
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
         _useMemory = configuration.GetValue<bool>("useMemory");
     }
 
-    public void StartGame()
+    public async Task StartGame()
     {
-        TravelToLocation(gameState.PlayerState.StartingLocation);
+        await TravelToLocation(gameState.PlayerState.StartingLocation);
 
         // Verify current location spot was set
         if (worldState.CurrentLocationSpot == null && worldState.CurrentLocation?.Spots?.Any() == true)
@@ -82,7 +85,8 @@
             travelTemplate = new ActionTemplate
             {
                 Name = "Travel",
-                ActionType = ActionTypes.Encounter, // Using existing encounter type
+                EncounterTemplateName = "Travel",
+                ActionType = ActionTypes.Encounter,
                 BasicActionType = BasicActionTypes.Travel,
                 Goal = "Travel safely to your destination",
                 IsRepeatable = true,
@@ -97,7 +101,8 @@
         }
 
         // Create travel action
-        ActionImplementation travelAction = ActionFactory.CreateActionFromTemplate(travelTemplate);
+        EncounterTemplate travelEncounter = ActionRepository.GetEncounterTemplate("Travel");
+        ActionImplementation travelAction = ActionFactory.CreateActionFromTemplate(travelTemplate, travelEncounter);
 
         // Create option
         UserActionOption travelOption = new UserActionOption(
@@ -106,17 +111,19 @@
             null, worldState.CurrentLocation.Difficulty);
 
         // Execute to start travel encounter
-        _ = ExecuteBasicAction(travelOption);
+        ExecuteBasicAction(travelOption);
     }
 
-    internal void TravelToLocation(string name)
+    internal async Task TravelToLocation(string name)
     {
         TravelManager.TravelToLocation(name, TravelMethods.Walking);
+
         UpdateState();
-        OnPlayerEnterLocation(gameState.WorldState.CurrentLocation);
+
+        await OnPlayerEnterLocation(gameState.WorldState.CurrentLocation);
     }
 
-    private void OnPlayerEnterLocation(Location location)
+    private async Task OnPlayerEnterLocation(Location location)
     {
         List<UserActionOption> options = new List<UserActionOption>();
         if (location == null) return;
@@ -133,13 +140,13 @@
 
         foreach (LocationSpot locationSpot in locationSpots)
         {
-            CreateActionsForLocationSpot(options, location, locationSpot);
+            await CreateActionsForLocationSpot(options, location, locationSpot);
         }
 
         gameState.Actions.SetLocationSpotActions(options);
     }
 
-    private void CreateActionsForLocationSpot(
+    private async Task CreateActionsForLocationSpot(
         List<UserActionOption> options,
         Location location,
         LocationSpot locationSpot)
@@ -148,7 +155,15 @@
         foreach (string locationSpotAction in locationSpotActions)
         {
             ActionTemplate actionTemplate = ActionRepository.GetAction(locationSpotAction);
-            ActionImplementation actionImplementation = ActionFactory.CreateActionFromTemplate(actionTemplate);
+
+            EncounterTemplate encounterTemplate = ActionRepository.GetEncounterTemplate(actionTemplate.EncounterTemplateName);
+            if (encounterTemplate == null)
+            {
+                string encounterTemplateName = await ActionGenerator.CreateEncounterForAction(actionTemplate);
+                encounterTemplate = ActionRepository.GetEncounterTemplate(encounterTemplateName);
+            }
+
+            ActionImplementation actionImplementation = ActionFactory.CreateActionFromTemplate(actionTemplate, encounterTemplate);
 
             UserActionOption userActionOption =
                 new UserActionOption(
@@ -165,7 +180,7 @@
         }
     }
 
-    public async Task<bool> ExecuteBasicAction(UserActionOption action)
+    public void ExecuteBasicAction(UserActionOption action)
     {
         actionImplementation = action.ActionImplementation;
         locationSpot = action.LocationSpot;
@@ -174,14 +189,13 @@
         gameState.Actions.SetCurrentUserAction(action);
 
         bool startEncounter = actionImplementation.ActionType == ActionTypes.Encounter;
-        if (startEncounter)
+        if (!startEncounter)
         {
-            return true;
+            ApplyActionOutcomes(actionImplementation);
         }
         else
         {
-            ApplyActionOutcomes(actionImplementation);
-            return false;
+            gameState.Actions.IsActiveEncounter = true;
         }
     }
 

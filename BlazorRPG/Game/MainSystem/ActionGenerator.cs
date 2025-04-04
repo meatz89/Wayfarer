@@ -1,4 +1,6 @@
-﻿public class ActionGenerator
+﻿using System.Xml.Linq;
+
+public class ActionGenerator
 {
     private readonly NarrativeService _narrativeService;
     private readonly ActionRepository _repository;
@@ -9,6 +11,33 @@
     {
         _narrativeService = narrativeService;
         _repository = repository;
+    }
+
+    public async Task<string> CreateEncounterForAction(ActionTemplate actionTemplate)
+    {
+        ActionGenerationContext context = new ActionGenerationContext
+        {
+            ActionName = actionTemplate.Name,
+            Goal = actionTemplate.Goal,
+            Complication = actionTemplate.Complication,
+            BasicActionType = actionTemplate.BasicActionType.ToString(),
+            SpotName = actionTemplate.LocationSpotName,
+            LocationName = actionTemplate.LocationName,
+        };
+
+        // Get action and encounter details from AI
+        string jsonResponse = await _narrativeService.GenerateActionsAsync(context);
+
+        // Parse the response
+        ActionCreationResult result = ActionJsonParser.Parse(jsonResponse);
+
+        // Create and register the encounter template
+        EncounterTemplate encounterTemplate = CreateEncounterTemplate(result.EncounterTemplate);
+
+        string encounterName = $"{result.Action.Name}Encounter";
+        _repository.RegisterEncounterTemplate(encounterName, encounterTemplate);
+
+        return encounterName;
     }
 
     public async Task<string> GenerateActionAndEncounter(
@@ -185,4 +214,5 @@
             _ => EncounterInfo.HostilityLevels.Neutral
         };
     }
+
 }
