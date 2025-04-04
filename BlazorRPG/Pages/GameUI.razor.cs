@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-
 namespace BlazorRPG.Pages;
 
 public partial class GameUI : ComponentBase
@@ -10,30 +9,31 @@ public partial class GameUI : ComponentBase
 
     public List<string> ResultMessages => GetResultMessages();
 
-    public int physicalEnergyCurrent => GameState.Player.PhysicalEnergy;
-    public int physicalEnergyMax => GameState.Player.MaxPhysicalEnergy;
+    public PlayerState PlayerState => GameState.PlayerState;
 
-    public int health => GameState.Player.Health;
-    public int maxHealth => GameState.Player.MaxHealth;
+    public int energyCurrent => GameState.PlayerState.Energy;
+    public int energyMax => GameState.PlayerState.MaxEnergy;
 
-    public int concentration => GameState.Player.Concentration;
-    public int maxConcentration => GameState.Player.MaxConcentration;
+    public int health => GameState.PlayerState.Health;
+    public int maxHealth => GameState.PlayerState.MaxHealth;
 
-    public int confidence => GameState.Player.Confidence;
-    public int maxConfidence => GameState.Player.MaxConfidence;
+    public int concentration => GameState.PlayerState.Concentration;
+    public int maxConcentration => GameState.PlayerState.MaxConcentration;
 
-    public int coins => GameState.Player.Coins;
-    public int food => GameState.Player.Inventory.GetItemCount(ItemTypes.Food);
+    public int confidence => GameState.PlayerState.Confidence;
+    public int maxConfidence => GameState.PlayerState.MaxConfidence;
+
+    public int coins => GameState.PlayerState.Coins;
 
     public List<Location> Locations => GameManager.GetPlayerKnownLocations();
 
     private bool showNarrative = false;
-    private LocationNames selectedLocation;
-    public PlayerState Player => GameState.Player;
-    public Location CurrentLocation => GameState.World.CurrentLocation;
-    public LocationSpot CurrentSpot => GameState.World.CurrentLocationSpot;
-    public TimeWindows CurrentTime => GameState.World.WorldTime;
-    public int CurrentHour => GameState.World.CurrentTimeInHours;
+    private string selectedLocation;
+    public PlayerState Player => GameState.PlayerState;
+
+    public LocationSpot CurrentSpot => GameState.WorldState.CurrentLocationSpot;
+    public TimeWindows CurrentTime => GameState.WorldState.WorldTime;
+    public int CurrentHour => GameState.WorldState.CurrentTimeInHours;
     public bool ShowEncounterResult { get; set; } = false;
     public bool OngoingEncounter = false;
 
@@ -47,9 +47,41 @@ public partial class GameUI : ComponentBase
     private double mouseX;
     private double mouseY;
 
-    protected override void OnInitialized()
+    private bool needsCharacterCreation = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if character has been created
+        needsCharacterCreation = string.IsNullOrEmpty(GameState.PlayerState.Name);
+
+        if (!needsCharacterCreation)
+        {
+            GameState.PlayerState.Name = "meatz";
+            await InitializeGame();
+        }
+    }
+
+    private async Task HandleCharacterCreated(PlayerState playerState)
+    {
+        needsCharacterCreation = false;
+        await InitializeGame();
+        StateHasChanged();
+    }
+
+    private async Task InitializeGame()
     {
         GameManager.StartGame();
+        GameManager.InitializeLocationSystem();
+    }
+
+    public Location GetCurrentLocation()
+    {
+        Location loc = GameState.WorldState.CurrentLocation;
+        if (loc != null)
+        {
+            return loc;
+        }
+        return new Location() { Name = "Default" };
     }
 
     public EncounterManager GetCurrentEncounter()
@@ -77,11 +109,17 @@ public partial class GameUI : ComponentBase
         {
             OngoingEncounter = false;
             ShowEncounterResult = true;
+
+            if(result.TravelLocation != null)
+            {
+                GameManager.TravelToLocation(result.TravelLocation.Name);
+                showAreaMap = true;
+            }
         }
         StateHasChanged();
     }
 
-    private void HandleLocationSelection(LocationNames locationName)
+    private void HandleLocationSelection(string locationName)
     {
         selectedLocation = locationName;
 
@@ -98,58 +136,35 @@ public partial class GameUI : ComponentBase
         FinishEncounter();
     }
 
-    private void FinalizeLocationSelection(LocationNames locationName)
+    private async Task FinalizeLocationSelection(string locationName)
     {
-        List<UserLocationTravelOption> currentTravelOptions = GameState.World.CurrentTravelOptions;
+        List<UserLocationTravelOption> currentTravelOptions = GameState.WorldState.CurrentTravelOptions;
 
-        bool enterLocation = locationName == GameState.World.CurrentLocation.LocationName;
+        bool enterLocation = locationName == GameState.WorldState.CurrentLocation.Name;
         ActionResult result;
 
         if (enterLocation)
         {
-            result = GameManager.TravelToLocation(locationName);
-            GameManager.TravelToLocation(locationName);
+            showAreaMap = false;
         }
         else
         {
-            UserLocationTravelOption location = currentTravelOptions.FirstOrDefault(x => x.Location == locationName);
-            result = GameManager.TravelToLocation(location.Location);
-        }
-
-        if (result.IsSuccess)
-        {
-            CompleteActionExecution();
-            showAreaMap = false;
+            List<Location> locations = GameManager.LocationSystem.GetAllLocations();
+            Location? location = locations.FirstOrDefault(x => x.Name == locationName);
+            GameManager.TravelToLocation(location.Name);
         }
     }
 
-    private void FinishEncounter()
+    private async void FinishEncounter()
     {
         // Reset Encounter logic
         GameManager.FinishEncounter(EncounterResult.Encounter);
         ShowEncounterResult = false;
 
-        ActionResult result = GameManager.TravelToLocation(CurrentLocation.LocationName);
+        GameManager.TravelToLocation(GetCurrentLocation().Name);
         StateHasChanged();
     }
 
-    public bool CurrentEncounterOngoing()
-    {
-        if (GetCurrentEncounter == null) return false;
-        if (EncounterResult == null) return false;
-        if (EncounterResult.EncounterResults == EncounterResults.Ongoing) { return true; }
-        return false;
-    }
-
-    public string GetModifierDescription(IGameStateModifier modifier)
-    {
-        if (modifier is FoodModfier modfier)
-        {
-            return $"Need additional Food: {modfier.AdditionalFood}";
-        }
-
-        return string.Empty;
-    }
 
     public List<string> GetResultMessages()
     {
@@ -184,14 +199,9 @@ public partial class GameUI : ComponentBase
         return list;
     }
 
-    public List<Quest> GetActiveQuests()
-    {
-        return GameState.Actions.ActiveQuests;
-    }
-
     private void HandleSpotSelection(LocationSpot locationSpot)
     {
-        List<UserLocationSpotOption> userLocationSpotOptions = GameState.World.CurrentLocationSpotOptions;
+        List<UserLocationSpotOption> userLocationSpotOptions = GameState.WorldState.CurrentLocationSpotOptions;
         UserLocationSpotOption userLocationSpot = userLocationSpotOptions.FirstOrDefault(x => x.LocationSpot == locationSpot.Name);
 
         GameManager.MoveToLocationSpot(userLocationSpot.Location, locationSpot.Name);
@@ -204,7 +214,7 @@ public partial class GameUI : ComponentBase
 
     private List<PropertyDisplay> GetLocationProperties(Location location)
     {
-        WorldState world = GameState.World;
+        WorldState world = GameState.WorldState;
 
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
@@ -231,10 +241,10 @@ public partial class GameUI : ComponentBase
     {
         return time switch
         {
-            TimeWindows.Midnight => "🌙",
-            TimeWindows.Dawn => "🌄",
-            TimeWindows.Noon => "☀️",
-            TimeWindows.Dusk => "🌆",
+            TimeWindows.Night => "🌙",
+            TimeWindows.Morning => "🌄",
+            TimeWindows.Afternoon => "☀️",
+            TimeWindows.Evening => "🌆",
             _ => "❓"
         };
     }
@@ -257,5 +267,79 @@ public partial class GameUI : ComponentBase
             .Select((x, i) => i > 0 && char.IsUpper(x) ? " " + x : x.ToString()))
             .Replace("Type", "")
             .Replace("Types", "");
+    }
+    private string GetArchetypeIcon(ArchetypeTypes archetype)
+    {
+        return archetype switch
+        {
+            ArchetypeTypes.Warrior => "⚔️",
+            ArchetypeTypes.Scholar => "📚",
+            ArchetypeTypes.Ranger => "🏹",
+            ArchetypeTypes.Bard => "🎵",
+            ArchetypeTypes.Thief => "🗝️",
+            _ => "❓"
+        };
+    }
+
+    private string GetItemIcon(ItemTypes itemType)
+    {
+        return itemType switch
+        {
+            ItemTypes.Sword => "⚔️",
+            ItemTypes.Shield => "🛡️",
+            ItemTypes.Bow => "🏹",
+            ItemTypes.Arrow => "🪶",
+            ItemTypes.Dagger => "🔪",
+            ItemTypes.Lockpicks => "🗝️",
+            ItemTypes.Book => "📚",
+            ItemTypes.Scroll => "📜",
+            ItemTypes.Lute => "🎵",
+            ItemTypes.Rope => "🧶",
+            ItemTypes.Rations => "🍖",
+            ItemTypes.LeatherArmor => "👕",
+            ItemTypes.WritingKit => "✒️",
+            ItemTypes.HuntingKnife => "🔪",
+            ItemTypes.HealingHerbs => "🍃",
+            ItemTypes.FineClothes => "👘",
+            ItemTypes.WineBottle => "🍷",
+            ItemTypes.ClimbingGear => "⛏️",
+            _ => "📦"
+        };
+    }
+
+    private string FormatItemName(ItemTypes itemType)
+    {
+        // Convert enum names to readable text
+        return System.Text.RegularExpressions.Regex.Replace(
+            itemType.ToString(),
+            "([A-Z])",
+            " $1",
+            System.Text.RegularExpressions.RegexOptions.Compiled).Trim();
+    }
+
+    private string GetItemDescription(ItemTypes itemType)
+    {
+        return itemType switch
+        {
+            ItemTypes.Sword => "A sturdy steel sword",
+            ItemTypes.Shield => "A wooden shield with metal binding",
+            ItemTypes.Bow => "A hunting bow made of yew",
+            ItemTypes.Arrow => "Sharp arrows with fletching",
+            ItemTypes.Dagger => "A small but sharp blade",
+            ItemTypes.Lockpicks => "Tools for picking locks",
+            ItemTypes.Book => "A tome of knowledge",
+            ItemTypes.Scroll => "A rolled parchment with writing",
+            ItemTypes.Lute => "A stringed musical instrument",
+            ItemTypes.Rope => "Strong hemp rope",
+            ItemTypes.Rations => "Dried food for travel",
+            ItemTypes.LeatherArmor => "Protective leather garments",
+            ItemTypes.WritingKit => "Quill, ink and parchment",
+            ItemTypes.HuntingKnife => "A knife for skinning game",
+            ItemTypes.HealingHerbs => "Medicinal plants",
+            ItemTypes.FineClothes => "Well-made attire suitable for performance",
+            ItemTypes.WineBottle => "A bottle of reasonably good wine",
+            ItemTypes.ClimbingGear => "Tools for scaling walls",
+            _ => "A common item"
+        };
     }
 }

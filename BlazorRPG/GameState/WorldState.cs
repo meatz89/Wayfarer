@@ -1,5 +1,80 @@
 ﻿public class WorldState
 {
+    // Core data collections
+    public List<Location> Locations { get; private set; } = new();
+    private List<Character> characters { get; set; } = new();
+    private List<Opportunity> opportunities { get; set; } = new();
+
+    internal List<Location> GetLocations()
+    {
+        return Locations.ToList();
+    }
+
+    internal List<Opportunity> GetOpportunities()
+    {
+        return opportunities.ToList();
+    }
+
+    public List<Character> GetCharacters()
+    {
+        return characters.ToList();
+    }
+
+    public Location GetLocation(string name)
+    {
+        return Locations.FirstOrDefault(x => x.Name == name); ;
+    }
+
+    public Character GetCharacter(string name)
+    {
+        return characters.FirstOrDefault(x => x.Name == name);
+    }
+
+    public Opportunity GetOpportunity(string name)
+    {
+        return opportunities.FirstOrDefault(x => x.Name == name);
+    }
+
+
+    public void AddLocations(List<Location> newLocations)
+    {
+        Locations.AddRange(newLocations);
+    }
+
+    public void AddCharacters(List<Character> newCharacters)
+    {
+        characters.AddRange(newCharacters);
+    }
+
+    public void AddOpportunities(List<Opportunity> newOpportunities)
+    {
+        opportunities.AddRange(newOpportunities);
+    }
+
+    public void AddLocation(Location location)
+    {
+        Locations.Add(location);
+    }
+
+    public void AddCharacter(Character character)
+    {
+        characters.Add(character);
+    }
+
+    public void AddOpportunity(Opportunity opportunity)
+    {
+        opportunities.Add(opportunity);
+    }
+
+    // Game time
+    public int CurrentTimeInHours { get; set; }
+    public int CurrentTimeMinutes { get; set; }  // Minutes since game start
+    public TimeWindows WorldTime { get; set; }
+
+    // World history
+    public List<string> WorldEvents { get; set; } = new List<string>();
+    public WeatherTypes WorldWeather { get; set; }
+
     // Current location tracking
     public Location CurrentLocation { get; set; }
     public LocationSpot CurrentLocationSpot { get; set; }
@@ -8,10 +83,6 @@
     public List<UserLocationTravelOption> CurrentTravelOptions { get; set; } = new();
     public List<UserLocationSpotOption> CurrentLocationSpotOptions { get; set; } = new();
 
-    // Time tracking - moved here since it affects world state
-    public int CurrentTimeInHours { get; set; }
-    public TimeWindows WorldTime { get; set; }
-    public WeatherTypes WorldWeather { get; set; }
 
     public void SetCurrentTime(int hours)
     {
@@ -24,10 +95,12 @@
         DetermineCurrentTimeWindow(timeWindow);
     }
 
-    public void SetNewLocation(Location location)
+    public void SetCurrentLocation(Location location)
     {
         CurrentLocation = location;
-        CurrentLocationSpot = location.LocationSpots.FirstOrDefault();
+
+        if (location == null) return;
+        CurrentLocationSpot = location.Spots.FirstOrDefault();
     }
 
     public void SetNewLocationSpot(LocationSpot locationSpot)
@@ -49,10 +122,10 @@
     {
         WorldTime = timeWindow switch
         {
-            0 => TimeWindows.Midnight,
-            1 => TimeWindows.Dawn,
-            2 => TimeWindows.Noon,
-            _ => TimeWindows.Dusk
+            0 => TimeWindows.Night,
+            1 => TimeWindows.Morning,
+            2 => TimeWindows.Afternoon,
+            _ => TimeWindows.Evening
         };
     }
 

@@ -1,42 +1,46 @@
 ﻿public class LocationSpot
 {
+    // Identity
     public string Name { get; set; }
-    public LocationNames LocationName { get; set; }
-    public CharacterNames? Character { get; set; }
-    public Accessibility? Accessibility { get; set; }
-    public LocationType? Engagement { get; set; }
+    public string Description { get; set; }
+    public string InteractionType { get; set; }  // "Character", "Quest", "Shop", "Feature", etc.
+    public List<string> ActionTemplates { get; set; } = new();
+
+    // Connections
+    public string LocationName { get; set; }
+    public List<string> ResidentCharacterIds { get; set; } = new List<string>();
+    public List<string> AssociatedOpportunityIds { get; set; } = new List<string>();
+
+    // Interaction
+    public string InteractionDescription { get; set; }
+
+    // Visual/positioning data (for map display)
+    public string Position { get; set; }  // "North", "Center", "Southeast", etc.
+
+    public Population? Population { get; set; }
+    public Economic? Economic { get; set; }
     public Atmosphere? Atmosphere { get; set; }
-    public RoomLayout? RoomLayout { get; set; }
-    public Temperature? Temperature { get; set; }
-    public List<ActionNames> ActionNames { get; } = new();
-    public List<ActionImplementation> Actions { get; } = new();
+    public Physical? Physical { get; set; }
+    public Illumination? Illumination { get; set; }
+    public string Character { get; internal set; }
 
-    public void AddAction(ActionImplementation baseAction)
+    public bool HasProperty<T>(T locationSpotProperty) where T : IEnvironmentalProperty
     {
-        Actions.Add(baseAction);
-    }
-
-    public bool HasProperty<T>(T locationSpotProperty) where T : struct, Enum // Added constraint for enum
-    {
-        if (locationSpotProperty is Accessibility accessibility)
+        if (locationSpotProperty is Population Population)
         {
-            return Accessibility.HasValue && Accessibility == accessibility;
+            return Population != null && Population == Population;
         }
-        else if (locationSpotProperty is LocationType engagement)
+        else if (locationSpotProperty is Economic Economic)
         {
-            return Engagement.HasValue && Engagement == engagement;
+            return Economic != null && Economic == Economic;
         }
-        else if (locationSpotProperty is Atmosphere atmosphere)
+        else if (locationSpotProperty is Physical Physical)
         {
-            return Atmosphere.HasValue && Atmosphere == atmosphere;
+            return Physical != null && Physical == Physical;
         }
-        else if (locationSpotProperty is RoomLayout roomLayout)
+        else if (locationSpotProperty is Illumination Illumination)
         {
-            return RoomLayout.HasValue && RoomLayout == roomLayout;
-        }
-        else if (locationSpotProperty is Temperature temperature)
-        {
-            return Temperature.HasValue && Temperature == temperature;
+            return Illumination != null && Illumination == Illumination;
         }
         else
         {
@@ -44,23 +48,31 @@
             throw new ArgumentException($"Unsupported property type: {typeof(T)}");
         }
     }
+
+    public LocationSpot()
+    {
+
+    }
+
     public LocationSpot(
         string name,
-        LocationNames locationName,
-        Accessibility? accessibility,
-        LocationType? engagement,
+        string description,
+        string locationName,
+        Population? population,
+        Economic? economic,
         Atmosphere? atmosphere,
-        RoomLayout? roomLayout,
-        Temperature? temperature,
-        List<ActionNames> actionNames)
+        Physical? physical,
+        Illumination? illumination,
+        List<string> actionNames)
     {
         Name = name;
+        Description = description;
         LocationName = locationName;
-        Accessibility = accessibility;
-        Engagement = engagement;
+        Population = population;
+        Economic = economic;
         Atmosphere = atmosphere;
-        RoomLayout = roomLayout;
-        Temperature = temperature;
-        ActionNames = actionNames;
+        Physical = physical;
+        Illumination = illumination;
+        ActionTemplates = actionNames;
     }
 }

@@ -6,28 +6,21 @@
 
 public class EnergyRequirement : Requirement
 {
-    public EnergyTypes EnergyType { get; }
     public int Amount { get; set; }
 
-    public EnergyRequirement(EnergyTypes type, int count)
+    public EnergyRequirement(int count)
     {
-        EnergyType = type;
         Amount = count;
     }
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return EnergyType switch
-        {
-            EnergyTypes.Physical => gameState.Player.PhysicalEnergy >= Amount,
-            EnergyTypes.Concentration => gameState.Player.Concentration >= Amount,
-            _ => false
-        };
+        return gameState.PlayerState.Energy >= Amount;
     }
 
     public override string GetDescription()
     {
-        return $"{EnergyType} Energy Required: {Amount}";
+        return $"Energy Required: {Amount}";
     }
 }
 
@@ -42,7 +35,7 @@ public class HealthRequirement : Requirement
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.Player.Health >= Count;
+        return gameState.PlayerState.Health >= Count;
     }
 
     public override string GetDescription()
@@ -62,7 +55,7 @@ public class FocusRequirement : Requirement
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.Player.Concentration >= Count;
+        return gameState.PlayerState.Concentration >= Count;
     }
 
     public override string GetDescription()
@@ -82,36 +75,12 @@ public class CoinsRequirement : Requirement
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.Player.Coins >= Count;
+        return gameState.PlayerState.Coins >= Count;
     }
 
     public override string GetDescription()
     {
         return $"Coins Required: {Count}";
-    }
-}
-
-public class SkillRequirement : Requirement
-{
-    public SkillTypes SkillType { get; }
-    public int Level { get; }
-
-    public SkillRequirement(SkillTypes skillType, int level)
-    {
-        SkillType = skillType;
-        Level = level;
-    }
-
-    public override bool IsSatisfied(GameState gameState)
-    {
-        if (!gameState.Player.Skills.ContainsKey(SkillType)) return false;
-        int actualLevel = gameState.Player.Skills[SkillType];
-        return actualLevel >= Level;
-    }
-
-    public override string GetDescription()
-    {
-        return $"{SkillType} Level Required: {Level}";
     }
 }
 
@@ -126,7 +95,7 @@ public class ItemRequirement : Requirement
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.Player.Inventory.GetItemCount(ResourceType) > 0;
+        return gameState.PlayerState.Inventory.GetItemCount(ResourceType) > 0;
     }
 
     public override string GetDescription()
@@ -148,7 +117,7 @@ public class ResourceRequirement : Requirement
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.Player.Inventory.GetItemCount(ResourceType) >= Count;
+        return gameState.PlayerState.Inventory.GetItemCount(ResourceType) >= Count;
     }
 
     public override string GetDescription()
@@ -168,7 +137,7 @@ public class InventorySlotsRequirement : Requirement
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.Player.Inventory.GetEmptySlots() >= Count;
+        return gameState.PlayerState.Inventory.GetEmptySlots() >= Count;
     }
 
     public override string GetDescription()
@@ -192,7 +161,7 @@ public class KnowledgeRequirement : Requirement
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.Player.HasKnowledge(value, requiredKnowledgeLevel);
+        return gameState.PlayerState.HasKnowledge(value, requiredKnowledgeLevel);
     }
 
     public override string GetDescription()
@@ -213,7 +182,7 @@ public class RelationshipRequirement : Requirement
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.Player.GetRelationshipLevel(Character) >= Level;
+        return gameState.PlayerState.GetRelationshipLevel(Character) >= Level;
     }
 
     public override string GetDescription()
@@ -233,7 +202,7 @@ public class PlayerNegativeStatusRequirement : Requirement
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.Player.HasStatusEffect(Status);
+        return gameState.PlayerState.HasStatusEffect(Status);
     }
 
     public override string GetDescription()
@@ -253,34 +222,11 @@ public class PlayerConfidenceRequirement : Requirement
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.Player.HasConfidence(Confidence);
+        return gameState.PlayerState.HasConfidence(Confidence);
     }
 
     public override string GetDescription()
     {
         return $"Confidence Required: {Confidence}";
-    }
-}
-
-public class SkillLevelRequirement : Requirement
-{
-    public SkillTypes SkillType { get; }
-    public int Count { get; }
-
-    public SkillLevelRequirement(SkillTypes skillType, int count)
-    {
-        SkillType = skillType;
-        Count = count;
-    }
-
-    public override bool IsSatisfied(GameState gameState)
-    {
-        return gameState.Player.Skills.ContainsKey(SkillType) &&
-               gameState.Player.Skills[SkillType] >= Count;
-    }
-
-    public override string GetDescription()
-    {
-        return $"{SkillType} Skill Level Required: {Count}";
     }
 }

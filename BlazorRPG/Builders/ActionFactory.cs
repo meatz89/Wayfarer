@@ -1,30 +1,42 @@
 ﻿using System.Xml.Linq;
 
-public static class ActionFactory
+public class ActionFactory
 {
-    public static ActionImplementation CreateAction(ActionTemplate template)
+    public ActionFactory(ActionRepository actionRepository)
+    {
+        ActionRepository = actionRepository;
+    }
+
+    public ActionRepository ActionRepository { get; }
+
+    public ActionImplementation CreateActionFromTemplate(ActionTemplate template)
     {
         ActionImplementation actionImplementation = new ActionImplementation();
 
-        actionImplementation.ActionType = template.ActionType;
         actionImplementation.Name = template.Name;
-        actionImplementation.Requirements = template.Requirements;
-        actionImplementation.EnergyCosts = template.Energy;
-        actionImplementation.Costs = template.Costs;
-        actionImplementation.Rewards = template.Rewards;
+        actionImplementation.Requirements = new List<Requirement>();
+        actionImplementation.EnergyCosts = template.Energy ?? new();
+        actionImplementation.Costs = template.Costs ?? new();
+        actionImplementation.Rewards = template.Rewards ?? new();
 
         actionImplementation.Goal = template.Goal;
         actionImplementation.Complication = template.Complication;
 
-        actionImplementation.IsEncounterAction = template.IsEncounterAction;
-        actionImplementation.EncounterTemplate = template.EncounterTemplate;
+        actionImplementation.BasicActionType = template.BasicActionType;
+        actionImplementation.ActionType = template.ActionType;
+
+        string encounterTemplateName = template.EncounterTemplateName;
+        EncounterTemplate encounterTemplate = ActionRepository.GetEncounterTemplate(encounterTemplateName);
+        if (encounterTemplate != null)
+        {
+            actionImplementation.EncounterTemplate = encounterTemplate;
+        }
 
         // Add energy costs
-        EnergyTypes energyType = GameRules.GetEnergyTypeForAction(template.ActionType);
-        int energyCost = GameRules.GetBaseEnergyCost(template.ActionType);
+        int energyCost = GameRules.GetBaseEnergyCost(template.BasicActionType);
 
-        actionImplementation.Requirements.Add(new EnergyRequirement(energyType, energyCost));
-        actionImplementation.EnergyCosts.Add(new EnergyOutcome(energyType, -energyCost));
+        actionImplementation.Requirements.Add(new EnergyRequirement(energyCost));
+        actionImplementation.EnergyCosts.Add(new EnergyOutcome(-energyCost));
 
         return actionImplementation;
     }

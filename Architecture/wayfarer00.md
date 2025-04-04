@@ -36,11 +36,11 @@ This layered architecture creates a clean separation of concerns while allowing 
 
 ## Base Tag System
 
-The foundation of the Wayfarer system is its tag-based approach to character capabilities and actions.
+The foundation of the Wayfarer system is its tag-based approach to **temporary encounter state tracking**. Unlike traditional character attribute systems, these tags exist only during encounters and reset afterward.
 
-### Approach Tags (HOW)
+### Approach Tags (HOW) - Temporary Encounter State
 
-Approach tags represent how the character tackles challenges. Each tag ranges from 0 to 10, with higher values indicating greater proficiency.
+Approach tags represent how the character is currently tackling the specific challenge within this encounter only. Each tag ranges from 0 to 10 within a single encounter, with higher values indicating greater emphasis on that approach in the current situation.
 
 | Approach Tag  | Description                               |
 |---------------|-------------------------------------------|
@@ -48,11 +48,11 @@ Approach tags represent how the character tackles challenges. Each tag ranges fr
 | Rapport       | Social connections, charm, persuasion     |
 | Analysis      | Intelligence, observation, problem-solving|
 | Precision     | Careful execution, finesse, accuracy      |
-| Concealment   | Stealth, hiding, subterfuge               |
+| Evasion   | Stealth, hiding, subterfuge               |
 
-### Focus Tags (WHAT)
+### Focus Tags (WHAT) - Temporary Encounter State
 
-Focus tags represent what the character concentrates on during encounters. Each tag ranges from 0 to 10.
+Focus tags represent what the character is concentrating on during the current encounter only. Each tag ranges from 0 to 10 within a single encounter.
 
 | Focus Tag     | Description                               |
 |---------------|-------------------------------------------|
@@ -62,23 +62,23 @@ Focus tags represent what the character concentrates on during encounters. Each 
 | Environment   | Surroundings, spaces, terrain             |
 | Resource      | Items, money, supplies, valuables         |
 
-### Tag Interaction
+### Tag Interaction During Encounters
 
-Every choice in the game affects the base tag system in three ways:
+Every choice in an encounter affects the encounter's tag values in three ways:
 1. Every choice increases one focus tag by 1
 2. Every choice increases one primary approach tag by 1-2
 3. Some choices may modify a secondary approach tag by ±1-2
 
-These tag modifications are the primary way characters develop during gameplay, and tag values determine how effective different approaches are in different locations.
+These tag modifications are temporary and only relevant during the current encounter. They determine how effective different approaches are in the current location and how narrative tags activate. When the encounter ends, these tag values are discarded.
 
 ### Design Rationale
 
-The approach and focus tag system was chosen for several key reasons:
-- It provides a vocabulary for describing character actions in terms of how they approach challenges and what they focus on
-- It allows for natural specialization without class-based restrictions
-- It creates a foundation for both strategic and narrative tags to interact with
-- It supports diverse character builds that excel in different situations
-- It avoids traditional attribute systems that often fail to capture the nuance of different problem-solving approaches
+The temporary approach and focus tag system was chosen for several key reasons:
+- It provides a vocabulary for describing character actions in the current encounter
+- It allows the same underlying system to handle all types of encounters
+- It creates a foundation for strategic and narrative tags to interact with
+- It supports diverse approaches to different encounters
+- It keeps persistence simple by not tracking these values between encounters
 
 ## Encounter Resources and States
 
@@ -212,26 +212,26 @@ Narrative tags activate at specific approach tag thresholds and block specific f
     - **Activation**: Precision 4+
     - **Description**: Your precise approach wastes resources in pursuit of perfect outcomes. You're unwilling to settle for "good enough" when resources are concerned.
 
-#### Concealment-Based Narrative Tags
+#### Evasion-Based Narrative Tags
 
-21. **"Shadow Veil"** (Concealment → Blocks Relationship)
-    - **Activation**: Concealment 3+
+21. **"Shadow Veil"** (Evasion → Blocks Relationship)
+    - **Activation**: Evasion 3+
     - **Description**: Your hidden approach prevents genuine relationship building. You're too guarded to form meaningful connections with others.
 
-22. **"Paranoid Mindset"** (Concealment → Blocks Information)
-    - **Activation**: Concealment 3+
+22. **"Paranoid Mindset"** (Evasion → Blocks Information)
+    - **Activation**: Evasion 3+
     - **Description**: Your secretive approach makes you question all information you receive. You can't process new data when you're constantly looking for traps and lies.
 
-23. **"Cautious Restraint"** (Concealment → Blocks Physical)
-    - **Activation**: Concealment 3+
+23. **"Cautious Restraint"** (Evasion → Blocks Physical)
+    - **Activation**: Evasion 3+
     - **Description**: Your hidden approach prevents direct physical action. You're too concerned with maintaining cover to act decisively.
 
-24. **"Hiding Place Fixation"** (Concealment → Blocks Environment)
-    - **Activation**: Concealment 4+
+24. **"Hiding Place Fixation"** (Evasion → Blocks Environment)
+    - **Activation**: Evasion 4+
     - **Description**: Your focus on remaining concealed limits your environmental awareness. You only see the environment in terms of places to hide.
 
-25. **"Hoarding Instinct"** (Concealment → Blocks Resource)
-    - **Activation**: Concealment 3+
+25. **"Hoarding Instinct"** (Evasion → Blocks Resource)
+    - **Activation**: Evasion 3+
     - **Description**: Your secretive approach makes you hide rather than use resources effectively. You'd rather keep resources hidden than risk revealing yourself by using them.
 
 ### Strategic Tags
@@ -338,26 +338,26 @@ The four strategic tag types are:
     - **Scaling**: +1 pressure per 2 points in Precision
     - **Description**: Your precise approach creates additional pressure as you strive for perfection in a situation that doesn't require it.
 
-#### Concealment-Based Strategic Tags
+#### Evasion-Based Strategic Tags
 
-17. **"Tactical Advantage"** (Concealment → Increases Momentum)
-    - **Effect**: Adds momentum proportional to Concealment value
-    - **Scaling**: +1 momentum per 2 points in Concealment
+17. **"Tactical Advantage"** (Evasion → Increases Momentum)
+    - **Effect**: Adds momentum proportional to Evasion value
+    - **Scaling**: +1 momentum per 2 points in Evasion
     - **Description**: Your hidden approach provides the element of surprise, creating opportunities for progress.
 
-18. **"Invisible Presence"** (Concealment → Decreases Pressure)
-    - **Effect**: Reduces pressure proportional to Concealment value
-    - **Scaling**: -1 pressure per 2 points in Concealment
+18. **"Invisible Presence"** (Evasion → Decreases Pressure)
+    - **Effect**: Reduces pressure proportional to Evasion value
+    - **Scaling**: -1 pressure per 2 points in Evasion
     - **Description**: Your stealthy approach prevents complications from arising. By avoiding detection, you sidestep many potential problems.
 
-19. **"Overcautious Approach"** (Concealment → Decreases Momentum)
-    - **Effect**: Reduces momentum proportional to Concealment value
-    - **Scaling**: -1 momentum per 2 points in Concealment
+19. **"Overcautious Approach"** (Evasion → Decreases Momentum)
+    - **Effect**: Reduces momentum proportional to Evasion value
+    - **Scaling**: -1 momentum per 2 points in Evasion
     - **Description**: Your hidden approach is unnecessarily cautious for this situation. You waste time hiding when direct action would be more effective.
 
-20. **"Suspicious Behavior"** (Concealment → Increases Pressure)
-    - **Effect**: Adds pressure proportional to Concealment value
-    - **Scaling**: +1 pressure per 2 points in Concealment
+20. **"Suspicious Behavior"** (Evasion → Increases Pressure)
+    - **Effect**: Adds pressure proportional to Evasion value
+    - **Scaling**: +1 pressure per 2 points in Evasion
     - **Description**: Your secretive approach raises suspicions and creates complications. The more you try to hide, the more attention you draw to yourself.
 
 ### Design Rationale
@@ -466,17 +466,17 @@ Here is a selection of sample choices showing how the system works:
 - Intellectual Description: *"You make careful, measured adjustments to your approach, avoiding overreactions."*
 - Physical Description: *"You move with deliberate control, minimizing strain and risk of injury."*
 
-#### Concealment-Based Choices
+#### Evasion-Based Choices
 
-**"Hidden Advantage"** (Concealment + Physical, Momentum)
-- Tag Effects: +2 Concealment, +1 Physical
+**"Hidden Advantage"** (Evasion + Physical, Momentum)
+- Tag Effects: +2 Evasion, +1 Physical
 - Mechanical Effect: +2 momentum
 - Social Description: *"You hide your true capabilities until the perfect moment to reveal them for maximum effect."*
 - Intellectual Description: *"You work behind the scenes, developing insights others haven't considered."*
 - Physical Description: *"You move stealthily, positioning yourself for an advantageous approach."*
 
-**"Fade Away"** (Concealment + Physical, Pressure)
-- Tag Effects: +1 Concealment, +1 Physical
+**"Fade Away"** (Evasion + Physical, Pressure)
+- Tag Effects: +1 Evasion, +1 Physical
 - Mechanical Effect: -1 pressure
 - Social Description: *"You make yourself socially invisible when attention would create complications."*
 - Intellectual Description: *"You withdraw your more controversial ideas temporarily, reducing resistance."*
@@ -698,12 +698,12 @@ Strategic Tags:
 - "Careful Positioning" (Precision → Decreases Pressure): -1 pressure per 2 points in Precision
 - "Escalating Tension" (Dominance → Increases Pressure): +1 pressure per 2 points in Dominance
 - "Social Distraction" (Rapport → Decreases Momentum): -1 momentum per 2 points in Rapport
-- Concealment: Neutral (no strategic effect)
+- Evasion: Neutral (no strategic effect)
 
 Narrative Tags:
 - "Detail Fixation" (Analysis 3+): Blocks Environment focus choices
 - "Theoretical Mindset" (Analysis 4+): Blocks Resource focus choices
-- "Paranoid Mindset" (Concealment 3+): Blocks Information focus choices
+- "Paranoid Mindset" (Evasion 3+): Blocks Information focus choices
 ```
 
 ### Design Rationale
@@ -767,7 +767,7 @@ This prompt transforms mechanical choices into narratively appropriate descripti
 Transform the following 4 mechanical choices into narrative descriptions for a [ENCOUNTER_TYPE] encounter in a [LOCATION_TYPE]. The character is currently [CURRENT_SITUATION] with the objective to [CHARACTER_GOAL].
 
 Current state: Momentum [M], Pressure [P]
-Approach values: Analysis [A], Precision [P], Rapport [R], Dominance [D], Concealment [C]
+Approach values: Analysis [A], Precision [P], Rapport [R], Dominance [D], Evasion [C]
 Active narrative tags: [LIST_TAGS]
 Key NPCs present: [NPC_LIST]
 
@@ -859,9 +859,9 @@ Character archetypes serve as starting points for players, each specializing in 
 - Naturally excels in exploration and hunting encounters
 - Balances well across most encounter types
 
-### Thief (Concealment)
-- **Offensive Choice**: "Hidden Advantage" (+2 momentum, +2 Concealment, +1 chosen focus)
-- **Defensive Choice**: "Fade Away" (-1 pressure, +1 Concealment, +1 chosen focus)
+### Thief (Evasion)
+- **Offensive Choice**: "Hidden Advantage" (+2 momentum, +2 Evasion, +1 chosen focus)
+- **Defensive Choice**: "Fade Away" (-1 pressure, +1 Evasion, +1 chosen focus)
 - Naturally excels in stealth and theft encounters
 - Struggles in direct social encounters
 
@@ -959,7 +959,7 @@ The following example demonstrates how all these systems work together to create
 *Player Choices*:
 1. **Targeted Question** (Precision + Information, Momentum)
 2. **Command Attention** (Dominance + Relationship, Momentum)
-3. **Gather Secrets** (Concealment + Information, Momentum)
+3. **Gather Secrets** (Evasion + Information, Momentum)
 4. **Assess Relationships** (Analysis + Relationship, Momentum)
 
 *Player Selects*: "Targeted Question"

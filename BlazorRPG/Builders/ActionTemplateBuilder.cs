@@ -1,21 +1,28 @@
 ﻿public class ActionTemplateBuilder
 {
-    private ActionNames name;
+    private string customName; // New field for custom names
     private BasicActionTypes actionType;
     private string goal;
     private string complication;
-
     public List<Requirement> requirements = new();
     public List<Outcome> energy = new();
     public List<Outcome> costs = new();
     public List<Outcome> rewards = new();
-
     public bool IsEncounterAction = true;
-    public EncounterTemplate encounterTemplate;
+    public string encounterTemplateName;
 
-    public ActionTemplateBuilder WithName(ActionNames name)
+    public ActionRepository ActionRepository { get; }
+
+    public ActionTemplateBuilder WithName(string name)
     {
-        this.name = name;
+        this.customName = name;
+        return this;
+    }
+
+    // Add a new method for custom string names
+    public ActionTemplateBuilder WithCustomName(string name)
+    {
+        this.customName = name;
         return this;
     }
 
@@ -37,10 +44,10 @@
         return this;
     }
 
-    public ActionTemplateBuilder StartsEncounter(EncounterTemplate encounterTemplate)
+    public ActionTemplateBuilder StartsEncounter(string encounterTemplate)
     {
         this.IsEncounterAction = true;
-        this.encounterTemplate = encounterTemplate;
+        this.encounterTemplateName = encounterTemplate;
         return this;
     }
 
@@ -55,17 +62,15 @@
 
     public ActionTemplate Build()
     {
-        return new ActionTemplate(
-            name,
-            goal,
-            complication,
-            actionType,
-            IsEncounterAction,
-            encounterTemplate,
-            requirements,
-            energy,
-            costs,
-            rewards
-        );
+        return new ActionTemplate()
+        {
+            Name = customName,
+            Goal = goal,
+            Complication = complication,
+            BasicActionType = actionType,
+            ActionType = IsEncounterAction ? ActionTypes.Encounter : ActionTypes.Basic,
+            EncounterTemplateName = encounterTemplateName,
+            CoinCost = 0
+        };
     }
 }

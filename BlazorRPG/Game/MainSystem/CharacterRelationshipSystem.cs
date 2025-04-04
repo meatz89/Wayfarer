@@ -3,16 +3,16 @@
     private List<int> trustLevels = new();
     private List<KnowledgePiece> unlockedCharacterKnowledge = new();
 
-    public int GetTrustLevel(CharacterNames character)
+    public int GetTrustLevel(string character)
     {
         return 1;
     }
 
-    public void ModifyTrust(CharacterNames character, int count)
+    public void ModifyTrust(string character, int count)
     {
     }
 
-    public bool HasUnlockedKnowledge(CharacterNames character, KnowledgePiece knowledge)
+    public bool HasUnlockedKnowledge(string character, KnowledgePiece knowledge)
     {
         return true;
     }

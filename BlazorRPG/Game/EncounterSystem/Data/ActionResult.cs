@@ -10,3 +10,9 @@
     public static ActionResult Failure(string message) =>
         new() { IsSuccess = false, Message = message, Messages = new() };
 }
+
+public class ActionCreationResult
+{
+    public ActionTemplate Action { get; set; }
+    public EncounterTemplateModel EncounterTemplate { get; set; }
+}

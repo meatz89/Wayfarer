@@ -62,7 +62,7 @@ Every narrative scene should follow this progression:
   * Rapport: Social grace, persuasion, empathy, appeal
   * Analysis: Intelligence, observation, problem-solving, strategy
   * Precision: Careful execution, skill, attention to detail, accuracy
-  * Concealment: Subtlety, stealth, indirect methods, avoidance
+  * Evasion: Subtlety, stealth, indirect methods, avoidance
 
 - FOCUSES (WHAT the player focuses on):
   * Relationship: Social connections, status, trust, interactions

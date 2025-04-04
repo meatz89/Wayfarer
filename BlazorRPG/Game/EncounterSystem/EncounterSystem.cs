@@ -3,18 +3,24 @@
     private readonly GameState gameState;
     private readonly IConfiguration configuration;
     private readonly ILogger<EncounterSystem> logger;
-    private readonly NarrativeService narrativeService;
     private AIProviderType currentAIProvider;
 
     private EncounterManager Encounter;
     public EncounterResult encounterResult;
 
-    private bool useAiNarrative = false;
+    private ResourceManager resourceManager;
+    private readonly NarrativeService narrativeService;
     private CardSelectionAlgorithm cardSelector;
+
+    public WorldState worldState;
+
     public EncounterSystem(
         GameState gameState,
         MessageSystem messageSystem,
         GameContentProvider contentProvider,
+        ResourceManager resourceManager,
+        NarrativeContextManager narrativeContextManager,
+        NarrativeService narrativeService,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {
@@ -23,7 +29,8 @@
         this.logger = logger;
 
         // Create the switchable narrative service
-        this.narrativeService = new NarrativeService(configuration, logger);
+        this.resourceManager = resourceManager;
+        this.narrativeService = narrativeService;
 
         // Initialize with the default provider from config
         string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "OpenAI";
@@ -41,9 +48,188 @@
                 currentAIProvider = AIProviderType.OpenAI;
                 break;
         }
-
-        useAiNarrative = configuration.GetValue<bool>("useAiNarrative");
     }
+
+    public async Task<EncounterResult> GenerateEncounter(
+        Location location,
+        string locationSpot,
+        EncounterContext context,
+        WorldState worldState,
+        PlayerState playerState,
+        ActionImplementation actionImplementation)
+    {
+        this.worldState = worldState;
+
+        Location loc = context.Location;
+        EncounterTypes encounterType = GetPresentationStyleFromBaseAction(actionImplementation);
+
+        EncounterTemplate template = actionImplementation.EncounterTemplate;
+
+        EncounterInfo encounter = EncounterFactory.CreateEncounterFromTemplate(template,
+            location, locationSpot, encounterType);
+
+        // Create encounter manager
+        encounterResult = await StartEncounterAt(location, encounter, this.worldState, playerState, actionImplementation);
+
+        // Create Encounter with initial stage
+        string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
+
+        gameState.Actions.SetActiveEncounter(Encounter);
+        return encounterResult;
+    }
+
+
+    public List<StrategicTag> GetActiveStrategicTags(string locationId, EncounterContext encounterContext)
+    {
+        Location location = worldState.GetLocation(locationId);
+        List<IEnvironmentalProperty> properties = GetCurrentEnvironmentalProperties(locationId, encounterContext.TimeOfDay);
+
+        // Base tags from location
+        List<StrategicTag> activeTags = new List<StrategicTag>(location.StrategicTags);
+
+        return activeTags;
+    }
+
+    public List<IEnvironmentalProperty> GetCurrentEnvironmentalProperties(string locationId, string timeOfDay)
+    {
+        Location location = worldState.GetLocation(locationId);
+
+        // Fall back to general properties
+        return location.EnvironmentalProperties;
+    }
+
+    public async Task<EncounterResult> StartEncounterAt(
+        Location location,
+        EncounterInfo encounterInfo,
+        WorldState worldState,
+        PlayerState playerState,
+        ActionImplementation actionImplementation)
+    {
+        // Create the core components
+        ChoiceRepository choiceRepository = new ChoiceRepository();
+        cardSelector = new CardSelectionAlgorithm(choiceRepository);
+
+        // Create encounter manager with the switchable service
+        EncounterManager encounterManager = new EncounterManager(
+            actionImplementation,
+            cardSelector,
+            narrativeService,
+            resourceManager,
+            configuration,
+            logger);
+
+        // Set the current AI provider
+        encounterManager.SwitchAIProvider(currentAIProvider);
+
+        this.Encounter = encounterManager;
+
+        //SpecialChoice negotiatePriceChoice = GetSpecialChoiceFor(encounter);
+        //choiceRepository.AddSpecialChoice(encounter.Name, negotiatePriceChoice);
+
+        // Start the encounter with narrative
+        NarrativeResult initialResult = await encounterManager.StartEncounterWithNarrativeAsync(
+            location,
+            encounterInfo,
+            worldState,
+            playerState,
+            actionImplementation,
+            currentAIProvider);  // Pass the current provider type
+
+
+        return new EncounterResult()
+        {
+            Encounter = encounterManager,
+            EncounterResults = EncounterResults.Started,
+            EncounterEndMessage = "",
+            NarrativeResult = initialResult,
+            NarrativeContext = encounterManager.GetNarrativeContext()
+        };
+    }
+
+    public async Task<EncounterResult> ExecuteChoice(
+        EncounterManager encounter,
+        NarrativeResult narrativeResult,
+        IChoice choice)
+    {
+        NarrativeResult currentResult = narrativeResult;
+
+        Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = currentResult.ChoiceDescriptions;
+
+        ChoiceNarrative? selectedDescription = null;
+        if (currentResult.ChoiceDescriptions != null && choiceDescriptions.ContainsKey(choice))
+        {
+            selectedDescription = currentResult.ChoiceDescriptions[choice];
+        }
+
+        if (currentResult.IsEncounterOver)
+        {
+            return new EncounterResult()
+            {
+                Encounter = encounter,
+                EncounterResults = EncounterResults.EncounterSuccess,
+                EncounterEndMessage = $"=== Encounter Over: {currentResult.Outcome} ===",
+                NarrativeResult = currentResult,
+                NarrativeContext = encounter.GetNarrativeContext()
+            };
+        }
+
+        currentResult = await Encounter.ApplyChoiceWithNarrativeAsync(
+            choice,
+            encounter.playerState,
+            encounter.worldState,
+            selectedDescription);
+
+        if (currentResult.IsEncounterOver)
+        {
+            if (currentResult.Outcome == EncounterOutcomes.Failure)
+            {
+                return new EncounterResult()
+                {
+                    Encounter = encounter,
+                    EncounterResults = EncounterResults.EncounterFailure,
+                    EncounterEndMessage = $"=== Encounter Over: {currentResult.Outcome} ===",
+                    NarrativeResult = currentResult,
+                    NarrativeContext = encounter.GetNarrativeContext()
+                };
+            }
+            else
+            {
+                return new EncounterResult()
+                {
+                    Encounter = encounter,
+                    EncounterResults = EncounterResults.EncounterSuccess,
+                    EncounterEndMessage = $"=== Encounter Over: {currentResult.Outcome} ===",
+                    NarrativeResult = currentResult,
+                    NarrativeContext = encounter.GetNarrativeContext()
+                };
+            }
+        }
+
+        return new EncounterResult()
+        {
+            Encounter = encounter,
+            EncounterResults = EncounterResults.Ongoing,
+            EncounterEndMessage = "",
+            NarrativeResult = currentResult,
+            NarrativeContext = encounter.GetNarrativeContext()
+        };
+    }
+
+    public List<IChoice> GetChoices()
+    {
+        return Encounter.GetCurrentChoices();
+    }
+
+    public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions()
+    {
+        return gameState.Actions.UserEncounterChoiceOptions;
+    }
+
+    public ChoiceProjection GetChoiceProjection(EncounterManager encounter, IChoice choice)
+    {
+        return Encounter.ProjectChoice(choice);
+    }
+
 
     // Update toggle method to cycle through all three providers
     public void ToggleAIProvider()
@@ -85,38 +271,14 @@
         return narrativeService.GetCurrentProviderName();
     }
 
-    public async Task<EncounterResult> GenerateEncounter(
-        Location location,
-        string locationSpot,
-        EncounterContext context,
-        PlayerState playerState,
-        ActionImplementation actionImplementation)
-    {
-        Location loc = context.Location;
-        EncounterTypes encounterType = GetPresentationStyleFromBaseAction(actionImplementation);
-
-        // Create encounter from location and action
-        LocationNames locationName = location.LocationName;
-
-        EncounterTemplate template = actionImplementation.EncounterTemplate;
-
-        EncounterInfo encounter = EncounterInfoFactory.CreateEncounter(
-            locationName, locationSpot, encounterType, template);
-
-        // Create encounter manager
-        encounterResult = await StartEncounterAt(location, encounter, playerState, actionImplementation);
-
-        // Create Encounter with initial stage
-        string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
-
-        gameState.Actions.SetActiveEncounter(Encounter);
-        return encounterResult;
-    }
 
     private static EncounterTypes GetPresentationStyleFromBaseAction(ActionImplementation actionImplementation)
     {
-        return actionImplementation.ActionType switch
+        EncounterTypes encounterTypes = actionImplementation.BasicActionType switch
         {
+            BasicActionTypes.Rest => EncounterTypes.Social,
+            BasicActionTypes.Travel => EncounterTypes.Physical,
+
             BasicActionTypes.Labor => EncounterTypes.Physical,
             BasicActionTypes.Gather => EncounterTypes.Physical,
             BasicActionTypes.Fight => EncounterTypes.Physical,
@@ -129,125 +291,6 @@
             BasicActionTypes.Persuade => EncounterTypes.Social,
             BasicActionTypes.Perform => EncounterTypes.Social,
         };
+        return encounterTypes;
     }
-
-    public async Task<EncounterResult> StartEncounterAt(
-        Location location,
-        EncounterInfo encounterInfo,
-        PlayerState playerState,
-        ActionImplementation actionImplementation)
-    {
-        // Create the core components
-        ChoiceRepository choiceRepository = new ChoiceRepository();
-        cardSelector = new CardSelectionAlgorithm(choiceRepository);
-
-        // Create encounter manager with the switchable service
-        EncounterManager encounterManager = new EncounterManager(
-            actionImplementation,
-            cardSelector,
-            narrativeService,
-            useAiNarrative,
-            configuration,
-            logger);
-
-        // Set the current AI provider
-        encounterManager.SwitchAIProvider(currentAIProvider);
-
-        this.Encounter = encounterManager;
-
-        //SpecialChoice negotiatePriceChoice = GetSpecialChoiceFor(encounter);
-        //choiceRepository.AddSpecialChoice(encounter.Name, negotiatePriceChoice);
-
-        // Start the encounter with narrative
-        NarrativeResult initialResult = await encounterManager.StartEncounterWithNarrativeAsync(
-            location,
-            encounterInfo,
-            playerState,
-            actionImplementation,
-            currentAIProvider);  // Pass the current provider type
-
-        return new EncounterResult()
-        {
-            Encounter = encounterManager,
-            EncounterResults = EncounterResults.Started,
-            EncounterEndMessage = "",
-            NarrativeResult = initialResult
-        };
-    }
-
-    public async Task<EncounterResult> ExecuteChoice(
-        EncounterManager encounter,
-        NarrativeResult narrativeResult,
-        IChoice choice)
-    {
-        NarrativeResult currentResult = narrativeResult;
-
-        Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = currentResult.ChoiceDescriptions;
-
-        ChoiceNarrative selectedDescription = null;
-        if (currentResult.ChoiceDescriptions != null && choiceDescriptions.ContainsKey(choice))
-        {
-            selectedDescription = currentResult.ChoiceDescriptions[choice];
-        }
-
-        if (!currentResult.IsEncounterOver)
-        {
-            currentResult = await Encounter.ApplyChoiceWithNarrativeAsync(
-                choice,
-                selectedDescription);
-
-            if (currentResult.IsEncounterOver)
-            {
-                if (currentResult.Outcome == EncounterOutcomes.Failure)
-                {
-                    return new EncounterResult()
-                    {
-                        Encounter = encounter,
-                        EncounterResults = EncounterResults.EncounterFailure,
-                        EncounterEndMessage = $"=== Encounter Over: {currentResult.Outcome} ===",
-                        NarrativeResult = currentResult
-                    };
-                }
-
-                return new EncounterResult()
-                {
-                    Encounter = encounter,
-                    EncounterResults = EncounterResults.EncounterSuccess,
-                    EncounterEndMessage = $"=== Encounter Over: {currentResult.Outcome} ===",
-                    NarrativeResult = currentResult
-                };
-            }
-        }
-
-        return new EncounterResult()
-        {
-            Encounter = encounter,
-            EncounterResults = EncounterResults.Ongoing,
-            EncounterEndMessage = "",
-            NarrativeResult = currentResult
-        };
-    }
-
-
-    private static SpecialChoice GetSpecialChoiceFor(EncounterInfo location)
-    {
-        // Add special choices for this location
-        return null;
-    }
-
-    public List<IChoice> GetChoices()
-    {
-        return Encounter.GetCurrentChoices();
-    }
-
-    public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions()
-    {
-        return gameState.Actions.UserEncounterChoiceOptions;
-    }
-
-    public ChoiceProjection GetChoiceProjection(EncounterManager encounter, IChoice choice)
-    {
-        return Encounter.ProjectChoice(choice);
-    }
-
 }

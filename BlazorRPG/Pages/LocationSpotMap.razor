@@ -1,6 +1,6 @@
 ﻿@* LocationSpotMap.razor *@
 <div class="locations-grid">
-    @foreach (LocationSpot spot in CurrentLocation.LocationSpots)
+    @foreach (LocationSpot spot in CurrentLocation.Spots)
     {
         <div class="location-card @(spot.Name == CurrentSpot.Name ? "current" : "reachable")">
             <div class="location-spot-properties">
@@ -83,55 +83,44 @@
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
-        if (spot.Accessibility.HasValue)
+        if (spot.Population != null)
         {
             properties.Add(new(
             "📐",
-            FormatEnumString(spot.Accessibility.ToString()),
+            FormatEnumString(spot.Population.ToString()),
             "",
             "",
             ""
             ));
         }
 
-        if (spot.Engagement.HasValue)
+        if (spot.Economic != null)
         {
             properties.Add(new(
             "⚖️",
-            FormatEnumString(spot.Engagement.ToString()),
-            $"property-{spot.Engagement.ToString().ToLower()}",
+            FormatEnumString(spot.Economic.ToString()),
+            $"property-{spot.Economic.ToString().ToLower()}",
             "",
             ""
             ));
         }
 
-        if (spot.Atmosphere.HasValue)
-        {
-            properties.Add(new(
-            "😌",
-            FormatEnumString(spot.Atmosphere.ToString()),
-            $"property-{spot.Atmosphere.ToString().ToLower()}",
-            "",
-            ""
-            ));
-        }
-
-        if (spot.RoomLayout.HasValue)
+        if (spot.Physical != null)
         {
             properties.Add(new(
             "🧩",
-            FormatEnumString(spot.RoomLayout.ToString()),
+            FormatEnumString(spot.Physical.ToString()),
             "",
             "",
             ""
             ));
         }
 
-        if (spot.Temperature.HasValue)
+        if (spot.Illumination != null)
         {
             properties.Add(new(
-            spot.Temperature == Temperature.Warm ? "☀️" : "❄️",
-            FormatEnumString(spot.Temperature.ToString()),
+            "☀️",
+            FormatEnumString(spot.Illumination.ToString()),
             "",
             "",
             ""
@@ -140,22 +129,6 @@
 
         return properties;
     }
-
-
-    private string GetPressureIcon(Atmosphere? pressure) => pressure switch
-    {
-        Atmosphere.Social => "😌",
-        Atmosphere.Aloof => "⚠️",
-        Atmosphere.Hostile => "⚔️",
-        _ => "❓"
-    };
-
-    private string GetResourceIcon(ItemTypes? resource) => resource switch
-    {
-        ItemTypes.Food => "🍖",
-        ItemTypes.Wood => "🪵",
-        _ => "📦"
-    };
 
     private string FormatEnumString(string value)
     {

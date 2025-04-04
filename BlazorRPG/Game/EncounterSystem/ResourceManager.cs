@@ -1,69 +1,43 @@
-﻿public class ResourceManager
+﻿
+public class ResourceManager
 {
-    private readonly PlayerState _playerState;
-    private readonly EncounterInfo _location;
-
-    public ResourceManager(PlayerState playerState, EncounterInfo location)
+    public int CalculatePressureResourceDamage(EncounterInfo encounterInfo, PlayerStatusResources resourceType, int pressureValue)
     {
-        _playerState = playerState;
-        _location = location;
-    }
-
-    public void ApplyPressureResourceDamage(int currentPressure)
-    {
-        // Skip if no pressure or location doesn't apply pressure damage
-        if (currentPressure <= 0)
-            return;
-
-        // Different resource affected based on encounter type
-        switch (_location.EncounterType)
+        switch (encounterInfo.Type)
         {
             case EncounterTypes.Physical:
-                _playerState.ModifyHealth(-currentPressure);
+                if (resourceType == PlayerStatusResources.Health)
+                    return (int)-pressureValue;
                 break;
 
             case EncounterTypes.Intellectual:
-                _playerState.ModifyConcentratin(-currentPressure);
+                if (resourceType == PlayerStatusResources.Concentration)
+                    return (int)-pressureValue;
                 break;
 
             case EncounterTypes.Social:
-                _playerState.ModifyConfidence(-currentPressure);
-                break;
-        }
-    }
-
-    public int CalculatePressureResourceDamage(ResourceTypes resourceType, int choicePressureValue)
-    {
-        switch (_location.EncounterType)
-        {
-            case EncounterTypes.Physical:
-                if (resourceType == ResourceTypes.Health)
-                    return (int)-choicePressureValue;
-                break;
-
-            case EncounterTypes.Intellectual:
-                if (resourceType == ResourceTypes.Concentration)
-                    return (int)-choicePressureValue;
-                break;
-
-            case EncounterTypes.Social:
-                if (resourceType == ResourceTypes.Confidence)
-                    return (int)-choicePressureValue;
+                if (resourceType == PlayerStatusResources.Confidence)
+                    return (int)-pressureValue;
                 break;
         }
 
         return 0;
     }
 
-    public void ApplyResourceChanges(int healthChange, int focusChange, int confidenceChange)
+    public void ApplyResourceChanges(PlayerState playerState, int healthChange, int focusChange, int confidenceChange)
     {
         if (healthChange != 0)
-            _playerState.ModifyHealth(healthChange);
+            playerState.ModifyHealth(healthChange);
 
         if (focusChange != 0)
-            _playerState.ModifyConcentratin(focusChange);
+            playerState.ModifyConcentration(focusChange);
 
         if (confidenceChange != 0)
-            _playerState.ModifyConfidence(confidenceChange);
+            playerState.ModifyConfidence(confidenceChange);
+    }
+
+    internal void ApplyResourceChanges(string key, int value)
+    {
+        throw new NotImplementedException();
     }
 }

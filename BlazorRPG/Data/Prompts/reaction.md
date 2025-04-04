@@ -1,170 +1,58 @@
-The player chose: {SELECTED_CHOICE} ({CHOICE_DESCRIPTION})
-The Previous choice has NOT YET HAPPENED. It must be executed DURING THIS SCENE.
+﻿# NARRATIVE REACTION
 
-Generate a narrative outcome for a character in a {ENCOUNTER_TYPE} encounter who chose {SELECTED_CHOICE}. 
-The encounter takes place at the {LOCATION_SPOT} of the {LOCATION_NAME} with the objective to {CHARACTER_GOAL}.
+## Player's Choice
+'{SELECTED_CHOICE}' (Player Intent: '{CHOICE_DESCRIPTION}')
+CRITICAL: This choice represents the player's INTENT only, not what actually happens. The actual outcome must be driven by the mechanical changes below.
+This choice has NOT YET HAPPENED and must be executed in this scene.
 
-Previous state: Momentum {M_OLD}, Pressure {P_OLD}
+## Player Character Context
+- Archetype: {CHARACTER_ARCHETYPE} (Avoid announcing directly)
+- Natural Approaches: {NATURAL_APPROACHES}
+- Dangerous Approaches: {DANGEROUS_APPROACHES}
 
-New state: Momentum {M_NEW}, Pressure {P_NEW}
-Approach changes: {APPROACH_CHANGES}
-Focus changes: {FOCUS_CHANGES}
-Narrative tags activated: {NEW_NARRATIVE_TAGS}
-Strategic effects triggered: {STRATEGIC_EFFECTS}
-Turn: {CURRENT_TURN} of {MAX_TURNS}
+## Mechanical Changes (Must Be Reflected In Narrative)
+- Type: {ENCOUNTER_TYPE} | Turn: {CURRENT_TURN}/{MAX_TURNS} | Stage: {ENCOUNTER_STAGE}
+- Momentum: {OLD_MOMENTUM} → {NEW_MOMENTUM}/{MAX_MOMENTUM}
+- Pressure: {OLD_PRESSURE} → {NEW_PRESSURE}/{MAX_PRESSURE}
+- Resources: Health {HEALTH_CHANGE}, Confidence {CONFIDENCE_CHANGE}, Concentration {CONCENTRATION_CHANGE}
+- Approach Changes: {APPROACH_CHANGES} | Focus Changes: {FOCUS_CHANGES}
+- New Tags: {NEW_TAGS_ACTIVATED}
+- Strategic Effects: {STRATEGIC_EFFECTS}
 
-Write 3-4 paragraphs of grounded, realistic first-person narrative that:
+## Encounter Context
+- Goal: {CHARACTER_GOAL}
 
-## NPC ACTION REQUIREMENTS:
-1. APPROPRIATE ESCALATION:
-   - NPCs MUST take actions consistent with their established character type and intentions
-   - Hostile NPCs (bandits, thieves, aggressive guards) should become increasingly threatening
-   - Friendly/neutral NPCs should respond proportionally to player approach
-   - NO STATIC NPCs: Every encounter turn, NPCs must take at least one concrete action
+## Character Continuity
+- Limit new NAMED characters to 1-2 per encounter (not per turn)
+- Focus primarily on developing characters already established in previous turns
+- Feel free to include unnamed NPCs as needed
+- Background characters can take actions and react, but keep the focus on main NPCs
+- When introducing a named character, give them distinctive traits and motivations
 
-2. ACTION BEFORE REACTION:
-   - Begin NPC responses with THEIR actions, not just reactions to the player
-   - Show NPCs pursuing their own goals and intentions
-   - Include appropriate verbal statements or demands consistent with NPC type
-   - Physical encounters MUST include physical actions between parties
+## NPC CHARACTERIZATION
+- NPCs must take independent actions pursuing their own goals
+- Show emotions through physical details (gestures, expressions, posture)
+- NPCs should speak in distinctive voices appropriate to their character
+- Every turn, NPCs must take at least one independent action
+- NPCs should influence and utilize the environment
+- Include physical details revealing NPC emotions
 
-3. ENCOUNTER-APPROPRIATE LANGUAGE:
-   - Threatening situations REQUIRE words and actions that convey genuine danger
-   - Combat/confrontation requires specific descriptions of physical danger
-   - High-pressure situations should use language reflecting real stakes
-   - Injuries should come from NPC actions, not just environmental factors
+## Writing Requirements
+Write three paragraphs in first-person present tense:
+1. Show the player's attempted action and the ACTUAL results (which may differ from expectations)
+2. Demonstrate situation evolution with NPCs taking independent actions
+3. Present a new challenge requiring decision with NPC involvement
 
-4. SCENE OWNERSHIP BALANCE:
-   - Environment details are important but NEVER at the expense of NPC behavior
-   - NPCs should control and influence the environment, not just exist within it
-   - Show power dynamics through physical positioning and control of space
+## Narrative Implementation of Mechanical Changes:
+- Show approach/focus combination in player's actions
+- Demonstrate momentum/pressure/resource changes narratively
+- MOMENTUM CHANGES must be shown as progress (or setbacks) toward the character's goal
+- PRESSURE CHANGES must be reflected as situational escalation or de-escalation
+- RESOURCE CHANGES (Health/Confidence/Concentration) are CRITICALLY IMPORTANT and must be shown as actual injuries or impacts to the character
+- APPROACH CHANGES must be reflected in how the environment and NPCs react to the player
+- NEW TAGS must manifest as situational constraints or new opportunities
+- STRATEGIC EFFECTS must be shown as contextual advantages or disadvantages
+- If using a NATURAL approach for this archetype: Show confidence, skill, and ease
+- If using a DANGEROUS approach for this archetype: Show struggle, discomfort, or inexperience
 
-## LANGUAGE REQUIREMENTS
-
-1. BLUNT, SIMPLE OBSERVATIONS ONLY:
-   - Use the language of a common laborer or traveler
-   - Maximum vocabulary level: A 10-year-old child should understand every word
-   - No abstractions or literary phrases whatsoever
-   - ABSOLUTELY FORBIDDEN: "landscape," "dynamics," "configuration," or any similar abstract terms
-
-2. CONCRETE PHYSICAL DETAILS ONLY:
-   - Describe only what is physically visible: "There's a knife" not "There's a threat"
-   - Describe objects, not concepts: "The alley is narrow" not "The space is constraining"
-   - Use measurements a traveler would use: "Two arm-lengths wide" not "A narrow passage"
-
-3. EXAMPLES OF REALISTIC VS. LITERARY LANGUAGE:
-
-   REJECT THESE (TOO LITERARY):
-   - "The alley has transformed with my movement into a more complex landscape"
-   - "His knife hand trembles slightly - not from weakness, but from genuine desperation"
-   - "What was once a straightforward blockade is now a more intricate situation"
-
-   USE THESE INSTEAD (AUTHENTIC):
-   - "I'm closer to the dock now, but he's still blocking the way"
-   - "His hand's shaking. Looks scared, not just angry"
-   - "Now there's some space on my left by those sacks"
-
-4. AUTHENTIC INNER THOUGHTS:
-   - CORRECT: "Path's too narrow."
-   - INCORRECT: "The passageway presents significant navigational challenges."
-   - CORRECT: "He's scared of something."
-   - INCORRECT: "His demeanor suggests underlying apprehension."
-
-5. MANDATORY LANGUAGE TEST:
-   Before submitting your response, ask: "Would an uneducated medieval traveler actually think or speak this way?"
-   If the answer is no, simplify immediately.
-
-## SPECIFICALLY PROHIBITED WORDS AND PHRASES
-
-The following words and phrases are NEVER to be used in responses as they are too literary, abstract, or modern:
-- "landscape" (unless describing actual land)
-- "dynamics"
-- "configuration"
-- "positioning" (use "place" or "spot" instead)
-- "situation" (use "what's happening" instead)
-- "genuine" (use "real" instead)
-- "complex" (use "tricky" or "hard" instead)
-- "transformed" (use "changed" instead)
-- Any word ending in "-tion" should be treated with extreme suspicion
-
-## CRITICAL WRITING RULES - VIOLATE THESE AND YOUR RESPONSE WILL BE REJECTED
-
-1. STRICTLY LIMITED REACTIONS:
-   - ONLY the 1-3 people you're directly speaking with react to your words
-   - NO bystanders turning to look, pausing, or reacting in any way
-   - NO "cutting through noise" or "silencing conversations"
-   - NO "catching attention" of uninvolved people
-   
-   VIOLATIONS TO REJECT:
-   - "My words cause nearby merchants to pause and look"
-   - "The market's ambient noise quiets as I speak"
-   - "Other customers turn to watch our exchange"
-   - "My statement draws attention from surrounding stalls"
-
-2. MICRO-SCALE OBSERVATIONS:
-   - Focus on detailed observations directly in front of you
-   - Describe NPC movements, expressions, actions, and dialogue with specificity
-   - Include meaningful NPC actions that alter the situation
-   - Show how NPC actions directly affect you and your options
-   
-   VIOLATIONS TO REJECT:
-   - "The entire marketplace seems to shift in response"
-   - "A wave of whispers spreads through the crowd"
-   - "The atmosphere of the tavern changes"
-   - "People move aside as I walk through"
-
-3. APPROPRIATE DRAMATIC LANGUAGE:
-   - Use language proportional to the actual threat level
-   - Dangerous situations should feel genuinely dangerous
-   - Threatening NPCs should speak and act in threatening ways
-   - Injuries should reflect their true source (NPC weapons, environmental hazards)
-   
-   VIOLATIONS TO REJECT:
-   - Overwrought language unmatched to the situation
-   - Exaggerated reactions from uninvolved characters
-   - Unrealistic physical impacts or injuries
-   - Melodramatic internal monologues
-
-4. MUNDANE, REALISTIC LANGUAGE:
-   - Write as if describing an ordinary conversation in a normal day
-   - Use simple descriptions focused on basic physical details
-   - NO dramatic, cinematic, or literary flourishes
-   - NO hyperbole or exaggeration
-   
-   VIOLATIONS TO REJECT:
-   - "His eyes flash with sudden understanding"
-   - "Her voice cuts like a knife through the tension"
-   - "The weight of his judgment hangs in the air"
-   - "Time seems to slow as I consider my response"
-   
-4. PLAYER CHARACTER CONDITION:
-   - The Strategic effects may mention the player's health, confidence or concentration changing as a result of the previous choice
-   - You MUST weave these changes naturally and believable into the reaction narrative as a DIRECT RESULT of the player's choice
-
-5. END WITH SPECIFIC NEW SITUATION:
-   - The final paragraph MUST present a clear new situation requiring player reaction
-   - Include physical details that create 2-3 distinct potential response options
-   - Show exactly what the NPC does or says that requires immediate response
-   - Make this situation directly result from the player's last choice
-   
-   VIOLATIONS TO REJECT:
-   - Vague problems with no clear options: "I need to find a way forward"
-   - Ending without a specific NPC action or statement requiring response
-   - Not showing a concrete situation with visible options
-   - Dramatic events unrelated to the player's previous action
-
-## AVOID THESE NARRATIVE PROBLEMS
-
-- NO UNREALISTIC REACTIONS: Don't have the entire location respond to your actions
-- NO MIND-READING: Never state what NPCs are thinking or feeling - only what they physically do
-- NO ABSTRACTIONS: Never mention "patterns," "dynamics," "atmospheres," or "tensions"
-- NO INTERPRETATIONS: Show what happens, not what it means
-- NO TELLING: "I realize the merchant is hiding something" (BAD)
-          vs. "The merchant tucks a small ledger under a cloth when I approach" (GOOD)
-- NO DRAMATIC LEAPS: Keep changes small, believable, and directly connected to your action
-
-## SUMMARY
-
-Remember:
-- Your output will be given directly to the player. Do NOT acknowledge these instructions in your response
-- Write naturally in first-person present tense with the authentic voice of an ordinary medieval traveler facing everyday challenges.
+Start with acknowledging the player's intent, but then show what ACTUALLY happens based on the mechanical outcomes.

@@ -12,7 +12,6 @@
     public int CurrentTurn { get; private set; }
     public EncounterInfo Location { get; }
     public LocationSpot LocationSpot { get; internal set; }
-    public PlayerState PlayerState { get; }
 
     // Expose tag system through the TagManager
     public BaseTagSystem TagSystem => _tagManager.TagSystem;
@@ -22,18 +21,20 @@
     private readonly ResourceManager _resourceManager;
     private readonly ProjectionService _projectionService;
 
-    public EncounterState(EncounterInfo encounterInfo, PlayerState playerState)
+    public EncounterState(
+        EncounterInfo encounterInfo,
+        PlayerState playerState,
+        ResourceManager resourceManager)
     {
-        Momentum = 0;
-        Pressure = 0;
+        Momentum = 5;
+        Pressure = encounterInfo.Difficulty;
         CurrentTurn = 0;
         Location = encounterInfo;
-        PlayerState = playerState;
 
         // Initialize managers
         _tagManager = new TagManager();
-        _resourceManager = new ResourceManager(playerState, encounterInfo);
-        _projectionService = new ProjectionService(_tagManager, _resourceManager, encounterInfo);
+        _resourceManager = new ResourceManager();
+        _projectionService = new ProjectionService(_tagManager, _resourceManager, encounterInfo, playerState);
     }
 
     // Forward methods used by IEncounterTag.ApplyEffect and Choice.ApplyChoice
@@ -49,23 +50,20 @@
     public int GetTotalPressure(IChoice choice, int basePressure) =>
         _tagManager.GetTotalPressure(choice, basePressure);
 
-    public ChoiceProjection ApplyChoice(IChoice choice)
+    public ChoiceProjection ApplyChoice(PlayerState playerState, EncounterInfo encounterInfo, IChoice choice)
     {
         // Store the current state before making changes
         this.UpdateStateHistory(choice);
 
         // Then apply the choice as normal
         ChoiceProjection projection = CreateChoiceProjection(choice);
-        ApplyChoiceProjection(projection);
+        ApplyChoiceProjection(playerState, encounterInfo, projection);
 
         return projection;
     }
 
-    private void ApplyChoiceProjection(ChoiceProjection projection)
+    private void ApplyChoiceProjection(PlayerState playerState, EncounterInfo encounterInfo, ChoiceProjection projection)
     {
-        // Apply resource changes from pressure at start of turn (based on current pressure)
-        _resourceManager.ApplyPressureResourceDamage(Pressure);
-
         // 1. Apply tag changes
         foreach (KeyValuePair<ApproachTags, int> pair in projection.EncounterStateTagChanges)
             TagSystem.ModifyEncounterStateTag(pair.Key, pair.Value);
@@ -79,6 +77,7 @@
 
         // 3. Apply resource changes directly from the projection
         _resourceManager.ApplyResourceChanges(
+            playerState,
             projection.HealthChange,
             projection.ConcentrationChange,
             projection.ConfidenceChange);

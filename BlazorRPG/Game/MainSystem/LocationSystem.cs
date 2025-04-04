@@ -1,57 +1,83 @@
 ﻿public class LocationSystem
 {
     private readonly GameState gameState;
-    private readonly List<Location> allLocations;
-    private readonly List<LocationPropertyChoiceEffect> locationContextEffects;
+    private readonly LocationGenerator initialLocationGenerator;
+    public bool IsInitialized = false;
 
-    public LocationSystem(GameState gameState, GameContentProvider contentProvider)
+    public LocationSystem(
+    GameState gameState,
+    GameContentProvider contentProvider,
+    LocationGenerator initialLocationGenerator)
     {
         this.gameState = gameState;
-        this.allLocations = contentProvider.GetLocations();
-        this.locationContextEffects = contentProvider.GetLocationArchetypeEffects();
+        this.initialLocationGenerator = initialLocationGenerator;
+        List<Location> allLocations = contentProvider.GetLocations();
+    }
+
+    public async Task Initialize()
+    {
+        List<Location> locations = new List<Location>
+        {
+            WorldLocationsContent.Forest,
+            WorldLocationsContent.Village,
+        };
+
+        gameState.WorldState.AddLocations(locations);
+
+        IsInitialized = true;
+    }
+
+    internal void SetCurrentLocation(string locationName)
+    {
+        Location location = GetLocation(locationName);
+        gameState.WorldState.SetCurrentLocation(location);
     }
 
     public List<Location> GetAllLocations()
     {
-        return allLocations;
+        return gameState.WorldState.GetLocations();
     }
 
-    public List<LocationNames> GetTravelLocations(LocationNames currentLocation)
+    public List<string> GetTravelLocations(string currentLocation)
     {
         Location location = GetLocation(currentLocation);
-        return location.TravelConnections;
+        return location.ConnectedTo;
     }
 
-    public Location GetLocation(LocationNames locationName)
+    public Location GetLocation(string locationName)
     {
-        Location location = allLocations.FirstOrDefault(x => x.LocationName == locationName);
+        List<Location> locations = GetAllLocations();
+        Location location = locations.FirstOrDefault(x => x.Name == locationName);
         return location;
     }
 
     public List<LocationSpot> GetLocationSpots(Location location)
     {
-        return location.LocationSpots;
+        if (location == null) return new List<LocationSpot>();
+
+        return location.Spots;
     }
 
-    public LocationSpot GetLocationSpotForLocation(LocationNames locationName, string locationSpot)
+    public LocationSpot GetLocationSpotForLocation(string locationName, string locationSpotName)
     {
         Location location = GetLocation(locationName);
         List<LocationSpot> spots = GetLocationSpots(location);
-        LocationSpot? locationSpot1 = spots.FirstOrDefault(x => x.Name == locationSpot);
-        return locationSpot1;
+        LocationSpot? locationSpot = spots.FirstOrDefault(x => x.Name == locationSpotName);
+        return locationSpot;
     }
 
-    public List<LocationPropertyChoiceEffect> GetLocationEffects(LocationNames locationName, string locationSpotName)
+    public List<StrategicTag> GetEnvironmentalProperties(string locationName, string locationSpotName)
     {
         Location location = GetLocation(locationName);
         LocationSpot locationSpot = GetLocationSpotForLocation(locationName, locationSpotName);
 
-        List<LocationPropertyChoiceEffect> effects = new List<LocationPropertyChoiceEffect>();
-        foreach (LocationPropertyChoiceEffect locationContextEffect in locationContextEffects)
-        {
-            effects.Add(locationContextEffect);
-        }
-        return effects;
+        return new List<StrategicTag>();
+    }
+
+    internal void AddSpot(string locationName, LocationSpot spot)
+    {
+        Location location = gameState.WorldState.GetLocation(locationName);
+        location.AddSpot(spot);
     }
 
 }

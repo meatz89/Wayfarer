@@ -323,40 +323,40 @@ Each choice includes:
 
 ---
 
-## Concealment-Based Choices
+## Evasion-Based Choices
 
 ### Offensive Choices (Momentum)
 
-#### 41. "Hidden Advantage" (Concealment + Physical)
-- **Tag Effects**: +2 Concealment, +1 Physical
+#### 41. "Hidden Advantage" (Evasion + Physical)
+- **Tag Effects**: +2 Evasion, +1 Physical
 - **Mechanical Effect**: +2 momentum
 - **Social Description**: *"You hide your true capabilities until the perfect moment to reveal them for maximum effect."*
 - **Intellectual Description**: *"You work behind the scenes, developing insights others haven't considered."*
 - **Physical Description**: *"You move stealthily, positioning yourself for an advantageous approach."*
 
-#### 42. "Gather Secrets" (Concealment + Information)
-- **Tag Effects**: +2 Concealment, +1 Information
+#### 42. "Gather Secrets" (Evasion + Information)
+- **Tag Effects**: +2 Evasion, +1 Information
 - **Mechanical Effect**: +2 momentum
 - **Social Description**: *"You listen more than you speak, gathering valuable information others don't realize they're sharing."*
 - **Intellectual Description**: *"You discreetly collect information, assembling a more complete picture than others suspect."*
 - **Physical Description**: *"You observe without being noticed, learning crucial details about the physical challenge."*
 
-#### 43. "Veiled Intentions" (Concealment + Relationship)
-- **Tag Effects**: +2 Concealment, +1 Relationship
+#### 43. "Veiled Intentions" (Evasion + Relationship)
+- **Tag Effects**: +2 Evasion, +1 Relationship
 - **Mechanical Effect**: +2 momentum
 - **Social Description**: *"You maintain a carefully crafted persona, revealing only what serves your purposes."*
 - **Intellectual Description**: *"You keep your developing theories private until they're fully formed and defensible."*
 - **Physical Description**: *"You disguise your true capabilities, letting others underestimate you."*
 
-#### 44. "Blend With Surroundings" (Concealment + Environment)
-- **Tag Effects**: +2 Concealment, +1 Environment
+#### 44. "Blend With Surroundings" (Evasion + Environment)
+- **Tag Effects**: +2 Evasion, +1 Environment
 - **Mechanical Effect**: +2 momentum
 - **Social Description**: *"You become socially invisible, attracting no attention while you observe and plan."*
 - **Intellectual Description**: *"You make your investigations seem unremarkable, avoiding drawing attention to your real focus."*
 - **Physical Description**: *"You use the environment to mask your presence, becoming nearly invisible."*
 
-#### 45. "Secret Resources" (Concealment + Resource)
-- **Tag Effects**: +2 Concealment, +1 Resource
+#### 45. "Secret Resources" (Evasion + Resource)
+- **Tag Effects**: +2 Evasion, +1 Resource
 - **Mechanical Effect**: +2 momentum
 - **Social Description**: *"You have resources or connections others don't know about, creating unexpected advantages."*
 - **Intellectual Description**: *"You privately develop tools or methods that give you unique analytical leverage."*
@@ -364,36 +364,36 @@ Each choice includes:
 
 ### Defensive Choices (Pressure)
 
-#### 46. "Fade Away" (Concealment + Physical)
-- **Tag Effects**: +1 Concealment, +1 Physical
+#### 46. "Fade Away" (Evasion + Physical)
+- **Tag Effects**: +1 Evasion, +1 Physical
 - **Mechanical Effect**: -1 pressure
 - **Social Description**: *"You make yourself socially invisible when attention would create complications."*
 - **Intellectual Description**: *"You withdraw your more controversial ideas temporarily, reducing resistance."*
 - **Physical Description**: *"You slip into the shadows, removing yourself from immediate danger."*
 
-#### 47. "Conceal Weaknesses" (Concealment + Information)
-- **Tag Effects**: +1 Concealment, +1 Information
+#### 47. "Conceal Weaknesses" (Evasion + Information)
+- **Tag Effects**: +1 Evasion, +1 Information
 - **Mechanical Effect**: -1 pressure
 - **Social Description**: *"You carefully control what information about yourself is revealed, hiding vulnerabilities."*
 - **Intellectual Description**: *"You keep uncertainties private until you can address them, preventing premature criticism."*
 - **Physical Description**: *"You disguise your fatigue or injuries, preventing others from targeting your weaknesses."*
 
-#### 48. "Maintain Privacy" (Concealment + Relationship)
-- **Tag Effects**: +1 Concealment, +1 Relationship
+#### 48. "Maintain Privacy" (Evasion + Relationship)
+- **Tag Effects**: +1 Evasion, +1 Relationship
 - **Mechanical Effect**: -1 pressure
 - **Social Description**: *"You establish comfortable boundaries, preventing others from prying into sensitive areas."*
 - **Intellectual Description**: *"You selectively share your findings, keeping controversial elements private."*
 - **Physical Description**: *"You create physical distance that provides space to recover and regroup."*
 
-#### 49. "Find Cover" (Concealment + Environment)
-- **Tag Effects**: +1 Concealment, +1 Environment
+#### 49. "Find Cover" (Evasion + Environment)
+- **Tag Effects**: +1 Evasion, +1 Environment
 - **Mechanical Effect**: -1 pressure
 - **Social Description**: *"You find a socially neutral position where you can observe without being drawn into conflict."*
 - **Intellectual Description**: *"You create a private workspace where you can think without interruption or scrutiny."*
 - **Physical Description**: *"You locate physical cover or shelter that protects you from immediate threats."*
 
-#### 50. "Hide Resources" (Concealment + Resource)
-- **Tag Effects**: +1 Concealment, +1 Resource
+#### 50. "Hide Resources" (Evasion + Resource)
+- **Tag Effects**: +1 Evasion, +1 Resource
 - **Mechanical Effect**: -1 pressure
 - **Social Description**: *"You keep certain assets or capabilities hidden, preventing others from factoring them into their calculations."*
 - **Intellectual Description**: *"You maintain a reserve of ideas or evidence, creating a safety net if initial approaches fail."*
@@ -415,8 +415,8 @@ As players progress, they may unlock more sophisticated choices that combine mul
 - **Mechanical Effect**: +3 momentum
 - **Description**: *"You blend emotional intelligence with analytical thinking, gaining insights others miss."*
 
-### 53. "Precise Stealth" (Precision + Concealment, Offensive)
-- **Tag Effects**: +1 Precision, +1 Concealment, +1 Environment
+### 53. "Precise Stealth" (Precision + Evasion, Offensive)
+- **Tag Effects**: +1 Precision, +1 Evasion, +1 Environment
 - **Mechanical Effect**: +3 momentum
 - **Description**: *"You move with perfect control and silence, achieving the impossible without being detected."*
 

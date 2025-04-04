@@ -1,67 +1,236 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-
-public class EncounterManager
+﻿public class EncounterManager
 {
-    public bool _useAiNarrative = false;
-
     public ActionImplementation ActionImplementation;
-    private readonly CardSelectionAlgorithm _cardSelector;
-    public EncounterState State;
 
-    private NarrativeService _narrativeService;
-    private NarrativeContext _narrativeContext;
+    private CardSelectionAlgorithm cardSelectionAlgorithm;
+    public EncounterState encounterState;
+
+    private NarrativeService narrativeService;
+    private NarrativeContext narrativeContext;
+
+    private ResourceManager resourceManager;
 
     public List<IChoice> CurrentChoices = new List<IChoice>();
+
+    public PlayerState playerState;
+    public WorldState worldState;
+    public EncounterInfo encounterInfo;
+
+    private bool _useAiNarrative = false;
+    private bool _useMemory = false;
 
     public EncounterManager(
         ActionImplementation actionImplementation,
         CardSelectionAlgorithm cardSelector,
         NarrativeService narrativeService,
-        bool useAiNarrative,
+        ResourceManager resourceManager,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {
         ActionImplementation = actionImplementation;
-        _cardSelector = cardSelector;
-        _useAiNarrative = useAiNarrative;
-        _narrativeService = narrativeService;
+        cardSelectionAlgorithm = cardSelector;
+        this.narrativeService = narrativeService;
+        this.resourceManager = resourceManager;
+
+        _useAiNarrative = configuration.GetValue<bool>("useAiNarrative");
+        _useMemory = configuration.GetValue<bool>("useMemory");
     }
 
-    // Add methods to control AI provider selection
-    public void SwitchAIProvider(AIProviderType providerType)
+    private void StartEncounter(WorldState worldState, PlayerState playerState, EncounterInfo encounterInfo)
     {
-        if (_narrativeService != null)
+        this.worldState = worldState;
+        this.playerState = playerState;
+
+        encounterState = new EncounterState(encounterInfo, playerState, this.resourceManager);
+        encounterState.UpdateActiveTags(encounterInfo.AvailableTags);
+    }
+
+    public async Task<NarrativeResult> StartEncounterWithNarrativeAsync(
+        Location location,
+        EncounterInfo encounterInfo,
+        WorldState worldState,
+        PlayerState playerState,
+        ActionImplementation actionImplementation,
+        AIProviderType providerType)
+    {
+        this.playerState = playerState;
+        this.encounterInfo = encounterInfo;
+
+        narrativeService.SwitchProvider(providerType);
+
+        // Start the encounter mechanically
+        StartEncounter(worldState, playerState, encounterInfo);
+
+        // Create narrative context
+        narrativeContext =
+            new NarrativeContext(
+                encounterInfo.Name.ToString(),
+                encounterInfo.LocationSpotName.ToString(),
+                encounterInfo.Type,
+                actionImplementation);
+
+        // Generate introduction
+        EncounterStatusModel status = GetEncounterStatusModel(playerState, worldState);
+
+        string introduction = "introduction";
+
+        if (_useAiNarrative)
         {
-            _narrativeService.SwitchProvider(providerType);
+            string memoryContent = string.Empty;
+
+            if (_useMemory)
+            {
+                memoryContent = await MemoryFileAccess.ReadFromMemoryFile();
+            }
+
+            introduction = await narrativeService.GenerateIntroductionAsync(
+                narrativeContext,
+                status,
+                memoryContent);
+        }
+
+        // Get available choices
+        GenerateChoices();
+        List<IChoice> choices = GetCurrentChoices();
+        List<ChoiceProjection> projections = choices.Select(ProjectChoice).ToList();
+
+        // Create first narrative event
+        NarrativeEvent firstNarrative = new NarrativeEvent(
+            encounterState.CurrentTurn,
+            introduction);
+
+        narrativeContext.AddEvent(firstNarrative);
+
+        // Generate choice descriptions
+        Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = null;
+        if (_useAiNarrative)
+        {
+            choiceDescriptions = await narrativeService.GenerateChoiceDescriptionsAsync(
+                narrativeContext,
+                choices,
+                projections,
+                status);
+
+            firstNarrative.SetAvailableChoiceDescriptions(choiceDescriptions);
+        }
+
+        // Return the narrative result
+        return new NarrativeResult(
+            introduction,
+            actionImplementation.Goal,
+            choices,
+            projections,
+            choiceDescriptions,
+            firstNarrative.ChoiceNarrative);
+    }
+
+    public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
+        IChoice choice,
+        PlayerState playerState,
+        WorldState worldState,
+        ChoiceNarrative choiceDescription)
+    {
+        // Apply the choice
+        ChoiceOutcome outcome = ApplyChoiceProjection(playerState, encounterInfo, choice);
+
+        // Get status after the choice
+        EncounterStatusModel newStatus = GetEncounterStatusModel(playerState, worldState);
+
+        // Generate narrative for the reaction and new scene
+        string narrative = "Continued Narrative";
+
+        // If the encounter is over, return the outcome
+        if (outcome.IsEncounterOver)
+        {
+            if (_useAiNarrative)
+            {
+                narrative = await narrativeService.GenerateEndingAsync(
+                    narrativeContext,
+                    choice,
+                    choiceDescription,
+                    outcome,
+                    newStatus);
+
+            }
+
+            NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
+            narrativeContext.AddEvent(narrativeEvent);
+
+            NarrativeResult narrativeResultFinished = new(
+                narrative,
+                string.Empty,
+                new List<IChoice>(),
+                new List<ChoiceProjection>(),
+                new Dictionary<IChoice, ChoiceNarrative>(),
+                narrativeEvent.ChoiceNarrative);
+
+            narrativeResultFinished.SetOutcome(outcome.Outcome);
+            narrativeResultFinished.SetIsEncounterOver(outcome.IsEncounterOver);
+
+            return narrativeResultFinished;
+        }
+        else
+        {
+            if (_useAiNarrative)
+            {
+                narrative = await narrativeService.GenerateEncounterNarrative(
+                    narrativeContext,
+                    choice,
+                    choiceDescription,
+                    outcome,
+                    newStatus);
+            }
+
+            NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
+            narrativeContext.AddEvent(narrativeEvent);
+
+            // Get the new choices and projections
+            GenerateChoices();
+            List<IChoice> newChoices = GetCurrentChoices();
+            List<ChoiceProjection> newProjections = newChoices.Select(ProjectChoice).ToList();
+
+            // Generate descriptive narratives for each choice
+            Dictionary<IChoice, ChoiceNarrative> newChoiceDescriptions = null;
+
+            if (_useAiNarrative)
+            {
+                newChoiceDescriptions = await narrativeService.GenerateChoiceDescriptionsAsync(
+                    narrativeContext,
+                    newChoices,
+                    newProjections,
+                    newStatus);
+            }
+
+            // Add the choice descriptions to the latest event
+            narrativeEvent.ChoiceDescriptions.Clear();
+            if (newChoiceDescriptions != null)
+            {
+                foreach (KeyValuePair<IChoice, ChoiceNarrative> kvp in newChoiceDescriptions)
+                {
+                    narrativeEvent.ChoiceDescriptions[kvp.Key] = kvp.Value;
+                }
+            }
+
+            ChoiceNarrative lastChoiceNarrative = narrativeEvent.ChoiceNarrative;
+
+            // Return the narrative result
+            NarrativeResult narrativeResultOngoing = new(
+                narrative,
+                string.Empty,
+                newChoices,
+                newProjections,
+                newChoiceDescriptions,
+                narrativeEvent.ChoiceNarrative);
+
+            return narrativeResultOngoing;
         }
     }
 
-    public AIProviderType GetCurrentAIProvider()
+    private ChoiceOutcome ApplyChoiceProjection(PlayerState playerState, EncounterInfo encounterInfo, IChoice choice)
     {
-        return _narrativeService?.CurrentProvider ?? AIProviderType.OpenAI;
-    }
+        this.playerState = playerState;
 
-    public string GetCurrentAIProviderName()
-    {
-        return _narrativeService?.GetCurrentProviderName() ?? "None";
-    }
-
-    // Existing methods remain the same
-    public List<IChoice> GetCurrentChoices()
-    {
-        return CurrentChoices;
-    }
-
-    public void GenerateChoices()
-    {
-        CurrentChoices = _cardSelector.SelectChoices(State);
-    }
-
-    private ChoiceOutcome ApplyChoiceProjection(IChoice choice)
-    {
-        ChoiceProjection projection = State.ApplyChoice(choice);
+        ChoiceProjection projection = encounterState.ApplyChoice(playerState, encounterInfo, choice);
 
         ChoiceOutcome outcome = new ChoiceOutcome(
             projection.MomentumGained,
@@ -89,208 +258,15 @@ public class EncounterManager
         return outcome;
     }
 
-    public EncounterStatus GetEncounterStatus()
-    {
-        return new EncounterStatus(
-            State.CurrentTurn,
-            State.Location.TurnDuration,
-            State.Momentum,
-            State.Pressure,
-            State.TagSystem.GetAllApproachTags(),
-            State.TagSystem.GetAllFocusTags(),
-            State.GetActiveTagsNames()
-        );
-    }
 
-    public NarrativeContext GetNarrativeContext()
-    {
-        return _narrativeContext;
-    }
-
-    public ChoiceProjection ProjectChoice(IChoice choice)
-    {
-        ChoiceProjection projection = State.CreateChoiceProjection(choice);
-        projection.NarrativeDescription = choice.Name + " " + choice.Description;
-        return projection;
-    }
-
-    private void StartEncounter(EncounterInfo encounterInfo, PlayerState playerState)
-    {
-        State = new EncounterState(encounterInfo, playerState);
-        State.UpdateActiveTags(encounterInfo.AvailableTags);
-    }
-
-    public async Task<NarrativeResult> StartEncounterWithNarrativeAsync(
-        Location location,
-        EncounterInfo encounterInfo,
-        PlayerState playerState,
-        ActionImplementation incitingAction,
-        AIProviderType providerType)
-    {
-        if (_narrativeService != null)
-        {
-            _narrativeService.SwitchProvider(providerType);
-        }
-
-        // Start the encounter mechanically
-        StartEncounter(encounterInfo, playerState);
-
-        // Create narrative context
-        _narrativeContext =
-            new NarrativeContext(
-                encounterInfo.LocationName.ToString(),
-                encounterInfo.LocationSpotName.ToString(),
-                encounterInfo.EncounterType,
-                incitingAction);
-
-        // Generate introduction
-        EncounterStatus status = GetEncounterStatus();
-
-        string introduction = "introduction";
-        if (_useAiNarrative && _narrativeService != null)
-        {
-            string memoryContent = await MemoryFileAccess.ReadFromMemoryFile();
-
-            introduction = await _narrativeService.GenerateIntroductionAsync(
-                _narrativeContext,
-                status,
-                memoryContent);
-        }
-
-        // Get available choices
-        GenerateChoices();
-        List<IChoice> choices = GetCurrentChoices();
-        List<ChoiceProjection> projections = choices.Select(ProjectChoice).ToList();
-
-        // Create first narrative event
-        NarrativeEvent firstNarrative = new NarrativeEvent(
-            State.CurrentTurn,
-            introduction);
-
-        _narrativeContext.AddEvent(firstNarrative);
-
-        // Generate choice descriptions
-        Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = null;
-        if (_useAiNarrative && _narrativeService != null)
-        {
-            choiceDescriptions = await _narrativeService.GenerateChoiceDescriptionsAsync(
-                _narrativeContext,
-                choices,
-                projections,
-                status);
-
-            firstNarrative.SetAvailableChoiceDescriptions(choiceDescriptions);
-        }
-
-        // Return the narrative result
-        return new NarrativeResult(
-            introduction,
-            choices,
-            projections,
-            choiceDescriptions,
-            firstNarrative.ChoiceNarrative);
-    }
-
-    public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
+    private NarrativeEvent GetNarrativeEvent(
         IChoice choice,
-        ChoiceNarrative choiceDescription)
-    {
-        // Apply the choice
-        ChoiceOutcome outcome = ApplyChoiceProjection(choice);
-
-        // Get status after the choice
-        EncounterStatus newStatus = GetEncounterStatus();
-
-        // Generate narrative for the reaction and new scene
-        string narrative = "Continued Narrative";
-
-        // If the encounter is over, return the outcome
-        if (outcome.IsEncounterOver)
-        {
-            narrative = await _narrativeService.GenerateEndingAsync(
-                _narrativeContext,
-                choice,
-                choiceDescription,
-                outcome,
-                newStatus);
-
-            
-            await UpdateMemoryFile(outcome, newStatus);
-
-            NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
-            _narrativeContext.AddEvent(narrativeEvent);
-
-            NarrativeResult narrativeResultFinished = new(
-                narrative,
-                new List<IChoice>(),
-                new List<ChoiceProjection>(),
-                new Dictionary<IChoice, ChoiceNarrative>(),
-                narrativeEvent.ChoiceNarrative);
-
-            narrativeResultFinished.SetOutcome(outcome.Outcome);
-            narrativeResultFinished.SetIsEncounterOver(outcome.IsEncounterOver);
-
-            return narrativeResultFinished;
-        }
-        else
-        {
-            if (_useAiNarrative && _narrativeService != null)
-            {
-                narrative = await _narrativeService.GenerateReactionAndSceneAsync(
-                    _narrativeContext,
-                    choice,
-                    choiceDescription,
-                    outcome,
-                    newStatus);
-            }
-            
-            NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
-            _narrativeContext.AddEvent(narrativeEvent);
-
-            // Get the new choices and projections
-            GenerateChoices();
-            List<IChoice> newChoices = GetCurrentChoices();
-            List<ChoiceProjection> newProjections = newChoices.Select(ProjectChoice).ToList();
-
-            // Generate descriptive narratives for each choice
-            Dictionary<IChoice, ChoiceNarrative> newChoiceDescriptions = null;
-            if (_useAiNarrative && _narrativeService != null)
-            {
-                newChoiceDescriptions = await _narrativeService.GenerateChoiceDescriptionsAsync(
-                    _narrativeContext,
-                    newChoices,
-                    newProjections,
-                    newStatus);
-            }
-
-            // Add the choice descriptions to the latest event
-            narrativeEvent.ChoiceDescriptions.Clear();
-            if (newChoiceDescriptions != null)
-            {
-                foreach (KeyValuePair<IChoice, ChoiceNarrative> kvp in newChoiceDescriptions)
-                {
-                    narrativeEvent.ChoiceDescriptions[kvp.Key] = kvp.Value;
-                }
-            }
-
-            ChoiceNarrative lastChoiceNarrative = narrativeEvent.ChoiceNarrative;
-
-            // Return the narrative result
-            NarrativeResult narrativeResultOngoing = new(
-                narrative,
-                newChoices,
-                newProjections,
-                newChoiceDescriptions,
-                narrativeEvent.ChoiceNarrative);
-
-            return narrativeResultOngoing;
-        }
-    }
-
-    private NarrativeEvent GetNarrativeEvent(IChoice choice, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, string narrative)
+        ChoiceNarrative choiceDescription,
+        ChoiceOutcome outcome,
+        string narrative)
     {
         NarrativeEvent narrativeEvent = new NarrativeEvent(
-            State.CurrentTurn - 1, // The turn counter increases after application
+            encounterState.CurrentTurn - 1, // The turn counter increases after application
             narrative);
 
         narrativeEvent.SetChosenOption(choice);
@@ -299,17 +275,63 @@ public class EncounterManager
         return narrativeEvent;
     }
 
-    private async Task UpdateMemoryFile(ChoiceOutcome outcome, EncounterStatus newStatus)
+
+    public EncounterStatusModel GetEncounterStatusModel(PlayerState playerState, WorldState worldState)
     {
-        var oldMemory = await MemoryFileAccess.ReadFromMemoryFile();
+        return new EncounterStatusModel(
+            currentTurn: encounterState.CurrentTurn,
+            maxMomentum: encounterState.Location.ExceptionalThreshold,
+            maxPressure: encounterState.Location.MaxPressure,
+            successThreshold: encounterState.Location.StandardThreshold,
+            maxTurns: encounterState.Location.TurnDuration,
+            momentum: encounterState.Momentum,
+            pressure: encounterState.Pressure,
+            approachTags: encounterState.TagSystem.GetAllApproachTags(),
+            focusTags: encounterState.TagSystem.GetAllFocusTags(),
+            activeTagNames: encounterState.GetActiveTagsNames(),
+            playerState: playerState,
+            worldState: worldState
+        );
+    }
 
-        string memoryContent = await _narrativeService.GenerateMemoryFileAsync(
-            _narrativeContext,
-            outcome,
-            newStatus,
-            oldMemory
-            );
+    public NarrativeContext GetNarrativeContext()
+    {
+        return narrativeContext;
+    }
 
-        await MemoryFileAccess.WriteToMemoryFile(outcome, newStatus, memoryContent);
+    public ChoiceProjection ProjectChoice(IChoice choice)
+    {
+        ChoiceProjection projection = encounterState.CreateChoiceProjection(choice);
+        projection.NarrativeDescription = choice.Name + " " + choice.Description;
+        return projection;
+    }
+
+    public void SwitchAIProvider(AIProviderType providerType)
+    {
+        if (narrativeService != null)
+        {
+            narrativeService.SwitchProvider(providerType);
+        }
+    }
+
+    public AIProviderType GetCurrentAIProvider()
+    {
+        return narrativeService?.CurrentProvider ?? AIProviderType.OpenAI;
+    }
+
+    public string GetCurrentAIProviderName()
+    {
+        return narrativeService?.GetCurrentProviderName() ?? "None";
+    }
+
+    // Existing methods remain the same
+    public List<IChoice> GetCurrentChoices()
+    {
+        return CurrentChoices;
+    }
+
+    public void GenerateChoices()
+    {
+        CurrentChoices = cardSelectionAlgorithm.SelectChoices(encounterState);
     }
 }

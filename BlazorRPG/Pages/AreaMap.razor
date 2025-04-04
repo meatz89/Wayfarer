@@ -5,23 +5,23 @@
 <div class="locations-grid">
     @foreach (Location location in Locations)
     {
-        <div class="location-card @(location.LocationName == CurrentLocation.LocationName ? "current" : "reachable")">
+        <div class="location-card @(location.Name == CurrentLocation.Name ? "current" : "reachable")">
             <div class="location-name">
-                @location.LocationName @(location.LocationName == CurrentLocation.LocationName ? "(Current)" : "")
+                @location.Name @(location.Name == CurrentLocation.Name ? "(Current)" : "")
             </div>
 
-            @if (location.LocationName == CurrentLocation.LocationName)
+            @if (location.Name == CurrentLocation.Name)
             {
                 <button class="action-button"
-                        @onclick="() => OnTravel.InvokeAsync(location.LocationName)">
+                        @onclick="() => OnTravel.InvokeAsync(location.Name)">
                     ---- ENTER LOCATION ----
                 </button>
             }
             else
             {
                 <button class="action-button"
-                        @onclick="() => OnTravel.InvokeAsync(location.LocationName)"
-                        disabled="@(!ActionManager.CanTravelTo(location.LocationName))">
+                        @onclick="() => OnTravel.InvokeAsync(location.Name)"
+                        disabled="@(!ActionManager.CanTravelTo(location.Name))">
                     TRAVEL HERE
                 </button>
             }
@@ -32,5 +32,5 @@
 @code {
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public List<Location> Locations { get; set; }
-    [Parameter] public EventCallback<LocationNames> OnTravel { get; set; }
+    [Parameter] public EventCallback<string> OnTravel { get; set; }
 }

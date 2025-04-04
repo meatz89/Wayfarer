@@ -1,55 +1,218 @@
 ﻿public class PlayerState
 {
-    public int Level { get; set; } = 1;
-    public int Coins { get; set; }
+    // Core identity
+    public string Name { get; set; }
+    public string Background { get; set; }
 
-    public int Health { get; set; }
+    // Archetype
+    public ArchetypeTypes Archetype { get; set; }
+    public ArchetypeConfig ArchetypeConfig { get; set; }
+
+    // Progression systems
+    public int Level { get; set; }
+    public int ExperiencePoints { get; set; }
+    public SkillList Skills { get; set; } = new();
+
+    // Resources
+    public int Money { get; set; }
+    public int Food { get; set; }
+    public Inventory Inventory { get; set; } = new Inventory(10);
+
+    // Encounter resources (reset at start of encounters)
     public int MinHealth { get; set; }
+    public int Health { get; set; }
     public int MaxHealth { get; set; }
-
-    public int PhysicalEnergy { get; set; }
-    public int MaxPhysicalEnergy { get; set; }
-
     public int Concentration { get; set; }
     public int MaxConcentration { get; set; }
-
     public int Confidence { get; set; }
     public int MaxConfidence { get; set; }
 
-    public Dictionary<SkillTypes, int> Skills { get; set; } = new();
-    public Inventory Inventory { get; set; }
+    public int Energy { get; set; }
+    public int MaxEnergy { get; set; }
+
+    // Relationships with characters
+    public RelationshipList Relationships { get; set; } = new();
+
+    // Card collection (player skills)
+    public List<ChoiceCard> UnlockedCards { get; set; } = new List<ChoiceCard>();
+
+    // Location knowledge
+    public List<string> DiscoveredLocationIds { get; set; } = new List<string>();
+
+    // Travel capabilities
+    public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
+
+    public int Coins { get; set; }
+
     public Equipment Equipment { get; set; }
     public List<KnowledgePiece> Knowledge { get; set; } = new();
-    public LocationNames StartingLocation { get; set; }
-    public List<LocationNames> KnownLocations { get; set; } = new();
-    public HashSet<(LocationNames, BasicActionTypes)> LocationActionAvailability { get; set; } = new();
+    public string StartingLocation { get; set; }
+    public List<string> KnownLocations { get; set; } = new();
+    public HashSet<(string, BasicActionTypes)> LocationActionAvailability { get; set; } = new();
 
     public List<PlayerNegativeStatus> NegativeStatusTypes { get; set; }
     public PlayerConfidenceTypes ConfidenceType { get; set; }
 
     public PlayerState()
     {
+        StartingLocation = GameRules.StandardRuleset.StartingLocation.ToString();
+
+        Background = GameRules.StandardRuleset.Background;
+
         Inventory = new Inventory(GameRules.StandardRuleset.StartingInventorySize);
         Equipment = new Equipment();
 
-        Skills.Add(SkillTypes.Strength, 5);
-        Skills.Add(SkillTypes.Perception, 5);
-        Skills.Add(SkillTypes.Charisma, 8);
-
         Coins = GameRules.StandardRuleset.StartingCoins;
+
+        Energy = GameRules.StandardRuleset.StartingPhysicalEnergy;
+        MaxEnergy = 10;
 
         Health = GameRules.StandardRuleset.StartingHealth;
         MinHealth = GameRules.StandardRuleset.MinimumHealth;
-        MaxHealth = 100;
-
-        PhysicalEnergy = GameRules.StandardRuleset.StartingPhysicalEnergy;
-        MaxPhysicalEnergy = 100;
+        MaxHealth = 20;
 
         Concentration = GameRules.StandardRuleset.StartingConcentration;
-        MaxConcentration = 100;
+        MaxConcentration = 20;
 
         Confidence = GameRules.StandardRuleset.StartingConfidence;
-        MaxConfidence = 100;
+        MaxConfidence = 20;
+
+        NegativeStatusTypes = new();
+        ConfidenceType = PlayerConfidenceTypes.Neutral;
+    }
+
+    public void SetArchetype(ArchetypeTypes archetype)
+    {
+        this.Archetype = archetype;
+
+        switch (archetype)
+        {
+            case ArchetypeTypes.Warrior:
+                ArchetypeConfig = ArchetypeConfig.CreateWarrior();
+                InitializeWarriorInventory();
+                break;
+            case ArchetypeTypes.Scholar:
+                ArchetypeConfig = ArchetypeConfig.CreateScholar();
+                InitializeScholarInventory();
+                break;
+            case ArchetypeTypes.Ranger:
+                ArchetypeConfig = ArchetypeConfig.CreateRanger();
+                InitializeRangerInventory();
+                break;
+            case ArchetypeTypes.Bard:
+                ArchetypeConfig = ArchetypeConfig.CreateBard();
+                InitializeBardInventory();
+                break;
+            case ArchetypeTypes.Thief:
+                ArchetypeConfig = ArchetypeConfig.CreateThief();
+                InitializeThiefInventory();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(archetype));
+        }
+    }
+
+    private void InitializeWarriorInventory()
+    {
+        // Clear existing inventory first
+        ClearInventory();
+
+        // Add warrior-specific items
+        Inventory.AddItem(ItemTypes.Sword);
+        Inventory.AddItem(ItemTypes.Shield);
+        Inventory.AddItem(ItemTypes.LeatherArmor);
+        Inventory.AddItem(ItemTypes.Rations);
+    }
+
+    private void InitializeScholarInventory()
+    {
+        // Clear existing inventory first
+        ClearInventory();
+
+        // Add scholar-specific items
+        Inventory.AddItem(ItemTypes.Book);
+        Inventory.AddItem(ItemTypes.Scroll);
+        Inventory.AddItem(ItemTypes.WritingKit);
+        Inventory.AddItem(ItemTypes.Dagger);
+        Inventory.AddItem(ItemTypes.Rations);
+    }
+
+    private void InitializeRangerInventory()
+    {
+        // Clear existing inventory first
+        ClearInventory();
+
+        // Add ranger-specific items
+        Inventory.AddItem(ItemTypes.Bow);
+        Inventory.AddItem(ItemTypes.Arrow);
+        Inventory.AddItem(ItemTypes.HuntingKnife);
+        Inventory.AddItem(ItemTypes.Rations);
+        Inventory.AddItem(ItemTypes.HealingHerbs);
+    }
+
+    private void InitializeBardInventory()
+    {
+        // Clear existing inventory first
+        ClearInventory();
+
+        // Add bard-specific items
+        Inventory.AddItem(ItemTypes.Lute);
+        Inventory.AddItem(ItemTypes.FineClothes);
+        Inventory.AddItem(ItemTypes.WineBottle);
+        Inventory.AddItem(ItemTypes.Dagger);
+        Inventory.AddItem(ItemTypes.Rations);
+    }
+
+    private void InitializeThiefInventory()
+    {
+        // Clear existing inventory first
+        ClearInventory();
+
+        // Add thief-specific items
+        Inventory.AddItem(ItemTypes.Lockpicks);
+        Inventory.AddItem(ItemTypes.Rope);
+        Inventory.AddItem(ItemTypes.Dagger);
+        Inventory.AddItem(ItemTypes.ClimbingGear);
+        Inventory.AddItem(ItemTypes.Rations);
+    }
+
+    private void ClearInventory()
+    {
+        // Simple method to clear all slots
+        for (int i = 0; i < Inventory.MaxCapacity; i++)
+        {
+            if (Inventory.ContainsItem(ItemTypes.None) == false)
+            {
+                Inventory.RemoveItem(Inventory.GetFirstItem());
+            }
+        }
+    }
+
+    public List<ApproachTags> GetNaturalApproaches(EncounterTypes encounterType)
+    {
+        return ArchetypeConfig.GetApproachesWithAffinity(AffinityTypes.Natural, encounterType);
+    }
+
+    public List<ApproachTags> GetDangerousApproaches(EncounterTypes encounterType)
+    {
+        return ArchetypeConfig.GetApproachesWithAffinity(AffinityTypes.Dangerous, encounterType);
+    }
+
+    public string GetNaturalApproachesText(EncounterTypes encounterType)
+    {
+        List<ApproachTags> approaches = GetNaturalApproaches(encounterType);
+        return string.Join(", ", approaches);
+    }
+
+    public string GetDangerousApproachesText(EncounterTypes encounterType)
+    {
+        List<ApproachTags> approaches = GetDangerousApproaches(encounterType);
+        return string.Join(", ", approaches);
+    }
+
+    public AffinityTypes GetApproachAffinity(ApproachTags approach, EncounterTypes encounterType)
+    {
+        return ArchetypeConfig.GetAffinity(approach, encounterType);
     }
 
     public bool ModifyCoins(int count)
@@ -58,20 +221,6 @@
         if (newCoins != Coins)
         {
             Coins = newCoins;
-            return true;
-        }
-        return false;
-    }
-
-    public bool ModifyFood(int count)
-    {
-        Inventory inventory = Inventory;
-        int currentFood = inventory.GetItemCount(ItemTypes.Food);
-
-        int updatedFood = Math.Clamp(currentFood + count, 0, inventory.GetCapacityFor(ItemTypes.Food));
-        if (updatedFood != currentFood)
-        {
-            inventory.SetItemCount(ItemTypes.Food, updatedFood);
             return true;
         }
         return false;
@@ -88,29 +237,18 @@
         return false;
     }
 
-    public void ModifyEnergy(EnergyTypes energyType, int amount)
+    public bool ModifyEnergy(int count)
     {
-        switch (energyType)
+        int newEnergy = Math.Clamp(Energy + count, 0, MaxEnergy);
+        if (newEnergy != Energy)
         {
-            case EnergyTypes.Physical: ModifyPhysicalEnergy(amount); break;
-            case EnergyTypes.Concentration: ModifyConcentratin(amount); break;
-            default: throw new NotImplementedException();
-        }
-        ;
-    }
-
-    public bool ModifyPhysicalEnergy(int count)
-    {
-        int newEnergy = Math.Clamp(PhysicalEnergy + count, 0, MaxPhysicalEnergy);
-        if (newEnergy != PhysicalEnergy)
-        {
-            PhysicalEnergy = newEnergy;
+            Energy = newEnergy;
             return true;
         }
         return false;
     }
 
-    public bool ModifyConcentratin(int count)
+    public bool ModifyConcentration(int count)
     {
         int newConcentration = Math.Clamp(Concentration + count, 0, MaxConcentration);
         if (newConcentration != Concentration)
@@ -132,48 +270,6 @@
         return false;
     }
 
-    public bool ModifySkillLevel(SkillTypes skillType, int count)
-    {
-        int newSkillLevel = Math.Max(0, Skills[skillType] + count);
-        if (newSkillLevel != Skills[skillType])
-        {
-            Skills[skillType] = newSkillLevel;
-            return true;
-        }
-        return false;
-    }
-
-    public bool ModifyItem(ResourceChangeTypes itemChange, ItemTypes resourceType, int count)
-    {
-        if (itemChange == ResourceChangeTypes.Added)
-        {
-            int itemsAdded = Inventory.AddItems(resourceType, count);
-            return itemsAdded == count;
-        }
-        else if (itemChange == ResourceChangeTypes.Removed)
-        {
-            int itemsRemoved = Inventory.RemoveItems(resourceType, count);
-            return itemsRemoved == count;
-        }
-
-        return false;
-    }
-
-    public bool CanPayEnergy(EnergyTypes energyType, int amount)
-    {
-        switch (energyType)
-        {
-            case EnergyTypes.Physical: return PhysicalEnergy >= amount;
-            case EnergyTypes.Concentration: return Concentration >= amount;
-        }
-        ;
-        return false;
-    }
-
-    public int GetSkillLevel(SkillTypes primarySkillType)
-    {
-        return Skills[primarySkillType];
-    }
 
     public bool HasAchievement(AchievementTypes achievementType)
     {
@@ -188,16 +284,6 @@
     {
     }
 
-    public bool HasResource(ItemTypes resourceType, int v)
-    {
-        return true;
-    }
-
-
-    public bool HasCoins(int value)
-    {
-        return Coins >= value;
-    }
 
     public int GetRelationshipLevel(CharacterTypes character)
     {
@@ -214,26 +300,22 @@
         return NegativeStatusTypes.Contains(expectedValue);
     }
 
-    public void AddLocationKnowledge(LocationNames locationName)
+    public void AddLocationKnowledge(string locationName)
     {
         if (KnownLocations.Contains(locationName)) return;
         KnownLocations.Add(locationName);
     }
 
-    public void AddActionAvailabilityAt(LocationNames locationName, BasicActionTypes actionType)
-    {
-        if (LocationActionAvailability.Contains((locationName, actionType))) return;
-        LocationActionAvailability.Add((locationName, actionType));
-    }
 
     public bool HasKnowledge(KnowledgeTags value, int requiredKnowledgeLevel)
     {
         return true;
     }
 
-    public void SetStartingLocation(LocationNames startingLocation)
+    public void SetStartingLocation(string startingLocation)
     {
         StartingLocation = startingLocation;
         AddLocationKnowledge(StartingLocation);
     }
+
 }

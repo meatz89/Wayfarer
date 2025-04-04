@@ -1,4 +1,6 @@
-﻿public abstract class Outcome
+﻿using System.Xml.Schema;
+
+public abstract class Outcome
 {
     public abstract void Apply(PlayerState player);
     public abstract string GetDescription();
@@ -16,13 +18,11 @@ public class ItemOutcome : Outcome
 {
     public ItemTypes ItemType { get; set; }
     public int QuantityChange { get; set; }
-    public ItemConditionChangeTypes ConditionChangeType { get; set; }
 
-    public ItemOutcome(ItemTypes itemType, int quantityChange, ItemConditionChangeTypes conditionChangeType)
+    public ItemOutcome(ItemTypes itemType, int quantityChange)
     {
         ItemType = itemType;
         QuantityChange = quantityChange;
-        ConditionChangeType = conditionChangeType;
     }
 
     public override void Apply(PlayerState player)
@@ -37,21 +37,6 @@ public class ItemOutcome : Outcome
         }
         else
         {
-            // Remove or damage item(s)
-            List<Item> itemsToRemove = player.Inventory.GetItemsOfType(ItemType).Take(Math.Abs(QuantityChange)).ToList();
-            foreach (Item? item in itemsToRemove)
-            {
-                switch (ConditionChangeType)
-                {
-                    case ItemConditionChangeTypes.Damage:
-                        item.Condition -= 10; // Example: Reduce condition
-                        break;
-                    case ItemConditionChangeTypes.Consume:
-                        player.Inventory.RemoveItems(ItemTypes.Food, 1); // Consume/remove the item
-                        break;
-                        // Handle other condition change types
-                }
-            }
         }
     }
 
@@ -95,105 +80,31 @@ public class KnowledgeOutcome : Outcome
 
 public class EnergyOutcome : Outcome
 {
-    public EnergyTypes EnergyType { get; }
     public int Amount { get; set; }
 
-    public EnergyOutcome(EnergyTypes type, int count)
+    public EnergyOutcome(int count)
     {
-        EnergyType = type;
         Amount = count;
     }
 
     public override void Apply(PlayerState player)
     {
-        switch (EnergyType)
-        {
-            case EnergyTypes.Physical:
-                player.PhysicalEnergy = Math.Clamp(
-                    player.PhysicalEnergy + Amount,
-                    0,
-                    player.MaxPhysicalEnergy);
-                break;
-            case EnergyTypes.Concentration:
-                player.Concentration = Math.Clamp(
-                    player.Concentration + Amount,
-                    0,
-                    player.MaxConcentration);
-                break;
-        }
+        player.Energy = Math.Clamp(
+            player.Energy + Amount,
+            0,
+            player.MaxEnergy);
     }
 
     public override string GetDescription()
     {
-        return $"{(Amount >= 0 ? "+" : "")}{Amount} {EnergyType} Energy";
+        return $"{(Amount >= 0 ? "+" : "")}{Amount} Energy";
     }
 
     public override string GetPreview(PlayerState player)
     {
-        int currentValue = EnergyType switch
-        {
-            EnergyTypes.Physical => player.PhysicalEnergy,
-            EnergyTypes.Concentration => player.Concentration,
-            _ => 0
-        };
-
-        int maxValue = EnergyType switch
-        {
-            EnergyTypes.Physical => player.MaxPhysicalEnergy,
-            EnergyTypes.Concentration => player.MaxConcentration,
-            _ => 0
-        };
-
-        int newValue = Math.Clamp(currentValue + Amount, 0, maxValue);
+        int currentValue = player.Energy;
+        int newValue = Math.Clamp(currentValue + Amount, 0, player.MaxEnergy);
         return $"({currentValue} -> {newValue})";
-    }
-}
-
-public class InformationOutcome : Outcome
-{
-    public InformationTypes InformationType { get; }
-    public Information Information { get; }
-
-    public InformationOutcome(InformationTypes informationType, Information information)
-    {
-        InformationType = informationType;
-        Information = information;
-    }
-
-    public override void Apply(PlayerState player)
-    {
-        switch (InformationType)
-        {
-            case InformationTypes.Location:
-            {
-                if (Information is LocationInformation locationInformation)
-                {
-                    player.AddLocationKnowledge(locationInformation.LocationNames);
-                }
-                break;
-            }
-
-            case InformationTypes.ActionOpportunity:
-            {
-                if (Information is ActionOpportunityInformation actionOpportunityInformation)
-                {
-                    player.AddActionAvailabilityAt(
-                        actionOpportunityInformation.LocationName,
-                        actionOpportunityInformation.ActionType);
-                }
-                break;
-            }
-        }
-    }
-
-    public override string GetDescription()
-    {
-        return $"{InformationType}";
-    }
-
-    public override string GetPreview(PlayerState player)
-    {
-        return $"{InformationType}";
     }
 }
 
@@ -234,7 +145,7 @@ public class ConcentrationOutcome : Outcome
 
     public override void Apply(PlayerState player)
     {
-        player.ModifyConcentratin(Count);
+        player.ModifyConcentration(Count);
     }
 
     public override string GetDescription()
@@ -335,40 +246,6 @@ public class ResourceOutcome : Outcome
     }
 }
 
-public class SkillLevelOutcome : Outcome
-{
-    public SkillTypes SkillType { get; }
-    public int Count { get; }
-
-    public SkillLevelOutcome(SkillTypes skillType, int count)
-    {
-        SkillType = skillType;
-        Count = count;
-    }
-
-    public override void Apply(PlayerState player)
-    {
-        player.ModifySkillLevel(SkillType, Count);
-    }
-
-    public override string GetDescription()
-    {
-        return $"{(Count >= 0 ? "+" : "")}{Count} {SkillType} Skill";
-    }
-
-    public override string GetPreview(PlayerState player)
-    {
-        bool hasKey = player.Skills.ContainsKey(SkillType);
-        if (!hasKey) { return $"(0 -> {Count})"; }
-
-        int current = player.Skills[SkillType];
-        int newValue = Math.Max(0, current + Count);
-        return $"({current} -> {newValue})";
-    }
-}
-
-
-// Achievements are one-time unlocks
 public class AchievementOutcome : Outcome
 {
     public AchievementTypes AchievementType { get; }

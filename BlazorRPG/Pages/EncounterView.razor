@@ -56,16 +56,14 @@
 
             <div class="encounter-details">
                 <div class="encounter-stage">
-                    <h3 class="choice-set-name">Chosen Path: @GetModel().EncounterResult.NarrativeResult.LastChoiceNarrative.ShorthandName</h3>
+                    <h3 class="choice-set-name">Chosen Action: @GetModel().EncounterResult.NarrativeResult.LastChoiceNarrative.ShorthandName</h3>
                     <div class="stage-situation">@GetModel().EncounterResult.NarrativeResult.SceneNarrative</div>
                 </div>
 
                 <div class="encounter-choices">
                     @foreach (UserEncounterChoiceOption choice in GetChoices())
                     {
-                         <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")
-                             @(false ? "winning" : "" )
-                             @(false ? "failing" : "")"
+                        <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")"
                              @onmousemove="async (e) => await ShowTooltip(choice, e)"
                              @onmouseout="HideTooltip"
                              @onclick="() => HandleChoiceSelection(choice)">

@@ -3,12 +3,10 @@
 /// </summary>
 public class EncounterInfo
 {
-    public LocationNames LocationName { get; set; }
+    public string Name { get; set; }
     public string LocationSpotName { get; set; }
     public List<FocusTags> PressureReducingFocuses { get; } = new List<FocusTags>();
     public List<FocusTags> MomentumReducingFocuses { get; } = new List<FocusTags>();
-    public List<ApproachTags> MomentumBoostApproaches { get; } = new List<ApproachTags>();
-    public List<ApproachTags> DangerousApproaches { get; } = new List<ApproachTags>();
     public List<IEncounterTag> AvailableTags { get; } = new List<IEncounterTag>();
 
     // Success thresholds
@@ -26,13 +24,11 @@ public class EncounterInfo
     public int Difficulty { get; set; }
 
     // Presentation style for this location
-    public EncounterTypes EncounterType { get; set; }
+    public EncounterTypes Type { get; set; }
 
     public EncounterInfo(
-        LocationNames locationName,
+        string locationName,
         string locationSpot,
-        List<ApproachTags> favoreApproaches,
-        List<ApproachTags> dangerousApproaches,
         List<FocusTags> PressureReducingFocuses,
         List<FocusTags> MomentumReducingFocuses,
         int duration,
@@ -43,11 +39,9 @@ public class EncounterInfo
         HostilityLevels hostility,
         EncounterTypes style)
     {
-        this.LocationName = locationName;
+        this.Name = locationName;
         this.LocationSpotName = locationSpot;
 
-        this.MomentumBoostApproaches = favoreApproaches;
-        this.DangerousApproaches = dangerousApproaches;
         this.PressureReducingFocuses = PressureReducingFocuses;
         this.MomentumReducingFocuses = MomentumReducingFocuses;
 
@@ -57,7 +51,7 @@ public class EncounterInfo
 
         this.TurnDuration = duration;
         this.Hostility = hostility;
-        this.EncounterType = style;
+        this.Type = style;
         this.MaxPressure = maxPressure;
     }
 

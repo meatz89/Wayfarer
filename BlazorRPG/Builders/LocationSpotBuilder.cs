@@ -1,18 +1,20 @@
-﻿public class LocationSpotBuilder
+﻿
+public class LocationSpotBuilder
 {
     private string name;
-    private LocationNames locationName;
-    private CharacterNames? character;
+    private string description;
+    private string locationName;
+    private string? character;
 
-    private List<ActionNames> actionNames = new();
+    private List<string> actionNames = new();
 
-    public Accessibility? accessibility { get; set; }
-    public LocationType? engagement { get; set; }
+    public Illumination? illumination { get; set; }
+    public Population? population { get; set; }
+    public Economic? economic { get; set; }
+    public Physical? physical { get; set; }
     public Atmosphere? atmosphere { get; set; }
-    public RoomLayout? roomLayout { get; set; }
-    public Temperature? temperature { get; set; }
 
-    public LocationSpotBuilder(LocationNames locationName)
+    public LocationSpotBuilder(string locationName)
     {
         this.locationName = locationName;
     }
@@ -22,48 +24,55 @@
         this.name = name;
         return this;
     }
+    public LocationSpotBuilder WithDescription(string description)
+    {
+        this.description = description;
+        return this;
+    }
 
-    public LocationSpotBuilder WithCharacter(CharacterNames? character)
+
+    public LocationSpotBuilder WithCharacter(string? character)
     {
         this.character = character;
         return this;
     }
 
-    public LocationSpotBuilder WithAccessibility(Accessibility accessability)
+    public LocationSpotBuilder AddAction(ActionNames actionName)
     {
-        accessibility = accessability;
+        this.actionNames.Add(actionName.ToString());
         return this;
     }
 
-    public LocationSpotBuilder WithEngagement(LocationType engagement)
+    public LocationSpotBuilder WithIllumination(Illumination Illumination)
     {
-        this.engagement = engagement;
+        this.illumination = Illumination;
         return this;
     }
 
-    public LocationSpotBuilder AddAction(ActionNames actionNames)
+    public LocationSpotBuilder WithPopulation(Population accessability)
     {
-        this.actionNames.Add(actionNames);
+        this.population = accessability;
+        return this;
+    }
+
+    public LocationSpotBuilder WithEconomic(Economic Economic)
+    {
+        this.economic = Economic;
+        return this;
+    }
+
+    public LocationSpotBuilder WithPhysical(Physical Physical)
+    {
+        this.physical = Physical;
         return this;
     }
 
     public LocationSpotBuilder WithAtmosphere(Atmosphere socialDynamics)
     {
-        atmosphere = socialDynamics;
+        this.atmosphere = socialDynamics;
         return this;
     }
 
-    public LocationSpotBuilder WithRoomLayout(RoomLayout roomLayout)
-    {
-        this.roomLayout = roomLayout;
-        return this;
-    }
-
-    public LocationSpotBuilder WithTemperature(Temperature temperature)
-    {
-        this.temperature = temperature;
-        return this;
-    }
 
     public LocationSpot Build()
     {
@@ -76,12 +85,13 @@
         LocationSpot locationSpot =
             new LocationSpot(
                 name,
+                description,
                 locationName,
-                accessibility,
-                engagement,
+                population,
+                economic,
                 atmosphere,
-                roomLayout,
-                temperature,
+                physical,
+                illumination,
                 actionNames
             );
 
@@ -91,5 +101,6 @@
         }
         return locationSpot;
     }
+
 }
 
