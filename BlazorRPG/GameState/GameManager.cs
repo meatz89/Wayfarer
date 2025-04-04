@@ -51,12 +51,6 @@
         _useMemory = configuration.GetValue<bool>("useMemory");
     }
 
-    internal void TravelToLocation(string name)
-    {
-        TravelManager.TravelToLocation(name, TravelMethods.Walking);
-        UpdateState();
-        OnPlayerEnterLocation(gameState.WorldState.CurrentLocation);
-    }
     public void StartGame()
     {
         TravelToLocation(gameState.PlayerState.StartingLocation);
@@ -113,6 +107,13 @@
 
         // Execute to start travel encounter
         _ = ExecuteBasicAction(travelOption);
+    }
+
+    internal void TravelToLocation(string name)
+    {
+        TravelManager.TravelToLocation(name, TravelMethods.Walking);
+        UpdateState();
+        OnPlayerEnterLocation(gameState.WorldState.CurrentLocation);
     }
 
     private void OnPlayerEnterLocation(Location location)
@@ -460,7 +461,6 @@
         return loc;
     }
 
-    // 4. Add this method to TravelManager.cs
     public bool CanTravelTo(string destinationName)
     {
         if (worldState.CurrentLocation == null)
@@ -468,12 +468,6 @@
 
         // Check if locations are directly connected
         return worldState.CurrentLocation.ConnectedTo?.Contains(destinationName) ?? false;
-    }
-
-    private int GetTravelCostForLocation(string locationName)
-    {
-        // Todo: Calculate from range
-        return 1;
     }
 
     public bool CanMoveToSpot(string locationSpotName)
@@ -520,24 +514,6 @@
         gameState.WorldState.SetCurrentLocationSpotOptions(userLocationSpotOption);
     }
 
-    public void UpdateLocationTravelOptions()
-    {
-        List<string> connectedLocations = GetConnectedLocations();
-
-        List<UserLocationTravelOption> userTravelOptions = new List<UserLocationTravelOption>();
-
-        for (int i = 0; i < connectedLocations.Count; i++)
-        {
-            string location = connectedLocations[i];
-
-            UserLocationTravelOption travel = new UserLocationTravelOption(i + 1, location);
-
-            userTravelOptions.Add(travel);
-        }
-
-        gameState.WorldState.SetCurrentTravelOptions(userTravelOptions);
-    }
-
 
     public bool AdvanceTime(int inHours)
     {
@@ -578,7 +554,6 @@
     public void UpdateState()
     {
         gameState.Actions.ClearCurrentUserAction();
-        UpdateLocationTravelOptions();
         UpdateLocationSpotOptions();
         UpdateAvailableActions();
     }
