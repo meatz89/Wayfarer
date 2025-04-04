@@ -38,11 +38,11 @@
             string memoryContentToWrite = string.Empty;
             if (File.Exists(filePath))
             {
-                memoryContentToWrite = await File.ReadAllTextAsync(filePath);
+                //memoryContentToWrite = await File.ReadAllTextAsync(filePath);
             }
 
             //memoryContentToWrite += Environment.NewLine;
-            //memoryContentToWrite += Environment.NewLine + memoryContent;
+            memoryContentToWrite += Environment.NewLine + memoryContent;
 
             // Write the memory content directly to the file
             await File.WriteAllTextAsync(filePath, memoryContentToWrite);

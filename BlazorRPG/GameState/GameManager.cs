@@ -330,53 +330,6 @@ public class GameManager
         };
     }
 
-    public async Task<EncounterResult> ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
-    {
-        EncounterManager encounter = choiceOption.encounter;
-        Location location = LocationSystem.GetLocation(choiceOption.LocationName);
-
-        // Execute the choice
-        currentResult = await EncounterSystem.ExecuteChoice(
-            encounter,
-            currentResult.NarrativeResult,
-            choiceOption.Choice);
-
-        EncounterResults currentEncounterResult = currentResult.EncounterResults;
-        if (currentEncounterResult == EncounterResults.Ongoing)
-        {
-            // Encounter is Ongoing - unchanged
-            if (IsGameOver(gameState.PlayerState))
-            {
-                gameState.Actions.CompleteActiveEncounter();
-                return currentResult;
-            }
-
-            gameState.Actions.EncounterResult = currentResult;
-
-            List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(currentResult.Encounter);
-            gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
-        }
-        else
-        {
-            // Encounter is Over
-            gameState.Actions.EncounterResult = currentResult;
-
-            // Process world changes from encounter
-            Location travelLocation = await ProcessEncounterOutcome(currentResult);
-
-            // Check if this was a travel encounter
-            if (gameState.PendingTravel.IsTravelPending &&
-                currentResult.EncounterResults == EncounterResults.EncounterSuccess)
-            {
-                // Use the pending travel destination as the travel location
-                travelLocation = LocationSystem.GetLocation(gameState.PendingTravel.Destination);
-            }
-
-            currentResult.TravelLocation = travelLocation;
-        }
-
-        return currentResult;
-    }
 
     private string FormatKnownLocations(List<Location> locations)
     {
@@ -495,6 +448,54 @@ public class GameManager
         }
 
         return sb.ToString();
+    }
+
+    public async Task<EncounterResult> ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
+    {
+        EncounterManager encounter = choiceOption.encounter;
+        Location location = LocationSystem.GetLocation(choiceOption.LocationName);
+
+        // Execute the choice
+        currentResult = await EncounterSystem.ExecuteChoice(
+            encounter,
+            currentResult.NarrativeResult,
+            choiceOption.Choice);
+
+        EncounterResults currentEncounterResult = currentResult.EncounterResults;
+        if (currentEncounterResult == EncounterResults.Ongoing)
+        {
+            // Encounter is Ongoing - unchanged
+            if (IsGameOver(gameState.PlayerState))
+            {
+                gameState.Actions.CompleteActiveEncounter();
+                return currentResult;
+            }
+
+            gameState.Actions.EncounterResult = currentResult;
+
+            List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(currentResult.Encounter);
+            gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
+        }
+        else
+        {
+            // Encounter is Over
+            gameState.Actions.EncounterResult = currentResult;
+
+            // Process world changes from encounter
+            Location travelLocation = await ProcessEncounterOutcome(currentResult);
+
+            // Check if this was a travel encounter
+            if (gameState.PendingTravel.IsTravelPending &&
+                currentResult.EncounterResults == EncounterResults.EncounterSuccess)
+            {
+                // Use the pending travel destination as the travel location
+                travelLocation = LocationSystem.GetLocation(gameState.PendingTravel.Destination);
+            }
+
+            currentResult.TravelLocation = travelLocation;
+        }
+
+        return currentResult;
     }
 
     public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions(EncounterManager encounter)
