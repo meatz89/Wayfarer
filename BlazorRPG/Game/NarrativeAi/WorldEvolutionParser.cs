@@ -1,24 +1,24 @@
 ﻿using System.Text.Json;
 
-public class WorldEvolutionParser
+public class PostEncounterEvolutionParser
 {
-    private readonly ILogger<WorldEvolutionParser> _logger;
+    private readonly ILogger<PostEncounterEvolutionParser> _logger;
 
-    public WorldEvolutionParser(
-        ILogger<WorldEvolutionParser> logger = null)
+    public PostEncounterEvolutionParser(
+        ILogger<PostEncounterEvolutionParser> logger = null)
     {
         _logger = logger;
     }
 
-    public async Task<WorldEvolutionResponse> ParseWorldEvolutionResponseAsync(string response)
+    public async Task<PostEncounterEvolutionResponse> ParsePostEncounterEvolutionResponseAsync(string response)
     {
-        FlatWorldEvolutionResponse flatResponse = ParseFlatResponse(response);
+        FlatPostEncounterEvolutionResponse flatResponse = ParseFlatResponse(response);
         return await BuildNestedResponseAsync(flatResponse);
     }
 
-    private FlatWorldEvolutionResponse ParseFlatResponse(string response)
+    private FlatPostEncounterEvolutionResponse ParseFlatResponse(string response)
     {
-        FlatWorldEvolutionResponse result = new FlatWorldEvolutionResponse();
+        FlatPostEncounterEvolutionResponse result = new FlatPostEncounterEvolutionResponse();
         response = response.Replace("```json", "");
         response = response.Replace("```", "");
         
@@ -92,9 +92,9 @@ public class WorldEvolutionParser
         return result;
     }
 
-    private async Task<WorldEvolutionResponse> BuildNestedResponseAsync(FlatWorldEvolutionResponse flatResponse)
+    private async Task<PostEncounterEvolutionResponse> BuildNestedResponseAsync(FlatPostEncounterEvolutionResponse flatResponse)
     {
-        WorldEvolutionResponse result = new WorldEvolutionResponse
+        PostEncounterEvolutionResponse result = new PostEncounterEvolutionResponse
         {
             LocationUpdate = flatResponse.PlayerLocationUpdate ?? new PlayerLocationUpdate(),
             ResourceChanges = flatResponse.ResourceChanges ?? new ResourceChanges(),
@@ -508,7 +508,7 @@ public class WorldEvolutionParser
     #endregion
 }
 
-public class FlatWorldEvolutionResponse
+public class FlatPostEncounterEvolutionResponse
 {
     public PlayerLocationUpdate PlayerLocationUpdate { get; set; }
     public ResourceChanges ResourceChanges { get; set; }

@@ -1,6 +1,6 @@
 ﻿public class ClaudeNarrativeService : BaseNarrativeAIService
 {
-    public WorldEvolutionParser WorldEvolutionParser { get; }
+    public PostEncounterEvolutionParser PostEncounterEvolutionParser { get; }
     public NarrativeContextManager _contextManager { get; }
     public NarrativeLogManager NarrativeLogManager { get; }
     public IConfiguration Configuration { get; }
@@ -9,7 +9,7 @@
     private readonly string _modelLow;
 
     public ClaudeNarrativeService(
-        WorldEvolutionParser worldEvolutionParser,
+        PostEncounterEvolutionParser postEncounterEvolutionParser,
         NarrativeContextManager narrativeContextManager,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger,
@@ -17,7 +17,7 @@
         )
         : base(new ClaudeProvider(configuration, logger), configuration, logger, narrativeLogManager)
     {
-        WorldEvolutionParser = worldEvolutionParser;
+        PostEncounterEvolutionParser = postEncounterEvolutionParser;
         _contextManager = narrativeContextManager;
         NarrativeLogManager = narrativeLogManager;
         Configuration = configuration;
@@ -185,11 +185,11 @@
     }
 
 
-    public override async Task<LocationDetails> GenerateLocationDetailsAsync(LocationGenerationContext context)
+    public override async Task<LocationDetails> GenerateLocationDetailsAsync(LocationCreationContext context)
     {
         string conversationId = $"location_generation_{context.LocationType}"; // Unique conversation ID
         string systemMessage = _promptManager.GetSystemMessage();
-        string prompt = _promptManager.BuildLocationGenerationPrompt(context);
+        string prompt = _promptManager.BuildLocationCreationPrompt(context);
 
         ConversationEntry entrySystem = new ConversationEntry { Role = "system", Content = systemMessage };
         ConversationEntry entryUser = new ConversationEntry { Role = "user", Content = prompt };
@@ -211,14 +211,14 @@
     }
 
 
-    public override async Task<WorldEvolutionResponse> ProcessWorldEvolution(
+    public override async Task<PostEncounterEvolutionResponse> ProcessPostEncounterEvolution(
         NarrativeContext context,
-        WorldEvolutionInput input)
+        PostEncounterEvolutionInput input)
     {
         string conversationId = $"{context.LocationName}_encounter"; // Same ID as introduction
         string systemMessage = _promptManager.GetSystemMessage();
 
-        string prompt = _promptManager.BuildWorldEvolutionPrompt(input);
+        string prompt = _promptManager.BuildPostEncounterEvolutionPrompt(input);
 
         if (!_contextManager.ConversationExists(conversationId))
         {
@@ -227,7 +227,7 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            _contextManager.AddUserMessage(conversationId, prompt, MessageType.WorldEvolution, null);
+            _contextManager.AddUserMessage(conversationId, prompt, MessageType.PostEncounterEvolution, null);
         }
 
         string model = _modelHigh;
@@ -241,8 +241,8 @@
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel);
 
-        WorldEvolutionResponse worldEvolutionResponse = await WorldEvolutionParser.ParseWorldEvolutionResponseAsync(jsonResponse);
-        return worldEvolutionResponse;
+        PostEncounterEvolutionResponse postEncounterEvolutionResponse = await PostEncounterEvolutionParser.ParsePostEncounterEvolutionResponseAsync(jsonResponse);
+        return postEncounterEvolutionResponse;
     }
 
     public override async Task<string> ProcessMemoryConsolidation(

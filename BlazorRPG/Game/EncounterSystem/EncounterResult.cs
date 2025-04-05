@@ -7,5 +7,5 @@
     public NarrativeContext NarrativeContext { get; set; }
     public Location TravelLocation { get; set; }
 
-    public WorldEvolutionResponse WorldEvolution { get; set; }
+    public PostEncounterEvolutionResponse PostEncounterEvolution { get; set; }
 }

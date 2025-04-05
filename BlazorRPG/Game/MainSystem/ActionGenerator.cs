@@ -13,7 +13,7 @@ public class ActionGenerator
         _repository = repository;
     }
 
-    public async Task<string> CreateEncounterForAction(ActionTemplate actionTemplate)
+    public async Task<string> CreateEncounterForAction(SpotAction actionTemplate)
     {
         ActionGenerationContext context = new ActionGenerationContext
         {

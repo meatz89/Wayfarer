@@ -2,26 +2,22 @@
 {
     private readonly Dictionary<AIProviderType, IAIService> _providers;
     private AIProviderType _currentProvider;
-    private readonly WorldEvolutionParser worldEvolutionParser;
     private readonly NarrativeContextManager _contextManager;
-    private readonly NarrativeLogManager narrativeLogManager;
     private readonly ILogger<EncounterSystem> _logger;
 
     public NarrativeService(
-        WorldEvolutionParser worldEvolutionParser,
+        PostEncounterEvolutionParser postEncounterEvolutionParser,
         NarrativeContextManager narrativeContextManager,
         NarrativeLogManager narrativeLogManager,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {
-        this.worldEvolutionParser = worldEvolutionParser;
         _contextManager = narrativeContextManager;
-        this.narrativeLogManager = narrativeLogManager;
         _logger = logger;
 
         _providers = new Dictionary<AIProviderType, IAIService>
         {
-            { AIProviderType.Claude, new ClaudeNarrativeService(worldEvolutionParser, _contextManager, configuration, _logger, narrativeLogManager) }
+            { AIProviderType.Claude, new ClaudeNarrativeService(postEncounterEvolutionParser, _contextManager, configuration, _logger, narrativeLogManager) }
         };
 
         // Set default provider from configuration
@@ -110,14 +106,14 @@
     }
 
 
-    public async Task<LocationDetails> GenerateLocationDetailsAsync(LocationGenerationContext context)
+    public async Task<LocationDetails> GenerateLocationDetailsAsync(LocationCreationContext context)
     {
         return await _providers[_currentProvider].GenerateLocationDetailsAsync(context);
     }
 
-    public async Task<WorldEvolutionResponse> ProcessWorldEvolution(NarrativeContext context, WorldEvolutionInput input)
+    public async Task<PostEncounterEvolutionResponse> ProcessPostEncounterEvolution(NarrativeContext context, PostEncounterEvolutionInput input)
     {
-        return await _providers[_currentProvider].ProcessWorldEvolution(context, input);
+        return await _providers[_currentProvider].ProcessPostEncounterEvolution(context, input);
     }
 
     public async Task<string> ProcessMemoryConsolidation(NarrativeContext context, MemoryConsolidationInput input)

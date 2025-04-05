@@ -1,4 +1,4 @@
-﻿public class LocationGenerationContext
+﻿public class LocationCreationContext
 {
     public string LocationType { get; set; }
     public int RequestedSpotCount { get; set; }

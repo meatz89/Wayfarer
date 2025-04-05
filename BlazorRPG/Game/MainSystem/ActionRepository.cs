@@ -1,6 +1,6 @@
 ﻿public class ActionRepository
 {
-    private List<ActionTemplate> _actionTemplates = new List<ActionTemplate>();
+    private List<SpotAction> _actionTemplates = new List<SpotAction>();
     private List<EncounterTemplate> _encounterTemplates = new List<EncounterTemplate>();
 
     public ActionRepository()
@@ -11,8 +11,8 @@
             _encounterTemplates.Add(encounterTemplate);
         }
 
-        List<ActionTemplate> actions = WorldActionContent.GetAllTemplates();
-        foreach (ActionTemplate actionTemplate in actions)
+        List<SpotAction> actions = WorldActionContent.GetAllTemplates();
+        foreach (SpotAction actionTemplate in actions)
         {
             _actionTemplates.Add(actionTemplate);
         }
@@ -53,7 +53,7 @@
             builder.ExpendsCoins(coinCost);
         }
 
-        ActionTemplate newTemplate = builder.Build();
+        SpotAction newTemplate = builder.Build();
         _actionTemplates.Add(newTemplate);
         return newTemplate.Name;
     }
@@ -75,9 +75,9 @@
         return WorldEncounterContent.GetAllTemplates().First();
     }
 
-    public ActionTemplate GetAction(string actionName)
+    public SpotAction GetAction(string actionName)
     {
-        ActionTemplate? existingTemplate = _actionTemplates.FirstOrDefault(x => x.Name == actionName);
+        SpotAction? existingTemplate = _actionTemplates.FirstOrDefault(x => x.Name == actionName);
         return existingTemplate;
     }
 }

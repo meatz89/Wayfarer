@@ -80,9 +80,9 @@ public class ActionTemplateBuilder
         return this;
     }
 
-    public ActionTemplate Build()
+    public SpotAction Build()
     {
-        return new ActionTemplate()
+        return new SpotAction()
         {
             Name = customName,
             Goal = goal,

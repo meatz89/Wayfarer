@@ -93,7 +93,7 @@
                 continue;
 
             // Skip all choice generation prompts and responses
-            if (entry.Type == MessageType.WorldEvolution)
+            if (entry.Type == MessageType.PostEncounterEvolution)
                 continue;
 
             // For player choices, simplify to just "Player chose X"

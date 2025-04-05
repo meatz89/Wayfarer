@@ -1,4 +1,4 @@
-﻿public class WorldEvolutionInput
+﻿public class PostEncounterEvolutionInput
 {
     public string EncounterNarrative { get; set; }
     public string CharacterBackground { get; set; }

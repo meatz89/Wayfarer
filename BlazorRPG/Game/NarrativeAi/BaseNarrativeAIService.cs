@@ -41,11 +41,11 @@
         NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatusModel newState);
     public abstract Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(NarrativeContext context, List<IChoice> choices, List<ChoiceProjection> projections, EncounterStatusModel state);
 
-    public abstract Task<LocationDetails> GenerateLocationDetailsAsync(LocationGenerationContext context);
+    public abstract Task<LocationDetails> GenerateLocationDetailsAsync(LocationCreationContext context);
     public abstract Task<string> GenerateActionsAsync(ActionGenerationContext context);
-    public abstract Task<WorldEvolutionResponse> ProcessWorldEvolution(
+    public abstract Task<PostEncounterEvolutionResponse> ProcessPostEncounterEvolution(
         NarrativeContext context,
-        WorldEvolutionInput input);
+        PostEncounterEvolutionInput input);
     public abstract Task<string> ProcessMemoryConsolidation(
         NarrativeContext context,
         MemoryConsolidationInput input);
