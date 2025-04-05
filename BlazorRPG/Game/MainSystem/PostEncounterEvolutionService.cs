@@ -1,10 +1,10 @@
-﻿public class WorldEvolutionService
+﻿public class PostEncounterEvolutionService
 {
     private readonly NarrativeService _narrativeService;
     private readonly ActionGenerator _actionGenerator;
     private readonly ActionRepository _actionRepository;
 
-    public WorldEvolutionService(
+    public PostEncounterEvolutionService(
         NarrativeService narrativeService,
         ActionGenerator actionGenerator,
         ActionRepository actionRepository)
@@ -14,16 +14,6 @@
         this._actionRepository = actionRepository;
     }
 
-    public async Task<WorldEvolutionResponse> ProcessWorldEvolution(
-        NarrativeContext context,
-        WorldEvolutionInput input,
-        EncounterResult encounterResult)
-    {
-        // Get world evolution response from narrative service
-        WorldEvolutionResponse response = await _narrativeService.ProcessWorldEvolution(context, input);
-        return response;
-    }
-
     public async Task<string> ConsolidateMemory(
         NarrativeContext context,
         MemoryConsolidationInput input)
@@ -31,8 +21,18 @@
         return await _narrativeService.ProcessMemoryConsolidation(context, input);
     }
 
-    public async Task<Location> IntegrateWorldEvolution(
-    WorldEvolutionResponse evolution,
+    public async Task<PostEncounterEvolutionResponse> ProcessEncounterOutcome(
+        NarrativeContext context,
+        PostEncounterEvolutionInput input,
+        EncounterResult encounterResult)
+    {
+        // Get world evolution response from narrative service
+        PostEncounterEvolutionResponse response = await _narrativeService.ProcessPostEncounterEvolution(context, input);
+        return response;
+    }
+
+    public async Task<Location> IntegrateEncounterOutcome(
+    PostEncounterEvolutionResponse evolution,
     WorldState worldState,
     LocationSystem locationSystem,
     PlayerState playerState)
@@ -147,7 +147,7 @@
         return travelLocation;
     }
 
-    private async Task ProcessNewActions(WorldEvolutionResponse evolution, WorldState worldState)
+    private async Task ProcessNewActions(PostEncounterEvolutionResponse evolution, WorldState worldState)
     {
         foreach (NewAction newAction in evolution.NewActions)
         {
@@ -173,7 +173,7 @@
                         newAction.SpotName,
                         newAction.LocationName);
 
-                    ActionTemplate actionTemplate = _actionRepository.GetAction(newAction.Name);
+                    SpotAction actionTemplate = _actionRepository.GetAction(newAction.Name);
                     string encounterTemplateName = actionTemplate.EncounterTemplateName;
 
                     EncounterTemplate encounterTemplate = _actionRepository.GetEncounterTemplate(encounterTemplateName);
@@ -194,7 +194,7 @@
     }
 
     // Helper methods for handling player state changes
-    private void ProcessInventoryChanges(WorldEvolutionResponse evolution, PlayerState playerState)
+    private void ProcessInventoryChanges(PostEncounterEvolutionResponse evolution, PlayerState playerState)
     {
         if (evolution.ResourceChanges != null)
         {
@@ -218,7 +218,7 @@
         }
     }
 
-    private void ProcessRelationshipChanges(WorldEvolutionResponse evolution, PlayerState playerState)
+    private void ProcessRelationshipChanges(PostEncounterEvolutionResponse evolution, PlayerState playerState)
     {
         if (evolution.RelationshipChanges != null && evolution.RelationshipChanges.Any())
         {

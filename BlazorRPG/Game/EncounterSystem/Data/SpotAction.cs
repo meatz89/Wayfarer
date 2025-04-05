@@ -1,4 +1,4 @@
-﻿public class ActionTemplate
+﻿public class SpotAction
 {
     public string Name { get; set; }
     public string Description { get; set; }
@@ -21,11 +21,6 @@
     public List<Outcome> Rewards { get; set; }
     public int CoinCost { get; set; }
     public bool IsRepeatable { get; set; }
-
-    public ActionTemplate()
-    {
-
-    }
 
 }
 

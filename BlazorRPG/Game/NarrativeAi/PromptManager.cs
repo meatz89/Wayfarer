@@ -9,10 +9,10 @@ public class PromptManager
     private const string REACTION_MD = "reaction";
     private const string CHOICES_MD = "choices";
     private const string ENDING_MD = "ending";
-    private const string LOCATION_GENERATION_MD = "location-generation";
+    private const string LOCATION_GENERATION_MD = "location-creation";
     private const string ACTION_GENERATION_MD = "action-generation";
 
-    private const string WORLD_EVOLUTION_MD = "world-evolution";
+    private const string WORLD_EVOLUTION_MD = "post-encounter-evolution";
     private const string MEMORY_CONSOLIDATION_MD = "memory-consolidation";
 
     public PromptManager(IConfiguration configuration)
@@ -40,7 +40,7 @@ public class PromptManager
         return CreatePromptJson(prompt);
     }
 
-    public string BuildLocationGenerationPrompt(LocationGenerationContext context)
+    public string BuildLocationCreationPrompt(LocationCreationContext context)
     {
         string template = _promptTemplates[LOCATION_GENERATION_MD];
 
@@ -718,7 +718,7 @@ CHOICE {i + 1}:
         return focuses;
     }
 
-    public string BuildWorldEvolutionPrompt(WorldEvolutionInput input)
+    public string BuildPostEncounterEvolutionPrompt(PostEncounterEvolutionInput input)
     {
         string template = _promptTemplates[WORLD_EVOLUTION_MD];
 

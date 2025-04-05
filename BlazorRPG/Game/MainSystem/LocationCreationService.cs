@@ -1,18 +1,20 @@
-﻿public class LocationGenerator
+﻿public class LocationCreationService
 {
     public NarrativeService narrativeService { get; }
     public ActionGenerator actionGenerator { get; }
 
-    public LocationGenerator(NarrativeService narrativeService, ActionGenerator actionGenerator)
+    public LocationCreationService(
+        NarrativeService narrativeService, 
+        ActionGenerator actionGenerator)
     {
         this.narrativeService = narrativeService;
         this.actionGenerator = actionGenerator;
     }
 
-    public async Task<Location> GenerateNewLocationAsync(string locationType)
+    public async Task<Location> CreateLocation(string locationType)
     {
         // Create context for location generation
-        LocationGenerationContext context = new LocationGenerationContext
+        LocationCreationContext context = new LocationCreationContext
         {
             LocationType = locationType,
             RequestedSpotCount = 2,

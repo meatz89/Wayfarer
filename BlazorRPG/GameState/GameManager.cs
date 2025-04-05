@@ -11,7 +11,7 @@ public class GameManager
     public ItemSystem ItemSystem { get; }
     public NarrativeService NarrativeService { get; }
     public MessageSystem MessageSystem { get; }
-    public WorldEvolutionService evolutionService { get; }
+    public PostEncounterEvolutionService evolutionService { get; }
     public ActionFactory ActionFactory { get; }
     public ActionRepository ActionRepository { get; }
     public TravelManager TravelManager { get; }
@@ -33,7 +33,7 @@ public class GameManager
         ItemSystem itemSystem,
         NarrativeService narrativeService,
         MessageSystem messageSystem,
-        WorldEvolutionService worldEvolutionService,
+        PostEncounterEvolutionService postEncounterEvolutionService,
         ActionFactory actionFactory,
         ActionRepository actionRepository,
         TravelManager travelManager,
@@ -47,7 +47,7 @@ public class GameManager
         this.ItemSystem = itemSystem;
         this.NarrativeService = narrativeService;
         this.MessageSystem = messageSystem;
-        evolutionService = worldEvolutionService;
+        evolutionService = postEncounterEvolutionService;
         ActionFactory = actionFactory;
         ActionRepository = actionRepository;
         TravelManager = travelManager;
@@ -81,10 +81,10 @@ public class GameManager
         gameState.PendingTravel.TravelMethod = TravelMethods.Walking;
 
         // Get the travel action template
-        ActionTemplate travelTemplate = ActionRepository.GetAction("Travel");
+        SpotAction travelTemplate = ActionRepository.GetAction("Travel");
         if (travelTemplate == null)
         {
-            travelTemplate = new ActionTemplate
+            travelTemplate = new SpotAction
             {
                 Name = "Travel",
                 EncounterTemplateName = "Travel",
@@ -156,7 +156,7 @@ public class GameManager
         List<string> locationSpotActions = locationSpot.ActionTemplates.ToList();
         foreach (string locationSpotAction in locationSpotActions)
         {
-            ActionTemplate actionTemplate = ActionRepository.GetAction(locationSpotAction);
+            SpotAction actionTemplate = ActionRepository.GetAction(locationSpotAction);
 
             EncounterTemplate encounterTemplate = ActionRepository.GetEncounterTemplate(actionTemplate.EncounterTemplateName);
             if (encounterTemplate == null)
@@ -290,7 +290,7 @@ public class GameManager
         }
     }
 
-    private WorldEvolutionInput PrepareWorldEvolutionInput(string encounterNarrative, string encounterOutcome)
+    private PostEncounterEvolutionInput PreparePostEncounterEvolutionInput(string encounterNarrative, string encounterOutcome)
     {
         // Get current depth and hub depth
         int currentDepth = worldState.GetLocationDepth(worldState.CurrentLocation?.Name ?? "");
@@ -302,7 +302,7 @@ public class GameManager
         // Get all locations
         List<Location> allLocations = worldState.GetLocations();
 
-        return new WorldEvolutionInput
+        return new PostEncounterEvolutionInput
         {
             EncounterNarrative = encounterNarrative,
             CharacterBackground = playerState.Archetype.ToString(),
@@ -763,16 +763,16 @@ public class GameManager
         if (_processStateChanges)
         {
             // Prepare the input
-            WorldEvolutionInput input = PrepareWorldEvolutionInput(narrative, outcome);
+            PostEncounterEvolutionInput input = PreparePostEncounterEvolutionInput(narrative, outcome);
 
             // Process world evolution
-            WorldEvolutionResponse evolutionResponse = await evolutionService.ProcessWorldEvolution(encounterResult.NarrativeContext, input, encounterResult);
+            PostEncounterEvolutionResponse evolutionResponse = await evolutionService.ProcessEncounterOutcome(encounterResult.NarrativeContext, input, encounterResult);
 
             // Store the evolution response in the result
-            encounterResult.WorldEvolution = evolutionResponse;
+            encounterResult.PostEncounterEvolution = evolutionResponse;
 
             // Update world state
-            return await evolutionService.IntegrateWorldEvolution(evolutionResponse, worldState, LocationSystem, playerState);
+            return await evolutionService.IntegrateEncounterOutcome(evolutionResponse, worldState, LocationSystem, playerState);
         }
 
         return null;

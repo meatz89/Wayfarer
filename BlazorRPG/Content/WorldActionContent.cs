@@ -1,14 +1,14 @@
 ﻿public static class WorldActionContent
 {
-    public static List<ActionTemplate> GetAllTemplates()
+    public static List<SpotAction> GetAllTemplates()
     {
-        List<ActionTemplate> actionTemplates = [.. AllActions()];
+        List<SpotAction> actionTemplates = [.. AllActions()];
         return actionTemplates;
     }
 
-    public static List<ActionTemplate> AllActions()
+    public static List<SpotAction> AllActions()
     {
-        List<ActionTemplate> actionTemplates = new List<ActionTemplate>();
+        List<SpotAction> actionTemplates = new List<SpotAction>();
 
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName(ActionNames.Travel.ToString())

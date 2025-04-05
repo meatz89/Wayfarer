@@ -7,7 +7,7 @@
 
     public ActionRepository ActionRepository { get; }
 
-    public ActionImplementation CreateActionFromTemplate(ActionTemplate template, EncounterTemplate encounterTemplate)
+    public ActionImplementation CreateActionFromTemplate(SpotAction template, EncounterTemplate encounterTemplate)
     {
         ActionImplementation actionImplementation = new ActionImplementation();
 

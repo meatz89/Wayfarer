@@ -13,9 +13,9 @@ public partial class NarrativeViewBase : ComponentBase
     {
     }
 
-    public bool HasWorldEvolution()
+    public bool HasPostEncounterEvolution()
     {
-        return Result?.WorldEvolution != null;
+        return Result?.PostEncounterEvolution != null;
     }
 
     // In NarrativeViewBase
@@ -61,11 +61,11 @@ public partial class NarrativeViewBase : ComponentBase
 
     public List<LocationChangeWithDepth> GetLocationChangesWithDepth()
     {
-        if (!HasWorldEvolution()) return new List<LocationChangeWithDepth>();
+        if (!HasPostEncounterEvolution()) return new List<LocationChangeWithDepth>();
 
         var changes = new List<LocationChangeWithDepth>();
 
-        foreach (var location in Result.WorldEvolution.NewLocations)
+        foreach (var location in Result.PostEncounterEvolution.NewLocations)
         {
             changes.Add(new LocationChangeWithDepth
             {
@@ -95,11 +95,11 @@ public partial class NarrativeViewBase : ComponentBase
 
     public List<ActionWithEnergy> GetActionChangesWithEnergy()
     {
-        if (!HasWorldEvolution()) return new List<ActionWithEnergy>();
+        if (!HasPostEncounterEvolution()) return new List<ActionWithEnergy>();
 
         var changes = new List<ActionWithEnergy>();
 
-        foreach (var action in Result.WorldEvolution.NewActions)
+        foreach (var action in Result.PostEncounterEvolution.NewActions)
         {
             changes.Add(new ActionWithEnergy
             {
@@ -178,12 +178,12 @@ public partial class NarrativeViewBase : ComponentBase
 
     public List<CharacterChangeDisplay> GetCharacterChanges()
     {
-        if (!HasWorldEvolution()) return new List<CharacterChangeDisplay>();
+        if (!HasPostEncounterEvolution()) return new List<CharacterChangeDisplay>();
 
         var changes = new List<CharacterChangeDisplay>();
 
         // Add new characters
-        foreach (var character in Result.WorldEvolution.NewCharacters)
+        foreach (var character in Result.PostEncounterEvolution.NewCharacters)
         {
             changes.Add(new CharacterChangeDisplay
             {
@@ -198,14 +198,14 @@ public partial class NarrativeViewBase : ComponentBase
 
     public List<RelationshipChangeDisplay> GetRelationshipChanges()
     {
-        if (!HasWorldEvolution()) return new List<RelationshipChangeDisplay>();
+        if (!HasPostEncounterEvolution()) return new List<RelationshipChangeDisplay>();
 
         var changes = new List<RelationshipChangeDisplay>();
 
         // Add relationship changes
-        if (Result.WorldEvolution.RelationshipChanges != null)
+        if (Result.PostEncounterEvolution.RelationshipChanges != null)
         {
-            foreach (var relationship in Result.WorldEvolution.RelationshipChanges)
+            foreach (var relationship in Result.PostEncounterEvolution.RelationshipChanges)
             {
                 changes.Add(new RelationshipChangeDisplay
                 {
@@ -220,37 +220,37 @@ public partial class NarrativeViewBase : ComponentBase
 
     public CoinsChangeDisplay GetCoinsChange()
     {
-        if (!HasWorldEvolution() || Result.WorldEvolution.CoinChange == 0)
+        if (!HasPostEncounterEvolution() || Result.PostEncounterEvolution.CoinChange == 0)
             return null;
 
         return new CoinsChangeDisplay
         {
-            Amount = Result.WorldEvolution.CoinChange,
+            Amount = Result.PostEncounterEvolution.CoinChange,
             Current = GameState.PlayerState.Coins,
-            New = GameState.PlayerState.Coins + Result.WorldEvolution.CoinChange
+            New = GameState.PlayerState.Coins + Result.PostEncounterEvolution.CoinChange
         };
     }
 
     public LocationUpdateDisplay GetLocationUpdate()
     {
-        if (!HasWorldEvolution() || !Result.WorldEvolution.LocationUpdate.LocationChanged)
+        if (!HasPostEncounterEvolution() || !Result.PostEncounterEvolution.LocationUpdate.LocationChanged)
             return null;
 
         return new LocationUpdateDisplay
         {
-            NewLocationName = Result.WorldEvolution.LocationUpdate.NewLocationName
+            NewLocationName = Result.PostEncounterEvolution.LocationUpdate.NewLocationName
         };
     }
 
     public List<ResourceChangeDisplay> GetResourceChanges()
     {
-        if (!HasWorldEvolution() || Result.WorldEvolution.ResourceChanges == null)
+        if (!HasPostEncounterEvolution() || Result.PostEncounterEvolution.ResourceChanges == null)
             return new List<ResourceChangeDisplay>();
 
         var changes = new List<ResourceChangeDisplay>();
 
         // Add items added
-        foreach (var item in Result.WorldEvolution.ResourceChanges.ItemsAdded)
+        foreach (var item in Result.PostEncounterEvolution.ResourceChanges.ItemsAdded)
         {
             changes.Add(new ResourceChangeDisplay
             {
@@ -260,7 +260,7 @@ public partial class NarrativeViewBase : ComponentBase
         }
 
         // Add items removed
-        foreach (var item in Result.WorldEvolution.ResourceChanges.ItemsRemoved)
+        foreach (var item in Result.PostEncounterEvolution.ResourceChanges.ItemsRemoved)
         {
             changes.Add(new ResourceChangeDisplay
             {

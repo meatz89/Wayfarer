@@ -6,6 +6,6 @@
     PlayerChoice,
     Narrative,
     MemoryUpdate,
-    WorldEvolution,
-    LocationGeneration
+    PostEncounterEvolution,
+    LocationCreation
 }

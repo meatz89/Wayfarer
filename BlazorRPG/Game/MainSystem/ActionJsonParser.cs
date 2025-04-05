@@ -51,9 +51,9 @@ public static class ActionJsonParser
         }
     }
 
-    private static ActionTemplate ParseActionTemplate(JsonElement element)
+    private static SpotAction ParseActionTemplate(JsonElement element)
     {
-        ActionTemplate model = CreateDefaultActionTemplate();
+        SpotAction model = CreateDefaultActionTemplate();
 
         // Extract basic text fields
         model.Name = GetStringProperty(element, "name", model.Name);
@@ -122,9 +122,9 @@ public static class ActionJsonParser
     }
 
 
-    private static ActionTemplate CreateDefaultActionTemplate()
+    private static SpotAction CreateDefaultActionTemplate()
     {
-        return new ActionTemplate
+        return new SpotAction
         {
             Name = "Explore Area",
             Description = "Look around and search for points of interest",

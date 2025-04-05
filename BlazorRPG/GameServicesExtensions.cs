@@ -25,13 +25,13 @@
         services.AddSingleton<NarrativeLogManager>();
         services.AddSingleton<NarrativeContextManager>();
 
-        services.AddSingleton<LocationGenerator>();
-        services.AddSingleton<WorldEvolutionService>();
+        services.AddSingleton<LocationCreationService>();
+        services.AddSingleton<PostEncounterEvolutionService>();
 
         services.AddSingleton<ResourceManager>();
         services.AddSingleton<NarrativeService>();
 
-        services.AddSingleton<WorldEvolutionParser>();
+        services.AddSingleton<PostEncounterEvolutionParser>();
 
         return services;
     }
