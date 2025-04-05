@@ -11,7 +11,7 @@ public class GameManager
     public ItemSystem ItemSystem { get; }
     public NarrativeService NarrativeService { get; }
     public MessageSystem MessageSystem { get; }
-    public PostEncounterEvolutionService evolutionService { get; }
+    public PostEncounterEvolutionSystem evolutionService { get; }
     public ActionFactory ActionFactory { get; }
     public ActionRepository ActionRepository { get; }
     public TravelManager TravelManager { get; }
@@ -33,7 +33,7 @@ public class GameManager
         ItemSystem itemSystem,
         NarrativeService narrativeService,
         MessageSystem messageSystem,
-        PostEncounterEvolutionService postEncounterEvolutionService,
+        PostEncounterEvolutionSystem postEncounterEvolutionService,
         ActionFactory actionFactory,
         ActionRepository actionRepository,
         TravelManager travelManager,
@@ -766,7 +766,7 @@ public class GameManager
             PostEncounterEvolutionInput input = PreparePostEncounterEvolutionInput(narrative, outcome);
 
             // Process world evolution
-            PostEncounterEvolutionResponse evolutionResponse = await evolutionService.ProcessEncounterOutcome(encounterResult.NarrativeContext, input, encounterResult);
+            EvolutionResult evolutionResponse = await evolutionService.ProcessEncounterOutcome(encounterResult.NarrativeContext, input, encounterResult);
 
             // Store the evolution response in the result
             encounterResult.PostEncounterEvolution = evolutionResponse;

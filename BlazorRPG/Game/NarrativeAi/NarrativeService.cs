@@ -111,7 +111,7 @@
         return await _providers[_currentProvider].GenerateLocationDetailsAsync(context);
     }
 
-    public async Task<PostEncounterEvolutionResponse> ProcessPostEncounterEvolution(NarrativeContext context, PostEncounterEvolutionInput input)
+    public async Task<EvolutionResult> ProcessPostEncounterEvolution(NarrativeContext context, PostEncounterEvolutionInput input)
     {
         return await _providers[_currentProvider].ProcessPostEncounterEvolution(context, input);
     }

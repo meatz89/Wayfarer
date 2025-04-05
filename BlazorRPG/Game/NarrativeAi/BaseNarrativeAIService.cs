@@ -43,7 +43,7 @@
 
     public abstract Task<LocationDetails> GenerateLocationDetailsAsync(LocationCreationContext context);
     public abstract Task<string> GenerateActionsAsync(ActionGenerationContext context);
-    public abstract Task<PostEncounterEvolutionResponse> ProcessPostEncounterEvolution(
+    public abstract Task<EvolutionResult> ProcessPostEncounterEvolution(
         NarrativeContext context,
         PostEncounterEvolutionInput input);
     public abstract Task<string> ProcessMemoryConsolidation(

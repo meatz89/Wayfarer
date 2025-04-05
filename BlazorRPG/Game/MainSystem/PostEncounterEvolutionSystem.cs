@@ -1,10 +1,10 @@
-﻿public class PostEncounterEvolutionService
+﻿public class PostEncounterEvolutionSystem
 {
     private readonly NarrativeService _narrativeService;
     private readonly ActionGenerator _actionGenerator;
     private readonly ActionRepository _actionRepository;
 
-    public PostEncounterEvolutionService(
+    public PostEncounterEvolutionSystem(
         NarrativeService narrativeService,
         ActionGenerator actionGenerator,
         ActionRepository actionRepository)
@@ -21,18 +21,18 @@
         return await _narrativeService.ProcessMemoryConsolidation(context, input);
     }
 
-    public async Task<PostEncounterEvolutionResponse> ProcessEncounterOutcome(
+    public async Task<EvolutionResult> ProcessEncounterOutcome(
         NarrativeContext context,
         PostEncounterEvolutionInput input,
         EncounterResult encounterResult)
     {
         // Get world evolution response from narrative service
-        PostEncounterEvolutionResponse response = await _narrativeService.ProcessPostEncounterEvolution(context, input);
+        EvolutionResult response = await _narrativeService.ProcessPostEncounterEvolution(context, input);
         return response;
     }
 
     public async Task<Location> IntegrateEncounterOutcome(
-    PostEncounterEvolutionResponse evolution,
+    EvolutionResult evolution,
     WorldState worldState,
     LocationSystem locationSystem,
     PlayerState playerState)
@@ -147,7 +147,7 @@
         return travelLocation;
     }
 
-    private async Task ProcessNewActions(PostEncounterEvolutionResponse evolution, WorldState worldState)
+    private async Task ProcessNewActions(EvolutionResult evolution, WorldState worldState)
     {
         foreach (NewAction newAction in evolution.NewActions)
         {
@@ -194,7 +194,7 @@
     }
 
     // Helper methods for handling player state changes
-    private void ProcessInventoryChanges(PostEncounterEvolutionResponse evolution, PlayerState playerState)
+    private void ProcessInventoryChanges(EvolutionResult evolution, PlayerState playerState)
     {
         if (evolution.ResourceChanges != null)
         {
@@ -218,7 +218,7 @@
         }
     }
 
-    private void ProcessRelationshipChanges(PostEncounterEvolutionResponse evolution, PlayerState playerState)
+    private void ProcessRelationshipChanges(EvolutionResult evolution, PlayerState playerState)
     {
         if (evolution.RelationshipChanges != null && evolution.RelationshipChanges.Any())
         {

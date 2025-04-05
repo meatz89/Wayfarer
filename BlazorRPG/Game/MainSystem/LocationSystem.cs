@@ -2,13 +2,13 @@
 {
     private readonly GameState gameState;
     private readonly WorldState worldState;
-    private readonly LocationCreationService initialLocationGenerator;
+    private readonly LocationCreationSystem initialLocationGenerator;
     public bool IsInitialized = false;
 
     public LocationSystem(
     GameState gameState,
     GameContentProvider contentProvider,
-    LocationCreationService initialLocationGenerator)
+    LocationCreationSystem initialLocationGenerator)
     {
         this.gameState = gameState;
         this.worldState = gameState.WorldState;

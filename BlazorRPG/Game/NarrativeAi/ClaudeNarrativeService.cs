@@ -211,7 +211,7 @@
     }
 
 
-    public override async Task<PostEncounterEvolutionResponse> ProcessPostEncounterEvolution(
+    public override async Task<EvolutionResult> ProcessPostEncounterEvolution(
         NarrativeContext context,
         PostEncounterEvolutionInput input)
     {
@@ -241,7 +241,7 @@
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel);
 
-        PostEncounterEvolutionResponse postEncounterEvolutionResponse = await PostEncounterEvolutionParser.ParsePostEncounterEvolutionResponseAsync(jsonResponse);
+        EvolutionResult postEncounterEvolutionResponse = await PostEncounterEvolutionParser.ParsePostEncounterEvolutionResponseAsync(jsonResponse);
         return postEncounterEvolutionResponse;
     }
 
