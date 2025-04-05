@@ -1,9 +1,9 @@
-﻿public class LocationCreationService
+﻿public class LocationCreationSystem
 {
     public NarrativeService narrativeService { get; }
     public ActionGenerator actionGenerator { get; }
 
-    public LocationCreationService(
+    public LocationCreationSystem(
         NarrativeService narrativeService, 
         ActionGenerator actionGenerator)
     {

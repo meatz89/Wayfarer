@@ -10,7 +10,7 @@ public class PostEncounterEvolutionParser
         _logger = logger;
     }
 
-    public async Task<PostEncounterEvolutionResponse> ParsePostEncounterEvolutionResponseAsync(string response)
+    public async Task<EvolutionResult> ParsePostEncounterEvolutionResponseAsync(string response)
     {
         FlatPostEncounterEvolutionResponse flatResponse = ParseFlatResponse(response);
         return await BuildNestedResponseAsync(flatResponse);
@@ -92,9 +92,9 @@ public class PostEncounterEvolutionParser
         return result;
     }
 
-    private async Task<PostEncounterEvolutionResponse> BuildNestedResponseAsync(FlatPostEncounterEvolutionResponse flatResponse)
+    private async Task<EvolutionResult> BuildNestedResponseAsync(FlatPostEncounterEvolutionResponse flatResponse)
     {
-        PostEncounterEvolutionResponse result = new PostEncounterEvolutionResponse
+        EvolutionResult result = new EvolutionResult
         {
             LocationUpdate = flatResponse.PlayerLocationUpdate ?? new PlayerLocationUpdate(),
             ResourceChanges = flatResponse.ResourceChanges ?? new ResourceChanges(),

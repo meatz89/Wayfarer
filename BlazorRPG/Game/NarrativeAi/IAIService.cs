@@ -32,7 +32,7 @@
         List<ChoiceProjection> projections,
         EncounterStatusModel state);
 
-    Task<PostEncounterEvolutionResponse> ProcessPostEncounterEvolution(NarrativeContext context, PostEncounterEvolutionInput input);
+    Task<EvolutionResult> ProcessPostEncounterEvolution(NarrativeContext context, PostEncounterEvolutionInput input);
     Task<string> ProcessMemoryConsolidation(NarrativeContext context, MemoryConsolidationInput input);
     Task<LocationDetails> GenerateLocationDetailsAsync(LocationCreationContext context);
     Task<string> GenerateActionsAsync(ActionGenerationContext input);

@@ -1,4 +1,4 @@
-﻿public class PostEncounterEvolutionResponse
+﻿public class EvolutionResult
 {
     public List<NewAction> NewActions { get; set; } = new List<NewAction>();
     public List<LocationSpot> NewLocationSpots { get; set; } = new List<LocationSpot>();

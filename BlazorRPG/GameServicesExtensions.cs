@@ -25,8 +25,8 @@
         services.AddSingleton<NarrativeLogManager>();
         services.AddSingleton<NarrativeContextManager>();
 
-        services.AddSingleton<LocationCreationService>();
-        services.AddSingleton<PostEncounterEvolutionService>();
+        services.AddSingleton<LocationCreationSystem>();
+        services.AddSingleton<PostEncounterEvolutionSystem>();
 
         services.AddSingleton<ResourceManager>();
         services.AddSingleton<NarrativeService>();
