@@ -11,7 +11,7 @@
     public int Pressure { get; private set; }
     public int CurrentTurn { get; private set; }
     public EncounterInfo Location { get; }
-    public LocationSpot LocationSpot { get; internal set; }
+    public LocationSpot LocationSpot { get; set; }
 
     // Expose tag system through the TagManager
     public BaseTagSystem TagSystem => _tagManager.TagSystem;

@@ -5,9 +5,9 @@
     public LocationSystem LocationSystem { get; }
     public ActionRepository ActionRepository { get; }
     public ActionFactory ActionFactory { get; }
-    
+
     public TravelManager(
-        GameState gameState, 
+        GameState gameState,
         LocationSystem locationSystem,
         ActionRepository actionRepository,
         ActionFactory actionFactory
@@ -20,65 +20,59 @@
         this.ActionFactory = actionFactory;
     }
 
-    public void TravelToLocationWithEncounter(string locationName, TravelMethods travelMethod = TravelMethods.Walking)
+    public void TravelToLocation(string travelLocation, TravelMethods travelMethod = TravelMethods.Walking)
     {
-        // Store destination for encounter system to use
+        if (worldState.CurrentLocation == null)
+        {
+            return;
+        }
+
+        Location currentLocation = worldState.CurrentLocation;
+        if (currentLocation.Name == travelLocation)
+        {
+            return;
+        }
+
         gameState.PendingTravel = new PendingTravel
         {
-            Destination = locationName,
+            TravelOrigin = currentLocation,
+            TravelDestination = travelLocation,
             TravelMethod = travelMethod
         };
 
-        // Start travel encounter
-        // The encounter system should check gameState.PendingTravel
-        // to determine the appropriate travel encounter
-    }
+        // Calculate travel time
+        int travelMinutes = CalculateTravelTime(currentLocation, travelLocation, travelMethod);
 
-    public void TravelToLocation(string locationName, TravelMethods travelMethod = TravelMethods.Walking)
-    {
-        if (worldState.CurrentLocation != null)
-        {
-            string startLocationId = worldState.CurrentLocation.Name;
+        // Advance game time
+        worldState.CurrentTimeMinutes += travelMinutes;
 
-            // Calculate travel time
-            int travelMinutes = CalculateTravelTime(startLocationId, locationName, travelMethod);
+        // Consume resources
+        ConsumeTravelResources(travelMinutes, travelMethod);
 
-            // Advance game time
-            worldState.CurrentTimeMinutes += travelMinutes;
-
-            // Consume resources
-            ConsumeTravelResources(travelMinutes, travelMethod);
-        }
-
-        // Update player location
-        if (!LocationSystem.IsInitialized) InitializeLocationSystem();
-
-        Location location = LocationSystem.GetLocation(locationName);
-        if (location == null)
-            location = LocationSystem.GetAllLocations().FirstOrDefault();
+        Location targetLcoation = LocationSystem.GetLocation(travelLocation);
+        if (targetLcoation == null)
+            targetLcoation = LocationSystem.GetAllLocations().FirstOrDefault();
 
         // Record visit and check if it's first visit
-        bool isFirstVisit = worldState.IsFirstVisit(locationName);
-        worldState.RecordLocationVisit(locationName);
+        bool isFirstVisit = worldState.IsFirstVisit(travelLocation);
+        worldState.RecordLocationVisit(travelLocation);
 
         // Apply discovery bonus on first visit
-        if (isFirstVisit && location != null)
+        if (isFirstVisit && targetLcoation != null)
         {
-            ApplyDiscoveryBonus(location);
+            ApplyDiscoveryBonus(targetLcoation);
         }
 
         // Update hub tracking if applicable
-        if (location.LocationType == LocationTypes.Hub)
+        if (targetLcoation.LocationType == LocationTypes.Hub)
         {
-            int locationDepth = worldState.GetLocationDepth(location.Name);
+            int locationDepth = worldState.GetLocationDepth(targetLcoation.Name);
             if (locationDepth > worldState.LastHubDepth)
             {
-                worldState.LastHubLocationId = location.Name;
+                worldState.LastHubLocationId = targetLcoation.Name;
                 worldState.LastHubDepth = locationDepth;
             }
         }
-        
-        LocationSystem.SetCurrentLocation(location);
     }
 
     private void ApplyDiscoveryBonus(Location location)
@@ -135,14 +129,9 @@
         }
     }
 
-    internal async void InitializeLocationSystem()
+    public int CalculateTravelTime(Location startLocation, string endLocationId, TravelMethods travelMethod)
     {
-        if (!LocationSystem.IsInitialized) await LocationSystem.Initialize();
-    }
-
-    public int CalculateTravelTime(string startLocationId, string endLocationId, TravelMethods travelMethod)
-    {
-        var worldState = gameState.WorldState;
+        WorldState worldState = gameState.WorldState;
 
         // Get base travel time between locations
         int baseTravelMinutes = 0;

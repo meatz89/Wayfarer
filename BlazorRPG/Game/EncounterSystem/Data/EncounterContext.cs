@@ -7,7 +7,7 @@
     public string TimeOfDay { get; set; }
     public List<IEnvironmentalProperty> CurrentEnvironmentalProperties { get; set; }
     public PlayerSummary Player { get; set; }
-    public List<string> PreviousInteractions { get; internal set; }
+    public List<string> PreviousInteractions { get; set; }
 
     public ActionImplementation ActionImplementation;
     public BasicActionTypes BasicActionType;

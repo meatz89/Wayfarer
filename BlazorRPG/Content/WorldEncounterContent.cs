@@ -12,7 +12,7 @@
     public static EncounterTemplate TravelEncounter => new EncounterTemplate()
     {
         Name = "Travel",
-        Duration = 3,
+        Duration = 1,
         MaxPressure = 10,
         PartialThreshold = 4,
         StandardThreshold = 8,

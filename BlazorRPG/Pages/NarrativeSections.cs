@@ -1,10 +1,10 @@
 ﻿
 public class NarrativeSections
 {
-    public string ActionOutcome { get; internal set; }
-    public string AtmosphericDetail { get; internal set; }
-    public string SituationChange { get; internal set; }
-    public string NewChallenge { get; internal set; }
-    public string WorldReaction { get; internal set; }
-    public bool IsJsonFormat { get; internal set; }
+    public string ActionOutcome { get; set; }
+    public string AtmosphericDetail { get; set; }
+    public string SituationChange { get; set; }
+    public string NewChallenge { get; set; }
+    public string WorldReaction { get; set; }
+    public bool IsJsonFormat { get; set; }
 }

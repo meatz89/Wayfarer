@@ -10,7 +10,7 @@ public class PostEncounterEvolutionParser
         _logger = logger;
     }
 
-    public async Task<EvolutionResult> ParsePostEncounterEvolutionResponseAsync(string response)
+    public async Task<PostEncounterEvolutionResult> ParsePostEncounterEvolutionResponseAsync(string response)
     {
         FlatPostEncounterEvolutionResponse flatResponse = ParseFlatResponse(response);
         return await BuildNestedResponseAsync(flatResponse);
@@ -21,21 +21,11 @@ public class PostEncounterEvolutionParser
         FlatPostEncounterEvolutionResponse result = new FlatPostEncounterEvolutionResponse();
         response = response.Replace("```json", "");
         response = response.Replace("```", "");
-        
+
         try
         {
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
-
-            // Parse player state changes
-            if (root.TryGetProperty("playerLocationUpdate", out JsonElement locationUpdateElement))
-            {
-                result.PlayerLocationUpdate = new PlayerLocationUpdate
-                {
-                    NewLocationName = GetStringProperty(locationUpdateElement, "newLocationName", string.Empty),
-                    LocationChanged = GetBoolProperty(locationUpdateElement, "locationChanged", false)
-                };
-            }
 
             // Parse resource changes
             if (root.TryGetProperty("resourceChanges", out JsonElement resourceElement))
@@ -92,11 +82,10 @@ public class PostEncounterEvolutionParser
         return result;
     }
 
-    private async Task<EvolutionResult> BuildNestedResponseAsync(FlatPostEncounterEvolutionResponse flatResponse)
+    private async Task<PostEncounterEvolutionResult> BuildNestedResponseAsync(FlatPostEncounterEvolutionResponse flatResponse)
     {
-        EvolutionResult result = new EvolutionResult
+        PostEncounterEvolutionResult result = new PostEncounterEvolutionResult
         {
-            LocationUpdate = flatResponse.PlayerLocationUpdate ?? new PlayerLocationUpdate(),
             ResourceChanges = flatResponse.ResourceChanges ?? new ResourceChanges(),
             RelationshipChanges = flatResponse.RelationshipChanges ?? new List<RelationshipChange>(),
             CoinChange = flatResponse.ResourceChanges?.CoinChange ?? 0,
@@ -179,13 +168,13 @@ public class PostEncounterEvolutionParser
                 VisitCount = 0,
                 ConnectedTo = locDef.ConnectedTo,
                 EnvironmentalProperties = ParseEnvironmentalProperties(locDef.EnvironmentalProperties),
-                Spots = new List<LocationSpot>()
+                LocationSpots = new List<LocationSpot>()
             };
 
             // Add spots for this location
             if (spotsByLocation.TryGetValue(locDef.Name, out List<LocationSpot>? spots))
             {
-                location.Spots.AddRange(spots);
+                location.LocationSpots.AddRange(spots);
             }
 
             result.NewLocations.Add(location);
@@ -510,7 +499,6 @@ public class PostEncounterEvolutionParser
 
 public class FlatPostEncounterEvolutionResponse
 {
-    public PlayerLocationUpdate PlayerLocationUpdate { get; set; }
     public ResourceChanges ResourceChanges { get; set; }
     public List<RelationshipChange> RelationshipChanges { get; set; } = new List<RelationshipChange>();
     public List<LocationDefinition> Locations { get; set; } = new List<LocationDefinition>();
@@ -547,21 +535,6 @@ public class ActionDefinition
     public bool IsRepeatable { get; set; }
     public int EnergyCost { get; set; }
 }
-
-
-public class NewAction
-{
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public string Goal { get; set; }
-    public string Complication { get; set; }
-    public string ActionType { get; set; }
-    public string SpotName { get; set; }
-    public string LocationName { get; set; }
-    public bool IsRepeatable { get; set; }
-    public int EnergyCost { get; set; }
-}
-
 
 public class LocationSpotDefinition
 {

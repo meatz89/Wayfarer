@@ -10,13 +10,14 @@
         services.AddSingleton<ActionRepository>();
 
         services.AddSingleton<TravelManager>();
-        services.AddSingleton<LocationSystem>();
         services.AddSingleton<ItemSystem>();
 
         services.AddSingleton<KnowledgeSystem>();
-        services.AddSingleton<CharacterRelationshipSystem>();
-
+        services.AddSingleton<CharacterSystem>();
+        services.AddSingleton<LocationSystem>();
+        services.AddSingleton<OpportunitySystem>();
         services.AddSingleton<EncounterSystem>();
+        services.AddSingleton<ActionSystem>();
 
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<GameManager>();

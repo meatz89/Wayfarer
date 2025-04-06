@@ -36,7 +36,7 @@ public class ResourceManager
             playerState.ModifyConfidence(confidenceChange);
     }
 
-    internal void ApplyResourceChanges(string key, int value)
+    public void ApplyResourceChanges(string key, int value)
     {
         throw new NotImplementedException();
     }

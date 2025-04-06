@@ -1,41 +1,41 @@
-﻿public class LocationSystem
+﻿using System.Text;
+
+public class LocationSystem
 {
     private readonly GameState gameState;
     private readonly WorldState worldState;
-    private readonly LocationCreationSystem initialLocationGenerator;
     public bool IsInitialized = false;
 
     public LocationSystem(
     GameState gameState,
-    GameContentProvider contentProvider,
-    LocationCreationSystem initialLocationGenerator)
+    GameContentProvider contentProvider)
     {
         this.gameState = gameState;
         this.worldState = gameState.WorldState;
-        this.initialLocationGenerator = initialLocationGenerator;
         List<Location> allLocations = contentProvider.GetLocations();
     }
 
-    public async Task Initialize()
+    public async Task<Location> Initialize(LocationNames startingLocation)
     {
         // Create the starting locations
         List<Location> locations = new List<Location>
-    {
-        WorldLocationsContent.Forest,
-        WorldLocationsContent.Village,
-    };
+        {
+            WorldLocationsContent.Forest,
+            WorldLocationsContent.Village,
+        };
 
         gameState.WorldState.AddLocations(locations);
-        InitializeLocationDepths();
+
+        string startingLocationName = startingLocation.ToString();
+        InitializeLocationDepths(startingLocationName);
 
         IsInitialized = true;
+
+        return GetLocation(startingLocationName);
     }
 
-    private void InitializeLocationDepths()
+    private void InitializeLocationDepths(string startingLocation)
     {
-        // Get the starting location
-        string startingLocation = GameRules.StandardRuleset.StartingLocation.ToString();
-
         // Set the starting location to depth 0
         worldState.SetLocationDepth(startingLocation, 0);
 
@@ -88,7 +88,7 @@
     {
         if (location == null) return new List<LocationSpot>();
 
-        return location.Spots;
+        return location.LocationSpots;
     }
 
     public LocationSpot GetLocationSpotForLocation(string locationName, string locationSpotName)
@@ -107,10 +107,63 @@
         return new List<StrategicTag>();
     }
 
-    internal void AddSpot(string locationName, LocationSpot spot)
+    public void AddSpot(string locationName, LocationSpot spot)
     {
         Location location = gameState.WorldState.GetLocation(locationName);
         location.AddSpot(spot);
+    }
+
+    public string FormatKnownLocations(List<Location> locations)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if (locations == null || !locations.Any())
+            return "None";
+
+        foreach (Location loc in locations)
+        {
+            sb.AppendLine($"- {loc.Name}: {loc.Description} (Depth: {gameState.WorldState.GetLocationDepth(loc.Name)})");
+        }
+
+        return sb.ToString();
+    }
+
+    public string FormatLocationSpots(Location location)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if (location == null || location.LocationSpots == null || !location.LocationSpots.Any())
+            return "None";
+
+        foreach (LocationSpot spot in location.LocationSpots)
+        {
+            sb.AppendLine($"- {spot.Name}: {spot.Description}");
+        }
+
+        return sb.ToString();
+    }
+
+    public string FormatAllLocationSpots(List<Location> locations)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if (locations == null || !locations.Any())
+            return "None";
+
+        foreach (Location location in locations)
+        {
+            if (location.LocationSpots == null || !location.LocationSpots.Any())
+                continue;
+
+            sb.AppendLine($"## {location.Name} Spots:");
+            foreach (LocationSpot spot in location.LocationSpots)
+            {
+                sb.AppendLine($"- {spot.Name}: {spot.Description}");
+            }
+            sb.AppendLine();
+        }
+
+        return sb.Length > 0 ? sb.ToString() : "None";
     }
 
 }

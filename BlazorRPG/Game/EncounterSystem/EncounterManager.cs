@@ -64,7 +64,7 @@
         // Create narrative context
         narrativeContext =
             new NarrativeContext(
-                encounterInfo.Name.ToString(),
+                encounterInfo.LocationName.ToString(),
                 encounterInfo.LocationSpotName.ToString(),
                 encounterInfo.Type,
                 actionImplementation);
@@ -114,14 +114,16 @@
             firstNarrative.SetAvailableChoiceDescriptions(choiceDescriptions);
         }
 
-        // Return the narrative result
-        return new NarrativeResult(
+        NarrativeResult result = new NarrativeResult(
             introduction,
             actionImplementation.Goal,
             choices,
             projections,
             choiceDescriptions,
             firstNarrative.ChoiceNarrative);
+
+        // Return the narrative result
+        return result;
     }
 
     public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
@@ -156,7 +158,7 @@
             NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
             narrativeContext.AddEvent(narrativeEvent);
 
-            NarrativeResult narrativeResultFinished = new(
+            NarrativeResult currentResult = new(
                 narrative,
                 string.Empty,
                 new List<IChoice>(),
@@ -164,10 +166,10 @@
                 new Dictionary<IChoice, ChoiceNarrative>(),
                 narrativeEvent.ChoiceNarrative);
 
-            narrativeResultFinished.SetOutcome(outcome.Outcome);
-            narrativeResultFinished.SetIsEncounterOver(outcome.IsEncounterOver);
+            currentResult.SetOutcome(outcome.Outcome);
+            currentResult.SetIsEncounterOver(outcome.IsEncounterOver);
 
-            return narrativeResultFinished;
+            return currentResult;
         }
         else
         {
@@ -214,7 +216,7 @@
             ChoiceNarrative lastChoiceNarrative = narrativeEvent.ChoiceNarrative;
 
             // Return the narrative result
-            NarrativeResult narrativeResultOngoing = new(
+            NarrativeResult ongoingResult = new(
                 narrative,
                 string.Empty,
                 newChoices,
@@ -222,7 +224,7 @@
                 newChoiceDescriptions,
                 narrativeEvent.ChoiceNarrative);
 
-            return narrativeResultOngoing;
+            return ongoingResult;
         }
     }
 

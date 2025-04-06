@@ -5,7 +5,7 @@ public partial class GameUI : ComponentBase
 {
     [Inject] private GameState GameState { get; set; }
     [Inject] private GameManager GameManager { get; set; }
-    
+
     public List<string> ResultMessages => GetResultMessages();
 
     public PlayerState PlayerState => GameState.PlayerState;
@@ -98,8 +98,8 @@ public partial class GameUI : ComponentBase
         {
             // Execute the action immediately
             GameManager.ExecuteBasicAction(action);
-            
-            OngoingEncounter = GameState.Actions.IsActiveEncounter; 
+
+            OngoingEncounter = GameState.Actions.IsActiveEncounter;
             if (!OngoingEncounter)
             {
                 CompleteActionExecution();
@@ -107,7 +107,7 @@ public partial class GameUI : ComponentBase
         }
     }
 
-    private void HandleEncounterCompleted(EncounterResult result)
+    private void OnEncounterCompleted(EncounterResult result)
     {
         if (result.EncounterResults != EncounterResults.Ongoing)
         {
@@ -143,25 +143,24 @@ public partial class GameUI : ComponentBase
         ShowEncounterResult = false;
 
         // If this was a travel encounter that completed successfully
-        if (EncounterResult.TravelLocation != null)
+        if (GameState.PendingTravel != null)
         {
-            await GameManager.TravelToLocation(EncounterResult.TravelLocation.Name);
+            await GameManager.TravelToLocation(GameState.PendingTravel.TravelDestination);
         }
 
         // Always return to location spot view after any encounter
         showAreaMap = false;
 
-        await FinishEncounter();
+        await OnEncounterCompleted();
         StateHasChanged();
     }
 
-    private async Task FinishEncounter()
+    private async Task OnEncounterCompleted()
     {
         // Reset Encounter logic
-        GameManager.FinishEncounter(EncounterResult.Encounter);
+        GameManager.EndEncounter(EncounterResult.Encounter);
         ShowEncounterResult = false;
 
-        await GameManager.TravelToLocation(GetCurrentLocation().Name);
         StateHasChanged();
     }
 

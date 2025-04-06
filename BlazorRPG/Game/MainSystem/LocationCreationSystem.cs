@@ -1,32 +1,54 @@
 ﻿public class LocationCreationSystem
 {
-    public NarrativeService narrativeService { get; }
-    public ActionGenerator actionGenerator { get; }
+    private readonly NarrativeService narrativeService;
+    private readonly LocationSystem locationSystem;
+    private readonly CharacterSystem characterSystem;
+    private readonly OpportunitySystem opportunitySystem;
+    private readonly ActionSystem actionSystem;
+    private readonly GameState gameState;
+    private readonly ActionGenerator actionGenerator;
 
     public LocationCreationSystem(
-        NarrativeService narrativeService, 
+        NarrativeService narrativeService,
+        LocationSystem locationSystem,
+        CharacterSystem characterSystem,
+        OpportunitySystem opportunitySystem,
+        ActionSystem actionSystem,
+        GameState gameState,
         ActionGenerator actionGenerator)
     {
         this.narrativeService = narrativeService;
+        this.locationSystem = locationSystem;
+        this.characterSystem = characterSystem;
+        this.opportunitySystem = opportunitySystem;
+        this.actionSystem = actionSystem;
+        this.gameState = gameState;
         this.actionGenerator = actionGenerator;
+        this.actionGenerator = actionGenerator;
+        this.narrativeService = narrativeService;
     }
 
-    public async Task<Location> CreateLocation(string locationType)
+    public async Task<Location> CreateLocation(
+        bool wasTravelEncounter,
+        string travelOrigin,
+        string travelDestination,
+        int locationDepth
+        )
     {
-        // Create context for location generation
-        LocationCreationContext context = new LocationCreationContext
-        {
-            LocationType = locationType,
-            RequestedSpotCount = 2,
-            Difficulty = DetermineDifficulty(locationType)
-        };
+        LocationCreationInput input = CreateLocationInput(
+            wasTravelEncounter, travelOrigin, travelDestination, locationDepth);
 
         // Get location details from AI
-        LocationDetails details = await narrativeService.GenerateLocationDetailsAsync(context);
+        LocationDetails details = await narrativeService.GenerateLocationDetailsAsync(input);
 
         // Convert SpotDetails to LocationSpot objects
+        return IntegrateNewLocation(input, details);
+    }
+
+    private Location IntegrateNewLocation(LocationCreationInput input, LocationDetails details)
+    {
         List<LocationSpot> locationSpots = new List<LocationSpot>();
-        foreach (SpotDetails spotDetail in details.Spots)
+        foreach (SpotDetails spotDetail in details.NewLocationSpots)
         {
             LocationSpot spot = new LocationSpot
             {
@@ -50,12 +72,11 @@
             DetailedDescription = details.DetailedDescription,
             History = details.History,
             PointsOfInterest = details.PointsOfInterest,
-            Difficulty = context.Difficulty,
             TravelTimeMinutes = details.TravelTimeMinutes,
             TravelDescription = details.TravelDescription,
             ConnectedTo = details.ConnectedLocationIds,
             EnvironmentalProperties = details.EnvironmentalProperties,
-            Spots = locationSpots,
+            LocationSpots = locationSpots,
             StrategicTags = details.StrategicTags,
             NarrativeTags = details.NarrativeTags
         };
@@ -63,28 +84,43 @@
         return location;
     }
 
-    private static int DetermineDifficulty(string locationType)
+    private LocationCreationInput CreateLocationInput(
+        bool wasTravelEncounter, 
+        string travelOrigin, 
+        string travelDestination,
+        int locationDepth
+        )
     {
-        // Determine base difficulty by location type
-        switch (locationType.ToLower())
+        WorldState worldState = gameState.WorldState;
+        PlayerState playerState = gameState.PlayerState;
+
+        // Get current depth and hub depth
+        int currentDepth = worldState.GetLocationDepth(worldState.CurrentLocation?.Name ?? "");
+
+        // Get all locations
+        List<Location> allLocations = worldState.GetLocations();
+
+        // Create context for location generation
+        LocationCreationInput context = new LocationCreationInput
         {
-            case "village":
-            case "tavern":
-            case "town":
-                return 1;
+            CharacterBackground = playerState.Archetype.ToString(),
+            CurrentLocation = worldState.CurrentLocation?.Name ?? "Unknown",
 
-            case "forest":
-            case "cave":
-            case "ruins":
-                return 2;
+            KnownLocations = locationSystem.FormatKnownLocations(allLocations),
+            KnownCharacters = characterSystem.FormatKnownCharacters(worldState.GetCharacters()),
+            ActiveOpportunities = opportunitySystem.FormatActiveOpportunities(worldState.GetOpportunities()),
 
-            case "mountain":
-            case "dungeon":
-            case "wilderness":
-                return 3;
+            CurrentLocationSpots = locationSystem.FormatLocationSpots(worldState.CurrentLocation),
+            AllKnownLocationSpots = locationSystem.FormatAllLocationSpots(allLocations),
+            AllExistingActions = actionSystem.FormatExistingActions(allLocations),
 
-            default:
-                return 1;
-        }
+            WasTravelEncounter = wasTravelEncounter,
+            TravelOrigin = travelOrigin,
+            TravelDestination = travelDestination,
+
+            CurrentDepth = locationDepth,
+            LastHubDepth = worldState.LastHubDepth,
+        };
+        return context;
     }
 }

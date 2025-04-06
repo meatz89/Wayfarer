@@ -3,7 +3,7 @@
 /// </summary>
 public class EncounterInfo
 {
-    public string Name { get; set; }
+    public string LocationName { get; set; }
     public string LocationSpotName { get; set; }
     public List<FocusTags> PressureReducingFocuses { get; } = new List<FocusTags>();
     public List<FocusTags> MomentumReducingFocuses { get; } = new List<FocusTags>();
@@ -39,7 +39,7 @@ public class EncounterInfo
         HostilityLevels hostility,
         EncounterTypes style)
     {
-        this.Name = locationName;
+        this.LocationName = locationName;
         this.LocationSpotName = locationSpot;
 
         this.PressureReducingFocuses = PressureReducingFocuses;
@@ -65,7 +65,7 @@ public class EncounterInfo
         AvailableTags.Add(strategicTag);
     }
 
-    internal void SetDifficulty(int difficulty)
+    public void SetDifficulty(int difficulty)
     {
         this.Difficulty = difficulty;
     }

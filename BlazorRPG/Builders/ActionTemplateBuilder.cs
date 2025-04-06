@@ -1,8 +1,4 @@
-﻿
-
-using Microsoft.Extensions.Hosting;
-
-public class ActionTemplateBuilder
+﻿public class ActionTemplateBuilder
 {
     private string customName; // New field for custom names
     private BasicActionTypes actionType;
@@ -65,7 +61,7 @@ public class ActionTemplateBuilder
         return this;
     }
 
-    internal ActionTemplateBuilder ExpendsEnergy(int energy)
+    public ActionTemplateBuilder ExpendsEnergy(int energy)
     {
         if (energy < 0) return this;
 
@@ -74,7 +70,7 @@ public class ActionTemplateBuilder
         return this;
     }
 
-    internal ActionTemplateBuilder IsRepeatable()
+    public ActionTemplateBuilder IsRepeatable()
     {
         this.isRepeatable = true;
         return this;

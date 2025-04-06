@@ -32,8 +32,8 @@
         List<ChoiceProjection> projections,
         EncounterStatusModel state);
 
-    Task<EvolutionResult> ProcessPostEncounterEvolution(NarrativeContext context, PostEncounterEvolutionInput input);
+    Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(NarrativeContext context, PostEncounterEvolutionInput input);
     Task<string> ProcessMemoryConsolidation(NarrativeContext context, MemoryConsolidationInput input);
-    Task<LocationDetails> GenerateLocationDetailsAsync(LocationCreationContext context);
+    Task<LocationDetails> GenerateLocationDetailsAsync(LocationCreationInput context);
     Task<string> GenerateActionsAsync(ActionGenerationContext input);
 }

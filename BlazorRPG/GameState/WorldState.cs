@@ -64,13 +64,13 @@
     {
         return GetLocationVisitCount(locationId) == 0;
     }
-    
-    internal List<Location> GetLocations()
+
+    public List<Location> GetLocations()
     {
         return Locations.ToList();
     }
 
-    internal List<Opportunity> GetOpportunities()
+    public List<Opportunity> GetOpportunities()
     {
         return opportunities.ToList();
     }
@@ -161,14 +161,14 @@
 
         if (location == null) return;
 
-        if (location.Spots == null || !location.Spots.Any())
+        if (location.LocationSpots == null || !location.LocationSpots.Any())
         {
             Console.WriteLine($"WARNING: Location {location.Name} has no spots!");
             return;
         }
 
         // Set current spot to first spot and log
-        LocationSpot firstSpot = location.Spots.FirstOrDefault();
+        LocationSpot firstSpot = location.LocationSpots.FirstOrDefault();
         SetCurrentLocationSpot(firstSpot);
         Console.WriteLine($"Set current location spot to: {firstSpot?.Name ?? "NULL"}");
     }

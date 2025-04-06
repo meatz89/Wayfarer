@@ -5,7 +5,5 @@
     public EncounterResults EncounterResults { get; set; }
     public string EncounterEndMessage { get; set; }
     public NarrativeContext NarrativeContext { get; set; }
-    public Location TravelLocation { get; set; }
-
-    public EvolutionResult PostEncounterEvolution { get; set; }
+    public PostEncounterEvolutionResult PostEncounterEvolution { get; set; }
 }
