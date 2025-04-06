@@ -1,12 +1,14 @@
 ﻿public class LocationCreationSystem
 {
     private readonly NarrativeService narrativeService;
+    private readonly WorldState worldState;
     private readonly LocationSystem locationSystem;
     private readonly CharacterSystem characterSystem;
     private readonly OpportunitySystem opportunitySystem;
     private readonly ActionSystem actionSystem;
     private readonly GameState gameState;
     private readonly ActionGenerator actionGenerator;
+    private readonly ActionRepository actionRepository;
 
     public LocationCreationSystem(
         NarrativeService narrativeService,
@@ -15,7 +17,9 @@
         OpportunitySystem opportunitySystem,
         ActionSystem actionSystem,
         GameState gameState,
-        ActionGenerator actionGenerator)
+        ActionGenerator actionGenerator,
+        ActionRepository actionRepository
+        )
     {
         this.narrativeService = narrativeService;
         this.locationSystem = locationSystem;
@@ -24,29 +28,50 @@
         this.actionSystem = actionSystem;
         this.gameState = gameState;
         this.actionGenerator = actionGenerator;
-        this.actionGenerator = actionGenerator;
+        this.actionRepository = actionRepository;
         this.narrativeService = narrativeService;
+        this.worldState = gameState.WorldState;
     }
 
-    public async Task<Location> CreateLocation(
+    public async Task<Location> PopulateLocation(
+        string locationToPopulate,
         bool wasTravelEncounter,
         string travelOrigin,
-        string travelDestination,
         int locationDepth
         )
     {
         LocationCreationInput input = CreateLocationInput(
-            wasTravelEncounter, travelOrigin, travelDestination, locationDepth);
+            wasTravelEncounter, travelOrigin, locationToPopulate, locationDepth);
 
         // Get location details from AI
         LocationDetails details = await narrativeService.GenerateLocationDetailsAsync(input);
 
         // Convert SpotDetails to LocationSpot objects
-        return IntegrateNewLocation(input, details);
+        return await IntegrateNewLocation(input, details);
     }
 
-    private Location IntegrateNewLocation(LocationCreationInput input, LocationDetails details)
+    private async Task<Location> IntegrateNewLocation(LocationCreationInput input, LocationDetails details)
     {
+        Location location = worldState.GetLocation(details.Name);
+        location.Description = details.Description;
+        location.DetailedDescription = details.DetailedDescription;
+        location.History = details.History;
+        location.PointsOfInterest = details.PointsOfInterest;
+        location.ConnectedTo = details.ConnectedLocationIds;
+        location.EnvironmentalProperties = details.EnvironmentalProperties;
+        location.LocationSpots = new();
+        location.StrategicTags = details.StrategicTags;
+        location.NarrativeTags = details.NarrativeTags;
+
+        // Verify location has spots collection (shouldn't be needed with proper prompting)
+        if (location.LocationSpots == null)
+        {
+            location.LocationSpots = new List<LocationSpot>();
+        }
+
+        // Update hub tracking if applicable
+        worldState.UpdateHubTracking(location);
+
         List<LocationSpot> locationSpots = new List<LocationSpot>();
         foreach (SpotDetails spotDetail in details.NewLocationSpots)
         {
@@ -61,28 +86,74 @@
                 ActionTemplates = new List<string>(spotDetail.ActionNames)
             };
 
+            locationSystem.AddSpot(location.Name, spot);
             locationSpots.Add(spot);
         }
 
-        // Create the location with converted spots
-        Location location = new Location
-        {
-            Name = details.Name,
-            Description = details.Description,
-            DetailedDescription = details.DetailedDescription,
-            History = details.History,
-            PointsOfInterest = details.PointsOfInterest,
-            TravelTimeMinutes = details.TravelTimeMinutes,
-            TravelDescription = details.TravelDescription,
-            ConnectedTo = details.ConnectedLocationIds,
-            EnvironmentalProperties = details.EnvironmentalProperties,
-            LocationSpots = locationSpots,
-            StrategicTags = details.StrategicTags,
-            NarrativeTags = details.NarrativeTags
-        };
+        // Process new actions and associate them with the appropriate spots
+        await ProcessNewActions(details, worldState);
 
         return location;
     }
+
+    private async Task ProcessNewActions(LocationDetails details, WorldState worldState)
+    {
+        foreach (NewAction newAction in details.NewActions)
+        {
+            Location targetLocation = worldState.GetLocation(newAction.LocationName);
+            if (targetLocation != null && targetLocation.LocationSpots != null)
+            {
+                LocationSpot spotForAction = targetLocation.LocationSpots.FirstOrDefault(s =>
+                    s.Name.Equals(newAction.SpotName, StringComparison.OrdinalIgnoreCase));
+
+                if (spotForAction != null)
+                {
+                    if (spotForAction.ActionTemplates == null)
+                    {
+                        spotForAction.ActionTemplates = new List<string>();
+                    }
+
+                    // Create action template linked to the encounter
+                    string actionTemplateName = await actionGenerator.GenerateActionAndEncounter(
+                        newAction.Name,
+                        newAction.Goal,
+                        newAction.Complication,
+                        ParseActionType(newAction.ActionType).ToString(),
+                        newAction.SpotName,
+                        newAction.LocationName);
+
+                    SpotAction actionTemplate = actionRepository.GetAction(newAction.Name);
+                    string encounterTemplateName = actionTemplate.EncounterTemplateName;
+
+                    EncounterTemplate encounterTemplate = actionRepository.GetEncounterTemplate(encounterTemplateName);
+                    spotForAction.ActionTemplates.Add(actionTemplate.Name);
+
+                    Console.WriteLine($"Created new action {newAction.Name} at {newAction.LocationName}/{newAction.SpotName}");
+                }
+                else
+                {
+                    Console.WriteLine($"WARNING: Could not find spot {newAction.SpotName} at location {newAction.LocationName} for action {newAction.Name}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"WARNING: Could not find location {newAction.LocationName} for action {newAction.Name}");
+            }
+        }
+    }
+
+
+    private BasicActionTypes ParseActionType(string actionTypeStr)
+    {
+        if (Enum.TryParse<BasicActionTypes>(actionTypeStr, true, out BasicActionTypes actionType))
+        {
+            return actionType;
+        }
+
+        // Default fallback
+        return BasicActionTypes.Discuss;
+    }
+
 
     private LocationCreationInput CreateLocationInput(
         bool wasTravelEncounter, 

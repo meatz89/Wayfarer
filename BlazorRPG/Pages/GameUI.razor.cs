@@ -118,12 +118,13 @@ public partial class GameUI : ComponentBase
     }
 
     // Modify HandleLocationSelection method
-    private void HandleTravelStart(string locationName)
+    private void HandleTravelStart(string travelLocationName)
     {
-        selectedLocation = locationName;
+        selectedLocation = travelLocationName;
 
         // If current location, just switch to spot view
-        if (locationName == GameState.WorldState.CurrentLocation.Name)
+        string currentLocationName = GameState.WorldState.CurrentLocation.Name;
+        if (travelLocationName == currentLocationName)
         {
             showAreaMap = false;
             StateHasChanged();
@@ -131,7 +132,7 @@ public partial class GameUI : ComponentBase
         }
 
         // Otherwise initiate travel
-        GameManager.InitiateTravelToLocation(locationName);
+        GameManager.InitiateTravelToLocation(travelLocationName);
 
         OngoingEncounter = true;
         StateHasChanged();
@@ -142,12 +143,6 @@ public partial class GameUI : ComponentBase
         showNarrative = false;
         ShowEncounterResult = false;
 
-        // If this was a travel encounter that completed successfully
-        if (GameState.PendingTravel != null)
-        {
-            await GameManager.TravelToLocation(GameState.PendingTravel.TravelDestination);
-        }
-
         // Always return to location spot view after any encounter
         showAreaMap = false;
 
@@ -157,8 +152,7 @@ public partial class GameUI : ComponentBase
 
     private async Task OnEncounterCompleted()
     {
-        // Reset Encounter logic
-        GameManager.EndEncounter(EncounterResult.Encounter);
+        await GameManager.EndEncounter(EncounterResult.Encounter);
         ShowEncounterResult = false;
 
         StateHasChanged();
