@@ -2,6 +2,7 @@
 
 ## FOCUS
 This prompt is for LOCATION CREATION ONLY. Your task is to create a MINIMAL, FUNCTIONAL representation of the location the player just arrived at.
+Do not acknowledge my request in your response.
 
 ## REQUIRED COMPONENTS
 - 1-2 location spots that represent key areas of this location
@@ -71,7 +72,7 @@ This prompt is for LOCATION CREATION ONLY. Your task is to create a MINIMAL, FUN
 - Provide a foundation that can grow organically
 
 ## Response Format
-You must provide your response as a valid JSON object with the following structure:
+You must provide your response ONLY as a valid JSON object with the following structure:
 
 {
   "playerLocationUpdate": {
