@@ -66,9 +66,9 @@
   * Atmosphere: Tense, Formal, Chaotic
   * Economic: Wealthy, Commercial, Humble
   * Physical: Confined, Expansive, Hazardous
-  * 
+ 
 ## Response Format
-You must provide your response as a valid JSON object with the following structure:
+You must provide your response ONLY as a valid JSON object with the following structure:
 
 {
   "playerLocationUpdate": {
