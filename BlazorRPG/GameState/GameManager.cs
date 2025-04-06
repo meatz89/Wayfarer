@@ -96,9 +96,18 @@
         LocationSpot locationSpot)
     {
         List<string> locationSpotActions = locationSpot.ActionTemplates.ToList();
-        foreach (string locationSpotAction in locationSpotActions)
+        foreach (string actionName in locationSpotActions)
         {
-            SpotAction actionTemplate = ActionRepository.GetAction(locationSpotAction);
+            SpotAction actionTemplate = ActionRepository.GetAction(actionName);
+            if(actionTemplate == null)
+            {
+                string actionTemplateName = 
+                    await ActionGenerator.GenerateActionAndEncounter(
+                    actionName,
+                    locationSpot.Name,
+                    location.Name);
+
+            }
 
             EncounterTemplate encounterTemplate = ActionRepository.GetEncounterTemplate(actionTemplate.EncounterTemplateName);
             if (encounterTemplate == null)
