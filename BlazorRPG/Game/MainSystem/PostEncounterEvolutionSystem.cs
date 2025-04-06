@@ -207,7 +207,6 @@
         }
     }
 
-
     private BasicActionTypes ParseActionType(string actionTypeStr)
     {
         if (Enum.TryParse<BasicActionTypes>(actionTypeStr, true, out BasicActionTypes actionType))

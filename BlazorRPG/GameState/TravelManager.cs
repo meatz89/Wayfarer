@@ -20,17 +20,17 @@
         this.ActionFactory = actionFactory;
     }
 
-    public void TravelToLocation(string travelLocation, TravelMethods travelMethod = TravelMethods.Walking)
+    public ActionImplementation TravelToLocation(string travelLocation, TravelMethods travelMethod = TravelMethods.Walking)
     {
         if (worldState.CurrentLocation == null)
         {
-            return;
+            return null;
         }
 
         Location currentLocation = worldState.CurrentLocation;
         if (currentLocation.Name == travelLocation)
         {
-            return;
+            return null;
         }
 
         gameState.PendingTravel = new PendingTravel
@@ -73,6 +73,34 @@
                 worldState.LastHubDepth = locationDepth;
             }
         }
+
+        // Get the travel action template
+        SpotAction travelTemplate = ActionRepository.GetAction("Travel");
+        if (travelTemplate == null)
+        {
+            travelTemplate = new SpotAction
+            {
+                Name = "Travel",
+                EncounterTemplateName = "Travel",
+                ActionType = ActionTypes.Encounter,
+                BasicActionType = BasicActionTypes.Travel,
+                Goal = "Travel safely to your destination",
+                IsRepeatable = true,
+                Costs = new()
+                {
+                    new EnergyOutcome(-1)
+                    {
+                        Amount = -1
+                    }
+                },
+            };
+        }
+
+        // Create travel action
+        EncounterTemplate travelEncounter = ActionRepository.GetEncounterTemplate("Travel");
+        ActionImplementation travelAction = ActionFactory.CreateActionFromTemplate(travelTemplate, travelEncounter);
+
+        return travelAction;
     }
 
     private void ApplyDiscoveryBonus(Location location)
