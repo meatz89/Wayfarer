@@ -52,7 +52,9 @@
 
     private async Task<Location> IntegrateNewLocation(LocationCreationInput input, LocationDetails details)
     {
-        Location location = worldState.GetLocation(details.Name);
+        string locationName = details.LocationUpdate.NewLocationName;
+
+        Location location = worldState.GetLocation(locationName);
         location.Description = details.Description;
         location.DetailedDescription = details.DetailedDescription;
         location.History = details.History;
@@ -116,11 +118,11 @@
                     // Create action template linked to the encounter
                     string actionTemplateName = await actionGenerator.GenerateActionAndEncounter(
                         newAction.Name,
+                        newAction.SpotName,
+                        newAction.LocationName,
                         newAction.Goal,
                         newAction.Complication,
-                        ParseActionType(newAction.ActionType).ToString(),
-                        newAction.SpotName,
-                        newAction.LocationName);
+                        ParseActionType(newAction.ActionType).ToString());
 
                     SpotAction actionTemplate = actionRepository.GetAction(newAction.Name);
                     string encounterTemplateName = actionTemplate.EncounterTemplateName;

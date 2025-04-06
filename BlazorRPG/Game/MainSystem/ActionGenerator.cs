@@ -41,18 +41,22 @@ public class ActionGenerator
     }
 
     public async Task<string> GenerateActionAndEncounter(
-        string name, string goal, string complication, string basicActionType,
-        string locationSpotName, string locationName)
+        string name,
+        string locationSpotName,
+        string locationName,
+        string goal = "",
+        string complication = "",
+        string basicActionType = "")
     {
         // Create context for generation
         ActionGenerationContext context = new ActionGenerationContext
         {
             ActionName = name,
-            Goal = goal,
-            Complication = complication,
-            BasicActionType = basicActionType,
             SpotName = locationSpotName,
             LocationName = locationName,
+            Goal = goal,
+            Complication = complication,
+            BasicActionType = basicActionType
         };
 
         // Get action and encounter details from AI

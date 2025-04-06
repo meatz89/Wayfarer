@@ -4,160 +4,118 @@ public static class LocationJsonParser
 {
     public static LocationDetails ParseLocationDetails(string response)
     {
+        response = response.Replace("```json", "");
+        response = response.Replace("```", "");
+
         // Extract JSON from text response if needed
         string json = ExtractJsonFromText(response);
 
-        // First get flat data
-        FlatLocationResponse flatResponse = ParseFlatResponse(json);
+        using JsonDocument doc = JsonDocument.Parse(json);
+        JsonElement root = doc.RootElement;
 
-        // Then build the structured result
-        return BuildLocationDetails(flatResponse);
-    }
+        // Create basic LocationDetails object
+        LocationDetails details = new LocationDetails();
 
-    private static FlatLocationResponse ParseFlatResponse(string json)
-    {
-        FlatLocationResponse result = new FlatLocationResponse();
-
-        try
+        // Parse player location update
+        if (root.TryGetProperty("playerLocationUpdate", out JsonElement locationUpdate))
         {
-            using JsonDocument doc = JsonDocument.Parse(json);
-            JsonElement root = doc.RootElement;
-
-            // Parse player location update
-            if (root.TryGetProperty("playerLocationUpdate", out JsonElement locationUpdate))
+            details.LocationUpdate = new PlayerLocationUpdate
             {
-                result.PlayerLocationUpdate = new PlayerLocationUpdate
-                {
-                    NewLocationName = GetStringProperty(locationUpdate, "newLocationName", string.Empty),
-                    LocationChanged = GetBoolProperty(locationUpdate, "locationChanged", false)
-                };
-            }
+                NewLocationName = GetStringProperty(locationUpdate, "newLocationName", string.Empty),
+                LocationChanged = GetBoolProperty(locationUpdate, "locationChanged", false)
+            };
 
-            // Parse location spots
-            result.LocationSpots = GetArrayOfType(
-                root,
-                "locationSpots",
-                element => ParseLocationSpot(element));
-
-            // Parse action definitions
-            result.ActionDefinitions = GetArrayOfType(
-                root,
-                "actionDefinitions",
-                element => ParseActionDefinition(element));
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error parsing location response: {ex.Message}");
+            // Set the location name from the update
+            details.Name = details.LocationUpdate.NewLocationName;
         }
 
-        return result;
-    }
+        // Set default values for required fields
+        details.Description = GetStringProperty(root, "description", "A newly discovered location");
+        details.DetailedDescription = GetStringProperty(root, "detailedDescription", string.Empty);
+        details.History = GetStringProperty(root, "history", string.Empty);
+        details.PointsOfInterest = GetStringProperty(root, "pointsOfInterest", string.Empty);
+        details.TravelTimeMinutes = GetIntProperty(root, "travelTimeMinutes", 60);
+        details.TravelDescription = GetStringProperty(root, "travelDescription", string.Empty);
 
-    private static LocationDetails BuildLocationDetails(FlatLocationResponse flatResponse)
-    {
-        LocationDetails details = new LocationDetails
-        {
-            // Initialize with default values
-            Name = flatResponse.PlayerLocationUpdate?.NewLocationName ?? "",
-            Description = "",
-            DetailedDescription = "",
-            History = "",
-            PointsOfInterest = "",
-            TravelTimeMinutes = 0,
-            TravelDescription = "",
-            LocationUpdate = flatResponse.PlayerLocationUpdate ?? new PlayerLocationUpdate()
-        };
+        // Parse connected location IDs
+        details.ConnectedLocationIds = GetStringArray(root, "connectedLocationIds");
 
-        // Process location spots
+        // Parse location spots
         details.NewLocationSpots = new List<SpotDetails>();
-        foreach (FlatLocationSpot spotDef in flatResponse.LocationSpots)
+        if (root.TryGetProperty("locationSpots", out JsonElement spotsArray) &&
+            spotsArray.ValueKind == JsonValueKind.Array)
         {
-            SpotDetails spot = new SpotDetails
+            foreach (JsonElement spotElement in spotsArray.EnumerateArray())
             {
-                Id = spotDef.Id,
-                Name = spotDef.Name,
-                Description = spotDef.Description,
-                InteractionType = spotDef.InteractionType,
-                Position = spotDef.Position,
-                ActionNames = new List<string>(),
-                EnvironmentalProperties = spotDef.EnvironmentalProperties ?? new Dictionary<string, string>()
-            };
+                SpotDetails spot = ParseSpotDetails(spotElement);
+                details.NewLocationSpots.Add(spot);
 
-            details.NewLocationSpots.Add(spot);
-        }
-
-        // Add environmental properties from the first spot if available
-        if (details.NewLocationSpots.Count > 0 &&
-            details.NewLocationSpots[0].EnvironmentalProperties.Count > 0)
-        {
-            details.EnvironmentalProperties = ParseEnvironmentalPropertiesFromDictionary(
-                details.NewLocationSpots[0].EnvironmentalProperties);
-        }
-
-        // Process action definitions
-        details.NewActions = new List<NewAction>();
-        foreach (FlatActionDefinition actionDef in flatResponse.ActionDefinitions)
-        {
-            NewAction action = new NewAction
-            {
-                Name = actionDef.Name,
-                Description = actionDef.Description,
-                LocationName = actionDef.LocationName,
-                SpotName = GetSpotNameById(details.NewLocationSpots, actionDef.LocationSpotId),
-                Goal = actionDef.EncounterDefinition?.Goal ?? "",
-                Complication = actionDef.EncounterDefinition?.Complication ?? "",
-                ActionType = ConvertActionType(actionDef.Type),
-                IsRepeatable = true
-            };
-
-            details.NewActions.Add(action);
-
-            // Associate action with spot
-            foreach (SpotDetails spot in details.NewLocationSpots)
-            {
-                if (spot.Id == actionDef.LocationSpotId)
+                // Extract environmental properties from first spot if available
+                if (details.NewLocationSpots.Count == 1 && spot.EnvironmentalProperties.Count > 0)
                 {
-                    spot.ActionNames.Add(actionDef.Name);
-                    break;
+                    details.EnvironmentalProperties = ConvertEnvironmentalProperties(spot.EnvironmentalProperties);
                 }
             }
+        }
+
+        // Parse action definitions
+        details.NewActions = new List<NewAction>();
+        if (root.TryGetProperty("actionDefinitions", out JsonElement actionsArray) &&
+            actionsArray.ValueKind == JsonValueKind.Array)
+        {
+            foreach (JsonElement actionElement in actionsArray.EnumerateArray())
+            {
+                NewAction action = ParseNewAction(actionElement);
+                details.NewActions.Add(action);
+
+                // Associate action with spot
+                string spotId = GetStringProperty(actionElement, "locationSpotId", "");
+                foreach (SpotDetails spot in details.NewLocationSpots)
+                {
+                    if (spot.Id == spotId)
+                    {
+                        if (spot.ActionNames == null)
+                            spot.ActionNames = new List<string>();
+
+                        spot.ActionNames.Add(action.Name);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Initialize empty collections for other fields
+        details.TimeProperties = new Dictionary<string, List<IEnvironmentalProperty>>();
+        details.StrategicTags = new List<StrategicTag>();
+        details.NarrativeTags = new List<NarrativeTag>();
+
+        // If there are environmental properties, create a basic time property entry
+        if (details.EnvironmentalProperties.Count > 0)
+        {
+            details.TimeProperties["Day"] = new List<IEnvironmentalProperty>(details.EnvironmentalProperties);
         }
 
         return details;
     }
 
-    private static string GetSpotNameById(List<SpotDetails> spots, string spotId)
+    private static SpotDetails ParseSpotDetails(JsonElement element)
     {
-        foreach (SpotDetails spot in spots)
+        SpotDetails spot = new SpotDetails
         {
-            if (spot.Id == spotId)
-            {
-                return spot.Name;
-            }
-        }
-        return "";
-    }
-
-    #region Helper Methods for Parsing
-
-    private static FlatLocationSpot ParseLocationSpot(JsonElement element)
-    {
-        FlatLocationSpot spot = new FlatLocationSpot
-        {
-            Id = GetStringProperty(element, "id", ""),
+            Id = GetStringProperty(element, "id", Guid.NewGuid().ToString()),
             Name = GetStringProperty(element, "name", "Unnamed Spot"),
             Description = GetStringProperty(element, "description", "No description available."),
             InteractionType = GetStringProperty(element, "interactionType", "Feature"),
+            InteractionDescription = GetStringProperty(element, "interactionDescription", ""),
             Position = GetStringProperty(element, "position", "Center"),
-            LocationName = GetStringProperty(element, "locationName", "")
+            ActionNames = new List<string>(),
+            EnvironmentalProperties = new Dictionary<string, string>()
         };
 
         // Parse environmental properties if available
         if (element.TryGetProperty("environmentalProperties", out JsonElement envProps) &&
             envProps.ValueKind == JsonValueKind.Object)
         {
-            spot.EnvironmentalProperties = new Dictionary<string, string>();
-
             foreach (JsonProperty prop in envProps.EnumerateObject())
             {
                 string propName = prop.Name;
@@ -169,50 +127,103 @@ public static class LocationJsonParser
         return spot;
     }
 
-    private static FlatActionDefinition ParseActionDefinition(JsonElement element)
+    private static NewAction ParseNewAction(JsonElement element)
     {
-        FlatActionDefinition action = new FlatActionDefinition
+        NewAction action = new NewAction
         {
-            Id = GetStringProperty(element, "id", ""),
             Name = GetStringProperty(element, "name", "Unnamed Action"),
             Description = GetStringProperty(element, "description", "No description available."),
-            Type = GetStringProperty(element, "type", "Encounter"),
             LocationName = GetStringProperty(element, "locationName", ""),
-            LocationSpotId = GetStringProperty(element, "locationSpotId", "")
+            SpotName = "", // This will be populated later when we match with spots
+            ActionType = ConvertActionType(GetStringProperty(element, "type", "Encounter")),
+            IsRepeatable = GetBoolProperty(element, "isRepeatable", true),
+            EnergyCost = 1,  // Default energy cost
         };
 
-        // Parse encounter definition if available
+        // Get cost information
+        if (element.TryGetProperty("cost", out JsonElement costElement))
+        {
+            action.EnergyCost = GetIntProperty(costElement, "energy", 1);
+        }
+
+        // Get encounter definition info
         if (element.TryGetProperty("encounterDefinition", out JsonElement encounterElement))
         {
-            action.EncounterDefinition = new EncounterDefinition
-            {
-                Goal = GetStringProperty(encounterElement, "goal", ""),
-                Complication = GetStringProperty(encounterElement, "complication", ""),
-                Momentum = GetIntProperty(encounterElement, "momentum", 0),
-                Pressure = GetIntProperty(encounterElement, "pressure", 0),
-                StrategicTags = GetStringArray(encounterElement, "strategicTags")
-            };
+            action.Goal = GetStringProperty(encounterElement, "goal", "");
+            action.Complication = GetStringProperty(encounterElement, "complication", "");
         }
 
         return action;
     }
 
-    private static List<IEnvironmentalProperty> ParseEnvironmentalPropertiesFromDictionary(Dictionary<string, string> properties)
+    private static List<IEnvironmentalProperty> ConvertEnvironmentalProperties(Dictionary<string, string> properties)
     {
-        if (properties == null) return new List<IEnvironmentalProperty>();
-
         List<IEnvironmentalProperty> result = new List<IEnvironmentalProperty>();
 
-        foreach (KeyValuePair<string, string> pair in properties)
+        foreach (var pair in properties)
         {
-            IEnvironmentalProperty property = CreateEnvironmentalProperty(pair.Key, pair.Value);
-            if (property != null)
+            IEnvironmentalProperty prop = CreateEnvironmentalProperty(pair.Key, pair.Value);
+            if (prop != null)
             {
-                result.Add(property);
+                result.Add(prop);
             }
         }
 
         return result;
+    }
+
+    private static IEnvironmentalProperty CreateEnvironmentalProperty(string type, string value)
+    {
+        switch (type.ToLower())
+        {
+            case "illumination":
+                switch (value.ToLower())
+                {
+                    case "bright": return Illumination.Bright;
+                    case "shadowy": return Illumination.Shadowy;
+                    case "dark": return Illumination.Dark;
+                    default: return null;
+                }
+
+            case "population":
+                switch (value.ToLower())
+                {
+                    case "crowded": return Population.Crowded;
+                    case "quiet": return Population.Quiet;
+                    case "isolated": return Population.Isolated;
+                    default: return null;
+                }
+
+            case "atmosphere":
+                switch (value.ToLower())
+                {
+                    case "tense": return Atmosphere.Tense;
+                    case "formal": return Atmosphere.Formal;
+                    case "chaotic": return Atmosphere.Chaotic;
+                    default: return null;
+                }
+
+            case "economic":
+                switch (value.ToLower())
+                {
+                    case "wealthy": return Economic.Wealthy;
+                    case "commercial": return Economic.Commercial;
+                    case "humble": return Economic.Humble;
+                    default: return null;
+                }
+
+            case "physical":
+                switch (value.ToLower())
+                {
+                    case "confined": return Physical.Confined;
+                    case "expansive": return Physical.Expansive;
+                    case "hazardous": return Physical.Hazardous;
+                    default: return null;
+                }
+
+            default:
+                return null;
+        }
     }
 
     private static string ConvertActionType(string type)
@@ -227,50 +238,11 @@ public static class LocationJsonParser
         }
     }
 
-    private static IEnvironmentalProperty CreateEnvironmentalProperty(string type, string value)
+    // Utility methods for JSON parsing
+    private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
     {
-        // Using the same implementation as in the post-encounter parser
-        Dictionary<string, IEnvironmentalProperty> propertyMap = new Dictionary<string, IEnvironmentalProperty>(StringComparer.OrdinalIgnoreCase)
-        {
-            // Illumination properties
-            { "bright", Illumination.Bright },
-            { "shadowy", Illumination.Shadowy },
-            { "dark", Illumination.Dark },
-            
-            // Population properties
-            { "crowded", Population.Crowded },
-            { "quiet", Population.Quiet },
-            { "isolated", Population.Isolated },
-            
-            // Economic properties
-            { "wealthy", Economic.Wealthy },
-            { "commercial", Economic.Commercial },
-            { "humble", Economic.Humble },
-            
-            // Physical properties
-            { "confined", Physical.Confined },
-            { "expansive", Physical.Expansive },
-            { "hazardous", Physical.Hazardous },
-            
-            // Atmosphere properties
-            { "tense", Atmosphere.Tense },
-            { "formal", Atmosphere.Formal },
-            { "chaotic", Atmosphere.Chaotic }
-        };
-
-        if (propertyMap.TryGetValue(value.ToLower(), out IEnvironmentalProperty property))
-        {
-            return property;
-        }
-
-        // Default fallback - this should be rare
-        return Illumination.Bright;
-    }
-
-    // Existing helper methods for JSON parsing
-    private static string? GetStringProperty(JsonElement element, string propertyName, string defaultValue = null)
-    {
-        if (element.TryGetProperty(propertyName, out JsonElement property) && property.ValueKind == JsonValueKind.String)
+        if (element.TryGetProperty(propertyName, out JsonElement property) &&
+            property.ValueKind == JsonValueKind.String)
         {
             string value = property.GetString() ?? defaultValue;
             return !string.IsNullOrWhiteSpace(value) ? value : defaultValue;
@@ -335,26 +307,6 @@ public static class LocationJsonParser
         return results;
     }
 
-    private static List<T> GetArrayOfType<T>(JsonElement element, string propertyName, Func<JsonElement, T> parser)
-    {
-        List<T> results = new List<T>();
-
-        if (element.TryGetProperty(propertyName, out JsonElement arrayElement) &&
-            arrayElement.ValueKind == JsonValueKind.Array)
-        {
-            foreach (JsonElement item in arrayElement.EnumerateArray())
-            {
-                T parsedItem = parser(item);
-                if (parsedItem != null)
-                {
-                    results.Add(parsedItem);
-                }
-            }
-        }
-
-        return results;
-    }
-
     private static string ExtractJsonFromText(string text)
     {
         // Find JSON start and end
@@ -369,6 +321,4 @@ public static class LocationJsonParser
         // If no JSON is found, return an empty object
         return "{}";
     }
-
-    #endregion
 }

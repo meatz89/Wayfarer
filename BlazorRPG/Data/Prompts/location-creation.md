@@ -10,15 +10,16 @@ Do not acknowledge my request in your response.
 - Environmental properties that define this location's character
 - Simple, focused descriptions that establish the location's identity
 
-## LOCATION DUPLICATION PREVENTION
-- BEFORE creating ANY new location, CHECK if its name appears in "{knownLocations}" 
-- If it does, DO NOT include it in the "locations" array of your response
-- DUPLICATE LOCATIONS WILL BREAK THE GAME
-
-## MANDATORY REQUIREMENTS FOR ALL RESPONSES
-- Every response MUST include at least one new actionDefinition
-- All actionDefinitions MUST have spotName and locationName that match existing or newly created spots/locations
-- FAILURE TO MEET THESE REQUIREMENTS WILL BREAK THE GAME
+## Context
+- Location name: {locationName}
+- Location description: {locationDescription}
+- Connected from: {originLocationName}
+- Current depth: {locationDepth}
+- Player archetype: {characterArchetype}
+- Current player focus: {playerFocus}
+- Current player resources: Health {health}/{maxHealth}, Energy {energy}/{maxEnergy}
+- Known characters: {knownCharacters}
+- Active opportunities: {activeOpportunities}
 
 ## Existing World Context
 - Current location spots: 
@@ -30,44 +31,9 @@ Do not acknowledge my request in your response.
 - All existing actions:
 {allExistingActions}
 
-## Context
-- Location name: {locationName}
-- Location description: {locationDescription}
-- Connected from: {originLocationName}
-- Current depth: {locationDepth}
-- Player archetype: {characterArchetype}
-- Current player focus: {playerFocus}
-
-## Context
-- Current location: {currentLocation} (Depth: {currentDepth})
-- Last hub depth: {lastHubDepth}
-- Current player resources: Health {health}/{maxHealth}, Energy {energy}/{maxEnergy}
-- Known characters: {knownCharacters}
-- Active opportunities: {activeOpportunities}
-
-## Minimal Spot Design
-- Include only 1-2 key spots that represent distinct areas
-- Each spot must have 1-2 actions that provide clear opportunities
-- Spots should follow logical placement within the location type
-- If this is a hub location, include spots for essential services (rest, trade, information)
-
-## Action Design
-- Each action should have a clear goal and complication
-- Keep action types appropriate to the location's nature
-- Include at least one action that advances the narrative
-- Actions must have appropriate energy and time costs
-
-## Environmental Properties
-- Assign 3-5 properties that define this location's character:
-  * Illumination: Bright, Shadowy, Dark
-  * Population: Crowded, Quiet, Isolated
-  * Atmosphere: Tense, Formal, Chaotic
-  * Economic: Wealthy, Commercial, Humble
-  * Physical: Confined, Expansive, Hazardous
-
-## Minimalist Approach
+## Minimal Design Philosophy
 - Focus on QUALITY over QUANTITY
-- Create just enough spots and actions for immediate play
+- Create just enough content for immediate play
 - Future encounters will naturally expand this location
 - Provide a foundation that can grow organically
 
@@ -75,18 +41,45 @@ Do not acknowledge my request in your response.
 You must provide your response ONLY as a valid JSON object with the following structure:
 
 {
+  "name": "{locationName}",
+  "description": "Brief description of the location",
+  "detailedDescription": "More detailed paragraph about this location",
+  "history": "Brief history of this location",
+  "pointsOfInterest": "Notable features or landmarks",
+  "travelTimeMinutes": 60,
+  "travelDescription": "Description of the journey to this location",
+  "connectedLocationIds": ["Name of connected location"],
+  
   "playerLocationUpdate": {
     "newLocationName": "{locationName}",
     "locationChanged": true
   },
+  
+  "strategicTags": [
+    {
+      "approachType": "Analysis/Dominance/Rapport/Precision/Concealment",
+      "effectType": "IncreasesMomentum/DecreasesPressure/DecreasesMomentum/IncreasesPressure",
+      "description": "Description of how this approach affects encounters here"
+    }
+  ],
+  
+  "narrativeTags": [
+    {
+      "approachType": "Analysis/Dominance/Rapport/Precision/Concealment",
+      "focusType": "Relationship/Information/Physical/Environment/Resource",
+      "threshold": 3,
+      "description": "Description of how this approach affects focus availability"
+    }
+  ],
+  
   "locationSpots": [
     {
       "id": "unique_spot_id",
       "name": "Spot name",
       "description": "Brief description",
       "interactionType": "Character/Shop/Feature/Service",
+      "interactionDescription": "Description of what happens on basic interaction",
       "position": "Center/North/East/South/West",
-      "locationName": "{locationName}",
       "environmentalProperties": {
         "illumination": "Bright/Shadowy/Dark",
         "population": "Crowded/Quiet/Isolated",
@@ -96,6 +89,7 @@ You must provide your response ONLY as a valid JSON object with the following st
       }
     }
   ],
+  
   "actionDefinitions": [
     {
       "id": "unique_action_id",
@@ -104,13 +98,18 @@ You must provide your response ONLY as a valid JSON object with the following st
       "type": "Encounter/Direct/Travel",
       "locationName": "{locationName}",
       "locationSpotId": "unique_spot_id",
+      "goal": "The player's goal in this action",
+      "complication": "What makes this challenging",
+      "actionType": "Discuss/Persuade/Perform/Study/Investigate/Analyze/Rest/Labor/Gather/Fight",
+      "isRepeatable": true,
+      "energyCost": 1,
       "cost": {
         "energy": 1,
         "timeMinutes": 30,
         "money": 0
       },
       "encounterDefinition": {
-        "goal": "The player's goal in this action",
+        "goal": "The player's goal in this encounter",
         "complication": "What makes this challenging",
         "momentum": 0,
         "pressure": 0,

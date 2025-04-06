@@ -132,11 +132,11 @@
                     // Create action template linked to the encounter
                     string actionTemplateName = await _actionGenerator.GenerateActionAndEncounter(
                         newAction.Name,
+                        newAction.SpotName,
+                        newAction.LocationName,
                         newAction.Goal,
                         newAction.Complication,
-                        ParseActionType(newAction.ActionType).ToString(),
-                        newAction.SpotName,
-                        newAction.LocationName);
+                        ParseActionType(newAction.ActionType).ToString());
 
                     SpotAction actionTemplate = _actionRepository.GetAction(newAction.Name);
                     string encounterTemplateName = actionTemplate.EncounterTemplateName;
