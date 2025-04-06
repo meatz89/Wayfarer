@@ -1,12 +1,14 @@
 ﻿public class PendingTravel
 {
-    public string Destination { get; set; }
+    public Location TravelOrigin { get; set; }
+    public string TravelDestination { get; set; }
     public TravelMethods TravelMethod { get; set; }
-    public bool IsTravelPending => !string.IsNullOrEmpty(Destination);
+    public bool IsTravelPending => !string.IsNullOrEmpty(TravelDestination);
 
     public void Clear()
     {
-        Destination = null;
+        TravelOrigin = null;
+        TravelDestination = null;
         TravelMethod = TravelMethods.Walking;
     }
 }

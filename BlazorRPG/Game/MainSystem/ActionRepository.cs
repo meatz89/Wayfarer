@@ -17,6 +17,24 @@
             _actionTemplates.Add(actionTemplate);
         }
     }
+    public EncounterTemplate GetEncounterTemplate(string name)
+    {
+        EncounterTemplate? template = _encounterTemplates.FirstOrDefault(x => x.Name == name);
+        if (template != null)
+        {
+            return template;
+        }
+
+        // Return a default template if not found
+        return WorldEncounterContent.GetAllTemplates().First();
+    }
+
+    public SpotAction GetAction(string actionName)
+    {
+        SpotAction? existingTemplate = _actionTemplates.FirstOrDefault(x => x.Name == actionName);
+        return existingTemplate;
+    }
+
 
     public string CreateActionTemplate(
         string actionName,
@@ -63,21 +81,4 @@
         _encounterTemplates.Add(template);
     }
 
-    public EncounterTemplate GetEncounterTemplate(string name)
-    {
-        EncounterTemplate? template = _encounterTemplates.FirstOrDefault(x => x.Name == name);
-        if (template != null)
-        {
-            return template;
-        }
-
-        // Return a default template if not found
-        return WorldEncounterContent.GetAllTemplates().First();
-    }
-
-    public SpotAction GetAction(string actionName)
-    {
-        SpotAction? existingTemplate = _actionTemplates.FirstOrDefault(x => x.Name == actionName);
-        return existingTemplate;
-    }
 }

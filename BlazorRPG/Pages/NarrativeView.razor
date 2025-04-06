@@ -229,25 +229,6 @@
                             }
                         </div>
                     }
-
-                    @* Display location update *@
-                    @if (GetLocationUpdate() != null)
-                    {
-                        <h6>Travel</h6>
-                        <div class="tooltip-list">
-                            <div class="tooltip-item wide">
-                                <div class="tooltip-item-header">
-                                    <div class="tooltip-item-title">
-                                        @GetEvolutionIcon("Travel")
-                                        <span class="tooltip-item-name">Moving to @GetLocationUpdate().NewLocationName</span>
-                                    </div>
-                                    <span class="tooltip-item-value info-change">
-                                        You will travel here after continuing
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    }
                 </div>
             }
         }

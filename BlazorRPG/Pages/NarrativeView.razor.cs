@@ -63,9 +63,9 @@ public partial class NarrativeViewBase : ComponentBase
     {
         if (!HasPostEncounterEvolution()) return new List<LocationChangeWithDepth>();
 
-        var changes = new List<LocationChangeWithDepth>();
+        List<LocationChangeWithDepth> changes = new List<LocationChangeWithDepth>();
 
-        foreach (var location in Result.PostEncounterEvolution.NewLocations)
+        foreach (Location location in Result.PostEncounterEvolution.NewLocations)
         {
             changes.Add(new LocationChangeWithDepth
             {
@@ -97,9 +97,9 @@ public partial class NarrativeViewBase : ComponentBase
     {
         if (!HasPostEncounterEvolution()) return new List<ActionWithEnergy>();
 
-        var changes = new List<ActionWithEnergy>();
+        List<ActionWithEnergy> changes = new List<ActionWithEnergy>();
 
-        foreach (var action in Result.PostEncounterEvolution.NewActions)
+        foreach (NewAction action in Result.PostEncounterEvolution.NewActions)
         {
             changes.Add(new ActionWithEnergy
             {
@@ -180,10 +180,10 @@ public partial class NarrativeViewBase : ComponentBase
     {
         if (!HasPostEncounterEvolution()) return new List<CharacterChangeDisplay>();
 
-        var changes = new List<CharacterChangeDisplay>();
+        List<CharacterChangeDisplay> changes = new List<CharacterChangeDisplay>();
 
         // Add new characters
-        foreach (var character in Result.PostEncounterEvolution.NewCharacters)
+        foreach (Character character in Result.PostEncounterEvolution.NewCharacters)
         {
             changes.Add(new CharacterChangeDisplay
             {
@@ -200,12 +200,12 @@ public partial class NarrativeViewBase : ComponentBase
     {
         if (!HasPostEncounterEvolution()) return new List<RelationshipChangeDisplay>();
 
-        var changes = new List<RelationshipChangeDisplay>();
+        List<RelationshipChangeDisplay> changes = new List<RelationshipChangeDisplay>();
 
         // Add relationship changes
         if (Result.PostEncounterEvolution.RelationshipChanges != null)
         {
-            foreach (var relationship in Result.PostEncounterEvolution.RelationshipChanges)
+            foreach (RelationshipChange relationship in Result.PostEncounterEvolution.RelationshipChanges)
             {
                 changes.Add(new RelationshipChangeDisplay
                 {
@@ -231,26 +231,15 @@ public partial class NarrativeViewBase : ComponentBase
         };
     }
 
-    public LocationUpdateDisplay GetLocationUpdate()
-    {
-        if (!HasPostEncounterEvolution() || !Result.PostEncounterEvolution.LocationUpdate.LocationChanged)
-            return null;
-
-        return new LocationUpdateDisplay
-        {
-            NewLocationName = Result.PostEncounterEvolution.LocationUpdate.NewLocationName
-        };
-    }
-
     public List<ResourceChangeDisplay> GetResourceChanges()
     {
         if (!HasPostEncounterEvolution() || Result.PostEncounterEvolution.ResourceChanges == null)
             return new List<ResourceChangeDisplay>();
 
-        var changes = new List<ResourceChangeDisplay>();
+        List<ResourceChangeDisplay> changes = new List<ResourceChangeDisplay>();
 
         // Add items added
-        foreach (var item in Result.PostEncounterEvolution.ResourceChanges.ItemsAdded)
+        foreach (string item in Result.PostEncounterEvolution.ResourceChanges.ItemsAdded)
         {
             changes.Add(new ResourceChangeDisplay
             {
@@ -260,7 +249,7 @@ public partial class NarrativeViewBase : ComponentBase
         }
 
         // Add items removed
-        foreach (var item in Result.PostEncounterEvolution.ResourceChanges.ItemsRemoved)
+        foreach (string item in Result.PostEncounterEvolution.ResourceChanges.ItemsRemoved)
         {
             changes.Add(new ResourceChangeDisplay
             {

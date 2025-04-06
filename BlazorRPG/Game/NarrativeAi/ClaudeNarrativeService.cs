@@ -185,9 +185,9 @@
     }
 
 
-    public override async Task<LocationDetails> GenerateLocationDetailsAsync(LocationCreationContext context)
+    public override async Task<LocationDetails> GenerateLocationDetailsAsync(LocationCreationInput context)
     {
-        string conversationId = $"location_generation_{context.LocationType}"; // Unique conversation ID
+        string conversationId = $"location_generation_{context.TravelDestination}"; // Unique conversation ID
         string systemMessage = _promptManager.GetSystemMessage();
         string prompt = _promptManager.BuildLocationCreationPrompt(context);
 
@@ -211,7 +211,7 @@
     }
 
 
-    public override async Task<EvolutionResult> ProcessPostEncounterEvolution(
+    public override async Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(
         NarrativeContext context,
         PostEncounterEvolutionInput input)
     {
@@ -241,7 +241,7 @@
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel);
 
-        EvolutionResult postEncounterEvolutionResponse = await PostEncounterEvolutionParser.ParsePostEncounterEvolutionResponseAsync(jsonResponse);
+        PostEncounterEvolutionResult postEncounterEvolutionResponse = await PostEncounterEvolutionParser.ParsePostEncounterEvolutionResponseAsync(jsonResponse);
         return postEncounterEvolutionResponse;
     }
 

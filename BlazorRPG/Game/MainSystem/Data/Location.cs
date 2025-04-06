@@ -4,7 +4,7 @@
     public string Description { get; set; }
     public List<string> ConnectedTo { get; set; } = new List<string>();
     public List<IEnvironmentalProperty> EnvironmentalProperties { get; set; } = new List<IEnvironmentalProperty>();
-    public List<LocationSpot> Spots { get; set; } = new List<LocationSpot>();
+    public List<LocationSpot> LocationSpots { get; set; } = new List<LocationSpot>();
     public int TravelTimeMinutes { get; set; }
     public string TravelDescription { get; set; }
     public int Difficulty { get; set; }
@@ -25,7 +25,7 @@
 
     public void AddSpot(LocationSpot spot)
     {
-        Spots.Add(spot);
+        LocationSpots.Add(spot);
     }
 
     public Location()
@@ -44,7 +44,7 @@
         Name = locationName.ToString();
         Description = description;
         ConnectedTo = travelConnections;
-        Spots = locationSpots;
+        LocationSpots = locationSpots;
         Difficulty = difficultyLevel;
         PlayerKnowledge = playerKnowledge;
     }

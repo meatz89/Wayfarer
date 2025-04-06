@@ -40,18 +40,6 @@ public class PromptManager
         return CreatePromptJson(prompt);
     }
 
-    public string BuildLocationCreationPrompt(LocationCreationContext context)
-    {
-        string template = _promptTemplates[LOCATION_GENERATION_MD];
-
-        // Replace placeholders in template
-        string prompt = template
-            .Replace("{LOCATION_TYPE}", context.LocationType)
-            .Replace("{DIFFICULTY}", context.Difficulty.ToString())
-            .Replace("{REQUESTED_SPOT_COUNT}", context.RequestedSpotCount.ToString());
-
-        return CreatePromptJson(prompt);
-    }
 
     public string BuildIntroductionPrompt(
     NarrativeContext context,
@@ -726,12 +714,12 @@ CHOICE {i + 1}:
             // Existing replacements
             .Replace("{characterBackground}", input.CharacterBackground)
             .Replace("{currentLocation}", input.CurrentLocation)
+            .Replace("{encounterOutcome}", input.EncounterOutcome)
+
             .Replace("{knownLocations}", input.KnownLocations)
             .Replace("{knownCharacters}", input.KnownCharacters)
             .Replace("{activeOpportunities}", input.ActiveOpportunities)
-            .Replace("{encounterOutcome}", input.EncounterOutcome)
-            .Replace("{currentDepth}", input.CurrentDepth.ToString())
-            .Replace("{lastHubDepth}", input.LastHubDepth.ToString())
+
             .Replace("{health}", input.Health.ToString())
             .Replace("{maxHealth}", input.MaxHealth.ToString())
             .Replace("{energy}", input.Energy.ToString())
@@ -740,11 +728,32 @@ CHOICE {i + 1}:
             // New replacements for world context
             .Replace("{currentLocationSpots}", input.CurrentLocationSpots ?? "None")
             .Replace("{allKnownLocationSpots}", input.AllKnownLocationSpots ?? "None")
+            .Replace("{allExistingActions}", input.AllExistingActions ?? "None");
+    }
+
+    public string BuildLocationCreationPrompt(LocationCreationInput input)
+    {
+        string template = _promptTemplates[LOCATION_GENERATION_MD];
+
+        // Replace placeholders in template
+        string prompt = template
+
+            // Existing replacements
+            .Replace("{characterBackground}", input.CharacterBackground)
+            .Replace("{currentLocation}", input.CurrentLocation)
+
+            // New replacements for world context
+            .Replace("{currentLocationSpots}", input.CurrentLocationSpots ?? "None")
+            .Replace("{allKnownLocationSpots}", input.AllKnownLocationSpots ?? "None")
             .Replace("{allExistingActions}", input.AllExistingActions ?? "None")
 
-            // New replacements for travel information
-            .Replace("{wasTravelEncounter}", input.WasTravelEncounter.ToString().ToLower())
-            .Replace("{travelDestination}", input.TravelDestination ?? "None");
+            .Replace("{knownCharacters}", input.KnownCharacters)
+            .Replace("{activeOpportunities}", input.ActiveOpportunities)
+
+            .Replace("{currentDepth}", input.CurrentDepth.ToString())
+            .Replace("{lastHubDepth}", input.LastHubDepth.ToString());
+
+        return CreatePromptJson(prompt);
     }
 
     public string BuildMemoryPrompt(MemoryConsolidationInput input)

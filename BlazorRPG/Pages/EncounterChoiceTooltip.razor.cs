@@ -69,12 +69,12 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
             _ => "Unknown"
         };
     }
+
     public string GetChoiceDescription(UserEncounterChoiceOption choice)
     {
         IChoice choice1 = choice.Choice;
 
-        NarrativeResult narrativeResult = GameManager.currentResult.NarrativeResult;
-        Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = narrativeResult.ChoiceDescriptions;
+        Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = choice.narrativeResult.ChoiceDescriptions;
 
         ChoiceNarrative choiceNarrative = null;
 

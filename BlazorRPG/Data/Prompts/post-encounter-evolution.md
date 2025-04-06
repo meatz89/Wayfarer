@@ -1,13 +1,5 @@
 ﻿# WORLD EVOLUTION
 
-## CRITICAL TRAVEL DESTINATION HANDLING
-- If this was a travel encounter ({wasTravelEncounter} = true):
-  1. DO NOT CREATE A NEW LOCATION for destination "{travelDestination}" if it ALREADY EXISTS in "{knownLocations}"
-  2. Simply set playerLocationUpdate.locationChanged = true and newLocationName = "{travelDestination}"
-  3. If NO SPOTS EXIST at this destination, create new locationSpots with locationName EXACTLY matching "{travelDestination}"
-  4. If NO ACTIONS EXIST at this destination, create new actionDefinitions with locationName EXACTLY matching "{travelDestination}" 
-  5. ONLY create a new location object if "{travelDestination}" does NOT appear in "{knownLocations}"
-
 ## LOCATION DUPLICATION PREVENTION
 - BEFORE creating ANY new location, CHECK if its name appears in "{knownLocations}" 
 - If it does, DO NOT include it in the "locations" array of your response
@@ -37,23 +29,6 @@
 - All existing actions:
 {allExistingActions}
 
-## Travel Information
-- Was this a travel encounter: {wasTravelEncounter}
-- Travel destination: {travelDestination}
-
-## RESPONSE VALIDATION FOR TRAVEL ENCOUNTERS
-Before submitting, manually check that:
-1. If "{travelDestination}" appears in "{knownLocations}":
-   - "locations" array DOES NOT contain an entry with name="{travelDestination}"
-   - At least one locationSpot has locationName="{travelDestination}"
-   - At least one actionDefinition has locationName="{travelDestination}"
-
-2. If "{travelDestination}" DOES NOT appear in "{knownLocations}":
-   - "locations" array DOES contain an entry with name="{travelDestination}"
-   - This location has at least one connected location
-   - At least one locationSpot has locationName="{travelDestination}"
-   - At least one actionDefinition has locationName="{travelDestination}"
-
 ## Forward Progression Rules
 - New locations MUST have depth = current_depth or current_depth + 1
 - Difficulty scales with depth (base difficulty = depth/2 + 1, minimum 1)
@@ -78,12 +53,11 @@ Before submitting, manually check that:
 - Landmark: Special location with unique encounters
 - Hazard: Dangerous area with high risk/reward
 
-
 ## Format Requirements
 - Character names: SIMPLE FIRST NAMES ONLY (e.g., "Giles", not "Giles the merchant")
 - All actions require goal and complication fields
 - Action Type must only be one of:
-  * Travel, Rest, Labor, Gather, Fight (physical actions)
+  * Rest, Labor, Gather, Fight (physical actions)
   * Discuss, Persuade, Perform (social actions)
   * Study, Investigate, Analyze (intellectual actions)
 - Environmental properties must use standard values only:

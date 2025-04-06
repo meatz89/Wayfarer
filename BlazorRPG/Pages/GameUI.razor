@@ -19,7 +19,7 @@
             </div>
             @if (OngoingEncounter)
             {
-                <EncounterView OnEncounterCompleted="(result) => HandleEncounterCompleted(result)" />
+                <EncounterView OnEncounterCompleted="(result) => OnEncounterCompleted(result)" />
             }
             else
             {

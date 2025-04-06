@@ -3,15 +3,30 @@
     private readonly NarrativeService _narrativeService;
     private readonly ActionGenerator _actionGenerator;
     private readonly ActionRepository _actionRepository;
+    private readonly LocationSystem locationSystem;
+    private readonly CharacterSystem characterSystem;
+    private readonly OpportunitySystem opportunitySystem;
+    private readonly ActionSystem actionSystem;
+    private readonly GameState gameState;
 
     public PostEncounterEvolutionSystem(
         NarrativeService narrativeService,
         ActionGenerator actionGenerator,
-        ActionRepository actionRepository)
+        ActionRepository actionRepository,
+        LocationSystem locationSystem,
+        CharacterSystem characterSystem,
+        OpportunitySystem opportunitySystem,
+        ActionSystem actionSystem,
+        GameState gameState)
     {
         _narrativeService = narrativeService;
         this._actionGenerator = actionGenerator;
         this._actionRepository = actionRepository;
+        this.locationSystem = locationSystem;
+        this.characterSystem = characterSystem;
+        this.opportunitySystem = opportunitySystem;
+        this.actionSystem = actionSystem;
+        this.gameState = gameState;
     }
 
     public async Task<string> ConsolidateMemory(
@@ -21,21 +36,21 @@
         return await _narrativeService.ProcessMemoryConsolidation(context, input);
     }
 
-    public async Task<EvolutionResult> ProcessEncounterOutcome(
+    public async Task<PostEncounterEvolutionResult> ProcessEncounterOutcome(
         NarrativeContext context,
         PostEncounterEvolutionInput input,
         EncounterResult encounterResult)
     {
         // Get world evolution response from narrative service
-        EvolutionResult response = await _narrativeService.ProcessPostEncounterEvolution(context, input);
+        PostEncounterEvolutionResult response = await _narrativeService.ProcessPostEncounterEvolution(context, input);
         return response;
     }
 
-    public async Task<Location> IntegrateEncounterOutcome(
-    EvolutionResult evolution,
-    WorldState worldState,
-    LocationSystem locationSystem,
-    PlayerState playerState)
+    public async Task IntegrateEncounterOutcome(
+        PostEncounterEvolutionResult evolution,
+        WorldState worldState,
+        LocationSystem locationSystem,
+        PlayerState playerState)
     {
         // Process coin change
         if (evolution.CoinChange != 0)
@@ -49,25 +64,13 @@
         // Process relationship changes
         ProcessRelationshipChanges(evolution, playerState);
 
-        Location travelLocation = null;
-
         // First, process new locations so they exist before processing spots
         foreach (Location location in evolution.NewLocations)
         {
-            // Check if this location might be a travel destination
-            bool isTravelDestination = evolution.LocationUpdate?.LocationChanged == true &&
-                                      evolution.LocationUpdate?.NewLocationName == location.Name;
-
-            // Store reference if this is a travel destination
-            if (isTravelDestination)
-            {
-                travelLocation = location;
-            }
-
             // Verify location has spots collection (shouldn't be needed with proper prompting)
-            if (location.Spots == null)
+            if (location.LocationSpots == null)
             {
-                location.Spots = new List<LocationSpot>();
+                location.LocationSpots = new List<LocationSpot>();
             }
 
             // Add location to world state
@@ -90,13 +93,6 @@
             if (!string.IsNullOrEmpty(targetLocationName))
             {
                 locationSystem.AddSpot(targetLocationName, spot);
-
-                // If this spot belongs to our travel destination, update reference
-                if (travelLocation != null && targetLocationName == travelLocation.Name)
-                {
-                    // No need to add the spot again as it's already added above,
-                    // but we ensure our travelLocation reference is up to date
-                }
             }
         }
 
@@ -114,47 +110,16 @@
         {
             worldState.AddOpportunity(opportunity);
         }
-
-        // Process player location change
-        if (evolution.LocationUpdate?.LocationChanged == true &&
-            !string.IsNullOrEmpty(evolution.LocationUpdate.NewLocationName))
-        {
-            // Get the location to move to (either new or existing)
-            string targetLocationName = evolution.LocationUpdate.NewLocationName;
-            Location newPlayerLocation = worldState.GetLocation(targetLocationName);
-
-            if (newPlayerLocation != null)
-            {
-                travelLocation = newPlayerLocation;
-
-                // Log for debugging purposes
-                Console.WriteLine($"Player moved to location: {newPlayerLocation.Name}");
-
-                // Verify this location has spots (shouldn't be needed with proper prompting)
-                if (newPlayerLocation.Spots == null || !newPlayerLocation.Spots.Any())
-                {
-                    // This should never happen with proper prompting
-                    Console.WriteLine($"WARNING: Travel location {newPlayerLocation.Name} has no spots! Check world evolution prompt.");
-                }
-            }
-            else
-            {
-                // This should never happen with proper prompting
-                Console.WriteLine($"ERROR: Travel location {targetLocationName} was not created or doesn't exist!");
-            }
-        }
-
-        return travelLocation;
     }
 
-    private async Task ProcessNewActions(EvolutionResult evolution, WorldState worldState)
+    private async Task ProcessNewActions(PostEncounterEvolutionResult evolution, WorldState worldState)
     {
         foreach (NewAction newAction in evolution.NewActions)
         {
             Location targetLocation = worldState.GetLocation(newAction.LocationName);
-            if (targetLocation != null && targetLocation.Spots != null)
+            if (targetLocation != null && targetLocation.LocationSpots != null)
             {
-                LocationSpot spotForAction = targetLocation.Spots.FirstOrDefault(s =>
+                LocationSpot spotForAction = targetLocation.LocationSpots.FirstOrDefault(s =>
                     s.Name.Equals(newAction.SpotName, StringComparison.OrdinalIgnoreCase));
 
                 if (spotForAction != null)
@@ -194,7 +159,7 @@
     }
 
     // Helper methods for handling player state changes
-    private void ProcessInventoryChanges(EvolutionResult evolution, PlayerState playerState)
+    private void ProcessInventoryChanges(PostEncounterEvolutionResult evolution, PlayerState playerState)
     {
         if (evolution.ResourceChanges != null)
         {
@@ -218,7 +183,7 @@
         }
     }
 
-    private void ProcessRelationshipChanges(EvolutionResult evolution, PlayerState playerState)
+    private void ProcessRelationshipChanges(PostEncounterEvolutionResult evolution, PlayerState playerState)
     {
         if (evolution.RelationshipChanges != null && evolution.RelationshipChanges.Any())
         {
@@ -253,4 +218,43 @@
         // Default fallback
         return BasicActionTypes.Discuss;
     }
+
+    public PostEncounterEvolutionInput PreparePostEncounterEvolutionInput(
+        string encounterNarrative,
+        string encounterOutcome)
+    {
+        WorldState worldState = gameState.WorldState;
+        PlayerState playerState = gameState.PlayerState;
+
+        // Get current depth and hub depth
+        int currentDepth = worldState.GetLocationDepth(worldState.CurrentLocation?.Name ?? "");
+
+        // Get all locations
+        List<Location> allLocations = worldState.GetLocations();
+
+        return new PostEncounterEvolutionInput
+        {
+            EncounterNarrative = encounterNarrative,
+            CharacterBackground = playerState.Archetype.ToString(),
+            CurrentLocation = worldState.CurrentLocation?.Name ?? "Unknown",
+            EncounterOutcome = encounterOutcome,
+
+            KnownLocations = locationSystem.FormatKnownLocations(allLocations),
+            KnownCharacters = characterSystem.FormatKnownCharacters(worldState.GetCharacters()),
+            ActiveOpportunities = opportunitySystem.FormatActiveOpportunities(worldState.GetOpportunities()),
+
+            CurrentLocationSpots = locationSystem.FormatLocationSpots(worldState.CurrentLocation),
+            AllKnownLocationSpots = locationSystem.FormatAllLocationSpots(allLocations),
+            AllExistingActions = actionSystem.FormatExistingActions(allLocations),
+
+            CurrentDepth = currentDepth,
+            LastHubDepth = worldState.LastHubDepth,
+
+            Health = playerState.Health,
+            MaxHealth = playerState.MaxHealth,
+            Energy = playerState.Energy,
+            MaxEnergy = playerState.MaxEnergy
+        };
+    }
+
 }

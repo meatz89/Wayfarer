@@ -6,7 +6,7 @@
     private AIProviderType currentAIProvider;
 
     private EncounterManager Encounter;
-    public EncounterResult encounterResult;
+    public EncounterResult CurrentResult;
 
     private ResourceManager resourceManager;
     private readonly NarrativeService narrativeService;
@@ -69,13 +69,13 @@
             location, locationSpot, encounterType);
 
         // Create encounter manager
-        encounterResult = await StartEncounterAt(location, encounter, this.worldState, playerState, actionImplementation);
+        CurrentResult = await StartEncounterAt(location, encounter, this.worldState, playerState, actionImplementation);
 
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
 
         gameState.Actions.SetActiveEncounter(Encounter);
-        return encounterResult;
+        return CurrentResult;
     }
 
 
@@ -135,8 +135,7 @@
             actionImplementation,
             currentAIProvider);  // Pass the current provider type
 
-
-        return new EncounterResult()
+        CurrentResult = new EncounterResult()
         {
             Encounter = encounterManager,
             EncounterResults = EncounterResults.Started,
@@ -144,6 +143,7 @@
             NarrativeResult = initialResult,
             NarrativeContext = encounterManager.GetNarrativeContext()
         };
+        return CurrentResult;
     }
 
     public async Task<EncounterResult> ExecuteChoice(
@@ -163,7 +163,7 @@
 
         if (currentResult.IsEncounterOver)
         {
-            return new EncounterResult()
+            CurrentResult = new EncounterResult()
             {
                 Encounter = encounter,
                 EncounterResults = EncounterResults.EncounterSuccess,
@@ -171,6 +171,7 @@
                 NarrativeResult = currentResult,
                 NarrativeContext = encounter.GetNarrativeContext()
             };
+            return CurrentResult;
         }
 
         currentResult = await Encounter.ApplyChoiceWithNarrativeAsync(
@@ -183,7 +184,7 @@
         {
             if (currentResult.Outcome == EncounterOutcomes.Failure)
             {
-                return new EncounterResult()
+                CurrentResult = new EncounterResult()
                 {
                     Encounter = encounter,
                     EncounterResults = EncounterResults.EncounterFailure,
@@ -191,10 +192,11 @@
                     NarrativeResult = currentResult,
                     NarrativeContext = encounter.GetNarrativeContext()
                 };
+                return CurrentResult;
             }
             else
             {
-                return new EncounterResult()
+                CurrentResult = new EncounterResult()
                 {
                     Encounter = encounter,
                     EncounterResults = EncounterResults.EncounterSuccess,
@@ -202,10 +204,11 @@
                     NarrativeResult = currentResult,
                     NarrativeContext = encounter.GetNarrativeContext()
                 };
+                return CurrentResult;
             }
         }
 
-        return new EncounterResult()
+        CurrentResult = new EncounterResult()
         {
             Encounter = encounter,
             EncounterResults = EncounterResults.Ongoing,
@@ -213,6 +216,8 @@
             NarrativeResult = currentResult,
             NarrativeContext = encounter.GetNarrativeContext()
         };
+        return CurrentResult;
+
     }
 
     public List<IChoice> GetChoices()

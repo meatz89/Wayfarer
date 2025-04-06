@@ -1,11 +1,10 @@
-﻿public class EvolutionResult
+﻿public class PostEncounterEvolutionResult
 {
     public List<NewAction> NewActions { get; set; } = new List<NewAction>();
     public List<LocationSpot> NewLocationSpots { get; set; } = new List<LocationSpot>();
     public List<Location> NewLocations { get; set; } = new List<Location>();
     public List<Character> NewCharacters { get; set; } = new List<Character>();
     public List<Opportunity> NewOpportunities { get; set; } = new List<Opportunity>();
-    public PlayerLocationUpdate LocationUpdate { get; set; } = new PlayerLocationUpdate();
     public ResourceChanges ResourceChanges { get; set; } = new ResourceChanges();
     public List<RelationshipChange> RelationshipChanges { get; set; } = new List<RelationshipChange>();
     public int CoinChange { get; set; } = 0;

@@ -22,6 +22,7 @@ public partial class EncounterViewBase : ComponentBase
     public FocusTags[] GetFocusTags() => Enum.GetValues<FocusTags>().Where(x => true).ToArray();
 
     public bool IsChoiceDisabled(UserEncounterChoiceOption userEncounterChoiceOption) => userEncounterChoiceOption.Choice.IsBlocked;
+
     public EncounterViewModel GetModel()
     {
         return GameManager.GetEncounterViewModel();
@@ -31,7 +32,7 @@ public partial class EncounterViewBase : ComponentBase
     {
         if (GetEncounter() == null)
         {
-            await GameManager.GenerateEncounter();
+            await GameManager.PrepareEncounter();
             IsLoading = false;
         }
     }

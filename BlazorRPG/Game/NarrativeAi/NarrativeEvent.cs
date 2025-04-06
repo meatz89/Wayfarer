@@ -20,17 +20,17 @@
         ChoiceDescriptions = choiceDescriptions;
     }
 
-    internal void SetChosenOption(IChoice chosenOption)
+    public void SetChosenOption(IChoice chosenOption)
     {
         ChosenOption = chosenOption;
     }
 
-    internal void SetChoiceNarrative(ChoiceNarrative choiceNarrative)
+    public void SetChoiceNarrative(ChoiceNarrative choiceNarrative)
     {
         this.ChoiceNarrative = choiceNarrative;
     }
 
-    internal void SetOutcome(string? outcome)
+    public void SetOutcome(string? outcome)
     {
         Outcome = outcome;
     }

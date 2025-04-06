@@ -106,12 +106,12 @@
     }
 
 
-    public async Task<LocationDetails> GenerateLocationDetailsAsync(LocationCreationContext context)
+    public async Task<LocationDetails> GenerateLocationDetailsAsync(LocationCreationInput context)
     {
         return await _providers[_currentProvider].GenerateLocationDetailsAsync(context);
     }
 
-    public async Task<EvolutionResult> ProcessPostEncounterEvolution(NarrativeContext context, PostEncounterEvolutionInput input)
+    public async Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(NarrativeContext context, PostEncounterEvolutionInput input)
     {
         return await _providers[_currentProvider].ProcessPostEncounterEvolution(context, input);
     }

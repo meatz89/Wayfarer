@@ -10,7 +10,7 @@
 
     public EncounterResult EncounterResult { get; set; }
     private EncounterManager CurrentEncounter { get; set; }
-    public bool IsActiveEncounter { get; internal set; }
+    public bool IsActiveEncounter { get; set; }
 
     public EncounterManager GetCurrentEncounter()
     {

@@ -52,7 +52,7 @@
 
     public List<PlayerNegativeStatus> NegativeStatusTypes { get; set; }
     public PlayerConfidenceTypes ConfidenceType { get; set; }
-    public bool IsInitialized { get; internal set; } = false;
+    public bool IsInitialized { get; set; } = false;
 
     public PlayerState()
     {
@@ -315,7 +315,7 @@
         AddLocationKnowledge(StartingLocation);
     }
 
-    internal void AddExperiencePoints(int xpBonus)
+    public void AddExperiencePoints(int xpBonus)
     {
         int newExperiencePoints = Math.Max(0, ExperiencePoints + xpBonus);
         if (newExperiencePoints != ExperiencePoints)

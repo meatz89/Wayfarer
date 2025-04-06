@@ -22,7 +22,7 @@
     public Atmosphere? Atmosphere { get; set; }
     public Physical? Physical { get; set; }
     public Illumination? Illumination { get; set; }
-    public string Character { get; internal set; }
+    public string Character { get; set; }
 
     public bool HasProperty<T>(T locationSpotProperty) where T : IEnvironmentalProperty
     {
@@ -51,7 +51,6 @@
 
     public LocationSpot()
     {
-
     }
 
     public LocationSpot(
