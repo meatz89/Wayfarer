@@ -107,6 +107,7 @@
                     locationSpot.Name,
                     location.Name);
 
+                actionTemplate = ActionRepository.GetAction(actionTemplateName);
             }
 
             EncounterTemplate encounterTemplate = ActionRepository.GetEncounterTemplate(actionTemplate.EncounterTemplateName);

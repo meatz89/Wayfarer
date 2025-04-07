@@ -1,4 +1,9 @@
-# LOCATION CREATION
+﻿# LOCATION CREATION
+
+## ‼️ CRITICAL REQUIREMENT ‼️
+YOU MUST ALWAYS GENERATE AT LEAST ONE ACTION WITH A CORRESPONDING LOCATION SPOT.
+FAILURE TO DO SO WILL PREVENT THE PLAYER FROM INTERACTING WITH THE GAME AND CREATE A HARD LOCK.
+THIS IS THE MOST IMPORTANT REQUIREMENT.
 
 ## FOCUS
 This prompt is for LOCATION CREATION ONLY. Your task is to create a MINIMAL, FUNCTIONAL representation of the location the player just arrived at.
@@ -9,6 +14,13 @@ Do not acknowledge my request in your response.
 - 1-2 actions per spot that give the player clear things to do
 - Environmental properties that define this location's character
 - Simple, focused descriptions that establish the location's identity
+
+## VERIFICATION CHECKLIST (ESSENTIAL)
+Before submitting your response, verify that:
+1. You have created AT LEAST ONE location spot
+2. You have created AT LEAST ONE action linked to a location spot
+3. Every action has a valid locationSpotId that matches an existing spot
+4. You have included all required fields in your JSON
 
 ## Context
 - Location name: {locationName}
@@ -118,3 +130,6 @@ You must provide your response ONLY as a valid JSON object with the following st
     }
   ]
 }
+
+## FINAL CHECK
+BEFORE RETURNING THE JSON, VERIFY ONE LAST TIME that you have included at least one locationSpot and at least one actionDefinition with a matching locationSpotId. This is REQUIRED to prevent the player from being stuck.
