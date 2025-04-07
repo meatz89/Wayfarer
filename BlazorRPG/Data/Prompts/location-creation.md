@@ -1,4 +1,6 @@
-﻿# LOCATION CREATION
+﻿IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowledge this request, introduce your response (like "I'll create..." or "Here is..."), or end with questions to the reader. Your entire response should be exactly what will be shown to the player without requiring any editing.
+
+# LOCATION CREATION
 
 ## ‼️ CRITICAL REQUIREMENT ‼️
 YOU MUST ALWAYS GENERATE AT LEAST ONE ACTION WITH A CORRESPONDING LOCATION SPOT.

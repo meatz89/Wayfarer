@@ -13,7 +13,7 @@
     {
         <div class="map-container">
             <div class="map-toggle">
-                <button class="toggle-button @(showAreaMap ? "active" : "")" @onclick="() => showAreaMap = true">
+                <button class="toggle-button @(showAreaMap ? "active" : "")" @onclick="@SwitchAreaMap">
                     Travel 🗺️
                 </button>
             </div>
