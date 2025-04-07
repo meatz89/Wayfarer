@@ -280,6 +280,7 @@
         if (wasTravelEncounter)
         {
             await OnLocationArrival(gameState.PendingTravel.TravelDestination);
+            gameState.PendingTravel.Clear();
         }
         else
         {
