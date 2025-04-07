@@ -61,6 +61,7 @@
             worldState.AddLocation(location);
         }
 
+        location.Name = !string.IsNullOrWhiteSpace(location.Name) ? location.Name : details.Name;
         location.Description = details.Description;
         location.DetailedDescription = details.DetailedDescription;
         location.History = details.History;
