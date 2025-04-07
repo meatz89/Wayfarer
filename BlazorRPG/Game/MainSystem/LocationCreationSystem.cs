@@ -55,6 +55,12 @@
         string locationName = details.LocationUpdate.NewLocationName;
 
         Location location = worldState.GetLocation(locationName);
+        if (location == null)
+        {
+            location = new Location();
+            worldState.AddLocation(location);
+        }
+
         location.Description = details.Description;
         location.DetailedDescription = details.DetailedDescription;
         location.History = details.History;

@@ -48,6 +48,8 @@ public class ActionGenerator
         string complication = "",
         string basicActionType = "")
     {
+        name = name.Replace(" ", "");
+
         // Create context for generation
         ActionGenerationContext context = new ActionGenerationContext
         {
@@ -68,7 +70,7 @@ public class ActionGenerator
         // Create and register the encounter template
         EncounterTemplate encounterTemplate = CreateEncounterTemplate(result.EncounterTemplate);
 
-        string encounterName = $"{result.Action.Name}Encounter";
+        string encounterName = $"{result.Action.Name}";
         _repository.RegisterEncounterTemplate(encounterName, encounterTemplate);
 
         // Create action template linked to the encounter
