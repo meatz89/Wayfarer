@@ -76,6 +76,11 @@ public partial class GameUI : ComponentBase
         StateHasChanged();
     }
 
+    public void SwitchAreaMap()
+    {
+        showAreaMap = !showAreaMap;
+    }
+
     public Location GetCurrentLocation()
     {
         Location loc = GameState.WorldState.CurrentLocation;

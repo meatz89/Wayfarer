@@ -1,3 +1,5 @@
+IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowledge this request, introduce your response (like "I'll create..." or "Here is..."), or end with questions to the reader. Your entire response should be exactly what will be shown to the player without requiring any editing.
+
 # MEMORY CONSOLIDATION
 
 Existing Memory:
@@ -33,10 +35,8 @@ A "Chekhov's Gun" is a narrative element introduced that should have future sign
    - If any were permanently resolved, note this
 
 ## Output Format
-Provide TWO separate sections:
-1. MEMORY: The standard memory paragraph (2-3 sentences)
+Update the supplied memory content with the new information the player learned from this previous encounter.
+1. 1. MEMORY: The standard memory paragraph (2-3 sentences)
 2. CHEKHOV'S GUNS: List of active narrative elements with name, description, significance, and status
 
 This memory will be referenced in future encounters. Future conversations should attempt to develop or resolve these Chekhov's Guns where narratively appropriate.
-
-Response: Format exactly as specified above with clear section headers.
