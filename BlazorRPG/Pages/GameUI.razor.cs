@@ -198,10 +198,7 @@ public partial class GameUI : ComponentBase
 
     private void HandleSpotSelection(LocationSpot locationSpot)
     {
-        List<UserLocationSpotOption> userLocationSpotOptions = GameState.WorldState.CurrentLocationSpotOptions;
-        UserLocationSpotOption userLocationSpot = userLocationSpotOptions.FirstOrDefault(x => x.LocationSpot == locationSpot.Name);
-
-        GameManager.MoveToLocationSpot(userLocationSpot.Location, locationSpot.Name);
+        GameManager.MoveToLocationSpot(locationSpot.Name);
     }
 
     private void CompleteActionExecution()

@@ -161,7 +161,7 @@ public static class LocationJsonParser
     {
         List<IEnvironmentalProperty> result = new List<IEnvironmentalProperty>();
 
-        foreach (var pair in properties)
+        foreach (KeyValuePair<string, string> pair in properties)
         {
             IEnvironmentalProperty prop = CreateEnvironmentalProperty(pair.Key, pair.Value);
             if (prop != null)

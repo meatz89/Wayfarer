@@ -165,8 +165,8 @@
 
 
     private LocationCreationInput CreateLocationInput(
-        bool wasTravelEncounter, 
-        string travelOrigin, 
+        bool wasTravelEncounter,
+        string travelOrigin,
         string travelDestination,
         int locationDepth
         )

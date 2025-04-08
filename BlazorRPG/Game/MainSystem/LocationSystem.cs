@@ -74,8 +74,8 @@ public class LocationSystem
     internal List<Location> GetConnectedLocations()
     {
         List<Location> connectedLocations = new();
-        var locs = worldState.CurrentLocation.ConnectedTo;
-        foreach (var conLoc in locs)
+        List<string> locs = worldState.CurrentLocation.ConnectedTo;
+        foreach (string conLoc in locs)
         {
             connectedLocations.Add(GetLocation(conLoc));
         }
