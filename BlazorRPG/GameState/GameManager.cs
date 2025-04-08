@@ -99,9 +99,9 @@
         foreach (string actionName in locationSpotActions)
         {
             SpotAction actionTemplate = ActionRepository.GetAction(actionName);
-            if(actionTemplate == null)
+            if (actionTemplate == null)
             {
-                string actionTemplateName = 
+                string actionTemplateName =
                     await ActionGenerator.GenerateActionAndEncounter(
                     actionName,
                     locationSpot.Name,
@@ -454,9 +454,11 @@
         CreateGlobalActions();
     }
 
-    public void MoveToLocationSpot(string location, string locationSpotName)
+    public void MoveToLocationSpot(string locationSpotName)
     {
-        LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(location, locationSpotName);
+        string locationName = gameState.WorldState.CurrentLocation.Name;
+
+        LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(locationName, locationSpotName);
         gameState.WorldState.SetCurrentLocationSpot(locationSpot);
         UpdateState();
     }

@@ -7,11 +7,11 @@
 
     public string KnownLocations { get; set; }
     public string ConnectedLocations { get; set; }
-    public string CurrentLocationSpots { get; set; } 
-    
+    public string CurrentLocationSpots { get; set; }
+
     public string KnownCharacters { get; set; }
     public string ActiveOpportunities { get; set; }
-    public string AllExistingActions { get; set; } 
+    public string AllExistingActions { get; set; }
 
     public int CurrentDepth { get; set; }
     public int LastHubDepth { get; set; }
