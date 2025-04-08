@@ -6,12 +6,12 @@
     public string EncounterOutcome { get; set; }
 
     public string KnownLocations { get; set; }
+    public string ConnectedLocations { get; set; }
+    public string CurrentLocationSpots { get; set; } 
+    
     public string KnownCharacters { get; set; }
     public string ActiveOpportunities { get; set; }
-
-    public string CurrentLocationSpots { get; set; } // All spots in current location
-    public string AllKnownLocationSpots { get; set; } // All spots across all locations
-    public string AllExistingActions { get; set; } // All existing actions
+    public string AllExistingActions { get; set; } 
 
     public int CurrentDepth { get; set; }
     public int LastHubDepth { get; set; }

@@ -71,6 +71,18 @@ public class LocationSystem
         return gameState.WorldState.GetLocations();
     }
 
+    internal List<Location> GetConnectedLocations()
+    {
+        List<Location> connectedLocations = new();
+        var locs = worldState.CurrentLocation.ConnectedTo;
+        foreach (var conLoc in locs)
+        {
+            connectedLocations.Add(GetLocation(conLoc));
+        }
+
+        return connectedLocations;
+    }
+
     public List<string> GetTravelLocations(string currentLocation)
     {
         Location location = GetLocation(currentLocation);
@@ -113,7 +125,7 @@ public class LocationSystem
         location.AddSpot(spot);
     }
 
-    public string FormatKnownLocations(List<Location> locations)
+    public string FormatLocations(List<Location> locations)
     {
         StringBuilder sb = new StringBuilder();
 
@@ -142,28 +154,4 @@ public class LocationSystem
 
         return sb.ToString();
     }
-
-    public string FormatAllLocationSpots(List<Location> locations)
-    {
-        StringBuilder sb = new StringBuilder();
-
-        if (locations == null || !locations.Any())
-            return "None";
-
-        foreach (Location location in locations)
-        {
-            if (location.LocationSpots == null || !location.LocationSpots.Any())
-                continue;
-
-            sb.AppendLine($"## {location.Name} Spots:");
-            foreach (LocationSpot spot in location.LocationSpots)
-            {
-                sb.AppendLine($"- {spot.Name}: {spot.Description}");
-            }
-            sb.AppendLine();
-        }
-
-        return sb.Length > 0 ? sb.ToString() : "None";
-    }
-
 }

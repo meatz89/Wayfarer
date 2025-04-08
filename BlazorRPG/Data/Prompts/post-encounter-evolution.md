@@ -16,37 +16,35 @@
 - Current location: {currentLocation} (Depth: {currentDepth})
 - Last hub depth: {lastHubDepth}
 - Current player resources: Health {health}/{maxHealth}, Energy {energy}/{maxEnergy}
-- Known locations: {knownLocations}
-- Known characters: {knownCharacters}
-- Active opportunities: {activeOpportunities}
 - Encounter outcome: {encounterOutcome} (Success/Partial/Failure)
 
 ## Existing World Context
+
+- All known locations
+{allKnownLocations}
+ 
+- Connected locations
+{connectedLocations}
+
 - Current location spots: 
 {currentLocationSpots}
-
-- All known location spots across all locations:
-{allKnownLocationSpots}
 
 - All existing actions:
 {allExistingActions}
 
-## Forward Progression Rules
-- New locations MUST have depth = current_depth or current_depth + 1
-- Difficulty scales with depth (base difficulty = depth/2 + 1, minimum 1)
-- Hub locations should appear every 3-4 depth levels
-- If current_depth - lastHubDepth >= 3, YOU MUST CREATE A HUB LOCATION at depth {currentDepth + 1}
-- Hub locations require 3+ spots with Rest/Trade/Healing services
-- If player health or energy < 30%, include a rest or healing action
-- Rest locations should be available every 2 depth levels
+- All Known characters: 
+{knownCharacters}
+
+- Active opportunities: 
+{activeOpportunities}
 
 ## Forward Progression Rules
+- New Locations MUST be connected to current location
 - New locations MUST have depth = current_depth or current_depth + 1
 - Difficulty scales with depth (base difficulty = depth/2 + 1, minimum 1)
 - Hub locations should appear every 3-4 depth levels
 - If current_depth - lastHubDepth >= 3, YOU MUST CREATE A HUB LOCATION at depth {currentDepth + 1}
 - Hub locations require 3+ spots with Rest/Trade/Healing services
-- If player health or energy < 30%, include a rest or healing action
 - Rest locations should be available every 2 depth levels
 
 ## Location Types
@@ -73,10 +71,6 @@
 You must provide your response ONLY as a valid JSON object with the following structure:
 
 {
-  "playerLocationUpdate": {
-    "newLocationName": "Name of location player is now at (if changed)",
-    "locationChanged": true/false
-  },
   "resourceChanges": {
     "coinChange": 5,
     "itemsAdded": ["ItemName1", "ItemName2"],

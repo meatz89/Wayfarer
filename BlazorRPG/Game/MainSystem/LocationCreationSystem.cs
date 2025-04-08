@@ -183,15 +183,15 @@
         // Create context for location generation
         LocationCreationInput context = new LocationCreationInput
         {
-            CharacterBackground = playerState.Archetype.ToString(),
-            CurrentLocation = worldState.CurrentLocation?.Name ?? "Unknown",
+            CharacterArchetype = playerState.Archetype.ToString(),
+            LocationName = worldState.CurrentLocation?.Name ?? "Unknown",
 
-            KnownLocations = locationSystem.FormatKnownLocations(allLocations),
+            KnownLocations = this.locationSystem.FormatLocations(allLocations),
             KnownCharacters = characterSystem.FormatKnownCharacters(worldState.GetCharacters()),
             ActiveOpportunities = opportunitySystem.FormatActiveOpportunities(worldState.GetOpportunities()),
 
-            CurrentLocationSpots = locationSystem.FormatLocationSpots(worldState.CurrentLocation),
-            AllKnownLocationSpots = locationSystem.FormatAllLocationSpots(allLocations),
+            CurrentLocationSpots = this.locationSystem.FormatLocationSpots(worldState.CurrentLocation),
+            ConnectedLocations = this.locationSystem.FormatLocations(locationSystem.GetConnectedLocations()),
             AllExistingActions = actionSystem.FormatExistingActions(allLocations),
 
             WasTravelEncounter = wasTravelEncounter,
