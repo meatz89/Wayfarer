@@ -83,6 +83,27 @@ You must provide your response ONLY as a valid JSON object with the following st
       "reason": "Brief description of why the relationship changed"
     }
   ],
+  "actionDefinitions": [
+    {
+      "name": "ActionName",
+      "description": "What this action involves",
+      "goal": "The player's goal in this action",
+      "complication": "What makes this challenging",
+      "actionType": "Discuss",
+      "isRepeatable": true/false,
+      "energyCost": 1,
+      "spotName": "Spot name", // MUST BE AN ALREADY KNOWN SPOT NAME OR DEFINED IN THIS RESPONSE LOCATIONSPOTS ARRAY
+      "locationName": "{currentLocation}"
+    }
+  ],
+  "locationSpots": [
+    {
+      "name": "Spot name",
+      "description": "Brief description",
+      "interactionType": "Character/Shop/Feature/Service",
+      "locationName": "{currentLocation}"
+    }
+  ],
   "locations": [
     {
       "name": "Location name",
@@ -95,27 +116,6 @@ You must provide your response ONLY as a valid JSON object with the following st
       "discoveryBonusCoins": 10,
       "connectedTo": ["First Connected Location", "Second Connected Location"],
       "environmentalProperties": ["Bright", "Crowded", "Commercial", "Chaotic"]
-    }
-  ],
-  "locationSpots": [
-    {
-      "name": "Spot name",
-      "description": "Brief description",
-      "interactionType": "Character/Shop/Feature/Service",
-      "locationName": "{currentLocation}"
-    }
-  ],
-  "actionDefinitions": [
-    {
-      "name": "ActionName",
-      "description": "What this action involves",
-      "goal": "The player's goal in this action",
-      "complication": "What makes this challenging",
-      "actionType": "Discuss",
-      "isRepeatable": true/false,
-      "energyCost": 1,
-      "spotName": "Spot name", // MUST already exist or be defined in this JSON
-      "locationName": "{currentLocation}"
     }
   ],
   "characters": [
