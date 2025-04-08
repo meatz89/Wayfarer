@@ -560,25 +560,6 @@
         return $"{action.Location}_{action.LocationSpot}_{action.ActionImplementation.Name}";
     }
 
-    public void UpdateLocationSpotOptions()
-    {
-        Location location = gameState.WorldState.CurrentLocation;
-        List<LocationSpot> locationSpots = LocationSystem.GetLocationSpots(location);
-
-        List<UserLocationSpotOption> userLocationSpotOption = new List<UserLocationSpotOption>();
-
-        for (int i = 0; i < locationSpots.Count; i++)
-        {
-            LocationSpot locationSpot = locationSpots[i];
-            UserLocationSpotOption locationSpotOption = new UserLocationSpotOption(i + 1, location.Name, locationSpot.Name);
-
-            userLocationSpotOption.Add(locationSpotOption);
-        }
-
-        gameState.WorldState.SetCurrentLocationSpotOptions(userLocationSpotOption);
-    }
-
-
     public bool AdvanceTime(int inHours)
     {
         bool daySkip = false;
@@ -618,7 +599,6 @@
     public void UpdateState()
     {
         gameState.Actions.ClearCurrentUserAction();
-        UpdateLocationSpotOptions();
         UpdateAvailableActions();
     }
 

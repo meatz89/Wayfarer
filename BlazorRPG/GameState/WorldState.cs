@@ -141,7 +141,6 @@
 
     // Navigation options
     public List<UserLocationTravelOption> CurrentTravelOptions { get; set; } = new();
-    public List<UserLocationSpotOption> CurrentLocationSpotOptions { get; set; } = new();
 
 
     public void SetCurrentTime(int hours)
@@ -181,11 +180,6 @@
     public void SetCurrentTravelOptions(List<UserLocationTravelOption> options)
     {
         CurrentTravelOptions = options;
-    }
-
-    public void SetCurrentLocationSpotOptions(List<UserLocationSpotOption> options)
-    {
-        CurrentLocationSpotOptions = options;
     }
 
     public void DetermineCurrentTimeWindow(int timeWindow)

@@ -102,7 +102,7 @@ You must provide your response ONLY as a valid JSON object with the following st
       "name": "Spot name",
       "description": "Brief description",
       "interactionType": "Character/Shop/Feature/Service",
-      "locationName": "Location name"
+      "locationName": "{currentLocation}"
     }
   ],
   "actionDefinitions": [
@@ -114,8 +114,8 @@ You must provide your response ONLY as a valid JSON object with the following st
       "actionType": "Discuss",
       "isRepeatable": true/false,
       "energyCost": 1,
-      "spotName": "Spot name",
-      "locationName": "Location name"
+      "spotName": "Spot name", // MUST already exist or be defined in this JSON
+      "locationName": "{currentLocation}"
     }
   ],
   "characters": [
@@ -123,7 +123,8 @@ You must provide your response ONLY as a valid JSON object with the following st
       "name": "Giles",
       "role": "Merchant",
       "description": "Brief physical and personality description",
-      "location": "Name of existing location where they can be found"
+      "location": "Name of existing location where they can be found",
+      "locationSpot": "Name of existing locationSpot where they can be found"
     }
   ],
   "opportunities": [
@@ -132,6 +133,7 @@ You must provide your response ONLY as a valid JSON object with the following st
       "type": "Quest/Job/Mystery/Investigation",
       "description": "Brief description",
       "location": "Name of existing location where it takes place",
+      "locationSpot": "Name of existing locationSpot where it takes place",
       "relatedCharacter": "Name of existing character involved"
     }
   ]

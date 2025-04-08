@@ -142,7 +142,7 @@
                     string encounterTemplateName = actionTemplate.EncounterTemplateName;
 
                     EncounterTemplate encounterTemplate = _actionRepository.GetEncounterTemplate(encounterTemplateName);
-                    spotForAction.ActionTemplates.Add(actionTemplate.Name);
+                    spotForAction.ActionTemplates.Add(actionTemplateName);
 
                     Console.WriteLine($"Created new action {newAction.Name} at {newAction.LocationName}/{newAction.SpotName}");
                 }
