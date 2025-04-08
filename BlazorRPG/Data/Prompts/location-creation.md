@@ -121,8 +121,6 @@ You must provide your response ONLY as a valid JSON object with the following st
       "encounterDefinition": {
         "goal": "The player's goal in this encounter",
         "complication": "What makes this challenging",
-        "momentum": 0,
-        "pressure": 0,
         "strategicTags": ["Tag1", "Tag2"]
       }
     }
