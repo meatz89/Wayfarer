@@ -716,19 +716,26 @@ CHOICE {i + 1}:
             .Replace("{currentLocation}", input.CurrentLocation)
             .Replace("{encounterOutcome}", input.EncounterOutcome)
 
-            .Replace("{knownLocations}", input.KnownLocations)
-            .Replace("{knownCharacters}", input.KnownCharacters)
-            .Replace("{activeOpportunities}", input.ActiveOpportunities)
-
             .Replace("{health}", input.Health.ToString())
             .Replace("{maxHealth}", input.MaxHealth.ToString())
             .Replace("{energy}", input.Energy.ToString())
             .Replace("{maxEnergy}", input.MaxEnergy.ToString())
 
             // New replacements for world context
+            .Replace("{allKnownLocations}", input.KnownLocations ?? "None")
+            .Replace("{connectedLocations}", input.ConnectedLocations ?? "None")
+
             .Replace("{currentLocationSpots}", input.CurrentLocationSpots ?? "None")
-            .Replace("{allKnownLocationSpots}", input.AllKnownLocationSpots ?? "None")
-            .Replace("{allExistingActions}", input.AllExistingActions ?? "None");
+            .Replace("{allExistingActions}", input.AllExistingActions ?? "None")
+
+            .Replace("{knownCharacters}", input.KnownCharacters)
+            .Replace("{activeOpportunities}", input.ActiveOpportunities)
+
+            .Replace("{currentLocationSpots}", input.CurrentLocationSpots ?? "None")
+            .Replace("{connectedLocations}", input.ConnectedLocations ?? "None")
+
+            .Replace("{locationDepth}", input.CurrentDepth.ToString())
+            .Replace("{lastHubDepth}", input.LastHubDepth.ToString());
     }
 
     public string BuildLocationCreationPrompt(LocationCreationInput input)
@@ -739,18 +746,17 @@ CHOICE {i + 1}:
         string prompt = template
 
             // Existing replacements
-            .Replace("{characterBackground}", input.CharacterBackground)
-            .Replace("{currentLocation}", input.CurrentLocation)
+            .Replace("{characterArchetype}", input.CharacterArchetype)
+            .Replace("{locationName}", input.TravelDestination)
 
             // New replacements for world context
-            .Replace("{currentLocationSpots}", input.CurrentLocationSpots ?? "None")
-            .Replace("{allKnownLocationSpots}", input.AllKnownLocationSpots ?? "None")
-            .Replace("{allExistingActions}", input.AllExistingActions ?? "None")
+            .Replace("{allKnownLocations}", input.KnownLocations ?? "None")
+            .Replace("{originLocationName}", input.TravelOrigin)
 
             .Replace("{knownCharacters}", input.KnownCharacters)
             .Replace("{activeOpportunities}", input.ActiveOpportunities)
 
-            .Replace("{currentDepth}", input.CurrentDepth.ToString())
+            .Replace("{locationDepth}", input.CurrentDepth.ToString())
             .Replace("{lastHubDepth}", input.LastHubDepth.ToString());
 
         return CreatePromptJson(prompt);

@@ -25,25 +25,21 @@ Before submitting your response, verify that:
 4. You have included all required fields in your JSON
 
 ## Context
-- Location name: {locationName}
-- Location description: {locationDescription}
-- Connected from: {originLocationName}
+- Current Location name: {locationName}
+- Arrived after travel from: {originLocationName}
 - Current depth: {locationDepth}
 - Player archetype: {characterArchetype}
-- Current player focus: {playerFocus}
-- Current player resources: Health {health}/{maxHealth}, Energy {energy}/{maxEnergy}
-- Known characters: {knownCharacters}
-- Active opportunities: {activeOpportunities}
 
 ## Existing World Context
-- Current location spots: 
-{currentLocationSpots}
 
-- All known location spots across all locations:
-{allKnownLocationSpots}
+- All known locations
+{allKnownLocations}
+ 
+- All Known characters: 
+{knownCharacters}
 
-- All existing actions:
-{allExistingActions}
+- Active opportunities: 
+{activeOpportunities}
 
 ## Minimal Design Philosophy
 - Focus on QUALITY over QUANTITY

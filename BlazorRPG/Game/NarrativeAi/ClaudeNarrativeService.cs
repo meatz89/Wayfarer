@@ -187,7 +187,7 @@
 
     public override async Task<LocationDetails> GenerateLocationDetailsAsync(LocationCreationInput context)
     {
-        string conversationId = $"location_generation_{context.TravelDestination}"; // Unique conversation ID
+        string conversationId = $"{context.LocationName}_encounter"; // Same ID as introduction
         string systemMessage = _promptManager.GetSystemMessage();
         string prompt = _promptManager.BuildLocationCreationPrompt(context);
 

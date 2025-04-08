@@ -276,7 +276,7 @@
         gameState.Actions.EncounterResult = result;
 
         // If this was a travel encounter that completed successfully
-        bool wasTravelEncounter = gameState.PendingTravel != null;
+        bool wasTravelEncounter = gameState.PendingTravel != null && gameState.PendingTravel.IsTravelPending;
         if (wasTravelEncounter)
         {
             await OnLocationArrival(gameState.PendingTravel.TravelDestination);

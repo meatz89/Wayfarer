@@ -238,12 +238,12 @@
             CurrentLocation = worldState.CurrentLocation?.Name ?? "Unknown",
             EncounterOutcome = encounterOutcome,
 
-            KnownLocations = locationSystem.FormatKnownLocations(allLocations),
+            KnownLocations = locationSystem.FormatLocations(allLocations),
             KnownCharacters = characterSystem.FormatKnownCharacters(worldState.GetCharacters()),
             ActiveOpportunities = opportunitySystem.FormatActiveOpportunities(worldState.GetOpportunities()),
 
             CurrentLocationSpots = locationSystem.FormatLocationSpots(worldState.CurrentLocation),
-            AllKnownLocationSpots = locationSystem.FormatAllLocationSpots(allLocations),
+            ConnectedLocations = locationSystem.FormatLocations(locationSystem.GetConnectedLocations()),
             AllExistingActions = actionSystem.FormatExistingActions(allLocations),
 
             CurrentDepth = currentDepth,
