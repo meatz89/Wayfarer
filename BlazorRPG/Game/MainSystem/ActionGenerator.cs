@@ -80,7 +80,7 @@ public class ActionGenerator
             result.Action.Complication,
             result.Action.BasicActionType,
             result.Action.ActionType,
-            encounterTemplate.Name,
+            encounterName,
             result.Action.CoinCost);
 
         return actionTemplate;
