@@ -22,13 +22,8 @@
 
     public ActionImplementation TravelToLocation(string travelLocation, TravelMethods travelMethod = TravelMethods.Walking)
     {
-        if (worldState.CurrentLocation == null)
-        {
-            return null;
-        }
-
         Location currentLocation = worldState.CurrentLocation;
-        if (currentLocation.Name == travelLocation)
+        if (currentLocation?.Name == travelLocation)
         {
             return null;
         }
@@ -46,16 +41,19 @@
         // Advance game time
         worldState.CurrentTimeMinutes += travelMinutes;
 
-        // Consume resources
-        ConsumeTravelResources(travelMinutes, travelMethod);
-
-        Location targetLocation = LocationSystem.GetLocation(travelLocation);
-        if (targetLocation == null)
-            targetLocation = LocationSystem.GetAllLocations().FirstOrDefault();
-
         // Record visit and check if it's first visit
         bool isFirstVisit = worldState.IsFirstVisit(travelLocation);
         worldState.RecordLocationVisit(travelLocation);
+
+        Location targetLocation = LocationSystem.GetLocation(travelLocation);
+        if (string.IsNullOrWhiteSpace(worldState.CurrentLocation?.Name))
+        {
+            worldState.SetCurrentLocation(targetLocation);
+            return null;
+        }
+
+        // Consume resources
+        ConsumeTravelResources(travelMinutes, travelMethod);
 
         // Apply discovery bonus on first visit
         if (isFirstVisit && targetLocation != null)
@@ -88,51 +86,43 @@
 
     private SpotAction GetTravelWitoutEncounterTemplate()
     {
-        SpotAction travelTemplate = ActionRepository.GetAction("Travel");
-        if (travelTemplate == null)
+        SpotAction travelTemplate = new SpotAction
         {
-            travelTemplate = new SpotAction
+            Name = "TravelSafe",
+            ActionType = ActionTypes.Basic,
+            BasicActionType = BasicActionTypes.Travel,
+            Goal = "Travel safely to your destination",
+            IsRepeatable = true,
+            Costs = new()
             {
-                Name = "TravelSafe",
-                ActionType = ActionTypes.Basic,
-                BasicActionType = BasicActionTypes.Travel,
-                Goal = "Travel safely to your destination",
-                IsRepeatable = true,
-                Costs = new()
+                new EnergyOutcome(-1)
                 {
-                    new EnergyOutcome(-1)
-                    {
-                        Amount = -1
-                    }
-                },
-            };
-        }
+                    Amount = -1
+                }
+            },
+        };
 
         return travelTemplate;
     }
 
     private SpotAction GetTravelWithEncounterTemplate()
     {
-        SpotAction travelTemplate = ActionRepository.GetAction("Travel");
-        if (travelTemplate == null)
+        SpotAction travelTemplate = new SpotAction
         {
-            travelTemplate = new SpotAction
+            Name = "Travel",
+            EncounterTemplateName = "Travel",
+            ActionType = ActionTypes.Encounter,
+            BasicActionType = BasicActionTypes.Travel,
+            Goal = "Travel dangerously to your destination",
+            IsRepeatable = false,
+            Costs = new()
             {
-                Name = "Travel",
-                EncounterTemplateName = "Travel",
-                ActionType = ActionTypes.Encounter,
-                BasicActionType = BasicActionTypes.Travel,
-                Goal = "Travel dangerously to your destination",
-                IsRepeatable = true,
-                Costs = new()
+                new EnergyOutcome(-1)
                 {
-                    new EnergyOutcome(-1)
-                    {
-                        Amount = -1
-                    }
-                },
-            };
-        }
+                    Amount = -1
+                }
+            },
+        };
 
         return travelTemplate;
     }

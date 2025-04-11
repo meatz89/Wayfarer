@@ -66,8 +66,6 @@ public class GameManager
     public async Task StartGame()
     {
         Location startingLocation = await LocationSystem.Initialize(GameRules.StandardRuleset.StartingLocation);
-        LocationSystem.SetCurrentLocation(startingLocation);
-
         TravelManager.TravelToLocation(gameState.PlayerState.StartingLocation, TravelMethods.Walking);
 
         if (worldState.CurrentLocationSpot == null && worldState.CurrentLocation?.LocationSpots?.Any() == true)
@@ -154,6 +152,7 @@ public class GameManager
         if (!startEncounter)
         {
             ApplyActionOutcomes(actionImplementation);
+
         }
         else
         {
@@ -225,7 +224,7 @@ public class GameManager
         List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterResult.Encounter);
         gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
 
-        EncounterManager encounterManager = GetEncounter();
+        EncounterManager encounterManager = gameState.Actions.GetCurrentEncounter();
         return encounterManager;
     }
 
@@ -400,7 +399,7 @@ public class GameManager
         }
 
         // Set as current location
-        LocationSystem.SetCurrentLocation(location);
+        worldState.SetCurrentLocation(location);
     }
 
     private async Task CreateMemoryRecord(EncounterResult encounterResult)
@@ -625,7 +624,7 @@ public class GameManager
         EncounterResult encounterResult = EncounterSystem.CurrentResult;
 
         EncounterViewModel model = new EncounterViewModel();
-        EncounterManager encounterManager = GetEncounter();
+        EncounterManager encounterManager = gameState.Actions.GetCurrentEncounter();
 
         List<UserEncounterChoiceOption> userEncounterChoiceOptions = EncounterSystem.GetUserEncounterChoiceOptions();
 

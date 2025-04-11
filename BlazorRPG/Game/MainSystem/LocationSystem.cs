@@ -63,7 +63,6 @@ public class LocationSystem
 
     public void SetCurrentLocation(Location location)
     {
-        worldState.SetCurrentLocation(location);
     }
 
     public List<Location> GetAllLocations()

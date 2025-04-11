@@ -22,11 +22,6 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         return Preview?.PressureComponents ?? new List<ChoiceProjection.ValueComponent>();
     }
 
-    public EncounterManager GetEncounter()
-    {
-        return GameManager.GetEncounter();
-    }
-
     public Dictionary<string, int> GetApproachTagChanges()
     {
         Dictionary<string, int> formattedChanges = new Dictionary<string, int>();
