@@ -4,7 +4,7 @@ public class PromptManager
 {
     private readonly Dictionary<string, string> _promptTemplates;
 
-    private const string SYSTEM_MD = "system";
+    private const string SYSTEM_MD1 = "system";
     private const string INTRO_MD = "introduction";
     private const string REACTION_MD = "reaction";
     private const string CHOICES_MD = "choices";
@@ -40,7 +40,6 @@ public class PromptManager
         return CreatePromptJson(prompt);
     }
 
-
     public string BuildIntroductionPrompt(
     NarrativeContext context,
     EncounterStatusModel state,
@@ -65,8 +64,6 @@ public class PromptManager
         string characterArchetype = state.PlayerState.Archetype.ToString();
         string approachStats = FormatApproachValues(state);
 
-        // Format player inventory
-        string playerInventory = FormatPlayerInventory(state.PlayerState.Inventory);
         // Format encounter goal and complication
         ActionImplementation actionImplementation = context.ActionImplementation;
         string encounterGoal = actionImplementation.Goal;
@@ -75,6 +72,7 @@ public class PromptManager
         // Replace placeholders in template
         string prompt = template
             .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
+            .Replace("{PLAYER_STATUS}", BuildCharacterStatusSummary(state))
             .Replace("{LOCATION_NAME}", context.LocationName)
             .Replace("{LOCATION_SPOT}", context.locationSpotName)
             .Replace("{CHARACTER_ARCHETYPE}", characterArchetype)
@@ -84,9 +82,7 @@ public class PromptManager
             .Replace("{NPC_LIST}", npcList)
             .Replace("{TIME_CONSTRAINTS}", timeConstraints)
             .Replace("{ADDITIONAL_CHALLENGES}", additionalChallenges)
-            .Replace("{ENCOUNTER_COMPLICATION}", encounterComplication)
-            .Replace("{MEMORY_CONTENT}", memoryContent)
-            .Replace("{PLAYER_INVENTORY}", playerInventory);
+            .Replace("{ENCOUNTER_COMPLICATION}", encounterComplication);
 
         return CreatePromptJson(prompt);
     }
@@ -170,63 +166,6 @@ public class PromptManager
             return "Unkown";
     }
 
-    private string FormatPlayerInventory(Inventory inventory)
-    {
-        if (inventory == null || inventory.UsedCapacity == 0)
-        {
-            return "No significant items";
-        }
-
-        StringBuilder sb = new StringBuilder();
-        sb.AppendLine("Carrying:");
-
-        // Group items by type and count them
-        Dictionary<ItemTypes, int> itemCounts = new Dictionary<ItemTypes, int>();
-        foreach (ItemTypes itemType in Enum.GetValues(typeof(ItemTypes)))
-        {
-            if (itemType != ItemTypes.None)
-            {
-                int count = inventory.GetItemCount(itemType);
-                if (count > 0)
-                {
-                    itemCounts[itemType] = count;
-                }
-            }
-        }
-
-        // Format items with counts
-        foreach (KeyValuePair<ItemTypes, int> item in itemCounts)
-        {
-            string itemName = GetItemName(item.Key);
-
-            if (item.Value > 1)
-            {
-                sb.AppendLine($"- {itemName} ({item.Value})");
-            }
-            else
-            {
-                sb.AppendLine($"- {itemName}");
-            }
-        }
-
-        return sb.ToString();
-    }
-
-    private string GetItemName(ItemTypes itemType)
-    {
-        // Convert enum to display name
-        return SplitCamelCase(itemType.ToString());
-    }
-
-    public static string SplitCamelCase(string str)
-    {
-        return System.Text.RegularExpressions.Regex.Replace(
-            str,
-            "([A-Z])",
-            " $1",
-            System.Text.RegularExpressions.RegexOptions.Compiled).Trim();
-    }
-
     public string BuildReactionPrompt(
         NarrativeContext context,
         IChoice chosenOption,
@@ -270,49 +209,37 @@ public class PromptManager
         // Extract encounter goal from inciting action
         string encounterGoal = context.ActionImplementation.Goal;
 
-        // Get character status summary
-        string characterStatus = BuildCharacterStatusSummary(state);
-
-        string characterArchetype = state.PlayerState.Archetype.ToString();
-        string naturalApproaches = state.PlayerState.GetNaturalApproachesText(context.EncounterType);
-        string dangerousApproaches = state.PlayerState.GetDangerousApproachesText(context.EncounterType);
-
         // Replace placeholders in template
         string prompt = template
-            .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
+            .Replace("{ENCOUNTER_TYPE}", state.EncounterType.ToString())
             .Replace("{CURRENT_TURN}", context.Events.Count.ToString())
             .Replace("{MAX_TURNS}", state.MaxTurns.ToString())
-            .Replace("{NEW_MOMENTUM}", state.Momentum.ToString())
-            .Replace("{MAX_MOMENTUM}", state.MaxMomentum.ToString())
             .Replace("{SUCCESS_THRESHOLD}", state.SuccessThreshold.ToString())
+            .Replace("{NEW_MOMENTUM}", state.Momentum.ToString())
+            .Replace("{OLD_MOMENTUM}", previousMomentum.ToString())
+            .Replace("{MAX_MOMENTUM}", state.MaxMomentum.ToString())
             .Replace("{NEW_PRESSURE}", state.Pressure.ToString())
+            .Replace("{OLD_PRESSURE}", previousPressure.ToString())
             .Replace("{MAX_PRESSURE}", state.MaxPressure.ToString())
-            .Replace("{CURRENT_HEALTH}", state.Health.ToString())
-            .Replace("{MAX_HEALTH}", state.MaxHealth.ToString())
-            .Replace("{CURRENT_CONFIDENCE}", state.Confidence.ToString())
-            .Replace("{MAX_CONFIDENCE}", state.MaxConfidence.ToString())
-            .Replace("{CURRENT_CONCENTRATION}", state.Concentration.ToString())
-            .Replace("{MAX_CONCENTRATION}", state.MaxConcentration.ToString())
-            .Replace("{ENCOUNTER_STAGE}", encounterStage)
+            .Replace("{ACTIVE_TAGS}", FormatTags(state.ActiveTags.Select(x => x.Name).ToList())
+            .Replace("{ENCOUNTER_GOAL}", context.ActionImplementation.Goal)
+            .Replace("{ENCOUNTER_COMPLICATION}", context.ActionImplementation.Complication)
             .Replace("{SELECTED_CHOICE}", choiceDescription.ShorthandName)
             .Replace("{CHOICE_DESCRIPTION}", choiceDescription.FullDescription)
-            .Replace("{CHOICE_APPROACH}", primaryApproach.ToString())
-            .Replace("{CHOICE_FOCUS}", chosenOption.Focus.ToString())
-            .Replace("{MOMENTUM_CHANGE}", outcome.MomentumGain.ToString())
-            .Replace("{OLD_MOMENTUM}", previousMomentum.ToString())
-            .Replace("{PRESSURE_CHANGE}", outcome.PressureGain.ToString())
-            .Replace("{OLD_PRESSURE}", previousPressure.ToString())
+            .Replace("{OLD_HEALTH}", (state.Health - outcome.HealthChange).ToString())
+            .Replace("{NEW_HEALTH}", state.Health.ToString())
+            .Replace("{MAX_HEALTH}", state.MaxHealth.ToString())
+            .Replace("{OLD_CONFIDENCE}", (state.Confidence - outcome.ConfidenceChange).ToString())
+            .Replace("{NEW_CONFIDENCE}", state.Confidence.ToString())
+            .Replace("{MAX_CONFIDENCE}", state.MaxConfidence.ToString())
+            .Replace("{OLD_CONCENTRATION}", (state.Concentration - outcome.ConcentrationChange).ToString())
+            .Replace("{NEW_CONCENTRATION}", state.Concentration.ToString())
+            .Replace("{MAX_CONCENTRATION}", state.MaxConcentration.ToString()
             .Replace("{APPROACH_CHANGES}", FormatApproachChanges(outcome.EncounterStateTagChanges))
             .Replace("{FOCUS_CHANGES}", FormatFocusChanges(outcome.FocusTagChanges))
-            .Replace("{HEALTH_CHANGE}", outcome.HealthChange.ToString())
-            .Replace("{CONFIDENCE_CHANGE}", outcome.ConfidenceChange.ToString())
-            .Replace("{CONCENTRATION_CHANGE}", outcome.ConcentrationChange.ToString())
-            .Replace("{NEW_TAGS_ACTIVATED}", FormatNewlyActivatedTags(outcome.NewlyActivatedTags))
-            .Replace("{STRATEGIC_EFFECTS}", strategicEffects.ToString())
-            .Replace("{CHARACTER_GOAL}", encounterGoal)
-            .Replace("{CHARACTER_ARCHETYPE}", characterArchetype)
-            .Replace("{NATURAL_APPROACHES}", naturalApproaches)
-            .Replace("{DANGEROUS_APPROACHES}", dangerousApproaches);
+            .Replace("{PLAYER_STATUS}", BuildCharacterStatusSummary(state))
+            .Replace("{NEW_TAGS_ACTIVATED}", FormatTags(outcome.NewlyActivatedTags))
+            .Replace("{STRATEGIC_EFFECTS}", strategicEffects.ToString())));
 
         return CreatePromptJson(prompt);
     }
@@ -400,43 +327,45 @@ CHOICE {i + 1}:
             }
         }
 
-        string characterArchetype = state.PlayerState.Archetype.ToString();
-        string naturalApproaches = state.PlayerState.GetNaturalApproachesText(context.EncounterType);
-        string dangerousApproaches = state.PlayerState.GetDangerousApproachesText(context.EncounterType);
-
-        // Get character condition/resources
-        string characterCondition = BuildCharacterStatusSummary(state);
-
-        // Get the approach and focus for each choice
-        Dictionary<int, string> choiceApproaches = ExtractChoiceApproaches(choices);
-        Dictionary<int, string> choiceFocuses = ExtractChoiceFocuses(choices);
-
         // Replace placeholders in template
         string prompt = template
-            .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
+            .Replace("{ENCOUNTER_TYPE}", state.EncounterType.ToString())
             .Replace("{CURRENT_TURN}", context.Events.Count.ToString())
             .Replace("{MAX_TURNS}", state.MaxTurns.ToString())
-            .Replace("{CURRENT_MOMENTUM}", state.Momentum.ToString())
-            .Replace("{MAX_MOMENTUM}", state.MaxMomentum.ToString())
             .Replace("{SUCCESS_THRESHOLD}", state.SuccessThreshold.ToString())
-            .Replace("{CURRENT_PRESSURE}", state.Pressure.ToString())
+            .Replace("{MOMENTUM}", state.Momentum.ToString())
+            .Replace("{MAX_MOMENTUM}", state.MaxMomentum.ToString())
+            .Replace("{PRESSURE}", state.Pressure.ToString())
             .Replace("{MAX_PRESSURE}", state.MaxPressure.ToString())
-            .Replace("{CURRENT_HEALTH}", state.Health.ToString())
+            .Replace("{ACTIVE_TAGS}", FormatTags(state.ActiveTags.Select(x => x.Name).ToList())
+            .Replace("{ENCOUNTER_GOAL}", context.ActionImplementation.Goal)
+            .Replace("{ENCOUNTER_COMPLICATION}", context.ActionImplementation.Complication)
+            .Replace("{HEALTH}", state.Health.ToString())
             .Replace("{MAX_HEALTH}", state.MaxHealth.ToString())
-            .Replace("{CURRENT_CONFIDENCE}", state.Confidence.ToString())
+            .Replace("{CONFIDENCE}", state.Confidence.ToString())
             .Replace("{MAX_CONFIDENCE}", state.MaxConfidence.ToString())
-            .Replace("{CURRENT_CONCENTRATION}", state.Concentration.ToString())
-            .Replace("{MAX_CONCENTRATION}", state.MaxConcentration.ToString())
-            .Replace("{ENCOUNTER_STAGE}", encounterStage)
-            .Replace("{CHARACTER_ARCHETYPE}", characterArchetype)
-            .Replace("{NATURAL_APPROACHES}", naturalApproaches)
-            .Replace("{DANGEROUS_APPROACHES}", dangerousApproaches)
-            .Replace("{ACTIVE_TAGS}", narrativeTagsInfo.ToString())
-            .Replace("{INJURIES/RESOURCES/CONDITION}", characterCondition)
-            .Replace("{CHARACTER_GOAL}", context.ActionImplementation.Goal)
-            .Replace("{CHOICES_INFO}", choicesInfo.ToString());
+            .Replace("{CONCENTRATION}", state.Concentration.ToString())
+            .Replace("{MAX_CONCENTRATION}", state.MaxConcentration.ToString()
+            .Replace("{PLAYER_STATUS}", BuildCharacterStatusSummary(state))
+            .Replace("{CHOICES_INFO}", choicesInfo.ToString())));
 
         return CreatePromptJson(prompt);
+    }
+
+    private string BuildCharacterStatusSummary(EncounterStatusModel state)
+    {
+        StringBuilder status = new StringBuilder();
+
+        if (state.Health < state.MaxHealth)
+            status.Append($"Health: {state.Health}/{state.MaxHealth}. ");
+
+        if (state.Confidence < state.MaxConfidence)
+            status.Append($"Confidence: {state.Confidence}/{state.MaxConfidence}. ");
+
+        if (state.Concentration < state.MaxConcentration)
+            status.Append($"Concentration: {state.Concentration}/{state.MaxConcentration}. ");
+
+        return status.Length > 0 ? status.ToString() : "In good condition";
     }
 
     public string BuildEncounterEndPrompt(
@@ -528,10 +457,10 @@ CHOICE {i + 1}:
         return builder.ToString();
     }
 
-    private string FormatNewlyActivatedTags(List<string> newTags)
+    private string FormatTags(List<string> newTags)
     {
         if (newTags == null || !newTags.Any())
-            return "No newly activated tags";
+            return "No tags";
 
         StringBuilder builder = new StringBuilder();
         foreach (string tag in newTags)
@@ -625,12 +554,6 @@ CHOICE {i + 1}:
         return jsonBuilder.ToString();
     }
 
-    public string GetSystemMessage()
-    {
-        string template = _promptTemplates[SYSTEM_MD];
-        return template;
-    }
-
     private void LoadPromptTemplates(string basePath)
     {
         // Load all JSON files in the prompts directory
@@ -670,70 +593,26 @@ CHOICE {i + 1}:
         return "Late";
     }
 
-    private string BuildCharacterStatusSummary(EncounterStatusModel state)
-    {
-        StringBuilder status = new StringBuilder();
-
-        if (state.Health < state.MaxHealth)
-            status.Append($"Health: {state.Health}/{state.MaxHealth}. ");
-
-        if (state.Confidence < state.MaxConfidence)
-            status.Append($"Confidence: {state.Confidence}/{state.MaxConfidence}. ");
-
-        if (state.Concentration < state.MaxConcentration)
-            status.Append($"Concentration: {state.Concentration}/{state.MaxConcentration}. ");
-
-        return status.Length > 0 ? status.ToString() : "In good condition";
-    }
-
-    private Dictionary<int, string> ExtractChoiceApproaches(List<IChoice> choices)
-    {
-        Dictionary<int, string> approaches = new Dictionary<int, string>();
-        for (int i = 0; i < choices.Count; i++)
-        {
-            approaches[i + 1] = GetPrimaryApproach(choices[i]).ToString();
-        }
-        return approaches;
-    }
-
-    private Dictionary<int, string> ExtractChoiceFocuses(List<IChoice> choices)
-    {
-        Dictionary<int, string> focuses = new Dictionary<int, string>();
-        for (int i = 0; i < choices.Count; i++)
-        {
-            focuses[i + 1] = choices[i].Focus.ToString();
-        }
-        return focuses;
-    }
-
     public string BuildPostEncounterEvolutionPrompt(PostEncounterEvolutionInput input)
     {
         string template = _promptTemplates[WORLD_EVOLUTION_MD];
 
         return template
-            // Existing replacements
             .Replace("{characterBackground}", input.CharacterBackground)
             .Replace("{currentLocation}", input.CurrentLocation)
             .Replace("{encounterOutcome}", input.EncounterOutcome)
-
             .Replace("{health}", input.Health.ToString())
             .Replace("{maxHealth}", input.MaxHealth.ToString())
             .Replace("{energy}", input.Energy.ToString())
             .Replace("{maxEnergy}", input.MaxEnergy.ToString())
-
-            // New replacements for world context
-            .Replace("{allKnownLocations}", input.KnownLocations ?? "None")
-            .Replace("{connectedLocations}", input.ConnectedLocations ?? "None")
-
-            .Replace("{currentLocationSpots}", input.CurrentLocationSpots ?? "None")
-            .Replace("{allExistingActions}", input.AllExistingActions ?? "None")
-
+            .Replace("{allKnownLocations}", input.KnownLocations)
+            .Replace("{connectedLocations}", input.ConnectedLocations)
+            .Replace("{currentLocationSpots}", input.CurrentLocationSpots)
+            .Replace("{allExistingActions}", input.AllExistingActions)
             .Replace("{knownCharacters}", input.KnownCharacters)
             .Replace("{activeOpportunities}", input.ActiveOpportunities)
-
-            .Replace("{currentLocationSpots}", input.CurrentLocationSpots ?? "None")
-            .Replace("{connectedLocations}", input.ConnectedLocations ?? "None")
-
+            .Replace("{currentLocationSpots}", input.CurrentLocationSpots)
+            .Replace("{connectedLocations}", input.ConnectedLocations)
             .Replace("{locationDepth}", input.CurrentDepth.ToString())
             .Replace("{lastHubDepth}", input.LastHubDepth.ToString());
     }
@@ -744,18 +623,12 @@ CHOICE {i + 1}:
 
         // Replace placeholders in template
         string prompt = template
-
-            // Existing replacements
             .Replace("{characterArchetype}", input.CharacterArchetype)
             .Replace("{locationName}", input.TravelDestination)
-
-            // New replacements for world context
-            .Replace("{allKnownLocations}", input.KnownLocations ?? "None")
+            .Replace("{allKnownLocations}", input.KnownLocations)
             .Replace("{originLocationName}", input.TravelOrigin)
-
             .Replace("{knownCharacters}", input.KnownCharacters)
             .Replace("{activeOpportunities}", input.ActiveOpportunities)
-
             .Replace("{locationDepth}", input.CurrentDepth.ToString())
             .Replace("{lastHubDepth}", input.LastHubDepth.ToString());
 
@@ -770,5 +643,30 @@ CHOICE {i + 1}:
             .Replace("{FILE_CONTENT}", input.OldMemory);
 
         return prompt;
+    }
+
+    public string GetSystemMessage(WorldStateInput input)
+    {
+        string staticSystemPrompt = _promptTemplates[SYSTEM_MD1];
+
+        string dynamicSystemPrompt = staticSystemPrompt
+            .Replace("{CHARACTER_ARCHETYPE}", input.CharacterArchetype)
+            .Replace("{NATURAL_APPROACHES}", input.NaturalApproaches)
+            .Replace("{DANGEROUS_APPROACHES}", input.DangerousApproaches)
+            .Replace("{ENERGY}", input.Energy.ToString())
+            .Replace("{MAX_ENERGY}", input.MaxEnergy.ToString())
+            .Replace("{COINS}", input.Coins.ToString())
+            .Replace("{CURRENT_LOCATION}", input.CurrentLocation)
+            .Replace("{LOCATION_DEPTH}", input.LocationDepth.ToString())
+            .Replace("{CURRENT_SPOT}", input.CurrentSpot)
+            .Replace("{CONNECTED_LOCATIONS}", input.ConnectedLocations)
+            .Replace("{LOCATION_SPOTS}", input.LocationSpots)
+            .Replace("{INVENTORY}", input.Inventory)
+            .Replace("{RELATIONSHIPS}", input.Relationships)
+            .Replace("{KNOWN_CHARACTERS}", input.KnownCharacters)
+            .Replace("{ACTIVE_OPPORTUNITIES}", input.ActiveOpportunities)
+            .Replace("{MEMORY_SUMMARY}", input.MemorySummary);
+
+        return dynamicSystemPrompt;
     }
 }

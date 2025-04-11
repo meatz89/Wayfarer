@@ -126,6 +126,8 @@
         //SpecialChoice negotiatePriceChoice = GetSpecialChoiceFor(encounter);
         //choiceRepository.AddSpecialChoice(encounter.Name, negotiatePriceChoice);
 
+        WorldStateInput worldStateInput = new WorldStateInput();
+
         // Start the encounter with narrative
         NarrativeResult initialResult = await encounterManager.StartEncounterWithNarrativeAsync(
             location,
@@ -133,7 +135,8 @@
             worldState,
             playerState,
             actionImplementation,
-            currentAIProvider);  // Pass the current provider type
+            currentAIProvider,
+            worldStateInput);
 
         CurrentResult = new EncounterResult()
         {
@@ -149,7 +152,8 @@
     public async Task<EncounterResult> ExecuteChoice(
         EncounterManager encounter,
         NarrativeResult narrativeResult,
-        IChoice choice)
+        IChoice choice,
+        WorldStateInput worldStateInput)
     {
         NarrativeResult currentResult = narrativeResult;
 
@@ -178,7 +182,8 @@
             choice,
             encounter.playerState,
             encounter.worldState,
-            selectedDescription);
+            selectedDescription,
+            worldStateInput);
 
         if (currentResult.IsEncounterOver)
         {

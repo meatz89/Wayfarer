@@ -22,13 +22,15 @@
             }
 
             <div class="tooltip-section">
-                <h5>Encounter Consequences</h5>
+                <h5>
+                    Encounter Consequences
+                </h5>
                 <div class="tooltip-list">
                     @if (Result.EncounterResults == EncounterResults.EncounterSuccess)
                     {
                         foreach (Outcome reward in GetActionOutcomesSuccess())
                         {
-                            <div class="tooltip-item wide">
+                            <div class="encounter-result-item wide">
                                 <div class="tooltip-item-header">
                                     <div class="tooltip-item-title">
                                         @GetOutcomeIcon(reward)
@@ -47,7 +49,7 @@
                     {
                         @foreach (Outcome reward in GetActionOutcomesFailure())
                         {
-                            <div class="tooltip-item wide">
+                            <div class="encounter-result-item wide">
                                 <div class="tooltip-item-header">
                                     <div class="tooltip-item-title">
                                         @GetOutcomeIcon(reward)
@@ -68,7 +70,7 @@
                 <div class="tooltip-list">
                     @foreach (Outcome cost in GetEnergyCosts())
                     {
-                        <div class="tooltip-item wide">
+                        <div class="encounter-result-item wide">
                             <div class="tooltip-item-header">
                                 <div class="tooltip-item-title">
                                     @GetOutcomeIcon(cost)
@@ -94,7 +96,7 @@
                         <div class="tooltip-list">
                             @foreach (var location in GetLocationChangesWithDepth())
                             {
-                                <div class="tooltip-item wide">
+                                <div class="encounter-result-item wide">
                                     <div class="tooltip-item-header">
                                         <div class="tooltip-item-title">
                                             @GetEvolutionIcon(location.Type)
@@ -126,7 +128,7 @@
                         <div class="tooltip-list">
                             @foreach (var action in GetActionChangesWithEnergy())
                             {
-                                <div class="tooltip-item wide">
+                                <div class="encounter-result-item wide">
                                     <div class="tooltip-item-header">
                                         <div class="tooltip-item-title">
                                             @GetEvolutionIcon("Action")
@@ -152,7 +154,7 @@
                         <div class="tooltip-list">
                             @foreach (var character in GetCharacterChanges())
                             {
-                                <div class="tooltip-item wide">
+                                <div class="encounter-result-item wide">
                                     <div class="tooltip-item-header">
                                         <div class="tooltip-item-title">
                                             @GetEvolutionIcon("Character")
@@ -174,7 +176,7 @@
                         <div class="tooltip-list">
                             @foreach (var relationship in GetRelationshipChanges())
                             {
-                                <div class="tooltip-item wide">
+                                <div class="encounter-result-item wide">
                                     <div class="tooltip-item-header">
                                         <div class="tooltip-item-title">
                                             @GetEvolutionIcon("Relationship")
@@ -194,7 +196,7 @@
                     {
                         <h6>Coin Changes</h6>
                         <div class="tooltip-list">
-                            <div class="tooltip-item wide">
+                            <div class="encounter-result-item wide">
                                 <div class="tooltip-item-header">
                                     <div class="tooltip-item-title">
                                         <i class='value-icon coins-icon'>💰</i>
@@ -215,7 +217,7 @@
                         <div class="tooltip-list">
                             @foreach (var resource in GetResourceChanges())
                             {
-                                <div class="tooltip-item wide">
+                                <div class="encounter-result-item wide">
                                     <div class="tooltip-item-header">
                                         <div class="tooltip-item-title">
                                             @GetEvolutionIcon(resource.ChangeType)

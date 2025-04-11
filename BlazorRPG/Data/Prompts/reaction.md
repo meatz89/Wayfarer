@@ -2,27 +2,32 @@
 
 # NARRATIVE REACTION
 
+## Encounter State 
+- Encounter Type: {ENCOUNTER_TYPE}
+- Current Turn: {CURRENT_TURN}/{MAX_TURNS}
+- Momentum: {OLD_MOMENTUM}/{MAX_MOMENTUM} (Success at {SUCCESS_THRESHOLD})
+- Pressure: {OLD_PRESSURE}/{MAX_PRESSURE}
+- Active Narrative Tags: {ACTIVE_TAGS}
+- Goal: {ENCOUNTER_GOAL}
+- Complication: {ENCOUNTER_COMPLICATION}
+
+## Player Character Status
+{PLAYER_STATUS}
+
 ## Player's Choice
 '{SELECTED_CHOICE}' (Player Intent: '{CHOICE_DESCRIPTION}')
 CRITICAL: This choice represents the player's INTENT only, not what actually happens. The actual outcome must be driven by the mechanical changes below.
 This choice has NOT YET HAPPENED and must be executed in this scene.
 
-## Player Character Context
-- Archetype: {CHARACTER_ARCHETYPE} (Avoid announcing directly)
-- Natural Approaches: {NATURAL_APPROACHES}
-- Dangerous Approaches: {DANGEROUS_APPROACHES}
-
 ## Mechanical Changes (Must Be Reflected In Narrative)
-- Type: {ENCOUNTER_TYPE} | Turn: {CURRENT_TURN}/{MAX_TURNS} | Stage: {ENCOUNTER_STAGE}
-- Momentum: {OLD_MOMENTUM} → {NEW_MOMENTUM}/{MAX_MOMENTUM}
-- Pressure: {OLD_PRESSURE} → {NEW_PRESSURE}/{MAX_PRESSURE}
-- Resources: Health {HEALTH_CHANGE}, Confidence {CONFIDENCE_CHANGE}, Concentration {CONCENTRATION_CHANGE}
+- Momentum Change: {OLD_MOMENTUM} → {NEW_MOMENTUM}
+- Pressure Change: {OLD_PRESSURE} → {NEW_PRESSURE}
+- Health Change: {OLD_HEALTH} → {NEW_HEALTH}/{MAX_HEALTH}
+- Confidence Change: {OLD_CONFIDENCE} → {NEW_CONFIDENCE}/{MAX_CONFIDENCE}
+- Concentration Change: {OLD_CONCENTRATION} → {NEW_CONCENTRATION}/{MAX_CONCENTRATION}
 - Approach Changes: {APPROACH_CHANGES} | Focus Changes: {FOCUS_CHANGES}
 - New Tags: {NEW_TAGS_ACTIVATED}
 - Strategic Effects: {STRATEGIC_EFFECTS}
-
-## Encounter Context
-- Goal: {CHARACTER_GOAL}
 
 ## Character Continuity
 - Limit new NAMED characters to 1-2 per encounter (not per turn)

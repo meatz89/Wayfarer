@@ -26,10 +26,14 @@
 
     }
 
-    public override async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatusModel state, string memoryContent)
+    public override async Task<string> GenerateIntroductionAsync(
+        NarrativeContext context, 
+        EncounterStatusModel state, 
+        string memoryContent,
+        WorldStateInput worldStateInput)
     {
         string conversationId = $"{context.LocationName}_encounter"; // Consistent ID
-        string systemMessage = _promptManager.GetSystemMessage();
+        string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
         string prompt = _promptManager.BuildIntroductionPrompt(context, state, memoryContent);
 
         _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
@@ -54,10 +58,11 @@
         NarrativeContext context,
         List<IChoice> choices,
         List<ChoiceProjection> projections,
-        EncounterStatusModel state)
+        EncounterStatusModel state,
+        WorldStateInput worldStateInput)
     {
         string conversationId = $"{context.LocationName}_encounter";
-        string systemMessage = _promptManager.GetSystemMessage();
+        string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
         string prompt = _promptManager.BuildChoicesPrompt(
             context, choices, projections, state);
 
@@ -91,10 +96,11 @@
         IChoice chosenOption,
         ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
-        EncounterStatusModel newState)
+        EncounterStatusModel newState,
+        WorldStateInput worldStateInput)
     {
         string conversationId = $"{context.LocationName}_encounter";
-        string systemMessage = _promptManager.GetSystemMessage();
+        string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
         string prompt = _promptManager.BuildReactionPrompt(
             context, chosenOption, choiceNarrative, outcome, newState);
 
@@ -128,10 +134,11 @@
         IChoice chosenOption,
         ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
-        EncounterStatusModel newState)
+        EncounterStatusModel newState,
+        WorldStateInput worldStateInput)
     {
         string conversationId = $"{context.LocationName}_encounter";
-        string systemMessage = _promptManager.GetSystemMessage();
+        string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
         string prompt = _promptManager.BuildEncounterEndPrompt(
             context, newState, outcome.Outcome, chosenOption, choiceNarrative);
 
@@ -161,10 +168,12 @@
     }
 
 
-    public override async Task<LocationDetails> GenerateLocationDetailsAsync(LocationCreationInput context)
+    public override async Task<LocationDetails> GenerateLocationDetailsAsync(
+        LocationCreationInput context,
+        WorldStateInput worldStateInput)
     {
-        string conversationId = $"{context.LocationName}_encounter"; // Same ID as introduction
-        string systemMessage = _promptManager.GetSystemMessage();
+        string conversationId = $"{context.LocationName}_encounter"; 
+        string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
         string prompt = _promptManager.BuildLocationCreationPrompt(context);
 
         ConversationEntry entrySystem = new ConversationEntry { Role = "system", Content = systemMessage };
@@ -189,10 +198,11 @@
 
     public override async Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(
         NarrativeContext context,
-        PostEncounterEvolutionInput input)
+        PostEncounterEvolutionInput input,
+        WorldStateInput worldStateInput)
     {
-        string conversationId = $"{context.LocationName}_encounter"; // Same ID as introduction
-        string systemMessage = _promptManager.GetSystemMessage();
+        string conversationId = $"{context.LocationName}_encounter"; 
+        string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
 
         string prompt = _promptManager.BuildPostEncounterEvolutionPrompt(input);
 
@@ -223,10 +233,11 @@
 
     public override async Task<string> ProcessMemoryConsolidation(
         NarrativeContext context,
-        MemoryConsolidationInput input)
+        MemoryConsolidationInput input,
+        WorldStateInput worldStateInput)
     {
-        string conversationId = $"{context.LocationName}_encounter"; // Same ID as introduction
-        string systemMessage = _promptManager.GetSystemMessage();
+        string conversationId = $"{context.LocationName}_encounter";
+        string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
 
         string prompt = _promptManager.BuildMemoryPrompt(input);
 
@@ -254,10 +265,12 @@
         return memoryContentResponse;
     }
 
-    public override async Task<string> GenerateActionsAsync(ActionGenerationContext context)
+    public override async Task<string> GenerateActionsAsync(
+        ActionGenerationContext context,
+        WorldStateInput worldStateInput)
     {
-        string conversationId = $"action_generation_{context.SpotName}"; // Unique conversation ID
-        string systemMessage = _promptManager.GetSystemMessage();
+        string conversationId = $"action_generation_{context.SpotName}";
+        string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
         string prompt = _promptManager.BuildActionGenerationPrompt(context);
 
         ConversationEntry entrySystem = new ConversationEntry { Role = "system", Content = systemMessage };

@@ -1,0 +1,31 @@
+﻿public class WorldStateInput
+{
+    public string CharacterArchetype { get; internal set; }
+    public string NaturalApproaches { get; internal set; }
+    public string DangerousApproaches { get; internal set; }
+
+    public int Health { get; set; }
+    public int MaxHealth { get; set; }
+    public int Concentration { get; set; }
+    public int MaxConcentration { get; set; }
+    public int Confidence { get; set; }
+    public int MaxConfidence { get; set; }
+    public int Energy { get; set; }
+    public int MaxEnergy { get; set; }
+    public int Coins { get; set; }
+
+    public string CurrentLocation { get; internal set; }
+    public int LocationDepth { get; set; }
+    public string CurrentSpot { get; internal set; }
+    public string ConnectedLocations { get; set; }
+    public string LocationSpots { get; set; }
+
+    public string Inventory { get; set; }
+    public string Relationships { get; set; }
+
+    public string KnownCharacters { get; set; }
+    public string ActiveOpportunities { get; set; }
+    
+    public string MemorySummary { get; set; }
+
+}

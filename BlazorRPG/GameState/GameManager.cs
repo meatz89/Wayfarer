@@ -1,4 +1,6 @@
-﻿public class GameManager
+﻿using System.Text;
+
+public class GameManager
 {
     public PlayerState playerState => gameState.PlayerState;
     public WorldState worldState => gameState.WorldState;
@@ -14,6 +16,8 @@
     public ActionRepository ActionRepository { get; }
     public TravelManager TravelManager { get; }
     public ActionGenerator ActionGenerator { get; }
+    public CharacterSystem CharacterSystem { get; }
+    public OpportunitySystem OpportunitySystem { get; }
     public EncounterSystem EncounterSystem { get; }
 
     public ActionImplementation actionImplementation;
@@ -36,6 +40,8 @@
         ActionRepository actionRepository,
         TravelManager travelManager,
         ActionGenerator actionGenerator,
+        CharacterSystem characterSystem,
+        OpportunitySystem opportunitySystem,
         IConfiguration configuration
         )
     {
@@ -51,6 +57,8 @@
         ActionRepository = actionRepository;
         TravelManager = travelManager;
         ActionGenerator = actionGenerator;
+        CharacterSystem = characterSystem;
+        OpportunitySystem = opportunitySystem;
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
         _useMemory = configuration.GetValue<bool>("useMemory");
     }
@@ -95,6 +103,8 @@
         Location location,
         LocationSpot locationSpot)
     {
+        WorldStateInput worldStateInput = await CreateWorldStateInput();
+
         List<string> locationSpotActions = locationSpot.ActionTemplates.ToList();
         foreach (string actionName in locationSpotActions)
         {
@@ -103,6 +113,7 @@
             {
                 string actionTemplateName =
                     await ActionGenerator.GenerateActionAndEncounter(
+                    worldStateInput,
                     actionName,
                     locationSpot.Name,
                     location.Name);
@@ -113,7 +124,7 @@
             EncounterTemplate encounterTemplate = ActionRepository.GetEncounterTemplate(actionTemplate.EncounterTemplateName);
             if (encounterTemplate == null)
             {
-                string encounterTemplateName = await ActionGenerator.CreateEncounterForAction(actionTemplate);
+                string encounterTemplateName = await ActionGenerator.CreateEncounterForAction(actionTemplate, worldStateInput);
                 encounterTemplate = ActionRepository.GetEncounterTemplate(encounterTemplateName);
             }
 
@@ -241,11 +252,14 @@
         EncounterManager encounter = choiceOption.encounter;
         Location location = LocationSystem.GetLocation(choiceOption.LocationName);
 
+        WorldStateInput worldStateInput = await CreateWorldStateInput();
+
         // Execute the choice
         EncounterResult encounterResult = await EncounterSystem.ExecuteChoice(
             encounter,
             currentResult.NarrativeResult,
-            choiceOption.Choice);
+            choiceOption.Choice,
+            worldStateInput);
 
         EncounterResults currentEncounterResult = encounterResult.EncounterResults;
         if (currentEncounterResult == EncounterResults.Ongoing)
@@ -315,14 +329,16 @@
                 // Prepare the input
                 PostEncounterEvolutionInput input = evolutionSystem.PreparePostEncounterEvolutionInput(narrative, outcome);
 
+                WorldStateInput worldStateInput = await CreateWorldStateInput();
+
                 // Process world evolution
-                PostEncounterEvolutionResult evolutionResponse = await evolutionSystem.ProcessEncounterOutcome(result.NarrativeContext, input, result);
+                PostEncounterEvolutionResult evolutionResponse = await evolutionSystem.ProcessEncounterOutcome(result.NarrativeContext, input, result, worldStateInput);
 
                 // Store the evolution response in the result
                 result.PostEncounterEvolution = evolutionResponse;
 
                 // Update world state
-                await evolutionSystem.IntegrateEncounterOutcome(evolutionResponse, worldState, LocationSystem, playerState);
+                await evolutionSystem.IntegrateEncounterOutcome(evolutionResponse, worldState, LocationSystem, playerState, worldStateInput);
             }
         }
     }
@@ -337,6 +353,8 @@
 
         Location location = gameState.WorldState.GetLocation(locationName);
 
+        WorldStateInput worldStateInput = await CreateWorldStateInput();
+
         // Check if this is the first visit
         bool knownLocation = location.PlayerKnowledge;
         if (!knownLocation)
@@ -349,7 +367,8 @@
                 locationToPopulate,
                 wasTravelEncounter,
                 travelOrigin.Name,
-                newLocationDepth);
+                newLocationDepth,
+                worldStateInput);
         }
 
         // Start with first spot
@@ -393,7 +412,9 @@
 
         // Create memory entry
         MemoryConsolidationInput memoryInput = new MemoryConsolidationInput { OldMemory = oldMemory };
-        string memoryEntry = await evolutionSystem.ConsolidateMemory(encounterResult.NarrativeContext, memoryInput);
+        WorldStateInput worldStateInput = await CreateWorldStateInput();
+
+        string memoryEntry = await evolutionSystem.ConsolidateMemory(encounterResult.NarrativeContext, memoryInput, worldStateInput);
 
         string location = encounterResult.Encounter.GetNarrativeContext().LocationName;
         string locationSpot = encounterResult.Encounter.GetNarrativeContext().locationSpotName;
@@ -628,6 +649,108 @@
         // Create a unique ID based on location, spot, and action
         NarrativeContext context = result.NarrativeContext;
         return $"{context.LocationName}_{context.locationSpotName}_{context.ActionImplementation.Name}";
+    }
+
+    private async Task<WorldStateInput> CreateWorldStateInput()
+    {
+        WorldState worldState = gameState.WorldState;
+        PlayerState playerState = gameState.PlayerState;
+
+        // Get current depth and hub depth
+        int currentDepth = worldState.GetLocationDepth(worldState.CurrentLocation?.Name ?? "");
+
+        // Create context for location generation
+        WorldStateInput context = new WorldStateInput
+        {
+            CharacterArchetype = playerState.Archetype.ToString(),
+            NaturalApproaches = playerState.GetNaturalApproachesText(EncounterTypes.Physical),
+            DangerousApproaches = playerState.GetDangerousApproachesText(EncounterTypes.Physical),
+
+            Health = playerState.Health,
+            MaxHealth = playerState.MaxHealth,
+            Concentration = playerState.Concentration,
+            MaxConcentration = playerState.MaxConcentration,
+            Confidence = playerState.Confidence,
+            MaxConfidence = playerState.MaxConfidence,
+            Energy = playerState.Energy,
+            MaxEnergy = playerState.MaxEnergy,
+            Coins = playerState.Coins,
+
+            CurrentLocation = worldState.CurrentLocation.Name,
+            LocationSpots = LocationSystem.FormatLocationSpots(worldState.CurrentLocation),
+            CurrentSpot = worldState.CurrentLocationSpot.Name,
+            LocationDepth = currentDepth,
+            ConnectedLocations = LocationSystem.FormatLocations(LocationSystem.GetConnectedLocations()),
+
+            Inventory = FormatPlayerInventory(playerState.Inventory),
+            Relationships = playerState.Relationships.ToString(),
+
+            KnownCharacters = CharacterSystem.FormatKnownCharacters(worldState.GetCharacters()),
+            ActiveOpportunities = OpportunitySystem.FormatActiveOpportunities(worldState.GetOpportunities()),
+
+            MemorySummary = await MemoryFileAccess.ReadFromMemoryFile(),
+        };
+
+        await MemoryFileAccess.WriteToLogFile(context);
+        
+        return context;
+    }
+
+    private string FormatPlayerInventory(Inventory inventory)
+    {
+        if (inventory == null || inventory.UsedCapacity == 0)
+        {
+            return "No significant items";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.AppendLine("Carrying:");
+
+        // Group items by type and count them
+        Dictionary<ItemTypes, int> itemCounts = new Dictionary<ItemTypes, int>();
+        foreach (ItemTypes itemType in Enum.GetValues(typeof(ItemTypes)))
+        {
+            if (itemType != ItemTypes.None)
+            {
+                int count = inventory.GetItemCount(itemType);
+                if (count > 0)
+                {
+                    itemCounts[itemType] = count;
+                }
+            }
+        }
+
+        // Format items with counts
+        foreach (KeyValuePair<ItemTypes, int> item in itemCounts)
+        {
+            string itemName = GetItemName(item.Key);
+
+            if (item.Value > 1)
+            {
+                sb.AppendLine($"- {itemName} ({item.Value})");
+            }
+            else
+            {
+                sb.AppendLine($"- {itemName}");
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    private string GetItemName(ItemTypes itemType)
+    {
+        // Convert enum to display name
+        return SplitCamelCase(itemType.ToString());
+    }
+
+    public static string SplitCamelCase(string str)
+    {
+        return System.Text.RegularExpressions.Regex.Replace(
+            str,
+            "([A-Z])",
+            " $1",
+            System.Text.RegularExpressions.RegexOptions.Compiled).Trim();
     }
 
 }
