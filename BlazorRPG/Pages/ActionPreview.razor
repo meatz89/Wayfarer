@@ -3,27 +3,7 @@
 <div class="action-preview">
     <div class="preview-header">
         <h4>@GetActionName()</h4>
-        <div class="secondary-text">@GetActionDescription()</div>
-    </div>
-
-    <div class="tooltip-section">
-        <h5>Base Costs</h5>
-        <div class="tooltip-list">
-            @foreach (Outcome cost in CurrentAction.ActionImplementation.EnergyCosts)
-            {
-                <div class="tooltip-item">
-                    <div class="tooltip-item-header">
-                        <div class="tooltip-item-title">
-                            @GetOutcomeIcon(cost)
-                            <span class="tooltip-item-name">@cost.GetDescription()</span>
-                        </div>
-                        <span class="tooltip-item-value negative-change">
-                            @cost.GetPreview(GameState.PlayerState)
-                        </span>
-                    </div>
-                </div>
-            }
-        </div>
+        <p class="action-description">@GetActionDescription()</p>
     </div>
 
     @if (GetRequirementDescriptions().Any())
@@ -31,17 +11,11 @@
         <div class="tooltip-section">
             <h5>Requirements</h5>
             <div class="tooltip-list">
-                @foreach (Requirement req in CurrentAction.ActionImplementation.Requirements)
+                @foreach (string req in GetRequirementDescriptions())
                 {
                     <div class="tooltip-item">
-                        <div class="tooltip-item-header">
-                            <div class="tooltip-item-title">
-                                @GetRequirementIcon(req)
-                                <span class="tooltip-item-name">@req.GetDescription()</span>
-                            </div>
-                            <span class="tooltip-item-value @(req.IsSatisfied(GameState) ? "positive-change" : "negative-change")">
-                                @(req.IsSatisfied(GameState) ? "✓" : "✗")
-                            </span>
+                        <div class="tooltip-item-content">
+                            @((MarkupString)req)
                         </div>
                     </div>
                 }
@@ -49,7 +23,7 @@
         </div>
     }
 
-    @if (GetCosts().Count > 0)
+    @if (GetCosts().Any())
     {
         <div class="tooltip-section">
             <h5>Costs</h5>
@@ -62,6 +36,9 @@
                                 @GetOutcomeIcon(cost)
                                 <span class="tooltip-item-name">@cost.GetDescription()</span>
                             </div>
+                            <span class="tooltip-item-value negative-change">
+                                @cost.GetPreview(GameState.PlayerState)
+                            </span>
                         </div>
                     </div>
                 }
@@ -69,10 +46,10 @@
         </div>
     }
 
-    @if (GetRewards().Count > 0)
+    @if (GetRewards().Any())
     {
         <div class="tooltip-section">
-            <h5>Rewards</h5>
+            <h5>Potential Outcomes</h5>
             <div class="tooltip-list">
                 @foreach (Outcome reward in GetRewards())
                 {
@@ -82,10 +59,18 @@
                                 @GetOutcomeIcon(reward)
                                 <span class="tooltip-item-name">@reward.GetDescription()</span>
                             </div>
+                            <span class="tooltip-item-value positive-change">
+                                @reward.GetPreview(GameState.PlayerState)
+                            </span>
                         </div>
                     </div>
                 }
             </div>
         </div>
     }
+
+    <div class="action-buttons">
+        <button class="action-button confirm-button" @onclick="HandleConfirm">Proceed</button>
+        <button class="action-button cancel-button" @onclick="HandleBack">Back</button>
+    </div>
 </div>

@@ -79,7 +79,7 @@
 
                 
             <div class="location-properties">
-                <div class="properties-header">Properties</div>
+                <div class="properties-header">Location Info</div>
                 <div class="properties-grid">
                     @foreach (var prop in GetLocationProperties(GetCurrentLocation()))
                     {
@@ -91,8 +91,7 @@
                 </div>
             </div>
 
-            <div class="sidebar-panel player-panel">
-                <div class="panel-title">Character Stats</div>
+            <div class="player-panel">
                 <div class="panel-content">
                     
                     <!-- Archetype -->
@@ -106,29 +105,37 @@
                     <div class="properties-header">Status</div>
                     <div class="stat-grid">
                         <div class="player-stat">
-                            <span class="stat-icon">❤️</span>
+                            <div class="stats-header">
+                                <span class="stat-icon">❤️</span>
                             <span class="stat-label">Health</span>
+                            </div>
                             <span class="stat-value @(PlayerState.Health < PlayerState.MaxHealth / 3 ? "danger" : "")">
-                                @PlayerState.Health / @PlayerState.MaxHealth
+                            @PlayerState.Health / @PlayerState.MaxHealth
                             </span>
                         </div>
                         <div class="player-stat">
-                            <span class="stat-icon">🧠</span>
-                            <span class="stat-label">Concentration</span>
+                                <div class="stats-header">
+                                    <span class="stat-icon">🧠</span>
+                                 <span class="stat-label">Concentration</span>
+                                </div>
+                                <span class="stat-value">
+                            @PlayerState.Concentration / @PlayerState.MaxConcentration
+                            </span>
+                        </div>
+                        <div class="player-stat">
+                            <div class="stats-header">
+                                <span class="stat-icon">🗣️</span>
+                                <span class="stat-label">Confidence</span>
+                            </div>
                             <span class="stat-value">
-                                @PlayerState.Concentration / @PlayerState.MaxConcentration
+                            @PlayerState.Confidence / @PlayerState.MaxConfidence
                             </span>
                         </div>
                         <div class="player-stat">
-                            <span class="stat-icon">🗣️</span>
-                            <span class="stat-label">Confidence</span>
-                            <span class="stat-value">
-                                @PlayerState.Confidence / @PlayerState.MaxConfidence
-                            </span>
-                        </div>
-                        <div class="player-stat">
-                            <span class="stat-icon">⚡</span>
-                            <span class="stat-label">Energy</span>
+                            <div class="stats-header">
+                                <span class="stat-icon">⚡</span>
+                                <span class="stat-label">Energy</span>
+                            </div>
                             <span class="stat-value @(PlayerState.Energy < PlayerState.MaxEnergy / 3 ? "danger" : "")">
                                 @PlayerState.Energy / @PlayerState.MaxEnergy
                             </span>
