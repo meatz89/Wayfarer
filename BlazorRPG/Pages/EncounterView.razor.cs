@@ -6,6 +6,7 @@ using System.Text;
 public partial class EncounterViewBase : ComponentBase
 {
     [Inject] public IJSRuntime JSRuntime { get; set; } // Inject IJSRuntime
+    [Inject] public GameState GameState { get; set; }
     [Inject] public GameManager GameManager { get; set; }
     [Parameter] public EventCallback<EncounterResult> OnEncounterCompleted { get; set; }
 
@@ -43,7 +44,7 @@ public partial class EncounterViewBase : ComponentBase
         if (IsLoading)
             return null;
 
-        EncounterManager encounterManager = GameManager.GetEncounter();
+        EncounterManager encounterManager = GameState.Actions.GetCurrentEncounter();
         return encounterManager;
     }
 

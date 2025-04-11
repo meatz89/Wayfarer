@@ -80,7 +80,7 @@ public class GameManager
         Console.WriteLine($"Game started at: {currentLoc?.Name}, Current spot: {worldState.CurrentLocationSpot?.Name}");
     }
 
-    public void InitiateTravelToLocation(string locationName)
+    public async Task InitiateTravelToLocation(string locationName)
     {
         ActionImplementation travelAction = TravelManager.TravelToLocation(locationName, TravelMethods.Walking);
 
@@ -90,7 +90,7 @@ public class GameManager
             worldState.CurrentLocation.Name, worldState.CurrentLocationSpot.Name,
             null, worldState.CurrentLocation.Difficulty);
 
-        ExecuteBasicAction(travelOption);
+        await ExecuteBasicAction(travelOption);
     }
 
     private async Task CreateActionsForLocationSpot(
@@ -140,7 +140,7 @@ public class GameManager
         }
     }
 
-    public void ExecuteBasicAction(UserActionOption action)
+    public async Task ExecuteBasicAction(UserActionOption action)
     {
         actionImplementation = action.ActionImplementation;
         locationSpot = action.LocationSpot;
@@ -153,10 +153,15 @@ public class GameManager
         {
             ApplyActionOutcomes(actionImplementation);
 
+            if (gameState.PendingTravel.IsTravelPending)
+            {
+                await OnLocationArrival(gameState.PendingTravel.TravelDestination);
+                gameState.PendingTravel.Clear();
+            }
         }
         else
         {
-            gameState.Actions.IsActiveEncounter = true;
+            gameState.Actions.SetActiveEncounter();
         }
     }
 
@@ -228,17 +233,12 @@ public class GameManager
         return encounterManager;
     }
 
-    public EncounterManager GetEncounter()
-    {
-        return gameState.Actions.GetCurrentEncounter();
-    }
-
     public async Task EndEncounter(EncounterManager encounter)
     {
         ActionImplementation actionImplementation = encounter.ActionImplementation;
         ApplyActionOutcomes(actionImplementation);
-        gameState.Actions.CompleteActiveEncounter();
 
+        gameState.Actions.CompleteActiveEncounter();
     }
 
     public async Task<EncounterResult> ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
@@ -287,15 +287,14 @@ public class GameManager
 
         // If this was a travel encounter that completed successfully
         bool wasTravelEncounter = gameState.PendingTravel != null && gameState.PendingTravel.IsTravelPending;
-        if (wasTravelEncounter)
+        if (!wasTravelEncounter)
         {
-            await OnLocationArrival(gameState.PendingTravel.TravelDestination);
-            gameState.PendingTravel.Clear();
+            await ProcessEncounterOutcome(result);
         }
         else
         {
-            // Process world changes from encounter
-            await ProcessEncounterOutcome(result);
+            await OnLocationArrival(gameState.PendingTravel.TravelDestination);
+            gameState.PendingTravel.Clear();
         }
     }
 
@@ -308,7 +307,6 @@ public class GameManager
         // Generate a unique encounter ID based on the context
         string encounterId = GenerateEncounterId(result);
 
-        // MARK ENCOUNTER AS COMPLETED - This was missing
         worldState.MarkEncounterCompleted(encounterId);
 
         if (_processStateChanges)
@@ -352,8 +350,8 @@ public class GameManager
         WorldStateInput worldStateInput = await CreateWorldStateInput();
 
         // Check if this is the first visit
-        bool knownLocation = location.PlayerKnowledge;
-        if (!knownLocation)
+        bool isFirstVisit = worldState.IsFirstVisit(location.Name);
+        if (isFirstVisit)
         {
             Location originLocation = worldState.GetLocation(travelOrigin.Name);
             int newLocationDepth = originLocation.Depth + 1;
