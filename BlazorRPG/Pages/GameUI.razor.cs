@@ -91,11 +91,6 @@ public partial class GameUI : ComponentBase
         return new Location() { Name = "Default" };
     }
 
-    public EncounterManager GetCurrentEncounter()
-    {
-        return GameManager.GetEncounter();
-    }
-
     private async Task HandleActionSelection(UserActionOption action)
     {
         if (action.IsDisabled) return; // Prevent action if disabled
@@ -138,8 +133,8 @@ public partial class GameUI : ComponentBase
 
         // Otherwise initiate travel
         GameManager.InitiateTravelToLocation(travelLocationName);
-
-        OngoingEncounter = true;
+        OngoingEncounter = GameState.Actions.IsActiveEncounter;
+        
         StateHasChanged();
     }
 
