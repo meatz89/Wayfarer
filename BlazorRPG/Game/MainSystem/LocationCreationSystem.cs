@@ -135,7 +135,7 @@
                         newAction.Complication,
                         ParseActionType(newAction.ActionType).ToString());
 
-                    SpotAction actionTemplate = actionRepository.GetAction(newAction.Name);
+                    SpotAction actionTemplate = actionRepository.GetAction(actionTemplateName);
                     string encounterTemplateName = actionTemplate.EncounterTemplateName;
 
                     EncounterTemplate encounterTemplate = actionRepository.GetEncounterTemplate(encounterTemplateName);
