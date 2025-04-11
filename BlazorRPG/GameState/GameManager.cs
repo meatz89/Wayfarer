@@ -301,6 +301,8 @@ public class GameManager
             await OnLocationArrival(gameState.PendingTravel.TravelDestination);
             gameState.PendingTravel.Clear();
         }
+
+        await UpdateLocation(gameState.WorldState.CurrentLocation);
     }
 
     private async Task OnLocationArrival(string targetLocation)
@@ -333,8 +335,14 @@ public class GameManager
             worldState.CurrentLocationSpot = travelLocation.LocationSpots[0];
         }
 
-        List<UserActionOption> options = new List<UserActionOption>();
         if (travelLocation == null) return;
+        
+        await UpdateLocation(travelLocation);
+    }
+
+    private async Task UpdateLocation(Location travelLocation)
+    {
+        List<UserActionOption> options = new List<UserActionOption>();
 
         // Ensure we have a current location spot
         if (gameState.WorldState.CurrentLocationSpot == null && travelLocation.LocationSpots?.Any() == true)
@@ -351,8 +359,6 @@ public class GameManager
             await CreateActionsForLocationSpot(options, this.location, locationSpot);
         }
 
-        gameState.Actions.SetLocationSpotActions(options);
-
         if (gameState.PendingTravel!.IsTravelPending)
         {
             gameState.PendingTravel.Clear();
@@ -360,6 +366,7 @@ public class GameManager
 
         // Set as current location
         worldState.SetCurrentLocation(travelLocation);
+        gameState.Actions.SetLocationSpotActions(options);
     }
 
     public async Task ProcessEncounterOutcome(EncounterResult result)
@@ -402,6 +409,7 @@ public class GameManager
                 await evolutionSystem.IntegrateEncounterOutcome(evolutionResponse, worldState, LocationSystem, playerState, worldStateInput);
             }
         }
+
     }
 
     private async Task CreateMemoryRecord(EncounterResult encounterResult)
@@ -698,7 +706,7 @@ public class GameManager
         {
             if (itemType != ItemTypes.None)
             {
-                int count = inventory.GetItemCount(itemType);
+                int count = inventory.GetItemCount(itemType.ToString());
                 if (count > 0)
                 {
                     itemCounts[itemType] = count;

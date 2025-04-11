@@ -78,8 +78,8 @@
             // Add location to world state
             worldState.AddLocation(location);
 
-            location.ConnectedTo.Add(worldState.CurrentLocation.Name);
-
+            locationSystem.ConnectLocations(location, worldState.CurrentLocation);
+            
             // Set location depth
             worldState.SetLocationDepth(location.Name, location.Depth);
 
