@@ -123,10 +123,10 @@
                         spotForAction.ActionIds = new List<string>();
                     }
 
-                    // Create action template linked to the encounter
+                    string newActionId = newAction.Name.Replace(" ", "");
                     string actionId = await actionGenerator.GenerateActionAndEncounter(
                         worldStateInput,
-                        newAction.Name.Replace(" ", ""),
+                        newActionId,
                         newAction.Name,
                         newAction.SpotName,
                         newAction.LocationName,

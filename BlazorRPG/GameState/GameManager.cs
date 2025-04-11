@@ -102,19 +102,20 @@ public class GameManager
         WorldStateInput worldStateInput = await CreateWorldStateInput();
 
         List<string> locationSpotActions = locationSpot.ActionIds.ToList();
-        foreach (string actionId in locationSpotActions)
+        foreach (string locationSpotAction in locationSpotActions)
         {
-            SpotAction actionTemplate = ActionRepository.GetAction(actionId);
+            SpotAction actionTemplate = ActionRepository.GetAction(locationSpotAction);
             if (actionTemplate == null)
             {
-                actionId =
+                var actionId =
                     await ActionGenerator.GenerateActionAndEncounter(
                     worldStateInput,
-                    actionId,
+                    actionTemplate.ActionId,
+                    locationSpotAction,
                     locationSpot.Name,
                     location.Name);
 
-                actionTemplate = ActionRepository.GetAction(actionId);
+                actionTemplate = ActionRepository.GetAction(locationSpotAction);
             }
 
             EncounterTemplate encounterTemplate = ActionRepository
@@ -123,13 +124,13 @@ public class GameManager
 
             if (encounterTemplate == null)
             {
-                string actionId = 
+                var actionId = 
                     await ActionGenerator.CreateEncounterForAction(
                         actionTemplate.ActionId, 
                         actionTemplate, 
                         worldStateInput);
 
-                encounterTemplate = ActionRepository.GetEncounterTemplate(actionId);
+                encounterTemplate = ActionRepository.GetEncounterTemplate(locationSpotAction);
             }
 
             ActionImplementation actionImplementation = ActionFactory.CreateActionFromTemplate(actionTemplate, encounterTemplate);
