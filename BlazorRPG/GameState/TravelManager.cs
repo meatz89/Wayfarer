@@ -49,40 +49,52 @@
         // Consume resources
         ConsumeTravelResources(travelMinutes, travelMethod);
 
-        Location targetLcoation = LocationSystem.GetLocation(travelLocation);
-        if (targetLcoation == null)
-            targetLcoation = LocationSystem.GetAllLocations().FirstOrDefault();
+        Location targetLocation = LocationSystem.GetLocation(travelLocation);
+        if (targetLocation == null)
+            targetLocation = LocationSystem.GetAllLocations().FirstOrDefault();
 
         // Record visit and check if it's first visit
         bool isFirstVisit = worldState.IsFirstVisit(travelLocation);
         worldState.RecordLocationVisit(travelLocation);
 
         // Apply discovery bonus on first visit
-        if (isFirstVisit && targetLcoation != null)
+        if (isFirstVisit && targetLocation != null)
         {
-            ApplyDiscoveryBonus(targetLcoation);
+            ApplyDiscoveryBonus(targetLocation);
         }
-
         // Update hub tracking if applicable
-        if (targetLcoation.LocationType == LocationTypes.Hub)
+        if (targetLocation.LocationType == LocationTypes.Hub)
         {
-            int locationDepth = worldState.GetLocationDepth(targetLcoation.Name);
+            int locationDepth = worldState.GetLocationDepth(targetLocation.Name);
             if (locationDepth > worldState.LastHubDepth)
             {
-                worldState.LastHubLocationId = targetLcoation.Name;
+                worldState.LastHubLocationId = targetLocation.Name;
                 worldState.LastHubDepth = locationDepth;
             }
         }
 
-        // Get the travel action template
+        SpotAction travelTemplate = GetTravelWitoutEncounterTemplate();
+        ActionImplementation travelAction = ActionFactory.CreateActionFromTemplate(travelTemplate);
+
+        if (isFirstVisit)
+        {
+            travelTemplate = GetTravelWithEncounterTemplate();
+            EncounterTemplate travelEncounter = ActionRepository.GetEncounterTemplate(travelTemplate.Name);
+            travelAction = ActionFactory.CreateActionFromTemplate(travelTemplate, travelEncounter);
+        }
+
+        return travelAction;
+    }
+
+    private SpotAction GetTravelWitoutEncounterTemplate()
+    {
         SpotAction travelTemplate = ActionRepository.GetAction("Travel");
         if (travelTemplate == null)
         {
             travelTemplate = new SpotAction
             {
-                Name = "Travel",
-                EncounterTemplateName = "Travel",
-                ActionType = ActionTypes.Encounter,
+                Name = "TravelSafe",
+                ActionType = ActionTypes.Basic,
                 BasicActionType = BasicActionTypes.Travel,
                 Goal = "Travel safely to your destination",
                 IsRepeatable = true,
@@ -96,11 +108,33 @@
             };
         }
 
-        // Create travel action
-        EncounterTemplate travelEncounter = ActionRepository.GetEncounterTemplate("Travel");
-        ActionImplementation travelAction = ActionFactory.CreateActionFromTemplate(travelTemplate, travelEncounter);
+        return travelTemplate;
+    }
 
-        return travelAction;
+    private SpotAction GetTravelWithEncounterTemplate()
+    {
+        SpotAction travelTemplate = ActionRepository.GetAction("Travel");
+        if (travelTemplate == null)
+        {
+            travelTemplate = new SpotAction
+            {
+                Name = "Travel",
+                EncounterTemplateName = "Travel",
+                ActionType = ActionTypes.Encounter,
+                BasicActionType = BasicActionTypes.Travel,
+                Goal = "Travel dangerously to your destination",
+                IsRepeatable = true,
+                Costs = new()
+                {
+                    new EnergyOutcome(-1)
+                    {
+                        Amount = -1
+                    }
+                },
+            };
+        }
+
+        return travelTemplate;
     }
 
     private void ApplyDiscoveryBonus(Location location)

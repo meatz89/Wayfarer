@@ -70,7 +70,6 @@ public class GameManager
 
         TravelManager.TravelToLocation(gameState.PlayerState.StartingLocation, TravelMethods.Walking);
 
-        // Verify current location spot was set
         if (worldState.CurrentLocationSpot == null && worldState.CurrentLocation?.LocationSpots?.Any() == true)
         {
             Console.WriteLine("Current location spot is null despite spots existing - manually setting");
@@ -79,7 +78,6 @@ public class GameManager
 
         UpdateState();
 
-        // Debug info - print current state
         Location? currentLoc = worldState.CurrentLocation;
         Console.WriteLine($"Game started at: {currentLoc?.Name}, Current spot: {worldState.CurrentLocationSpot?.Name}");
     }
@@ -94,7 +92,6 @@ public class GameManager
             worldState.CurrentLocation.Name, worldState.CurrentLocationSpot.Name,
             null, worldState.CurrentLocation.Difficulty);
 
-        // Execute to start travel encounter
         ExecuteBasicAction(travelOption);
     }
 
