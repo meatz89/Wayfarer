@@ -372,7 +372,7 @@ body {
         }
 
 .tooltip-item-name {
-    color: var(--text-primary);
+    color: var(--font-tertiary);
 }
 
 .encounter-result-item {
