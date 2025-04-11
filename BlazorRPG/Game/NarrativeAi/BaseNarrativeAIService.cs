@@ -1,6 +1,6 @@
 ﻿public abstract class BaseNarrativeAIService : IAIService
 {
-    protected readonly AIClientService _aiClient;
+    protected readonly AIClient _aiClient;
     protected readonly PromptManager _promptManager;
     protected readonly ILogger<EncounterSystem> _logger;
     protected readonly string _gameInstanceId;
@@ -16,7 +16,7 @@
 
         _promptManager = new PromptManager(configuration);
         _logger = logger;
-        _aiClient = new AIClientService(aiProvider, _gameInstanceId, logger, narrativeLogManager);
+        _aiClient = new AIClient(aiProvider, _gameInstanceId, logger, narrativeLogManager);
 
         _logger?.LogInformation($"Initialized NarrativeAIService with {aiProvider.Name} and game instance ID: {_gameInstanceId}");
     }

@@ -75,7 +75,7 @@ public class ClaudeProvider : IAIProvider
                     model = currentModel,
                     messages = messages,
                     system = systemMessage,
-                    max_tokens = 1500,
+                    max_tokens = 5000,
                     temperature = 0.7
                 };
 
