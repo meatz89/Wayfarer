@@ -1,38 +1,38 @@
 ﻿
 public class Inventory
 {
-    private ItemTypes[] Slots;
+    private string[] Slots;
 
     public int MaxCapacity { get { return Slots.Length; } }
-    public int UsedCapacity { get { return Slots.Count(s => s != ItemTypes.None); } }
+    public int UsedCapacity { get { return Slots.Count(s => s != string.Empty); } }
 
     public Inventory(int size)
     {
-        Slots = new ItemTypes[size];
+        Slots = new string[size];
         for (int i = 0; i < Slots.Length; i++)
         {
-            Slots[i] = ItemTypes.None; // Initialize slots as empty
+            Slots[i] = string.Empty; // Initialize slots as empty
         }
     }
 
-    public ItemTypes GetFirstItem()
+    public string GetFirstItem()
     {
-        foreach (ItemTypes itemType in Enum.GetValues(typeof(ItemTypes)))
+        foreach (string itemType in Enum.GetValues(typeof(string)))
         {
-            if (itemType != ItemTypes.None && ContainsItem(itemType))
+            if (itemType != string.Empty && ContainsItem(itemType))
             {
                 return itemType;
             }
         }
-        return ItemTypes.None;
+        return string.Empty;
     }
 
-    public int GetCapacityFor(ItemTypes item)
+    public int GetCapacity()
     {
         return Slots.Length;
     }
 
-    public void SetItemCount(ItemTypes item, int count)
+    public void SetItemCount(string item, int count)
     {
         int currentCount = GetItemCount(item);
 
@@ -53,7 +53,7 @@ public class Inventory
     }
 
     // Method to add multiple items of the same type to the inventory
-    public int AddItems(ItemTypes resource, int count)
+    public int AddItems(string resource, int count)
     {
         int addedCount = 0;
 
@@ -73,7 +73,7 @@ public class Inventory
     }
 
     // Method to remove multiple items of the same type from the inventory
-    public int RemoveItems(ItemTypes resource, int count)
+    public int RemoveItems(string resource, int count)
     {
         int removedCount = 0;
 
@@ -93,11 +93,11 @@ public class Inventory
     }
 
     // Method to add an item to the inventory
-    public bool AddItem(ItemTypes item)
+    public bool AddItem(string item)
     {
         for (int i = 0; i < Slots.Length; i++)
         {
-            if (Slots[i] == ItemTypes.None)
+            if (Slots[i] == string.Empty)
             {
                 Slots[i] = item;
                 return true; // Successfully added
@@ -107,13 +107,13 @@ public class Inventory
     }
 
     // Method to remove an item from the inventory
-    public bool RemoveItem(ItemTypes item)
+    public bool RemoveItem(string item)
     {
         for (int i = 0; i < Slots.Length; i++)
         {
             if (Slots[i] == item)
             {
-                Slots[i] = ItemTypes.None;
+                Slots[i] = string.Empty;
                 return true; // Successfully removed
             }
         }
@@ -121,9 +121,9 @@ public class Inventory
     }
 
     // Method to check if the inventory contains a specific item
-    public bool ContainsItem(ItemTypes item)
+    public bool ContainsItem(string item)
     {
-        foreach (ItemTypes slot in Slots)
+        foreach (string slot in Slots)
         {
             if (slot == item)
             {
@@ -137,9 +137,9 @@ public class Inventory
     public int GetEmptySlots()
     {
         int emptyCount = 0;
-        foreach (ItemTypes slot in Slots)
+        foreach (string slot in Slots)
         {
-            if (slot == ItemTypes.None)
+            if (slot == string.Empty)
             {
                 emptyCount++;
             }
@@ -148,10 +148,10 @@ public class Inventory
     }
 
     // Method to count the number of a given item type in the inventory
-    public int GetItemCount(ItemTypes item)
+    public int GetItemCount(string item)
     {
         int count = 0;
-        foreach (ItemTypes slot in Slots)
+        foreach (string slot in Slots)
         {
             if (slot == item)
             {
@@ -160,12 +160,12 @@ public class Inventory
         }
         return count;
     }
-    public bool HasItemOfType(ItemTypes weapon)
+    public bool HasItemOfType(string weapon)
     {
         return true;
     }
 
-    public List<Item> GetItemsOfType(ItemTypes itemType)
+    public List<Item> GetItemsOfType(string itemType)
     {
         return new List<Item>();
     }

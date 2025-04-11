@@ -176,7 +176,11 @@
             {
                 if (Enum.TryParse<ItemTypes>(itemName.Replace(" ", ""), true, out ItemTypes itemType))
                 {
-                    playerState.Inventory.AddItem(itemType);
+                    playerState.Inventory.AddItem(itemType.ToString());
+                }
+                else
+                {
+                    playerState.Inventory.AddItem(itemName);
                 }
             }
 
@@ -185,7 +189,12 @@
             {
                 if (Enum.TryParse<ItemTypes>(itemName.Replace(" ", ""), true, out ItemTypes itemType))
                 {
-                    playerState.Inventory.RemoveItem(itemType);
+                    playerState.Inventory.RemoveItem(itemType.ToString());
+                }
+                else
+                {
+                    playerState.Inventory.RemoveItem(itemName);
+
                 }
             }
         }
