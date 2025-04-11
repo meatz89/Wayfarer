@@ -15,15 +15,14 @@
 ## Context
 - Current location: {currentLocation} (Depth: {currentDepth})
 - Last hub depth: {lastHubDepth}
-- Current player resources: Health {health}/{maxHealth}, Energy {energy}/{maxEnergy}
 - Encounter outcome: {encounterOutcome} (Success/Partial/Failure)
 
 ## Existing World Context
 
-- All known locations
+- All known locations:
 {allKnownLocations}
  
-- Connected locations
+- Connected locations:
 {connectedLocations}
 
 - Current location spots: 
@@ -46,6 +45,8 @@
 - If current_depth - lastHubDepth >= 3, YOU MUST CREATE A HUB LOCATION at depth {currentDepth + 1}
 - Hub locations require 3+ spots with Rest/Trade/Healing services
 - Rest locations should be available every 2 depth levels
+- Locations must be directly connected to the current location
+- Locations must generally be small and in walkable distance
 
 ## Location Types
 - Hub: Major settlement with multiple services (Rest, Trade, Healing)
@@ -55,7 +56,7 @@
 
 ## Format Requirements
 - Character names: SIMPLE FIRST NAMES ONLY (e.g., "Giles", not "Giles the merchant")
-- All actions require goal and complication fields
+- All actions require a known location spot, a goal and a complication
 - Action Type must only be one of:
   * Rest, Labor, Gather, Fight (physical actions)
   * Discuss, Persuade, Perform (social actions)
