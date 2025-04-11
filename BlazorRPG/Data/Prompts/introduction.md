@@ -1,28 +1,11 @@
 IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowledge this request, introduce your response (like "I'll create..." or "Here is..."), or end with questions to the reader. Your entire response should be exactly what will be shown to the player without requiring any editing.
 
 # ENCOUNTER INTRODUCTION
-
-Your memory of past events:
-"{MEMORY_CONTENT}"
-
 Create a BRIEF, immersive introductory scene for a {ENCOUNTER_TYPE} encounter at {LOCATION_SPOT} of {LOCATION_NAME}.
-
-## Character Context
-- Archetype: {CHARACTER_ARCHETYPE} ({APPROACH_STATS}) (Avoid announcing directly)
-- Goal: {CHARACTER_GOAL}
-- Challenge: {ENCOUNTER_COMPLICATION}
-
 Talk in the voice of the player character archetype. The narration of a warrior, scholar, ranger, bard and thief should be remarkably different.
 
-## Player Resources
-- Coins: {PLAYER_COINS} (Use this to inform narrative about spending capacity)
-- Health: {PLAYER_HEALTH}/{PLAYER_MAX_HEALTH}
-- Concentration: {PLAYER_CONCENTRATION}/{PLAYER_MAX_CONCENTRATION}
-- Confidence: {PLAYER_CONFIDENCE}/{PLAYER_MAX_CONFIDENCE}
-- Energy: {PLAYER_ENERGY}/{PLAYER_MAX_ENERGY}
-
-## Player Inventory
-{PLAYER_INVENTORY}
+## Player Character Status
+{PLAYER_STATUS}
 
 ## Location Context
 - Environment: {ENVIRONMENT_DETAILS}

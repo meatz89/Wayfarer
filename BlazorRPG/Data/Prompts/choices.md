@@ -2,23 +2,17 @@ IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowl
 
 # NARRATIVE CHOICE GENERATION
 
-## Encounter Status
-- Type: {ENCOUNTER_TYPE} | Turn: {CURRENT_TURN}/{MAX_TURNS} | Stage: {ENCOUNTER_STAGE}
-- Momentum: {CURRENT_MOMENTUM}/{MAX_MOMENTUM} (Success: {SUCCESS_THRESHOLD})
-- Pressure: {CURRENT_PRESSURE}/{MAX_PRESSURE}
-- Resources: Health {CURRENT_HEALTH}, Confidence {CURRENT_CONFIDENCE}, Concentration {CURRENT_CONCENTRATION}
-
-## Player Character Context
-- Archetype: {CHARACTER_ARCHETYPE} (Avoid announcing directly)
-- Natural Approaches: {NATURAL_APPROACHES}
-- Dangerous Approaches: {DANGEROUS_APPROACHES}
-
-## Strategic Information
+## Encounter State 
+- Encounter Type: {ENCOUNTER_TYPE}
+- Current Turn: {CURRENT_TURN}/{MAX_TURNS}
+- Momentum: {MOMENTUM}/{MAX_MOMENTUM} (Success at {SUCCESS_THRESHOLD})
+- Pressure: {PRESSURE}/{MAX_PRESSURE}
 - Active Narrative Tags: {ACTIVE_TAGS}
+- Goal: {ENCOUNTER_GOAL}
+- Complication: {ENCOUNTER_COMPLICATION}
 
-## Current Situation
-- Character Goal: {CHARACTER_GOAL}
-- Character State: {INJURIES/RESOURCES/CONDITION}
+## Player Character Status
+{PLAYER_STATUS}
 
 ## Choices to Transform
 {CHOICES_INFO}

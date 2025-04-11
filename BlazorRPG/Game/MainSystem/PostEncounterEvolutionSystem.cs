@@ -31,18 +31,20 @@
 
     public async Task<string> ConsolidateMemory(
         NarrativeContext context,
-        MemoryConsolidationInput input)
+        MemoryConsolidationInput input,
+        WorldStateInput worldStateInput)
     {
-        return await _narrativeService.ProcessMemoryConsolidation(context, input);
+        return await _narrativeService.ProcessMemoryConsolidation(context, input, worldStateInput);
     }
 
     public async Task<PostEncounterEvolutionResult> ProcessEncounterOutcome(
         NarrativeContext context,
         PostEncounterEvolutionInput input,
-        EncounterResult encounterResult)
+        EncounterResult encounterResult,
+        WorldStateInput worldStateInput)
     {
         // Get world evolution response from narrative service
-        PostEncounterEvolutionResult response = await _narrativeService.ProcessPostEncounterEvolution(context, input);
+        PostEncounterEvolutionResult response = await _narrativeService.ProcessPostEncounterEvolution(context, input, worldStateInput);
         return response;
     }
 
@@ -50,7 +52,8 @@
         PostEncounterEvolutionResult evolution,
         WorldState worldState,
         LocationSystem locationSystem,
-        PlayerState playerState)
+        PlayerState playerState,
+        WorldStateInput worldStateInput)
     {
         // Process coin change
         if (evolution.CoinChange != 0)
@@ -97,7 +100,7 @@
         }
 
         // Process new actions and associate them with the appropriate spots
-        await ProcessNewActions(evolution, worldState);
+        await ProcessNewActions(evolution, worldState, worldStateInput);
 
         // Add new characters
         foreach (Character character in evolution.NewCharacters)
@@ -112,7 +115,10 @@
         }
     }
 
-    private async Task ProcessNewActions(PostEncounterEvolutionResult evolution, WorldState worldState)
+    private async Task ProcessNewActions(
+        PostEncounterEvolutionResult evolution, 
+        WorldState worldState,
+        WorldStateInput worldStateInput)
     {
         foreach (NewAction newAction in evolution.NewActions)
         {
@@ -131,6 +137,7 @@
 
                     // Create action template linked to the encounter
                     string actionTemplateName = await _actionGenerator.GenerateActionAndEncounter(
+                        worldStateInput,
                         newAction.Name,
                         newAction.SpotName,
                         newAction.LocationName,

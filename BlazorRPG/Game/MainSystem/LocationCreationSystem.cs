@@ -37,20 +37,23 @@
         string locationToPopulate,
         bool wasTravelEncounter,
         string travelOrigin,
-        int locationDepth
-        )
+        int locationDepth,
+        WorldStateInput worldStateInput)
     {
         LocationCreationInput input = CreateLocationInput(
             wasTravelEncounter, travelOrigin, locationToPopulate, locationDepth);
 
         // Get location details from AI
-        LocationDetails details = await narrativeService.GenerateLocationDetailsAsync(input);
+        LocationDetails details = await narrativeService.GenerateLocationDetailsAsync(input, worldStateInput);
 
         // Convert SpotDetails to LocationSpot objects
-        return await IntegrateNewLocation(input, details);
+        return await IntegrateNewLocation(input, details, worldStateInput);
     }
 
-    private async Task<Location> IntegrateNewLocation(LocationCreationInput input, LocationDetails details)
+    private async Task<Location> IntegrateNewLocation(
+        LocationCreationInput input, 
+        LocationDetails details,
+        WorldStateInput worldStateInput)
     {
         string locationName = details.LocationUpdate.NewLocationName;
 
@@ -100,12 +103,12 @@
         }
 
         // Process new actions and associate them with the appropriate spots
-        await ProcessNewActions(details, worldState);
+        await ProcessNewActions(details, worldState, worldStateInput);
 
         return location;
     }
 
-    private async Task ProcessNewActions(LocationDetails details, WorldState worldState)
+    private async Task ProcessNewActions(LocationDetails details, WorldState worldState, WorldStateInput worldStateInput)
     {
         foreach (NewAction newAction in details.NewActions)
         {
@@ -124,6 +127,7 @@
 
                     // Create action template linked to the encounter
                     string actionTemplateName = await actionGenerator.GenerateActionAndEncounter(
+                        worldStateInput,
                         newAction.Name,
                         newAction.SpotName,
                         newAction.LocationName,
@@ -162,7 +166,6 @@
         // Default fallback
         return BasicActionTypes.Discuss;
     }
-
 
     private LocationCreationInput CreateLocationInput(
         bool wasTravelEncounter,

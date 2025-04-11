@@ -67,20 +67,25 @@
         return baseNarrativeAIService?.GetGameInstanceId() ?? "Unknown";
     }
 
-    public async Task<string> GenerateIntroductionAsync(NarrativeContext context, EncounterStatusModel state, string memoryContent)
+    public async Task<string> GenerateIntroductionAsync(
+        NarrativeContext context, 
+        EncounterStatusModel state, 
+        string memoryContent,
+        WorldStateInput worldStateInput)
     {
         IAIService narrativeAIService = _providers[_currentProvider];
-        return await narrativeAIService.GenerateIntroductionAsync(context, state, memoryContent);
+        return await narrativeAIService.GenerateIntroductionAsync(context, state, memoryContent, worldStateInput);
     }
 
     public async Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
         NarrativeContext context,
         List<IChoice> choices,
         List<ChoiceProjection> projections,
-        EncounterStatusModel state)
+        EncounterStatusModel state,
+        WorldStateInput worldStateInput)
     {
         return await _providers[_currentProvider].GenerateChoiceDescriptionsAsync(
-            context, choices, projections, state);
+            context, choices, projections, state, worldStateInput);
     }
 
     public async Task<string> GenerateEncounterNarrative(
@@ -88,10 +93,11 @@
         IChoice chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
-        EncounterStatusModel newState)
+        EncounterStatusModel newState,
+        WorldStateInput worldStateInput)
     {
         return await _providers[_currentProvider].GenerateEncounterNarrative(
-            context, chosenOption, choiceDescription, outcome, newState);
+            context, chosenOption, choiceDescription, outcome, newState, worldStateInput);
     }
 
     public async Task<string> GenerateEndingAsync(
@@ -99,30 +105,41 @@
         IChoice chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
-        EncounterStatusModel newState)
+        EncounterStatusModel newState,
+        WorldStateInput worldStateInput)
     {
         return await _providers[_currentProvider].GenerateEndingAsync(
-            context, chosenOption, choiceDescription, outcome, newState);
+            context, chosenOption, choiceDescription, outcome, newState, worldStateInput);
     }
 
 
-    public async Task<LocationDetails> GenerateLocationDetailsAsync(LocationCreationInput context)
+    public async Task<LocationDetails> GenerateLocationDetailsAsync(
+        LocationCreationInput context,
+        WorldStateInput worldStateInput)
     {
-        return await _providers[_currentProvider].GenerateLocationDetailsAsync(context);
+        return await _providers[_currentProvider].GenerateLocationDetailsAsync(context, worldStateInput);
     }
 
-    public async Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(NarrativeContext context, PostEncounterEvolutionInput input)
+    public async Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(
+        NarrativeContext context, 
+        PostEncounterEvolutionInput input,
+        WorldStateInput worldStateInput)
     {
-        return await _providers[_currentProvider].ProcessPostEncounterEvolution(context, input);
+        return await _providers[_currentProvider].ProcessPostEncounterEvolution(context, input, worldStateInput);
     }
 
-    public async Task<string> ProcessMemoryConsolidation(NarrativeContext context, MemoryConsolidationInput input)
+    public async Task<string> ProcessMemoryConsolidation(
+        NarrativeContext context, 
+        MemoryConsolidationInput input,
+        WorldStateInput worldStateInput)
     {
-        return await _providers[_currentProvider].ProcessMemoryConsolidation(context, input);
+        return await _providers[_currentProvider].ProcessMemoryConsolidation(context, input, worldStateInput);
     }
 
-    public async Task<string> GenerateActionsAsync(ActionGenerationContext input)
+    public async Task<string> GenerateActionsAsync(
+        ActionGenerationContext input,
+        WorldStateInput worldStateInput)
     {
-        return await _providers[_currentProvider].GenerateActionsAsync(input);
+        return await _providers[_currentProvider].GenerateActionsAsync(input, worldStateInput);
     }
 }

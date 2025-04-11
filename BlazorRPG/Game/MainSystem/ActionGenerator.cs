@@ -13,7 +13,9 @@ public class ActionGenerator
         _repository = repository;
     }
 
-    public async Task<string> CreateEncounterForAction(SpotAction actionTemplate)
+    public async Task<string> CreateEncounterForAction(
+        SpotAction actionTemplate,
+        WorldStateInput worldStateInput)
     {
         ActionGenerationContext context = new ActionGenerationContext
         {
@@ -26,7 +28,7 @@ public class ActionGenerator
         };
 
         // Get action and encounter details from AI
-        string jsonResponse = await _narrativeService.GenerateActionsAsync(context);
+        string jsonResponse = await _narrativeService.GenerateActionsAsync(context, worldStateInput);
 
         // Parse the response
         ActionCreationResult result = ActionJsonParser.Parse(jsonResponse);
@@ -41,6 +43,7 @@ public class ActionGenerator
     }
 
     public async Task<string> GenerateActionAndEncounter(
+        WorldStateInput worldStateInput,
         string name,
         string locationSpotName,
         string locationName,
@@ -62,7 +65,7 @@ public class ActionGenerator
         };
 
         // Get action and encounter details from AI
-        string jsonResponse = await _narrativeService.GenerateActionsAsync(context);
+        string jsonResponse = await _narrativeService.GenerateActionsAsync(context, worldStateInput);
 
         // Parse the response
         ActionCreationResult result = ActionJsonParser.Parse(jsonResponse);

@@ -3,7 +3,6 @@
     protected readonly AIClientService _aiClient;
     protected readonly PromptManager _promptManager;
     protected readonly ILogger<EncounterSystem> _logger;
-    private readonly NarrativeLogManager narrativeLogManager;
     protected readonly string _gameInstanceId;
 
     protected BaseNarrativeAIService(
@@ -17,7 +16,6 @@
 
         _promptManager = new PromptManager(configuration);
         _logger = logger;
-        this.narrativeLogManager = narrativeLogManager;
         _aiClient = new AIClientService(aiProvider, _gameInstanceId, logger, narrativeLogManager);
 
         _logger?.LogInformation($"Initialized NarrativeAIService with {aiProvider.Name} and game instance ID: {_gameInstanceId}");
@@ -34,19 +32,43 @@
     }
 
     public abstract Task<string> GenerateIntroductionAsync(
-        NarrativeContext context, EncounterStatusModel state, string memoryContent);
+        NarrativeContext context, 
+        EncounterStatusModel state,
+        string memoryContent,
+        WorldStateInput worldStateInput);
     public abstract Task<string> GenerateEncounterNarrative(
-        NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatusModel newState);
+        NarrativeContext context, 
+        IChoice chosenOption, 
+        ChoiceNarrative choiceDescription, 
+        ChoiceOutcome outcome, 
+        EncounterStatusModel newState,
+        WorldStateInput worldStateInput);
     public abstract Task<string> GenerateEndingAsync(
-        NarrativeContext context, IChoice chosenOption, ChoiceNarrative choiceDescription, ChoiceOutcome outcome, EncounterStatusModel newState);
-    public abstract Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(NarrativeContext context, List<IChoice> choices, List<ChoiceProjection> projections, EncounterStatusModel state);
+        NarrativeContext context,
+        IChoice chosenOption, 
+        ChoiceNarrative choiceDescription, 
+        ChoiceOutcome outcome, 
+        EncounterStatusModel newState,
+        WorldStateInput worldStateInput);
+    public abstract Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+        NarrativeContext context, 
+        List<IChoice> choices, 
+        List<ChoiceProjection> projections, 
+        EncounterStatusModel state,
+        WorldStateInput worldStateInput);
 
-    public abstract Task<LocationDetails> GenerateLocationDetailsAsync(LocationCreationInput context);
-    public abstract Task<string> GenerateActionsAsync(ActionGenerationContext context);
+    public abstract Task<LocationDetails> GenerateLocationDetailsAsync(
+        LocationCreationInput context,
+        WorldStateInput worldStateInput);
+    public abstract Task<string> GenerateActionsAsync(
+        ActionGenerationContext context,
+        WorldStateInput worldStateInput);
     public abstract Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(
         NarrativeContext context,
-        PostEncounterEvolutionInput input);
+        PostEncounterEvolutionInput input,
+        WorldStateInput worldStateInput);
     public abstract Task<string> ProcessMemoryConsolidation(
         NarrativeContext context,
-        MemoryConsolidationInput input);
+        MemoryConsolidationInput input,
+        WorldStateInput worldStateInput);
 }

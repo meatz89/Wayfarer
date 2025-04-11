@@ -51,7 +51,8 @@
         WorldState worldState,
         PlayerState playerState,
         ActionImplementation actionImplementation,
-        AIProviderType providerType)
+        AIProviderType providerType,
+        WorldStateInput worldStateInput)
     {
         this.playerState = playerState;
         this.encounterInfo = encounterInfo;
@@ -86,7 +87,8 @@
             introduction = await narrativeService.GenerateIntroductionAsync(
                 narrativeContext,
                 status,
-                memoryContent);
+                memoryContent,
+                worldStateInput);
         }
 
         // Get available choices
@@ -109,7 +111,8 @@
                 narrativeContext,
                 choices,
                 projections,
-                status);
+                status,
+                worldStateInput);
 
             firstNarrative.SetAvailableChoiceDescriptions(choiceDescriptions);
         }
@@ -130,7 +133,8 @@
         IChoice choice,
         PlayerState playerState,
         WorldState worldState,
-        ChoiceNarrative choiceDescription)
+        ChoiceNarrative choiceDescription,
+        WorldStateInput worldStateInput)
     {
         // Apply the choice
         ChoiceOutcome outcome = ApplyChoiceProjection(playerState, encounterInfo, choice);
@@ -151,8 +155,8 @@
                     choice,
                     choiceDescription,
                     outcome,
-                    newStatus);
-
+                    newStatus,
+                    worldStateInput);
             }
 
             NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
@@ -180,7 +184,8 @@
                     choice,
                     choiceDescription,
                     outcome,
-                    newStatus);
+                    newStatus,
+                    worldStateInput);
             }
 
             NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
@@ -200,7 +205,8 @@
                     narrativeContext,
                     newChoices,
                     newProjections,
-                    newStatus);
+                    newStatus,
+                    worldStateInput);
             }
 
             // Add the choice descriptions to the latest event
