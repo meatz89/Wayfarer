@@ -30,7 +30,7 @@ public class PromptManager
         string template = _promptTemplates[ACTION_GENERATION_MD];
 
         string prompt = template
-            .Replace("{ACTIONNAME}", context.ActionName)
+            .Replace("{ACTIONNAME}", context.ActionId)
             .Replace("{GOAL}", context.Goal)
             .Replace("{COMPLICATION}", context.Complication)
             .Replace("{ACTION_TYPE}", context.BasicActionType)

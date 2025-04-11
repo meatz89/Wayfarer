@@ -18,8 +18,7 @@
     {
         ActionGenerationContext context = new ActionGenerationContext
         {
-            ActionName = actionTemplate.ActionId,
-            ActionName = actionTemplate.Name,
+            ActionId = actionTemplate.ActionId,
             Goal = actionTemplate.Goal,
             Complication = actionTemplate.Complication,
             BasicActionType = actionTemplate.BasicActionType.ToString(),
@@ -44,6 +43,7 @@
     public async Task<string> GenerateActionAndEncounter(
         WorldStateInput worldStateInput,
         string actionId,
+        string actionName,
         string locationSpotName,
         string locationName,
         string goal = "",
@@ -52,7 +52,7 @@
     {
         ActionGenerationContext context = new ActionGenerationContext
         {
-            ActionName = actionId,
+            ActionId = actionId,
             SpotName = locationSpotName,
             LocationName = locationName,
             Goal = goal,
