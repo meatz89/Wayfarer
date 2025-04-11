@@ -1,5 +1,6 @@
 ﻿public class EncounterTemplate
 {
+    public string ActionId;
     public string Name;
 
     public int MaxPressure = 13;

@@ -1,5 +1,6 @@
 ﻿public record ActionImplementation
 {
+    public string ActionId { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string Goal { get; set; }

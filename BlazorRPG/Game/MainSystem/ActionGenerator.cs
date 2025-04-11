@@ -1,6 +1,4 @@
-﻿using System.Xml.Linq;
-
-public class ActionGenerator
+﻿public class ActionGenerator
 {
     private readonly NarrativeService _narrativeService;
     private readonly ActionRepository _repository;
@@ -14,11 +12,13 @@ public class ActionGenerator
     }
 
     public async Task<string> CreateEncounterForAction(
+        string actionId,
         SpotAction actionTemplate,
         WorldStateInput worldStateInput)
     {
         ActionGenerationContext context = new ActionGenerationContext
         {
+            ActionId = actionTemplate.ActionId,
             ActionName = actionTemplate.Name,
             Goal = actionTemplate.Goal,
             Complication = actionTemplate.Complication,
@@ -34,16 +34,17 @@ public class ActionGenerator
         ActionCreationResult result = ActionJsonParser.Parse(jsonResponse);
 
         // Create and register the encounter template
-        EncounterTemplate encounterTemplate = CreateEncounterTemplate(result.EncounterTemplate);
+        EncounterTemplate encounterTemplate = CreateEncounterTemplate(actionId, result.EncounterTemplate);
 
-        string encounterName = $"{result.Action.Name}Encounter";
-        _repository.RegisterEncounterTemplate(encounterName, encounterTemplate);
+        string encounterName = $"{result.Action.IsEncounterAction}";
+        _repository.RegisterEncounterTemplate(actionId, encounterTemplate);
 
         return encounterName;
     }
 
     public async Task<string> GenerateActionAndEncounter(
         WorldStateInput worldStateInput,
+        string actionId,
         string name,
         string locationSpotName,
         string locationName,
@@ -51,11 +52,10 @@ public class ActionGenerator
         string complication = "",
         string basicActionType = "")
     {
-        name = name.Replace(" ", "");
-
         // Create context for generation
         ActionGenerationContext context = new ActionGenerationContext
         {
+            ActionId = actionId,
             ActionName = name,
             SpotName = locationSpotName,
             LocationName = locationName,
@@ -71,28 +71,27 @@ public class ActionGenerator
         ActionCreationResult result = ActionJsonParser.Parse(jsonResponse);
 
         // Create and register the encounter template
-        EncounterTemplate encounterTemplate = CreateEncounterTemplate(result.EncounterTemplate);
-
-        string encounterName = $"{result.Action.Name}";
-        _repository.RegisterEncounterTemplate(encounterName, encounterTemplate);
+        EncounterTemplate encounterTemplate = CreateEncounterTemplate(actionId, result.EncounterTemplate);
+        _repository.RegisterEncounterTemplate(actionId, encounterTemplate);
 
         // Create action template linked to the encounter
         string actionTemplate = _repository.CreateActionTemplate(
+            actionId,
             result.Action.Name,
             result.Action.Goal,
             result.Action.Complication,
             result.Action.BasicActionType,
             result.Action.ActionType,
-            encounterName,
             result.Action.CoinCost);
 
         return actionTemplate;
     }
 
-    public EncounterTemplate CreateEncounterTemplate(EncounterTemplateModel model)
+    public EncounterTemplate CreateEncounterTemplate(string id, EncounterTemplateModel model)
     {
         EncounterTemplate template = new EncounterTemplate
         {
+            ActionId = id,
             Name = model.Name,
             Duration = model.Duration,
             MaxPressure = model.MaxPressure,

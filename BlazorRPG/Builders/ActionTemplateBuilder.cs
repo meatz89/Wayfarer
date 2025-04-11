@@ -1,6 +1,7 @@
 ﻿public class ActionTemplateBuilder
 {
-    private string customName; // New field for custom names
+    private string actionId;
+    private string name;
     private BasicActionTypes actionType;
     private string goal;
     private string complication;
@@ -14,16 +15,15 @@
 
     public ActionRepository ActionRepository { get; }
 
-    public ActionTemplateBuilder WithName(string name)
+    public ActionTemplateBuilder WithId(string id)
     {
-        this.customName = name;
+        this.actionId = id;
         return this;
     }
 
-    // Add a new method for custom string names
-    public ActionTemplateBuilder WithCustomName(string name)
+    public ActionTemplateBuilder WithName(string name)
     {
-        this.customName = name;
+        this.name = name;
         return this;
     }
 
@@ -80,7 +80,8 @@
     {
         return new SpotAction()
         {
-            Name = customName,
+            ActionId = actionId,
+            Name = name,
             Goal = goal,
             Complication = complication,
             BasicActionType = actionType,

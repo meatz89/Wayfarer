@@ -64,6 +64,14 @@ body {
 }
 
 /* Narrative container */
+.character-container {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+    padding: 2rem;
+    display: grid;
+}
+
 .narrative-container {
     background-color: var(--bg-panel);
     border: 1px solid var(--oak-dark);

@@ -1,5 +1,6 @@
 ﻿public class ActionGenerationContext
 {
+    public string ActionId { get; set; }
     public string ActionName { get; set; }
     public string Goal { get; set; }
     public string Complication { get; set; }

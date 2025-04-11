@@ -1,7 +1,8 @@
 ﻿public record UserActionOption
     (
     int Index,
-    string Description,
+    string ActionId,
+    string ActionName,
     bool IsDisabled,
     ActionImplementation ActionImplementation,
     string Location,
@@ -12,6 +13,6 @@
 {
     public string Display()
     {
-        return $"{Index}. {Description}";
+        return $"{Index}. {ActionName}";
     }
 }
