@@ -84,8 +84,8 @@ You must provide your response ONLY as a valid JSON object with the following st
   
   "locationSpots": [
     {
-      "id": "unique_spot_id",
       "name": "Spot name",
+      "locationName": "{locationName}",
       "description": "Brief description",
       "interactionType": "Character/Shop/Feature/Service",
       "interactionDescription": "Description of what happens on basic interaction",
@@ -102,12 +102,11 @@ You must provide your response ONLY as a valid JSON object with the following st
   
   "actionDefinitions": [
     {
-      "id": "unique_action_id",
       "name": "Action name",
       "description": "What this action involves",
       "type": "Encounter/Direct/Travel",
       "locationName": "{locationName}",
-      "locationSpotId": "unique_spot_id",
+      "locationSpot": "Spot name", // MUST BE AN ALREADY KNOWN SPOT NAME OR DEFINED IN THIS RESPONSE,
       "goal": "The player's goal in this action",
       "complication": "What makes this challenging",
       "actionType": "Discuss/Persuade/Perform/Study/Investigate/Analyze/Rest/Labor/Gather/Fight",

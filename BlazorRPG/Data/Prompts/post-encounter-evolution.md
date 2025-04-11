@@ -92,8 +92,8 @@ You must provide your response ONLY as a valid JSON object with the following st
       "actionType": "Discuss",
       "isRepeatable": true/false,
       "energyCost": 1,
-      "spotName": "Spot name", // MUST BE AN ALREADY KNOWN SPOT NAME OR DEFINED IN THIS RESPONSE LOCATIONSPOTS ARRAY
-      "locationName": "{currentLocation}"
+      "locationName": "{currentLocation}",
+      "spotName": "Spot name", // MUST BE AN ALREADY KNOWN SPOT NAME OR DEFINED IN THIS RESPONSE 
     }
   ],
   "locationSpots": [

@@ -70,18 +70,8 @@ public static class LocationJsonParser
                 details.NewActions.Add(action);
 
                 // Associate action with spot
-                string spotId = GetStringProperty(actionElement, "locationSpotId", "");
-                foreach (SpotDetails spot in details.NewLocationSpots)
-                {
-                    if (spot.Id == spotId)
-                    {
-                        if (spot.ActionNames == null)
-                            spot.ActionNames = new List<string>();
-
-                        spot.ActionNames.Add(action.Name);
-                        break;
-                    }
-                }
+                string spotName = GetStringProperty(actionElement, "locationSpot", "");
+                action.SpotName = spotName;
             }
         }
 
@@ -103,7 +93,6 @@ public static class LocationJsonParser
     {
         SpotDetails spot = new SpotDetails
         {
-            Id = GetStringProperty(element, "id", Guid.NewGuid().ToString()),
             Name = GetStringProperty(element, "name", "Unnamed Spot"),
             Description = GetStringProperty(element, "description", "No description available."),
             InteractionType = GetStringProperty(element, "interactionType", "Feature"),
