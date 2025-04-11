@@ -13,7 +13,8 @@ public class PostEncounterEvolutionParser
     public async Task<PostEncounterEvolutionResult> ParsePostEncounterEvolutionResponseAsync(string response)
     {
         FlatPostEncounterEvolutionResponse flatResponse = ParseFlatResponse(response);
-        return await BuildNestedResponseAsync(flatResponse);
+        PostEncounterEvolutionResult postEncounterEvolutionResult = await BuildNestedResponseAsync(flatResponse);
+        return postEncounterEvolutionResult;
     }
 
     private FlatPostEncounterEvolutionResponse ParseFlatResponse(string response)
