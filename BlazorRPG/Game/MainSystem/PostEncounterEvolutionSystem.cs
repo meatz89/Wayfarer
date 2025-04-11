@@ -70,7 +70,6 @@
         // First, process new locations so they exist before processing spots
         foreach (Location location in evolution.NewLocations)
         {
-            // Verify location has spots collection (shouldn't be needed with proper prompting)
             if (location.LocationSpots == null)
             {
                 location.LocationSpots = new List<LocationSpot>();
@@ -78,6 +77,8 @@
 
             // Add location to world state
             worldState.AddLocation(location);
+
+            location.ConnectedTo.Add(worldState.CurrentLocation.Name);
 
             // Set location depth
             worldState.SetLocationDepth(location.Name, location.Depth);
