@@ -133,7 +133,7 @@ public class PostEncounterEvolutionParser
                 Description = spotDef.Description,
                 InteractionType = spotDef.InteractionType,
                 LocationName = spotDef.LocationName,
-                ActionTemplates = new List<string>()
+                ActionIds = new List<string>()
             };
 
             // Add to spots by location

@@ -35,13 +35,11 @@
 
     public async Task<Location> PopulateLocation(
         string locationToPopulate,
-        bool wasTravelEncounter,
         string travelOrigin,
         int locationDepth,
         WorldStateInput worldStateInput)
     {
-        LocationCreationInput input = CreateLocationInput(
-            wasTravelEncounter, travelOrigin, locationToPopulate, locationDepth);
+        LocationCreationInput input = CreateLocationInput(travelOrigin, locationToPopulate, locationDepth);
 
         // Get location details from AI
         LocationDetails details = await narrativeService.GenerateLocationDetailsAsync(input, worldStateInput);
@@ -95,7 +93,7 @@
                 InteractionType = spotDetail.InteractionType,
                 InteractionDescription = spotDetail.InteractionDescription,
                 Position = spotDetail.Position,
-                ActionTemplates = new List<string>(spotDetail.ActionNames)
+                ActionIds = [.. spotDetail.ActionIds]
             };
 
             locationSystem.AddSpot(location.Name, spot);
@@ -120,13 +118,13 @@
 
                 if (spotForAction != null)
                 {
-                    if (spotForAction.ActionTemplates == null)
+                    if (spotForAction.ActionIds == null)
                     {
-                        spotForAction.ActionTemplates = new List<string>();
+                        spotForAction.ActionIds = new List<string>();
                     }
 
                     // Create action template linked to the encounter
-                    string actionTemplateName = await actionGenerator.GenerateActionAndEncounter(
+                    string actionId = await actionGenerator.GenerateActionAndEncounter(
                         worldStateInput,
                         newAction.Name.Replace(" ", ""),
                         newAction.Name,
@@ -136,11 +134,11 @@
                         newAction.Complication,
                         ParseActionType(newAction.ActionType).ToString());
 
-                    SpotAction actionTemplate = actionRepository.GetAction(actionTemplateName);
-                    string encounterTemplateName = actionTemplate.EncounterTemplateName;
+                    SpotAction actionTemplate = actionRepository.GetAction(actionId);
+                    string encounterId = actionTemplate.EncounterId;
 
-                    EncounterTemplate encounterTemplate = actionRepository.GetEncounterTemplate(encounterTemplateName);
-                    spotForAction.ActionTemplates.Add(actionTemplate.Name);
+                    EncounterTemplate encounterTemplate = actionRepository.GetEncounterTemplate(encounterId);
+                    spotForAction.ActionIds.Add(actionTemplate.ActionId);
 
                     Console.WriteLine($"Created new action {newAction.Name} at {newAction.LocationName}/{newAction.SpotName}");
                 }
@@ -169,7 +167,6 @@
     }
 
     private LocationCreationInput CreateLocationInput(
-        bool wasTravelEncounter,
         string travelOrigin,
         string travelDestination,
         int locationDepth
@@ -198,7 +195,7 @@
             ConnectedLocations = this.locationSystem.FormatLocations(locationSystem.GetConnectedLocations()),
             AllExistingActions = actionSystem.FormatExistingActions(allLocations),
 
-            WasTravelEncounter = wasTravelEncounter,
+            WasTravelEncounter = true,
             TravelOrigin = travelOrigin,
             TravelDestination = travelDestination,
 

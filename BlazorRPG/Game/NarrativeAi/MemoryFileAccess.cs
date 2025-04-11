@@ -3,6 +3,7 @@
 public class MemoryFileAccess
 {
     const string fileName = "memory.txt";
+    const string fileNameWorld = "worldState.txt";
 
     public static async Task<string> ReadFromMemoryFile()
     {
@@ -63,7 +64,7 @@ public class MemoryFileAccess
         try
         {
             string _baseLogDirectory = Path.Combine("C:", "Logs");
-            string filePath = Path.Combine(_baseLogDirectory, "WorldState");
+            string filePath = Path.Combine(_baseLogDirectory, fileNameWorld);
 
             // Ensure directory exists
             Directory.CreateDirectory(_baseLogDirectory);

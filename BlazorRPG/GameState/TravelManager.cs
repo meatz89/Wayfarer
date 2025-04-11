@@ -41,9 +41,7 @@
         // Advance game time
         worldState.CurrentTimeMinutes += travelMinutes;
 
-        // Record visit and check if it's first visit
         bool isFirstVisit = worldState.IsFirstVisit(travelLocation);
-        worldState.RecordLocationVisit(travelLocation);
 
         Location targetLocation = LocationSystem.GetLocation(travelLocation);
         if (string.IsNullOrWhiteSpace(worldState.CurrentLocation?.Name))
@@ -110,7 +108,7 @@
         SpotAction travelTemplate = new SpotAction
         {
             Name = "Travel",
-            EncounterTemplateName = "Travel",
+            EncounterId = "Travel",
             ActionType = ActionTypes.Encounter,
             BasicActionType = BasicActionTypes.Travel,
             Goal = "Travel dangerously to your destination",

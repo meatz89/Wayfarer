@@ -1,6 +1,7 @@
 ﻿public class SpotAction
 {
     public string ActionId { get; set; }
+    public string EncounterId { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string Goal { get; set; }
@@ -11,11 +12,6 @@
     public string LocationSpotName { get; set; }
     public int Difficulty { get; set; }
     public bool IsEncounterAction => ActionType == ActionTypes.Encounter;
-
-    // If Encounter Action
-    public string EncounterTemplateName { get; set; }
-
-    // If Basic Action
     public List<Requirement> Requirements { get; set; }
     public List<Outcome> Energy { get; set; }
     public List<Outcome> Costs { get; set; }

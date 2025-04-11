@@ -4,7 +4,7 @@
     public string Name { get; set; }
     public string Description { get; set; }
     public string InteractionType { get; set; }  // "Character", "Quest", "Shop", "Feature", etc.
-    public List<string> ActionTemplates { get; set; } = new();
+    public List<string> ActionIds { get; set; } = new();
 
     // Connections
     public string LocationName { get; set; }
@@ -62,7 +62,7 @@
         Atmosphere? atmosphere,
         Physical? physical,
         Illumination? illumination,
-        List<string> actionNames)
+        List<string> actionIds)
     {
         Name = name;
         Description = description;
@@ -72,6 +72,6 @@
         Atmosphere = atmosphere;
         Physical = physical;
         Illumination = illumination;
-        ActionTemplates = actionNames;
+        ActionIds = actionIds;
     }
 }

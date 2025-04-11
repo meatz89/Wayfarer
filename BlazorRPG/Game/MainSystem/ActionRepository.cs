@@ -80,8 +80,7 @@
 
         SpotAction newTemplate = builder.Build();
         _actionTemplates.Add(newTemplate);
+
         return newTemplate.ActionId;
     }
-
-
 }

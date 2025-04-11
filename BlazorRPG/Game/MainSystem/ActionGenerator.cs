@@ -18,7 +18,7 @@
     {
         ActionGenerationContext context = new ActionGenerationContext
         {
-            ActionId = actionTemplate.ActionId,
+            ActionName = actionTemplate.ActionId,
             ActionName = actionTemplate.Name,
             Goal = actionTemplate.Goal,
             Complication = actionTemplate.Complication,
@@ -36,27 +36,23 @@
         // Create and register the encounter template
         EncounterTemplate encounterTemplate = CreateEncounterTemplate(actionId, result.EncounterTemplate);
 
-        string encounterName = $"{result.Action.IsEncounterAction}";
         _repository.RegisterEncounterTemplate(actionId, encounterTemplate);
 
-        return encounterName;
+        return actionId;
     }
 
     public async Task<string> GenerateActionAndEncounter(
         WorldStateInput worldStateInput,
         string actionId,
-        string name,
         string locationSpotName,
         string locationName,
         string goal = "",
         string complication = "",
         string basicActionType = "")
     {
-        // Create context for generation
         ActionGenerationContext context = new ActionGenerationContext
         {
-            ActionId = actionId,
-            ActionName = name,
+            ActionName = actionId,
             SpotName = locationSpotName,
             LocationName = locationName,
             Goal = goal,
@@ -75,7 +71,7 @@
         _repository.RegisterEncounterTemplate(actionId, encounterTemplate);
 
         // Create action template linked to the encounter
-        string actionTemplate = _repository.CreateActionTemplate(
+        actionId = _repository.CreateActionTemplate(
             actionId,
             result.Action.Name,
             result.Action.Goal,
@@ -84,7 +80,7 @@
             result.Action.ActionType,
             result.Action.CoinCost);
 
-        return actionTemplate;
+        return actionId;
     }
 
     public EncounterTemplate CreateEncounterTemplate(string id, EncounterTemplateModel model)

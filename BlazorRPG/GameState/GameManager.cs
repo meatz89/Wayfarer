@@ -66,6 +66,7 @@ public class GameManager
     public async Task StartGame()
     {
         Location startingLocation = await LocationSystem.Initialize(GameRules.StandardRuleset.StartingLocation);
+        worldState.RecordLocationVisit(gameState.PlayerState.StartingLocation);
         TravelManager.TravelToLocation(gameState.PlayerState.StartingLocation, TravelMethods.Walking);
 
         if (worldState.CurrentLocationSpot == null && worldState.CurrentLocation?.LocationSpots?.Any() == true)
@@ -100,24 +101,26 @@ public class GameManager
     {
         WorldStateInput worldStateInput = await CreateWorldStateInput();
 
-        List<string> locationSpotActions = locationSpot.ActionTemplates.ToList();
-        foreach (string actionName in locationSpotActions)
+        List<string> locationSpotActions = locationSpot.ActionIds.ToList();
+        foreach (string actionId in locationSpotActions)
         {
-            SpotAction actionTemplate = ActionRepository.GetAction(actionName);
+            SpotAction actionTemplate = ActionRepository.GetAction(actionId);
             if (actionTemplate == null)
             {
-                string actionId =
+                actionId =
                     await ActionGenerator.GenerateActionAndEncounter(
                     worldStateInput,
-                    actionTemplate.ActionId,
-                    actionName,
+                    actionId,
                     locationSpot.Name,
                     location.Name);
 
                 actionTemplate = ActionRepository.GetAction(actionId);
             }
 
-            EncounterTemplate encounterTemplate = ActionRepository.GetEncounterTemplate(actionTemplate.EncounterTemplateName);
+            EncounterTemplate encounterTemplate = ActionRepository
+                .GetEncounterTemplate(
+                    actionTemplate.EncounterId);
+
             if (encounterTemplate == null)
             {
                 string actionId = 
@@ -289,24 +292,79 @@ public class GameManager
 
     public async Task OnEncounterCompleted(EncounterResult result)
     {
-        // Encounter is Over
-        gameState.Actions.EncounterResult = result;
+        await ProcessEncounterOutcome(result);
 
-        // If this was a travel encounter that completed successfully
         bool wasTravelEncounter = gameState.PendingTravel != null && gameState.PendingTravel.IsTravelPending;
-        if (!wasTravelEncounter)
-        {
-            await ProcessEncounterOutcome(result);
-        }
-        else
+        if (wasTravelEncounter)
         {
             await OnLocationArrival(gameState.PendingTravel.TravelDestination);
             gameState.PendingTravel.Clear();
         }
     }
 
+    private async Task OnLocationArrival(string targetLocation)
+    {
+        Location travelOrigin = gameState.PendingTravel?.TravelOrigin;
+        string locationToPopulate = gameState.PendingTravel?.TravelDestination ?? "";
+
+        Location travelLocation = gameState.WorldState.GetLocation(targetLocation);
+
+        WorldStateInput worldStateInput = await CreateWorldStateInput();
+
+        bool isFirstVisit = worldState.IsFirstVisit(travelLocation.Name);
+        if (isFirstVisit)
+        {
+            Location originLocation = worldState.GetLocation(travelOrigin.Name);
+            int newLocationDepth = originLocation.Depth + 1;
+
+            travelLocation =
+                await locationCreationSystem.PopulateLocation(
+                locationToPopulate,
+                travelOrigin.Name,
+                newLocationDepth,
+                worldStateInput);
+
+            worldState.RecordLocationVisit(travelLocation.Name);
+        }
+
+        if (travelLocation.LocationSpots.Count > 0)
+        {
+            worldState.CurrentLocationSpot = travelLocation.LocationSpots[0];
+        }
+
+        List<UserActionOption> options = new List<UserActionOption>();
+        if (travelLocation == null) return;
+
+        // Ensure we have a current location spot
+        if (gameState.WorldState.CurrentLocationSpot == null && travelLocation.LocationSpots?.Any() == true)
+        {
+            Console.WriteLine($"Setting location spot to {travelLocation.LocationSpots.First().Name} in OnPlayerEnterLocation");
+            gameState.WorldState.SetCurrentLocationSpot(travelLocation.LocationSpots.First());
+        }
+
+        List<LocationSpot> locationSpots = travelLocation.LocationSpots;
+        Console.WriteLine($"Location {travelLocation.Name} has {locationSpots?.Count ?? 0} spots");
+
+        foreach (LocationSpot locationSpot in locationSpots)
+        {
+            await CreateActionsForLocationSpot(options, this.location, locationSpot);
+        }
+
+        gameState.Actions.SetLocationSpotActions(options);
+
+        if (gameState.PendingTravel!.IsTravelPending)
+        {
+            gameState.PendingTravel.Clear();
+        }
+
+        // Set as current location
+        worldState.SetCurrentLocation(travelLocation);
+    }
+
     public async Task ProcessEncounterOutcome(EncounterResult result)
     {
+        gameState.Actions.EncounterResult = result;
+
         NarrativeResult narrativeResult = result.NarrativeResult;
         string narrative = narrativeResult.SceneNarrative;
         string outcome = narrativeResult.Outcome.ToString();
@@ -319,7 +377,8 @@ public class GameManager
         if (_processStateChanges)
         {
             // If not a travel encounter, evolve the current location
-            if (result.Encounter.ActionImplementation.BasicActionType != BasicActionTypes.Travel)
+            BasicActionTypes basicActionType = result.Encounter.ActionImplementation.BasicActionType;
+            if (basicActionType != BasicActionTypes.Travel)
             {
                 Location currentLocation = worldState.GetLocation(result.Encounter.encounterInfo.LocationName);
                 if (_useMemory)
@@ -342,69 +401,6 @@ public class GameManager
                 await evolutionSystem.IntegrateEncounterOutcome(evolutionResponse, worldState, LocationSystem, playerState, worldStateInput);
             }
         }
-    }
-
-    private async Task OnLocationArrival(string locationName)
-    {
-        // Check if this was a travel encounter
-        bool wasTravelEncounter = gameState.PendingTravel?.IsTravelPending ?? false;
-
-        Location travelOrigin = gameState.PendingTravel?.TravelOrigin;
-        string locationToPopulate = gameState.PendingTravel?.TravelDestination ?? "";
-
-        Location location = gameState.WorldState.GetLocation(locationName);
-
-        WorldStateInput worldStateInput = await CreateWorldStateInput();
-
-        // Check if this is the first visit
-        bool isFirstVisit = worldState.IsFirstVisit(location.Name);
-        if (isFirstVisit)
-        {
-            Location originLocation = worldState.GetLocation(travelOrigin.Name);
-            int newLocationDepth = originLocation.Depth + 1;
-
-            location =
-                await locationCreationSystem.PopulateLocation(
-                locationToPopulate,
-                wasTravelEncounter,
-                travelOrigin.Name,
-                newLocationDepth,
-                worldStateInput);
-        }
-
-        // Start with first spot
-        if (location.LocationSpots.Count > 0)
-        {
-            worldState.CurrentLocationSpot = location.LocationSpots[0];
-        }
-
-        List<UserActionOption> options = new List<UserActionOption>();
-        if (location == null) return;
-
-        // Ensure we have a current location spot
-        if (gameState.WorldState.CurrentLocationSpot == null && location.LocationSpots?.Any() == true)
-        {
-            Console.WriteLine($"Setting location spot to {location.LocationSpots.First().Name} in OnPlayerEnterLocation");
-            gameState.WorldState.SetCurrentLocationSpot(location.LocationSpots.First());
-        }
-
-        List<LocationSpot> locationSpots = location.LocationSpots;
-        Console.WriteLine($"Location {location.Name} has {locationSpots?.Count ?? 0} spots");
-
-        foreach (LocationSpot locationSpot in locationSpots)
-        {
-            await CreateActionsForLocationSpot(options, this.location, locationSpot);
-        }
-
-        gameState.Actions.SetLocationSpotActions(options);
-
-        if (gameState.PendingTravel.IsTravelPending)
-        {
-            gameState.PendingTravel.Clear();
-        }
-
-        // Set as current location
-        worldState.SetCurrentLocation(location);
     }
 
     private async Task CreateMemoryRecord(EncounterResult encounterResult)

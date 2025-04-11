@@ -130,13 +130,13 @@
 
                 if (spotForAction != null)
                 {
-                    if (spotForAction.ActionTemplates == null)
+                    if (spotForAction.ActionIds == null)
                     {
-                        spotForAction.ActionTemplates = new List<string>();
+                        spotForAction.ActionIds = new List<string>();
                     }
 
                     // Create action template linked to the encounter
-                    string actionTemplateName = await _actionGenerator.GenerateActionAndEncounter(
+                    string actionId = await _actionGenerator.GenerateActionAndEncounter(
                         worldStateInput,
                         newAction.Name,
                         newAction.SpotName,
@@ -146,10 +146,10 @@
                         ParseActionType(newAction.ActionType).ToString());
 
                     SpotAction actionTemplate = _actionRepository.GetAction(newAction.Name);
-                    string encounterTemplateName = actionTemplate.EncounterTemplateName;
+                    string encounterTemplateName = actionTemplate.EncounterId;
 
                     EncounterTemplate encounterTemplate = _actionRepository.GetEncounterTemplate(encounterTemplateName);
-                    spotForAction.ActionTemplates.Add(actionTemplateName);
+                    spotForAction.ActionIds.Add(actionId);
 
                     Console.WriteLine($"Created new action {newAction.Name} at {newAction.LocationName}/{newAction.SpotName}");
                 }

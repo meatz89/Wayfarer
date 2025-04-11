@@ -23,12 +23,12 @@ public class ActionSystem
 
             foreach (LocationSpot spot in location.LocationSpots)
             {
-                if (spot.ActionTemplates == null || !spot.ActionTemplates.Any())
+                if (spot.ActionIds == null || !spot.ActionIds.Any())
                     continue;
 
                 sb.AppendLine($"## Actions at {location.Name} / {spot.Name}:");
 
-                foreach (string actionTemplate in spot.ActionTemplates)
+                foreach (string actionTemplate in spot.ActionIds)
                 {
                     SpotAction action = actionRepository.GetAction(actionTemplate);
                     if (action != null)

@@ -86,7 +86,7 @@
             Complication = complication,
             BasicActionType = actionType,
             ActionType = IsEncounterAction ? ActionTypes.Encounter : ActionTypes.Basic,
-            EncounterTemplateName = encounterTemplateName,
+            EncounterId = encounterTemplateName,
             CoinCost = 0,
             IsRepeatable = isRepeatable
         };
