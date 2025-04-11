@@ -154,9 +154,15 @@ public class LocationSystem
         return sb.ToString();
     }
 
-    internal void ConnectLocations(Location location, Location currentLocation)
+    internal void ConnectLocations(Location targetLocation, Location currentLocation)
     {
-        worldState.CurrentLocation.ConnectedTo.Add(location.Name);
-        location.ConnectedTo.Add(worldState.CurrentLocation.Name);
+        NewConnection(currentLocation, targetLocation.Name);
+        NewConnection(targetLocation, currentLocation.Name);
+    }
+
+    private void NewConnection(Location currentLocation, string targetLocation)
+    {
+        if(currentLocation.ConnectedTo.Contains(targetLocation)) return;
+        currentLocation.ConnectedTo.Add(targetLocation);
     }
 }
