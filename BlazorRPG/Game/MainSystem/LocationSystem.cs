@@ -153,4 +153,10 @@ public class LocationSystem
 
         return sb.ToString();
     }
+
+    internal void ConnectLocations(Location location, Location currentLocation)
+    {
+        worldState.CurrentLocation.ConnectedTo.Add(location.Name);
+        location.ConnectedTo.Add(worldState.CurrentLocation.Name);
+    }
 }

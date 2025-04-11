@@ -95,7 +95,7 @@ public class ItemRequirement : Requirement
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.PlayerState.Inventory.GetItemCount(ResourceType) > 0;
+        return gameState.PlayerState.Inventory.GetItemCount(ResourceType.ToString()) > 0;
     }
 
     public override string GetDescription()
@@ -117,7 +117,7 @@ public class ResourceRequirement : Requirement
 
     public override bool IsSatisfied(GameState gameState)
     {
-        return gameState.PlayerState.Inventory.GetItemCount(ResourceType) >= Count;
+        return gameState.PlayerState.Inventory.GetItemCount(ResourceType.ToString()) >= Count;
     }
 
     public override string GetDescription()

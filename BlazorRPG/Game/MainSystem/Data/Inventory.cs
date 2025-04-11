@@ -17,7 +17,7 @@ public class Inventory
 
     public string GetFirstItem()
     {
-        foreach (string itemType in Enum.GetValues(typeof(string)))
+        foreach (string itemType in Slots)
         {
             if (itemType != string.Empty && ContainsItem(itemType))
             {
@@ -90,6 +90,12 @@ public class Inventory
         }
 
         return removedCount; // Return the number of items successfully removed
+    }
+
+    // Method to add an item to the inventory
+    public bool AddItem(ItemTypes itemTypes)
+    {
+        return AddItem(itemTypes.ToString());
     }
 
     // Method to add an item to the inventory
@@ -170,8 +176,8 @@ public class Inventory
         return new List<Item>();
     }
 
-    public void RemoveItem(Item item)
+    internal bool ContainsItem(ItemTypes itemTypes)
     {
-
+        return ContainsItem(itemTypes.ToString());
     }
 }

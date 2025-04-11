@@ -165,7 +165,7 @@
                             {
                                 if (itemType != ItemTypes.None)
                                 {
-                                    int count = PlayerState.Inventory.GetItemCount(itemType);
+                                    int count = PlayerState.Inventory.GetItemCount(itemType.ToString());
                                     if (count > 0)
                                     {
                                         <div class="inventory-item" title="@GetItemDescription(itemType)">

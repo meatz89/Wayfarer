@@ -239,7 +239,7 @@ public class ResourceOutcome : Outcome
 
     public override string GetPreview(PlayerState player)
     {
-        int current = player.Inventory.GetItemCount(ResourceType);
+        int current = player.Inventory.GetItemCount(ResourceType.ToString());
         int change = ChangeType == ResourceChangeTypes.Added ? Amount : -Amount;
         int newValue = Math.Max(0, current + change);
         return $"({current} -> {newValue})";
