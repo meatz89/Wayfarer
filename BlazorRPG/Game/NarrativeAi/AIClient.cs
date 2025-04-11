@@ -1,11 +1,15 @@
-﻿public class AIClientService
+﻿public class AIClient
 {
     private readonly IAIProvider _aiProvider;
     private readonly string _gameInstanceId;
     private readonly ILogger _logger;
     private readonly NarrativeLogManager _logManager;
 
-    public AIClientService(IAIProvider aiProvider, string gameInstanceId, ILogger logger, NarrativeLogManager logManager)
+    public AIClient(
+        IAIProvider aiProvider, 
+        string gameInstanceId, 
+        ILogger logger, 
+        NarrativeLogManager logManager)
     {
         _aiProvider = aiProvider ?? throw new ArgumentNullException(nameof(aiProvider));
         _gameInstanceId = gameInstanceId;
