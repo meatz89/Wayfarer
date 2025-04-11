@@ -42,35 +42,40 @@
     }
 
     <div class="tooltip-section">
-        <h5>Effects</h5>
-        @if (hoveredChoice.Choice is ChoiceCard cardChoiceTier)
-        {
-            <span class="tier-badge tier-@((int)cardChoiceTier.Tier)">
-                @GetTierName(cardChoiceTier.Tier)
+        <h4>
+            Effects
+        </h4>
+
+        <div class="effects-section">
+            @if (hoveredChoice.Choice is ChoiceCard cardChoiceTier)
+            {
+                <span class="tier-badge tier-@((int)cardChoiceTier.Tier)">
+                    @GetTierName(cardChoiceTier.Tier)
+                </span>
+            }
+            @{
+                // Get the approach affinity for this choice
+                AffinityTypes affinity = GameState.PlayerState.GetApproachAffinity(
+                hoveredChoice.Choice.Approach,
+                hoveredChoice.encounter.encounterInfo.Type);
+
+                // Determine CSS class and text
+                string affinityClass =
+                affinity == AffinityTypes.Natural ? "natural-affinity" :
+                affinity == AffinityTypes.Unnatural ? "unnatural-affinity" :
+                affinity == AffinityTypes.Dangerous ? "dangerous-affinity" :
+                "neutral-affinity";
+
+                string affinityText =
+                affinity == AffinityTypes.Natural ? "Natural" :
+                affinity == AffinityTypes.Unnatural ? "Unnatural" :
+                affinity == AffinityTypes.Dangerous ? "Dangerous" :
+                "Neutral";
+            }
+            <span class="affinity-badge @affinityClass">
+                @affinityText Affinity
             </span>
-        }
-        @{
-            // Get the approach affinity for this choice
-            AffinityTypes affinity = GameState.PlayerState.GetApproachAffinity(
-            hoveredChoice.Choice.Approach,
-            hoveredChoice.encounter.encounterInfo.Type);
-
-            // Determine CSS class and text
-            string affinityClass =
-            affinity == AffinityTypes.Natural ? "natural-affinity" :
-            affinity == AffinityTypes.Unnatural ? "unnatural-affinity" :
-            affinity == AffinityTypes.Dangerous ? "dangerous-affinity" :
-            "neutral-affinity";
-
-            string affinityText =
-            affinity == AffinityTypes.Natural ? "Natural" :
-            affinity == AffinityTypes.Unnatural ? "Unnatural" :
-            affinity == AffinityTypes.Dangerous ? "Dangerous" :
-            "Neutral";
-        }
-        <span class="affinity-badge @affinityClass">
-            @affinityText Affinity
-        </span>
+        </div>
 
         <div class="tooltip-list">
             @if (Preview.HealthChange != 0)
