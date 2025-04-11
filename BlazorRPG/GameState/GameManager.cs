@@ -86,7 +86,7 @@ public class GameManager
 
         // Create option
         UserActionOption travelOption = new UserActionOption(
-            0, "Travel to " + locationName, false, travelAction,
+            0, "Travel", "Travel to " + locationName, false, travelAction,
             worldState.CurrentLocation.Name, worldState.CurrentLocationSpot.Name,
             null, worldState.CurrentLocation.Difficulty);
 
@@ -106,21 +106,27 @@ public class GameManager
             SpotAction actionTemplate = ActionRepository.GetAction(actionName);
             if (actionTemplate == null)
             {
-                string actionTemplateName =
+                string actionId =
                     await ActionGenerator.GenerateActionAndEncounter(
                     worldStateInput,
+                    actionTemplate.ActionId,
                     actionName,
                     locationSpot.Name,
                     location.Name);
 
-                actionTemplate = ActionRepository.GetAction(actionTemplateName);
+                actionTemplate = ActionRepository.GetAction(actionId);
             }
 
             EncounterTemplate encounterTemplate = ActionRepository.GetEncounterTemplate(actionTemplate.EncounterTemplateName);
             if (encounterTemplate == null)
             {
-                string encounterTemplateName = await ActionGenerator.CreateEncounterForAction(actionTemplate, worldStateInput);
-                encounterTemplate = ActionRepository.GetEncounterTemplate(encounterTemplateName);
+                string actionId = 
+                    await ActionGenerator.CreateEncounterForAction(
+                        actionTemplate.ActionId, 
+                        actionTemplate, 
+                        worldStateInput);
+
+                encounterTemplate = ActionRepository.GetEncounterTemplate(actionId);
             }
 
             ActionImplementation actionImplementation = ActionFactory.CreateActionFromTemplate(actionTemplate, encounterTemplate);
@@ -128,6 +134,7 @@ public class GameManager
             UserActionOption userActionOption =
                 new UserActionOption(
                     default,
+                    actionImplementation.ActionId.ToString(),
                     actionImplementation.Name.ToString(),
                     false,
                     actionImplementation,
@@ -305,7 +312,7 @@ public class GameManager
         string outcome = narrativeResult.Outcome.ToString();
 
         // Generate a unique encounter ID based on the context
-        string encounterId = GenerateEncounterId(result);
+        string encounterId = result.Encounter.ActionImplementation.ActionId;
 
         worldState.MarkEncounterCompleted(encounterId);
 
@@ -412,10 +419,10 @@ public class GameManager
 
         string location = encounterResult.Encounter.GetNarrativeContext().LocationName;
         string locationSpot = encounterResult.Encounter.GetNarrativeContext().locationSpotName;
-        string action = encounterResult.Encounter.ActionImplementation.Name;
+        string actionName = encounterResult.Encounter.ActionImplementation.Name;
         string goal = encounterResult.Encounter.ActionImplementation.Goal;
 
-        string title = $"{location} - {locationSpot}, {action} - {goal}" + Environment.NewLine;
+        string title = $"{location} - {locationSpot}, {actionName} - {goal}" + Environment.NewLine;
 
         string memoryEntryToWrite = title + memoryEntry;
 
@@ -559,7 +566,7 @@ public class GameManager
         // Check if the action has been completed and is non-repeatable
         if (!action.ActionImplementation.IsRepeatable)
         {
-            string encounterId = GenerateActionEncounterId(action);
+            string encounterId = action.ActionId;
             if (gameState.WorldState.IsEncounterCompleted(encounterId))
             {
                 return false; // Already completed this non-repeatable action
@@ -570,10 +577,6 @@ public class GameManager
         return action.ActionImplementation.CanExecute(gameState);
     }
 
-    private string GenerateActionEncounterId(UserActionOption action)
-    {
-        return $"{action.Location}_{action.LocationSpot}_{action.ActionImplementation.Name}";
-    }
 
     public bool AdvanceTime(int inHours)
     {
@@ -635,14 +638,6 @@ public class GameManager
         model.EncounterResult = encounterResult;
 
         return model;
-    }
-
-
-    private string GenerateEncounterId(EncounterResult result)
-    {
-        // Create a unique ID based on location, spot, and action
-        NarrativeContext context = result.NarrativeContext;
-        return $"{context.LocationName}_{context.locationSpotName}_{context.ActionImplementation.Name}";
     }
 
     private async Task<WorldStateInput> CreateWorldStateInput()

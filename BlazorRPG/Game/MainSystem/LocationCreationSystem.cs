@@ -128,6 +128,7 @@
                     // Create action template linked to the encounter
                     string actionTemplateName = await actionGenerator.GenerateActionAndEncounter(
                         worldStateInput,
+                        newAction.Name.Replace(" ", ""),
                         newAction.Name,
                         newAction.SpotName,
                         newAction.LocationName,

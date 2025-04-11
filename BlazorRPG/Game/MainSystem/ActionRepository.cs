@@ -17,9 +17,9 @@
             _actionTemplates.Add(actionTemplate);
         }
     }
-    public EncounterTemplate GetEncounterTemplate(string name)
+    public EncounterTemplate GetEncounterTemplate(string actionId)
     {
-        EncounterTemplate? template = _encounterTemplates.FirstOrDefault(x => x.Name == name);
+        EncounterTemplate? template = _encounterTemplates.FirstOrDefault(x => x.ActionId == actionId);
         if (template != null)
         {
             return template;
@@ -29,20 +29,25 @@
         return WorldEncounterContent.GetAllTemplates().First();
     }
 
-    public SpotAction GetAction(string actionName)
+    public SpotAction GetAction(string actionId)
     {
-        SpotAction? existingTemplate = _actionTemplates.FirstOrDefault(x => x.Name == actionName);
+        SpotAction? existingTemplate = _actionTemplates.FirstOrDefault(x => x.ActionId == actionId);
         return existingTemplate;
     }
 
+    public void RegisterEncounterTemplate(string actionId, EncounterTemplate template)
+    {
+        template.ActionId = actionId;
+        _encounterTemplates.Add(template);
+    }
 
     public string CreateActionTemplate(
-        string actionName,
+        string actionId,
+        string name,
         string goal,
         string complication,
         BasicActionTypes basicActionTypes,
         ActionTypes actionType,
-        string encounterTemplate,
         int coinCost = 0)
     {
         ActionTemplateBuilder builder = new ActionTemplateBuilder();
@@ -50,16 +55,18 @@
         {
 
             builder
-                .WithCustomName(actionName)
+                .WithId(actionId)
+                .WithName(name)
                 .WithGoal(goal)
                 .WithComplication(complication)
                 .WithActionType(basicActionTypes)
-                .StartsEncounter(encounterTemplate);
+                .StartsEncounter(actionId);
         }
         else
         {
             builder
-                .WithCustomName(actionName)
+                .WithId(actionId)
+                .WithName(actionId)
                 .WithGoal(goal)
                 .WithComplication(complication)
                 .WithActionType(basicActionTypes)
@@ -73,12 +80,8 @@
 
         SpotAction newTemplate = builder.Build();
         _actionTemplates.Add(newTemplate);
-        return newTemplate.Name;
+        return newTemplate.ActionId;
     }
 
-    public void RegisterEncounterTemplate(string name, EncounterTemplate template)
-    {
-        _encounterTemplates.Add(template);
-    }
 
 }

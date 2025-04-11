@@ -11,6 +11,7 @@
     {
         ActionImplementation actionImplementation = new ActionImplementation();
 
+        actionImplementation.ActionId = template.ActionId;
         actionImplementation.Name = template.Name;
         actionImplementation.Requirements = new List<Requirement>();
         actionImplementation.EnergyCosts = template.Energy ?? new();
