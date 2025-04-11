@@ -6,7 +6,7 @@ public class LocationSpotBuilder
     private string locationName;
     private string? character;
 
-    private List<string> actionNames = new();
+    private List<string> actionIds = new();
 
     public Illumination? illumination { get; set; }
     public Population? population { get; set; }
@@ -39,7 +39,7 @@ public class LocationSpotBuilder
 
     public LocationSpotBuilder AddAction(ActionNames actionName)
     {
-        this.actionNames.Add(actionName.ToString());
+        this.actionIds.Add(actionName.ToString());
         return this;
     }
 
@@ -73,7 +73,6 @@ public class LocationSpotBuilder
         return this;
     }
 
-
     public LocationSpot Build()
     {
         // Validation: Ensure name and actionType are set
@@ -92,7 +91,7 @@ public class LocationSpotBuilder
                 atmosphere,
                 physical,
                 illumination,
-                actionNames
+                actionIds
             );
 
         if (character != null)

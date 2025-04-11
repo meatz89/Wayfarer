@@ -34,7 +34,7 @@ public static class ActionJsonParser
                 // Link the encounter template name to the action
                 if (!string.IsNullOrEmpty(result.EncounterTemplate.Name))
                 {
-                    result.Action.EncounterTemplateName = result.EncounterTemplate.Name;
+                    result.Action.EncounterId = result.EncounterTemplate.Name;
                 }
             }
 
@@ -62,7 +62,7 @@ public static class ActionJsonParser
         model.Complication = GetStringProperty(element, "complication", model.Complication);
         model.LocationName = GetStringProperty(element, "locationName", model.LocationName);
         model.LocationSpotName = GetStringProperty(element, "spotName", model.LocationSpotName);
-        model.EncounterTemplateName = GetStringProperty(element, "encounterTemplateName", model.EncounterTemplateName);
+        model.EncounterId = GetStringProperty(element, "encounterTemplateName", model.EncounterId);
 
         // Parse action type
         string actionTypeStr = GetStringProperty(element, "actionType", "Encounter");
@@ -134,7 +134,7 @@ public static class ActionJsonParser
             ActionType = ActionTypes.Encounter,
             LocationName = "Unknown Location",
             LocationSpotName = "Unknown Spot",
-            EncounterTemplateName = "DefaultEncounter",
+            EncounterId = "DefaultEncounter",
             CoinCost = 0,
         };
     }
