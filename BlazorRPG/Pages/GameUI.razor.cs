@@ -117,8 +117,7 @@ public partial class GameUI : ComponentBase
         StateHasChanged();
     }
 
-    // Modify HandleLocationSelection method
-    private void HandleTravelStart(string travelLocationName)
+    private async Task HandleTravelStart(string travelLocationName)
     {
         selectedLocation = travelLocationName;
 
@@ -132,9 +131,10 @@ public partial class GameUI : ComponentBase
         }
 
         // Otherwise initiate travel
-        GameManager.InitiateTravelToLocation(travelLocationName);
+        await GameManager.InitiateTravelToLocation(travelLocationName);
         OngoingEncounter = GameState.Actions.IsActiveEncounter;
-        
+        showAreaMap = false;
+
         StateHasChanged();
     }
 

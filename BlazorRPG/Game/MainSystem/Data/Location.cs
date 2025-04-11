@@ -13,7 +13,6 @@
     public string PointsOfInterest { get; set; }
     public List<StrategicTag> StrategicTags { get; set; } = new List<StrategicTag>();
     public List<NarrativeTag> NarrativeTags { get; set; } = new List<NarrativeTag>();
-    public bool PlayerKnowledge { get; }
 
     public int Depth { get; set; }
     public LocationTypes LocationType { get; set; } = LocationTypes.Connective;
@@ -46,6 +45,5 @@
         ConnectedTo = travelConnections;
         LocationSpots = locationSpots;
         Difficulty = difficultyLevel;
-        PlayerKnowledge = playerKnowledge;
     }
 }

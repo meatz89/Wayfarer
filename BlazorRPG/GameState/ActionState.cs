@@ -20,16 +20,18 @@
     public void CompleteActiveEncounter()
     {
         IsActiveEncounter = false;
-
-        SetActiveEncounter(null);
-
+        CurrentEncounter = null;
         EncounterResult = null;
+    }
+
+    public void SetActiveEncounter()
+    {
+        this.IsActiveEncounter = true;
     }
 
     public void SetActiveEncounter(EncounterManager encounter)
     {
-        IsActiveEncounter = true;
-
+        SetActiveEncounter();
         CurrentEncounter = encounter;
         EncounterResult = new EncounterResult()
         { Encounter = encounter, EncounterResults = EncounterResults.Ongoing };
