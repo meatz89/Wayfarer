@@ -1,9 +1,9 @@
 ﻿public class NarrativeResult
 {
     public string SceneNarrative { get; }
-    public List<IChoice> Choices { get; }
+    public List<ChoiceCard> Choices { get; }
     public List<ChoiceProjection> Projections { get; }
-    public Dictionary<IChoice, ChoiceNarrative> ChoiceDescriptions { get; }
+    public Dictionary<ChoiceCard, ChoiceNarrative> ChoiceDescriptions { get; }
     public ChoiceNarrative LastChoiceNarrative { get; }
     public bool IsEncounterOver { get; private set; }
     public EncounterOutcomes? Outcome { get; private set; }
@@ -11,9 +11,9 @@
     public NarrativeResult(
         string narrative,
         string initialGoal,
-        List<IChoice> choices,
+        List<ChoiceCard> choices,
         List<ChoiceProjection> projections,
-        Dictionary<IChoice, ChoiceNarrative> choiceDescriptions,
+        Dictionary<ChoiceCard, ChoiceNarrative> choiceDescriptions,
         ChoiceNarrative lastChoiceNarrative)
     {
         SceneNarrative = narrative;

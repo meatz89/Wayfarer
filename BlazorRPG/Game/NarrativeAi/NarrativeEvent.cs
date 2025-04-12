@@ -2,8 +2,8 @@
 {
     public int TurnNumber { get; }
     public string Summary { get; }
-    public Dictionary<IChoice, ChoiceNarrative> ChoiceDescriptions { get; set; } = new();
-    public IChoice ChosenOption { get; set; }
+    public Dictionary<ChoiceCard, ChoiceNarrative> ChoiceDescriptions { get; set; } = new();
+    public ChoiceCard ChosenOption { get; set; }
     public ChoiceNarrative ChoiceNarrative { get; set; }
     public string Outcome { get; set; }
 
@@ -15,12 +15,12 @@
         Summary = sceneDescription;
     }
 
-    public void SetAvailableChoiceDescriptions(Dictionary<IChoice, ChoiceNarrative> choiceDescriptions)
+    public void SetAvailableChoiceDescriptions(Dictionary<ChoiceCard, ChoiceNarrative> choiceDescriptions)
     {
         ChoiceDescriptions = choiceDescriptions;
     }
 
-    public void SetChosenOption(IChoice chosenOption)
+    public void SetChosenOption(ChoiceCard chosenOption)
     {
         ChosenOption = chosenOption;
     }

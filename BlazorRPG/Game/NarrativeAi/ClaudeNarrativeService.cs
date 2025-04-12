@@ -54,9 +54,9 @@
         return response;
     }
 
-    public override async Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+    public override async Task<Dictionary<ChoiceCard, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
         NarrativeContext context,
-        List<IChoice> choices,
+        List<ChoiceCard> choices,
         List<ChoiceProjection> projections,
         EncounterStatusModel state,
         WorldStateInput worldStateInput)
@@ -93,7 +93,7 @@
 
     public override async Task<string> GenerateEncounterNarrative(
         NarrativeContext context,
-        IChoice chosenOption,
+        ChoiceCard chosenOption,
         ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
         EncounterStatusModel newState,
@@ -131,7 +131,7 @@
 
     public override async Task<string> GenerateEndingAsync(
         NarrativeContext context,
-        IChoice chosenOption,
+        ChoiceCard chosenOption,
         ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
         EncounterStatusModel newState,

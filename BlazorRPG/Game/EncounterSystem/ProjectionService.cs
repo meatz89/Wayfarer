@@ -14,7 +14,7 @@
     }
 
     public ChoiceProjection CreateChoiceProjection(
-        IChoice choice,
+        ChoiceCard choice,
         int currentMomentum,
         int currentPressure,
         int currentTurn)
@@ -69,7 +69,7 @@
         return projection;
     }
 
-    private static void ProcessChoiceTagIncreases(IChoice choice, ChoiceProjection projection, BaseTagSystem clonedTagSystem)
+    private static void ProcessChoiceTagIncreases(ChoiceCard choice, ChoiceProjection projection, BaseTagSystem clonedTagSystem)
     {
         foreach (TagModification mod in choice.TagModifications)
         {
@@ -98,7 +98,7 @@
         }
     }
 
-    private void CalculateDamageFromPressure(IChoice choice, EncounterInfo encounterInfo, ChoiceProjection projection, int currentPressure, int choicePressure)
+    private void CalculateDamageFromPressure(ChoiceCard choice, EncounterInfo encounterInfo, ChoiceProjection projection, int currentPressure, int choicePressure)
     {
         int pressureHealthDamage = _resourceManager.CalculatePressureResourceDamage(
             encounterInfo, PlayerStatusResources.Health, currentPressure);
@@ -188,7 +188,7 @@
         }
     }
 
-    private void ProcessStrategicTagEffects(IChoice choice, ChoiceProjection projection, BaseTagSystem baseTagSystem, ref int momentumChange, ref int pressureChange)
+    private void ProcessStrategicTagEffects(ChoiceCard choice, ChoiceProjection projection, BaseTagSystem baseTagSystem, ref int momentumChange, ref int pressureChange)
     {
         StrategicEffect effect = choice.StrategicEffect;
         List<StrategicTag> strategicTags = _tagManager.GetStrategicActiveTags();
@@ -228,7 +228,7 @@
     /// <param name="momentumChange"></param>
     /// <param name="pressureChange"></param>
     private void ProcessApproachAndFocusEffects(
-        IChoice choice,
+        ChoiceCard choice,
         int currentTurn,
         ChoiceProjection projection,
         ref int momentumChange,

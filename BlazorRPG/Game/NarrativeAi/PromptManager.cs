@@ -168,7 +168,7 @@ public class PromptManager
 
     public string BuildReactionPrompt(
         NarrativeContext context,
-        IChoice chosenOption,
+        ChoiceCard chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         EncounterStatusModel state)
@@ -246,7 +246,7 @@ public class PromptManager
 
     public string BuildChoicesPrompt(
         NarrativeContext context,
-        List<IChoice> choices,
+        List<ChoiceCard> choices,
         List<ChoiceProjection> projections,
         EncounterStatusModel state)
     {
@@ -275,7 +275,7 @@ public class PromptManager
         StringBuilder choicesInfo = new StringBuilder();
         for (int i = 0; i < choices.Count; i++)
         {
-            IChoice choice = choices[i];
+            ChoiceCard choice = choices[i];
             ChoiceProjection projection = projections[i];
 
             // Get the primary approach tag
@@ -372,7 +372,7 @@ CHOICE {i + 1}:
         NarrativeContext context,
         EncounterStatusModel finalState,
         EncounterOutcomes outcome,
-        IChoice finalChoice,
+        ChoiceCard finalChoice,
         ChoiceNarrative choiceDescription
         )
     {
@@ -492,7 +492,7 @@ CHOICE {i + 1}:
         };
     }
 
-    private ApproachTags GetPrimaryApproach(IChoice choice)
+    private ApproachTags GetPrimaryApproach(ChoiceCard choice)
     {
         // Find the approach tag with the largest modification
         List<TagModification> approachMods = choice.TagModifications

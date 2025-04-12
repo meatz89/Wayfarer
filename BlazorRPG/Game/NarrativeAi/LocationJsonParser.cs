@@ -172,7 +172,7 @@ public static class LocationJsonParser
                     case "bright": return Illumination.Bright;
                     case "shadowy": return Illumination.Shadowy;
                     case "dark": return Illumination.Dark;
-                    default: return null;
+                    default: return Illumination.Any;
                 }
 
             case "population":
@@ -181,7 +181,7 @@ public static class LocationJsonParser
                     case "crowded": return Population.Crowded;
                     case "quiet": return Population.Quiet;
                     case "isolated": return Population.Isolated;
-                    default: return null;
+                    default: return Population.Any;
                 }
 
             case "atmosphere":
@@ -190,7 +190,7 @@ public static class LocationJsonParser
                     case "tense": return Atmosphere.Tense;
                     case "formal": return Atmosphere.Formal;
                     case "chaotic": return Atmosphere.Chaotic;
-                    default: return null;
+                    default: return Atmosphere.Any;
                 }
 
             case "economic":
@@ -199,7 +199,7 @@ public static class LocationJsonParser
                     case "wealthy": return Economic.Wealthy;
                     case "commercial": return Economic.Commercial;
                     case "humble": return Economic.Humble;
-                    default: return null;
+                    default: return Economic.Any;
                 }
 
             case "physical":
@@ -208,7 +208,7 @@ public static class LocationJsonParser
                     case "confined": return Physical.Confined;
                     case "expansive": return Physical.Expansive;
                     case "hazardous": return Physical.Hazardous;
-                    default: return null;
+                    default: return Physical.Any;
                 }
 
             default:

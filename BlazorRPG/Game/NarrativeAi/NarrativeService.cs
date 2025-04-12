@@ -77,9 +77,9 @@
         return await narrativeAIService.GenerateIntroductionAsync(context, state, memoryContent, worldStateInput);
     }
 
-    public async Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+    public async Task<Dictionary<ChoiceCard, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
         NarrativeContext context,
-        List<IChoice> choices,
+        List<ChoiceCard> choices,
         List<ChoiceProjection> projections,
         EncounterStatusModel state,
         WorldStateInput worldStateInput)
@@ -90,7 +90,7 @@
 
     public async Task<string> GenerateEncounterNarrative(
         NarrativeContext context,
-        IChoice chosenOption,
+        ChoiceCard chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         EncounterStatusModel newState,
@@ -102,7 +102,7 @@
 
     public async Task<string> GenerateEndingAsync(
         NarrativeContext context,
-        IChoice chosenOption,
+        ChoiceCard chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         EncounterStatusModel newState,

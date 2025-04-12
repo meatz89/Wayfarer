@@ -50,7 +50,7 @@
 
     }
 
-    public int GetTotalMomentum(IChoice choice, int baseMomentum)
+    public int GetTotalMomentum(ChoiceCard choice, int baseMomentum)
     {
         int total = baseMomentum;
 
@@ -60,7 +60,7 @@
         return total;
     }
 
-    public int GetTotalPressure(IChoice choice, int basePressure)
+    public int GetTotalPressure(ChoiceCard choice, int basePressure)
     {
         int total = basePressure;
 

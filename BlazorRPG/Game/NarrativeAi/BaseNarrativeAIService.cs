@@ -38,21 +38,21 @@
         WorldStateInput worldStateInput);
     public abstract Task<string> GenerateEncounterNarrative(
         NarrativeContext context, 
-        IChoice chosenOption, 
+        ChoiceCard chosenOption, 
         ChoiceNarrative choiceDescription, 
         ChoiceOutcome outcome, 
         EncounterStatusModel newState,
         WorldStateInput worldStateInput);
     public abstract Task<string> GenerateEndingAsync(
         NarrativeContext context,
-        IChoice chosenOption, 
+        ChoiceCard chosenOption, 
         ChoiceNarrative choiceDescription, 
         ChoiceOutcome outcome, 
         EncounterStatusModel newState,
         WorldStateInput worldStateInput);
-    public abstract Task<Dictionary<IChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+    public abstract Task<Dictionary<ChoiceCard, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
         NarrativeContext context, 
-        List<IChoice> choices, 
+        List<ChoiceCard> choices, 
         List<ChoiceProjection> projections, 
         EncounterStatusModel state,
         WorldStateInput worldStateInput);
