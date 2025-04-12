@@ -3,7 +3,7 @@
     public ActionImplementation ActionImplementation;
 
     private CardSelectionAlgorithm cardSelectionAlgorithm;
-    public EncounterState encounterState;
+    public EncounterState EncounterState;
 
     private NarrativeService narrativeService;
     private NarrativeContext narrativeContext;
@@ -41,8 +41,8 @@
         this.worldState = worldState;
         this.playerState = playerState;
 
-        encounterState = new EncounterState(encounterInfo, playerState, this.resourceManager);
-        encounterState.UpdateActiveTags(encounterInfo.AvailableTags);
+        EncounterState = new EncounterState(encounterInfo, playerState, this.resourceManager);
+        EncounterState.UpdateActiveTags(encounterInfo.AvailableTags);
     }
 
     public async Task<NarrativeResult> StartEncounterWithNarrativeAsync(
@@ -98,7 +98,7 @@
 
         // Create first narrative event
         NarrativeEvent firstNarrative = new NarrativeEvent(
-            encounterState.CurrentTurn,
+            EncounterState.CurrentTurn,
             introduction);
 
         narrativeContext.AddEvent(firstNarrative);
@@ -238,7 +238,7 @@
     {
         this.playerState = playerState;
 
-        ChoiceProjection projection = encounterState.ApplyChoice(playerState, encounterInfo, choice);
+        ChoiceProjection projection = EncounterState.ApplyChoice(playerState, encounterInfo, choice);
 
         ChoiceOutcome outcome = new ChoiceOutcome(
             projection.MomentumGained,
@@ -274,7 +274,7 @@
         string narrative)
     {
         NarrativeEvent narrativeEvent = new NarrativeEvent(
-            encounterState.CurrentTurn - 1, // The turn counter increases after application
+            EncounterState.CurrentTurn - 1, // The turn counter increases after application
             narrative);
 
         narrativeEvent.SetChosenOption(choice);
@@ -287,16 +287,16 @@
     public EncounterStatusModel GetEncounterStatusModel(PlayerState playerState, WorldState worldState)
     {
         return new EncounterStatusModel(
-            currentTurn: encounterState.CurrentTurn,
-            maxMomentum: encounterState.Location.ExceptionalThreshold,
-            maxPressure: encounterState.Location.MaxPressure,
-            successThreshold: encounterState.Location.StandardThreshold,
-            maxTurns: encounterState.Location.TurnDuration,
-            momentum: encounterState.Momentum,
-            pressure: encounterState.Pressure,
-            approachTags: encounterState.TagSystem.GetAllApproachTags(),
-            focusTags: encounterState.TagSystem.GetAllFocusTags(),
-            activeTagNames: encounterState.GetActiveTagsNames(),
+            currentTurn: EncounterState.CurrentTurn,
+            maxMomentum: EncounterState.Location.ExceptionalThreshold,
+            maxPressure: EncounterState.Location.MaxPressure,
+            successThreshold: EncounterState.Location.StandardThreshold,
+            maxTurns: EncounterState.Location.TurnDuration,
+            momentum: EncounterState.Momentum,
+            pressure: EncounterState.Pressure,
+            approachTags: EncounterState.TagSystem.GetAllApproachTags(),
+            focusTags: EncounterState.TagSystem.GetAllFocusTags(),
+            activeTagNames: EncounterState.GetActiveTagsNames(),
             playerState: playerState,
             worldState: worldState
         );
@@ -309,7 +309,7 @@
 
     public ChoiceProjection ProjectChoice(ChoiceCard choice)
     {
-        ChoiceProjection projection = encounterState.CreateChoiceProjection(choice);
+        ChoiceProjection projection = EncounterState.CreateChoiceProjection(choice);
         projection.NarrativeDescription = choice.Name + " " + choice.Description;
         return projection;
     }
@@ -340,6 +340,6 @@
 
     public void GenerateChoices()
     {
-        CurrentChoices = cardSelectionAlgorithm.SelectChoices(encounterState);
+        CurrentChoices = cardSelectionAlgorithm.SelectChoices(EncounterState);
     }
 }

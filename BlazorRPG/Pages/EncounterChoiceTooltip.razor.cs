@@ -10,6 +10,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
 
     public ChoiceProjection Preview => GameManager.GetChoicePreview(hoveredChoice);
 
+
     public List<ChoiceProjection.ValueComponent> GetMomentumBreakdown()
     {
         // Now we can directly use the detailed components from the projection
@@ -84,4 +85,16 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         return description;
     }
 
+
+    // Calculate the distance from current position to card's optimal position
+    public int CalculateDistance(ChoiceCard card)
+    {
+        // Get current approach and focus values
+        int currentApproachValue = GameState.Actions.GetCurrentEncounter().EncounterState.TagSystem.GetEncounterStateTagValue(card.Approach);
+        int currentFocusValue = GameState.Actions.GetCurrentEncounter().EncounterState.TagSystem.GetFocusTagValue(card.Focus);
+
+        // Calculate Manhattan distance
+        return Math.Abs(currentApproachValue - card.OptimalApproachValue) +
+               Math.Abs(currentFocusValue - card.OptimalFocusValue);
+    }
 }

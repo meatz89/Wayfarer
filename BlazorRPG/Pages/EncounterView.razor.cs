@@ -96,14 +96,14 @@ public partial class EncounterViewBase : ComponentBase
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
-        if (GetEncounter().encounterState?.Location?.AvailableTags == null)
+        if (GetEncounter().EncounterState?.Location?.AvailableTags == null)
             return properties;
 
         // Get all available tags that aren't currently active
-        foreach (IEncounterTag tag in GetEncounter().encounterState.Location.AvailableTags)
+        foreach (IEncounterTag tag in GetEncounter().EncounterState.Location.AvailableTags)
         {
             // Skip if the tag is already active
-            if (GetEncounter().encounterState.ActiveTags.Any(t => t.Name == tag.Name))
+            if (GetEncounter().EncounterState.ActiveTags.Any(t => t.Name == tag.Name))
                 continue;
 
             string icon = GetTagIcon(tag);
@@ -166,7 +166,7 @@ public partial class EncounterViewBase : ComponentBase
     public string GetTagEffectDescription(string tagName)
     {
         // Find the tag by name and use its description method
-        IEncounterTag tag = GetEncounter().encounterState.ActiveTags.FirstOrDefault(t => t.Name == tagName);
+        IEncounterTag tag = GetEncounter().EncounterState.ActiveTags.FirstOrDefault(t => t.Name == tagName);
         if (tag is StrategicTag strategicTag)
         {
             return strategicTag.GetEffectDescription();
@@ -240,10 +240,10 @@ public partial class EncounterViewBase : ComponentBase
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
         EncounterManager encounterManager = GetEncounter();
 
-        if (encounterManager.encounterState?.ActiveTags == null)
+        if (encounterManager.EncounterState?.ActiveTags == null)
             return properties;
 
-        foreach (IEncounterTag tag in encounterManager.encounterState.ActiveTags)
+        foreach (IEncounterTag tag in encounterManager.EncounterState.ActiveTags)
         {
             string icon = GetTagIcon(tag);
             string tooltipText = GetTagTooltipText(tag);
