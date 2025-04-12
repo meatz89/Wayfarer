@@ -13,7 +13,7 @@ Wayfarer uses a unified tag-based approach for all encounters:
    - Rapport: Social connections, charm, persuasion
    - Analysis: Intelligence, observation, problem-solving
    - Precision: Careful execution, finesse, accuracy
-   - Evasion: Stealth, hiding, subterfuge
+   - Concealment: Stealth, hiding, subterfuge
    These exist ONLY during encounters and reset afterward.
 
 2. FOCUS TAGS (WHAT players concentrate on):

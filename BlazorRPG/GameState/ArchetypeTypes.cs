@@ -4,5 +4,5 @@
     Scholar,    // Analysis specialist
     Ranger,     // Precision specialist
     Bard,       // Rapport specialist
-    Thief       // Evasion specialist
+    Thief       // Concealment specialist
 }

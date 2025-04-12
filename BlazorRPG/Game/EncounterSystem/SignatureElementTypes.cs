@@ -7,5 +7,5 @@ public enum SignatureElementTypes
     Rapport,     // Charm approach
     Analysis,    // Wit approach
     Precision,   // Finesse approach
-    Evasion  // Stealth approach
+    Concealment  // Stealth approach
 }

@@ -107,7 +107,7 @@
                 approach == ApproachTags.Rapport ||
                 approach == ApproachTags.Analysis ||
                 approach == ApproachTags.Precision ||
-                approach == ApproachTags.Evasion)
+                approach == ApproachTags.Concealment)
             {
                 PreviousApproachValues[approach] = TagSystem.GetEncounterStateTagValue(approach);
             }

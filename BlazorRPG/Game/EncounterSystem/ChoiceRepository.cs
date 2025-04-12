@@ -341,7 +341,7 @@ public class ChoiceRepository
         ));
 
         // =============================================
-        // Evasion-BASED CHOICES
+        // Concealment-BASED CHOICES
         // =============================================
 
         // Tier 1: Novice
@@ -350,8 +350,8 @@ public class ChoiceRepository
             "You attempt to stay unnoticed with simple stealth techniques.",
             FocusTags.Physical,
             CardTiers.Novice, 0, // Tier 1, +0 momentum
-            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Evasion),
-            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Concealment),
+            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
@@ -360,8 +360,8 @@ public class ChoiceRepository
             "You try to make yourself less noticeable.",
             FocusTags.Physical,
             CardTiers.Novice, 0, // Tier 1, -0 pressure
-            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.DecreasePressure, ApproachTags.Evasion),
-            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.DecreasePressure, ApproachTags.Concealment),
+            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
@@ -371,9 +371,9 @@ public class ChoiceRepository
             "You move stealthily, positioning yourself for an advantageous approach.",
             FocusTags.Physical,
             CardTiers.Trained, 2, // Tier 2, +2 momentum
-            FocusTags.Environment, 1, 0, // Requires Evasion 2+, no reduction
-            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Evasion),
-            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
+            FocusTags.Environment, 1, 0, // Requires Concealment 2+, no reduction
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Concealment),
+            TagModification.ForEncounterState(ApproachTags.Concealment, 2),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
@@ -382,9 +382,9 @@ public class ChoiceRepository
             "You slip into the shadows, removing yourself from immediate danger.",
             FocusTags.Physical,
             CardTiers.Trained, 1, // Tier 2, -1 pressure
-            FocusTags.Environment, 1, 0, // Requires Evasion 2+, no reduction
-            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.DecreasePressure, ApproachTags.Evasion),
-            TagModification.ForEncounterState(ApproachTags.Evasion, 1),
+            FocusTags.Environment, 1, 0, // Requires Concealment 2+, no reduction
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.DecreasePressure, ApproachTags.Concealment),
+            TagModification.ForEncounterState(ApproachTags.Concealment, 1),
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
@@ -394,20 +394,20 @@ public class ChoiceRepository
             "You move with such stealth that even those looking for you cannot detect your presence.",
             FocusTags.Physical,
             CardTiers.Adept, 3, // Tier 3, +3 momentum
-            FocusTags.Environment, 2, 1, // Requires Evasion 4+, reduces by 2
-            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Evasion),
-            TagModification.ForEncounterState(ApproachTags.Evasion, -1), // Negative modification!
+            FocusTags.Environment, 2, 1, // Requires Concealment 4+, reduces by 2
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Concealment),
+            TagModification.ForEncounterState(ApproachTags.Concealment, -1), // Negative modification!
             TagModification.ForFocus(FocusTags.Physical, 1)
         ));
 
         _choices.Add(ChoiceFactory.CreateMomentumChoiceWithFocusRequirement(
             "Vanishing Act",
-            "You disappear from perception entirely, eliminating immediate threats through complete evasion.",
+            "You disappear from perception entirely, eliminating immediate threats through complete concealment.",
             FocusTags.Environment,
             CardTiers.Adept, 2, // Tier 3, -2 pressure
-            FocusTags.Environment, 2, 1, // Requires Evasion 4+, reduces by 2
-            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.DecreasePressure, ApproachTags.Evasion),
-            TagModification.ForEncounterState(ApproachTags.Evasion, -1), // Negative modification!
+            FocusTags.Environment, 2, 1, // Requires Concealment 4+, reduces by 2
+            new StrategicEffect(Illumination.Shadowy, StrategicTagEffectType.DecreasePressure, ApproachTags.Concealment),
+            TagModification.ForEncounterState(ApproachTags.Concealment, -1), // Negative modification!
             TagModification.ForFocus(FocusTags.Environment, 1)
         ));
 
@@ -417,8 +417,8 @@ public class ChoiceRepository
             FocusTags.Information,
             CardTiers.Adept, 3, // Tier 3, +3 momentum
             FocusTags.Environment, 3, 1, // Requires Information 3+, reduces by 1
-            new StrategicEffect(Economic.Commercial, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Evasion),
-            TagModification.ForEncounterState(ApproachTags.Evasion, 2),
+            new StrategicEffect(Economic.Commercial, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Concealment),
+            TagModification.ForEncounterState(ApproachTags.Concealment, 2),
             TagModification.ForFocus(FocusTags.Information, -1) // Negative modification!
         ));
     }

@@ -516,7 +516,7 @@ CHOICE {i + 1}:
                tag == ApproachTags.Rapport ||
                tag == ApproachTags.Analysis ||
                tag == ApproachTags.Precision ||
-               tag == ApproachTags.Evasion;
+               tag == ApproachTags.Concealment;
     }
 
     public static string CreatePromptJson(string markdownContent)

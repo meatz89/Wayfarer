@@ -17,7 +17,7 @@ public enum ApproachContexts
     PrecisionSocial,
     PrecisionIntellectual,
 
-    EvasionPhysical,
-    EvasionSocial,
-    EvasionIntellectual
+    ConcealmentPhysical,
+    ConcealmentSocial,
+    ConcealmentIntellectual
 }
