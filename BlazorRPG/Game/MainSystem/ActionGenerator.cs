@@ -116,7 +116,7 @@
             "Rapport" => ApproachTags.Rapport,
             "Analysis" => ApproachTags.Analysis,
             "Precision" => ApproachTags.Precision,
-            "Evasion" => ApproachTags.Evasion,
+            "Concealment" => ApproachTags.Concealment,
             _ => ApproachTags.Analysis // Default
         };
     }

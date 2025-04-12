@@ -5,5 +5,5 @@
 
 public enum ApproachTags
 {
-    Dominance, Rapport, Analysis, Precision, Evasion, None
+    Dominance, Rapport, Analysis, Precision, Concealment, None
 }

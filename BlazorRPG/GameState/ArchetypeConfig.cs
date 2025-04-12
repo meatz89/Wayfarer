@@ -54,7 +54,7 @@
 
         // Unnatural affinities
         config.SetAffinity(ApproachTags.Dominance, EncounterTypes.Social, AffinityTypes.Unnatural);
-        config.SetAffinity(ApproachTags.Evasion, EncounterTypes.Intellectual, AffinityTypes.Unnatural);
+        config.SetAffinity(ApproachTags.Concealment, EncounterTypes.Intellectual, AffinityTypes.Unnatural);
 
         // Dangerous affinities
         config.SetAffinity(ApproachTags.Dominance, EncounterTypes.Physical, AffinityTypes.Dangerous);
@@ -79,7 +79,7 @@
         // Natural affinities
         config.SetAffinity(ApproachTags.Precision, EncounterTypes.Physical, AffinityTypes.Natural);
         config.SetAffinity(ApproachTags.Precision, EncounterTypes.Intellectual, AffinityTypes.Natural);
-        config.SetAffinity(ApproachTags.Evasion, EncounterTypes.Physical, AffinityTypes.Natural);
+        config.SetAffinity(ApproachTags.Concealment, EncounterTypes.Physical, AffinityTypes.Natural);
 
         // Unnatural affinities
         config.SetAffinity(ApproachTags.Dominance, EncounterTypes.Social, AffinityTypes.Unnatural);
@@ -108,7 +108,7 @@
         config.SetAffinity(ApproachTags.Analysis, EncounterTypes.Social, AffinityTypes.Natural);
 
         // Unnatural affinities
-        config.SetAffinity(ApproachTags.Evasion, EncounterTypes.Social, AffinityTypes.Unnatural);
+        config.SetAffinity(ApproachTags.Concealment, EncounterTypes.Social, AffinityTypes.Unnatural);
         config.SetAffinity(ApproachTags.Dominance, EncounterTypes.Intellectual, AffinityTypes.Unnatural);
 
         return config;
@@ -117,7 +117,7 @@
     public static ArchetypeConfig CreateThief()
     {
         ArchetypeConfig config = new ArchetypeConfig();
-        config.PrimaryApproach = ApproachTags.Evasion;
+        config.PrimaryApproach = ApproachTags.Concealment;
 
         // Initialize with default neutral values
         config.AffinityValues = new AffinityTypes[Enum.GetValues(typeof(ApproachContexts)).Length];
@@ -129,8 +129,8 @@
         // Set thief-specific affinities
 
         // Natural affinities
-        config.SetAffinity(ApproachTags.Evasion, EncounterTypes.Physical, AffinityTypes.Natural);
-        config.SetAffinity(ApproachTags.Evasion, EncounterTypes.Social, AffinityTypes.Natural);
+        config.SetAffinity(ApproachTags.Concealment, EncounterTypes.Physical, AffinityTypes.Natural);
+        config.SetAffinity(ApproachTags.Concealment, EncounterTypes.Social, AffinityTypes.Natural);
         config.SetAffinity(ApproachTags.Precision, EncounterTypes.Physical, AffinityTypes.Natural);
 
         // Unnatural affinities
@@ -177,7 +177,7 @@
                tag == ApproachTags.Rapport ||
                tag == ApproachTags.Analysis ||
                tag == ApproachTags.Precision ||
-               tag == ApproachTags.Evasion;
+               tag == ApproachTags.Concealment;
     }
 
     private ApproachContexts ConvertToApproachContext(ApproachTags approach, EncounterTypes encounterType)
@@ -220,12 +220,12 @@
                     default: throw new ArgumentOutOfRangeException(nameof(encounterType));
                 }
 
-            case ApproachTags.Evasion:
+            case ApproachTags.Concealment:
                 switch (encounterType)
                 {
-                    case EncounterTypes.Physical: return ApproachContexts.EvasionPhysical;
-                    case EncounterTypes.Social: return ApproachContexts.EvasionSocial;
-                    case EncounterTypes.Intellectual: return ApproachContexts.EvasionIntellectual;
+                    case EncounterTypes.Physical: return ApproachContexts.ConcealmentPhysical;
+                    case EncounterTypes.Social: return ApproachContexts.ConcealmentSocial;
+                    case EncounterTypes.Intellectual: return ApproachContexts.ConcealmentIntellectual;
                     default: throw new ArgumentOutOfRangeException(nameof(encounterType));
                 }
 

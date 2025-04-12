@@ -1240,7 +1240,7 @@ public class CardSelectionAlgorithm
             { ApproachTags.Rapport, state.TagSystem.GetEncounterStateTagValue(ApproachTags.Rapport) },
             { ApproachTags.Analysis, state.TagSystem.GetEncounterStateTagValue(ApproachTags.Analysis) },
             { ApproachTags.Precision, state.TagSystem.GetEncounterStateTagValue(ApproachTags.Precision) },
-            { ApproachTags.Evasion, state.TagSystem.GetEncounterStateTagValue(ApproachTags.Evasion) }
+            { ApproachTags.Concealment, state.TagSystem.GetEncounterStateTagValue(ApproachTags.Concealment) }
         };
 
         return approachValues
@@ -1327,7 +1327,7 @@ public class CardSelectionAlgorithm
                tag == ApproachTags.Rapport ||
                tag == ApproachTags.Analysis ||
                tag == ApproachTags.Precision ||
-               tag == ApproachTags.Evasion;
+               tag == ApproachTags.Concealment;
     }
 
     private int GetApproachUsageCount(EncounterState state, ApproachTags approach)

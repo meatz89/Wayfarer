@@ -59,7 +59,7 @@ For each choice, create:
    - Analysis: Noticing crucial details that create IMMEDIATE advantage, spotting a weakness to exploit NOW
    - Precision: Swift, targeted movements that change the encounter state
    - Rapport: Emotional appeals that provoke immediate reactions
-   - Evasion: Deceptive actions that create new opportunities
+   - Concealment: Deceptive actions that create new opportunities
    - Dominance: Forceful interventions that alter power dynamics
 
 6. Focus manifestation:

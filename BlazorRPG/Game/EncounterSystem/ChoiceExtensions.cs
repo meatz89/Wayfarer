@@ -24,6 +24,6 @@
                tag == ApproachTags.Rapport ||
                tag == ApproachTags.Analysis ||
                tag == ApproachTags.Precision ||
-               tag == ApproachTags.Evasion;
+               tag == ApproachTags.Concealment;
     }
 }
