@@ -11,5 +11,5 @@
 
     public ActionImplementation ActionImplementation;
     public BasicActionTypes BasicActionType;
-    public IChoice LastChoice;
+    public ChoiceCard LastChoice;
 }

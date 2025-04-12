@@ -437,11 +437,11 @@ public class GameManager
     public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions(EncounterManager encounter)
     {
         NarrativeResult narrativeResult = EncounterSystem.CurrentResult.NarrativeResult;
-        List<IChoice> choices = EncounterSystem.GetChoices();
+        List<ChoiceCard> choices = EncounterSystem.GetChoices();
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
 
         int i = 0;
-        foreach (IChoice choice in choices)
+        foreach (ChoiceCard choice in choices)
         {
             i++;
 

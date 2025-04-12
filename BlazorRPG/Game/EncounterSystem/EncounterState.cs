@@ -1,7 +1,7 @@
 ﻿public class EncounterState
 {
     // Added properties for history tracking
-    public IChoice PreviousChoice { get; set; }
+    public ChoiceCard PreviousChoice { get; set; }
     public int PreviousMomentum { get; set; }
     public int PreviousPressure { get; set; }
     public Dictionary<ApproachTags, int> PreviousApproachValues { get; set; } = new Dictionary<ApproachTags, int>();
@@ -44,13 +44,13 @@
     public void AddFocusPressureModifier(FocusTags focus, int modifier) =>
         _tagManager.AddFocusPressureModifier(focus, modifier);
 
-    public int GetTotalMomentum(IChoice choice, int baseMomentum) =>
+    public int GetTotalMomentum(ChoiceCard choice, int baseMomentum) =>
         _tagManager.GetTotalMomentum(choice, baseMomentum);
 
-    public int GetTotalPressure(IChoice choice, int basePressure) =>
+    public int GetTotalPressure(ChoiceCard choice, int basePressure) =>
         _tagManager.GetTotalPressure(choice, basePressure);
 
-    public ChoiceProjection ApplyChoice(PlayerState playerState, EncounterInfo encounterInfo, IChoice choice)
+    public ChoiceProjection ApplyChoice(PlayerState playerState, EncounterInfo encounterInfo, ChoiceCard choice)
     {
         // Store the current state before making changes
         this.UpdateStateHistory(choice);
@@ -90,7 +90,7 @@
         CurrentTurn++;
     }
 
-    public void UpdateStateHistory(IChoice selectedChoice)
+    public void UpdateStateHistory(ChoiceCard selectedChoice)
     {
         // Store previous choice
         PreviousChoice = selectedChoice;
@@ -132,7 +132,7 @@
 
     public void ReducePressure(int amount) => Pressure = Math.Max(0, Pressure - amount);
 
-    public ChoiceProjection CreateChoiceProjection(IChoice choice)
+    public ChoiceProjection CreateChoiceProjection(ChoiceCard choice)
     {
         return _projectionService.CreateChoiceProjection(
             choice,

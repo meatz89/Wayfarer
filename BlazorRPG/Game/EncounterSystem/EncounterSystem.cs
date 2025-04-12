@@ -152,12 +152,12 @@
     public async Task<EncounterResult> ExecuteChoice(
         EncounterManager encounter,
         NarrativeResult narrativeResult,
-        IChoice choice,
+        ChoiceCard choice,
         WorldStateInput worldStateInput)
     {
         NarrativeResult currentResult = narrativeResult;
 
-        Dictionary<IChoice, ChoiceNarrative> choiceDescriptions = currentResult.ChoiceDescriptions;
+        Dictionary<ChoiceCard, ChoiceNarrative> choiceDescriptions = currentResult.ChoiceDescriptions;
 
         ChoiceNarrative? selectedDescription = null;
         if (currentResult.ChoiceDescriptions != null && choiceDescriptions.ContainsKey(choice))
@@ -225,7 +225,7 @@
 
     }
 
-    public List<IChoice> GetChoices()
+    public List<ChoiceCard> GetChoices()
     {
         return Encounter.GetCurrentChoices();
     }
@@ -235,7 +235,7 @@
         return gameState.Actions.UserEncounterChoiceOptions;
     }
 
-    public ChoiceProjection GetChoiceProjection(EncounterManager encounter, IChoice choice)
+    public ChoiceProjection GetChoiceProjection(EncounterManager encounter, ChoiceCard choice)
     {
         return Encounter.ProjectChoice(choice);
     }

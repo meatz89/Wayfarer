@@ -1,6 +1,6 @@
 ﻿public static class ChoiceExtensions
 {
-    public static ApproachTags GetPrimaryApproach(this IChoice choice)
+    public static ApproachTags GetPrimaryApproach(this ChoiceCard choice)
     {
         // Find the approach tag with the largest modification
         List<TagModification> approachMods = choice.TagModifications

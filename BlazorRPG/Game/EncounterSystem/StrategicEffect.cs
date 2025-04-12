@@ -1,47 +1,58 @@
 ﻿public class StrategicEffect
 {
-    public IEnvironmentalProperty RelevantProperty;
-    public StrategicTagEffectType EffectType;
-    public ApproachTags ScaleWithApproach;
+    public IEnvironmentalProperty Property { get; }
+    public StrategicTagEffectType EffectType { get; }
+    public ApproachTags ScalingApproach { get; }
 
-    public StrategicEffect(IEnvironmentalProperty relevantProperty, StrategicTagEffectType effectType, ApproachTags scaleWithApproach)
+    public StrategicEffect(IEnvironmentalProperty property, StrategicTagEffectType effectType, ApproachTags scalingApproach)
     {
-        RelevantProperty = relevantProperty;
+        Property = property;
         EffectType = effectType;
-        ScaleWithApproach = scaleWithApproach;
+        ScalingApproach = scalingApproach;
     }
 
     public int GetMomentumModifierForTag(StrategicTag tag, BaseTagSystem tagSystem)
     {
-        // Check if this tag's property matches this effect's property
-        if (PropertyMatches(tag.EnvironmentalProperty))
-        {
-            int approachValue = tagSystem.GetEncounterStateTagValue(ScaleWithApproach);
-            int effect = approachValue; // Scale at 1 per 1 points
+        // Check equality in both directions to handle Any properly
+        bool propertiesMatch = tag.EnvironmentalProperty.Equals(Property) || Property.Equals(tag.EnvironmentalProperty);
 
-            return EffectType == StrategicTagEffectType.IncreaseMomentum ? effect :
-                   EffectType == StrategicTagEffectType.DecreaseMomentum ? -effect : 0;
+        // Only apply if properties match and effect types align
+        if (propertiesMatch &&
+            (EffectType == StrategicTagEffectType.IncreaseMomentum ||
+             EffectType == StrategicTagEffectType.DecreaseMomentum))
+        {
+            // Get current approach value
+            int approachValue = tagSystem.GetEncounterStateTagValue(ScalingApproach);
+
+            // Calculate linear effect: 1 point per 2 approach points
+            int effectValue = approachValue / 2;
+
+            // Apply positive or negative based on effect type
+            return EffectType == StrategicTagEffectType.IncreaseMomentum ? effectValue : -effectValue;
         }
+
         return 0;
     }
 
     public int GetPressureModifierForTag(StrategicTag tag, BaseTagSystem tagSystem)
     {
-        // Check if this tag's property matches this effect's property
-        if (PropertyMatches(tag.EnvironmentalProperty))
+        // Check equality in both directions to handle Any properly
+        bool propertiesMatch = tag.EnvironmentalProperty.Equals(Property) || Property.Equals(tag.EnvironmentalProperty);
+
+        // Only apply if properties match and effect types align
+        if (propertiesMatch &&
+            (EffectType == StrategicTagEffectType.IncreasePressure ||
+             EffectType == StrategicTagEffectType.DecreasePressure))
         {
-            int approachValue = tagSystem.GetEncounterStateTagValue(ScaleWithApproach);
-            int effect = approachValue; // Scale at 1 per 1 points
+            int approachValue = tagSystem.GetEncounterStateTagValue(ScalingApproach);
 
-            return EffectType == StrategicTagEffectType.IncreasePressure ? effect :
-                   EffectType == StrategicTagEffectType.DecreasePressure ? -effect : 0;
+            // Calculate linear effect: 1 point per 2 approach points
+            int effectValue = approachValue / 2;
+
+            // Apply positive or negative based on effect type
+            return EffectType == StrategicTagEffectType.IncreasePressure ? effectValue : -effectValue;
         }
-        return 0;
-    }
 
-    private bool PropertyMatches(IEnvironmentalProperty tagProperty)
-    {
-        return tagProperty.GetPropertyType() == RelevantProperty.GetPropertyType() &&
-               tagProperty.GetPropertyValue() == RelevantProperty.GetPropertyValue();
+        return 0;
     }
 }

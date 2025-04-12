@@ -23,32 +23,44 @@ public interface IEnvironmentalProperty
     string GetPropertyValue();
 }
 
+
 public class Illumination : IEnvironmentalProperty, IEquatable<Illumination>
 {
+    public static IEnvironmentalProperty Any => new EnvironmentalPropertyAny(nameof(Illumination));
     public static Illumination Bright = new Illumination("Bright");
     public static Illumination Shadowy = new Illumination("Shadowy");
     public static Illumination Dark = new Illumination("Dark");
 
     private string Value;
 
-    public bool Equals(Illumination? other)
-    {
-        return Equals(other);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        Illumination? other = obj as Illumination;
-        return this.Value == other!.Value;
-    }
     public Illumination(string value)
     {
         this.Value = value;
     }
 
+    public bool Equals(Illumination other)
+    {
+        if (other == null)
+            return false;
+        return this.Value == other.Value;
+    }
+
+    public override bool Equals(object obj)
+    {
+        // Handle EnvironmentalPropertyAny - let it handle the comparison
+        if (obj is EnvironmentalPropertyAny any)
+            return any.Equals(this);
+
+        // Handle same type comparison
+        if (obj is Illumination other)
+            return Equals(other);
+
+        return false;
+    }
+
     public string GetPropertyType()
     {
-        return typeof(Illumination).Name;
+        return nameof(Illumination);
     }
 
     public string GetPropertyValue()
@@ -63,37 +75,47 @@ public class Illumination : IEnvironmentalProperty, IEquatable<Illumination>
 
     public override int GetHashCode()
     {
-        throw new NotImplementedException();
+        return Value.GetHashCode();
     }
 }
 
 public class Population : IEnvironmentalProperty, IEquatable<Population>
 {
+    public static IEnvironmentalProperty Any => new EnvironmentalPropertyAny(nameof(Population));
     public static Population Crowded = new Population("Crowded");
     public static Population Quiet = new Population("Quiet");
     public static Population Isolated = new Population("Isolated");
 
     private string Value;
 
-    public bool Equals(Population? other)
-    {
-        return Equals(other);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        Population? other = obj as Population;
-        return this.Value == other!.Value;
-    }
-
     public Population(string value)
     {
         this.Value = value;
     }
 
+    public bool Equals(Population other)
+    {
+        if (other == null)
+            return false;
+        return this.Value == other.Value;
+    }
+
+    public override bool Equals(object obj)
+    {
+        // Handle EnvironmentalPropertyAny - let it handle the comparison
+        if (obj is EnvironmentalPropertyAny any)
+            return any.Equals(this);
+
+        // Handle same type comparison
+        if (obj is Population other)
+            return Equals(other);
+
+        return false;
+    }
+
     public string GetPropertyType()
     {
-        return typeof(Population).Name;
+        return nameof(Population);
     }
 
     public string GetPropertyValue()
@@ -108,37 +130,47 @@ public class Population : IEnvironmentalProperty, IEquatable<Population>
 
     public override int GetHashCode()
     {
-        throw new NotImplementedException();
+        return Value.GetHashCode();
     }
 }
 
 public class Economic : IEnvironmentalProperty, IEquatable<Economic>
 {
+    public static IEnvironmentalProperty Any => new EnvironmentalPropertyAny(nameof(Economic));
     public static Economic Wealthy = new Economic("Wealthy");
     public static Economic Commercial = new Economic("Commercial");
     public static Economic Humble = new Economic("Humble");
 
     private string Value;
 
-    public bool Equals(Economic? other)
-    {
-        return Equals(other);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        Economic? other = obj as Economic;
-        return this.Value == other!.Value;
-    }
-
     public Economic(string value)
     {
         this.Value = value;
     }
 
+    public bool Equals(Economic other)
+    {
+        if (other == null)
+            return false;
+        return this.Value == other.Value;
+    }
+
+    public override bool Equals(object obj)
+    {
+        // Handle EnvironmentalPropertyAny - let it handle the comparison
+        if (obj is EnvironmentalPropertyAny any)
+            return any.Equals(this);
+
+        // Handle same type comparison
+        if (obj is Economic other)
+            return Equals(other);
+
+        return false;
+    }
+
     public string GetPropertyType()
     {
-        return typeof(Economic).Name;
+        return nameof(Economic);
     }
 
     public string GetPropertyValue()
@@ -153,38 +185,47 @@ public class Economic : IEnvironmentalProperty, IEquatable<Economic>
 
     public override int GetHashCode()
     {
-        throw new NotImplementedException();
+        return Value.GetHashCode();
     }
 }
 
-
 public class Physical : IEnvironmentalProperty, IEquatable<Physical>
 {
+    public static IEnvironmentalProperty Any => new EnvironmentalPropertyAny(nameof(Physical));
     public static Physical Confined = new Physical("Confined");
     public static Physical Expansive = new Physical("Expansive");
     public static Physical Hazardous = new Physical("Hazardous");
 
     private string Value;
 
-    public bool Equals(Physical? other)
-    {
-        return Equals(other);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        Physical? other = obj as Physical;
-        return this.Value == other!.Value;
-    }
-
     public Physical(string value)
     {
         this.Value = value;
     }
 
+    public bool Equals(Physical other)
+    {
+        if (other == null)
+            return false;
+        return this.Value == other.Value;
+    }
+
+    public override bool Equals(object obj)
+    {
+        // Handle EnvironmentalPropertyAny - let it handle the comparison
+        if (obj is EnvironmentalPropertyAny any)
+            return any.Equals(this);
+
+        // Handle same type comparison
+        if (obj is Physical other)
+            return Equals(other);
+
+        return false;
+    }
+
     public string GetPropertyType()
     {
-        return typeof(Physical).Name;
+        return nameof(Physical);
     }
 
     public string GetPropertyValue()
@@ -199,37 +240,47 @@ public class Physical : IEnvironmentalProperty, IEquatable<Physical>
 
     public override int GetHashCode()
     {
-        throw new NotImplementedException();
+        return Value.GetHashCode();
     }
 }
 
 public class Atmosphere : IEnvironmentalProperty, IEquatable<Atmosphere>
 {
+    public static IEnvironmentalProperty Any => new EnvironmentalPropertyAny(nameof(Atmosphere));
     public static Atmosphere Tense = new Atmosphere("Tense");
     public static Atmosphere Formal = new Atmosphere("Formal");
     public static Atmosphere Chaotic = new Atmosphere("Chaotic");
 
     private string Value;
 
-    public bool Equals(Atmosphere? other)
-    {
-        return Equals(other);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        Atmosphere? other = obj as Atmosphere;
-        return this.Value == other!.Value;
-    }
-
     public Atmosphere(string value)
     {
         this.Value = value;
     }
 
+    public bool Equals(Atmosphere other)
+    {
+        if (other == null)
+            return false;
+        return this.Value == other.Value;
+    }
+
+    public override bool Equals(object obj)
+    {
+        // Handle EnvironmentalPropertyAny - let it handle the comparison
+        if (obj is EnvironmentalPropertyAny any)
+            return any.Equals(this);
+
+        // Handle same type comparison
+        if (obj is Atmosphere other)
+            return Equals(other);
+
+        return false;
+    }
+
     public string GetPropertyType()
     {
-        return typeof(Atmosphere).Name;
+        return nameof(Atmosphere);
     }
 
     public string GetPropertyValue()
@@ -244,6 +295,6 @@ public class Atmosphere : IEnvironmentalProperty, IEquatable<Atmosphere>
 
     public override int GetHashCode()
     {
-        throw new NotImplementedException();
+        return Value.GetHashCode();
     }
 }
