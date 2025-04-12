@@ -99,11 +99,6 @@ body {
     min-width: 400px;
 }
 
-.top-bar, .map-container, .sidebar-panel {
-    border: 1px solid var(--oak-dark);
-    border-radius: 5px;
-}
-
 .location {
     display: flex;
     flex-flow: column;
