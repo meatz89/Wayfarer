@@ -20,7 +20,7 @@ public class ChoiceCardRepository
             "Perceptive Glance",
             "You catch a subtle clue in the light, sharpening your analytical senses.",
             CardTiers.Novice, 3,
-            ApproachTags.Analysis, FocusTags.Resource, 1,
+            ApproachTags.Analysis, FocusTags.Resource, 0,
             null,
             TagModification.IncreaseApproach(ApproachTags.Analysis),
             TagModification.IncreaseFocus(FocusTags.Information)
@@ -30,7 +30,7 @@ public class ChoiceCardRepository
             "Organized Thoughts",
             "A formal setting brings clarity and lowers tension as your mind begins to map the situation.",
             CardTiers.Novice, 1,
-            ApproachTags.Analysis, FocusTags.Resource, 1,
+            ApproachTags.Analysis, FocusTags.Resource, 0,
             null,
             TagModification.IncreaseApproach(ApproachTags.Analysis),
             TagModification.IncreaseFocus(FocusTags.Information)
@@ -40,7 +40,7 @@ public class ChoiceCardRepository
             "Careful Steps",
             "You move with deliberate intent, adapting to the confined space around you.",
             CardTiers.Novice, 3,
-            ApproachTags.Precision, FocusTags.Environment, 1,
+            ApproachTags.Precision, FocusTags.Environment, 0,
             null,
             TagModification.IncreaseApproach(ApproachTags.Precision),
             TagModification.IncreaseFocus(FocusTags.Physical)
@@ -50,7 +50,7 @@ public class ChoiceCardRepository
             "Measured Breath",
             "You focus on the limits of the environment and calm your nerves through physical control.",
             CardTiers.Novice, 1,
-            ApproachTags.Precision, FocusTags.Environment, 1,
+            ApproachTags.Precision, FocusTags.Environment, 0,
             null,
             TagModification.IncreaseApproach(ApproachTags.Precision),
             TagModification.IncreaseFocus(FocusTags.Physical)
@@ -60,7 +60,7 @@ public class ChoiceCardRepository
             "Inviting Gesture",
             "A warm physical presence opens the door to connection.",
             CardTiers.Novice, 3,
-            ApproachTags.Rapport, FocusTags.Physical, 1,
+            ApproachTags.Rapport, FocusTags.Physical, 0,
             null,
             TagModification.IncreaseApproach(ApproachTags.Rapport),
             TagModification.IncreaseFocus(FocusTags.Relationship)
@@ -70,7 +70,7 @@ public class ChoiceCardRepository
             "Soft Tones",
             "In a calm, quiet setting, your voice soothes away the pressure.",
             CardTiers.Novice, 1,
-            ApproachTags.Rapport, FocusTags.Physical, 1,
+            ApproachTags.Rapport, FocusTags.Physical, 0,
             null,
             TagModification.IncreaseApproach(ApproachTags.Rapport),
             TagModification.IncreaseFocus(FocusTags.Relationship)
@@ -80,7 +80,7 @@ public class ChoiceCardRepository
             "Assertive Posture",
             "Your presence alone sends ripples through the environment.",
             CardTiers.Novice, 3,
-            ApproachTags.Dominance, FocusTags.Relationship, 1,
+            ApproachTags.Dominance, FocusTags.Relationship, 0,
             null,
             TagModification.IncreaseApproach(ApproachTags.Dominance),
             TagModification.IncreaseFocus(FocusTags.Physical)
@@ -90,7 +90,7 @@ public class ChoiceCardRepository
             "Unshaken Presence",
             "You anchor yourself in a broad space, easing tension through unflinching calm.",
             CardTiers.Novice, 1,
-            ApproachTags.Dominance, FocusTags.Physical, 1,
+            ApproachTags.Dominance, FocusTags.Physical, 0,
             null,
             TagModification.IncreaseApproach(ApproachTags.Dominance),
             TagModification.IncreaseFocus(FocusTags.Relationship)
@@ -100,7 +100,7 @@ public class ChoiceCardRepository
             "Fade Inward",
             "You meld into the shadows, your environment becoming your shield.",
             CardTiers.Novice, 3,
-            ApproachTags.Concealment, FocusTags.Information, 1,
+            ApproachTags.Concealment, FocusTags.Information, 0,
             null,
             TagModification.IncreaseApproach(ApproachTags.Concealment),
             TagModification.IncreaseFocus(FocusTags.Environment)
@@ -110,7 +110,7 @@ public class ChoiceCardRepository
             "Slip Away",
             "Quietly distancing yourself, you reduce pressure by vanishing from view.",
             CardTiers.Novice, 1,
-            ApproachTags.Concealment, FocusTags.Information, 1,
+            ApproachTags.Concealment, FocusTags.Information, 0,
             null,
             TagModification.IncreaseApproach(ApproachTags.Concealment),
             TagModification.IncreaseFocus(FocusTags.Physical)
