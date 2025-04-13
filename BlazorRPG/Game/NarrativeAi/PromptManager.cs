@@ -268,7 +268,7 @@ public class PromptManager
         foreach (IEncounterTag? tag in state.ActiveTags.Where(t => t is NarrativeTag))
         {
             NarrativeTag narrativeTag = (NarrativeTag)tag;
-            narrativeTagsInfo.AppendLine($"- {tag.NarrativeName}: Blocks {narrativeTag.BlockedFocus} focus choices");
+            narrativeTagsInfo.AppendLine($"- {tag.NarrativeName}: {narrativeTag.GetEffectDescription()}");
         }
 
         // Format choices info
@@ -664,26 +664,9 @@ CHOICE {i + 1}:
                 significantTags.Add($"{tag.Key} {tag.Value}");
             }
 
-            // Include only active tags that have gameplay effects
             foreach (string tag in state.ActiveTagNames)
             {
-                // Add a note for important tag effects
-                if (tag.Contains("Open Marketplace"))
-                    significantTags.Add($"{tag} (blocks Stealth)");
-                else if (tag.Contains("Drawn Weapons"))
-                    significantTags.Add($"{tag} (blocks Wit)");
-                else if (tag.Contains("Hostile Territory"))
-                    significantTags.Add($"{tag} (blocks Charm)");
-                else if (tag.Contains("Fight Started"))
-                    significantTags.Add($"{tag} (only Force allowed)");
-                else if (tag.Contains("Tension"))
-                    significantTags.Add($"{tag} (adds pressure)");
-                else if (tag.Contains("Coordinated"))
-                    significantTags.Add($"{tag} (boosts Force)");
-                else if (tag.Contains("Distracted"))
-                    significantTags.Add($"{tag} (boosts Stealth)");
-                else
-                    significantTags.Add(tag);
+                significantTags.Add($"{tag}");
             }
 
             return significantTags.Count > 0 ? string.Join(", ", significantTags) : "None";
@@ -718,14 +701,7 @@ CHOICE {i + 1}:
 
             foreach (string tag in state.ActiveTagNames)
             {
-                if (tag.Contains("Open Marketplace"))
-                    activeTagsWithEffects.Add($"{tag} (blocks Stealth approaches)");
-                else if (tag.Contains("Drawn Weapons"))
-                    activeTagsWithEffects.Add($"{tag} (blocks Wit approaches)");
-                else if (tag.Contains("Hostile Territory"))
-                    activeTagsWithEffects.Add($"{tag} (blocks Charm approaches)");
-                else if (tag.Contains("Fight Started"))
-                    activeTagsWithEffects.Add($"{tag} (only Force approaches allowed)");
+                activeTagsWithEffects.Add($"{tag}");
             }
 
             return activeTagsWithEffects.Count > 0 ?
@@ -794,17 +770,7 @@ CHOICE {i + 1}:
             List<string> tagDescriptions = new List<string>();
             foreach (string tagName in activeNarrativeTagNames)
             {
-                // Add basic descriptions for known narrative tags
-                if (tagName.Contains("Open Marketplace"))
-                    tagDescriptions.Add($"{tagName} (Blocks Stealth approaches)");
-                else if (tagName.Contains("Drawn Weapons"))
-                    tagDescriptions.Add($"{tagName} (Blocks Wit approaches)");
-                else if (tagName.Contains("Hostile Territory"))
-                    tagDescriptions.Add($"{tagName} (Blocks Charm approaches)");
-                else if (tagName.Contains("Fight Started"))
-                    tagDescriptions.Add($"{tagName} (Blocks non-Force approaches)");
-                else
-                    tagDescriptions.Add($"{tagName} (Narrative effect)");
+                tagDescriptions.Add($"{tagName}");
             }
 
             return string.Join(", ", tagDescriptions);
@@ -852,14 +818,7 @@ CHOICE {i + 1}:
             List<string> tagStrings = new List<string>();
             foreach (NarrativeTag tag in narrativeTags)
             {
-                if (tag.BlockedFocus != null)
-                {
-                    tagStrings.Add($"{tag.NarrativeName} (Blocks {tag.BlockedFocus} focus)");
-                }
-                else
-                {
-                    tagStrings.Add($"{tag.NarrativeName} (Narrative effect)");
-                }
+                tagStrings.Add($"{tag.NarrativeName} ({tag.GetEffectDescription()}");
             }
             return string.Join(", ", tagStrings);
         }

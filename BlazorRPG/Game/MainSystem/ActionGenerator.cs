@@ -100,7 +100,6 @@
                     t.Name,
                     ParseEnvironmentalProperty(t.EnvironmentalProperty))
             ).ToList(),
-            EncounterNarrativeTags = model.NarrativeTags.Select(GetNarrativeTag).ToList()
         };
 
         return template;
@@ -165,39 +164,6 @@
 
         // Default fallback
         return Illumination.Bright;
-    }
-
-    private NarrativeTag GetNarrativeTag(string tagName)
-    {
-        return tagName switch
-        {
-            "IntimidatingPresence" => NarrativeTagRepository.IntimidatingPresence,
-            "BattleRage" => NarrativeTagRepository.BattleRage,
-            "BruteForceFixation" => NarrativeTagRepository.BruteForceFixation,
-            "TunnelVision" => NarrativeTagRepository.TunnelVision,
-            "DestructiveImpulse" => NarrativeTagRepository.DestructiveImpulse,
-            "SuperficialCharm" => NarrativeTagRepository.SuperficialCharm,
-            "SocialAwkwardness" => NarrativeTagRepository.SocialAwkwardness,
-            "HesitantPoliteness" => NarrativeTagRepository.HesitantPoliteness,
-            "PublicAwareness" => NarrativeTagRepository.PublicAwareness,
-            "GenerousSpirit" => NarrativeTagRepository.GenerousSpirit,
-            "ColdCalculation" => NarrativeTagRepository.ColdCalculation,
-            "AnalysisParalysis" => NarrativeTagRepository.AnalysisParalysis,
-            "Overthinking" => NarrativeTagRepository.Overthinking,
-            "DetailFixation" => NarrativeTagRepository.DetailFixation,
-            "TheoreticalMindset" => NarrativeTagRepository.TheoreticalMindset,
-            "MechanicalInteraction" => NarrativeTagRepository.MechanicalInteraction,
-            "NarrowFocus" => NarrativeTagRepository.NarrowFocus,
-            "PerfectionistParalysis" => NarrativeTagRepository.PerfectionistParalysis,
-            "DetailObsession" => NarrativeTagRepository.DetailObsession,
-            "InefficientPerfectionism" => NarrativeTagRepository.InefficientPerfectionism,
-            "ShadowVeil" => NarrativeTagRepository.ShadowVeil,
-            "ParanoidMindset" => NarrativeTagRepository.ParanoidMindset,
-            "CautiousRestraint" => NarrativeTagRepository.CautiousRestraint,
-            "HidingPlaceFixation" => NarrativeTagRepository.HidingPlaceFixation,
-            "HoardingInstinct" => NarrativeTagRepository.HoardingInstinct,
-            _ => NarrativeTagRepository.DetailFixation // Default
-        };
     }
 
     private EncounterInfo.HostilityLevels ParseHostility(string hostility)

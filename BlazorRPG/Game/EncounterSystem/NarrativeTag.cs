@@ -1,34 +1,36 @@
-﻿public class NarrativeTag : IEncounterTag
+﻿/// <summary>
+/// Represents an environmental modifier that adjusts the focus requirement for playing choices based on narrative conditions.
+/// For example, a calm atmosphere may ease the effort needed to gather information,
+/// while a chaotic state might make social interactions more challenging.
+/// </summary>
+public class NarrativeTag : IEncounterTag
 {
     public string NarrativeName { get; }
-    public ActivationCondition Condition { get; }
-    public FocusTags BlockedFocus { get; }
+    public FocusTags AffectedFocus { get; }
+    public int RequirementChange { get; }
 
-    public NarrativeTag(string name, ActivationCondition condition, FocusTags blockedFocus)
+    public NarrativeTag(string narrativeName, FocusTags affectedFocus, int requirementChange)
     {
-        NarrativeName = name;
-        Condition = condition;
-        BlockedFocus = blockedFocus;
+        NarrativeName = narrativeName;
+        AffectedFocus = affectedFocus;
+        RequirementChange = requirementChange;
     }
 
     public bool IsActive(EncounterTagSystem tagSystem)
     {
-        return Condition.IsActive(tagSystem);
-    }
-
-    public void ApplyEffect(EncounterState state)
-    {
-        // Narrative tags don't directly affect state, only card selection
-        // The blocked focus is used by the choice generation algorithm
-    }
-
-    public string GetActivationDescription()
-    {
-        return Condition.GetDescription();
+        return true;
     }
 
     public string GetEffectDescription()
     {
-        return $"Blocks {BlockedFocus} focus choices";
+        if (RequirementChange > 0)
+        {
+            return $"Increase required {AffectedFocus} by {RequirementChange}";
+        }
+        else if (RequirementChange < 0)
+        {
+            return $"Decrease required {AffectedFocus} by {-RequirementChange}";
+        }
+        return string.Empty;
     }
 }
