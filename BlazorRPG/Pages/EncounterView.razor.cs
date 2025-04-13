@@ -96,11 +96,11 @@ public partial class EncounterViewBase : ComponentBase
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
-        if (GetEncounter().EncounterState?.Location?.AvailableTags == null)
+        if (GetEncounter().EncounterState?.EncounterInfo?.AvailableTags == null)
             return properties;
 
         // Get all available tags that aren't currently active
-        foreach (IEncounterTag tag in GetEncounter().EncounterState.Location.AvailableTags)
+        foreach (IEncounterTag tag in GetEncounter().EncounterState.EncounterInfo.AvailableTags)
         {
             // Skip if the tag is already active
             if (GetEncounter().EncounterState.ActiveTags.Any(t => t.NarrativeName == tag.NarrativeName))

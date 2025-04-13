@@ -10,7 +10,7 @@
     public int Momentum { get; private set; }
     public int Pressure { get; private set; }
     public int CurrentTurn { get; private set; }
-    public EncounterInfo Location { get; }
+    public EncounterInfo EncounterInfo { get; }
     public LocationSpot LocationSpot { get; set; }
 
     // Expose tag system through the TagManager
@@ -29,7 +29,7 @@
         Momentum = 5;
         Pressure = encounterInfo.Difficulty + 3;
         CurrentTurn = 0;
-        Location = encounterInfo;
+        EncounterInfo = encounterInfo;
 
         _tagManager = new TagManager();
 
@@ -100,7 +100,7 @@
 
         // 4. Update active tags based on new tag values
         _tagManager.ResetTagEffects();
-        _tagManager.UpdateActiveTags(Location.AvailableTags);
+        _tagManager.UpdateActiveTags(EncounterInfo.AvailableTags);
 
         // 5. Increment turn counter
         CurrentTurn++;

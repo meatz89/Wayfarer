@@ -445,7 +445,7 @@ public class GameManager
         {
             i++;
 
-            string locationName = encounter.EncounterState.Location.LocationName;
+            string locationName = encounter.EncounterState.EncounterInfo.LocationName;
 
             UserEncounterChoiceOption option = new UserEncounterChoiceOption(
                 i,
