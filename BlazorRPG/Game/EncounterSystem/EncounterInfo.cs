@@ -65,18 +65,16 @@ public class EncounterInfo
 
     public int GetEnvironmentalPressure(int turnNumber)
     {
-        // Difficulty is the base pressure added each turn
         int pressureFromDifficulty = Difficulty;
 
-        // Additional pressure from hostility (could be used for escalating difficulty)
         int pressureFromHostility = 0;
         switch (Hostility)
         {
             case HostilityLevels.Hostile:
-                pressureFromHostility = 1; // +1 additional pressure in hostile locations
+                pressureFromHostility = 2;
                 break;
             case HostilityLevels.Neutral:
-                pressureFromHostility = turnNumber > 3 ? 1 : 0; // +1 additional pressure after turn 3
+                pressureFromHostility = 1;
                 break;
             default:
                 pressureFromHostility = 0;
