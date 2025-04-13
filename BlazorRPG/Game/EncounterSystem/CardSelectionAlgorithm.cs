@@ -10,23 +10,24 @@
     public List<ChoiceCard> SelectChoices(EncounterState state, PlayerState playerState, int handSize = 4)
     {
         // Get all available choices
-        List<ChoiceCard> availableChoices = _choiceRepository.GetAvailableChoices(state);
-
+        List<ChoiceCard> allCards = _choiceRepository.GetAvailableChoices(state);
+        List<ChoiceCard> playableCards = FilterPlayableCards(state, allCards);
+        
         // Calculate distances
-        Dictionary<ChoiceCard, int> cardDistances = CalculateCardDistances(availableChoices, state.ActiveTags, state.EncounterTagSystem, state);
+        Dictionary<ChoiceCard, int> cardDistances = CalculateCardDistances(playableCards, state.ActiveTags, state.EncounterTagSystem, state);
 
         // Apply state-based weighting
         ApplyStateBasedWeighting(cardDistances, state);
 
         // Apply tier-based weighting to prioritize higher tier cards of same focus type
-        ApplyTierBasedWeighting(cardDistances, availableChoices);
+        ApplyTierBasedWeighting(cardDistances, playableCards);
 
         // Create turn-based card pools to ensure natural rotation
         List<ChoiceCard> primaryPool = new List<ChoiceCard>();
         List<ChoiceCard> secondaryPool = new List<ChoiceCard>();
 
         // Divide cards between pools based on turn number
-        foreach (ChoiceCard card in availableChoices)
+        foreach (ChoiceCard card in playableCards)
         {
             // Alternate which attributes we prioritize each turn
             if (state.CurrentTurn % 2 == 0)
@@ -81,9 +82,36 @@
         }
 
         // Final pass: ensure tier prioritization within each focus group
-        result = EnforceTierPrioritization(result, availableChoices);
+        result = EnforceTierPrioritization(result, playableCards);
 
         return result;
+    }
+
+    private static List<ChoiceCard> FilterPlayableCards(EncounterState state, List<ChoiceCard> allCards)
+    {
+        List<ChoiceCard> availableChoices = new List<ChoiceCard>();
+        foreach (ChoiceCard choiceCard in allCards)
+        {
+
+            // Get current position values
+            int currentFocusValue = state.EncounterTagSystem.GetFocusTagValue(choiceCard.Focus);
+
+            // Apply narrative tag influence on optimal focus value
+            int optimalFocusValue = choiceCard.OptimalFocusValue;
+            List<NarrativeTag> narrativeTags = state.ActiveTags.Where(tag => tag is NarrativeTag).Select(t => (NarrativeTag)t).ToList();
+            foreach (NarrativeTag tag in narrativeTags)
+            {
+                if (tag.AffectedFocus == choiceCard.Focus)
+                {
+                    optimalFocusValue += tag.RequirementChange;
+                }
+            }
+
+            bool canNotBePlayed = choiceCard.Tier != CardTiers.Novice && currentFocusValue < optimalFocusValue; // Card can not be picked yet
+            if (!canNotBePlayed) availableChoices.Add(choiceCard);
+        }
+
+        return availableChoices;
     }
 
     // NEW: Sort pool by both distance and tier to ensure higher tier cards come first
@@ -131,7 +159,7 @@
         return sortedPool;
     }
 
-    // NEW: Apply additional weighting based on card tier
+    // Apply additional weighting based on card tier
     private void ApplyTierBasedWeighting(Dictionary<ChoiceCard, int> distances, List<ChoiceCard> cards)
     {
         // Group cards by focus
@@ -152,7 +180,7 @@
         }
     }
 
-    // NEW: Ensure higher tier cards are prioritized within focus groups
+    // Ensure higher tier cards are prioritized within focus groups
     private List<ChoiceCard> EnforceTierPrioritization(List<ChoiceCard> selectedCards, List<ChoiceCard> allCards)
     {
         // Group selected cards by focus
@@ -235,37 +263,45 @@
                 }
             }
 
+            bool canNotBePlayed = card.Tier != CardTiers.Novice && currentFocusValue < optimalFocusValue; // Card can not be picked yet
+            if(canNotBePlayed) { continue; }
+
             // Base distance calculation with narrative tag influence
             int baseDistance = Math.Abs(currentFocusValue - optimalFocusValue);
             int dynamicDistance = baseDistance;
 
-            // Dynamic modifiers that change between turns
-            // Adjust distance based on current pressure/momentum
-            if (card.EffectType == EffectTypes.Momentum && momentumRatio < 0.5)
-                dynamicDistance -= 2; // Favor momentum cards when momentum is low
-            else if (card.EffectType == EffectTypes.Pressure && pressureRatio > 0.5)
-                dynamicDistance -= 2; // Favor pressure cards when pressure is high
-
-            // Adjust based on turn number (creates natural progression)
-            if (card.Tier > CardTiers.Novice && turnNumber > 2)
-                dynamicDistance -= (turnNumber / 2); // Higher tier cards become more attractive as encounter progresses
-
-            // Add small oscillation based on turn number (creates natural variety)
-            dynamicDistance += (turnNumber % 2 == 0) ? 1 : -1;
-
-            // Approach affinity impact 
-            ApproachTags approach = card.Approach;
-            int approachValue = tagSystem.GetEncounterStateTagValue(approach);
-            if (approachValue > 3)
-                dynamicDistance -= 1; // Favor approaches the player is building
-
-            // NEW: Apply tier-based distance reduction
-            dynamicDistance -= (int)card.Tier; // Higher tier cards are closer
-
+            dynamicDistance = CalculateDynamicDistance(tagSystem, pressureRatio, momentumRatio, turnNumber, card, dynamicDistance);
             distances[card] = Math.Max(0, dynamicDistance); // Never negative
         }
 
         return distances;
+    }
+
+    private static int CalculateDynamicDistance(EncounterTagSystem tagSystem, double pressureRatio, double momentumRatio, int turnNumber, ChoiceCard card, int dynamicDistance)
+    {
+        // Dynamic modifiers that change between turns
+        // Adjust distance based on current pressure/momentum
+        if (card.EffectType == EffectTypes.Momentum && momentumRatio < 0.5)
+            dynamicDistance -= 2; // Favor momentum cards when momentum is low
+        else if (card.EffectType == EffectTypes.Pressure && pressureRatio > 0.5)
+            dynamicDistance -= 2; // Favor pressure cards when pressure is high
+
+        // Adjust based on turn number (creates natural progression)
+        if (card.Tier > CardTiers.Novice && turnNumber > 2)
+            dynamicDistance -= (turnNumber / 2); // Higher tier cards become more attractive as encounter progresses
+
+        // Add small oscillation based on turn number (creates natural variety)
+        dynamicDistance += (turnNumber % 2 == 0) ? 1 : -1;
+
+        // Approach affinity impact 
+        ApproachTags approach = card.Approach;
+        int approachValue = tagSystem.GetEncounterStateTagValue(approach);
+        if (approachValue > 3)
+            dynamicDistance -= 1; // Favor approaches the player is building
+
+        // Apply tier-based distance reduction
+        dynamicDistance -= (int)card.Tier; // Higher tier cards are closer
+        return dynamicDistance;
     }
 
     private ApproachTags GetPriorityApproach(EncounterState state, int turnNumber)
