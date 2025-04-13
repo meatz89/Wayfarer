@@ -221,7 +221,7 @@ public class PromptManager
             .Replace("{NEW_PRESSURE}", state.Pressure.ToString())
             .Replace("{OLD_PRESSURE}", previousPressure.ToString())
             .Replace("{MAX_PRESSURE}", state.MaxPressure.ToString())
-            .Replace("{ACTIVE_TAGS}", FormatTags(state.ActiveTags.Select(x => x.Name).ToList())
+            .Replace("{ACTIVE_TAGS}", FormatTags(state.ActiveTags.Select(x => x.NarrativeName).ToList())
             .Replace("{ENCOUNTER_GOAL}", context.ActionImplementation.Goal)
             .Replace("{ENCOUNTER_COMPLICATION}", context.ActionImplementation.Complication)
             .Replace("{SELECTED_CHOICE}", choiceDescription.ShorthandName)
@@ -268,7 +268,7 @@ public class PromptManager
         foreach (IEncounterTag? tag in state.ActiveTags.Where(t => t is NarrativeTag))
         {
             NarrativeTag narrativeTag = (NarrativeTag)tag;
-            narrativeTagsInfo.AppendLine($"- {tag.Name}: Blocks {narrativeTag.BlockedFocus} focus choices");
+            narrativeTagsInfo.AppendLine($"- {tag.NarrativeName}: Blocks {narrativeTag.BlockedFocus} focus choices");
         }
 
         // Format choices info
@@ -337,7 +337,7 @@ CHOICE {i + 1}:
             .Replace("{MAX_MOMENTUM}", state.MaxMomentum.ToString())
             .Replace("{PRESSURE}", state.Pressure.ToString())
             .Replace("{MAX_PRESSURE}", state.MaxPressure.ToString())
-            .Replace("{ACTIVE_TAGS}", FormatTags(state.ActiveTags.Select(x => x.Name).ToList())
+            .Replace("{ACTIVE_TAGS}", FormatTags(state.ActiveTags.Select(x => x.NarrativeName).ToList())
             .Replace("{ENCOUNTER_GOAL}", context.ActionImplementation.Goal)
             .Replace("{ENCOUNTER_COMPLICATION}", context.ActionImplementation.Complication)
             .Replace("{HEALTH}", state.Health.ToString())

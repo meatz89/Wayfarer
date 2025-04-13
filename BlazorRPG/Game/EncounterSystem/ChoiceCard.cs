@@ -6,16 +6,21 @@ public class ChoiceCard
     public string Name { get; }
     public string Description { get; }
     public bool IsBlocked { get; private set; }
-    public FocusTags Focus { get; }
-    public EffectTypes EffectType { get; }
     public CardTiers Tier { get; }
+    public EffectTypes EffectType { get; }
     public int BaseEffectValue { get; }
-    public IReadOnlyList<TagModification> TagModifications { get; }
-    public StrategicEffect StrategicEffect { get; }
     public ApproachTags Approach { get; }
     public int OptimalApproachValue { get; }
+    public FocusTags Focus { get; }
     public int OptimalFocusValue { get; }
+    public IReadOnlyList<TagModification> TagModifications { get; }
+    public StrategicEffect StrategicEffect { get; }
 
+    public override string ToString()
+    {
+        string desc = $"{Name} - Tier {(int)Tier} ({StrategicEffect.ToString()})";
+        return desc;
+    }
 
     public ChoiceCard(string name, string description, 
         EffectTypes effectType, CardTiers tier, int baseEffectValue, StrategicEffect strategicEffect, IReadOnlyList<TagModification> tagModifications,
@@ -64,9 +69,5 @@ public class ChoiceCard
         IsBlocked = true;
     }
 
-    public override string ToString()
-    {
-        return $"{Name} - Tier {(int)Tier} - {Focus.ToString()} - {EffectType.ToString()}";
-    }
 }
 

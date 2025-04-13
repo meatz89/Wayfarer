@@ -143,6 +143,6 @@
 
     public List<string> GetActiveTagsNames()
     {
-        return ActiveTags.Select(t => t.Name).ToList();
+        return ActiveTags.Select(t => t.NarrativeName).ToList();
     }
 }

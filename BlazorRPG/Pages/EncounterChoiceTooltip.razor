@@ -119,6 +119,25 @@
                 </div>
             }
 
+            @if (Preview.StrategicTagEffects.Count > 0)
+            {
+                <div class="tooltip-item">
+                    <div class="tooltip-item-header">
+                        <div class="tooltip-item-title">
+                            <span class="tooltip-item-name">Strategic Tags</span>
+                        </div>
+                    </div>
+                    <div class="tooltip-item-details">
+                        @foreach (var component in Preview.StrategicTagEffects)
+                        {
+                            <div class="tooltip-detail-line">
+                                @component
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
             @if (Preview.MomentumComponents.Count > 0)
             {
                 <div class="tooltip-item">

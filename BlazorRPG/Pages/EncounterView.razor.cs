@@ -103,7 +103,7 @@ public partial class EncounterViewBase : ComponentBase
         foreach (IEncounterTag tag in GetEncounter().EncounterState.Location.AvailableTags)
         {
             // Skip if the tag is already active
-            if (GetEncounter().EncounterState.ActiveTags.Any(t => t.Name == tag.Name))
+            if (GetEncounter().EncounterState.ActiveTags.Any(t => t.NarrativeName == tag.NarrativeName))
                 continue;
 
             string icon = GetTagIcon(tag);
@@ -112,7 +112,7 @@ public partial class EncounterViewBase : ComponentBase
 
             properties.Add(new PropertyDisplay
             {
-                Text = tag.Name,
+                Text = tag.NarrativeName,
                 Icon = icon,
                 TooltipText = tooltipText,
                 CssClass = cssClass,
@@ -148,7 +148,7 @@ public partial class EncounterViewBase : ComponentBase
     private string GetTagTooltipText(IEncounterTag tag)
     {
         StringBuilder tooltip = new StringBuilder();
-        tooltip.AppendLine(tag.Name);
+        tooltip.AppendLine(tag.NarrativeName);
 
         if (tag is NarrativeTag narrativeTag)
         {
@@ -166,7 +166,7 @@ public partial class EncounterViewBase : ComponentBase
     public string GetTagEffectDescription(string tagName)
     {
         // Find the tag by name and use its description method
-        IEncounterTag tag = GetEncounter().EncounterState.ActiveTags.FirstOrDefault(t => t.Name == tagName);
+        IEncounterTag tag = GetEncounter().EncounterState.ActiveTags.FirstOrDefault(t => t.NarrativeName == tagName);
         if (tag is StrategicTag strategicTag)
         {
             return strategicTag.GetEffectDescription();
@@ -251,11 +251,11 @@ public partial class EncounterViewBase : ComponentBase
 
             properties.Add(new PropertyDisplay
             {
-                Text = tag.Name,
+                Text = tag.NarrativeName,
                 Icon = icon,
                 TooltipText = tooltipText,
                 CssClass = cssClass,
-                TagName = tag.Name // Add the tag name
+                TagName = tag.NarrativeName // Add the tag name
             });
         }
 

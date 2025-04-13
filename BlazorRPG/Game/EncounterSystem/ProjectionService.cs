@@ -1,13 +1,13 @@
 ﻿public class ProjectionService
 {
-    private readonly TagManager _tagManager;
+    private readonly TagManager _locationTags;
     private readonly ResourceManager _resourceManager;
     private readonly EncounterInfo encounterInfo;
     private readonly PlayerState playerState;
 
     public ProjectionService(TagManager tagManager, ResourceManager resourceManager, EncounterInfo encounterInfo, PlayerState playerState)
     {
-        _tagManager = tagManager;
+        _locationTags = tagManager;
         _resourceManager = resourceManager;
         this.encounterInfo = encounterInfo;
         this.playerState = playerState;
@@ -22,7 +22,7 @@
         ChoiceProjection projection = new ChoiceProjection(choice);
 
         // Create working copy of tag system
-        BaseTagSystem clonedTagSystem = _tagManager.CloneTagSystem();
+        BaseTagSystem clonedTagSystem = _locationTags.CloneTagSystem();
 
         // Calculate momentum effects
         int momentumChange = 0;
@@ -60,11 +60,11 @@
         ProcessChoiceTagIncreases(choice, projection, clonedTagSystem);
 
         // Determine which tags will be active based on new tag values
-        List<IEncounterTag> newlyActivatedTags = _tagManager.GetNewlyActivatedTags(clonedTagSystem, encounterInfo.AvailableTags);
-        List<IEncounterTag> deactivatedTags = _tagManager.GetDeactivatedTags(clonedTagSystem, encounterInfo.AvailableTags);
+        List<IEncounterTag> newlyActivatedTags = _locationTags.GetNewlyActivatedTags(clonedTagSystem, encounterInfo.AvailableTags);
+        List<IEncounterTag> deactivatedTags = _locationTags.GetDeactivatedTags(clonedTagSystem, encounterInfo.AvailableTags);
 
-        newlyActivatedTags.ForEach(tag => projection.NewlyActivatedTags.Add(tag.Name));
-        deactivatedTags.ForEach(tag => projection.DeactivatedTags.Add(tag.Name));
+        newlyActivatedTags.ForEach(tag => projection.NewlyActivatedTags.Add(tag.NarrativeName));
+        deactivatedTags.ForEach(tag => projection.DeactivatedTags.Add(tag.NarrativeName));
 
         return projection;
     }
@@ -191,16 +191,22 @@
     private void ProcessStrategicTagEffects(ChoiceCard choice, ChoiceProjection projection, BaseTagSystem baseTagSystem, ref int momentumChange, ref int pressureChange)
     {
         StrategicEffect effect = choice.StrategicEffect;
-        List<StrategicTag> strategicTags = _tagManager.GetStrategicActiveTags();
+        List<StrategicTag> strategicTags = _locationTags.GetStrategicActiveTags();
 
         foreach (StrategicTag tag in strategicTags)
         {
+            if (!effect.IsActive(tag))
+            {
+                continue;
+            }
+            projection.StrategicTagEffects.Add($"{tag.NarrativeName}: {effect.ToString()}");
+
             int momentumEffect = effect.GetMomentumModifierForTag(tag, baseTagSystem);
             if (momentumEffect != 0)
             {
                 projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
                 {
-                    Source = $"{tag.Name} ({tag.EnvironmentalProperty.GetPropertyType()})",
+                    Source = $"{tag.NarrativeName} ({tag.EnvironmentalProperty.GetPropertyType()})",
                     Value = momentumEffect
                 });
                 momentumChange += momentumEffect;
@@ -211,7 +217,7 @@
             {
                 projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
                 {
-                    Source = $"{tag.Name} ({tag.EnvironmentalProperty.GetPropertyType()})",
+                    Source = $"{tag.NarrativeName} ({tag.EnvironmentalProperty.GetPropertyType()})",
                     Value = pressureEffect
                 });
                 pressureChange += pressureEffect;

@@ -214,11 +214,11 @@ public class TagFormatter
         {
             if (tag.BlockedFocus != null)
             {
-                tagStrings.Add($"{tag.Name} (Blocks {tag.BlockedFocus} focus)");
+                tagStrings.Add($"{tag.NarrativeName} (Blocks {tag.BlockedFocus} focus)");
             }
             else
             {
-                tagStrings.Add($"{tag.Name} (Narrative effect)");
+                tagStrings.Add($"{tag.NarrativeName} (Narrative effect)");
             }
         }
         return string.Join(", ", tagStrings);
