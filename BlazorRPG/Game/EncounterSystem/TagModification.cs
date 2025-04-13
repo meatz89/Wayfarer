@@ -1,10 +1,14 @@
-﻿
-/// <summary>
+﻿/// <summary>
 /// Represents a tag modification to be applied when a choice is made
 /// </summary>
 public class TagModification
 {
-    public enum TagTypes { Approach, Focus }
+    internal static TagModification None()
+    {
+        return new TagModification(TagTypes.None, null);
+    }
+
+    public enum TagTypes { Approach, Focus, None }
 
     public TagTypes EncounterTagType { get; }
     public object TagName { get; }

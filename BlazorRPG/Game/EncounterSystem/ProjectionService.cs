@@ -161,7 +161,7 @@
 
         foreach (EnvironmentPropertyTag tag in strategicTags)
         {
-            if (!effect.IsActive(tag))
+            if (effect == null || !effect.IsActive(tag))
             {
                 continue;
             }
