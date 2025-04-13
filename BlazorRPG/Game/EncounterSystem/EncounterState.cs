@@ -27,7 +27,7 @@
         ResourceManager resourceManager)
     {
         Momentum = 5;
-        Pressure = encounterInfo.Difficulty;
+        Pressure = encounterInfo.Difficulty + 3;
         CurrentTurn = 0;
         Location = encounterInfo;
 

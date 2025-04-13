@@ -9,7 +9,7 @@
             StrategicTagEffectType.IncreasePressure, ApproachTags.Dominance);
 
     public static StrategicEffect Insightful
-        => new StrategicEffect(new() { Population.Scholarly },
+        => new StrategicEffect(new() { Illumination.Bright },
             StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis);
 
     public static StrategicEffect Confusing

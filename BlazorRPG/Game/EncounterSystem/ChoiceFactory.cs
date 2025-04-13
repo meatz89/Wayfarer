@@ -11,7 +11,6 @@ public static class ChoiceFactory
         CardTiers tier, 
         int baseEffectValue,
         ApproachTags approachPosition,
-        int approachPositionValue,
         FocusTags focusPosition,
         int focusPositionValue,
         StrategicEffect strategicEffect,
@@ -20,7 +19,7 @@ public static class ChoiceFactory
     {
         return new ChoiceCard(name, description, EffectTypes.Momentum, tier, baseEffectValue,
             strategicEffect, tagModifications,
-            approachPosition, approachPositionValue, focusPosition, focusPositionValue);
+            approachPosition, focusPosition, focusPositionValue);
     }
 
     public static ChoiceCard CreatePressureChoice(
@@ -29,7 +28,6 @@ public static class ChoiceFactory
         CardTiers tier,
         int baseEffectValue,
         ApproachTags approachPosition,
-        int approachPositionValue,
         FocusTags focusPosition,
         int focusPositionValue,
         StrategicEffect strategicEffect,
@@ -38,6 +36,6 @@ public static class ChoiceFactory
     {
         return new ChoiceCard(name, description, EffectTypes.Pressure, tier, baseEffectValue, 
             strategicEffect, tagModifications,
-            approachPosition, approachPositionValue, focusPosition, focusPositionValue);
+            approachPosition, focusPosition, focusPositionValue);
     }
 }
