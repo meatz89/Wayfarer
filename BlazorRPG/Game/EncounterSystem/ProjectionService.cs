@@ -165,7 +165,7 @@
             {
                 continue;
             }
-            projection.StrategicTagEffects.Add($"{tag.NarrativeName}: {effect.ToString()}");
+            projection.StrategicTagEffects.Add($"{effect.ToString()}");
 
             int momentumEffect = effect.GetMomentumModifierForTag(tag, baseTagSystem);
             if (momentumEffect != 0)
@@ -291,7 +291,7 @@
         int projectedTurn)
     {
         bool encounterEnds =
-            (projectedTurn >= encounterInfo.TurnDuration)
+            (projectedTurn >= encounterInfo.MaxTurns)
             || (projection.FinalMomentum >= encounterInfo.ExceptionalThreshold)
             || (projection.FinalPressure >= encounterInfo.MaxPressure);
 

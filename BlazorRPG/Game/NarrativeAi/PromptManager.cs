@@ -263,68 +263,61 @@ public class PromptManager
             currentSituation = lastEvent.Summary;
         }
 
-        // Format the active narrative tags
-        StringBuilder narrativeTagsInfo = new StringBuilder();
-        foreach (IEncounterTag? tag in state.ActiveTags.Where(t => t is NarrativeTag))
-        {
-            NarrativeTag narrativeTag = (NarrativeTag)tag;
-            narrativeTagsInfo.AppendLine($"- {tag.NarrativeName}: {narrativeTag.GetEffectDescription()}");
-        }
+        // Format active narrative tags
+        string narrativeTagsInfo = string.Join(Environment.NewLine,
+            state.ActiveTags.Where(t => t is NarrativeTag)
+            .Select(tag => $"- {tag.NarrativeName}: {((NarrativeTag)tag).GetEffectDescription()}"));
 
-        // Format choices info
-        StringBuilder choicesInfo = new StringBuilder();
+        // Build choices info without StringBuilder - do it conditionally
+        string choicesInfo = "";
         for (int i = 0; i < choices.Count; i++)
         {
             ChoiceCard choice = choices[i];
             ChoiceProjection projection = projections[i];
 
-            // Get the primary approach tag
-            ApproachTags primaryApproach = choice.Approach;
+            string choiceText = $"\nCHOICE {i + 1}:\n- Approach: {choice.Approach}\n- Focus: {choice.Focus}";
 
-            choicesInfo.AppendLine($@"
-CHOICE {i + 1}:
-- Approach: {primaryApproach} 
-- Focus: {choice.Focus}
-- Momentum Change: {projection.MomentumGained}
-- Pressure Change: {projection.PressureBuilt}
-- Health Change: {projection.HealthChange}
-- Concentration Change: {projection.ConcentrationChange}
-- Confidence Change: {projection.ConfidenceChange}");
+            // Only add momentum/pressure changes if non-zero
+            if (projection.MomentumGained != 0)
+                choiceText += $"\n- Momentum Change: {projection.MomentumGained}";
 
-            // Add encounter ending information if applicable
+            if (projection.PressureBuilt != 0)
+                choiceText += $"\n- Pressure Change: {projection.PressureBuilt}";
+
+            // Only add resource changes if non-zero
+            if (projection.HealthChange != 0)
+                choiceText += $"\n- Health Change: {projection.HealthChange}";
+
+            if (projection.ConcentrationChange != 0)
+                choiceText += $"\n- Concentration Change: {projection.ConcentrationChange}";
+
+            if (projection.ConfidenceChange != 0)
+                choiceText += $"\n- Confidence Change: {projection.ConfidenceChange}";
+
+            // Only add encounter ending info if applicable
             if (projection.EncounterWillEnd)
             {
-                choicesInfo.AppendLine($"- Encounter Will End: True");
-                choicesInfo.AppendLine($"- Final Outcome: {projection.ProjectedOutcome}");
-                choicesInfo.AppendLine($"- Goal Achievement: " +
+                choiceText += $"\n- Encounter Will End: True";
+                choiceText += $"\n- Final Outcome: {projection.ProjectedOutcome}";
+                choiceText += $"\n- Goal Achievement: " +
                     $"{(projection.ProjectedOutcome != EncounterOutcomes.Failure ?
-                    "Will achieve goal to" : "Will fail to")} {context.ActionImplementation.Goal}");
+                    "Will achieve goal to" : "Will fail to")} {context.ActionImplementation.Goal}";
             }
 
-            // Add any new narrative tags that would activate
+            // Only add narrative tags if any would activate
             if (projection.NewlyActivatedTags.Any())
             {
-                choicesInfo.AppendLine("- Would Activate Tags: " + string.Join(", ", projection.NewlyActivatedTags));
+                choiceText += $"\n- Would Activate Tags: {string.Join(", ", projection.NewlyActivatedTags)}";
             }
 
-            // Add any strategic tag effects
+            // Only add strategic effects if there are any
             List<ChoiceProjection.ValueComponent> momentumComponents = projection.MomentumComponents
                 .Where(c => c.Source != "Momentum Choice Base").ToList();
             List<ChoiceProjection.ValueComponent> pressureComponents = projection.PressureComponents
                 .Where(c => c.Source != "Pressure Choice Base").ToList();
 
-            if (momentumComponents.Any() || pressureComponents.Any())
-            {
-                choicesInfo.AppendLine("- Strategic Effects:");
-                foreach (ChoiceProjection.ValueComponent comp in momentumComponents)
-                {
-                    choicesInfo.AppendLine($"  * {comp.Source}: {comp.Value} momentum");
-                }
-                foreach (ChoiceProjection.ValueComponent comp in pressureComponents)
-                {
-                    choicesInfo.AppendLine($"  * {comp.Source}: {comp.Value} pressure");
-                }
-            }
+            // Add this choice's text to the overall choices info
+            choicesInfo += choiceText;
         }
 
         // Replace placeholders in template
@@ -337,7 +330,7 @@ CHOICE {i + 1}:
             .Replace("{MAX_MOMENTUM}", state.MaxMomentum.ToString())
             .Replace("{PRESSURE}", state.Pressure.ToString())
             .Replace("{MAX_PRESSURE}", state.MaxPressure.ToString())
-            .Replace("{ACTIVE_TAGS}", FormatTags(state.ActiveTags.Select(x => x.NarrativeName).ToList())
+            .Replace("{ACTIVE_TAGS}", FormatTags(state.ActiveTags.Select(x => x.NarrativeName).ToList()))
             .Replace("{ENCOUNTER_GOAL}", context.ActionImplementation.Goal)
             .Replace("{ENCOUNTER_COMPLICATION}", context.ActionImplementation.Complication)
             .Replace("{HEALTH}", state.Health.ToString())
@@ -345,9 +338,9 @@ CHOICE {i + 1}:
             .Replace("{CONFIDENCE}", state.Confidence.ToString())
             .Replace("{MAX_CONFIDENCE}", state.MaxConfidence.ToString())
             .Replace("{CONCENTRATION}", state.Concentration.ToString())
-            .Replace("{MAX_CONCENTRATION}", state.MaxConcentration.ToString()
+            .Replace("{MAX_CONCENTRATION}", state.MaxConcentration.ToString())
             .Replace("{PLAYER_STATUS}", BuildCharacterStatusSummary(state))
-            .Replace("{CHOICES_INFO}", choicesInfo.ToString())));
+            .Replace("{CHOICES_INFO}", choicesInfo);
 
         return CreatePromptJson(prompt);
     }

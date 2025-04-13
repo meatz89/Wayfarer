@@ -13,7 +13,7 @@ public class EncounterInfo
     public int ExceptionalThreshold { get; }
 
     // Encounter duration in turns
-    public int TurnDuration { get; }
+    public int MaxTurns { get; }
     public int MaxPressure { get; }
 
     // How hostile is this location (affects tag balance)
@@ -42,7 +42,7 @@ public class EncounterInfo
         this.StandardThreshold = standardThreshold;
         this.ExceptionalThreshold = exceptionalThreshold;
 
-        this.TurnDuration = duration;
+        this.MaxTurns = duration;
         this.Hostility = hostility;
         this.EncounterType = style;
         this.MaxPressure = maxPressure;

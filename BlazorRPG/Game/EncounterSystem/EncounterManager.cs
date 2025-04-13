@@ -289,10 +289,10 @@
     {
         return new EncounterStatusModel(
             currentTurn: EncounterState.CurrentTurn,
-            maxMomentum: EncounterState.Location.ExceptionalThreshold,
-            maxPressure: EncounterState.Location.MaxPressure,
-            successThreshold: EncounterState.Location.StandardThreshold,
-            maxTurns: EncounterState.Location.TurnDuration,
+            maxMomentum: EncounterState.EncounterInfo.ExceptionalThreshold,
+            maxPressure: EncounterState.EncounterInfo.MaxPressure,
+            successThreshold: EncounterState.EncounterInfo.StandardThreshold,
+            maxTurns: EncounterState.EncounterInfo.MaxTurns,
             momentum: EncounterState.Momentum,
             pressure: EncounterState.Pressure,
             approachTags: EncounterState.EncounterTagSystem.GetAllApproachTags(),
