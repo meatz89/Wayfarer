@@ -258,7 +258,7 @@
 
         foreach (KeyValuePair<ApproachTags, int> kvp in projection.ApproachTagChanges)
         {
-            outcome.EncounterStateTagChanges[kvp.Key] = kvp.Value;
+            outcome.ApproachTagChanges[kvp.Key] = kvp.Value;
         }
 
         outcome.NewlyActivatedTags.AddRange(projection.NewlyActivatedTags);

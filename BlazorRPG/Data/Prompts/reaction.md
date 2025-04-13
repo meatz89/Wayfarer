@@ -8,8 +8,6 @@
 - Momentum: {OLD_MOMENTUM}/{MAX_MOMENTUM} (Success at {SUCCESS_THRESHOLD})
 - Pressure: {OLD_PRESSURE}/{MAX_PRESSURE}
 - Active Narrative Tags: {ACTIVE_TAGS}
-- Goal: {ENCOUNTER_GOAL}
-- Complication: {ENCOUNTER_COMPLICATION}
 
 ## Player Character Status
 {PLAYER_STATUS}
@@ -26,8 +24,8 @@ This choice has NOT YET HAPPENED and must be executed in this scene.
 - Confidence Change: {OLD_CONFIDENCE} → {NEW_CONFIDENCE}/{MAX_CONFIDENCE}
 - Concentration Change: {OLD_CONCENTRATION} → {NEW_CONCENTRATION}/{MAX_CONCENTRATION}
 - Approach Changes: {APPROACH_CHANGES} | Focus Changes: {FOCUS_CHANGES}
-- New Tags: {NEW_TAGS_ACTIVATED}
-- Strategic Effects: {STRATEGIC_EFFECTS}
+- Focus Changes (WHAT) represent player's accumulated progress during the encounter / what you've accomplished/learned through this action
+- Approach Changes (HOW) represent the method used to make progress / how you're acting in this situation
 
 ## Character Continuity
 - Limit new NAMED characters to 1-2 per encounter (not per turn)

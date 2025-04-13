@@ -23,6 +23,8 @@ IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowl
 - AVOID passive observation, static analysis, or waiting
 - Create meaningful CONSEQUENCES for each potential choice
 - Each choice should feel like a true BRANCH in the story
+- Focus Changes (WHAT) represent player's accumulated progress during the encounter / what you've accomplished/learned through this action
+- Approach Changes (HOW) represent the method used to make progress / how you're acting in this situation
 
 ## Format Requirements
 For each choice, create:
@@ -38,8 +40,6 @@ For each choice, create:
    - Match the URGENCY level of the encounter situation
    - Physical encounters require IMMEDIATE, CONSEQUENTIAL actions
    - Express uncertainty using "might," "could," or "hope to"
-   - For natural archetype approaches: Show greater confidence
-   - For dangerous archetype approaches: Show hesitation
 
 3. DYNAMIC ACTION requirements:
    - Each choice must CHANGE something in the scene

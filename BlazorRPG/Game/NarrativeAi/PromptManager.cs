@@ -206,9 +206,6 @@ public class PromptManager
             strategicEffects.AppendLine($"- Confidence Change: {outcome.ConfidenceChange}");
         }
 
-        // Extract encounter goal from inciting action
-        string encounterGoal = context.ActionImplementation.Goal;
-
         // Replace placeholders in template
         string prompt = template
             .Replace("{ENCOUNTER_TYPE}", state.EncounterType.ToString())
@@ -221,9 +218,7 @@ public class PromptManager
             .Replace("{NEW_PRESSURE}", state.Pressure.ToString())
             .Replace("{OLD_PRESSURE}", previousPressure.ToString())
             .Replace("{MAX_PRESSURE}", state.MaxPressure.ToString())
-            .Replace("{ACTIVE_TAGS}", FormatTags(state.ActiveTags.Select(x => x.NarrativeName).ToList())
-            .Replace("{ENCOUNTER_GOAL}", context.ActionImplementation.Goal)
-            .Replace("{ENCOUNTER_COMPLICATION}", context.ActionImplementation.Complication)
+            .Replace("{ACTIVE_TAGS}", FormatTags(state.ActiveTags.Select(x => x.NarrativeName).ToList()))
             .Replace("{SELECTED_CHOICE}", choiceDescription.ShorthandName)
             .Replace("{CHOICE_DESCRIPTION}", choiceDescription.FullDescription)
             .Replace("{OLD_HEALTH}", (state.Health - outcome.HealthChange).ToString())
@@ -234,12 +229,11 @@ public class PromptManager
             .Replace("{MAX_CONFIDENCE}", state.MaxConfidence.ToString())
             .Replace("{OLD_CONCENTRATION}", (state.Concentration - outcome.ConcentrationChange).ToString())
             .Replace("{NEW_CONCENTRATION}", state.Concentration.ToString())
-            .Replace("{MAX_CONCENTRATION}", state.MaxConcentration.ToString()
-            .Replace("{APPROACH_CHANGES}", FormatApproachChanges(outcome.EncounterStateTagChanges))
+            .Replace("{MAX_CONCENTRATION}", state.MaxConcentration.ToString())
+            .Replace("{APPROACH_CHANGES}", FormatApproachChanges(outcome.ApproachTagChanges))
             .Replace("{FOCUS_CHANGES}", FormatFocusChanges(outcome.FocusTagChanges))
             .Replace("{PLAYER_STATUS}", BuildCharacterStatusSummary(state))
-            .Replace("{NEW_TAGS_ACTIVATED}", FormatTags(outcome.NewlyActivatedTags))
-            .Replace("{STRATEGIC_EFFECTS}", strategicEffects.ToString())));
+            .Replace("{STRATEGIC_EFFECTS}", strategicEffects.ToString());
 
         return CreatePromptJson(prompt);
     }
@@ -275,7 +269,7 @@ public class PromptManager
             ChoiceCard choice = choices[i];
             ChoiceProjection projection = projections[i];
 
-            string choiceText = $"\nCHOICE {i + 1}:\n- Approach: {choice.Approach}\n- Focus: {choice.Focus}";
+            string choiceText = $"\nCHOICE {i + 1}:\n- Approach used: {choice.Approach}\n- Built on Focus Tag: {choice.Focus}";
 
             // Only add momentum/pressure changes if non-zero
             if (projection.MomentumGained != 0)
@@ -283,6 +277,12 @@ public class PromptManager
 
             if (projection.PressureBuilt != 0)
                 choiceText += $"\n- Pressure Change: {projection.PressureBuilt}";
+
+            if (projection.ApproachTagChanges.Count > 0 || projection.FocusTagChanges.Count > 0)
+            {
+                TagFormatter tagFormatter = new TagFormatter();
+                choiceText += tagFormatter.FormatKeyTagChanges(projection.ApproachTagChanges, projection.FocusTagChanges);
+            }
 
             // Only add resource changes if non-zero
             if (projection.HealthChange != 0)
@@ -722,20 +722,22 @@ public class PromptManager
             return (primary, secondary);
         }
 
-        public string FormatKeyTagChanges(ChoiceProjection projection)
+        public string FormatKeyTagChanges(Dictionary<ApproachTags, int> ApproachTagChanges, Dictionary<FocusTags, int> FocusTagChanges)
         {
             List<string> changes = new List<string>();
             // Format approach tag changes
-            foreach (KeyValuePair<ApproachTags, int> change in projection.ApproachTagChanges.Where(c => c.Value != 0))
+            foreach (KeyValuePair<ApproachTags, int> change in ApproachTagChanges.Where(c => c.Value != 0))
             {
+                changes.Add($"\n- Approach Tag Changes: ");
                 changes.Add($"{change.Key} {(change.Value > 0 ? "+" : "")}{change.Value}");
             }
             // Format focus tag changes
-            foreach (KeyValuePair<FocusTags, int> change in projection.FocusTagChanges.Where(c => c.Value != 0))
+            foreach (KeyValuePair<FocusTags, int> change in FocusTagChanges.Where(c => c.Value != 0))
             {
+                changes.Add($"\n- Focus Tag Changes: ");
                 changes.Add($"{change.Key} {(change.Value > 0 ? "+" : "")}{change.Value}");
             }
-            return changes.Count > 0 ? string.Join(", ", changes) : "No significant changes";
+            return changes.Count > 0 ? string.Join(" ", changes) : "No significant changes";
         }
 
         public string FormatTagValues<TKey>(Dictionary<TKey, int> tags) where TKey : notnull
