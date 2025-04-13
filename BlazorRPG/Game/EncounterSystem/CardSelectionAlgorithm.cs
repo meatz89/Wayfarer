@@ -13,7 +13,7 @@
         List<ChoiceCard> availableChoices = _choiceRepository.GetAvailableChoices(state);
 
         // Calculate distance for each card from current position
-        Dictionary<ChoiceCard, int> cardDistances = CalculateCardDistances(availableChoices, state.EncounterTagSystem);
+        Dictionary<ChoiceCard, int> cardDistances = CalculateCardDistances(availableChoices, state.ActiveTags, state.EncounterTagSystem);
 
         // Sort cards by distance (closest first)
         List<ChoiceCard> sortedChoices = availableChoices
@@ -27,25 +27,33 @@
         return selectedChoices.Take(handSize).ToList();
     }
 
-    private Dictionary<ChoiceCard, int> CalculateCardDistances(List<ChoiceCard> choices, EncounterTagSystem tagSystem)
+    private Dictionary<ChoiceCard, int> CalculateCardDistances(List<ChoiceCard> choices, List<IEncounterTag> activeTags,  EncounterTagSystem tagSystem)
     {
+        List<NarrativeTag> narrativeTags = activeTags.Where(tag => tag is NarrativeTag).Select(t => (NarrativeTag) t).ToList();
+
         Dictionary<ChoiceCard, int> distances = new Dictionary<ChoiceCard, int>();
 
         foreach (ChoiceCard choice in choices)
         {
             // Cast to ChoiceCard to access optimal position properties
-            ChoiceCard card = choice as ChoiceCard;
+            ChoiceCard card = choice;
             if (card == null) continue;
 
             // Get current position values
             int currentApproachValue = tagSystem.GetEncounterStateTagValue(card.Approach);
             int currentFocusValue = tagSystem.GetFocusTagValue(card.Focus);
 
-            // Calculate Manhattan distance
-            int distance = 
-                //Math.Abs(currentApproachValue - card.OptimalApproachValue) +
-                          Math.Abs(currentFocusValue - card.OptimalFocusValue);
+            int optimalFocusValue = card.OptimalFocusValue;
+            foreach (NarrativeTag tag in narrativeTags)
+            {
+                if(tag.AffectedFocus == card.Focus)
+                {
+                    int change = tag.RequirementChange;
+                    optimalFocusValue += change;
+                }
+            }
 
+            int distance = Math.Abs(currentFocusValue - optimalFocusValue);
             distances[choice] = distance;
         }
 

@@ -1,135 +1,119 @@
-﻿/// <summary>
-/// Repository of all narrative tags in the game
+﻿
+/// <summary>
+/// Repository of narrative tags reflecting general conditions in a medieval traveler story.
+/// The tags are designed to be generic, so they can be applied in any setting regardless of location.
+/// Each tag adjusts the focus requirement (Relationship, Information, Physical, Environment, Resource)
+/// based on overarching narrative or atmospheric conditions.
 /// </summary>
 public class NarrativeTagRepository
 {
-    // DOMINANCE-BASED NARRATIVE TAGS
-    public static readonly NarrativeTag IntimidatingPresence = new(
-        "Intimidating Presence",
-        new FocusThresholdCondition(ApproachTags.Dominance, 2),
-        FocusTags.Relationship);
+    // -------------------------------
+    // RELATIONSHIP FOCUS TAGS
+    // -------------------------------
 
-    public static readonly NarrativeTag BattleRage = new(
-        "Battle Rage",
-        new FocusThresholdCondition(ApproachTags.Dominance, 4),
-        FocusTags.Information);
+    /// <summary>
+    /// "Affable Manner" conveys a warm, welcoming ambiance that makes social interactions easier.
+    /// </summary>
+    public static readonly NarrativeTag AffableManner = new NarrativeTag(
+        "Affable Manner",
+        FocusTags.Relationship,
+        -1  // Reduces the required Relationship focus.
+    );
 
-    public static readonly NarrativeTag BruteForceFixation = new(
-        "Brute Force Fixation",
-        new FocusThresholdCondition(ApproachTags.Dominance, 4),
-        FocusTags.Physical);
+    /// <summary>
+    /// "Strained Interaction" reflects tension or mistrust among companions, making social exchanges more demanding.
+    /// </summary>
+    public static readonly NarrativeTag StrainedInteraction = new NarrativeTag(
+        "Strained Interaction",
+        FocusTags.Relationship,
+        +1  // Increases the required Relationship focus.
+    );
 
-    public static readonly NarrativeTag TunnelVision = new(
-        "Tunnel Vision",
-        new FocusThresholdCondition(ApproachTags.Dominance, 2),
-        FocusTags.Environment);
+    // -------------------------------
+    // INFORMATION FOCUS TAGS
+    // -------------------------------
 
-    public static readonly NarrativeTag DestructiveImpulse = new(
-        "Destructive Impulse",
-        new FocusThresholdCondition(ApproachTags.Dominance, 2),
-        FocusTags.Resource);
+    /// <summary>
+    /// "Lucid Concentration" indicates a clear state of mind that significantly eases the process of gathering information.
+    /// </summary>
+    public static readonly NarrativeTag LucidConcentration = new NarrativeTag(
+        "Lucid Concentration",
+        FocusTags.Information,
+        -2  // Greatly reduces the Information focus needed.
+    );
 
-    // RAPPORT-BASED NARRATIVE TAGS
-    public static readonly NarrativeTag SuperficialCharm = new(
-        "Superficial Charm",
-        new FocusThresholdCondition(ApproachTags.Rapport, 4),
-        FocusTags.Relationship);
+    /// <summary>
+    /// "Distracting Commotion" suggests a noisy or unsettling atmosphere that disrupts mental clarity.
+    /// </summary>
+    public static readonly NarrativeTag DistractingCommotion = new NarrativeTag(
+        "Distracting Commotion",
+        FocusTags.Information,
+        +1  // Increases the required Information focus.
+    );
 
-    public static readonly NarrativeTag SocialAwkwardness = new(
-        "Social Awkwardness",
-        new FocusThresholdCondition(ApproachTags.Rapport, 2),
-        FocusTags.Information);
+    // -------------------------------
+    // PHYSICAL FOCUS TAGS
+    // -------------------------------
 
-    public static readonly NarrativeTag HesitantPoliteness = new(
-        "Hesitant Politeness",
-        new FocusThresholdCondition(ApproachTags.Rapport, 2),
-        FocusTags.Physical);
+    /// <summary>
+    /// "Fluid Movement" represents conditions where ease and coordination are enhanced, facilitating physical actions.
+    /// </summary>
+    public static readonly NarrativeTag FluidMovement = new NarrativeTag(
+        "Fluid Movement",
+        FocusTags.Physical,
+        -1  // Lowers the demand for Physical focus.
+    );
 
-    public static readonly NarrativeTag PublicAwareness = new(
-        "Public Awareness",
-        new FocusThresholdCondition(ApproachTags.Rapport, 2),
-        FocusTags.Environment);
+    /// <summary>
+    /// "Unsteady Conditions" denotes a state where physical coordination suffers, making actions more challenging.
+    /// </summary>
+    public static readonly NarrativeTag UnsteadyConditions = new NarrativeTag(
+        "Unsteady Conditions",
+        FocusTags.Physical,
+        +1  // Raises the required Physical focus.
+    );
 
-    public static readonly NarrativeTag GenerousSpirit = new(
-        "Generous Spirit",
-        new FocusThresholdCondition(ApproachTags.Rapport, 4),
-        FocusTags.Resource);
+    // -------------------------------
+    // ENVIRONMENT FOCUS TAGS
+    // -------------------------------
 
-    // ANALYSIS-BASED NARRATIVE TAGS
-    public static readonly NarrativeTag ColdCalculation = new(
-        "Cold Calculation",
-        new FocusThresholdCondition(ApproachTags.Analysis, 2),
-        FocusTags.Relationship);
+    /// <summary>
+    /// "Harmonious Order" implies that the setting is clear and well-organized, helping to ease environmental awareness.
+    /// </summary>
+    public static readonly NarrativeTag HarmoniousOrder = new NarrativeTag(
+        "Harmonious Order",
+        FocusTags.Environment,
+        -1  // Decreases the Environmental focus needed.
+    );
 
-    public static readonly NarrativeTag AnalysisParalysis = new(
-        "Analysis Paralysis",
-        new FocusThresholdCondition(ApproachTags.Analysis, 4),
-        FocusTags.Information);
+    /// <summary>
+    /// "Disordered Ambience" conveys a scenario of chaos or confusion that complicates the interpretation of one’s surroundings.
+    /// </summary>
+    public static readonly NarrativeTag DisorderedAmbience = new NarrativeTag(
+        "Disordered Ambience",
+        FocusTags.Environment,
+        +2  // Significantly increases the required Environmental focus.
+    );
 
-    public static readonly NarrativeTag Overthinking = new(
-        "Overthinking",
-        new FocusThresholdCondition(ApproachTags.Analysis, 2),
-        FocusTags.Physical);
+    // -------------------------------
+    // RESOURCE FOCUS TAGS
+    // -------------------------------
 
-    public static readonly NarrativeTag DetailFixation = new(
-        "Detail Fixation",
-        new FocusThresholdCondition(ApproachTags.Analysis, 2),
-        FocusTags.Environment);
+    /// <summary>
+    /// "Plentiful Provisions" indicates that resources are abundant, making management and trade easier.
+    /// </summary>
+    public static readonly NarrativeTag PlentifulProvisions = new NarrativeTag(
+        "Plentiful Provisions",
+        FocusTags.Resource,
+        -1  // Reduces the required Resource focus.
+    );
 
-    public static readonly NarrativeTag TheoreticalMindset = new(
-        "Theoretical Mindset",
-        new FocusThresholdCondition(ApproachTags.Analysis, 4),
-        FocusTags.Resource);
-
-    // PRECISION-BASED NARRATIVE TAGS
-    public static readonly NarrativeTag MechanicalInteraction = new(
-        "Mechanical Interaction",
-        new FocusThresholdCondition(ApproachTags.Precision, 2),
-        FocusTags.Relationship);
-
-    public static readonly NarrativeTag NarrowFocus = new(
-        "Narrow Focus",
-        new FocusThresholdCondition(ApproachTags.Precision, 2),
-        FocusTags.Information);
-
-    public static readonly NarrativeTag PerfectionistParalysis = new(
-        "Perfectionist Paralysis",
-        new FocusThresholdCondition(ApproachTags.Precision, 4),
-        FocusTags.Physical);
-
-    public static readonly NarrativeTag DetailObsession = new(
-        "Detail Obsession",
-        new FocusThresholdCondition(ApproachTags.Precision, 2),
-        FocusTags.Environment);
-
-    public static readonly NarrativeTag InefficientPerfectionism = new(
-        "Inefficient Perfectionism",
-        new FocusThresholdCondition(ApproachTags.Precision, 4),
-        FocusTags.Resource);
-
-    // EVASION-BASED NARRATIVE TAGS
-    public static readonly NarrativeTag ShadowVeil = new(
-        "Shadow Veil",
-        new FocusThresholdCondition(ApproachTags.Concealment, 2),
-        FocusTags.Relationship);
-
-    public static readonly NarrativeTag ParanoidMindset = new(
-        "Paranoid Mindset",
-        new FocusThresholdCondition(ApproachTags.Concealment, 2),
-        FocusTags.Information);
-
-    public static readonly NarrativeTag CautiousRestraint = new(
-        "Cautious Restraint",
-        new FocusThresholdCondition(ApproachTags.Concealment, 2),
-        FocusTags.Physical);
-
-    public static readonly NarrativeTag HidingPlaceFixation = new(
-        "Hiding Place Fixation",
-        new FocusThresholdCondition(ApproachTags.Concealment, 4),
-        FocusTags.Environment);
-
-    public static readonly NarrativeTag HoardingInstinct = new(
-        "Hoarding Instinct",
-        new FocusThresholdCondition(ApproachTags.Concealment, 2),
-        FocusTags.Resource);
+    /// <summary>
+    /// "Scarce Assets" suggests that resources are limited, thus heightening the challenge of managing them.
+    /// </summary>
+    public static readonly NarrativeTag ScarceAssets = new NarrativeTag(
+        "Scarce Assets",
+        FocusTags.Resource,
+        +1  // Increases the required Resource focus.
+    );
 }

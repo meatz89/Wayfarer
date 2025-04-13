@@ -31,7 +31,7 @@
 
         foreach (IEncounterTag tag in locationTags)
         {
-            bool shouldActivate = tag is EnvironmentPropertyTag || (tag is NarrativeTag && tag.IsActive(EncounterTagSystem));
+            bool shouldActivate = tag is EnvironmentPropertyTag || (tag is NarrativeTag);
 
             if (shouldActivate)
             {
@@ -129,6 +129,16 @@
         List<EnvironmentPropertyTag> list = ActiveTags
             .Where(x => x is EnvironmentPropertyTag strategicTag)
             .Select(x => (EnvironmentPropertyTag)x)
+            .ToList();
+
+        return list;
+    }
+
+    public List<NarrativeTag> GetNarrativeActiveTags()
+    {
+        List<NarrativeTag> list = ActiveTags
+            .Where(x => x is NarrativeTag narrativeTag)
+            .Select(x => (NarrativeTag)x)
             .ToList();
 
         return list;

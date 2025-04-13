@@ -152,8 +152,8 @@ public partial class EncounterViewBase : ComponentBase
 
         if (tag is NarrativeTag narrativeTag)
         {
-            if (narrativeTag.BlockedFocus != null)
-                tooltip.AppendLine($"Blocks {narrativeTag.BlockedFocus} focus");
+            if (narrativeTag.AffectedFocus != null)
+                tooltip.AppendLine($"{narrativeTag.GetEffectDescription()}");
         }
         else if (tag is EnvironmentPropertyTag strategicTag)
         {
@@ -171,9 +171,9 @@ public partial class EncounterViewBase : ComponentBase
         {
             return strategicTag.GetEffectDescription();
         }
-        else if (tag is NarrativeTag narrativeTag && narrativeTag.BlockedFocus != null)
+        else if (tag is NarrativeTag narrativeTag)
         {
-            return $"Blocks {narrativeTag.BlockedFocus} focus";
+            return $"{narrativeTag.GetEffectDescription()}";
         }
 
         return "Affects encounter mechanics";
