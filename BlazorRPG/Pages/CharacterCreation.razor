@@ -15,10 +15,10 @@
                         <div class="archetype-name-bold">@FormatArchetypeName(archetype)</div>
                         <div class="archetype-description">@GetArchetypeDescription(archetype)</div>
                         <div>
-                            <strong>Natural Approaches:</strong>
-                            <div class="archetype-approaches">@GetNaturalApproaches(archetype)</div>
-                            <strong>Dangerous Approaches:</strong>
-                            <div class="archetype-approaches">@GetDangerousApproaches(archetype)</div>
+                            <strong>Advantages:</strong>
+                            <div class="archetype-approaches">@GetNaturalTags(archetype)</div>
+                            <strong>Disadvantages:</strong>
+                            <div class="archetype-approaches">@GetIncompatibleTags(archetype)</div>
                         </div>
                         <div class="starting-items">
                             <strong>Starting Items:</strong>
@@ -117,28 +117,28 @@
         };
     }
 
-    private string GetNaturalApproaches(ArchetypeTypes archetype)
+    private string GetNaturalTags(ArchetypeTypes archetype)
     {
         return archetype switch
         {
-            ArchetypeTypes.Warrior => "Dominance",
-            ArchetypeTypes.Scholar => "Analysis",
-            ArchetypeTypes.Ranger => "Precision",
-            ArchetypeTypes.Bard => "Rapport",
-            ArchetypeTypes.Thief => "Concealment",
+            ArchetypeTypes.Warrior => "Dominance, Physical",
+            ArchetypeTypes.Scholar => "Analysis, Information",
+            ArchetypeTypes.Ranger => "Precision, Resource",
+            ArchetypeTypes.Bard => "Rapport, Relationship",
+            ArchetypeTypes.Thief => "Concealment, Environment",
             _ => "None"
         };
     }
 
-    private string GetDangerousApproaches(ArchetypeTypes archetype)
+    private string GetIncompatibleTags(ArchetypeTypes archetype)
     {
         return archetype switch
         {
-            ArchetypeTypes.Warrior => "Concealment",
-            ArchetypeTypes.Scholar => "Dominance",
-            ArchetypeTypes.Ranger => "Precision",
-            ArchetypeTypes.Bard => "Analysis",
-            ArchetypeTypes.Thief => "Rapport",
+            ArchetypeTypes.Warrior => "Concealment, Information",
+            ArchetypeTypes.Scholar => "Precision, Resource",
+            ArchetypeTypes.Ranger => "Rapport, Physical",
+            ArchetypeTypes.Bard => "Analysis, Environment",
+            ArchetypeTypes.Thief => "Dominance, Relationship",
             _ => "None"
         };
     }

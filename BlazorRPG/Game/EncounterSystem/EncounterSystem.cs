@@ -106,7 +106,7 @@
         ActionImplementation actionImplementation)
     {
         // Create the core components
-        ChoiceRepository choiceRepository = new ChoiceRepository();
+        CardRepository choiceRepository = new CardRepository();
         cardSelector = new CardSelectionAlgorithm(choiceRepository);
 
         // Create encounter manager with the switchable service

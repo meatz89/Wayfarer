@@ -177,8 +177,6 @@ public static class ActionJsonParser
         }
 
         // Parse focus arrays
-        template.PressureReducingFocuses = GetStringArray(element, "pressureReducingFocuses", template.PressureReducingFocuses);
-        template.MomentumReducingFocuses = GetStringArray(element, "momentumReducingFocuses", template.MomentumReducingFocuses);
         template.NarrativeTags = GetStringArray(element, "narrativeTags", template.NarrativeTags);
 
         // Parse strategic tags
@@ -249,17 +247,6 @@ public static class ActionJsonParser
         if (template.MaxPressure < template.StandardThreshold)
         {
             template.MaxPressure = template.StandardThreshold * 2;
-        }
-
-        // Ensure we have at least one item in each focus list
-        if (template.PressureReducingFocuses.Count == 0)
-        {
-            template.PressureReducingFocuses.Add("Information");
-        }
-
-        if (template.MomentumReducingFocuses.Count == 0)
-        {
-            template.MomentumReducingFocuses.Add("Physical");
         }
 
         // Ensure we have enough strategic tags
@@ -354,8 +341,6 @@ public static class ActionJsonParser
             StandardThreshold = 12,
             ExceptionalThreshold = 16,
             Hostility = "Neutral",
-            PressureReducingFocuses = new List<string> { "Information" },
-            MomentumReducingFocuses = new List<string> { "Physical" },
             StrategicTags = new List<StrategicTagModel>
             {
                 new StrategicTagModel { Name = "Natural Light", EnvironmentalProperty = "Bright" },

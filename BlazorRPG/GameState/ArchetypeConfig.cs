@@ -1,34 +1,21 @@
 ﻿public class ArchetypeConfig
 {
-    // Primary approach for this archetype
-    public ApproachTags PrimaryApproach { get; private set; }
+    public ApproachAffinities ApproachAffinities = new();
+    public FocusAffinities FocusAffinities = new();
 
-    // Fixed-size array of affinities for all approach contexts
-    public AffinityTypes[] AffinityValues;
 
     // Static factory method for Warrior archetype
     public static ArchetypeConfig CreateWarrior()
     {
         ArchetypeConfig config = new ArchetypeConfig();
-        config.PrimaryApproach = ApproachTags.Dominance;
-
-        // Initialize with default neutral values
-        config.AffinityValues = new AffinityTypes[Enum.GetValues(typeof(ApproachTags)).Length];
-        for (int i = 0; i < config.AffinityValues.Length; i++)
-        {
-            config.AffinityValues[i] = AffinityTypes.Neutral;
-        }
-
-        // Set warrior-specific affinities
 
         // Natural affinities
         config.SetAffinity(ApproachTags.Dominance, AffinityTypes.Natural);
-
-        // Unnatural affinities
-        config.SetAffinity(ApproachTags.Analysis, AffinityTypes.Unnatural);
+        config.SetAffinity(FocusTags.Physical, AffinityTypes.Natural);
 
         // Dangerous affinities
-        config.SetAffinity(ApproachTags.Concealment, AffinityTypes.Dangerous);
+        config.SetAffinity(ApproachTags.Concealment, AffinityTypes.Incompatible);
+        config.SetAffinity(FocusTags.Information, AffinityTypes.Incompatible);
 
         return config;
     }
@@ -36,25 +23,16 @@
     public static ArchetypeConfig CreateScholar()
     {
         ArchetypeConfig config = new ArchetypeConfig();
-        config.PrimaryApproach = ApproachTags.Analysis;
-
-        // Initialize with default neutral values
-        config.AffinityValues = new AffinityTypes[Enum.GetValues(typeof(ApproachTags)).Length];
-        for (int i = 0; i < config.AffinityValues.Length; i++)
-        {
-            config.AffinityValues[i] = AffinityTypes.Neutral;
-        }
 
         // Set scholar-specific affinities
 
         // Natural affinities
         config.SetAffinity(ApproachTags.Analysis, AffinityTypes.Natural);
-
-        // Unnatural affinities
-        config.SetAffinity(ApproachTags.Concealment, AffinityTypes.Unnatural);
+        config.SetAffinity(FocusTags.Information, AffinityTypes.Natural);
 
         // Dangerous affinities
-        config.SetAffinity(ApproachTags.Dominance, AffinityTypes.Dangerous);
+        config.SetAffinity(ApproachTags.Precision, AffinityTypes.Incompatible);
+        config.SetAffinity(FocusTags.Resource, AffinityTypes.Incompatible);
 
         return config;
     }
@@ -62,25 +40,16 @@
     public static ArchetypeConfig CreateRanger()
     {
         ArchetypeConfig config = new ArchetypeConfig();
-        config.PrimaryApproach = ApproachTags.Precision;
-
-        // Initialize with default neutral values
-        config.AffinityValues = new AffinityTypes[Enum.GetValues(typeof(ApproachTags)).Length];
-        for (int i = 0; i < config.AffinityValues.Length; i++)
-        {
-            config.AffinityValues[i] = AffinityTypes.Neutral;
-        }
 
         // Set ranger-specific affinities
 
         // Natural affinities
         config.SetAffinity(ApproachTags.Precision, AffinityTypes.Natural);
-
-        // Unnatural affinities
-        config.SetAffinity(ApproachTags.Dominance, AffinityTypes.Unnatural);
+        config.SetAffinity(FocusTags.Resource, AffinityTypes.Natural);
 
         // Dangerous affinities
-        config.SetAffinity(ApproachTags.Precision, AffinityTypes.Dangerous);
+        config.SetAffinity(ApproachTags.Rapport, AffinityTypes.Incompatible);
+        config.SetAffinity(FocusTags.Physical, AffinityTypes.Incompatible);
 
         return config;
     }
@@ -88,25 +57,16 @@
     public static ArchetypeConfig CreateBard()
     {
         ArchetypeConfig config = new ArchetypeConfig();
-        config.PrimaryApproach = ApproachTags.Rapport;
-
-        // Initialize with default neutral values
-        config.AffinityValues = new AffinityTypes[Enum.GetValues(typeof(ApproachTags)).Length];
-        for (int i = 0; i < config.AffinityValues.Length; i++)
-        {
-            config.AffinityValues[i] = AffinityTypes.Neutral;
-        }
-
+        
         // Set bard-specific affinities
 
         // Natural affinities
         config.SetAffinity(ApproachTags.Rapport, AffinityTypes.Natural);
-
-        // Unnatural affinities
-        config.SetAffinity(ApproachTags.Dominance, AffinityTypes.Unnatural);
+        config.SetAffinity(FocusTags.Relationship, AffinityTypes.Natural);
 
         // Dangerous affinities
-        config.SetAffinity(ApproachTags.Analysis, AffinityTypes.Dangerous);
+        config.SetAffinity(ApproachTags.Analysis, AffinityTypes.Incompatible);
+        config.SetAffinity(FocusTags.Environment, AffinityTypes.Incompatible);
 
         return config;
     }
@@ -114,37 +74,107 @@
     public static ArchetypeConfig CreateThief()
     {
         ArchetypeConfig config = new ArchetypeConfig();
-        config.PrimaryApproach = ApproachTags.Concealment;
-
-        // Initialize with default neutral values
-        config.AffinityValues = new AffinityTypes[Enum.GetValues(typeof(ApproachTags)).Length];
-        for (int i = 0; i < config.AffinityValues.Length; i++)
-        {
-            config.AffinityValues[i] = AffinityTypes.Neutral;
-        }
 
         // Set thief-specific affinities
 
         // Natural affinities
         config.SetAffinity(ApproachTags.Concealment, AffinityTypes.Natural);
-
-        // Unnatural affinities
-        config.SetAffinity(ApproachTags.Dominance, AffinityTypes.Unnatural);
+        config.SetAffinity(FocusTags.Environment, AffinityTypes.Natural);
 
         // Dangerous affinities
-        config.SetAffinity(ApproachTags.Rapport, AffinityTypes.Dangerous);
+        config.SetAffinity(ApproachTags.Dominance, AffinityTypes.Incompatible);
+        config.SetAffinity(FocusTags.Relationship, AffinityTypes.Incompatible);
 
         return config;
     }
 
+
     private void SetAffinity(ApproachTags approach, AffinityTypes affinity)
     {
-        AffinityValues[(int)approach] = affinity;
+        switch (approach)
+        {
+            case ApproachTags.Dominance:
+                ApproachAffinities.Dominance = affinity;
+                break;
+            case ApproachTags.Precision:
+                ApproachAffinities.Precision = affinity;
+                break;
+            case ApproachTags.Analysis:
+                ApproachAffinities.Analysis = affinity;
+                break;
+            case ApproachTags.Rapport:
+                ApproachAffinities.Rapport = affinity;
+                break;
+            case ApproachTags.Concealment:
+                ApproachAffinities.Concealment = affinity;
+                break;
+        }
     }
 
     public AffinityTypes GetAffinity(ApproachTags approach)
     {
-        return AffinityValues[(int)approach];
+        switch (approach)
+        {
+            case ApproachTags.Dominance:
+                return ApproachAffinities.Dominance;
+
+            case ApproachTags.Precision:
+                return ApproachAffinities.Precision;
+
+            case ApproachTags.Analysis:
+                return ApproachAffinities.Analysis;
+
+            case ApproachTags.Rapport:
+                return ApproachAffinities.Rapport;
+
+            case ApproachTags.Concealment:
+                return ApproachAffinities.Concealment;
+        }
+        return AffinityTypes.Compatible;
+    }
+
+    private void SetAffinity(FocusTags focus, AffinityTypes affinity)
+    {
+        switch (focus)
+        {
+            case FocusTags.Relationship:
+                FocusAffinities.Relationship = affinity;
+                break;
+            case FocusTags.Information:
+                FocusAffinities.Information = affinity;
+                break;
+            case FocusTags.Physical:
+                FocusAffinities.Physical = affinity;
+                break;
+            case FocusTags.Environment:
+                FocusAffinities.Environment = affinity;
+                break;
+            case FocusTags.Resource:
+                FocusAffinities.Resource = affinity;
+                break;
+        }
+    }
+
+    public AffinityTypes GetAffinity(FocusTags focus)
+    {
+        switch (focus)
+        {
+            case FocusTags.Relationship:
+                return FocusAffinities.Relationship;
+
+            case FocusTags.Information:
+                return FocusAffinities.Information;
+
+            case FocusTags.Physical:
+                return FocusAffinities.Physical;
+
+            case FocusTags.Environment:
+                return FocusAffinities.Environment;
+
+            case FocusTags.Resource:
+                return FocusAffinities.Resource;
+        }
+        return AffinityTypes.Compatible;
     }
 
     public List<ApproachTags> GetApproachesWithAffinity(AffinityTypes affinity)
@@ -161,5 +191,21 @@
         }
 
         return approaches;
+    }
+
+    public List<FocusTags> GetFocusesWithAffinity(AffinityTypes affinity)
+    {
+        List<FocusTags> focuses = new List<FocusTags>();
+
+        // Check each approach type
+        foreach (FocusTags focus in Enum.GetValues(typeof(FocusTags)))
+        {
+            if (GetAffinity(focus) == affinity)
+            {
+                focuses.Add(focus);
+            }
+        }
+
+        return focuses;
     }
 }

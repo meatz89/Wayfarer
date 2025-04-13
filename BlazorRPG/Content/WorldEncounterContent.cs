@@ -20,9 +20,6 @@
 
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
-        PressureReducingFocuses = new[] { FocusTags.Environment, FocusTags.Physical }.ToList(),
-        MomentumReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
-
         EncounterNarrativeTags =
         [
             NarrativeTagRepository.TunnelVision,
@@ -32,10 +29,8 @@
 
         encounterStrategicTags =
         [
-            new EnvironmentPropertyTag("Dangerous Analysis", DangerousApproach.Analysis),
             new EnvironmentPropertyTag("Changing Light", Illumination.Shadowy),
             new EnvironmentPropertyTag("Open Road", Population.Quiet),
-            new EnvironmentPropertyTag("Journey Hazards", Atmosphere.Tense),
             new EnvironmentPropertyTag("Varied Terrain", Physical.Hazardous)
         ]
     };
@@ -52,9 +47,6 @@
 
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
-        PressureReducingFocuses = new[] { FocusTags.Relationship, FocusTags.Information }.ToList(),
-        MomentumReducingFocuses = new[] { FocusTags.Physical, FocusTags.Resource }.ToList(),
-
         EncounterNarrativeTags =
         [
             NarrativeTagRepository.ColdCalculation,
@@ -64,9 +56,8 @@
         encounterStrategicTags =
         [
             new EnvironmentPropertyTag("Forest Light", Illumination.Bright),
-            new EnvironmentPropertyTag("Ancient Knowledge", Population.Isolated),
+            new EnvironmentPropertyTag("Ancient Knowledge", Population.Scholarly),
             new EnvironmentPropertyTag("Sacred Ground", Atmosphere.Formal),
-            new EnvironmentPropertyTag("Wilderness Wisdom", Economic.Humble)
         ]
     };
 
@@ -81,9 +72,6 @@
 
         Hostility = EncounterInfo.HostilityLevels.Hostile,
 
-        PressureReducingFocuses = new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),
-        MomentumReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
-
         EncounterNarrativeTags =
         [
             NarrativeTagRepository.TunnelVision,
@@ -94,8 +82,7 @@
         encounterStrategicTags =
         [
             new EnvironmentPropertyTag("Forest Cover", Illumination.Shadowy),
-            new EnvironmentPropertyTag("Remote Trail", Population.Isolated),
-            new EnvironmentPropertyTag("Imminent Danger", Atmosphere.Tense),
+            new EnvironmentPropertyTag("Remote Trail", Population.Scholarly),
             new EnvironmentPropertyTag("Rough Terrain", Physical.Hazardous)
         ]
     };
@@ -111,9 +98,6 @@
 
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
-        PressureReducingFocuses = new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),
-        MomentumReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
-
         EncounterNarrativeTags =
         [
             NarrativeTagRepository.HesitantPoliteness,
@@ -125,7 +109,6 @@
             new EnvironmentPropertyTag("Forest Light", Illumination.Shadowy),
             new EnvironmentPropertyTag("Hunting Party", Population.Quiet),
             new EnvironmentPropertyTag("Wilderness", Physical.Expansive),
-            new EnvironmentPropertyTag("Survival Focus", Economic.Humble)
         ]
     };
 
@@ -140,9 +123,6 @@
 
         Hostility = EncounterInfo.HostilityLevels.Friendly,
 
-        PressureReducingFocuses = new[] { FocusTags.Information, FocusTags.Environment }.ToList(),
-        MomentumReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
-
         EncounterNarrativeTags =
         [
             NarrativeTagRepository.DetailFixation,
@@ -152,9 +132,8 @@
         encounterStrategicTags =
         [
             new EnvironmentPropertyTag("Filtered Sunlight", Illumination.Shadowy),
-            new EnvironmentPropertyTag("Sacred Tree", Population.Isolated),
+            new EnvironmentPropertyTag("Sacred Tree", Population.Scholarly),
             new EnvironmentPropertyTag("Natural Wonder", Atmosphere.Formal),
-            new EnvironmentPropertyTag("Ancient Wisdom", Economic.Humble)
         ]
     };
 
@@ -171,9 +150,6 @@
 
         Hostility = EncounterInfo.HostilityLevels.Friendly,
 
-        PressureReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
-        MomentumReducingFocuses = new[] { FocusTags.Information, FocusTags.Physical }.ToList(),
-
         EncounterNarrativeTags =
         [
             NarrativeTagRepository.ColdCalculation,
@@ -185,7 +161,6 @@
             new EnvironmentPropertyTag("Tavern Lighting", Illumination.Shadowy),
             new EnvironmentPropertyTag("Busy Evening", Population.Crowded),
             new EnvironmentPropertyTag("Merry Atmosphere", Atmosphere.Chaotic),
-            new EnvironmentPropertyTag("Drinking Hall", Physical.Confined)
         ]
     };
 
@@ -200,9 +175,6 @@
 
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
-        PressureReducingFocuses = new[] { FocusTags.Environment }.ToList(),
-        MomentumReducingFocuses = new[] { FocusTags.Relationship }.ToList(),
-
         EncounterNarrativeTags =
         [
             NarrativeTagRepository.ParanoidMindset,
@@ -212,8 +184,7 @@
         encounterStrategicTags =
         [
             new EnvironmentPropertyTag("Night Shadows", Illumination.Dark),
-            new EnvironmentPropertyTag("Private Chamber", Population.Isolated),
-            new EnvironmentPropertyTag("Rented Space", Economic.Commercial),
+            new EnvironmentPropertyTag("Private Chamber", Population.Scholarly),
             new EnvironmentPropertyTag("Small Room", Physical.Confined)
         ]
     };
@@ -229,9 +200,6 @@
 
         Hostility = EncounterInfo.HostilityLevels.Friendly,
 
-        PressureReducingFocuses = new[] { FocusTags.Information }.ToList(),
-        MomentumReducingFocuses = new[] { FocusTags.Relationship, FocusTags.Physical }.ToList(),
-
         EncounterNarrativeTags =
         [
             NarrativeTagRepository.Overthinking,
@@ -242,7 +210,6 @@
         [
             new EnvironmentPropertyTag("Dim Lighting", Illumination.Shadowy),
             new EnvironmentPropertyTag("Public Posting", Population.Crowded),
-            new EnvironmentPropertyTag("Opportunity Board", Economic.Commercial),
             new EnvironmentPropertyTag("Tavern Wall", Physical.Confined)
         ]
     };
@@ -258,9 +225,6 @@
 
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
-        PressureReducingFocuses = new[] { FocusTags.Relationship, FocusTags.Resource }.ToList(),
-        MomentumReducingFocuses = new[] { FocusTags.Environment, FocusTags.Physical }.ToList(),
-
         EncounterNarrativeTags =
         [
             NarrativeTagRepository.ColdCalculation,
@@ -270,8 +234,7 @@
         encounterStrategicTags =
         [
             new EnvironmentPropertyTag("Hidden Room", Illumination.Dark),
-            new EnvironmentPropertyTag("Secret Meeting", Population.Isolated),
-            new EnvironmentPropertyTag("Tense Exchange", Atmosphere.Tense),
+            new EnvironmentPropertyTag("Secret Meeting", Population.Scholarly),
             new EnvironmentPropertyTag("Back Room", Physical.Confined)
         ]
     };
@@ -287,9 +250,6 @@
 
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
-        PressureReducingFocuses = new[] { FocusTags.Relationship, FocusTags.Resource }.ToList(),
-        MomentumReducingFocuses = new[] { FocusTags.Physical, FocusTags.Environment }.ToList(),
-
         EncounterNarrativeTags =
         [
             NarrativeTagRepository.SuperficialCharm,
@@ -300,7 +260,6 @@
         [
             new EnvironmentPropertyTag("Market Daylight", Illumination.Bright),
             new EnvironmentPropertyTag("Bustling Shoppers", Population.Crowded),
-            new EnvironmentPropertyTag("Trading Post", Economic.Commercial),
             new EnvironmentPropertyTag("Market Commotion", Atmosphere.Chaotic)
         ]
     };

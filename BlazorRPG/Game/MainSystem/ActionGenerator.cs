@@ -95,8 +95,6 @@
             StandardThreshold = model.StandardThreshold,
             ExceptionalThreshold = model.ExceptionalThreshold,
             Hostility = ParseHostility(model.Hostility),
-            PressureReducingFocuses = model.PressureReducingFocuses.Select(ParseFocusTag).ToList(),
-            MomentumReducingFocuses = model.MomentumReducingFocuses.Select(ParseFocusTag).ToList(),
             encounterStrategicTags = model.StrategicTags.Select(t =>
                 new EnvironmentPropertyTag(
                     t.Name,
@@ -149,21 +147,14 @@
         if (property.Equals("Quiet", StringComparison.OrdinalIgnoreCase))
             return Population.Quiet;
         if (property.Equals("Isolated", StringComparison.OrdinalIgnoreCase))
-            return Population.Isolated;
+            return Population.Scholarly;
 
-        if (property.Equals("Tense", StringComparison.OrdinalIgnoreCase))
-            return Atmosphere.Tense;
+        if (property.Equals("Rough", StringComparison.OrdinalIgnoreCase))
+            return Atmosphere.Rough;
         if (property.Equals("Formal", StringComparison.OrdinalIgnoreCase))
             return Atmosphere.Formal;
         if (property.Equals("Chaotic", StringComparison.OrdinalIgnoreCase))
             return Atmosphere.Chaotic;
-
-        if (property.Equals("Wealthy", StringComparison.OrdinalIgnoreCase))
-            return Economic.Wealthy;
-        if (property.Equals("Commercial", StringComparison.OrdinalIgnoreCase))
-            return Economic.Commercial;
-        if (property.Equals("Humble", StringComparison.OrdinalIgnoreCase))
-            return Economic.Humble;
 
         if (property.Equals("Confined", StringComparison.OrdinalIgnoreCase))
             return Physical.Confined;

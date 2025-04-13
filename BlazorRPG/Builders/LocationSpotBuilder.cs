@@ -10,7 +10,6 @@ public class LocationSpotBuilder
 
     public Illumination? illumination { get; set; }
     public Population? population { get; set; }
-    public Economic? economic { get; set; }
     public Physical? physical { get; set; }
     public Atmosphere? atmosphere { get; set; }
 
@@ -55,12 +54,6 @@ public class LocationSpotBuilder
         return this;
     }
 
-    public LocationSpotBuilder WithEconomic(Economic Economic)
-    {
-        this.economic = Economic;
-        return this;
-    }
-
     public LocationSpotBuilder WithPhysical(Physical Physical)
     {
         this.physical = Physical;
@@ -87,7 +80,6 @@ public class LocationSpotBuilder
                 description,
                 locationName,
                 population,
-                economic,
                 atmosphere,
                 physical,
                 illumination,

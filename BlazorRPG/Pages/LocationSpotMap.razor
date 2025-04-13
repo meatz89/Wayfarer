@@ -94,17 +94,6 @@
             ));
         }
 
-        if (spot.Economic != null)
-        {
-            properties.Add(new(
-            "⚖️",
-            FormatEnumString(spot.Economic.ToString()),
-            $"property-{spot.Economic.ToString().ToLower()}",
-            "",
-            ""
-            ));
-        }
-
         if (spot.Physical != null)
         {
             properties.Add(new(

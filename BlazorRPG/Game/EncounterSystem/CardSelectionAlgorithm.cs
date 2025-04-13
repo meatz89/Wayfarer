@@ -1,13 +1,13 @@
 ﻿public class CardSelectionAlgorithm
 {
-    private readonly ChoiceRepository _choiceRepository;
+    private readonly CardRepository _choiceRepository;
 
-    public CardSelectionAlgorithm(ChoiceRepository choiceRepository)
+    public CardSelectionAlgorithm(CardRepository choiceRepository)
     {
         _choiceRepository = choiceRepository;
     }
 
-    public List<ChoiceCard> SelectChoices(EncounterState state, int handSize = 4)
+    public List<ChoiceCard> SelectChoices(EncounterState state, PlayerState playerState, int handSize = 4)
     {
         // Get all available choices
         List<ChoiceCard> availableChoices = _choiceRepository.GetAvailableChoices(state);
@@ -144,14 +144,14 @@
                 // Mark approaches already selected
                 foreach (ChoiceCard c in alreadySelected.Concat(result))
                 {
-                    ApproachTags approach = GetPrimaryApproach(c);
+                    ApproachTags approach = c.Approach;
                     approachesUsed[approach] = true;
                 }
 
                 // First add cards with unused approaches
                 foreach (ChoiceCard card in tierGroup.OrderBy(c => c.GetHashCode())) // Deterministic ordering
                 {
-                    ApproachTags approach = GetPrimaryApproach(card);
+                    ApproachTags approach = card.Approach;
 
                     if (!approachesUsed.ContainsKey(approach) || !approachesUsed[approach])
                     {
@@ -181,31 +181,5 @@
         }
 
         return result;
-    }
-
-    private ApproachTags GetPrimaryApproach(ChoiceCard choice)
-    {
-        // Find the approach tag with the largest modification
-        var approachMods = choice.TagModifications
-            .Where(m => m.Type == TagModification.TagTypes.EncounterState)
-            .Where(m => IsApproachTag((ApproachTags)m.Tag))
-            .OrderByDescending(m => m.Delta)
-            .ToList();
-
-        if (approachMods.Any())
-        {
-            return (ApproachTags)approachMods.First().Tag;
-        }
-
-        return ApproachTags.Analysis; // Default
-    }
-
-    private bool IsApproachTag(ApproachTags tag)
-    {
-        return tag == ApproachTags.Dominance ||
-               tag == ApproachTags.Rapport ||
-               tag == ApproachTags.Analysis ||
-               tag == ApproachTags.Precision ||
-               tag == ApproachTags.Concealment;
     }
 }
