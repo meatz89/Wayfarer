@@ -1,6 +1,4 @@
-﻿
-
-/// <summary>
+﻿/// <summary>
 /// Standard choice implementation - either builds momentum or pressure
 /// </summary>
 public class ChoiceCard

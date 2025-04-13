@@ -66,10 +66,10 @@
     {
         // 1. Apply tag changes
         foreach (KeyValuePair<ApproachTags, int> pair in projection.ApproachTagChanges)
-            TagSystem.ModifyEncounterStateTag(pair.Key, pair.Value);
+            TagSystem.ModifyApproachPosition(pair.Key, pair.Value);
 
         foreach (KeyValuePair<FocusTags, int> pair in projection.FocusTagChanges)
-            TagSystem.ModifyFocusTag(pair.Key, pair.Value);
+            TagSystem.ModifyFocusPosition(pair.Key, pair.Value);
 
         // 2. Apply exactly the values from the projection
         Momentum = projection.FinalMomentum;

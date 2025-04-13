@@ -40,13 +40,13 @@ public class BaseTagSystem
     public int GetEncounterStateTagValue(ApproachTags tag) => _ApproachTags[tag];
     public int GetFocusTagValue(FocusTags tag) => _focusTags[tag];
 
-    public void ModifyEncounterStateTag(ApproachTags tag, int delta)
+    public void ModifyApproachPosition(ApproachTags tag, int delta)
     {
         int newValue = _ApproachTags[tag] + delta;
         _ApproachTags[tag] = Math.Clamp(newValue, MinTagValue, MaxTagValue);
     }
 
-    public void ModifyFocusTag(FocusTags tag, int delta)
+    public void ModifyFocusPosition(FocusTags tag, int delta)
     {
         int newValue = _focusTags[tag] + delta;
         _focusTags[tag] = Math.Clamp(newValue, MinTagValue, MaxTagValue);

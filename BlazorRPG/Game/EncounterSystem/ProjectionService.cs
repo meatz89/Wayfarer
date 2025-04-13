@@ -47,7 +47,7 @@
         ProcessChoiceTagIncreases(choice, projection, clonedTagSystem, playerState);
 
         // Calculate pressure-based resource damage that will apply at start of turn
-        CalculateDamageFromPressure(choice, projection, currentPressure, projection.PressureBuilt);
+        CalculateDamageFromPressure(choice, projection, playerState, currentPressure, projection.PressureBuilt);
 
         // Set final calculated values
         projection.FinalMomentum = currentMomentum + momentumChange;
@@ -77,39 +77,53 @@
             {
                 ApproachTags tag = (ApproachTags)mod.TagName;
                 int oldValue = clonedTagSystem.GetEncounterStateTagValue(tag);
+                int approachDelta = GetApproachBonus(playerState, tag);
 
-                var affinity = playerState.GetApproachAffinity(tag);
-                int approachValueChange = affinity == AffinityTypes.Natural ? approachValueChange = 2
-                : affinity == AffinityTypes.Incompatible ? approachValueChange = -1
-                : 1;
-
-                clonedTagSystem.ModifyEncounterStateTag(tag, approachValueChange);
+                clonedTagSystem.ModifyApproachPosition(tag, approachDelta);
 
                 int newValue = clonedTagSystem.GetEncounterStateTagValue(tag);
                 int actualDelta = newValue - oldValue;
 
                 if (actualDelta != 0)
+                { 
                     projection.ApproachTagChanges[tag] = actualDelta;
+                }
             }
             else if (mod.EncounterTagType == TagModification.TagTypes.Focus)
             {
                 FocusTags tag = (FocusTags)mod.TagName;
                 int oldValue = clonedTagSystem.GetFocusTagValue(tag);
+                int focusDelta = GetFocusBonus(playerState, tag);
 
-                var affinity = playerState.GetApproachAffinity(tag);
-                int focusValueChange = affinity == AffinityTypes.Natural ? focusValueChange = 2
-                : affinity == AffinityTypes.Incompatible ? focusValueChange = -1
-                : 1;
-
-                clonedTagSystem.ModifyFocusTag(tag, focusValueChange);
+                clonedTagSystem.ModifyFocusPosition(tag, focusDelta);
 
                 int newValue = clonedTagSystem.GetFocusTagValue(tag);
                 int actualDelta = newValue - oldValue;
 
                 if (actualDelta != 0)
+                { 
                     projection.FocusTagChanges[tag] = actualDelta;
+                }
             }
         }
+    }
+
+    private static int GetApproachBonus(PlayerState playerState, ApproachTags tag)
+    {
+        var affinity = playerState.GetApproachAffinity(tag);
+        int approachDelta = affinity == AffinityTypes.Natural ? approachDelta = 3
+        : affinity == AffinityTypes.Incompatible ? approachDelta = 1
+        : 2;
+        return approachDelta;
+    }
+
+    private static int GetFocusBonus(PlayerState playerState, FocusTags tag)
+    {
+        var affinity = playerState.GetFocusAffinity(tag);
+        int focusDelta = affinity == AffinityTypes.Natural ? focusDelta = 3
+        : affinity == AffinityTypes.Incompatible ? focusDelta = 1
+        : 2;
+        return focusDelta;
     }
 
     private static void EnsureNoNegativeEncounterValues(int currentMomentum, int currentPressure, ChoiceProjection projection)
@@ -177,46 +191,53 @@
         }
     }
 
-    private void CalculateDamageFromPressure(ChoiceCard choice, ChoiceProjection projection, int currentPressure, int choicePressure)
+    private void CalculateDamageFromPressure(ChoiceCard choice, ChoiceProjection projection, PlayerState playerState, int currentPressure, int choicePressure)
     {
         StrategicEffect effect = choice.StrategicEffect;
         List<EnvironmentPropertyTag> strategicTags = _locationTags.GetStrategicActiveTags();
 
-        //foreach (EnvironmentPropertyTag tag in strategicTags)
-        //{
-        //    int injuryEffect = effect.GetInjuryModifierForTag(tag, projection, currentPressure);
-        //    if (injuryEffect != 0)
-        //    {
-        //        var encounterType = encounterInfo.EncounterType;
-        //        if (encounterType == EncounterTypes.Physical)
-        //        {
-        //            projection.HealthChange = injuryEffect;
-        //            projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
-        //            {
-        //                Source = "Dangerous Archetype combination",
-        //                Value = -injuryEffect
-        //            });
-        //        }
-        //        if (encounterType == EncounterTypes.Intellectual)
-        //        {
-        //            projection.ConcentrationChange = injuryEffect;
-        //            projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
-        //            {
-        //                Source = "Dangerous Archetype combination",
-        //                Value = -injuryEffect
-        //            });
-        //        }
-        //        if (encounterType == EncounterTypes.Social)
-        //        {
-        //            projection.ConfidenceChange = injuryEffect;
-        //            projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
-        //            {
-        //                Source = "Dangerous Archetype combination",
-        //                Value = -injuryEffect
-        //            });
-        //        }
-        //    }
-        //}
+        foreach (EnvironmentPropertyTag tag in strategicTags)
+        {
+            bool badApproach = playerState.GetIncompatibleApproaches().Contains(choice.Approach);
+            bool badFocus = playerState.GetIncompatibleFocuses().Contains(choice.Focus);
+            int injuryEffect = 0;
+            if (badApproach || badFocus)
+            {
+                injuryEffect = currentPressure;
+            }
+            
+            if (injuryEffect != 0)
+            {
+                var encounterType = encounterInfo.EncounterType;
+                if (encounterType == EncounterTypes.Physical)
+                {
+                    projection.HealthChange = injuryEffect;
+                    projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
+                    {
+                        Source = "Dangerous Archetype choice",
+                        Value = -injuryEffect
+                    });
+                }
+                else if (encounterType == EncounterTypes.Intellectual)
+                {
+                    projection.ConcentrationChange = injuryEffect;
+                    projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
+                    {
+                        Source = "Dangerous Archetype choice",
+                        Value = -injuryEffect
+                    });
+                }
+                else if (encounterType == EncounterTypes.Social)
+                {
+                    projection.ConfidenceChange = injuryEffect;
+                    projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
+                    {
+                        Source = "Dangerous Archetype choice",
+                        Value = -injuryEffect
+                    });
+                }
+            }
+        }
     }
 
     /// <summary>

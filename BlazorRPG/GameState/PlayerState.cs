@@ -219,8 +219,7 @@
     {
         return ArchetypeConfig.GetAffinity(approach);
     }
-
-    public AffinityTypes GetApproachAffinity(FocusTags focus)
+    public AffinityTypes GetFocusAffinity(FocusTags focus)
     {
         return ArchetypeConfig.GetAffinity(focus);
     }
