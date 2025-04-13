@@ -17,13 +17,13 @@ public class ChoiceCard
 
     public string GetDetails()
     {
-        string desc = $"Tier {(int)Tier} ({StrategicEffect.ToString()})";
+        string desc = $"Tier {(int)Tier} (Requires: {Focus} {OptimalFocusValue})";
         return desc;
     }
 
     public override string ToString()
     {
-        string desc = $"{Name} - Tier {(int)Tier} ({StrategicEffect.ToString()})";
+        string desc = $"Tier {(int)Tier} (Requires: {Focus} {OptimalFocusValue})";
         return desc;
     }
 
