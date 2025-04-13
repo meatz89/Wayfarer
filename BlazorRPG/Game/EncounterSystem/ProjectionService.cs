@@ -193,49 +193,43 @@
 
     private void CalculateDamageFromPressure(ChoiceCard choice, ChoiceProjection projection, PlayerState playerState, int currentPressure, int choicePressure)
     {
-        StrategicEffect effect = choice.StrategicEffect;
-        List<EnvironmentPropertyTag> strategicTags = _locationTags.GetStrategicActiveTags();
-
-        foreach (EnvironmentPropertyTag tag in strategicTags)
+        bool badApproach = playerState.GetIncompatibleApproaches().Contains(choice.Approach);
+        bool badFocus = playerState.GetIncompatibleFocuses().Contains(choice.Focus);
+        int injuryEffect = 0;
+        if (badApproach || badFocus)
         {
-            bool badApproach = playerState.GetIncompatibleApproaches().Contains(choice.Approach);
-            bool badFocus = playerState.GetIncompatibleFocuses().Contains(choice.Focus);
-            int injuryEffect = 0;
-            if (badApproach || badFocus)
-            {
-                injuryEffect = currentPressure;
-            }
+            injuryEffect = -currentPressure;
+        }
             
-            if (injuryEffect != 0)
+        if (injuryEffect != 0)
+        {
+            var encounterType = encounterInfo.EncounterType;
+            if (encounterType == EncounterTypes.Physical)
             {
-                var encounterType = encounterInfo.EncounterType;
-                if (encounterType == EncounterTypes.Physical)
+                projection.HealthChange += injuryEffect;
+                projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
                 {
-                    projection.HealthChange = injuryEffect;
-                    projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = "Dangerous Archetype choice",
-                        Value = -injuryEffect
-                    });
-                }
-                else if (encounterType == EncounterTypes.Intellectual)
+                    Source = "Dangerous Archetype choice",
+                    Value = injuryEffect
+                });
+            }
+            else if (encounterType == EncounterTypes.Intellectual)
+            {
+                projection.ConcentrationChange += injuryEffect;
+                projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
                 {
-                    projection.ConcentrationChange = injuryEffect;
-                    projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = "Dangerous Archetype choice",
-                        Value = -injuryEffect
-                    });
-                }
-                else if (encounterType == EncounterTypes.Social)
+                    Source = "Dangerous Archetype choice",
+                    Value = injuryEffect
+                });
+            }
+            else if (encounterType == EncounterTypes.Social)
+            {
+                projection.ConfidenceChange += injuryEffect;
+                projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
                 {
-                    projection.ConfidenceChange = injuryEffect;
-                    projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = "Dangerous Archetype choice",
-                        Value = -injuryEffect
-                    });
-                }
+                    Source = "Dangerous Archetype choice",
+                    Value = injuryEffect
+                });
             }
         }
     }
