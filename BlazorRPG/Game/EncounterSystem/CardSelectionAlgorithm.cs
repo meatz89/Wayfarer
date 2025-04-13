@@ -231,8 +231,7 @@
             {
                 if (tag.AffectedFocus == card.Focus)
                 {
-                    int change = tag.RequirementChange;
-                    optimalFocusValue += change;
+                    optimalFocusValue += tag.RequirementChange;
                 }
             }
 
