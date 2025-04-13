@@ -1,6 +1,6 @@
 ﻿public interface IEncounterTag
 {
-    string Name { get; }
+    string NarrativeName { get; }
     bool IsActive(BaseTagSystem tagSystem);
     void ApplyEffect(EncounterState state);
 }

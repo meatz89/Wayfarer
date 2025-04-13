@@ -24,7 +24,7 @@
 
     public void UpdateActiveTags(IEnumerable<IEncounterTag> locationTags)
     {
-        HashSet<string> previouslyActive = new HashSet<string>(ActiveTags.Select(t => t.Name));
+        HashSet<string> previouslyActive = new HashSet<string>(ActiveTags.Select(t => t.NarrativeName));
 
         ActiveTags.Clear();
         ResetTagEffects();
@@ -92,7 +92,7 @@
 
         foreach (IEncounterTag tag in locationTags)
         {
-            bool wasActive = ActiveTags.Any(t => t.Name == tag.Name);
+            bool wasActive = ActiveTags.Any(t => t.NarrativeName == tag.NarrativeName);
             bool willBeActive = tag is StrategicTag || (tag is NarrativeTag && tag.IsActive(projectedTags));
 
             if (!wasActive && willBeActive)
@@ -110,7 +110,7 @@
 
         foreach (IEncounterTag tag in locationTags)
         {
-            bool wasActive = ActiveTags.Any(t => t.Name == tag.Name);
+            bool wasActive = ActiveTags.Any(t => t.NarrativeName == tag.NarrativeName);
             bool willBeActive = tag is StrategicTag || (tag is NarrativeTag && tag.IsActive(projectedTags));
 
             if (wasActive && !willBeActive)

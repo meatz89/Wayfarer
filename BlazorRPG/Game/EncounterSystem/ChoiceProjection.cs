@@ -23,6 +23,7 @@
     public List<ValueComponent> HealthComponents { get; } = new List<ValueComponent>();
     public List<ValueComponent> ConcentrationComponents { get; } = new List<ValueComponent>();
     public List<ValueComponent> ConfidenceComponents { get; } = new List<ValueComponent>();
+    public List<string> StrategicTagEffects = new List<string>();
 
     public int HealthChange { get; set; }
     public int ConcentrationChange { get; set; }

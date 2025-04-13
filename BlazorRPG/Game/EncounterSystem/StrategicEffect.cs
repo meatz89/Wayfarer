@@ -2,13 +2,26 @@
 {
     public IEnvironmentalProperty Property { get; }
     public StrategicTagEffectType EffectType { get; }
-    public ApproachTags ScalingApproach { get; }
+    public ApproachTags ApproachPosition { get; }
 
     public StrategicEffect(IEnvironmentalProperty property, StrategicTagEffectType effectType, ApproachTags scalingApproach)
     {
         Property = property;
         EffectType = effectType;
-        ScalingApproach = scalingApproach;
+        ApproachPosition = scalingApproach;
+    }
+
+    public override string ToString()
+    {
+        string effectDesc = $"{Property.ToString()}: {EffectType.ToString()} for each point of {ApproachPosition.ToString()}";
+        return effectDesc ;
+    }
+
+    public bool IsActive(StrategicTag strategicTag)
+    {
+        if (Property.Equals(strategicTag.EnvironmentalProperty))
+            return true;
+        return false;
     }
 
     public int GetMomentumModifierForTag(StrategicTag tag, BaseTagSystem tagSystem)
@@ -22,10 +35,10 @@
              EffectType == StrategicTagEffectType.DecreaseMomentum))
         {
             // Get current approach value
-            int approachValue = tagSystem.GetEncounterStateTagValue(ScalingApproach);
+            int approachValue = tagSystem.GetEncounterStateTagValue(ApproachPosition);
 
-            // Calculate linear effect: 1 point per 2 approach points
-            int effectValue = approachValue / 2;
+            // Calculate linear effect: 1 point per approach point
+            int effectValue = approachValue;
 
             // Apply positive or negative based on effect type
             return EffectType == StrategicTagEffectType.IncreaseMomentum ? effectValue : -effectValue;
@@ -44,10 +57,10 @@
             (EffectType == StrategicTagEffectType.IncreasePressure ||
              EffectType == StrategicTagEffectType.DecreasePressure))
         {
-            int approachValue = tagSystem.GetEncounterStateTagValue(ScalingApproach);
+            int approachValue = tagSystem.GetEncounterStateTagValue(ApproachPosition);
 
-            // Calculate linear effect: 1 point per 2 approach points
-            int effectValue = approachValue / 2;
+            // Calculate linear effect: 1 point per approach point
+            int effectValue = approachValue;
 
             // Apply positive or negative based on effect type
             return EffectType == StrategicTagEffectType.IncreasePressure ? effectValue : -effectValue;
@@ -55,4 +68,5 @@
 
         return 0;
     }
+
 }

@@ -1,13 +1,13 @@
 ﻿public class StrategicTag : IEncounterTag
 {
-    public string Name { get; }
+    public string NarrativeName { get; }
     public IEnvironmentalProperty EnvironmentalProperty { get; }
 
     public StrategicTag(
         string name,
         IEnvironmentalProperty environmentalProperty)
     {
-        Name = name;
+        NarrativeName = name;
         EnvironmentalProperty = environmentalProperty;
     }
 
