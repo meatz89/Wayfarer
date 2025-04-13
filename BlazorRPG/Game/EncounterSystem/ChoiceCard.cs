@@ -11,29 +11,25 @@ public class ChoiceCard
     public CardTiers Tier { get; }
     public int BaseEffectValue { get; }
     public IReadOnlyList<TagModification> TagModifications { get; }
-    public RequirementInfo Requirement { get; }
     public StrategicEffect StrategicEffect { get; }
     public ApproachTags Approach { get; }
     public int OptimalApproachValue { get; }
     public int OptimalFocusValue { get; }
 
 
-    public ChoiceCard(string name, string description, FocusTags focus,
-                 EffectTypes effectType, CardTiers tier, int baseEffectValue,
-                 RequirementInfo requirement, StrategicEffect strategicEffect,
-                 IReadOnlyList<TagModification> tagModifications,
-                 ApproachTags optimalApproach, int optimalApproachValue, int optimalFocusValue)
+    public ChoiceCard(string name, string description, 
+        EffectTypes effectType, CardTiers tier, int baseEffectValue, StrategicEffect strategicEffect, IReadOnlyList<TagModification> tagModifications,
+        ApproachTags approach, int approachPosition, FocusTags focus, int focusPosition)
     {
-        Approach = optimalApproach;
-        OptimalApproachValue = optimalApproachValue;
-        OptimalFocusValue = optimalFocusValue;
+        Approach = approach;
+        OptimalApproachValue = approachPosition;
+        OptimalFocusValue = focusPosition;
         Name = name;
         Description = description;
         Focus = focus;
         EffectType = effectType;
         Tier = tier;
         BaseEffectValue = baseEffectValue;
-        Requirement = requirement;
         TagModifications = tagModifications;
         StrategicEffect = strategicEffect;
     }
@@ -60,16 +56,6 @@ public class ChoiceCard
             int basePressure = -BaseEffectValue; // Negative because it reduces pressure
             int totalPressure = state.GetTotalPressure(this, basePressure);
             state.BuildPressure(totalPressure);
-        }
-
-        // Apply requirement reduction if applicable
-        if (Requirement.Type == RequirementInfo.RequirementTypes.Approach)
-        {
-            state.TagSystem.ModifyEncounterStateTag(Requirement.ApproachTag, -Requirement.ReductionAmount);
-        }
-        else if (Requirement.Type == RequirementInfo.RequirementTypes.Focus)
-        {
-            state.TagSystem.ModifyFocusTag(Requirement.FocusTag, -Requirement.ReductionAmount);
         }
     }
 

@@ -13,7 +13,7 @@ public class ChoiceRepository
     private void InitializeChoices()
     {
         // =============================================
-        // TIER 1: NOVICE CARDS (MORE STRATEGIC OPTIONS)
+        // TIER 1: NOVICE CARDS
         // =============================================
 
         // Analysis approach, Information focus - momentum builder
@@ -127,7 +127,7 @@ public class ChoiceRepository
         ));
 
         // =============================================
-        // TIER 2: TRAINED CARDS (MORE STRATEGIC OPTIONS)
+        // TIER 2: TRAINED CARDS
         // =============================================
 
         // Analysis approach, Environment focus - momentum builder
@@ -248,7 +248,7 @@ public class ChoiceRepository
 
     public List<ChoiceCard> GetAvailableChoices(EncounterState state)
     {
-        return _choices.Where(c => c.Requirement.IsMet(state.TagSystem))
+        return _choices
             .Select(choice => choice)
             .ToList();
     }
