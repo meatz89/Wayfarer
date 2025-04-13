@@ -2,9 +2,9 @@
 <div class="tooltip" style="left: @(mouseX)px; top: @(mouseY)px;">
     <div class="preview-header">
         <h4>
-            @GetChoiceDescription(@hoveredChoice)
+            @hoveredChoice.ChoiceDescription
         </h4>
-        <div class="choice-narrative">@hoveredChoice.ChoiceDescription</div>
+        <div class="choice-narrative">@GetChoiceNarrative(@hoveredChoice)</div>
     </div>
 
     <div class="tooltip-section">
