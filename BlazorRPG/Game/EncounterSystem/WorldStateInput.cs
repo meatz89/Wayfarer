@@ -1,8 +1,6 @@
 ﻿public class WorldStateInput
 {
     public string CharacterArchetype { get; internal set; }
-    public string NaturalApproaches { get; internal set; }
-    public string DangerousApproaches { get; internal set; }
 
     public int Health { get; set; }
     public int MaxHealth { get; set; }

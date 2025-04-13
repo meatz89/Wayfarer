@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-
-/// <summary>
+﻿/// <summary>
 /// 
 /// ### Example Location Combinations
 /// 
@@ -23,6 +20,60 @@ public interface IEnvironmentalProperty
     string GetPropertyValue();
 }
 
+public class DangerousApproach : IEnvironmentalProperty, IEquatable<DangerousApproach>
+{
+    public static IEnvironmentalProperty Any => new EnvironmentalPropertyAny(nameof(Illumination));
+    public static DangerousApproach Dominance = new DangerousApproach("Dominance");
+    public static DangerousApproach Rapport = new DangerousApproach("Rapport");
+    public static DangerousApproach Analysis = new DangerousApproach("Analysis");
+    public static DangerousApproach Precision = new DangerousApproach("Precision");
+    public static DangerousApproach Concealment = new DangerousApproach("Concealment");
+
+    private string Value;
+
+    public DangerousApproach(string value)
+    {
+        this.Value = value;
+    }
+
+    public bool Equals(DangerousApproach other)
+    {
+        if (other == null)
+            return false;
+        return this.Value == other.Value;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (obj is EnvironmentalPropertyAny any)
+            return any.Equals(this);
+
+        if (obj is DangerousApproach other)
+            return Equals(other);
+
+        return false;
+    }
+
+    public string GetPropertyType()
+    {
+        return nameof(DangerousApproach);
+    }
+
+    public string GetPropertyValue()
+    {
+        return Value;
+    }
+
+    public override string ToString()
+    {
+        return $"{GetPropertyValue()}";
+    }
+
+    public override int GetHashCode()
+    {
+        return Value.GetHashCode();
+    }
+}
 
 public class Illumination : IEnvironmentalProperty, IEquatable<Illumination>
 {

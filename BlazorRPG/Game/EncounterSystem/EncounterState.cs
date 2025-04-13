@@ -65,7 +65,7 @@
     private void ApplyChoiceProjection(PlayerState playerState, EncounterInfo encounterInfo, ChoiceProjection projection)
     {
         // 1. Apply tag changes
-        foreach (KeyValuePair<ApproachTags, int> pair in projection.EncounterStateTagChanges)
+        foreach (KeyValuePair<ApproachTags, int> pair in projection.ApproachTagChanges)
             TagSystem.ModifyEncounterStateTag(pair.Key, pair.Value);
 
         foreach (KeyValuePair<FocusTags, int> pair in projection.FocusTagChanges)

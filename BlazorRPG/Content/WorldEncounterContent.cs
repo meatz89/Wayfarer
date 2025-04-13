@@ -12,7 +12,7 @@
     public static EncounterTemplate TravelEncounter => new EncounterTemplate()
     {
         Name = "Travel",
-        Duration = 1,
+        Duration = 2,
         MaxPressure = 10,
         PartialThreshold = 4,
         StandardThreshold = 8,
@@ -32,10 +32,11 @@
 
         encounterStrategicTags =
         [
-            new StrategicTag("Changing Light", Illumination.Shadowy),
-            new StrategicTag("Open Road", Population.Quiet),
-            new StrategicTag("Journey Hazards", Atmosphere.Tense),
-            new StrategicTag("Varied Terrain", Physical.Hazardous)
+            new EnvironmentPropertyTag("Dangerous Analysis", DangerousApproach.Analysis),
+            new EnvironmentPropertyTag("Changing Light", Illumination.Shadowy),
+            new EnvironmentPropertyTag("Open Road", Population.Quiet),
+            new EnvironmentPropertyTag("Journey Hazards", Atmosphere.Tense),
+            new EnvironmentPropertyTag("Varied Terrain", Physical.Hazardous)
         ]
     };
 
@@ -62,10 +63,10 @@
 
         encounterStrategicTags =
         [
-            new StrategicTag("Forest Light", Illumination.Bright),
-            new StrategicTag("Ancient Knowledge", Population.Isolated),
-            new StrategicTag("Sacred Ground", Atmosphere.Formal),
-            new StrategicTag("Wilderness Wisdom", Economic.Humble)
+            new EnvironmentPropertyTag("Forest Light", Illumination.Bright),
+            new EnvironmentPropertyTag("Ancient Knowledge", Population.Isolated),
+            new EnvironmentPropertyTag("Sacred Ground", Atmosphere.Formal),
+            new EnvironmentPropertyTag("Wilderness Wisdom", Economic.Humble)
         ]
     };
 
@@ -92,10 +93,10 @@
 
         encounterStrategicTags =
         [
-            new StrategicTag("Forest Cover", Illumination.Shadowy),
-            new StrategicTag("Remote Trail", Population.Isolated),
-            new StrategicTag("Imminent Danger", Atmosphere.Tense),
-            new StrategicTag("Rough Terrain", Physical.Hazardous)
+            new EnvironmentPropertyTag("Forest Cover", Illumination.Shadowy),
+            new EnvironmentPropertyTag("Remote Trail", Population.Isolated),
+            new EnvironmentPropertyTag("Imminent Danger", Atmosphere.Tense),
+            new EnvironmentPropertyTag("Rough Terrain", Physical.Hazardous)
         ]
     };
 
@@ -121,10 +122,10 @@
 
         encounterStrategicTags =
         [
-            new StrategicTag("Forest Light", Illumination.Shadowy),
-            new StrategicTag("Hunting Party", Population.Quiet),
-            new StrategicTag("Wilderness", Physical.Expansive),
-            new StrategicTag("Survival Focus", Economic.Humble)
+            new EnvironmentPropertyTag("Forest Light", Illumination.Shadowy),
+            new EnvironmentPropertyTag("Hunting Party", Population.Quiet),
+            new EnvironmentPropertyTag("Wilderness", Physical.Expansive),
+            new EnvironmentPropertyTag("Survival Focus", Economic.Humble)
         ]
     };
 
@@ -150,10 +151,10 @@
 
         encounterStrategicTags =
         [
-            new StrategicTag("Filtered Sunlight", Illumination.Shadowy),
-            new StrategicTag("Sacred Tree", Population.Isolated),
-            new StrategicTag("Natural Wonder", Atmosphere.Formal),
-            new StrategicTag("Ancient Wisdom", Economic.Humble)
+            new EnvironmentPropertyTag("Filtered Sunlight", Illumination.Shadowy),
+            new EnvironmentPropertyTag("Sacred Tree", Population.Isolated),
+            new EnvironmentPropertyTag("Natural Wonder", Atmosphere.Formal),
+            new EnvironmentPropertyTag("Ancient Wisdom", Economic.Humble)
         ]
     };
 
@@ -181,10 +182,10 @@
 
         encounterStrategicTags =
         [
-            new StrategicTag("Tavern Lighting", Illumination.Shadowy),
-            new StrategicTag("Busy Evening", Population.Crowded),
-            new StrategicTag("Merry Atmosphere", Atmosphere.Chaotic),
-            new StrategicTag("Drinking Hall", Physical.Confined)
+            new EnvironmentPropertyTag("Tavern Lighting", Illumination.Shadowy),
+            new EnvironmentPropertyTag("Busy Evening", Population.Crowded),
+            new EnvironmentPropertyTag("Merry Atmosphere", Atmosphere.Chaotic),
+            new EnvironmentPropertyTag("Drinking Hall", Physical.Confined)
         ]
     };
 
@@ -210,10 +211,10 @@
 
         encounterStrategicTags =
         [
-            new StrategicTag("Night Shadows", Illumination.Dark),
-            new StrategicTag("Private Chamber", Population.Isolated),
-            new StrategicTag("Rented Space", Economic.Commercial),
-            new StrategicTag("Small Room", Physical.Confined)
+            new EnvironmentPropertyTag("Night Shadows", Illumination.Dark),
+            new EnvironmentPropertyTag("Private Chamber", Population.Isolated),
+            new EnvironmentPropertyTag("Rented Space", Economic.Commercial),
+            new EnvironmentPropertyTag("Small Room", Physical.Confined)
         ]
     };
 
@@ -239,10 +240,10 @@
 
         encounterStrategicTags =
         [
-            new StrategicTag("Dim Lighting", Illumination.Shadowy),
-            new StrategicTag("Public Posting", Population.Crowded),
-            new StrategicTag("Opportunity Board", Economic.Commercial),
-            new StrategicTag("Tavern Wall", Physical.Confined)
+            new EnvironmentPropertyTag("Dim Lighting", Illumination.Shadowy),
+            new EnvironmentPropertyTag("Public Posting", Population.Crowded),
+            new EnvironmentPropertyTag("Opportunity Board", Economic.Commercial),
+            new EnvironmentPropertyTag("Tavern Wall", Physical.Confined)
         ]
     };
 
@@ -268,10 +269,10 @@
 
         encounterStrategicTags =
         [
-            new StrategicTag("Hidden Room", Illumination.Dark),
-            new StrategicTag("Secret Meeting", Population.Isolated),
-            new StrategicTag("Tense Exchange", Atmosphere.Tense),
-            new StrategicTag("Back Room", Physical.Confined)
+            new EnvironmentPropertyTag("Hidden Room", Illumination.Dark),
+            new EnvironmentPropertyTag("Secret Meeting", Population.Isolated),
+            new EnvironmentPropertyTag("Tense Exchange", Atmosphere.Tense),
+            new EnvironmentPropertyTag("Back Room", Physical.Confined)
         ]
     };
 
@@ -297,10 +298,10 @@
 
         encounterStrategicTags =
         [
-            new StrategicTag("Market Daylight", Illumination.Bright),
-            new StrategicTag("Bustling Shoppers", Population.Crowded),
-            new StrategicTag("Trading Post", Economic.Commercial),
-            new StrategicTag("Market Commotion", Atmosphere.Chaotic)
+            new EnvironmentPropertyTag("Market Daylight", Illumination.Bright),
+            new EnvironmentPropertyTag("Bustling Shoppers", Population.Crowded),
+            new EnvironmentPropertyTag("Trading Post", Economic.Commercial),
+            new EnvironmentPropertyTag("Market Commotion", Atmosphere.Chaotic)
         ]
     };
 }

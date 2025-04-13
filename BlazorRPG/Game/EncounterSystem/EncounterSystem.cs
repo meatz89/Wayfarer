@@ -79,13 +79,13 @@
     }
 
 
-    public List<StrategicTag> GetActiveStrategicTags(string locationId, EncounterContext encounterContext)
+    public List<EnvironmentPropertyTag> GetActiveStrategicTags(string locationId, EncounterContext encounterContext)
     {
         Location location = worldState.GetLocation(locationId);
         List<IEnvironmentalProperty> properties = GetCurrentEnvironmentalProperties(locationId, encounterContext.TimeOfDay);
 
         // Base tags from location
-        List<StrategicTag> activeTags = new List<StrategicTag>(location.StrategicTags);
+        List<EnvironmentPropertyTag> activeTags = new List<EnvironmentPropertyTag>(location.StrategicTags);
 
         return activeTags;
     }

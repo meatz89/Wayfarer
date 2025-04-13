@@ -6,5 +6,7 @@
 
     // Detrimental effects
     DecreaseMomentum,    // Reduces momentum proportional to approach value
-    IncreasePressure     // Adds pressure proportional to approach value
+    IncreasePressure,    // Adds pressure proportional to approach value
+
+    IncreaseInjury       // Reduces Health/Concentration/Confidence proportional to approach value
 }

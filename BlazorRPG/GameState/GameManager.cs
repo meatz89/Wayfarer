@@ -657,8 +657,6 @@ public class GameManager
         WorldStateInput context = new WorldStateInput
         {
             CharacterArchetype = playerState.Archetype.ToString(),
-            NaturalApproaches = playerState.GetNaturalApproachesText(EncounterTypes.Physical),
-            DangerousApproaches = playerState.GetDangerousApproachesText(EncounterTypes.Physical),
 
             Health = playerState.Health,
             MaxHealth = playerState.MaxHealth,

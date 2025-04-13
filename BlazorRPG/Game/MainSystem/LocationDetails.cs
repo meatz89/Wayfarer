@@ -11,7 +11,7 @@
     public List<IEnvironmentalProperty> EnvironmentalProperties { get; set; } = new List<IEnvironmentalProperty>();
     public Dictionary<string, List<IEnvironmentalProperty>> TimeProperties { get; set; } = new Dictionary<string, List<IEnvironmentalProperty>>();
     public List<SpotDetails> NewLocationSpots { get; set; } = new List<SpotDetails>();
-    public List<StrategicTag> StrategicTags { get; set; } = new List<StrategicTag>();
+    public List<EnvironmentPropertyTag> StrategicTags { get; set; } = new List<EnvironmentPropertyTag>();
     public List<NarrativeTag> NarrativeTags { get; set; } = new List<NarrativeTag>();
     public List<NewAction> NewActions { get; set; } = new List<NewAction>();
     public PlayerLocationUpdate LocationUpdate { get; set; } = new PlayerLocationUpdate();

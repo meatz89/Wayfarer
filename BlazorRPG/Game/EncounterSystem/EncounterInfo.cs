@@ -24,7 +24,7 @@ public class EncounterInfo
     public int Difficulty { get; set; }
 
     // Presentation style for this location
-    public EncounterTypes Type { get; set; }
+    public EncounterTypes EncounterType { get; set; }
 
     public EncounterInfo(
         string locationName,
@@ -51,7 +51,7 @@ public class EncounterInfo
 
         this.TurnDuration = duration;
         this.Hostility = hostility;
-        this.Type = style;
+        this.EncounterType = style;
         this.MaxPressure = maxPressure;
     }
 
@@ -60,7 +60,7 @@ public class EncounterInfo
         AvailableTags.Add(narrativeTag);
 
     }
-    public void AddTag(StrategicTag strategicTag)
+    public void AddTag(EnvironmentPropertyTag strategicTag)
     {
         AvailableTags.Add(strategicTag);
     }

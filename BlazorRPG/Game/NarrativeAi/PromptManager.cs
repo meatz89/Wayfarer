@@ -651,8 +651,6 @@ CHOICE {i + 1}:
 
         string dynamicSystemPrompt = staticSystemPrompt
             .Replace("{CHARACTER_ARCHETYPE}", input.CharacterArchetype)
-            .Replace("{NATURAL_APPROACHES}", input.NaturalApproaches)
-            .Replace("{DANGEROUS_APPROACHES}", input.DangerousApproaches)
             .Replace("{ENERGY}", input.Energy.ToString())
             .Replace("{MAX_ENERGY}", input.MaxEnergy.ToString())
             .Replace("{COINS}", input.Coins.ToString())

@@ -31,7 +31,7 @@
 
         foreach (IEncounterTag tag in locationTags)
         {
-            bool shouldActivate = tag is StrategicTag || (tag is NarrativeTag && tag.IsActive(TagSystem));
+            bool shouldActivate = tag is EnvironmentPropertyTag || (tag is NarrativeTag && tag.IsActive(TagSystem));
 
             if (shouldActivate)
             {
@@ -93,7 +93,7 @@
         foreach (IEncounterTag tag in locationTags)
         {
             bool wasActive = ActiveTags.Any(t => t.NarrativeName == tag.NarrativeName);
-            bool willBeActive = tag is StrategicTag || (tag is NarrativeTag && tag.IsActive(projectedTags));
+            bool willBeActive = tag is EnvironmentPropertyTag || (tag is NarrativeTag && tag.IsActive(projectedTags));
 
             if (!wasActive && willBeActive)
             {
@@ -111,7 +111,7 @@
         foreach (IEncounterTag tag in locationTags)
         {
             bool wasActive = ActiveTags.Any(t => t.NarrativeName == tag.NarrativeName);
-            bool willBeActive = tag is StrategicTag || (tag is NarrativeTag && tag.IsActive(projectedTags));
+            bool willBeActive = tag is EnvironmentPropertyTag || (tag is NarrativeTag && tag.IsActive(projectedTags));
 
             if (wasActive && !willBeActive)
             {
@@ -124,11 +124,11 @@
 
     public BaseTagSystem CloneTagSystem() => TagSystem.Clone();
 
-    public List<StrategicTag> GetStrategicActiveTags()
+    public List<EnvironmentPropertyTag> GetStrategicActiveTags()
     {
-        List<StrategicTag> list = ActiveTags
-            .Where(x => x is StrategicTag strategicTag)
-            .Select(x => (StrategicTag)x)
+        List<EnvironmentPropertyTag> list = ActiveTags
+            .Where(x => x is EnvironmentPropertyTag strategicTag)
+            .Select(x => (EnvironmentPropertyTag)x)
             .ToList();
 
         return list;

@@ -1,9 +1,9 @@
-﻿public class StrategicTag : IEncounterTag
+﻿public class EnvironmentPropertyTag : IEncounterTag
 {
     public string NarrativeName { get; }
     public IEnvironmentalProperty EnvironmentalProperty { get; }
 
-    public StrategicTag(
+    public EnvironmentPropertyTag(
         string name,
         IEnvironmentalProperty environmentalProperty)
     {

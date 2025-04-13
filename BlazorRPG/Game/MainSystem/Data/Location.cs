@@ -11,7 +11,7 @@
     public string DetailedDescription { get; set; }
     public string History { get; set; }
     public string PointsOfInterest { get; set; }
-    public List<StrategicTag> StrategicTags { get; set; } = new List<StrategicTag>();
+    public List<EnvironmentPropertyTag> StrategicTags { get; set; } = new List<EnvironmentPropertyTag>();
     public List<NarrativeTag> NarrativeTags { get; set; } = new List<NarrativeTag>();
 
     public int Depth { get; set; }

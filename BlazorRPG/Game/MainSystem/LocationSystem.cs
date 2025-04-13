@@ -110,12 +110,12 @@ public class LocationSystem
         return locationSpot;
     }
 
-    public List<StrategicTag> GetEnvironmentalProperties(string locationName, string locationSpotName)
+    public List<EnvironmentPropertyTag> GetEnvironmentalProperties(string locationName, string locationSpotName)
     {
         Location location = GetLocation(locationName);
         LocationSpot locationSpot = GetLocationSpotForLocation(locationName, locationSpotName);
 
-        return new List<StrategicTag>();
+        return new List<EnvironmentPropertyTag>();
     }
 
     public void AddSpot(string locationName, LocationSpot spot)

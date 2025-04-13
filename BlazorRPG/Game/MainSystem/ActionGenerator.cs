@@ -98,7 +98,7 @@
             PressureReducingFocuses = model.PressureReducingFocuses.Select(ParseFocusTag).ToList(),
             MomentumReducingFocuses = model.MomentumReducingFocuses.Select(ParseFocusTag).ToList(),
             encounterStrategicTags = model.StrategicTags.Select(t =>
-                new StrategicTag(
+                new EnvironmentPropertyTag(
                     t.Name,
                     ParseEnvironmentalProperty(t.EnvironmentalProperty))
             ).ToList(),

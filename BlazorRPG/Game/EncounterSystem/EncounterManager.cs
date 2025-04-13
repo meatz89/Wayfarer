@@ -67,7 +67,7 @@
             new NarrativeContext(
                 encounterInfo.LocationName.ToString(),
                 encounterInfo.LocationSpotName.ToString(),
-                encounterInfo.Type,
+                encounterInfo.EncounterType,
                 actionImplementation);
 
         // Generate introduction
@@ -92,9 +92,10 @@
         }
 
         // Get available choices
-        GenerateChoices();
+        GenerateChoicesForPlayer(playerState);
         List<ChoiceCard> choices = GetCurrentChoices();
-        List<ChoiceProjection> projections = choices.Select(ProjectChoice).ToList();
+        List<ChoiceProjection> projections = choices.Select(ProjectChoice)
+                                                    .ToList();
 
         // Create first narrative event
         NarrativeEvent firstNarrative = new NarrativeEvent(
@@ -192,7 +193,7 @@
             narrativeContext.AddEvent(narrativeEvent);
 
             // Get the new choices and projections
-            GenerateChoices();
+            GenerateChoicesForPlayer(playerState);
             List<ChoiceCard> newChoices = GetCurrentChoices();
             List<ChoiceProjection> newProjections = newChoices.Select(ProjectChoice).ToList();
 
@@ -255,7 +256,7 @@
             outcome.FocusTagChanges[kvp.Key] = kvp.Value;
         }
 
-        foreach (KeyValuePair<ApproachTags, int> kvp in projection.EncounterStateTagChanges)
+        foreach (KeyValuePair<ApproachTags, int> kvp in projection.ApproachTagChanges)
         {
             outcome.EncounterStateTagChanges[kvp.Key] = kvp.Value;
         }
@@ -338,8 +339,100 @@
         return CurrentChoices;
     }
 
-    public void GenerateChoices()
+    public void GenerateChoicesForPlayer(PlayerState playerState)
     {
         CurrentChoices = cardSelectionAlgorithm.SelectChoices(EncounterState);
+        
+        GenerateMomentumBoostStrategicTags(playerState);
+        GenerateInjuryStrategicTags(playerState);
+    }
+    private void GenerateMomentumBoostStrategicTags(PlayerState playerState)
+    {
+        foreach (ChoiceCard choice in CurrentChoices)
+        {
+            List<ApproachTags> unnaturalApproaches = playerState.GetUnnatrualApproaches();
+            foreach (ApproachTags unnatural in unnaturalApproaches)
+            {
+                if (choice.Approach == unnatural)
+                {
+                    StrategicEffect strategicEffect = new StrategicEffect(
+                        GetDangerousApproachType(unnatural),
+                        StrategicTagEffectType.IncreaseInjury,
+                        unnatural,
+                        1);
+
+                    choice.StrategicEffect = strategicEffect;
+                }
+            }
+
+            List<ApproachTags> dangerousApproaches = playerState.GetDangerousApproaches();
+            foreach (ApproachTags dangerous in dangerousApproaches)
+            {
+                if (choice.Approach == dangerous)
+                {
+                    StrategicEffect strategicEffect = new StrategicEffect(
+                        GetDangerousApproachType(dangerous),
+                        StrategicTagEffectType.IncreaseInjury,
+                        dangerous,
+                        2);
+
+                    choice.StrategicEffect = strategicEffect;
+                }
+            }
+        }
+    }
+
+    private void GenerateInjuryStrategicTags(PlayerState playerState)
+    {
+        foreach (ChoiceCard choice in CurrentChoices)
+        {
+            List<ApproachTags> unnaturalApproaches = playerState.GetUnnatrualApproaches();
+            foreach (ApproachTags unnatural in unnaturalApproaches)
+            {
+                if (choice.Approach == unnatural)
+                {
+                    StrategicEffect strategicEffect = new StrategicEffect(
+                        GetDangerousApproachType(unnatural),
+                        StrategicTagEffectType.IncreaseInjury,
+                        unnatural,
+                        1);
+
+                    choice.StrategicEffect = strategicEffect;
+                }
+            }
+
+            List<ApproachTags> dangerousApproaches = playerState.GetDangerousApproaches();
+            foreach (ApproachTags dangerous in dangerousApproaches)
+            {
+                if (choice.Approach == dangerous)
+                {
+                    StrategicEffect strategicEffect = new StrategicEffect(
+                        GetDangerousApproachType(dangerous),
+                        StrategicTagEffectType.IncreaseInjury,
+                        dangerous,
+                        2);
+
+                    choice.StrategicEffect = strategicEffect;
+                }
+            }
+        }
+    }
+
+    private static DangerousApproach GetDangerousApproachType(ApproachTags dangerous)
+    {
+        switch(dangerous)
+        {
+            case ApproachTags.Dominance:
+                return DangerousApproach.Dominance;
+            case ApproachTags.Precision:
+                return DangerousApproach.Precision;
+            case ApproachTags.Analysis:
+                return DangerousApproach.Analysis;
+            case ApproachTags.Rapport:
+                return DangerousApproach.Rapport;
+            case ApproachTags.Concealment:
+                return DangerousApproach.Concealment;
+        }
+        return DangerousApproach.Dominance;
     }
 }

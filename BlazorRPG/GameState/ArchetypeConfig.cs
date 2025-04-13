@@ -13,7 +13,7 @@
         config.PrimaryApproach = ApproachTags.Dominance;
 
         // Initialize with default neutral values
-        config.AffinityValues = new AffinityTypes[Enum.GetValues(typeof(ApproachContexts)).Length];
+        config.AffinityValues = new AffinityTypes[Enum.GetValues(typeof(ApproachTags)).Length];
         for (int i = 0; i < config.AffinityValues.Length; i++)
         {
             config.AffinityValues[i] = AffinityTypes.Neutral;
@@ -22,13 +22,13 @@
         // Set warrior-specific affinities
 
         // Natural affinities
-        config.SetAffinity(ApproachTags.Dominance, EncounterTypes.Physical, AffinityTypes.Natural);
-        config.SetAffinity(ApproachTags.Dominance, EncounterTypes.Social, AffinityTypes.Natural);
+        config.SetAffinity(ApproachTags.Dominance, AffinityTypes.Natural);
 
         // Unnatural affinities
-        config.SetAffinity(ApproachTags.Analysis, EncounterTypes.Physical, AffinityTypes.Unnatural);
-        config.SetAffinity(ApproachTags.Analysis, EncounterTypes.Social, AffinityTypes.Unnatural);
-        config.SetAffinity(ApproachTags.Rapport, EncounterTypes.Physical, AffinityTypes.Unnatural);
+        config.SetAffinity(ApproachTags.Analysis, AffinityTypes.Unnatural);
+
+        // Dangerous affinities
+        config.SetAffinity(ApproachTags.Concealment, AffinityTypes.Dangerous);
 
         return config;
     }
@@ -39,7 +39,7 @@
         config.PrimaryApproach = ApproachTags.Analysis;
 
         // Initialize with default neutral values
-        config.AffinityValues = new AffinityTypes[Enum.GetValues(typeof(ApproachContexts)).Length];
+        config.AffinityValues = new AffinityTypes[Enum.GetValues(typeof(ApproachTags)).Length];
         for (int i = 0; i < config.AffinityValues.Length; i++)
         {
             config.AffinityValues[i] = AffinityTypes.Neutral;
@@ -48,16 +48,13 @@
         // Set scholar-specific affinities
 
         // Natural affinities
-        config.SetAffinity(ApproachTags.Analysis, EncounterTypes.Intellectual, AffinityTypes.Natural);
-        config.SetAffinity(ApproachTags.Analysis, EncounterTypes.Physical, AffinityTypes.Natural);
-        config.SetAffinity(ApproachTags.Analysis, EncounterTypes.Social, AffinityTypes.Natural);
+        config.SetAffinity(ApproachTags.Analysis, AffinityTypes.Natural);
 
         // Unnatural affinities
-        config.SetAffinity(ApproachTags.Dominance, EncounterTypes.Social, AffinityTypes.Unnatural);
-        config.SetAffinity(ApproachTags.Concealment, EncounterTypes.Intellectual, AffinityTypes.Unnatural);
+        config.SetAffinity(ApproachTags.Concealment, AffinityTypes.Unnatural);
 
         // Dangerous affinities
-        config.SetAffinity(ApproachTags.Dominance, EncounterTypes.Physical, AffinityTypes.Dangerous);
+        config.SetAffinity(ApproachTags.Dominance, AffinityTypes.Dangerous);
 
         return config;
     }
@@ -68,7 +65,7 @@
         config.PrimaryApproach = ApproachTags.Precision;
 
         // Initialize with default neutral values
-        config.AffinityValues = new AffinityTypes[Enum.GetValues(typeof(ApproachContexts)).Length];
+        config.AffinityValues = new AffinityTypes[Enum.GetValues(typeof(ApproachTags)).Length];
         for (int i = 0; i < config.AffinityValues.Length; i++)
         {
             config.AffinityValues[i] = AffinityTypes.Neutral;
@@ -77,13 +74,13 @@
         // Set ranger-specific affinities
 
         // Natural affinities
-        config.SetAffinity(ApproachTags.Precision, EncounterTypes.Physical, AffinityTypes.Natural);
-        config.SetAffinity(ApproachTags.Precision, EncounterTypes.Intellectual, AffinityTypes.Natural);
-        config.SetAffinity(ApproachTags.Concealment, EncounterTypes.Physical, AffinityTypes.Natural);
+        config.SetAffinity(ApproachTags.Precision, AffinityTypes.Natural);
 
         // Unnatural affinities
-        config.SetAffinity(ApproachTags.Dominance, EncounterTypes.Social, AffinityTypes.Unnatural);
-        config.SetAffinity(ApproachTags.Rapport, EncounterTypes.Intellectual, AffinityTypes.Unnatural);
+        config.SetAffinity(ApproachTags.Dominance, AffinityTypes.Unnatural);
+
+        // Dangerous affinities
+        config.SetAffinity(ApproachTags.Precision, AffinityTypes.Dangerous);
 
         return config;
     }
@@ -94,7 +91,7 @@
         config.PrimaryApproach = ApproachTags.Rapport;
 
         // Initialize with default neutral values
-        config.AffinityValues = new AffinityTypes[Enum.GetValues(typeof(ApproachContexts)).Length];
+        config.AffinityValues = new AffinityTypes[Enum.GetValues(typeof(ApproachTags)).Length];
         for (int i = 0; i < config.AffinityValues.Length; i++)
         {
             config.AffinityValues[i] = AffinityTypes.Neutral;
@@ -103,13 +100,13 @@
         // Set bard-specific affinities
 
         // Natural affinities
-        config.SetAffinity(ApproachTags.Rapport, EncounterTypes.Social, AffinityTypes.Natural);
-        config.SetAffinity(ApproachTags.Rapport, EncounterTypes.Physical, AffinityTypes.Natural);
-        config.SetAffinity(ApproachTags.Analysis, EncounterTypes.Social, AffinityTypes.Natural);
+        config.SetAffinity(ApproachTags.Rapport, AffinityTypes.Natural);
 
         // Unnatural affinities
-        config.SetAffinity(ApproachTags.Concealment, EncounterTypes.Social, AffinityTypes.Unnatural);
-        config.SetAffinity(ApproachTags.Dominance, EncounterTypes.Intellectual, AffinityTypes.Unnatural);
+        config.SetAffinity(ApproachTags.Dominance, AffinityTypes.Unnatural);
+
+        // Dangerous affinities
+        config.SetAffinity(ApproachTags.Analysis, AffinityTypes.Dangerous);
 
         return config;
     }
@@ -120,7 +117,7 @@
         config.PrimaryApproach = ApproachTags.Concealment;
 
         // Initialize with default neutral values
-        config.AffinityValues = new AffinityTypes[Enum.GetValues(typeof(ApproachContexts)).Length];
+        config.AffinityValues = new AffinityTypes[Enum.GetValues(typeof(ApproachTags)).Length];
         for (int i = 0; i < config.AffinityValues.Length; i++)
         {
             config.AffinityValues[i] = AffinityTypes.Neutral;
@@ -129,108 +126,40 @@
         // Set thief-specific affinities
 
         // Natural affinities
-        config.SetAffinity(ApproachTags.Concealment, EncounterTypes.Physical, AffinityTypes.Natural);
-        config.SetAffinity(ApproachTags.Concealment, EncounterTypes.Social, AffinityTypes.Natural);
-        config.SetAffinity(ApproachTags.Precision, EncounterTypes.Physical, AffinityTypes.Natural);
+        config.SetAffinity(ApproachTags.Concealment, AffinityTypes.Natural);
 
         // Unnatural affinities
-        config.SetAffinity(ApproachTags.Dominance, EncounterTypes.Social, AffinityTypes.Unnatural);
-        config.SetAffinity(ApproachTags.Rapport, EncounterTypes.Physical, AffinityTypes.Unnatural);
+        config.SetAffinity(ApproachTags.Dominance, AffinityTypes.Unnatural);
 
         // Dangerous affinities
-        config.SetAffinity(ApproachTags.Dominance, EncounterTypes.Physical, AffinityTypes.Dangerous);
+        config.SetAffinity(ApproachTags.Rapport, AffinityTypes.Dangerous);
 
         return config;
     }
 
-    private void SetAffinity(ApproachTags approach, EncounterTypes encounterType, AffinityTypes affinity)
+    private void SetAffinity(ApproachTags approach, AffinityTypes affinity)
     {
-        ApproachContexts context = ConvertToApproachContext(approach, encounterType);
-        AffinityValues[(int)context] = affinity;
+        AffinityValues[(int)approach] = affinity;
     }
 
-    public AffinityTypes GetAffinity(ApproachTags approach, EncounterTypes encounterType)
+    public AffinityTypes GetAffinity(ApproachTags approach)
     {
-        ApproachContexts context = ConvertToApproachContext(approach, encounterType);
-        return AffinityValues[(int)context];
+        return AffinityValues[(int)approach];
     }
 
-    public List<ApproachTags> GetApproachesWithAffinity(AffinityTypes affinity, EncounterTypes encounterType)
+    public List<ApproachTags> GetApproachesWithAffinity(AffinityTypes affinity)
     {
         List<ApproachTags> approaches = new List<ApproachTags>();
 
         // Check each approach type
         foreach (ApproachTags approach in Enum.GetValues(typeof(ApproachTags)))
         {
-            if (IsApproachTag(approach) && GetAffinity(approach, encounterType) == affinity)
+            if (GetAffinity(approach) == affinity)
             {
                 approaches.Add(approach);
             }
         }
 
         return approaches;
-    }
-
-    private bool IsApproachTag(ApproachTags tag)
-    {
-        return tag == ApproachTags.Dominance ||
-               tag == ApproachTags.Rapport ||
-               tag == ApproachTags.Analysis ||
-               tag == ApproachTags.Precision ||
-               tag == ApproachTags.Concealment;
-    }
-
-    private ApproachContexts ConvertToApproachContext(ApproachTags approach, EncounterTypes encounterType)
-    {
-        switch (approach)
-        {
-            case ApproachTags.Dominance:
-                switch (encounterType)
-                {
-                    case EncounterTypes.Physical: return ApproachContexts.DominancePhysical;
-                    case EncounterTypes.Social: return ApproachContexts.DominanceSocial;
-                    case EncounterTypes.Intellectual: return ApproachContexts.DominanceIntellectual;
-                    default: throw new ArgumentOutOfRangeException(nameof(encounterType));
-                }
-
-            case ApproachTags.Rapport:
-                switch (encounterType)
-                {
-                    case EncounterTypes.Physical: return ApproachContexts.RapportPhysical;
-                    case EncounterTypes.Social: return ApproachContexts.RapportSocial;
-                    case EncounterTypes.Intellectual: return ApproachContexts.RapportIntellectual;
-                    default: throw new ArgumentOutOfRangeException(nameof(encounterType));
-                }
-
-            case ApproachTags.Analysis:
-                switch (encounterType)
-                {
-                    case EncounterTypes.Physical: return ApproachContexts.AnalysisPhysical;
-                    case EncounterTypes.Social: return ApproachContexts.AnalysisSocial;
-                    case EncounterTypes.Intellectual: return ApproachContexts.AnalysisIntellectual;
-                    default: throw new ArgumentOutOfRangeException(nameof(encounterType));
-                }
-
-            case ApproachTags.Precision:
-                switch (encounterType)
-                {
-                    case EncounterTypes.Physical: return ApproachContexts.PrecisionPhysical;
-                    case EncounterTypes.Social: return ApproachContexts.PrecisionSocial;
-                    case EncounterTypes.Intellectual: return ApproachContexts.PrecisionIntellectual;
-                    default: throw new ArgumentOutOfRangeException(nameof(encounterType));
-                }
-
-            case ApproachTags.Concealment:
-                switch (encounterType)
-                {
-                    case EncounterTypes.Physical: return ApproachContexts.ConcealmentPhysical;
-                    case EncounterTypes.Social: return ApproachContexts.ConcealmentSocial;
-                    case EncounterTypes.Intellectual: return ApproachContexts.ConcealmentIntellectual;
-                    default: throw new ArgumentOutOfRangeException(nameof(encounterType));
-                }
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(approach));
-        }
     }
 }
