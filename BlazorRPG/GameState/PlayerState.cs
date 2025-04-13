@@ -54,6 +54,8 @@
     public PlayerConfidenceTypes ConfidenceType { get; set; }
     public bool IsInitialized { get; set; } = false;
 
+    public List<StrategicEffect> strategicEffects { get; set; } = new();
+
     public PlayerState()
     {
         StartingLocation = GameRules.StandardRuleset.StartingLocation.ToString();
@@ -196,31 +198,24 @@
         }
     }
 
-    public List<ApproachTags> GetNaturalApproaches(EncounterTypes encounterType)
+    public List<ApproachTags> GetNaturalApproaches()
     {
-        return ArchetypeConfig.GetApproachesWithAffinity(AffinityTypes.Natural, encounterType);
+        return ArchetypeConfig.GetApproachesWithAffinity(AffinityTypes.Natural);
     }
 
-    public List<ApproachTags> GetDangerousApproaches(EncounterTypes encounterType)
+    public List<ApproachTags> GetUnnatrualApproaches()
     {
-        return ArchetypeConfig.GetApproachesWithAffinity(AffinityTypes.Dangerous, encounterType);
+        return ArchetypeConfig.GetApproachesWithAffinity(AffinityTypes.Unnatural);
     }
 
-    public string GetNaturalApproachesText(EncounterTypes encounterType)
+    public List<ApproachTags> GetDangerousApproaches()
     {
-        List<ApproachTags> approaches = GetNaturalApproaches(encounterType);
-        return string.Join(", ", approaches);
+        return ArchetypeConfig.GetApproachesWithAffinity(AffinityTypes.Dangerous);
     }
 
-    public string GetDangerousApproachesText(EncounterTypes encounterType)
+    public AffinityTypes GetApproachAffinity(ApproachTags approach)
     {
-        List<ApproachTags> approaches = GetDangerousApproaches(encounterType);
-        return string.Join(", ", approaches);
-    }
-
-    public AffinityTypes GetApproachAffinity(ApproachTags approach, EncounterTypes encounterType)
-    {
-        return ArchetypeConfig.GetAffinity(approach, encounterType);
+        return ArchetypeConfig.GetAffinity(approach);
     }
 
     public bool ModifyHealth(int count)

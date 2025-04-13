@@ -27,10 +27,10 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     {
         Dictionary<string, int> formattedChanges = new Dictionary<string, int>();
 
-        if (Preview?.EncounterStateTagChanges == null)
+        if (Preview?.ApproachTagChanges == null)
             return formattedChanges;
 
-        foreach (KeyValuePair<ApproachTags, int> tagChange in Preview.EncounterStateTagChanges)
+        foreach (KeyValuePair<ApproachTags, int> tagChange in Preview.ApproachTagChanges)
         {
             formattedChanges[tagChange.Key.ToString()] = tagChange.Value;
         }

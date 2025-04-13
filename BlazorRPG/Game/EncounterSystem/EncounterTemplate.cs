@@ -15,5 +15,5 @@
     public List<FocusTags> MomentumReducingFocuses { get; set; } = new List<FocusTags>();
 
     public List<NarrativeTag> EncounterNarrativeTags { get; set; } = new List<NarrativeTag>();
-    public List<StrategicTag> encounterStrategicTags { get; set; } = new List<StrategicTag>();
+    public List<EnvironmentPropertyTag> encounterStrategicTags { get; set; } = new List<EnvironmentPropertyTag>();
 }

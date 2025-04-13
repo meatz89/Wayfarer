@@ -117,7 +117,7 @@ public class TagFormatter
     {
         List<string> changes = new List<string>();
         // Format approach tag changes
-        foreach (KeyValuePair<ApproachTags, int> change in projection.EncounterStateTagChanges.Where(c => c.Value != 0))
+        foreach (KeyValuePair<ApproachTags, int> change in projection.ApproachTagChanges.Where(c => c.Value != 0))
         {
             changes.Add($"{change.Key} {(change.Value > 0 ? "+" : "")}{change.Value}");
         }

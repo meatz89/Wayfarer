@@ -1,1 +1,6 @@
-﻿public enum EncounterTypes { Social, Intellectual, Physical }
+﻿public enum EncounterTypes 
+{ 
+    Social, 
+    Intellectual, 
+    Physical 
+}

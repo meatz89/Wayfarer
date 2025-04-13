@@ -128,7 +128,7 @@ public partial class EncounterViewBase : ComponentBase
         // Determine icon based on tag type
         if (tag is NarrativeTag)
             return "📜"; // Narrative tag icon
-        else if (tag is StrategicTag)
+        else if (tag is EnvironmentPropertyTag)
             return "⚙️"; // Strategic tag icon
 
         return "🏷️"; // Default tag icon
@@ -139,7 +139,7 @@ public partial class EncounterViewBase : ComponentBase
         // Determine CSS class based on tag type
         if (tag is NarrativeTag)
             return "narrative-tag";
-        else if (tag is StrategicTag)
+        else if (tag is EnvironmentPropertyTag)
             return "strategic-tag";
 
         return "";
@@ -155,7 +155,7 @@ public partial class EncounterViewBase : ComponentBase
             if (narrativeTag.BlockedFocus != null)
                 tooltip.AppendLine($"Blocks {narrativeTag.BlockedFocus} focus");
         }
-        else if (tag is StrategicTag strategicTag)
+        else if (tag is EnvironmentPropertyTag strategicTag)
         {
             tooltip.AppendLine(strategicTag.GetEffectDescription());
         }
@@ -167,7 +167,7 @@ public partial class EncounterViewBase : ComponentBase
     {
         // Find the tag by name and use its description method
         IEncounterTag tag = GetEncounter().EncounterState.ActiveTags.FirstOrDefault(t => t.NarrativeName == tagName);
-        if (tag is StrategicTag strategicTag)
+        if (tag is EnvironmentPropertyTag strategicTag)
         {
             return strategicTag.GetEffectDescription();
         }

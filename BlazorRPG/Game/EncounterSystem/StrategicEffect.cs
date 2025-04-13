@@ -1,33 +1,44 @@
-﻿public class StrategicEffect
+﻿/// <summary>
+/// If Encounter has IEnvironmentalProperty present
+/// Then apply EffectType
+/// But Consider ApproachTag
+/// </summary>
+public class StrategicEffect
 {
-    public IEnvironmentalProperty Property { get; }
+    public IEnvironmentalProperty ActivationProperty { get; }
     public StrategicTagEffectType EffectType { get; }
-    public ApproachTags ApproachPosition { get; }
+    public ApproachTags TargetApproach { get; }
+    public int Mult { get; }
 
-    public StrategicEffect(IEnvironmentalProperty property, StrategicTagEffectType effectType, ApproachTags scalingApproach)
+    public StrategicEffect(
+        IEnvironmentalProperty activationProperty, 
+        StrategicTagEffectType effectType, 
+        ApproachTags scalingApproach,
+        int mult = 1)
     {
-        Property = property;
+        ActivationProperty = activationProperty;
         EffectType = effectType;
-        ApproachPosition = scalingApproach;
+        TargetApproach = scalingApproach;
+        Mult = mult;
     }
 
     public override string ToString()
     {
-        string effectDesc = $"{Property.ToString()}: {EffectType.ToString()} for each point of {ApproachPosition.ToString()}";
+        string effectDesc = $"{ActivationProperty.ToString()}: {EffectType.ToString()} for each point of {TargetApproach.ToString()}";
         return effectDesc ;
     }
 
-    public bool IsActive(StrategicTag strategicTag)
+    public bool IsActive(EnvironmentPropertyTag strategicTag)
     {
-        if (Property.Equals(strategicTag.EnvironmentalProperty))
+        if (ActivationProperty.Equals(strategicTag.EnvironmentalProperty))
             return true;
+
         return false;
     }
 
-    public int GetMomentumModifierForTag(StrategicTag tag, BaseTagSystem tagSystem)
+    public int GetMomentumModifierForTag(EnvironmentPropertyTag tag, BaseTagSystem tagSystem)
     {
-        // Check equality in both directions to handle Any properly
-        bool propertiesMatch = tag.EnvironmentalProperty.Equals(Property) || Property.Equals(tag.EnvironmentalProperty);
+        bool propertiesMatch = IsActive(tag);
 
         // Only apply if properties match and effect types align
         if (propertiesMatch &&
@@ -35,38 +46,54 @@
              EffectType == StrategicTagEffectType.DecreaseMomentum))
         {
             // Get current approach value
-            int approachValue = tagSystem.GetEncounterStateTagValue(ApproachPosition);
+            int approachValue = tagSystem.GetEncounterStateTagValue(TargetApproach);
 
             // Calculate linear effect: 1 point per approach point
             int effectValue = approachValue;
 
             // Apply positive or negative based on effect type
-            return EffectType == StrategicTagEffectType.IncreaseMomentum ? effectValue : -effectValue;
+            int increase = EffectType == StrategicTagEffectType.IncreaseMomentum ? effectValue : -effectValue;
+            return increase * Mult;
         }
 
         return 0;
     }
 
-    public int GetPressureModifierForTag(StrategicTag tag, BaseTagSystem tagSystem)
+    public int GetPressureModifierForTag(EnvironmentPropertyTag tag, BaseTagSystem tagSystem)
     {
-        // Check equality in both directions to handle Any properly
-        bool propertiesMatch = tag.EnvironmentalProperty.Equals(Property) || Property.Equals(tag.EnvironmentalProperty);
-
+        bool propertiesMatch = IsActive(tag);
+        
         // Only apply if properties match and effect types align
         if (propertiesMatch &&
             (EffectType == StrategicTagEffectType.IncreasePressure ||
              EffectType == StrategicTagEffectType.DecreasePressure))
         {
-            int approachValue = tagSystem.GetEncounterStateTagValue(ApproachPosition);
+            int approachValue = tagSystem.GetEncounterStateTagValue(TargetApproach);
 
             // Calculate linear effect: 1 point per approach point
             int effectValue = approachValue;
 
             // Apply positive or negative based on effect type
-            return EffectType == StrategicTagEffectType.IncreasePressure ? effectValue : -effectValue;
+            int increase = EffectType == StrategicTagEffectType.IncreasePressure ? effectValue : -effectValue;
+            return increase * Mult;
         }
 
         return 0;
     }
 
+    public int GetInjuryModifierForTag(
+        EnvironmentPropertyTag tag,
+        ChoiceProjection choiceProjection,
+        int currentPressure)
+    {
+        bool propertiesMatch = IsActive(tag);
+        if (propertiesMatch)
+        {
+            if (EffectType == StrategicTagEffectType.IncreaseInjury)
+            {
+                return currentPressure * Mult;
+            }
+        }
+        return 0;
+    }
 }

@@ -14,7 +14,7 @@ public class ChoiceCard
     public FocusTags Focus { get; }
     public int OptimalFocusValue { get; }
     public IReadOnlyList<TagModification> TagModifications { get; }
-    public StrategicEffect StrategicEffect { get; }
+    public StrategicEffect StrategicEffect { get; set;  }
 
     public override string ToString()
     {

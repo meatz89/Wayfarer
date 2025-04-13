@@ -77,7 +77,7 @@ public static class LocationJsonParser
 
         // Initialize empty collections for other fields
         details.TimeProperties = new Dictionary<string, List<IEnvironmentalProperty>>();
-        details.StrategicTags = new List<StrategicTag>();
+        details.StrategicTags = new List<EnvironmentPropertyTag>();
         details.NarrativeTags = new List<NarrativeTag>();
 
         // If there are environmental properties, create a basic time property entry

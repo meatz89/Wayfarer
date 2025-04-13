@@ -22,8 +22,7 @@
             @{
                 // Get the approach affinity for this choice
                 AffinityTypes affinity = GameState.PlayerState.GetApproachAffinity(
-                hoveredChoice.Choice.Approach,
-                hoveredChoice.encounter.encounterInfo.Type);
+                hoveredChoice.Choice.Approach);
 
                 // Determine CSS class and text
                 string affinityClass =

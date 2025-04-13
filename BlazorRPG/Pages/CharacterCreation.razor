@@ -17,6 +17,8 @@
                         <div>
                             <strong>Natural Approaches:</strong>
                             <div class="archetype-approaches">@GetNaturalApproaches(archetype)</div>
+                            <strong>Dangerous Approaches:</strong>
+                            <div class="archetype-approaches">@GetDangerousApproaches(archetype)</div>
                         </div>
                         <div class="starting-items">
                             <strong>Starting Items:</strong>
@@ -119,11 +121,24 @@
     {
         return archetype switch
         {
-            ArchetypeTypes.Warrior => "Dominance, Physical",
-            ArchetypeTypes.Scholar => "Analysis, Information",
-            ArchetypeTypes.Ranger => "Precision, Environment",
-            ArchetypeTypes.Bard => "Rapport, Relationship",
-            ArchetypeTypes.Thief => "Concealment, Resource",
+            ArchetypeTypes.Warrior => "Dominance",
+            ArchetypeTypes.Scholar => "Analysis",
+            ArchetypeTypes.Ranger => "Precision",
+            ArchetypeTypes.Bard => "Rapport",
+            ArchetypeTypes.Thief => "Concealment",
+            _ => "None"
+        };
+    }
+
+    private string GetDangerousApproaches(ArchetypeTypes archetype)
+    {
+        return archetype switch
+        {
+            ArchetypeTypes.Warrior => "Concealment",
+            ArchetypeTypes.Scholar => "Dominance",
+            ArchetypeTypes.Ranger => "Precision",
+            ArchetypeTypes.Bard => "Analysis",
+            ArchetypeTypes.Thief => "Rapport",
             _ => "None"
         };
     }

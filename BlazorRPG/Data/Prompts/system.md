@@ -53,7 +53,6 @@ Wayfarer uses a unified tag-based approach for all encounters:
 - NPCs must have agency and pursue their own goals
 - The environment should be dynamic and interactive
 
-- 
 # CURRENT GAME STATE
 
 ## Player Character State

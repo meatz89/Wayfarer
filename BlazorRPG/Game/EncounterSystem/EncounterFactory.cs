@@ -27,7 +27,7 @@
             encounterInfo.AddTag(narrativeTag);
         }
 
-        foreach (StrategicTag strategicTag in template.encounterStrategicTags)
+        foreach (EnvironmentPropertyTag strategicTag in template.encounterStrategicTags)
         {
             encounterInfo.AddTag(strategicTag);
         }
