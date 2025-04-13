@@ -14,7 +14,7 @@
     public LocationSpot LocationSpot { get; set; }
 
     // Expose tag system through the TagManager
-    public BaseTagSystem TagSystem => _tagManager.TagSystem;
+    public EncounterTagSystem EncounterTagSystem => _tagManager.EncounterTagSystem;
     public List<IEncounterTag> ActiveTags => _tagManager.ActiveTags;
 
     private readonly TagManager _tagManager;
@@ -31,8 +31,24 @@
         CurrentTurn = 0;
         Location = encounterInfo;
 
-        // Initialize managers
         _tagManager = new TagManager();
+
+        var na = playerState.GetNaturalApproaches();
+        foreach (ApproachTags approach in na)
+        {
+            EncounterTagSystem.ModifyApproachPosition(approach, 2);
+        }
+
+        var nf = playerState.GetNaturalFocuses();
+        foreach (FocusTags focus in nf)
+        {
+            EncounterTagSystem.ModifyFocusPosition(focus, 2);
+        }
+
+        var approaches = playerState.GetNaturalApproaches();
+        var focuses = playerState.GetNaturalFocuses();
+
+        // Initialize managers
         _resourceManager = new ResourceManager();
         _projectionService = new ProjectionService(_tagManager, _resourceManager, encounterInfo, playerState);
     }
@@ -66,10 +82,10 @@
     {
         // 1. Apply tag changes
         foreach (KeyValuePair<ApproachTags, int> pair in projection.ApproachTagChanges)
-            TagSystem.ModifyApproachPosition(pair.Key, pair.Value);
+            EncounterTagSystem.ModifyApproachPosition(pair.Key, pair.Value);
 
         foreach (KeyValuePair<FocusTags, int> pair in projection.FocusTagChanges)
-            TagSystem.ModifyFocusPosition(pair.Key, pair.Value);
+            EncounterTagSystem.ModifyFocusPosition(pair.Key, pair.Value);
 
         // 2. Apply exactly the values from the projection
         Momentum = projection.FinalMomentum;
@@ -109,7 +125,7 @@
                 approach == ApproachTags.Precision ||
                 approach == ApproachTags.Concealment)
             {
-                PreviousApproachValues[approach] = TagSystem.GetEncounterStateTagValue(approach);
+                PreviousApproachValues[approach] = EncounterTagSystem.GetEncounterStateTagValue(approach);
             }
         }
 
@@ -117,7 +133,7 @@
         PreviousFocusValues = new Dictionary<FocusTags, int>();
         foreach (FocusTags focus in Enum.GetValues(typeof(FocusTags)))
         {
-            PreviousFocusValues[focus] = TagSystem.GetFocusTagValue(focus);
+            PreviousFocusValues[focus] = EncounterTagSystem.GetFocusTagValue(focus);
         }
     }
 

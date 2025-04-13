@@ -43,7 +43,7 @@ public class StrategicEffect
         return false;
     }
 
-    public int GetMomentumModifierForTag(EnvironmentPropertyTag tag, BaseTagSystem tagSystem)
+    public int GetMomentumModifierForTag(EnvironmentPropertyTag tag, EncounterTagSystem tagSystem)
     {
         bool propertiesMatch = IsActive(tag);
 
@@ -66,7 +66,7 @@ public class StrategicEffect
         return 0;
     }
 
-    public int GetPressureModifierForTag(EnvironmentPropertyTag tag, BaseTagSystem tagSystem)
+    public int GetPressureModifierForTag(EnvironmentPropertyTag tag, EncounterTagSystem tagSystem)
     {
         bool propertiesMatch = IsActive(tag);
         

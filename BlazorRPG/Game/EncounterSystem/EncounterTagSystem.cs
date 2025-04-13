@@ -1,7 +1,7 @@
 ﻿/// <summary>
 /// Manages the base approach and focus tags (0-5 scale)
 /// </summary>
-public class BaseTagSystem
+public class EncounterTagSystem
 {
     private Dictionary<ApproachTags, int> _ApproachTags;
     private Dictionary<FocusTags, int> _focusTags;
@@ -9,11 +9,11 @@ public class BaseTagSystem
     public const int MinTagValue = 0;
     public const int MaxTagValue = 5;
 
-    public static BaseTagSystem FromPreviousState(
+    public static EncounterTagSystem FromPreviousState(
         Dictionary<ApproachTags, int> previousApproachValues,
         Dictionary<FocusTags, int> previousFocusValues)
     {
-        BaseTagSystem fromState = new BaseTagSystem();
+        EncounterTagSystem fromState = new EncounterTagSystem();
         foreach (ApproachTags tag in previousApproachValues.Keys)
             fromState.SetEncounterStateTagValue(tag, previousApproachValues[tag]);
 
@@ -23,7 +23,7 @@ public class BaseTagSystem
         return fromState;
     }
 
-    public BaseTagSystem()
+    public EncounterTagSystem()
     {
         _ApproachTags = new Dictionary<ApproachTags, int>();
         _focusTags = new Dictionary<FocusTags, int>();
@@ -52,9 +52,9 @@ public class BaseTagSystem
         _focusTags[tag] = Math.Clamp(newValue, MinTagValue, MaxTagValue);
     }
 
-    public BaseTagSystem Clone()
+    public EncounterTagSystem Clone()
     {
-        BaseTagSystem clone = new BaseTagSystem();
+        EncounterTagSystem clone = new EncounterTagSystem();
 
         foreach (ApproachTags tag in Enum.GetValues(typeof(ApproachTags)))
             clone.SetEncounterStateTagValue(tag, GetEncounterStateTagValue(tag));

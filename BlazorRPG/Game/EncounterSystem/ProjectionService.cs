@@ -22,7 +22,7 @@
         ChoiceProjection projection = new ChoiceProjection(choice);
 
         // Create working copy of tag system
-        BaseTagSystem clonedTagSystem = _locationTags.CloneTagSystem();
+        EncounterTagSystem clonedTagSystem = _locationTags.CloneTagSystem();
 
         // Calculate momentum effects
         int momentumChange = 0;
@@ -69,7 +69,7 @@
         return projection;
     }
 
-    private static void ProcessChoiceTagIncreases(ChoiceCard choice, ChoiceProjection projection, BaseTagSystem clonedTagSystem, PlayerState playerState)
+    private static void ProcessChoiceTagIncreases(ChoiceCard choice, ChoiceProjection projection, EncounterTagSystem clonedTagSystem, PlayerState playerState)
     {
         foreach (TagModification mod in choice.TagModifications)
         {
@@ -154,7 +154,7 @@
         }
     }
 
-    private void ProcessStrategicTagEffects(ChoiceCard choice, ChoiceProjection projection, BaseTagSystem baseTagSystem, ref int momentumChange, ref int pressureChange)
+    private void ProcessStrategicTagEffects(ChoiceCard choice, ChoiceProjection projection, EncounterTagSystem baseTagSystem, ref int momentumChange, ref int pressureChange)
     {
         StrategicEffect effect = choice.StrategicEffect;
         List<EnvironmentPropertyTag> strategicTags = _locationTags.GetStrategicActiveTags();

@@ -1,6 +1,6 @@
 ﻿public class TagManager
 {
-    public BaseTagSystem TagSystem { get; }
+    public EncounterTagSystem EncounterTagSystem { get; }
     public List<IEncounterTag> ActiveTags { get; }
 
     private readonly Dictionary<FocusTags, int> _focusMomentumBonuses = new Dictionary<FocusTags, int>();
@@ -8,7 +8,7 @@
 
     public TagManager()
     {
-        TagSystem = new BaseTagSystem();
+        EncounterTagSystem = new EncounterTagSystem();
         ActiveTags = new List<IEncounterTag>();
         InitializeDictionaries();
     }
@@ -31,7 +31,7 @@
 
         foreach (IEncounterTag tag in locationTags)
         {
-            bool shouldActivate = tag is EnvironmentPropertyTag || (tag is NarrativeTag && tag.IsActive(TagSystem));
+            bool shouldActivate = tag is EnvironmentPropertyTag || (tag is NarrativeTag && tag.IsActive(EncounterTagSystem));
 
             if (shouldActivate)
             {
@@ -86,7 +86,7 @@
         _focusPressureModifiers[focus] += modifier;
     }
 
-    public List<IEncounterTag> GetNewlyActivatedTags(BaseTagSystem projectedTags, IEnumerable<IEncounterTag> locationTags)
+    public List<IEncounterTag> GetNewlyActivatedTags(EncounterTagSystem projectedTags, IEnumerable<IEncounterTag> locationTags)
     {
         List<IEncounterTag> newlyActivated = new List<IEncounterTag>();
 
@@ -104,7 +104,7 @@
         return newlyActivated;
     }
 
-    public List<IEncounterTag> GetDeactivatedTags(BaseTagSystem projectedTags, IEnumerable<IEncounterTag> locationTags)
+    public List<IEncounterTag> GetDeactivatedTags(EncounterTagSystem projectedTags, IEnumerable<IEncounterTag> locationTags)
     {
         List<IEncounterTag> deactivated = new List<IEncounterTag>();
 
@@ -122,7 +122,7 @@
         return deactivated;
     }
 
-    public BaseTagSystem CloneTagSystem() => TagSystem.Clone();
+    public EncounterTagSystem CloneTagSystem() => EncounterTagSystem.Clone();
 
     public List<EnvironmentPropertyTag> GetStrategicActiveTags()
     {

@@ -12,7 +12,7 @@
     }
 
     // Strategic tags are ALWAYS active
-    public bool IsActive(BaseTagSystem tagSystem)
+    public bool IsActive(EncounterTagSystem tagSystem)
     {
         return true;
     }

@@ -13,7 +13,7 @@
         List<ChoiceCard> availableChoices = _choiceRepository.GetAvailableChoices(state);
 
         // Calculate distance for each card from current position
-        Dictionary<ChoiceCard, int> cardDistances = CalculateCardDistances(availableChoices, state.TagSystem);
+        Dictionary<ChoiceCard, int> cardDistances = CalculateCardDistances(availableChoices, state.EncounterTagSystem);
 
         // Sort cards by distance (closest first)
         List<ChoiceCard> sortedChoices = availableChoices
@@ -27,7 +27,7 @@
         return selectedChoices.Take(handSize).ToList();
     }
 
-    private Dictionary<ChoiceCard, int> CalculateCardDistances(List<ChoiceCard> choices, BaseTagSystem tagSystem)
+    private Dictionary<ChoiceCard, int> CalculateCardDistances(List<ChoiceCard> choices, EncounterTagSystem tagSystem)
     {
         Dictionary<ChoiceCard, int> distances = new Dictionary<ChoiceCard, int>();
 

@@ -1,5 +1,5 @@
 ﻿public abstract class ActivationCondition
 {
-    public abstract bool IsActive(BaseTagSystem tagSystem);
+    public abstract bool IsActive(EncounterTagSystem tagSystem);
     public abstract string GetDescription();
 }
