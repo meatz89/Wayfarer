@@ -5,23 +5,39 @@
 public static class ChoiceFactory
 {
     // Create a low tier momentum choice with no requirements
-    public static ChoiceCard CreateMomentumChoice(string name, string description, CardTiers tier, int baseEffectValue,
-        ApproachTags optimalApproach, int optimalApproachValue, FocusTags focus,
-        int optimalFocusValue, StrategicEffect strategicEffect,
-        params TagModification[] tagModifications)
+    public static ChoiceCard CreateMomentumChoice(
+        string name, 
+        string description, 
+        CardTiers tier, 
+        int baseEffectValue,
+        ApproachTags approachPosition,
+        int approachPositionValue,
+        FocusTags focusPosition,
+        int focusPositionValue,
+        StrategicEffect strategicEffect,
+        params TagModification[] tagModifications
+        )
     {
-        return new ChoiceCard(name, description, focus, EffectTypes.Momentum, tier, baseEffectValue,
-                         new RequirementInfo(), strategicEffect, tagModifications,
-                         optimalApproach, optimalApproachValue, optimalFocusValue);
+        return new ChoiceCard(name, description, EffectTypes.Momentum, tier, baseEffectValue,
+            strategicEffect, tagModifications,
+            approachPosition, approachPositionValue, focusPosition, focusPositionValue);
     }
 
-    public static ChoiceCard CreatePressureChoice(string name, string description, CardTiers tier, int baseEffectValue,
-        ApproachTags optimalApproach, int optimalApproachValue, FocusTags focus,
-        int optimalFocusValue, StrategicEffect strategicEffect,
-        params TagModification[] tagModifications)
+    public static ChoiceCard CreatePressureChoice(
+        string name,
+        string description,
+        CardTiers tier,
+        int baseEffectValue,
+        ApproachTags approachPosition,
+        int approachPositionValue,
+        FocusTags focusPosition,
+        int focusPositionValue,
+        StrategicEffect strategicEffect,
+        params TagModification[] tagModifications
+        )
     {
-        return new ChoiceCard(name, description, focus, EffectTypes.Pressure, tier, baseEffectValue,
-                         new RequirementInfo(), strategicEffect, tagModifications,
-                         optimalApproach, optimalApproachValue, optimalFocusValue);
+        return new ChoiceCard(name, description, EffectTypes.Pressure, tier, baseEffectValue, 
+            strategicEffect, tagModifications,
+            approachPosition, approachPositionValue, focusPosition, focusPositionValue);
     }
 }
