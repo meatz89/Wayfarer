@@ -2,9 +2,9 @@
 <div class="tooltip" style="left: @(mouseX)px; top: @(mouseY)px;">
     <div class="preview-header">
         <h4>
-            @hoveredChoice.Description
+            @GetChoiceDescription(@hoveredChoice)
         </h4>
-        <div class="choice-narrative">@GetChoiceDescription(@hoveredChoice)</div>
+        <div class="choice-narrative">@hoveredChoice.ChoiceDescription</div>
     </div>
 
     <div class="tooltip-section">
@@ -27,14 +27,14 @@
                 // Determine CSS class and text
                 string affinityClass =
                 affinity == AffinityTypes.Natural ? "natural-affinity" :
-                affinity == AffinityTypes.Unnatural ? "unnatural-affinity" :
-                affinity == AffinityTypes.Dangerous ? "dangerous-affinity" :
+                affinity == AffinityTypes.Incompatible ? "unnatural-affinity" :
+                affinity == AffinityTypes.Incompatible ? "dangerous-affinity" :
                 "neutral-affinity";
 
                 string affinityText =
                 affinity == AffinityTypes.Natural ? "Natural" :
-                affinity == AffinityTypes.Unnatural ? "Unnatural" :
-                affinity == AffinityTypes.Dangerous ? "Dangerous" :
+                affinity == AffinityTypes.Incompatible ? "Unnatural" :
+                affinity == AffinityTypes.Incompatible ? "Dangerous" :
                 "Neutral";
             }
             <span class="affinity-badge @affinityClass">

@@ -18,7 +18,6 @@
     public string Position { get; set; }  // "North", "Center", "Southeast", etc.
 
     public Population? Population { get; set; }
-    public Economic? Economic { get; set; }
     public Atmosphere? Atmosphere { get; set; }
     public Physical? Physical { get; set; }
     public Illumination? Illumination { get; set; }
@@ -29,10 +28,6 @@
         if (locationSpotProperty is Population Population)
         {
             return Population != null && Population == Population;
-        }
-        else if (locationSpotProperty is Economic Economic)
-        {
-            return Economic != null && Economic == Economic;
         }
         else if (locationSpotProperty is Physical Physical)
         {
@@ -58,7 +53,6 @@
         string description,
         string locationName,
         Population? population,
-        Economic? economic,
         Atmosphere? atmosphere,
         Physical? physical,
         Illumination? illumination,
@@ -68,7 +62,6 @@
         Description = description;
         LocationName = locationName;
         Population = population;
-        Economic = economic;
         Atmosphere = atmosphere;
         Physical = physical;
         Illumination = illumination;

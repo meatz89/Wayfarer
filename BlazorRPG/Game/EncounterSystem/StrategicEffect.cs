@@ -5,32 +5,39 @@
 /// </summary>
 public class StrategicEffect
 {
-    public IEnvironmentalProperty ActivationProperty { get; }
+    public string Name;
     public StrategicTagEffectType EffectType { get; }
     public ApproachTags TargetApproach { get; }
-    public int Mult { get; }
+
+    public List<IEnvironmentalProperty> ActivationProperties { get; }
 
     public StrategicEffect(
-        IEnvironmentalProperty activationProperty, 
+        List<IEnvironmentalProperty> activationProperties, 
         StrategicTagEffectType effectType, 
         ApproachTags scalingApproach,
         int mult = 1)
     {
-        ActivationProperty = activationProperty;
+        ActivationProperties = activationProperties;
         EffectType = effectType;
         TargetApproach = scalingApproach;
-        Mult = mult;
     }
 
     public override string ToString()
     {
-        string effectDesc = $"{ActivationProperty.ToString()}: {EffectType.ToString()} for each point of {TargetApproach.ToString()}";
+        string activationProperties = string.Empty;
+        foreach (var property in ActivationProperties)
+        {
+            if(!string.IsNullOrWhiteSpace(activationProperties)) activationProperties += ", ";
+            activationProperties += property.ToString();
+        }
+
+        string effectDesc = $"{activationProperties}: {EffectType.ToString()} for each point of {TargetApproach.ToString()}";
         return effectDesc ;
     }
 
     public bool IsActive(EnvironmentPropertyTag strategicTag)
     {
-        if (ActivationProperty.Equals(strategicTag.EnvironmentalProperty))
+        if (ActivationProperties.Contains(strategicTag.EnvironmentalProperty))
             return true;
 
         return false;
@@ -53,7 +60,7 @@ public class StrategicEffect
 
             // Apply positive or negative based on effect type
             int increase = EffectType == StrategicTagEffectType.IncreaseMomentum ? effectValue : -effectValue;
-            return increase * Mult;
+            return increase;
         }
 
         return 0;
@@ -75,25 +82,9 @@ public class StrategicEffect
 
             // Apply positive or negative based on effect type
             int increase = EffectType == StrategicTagEffectType.IncreasePressure ? effectValue : -effectValue;
-            return increase * Mult;
+            return increase;
         }
 
-        return 0;
-    }
-
-    public int GetInjuryModifierForTag(
-        EnvironmentPropertyTag tag,
-        ChoiceProjection choiceProjection,
-        int currentPressure)
-    {
-        bool propertiesMatch = IsActive(tag);
-        if (propertiesMatch)
-        {
-            if (EffectType == StrategicTagEffectType.IncreaseInjury)
-            {
-                return currentPressure * Mult;
-            }
-        }
         return 0;
     }
 }

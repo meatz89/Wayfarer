@@ -9,8 +9,8 @@
              .WithName("Direct Path")
              .WithDescription("A narrow dirt path cutting directly through the woods.")
              .WithIllumination(Illumination.Shadowy)
-             .WithAtmosphere(Atmosphere.Tense)
-             .WithPopulation(Population.Isolated)
+             .WithAtmosphere(Atmosphere.Rough)
+             .WithPopulation(Population.Scholarly)
              .WithPhysical(Physical.Hazardous)
              .AddAction(ActionNames.DirectPath))
 

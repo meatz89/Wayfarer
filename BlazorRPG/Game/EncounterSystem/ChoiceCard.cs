@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿
+
+/// <summary>
 /// Standard choice implementation - either builds momentum or pressure
 /// </summary>
 public class ChoiceCard
@@ -16,10 +18,22 @@ public class ChoiceCard
     public IReadOnlyList<TagModification> TagModifications { get; }
     public StrategicEffect StrategicEffect { get; set;  }
 
+    public string GetDetails()
+    {
+        string desc = $"Tier {(int)Tier} ({StrategicEffect.ToString()})";
+        return desc;
+    }
+
     public override string ToString()
     {
         string desc = $"{Name} - Tier {(int)Tier} ({StrategicEffect.ToString()})";
         return desc;
+    }
+
+    internal object GetName()
+    {
+        var name = $"{Name} ({Approach} - {Focus})";
+        return name;
     }
 
     public ChoiceCard(string name, string description, 
@@ -38,36 +52,5 @@ public class ChoiceCard
         TagModifications = tagModifications;
         StrategicEffect = strategicEffect;
     }
-
-    public virtual void ApplyChoice(EncounterState state)
-    {
-        // Apply tag modifications
-        foreach (TagModification mod in TagModifications)
-        {
-            if (mod.Type == TagModification.TagTypes.EncounterState)
-                state.TagSystem.ModifyEncounterStateTag((ApproachTags)mod.Tag, mod.Delta);
-            else
-                state.TagSystem.ModifyFocusTag((FocusTags)mod.Tag, mod.Delta);
-        }
-
-        // Apply momentum or pressure effect
-        if (EffectType == EffectTypes.Momentum)
-        {
-            int totalMomentum = state.GetTotalMomentum(this, BaseEffectValue);
-            state.BuildMomentum(totalMomentum);
-        }
-        else // Pressure
-        {
-            int basePressure = -BaseEffectValue; // Negative because it reduces pressure
-            int totalPressure = state.GetTotalPressure(this, basePressure);
-            state.BuildPressure(totalPressure);
-        }
-    }
-
-    public void SetBlocked()
-    {
-        IsBlocked = true;
-    }
-
 }
 

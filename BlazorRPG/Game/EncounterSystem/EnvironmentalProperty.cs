@@ -13,68 +13,17 @@
 /// - **Dusk * *: Shadowy + Isolated + Expansive + Tense
 /// - **Night * *: Dark + Isolated + Expansive + Hazardous
 /// 
+/// Illumination (Bright, Shadowy, Dark)
+/// Population (Crowded, Quiet, Scholarly)
+/// Physical (Confined, Expansive, Hazardous)
+/// Atmosphere (Tense, Formal, Chaotic)
+/// 
 /// </summary>
 public interface IEnvironmentalProperty
 {
     string GetPropertyType();
     string GetPropertyValue();
 }
-
-public class DangerousApproach : IEnvironmentalProperty, IEquatable<DangerousApproach>
-{
-    public static IEnvironmentalProperty Any => new EnvironmentalPropertyAny(nameof(Illumination));
-    public static DangerousApproach Dominance = new DangerousApproach("Dominance");
-    public static DangerousApproach Rapport = new DangerousApproach("Rapport");
-    public static DangerousApproach Analysis = new DangerousApproach("Analysis");
-    public static DangerousApproach Precision = new DangerousApproach("Precision");
-    public static DangerousApproach Concealment = new DangerousApproach("Concealment");
-
-    private string Value;
-
-    public DangerousApproach(string value)
-    {
-        this.Value = value;
-    }
-
-    public bool Equals(DangerousApproach other)
-    {
-        if (other == null)
-            return false;
-        return this.Value == other.Value;
-    }
-
-    public override bool Equals(object obj)
-    {
-        if (obj is EnvironmentalPropertyAny any)
-            return any.Equals(this);
-
-        if (obj is DangerousApproach other)
-            return Equals(other);
-
-        return false;
-    }
-
-    public string GetPropertyType()
-    {
-        return nameof(DangerousApproach);
-    }
-
-    public string GetPropertyValue()
-    {
-        return Value;
-    }
-
-    public override string ToString()
-    {
-        return $"{GetPropertyValue()}";
-    }
-
-    public override int GetHashCode()
-    {
-        return Value.GetHashCode();
-    }
-}
-
 public class Illumination : IEnvironmentalProperty, IEquatable<Illumination>
 {
     public static IEnvironmentalProperty Any => new EnvironmentalPropertyAny(nameof(Illumination));
@@ -135,7 +84,7 @@ public class Population : IEnvironmentalProperty, IEquatable<Population>
     public static IEnvironmentalProperty Any => new EnvironmentalPropertyAny(nameof(Population));
     public static Population Crowded = new Population("Crowded");
     public static Population Quiet = new Population("Quiet");
-    public static Population Isolated = new Population("Isolated");
+    public static Population Scholarly = new Population("Scholarly");
 
     private string Value;
 
@@ -167,61 +116,6 @@ public class Population : IEnvironmentalProperty, IEquatable<Population>
     public string GetPropertyType()
     {
         return nameof(Population);
-    }
-
-    public string GetPropertyValue()
-    {
-        return Value;
-    }
-
-    public override string ToString()
-    {
-        return $"{GetPropertyValue()}";
-    }
-
-    public override int GetHashCode()
-    {
-        return Value.GetHashCode();
-    }
-}
-
-public class Economic : IEnvironmentalProperty, IEquatable<Economic>
-{
-    public static IEnvironmentalProperty Any => new EnvironmentalPropertyAny(nameof(Economic));
-    public static Economic Wealthy = new Economic("Wealthy");
-    public static Economic Commercial = new Economic("Commercial");
-    public static Economic Humble = new Economic("Humble");
-
-    private string Value;
-
-    public Economic(string value)
-    {
-        this.Value = value;
-    }
-
-    public bool Equals(Economic other)
-    {
-        if (other == null)
-            return false;
-        return this.Value == other.Value;
-    }
-
-    public override bool Equals(object obj)
-    {
-        // Handle EnvironmentalPropertyAny - let it handle the comparison
-        if (obj is EnvironmentalPropertyAny any)
-            return any.Equals(this);
-
-        // Handle same type comparison
-        if (obj is Economic other)
-            return Equals(other);
-
-        return false;
-    }
-
-    public string GetPropertyType()
-    {
-        return nameof(Economic);
     }
 
     public string GetPropertyValue()
@@ -298,7 +192,7 @@ public class Physical : IEnvironmentalProperty, IEquatable<Physical>
 public class Atmosphere : IEnvironmentalProperty, IEquatable<Atmosphere>
 {
     public static IEnvironmentalProperty Any => new EnvironmentalPropertyAny(nameof(Atmosphere));
-    public static Atmosphere Tense = new Atmosphere("Tense");
+    public static Atmosphere Rough = new Atmosphere("Rough");
     public static Atmosphere Formal = new Atmosphere("Formal");
     public static Atmosphere Chaotic = new Atmosphere("Chaotic");
 

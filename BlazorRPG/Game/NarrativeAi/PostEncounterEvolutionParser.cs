@@ -315,12 +315,7 @@ public class PostEncounterEvolutionParser
             // Population properties
             { "Crowded", Population.Crowded },
             { "Quiet", Population.Quiet },
-            { "Isolated", Population.Isolated },
-            
-            // Economic properties
-            { "Wealthy", Economic.Wealthy },
-            { "Commercial", Economic.Commercial },
-            { "Humble", Economic.Humble },
+            { "Isolated", Population.Scholarly },
             
             // Physical properties
             { "Confined", Physical.Confined },
@@ -328,7 +323,7 @@ public class PostEncounterEvolutionParser
             { "Hazardous", Physical.Hazardous },
             
             // Atmosphere properties
-            { "Tense", Atmosphere.Tense },
+            { "Tense", Atmosphere.Rough },
             { "Formal", Atmosphere.Formal },
             { "Chaotic", Atmosphere.Chaotic }
         };
@@ -339,16 +334,6 @@ public class PostEncounterEvolutionParser
         }
 
         return Illumination.Bright; // Default fallback
-    }
-
-    private BasicActionTypes ParseActionType(string actionTypeStr)
-    {
-        if (Enum.TryParse<BasicActionTypes>(actionTypeStr, true, out BasicActionTypes actionType))
-        {
-            return actionType;
-        }
-
-        return BasicActionTypes.Discuss;
     }
 
     #endregion

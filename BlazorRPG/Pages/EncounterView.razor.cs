@@ -84,7 +84,7 @@ public partial class EncounterViewBase : ComponentBase
         if (choiceDescriptions != null && choiceDescriptions.ContainsKey(card))
             choiceNarrative = choiceDescriptions[card];
 
-        string name = choiceOption.Description;
+        string name = $"{card.GetName()}";
         if (choiceNarrative != null)
         {
             name = choiceNarrative.ShorthandName;

@@ -102,6 +102,18 @@
                             <span class="archetype-name">@PlayerState.Archetype</span>
                         </div>
 
+                        <!-- Advantages -->
+                        <div class="properties-header">Advantages</div>
+                        <div class="stat-grid">
+                            <span class="archetype-name">@PlayerState.GetNaturalApproaches().FirstOrDefault().ToString()</span>
+                            <span class="archetype-name">@PlayerState.GetNaturalFocuses().FirstOrDefault().ToString()</span>
+                        </div>
+                        <div class="properties-header">Disadvantages</div>
+                        <div class="stat-grid">
+                            <span class="archetype-name">@PlayerState.GetIncompatibleApproaches().FirstOrDefault().ToString()</span>
+                            <span class="archetype-name">@PlayerState.GetIncompatibleFocuses().FirstOrDefault().ToString()</span>
+                        </div>
+
                         <!-- Core Stats -->
                         <div class="properties-header">Status</div>
                         <div class="stat-grid">

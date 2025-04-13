@@ -54,7 +54,6 @@
     public PlayerConfidenceTypes ConfidenceType { get; set; }
     public bool IsInitialized { get; set; } = false;
 
-    public List<StrategicEffect> strategicEffects { get; set; } = new();
 
     public PlayerState()
     {
@@ -202,20 +201,28 @@
     {
         return ArchetypeConfig.GetApproachesWithAffinity(AffinityTypes.Natural);
     }
-
-    public List<ApproachTags> GetUnnatrualApproaches()
+    public List<ApproachTags> GetIncompatibleApproaches()
     {
-        return ArchetypeConfig.GetApproachesWithAffinity(AffinityTypes.Unnatural);
+        return ArchetypeConfig.GetApproachesWithAffinity(AffinityTypes.Incompatible);
     }
 
-    public List<ApproachTags> GetDangerousApproaches()
+    public List<FocusTags> GetNaturalFocuses()
     {
-        return ArchetypeConfig.GetApproachesWithAffinity(AffinityTypes.Dangerous);
+        return ArchetypeConfig.GetFocusesWithAffinity(AffinityTypes.Natural);
+    }
+    public List<FocusTags> GetIncompatibleFocuses()
+    {
+        return ArchetypeConfig.GetFocusesWithAffinity(AffinityTypes.Incompatible);
     }
 
     public AffinityTypes GetApproachAffinity(ApproachTags approach)
     {
         return ArchetypeConfig.GetAffinity(approach);
+    }
+
+    public AffinityTypes GetApproachAffinity(FocusTags focus)
+    {
+        return ArchetypeConfig.GetAffinity(focus);
     }
 
     public bool ModifyHealth(int count)

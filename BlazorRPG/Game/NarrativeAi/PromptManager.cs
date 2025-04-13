@@ -176,7 +176,7 @@ public class PromptManager
         string template = _promptTemplates[REACTION_MD];
 
         // Extract primary approach tag
-        ApproachTags primaryApproach = GetPrimaryApproach(chosenOption);
+        ApproachTags primaryApproach = chosenOption.Approach;
 
         // Calculate encounter stage
         string encounterStage = DetermineEncounterStage(state.CurrentTurn, state.MaxTurns, state.Momentum, state.MaxMomentum, state.Pressure, state.MaxPressure);
@@ -279,7 +279,7 @@ public class PromptManager
             ChoiceProjection projection = projections[i];
 
             // Get the primary approach tag
-            ApproachTags primaryApproach = GetPrimaryApproach(choice);
+            ApproachTags primaryApproach = choice.Approach;
 
             choicesInfo.AppendLine($@"
 CHOICE {i + 1}:
@@ -490,33 +490,6 @@ CHOICE {i + 1}:
             EncounterTypes.Physical => "Clear description of physical actions and immediate results. Emphasize bodily sensations, physical effort, fatigue, and the mechanical realities of movement and exertion. Include details about weight, texture, Illumination, and other tactile elements that ground the narrative in physical reality.",
             _ => "Practical description focusing on immediate situation"
         };
-    }
-
-    private ApproachTags GetPrimaryApproach(ChoiceCard choice)
-    {
-        // Find the approach tag with the largest modification
-        List<TagModification> approachMods = choice.TagModifications
-            .Where(m => m.Type == TagModification.TagTypes.EncounterState)
-            .Where(m => IsApproachTag((ApproachTags)m.Tag))
-            .OrderByDescending(m => m.Delta)
-            .ToList();
-
-        if (approachMods.Any())
-        {
-            return (ApproachTags)approachMods.First().Tag;
-        }
-
-        // Default to Analysis if no approach is found (fallback)
-        return ApproachTags.Analysis;
-    }
-
-    private bool IsApproachTag(ApproachTags tag)
-    {
-        return tag == ApproachTags.Dominance ||
-               tag == ApproachTags.Rapport ||
-               tag == ApproachTags.Analysis ||
-               tag == ApproachTags.Precision ||
-               tag == ApproachTags.Concealment;
     }
 
     public static string CreatePromptJson(string markdownContent)

@@ -180,26 +180,17 @@ public static class LocationJsonParser
                 {
                     case "crowded": return Population.Crowded;
                     case "quiet": return Population.Quiet;
-                    case "isolated": return Population.Isolated;
+                    case "isolated": return Population.Scholarly;
                     default: return Population.Any;
                 }
 
             case "atmosphere":
                 switch (value.ToLower())
                 {
-                    case "tense": return Atmosphere.Tense;
+                    case "tense": return Atmosphere.Rough;
                     case "formal": return Atmosphere.Formal;
                     case "chaotic": return Atmosphere.Chaotic;
                     default: return Atmosphere.Any;
-                }
-
-            case "economic":
-                switch (value.ToLower())
-                {
-                    case "wealthy": return Economic.Wealthy;
-                    case "commercial": return Economic.Commercial;
-                    case "humble": return Economic.Humble;
-                    default: return Economic.Any;
                 }
 
             case "physical":

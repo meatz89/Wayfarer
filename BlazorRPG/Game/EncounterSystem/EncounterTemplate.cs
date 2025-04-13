@@ -11,9 +11,6 @@
 
     public EncounterInfo.HostilityLevels Hostility = EncounterInfo.HostilityLevels.Neutral;
 
-    public List<FocusTags> PressureReducingFocuses { get; set; } = new List<FocusTags>();
-    public List<FocusTags> MomentumReducingFocuses { get; set; } = new List<FocusTags>();
-
     public List<NarrativeTag> EncounterNarrativeTags { get; set; } = new List<NarrativeTag>();
     public List<EnvironmentPropertyTag> encounterStrategicTags { get; set; } = new List<EnvironmentPropertyTag>();
 }

@@ -44,7 +44,7 @@
         EnsureNoNegativeEncounterValues(currentMomentum, currentPressure, projection);
 
         // Apply all explicit tag modifications from the choice
-        ProcessChoiceTagIncreases(choice, projection, clonedTagSystem);
+        ProcessChoiceTagIncreases(choice, projection, clonedTagSystem, playerState);
 
         // Calculate pressure-based resource damage that will apply at start of turn
         CalculateDamageFromPressure(choice, projection, currentPressure, projection.PressureBuilt);
@@ -69,26 +69,40 @@
         return projection;
     }
 
-    private static void ProcessChoiceTagIncreases(ChoiceCard choice, ChoiceProjection projection, BaseTagSystem clonedTagSystem)
+    private static void ProcessChoiceTagIncreases(ChoiceCard choice, ChoiceProjection projection, BaseTagSystem clonedTagSystem, PlayerState playerState)
     {
         foreach (TagModification mod in choice.TagModifications)
         {
-            if (mod.Type == TagModification.TagTypes.EncounterState)
+            if (mod.EncounterTagType == TagModification.TagTypes.Approach)
             {
-                ApproachTags tag = (ApproachTags)mod.Tag;
+                ApproachTags tag = (ApproachTags)mod.TagName;
                 int oldValue = clonedTagSystem.GetEncounterStateTagValue(tag);
-                clonedTagSystem.ModifyEncounterStateTag(tag, mod.Delta);
+
+                var affinity = playerState.GetApproachAffinity(tag);
+                int approachValueChange = affinity == AffinityTypes.Natural ? approachValueChange = 2
+                : affinity == AffinityTypes.Incompatible ? approachValueChange = -1
+                : 1;
+
+                clonedTagSystem.ModifyEncounterStateTag(tag, approachValueChange);
+
                 int newValue = clonedTagSystem.GetEncounterStateTagValue(tag);
                 int actualDelta = newValue - oldValue;
 
                 if (actualDelta != 0)
                     projection.ApproachTagChanges[tag] = actualDelta;
             }
-            else if (mod.Type == TagModification.TagTypes.Focus)
+            else if (mod.EncounterTagType == TagModification.TagTypes.Focus)
             {
-                FocusTags tag = (FocusTags)mod.Tag;
+                FocusTags tag = (FocusTags)mod.TagName;
                 int oldValue = clonedTagSystem.GetFocusTagValue(tag);
-                clonedTagSystem.ModifyFocusTag(tag, mod.Delta);
+
+                var affinity = playerState.GetApproachAffinity(tag);
+                int focusValueChange = affinity == AffinityTypes.Natural ? focusValueChange = 2
+                : affinity == AffinityTypes.Incompatible ? focusValueChange = -1
+                : 1;
+
+                clonedTagSystem.ModifyFocusTag(tag, focusValueChange);
+
                 int newValue = clonedTagSystem.GetFocusTagValue(tag);
                 int actualDelta = newValue - oldValue;
 
@@ -168,43 +182,42 @@
         StrategicEffect effect = choice.StrategicEffect;
         List<EnvironmentPropertyTag> strategicTags = _locationTags.GetStrategicActiveTags();
 
-        foreach (EnvironmentPropertyTag tag in strategicTags)
-        {
-            int injuryEffect = effect.GetInjuryModifierForTag(tag, projection, currentPressure);
-            if (injuryEffect != 0)
-            {
-                var encounterType = encounterInfo.EncounterType;
-                if (encounterType == EncounterTypes.Physical)
-                {
-                    projection.HealthChange = injuryEffect;
-                    projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = "Dangerous Archetype combination",
-                        Value = -injuryEffect
-                    });
-                }
-                if (encounterType == EncounterTypes.Intellectual)
-                {
-                    projection.ConcentrationChange = injuryEffect;
-                    projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = "Dangerous Archetype combination",
-                        Value = -injuryEffect
-                    });
-                }
-                if (encounterType == EncounterTypes.Social)
-                {
-                    projection.ConfidenceChange = injuryEffect;
-                    projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = "Dangerous Archetype combination",
-                        Value = -injuryEffect
-                    });
-                }
-            }
-        }
+        //foreach (EnvironmentPropertyTag tag in strategicTags)
+        //{
+        //    int injuryEffect = effect.GetInjuryModifierForTag(tag, projection, currentPressure);
+        //    if (injuryEffect != 0)
+        //    {
+        //        var encounterType = encounterInfo.EncounterType;
+        //        if (encounterType == EncounterTypes.Physical)
+        //        {
+        //            projection.HealthChange = injuryEffect;
+        //            projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
+        //            {
+        //                Source = "Dangerous Archetype combination",
+        //                Value = -injuryEffect
+        //            });
+        //        }
+        //        if (encounterType == EncounterTypes.Intellectual)
+        //        {
+        //            projection.ConcentrationChange = injuryEffect;
+        //            projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
+        //            {
+        //                Source = "Dangerous Archetype combination",
+        //                Value = -injuryEffect
+        //            });
+        //        }
+        //        if (encounterType == EncounterTypes.Social)
+        //        {
+        //            projection.ConfidenceChange = injuryEffect;
+        //            projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
+        //            {
+        //                Source = "Dangerous Archetype combination",
+        //                Value = -injuryEffect
+        //            });
+        //        }
+        //    }
+        //}
     }
-
 
     /// <summary>
     /// 
@@ -255,62 +268,6 @@
             });
             pressureChange += basePressure;
 
-        }
-
-        if (encounterInfo.PressureReducingFocuses.Contains(choice.Focus))
-        {
-            int favoredBonus = -2;
-            projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-            {
-                Source = "Favored Focus at Location",
-                Value = favoredBonus
-            });
-            pressureChange += favoredBonus;
-        }
-
-        if (encounterInfo.MomentumReducingFocuses.Contains(choice.Focus))
-        {
-            int disfavoredBonus = -2;
-            projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
-            {
-                Source = "Disfavored Focus at Location",
-                Value = disfavoredBonus
-            });
-            momentumChange += disfavoredBonus;
-        }
-
-        AffinityTypes affinity = playerState.GetApproachAffinity(choice.Approach);
-        switch (affinity)
-        {
-            case AffinityTypes.Natural:
-                int naturalBonus = 2;
-                projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
-                {
-                    Source = "Natural Archetype Approach",
-                    Value = naturalBonus
-                });
-                momentumChange += naturalBonus;
-                break;
-
-            case AffinityTypes.Unnatural:
-                int unnaturalPenalty = 1;
-                projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-                {
-                    Source = "Unnatural Archetype Approach",
-                    Value = unnaturalPenalty
-                });
-                pressureChange += unnaturalPenalty;
-                break;
-
-            case AffinityTypes.Dangerous:
-                int dangerousPenalty = 2;
-                projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-                {
-                    Source = "Dangerous Archetype Approach",
-                    Value = dangerousPenalty
-                });
-                pressureChange += dangerousPenalty;
-                break;
         }
     }
 

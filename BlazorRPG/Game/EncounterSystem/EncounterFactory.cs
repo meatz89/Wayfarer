@@ -12,8 +12,6 @@
         EncounterInfo encounterInfo = new EncounterInfo(
             location.Name,
             locationSpot,
-            template.PressureReducingFocuses,
-            template.MomentumReducingFocuses,
             template.Duration,
             template.MaxPressure,
             template.PartialThreshold, template.StandardThreshold, template.ExceptionalThreshold, // Momentum thresholds: 12+ (Partial), 16+ (Standard), 20+ (Exceptional)

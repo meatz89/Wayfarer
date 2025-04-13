@@ -4,32 +4,30 @@
 /// </summary>
 public class TagModification
 {
-    public enum TagTypes { EncounterState, Focus }
+    public enum TagTypes { Approach, Focus }
 
-    public TagTypes Type { get; }
-    public object Tag { get; }
-    public int Delta { get; }
+    public TagTypes EncounterTagType { get; }
+    public object TagName { get; }
 
-    private TagModification(TagTypes type, object tag, int delta)
+    private TagModification(TagTypes type, object tag)
     {
-        Type = type;
-        Tag = tag;
-        Delta = delta;
+        EncounterTagType = type;
+        TagName = tag;
     }
 
-    public static TagModification ForEncounterState(ApproachTags tag, int delta)
+    public static TagModification IncreaseApproach(ApproachTags tag)
     {
-        return new TagModification(TagTypes.EncounterState, tag, delta);
+        return new TagModification(TagTypes.Approach, tag);
     }
 
-    public static TagModification ForFocus(FocusTags tag, int delta)
+    public static TagModification IncreaseFocus(FocusTags tag)
     {
-        return new TagModification(TagTypes.Focus, tag, delta);
+        return new TagModification(TagTypes.Focus, tag);
     }
 
     public override string ToString()
     {
-        return $"{Type} ({Delta} to {Tag})";
+        return $"{EncounterTagType} (to {TagName})";
     }
 
 }

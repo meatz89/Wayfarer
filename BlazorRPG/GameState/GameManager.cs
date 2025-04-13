@@ -449,7 +449,7 @@ public class GameManager
 
             UserEncounterChoiceOption option = new UserEncounterChoiceOption(
                 i,
-                choice.ToString(),
+                choice.GetDetails(),
                 "Narrative",
                 locationName,
                 "locationSpotName",
