@@ -9,7 +9,7 @@
         Threshold = threshold;
     }
 
-    public override bool IsActive(BaseTagSystem tagSystem)
+    public override bool IsActive(EncounterTagSystem tagSystem)
     {
         return tagSystem.GetEncounterStateTagValue(EncounterStateTag) >= Threshold;
     }

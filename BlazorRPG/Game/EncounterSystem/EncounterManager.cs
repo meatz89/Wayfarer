@@ -295,8 +295,8 @@
             maxTurns: EncounterState.Location.TurnDuration,
             momentum: EncounterState.Momentum,
             pressure: EncounterState.Pressure,
-            approachTags: EncounterState.TagSystem.GetAllApproachTags(),
-            focusTags: EncounterState.TagSystem.GetAllFocusTags(),
+            approachTags: EncounterState.EncounterTagSystem.GetAllApproachTags(),
+            focusTags: EncounterState.EncounterTagSystem.GetAllFocusTags(),
             activeTagNames: EncounterState.GetActiveTagsNames(),
             playerState: playerState,
             worldState: worldState

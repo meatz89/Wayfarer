@@ -9,7 +9,7 @@
         RequireAll = requireAll;
     }
 
-    public override bool IsActive(BaseTagSystem tagSystem)
+    public override bool IsActive(EncounterTagSystem tagSystem)
     {
         if (RequireAll)
         {

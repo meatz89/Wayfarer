@@ -11,7 +11,7 @@
         BlockedFocus = blockedFocus;
     }
 
-    public bool IsActive(BaseTagSystem tagSystem)
+    public bool IsActive(EncounterTagSystem tagSystem)
     {
         return Condition.IsActive(tagSystem);
     }
