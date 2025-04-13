@@ -1,8 +1,8 @@
 ﻿public class CardSelectionAlgorithm
 {
-    private readonly CardRepository _choiceRepository;
+    private readonly ChoiceCardRepository _choiceRepository;
 
-    public CardSelectionAlgorithm(CardRepository choiceRepository)
+    public CardSelectionAlgorithm(ChoiceCardRepository choiceRepository)
     {
         _choiceRepository = choiceRepository;
     }
@@ -42,7 +42,8 @@
             int currentFocusValue = tagSystem.GetFocusTagValue(card.Focus);
 
             // Calculate Manhattan distance
-            int distance = Math.Abs(currentApproachValue - card.OptimalApproachValue) +
+            int distance = 
+                //Math.Abs(currentApproachValue - card.OptimalApproachValue) +
                           Math.Abs(currentFocusValue - card.OptimalFocusValue);
 
             distances[choice] = distance;

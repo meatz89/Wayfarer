@@ -29,7 +29,7 @@
 
         encounterStrategicTags =
         [
-            new EnvironmentPropertyTag("Changing Light", Illumination.Shadowy),
+            new EnvironmentPropertyTag("Changing Light", Illumination.Bright),
             new EnvironmentPropertyTag("Open Road", Population.Quiet),
             new EnvironmentPropertyTag("Varied Terrain", Physical.Hazardous)
         ]

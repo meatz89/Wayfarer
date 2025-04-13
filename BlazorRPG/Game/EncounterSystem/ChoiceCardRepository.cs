@@ -1,11 +1,11 @@
 ﻿/// <summary>
 /// Repository of all available choices in the game
 /// </summary>
-public class CardRepository
+public class ChoiceCardRepository
 {
     private readonly List<ChoiceCard> _choices = new();
 
-    public CardRepository()
+    public ChoiceCardRepository()
     {
         InitializeChoices();
     }
@@ -21,7 +21,7 @@ public class CardRepository
             "Basic Observation",
             "You quickly scan the situation for relevant details.",
             CardTiers.Novice, 2, // Base effect: +2 momentum
-            ApproachTags.Analysis, 1, FocusTags.Information, 1, // Optimal position: Analysis 1, Information 1
+            ApproachTags.Analysis, FocusTags.Information, 1, // Optimal position: Information 1
             StrategicEffectsContent.Insightful,
             TagModification.IncreaseApproach(ApproachTags.Analysis),
             TagModification.IncreaseFocus(FocusTags.Information)
@@ -32,7 +32,7 @@ public class CardRepository
             "Careful Assessment",
             "You take a moment to consider the situation methodically.",
             CardTiers.Novice, 1, // Base effect: -1 pressure
-            ApproachTags.Analysis, 1, FocusTags.Information, 1, // Optimal position: Analysis 1, Information 1
+            ApproachTags.Analysis, FocusTags.Information, 1, // Optimal position: Information 1
             new StrategicEffect(new() { Atmosphere.Any }, StrategicTagEffectType.DecreasePressure, ApproachTags.Analysis),
             TagModification.IncreaseApproach(ApproachTags.Analysis),
             TagModification.IncreaseFocus(FocusTags.Information)
@@ -43,7 +43,7 @@ public class CardRepository
             "Deliberate Action",
             "You move with careful precision, maximizing efficiency.",
             CardTiers.Novice, 2, // Base effect: +2 momentum
-            ApproachTags.Precision, 1, FocusTags.Physical, 1, // Optimal position: Precision 1, Physical 1
+            ApproachTags.Precision, FocusTags.Physical, 1, // Optimal position: Physical 1
             new StrategicEffect(new() { Physical.Any }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
             TagModification.IncreaseApproach(ApproachTags.Precision),
             TagModification.IncreaseFocus(FocusTags.Physical)
@@ -54,7 +54,7 @@ public class CardRepository
             "Measured Technique",
             "You execute your actions with careful control to minimize risk.",
             CardTiers.Novice, 1, // Base effect: -1 pressure
-            ApproachTags.Precision, 1, FocusTags.Physical, 1, // Optimal position: Precision 1, Physical 1
+            ApproachTags.Precision, FocusTags.Physical, 1, // Optimal position: Physical 1
             StrategicEffectsContent.Calculated,
             TagModification.IncreaseApproach(ApproachTags.Precision),
             TagModification.IncreaseFocus(FocusTags.Physical)
@@ -65,7 +65,7 @@ public class CardRepository
             "Friendly Greeting",
             "You establish a positive connection with warm approachability.",
             CardTiers.Novice, 2, // Base effect: +2 momentum
-            ApproachTags.Rapport, 1, FocusTags.Relationship, 1, // Optimal position: Rapport 1, Relationship 1
+            ApproachTags.Rapport, FocusTags.Relationship, 1, // Optimal position: Relationship 1
             new StrategicEffect(new() { Population.Any }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
             TagModification.IncreaseApproach(ApproachTags.Rapport),
             TagModification.IncreaseFocus(FocusTags.Relationship)
@@ -76,7 +76,7 @@ public class CardRepository
             "Soothing Words",
             "You speak calmly, easing tension in the situation.",
             CardTiers.Novice, 1, // Base effect: -1 pressure
-            ApproachTags.Rapport, 1, FocusTags.Relationship, 1, // Optimal position: Rapport 1, Relationship 1
+            ApproachTags.Rapport, FocusTags.Relationship, 1, // Optimal position: Relationship 1
             new StrategicEffect(new() { Atmosphere.Any }, StrategicTagEffectType.DecreasePressure, ApproachTags.Rapport),
             TagModification.IncreaseApproach(ApproachTags.Rapport),
             TagModification.IncreaseFocus(FocusTags.Relationship)
@@ -87,7 +87,7 @@ public class CardRepository
             "Show of Strength",
             "You demonstrate your physical power and confidence.",
             CardTiers.Novice, 2, // Base effect: +2 momentum
-            ApproachTags.Dominance, 1, FocusTags.Physical, 1, // Optimal position: Dominance 1, Physical 1
+            ApproachTags.Dominance, FocusTags.Physical, 1, // Optimal position: Physical 1
             new StrategicEffect(new() { Population.Any }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
             TagModification.IncreaseApproach(ApproachTags.Dominance),
             TagModification.IncreaseFocus(FocusTags.Physical)
@@ -98,7 +98,7 @@ public class CardRepository
             "Establish Presence",
             "You take command of the situation, creating a sense of order.",
             CardTiers.Novice, 1, // Base effect: -1 pressure
-            ApproachTags.Dominance, 1, FocusTags.Relationship, 1, // Optimal position: Dominance 1, Relationship 1
+            ApproachTags.Dominance, FocusTags.Relationship, 1, // Optimal position: Relationship 1
             new StrategicEffect(new() { Atmosphere.Any }, StrategicTagEffectType.DecreasePressure, ApproachTags.Dominance),
             TagModification.IncreaseApproach(ApproachTags.Dominance),
             TagModification.IncreaseFocus(FocusTags.Relationship)
@@ -109,7 +109,7 @@ public class CardRepository
             "Use Surroundings",
             "You leverage the environment to remain unnoticed.",
             CardTiers.Novice, 2, // Base effect: +2 momentum
-            ApproachTags.Concealment, 1, FocusTags.Environment, 1, // Optimal position: Concealment 1, Environment 1
+            ApproachTags.Concealment, FocusTags.Environment, 1, // Optimal position: Environment 1
             new StrategicEffect(new() { Illumination.Any }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Concealment),
             TagModification.IncreaseApproach(ApproachTags.Concealment),
             TagModification.IncreaseFocus(FocusTags.Environment)
@@ -120,7 +120,7 @@ public class CardRepository
             "Keep Low Profile",
             "You minimize your presence to avoid drawing attention.",
             CardTiers.Novice, 1, // Base effect: -1 pressure
-            ApproachTags.Concealment, 1, FocusTags.Physical, 1, // Optimal position: Concealment 1, Physical 1
+            ApproachTags.Concealment, FocusTags.Physical, 1, // Optimal position: Physical 1
             new StrategicEffect(new() { Illumination.Any }, StrategicTagEffectType.DecreasePressure, ApproachTags.Concealment),
             TagModification.IncreaseApproach(ApproachTags.Concealment),
             TagModification.IncreaseFocus(FocusTags.Physical)
@@ -135,7 +135,7 @@ public class CardRepository
             "Environmental Assessment",
             "You analyze the surroundings to identify advantageous elements.",
             CardTiers.Trained, 3, // Base effect: +3 momentum
-            ApproachTags.Analysis, 3, FocusTags.Environment, 2, // Optimal position: Analysis 3, Environment 2
+            ApproachTags.Analysis, FocusTags.Environment, 2, // Optimal position: Environment 2
             new StrategicEffect(new() { Physical.Any }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
             TagModification.IncreaseApproach(ApproachTags.Analysis),
             TagModification.IncreaseFocus(FocusTags.Environment)
@@ -146,7 +146,7 @@ public class CardRepository
             "Efficient Planning",
             "You identify the optimal use of available resources.",
             CardTiers.Trained, 2, // Base effect: -2 pressure
-            ApproachTags.Analysis, 3, FocusTags.Resource, 2, // Optimal position: Analysis 3, Resource 2
+            ApproachTags.Analysis, FocusTags.Resource, 2, // Optimal position: Resource 2
             new StrategicEffect(new() { Atmosphere.Any }, StrategicTagEffectType.DecreasePressure, ApproachTags.Analysis),
             TagModification.IncreaseApproach(ApproachTags.Analysis),
             TagModification.IncreaseFocus(FocusTags.Resource)
@@ -157,7 +157,7 @@ public class CardRepository
             "Friendly Inquiry",
             "You ask questions in a way that encourages open sharing.",
             CardTiers.Trained, 3, // Base effect: +3 momentum
-            ApproachTags.Rapport, 3, FocusTags.Information, 2, // Optimal position: Rapport 3, Information 2
+            ApproachTags.Rapport, FocusTags.Information, 2, // Optimal position: Information 2
             new StrategicEffect(new() { Population.Any }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
             TagModification.IncreaseApproach(ApproachTags.Rapport),
             TagModification.IncreaseFocus(FocusTags.Information)
@@ -168,7 +168,7 @@ public class CardRepository
             "Create Safe Space",
             "You cultivate an atmosphere where everyone feels secure.",
             CardTiers.Trained, 2, // Base effect: -2 pressure
-            ApproachTags.Rapport, 3, FocusTags.Environment, 2, // Optimal position: Rapport 3, Environment 2
+            ApproachTags.Rapport, FocusTags.Environment, 2, // Optimal position: Environment 2
             new StrategicEffect(new() { Atmosphere.Any }, StrategicTagEffectType.DecreasePressure, ApproachTags.Rapport),
             TagModification.IncreaseApproach(ApproachTags.Rapport),
             TagModification.IncreaseFocus(FocusTags.Environment)
@@ -179,7 +179,7 @@ public class CardRepository
             "Targeted Question",
             "You ask the exact question needed to get essential information.",
             CardTiers.Trained, 3, // Base effect: +3 momentum
-            ApproachTags.Precision, 3, FocusTags.Information, 2, // Optimal position: Precision 3, Information 2
+            ApproachTags.Precision, FocusTags.Information, 2, // Optimal position: Information 2
             new StrategicEffect(new() { Atmosphere.Any }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
             TagModification.IncreaseApproach(ApproachTags.Precision),
             TagModification.IncreaseFocus(FocusTags.Information)
@@ -190,7 +190,7 @@ public class CardRepository
             "Resource Optimization",
             "You use exactly what's needed with no waste or excess.",
             CardTiers.Trained, 2, // Base effect: -2 pressure
-            ApproachTags.Precision, 3, FocusTags.Resource, 2, // Optimal position: Precision 3, Resource 2
+            ApproachTags.Precision, FocusTags.Resource, 2, // Optimal position: Resource 2
             StrategicEffectsContent.Calculated,
             TagModification.IncreaseApproach(ApproachTags.Precision),
             TagModification.IncreaseFocus(FocusTags.Resource)
@@ -201,7 +201,7 @@ public class CardRepository
             "Command the Space",
             "You take control of the physical environment.",
             CardTiers.Trained, 3, // Base effect: +3 momentum
-            ApproachTags.Dominance, 3, FocusTags.Environment, 2, // Optimal position: Dominance 3, Environment 2
+            ApproachTags.Dominance, FocusTags.Environment, 2, // Optimal position: Environment 2
             new StrategicEffect(new() { Physical.Any }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
             TagModification.IncreaseApproach(ApproachTags.Dominance),
             TagModification.IncreaseFocus(FocusTags.Environment)
@@ -212,7 +212,7 @@ public class CardRepository
             "Resource Control",
             "You take charge of resource allocation, creating order.",
             CardTiers.Trained, 2, // Base effect: -2 pressure
-            ApproachTags.Dominance, 3, FocusTags.Resource, 2, // Optimal position: Dominance 3, Resource 2
+            ApproachTags.Dominance, FocusTags.Resource, 2, // Optimal position: Resource 2
             new StrategicEffect(new() { Atmosphere.Any }, StrategicTagEffectType.DecreasePressure, ApproachTags.Dominance),
             TagModification.IncreaseApproach(ApproachTags.Dominance),
             TagModification.IncreaseFocus(FocusTags.Resource)
@@ -223,7 +223,7 @@ public class CardRepository
             "Gather Intelligence",
             "You collect information while remaining unnoticed.",
             CardTiers.Trained, 3, // Base effect: +3 momentum
-            ApproachTags.Concealment, 3, FocusTags.Information, 2, // Optimal position: Concealment 3, Information 2
+            ApproachTags.Concealment, FocusTags.Information, 2, // Optimal position: Information 2
             new StrategicEffect(new() { Population.Any }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Concealment),
             TagModification.IncreaseApproach(ApproachTags.Concealment),
             TagModification.IncreaseFocus(FocusTags.Information)
@@ -234,7 +234,7 @@ public class CardRepository
             "Fade from Attention",
             "You divert attention away from yourself, reducing social pressure.",
             CardTiers.Trained, 2, // Base effect: -2 pressure
-            ApproachTags.Concealment, 3, FocusTags.Relationship, 2, // Optimal position: Concealment 3, Relationship 2
+            ApproachTags.Concealment, FocusTags.Relationship, 2, // Optimal position: Relationship 2
             new StrategicEffect(new() { Population.Any }, StrategicTagEffectType.DecreasePressure, ApproachTags.Concealment),
             TagModification.IncreaseApproach(ApproachTags.Concealment),
             TagModification.IncreaseFocus(FocusTags.Relationship)
