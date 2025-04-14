@@ -21,24 +21,24 @@
             @if (spot.Name != CurrentSpot.Name)
             {
                 <button class="action-button"
-                        @onclick="() => OnSpotSelected.InvokeAsync(spot)"
-                        disabled="@(!GameManager.CanMoveToSpot(spot.Name))">
+                @onclick="() => OnSpotSelected.InvokeAsync(spot)"
+                disabled="@(!GameManager.CanMoveToSpot(spot.Name))">
                     MOVE HERE
                 </button>
             }
-
-            @* Always show spot actions *@
-            @foreach (UserActionOption action in GameState.GetActions(spot))
+            else
             {
-                <button class="action-button"
-                        @onclick="() => OnActionSelected.InvokeAsync(action)"
-                        disabled="@(spot.Name != CurrentSpot.Name || !GameManager.AreRequirementsMet(action))"
-                        @onmouseover="(e) => HandleShowTooltip(action, e)"
-                        @onmouseout="HandleHideTooltip">
-                    @action.ActionImplementation.Name (@action.ActionImplementation.ActionType)
-                </button>
+                @foreach (UserActionOption action in GameState.GetActions(spot))
+                {
+                    <button class="action-button"
+                            @onclick="() => OnActionSelected.InvokeAsync(action)"
+                            disabled="@(spot.Name != CurrentSpot.Name || !GameManager.AreRequirementsMet(action))"
+                            @onmouseover="(e) => HandleShowTooltip(action, e)"
+                            @onmouseout="HandleHideTooltip">
+                        @action.ActionImplementation.Name (@action.ActionImplementation.ActionType)
+                    </button>
+                }
             }
-
         </div>
     }
 </div>

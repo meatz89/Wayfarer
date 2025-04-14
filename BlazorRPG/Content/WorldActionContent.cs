@@ -3,6 +3,11 @@
     public static List<SpotAction> GetAllTemplates()
     {
         List<SpotAction> actionTemplates = [.. AllActions()];
+        foreach(var actionTemplate in actionTemplates)
+        {
+            actionTemplate.ActionId = actionTemplate.Name;
+        }
+
         return actionTemplates;
     }
 
