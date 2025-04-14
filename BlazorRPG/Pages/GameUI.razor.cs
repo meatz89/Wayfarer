@@ -132,7 +132,9 @@ public partial class GameUI : ComponentBase
 
     private void UseResource(ActionNames actionName)
     {
-        GameManager.ExecuteActionByName(actionName.ToString());
+            await GameManager.ExecuteBasicAction(globalAction);
+        }
+
         DisplayActionMessages();
         StateHasChanged();
     }
