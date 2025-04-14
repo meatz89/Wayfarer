@@ -1,87 +1,81 @@
 ﻿using Microsoft.AspNetCore.Components;
-
 namespace BlazorRPG.Pages;
 
 public partial class GameUI : ComponentBase
 {
+    #region Injected Services
     [Inject] private GameState GameState { get; set; }
     [Inject] private GameManager GameManager { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
-    public PlayerState Player => GameState.PlayerState;
+    #endregion
 
-    public List<string> ResultMessages => GetResultMessages();
-
+    #region Player State Properties
     public PlayerState PlayerState => GameState.PlayerState;
+    public PlayerState Player => PlayerState; // Alias for compatibility
 
-    public int energyCurrent => GameState.PlayerState.Energy;
-    public int energyMax => GameState.PlayerState.MaxEnergy;
+    // Player Resources
+    public int Energy => PlayerState.Energy;
+    public int MaxEnergy => PlayerState.MaxEnergy;
+    public int Health => PlayerState.Health;
+    public int MaxHealth => PlayerState.MaxHealth;
+    public int Concentration => PlayerState.Concentration;
+    public int MaxConcentration => PlayerState.MaxConcentration;
+    public int Confidence => PlayerState.Confidence;
+    public int MaxConfidence => PlayerState.MaxConfidence;
+    public int Coins => PlayerState.Coins;
+    #endregion
 
-    public int health => GameState.PlayerState.Health;
-    public int maxHealth => GameState.PlayerState.MaxHealth;
-
-    public int concentration => GameState.PlayerState.Concentration;
-    public int maxConcentration => GameState.PlayerState.MaxConcentration;
-
-    public int confidence => GameState.PlayerState.Confidence;
-    public int maxConfidence => GameState.PlayerState.MaxConfidence;
-
-    public int coins => GameState.PlayerState.Coins;
-
-    public List<Location> Locations => GameManager.GetPlayerKnownLocations();
-
-    private bool showNarrative = false;
-    private string selectedLocation;
-
+    #region World State Properties
+    public Location CurrentLocation => GameState.WorldState.CurrentLocation;
     public LocationSpot CurrentSpot => GameState.WorldState.CurrentLocationSpot;
     public TimeWindows CurrentTime => GameState.WorldState.WorldTime;
     public int CurrentHour => GameState.WorldState.CurrentTimeInHours;
-    public bool ShowEncounterResult { get; set; } = false;
+    public List<Location> Locations => GameManager.GetPlayerKnownLocations();
+    #endregion
 
+    #region UI State
+    // Navigation State
+    private bool showAreaMap = true;
+    private bool showNarrative = false;
+    private bool needsCharacterCreation = false;
+    private string selectedLocation;
+
+    // Encounter State
+    public bool OngoingEncounter { get; private set; }
+    public bool ShowEncounterResult { get; set; } = false;
     public EncounterResult EncounterResult => GameState.Actions.EncounterResult;
 
-    public bool OngoingEncounter { get; private set; }
-
-    // Tooltip Logic
-    public bool showAreaMap = true;
+    // Tooltip State
     public bool showTooltip = false;
     public UserActionOption hoveredAction;
-
     private double mouseX;
     private double mouseY;
 
-    private bool needsCharacterCreation = false;
-
+    // Action Message State
     private bool showActionMessage = false;
     private string actionMessageType = "success";
     private List<string> actionMessages = new List<string>();
+    #endregion
 
+    #region Lifecycle Methods
     protected override async Task OnInitializedAsync()
     {
-        // Check if character has been created
-        needsCharacterCreation = !GameState.PlayerState.IsInitialized;
+        needsCharacterCreation = !PlayerState.IsInitialized;
         if (!needsCharacterCreation)
         {
             await InitializeGame();
         }
     }
 
-    private async Task HandleCharacterCreated(PlayerState playerState)
-    {
-        needsCharacterCreation = false;
-        await InitializeGame();
-    }
-
     private async Task InitializeGame()
     {
         await GameManager.StartGame();
-
-        // Ensure the user sees the location spot view initially, not the travel view
         showAreaMap = false;
-
-        // Make sure UI refreshes
         StateHasChanged();
     }
+    #endregion
 
+    #region Navigation and UI Methods
     public void SwitchAreaMap()
     {
         showAreaMap = !showAreaMap;
@@ -89,28 +83,58 @@ public partial class GameUI : ComponentBase
 
     public Location GetCurrentLocation()
     {
-        Location loc = GameState.WorldState.CurrentLocation;
-        if (loc != null)
-        {
-            return loc;
-        }
-        return new Location() { Name = "Default" };
+        return CurrentLocation ?? new Location() { Name = "Default" };
     }
 
+    private void HandleSpotSelection(LocationSpot locationSpot)
+    {
+        GameManager.MoveToLocationSpot(locationSpot.Name);
+    }
+
+    private async Task HandleTravelStart(string travelLocationName)
+    {
+        selectedLocation = travelLocationName;
+
+        // If already at this location, just switch to spot view
+        if (travelLocationName == CurrentLocation.Name)
+        {
+            showAreaMap = false;
+            StateHasChanged();
+            return;
+        }
+
+        // Otherwise initiate travel
+        await GameManager.InitiateTravelToLocation(travelLocationName);
+        OngoingEncounter = GameState.Actions.IsActiveEncounter;
+        showAreaMap = false;
+        StateHasChanged();
+    }
+    #endregion
+
+    #region Action and Encounter Methods
     private async Task HandleActionSelection(UserActionOption action)
     {
-        if (action.IsDisabled) return; // Prevent action if disabled
-        else
-        {
-            // Execute the action immediately
-            GameManager.ExecuteBasicAction(action);
+        if (action.IsDisabled) return;
 
-            OngoingEncounter = GameState.Actions.IsActiveEncounter;
-            if (!OngoingEncounter)
-            {
-                CompleteActionExecution();
-            }
+        GameManager.ExecuteBasicAction(action);
+        OngoingEncounter = GameState.Actions.IsActiveEncounter;
+
+        if (!OngoingEncounter)
+        {
+            CompleteActionExecution();
         }
+    }
+
+    private void CompleteActionExecution()
+    {
+        GameManager.UpdateState();
+    }
+
+    private void UseResource(ActionNames actionName)
+    {
+        GameManager.ExecuteActionByName(actionName.ToString());
+        DisplayActionMessages();
+        StateHasChanged();
     }
 
     private void OnEncounterCompleted(EncounterResult result)
@@ -123,35 +147,11 @@ public partial class GameUI : ComponentBase
         StateHasChanged();
     }
 
-    private async Task HandleTravelStart(string travelLocationName)
-    {
-        selectedLocation = travelLocationName;
-
-        // If current location, just switch to spot view
-        string currentLocationName = GameState.WorldState.CurrentLocation.Name;
-        if (travelLocationName == currentLocationName)
-        {
-            showAreaMap = false;
-            StateHasChanged();
-            return;
-        }
-
-        // Otherwise initiate travel
-        await GameManager.InitiateTravelToLocation(travelLocationName);
-        OngoingEncounter = GameState.Actions.IsActiveEncounter;
-        showAreaMap = false;
-
-        StateHasChanged();
-    }
-
     private async Task OnNarrativeCompleted()
     {
         showNarrative = false;
         ShowEncounterResult = false;
-
-        // Always return to location spot view after any encounter
         showAreaMap = false;
-
         await OnEncounterCompleted();
         StateHasChanged();
     }
@@ -160,20 +160,17 @@ public partial class GameUI : ComponentBase
     {
         await GameManager.EndEncounter(EncounterResult.Encounter);
         ShowEncounterResult = false;
-
         StateHasChanged();
     }
 
-    private void UseResource(ActionNames actionName)
+    private async Task HandleCharacterCreated(PlayerState playerState)
     {
-        GameManager.ExecuteActionByName(actionName.ToString());
-
-        // Get messages from the last action
-        DisplayActionMessages();
-
-        StateHasChanged();  // Refresh UI after action
+        needsCharacterCreation = false;
+        await InitializeGame();
     }
+    #endregion
 
+    #region UI Display Methods
     private void DisplayActionMessages()
     {
         actionMessages = GetResultMessages();
@@ -183,7 +180,7 @@ public partial class GameUI : ComponentBase
             showActionMessage = true;
             actionMessageType = "success";  // Default to success
 
-            // Optional: Set message type based on content analysis
+            // Set message type based on content analysis
             if (actionMessages.Any(m => m.Contains("not enough") || m.Contains("cannot")))
             {
                 actionMessageType = "warning";
@@ -209,77 +206,49 @@ public partial class GameUI : ComponentBase
     public List<string> GetResultMessages()
     {
         ActionResultMessages messages = MessageSystem.GetAndClearChanges();
-
         List<string> list = new();
 
         if (messages == null) return list;
 
-        // Show outcomes with their previews
+        // Add outcome descriptions
         foreach (Outcome outcome in messages.Outcomes)
         {
-            string description = outcome.GetDescription();
-            string preview = outcome.GetPreview(GameState);
-            list.Add($"{description}");
+            list.Add(outcome.GetDescription());
         }
 
+        // Add system messages
         foreach (SystemMessage sysMsg in messages.SystemMessages)
         {
-            // Add CSS class based on message type
-            string cssClass = sysMsg.Type switch
-            {
-                SystemMessageTypes.Warning => "warning",
-                SystemMessageTypes.Danger => "danger",
-                SystemMessageTypes.Success => "success",
-                _ => "info"
-            };
-
-            list.Add($"{sysMsg.Message}");
-            //list.Add($"<span class='{cssClass}'>{sysMsg.Message}</span>");
+            list.Add(sysMsg.Message);
         }
 
         return list;
     }
 
-    private void GetAndClearChanges()
-    {
-        throw new NotImplementedException();
-    }
-
-    private void HandleSpotSelection(LocationSpot locationSpot)
-    {
-        GameManager.MoveToLocationSpot(locationSpot.Name);
-    }
-
-    private void CompleteActionExecution()
-    {
-        GameManager.UpdateState();
-    }
-
     private List<PropertyDisplay> GetLocationProperties(Location location)
     {
+        List<PropertyDisplay> properties = new List<PropertyDisplay>();
         WorldState world = GameState.WorldState;
 
-        List<PropertyDisplay> properties = new List<PropertyDisplay>();
-
+        // Add time property
         properties.Add(new PropertyDisplay(
-                GetIconForTimeWindow(world.WorldTime),
-                FormatEnumString(world.WorldTime.ToString()),
-                "",
-                "",
-                ""
-            ));
+            GetIconForTimeWindow(world.WorldTime),
+            FormatEnumString(world.WorldTime.ToString()),
+            "", "", ""
+        ));
 
+        // Add weather property
         properties.Add(new PropertyDisplay(
-                GetIconForWeatherType(world.WorldWeather),
-                FormatEnumString(world.WorldWeather.ToString()),
-                "",
-                "",
-                ""
-            ));
+            GetIconForWeatherType(world.WorldWeather),
+            FormatEnumString(world.WorldWeather.ToString()),
+            "", "", ""
+        ));
 
         return properties;
     }
+    #endregion
 
+    #region Helper Methods
     private string GetIconForTimeWindow(TimeWindows time)
     {
         return time switch
@@ -311,6 +280,7 @@ public partial class GameUI : ComponentBase
             .Replace("Type", "")
             .Replace("Types", "");
     }
+
     private string GetArchetypeIcon(ArchetypeTypes archetype)
     {
         return archetype switch
@@ -352,7 +322,6 @@ public partial class GameUI : ComponentBase
 
     private string FormatItemName(ItemTypes itemType)
     {
-        // Convert enum names to readable text
         return System.Text.RegularExpressions.Regex.Replace(
             itemType.ToString(),
             "([A-Z])",
@@ -385,4 +354,5 @@ public partial class GameUI : ComponentBase
             _ => "A common item"
         };
     }
+    #endregion
 }
