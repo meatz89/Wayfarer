@@ -135,7 +135,6 @@ public static class ActionJsonParser
             LocationName = "Unknown Location",
             LocationSpotName = "Unknown Spot",
             EncounterId = "DefaultEncounter",
-            CoinCost = 0,
         };
     }
 

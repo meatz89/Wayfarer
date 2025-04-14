@@ -1,4 +1,6 @@
-﻿public class ActionGenerator
+﻿using Microsoft.AspNetCore.Mvc;
+
+public class ActionGenerator
 {
     private readonly NarrativeService _narrativeService;
     private readonly ActionRepository _repository;
@@ -71,15 +73,7 @@
         _repository.RegisterEncounterTemplate(actionId, encounterTemplate);
 
         // Create action template linked to the encounter
-        actionId = _repository.CreateActionTemplate(
-            actionId,
-            result.Action.Name,
-            result.Action.Goal,
-            result.Action.Complication,
-            result.Action.BasicActionType,
-            result.Action.ActionType,
-            result.Action.CoinCost);
-
+        actionId = _repository.AddActionTemplate(actionId, result.Action);
         return actionId;
     }
 

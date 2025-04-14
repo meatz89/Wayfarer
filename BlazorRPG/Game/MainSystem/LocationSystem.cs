@@ -20,7 +20,7 @@ public class LocationSystem
         // Create the starting locations
         List<Location> locations = new List<Location>
         {
-            WorldLocationsContent.Forest,
+            WorldLocationsContent.DeepForest,
             WorldLocationsContent.Village,
         };
 

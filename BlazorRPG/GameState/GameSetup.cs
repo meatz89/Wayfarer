@@ -1,11 +1,11 @@
 ﻿public class GameSetup
 {
-    private const LocationNames StartingLocation = LocationNames.Forest;
+    private const LocationNames StartingLocation = LocationNames.DeepForest;
 
     public static GameState CreateNewGame()
     {
         GameState gameState = new GameState();
-        gameState.WorldState.SetCurrentTime(22);
+        gameState.WorldState.SetCurrentTime(12);
         gameState.WorldState.ChangeWeather(WeatherTypes.Clear);
 
         GameRules gameRules = GameRules.StandardRuleset;

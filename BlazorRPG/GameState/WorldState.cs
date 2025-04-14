@@ -215,4 +215,8 @@
         }
     }
 
+    internal void AdvanceTime(int hours)
+    {
+        this.CurrentTimeInHours += hours;
+    }
 }

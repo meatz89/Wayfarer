@@ -5,6 +5,7 @@ public partial class GameUI : ComponentBase
 {
     [Inject] private GameState GameState { get; set; }
     [Inject] private GameManager GameManager { get; set; }
+    public PlayerState Player => GameState.PlayerState;
 
     public List<string> ResultMessages => GetResultMessages();
 
@@ -28,7 +29,6 @@ public partial class GameUI : ComponentBase
 
     private bool showNarrative = false;
     private string selectedLocation;
-    public PlayerState Player => GameState.PlayerState;
 
     public LocationSpot CurrentSpot => GameState.WorldState.CurrentLocationSpot;
     public TimeWindows CurrentTime => GameState.WorldState.WorldTime;
@@ -169,7 +169,7 @@ public partial class GameUI : ComponentBase
         foreach (Outcome outcome in messages.Outcomes)
         {
             string description = outcome.GetDescription();
-            string preview = outcome.GetPreview(Player);
+            string preview = outcome.GetPreview(GameState);
             list.Add($"{description}");
         }
 

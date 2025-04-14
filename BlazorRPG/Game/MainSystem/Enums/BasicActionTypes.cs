@@ -14,5 +14,10 @@
     Discuss, // Social/Social (Reward Type: Relationships/Social Energy)
     Persuade, // Social/Focus (Reward Type: Relationships/State Change)
     Perform, // Social/Physical (Reward Type: Confidence/Social Energy)
+    Consume,
+    Observe,
+    Forage,
+    Explore,
+    Climb,
 }
 

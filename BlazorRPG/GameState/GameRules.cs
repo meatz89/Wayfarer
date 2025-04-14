@@ -33,7 +33,7 @@ public class GameRules
     public static int StrategicResonanceRequirement = 4;
 
     public ArchetypeTypes PlayerArchetype = ArchetypeTypes.Ranger;
-    public LocationNames StartingLocation = LocationNames.Forest;
+    public LocationNames StartingLocation = LocationNames.DeepForest;
 
     public string Background = string.Empty;
     public string Name = "Wayfarer";
