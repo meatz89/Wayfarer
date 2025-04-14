@@ -16,7 +16,10 @@
     MoveStealthily,
     ForceThrough,
     FindNaturalPath,
-    FindPathOut
+    FindPathOut,
+
+    ConsumeFood,
+    ConsumeMedicinalHerbs,
 }
 
 public enum LocationNames

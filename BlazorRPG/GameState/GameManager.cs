@@ -747,4 +747,19 @@ public class GameManager
             System.Text.RegularExpressions.RegexOptions.Compiled).Trim();
     }
 
+    public void ExecuteActionByName(string actionName)
+    {
+        // Get the action template from repository
+        SpotAction actionTemplate = ActionRepository.GetAction(actionName);
+        if (actionTemplate == null) return;
+
+        // Create action implementation
+        ActionImplementation action = ActionFactory.CreateActionFromTemplate(actionTemplate, null);
+
+        // Apply the outcomes
+        ApplyActionOutcomes(action);
+
+        // Update state
+        UpdateState();
+    }
 }

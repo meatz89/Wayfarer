@@ -6,8 +6,6 @@
     public List<UserActionOption> LocationSpotActions { get; set; } = new();
     public List<UserActionOption> CharacterActions { get; set; } = new();
     public List<UserActionOption> QuestActions { get; set; } = new();
-    public ActionResultMessages LastActionResultMessages { get; set; }
-
     public EncounterResult EncounterResult { get; set; }
     private EncounterManager CurrentEncounter { get; set; }
     public bool IsActiveEncounter { get; set; }
@@ -35,11 +33,6 @@
         CurrentEncounter = encounter;
         EncounterResult = new EncounterResult()
         { Encounter = encounter, EncounterResults = EncounterResults.Ongoing };
-    }
-
-    public void SetLastActionResultMessages(ActionResultMessages allMessages)
-    {
-        LastActionResultMessages = allMessages;
     }
 
     public void SetCurrentUserAction(UserActionOption action)

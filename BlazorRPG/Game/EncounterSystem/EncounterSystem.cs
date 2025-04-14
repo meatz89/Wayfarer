@@ -241,26 +241,6 @@
     }
 
 
-    // Update toggle method to cycle through all three providers
-    public void ToggleAIProvider()
-    {
-        // Cycle through providers: OpenAI -> Gemma3 -> Claude -> OpenAI
-        switch (currentAIProvider)
-        {
-            case AIProviderType.OpenAI:
-                SwitchAIProvider(AIProviderType.Gemma3);
-                break;
-            case AIProviderType.Gemma3:
-                SwitchAIProvider(AIProviderType.Claude);
-                break;
-            case AIProviderType.Claude:
-                SwitchAIProvider(AIProviderType.OpenAI);
-                break;
-            default:
-                SwitchAIProvider(AIProviderType.OpenAI);
-                break;
-        }
-    }
 
     // New method to switch AI providers
     public void SwitchAIProvider(AIProviderType providerType)
@@ -274,13 +254,6 @@
             Encounter.SwitchAIProvider(providerType);
         }
     }
-
-    // New method to get current AI provider name for UI
-    public string GetCurrentAIProviderName()
-    {
-        return narrativeService.GetCurrentProviderName();
-    }
-
 
     private static EncounterTypes GetPresentationStyleFromBaseAction(ActionImplementation actionImplementation)
     {

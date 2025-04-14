@@ -15,7 +15,9 @@
     public ActionResultMessages GetAndClearChanges()
     {
         ActionResultMessages changes = currentChanges;
+
         currentChanges = new ActionResultMessages();
+
         return changes;
     }
 }

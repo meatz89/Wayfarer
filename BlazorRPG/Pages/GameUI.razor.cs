@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Components;
+
 namespace BlazorRPG.Pages;
 
 public partial class GameUI : ComponentBase
 {
     [Inject] private GameState GameState { get; set; }
     [Inject] private GameManager GameManager { get; set; }
+    [Inject] private MessageSystem MessageSystem { get; set; }
     public PlayerState Player => GameState.PlayerState;
 
     public List<string> ResultMessages => GetResultMessages();
@@ -48,6 +50,10 @@ public partial class GameUI : ComponentBase
     private double mouseY;
 
     private bool needsCharacterCreation = false;
+
+    private bool showActionMessage = false;
+    private string actionMessageType = "success";
+    private List<string> actionMessages = new List<string>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -158,11 +164,54 @@ public partial class GameUI : ComponentBase
         StateHasChanged();
     }
 
+    private void UseResource(ActionNames actionName)
+    {
+        GameManager.ExecuteActionByName(actionName.ToString());
+
+        // Get messages from the last action
+        DisplayActionMessages();
+
+        StateHasChanged();  // Refresh UI after action
+    }
+
+    private void DisplayActionMessages()
+    {
+        actionMessages = GetResultMessages();
+
+        if (actionMessages.Any())
+        {
+            showActionMessage = true;
+            actionMessageType = "success";  // Default to success
+
+            // Optional: Set message type based on content analysis
+            if (actionMessages.Any(m => m.Contains("not enough") || m.Contains("cannot")))
+            {
+                actionMessageType = "warning";
+            }
+
+            // Auto-dismiss after 5 seconds
+            Task.Delay(5000).ContinueWith(_ =>
+            {
+                InvokeAsync(() =>
+                {
+                    showActionMessage = false;
+                    StateHasChanged();
+                });
+            });
+        }
+    }
+
+    private void DismissActionMessage()
+    {
+        showActionMessage = false;
+    }
+
     public List<string> GetResultMessages()
     {
-        ActionResultMessages messages = GameState.Actions.LastActionResultMessages;
+        ActionResultMessages messages = MessageSystem.GetAndClearChanges();
 
         List<string> list = new();
+
         if (messages == null) return list;
 
         // Show outcomes with their previews
@@ -189,6 +238,11 @@ public partial class GameUI : ComponentBase
         }
 
         return list;
+    }
+
+    private void GetAndClearChanges()
+    {
+        throw new NotImplementedException();
     }
 
     private void HandleSpotSelection(LocationSpot locationSpot)

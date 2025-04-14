@@ -932,7 +932,7 @@ body {
 .relationship-icon, .travel-icon, .added-icon, .removed-icon {
     font-size: 1.2em;
 }
-/* Additional styles for improved visuals */
+
 .confirm-button {
     background-color: var(--moss);
 }
@@ -1000,8 +1000,6 @@ body {
     box-shadow: 0 0 5px rgba(162, 91, 15, 0.5);
 }
 
-
-/* Improve player panel layout */
 .player-archetype {
     background-color: var(--bg-card);
     border-radius: 5px;
@@ -1036,4 +1034,108 @@ body {
 
 .choice-narrative {
     margin-bottom: 1rem;
+}
+
+.resource-use-btn {
+    background-color: var(--leather);
+    color: var(--parchment);
+    border: none;
+    padding: 2px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-left: auto;
+    transition: all 0.2s ease;
+}
+
+    .resource-use-btn:hover {
+        background-color: var(--clay);
+    }
+
+    .resource-use-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+.player-resource {
+    background-color: var(--bg-card);
+    padding: 8px 12px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+    .player-resource .resource-icon {
+        width: 24px;
+        text-align: center;
+        margin-right: 8px;
+        flex-shrink: 0;
+    }
+
+    .player-resource .resource-label {
+        margin-right: 8px;
+        flex-shrink: 0;
+    }
+
+    .player-resource .resource-value {
+        margin-right: auto;
+    }
+
+.action-message {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--oak-mid);
+    border-left-width: 4px;
+    border-radius: 5px;
+    padding: 15px;
+    width: 300px;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    animation: slide-in 0.3s ease-out;
+}
+
+    .action-message.success {
+        border-left-color: var(--moss);
+    }
+
+    .action-message.warning {
+        border-left-color: var(--clay);
+    }
+
+    .action-message.danger {
+        border-left-color: var(--rust);
+    }
+
+.message-content {
+    margin-bottom: 10px;
+}
+
+.message-item {
+    margin-bottom: 5px;
+}
+
+.message-close {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+@keyframes slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }

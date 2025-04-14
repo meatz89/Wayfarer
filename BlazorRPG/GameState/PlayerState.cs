@@ -16,6 +16,7 @@
     // Resources
     public int Money { get; set; }
     public int Food { get; set; }
+    public int MedicinalHerbs { get; set; }
     public Inventory Inventory { get; set; } = new Inventory(10);
 
     // Encounter resources (reset at start of encounters)
@@ -56,13 +57,14 @@
 
     public PlayerState()
     {
-
         Background = GameRules.StandardRuleset.Background;
 
         Inventory = new Inventory(GameRules.StandardRuleset.StartingInventorySize);
         Equipment = new Equipment();
 
         Coins = GameRules.StandardRuleset.StartingCoins;
+        Food = 2;
+        MedicinalHerbs = 2;
 
         Energy = GameRules.StandardRuleset.StartingPhysicalEnergy;
         MaxEnergy = 10;
@@ -272,6 +274,51 @@
         return false;
     }
 
+    public bool ModifyFood(int amount)
+    {
+        int newFood = Math.Max(0, Food + amount);
+        if (newFood != Food)
+        {
+            Food = newFood;
+            return true;
+        }
+        return false;
+    }
+
+    public bool ModifyMedicinalHerbs(int amount)
+    {
+        int newHerbs = Math.Max(0, MedicinalHerbs + amount);
+        if (newHerbs != MedicinalHerbs)
+        {
+            MedicinalHerbs = newHerbs;
+            return true;
+        }
+        return false;
+    }
+
+    public bool ConsumeFood(int amount)
+    {
+        if (Food >= amount)
+        {
+            Food -= amount;
+            ModifyEnergy(amount * 25); // Each food unit restores 25 Energy
+            return true;
+        }
+        return false;
+    }
+
+    public bool ConsumeMedicinalHerbs(int amount)
+    {
+        if (MedicinalHerbs >= amount)
+        {
+            MedicinalHerbs -= amount;
+            ModifyHealth(amount * 15);
+            ModifyConcentration(amount * 15);
+            ModifyConfidence(amount * 15);
+            return true;
+        }
+        return false;
+    }
 
     public bool HasAchievement(AchievementTypes achievementType)
     {

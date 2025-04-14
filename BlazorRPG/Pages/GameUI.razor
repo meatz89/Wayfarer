@@ -167,6 +167,19 @@
                                 <span class="resource-icon" style="color: var(--resource-food)">🍖</span>
                                 <span class="resource-label">Food</span>
                                 <span class="resource-value">@PlayerState.Food</span>
+                                @if (PlayerState.Food > 0)
+                                {
+                                    <button class="resource-use-btn" @onclick="() => UseResource(ActionNames.ConsumeFood)">Use</button>
+                                }
+                            </div>
+                            <div class="player-resource">
+                                <span class="resource-icon" style="color: var(--resource-herbs, #606C38)">🌿</span>
+                                <span class="resource-label">Herbs</span>
+                                <span class="resource-value">@PlayerState.MedicinalHerbs</span>
+                                @if (PlayerState.MedicinalHerbs > 0)
+                                {
+                                    <button class="resource-use-btn" @onclick="() => UseResource(ActionNames.ConsumeMedicinalHerbs)">Use</button>
+                                }
                             </div>
                         </div>
 
@@ -216,5 +229,19 @@
     <div class="tooltip" style="left: @(mouseX + 10)px; top: @(mouseY + 10)px">
         <ActionPreview CurrentAction="@hoveredAction"
                        Player="@Player" />
+    </div>
+}
+
+<!-- Add this right after the game-container div -->
+@if (showActionMessage)
+{
+    <div class="action-message @(actionMessageType)">
+        <div class="message-content">
+            @foreach (var message in actionMessages)
+            {
+                <div class="message-item">@message</div>
+            }
+        </div>
+        <button class="message-close" @onclick="DismissActionMessage">✕</button>
     </div>
 }

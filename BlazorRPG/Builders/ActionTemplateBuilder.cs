@@ -73,6 +73,24 @@ public class ActionTemplateBuilder
         return this;
     }
 
+    public ActionTemplateBuilder RequiresFood(int amount)
+    {
+        if (amount < 0) return this;
+
+        requirements.Add(new FoodRequirement(amount));
+        costs.Add(new FoodOutcome(-amount));
+        return this;
+    }
+
+    public ActionTemplateBuilder RequiresMedicinalHerbs(int amount)
+    {
+        if (amount < 0) return this;
+
+        requirements.Add(new MedicinalHerbsRequirement(amount));
+        costs.Add(new MedicinalHerbOutcome(-amount));
+        return this;
+    }
+
     internal ActionTemplateBuilder AdvancesTime(int timeCost)
     {
         costs.Add(new TimeOutcome(-timeCost));
@@ -114,6 +132,7 @@ public class ActionTemplateBuilder
         this.isRepeatable = true;
         return this;
     }
+
 
     public SpotAction Build()
     {
