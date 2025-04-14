@@ -13,11 +13,11 @@
     public static EncounterTemplate TravelEncounter => new EncounterTemplate()
     {
         Name = "Travel",
-        Duration = 12,
-        MaxPressure = 40,
-        PartialThreshold = 44,
-        StandardThreshold = 48,
-        ExceptionalThreshold = 52,
+        Duration = 6,
+        MaxPressure = 20,
+        PartialThreshold = 10,
+        StandardThreshold = 16,
+        ExceptionalThreshold = 20;
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
         // For a traveler, shifting, sometimes uneasy conditions prevail.
