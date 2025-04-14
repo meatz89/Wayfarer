@@ -73,7 +73,7 @@ public class ActionTemplateBuilder
         return this;
     }
 
-    public ActionTemplateBuilder RequiresFood(int amount)
+    public ActionTemplateBuilder ExpendsFood(int amount)
     {
         if (amount < 0) return this;
 
@@ -82,7 +82,7 @@ public class ActionTemplateBuilder
         return this;
     }
 
-    public ActionTemplateBuilder RequiresMedicinalHerbs(int amount)
+    public ActionTemplateBuilder ExpendsMedicinalHerbs(int amount)
     {
         if (amount < 0) return this;
 
