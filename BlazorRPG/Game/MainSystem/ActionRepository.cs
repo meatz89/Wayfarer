@@ -41,46 +41,10 @@
         _encounterTemplates.Add(template);
     }
 
-    public string CreateActionTemplate(
-        string actionId,
-        string name,
-        string goal,
-        string complication,
-        BasicActionTypes basicActionTypes,
-        ActionTypes actionType,
-        int coinCost = 0)
+    public string AddActionTemplate(string actionId, SpotAction spotAction)
     {
-        ActionTemplateBuilder builder = new ActionTemplateBuilder();
-        if (actionType == ActionTypes.Encounter)
-        {
-
-            builder
-                .WithId(actionId)
-                .WithName(name)
-                .WithGoal(goal)
-                .WithComplication(complication)
-                .WithActionType(basicActionTypes)
-                .StartsEncounter(actionId);
-        }
-        else
-        {
-            builder
-                .WithId(actionId)
-                .WithName(actionId)
-                .WithGoal(goal)
-                .WithComplication(complication)
-                .WithActionType(basicActionTypes)
-                .ExpendsCoins(coinCost);
-        }
-
-        if (coinCost > 0)
-        {
-            builder.ExpendsCoins(coinCost);
-        }
-
-        SpotAction newTemplate = builder.Build();
-        _actionTemplates.Add(newTemplate);
-
-        return newTemplate.ActionId;
+        spotAction.ActionId = actionId;
+        _actionTemplates.Add(spotAction);
+        return spotAction.ActionId;
     }
 }

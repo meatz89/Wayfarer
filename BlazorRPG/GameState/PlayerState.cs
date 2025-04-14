@@ -46,18 +46,16 @@
 
     public Equipment Equipment { get; set; }
     public List<KnowledgePiece> Knowledge { get; set; } = new();
-    public string StartingLocation { get; set; }
     public List<string> KnownLocations { get; set; } = new();
     public HashSet<(string, BasicActionTypes)> LocationActionAvailability { get; set; } = new();
 
     public List<PlayerNegativeStatus> NegativeStatusTypes { get; set; }
     public PlayerConfidenceTypes ConfidenceType { get; set; }
     public bool IsInitialized { get; set; } = false;
-
+    public string StartingLocation { get; private set; }
 
     public PlayerState()
     {
-        StartingLocation = GameRules.StandardRuleset.StartingLocation.ToString();
 
         Background = GameRules.StandardRuleset.Background;
 
@@ -81,6 +79,12 @@
 
         NegativeStatusTypes = new();
         ConfidenceType = PlayerConfidenceTypes.Neutral;
+    }
+
+    public void SetStartingLocation(string startingLocation)
+    {
+        StartingLocation = startingLocation;
+        AddLocationKnowledge(StartingLocation);
     }
 
     public void Initialize(string playerName, ArchetypeTypes selectedArchetype)
@@ -310,11 +314,6 @@
         return true;
     }
 
-    public void SetStartingLocation(string startingLocation)
-    {
-        StartingLocation = startingLocation;
-        AddLocationKnowledge(StartingLocation);
-    }
 
     public void AddExperiencePoints(int xpBonus)
     {

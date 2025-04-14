@@ -16,9 +16,8 @@
     public List<Outcome> Energy { get; set; }
     public List<Outcome> Costs { get; set; }
     public List<Outcome> Rewards { get; set; }
-    public int CoinCost { get; set; }
     public bool IsRepeatable { get; set; }
-
+    public string LocationSpotTarget { get; set; }
 }
 
 public enum ActionTypes

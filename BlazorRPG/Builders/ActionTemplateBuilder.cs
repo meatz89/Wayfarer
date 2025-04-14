@@ -1,4 +1,6 @@
-﻿public class ActionTemplateBuilder
+﻿
+
+public class ActionTemplateBuilder
 {
     private string actionId;
     private string name;
@@ -12,6 +14,7 @@
     public bool IsEncounterAction = true;
     public string encounterTemplateName;
     private bool isRepeatable;
+    private string movesToLocationSpot;
 
     public ActionRepository ActionRepository { get; }
 
@@ -70,6 +73,42 @@
         return this;
     }
 
+    internal ActionTemplateBuilder AdvancesTime(int timeCost)
+    {
+        costs.Add(new TimeOutcome(-timeCost));
+        return this;
+    }
+
+    internal ActionTemplateBuilder RestoresConcentration(int amount)
+    {
+        rewards.Add(new ConcentrationOutcome(amount));
+        return this;
+    }
+
+    internal ActionTemplateBuilder RestoresConfidence(int amount)
+    {
+        rewards.Add(new ConfidenceOutcome(amount));
+        return this;
+    }
+
+    internal ActionTemplateBuilder RestoresHealth(int amount)
+    {
+        rewards.Add(new HealthOutcome(amount));
+        return this;
+    }
+
+    internal ActionTemplateBuilder RestoresEnergy(int amount)
+    {
+        rewards.Add(new EnergyOutcome(amount));
+        return this;
+    }
+
+    internal ActionTemplateBuilder MovesToLocationSpot(LocationNames deepForest, string locationSpot)
+    {
+        this.movesToLocationSpot = locationSpot;
+        return this;
+    }
+
     public ActionTemplateBuilder IsRepeatable()
     {
         this.isRepeatable = true;
@@ -87,8 +126,8 @@
             BasicActionType = actionType,
             ActionType = IsEncounterAction ? ActionTypes.Encounter : ActionTypes.Basic,
             EncounterId = encounterTemplateName,
-            CoinCost = 0,
-            IsRepeatable = isRepeatable
+            IsRepeatable = isRepeatable,
+            LocationSpotTarget = movesToLocationSpot
         };
     }
 

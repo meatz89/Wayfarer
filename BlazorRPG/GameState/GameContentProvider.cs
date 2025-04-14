@@ -16,7 +16,7 @@
         locations = new List<Location>
         {
             WorldLocationsContent.Village,
-            WorldLocationsContent.Forest,
+            WorldLocationsContent.DeepForest,
         };
 
         characters = new List<Character>

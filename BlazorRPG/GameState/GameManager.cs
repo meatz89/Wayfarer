@@ -512,19 +512,19 @@ public class GameManager
     {
         foreach (Outcome energyCost in action.EnergyCosts)
         {
-            energyCost.Apply(gameState.PlayerState);
+            energyCost.Apply(gameState);
             MessageSystem.AddOutcome(energyCost);
         }
 
         foreach (Outcome cost in action.Costs)
         {
-            cost.Apply(gameState.PlayerState);
+            cost.Apply(gameState);
             MessageSystem.AddOutcome(cost);
         }
 
         foreach (Outcome reward in action.Rewards)
         {
-            reward.Apply(gameState.PlayerState);
+            reward.Apply(gameState);
             MessageSystem.AddOutcome(reward);
         }
     }
@@ -532,12 +532,11 @@ public class GameManager
     public List<Location> GetPlayerKnownLocations()
     {
         List<Location> playerKnownLocations = new List<Location>();
-
         foreach (Location location in LocationSystem.GetAllLocations())
         {
-            playerKnownLocations.Add(location);
+            if(gameState.PlayerState.KnownLocations.Contains(location.Name))
+                playerKnownLocations.Add(location);
         }
-
         return playerKnownLocations;
     }
 

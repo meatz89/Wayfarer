@@ -2,11 +2,11 @@
 
 public abstract class Outcome
 {
-    public abstract void Apply(PlayerState player);
+    public abstract void Apply(GameState gameState);
     public abstract string GetDescription();
 
     // Method to preview outcome without applying it
-    public abstract string GetPreview(PlayerState player);
+    public abstract string GetPreview(GameState gameState);
 
     public override string ToString()
     {
@@ -25,14 +25,14 @@ public class ItemOutcome : Outcome
         QuantityChange = quantityChange;
     }
 
-    public override void Apply(PlayerState player)
+    public override void Apply(GameState gameState)
     {
         if (QuantityChange > 0)
         {
             // Add item(s)
             for (int i = 0; i < QuantityChange; i++)
             {
-                player.Inventory.AddItem(ItemType);
+                gameState.PlayerState.Inventory.AddItem(ItemType);
             }
         }
         else
@@ -45,7 +45,7 @@ public class ItemOutcome : Outcome
         return "Item Change";
     }
 
-    public override string GetPreview(PlayerState player)
+    public override string GetPreview(GameState gameState)
     {
         return "Item Change";
     }
@@ -62,9 +62,9 @@ public class KnowledgeOutcome : Outcome
         this.knowledgeCategory = knowledgeCategory;
     }
 
-    public override void Apply(PlayerState player)
+    public override void Apply(GameState gameState)
     {
-        player.Knowledge.Add(new KnowledgePiece(knowledgeTag, KnowledgeCategories.Commerce));
+        gameState.PlayerState.Knowledge.Add(new KnowledgePiece(knowledgeTag, KnowledgeCategories.Commerce));
     }
 
     public override string GetDescription()
@@ -72,7 +72,7 @@ public class KnowledgeOutcome : Outcome
         return "Knowledge";
     }
 
-    public override string GetPreview(PlayerState player)
+    public override string GetPreview(GameState gameState)
     {
         return "Knowledge";
     }
@@ -87,12 +87,12 @@ public class EnergyOutcome : Outcome
         Amount = count;
     }
 
-    public override void Apply(PlayerState player)
+    public override void Apply(GameState gameState)
     {
-        player.Energy = Math.Clamp(
-            player.Energy + Amount,
+        gameState.PlayerState.Energy = Math.Clamp(
+            gameState.PlayerState.Energy + Amount,
             0,
-            player.MaxEnergy);
+            gameState.PlayerState.MaxEnergy);
     }
 
     public override string GetDescription()
@@ -100,10 +100,37 @@ public class EnergyOutcome : Outcome
         return $"{(Amount >= 0 ? "+" : "")}{Amount} Energy";
     }
 
-    public override string GetPreview(PlayerState player)
+    public override string GetPreview(GameState gameState)
     {
-        int currentValue = player.Energy;
-        int newValue = Math.Clamp(currentValue + Amount, 0, player.MaxEnergy);
+        int currentValue = gameState.PlayerState.Energy;
+        int newValue = Math.Clamp(currentValue + Amount, 0, gameState.PlayerState.MaxEnergy);
+        return $"({currentValue} -> {newValue})";
+    }
+}
+
+public class TimeOutcome : Outcome
+{
+    public int hours { get; set; }
+
+    public TimeOutcome(int count)
+    {
+        hours = count;
+    }
+
+    public override void Apply(GameState gameState)
+    {
+        gameState.WorldState.AdvanceTime(hours);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(hours >= 0 ? "+" : "")}{hours} Energy";
+    }
+
+    public override string GetPreview(GameState gameState)
+    {
+        int currentValue = gameState.WorldState.CurrentTimeInHours;
+        int newValue = gameState.WorldState.CurrentTimeInHours + hours;
         return $"({currentValue} -> {newValue})";
     }
 }
@@ -117,9 +144,9 @@ public class HealthOutcome : Outcome
         Count = count;
     }
 
-    public override void Apply(PlayerState player)
+    public override void Apply(GameState gameState)
     {
-        player.ModifyHealth(Count);
+        gameState.PlayerState.ModifyHealth(Count);
     }
 
     public override string GetDescription()
@@ -127,10 +154,10 @@ public class HealthOutcome : Outcome
         return $"{(Count >= 0 ? "+" : "")}{Count} Health";
     }
 
-    public override string GetPreview(PlayerState player)
+    public override string GetPreview(GameState gameState)
     {
-        int newValue = Math.Clamp(player.Health + Count, 0, player.MaxHealth);
-        return $"({player.Health} -> {newValue})";
+        int newValue = Math.Clamp(gameState.PlayerState.Health + Count, 0, gameState.PlayerState.MaxHealth);
+        return $"({gameState.PlayerState.Health} -> {newValue})";
     }
 }
 
@@ -143,9 +170,9 @@ public class ConcentrationOutcome : Outcome
         Count = count;
     }
 
-    public override void Apply(PlayerState player)
+    public override void Apply(GameState gameState)
     {
-        player.ModifyConcentration(Count);
+        gameState.PlayerState.ModifyConcentration(Count);
     }
 
     public override string GetDescription()
@@ -153,10 +180,10 @@ public class ConcentrationOutcome : Outcome
         return $"{(Count >= 0 ? "+" : "")}{Count} Concentration";
     }
 
-    public override string GetPreview(PlayerState player)
+    public override string GetPreview(GameState gameState)
     {
-        int newValue = Math.Clamp(player.Concentration + Count, 0, player.MaxConcentration);
-        return $"({player.Concentration} -> {newValue})";
+        int newValue = Math.Clamp(gameState.PlayerState.Concentration + Count, 0, gameState.PlayerState.MaxConcentration);
+        return $"({gameState.PlayerState.Concentration} -> {newValue})";
     }
 }
 
@@ -169,9 +196,9 @@ public class ConfidenceOutcome : Outcome
         Count = count;
     }
 
-    public override void Apply(PlayerState player)
+    public override void Apply(GameState gameState)
     {
-        player.ModifyConfidence(Count);
+        gameState.PlayerState.ModifyConfidence(Count);
     }
 
     public override string GetDescription()
@@ -179,10 +206,10 @@ public class ConfidenceOutcome : Outcome
         return $"{(Count >= 0 ? "+" : "")}{Count} Confidence";
     }
 
-    public override string GetPreview(PlayerState player)
+    public override string GetPreview(GameState gameState)
     {
-        int newValue = Math.Clamp(player.Confidence + Count, 0, player.MaxConfidence);
-        return $"({player.Confidence} -> {newValue})";
+        int newValue = Math.Clamp(gameState.PlayerState.Confidence + Count, 0, gameState.PlayerState.MaxConfidence);
+        return $"({gameState.PlayerState.Confidence} -> {newValue})";
     }
 }
 
@@ -195,9 +222,9 @@ public class CoinsOutcome : Outcome
         Amount = count;
     }
 
-    public override void Apply(PlayerState player)
+    public override void Apply(GameState gameState)
     {
-        player.AddCoins(Amount);
+        gameState.PlayerState.AddCoins(Amount);
     }
 
     public override string GetDescription()
@@ -205,11 +232,11 @@ public class CoinsOutcome : Outcome
         return $"{(Amount >= 0 ? "+" : "")}{Amount} Coins";
     }
 
-    public override string GetPreview(PlayerState player)
+    public override string GetPreview(GameState gameState)
     {
         // Coins can't go below 0
-        int newValue = Math.Max(0, player.Coins + Amount);
-        return $"({player.Coins} -> {newValue})";
+        int newValue = Math.Max(0, gameState.PlayerState.Coins + Amount);
+        return $"({gameState.PlayerState.Coins} -> {newValue})";
     }
 }
 
@@ -226,9 +253,9 @@ public class ResourceOutcome : Outcome
         ChangeType = count >= 0 ? ResourceChangeTypes.Added : ResourceChangeTypes.Removed;
     }
 
-    public override void Apply(PlayerState player)
+    public override void Apply(GameState gameState)
     {
-        player.ModifyResource(ChangeType, ResourceType, Amount);
+        gameState.PlayerState.ModifyResource(ChangeType, ResourceType, Amount);
     }
 
     public override string GetDescription()
@@ -237,9 +264,9 @@ public class ResourceOutcome : Outcome
         return $"{action} {Amount} {ResourceType}";
     }
 
-    public override string GetPreview(PlayerState player)
+    public override string GetPreview(GameState gameState)
     {
-        int current = player.Inventory.GetItemCount(ResourceType.ToString());
+        int current = gameState.PlayerState.Inventory.GetItemCount(ResourceType.ToString());
         int change = ChangeType == ResourceChangeTypes.Added ? Amount : -Amount;
         int newValue = Math.Max(0, current + change);
         return $"({current} -> {newValue})";
@@ -255,9 +282,9 @@ public class AchievementOutcome : Outcome
         AchievementType = type;
     }
 
-    public override void Apply(PlayerState player)
+    public override void Apply(GameState gameState)
     {
-        player.UnlockAchievement(AchievementType);
+        gameState.PlayerState.UnlockAchievement(AchievementType);
     }
 
     public override string GetDescription()
@@ -265,16 +292,16 @@ public class AchievementOutcome : Outcome
         return $"Achievement: {AchievementType}";
     }
 
-    public override string GetPreview(PlayerState player)
+    public override string GetPreview(GameState gameState)
     {
-        bool hasAchievement = player.HasAchievement(AchievementType);
+        bool hasAchievement = gameState.PlayerState.HasAchievement(AchievementType);
         return hasAchievement ? "(Already Unlocked)" : "(Will Unlock)";
     }
 }
 
 public class DayChangeOutcome : Outcome
 {
-    public override void Apply(PlayerState player)
+    public override void Apply(GameState gameState)
     {
         // This outcome is just a marker - it doesn't actually do anything
         // The GameManager will see this outcome and handle day change effects
@@ -285,7 +312,7 @@ public class DayChangeOutcome : Outcome
         return "End the day";
     }
 
-    public override string GetPreview(PlayerState player)
+    public override string GetPreview(GameState gameState)
     {
         return "(Time will advance to morning)";
     }

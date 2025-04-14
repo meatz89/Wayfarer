@@ -1,16 +1,26 @@
 ﻿public enum ActionNames
 {
-    None,
+    // Basic actions
+    Rest,
+    RestProperly,
+    DrinkWater,
+    FollowStream,
+    ObserveArea,
 
-    // Village actions
-    MarketPurchasing,
+    // Encounter actions
+    ForageForFood,
+    SearchSurroundings,
+    GatherHerbs,
+    ClimbTree,
+    SurveyArea,
+    MoveStealthily,
+    ForceThrough,
+    FindNaturalPath,
+    FindPathOut
+}
 
-    // Forest actions
-    DirectPath,
-    WindingRoad,
-
-    // Tavern actions
-    RentRoom,
-    FindQuests,
-    Travel,
+public enum LocationNames
+{
+    DeepForest,
+    Village
 }

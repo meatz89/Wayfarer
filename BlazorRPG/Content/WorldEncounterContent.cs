@@ -4,261 +4,165 @@
     {
         List<EncounterTemplate> encounterTemplates = new()
         {
-            TravelEncounter,
+            ForageForFoodEncounter,
+            SearchSurroundingsEncounter,
+            GatherHerbsEncounter,
+            FindPathOutEncounter,
+            ClimbTreeEncounter,
+            MoveStealthilyEncounter,
         };
 
         return encounterTemplates;
     }
 
-    public static EncounterTemplate TravelEncounter => new EncounterTemplate()
+    // Basic resource gathering encounter
+    public static EncounterTemplate ForageForFoodEncounter => new EncounterTemplate()
     {
-        Name = "Travel",
-        Duration = 6,
-        MaxPressure = 20,
-        PartialThreshold = 10,
-        StandardThreshold = 16,
-        ExceptionalThreshold = 20,
-        Hostility = EncounterInfo.HostilityLevels.Neutral,
-
-        // For a traveler, shifting, sometimes uneasy conditions prevail.
-        EncounterNarrativeTags = new List<NarrativeTag>
-        {
-            NarrativeTagRepository.DistractingCommotion,  // Disrupts mental clarity (+1 Information)
-            NarrativeTagRepository.UnsteadyConditions,      // Rough physical conditions (+1 Physical)
-            NarrativeTagRepository.StrainedInteraction      // Social exchanges become less fluid (+1 Relationship)
-        },
-
-        encounterStrategicTags = new List<EnvironmentPropertyTag>
-        {
-            new EnvironmentPropertyTag("Changing Light", Illumination.Bright),
-            new EnvironmentPropertyTag("Open Road", Population.Quiet),
-            new EnvironmentPropertyTag("Varied Terrain", Physical.Hazardous)
-        }
-    };
-
-    public static EncounterTemplate HermitEncounter => new EncounterTemplate()
-    {
-        Name = "Hermit Encounter",
+        Name = "ForageForFood",
         Duration = 4,
-        MaxPressure = 10,
-        PartialThreshold = 10,
-        StandardThreshold = 14,
-        ExceptionalThreshold = 18,
-        Hostility = EncounterInfo.HostilityLevels.Neutral,
-
-        // A solitary hermit's mindset brings clarity and calm order.
-        EncounterNarrativeTags = new List<NarrativeTag>
-        {
-            NarrativeTagRepository.LucidConcentration,  // Clear, focused mind (-2 Information)
-            NarrativeTagRepository.HarmoniousOrder       // Order and quiet ease environmental demands (-1 Environment)
-        },
-
-        encounterStrategicTags = new List<EnvironmentPropertyTag>
-        {
-            new EnvironmentPropertyTag("Gentle Glow", Illumination.Bright),
-            new EnvironmentPropertyTag("Quiet Study", Population.Scholarly),
-            new EnvironmentPropertyTag("Calm Expanse", Atmosphere.Formal)
-        }
-    };
-
-    public static EncounterTemplate BanditEncounter => new EncounterTemplate()
-    {
-        Name = "Bandit Ambush",
-        Duration = 4,
-        MaxPressure = 13,
-        PartialThreshold = 10,
-        StandardThreshold = 12,
-        ExceptionalThreshold = 14,
-        Hostility = EncounterInfo.HostilityLevels.Hostile,
-
-        // Bandit encounters are marked by hostile and chaotic conditions.
-        EncounterNarrativeTags = new List<NarrativeTag>
-        {
-            NarrativeTagRepository.StrainedInteraction, // Social tension complicates communication (+1 Relationship)
-            NarrativeTagRepository.UnsteadyConditions,     // Rough, unpredictable physical conditions (+1 Physical)
-            NarrativeTagRepository.DisorderedAmbience      // Chaotic environment increases perceptive demands (+2 Environment)
-        },
-
-        encounterStrategicTags = new List<EnvironmentPropertyTag>
-        {
-            new EnvironmentPropertyTag("Dappled Shadows", Illumination.Shadowy),
-            new EnvironmentPropertyTag("Hidden Paths", Population.Scholarly),
-            new EnvironmentPropertyTag("Rocky Ground", Physical.Hazardous)
-        }
-    };
-
-    public static EncounterTemplate HuntingEncounter => new EncounterTemplate()
-    {
-        Name = "Hunting",
-        Duration = 5,
         MaxPressure = 12,
-        PartialThreshold = 10,
-        StandardThreshold = 14,
-        ExceptionalThreshold = 18,
+        PartialThreshold = 8,   // 1 Food
+        StandardThreshold = 12, // 3 Food
+        ExceptionalThreshold = 16, // 6 Food
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
-        // In the hunt, calm focus and smooth physical coordination are essential.
         EncounterNarrativeTags = new List<NarrativeTag>
         {
-            NarrativeTagRepository.LucidConcentration,  // Heightened mental clarity (-2 Information)
-            NarrativeTagRepository.FluidMovement          // Ease in physical motion (-1 Physical)
+            NarrativeTagRepository.DistractingCommotion,
+            NarrativeTagRepository.UnsteadyConditions
         },
 
         encounterStrategicTags = new List<EnvironmentPropertyTag>
         {
-            new EnvironmentPropertyTag("Subdued Twilight", Illumination.Shadowy),
-            new EnvironmentPropertyTag("Stealthy Assembly", Population.Quiet),
-            new EnvironmentPropertyTag("Expansive Wilds", Physical.Expansive)
+            new EnvironmentPropertyTag("Forest Light", Illumination.Shadowy),
+            new EnvironmentPropertyTag("Wildlife Presence", Population.Quiet),
+            new EnvironmentPropertyTag("Uneven Ground", Physical.Hazardous)
         }
     };
 
-    public static EncounterTemplate HerbalismEncounter => new EncounterTemplate()
+    // Exploration encounter
+    public static EncounterTemplate SearchSurroundingsEncounter => new EncounterTemplate()
     {
-        Name = "Herbalism",
-        Duration = 4,
-        MaxPressure = 10,
-        PartialThreshold = 8,
-        StandardThreshold = 12,
-        ExceptionalThreshold = 16,
-        Hostility = EncounterInfo.HostilityLevels.Friendly,
-
-        // The practice of herbalism benefits from mental clarity and an ease in resource handling.
-        EncounterNarrativeTags = new List<NarrativeTag>
-        {
-            NarrativeTagRepository.LucidConcentration,  // Focus on subtle details (-2 Information)
-            NarrativeTagRepository.PlentifulProvisions      // An impression of abundance eases resource tasks (-1 Resource)
-        },
-
-        encounterStrategicTags = new List<EnvironmentPropertyTag>
-        {
-            new EnvironmentPropertyTag("Filtered Sunlight", Illumination.Shadowy),
-            new EnvironmentPropertyTag("Ancient Lore", Population.Scholarly),
-            new EnvironmentPropertyTag("Nature's Order", Atmosphere.Formal)
-        }
-    };
-
-    public static EncounterTemplate TavernGossipEncounter => new EncounterTemplate()
-    {
-        Name = "Tavern Gossip",
-        Duration = 4,
-        MaxPressure = 10,
-        PartialThreshold = 8,
-        StandardThreshold = 12,
-        ExceptionalThreshold = 16,
-        Hostility = EncounterInfo.HostilityLevels.Friendly,
-
-        // In a lively tavern, friendly banter mixes with a disruptive ambience.
-        EncounterNarrativeTags = new List<NarrativeTag>
-        {
-            NarrativeTagRepository.AffableManner,       // Warm and easy social atmosphere (-1 Relationship)
-            NarrativeTagRepository.DisorderedAmbience     // Chaotic surroundings increase perceptive demands (+2 Environment)
-        },
-
-        encounterStrategicTags = new List<EnvironmentPropertyTag>
-        {
-            new EnvironmentPropertyTag("Mellow Glow", Illumination.Shadowy),
-            new EnvironmentPropertyTag("Bustling Crowd", Population.Crowded),
-            new EnvironmentPropertyTag("Rowdy Air", Atmosphere.Chaotic)
-        }
-    };
-
-    public static EncounterTemplate InnRoomEncounter => new EncounterTemplate()
-    {
-        Name = "Inn Room",
+        Name = "SearchSurroundings",
         Duration = 3,
-        MaxPressure = 8,
+        MaxPressure = 10,
         PartialThreshold = 6,
         StandardThreshold = 10,
         ExceptionalThreshold = 14,
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
-        // A private inn room offers a mix of quiet focus and underlying tension.
         EncounterNarrativeTags = new List<NarrativeTag>
         {
-            NarrativeTagRepository.LucidConcentration,  // Enhances detailed focus (-2 Information)
-            NarrativeTagRepository.UnsteadyConditions       // Underlying anxiety increases physical demands (+1 Physical)
+            NarrativeTagRepository.DisorderedAmbience
+        },
+
+        encounterStrategicTags = new List<EnvironmentPropertyTag>
+        {
+            new EnvironmentPropertyTag("Filtered Light", Illumination.Shadowy),
+            new EnvironmentPropertyTag("Isolated Area", Population.Quiet),
+            new EnvironmentPropertyTag("Wilderness", Physical.Expansive)
+        }
+    };
+
+    // Medicinal herb gathering encounter
+    public static EncounterTemplate GatherHerbsEncounter => new EncounterTemplate()
+    {
+        Name = "GatherHerbs",
+        Duration = 4,
+        MaxPressure = 12,
+        PartialThreshold = 8,   // 1 Herb
+        StandardThreshold = 12, // 3 Herbs
+        ExceptionalThreshold = 16, // 6 Herbs
+        Hostility = EncounterInfo.HostilityLevels.Friendly,
+
+        EncounterNarrativeTags = new List<NarrativeTag>
+        {
+            NarrativeTagRepository.LucidConcentration,
+            NarrativeTagRepository.UnsteadyConditions
+        },
+
+        encounterStrategicTags = new List<EnvironmentPropertyTag>
+        {
+            new EnvironmentPropertyTag("Dappled Sunlight", Illumination.Shadowy),
+            new EnvironmentPropertyTag("Nature's Quiet", Population.Quiet),
+            new EnvironmentPropertyTag("Varied Terrain", Physical.Hazardous)
+        }
+    };
+
+    // Tree climbing vantage point encounter
+    public static EncounterTemplate ClimbTreeEncounter => new EncounterTemplate()
+    {
+        Name = "ClimbTree",
+        Duration = 3,
+        MaxPressure = 14,
+        PartialThreshold = 10,
+        StandardThreshold = 14,
+        ExceptionalThreshold = 18,
+        Hostility = EncounterInfo.HostilityLevels.Neutral,
+
+        EncounterNarrativeTags = new List<NarrativeTag>
+        {
+            NarrativeTagRepository.UnsteadyConditions,
+            NarrativeTagRepository.HarmoniousOrder
+        },
+
+        encounterStrategicTags = new List<EnvironmentPropertyTag>
+        {
+            new EnvironmentPropertyTag("Canopy Light", Illumination.Shadowy),
+            new EnvironmentPropertyTag("Solitary Climb", Population.Quiet),
+            new EnvironmentPropertyTag("Vertical Challenge", Physical.Hazardous)
+        }
+    };
+
+    // Stealth movement encounter
+    public static EncounterTemplate MoveStealthilyEncounter => new EncounterTemplate()
+    {
+        Name = "MoveStealthily",
+        Duration = 4,
+        MaxPressure = 12,
+        PartialThreshold = 8,
+        StandardThreshold = 12,
+        ExceptionalThreshold = 16,
+        Hostility = EncounterInfo.HostilityLevels.Neutral,
+
+        EncounterNarrativeTags = new List<NarrativeTag>
+        {
+            NarrativeTagRepository.FluidMovement,
+            NarrativeTagRepository.DisorderedAmbience
         },
 
         encounterStrategicTags = new List<EnvironmentPropertyTag>
         {
             new EnvironmentPropertyTag("Deep Shadows", Illumination.Dark),
-            new EnvironmentPropertyTag("Quiet Nook", Population.Scholarly),
-            new EnvironmentPropertyTag("Cozy Quarters", Physical.Confined)
+            new EnvironmentPropertyTag("Hidden Movement", Population.Quiet),
+            new EnvironmentPropertyTag("Forest Obstacles", Physical.Confined)
         }
     };
 
-    public static EncounterTemplate QuestBoardEncounter => new EncounterTemplate()
+    // Final "boss" encounter
+    public static EncounterTemplate FindPathOutEncounter => new EncounterTemplate()
     {
-        Name = "Quest Board",
-        Duration = 4,
-        MaxPressure = 8,
-        PartialThreshold = 8,
-        StandardThreshold = 12,
-        ExceptionalThreshold = 16,
-        Hostility = EncounterInfo.HostilityLevels.Friendly,
-
-        // The quest board is a hub of competing information and social demands.
-        EncounterNarrativeTags = new List<NarrativeTag>
-        {
-            NarrativeTagRepository.DistractingCommotion,  // Competing chatter disrupts focus (+1 Information)
-            NarrativeTagRepository.StrainedInteraction      // The social scene complicates connection (+1 Relationship)
-        },
-
-        encounterStrategicTags = new List<EnvironmentPropertyTag>
-        {
-            new EnvironmentPropertyTag("Faint Glow", Illumination.Shadowy),
-            new EnvironmentPropertyTag("Busy Posting", Population.Crowded),
-            new EnvironmentPropertyTag("Narrow Wall", Physical.Confined)
-        }
-    };
-
-    public static EncounterTemplate InformantEncounter => new EncounterTemplate()
-    {
-        Name = "Informant",
-        Duration = 5,
-        MaxPressure = 12,
-        PartialThreshold = 10,
-        StandardThreshold = 14,
-        ExceptionalThreshold = 18,
+        Name = "FindPathOut",
+        Duration = 6,
+        MaxPressure = 18,
+        PartialThreshold = 12,
+        StandardThreshold = 18,
+        ExceptionalThreshold = 24,
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
-        // Interactions with informants require clear perception and wary social exchanges.
         EncounterNarrativeTags = new List<NarrativeTag>
         {
-            NarrativeTagRepository.LucidConcentration,   // Clear, discerning mind (-2 Information)
-            NarrativeTagRepository.StrainedInteraction     // A guarded social dynamic complicates trust (+1 Relationship)
+            NarrativeTagRepository.DistractingCommotion,
+            NarrativeTagRepository.DisorderedAmbience,
+            NarrativeTagRepository.UnsteadyConditions
         },
 
         encounterStrategicTags = new List<EnvironmentPropertyTag>
         {
-            new EnvironmentPropertyTag("Muted Shadows", Illumination.Dark),
-            new EnvironmentPropertyTag("Quiet Confab", Population.Scholarly),
-            new EnvironmentPropertyTag("Small Backroom", Physical.Confined)
-        }
-    };
-
-    public static EncounterTemplate MerchantEncounter => new EncounterTemplate()
-    {
-        Name = "Merchant",
-        Duration = 5,
-        MaxPressure = 10,
-        PartialThreshold = 10,
-        StandardThreshold = 14,
-        ExceptionalThreshold = 18,
-        Hostility = EncounterInfo.HostilityLevels.Neutral,
-
-        // Merchant interactions benefit from charm and a sense of abundance.
-        EncounterNarrativeTags = new List<NarrativeTag>
-        {
-            NarrativeTagRepository.AffableManner,         // Easy, congenial social atmosphere (-1 Relationship)
-            NarrativeTagRepository.PlentifulProvisions      // An impression of abundance eases trade (-1 Resource)
-        },
-
-        encounterStrategicTags = new List<EnvironmentPropertyTag>
-        {
-            new EnvironmentPropertyTag("Vivid Light", Illumination.Bright),
-            new EnvironmentPropertyTag("Lively Crowd", Population.Crowded),
-            new EnvironmentPropertyTag("Dynamic Exchange", Atmosphere.Chaotic)
+            new EnvironmentPropertyTag("Fading Light", Illumination.Shadowy),
+            new EnvironmentPropertyTag("Wilderness Edge", Population.Quiet),
+            new EnvironmentPropertyTag("Challenging Terrain", Physical.Hazardous),
+            new EnvironmentPropertyTag("Mounting Pressure", Atmosphere.Rough)
         }
     };
 }
