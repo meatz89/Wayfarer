@@ -17,7 +17,7 @@
         MaxPressure = 20,
         PartialThreshold = 10,
         StandardThreshold = 16,
-        ExceptionalThreshold = 20;
+        ExceptionalThreshold = 20,
         Hostility = EncounterInfo.HostilityLevels.Neutral,
 
         // For a traveler, shifting, sometimes uneasy conditions prevail.
