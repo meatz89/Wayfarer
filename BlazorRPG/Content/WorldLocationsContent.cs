@@ -13,6 +13,8 @@
              .WithPopulation(Population.Quiet)
              .WithPhysical(Physical.Expansive)
              .AddAction(ActionNames.Rest)
+             .AddAction(ActionNames.ConsumeFood) // Add consume food action
+             .AddAction(ActionNames.ConsumeMedicinalHerbs) // Add consume herbs action
              .AddAction(ActionNames.ForageForFood)
              .AddAction(ActionNames.SearchSurroundings))
          .AddLocationSpot(spot => spot

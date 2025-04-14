@@ -1,6 +1,4 @@
-﻿using System.Xml.Schema;
-
-public abstract class Outcome
+﻿public abstract class Outcome
 {
     public abstract void Apply(GameState gameState);
     public abstract string GetDescription();
@@ -11,6 +9,58 @@ public abstract class Outcome
     public override string ToString()
     {
         return GetDescription();
+    }
+}
+
+public class FoodOutcome : Outcome
+{
+    public int Amount { get; }
+
+    public FoodOutcome(int amount)
+    {
+        Amount = amount;
+    }
+
+    public override void Apply(GameState gameState)
+    {
+        gameState.PlayerState.ModifyFood(Amount);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(Amount >= 0 ? "+" : "")}{Amount} Food";
+    }
+
+    public override string GetPreview(GameState gameState)
+    {
+        int newValue = Math.Max(0, gameState.PlayerState.Food + Amount);
+        return $"({gameState.PlayerState.Food} -> {newValue})";
+    }
+}
+
+public class MedicinalHerbOutcome : Outcome
+{
+    public int Amount { get; }
+
+    public MedicinalHerbOutcome(int amount)
+    {
+        Amount = amount;
+    }
+
+    public override void Apply(GameState gameState)
+    {
+        gameState.PlayerState.ModifyMedicinalHerbs(Amount);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(Amount >= 0 ? "+" : "")}{Amount} Medicinal Herbs";
+    }
+
+    public override string GetPreview(GameState gameState)
+    {
+        int newValue = Math.Max(0, gameState.PlayerState.MedicinalHerbs + Amount);
+        return $"({gameState.PlayerState.MedicinalHerbs} -> {newValue})";
     }
 }
 

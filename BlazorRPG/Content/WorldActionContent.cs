@@ -25,6 +25,40 @@
             .IsRepeatable()
             .Build());
 
+        // Add consume food action
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName(ActionNames.ConsumeFood.ToString())
+            .WithGoal("eat food to restore energy")
+            .WithActionType(BasicActionTypes.Consume)
+            .AdvancesTime(1) // 1 hour
+            .RequiresFood(1)
+            .RestoresEnergy(25) // Each food unit restores 25 Energy
+            .IsRepeatable()
+            .Build());
+
+        // Add consume medicinal herbs action
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName(ActionNames.ConsumeMedicinalHerbs.ToString())
+            .WithGoal("use medicinal herbs to restore health, concentration, and confidence")
+            .WithActionType(BasicActionTypes.Consume)
+            .AdvancesTime(1) // 1 hour
+            .RequiresMedicinalHerbs(1)
+            .RestoresHealth(15)
+            .RestoresConcentration(15)
+            .RestoresConfidence(15)
+            .IsRepeatable()
+            .Build());
+
+        // Original tutorial actions
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName(ActionNames.ForageForFood.ToString())
+            .WithGoal("search for edible berries and roots")
+            .WithComplication("some similar-looking plants are poisonous")
+            .WithActionType(BasicActionTypes.Forage)
+            .StartsEncounter("ForageForFood")
+            .AdvancesTime(2)
+            .Build());
+
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName(ActionNames.RestProperly.ToString())
             .WithGoal("rest fully to recover all energy")

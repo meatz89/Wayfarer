@@ -24,6 +24,46 @@ public class EnergyRequirement : Requirement
     }
 }
 
+public class FoodRequirement : Requirement
+{
+    public int Amount { get; set; }
+
+    public FoodRequirement(int count)
+    {
+        Amount = count;
+    }
+
+    public override bool IsSatisfied(GameState gameState)
+    {
+        return gameState.PlayerState.Food >= Amount;
+    }
+
+    public override string GetDescription()
+    {
+        return $"Food Required: {Amount}";
+    }
+}
+
+public class MedicinalHerbsRequirement : Requirement
+{
+    public int Amount { get; set; }
+
+    public MedicinalHerbsRequirement(int count)
+    {
+        Amount = count;
+    }
+
+    public override bool IsSatisfied(GameState gameState)
+    {
+        return gameState.PlayerState.MedicinalHerbs >= Amount;
+    }
+
+    public override string GetDescription()
+    {
+        return $"Medicinal Herbs Required: {Amount}";
+    }
+}
+
 public class HealthRequirement : Requirement
 {
     public int Count { get; }
