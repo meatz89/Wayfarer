@@ -22,7 +22,7 @@
             .WithActionType(BasicActionTypes.Rest)
             .AdvancesTime(2) // 2 hours
             .RestoresEnergy(20)
-            .IsRepeatable()
+            .IsRepeatableAction()
             .Build());
 
         // Add consume food action
@@ -33,7 +33,7 @@
             .AdvancesTime(1) // 1 hour
             .ExpendsFood(1)
             .RestoresEnergy(25) // Each food unit restores 25 Energy
-            .IsRepeatable()
+            .IsRepeatableAction()
             .Build());
 
         // Add consume medicinal herbs action
@@ -46,7 +46,7 @@
             .RestoresHealth(15)
             .RestoresConcentration(15)
             .RestoresConfidence(15)
-            .IsRepeatable()
+            .IsRepeatableAction()
             .Build());
 
         // Original tutorial actions
@@ -65,7 +65,7 @@
             .WithActionType(BasicActionTypes.Rest)
             .AdvancesTime(4) // 4 hours
             .RestoresEnergy(100) // Full energy
-            .IsRepeatable()
+            .IsRepeatableAction()
             .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
@@ -76,7 +76,7 @@
             .RestoresHealth(10)
             .RestoresConcentration(10)
             .RestoresConfidence(10)
-            .IsRepeatable()
+            .IsRepeatableAction()
             .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
@@ -94,7 +94,7 @@
             .WithActionType(BasicActionTypes.Observe)
             .AdvancesTime(1) // 1 hour
             .ExpendsEnergy(10)
-            .IsRepeatable()
+            .IsRepeatableAction()
             .Build());
 
         // Encounter actions

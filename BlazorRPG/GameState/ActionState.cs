@@ -15,6 +15,16 @@
         return this.CurrentEncounter;
     }
 
+    public void SetGlobalActions(List<UserActionOption> actions)
+    {
+        GlobalActions = actions ?? new List<UserActionOption>();
+    }
+
+    public bool HasGlobalAction(string actionId)
+    {
+        return GlobalActions.Any(a => a.ActionId == actionId && !a.IsDisabled);
+    }
+
     public void CompleteActiveEncounter()
     {
         IsActiveEncounter = false;
@@ -43,11 +53,6 @@
     public void ClearCurrentUserAction()
     {
         CurrentUserAction = null;
-    }
-
-    public void SetGlobalActions(List<UserActionOption> actions)
-    {
-        GlobalActions = actions;
     }
 
     public void SetLocationSpotActions(List<UserActionOption> actions)

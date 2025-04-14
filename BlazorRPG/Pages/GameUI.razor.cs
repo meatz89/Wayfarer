@@ -117,12 +117,14 @@ public partial class GameUI : ComponentBase
         if (action.IsDisabled) return;
 
         GameManager.ExecuteBasicAction(action);
-        OngoingEncounter = GameState.Actions.IsActiveEncounter;
 
+        OngoingEncounter = GameState.Actions.IsActiveEncounter;
         if (!OngoingEncounter)
         {
             CompleteActionExecution();
         }
+
+        DisplayActionMessages();
     }
 
     private void CompleteActionExecution()
@@ -130,12 +132,17 @@ public partial class GameUI : ComponentBase
         GameManager.UpdateState();
     }
 
-    private void UseResource(ActionNames actionName)
+    private async Task UseResource(ActionNames actionName)
     {
+        UserActionOption globalAction = GameState.Actions.GlobalActions
+            .FirstOrDefault(a => a.ActionId == actionName.ToString());
+
+        if (globalAction != null && !globalAction.IsDisabled)
+        {
             await GameManager.ExecuteBasicAction(globalAction);
         }
 
-        DisplayActionMessages();
+        DisplayActionMessages(); 
         StateHasChanged();
     }
 
@@ -146,6 +153,7 @@ public partial class GameUI : ComponentBase
             OngoingEncounter = false;
             ShowEncounterResult = true;
         }
+        DisplayActionMessages(); 
         StateHasChanged();
     }
 

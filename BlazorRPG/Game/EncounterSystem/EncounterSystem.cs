@@ -273,6 +273,14 @@
             BasicActionTypes.Discuss => EncounterTypes.Social,
             BasicActionTypes.Persuade => EncounterTypes.Social,
             BasicActionTypes.Perform => EncounterTypes.Social,
+
+            BasicActionTypes.Consume => EncounterTypes.Physical,
+            BasicActionTypes.Observe => EncounterTypes.Intellectual,
+            BasicActionTypes.Forage => EncounterTypes.Intellectual,
+            BasicActionTypes.Explore => EncounterTypes.Intellectual,
+            BasicActionTypes.Climb => EncounterTypes.Physical,
+
+            _ => EncounterTypes.Physical,
         };
         return encounterTypes;
     }
