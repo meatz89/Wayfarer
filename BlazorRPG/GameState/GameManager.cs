@@ -165,7 +165,7 @@ public class GameManager
         bool startEncounter = actionImplementation.ActionType == ActionTypes.Encounter;
         if (!startEncounter)
         {
-            ApplyActionOutcomes(actionImplementation);
+            ExecuteActionByName(action.ActionName);
 
             if (gameState.PendingTravel.IsTravelPending)
             {
@@ -347,13 +347,6 @@ public class GameManager
     {
         List<UserActionOption> options = new List<UserActionOption>();
 
-        // Ensure we have a current location spot
-        if (gameState.WorldState.CurrentLocationSpot == null && travelLocation.LocationSpots?.Any() == true)
-        {
-            Console.WriteLine($"Setting location spot to {travelLocation.LocationSpots.First().Name} in OnPlayerEnterLocation");
-            gameState.WorldState.SetCurrentLocationSpot(travelLocation.LocationSpots.First());
-        }
-
         List<LocationSpot> locationSpots = travelLocation.LocationSpots;
         Console.WriteLine($"Location {travelLocation.Name} has {locationSpots?.Count ?? 0} spots");
 
@@ -503,14 +496,6 @@ public class GameManager
         return isGameOver;
     }
 
-    public void CreateGlobalActions()
-    {
-        List<UserActionOption> userActions = new List<UserActionOption>();
-        int actionIndex = 1;
-
-        gameState.Actions.SetGlobalActions(userActions);
-    }
-
     public void ApplyActionOutcomes(ActionImplementation action)
     {
         foreach (Outcome energyCost in action.EnergyCosts)
@@ -624,6 +609,11 @@ public class GameManager
     public void UpdateState()
     {
         gameState.Actions.ClearCurrentUserAction();
+
+        // Create global actions first
+        CreateGlobalActions();
+
+        // Then update other available actions
         UpdateAvailableActions();
     }
 
@@ -747,6 +737,66 @@ public class GameManager
             System.Text.RegularExpressions.RegexOptions.Compiled).Trim();
     }
 
+    public void CreateGlobalActions()
+    {
+        List<UserActionOption> userActions = new List<UserActionOption>();
+        int actionIndex = 1;
+
+        // Only add food consumption if player has food
+        if (gameState.PlayerState.Food > 0)
+        {
+            SpotAction foodActionTemplate = ActionRepository.GetAction(ActionNames.ConsumeFood.ToString());
+            if (foodActionTemplate != null)
+            {
+                ActionImplementation consumeFoodAction = ActionFactory.CreateActionFromTemplate(foodActionTemplate, null);
+
+                // Check if requirements are met
+                bool requirementsMet = consumeFoodAction.CanExecute(gameState);
+
+                UserActionOption consumeFoodOption = new UserActionOption(
+                    actionIndex++,
+                    consumeFoodAction.ActionId.ToString(),
+                    consumeFoodAction.Name.ToString(),
+                    !requirementsMet, // Disabled if requirements aren't met
+                    consumeFoodAction,
+                    gameState.WorldState.CurrentLocation?.Name ?? "Global",
+                    gameState.WorldState.CurrentLocationSpot?.Name ?? "Global",
+                    null,
+                    0);
+
+                userActions.Add(consumeFoodOption);
+            }
+        }
+
+        // Only add medicinal herbs consumption if player has herbs
+        if (gameState.PlayerState.MedicinalHerbs > 0)
+        {
+            SpotAction herbsActionTemplate = ActionRepository.GetAction(ActionNames.ConsumeMedicinalHerbs.ToString());
+            if (herbsActionTemplate != null)
+            {
+                ActionImplementation consumeHerbsAction = ActionFactory.CreateActionFromTemplate(herbsActionTemplate, null);
+
+                // Check if requirements are met
+                bool requirementsMet = consumeHerbsAction.CanExecute(gameState);
+
+                UserActionOption consumeHerbsOption = new UserActionOption(
+                    actionIndex++,
+                    consumeHerbsAction.ActionId.ToString(),
+                    consumeHerbsAction.Name.ToString(),
+                    !requirementsMet, // Disabled if requirements aren't met
+                    consumeHerbsAction,
+                    gameState.WorldState.CurrentLocation?.Name ?? "Global",
+                    gameState.WorldState.CurrentLocationSpot?.Name ?? "Global",
+                    null,
+                    0);
+
+                userActions.Add(consumeHerbsOption);
+            }
+        }
+
+        gameState.Actions.SetGlobalActions(userActions);
+    }
+
     public void ExecuteActionByName(string actionName)
     {
         // Get action template from repository
@@ -757,21 +807,25 @@ public class GameManager
             return;
         }
 
-        // Create action implementation
-        EncounterTemplate encounterTemplate = null;
-        if (actionTemplate.ActionType == ActionTypes.Encounter)
+        // Check requirements
+        ActionImplementation action = ActionFactory.CreateActionFromTemplate(
+            actionTemplate,
+            actionTemplate.ActionType == ActionTypes.Encounter ?
+                ActionRepository.GetEncounterTemplate(actionTemplate.EncounterId) : null);
+
+        if (!action.CanExecute(gameState))
         {
-            encounterTemplate = ActionRepository.GetEncounterTemplate(actionTemplate.EncounterId);
+            Console.WriteLine($"Requirements not met for action: {actionName}");
+            return;
         }
-
-        ActionImplementation action = ActionFactory.CreateActionFromTemplate(actionTemplate, encounterTemplate);
-
-        // Skip implementing requirements check - if the button is visible, the requirement is met
 
         // Apply the outcomes directly
         ApplyActionOutcomes(action);
 
         // Update state
         UpdateState();
+
+        // Log action execution
+        Console.WriteLine($"Executed action by name: {actionName}");
     }
 }

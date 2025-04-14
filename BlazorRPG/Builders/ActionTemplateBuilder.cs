@@ -127,15 +127,17 @@ public class ActionTemplateBuilder
         return this;
     }
 
-    public ActionTemplateBuilder IsRepeatable()
+    public ActionTemplateBuilder IsRepeatableAction()
     {
         this.isRepeatable = true;
         return this;
     }
 
-
     public SpotAction Build()
     {
+        var isEncounter = !isRepeatable;
+
+
         return new SpotAction()
         {
             ActionId = actionId,
@@ -143,11 +145,11 @@ public class ActionTemplateBuilder
             Goal = goal,
             Complication = complication,
             BasicActionType = actionType,
-            ActionType = IsEncounterAction ? ActionTypes.Encounter : ActionTypes.Basic,
-            EncounterId = encounterTemplateName,
+            LocationSpotTarget = movesToLocationSpot,
+          
+            ActionType = isEncounter ? ActionTypes.Encounter : ActionTypes.Basic,
+            EncounterId = isEncounter ? encounterTemplateName : string.Empty,
             IsRepeatable = isRepeatable,
-            LocationSpotTarget = movesToLocationSpot
         };
     }
-
 }

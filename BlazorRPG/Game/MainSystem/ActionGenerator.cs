@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-public class ActionGenerator
+﻿public class ActionGenerator
 {
     private readonly NarrativeService _narrativeService;
     private readonly ActionRepository _repository;
@@ -97,32 +95,6 @@ public class ActionGenerator
         };
 
         return template;
-    }
-
-    private ApproachTags ParseApproachTag(string approach)
-    {
-        return approach switch
-        {
-            "Dominance" => ApproachTags.Dominance,
-            "Rapport" => ApproachTags.Rapport,
-            "Analysis" => ApproachTags.Analysis,
-            "Precision" => ApproachTags.Precision,
-            "Concealment" => ApproachTags.Concealment,
-            _ => ApproachTags.Analysis // Default
-        };
-    }
-
-    private FocusTags ParseFocusTag(string focus)
-    {
-        return focus switch
-        {
-            "Relationship" => FocusTags.Relationship,
-            "Information" => FocusTags.Information,
-            "Physical" => FocusTags.Physical,
-            "Environment" => FocusTags.Environment,
-            "Resource" => FocusTags.Resource,
-            _ => FocusTags.Information // Default
-        };
     }
 
     private IEnvironmentalProperty ParseEnvironmentalProperty(string property)

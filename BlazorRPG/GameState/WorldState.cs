@@ -166,10 +166,13 @@
             return;
         }
 
-        // Set current spot to first spot and log
-        LocationSpot firstSpot = location.LocationSpots.FirstOrDefault();
-        SetCurrentLocationSpot(firstSpot);
-        Console.WriteLine($"Set current location spot to: {firstSpot?.Name ?? "NULL"}");
+        // Ensure we have a current location spot
+        if (location.LocationSpots?.Any() == true && (CurrentLocationSpot == null || !location.LocationSpots.Contains(CurrentLocationSpot)))
+        {
+            Console.WriteLine($"Setting location spot to {location.LocationSpots.First().Name} in OnPlayerEnterLocation");
+            SetCurrentLocationSpot(location.LocationSpots.First());
+        }
+
     }
 
     public void SetCurrentLocationSpot(LocationSpot locationSpot)
