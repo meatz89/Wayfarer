@@ -66,8 +66,11 @@ public class GameManager
     public async Task StartGame()
     {
         Location startingLocation = await LocationSystem.Initialize(GameRules.StandardRuleset.StartingLocation);
-        worldState.RecordLocationVisit(gameState.PlayerState.StartingLocation);
-        TravelManager.TravelToLocation(gameState.PlayerState.StartingLocation, TravelMethods.Walking);
+        string startingLocationName = gameState.PlayerState.StartingLocation;
+        
+        worldState.RecordLocationVisit(startingLocationName);
+        TravelManager.TravelToLocation(startingLocationName, TravelMethods.Walking);
+        await OnLocationArrival(startingLocationName);
 
         if (worldState.CurrentLocationSpot == null && worldState.CurrentLocation?.LocationSpots?.Any() == true)
         {
@@ -356,7 +359,7 @@ public class GameManager
 
         foreach (LocationSpot locationSpot in locationSpots)
         {
-            await CreateActionsForLocationSpot(options, this.location, locationSpot);
+            await CreateActionsForLocationSpot(options, travelLocation, locationSpot);
         }
 
         if (gameState.PendingTravel!.IsTravelPending)

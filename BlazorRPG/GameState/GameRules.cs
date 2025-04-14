@@ -1,4 +1,6 @@
 ﻿
+using System.Reflection.Metadata.Ecma335;
+
 public class GameRules
 {
     public static GameRules StandardRuleset = new GameRules
@@ -57,7 +59,7 @@ public class GameRules
             BasicActionTypes.Discuss => 1,
             BasicActionTypes.Persuade => 3,
             BasicActionTypes.Perform => 3,
-            _ => throw new NotImplementedException(),
+            _ => 2
         };
 
         return energycost;
