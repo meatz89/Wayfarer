@@ -31,7 +31,7 @@
             .WithGoal("eat food to restore energy")
             .WithActionType(BasicActionTypes.Consume)
             .AdvancesTime(1) // 1 hour
-            .RequiresFood(1)
+            .ExpendsFood(1)
             .RestoresEnergy(25) // Each food unit restores 25 Energy
             .IsRepeatable()
             .Build());
@@ -42,7 +42,7 @@
             .WithGoal("use medicinal herbs to restore health, concentration, and confidence")
             .WithActionType(BasicActionTypes.Consume)
             .AdvancesTime(1) // 1 hour
-            .RequiresMedicinalHerbs(1)
+            .ExpendsMedicinalHerbs(1)
             .RestoresHealth(15)
             .RestoresConcentration(15)
             .RestoresConfidence(15)

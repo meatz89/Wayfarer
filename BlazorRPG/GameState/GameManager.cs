@@ -749,14 +749,26 @@ public class GameManager
 
     public void ExecuteActionByName(string actionName)
     {
-        // Get the action template from repository
+        // Get action template from repository
         SpotAction actionTemplate = ActionRepository.GetAction(actionName);
-        if (actionTemplate == null) return;
+        if (actionTemplate == null)
+        {
+            Console.WriteLine($"Action not found: {actionName}");
+            return;
+        }
 
         // Create action implementation
-        ActionImplementation action = ActionFactory.CreateActionFromTemplate(actionTemplate, null);
+        EncounterTemplate encounterTemplate = null;
+        if (actionTemplate.ActionType == ActionTypes.Encounter)
+        {
+            encounterTemplate = ActionRepository.GetEncounterTemplate(actionTemplate.EncounterId);
+        }
 
-        // Apply the outcomes
+        ActionImplementation action = ActionFactory.CreateActionFromTemplate(actionTemplate, encounterTemplate);
+
+        // Skip implementing requirements check - if the button is visible, the requirement is met
+
+        // Apply the outcomes directly
         ApplyActionOutcomes(action);
 
         // Update state
