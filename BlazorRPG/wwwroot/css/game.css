@@ -117,17 +117,17 @@ body {
 }
 
 .encounter-container {
+    width: 100%;
     background-color: var(--bg-panel);
     border: 1px solid var(--oak-dark);
     border-radius: 5px;
-    padding: 1rem;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    height: 100%;
 }
 
-.sidebar-panel 
-{
+.sidebar-panel {
     background-color: var(--bg-panel);
     padding: 1rem;
 }
@@ -140,6 +140,14 @@ body {
     color: var(--leather);
     border-bottom: 1px solid var(--oak-mid);
     margin-bottom: 0.5rem;
+}
+
+.encounter-status-bar {
+    background-color: var(--bg-card);
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--oak-dark);
+    display: flex;
+    justify-content: space-between;
 }
 
 /* Location cards */
@@ -396,6 +404,7 @@ body {
     width: 150px;
     display: flex;
     flex-direction: column-reverse;
+    margin: 5px;
 }
 
     .toggle-button:hover {
@@ -406,6 +415,32 @@ body {
         background-color: var(--leather);
         border: 1px solid var(--clay);
     }
+
+.wait-button {
+    background-color: var(--bg-active);
+    border: 1px solid var(--oak-mid);
+    color: var(--text-primary);
+    padding: 8px 16px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-primary);
+    letter-spacing: 0.05em;
+    width: 150px;
+    display: flex;
+    flex-direction: column-reverse;
+    margin: 5px;
+}
+
+    .wait-button:hover {
+        background-color: var(--leather);
+    }
+
+    .wait-button.active {
+        background-color: var(--leather);
+        border: 1px solid var(--clay);
+    }
+
 
 /* Tag styling */
 .tag-grid {
@@ -457,6 +492,7 @@ body {
     gap: 5px;
     align-items: center;
 }
+
     .player-resource .resource-icon {
         width: 24px;
         text-align: center;
@@ -816,14 +852,14 @@ body {
     margin-top: 20px;
 }
 
-.creation-button:hover {
-    background-color: var(--border-active);
-}
+    .creation-button:hover {
+        background-color: var(--border-active);
+    }
 
-.creation-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
+    .creation-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 
 .archetype-selection {
     margin-bottom: 20px;
@@ -897,9 +933,9 @@ body {
     margin-left: 1rem;
 }
 
-.items-list .item {
-    margin-bottom: 2px;
-}
+    .items-list .item {
+        margin-bottom: 2px;
+    }
 
 .selection-check {
     position: absolute;
@@ -908,6 +944,7 @@ body {
     color: var(--resource-coins);
     font-size: 1.2em;
 }
+
 .creation-section {
     background-color: var(--bg-card);
     border-radius: 4px;
@@ -1167,3 +1204,113 @@ body {
     font-weight: bold;
     transition: background-color 2s ease;
 }
+
+.player-status {
+    display: flex;
+    gap: 20px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.status-icon {
+    font-size: 1.2rem;
+}
+
+.status-label {
+    color: var(--text-secondary);
+    margin-right: 5px;
+}
+
+.status-value {
+    font-weight: bold;
+}
+
+.encounter-progress {
+    display: flex;
+    gap: 20px;
+}
+
+.progress-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.progress-label {
+    color: var(--text-secondary);
+    margin-right: 5px;
+}
+
+.progress-value {
+    font-weight: bold;
+}
+
+.encounter-content {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.encounter-main {
+    flex: 3;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.encounter-sidebar {
+    flex: 1;
+    background-color: var(--bg-card);
+    border-left: 1px solid var(--oak-dark);
+    padding: 20px;
+    overflow-y: auto;
+    max-width: 300px;
+}
+
+.encounter-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    padding: 40px;
+}
+
+.tag-section {
+    margin-bottom: 20px;
+}
+
+.stage-header {
+    margin-bottom: 15px;
+}
+
+/* Make encounter stage and choices fit the new layout */
+.encounter-stage {
+    margin-bottom: 20px;
+    flex: 1;
+}
+
+.encounter-choices {
+    margin-top: auto;
+    padding-top: 20px;
+}
+
+/* When encounter is active, make the map container take the full width */
+.game-container {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+    .game-container.encounter-active .map-container {
+        grid-column: 1 / -1;
+    }

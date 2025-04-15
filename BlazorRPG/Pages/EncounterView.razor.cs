@@ -10,6 +10,8 @@ public partial class EncounterViewBase : ComponentBase
     [Inject] public GameManager GameManager { get; set; }
     [Parameter] public EventCallback<EncounterResult> OnEncounterCompleted { get; set; }
 
+    public PlayerState PlayerState => GameState.PlayerState;
+
     public UserEncounterChoiceOption hoveredChoice;
     public bool showTooltip;
     public double mouseX;

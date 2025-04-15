@@ -1,62 +1,60 @@
 ﻿@inherits EncounterViewBase
 @using Microsoft.AspNetCore.Components.Web
 
-<div class="encounter-container" @onmousemove="OnMouseMove">
+<div class="encounter-container">
+    <div class="encounter-status-bar">
+        <div class="player-status">
+            <div class="status-item">
+                <span class="status-icon">❤️</span>
+                <span class="status-label">Health</span>
+                <span class="status-value @(PlayerState.Health < PlayerState.MaxHealth / 3 ? "danger" : "")">
+                    @PlayerState.Health / @PlayerState.MaxHealth
+                </span>
+            </div>
+            <div class="status-item">
+                <span class="status-icon">🧠</span>
+                <span class="status-label">Concentration</span>
+                <span class="status-value">
+                    @PlayerState.Concentration / @PlayerState.MaxConcentration
+                </span>
+            </div>
+            <div class="status-item">
+                <span class="status-icon">🗣️</span>
+                <span class="status-label">Confidence</span>
+                <span class="status-value">
+                    @PlayerState.Confidence / @PlayerState.MaxConfidence
+                </span>
+            </div>
+        </div>
+
+        <div class="encounter-progress">
+            <div class="progress-item">
+                @GetValueTypeIcon(ValueTypes.Momentum)
+                <span class="progress-label">Momentum</span>
+                <span class="progress-value">@GetModel().State.Momentum</span>
+            </div>
+            <div class="progress-item">
+                @GetValueTypeIcon(ValueTypes.Pressure)
+                <span class="progress-label">Pressure</span>
+                <span class="progress-value">@GetModel().State.Pressure</span>
+            </div>
+        </div>
+    </div>
+
     @if (IsLoading)
     {
-        <div>
+        <div class="encounter-loading">
             Loading...
         </div>
     }
-    @if (GetEncounter() != null)
+    else if (GetEncounter() != null)
     {
-        <div class="encounter-header">
-        </div>
-        <div class="encounter-context">
-            <div class="encounter-stats">
-                <div class="stat">
-                    @GetValueTypeIcon(ValueTypes.Momentum)
-                    <span class="stat-label">Momentum</span>
-                    <span class="stat-value">
-                        @GetModel().State.Momentum
-                    </span>
-                </div>
-                <div class="stat">
-                    @GetValueTypeIcon(ValueTypes.Pressure)
-                    <span class="stat-label">Pressure</span>
-                    <span class="stat-value">
-                        @GetModel().State.Pressure
-                    </span>
-                </div>
-
-                <div class="location-properties">
-                    <div class="properties-header">ActiveTags</div>
-                    <div class="properties-grid">
-                        @foreach (var tag in GetActiveTags())
-                        {
-                            <div class="property-tag @tag.CssClass" title="@tag.TooltipText">
-                                <span class="property-icon">@tag.Icon</span>
-                                <span class="property-text">@tag.Text</span>
-                            </div>
-                        }
-                    </div>
-
-                    <div class="properties-header">Non-Active Tags</div>
-                    <div class="properties-grid">
-                        @foreach (var prop in GetAvailableTags())
-                        {
-                            <div class="property-tag @prop.CssClass" title="@prop.TooltipText">
-                                <span class="property-icon">@prop.Icon</span>
-                                <span class="property-text">@prop.Text</span>
-                            </div>
-                        }
-                    </div>
-                </div>
-            </div>
-
-            <div class="encounter-details">
+        <div class="encounter-content">
+            <div class="encounter-main">
                 <div class="encounter-stage">
-                    <h3 class="choice-set-name">Chosen Action: @GetModel().EncounterResult.NarrativeResult.LastChoiceNarrative.ShorthandName</h3>
+                    <div class="stage-header">
+                        <div class="choice-set-name">Chosen Action: @GetModel().EncounterResult.NarrativeResult.LastChoiceNarrative.ShorthandName</div>
+                    </div>
                     <div class="stage-situation">@GetModel().EncounterResult.NarrativeResult.SceneNarrative</div>
                 </div>
 
@@ -64,39 +62,54 @@
                     @foreach (UserEncounterChoiceOption choice in GetChoices())
                     {
                         <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")"
-                             @onmousemove="async (e) => await ShowTooltip(choice, e)"
-                             @onmouseout="HideTooltip"
-                             @onclick="() => HandleChoiceSelection(choice)">
-                            <span class="choice-index">@choice.Index.</span>
-                            <span class="choice-description">@GetChoiceName(choice)</span>
+                             @onclick="(() => HandleChoiceSelection(choice))"
+                             @onmouseover="(e => ShowTooltip(choice, e))"
+                             @onmouseout="HideTooltip">
+                            <div class="choice-index">@choice.Index</div>
+                            <div class="choice-name">@GetChoiceName(choice)</div>
                         </div>
                     }
                 </div>
             </div>
 
-            <div class="focus-tags">
-                <div class="properties-header">Approach Tags</div>
-                <div class="tag-grid">
-                    @foreach (var tag in GetApproachTags())
-                    {
-                        <div class="tag-value">
-                            <span class="tag-name">@tag</span>
-                            <span class="tag-level">@GetModel().State.EncounterTagSystem.GetEncounterStateTagValue(tag)</span>
-                        </div>
-                    }
+            <div class="encounter-sidebar">
+                <div class="tag-section">
+                    <div class="properties-header">Active Tags</div>
+                    <div class="properties-grid">
+                        @foreach (var tag in GetActiveTags())
+                        {
+                            <div class="property-tag @tag.CssClass">
+                                <span class="property-icon">@tag.Icon</span>
+                                <span class="property-text">@tag.Text</span>
+                            </div>
+                        }
+                    </div>
                 </div>
-            </div>
 
-            <div class="focus-tags">
-                <div class="properties-header">Focus Tags</div>
-                <div class="tag-grid">
-                    @foreach (var tag in GetFocusTags())
-                    {
-                        <div class="tag-value">
-                            <span class="tag-name">@tag</span>
-                            <span class="tag-level">@GetModel().State.EncounterTagSystem.GetFocusTagValue(tag)</span>
-                        </div>
-                    }
+                <div class="tag-section">
+                    <div class="properties-header">Approach Tags</div>
+                    <div class="tag-grid">
+                        @foreach (var tag in GetApproachTags())
+                        {
+                            <div class="tag-value">
+                                <span>@tag</span>
+                                <span>@GetModel().State.EncounterTagSystem.GetEncounterStateTagValue(tag)</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="tag-section">
+                    <div class="properties-header">Focus Tags</div>
+                    <div class="tag-grid">
+                        @foreach (var tag in GetFocusTags())
+                        {
+                            <div class="tag-value">
+                                <span>@tag</span>
+                                <span>@GetModel().State.EncounterTagSystem.GetFocusTagValue(tag)</span>
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
