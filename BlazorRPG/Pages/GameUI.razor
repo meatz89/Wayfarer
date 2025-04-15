@@ -32,6 +32,13 @@
                         @PlayerState.Confidence / @PlayerState.MaxConfidence
                     </span>
                 </div>
+                <div class="status-item">
+                    <span class="status-icon">⚡</span>
+                    <span class="status-label">Energy</span>
+                    <span class="status-value">
+                        @PlayerState.Energy / @PlayerState.MaxEnergy
+                    </span>
+                </div>
             </div>
 
             <div class="game-info">
@@ -70,24 +77,6 @@
                         }
                         else
                         {
-                            <div class="map-container">
-                                <AreaMap CurrentLocation="@GetCurrentLocation()"
-                                         Locations="@Locations"
-                                         OnTravel="@HandleTravelStart" />
-                            </div>
-                        }
-                    }
-                    else
-                    {
-                        if (ShowEncounterResult)
-                        {
-                            <NarrativeView LocationName="@selectedLocation"
-                                           OnNarrativeCompleted="OnNarrativeCompleted"
-                                           Result="@EncounterResult"
-                                           ShowResult="true" />
-                        }
-                        else
-                        {
                             <div class="location-container">
                                 <div class="location-header">
                                     <h2 class="location-title">@GetCurrentLocation().Name</h2>
@@ -95,17 +84,43 @@
                                         <button class="location-button" @onclick="@SwitchAreaMap">
                                             Travel 🗺️
                                         </button>
-                                        <button class="location-button" @onclick="WaitOneHour">
-                                            Wait 1 Hour
-                                        </button>
                                     </div>
                                 </div>
-
-                                <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
-                                                 CurrentSpot="@CurrentSpot"
-                                                 OnSpotSelected="@HandleSpotSelection"
-                                                 OnActionSelected="@HandleActionSelection" />
                             </div>
+                            <div class="map-container">
+                                <AreaMap CurrentLocation="@GetCurrentLocation()"
+                                         Locations="@Locations"
+                                         OnTravel="@HandleTravelStart" />
+                            </div>
+                        }
+                    }
+                    else if (ShowEncounterResult)
+                    {
+                        <NarrativeView LocationName="@selectedLocation"
+                                        OnNarrativeCompleted="OnNarrativeCompleted"
+                                        Result="@EncounterResult"
+                                        ShowResult="true" />
+                    }
+                    else
+                    {
+                        <div class="location-container">
+                            <div class="location-header">
+                                <h2 class="location-title">@GetCurrentLocation().Name</h2>
+                                <div class="location-actions">
+                                    <button class="location-button" @onclick="WaitOneHour">
+                                        Wait 1 Hour
+                                    </button>
+                                    <button class="location-button" @onclick="@SwitchAreaMap">
+                                        Travel 🗺️
+                                    </button>
+                                </div>
+                            </div>
+
+                            <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
+                                                CurrentSpot="@CurrentSpot"
+                                                OnSpotSelected="@HandleSpotSelection"
+                                                OnActionSelected="@HandleActionSelection" />
+                        </div>
                         }
                     }
                 }
