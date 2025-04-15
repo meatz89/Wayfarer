@@ -167,7 +167,7 @@
                                 <span class="resource-icon" style="color: var(--resource-food)">🍖</span>
                                 <span class="resource-label">Food</span>
                                 <span class="resource-value">@PlayerState.Food</span>
-                                @if (GameState.Actions.HasGlobalAction(ActionNames.ConsumeFood.ToString()))
+                                @if (GameState.ActionStateTracker.HasGlobalAction(ActionNames.ConsumeFood.ToString()))
                                 {
                                     <button class="resource-use-btn" @onclick="() => UseResource(ActionNames.ConsumeFood)">Use</button>
                                 }
@@ -176,7 +176,7 @@
                                 <span class="resource-icon" style="color: var(--resource-herbs, #606C38)">🌿</span>
                                 <span class="resource-label">Herbs</span>
                                 <span class="resource-value">@PlayerState.MedicinalHerbs</span>
-                                @if (GameState.Actions.HasGlobalAction(ActionNames.ConsumeMedicinalHerbs.ToString()))
+                                @if (GameState.ActionStateTracker.HasGlobalAction(ActionNames.ConsumeMedicinalHerbs.ToString()))
                                 {
                                     <button class="resource-use-btn" @onclick="() => UseResource(ActionNames.ConsumeMedicinalHerbs)">Use</button>
                                 }

@@ -44,7 +44,7 @@ public partial class EncounterViewBase : ComponentBase
         if (IsLoading)
             return null;
 
-        EncounterManager encounterManager = GameState.Actions.GetCurrentEncounter();
+        EncounterManager encounterManager = GameManager.EncounterSystem.GetCurrentEncounter();
         return encounterManager;
     }
 

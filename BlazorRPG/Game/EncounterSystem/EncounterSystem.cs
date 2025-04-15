@@ -5,7 +5,7 @@
     private readonly ILogger<EncounterSystem> logger;
     private AIProviderType currentAIProvider;
 
-    private EncounterManager Encounter;
+    private EncounterManager EncounterManager;
     public EncounterResult CurrentResult;
 
     private ResourceManager resourceManager;
@@ -74,7 +74,7 @@
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
 
-        gameState.Actions.SetActiveEncounter(Encounter);
+        gameState.ActionStateTracker.SetActiveEncounter(EncounterManager);
         return CurrentResult;
     }
 
@@ -121,7 +121,7 @@
         // Set the current AI provider
         encounterManager.SwitchAIProvider(currentAIProvider);
 
-        this.Encounter = encounterManager;
+        this.EncounterManager = encounterManager;
 
         //SpecialChoice negotiatePriceChoice = GetSpecialChoiceFor(encounter);
         //choiceRepository.AddSpecialChoice(encounter.Name, negotiatePriceChoice);
@@ -178,7 +178,7 @@
             return CurrentResult;
         }
 
-        currentResult = await Encounter.ApplyChoiceWithNarrativeAsync(
+        currentResult = await EncounterManager.ApplyChoiceWithNarrativeAsync(
             choice,
             encounter.playerState,
             encounter.worldState,
@@ -227,20 +227,23 @@
 
     public List<ChoiceCard> GetChoices()
     {
-        return Encounter.GetCurrentChoices();
+        return EncounterManager.GetCurrentChoices();
     }
 
     public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions()
     {
-        return gameState.Actions.UserEncounterChoiceOptions;
+        return gameState.ActionStateTracker.UserEncounterChoiceOptions;
     }
 
     public ChoiceProjection GetChoiceProjection(EncounterManager encounter, ChoiceCard choice)
     {
-        return Encounter.ProjectChoice(choice);
+        return EncounterManager.ProjectChoice(choice);
     }
 
-
+    public EncounterManager GetCurrentEncounter()
+    {
+        return EncounterManager;
+    }
 
     // New method to switch AI providers
     public void SwitchAIProvider(AIProviderType providerType)
@@ -249,9 +252,9 @@
         narrativeService.SwitchProvider(providerType);
 
         // If we have an active encounter, update its provider too
-        if (Encounter != null)
+        if (EncounterManager != null)
         {
-            Encounter.SwitchAIProvider(providerType);
+            EncounterManager.SwitchAIProvider(providerType);
         }
     }
 
