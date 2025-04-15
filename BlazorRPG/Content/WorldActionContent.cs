@@ -2,7 +2,7 @@
 {
     public static List<SpotAction> GetAllTemplates()
     {
-        List<SpotAction> actionTemplates = [.. AllActions()];
+        List<SpotAction> actionTemplates = [.. LocationActions(), .. GlobalActions() ];
         foreach(var actionTemplate in actionTemplates)
         {
             actionTemplate.ActionId = actionTemplate.Name;
@@ -11,39 +11,9 @@
         return actionTemplates;
     }
 
-    public static List<SpotAction> AllActions()
+    public static List<SpotAction> GlobalActions()
     {
         List<SpotAction> actionTemplates = new List<SpotAction>();
-
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName(ActionNames.HuntGame.ToString())
-            .WithGoal("hunt for wild game for food")
-            .WithComplication("animals are alert and may detect you")
-            .WithActionType(BasicActionTypes.Forage)
-            .StartsEncounter("HuntGame")
-            .AdvancesTime(3)
-            .AvailableDuring(TimeWindows.Morning, TimeWindows.Afternoon) // Hunting during daylight
-            .Build());
-
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName(ActionNames.NightWatch.ToString())
-            .WithGoal("keep watch during the night for threats")
-            .WithComplication("darkness makes observation difficult")
-            .WithActionType(BasicActionTypes.Observe)
-            .StartsEncounter("NightWatch")
-            .AdvancesTime(4)
-            .AvailableDuring(TimeWindows.Night) // Only available at night
-            .Build());
-
-        // Basic actions
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName(ActionNames.Rest.ToString())
-            .WithGoal("rest briefly to recover some energy")
-            .WithActionType(BasicActionTypes.Rest)
-            .AdvancesTime(2) // 2 hours
-            .RestoresEnergy(20)
-            .IsRepeatableAction()
-            .Build());
 
         // Add consume food action
         actionTemplates.Add(new ActionTemplateBuilder()
@@ -69,16 +39,43 @@
             .IsRepeatableAction()
             .Build());
 
-        // Original tutorial actions
+        return actionTemplates;
+    }
+    public static List<SpotAction> LocationActions()
+    {
+        List<SpotAction> actionTemplates = new List<SpotAction>();
+
         actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName(ActionNames.ForageForFood.ToString())
-            .WithGoal("search for edible berries and roots")
-            .WithComplication("some similar-looking plants are poisonous")
+            .WithName(ActionNames.HuntGame.ToString())
+            .WithGoal("hunt for wild game for food")
+            .WithComplication("animals are alert and may detect you")
             .WithActionType(BasicActionTypes.Forage)
-            .StartsEncounter("ForageForFood")
-            .AdvancesTime(2)
+            .StartsEncounter(EncounterNames.HuntGame.ToString())
+            .AdvancesTime(3)
+            .AvailableDuring(TimeWindows.Morning, TimeWindows.Afternoon) // Hunting during daylight
             .Build());
 
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName(ActionNames.NightWatch.ToString())
+            .WithGoal("keep watch during the night for threats")
+            .WithComplication("darkness makes observation difficult")
+            .WithActionType(BasicActionTypes.Observe)
+            .StartsEncounter(EncounterNames.NightWatch.ToString())
+            .AdvancesTime(4)
+            .AvailableDuring(TimeWindows.Night) // Only available at night
+            .Build());
+
+        // Basic actions
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName(ActionNames.Rest.ToString())
+            .WithGoal("rest briefly to recover some energy")
+            .WithActionType(BasicActionTypes.Rest)
+            .AdvancesTime(2) // 2 hours
+            .RestoresEnergy(20)
+            .IsRepeatableAction()
+            .Build());
+
+        // Original tutorial actions
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName(ActionNames.RestProperly.ToString())
             .WithGoal("rest fully to recover all energy")
@@ -123,7 +120,7 @@
             .WithGoal("search for edible berries and roots")
             .WithComplication("some similar-looking plants are poisonous")
             .WithActionType(BasicActionTypes.Forage)
-            .StartsEncounter("ForageForFood")
+            .StartsEncounter(EncounterNames.ForageForFood.ToString())
             .AdvancesTime(2) // 2 hours
             .Build());
 
@@ -132,7 +129,7 @@
             .WithGoal("explore the immediate area to get your bearings")
             .WithComplication("the forest is confusing and disorienting")
             .WithActionType(BasicActionTypes.Explore)
-            .StartsEncounter("SearchSurroundings")
+            .StartsEncounter(EncounterNames.SearchSurroundings.ToString())
             .AdvancesTime(1) // 1 hour
             .Build());
 
@@ -141,52 +138,7 @@
             .WithGoal("find medicinal plants to restore health")
             .WithComplication("identifying the correct plants requires careful observation")
             .WithActionType(BasicActionTypes.Forage)
-            .StartsEncounter("GatherHerbs")
-            .AdvancesTime(2) // 2 hours
-            .Build());
-
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName(ActionNames.ClimbTree.ToString())
-            .WithGoal("climb a tall tree to gain a vantage point")
-            .WithComplication("the branches are slippery and unstable")
-            .WithActionType(BasicActionTypes.Climb)
-            .StartsEncounter("ClimbTree")
-            .AdvancesTime(2) // 2 hours
-            .Build());
-
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName(ActionNames.SurveyArea.ToString())
-            .WithGoal("use the higher ground to gain information about the forest")
-            .WithComplication("the vastness of the forest makes orientation difficult")
-            .WithActionType(BasicActionTypes.Observe)
-            .StartsEncounter("SearchSurroundings")
-            .AdvancesTime(2) // 2 hours
-            .Build());
-
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName(ActionNames.MoveStealthily.ToString())
-            .WithGoal("move quietly through the underbrush")
-            .WithComplication("fallen branches and leaves make silent movement challenging")
-            .WithActionType(BasicActionTypes.Travel)
-            .StartsEncounter("MoveStealthily")
-            .AdvancesTime(2) // 2 hours
-            .Build());
-
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName(ActionNames.ForceThrough.ToString())
-            .WithGoal("push forcibly through the dense vegetation")
-            .WithComplication("thorns and sharp branches present hazards")
-            .WithActionType(BasicActionTypes.Travel)
-            .StartsEncounter("SearchSurroundings")
-            .AdvancesTime(1) // 1 hour
-            .Build());
-
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName(ActionNames.FindNaturalPath.ToString())
-            .WithGoal("locate natural animal trails through the vegetation")
-            .WithComplication("paths may lead in unexpected directions")
-            .WithActionType(BasicActionTypes.Explore)
-            .StartsEncounter("SearchSurroundings")
+            .StartsEncounter(EncounterNames.GatherHerbs.ToString())
             .AdvancesTime(2) // 2 hours
             .Build());
 
@@ -195,7 +147,7 @@
             .WithGoal("find your way out of the forest")
             .WithComplication("as daylight fades, navigation becomes increasingly difficult")
             .WithActionType(BasicActionTypes.Travel)
-            .StartsEncounter("FindPathOut")
+            .StartsEncounter(EncounterNames.FindPathOut.ToString())
             .AdvancesTime(3) // 3 hours
             .Build());
 

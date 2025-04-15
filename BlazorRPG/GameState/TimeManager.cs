@@ -70,9 +70,6 @@
                 ModifyLocationIllumination(currentLocation, Illumination.Dark);
                 break;
         }
-
-        // Signal the location to update any time-dependent properties
-        currentLocation.OnTimeChanged(worldState.WorldTime);
     }
 
     // Change SetLocationIllumination to ModifyLocationIllumination to clarify its limited role

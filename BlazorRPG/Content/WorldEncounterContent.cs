@@ -7,18 +7,64 @@
             ForageForFoodEncounter,
             SearchSurroundingsEncounter,
             GatherHerbsEncounter,
-            FindPathOutEncounter,
-            ClimbTreeEncounter,
-            MoveStealthilyEncounter,
+            FindPathOutEncounter
         };
 
         return encounterTemplates;
     }
 
     // Basic resource gathering encounter
+    public static EncounterTemplate HuntGameEncounter => new EncounterTemplate()
+    {
+        Name = EncounterNames.HuntGame.ToString(),
+        Duration = 4,
+        MaxPressure = 12,
+        PartialThreshold = 8,   // 1 Food
+        StandardThreshold = 12, // 3 Food
+        ExceptionalThreshold = 16, // 6 Food
+        Hostility = EncounterInfo.HostilityLevels.Neutral,
+
+        EncounterNarrativeTags = new List<NarrativeTag>
+        {
+            NarrativeTagRepository.DistractingCommotion,
+            NarrativeTagRepository.UnsteadyConditions
+        },
+
+        encounterStrategicTags = new List<EnvironmentPropertyTag>
+        {
+            new EnvironmentPropertyTag("Forest Light", Illumination.Shadowy),
+            new EnvironmentPropertyTag("Wildlife Presence", Population.Quiet),
+            new EnvironmentPropertyTag("Uneven Ground", Physical.Hazardous)
+        }
+    };
+
+    public static EncounterTemplate NightWatchEncounter => new EncounterTemplate()
+    {
+        Name = EncounterNames.NightWatch.ToString(),
+        Duration = 4,
+        MaxPressure = 12,
+        PartialThreshold = 8,   // 1 Food
+        StandardThreshold = 12, // 3 Food
+        ExceptionalThreshold = 16, // 6 Food
+        Hostility = EncounterInfo.HostilityLevels.Neutral,
+
+        EncounterNarrativeTags = new List<NarrativeTag>
+        {
+            NarrativeTagRepository.DistractingCommotion,
+            NarrativeTagRepository.UnsteadyConditions
+        },
+
+        encounterStrategicTags = new List<EnvironmentPropertyTag>
+        {
+            new EnvironmentPropertyTag("Forest Light", Illumination.Shadowy),
+            new EnvironmentPropertyTag("Wildlife Presence", Population.Quiet),
+            new EnvironmentPropertyTag("Uneven Ground", Physical.Hazardous)
+        }
+    };
+
     public static EncounterTemplate ForageForFoodEncounter => new EncounterTemplate()
     {
-        Name = "ForageForFood",
+        Name = EncounterNames.ForageForFood.ToString(),
         Duration = 4,
         MaxPressure = 12,
         PartialThreshold = 8,   // 1 Food
@@ -43,7 +89,7 @@
     // Exploration encounter
     public static EncounterTemplate SearchSurroundingsEncounter => new EncounterTemplate()
     {
-        Name = "SearchSurroundings",
+        Name = EncounterNames.SearchSurroundings.ToString(),
         Duration = 3,
         MaxPressure = 10,
         PartialThreshold = 6,
@@ -67,7 +113,7 @@
     // Medicinal herb gathering encounter
     public static EncounterTemplate GatherHerbsEncounter => new EncounterTemplate()
     {
-        Name = "GatherHerbs",
+        Name = EncounterNames.GatherHerbs.ToString(),
         Duration = 4,
         MaxPressure = 12,
         PartialThreshold = 8,   // 1 Herb
@@ -89,60 +135,10 @@
         }
     };
 
-    // Tree climbing vantage point encounter
-    public static EncounterTemplate ClimbTreeEncounter => new EncounterTemplate()
-    {
-        Name = "ClimbTree",
-        Duration = 3,
-        MaxPressure = 14,
-        PartialThreshold = 10,
-        StandardThreshold = 14,
-        ExceptionalThreshold = 18,
-        Hostility = EncounterInfo.HostilityLevels.Neutral,
-
-        EncounterNarrativeTags = new List<NarrativeTag>
-        {
-            NarrativeTagRepository.UnsteadyConditions,
-            NarrativeTagRepository.HarmoniousOrder
-        },
-
-        encounterStrategicTags = new List<EnvironmentPropertyTag>
-        {
-            new EnvironmentPropertyTag("Canopy Light", Illumination.Shadowy),
-            new EnvironmentPropertyTag("Solitary Climb", Population.Quiet),
-            new EnvironmentPropertyTag("Vertical Challenge", Physical.Hazardous)
-        }
-    };
-
-    // Stealth movement encounter
-    public static EncounterTemplate MoveStealthilyEncounter => new EncounterTemplate()
-    {
-        Name = "MoveStealthily",
-        Duration = 4,
-        MaxPressure = 12,
-        PartialThreshold = 8,
-        StandardThreshold = 12,
-        ExceptionalThreshold = 16,
-        Hostility = EncounterInfo.HostilityLevels.Neutral,
-
-        EncounterNarrativeTags = new List<NarrativeTag>
-        {
-            NarrativeTagRepository.FluidMovement,
-            NarrativeTagRepository.DisorderedAmbience
-        },
-
-        encounterStrategicTags = new List<EnvironmentPropertyTag>
-        {
-            new EnvironmentPropertyTag("Deep Shadows", Illumination.Dark),
-            new EnvironmentPropertyTag("Hidden Movement", Population.Quiet),
-            new EnvironmentPropertyTag("Forest Obstacles", Physical.Confined)
-        }
-    };
-
     // Final "boss" encounter
     public static EncounterTemplate FindPathOutEncounter => new EncounterTemplate()
     {
-        Name = "FindPathOut",
+        Name = EncounterNames.FindPathOut.ToString(),
         Duration = 6,
         MaxPressure = 18,
         PartialThreshold = 12,
