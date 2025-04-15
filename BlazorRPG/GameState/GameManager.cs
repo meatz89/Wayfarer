@@ -355,7 +355,10 @@ public partial class GameManager
                     location.Difficulty,
                     string.Empty);
 
-            options.Add(userActionOption);
+            if (AreRequirementsMet(userActionOption))
+            {
+               options.Add(userActionOption);
+            }
         }
 
         return options;
@@ -763,9 +766,9 @@ public partial class GameManager
     public bool AreRequirementsMet(UserActionOption action)
     {
         // Check time window constraints
-        if (action.ActionImplementation.TimeWindows != null &&
-            action.ActionImplementation.TimeWindows.Any() &&
-            !action.ActionImplementation.TimeWindows.Contains(gameState.WorldState.WorldTime))
+        List<TimeWindows> timeWindows = action.ActionImplementation.TimeWindows;
+        bool anyTimeWindow = timeWindows != null && timeWindows.Any();
+        if (anyTimeWindow && !timeWindows.Contains(gameState.WorldState.WorldTime))
         {
             return false; // Not available during current time window
         }
