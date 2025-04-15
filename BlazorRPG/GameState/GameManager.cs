@@ -1,4 +1,7 @@
-﻿using System.Text;
+﻿using Microsoft.Extensions.Options;
+using System.Collections.Generic;
+using System.Data;
+using System.Text;
 
 public partial class GameManager
 {
@@ -81,7 +84,7 @@ public partial class GameManager
             worldState.SetCurrentLocationSpot(worldState.CurrentLocation.LocationSpots.First());
         }
 
-        UpdateState();
+        await UpdateState();
 
         Location? currentLoc = worldState.CurrentLocation;
         Console.WriteLine($"Game started at: {currentLoc?.Name}, Current spot: {worldState.CurrentLocationSpot?.Name}");
@@ -103,13 +106,11 @@ public partial class GameManager
         switch (executionType)
         {
             case ActionExecutionType.Encounter:
-                // Start an encounter (no immediate outcomes)
                 gameState.ActionStateTracker.SetActiveEncounter();
                 break;
 
             case ActionExecutionType.Travel:
-                // Execute travel action
-                ProcessBasicAction(action);
+                await ProcessBasicAction(action);
 
                 // Travel actions should always set PendingTravel
                 if (gameState.PendingTravel.IsTravelPending)
@@ -121,14 +122,12 @@ public partial class GameManager
                     Console.WriteLine("Warning: Travel action did not set pending travel");
                 }
 
-                // Update game state
-                UpdateState();
+                await UpdateState();
                 break;
 
             case ActionExecutionType.Basic:
             default:
-                // Execute basic action
-                ProcessBasicAction(action);
+                await ProcessBasicAction(action);
 
                 // Handle any spot changes
                 if (gameState.PendingTravel.IsTravelPending)
@@ -136,13 +135,12 @@ public partial class GameManager
                     await CompleteTravel(gameState.PendingTravel.TravelDestination);
                 }
 
-                // Update game state
-                UpdateState();
+                await UpdateState();
                 break;
         }
     }
 
-    private void ProcessBasicAction(UserActionOption action)
+    private async Task ProcessBasicAction(UserActionOption action)
     {
         // Apply the action's outcomes
         ApplyActionOutcomes(action.ActionImplementation);
@@ -154,12 +152,86 @@ public partial class GameManager
             // Apply time advancement one hour at a time
             gameState.TimeManager.AdvanceTime(1);
 
+            // Signal the location to update any time-dependent properties
+            await OnTimeChanged(worldState.WorldTime);
+
             // Apply effects for each hour that passes
             ApplyHourlyEffects();
         }
+    }
 
-        // Check for time-based events
-        CheckTimeBasedEvents();
+    private async Task OnTimeChanged(TimeWindows newTime)
+    {
+        Location currentLocation = worldState.CurrentLocation;
+
+        // Check for time-specific events
+        currentLocation.OnTimeChanged(newTime);
+
+        // Update available actions to reflect time-based availability
+        await UpdateState();
+    }
+
+
+    public void CreateGlobalActions()
+    {
+        List<UserActionOption> userActions = new List<UserActionOption>();
+        int actionIndex = 1;
+
+        // Only add food consumption if player has food
+        if (gameState.PlayerState.Food > 0)
+        {
+            SpotAction foodActionTemplate = ActionRepository.GetAction(ActionNames.ConsumeFood.ToString());
+            if (foodActionTemplate != null)
+            {
+                ActionImplementation consumeFoodAction = ActionFactory.CreateActionFromTemplate(foodActionTemplate, null);
+
+                // Check if requirements are met
+                bool requirementsMet = consumeFoodAction.CanExecute(gameState);
+
+                UserActionOption consumeFoodOption = new UserActionOption(
+                    actionIndex++,
+                    consumeFoodAction.ActionId.ToString(),
+                    consumeFoodAction.Name.ToString(),
+                    !requirementsMet, // Disabled if requirements aren't met
+                    consumeFoodAction,
+                    gameState.WorldState.CurrentLocation?.Name ?? "Global",
+                    gameState.WorldState.CurrentLocationSpot?.Name ?? "Global",
+                    null,
+                    0,
+                    string.Empty);
+
+                userActions.Add(consumeFoodOption);
+            }
+        }
+
+        // Only add medicinal herbs consumption if player has herbs
+        if (gameState.PlayerState.MedicinalHerbs > 0)
+        {
+            SpotAction herbsActionTemplate = ActionRepository.GetAction(ActionNames.ConsumeMedicinalHerbs.ToString());
+            if (herbsActionTemplate != null)
+            {
+                ActionImplementation consumeHerbsAction = ActionFactory.CreateActionFromTemplate(herbsActionTemplate, null);
+
+                // Check if requirements are met
+                bool requirementsMet = consumeHerbsAction.CanExecute(gameState);
+
+                UserActionOption consumeHerbsOption = new UserActionOption(
+                    actionIndex++,
+                    consumeHerbsAction.ActionId.ToString(),
+                    consumeHerbsAction.Name.ToString(),
+                    !requirementsMet, // Disabled if requirements aren't met
+                    consumeHerbsAction,
+                    gameState.WorldState.CurrentLocation?.Name ?? "Global",
+                    gameState.WorldState.CurrentLocationSpot?.Name ?? "Global",
+                    null,
+                    0,
+                    string.Empty);
+
+                userActions.Add(consumeHerbsOption);
+            }
+        }
+
+        gameState.ActionStateTracker.SetGlobalActions(userActions);
     }
 
     private void ApplyHourlyEffects()
@@ -188,16 +260,6 @@ public partial class GameManager
         playerState.Energy = Math.Max(0, playerState.Energy - drainAmount);
     }
 
-    private void CheckTimeBasedEvents()
-    {
-        // Check for special time-based events
-        // For example, NPCs only available at certain times
-
-        // For now, just refresh the available actions
-        // to reflect time-based availability
-        UpdateAvailableActions();
-    }
-
     private async Task CompleteTravel(string destination)
     {
         await OnLocationArrival(destination);
@@ -219,8 +281,7 @@ public partial class GameManager
         await ExecuteAction(travelOption);
     }
 
-    // Unified encounter completion handling
-    public async Task EndEncounter(EncounterManager encounter)
+    public async Task ReturnToLocationAfterEncounterEnd(EncounterManager encounter)
     {
         // Apply the encounter's outcomes
         ApplyActionOutcomes(encounter.ActionImplementation);
@@ -233,28 +294,21 @@ public partial class GameManager
         {
             await CompleteTravel(gameState.PendingTravel.TravelDestination);
         }
-        else
-        {
-            // Update the current location
-            await UpdateLocation(gameState.WorldState.CurrentLocation);
-        }
-
-        // Update game state
-        UpdateState();
+        await UpdateState();
     }
 
-
-    private async Task CreateActionsForLocationSpot(
-        List<UserActionOption> options,
-        Location location,
-        LocationSpot locationSpot)
+    private async Task<List<UserActionOption>> CreateActionsForLocationSpot
+        ( Location location, LocationSpot locationSpot)
     {
         var currentLocation = worldState.CurrentLocation?.Name;
-        if (string.IsNullOrWhiteSpace(currentLocation)) return;
+        if (string.IsNullOrWhiteSpace(currentLocation)) return new List<UserActionOption>();
 
         WorldStateInput worldStateInput = await CreateWorldStateInput(currentLocation);
 
         List<string> locationSpotActions = locationSpot.ActionIds.ToList();
+
+        List<UserActionOption> options = new List<UserActionOption>();
+
         foreach (string locationSpotAction in locationSpotActions)
         {
             SpotAction actionTemplate = ActionRepository.GetAction(locationSpotAction);
@@ -303,6 +357,8 @@ public partial class GameManager
 
             options.Add(userActionOption);
         }
+
+        return options;
     }
 
     public async Task ExecuteBasicAction(UserActionOption action)
@@ -316,7 +372,7 @@ public partial class GameManager
         bool startEncounter = actionImplementation.ActionType == ActionTypes.Encounter;
         if (!startEncounter)
         {
-            ExecuteActionByName(action.ActionName);
+            await ExecuteActionByName(action.ActionName);
 
             if (gameState.PendingTravel.IsTravelPending)
             {
@@ -450,8 +506,6 @@ public partial class GameManager
             await OnLocationArrival(gameState.PendingTravel.TravelDestination);
             gameState.PendingTravel.Clear();
         }
-
-        await UpdateLocation(gameState.WorldState.CurrentLocation);
     }
 
     private async Task OnLocationArrival(string targetLocation)
@@ -493,29 +547,7 @@ public partial class GameManager
 
         if (travelLocation == null) return;
 
-        await UpdateLocation(travelLocation);
-    }
-
-    private async Task UpdateLocation(Location travelLocation)
-    {
-        List<UserActionOption> options = new List<UserActionOption>();
-
-        List<LocationSpot> locationSpots = travelLocation.LocationSpots;
-        Console.WriteLine($"Location {travelLocation.Name} has {locationSpots?.Count ?? 0} spots");
-
-        foreach (LocationSpot locationSpot in locationSpots)
-        {
-            await CreateActionsForLocationSpot(options, travelLocation, locationSpot);
-        }
-
-        if (gameState.PendingTravel!.IsTravelPending)
-        {
-            gameState.PendingTravel.Clear();
-        }
-
-        // Set as current location
-        worldState.SetCurrentLocation(travelLocation);
-        gameState.ActionStateTracker.SetLocationSpotActions(options);
+        await UpdateState();
     }
 
     public async Task ProcessEncounterOutcome(EncounterResult result)
@@ -526,17 +558,14 @@ public partial class GameManager
         string narrative = narrativeResult.SceneNarrative;
         string outcome = narrativeResult.Outcome.ToString();
 
-        // Generate a unique encounter ID based on the context
         string encounterId = result.Encounter.ActionImplementation.ActionId;
 
         worldState.MarkEncounterCompleted(encounterId);
 
-        // Award XP based on encounter outcome
         if (result.EncounterResults == EncounterResults.EncounterSuccess)
         {
             int xpAward;
 
-            // XP based on outcome level
             switch (result.NarrativeResult.Outcome)
             {
                 case EncounterOutcomes.Exceptional:
@@ -553,9 +582,7 @@ public partial class GameManager
                     break;
             }
 
-            // Add difficulty bonus
             xpAward += result.Encounter.encounterInfo.EncounterDifficulty * 5;
-
             PlayerProgression.AddExperience(xpAward);
 
             // Add message about XP gain
@@ -656,18 +683,14 @@ public partial class GameManager
         return choiceProjection;
     }
 
-    public void UpdateAvailableActions()
-    {
-        CreateGlobalActions();
-    }
-
-    public void MoveToLocationSpot(string locationSpotName)
+    public async Task MoveToLocationSpot(string locationSpotName)
     {
         string locationName = gameState.WorldState.CurrentLocation.Name;
 
         LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(locationName, locationSpotName);
         gameState.WorldState.SetCurrentLocationSpot(locationSpot);
-        UpdateState();
+
+        await UpdateState();
     }
 
     private bool IsGameOver(PlayerState player)
@@ -797,7 +820,7 @@ public partial class GameManager
         return "Night";
     }
 
-    public void UpdateState()
+    public async Task UpdateState()
     {
         gameState.ActionStateTracker.ClearCurrentUserAction();
 
@@ -805,7 +828,24 @@ public partial class GameManager
         CreateGlobalActions();
 
         // Then update other available actions
-        UpdateAvailableActions();
+        await CreateLocationActions(worldState.CurrentLocation, worldState.CurrentLocationSpot);
+    }
+
+    private async Task CreateLocationActions(Location currentLocation, LocationSpot locationSpot)
+    {
+        List<LocationSpot> locationSpots = currentLocation.LocationSpots;
+        Console.WriteLine($"Location {currentLocation.Name} has {locationSpots?.Count ?? 0} spots");
+
+        if (gameState.PendingTravel!.IsTravelPending)
+        {
+            gameState.PendingTravel.Clear();
+        }
+
+        // Set as current location
+        worldState.SetCurrentLocation(currentLocation);
+
+        var locationSpotActionOptions = await CreateActionsForLocationSpot(currentLocation, locationSpot);
+        gameState.ActionStateTracker.SetLocationSpotActions(locationSpotActionOptions);
     }
 
     public EncounterViewModel? GetEncounterViewModel()
@@ -928,69 +968,7 @@ public partial class GameManager
             System.Text.RegularExpressions.RegexOptions.Compiled).Trim();
     }
 
-    public void CreateGlobalActions()
-    {
-        List<UserActionOption> userActions = new List<UserActionOption>();
-        int actionIndex = 1;
-
-        // Only add food consumption if player has food
-        if (gameState.PlayerState.Food > 0)
-        {
-            SpotAction foodActionTemplate = ActionRepository.GetAction(ActionNames.ConsumeFood.ToString());
-            if (foodActionTemplate != null)
-            {
-                ActionImplementation consumeFoodAction = ActionFactory.CreateActionFromTemplate(foodActionTemplate, null);
-
-                // Check if requirements are met
-                bool requirementsMet = consumeFoodAction.CanExecute(gameState);
-
-                UserActionOption consumeFoodOption = new UserActionOption(
-                    actionIndex++,
-                    consumeFoodAction.ActionId.ToString(),
-                    consumeFoodAction.Name.ToString(),
-                    !requirementsMet, // Disabled if requirements aren't met
-                    consumeFoodAction,
-                    gameState.WorldState.CurrentLocation?.Name ?? "Global",
-                    gameState.WorldState.CurrentLocationSpot?.Name ?? "Global",
-                    null,
-                    0,
-                    string.Empty);
-
-                userActions.Add(consumeFoodOption);
-            }
-        }
-
-        // Only add medicinal herbs consumption if player has herbs
-        if (gameState.PlayerState.MedicinalHerbs > 0)
-        {
-            SpotAction herbsActionTemplate = ActionRepository.GetAction(ActionNames.ConsumeMedicinalHerbs.ToString());
-            if (herbsActionTemplate != null)
-            {
-                ActionImplementation consumeHerbsAction = ActionFactory.CreateActionFromTemplate(herbsActionTemplate, null);
-
-                // Check if requirements are met
-                bool requirementsMet = consumeHerbsAction.CanExecute(gameState);
-
-                UserActionOption consumeHerbsOption = new UserActionOption(
-                    actionIndex++,
-                    consumeHerbsAction.ActionId.ToString(),
-                    consumeHerbsAction.Name.ToString(),
-                    !requirementsMet, // Disabled if requirements aren't met
-                    consumeHerbsAction,
-                    gameState.WorldState.CurrentLocation?.Name ?? "Global",
-                    gameState.WorldState.CurrentLocationSpot?.Name ?? "Global",
-                    null,
-                    0,
-                    string.Empty);
-
-                userActions.Add(consumeHerbsOption);
-            }
-        }
-
-        gameState.ActionStateTracker.SetGlobalActions(userActions);
-    }
-
-    public void ExecuteActionByName(string actionName)
+    public async Task ExecuteActionByName(string actionName)
     {
         // Get action template from repository
         SpotAction actionTemplate = ActionRepository.GetAction(actionName);
@@ -1016,7 +994,7 @@ public partial class GameManager
         ApplyActionOutcomes(action);
 
         // Update state
-        UpdateState();
+        await UpdateState();
 
         // Log action execution
         Console.WriteLine($"Executed action by name: {actionName}");

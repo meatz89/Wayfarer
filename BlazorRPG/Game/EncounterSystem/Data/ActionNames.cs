@@ -1,27 +1,21 @@
 ﻿public enum ActionNames
 {
-    // Basic actions
+    // Global Actions
+    ConsumeFood,
+    ConsumeMedicinalHerbs,
+
+    // Location Actions
+    HuntGame,
+    NightWatch,
     Rest,
     RestProperly,
     DrinkWater,
     FollowStream,
     ObserveArea,
-
-    // Encounter actions
     ForageForFood,
     SearchSurroundings,
     GatherHerbs,
-    ClimbTree,
-    SurveyArea,
-    MoveStealthily,
-    ForceThrough,
-    FindNaturalPath,
     FindPathOut,
-
-    ConsumeFood,
-    ConsumeMedicinalHerbs,
-    HuntGame,
-    NightWatch,
 }
 
 public enum LocationNames

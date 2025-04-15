@@ -85,9 +85,9 @@ public partial class GameUI : ComponentBase
         return CurrentLocation ?? new Location() { Name = "Default" };
     }
 
-    private void HandleSpotSelection(LocationSpot locationSpot)
+    private async Task HandleSpotSelection(LocationSpot locationSpot)
     {
-        GameManager.MoveToLocationSpot(locationSpot.Name);
+        await GameManager.MoveToLocationSpot(locationSpot.Name);
     }
 
     #endregion
@@ -131,6 +131,18 @@ public partial class GameUI : ComponentBase
         StateHasChanged();
     }
 
+    private string GetTimeOfDayStyle()
+    {
+        return CurrentTime switch
+        {
+            TimeWindows.Morning => "time-morning",
+            TimeWindows.Afternoon => "time-afternoon",
+            TimeWindows.Evening => "time-evening",
+            TimeWindows.Night => "time-night",
+            _ => ""
+        };
+    }
+
     private async Task WaitOneHour()
     {
         // Create a "Wait" action that advances time without other effects
@@ -142,8 +154,8 @@ public partial class GameUI : ComponentBase
             BasicActionType = BasicActionTypes.Rest,
             TimeCostHours = 1,
             IsRepeatable = true,
-            // Add energy cost for waiting
-            Energy = new List<Outcome> { new EnergyOutcome(-3) }
+            // Define minimal energy cost for waiting
+            Energy = new List<Outcome> { new EnergyOutcome(-1) }
         };
 
         ActionImplementation waitImpl = GameManager.ActionFactory.CreateActionFromTemplate(waitAction);
@@ -194,7 +206,7 @@ public partial class GameUI : ComponentBase
 
     private async Task OnEncounterCompleted()
     {
-        await GameManager.EndEncounter(EncounterResult.Encounter);
+        await GameManager.ReturnToLocationAfterEncounterEnd(EncounterResult.Encounter);
         ShowEncounterResult = false;
         StateHasChanged();
     }
