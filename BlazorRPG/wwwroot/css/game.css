@@ -462,7 +462,6 @@ body {
 /* Character stats */
 .stat-grid, .resource-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
     margin-bottom: 1rem;
 }
@@ -1300,17 +1299,239 @@ body {
     margin-top: auto;
     padding-top: 20px;
 }
-
-/* When encounter is active, make the map container take the full width */
+/* Updated Game UI Layout */
 .game-container {
-    display: grid;
-    grid-template-columns: 1fr 320px;
-    gap: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
     max-width: 1200px;
     margin: 20px auto;
     padding: 0 20px;
+    height: calc(100vh - 40px);
 }
 
-    .game-container.encounter-active .map-container {
-        grid-column: 1 / -1;
+/* Status bar for all modes */
+.game-status-bar {
+    background-color: var(--bg-card);
+    padding: 10px 20px;
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.player-status {
+    display: flex;
+    gap: 20px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.status-icon {
+    font-size: 1.2rem;
+}
+
+.status-label {
+    color: var(--text-secondary);
+    margin-right: 5px;
+}
+
+.status-value {
+    font-weight: bold;
+}
+
+.game-info {
+    display: flex;
+    align-items: center;
+}
+
+.time-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-mid);
+}
+
+/* Main content layout */
+.game-content {
+    display: flex;
+    gap: 15px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.main-content {
+    flex: 3;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.game-sidebar {
+    flex: 1;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+    overflow-y: auto;
+    max-width: 320px;
+    padding: 15px;
+}
+
+/* Map and location containers */
+.map-container, .location-container {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+    flex: 1;
+    overflow: auto;
+    padding: 15px;
+}
+
+.location-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--oak-mid);
+}
+
+.location-title {
+    font-family: var(--font-primary);
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    margin: 0;
+    font-weight: normal;
+}
+
+.location-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.location-button {
+    background-color: var(--leather);
+    color: var(--parchment);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--font-primary);
+    letter-spacing: 0.05em;
+    transition: all 0.2s ease;
+}
+
+    .location-button:hover {
+        background-color: var(--clay);
+        transform: translateY(-2px);
+    }
+
+/* Sidebar sections */
+.sidebar-section {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--oak-mid);
+}
+
+    .sidebar-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+.section-header {
+    font-family: var(--font-primary);
+    color: var(--leather);
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    font-weight: normal;
+}
+
+/* Encounter mode handling */
+.game-container.encounter-active .game-content {
+    display: block;
+}
+
+.game-container.encounter-active .main-content {
+    width: 100%;
+}
+
+/* Encounter container should fill the main content */
+.encounter-container {
+    height: 100%;
+    margin: 0;
+    border-radius: 5px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .game-content {
+        flex-direction: column;
+    }
+
+    .game-sidebar {
+        max-width: none;
+    }
+
+    .player-status {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+}
+
+/* Update LocationSpotMap container */
+::deep .location-spots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    padding: 10px;
+}
+
+::deep .location-spot-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--oak-mid);
+    border-radius: 5px;
+    padding: 15px;
+    transition: all 0.2s ease;
+}
+
+    ::deep .location-spot-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--leather);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    ::deep .location-spot-card.active {
+        border-color: var(--clay);
+        border-width: 2px;
+        background-color: var(--bg-active);
+    }
+
+/* Update Action buttons */
+::deep .action-button {
+    background-color: var(--leather);
+    color: var(--parchment);
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    font-family: var(--font-primary);
+    letter-spacing: 0.05em;
+    transition: all 0.2s ease;
+}
+
+    ::deep .action-button:hover:not(:disabled) {
+        background-color: var(--clay);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }

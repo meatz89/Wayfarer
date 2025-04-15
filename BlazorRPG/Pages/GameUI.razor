@@ -1,9 +1,6 @@
 ﻿@page "/"
 @inherits ComponentBase
 
-<div class="top-bar">
-</div>
-
 <div class="game-container @(OngoingEncounter ? "encounter-active" : "")">
     @if (needsCharacterCreation)
     {
@@ -11,83 +8,115 @@
     }
     else
     {
-        <div class="map-container">
-            @if (OngoingEncounter)
-            {
-                <EncounterView OnEncounterCompleted="(result) => OnEncounterCompleted(result)" />
-            }
-            else
-            {
-                @if (showAreaMap)
+        <!-- Status Bar for all modes -->
+        <div class="game-status-bar">
+            <div class="player-status">
+                <div class="status-item">
+                    <span class="status-icon">❤️</span>
+                    <span class="status-label">Health</span>
+                    <span class="status-value @(PlayerState.Health < PlayerState.MaxHealth / 3 ? "danger" : "")">
+                        @PlayerState.Health / @PlayerState.MaxHealth
+                    </span>
+                </div>
+                <div class="status-item">
+                    <span class="status-icon">🧠</span>
+                    <span class="status-label">Concentration</span>
+                    <span class="status-value">
+                        @PlayerState.Concentration / @PlayerState.MaxConcentration
+                    </span>
+                </div>
+                <div class="status-item">
+                    <span class="status-icon">🗣️</span>
+                    <span class="status-label">Confidence</span>
+                    <span class="status-value">
+                        @PlayerState.Confidence / @PlayerState.MaxConfidence
+                    </span>
+                </div>
+            </div>
+
+            <div class="game-info">
+                <div class="time-display">
+                    <span class="time-icon">@GetIconForTimeWindow(CurrentTime)</span>
+                    <span class="time-text">@CurrentTime.ToString()</span>
+                    <span class="time-hours">@CurrentHour:00</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-content">
+            <!-- Main content area -->
+            <div class="main-content">
+                @if (OngoingEncounter)
                 {
-                    @if (showNarrative)
-                    {
-                        <NarrativeView LocationName="@selectedLocation"
-                                       OnNarrativeCompleted="OnNarrativeCompleted"
-                                       Result="@EncounterResult"
-                                       ShowResult="false" />
-                    }
-                    else if (ShowEncounterResult)
-                    {
-                        <NarrativeView LocationName="@selectedLocation"
-                                       OnNarrativeCompleted="OnNarrativeCompleted"
-                                       Result="@EncounterResult"
-                                       ShowResult="true" />
-                    }
-                    else
-                    {
-                        <AreaMap CurrentLocation="@GetCurrentLocation()"
-                                 Locations="@Locations"
-                                 OnTravel="@HandleTravelStart" />
-                    }
+                    <EncounterView OnEncounterCompleted="(result) => OnEncounterCompleted(result)" />
                 }
                 else
                 {
-                    if (ShowEncounterResult)
+                    @if (showAreaMap)
                     {
-                        <NarrativeView LocationName="@selectedLocation"
-                                       OnNarrativeCompleted="OnNarrativeCompleted"
-                                       Result="@EncounterResult"
-                                       ShowResult="true" />
+                        @if (showNarrative)
+                        {
+                            <NarrativeView LocationName="@selectedLocation"
+                                           OnNarrativeCompleted="OnNarrativeCompleted"
+                                           Result="@EncounterResult"
+                                           ShowResult="false" />
+                        }
+                        else if (ShowEncounterResult)
+                        {
+                            <NarrativeView LocationName="@selectedLocation"
+                                           OnNarrativeCompleted="OnNarrativeCompleted"
+                                           Result="@EncounterResult"
+                                           ShowResult="true" />
+                        }
+                        else
+                        {
+                            <div class="map-container">
+                                <AreaMap CurrentLocation="@GetCurrentLocation()"
+                                         Locations="@Locations"
+                                         OnTravel="@HandleTravelStart" />
+                            </div>
+                        }
                     }
                     else
                     {
-                        <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
-                                         CurrentSpot="@CurrentSpot"
-                                         OnSpotSelected="@HandleSpotSelection"
-                                         OnActionSelected="@HandleActionSelection" />
+                        if (ShowEncounterResult)
+                        {
+                            <NarrativeView LocationName="@selectedLocation"
+                                           OnNarrativeCompleted="OnNarrativeCompleted"
+                                           Result="@EncounterResult"
+                                           ShowResult="true" />
+                        }
+                        else
+                        {
+                            <div class="location-container">
+                                <div class="location-header">
+                                    <h2 class="location-title">@GetCurrentLocation().Name</h2>
+                                    <div class="location-actions">
+                                        <button class="location-button" @onclick="@SwitchAreaMap">
+                                            Travel 🗺️
+                                        </button>
+                                        <button class="location-button" @onclick="WaitOneHour">
+                                            Wait 1 Hour
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
+                                                 CurrentSpot="@CurrentSpot"
+                                                 OnSpotSelected="@HandleSpotSelection"
+                                                 OnActionSelected="@HandleActionSelection" />
+                            </div>
+                        }
                     }
                 }
-            }
-        </div>
+            </div>
 
-        @if (!OngoingEncounter)
-        {
-            <div class="sidebar">
-                <div class="sidebar-panel location-panel">
-                    <div class="location">
-                        <div class="location-name">
-                            @GetCurrentLocation().Name
-                        </div>
-                        <div class="map-toggle">
-                            <button class="toggle-button @(showAreaMap ? "active" : "")" @onclick="@SwitchAreaMap">
-                                Travel 🗺️
-                            </button>
-                        </div>
-
-                        <button class="wait-button" @onclick="WaitOneHour">
-                            Wait 1 Hour
-                        </button>
-                    </div>
-
-                    <div class="location-properties">
-                        <div class="properties-header">Location Info</div>
-                        <div class="time-display">
-                            <span class="time-icon">@GetIconForTimeWindow(CurrentTime)</span>
-                            <span class="time-text">@CurrentTime.ToString()</span>
-                            <span class="time-hours">@CurrentHour:00</span>
-                        </div>
-
+            <!-- Side panel - Only shown when not in encounter -->
+            @if (!OngoingEncounter)
+            {
+                <div class="game-sidebar">
+                    <div class="sidebar-section">
+                        <div class="section-header">Location Info</div>
                         <div class="properties-grid">
                             @foreach (var prop in GetLocationProperties(GetCurrentLocation()))
                             {
@@ -99,14 +128,76 @@
                         </div>
                     </div>
 
-                    <div class="player-panel">
-                        <div class="panel-content">
-                            <!-- Player info content remains unchanged -->
+                    <div class="sidebar-section">
+                        <div class="section-header">Archetype</div>
+                        <div class="player-archetype">
+                            <span class="archetype-icon">@GetArchetypeIcon(PlayerState.Archetype)</span>
+                            <span class="archetype-name">@PlayerState.Archetype</span>
                         </div>
                     </div>
+
+                    <div class="sidebar-section">
+                        <div class="section-header">Resources</div>
+                        <div class="resource-grid">
+                            <div class="player-resource">
+                                <span class="resource-icon" style="color: var(--resource-coins)">💰</span>
+                                <span class="resource-label">Coins</span>
+                                <span class="resource-value">@PlayerState.Coins</span>
+                            </div>
+                            <div class="player-resource">
+                                <span class="resource-icon" style="color: var(--resource-food)">🍖</span>
+                                <span class="resource-label">Food</span>
+                                <span class="resource-value">@PlayerState.Food</span>
+                                <button class="resource-use-btn" @onclick="() => UseResource(ActionNames.ConsumeFood)">Use</button>
+                            </div>
+                            <div class="player-resource">
+                                <span class="resource-icon" style="color: var(--resource-herbs, #606C38)">🌿</span>
+                                <span class="resource-label">Herbs</span>
+                                <span class="resource-value">@PlayerState.MedicinalHerbs</span>
+                                <button class="resource-use-btn" @onclick="() => UseResource(ActionNames.ConsumeMedicinalHerbs)">Use</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <div class="section-header">Inventory (@PlayerState.Inventory.UsedCapacity / @PlayerState.Inventory.MaxCapacity)</div>
+                        <div class="inventory-grid">
+                            @foreach (ItemTypes itemType in Enum.GetValues(typeof(ItemTypes)))
+                            {
+                                if (itemType != ItemTypes.None)
+                                {
+                                    int count = PlayerState.Inventory.GetItemCount(itemType.ToString());
+                                    if (count > 0)
+                                    {
+                                        <div class="inventory-item" title="@GetItemDescription(itemType)">
+                                            <span class="item-icon">@GetItemIcon(itemType)</span>
+                                            <span class="item-name">@FormatItemName(itemType)</span>
+                                            <span class="item-count">@count</span>
+                                        </div>
+                                    }
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    @if (PlayerState.NegativeStatusTypes != null && PlayerState.NegativeStatusTypes.Any())
+                    {
+                        <div class="sidebar-section">
+                            <div class="section-header">Status Effects</div>
+                            <div class="status-effects-grid">
+                                @foreach (var status in PlayerState.NegativeStatusTypes)
+                                {
+                                    <div class="status-effect negative">
+                                        <span class="status-icon">⚠️</span>
+                                        <span class="status-name">@status</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
                 </div>
-            </div>
-        }
+            }
+        </div>
     }
 </div>
 
