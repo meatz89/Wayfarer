@@ -19,6 +19,7 @@
         actionImplementation.Complication = template.Complication;
         actionImplementation.BasicActionType = template.BasicActionType;
         actionImplementation.ActionType = template.ActionType;
+        actionImplementation.TimeWindows = template.TimeWindows ?? new();
 
         // Set time cost based on action type or template
         actionImplementation.TimeCostHours = template.TimeCostHours > 0
