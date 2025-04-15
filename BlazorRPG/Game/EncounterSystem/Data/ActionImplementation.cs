@@ -14,12 +14,28 @@
     public List<Outcome> Rewards { get; set; }
     public EncounterTemplate EncounterTemplate { get; set; }
 
-    // Forward progression properties
     public bool IsRepeatable { get; set; } = false;
-    public string CompletionId { get; set; } // Track if this specific action has been completed
+    public string CompletionId { get; set; } 
     public ActionExperienceTypes ExperienceType { get; set; } = ActionExperienceTypes.Normal;
 
-    // Check if action is completed
+    public string CurrentLocation { get; set; }
+    public string DestinationLocation { get; set; }
+    public int TimeCostHours { get; set; } = 1;
+
+    public void ApplyTimeCost(GameState gameState)
+    {
+        // Currently just delegates to the existing method
+        gameState.WorldState.CurrentTimeInHours =
+            (gameState.WorldState.CurrentTimeInHours + TimeCostHours) % 24;
+
+        // Update time window
+        const int timeWindowsPerDay = 4;
+        const int hoursPerTimeWindow = 6;
+        int timeWindow = (gameState.WorldState.CurrentTimeInHours / hoursPerTimeWindow) % timeWindowsPerDay;
+
+        gameState.WorldState.DetermineCurrentTimeWindow(timeWindow);
+    }
+
     public bool IsCompleted(WorldState worldState)
     {
         if (IsRepeatable) return false;

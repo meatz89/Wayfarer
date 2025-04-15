@@ -142,6 +142,7 @@
     // Navigation options
     public List<UserLocationTravelOption> CurrentTravelOptions { get; set; } = new();
 
+    public int CurrentDay { get; set; } = 1;
 
     public void SetCurrentTime(int hours)
     {

@@ -10,7 +10,7 @@
 
     // Progression systems
     public int Level { get; set; }
-    public int ExperiencePoints { get; set; }
+    public int CurrentXP { get; set; }
     public SkillList Skills { get; set; } = new();
 
     // Resources
@@ -364,10 +364,10 @@
 
     public void AddExperiencePoints(int xpBonus)
     {
-        int newExperiencePoints = Math.Max(0, ExperiencePoints + xpBonus);
-        if (newExperiencePoints != ExperiencePoints)
+        int newExperiencePoints = Math.Max(0, CurrentXP + xpBonus);
+        if (newExperiencePoints != CurrentXP)
         {
-            ExperiencePoints = newExperiencePoints;
+            CurrentXP = newExperiencePoints;
         }
     }
 
@@ -378,5 +378,10 @@
         {
             Coins = newCoins;
         }
+    }
+
+    internal void UnlockCard(ChoiceCard card)
+    {
+        throw new NotImplementedException();
     }
 }

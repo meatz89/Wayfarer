@@ -35,13 +35,13 @@
         // Calculate travel time
         int travelMinutes = CalculateTravelTime(currentLocation, travelLocation, travelMethod);
 
-        // Advance game time
-        worldState.CurrentTimeMinutes += travelMinutes;
-
-        bool isFirstVisit = worldState.IsFirstVisit(travelLocation);
+        // Convert to hours (rounded up)
+        int travelHours = (int)Math.Ceiling(travelMinutes / 60.0);
 
         // Consume resources
         ConsumeTravelResources(travelMinutes, travelMethod);
+
+        bool isFirstVisit = worldState.IsFirstVisit(travelLocation);
 
         // Apply discovery bonus on first visit
         if (isFirstVisit)
@@ -57,6 +57,13 @@
         SpotAction travelTemplate = isFirstVisit
             ? GetTravelWithEncounterTemplate()
             : GetTravelWithoutEncounterTemplate();
+
+        // Set the time cost
+        travelTemplate.TimeCostHours = travelHours;
+
+        // Add additional properties for the classifier
+        travelTemplate.LocationName = currentLocation?.Name;
+        travelTemplate.LocationSpotTarget = travelLocation;
 
         // Create action implementation
         ActionImplementation travelAction = isFirstVisit

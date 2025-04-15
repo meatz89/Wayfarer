@@ -18,6 +18,8 @@
     public List<Outcome> Rewards { get; set; }
     public bool IsRepeatable { get; set; }
     public string LocationSpotTarget { get; set; }
+    public int TimeCostHours { get; set; } = 1; // Default 1 hour
+    public List<TimeWindows> TimeWindows { get; set; }
 }
 
 public enum ActionTypes

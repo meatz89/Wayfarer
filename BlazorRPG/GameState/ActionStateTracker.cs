@@ -4,6 +4,7 @@
     public UserActionOption CurrentAction { get; private set; }
     public bool IsActiveEncounter { get; private set; }
     public EncounterResult EncounterResult { get; set; }
+    public EncounterManager CurrentEncounter { get; private set; }
 
     // Action options
     public List<UserActionOption> LocationSpotActions { get; private set; } = new List<UserActionOption>();
@@ -26,36 +27,37 @@
     public void SetActiveEncounter(EncounterManager encounter = null)
     {
         IsActiveEncounter = true;
+        CurrentEncounter = encounter;
     }
 
     // Complete active encounter
     public void CompleteActiveEncounter()
     {
         IsActiveEncounter = false;
+        CurrentEncounter = null;
     }
 
-    public void SetGlobalActions(List<UserActionOption> actions)
+    // Get current encounter
+    public EncounterManager GetCurrentEncounter()
     {
-        GlobalActions = actions ?? new List<UserActionOption>();
+        return CurrentEncounter;
     }
 
-    public bool HasGlobalAction(string actionId)
+    // Set encounter choice options
+    public void SetEncounterChoiceOptions(List<UserEncounterChoiceOption> options)
     {
-        return GlobalActions.Any(a => a.ActionId == actionId && !a.IsDisabled);
+        UserEncounterChoiceOptions = options;
     }
 
-    public void SetActiveEncounter()
-    {
-        this.IsActiveEncounter = true;
-    }
-
+    // Set location spot actions
     public void SetLocationSpotActions(List<UserActionOption> actions)
     {
         LocationSpotActions = actions;
     }
 
-    public void SetEncounterChoiceOptions(List<UserEncounterChoiceOption> choiceOptions)
+    // Set global actions
+    public void SetGlobalActions(List<UserActionOption> actions)
     {
-        this.UserEncounterChoiceOptions = choiceOptions;
+        GlobalActions = actions;
     }
 }
