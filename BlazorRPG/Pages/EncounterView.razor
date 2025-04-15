@@ -2,45 +2,6 @@
 @using Microsoft.AspNetCore.Components.Web
 
 <div class="encounter-container">
-    <div class="encounter-status-bar">
-        <div class="player-status">
-            <div class="status-item">
-                <span class="status-icon">❤️</span>
-                <span class="status-label">Health</span>
-                <span class="status-value @(PlayerState.Health < PlayerState.MaxHealth / 3 ? "danger" : "")">
-                    @PlayerState.Health / @PlayerState.MaxHealth
-                </span>
-            </div>
-            <div class="status-item">
-                <span class="status-icon">🧠</span>
-                <span class="status-label">Concentration</span>
-                <span class="status-value">
-                    @PlayerState.Concentration / @PlayerState.MaxConcentration
-                </span>
-            </div>
-            <div class="status-item">
-                <span class="status-icon">🗣️</span>
-                <span class="status-label">Confidence</span>
-                <span class="status-value">
-                    @PlayerState.Confidence / @PlayerState.MaxConfidence
-                </span>
-            </div>
-        </div>
-
-        <div class="encounter-progress">
-            <div class="progress-item">
-                @GetValueTypeIcon(ValueTypes.Momentum)
-                <span class="progress-label">Momentum</span>
-                <span class="progress-value">@GetModel().State.Momentum</span>
-            </div>
-            <div class="progress-item">
-                @GetValueTypeIcon(ValueTypes.Pressure)
-                <span class="progress-label">Pressure</span>
-                <span class="progress-value">@GetModel().State.Pressure</span>
-            </div>
-        </div>
-    </div>
-
     @if (IsLoading)
     {
         <div class="encounter-loading">
