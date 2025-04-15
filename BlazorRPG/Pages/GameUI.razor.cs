@@ -43,7 +43,7 @@ public partial class GameUI : ComponentBase
     // Encounter State
     public bool OngoingEncounter { get; private set; }
     public bool ShowEncounterResult { get; set; } = false;
-    public EncounterResult EncounterResult => GameState.Actions.EncounterResult;
+    public EncounterResult EncounterResult => GameState.ActionStateTracker.EncounterResult;
 
     // Tooltip State
     public bool showTooltip = false;
@@ -91,6 +91,26 @@ public partial class GameUI : ComponentBase
         GameManager.MoveToLocationSpot(locationSpot.Name);
     }
 
+    #endregion
+
+    #region Action and Encounter Methods
+
+    private async Task HandleActionSelection(UserActionOption action)
+    {
+        if (action.IsDisabled) return;
+
+        // Use unified action execution
+        await GameManager.ExecuteAction(action);
+
+        // Update UI state based on results
+        OngoingEncounter = GameState.ActionStateTracker.IsActiveEncounter;
+
+        // Display messages
+        DisplayActionMessages();
+
+        StateHasChanged();
+    }
+
     private async Task HandleTravelStart(string travelLocationName)
     {
         selectedLocation = travelLocationName;
@@ -103,38 +123,18 @@ public partial class GameUI : ComponentBase
             return;
         }
 
-        // Otherwise initiate travel
+        // Use unified travel initiation
         await GameManager.InitiateTravelToLocation(travelLocationName);
-        OngoingEncounter = GameState.Actions.IsActiveEncounter;
+
+        // Update UI state
+        OngoingEncounter = GameState.ActionStateTracker.IsActiveEncounter;
         showAreaMap = false;
         StateHasChanged();
-    }
-    #endregion
-
-    #region Action and Encounter Methods
-    private async Task HandleActionSelection(UserActionOption action)
-    {
-        if (action.IsDisabled) return;
-
-        GameManager.ExecuteBasicAction(action);
-
-        OngoingEncounter = GameState.Actions.IsActiveEncounter;
-        if (!OngoingEncounter)
-        {
-            CompleteActionExecution();
-        }
-
-        DisplayActionMessages();
-    }
-
-    private void CompleteActionExecution()
-    {
-        GameManager.UpdateState();
     }
 
     private async Task UseResource(ActionNames actionName)
     {
-        UserActionOption globalAction = GameState.Actions.GlobalActions
+        UserActionOption globalAction = GameState.ActionStateTracker.GlobalActions
             .FirstOrDefault(a => a.ActionId == actionName.ToString());
 
         if (globalAction != null && !globalAction.IsDisabled)

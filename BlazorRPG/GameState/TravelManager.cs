@@ -23,11 +23,8 @@
     public ActionImplementation TravelToLocation(string travelLocation, TravelMethods travelMethod = TravelMethods.Walking)
     {
         Location currentLocation = worldState.CurrentLocation;
-        if (currentLocation?.Name == travelLocation)
-        {
-            return null;
-        }
 
+        // Set up pending travel
         gameState.PendingTravel = new PendingTravel
         {
             TravelOrigin = currentLocation,
@@ -43,46 +40,35 @@
 
         bool isFirstVisit = worldState.IsFirstVisit(travelLocation);
 
-        Location targetLocation = LocationSystem.GetLocation(travelLocation);
-        if (string.IsNullOrWhiteSpace(worldState.CurrentLocation?.Name))
-        {
-            worldState.SetCurrentLocation(targetLocation);
-            return null;
-        }
-
         // Consume resources
         ConsumeTravelResources(travelMinutes, travelMethod);
 
         // Apply discovery bonus on first visit
-        if (isFirstVisit && targetLocation != null)
+        if (isFirstVisit)
         {
-            ApplyDiscoveryBonus(targetLocation);
-        }
-        // Update hub tracking if applicable
-        if (targetLocation.LocationType == LocationTypes.Hub)
-        {
-            int locationDepth = worldState.GetLocationDepth(targetLocation.Name);
-            if (locationDepth > worldState.LastHubDepth)
+            Location targetLocation = LocationSystem.GetLocation(travelLocation);
+            if (targetLocation != null)
             {
-                worldState.LastHubLocationId = targetLocation.Name;
-                worldState.LastHubDepth = locationDepth;
+                ApplyDiscoveryBonus(targetLocation);
             }
         }
 
-        SpotAction travelTemplate = GetTravelWitoutEncounterTemplate();
-        ActionImplementation travelAction = ActionFactory.CreateActionFromTemplate(travelTemplate);
+        // Create appropriate action based on whether this is a first visit
+        SpotAction travelTemplate = isFirstVisit
+            ? GetTravelWithEncounterTemplate()
+            : GetTravelWithoutEncounterTemplate();
 
-        if (isFirstVisit)
-        {
-            travelTemplate = GetTravelWithEncounterTemplate();
-            EncounterTemplate travelEncounter = ActionRepository.GetEncounterTemplate(travelTemplate.Name);
-            travelAction = ActionFactory.CreateActionFromTemplate(travelTemplate, travelEncounter);
-        }
+        // Create action implementation
+        ActionImplementation travelAction = isFirstVisit
+            ? ActionFactory.CreateActionFromTemplate(
+                travelTemplate,
+                ActionRepository.GetEncounterTemplate(travelTemplate.Name))
+            : ActionFactory.CreateActionFromTemplate(travelTemplate);
 
         return travelAction;
     }
 
-    private SpotAction GetTravelWitoutEncounterTemplate()
+    private SpotAction GetTravelWithoutEncounterTemplate()
     {
         SpotAction travelTemplate = new SpotAction
         {
@@ -146,8 +132,10 @@
     private void ConsumeTravelResources(int travelMinutes, TravelMethods travelMethod)
     {
         // Calculate energy cost based on travel time and location depth
-        string currentLocationId = worldState.CurrentLocation.Name;
-        int currentDepth = worldState.GetLocationDepth(currentLocationId);
+        string currentLocation = worldState.CurrentLocation?.Name;
+        if (string.IsNullOrWhiteSpace(currentLocation)) return;
+
+        int currentDepth = worldState.GetLocationDepth(currentLocation);
 
         // Base energy cost (1 energy per 30 minutes)
         int baseCost = Math.Max(1, travelMinutes / 30);

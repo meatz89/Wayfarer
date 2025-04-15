@@ -84,25 +84,106 @@ public class GameManager
         Console.WriteLine($"Game started at: {currentLoc?.Name}, Current spot: {worldState.CurrentLocationSpot?.Name}");
     }
 
+
+    public async Task ExecuteAction(UserActionOption action)
+    {
+        // Store action context for current execution
+        actionImplementation = action.ActionImplementation;
+        location = LocationSystem.GetLocation(action.Location);
+        locationSpot = action.LocationSpot;
+
+        // Set current action in game state
+        gameState.ActionStateTracker.SetCurrentUserAction(action);
+
+        // Process based on action type
+        if (actionImplementation.ActionType == ActionTypes.Encounter)
+        {
+            // Start an encounter (no immediate outcomes)
+            gameState.ActionStateTracker.SetActiveEncounter();
+        }
+        else
+        {
+            // Execute direct action (basic or travel)
+            ProcessBasicAction(action);
+
+            // Handle pending travel if this was a travel action
+            if (gameState.PendingTravel.IsTravelPending)
+            {
+                await CompleteTravel(gameState.PendingTravel.TravelDestination);
+            }
+
+            // Update game state
+            UpdateState();
+        }
+    }
+
+    // Process basic action (including travel)
+    private void ProcessBasicAction(UserActionOption action)
+    {
+        // Apply the action's outcomes
+        ApplyActionOutcomes(action.ActionImplementation);
+
+        // If this is a travel action, it will have set pending travel
+        // which is handled in the calling method
+    }
+
+    // Handle travel completion
+    private async Task CompleteTravel(string destination)
+    {
+        await OnLocationArrival(destination);
+        gameState.PendingTravel.Clear();
+    }
+
+    // Refactor methods that call ExecuteBasicAction to use ExecuteAction instead
     public async Task InitiateTravelToLocation(string locationName)
     {
+        // Create travel action using TravelManager
         ActionImplementation travelAction = TravelManager.TravelToLocation(locationName, TravelMethods.Walking);
 
-        // Create option
+        // Create option with consistent structure
         UserActionOption travelOption = new UserActionOption(
             0, "Travel", "Travel to " + locationName, false, travelAction,
             worldState.CurrentLocation.Name, worldState.CurrentLocationSpot.Name,
             null, worldState.CurrentLocation.Difficulty);
 
-        await ExecuteBasicAction(travelOption);
+        // Use unified action execution
+        await ExecuteAction(travelOption);
     }
+
+    // Unified encounter completion handling
+    public async Task EndEncounter(EncounterManager encounter)
+    {
+        // Apply the encounter's outcomes
+        ApplyActionOutcomes(encounter.ActionImplementation);
+
+        // Complete the encounter
+        gameState.ActionStateTracker.CompleteActiveEncounter();
+
+        // Handle travel if this was a travel encounter
+        if (gameState.PendingTravel.IsTravelPending)
+        {
+            await CompleteTravel(gameState.PendingTravel.TravelDestination);
+        }
+        else
+        {
+            // Update the current location
+            await UpdateLocation(gameState.WorldState.CurrentLocation);
+        }
+
+        // Update game state
+        UpdateState();
+    }
+
 
     private async Task CreateActionsForLocationSpot(
         List<UserActionOption> options,
         Location location,
         LocationSpot locationSpot)
     {
-        WorldStateInput worldStateInput = await CreateWorldStateInput();
+        var currentLocation = worldState.CurrentLocation?.Name;
+        if (string.IsNullOrWhiteSpace(currentLocation)) return;
+
+        WorldStateInput worldStateInput = await CreateWorldStateInput(currentLocation);
 
         List<string> locationSpotActions = locationSpot.ActionIds.ToList();
         foreach (string locationSpotAction in locationSpotActions)
@@ -160,7 +241,7 @@ public class GameManager
         locationSpot = action.LocationSpot;
 
         location = LocationSystem.GetLocation(action.Location);
-        gameState.Actions.SetCurrentUserAction(action);
+        gameState.ActionStateTracker.SetCurrentUserAction(action);
 
         bool startEncounter = actionImplementation.ActionType == ActionTypes.Encounter;
         if (!startEncounter)
@@ -175,7 +256,7 @@ public class GameManager
         }
         else
         {
-            gameState.Actions.SetActiveEncounter();
+            gameState.ActionStateTracker.SetActiveEncounter();
         }
     }
 
@@ -241,18 +322,10 @@ public class GameManager
             .GenerateEncounter(location, locationSpot.Name, context, worldState, playerState, actionImplementation);
 
         List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterResult.Encounter);
-        gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
+        gameState.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
 
-        EncounterManager encounterManager = gameState.Actions.GetCurrentEncounter();
+        EncounterManager encounterManager = EncounterSystem.GetCurrentEncounter();
         return encounterManager;
-    }
-
-    public async Task EndEncounter(EncounterManager encounter)
-    {
-        ActionImplementation actionImplementation = encounter.ActionImplementation;
-        ApplyActionOutcomes(actionImplementation);
-
-        gameState.Actions.CompleteActiveEncounter();
     }
 
     public async Task<EncounterResult> ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
@@ -262,7 +335,10 @@ public class GameManager
         EncounterManager encounter = choiceOption.encounter;
         Location location = LocationSystem.GetLocation(choiceOption.LocationName);
 
-        WorldStateInput worldStateInput = await CreateWorldStateInput();
+        var currentLocation = worldState.CurrentLocation?.Name;
+        if (string.IsNullOrWhiteSpace(currentLocation)) return null;
+
+        WorldStateInput worldStateInput = await CreateWorldStateInput(currentLocation);
 
         // Execute the choice
         EncounterResult encounterResult = await EncounterSystem.ExecuteChoice(
@@ -277,14 +353,14 @@ public class GameManager
             // Encounter is Ongoing - unchanged
             if (IsGameOver(gameState.PlayerState))
             {
-                gameState.Actions.CompleteActiveEncounter();
+                gameState.ActionStateTracker.CompleteActiveEncounter();
                 return encounterResult;
             }
 
-            gameState.Actions.EncounterResult = encounterResult;
+            gameState.ActionStateTracker.EncounterResult = encounterResult;
 
             List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterResult.Encounter);
-            gameState.Actions.SetEncounterChoiceOptions(choiceOptions);
+            gameState.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
         }
         else
         {
@@ -315,7 +391,14 @@ public class GameManager
 
         Location travelLocation = gameState.WorldState.GetLocation(targetLocation);
 
-        WorldStateInput worldStateInput = await CreateWorldStateInput();
+        var currentLocation = worldState.CurrentLocation?.Name;
+        if (string.IsNullOrWhiteSpace(currentLocation))
+        {
+            worldState.SetCurrentLocation(travelLocation);
+            currentLocation = worldState.CurrentLocation?.Name;
+        }
+
+        WorldStateInput worldStateInput = await CreateWorldStateInput(currentLocation);
 
         bool isFirstVisit = worldState.IsFirstVisit(travelLocation.Name);
         if (isFirstVisit)
@@ -362,12 +445,12 @@ public class GameManager
 
         // Set as current location
         worldState.SetCurrentLocation(travelLocation);
-        gameState.Actions.SetLocationSpotActions(options);
+        gameState.ActionStateTracker.SetLocationSpotActions(options);
     }
 
     public async Task ProcessEncounterOutcome(EncounterResult result)
     {
-        gameState.Actions.EncounterResult = result;
+        gameState.ActionStateTracker.EncounterResult = result;
 
         NarrativeResult narrativeResult = result.NarrativeResult;
         string narrative = narrativeResult.SceneNarrative;
@@ -393,7 +476,7 @@ public class GameManager
                 // Prepare the input
                 PostEncounterEvolutionInput input = evolutionSystem.PreparePostEncounterEvolutionInput(narrative, outcome);
 
-                WorldStateInput worldStateInput = await CreateWorldStateInput();
+                WorldStateInput worldStateInput = await CreateWorldStateInput(currentLocation.Name);
 
                 // Process world evolution
                 PostEncounterEvolutionResult evolutionResponse = await evolutionSystem.ProcessEncounterOutcome(result.NarrativeContext, input, result, worldStateInput);
@@ -414,7 +497,10 @@ public class GameManager
 
         // Create memory entry
         MemoryConsolidationInput memoryInput = new MemoryConsolidationInput { OldMemory = oldMemory };
-        WorldStateInput worldStateInput = await CreateWorldStateInput();
+
+        string currentLocation = worldState.CurrentLocation.Name;
+        if (string.IsNullOrWhiteSpace(currentLocation)) return;
+        WorldStateInput worldStateInput = await CreateWorldStateInput(currentLocation);
 
         string memoryEntry = await evolutionSystem.ConsolidateMemory(encounterResult.NarrativeContext, memoryInput, worldStateInput);
 
@@ -471,9 +557,6 @@ public class GameManager
 
     public void UpdateAvailableActions()
     {
-        gameState.Actions.SetCharacterActions(new List<UserActionOption>());
-        gameState.Actions.SetQuestActions(new List<UserActionOption>());
-
         CreateGlobalActions();
     }
 
@@ -608,7 +691,7 @@ public class GameManager
 
     public void UpdateState()
     {
-        gameState.Actions.ClearCurrentUserAction();
+        gameState.ActionStateTracker.ClearCurrentUserAction();
 
         // Create global actions first
         CreateGlobalActions();
@@ -622,7 +705,7 @@ public class GameManager
         EncounterResult encounterResult = EncounterSystem.CurrentResult;
 
         EncounterViewModel model = new EncounterViewModel();
-        EncounterManager encounterManager = gameState.Actions.GetCurrentEncounter();
+        EncounterManager encounterManager = EncounterSystem.GetCurrentEncounter();
 
         List<UserEncounterChoiceOption> userEncounterChoiceOptions = EncounterSystem.GetUserEncounterChoiceOptions();
 
@@ -637,7 +720,7 @@ public class GameManager
         return model;
     }
 
-    private async Task<WorldStateInput> CreateWorldStateInput()
+    private async Task<WorldStateInput> CreateWorldStateInput(string currentLocation)
     {
         WorldState worldState = gameState.WorldState;
         PlayerState playerState = gameState.PlayerState;
@@ -660,7 +743,7 @@ public class GameManager
             MaxEnergy = playerState.MaxEnergy,
             Coins = playerState.Coins,
 
-            CurrentLocation = worldState.CurrentLocation.Name,
+            CurrentLocation = currentLocation,
             LocationSpots = LocationSystem.FormatLocationSpots(worldState.CurrentLocation),
             CurrentSpot = worldState.CurrentLocationSpot.Name,
             LocationDepth = currentDepth,
@@ -794,7 +877,7 @@ public class GameManager
             }
         }
 
-        gameState.Actions.SetGlobalActions(userActions);
+        gameState.ActionStateTracker.SetGlobalActions(userActions);
     }
 
     public void ExecuteActionByName(string actionName)

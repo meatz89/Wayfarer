@@ -3,41 +3,27 @@
     public Modes GameMode = Modes.Debug;
 
     public PlayerState PlayerState { get; set; }
-    public ActionState Actions { get; }
+    public ActionStateTracker ActionStateTracker { get; }
     public WorldState WorldState { get; }
     public PendingTravel PendingTravel { get; set; } = new PendingTravel();
 
     public GameState()
     {
         PlayerState = new PlayerState();
-        Actions = new ActionState();
+        ActionStateTracker = new ActionStateTracker();
         WorldState = new WorldState();
     }
 
     public List<UserActionOption> GetActions(LocationSpot locationSpot)
     {
         List<UserActionOption> locationActions =
-            Actions.LocationSpotActions
-            .Where(x => x.Location == locationSpot.LocationName)
-            .Where(x => x.LocationSpot == locationSpot.Name)
-            .ToList();
-
-        List<UserActionOption> characterActions =
-            Actions.CharacterActions
-            .Where(x => x.Location == locationSpot.LocationName)
-            .Where(x => x.LocationSpot == locationSpot.Name)
-            .ToList();
-
-        List<UserActionOption> questActions =
-            Actions.QuestActions
+            ActionStateTracker.LocationSpotActions
             .Where(x => x.Location == locationSpot.LocationName)
             .Where(x => x.LocationSpot == locationSpot.Name)
             .ToList();
 
         List<UserActionOption> actions = new List<UserActionOption>();
         actions.AddRange(locationActions);
-        actions.AddRange(characterActions);
-        actions.AddRange(questActions);
 
         return actions;
     }
