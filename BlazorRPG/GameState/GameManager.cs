@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-public class GameManager
+public partial class GameManager
 {
     public PlayerState playerState => gameState.PlayerState;
     public WorldState worldState => gameState.WorldState;
@@ -18,6 +18,7 @@ public class GameManager
     public ActionGenerator ActionGenerator { get; }
     public CharacterSystem CharacterSystem { get; }
     public OpportunitySystem OpportunitySystem { get; }
+    public PlayerProgression PlayerProgression { get; }
     public EncounterSystem EncounterSystem { get; }
 
     public ActionImplementation actionImplementation;
@@ -42,6 +43,7 @@ public class GameManager
         ActionGenerator actionGenerator,
         CharacterSystem characterSystem,
         OpportunitySystem opportunitySystem,
+        PlayerProgression playerProgression,
         IConfiguration configuration
         )
     {
@@ -59,6 +61,7 @@ public class GameManager
         ActionGenerator = actionGenerator;
         CharacterSystem = characterSystem;
         OpportunitySystem = opportunitySystem;
+        PlayerProgression = playerProgression;
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
         _useMemory = configuration.GetValue<bool>("useMemory");
     }
@@ -67,7 +70,7 @@ public class GameManager
     {
         Location startingLocation = await LocationSystem.Initialize(GameRules.StandardRuleset.StartingLocation);
         string startingLocationName = gameState.PlayerState.StartingLocation;
-        
+
         worldState.RecordLocationVisit(startingLocationName);
         TravelManager.TravelToLocation(startingLocationName, TravelMethods.Walking);
         await OnLocationArrival(startingLocationName);
@@ -84,7 +87,6 @@ public class GameManager
         Console.WriteLine($"Game started at: {currentLoc?.Name}, Current spot: {worldState.CurrentLocationSpot?.Name}");
     }
 
-
     public async Task ExecuteAction(UserActionOption action)
     {
         // Store action context for current execution
@@ -95,46 +97,113 @@ public class GameManager
         // Set current action in game state
         gameState.ActionStateTracker.SetCurrentUserAction(action);
 
-        // Process based on action type
-        if (actionImplementation.ActionType == ActionTypes.Encounter)
-        {
-            // Start an encounter (no immediate outcomes)
-            gameState.ActionStateTracker.SetActiveEncounter();
-        }
-        else
-        {
-            // Execute direct action (basic or travel)
-            ProcessBasicAction(action);
+        // Use our action classification system to determine execution path
+        ActionExecutionType executionType = GetExecutionType(action.ActionImplementation);
 
-            // Handle pending travel if this was a travel action
-            if (gameState.PendingTravel.IsTravelPending)
-            {
-                await CompleteTravel(gameState.PendingTravel.TravelDestination);
-            }
+        switch (executionType)
+        {
+            case ActionExecutionType.Encounter:
+                // Start an encounter (no immediate outcomes)
+                gameState.ActionStateTracker.SetActiveEncounter();
+                break;
 
-            // Update game state
-            UpdateState();
+            case ActionExecutionType.Travel:
+                // Execute travel action
+                ProcessBasicAction(action);
+
+                // Travel actions should always set PendingTravel
+                if (gameState.PendingTravel.IsTravelPending)
+                {
+                    await CompleteTravel(gameState.PendingTravel.TravelDestination);
+                }
+                else
+                {
+                    Console.WriteLine("Warning: Travel action did not set pending travel");
+                }
+
+                // Update game state
+                UpdateState();
+                break;
+
+            case ActionExecutionType.Basic:
+            default:
+                // Execute basic action
+                ProcessBasicAction(action);
+
+                // Handle any spot changes
+                if (gameState.PendingTravel.IsTravelPending)
+                {
+                    await CompleteTravel(gameState.PendingTravel.TravelDestination);
+                }
+
+                // Update game state
+                UpdateState();
+                break;
         }
     }
 
-    // Process basic action (including travel)
     private void ProcessBasicAction(UserActionOption action)
     {
         // Apply the action's outcomes
         ApplyActionOutcomes(action.ActionImplementation);
 
-        // If this is a travel action, it will have set pending travel
-        // which is handled in the calling method
+        // Apply time cost
+        int hours = action.ActionImplementation.TimeCostHours;
+        for (int i = 0; i < hours; i++)
+        {
+            // Apply time advancement one hour at a time
+            gameState.TimeManager.AdvanceTime(1);
+
+            // Apply effects for each hour that passes
+            ApplyHourlyEffects();
+        }
+
+        // Check for time-based events
+        CheckTimeBasedEvents();
     }
 
-    // Handle travel completion
+    private void ApplyHourlyEffects()
+    {
+        // Skip energy drain for rest actions
+        if (gameState.ActionStateTracker.CurrentAction?.ActionImplementation.BasicActionType == BasicActionTypes.Rest)
+            return;
+
+        // Different drain rates based on time of day
+        int drainAmount = gameState.WorldState.WorldTime switch
+        {
+            TimeWindows.Night => 2,     // Higher drain at night if not resting
+            TimeWindows.Morning => 1,   // Lower drain in morning (fresh)
+            TimeWindows.Afternoon => 2, // Normal drain
+            TimeWindows.Evening => 3,   // Higher drain (tired)
+            _ => 2
+        };
+
+        // Location safety modifier
+        if (gameState.WorldState.CurrentLocation?.LocationType == LocationTypes.Hub)
+        {
+            drainAmount = Math.Max(1, drainAmount - 1); // Reduce drain in safe locations
+        }
+
+        // Apply energy drain
+        playerState.Energy = Math.Max(0, playerState.Energy - drainAmount);
+    }
+
+    private void CheckTimeBasedEvents()
+    {
+        // Check for special time-based events
+        // For example, NPCs only available at certain times
+
+        // For now, just refresh the available actions
+        // to reflect time-based availability
+        UpdateAvailableActions();
+    }
+
     private async Task CompleteTravel(string destination)
     {
         await OnLocationArrival(destination);
         gameState.PendingTravel.Clear();
     }
 
-    // Refactor methods that call ExecuteBasicAction to use ExecuteAction instead
     public async Task InitiateTravelToLocation(string locationName)
     {
         // Create travel action using TravelManager
@@ -144,7 +213,7 @@ public class GameManager
         UserActionOption travelOption = new UserActionOption(
             0, "Travel", "Travel to " + locationName, false, travelAction,
             worldState.CurrentLocation.Name, worldState.CurrentLocationSpot.Name,
-            null, worldState.CurrentLocation.Difficulty);
+            null, worldState.CurrentLocation.Difficulty, null);
 
         // Use unified action execution
         await ExecuteAction(travelOption);
@@ -208,10 +277,10 @@ public class GameManager
 
             if (encounterTemplate == null)
             {
-                var actionId = 
+                var actionId =
                     await ActionGenerator.CreateEncounterForAction(
-                        actionTemplate.ActionId, 
-                        actionTemplate, 
+                        actionTemplate.ActionId,
+                        actionTemplate,
                         worldStateInput);
 
                 encounterTemplate = ActionRepository.GetEncounterTemplate(locationSpotAction);
@@ -229,7 +298,8 @@ public class GameManager
                     locationSpot.LocationName,
                     locationSpot.Name,
                     default,
-                    location.Difficulty);
+                    location.Difficulty,
+                    string.Empty);
 
             options.Add(userActionOption);
         }
@@ -422,7 +492,7 @@ public class GameManager
         }
 
         if (travelLocation == null) return;
-        
+
         await UpdateLocation(travelLocation);
     }
 
@@ -460,6 +530,37 @@ public class GameManager
         string encounterId = result.Encounter.ActionImplementation.ActionId;
 
         worldState.MarkEncounterCompleted(encounterId);
+
+        // Award XP based on encounter outcome
+        if (result.EncounterResults == EncounterResults.EncounterSuccess)
+        {
+            int xpAward;
+
+            // XP based on outcome level
+            switch (result.NarrativeResult.Outcome)
+            {
+                case EncounterOutcomes.Exceptional:
+                    xpAward = 50;
+                    break;
+                case EncounterOutcomes.Standard:
+                    xpAward = 30;
+                    break;
+                case EncounterOutcomes.Partial:
+                    xpAward = 15;
+                    break;
+                default:
+                    xpAward = 5; // Even failure gives some XP
+                    break;
+            }
+
+            // Add difficulty bonus
+            xpAward += result.Encounter.encounterInfo.EncounterDifficulty * 5;
+
+            PlayerProgression.AddExperience(xpAward);
+
+            // Add message about XP gain
+            MessageSystem.AddSystemMessage($"Gained {xpAward} experience points");
+        }
 
         if (_processStateChanges)
         {
@@ -605,7 +706,7 @@ public class GameManager
         List<Location> playerKnownLocations = new List<Location>();
         foreach (Location location in LocationSystem.GetAllLocations())
         {
-            if(gameState.PlayerState.KnownLocations.Contains(location.Name))
+            if (gameState.PlayerState.KnownLocations.Contains(location.Name))
                 playerKnownLocations.Add(location);
         }
         return playerKnownLocations;
@@ -638,6 +739,14 @@ public class GameManager
 
     public bool AreRequirementsMet(UserActionOption action)
     {
+        // Check time window constraints
+        if (action.ActionImplementation.TimeWindows != null &&
+            action.ActionImplementation.TimeWindows.Any() &&
+            !action.ActionImplementation.TimeWindows.Contains(gameState.WorldState.WorldTime))
+        {
+            return false; // Not available during current time window
+        }
+
         // Check if the action has been completed and is non-repeatable
         if (!action.ActionImplementation.IsRepeatable)
         {
@@ -651,7 +760,6 @@ public class GameManager
         // Continue with existing requirement checks
         return action.ActionImplementation.CanExecute(gameState);
     }
-
 
     public bool AdvanceTime(int inHours)
     {
@@ -759,7 +867,7 @@ public class GameManager
         };
 
         await MemoryFileAccess.WriteToLogFile(context);
-        
+
         return context;
     }
 
@@ -845,7 +953,8 @@ public class GameManager
                     gameState.WorldState.CurrentLocation?.Name ?? "Global",
                     gameState.WorldState.CurrentLocationSpot?.Name ?? "Global",
                     null,
-                    0);
+                    0,
+                    string.Empty);
 
                 userActions.Add(consumeFoodOption);
             }
@@ -871,7 +980,8 @@ public class GameManager
                     gameState.WorldState.CurrentLocation?.Name ?? "Global",
                     gameState.WorldState.CurrentLocationSpot?.Name ?? "Global",
                     null,
-                    0);
+                    0,
+                    string.Empty);
 
                 userActions.Add(consumeHerbsOption);
             }
@@ -911,4 +1021,47 @@ public class GameManager
         // Log action execution
         Console.WriteLine($"Executed action by name: {actionName}");
     }
+
+    public static ActionExecutionType GetExecutionType(ActionImplementation action)
+    {
+        // Inter-location travel (true travel between different locations)
+        if (action.BasicActionType == BasicActionTypes.Travel &&
+            !string.IsNullOrEmpty(action.DestinationLocation) &&
+            action.DestinationLocation != action.CurrentLocation &&
+            !IsLocationSpot(action.DestinationLocation)) // Check if destination is a location, not a spot
+        {
+            return ActionExecutionType.Travel;
+        }
+
+        // Travel to spot within same location (behaves like a basic action)
+        if (action.BasicActionType == BasicActionTypes.Travel &&
+            !string.IsNullOrEmpty(action.DestinationLocation) &&
+            IsLocationSpot(action.DestinationLocation)) // Check if destination is a spot
+        {
+            return ActionExecutionType.Basic;
+        }
+
+        // Regular encounter
+        if (action.ActionType == ActionTypes.Encounter)
+        {
+            return ActionExecutionType.Encounter;
+        }
+
+        // Basic action
+        return ActionExecutionType.Basic;
+    }
+
+    private static bool IsLocationSpot(string name)
+    {
+        // Implement logic to determine if this is a location spot name
+        // Could be based on naming convention or checking the actual spots list
+        return name.Contains(" - ") || name.Contains("Spot"); // Example logic
+    }
+}
+  
+public enum ActionExecutionType
+{
+    Basic,          // Immediate effect, no encounter, repeatable
+    Encounter,      // Multi-turn strategic challenge, non-repeatable once completed
+    Travel          // Movement between locations or spots
 }

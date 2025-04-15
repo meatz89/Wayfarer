@@ -15,6 +15,26 @@
     {
         List<SpotAction> actionTemplates = new List<SpotAction>();
 
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName(ActionNames.HuntGame.ToString())
+            .WithGoal("hunt for wild game for food")
+            .WithComplication("animals are alert and may detect you")
+            .WithActionType(BasicActionTypes.Forage)
+            .StartsEncounter("HuntGame")
+            .AdvancesTime(3)
+            .AvailableDuring(TimeWindows.Morning, TimeWindows.Afternoon) // Hunting during daylight
+            .Build());
+
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName(ActionNames.NightWatch.ToString())
+            .WithGoal("keep watch during the night for threats")
+            .WithComplication("darkness makes observation difficult")
+            .WithActionType(BasicActionTypes.Observe)
+            .StartsEncounter("NightWatch")
+            .AdvancesTime(4)
+            .AvailableDuring(TimeWindows.Night) // Only available at night
+            .Build());
+
         // Basic actions
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName(ActionNames.Rest.ToString())

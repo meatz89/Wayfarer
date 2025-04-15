@@ -1,8 +1,8 @@
 ﻿public class CardSelectionAlgorithm
 {
-    private readonly ChoiceCardRepository _choiceRepository;
+    private readonly CardRepository _choiceRepository;
 
-    public CardSelectionAlgorithm(ChoiceCardRepository choiceRepository)
+    public CardSelectionAlgorithm(CardRepository choiceRepository)
     {
         _choiceRepository = choiceRepository;
     }

@@ -3,7 +3,9 @@
     Hub,
     Connective,
     Landmark,
-    Hazard
+    Hazard,
+    Forest,
+    Village
 }
 
 public enum ServiceTypes

@@ -8,7 +8,8 @@
     string Location,
     string LocationSpot,
     string Character,
-    int LocationDifficulty
+    int LocationDifficulty,
+    string DisabledReason
     )
 {
     public string Display()

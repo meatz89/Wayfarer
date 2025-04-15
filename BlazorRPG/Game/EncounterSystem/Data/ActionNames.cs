@@ -20,6 +20,8 @@
 
     ConsumeFood,
     ConsumeMedicinalHerbs,
+    HuntGame,
+    NightWatch,
 }
 
 public enum LocationNames

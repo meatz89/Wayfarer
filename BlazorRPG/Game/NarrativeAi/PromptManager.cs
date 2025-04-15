@@ -52,10 +52,10 @@ public class PromptManager
         string secondaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).Skip(1).First().Key.ToString();
 
         // Format environment and NPC details
-        string environmentDetails = $"A {context.locationSpotName.ToLower()} in a {context.LocationName.ToLower()} with difficulty level {state.EncounterInfo?.Difficulty ?? 1}";
+        string environmentDetails = $"A {context.locationSpotName.ToLower()} in a {context.LocationName.ToLower()} with difficulty level {state.EncounterInfo?.EncounterDifficulty ?? 1}";
         string timeConstraints = $"Maximum {state.MaxTurns} turns";
         string additionalChallenges = state.EncounterInfo != null
-            ? $"Difficulty level {state.EncounterInfo.Difficulty} (starts with +{state.EncounterInfo.Difficulty} pressure)"
+            ? $"Difficulty level {state.EncounterInfo.EncounterDifficulty} (starts with +{state.EncounterInfo.EncounterDifficulty} pressure)"
             : "Standard difficulty";
 
         string npcList = GetCharactersAtLocation(context.LocationName, state.WorldState, state.PlayerState);

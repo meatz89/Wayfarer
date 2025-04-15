@@ -19,7 +19,7 @@ public class EncounterInfo
     // How hostile is this location (affects tag balance)
     public enum HostilityLevels { Friendly, Neutral, Hostile }
     public HostilityLevels Hostility { get; }
-    public int Difficulty { get; set; }
+    public int EncounterDifficulty { get; set; }
 
     // Presentation style for this location
     public EncounterTypes EncounterType { get; set; }
@@ -60,12 +60,12 @@ public class EncounterInfo
 
     public void SetDifficulty(int difficulty)
     {
-        this.Difficulty = difficulty;
+        this.EncounterDifficulty = difficulty;
     }
 
     public int GetEnvironmentalPressure(int turnNumber)
     {
-        int pressureFromDifficulty = Difficulty;
+        int pressureFromDifficulty = EncounterDifficulty;
 
         int pressureFromHostility = 0;
         switch (Hostility)

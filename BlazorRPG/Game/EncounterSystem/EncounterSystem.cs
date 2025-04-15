@@ -5,7 +5,6 @@
     private readonly ILogger<EncounterSystem> logger;
     private AIProviderType currentAIProvider;
 
-    private EncounterManager EncounterManager;
     public EncounterResult CurrentResult;
 
     private ResourceManager resourceManager;
@@ -74,7 +73,7 @@
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
 
-        gameState.ActionStateTracker.SetActiveEncounter(EncounterManager);
+        gameState.ActionStateTracker.SetActiveEncounter(GetCurrentEncounter());
         return CurrentResult;
     }
 
@@ -106,7 +105,7 @@
         ActionImplementation actionImplementation)
     {
         // Create the core components
-        ChoiceCardRepository choiceRepository = new ChoiceCardRepository();
+        CardRepository choiceRepository = new CardRepository();
         cardSelector = new CardSelectionAlgorithm(choiceRepository);
 
         // Create encounter manager with the switchable service
@@ -120,8 +119,7 @@
 
         // Set the current AI provider
         encounterManager.SwitchAIProvider(currentAIProvider);
-
-        this.EncounterManager = encounterManager;
+        SetCurrentEncounter(encounterManager);
 
         //SpecialChoice negotiatePriceChoice = GetSpecialChoiceFor(encounter);
         //choiceRepository.AddSpecialChoice(encounter.Name, negotiatePriceChoice);
@@ -129,7 +127,7 @@
         WorldStateInput worldStateInput = new WorldStateInput();
 
         // Start the encounter with narrative
-        NarrativeResult initialResult = await encounterManager.StartEncounterWithNarrativeAsync(
+        NarrativeResult initialResult = await GetCurrentEncounter().StartEncounterWithNarrativeAsync(
             location,
             encounterInfo,
             worldState,
@@ -140,11 +138,11 @@
 
         CurrentResult = new EncounterResult()
         {
-            Encounter = encounterManager,
+            Encounter = GetCurrentEncounter(),
             EncounterResults = EncounterResults.Started,
             EncounterEndMessage = "",
             NarrativeResult = initialResult,
-            NarrativeContext = encounterManager.GetNarrativeContext()
+            NarrativeContext = GetCurrentEncounter().GetNarrativeContext()
         };
         return CurrentResult;
     }
@@ -178,7 +176,7 @@
             return CurrentResult;
         }
 
-        currentResult = await EncounterManager.ApplyChoiceWithNarrativeAsync(
+        currentResult = await GetCurrentEncounter().ApplyChoiceWithNarrativeAsync(
             choice,
             encounter.playerState,
             encounter.worldState,
@@ -227,22 +225,27 @@
 
     public List<ChoiceCard> GetChoices()
     {
-        return EncounterManager.GetCurrentChoices();
+        return GetCurrentEncounter().GetCurrentChoices();
+    }
+
+    public ChoiceProjection GetChoiceProjection(EncounterManager encounter, ChoiceCard choice)
+    {
+        return GetCurrentEncounter().ProjectChoice(choice);
+    }
+
+    public void SetCurrentEncounter(EncounterManager encounterManager)
+    {
+        gameState.ActionStateTracker.SetActiveEncounter(encounterManager);
+    }
+
+    public EncounterManager GetCurrentEncounter()
+    {
+        return gameState.ActionStateTracker.CurrentEncounter;
     }
 
     public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions()
     {
         return gameState.ActionStateTracker.UserEncounterChoiceOptions;
-    }
-
-    public ChoiceProjection GetChoiceProjection(EncounterManager encounter, ChoiceCard choice)
-    {
-        return EncounterManager.ProjectChoice(choice);
-    }
-
-    public EncounterManager GetCurrentEncounter()
-    {
-        return EncounterManager;
     }
 
     // New method to switch AI providers
@@ -252,9 +255,9 @@
         narrativeService.SwitchProvider(providerType);
 
         // If we have an active encounter, update its provider too
-        if (EncounterManager != null)
+        if (GetCurrentEncounter() != null)
         {
-            EncounterManager.SwitchAIProvider(providerType);
+            GetCurrentEncounter().SwitchAIProvider(providerType);
         }
     }
 

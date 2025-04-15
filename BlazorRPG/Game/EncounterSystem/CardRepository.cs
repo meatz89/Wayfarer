@@ -1,11 +1,13 @@
-﻿/// <summary>
+﻿
+
+/// <summary>
 /// Repository of all available choices in the game
 /// </summary>
-public class ChoiceCardRepository
+public class CardRepository
 {
-    private readonly List<ChoiceCard> _choices = new();
+    private readonly List<ChoiceCard> cards = new();
 
-    public ChoiceCardRepository()
+    public CardRepository()
     {
         InitializeChoices();
     }
@@ -16,7 +18,7 @@ public class ChoiceCardRepository
         // TIER 1: NOVICE CARDS — Build Approach Only
         // =============================================
 
-        _choices.Add(ChoiceFactory.CreateMomentumChoice(
+        cards.Add(ChoiceFactory.CreateMomentumChoice(
             "Perceptive Glance",
             "You catch a subtle clue in the light, sharpening your analytical senses.",
             CardTiers.Novice, 3,
@@ -26,7 +28,7 @@ public class ChoiceCardRepository
             TagModification.IncreaseFocus(FocusTags.Information)
         ));
 
-        _choices.Add(ChoiceFactory.CreatePressureChoice(
+        cards.Add(ChoiceFactory.CreatePressureChoice(
             "Organized Thoughts",
             "A formal setting brings clarity and lowers tension as your mind begins to map the situation.",
             CardTiers.Novice, 1,
@@ -36,7 +38,7 @@ public class ChoiceCardRepository
             TagModification.IncreaseFocus(FocusTags.Information)
         ));
 
-        _choices.Add(ChoiceFactory.CreateMomentumChoice(
+        cards.Add(ChoiceFactory.CreateMomentumChoice(
             "Careful Steps",
             "You move with deliberate intent, adapting to the confined space around you.",
             CardTiers.Novice, 3,
@@ -46,7 +48,7 @@ public class ChoiceCardRepository
             TagModification.IncreaseFocus(FocusTags.Physical)
         ));
 
-        _choices.Add(ChoiceFactory.CreatePressureChoice(
+        cards.Add(ChoiceFactory.CreatePressureChoice(
             "Measured Breath",
             "You focus on the limits of the environment and calm your nerves through physical control.",
             CardTiers.Novice, 1,
@@ -56,7 +58,7 @@ public class ChoiceCardRepository
             TagModification.IncreaseFocus(FocusTags.Physical)
         ));
 
-        _choices.Add(ChoiceFactory.CreateMomentumChoice(
+        cards.Add(ChoiceFactory.CreateMomentumChoice(
             "Inviting Gesture",
             "A warm physical presence opens the door to connection.",
             CardTiers.Novice, 3,
@@ -66,7 +68,7 @@ public class ChoiceCardRepository
             TagModification.IncreaseFocus(FocusTags.Relationship)
         ));
 
-        _choices.Add(ChoiceFactory.CreatePressureChoice(
+        cards.Add(ChoiceFactory.CreatePressureChoice(
             "Soft Tones",
             "In a calm, quiet setting, your voice soothes away the pressure.",
             CardTiers.Novice, 1,
@@ -76,7 +78,7 @@ public class ChoiceCardRepository
             TagModification.IncreaseFocus(FocusTags.Relationship)
         ));
 
-        _choices.Add(ChoiceFactory.CreateMomentumChoice(
+        cards.Add(ChoiceFactory.CreateMomentumChoice(
             "Assertive Posture",
             "Your presence alone sends ripples through the environment.",
             CardTiers.Novice, 3,
@@ -86,7 +88,7 @@ public class ChoiceCardRepository
             TagModification.IncreaseFocus(FocusTags.Physical)
         ));
 
-        _choices.Add(ChoiceFactory.CreatePressureChoice(
+        cards.Add(ChoiceFactory.CreatePressureChoice(
             "Unshaken Presence",
             "You anchor yourself in a broad space, easing tension through unflinching calm.",
             CardTiers.Novice, 1,
@@ -96,7 +98,7 @@ public class ChoiceCardRepository
             TagModification.IncreaseFocus(FocusTags.Relationship)
         ));
 
-        _choices.Add(ChoiceFactory.CreateMomentumChoice(
+        cards.Add(ChoiceFactory.CreateMomentumChoice(
             "Fade Inward",
             "You meld into the shadows, your environment becoming your shield.",
             CardTiers.Novice, 3,
@@ -106,7 +108,7 @@ public class ChoiceCardRepository
             TagModification.IncreaseFocus(FocusTags.Environment)
         ));
 
-        _choices.Add(ChoiceFactory.CreatePressureChoice(
+        cards.Add(ChoiceFactory.CreatePressureChoice(
             "Slip Away",
             "Quietly distancing yourself, you reduce pressure by vanishing from view.",
             CardTiers.Novice, 1,
@@ -121,7 +123,7 @@ public class ChoiceCardRepository
         // =============================================
 
         // "Tactical Survey" will USE approach (strategic effect only)
-        _choices.Add(ChoiceFactory.CreateMomentumChoice(
+        cards.Add(ChoiceFactory.CreateMomentumChoice(
             "Tactical Survey",
             "You scrutinize every inch of the terrain, leveraging your acute observation to drive momentum forward.",
             CardTiers.Trained, 3, // Base effect: +3 momentum
@@ -132,7 +134,7 @@ public class ChoiceCardRepository
         ));
 
         // "Resourceful Strategy" will BUILD approach (build only)
-        _choices.Add(ChoiceFactory.CreatePressureChoice(
+        cards.Add(ChoiceFactory.CreatePressureChoice(
             "Resourceful Strategy",
             "You methodically marshal your assets, reinforcing your analytical resolve to reduce pressure.",
             CardTiers.Trained, 3, // Base effect: -2 pressure
@@ -143,7 +145,7 @@ public class ChoiceCardRepository
         ));
 
         // "Engaging Question" will USE approach (strategic effect only)
-        _choices.Add(ChoiceFactory.CreateMomentumChoice(
+        cards.Add(ChoiceFactory.CreateMomentumChoice(
             "Engaging Question",
             "Your incisive inquiry sparks a burst of insight, propelling progress through verbal finesse.",
             CardTiers.Trained, 3, // Base effect: +3 momentum
@@ -154,7 +156,7 @@ public class ChoiceCardRepository
         ));
 
         // "Haven of Trust" will BUILD approach (build only)
-        _choices.Add(ChoiceFactory.CreatePressureChoice(
+        cards.Add(ChoiceFactory.CreatePressureChoice(
             "Haven of Trust",
             "You create a safe haven through steady presence, reinforcing your rapport to ease tension.",
             CardTiers.Trained, 3, // Base effect: -2 pressure
@@ -165,7 +167,7 @@ public class ChoiceCardRepository
         ));
 
         // "Pinpoint Query" will USE approach (strategic effect only)
-        _choices.Add(ChoiceFactory.CreateMomentumChoice(
+        cards.Add(ChoiceFactory.CreateMomentumChoice(
             "Pinpoint Query",
             "Your focused question cuts through confusion, channeling clarity and driving momentum.",
             CardTiers.Trained, 3, // Base effect: +3 momentum
@@ -176,7 +178,7 @@ public class ChoiceCardRepository
         ));
 
         // "Optimal Allocation" will BUILD approach (build only)
-        _choices.Add(ChoiceFactory.CreatePressureChoice(
+        cards.Add(ChoiceFactory.CreatePressureChoice(
             "Optimal Allocation",
             "You efficiently reassign resources with precision, bolstering your methodical foundation to lower pressure.",
             CardTiers.Trained, 3, // Base effect: -2 pressure
@@ -187,7 +189,7 @@ public class ChoiceCardRepository
         ));
 
         // "Spatial Domination" will USE approach (strategic effect only)
-        _choices.Add(ChoiceFactory.CreateMomentumChoice(
+        cards.Add(ChoiceFactory.CreateMomentumChoice(
             "Spatial Domination",
             "You assert your control over the surroundings, using dominating force to surge momentum.",
             CardTiers.Trained, 3, // Base effect: +3 momentum
@@ -198,7 +200,7 @@ public class ChoiceCardRepository
         ));
 
         // "Calculated Command" will BUILD approach (build only)
-        _choices.Add(ChoiceFactory.CreatePressureChoice(
+        cards.Add(ChoiceFactory.CreatePressureChoice(
             "Calculated Command",
             "You calmly orchestrate your resources, reinforcing your dominant presence to quell chaos.",
             CardTiers.Trained, 3, // Base effect: -2 pressure
@@ -209,7 +211,7 @@ public class ChoiceCardRepository
         ));
 
         // "Stealth Reconnaissance" will USE approach (strategic effect only)
-        _choices.Add(ChoiceFactory.CreateMomentumChoice(
+        cards.Add(ChoiceFactory.CreateMomentumChoice(
             "Stealth Reconnaissance",
             "In the midst of the fray, you gather critical insights silently, turning subtlety into momentum.",
             CardTiers.Trained, 3, // Base effect: +3 momentum
@@ -220,7 +222,7 @@ public class ChoiceCardRepository
         ));
 
         // "Subtle Dissipation" will BUILD approach (build only)
-        _choices.Add(ChoiceFactory.CreatePressureChoice(
+        cards.Add(ChoiceFactory.CreatePressureChoice(
             "Subtle Dissipation",
             "You gradually fade from view, reinforcing your covert stance to disperse mounting tension.",
             CardTiers.Trained, 3, // Base effect: -2 pressure
@@ -233,6 +235,11 @@ public class ChoiceCardRepository
 
     public List<ChoiceCard> GetAvailableChoices(EncounterState state)
     {
-        return _choices.ToList();
+        return cards.ToList();
+    }
+
+    internal List<ChoiceCard> GetCardsForLevel(int level, ArchetypeTypes archetype)
+    {
+        return cards.Where(x => (int)x.Tier <= level).ToList();
     }
 }

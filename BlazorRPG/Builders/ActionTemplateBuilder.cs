@@ -15,8 +15,8 @@ public class ActionTemplateBuilder
     public string encounterTemplateName;
     private bool isRepeatable;
     private string movesToLocationSpot;
-
     public ActionRepository ActionRepository { get; }
+    public List<TimeWindows> TimeWindows { get; set; } = new List<TimeWindows>();
 
     public ActionTemplateBuilder WithId(string id)
     {
@@ -27,6 +27,15 @@ public class ActionTemplateBuilder
     public ActionTemplateBuilder WithName(string name)
     {
         this.name = name;
+        return this;
+    }
+
+    public ActionTemplateBuilder AvailableDuring(params TimeWindows[] timeWindows)
+    {
+        foreach (var window in timeWindows)
+        {
+            this.TimeWindows.Add(window);
+        }
         return this;
     }
 
@@ -150,6 +159,7 @@ public class ActionTemplateBuilder
             ActionType = isEncounter ? ActionTypes.Encounter : ActionTypes.Basic,
             EncounterId = isEncounter ? encounterTemplateName : string.Empty,
             IsRepeatable = isRepeatable,
+            TimeWindows = TimeWindows
         };
     }
 }

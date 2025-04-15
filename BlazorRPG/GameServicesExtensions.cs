@@ -19,6 +19,7 @@
         services.AddSingleton<EncounterSystem>();
         services.AddSingleton<ActionSystem>();
 
+        services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<GameManager>();
 

@@ -5,13 +5,16 @@
     public PlayerState PlayerState { get; set; }
     public ActionStateTracker ActionStateTracker { get; }
     public WorldState WorldState { get; }
-    public PendingTravel PendingTravel { get; set; } = new PendingTravel();
+    public PendingTravel PendingTravel { get; set; }
+    public TimeManager TimeManager { get; set; }
 
     public GameState()
     {
         PlayerState = new PlayerState();
         ActionStateTracker = new ActionStateTracker();
         WorldState = new WorldState();
+        PendingTravel = new PendingTravel();
+        TimeManager = new TimeManager(WorldState);
     }
 
     public List<UserActionOption> GetActions(LocationSpot locationSpot)

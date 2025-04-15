@@ -40,6 +40,30 @@ public class GameRules
     public string Background = string.Empty;
     public string Name = "Wayfarer";
 
+    public static int GetBaseTimeCost(BasicActionTypes actionType)
+    {
+        return actionType switch
+        {
+            BasicActionTypes.Rest => 4,      // Resting takes significant time
+            BasicActionTypes.Travel => 2,     // Travel takes moderate time
+            BasicActionTypes.Consume => 1,    // Eating/drinking is quick
+            BasicActionTypes.Explore => 2,    // Exploration takes time
+            BasicActionTypes.Observe => 1,    // Observation is relatively quick
+            BasicActionTypes.Forage => 2,     // Foraging takes moderate time
+            BasicActionTypes.Labor => 3,      // Labor is time-consuming
+            BasicActionTypes.Gather => 2,     // Gathering resources takes time
+            BasicActionTypes.Study => 3,      // Studying takes significant time
+            BasicActionTypes.Investigate => 2, // Investigation takes moderate time
+            BasicActionTypes.Analyze => 2,    // Analysis takes moderate time
+            BasicActionTypes.Discuss => 1,    // Discussion is relatively quick
+            BasicActionTypes.Persuade => 1,   // Persuasion attempts are quick
+            BasicActionTypes.Perform => 2,    // Performances take moderate time
+            BasicActionTypes.Fight => 1,      // Combat is intense but quick
+            BasicActionTypes.Climb => 2,      // Climbing takes moderate time
+            _ => 1                           // Default to 1 hour
+        };
+    }
+
     public static int GetBaseEnergyCost(BasicActionTypes actionType)
     {
         int energycost = 2;
