@@ -26,10 +26,12 @@ public partial class EncounterViewBase : ComponentBase
 
     public bool IsChoiceDisabled(UserEncounterChoiceOption userEncounterChoiceOption) => userEncounterChoiceOption.Choice.IsBlocked;
 
-    public EncounterViewModel GetModel()
+    private EncounterViewModel GetModel()
     {
         return GameManager.GetEncounterViewModel();
     }
+
+    public EncounterViewModel Model => GetModel();
 
     protected override async Task OnInitializedAsync()
     {
@@ -72,14 +74,14 @@ public partial class EncounterViewBase : ComponentBase
 
     public List<UserEncounterChoiceOption> GetChoices()
     {
-        List<UserEncounterChoiceOption> userEncounterChoiceOptions = GetModel().CurrentChoices;
+        List<UserEncounterChoiceOption> userEncounterChoiceOptions = Model.CurrentChoices;
         return userEncounterChoiceOptions;
     }
 
     public string GetChoiceName(UserEncounterChoiceOption choiceOption)
     {
         ChoiceCard card = choiceOption.Choice;
-        NarrativeResult narrativeResult = GetModel().EncounterResult.NarrativeResult;
+        NarrativeResult narrativeResult = Model.EncounterResult.NarrativeResult;
         Dictionary<ChoiceCard, ChoiceNarrative> choiceDescriptions = narrativeResult.ChoiceDescriptions;
         ChoiceNarrative choiceNarrative = null;
 
@@ -212,7 +214,7 @@ public partial class EncounterViewBase : ComponentBase
 
     public int GetCurrentValue(ValueTypes changeType)
     {
-        EncounterState state = GetModel().State;
+        EncounterState state = Model.State;
         switch (changeType)
         {
             case ValueTypes.Momentum:

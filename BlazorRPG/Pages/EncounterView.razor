@@ -14,9 +14,9 @@
             <div class="encounter-main">
                 <div class="encounter-stage">
                     <div class="stage-header">
-                        <div class="choice-set-name">Chosen Action: @GetModel().EncounterResult.NarrativeResult.LastChoiceNarrative.ShorthandName</div>
+                        <div class="choice-set-name">Chosen Action: @Model.EncounterResult.NarrativeResult.LastChoiceNarrative.ShorthandName</div>
                     </div>
-                    <div class="stage-situation">@GetModel().EncounterResult.NarrativeResult.SceneNarrative</div>
+                    <div class="stage-situation">@Model.EncounterResult.NarrativeResult.SceneNarrative</div>
                 </div>
 
                 <div class="encounter-choices">
@@ -54,7 +54,7 @@
                         {
                             <div class="tag-value">
                                 <span>@tag</span>
-                                <span>@GetModel().State.EncounterTagSystem.GetEncounterStateTagValue(tag)</span>
+                                <span>@Model.State.EncounterTagSystem.GetEncounterStateTagValue(tag)</span>
                             </div>
                         }
                     </div>
@@ -67,7 +67,7 @@
                         {
                             <div class="tag-value">
                                 <span>@tag</span>
-                                <span>@GetModel().State.EncounterTagSystem.GetFocusTagValue(tag)</span>
+                                <span>@Model.State.EncounterTagSystem.GetFocusTagValue(tag)</span>
                             </div>
                         }
                     </div>
