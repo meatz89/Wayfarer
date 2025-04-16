@@ -5,7 +5,7 @@
     private readonly ILogger<EncounterSystem> logger;
     private AIProviderType currentAIProvider;
 
-    public EncounterResult CurrentResult;
+    public EncounterResult failureResult;
 
     private ResourceManager resourceManager;
     private readonly NarrativeService narrativeService;
@@ -68,13 +68,13 @@
             location, locationSpot, encounterType);
 
         // Create encounter manager
-        CurrentResult = await StartEncounterAt(location, encounter, this.worldState, playerState, actionImplementation);
+        failureResult = await StartEncounterAt(location, encounter, this.worldState, playerState, actionImplementation);
 
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
 
         gameState.ActionStateTracker.SetActiveEncounter(GetCurrentEncounter());
-        return CurrentResult;
+        return failureResult;
     }
 
 
@@ -136,7 +136,7 @@
             currentAIProvider,
             worldStateInput);
 
-        CurrentResult = new EncounterResult()
+        failureResult = new EncounterResult()
         {
             Encounter = GetCurrentEncounter(),
             EncounterResults = EncounterResults.Started,
@@ -144,7 +144,7 @@
             NarrativeResult = initialResult,
             NarrativeContext = GetCurrentEncounter().GetNarrativeContext()
         };
-        return CurrentResult;
+        return failureResult;
     }
 
     public async Task<EncounterResult> ExecuteChoice(
@@ -153,84 +153,81 @@
         ChoiceCard choice,
         WorldStateInput worldStateInput)
     {
-        NarrativeResult currentResult = narrativeResult;
+        NarrativeResult currentNarrative = narrativeResult;
 
-        Dictionary<ChoiceCard, ChoiceNarrative> choiceDescriptions = currentResult.ChoiceDescriptions;
+        Dictionary<ChoiceCard, ChoiceNarrative> choiceDescriptions = currentNarrative.ChoiceDescriptions;
 
         ChoiceNarrative? selectedDescription = null;
-        if (currentResult.ChoiceDescriptions != null && choiceDescriptions.ContainsKey(choice))
+        if (currentNarrative.ChoiceDescriptions != null && choiceDescriptions.ContainsKey(choice))
         {
-            selectedDescription = currentResult.ChoiceDescriptions[choice];
+            selectedDescription = currentNarrative.ChoiceDescriptions[choice];
         }
 
-        if (currentResult.IsEncounterOver)
-        {
-            CurrentResult = new EncounterResult()
-            {
-                Encounter = encounter,
-                EncounterResults = EncounterResults.EncounterSuccess,
-                EncounterEndMessage = $"=== Encounter Over: {currentResult.Outcome} ===",
-                NarrativeResult = currentResult,
-                NarrativeContext = encounter.GetNarrativeContext()
-            };
-            return CurrentResult;
-        }
-
-        currentResult = await GetCurrentEncounter().ApplyChoiceWithNarrativeAsync(
+        currentNarrative = await GetCurrentEncounter().ApplyChoiceWithNarrativeAsync(
             choice,
             encounter.playerState,
             encounter.worldState,
             selectedDescription,
             worldStateInput);
 
-        if (currentResult.IsEncounterOver)
+        EncounterResult encounterResult = CreateEncounterResult(encounter, currentNarrative);
+        return encounterResult;
+
+    }
+
+    private EncounterResult CreateEncounterResult(EncounterManager encounter, NarrativeResult currentNarrative)
+    {
+        if (currentNarrative.IsEncounterOver)
         {
-            if (currentResult.Outcome == EncounterOutcomes.Failure)
+            if (currentNarrative.Outcome == EncounterOutcomes.Failure)
             {
-                CurrentResult = new EncounterResult()
+                var failureResult = new EncounterResult()
                 {
                     Encounter = encounter,
                     EncounterResults = EncounterResults.EncounterFailure,
-                    EncounterEndMessage = $"=== Encounter Over: {currentResult.Outcome} ===",
-                    NarrativeResult = currentResult,
+                    EncounterEndMessage = $"=== Encounter Over: {currentNarrative.Outcome} ===",
+                    NarrativeResult = currentNarrative,
                     NarrativeContext = encounter.GetNarrativeContext()
                 };
-                return CurrentResult;
+                return failureResult;
             }
             else
             {
-                CurrentResult = new EncounterResult()
+                var successResult = new EncounterResult()
                 {
                     Encounter = encounter,
                     EncounterResults = EncounterResults.EncounterSuccess,
-                    EncounterEndMessage = $"=== Encounter Over: {currentResult.Outcome} ===",
-                    NarrativeResult = currentResult,
+                    EncounterEndMessage = $"=== Encounter Over: {currentNarrative.Outcome} ===",
+                    NarrativeResult = currentNarrative,
                     NarrativeContext = encounter.GetNarrativeContext()
                 };
-                return CurrentResult;
+                return successResult;
             }
         }
 
-        CurrentResult = new EncounterResult()
+        var ongoingResult = new EncounterResult()
         {
             Encounter = encounter,
             EncounterResults = EncounterResults.Ongoing,
             EncounterEndMessage = "",
-            NarrativeResult = currentResult,
+            NarrativeResult = currentNarrative,
             NarrativeContext = encounter.GetNarrativeContext()
         };
-        return CurrentResult;
-
+        return ongoingResult;
     }
 
     public List<ChoiceCard> GetChoices()
     {
-        return GetCurrentEncounter().GetCurrentChoices();
+        EncounterManager encounterManager = GetCurrentEncounter();
+        List<ChoiceCard> choices = encounterManager.GetCurrentChoices();
+        return choices;
     }
 
     public ChoiceProjection GetChoiceProjection(EncounterManager encounter, ChoiceCard choice)
     {
-        return GetCurrentEncounter().ProjectChoice(choice);
+        EncounterManager encounterManager = GetCurrentEncounter();
+        ChoiceProjection choiceProjection = encounterManager.ProjectChoice(choice);
+        return choiceProjection;
     }
 
     public void SetCurrentEncounter(EncounterManager encounterManager)
