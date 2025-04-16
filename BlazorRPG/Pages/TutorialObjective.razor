@@ -2,13 +2,13 @@
 {
     <div class="tutorial-objective">
         <div class="objective-title">Current Objective:</div>
-        <div class="objective-text">@GameState.TutorialState.GetCurrentObjectiveText()</div>
-        
-        @if (!string.IsNullOrEmpty(GameState.TutorialState.GetCurrentHint()))
+        <div class="objective-text">@GetCurrentObjectiveText()</div>
+
+        @if (!string.IsNullOrEmpty(TutorialState.GetCurrentHint()))
         {
             <div class="objective-hint">
                 <span class="hint-icon">💡</span>
-                @GameState.TutorialState.GetCurrentHint()
+                @TutorialState.GetCurrentHint()
             </div>
         }
     </div>
@@ -16,4 +16,12 @@
 
 @code {
     [Inject] private GameState GameState { get; set; }
+    [Inject] private TutorialState TutorialState { get; set; }
+    [Parameter] public int StateVersion { get; set; }
+
+    public string GetCurrentObjectiveText()
+    {
+        string objective = TutorialState.GetCurrentObjectiveText();
+        return objective;
+    }
 }

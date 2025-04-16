@@ -5,6 +5,7 @@ public partial class GameUI : ComponentBase
 {
     #region Injected Services
     [Inject] private GameState GameState { get; set; }
+    [Inject] private TutorialState TutorialState { get; set; }
     [Inject] private GameManager GameManager { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
     #endregion
@@ -35,6 +36,8 @@ public partial class GameUI : ComponentBase
     public bool OngoingEncounter { get; private set; }
     public EncounterResult EncounterResult => GameState.ActionStateTracker.EncounterResult;
     public ActionImplementation ActionImplementation => GameState.ActionStateTracker.CurrentAction.ActionImplementation;
+
+    private int TutorialStateVersion = 0;
 
     #endregion
 
@@ -71,7 +74,8 @@ public partial class GameUI : ComponentBase
     {
         await GameManager.StartGame();
         showAreaMap = false;
-        StateHasChanged();
+
+        ChangeState();
     }
     #endregion
 
@@ -105,10 +109,7 @@ public partial class GameUI : ComponentBase
         // Update UI state based on results
         OngoingEncounter = GameState.ActionStateTracker.IsActiveEncounter;
 
-        // Display messages
-        DisplayActionMessages();
-
-        StateHasChanged();
+        ChangeState();
     }
 
     private async Task HandleTravelStart(string travelLocationName)
@@ -119,7 +120,7 @@ public partial class GameUI : ComponentBase
         if (travelLocationName == CurrentLocation.Name)
         {
             showAreaMap = false;
-            StateHasChanged();
+            ChangeState();
             return;
         }
 
@@ -129,19 +130,8 @@ public partial class GameUI : ComponentBase
         // Update UI state
         OngoingEncounter = GameState.ActionStateTracker.IsActiveEncounter;
         showAreaMap = false;
-        StateHasChanged();
-    }
 
-    private string GetTimeOfDayStyle()
-    {
-        return CurrentTime switch
-        {
-            TimeWindows.Morning => "time-morning",
-            TimeWindows.Afternoon => "time-afternoon",
-            TimeWindows.Evening => "time-evening",
-            TimeWindows.Night => "time-night",
-            _ => ""
-        };
+        ChangeState();
     }
 
     private async Task WaitOneHour()
@@ -168,7 +158,8 @@ public partial class GameUI : ComponentBase
             null, 0, null);
 
         await GameManager.ExecuteAction(waitOption);
-        StateHasChanged();
+
+        ChangeState();
     }
 
     private async Task UseResource(ActionNames actionName)
@@ -183,15 +174,14 @@ public partial class GameUI : ComponentBase
             if (GameState.GameMode == Modes.Tutorial)
             {
                 if (actionName == ActionNames.ConsumeFood)
-                    GameState.TutorialState.SetFlag(TutorialState.TutorialFlags.UsedFood);
+                    TutorialState.SetFlag(TutorialState.TutorialFlags.UsedFood);
 
                 if (actionName == ActionNames.ConsumeMedicinalHerbs)
-                    GameState.TutorialState.SetFlag(TutorialState.TutorialFlags.UsedHerbs);
+                    TutorialState.SetFlag(TutorialState.TutorialFlags.UsedHerbs);
             }
         }
 
-        DisplayActionMessages(); 
-        StateHasChanged();
+        ChangeState();
     }
 
     private void OnEncounterCompleted(EncounterResult result)
@@ -201,8 +191,8 @@ public partial class GameUI : ComponentBase
             OngoingEncounter = false;
             ShowEncounterResult = true;
         }
-        DisplayActionMessages(); 
-        StateHasChanged();
+     
+        ChangeState();
     }
 
     private async Task OnNarrativeCompleted()
@@ -214,9 +204,8 @@ public partial class GameUI : ComponentBase
 
         ActionImplementation actionImplementation = EncounterResult.Encounter.ActionImplementation;
         await GameManager.ProcessActionCompletion(actionImplementation);
-
-        DisplayActionMessages(); 
-        StateHasChanged();
+        
+        ChangeState();
     }
 
     private async Task HandleCharacterCreated(PlayerState playerState)
@@ -224,6 +213,15 @@ public partial class GameUI : ComponentBase
         needsCharacterCreation = false;
         await InitializeGame();
     }
+
+    public void ChangeState()
+    {
+        DisplayActionMessages();
+
+        TutorialStateVersion++;
+        StateHasChanged();
+    }
+
     #endregion
 
     #region UI Display Methods
@@ -408,6 +406,18 @@ public partial class GameUI : ComponentBase
             ItemTypes.WineBottle => "A bottle of reasonably good wine",
             ItemTypes.ClimbingGear => "Tools for scaling walls",
             _ => "A common item"
+        };
+    }
+
+    private string GetTimeOfDayStyle()
+    {
+        return CurrentTime switch
+        {
+            TimeWindows.Morning => "time-morning",
+            TimeWindows.Afternoon => "time-afternoon",
+            TimeWindows.Evening => "time-evening",
+            TimeWindows.Night => "time-night",
+            _ => ""
         };
     }
     #endregion

@@ -8,9 +8,6 @@
     public PendingTravel PendingTravel { get; set; }
     public TimeManager TimeManager { get; set; }
 
-    // Tutorial specific tracking
-    public TutorialState TutorialState { get; private set; }
-
     public GameState()
     {
         PlayerState = new PlayerState();
@@ -18,8 +15,6 @@
         WorldState = new WorldState();
         PendingTravel = new PendingTravel();
         TimeManager = new TimeManager(WorldState);
-
-        TutorialState = new TutorialState();
     }
 
     public List<UserActionOption> GetActions(LocationSpot locationSpot)
