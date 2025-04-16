@@ -4,7 +4,7 @@
     public TutorialObjective CurrentObjective { get; private set; } = TutorialObjective.ExploreClearing;
 
     // Flags for tutorial progression
-    private Dictionary<string, bool> TutorialFlags { get; set; } = new Dictionary<string, bool>();
+    private Dictionary<TutorialFlags, bool> TutorialFlagProgress { get; set; } = new Dictionary<TutorialFlags, bool>();
 
     // Tutorial objectives in sequence
     public enum TutorialObjective
@@ -20,18 +20,34 @@
         TutorialComplete
     }
 
-    // Check if a tutorial flag is set
-    public bool CheckFlag(string flagName)
+    public enum TutorialFlags
     {
-        if (!TutorialFlags.ContainsKey(flagName))
-            TutorialFlags[flagName] = false;
-        return TutorialFlags[flagName];
+        FoundStream,
+        VisitedStream,
+        GatheredHerbs,
+        UsedHerbs,
+        GatheredFood,
+        UsedFood,
+        VisitedHighGround,
+        FoundPathOut,
+        Rested,
+        OutOfFood,
+        OutOfHerbs,
+        TutorialStarted
+    }
+
+    // Check if a tutorial flag is set
+    public bool CheckFlag(TutorialFlags flagName)
+    {
+        if (!TutorialFlagProgress.ContainsKey(flagName))
+            TutorialFlagProgress[flagName] = false;
+        return TutorialFlagProgress[flagName];
     }
 
     // Set a tutorial flag
-    public void SetFlag(string flagName)
+    public void SetFlag(TutorialFlags flagName)
     {
-        TutorialFlags[flagName] = true;
+        TutorialFlagProgress[flagName] = true;
         UpdateObjectiveProgress();
     }
 
@@ -41,42 +57,42 @@
         switch (CurrentObjective)
         {
             case TutorialObjective.ExploreClearing:
-                if (CheckFlag("FoundStream"))
+                if (CheckFlag(TutorialFlags.FoundStream))
                     CurrentObjective = TutorialObjective.FindStream;
                 break;
 
             case TutorialObjective.FindStream:
-                if (CheckFlag("VisitedStream"))
+                if (CheckFlag(TutorialFlags.VisitedStream))
                     CurrentObjective = TutorialObjective.GatherHerbs;
                 break;
 
             case TutorialObjective.GatherHerbs:
-                if (CheckFlag("GatheredHerbs"))
+                if (CheckFlag(TutorialFlags.GatheredHerbs))
                     CurrentObjective = TutorialObjective.UseHerbs;
                 break;
 
             case TutorialObjective.UseHerbs:
-                if (CheckFlag("UsedHerbs"))
+                if (CheckFlag(TutorialFlags.UsedHerbs))
                     CurrentObjective = TutorialObjective.FindFood;
                 break;
 
             case TutorialObjective.FindFood:
-                if (CheckFlag("GatheredFood"))
+                if (CheckFlag(TutorialFlags.GatheredFood))
                     CurrentObjective = TutorialObjective.EatFood;
                 break;
 
             case TutorialObjective.EatFood:
-                if (CheckFlag("UsedFood"))
+                if (CheckFlag(TutorialFlags.UsedFood))
                     CurrentObjective = TutorialObjective.ReachHighGround;
                 break;
 
             case TutorialObjective.ReachHighGround:
-                if (CheckFlag("VisitedHighGround"))
+                if (CheckFlag(TutorialFlags.VisitedHighGround))
                     CurrentObjective = TutorialObjective.FindPathOut;
                 break;
 
             case TutorialObjective.FindPathOut:
-                if (CheckFlag("FoundPathOut"))
+                if (CheckFlag(TutorialFlags.FoundPathOut))
                     CurrentObjective = TutorialObjective.TutorialComplete;
                 break;
         }
