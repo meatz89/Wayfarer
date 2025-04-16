@@ -38,6 +38,31 @@ public class FoodOutcome : Outcome
     }
 }
 
+public class LocationSpotKnowledgeOutcome : Outcome
+{
+    public string LocationSpot { get; }
+
+    public LocationSpotKnowledgeOutcome(string locationSpot)
+    {
+        LocationSpot = locationSpot;
+    }
+
+    public override void Apply(GameState gameState)
+    {
+        gameState.PlayerState.KnownLocationSpots.Add(LocationSpot);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{LocationSpot} discovered";
+    }
+
+    public override string GetPreview(GameState gameState)
+    {
+        return $"{LocationSpot} discovered";
+    }
+}
+
 public class MedicinalHerbOutcome : Outcome
 {
     public int Amount { get; }

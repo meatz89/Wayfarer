@@ -158,8 +158,13 @@ public partial class GameManager
     public async Task ProcessActionCompletion(ActionImplementation actionImplementation)
     {
         ApplyActionOutcomes(actionImplementation);
-
         gameState.ActionStateTracker.CompleteAction();
+
+        string locationSpot = actionImplementation.MoveToLocationSpot;
+        if (!string.IsNullOrWhiteSpace(locationSpot))
+        {
+            await MoveToLocationSpot(locationSpot);
+        }
 
         if (gameState.PendingTravel.IsTravelPending)
         {
@@ -666,6 +671,11 @@ public partial class GameManager
         LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(locationName, locationSpotName);
         gameState.WorldState.SetCurrentLocationSpot(locationSpot);
 
+        if (locationSpotName == "Forest Stream")
+        {
+            TutorialState.SetFlag(TutorialState.TutorialFlags.VisitedStream);
+        }
+
         await UpdateState();
     }
 
@@ -683,7 +693,7 @@ public partial class GameManager
         List<Location> playerKnownLocations = new List<Location>();
         foreach (Location location in LocationSystem.GetAllLocations())
         {
-            if (gameState.PlayerState.KnownLocations.Contains(location.Name))
+            if (location.PlayerKnowledge)
                 playerKnownLocations.Add(location);
         }
         return playerKnownLocations;
@@ -1015,6 +1025,10 @@ public partial class GameManager
 
             case "SearchSurroundings":
                 TutorialState.SetFlag(TutorialState.TutorialFlags.FoundStream);
+                break;
+
+            case "GatherHerbs":
+                TutorialState.SetFlag(TutorialState.TutorialFlags.GatheredHerbs);
                 break;
         }
 

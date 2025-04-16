@@ -9,11 +9,6 @@
             CoinsRequirement => RequirementTypes.Coins,
 
             InventorySlotsRequirement => RequirementTypes.InventorySlots,
-            KnowledgeRequirement knowledgeReq => knowledgeReq.KnowledgeType switch
-            {
-                KnowledgeTags.MarketRoutines => RequirementTypes.LocalHistory,
-                _ => RequirementTypes.Other
-            },
             PlayerNegativeStatusRequirement statusReq => statusReq.Status switch
             {
                 PlayerNegativeStatus.Cold => RequirementTypes.Cold,

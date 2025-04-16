@@ -21,6 +21,7 @@
     public string CurrentLocation { get; set; }
     public string DestinationLocation { get; set; }
     public int TimeCostHours { get; set; } = 1;
+    public string MoveToLocationSpot { get; set; }
 
     public void ApplyTimeCost(GameState gameState)
     {

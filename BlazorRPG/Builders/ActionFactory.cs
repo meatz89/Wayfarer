@@ -20,6 +20,7 @@
         actionImplementation.BasicActionType = template.BasicActionType;
         actionImplementation.ActionType = template.ActionType;
         actionImplementation.TimeWindows = template.TimeWindows ?? new();
+        actionImplementation.MoveToLocationSpot = template.MoveToLocationSpot;
 
         // Set time cost based on action type or template
         actionImplementation.TimeCostHours = template.TimeCostHours > 0
@@ -30,9 +31,9 @@
         actionImplementation.CurrentLocation = template.LocationName;
 
         // If this is a movement action with a target spot
-        if (!string.IsNullOrEmpty(template.LocationSpotTarget))
+        if (!string.IsNullOrEmpty(template.MoveToLocationSpot))
         {
-            actionImplementation.DestinationLocation = template.LocationSpotTarget;
+            actionImplementation.DestinationLocation = template.MoveToLocationSpot;
         }
 
         // Add energy costs

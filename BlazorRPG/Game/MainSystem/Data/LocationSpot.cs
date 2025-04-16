@@ -16,6 +16,7 @@
     public Atmosphere? Atmosphere { get; set; }
     public Physical? Physical { get; set; }
     public Illumination? Illumination { get; set; }
+    public bool PlayerKnowledge { get; set; }
     public string Character { get; set; }
 
 
@@ -70,6 +71,7 @@
         Atmosphere? atmosphere,
         Physical? physical,
         Illumination? illumination,
+        bool playerKnowledge,
         List<string> actionIds)
     {
         Name = name;
@@ -79,6 +81,7 @@
         Atmosphere = atmosphere;
         Physical = physical;
         Illumination = illumination;
+        PlayerKnowledge = playerKnowledge;
         ActionIds = actionIds;
     }
 }

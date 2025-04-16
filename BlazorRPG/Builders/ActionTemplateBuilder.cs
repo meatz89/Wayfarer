@@ -130,6 +130,18 @@ public class ActionTemplateBuilder
         return this;
     }
 
+    internal ActionTemplateBuilder RewardsHerbs(int amount)
+    {
+        rewards.Add(new MedicinalHerbOutcome(amount));
+        return this;
+    }
+
+    internal ActionTemplateBuilder RewardsLocationSpotKnowledge(string locationSpot)
+    {
+        rewards.Add(new LocationSpotKnowledgeOutcome(locationSpot));
+        return this;
+    }
+
     internal ActionTemplateBuilder MovesToLocationSpot(LocationNames deepForest, string locationSpot)
     {
         this.movesToLocationSpot = locationSpot;
@@ -153,7 +165,7 @@ public class ActionTemplateBuilder
             Goal = goal,
             Complication = complication,
             BasicActionType = actionType,
-            LocationSpotTarget = movesToLocationSpot,
+            MoveToLocationSpot = movesToLocationSpot,
           
             ActionType = isBasicAction ? ActionTypes.Basic : ActionTypes.Encounter,
             EncounterId = isBasicAction ? string.Empty : encounterTemplateName,

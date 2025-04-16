@@ -5,6 +5,7 @@ public class LocationSpotBuilder
     private string description;
     private string locationName;
     private string? character;
+    private bool playerKnowledge = false;
 
     private List<string> actionIds = new();
 
@@ -29,6 +30,11 @@ public class LocationSpotBuilder
         return this;
     }
 
+    public LocationSpotBuilder WithPlayerKnowledge(bool playerKnowledge)
+    {
+        this.playerKnowledge = playerKnowledge;
+        return this;
+    }
 
     public LocationSpotBuilder WithCharacter(string? character)
     {
@@ -83,6 +89,7 @@ public class LocationSpotBuilder
                 atmosphere,
                 physical,
                 illumination,
+                playerKnowledge,
                 actionIds
             );
 
