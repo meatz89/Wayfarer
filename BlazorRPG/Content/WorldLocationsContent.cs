@@ -14,6 +14,7 @@
              .WithPopulation(Population.Quiet)
              .WithPhysical(Physical.Expansive)
              .AddAction(ActionNames.Rest)
+             .AddAction(ActionNames.ForageForFood)
              .AddAction(ActionNames.SearchSurroundings))
          .AddLocationSpot(spot => spot
              .WithName("Forest Stream")
@@ -32,7 +33,6 @@
              .WithAtmosphere(Atmosphere.Formal)
              .WithPopulation(Population.Quiet)
              .WithPhysical(Physical.Expansive)
-             .AddAction(ActionNames.ForageForFood)
              .AddAction(ActionNames.HuntGame)
              .AddAction(ActionNames.NightWatch)
              .AddAction(ActionNames.RestProperly))

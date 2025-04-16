@@ -19,7 +19,7 @@
             .WithName(ActionNames.FollowStream.ToString())
             .WithGoal("follow the stream to another area")
             .WithActionType(BasicActionTypes.Travel)
-            .AdvancesTime(1) // 1 hour
+            .TimeCostInHours(1) // 1 hour
             .ExpendsEnergy(15)
             .StartsEncounter(EncounterNames.SearchSurroundings.ToString())
             .MovesToLocationSpot(LocationNames.DeepForest, "High Ground")
@@ -31,7 +31,7 @@
             .WithComplication("animals are alert and may detect you")
             .WithActionType(BasicActionTypes.Forage)
             .StartsEncounter(EncounterNames.HuntGame.ToString())
-            .AdvancesTime(3)
+            .TimeCostInHours(3)
             .AvailableDuring(TimeWindows.Morning, TimeWindows.Afternoon) // Hunting during daylight
             .Build());
 
@@ -41,7 +41,7 @@
             .WithComplication("darkness makes observation difficult")
             .WithActionType(BasicActionTypes.Observe)
             .StartsEncounter(EncounterNames.NightWatch.ToString())
-            .AdvancesTime(4)
+            .TimeCostInHours(4)
             .AvailableDuring(TimeWindows.Night) // Only available at night
             .Build());
 
@@ -50,7 +50,7 @@
             .WithName(ActionNames.Rest.ToString())
             .WithGoal("rest briefly to recover some energy")
             .WithActionType(BasicActionTypes.Rest)
-            .AdvancesTime(2) // 2 hours
+            .TimeCostInHours(2) // 2 hours
             .RestoresEnergy(20)
             .IsRepeatableAction()
             .Build());
@@ -60,7 +60,7 @@
             .WithName(ActionNames.RestProperly.ToString())
             .WithGoal("rest fully to recover all energy")
             .WithActionType(BasicActionTypes.Rest)
-            .AdvancesTime(4) // 4 hours
+            .TimeCostInHours(4) // 4 hours
             .RestoresEnergy(100) // Full energy
             .IsRepeatableAction()
             .Build());
@@ -69,7 +69,7 @@
             .WithName(ActionNames.DrinkWater.ToString())
             .WithGoal("drink from the stream to restore health")
             .WithActionType(BasicActionTypes.Consume)
-            .AdvancesTime(1) // 30 minutes
+            .TimeCostInHours(1) // 30 minutes
             .RestoresHealth(10)
             .RestoresConcentration(10)
             .RestoresConfidence(10)
@@ -80,7 +80,7 @@
             .WithName(ActionNames.ObserveArea.ToString())
             .WithGoal("observe the area to gain information")
             .WithActionType(BasicActionTypes.Observe)
-            .AdvancesTime(1) // 1 hour
+            .TimeCostInHours(1) // 1 hour
             .ExpendsEnergy(10)
             .IsRepeatableAction()
             .Build());
@@ -93,7 +93,7 @@
             .WithComplication("some similar-looking plants are poisonous")
             .WithActionType(BasicActionTypes.Forage)
             .StartsEncounter(EncounterNames.ForageForFood.ToString())
-            .AdvancesTime(2) // 2 hours
+            .TimeCostInHours(2) // 2 hours
             .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
@@ -102,7 +102,7 @@
             .WithComplication("the forest is confusing and disorienting")
             .WithActionType(BasicActionTypes.Explore)
             .StartsEncounter(EncounterNames.SearchSurroundings.ToString())
-            .AdvancesTime(1) // 1 hour
+            .TimeCostInHours(1) // 1 hour
             .RewardsLocationSpotKnowledge("Forest Stream")
             .Build());
 
@@ -112,7 +112,7 @@
             .WithComplication("identifying the correct plants requires careful observation")
             .WithActionType(BasicActionTypes.Forage)
             .StartsEncounter(EncounterNames.GatherHerbs.ToString())
-            .AdvancesTime(2) // 2 hour
+            .TimeCostInHours(2) // 2 hour
             .RewardsHerbs(2)
             .Build());
 
@@ -122,7 +122,7 @@
             .WithComplication("as daylight fades, navigation becomes increasingly difficult")
             .WithActionType(BasicActionTypes.Travel)
             .StartsEncounter(EncounterNames.FindPathOut.ToString())
-            .AdvancesTime(3) // 3 hours
+            .TimeCostInHours(3) // 3 hours
             .Build());
 
         return actionTemplates;
@@ -137,7 +137,7 @@
             .WithName(ActionNames.ConsumeFood.ToString())
             .WithGoal("eat food to restore energy")
             .WithActionType(BasicActionTypes.Consume)
-            .AdvancesTime(1) // 1 hour
+            .TimeCostInHours(1) // 1 hour
             .ExpendsFood(1)
             .RestoresEnergy(25) // Each food unit restores 25 Energy
             .IsRepeatableAction()
@@ -148,7 +148,7 @@
             .WithName(ActionNames.ConsumeMedicinalHerbs.ToString())
             .WithGoal("use medicinal herbs to restore health, concentration, and confidence")
             .WithActionType(BasicActionTypes.Consume)
-            .AdvancesTime(1) // 1 hour
+            .TimeCostInHours(1) // 1 hour
             .ExpendsMedicinalHerbs(1)
             .RestoresHealth(15)
             .RestoresConcentration(15)

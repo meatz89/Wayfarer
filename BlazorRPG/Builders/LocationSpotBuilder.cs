@@ -1,5 +1,4 @@
-﻿
-public class LocationSpotBuilder
+﻿public class LocationSpotBuilder
 {
     private string name;
     private string description;
