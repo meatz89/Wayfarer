@@ -25,8 +25,9 @@
             return template;
         }
 
-        // Return a default template if not found
-        return WorldEncounterContent.GetAllTemplates().First();
+        Console.WriteLine($"Encounter Template {actionId} not found. Choosing default template");
+        EncounterTemplate defaultTemplate = WorldEncounterContent.GetDefaultTemplate();
+        return defaultTemplate;
     }
 
     public SpotAction GetAction(string actionId)
