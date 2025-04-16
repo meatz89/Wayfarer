@@ -31,7 +31,7 @@
     }
 
     // Complete active encounter
-    public void CompleteActiveEncounter()
+    public void CompleteAction()
     {
         IsActiveEncounter = false;
         CurrentEncounter = null;

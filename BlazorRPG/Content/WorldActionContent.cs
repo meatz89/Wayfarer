@@ -98,15 +98,6 @@
             .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName(ActionNames.FollowStream.ToString())
-            .WithGoal("follow the stream to another area")
-            .WithActionType(BasicActionTypes.Travel)
-            .AdvancesTime(1) // 1 hour
-            .ExpendsEnergy(15)
-            .MovesToLocationSpot(LocationNames.DeepForest, "High Ground")
-            .Build());
-
-        actionTemplates.Add(new ActionTemplateBuilder()
             .WithName(ActionNames.ObserveArea.ToString())
             .WithGoal("observe the area to gain information")
             .WithActionType(BasicActionTypes.Observe)
@@ -116,6 +107,16 @@
             .Build());
 
         // Encounter actions
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName(ActionNames.FollowStream.ToString())
+            .WithGoal("follow the stream to another area")
+            .WithActionType(BasicActionTypes.Travel)
+            .AdvancesTime(1) // 1 hour
+            .ExpendsEnergy(15)
+            .StartsEncounter(EncounterNames.SearchSurroundings.ToString())
+            .MovesToLocationSpot(LocationNames.DeepForest, "High Ground")
+            .Build());
+
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName(ActionNames.ForageForFood.ToString())
             .WithGoal("search for edible berries and roots")

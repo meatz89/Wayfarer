@@ -9,6 +9,7 @@ public partial class EncounterViewBase : ComponentBase
     [Inject] public GameState GameState { get; set; }
     [Inject] public GameManager GameManager { get; set; }
     [Parameter] public EventCallback<EncounterResult> OnEncounterCompleted { get; set; }
+    [Parameter] public ActionImplementation ActionImplementation { get; set; }
 
     public PlayerState PlayerState => GameState.PlayerState;
 
@@ -38,7 +39,7 @@ public partial class EncounterViewBase : ComponentBase
         EncounterManager encounterManager = GetEncounter();
         if (encounterManager == null)
         {
-            await GameManager.PrepareEncounter();
+            await GameManager.PrepareEncounter(ActionImplementation);
             IsLoading = false;
         }
     }
