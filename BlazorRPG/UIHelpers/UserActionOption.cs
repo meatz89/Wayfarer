@@ -1,6 +1,5 @@
 ﻿public record UserActionOption
     (
-    int Index,
     string ActionId,
     string ActionName,
     bool IsDisabled,
@@ -14,6 +13,6 @@
 {
     public string Display()
     {
-        return $"{Index}. {ActionName}";
+        return $"{ActionName}";
     }
 }

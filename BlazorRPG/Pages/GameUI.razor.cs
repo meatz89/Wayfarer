@@ -161,7 +161,7 @@ public partial class GameUI : ComponentBase
         ActionImplementation waitImpl = GameManager.ActionFactory.CreateActionFromTemplate(waitAction);
 
         UserActionOption waitOption = new UserActionOption(
-            0, "Wait", "Wait for one hour", false, waitImpl,
+            "Wait", "Wait for one hour", false, waitImpl,
             GameState.WorldState.CurrentLocation?.Name ?? "Global",
             GameState.WorldState.CurrentLocationSpot?.Name ?? "Global",
             null, 0, null);
@@ -177,7 +177,16 @@ public partial class GameUI : ComponentBase
 
         if (globalAction != null && !globalAction.IsDisabled)
         {
-            await GameManager.ExecuteBasicAction(globalAction);
+            await GameManager.ExecuteAction(globalAction);
+            
+            if (GameState.GameMode == Modes.Tutorial)
+            {
+                if (actionName == ActionNames.ConsumeFood)
+                    GameState.TutorialState.SetFlag("TutorialFoodExplained");
+
+                if (actionName == ActionNames.ConsumeMedicinalHerbs)
+                    GameState.TutorialState.SetFlag("TutorialHerbsExplained");
+            }
         }
 
         DisplayActionMessages(); 

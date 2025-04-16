@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 using System.Text;
 
 public partial class GameManager
@@ -86,8 +84,31 @@ public partial class GameManager
 
         await UpdateState();
 
+        // Tutorial mode initialization
+        if (gameState.GameMode == Modes.Tutorial)
+        {
+            InitializeTutorial();
+        }
+
         Location? currentLoc = worldState.CurrentLocation;
         Console.WriteLine($"Game started at: {currentLoc?.Name}, Current spot: {worldState.CurrentLocationSpot?.Name}");
+    }
+
+    private void InitializeTutorial()
+    {
+        // Set initial tutorial state
+        gameState.TutorialState.SetFlag("TutorialStarted");
+
+        // Set initial time (8:00 AM)
+        worldState.CurrentTimeInHours = 8;
+        worldState.DetermineCurrentTimeWindow(1); // Morning
+
+        // Ensure player has 0 Food and 0 Herbs to start
+        playerState.Food = 0;
+        playerState.MedicinalHerbs = 0;
+
+        // Set starting energy at 80% (player will need to learn about resources)
+        playerState.Energy = (int)(playerState.MaxEnergy * 0.8);
     }
 
     public async Task ExecuteAction(UserActionOption action)
@@ -99,6 +120,9 @@ public partial class GameManager
 
         // Set current action in game state
         gameState.ActionStateTracker.SetCurrentUserAction(action);
+
+        // Tutorial progression tracking
+        UpdateTutorialStateForAction(action);
 
         // Use our action classification system to determine execution path
         ActionExecutionType executionType = GetExecutionType(action.ActionImplementation);
@@ -140,6 +164,54 @@ public partial class GameManager
         }
     }
 
+    private void UpdateTutorialStateForAction(UserActionOption action)
+    {
+        if (gameState.GameMode != Modes.Tutorial)
+            return;
+
+        string actionId = action.ActionId;
+        string locationSpot = action.LocationSpot;
+
+        // Track location visits
+        if (locationSpot == "Forest Stream" && !gameState.TutorialState.CheckFlag("VisitedStream"))
+        {
+            gameState.TutorialState.SetFlag("VisitedStream");
+            gameState.TutorialState.SetFlag("FoundStream");
+        }
+        else if (locationSpot == "High Ground" && !gameState.TutorialState.CheckFlag("VisitedHighGround"))
+        {
+            gameState.TutorialState.SetFlag("VisitedHighGround");
+        }
+
+        // Track specific actions
+        switch (actionId)
+        {
+            case "SearchSurroundings":
+                gameState.TutorialState.SetFlag("ExploredSurroundings");
+                break;
+
+            case "GatherHerbs":
+                // Flag will be set after encounter completion
+                break;
+
+            case "ForageForFood":
+                // Flag will be set after encounter completion
+                break;
+
+            case "ConsumeFood":
+                gameState.TutorialState.SetFlag("UsedFood");
+                break;
+
+            case "ConsumeMedicinalHerbs":
+                gameState.TutorialState.SetFlag("UsedHerbs");
+                break;
+
+            case "FindPathOut":
+                // Flag will be set after encounter completion
+                break;
+        }
+    }
+
     private async Task ProcessBasicAction(UserActionOption action)
     {
         // Apply the action's outcomes
@@ -175,7 +247,6 @@ public partial class GameManager
     public void CreateGlobalActions()
     {
         List<UserActionOption> userActions = new List<UserActionOption>();
-        int actionIndex = 1;
 
         // Only add food consumption if player has food
         if (gameState.PlayerState.Food > 0)
@@ -189,7 +260,6 @@ public partial class GameManager
                 bool requirementsMet = consumeFoodAction.CanExecute(gameState);
 
                 UserActionOption consumeFoodOption = new UserActionOption(
-                    actionIndex++,
                     consumeFoodAction.ActionId.ToString(),
                     consumeFoodAction.Name.ToString(),
                     !requirementsMet, // Disabled if requirements aren't met
@@ -216,7 +286,6 @@ public partial class GameManager
                 bool requirementsMet = consumeHerbsAction.CanExecute(gameState);
 
                 UserActionOption consumeHerbsOption = new UserActionOption(
-                    actionIndex++,
                     consumeHerbsAction.ActionId.ToString(),
                     consumeHerbsAction.Name.ToString(),
                     !requirementsMet, // Disabled if requirements aren't met
@@ -273,7 +342,7 @@ public partial class GameManager
 
         // Create option with consistent structure
         UserActionOption travelOption = new UserActionOption(
-            0, "Travel", "Travel to " + locationName, false, travelAction,
+            "Travel", "Travel to " + locationName, false, travelAction,
             worldState.CurrentLocation.Name, worldState.CurrentLocationSpot.Name,
             null, worldState.CurrentLocation.Difficulty, null);
 
@@ -295,6 +364,27 @@ public partial class GameManager
             await CompleteTravel(gameState.PendingTravel.TravelDestination);
         }
         await UpdateState();
+    }
+
+    public void ApplyActionOutcomes(ActionImplementation action)
+    {
+        foreach (Outcome energyCost in action.EnergyCosts)
+        {
+            energyCost.Apply(gameState);
+            MessageSystem.AddOutcome(energyCost);
+        }
+
+        foreach (Outcome cost in action.Costs)
+        {
+            cost.Apply(gameState);
+            MessageSystem.AddOutcome(cost);
+        }
+
+        foreach (Outcome reward in action.Rewards)
+        {
+            reward.Apply(gameState);
+            MessageSystem.AddOutcome(reward);
+        }
     }
 
     private async Task<List<UserActionOption>> CreateActionsForLocationSpot
@@ -344,7 +434,6 @@ public partial class GameManager
 
             UserActionOption userActionOption =
                 new UserActionOption(
-                    default,
                     actionImplementation.ActionId.ToString(),
                     actionImplementation.Name.ToString(),
                     false,
@@ -362,31 +451,6 @@ public partial class GameManager
         }
 
         return options;
-    }
-
-    public async Task ExecuteBasicAction(UserActionOption action)
-    {
-        actionImplementation = action.ActionImplementation;
-        locationSpot = action.LocationSpot;
-
-        location = LocationSystem.GetLocation(action.Location);
-        gameState.ActionStateTracker.SetCurrentUserAction(action);
-
-        bool startEncounter = actionImplementation.ActionType == ActionTypes.Encounter;
-        if (!startEncounter)
-        {
-            await ExecuteActionByName(action.ActionName);
-
-            if (gameState.PendingTravel.IsTravelPending)
-            {
-                await OnLocationArrival(gameState.PendingTravel.TravelDestination);
-                gameState.PendingTravel.Clear();
-            }
-        }
-        else
-        {
-            gameState.ActionStateTracker.SetActiveEncounter();
-        }
     }
 
     public async Task<EncounterContext> PrepareEncounter()
@@ -475,39 +539,82 @@ public partial class GameManager
             currentResult.NarrativeResult,
             choiceOption.Choice,
             worldStateInput);
-        
-        await ProcessEncounterResult(encounterResult);
+
+        EncounterResults currentEncounterResult = encounterResult.EncounterResults;
+        if (currentEncounterResult == EncounterResults.Ongoing)
+        {
+            ProcessOngoingEncounter(encounterResult);
+        }
+        else
+        {
+            await OnEncounterCompleted(encounterResult);
+        }
 
         return encounterResult;
     }
 
-    private async Task ProcessEncounterResult(EncounterResult encounterResult)
+    private async Task OnEncounterCompleted(EncounterResult encounterResult)
     {
-        EncounterResults currentEncounterResult = encounterResult.EncounterResults;
-        if (currentEncounterResult == EncounterResults.Ongoing)
+        await ProcessEncounterOutcome(encounterResult);
+
+        if (gameState.GameMode == Modes.Tutorial)
         {
-            if (!IsGameOver(gameState.PlayerState))
-            {
-                gameState.ActionStateTracker.EncounterResult = encounterResult;
-                List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterResult.Encounter);
-                gameState.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
-            }
-            else
-            {
-                gameState.ActionStateTracker.CompleteActiveEncounter();
-                return;
-            }
+            UpdateTutorialStateForEncounterOutcome(encounterResult);
+        }
+
+        bool wasTravelEncounter = gameState.PendingTravel != null && gameState.PendingTravel.IsTravelPending;
+        if (wasTravelEncounter)
+        {
+            await OnLocationArrival(gameState.PendingTravel.TravelDestination);
+            gameState.PendingTravel.Clear();
+        }
+    }
+
+    // Update tutorial state based on encounter outcomes
+    private void UpdateTutorialStateForEncounterOutcome(EncounterResult result)
+    {
+        string actionId = result.Encounter.ActionImplementation.ActionId;
+        EncounterResults outcome = result.EncounterResults;
+
+        // Only track successful encounters
+        if (outcome != EncounterResults.EncounterSuccess)
+            return;
+
+        switch (actionId)
+        {
+            case "GatherHerbs":
+                if (playerState.MedicinalHerbs > 0)
+                    gameState.TutorialState.SetFlag("GatheredHerbs");
+                break;
+
+            case "ForageForFood":
+                if (playerState.Food > 0)
+                    gameState.TutorialState.SetFlag("GatheredFood");
+                break;
+
+            case "FindPathOut":
+                gameState.TutorialState.SetFlag("FoundPathOut");
+                break;
+
+            case "SearchSurroundings":
+                // After successful exploration, unlock the path to the stream
+                gameState.TutorialState.SetFlag("FoundStream");
+                break;
+        }
+    }
+
+    private void ProcessOngoingEncounter(EncounterResult encounterResult)
+    {
+        if (!IsGameOver(gameState.PlayerState))
+        {
+            gameState.ActionStateTracker.EncounterResult = encounterResult;
+            List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterResult.Encounter);
+            gameState.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
         }
         else
         {
-            await ProcessEncounterOutcome(encounterResult);
-
-            bool wasTravelEncounter = gameState.PendingTravel != null && gameState.PendingTravel.IsTravelPending;
-            if (wasTravelEncounter)
-            {
-                await OnLocationArrival(gameState.PendingTravel.TravelDestination);
-                gameState.PendingTravel.Clear();
-            }
+            gameState.ActionStateTracker.CompleteActiveEncounter();
+            return;
         }
     }
 
@@ -703,27 +810,6 @@ public partial class GameManager
         if (player.Confidence <= 0) return true;
 
         return false;
-    }
-
-    public void ApplyActionOutcomes(ActionImplementation action)
-    {
-        foreach (Outcome energyCost in action.EnergyCosts)
-        {
-            energyCost.Apply(gameState);
-            MessageSystem.AddOutcome(energyCost);
-        }
-
-        foreach (Outcome cost in action.Costs)
-        {
-            cost.Apply(gameState);
-            MessageSystem.AddOutcome(cost);
-        }
-
-        foreach (Outcome reward in action.Rewards)
-        {
-            reward.Apply(gameState);
-            MessageSystem.AddOutcome(reward);
-        }
     }
 
     public List<Location> GetPlayerKnownLocations()
