@@ -69,6 +69,7 @@ public partial class GameManager
     public async Task StartGame()
     {
         Location startingLocation = await LocationSystem.Initialize(GameRules.StandardRuleset.StartingLocation);
+
         string startingLocationName = gameState.PlayerState.StartingLocation;
 
         worldState.RecordLocationVisit(startingLocationName);
@@ -690,19 +691,13 @@ public partial class GameManager
 
     public List<Location> GetPlayerKnownLocations()
     {
-        List<Location> playerKnownLocations = new List<Location>();
-        foreach (Location location in LocationSystem.GetAllLocations())
-        {
-            if (location.PlayerKnowledge)
-                playerKnownLocations.Add(location);
-        }
-        return playerKnownLocations;
+        return LocationSystem.GetKnownLocations();
     }
 
     public List<string> GetConnectedLocations()
     {
         List<string> loc =
-            LocationSystem.GetAllLocations()
+            LocationSystem.GetKnownLocations()
             .Where(x => x != gameState.WorldState.CurrentLocation)
             .Select(x => x.Name)
             .ToList();

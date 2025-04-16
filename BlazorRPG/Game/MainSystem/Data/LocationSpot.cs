@@ -16,7 +16,7 @@
     public Atmosphere? Atmosphere { get; set; }
     public Physical? Physical { get; set; }
     public Illumination? Illumination { get; set; }
-    public bool PlayerKnowledge { get; set; }
+    public bool PlayerKnowledge { get; }
     public string Character { get; set; }
 
 

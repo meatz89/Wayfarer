@@ -3,6 +3,7 @@
 public class LocationSystem
 {
     private readonly GameState gameState;
+    private readonly PlayerState playerState;
     private readonly WorldState worldState;
     public bool IsInitialized = false;
 
@@ -12,6 +13,7 @@ public class LocationSystem
     {
         this.gameState = gameState;
         this.worldState = gameState.WorldState;
+        this.playerState = gameState.PlayerState;
         List<Location> allLocations = contentProvider.GetLocations();
     }
 
@@ -29,9 +31,55 @@ public class LocationSystem
         string startingLocationName = startingLocation.ToString();
         InitializeLocationDepths(startingLocationName);
 
+        List<Location> knownLocations = worldState.Locations.Where(x => x.PlayerKnowledge).ToList();
+        foreach (Location location in knownLocations)
+        {
+            playerState.AddKnownLocation(location.Name);
+            
+            List<LocationSpot> knownLocationSpots = location.LocationSpots.Where(x => x.PlayerKnowledge).ToList();
+            foreach (LocationSpot locationSpot in knownLocationSpots)
+            {
+                playerState.AddKnownLocationSpot(locationSpot.Name);
+            }
+        }
+
         IsInitialized = true;
 
         return GetLocation(startingLocationName);
+    }
+
+    public List<Location> GetKnownLocations()
+    {
+        List<Location> knownLocations = new List<Location>();
+
+        var known = gameState.PlayerState.KnownLocations;
+
+        foreach (Location locationSpot in GetAllLocations())
+        {
+            if (known.Contains(locationSpot.Name))
+            {
+                knownLocations.Add(locationSpot);
+            }
+        }
+
+        return knownLocations;
+    }
+
+    public List<LocationSpot> GetKnownLocationSpots(Location location)
+    {
+        List<LocationSpot> knownLocationSpots = new List<LocationSpot>();
+
+        var known = gameState.PlayerState.KnownLocationSpots;
+        
+        foreach (LocationSpot locationSpot in location.LocationSpots)
+        {
+            if(known.Contains(locationSpot.Name)) 
+            {
+                knownLocationSpots.Add(locationSpot);
+            }
+        }
+
+        return knownLocationSpots;
     }
 
     private void InitializeLocationDepths(string startingLocation)
@@ -65,7 +113,7 @@ public class LocationSystem
     {
     }
 
-    public List<Location> GetAllLocations()
+    private List<Location> GetAllLocations()
     {
         return gameState.WorldState.GetLocations();
     }
@@ -74,6 +122,7 @@ public class LocationSystem
     {
         List<Location> connectedLocations = new();
         List<string> locs = worldState.CurrentLocation.ConnectedTo;
+        
         foreach (string conLoc in locs)
         {
             connectedLocations.Add(GetLocation(conLoc));
@@ -95,17 +144,10 @@ public class LocationSystem
         return location;
     }
 
-    public List<LocationSpot> GetLocationSpots(Location location)
-    {
-        if (location == null) return new List<LocationSpot>();
-
-        return location.LocationSpots;
-    }
-
     public LocationSpot GetLocationSpotForLocation(string locationName, string locationSpotName)
     {
         Location location = GetLocation(locationName);
-        List<LocationSpot> spots = GetLocationSpots(location);
+        List<LocationSpot> spots = GetKnownLocationSpots(location);
         LocationSpot? locationSpot = spots.FirstOrDefault(x => x.Name == locationSpotName);
         return locationSpot;
     }

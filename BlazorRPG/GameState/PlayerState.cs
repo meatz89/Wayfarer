@@ -54,8 +54,9 @@
     public bool IsInitialized { get; set; } = false;
     public string StartingLocation { get; private set; }
 
-    public List<string> KnownLocations { get; set; }
-    public List<string> KnownLocationSpots { get; set; }
+    public List<string> KnownLocations { get; private set; } = new List<string>();
+    public List<string> KnownLocationSpots { get; private set; } = new List<string>();
+    public List<ChoiceCard> KnownCards { get; private set; } = new List<ChoiceCard>();
 
     public PlayerState()
     {
@@ -368,8 +369,18 @@
         }
     }
 
-    internal void UnlockCard(ChoiceCard card)
+    public void UnlockCard(ChoiceCard card)
     {
-        throw new NotImplementedException();
+        KnownCards.Add(card);
+    }
+
+    public void AddKnownLocation(string location)
+    {
+        KnownLocationSpots.Add(location);
+    }
+
+    public void AddKnownLocationSpot(string locationSpot)
+    {
+        KnownLocationSpots.Add(locationSpot);
     }
 }
