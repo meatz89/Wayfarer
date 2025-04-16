@@ -144,8 +144,7 @@ public class ActionTemplateBuilder
 
     public SpotAction Build()
     {
-        var isEncounter = !isRepeatable;
-
+        bool isBasicAction = string.IsNullOrEmpty(encounterTemplateName);
 
         return new SpotAction()
         {
@@ -156,8 +155,8 @@ public class ActionTemplateBuilder
             BasicActionType = actionType,
             LocationSpotTarget = movesToLocationSpot,
           
-            ActionType = isEncounter ? ActionTypes.Encounter : ActionTypes.Basic,
-            EncounterId = isEncounter ? encounterTemplateName : string.Empty,
+            ActionType = isBasicAction ? ActionTypes.Basic : ActionTypes.Encounter,
+            EncounterId = isBasicAction ? string.Empty : encounterTemplateName,
             IsRepeatable = isRepeatable,
             TimeWindows = TimeWindows
         };
