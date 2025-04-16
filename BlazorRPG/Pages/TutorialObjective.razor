@@ -1,0 +1,19 @@
+﻿@if (GameState.GameMode == Modes.Tutorial)
+{
+    <div class="tutorial-objective">
+        <div class="objective-title">Current Objective:</div>
+        <div class="objective-text">@GameState.TutorialState.GetCurrentObjectiveText()</div>
+        
+        @if (!string.IsNullOrEmpty(GameState.TutorialState.GetCurrentHint()))
+        {
+            <div class="objective-hint">
+                <span class="hint-icon">💡</span>
+                @GameState.TutorialState.GetCurrentHint()
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Inject] private GameState GameState { get; set; }
+}

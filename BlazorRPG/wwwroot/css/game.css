@@ -999,4 +999,118 @@ body {
     background-color: var(--rus
 }
 
+/* Tutorial UI Components */
+.tutorial-objective {
+    background-color: var(--bg-card);
+    border: 1px solid var(--leather);
+    border-radius: 5px;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
 
+.objective-title {
+    font-family: var(--font-primary);
+    color: var(--leather);
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+.objective-text {
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin-bottom: 5px;
+}
+
+.objective-hint {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+}
+
+.hint-icon {
+    margin-right: 6px;
+}
+
+/* Tutorial Highlights */
+.tutorial-highlight {
+    position: relative;
+    border: 2px solid var(--leather);
+    border-radius: 5px;
+    padding: 2px;
+    animation: pulse 2s infinite;
+    cursor: pointer;
+}
+
+    .tutorial-highlight.active {
+        border-color: var(--clay);
+        animation: none;
+    }
+
+.highlight-info {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 220px;
+    background-color: var(--parchment);
+    color: var(--charcoal);
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+    padding: 8px 12px;
+    z-index: 100;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin-top: 5px;
+}
+
+.info-title {
+    font-family: var(--font-primary);
+    font-size: 0.9rem;
+    color: var(--oak-dark);
+    margin-bottom: 5px;
+    border-bottom: 1px solid var(--oak-mid);
+}
+
+.info-text {
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(168, 125, 95, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 6px rgba(168, 125, 95, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(168, 125, 95, 0);
+    }
+}
+
+/* Resource use button styling improvement */
+.resource-use-btn {
+    background-color: var(--leather);
+    color: var(--parchment);
+    border: none;
+    padding: 2px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-left: auto;
+    transition: all 0.2s ease;
+}
+
+    .resource-use-btn:hover {
+        background-color: var(--clay);
+    }
+
+    .resource-use-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }

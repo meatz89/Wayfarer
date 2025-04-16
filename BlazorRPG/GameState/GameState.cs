@@ -1,12 +1,15 @@
 ﻿public class GameState
 {
-    public Modes GameMode = Modes.Debug;
+    public Modes GameMode = Modes.Tutorial;
 
     public PlayerState PlayerState { get; set; }
     public ActionStateTracker ActionStateTracker { get; }
     public WorldState WorldState { get; }
     public PendingTravel PendingTravel { get; set; }
     public TimeManager TimeManager { get; set; }
+
+    // Tutorial specific tracking
+    public TutorialState TutorialState { get; private set; }
 
     public GameState()
     {
@@ -15,6 +18,8 @@
         WorldState = new WorldState();
         PendingTravel = new PendingTravel();
         TimeManager = new TimeManager(WorldState);
+
+        TutorialState = new TutorialState();
     }
 
     public List<UserActionOption> GetActions(LocationSpot locationSpot)
@@ -33,6 +38,6 @@
 }
 public enum Modes
 {
-    Debug,
+    Tutorial,
     Live
 }
