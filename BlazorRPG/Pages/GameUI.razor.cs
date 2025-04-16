@@ -183,10 +183,10 @@ public partial class GameUI : ComponentBase
             if (GameState.GameMode == Modes.Tutorial)
             {
                 if (actionName == ActionNames.ConsumeFood)
-                    GameState.TutorialState.SetFlag("TutorialFoodExplained");
+                    GameState.TutorialState.SetFlag(TutorialState.TutorialFlags.UsedFood);
 
                 if (actionName == ActionNames.ConsumeMedicinalHerbs)
-                    GameState.TutorialState.SetFlag("TutorialHerbsExplained");
+                    GameState.TutorialState.SetFlag(TutorialState.TutorialFlags.UsedHerbs);
             }
         }
 

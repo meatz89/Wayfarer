@@ -80,7 +80,6 @@ public partial class GameManager
 
         await UpdateState();
 
-        // Tutorial mode initialization
         if (gameState.GameMode == Modes.Tutorial)
         {
             InitializeTutorial();
@@ -92,18 +91,14 @@ public partial class GameManager
 
     private void InitializeTutorial()
     {
-        // Set initial tutorial state
-        gameState.TutorialState.SetFlag("TutorialStarted");
+        gameState.TutorialState.SetFlag(TutorialState.TutorialFlags.TutorialStarted);
 
         // Set initial time (8:00 AM)
         worldState.CurrentTimeInHours = 8;
         worldState.DetermineCurrentTimeWindow(1); // Morning
 
-        // Ensure player has 0 Food and 0 Herbs to start
         playerState.Food = 0;
         playerState.MedicinalHerbs = 0;
-
-        // Set starting energy at 80% (player will need to learn about resources)
         playerState.Energy = (int)(playerState.MaxEnergy * 0.8);
     }
 
@@ -119,9 +114,6 @@ public partial class GameManager
         // Set current action in game state
         gameState.ActionStateTracker.SetCurrentUserAction(action);
 
-        // Tutorial progression tracking
-        UpdateTutorialStateForAction(actionImplementation);
-
         // Use our action classification system to determine execution path
         ActionExecutionType executionType = GetExecutionType(action.ActionImplementation);
 
@@ -134,7 +126,6 @@ public partial class GameManager
             case ActionExecutionType.Travel:
                 await ProcessActionCompletion(actionImplementation);
 
-                // Travel actions should always set PendingTravel
                 if (gameState.PendingTravel.IsTravelPending)
                 {
                     await CompleteTravel(gameState.PendingTravel.TravelDestination);
@@ -151,7 +142,6 @@ public partial class GameManager
             default:
                 await ProcessActionCompletion(actionImplementation);
 
-                // Handle any spot changes
                 if (gameState.PendingTravel.IsTravelPending)
                 {
                     await CompleteTravel(gameState.PendingTravel.TravelDestination);
@@ -458,60 +448,10 @@ public partial class GameManager
         }
         else
         {
-            await OnEncounterCompleted(encounterResult);
+            await ProcessEncounterOutcome(encounterResult);
         }
 
         return encounterResult;
-    }
-
-    private async Task OnEncounterCompleted(EncounterResult encounterResult)
-    {
-        await ProcessEncounterOutcome(encounterResult);
-
-        if (gameState.GameMode == Modes.Tutorial)
-        {
-            UpdateTutorialStateForEncounterOutcome(encounterResult);
-        }
-
-        bool wasTravelEncounter = gameState.PendingTravel != null && gameState.PendingTravel.IsTravelPending;
-        if (wasTravelEncounter)
-        {
-            await OnLocationArrival(gameState.PendingTravel.TravelDestination);
-            gameState.PendingTravel.Clear();
-        }
-    }
-
-    // Update tutorial state based on encounter outcomes
-    private void UpdateTutorialStateForEncounterOutcome(EncounterResult result)
-    {
-        string actionId = result.Encounter.ActionImplementation.ActionId;
-        EncounterResults outcome = result.EncounterResults;
-
-        // Only track successful encounters
-        if (outcome != EncounterResults.EncounterSuccess)
-            return;
-
-        switch (actionId)
-        {
-            case "GatherHerbs":
-                if (playerState.MedicinalHerbs > 0)
-                    gameState.TutorialState.SetFlag("GatheredHerbs");
-                break;
-
-            case "ForageForFood":
-                if (playerState.Food > 0)
-                    gameState.TutorialState.SetFlag("GatheredFood");
-                break;
-
-            case "FindPathOut":
-                gameState.TutorialState.SetFlag("FoundPathOut");
-                break;
-
-            case "SearchSurroundings":
-                // After successful exploration, unlock the path to the stream
-                gameState.TutorialState.SetFlag("FoundStream");
-                break;
-        }
     }
 
     private void ProcessOngoingEncounter(EncounterResult encounterResult)
@@ -571,6 +511,11 @@ public partial class GameManager
         await UpdateState();
     }
 
+    /// <summary>
+    /// ONLY Encounter related outcome that is NOT ALSO included in basic actions
+    /// </summary>
+    /// <param name="result"></param>
+    /// <returns></returns>
     public async Task ProcessEncounterOutcome(EncounterResult result)
     {
         gameState.ActionStateTracker.EncounterResult = result;
@@ -578,66 +523,73 @@ public partial class GameManager
         NarrativeResult narrativeResult = result.NarrativeResult;
         string narrative = narrativeResult.SceneNarrative;
         string outcome = narrativeResult.Outcome.ToString();
-
         string encounterId = result.Encounter.ActionImplementation.ActionId;
-
         worldState.MarkEncounterCompleted(encounterId);
 
         if (result.EncounterResults == EncounterResults.EncounterSuccess)
         {
-            int xpAward;
-
-            switch (result.NarrativeResult.Outcome)
-            {
-                case EncounterOutcomes.Exceptional:
-                    xpAward = 50;
-                    break;
-                case EncounterOutcomes.Standard:
-                    xpAward = 30;
-                    break;
-                case EncounterOutcomes.Partial:
-                    xpAward = 15;
-                    break;
-                default:
-                    xpAward = 5; // Even failure gives some XP
-                    break;
-            }
-
-            xpAward += result.Encounter.encounterInfo.EncounterDifficulty * 5;
-            PlayerProgression.AddExperience(xpAward);
-
-            // Add message about XP gain
-            MessageSystem.AddSystemMessage($"Gained {xpAward} experience points");
+            GainExp(result);
         }
 
         if (_processStateChanges)
         {
-            // If not a travel encounter, evolve the current location
-            BasicActionTypes basicActionType = result.Encounter.ActionImplementation.BasicActionType;
-            if (basicActionType != BasicActionTypes.Travel)
-            {
-                Location currentLocation = worldState.GetLocation(result.Encounter.encounterInfo.LocationName);
-                if (_useMemory)
-                {
-                    await CreateMemoryRecord(result);
-                }
+            await ProcessPostEncounterEvolution(result, narrative, outcome);
+        }
+    }
 
-                // Prepare the input
-                PostEncounterEvolutionInput input = evolutionSystem.PreparePostEncounterEvolutionInput(narrative, outcome);
+    private void GainExp(EncounterResult result)
+    {
+        int xpAward;
 
-                WorldStateInput worldStateInput = await CreateWorldStateInput(currentLocation.Name);
-
-                // Process world evolution
-                PostEncounterEvolutionResult evolutionResponse = await evolutionSystem.ProcessEncounterOutcome(result.NarrativeContext, input, result, worldStateInput);
-
-                // Store the evolution response in the result
-                result.PostEncounterEvolution = evolutionResponse;
-
-                // Update world state
-                await evolutionSystem.IntegrateEncounterOutcome(evolutionResponse, worldState, LocationSystem, playerState, worldStateInput);
-            }
+        switch (result.NarrativeResult.Outcome)
+        {
+            case EncounterOutcomes.Exceptional:
+                xpAward = 50;
+                break;
+            case EncounterOutcomes.Standard:
+                xpAward = 30;
+                break;
+            case EncounterOutcomes.Partial:
+                xpAward = 15;
+                break;
+            default:
+                xpAward = 5; // Even failure gives some XP
+                break;
         }
 
+        xpAward += result.Encounter.encounterInfo.EncounterDifficulty * 5;
+        PlayerProgression.AddExperience(xpAward);
+
+        // Add message about XP gain
+        MessageSystem.AddSystemMessage($"Gained {xpAward} experience points");
+    }
+
+    private async Task ProcessPostEncounterEvolution(EncounterResult result, string narrative, string outcome)
+    {
+        // If not a travel encounter, evolve the current location
+        BasicActionTypes basicActionType = result.Encounter.ActionImplementation.BasicActionType;
+        if (basicActionType != BasicActionTypes.Travel)
+        {
+            Location currentLocation = worldState.GetLocation(result.Encounter.encounterInfo.LocationName);
+            if (_useMemory)
+            {
+                await CreateMemoryRecord(result);
+            }
+
+            // Prepare the input
+            PostEncounterEvolutionInput input = evolutionSystem.PreparePostEncounterEvolutionInput(narrative, outcome);
+
+            WorldStateInput worldStateInput = await CreateWorldStateInput(currentLocation.Name);
+
+            // Process world evolution
+            PostEncounterEvolutionResult evolutionResponse = await evolutionSystem.ProcessEncounterOutcome(result.NarrativeContext, input, result, worldStateInput);
+
+            // Store the evolution response in the result
+            result.PostEncounterEvolution = evolutionResponse;
+
+            // Update world state
+            await evolutionSystem.IntegrateEncounterOutcome(evolutionResponse, worldState, LocationSystem, playerState, worldStateInput);
+        }
     }
 
     private async Task CreateMemoryRecord(EncounterResult encounterResult)
@@ -1035,8 +987,6 @@ public partial class GameManager
         return name.Contains(" - ") || name.Contains("Spot"); // Example logic
     }
 
-
-    // Update tutorial state based on action completion
     private void UpdateTutorialStateForAction(ActionImplementation action)
     {
         string actionId = action.ActionId;
@@ -1045,37 +995,34 @@ public partial class GameManager
         switch (actionId)
         {
             case "ConsumeFood":
-                gameState.TutorialState.SetFlag("UsedFood");
+                gameState.TutorialState.SetFlag(TutorialState.TutorialFlags.UsedFood);
                 break;
 
             case "ConsumeMedicinalHerbs":
-                gameState.TutorialState.SetFlag("UsedHerbs");
+                gameState.TutorialState.SetFlag(TutorialState.TutorialFlags.UsedHerbs);
                 break;
 
             case "Rest":
-                gameState.TutorialState.SetFlag("Rested");
+                gameState.TutorialState.SetFlag(TutorialState.TutorialFlags.Rested);
+                break;
+
+            case "FindPathOut":
+                gameState.TutorialState.SetFlag(TutorialState.TutorialFlags.FoundPathOut);
+                break;
+
+            case "SearchSurroundings":
+                gameState.TutorialState.SetFlag(TutorialState.TutorialFlags.FoundStream);
                 break;
         }
 
-        // Update resource-related flags
         if (playerState.Food <= 0)
         {
-            gameState.TutorialState.SetFlag("OutOfFood");
+            gameState.TutorialState.SetFlag(TutorialState.TutorialFlags.OutOfFood);
         }
 
         if (playerState.MedicinalHerbs <= 0)
         {
-            gameState.TutorialState.SetFlag("OutOfHerbs");
-        }
-
-        // Update time-related flags
-        if (worldState.WorldTime == TimeWindows.Evening)
-        {
-            gameState.TutorialState.SetFlag("ExperiencedEvening");
-        }
-        else if (worldState.WorldTime == TimeWindows.Night)
-        {
-            gameState.TutorialState.SetFlag("ExperiencedNight");
+            gameState.TutorialState.SetFlag(TutorialState.TutorialFlags.OutOfHerbs);
         }
     }
 }
