@@ -11,6 +11,8 @@
     public List<UserActionOption> GlobalActions { get; private set; } = new List<UserActionOption>();
     public List<UserEncounterChoiceOption> UserEncounterChoiceOptions { get; private set; } = new List<UserEncounterChoiceOption>();
 
+    public ActionImplementation PreviousAction { get; private set; }
+     
     public GameStateMoment PreviousState { get; private set; }
 
     public void SaveCurrentState(GameState gameState)
@@ -20,11 +22,13 @@
 
     public void SetCurrentUserAction(UserActionOption action)
     {
+        PreviousAction = CurrentAction?.ActionImplementation;
         CurrentAction = action;
     }
 
     public void ClearCurrentUserAction()
     {
+        PreviousAction = CurrentAction?.ActionImplementation;
         CurrentAction = null;
     }
 

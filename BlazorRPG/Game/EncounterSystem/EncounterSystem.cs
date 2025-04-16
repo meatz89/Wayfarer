@@ -50,6 +50,7 @@
     }
 
     public async Task<EncounterResult> GenerateEncounter(
+        string id,
         Location location,
         string locationSpot,
         EncounterContext context,
@@ -64,11 +65,11 @@
 
         EncounterTemplate template = actionImplementation.EncounterTemplate;
 
-        EncounterInfo encounter = EncounterFactory.CreateEncounterFromTemplate(template,
-            location, locationSpot, encounterType);
+        EncounterInfo encounter = EncounterFactory.CreateEncounterFromTemplate(
+            template, location, locationSpot, encounterType);
 
         // Create encounter manager
-        failureResult = await StartEncounterAt(location, encounter, this.worldState, playerState, actionImplementation);
+        failureResult = await StartEncounter(id, location, encounter, this.worldState, playerState, actionImplementation);
 
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
@@ -97,7 +98,8 @@
         return location.EnvironmentalProperties;
     }
 
-    public async Task<EncounterResult> StartEncounterAt(
+    public async Task<EncounterResult> StartEncounter(
+        string id,
         Location location,
         EncounterInfo encounterInfo,
         WorldState worldState,
@@ -110,6 +112,7 @@
 
         // Create encounter manager with the switchable service
         EncounterManager encounterManager = new EncounterManager(
+            id,
             actionImplementation,
             cardSelector,
             narrativeService,
@@ -127,7 +130,7 @@
         WorldStateInput worldStateInput = new WorldStateInput();
 
         // Start the encounter with narrative
-        NarrativeResult initialResult = await GetCurrentEncounter().StartEncounterWithNarrativeAsync(
+        NarrativeResult initialResult = await encounterManager.StartEncounterWithNarrativeAsync(
             location,
             encounterInfo,
             worldState,

@@ -20,7 +20,7 @@
         actionImplementation.BasicActionType = template.BasicActionType;
         actionImplementation.ActionType = template.ActionType;
         actionImplementation.TimeWindows = template.TimeWindows ?? new();
-        actionImplementation.MoveToLocationSpot = template.MoveToLocationSpot;
+        actionImplementation.DestinationLocationSpot = template.MoveToLocationSpot;
 
         // Set time cost based on action type or template
         actionImplementation.TimeCostHours = template.TimeCostHours > 0

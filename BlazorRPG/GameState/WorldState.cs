@@ -6,7 +6,6 @@
     private List<Opportunity> opportunities { get; set; } = new();
 
     // Forward progression tracking
-    private HashSet<string> CompletedEncounterIds { get; } = new HashSet<string>();
     private Dictionary<string, int> LocationVisitCounts { get; } = new Dictionary<string, int>();
 
     // Track last hub visited and depth
@@ -14,6 +13,9 @@
     private Dictionary<string, int> LocationDepths { get; } = new Dictionary<string, int>();
     public string LastHubLocationId { get; set; }
     public int LastHubDepth { get; set; } = 0;
+
+    public List<string> CompletedEncounters { get; } = new List<string>();
+
 
     public void SetLocationDepth(string locationId, int depth)
     {
@@ -33,17 +35,6 @@
             LastHubDepth = location.Depth;
         }
     }
-
-    public void MarkEncounterCompleted(string encounterId)
-    {
-        CompletedEncounterIds.Add(encounterId);
-    }
-
-    public bool IsEncounterCompleted(string encounterId)
-    {
-        return CompletedEncounterIds.Contains(encounterId);
-    }
-
 
     public void RecordLocationVisit(string locationId)
     {
@@ -218,9 +209,18 @@
             throw new ArgumentException($"Unsupported property type: {typeof(T)}");
         }
     }
-
     internal void AdvanceTime(int hours)
     {
         this.CurrentTimeInHours += hours;
+    }
+    
+    public bool IsEncounterCompleted(string actionId)
+    {
+        return CompletedEncounters.Contains(actionId);
+    }
+
+    public void MarkEncounterCompleted(string actionId)
+    {
+        CompletedEncounters.Add(actionId);
     }
 }

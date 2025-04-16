@@ -1,11 +1,8 @@
 ﻿public class TutorialState
 {
     public TutorialObjective CurrentObjective { get; private set; } = TutorialObjective.ExploreClearing;
-    private Dictionary<TutorialObjective, bool> completedObjectives = new Dictionary<TutorialObjective, bool>();
-    private readonly List<TutorialCondition> conditions = new List<TutorialCondition>();
-
-    // For backward compatibility
     private Dictionary<TutorialFlags, bool> tutorialFlagProgress = new Dictionary<TutorialFlags, bool>();
+    private Dictionary<TutorialObjective, bool> completedObjectives = new Dictionary<TutorialObjective, bool>();
 
     public enum TutorialObjective
     {
@@ -36,111 +33,25 @@
         TutorialStarted
     }
 
-    public TutorialState()
+    public bool CheckFlag(TutorialFlags flagName)
     {
-        InitializeConditions();
+        if (!tutorialFlagProgress.ContainsKey(flagName))
+            tutorialFlagProgress[flagName] = false;
+        return tutorialFlagProgress[flagName];
     }
 
-    private void InitializeConditions()
+    public void SetFlag(TutorialFlags flagName)
     {
-        // Define progression conditions based on game state
-        conditions.Add(new TutorialCondition(
-            state => state.PlayerState.KnownLocationSpots.Contains("Forest Stream"),
-            TutorialObjective.FindStream
-        ));
-
-        conditions.Add(new TutorialCondition(
-            state => state.WorldState.CurrentLocationSpot?.Name == "Forest Stream",
-            TutorialObjective.GatherHerbs
-        ));
-
-        conditions.Add(new TutorialCondition(
-            state => state.PlayerState.MedicinalHerbs > 0,
-            TutorialObjective.UseHerbs
-        ));
-
-        conditions.Add(new TutorialCondition(
-            state => state.ActionStateTracker.PreviousState != null &&
-                   state.PlayerState.MedicinalHerbs < state.ActionStateTracker.PreviousState.PlayerState.MedicinalHerbs,
-            TutorialObjective.FindFood
-        ));
-
-        conditions.Add(new TutorialCondition(
-            state => state.PlayerState.Food > 0,
-            TutorialObjective.EatFood
-        ));
-
-        conditions.Add(new TutorialCondition(
-            state => state.ActionStateTracker.PreviousState != null &&
-                   state.PlayerState.Food < state.ActionStateTracker.PreviousState.PlayerState.Food,
-            TutorialObjective.ReachHighGround
-        ));
-
-        conditions.Add(new TutorialCondition(
-            state => state.WorldState.CurrentLocationSpot?.Name == "High Ground",
-            TutorialObjective.FindPathOut
-        ));
-
-        conditions.Add(new TutorialCondition(
-            state => state.WorldState.IsEncounterCompleted("FindPathOut"),
-            TutorialObjective.TutorialComplete
-        ));
+        tutorialFlagProgress[flagName] = true;
     }
 
-    public void CheckConditions(GameState gameState)
+    public void AdvanceToObjective(TutorialObjective newObjective)
     {
-        // Check all conditions that lead to objective unlocks
-        foreach (var condition in conditions)
+        // Only advance if it's the next objective in sequence
+        if (newObjective == GetNextObjective(CurrentObjective))
         {
-            // Skip if this would lead to an already completed objective
-            if (completedObjectives.ContainsKey(condition.UnlocksObjective))
-                continue;
-
-            // Check if condition is met
-            if (condition.Check(gameState))
-            {
-                // If this is the next objective in sequence, update current objective
-                if (condition.UnlocksObjective == GetNextObjective(CurrentObjective))
-                {
-                    completedObjectives[CurrentObjective] = true;
-                    CurrentObjective = condition.UnlocksObjective;
-
-                    // Set corresponding flags for backward compatibility
-                    UpdateFlagsForObjective(CurrentObjective);
-                }
-            }
-        }
-    }
-
-    private void UpdateFlagsForObjective(TutorialObjective objective)
-    {
-        // Set appropriate flags for each objective for backward compatibility
-        switch (objective)
-        {
-            case TutorialObjective.FindStream:
-                SetFlag(TutorialFlags.FoundStream);
-                break;
-            case TutorialObjective.GatherHerbs:
-                SetFlag(TutorialFlags.VisitedStream);
-                break;
-            case TutorialObjective.UseHerbs:
-                SetFlag(TutorialFlags.GatheredHerbs);
-                break;
-            case TutorialObjective.FindFood:
-                SetFlag(TutorialFlags.UsedHerbs);
-                break;
-            case TutorialObjective.EatFood:
-                SetFlag(TutorialFlags.GatheredFood);
-                break;
-            case TutorialObjective.ReachHighGround:
-                SetFlag(TutorialFlags.UsedFood);
-                break;
-            case TutorialObjective.FindPathOut:
-                SetFlag(TutorialFlags.VisitedHighGround);
-                break;
-            case TutorialObjective.TutorialComplete:
-                SetFlag(TutorialFlags.FoundPathOut);
-                break;
+            completedObjectives[CurrentObjective] = true;
+            CurrentObjective = newObjective;
         }
     }
 
@@ -158,20 +69,6 @@
             TutorialObjective.FindPathOut => TutorialObjective.TutorialComplete,
             _ => TutorialObjective.TutorialComplete
         };
-    }
-
-    // Maintained for backward compatibility
-    public bool CheckFlag(TutorialFlags flagName)
-    {
-        if (!tutorialFlagProgress.ContainsKey(flagName))
-            tutorialFlagProgress[flagName] = false;
-        return tutorialFlagProgress[flagName];
-    }
-
-    // Maintained for backward compatibility
-    public void SetFlag(TutorialFlags flagName)
-    {
-        tutorialFlagProgress[flagName] = true;
     }
 
     public string GetCurrentObjectiveText()
