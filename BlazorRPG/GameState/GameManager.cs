@@ -459,7 +459,7 @@ public partial class GameManager
 
     public async Task<EncounterResult> ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
     {
-        EncounterResult currentResult = EncounterSystem.CurrentResult;
+        EncounterResult currentResult = EncounterSystem.failureResult;
 
         EncounterManager encounter = choiceOption.encounter;
         Location location = LocationSystem.GetLocation(choiceOption.LocationName);
@@ -649,7 +649,7 @@ public partial class GameManager
 
     public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions(EncounterManager encounter)
     {
-        NarrativeResult narrativeResult = EncounterSystem.CurrentResult.NarrativeResult;
+        NarrativeResult narrativeResult = EncounterSystem.failureResult.NarrativeResult;
         List<ChoiceCard> choices = EncounterSystem.GetChoices();
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
 
@@ -853,7 +853,7 @@ public partial class GameManager
 
     public EncounterViewModel? GetEncounterViewModel()
     {
-        EncounterResult encounterResult = EncounterSystem.CurrentResult;
+        EncounterResult encounterResult = EncounterSystem.failureResult;
 
         EncounterViewModel model = new EncounterViewModel();
         EncounterManager encounterManager = EncounterSystem.GetCurrentEncounter();
