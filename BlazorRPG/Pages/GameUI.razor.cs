@@ -200,7 +200,9 @@ public partial class GameUI : ComponentBase
         showNarrative = false;
         ShowEncounterResult = false;
         showAreaMap = false;
+
         await OnEncounterCompleted();
+
         StateHasChanged();
     }
 

@@ -59,8 +59,9 @@ public partial class EncounterViewBase : ComponentBase
         IsLoading = true;
 
         EncounterResult result = await GameManager.ExecuteEncounterChoice(choice);
-
+        
         await OnEncounterCompleted.InvokeAsync(result);
+
         HideTooltip();
         IsLoading = false;
     }
