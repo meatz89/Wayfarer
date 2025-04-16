@@ -34,6 +34,7 @@ public partial class GameUI : ComponentBase
     public bool ShowEncounterResult { get; set; } = false;
     public bool OngoingEncounter { get; private set; }
     public EncounterResult EncounterResult => GameState.ActionStateTracker.EncounterResult;
+    public ActionImplementation ActionImplementation => GameState.ActionStateTracker.CurrentAction.ActionImplementation;
 
     #endregion
 
@@ -208,17 +209,13 @@ public partial class GameUI : ComponentBase
     {
         showNarrative = false;
         ShowEncounterResult = false;
+
         showAreaMap = false;
 
-        await OnEncounterCompleted();
+        ActionImplementation actionImplementation = EncounterResult.Encounter.ActionImplementation;
+        await GameManager.ProcessActionCompletion(actionImplementation);
 
-        StateHasChanged();
-    }
-
-    private async Task OnEncounterCompleted()
-    {
-        await GameManager.ReturnToLocationAfterEncounterEnd(EncounterResult.Encounter);
-        ShowEncounterResult = false;
+        DisplayActionMessages(); 
         StateHasChanged();
     }
 

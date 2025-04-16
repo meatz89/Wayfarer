@@ -22,10 +22,6 @@ public partial class GameManager
     public PlayerProgression PlayerProgression { get; }
     public EncounterSystem EncounterSystem { get; }
 
-    public ActionImplementation actionImplementation;
-    public Location location;
-    public string locationSpot;
-
     private bool _useMemory = false;
     private bool _processStateChanges = false;
 
@@ -113,16 +109,18 @@ public partial class GameManager
 
     public async Task ExecuteAction(UserActionOption action)
     {
+        var actionImplementation = action.ActionImplementation;
+
         // Store action context for current execution
         actionImplementation = action.ActionImplementation;
-        location = LocationSystem.GetLocation(action.Location);
-        locationSpot = action.LocationSpot;
+        var location = LocationSystem.GetLocation(action.Location);
+        var locationSpot = action.LocationSpot;
 
         // Set current action in game state
         gameState.ActionStateTracker.SetCurrentUserAction(action);
 
         // Tutorial progression tracking
-        UpdateTutorialStateForAction(action);
+        UpdateTutorialStateForAction(actionImplementation);
 
         // Use our action classification system to determine execution path
         ActionExecutionType executionType = GetExecutionType(action.ActionImplementation);
@@ -134,7 +132,7 @@ public partial class GameManager
                 break;
 
             case ActionExecutionType.Travel:
-                await ProcessBasicAction(action);
+                await ProcessActionCompletion(actionImplementation);
 
                 // Travel actions should always set PendingTravel
                 if (gameState.PendingTravel.IsTravelPending)
@@ -151,7 +149,7 @@ public partial class GameManager
 
             case ActionExecutionType.Basic:
             default:
-                await ProcessBasicAction(action);
+                await ProcessActionCompletion(actionImplementation);
 
                 // Handle any spot changes
                 if (gameState.PendingTravel.IsTravelPending)
@@ -164,85 +162,39 @@ public partial class GameManager
         }
     }
 
-    private void UpdateTutorialStateForAction(UserActionOption action)
+    public async Task ProcessActionCompletion(ActionImplementation actionImplementation)
     {
-        if (gameState.GameMode != Modes.Tutorial)
+        ApplyActionOutcomes(actionImplementation);
+
+        gameState.ActionStateTracker.CompleteAction();
+
+        if (gameState.PendingTravel.IsTravelPending)
+        {
+            await CompleteTravel(gameState.PendingTravel.TravelDestination);
             return;
-
-        string actionId = action.ActionId;
-        string locationSpot = action.LocationSpot;
-
-        // Track location visits
-        if (locationSpot == "Forest Stream" && !gameState.TutorialState.CheckFlag("VisitedStream"))
-        {
-            gameState.TutorialState.SetFlag("VisitedStream");
-            gameState.TutorialState.SetFlag("FoundStream");
-        }
-        else if (locationSpot == "High Ground" && !gameState.TutorialState.CheckFlag("VisitedHighGround"))
-        {
-            gameState.TutorialState.SetFlag("VisitedHighGround");
         }
 
-        // Track specific actions
-        switch (actionId)
+        if (gameState.GameMode == Modes.Tutorial)
         {
-            case "SearchSurroundings":
-                gameState.TutorialState.SetFlag("ExploredSurroundings");
-                break;
-
-            case "GatherHerbs":
-                // Flag will be set after encounter completion
-                break;
-
-            case "ForageForFood":
-                // Flag will be set after encounter completion
-                break;
-
-            case "ConsumeFood":
-                gameState.TutorialState.SetFlag("UsedFood");
-                break;
-
-            case "ConsumeMedicinalHerbs":
-                gameState.TutorialState.SetFlag("UsedHerbs");
-                break;
-
-            case "FindPathOut":
-                // Flag will be set after encounter completion
-                break;
+            UpdateTutorialStateForAction(actionImplementation);
         }
-    }
 
-    private async Task ProcessBasicAction(UserActionOption action)
-    {
-        // Apply the action's outcomes
-        ApplyActionOutcomes(action.ActionImplementation);
-
-        // Apply time cost
-        int hours = action.ActionImplementation.TimeCostHours;
-        for (int i = 0; i < hours; i++)
-        {
-            // Apply time advancement one hour at a time
-            gameState.TimeManager.AdvanceTime(1);
-
-            // Signal the location to update any time-dependent properties
-            await OnTimeChanged(worldState.WorldTime);
-
-            // Apply effects for each hour that passes
-            ApplyHourlyEffects();
-        }
-    }
-
-    private async Task OnTimeChanged(TimeWindows newTime)
-    {
-        Location currentLocation = worldState.CurrentLocation;
-
-        // Check for time-specific events
-        currentLocation.OnTimeChanged(newTime);
-
-        // Update available actions to reflect time-based availability
+        UpdateTime(actionImplementation.TimeCostHours);
         await UpdateState();
     }
 
+    private void UpdateTime(int timeCostHours)
+    {
+        int hours = timeCostHours;
+        for (int i = 0; i < hours; i++)
+        {
+            gameState.TimeManager.AdvanceTime(1);
+            ApplyHourlyEffects();
+        }
+
+        Location currentLocation = worldState.CurrentLocation;
+        currentLocation.OnTimeChanged(worldState.WorldTime);
+    }
 
     public void CreateGlobalActions()
     {
@@ -350,22 +302,6 @@ public partial class GameManager
         await ExecuteAction(travelOption);
     }
 
-    public async Task ReturnToLocationAfterEncounterEnd(EncounterManager encounter)
-    {
-        // Apply the encounter's outcomes
-        ApplyActionOutcomes(encounter.ActionImplementation);
-
-        // Complete the encounter
-        gameState.ActionStateTracker.CompleteActiveEncounter();
-
-        // Handle travel if this was a travel encounter
-        if (gameState.PendingTravel.IsTravelPending)
-        {
-            await CompleteTravel(gameState.PendingTravel.TravelDestination);
-        }
-        await UpdateState();
-    }
-
     public void ApplyActionOutcomes(ActionImplementation action)
     {
         foreach (Outcome energyCost in action.EnergyCosts)
@@ -453,7 +389,7 @@ public partial class GameManager
         return options;
     }
 
-    public async Task<EncounterContext> PrepareEncounter()
+    public async Task PrepareEncounter(ActionImplementation actionImplementation)
     {
         Location location = worldState.CurrentLocation;
         string locationId = location.Name;
@@ -475,30 +411,8 @@ public partial class GameManager
         // Get player's history with this location
         List<string> previousInteractions = new();
 
-        // Create encounter context
-        EncounterContext encounterContextNew = new EncounterContext
-        {
-            Location = location,
-            PresentCharacters = presentCharacters,
-            AvailableOpportunities = opportunities,
-            TimeOfDay = timeOfDay,
-            CurrentEnvironmentalProperties = new List<IEnvironmentalProperty>(),
-            Player = new PlayerSummary(),
-            PreviousInteractions = previousInteractions
-        };
-
-        EncounterManager encounterContext = await GenerateEncounter(
-            actionImplementation,
-            location,
-            gameState.PlayerState,
-            locationSpot);
-
-        return encounterContextNew;
-    }
-
-    public async Task<EncounterManager> GenerateEncounter(ActionImplementation actionImplementation, Location location, PlayerState playerState, string locationSpotName)
-    {
-        LocationSpot? locationSpot = LocationSystem.GetLocationSpotForLocation(location.Name, locationSpotName);
+        LocationSpot? locationSpot = LocationSystem.GetLocationSpotForLocation(
+            location.Name, worldState.CurrentLocationSpot.Name);
 
         // Create initial context with our new value system
         int playerLevel = playerState.Level;
@@ -516,9 +430,6 @@ public partial class GameManager
 
         List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterResult.Encounter);
         gameState.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
-
-        EncounterManager encounterManager = EncounterSystem.GetCurrentEncounter();
-        return encounterManager;
     }
 
     public async Task<EncounterResult> ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
@@ -613,7 +524,7 @@ public partial class GameManager
         }
         else
         {
-            gameState.ActionStateTracker.CompleteActiveEncounter();
+            gameState.ActionStateTracker.CompleteAction();
             return;
         }
     }
@@ -1122,6 +1033,50 @@ public partial class GameManager
         // Implement logic to determine if this is a location spot name
         // Could be based on naming convention or checking the actual spots list
         return name.Contains(" - ") || name.Contains("Spot"); // Example logic
+    }
+
+
+    // Update tutorial state based on action completion
+    private void UpdateTutorialStateForAction(ActionImplementation action)
+    {
+        string actionId = action.ActionId;
+
+        // Track specific action completions
+        switch (actionId)
+        {
+            case "ConsumeFood":
+                gameState.TutorialState.SetFlag("UsedFood");
+                break;
+
+            case "ConsumeMedicinalHerbs":
+                gameState.TutorialState.SetFlag("UsedHerbs");
+                break;
+
+            case "Rest":
+                gameState.TutorialState.SetFlag("Rested");
+                break;
+        }
+
+        // Update resource-related flags
+        if (playerState.Food <= 0)
+        {
+            gameState.TutorialState.SetFlag("OutOfFood");
+        }
+
+        if (playerState.MedicinalHerbs <= 0)
+        {
+            gameState.TutorialState.SetFlag("OutOfHerbs");
+        }
+
+        // Update time-related flags
+        if (worldState.WorldTime == TimeWindows.Evening)
+        {
+            gameState.TutorialState.SetFlag("ExperiencedEvening");
+        }
+        else if (worldState.WorldTime == TimeWindows.Night)
+        {
+            gameState.TutorialState.SetFlag("ExperiencedNight");
+        }
     }
 }
   

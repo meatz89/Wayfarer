@@ -63,7 +63,7 @@
             <div class="main-content">
                 @if (OngoingEncounter)
                 {
-                    <EncounterView OnEncounterCompleted="(result) => OnEncounterCompleted(result)" />
+                    <EncounterView ActionImplementation="ActionImplementation" OnEncounterCompleted="(result) => OnEncounterCompleted(result)" />
                 }
                 else
                 {
