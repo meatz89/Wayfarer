@@ -19,7 +19,10 @@
     private bool _useAiNarrative = false;
     private bool _useMemory = false;
 
+    public string Id { get; }
+
     public EncounterManager(
+        string id,
         ActionImplementation actionImplementation,
         CardSelectionAlgorithm cardSelector,
         NarrativeService narrativeService,
@@ -27,6 +30,7 @@
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {
+        Id = id;
         ActionImplementation = actionImplementation;
         cardSelectionAlgorithm = cardSelector;
         this.narrativeService = narrativeService;

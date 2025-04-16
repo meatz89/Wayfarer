@@ -1,7 +1,6 @@
 ﻿public class GameState
 {
     public Modes GameMode = Modes.Tutorial;
-
     public PlayerState PlayerState { get; set; }
     public ActionStateTracker ActionStateTracker { get; }
     public WorldState WorldState { get; }

@@ -20,8 +20,8 @@ public partial class GameManager
     public CharacterSystem CharacterSystem { get; }
     public OpportunitySystem OpportunitySystem { get; }
     public PlayerProgression PlayerProgression { get; }
-    public TutorialState TutorialState { get; }
     public EncounterSystem EncounterSystem { get; }
+    public TutorialManager TutorialManager { get; }
 
     private bool _useMemory = false;
     private bool _processStateChanges = false;
@@ -42,7 +42,7 @@ public partial class GameManager
         CharacterSystem characterSystem,
         OpportunitySystem opportunitySystem,
         PlayerProgression playerProgression,
-        TutorialState tutorialState,
+        TutorialManager TutorialManager,
         IConfiguration configuration
         )
     {
@@ -61,7 +61,7 @@ public partial class GameManager
         CharacterSystem = characterSystem;
         OpportunitySystem = opportunitySystem;
         PlayerProgression = playerProgression;
-        TutorialState = tutorialState;
+        this.TutorialManager = TutorialManager;
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
         _useMemory = configuration.GetValue<bool>("useMemory");
     }
@@ -69,7 +69,6 @@ public partial class GameManager
     public async Task StartGame()
     {
         Location startingLocation = await LocationSystem.Initialize(GameRules.StandardRuleset.StartingLocation);
-
         string startingLocationName = gameState.PlayerState.StartingLocation;
 
         worldState.RecordLocationVisit(startingLocationName);
@@ -95,8 +94,6 @@ public partial class GameManager
 
     private void InitializeTutorial()
     {
-        TutorialState.SetFlag(TutorialState.TutorialFlags.TutorialStarted);
-
         // Set initial time (8:00 AM)
         worldState.CurrentTimeInHours = 8;
         worldState.DetermineCurrentTimeWindow(1); // Morning
@@ -105,7 +102,8 @@ public partial class GameManager
         playerState.MedicinalHerbs = 0;
         playerState.Energy = (int)(playerState.MaxEnergy * 0.8);
 
-        gameState.ActionStateTracker.SaveCurrentState(gameState);
+        // Initialize the TutorialManager
+        TutorialManager.Initialize();
     }
 
     public async Task ExecuteAction(UserActionOption action)
@@ -163,7 +161,7 @@ public partial class GameManager
         ApplyActionOutcomes(actionImplementation);
         gameState.ActionStateTracker.CompleteAction();
 
-        string locationSpot = actionImplementation.MoveToLocationSpot;
+        string locationSpot = actionImplementation.DestinationLocationSpot;
         if (!string.IsNullOrWhiteSpace(locationSpot))
         {
             await MoveToLocationSpot(locationSpot);
@@ -173,11 +171,6 @@ public partial class GameManager
         {
             await CompleteTravel(gameState.PendingTravel.TravelDestination);
             return;
-        }
-
-        if (gameState.GameMode == Modes.Tutorial)
-        {
-            UpdateTutorialStateForAction(actionImplementation);
         }
 
         UpdateTime(actionImplementation.TimeCostHours);
@@ -426,8 +419,10 @@ public partial class GameManager
             LocationSpot = locationSpot,
         };
 
+        string id = actionImplementation.ActionId;
+
         EncounterResult encounterResult = await EncounterSystem
-            .GenerateEncounter(location, locationSpot.Name, context, worldState, playerState, actionImplementation);
+            .GenerateEncounter(id, location, locationSpot.Name, context, worldState, playerState, actionImplementation);
 
         List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterResult.Encounter);
         gameState.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
@@ -529,13 +524,14 @@ public partial class GameManager
     /// <returns></returns>
     public async Task ProcessEncounterOutcome(EncounterResult result)
     {
+        worldState.MarkEncounterCompleted(result.Encounter.Id);
+
         gameState.ActionStateTracker.EncounterResult = result;
 
         NarrativeResult narrativeResult = result.NarrativeResult;
         string narrative = narrativeResult.SceneNarrative;
         string outcome = narrativeResult.Outcome.ToString();
         string encounterId = result.Encounter.ActionImplementation.ActionId;
-        worldState.MarkEncounterCompleted(encounterId);
 
         if (result.EncounterResults == EncounterResults.EncounterSuccess)
         {
@@ -673,11 +669,6 @@ public partial class GameManager
 
         LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(locationName, locationSpotName);
         gameState.WorldState.SetCurrentLocationSpot(locationSpot);
-
-        if (locationSpotName == "Forest Stream")
-        {
-            TutorialState.SetFlag(TutorialState.TutorialFlags.VisitedStream);
-        }
 
         await UpdateState();
     }
@@ -950,21 +941,18 @@ public partial class GameManager
         Console.WriteLine($"Executed action by name: {actionName}");
     }
 
-    public static ActionExecutionType GetExecutionType(ActionImplementation action)
+    public ActionExecutionType GetExecutionType(ActionImplementation action)
     {
-        // Inter-location travel (true travel between different locations)
         if (action.BasicActionType == BasicActionTypes.Travel &&
             !string.IsNullOrEmpty(action.DestinationLocation) &&
-            action.DestinationLocation != action.CurrentLocation &&
-            !IsLocationSpot(action.DestinationLocation)) // Check if destination is a location, not a spot
+            action.DestinationLocation != worldState.CurrentLocation.Name)
         {
             return ActionExecutionType.Travel;
         }
 
-        // Travel to spot within same location (behaves like a basic action)
         if (action.BasicActionType == BasicActionTypes.Travel &&
-            !string.IsNullOrEmpty(action.DestinationLocation) &&
-            IsLocationSpot(action.DestinationLocation)) // Check if destination is a spot
+            !string.IsNullOrEmpty(action.DestinationLocationSpot) &&
+            action.DestinationLocationSpot != worldState.CurrentLocationSpot.Name)
         {
             return ActionExecutionType.Basic;
         }
@@ -979,78 +967,20 @@ public partial class GameManager
         return ActionExecutionType.Basic;
     }
 
-    private static bool IsLocationSpot(string name)
-    {
-        // Implement logic to determine if this is a location spot name
-        // Could be based on naming convention or checking the actual spots list
-        return name.Contains(" - ") || name.Contains("Spot"); // Example logic
-    }
-
-    private void UpdateTutorialStateForAction(ActionImplementation action)
-    {
-        string actionId = action.ActionId;
-
-        // Track specific action completions
-        switch (actionId)
-        {
-            case "ConsumeFood":
-                TutorialState.SetFlag(TutorialState.TutorialFlags.UsedFood);
-                break;
-
-            case "ConsumeMedicinalHerbs":
-                TutorialState.SetFlag(TutorialState.TutorialFlags.UsedHerbs);
-                break;
-
-            case "Rest":
-                TutorialState.SetFlag(TutorialState.TutorialFlags.Rested);
-                break;
-
-            case "FindPathOut":
-                TutorialState.SetFlag(TutorialState.TutorialFlags.FoundPathOut);
-                break;
-
-            case "SearchSurroundings":
-                TutorialState.SetFlag(TutorialState.TutorialFlags.FoundStream);
-                break;
-
-            case "GatherHerbs":
-                TutorialState.SetFlag(TutorialState.TutorialFlags.GatheredHerbs);
-                break;
-        }
-
-        if (playerState.Food <= 0)
-        {
-            TutorialState.SetFlag(TutorialState.TutorialFlags.OutOfFood);
-        }
-
-        if (playerState.MedicinalHerbs <= 0)
-        {
-            TutorialState.SetFlag(TutorialState.TutorialFlags.OutOfHerbs);
-        }
-    }
-
-
     public async Task UpdateState()
     {
         gameState.ActionStateTracker.ClearCurrentUserAction();
 
-        // Create global actions first
         CreateGlobalActions();
 
-        // Then update other available actions
         await CreateLocationActions(worldState.CurrentLocation, worldState.CurrentLocationSpot);
 
-        // Check tutorial progress after state changes
-        CheckTutorialProgress();
-    }
-
-    private void CheckTutorialProgress()
-    {
         if (gameState.GameMode == Modes.Tutorial)
         {
-            TutorialState.CheckConditions(gameState);
+            TutorialManager.CheckTutorialProgress();
         }
     }
+
 }
   
 public enum ActionExecutionType
