@@ -104,6 +104,8 @@ public partial class GameManager
         playerState.Food = 0;
         playerState.MedicinalHerbs = 0;
         playerState.Energy = (int)(playerState.MaxEnergy * 0.8);
+
+        gameState.ActionStateTracker.SaveCurrentState(gameState);
     }
 
     public async Task ExecuteAction(UserActionOption action)
@@ -779,17 +781,6 @@ public partial class GameManager
         return "Night";
     }
 
-    public async Task UpdateState()
-    {
-        gameState.ActionStateTracker.ClearCurrentUserAction();
-
-        // Create global actions first
-        CreateGlobalActions();
-
-        // Then update other available actions
-        await CreateLocationActions(worldState.CurrentLocation, worldState.CurrentLocationSpot);
-    }
-
     private async Task CreateLocationActions(Location currentLocation, LocationSpot locationSpot)
     {
         List<LocationSpot> locationSpots = currentLocation.LocationSpots;
@@ -1035,6 +1026,29 @@ public partial class GameManager
         if (playerState.MedicinalHerbs <= 0)
         {
             TutorialState.SetFlag(TutorialState.TutorialFlags.OutOfHerbs);
+        }
+    }
+
+
+    public async Task UpdateState()
+    {
+        gameState.ActionStateTracker.ClearCurrentUserAction();
+
+        // Create global actions first
+        CreateGlobalActions();
+
+        // Then update other available actions
+        await CreateLocationActions(worldState.CurrentLocation, worldState.CurrentLocationSpot);
+
+        // Check tutorial progress after state changes
+        CheckTutorialProgress();
+    }
+
+    private void CheckTutorialProgress()
+    {
+        if (gameState.GameMode == Modes.Tutorial)
+        {
+            TutorialState.CheckConditions(gameState);
         }
     }
 }
