@@ -38,6 +38,31 @@ public class FoodOutcome : Outcome
     }
 }
 
+public class LocationKnowledgeOutcome : Outcome
+{
+    public string Location { get; }
+
+    public LocationKnowledgeOutcome(string location)
+    {
+        Location = location;
+    }
+
+    public override void Apply(GameState gameState)
+    {
+        gameState.PlayerState.AddKnownLocation(Location);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{Location} discovered";
+    }
+
+    public override string GetPreview(GameState gameState)
+    {
+        return $"{Location} discovered";
+    }
+}
+
 public class LocationSpotKnowledgeOutcome : Outcome
 {
     public string LocationSpot { get; }
@@ -49,7 +74,7 @@ public class LocationSpotKnowledgeOutcome : Outcome
 
     public override void Apply(GameState gameState)
     {
-        gameState.PlayerState.KnownLocationSpots.Add(LocationSpot);
+        gameState.PlayerState.AddKnownLocationSpot(LocationSpot);
     }
 
     public override string GetDescription()

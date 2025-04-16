@@ -9,13 +9,11 @@ public class Location
     public int TravelTimeMinutes { get; set; }
     public string TravelDescription { get; set; }
     public int Difficulty { get; set; }
-    public bool PlayerKnowledge { get; set; }
     public string DetailedDescription { get; set; }
     public string History { get; set; }
     public string PointsOfInterest { get; set; }
     public List<EnvironmentPropertyTag> StrategicTags { get; set; } = new List<EnvironmentPropertyTag>();
     public List<NarrativeTag> NarrativeTags { get; set; } = new List<NarrativeTag>();
-
     public int Depth { get; set; }
     public LocationTypes LocationType { get; set; } = LocationTypes.Connective;
     public List<ServiceTypes> AvailableServices { get; set; } = new List<ServiceTypes>();
@@ -23,6 +21,7 @@ public class Location
     public int DiscoveryBonusCoins { get; set; }
     public bool HasBeenVisited { get; set; }
     public int VisitCount { get; set; }
+    public bool PlayerKnowledge { get; }
 
     public void AddSpot(LocationSpot spot)
     {
@@ -130,11 +129,6 @@ public class Location
         EnvironmentalProperties.Add(illumination);
     }
 
-    public List<LocationSpot> GetKnownSpots()
-    {
-        List<LocationSpot> locationSpots = LocationSpots.Where(x => x.PlayerKnowledge).ToList();
-        return locationSpots;
-    }
 
     public Location()
     {

@@ -54,6 +54,7 @@
 @code {
     [Inject] private GameManager GameManager { get; set; }
     [Inject] private GameState GameState { get; set; }
+    [Inject] private LocationSystem LocationSystem { get; set; }
 
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public LocationSpot CurrentSpot { get; set; }
@@ -81,7 +82,7 @@
 
     public List<LocationSpot> GetKnownSpots()
     {
-        List<LocationSpot> locationSpots = CurrentLocation.GetKnownSpots();
+        List<LocationSpot> locationSpots = LocationSystem.GetKnownLocationSpots(CurrentLocation);
         return locationSpots;
     }
 

@@ -1,6 +1,5 @@
 ﻿public static class WorldActionContent
 {
-
     public static List<SpotAction> GetAllTemplates()
     {
         List<SpotAction> actionTemplates = [.. LocationActions(), .. GlobalActions() ];
