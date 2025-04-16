@@ -1,12 +1,8 @@
 ﻿public class TutorialState
 {
-    // Current tutorial objective
     public TutorialObjective CurrentObjective { get; private set; } = TutorialObjective.ExploreClearing;
-
-    // Flags for tutorial progression
     private Dictionary<TutorialFlags, bool> TutorialFlagProgress { get; set; } = new Dictionary<TutorialFlags, bool>();
 
-    // Tutorial objectives in sequence
     public enum TutorialObjective
     {
         ExploreClearing,
@@ -98,7 +94,6 @@
         }
     }
 
-    // Get the current objective description
     public string GetCurrentObjectiveText()
     {
         return CurrentObjective switch

@@ -20,6 +20,7 @@ public partial class GameManager
     public CharacterSystem CharacterSystem { get; }
     public OpportunitySystem OpportunitySystem { get; }
     public PlayerProgression PlayerProgression { get; }
+    public TutorialState TutorialState { get; }
     public EncounterSystem EncounterSystem { get; }
 
     private bool _useMemory = false;
@@ -41,6 +42,7 @@ public partial class GameManager
         CharacterSystem characterSystem,
         OpportunitySystem opportunitySystem,
         PlayerProgression playerProgression,
+        TutorialState tutorialState,
         IConfiguration configuration
         )
     {
@@ -59,6 +61,7 @@ public partial class GameManager
         CharacterSystem = characterSystem;
         OpportunitySystem = opportunitySystem;
         PlayerProgression = playerProgression;
+        TutorialState = tutorialState;
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
         _useMemory = configuration.GetValue<bool>("useMemory");
     }
@@ -91,7 +94,7 @@ public partial class GameManager
 
     private void InitializeTutorial()
     {
-        gameState.TutorialState.SetFlag(TutorialState.TutorialFlags.TutorialStarted);
+        TutorialState.SetFlag(TutorialState.TutorialFlags.TutorialStarted);
 
         // Set initial time (8:00 AM)
         worldState.CurrentTimeInHours = 8;
@@ -995,34 +998,34 @@ public partial class GameManager
         switch (actionId)
         {
             case "ConsumeFood":
-                gameState.TutorialState.SetFlag(TutorialState.TutorialFlags.UsedFood);
+                TutorialState.SetFlag(TutorialState.TutorialFlags.UsedFood);
                 break;
 
             case "ConsumeMedicinalHerbs":
-                gameState.TutorialState.SetFlag(TutorialState.TutorialFlags.UsedHerbs);
+                TutorialState.SetFlag(TutorialState.TutorialFlags.UsedHerbs);
                 break;
 
             case "Rest":
-                gameState.TutorialState.SetFlag(TutorialState.TutorialFlags.Rested);
+                TutorialState.SetFlag(TutorialState.TutorialFlags.Rested);
                 break;
 
             case "FindPathOut":
-                gameState.TutorialState.SetFlag(TutorialState.TutorialFlags.FoundPathOut);
+                TutorialState.SetFlag(TutorialState.TutorialFlags.FoundPathOut);
                 break;
 
             case "SearchSurroundings":
-                gameState.TutorialState.SetFlag(TutorialState.TutorialFlags.FoundStream);
+                TutorialState.SetFlag(TutorialState.TutorialFlags.FoundStream);
                 break;
         }
 
         if (playerState.Food <= 0)
         {
-            gameState.TutorialState.SetFlag(TutorialState.TutorialFlags.OutOfFood);
+            TutorialState.SetFlag(TutorialState.TutorialFlags.OutOfFood);
         }
 
         if (playerState.MedicinalHerbs <= 0)
         {
-            gameState.TutorialState.SetFlag(TutorialState.TutorialFlags.OutOfHerbs);
+            TutorialState.SetFlag(TutorialState.TutorialFlags.OutOfHerbs);
         }
     }
 }
