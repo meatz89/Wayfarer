@@ -15,6 +15,8 @@ public class ActionTemplateBuilder
     public string encounterTemplateName;
     private bool isRepeatable;
     private string movesToLocationSpot;
+    private int timeCost;
+
     public ActionRepository ActionRepository { get; }
     public List<TimeWindows> TimeWindows { get; set; } = new List<TimeWindows>();
 
@@ -100,9 +102,9 @@ public class ActionTemplateBuilder
         return this;
     }
 
-    internal ActionTemplateBuilder AdvancesTime(int timeCost)
+    internal ActionTemplateBuilder TimeCostInHours(int timeCost)
     {
-        costs.Add(new TimeOutcome(-timeCost));
+        this.timeCost = timeCost;
         return this;
     }
 
@@ -166,11 +168,18 @@ public class ActionTemplateBuilder
             Complication = complication,
             BasicActionType = actionType,
             MoveToLocationSpot = movesToLocationSpot,
-          
+
             ActionType = isBasicAction ? ActionTypes.Basic : ActionTypes.Encounter,
             EncounterId = isBasicAction ? string.Empty : encounterTemplateName,
             IsRepeatable = isRepeatable,
-            TimeWindows = TimeWindows
+            TimeWindows = TimeWindows,
+
+            TimeCostHours = timeCost,
+            Energy = energy,
+
+            Requirements = requirements,
+            Costs = costs,
+            Rewards = rewards,
         };
     }
 }
