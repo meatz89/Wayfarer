@@ -475,39 +475,39 @@ public partial class GameManager
             currentResult.NarrativeResult,
             choiceOption.Choice,
             worldStateInput);
-
-        EncounterResults currentEncounterResult = encounterResult.EncounterResults;
-        if (currentEncounterResult == EncounterResults.Ongoing)
-        {
-            // Encounter is Ongoing - unchanged
-            if (IsGameOver(gameState.PlayerState))
-            {
-                gameState.ActionStateTracker.CompleteActiveEncounter();
-                return encounterResult;
-            }
-
-            gameState.ActionStateTracker.EncounterResult = encounterResult;
-
-            List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterResult.Encounter);
-            gameState.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
-        }
-        else
-        {
-            await OnEncounterCompleted(encounterResult);
-        }
+        
+        await ProcessEncounterResult(encounterResult);
 
         return encounterResult;
     }
 
-    public async Task OnEncounterCompleted(EncounterResult result)
+    private async Task ProcessEncounterResult(EncounterResult encounterResult)
     {
-        await ProcessEncounterOutcome(result);
-
-        bool wasTravelEncounter = gameState.PendingTravel != null && gameState.PendingTravel.IsTravelPending;
-        if (wasTravelEncounter)
+        EncounterResults currentEncounterResult = encounterResult.EncounterResults;
+        if (currentEncounterResult == EncounterResults.Ongoing)
         {
-            await OnLocationArrival(gameState.PendingTravel.TravelDestination);
-            gameState.PendingTravel.Clear();
+            if (!IsGameOver(gameState.PlayerState))
+            {
+                gameState.ActionStateTracker.EncounterResult = encounterResult;
+                List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterResult.Encounter);
+                gameState.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
+            }
+            else
+            {
+                gameState.ActionStateTracker.CompleteActiveEncounter();
+                return;
+            }
+        }
+        else
+        {
+            await ProcessEncounterOutcome(encounterResult);
+
+            bool wasTravelEncounter = gameState.PendingTravel != null && gameState.PendingTravel.IsTravelPending;
+            if (wasTravelEncounter)
+            {
+                await OnLocationArrival(gameState.PendingTravel.TravelDestination);
+                gameState.PendingTravel.Clear();
+            }
         }
     }
 
@@ -698,12 +698,11 @@ public partial class GameManager
 
     private bool IsGameOver(PlayerState player)
     {
-        bool canPayPhysical = player.Energy > 0 || player.Health > 1;
-        bool canPayFocus = player.Concentration > 0 || player.Concentration > 1;
-        bool canPaySocial = player.Confidence > 0 || player.Confidence > 1;
+        if (player.Health <= 0) return true;
+        if (player.Concentration <= 0) return true;
+        if (player.Confidence <= 0) return true;
 
-        bool isGameOver = !(canPayPhysical || canPayFocus || canPaySocial);
-        return isGameOver;
+        return false;
     }
 
     public void ApplyActionOutcomes(ActionImplementation action)

@@ -8,22 +8,20 @@ public class MemoryFileAccess
     public static async Task<string> ReadFromMemoryFile()
     {
         string memoryContent = string.Empty;
-        try
-        {
-            string _baseLogDirectory = Path.Combine("C:", "Logs");
-            string filePath = Path.Combine(_baseLogDirectory, fileName);
+        string _baseLogDirectory = Path.Combine("C:", "Logs");
+        string filePath = Path.Combine(_baseLogDirectory, fileName);
 
-            // Ensure directory exists
-            Directory.CreateDirectory(_baseLogDirectory);
+        // Ensure directory exists
+        Directory.CreateDirectory(_baseLogDirectory);
 
-            // Read all text from the file
-            memoryContent = await File.ReadAllTextAsync(filePath);
-        }
-        catch (Exception e)
+        // Read all text from the file
+        if (!File.Exists(filePath))
         {
-            // Log or handle the exception as needed
-            Console.WriteLine($"Error reading memory file: {e.Message}");
+            Console.WriteLine($"Error reading memory file");
+            return string.Empty;
         }
+
+        memoryContent = await File.ReadAllTextAsync(filePath);
         return memoryContent;
     }
 
