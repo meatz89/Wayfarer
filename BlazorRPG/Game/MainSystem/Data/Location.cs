@@ -9,6 +9,7 @@ public class Location
     public int TravelTimeMinutes { get; set; }
     public string TravelDescription { get; set; }
     public int Difficulty { get; set; }
+    public bool PlayerKnowledge { get; set; }
     public string DetailedDescription { get; set; }
     public string History { get; set; }
     public string PointsOfInterest { get; set; }
@@ -129,6 +130,12 @@ public class Location
         EnvironmentalProperties.Add(illumination);
     }
 
+    public List<LocationSpot> GetKnownSpots()
+    {
+        List<LocationSpot> locationSpots = LocationSpots.Where(x => x.PlayerKnowledge).ToList();
+        return locationSpots;
+    }
+
     public Location()
     {
 
@@ -147,5 +154,6 @@ public class Location
         ConnectedTo = travelConnections;
         LocationSpots = locationSpots;
         Difficulty = difficultyLevel;
+        PlayerKnowledge = playerKnowledge;
     }
 }

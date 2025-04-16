@@ -7,7 +7,7 @@
     private int difficultyLevel;
 
     // Location properties
-    private bool playerKnowledge;
+    private bool playerKnowledge = false;
     private string description;
     private string detailedDescription;
 

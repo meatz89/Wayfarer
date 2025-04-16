@@ -32,7 +32,6 @@
         TutorialStarted
     }
 
-    // Check if a tutorial flag is set
     public bool CheckFlag(TutorialFlags flagName)
     {
         if (!TutorialFlagProgress.ContainsKey(flagName))
@@ -40,14 +39,12 @@
         return TutorialFlagProgress[flagName];
     }
 
-    // Set a tutorial flag
     public void SetFlag(TutorialFlags flagName)
     {
         TutorialFlagProgress[flagName] = true;
         UpdateObjectiveProgress();
     }
 
-    // Update tutorial objective based on flags
     private void UpdateObjectiveProgress()
     {
         switch (CurrentObjective)

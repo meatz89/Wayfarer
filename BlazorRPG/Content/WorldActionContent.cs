@@ -12,39 +12,19 @@
         return actionTemplates;
     }
 
-    public static List<SpotAction> GlobalActions()
-    {
-        List<SpotAction> actionTemplates = new List<SpotAction>();
-
-        // Add consume food action
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName(ActionNames.ConsumeFood.ToString())
-            .WithGoal("eat food to restore energy")
-            .WithActionType(BasicActionTypes.Consume)
-            .AdvancesTime(1) // 1 hour
-            .ExpendsFood(1)
-            .RestoresEnergy(25) // Each food unit restores 25 Energy
-            .IsRepeatableAction()
-            .Build());
-
-        // Add consume medicinal herbs action
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName(ActionNames.ConsumeMedicinalHerbs.ToString())
-            .WithGoal("use medicinal herbs to restore health, concentration, and confidence")
-            .WithActionType(BasicActionTypes.Consume)
-            .AdvancesTime(1) // 1 hour
-            .ExpendsMedicinalHerbs(1)
-            .RestoresHealth(15)
-            .RestoresConcentration(15)
-            .RestoresConfidence(15)
-            .IsRepeatableAction()
-            .Build());
-
-        return actionTemplates;
-    }
     public static List<SpotAction> LocationActions()
     {
         List<SpotAction> actionTemplates = new List<SpotAction>();
+
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName(ActionNames.FollowStream.ToString())
+            .WithGoal("follow the stream to another area")
+            .WithActionType(BasicActionTypes.Travel)
+            .AdvancesTime(1) // 1 hour
+            .ExpendsEnergy(15)
+            .StartsEncounter(EncounterNames.SearchSurroundings.ToString())
+            .MovesToLocationSpot(LocationNames.DeepForest, "High Ground")
+            .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName(ActionNames.HuntGame.ToString())
@@ -124,6 +104,7 @@
             .WithActionType(BasicActionTypes.Explore)
             .StartsEncounter(EncounterNames.SearchSurroundings.ToString())
             .AdvancesTime(1) // 1 hour
+            .RewardsLocationSpotKnowledge("Forest Stream")
             .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
@@ -132,7 +113,8 @@
             .WithComplication("identifying the correct plants requires careful observation")
             .WithActionType(BasicActionTypes.Forage)
             .StartsEncounter(EncounterNames.GatherHerbs.ToString())
-            .AdvancesTime(2) // 2 hours
+            .AdvancesTime(2) // 2 hour
+            .RewardsHerbs(2)
             .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
@@ -142,6 +124,37 @@
             .WithActionType(BasicActionTypes.Travel)
             .StartsEncounter(EncounterNames.FindPathOut.ToString())
             .AdvancesTime(3) // 3 hours
+            .Build());
+
+        return actionTemplates;
+    }
+
+    public static List<SpotAction> GlobalActions()
+    {
+        List<SpotAction> actionTemplates = new List<SpotAction>();
+
+        // Add consume food action
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName(ActionNames.ConsumeFood.ToString())
+            .WithGoal("eat food to restore energy")
+            .WithActionType(BasicActionTypes.Consume)
+            .AdvancesTime(1) // 1 hour
+            .ExpendsFood(1)
+            .RestoresEnergy(25) // Each food unit restores 25 Energy
+            .IsRepeatableAction()
+            .Build());
+
+        // Add consume medicinal herbs action
+        actionTemplates.Add(new ActionTemplateBuilder()
+            .WithName(ActionNames.ConsumeMedicinalHerbs.ToString())
+            .WithGoal("use medicinal herbs to restore health, concentration, and confidence")
+            .WithActionType(BasicActionTypes.Consume)
+            .AdvancesTime(1) // 1 hour
+            .ExpendsMedicinalHerbs(1)
+            .RestoresHealth(15)
+            .RestoresConcentration(15)
+            .RestoresConfidence(15)
+            .IsRepeatableAction()
             .Build());
 
         return actionTemplates;

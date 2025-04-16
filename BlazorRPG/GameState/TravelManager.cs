@@ -63,7 +63,7 @@
 
         // Add additional properties for the classifier
         travelTemplate.LocationName = currentLocation?.Name;
-        travelTemplate.LocationSpotTarget = travelLocation;
+        travelTemplate.MoveToLocationSpot = travelLocation;
 
         // Create action implementation
         ActionImplementation travelAction = isFirstVisit

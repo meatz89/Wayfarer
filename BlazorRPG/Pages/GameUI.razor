@@ -167,33 +167,26 @@
                                 <span class="resource-label">Coins</span>
                                 <span class="resource-value">@PlayerState.Coins</span>
                             </div>
-                            <TutorialHighlight IsHighlighted="@(GameState.GameMode == Modes.Tutorial && !TutorialState.CheckFlag(TutorialState.TutorialFlags.OutOfFood) && !TutorialState.CheckFlag(TutorialState.TutorialFlags.UsedFood))"
-                                               Title="Food Resource"
-                                               Description="Food can be consumed to restore Energy. You need Energy to travel and perform actions.">
-                                <div class="player-resource">
-                                    <span class="resource-icon" style="color: var(--resource-food)">🍖</span>
-                                    <span class="resource-label">Food</span>
-                                    <span class="resource-value">@PlayerState.Food</span>
-                                    @if (PlayerState.Food > 0)
-                                    {
-                                        <button class="resource-use-btn" @onclick="() => UseResource(ActionNames.ConsumeFood)">Use</button>
-                                    }
-                                </div>
-                            </TutorialHighlight>
 
-                            <TutorialHighlight IsHighlighted="@(GameState.GameMode == Modes.Tutorial && !TutorialState.CheckFlag(TutorialState.TutorialFlags.OutOfHerbs) && !TutorialState.CheckFlag(TutorialState.TutorialFlags.UsedHerbs))"
-                                               Title="Medicinal Herbs"
-                                               Description="Herbs can be used to restore Health, Concentration, and Confidence. These resources are depleted during encounters.">
-                                <div class="player-resource">
-                                    <span class="resource-icon" style="color: var(--resource-herbs, #606C38)">🌿</span>
-                                    <span class="resource-label">Herbs</span>
-                                    <span class="resource-value">@PlayerState.MedicinalHerbs</span>
-                                    @if (PlayerState.MedicinalHerbs > 0)
-                                    {
-                                        <button class="resource-use-btn" @onclick="() => UseResource(ActionNames.ConsumeMedicinalHerbs)">Use</button>
-                                    }
-                                </div>
-                            </TutorialHighlight>
+                            <div class="player-resource">
+                                <span class="resource-icon" style="color: var(--resource-food)">🍖</span>
+                                <span class="resource-label">Food</span>
+                                <span class="resource-value">@PlayerState.Food</span>
+                                @if (PlayerState.Food > 0)
+                                {
+                                    <button class="resource-use-btn" @onclick="() => UseResource(ActionNames.ConsumeFood)">Use</button>
+                                }
+                            </div>
+
+                            <div class="player-resource">
+                                <span class="resource-icon" style="color: var(--resource-herbs, #606C38)">🌿</span>
+                                <span class="resource-label">Herbs</span>
+                                <span class="resource-value">@PlayerState.MedicinalHerbs</span>
+                                @if (PlayerState.MedicinalHerbs > 0)
+                                {
+                                    <button class="resource-use-btn" @onclick="() => UseResource(ActionNames.ConsumeMedicinalHerbs)">Use</button>
+                                }
+                            </div>
                         </div>
                     </div>
 

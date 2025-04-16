@@ -47,13 +47,15 @@
 
     public Equipment Equipment { get; set; }
     public List<KnowledgePiece> Knowledge { get; set; } = new();
-    public List<string> KnownLocations { get; set; } = new();
     public HashSet<(string, BasicActionTypes)> LocationActionAvailability { get; set; } = new();
 
     public List<PlayerNegativeStatus> NegativeStatusTypes { get; set; }
     public PlayerConfidenceTypes ConfidenceType { get; set; }
     public bool IsInitialized { get; set; } = false;
     public string StartingLocation { get; private set; }
+
+    public List<string> KnownLocations { get; set; }
+    public List<string> KnownLocationSpots { get; set; }
 
     public PlayerState()
     {
@@ -86,7 +88,6 @@
     public void SetStartingLocation(string startingLocation)
     {
         StartingLocation = startingLocation;
-        AddLocationKnowledge(StartingLocation);
     }
 
     public void Initialize(string playerName, ArchetypeTypes selectedArchetype)
@@ -348,20 +349,7 @@
     {
         return NegativeStatusTypes.Contains(expectedValue);
     }
-
-    public void AddLocationKnowledge(string locationName)
-    {
-        if (KnownLocations.Contains(locationName)) return;
-        KnownLocations.Add(locationName);
-    }
-
-
-    public bool HasKnowledge(KnowledgeTags value, int requiredKnowledgeLevel)
-    {
-        return true;
-    }
-
-
+    
     public void AddExperiencePoints(int xpBonus)
     {
         int newExperiencePoints = Math.Max(0, CurrentXP + xpBonus);

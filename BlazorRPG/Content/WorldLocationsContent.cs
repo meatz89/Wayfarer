@@ -6,6 +6,7 @@
          .WithDetailedDescription("The forest stretches before you, thick with ancient trees and a carpet of fallen leaves. The canopy above filters the sunlight, creating a dappled pattern on the forest floor. Animal sounds echo occasionally in the distance. You feel lost and must find your way out.")
          .WithDifficultyLevel(1)
          .AddLocationSpot(spot => spot
+             .WithPlayerKnowledge(true)
              .WithName("Forest Clearing")
              .WithDescription("A small open area where sunlight breaks through the canopy.")
              .WithIllumination(Illumination.Bright)
@@ -13,9 +14,6 @@
              .WithPopulation(Population.Quiet)
              .WithPhysical(Physical.Expansive)
              .AddAction(ActionNames.Rest)
-             .AddAction(ActionNames.ForageForFood)
-             .AddAction(ActionNames.HuntGame)
-             .AddAction(ActionNames.NightWatch)
              .AddAction(ActionNames.SearchSurroundings))
          .AddLocationSpot(spot => spot
              .WithName("Forest Stream")
@@ -34,6 +32,9 @@
              .WithAtmosphere(Atmosphere.Formal)
              .WithPopulation(Population.Quiet)
              .WithPhysical(Physical.Expansive)
+             .AddAction(ActionNames.ForageForFood)
+             .AddAction(ActionNames.HuntGame)
+             .AddAction(ActionNames.NightWatch)
              .AddAction(ActionNames.RestProperly))
          .AddLocationSpot(spot => spot
              .WithName("Forest Edge")

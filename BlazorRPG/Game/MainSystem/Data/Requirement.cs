@@ -186,29 +186,6 @@ public class InventorySlotsRequirement : Requirement
     }
 }
 
-public class KnowledgeRequirement : Requirement
-{
-    private KnowledgeTags value;
-    private int requiredKnowledgeLevel;
-
-    public KnowledgeTags KnowledgeType { get; }
-
-    public KnowledgeRequirement(KnowledgeTags value, int requiredKnowledgeLevel)
-    {
-        this.value = value;
-        this.requiredKnowledgeLevel = requiredKnowledgeLevel;
-    }
-
-    public override bool IsSatisfied(GameState gameState)
-    {
-        return gameState.PlayerState.HasKnowledge(value, requiredKnowledgeLevel);
-    }
-
-    public override string GetDescription()
-    {
-        return $"{KnowledgeType} Skill Level Required";
-    }
-}
 public class RelationshipRequirement : Requirement
 {
     public CharacterTypes Character { get; }

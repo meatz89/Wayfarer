@@ -93,6 +93,7 @@ public partial class GameUI : ComponentBase
     private async Task HandleSpotSelection(LocationSpot locationSpot)
     {
         await GameManager.MoveToLocationSpot(locationSpot.Name);
+        ChangeState();
     }
 
     #endregion
