@@ -143,8 +143,11 @@ public partial class GameUI : ComponentBase
         ChangeState();
     }
 
-    private void OnEncounterCompleted(EncounterResult result)
+    private async Task OnEncounterCompleted(EncounterResult result)
     {
+        ActionImplementation actionImplementation = result.Encounter.ActionImplementation;
+        await GameManager.ProcessActionCompletion(actionImplementation);
+
         EncounterResult = result;
         CurrentScreen = CurrentViews.NarrativeScreen;
         ChangeState();
@@ -152,10 +155,8 @@ public partial class GameUI : ComponentBase
 
     private async Task OnNarrativeCompleted()
     {
-        ActionImplementation actionImplementation = EncounterResult.Encounter.ActionImplementation;
-        await GameManager.ProcessActionCompletion(actionImplementation);
-
         EncounterResult = null;
+
         CurrentScreen = CurrentViews.LocationScreen;
         ChangeState();
     }

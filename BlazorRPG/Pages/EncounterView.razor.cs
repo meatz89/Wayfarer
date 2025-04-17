@@ -22,21 +22,26 @@ public partial class EncounterViewBase : ComponentBase
     public FocusTags[] GetFocusTags() => Enum.GetValues<FocusTags>().Where(x => true).ToArray();
     public EncounterResult EncounterResult { get; private set; }
     public bool IsChoiceDisabled(UserEncounterChoiceOption userEncounterChoiceOption) => userEncounterChoiceOption.Choice.IsBlocked;
-    public EncounterViewModel Model => GetModel();
+    public EncounterViewModel Model;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        Model = GetModel();
+        if (EncounterManager != null && Model != null)
+        {
+            IsLoading = false;
+        }
+        else
+        {
+            IsLoading = true;
+        }
+    }
     private EncounterViewModel GetModel()
     {
         EncounterViewModel? encounterViewModel = GameManager.GetEncounterViewModel();
         return encounterViewModel;
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        if (EncounterManager != null)
-        {
-            IsLoading = false;
-        }
-    }
-    
     public async Task HandleChoiceSelection(UserEncounterChoiceOption choice)
     {
         hoveredChoice = null;
