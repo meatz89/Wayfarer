@@ -4,7 +4,7 @@
     string Narrative,
     string LocationName,
     string locationSpotName,
-    EncounterManager encounter,
+    EncounterResult encounterResult,
     NarrativeResult narrativeResult,
     ChoiceCard Choice)
 {

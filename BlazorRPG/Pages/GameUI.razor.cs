@@ -121,8 +121,15 @@ public partial class GameUI : ComponentBase
         ActionImplementation = await GameManager.ExecuteAction(action);
 
         EncounterManager = GameManager.EncounterSystem.GetCurrentEncounter();
-
-        CurrentScreen = CurrentViews.EncounterScreen;
+        if (EncounterManager == null)
+        {
+            EncounterResult = GameManager.GetEncounterResultFor(action.ActionImplementation);
+            await OnEncounterCompleted(EncounterResult);
+        }
+        else
+        {
+            CurrentScreen = CurrentViews.EncounterScreen;
+        }
 
         ChangeState();
     }
@@ -145,7 +152,7 @@ public partial class GameUI : ComponentBase
 
     private async Task OnEncounterCompleted(EncounterResult result)
     {
-        ActionImplementation actionImplementation = result.Encounter.ActionImplementation;
+        ActionImplementation actionImplementation = result.ActionImplementation;
         await GameManager.ProcessActionCompletion(actionImplementation);
 
         EncounterResult = result;
