@@ -1,61 +1,57 @@
-﻿@if (IsVisible)
-{
-    <div class="character-container">
-        <h2>Create Your Character</h2>
-        <p class="secondary-text">Choose your name and profession to begin your journey</p>
+﻿<div class="character-container">
+    <h2>Create Your Character</h2>
+    <p class="secondary-text">Choose your name and profession to begin your journey</p>
 
-        <div class="tooltip-section">
-            <h4>Choose Your Profession</h4>
-            <div class="archetype-grid">
-                @foreach (ArchetypeTypes archetype in Enum.GetValues(typeof(ArchetypeTypes)))
-                {
-                    <div class="archetype-card @(selectedArchetype == archetype ? "selected" : "")"
-                    @onclick="() => SelectArchetype(archetype)">
-                        <div class="archetype-icon">@GetArchetypeIcon(archetype)</div>
-                        <div class="archetype-name-bold">@FormatArchetypeName(archetype)</div>
-                        <div class="archetype-description">@GetArchetypeDescription(archetype)</div>
-                        <div>
-                            <strong>Advantages:</strong>
-                            <div class="archetype-approaches">@GetNaturalTags(archetype)</div>
-                            <strong>Disadvantages:</strong>
-                            <div class="archetype-approaches">@GetIncompatibleTags(archetype)</div>
-                        </div>
-                        <div class="starting-items">
-                            <strong>Starting Items:</strong>
-                            <div class="items-list">
-                                @foreach (string item in GetStartingItems(archetype))
-                                {
-                                    <div class="item">@item</div>
-                                }
-                            </div>
-                        </div>
-                        @if (selectedArchetype == archetype)
-                        {
-                            <div class="selected-indicator">✓</div>
-                        }
+    <div class="tooltip-section">
+        <h4>Choose Your Profession</h4>
+        <div class="archetype-grid">
+            @foreach (ArchetypeTypes archetype in Enum.GetValues(typeof(ArchetypeTypes)))
+            {
+                <div class="archetype-card @(selectedArchetype == archetype ? "selected" : "")"
+                @onclick="() => SelectArchetype(archetype)">
+                    <div class="archetype-icon">@GetArchetypeIcon(archetype)</div>
+                    <div class="archetype-name-bold">@FormatArchetypeName(archetype)</div>
+                    <div class="archetype-description">@GetArchetypeDescription(archetype)</div>
+                    <div>
+                        <strong>Advantages:</strong>
+                        <div class="archetype-approaches">@GetNaturalTags(archetype)</div>
+                        <strong>Disadvantages:</strong>
+                        <div class="archetype-approaches">@GetIncompatibleTags(archetype)</div>
                     </div>
-                }
-            </div>
-        </div>
-
-        <div class="tooltip-section">
-            <h4>Choose Your Name</h4>
-            <div class="player-stat">
-                <span class="stat-label">Your Name</span>
-                <input id="playerName" @bind="playerName" class="character-input" placeholder="Enter your name..." />
-            </div>
-        </div>
-
-        <div class="action-button-container">
-            <button class="narrative-button" @onclick="CreateCharacter" disabled="@(!IsValid())">
-                Begin Your Journey
-            </button>
+                    <div class="starting-items">
+                        <strong>Starting Items:</strong>
+                        <div class="items-list">
+                            @foreach (string item in GetStartingItems(archetype))
+                            {
+                                <div class="item">@item</div>
+                            }
+                        </div>
+                    </div>
+                    @if (selectedArchetype == archetype)
+                    {
+                        <div class="selected-indicator">✓</div>
+                    }
+                </div>
+            }
         </div>
     </div>
-}
+
+    <div class="tooltip-section">
+        <h4>Choose Your Name</h4>
+        <div class="player-stat">
+            <span class="stat-label">Your Name</span>
+            <input id="playerName" @bind="playerName" class="character-input" placeholder="Enter your name..." />
+        </div>
+    </div>
+
+    <div class="action-button-container">
+        <button class="narrative-button" @onclick="CreateCharacter" disabled="@(!IsValid())">
+            Begin Your Journey
+        </button>
+    </div>
+</div>
 
 @code {
-    [Parameter] public bool IsVisible { get; set; }
     [Parameter] public EventCallback<PlayerState> OnCharacterCreated { get; set; }
     [Inject] protected GameState GameState { get; set; }
 

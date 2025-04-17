@@ -1,15 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
+using System.Xml.Xsl;
 namespace BlazorRPG.Pages;
-
-public enum CurrentViews
-{
-    Home = 0,
-    CharacterScreen,
-    EncounterScreen,
-    NarrativeScreen,
-    TravelScreen,
-    LocationScreen
-}
 
 public partial class GameUI : ComponentBase
 {
@@ -34,26 +25,21 @@ public partial class GameUI : ComponentBase
     public int Confidence => PlayerState.Confidence;
     public int MaxConfidence => PlayerState.MaxConfidence;
     public int Coins => PlayerState.Coins;
+
+    public EncounterResult EncounterResult { get; private set; }
     #endregion
 
     #region World State Properties
 
-    public CurrentViews CurrentScreen = CurrentViews.Home;
+    public CurrentViews CurrentScreen = CurrentViews.CharacterScreen;
     public Location CurrentLocation => GameState.WorldState.CurrentLocation;
     public LocationSpot CurrentSpot => GameState.WorldState.CurrentLocationSpot;
     public TimeWindows CurrentTime => GameState.WorldState.WorldTime;
     public int CurrentHour => GameState.WorldState.CurrentTimeInHours;
     public List<Location> Locations => GameManager.GetPlayerKnownLocations();
-    public EncounterResult EncounterResult => GameState.ActionStateTracker.EncounterResult;
-    public ActionImplementation ActionImplementation
-    {
-        get
-        {
-            ActionImplementation actionImplementation = GameState.ActionStateTracker.CurrentAction.ActionImplementation;
-            ActionImplementation previousAction = GameState.ActionStateTracker.PreviousAction;
-            return actionImplementation ?? previousAction;
-        }
-    }
+
+    public EncounterManager EncounterManager = null;
+    public ActionImplementation ActionImplementation = null;
 
     private int TutorialStateVersion = 0;
 
@@ -132,10 +118,12 @@ public partial class GameUI : ComponentBase
     {
         if (action.IsDisabled) return;
 
-        // Use unified action execution
-        await GameManager.ExecuteAction(action);
+        ActionImplementation = await GameManager.ExecuteAction(action);
+
+        EncounterManager = GameManager.EncounterSystem.GetCurrentEncounter();
 
         CurrentScreen = CurrentViews.EncounterScreen;
+
         ChangeState();
     }
 
@@ -157,14 +145,18 @@ public partial class GameUI : ComponentBase
 
     private void OnEncounterCompleted(EncounterResult result)
     {
-        if (result.EncounterResults == EncounterResults.Ongoing)
-        {
-            CurrentScreen = CurrentViews.EncounterScreen;
-        }
-        else
-        {
-            CurrentScreen = CurrentViews.NarrativeScreen;
-        }
+        EncounterResult = result;
+        CurrentScreen = CurrentViews.NarrativeScreen;
+        ChangeState();
+    }
+
+    private async Task OnNarrativeCompleted()
+    {
+        ActionImplementation actionImplementation = EncounterResult.Encounter.ActionImplementation;
+        await GameManager.ProcessActionCompletion(actionImplementation);
+
+        EncounterResult = null;
+        CurrentScreen = CurrentViews.LocationScreen;
         ChangeState();
     }
 
@@ -188,15 +180,6 @@ public partial class GameUI : ComponentBase
         }
 
         CurrentScreen = CurrentViews.NarrativeScreen;
-        ChangeState();
-    }
-
-    private async Task OnNarrativeCompleted()
-    {
-        ActionImplementation actionImplementation = EncounterResult.Encounter.ActionImplementation;
-        await GameManager.ProcessActionCompletion(actionImplementation);
-
-        CurrentScreen = CurrentViews.LocationScreen;
         ChangeState();
     }
 

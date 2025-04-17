@@ -5,13 +5,12 @@
     private readonly ILogger<EncounterSystem> logger;
     private AIProviderType currentAIProvider;
 
-    public EncounterResult failureResult;
-
     private ResourceManager resourceManager;
     private readonly NarrativeService narrativeService;
     private CardSelectionAlgorithm cardSelector;
 
     public WorldState worldState;
+    public EncounterResult EncounterResult { get; private set; }
 
     public EncounterSystem(
         GameState gameState,
@@ -69,13 +68,13 @@
             template, location, locationSpot, encounterType);
 
         // Create encounter manager
-        failureResult = await StartEncounter(id, location, encounter, this.worldState, playerState, actionImplementation);
+        EncounterResult = await StartEncounter(id, location, encounter, this.worldState, playerState, actionImplementation);
 
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
 
         gameState.ActionStateTracker.SetActiveEncounter(GetCurrentEncounter());
-        return failureResult;
+        return EncounterResult;
     }
 
 
@@ -139,15 +138,15 @@
             currentAIProvider,
             worldStateInput);
 
-        failureResult = new EncounterResult()
+        EncounterResult = new EncounterResult()
         {
-            Encounter = GetCurrentEncounter(),
+            Encounter = encounterManager,
             EncounterResults = EncounterResults.Started,
             EncounterEndMessage = "",
             NarrativeResult = initialResult,
-            NarrativeContext = GetCurrentEncounter().GetNarrativeContext()
+            NarrativeContext = encounterManager.GetNarrativeContext()
         };
-        return failureResult;
+        return EncounterResult;
     }
 
     public async Task<EncounterResult> ExecuteChoice(

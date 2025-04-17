@@ -19,10 +19,10 @@
         PreviousState = new GameStateMoment(gameState);
     }
 
-    public void SetCurrentUserAction(UserActionOption action)
+    public void SetCurrentUserAction(UserActionOption currentUserAction)
     {
         PreviousAction = CurrentAction?.ActionImplementation;
-        CurrentAction = action;
+        CurrentAction = currentUserAction;
     }
 
     public void ClearCurrentUserAction()
@@ -31,7 +31,7 @@
         CurrentAction = null;
     }
 
-    public void SetActiveEncounter(EncounterManager encounter = null)
+    public void SetActiveEncounter(EncounterManager encounter)
     {
         IsActiveEncounter = true;
         CurrentEncounter = encounter;

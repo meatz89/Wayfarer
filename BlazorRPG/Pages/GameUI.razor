@@ -59,15 +59,14 @@
                 {
                     case CurrentViews.EncounterScreen:
 
-                        <EncounterView ActionImplementation="ActionImplementation"
+                        <EncounterView EncounterManager="EncounterManager"
                                        OnEncounterCompleted="(result) => OnEncounterCompleted(result)" />
                         break;
 
                     case CurrentViews.NarrativeScreen:
                         <NarrativeView LocationName="@selectedLocation"
                                        OnNarrativeCompleted="OnNarrativeCompleted"
-                                       Result="@EncounterResult"
-                                       ShowResult="false" />
+                                       Result="@EncounterResult" />
                         break;
 
                     case CurrentViews.TravelScreen:
@@ -208,7 +207,7 @@
     }
     else
     {
-        <CharacterCreation IsVisible="true" OnCharacterCreated="HandleCharacterCreated" />
+        <CharacterCreation OnCharacterCreated="HandleCharacterCreated" />
     }
 </div>
 

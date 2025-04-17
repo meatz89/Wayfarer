@@ -3,11 +3,10 @@
 public partial class NarrativeViewBase : ComponentBase
 {
     [Inject] public GameState GameState { get; set; }
-    [Inject] public GameManager GameManager { get; set; }
     [Parameter] public string LocationName { get; set; }
     [Parameter] public EventCallback OnNarrativeCompleted { get; set; }
     [Parameter] public EncounterResult Result { get; set; }
-    [Parameter] public bool ShowResult { get; set; } = false;
+    [Parameter] public bool ShowResult { get; set; } = true;
 
     protected override void OnParametersSet()
     {
