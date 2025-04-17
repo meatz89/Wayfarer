@@ -697,14 +697,12 @@ public class GameManager
         return "Night";
     }
 
-    private async Task CreateLocationActions(Location currentLocation, LocationSpot locationSpot)
+    private async Task CreateLocationActions(Location currentLocation)
     {
-        List<LocationSpot> locationSpots = currentLocation.LocationSpots;
-        Console.WriteLine($"Location {currentLocation.Name} has {locationSpots?.Count ?? 0} spots");
-
         worldState.SetCurrentLocation(currentLocation);
 
-        var locationSpotActionOptions = await CreateActionsForLocationSpot(currentLocation, locationSpot);
+        LocationSpot currentLocationSpot = worldState.CurrentLocationSpot;
+        var locationSpotActionOptions = await CreateActionsForLocationSpot(currentLocation, currentLocationSpot);
         gameState.ActionStateTracker.SetLocationSpotActions(locationSpotActionOptions);
     }
 
@@ -882,7 +880,7 @@ public class GameManager
 
         CreateGlobalActions();
 
-        await CreateLocationActions(worldState.CurrentLocation, worldState.CurrentLocationSpot);
+        await CreateLocationActions(worldState.CurrentLocation);
 
         if (gameState.GameMode == Modes.Tutorial)
         {
