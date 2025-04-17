@@ -1,6 +1,6 @@
 ﻿public class WorldStateInput
 {
-    public string CharacterArchetype { get; internal set; }
+    public string CharacterArchetype { get; set; }
 
     public int Health { get; set; }
     public int MaxHealth { get; set; }
@@ -12,9 +12,9 @@
     public int MaxEnergy { get; set; }
     public int Coins { get; set; }
 
-    public string CurrentLocation { get; internal set; }
+    public string CurrentLocation { get; set; }
     public int LocationDepth { get; set; }
-    public string CurrentSpot { get; internal set; }
+    public string CurrentSpot { get; set; }
     public string ConnectedLocations { get; set; }
     public string LocationSpots { get; set; }
 

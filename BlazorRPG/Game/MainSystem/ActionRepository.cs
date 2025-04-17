@@ -1,51 +1,43 @@
-﻿public class ActionRepository
+﻿
+public class ActionRepository
 {
-    private List<SpotAction> _actionTemplates = new List<SpotAction>();
-    private List<EncounterTemplate> _encounterTemplates = new List<EncounterTemplate>();
+    private List<ActionTemplate> _actionTemplates = new List<ActionTemplate>();
 
     public ActionRepository()
     {
-        List<EncounterTemplate> encounters = WorldEncounterContent.GetAllTemplates();
-        foreach (EncounterTemplate encounterTemplate in encounters)
-        {
-            _encounterTemplates.Add(encounterTemplate);
-        }
-
-        List<SpotAction> actions = WorldActionContent.GetAllTemplates();
-        foreach (SpotAction actionTemplate in actions)
+        List<ActionTemplate> actions = WorldActionContent.GetAllTemplates();
+        foreach (ActionTemplate actionTemplate in actions)
         {
             _actionTemplates.Add(actionTemplate);
         }
     }
-    public EncounterTemplate GetEncounterTemplate(string actionId)
+    public ActionTemplate GetAction(string actionId)
     {
-        EncounterTemplate? template = _encounterTemplates.FirstOrDefault(x => x.ActionId == actionId);
-        if (template != null)
-        {
-            return template;
-        }
-
-        Console.WriteLine($"Encounter Template {actionId} not found. Choosing default template");
-        EncounterTemplate defaultTemplate = WorldEncounterContent.GetDefaultTemplate();
-        return defaultTemplate;
-    }
-
-    public SpotAction GetAction(string actionId)
-    {
-        SpotAction? existingTemplate = _actionTemplates.FirstOrDefault(x => x.ActionId == actionId);
+        ActionTemplate? existingTemplate = _actionTemplates.FirstOrDefault(x => x.ActionId == actionId);
         return existingTemplate;
     }
 
-    public void RegisterEncounterTemplate(string actionId, EncounterTemplate template)
+    public string AddActionTemplate(string actionId, ActionTemplate spotAction)
     {
-        template.ActionId = actionId;
-        _encounterTemplates.Add(template);
-    }
-
-    public string AddActionTemplate(string actionId, SpotAction spotAction)
-    {
-        spotAction.ActionId = actionId;
         _actionTemplates.Add(spotAction);
         return spotAction.ActionId;
+    }
+
+
+    public EncounterTemplate GetEncounterForAction(ActionTemplate actionTemplate)
+    {
+        ActionGenerationContext context = new ActionGenerationContext
+        {
+            ActionId = actionTemplate.ActionId,
+            Goal = actionTemplate.Goal,
+            Complication = actionTemplate.Complication,
+            BasicActionType = actionTemplate.BasicActionType.ToString(),
+            SpotName = actionTemplate.LocationSpotName,
+            LocationName = actionTemplate.LocationName,
+        };
+
+        EncounterTemplate encounterTemplate = WorldEncounterContent.GetDefaultTemplate();
+
+        return encounterTemplate;
     }
 }

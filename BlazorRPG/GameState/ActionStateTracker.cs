@@ -12,7 +12,6 @@
     public List<UserEncounterChoiceOption> UserEncounterChoiceOptions { get; private set; } = new List<UserEncounterChoiceOption>();
 
     public ActionImplementation PreviousAction { get; private set; }
-     
     public GameStateMoment PreviousState { get; private set; }
 
     public void SaveCurrentState(GameState gameState)

@@ -13,6 +13,5 @@
 
 public class ActionCreationResult
 {
-    public SpotAction Action { get; set; }
-    public EncounterTemplateModel EncounterTemplate { get; set; }
+    public ActionTemplate Action { get; set; }
 }

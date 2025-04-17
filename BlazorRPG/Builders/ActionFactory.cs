@@ -6,45 +6,50 @@
     }
 
     public ActionRepository ActionRepository { get; }
-    public ActionImplementation CreateActionFromTemplate(SpotAction template, EncounterTemplate encounterTemplate = null)
+    
+    public ActionImplementation CreateActionFromTemplate(ActionTemplate template)
     {
         ActionImplementation actionImplementation = new ActionImplementation();
         actionImplementation.ActionId = template.ActionId;
         actionImplementation.Name = template.Name;
-        actionImplementation.Requirements = new List<Requirement>();
-        actionImplementation.EnergyCosts = template.Energy ?? new();
-        actionImplementation.Costs = template.Costs ?? new();
-        actionImplementation.Rewards = template.Rewards ?? new();
+        actionImplementation.Description = template.Description;
         actionImplementation.Goal = template.Goal;
         actionImplementation.Complication = template.Complication;
         actionImplementation.BasicActionType = template.BasicActionType;
-        actionImplementation.ActionType = template.ActionType;
         actionImplementation.TimeWindows = template.TimeWindows ?? new();
-        actionImplementation.DestinationLocationSpot = template.MoveToLocationSpot;
+        actionImplementation.IsRepeatable = template.IsRepeatable;
+
+        Random random = new Random();
+        int r = random.Next(random.Next(0, 100));
+        bool startsEncounter = template.EncounterChance > r;
+
+        actionImplementation.EncounterChance = template.EncounterChance;
+        actionImplementation.ActionType = startsEncounter ? ActionTypes.Encounter : ActionTypes.Basic;
 
         // Set time cost based on action type or template
-        actionImplementation.TimeCostHours = template.TimeCostHours > 0
-            ? template.TimeCostHours
-            : GameRules.GetBaseTimeCost(template.BasicActionType);
+        actionImplementation.TimeCostHours = template.TimeCostHours > 0 ? template.TimeCostHours : 1;
 
         // Set current and destination locations
         actionImplementation.CurrentLocation = template.LocationName;
 
         // If this is a movement action with a target spot
+        if (!string.IsNullOrEmpty(template.MoveToLocation))
+        {
+            actionImplementation.DestinationLocation = template.MoveToLocation;
+        }
+        
         if (!string.IsNullOrEmpty(template.MoveToLocationSpot))
         {
-            actionImplementation.DestinationLocation = template.MoveToLocationSpot;
+            actionImplementation.DestinationLocationSpot = template.MoveToLocationSpot;
         }
 
         // Add energy costs
-        int energyCost = GameRules.GetBaseEnergyCost(template.BasicActionType);
-        actionImplementation.Requirements.Add(new EnergyRequirement(energyCost));
-        actionImplementation.EnergyCosts.Add(new EnergyOutcome(-energyCost));
+        actionImplementation.Requirements = template.Requirements ?? new();
+        actionImplementation.EnergyCosts = template.Energy ?? new();
+        actionImplementation.Costs = template.Costs ?? new();
+        actionImplementation.Rewards = template.Rewards ?? new();
 
-        if (encounterTemplate != null)
-        {
-            actionImplementation.EncounterTemplate = encounterTemplate;
-        }
+        actionImplementation.EncounterTemplate = ActionRepository.GetEncounterForAction(template);
 
         return actionImplementation;
     }

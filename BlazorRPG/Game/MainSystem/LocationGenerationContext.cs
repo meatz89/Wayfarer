@@ -1,7 +1,7 @@
 ﻿public class LocationCreationInput
 {
-    public string CharacterArchetype { get; internal set; }
-    public string LocationName { get; internal set; }
+    public string CharacterArchetype { get; set; }
+    public string LocationName { get; set; }
 
     public string KnownLocations { get; set; }
     public string KnownCharacters { get; set; }

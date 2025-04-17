@@ -1,14 +1,9 @@
 ﻿@page "/"
 @inherits ComponentBase
 
-<div class="game-container @(OngoingEncounter ? "encounter-active" : "")">
-    @if (needsCharacterCreation)
+<div class="game-container @(CurrentScreen == CurrentViews.EncounterScreen ? "encounter-active" : "")">
+    @if (CurrentScreen != CurrentViews.CharacterScreen)
     {
-        <CharacterCreation IsVisible="true" OnCharacterCreated="HandleCharacterCreated" />
-    }
-    else
-    {
-        <!-- Add tutorial objective at the top of the screen when in tutorial mode -->
         <div class="game-status-bar">
             @if (GameState.GameMode == Modes.Tutorial)
             {
@@ -60,57 +55,40 @@
         <div class="game-content">
             <!-- Main content area -->
             <div class="main-content">
-                @if (OngoingEncounter)
+                @switch (CurrentScreen)
                 {
-                    <EncounterView ActionImplementation="ActionImplementation" 
-                                   OnEncounterCompleted="(result) => OnEncounterCompleted(result)" />
-                }
-                else
-                {
-                    @if (showAreaMap)
-                    {
-                        @if (showNarrative)
-                        {
-                            <NarrativeView LocationName="@selectedLocation"
-                                           OnNarrativeCompleted="OnNarrativeCompleted"
-                                           Result="@EncounterResult"
-                                           ShowResult="false" />
-                        }
-                        else if (ShowEncounterResult)
-                        {
-                            <NarrativeView LocationName="@selectedLocation"
-                                           OnNarrativeCompleted="OnNarrativeCompleted"
-                                           Result="@EncounterResult"
-                                           ShowResult="true" />
-                        }
-                        else
-                        {
-                            <div class="location-container">
-                                <div class="location-header">
-                                    <h2 class="location-title">@GetCurrentLocation().Name</h2>
-                                    <div class="location-actions">
-                                        <button class="location-button" @onclick="@SwitchAreaMap">
-                                            Travel 🗺️
-                                        </button>
-                                    </div>
+                    case CurrentViews.EncounterScreen:
+
+                        <EncounterView ActionImplementation="ActionImplementation"
+                                       OnEncounterCompleted="(result) => OnEncounterCompleted(result)" />
+                        break;
+
+                    case CurrentViews.NarrativeScreen:
+                        <NarrativeView LocationName="@selectedLocation"
+                                       OnNarrativeCompleted="OnNarrativeCompleted"
+                                       Result="@EncounterResult"
+                                       ShowResult="false" />
+                        break;
+
+                    case CurrentViews.TravelScreen:
+                        <div class="location-container">
+                            <div class="location-header">
+                                <h2 class="location-title">@GetCurrentLocation().Name</h2>
+                                <div class="location-actions">
+                                    <button class="location-button" @onclick="@SwitchAreaMap">
+                                        Travel 🗺️
+                                    </button>
                                 </div>
                             </div>
-                            <div class="map-container">
-                                <AreaMap CurrentLocation="@GetCurrentLocation()"
-                                         Locations="@Locations"
-                                         OnTravel="@HandleTravelStart" />
-                            </div>
-                        }
-                    }
-                    else if (ShowEncounterResult)
-                    {
-                        <NarrativeView LocationName="@selectedLocation"
-                                        OnNarrativeCompleted="OnNarrativeCompleted"
-                                        Result="@EncounterResult"
-                                        ShowResult="true" />
-                    }
-                    else
-                    {
+                        </div>
+                        <div class="map-container">
+                            <AreaMap CurrentLocation="@GetCurrentLocation()"
+                                     Locations="@Locations"
+                                     OnTravel="@HandleTravelStart" />
+                        </div>
+                        break;
+
+                    case CurrentViews.LocationScreen:
                         <div class="location-container">
                             <div class="location-header">
                                 <h2 class="location-title">@GetCurrentLocation().Name</h2>
@@ -125,17 +103,15 @@
                             </div>
 
                             <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
-                                                CurrentSpot="@CurrentSpot"
-                                                OnSpotSelected="@HandleSpotSelection"
-                                                OnActionSelected="@HandleActionSelection" />
+                                             CurrentSpot="@CurrentSpot"
+                                             OnSpotSelected="@HandleSpotSelection"
+                                             OnActionSelected="@HandleActionSelection" />
                         </div>
-                        }
-                    }
+                        break;
                 }
             </div>
 
-            <!-- Side panel - Only shown when not in encounter -->
-            @if (!OngoingEncounter)
+            @if (CurrentScreen == CurrentViews.TravelScreen || CurrentScreen == CurrentViews.LocationScreen)
             {
                 <div class="game-sidebar">
                     <div class="sidebar-section">
@@ -230,8 +206,13 @@
             }
         </div>
     }
+    else
+    {
+        <CharacterCreation IsVisible="true" OnCharacterCreated="HandleCharacterCreated" />
+    }
 </div>
 
+        
 @if (showTooltip && hoveredAction != null)
 {
     <div class="tooltip" style="left: @(mouseX + 10)px; top: @(mouseY + 10)px">

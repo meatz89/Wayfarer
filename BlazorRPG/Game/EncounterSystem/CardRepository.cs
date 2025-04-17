@@ -238,7 +238,7 @@ public class CardRepository
         return cards.ToList();
     }
 
-    internal List<ChoiceCard> GetCardsForLevel(int level, ArchetypeTypes archetype)
+    public List<ChoiceCard> GetCardsForLevel(int level, ArchetypeTypes archetype)
     {
         return cards.Where(x => (int)x.Tier <= level).ToList();
     }

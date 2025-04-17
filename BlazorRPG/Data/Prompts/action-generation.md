@@ -24,7 +24,7 @@ Design a complete encounter that implements this action, providing all required 
 - **Name**: Unique identifier for this encounter (typically ActionName + "Encounter")
 - **Duration**: Number of turns (3-7) based on complexity
 - **MaxPressure**: Failure threshold (usually 10-15)
-- **PartialThreshold**: Minimum momentum for partial success (usually 8-12)
+- **PartialThreshold**: Minimum momentum for success (usually 8-12)
 - **StandardThreshold**: Momentum needed for standard success (usually 12-16)
 - **ExceptionalThreshold**: Momentum needed for exceptional success (usually 16-20)
 - **Hostility**: "Friendly", "Neutral", or "Hostile" - affects starting pressure and momentum

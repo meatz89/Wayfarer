@@ -24,26 +24,14 @@
     {
         Location currentLocation = worldState.CurrentLocation;
 
-        // Set up pending travel
-        gameState.PendingTravel = new PendingTravel
-        {
-            TravelOrigin = currentLocation,
-            TravelDestination = travelLocation,
-            TravelMethod = travelMethod
-        };
-
-        // Calculate travel time
         int travelMinutes = CalculateTravelTime(currentLocation, travelLocation, travelMethod);
 
-        // Convert to hours (rounded up)
         int travelHours = (int)Math.Ceiling(travelMinutes / 60.0);
 
-        // Consume resources
         ConsumeTravelResources(travelMinutes, travelMethod);
 
         bool isFirstVisit = worldState.IsFirstVisit(travelLocation);
 
-        // Apply discovery bonus on first visit
         if (isFirstVisit)
         {
             Location targetLocation = LocationSystem.GetLocation(travelLocation);
@@ -53,59 +41,20 @@
             }
         }
 
-        // Create appropriate action based on whether this is a first visit
-        SpotAction travelTemplate = isFirstVisit
-            ? GetTravelWithEncounterTemplate()
-            : GetTravelWithoutEncounterTemplate();
-
-        // Set the time cost
-        travelTemplate.TimeCostHours = travelHours;
-
-        // Add additional properties for the classifier
-        travelTemplate.LocationName = currentLocation?.Name;
-        travelTemplate.MoveToLocationSpot = travelLocation;
-
-        // Create action implementation
-        ActionImplementation travelAction = isFirstVisit
-            ? ActionFactory.CreateActionFromTemplate(
-                travelTemplate,
-                ActionRepository.GetEncounterTemplate(travelTemplate.Name))
-            : ActionFactory.CreateActionFromTemplate(travelTemplate);
+        ActionTemplate travelTemplate = GetTravelTemplate(travelLocation, string.Empty);
+        ActionImplementation travelAction = ActionFactory.CreateActionFromTemplate(travelTemplate);
 
         return travelAction;
     }
 
-    private SpotAction GetTravelWithoutEncounterTemplate()
+    private ActionTemplate GetTravelTemplate(string location, string locationSpot)
     {
-        SpotAction travelTemplate = new SpotAction
+        ActionTemplate travelTemplate = new ActionTemplate("travel", "travel", 1, 50, BasicActionTypes.Physical, true)
         {
-            Name = "TravelSafe",
-            ActionType = ActionTypes.Basic,
-            BasicActionType = BasicActionTypes.Travel,
             Goal = "Travel safely to your destination",
-            IsRepeatable = true,
-            Costs = new()
-            {
-                new EnergyOutcome(-1)
-                {
-                    Amount = -1
-                }
-            },
-        };
-
-        return travelTemplate;
-    }
-
-    private SpotAction GetTravelWithEncounterTemplate()
-    {
-        SpotAction travelTemplate = new SpotAction
-        {
-            Name = "Travel",
-            EncounterId = "Travel",
-            ActionType = ActionTypes.Encounter,
-            BasicActionType = BasicActionTypes.Travel,
-            Goal = "Travel dangerously to your destination",
-            IsRepeatable = false,
+            TimeCostHours = 1,
+            MoveToLocation = location,
+            MoveToLocationSpot = locationSpot,
             Costs = new()
             {
                 new EnergyOutcome(-1)
@@ -170,7 +119,6 @@
         if (travelMinutes > 60) // Over an hour
         {
             int foodCost = Math.Max(1, travelMinutes / 120); // 1 food per 2 hours
-                                                             // TODO: Implement food consumption when available
         }
     }
 
