@@ -28,14 +28,13 @@
             }
             else
             {
-                @foreach (UserActionOption action in GameState.GetActions(spot))
+                @foreach (UserActionOption action in GameState.GetActions())
                 {
                     <button class="action-button"
                     @onclick="() => OnActionSelected.InvokeAsync(action)"
-                    disabled="@(spot.Name != CurrentSpot.Name || !GameManager.AreRequirementsMet(action))"
+                    disabled="@(action.IsDisabled)"
                     @onmouseover="(e) => HandleShowTooltip(action, e)"
-                    @onmouseout="HandleHideTooltip">
-                        @action.ActionImplementation.Name (@action.ActionImplementation.ActionType)
+                    @onmouseout="HandleHideTooltip">@action.ActionImplementation.Name (@action.ActionImplementation.ActionType)
                     </button>
                 }
             }

@@ -84,7 +84,7 @@ public partial class EncounterViewBase : ComponentBase
     {
         ChoiceCard card = choiceOption.Choice;
         NarrativeResult narrativeResult = Model.EncounterResult.NarrativeResult;
-        Dictionary<ChoiceCard, ChoiceNarrative> choiceDescriptions = narrativeResult.ChoiceDescriptions;
+        Dictionary<ChoiceCard, ChoiceNarrative> choiceDescriptions = narrativeResult?.ChoiceDescriptions;
         ChoiceNarrative choiceNarrative = null;
 
         if (choiceDescriptions != null && choiceDescriptions.ContainsKey(card))

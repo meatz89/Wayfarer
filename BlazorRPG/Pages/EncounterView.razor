@@ -12,9 +12,9 @@
         <div class="encounter-main">
             <div class="encounter-stage">
                 <div class="stage-header">
-                    <div class="choice-set-name">Chosen Action: @Model.EncounterResult.NarrativeResult.LastChoiceNarrative.ShorthandName</div>
+                    <div class="choice-set-name">Chosen Action: @Model.EncounterResult.NarrativeResult?.LastChoiceNarrative.ShorthandName</div>
                 </div>
-                <div class="stage-situation">@Model.EncounterResult.NarrativeResult.SceneNarrative</div>
+                <div class="stage-situation">@Model.EncounterResult.NarrativeResult?.SceneNarrative</div>
             </div>
 
             <div class="encounter-choices">
