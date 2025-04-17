@@ -30,7 +30,7 @@ public class ActionSystem
 
                 foreach (string actionTemplate in spot.ActionIds)
                 {
-                    SpotAction action = actionRepository.GetAction(actionTemplate);
+                    ActionTemplate action = actionRepository.GetAction(actionTemplate);
                     if (action != null)
                     {
                         sb.AppendLine($"- {action.Name}: {action.Goal}");

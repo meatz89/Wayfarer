@@ -3,7 +3,7 @@
 /// </summary>
 public class TagModification
 {
-    internal static TagModification None()
+    public static TagModification None()
     {
         return new TagModification(TagTypes.None, null);
     }

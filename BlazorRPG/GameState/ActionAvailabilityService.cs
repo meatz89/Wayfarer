@@ -2,7 +2,7 @@
 {
     // Core method to check if an action can be performed at a location spot
     public bool IsActionAvailable(
-        SpotAction template,
+        ActionTemplate template,
         Location location,
         LocationSpot locationSpot,
         WorldState worldState,
@@ -15,7 +15,7 @@
 // Extension to ActionTemplate to make the checking more elegant
 public static class ActionTemplateExtensions
 {
-    public static bool IsValidForSpot(this SpotAction template, Location location, LocationSpot locationSpot, WorldState worldState, PlayerState playerState)
+    public static bool IsValidForSpot(this ActionTemplate template, Location location, LocationSpot locationSpot, WorldState worldState, PlayerState playerState)
     {
         ActionAvailabilityService service = new ActionAvailabilityService();
         bool isValid = service.IsActionAvailable(template, location, locationSpot, worldState, playerState);

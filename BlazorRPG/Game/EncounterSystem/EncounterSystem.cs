@@ -265,27 +265,9 @@
     {
         EncounterTypes encounterTypes = actionImplementation.BasicActionType switch
         {
-            BasicActionTypes.Rest => EncounterTypes.Social,
-            BasicActionTypes.Travel => EncounterTypes.Physical,
-
-            BasicActionTypes.Labor => EncounterTypes.Physical,
-            BasicActionTypes.Gather => EncounterTypes.Physical,
-            BasicActionTypes.Fight => EncounterTypes.Physical,
-
-            BasicActionTypes.Study => EncounterTypes.Intellectual,
-            BasicActionTypes.Investigate => EncounterTypes.Intellectual,
-            BasicActionTypes.Analyze => EncounterTypes.Intellectual,
-
-            BasicActionTypes.Discuss => EncounterTypes.Social,
-            BasicActionTypes.Persuade => EncounterTypes.Social,
-            BasicActionTypes.Perform => EncounterTypes.Social,
-
-            BasicActionTypes.Consume => EncounterTypes.Physical,
-            BasicActionTypes.Observe => EncounterTypes.Intellectual,
-            BasicActionTypes.Forage => EncounterTypes.Intellectual,
-            BasicActionTypes.Explore => EncounterTypes.Intellectual,
-            BasicActionTypes.Climb => EncounterTypes.Physical,
-
+            BasicActionTypes.Social => EncounterTypes.Social,
+            BasicActionTypes.Physical => EncounterTypes.Physical,
+            BasicActionTypes.Intellectual=> EncounterTypes.Intellectual,
             _ => EncounterTypes.Physical,
         };
         return encounterTypes;

@@ -27,7 +27,7 @@ public class ChoiceCard
         return desc;
     }
 
-    internal object GetName()
+    public object GetName()
     {
         var name = $"{Name} ({Approach} - {Focus})";
         return name;

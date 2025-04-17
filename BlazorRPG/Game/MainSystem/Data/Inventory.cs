@@ -176,7 +176,7 @@ public class Inventory
         return new List<Item>();
     }
 
-    internal bool ContainsItem(ItemTypes itemTypes)
+    public bool ContainsItem(ItemTypes itemTypes)
     {
         return ContainsItem(itemTypes.ToString());
     }

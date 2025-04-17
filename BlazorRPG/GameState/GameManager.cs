@@ -1,7 +1,7 @@
 ﻿using System.Data;
 using System.Text;
 
-public partial class GameManager
+public class GameManager
 {
     public PlayerState playerState => gameState.PlayerState;
     public WorldState worldState => gameState.WorldState;
@@ -127,29 +127,9 @@ public partial class GameManager
                 gameState.ActionStateTracker.SetActiveEncounter();
                 break;
 
-            case ActionExecutionType.Travel:
-                await ProcessActionCompletion(actionImplementation);
-
-                if (gameState.PendingTravel.IsTravelPending)
-                {
-                    await CompleteTravel(gameState.PendingTravel.TravelDestination);
-                }
-                else
-                {
-                    Console.WriteLine("Warning: Travel action did not set pending travel");
-                }
-
-                await UpdateState();
-                break;
-
             case ActionExecutionType.Basic:
             default:
                 await ProcessActionCompletion(actionImplementation);
-
-                if (gameState.PendingTravel.IsTravelPending)
-                {
-                    await CompleteTravel(gameState.PendingTravel.TravelDestination);
-                }
 
                 await UpdateState();
                 break;
@@ -161,16 +141,15 @@ public partial class GameManager
         ApplyActionOutcomes(actionImplementation);
         gameState.ActionStateTracker.CompleteAction();
 
+        string location = actionImplementation.DestinationLocation;
+        if (!string.IsNullOrWhiteSpace(location))
+        {
+            await OnLocationArrival(location);
+        }
         string locationSpot = actionImplementation.DestinationLocationSpot;
         if (!string.IsNullOrWhiteSpace(locationSpot))
         {
             await MoveToLocationSpot(locationSpot);
-        }
-
-        if (gameState.PendingTravel.IsTravelPending)
-        {
-            await CompleteTravel(gameState.PendingTravel.TravelDestination);
-            return;
         }
 
         UpdateTime(actionImplementation.TimeCostHours);
@@ -183,7 +162,6 @@ public partial class GameManager
         for (int i = 0; i < hours; i++)
         {
             gameState.TimeManager.AdvanceTime(1);
-            ApplyHourlyEffects();
         }
 
         Location currentLocation = worldState.CurrentLocation;
@@ -197,10 +175,10 @@ public partial class GameManager
         // Only add food consumption if player has food
         if (gameState.PlayerState.Food > 0)
         {
-            SpotAction foodActionTemplate = ActionRepository.GetAction(ActionNames.ConsumeFood.ToString());
+            ActionTemplate foodActionTemplate = ActionRepository.GetAction(ActionNames.ConsumeFood.ToString());
             if (foodActionTemplate != null)
             {
-                ActionImplementation consumeFoodAction = ActionFactory.CreateActionFromTemplate(foodActionTemplate, null);
+                ActionImplementation consumeFoodAction = ActionFactory.CreateActionFromTemplate(foodActionTemplate);
 
                 // Check if requirements are met
                 bool requirementsMet = consumeFoodAction.CanExecute(gameState);
@@ -223,10 +201,10 @@ public partial class GameManager
         // Only add medicinal herbs consumption if player has herbs
         if (gameState.PlayerState.MedicinalHerbs > 0)
         {
-            SpotAction herbsActionTemplate = ActionRepository.GetAction(ActionNames.ConsumeMedicinalHerbs.ToString());
+            ActionTemplate herbsActionTemplate = ActionRepository.GetAction(ActionNames.ConsumeMedicinalHerbs.ToString());
             if (herbsActionTemplate != null)
             {
-                ActionImplementation consumeHerbsAction = ActionFactory.CreateActionFromTemplate(herbsActionTemplate, null);
+                ActionImplementation consumeHerbsAction = ActionFactory.CreateActionFromTemplate(herbsActionTemplate);
 
                 // Check if requirements are met
                 bool requirementsMet = consumeHerbsAction.CanExecute(gameState);
@@ -248,39 +226,7 @@ public partial class GameManager
 
         gameState.ActionStateTracker.SetGlobalActions(userActions);
     }
-
-    private void ApplyHourlyEffects()
-    {
-        // Skip energy drain for rest actions
-        if (gameState.ActionStateTracker.CurrentAction?.ActionImplementation.BasicActionType == BasicActionTypes.Rest)
-            return;
-
-        // Different drain rates based on time of day
-        int drainAmount = gameState.WorldState.WorldTime switch
-        {
-            TimeWindows.Night => 2,     // Higher drain at night if not resting
-            TimeWindows.Morning => 1,   // Lower drain in morning (fresh)
-            TimeWindows.Afternoon => 2, // Normal drain
-            TimeWindows.Evening => 3,   // Higher drain (tired)
-            _ => 2
-        };
-
-        // Location safety modifier
-        if (gameState.WorldState.CurrentLocation?.LocationType == LocationTypes.Hub)
-        {
-            drainAmount = Math.Max(1, drainAmount - 1); // Reduce drain in safe locations
-        }
-
-        // Apply energy drain
-        playerState.Energy = Math.Max(0, playerState.Energy - drainAmount);
-    }
-
-    private async Task CompleteTravel(string destination)
-    {
-        await OnLocationArrival(destination);
-        gameState.PendingTravel.Clear();
-    }
-
+    
     public async Task InitiateTravelToLocation(string locationName)
     {
         // Create travel action using TravelManager
@@ -331,7 +277,7 @@ public partial class GameManager
 
         foreach (string locationSpotAction in locationSpotActions)
         {
-            SpotAction actionTemplate = ActionRepository.GetAction(locationSpotAction);
+            ActionTemplate actionTemplate = ActionRepository.GetAction(locationSpotAction);
             if (actionTemplate == null)
             {
                 var actionId =
@@ -345,22 +291,7 @@ public partial class GameManager
                 actionTemplate = ActionRepository.GetAction(locationSpotAction);
             }
 
-            EncounterTemplate encounterTemplate = ActionRepository
-                .GetEncounterTemplate(
-                    actionTemplate.EncounterId);
-
-            if (encounterTemplate == null)
-            {
-                var actionId =
-                    await ActionGenerator.CreateEncounterForAction(
-                        actionTemplate.ActionId,
-                        actionTemplate,
-                        worldStateInput);
-
-                encounterTemplate = ActionRepository.GetEncounterTemplate(locationSpotAction);
-            }
-
-            ActionImplementation actionImplementation = ActionFactory.CreateActionFromTemplate(actionTemplate, encounterTemplate);
+            ActionImplementation actionImplementation = ActionFactory.CreateActionFromTemplate(actionTemplate);
 
             UserActionOption userActionOption =
                 new UserActionOption(
@@ -477,9 +408,6 @@ public partial class GameManager
 
     private async Task OnLocationArrival(string targetLocation)
     {
-        Location travelOrigin = gameState.PendingTravel?.TravelOrigin;
-        string locationToPopulate = gameState.PendingTravel?.TravelDestination ?? "";
-
         Location travelLocation = gameState.WorldState.GetLocation(targetLocation);
 
         var currentLocation = worldState.CurrentLocation?.Name;
@@ -494,13 +422,13 @@ public partial class GameManager
         bool isFirstVisit = worldState.IsFirstVisit(travelLocation.Name);
         if (isFirstVisit)
         {
-            Location originLocation = worldState.GetLocation(travelOrigin.Name);
+            Location originLocation = worldState.GetLocation(currentLocation);
             int newLocationDepth = originLocation.Depth + 1;
 
             travelLocation =
                 await locationCreationSystem.PopulateLocation(
-                locationToPopulate,
-                travelOrigin.Name,
+                targetLocation,
+                originLocation.Name,
                 newLocationDepth,
                 worldStateInput);
 
@@ -575,28 +503,26 @@ public partial class GameManager
     {
         // If not a travel encounter, evolve the current location
         BasicActionTypes basicActionType = result.Encounter.ActionImplementation.BasicActionType;
-        if (basicActionType != BasicActionTypes.Travel)
+         
+    Location currentLocation = worldState.GetLocation(result.Encounter.encounterInfo.LocationName);
+        if (_useMemory)
         {
-            Location currentLocation = worldState.GetLocation(result.Encounter.encounterInfo.LocationName);
-            if (_useMemory)
-            {
-                await CreateMemoryRecord(result);
-            }
-
-            // Prepare the input
-            PostEncounterEvolutionInput input = evolutionSystem.PreparePostEncounterEvolutionInput(narrative, outcome);
-
-            WorldStateInput worldStateInput = await CreateWorldStateInput(currentLocation.Name);
-
-            // Process world evolution
-            PostEncounterEvolutionResult evolutionResponse = await evolutionSystem.ProcessEncounterOutcome(result.NarrativeContext, input, result, worldStateInput);
-
-            // Store the evolution response in the result
-            result.PostEncounterEvolution = evolutionResponse;
-
-            // Update world state
-            await evolutionSystem.IntegrateEncounterOutcome(evolutionResponse, worldState, LocationSystem, playerState, worldStateInput);
+            await CreateMemoryRecord(result);
         }
+
+        // Prepare the input
+        PostEncounterEvolutionInput input = evolutionSystem.PreparePostEncounterEvolutionInput(narrative, outcome);
+
+        WorldStateInput worldStateInput = await CreateWorldStateInput(currentLocation.Name);
+
+        // Process world evolution
+        PostEncounterEvolutionResult evolutionResponse = await evolutionSystem.ProcessEncounterOutcome(result.NarrativeContext, input, result, worldStateInput);
+
+        // Store the evolution response in the result
+        result.PostEncounterEvolution = evolutionResponse;
+
+        // Update world state
+        await evolutionSystem.IntegrateEncounterOutcome(evolutionResponse, worldState, LocationSystem, playerState, worldStateInput);
     }
 
     private async Task CreateMemoryRecord(EncounterResult encounterResult)
@@ -777,12 +703,6 @@ public partial class GameManager
         List<LocationSpot> locationSpots = currentLocation.LocationSpots;
         Console.WriteLine($"Location {currentLocation.Name} has {locationSpots?.Count ?? 0} spots");
 
-        if (gameState.PendingTravel!.IsTravelPending)
-        {
-            gameState.PendingTravel.Clear();
-        }
-
-        // Set as current location
         worldState.SetCurrentLocation(currentLocation);
 
         var locationSpotActionOptions = await CreateActionsForLocationSpot(currentLocation, locationSpot);
@@ -912,7 +832,7 @@ public partial class GameManager
     public async Task ExecuteActionByName(string actionName)
     {
         // Get action template from repository
-        SpotAction actionTemplate = ActionRepository.GetAction(actionName);
+        ActionTemplate actionTemplate = ActionRepository.GetAction(actionName);
         if (actionTemplate == null)
         {
             Console.WriteLine($"Action not found: {actionName}");
@@ -920,10 +840,7 @@ public partial class GameManager
         }
 
         // Check requirements
-        ActionImplementation action = ActionFactory.CreateActionFromTemplate(
-            actionTemplate,
-            actionTemplate.ActionType == ActionTypes.Encounter ?
-                ActionRepository.GetEncounterTemplate(actionTemplate.EncounterId) : null);
+        ActionImplementation action = ActionFactory.CreateActionFromTemplate(actionTemplate);
 
         if (!action.CanExecute(gameState))
         {
@@ -943,21 +860,6 @@ public partial class GameManager
 
     public ActionExecutionType GetExecutionType(ActionImplementation action)
     {
-        if (action.BasicActionType == BasicActionTypes.Travel &&
-            !string.IsNullOrEmpty(action.DestinationLocation) &&
-            action.DestinationLocation != worldState.CurrentLocation.Name)
-        {
-            return ActionExecutionType.Travel;
-        }
-
-        if (action.BasicActionType == BasicActionTypes.Travel &&
-            !string.IsNullOrEmpty(action.DestinationLocationSpot) &&
-            action.DestinationLocationSpot != worldState.CurrentLocationSpot.Name)
-        {
-            return ActionExecutionType.Basic;
-        }
-
-        // Regular encounter
         if (action.ActionType == ActionTypes.Encounter)
         {
             return ActionExecutionType.Encounter;
@@ -987,5 +889,4 @@ public enum ActionExecutionType
 {
     Basic,          // Immediate effect, no encounter, repeatable
     Encounter,      // Multi-turn strategic challenge, non-repeatable once completed
-    Travel          // Movement between locations or spots
 }

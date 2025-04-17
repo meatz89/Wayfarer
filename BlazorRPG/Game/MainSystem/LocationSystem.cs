@@ -118,7 +118,7 @@ public class LocationSystem
         return gameState.WorldState.GetLocations();
     }
 
-    internal List<Location> GetConnectedLocations()
+    public List<Location> GetConnectedLocations()
     {
         List<Location> connectedLocations = new();
         List<string> locs = worldState.CurrentLocation.ConnectedTo;
@@ -196,7 +196,7 @@ public class LocationSystem
         return sb.ToString();
     }
 
-    internal void ConnectLocations(Location targetLocation, Location currentLocation)
+    public void ConnectLocations(Location targetLocation, Location currentLocation)
     {
         NewConnection(currentLocation, targetLocation.Name);
         NewConnection(targetLocation, currentLocation.Name);

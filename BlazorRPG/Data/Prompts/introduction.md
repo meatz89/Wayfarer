@@ -36,7 +36,7 @@ Talk in the voice of the player character archetype. The narration of a warrior,
 ## Conflict Generation
 Based on the location, encounter type, and context, create an appropriate conflict situation. Here are some examples:
 - OPPOSING CHARACTERS: Two NPCs with conflicting goals, both with legitimate perspectives
-- INTERNAL TENSION: A single NPC with a conflicting internal struggle that involves the player
+- public TENSION: A single NPC with a conflicting public struggle that involves the player
 - ENVIRONMENTAL PRESSURE: A situation where the environment itself creates urgency and tension
 - MORAL DILEMMA: A scenario requiring the player to choose between competing values
 - HIDDEN AGENDA: A seemingly straightforward situation with concealed motives or information

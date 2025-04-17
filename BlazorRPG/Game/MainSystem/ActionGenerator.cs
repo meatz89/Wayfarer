@@ -11,35 +11,6 @@
         _repository = repository;
     }
 
-    public async Task<string> CreateEncounterForAction(
-        string actionId,
-        SpotAction actionTemplate,
-        WorldStateInput worldStateInput)
-    {
-        ActionGenerationContext context = new ActionGenerationContext
-        {
-            ActionId = actionTemplate.ActionId,
-            Goal = actionTemplate.Goal,
-            Complication = actionTemplate.Complication,
-            BasicActionType = actionTemplate.BasicActionType.ToString(),
-            SpotName = actionTemplate.LocationSpotName,
-            LocationName = actionTemplate.LocationName,
-        };
-
-        // Get action and encounter details from AI
-        string jsonResponse = await _narrativeService.GenerateActionsAsync(context, worldStateInput);
-
-        // Parse the response
-        ActionCreationResult result = ActionJsonParser.Parse(jsonResponse);
-
-        // Create and register the encounter template
-        EncounterTemplate encounterTemplate = CreateEncounterTemplate(actionId, result.EncounterTemplate);
-
-        _repository.RegisterEncounterTemplate(actionId, encounterTemplate);
-
-        return actionId;
-    }
-
     public async Task<string> GenerateActionAndEncounter(
         WorldStateInput worldStateInput,
         string actionId,
@@ -66,11 +37,6 @@
         // Parse the response
         ActionCreationResult result = ActionJsonParser.Parse(jsonResponse);
 
-        // Create and register the encounter template
-        EncounterTemplate encounterTemplate = CreateEncounterTemplate(actionId, result.EncounterTemplate);
-        _repository.RegisterEncounterTemplate(actionId, encounterTemplate);
-
-        // Create action template linked to the encounter
         actionId = _repository.AddActionTemplate(actionId, result.Action);
         return actionId;
     }

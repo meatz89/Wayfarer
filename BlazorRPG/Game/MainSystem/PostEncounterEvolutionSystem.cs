@@ -146,10 +146,7 @@
                         newAction.Complication,
                         ParseActionType(newAction.ActionType).ToString());
 
-                    SpotAction actionTemplate = _actionRepository.GetAction(newAction.Name);
-                    string encounterTemplateName = actionTemplate.EncounterId;
-
-                    EncounterTemplate encounterTemplate = _actionRepository.GetEncounterTemplate(encounterTemplateName);
+                    ActionTemplate actionTemplate = _actionRepository.GetAction(newAction.Name);
                     spotForAction.ActionIds.Add(actionId);
 
                     Console.WriteLine($"Created new action {newAction.Name} at {newAction.LocationName}/{newAction.SpotName}");
@@ -232,7 +229,7 @@
         }
 
         // Default fallback
-        return BasicActionTypes.Discuss;
+        return BasicActionTypes.Physical;
     }
 
     public PostEncounterEvolutionInput PreparePostEncounterEvolutionInput(

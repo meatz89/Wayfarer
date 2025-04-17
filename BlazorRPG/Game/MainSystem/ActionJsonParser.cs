@@ -8,11 +8,7 @@ public static class ActionJsonParser
         json = json.Replace("```", "");
 
         // Initialize with default values in case parsing fails
-        ActionCreationResult result = new ActionCreationResult
-        {
-            Action = CreateDefaultActionTemplate(),
-            EncounterTemplate = CreateDefaultEncounterTemplate()
-        };
+        ActionCreationResult result = new ActionCreationResult();
 
         try
         {
@@ -26,20 +22,6 @@ public static class ActionJsonParser
                 result.Action = ParseActionTemplate(actionElement);
             }
 
-            // Extract encounter template data if available
-            if (root.TryGetProperty("encounterTemplate", out JsonElement templateElement))
-            {
-                result.EncounterTemplate = ParseEncounterTemplate(templateElement);
-
-                // Link the encounter template name to the action
-                if (!string.IsNullOrEmpty(result.EncounterTemplate.Name))
-                {
-                    result.Action.EncounterId = result.EncounterTemplate.Name;
-                }
-            }
-
-            ValidateEncounterTemplate(result.EncounterTemplate);
-
             return result;
         }
         catch (Exception ex)
@@ -51,42 +33,35 @@ public static class ActionJsonParser
         }
     }
 
-    private static SpotAction ParseActionTemplate(JsonElement element)
+    private static ActionTemplate ParseActionTemplate(JsonElement element)
     {
-        SpotAction model = CreateDefaultActionTemplate();
+        var Name = GetStringProperty(element, "name", "name");
+
+        // Parse basic action type
+        string actionTypeStr = GetStringProperty(element, "actionType", "Encounter");
+        
+        BasicActionTypes BasicActionType = BasicActionTypes.Physical;
+        
+        if (element.TryGetProperty("basicActionType", out JsonElement basicTypeElement) &&
+            basicTypeElement.ValueKind == JsonValueKind.String)
+        {
+            string basicTypeStr = basicTypeElement.GetString() ?? "";
+            BasicActionType = ParseBasicActionType(basicTypeStr);
+        }
+        else
+        {
+            // Try to infer from actionType if basicActionType isn't specified
+            BasicActionType = ParseBasicActionType(actionTypeStr);
+        }
+
+        ActionTemplate model = new ActionTemplate(Name, Name, 1, 50, BasicActionType, true);
 
         // Extract basic text fields
-        model.Name = GetStringProperty(element, "name", model.Name);
         model.Description = GetStringProperty(element, "description", model.Description);
         model.Goal = GetStringProperty(element, "goal", model.Goal);
         model.Complication = GetStringProperty(element, "complication", model.Complication);
         model.LocationName = GetStringProperty(element, "locationName", model.LocationName);
         model.LocationSpotName = GetStringProperty(element, "spotName", model.LocationSpotName);
-        model.EncounterId = GetStringProperty(element, "encounterTemplateName", model.EncounterId);
-
-        // Parse action type
-        string actionTypeStr = GetStringProperty(element, "actionType", "Encounter");
-        if (string.Equals(actionTypeStr, "basic", StringComparison.OrdinalIgnoreCase))
-        {
-            model.ActionType = ActionTypes.Basic;
-        }
-        else
-        {
-            model.ActionType = ActionTypes.Encounter;
-        }
-
-        // Parse basic action type
-        if (element.TryGetProperty("basicActionType", out JsonElement basicTypeElement) &&
-            basicTypeElement.ValueKind == JsonValueKind.String)
-        {
-            string basicTypeStr = basicTypeElement.GetString() ?? "";
-            model.BasicActionType = ParseBasicActionType(basicTypeStr);
-        }
-        else
-        {
-            // Try to infer from actionType if basicActionType isn't specified
-            model.BasicActionType = ParseBasicActionType(actionTypeStr);
-        }
 
         return model;
     }
@@ -102,39 +77,10 @@ public static class ActionJsonParser
         // Handle common action type strings
         return actionType.ToLower() switch
         {
-            "discuss" => BasicActionTypes.Discuss,
-            "talk" => BasicActionTypes.Discuss,
-            "conversation" => BasicActionTypes.Discuss,
-            "persuade" => BasicActionTypes.Persuade,
-            "negotiate" => BasicActionTypes.Persuade,
-            "trade" => BasicActionTypes.Persuade,
-            "investigate" => BasicActionTypes.Investigate,
-            "search" => BasicActionTypes.Investigate,
-            "examine" => BasicActionTypes.Investigate,
-            "travel" => BasicActionTypes.Travel,
-            "journey" => BasicActionTypes.Travel,
-            "move" => BasicActionTypes.Travel,
-            "rest" => BasicActionTypes.Rest,
-            "sleep" => BasicActionTypes.Rest,
-            "recover" => BasicActionTypes.Rest,
-            _ => BasicActionTypes.Investigate // Default fallback
-        };
-    }
-
-
-    private static SpotAction CreateDefaultActionTemplate()
-    {
-        return new SpotAction
-        {
-            Name = "Explore Area",
-            Description = "Look around and search for points of interest",
-            Goal = "Discover what's available in this location",
-            Complication = "Limited visibility and unknown terrain",
-            BasicActionType = BasicActionTypes.Investigate,
-            ActionType = ActionTypes.Encounter,
-            LocationName = "Unknown Location",
-            LocationSpotName = "Unknown Spot",
-            EncounterId = "DefaultEncounter",
+            "physical" => BasicActionTypes.Physical,
+            "intellectual" => BasicActionTypes.Intellectual,
+            "social" => BasicActionTypes.Social,
+            _ => BasicActionTypes.Physical // Default fallback
         };
     }
 

@@ -209,7 +209,7 @@
             throw new ArgumentException($"Unsupported property type: {typeof(T)}");
         }
     }
-    internal void AdvanceTime(int hours)
+    public void AdvanceTime(int hours)
     {
         this.CurrentTimeInHours += hours;
     }

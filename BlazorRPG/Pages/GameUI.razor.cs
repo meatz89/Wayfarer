@@ -1,6 +1,16 @@
 ﻿using Microsoft.AspNetCore.Components;
 namespace BlazorRPG.Pages;
 
+public enum CurrentViews
+{
+    Home = 0,
+    CharacterScreen,
+    EncounterScreen,
+    NarrativeScreen,
+    TravelScreen,
+    LocationScreen
+}
+
 public partial class GameUI : ComponentBase
 {
     #region Injected Services
@@ -27,15 +37,23 @@ public partial class GameUI : ComponentBase
     #endregion
 
     #region World State Properties
+
+    public CurrentViews CurrentScreen = CurrentViews.Home;
     public Location CurrentLocation => GameState.WorldState.CurrentLocation;
     public LocationSpot CurrentSpot => GameState.WorldState.CurrentLocationSpot;
     public TimeWindows CurrentTime => GameState.WorldState.WorldTime;
     public int CurrentHour => GameState.WorldState.CurrentTimeInHours;
     public List<Location> Locations => GameManager.GetPlayerKnownLocations();
-    public bool ShowEncounterResult { get; set; } = false;
-    public bool OngoingEncounter { get; private set; }
     public EncounterResult EncounterResult => GameState.ActionStateTracker.EncounterResult;
-    public ActionImplementation ActionImplementation => GameState.ActionStateTracker.CurrentAction.ActionImplementation;
+    public ActionImplementation ActionImplementation
+    {
+        get
+        {
+            ActionImplementation actionImplementation = GameState.ActionStateTracker.CurrentAction.ActionImplementation;
+            ActionImplementation previousAction = GameState.ActionStateTracker.PreviousAction;
+            return actionImplementation ?? previousAction;
+        }
+    }
 
     private int TutorialStateVersion = 0;
 
@@ -43,9 +61,6 @@ public partial class GameUI : ComponentBase
 
     #region UI State
     // Navigation State
-    private bool showAreaMap = true;
-    private bool showNarrative = false;
-    private bool needsCharacterCreation = false;
     private string selectedLocation;
 
     // Tooltip State
@@ -63,8 +78,7 @@ public partial class GameUI : ComponentBase
     #region Lifecycle Methods
     protected override async Task OnInitializedAsync()
     {
-        needsCharacterCreation = !PlayerState.IsInitialized;
-        if (!needsCharacterCreation)
+        if (!PlayerState.IsInitialized)
         {
             await InitializeGame();
         }
@@ -73,16 +87,30 @@ public partial class GameUI : ComponentBase
     private async Task InitializeGame()
     {
         await GameManager.StartGame();
-        showAreaMap = false;
+
+        CurrentScreen = CurrentViews.CharacterScreen;
 
         ChangeState();
     }
+
+    private async Task HandleCharacterCreated(PlayerState playerState)
+    {
+        CurrentScreen = CurrentViews.LocationScreen;
+    }
+
     #endregion
 
     #region Navigation and UI Methods
     public void SwitchAreaMap()
     {
-        showAreaMap = !showAreaMap;
+        if (CurrentScreen == CurrentViews.TravelScreen)
+        {
+            CurrentScreen = CurrentViews.LocationScreen;
+        }
+        else if (CurrentScreen == CurrentViews.LocationScreen)
+        {
+            CurrentScreen = CurrentViews.TravelScreen;
+        }
     }
 
     public Location GetCurrentLocation()
@@ -107,9 +135,7 @@ public partial class GameUI : ComponentBase
         // Use unified action execution
         await GameManager.ExecuteAction(action);
 
-        // Update UI state based on results
-        OngoingEncounter = GameState.ActionStateTracker.IsActiveEncounter;
-
+        CurrentScreen = CurrentViews.EncounterScreen;
         ChangeState();
     }
 
@@ -117,37 +143,70 @@ public partial class GameUI : ComponentBase
     {
         selectedLocation = travelLocationName;
 
-        // If already at this location, just switch to spot view
         if (travelLocationName == CurrentLocation.Name)
         {
-            showAreaMap = false;
             ChangeState();
             return;
         }
 
-        // Use unified travel initiation
         await GameManager.InitiateTravelToLocation(travelLocationName);
 
-        // Update UI state
-        OngoingEncounter = GameState.ActionStateTracker.IsActiveEncounter;
-        showAreaMap = false;
-
+        CurrentScreen = CurrentViews.EncounterScreen;
         ChangeState();
     }
+
+    private void OnEncounterCompleted(EncounterResult result)
+    {
+        if (result.EncounterResults == EncounterResults.Ongoing)
+        {
+            CurrentScreen = CurrentViews.EncounterScreen;
+        }
+        else
+        {
+            CurrentScreen = CurrentViews.NarrativeScreen;
+        }
+        ChangeState();
+    }
+
+    private async Task UseResource(ActionNames actionName)
+    {
+        UserActionOption globalAction = GameState.ActionStateTracker.GlobalActions
+            .FirstOrDefault(a => a.ActionId == actionName.ToString());
+
+        if (globalAction != null && !globalAction.IsDisabled)
+        {
+            await GameManager.ExecuteAction(globalAction);
+
+            if (GameState.GameMode == Modes.Tutorial)
+            {
+                if (actionName == ActionNames.ConsumeFood)
+                    TutorialState.SetFlag(TutorialState.TutorialFlags.UsedFood);
+
+                if (actionName == ActionNames.ConsumeMedicinalHerbs)
+                    TutorialState.SetFlag(TutorialState.TutorialFlags.UsedHerbs);
+            }
+        }
+
+        CurrentScreen = CurrentViews.NarrativeScreen;
+        ChangeState();
+    }
+
+    private async Task OnNarrativeCompleted()
+    {
+        ActionImplementation actionImplementation = EncounterResult.Encounter.ActionImplementation;
+        await GameManager.ProcessActionCompletion(actionImplementation);
+
+        CurrentScreen = CurrentViews.LocationScreen;
+        ChangeState();
+    }
+
 
     private async Task WaitOneHour()
     {
         // Create a "Wait" action that advances time without other effects
-        SpotAction waitAction = new SpotAction
+        ActionTemplate waitAction = new ActionTemplate("Wait", "Wait", 0, 0, BasicActionTypes.Physical, true)
         {
-            Name = "Wait",
-            ActionId = "Wait",
-            ActionType = ActionTypes.Basic,
-            BasicActionType = BasicActionTypes.Rest,
             TimeCostHours = 1,
-            IsRepeatable = true,
-            // Define minimal energy cost for waiting
-            Energy = new List<Outcome> { new EnergyOutcome(-1) }
         };
 
         ActionImplementation waitImpl = GameManager.ActionFactory.CreateActionFromTemplate(waitAction);
@@ -163,57 +222,6 @@ public partial class GameUI : ComponentBase
         ChangeState();
     }
 
-    private async Task UseResource(ActionNames actionName)
-    {
-        UserActionOption globalAction = GameState.ActionStateTracker.GlobalActions
-            .FirstOrDefault(a => a.ActionId == actionName.ToString());
-
-        if (globalAction != null && !globalAction.IsDisabled)
-        {
-            await GameManager.ExecuteAction(globalAction);
-            
-            if (GameState.GameMode == Modes.Tutorial)
-            {
-                if (actionName == ActionNames.ConsumeFood)
-                    TutorialState.SetFlag(TutorialState.TutorialFlags.UsedFood);
-
-                if (actionName == ActionNames.ConsumeMedicinalHerbs)
-                    TutorialState.SetFlag(TutorialState.TutorialFlags.UsedHerbs);
-            }
-        }
-
-        ChangeState();
-    }
-
-    private void OnEncounterCompleted(EncounterResult result)
-    {
-        if (result.EncounterResults != EncounterResults.Ongoing)
-        {
-            OngoingEncounter = false;
-            ShowEncounterResult = true;
-        }
-     
-        ChangeState();
-    }
-
-    private async Task OnNarrativeCompleted()
-    {
-        showNarrative = false;
-        ShowEncounterResult = false;
-
-        showAreaMap = false;
-
-        ActionImplementation actionImplementation = EncounterResult.Encounter.ActionImplementation;
-        await GameManager.ProcessActionCompletion(actionImplementation);
-        
-        ChangeState();
-    }
-
-    private async Task HandleCharacterCreated(PlayerState playerState)
-    {
-        needsCharacterCreation = false;
-        await InitializeGame();
-    }
 
     public void ChangeState()
     {
