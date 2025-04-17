@@ -20,6 +20,7 @@
     private bool _useMemory = false;
 
     public string Id { get; }
+    public EncounterResult EncounterResult { get; internal set; }
 
     public EncounterManager(
         string id,
@@ -136,8 +137,6 @@
 
     public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
         ChoiceCard choice,
-        PlayerState playerState,
-        WorldState worldState,
         ChoiceNarrative choiceDescription,
         WorldStateInput worldStateInput)
     {

@@ -10,7 +10,6 @@
     private CardSelectionAlgorithm cardSelector;
 
     public WorldState worldState;
-    public EncounterResult EncounterResult { get; private set; }
 
     public EncounterSystem(
         GameState gameState,
@@ -48,7 +47,7 @@
         }
     }
 
-    public async Task<EncounterResult> GenerateEncounter(
+    public async Task<EncounterManager> GenerateEncounter(
         string id,
         Location location,
         string locationSpot,
@@ -64,19 +63,16 @@
 
         EncounterTemplate template = actionImplementation.EncounterTemplate;
 
-        EncounterInfo encounter = EncounterFactory.CreateEncounterFromTemplate(
+        EncounterInfo encounterInfo = EncounterFactory.CreateEncounterFromTemplate(
             template, location, locationSpot, encounterType);
 
         // Create encounter manager
-        EncounterResult = await StartEncounter(id, location, encounter, this.worldState, playerState, actionImplementation);
+        EncounterManager encounterManager = await StartEncounter(id, location, encounterInfo, this.worldState, playerState, actionImplementation);
 
         // Create Encounter with initial stage
         string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
-
-        gameState.ActionStateTracker.SetActiveEncounter(GetCurrentEncounter());
-        return EncounterResult;
+        return encounterManager;
     }
-
 
     public List<EnvironmentPropertyTag> GetActiveStrategicTags(string locationId, EncounterContext encounterContext)
     {
@@ -97,7 +93,7 @@
         return location.EnvironmentalProperties;
     }
 
-    public async Task<EncounterResult> StartEncounter(
+    public async Task<EncounterManager> StartEncounter(
         string id,
         Location location,
         EncounterInfo encounterInfo,
@@ -119,9 +115,10 @@
             configuration,
             logger);
 
+        gameState.ActionStateTracker.SetActiveEncounter(encounterManager);
+
         // Set the current AI provider
         encounterManager.SwitchAIProvider(currentAIProvider);
-        SetCurrentEncounter(encounterManager);
 
         //SpecialChoice negotiatePriceChoice = GetSpecialChoiceFor(encounter);
         //choiceRepository.AddSpecialChoice(encounter.Name, negotiatePriceChoice);
@@ -138,19 +135,19 @@
             currentAIProvider,
             worldStateInput);
 
-        EncounterResult = new EncounterResult()
+        encounterManager.EncounterResult = new EncounterResult()
         {
-            Encounter = encounterManager,
-            EncounterResults = EncounterResults.Started,
+            ActionImplementation = actionImplementation,
+            ActionResult = ActionResults.Started,
             EncounterEndMessage = "",
             NarrativeResult = initialResult,
             NarrativeContext = encounterManager.GetNarrativeContext()
         };
-        return EncounterResult;
+
+        return encounterManager;
     }
 
     public async Task<EncounterResult> ExecuteChoice(
-        EncounterManager encounter,
         NarrativeResult narrativeResult,
         ChoiceCard choice,
         WorldStateInput worldStateInput)
@@ -165,16 +162,14 @@
             selectedDescription = currentNarrative.ChoiceDescriptions[choice];
         }
 
-        currentNarrative = await GetCurrentEncounter().ApplyChoiceWithNarrativeAsync(
+        var encounterManager = GetCurrentEncounter();
+        currentNarrative = await encounterManager.ApplyChoiceWithNarrativeAsync(
             choice,
-            encounter.playerState,
-            encounter.worldState,
             selectedDescription,
             worldStateInput);
 
-        EncounterResult encounterResult = CreateEncounterResult(encounter, currentNarrative);
-        return encounterResult;
-
+        encounterManager.EncounterResult = CreateEncounterResult(encounterManager, currentNarrative);
+        return encounterManager.EncounterResult;
     }
 
     private EncounterResult CreateEncounterResult(EncounterManager encounter, NarrativeResult currentNarrative)
@@ -185,8 +180,8 @@
             {
                 var failureResult = new EncounterResult()
                 {
-                    Encounter = encounter,
-                    EncounterResults = EncounterResults.EncounterFailure,
+                    ActionImplementation = encounter.ActionImplementation,
+                    ActionResult = ActionResults.EncounterFailure,
                     EncounterEndMessage = $"=== Encounter Over: {currentNarrative.Outcome} ===",
                     NarrativeResult = currentNarrative,
                     NarrativeContext = encounter.GetNarrativeContext()
@@ -197,8 +192,8 @@
             {
                 var successResult = new EncounterResult()
                 {
-                    Encounter = encounter,
-                    EncounterResults = EncounterResults.EncounterSuccess,
+                    ActionImplementation = encounter.ActionImplementation,
+                    ActionResult = ActionResults.EncounterSuccess,
                     EncounterEndMessage = $"=== Encounter Over: {currentNarrative.Outcome} ===",
                     NarrativeResult = currentNarrative,
                     NarrativeContext = encounter.GetNarrativeContext()
@@ -209,8 +204,8 @@
 
         var ongoingResult = new EncounterResult()
         {
-            Encounter = encounter,
-            EncounterResults = EncounterResults.Ongoing,
+            ActionImplementation = encounter.ActionImplementation,
+            ActionResult = ActionResults.Ongoing,
             EncounterEndMessage = "",
             NarrativeResult = currentNarrative,
             NarrativeContext = encounter.GetNarrativeContext()
@@ -230,11 +225,6 @@
         EncounterManager encounterManager = GetCurrentEncounter();
         ChoiceProjection choiceProjection = encounterManager.ProjectChoice(choice);
         return choiceProjection;
-    }
-
-    public void SetCurrentEncounter(EncounterManager encounterManager)
-    {
-        gameState.ActionStateTracker.SetActiveEncounter(encounterManager);
     }
 
     public EncounterManager GetCurrentEncounter()

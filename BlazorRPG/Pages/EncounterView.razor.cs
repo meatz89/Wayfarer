@@ -57,7 +57,7 @@ public partial class EncounterViewBase : ComponentBase
 
     private async Task CheckEncounterCompleted(EncounterResult result)
     {
-        if (result.EncounterResults == EncounterResults.Ongoing)
+        if (result.ActionResult == ActionResults.Ongoing)
         {
             EncounterResult = result;
         }

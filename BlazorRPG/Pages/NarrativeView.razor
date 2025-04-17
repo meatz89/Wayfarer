@@ -5,16 +5,16 @@
         @if (ShowResult)
         {
             <h3>
-                @(Result.EncounterResults switch
+                @(Result.ActionResult switch
                 {
-                    EncounterResults.EncounterSuccess => "Encounter Won!",
-                    EncounterResults.EncounterFailure => "Encounter Lost",
-                    EncounterResults.GameOver => "Game Over",
+                    ActionResults.EncounterSuccess => "Encounter Won!",
+                    ActionResults.EncounterFailure => "Encounter Lost",
+                    ActionResults.GameOver => "Game Over",
                     _ => ""
                 })
             </h3>
 
-            @if (!string.IsNullOrEmpty(Result.NarrativeResult.SceneNarrative))
+            @if (!string.IsNullOrEmpty(Result.NarrativeResult?.SceneNarrative))
             {
                 <div class="narrative-message">
                     @((MarkupString)Result.NarrativeResult.SceneNarrative)
@@ -26,7 +26,7 @@
                     Encounter Consequences
                 </h5>
                 <div class="tooltip-list">
-                    @if (Result.EncounterResults == EncounterResults.EncounterSuccess)
+                    @if (Result.ActionResult == ActionResults.EncounterSuccess)
                     {
                         foreach (Outcome reward in GetActionOutcomesSuccess())
                         {
@@ -45,7 +45,7 @@
                     }
                 </div>
                 <div class="tooltip-list">
-                    @if (Result.EncounterResults == EncounterResults.EncounterFailure)
+                    @if (Result.ActionResult == ActionResults.EncounterFailure)
                     {
                         @foreach (Outcome reward in GetActionOutcomesFailure())
                         {

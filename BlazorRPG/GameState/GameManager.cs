@@ -354,11 +354,10 @@ public class GameManager
 
         string id = actionImplementation.ActionId;
 
-        EncounterResult encounterResult = await EncounterSystem
+        EncounterManager encounterManager = await EncounterSystem
             .GenerateEncounter(id, location, locationSpot.Name, context, worldState, playerState, actionImplementation);
 
-        EncounterManager encounterManager = encounterResult.Encounter;
-        List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterManager);
+        List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterManager.EncounterResult);
         gameState.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
 
         return encounterManager;
@@ -366,9 +365,6 @@ public class GameManager
 
     public async Task<EncounterResult> ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
     {
-        EncounterResult currentResult = EncounterSystem.EncounterResult;
-
-        EncounterManager encounter = choiceOption.encounter;
         Location location = LocationSystem.GetLocation(choiceOption.LocationName);
 
         var currentLocation = worldState.CurrentLocation?.Name;
@@ -378,13 +374,12 @@ public class GameManager
 
         // Execute the choice
         EncounterResult encounterResult = await EncounterSystem.ExecuteChoice(
-            encounter,
-            currentResult.NarrativeResult,
+            choiceOption.narrativeResult,
             choiceOption.Choice,
             worldStateInput);
 
-        EncounterResults currentEncounterResult = encounterResult.EncounterResults;
-        if (currentEncounterResult == EncounterResults.Ongoing)
+        ActionResults currentEncounterResult = encounterResult.ActionResult;
+        if (currentEncounterResult == ActionResults.Ongoing)
         {
             ProcessOngoingEncounter(encounterResult);
         }
@@ -401,7 +396,8 @@ public class GameManager
         if (!IsGameOver(gameState.PlayerState))
         {
             gameState.ActionStateTracker.EncounterResult = encounterResult;
-            List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterResult.Encounter);
+
+            List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterResult);
             gameState.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
         }
         else
@@ -457,16 +453,15 @@ public class GameManager
     /// <returns></returns>
     public async Task ProcessEncounterOutcome(EncounterResult result)
     {
-        worldState.MarkEncounterCompleted(result.Encounter.Id);
+        worldState.MarkEncounterCompleted(result.ActionImplementation.ActionId);
 
         gameState.ActionStateTracker.EncounterResult = result;
 
         NarrativeResult narrativeResult = result.NarrativeResult;
         string narrative = narrativeResult.SceneNarrative;
         string outcome = narrativeResult.Outcome.ToString();
-        string encounterId = result.Encounter.ActionImplementation.ActionId;
 
-        if (result.EncounterResults == EncounterResults.EncounterSuccess)
+        if (result.ActionResult == ActionResults.EncounterSuccess)
         {
             GainExp(result);
         }
@@ -497,7 +492,7 @@ public class GameManager
                 break;
         }
 
-        xpAward += result.Encounter.encounterInfo.EncounterDifficulty * 5;
+        xpAward += 10;
         PlayerProgression.AddExperience(xpAward);
 
         // Add message about XP gain
@@ -507,9 +502,9 @@ public class GameManager
     private async Task ProcessPostEncounterEvolution(EncounterResult result, string narrative, string outcome)
     {
         // If not a travel encounter, evolve the current location
-        BasicActionTypes basicActionType = result.Encounter.ActionImplementation.BasicActionType;
+        BasicActionTypes basicActionType = result.ActionImplementation.BasicActionType;
          
-    Location currentLocation = worldState.GetLocation(result.Encounter.encounterInfo.LocationName);
+        Location currentLocation = worldState.GetLocation(result.NarrativeContext.LocationName);
         if (_useMemory)
         {
             await CreateMemoryRecord(result);
@@ -543,10 +538,10 @@ public class GameManager
 
         string memoryEntry = await evolutionSystem.ConsolidateMemory(encounterResult.NarrativeContext, memoryInput, worldStateInput);
 
-        string location = encounterResult.Encounter.GetNarrativeContext().LocationName;
-        string locationSpot = encounterResult.Encounter.GetNarrativeContext().locationSpotName;
-        string actionName = encounterResult.Encounter.ActionImplementation.Name;
-        string goal = encounterResult.Encounter.ActionImplementation.Goal;
+        string location = encounterResult.NarrativeContext.LocationName;
+        string locationSpot = encounterResult.NarrativeContext.locationSpotName;
+        string actionName = encounterResult.ActionImplementation.Name;
+        string goal = encounterResult.ActionImplementation.Goal;
 
         string title = $"{location} - {locationSpot}, {actionName} - {goal}" + Environment.NewLine;
 
@@ -555,9 +550,9 @@ public class GameManager
         await MemoryFileAccess.WriteToMemoryFile(memoryEntryToWrite);
     }
 
-    public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions(EncounterManager encounter)
+    public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions(EncounterResult encounterResult)
     {
-        NarrativeResult narrativeResult = EncounterSystem.EncounterResult.NarrativeResult;
+        NarrativeResult narrativeResult = encounterResult.NarrativeResult;
         List<ChoiceCard> choices = EncounterSystem.GetChoices();
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
 
@@ -565,16 +560,15 @@ public class GameManager
         foreach (ChoiceCard choice in choices)
         {
             i++;
-
-            string locationName = encounter.EncounterState.EncounterInfo.LocationName;
+            NarrativeContext narrativeContext = encounterResult.NarrativeContext;
 
             UserEncounterChoiceOption option = new UserEncounterChoiceOption(
                 i,
                 choice.GetDetails(),
                 "Narrative",
-                locationName,
+                narrativeContext.LocationName,
                 "locationSpotName",
-                encounter,
+                encounterResult,
                 narrativeResult,
                 choice);
 
@@ -586,10 +580,10 @@ public class GameManager
 
     public ChoiceProjection GetChoicePreview(UserEncounterChoiceOption choiceOption)
     {
-        EncounterManager encounter = choiceOption.encounter;
         Location location = LocationSystem.GetLocation(choiceOption.LocationName);
 
         // Execute the choice
+        EncounterManager encounter = gameState.ActionStateTracker.GetCurrentEncounter();
         ChoiceProjection choiceProjection = EncounterSystem.GetChoiceProjection(encounter, choiceOption.Choice);
         return choiceProjection;
     }
@@ -735,7 +729,7 @@ public class GameManager
             model.CurrentChoices = userEncounterChoiceOptions;
             model.ChoiceSetName = "Current Situation";
             model.State = state;
-            model.EncounterResult = EncounterSystem.EncounterResult;
+            model.EncounterResult = encounterManager.EncounterResult;
             return model;
         }
 
@@ -896,6 +890,17 @@ public class GameManager
         }
     }
 
+    internal EncounterResult GetEncounterResultFor(ActionImplementation actionImplementation)
+    {
+        return new EncounterResult()
+        {
+            ActionImplementation = actionImplementation,
+            ActionResult = ActionResults.EncounterSuccess,
+            EncounterEndMessage = "Success",
+            NarrativeResult = null,
+            NarrativeContext = null
+        };
+    }
 }
   
 public enum ActionExecutionType
