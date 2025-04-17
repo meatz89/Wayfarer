@@ -8,77 +8,74 @@
             Loading...
         </div>
     }
-    else if (GetEncounter() != null)
-    {
-        <div class="encounter-content">
-            <div class="encounter-main">
-                <div class="encounter-stage">
-                    <div class="stage-header">
-                        <div class="choice-set-name">Chosen Action: @Model.EncounterResult.NarrativeResult.LastChoiceNarrative.ShorthandName</div>
-                    </div>
-                    <div class="stage-situation">@Model.EncounterResult.NarrativeResult.SceneNarrative</div>
+    <div class="encounter-content">
+        <div class="encounter-main">
+            <div class="encounter-stage">
+                <div class="stage-header">
+                    <div class="choice-set-name">Chosen Action: @Model.EncounterResult.NarrativeResult.LastChoiceNarrative.ShorthandName</div>
                 </div>
+                <div class="stage-situation">@Model.EncounterResult.NarrativeResult.SceneNarrative</div>
+            </div>
 
-                <div class="encounter-choices">
-                    @foreach (UserEncounterChoiceOption choice in GetChoices())
+            <div class="encounter-choices">
+                @foreach (UserEncounterChoiceOption choice in GetChoices())
+                {
+                    <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")"
+                            @onclick="(() => HandleChoiceSelection(choice))"
+                            @onmouseover="(e => ShowTooltip(choice, e))"
+                            @onmouseout="HideTooltip">
+                        <div class="choice-index">@choice.Index</div>
+                        <div class="choice-name">@GetChoiceName(choice)</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="encounter-sidebar">
+            <div class="tag-section">
+                <div class="properties-header">Active Tags</div>
+                <div class="properties-grid">
+                    @foreach (var tag in GetActiveTags())
                     {
-                        <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")"
-                             @onclick="(() => HandleChoiceSelection(choice))"
-                             @onmouseover="(e => ShowTooltip(choice, e))"
-                             @onmouseout="HideTooltip">
-                            <div class="choice-index">@choice.Index</div>
-                            <div class="choice-name">@GetChoiceName(choice)</div>
+                        <div class="property-tag @tag.CssClass">
+                            <span class="property-icon">@tag.Icon</span>
+                            <span class="property-text">@tag.Text</span>
                         </div>
                     }
                 </div>
             </div>
 
-            <div class="encounter-sidebar">
-                <div class="tag-section">
-                    <div class="properties-header">Active Tags</div>
-                    <div class="properties-grid">
-                        @foreach (var tag in GetActiveTags())
-                        {
-                            <div class="property-tag @tag.CssClass">
-                                <span class="property-icon">@tag.Icon</span>
-                                <span class="property-text">@tag.Text</span>
-                            </div>
-                        }
-                    </div>
+            <div class="tag-section">
+                <div class="properties-header">Approach Tags</div>
+                <div class="tag-grid">
+                    @foreach (var tag in GetApproachTags())
+                    {
+                        <div class="tag-value">
+                            <span>@tag</span>
+                            <span>@Model.State.EncounterTagSystem.GetEncounterStateTagValue(tag)</span>
+                        </div>
+                    }
                 </div>
+            </div>
 
-                <div class="tag-section">
-                    <div class="properties-header">Approach Tags</div>
-                    <div class="tag-grid">
-                        @foreach (var tag in GetApproachTags())
-                        {
-                            <div class="tag-value">
-                                <span>@tag</span>
-                                <span>@Model.State.EncounterTagSystem.GetEncounterStateTagValue(tag)</span>
-                            </div>
-                        }
-                    </div>
-                </div>
-
-                <div class="tag-section">
-                    <div class="properties-header">Focus Tags</div>
-                    <div class="tag-grid">
-                        @foreach (var tag in GetFocusTags())
-                        {
-                            <div class="tag-value">
-                                <span>@tag</span>
-                                <span>@Model.State.EncounterTagSystem.GetFocusTagValue(tag)</span>
-                            </div>
-                        }
-                    </div>
+            <div class="tag-section">
+                <div class="properties-header">Focus Tags</div>
+                <div class="tag-grid">
+                    @foreach (var tag in GetFocusTags())
+                    {
+                        <div class="tag-value">
+                            <span>@tag</span>
+                            <span>@Model.State.EncounterTagSystem.GetFocusTagValue(tag)</span>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
+    </div>
 
-        @if (showTooltip && hoveredChoice != null)
-        {
-            <EncounterChoiceTooltip hoveredChoice="hoveredChoice" mouseX="mouseX" mouseY="mouseY" />
-        }
+    @if (showTooltip && hoveredChoice != null)
+    {
+        <EncounterChoiceTooltip hoveredChoice="hoveredChoice" mouseX="mouseX" mouseY="mouseY" />
     }
 </div>
 
