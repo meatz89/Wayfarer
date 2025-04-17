@@ -14,18 +14,9 @@
         TimeManager = new TimeManager(WorldState);
     }
 
-    public List<UserActionOption> GetActions(LocationSpot locationSpot)
+    public List<UserActionOption> GetActions()
     {
-        List<UserActionOption> locationActions =
-            ActionStateTracker.LocationSpotActions
-            .Where(x => x.Location == locationSpot.LocationName)
-            .Where(x => x.LocationSpot == locationSpot.Name)
-            .ToList();
-
-        List<UserActionOption> actions = new List<UserActionOption>();
-        actions.AddRange(locationActions);
-
-        return actions;
+        return ActionStateTracker.LocationSpotActions;
     }
 }
 public enum Modes

@@ -188,7 +188,7 @@ public class GameManager
                 UserActionOption consumeFoodOption = new UserActionOption(
                     consumeFoodAction.ActionId.ToString(),
                     consumeFoodAction.Name.ToString(),
-                    !requirementsMet, // Disabled if requirements aren't met
+                    !requirementsMet,
                     consumeFoodAction,
                     gameState.WorldState.CurrentLocation?.Name ?? "Global",
                     gameState.WorldState.CurrentLocationSpot?.Name ?? "Global",
@@ -265,8 +265,7 @@ public class GameManager
         }
     }
 
-    private async Task<List<UserActionOption>> CreateActionsForLocationSpot
-        ( Location location, LocationSpot locationSpot)
+    private async Task<List<UserActionOption>> CreateActionsForLocationSpot(Location location, LocationSpot locationSpot)
     {
         var currentLocation = worldState.CurrentLocation?.Name;
         if (string.IsNullOrWhiteSpace(currentLocation)) return new List<UserActionOption>();
@@ -307,10 +306,9 @@ public class GameManager
                     location.Difficulty,
                     string.Empty);
 
-            if (AreRequirementsMet(userActionOption))
-            {
-               options.Add(userActionOption);
-            }
+            bool requirementsMet = AreRequirementsMet(userActionOption);
+            userActionOption = userActionOption with { IsDisabled = !requirementsMet };
+            options.Add(userActionOption);
         }
 
         return options;
@@ -374,7 +372,7 @@ public class GameManager
 
         // Execute the choice
         EncounterResult encounterResult = await EncounterSystem.ExecuteChoice(
-            choiceOption.narrativeResult,
+            choiceOption.NarrativeResult,
             choiceOption.Choice,
             worldStateInput);
 
@@ -458,8 +456,8 @@ public class GameManager
         gameState.ActionStateTracker.EncounterResult = result;
 
         NarrativeResult narrativeResult = result.NarrativeResult;
-        string narrative = narrativeResult.SceneNarrative;
-        string outcome = narrativeResult.Outcome.ToString();
+        string narrative = narrativeResult?.SceneNarrative;
+        string outcome = narrativeResult?.Outcome.ToString();
 
         if (result.ActionResult == ActionResults.EncounterSuccess)
         {
@@ -476,7 +474,7 @@ public class GameManager
     {
         int xpAward;
 
-        switch (result.NarrativeResult.Outcome)
+        switch (result.NarrativeResult?.Outcome)
         {
             case EncounterOutcomes.Exceptional:
                 xpAward = 50;

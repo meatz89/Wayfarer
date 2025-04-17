@@ -187,7 +187,7 @@ public partial class GameUI : ComponentBase
             }
         }
 
-        CurrentScreen = CurrentViews.NarrativeScreen;
+        CurrentScreen = CurrentViews.LocationScreen;
         ChangeState();
     }
 

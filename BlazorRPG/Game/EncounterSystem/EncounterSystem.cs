@@ -220,8 +220,21 @@
         return choices;
     }
 
+    private bool IsGameOver(PlayerState player)
+    {
+        if (player.Health <= 0) return true;
+        if (player.Concentration <= 0) return true;
+        if (player.Confidence <= 0) return true;
+
+        return false;
+    }
+
     public ChoiceProjection GetChoiceProjection(EncounterManager encounter, ChoiceCard choice)
     {
+        if(IsGameOver(gameState.PlayerState))
+        {
+            throw new Exception("Game Over");
+        }
         EncounterManager encounterManager = GetCurrentEncounter();
         ChoiceProjection choiceProjection = encounterManager.ProjectChoice(choice);
         return choiceProjection;

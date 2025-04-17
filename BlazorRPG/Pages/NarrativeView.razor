@@ -17,7 +17,7 @@
             @if (!string.IsNullOrEmpty(Result.NarrativeResult?.SceneNarrative))
             {
                 <div class="narrative-message">
-                    @((MarkupString)Result.NarrativeResult.SceneNarrative)
+                    @((MarkupString)Result.NarrativeResult?.SceneNarrative)
                 </div>
             }
 
