@@ -86,7 +86,6 @@ public class GameManager
 
     public async Task<ActionImplementation> ExecuteAction(UserActionOption action)
     {
-        // Store action context for current execution
         ActionImplementation actionImplementation = action.ActionImplementation;
         var location = LocationSystem.GetLocation(action.Location);
         var locationSpot = action.LocationSpot;
@@ -108,7 +107,6 @@ public class GameManager
             case ActionExecutionType.Basic:
             default:
                 await ProcessActionCompletion(actionImplementation);
-
                 await UpdateState();
                 break;
         }
@@ -118,9 +116,19 @@ public class GameManager
 
     public async Task ProcessActionCompletion(ActionImplementation actionImplementation)
     {
-        ApplyActionOutcomes(actionImplementation);
         gameState.ActionStateTracker.CompleteAction();
 
+        // Apply all the Outcomes of the current Action
+        ApplyActionOutcomes(actionImplementation);
+        
+        await HandlePlayerMoving(actionImplementation);
+
+        UpdateTime(actionImplementation.TimeCostHours);
+        await UpdateState();
+    }
+
+    private async Task HandlePlayerMoving(ActionImplementation actionImplementation)
+    {
         string location = actionImplementation.DestinationLocation;
         if (!string.IsNullOrWhiteSpace(location))
         {
@@ -131,9 +139,6 @@ public class GameManager
         {
             await MoveToLocationSpot(locationSpot);
         }
-
-        UpdateTime(actionImplementation.TimeCostHours);
-        await UpdateState();
     }
 
     private void UpdateTime(int timeCostHours)
@@ -220,27 +225,6 @@ public class GameManager
 
         // Use unified action execution
         await ExecuteAction(travelOption);
-    }
-
-    public void ApplyActionOutcomes(ActionImplementation action)
-    {
-        foreach (Outcome energyCost in action.EnergyCosts)
-        {
-            energyCost.Apply(gameState);
-            MessageSystem.AddOutcome(energyCost);
-        }
-
-        foreach (Outcome cost in action.Costs)
-        {
-            cost.Apply(gameState);
-            MessageSystem.AddOutcome(cost);
-        }
-
-        foreach (Outcome reward in action.Rewards)
-        {
-            reward.Apply(gameState);
-            MessageSystem.AddOutcome(reward);
-        }
     }
 
     private async Task<List<UserActionOption>> CreateActionsForLocationSpot(Location location, LocationSpot locationSpot)
@@ -810,35 +794,6 @@ public class GameManager
             System.Text.RegularExpressions.RegexOptions.Compiled).Trim();
     }
 
-    public async Task ExecuteActionByName(string actionName)
-    {
-        // Get action template from repository
-        ActionTemplate actionTemplate = ActionRepository.GetAction(actionName);
-        if (actionTemplate == null)
-        {
-            Console.WriteLine($"Action not found: {actionName}");
-            return;
-        }
-
-        // Check requirements
-        ActionImplementation action = ActionFactory.CreateActionFromTemplate(actionTemplate);
-
-        if (!action.CanExecute(gameState))
-        {
-            Console.WriteLine($"Requirements not met for action: {actionName}");
-            return;
-        }
-
-        // Apply the outcomes directly
-        ApplyActionOutcomes(action);
-
-        // Update state
-        await UpdateState();
-
-        // Log action execution
-        Console.WriteLine($"Executed action by name: {actionName}");
-    }
-
     public ActionExecutionType GetExecutionType(ActionImplementation action)
     {
         if (action.ActionType == ActionTypes.Encounter)
@@ -868,10 +823,25 @@ public class GameManager
             NarrativeContext = null
         };
     }
-}
-  
-public enum ActionExecutionType
-{
-    Basic,          // Immediate effect, no encounter, repeatable
-    Encounter,      // Multi-turn strategic challenge, non-repeatable once completed
+    
+    public void ApplyActionOutcomes(ActionImplementation action)
+    {
+        foreach (Outcome energyCost in action.EnergyCosts)
+        {
+            energyCost.Apply(gameState);
+            MessageSystem.AddOutcome(energyCost);
+        }
+
+        foreach (Outcome cost in action.Costs)
+        {
+            cost.Apply(gameState);
+            MessageSystem.AddOutcome(cost);
+        }
+
+        foreach (Outcome reward in action.Rewards)
+        {
+            reward.Apply(gameState);
+            MessageSystem.AddOutcome(reward);
+        }
+    }
 }
