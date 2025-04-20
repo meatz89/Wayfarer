@@ -1,0 +1,15 @@
+﻿<div class="current-objective">
+    <div class="objective-title">Current Objective:</div>
+    <div class="objective-text">@GetCurrentObjectiveText()</div>
+</div>
+
+@code {
+    [Inject] private GameState GameState { get; set; }
+    [Parameter] public int StateVersion { get; set; }
+
+    public string GetCurrentObjectiveText()
+    {
+        string objective = "Current Objective";
+        return objective;
+    }
+}

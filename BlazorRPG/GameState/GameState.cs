@@ -1,6 +1,6 @@
 ﻿public class GameState
 {
-    public Modes GameMode = Modes.Tutorial;
+    public Modes GameMode = Modes.Live;
     public PlayerState PlayerState { get; set; }
     public ActionStateTracker ActionStateTracker { get; }
     public WorldState WorldState { get; }
@@ -21,6 +21,5 @@
 }
 public enum Modes
 {
-    Tutorial,
     Live
 }

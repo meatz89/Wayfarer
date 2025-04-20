@@ -52,7 +52,7 @@
         .ForLocation(LocationNames.Village)
         .WithDescription("A small rural settlement with modest wooden buildings.")
         .WithDifficultyLevel(1)
-        .WithPlayerKnowledge(false) // Unknown initially - unlocked after tutorial
+        .WithPlayerKnowledge(false) // Unknown initially
         .AddTravelConnection(LocationNames.DeepForest)
-        .Build(); // Village spots will be defined elsewhere
+        .Build();
 }

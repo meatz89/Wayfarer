@@ -999,8 +999,7 @@ body {
     background-color: var(--rus
 }
 
-/* Tutorial UI Components */
-.tutorial-objective {
+.current-objective {
     background-color: var(--bg-card);
     border: 1px solid var(--leather);
     border-radius: 5px;
@@ -1036,7 +1035,7 @@ body {
     margin-right: 6px;
 }
 
-.tutorial-highlight {
+.element-highlight {
     position: relative;
     border: 2px solid var(--leather);
     border-radius: 5px;
@@ -1045,7 +1044,7 @@ body {
     cursor: pointer;
 }
 
-    .tutorial-highlight.active {
+    .element-highlight.active {
         border-color: var(--clay);
         animation: none;
     }

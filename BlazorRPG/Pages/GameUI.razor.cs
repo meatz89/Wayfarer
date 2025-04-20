@@ -6,7 +6,6 @@ public partial class GameUI : ComponentBase
 {
     #region Injected Services
     [Inject] private GameState GameState { get; set; }
-    [Inject] private TutorialState TutorialState { get; set; }
     [Inject] private GameManager GameManager { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
     #endregion
@@ -41,7 +40,7 @@ public partial class GameUI : ComponentBase
     public EncounterManager EncounterManager = null;
     public ActionImplementation ActionImplementation = null;
 
-    private int TutorialStateVersion = 0;
+    private int StateVersion = 0;
 
     #endregion
 
@@ -176,15 +175,6 @@ public partial class GameUI : ComponentBase
         if (globalAction != null && !globalAction.IsDisabled)
         {
             await GameManager.ExecuteAction(globalAction);
-
-            if (GameState.GameMode == Modes.Tutorial)
-            {
-                if (actionName == ActionNames.ConsumeFood)
-                    TutorialState.SetFlag(TutorialState.TutorialFlags.UsedFood);
-
-                if (actionName == ActionNames.ConsumeMedicinalHerbs)
-                    TutorialState.SetFlag(TutorialState.TutorialFlags.UsedHerbs);
-            }
         }
 
         CurrentScreen = CurrentViews.LocationScreen;
@@ -218,7 +208,7 @@ public partial class GameUI : ComponentBase
     {
         DisplayActionMessages();
 
-        TutorialStateVersion++;
+        StateVersion++;
         StateHasChanged();
     }
 
