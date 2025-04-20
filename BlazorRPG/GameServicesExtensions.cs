@@ -34,8 +34,6 @@
         services.AddSingleton<NarrativeService>();
 
         services.AddSingleton<PostEncounterEvolutionParser>();
-        services.AddSingleton<TutorialManager>();
-        services.AddSingleton<TutorialState>();
 
         return services;
     }

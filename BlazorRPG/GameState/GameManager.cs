@@ -21,7 +21,6 @@ public class GameManager
     public OpportunitySystem OpportunitySystem { get; }
     public PlayerProgression PlayerProgression { get; }
     public EncounterSystem EncounterSystem { get; }
-    public TutorialManager TutorialManager { get; }
 
     private bool _useMemory = false;
     private bool _processStateChanges = false;
@@ -42,7 +41,6 @@ public class GameManager
         CharacterSystem characterSystem,
         OpportunitySystem opportunitySystem,
         PlayerProgression playerProgression,
-        TutorialManager TutorialManager,
         IConfiguration configuration
         )
     {
@@ -61,7 +59,6 @@ public class GameManager
         CharacterSystem = characterSystem;
         OpportunitySystem = opportunitySystem;
         PlayerProgression = playerProgression;
-        this.TutorialManager = TutorialManager;
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
         _useMemory = configuration.GetValue<bool>("useMemory");
     }
@@ -83,27 +80,8 @@ public class GameManager
 
         await UpdateState();
 
-        if (gameState.GameMode == Modes.Tutorial)
-        {
-            InitializeTutorial();
-        }
-
         Location? currentLoc = worldState.CurrentLocation;
         Console.WriteLine($"Game started at: {currentLoc?.Name}, Current spot: {worldState.CurrentLocationSpot?.Name}");
-    }
-
-    private void InitializeTutorial()
-    {
-        // Set initial time (8:00 AM)
-        worldState.CurrentTimeInHours = 8;
-        worldState.DetermineCurrentTimeWindow(1); // Morning
-
-        playerState.Food = 0;
-        playerState.MedicinalHerbs = 0;
-        playerState.Energy = (int)(playerState.MaxEnergy * 0.8);
-
-        // Initialize the TutorialManager
-        TutorialManager.Initialize();
     }
 
     public async Task<ActionImplementation> ExecuteAction(UserActionOption action)
@@ -875,15 +853,8 @@ public class GameManager
     public async Task UpdateState()
     {
         gameState.ActionStateTracker.ClearCurrentUserAction();
-
         CreateGlobalActions();
-
         await CreateLocationActions(worldState.CurrentLocation);
-
-        if (gameState.GameMode == Modes.Tutorial)
-        {
-            TutorialManager.CheckTutorialProgress();
-        }
     }
 
     internal EncounterResult GetEncounterResultFor(ActionImplementation actionImplementation)

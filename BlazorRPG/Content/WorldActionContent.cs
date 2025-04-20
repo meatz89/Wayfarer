@@ -58,7 +58,6 @@
             .IsRepeatableAction()
             .Build());
 
-        // Original tutorial actions
         actionTemplates.Add(new ActionTemplateBuilder()
             .WithName(ActionNames.RestProperly.ToString())
             .WithGoal("rest fully to recover all energy")

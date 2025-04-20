@@ -5,10 +5,7 @@
     @if (CurrentScreen != CurrentViews.CharacterScreen)
     {
         <div class="game-status-bar">
-            @if (GameState.GameMode == Modes.Tutorial)
-            {
-                <TutorialObjective StateVersion="@TutorialStateVersion" />
-            }
+            <ObjectiveView StateVersion="@StateVersion" />
         </div>
 
         <div class="game-status-bar">
