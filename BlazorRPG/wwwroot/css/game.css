@@ -175,24 +175,194 @@ body {
     margin-bottom: 1rem;
 }
 
-/* Enhanced archetype card styling */
+/* Enhanced archetype card styling with more contrast */
 .archetype-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(540px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 20px;
     margin-bottom: 2rem;
 }
 
 .archetype-card {
     display: flex;
-    gap: 15px;
-    min-height: 240px;
+    flex-direction: column;
+    background-color: var(--bg-card);
+    border: 2px solid transparent;
+    border-radius: 5px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+    min-height: 100px;
+}
+
+    .archetype-card.selected {
+        border-color: var(--leather);
+        background-color: var(--bg-active);
+        box-shadow: 0 0 15px rgba(168, 125, 95, 0.3);
+        min-height: 420px;
+        transform: scale(1.08);
+        z-index: 1;
+    }
+
+.archetype-portrait {
+    width: 140px;
+    height: 220px;
+    margin: 0 auto 15px auto;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid var(--oak-mid);
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.5s forwards;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.archetype-portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.archetype-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+.selected .archetype-content {
+    font-size: 1.1em;
+}
+
+.archetype-name-bold {
+    margin-top: 0.5rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    font-family: var(--font-primary);
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.selected .archetype-name-bold {
+    font-size: 1.4rem;
+    color: var(--leather);
+}
+
+.archetype-description {
+    color: var(--text-secondary);
+    font-family: var(--font-tertiary);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    line-height: 1.6;
+    transition: all 0.3s ease;
+}
+
+.archetype-card:not(.selected) .archetype-description {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* Two-panel character creation layout */
+.character-container {
+    padding: 2rem;
+}
+
+.archetype-selection {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 2rem;
+}
+
+/* Left panel with archetype options */
+.archetype-options {
+    flex: 0 0 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.archetype-option {
+    background-color: var(--bg-card);
+    border-radius: 5px;
+    padding: 12px 15px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border-left: 4px solid transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+    .archetype-option:hover {
+        background-color: var(--bg-active);
+        transform: translateX(5px);
+    }
+
+    .archetype-option.selected {
+        background-color: var(--bg-active);
+        border-left-color: var(--leather);
+        transform: translateX(5px);
+        position: relative;
+    }
+
+        .archetype-option.selected:after {
+            content: '';
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 10px solid var(--bg-active);
+        }
+
+.archetype-name {
+    font-family: var(--font-primary);
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+
+.archetype-brief {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Right panel with detailed information */
+.archetype-details {
+    flex: 1;
+    background-color: var(--bg-active);
+    border-radius: 5px;
+    padding: 20px;
+    display: flex;
+    gap: 25px;
+    opacity: 0;
+    animation: fadeIn 0.3s forwards;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
 }
 
 .archetype-portrait {
-    width: 160px;
-    height: 240px;
-    flex-shrink: 0;
+    width: 180px;
+    height: 280px;
     border-radius: 5px;
     overflow: hidden;
     border: 1px solid var(--oak-mid);
@@ -204,10 +374,107 @@ body {
         object-fit: cover;
     }
 
-.archetype-content {
-    flex: 1;
+
+.archetype-title {
+    font-family: var(--font-primary);
+    color: var(--leather);
+    font-size: 1.6rem;
+    margin: 0 0 5px 0;
+    font-weight: normal;
+}
+
+
+.archetype-card {
+    background-color: var(--bg-card);
+    border: 2px solid transparent;
+    border-radius: 5px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 25rem;
+    margin-bottom: 1rem;
+}
+
+    .archetype-card:hover {
+        background-color: var(--bg-active);
+        transform: translateY(-2px);
+    }
+
+    .archetype-card.selected {
+        border-color: var(--resource-coins);
+        background-color: var(--bg-active);
+        box-shadow: 0 0 15px rgba(168, 125, 95, 0.3);
+    }
+
+.archetype-icon {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+}
+
+.archetype-name {
+    color: var(--text-secondary);
+    font-family: var(--font-primary);
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+
+.archetype-name-bold {
+    margin-top: 1rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    font-family: var(--font-primary);
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.archetype-approaches {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    margin: 1rem;
+}
+
+.archetype-advantages {
+    margin-top: auto;
+}
+
+.archetype-approaches {
+    margin: 8px 0;
+    color: var(--text-primary);
+}
+
+.starting-items {
+    margin-top: 15px;
+}
+
+.items-list {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+    .items-list .item {
+        background-color: rgba(96, 108, 56, 0.2);
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-size: 0.9em;
+        color: var(--text-primary);
+    }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .archetype-selection {
+        flex-direction: column;
+    }
+
+    .archetype-options {
+        flex: 1;
+        width: 100%;
+    }
+
+    .archetype-option.selected:after {
+        display: none;
+    }
 }
 
 .selected-indicator {
@@ -223,6 +490,46 @@ body {
     align-items: center;
     justify-content: center;
     font-weight: bold;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(168, 125, 95, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(168, 125, 95, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(168, 125, 95, 0);
+    }
+}
+
+.starting-items {
+    margin-top: auto;
+}
+
+.items-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 0.5rem;
+}
+
+    .items-list .item {
+        background-color: var(--bg-panel);
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-size: 0.9em;
+        color: var(--text-secondary);
+        transition: all 0.3s ease;
+    }
+
+.selected .items-list .item {
+    background-color: rgba(96, 108, 56, 0.2);
+    color: var(--text-primary);
 }
 
 .properties-grid {
@@ -718,21 +1025,6 @@ body {
     align-items: center;
 }
 
-.items-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    margin-top: 0.5rem;
-}
-
-    .items-list .item {
-        background-color: var(--bg-panel);
-        padding: 3px 8px;
-        border-radius: 3px;
-        font-size: 0.9em;
-        color: var(--text-secondary);
-    }
-
 .item-icon {
     width: 24px;
     text-align: center;
@@ -975,63 +1267,6 @@ tooltip:hover:before {
     margin-top: 5px;
 }
 
-.archetype-card {
-    background-color: var(--bg-card);
-    border: 2px solid transparent;
-    border-radius: 5px;
-    padding: 15px;
-    cursor: pointer;
-    transition: all 0.2s;
-    min-height: 25rem;
-    margin-bottom: 1rem;
-}
-
-    .archetype-card:hover {
-        background-color: var(--bg-active);
-        transform: translateY(-2px);
-    }
-
-    .archetype-card.selected {
-        border-color: var(--resource-coins);
-        background-color: var(--bg-active);
-        box-shadow: 0 0 15px rgba(168, 125, 95, 0.3);
-    }
-
-.archetype-icon {
-    font-size: 1.5rem;
-    margin-right: 1rem;
-}
-
-.archetype-name {
-    color: var(--text-secondary);
-    font-family: var(--font-primary);
-    font-size: 1.2rem;
-    color: var(--text-primary);
-}
-
-.archetype-name-bold {
-    margin-top: 1rem;
-    font-weight: bold;
-    color: var(--text-primary);
-    font-family: var(--font-primary);
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
-}
-
-.archetype-description {
-    color: var(--text-secondary);
-    font-family: var(--font-tertiary);
-    margin: 1rem;
-    font-size: 0.9rem;
-    line-height: 1.6;
-}
-
-.archetype-approaches {
-    font-size: 0.9em;
-    color: var(--text-secondary);
-    margin: 1rem;
-}
-
 .player-archetype {
     background-color: var(--bg-card);
     border-radius: 5px;
@@ -1040,7 +1275,6 @@ tooltip:hover:before {
     align-items: center;
     margin-bottom: 1rem;
 }
-
 
 .action-message {
     position: fixed;
