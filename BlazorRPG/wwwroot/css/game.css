@@ -147,7 +147,6 @@ body {
 /* Grids */
 .locations-grid {
     background-color: var(--bg-panel);
-    border: 1px solid var(--oak-dark);
     border-radius: 5px;
     padding: 1rem;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
@@ -234,8 +233,6 @@ body {
 .world-map-container {
     width: 100%;
     background-color: var(--bg-panel);
-    border: 1px solid var(--oak-dark);
-    border-radius: 5px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -247,7 +244,6 @@ body {
     flex-shrink: 1;
     border-radius: 5px;
     overflow: hidden;
-    border: 1px solid var(--oak-mid);
 }
 
     .world-map img {
@@ -258,8 +254,6 @@ body {
 
 .map-container, .location-container {
     background-color: var(--bg-panel);
-    border: 1px solid var(--oak-dark);
-    border-radius: 5px;
     flex: 1;
     padding: 15px;
 }
@@ -319,6 +313,13 @@ body {
 .narrative-button {
     padding: 12px 30px;
     font-size: 1.1rem;
+}
+
+.encounter-result-item {
+    background-color: var(--bg-active);
+    color: var(--text-primary);
+    border-radius: 3px;
+    padding: 5px 25px 5px 25px;
 }
 
 .resource-use-btn {
