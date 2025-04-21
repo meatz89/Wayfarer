@@ -1,12 +1,10 @@
 ﻿public class CardSelectionAlgorithm
 {
     private readonly CardRepository _cardRepository;
-    private readonly Random _random; // Used for weighted randomization
 
     public CardSelectionAlgorithm(CardRepository cardRepository)
     {
         _cardRepository = cardRepository;
-        _random = new Random();
     }
 
     public List<CardDefinition> SelectChoices(EncounterState state, PlayerState playerState)
@@ -14,390 +12,505 @@
         // Get all available cards
         List<CardDefinition> allCards = _cardRepository.GetForEncounter(state);
 
-        // Calculate positions based on player skills and encounter state
-        Dictionary<ApproachTags, int> approachPositions = CalculateApproachPositions(state, playerState);
-        Dictionary<FocusTags, int> focusPositions = CalculateFocusPositions(state, playerState);
+        // FIRST FILTER: Remove cards that don't meet minimum approach/focus requirements
+        List<CardDefinition> playableCards = FilterPlayableCards(allCards, state);
 
-        // Filter playable cards and calculate their distances
+        // Calculate positional advantages from skills
+        Dictionary<ApproachTags, int> approachAdvantages = CalculateSkillApproachBonuses(playerState);
+        Dictionary<FocusTags, int> focusAdvantages = CalculateSkillFocusBonuses(playerState);
+
+        // Calculate environmental influences
+        Dictionary<ApproachTags, int> environmentalBonuses = CalculateEnvironmentalBonuses(state);
+
+        // Calculate card viability scores
+        Dictionary<CardDefinition, CardViabilityScore> cardScores = new Dictionary<CardDefinition, CardViabilityScore>();
+        foreach (CardDefinition card in playableCards)
+        {
+            CardViabilityScore score = CalculateCardViability(
+                card,
+                state,
+                playerState,
+                approachAdvantages,
+                focusAdvantages,
+                environmentalBonuses
+            );
+            cardScores[card] = score;
+        }
+
+        // Ensure at least one momentum and one pressure card
+        EnsureCardTypeBalance(playableCards, cardScores);
+
+        // Select 4 strategically diverse cards based on the viability scores
+        return SelectStrategicCardHand(playableCards, cardScores);
+    }
+
+    private List<CardDefinition> FilterPlayableCards(List<CardDefinition> allCards, EncounterState state)
+    {
         List<CardDefinition> playableCards = new List<CardDefinition>();
-        Dictionary<CardDefinition, int> cardDistances = new Dictionary<CardDefinition, int>();
 
         foreach (CardDefinition card in allCards)
         {
-            // Get position values for this card's approach and focus
-            int approachValue = approachPositions.GetValueOrDefault(card.Approach, 0);
-            int focusValue = focusPositions.GetValueOrDefault(card.Focus, 0);
+            // Get current position values
+            int currentApproachValue = state.EncounterTagSystem.GetApproachTagValue(card.Approach);
+            int currentFocusValue = state.EncounterTagSystem.GetFocusTagValue(card.Focus);
 
-            // Check if card is playable
-            bool isPlayable = true;
-            if (card.Tier > 1) // Only tier 1 cards are always playable
+            // Tier 1 cards are always playable
+            if (card.Tier == 1)
             {
-                if (approachValue < card.OptimalApproachPosition || focusValue < card.OptimalFocusPosition)
-                    isPlayable = false;
-            }
-
-            if (!isPlayable)
+                playableCards.Add(card);
                 continue;
+            }
 
-            playableCards.Add(card);
-
-            // Calculate distance with a twist - introduce slight randomization
-            int approachDistance = Math.Max(0, card.OptimalApproachPosition - approachValue);
-            int focusDistance = Math.Max(0, card.OptimalFocusPosition - focusValue);
-
-            // Base distance calculation
-            int distance = approachDistance + focusDistance;
-
-            // Apply tier modifier
-            distance -= card.Tier * 2;
-
-            // Apply turn-based variance to avoid same cards each turn
-            int turnVariance = (state.CurrentTurn * 997) % 5; // Prime number creates pseudorandom sequence
-            distance += (card.Id.GetHashCode() + turnVariance) % 3; // Small variance based on card ID
-
-            cardDistances[card] = Math.Max(0, distance);
-        }
-
-        // Apply state-based and turn-based weighting
-        ApplyDynamicWeighting(cardDistances, state);
-
-        // Select cards using a dynamic method based on turn number
-        List<CardDefinition> cardDefinitions = SelectDynamicHand(playableCards, cardDistances, state.CurrentTurn, 4);
-        return cardDefinitions;
-    }
-
-    private Dictionary<ApproachTags, int> CalculateApproachPositions(EncounterState state, PlayerState playerState)
-    {
-        Dictionary<ApproachTags, int> positions = new Dictionary<ApproachTags, int>();
-
-        // Add skill-based positions
-        foreach (SkillApproachMapping mapping in SkillTagMappings.ApproachMappings)
-        {
-            int skillLevel = playerState.PlayerSkills.GetLevelForSkill(mapping.SkillType);
-            int bonus = (int)(skillLevel * mapping.Multiplier);
-
-            if (positions.ContainsKey(mapping.ApproachTag))
-                positions[mapping.ApproachTag] += bonus;
-            else
-                positions[mapping.ApproachTag] = bonus;
-        }
-
-        // Add encounter state positions
-        foreach (ApproachTags approach in Enum.GetValues(typeof(ApproachTags)))
-        {
-            if (approach != ApproachTags.None)
+            // CHECK REQUIREMENTS: Card is only playable if we meet BOTH minimum values
+            if (currentApproachValue >= card.OptimalApproachPosition &&
+                currentFocusValue >= card.OptimalFocusPosition)
             {
-                int stateValue = state.EncounterTagSystem.GetApproachTagValue(approach);
-                if (positions.ContainsKey(approach))
-                    positions[approach] += stateValue;
-                else
-                    positions[approach] = stateValue;
+                playableCards.Add(card);
             }
         }
 
-        return positions;
+        return playableCards;
     }
 
-    private Dictionary<FocusTags, int> CalculateFocusPositions(EncounterState state, PlayerState playerState)
+    private CardViabilityScore CalculateCardViability(
+        CardDefinition card,
+        EncounterState state,
+        PlayerState playerState,
+        Dictionary<ApproachTags, int> approachAdvantages,
+        Dictionary<FocusTags, int> focusAdvantages,
+        Dictionary<ApproachTags, int> environmentalBonuses)
     {
-        Dictionary<FocusTags, int> positions = new Dictionary<FocusTags, int>();
+        CardViabilityScore score = new CardViabilityScore();
 
-        // Add skill-based positions
-        foreach (SkillFocusMapping mapping in SkillTagMappings.FocusMappings)
+        // Get current approach/focus values
+        int approachValue = state.EncounterTagSystem.GetApproachTagValue(card.Approach);
+        int focusValue = state.EncounterTagSystem.GetFocusTagValue(card.Focus);
+
+        // For scoring purposes, we can add skill advantages
+        if (approachAdvantages.TryGetValue(card.Approach, out int approachBonus))
+            approachValue += approachBonus;
+
+        if (focusAdvantages.TryGetValue(card.Focus, out int focusBonus))
+            focusValue += focusBonus;
+
+        // For Tier 1 cards, position doesn't matter as much
+        if (card.Tier == 1)
         {
-            int skillLevel = playerState.PlayerSkills.GetLevelForSkill(mapping.SkillType);
-            int bonus = (int)(skillLevel * mapping.Multiplier);
+            score.PositionalScore = 0;
+            score.IsPlayable = true;
+        }
+        else
+        {
+            // For higher tier cards, calculate positional advantage (not requirements)
+            int approachAdvantage = approachValue - card.OptimalApproachPosition;
+            int focusAdvantage = focusValue - card.OptimalFocusPosition;
 
-            if (positions.ContainsKey(mapping.FocusTag))
-                positions[mapping.FocusTag] += bonus;
-            else
-                positions[mapping.FocusTag] = bonus;
+            // Calculate how far beyond requirements we are (positive is good)
+            score.PositionalScore = -(approachAdvantage + focusAdvantage);
+
+            // Environmental bonus improves position score
+            if (environmentalBonuses.TryGetValue(card.Approach, out int envBonus))
+                score.PositionalScore -= envBonus;
+
+            // Apply tier modifiers
+            score.PositionalScore -= card.Tier; // Higher tier cards get an advantage
+
+            // Card is already confirmed playable
+            score.IsPlayable = true;
         }
 
-        // Add encounter state positions
-        foreach (FocusTags focus in Enum.GetValues(typeof(FocusTags)))
-        {
-            int stateValue = state.EncounterTagSystem.GetFocusTagValue(focus);
-            if (positions.ContainsKey(focus))
-                positions[focus] += stateValue;
-            else
-                positions[focus] = stateValue;
-        }
+        // Situational value based on encounter state
+        score.SituationalValue = CalculateSituationalValue(card, state);
 
-        return positions;
+        // Strategic synergy with environmental properties
+        score.EnvironmentalSynergy = CalculateEnvironmentalSynergy(card, state);
+
+        // Check if skills make this card more effective
+        score.SkillBonus = CalculateSkillBonus(card, playerState);
+
+        // Final score calculation (lower is better)
+        score.TotalScore = score.PositionalScore - score.SituationalValue -
+                          score.EnvironmentalSynergy - score.SkillBonus;
+
+        return score;
     }
 
-    private void ApplyDynamicWeighting(Dictionary<CardDefinition, int> distances, EncounterState state)
+    private Dictionary<ApproachTags, int> CalculateSkillApproachBonuses(PlayerState playerState)
     {
-        // State-based weighting (unchanged)
-        if ((double)state.Pressure / state.EncounterInfo.MaxPressure > 0.6)
+        Dictionary<ApproachTags, int> bonuses = new Dictionary<ApproachTags, int>();
+
+        // Warfare skill → Dominance approach
+        bonuses[ApproachTags.Dominance] = playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Warfare) / 2;
+
+        // Diplomacy skill → Rapport approach
+        bonuses[ApproachTags.Rapport] = playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Diplomacy) / 2;
+
+        // Scholarship skill → Analysis approach
+        bonuses[ApproachTags.Analysis] = playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Scholarship) / 2;
+
+        // Wilderness skill → Precision approach
+        bonuses[ApproachTags.Precision] = playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Wilderness) / 2;
+
+        // Subterfuge skill → Concealment approach
+        bonuses[ApproachTags.Concealment] = playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Subterfuge) / 2;
+
+        return bonuses;
+    }
+
+    private Dictionary<FocusTags, int> CalculateSkillFocusBonuses(PlayerState playerState)
+    {
+        Dictionary<FocusTags, int> bonuses = new Dictionary<FocusTags, int>();
+
+        // Create skill-focus mappings
+        bonuses[FocusTags.Physical] = (playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Warfare) +
+                                     playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Wilderness)) / 3;
+
+        bonuses[FocusTags.Information] = (playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Scholarship) +
+                                        playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Subterfuge)) / 3;
+
+        bonuses[FocusTags.Relationship] = playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Diplomacy) / 2;
+
+        bonuses[FocusTags.Environment] = playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Wilderness) / 2;
+
+        bonuses[FocusTags.Resource] = (playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Subterfuge) +
+                                     playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Diplomacy)) / 4;
+
+        return bonuses;
+    }
+
+    private Dictionary<ApproachTags, int> CalculateEnvironmentalBonuses(EncounterState state)
+    {
+        Dictionary<ApproachTags, int> bonuses = new Dictionary<ApproachTags, int>();
+
+        // Extract active environmental properties
+        List<IEnvironmentalProperty> properties = state.ActiveTags
+            .Where(t => t is StrategicTag)
+            .Select(t => ((StrategicTag)t).EnvironmentalProperty)
+            .ToList();
+
+        // Define which approaches are favored by each environmental property
+        foreach (IEnvironmentalProperty property in properties)
         {
-            foreach (CardDefinition card in distances.Keys.Where(c => c.EffectType == EffectTypes.Pressure).ToList())
+            if (property is Illumination illumination)
             {
-                distances[card] = Math.Max(0, distances[card] - 4);
+                if (illumination.Equals(Illumination.Bright))
+                {
+                    AddOrIncrease(bonuses, ApproachTags.Dominance, 1);
+                    AddOrIncrease(bonuses, ApproachTags.Precision, 1);
+                }
+                else if (illumination.Equals(Illumination.Shadowy))
+                {
+                    AddOrIncrease(bonuses, ApproachTags.Precision, 1);
+                    AddOrIncrease(bonuses, ApproachTags.Concealment, 1);
+                }
+                else if (illumination.Equals(Illumination.Dark))
+                {
+                    AddOrIncrease(bonuses, ApproachTags.Concealment, 2);
+                }
+            }
+            else if (property is Population population)
+            {
+                if (population.Equals(Population.Crowded))
+                {
+                    AddOrIncrease(bonuses, ApproachTags.Rapport, 2);
+                    AddOrIncrease(bonuses, ApproachTags.Dominance, 1);
+                }
+                else if (population.Equals(Population.Quiet))
+                {
+                    AddOrIncrease(bonuses, ApproachTags.Analysis, 1);
+                    AddOrIncrease(bonuses, ApproachTags.Precision, 1);
+                }
+                else if (population.Equals(Population.Scholarly))
+                {
+                    AddOrIncrease(bonuses, ApproachTags.Analysis, 2);
+                }
+            }
+            else if (property is Physical physical)
+            {
+                if (physical.Equals(Physical.Confined))
+                {
+                    AddOrIncrease(bonuses, ApproachTags.Precision, 1);
+                    AddOrIncrease(bonuses, ApproachTags.Concealment, 1);
+                }
+                else if (physical.Equals(Physical.Expansive))
+                {
+                    AddOrIncrease(bonuses, ApproachTags.Dominance, 1);
+                    AddOrIncrease(bonuses, ApproachTags.Precision, 1);
+                }
+                else if (physical.Equals(Physical.Hazardous))
+                {
+                    AddOrIncrease(bonuses, ApproachTags.Analysis, 1);
+                    AddOrIncrease(bonuses, ApproachTags.Precision, 1);
+                }
+            }
+            else if (property is Atmosphere atmosphere)
+            {
+                if (atmosphere.Equals(Atmosphere.Rough))
+                {
+                    AddOrIncrease(bonuses, ApproachTags.Dominance, 2);
+                }
+                else if (atmosphere.Equals(Atmosphere.Calm))
+                {
+                    AddOrIncrease(bonuses, ApproachTags.Rapport, 1);
+                    AddOrIncrease(bonuses, ApproachTags.Precision, 1);
+                }
+                else if (atmosphere.Equals(Atmosphere.Chaotic))
+                {
+                    AddOrIncrease(bonuses, ApproachTags.Analysis, 1);
+                    AddOrIncrease(bonuses, ApproachTags.Concealment, 1);
+                }
             }
         }
 
-        if (state.CurrentTurn >= state.EncounterInfo.MaxTurns - 2 &&
-            (double)state.Momentum / state.EncounterInfo.StandardThreshold < 0.7)
+        return bonuses;
+    }
+
+    private int CalculateSituationalValue(CardDefinition card, EncounterState state)
+    {
+        int value = 0;
+
+        // Momentum-building cards become more valuable as encounter nears end
+        if (card.EffectType == EffectTypes.Momentum &&
+            state.CurrentTurn >= state.EncounterInfo.MaxTurns - 2 &&
+            state.Momentum < state.EncounterInfo.StandardThreshold)
         {
-            foreach (CardDefinition card in distances.Keys.Where(c => c.EffectType == EffectTypes.Momentum).ToList())
+            value += 3;
+        }
+
+        // Pressure-reducing cards become more valuable as pressure rises
+        if (card.EffectType == EffectTypes.Pressure &&
+            state.Pressure >= state.EncounterInfo.MaxPressure * 0.6)
+        {
+            value += 3;
+        }
+
+        return value;
+    }
+
+    private int CalculateEnvironmentalSynergy(CardDefinition card, EncounterState state)
+    {
+        int synergy = 0;
+
+        // Check if card's strategic effect is relevant to the current environment
+        if (card.StrategicEffect != null)
+        {
+            List<StrategicTag> environmentTags = state.ActiveTags
+                .Where(t => t is StrategicTag)
+                .Cast<StrategicTag>()
+                .ToList();
+
+            foreach (StrategicTag tag in environmentTags)
             {
-                distances[card] = Math.Max(0, distances[card] - 4);
+                if (card.StrategicEffect.IsActive(tag))
+                {
+                    // Card has direct synergy with this environment
+                    synergy += 2;
+
+                    // Additional synergy if the effect scales with an approach the player has developed
+                    int approachValue = state.EncounterTagSystem.GetApproachTagValue(card.StrategicEffect.TargetApproach);
+                    if (approachValue >= 3)
+                    {
+                        synergy += 1;
+                    }
+                }
             }
         }
 
-        // Dynamic weighting by turn number (creates variety between turns)
-        int turnPhase = state.CurrentTurn % 4; // Creates a 4-turn cycle
+        return synergy;
+    }
 
-        foreach (CardDefinition card in distances.Keys.ToList())
+    private int CalculateSkillBonus(CardDefinition card, PlayerState playerState)
+    {
+        int bonus = 0;
+
+        // Check if player has skills that directly enhance this card
+        foreach (SkillRequirement req in card.UnlockRequirements)
         {
-            // Phase 0: Favor Analysis and Precision
-            if (turnPhase == 0 && (card.Approach == ApproachTags.Analysis || card.Approach == ApproachTags.Precision))
-                distances[card] = Math.Max(0, distances[card] - 3);
+            int skillLevel = playerState.PlayerSkills.GetLevelForSkill(req.SkillType);
+            if (skillLevel >= req.RequiredLevel)
+            {
+                bonus += skillLevel - req.RequiredLevel + 1;
+            }
+        }
 
-            // Phase 1: Favor Dominance and Rapport
-            else if (turnPhase == 1 && (card.Approach == ApproachTags.Dominance || card.Approach == ApproachTags.Rapport))
-                distances[card] = Math.Max(0, distances[card] - 3);
+        return bonus;
+    }
 
-            // Phase 2: Favor Concealment and Information focus
-            else if (turnPhase == 2 && (card.Approach == ApproachTags.Concealment || card.Focus == FocusTags.Information))
-                distances[card] = Math.Max(0, distances[card] - 3);
+    private void EnsureCardTypeBalance(List<CardDefinition> viableCards, Dictionary<CardDefinition, CardViabilityScore> cardScores)
+    {
+        bool hasMomentumCard = viableCards.Any(c => c.EffectType == EffectTypes.Momentum);
+        bool hasPressureCard = viableCards.Any(c => c.EffectType == EffectTypes.Pressure);
 
-            // Phase 3: Favor Resource and Relationship focus
-            else if (turnPhase == 3 && (card.Focus == FocusTags.Resource || card.Focus == FocusTags.Relationship))
-                distances[card] = Math.Max(0, distances[card] - 3);
+        if (!hasMomentumCard || !hasPressureCard)
+        {
+            // Add basic cards of the missing type
+            List<CardDefinition> allCards = _cardRepository.GetAll();
+
+            if (!hasMomentumCard)
+            {
+                CardDefinition basicMomentumCard = allCards.FirstOrDefault(c =>
+                    c.EffectType == EffectTypes.Momentum && c.Tier == 1);
+
+                if (basicMomentumCard != null)
+                {
+                    viableCards.Add(basicMomentumCard);
+                    cardScores[basicMomentumCard] = new CardViabilityScore { IsPlayable = true, TotalScore = 20 };
+                }
+            }
+
+            if (!hasPressureCard)
+            {
+                CardDefinition basicPressureCard = allCards.FirstOrDefault(c =>
+                    c.EffectType == EffectTypes.Pressure && c.Tier == 1);
+
+                if (basicPressureCard != null)
+                {
+                    viableCards.Add(basicPressureCard);
+                    cardScores[basicPressureCard] = new CardViabilityScore { IsPlayable = true, TotalScore = 20 };
+                }
+            }
         }
     }
 
-    private List<CardDefinition> SelectDynamicHand(List<CardDefinition> playableCards, Dictionary<CardDefinition, int> distances, int turnNumber, int count)
+    private List<CardDefinition> SelectStrategicCardHand(
+        List<CardDefinition> viableCards,
+        Dictionary<CardDefinition, CardViabilityScore> cardScores)
     {
         List<CardDefinition> result = new List<CardDefinition>();
         HashSet<ApproachTags> usedApproaches = new HashSet<ApproachTags>();
         HashSet<FocusTags> usedFocuses = new HashSet<FocusTags>();
 
-        // Group cards by approach and focus for easier selection
-        Dictionary<ApproachTags, List<CardDefinition>> approachGroups = playableCards
-            .GroupBy(c => c.Approach)
-            .ToDictionary(g => g.Key, g => g.ToList());
-
-        Dictionary<FocusTags, List<CardDefinition>> focusGroups = playableCards
-            .GroupBy(c => c.Focus)
-            .ToDictionary(g => g.Key, g => g.ToList());
-
-        // Use different selection strategies based on turn parity for variety
-        if (turnNumber % 2 == 0)
+        // First pass: select best card, add its approach/focus to used sets
+        if (viableCards.Any())
         {
-            // Even turns: Select using approach diversity first
-            result = SelectByApproachDiversity(approachGroups, distances, usedApproaches, usedFocuses, count);
-        }
-        else
-        {
-            // Odd turns: Select using focus diversity first
-            result = SelectByFocusDiversity(focusGroups, distances, usedApproaches, usedFocuses, count);
+            CardDefinition bestCard = viableCards
+                .OrderBy(c => cardScores[c].TotalScore)
+                .First();
+
+            result.Add(bestCard);
+            usedApproaches.Add(bestCard.Approach);
+            usedFocuses.Add(bestCard.Focus);
         }
 
-        // If we still need more cards, select from remaining using a weighted random approach
-        if (result.Count < count)
+        // Ensure we have one momentum and one pressure card
+        EnsureEffectTypeDiversity(result, viableCards, cardScores, usedApproaches, usedFocuses);
+
+        // Add cards with unique approaches
+        AddCardsWithUniqueApproaches(result, viableCards, cardScores, usedApproaches, usedFocuses);
+
+        // Add cards with unique focuses
+        AddCardsWithUniqueFocuses(result, viableCards, cardScores, usedApproaches, usedFocuses);
+
+        // If we still need cards, add highest scoring remaining cards
+        while (result.Count < 4 && viableCards.Any(c => !result.Contains(c)))
         {
-            List<CardDefinition> remainingCards = playableCards
+            CardDefinition nextCard = viableCards
                 .Where(c => !result.Contains(c))
-                .OrderByDescending(c => c.Tier)
-                .ToList();
+                .OrderBy(c => cardScores[c].TotalScore)
+                .First();
 
-            result.AddRange(SelectWeightedRandom(remainingCards, distances, usedApproaches, usedFocuses, count - result.Count));
+            result.Add(nextCard);
         }
 
         return result;
     }
 
-    private List<CardDefinition> SelectByApproachDiversity(
-        Dictionary<ApproachTags, List<CardDefinition>> approachGroups,
-        Dictionary<CardDefinition, int> distances,
+    private void EnsureEffectTypeDiversity(
+        List<CardDefinition> result,
+        List<CardDefinition> viableCards,
+        Dictionary<CardDefinition, CardViabilityScore> cardScores,
         HashSet<ApproachTags> usedApproaches,
-        HashSet<FocusTags> usedFocuses,
-        int count)
+        HashSet<FocusTags> usedFocuses)
     {
-        List<CardDefinition> result = new List<CardDefinition>();
+        bool hasMomentumCard = result.Any(c => c.EffectType == EffectTypes.Momentum);
+        bool hasPressureCard = result.Any(c => c.EffectType == EffectTypes.Pressure);
 
-        // Select best card from each approach group
-        foreach (ApproachTags approach in Enum.GetValues(typeof(ApproachTags)).Cast<ApproachTags>())
+        if (!hasMomentumCard)
         {
-            if (approach == ApproachTags.None || result.Count >= count)
-                continue;
+            CardDefinition bestMomentumCard = viableCards
+                .Where(c => c.EffectType == EffectTypes.Momentum && !result.Contains(c))
+                .OrderBy(c => cardScores[c].TotalScore)
+                .FirstOrDefault();
 
-            if (approachGroups.TryGetValue(approach, out List<CardDefinition> groupCards))
+            if (bestMomentumCard != null)
             {
-                // Select the best card from this approach group
-                CardDefinition selected = SelectBestCardFromFocuses(groupCards, distances, usedFocuses);
-
-                if (selected != null)
-                {
-                    result.Add(selected);
-                    usedApproaches.Add(approach);
-                    usedFocuses.Add(selected.Focus);
-                }
+                result.Add(bestMomentumCard);
+                usedApproaches.Add(bestMomentumCard.Approach);
+                usedFocuses.Add(bestMomentumCard.Focus);
             }
         }
 
-        return result;
+        if (!hasPressureCard)
+        {
+            CardDefinition bestPressureCard = viableCards
+                .Where(c => c.EffectType == EffectTypes.Pressure && !result.Contains(c))
+                .OrderBy(c => cardScores[c].TotalScore)
+                .FirstOrDefault();
+
+            if (bestPressureCard != null)
+            {
+                result.Add(bestPressureCard);
+                usedApproaches.Add(bestPressureCard.Approach);
+                usedFocuses.Add(bestPressureCard.Focus);
+            }
+        }
     }
 
-    private List<CardDefinition> SelectByFocusDiversity(
-        Dictionary<FocusTags, List<CardDefinition>> focusGroups,
-        Dictionary<CardDefinition, int> distances,
+    private void AddCardsWithUniqueApproaches(
+        List<CardDefinition> result,
+        List<CardDefinition> viableCards,
+        Dictionary<CardDefinition, CardViabilityScore> cardScores,
         HashSet<ApproachTags> usedApproaches,
-        HashSet<FocusTags> usedFocuses,
-        int count)
+        HashSet<FocusTags> usedFocuses)
     {
-        List<CardDefinition> result = new List<CardDefinition>();
-
-        // Select best card from each focus group
-        foreach (FocusTags focus in Enum.GetValues(typeof(FocusTags)).Cast<FocusTags>())
+        while (result.Count < 3 && viableCards.Any(c => !result.Contains(c) && !usedApproaches.Contains(c.Approach)))
         {
-            if (result.Count >= count)
-                break;
+            CardDefinition card = viableCards
+                .Where(c => !result.Contains(c) && !usedApproaches.Contains(c.Approach))
+                .OrderBy(c => cardScores[c].TotalScore)
+                .First();
 
-            if (focusGroups.TryGetValue(focus, out List<CardDefinition> groupCards))
-            {
-                // Select the best card from this focus group
-                CardDefinition selected = SelectBestCardFromApproaches(groupCards, distances, usedApproaches);
-
-                if (selected != null)
-                {
-                    result.Add(selected);
-                    usedApproaches.Add(selected.Approach);
-                    usedFocuses.Add(focus);
-                }
-            }
+            result.Add(card);
+            usedApproaches.Add(card.Approach);
+            usedFocuses.Add(card.Focus);
         }
-
-        return result;
     }
 
-    private CardDefinition SelectBestCardFromApproaches(
-        List<CardDefinition> groupCards,
-        Dictionary<CardDefinition, int> distances,
-        HashSet<ApproachTags> usedTags)
-    {
-        // First try cards that don't conflict with existing selections
-        List<CardDefinition> candidates = groupCards
-            .Where(c => !usedTags.Contains(c.Approach))
-            .OrderBy(c => distances[c])
-            .ThenByDescending(c => c.Tier)
-            .ToList();
-
-        // If no perfect candidates, accept some overlap
-        if (!candidates.Any())
-        {
-            candidates = groupCards
-                .OrderBy(c => distances[c])
-                .ThenByDescending(c => c.Tier)
-                .ToList();
-        }
-
-        return candidates.FirstOrDefault();
-    }
-
-    private CardDefinition SelectBestCardFromFocuses(
-        List<CardDefinition> groupCards,
-        Dictionary<CardDefinition, int> distances,
-        HashSet<FocusTags> usedTags)
-    {
-        // First try cards that don't conflict with existing selections
-        List<CardDefinition> candidates = groupCards
-            .Where(c => !usedTags.Contains(c.Focus))
-            .OrderBy(c => distances[c])
-            .ThenByDescending(c => c.Tier)
-            .ToList();
-
-        // If no perfect candidates, accept some overlap
-        if (!candidates.Any())
-        {
-            candidates = groupCards
-                .OrderBy(c => distances[c])
-                .ThenByDescending(c => c.Tier)
-                .ToList();
-        }
-
-        return candidates.FirstOrDefault();
-    }
-
-    private List<CardDefinition> SelectWeightedRandom(
-        List<CardDefinition> cards,
-        Dictionary<CardDefinition, int> distances,
+    private void AddCardsWithUniqueFocuses(
+        List<CardDefinition> result,
+        List<CardDefinition> viableCards,
+        Dictionary<CardDefinition, CardViabilityScore> cardScores,
         HashSet<ApproachTags> usedApproaches,
-        HashSet<FocusTags> usedFocuses,
-        int count)
+        HashSet<FocusTags> usedFocuses)
     {
-        if (!cards.Any() || count <= 0)
-            return new List<CardDefinition>();
-
-        List<CardDefinition> result = new List<CardDefinition>();
-
-        // Create cards with weights
-        List<(CardDefinition Card, int Weight)> weightedCards = new List<(CardDefinition, int)>();
-
-        foreach (CardDefinition card in cards)
+        while (result.Count < 4 && viableCards.Any(c => !result.Contains(c) && !usedFocuses.Contains(c.Focus)))
         {
-            // Base weight - inverse of distance (closer = higher weight)
-            int distance = distances[card];
-            int weight = Math.Max(1, 20 - distance);
+            CardDefinition card = viableCards
+                .Where(c => !result.Contains(c) && !usedFocuses.Contains(c.Focus))
+                .OrderBy(c => cardScores[c].TotalScore)
+                .First();
 
-            // Bonus for higher tier cards
-            weight += card.Tier * 5;
-
-            // Bonus for unique approach/focus
-            if (!usedApproaches.Contains(card.Approach))
-                weight += 10;
-
-            if (!usedFocuses.Contains(card.Focus))
-                weight += 10;
-
-            weightedCards.Add((card, weight));
+            result.Add(card);
+            usedApproaches.Add(card.Approach);
+            usedFocuses.Add(card.Focus);
         }
-
-        // Select cards using weighted probability
-        for (int i = 0; i < count; i++)
-        {
-            if (!weightedCards.Any())
-                break;
-
-            // Calculate total weight
-            int totalWeight = weightedCards.Sum(w => w.Weight);
-
-            // Select a random value within the total weight
-            int randomValue = _random.Next(totalWeight);
-
-            // Find the selected card
-            int currentWeight = 0;
-            CardDefinition selected = null;
-
-            foreach ((CardDefinition card, int weight) in weightedCards)
-            {
-                currentWeight += weight;
-                if (randomValue < currentWeight)
-                {
-                    selected = card;
-                    break;
-                }
-            }
-
-            // If no card was selected (shouldn't happen), pick the first one
-            if (selected == null && weightedCards.Any())
-                selected = weightedCards.First().Card;
-
-            if (selected != null)
-            {
-                result.Add(selected);
-                usedApproaches.Add(selected.Approach);
-                usedFocuses.Add(selected.Focus);
-
-                // Remove the selected card from consideration
-                weightedCards.RemoveAll(w => w.Card == selected);
-            }
-        }
-
-        return result;
     }
+
+    private void AddOrIncrease(Dictionary<ApproachTags, int> dict, ApproachTags key, int amount)
+    {
+        if (dict.ContainsKey(key))
+            dict[key] += amount;
+        else
+            dict[key] = amount;
+    }
+}
+
+public class CardViabilityScore
+{
+    public int PositionalScore { get; set; } // Lower is better
+    public int SituationalValue { get; set; } // Higher is better
+    public int EnvironmentalSynergy { get; set; } // Higher is better
+    public int SkillBonus { get; set; } // Higher is better
+    public int TotalScore { get; set; } // Lower is better
+    public bool IsPlayable { get; set; }
 }

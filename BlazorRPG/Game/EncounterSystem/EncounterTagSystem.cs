@@ -15,7 +15,7 @@ public class EncounterTagSystem
     {
         EncounterTagSystem fromState = new EncounterTagSystem();
         foreach (ApproachTags tag in previousApproachValues.Keys)
-            fromState.SetEncounterStateTagValue(tag, previousApproachValues[tag]);
+            fromState.SetApproachTagValue(tag, previousApproachValues[tag]);
 
         foreach (FocusTags tag in previousFocusValues.Keys)
             fromState.SetFocusTagValue(tag, previousFocusValues[tag]);
@@ -29,7 +29,7 @@ public class EncounterTagSystem
         _focusTags = new Dictionary<FocusTags, int>();
 
         foreach (ApproachTags tag in Enum.GetValues(typeof(ApproachTags)))
-            SetEncounterStateTagValue(tag, 0);
+            SetApproachTagValue(tag, 0);
 
         foreach (FocusTags tag in Enum.GetValues(typeof(FocusTags)))
             SetFocusTagValue(tag, 0);
@@ -57,7 +57,7 @@ public class EncounterTagSystem
         EncounterTagSystem clone = new EncounterTagSystem();
 
         foreach (ApproachTags tag in Enum.GetValues(typeof(ApproachTags)))
-            clone.SetEncounterStateTagValue(tag, GetApproachTagValue(tag));
+            clone.SetApproachTagValue(tag, GetApproachTagValue(tag));
 
         foreach (FocusTags tag in Enum.GetValues(typeof(FocusTags)))
             clone.SetFocusTagValue(tag, GetFocusTagValue(tag));
@@ -66,7 +66,7 @@ public class EncounterTagSystem
     }
 
     // Set tag values directly (for clone initialization)
-    public void SetEncounterStateTagValue(ApproachTags tag, int value)
+    public void SetApproachTagValue(ApproachTags tag, int value)
     {
         _ApproachTags[tag] = Math.Clamp(value, MinTagValue, MaxTagValue);
     }
