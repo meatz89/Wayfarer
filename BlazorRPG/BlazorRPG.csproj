@@ -35,6 +35,12 @@
 		<Content Update="wwwroot\images\subtle-texture.png">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>
+		<Content Update="wwwroot\js\scrollToBottom.js">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\js\tooltipInterop.js">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 
 </Project>

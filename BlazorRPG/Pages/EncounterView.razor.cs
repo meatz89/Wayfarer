@@ -6,10 +6,12 @@ using System.Text;
 public partial class EncounterViewBase : ComponentBase
 {
     [Inject] public IJSRuntime JSRuntime { get; set; }
+
     [Inject] public GameState GameState { get; set; }
     [Inject] public GameManager GameManager { get; set; }
     [Parameter] public EncounterManager EncounterManager { get; set; }
     [Parameter] public EventCallback<EncounterResult> OnEncounterCompleted { get; set; }
+    private IJSObjectReference _tooltipModule;
     public PlayerState PlayerState => GameState.PlayerState;
 
     public UserEncounterChoiceOption hoveredChoice;
@@ -42,6 +44,39 @@ public partial class EncounterViewBase : ComponentBase
 
         StateHasChanged();
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _tooltipModule = await JSRuntime.InvokeAsync<IJSObjectReference>(
+                "import", "./js/tooltipInterop.js");
+        }
+    }
+
+    public async Task ShowTooltip(UserEncounterChoiceOption choice, string elementId)
+    {
+        hoveredChoice = choice;
+        showTooltip = true;
+
+        if (_tooltipModule != null)
+        {
+            var position = await _tooltipModule.InvokeAsync<TooltipPosition>(
+                "getTooltipPositionRelativeToElement", $"{elementId}");
+
+            tooltipX = position.TooltipX;
+            tooltipY = position.TooltipY;
+        }
+
+        StateHasChanged();
+    }
+
+    public void HideTooltip()
+    {
+        hoveredChoice = null;
+        showTooltip = false;
+    }
+
     private EncounterViewModel GetModel()
     {
         EncounterViewModel? encounterViewModel = GameManager.GetEncounterViewModel();
@@ -105,7 +140,6 @@ public partial class EncounterViewBase : ComponentBase
             await OnEncounterCompleted.InvokeAsync(result);
         }
     }
-
     public List<PropertyDisplay> GetLocationTags()
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
@@ -224,33 +258,6 @@ public partial class EncounterViewBase : ComponentBase
         return "Affects encounter mechanics";
     }
 
-    public async Task ShowTooltip(UserEncounterChoiceOption choice, MouseEventArgs e)
-    {
-        hoveredChoice = choice;
-        
-        showTooltip = true;
-        tooltipX = e.ClientX + 10;
-        tooltipY = e.ClientY + 10;
-
-        // Get dimensions using JavaScript interop
-        Dimensions dimensions = await JSRuntime.InvokeAsync<Dimensions>("getDimensions");
-
-        // Adjust mouseY if the tooltip would overflow
-        tooltipY = e.ClientY - dimensions.TooltipHeight - 10; // Position above, with offset
-    }
-
-    public void HideTooltip()
-    {
-        hoveredChoice = null;
-        showTooltip = false;
-    }
-
-    public void OnMouseMove(MouseEventArgs e)
-    {
-        tooltipX = e.ClientX + 10;
-        tooltipY = e.ClientY + 10;
-    }
-
     public int GetCurrentValue(ValueTypes changeType)
     {
         EncounterState state = Model.State;
@@ -303,4 +310,11 @@ public partial class EncounterViewBase : ComponentBase
 
         return properties;
     }
+}
+
+
+public class TooltipPosition
+{
+    public double TooltipX { get; set; }
+    public double TooltipY { get; set; }
 }
