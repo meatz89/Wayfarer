@@ -46,8 +46,9 @@
 }
 
 body {
-    height: 100%;
-    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    overflow: auto;
     margin: 0;
     background-color: var(--bg-dark);
     color: var(--text-primary);
@@ -790,7 +791,7 @@ body {
 
 /* ==================== Tooltip ==================== */
 .tooltip {
-    position: fixed;
+    position: relative;
     background-color: var(--parchment);
     color: var(--charcoal);
     border: 1px solid var(--oak-dark);
@@ -803,6 +804,21 @@ body {
     overflow-y: auto;
     pointer-events: none;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+tooltip:before {
+    content: attr(tooltip);
+    position: absolute;
+    opacity: 0;
+    right: 0;
+    top: 100%;
+    transition: all 0.5s ease;
+}
+
+tooltip:hover:before {
+    opacity: 1;
+    color: #ffffff;
+    background: #333333;
+    padding: 10px;
 }
 
     .tooltip h4, .tooltip h5 {
