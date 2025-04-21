@@ -56,7 +56,7 @@ public class CardRepository
             1,
             ApproachTags.Dominance, 0,  // Changed from 1 to 0
             FocusTags.Physical, 0,      // Changed from 1 to 0
-            EffectTypes.Pressure, -1,
+            EffectTypes.Pressure, 1,
             new List<TagModification>
             {
                 TagModification.IncreaseApproach(ApproachTags.Dominance),
@@ -111,7 +111,7 @@ public class CardRepository
             1,
             ApproachTags.Rapport, 0,  // Changed from 1 to 0
             FocusTags.Relationship, 0,  // Changed from 1 to 0
-            EffectTypes.Pressure, -1,
+            EffectTypes.Pressure, 1,
             new List<TagModification>
             {
                 TagModification.IncreaseApproach(ApproachTags.Rapport),
@@ -166,7 +166,7 @@ public class CardRepository
             1,
             ApproachTags.Analysis, 0,  // Changed from 1 to 0
             FocusTags.Information, 0,  // Changed from 1 to 0
-            EffectTypes.Pressure, -1,
+            EffectTypes.Pressure, 1,
             new List<TagModification>
             {
                 TagModification.IncreaseApproach(ApproachTags.Analysis),
@@ -238,7 +238,7 @@ public class CardRepository
             1,
             ApproachTags.Precision, 0,  // Changed from 1 to 0
             FocusTags.Physical, 0,  // Changed from 1 to 0
-            EffectTypes.Pressure, -1,
+            EffectTypes.Pressure, 1,
             new List<TagModification>
             {
                 TagModification.IncreaseApproach(ApproachTags.Precision),
@@ -310,7 +310,7 @@ public class CardRepository
             1,
             ApproachTags.Concealment, 0,  // Changed from 1 to 0
             FocusTags.Physical, 0,  // Changed from 1 to 0
-            EffectTypes.Pressure, -1,
+            EffectTypes.Pressure, 1,
             new List<TagModification>
             {
                 TagModification.IncreaseApproach(ApproachTags.Concealment),
