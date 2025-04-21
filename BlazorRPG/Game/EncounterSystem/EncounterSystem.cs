@@ -217,7 +217,7 @@
     {
         if (IsGameOver(gameState.PlayerState))
         {
-            Console.WriteLine("Game Over");
+            throw new Exception("Game Over");
         }
 
         EncounterManager encounterManager = GetCurrentEncounter();

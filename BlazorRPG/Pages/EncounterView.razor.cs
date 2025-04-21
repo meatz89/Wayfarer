@@ -14,8 +14,8 @@ public partial class EncounterViewBase : ComponentBase
 
     public UserEncounterChoiceOption hoveredChoice;
     public bool showTooltip;
-    public double mouseX;
-    public double mouseY;
+    public double tooltipX;
+    public double tooltipY;
 
     public bool IsLoading = true;
     public ApproachTags[] GetApproachTags() => Enum.GetValues<ApproachTags>().Where(x => x != ApproachTags.None).ToArray();
@@ -227,18 +227,16 @@ public partial class EncounterViewBase : ComponentBase
     public async Task ShowTooltip(UserEncounterChoiceOption choice, MouseEventArgs e)
     {
         hoveredChoice = choice;
+        
         showTooltip = true;
-        mouseX = e.ClientX + 10;
-        mouseY = e.ClientY + 10;
+        tooltipX = e.ClientX + 10;
+        tooltipY = e.ClientY + 10;
 
         // Get dimensions using JavaScript interop
         Dimensions dimensions = await JSRuntime.InvokeAsync<Dimensions>("getDimensions");
 
         // Adjust mouseY if the tooltip would overflow
-        if (mouseY + dimensions.TooltipHeight > dimensions.WindowHeight)
-        {
-            mouseY = e.ClientY - dimensions.TooltipHeight - 10; // Position above, with offset
-        }
+        tooltipY = e.ClientY - dimensions.TooltipHeight - 10; // Position above, with offset
     }
 
     public void HideTooltip()
@@ -249,8 +247,8 @@ public partial class EncounterViewBase : ComponentBase
 
     public void OnMouseMove(MouseEventArgs e)
     {
-        mouseX = e.ClientX + 10;
-        mouseY = e.ClientY + 10;
+        tooltipX = e.ClientX + 10;
+        tooltipY = e.ClientY + 10;
     }
 
     public int GetCurrentValue(ValueTypes changeType)
