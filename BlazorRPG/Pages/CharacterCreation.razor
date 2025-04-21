@@ -1,40 +1,46 @@
 ﻿<div class="character-container">
-    <h2>Create Your Character</h2>
-    <p class="secondary-text">Choose your name and profession to begin your journey</p>
-
+    <h2>Choose Your Character</h2>
     <div class="tooltip-section">
         <h4>Choose Your Profession</h4>
-        <div class="archetype-grid">
-            @foreach (ArchetypeTypes archetype in Enum.GetValues(typeof(ArchetypeTypes)))
-            {
-                <div class="archetype-card @(selectedArchetype == archetype ? "selected" : "")"
-                     @onclick="() => SelectArchetype(archetype)">
+        <div class="archetype-selection">
+            <div class="archetype-options">
+                @foreach (ArchetypeTypes archetype in Enum.GetValues(typeof(ArchetypeTypes)))
+                {
+                    <div class="archetype-option @(selectedArchetype == archetype ? "selected" : "")"
+                         @onclick="() => SelectArchetype(archetype)">
+                        <span class="archetype-name">@FormatArchetypeName(archetype)</span>
+                        <span class="archetype-brief">@GetShortDescription(archetype)</span>
+                    </div>
+                }
+            </div>
+
+            <div class="archetype-details">
+                @if (selectedArchetype != null)
+                {
                     <div class="archetype-portrait">
-                        <img src="/images/characters/@(archetype.ToString().ToLower()).png" alt="@FormatArchetypeName(archetype)" />
+                        <img src="/images/characters/@(selectedArchetype.ToString().ToLower()).png" alt="@FormatArchetypeName(selectedArchetype)" />
                     </div>
                     <div class="archetype-content">
-                        <div class="archetype-name-bold">@FormatArchetypeName(archetype)</div>
-                        <div class="archetype-description">@GetArchetypeDescription(archetype)</div>
-                        <div>
+                        <h3 class="archetype-title">@FormatArchetypeName(selectedArchetype)</h3>
+                        <p class="archetype-description">@GetArchetypeDescription(selectedArchetype)</p>
+
+                        <div class="archetype-advantages">
                             <strong>Advantages:</strong>
-                            <div class="archetype-approaches">@GetNaturalTags(archetype)</div>
+                            <div class="archetype-approaches">@GetNaturalTags(selectedArchetype)</div>
                         </div>
+
                         <div class="starting-items">
                             <strong>Starting Items:</strong>
                             <div class="items-list">
-                                @foreach (string item in GetStartingItems(archetype))
+                                @foreach (string item in GetStartingItems(selectedArchetype))
                                 {
                                     <div class="item">@item</div>
                                 }
                             </div>
                         </div>
                     </div>
-                    @if (selectedArchetype == archetype)
-                    {
-                        <div class="selected-indicator">✓</div>
-                    }
-                </div>
-            }
+                }
+            </div>
         </div>
     </div>
 
@@ -63,6 +69,18 @@
     private void SelectArchetype(ArchetypeTypes archetype)
     {
         selectedArchetype = archetype;
+    }
+
+    private string GetShortDescription(ArchetypeTypes archetype)
+    {
+        // Return a shortened version of the description (just first sentence or two)
+        string fullDesc = GetArchetypeDescription(archetype);
+        int endPos = fullDesc.IndexOf('.');
+
+        if (endPos > 0 && endPos < fullDesc.Length - 1)
+            return fullDesc.Substring(0, endPos + 1);
+        else
+            return fullDesc;
     }
 
     private bool IsValid()
