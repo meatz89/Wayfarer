@@ -1285,6 +1285,98 @@ tooltip:hover:before {
 }
 
 /* ==================== Character Creation ==================== */
+
+/* Character section styling */
+.player-character {
+    background-color: var(--bg-card);
+    border-radius: 5px;
+    padding: 12px 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.character-detail {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--oak-mid);
+}
+
+    .character-detail:last-of-type {
+        border-bottom: none;
+        margin-bottom: 8px;
+    }
+
+.detail-label {
+    color: var(--text-secondary);
+    font-family: var(--font-primary);
+    font-size: 0.9rem;
+}
+
+.detail-value {
+    font-family: var(--font-tertiary);
+    color: var(--text-primary);
+}
+
+/* Skills section styling */
+.skills-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.player-skill {
+    background-color: var(--bg-card);
+    padding: 10px 12px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.skill-icon {
+    width: 24px;
+    text-align: center;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.skill-label {
+    margin-right: 15px;
+    flex-shrink: 0;
+    color: var(--text-secondary);
+    width: 80px;
+}
+
+.skill-bar {
+    flex-grow: 1;
+    height: 10px;
+    background-color: var(--bg-panel);
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+}
+
+.skill-progress {
+    height: 100%;
+    background-color: var(--leather);
+    border-radius: 5px;
+    transition: width 0.3s ease;
+}
+
+.skill-level {
+    position: absolute;
+    right: 0px;
+    top: -5px;
+    font-size: 0.7rem;
+    color: var(--text-primary);
+    background-color: var(--bg-card);
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
 .character-creation {
     max-width: 800px;
     margin: 0 auto;
@@ -1331,7 +1423,7 @@ tooltip:hover:before {
     padding: 0.8rem;
     display: flex;
     align-items: center;
-    margin-bottom: 1rem;
+    justify-content: center;
 }
 
 .action-message {
