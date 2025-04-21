@@ -176,11 +176,54 @@ body {
     margin-bottom: 1rem;
 }
 
+/* Enhanced archetype card styling */
 .archetype-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(540px, 1fr));
     gap: 20px;
     margin-bottom: 2rem;
+}
+
+.archetype-card {
+    display: flex;
+    gap: 15px;
+    min-height: 240px;
+}
+
+.archetype-portrait {
+    width: 160px;
+    height: 240px;
+    flex-shrink: 0;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid var(--oak-mid);
+}
+
+    .archetype-portrait img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+.archetype-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.selected-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: var(--leather);
+    color: var(--parchment);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
 }
 
 .properties-grid {
@@ -650,6 +693,21 @@ body {
     display: flex;
     align-items: center;
 }
+
+.items-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 0.5rem;
+}
+
+    .items-list .item {
+        background-color: var(--bg-panel);
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-size: 0.9em;
+        color: var(--text-secondary);
+    }
 
 .item-icon {
     width: 24px;
