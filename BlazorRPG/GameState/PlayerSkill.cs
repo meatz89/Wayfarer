@@ -2,11 +2,11 @@
 {
     private static Dictionary<SkillTypes, int> List = new Dictionary<SkillTypes, int>();
 
-    public static int Navigation => List[SkillTypes.Subterfuge];
-    public static int Foraging => List[SkillTypes.Warfare];
-    public static int Herbalism => List[SkillTypes.Wilderness];
-    public static int Perception => List[SkillTypes.Scholarship];
-    public static int Social => List[SkillTypes.Diplomacy];
+    public static int Subterfuge => List[SkillTypes.Subterfuge];
+    public static int Warfare => List[SkillTypes.Warfare];
+    public static int Wilderness => List[SkillTypes.Wilderness];
+    public static int Scholarship => List[SkillTypes.Scholarship];
+    public static int Diplomacy => List[SkillTypes.Diplomacy];
 
     public static void Initialize()
     {

@@ -111,23 +111,66 @@
             {
                 <div class="game-sidebar">
                     <div class="sidebar-section">
-                        <div class="section-header">Location Info</div>
-                        <div class="properties-grid">
-                            @foreach (var prop in GetLocationProperties(GetCurrentLocation()))
-                            {
-                                <div class="property-tag @prop.CssClass">
-                                    <span class="property-icon">@prop.Icon</span>
-                                    <span class="property-text">@prop.Text</span>
-                                </div>
-                            }
+                        <div class="section-header">Character</div>
+                        <div class="player-character">
+                            <div class="character-detail">
+                                <span class="detail-label">Name:</span>
+                                <span class="detail-value">@PlayerState.Name</span>
+                            </div>
+                            <div class="character-detail">
+                                <span class="detail-label">Gender:</span>
+                                <span class="detail-value">@PlayerState.Gender</span>
+                            </div>
+                            <div class="player-archetype">
+                                <span class="archetype-icon">@GetArchetypeIcon(PlayerState.Archetype)</span>
+                                <span class="archetype-name">@PlayerState.Archetype</span>
+                            </div>
                         </div>
                     </div>
 
                     <div class="sidebar-section">
-                        <div class="section-header">Archetype</div>
-                        <div class="player-archetype">
-                            <span class="archetype-icon">@GetArchetypeIcon(PlayerState.Archetype)</span>
-                            <span class="archetype-name">@PlayerState.Archetype</span>
+                        <div class="section-header">Skills</div>
+                        <div class="skills-grid">
+                            <div class="player-skill">
+                                <span class="skill-icon">⚔️</span>
+                                <span class="skill-label">Warfare</span>
+                                <div class="skill-bar">
+                                    <div class="skill-progress" style="width: @(PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Warfare) * 20)%"></div>
+                                    <span class="skill-level">@PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Warfare)</span>
+                                </div>
+                            </div>
+                            <div class="player-skill">
+                                <span class="skill-icon">🌲</span>
+                                <span class="skill-label">Wilderness</span>
+                                <div class="skill-bar">
+                                    <div class="skill-progress" style="width: @(PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Wilderness) * 20)%"></div>
+                                    <span class="skill-level">@PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Wilderness)</span>
+                                </div>
+                            </div>
+                            <div class="player-skill">
+                                <span class="skill-icon">📚</span>
+                                <span class="skill-label">Scholarship</span>
+                                <div class="skill-bar">
+                                    <div class="skill-progress" style="width: @(PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Scholarship) * 20)%"></div>
+                                    <span class="skill-level">@PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Scholarship)</span>
+                                </div>
+                            </div>
+                            <div class="player-skill">
+                                <span class="skill-icon">🤝</span>
+                                <span class="skill-label">Diplomacy</span>
+                                <div class="skill-bar">
+                                    <div class="skill-progress" style="width: @(PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Diplomacy) * 20)%"></div>
+                                    <span class="skill-level">@PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Diplomacy)</span>
+                                </div>
+                            </div>
+                            <div class="player-skill">
+                                <span class="skill-icon">🕵️</span>
+                                <span class="skill-label">Subterfuge</span>
+                                <div class="skill-bar">
+                                    <div class="skill-progress" style="width: @(PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Subterfuge) * 20)%"></div>
+                                    <span class="skill-level">@PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Subterfuge)</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
