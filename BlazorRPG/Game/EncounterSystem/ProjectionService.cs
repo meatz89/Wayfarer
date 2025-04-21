@@ -149,7 +149,7 @@
     private void CalculateDamageFromPressure(CardDefinition choice, ChoiceProjection projection, PlayerState playerState, int currentPressure, int choicePressure)
     {
         int injuryEffect = 0;
-        injuryEffect = -currentPressure;
+        //injuryEffect = -currentPressure;
 
         if (injuryEffect != 0)
         {
