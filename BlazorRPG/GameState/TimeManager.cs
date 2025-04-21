@@ -54,39 +54,32 @@
         Location currentLocation = worldState.CurrentLocation;
         if (currentLocation == null) return;
 
-        // Only modify illumination based on time, preserving other properties
-        switch (worldState.WorldTime)
+        List<LocationSpot> locationSpots = currentLocation.LocationSpots;
+
+        foreach (LocationSpot locationSpot in locationSpots)
         {
-            case TimeWindows.Morning:
-            case TimeWindows.Afternoon:
-                ModifyLocationIllumination(currentLocation, Illumination.Bright);
-                break;
+            switch (worldState.WorldTime)
+            {
+                case TimeWindows.Morning:
+                case TimeWindows.Afternoon:
+                    ModifyLocationIllumination(locationSpot, Illumination.Bright);
+                    break;
 
-            case TimeWindows.Evening:
-                ModifyLocationIllumination(currentLocation, Illumination.Shadowy);
-                break;
+                case TimeWindows.Evening:
+                    ModifyLocationIllumination(locationSpot, Illumination.Shadowy);
+                    break;
 
-            case TimeWindows.Night:
-                ModifyLocationIllumination(currentLocation, Illumination.Dark);
-                break;
+                case TimeWindows.Night:
+                    ModifyLocationIllumination(locationSpot, Illumination.Dark);
+                    break;
+            }
         }
     }
 
     // Change SetLocationIllumination to ModifyLocationIllumination to clarify its limited role
-    private void ModifyLocationIllumination(Location location, Illumination illumination)
+    private void ModifyLocationIllumination(LocationSpot locationSpot, Illumination illumination)
     {
-        // Find and replace existing illumination property
-        for (int i = 0; i < location.EnvironmentalProperties.Count; i++)
-        {
-            if (location.EnvironmentalProperties[i] is Illumination)
-            {
-                location.EnvironmentalProperties[i] = illumination;
-                return;
-            }
-        }
-
-        // If no illumination property exists, add one
-        location.EnvironmentalProperties.Add(illumination);
+        locationSpot.Illumination = illumination;
     }
 
     // Handle day change effects

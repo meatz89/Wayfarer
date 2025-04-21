@@ -168,7 +168,7 @@ public class PromptManager
 
     public string BuildReactionPrompt(
         NarrativeContext context,
-        ChoiceCard chosenOption,
+        CardDefinition chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         EncounterStatusModel state)
@@ -240,7 +240,7 @@ public class PromptManager
 
     public string BuildChoicesPrompt(
         NarrativeContext context,
-        List<ChoiceCard> choices,
+        List<CardDefinition> choices,
         List<ChoiceProjection> projections,
         EncounterStatusModel state)
     {
@@ -266,7 +266,7 @@ public class PromptManager
         string choicesInfo = "";
         for (int i = 0; i < choices.Count; i++)
         {
-            ChoiceCard choice = choices[i];
+            CardDefinition choice = choices[i];
             ChoiceProjection projection = projections[i];
 
             string choiceText = $"\nCHOICE {i + 1}:\n- Approach used: {choice.Approach}\n- Built on Focus Tag: {choice.Focus}";
@@ -365,7 +365,7 @@ public class PromptManager
         NarrativeContext context,
         EncounterStatusModel finalState,
         EncounterOutcomes outcome,
-        ChoiceCard finalChoice,
+        CardDefinition finalChoice,
         ChoiceNarrative choiceDescription
         )
     {

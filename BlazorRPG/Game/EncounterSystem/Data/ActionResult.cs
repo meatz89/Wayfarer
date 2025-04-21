@@ -13,5 +13,5 @@
 
 public class ActionCreationResult
 {
-    public ActionTemplate Action { get; set; }
+    public ActionDefinition Action { get; set; }
 }

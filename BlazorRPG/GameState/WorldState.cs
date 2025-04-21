@@ -16,6 +16,28 @@
 
     public List<string> CompletedEncounters { get; } = new List<string>();
 
+    public List<string> KnownLocationSpotIds { get; } = new List<string>();
+    public List<string> UnlockedActionIds { get; } = new List<string>();
+    public Dictionary<string, int> TravelDiscounts { get; } = new Dictionary<string, int>();
+    public Dictionary<string, int> EncounterChanceReductions { get; } = new Dictionary<string, int>();
+    public Dictionary<string, float> EfficiencyBoosts { get; } = new Dictionary<string, float>();
+    private Dictionary<string, int> ActionCounts { get; } = new Dictionary<string, int>();
+
+    // Method to track action counts for ProgressiveAction conditions
+    public int GetActionCount(string actionId)
+    {
+        if (ActionCounts.TryGetValue(actionId, out int count))
+            return count;
+        return 0;
+    }
+
+    public void IncrementActionCount(string actionId)
+    {
+        if (!ActionCounts.ContainsKey(actionId))
+            ActionCounts[actionId] = 0;
+
+        ActionCounts[actionId]++;
+    }
 
     public void SetLocationDepth(string locationId, int depth)
     {
@@ -213,7 +235,7 @@
     {
         this.CurrentTimeInHours += hours;
     }
-    
+
     public bool IsEncounterCompleted(string actionId)
     {
         return CompletedEncounters.Contains(actionId);

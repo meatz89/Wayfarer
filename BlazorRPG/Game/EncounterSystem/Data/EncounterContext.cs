@@ -10,6 +10,6 @@
     public List<string> PreviousInteractions { get; set; }
 
     public ActionImplementation ActionImplementation;
-    public BasicActionTypes BasicActionType;
-    public ChoiceCard LastChoice;
+    public EncounterTypes BasicActionType;
+    public CardDefinition LastChoice;
 }

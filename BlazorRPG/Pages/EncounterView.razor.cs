@@ -21,12 +21,16 @@ public partial class EncounterViewBase : ComponentBase
     public ApproachTags[] GetApproachTags() => Enum.GetValues<ApproachTags>().Where(x => x != ApproachTags.None).ToArray();
     public FocusTags[] GetFocusTags() => Enum.GetValues<FocusTags>().Where(x => true).ToArray();
     public EncounterResult EncounterResult { get; private set; }
+    public List<UserEncounterChoiceOption> CurrentChoices = new List<UserEncounterChoiceOption>();
+
     public bool IsChoiceDisabled(UserEncounterChoiceOption userEncounterChoiceOption) => userEncounterChoiceOption.Choice.IsBlocked;
     public EncounterViewModel Model;
-    
+
     protected override async Task OnInitializedAsync()
     {
         Model = GetModel();
+        GetChoices();
+
         if (EncounterManager != null && Model != null)
         {
             IsLoading = false;
@@ -35,10 +39,40 @@ public partial class EncounterViewBase : ComponentBase
         {
             IsLoading = true;
         }
+
+        StateHasChanged();
     }
     private EncounterViewModel GetModel()
     {
         EncounterViewModel? encounterViewModel = GameManager.GetEncounterViewModel();
+
+        if (encounterViewModel == null)
+        {
+            encounterViewModel = CreateGameOverModel();
+        }
+
+        return encounterViewModel;
+    }
+
+    private EncounterViewModel CreateGameOverModel()
+    {
+        EncounterViewModel encounterViewModel = new EncounterViewModel()
+        {
+            ChoiceSetName = "None",
+            CurrentChoices = new List<UserEncounterChoiceOption>(),
+            CurrentEncounter = null,
+            State = EncounterState.Last,
+            EncounterResult = new EncounterResult()
+            {
+                ActionImplementation = null,
+                ActionResult = ActionResults.GameOver,
+                EncounterEndMessage = "Game Over",
+                NarrativeContext = null,
+                PostEncounterEvolution = null,
+                NarrativeResult = null
+            }
+        };
+
         return encounterViewModel;
     }
 
@@ -51,8 +85,13 @@ public partial class EncounterViewBase : ComponentBase
         EncounterResult result = await GameManager.ExecuteEncounterChoice(choice);
         await CheckEncounterCompleted(result);
 
+        Model = GetModel();
+        GetChoices();
+
         HideTooltip();
         IsLoading = false;
+
+        StateHasChanged();
     }
 
     private async Task CheckEncounterCompleted(EncounterResult result)
@@ -74,17 +113,17 @@ public partial class EncounterViewBase : ComponentBase
         return properties;
     }
 
-    public List<UserEncounterChoiceOption> GetChoices()
+    public void GetChoices()
     {
-        List<UserEncounterChoiceOption> userEncounterChoiceOptions = Model.CurrentChoices;
-        return userEncounterChoiceOptions;
+        CurrentChoices = GameManager.GetChoices();
+        StateHasChanged();
     }
 
     public string GetChoiceName(UserEncounterChoiceOption choiceOption)
     {
-        ChoiceCard card = choiceOption.Choice;
+        CardDefinition card = choiceOption.Choice;
         NarrativeResult narrativeResult = Model.EncounterResult.NarrativeResult;
-        Dictionary<ChoiceCard, ChoiceNarrative> choiceDescriptions = narrativeResult?.ChoiceDescriptions;
+        Dictionary<CardDefinition, ChoiceNarrative> choiceDescriptions = narrativeResult?.ChoiceDescriptions;
         ChoiceNarrative choiceNarrative = null;
 
         if (choiceDescriptions != null && choiceDescriptions.ContainsKey(card))
@@ -102,11 +141,11 @@ public partial class EncounterViewBase : ComponentBase
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
-        if (EncounterManager.EncounterState?.EncounterInfo?.AvailableTags == null)
+        if (EncounterManager.EncounterState?.EncounterInfo?.AllEncounterTags == null)
             return properties;
 
         // Get all available tags that aren't currently active
-        foreach (IEncounterTag tag in EncounterManager.EncounterState.EncounterInfo.AvailableTags)
+        foreach (IEncounterTag tag in EncounterManager.EncounterState.EncounterInfo.AllEncounterTags)
         {
             // Skip if the tag is already active
             if (EncounterManager.EncounterState.ActiveTags.Any(t => t.NarrativeName == tag.NarrativeName))
@@ -134,7 +173,7 @@ public partial class EncounterViewBase : ComponentBase
         // Determine icon based on tag type
         if (tag is NarrativeTag)
             return "📜"; // Narrative tag icon
-        else if (tag is EnvironmentPropertyTag)
+        else if (tag is StrategicTag)
             return "⚙️"; // Strategic tag icon
 
         return "🏷️"; // Default tag icon
@@ -145,7 +184,7 @@ public partial class EncounterViewBase : ComponentBase
         // Determine CSS class based on tag type
         if (tag is NarrativeTag)
             return "narrative-tag";
-        else if (tag is EnvironmentPropertyTag)
+        else if (tag is StrategicTag)
             return "strategic-tag";
 
         return "";
@@ -161,7 +200,7 @@ public partial class EncounterViewBase : ComponentBase
             if (narrativeTag.AffectedFocus != null)
                 tooltip.AppendLine($"{narrativeTag.GetEffectDescription()}");
         }
-        else if (tag is EnvironmentPropertyTag strategicTag)
+        else if (tag is StrategicTag strategicTag)
         {
             tooltip.AppendLine(strategicTag.GetEffectDescription());
         }
@@ -173,7 +212,7 @@ public partial class EncounterViewBase : ComponentBase
     {
         // Find the tag by name and use its description method
         IEncounterTag tag = EncounterManager.EncounterState.ActiveTags.FirstOrDefault(t => t.NarrativeName == tagName);
-        if (tag is EnvironmentPropertyTag strategicTag)
+        if (tag is StrategicTag strategicTag)
         {
             return strategicTag.GetEffectDescription();
         }
@@ -234,7 +273,7 @@ public partial class EncounterViewBase : ComponentBase
         {
             ValueTypes.Momentum => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
             ValueTypes.Pressure => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
-            ValueTypes.Health => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
+            ValueTypes.Health => new MarkupString("<i class='value-icon physical-icon'>⚡</i>"),
             ValueTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
             ValueTypes.Confidence => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
             _ => new MarkupString("")

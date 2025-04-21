@@ -1,7 +1,7 @@
 ﻿public class TagManager
 {
     public EncounterTagSystem EncounterTagSystem { get; }
-    public List<IEncounterTag> ActiveTags { get; }
+    public List<IEncounterTag> EncounterTags { get; }
 
     private readonly Dictionary<FocusTags, int> _focusMomentumBonuses = new Dictionary<FocusTags, int>();
     private readonly Dictionary<FocusTags, int> _focusPressureModifiers = new Dictionary<FocusTags, int>();
@@ -9,7 +9,7 @@
     public TagManager()
     {
         EncounterTagSystem = new EncounterTagSystem();
-        ActiveTags = new List<IEncounterTag>();
+        EncounterTags = new List<IEncounterTag>();
         InitializeDictionaries();
     }
 
@@ -22,20 +22,20 @@
         }
     }
 
-    public void UpdateActiveTags(IEnumerable<IEncounterTag> locationTags)
+    public void CreateEncounterTags(List<IEncounterTag> locationTags)
     {
-        HashSet<string> previouslyActive = new HashSet<string>(ActiveTags.Select(t => t.NarrativeName));
+        HashSet<string> previouslyActive = new(EncounterTags.Select(t => t.NarrativeName));
 
-        ActiveTags.Clear();
+        EncounterTags.Clear();
         ResetTagEffects();
 
         foreach (IEncounterTag tag in locationTags)
         {
-            bool shouldActivate = tag is EnvironmentPropertyTag || (tag is NarrativeTag);
+            bool shouldActivate = tag is StrategicTag || (tag is NarrativeTag);
 
             if (shouldActivate)
             {
-                ActiveTags.Add(tag);
+                EncounterTags.Add(tag);
             }
         }
     }
@@ -50,7 +50,7 @@
 
     }
 
-    public int GetTotalMomentum(ChoiceCard choice, int baseMomentum)
+    public int GetTotalMomentum(CardDefinition choice, int baseMomentum)
     {
         int total = baseMomentum;
 
@@ -60,7 +60,7 @@
         return total;
     }
 
-    public int GetTotalPressure(ChoiceCard choice, int basePressure)
+    public int GetTotalPressure(CardDefinition choice, int basePressure)
     {
         int total = basePressure;
 
@@ -86,49 +86,13 @@
         _focusPressureModifiers[focus] += modifier;
     }
 
-    public List<IEncounterTag> GetNewlyActivatedTags(EncounterTagSystem projectedTags, IEnumerable<IEncounterTag> locationTags)
-    {
-        List<IEncounterTag> newlyActivated = new List<IEncounterTag>();
-
-        foreach (IEncounterTag tag in locationTags)
-        {
-            bool wasActive = ActiveTags.Any(t => t.NarrativeName == tag.NarrativeName);
-            bool willBeActive = tag is EnvironmentPropertyTag || (tag is NarrativeTag && tag.IsActive(projectedTags));
-
-            if (!wasActive && willBeActive)
-            {
-                newlyActivated.Add(tag);
-            }
-        }
-
-        return newlyActivated;
-    }
-
-    public List<IEncounterTag> GetDeactivatedTags(EncounterTagSystem projectedTags, IEnumerable<IEncounterTag> locationTags)
-    {
-        List<IEncounterTag> deactivated = new List<IEncounterTag>();
-
-        foreach (IEncounterTag tag in locationTags)
-        {
-            bool wasActive = ActiveTags.Any(t => t.NarrativeName == tag.NarrativeName);
-            bool willBeActive = tag is EnvironmentPropertyTag || (tag is NarrativeTag && tag.IsActive(projectedTags));
-
-            if (wasActive && !willBeActive)
-            {
-                deactivated.Add(tag);
-            }
-        }
-
-        return deactivated;
-    }
-
     public EncounterTagSystem CloneTagSystem() => EncounterTagSystem.Clone();
 
-    public List<EnvironmentPropertyTag> GetStrategicActiveTags()
+    public List<StrategicTag> GetStrategicActiveTags()
     {
-        List<EnvironmentPropertyTag> list = ActiveTags
-            .Where(x => x is EnvironmentPropertyTag strategicTag)
-            .Select(x => (EnvironmentPropertyTag)x)
+        List<StrategicTag> list = EncounterTags
+            .Where(x => x is StrategicTag strategicTag)
+            .Select(x => (StrategicTag)x)
             .ToList();
 
         return list;
@@ -136,7 +100,7 @@
 
     public List<NarrativeTag> GetNarrativeActiveTags()
     {
-        List<NarrativeTag> list = ActiveTags
+        List<NarrativeTag> list = EncounterTags
             .Where(x => x is NarrativeTag narrativeTag)
             .Select(x => (NarrativeTag)x)
             .ToList();

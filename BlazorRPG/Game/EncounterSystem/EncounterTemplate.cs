@@ -9,8 +9,8 @@
     public int StandardThreshold = 16;
     public int ExceptionalThreshold = 20;
 
-    public EncounterInfo.HostilityLevels Hostility = EncounterInfo.HostilityLevels.Neutral;
+    public Encounter.HostilityLevels Hostility = Encounter.HostilityLevels.Neutral;
 
     public List<NarrativeTag> EncounterNarrativeTags { get; set; } = new List<NarrativeTag>();
-    public List<EnvironmentPropertyTag> encounterStrategicTags { get; set; } = new List<EnvironmentPropertyTag>();
+    public List<StrategicTag> EncounterStrategicTags { get; set; } = new List<StrategicTag>();
 }

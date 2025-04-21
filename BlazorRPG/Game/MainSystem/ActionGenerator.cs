@@ -2,18 +2,21 @@
 {
     private readonly NarrativeService _narrativeService;
     private readonly ActionRepository _repository;
-
+    private readonly WorldStateInputCreator worldStateInputCreator;
+    private readonly IConfiguration configuration;
     public ActionGenerator(
         NarrativeService narrativeService,
-        ActionRepository repository)
+        ActionRepository repository,
+        WorldStateInputCreator worldStateInputCreator,
+        IConfiguration configuration)
     {
         _narrativeService = narrativeService;
         _repository = repository;
+        this.worldStateInputCreator = worldStateInputCreator;
+        this.configuration = configuration;
     }
 
     public async Task<string> GenerateActionAndEncounter(
-        WorldStateInput worldStateInput,
-        string actionId,
         string actionName,
         string locationSpotName,
         string locationName,
@@ -21,24 +24,56 @@
         string complication = "",
         string basicActionType = "")
     {
-        ActionGenerationContext context = new ActionGenerationContext
+        ActionDefinition actionDefinition = GetDefaultActionDefinition(actionName, locationSpotName, locationName);
+
+        if (configuration.GetValue<bool>("actionGeneration"))
         {
-            ActionId = actionId,
-            SpotName = locationSpotName,
-            LocationName = locationName,
-            Goal = goal,
-            Complication = complication,
-            BasicActionType = basicActionType
-        };
+            ActionGenerationContext context = new ActionGenerationContext
+            {
+                ActionId = actionName.Replace(" ", ""),
+                SpotName = locationSpotName,
+                LocationName = locationName,
+                Goal = goal,
+                Complication = complication,
+                BasicActionType = basicActionType
+            };
 
-        // Get action and encounter details from AI
-        string jsonResponse = await _narrativeService.GenerateActionsAsync(context, worldStateInput);
+            // Get action and encounter details from AI
+            WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(locationName);
 
-        // Parse the response
-        ActionCreationResult result = ActionJsonParser.Parse(jsonResponse);
+            string jsonResponse = await _narrativeService.GenerateActionsAsync(context, worldStateInput);
 
-        actionId = _repository.AddActionTemplate(actionId, result.Action);
+            // Parse the response
+            ActionCreationResult result = ActionJsonParser.Parse(jsonResponse);
+            actionDefinition = result.Action;
+        }
+
+        string actionId = _repository.AddActionTemplate(actionDefinition);
         return actionId;
+    }
+
+    private ActionDefinition GetDefaultActionDefinition(
+        string actionName,
+        string locationSpotName,
+        string locationName)
+    {
+        ActionDefinition actionDefinition = new()
+        {
+            Id = actionName,
+            Category = ActionCategories.Exploration,
+            Difficulty = 1,
+            Goal = "Goal",
+            Complication = "Complication",
+            Description = "Description",
+            EncounterChance = 50,
+            IsRepeatable = true,
+            EnergyCost = 1,
+            TimeCost = 1,
+            EncounterType = EncounterTypes.Intellectual,
+            LocationName = locationName,
+            LocationSpotName = locationSpotName
+        };
+        return actionDefinition;
     }
 
     public EncounterTemplate CreateEncounterTemplate(string id, EncounterTemplateModel model)
@@ -53,58 +88,19 @@
             StandardThreshold = model.StandardThreshold,
             ExceptionalThreshold = model.ExceptionalThreshold,
             Hostility = ParseHostility(model.Hostility),
-            encounterStrategicTags = model.StrategicTags.Select(t =>
-                new EnvironmentPropertyTag(
-                    t.Name,
-                    ParseEnvironmentalProperty(t.EnvironmentalProperty))
-            ).ToList(),
+            EncounterStrategicTags = new()
         };
 
         return template;
     }
 
-    private IEnvironmentalProperty ParseEnvironmentalProperty(string property)
-    {
-        // Create the appropriate environmental property
-        if (property.Equals("Bright", StringComparison.OrdinalIgnoreCase))
-            return Illumination.Bright;
-        if (property.Equals("Shadowy", StringComparison.OrdinalIgnoreCase))
-            return Illumination.Shadowy;
-        if (property.Equals("Dark", StringComparison.OrdinalIgnoreCase))
-            return Illumination.Dark;
-
-        if (property.Equals("Crowded", StringComparison.OrdinalIgnoreCase))
-            return Population.Crowded;
-        if (property.Equals("Quiet", StringComparison.OrdinalIgnoreCase))
-            return Population.Quiet;
-        if (property.Equals("Isolated", StringComparison.OrdinalIgnoreCase))
-            return Population.Scholarly;
-
-        if (property.Equals("Rough", StringComparison.OrdinalIgnoreCase))
-            return Atmosphere.Rough;
-        if (property.Equals("Formal", StringComparison.OrdinalIgnoreCase))
-            return Atmosphere.Formal;
-        if (property.Equals("Chaotic", StringComparison.OrdinalIgnoreCase))
-            return Atmosphere.Chaotic;
-
-        if (property.Equals("Confined", StringComparison.OrdinalIgnoreCase))
-            return Physical.Confined;
-        if (property.Equals("Expansive", StringComparison.OrdinalIgnoreCase))
-            return Physical.Expansive;
-        if (property.Equals("Hazardous", StringComparison.OrdinalIgnoreCase))
-            return Physical.Hazardous;
-
-        // Default fallback
-        return Illumination.Bright;
-    }
-
-    private EncounterInfo.HostilityLevels ParseHostility(string hostility)
+    private Encounter.HostilityLevels ParseHostility(string hostility)
     {
         return hostility.ToLower() switch
         {
-            "friendly" => EncounterInfo.HostilityLevels.Friendly,
-            "hostile" => EncounterInfo.HostilityLevels.Hostile,
-            _ => EncounterInfo.HostilityLevels.Neutral
+            "friendly" => Encounter.HostilityLevels.Friendly,
+            "hostile" => Encounter.HostilityLevels.Hostile,
+            _ => Encounter.HostilityLevels.Neutral
         };
     }
 

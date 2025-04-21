@@ -3,39 +3,42 @@
 /// Then apply EffectType
 /// But Consider ApproachTag
 /// </summary>
-public class StrategicEffect
+public class EnvironmentalPropertyEffect
 {
     public string Name;
-    public StrategicTagEffectType EffectType { get; }
-    public ApproachTags TargetApproach { get; }
-
     public List<IEnvironmentalProperty> ActivationProperties { get; }
+    public StrategicTagEffectType EffectType { get; }
 
-    public StrategicEffect(
-        List<IEnvironmentalProperty> activationProperties, 
-        StrategicTagEffectType effectType, 
+    public EffectTargetTypes TargetId { get; set; }
+    public ApproachTags TargetApproach { get; }
+    public float Multiplier { get; set; }
+
+    public EnvironmentalPropertyEffect(
+        List<IEnvironmentalProperty> activationProperties,
+        StrategicTagEffectType effectType,
         ApproachTags scalingApproach,
-        int mult = 1)
+        int multiplier = 1)
     {
         ActivationProperties = activationProperties;
         EffectType = effectType;
         TargetApproach = scalingApproach;
+        Multiplier = multiplier;
     }
 
     public override string ToString()
     {
         string activationProperties = string.Empty;
-        foreach (var property in ActivationProperties)
+        foreach (IEnvironmentalProperty property in ActivationProperties)
         {
-            if(!string.IsNullOrWhiteSpace(activationProperties)) activationProperties += ", ";
+            if (!string.IsNullOrWhiteSpace(activationProperties)) activationProperties += ", ";
             activationProperties += property.ToString();
         }
 
         string effectDesc = $"{activationProperties}: {EffectType.ToString()} for each point of {TargetApproach.ToString()}";
-        return effectDesc ;
+        return effectDesc;
     }
 
-    public bool IsActive(EnvironmentPropertyTag strategicTag)
+    public bool IsActive(StrategicTag strategicTag)
     {
         if (ActivationProperties.Contains(strategicTag.EnvironmentalProperty))
             return true;
@@ -43,7 +46,7 @@ public class StrategicEffect
         return false;
     }
 
-    public int GetMomentumModifierForTag(EnvironmentPropertyTag tag, EncounterTagSystem tagSystem)
+    public int GetMomentumModifierForTag(StrategicTag tag, EncounterTagSystem tagSystem)
     {
         bool propertiesMatch = IsActive(tag);
 
@@ -53,7 +56,7 @@ public class StrategicEffect
              EffectType == StrategicTagEffectType.DecreaseMomentum))
         {
             // Get current approach value
-            int approachValue = tagSystem.GetEncounterStateTagValue(TargetApproach);
+            int approachValue = tagSystem.GetApproachTagValue(TargetApproach);
 
             // Calculate linear effect: 1 point per approach point
             int effectValue = approachValue;
@@ -66,16 +69,16 @@ public class StrategicEffect
         return 0;
     }
 
-    public int GetPressureModifierForTag(EnvironmentPropertyTag tag, EncounterTagSystem tagSystem)
+    public int GetPressureModifierForTag(StrategicTag tag, EncounterTagSystem tagSystem)
     {
         bool propertiesMatch = IsActive(tag);
-        
+
         // Only apply if properties match and effect types align
         if (propertiesMatch &&
             (EffectType == StrategicTagEffectType.IncreasePressure ||
              EffectType == StrategicTagEffectType.DecreasePressure))
         {
-            int approachValue = tagSystem.GetEncounterStateTagValue(TargetApproach);
+            int approachValue = tagSystem.GetApproachTagValue(TargetApproach);
 
             // Calculate linear effect: 1 point per approach point
             int effectValue = approachValue;

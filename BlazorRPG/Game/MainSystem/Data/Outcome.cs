@@ -151,32 +151,6 @@ public class ItemOutcome : Outcome
     }
 }
 
-public class KnowledgeOutcome : Outcome
-{
-    private readonly KnowledgeTags knowledgeTag;
-    private readonly KnowledgeCategories knowledgeCategory;
-
-    public KnowledgeOutcome(KnowledgeTags value, KnowledgeCategories knowledgeCategory)
-    {
-        this.knowledgeTag = value;
-        this.knowledgeCategory = knowledgeCategory;
-    }
-
-    public override void Apply(GameState gameState)
-    {
-        gameState.PlayerState.Knowledge.Add(new KnowledgePiece(knowledgeTag, KnowledgeCategories.Commerce));
-    }
-
-    public override string GetDescription()
-    {
-        return "Knowledge";
-    }
-
-    public override string GetPreview(GameState gameState)
-    {
-        return "Knowledge";
-    }
-}
 
 public class EnergyOutcome : Outcome
 {

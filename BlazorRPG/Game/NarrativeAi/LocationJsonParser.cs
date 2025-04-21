@@ -50,12 +50,6 @@ public static class LocationJsonParser
             {
                 SpotDetails spot = ParseSpotDetails(spotElement);
                 details.NewLocationSpots.Add(spot);
-
-                // Extract environmental properties from first spot if available
-                if (details.NewLocationSpots.Count == 1 && spot.EnvironmentalProperties.Count > 0)
-                {
-                    details.EnvironmentalProperties = ConvertEnvironmentalProperties(spot.EnvironmentalProperties);
-                }
             }
         }
 
@@ -76,15 +70,8 @@ public static class LocationJsonParser
         }
 
         // Initialize empty collections for other fields
-        details.TimeProperties = new Dictionary<string, List<IEnvironmentalProperty>>();
-        details.StrategicTags = new List<EnvironmentPropertyTag>();
+        details.StrategicTags = new List<StrategicTag>();
         details.NarrativeTags = new List<NarrativeTag>();
-
-        // If there are environmental properties, create a basic time property entry
-        if (details.EnvironmentalProperties.Count > 0)
-        {
-            details.TimeProperties["Day"] = new List<IEnvironmentalProperty>(details.EnvironmentalProperties);
-        }
 
         return details;
     }
@@ -145,22 +132,6 @@ public static class LocationJsonParser
         return action;
     }
 
-    private static List<IEnvironmentalProperty> ConvertEnvironmentalProperties(Dictionary<string, string> properties)
-    {
-        List<IEnvironmentalProperty> result = new List<IEnvironmentalProperty>();
-
-        foreach (KeyValuePair<string, string> pair in properties)
-        {
-            IEnvironmentalProperty prop = CreateEnvironmentalProperty(pair.Key, pair.Value);
-            if (prop != null)
-            {
-                result.Add(prop);
-            }
-        }
-
-        return result;
-    }
-
     private static IEnvironmentalProperty CreateEnvironmentalProperty(string type, string value)
     {
         switch (type.ToLower())
@@ -187,7 +158,7 @@ public static class LocationJsonParser
                 switch (value.ToLower())
                 {
                     case "tense": return Atmosphere.Rough;
-                    case "formal": return Atmosphere.Formal;
+                    case "formal": return Atmosphere.Tense;
                     case "chaotic": return Atmosphere.Chaotic;
                     default: return Atmosphere.Any;
                 }

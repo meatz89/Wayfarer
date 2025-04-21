@@ -6,18 +6,22 @@
     }
 
     public ActionRepository ActionRepository { get; }
-    
-    public ActionImplementation CreateActionFromTemplate(ActionTemplate template)
+
+    public ActionImplementation CreateActionFromTemplate(ActionDefinition template)
     {
         ActionImplementation actionImplementation = new ActionImplementation();
-        actionImplementation.ActionId = template.ActionId;
-        actionImplementation.Name = template.Name;
+        actionImplementation.Id = template.Id;
         actionImplementation.Description = template.Description;
         actionImplementation.Goal = template.Goal;
         actionImplementation.Complication = template.Complication;
-        actionImplementation.BasicActionType = template.BasicActionType;
+        actionImplementation.EncounterType = template.EncounterType;
         actionImplementation.TimeWindows = template.TimeWindows ?? new();
         actionImplementation.IsRepeatable = template.IsRepeatable;
+        actionImplementation.Yields = template.Yields;
+        actionImplementation.EnergyCost = template.EnergyCost;
+        actionImplementation.TimeCost = template.TimeCost;
+        actionImplementation.EncounterType = template.EncounterType;
+        actionImplementation.Category = template.Category;
 
         Random random = new Random();
         int r = random.Next(random.Next(0, 100));
@@ -27,7 +31,7 @@
         actionImplementation.ActionType = startsEncounter ? ActionTypes.Encounter : ActionTypes.Basic;
 
         // Set time cost based on action type or template
-        actionImplementation.TimeCostHours = template.TimeCostHours > 0 ? template.TimeCostHours : 1;
+        actionImplementation.TimeCostHours = template.TimeCost > 0 ? template.TimeCost : 1;
 
         // Set current and destination locations
         actionImplementation.CurrentLocation = template.LocationName;
@@ -37,7 +41,7 @@
         {
             actionImplementation.DestinationLocation = template.MoveToLocation;
         }
-        
+
         if (!string.IsNullOrEmpty(template.MoveToLocationSpot))
         {
             actionImplementation.DestinationLocationSpot = template.MoveToLocationSpot;
@@ -45,9 +49,15 @@
 
         // Add energy costs
         actionImplementation.Requirements = template.Requirements ?? new();
-        actionImplementation.EnergyCosts = template.Energy ?? new();
         actionImplementation.Costs = template.Costs ?? new();
         actionImplementation.Rewards = template.Rewards ?? new();
+
+
+        actionImplementation.EnergyCost = template.EnergyCost;
+        actionImplementation.TimeCost = template.TimeCost;
+        actionImplementation.EncounterType = template.EncounterType;
+        actionImplementation.Category = template.Category;
+        actionImplementation.Yields = template.Yields ?? new();
 
         actionImplementation.EncounterTemplate = ActionRepository.GetEncounterForAction(template);
 

@@ -98,7 +98,7 @@ public class PostEncounterEvolutionParser
         };
 
         // Process action definitions
-        foreach (ActionDefinition actionDef in flatResponse.ActionDefinitions)
+        foreach (EvolutionActionTemplate actionDef in flatResponse.ActionDefinitions)
         {
             try
             {
@@ -168,7 +168,6 @@ public class PostEncounterEvolutionParser
                 HasBeenVisited = false,
                 VisitCount = 0,
                 ConnectedTo = locDef.ConnectedTo,
-                EnvironmentalProperties = ParseEnvironmentalProperties(locDef.EnvironmentalProperties),
                 LocationSpots = new List<LocationSpot>()
             };
 
@@ -248,9 +247,9 @@ public class PostEncounterEvolutionParser
         });
     }
 
-    private ActionDefinition ParseActionDefinition(JsonElement element)
+    private EvolutionActionTemplate ParseActionDefinition(JsonElement element)
     {
-        return SafeParseEntity("action definition", () => new ActionDefinition
+        return SafeParseEntity("action definition", () => new EvolutionActionTemplate
         {
             Name = GetStringProperty(element, "name", "Unnamed Action"),
             Description = GetStringProperty(element, "description", "No description available."),
@@ -287,22 +286,6 @@ public class PostEncounterEvolutionParser
         });
     }
 
-    private List<IEnvironmentalProperty> ParseEnvironmentalProperties(List<string> propertyStrings)
-    {
-        List<IEnvironmentalProperty> properties = new List<IEnvironmentalProperty>();
-
-        foreach (string propString in propertyStrings)
-        {
-            IEnvironmentalProperty property = ParseEnvironmentalProperty(propString);
-            if (property != null)
-            {
-                properties.Add(property);
-            }
-        }
-
-        return properties;
-    }
-
     private IEnvironmentalProperty ParseEnvironmentalProperty(string propertyString)
     {
         Dictionary<string, IEnvironmentalProperty> propertyMap = new Dictionary<string, IEnvironmentalProperty>(StringComparer.OrdinalIgnoreCase)
@@ -324,7 +307,7 @@ public class PostEncounterEvolutionParser
             
             // Atmosphere properties
             { "Tense", Atmosphere.Rough },
-            { "Formal", Atmosphere.Formal },
+            { "Formal", Atmosphere.Tense },
             { "Chaotic", Atmosphere.Chaotic }
         };
 
@@ -489,7 +472,7 @@ public class FlatPostEncounterEvolutionResponse
     public List<RelationshipChange> RelationshipChanges { get; set; } = new List<RelationshipChange>();
     public List<LocationDefinition> Locations { get; set; } = new List<LocationDefinition>();
     public List<LocationSpotDefinition> LocationSpots { get; set; } = new List<LocationSpotDefinition>();
-    public List<ActionDefinition> ActionDefinitions { get; set; } = new List<ActionDefinition>();
+    public List<EvolutionActionTemplate> ActionDefinitions { get; set; } = new List<EvolutionActionTemplate>();
     public List<Character> Characters { get; set; } = new List<Character>();
     public List<Opportunity> Opportunities { get; set; } = new List<Opportunity>();
 }
@@ -509,8 +492,9 @@ public class LocationDefinition
     public List<string> EnvironmentalProperties { get; set; } = new List<string>();
 }
 
-public class ActionDefinition
+public class EvolutionActionTemplate
 {
+    public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string Goal { get; set; }
@@ -520,6 +504,11 @@ public class ActionDefinition
     public string LocationName { get; set; }
     public bool IsRepeatable { get; set; }
     public int EnergyCost { get; set; }
+    public int TimeCost { get; set; }
+    public int EncounterChance { get; set; }
+    public object EncounterType { get; set; }
+    public object Category { get; set; }
+    public List<YieldDefinition> Yields { get; set; }
 }
 
 public class LocationSpotDefinition

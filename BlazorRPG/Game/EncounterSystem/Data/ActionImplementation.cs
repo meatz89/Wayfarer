@@ -1,14 +1,13 @@
 ﻿public record ActionImplementation
 {
-    public string ActionId { get; set; }
-    public string Name { get; set; }
+    public string Id { get; set; }
     public string Description { get; set; }
     public string Goal { get; set; }
     public string Complication { get; set; }
+    public EncounterTemplate EncounterTemplate { get; set; }
 
     public List<TimeWindows> TimeWindows { get; set; } = new();
     public List<Requirement> Requirements { get; set; } = new();
-    public List<Outcome> EnergyCosts { get; set; }
     public List<Outcome> Costs { get; set; }
     public List<Outcome> Rewards { get; set; }
 
@@ -16,16 +15,19 @@
     public string DestinationLocation { get; set; }
     public string DestinationLocationSpot { get; set; }
 
-    public BasicActionTypes BasicActionType { get; set; }
     public bool IsRepeatable { get; set; } = false;
 
     public ActionTypes ActionType { get; set; }
     public int EncounterChance { get; set; }
-    public EncounterTemplate EncounterTemplate { get; set; }
 
-    public string CompletionId { get; set; } 
+    public string CompletionId { get; set; }
     public int TimeCostHours { get; set; } = 1;
+    public List<YieldDefinition> Yields { get; internal set; }
 
+    public int EnergyCost { get; internal set; }
+    public int TimeCost { get; internal set; }
+    public ActionCategories Category { get; internal set; }
+    public EncounterTypes EncounterType { get; internal set; }
 
     public void ApplyTimeCost(GameState gameState)
     {

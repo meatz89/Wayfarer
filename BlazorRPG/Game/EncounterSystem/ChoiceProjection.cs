@@ -1,7 +1,7 @@
 ﻿public class ChoiceProjection
 {
     // Source choice
-    public ChoiceCard Choice { get; }
+    public CardDefinition Choice { get; }
 
     // State changes
     public Dictionary<ApproachTags, int> ApproachTagChanges { get; }
@@ -43,7 +43,7 @@
     // Narrative description
     public string NarrativeDescription { get; set; }
 
-    public ChoiceProjection(ChoiceCard choice)
+    public ChoiceProjection(CardDefinition choice)
     {
         Choice = choice;
         ApproachTagChanges = new Dictionary<ApproachTags, int>();

@@ -1,7 +1,7 @@
 ﻿public class EncounterState
 {
-    // Added properties for history tracking
-    public ChoiceCard PreviousChoice { get; set; }
+    public static EncounterState Last { get; set; }
+    public CardDefinition PreviousChoice { get; set; }
     public int PreviousMomentum { get; set; }
     public int PreviousPressure { get; set; }
     public Dictionary<ApproachTags, int> PreviousApproachValues { get; set; } = new Dictionary<ApproachTags, int>();
@@ -10,19 +10,19 @@
     public int Momentum { get; private set; }
     public int Pressure { get; private set; }
     public int CurrentTurn { get; private set; }
-    public EncounterInfo EncounterInfo { get; }
+    public Encounter EncounterInfo { get; }
     public LocationSpot LocationSpot { get; set; }
 
     // Expose tag system through the TagManager
     public EncounterTagSystem EncounterTagSystem => _tagManager.EncounterTagSystem;
-    public List<IEncounterTag> ActiveTags => _tagManager.ActiveTags;
+    public List<IEncounterTag> ActiveTags => _tagManager.EncounterTags;
 
     private readonly TagManager _tagManager;
     private readonly ResourceManager _resourceManager;
     private readonly ProjectionService _projectionService;
 
     public EncounterState(
-        EncounterInfo encounterInfo,
+        Encounter encounterInfo,
         PlayerState playerState,
         ResourceManager resourceManager)
     {
@@ -33,24 +33,56 @@
 
         _tagManager = new TagManager();
 
-        var na = playerState.GetNaturalApproaches();
-        foreach (ApproachTags approach in na)
+        foreach (ApproachTags approach in Enum.GetValues<ApproachTags>())
         {
-            EncounterTagSystem.ModifyApproachPosition(approach, 2);
+            int bonus = CalculateStartingApproachValue(approach, playerState.PlayerSkills);
+            EncounterTagSystem.ModifyApproachPosition(approach, bonus);
         }
 
-        var nf = playerState.GetNaturalFocuses();
-        foreach (FocusTags focus in nf)
+        foreach (FocusTags focus in Enum.GetValues<FocusTags>())
         {
-            EncounterTagSystem.ModifyFocusPosition(focus, 2);
+            int bonus = CalculateStartingFocusValue(focus, playerState.PlayerSkills);
+            EncounterTagSystem.ModifyFocusPosition(focus, bonus);
         }
 
-        var approaches = playerState.GetNaturalApproaches();
-        var focuses = playerState.GetNaturalFocuses();
-
-        // Initialize managers
         _resourceManager = new ResourceManager();
         _projectionService = new ProjectionService(_tagManager, _resourceManager, encounterInfo, playerState);
+
+        Last = this;
+    }
+
+    private int CalculateStartingApproachValue(ApproachTags approachTag, PlayerSkills playerSkills)
+    {
+        float baseValue = 1.0f;
+        float skillBonus = 0.0f;
+
+        List<SkillApproachMapping> relevantMappings = SkillTagMappings.ApproachMappings
+            .FindAll(mapping => mapping.ApproachTag == approachTag);
+
+        foreach (SkillApproachMapping mapping in relevantMappings)
+        {
+            int playerSkillLevel = playerSkills.GetLevelForSkill(mapping.SkillType);
+            skillBonus += playerSkillLevel * mapping.Multiplier;
+        }
+
+        return (int)baseValue + (int)skillBonus;
+    }
+
+    private int CalculateStartingFocusValue(FocusTags focusTag, PlayerSkills playerSkills)
+    {
+        float baseValue = 1.0f;
+        float skillBonus = 0.0f;
+
+        List<SkillFocusMapping> relevantMappings = SkillTagMappings.FocusMappings
+            .FindAll(mapping => mapping.FocusTag == focusTag);
+
+        foreach (SkillFocusMapping mapping in relevantMappings)
+        {
+            int playerSkillLevel = playerSkills.GetLevelForSkill(mapping.SkillType);
+            skillBonus += playerSkillLevel * mapping.Multiplier;
+        }
+
+        return (int)baseValue + (int)skillBonus;
     }
 
     // Forward methods used by IEncounterTag.ApplyEffect and Choice.ApplyChoice
@@ -60,13 +92,13 @@
     public void AddFocusPressureModifier(FocusTags focus, int modifier) =>
         _tagManager.AddFocusPressureModifier(focus, modifier);
 
-    public int GetTotalMomentum(ChoiceCard choice, int baseMomentum) =>
+    public int GetTotalMomentum(CardDefinition choice, int baseMomentum) =>
         _tagManager.GetTotalMomentum(choice, baseMomentum);
 
-    public int GetTotalPressure(ChoiceCard choice, int basePressure) =>
+    public int GetTotalPressure(CardDefinition choice, int basePressure) =>
         _tagManager.GetTotalPressure(choice, basePressure);
 
-    public ChoiceProjection ApplyChoice(PlayerState playerState, EncounterInfo encounterInfo, ChoiceCard choice)
+    public ChoiceProjection ApplyChoice(PlayerState playerState, Encounter encounterInfo, CardDefinition choice)
     {
         // Store the current state before making changes
         this.UpdateStateHistory(choice);
@@ -78,7 +110,7 @@
         return projection;
     }
 
-    private void ApplyChoiceProjection(PlayerState playerState, EncounterInfo encounterInfo, ChoiceProjection projection)
+    private void ApplyChoiceProjection(PlayerState playerState, Encounter encounterInfo, ChoiceProjection projection)
     {
         // 1. Apply tag changes
         foreach (KeyValuePair<ApproachTags, int> pair in projection.ApproachTagChanges)
@@ -100,13 +132,13 @@
 
         // 4. Update active tags based on new tag values
         _tagManager.ResetTagEffects();
-        _tagManager.UpdateActiveTags(EncounterInfo.AvailableTags);
+        _tagManager.CreateEncounterTags(EncounterInfo.AllEncounterTags);
 
         // 5. Increment turn counter
         CurrentTurn++;
     }
 
-    public void UpdateStateHistory(ChoiceCard selectedChoice)
+    public void UpdateStateHistory(CardDefinition selectedChoice)
     {
         // Store previous choice
         PreviousChoice = selectedChoice;
@@ -125,7 +157,7 @@
                 approach == ApproachTags.Precision ||
                 approach == ApproachTags.Concealment)
             {
-                PreviousApproachValues[approach] = EncounterTagSystem.GetEncounterStateTagValue(approach);
+                PreviousApproachValues[approach] = EncounterTagSystem.GetApproachTagValue(approach);
             }
         }
 
@@ -137,18 +169,13 @@
         }
     }
 
-    public void UpdateActiveTags(IEnumerable<IEncounterTag> locationTags)
-    {
-        _tagManager.UpdateActiveTags(locationTags);
-    }
-
     public void BuildMomentum(int amount) => Momentum += amount;
 
     public void BuildPressure(int amount) => Pressure += amount;
 
     public void ReducePressure(int amount) => Pressure = Math.Max(0, Pressure - amount);
 
-    public ChoiceProjection CreateChoiceProjection(ChoiceCard choice)
+    public ChoiceProjection CreateChoiceProjection(CardDefinition choice)
     {
         return _projectionService.CreateChoiceProjection(
             choice,
@@ -161,4 +188,7 @@
     {
         return ActiveTags.Select(t => t.NarrativeName).ToList();
     }
+
+
+
 }

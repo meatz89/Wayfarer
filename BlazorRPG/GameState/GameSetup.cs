@@ -1,7 +1,5 @@
 ﻿public class GameSetup
 {
-    private const LocationNames StartingLocation = LocationNames.DeepForest;
-
     public static GameState CreateNewGame()
     {
         GameState gameState = new GameState();
@@ -10,9 +8,7 @@
 
         GameRules gameRules = GameRules.StandardRuleset;
 
-        PlayerState playerInfo = new PlayerState();
-        playerInfo.SetStartingLocation(StartingLocation.ToString());
-
+        PlayerState playerInfo = gameState.PlayerState;
         playerInfo.Coins = gameRules.StartingCoins;
 
         playerInfo.MinHealth = gameRules.MinimumHealth;

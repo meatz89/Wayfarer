@@ -4,14 +4,18 @@
     private string description;
     private string locationName;
     private string? character;
-    private bool playerKnowledge = false;
+    private bool playerKnowledge = true;
 
     private List<string> actionIds = new();
+    private List<string> connectedTo = new();
+    private List<NodeAspectDefinition> discoverableApects = new();
 
     public Illumination? illumination { get; set; }
     public Population? population { get; set; }
     public Physical? physical { get; set; }
     public Atmosphere? atmosphere { get; set; }
+    public ResourceNodeTypes nodeType { get; private set; }
+    public QualityTiers qualityTier { get; private set; }
 
     public LocationSpotBuilder(string locationName)
     {
@@ -41,9 +45,15 @@
         return this;
     }
 
-    public LocationSpotBuilder AddAction(ActionNames actionName)
+    public LocationSpotBuilder AddActionId(string actionName)
     {
-        this.actionIds.Add(actionName.ToString());
+        this.actionIds.Add(actionName);
+        return this;
+    }
+
+    public LocationSpotBuilder AddConnectionTo(string locationName)
+    {
+        this.connectedTo.Add(locationName);
         return this;
     }
 
@@ -71,6 +81,30 @@
         return this;
     }
 
+    public LocationSpotBuilder WithNodeType(ResourceNodeTypes nodeType)
+    {
+        this.nodeType = nodeType;
+        return this;
+    }
+
+    public LocationSpotBuilder WithQuality(QualityTiers qualityTier)
+    {
+        this.qualityTier = qualityTier;
+        return this;
+    }
+
+    public LocationSpotBuilder WithDiscoverableAspect(Action<NodeAspectDefinitionBuilder> buildNodeAspect)
+    {
+        NodeAspectDefinitionBuilder nodeAspectBuilder = new NodeAspectDefinitionBuilder();
+        buildNodeAspect(nodeAspectBuilder);
+
+        NodeAspectDefinition discoverableApect = nodeAspectBuilder.Build();
+
+        this.discoverableApects.Add(discoverableApect);
+
+        return this;
+    }
+
     public LocationSpot Build()
     {
         // Validation: Ensure name and actionType are set
@@ -80,17 +114,21 @@
         }
 
         LocationSpot locationSpot =
-            new LocationSpot(
-                name,
-                description,
-                locationName,
-                population,
-                atmosphere,
-                physical,
-                illumination,
-                playerKnowledge,
-                actionIds
-            );
+            new LocationSpot()
+            {
+                Name = name,
+                Description = description,
+                LocationName = locationName,
+                Population = population ?? Population.Quiet,
+                Atmosphere = atmosphere ?? Atmosphere.Calm,
+                Physical = physical ?? Physical.Confined,
+                Illumination = illumination ?? Illumination.Bright,
+                PlayerKnowledge = playerKnowledge,
+                ActionIds = actionIds,
+                NodeType = nodeType,
+                Quality = qualityTier,
+                DiscoverableAspects = discoverableApects
+            };
 
         if (character != null)
         {

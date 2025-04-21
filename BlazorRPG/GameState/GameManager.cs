@@ -20,6 +20,8 @@ public class GameManager
     public CharacterSystem CharacterSystem { get; }
     public OpportunitySystem OpportunitySystem { get; }
     public PlayerProgression PlayerProgression { get; }
+    public CardRepository ChoiceRepository { get; }
+    public YieldProcessor YieldProcessor { get; }
     public EncounterSystem EncounterSystem { get; }
 
     private bool _useMemory = false;
@@ -41,6 +43,8 @@ public class GameManager
         CharacterSystem characterSystem,
         OpportunitySystem opportunitySystem,
         PlayerProgression playerProgression,
+        CardRepository choiceRepository,
+        YieldProcessor yieldProcessor,
         IConfiguration configuration
         )
     {
@@ -59,14 +63,16 @@ public class GameManager
         CharacterSystem = characterSystem;
         OpportunitySystem = opportunitySystem;
         PlayerProgression = playerProgression;
+        ChoiceRepository = choiceRepository;
+        YieldProcessor = yieldProcessor;
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
         _useMemory = configuration.GetValue<bool>("useMemory");
     }
 
     public async Task StartGame()
     {
-        Location startingLocation = await LocationSystem.Initialize(GameRules.StandardRuleset.StartingLocation);
-        string startingLocationName = gameState.PlayerState.StartingLocation;
+        Location startingLocation = await LocationSystem.Initialize(LocationSystem.StartingLocation);
+        string startingLocationName = LocationSystem.StartingLocation;
 
         worldState.RecordLocationVisit(startingLocationName);
         TravelManager.TravelToLocation(startingLocationName, TravelMethods.Walking);
@@ -87,8 +93,12 @@ public class GameManager
     public async Task<ActionImplementation> ExecuteAction(UserActionOption action)
     {
         ActionImplementation actionImplementation = action.ActionImplementation;
-        var location = LocationSystem.GetLocation(action.Location);
-        var locationSpot = action.LocationSpot;
+
+        // Track action count for progressive action yields
+        worldState.IncrementActionCount(actionImplementation.Id);
+
+        Location location = LocationSystem.GetLocation(action.Location);
+        string locationSpot = action.LocationSpot;
 
         // Set current action in game state
         gameState.ActionStateTracker.SetCurrentUserAction(action);
@@ -118,9 +128,8 @@ public class GameManager
     {
         gameState.ActionStateTracker.CompleteAction();
 
-        // Apply all the Outcomes of the current Action
         ApplyActionOutcomes(actionImplementation);
-        
+
         await HandlePlayerMoving(actionImplementation);
 
         UpdateTime(actionImplementation.TimeCostHours);
@@ -151,6 +160,14 @@ public class GameManager
 
         Location currentLocation = worldState.CurrentLocation;
         currentLocation.OnTimeChanged(worldState.WorldTime);
+
+        foreach (Location location in worldState.Locations)
+        {
+            if (worldState.GetLocationVisitCount(location.Name) > 0)
+            {
+                EnvironmentalPropertyManager.UpdateLocationForTime(location, worldState.WorldTime);
+            }
+        }
     }
 
     public void CreateGlobalActions()
@@ -160,7 +177,7 @@ public class GameManager
         // Only add food consumption if player has food
         if (gameState.PlayerState.Food > 0)
         {
-            ActionTemplate foodActionTemplate = ActionRepository.GetAction(ActionNames.ConsumeFood.ToString());
+            ActionDefinition foodActionTemplate = ActionRepository.GetAction(ActionNames.ConsumeFood.ToString());
             if (foodActionTemplate != null)
             {
                 ActionImplementation consumeFoodAction = ActionFactory.CreateActionFromTemplate(foodActionTemplate);
@@ -169,8 +186,7 @@ public class GameManager
                 bool requirementsMet = consumeFoodAction.CanExecute(gameState);
 
                 UserActionOption consumeFoodOption = new UserActionOption(
-                    consumeFoodAction.ActionId.ToString(),
-                    consumeFoodAction.Name.ToString(),
+                    consumeFoodAction.Id.ToString(),
                     !requirementsMet,
                     consumeFoodAction,
                     gameState.WorldState.CurrentLocation?.Name ?? "Global",
@@ -186,7 +202,7 @@ public class GameManager
         // Only add medicinal herbs consumption if player has herbs
         if (gameState.PlayerState.MedicinalHerbs > 0)
         {
-            ActionTemplate herbsActionTemplate = ActionRepository.GetAction(ActionNames.ConsumeMedicinalHerbs.ToString());
+            ActionDefinition herbsActionTemplate = ActionRepository.GetAction(ActionNames.ConsumeMedicinalHerbs.ToString());
             if (herbsActionTemplate != null)
             {
                 ActionImplementation consumeHerbsAction = ActionFactory.CreateActionFromTemplate(herbsActionTemplate);
@@ -195,8 +211,7 @@ public class GameManager
                 bool requirementsMet = consumeHerbsAction.CanExecute(gameState);
 
                 UserActionOption consumeHerbsOption = new UserActionOption(
-                    consumeHerbsAction.ActionId.ToString(),
-                    consumeHerbsAction.Name.ToString(),
+                    consumeHerbsAction.Id.ToString(),
                     !requirementsMet, // Disabled if requirements aren't met
                     consumeHerbsAction,
                     gameState.WorldState.CurrentLocation?.Name ?? "Global",
@@ -211,7 +226,7 @@ public class GameManager
 
         gameState.ActionStateTracker.SetGlobalActions(userActions);
     }
-    
+
     public async Task InitiateTravelToLocation(string locationName)
     {
         // Create travel action using TravelManager
@@ -219,7 +234,7 @@ public class GameManager
 
         // Create option with consistent structure
         UserActionOption travelOption = new UserActionOption(
-            "Travel", "Travel to " + locationName, false, travelAction,
+            "Travel to " + locationName, false, travelAction,
             worldState.CurrentLocation.Name, worldState.CurrentLocationSpot.Name,
             null, worldState.CurrentLocation.Difficulty, null);
 
@@ -229,10 +244,8 @@ public class GameManager
 
     private async Task<List<UserActionOption>> CreateActionsForLocationSpot(Location location, LocationSpot locationSpot)
     {
-        var currentLocation = worldState.CurrentLocation?.Name;
+        string? currentLocation = worldState.CurrentLocation?.Name;
         if (string.IsNullOrWhiteSpace(currentLocation)) return new List<UserActionOption>();
-
-        WorldStateInput worldStateInput = await CreateWorldStateInput(currentLocation);
 
         List<string> locationSpotActions = locationSpot.ActionIds.ToList();
 
@@ -240,13 +253,11 @@ public class GameManager
 
         foreach (string locationSpotAction in locationSpotActions)
         {
-            ActionTemplate actionTemplate = ActionRepository.GetAction(locationSpotAction);
+            ActionDefinition actionTemplate = ActionRepository.GetAction(locationSpotAction);
             if (actionTemplate == null)
             {
-                var actionId =
+                string actionId =
                     await ActionGenerator.GenerateActionAndEncounter(
-                    worldStateInput,
-                    actionTemplate.ActionId,
                     locationSpotAction,
                     locationSpot.Name,
                     location.Name);
@@ -258,8 +269,7 @@ public class GameManager
 
             UserActionOption userActionOption =
                 new UserActionOption(
-                    actionImplementation.ActionId.ToString(),
-                    actionImplementation.Name.ToString(),
+                    actionImplementation.Id.ToString(),
                     false,
                     actionImplementation,
                     locationSpot.LocationName,
@@ -307,15 +317,13 @@ public class GameManager
         EncounterContext context = new EncounterContext()
         {
             ActionImplementation = actionImplementation,
-            BasicActionType = actionImplementation.BasicActionType,
+            BasicActionType = actionImplementation.EncounterType,
             Location = location,
             LocationSpot = locationSpot,
         };
 
-        string id = actionImplementation.ActionId;
-
         EncounterManager encounterManager = await EncounterSystem
-            .GenerateEncounter(id, location, locationSpot.Name, context, worldState, playerState, actionImplementation);
+            .GenerateEncounter(actionImplementation.Id, location, locationSpot.Name, context, worldState, playerState, actionImplementation);
 
         List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterManager.EncounterResult);
         gameState.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
@@ -327,16 +335,12 @@ public class GameManager
     {
         Location location = LocationSystem.GetLocation(choiceOption.LocationName);
 
-        var currentLocation = worldState.CurrentLocation?.Name;
+        string? currentLocation = worldState.CurrentLocation?.Name;
         if (string.IsNullOrWhiteSpace(currentLocation)) return null;
 
-        WorldStateInput worldStateInput = await CreateWorldStateInput(currentLocation);
-
-        // Execute the choice
         EncounterResult encounterResult = await EncounterSystem.ExecuteChoice(
             choiceOption.NarrativeResult,
-            choiceOption.Choice,
-            worldStateInput);
+            choiceOption.Choice);
 
         ActionResults currentEncounterResult = encounterResult.ActionResult;
         if (currentEncounterResult == ActionResults.Ongoing)
@@ -367,41 +371,42 @@ public class GameManager
         }
     }
 
-    private async Task OnLocationArrival(string targetLocation)
+    private async Task OnLocationArrival(string targetLocationName)
     {
-        Location travelLocation = gameState.WorldState.GetLocation(targetLocation);
+        string? currentLocation = worldState.CurrentLocation?.Name;
+        Location targetLocation = gameState.WorldState.GetLocation(targetLocationName);
 
-        var currentLocation = worldState.CurrentLocation?.Name;
+        if (targetLocation == null)
+        {
+            await UpdateState();
+            return;
+        }
+
+        if (targetLocation.LocationSpots.Count > 0)
+        {
+            worldState.CurrentLocationSpot = targetLocation.LocationSpots[0];
+        }
+
         if (string.IsNullOrWhiteSpace(currentLocation))
         {
-            worldState.SetCurrentLocation(travelLocation);
+            worldState.SetCurrentLocation(targetLocation);
             currentLocation = worldState.CurrentLocation?.Name;
         }
 
-        WorldStateInput worldStateInput = await CreateWorldStateInput(currentLocation);
-
-        bool isFirstVisit = worldState.IsFirstVisit(travelLocation.Name);
+        bool isFirstVisit = worldState.IsFirstVisit(targetLocation.Name);
         if (isFirstVisit)
         {
             Location originLocation = worldState.GetLocation(currentLocation);
             int newLocationDepth = originLocation.Depth + 1;
 
-            travelLocation =
+            targetLocation =
                 await locationCreationSystem.PopulateLocation(
-                targetLocation,
+                targetLocationName,
                 originLocation.Name,
-                newLocationDepth,
-                worldStateInput);
+                newLocationDepth);
 
-            worldState.RecordLocationVisit(travelLocation.Name);
+            worldState.RecordLocationVisit(targetLocation.Name);
         }
-
-        if (travelLocation.LocationSpots.Count > 0)
-        {
-            worldState.CurrentLocationSpot = travelLocation.LocationSpots[0];
-        }
-
-        if (travelLocation == null) return;
 
         await UpdateState();
     }
@@ -413,7 +418,7 @@ public class GameManager
     /// <returns></returns>
     public async Task ProcessEncounterOutcome(EncounterResult result)
     {
-        worldState.MarkEncounterCompleted(result.ActionImplementation.ActionId);
+        worldState.MarkEncounterCompleted(result.ActionImplementation.Id);
 
         gameState.ActionStateTracker.EncounterResult = result;
 
@@ -462,8 +467,8 @@ public class GameManager
     private async Task ProcessPostEncounterEvolution(EncounterResult result, string narrative, string outcome)
     {
         // If not a travel encounter, evolve the current location
-        BasicActionTypes basicActionType = result.ActionImplementation.BasicActionType;
-         
+        EncounterTypes basicActionType = result.ActionImplementation.EncounterType;
+
         Location currentLocation = worldState.GetLocation(result.NarrativeContext.LocationName);
         if (_useMemory)
         {
@@ -473,16 +478,14 @@ public class GameManager
         // Prepare the input
         PostEncounterEvolutionInput input = evolutionSystem.PreparePostEncounterEvolutionInput(narrative, outcome);
 
-        WorldStateInput worldStateInput = await CreateWorldStateInput(currentLocation.Name);
-
         // Process world evolution
-        PostEncounterEvolutionResult evolutionResponse = await evolutionSystem.ProcessEncounterOutcome(result.NarrativeContext, input, result, worldStateInput);
+        PostEncounterEvolutionResult evolutionResponse = await evolutionSystem.ProcessEncounterOutcome(result.NarrativeContext, input, result);
 
         // Store the evolution response in the result
         result.PostEncounterEvolution = evolutionResponse;
 
         // Update world state
-        await evolutionSystem.IntegrateEncounterOutcome(evolutionResponse, worldState, LocationSystem, playerState, worldStateInput);
+        await evolutionSystem.IntegrateEncounterOutcome(evolutionResponse, worldState, LocationSystem, playerState);
     }
 
     private async Task CreateMemoryRecord(EncounterResult encounterResult)
@@ -494,13 +497,12 @@ public class GameManager
 
         string currentLocation = worldState.CurrentLocation.Name;
         if (string.IsNullOrWhiteSpace(currentLocation)) return;
-        WorldStateInput worldStateInput = await CreateWorldStateInput(currentLocation);
 
-        string memoryEntry = await evolutionSystem.ConsolidateMemory(encounterResult.NarrativeContext, memoryInput, worldStateInput);
+        string memoryEntry = await evolutionSystem.ConsolidateMemory(encounterResult.NarrativeContext, memoryInput);
 
         string location = encounterResult.NarrativeContext.LocationName;
         string locationSpot = encounterResult.NarrativeContext.locationSpotName;
-        string actionName = encounterResult.ActionImplementation.Name;
+        string actionName = encounterResult.ActionImplementation.Id;
         string goal = encounterResult.ActionImplementation.Goal;
 
         string title = $"{location} - {locationSpot}, {actionName} - {goal}" + Environment.NewLine;
@@ -513,11 +515,11 @@ public class GameManager
     public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions(EncounterResult encounterResult)
     {
         NarrativeResult narrativeResult = encounterResult.NarrativeResult;
-        List<ChoiceCard> choices = EncounterSystem.GetChoices();
+        List<CardDefinition> choices = EncounterSystem.GetChoices();
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
 
         int i = 0;
-        foreach (ChoiceCard choice in choices)
+        foreach (CardDefinition choice in choices)
         {
             i++;
             NarrativeContext narrativeContext = encounterResult.NarrativeContext;
@@ -662,14 +664,20 @@ public class GameManager
         worldState.SetCurrentLocation(currentLocation);
 
         LocationSpot currentLocationSpot = worldState.CurrentLocationSpot;
-        var locationSpotActionOptions = await CreateActionsForLocationSpot(currentLocation, currentLocationSpot);
+        List<UserActionOption> locationSpotActionOptions = await CreateActionsForLocationSpot(currentLocation, currentLocationSpot);
         gameState.ActionStateTracker.SetLocationSpotActions(locationSpotActionOptions);
+    }
+
+    public List<UserEncounterChoiceOption> GetChoices()
+    {
+        List<UserEncounterChoiceOption> userEncounterChoiceOptions = EncounterSystem.GetUserEncounterChoiceOptions();
+        return userEncounterChoiceOptions;
     }
 
     public EncounterViewModel? GetEncounterViewModel()
     {
         EncounterManager encounterManager = EncounterSystem.GetCurrentEncounter();
-        List<UserEncounterChoiceOption> userEncounterChoiceOptions = EncounterSystem.GetUserEncounterChoiceOptions();
+        List<UserEncounterChoiceOption> userEncounterChoiceOptions = GetChoices();
 
         if (encounterManager == null)
         {
@@ -694,106 +702,6 @@ public class GameManager
         return null;
     }
 
-    private async Task<WorldStateInput> CreateWorldStateInput(string currentLocation)
-    {
-        WorldState worldState = gameState.WorldState;
-        PlayerState playerState = gameState.PlayerState;
-
-        // Get current depth and hub depth
-        int currentDepth = worldState.GetLocationDepth(worldState.CurrentLocation?.Name ?? "");
-
-        // Create context for location generation
-        WorldStateInput context = new WorldStateInput
-        {
-            CharacterArchetype = playerState.Archetype.ToString(),
-
-            Health = playerState.Health,
-            MaxHealth = playerState.MaxHealth,
-            Concentration = playerState.Concentration,
-            MaxConcentration = playerState.MaxConcentration,
-            Confidence = playerState.Confidence,
-            MaxConfidence = playerState.MaxConfidence,
-            Energy = playerState.Energy,
-            MaxEnergy = playerState.MaxEnergy,
-            Coins = playerState.Coins,
-
-            CurrentLocation = currentLocation,
-            LocationSpots = LocationSystem.FormatLocationSpots(worldState.CurrentLocation),
-            CurrentSpot = worldState.CurrentLocationSpot.Name,
-            LocationDepth = currentDepth,
-            ConnectedLocations = LocationSystem.FormatLocations(LocationSystem.GetConnectedLocations()),
-
-            Inventory = FormatPlayerInventory(playerState.Inventory),
-            Relationships = playerState.Relationships.ToString(),
-
-            KnownCharacters = CharacterSystem.FormatKnownCharacters(worldState.GetCharacters()),
-            ActiveOpportunities = OpportunitySystem.FormatActiveOpportunities(worldState.GetOpportunities()),
-
-            MemorySummary = await MemoryFileAccess.ReadFromMemoryFile(),
-        };
-
-        await MemoryFileAccess.WriteToLogFile(context);
-
-        return context;
-    }
-
-    private string FormatPlayerInventory(Inventory inventory)
-    {
-        if (inventory == null || inventory.UsedCapacity == 0)
-        {
-            return "No significant items";
-        }
-
-        StringBuilder sb = new StringBuilder();
-        sb.AppendLine("Carrying:");
-
-        // Group items by type and count them
-        Dictionary<ItemTypes, int> itemCounts = new Dictionary<ItemTypes, int>();
-        foreach (ItemTypes itemType in Enum.GetValues(typeof(ItemTypes)))
-        {
-            if (itemType != ItemTypes.None)
-            {
-                int count = inventory.GetItemCount(itemType.ToString());
-                if (count > 0)
-                {
-                    itemCounts[itemType] = count;
-                }
-            }
-        }
-
-        // Format items with counts
-        foreach (KeyValuePair<ItemTypes, int> item in itemCounts)
-        {
-            string itemName = GetItemName(item.Key);
-
-            if (item.Value > 1)
-            {
-                sb.AppendLine($"- {itemName} ({item.Value})");
-            }
-            else
-            {
-                sb.AppendLine($"- {itemName}");
-            }
-        }
-
-        return sb.ToString();
-    }
-
-    private string GetItemName(ItemTypes itemType)
-    {
-        // Convert enum to display name
-        return SplitCamelCase(itemType.ToString());
-    }
-
-    public static string SplitCamelCase(string str)
-    {
-        return System.Text.RegularExpressions.Regex.Replace(
-            str,
-            "([A-Z])",
-            " $1",
-            System.Text.RegularExpressions.RegexOptions.Compiled).Trim();
-    }
-
     public ActionExecutionType GetExecutionType(ActionImplementation action)
     {
         if (action.ActionType == ActionTypes.Encounter)
@@ -812,7 +720,7 @@ public class GameManager
         await CreateLocationActions(worldState.CurrentLocation);
     }
 
-    internal EncounterResult GetEncounterResultFor(ActionImplementation actionImplementation)
+    public EncounterResult GetEncounterResultFor(ActionImplementation actionImplementation)
     {
         return new EncounterResult()
         {
@@ -823,14 +731,12 @@ public class GameManager
             NarrativeContext = null
         };
     }
-    
+
     public void ApplyActionOutcomes(ActionImplementation action)
     {
-        foreach (Outcome energyCost in action.EnergyCosts)
-        {
-            energyCost.Apply(gameState);
-            MessageSystem.AddOutcome(energyCost);
-        }
+        ProcessYields(action);
+
+        UnlockCards();
 
         foreach (Outcome cost in action.Costs)
         {
@@ -843,5 +749,34 @@ public class GameManager
             reward.Apply(gameState);
             MessageSystem.AddOutcome(reward);
         }
+    }
+
+    private void ProcessYields(ActionImplementation actionImplementation)
+    {
+        YieldProcessor.ProcessActionYields(actionImplementation, gameState);
+    }
+
+    private void UnlockCards()
+    {
+        foreach (CardDefinition card in ChoiceRepository.GetAll())
+        {
+            if (IsCardUnlocked(card, playerState.PlayerSkills))
+            {
+                playerState.UnlockCard(card);
+            }
+        }
+    }
+
+    bool IsCardUnlocked(CardDefinition card, PlayerSkills playerSkills)
+    {
+        foreach (SkillRequirement requirement in card.UnlockRequirements)
+        {
+            int skillLevel = playerSkills.GetLevelForSkill(requirement.SkillType);
+            if (skillLevel < requirement.RequiredLevel)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }

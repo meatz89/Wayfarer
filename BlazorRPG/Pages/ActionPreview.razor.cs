@@ -11,7 +11,7 @@ public partial class ActionPreviewBase : ComponentBase
     {
         ActionImplementation action = CurrentAction.ActionImplementation;
 
-        string name = $"{action.ActionType} - {action.Name}";
+        string name = $"{action.ActionType} - {action.Id}";
         return name;
     }
 
@@ -56,7 +56,7 @@ public partial class ActionPreviewBase : ComponentBase
         {
             ValueTypes.Momentum => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
             ValueTypes.Pressure => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
-            ValueTypes.Health => new MarkupString("<i class='value-icon physical-icon'>💪</i>"),
+            ValueTypes.Health => new MarkupString("<i class='value-icon physical-icon'>⚡</i>"),
             ValueTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
             ValueTypes.Confidence => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
             _ => new MarkupString("")

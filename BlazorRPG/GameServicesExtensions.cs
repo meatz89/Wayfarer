@@ -12,12 +12,15 @@
         services.AddSingleton<TravelManager>();
         services.AddSingleton<ItemSystem>();
 
-        services.AddSingleton<KnowledgeSystem>();
         services.AddSingleton<CharacterSystem>();
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<OpportunitySystem>();
         services.AddSingleton<EncounterSystem>();
         services.AddSingleton<ActionSystem>();
+        services.AddSingleton<CardRepository>();
+        services.AddSingleton<YieldProcessor>();
+        services.AddSingleton<EncounterFactory>();
+        services.AddSingleton<WorldStateInputCreator>();
 
         services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();

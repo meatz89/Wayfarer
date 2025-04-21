@@ -7,6 +7,8 @@ public class LocationSystem
     private readonly WorldState worldState;
     public bool IsInitialized = false;
 
+    public string StartingLocation { get { return WorldLocationsContent.StartingLocation; } }
+
     public LocationSystem(
     GameState gameState,
     GameContentProvider contentProvider)
@@ -14,17 +16,11 @@ public class LocationSystem
         this.gameState = gameState;
         this.worldState = gameState.WorldState;
         this.playerState = gameState.PlayerState;
-        List<Location> allLocations = contentProvider.GetLocations();
     }
 
-    public async Task<Location> Initialize(LocationNames startingLocation)
+    public async Task<Location> Initialize(string startingLocation)
     {
-        // Create the starting locations
-        List<Location> locations = new List<Location>
-        {
-            WorldLocationsContent.DeepForest,
-            WorldLocationsContent.Village,
-        };
+        List<Location> locations = WorldLocationsContent.AllLocations;
 
         gameState.WorldState.AddLocations(locations);
 
@@ -35,7 +31,7 @@ public class LocationSystem
         foreach (Location location in knownLocations)
         {
             playerState.AddKnownLocation(location.Name);
-            
+
             List<LocationSpot> knownLocationSpots = location.LocationSpots.Where(x => x.PlayerKnowledge).ToList();
             foreach (LocationSpot locationSpot in knownLocationSpots)
             {
@@ -52,7 +48,7 @@ public class LocationSystem
     {
         List<Location> knownLocations = new List<Location>();
 
-        var known = gameState.PlayerState.KnownLocations;
+        List<string> known = gameState.PlayerState.KnownLocations;
 
         foreach (Location locationSpot in GetAllLocations())
         {
@@ -69,11 +65,11 @@ public class LocationSystem
     {
         List<LocationSpot> knownLocationSpots = new List<LocationSpot>();
 
-        var known = gameState.PlayerState.KnownLocationSpots;
-        
+        List<string> known = gameState.PlayerState.KnownLocationSpots;
+
         foreach (LocationSpot locationSpot in location.LocationSpots)
         {
-            if(known.Contains(locationSpot.Name)) 
+            if (known.Contains(locationSpot.Name))
             {
                 knownLocationSpots.Add(locationSpot);
             }
@@ -122,7 +118,7 @@ public class LocationSystem
     {
         List<Location> connectedLocations = new();
         List<string> locs = worldState.CurrentLocation.ConnectedTo;
-        
+
         foreach (string conLoc in locs)
         {
             connectedLocations.Add(GetLocation(conLoc));
@@ -152,12 +148,12 @@ public class LocationSystem
         return locationSpot;
     }
 
-    public List<EnvironmentPropertyTag> GetEnvironmentalProperties(string locationName, string locationSpotName)
+    public List<StrategicTag> GetEnvironmentalProperties(string locationName, string locationSpotName)
     {
         Location location = GetLocation(locationName);
         LocationSpot locationSpot = GetLocationSpotForLocation(locationName, locationSpotName);
 
-        return new List<EnvironmentPropertyTag>();
+        return new List<StrategicTag>();
     }
 
     public void AddSpot(string locationName, LocationSpot spot)
@@ -204,7 +200,7 @@ public class LocationSystem
 
     private void NewConnection(Location currentLocation, string targetLocation)
     {
-        if(currentLocation.ConnectedTo.Contains(targetLocation)) return;
+        if (currentLocation.ConnectedTo.Contains(targetLocation)) return;
         currentLocation.ConnectedTo.Add(targetLocation);
     }
 }

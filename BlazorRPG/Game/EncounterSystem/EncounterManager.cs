@@ -1,5 +1,6 @@
 ﻿public class EncounterManager
 {
+    private readonly Encounter encounter;
     public ActionImplementation ActionImplementation;
 
     private CardSelectionAlgorithm cardSelectionAlgorithm;
@@ -9,58 +10,56 @@
     private NarrativeContext narrativeContext;
 
     private ResourceManager resourceManager;
-
-    public List<ChoiceCard> CurrentChoices = new List<ChoiceCard>();
+    private readonly WorldStateInputCreator worldStateInputCreator;
+    public List<CardDefinition> CurrentChoices = new List<CardDefinition>();
 
     public PlayerState playerState;
     public WorldState worldState;
-    public EncounterInfo encounterInfo;
+    public Encounter Encounter;
 
     private bool _useAiNarrative = false;
     private bool _useMemory = false;
 
-    public string Id { get; }
-    public EncounterResult EncounterResult { get; internal set; }
+    public EncounterResult EncounterResult;
 
     public EncounterManager(
-        string id,
+        Encounter encounter,
         ActionImplementation actionImplementation,
         CardSelectionAlgorithm cardSelector,
         NarrativeService narrativeService,
         ResourceManager resourceManager,
+        WorldStateInputCreator worldStateInputCreator,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {
-        Id = id;
+        this.encounter = encounter;
         ActionImplementation = actionImplementation;
         cardSelectionAlgorithm = cardSelector;
         this.narrativeService = narrativeService;
         this.resourceManager = resourceManager;
-
+        this.worldStateInputCreator = worldStateInputCreator;
         _useAiNarrative = configuration.GetValue<bool>("useAiNarrative");
         _useMemory = configuration.GetValue<bool>("useMemory");
     }
 
-    private void StartEncounter(WorldState worldState, PlayerState playerState, EncounterInfo encounterInfo)
+    private void StartEncounter(WorldState worldState, PlayerState playerState, Encounter encounterInfo)
     {
         this.worldState = worldState;
         this.playerState = playerState;
 
         EncounterState = new EncounterState(encounterInfo, playerState, this.resourceManager);
-        EncounterState.UpdateActiveTags(encounterInfo.AvailableTags);
     }
 
     public async Task<NarrativeResult> StartEncounterWithNarrativeAsync(
         Location location,
-        EncounterInfo encounterInfo,
+        Encounter encounterInfo,
         WorldState worldState,
         PlayerState playerState,
         ActionImplementation actionImplementation,
-        AIProviderType providerType,
-        WorldStateInput worldStateInput)
+        AIProviderType providerType)
     {
         this.playerState = playerState;
-        this.encounterInfo = encounterInfo;
+        this.Encounter = encounterInfo;
 
         narrativeService.SwitchProvider(providerType);
 
@@ -89,6 +88,7 @@
                 memoryContent = await MemoryFileAccess.ReadFromMemoryFile();
             }
 
+            WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location.Name);
             introduction = await narrativeService.GenerateIntroductionAsync(
                 narrativeContext,
                 status,
@@ -98,7 +98,7 @@
 
         // Get available choices
         GenerateChoicesForPlayer(playerState);
-        List<ChoiceCard> choices = GetCurrentChoices();
+        List<CardDefinition> choices = GetCurrentChoices();
         List<ChoiceProjection> projections = choices.Select(ProjectChoice)
                                                     .ToList();
 
@@ -110,9 +110,11 @@
         narrativeContext.AddEvent(firstNarrative);
 
         // Generate choice descriptions
-        Dictionary<ChoiceCard, ChoiceNarrative> choiceDescriptions = null;
+        Dictionary<CardDefinition, ChoiceNarrative> choiceDescriptions = null;
         if (_useAiNarrative)
         {
+            WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location.Name);
+
             choiceDescriptions = await narrativeService.GenerateChoiceDescriptionsAsync(
                 narrativeContext,
                 choices,
@@ -136,12 +138,12 @@
     }
 
     public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
-        ChoiceCard choice,
-        ChoiceNarrative choiceDescription,
-        WorldStateInput worldStateInput)
+        string location,
+        CardDefinition choice,
+        ChoiceNarrative choiceDescription)
     {
         // Apply the choice
-        ChoiceOutcome outcome = ApplyChoiceProjection(playerState, encounterInfo, choice);
+        ChoiceOutcome outcome = ApplyChoiceProjection(playerState, Encounter, choice);
 
         // Get status after the choice
         EncounterStatusModel newStatus = GetEncounterStatusModel(playerState, worldState);
@@ -154,6 +156,7 @@
         {
             if (_useAiNarrative)
             {
+                WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location);
                 narrative = await narrativeService.GenerateEndingAsync(
                     narrativeContext,
                     choice,
@@ -169,9 +172,9 @@
             NarrativeResult currentResult = new(
                 narrative,
                 string.Empty,
-                new List<ChoiceCard>(),
+                new List<CardDefinition>(),
                 new List<ChoiceProjection>(),
-                new Dictionary<ChoiceCard, ChoiceNarrative>(),
+                new Dictionary<CardDefinition, ChoiceNarrative>(),
                 narrativeEvent.ChoiceNarrative);
 
             currentResult.SetOutcome(outcome.Outcome);
@@ -183,6 +186,7 @@
         {
             if (_useAiNarrative)
             {
+                WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location);
                 narrative = await narrativeService.GenerateEncounterNarrative(
                     narrativeContext,
                     choice,
@@ -197,14 +201,15 @@
 
             // Get the new choices and projections
             GenerateChoicesForPlayer(playerState);
-            List<ChoiceCard> newChoices = GetCurrentChoices();
+            List<CardDefinition> newChoices = GetCurrentChoices();
             List<ChoiceProjection> newProjections = newChoices.Select(ProjectChoice).ToList();
 
             // Generate descriptive narratives for each choice
-            Dictionary<ChoiceCard, ChoiceNarrative> newChoiceDescriptions = null;
+            Dictionary<CardDefinition, ChoiceNarrative> newChoiceDescriptions = null;
 
             if (_useAiNarrative)
             {
+                WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location);
                 newChoiceDescriptions = await narrativeService.GenerateChoiceDescriptionsAsync(
                     narrativeContext,
                     newChoices,
@@ -217,7 +222,7 @@
             narrativeEvent.ChoiceDescriptions.Clear();
             if (newChoiceDescriptions != null)
             {
-                foreach (KeyValuePair<ChoiceCard, ChoiceNarrative> kvp in newChoiceDescriptions)
+                foreach (KeyValuePair<CardDefinition, ChoiceNarrative> kvp in newChoiceDescriptions)
                 {
                     narrativeEvent.ChoiceDescriptions[kvp.Key] = kvp.Value;
                 }
@@ -238,7 +243,7 @@
         }
     }
 
-    private ChoiceOutcome ApplyChoiceProjection(PlayerState playerState, EncounterInfo encounterInfo, ChoiceCard choice)
+    private ChoiceOutcome ApplyChoiceProjection(PlayerState playerState, Encounter encounterInfo, CardDefinition choice)
     {
         this.playerState = playerState;
 
@@ -272,7 +277,7 @@
 
 
     private NarrativeEvent GetNarrativeEvent(
-        ChoiceCard choice,
+        CardDefinition choice,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         string narrative)
@@ -311,7 +316,7 @@
         return narrativeContext;
     }
 
-    public ChoiceProjection ProjectChoice(ChoiceCard choice)
+    public ChoiceProjection ProjectChoice(CardDefinition choice)
     {
         ChoiceProjection projection = EncounterState.CreateChoiceProjection(choice);
         projection.NarrativeDescription = choice.Name + " " + choice.Description;
@@ -337,7 +342,7 @@
     }
 
     // Existing methods remain the same
-    public List<ChoiceCard> GetCurrentChoices()
+    public List<CardDefinition> GetCurrentChoices()
     {
         return CurrentChoices;
     }

@@ -12,7 +12,7 @@
 
     Task<string> GenerateEncounterNarrative(
         NarrativeContext context,
-        ChoiceCard chosenOption,
+        CardDefinition chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         EncounterStatusModel newState,
@@ -20,25 +20,25 @@
 
     Task<string> GenerateEndingAsync(
         NarrativeContext context,
-        ChoiceCard chosenOption,
+        CardDefinition chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         EncounterStatusModel newState,
         WorldStateInput worldStateInput);
 
-    Task<Dictionary<ChoiceCard, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+    Task<Dictionary<CardDefinition, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
         NarrativeContext context,
-        List<ChoiceCard> choices,
+        List<CardDefinition> choices,
         List<ChoiceProjection> projections,
         EncounterStatusModel state,
         WorldStateInput worldStateInput);
 
     Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(
-        NarrativeContext context, 
+        NarrativeContext context,
         PostEncounterEvolutionInput input,
         WorldStateInput worldStateInput);
     Task<string> ProcessMemoryConsolidation(
-        NarrativeContext context, 
+        NarrativeContext context,
         MemoryConsolidationInput input,
         WorldStateInput worldStateInput);
     Task<LocationDetails> GenerateLocationDetailsAsync(

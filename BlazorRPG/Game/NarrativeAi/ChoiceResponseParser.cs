@@ -7,9 +7,9 @@ public static class ChoiceResponseParser
         @"Choice\s+(\d+)\s*:\s*(I[^-]+)\s+-\s*(I.+?)(?=\s*Choice\s+\d+\s*:|$)",
         RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
-    public static Dictionary<ChoiceCard, ChoiceNarrative> ParseChoiceNarratives(string response, List<ChoiceCard> choices)
+    public static Dictionary<CardDefinition, ChoiceNarrative> ParseChoiceNarratives(string response, List<CardDefinition> choices)
     {
-        Dictionary<ChoiceCard, ChoiceNarrative> result = new Dictionary<ChoiceCard, ChoiceNarrative>();
+        Dictionary<CardDefinition, ChoiceNarrative> result = new Dictionary<CardDefinition, ChoiceNarrative>();
 
         // Use regex to find all choices in the response
         MatchCollection matches = ChoicePattern.Matches(response);
@@ -46,7 +46,7 @@ public static class ChoiceResponseParser
         return result;
     }
 
-    private static ChoiceNarrative GenerateFallbackNarrative(ChoiceCard choice)
+    private static ChoiceNarrative GenerateFallbackNarrative(CardDefinition choice)
     {
         string focus = choice.Focus.ToString();
         string effectType = choice.EffectType.ToString();

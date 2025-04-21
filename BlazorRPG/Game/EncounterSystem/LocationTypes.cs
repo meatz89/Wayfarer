@@ -16,5 +16,7 @@ public enum ServiceTypes
     Information,
     Training,
     EquipmentRepair,
-    FoodProduction
+    FoodProduction,
+    Trading,
+    Lodging
 }

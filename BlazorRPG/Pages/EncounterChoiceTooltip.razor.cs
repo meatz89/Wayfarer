@@ -53,23 +53,10 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         return formattedChanges;
     }
 
-    public string GetTierName(CardTiers tier)
-    {
-        return tier switch
-        {
-            CardTiers.Novice => "Tier 1 (Novice)",
-            CardTiers.Trained => "Tier 2 (Trained)",
-            CardTiers.Adept => "Tier 3 (Adept)",
-            CardTiers.Expert => "Tier 4 (Expert)",
-            CardTiers.Master => "Tier 5 (Master)",
-            _ => "Unknown"
-        };
-    }
-
     public string GetChoiceNarrative(UserEncounterChoiceOption choice)
     {
-        ChoiceCard choiceCard = choice.Choice;
-        Dictionary<ChoiceCard, ChoiceNarrative> choiceDescriptions = choice.NarrativeResult?.ChoiceDescriptions;
+        CardDefinition choiceCard = choice.Choice;
+        Dictionary<CardDefinition, ChoiceNarrative> choiceDescriptions = choice.NarrativeResult?.ChoiceDescriptions;
         ChoiceNarrative choiceNarrative = null;
 
         if (choiceDescriptions != null && choiceDescriptions.ContainsKey(choiceCard))

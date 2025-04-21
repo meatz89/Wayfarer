@@ -6,7 +6,7 @@
     string locationSpotName,
     EncounterResult encounterResult,
     NarrativeResult NarrativeResult,
-    ChoiceCard Choice)
+    CardDefinition Choice)
 {
     public string Display()
     {
