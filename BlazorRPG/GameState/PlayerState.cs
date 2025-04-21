@@ -2,6 +2,7 @@
 {
     // Core identity
     public string Name { get; set; }
+    public Genders Gender { get; private set; }
     public string Background { get; set; }
 
     // Archetype
@@ -83,9 +84,10 @@
         ConfidenceType = PlayerConfidenceTypes.Neutral;
     }
 
-    public void Initialize(string playerName, ArchetypeTypes selectedArchetype)
+    public void Initialize(string playerName, ArchetypeTypes selectedArchetype, Genders gender)
     {
         Name = playerName;
+        Gender = gender;
         SetArchetype(selectedArchetype);
         IsInitialized = true;
     }
