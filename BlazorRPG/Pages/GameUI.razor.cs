@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using System.Xml.Xsl;
 namespace BlazorRPG.Pages;
 
 public partial class GameUI : ComponentBase
 {
     #region Injected Services
+    [Inject] private IJSRuntime JSRuntime { get; set; }
     [Inject] private GameState GameState { get; set; }
     [Inject] private GameManager GameManager { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
@@ -58,6 +60,35 @@ public partial class GameUI : ComponentBase
     private bool showActionMessage = false;
     private string actionMessageType = "success";
     private List<string> actionMessages = new List<string>();
+    private ElementReference sidebarRef;
+
+    private Dictionary<SidebarSections, bool> expandedSections = new Dictionary<SidebarSections, bool>
+    {
+        { SidebarSections.character, true },  // Character section is expanded by default
+        { SidebarSections.skills, false },
+        { SidebarSections.resources, false },
+        { SidebarSections.inventory, false },
+        { SidebarSections.status, false }
+    };
+
+    private async Task ToggleSection(SidebarSections sectionName)
+    {
+        if (expandedSections.ContainsKey(sectionName))
+        {
+            expandedSections[sectionName] = !expandedSections[sectionName];
+            if (expandedSections[sectionName])
+            {
+                StateHasChanged();
+                await Task.Delay(50);
+                await JSRuntime.InvokeVoidAsync("scrollSectionIntoView", sectionName.ToString());
+            }
+            else
+            {
+                StateHasChanged();
+            }
+        }
+    }
+
     #endregion
 
     #region Lifecycle Methods
@@ -411,4 +442,9 @@ public partial class GameUI : ComponentBase
         };
     }
     #endregion
+}
+
+public enum SidebarSections
+{
+    character, skills, resources, inventory, status
 }

@@ -174,9 +174,10 @@ body {
 }
 
 .sidebar-section {
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--oak-mid);
+    margin-bottom: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    transition: margin-bottom 0.3s ease;
 }
 
     .sidebar-section:last-child {
@@ -192,12 +193,67 @@ body {
     letter-spacing: 0.05em;
     color: var(--leather);
     border-bottom: 1px solid var(--oak-mid);
-    margin-bottom: 0.5rem;
 }
 
 .section-header {
-    font-size: 1.1rem;
-    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--oak-mid);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-primary);
+    color: var(--leather);
+    letter-spacing: 0.05em;
+}
+
+    .section-header:hover {
+        background-color: var(--bg-active);
+    }
+
+.expand-icon {
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+    color: var(--text-secondary);
+}
+
+.section-content {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-mid);
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+    padding: 15px;
+    max-height: 1000px;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out, padding 0.3s ease;
+}
+
+.sidebar-section.collapsed .section-content {
+    max-height: 0;
+    padding: 0 15px;
+    overflow: hidden;
+    border: none;
+}
+
+.sidebar-section.expanded {
+    margin-bottom: 15px;
+}
+
+    .sidebar-section.expanded .section-header {
+        border-radius: 5px 5px 0 0;
+        border-bottom-color: transparent;
+    }
+
+    /* Animation for the collapse/expand icons */
+    .sidebar-section.expanded .expand-icon {
+        transform: rotate(0deg);
+    }
+
+.sidebar-section.collapsed .expand-icon {
+    transform: rotate(-90deg);
 }
 
 /* Grids */
@@ -262,10 +318,10 @@ body {
         z-index: 1;
     }
 
-
 .archetype-content {
     flex: 1;
     display: flex;
+    flex-basis: fit-content;
     flex-direction: column;
     transition: all 0.3s ease;
 }
@@ -430,11 +486,11 @@ body {
 }
 
 .archetype-portrait {
-    width: 270px;
-    height: 420px;
+    width: 254px;
+    height: 500px;
     border-radius: 10px;
     overflow: hidden;
-    border: 2px solid var(--leather);
+    border: 1px solid var(--oak-dark);
 }
 
     .archetype-portrait img {
