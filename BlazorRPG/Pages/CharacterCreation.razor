@@ -9,22 +9,24 @@
             {
                 <div class="archetype-card @(selectedArchetype == archetype ? "selected" : "")"
                      @onclick="() => SelectArchetype(archetype)">
-                    <div class="archetype-icon">@GetArchetypeIcon(archetype)</div>
-                    <div class="archetype-name-bold">@FormatArchetypeName(archetype)</div>
-                    <div class="archetype-description">@GetArchetypeDescription(archetype)</div>
-                    <div>
-                        <strong>Advantages:</strong>
-                        <div class="archetype-approaches">@GetNaturalTags(archetype)</div>
-                        <strong>Disadvantages:</strong>
-                        <div class="archetype-approaches">@GetIncompatibleTags(archetype)</div>
+                    <div class="archetype-portrait">
+                        <img src="/images/characters/@(archetype.ToString().ToLower()).png" alt="@FormatArchetypeName(archetype)" />
                     </div>
-                    <div class="starting-items">
-                        <strong>Starting Items:</strong>
-                        <div class="items-list">
-                            @foreach (string item in GetStartingItems(archetype))
-                            {
-                                <div class="item">@item</div>
-                            }
+                    <div class="archetype-content">
+                        <div class="archetype-name-bold">@FormatArchetypeName(archetype)</div>
+                        <div class="archetype-description">@GetArchetypeDescription(archetype)</div>
+                        <div>
+                            <strong>Advantages:</strong>
+                            <div class="archetype-approaches">@GetNaturalTags(archetype)</div>
+                        </div>
+                        <div class="starting-items">
+                            <strong>Starting Items:</strong>
+                            <div class="items-list">
+                                @foreach (string item in GetStartingItems(archetype))
+                                {
+                                    <div class="item">@item</div>
+                                }
+                            </div>
                         </div>
                     </div>
                     @if (selectedArchetype == archetype)
@@ -55,8 +57,8 @@
     [Parameter] public EventCallback<PlayerState> OnCharacterCreated { get; set; }
     [Inject] protected GameState GameState { get; set; }
 
-    private string playerName = "";
-    private ArchetypeTypes selectedArchetype = ArchetypeTypes.Sage;
+    private string playerName = "Your Name";
+    private ArchetypeTypes selectedArchetype = ArchetypeTypes.Knight;
 
     private void SelectArchetype(ArchetypeTypes archetype)
     {
@@ -75,19 +77,6 @@
 
         // Notify parent component that character creation is complete
         await OnCharacterCreated.InvokeAsync(GameState.PlayerState);
-    }
-
-    private string GetArchetypeIcon(ArchetypeTypes archetype)
-    {
-        return archetype switch
-        {
-            ArchetypeTypes.Knight => "⚔️",
-            ArchetypeTypes.Sage => "📚",
-            ArchetypeTypes.Forester => "🏹",
-            ArchetypeTypes.Courtier => "🎭",
-            ArchetypeTypes.Shadow => "🗝️",
-            _ => "❓"
-        };
     }
 
     private string FormatArchetypeName(ArchetypeTypes archetype)
@@ -122,19 +111,6 @@
             ArchetypeTypes.Forester => "Precision, Environment",
             ArchetypeTypes.Courtier => "Rapport, Relationship",
             ArchetypeTypes.Shadow => "Concealment, Resource",
-            _ => "None"
-        };
-    }
-
-    private string GetIncompatibleTags(ArchetypeTypes archetype)
-    {
-        return archetype switch
-        {
-            ArchetypeTypes.Knight => "Concealment, Information",
-            ArchetypeTypes.Sage => "Dominance, Physical",
-            ArchetypeTypes.Forester => "Rapport, Relationship",
-            ArchetypeTypes.Courtier => "Analysis, Concealment",
-            ArchetypeTypes.Shadow => "Dominance, Analysis",
             _ => "None"
         };
     }
