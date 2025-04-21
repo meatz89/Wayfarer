@@ -32,10 +32,11 @@
                 @if (selectedArchetype != null)
                 {
                     <div class="archetype-portrait">
-                        <img src="/images/characters/@(selectedGender.ToString().ToLower())_@(selectedArchetype.ToString().ToLower()).png"
+                        <img class="@(changingImage ? "changing" : "")"
+                             src="/images/characters/@(selectedGender.ToString().ToLower())_@(selectedArchetype.ToString().ToLower()).png"
                              alt="@FormatArchetypeName(selectedArchetype)" />
                     </div>
-                    <div class="archetype-content">
+                    <div class="archetype-content @(changingContent ? "changing" : "")">
                         <h3 class="archetype-title">@FormatArchetypeName(selectedArchetype)</h3>
                         <p class="archetype-description">@GetArchetypeDescription(selectedArchetype)</p>
 
@@ -63,7 +64,12 @@
         <h4>Choose Your Name</h4>
         <div class="player-stat">
             <span class="stat-label">Your Name</span>
-            <input id="playerName" @bind="playerName" class="character-input" placeholder="Enter your name..." />
+            <div class="name-input-container">
+                <input id="playerName" @bind="playerName" class="character-input" placeholder="Enter your name..." />
+                <button class="name-generator" @onclick="GenerateRandomName" title="Generate random name">
+                    <i class="fas fa-dice"></i>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -78,21 +84,84 @@
     [Parameter] public EventCallback<PlayerState> OnCharacterCreated { get; set; }
     [Inject] protected GameState GameState { get; set; }
 
-    private string playerName = "Your Name";
+    private string playerName;
     private ArchetypeTypes selectedArchetype = ArchetypeTypes.Knight;
-    private Genders selectedGender = Genders.Male; // Default to Male
+    private Genders selectedGender = Genders.Male;
+    private bool changingImage = false;
+    private bool changingContent = false;
+    private System.Threading.Timer transitionTimer;
+
+    // Name pools
+    private static readonly List<string> MaleNames = new List<string> {
+        "Alistair", "Bram", "Cedric", "Duncan", "Edmund", "Farley", "Gareth",
+        "Hadrian", "Irving", "Jasper", "Kendrick", "Leofric", "Malcolm",
+        "Nathaniel", "Oswald", "Percival", "Roland", "Silas", "Tristan", "Wesley"
+    };
+
+    private static readonly List<string> FemaleNames = new List<string> {
+        "Adeline", "Beatrice", "Cecily", "Eloise", "Fiona", "Gwendolyn", "Helena",
+        "Imogen", "Josephine", "Katerina", "Lenore", "Matilda", "Nora",
+        "Ophelia", "Penelope", "Rosalind", "Sophia", "Tabitha", "Victoria", "Winifred"
+    };
+
+    protected override void OnInitialized()
+    {
+        // Set initial random name based on default gender
+        GenerateRandomName();
+    }
 
     private void SelectGender(Genders gender)
     {
-        selectedGender = gender;
-        // Force a UI refresh
-        StateHasChanged();
-    }
+        if (selectedGender == gender) return;
 
+        // Start transition
+        StartTransition();
+
+        // Update gender
+        selectedGender = gender;
+
+        // Generate a new name appropriate for the gender
+        GenerateRandomName();
+    }
 
     private void SelectArchetype(ArchetypeTypes archetype)
     {
+        if (selectedArchetype == archetype) return;
+
+        // Start transition
+        StartTransition();
+
+        // Update archetype
         selectedArchetype = archetype;
+    }
+
+    private void StartTransition()
+    {
+        // Start image fade out
+        changingImage = true;
+        changingContent = true;
+        StateHasChanged();
+
+        // Schedule transition to end
+        transitionTimer?.Dispose();
+        transitionTimer = new System.Threading.Timer(_ =>
+        {
+            // This callback runs on a different thread, so we need InvokeAsync
+            InvokeAsync(() =>
+            {
+                changingImage = false;
+                changingContent = false;
+                StateHasChanged();
+            });
+        }, null, 300, Timeout.Infinite);
+    }
+
+    public void GenerateRandomName()
+    {
+        Random random = new Random();
+        playerName = selectedGender == Genders.Male
+            ? MaleNames[random.Next(MaleNames.Count)]
+            : FemaleNames[random.Next(FemaleNames.Count)];
     }
 
     private string GetShortDescription(ArchetypeTypes archetype)
