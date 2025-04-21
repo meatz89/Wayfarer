@@ -5,6 +5,6 @@ public enum CurrentViews
     CharacterScreen = 0,
     EncounterScreen,
     NarrativeScreen,
-    TravelScreen,
+    MapScreen,
     LocationScreen
 }

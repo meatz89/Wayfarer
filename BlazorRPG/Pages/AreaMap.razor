@@ -2,22 +2,27 @@
 @inject GameManager ActionManager
 @inject GameState GameState
 
-<div class="locations-grid">
-    @foreach (var location in GetTravelableLocations())
-    {
-        <div class="location-card reachable">
-            <div class="location-name">
-                @location.Name @(location.Name == CurrentLocation.Name ? "(Current)" : "")
+<div class="world-map-container">
+    <div class="world-map">
+        <img src="/images//world-map.png" />
+    </div>
+
+    <div class="locations-grid">
+        @foreach (var location in GetTravelableLocations())
+        {
+            <div class="location-card reachable">
+                <div class="location-name">
+                    @location.Name @(location.Name == CurrentLocation.Name ? "(Current)" : "")
+                </div>
+
+                <button class="action-button"
+                        @onclick="() => OnTravel.InvokeAsync(location.Name)">
+                    TRAVEL
+                </button>
             </div>
-
-            <button class="action-button"
-                    @onclick="() => OnTravel.InvokeAsync(location.Name)">
-                TRAVEL
-            </button>
-        </div>
-    }
+        }
+    </div>
 </div>
-
 @code {
     [Inject] public GameManager GameManager { get; set; }
     [Parameter] public Location CurrentLocation { get; set; }

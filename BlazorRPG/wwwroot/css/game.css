@@ -171,7 +171,7 @@ body {
 
 .inventory-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(1, 1fr);
     gap: 8px;
     margin-bottom: 1rem;
 }
@@ -231,6 +231,31 @@ body {
 }
 
 /* ==================== Containers ==================== */
+.world-map-container {
+    width: 100%;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100%;
+    margin: 0;
+}
+
+.world-map {
+    flex-shrink: 1;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid var(--oak-mid);
+}
+
+    .world-map img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
 .map-container, .location-container {
     background-color: var(--bg-panel);
     border: 1px solid var(--oak-dark);
@@ -1016,6 +1041,27 @@ tooltip:hover:before {
 }
 
 /* ==================== Badges & Special Elements ==================== */
+.resource-use-btn {
+    background-color: var(--leather);
+    color: var(--parchment);
+    border: none;
+    padding: 2px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-left: auto;
+    transition: all 0.2s ease;
+}
+
+    .resource-use-btn:hover {
+        background-color: var(--clay);
+    }
+
+    .resource-use-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
 .tier-badge {
     display: inline-block;
     padding: 3px 8px;
@@ -1162,25 +1208,3 @@ tooltip:hover:before {
         box-shadow: 0 0 0 0 rgba(168, 125, 95, 0);
     }
 }
-
-/* Resource use button styling improvement */
-.resource-use-btn {
-    background-color: var(--leather);
-    color: var(--parchment);
-    border: none;
-    padding: 2px 6px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    margin-left: auto;
-    transition: all 0.2s ease;
-}
-
-    .resource-use-btn:hover {
-        background-color: var(--clay);
-    }
-
-    .resource-use-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }

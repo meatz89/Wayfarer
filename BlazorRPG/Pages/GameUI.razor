@@ -1,7 +1,7 @@
 ﻿@page "/"
 @inherits ComponentBase
 
-<div class="game-container @(CurrentScreen == CurrentViews.EncounterScreen ? "encounter-active" : "")">
+<div class="game-container">
     @if (CurrentScreen != CurrentViews.CharacterScreen)
     {
         <div class="game-status-bar">
@@ -66,7 +66,7 @@
                                        Result="@EncounterResult" />
                         break;
 
-                    case CurrentViews.TravelScreen:
+                    case CurrentViews.MapScreen:
                         <div class="location-container">
                             <div class="location-header">
                                 <h2 class="location-title">@GetCurrentLocation().Name</h2>
@@ -107,7 +107,7 @@
                 }
             </div>
 
-            @if (CurrentScreen == CurrentViews.TravelScreen || CurrentScreen == CurrentViews.LocationScreen)
+            @if (CurrentScreen == CurrentViews.LocationScreen)
             {
                 <div class="game-sidebar">
                     <div class="sidebar-section">
