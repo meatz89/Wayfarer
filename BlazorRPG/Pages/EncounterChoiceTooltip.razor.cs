@@ -7,9 +7,10 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     [Parameter] public UserEncounterChoiceOption hoveredChoice { get; set; }
     [Parameter] public double tooltipX { get; set; }
     [Parameter] public double tooltipY { get; set; }
+    public string tooltipXpx => $"{tooltipX}px";
+    public string tooltipYpx => $"{tooltipY}px";
 
     public ChoiceProjection Preview => GameManager.GetChoicePreview(hoveredChoice);
-
 
     public List<ChoiceProjection.ValueComponent> GetMomentumBreakdown()
     {

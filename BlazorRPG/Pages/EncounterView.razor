@@ -22,10 +22,11 @@
                 {
                     @foreach (UserEncounterChoiceOption choice in CurrentChoices)
                     {
-                        <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")"
-                                @onclick="(() => HandleChoiceSelection(choice))"
-                                @onmouseover="(e => ShowTooltip(choice, e))"
-                                @onmouseout="HideTooltip">
+                        <div id="choice-@choice.Index" class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")"
+                             @onclick="(() => HandleChoiceSelection(choice))"
+                             @onmouseover="@(() => ShowTooltip(choice, $"choice-{choice.Index}"))"
+                             @onmouseout="HideTooltip">
+
                             <div class="choice-index">@choice.Index</div>
                             <div class="choice-name">@GetChoiceName(choice)</div>
                         </div>
@@ -81,5 +82,3 @@
         <EncounterChoiceTooltip hoveredChoice="hoveredChoice" tooltipX="tooltipX" tooltipY="tooltipY" />
     }
 </div>
-
-<script src="js/tooltip.js"></script>
