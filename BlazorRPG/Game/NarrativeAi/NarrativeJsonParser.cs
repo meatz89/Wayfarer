@@ -5,9 +5,9 @@ using System.Text.RegularExpressions;
 
 public static class NarrativeJsonParser
 {
-    public static Dictionary<ChoiceCard, ChoiceNarrative> ParseChoiceResponse(string response, List<ChoiceCard> choices)
+    public static Dictionary<CardDefinition, ChoiceNarrative> ParseChoiceResponse(string response, List<CardDefinition> choices)
     {
-        Dictionary<ChoiceCard, ChoiceNarrative> result = new Dictionary<ChoiceCard, ChoiceNarrative>();
+        Dictionary<CardDefinition, ChoiceNarrative> result = new Dictionary<CardDefinition, ChoiceNarrative>();
 
         // Extract JSON content
         string jsonContent = ExtractJsonContent(response);
@@ -130,9 +130,9 @@ public static class NarrativeJsonParser
         }
     }
 
-    private static Dictionary<ChoiceCard, ChoiceNarrative> ExtractChoicesManually(string content, List<ChoiceCard> choices)
+    private static Dictionary<CardDefinition, ChoiceNarrative> ExtractChoicesManually(string content, List<CardDefinition> choices)
     {
-        Dictionary<ChoiceCard, ChoiceNarrative> result = new Dictionary<ChoiceCard, ChoiceNarrative>();
+        Dictionary<CardDefinition, ChoiceNarrative> result = new Dictionary<CardDefinition, ChoiceNarrative>();
 
         // Use regex to find choice objects even in malformed JSON
         string pattern = @"\{[^{}]*""name""[^{}]*""description""[^{}]*\}|\{[^{}]*""description""[^{}]*""name""[^{}]*\}";

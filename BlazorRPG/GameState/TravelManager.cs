@@ -41,18 +41,18 @@
             }
         }
 
-        ActionTemplate travelTemplate = GetTravelTemplate(travelLocation, string.Empty);
+        ActionDefinition travelTemplate = GetTravelTemplate(travelLocation, string.Empty);
         ActionImplementation travelAction = ActionFactory.CreateActionFromTemplate(travelTemplate);
 
         return travelAction;
     }
 
-    private ActionTemplate GetTravelTemplate(string location, string locationSpot)
+    private ActionDefinition GetTravelTemplate(string location, string locationSpot)
     {
-        ActionTemplate travelTemplate = new ActionTemplate("travel", "travel", 1, 50, BasicActionTypes.Physical, true)
+        ActionDefinition travelTemplate = new ActionDefinition("travel", "travel", 1, 50, EncounterTypes.Physical, true)
         {
             Goal = "Travel safely to your destination",
-            TimeCostHours = 1,
+            TimeCost = 1,
             MoveToLocation = location,
             MoveToLocationSpot = locationSpot,
             Costs = new()

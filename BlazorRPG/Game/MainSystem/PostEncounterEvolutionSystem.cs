@@ -7,6 +7,7 @@
     private readonly CharacterSystem characterSystem;
     private readonly OpportunitySystem opportunitySystem;
     private readonly ActionSystem actionSystem;
+    private readonly WorldStateInputCreator worldStateInputCreator;
     private readonly GameState gameState;
 
     public PostEncounterEvolutionSystem(
@@ -17,6 +18,7 @@
         CharacterSystem characterSystem,
         OpportunitySystem opportunitySystem,
         ActionSystem actionSystem,
+        WorldStateInputCreator worldStateInputCreator,
         GameState gameState)
     {
         _narrativeService = narrativeService;
@@ -26,24 +28,25 @@
         this.characterSystem = characterSystem;
         this.opportunitySystem = opportunitySystem;
         this.actionSystem = actionSystem;
+        this.worldStateInputCreator = worldStateInputCreator;
         this.gameState = gameState;
     }
 
     public async Task<string> ConsolidateMemory(
         NarrativeContext context,
-        MemoryConsolidationInput input,
-        WorldStateInput worldStateInput)
+        MemoryConsolidationInput input)
     {
+        WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(context.LocationName);
         return await _narrativeService.ProcessMemoryConsolidation(context, input, worldStateInput);
     }
 
     public async Task<PostEncounterEvolutionResult> ProcessEncounterOutcome(
         NarrativeContext context,
         PostEncounterEvolutionInput input,
-        EncounterResult encounterResult,
-        WorldStateInput worldStateInput)
+        EncounterResult encounterResult)
     {
         // Get world evolution response from narrative service
+        WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(context.LocationName);
         PostEncounterEvolutionResult response = await _narrativeService.ProcessPostEncounterEvolution(context, input, worldStateInput);
         return response;
     }
@@ -52,8 +55,7 @@
         PostEncounterEvolutionResult evolution,
         WorldState worldState,
         LocationSystem locationSystem,
-        PlayerState playerState,
-        WorldStateInput worldStateInput)
+        PlayerState playerState)
     {
         // Process coin change
         if (evolution.CoinChange != 0)
@@ -79,7 +81,7 @@
             worldState.AddLocation(location);
 
             locationSystem.ConnectLocations(location, worldState.CurrentLocation);
-            
+
             // Set location depth
             worldState.SetLocationDepth(location.Name, location.Depth);
 
@@ -101,7 +103,7 @@
         }
 
         // Process new actions and associate them with the appropriate spots
-        await ProcessNewActions(evolution, worldState, worldStateInput);
+        await ProcessNewActions(evolution, worldState);
 
         // Add new characters
         foreach (Character character in evolution.NewCharacters)
@@ -117,9 +119,8 @@
     }
 
     private async Task ProcessNewActions(
-        PostEncounterEvolutionResult evolution, 
-        WorldState worldState,
-        WorldStateInput worldStateInput)
+        PostEncounterEvolutionResult evolution,
+        WorldState worldState)
     {
         foreach (NewAction newAction in evolution.NewActions)
         {
@@ -138,7 +139,6 @@
 
                     // Create action template linked to the encounter
                     string actionId = await _actionGenerator.GenerateActionAndEncounter(
-                        worldStateInput,
                         newAction.Name,
                         newAction.SpotName,
                         newAction.LocationName,
@@ -146,7 +146,7 @@
                         newAction.Complication,
                         ParseActionType(newAction.ActionType).ToString());
 
-                    ActionTemplate actionTemplate = _actionRepository.GetAction(newAction.Name);
+                    ActionDefinition actionTemplate = _actionRepository.GetAction(newAction.Name);
                     spotForAction.ActionIds.Add(actionId);
 
                     Console.WriteLine($"Created new action {newAction.Name} at {newAction.LocationName}/{newAction.SpotName}");
@@ -221,15 +221,15 @@
         }
     }
 
-    private BasicActionTypes ParseActionType(string actionTypeStr)
+    private EncounterTypes ParseActionType(string actionTypeStr)
     {
-        if (Enum.TryParse<BasicActionTypes>(actionTypeStr, true, out BasicActionTypes actionType))
+        if (Enum.TryParse<EncounterTypes>(actionTypeStr, true, out EncounterTypes actionType))
         {
             return actionType;
         }
 
         // Default fallback
-        return BasicActionTypes.Physical;
+        return EncounterTypes.Physical;
     }
 
     public PostEncounterEvolutionInput PreparePostEncounterEvolutionInput(

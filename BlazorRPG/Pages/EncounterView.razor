@@ -18,15 +18,18 @@
             </div>
 
             <div class="encounter-choices">
-                @foreach (UserEncounterChoiceOption choice in GetChoices())
+                @if(CurrentChoices.Count > 0)
                 {
-                    <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")"
-                            @onclick="(() => HandleChoiceSelection(choice))"
-                            @onmouseover="(e => ShowTooltip(choice, e))"
-                            @onmouseout="HideTooltip">
-                        <div class="choice-index">@choice.Index</div>
-                        <div class="choice-name">@GetChoiceName(choice)</div>
-                    </div>
+                    @foreach (UserEncounterChoiceOption choice in CurrentChoices)
+                    {
+                        <div class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")"
+                                @onclick="(() => HandleChoiceSelection(choice))"
+                                @onmouseover="(e => ShowTooltip(choice, e))"
+                                @onmouseout="HideTooltip">
+                            <div class="choice-index">@choice.Index</div>
+                            <div class="choice-name">@GetChoiceName(choice)</div>
+                        </div>
+                    }
                 }
             </div>
         </div>
@@ -52,7 +55,7 @@
                     {
                         <div class="tag-value">
                             <span>@tag</span>
-                            <span>@Model.State.EncounterTagSystem.GetEncounterStateTagValue(tag)</span>
+                            <span>@Model.State?.EncounterTagSystem.GetApproachTagValue(tag)</span>
                         </div>
                     }
                 </div>
@@ -65,7 +68,7 @@
                     {
                         <div class="tag-value">
                             <span>@tag</span>
-                            <span>@Model.State.EncounterTagSystem.GetFocusTagValue(tag)</span>
+                            <span>@Model.State?.EncounterTagSystem.GetFocusTagValue(tag)</span>
                         </div>
                     }
                 </div>

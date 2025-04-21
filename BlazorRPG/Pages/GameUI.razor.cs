@@ -185,15 +185,15 @@ public partial class GameUI : ComponentBase
     private async Task WaitOneHour()
     {
         // Create a "Wait" action that advances time without other effects
-        ActionTemplate waitAction = new ActionTemplate("Wait", "Wait", 0, 0, BasicActionTypes.Physical, true)
+        ActionDefinition waitAction = new ActionDefinition("Wait", "Wait", 0, 0, EncounterTypes.Physical, true)
         {
-            TimeCostHours = 1,
+            TimeCost = 1,
         };
 
         ActionImplementation waitImpl = GameManager.ActionFactory.CreateActionFromTemplate(waitAction);
 
         UserActionOption waitOption = new UserActionOption(
-            "Wait", "Wait for one hour", false, waitImpl,
+            "Wait for one hour", false, waitImpl,
             GameState.WorldState.CurrentLocation?.Name ?? "Global",
             GameState.WorldState.CurrentLocationSpot?.Name ?? "Global",
             null, 0, null);
@@ -329,11 +329,11 @@ public partial class GameUI : ComponentBase
     {
         return archetype switch
         {
-            ArchetypeTypes.Warrior => "⚔️",
-            ArchetypeTypes.Scholar => "📚",
-            ArchetypeTypes.Ranger => "🏹",
-            ArchetypeTypes.Bard => "🎵",
-            ArchetypeTypes.Thief => "🗝️",
+            ArchetypeTypes.Knight => "⚔️",
+            ArchetypeTypes.Sage => "📚",
+            ArchetypeTypes.Forester => "🏹",
+            ArchetypeTypes.Courtier => "🎵",
+            ArchetypeTypes.Shadow => "🗝️",
             _ => "❓"
         };
     }
@@ -345,21 +345,21 @@ public partial class GameUI : ComponentBase
             ItemTypes.Sword => "⚔️",
             ItemTypes.Shield => "🛡️",
             ItemTypes.Bow => "🏹",
-            ItemTypes.Arrow => "🪶",
+            ItemTypes.Snares => "🪶",
             ItemTypes.Dagger => "🔪",
             ItemTypes.Lockpicks => "🗝️",
-            ItemTypes.Book => "📚",
-            ItemTypes.Scroll => "📜",
-            ItemTypes.Lute => "🎵",
-            ItemTypes.Rope => "🧶",
-            ItemTypes.Rations => "🍖",
-            ItemTypes.LeatherArmor => "👕",
-            ItemTypes.WritingKit => "✒️",
-            ItemTypes.HuntingKnife => "🔪",
-            ItemTypes.HealingHerbs => "🍃",
+            ItemTypes.Journal => "📚",
+            ItemTypes.Spectacles => "📜",
+            ItemTypes.WaxSealKit => "🎵",
+            ItemTypes.GrapplingHook => "🧶",
+            ItemTypes.FlintAndSteel => "🍖",
+            ItemTypes.Chainmail => "👕",
+            ItemTypes.QuillAndInk => "✒️",
+            ItemTypes.SkinningKnife => "🔪",
+            ItemTypes.HerbPouch => "🍃",
             ItemTypes.FineClothes => "👘",
-            ItemTypes.WineBottle => "🍷",
-            ItemTypes.ClimbingGear => "⛏️",
+            ItemTypes.WineFlask => "🍷",
+            ItemTypes.DarkCloak => "⛏️",
             _ => "📦"
         };
     }
@@ -380,21 +380,21 @@ public partial class GameUI : ComponentBase
             ItemTypes.Sword => "A sturdy steel sword",
             ItemTypes.Shield => "A wooden shield with metal binding",
             ItemTypes.Bow => "A hunting bow made of yew",
-            ItemTypes.Arrow => "Sharp arrows with fletching",
+            ItemTypes.Snares => "Sharp arrows with fletching",
             ItemTypes.Dagger => "A small but sharp blade",
             ItemTypes.Lockpicks => "Tools for picking locks",
-            ItemTypes.Book => "A tome of knowledge",
-            ItemTypes.Scroll => "A rolled parchment with writing",
-            ItemTypes.Lute => "A stringed musical instrument",
-            ItemTypes.Rope => "Strong hemp rope",
-            ItemTypes.Rations => "Dried food for travel",
-            ItemTypes.LeatherArmor => "Protective leather garments",
-            ItemTypes.WritingKit => "Quill, ink and parchment",
-            ItemTypes.HuntingKnife => "A knife for skinning game",
-            ItemTypes.HealingHerbs => "Medicinal plants",
+            ItemTypes.Journal => "A tome of knowledge",
+            ItemTypes.Spectacles => "A rolled parchment with writing",
+            ItemTypes.WaxSealKit => "A stringed musical instrument",
+            ItemTypes.GrapplingHook => "Strong hemp rope",
+            ItemTypes.FlintAndSteel => "Dried food for travel",
+            ItemTypes.Chainmail => "Protective leather garments",
+            ItemTypes.QuillAndInk => "Quill, ink and parchment",
+            ItemTypes.SkinningKnife => "A knife for skinning game",
+            ItemTypes.HerbPouch => "Medicinal plants",
             ItemTypes.FineClothes => "Well-made attire suitable for performance",
-            ItemTypes.WineBottle => "A bottle of reasonably good wine",
-            ItemTypes.ClimbingGear => "Tools for scaling walls",
+            ItemTypes.WineFlask => "A bottle of reasonably good wine",
+            ItemTypes.DarkCloak => "Tools for scaling walls",
             _ => "A common item"
         };
     }

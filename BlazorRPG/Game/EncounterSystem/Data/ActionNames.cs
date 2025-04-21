@@ -13,13 +13,9 @@
     FollowStream,
     ObserveArea,
     ForageForFood,
-    SearchSurroundings,
+    RestAtCrossroads,
     GatherHerbs,
     FindPathOut,
-}
-
-public enum LocationNames
-{
-    DeepForest,
-    Village
+    ReadSignpost,
+    ObserveTravelers,
 }

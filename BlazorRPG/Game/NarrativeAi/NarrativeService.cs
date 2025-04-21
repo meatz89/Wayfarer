@@ -68,8 +68,8 @@
     }
 
     public async Task<string> GenerateIntroductionAsync(
-        NarrativeContext context, 
-        EncounterStatusModel state, 
+        NarrativeContext context,
+        EncounterStatusModel state,
         string memoryContent,
         WorldStateInput worldStateInput)
     {
@@ -77,9 +77,9 @@
         return await narrativeAIService.GenerateIntroductionAsync(context, state, memoryContent, worldStateInput);
     }
 
-    public async Task<Dictionary<ChoiceCard, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+    public async Task<Dictionary<CardDefinition, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
         NarrativeContext context,
-        List<ChoiceCard> choices,
+        List<CardDefinition> choices,
         List<ChoiceProjection> projections,
         EncounterStatusModel state,
         WorldStateInput worldStateInput)
@@ -90,7 +90,7 @@
 
     public async Task<string> GenerateEncounterNarrative(
         NarrativeContext context,
-        ChoiceCard chosenOption,
+        CardDefinition chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         EncounterStatusModel newState,
@@ -102,7 +102,7 @@
 
     public async Task<string> GenerateEndingAsync(
         NarrativeContext context,
-        ChoiceCard chosenOption,
+        CardDefinition chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         EncounterStatusModel newState,
@@ -121,7 +121,7 @@
     }
 
     public async Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(
-        NarrativeContext context, 
+        NarrativeContext context,
         PostEncounterEvolutionInput input,
         WorldStateInput worldStateInput)
     {
@@ -129,7 +129,7 @@
     }
 
     public async Task<string> ProcessMemoryConsolidation(
-        NarrativeContext context, 
+        NarrativeContext context,
         MemoryConsolidationInput input,
         WorldStateInput worldStateInput)
     {

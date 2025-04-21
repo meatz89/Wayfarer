@@ -23,7 +23,7 @@
 
     public string KnownCharacters { get; set; }
     public string ActiveOpportunities { get; set; }
-    
+
     public string MemorySummary { get; set; }
 
 }

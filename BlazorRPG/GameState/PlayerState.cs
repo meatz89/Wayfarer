@@ -6,12 +6,10 @@
 
     // Archetype
     public ArchetypeTypes Archetype { get; set; }
-    public ArchetypeConfig ArchetypeConfig { get; set; }
 
     // Progression systems
     public int Level { get; set; }
     public int CurrentXP { get; set; }
-    public SkillList Skills { get; set; } = new();
 
     // Resources
     public int Money { get; set; }
@@ -35,7 +33,7 @@
     public RelationshipList Relationships { get; set; } = new();
 
     // Card collection (player skills)
-    public List<ChoiceCard> UnlockedCards { get; set; } = new List<ChoiceCard>();
+    public List<CardDefinition> UnlockedCards { get; set; } = new List<CardDefinition>();
 
     // Location knowledge
     public List<string> DiscoveredLocationIds { get; set; } = new List<string>();
@@ -46,17 +44,16 @@
     public int Coins { get; set; }
 
     public Equipment Equipment { get; set; }
-    public List<KnowledgePiece> Knowledge { get; set; } = new();
-    public HashSet<(string, BasicActionTypes)> LocationActionAvailability { get; set; } = new();
+    public HashSet<(string, EncounterTypes)> LocationActionAvailability { get; set; } = new();
 
     public List<PlayerNegativeStatus> NegativeStatusTypes { get; set; }
     public PlayerConfidenceTypes ConfidenceType { get; set; }
     public bool IsInitialized { get; set; } = false;
-    public string StartingLocation { get; private set; }
 
     public List<string> KnownLocations { get; private set; } = new List<string>();
     public List<string> KnownLocationSpots { get; private set; } = new List<string>();
-    public List<ChoiceCard> KnownCards { get; private set; } = new List<ChoiceCard>();
+    public List<CardDefinition> KnownCards { get; private set; } = new List<CardDefinition>();
+    public PlayerSkills PlayerSkills { get; private set; } = new();
 
     public PlayerState()
     {
@@ -86,11 +83,6 @@
         ConfidenceType = PlayerConfidenceTypes.Neutral;
     }
 
-    public void SetStartingLocation(string startingLocation)
-    {
-        StartingLocation = startingLocation;
-    }
-
     public void Initialize(string playerName, ArchetypeTypes selectedArchetype)
     {
         Name = playerName;
@@ -104,32 +96,37 @@
 
         switch (archetype)
         {
-            case ArchetypeTypes.Warrior:
-                ArchetypeConfig = ArchetypeConfig.CreateWarrior();
-                InitializeWarriorInventory();
+            case ArchetypeTypes.Knight:
+                PlayerSkills.ImproveSkill(SkillTypes.Warfare, 2);
+                InitializeKnightInventory();
                 break;
-            case ArchetypeTypes.Scholar:
-                ArchetypeConfig = ArchetypeConfig.CreateScholar();
-                InitializeScholarInventory();
+
+            case ArchetypeTypes.Courtier:
+                PlayerSkills.ImproveSkill(SkillTypes.Diplomacy, 2);
+                InitializeCourtierInventory();
                 break;
-            case ArchetypeTypes.Ranger:
-                ArchetypeConfig = ArchetypeConfig.CreateRanger();
-                InitializeRangerInventory();
+
+            case ArchetypeTypes.Sage:
+                PlayerSkills.ImproveSkill(SkillTypes.Scholarship, 2);
+                InitializeSageInventory();
                 break;
-            case ArchetypeTypes.Bard:
-                ArchetypeConfig = ArchetypeConfig.CreateBard();
-                InitializeBardInventory();
+
+            case ArchetypeTypes.Forester:
+                PlayerSkills.ImproveSkill(SkillTypes.Wilderness, 2);
+                InitializeForesterInventory();
                 break;
-            case ArchetypeTypes.Thief:
-                ArchetypeConfig = ArchetypeConfig.CreateThief();
-                InitializeThiefInventory();
+
+            case ArchetypeTypes.Shadow:
+                PlayerSkills.ImproveSkill(SkillTypes.Subterfuge, 2);
+                InitializeShadowInventory();
                 break;
+
             default:
                 throw new ArgumentOutOfRangeException(nameof(archetype));
         }
     }
 
-    private void InitializeWarriorInventory()
+    private void InitializeKnightInventory()
     {
         // Clear existing inventory first
         ClearInventory();
@@ -137,60 +134,61 @@
         // Add warrior-specific items
         Inventory.AddItem(ItemTypes.Sword);
         Inventory.AddItem(ItemTypes.Shield);
-        Inventory.AddItem(ItemTypes.LeatherArmor);
-        Inventory.AddItem(ItemTypes.Rations);
+        Inventory.AddItem(ItemTypes.Chainmail);
+        Inventory.AddItem(ItemTypes.Whetstone);
+        Inventory.AddItem(ItemTypes.FlintAndSteel);
     }
 
-    private void InitializeScholarInventory()
+    private void InitializeCourtierInventory()
+    {
+        // Clear existing inventory first
+        ClearInventory();
+
+        // Add bard-specific items
+        Inventory.AddItem(ItemTypes.FineClothes);
+        Inventory.AddItem(ItemTypes.WaxSealKit);
+        Inventory.AddItem(ItemTypes.Perfume);
+        Inventory.AddItem(ItemTypes.SilverCoins);
+        Inventory.AddItem(ItemTypes.WineFlask);
+    }
+
+    private void InitializeSageInventory()
     {
         // Clear existing inventory first
         ClearInventory();
 
         // Add scholar-specific items
-        Inventory.AddItem(ItemTypes.Book);
-        Inventory.AddItem(ItemTypes.Scroll);
-        Inventory.AddItem(ItemTypes.WritingKit);
-        Inventory.AddItem(ItemTypes.Dagger);
-        Inventory.AddItem(ItemTypes.Rations);
+        Inventory.AddItem(ItemTypes.Journal);
+        Inventory.AddItem(ItemTypes.QuillAndInk);
+        Inventory.AddItem(ItemTypes.Spectacles);
+        Inventory.AddItem(ItemTypes.PuzzleBox);
+        Inventory.AddItem(ItemTypes.AncientText);
     }
 
-    private void InitializeRangerInventory()
+    private void InitializeForesterInventory()
     {
         // Clear existing inventory first
         ClearInventory();
 
         // Add ranger-specific items
         Inventory.AddItem(ItemTypes.Bow);
-        Inventory.AddItem(ItemTypes.Arrow);
-        Inventory.AddItem(ItemTypes.HuntingKnife);
-        Inventory.AddItem(ItemTypes.Rations);
-        Inventory.AddItem(ItemTypes.HealingHerbs);
+        Inventory.AddItem(ItemTypes.SkinningKnife);
+        Inventory.AddItem(ItemTypes.Snares);
+        Inventory.AddItem(ItemTypes.FlintAndSteel);
+        Inventory.AddItem(ItemTypes.HerbPouch);
     }
 
-    private void InitializeBardInventory()
-    {
-        // Clear existing inventory first
-        ClearInventory();
-
-        // Add bard-specific items
-        Inventory.AddItem(ItemTypes.Lute);
-        Inventory.AddItem(ItemTypes.FineClothes);
-        Inventory.AddItem(ItemTypes.WineBottle);
-        Inventory.AddItem(ItemTypes.Dagger);
-        Inventory.AddItem(ItemTypes.Rations);
-    }
-
-    private void InitializeThiefInventory()
+    private void InitializeShadowInventory()
     {
         // Clear existing inventory first
         ClearInventory();
 
         // Add thief-specific items
         Inventory.AddItem(ItemTypes.Lockpicks);
-        Inventory.AddItem(ItemTypes.Rope);
-        Inventory.AddItem(ItemTypes.Dagger);
-        Inventory.AddItem(ItemTypes.ClimbingGear);
-        Inventory.AddItem(ItemTypes.Rations);
+        Inventory.AddItem(ItemTypes.DarkCloak);
+        Inventory.AddItem(ItemTypes.GrapplingHook);
+        Inventory.AddItem(ItemTypes.PoisonVial);
+        Inventory.AddItem(ItemTypes.DisguiseKit);
     }
 
     private void ClearInventory()
@@ -203,33 +201,6 @@
                 Inventory.RemoveItem(Inventory.GetFirstItem());
             }
         }
-    }
-
-    public List<ApproachTags> GetNaturalApproaches()
-    {
-        return ArchetypeConfig.GetApproachesWithAffinity(AffinityTypes.Natural);
-    }
-    public List<ApproachTags> GetIncompatibleApproaches()
-    {
-        return ArchetypeConfig.GetApproachesWithAffinity(AffinityTypes.Incompatible);
-    }
-
-    public List<FocusTags> GetNaturalFocuses()
-    {
-        return ArchetypeConfig.GetFocusesWithAffinity(AffinityTypes.Natural);
-    }
-    public List<FocusTags> GetIncompatibleFocuses()
-    {
-        return ArchetypeConfig.GetFocusesWithAffinity(AffinityTypes.Incompatible);
-    }
-
-    public AffinityTypes GetApproachAffinity(ApproachTags approach)
-    {
-        return ArchetypeConfig.GetAffinity(approach);
-    }
-    public AffinityTypes GetFocusAffinity(FocusTags focus)
-    {
-        return ArchetypeConfig.GetAffinity(focus);
     }
 
     public bool ModifyHealth(int count)
@@ -350,7 +321,7 @@
     {
         return NegativeStatusTypes.Contains(expectedValue);
     }
-    
+
     public void AddExperiencePoints(int xpBonus)
     {
         int newExperiencePoints = Math.Max(0, CurrentXP + xpBonus);
@@ -369,7 +340,7 @@
         }
     }
 
-    public void UnlockCard(ChoiceCard card)
+    public void UnlockCard(CardDefinition card)
     {
         KnownCards.Add(card);
     }
@@ -382,5 +353,15 @@
     public void AddKnownLocationSpot(string locationSpot)
     {
         KnownLocationSpots.Add(locationSpot);
+    }
+
+    internal void AddFood(int amount)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal void AddEnergy(int amount)
+    {
+        throw new NotImplementedException();
     }
 }

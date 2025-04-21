@@ -27,8 +27,8 @@
     }
 
     public override async Task<string> GenerateIntroductionAsync(
-        NarrativeContext context, 
-        EncounterStatusModel state, 
+        NarrativeContext context,
+        EncounterStatusModel state,
         string memoryContent,
         WorldStateInput worldStateInput)
     {
@@ -54,9 +54,9 @@
         return response;
     }
 
-    public override async Task<Dictionary<ChoiceCard, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+    public override async Task<Dictionary<CardDefinition, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
         NarrativeContext context,
-        List<ChoiceCard> choices,
+        List<CardDefinition> choices,
         List<ChoiceProjection> projections,
         EncounterStatusModel state,
         WorldStateInput worldStateInput)
@@ -93,7 +93,7 @@
 
     public override async Task<string> GenerateEncounterNarrative(
         NarrativeContext context,
-        ChoiceCard chosenOption,
+        CardDefinition chosenOption,
         ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
         EncounterStatusModel newState,
@@ -131,7 +131,7 @@
 
     public override async Task<string> GenerateEndingAsync(
         NarrativeContext context,
-        ChoiceCard chosenOption,
+        CardDefinition chosenOption,
         ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
         EncounterStatusModel newState,
@@ -172,7 +172,7 @@
         LocationCreationInput context,
         WorldStateInput worldStateInput)
     {
-        string conversationId = $"{context.LocationName}_encounter"; 
+        string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
         string prompt = _promptManager.BuildLocationCreationPrompt(context);
 
@@ -201,7 +201,7 @@
         PostEncounterEvolutionInput input,
         WorldStateInput worldStateInput)
     {
-        string conversationId = $"{context.LocationName}_encounter"; 
+        string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
 
         string prompt = _promptManager.BuildPostEncounterEvolutionPrompt(input);

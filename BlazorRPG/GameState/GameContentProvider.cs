@@ -13,12 +13,6 @@
 
     private void InitializeContent()
     {
-        locations = new List<Location>
-        {
-            WorldLocationsContent.Village,
-            WorldLocationsContent.DeepForest,
-        };
-
         characters = new List<Character>
         {
         };
@@ -30,11 +24,6 @@
             ItemContent.CraftingApron,
             ItemContent.CharmingPendant
         };
-    }
-
-    public List<Location> GetLocations()
-    {
-        return locations;
     }
 
     public List<Character>? GetCharacters()

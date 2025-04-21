@@ -6,14 +6,16 @@
 public class NarrativeTag : IEncounterTag
 {
     public string NarrativeName { get; }
+    public ApproachTags AffectedApproach { get; }
     public FocusTags AffectedFocus { get; }
-    public int RequirementChange { get; }
+    public int RequirementChangeApproach { get; }
+    public int RequirementChangeFocus { get; }
 
     public NarrativeTag(string narrativeName, FocusTags affectedFocus, int requirementChange)
     {
         NarrativeName = narrativeName;
         AffectedFocus = affectedFocus;
-        RequirementChange = requirementChange;
+        RequirementChangeFocus = requirementChange;
     }
 
     public bool IsActive(EncounterTagSystem tagSystem)
@@ -23,13 +25,13 @@ public class NarrativeTag : IEncounterTag
 
     public string GetEffectDescription()
     {
-        if (RequirementChange > 0)
+        if (RequirementChangeFocus > 0)
         {
-            return $"Increase required {AffectedFocus} by {RequirementChange}";
+            return $"Increase required {AffectedFocus} by {RequirementChangeFocus}";
         }
-        else if (RequirementChange < 0)
+        else if (RequirementChangeFocus < 0)
         {
-            return $"Decrease required {AffectedFocus} by {-RequirementChange}";
+            return $"Decrease required {AffectedFocus} by {-RequirementChangeFocus}";
         }
         return string.Empty;
     }

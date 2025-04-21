@@ -9,6 +9,7 @@
     private readonly GameState gameState;
     private readonly ActionGenerator actionGenerator;
     private readonly ActionRepository actionRepository;
+    private readonly WorldStateInputCreator worldStateInputCreator;
 
     public LocationCreationSystem(
         NarrativeService narrativeService,
@@ -18,7 +19,8 @@
         ActionSystem actionSystem,
         GameState gameState,
         ActionGenerator actionGenerator,
-        ActionRepository actionRepository
+        ActionRepository actionRepository,
+        WorldStateInputCreator worldStateInputCreator
         )
     {
         this.narrativeService = narrativeService;
@@ -29,6 +31,7 @@
         this.gameState = gameState;
         this.actionGenerator = actionGenerator;
         this.actionRepository = actionRepository;
+        this.worldStateInputCreator = worldStateInputCreator;
         this.narrativeService = narrativeService;
         this.worldState = gameState.WorldState;
     }
@@ -36,22 +39,21 @@
     public async Task<Location> PopulateLocation(
         string locationToPopulate,
         string travelOrigin,
-        int locationDepth,
-        WorldStateInput worldStateInput)
+        int locationDepth)
     {
         LocationCreationInput input = CreateLocationInput(travelOrigin, locationToPopulate, locationDepth);
+        WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(locationToPopulate);
 
         // Get location details from AI
         LocationDetails details = await narrativeService.GenerateLocationDetailsAsync(input, worldStateInput);
 
         // Convert SpotDetails to LocationSpot objects
-        return await IntegrateNewLocation(input, details, worldStateInput);
+        return await IntegrateNewLocation(input, details);
     }
 
     private async Task<Location> IntegrateNewLocation(
-        LocationCreationInput input, 
-        LocationDetails details,
-        WorldStateInput worldStateInput)
+        LocationCreationInput input,
+        LocationDetails details)
     {
         string locationName = details.LocationUpdate.NewLocationName;
 
@@ -68,7 +70,6 @@
         location.History = details.History;
         location.PointsOfInterest = details.PointsOfInterest;
         location.ConnectedTo = details.ConnectedLocationIds;
-        location.EnvironmentalProperties = details.EnvironmentalProperties;
         location.LocationSpots = new();
         location.StrategicTags = details.StrategicTags;
         location.NarrativeTags = details.NarrativeTags;
@@ -100,12 +101,12 @@
         }
 
         // Process new actions and associate them with the appropriate spots
-        await ProcessNewActions(details, worldState, worldStateInput);
+        await ProcessNewActions(details, worldState);
 
         return location;
     }
 
-    private async Task ProcessNewActions(LocationDetails details, WorldState worldState, WorldStateInput worldStateInput)
+    private async Task ProcessNewActions(LocationDetails details, WorldState worldState)
     {
         foreach (NewAction newAction in details.NewActions)
         {
@@ -124,8 +125,6 @@
 
                     string newActionId = newAction.Name.Replace(" ", "");
                     string actionId = await actionGenerator.GenerateActionAndEncounter(
-                        worldStateInput,
-                        newActionId,
                         newAction.Name,
                         newAction.SpotName,
                         newAction.LocationName,
@@ -133,8 +132,8 @@
                         newAction.Complication,
                         ParseActionType(newAction.ActionType).ToString());
 
-                    ActionTemplate actionTemplate = actionRepository.GetAction(actionId);
-                    spotForAction.ActionIds.Add(actionTemplate.ActionId);
+                    ActionDefinition actionTemplate = actionRepository.GetAction(actionId);
+                    spotForAction.ActionIds.Add(actionTemplate.Id);
 
                     Console.WriteLine($"Created new action {newAction.Name} at {newAction.LocationName}/{newAction.SpotName}");
                 }
@@ -151,15 +150,15 @@
     }
 
 
-    private BasicActionTypes ParseActionType(string actionTypeStr)
+    private EncounterTypes ParseActionType(string actionTypeStr)
     {
-        if (Enum.TryParse<BasicActionTypes>(actionTypeStr, true, out BasicActionTypes actionType))
+        if (Enum.TryParse<EncounterTypes>(actionTypeStr, true, out EncounterTypes actionType))
         {
             return actionType;
         }
 
         // Default fallback
-        return BasicActionTypes.Physical;
+        return EncounterTypes.Physical;
     }
 
     private LocationCreationInput CreateLocationInput(

@@ -37,7 +37,7 @@ public class EncounterTagSystem
 
     public Dictionary<ApproachTags, int> GetAllApproachTags() => _ApproachTags;
     public Dictionary<FocusTags, int> GetAllFocusTags() => _focusTags;
-    public int GetEncounterStateTagValue(ApproachTags tag) => _ApproachTags[tag];
+    public int GetApproachTagValue(ApproachTags tag) => _ApproachTags[tag];
     public int GetFocusTagValue(FocusTags tag) => _focusTags[tag];
 
     public void ModifyApproachPosition(ApproachTags tag, int delta)
@@ -57,7 +57,7 @@ public class EncounterTagSystem
         EncounterTagSystem clone = new EncounterTagSystem();
 
         foreach (ApproachTags tag in Enum.GetValues(typeof(ApproachTags)))
-            clone.SetEncounterStateTagValue(tag, GetEncounterStateTagValue(tag));
+            clone.SetEncounterStateTagValue(tag, GetApproachTagValue(tag));
 
         foreach (FocusTags tag in Enum.GetValues(typeof(FocusTags)))
             clone.SetFocusTagValue(tag, GetFocusTagValue(tag));

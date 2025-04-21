@@ -1,7 +1,6 @@
 ﻿public record UserActionOption
     (
     string ActionId,
-    string ActionName,
     bool IsDisabled,
     ActionImplementation ActionImplementation,
     string Location,
@@ -13,6 +12,6 @@
 {
     public string Display()
     {
-        return $"{ActionName}";
+        return $"{ActionId}";
     }
 }

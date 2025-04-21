@@ -2,10 +2,10 @@
 {
     private readonly TagManager _locationTags;
     private readonly ResourceManager _resourceManager;
-    private readonly EncounterInfo encounterInfo;
+    private readonly Encounter encounterInfo;
     private readonly PlayerState playerState;
 
-    public ProjectionService(TagManager tagManager, ResourceManager resourceManager, EncounterInfo encounterInfo, PlayerState playerState)
+    public ProjectionService(TagManager tagManager, ResourceManager resourceManager, Encounter encounterInfo, PlayerState playerState)
     {
         _locationTags = tagManager;
         _resourceManager = resourceManager;
@@ -14,7 +14,7 @@
     }
 
     public ChoiceProjection CreateChoiceProjection(
-        ChoiceCard choice,
+        CardDefinition choice,
         int currentMomentum,
         int currentPressure,
         int currentTurn)
@@ -59,71 +59,26 @@
 
         DetermineEncounterEnd(projection, projectedTurn);
 
-        // Determine which tags will be active based on new tag values
-        List<IEncounterTag> newlyActivatedTags = _locationTags.GetNewlyActivatedTags(clonedTagSystem, encounterInfo.AvailableTags);
-        List<IEncounterTag> deactivatedTags = _locationTags.GetDeactivatedTags(clonedTagSystem, encounterInfo.AvailableTags);
-
-        newlyActivatedTags.ForEach(tag => projection.NewlyActivatedTags.Add(tag.NarrativeName));
-        deactivatedTags.ForEach(tag => projection.DeactivatedTags.Add(tag.NarrativeName));
-
         return projection;
     }
 
-    private static void ProcessChoiceTagIncreases(ChoiceCard choice, ChoiceProjection projection, EncounterTagSystem clonedTagSystem, PlayerState playerState)
+    private static void ProcessChoiceTagIncreases(CardDefinition choice, ChoiceProjection projection, EncounterTagSystem clonedTagSystem, PlayerState playerState)
     {
         foreach (TagModification mod in choice.TagModifications)
         {
             if (mod.EncounterTagType == TagModification.TagTypes.Approach)
             {
                 ApproachTags tag = (ApproachTags)mod.TagName;
-                int oldValue = clonedTagSystem.GetEncounterStateTagValue(tag);
-                int approachDelta = GetApproachBonus(playerState, tag);
-
-                clonedTagSystem.ModifyApproachPosition(tag, approachDelta);
-
-                int newValue = clonedTagSystem.GetEncounterStateTagValue(tag);
-                int actualDelta = newValue - oldValue;
-
-                if (actualDelta != 0)
-                { 
-                    projection.ApproachTagChanges[tag] = actualDelta;
-                }
+                int newValue = clonedTagSystem.GetApproachTagValue(tag);
+                projection.ApproachTagChanges[tag] = newValue;
             }
             else if (mod.EncounterTagType == TagModification.TagTypes.Focus)
             {
                 FocusTags tag = (FocusTags)mod.TagName;
-                int oldValue = clonedTagSystem.GetFocusTagValue(tag);
-                int focusDelta = GetFocusBonus(playerState, tag);
-
-                clonedTagSystem.ModifyFocusPosition(tag, focusDelta);
-
                 int newValue = clonedTagSystem.GetFocusTagValue(tag);
-                int actualDelta = newValue - oldValue;
-
-                if (actualDelta != 0)
-                { 
-                    projection.FocusTagChanges[tag] = actualDelta;
-                }
+                projection.FocusTagChanges[tag] = newValue;
             }
         }
-    }
-
-    private static int GetApproachBonus(PlayerState playerState, ApproachTags tag)
-    {
-        var affinity = playerState.GetApproachAffinity(tag);
-        int approachDelta = affinity == AffinityTypes.Natural ? approachDelta = 3
-        : affinity == AffinityTypes.Incompatible ? approachDelta = 1
-        : 2;
-        return approachDelta;
-    }
-
-    private static int GetFocusBonus(PlayerState playerState, FocusTags tag)
-    {
-        var affinity = playerState.GetFocusAffinity(tag);
-        int focusDelta = affinity == AffinityTypes.Natural ? focusDelta = 3
-        : affinity == AffinityTypes.Incompatible ? focusDelta = 1
-        : 2;
-        return focusDelta;
     }
 
     private static void EnsureNoNegativeEncounterValues(int currentMomentum, int currentPressure, ChoiceProjection projection)
@@ -154,12 +109,12 @@
         }
     }
 
-    private void ProcessStrategicTagEffects(ChoiceCard choice, ChoiceProjection projection, EncounterTagSystem baseTagSystem, ref int momentumChange, ref int pressureChange)
+    private void ProcessStrategicTagEffects(CardDefinition choice, ChoiceProjection projection, EncounterTagSystem baseTagSystem, ref int momentumChange, ref int pressureChange)
     {
-        StrategicEffect effect = choice.StrategicEffect;
-        List<EnvironmentPropertyTag> strategicTags = _locationTags.GetStrategicActiveTags();
+        EnvironmentalPropertyEffect effect = choice.StrategicEffect;
+        List<StrategicTag> strategicTags = _locationTags.GetStrategicActiveTags();
 
-        foreach (EnvironmentPropertyTag tag in strategicTags)
+        foreach (StrategicTag tag in strategicTags)
         {
             if (effect == null || !effect.IsActive(tag))
             {
@@ -191,19 +146,14 @@
         }
     }
 
-    private void CalculateDamageFromPressure(ChoiceCard choice, ChoiceProjection projection, PlayerState playerState, int currentPressure, int choicePressure)
+    private void CalculateDamageFromPressure(CardDefinition choice, ChoiceProjection projection, PlayerState playerState, int currentPressure, int choicePressure)
     {
-        bool badApproach = playerState.GetIncompatibleApproaches().Contains(choice.Approach);
-        bool badFocus = playerState.GetIncompatibleFocuses().Contains(choice.Focus);
         int injuryEffect = 0;
-        if (badApproach || badFocus)
-        {
-            injuryEffect = -currentPressure;
-        }
-            
+        injuryEffect = -currentPressure;
+
         if (injuryEffect != 0)
         {
-            var encounterType = encounterInfo.EncounterType;
+            EncounterTypes encounterType = encounterInfo.EncounterType;
             if (encounterType == EncounterTypes.Physical)
             {
                 projection.HealthChange += injuryEffect;
@@ -243,7 +193,7 @@
     /// <param name="momentumChange"></param>
     /// <param name="pressureChange"></param>
     private void ProcessMomentumPressureIncrease(
-        ChoiceCard choice,
+        CardDefinition choice,
         int currentTurn,
         ChoiceProjection projection,
         ref int momentumChange,
@@ -252,7 +202,7 @@
         // Momentum Choice
         if (choice.EffectType == EffectTypes.Momentum)
         {
-            int baseMomentum = choice.BaseEffectValue;
+            int baseMomentum = choice.EffectValue;
             projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
             {
                 Source = $"Momentum Building Choice (Tier {(int)choice.Tier})",
@@ -275,7 +225,7 @@
         // Pressure Reduction Choice
         if (choice.EffectType == EffectTypes.Pressure)
         {
-            int basePressure = -choice.BaseEffectValue;
+            int basePressure = -choice.EffectValue;
             projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
             {
                 Source = $"Pressure Reduction Choice (Tier {(int)choice.Tier})",

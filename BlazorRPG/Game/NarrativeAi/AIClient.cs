@@ -6,9 +6,9 @@
     private readonly NarrativeLogManager _logManager;
 
     public AIClient(
-        IAIProvider aiProvider, 
-        string gameInstanceId, 
-        ILogger logger, 
+        IAIProvider aiProvider,
+        string gameInstanceId,
+        ILogger logger,
         NarrativeLogManager logManager)
     {
         _aiProvider = aiProvider ?? throw new ArgumentNullException(nameof(aiProvider));

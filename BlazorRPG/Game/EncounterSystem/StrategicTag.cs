@@ -1,11 +1,12 @@
-﻿public class EnvironmentPropertyTag : IEncounterTag
+﻿public class StrategicTag : IEncounterTag
 {
     public string NarrativeName { get; }
     public IEnvironmentalProperty EnvironmentalProperty { get; }
 
-    public EnvironmentPropertyTag(
+    public StrategicTag(
         string name,
-        IEnvironmentalProperty environmentalProperty)
+        IEnvironmentalProperty environmentalProperty,
+        EnvironmentalPropertyEffect environmentalPropertyEffect)
     {
         NarrativeName = name;
         EnvironmentalProperty = environmentalProperty;

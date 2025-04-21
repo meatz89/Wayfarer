@@ -2,28 +2,24 @@
 {
     private string actionId;
     private string name;
-    private string description;
     private string goal;
     private string complication;
     public List<Requirement> requirements = new();
-    public List<Outcome> energy = new();
     public List<Outcome> costs = new();
     public List<Outcome> rewards = new();
     public bool IsEncounterAction = true;
     public string encounterTemplateName;
     private bool isRepeatable;
     private string movesToLocationSpot;
-    private int timeCost;
+    private int energyCost = 0;
+    private int timeCost = 0;
     private int difficulty = 1;
     private int encounterChance = 0;
-    private BasicActionTypes basicActionType;
+    private EncounterTypes basicActionType;
     private List<TimeWindows> timeWindows = new List<TimeWindows>();
+    private ActionCategories actionCategory;
 
-    public ActionTemplateBuilder WithId(string id)
-    {
-        this.actionId = id;
-        return this;
-    }
+    public List<YieldDefinition> Yields = new();
 
     public ActionTemplateBuilder WithName(string name)
     {
@@ -31,18 +27,18 @@
         return this;
     }
 
-    public ActionTemplateBuilder AvailableDuring(params TimeWindows[] timeWindows)
-    {
-        foreach (var window in timeWindows)
-        {
-            this.timeWindows.Add(window);
-        }
-        return this;
-    }
-
     public ActionTemplateBuilder WithGoal(string goal)
     {
         this.goal = goal;
+        return this;
+    }
+
+    public ActionTemplateBuilder AvailableDuring(params TimeWindows[] timeWindows)
+    {
+        foreach (TimeWindows window in timeWindows)
+        {
+            this.timeWindows.Add(window);
+        }
         return this;
     }
 
@@ -68,15 +64,6 @@
         return this;
     }
 
-    public ActionTemplateBuilder ExpendsEnergy(int energy)
-    {
-        if (energy < 0) return this;
-
-        requirements.Add(new EnergyRequirement(energy));
-        costs.Add(new EnergyOutcome(-energy));
-        return this;
-    }
-
     public ActionTemplateBuilder ExpendsFood(int amount)
     {
         if (amount < 0) return this;
@@ -95,7 +82,13 @@
         return this;
     }
 
-    public ActionTemplateBuilder TimeCostInHours(int timeCost)
+    public ActionTemplateBuilder WithEnergyCost(int energyCost)
+    {
+        this.energyCost = energyCost;
+        return this;
+    }
+
+    public ActionTemplateBuilder WithTimeCost(int timeCost)
     {
         this.timeCost = timeCost;
         return this;
@@ -137,7 +130,7 @@
         return this;
     }
 
-    public ActionTemplateBuilder MovesToLocationSpot(LocationNames deepForest, string locationSpot)
+    public ActionTemplateBuilder MovesToLocationSpot(string locationName, string locationSpot)
     {
         this.movesToLocationSpot = locationSpot;
         return this;
@@ -161,17 +154,35 @@
         return this;
     }
 
-    public ActionTemplateBuilder WithActionType(BasicActionTypes basicActionType)
+    public ActionTemplateBuilder WithEncounterType(EncounterTypes basicActionType)
     {
         this.basicActionType = basicActionType;
         return this;
     }
 
-    public ActionTemplate Build()
+    public ActionTemplateBuilder WithCategory(ActionCategories actionCategory)
+    {
+        this.actionCategory = actionCategory;
+        return this;
+    }
+
+    public ActionTemplateBuilder AddYield(Action<YieldDefinitionBuilder> buildYields)
+    {
+        YieldDefinitionBuilder yieldBuilder = new YieldDefinitionBuilder();
+        buildYields(yieldBuilder);
+
+        YieldDefinition yieldDefinition = yieldBuilder.Build();
+
+        this.Yields.Add(yieldDefinition);
+
+        return this;
+    }
+
+    public ActionDefinition Build()
     {
         if (actionId == null) actionId = name.Replace(" ", "");
 
-        return new ActionTemplate(
+        return new ActionDefinition(
             actionId,
             name,
             difficulty,
@@ -179,7 +190,7 @@
             basicActionType,
             isRepeatable)
         {
-            Description = description,
+            Description = goal,
 
             Goal = goal,
             Complication = complication,
@@ -187,12 +198,14 @@
 
             TimeWindows = timeWindows,
 
-            TimeCostHours = timeCost,
-            Energy = energy,
+            TimeCost = timeCost,
+            EnergyCost = energyCost,
 
             Requirements = requirements,
             Costs = costs,
             Rewards = rewards,
+
+            Yields = Yields
         };
     }
 }

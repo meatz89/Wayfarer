@@ -8,7 +8,7 @@
             @foreach (ArchetypeTypes archetype in Enum.GetValues(typeof(ArchetypeTypes)))
             {
                 <div class="archetype-card @(selectedArchetype == archetype ? "selected" : "")"
-                @onclick="() => SelectArchetype(archetype)">
+                     @onclick="() => SelectArchetype(archetype)">
                     <div class="archetype-icon">@GetArchetypeIcon(archetype)</div>
                     <div class="archetype-name-bold">@FormatArchetypeName(archetype)</div>
                     <div class="archetype-description">@GetArchetypeDescription(archetype)</div>
@@ -56,7 +56,7 @@
     [Inject] protected GameState GameState { get; set; }
 
     private string playerName = "";
-    private ArchetypeTypes selectedArchetype = ArchetypeTypes.Scholar;
+    private ArchetypeTypes selectedArchetype = ArchetypeTypes.Sage;
 
     private void SelectArchetype(ArchetypeTypes archetype)
     {
@@ -72,7 +72,7 @@
     {
         // Set player name and archetype
         GameState.PlayerState.Initialize(playerName, selectedArchetype);
-        
+
         // Notify parent component that character creation is complete
         await OnCharacterCreated.InvokeAsync(GameState.PlayerState);
     }
@@ -81,11 +81,11 @@
     {
         return archetype switch
         {
-            ArchetypeTypes.Warrior => "⚔️",
-            ArchetypeTypes.Scholar => "📚",
-            ArchetypeTypes.Ranger => "🏹",
-            ArchetypeTypes.Bard => "🎵",
-            ArchetypeTypes.Thief => "🗝️",
+            ArchetypeTypes.Knight => "⚔️",
+            ArchetypeTypes.Sage => "📚",
+            ArchetypeTypes.Forester => "🏹",
+            ArchetypeTypes.Courtier => "🎭",
+            ArchetypeTypes.Shadow => "🗝️",
             _ => "❓"
         };
     }
@@ -104,11 +104,11 @@
     {
         return archetype switch
         {
-            ArchetypeTypes.Warrior => "Masters of combat who rely on strength and intimidation.",
-            ArchetypeTypes.Scholar => "Intellectuals who rely on knowledge and careful analysis.",
-            ArchetypeTypes.Ranger => "Hunters and scouts with exceptional awareness and precision.",
-            ArchetypeTypes.Bard => "Charismatic performers skilled in social interaction and persuasion.",
-            ArchetypeTypes.Thief => "Stealthy operators who excel at subterfuge and concealment.",
+            ArchetypeTypes.Knight => "Masters of warfare who rely on dominance and physical prowess. Trained in combat techniques and inspiring fear in opponents.",
+            ArchetypeTypes.Sage => "Scholars who excel at analysis and information gathering. Their methodical approach reveals hidden knowledge and solves complex problems.",
+            ArchetypeTypes.Forester => "Masters of wilderness survival who rely on precision and careful observation. Expert trackers and hunters with deep knowledge of nature.",
+            ArchetypeTypes.Courtier => "Skilled diplomats who excel at social interactions and building relationships. Their charm and persuasive abilities open doors closed to others.",
+            ArchetypeTypes.Shadow => "Masters of subterfuge who rely on concealment and misdirection. They navigate unseen through dangerous situations and access restricted areas.",
             _ => "Unknown archetype"
         };
     }
@@ -117,11 +117,11 @@
     {
         return archetype switch
         {
-            ArchetypeTypes.Warrior => "Dominance, Physical",
-            ArchetypeTypes.Scholar => "Analysis, Information",
-            ArchetypeTypes.Ranger => "Precision, Resource",
-            ArchetypeTypes.Bard => "Rapport, Relationship",
-            ArchetypeTypes.Thief => "Concealment, Environment",
+            ArchetypeTypes.Knight => "Dominance, Physical",
+            ArchetypeTypes.Sage => "Analysis, Information",
+            ArchetypeTypes.Forester => "Precision, Environment",
+            ArchetypeTypes.Courtier => "Rapport, Relationship",
+            ArchetypeTypes.Shadow => "Concealment, Resource",
             _ => "None"
         };
     }
@@ -130,30 +130,24 @@
     {
         return archetype switch
         {
-            ArchetypeTypes.Warrior => "Concealment, Information",
-            ArchetypeTypes.Scholar => "Precision, Resource",
-            ArchetypeTypes.Ranger => "Rapport, Physical",
-            ArchetypeTypes.Bard => "Analysis, Environment",
-            ArchetypeTypes.Thief => "Dominance, Relationship",
+            ArchetypeTypes.Knight => "Concealment, Information",
+            ArchetypeTypes.Sage => "Dominance, Physical",
+            ArchetypeTypes.Forester => "Rapport, Relationship",
+            ArchetypeTypes.Courtier => "Analysis, Concealment",
+            ArchetypeTypes.Shadow => "Dominance, Analysis",
             _ => "None"
         };
-    }
-
-    private string GetStartingItemsText(ArchetypeTypes archetype)
-    {
-        List<string> items = GetStartingItems(archetype);
-        return string.Join(", ", items);
     }
 
     private List<string> GetStartingItems(ArchetypeTypes archetype)
     {
         return archetype switch
         {
-            ArchetypeTypes.Warrior => new List<string> { "Sword", "Shield", "Leather Armor", "Rations" },
-            ArchetypeTypes.Scholar => new List<string> { "Book", "Scroll", "Writing Kit", "Dagger", "Rations" },
-            ArchetypeTypes.Ranger => new List<string> { "Bow", "Arrows", "Hunting Knife", "Healing Herbs", "Rations" },
-            ArchetypeTypes.Bard => new List<string> { "Lute", "Fine Clothes", "Wine Bottle", "Dagger", "Rations" },
-            ArchetypeTypes.Thief => new List<string> { "Lockpicks", "Rope", "Dagger", "Climbing Gear", "Rations" },
+            ArchetypeTypes.Knight => new List<string> { "Sword", "Shield", "Chain Mail", "Whetstone", "Rations" },
+            ArchetypeTypes.Sage => new List<string> { "Journal", "Quill & Ink", "Spectacles", "Puzzle Box", "Ancient Text" },
+            ArchetypeTypes.Forester => new List<string> { "Bow", "Skinning Knife", "Snares", "Flint & Steel", "Herb Pouch" },
+            ArchetypeTypes.Courtier => new List<string> { "Fine Clothes", "Wax Seal Kit", "Perfume", "Silver Coins", "Wine Flask" },
+            ArchetypeTypes.Shadow => new List<string> { "Lockpicks", "Dark Cloak", "Grappling Hook", "Poison Vial", "Disguise Kit" },
             _ => new List<string> { "Rations" }
         };
     }

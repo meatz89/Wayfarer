@@ -10,20 +10,14 @@
             PartialThreshold = 8,
             StandardThreshold = 12,
             ExceptionalThreshold = 16,
-            Hostility = EncounterInfo.HostilityLevels.Neutral,
+            Hostility = Encounter.HostilityLevels.Neutral,
 
             EncounterNarrativeTags = new List<NarrativeTag>
-        {
-            NarrativeTagRepository.DistractingCommotion,
-            NarrativeTagRepository.UnsteadyConditions
-        },
+            {
+                NarrativeTagRepository.DistractingCommotion,
+                NarrativeTagRepository.UnsteadyConditions
+            },
 
-            encounterStrategicTags = new List<EnvironmentPropertyTag>
-        {
-            new EnvironmentPropertyTag("Forest Light", Illumination.Shadowy),
-            new EnvironmentPropertyTag("Wildlife Presence", Population.Quiet),
-            new EnvironmentPropertyTag("Uneven Ground", Physical.Hazardous)
-        }
         };
     }
 

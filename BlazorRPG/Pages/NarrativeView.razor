@@ -68,20 +68,14 @@
             <div class="tooltip-section">
                 <h5>Energy Costs</h5>
                 <div class="tooltip-list">
-                    @foreach (Outcome cost in GetEnergyCosts())
-                    {
-                        <div class="encounter-result-item wide">
-                            <div class="tooltip-item-header">
-                                <div class="tooltip-item-title">
-                                    @GetOutcomeIcon(cost)
-                                    <span class="tooltip-item-name">@cost.GetDescription()</span>
-                                </div>
-                                <span class="tooltip-item-value negative-change">
-                                    @cost.GetPreview(GameState)
-                                </span>
+                    <div class="encounter-result-item wide">
+                        <div class="tooltip-item-header">
+                            <div class="tooltip-item-title">
+                                @GetEnergyTypeIcon()
+                                <span class="tooltip-item-name">@GetEnergyCost().ToString()</span>
                             </div>
                         </div>
-                    }
+                    </div>
                 </div>
             </div>
 

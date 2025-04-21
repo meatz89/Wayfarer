@@ -34,8 +34,7 @@ public class GameRules
     public static int StrategicInsightRequirement = 4;
     public static int StrategicResonanceRequirement = 4;
 
-    public ArchetypeTypes PlayerArchetype = ArchetypeTypes.Ranger;
-    public LocationNames StartingLocation = LocationNames.DeepForest;
+    public ArchetypeTypes PlayerArchetype = ArchetypeTypes.Knight;
 
     public string Background = string.Empty;
     public string Name = "Wayfarer";

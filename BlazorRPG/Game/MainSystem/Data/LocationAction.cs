@@ -1,9 +1,9 @@
 ﻿public class LocationAction
 {
     public string LocationId { get; private set; }
-    public BasicActionTypes ActionType { get; private set; }
+    public EncounterTypes ActionType { get; private set; }
 
-    public LocationAction(string locationId, BasicActionTypes actionType)
+    public LocationAction(string locationId, EncounterTypes actionType)
     {
         LocationId = locationId;
         ActionType = actionType;

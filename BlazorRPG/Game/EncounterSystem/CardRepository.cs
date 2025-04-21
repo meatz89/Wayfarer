@@ -1,11 +1,9 @@
-﻿
-
-/// <summary>
+﻿/// <summary>
 /// Repository of all available choices in the game
 /// </summary>
 public class CardRepository
 {
-    private readonly List<ChoiceCard> cards = new();
+    private readonly List<CardDefinition> cards = new();
 
     public CardRepository()
     {
@@ -14,232 +12,385 @@ public class CardRepository
 
     private void InitializeChoices()
     {
-        // =============================================
-        // TIER 1: NOVICE CARDS — Build Approach Only
-        // =============================================
+        // KNIGHT CARDS (Dominance)
 
-        cards.Add(ChoiceFactory.CreateMomentumChoice(
-            "Perceptive Glance",
+        // Tier 1
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "imposing_stance",
+            "Imposing Stance",
+            "You adopt a powerful stance, projecting physical dominance and control.",
+            1,
+            ApproachTags.Dominance, 0,  // Changed from 2 to 0
+            FocusTags.Physical, 0,      // Changed from 1 to 0
+            EffectTypes.Momentum, 2,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Dominance),
+                TagModification.IncreaseFocus(FocusTags.Physical)
+            },
+            new EnvironmentalPropertyEffect(new() { Atmosphere.Rough }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
+            new List<SkillRequirement>()
+        ));
+
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "show_of_force",
+            "Show of Force",
+            "You demonstrate your strength, intimidating others while establishing control over resources.",
+            1,
+            ApproachTags.Dominance, 0,  // Changed from 2 to 0
+            FocusTags.Resource, 0,      // Changed from 1 to 0
+            EffectTypes.Momentum, 2,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Dominance),
+                TagModification.IncreaseFocus(FocusTags.Resource)
+            },
+            new EnvironmentalPropertyEffect(new() { Population.Crowded }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
+            new List<SkillRequirement>()
+        ));
+
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "stand_ground",
+            "Stand Ground",
+            "You plant your feet firmly, refusing to yield to pressure or intimidation.",
+            1,
+            ApproachTags.Dominance, 0,  // Changed from 1 to 0
+            FocusTags.Physical, 0,      // Changed from 1 to 0
+            EffectTypes.Pressure, -1,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Dominance),
+                TagModification.IncreaseFocus(FocusTags.Physical)
+            },
+            new EnvironmentalPropertyEffect(new() { Physical.Confined }, StrategicTagEffectType.DecreasePressure, ApproachTags.Dominance),
+            new List<SkillRequirement>()
+        ));
+
+        // Tier 2
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "battlefield_command",
+            "Battlefield Command",
+            "You take charge of the situation, directing others with firm authority.",
+            2,
+            ApproachTags.Dominance, 3,
+            FocusTags.Relationship, 2,
+            EffectTypes.Momentum, 3,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Dominance),
+                TagModification.IncreaseFocus(FocusTags.Relationship)
+            },
+            new EnvironmentalPropertyEffect(new() { Population.Crowded }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
+            new List<SkillRequirement> { new SkillRequirement { SkillType = SkillTypes.Warfare, RequiredLevel = 1 } }
+        ));
+
+        // COURTIER CARDS (Rapport)
+
+        // Tier 1
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "charming_words",
+            "Charming Words",
+            "You speak with genuine warmth and interest, making others feel valued and understood.",
+            1,
+            ApproachTags.Rapport, 0,  // Changed from 2 to 0
+            FocusTags.Relationship, 0,  // Changed from 1 to 0
+            EffectTypes.Momentum, 2,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Rapport),
+                TagModification.IncreaseFocus(FocusTags.Relationship)
+            },
+            new EnvironmentalPropertyEffect(new() { Population.Crowded }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
+            new List<SkillRequirement>()
+        ));
+
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "smooth_tensions",
+            "Smooth Tensions",
+            "You defuse rising tension with well-chosen words and empathetic responses.",
+            1,
+            ApproachTags.Rapport, 0,  // Changed from 1 to 0
+            FocusTags.Relationship, 0,  // Changed from 1 to 0
+            EffectTypes.Pressure, -1,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Rapport),
+                TagModification.IncreaseFocus(FocusTags.Relationship)
+            },
+            new EnvironmentalPropertyEffect(new() { Atmosphere.Tense }, StrategicTagEffectType.DecreasePressure, ApproachTags.Rapport),
+            new List<SkillRequirement>()
+        ));
+
+        // Tier 2
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "social_leverage",
+            "Social Leverage",
+            "You skillfully use your connections and charm to gain access to valuable resources.",
+            2,
+            ApproachTags.Rapport, 3,
+            FocusTags.Resource, 2,
+            EffectTypes.Momentum, 3,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Rapport),
+                TagModification.IncreaseFocus(FocusTags.Resource)
+            },
+            new EnvironmentalPropertyEffect(new() { Atmosphere.Tense }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
+            new List<SkillRequirement> { new SkillRequirement { SkillType = SkillTypes.Diplomacy, RequiredLevel = 1 } }
+        ));
+
+        // SAGE CARDS (Analysis)
+
+        // Tier 1
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "critical_insight",
+            "Critical Insight",
+            "You quickly identify key patterns and connections others would miss.",
+            1,
+            ApproachTags.Analysis, 0,  // Changed from 2 to 0
+            FocusTags.Information, 0,  // Changed from 1 to 0
+            EffectTypes.Momentum, 2,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Analysis),
+                TagModification.IncreaseFocus(FocusTags.Information)
+            },
+            new EnvironmentalPropertyEffect(new() { Population.Quiet }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
+            new List<SkillRequirement>()
+        ));
+
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "careful_consideration",
+            "Careful Consideration",
+            "You take time to thoroughly evaluate information, avoiding hasty conclusions.",
+            1,
+            ApproachTags.Analysis, 0,  // Changed from 1 to 0
+            FocusTags.Information, 0,  // Changed from 1 to 0
+            EffectTypes.Pressure, -1,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Analysis),
+                TagModification.IncreaseFocus(FocusTags.Information)
+            },
+            new EnvironmentalPropertyEffect(new() { Population.Scholarly }, StrategicTagEffectType.DecreasePressure, ApproachTags.Analysis),
+            new List<SkillRequirement>()
+        ));
+
+        // Tier 2
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "knowledge_application",
+            "Knowledge Application",
+            "You apply theoretical knowledge to practical problems with remarkable efficiency.",
+            2,
+            ApproachTags.Analysis, 3,
+            FocusTags.Physical, 2,
+            EffectTypes.Momentum, 3,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Analysis),
+                TagModification.IncreaseFocus(FocusTags.Physical)
+            },
+            new EnvironmentalPropertyEffect(new() { Physical.Hazardous }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
+            new List<SkillRequirement> { new SkillRequirement { SkillType = SkillTypes.Scholarship, RequiredLevel = 1 } }
+        ));
+
+        // FORESTER CARDS (Precision)
+
+        // Tier 1
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "precise_strike",
+            "Precise Strike",
+            "You execute a perfectly timed movement with flawless technique.",
+            1,
+            ApproachTags.Precision, 0,  // Changed from 2 to 0
+            FocusTags.Physical, 0,  // Changed from 1 to 0
+            EffectTypes.Momentum, 2,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Precision),
+                TagModification.IncreaseFocus(FocusTags.Physical)
+            },
+            new EnvironmentalPropertyEffect(new() { Illumination.Bright }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
+            new List<SkillRequirement>()
+        ));
+
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "focused_observation",
+            "Focused Observation",
+            "You carefully examine your surroundings, noticing subtle details others would miss.",
+            1,
+            ApproachTags.Precision, 0,  // Changed from 2 to 0
+            FocusTags.Environment, 0,  // Changed from 1 to 0
+            EffectTypes.Momentum, 2,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Precision),
+                TagModification.IncreaseFocus(FocusTags.Environment)
+            },
+            new EnvironmentalPropertyEffect(new() { Physical.Expansive }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
+            new List<SkillRequirement>()
+        ));
+
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "measured_movement",
+            "Measured Movement",
+            "You move with deliberate control, minimizing strain and risk of injury.",
+            1,
+            ApproachTags.Precision, 0,  // Changed from 1 to 0
+            FocusTags.Physical, 0,  // Changed from 1 to 0
+            EffectTypes.Pressure, -1,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Precision),
+                TagModification.IncreaseFocus(FocusTags.Physical)
+            },
+            new EnvironmentalPropertyEffect(new() { Physical.Hazardous }, StrategicTagEffectType.DecreasePressure, ApproachTags.Precision),
+            new List<SkillRequirement>()
+        ));
+
+        // Tier 2
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "environmental_advantage",
+            "Environmental Advantage",
+            "You leverage precise knowledge of terrain features to gain tactical superiority.",
+            2,
+            ApproachTags.Precision, 3,
+            FocusTags.Environment, 2,
+            EffectTypes.Momentum, 3,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Precision),
+                TagModification.IncreaseFocus(FocusTags.Environment)
+            },
+            new EnvironmentalPropertyEffect(new() { Physical.Expansive }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
+            new List<SkillRequirement> { new SkillRequirement { SkillType = SkillTypes.Wilderness, RequiredLevel = 1 } }
+        ));
+
+        // SHADOW CARDS (Concealment)
+
+        // Tier 1
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "hidden_advantage",
+            "Hidden Advantage",
+            "You use concealment to secure resources while remaining undetected.",
+            1,
+            ApproachTags.Concealment, 0,  // Changed from 2 to 0
+            FocusTags.Resource, 0,  // Changed from 1 to 0
+            EffectTypes.Momentum, 2,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Concealment),
+                TagModification.IncreaseFocus(FocusTags.Resource)
+            },
+            new EnvironmentalPropertyEffect(new() { Illumination.Shadowy }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Concealment),
+            new List<SkillRequirement>()
+        ));
+
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "stealth_approach",
+            "Stealth Approach",
+            "You move silently through the environment, avoiding detection entirely.",
+            1,
+            ApproachTags.Concealment, 0,  // Changed from 2 to 0
+            FocusTags.Environment, 0,  // Changed from 1 to 0
+            EffectTypes.Momentum, 2,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Concealment),
+                TagModification.IncreaseFocus(FocusTags.Environment)
+            },
+            new EnvironmentalPropertyEffect(new() { Illumination.Dark }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Concealment),
+            new List<SkillRequirement>()
+        ));
+
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "fade_away",
+            "Fade Away",
+            "You slip into the shadows, removing yourself from immediate danger.",
+            1,
+            ApproachTags.Concealment, 0,  // Changed from 1 to 0
+            FocusTags.Physical, 0,  // Changed from 1 to 0
+            EffectTypes.Pressure, -1,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Concealment),
+                TagModification.IncreaseFocus(FocusTags.Physical)
+            },
+            new EnvironmentalPropertyEffect(new() { Population.Crowded }, StrategicTagEffectType.DecreasePressure, ApproachTags.Concealment),
+            new List<SkillRequirement>()
+        ));
+
+        // Tier 2
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "unseen_observer",
+            "Unseen Observer",
+            "You gather critical information while remaining completely undetected.",
+            2,
+            ApproachTags.Concealment, 3,
+            FocusTags.Information, 2,
+            EffectTypes.Momentum, 3,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Concealment),
+                TagModification.IncreaseFocus(FocusTags.Information)
+            },
+            new EnvironmentalPropertyEffect(new() { Population.Scholarly }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Concealment),
+            new List<SkillRequirement> { new SkillRequirement { SkillType = SkillTypes.Subterfuge, RequiredLevel = 1 } }
+        ));
+
+        // Special cards
+        cards.Add(CardDefinitionFactory.BuildCard(
+            "pathfinder_eye",
+            "Pathfinder's Eye",
             "You catch a subtle clue in the light, sharpening your analytical senses.",
-            CardTiers.Novice, 3,
-            ApproachTags.Analysis, FocusTags.Resource, 0,
-            null,
-            TagModification.IncreaseApproach(ApproachTags.Analysis),
-            TagModification.IncreaseFocus(FocusTags.Information)
-        ));
-
-        cards.Add(ChoiceFactory.CreatePressureChoice(
-            "Organized Thoughts",
-            "A formal setting brings clarity and lowers tension as your mind begins to map the situation.",
-            CardTiers.Novice, 1,
-            ApproachTags.Analysis, FocusTags.Resource, 0,
-            null,
-            TagModification.IncreaseApproach(ApproachTags.Analysis),
-            TagModification.IncreaseFocus(FocusTags.Information)
-        ));
-
-        cards.Add(ChoiceFactory.CreateMomentumChoice(
-            "Careful Steps",
-            "You move with deliberate intent, adapting to the confined space around you.",
-            CardTiers.Novice, 3,
-            ApproachTags.Precision, FocusTags.Environment, 0,
-            null,
-            TagModification.IncreaseApproach(ApproachTags.Precision),
-            TagModification.IncreaseFocus(FocusTags.Physical)
-        ));
-
-        cards.Add(ChoiceFactory.CreatePressureChoice(
-            "Measured Breath",
-            "You focus on the limits of the environment and calm your nerves through physical control.",
-            CardTiers.Novice, 1,
-            ApproachTags.Precision, FocusTags.Environment, 0,
-            null,
-            TagModification.IncreaseApproach(ApproachTags.Precision),
-            TagModification.IncreaseFocus(FocusTags.Physical)
-        ));
-
-        cards.Add(ChoiceFactory.CreateMomentumChoice(
-            "Inviting Gesture",
-            "A warm physical presence opens the door to connection.",
-            CardTiers.Novice, 3,
-            ApproachTags.Rapport, FocusTags.Physical, 0,
-            null,
-            TagModification.IncreaseApproach(ApproachTags.Rapport),
-            TagModification.IncreaseFocus(FocusTags.Relationship)
-        ));
-
-        cards.Add(ChoiceFactory.CreatePressureChoice(
-            "Soft Tones",
-            "In a calm, quiet setting, your voice soothes away the pressure.",
-            CardTiers.Novice, 1,
-            ApproachTags.Rapport, FocusTags.Physical, 0,
-            null,
-            TagModification.IncreaseApproach(ApproachTags.Rapport),
-            TagModification.IncreaseFocus(FocusTags.Relationship)
-        ));
-
-        cards.Add(ChoiceFactory.CreateMomentumChoice(
-            "Assertive Posture",
-            "Your presence alone sends ripples through the environment.",
-            CardTiers.Novice, 3,
-            ApproachTags.Dominance, FocusTags.Relationship, 0,
-            null,
-            TagModification.IncreaseApproach(ApproachTags.Dominance),
-            TagModification.IncreaseFocus(FocusTags.Physical)
-        ));
-
-        cards.Add(ChoiceFactory.CreatePressureChoice(
-            "Unshaken Presence",
-            "You anchor yourself in a broad space, easing tension through unflinching calm.",
-            CardTiers.Novice, 1,
-            ApproachTags.Dominance, FocusTags.Physical, 0,
-            null,
-            TagModification.IncreaseApproach(ApproachTags.Dominance),
-            TagModification.IncreaseFocus(FocusTags.Relationship)
-        ));
-
-        cards.Add(ChoiceFactory.CreateMomentumChoice(
-            "Fade Inward",
-            "You meld into the shadows, your environment becoming your shield.",
-            CardTiers.Novice, 3,
-            ApproachTags.Concealment, FocusTags.Information, 0,
-            null,
-            TagModification.IncreaseApproach(ApproachTags.Concealment),
-            TagModification.IncreaseFocus(FocusTags.Environment)
-        ));
-
-        cards.Add(ChoiceFactory.CreatePressureChoice(
-            "Slip Away",
-            "Quietly distancing yourself, you reduce pressure by vanishing from view.",
-            CardTiers.Novice, 1,
-            ApproachTags.Concealment, FocusTags.Information, 0,
-            null,
-            TagModification.IncreaseApproach(ApproachTags.Concealment),
-            TagModification.IncreaseFocus(FocusTags.Physical)
-        ));
-
-        // =============================================
-        // TIER 2: TRAINED CARDS — Can Use & Build Approach
-        // =============================================
-
-        // "Tactical Survey" will USE approach (strategic effect only)
-        cards.Add(ChoiceFactory.CreateMomentumChoice(
-            "Tactical Survey",
-            "You scrutinize every inch of the terrain, leveraging your acute observation to drive momentum forward.",
-            CardTiers.Trained, 3, // Base effect: +3 momentum
-            ApproachTags.Analysis, FocusTags.Resource, 3,
-            new StrategicEffect(new() { Illumination.Bright }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
-            TagModification.None(), // Do not build approach
-            TagModification.IncreaseFocus(FocusTags.Environment)
-        ));
-
-        // "Resourceful Strategy" will BUILD approach (build only)
-        cards.Add(ChoiceFactory.CreatePressureChoice(
-            "Resourceful Strategy",
-            "You methodically marshal your assets, reinforcing your analytical resolve to reduce pressure.",
-            CardTiers.Trained, 3, // Base effect: -2 pressure
-            ApproachTags.Analysis, FocusTags.Information, 3,
-            null, // No strategic effect; instead, build approach
-            TagModification.IncreaseApproach(ApproachTags.Analysis),
-            TagModification.IncreaseFocus(FocusTags.Resource)
-        ));
-
-        // "Engaging Question" will USE approach (strategic effect only)
-        cards.Add(ChoiceFactory.CreateMomentumChoice(
-            "Engaging Question",
-            "Your incisive inquiry sparks a burst of insight, propelling progress through verbal finesse.",
-            CardTiers.Trained, 3, // Base effect: +3 momentum
-            ApproachTags.Rapport, FocusTags.Physical, 3,
-            new StrategicEffect(new() { Population.Scholarly }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
-            TagModification.None(), // Do not build approach
-            TagModification.IncreaseFocus(FocusTags.Information)
-        ));
-
-        // "Haven of Trust" will BUILD approach (build only)
-        cards.Add(ChoiceFactory.CreatePressureChoice(
-            "Haven of Trust",
-            "You create a safe haven through steady presence, reinforcing your rapport to ease tension.",
-            CardTiers.Trained, 3, // Base effect: -2 pressure
-            ApproachTags.Rapport, FocusTags.Physical, 3,
-            null, // No strategic effect; instead, build approach
-            TagModification.IncreaseApproach(ApproachTags.Rapport),
-            TagModification.IncreaseFocus(FocusTags.Environment)
-        ));
-
-        // "Pinpoint Query" will USE approach (strategic effect only)
-        cards.Add(ChoiceFactory.CreateMomentumChoice(
-            "Pinpoint Query",
-            "Your focused question cuts through confusion, channeling clarity and driving momentum.",
-            CardTiers.Trained, 3, // Base effect: +3 momentum
-            ApproachTags.Precision, FocusTags.Environment, 3,
-            new StrategicEffect(new() { Illumination.Bright }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
-            TagModification.None(), // Do not build approach
-            TagModification.IncreaseFocus(FocusTags.Information)
-        ));
-
-        // "Optimal Allocation" will BUILD approach (build only)
-        cards.Add(ChoiceFactory.CreatePressureChoice(
-            "Optimal Allocation",
-            "You efficiently reassign resources with precision, bolstering your methodical foundation to lower pressure.",
-            CardTiers.Trained, 3, // Base effect: -2 pressure
-            ApproachTags.Precision, FocusTags.Information, 3,
-            null, // No strategic effect; instead, build approach
-            TagModification.IncreaseApproach(ApproachTags.Precision),
-            TagModification.IncreaseFocus(FocusTags.Resource)
-        ));
-
-        // "Spatial Domination" will USE approach (strategic effect only)
-        cards.Add(ChoiceFactory.CreateMomentumChoice(
-            "Spatial Domination",
-            "You assert your control over the surroundings, using dominating force to surge momentum.",
-            CardTiers.Trained, 3, // Base effect: +3 momentum
-            ApproachTags.Dominance, FocusTags.Resource, 3,
-            new StrategicEffect(new() { Physical.Expansive }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
-            TagModification.None(), // Do not build approach
-            TagModification.IncreaseFocus(FocusTags.Environment)
-        ));
-
-        // "Calculated Command" will BUILD approach (build only)
-        cards.Add(ChoiceFactory.CreatePressureChoice(
-            "Calculated Command",
-            "You calmly orchestrate your resources, reinforcing your dominant presence to quell chaos.",
-            CardTiers.Trained, 3, // Base effect: -2 pressure
-            ApproachTags.Dominance, FocusTags.Environment, 3,
-            null, // No strategic effect; instead, build approach
-            TagModification.IncreaseApproach(ApproachTags.Dominance),
-            TagModification.IncreaseFocus(FocusTags.Resource)
-        ));
-
-        // "Stealth Reconnaissance" will USE approach (strategic effect only)
-        cards.Add(ChoiceFactory.CreateMomentumChoice(
-            "Stealth Reconnaissance",
-            "In the midst of the fray, you gather critical insights silently, turning subtlety into momentum.",
-            CardTiers.Trained, 3, // Base effect: +3 momentum
-            ApproachTags.Concealment, FocusTags.Relationship, 3,
-            new StrategicEffect(new() { Population.Quiet }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Concealment),
-            TagModification.None(), // Do not build approach
-            TagModification.IncreaseFocus(FocusTags.Information)
-        ));
-
-        // "Subtle Dissipation" will BUILD approach (build only)
-        cards.Add(ChoiceFactory.CreatePressureChoice(
-            "Subtle Dissipation",
-            "You gradually fade from view, reinforcing your covert stance to disperse mounting tension.",
-            CardTiers.Trained, 3, // Base effect: -2 pressure
-            ApproachTags.Concealment, FocusTags.Information, 3,
-            null, // No strategic effect; instead, build approach
-            TagModification.IncreaseApproach(ApproachTags.Concealment),
-            TagModification.IncreaseFocus(FocusTags.Relationship)
+            2,
+            ApproachTags.Analysis, 4,
+            FocusTags.Environment, 2,
+            EffectTypes.Momentum, 3,
+            new List<TagModification>
+            {
+                TagModification.IncreaseApproach(ApproachTags.Analysis),
+                TagModification.IncreaseFocus(FocusTags.Environment)
+            },
+            new EnvironmentalPropertyEffect(new() { Physical.Expansive }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
+            new List<SkillRequirement> {
+                new SkillRequirement { SkillType = SkillTypes.Subterfuge, RequiredLevel = 2 }
+            }
         ));
     }
 
-    public List<ChoiceCard> GetAvailableChoices(EncounterState state)
+    public List<CardDefinition> GetAll()
     {
         return cards.ToList();
     }
 
-    public List<ChoiceCard> GetCardsForLevel(int level, ArchetypeTypes archetype)
+    public List<CardDefinition> GetForEncounter(EncounterState state)
     {
-        return cards.Where(x => (int)x.Tier <= level).ToList();
+        return cards.ToList();
+    }
+
+    public List<CardDefinition> GetCardsForLevel(int level, ArchetypeTypes archetype)
+    {
+        // Get all cards of appropriate tier
+        List<CardDefinition> tierCards = cards.Where(x => (int)x.Tier <= level).ToList();
+
+        // Get cards that align with the archetype's preferred approach
+        ApproachTags preferredApproach = GetPreferredApproach(archetype);
+
+        // Sort cards so that the archetype's preferred approach cards come first
+        return tierCards.OrderByDescending(x => x.Approach == preferredApproach).ToList();
+    }
+
+    private ApproachTags GetPreferredApproach(ArchetypeTypes archetype)
+    {
+        return archetype switch
+        {
+            ArchetypeTypes.Knight => ApproachTags.Dominance,
+            ArchetypeTypes.Courtier => ApproachTags.Rapport,
+            ArchetypeTypes.Sage => ApproachTags.Analysis,
+            ArchetypeTypes.Forester => ApproachTags.Precision,
+            ArchetypeTypes.Shadow => ApproachTags.Concealment,
+            _ => ApproachTags.Analysis
+        };
     }
 }

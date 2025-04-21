@@ -1,11 +1,11 @@
 ﻿/// <summary>
 /// Represents a location in the game where encounters take place
 /// </summary>
-public class EncounterInfo
+public class Encounter
 {
     public string LocationName { get; set; }
     public string LocationSpotName { get; set; }
-    public List<IEncounterTag> AvailableTags { get; } = new List<IEncounterTag>();
+    public List<IEncounterTag> AllEncounterTags { get; } = new List<IEncounterTag>();
 
     // Success thresholds
     public int PartialThreshold { get; }
@@ -24,7 +24,7 @@ public class EncounterInfo
     // Presentation style for this location
     public EncounterTypes EncounterType { get; set; }
 
-    public EncounterInfo(
+    public Encounter(
         string locationName,
         string locationSpot,
         int duration,
@@ -50,12 +50,12 @@ public class EncounterInfo
 
     public void AddTag(NarrativeTag narrativeTag)
     {
-        AvailableTags.Add(narrativeTag);
+        AllEncounterTags.Add(narrativeTag);
 
     }
-    public void AddTag(EnvironmentPropertyTag strategicTag)
+    public void AddTag(StrategicTag strategicTag)
     {
-        AvailableTags.Add(strategicTag);
+        AllEncounterTags.Add(strategicTag);
     }
 
     public void SetDifficulty(int difficulty)

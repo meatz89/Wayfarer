@@ -144,10 +144,9 @@ public partial class NarrativeViewBase : ComponentBase
         return outcomes;
     }
 
-    public List<Outcome> GetEnergyCosts()
+    public int GetEnergyCost()
     {
-        return Result.ActionImplementation.EnergyCosts
-            .ToList();
+        return Result.ActionImplementation.EnergyCost;
     }
 
     public MarkupString GetOutcomeIcon(Outcome outcome)
@@ -164,14 +163,13 @@ public partial class NarrativeViewBase : ComponentBase
             ConfidenceOutcome => new MarkupString("<i class='value-icon confidence-icon'>👤</i>"),
             CoinsOutcome => new MarkupString("<i class='value-icon coins-icon'>💰</i>"),
             ResourceOutcome => new MarkupString("<i class='value-icon resource-icon'>📦</i>"),
-            KnowledgeOutcome => new MarkupString("<i class='value-icon knowledge-icon'>📚</i>"),
             _ => new MarkupString("")
         };
     }
 
     public MarkupString GetEnergyTypeIcon()
     {
-        return new MarkupString("<i class='value-icon physical-icon'>💪</i>");
+        return new MarkupString("<i class='value-icon physical-icon'>⚡</i>");
     }
 
 
