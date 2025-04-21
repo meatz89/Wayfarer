@@ -88,13 +88,13 @@ public partial class GameUI : ComponentBase
     #region Navigation and UI Methods
     public void SwitchAreaMap()
     {
-        if (CurrentScreen == CurrentViews.TravelScreen)
+        if (CurrentScreen == CurrentViews.MapScreen)
         {
             CurrentScreen = CurrentViews.LocationScreen;
         }
         else if (CurrentScreen == CurrentViews.LocationScreen)
         {
-            CurrentScreen = CurrentViews.TravelScreen;
+            CurrentScreen = CurrentViews.MapScreen;
         }
     }
 
