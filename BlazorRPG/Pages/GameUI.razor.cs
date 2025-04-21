@@ -75,6 +75,11 @@ public partial class GameUI : ComponentBase
     {
         if (expandedSections.ContainsKey(sectionName))
         {
+            foreach (KeyValuePair<SidebarSections, bool> section in expandedSections)
+            {
+                expandedSections[section.Key] = false;
+            }
+
             expandedSections[sectionName] = !expandedSections[sectionName];
             if (expandedSections[sectionName])
             {
