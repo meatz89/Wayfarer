@@ -134,7 +134,7 @@
                     </div>
 
                     <div class="sidebar-section @(expandedSections[SidebarSections.skills] ? "expanded" : "collapsed")">
-                        <div class="section-header" id="section-skills" @onclick="() => ToggleSection(SidebarSections.skills)">
+                        <div class="section-header hover" id="section-skills" @onclick="() => ToggleSection(SidebarSections.skills)">
                             <span>Skills</span>
                             <span class="expand-icon">@(expandedSections[SidebarSections.skills] ? "▼" : "►")</span>
                         </div>
@@ -190,7 +190,7 @@
                     </div>
 
                     <div class="sidebar-section @(expandedSections[SidebarSections.resources] ? "expanded" : "collapsed")">
-                        <div class="section-header" id="section-resources" @onclick="() => ToggleSection(SidebarSections.resources)">
+                        <div class="section-header hover" id="section-resources" @onclick="() => ToggleSection(SidebarSections.resources)">
                             <span>Resources</span>
                             <span class="expand-icon">@(expandedSections[SidebarSections.resources] ? "▼" : "►")</span>
                         </div>
@@ -230,7 +230,7 @@
                     </div>
 
                     <div class="sidebar-section @(expandedSections[SidebarSections.inventory] ? "expanded" : "collapsed")">
-                        <div class="section-header" id="section-inventory" @onclick="() => ToggleSection(SidebarSections.inventory)">
+                        <div class="section-header hover" id="section-inventory" @onclick="() => ToggleSection(SidebarSections.inventory)">
                             <span>Inventory (@PlayerState.Inventory.UsedCapacity / @PlayerState.Inventory.MaxCapacity)</span>
                             <span class="expand-icon">@(expandedSections[SidebarSections.inventory] ? "▼" : "►")</span>
                         </div>
@@ -262,7 +262,7 @@
                     @if (PlayerState.NegativeStatusTypes != null && PlayerState.NegativeStatusTypes.Any())
                     {
                         <div class="sidebar-section @(expandedSections[SidebarSections.status] ? "expanded" : "collapsed")">
-                            <div class="section-header" id="section-status" @onclick="() => ToggleSection(SidebarSections.status)">
+                            <div class="section-header hover" id="section-status" @onclick="() => ToggleSection(SidebarSections.status)">
                                 <span>Status Effects</span>
                                 <span class="expand-icon">@(expandedSections[SidebarSections.status] ? "▼" : "►")</span>
                             </div>

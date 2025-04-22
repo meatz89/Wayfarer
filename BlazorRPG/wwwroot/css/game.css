@@ -45,6 +45,111 @@
     --font-tertiary: 'EB Garamond', serif; /* Descriptions, flavorful text */
 }
 
+
+/* Apply the default cursor universally with highest specificity and !important */
+html body * {
+    cursor: url('/images/cursors/cursor.png'), default !important;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Override for all potentially interactive elements with even higher specificity */
+html body a:not(.no-pointer),
+html body button:not(:disabled):not(.no-pointer),
+html body [role="button"]:not(.no-pointer),
+html body input[type="submit"]:not(:disabled):not(.no-pointer),
+html body input[type="button"]:not(:disabled):not(.no-pointer),
+html body input[type="reset"]:not(:disabled):not(.no-pointer),
+html body input[type="range"]:not(:disabled):not(.no-pointer),
+html body input[type="checkbox"]:not(:disabled):not(.no-pointer),
+html body input[type="radio"]:not(:disabled):not(.no-pointer),
+html body select:not(:disabled):not(.no-pointer),
+html body option:not(.no-pointer),
+html body label:not(.no-pointer),
+html body .action-button:not(:disabled):not(.no-pointer),
+html body .narrative-button:not(:disabled):not(.no-pointer),
+html body .creation-button:not(:disabled):not(.no-pointer),
+html body .resource-use-btn:not(:disabled):not(.no-pointer),
+html body .gender-option:not(.no-pointer),
+html body .toggle-button:not(.no-pointer),
+html body .wait-button:not(.no-pointer),
+html body .location-button:not(.no-pointer),
+html body .choice-option:not(.disabled):not(.no-pointer),
+html body .section-header.hover:not(.no-pointer),
+html body .name-generator:not(.no-pointer),
+html body .archetype-option:not(.no-pointer),
+html body .message-close:not(.no-pointer),
+html body .clickable:not(.no-pointer),
+html body [onclick]:not(.no-pointer),
+html body [class*="button"]:not(:disabled):not(.no-pointer),
+html body [class*="btn"]:not(:disabled):not(.no-pointer),
+html body [tabindex]:not([tabindex="-1"]):not(.no-pointer),
+html body summary:not(.no-pointer),
+html body details:not(.no-pointer),
+html body .action-message .message-close:not(.no-pointer),
+html body [class*="clickable"]:not(.no-pointer),
+html body [class*="selectable"]:not(.no-pointer),
+html body [class*="draggable"]:not(.no-pointer),
+html body [class*="hoverable"]:not(.no-pointer),
+html body [class*="interactive"]:not(.no-pointer) {
+    cursor: url('/images/cursors/pointer.png'), pointer !important;
+}
+
+/* Text input fields with specific selector to ensure it overrides */
+html body input[type="text"]:not(.no-text),
+html body input[type="password"]:not(.no-text),
+html body input[type="email"]:not(.no-text),
+html body input[type="number"]:not(.no-text),
+html body input[type="search"]:not(.no-text),
+html body input[type="tel"]:not(.no-text),
+html body input[type="url"]:not(.no-text),
+html body input[type="date"]:not(.no-text),
+html body input[type="datetime-local"]:not(.no-text),
+html body input[type="month"]:not(.no-text),
+html body input[type="week"]:not(.no-text),
+html body input[type="time"]:not(.no-text),
+html body input:not([type]):not(.no-text),
+html body textarea:not(.no-text) {
+    cursor: text !important;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+/* Prevent the blue highlighting on mobile when tapping elements */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+    /* Remove focus outlines that might appear on click */
+    *:focus {
+        outline: none;
+    }
+
+/* Ensure images aren't draggable */
+img {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+    pointer-events: none;
+}
+
+/* For any SVG elements that might be on the page */
+svg, svg * {
+    cursor: url('/images/cursors/cursor.png'), default !important;
+}
+
+/* For any shadow DOM elements */
+:host, :root {
+    cursor: url('/images/cursors/cursor.png'), default !important;
+}
+
+
 body {
     height: 100%;
     margin: 0;
@@ -203,14 +308,17 @@ body {
     background-color: var(--bg-card);
     border: 1px solid var(--oak-mid);
     border-radius: 5px;
-    cursor: pointer;
     transition: all 0.2s ease;
     font-family: var(--font-primary);
     color: var(--leather);
     letter-spacing: 0.05em;
 }
 
-    .section-header:hover {
+.hover {
+    cursor: pointer;
+}
+
+    .hover:hover {
         background-color: var(--bg-active);
     }
 
