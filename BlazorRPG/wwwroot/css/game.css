@@ -595,7 +595,7 @@ body {
 
 .archetype-portrait {
     width: 254px;
-    height: 500px;
+    height: 400px;
     border-radius: 10px;
     overflow: hidden;
     border: 1px solid var(--oak-dark);
@@ -607,6 +607,9 @@ body {
         object-fit: cover;
     }
 
+.portrait-high {
+    height: 550px;
+}
 
 .archetype-title {
     font-family: var(--font-primary);

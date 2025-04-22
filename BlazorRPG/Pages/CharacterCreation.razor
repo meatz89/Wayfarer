@@ -31,7 +31,7 @@
             <div class="archetype-details">
                 @if (selectedArchetype != null)
                 {
-                    <div class="archetype-portrait">
+                    <div class="archetype-portrait portrait-high">
                         <img class="@(changingImage ? "changing" : "")"
                              src="/images/characters/@(selectedGender.ToString().ToLower())_@(selectedArchetype.ToString().ToLower()).png"
                              alt="@FormatArchetypeName(selectedArchetype)" />
