@@ -5,11 +5,11 @@
         <div class="gender-toggle">
             <button class="gender-option @(selectedGender == Genders.Male ? "selected" : "")"
                     @onclick="() => SelectGender(Genders.Male)">
-                <i class="fas fa-mars"></i> Male
+                <span><i class="fas fa-mars icon-spacing"></i> Male</span>
             </button>
             <button class="gender-option @(selectedGender == Genders.Female ? "selected" : "")"
                     @onclick="() => SelectGender(Genders.Female)">
-                <i class="fas fa-venus"></i> Female
+                <span><i class="fas fa-venus icon-spacing"></i> Female</span>
             </button>
         </div>
     </div>

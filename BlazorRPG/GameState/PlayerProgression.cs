@@ -1,35 +1,34 @@
 ﻿public class PlayerProgression
 {
     private readonly PlayerState playerState;
-    private readonly GameState gameState;
     private readonly MessageSystem messageSystem;
 
     public PlayerProgression(GameState gameState, MessageSystem messageSystem)
     {
-        this.gameState = gameState;
         this.messageSystem = messageSystem;
         this.playerState = gameState.PlayerState;
     }
 
-    // Add experience points and check for level up
     public void AddExperience(int xpAmount)
     {
         playerState.CurrentXP += xpAmount;
 
         // Check for level up
         int xpRequiredForNextLevel = GetXpRequiredForNextLevel();
+        playerState.XPToNextLevel = xpRequiredForNextLevel;
+
         if (playerState.CurrentXP >= xpRequiredForNextLevel)
         {
             LevelUp();
+            playerState.XPToNextLevel = GetXpRequiredForNextLevel();
+
         }
     }
 
-    // Handle level up
     private void LevelUp()
     {
         playerState.Level++;
 
-        // Award stat increases
         IncreaseStats();
 
         // Reset XP for next level
@@ -38,8 +37,7 @@
         messageSystem.AddSystemMessage("Level Up", SystemMessageTypes.Success);
     }
 
-    // Calculate XP required for next level
-    private int GetXpRequiredForNextLevel(int level = 0)
+    public int GetXpRequiredForNextLevel(int level = 0)
     {
         if (level == 0) level = playerState.Level;
 
@@ -47,7 +45,6 @@
         return 100 * level;
     }
 
-    // Award stat increases on level up
     private void IncreaseStats()
     {
         // Increase max energy
