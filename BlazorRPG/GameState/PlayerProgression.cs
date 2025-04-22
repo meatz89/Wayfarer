@@ -48,17 +48,9 @@
     private void IncreaseStats()
     {
         // Increase max energy
-        playerState.MaxEnergy += 5;
-
-        // Increase max health/concentration/confidence
-        playerState.MaxHealth += 2;
-        playerState.MaxConcentration += 2;
-        playerState.MaxConfidence += 2;
+        playerState.SetCharacterStats();
 
         // Heal on level up
-        playerState.Health = playerState.MaxHealth;
-        playerState.Concentration = playerState.MaxConcentration;
-        playerState.Confidence = playerState.MaxConfidence;
-        playerState.Energy = playerState.MaxEnergy;
+        playerState.HealFully();
     }
 }

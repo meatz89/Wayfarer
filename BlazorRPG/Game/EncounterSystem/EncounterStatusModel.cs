@@ -53,6 +53,7 @@ public class EncounterStatusModel
         MaxTurns = maxTurns;
         Momentum = momentum;
         Pressure = pressure;
+
         Health = playerState.Health;
         MaxHealth = playerState.MaxHealth;
         Concentration = playerState.Concentration;
