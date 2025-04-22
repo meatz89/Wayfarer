@@ -158,7 +158,7 @@
         }
 
         // Default fallback
-        return EncounterTypes.Physical;
+        return EncounterTypes.Exploration;
     }
 
     private LocationCreationInput CreateLocationInput(

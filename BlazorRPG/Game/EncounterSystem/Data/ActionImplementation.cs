@@ -16,6 +16,7 @@
     public string DestinationLocationSpot { get; set; }
 
     public bool IsRepeatable { get; set; } = false;
+    public int Difficulty { get; set; } = 1;
 
     public ActionTypes ActionType { get; set; }
     public int EncounterChance { get; set; }

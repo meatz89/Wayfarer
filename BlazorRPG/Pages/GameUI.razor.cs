@@ -108,16 +108,14 @@ public partial class GameUI : ComponentBase
 
     private async Task InitializeGame()
     {
-        await GameManager.StartGame();
-
         CurrentScreen = CurrentViews.CharacterScreen;
-
         ChangeState();
     }
 
     private async Task HandleCharacterCreated(PlayerState playerState)
     {
         CurrentScreen = CurrentViews.LocationScreen;
+        await GameManager.StartGame();
     }
 
     #endregion
@@ -222,7 +220,7 @@ public partial class GameUI : ComponentBase
     private async Task WaitOneHour()
     {
         // Create a "Wait" action that advances time without other effects
-        ActionDefinition waitAction = new ActionDefinition("Wait", "Wait", 0, 0, EncounterTypes.Physical, true)
+        ActionDefinition waitAction = new ActionDefinition("Wait", "Wait", 0, 0, EncounterTypes.None, true)
         {
             TimeCost = 1,
         };

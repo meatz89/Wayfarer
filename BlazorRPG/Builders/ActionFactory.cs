@@ -17,6 +17,7 @@
         actionImplementation.EncounterType = template.EncounterType;
         actionImplementation.TimeWindows = template.TimeWindows ?? new();
         actionImplementation.IsRepeatable = template.IsRepeatable;
+        actionImplementation.Difficulty = template.Difficulty;
         actionImplementation.Yields = template.Yields;
         actionImplementation.EnergyCost = template.EnergyCost;
         actionImplementation.TimeCost = template.TimeCost;

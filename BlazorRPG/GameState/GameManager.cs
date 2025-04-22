@@ -69,6 +69,8 @@ public class GameManager
 
     public async Task StartGame()
     {
+        ProcessPlayerArchetype();
+
         Location startingLocation = await LocationSystem.Initialize(LocationSystem.StartingLocation);
         string startingLocationName = LocationSystem.StartingLocation;
 
@@ -86,6 +88,34 @@ public class GameManager
 
         Location? currentLoc = worldState.CurrentLocation;
         Console.WriteLine($"Game started at: {currentLoc?.Name}, Current spot: {worldState.CurrentLocationSpot?.Name}");
+    }
+
+    private void ProcessPlayerArchetype()
+    {
+        ArchetypeTypes archetype = playerState.Archetype;
+        int XpBonusForArchetype = 300;
+
+        switch (archetype)
+        {
+            case ArchetypeTypes.Knight:
+                PlayerProgression.AddSkillExp(SkillTypes.Warfare, XpBonusForArchetype);
+                break;
+            case ArchetypeTypes.Courtier:
+                PlayerProgression.AddSkillExp(SkillTypes.Diplomacy, XpBonusForArchetype);
+                break;
+            case ArchetypeTypes.Sage:
+                PlayerProgression.AddSkillExp(SkillTypes.Scholarship, XpBonusForArchetype);
+                break;
+            case ArchetypeTypes.Forester:
+                PlayerProgression.AddSkillExp(SkillTypes.Wilderness, XpBonusForArchetype);
+                break;
+            case ArchetypeTypes.Shadow:
+                PlayerProgression.AddSkillExp(SkillTypes.Subterfuge, XpBonusForArchetype);
+                break;
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(archetype));
+        }
     }
 
     public async Task<ActionImplementation> ExecuteAction(UserActionOption action)
@@ -128,11 +158,59 @@ public class GameManager
 
         ApplyActionOutcomes(actionImplementation);
 
-        await HandlePlayerMoving(actionImplementation);
+        var skill = DetermineSkillForAction(actionImplementation);
+        int skillXp = CalculateBasicActionSkillXP(actionImplementation);
 
+        PlayerProgression.AddSkillExp(skill, skillXp);
+        MessageSystem.AddSystemMessage($"Gained {skillXp} {skill} skill experience");
+
+        await HandlePlayerMoving(actionImplementation);
         UpdateTime(actionImplementation.TimeCostHours);
         await UpdateState();
     }
+
+    private SkillTypes DetermineSkillForAction(ActionImplementation action)
+    {
+        // Map encounter type or action category to skill
+        return action.EncounterType switch
+        {
+            EncounterTypes.Combat => SkillTypes.Warfare,
+            EncounterTypes.Social => SkillTypes.Diplomacy,
+            EncounterTypes.Stealth => SkillTypes.Subterfuge,
+            EncounterTypes.Exploration => SkillTypes.Wilderness,
+            EncounterTypes.Lore => SkillTypes.Scholarship,
+            _ => SkillTypes.Scholarship,
+        };
+    }
+
+    private void GainExperience(EncounterResult result)
+    {
+        int xpAward;
+        switch (result.NarrativeResult?.Outcome)
+        {
+            case EncounterOutcomes.Exceptional: xpAward = 50; break;
+            case EncounterOutcomes.Standard: xpAward = 30; break;
+            case EncounterOutcomes.Partial: xpAward = 15; break;
+            default: xpAward = 5; break;
+        }
+        xpAward += 10;
+
+        // Grant player XP level
+        PlayerProgression.AddPlayerExp(xpAward);
+        MessageSystem.AddSystemMessage($"Gained {xpAward} experience points");
+
+        // Grant skill XP based on encounter type
+        var skill = DetermineSkillForAction(result.ActionImplementation);
+        int skillXp = xpAward; // or a fraction thereof
+        PlayerProgression.AddSkillExp(skill, skillXp);
+        MessageSystem.AddSystemMessage($"Gained {skillXp} {skill} skill experience");
+    }
+
+    private int CalculateBasicActionSkillXP(ActionImplementation action)
+    {
+        return action.Difficulty * 5;
+    }
+
 
     private async Task HandlePlayerMoving(ActionImplementation actionImplementation)
     {
@@ -426,40 +504,13 @@ public class GameManager
 
         if (result.ActionResult == ActionResults.EncounterSuccess)
         {
-            GainExp(result);
+            GainExperience(result);
         }
 
         if (_processStateChanges)
         {
             await ProcessPostEncounterEvolution(result, narrative, outcome);
         }
-    }
-
-    private void GainExp(EncounterResult result)
-    {
-        int xpAward;
-
-        switch (result.NarrativeResult?.Outcome)
-        {
-            case EncounterOutcomes.Exceptional:
-                xpAward = 50;
-                break;
-            case EncounterOutcomes.Standard:
-                xpAward = 30;
-                break;
-            case EncounterOutcomes.Partial:
-                xpAward = 15;
-                break;
-            default:
-                xpAward = 5; // Even failure gives some XP
-                break;
-        }
-
-        xpAward += 10;
-        PlayerProgression.AddExperience(xpAward);
-
-        // Add message about XP gain
-        MessageSystem.AddSystemMessage($"Gained {xpAward} experience points");
     }
 
     private async Task ProcessPostEncounterEvolution(EncounterResult result, string narrative, string outcome)
@@ -777,4 +828,5 @@ public class GameManager
         }
         return true;
     }
+
 }

@@ -1,6 +1,9 @@
 ﻿public enum EncounterTypes
 {
+    Combat,
     Social,
-    Intellectual,
-    Physical,
+    Stealth,
+    Exploration,
+    Lore,
+    None,
 }

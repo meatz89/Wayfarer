@@ -1,4 +1,5 @@
-﻿public class PlayerProgression
+﻿
+public class PlayerProgression
 {
     private readonly PlayerState playerState;
     private readonly MessageSystem messageSystem;
@@ -9,7 +10,7 @@
         this.playerState = gameState.PlayerState;
     }
 
-    public void AddExperience(int xpAmount)
+    public void AddPlayerExp(int xpAmount)
     {
         playerState.CurrentXP += xpAmount;
 
@@ -21,15 +22,28 @@
         {
             LevelUp();
             playerState.XPToNextLevel = GetXpRequiredForNextLevel();
+        }
+    }
 
+    public void AddSkillExp(SkillTypes skill, int xp)
+    {
+        var prog = playerState.PlayerSkills.Skills[skill];
+        prog.XP += xp;
+        while (prog.XP >= prog.XPToNextLevel)
+        {
+            prog.XP -= prog.XPToNextLevel;
+            prog.Level++;
+            playerState.SetCharacterStats();
         }
     }
 
     private void LevelUp()
     {
         playerState.Level++;
+        playerState.SetCharacterStats();
 
-        IncreaseStats();
+        // Heal on level up
+        playerState.HealFully();
 
         // Reset XP for next level
         playerState.CurrentXP -= GetXpRequiredForNextLevel(playerState.Level - 1);
@@ -43,14 +57,5 @@
 
         // Simple formula: 100 * current level
         return 100 * level;
-    }
-
-    private void IncreaseStats()
-    {
-        // Increase max energy
-        playerState.SetCharacterStats();
-
-        // Heal on level up
-        playerState.HealFully();
     }
 }

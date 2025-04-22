@@ -229,7 +229,7 @@
         }
 
         // Default fallback
-        return EncounterTypes.Physical;
+        return EncounterTypes.Exploration;
     }
 
     public PostEncounterEvolutionInput PreparePostEncounterEvolutionInput(

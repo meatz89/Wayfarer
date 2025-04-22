@@ -124,27 +124,22 @@
         switch (archetype)
         {
             case ArchetypeTypes.Knight:
-                PlayerSkills.AddSkillXP(SkillTypes.Warfare, 120);
                 InitializeKnightInventory();
                 break;
 
             case ArchetypeTypes.Courtier:
-                PlayerSkills.AddSkillXP(SkillTypes.Diplomacy, 120);
                 InitializeCourtierInventory();
                 break;
 
             case ArchetypeTypes.Sage:
-                PlayerSkills.AddSkillXP(SkillTypes.Scholarship, 120);
                 InitializeSageInventory();
                 break;
 
             case ArchetypeTypes.Forester:
-                PlayerSkills.AddSkillXP(SkillTypes.Wilderness, 120);
                 InitializeForesterInventory();
                 break;
 
             case ArchetypeTypes.Shadow:
-                PlayerSkills.AddSkillXP(SkillTypes.Subterfuge, 120);
                 InitializeShadowInventory();
                 break;
 
