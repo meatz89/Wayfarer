@@ -60,11 +60,10 @@ public partial class GameUI : ComponentBase
     private bool showActionMessage = false;
     private string actionMessageType = "success";
     private List<string> actionMessages = new List<string>();
-    private ElementReference sidebarRef;
+    public ElementReference sidebarRef;
 
     private Dictionary<SidebarSections, bool> expandedSections = new Dictionary<SidebarSections, bool>
     {
-        { SidebarSections.character, true },  // Character section is expanded by default
         { SidebarSections.skills, false },
         { SidebarSections.resources, false },
         { SidebarSections.inventory, false },
@@ -75,13 +74,15 @@ public partial class GameUI : ComponentBase
     {
         if (expandedSections.ContainsKey(sectionName))
         {
+            bool toggleOn = !expandedSections[sectionName];
+            
             foreach (KeyValuePair<SidebarSections, bool> section in expandedSections)
             {
                 expandedSections[section.Key] = false;
             }
 
-            expandedSections[sectionName] = !expandedSections[sectionName];
-            if (expandedSections[sectionName])
+            expandedSections[sectionName] = toggleOn;
+            if (toggleOn)
             {
                 StateHasChanged();
                 await Task.Delay(50);
@@ -451,5 +452,5 @@ public partial class GameUI : ComponentBase
 
 public enum SidebarSections
 {
-    character, skills, resources, inventory, status
+    skills, resources, inventory, status
 }

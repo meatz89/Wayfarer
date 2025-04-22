@@ -110,35 +110,27 @@
             @if (CurrentScreen == CurrentViews.LocationScreen)
             {
                 <div class="game-sidebar" @ref="sidebarRef">
-                    <div class="sidebar-section @(expandedSections[SidebarSections.character] ? "expanded" : "collapsed")">
-                        <div class="section-header" id="section-character" @onclick="() => ToggleSection(SidebarSections.character)">
+                    <div class="sidebar-section expanded">
+                        <div class="section-header" id="section-character">
                             <span>Character</span>
-                            <span class="expand-icon">@(expandedSections[SidebarSections.character] ? "▼" : "►")</span>
                         </div>
 
-                        @if (expandedSections[SidebarSections.character])
-                        {
-                            <div class="section-content">
-                                <div class="archetype-portrait">
-                                    <img src="/images/characters/@(Player.Gender.ToString().ToLower())_@(Player.Archetype.ToString().ToLower()).png" />
-                                </div>
+                        <div class="section-content">
+                            <div class="archetype-portrait">
+                                <img src="/images/characters/@(Player.Gender.ToString().ToLower())_@(Player.Archetype.ToString().ToLower()).png" />
+                            </div>
 
-                                <div class="player-character">
-                                    <div class="character-detail">
-                                        <span class="detail-label">Name:</span>
-                                        <span class="detail-value">@PlayerState.Name</span>
-                                    </div>
-                                    <div class="character-detail">
-                                        <span class="detail-label">Gender:</span>
-                                        <span class="detail-value">@PlayerState.Gender</span>
-                                    </div>
-                                    <div class="player-archetype">
-                                        <span class="archetype-icon">@GetArchetypeIcon(PlayerState.Archetype)</span>
-                                        <span class="archetype-name">@PlayerState.Archetype</span>
-                                    </div>
+                            <div class="player-character">
+                                <div class="character-detail">
+                                    <span class="detail-label">Name:</span>
+                                    <span class="detail-value">@PlayerState.Name</span>
+                                </div>
+                                <div class="player-archetype">
+                                    <span class="archetype-icon">@GetArchetypeIcon(PlayerState.Archetype)</span>
+                                    <span class="archetype-name">@PlayerState.Archetype</span>
                                 </div>
                             </div>
-                        }
+                        </div>
                     </div>
 
                     <div class="sidebar-section @(expandedSections[SidebarSections.skills] ? "expanded" : "collapsed")">
