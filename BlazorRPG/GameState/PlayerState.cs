@@ -19,18 +19,6 @@
     public int MedicinalHerbs { get; set; }
     public Inventory Inventory { get; set; } = new Inventory(10);
 
-    // Encounter resources (reset at start of encounters)
-    public int MinHealth { get; set; }
-    public int Health { get; set; }
-    public int MaxHealth { get; set; }
-    public int Concentration { get; set; }
-    public int MaxConcentration { get; set; }
-    public int Confidence { get; set; }
-    public int MaxConfidence { get; set; }
-
-    public int Energy { get; set; }
-    public int MaxEnergy { get; set; }
-
     // Relationships with characters
     public RelationshipList Relationships { get; set; } = new();
 
@@ -57,6 +45,25 @@
     public List<CardDefinition> KnownCards { get; private set; } = new List<CardDefinition>();
     public PlayerSkills PlayerSkills { get; private set; } = new();
 
+    private int BaseMaxEnergy { get; set; } = 10;
+    private int BaseMaxHealth { get; set; } = 20;
+    private int BaseMaxConcentration { get; set; } = 20;
+    private int BaseMaxConfidence { get; set; } = 20;
+    private int BaseMaxReputation { get; set; } = 20;
+
+    public int MinHealth { get; set; }
+    public int Health { get; set; }
+    public int Concentration { get; set; }
+    public int Confidence { get; set; }
+    public int Energy { get; set; }
+    public int Reputation { get; set; }
+
+    public int MaxHealth;
+    public int MaxEnergy;
+    public int MaxConcentration;
+    public int MaxConfidence;
+    public int MaxReputation;
+
     public PlayerState()
     {
         Background = GameRules.StandardRuleset.Background;
@@ -72,21 +79,30 @@
         Food = 2;
         MedicinalHerbs = 2;
 
-        Energy = GameRules.StandardRuleset.StartingPhysicalEnergy;
-        MaxEnergy = 10;
-
-        Health = GameRules.StandardRuleset.StartingHealth;
-        MinHealth = GameRules.StandardRuleset.MinimumHealth;
-        MaxHealth = 20;
-
-        Concentration = GameRules.StandardRuleset.StartingConcentration;
-        MaxConcentration = 20;
-
-        Confidence = GameRules.StandardRuleset.StartingConfidence;
-        MaxConfidence = 20;
+        Reputation = MaxReputation;
 
         NegativeStatusTypes = new();
         ConfidenceType = PlayerConfidenceTypes.Neutral;
+
+        SetCharacterStats();
+        HealFully();
+    }
+
+    public void HealFully()
+    {
+        Energy = MaxEnergy;
+        Health = MaxHealth;
+        Concentration = MaxConcentration;
+        Confidence = MaxConfidence;
+    }
+
+    public void SetCharacterStats()
+    {
+        MaxHealth = BaseMaxHealth + PlayerSkills.BonusMaxHealth;
+        MaxEnergy = BaseMaxEnergy + PlayerSkills.BonusMaxEnergy;
+        MaxConcentration = BaseMaxConcentration + PlayerSkills.BonusMaxConcentration;
+        MaxConfidence = BaseMaxConfidence + PlayerSkills.BonusMaxConfidence;
+        MaxReputation = BaseMaxReputation + PlayerSkills.BonusReputation;
     }
 
     public void Initialize(string playerName, ArchetypeTypes selectedArchetype, Genders gender)
@@ -94,6 +110,10 @@
         Name = playerName;
         Gender = gender;
         SetArchetype(selectedArchetype);
+
+        SetCharacterStats();
+        HealFully();
+
         IsInitialized = true;
     }
 
@@ -104,27 +124,27 @@
         switch (archetype)
         {
             case ArchetypeTypes.Knight:
-                PlayerSkills.ImproveSkill(SkillTypes.Warfare, 2);
+                PlayerSkills.AddSkillXP(SkillTypes.Warfare, 120);
                 InitializeKnightInventory();
                 break;
 
             case ArchetypeTypes.Courtier:
-                PlayerSkills.ImproveSkill(SkillTypes.Diplomacy, 2);
+                PlayerSkills.AddSkillXP(SkillTypes.Diplomacy, 120);
                 InitializeCourtierInventory();
                 break;
 
             case ArchetypeTypes.Sage:
-                PlayerSkills.ImproveSkill(SkillTypes.Scholarship, 2);
+                PlayerSkills.AddSkillXP(SkillTypes.Scholarship, 120);
                 InitializeSageInventory();
                 break;
 
             case ArchetypeTypes.Forester:
-                PlayerSkills.ImproveSkill(SkillTypes.Wilderness, 2);
+                PlayerSkills.AddSkillXP(SkillTypes.Wilderness, 120);
                 InitializeForesterInventory();
                 break;
 
             case ArchetypeTypes.Shadow:
-                PlayerSkills.ImproveSkill(SkillTypes.Subterfuge, 2);
+                PlayerSkills.AddSkillXP(SkillTypes.Subterfuge, 120);
                 InitializeShadowInventory();
                 break;
 
