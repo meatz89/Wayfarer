@@ -1,9 +1,13 @@
 ﻿public class YieldProcessor
 {
+    public PlayerProgression PlayerProgression { get; }
     public MessageSystem MessageSystem { get; }
 
-    public YieldProcessor(MessageSystem messageSystem)
+    public YieldProcessor(
+        PlayerProgression playerProgression,
+        MessageSystem messageSystem)
     {
+        PlayerProgression = playerProgression;
         MessageSystem = messageSystem;
     }
 
@@ -23,7 +27,7 @@
                     continue;
 
                 // Calculate effective yield amount
-                float amount = CalculateYieldAmount(yield, gameState.PlayerState.PlayerSkills);
+                int amount = CalculateYieldAmount(yield, gameState.PlayerState.PlayerSkills);
 
                 // Apply yield based on type
                 ApplyYield(yield.Type, yield.TargetId, amount, gameState, location, spot);
@@ -90,21 +94,21 @@
         return true;
     }
 
-    private float CalculateYieldAmount(YieldDefinition yield, PlayerSkills skills)
+    private int CalculateYieldAmount(YieldDefinition yield, PlayerSkills skills)
     {
-        float amount = yield.BaseAmount;
+        int amount = yield.BaseAmount;
 
         // Apply skill scaling if applicable
         if (yield.ScalingSkillType.HasValue && yield.SkillMultiplier > 0)
         {
             int skillLevel = skills.GetLevelForSkill(yield.ScalingSkillType.Value);
-            amount += skillLevel * yield.SkillMultiplier;
+            amount += (int) (skillLevel * yield.SkillMultiplier);
         }
 
         return amount;
     }
 
-    private float CalculateDepletionAmount(float baseDepletion, PlayerSkills skills)
+    private int CalculateDepletionAmount(float baseDepletion, PlayerSkills skills)
     {
         // More skilled players deplete resources less
         float skillFactor = 1.0f;
@@ -117,10 +121,10 @@
             skillFactor = Math.Max(0.5f, skillFactor); // Cap at 50% reduction
         }
 
-        return baseDepletion * skillFactor;
+        return (int) (baseDepletion * skillFactor);
     }
 
-    private void ApplyYield(YieldTypes type, string targetId, float amount, GameState gameState, Location location, LocationSpot spot)
+    private void ApplyYield(YieldTypes type, string targetId, int amount, GameState gameState, Location location, LocationSpot spot)
     {
         switch (type)
         {
@@ -129,41 +133,40 @@
                 switch (targetId.ToLower())
                 {
                     case "food":
-                        gameState.PlayerState.ModifyFood((int)amount);
-                        MessageSystem.AddSystemMessage($"Gained {(int)amount} food");
+                        gameState.PlayerState.ModifyFood(amount);
+                        MessageSystem.AddSystemMessage($"Gained {amount} food");
                         break;
                     case "energy":
-                        gameState.PlayerState.ModifyEnergy((int)amount);
-                        MessageSystem.AddSystemMessage($"Gained {(int)amount} energy");
+                        gameState.PlayerState.ModifyEnergy(amount);
+                        MessageSystem.AddSystemMessage($"Gained {amount} energy");
                         break;
                     case "medicinal_herbs":
                     case "medicinalherbs":
-                        gameState.PlayerState.ModifyMedicinalHerbs((int)amount);
-                        MessageSystem.AddSystemMessage($"Gained {(int)amount} medicinal herbs");
+                        gameState.PlayerState.ModifyMedicinalHerbs(amount);
+                        MessageSystem.AddSystemMessage($"Gained {amount} medicinal herbs");
                         break;
                     case "health":
-                        gameState.PlayerState.ModifyHealth((int)amount);
-                        MessageSystem.AddSystemMessage($"Gained {(int)amount} health");
+                        gameState.PlayerState.ModifyHealth(amount);
+                        MessageSystem.AddSystemMessage($"Gained {amount} health");
                         break;
                     case "concentration":
-                        gameState.PlayerState.ModifyConcentration((int)amount);
-                        MessageSystem.AddSystemMessage($"Gained {(int)amount} concentration");
+                        gameState.PlayerState.ModifyConcentration(amount);
+                        MessageSystem.AddSystemMessage($"Gained {amount} concentration");
                         break;
                     case "confidence":
-                        gameState.PlayerState.ModifyConfidence((int)amount);
-                        MessageSystem.AddSystemMessage($"Gained {(int)amount} confidence");
+                        gameState.PlayerState.ModifyConfidence(amount);
+                        MessageSystem.AddSystemMessage($"Gained {amount} confidence");
                         break;
                     case "coins":
-                        gameState.PlayerState.AddCoins((int)amount);
-                        MessageSystem.AddSystemMessage($"Gained {(int)amount} coins");
+                        gameState.PlayerState.AddCoins(amount);
+                        MessageSystem.AddSystemMessage($"Gained {amount} coins");
                         break;
                 }
                 break;
 
             case YieldTypes.SkillXP:
-                // Add skill XP
                 SkillTypes skillType = (SkillTypes)Enum.Parse(typeof(SkillTypes), targetId);
-                AddSkillXP(gameState.PlayerState.PlayerSkills, skillType, amount);
+                PlayerProgression.AddSkillExp(skillType, amount);
                 MessageSystem.AddSystemMessage($"Gained {amount} {skillType} skill experience");
                 break;
 
@@ -210,13 +213,15 @@
                         // Apply any yields from the aspect
                         foreach (YieldDefinition aspectYield in aspect.Yields)
                         {
-                            float aspectAmount = CalculateYieldAmount(aspectYield, gameState.PlayerState.PlayerSkills);
+                            int aspectAmount = CalculateYieldAmount(aspectYield, gameState.PlayerState.PlayerSkills);
                             ApplyYield(aspectYield.Type, aspectYield.TargetId, aspectAmount, gameState, location, spot);
                         }
-
+                        
                         // Give skill XP for discovery
-                        AddSkillXP(gameState.PlayerState.PlayerSkills, aspect.SkillType, aspect.SkillXPGain);
-                        MessageSystem.AddSystemMessage($"Gained {aspect.SkillXPGain} {aspect.SkillType} skill experience from discovery");
+                        SkillTypes discoverySkillType = (SkillTypes)Enum.Parse(typeof(SkillTypes), targetId);
+                        PlayerProgression.AddSkillExp(discoverySkillType, amount);
+                        MessageSystem.AddSystemMessage($"Gained {amount} {discoverySkillType} skill experience");
+                        break;
                     }
                 }
                 break;
@@ -225,11 +230,11 @@
                 // Add travel discount
                 if (!gameState.WorldState.TravelDiscounts.ContainsKey(targetId))
                 {
-                    gameState.WorldState.TravelDiscounts[targetId] = (int)amount;
+                    gameState.WorldState.TravelDiscounts[targetId] = amount;
                 }
                 else
                 {
-                    gameState.WorldState.TravelDiscounts[targetId] += (int)amount;
+                    gameState.WorldState.TravelDiscounts[targetId] += amount;
                 }
                 MessageSystem.AddSystemMessage($"Travel to {targetId} now costs {amount} less energy");
                 break;
@@ -238,11 +243,11 @@
                 // Reduce encounter chance
                 if (!gameState.WorldState.EncounterChanceReductions.ContainsKey(targetId))
                 {
-                    gameState.WorldState.EncounterChanceReductions[targetId] = (int)amount;
+                    gameState.WorldState.EncounterChanceReductions[targetId] = amount;
                 }
                 else
                 {
-                    gameState.WorldState.EncounterChanceReductions[targetId] += (int)amount;
+                    gameState.WorldState.EncounterChanceReductions[targetId] += amount;
                 }
                 MessageSystem.AddSystemMessage($"Chance of {targetId} encounters reduced by {amount}%");
                 break;
@@ -283,18 +288,5 @@
                 }
                 break;
         }
-    }
-
-    private void AddSkillXP(PlayerSkills skills, SkillTypes skillType, float amount)
-    {
-        // Check if amount is enough for level up
-        if (amount >= 1.0f)
-        {
-            int levelIncrease = (int)amount;
-            skills.ImproveSkill(skillType, levelIncrease);
-        }
-
-        // For partial XP, we would need a partial XP tracking system
-        // This is a simplified implementation
     }
 }

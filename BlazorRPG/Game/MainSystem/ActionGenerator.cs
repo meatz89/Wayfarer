@@ -69,7 +69,7 @@
             IsRepeatable = true,
             EnergyCost = 1,
             TimeCost = 1,
-            EncounterType = EncounterTypes.Intellectual,
+            EncounterType = EncounterTypes.Exploration,
             LocationName = locationName,
             LocationSpotName = locationSpotName
         };

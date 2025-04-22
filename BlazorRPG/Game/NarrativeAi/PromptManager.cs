@@ -392,9 +392,6 @@ public class PromptManager
         // Remove trailing comma
         string formattedFocusValues = focusValues.ToString().TrimEnd(',', ' ');
 
-        // Get encounter type from presentation style
-        string encounterType = GetEncounterStyleGuidance(context.EncounterType);
-
         // Extract encounter goal from inciting action
         string encounterGoal = context.ActionImplementation.Goal;
 
@@ -472,17 +469,6 @@ public class PromptManager
             approaches.Add($"{approach.Key} {approach.Value}");
         }
         return string.Join(", ", approaches);
-    }
-
-    private string GetEncounterStyleGuidance(EncounterTypes type)
-    {
-        return type switch
-        {
-            EncounterTypes.Social => "Direct dialogue with simple, practical words that reflect medieval speech patterns. Focus on social dynamics, status differences, and the traveler's attempt to navigate social hierarchies. Include some direct speech with quotation marks, showing the exact words exchanged between the player character and NPC.",
-            EncounterTypes.Intellectual => "Brief thought process using common language appropriate to a medieval traveler. Express observations, deductions, and problem-solving through inner monologue. Focus on practical knowledge and survival-oriented thinking rather than academic or scholarly reasoning.",
-            EncounterTypes.Physical => "Clear description of physical actions and immediate results. Emphasize bodily sensations, physical effort, fatigue, and the mechanical realities of movement and exertion. Include details about weight, texture, Illumination, and other tactile elements that ground the narrative in physical reality.",
-            _ => "Practical description focusing on immediate situation"
-        };
     }
 
     public static string CreatePromptJson(string markdownContent)

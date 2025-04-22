@@ -151,47 +151,34 @@
                         {
                             <div class="section-content">
                                 <div class="skills-grid">
-                                    <div class="player-skill">
-                                        <span class="skill-icon">⚔️</span>
-                                        <span class="skill-label">Warfare</span>
-                                        <div class="skill-bar">
-                                            <div class="skill-progress" style="width: @(PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Warfare) * 20)%"></div>
-                                            <span class="skill-level">@PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Warfare)</span>
+                                    @foreach (var skill in new[]
+                                    {
+                                        (SkillTypes.Warfare, "⚔️", "Warfare"),
+                                        (SkillTypes.Wilderness, "🌲", "Wilderness"),
+                                        (SkillTypes.Scholarship, "📚", "Scholarship"),
+                                        (SkillTypes.Diplomacy, "🤝", "Diplomacy"),
+                                        (SkillTypes.Subterfuge, "🕵️", "Subterfuge")
+                                    })
+                                    {
+                                        var type = skill.Item1;
+                                        var icon = skill.Item2;
+                                        var label = skill.Item3;
+                                        var lvl = PlayerState.PlayerSkills.GetLevelForSkill(type);
+                                        var xp = PlayerState.PlayerSkills.GetXPForSkill(type);
+                                        var next = PlayerState.PlayerSkills.GetXPToNextForSkill(type);
+                                        var pct = next > 0 ? (double)xp / next * 100 : 0;
+                                        <div class="player-skill">
+                                            <span class="skill-icon">@icon</span>
+                                            <span class="skill-label">@label</span>
+                                            <div class="skill-bar">
+                                                <span class="skill-level-left">Lv @lvl</span>
+                                                <div class="skill-progress">
+                                                    <div class="skill-progress-inner" style="width:@pct%"> </div>
+                                                </div>
+                                                <span class="skill-xp-right">@xp/@next</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <!-- Other skills remain the same -->
-                                    <div class="player-skill">
-                                        <span class="skill-icon">🌲</span>
-                                        <span class="skill-label">Wilderness</span>
-                                        <div class="skill-bar">
-                                            <div class="skill-progress" style="width: @(PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Wilderness) * 20)%"></div>
-                                            <span class="skill-level">@PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Wilderness)</span>
-                                        </div>
-                                    </div>
-                                    <div class="player-skill">
-                                        <span class="skill-icon">📚</span>
-                                        <span class="skill-label">Scholarship</span>
-                                        <div class="skill-bar">
-                                            <div class="skill-progress" style="width: @(PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Scholarship) * 20)%"></div>
-                                            <span class="skill-level">@PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Scholarship)</span>
-                                        </div>
-                                    </div>
-                                    <div class="player-skill">
-                                        <span class="skill-icon">🤝</span>
-                                        <span class="skill-label">Diplomacy</span>
-                                        <div class="skill-bar">
-                                            <div class="skill-progress" style="width: @(PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Diplomacy) * 20)%"></div>
-                                            <span class="skill-level">@PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Diplomacy)</span>
-                                        </div>
-                                    </div>
-                                    <div class="player-skill">
-                                        <span class="skill-icon">🕵️</span>
-                                        <span class="skill-label">Subterfuge</span>
-                                        <div class="skill-bar">
-                                            <div class="skill-progress" style="width: @(PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Subterfuge) * 20)%"></div>
-                                            <span class="skill-level">@PlayerState.PlayerSkills.GetLevelForSkill(SkillTypes.Subterfuge)</span>
-                                        </div>
-                                    </div>
+                                    }
                                 </div>
                             </div>
                         }

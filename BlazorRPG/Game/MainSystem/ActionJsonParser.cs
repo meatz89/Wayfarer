@@ -40,7 +40,7 @@ public static class ActionJsonParser
         // Parse basic action type
         string actionTypeStr = GetStringProperty(element, "actionType", "Encounter");
 
-        EncounterTypes BasicActionType = EncounterTypes.Physical;
+        EncounterTypes BasicActionType = EncounterTypes.Exploration;
 
         if (element.TryGetProperty("basicActionType", out JsonElement basicTypeElement) &&
             basicTypeElement.ValueKind == JsonValueKind.String)
@@ -77,10 +77,12 @@ public static class ActionJsonParser
         // Handle common action type strings
         return actionType.ToLower() switch
         {
-            "physical" => EncounterTypes.Physical,
-            "intellectual" => EncounterTypes.Intellectual,
+            "physical" => EncounterTypes.Combat,
             "social" => EncounterTypes.Social,
-            _ => EncounterTypes.Physical // Default fallback
+            "stealth" => EncounterTypes.Stealth,
+            "exploration" => EncounterTypes.Exploration,
+            "intellectual" => EncounterTypes.Lore,
+            _ => EncounterTypes.Exploration // Default fallback
         };
     }
 

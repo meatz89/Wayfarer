@@ -70,8 +70,7 @@
         this.worldState = worldState;
 
         Location loc = context.Location;
-        EncounterTypes encounterType = GetPresentationStyleFromBaseAction(actionImplementation);
-
+        EncounterTypes encounterType = actionImplementation.EncounterType;
         EncounterTemplate template = actionImplementation.EncounterTemplate;
 
         Encounter encounter = encounterFactory.CreateEncounterFromTemplate(
@@ -234,16 +233,5 @@
     {
         return gameState.ActionStateTracker.UserEncounterChoiceOptions;
     }
-
-    private static EncounterTypes GetPresentationStyleFromBaseAction(ActionImplementation actionImplementation)
-    {
-        EncounterTypes encounterTypes = actionImplementation.EncounterType switch
-        {
-            EncounterTypes.Social => EncounterTypes.Social,
-            EncounterTypes.Physical => EncounterTypes.Physical,
-            EncounterTypes.Intellectual => EncounterTypes.Intellectual,
-            _ => EncounterTypes.Physical,
-        };
-        return encounterTypes;
-    }
+    
 }

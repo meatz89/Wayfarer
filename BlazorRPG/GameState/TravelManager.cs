@@ -49,7 +49,7 @@
 
     private ActionDefinition GetTravelTemplate(string location, string locationSpot)
     {
-        ActionDefinition travelTemplate = new ActionDefinition("travel", "travel", 1, 50, EncounterTypes.Physical, true)
+        ActionDefinition travelTemplate = new ActionDefinition("travel", "travel", 1, 50, EncounterTypes.Exploration, true)
         {
             Goal = "Travel safely to your destination",
             TimeCost = 1,

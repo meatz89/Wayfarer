@@ -322,7 +322,7 @@
 
             switch (_encounterInfo.EncounterType)
             {
-                case EncounterTypes.Physical:
+                case EncounterTypes.Combat:
                     projection.HealthChange = resourceImpact;
                     projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
                     {
@@ -331,9 +331,29 @@
                     });
                     break;
 
-                case EncounterTypes.Intellectual:
+                case EncounterTypes.Lore:
                     projection.ConcentrationChange = resourceImpact;
                     projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
+                    {
+                        Source = "High Pressure Impact",
+                        Value = resourceImpact
+                    });
+                    break;
+
+
+                case EncounterTypes.Exploration:
+                    projection.ConcentrationChange = resourceImpact;
+                    projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
+                    {
+                        Source = "High Pressure Impact",
+                        Value = resourceImpact
+                    });
+                    break;
+
+
+                case EncounterTypes.Stealth:
+                    projection.HealthChange = resourceImpact;
+                    projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
                     {
                         Source = "High Pressure Impact",
                         Value = resourceImpact
