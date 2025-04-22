@@ -9,8 +9,9 @@
     public ArchetypeTypes Archetype { get; set; }
 
     // Progression systems
-    public int Level { get; set; }
-    public int CurrentXP { get; set; }
+    public int Level { get; set; } = 1;
+    public int CurrentXP { get; set; } = 0;
+    public int XPToNextLevel { get; set; } = 100;
 
     // Resources
     public int Money { get; set; }
@@ -62,6 +63,10 @@
 
         Inventory = new Inventory(GameRules.StandardRuleset.StartingInventorySize);
         Equipment = new Equipment();
+
+        Level = 1;
+        CurrentXP = 0;
+        XPToNextLevel = 100;
 
         Coins = GameRules.StandardRuleset.StartingCoins;
         Food = 2;

@@ -1,6 +1,4 @@
 ﻿using System.Data;
-using System.Text;
-
 public class GameManager
 {
     public PlayerState playerState => gameState.PlayerState;
