@@ -323,7 +323,7 @@ public class GameManager
         string? currentLocation = worldState.CurrentLocation?.Name;
         if (string.IsNullOrWhiteSpace(currentLocation)) return new List<UserActionOption>();
 
-        List<string> locationSpotActions = locationSpot.ActionIds.ToList();
+        List<string> locationSpotActions = locationSpot.BaseActionIds.ToList();
 
         List<UserActionOption> options = new List<UserActionOption>();
 

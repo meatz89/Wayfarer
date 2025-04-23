@@ -7,7 +7,7 @@ public class ActionDefinition
     public int EncounterChance { get; set; }
     public bool IsRepeatable { get; set; }
 
-    public List<TimeWindows> TimeWindows { get; set; }
+    public List<TimeWindows> AvailableWindows { get; set; }
     public string Description { get; set; }
     public string LocationName { get; set; }
     public string LocationSpotName { get; set; }
@@ -16,16 +16,19 @@ public class ActionDefinition
 
     public List<Requirement> Requirements { get; set; }
     public List<Outcome> Costs { get; set; }
-    public List<Outcome> Rewards { get; set; }
-
-    public string Goal { get; set; }
-    public string Complication { get; set; }
 
     public int EnergyCost { get; set; }
     public int TimeCost { get; set; }
+    public int CoinCost { get; set; }
+
+    public List<Outcome> Yields { get; set; }
+    public List<YieldDefinition> Yields { get; set; }
+
+    public string Goal { get; set; }
+    public string Complication { get; set; }
     public EncounterTypes EncounterType { get; set; }
     public ActionCategories Category { get; set; }
-    public List<YieldDefinition> Yields { get; set; }
+
 
     public ActionDefinition()
     {

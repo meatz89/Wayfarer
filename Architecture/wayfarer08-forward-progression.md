@@ -17,7 +17,7 @@ Wayfarer combines a tag-based encounter system with a dynamically evolving world
 
 ### 2.1 Location Network
 
-Wayfarer's world consists of interconnected location nodes rather than a geographic map:
+Wayfarer's world consists of interconnected location nodes rather than a geographic map. the geographic map is overlayed by a grid on which the location nodes are placed in relation to their depth:
 
 - **Locations**: Primary world units (towns, forests, ruins, etc.)
 - **Location Spots**: Interaction points within locations (market stalls, clearings, altars, etc.)

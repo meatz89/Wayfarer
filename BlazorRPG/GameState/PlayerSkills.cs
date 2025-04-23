@@ -18,8 +18,8 @@ public class PlayerSkills
     public int BonusMaxHealth => Warfare * 2;
     public int BonusMaxEnergy => Wilderness * 2;
     public int BonusMaxConcentration => Scholarship * 2;
-    public int BonusMaxConfidence => Subterfuge * 2;
-    public int BonusReputation => Diplomacy * 2;
+    public int BonusMaxConfidence => Diplomacy * 2;
+    public int BonusReputation => Subterfuge * 2;
 
     public PlayerSkills()
     {

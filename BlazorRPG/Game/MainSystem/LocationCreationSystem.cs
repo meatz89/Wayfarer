@@ -93,7 +93,7 @@
                 LocationName = details.Name,
                 InteractionType = spotDetail.InteractionType,
                 InteractionDescription = spotDetail.InteractionDescription,
-                ActionIds = [.. spotDetail.ActionIds]
+                BaseActionIds = [.. spotDetail.ActionIds]
             };
 
             locationSystem.AddSpot(location.Name, spot);
@@ -118,9 +118,9 @@
 
                 if (spotForAction != null)
                 {
-                    if (spotForAction.ActionIds == null)
+                    if (spotForAction.BaseActionIds == null)
                     {
-                        spotForAction.ActionIds = new List<string>();
+                        spotForAction.BaseActionIds = new List<string>();
                     }
 
                     string newActionId = newAction.Name.Replace(" ", "");
@@ -133,7 +133,7 @@
                         ParseActionType(newAction.ActionType).ToString());
 
                     ActionDefinition actionTemplate = actionRepository.GetAction(actionId);
-                    spotForAction.ActionIds.Add(actionTemplate.Id);
+                    spotForAction.BaseActionIds.Add(actionTemplate.Id);
 
                     Console.WriteLine($"Created new action {newAction.Name} at {newAction.LocationName}/{newAction.SpotName}");
                 }

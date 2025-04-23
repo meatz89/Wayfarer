@@ -196,14 +196,14 @@
             Complication = complication,
             MoveToLocationSpot = movesToLocationSpot,
 
-            TimeWindows = timeWindows,
+            AvailableWindows = timeWindows,
 
             TimeCost = timeCost,
             EnergyCost = energyCost,
 
             Requirements = requirements,
             Costs = costs,
-            Rewards = rewards,
+            Yields = rewards,
 
             Yields = Yields
         };
