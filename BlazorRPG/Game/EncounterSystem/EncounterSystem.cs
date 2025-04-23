@@ -49,7 +49,7 @@
                 currentAIProvider = AIProviderType.Claude;
                 break;
             case "gemma":
-                currentAIProvider = AIProviderType.Gemma3;
+                currentAIProvider = AIProviderType.Gemini;
                 break;
             default:
                 currentAIProvider = AIProviderType.OpenAI;
