@@ -2,42 +2,45 @@
 <div class="locations-grid">
     @foreach (LocationSpot spot in GetKnownSpots())
     {
-        <div class="location-card @(spot.Name == CurrentSpot.Name ? "current" : "reachable")">
-            <div class="location-spot-properties">
-                @foreach (var prop in GetSpotProperties(spot))
-                {
-                    <div class="property-tag @prop.CssClass">
-                        <span class="property-icon">@prop.Icon</span>
-                        <span class="property-text">@prop.Text</span>
-                    </div>
-                }
-            </div>
-            <div class="location-name">
-                @spot.Name @(spot.Name == CurrentSpot.Name ? "(Current)" : "")
-            </div>
-            <div class="location-type">@spot.Name</div>
+        <div class="@(!spot.IsClosed ? "disabled" : "disabled")">
 
-            @* Add travel option if not current spot *@
-            @if (spot.Name != CurrentSpot.Name)
-            {
-                <button class="action-button"
-                @onclick="() => OnSpotSelected.InvokeAsync(spot)"
-                disabled="@(!GameManager.CanMoveToSpot(spot.Name))">
-                    MOVE HERE
-                </button>
-            }
-            else
-            {
-                @foreach (UserActionOption action in GameState.GetActions())
+            <div class="location-card @(spot.Name == CurrentSpot.Name ? "current" : "reachable")">
+                <div class="location-spot-properties">
+                    @foreach (var prop in GetSpotProperties(spot))
+                    {
+                        <div class="property-tag @prop.CssClass">
+                            <span class="property-icon">@prop.Icon</span>
+                            <span class="property-text">@prop.Text</span>
+                        </div>
+                    }
+                </div>
+                <div class="location-name">
+                    @spot.Name @(spot.IsClosed ? "(Closed)" : "")
+                </div>
+                <div class="location-type">@spot.Name</div>
+
+                @* Add travel option if not current spot *@
+                @if (spot.Name != CurrentSpot.Name)
                 {
                     <button class="action-button"
-                    @onclick="() => OnActionSelected.InvokeAsync(action)"
-                    disabled="@(action.IsDisabled)"
-                    @onmouseover="(e) => HandleShowTooltip(action, e)"
-                    @onmouseout="HandleHideTooltip">@action.ActionImplementation.Id (@action.ActionImplementation.ActionType)
+                    @onclick="() => OnSpotSelected.InvokeAsync(spot)"
+                    disabled="@(!GameManager.CanMoveToSpot(spot.Name))">
+                        MOVE HERE
                     </button>
                 }
-            }
+                else
+                {
+                    @foreach (UserActionOption action in GameState.GetActions())
+                    {
+                        <button class="action-button"
+                        @onclick="() => OnActionSelected.InvokeAsync(action)"
+                        disabled="@(action.IsDisabled)"
+                        @onmouseover="(e) => HandleShowTooltip(action, e)"
+                        @onmouseout="HandleHideTooltip">@action.ActionImplementation.Id (@action.ActionImplementation.ActionType)
+                        </button>
+                    }
+                }
+            </div>
         </div>
     }
 </div>

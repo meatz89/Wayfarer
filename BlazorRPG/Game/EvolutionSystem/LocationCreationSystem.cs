@@ -91,7 +91,6 @@
                 Name = spotDetail.Name,
                 Description = spotDetail.Description,
                 LocationName = details.Name,
-                InteractionType = spotDetail.InteractionType,
                 InteractionDescription = spotDetail.InteractionDescription,
                 BaseActionIds = [.. spotDetail.ActionIds]
             };

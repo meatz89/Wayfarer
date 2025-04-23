@@ -315,7 +315,7 @@ public class GameManager
         await ExecuteAction(travelOption);
     }
 
-    private async Task<List<UserActionOption>> CreateActionsForLocationSpot(Location location, LocationSpot locationSpot)
+    private async Task<List<UserActionOption>> CreateLocationSpotActions(Location location, LocationSpot locationSpot)
     {
         string? currentLocation = worldState.CurrentLocation?.Name;
         if (string.IsNullOrWhiteSpace(currentLocation)) return new List<UserActionOption>();
@@ -343,7 +343,7 @@ public class GameManager
             UserActionOption userActionOption =
                 new UserActionOption(
                     actionImplementation.Id.ToString(),
-                    false,
+                    locationSpot.IsClosed,
                     actionImplementation,
                     locationSpot.LocationName,
                     locationSpot.Name,
@@ -710,7 +710,7 @@ public class GameManager
         worldState.SetCurrentLocation(currentLocation);
 
         LocationSpot currentLocationSpot = worldState.CurrentLocationSpot;
-        List<UserActionOption> locationSpotActionOptions = await CreateActionsForLocationSpot(currentLocation, currentLocationSpot);
+        List<UserActionOption> locationSpotActionOptions = await CreateLocationSpotActions(currentLocation, currentLocationSpot);
         gameState.ActionStateTracker.SetLocationSpotActions(locationSpotActionOptions);
     }
 

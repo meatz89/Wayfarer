@@ -132,7 +132,6 @@ public class PostEncounterEvolutionParser
             {
                 Name = spotDef.Name,
                 Description = spotDef.Description,
-                InteractionType = spotDef.InteractionType,
                 LocationName = spotDef.LocationName,
                 BaseActionIds = new List<string>()
             };
@@ -242,7 +241,6 @@ public class PostEncounterEvolutionParser
         {
             Name = GetStringProperty(element, "name", "Unnamed Spot"),
             Description = GetStringProperty(element, "description", "No description available."),
-            InteractionType = GetStringProperty(element, "interactionType", "Feature"),
             LocationName = GetStringProperty(element, "locationName", "Unknown Location")
         });
     }
