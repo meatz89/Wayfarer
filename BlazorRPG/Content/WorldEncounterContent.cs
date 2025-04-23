@@ -4,7 +4,7 @@
     {
         return new EncounterTemplate()
         {
-            Name = EncounterNames.ForageForFood.ToString(),
+            Name = "ForageForFood",
             Duration = 4,
             MaxPressure = 12,
             PartialThreshold = 8,
