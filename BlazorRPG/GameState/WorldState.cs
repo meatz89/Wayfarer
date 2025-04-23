@@ -139,16 +139,6 @@
 
     public int CurrentDay { get; set; } = 1;
 
-    public void SetCurrentTime(int hours)
-    {
-        CurrentTimeInHours = (CurrentTimeInHours + hours) % 24;
-
-        const int timeWindowsPerDay = 4;
-        const int hoursPerTimeWindow = 6;
-        int timeWindow = (CurrentTimeInHours / hoursPerTimeWindow) % timeWindowsPerDay;
-
-        DetermineCurrentTimeWindow(timeWindow);
-    }
 
     public void SetCurrentLocation(Location location)
     {
@@ -179,17 +169,6 @@
     public void SetCurrentTravelOptions(List<UserLocationTravelOption> options)
     {
         CurrentTravelOptions = options;
-    }
-
-    public void DetermineCurrentTimeWindow(int timeWindow)
-    {
-        WorldTime = timeWindow switch
-        {
-            0 => TimeWindows.Night,
-            1 => TimeWindows.Morning,
-            2 => TimeWindows.Afternoon,
-            _ => TimeWindows.Evening
-        };
     }
 
     public void AdvanceTime(int hours)

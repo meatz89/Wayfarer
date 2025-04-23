@@ -220,11 +220,7 @@ public partial class GameUI : ComponentBase
     private async Task WaitOneHour()
     {
         // Create a "Wait" action that advances time without other effects
-        ActionDefinition waitAction = new ActionDefinition("Wait", "Wait", 0, 0, EncounterTypes.None, true)
-        {
-            TimeCost = 1,
-        };
-
+        ActionDefinition waitAction = GameManager.GetWaitAction();
         ActionImplementation waitImpl = GameManager.ActionFactory.CreateActionFromTemplate(waitAction);
 
         UserActionOption waitOption = new UserActionOption(

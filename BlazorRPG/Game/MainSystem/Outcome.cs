@@ -193,7 +193,7 @@ public class TimeOutcome : Outcome
 
     public override void Apply(GameState gameState)
     {
-        gameState.WorldState.AdvanceTime(hours);
+        gameState.TimeManager.AdvanceTime(hours);
     }
 
     public override string GetDescription()

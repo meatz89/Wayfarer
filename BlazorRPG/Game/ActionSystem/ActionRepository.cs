@@ -32,16 +32,11 @@ public class ActionRepository
         string locationSpotName,
         string locationName)
     {
-        ActionDefinition actionDefinition = new()
+        ActionDefinition actionDefinition = new(actionName, actionName, 1, 50, EncounterTypes.Exploration, true)
         {
-            Id = actionName,
-            Difficulty = 1,
             Goal = "Goal",
             Complication = "Complication",
             Description = "Description",
-            EncounterChance = 50,
-            IsRepeatable = true,
-            EncounterType = EncounterTypes.Exploration,
             LocationName = locationName,
             LocationSpotName = locationSpotName
         };

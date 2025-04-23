@@ -59,13 +59,8 @@ public class ActionGenerator
         string locationSpotName,
         string locationName)
     {
-        return new ActionDefinition
+        return new ActionDefinition(actionName, actionName, 1, 50, EncounterTypes.Exploration, true)
         {
-            Id = actionName,
-            Difficulty = 1,
-            EncounterChance = 50,
-            EncounterType = EncounterTypes.Exploration,
-            IsRepeatable = true,
             Goal = "Goal",
             Complication = "Complication",
             Description = "Description",

@@ -11,8 +11,6 @@
     public string encounterTemplateName;
     private bool isRepeatable;
     private string movesToLocationSpot;
-    private int energyCost = 0;
-    private int timeCost = 0;
     private int difficulty = 1;
     private int encounterChance = 0;
     private EncounterTypes basicActionType;
@@ -81,13 +79,13 @@
 
     public ActionTemplateBuilder WithEnergyCost(int energyCost)
     {
-        this.energyCost = energyCost;
+        this.costs.Add(new EnergyOutcome(energyCost));
         return this;
     }
 
     public ActionTemplateBuilder WithTimeCost(int timeCost)
     {
-        this.timeCost = timeCost;
+        this.costs.Add(new TimeOutcome(timeCost));
         return this;
     }
 

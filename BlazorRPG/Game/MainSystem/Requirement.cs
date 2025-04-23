@@ -4,6 +4,28 @@
     public abstract string GetDescription();
 }
 
+public class SkillRequirement : Requirement
+{
+    public SkillTypes SkillType { get; set; }
+    public int RequiredLevel { get; set; }
+
+    public SkillRequirement(SkillTypes skillType, int requiredLevel)
+    {
+        SkillType = skillType;
+        RequiredLevel = requiredLevel;
+    }
+
+    public override bool IsSatisfied(GameState gameState)
+    {
+        return gameState.PlayerState.PlayerSkills.GetLevelForSkill(SkillType) >= RequiredLevel;
+    }
+
+    public override string GetDescription()
+    {
+        return $"Skill Level Required: {SkillType} {RequiredLevel}";
+    }
+}
+
 public class EnergyRequirement : Requirement
 {
     public int Amount { get; set; }

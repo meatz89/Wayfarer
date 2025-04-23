@@ -52,7 +52,6 @@
         ActionDefinition travelTemplate = new ActionDefinition("travel", "travel", 1, 50, EncounterTypes.Exploration, true)
         {
             Goal = "Travel safely to your destination",
-            TimeCost = 1,
             MoveToLocation = location,
             MoveToLocationSpot = locationSpot,
             Costs = new()
