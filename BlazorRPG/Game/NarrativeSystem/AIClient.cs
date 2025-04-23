@@ -19,6 +19,17 @@
         logger?.LogInformation($"Logging conversation to: {_logManager.GetSessionDirectory()}");
     }
 
+    public async Task<string> GetCompletionAsync(IEnumerable<ConversationEntry> conversationMessages, string model, string fallbackModel)
+    {
+        List<ConversationEntry> messages = conversationMessages.Select(conversationMessage => new ConversationEntry
+        {
+            Role = conversationMessage.Role.ToLower(), // Ensure role is lowercase (system, user, assistant)
+            Content = conversationMessage.Content
+        }).ToList();
+
+        return await GetCompletionAsync(messages, model, fallbackModel);
+    }
+
     public async Task<string> GetCompletionAsync(List<ConversationEntry> messages, string model, string fallbackModel)
     {
         string conversationId = Guid.NewGuid().ToString();
@@ -82,18 +93,6 @@
                 _logger?.LogError(logEx, $"Failed to log API interaction: {logEx.Message}");
             }
         }
-    }
-
-    public async Task<string> GetCompletionAsync(IEnumerable<ConversationEntry> conversationMessages, string model, string fallbackModel)
-    {
-        // Convert from ConversationMessage to Message format
-        List<ConversationEntry> messages = conversationMessages.Select(conversationMessage => new ConversationEntry
-        {
-            Role = conversationMessage.Role.ToLower(), // Ensure role is lowercase (system, user, assistant)
-            Content = conversationMessage.Content
-        }).ToList();
-
-        return await GetCompletionAsync(messages, model, fallbackModel);
     }
 
     public string GetProviderName()

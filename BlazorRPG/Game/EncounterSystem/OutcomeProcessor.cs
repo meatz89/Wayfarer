@@ -135,7 +135,7 @@
             skillFactor = Math.Max(0.5f, skillFactor); // Cap at 50% reduction
         }
 
-        return (int) (baseDepletion * skillFactor);
+        return (int)(baseDepletion * skillFactor);
     }
 
     //private void ApplyOutcome(YieldTypes type, string targetId, int amount, GameState gameState, Location location, LocationSpot spot)

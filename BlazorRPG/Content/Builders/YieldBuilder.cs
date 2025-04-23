@@ -1,6 +1,6 @@
 ﻿public class YieldBuilder
 {
-    
+
     internal object WithType(object skillXP)
     {
         throw new NotImplementedException();

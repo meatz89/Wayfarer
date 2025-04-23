@@ -75,7 +75,7 @@ public partial class GameUI : ComponentBase
         if (expandedSections.ContainsKey(sectionName))
         {
             bool toggleOn = !expandedSections[sectionName];
-            
+
             foreach (KeyValuePair<SidebarSections, bool> section in expandedSections)
             {
                 expandedSections[section.Key] = false;

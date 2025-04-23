@@ -1,5 +1,6 @@
 ﻿public class PostEncounterEvolutionSystem
 {
+    private readonly ContentRegistry contentRegistry;
     private readonly NarrativeService _narrativeService;
     private readonly ActionGenerator _actionGenerator;
     private readonly ActionRepository _actionRepository;
@@ -11,6 +12,7 @@
     private readonly GameState gameState;
 
     public PostEncounterEvolutionSystem(
+        ContentRegistry contentRegistry,
         NarrativeService narrativeService,
         ActionGenerator actionGenerator,
         ActionRepository actionRepository,
@@ -21,6 +23,7 @@
         WorldStateInputBuilder worldStateInputCreator,
         GameState gameState)
     {
+        this.contentRegistry = contentRegistry;
         _narrativeService = narrativeService;
         this._actionGenerator = actionGenerator;
         this._actionRepository = actionRepository;
@@ -54,68 +57,71 @@
     public async Task IntegrateEncounterOutcome(
         PostEncounterEvolutionResult evolution,
         WorldState worldState,
-        LocationSystem locationSystem,
         PlayerState playerState)
     {
-        // Process coin change
         if (evolution.CoinChange != 0)
-        {
             playerState.AddCoins(evolution.CoinChange);
-        }
 
-        // Process inventory changes
-        ProcessInventoryChanges(evolution, playerState);
+        foreach (object invChange in evolution.InventoryChanges)
+            playerState.Inventory.Apply(invChange);
 
-        // Process relationship changes
-        ProcessRelationshipChanges(evolution, playerState);
+        foreach (RelationshipChange relChange in evolution.RelationshipChanges)
+            playerState.UpdateRelationship(relChange.CharacterName, relChange.ChangeAmount);
 
-        // First, process new locations so they exist before processing spots
-        foreach (Location location in evolution.NewLocations)
+        foreach (Location loc in evolution.NewLocations)
         {
-            if (location.LocationSpots == null)
+            string locId = loc.Name;
+            if (!contentRegistry.TryResolve<Location>(locId, out Location? existingLoc))
             {
-                location.LocationSpots = new List<LocationSpot>();
+                contentRegistry.Register<Location>(locId, loc);
+                worldState.AddLocation(loc);
             }
-
-            // Add location to world state
-            worldState.AddLocation(location);
-
-            locationSystem.ConnectLocations(location, worldState.CurrentLocation);
-
-            // Set location depth
-            worldState.SetLocationDepth(location.Name, location.Depth);
-
-            // Update hub tracking if applicable
-            worldState.UpdateHubTracking(location);
+            else
+            {
+                existingLoc.Description = loc.Description;
+                existingLoc.DetailedDescription = loc.DetailedDescription;
+                existingLoc.ConnectedTo = loc.ConnectedTo;
+                existingLoc.Depth = loc.Depth;
+            }
+            worldState.SetLocationDepth(locId, loc.Depth);
+            worldState.UpdateHubTracking(loc);
         }
 
-        // Add new location spots to appropriate locations
         foreach (LocationSpot spot in evolution.NewLocationSpots)
         {
-            string targetLocationName = !string.IsNullOrEmpty(spot.LocationName)
-                ? spot.LocationName
-                : worldState.CurrentLocation?.Name;
-
-            if (!string.IsNullOrEmpty(targetLocationName))
+            string spotId = $"{spot.LocationName}:{spot.Name}";
+            if (!contentRegistry.TryResolve<LocationSpot>(spotId, out LocationSpot? existingSpot))
             {
-                locationSystem.AddSpot(targetLocationName, spot);
+                contentRegistry.Register<LocationSpot>(spotId, spot);
+            }
+            else
+            {
+                existingSpot.Description = spot.Description;
+                existingSpot.BaseActionIds = spot.BaseActionIds;
+                existingSpot.PlayerKnowledge = spot.PlayerKnowledge;
             }
         }
 
-        // Process new actions and associate them with the appropriate spots
-        await ProcessNewActions(evolution, worldState);
+        foreach (NewAction newAction in evolution.NewActions)
+        {
+            string actionId = await _actionGenerator.GenerateActionAndEncounter(
+                newAction.Name,
+                newAction.SpotName,
+                newAction.LocationName,
+                newAction.Goal,
+                newAction.Complication,
+                newAction.ActionType);
+            ActionDefinition actionDef = _actionRepository.GetAction(actionId);
+            string spotId = $"{newAction.LocationName}:{newAction.SpotName}";
+            if (contentRegistry.TryResolve<LocationSpot>(spotId, out LocationSpot? spot))
+                spot.BaseActionIds.Add(actionDef.Id);
+        }
 
-        // Add new characters
         foreach (Character character in evolution.NewCharacters)
-        {
             worldState.AddCharacter(character);
-        }
 
-        // Add new opportunities
-        foreach (Opportunity opportunity in evolution.NewOpportunities)
-        {
-            worldState.AddOpportunity(opportunity);
-        }
+        foreach (Opportunity opp in evolution.NewOpportunities)
+            worldState.AddOpportunity(opp);
     }
 
     private async Task ProcessNewActions(
@@ -257,7 +263,7 @@
             ActiveOpportunities = opportunitySystem.FormatActiveOpportunities(worldState.GetOpportunities()),
 
             CurrentLocationSpots = locationSystem.FormatLocationSpots(worldState.CurrentLocation),
-            ConnectedLocations = locationSystem.FormatLocations(locationSystem.GetConnectedLocations()),
+            ConnectedLocations = locationSystem.FormatLocations(locationSystem.GetConnectedLocations(worldState.CurrentLocation.Name)),
             AllExistingActions = actionSystem.FormatExistingActions(allLocations),
 
             CurrentDepth = currentDepth,

@@ -2,6 +2,30 @@
 
 public static class ActionJsonParser
 {
+
+    public static (ActionDefinition Action, List<string> ValidationErrors) ParseAndRegister(
+        string json,
+        ContentRegistry contentRegistry)
+    {
+        ActionCreationResult result = ActionJsonParser.Parse(json);
+        List<string> errors = new List<string>();
+
+        if (result.Action != null)
+        {
+            if (!contentRegistry.Register<ActionDefinition>(result.Action.Id, result.Action))
+                errors.Add($"Duplicate action ID: {result.Action.Id}");
+
+            // e.g., validate any referenced character unlocks
+            // errors.AddRange(contentRegistry.ValidateReferences<Character>(result.Action.YieldCharacterIds));
+        }
+        else
+        {
+            errors.Add("Parsed action was null.");
+        }
+
+        return (result.Action, errors);
+    }
+
     public static ActionCreationResult Parse(string json)
     {
         json = json.Replace("```json", "");

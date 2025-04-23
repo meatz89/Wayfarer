@@ -1,19 +1,23 @@
-﻿public class ActionGenerator
+﻿/// <summary>
+/// Generates actions via AI and registers them safely.
+/// </summary>
+public class ActionGenerator
 {
     private readonly NarrativeService _narrativeService;
-    private readonly ActionRepository _repository;
-    private readonly WorldStateInputBuilder worldStateInputCreator;
-    private readonly IConfiguration configuration;
+    private readonly ActionRepository _actionRepo;
+    private readonly WorldStateInputBuilder _worldStateInputCreator;
+    private readonly IConfiguration _configuration;
+
     public ActionGenerator(
         NarrativeService narrativeService,
-        ActionRepository repository,
+        ActionRepository actionRepository,
         WorldStateInputBuilder worldStateInputCreator,
         IConfiguration configuration)
     {
         _narrativeService = narrativeService;
-        _repository = repository;
-        this.worldStateInputCreator = worldStateInputCreator;
-        this.configuration = configuration;
+        _actionRepo = actionRepository;
+        _worldStateInputCreator = worldStateInputCreator;
+        _configuration = configuration;
     }
 
     public async Task<string> GenerateActionAndEncounter(
@@ -24,9 +28,9 @@
         string complication = "",
         string basicActionType = "")
     {
-        ActionDefinition actionDefinition = GetDefaultActionDefinition(actionName, locationSpotName, locationName);
+        ActionDefinition actionDef = GetDefaultActionDefinition(actionName, locationSpotName, locationName);
 
-        if (configuration.GetValue<bool>("actionGeneration"))
+        if (_configuration.GetValue<bool>("actionGeneration"))
         {
             ActionGenerationContext context = new ActionGenerationContext
             {
@@ -38,18 +42,16 @@
                 BasicActionType = basicActionType
             };
 
-            // Get action and encounter details from AI
-            WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(locationName);
+            WorldStateInput worldStateInput = await _worldStateInputCreator.CreateWorldStateInput(locationName);
+            string json = await _narrativeService.GenerateActionsAsync(context, worldStateInput);
 
-            string jsonResponse = await _narrativeService.GenerateActionsAsync(context, worldStateInput);
-
-            // Parse the response
-            ActionCreationResult result = ActionJsonParser.Parse(jsonResponse);
-            actionDefinition = result.Action;
+            ActionCreationResult result = ActionJsonParser.Parse(json);
+            actionDef = result.Action;
         }
 
-        string actionId = _repository.AddActionTemplate(actionDefinition);
-        return actionId;
+        // Register AI or default action via repository
+        _actionRepo.RegisterAction(actionDef);
+        return actionDef.Id;
     }
 
     private ActionDefinition GetDefaultActionDefinition(
@@ -57,25 +59,24 @@
         string locationSpotName,
         string locationName)
     {
-        ActionDefinition actionDefinition = new()
+        return new ActionDefinition
         {
             Id = actionName,
             Difficulty = 1,
+            EncounterChance = 50,
+            EncounterType = EncounterTypes.Exploration,
+            IsRepeatable = true,
             Goal = "Goal",
             Complication = "Complication",
             Description = "Description",
-            EncounterChance = 50,
-            IsRepeatable = true,
-            EncounterType = EncounterTypes.Exploration,
             LocationName = locationName,
             LocationSpotName = locationSpotName
         };
-        return actionDefinition;
     }
 
     public EncounterTemplate CreateEncounterTemplate(string id, EncounterTemplateModel model)
     {
-        EncounterTemplate template = new EncounterTemplate
+        return new EncounterTemplate
         {
             ActionId = id,
             Name = model.Name,
@@ -87,8 +88,6 @@
             Hostility = ParseHostility(model.Hostility),
             EncounterStrategicTags = new()
         };
-
-        return template;
     }
 
     private Encounter.HostilityLevels ParseHostility(string hostility)
@@ -100,5 +99,4 @@
             _ => Encounter.HostilityLevels.Neutral
         };
     }
-
 }

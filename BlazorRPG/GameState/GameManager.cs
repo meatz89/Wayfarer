@@ -64,16 +64,17 @@ public class GameManager
         _useMemory = configuration.GetValue<bool>("useMemory");
     }
 
+    string StartingLocation = "Elmridge Crossroads";
+
     public async Task StartGame()
     {
         ProcessPlayerArchetype();
 
-        Location startingLocation = await LocationSystem.Initialize(LocationSystem.StartingLocation);
-        string startingLocationName = LocationSystem.StartingLocation;
+        Location startingLocation = await LocationSystem.Initialize(StartingLocation);
 
-        worldState.RecordLocationVisit(startingLocationName);
-        TravelManager.TravelToLocation(startingLocationName, TravelMethods.Walking);
-        await OnLocationArrival(startingLocationName);
+        worldState.RecordLocationVisit(StartingLocation);
+        TravelManager.TravelToLocation(StartingLocation, TravelMethods.Walking);
+        await OnLocationArrival(StartingLocation);
 
         if (worldState.CurrentLocationSpot == null && worldState.CurrentLocation?.LocationSpots?.Any() == true)
         {
@@ -155,7 +156,7 @@ public class GameManager
 
         ApplyActionOutcomes(actionImplementation);
 
-        var skill = DetermineSkillForAction(actionImplementation);
+        SkillTypes skill = DetermineSkillForAction(actionImplementation);
         int skillXp = CalculateBasicActionSkillXP(actionImplementation);
 
         PlayerProgression.AddSkillExp(skill, skillXp);
@@ -197,7 +198,7 @@ public class GameManager
         MessageSystem.AddSystemMessage($"Gained {xpAward} experience points");
 
         // Grant skill XP based on encounter type
-        var skill = DetermineSkillForAction(result.ActionImplementation);
+        SkillTypes skill = DetermineSkillForAction(result.ActionImplementation);
         int skillXp = xpAward; // or a fraction thereof
         PlayerProgression.AddSkillExp(skill, skillXp);
         MessageSystem.AddSystemMessage($"Gained {skillXp} {skill} skill experience");
@@ -327,6 +328,9 @@ public class GameManager
         foreach (string locationSpotAction in locationSpotActions)
         {
             ActionDefinition actionTemplate = ActionRepository.GetAction(locationSpotAction);
+            actionTemplate.LocationName = location.Name;
+            actionTemplate.LocationSpotName = locationSpot.Name;
+
             if (actionTemplate == null)
             {
                 string actionId =
@@ -381,7 +385,7 @@ public class GameManager
         // Get player's history with this location
         List<string> previousInteractions = new();
 
-        LocationSpot? locationSpot = LocationSystem.GetLocationSpotForLocation(
+        LocationSpot? locationSpot = LocationSystem.GetLocationSpot(
             location.Name, worldState.CurrentLocationSpot.Name);
 
         // Create initial context with our new value system
@@ -531,7 +535,7 @@ public class GameManager
         result.PostEncounterEvolution = evolutionResponse;
 
         // Update world state
-        await evolutionSystem.IntegrateEncounterOutcome(evolutionResponse, worldState, LocationSystem, playerState);
+        await evolutionSystem.IntegrateEncounterOutcome(evolutionResponse, worldState, playerState);
     }
 
     private async Task CreateMemoryRecord(EncounterResult encounterResult)
@@ -600,7 +604,7 @@ public class GameManager
     {
         string locationName = gameState.WorldState.CurrentLocation.Name;
 
-        LocationSpot locationSpot = LocationSystem.GetLocationSpotForLocation(locationName, locationSpotName);
+        LocationSpot locationSpot = LocationSystem.GetLocationSpot(locationName, locationSpotName);
         gameState.WorldState.SetCurrentLocationSpot(locationSpot);
 
         await UpdateState();
@@ -617,13 +621,13 @@ public class GameManager
 
     public List<Location> GetPlayerKnownLocations()
     {
-        return LocationSystem.GetKnownLocations();
+        return LocationSystem.GetAllLocations();
     }
 
     public List<string> GetConnectedLocations()
     {
         List<string> loc =
-            LocationSystem.GetKnownLocations()
+            LocationSystem.GetAllLocations()
             .Where(x => x != gameState.WorldState.CurrentLocation)
             .Select(x => x.Name)
             .ToList();

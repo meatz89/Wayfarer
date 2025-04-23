@@ -1,4 +1,5 @@
-﻿public class Inventory
+﻿
+public class Inventory
 {
     private string[] Slots;
     public int MaxCapacity { get { return Slots.Length; } }
@@ -168,5 +169,10 @@
             }
         }
         return count;
+    }
+
+    internal void Apply(object invChange)
+    {
+        throw new NotImplementedException();
     }
 }

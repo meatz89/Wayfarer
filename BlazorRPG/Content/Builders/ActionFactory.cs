@@ -54,8 +54,25 @@
         actionImplementation.Yields = template.Yields ?? new();
         actionImplementation.Costs = template.Costs ?? new();
 
-        actionImplementation.EncounterTemplate = ActionRepository.GetEncounterForAction(template);
+        actionImplementation.EncounterTemplate = GetEncounterForAction(template);
 
         return actionImplementation;
+    }
+
+    public EncounterTemplate GetEncounterForAction(ActionDefinition actionTemplate)
+    {
+        ActionGenerationContext context = new ActionGenerationContext
+        {
+            ActionId = actionTemplate.Id,
+            Goal = actionTemplate.Goal,
+            Complication = actionTemplate.Complication,
+            BasicActionType = actionTemplate.EncounterType.ToString(),
+            SpotName = actionTemplate.LocationSpotName,
+            LocationName = actionTemplate.LocationName,
+        };
+
+        EncounterTemplate encounterTemplate = WorldEncounterContent.GetDefaultTemplate();
+
+        return encounterTemplate;
     }
 }
