@@ -1,6 +1,4 @@
-﻿using Microsoft.VisualBasic.FileIO;
-
-public static class WorldActionContent
+﻿public static class WorldActionContent
 {
     public static List<ActionDefinition> GetAllTemplates()
     {
