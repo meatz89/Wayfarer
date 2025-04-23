@@ -22,34 +22,11 @@
                 .AddLocationSpot(spot => spot
                     .WithName("Signpost")
                     .WithDescription("A weathered wooden signpost with directions carved into its arms.")
-                    .WithNodeType(ResourceNodeTypes.Landmark)
-                    .WithQuality(QualityTiers.Novice)
                     .AddActionId("Read Signpost")
                     .AddActionId("Observe Travelers")
                     .AddActionId("Rest at Crossroads")
                     .AddConnectionTo("Elmridge Village")
-                    .WithPlayerKnowledge(true)
-                    .WithDiscoverableAspect(nodeAspect => nodeAspect
-                        .WithName("Worn Cart Tracks")
-                        .WithDescription("Deep wheel ruts showing frequent travel to the village")
-                        .WithSkillType(SkillTypes.Subterfuge)
-                        .WithSkillXpGain(1)
-                        .WithYields(yield => yield
-                            .WithType(YieldTypes.TravelDiscount)
-                            .WithTargetId("Elmridge Village")
-                            .WithBaseAmount(5))
-                        )
-                    .WithDiscoverableAspect(nodeAspect => nodeAspect
-                        .WithName("Hidden Footpath")
-                        .WithDescription("A narrow trail leading toward the river")
-                        .WithSkillType(SkillTypes.Subterfuge)
-                        .WithSkillXpGain(1)
-                        .WithYields(yield => yield
-                            .WithType(YieldTypes.ActionUnlock)
-                            .WithTargetId("take_shortcut")
-                            .WithBaseAmount(1))
-                        )
-                    )
+                    .WithPlayerKnowledge(true))
                .Build();
 
             return location;

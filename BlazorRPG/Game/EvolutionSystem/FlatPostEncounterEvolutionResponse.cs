@@ -1,0 +1,10 @@
+﻿public class FlatPostEncounterEvolutionResponse
+{
+    public ResourceChanges ResourceChanges { get; set; }
+    public List<RelationshipChange> RelationshipChanges { get; set; } = new List<RelationshipChange>();
+    public List<LocationDefinition> Locations { get; set; } = new List<LocationDefinition>();
+    public List<LocationSpotDefinition> LocationSpots { get; set; } = new List<LocationSpotDefinition>();
+    public List<EvolutionActionTemplate> ActionDefinitions { get; set; } = new List<EvolutionActionTemplate>();
+    public List<Character> Characters { get; set; } = new List<Character>();
+    public List<Opportunity> Opportunities { get; set; } = new List<Opportunity>();
+}

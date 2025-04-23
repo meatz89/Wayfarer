@@ -30,7 +30,7 @@ public partial class ActionPreviewBase : ComponentBase
 
     public List<Outcome> GetRewards()
     {
-        return CurrentAction.ActionImplementation.Rewards;
+        return CurrentAction.ActionImplementation.Yields;
     }
 
     // Now we work directly with our strongly-typed classes

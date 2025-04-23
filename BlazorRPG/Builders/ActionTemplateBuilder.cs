@@ -6,7 +6,7 @@
     private string complication;
     public List<Requirement> requirements = new();
     public List<Outcome> costs = new();
-    public List<Outcome> rewards = new();
+    public List<Outcome> yields = new();
     public bool IsEncounterAction = true;
     public string encounterTemplateName;
     private bool isRepeatable;
@@ -17,9 +17,6 @@
     private int encounterChance = 0;
     private EncounterTypes basicActionType;
     private List<TimeWindows> timeWindows = new List<TimeWindows>();
-    private ActionCategories actionCategory;
-
-    public List<YieldDefinition> Yields = new();
 
     public ActionTemplateBuilder WithName(string name)
     {
@@ -96,37 +93,37 @@
 
     public ActionTemplateBuilder RestoresConcentration(int amount)
     {
-        rewards.Add(new ConcentrationOutcome(amount));
+        yields.Add(new ConcentrationOutcome(amount));
         return this;
     }
 
     public ActionTemplateBuilder RestoresConfidence(int amount)
     {
-        rewards.Add(new ConfidenceOutcome(amount));
+        yields.Add(new ConfidenceOutcome(amount));
         return this;
     }
 
     public ActionTemplateBuilder RestoresHealth(int amount)
     {
-        rewards.Add(new HealthOutcome(amount));
+        yields.Add(new HealthOutcome(amount));
         return this;
     }
 
     public ActionTemplateBuilder RestoresEnergy(int amount)
     {
-        rewards.Add(new EnergyOutcome(amount));
+        yields.Add(new EnergyOutcome(amount));
         return this;
     }
 
     public ActionTemplateBuilder RewardsHerbs(int amount)
     {
-        rewards.Add(new MedicinalHerbOutcome(amount));
+        yields.Add(new MedicinalHerbOutcome(amount));
         return this;
     }
 
     public ActionTemplateBuilder RewardsLocationSpotKnowledge(string locationSpot)
     {
-        rewards.Add(new LocationSpotKnowledgeOutcome(locationSpot));
+        yields.Add(new LocationSpotKnowledgeOutcome(locationSpot));
         return this;
     }
 
@@ -160,21 +157,13 @@
         return this;
     }
 
-    public ActionTemplateBuilder WithCategory(ActionCategories actionCategory)
+    public ActionTemplateBuilder AddYield(Action<YieldBuilder> buildActionYield)
     {
-        this.actionCategory = actionCategory;
-        return this;
-    }
-
-    public ActionTemplateBuilder AddYield(Action<YieldDefinitionBuilder> buildYields)
-    {
-        YieldDefinitionBuilder yieldBuilder = new YieldDefinitionBuilder();
-        buildYields(yieldBuilder);
-
-        YieldDefinition yieldDefinition = yieldBuilder.Build();
-
-        this.Yields.Add(yieldDefinition);
-
+        YieldBuilder yieldBuilder = new YieldBuilder();
+        buildActionYield(yieldBuilder);
+        
+        yields.Add(yieldBuilder.Build());
+        
         return this;
     }
 
@@ -198,14 +187,9 @@
 
             AvailableWindows = timeWindows,
 
-            TimeCost = timeCost,
-            EnergyCost = energyCost,
-
             Requirements = requirements,
             Costs = costs,
-            Yields = rewards,
-
-            Yields = Yields
+            Yields = yields,
         };
     }
 }

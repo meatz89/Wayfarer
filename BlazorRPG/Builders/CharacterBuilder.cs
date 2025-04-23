@@ -16,11 +16,6 @@
         return this;
     }
 
-    public CharacterBuilder SetCharacterType(CharacterTypes characterType)
-    {
-        return this;
-    }
-
     public Character Build()
     {
         return new Character

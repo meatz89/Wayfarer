@@ -8,7 +8,6 @@ public class GameManager
     public PostEncounterEvolutionSystem evolutionSystem { get; }
     public LocationCreationSystem locationCreationSystem { get; }
     public LocationSystem LocationSystem { get; }
-    public ItemSystem ItemSystem { get; }
     public NarrativeService NarrativeService { get; }
     public MessageSystem MessageSystem { get; }
     public ActionFactory ActionFactory { get; }
@@ -19,7 +18,7 @@ public class GameManager
     public OpportunitySystem OpportunitySystem { get; }
     public PlayerProgression PlayerProgression { get; }
     public CardRepository ChoiceRepository { get; }
-    public YieldProcessor YieldProcessor { get; }
+    public OutcomeProcessor OutcomeProcessor { get; }
     public EncounterSystem EncounterSystem { get; }
 
     private bool _useMemory = false;
@@ -31,7 +30,6 @@ public class GameManager
         LocationCreationSystem locationCreationSystem,
         EncounterSystem EncounterSystem,
         LocationSystem locationSystem,
-        ItemSystem itemSystem,
         NarrativeService narrativeService,
         MessageSystem messageSystem,
         ActionFactory actionFactory,
@@ -42,14 +40,13 @@ public class GameManager
         OpportunitySystem opportunitySystem,
         PlayerProgression playerProgression,
         CardRepository choiceRepository,
-        YieldProcessor yieldProcessor,
+        OutcomeProcessor yieldProcessor,
         IConfiguration configuration
         )
     {
         this.gameState = gameState;
         this.EncounterSystem = EncounterSystem;
         this.LocationSystem = locationSystem;
-        this.ItemSystem = itemSystem;
         this.NarrativeService = narrativeService;
         this.MessageSystem = messageSystem;
         evolutionSystem = postEncounterEvolutionService;
@@ -62,7 +59,7 @@ public class GameManager
         OpportunitySystem = opportunitySystem;
         PlayerProgression = playerProgression;
         ChoiceRepository = choiceRepository;
-        YieldProcessor = yieldProcessor;
+        OutcomeProcessor = yieldProcessor;
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
         _useMemory = configuration.GetValue<bool>("useMemory");
     }
@@ -783,26 +780,15 @@ public class GameManager
 
     public void ApplyActionOutcomes(ActionImplementation action)
     {
-        ProcessYields(action);
-
         UnlockCards();
+
+        OutcomeProcessor.ProcessActionYields(action);
 
         foreach (Outcome cost in action.Costs)
         {
             cost.Apply(gameState);
             MessageSystem.AddOutcome(cost);
         }
-
-        foreach (Outcome reward in action.Rewards)
-        {
-            reward.Apply(gameState);
-            MessageSystem.AddOutcome(reward);
-        }
-    }
-
-    private void ProcessYields(ActionImplementation actionImplementation)
-    {
-        YieldProcessor.ProcessActionYields(actionImplementation, gameState);
     }
 
     private void UnlockCards()
