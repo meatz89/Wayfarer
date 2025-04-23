@@ -132,9 +132,9 @@
 
                 if (spotForAction != null)
                 {
-                    if (spotForAction.ActionIds == null)
+                    if (spotForAction.BaseActionIds == null)
                     {
-                        spotForAction.ActionIds = new List<string>();
+                        spotForAction.BaseActionIds = new List<string>();
                     }
 
                     // Create action template linked to the encounter
@@ -147,7 +147,7 @@
                         ParseActionType(newAction.ActionType).ToString());
 
                     ActionDefinition actionTemplate = _actionRepository.GetAction(newAction.Name);
-                    spotForAction.ActionIds.Add(actionId);
+                    spotForAction.BaseActionIds.Add(actionId);
 
                     Console.WriteLine($"Created new action {newAction.Name} at {newAction.LocationName}/{newAction.SpotName}");
                 }

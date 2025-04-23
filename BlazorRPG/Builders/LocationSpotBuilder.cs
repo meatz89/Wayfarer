@@ -124,7 +124,7 @@
                 Physical = physical ?? Physical.Confined,
                 Illumination = illumination ?? Illumination.Bright,
                 PlayerKnowledge = playerKnowledge,
-                ActionIds = actionIds,
+                BaseActionIds = actionIds,
                 NodeType = nodeType,
                 Quality = qualityTier,
                 DiscoverableAspects = discoverableApects

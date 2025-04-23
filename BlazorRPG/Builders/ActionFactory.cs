@@ -15,7 +15,7 @@
         actionImplementation.Goal = template.Goal;
         actionImplementation.Complication = template.Complication;
         actionImplementation.EncounterType = template.EncounterType;
-        actionImplementation.TimeWindows = template.TimeWindows ?? new();
+        actionImplementation.TimeWindows = template.AvailableWindows ?? new();
         actionImplementation.IsRepeatable = template.IsRepeatable;
         actionImplementation.Difficulty = template.Difficulty;
         actionImplementation.Yields = template.Yields;
@@ -51,7 +51,7 @@
         // Add energy costs
         actionImplementation.Requirements = template.Requirements ?? new();
         actionImplementation.Costs = template.Costs ?? new();
-        actionImplementation.Rewards = template.Rewards ?? new();
+        actionImplementation.Rewards = template.Yields ?? new();
 
 
         actionImplementation.EnergyCost = template.EnergyCost;

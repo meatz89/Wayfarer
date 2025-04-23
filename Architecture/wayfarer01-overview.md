@@ -116,129 +116,17 @@ The encounter tag system provides the actual gameplay mechanics through two type
 
 ### Narrative Tags
 
-Narrative tags activate at specific approach tag thresholds and block specific focus tags from appearing in choices. Each location has 2-3 narrative tags out of 25 possible combinations (5 approaches × 5 focuses).
+Narrative tags shift the requiremenents to make it easier to harder to unlock high level cards with acucmulated focus tag value. Each location has 2-3 narrative tags out of 25 possible combinations (5 approaches × 5 focuses).
 
-**Activation**: When an approach tag reaches the specified threshold (typically 3+ or 4+)  
-**Effect**: Blocks choices with a specific focus from appearing in the player's hand  
-**Deactivation**: If the approach value drops below the threshold  
+Example would be that high level Analysis choices require less built up Analysis tag value to play in Locations with the Quiet property
 
-**Complete List of Narrative Tags:**
-
-#### Dominance-Based Narrative Tags
-
-1. **"Intimidating Presence"** (Dominance → Blocks Relationship)
-   - **Activation**: Dominance 3+
-   - **Description**: Your forceful demeanor causes others to keep their distance, making it impossible to form genuine connections. Others respond with caution rather than openness.
-
-2. **"Battle Rage"** (Dominance → Blocks Information)
-   - **Activation**: Dominance 3+
-   - **Description**: Your aggressive focus narrows your attention to immediate threats, making it difficult to process complex information or notice subtle details.
-
-3. **"Brute Force Fixation"** (Dominance → Blocks Physical)
-   - **Activation**: Dominance 4+
-   - **Description**: Your reliance on overwhelming force makes precise physical manipulation impossible. You're too focused on power to execute delicate physical tasks.
-
-4. **"Tunnel Vision"** (Dominance → Blocks Environment)
-   - **Activation**: Dominance 3+
-   - **Description**: Your dominant approach narrows your focus to immediate targets, blinding you to environmental factors and surroundings.
-
-5. **"Destructive Impulse"** (Dominance → Blocks Resource)
-   - **Activation**: Dominance 3+
-   - **Description**: Your forceful approach threatens to damage or waste valuable resources. Others are reluctant to let you handle or negotiate for important items.
-
-#### Rapport-Based Narrative Tags
-
-6. **"Superficial Charm"** (Rapport → Blocks Relationship)
-   - **Activation**: Rapport 4+
-   - **Description**: Your social approach has become too polished and shallow, preventing the formation of deeper, meaningful connections. You're all charm, no substance.
-
-7. **"Social Distraction"** (Rapport → Blocks Information)
-   - **Activation**: Rapport 3+
-   - **Description**: Your focus on pleasantries and social niceties distracts from gathering practical information. The conversation remains enjoyable but unproductive.
-
-8. **"Hesitant Politeness"** (Rapport → Blocks Physical)
-   - **Activation**: Rapport 3+
-   - **Description**: Your concern with social propriety makes you reluctant to take direct physical action, especially anything that might appear ungraceful or impolite.
-
-9. **"Public Awareness"** (Rapport → Blocks Environment)
-   - **Activation**: Rapport 3+
-   - **Description**: Your focus on maintaining social connections makes you overlook your surroundings. The people have your complete attention, not the place.
-
-10. **"Generous Spirit"** (Rapport → Blocks Resource)
-    - **Activation**: Rapport 4+
-    - **Description**: Your sociable approach makes material concerns seem petty. You're reluctant to focus on resources when relationships are at stake.
-
-#### Analysis-Based Narrative Tags
-
-11. **"Cold Calculation"** (Analysis → Blocks Relationship)
-    - **Activation**: Analysis 3+
-    - **Description**: Your analytical approach makes emotional connections difficult. Others perceive you as cold and calculating rather than warm and approachable.
-
-12. **"Analysis Paralysis"** (Analysis → Blocks Information)
-    - **Activation**: Analysis 4+
-    - **Description**: You're overthinking everything, making it impossible to process new information clearly. You're lost in your own thoughts.
-
-13. **"Overthinking"** (Analysis → Blocks Physical)
-    - **Activation**: Analysis 3+
-    - **Description**: Your analytical focus prevents instinctive physical action. You're too busy calculating trajectories and outcomes to act decisively.
-
-14. **"Detail Fixation"** (Analysis → Blocks Environment)
-    - **Activation**: Analysis 3+
-    - **Description**: Your intense focus on specific analytical details blinds you to the broader environment and context.
-
-15. **"Theoretical Mindset"** (Analysis → Blocks Resource)
-    - **Activation**: Analysis 4+
-    - **Description**: You're lost in abstract theory, ignoring practical resource concerns. The theoretical solution interests you more than material practicalities.
-
-#### Precision-Based Narrative Tags
-
-16. **"Mechanical Interaction"** (Precision → Blocks Relationship)
-    - **Activation**: Precision 3+
-    - **Description**: Your precise, technical approach comes across as mechanical and inhuman. Others feel like they're talking to an automaton rather than a person.
-
-17. **"Narrow Focus"** (Precision → Blocks Information)
-    - **Activation**: Precision 3+
-    - **Description**: Your precision makes you focus too narrowly, missing broader informational patterns and contexts that would be valuable.
-
-18. **"Perfectionist Paralysis"** (Precision → Blocks Physical)
-    - **Activation**: Precision 4+
-    - **Description**: Your obsession with perfect execution prevents fluid physical movement. You're so concerned with getting it exactly right that you can't act naturally.
-
-19. **"Detail Obsession"** (Precision → Blocks Environment)
-    - **Activation**: Precision 3+
-    - **Description**: Your precise focus on specific details blinds you to the wider environment. You can't see the forest for the trees.
-
-20. **"Inefficient Perfectionism"** (Precision → Blocks Resource)
-    - **Activation**: Precision 4+
-    - **Description**: Your precise approach wastes resources in pursuit of perfect outcomes. You're unwilling to settle for "good enough" when resources are concerned.
-
-#### Evasion-Based Narrative Tags
-
-21. **"Shadow Veil"** (Evasion → Blocks Relationship)
-    - **Activation**: Evasion 3+
-    - **Description**: Your hidden approach prevents genuine relationship building. You're too guarded to form meaningful connections with others.
-
-22. **"Paranoid Mindset"** (Evasion → Blocks Information)
-    - **Activation**: Evasion 3+
-    - **Description**: Your secretive approach makes you question all information you receive. You can't process new data when you're constantly looking for traps and lies.
-
-23. **"Cautious Restraint"** (Evasion → Blocks Physical)
-    - **Activation**: Evasion 3+
-    - **Description**: Your hidden approach prevents direct physical action. You're too concerned with maintaining cover to act decisively.
-
-24. **"Hiding Place Fixation"** (Evasion → Blocks Environment)
-    - **Activation**: Evasion 4+
-    - **Description**: Your focus on remaining concealed limits your environmental awareness. You only see the environment in terms of places to hide.
-
-25. **"Hoarding Instinct"** (Evasion → Blocks Resource)
-    - **Activation**: Evasion 3+
-    - **Description**: Your secretive approach makes you hide rather than use resources effectively. You'd rather keep resources hidden than risk revealing yourself by using them.
+**Focus Tag**: Targets choices with this specific Focus Tag
+**Effect**: Number of cost or discount for high level choices with a specific focus tag
 
 ### Strategic Tags
 
 Strategic tags are always active and define how approach tag values affect momentum and pressure. Each location defines 4 strategic tags (one per approach), with the fifth approach remaining neutral.
 
-**Activation**: Always active  
 **Effect**: Modifies momentum or pressure based on approach tag values  
 **Scaling**: Effects typically scale at a rate of 1 effect point per 2 approach points  
 
@@ -248,123 +136,11 @@ The four strategic tag types are:
 3. **Momentum Decrease**: One approach that decreases momentum (detrimental)
 4. **Pressure Increase**: One approach that increases pressure (detrimental)
 
-**Complete List of Strategic Tags:**
-
-#### Dominance-Based Strategic Tags
-
-1. **"Overwhelming Force"** (Dominance → Increases Momentum)
-   - **Effect**: Adds momentum proportional to Dominance value
-   - **Scaling**: +1 momentum per 2 points in Dominance
-   - **Description**: Your forceful approach intimidates opponents and clears obstacles, creating opportunities for progress.
-
-2. **"Commanding Presence"** (Dominance → Decreases Pressure)
-   - **Effect**: Reduces pressure proportional to Dominance value
-   - **Scaling**: -1 pressure per 2 points in Dominance
-   - **Description**: Your authoritative demeanor keeps threats at bay, reducing complications and risks.
-
-3. **"Brute Force Backfire"** (Dominance → Decreases Momentum)
-   - **Effect**: Reduces momentum proportional to Dominance value
-   - **Scaling**: -1 momentum per 2 points in Dominance
-   - **Description**: Your forceful approach alienates others or damages delicate objects, hindering progress.
-
-4. **"Escalating Tension"** (Dominance → Increases Pressure)
-   - **Effect**: Adds pressure proportional to Dominance value
-   - **Scaling**: +1 pressure per 2 points in Dominance
-   - **Description**: Your aggressive approach heightens tensions and creates additional complications.
-
-#### Rapport-Based Strategic Tags
-
-5. **"Social Currency"** (Rapport → Increases Momentum)
-   - **Effect**: Adds momentum proportional to Rapport value
-   - **Scaling**: +1 momentum per 2 points in Rapport
-   - **Description**: Your charming approach opens doors and creates opportunities. People naturally want to help you succeed.
-
-6. **"Calming Influence"** (Rapport → Decreases Pressure)
-   - **Effect**: Reduces pressure proportional to Rapport value
-   - **Scaling**: -1 pressure per 2 points in Rapport
-   - **Description**: Your amiable approach defuses tensions and prevents complications from escalating.
-
-7. **"Social Distraction"** (Rapport → Decreases Momentum)
-   - **Effect**: Reduces momentum proportional to Rapport value
-   - **Scaling**: -1 momentum per 2 points in Rapport
-   - **Description**: Your focus on social niceties wastes valuable time. Pleasant conversation replaces meaningful progress.
-
-8. **"Social Awkwardness"** (Rapport → Increases Pressure)
-   - **Effect**: Adds pressure proportional to Rapport value
-   - **Scaling**: +1 pressure per 2 points in Rapport
-   - **Description**: Your attempts at charm come across as inappropriate or suspicious in this context.
-
-#### Analysis-Based Strategic Tags
-
-9. **"Insightful Approach"** (Analysis → Increases Momentum)
-   - **Effect**: Adds momentum proportional to Analysis value
-   - **Scaling**: +1 momentum per 2 points in Analysis
-   - **Description**: Your analytical approach reveals optimal solutions and efficient paths forward.
-
-10. **"Calculated Response"** (Analysis → Decreases Pressure)
-    - **Effect**: Reduces pressure proportional to Analysis value
-    - **Scaling**: -1 pressure per 2 points in Analysis
-    - **Description**: Your thoughtful approach anticipates and prevents complications before they arise.
-
-11. **"Overthinking"** (Analysis → Decreases Momentum)
-    - **Effect**: Reduces momentum proportional to Analysis value
-    - **Scaling**: -1 momentum per 2 points in Analysis
-    - **Description**: Your analytical approach leads to paralysis by analysis. You're caught up in examining possibilities.
-
-12. **"Analytical Anxiety"** (Analysis → Increases Pressure)
-    - **Effect**: Adds pressure proportional to Analysis value
-    - **Scaling**: +1 pressure per 2 points in Analysis
-    - **Description**: Your overanalysis reveals all possible failure points, increasing your stress and pressure.
-
-#### Precision-Based Strategic Tags
-
-13. **"Masterful Execution"** (Precision → Increases Momentum)
-    - **Effect**: Adds momentum proportional to Precision value
-    - **Scaling**: +1 momentum per 2 points in Precision
-    - **Description**: Your precise approach eliminates wasted effort and maximizes effectiveness.
-
-14. **"Careful Positioning"** (Precision → Decreases Pressure)
-    - **Effect**: Reduces pressure proportional to Precision value
-    - **Scaling**: -1 pressure per 2 points in Precision
-    - **Description**: Your precise movements and careful approach reduce the risk of errors and complications.
-
-15. **"Rigid Methodology"** (Precision → Decreases Momentum)
-    - **Effect**: Reduces momentum proportional to Precision value
-    - **Scaling**: -1 momentum per 2 points in Precision
-    - **Description**: Your precise approach is too methodical for this situation. The need for exactness slows your progress.
-
-16. **"Perfectionist Pressure"** (Precision → Increases Pressure)
-    - **Effect**: Adds pressure proportional to Precision value
-    - **Scaling**: +1 pressure per 2 points in Precision
-    - **Description**: Your precise approach creates additional pressure as you strive for perfection in a situation that doesn't require it.
-
-#### Evasion-Based Strategic Tags
-
-17. **"Tactical Advantage"** (Evasion → Increases Momentum)
-    - **Effect**: Adds momentum proportional to Evasion value
-    - **Scaling**: +1 momentum per 2 points in Evasion
-    - **Description**: Your hidden approach provides the element of surprise, creating opportunities for progress.
-
-18. **"Invisible Presence"** (Evasion → Decreases Pressure)
-    - **Effect**: Reduces pressure proportional to Evasion value
-    - **Scaling**: -1 pressure per 2 points in Evasion
-    - **Description**: Your stealthy approach prevents complications from arising. By avoiding detection, you sidestep many potential problems.
-
-19. **"Overcautious Approach"** (Evasion → Decreases Momentum)
-    - **Effect**: Reduces momentum proportional to Evasion value
-    - **Scaling**: -1 momentum per 2 points in Evasion
-    - **Description**: Your hidden approach is unnecessarily cautious for this situation. You waste time hiding when direct action would be more effective.
-
-20. **"Suspicious Behavior"** (Evasion → Increases Pressure)
-    - **Effect**: Adds pressure proportional to Evasion value
-    - **Scaling**: +1 pressure per 2 points in Evasion
-    - **Description**: Your secretive approach raises suspicions and creates complications. The more you try to hide, the more attention you draw to yourself.
-
 ### Design Rationale
 
 The encounter tag system creates several important gameplay dynamics:
 
-1. **Evolving Challenges**: As players build approach tags, narrative tags activate that block certain focuses, creating evolving constraints that force adaptation
+1. **Evolving Challenges**: As players build approach tags, narrative tags activate, creating evolving constraints that force adaptation
 2. **Location Personality**: Each location's unique combination of strategic tags creates a distinct strategic landscape, making different approaches naturally more effective
 3. **Meaningful Specialization**: Character builds naturally excel in situations that favor their approaches, while still having options in less ideal environments
 4. **Visible Consequences**: Narrative tags provide visible, logical consequences for extreme specialization
@@ -377,26 +153,11 @@ Choices are the primary way players interact with the game world. Each choice re
 ### Choice Structure
 
 Each choice consists of:
-- **Primary Approach**: Main approach tag increased by 1-2
-- **Secondary Approach**: Optional second approach tag modified by ±1-2
+- **Approach**: Main approach tag increased by 1-2
 - **Focus**: One focus tag increased by 1
 - **Effect Type**: Momentum increase or pressure decrease
-- **Base Effect**: Standard values (+2 momentum or -1 pressure)
+- **Base Effect**: Standard values (i.e. +2 momentum or -1 pressure)
 - **Narrative Description**: Context-sensitive description of the action
-
-### Core Choice Types
-
-In the basic version, each approach has two primary choice types:
-
-#### Offensive Choices (Momentum Building)
-- Base effect: +2 momentum
-- Primary approach increase: +2
-- Focus tag increase: +1 to chosen focus
-
-#### Defensive Choices (Pressure Management)
-- Base effect: -1 pressure
-- Primary approach increase: +1
-- Focus tag increase: +1 to chosen focus
 
 ### Sample Choices
 
@@ -496,48 +257,7 @@ The choice generation algorithm deterministically selects which 4 choices appear
 
 ### Step 1: Calculate Choice Scores
 
-For **every possible choice** in the database, calculate its score using the following formula:
-
-```
-Choice Score = Strategic Alignment Score + Character Proficiency Score + 
-               Situational Score + Focus Relevance Score + Narrative Tag Modifier
-```
-
-Where:
-
-**1. Strategic Alignment Score**
-- If choice's primary approach increases momentum in location: Score = 6
-- If choice's primary approach decreases pressure in location: Score = 5
-- If choice's primary approach is neutral in location: Score = 3
-- If choice's primary approach decreases momentum in location: Score = 1
-- If choice's primary approach increases pressure in location: Score = 1
-
-**2. Character Proficiency Score**
-- Score = Character's value in choice's primary approach × 2
-- Maximum value: 8
-
-**3. Situational Score**
-- If (current pressure ≥ max pressure × 0.6) AND choice reduces pressure: Score = 3
-- If (current momentum ≤ success threshold × 0.4) AND choice builds momentum: Score = 3
-- Otherwise: Score = 2
-
-**4. Focus Relevance Score**
-- For Physical encounters:
-  - If choice has Physical focus: Score = 3
-  - If choice has Environment focus: Score = 2
-  - Otherwise: Score = 1
-- For Social encounters:
-  - If choice has Relationship focus: Score = 3
-  - If choice has Information focus: Score = 2
-  - Otherwise: Score = 1
-- For Intellectual encounters:
-  - If choice has Information focus: Score = 3
-  - If choice has Relationship focus: Score = 2
-  - Otherwise: Score = 1
-
-**5. Narrative Tag Modifier**
-- If choice's focus is blocked by any active narrative tag: Score = -15
-- Otherwise: Score = 0
+For **every possible choice** in the database, calculate its score using a formula based on the distance of the approach and focus tag values to the card's unique optimal approach and focus value combination.
 
 ### Step 2: Categorize All Choices
 
@@ -653,7 +373,7 @@ The choice generation algorithm is designed to achieve several important goals:
 
 Locations define the strategic and narrative context for encounters. Each location has a distinct personality expressed through its tag combinations.
 
-### Location Definition Components
+### Encounter Definition Components
 
 - **Location Name and Type**: Thematic identity and physical characteristics
 - **Encounter Type**: Social, Intellectual, or Physical (for narrative presentation)
@@ -663,48 +383,6 @@ Locations define the strategic and narrative context for encounters. Each locati
 - **Difficulty Level**: Determines automatic pressure increase per turn
 - **Duration**: How many turns the encounter lasts
 - **Resource Type**: Which secondary resource is affected by pressure (Health, Confidence, or Concentration)
-
-### Strategic Tag Implementation
-
-Each location defines strategic tags for 4 out of 5 approaches:
-1. **Momentum Increase** (beneficial): One approach that increases momentum
-2. **Pressure Decrease** (beneficial): One approach that decreases pressure
-3. **Momentum Decrease** (detrimental): One approach that decreases momentum
-4. **Pressure Increase** (detrimental): One approach that increases pressure
-
-The fifth approach has no strategic tag effects (neutral).
-
-### Narrative Tag Implementation
-
-- Each location defines 2-3 narrative tags
-- Each tag activates at a specific approach threshold
-- When active, each tag blocks one focus type from appearing in choices
-- Tags deactivate if approach value drops below threshold
-
-### Sample Location: Ancient Library (Intellectual Encounter)
-
-```
-Location: Ancient Library
-
-Core Properties:
-- Encounter Type: Intellectual
-- Difficulty: 2 (adds +2 pressure per turn)
-- Duration: 6 turns
-- Resource Type: Concentration
-- Momentum Thresholds: 0-11 (Failure), 12-15 (Partial), 16-19 (Standard), 20+ (Exceptional)
-
-Strategic Tags:
-- "Insightful Approach" (Analysis → Increases Momentum): +1 momentum per 2 points in Analysis
-- "Careful Positioning" (Precision → Decreases Pressure): -1 pressure per 2 points in Precision
-- "Escalating Tension" (Dominance → Increases Pressure): +1 pressure per 2 points in Dominance
-- "Social Distraction" (Rapport → Decreases Momentum): -1 momentum per 2 points in Rapport
-- Evasion: Neutral (no strategic effect)
-
-Narrative Tags:
-- "Detail Fixation" (Analysis 3+): Blocks Environment focus choices
-- "Theoretical Mindset" (Analysis 4+): Blocks Resource focus choices
-- "Paranoid Mindset" (Evasion 3+): Blocks Information focus choices
-```
 
 ### Design Rationale
 
@@ -740,87 +418,6 @@ All choices and outcomes presented as physical movements and environmental inter
 
 The narrative system uses three distinct prompts to generate appropriate text.
 
-#### 1. Encounter Setup Prompt
-
-This prompt generates the initial narrative that sets the scene at the beginning of an encounter.
-
-```
-Create an immersive introductory scene for a [ENCOUNTER_TYPE] encounter in a [LOCATION_NAME]. The character is a [CHARACTER_ARCHETYPE] with [APPROACH_STATS] seeking to [CHARACTER_GOAL].
-
-The location contains [ENVIRONMENT_DETAILS] and key NPCs include [NPC_LIST]. The character faces [TIME_CONSTRAINTS] and [ADDITIONAL_CHALLENGES].
-
-Write 2-3 paragraphs that:
-1. Describe the physical environment using multiple senses
-2. Establish the presence and initial attitude of key NPCs
-3. Hint at the central challenge/objective
-4. Create a sense of atmosphere appropriate to the encounter type
-5. End with a situation that requires the character to make a choice
-
-The tone should match a [ENCOUNTER_TYPE] encounter - [for Social: conversational and interpersonal; for Intellectual: analytical and observational; for Physical: action-oriented and environmental].
-```
-
-#### 2. Choice Description Prompt
-
-This prompt transforms mechanical choices into narratively appropriate descriptions for player selection.
-
-```
-Transform the following 4 mechanical choices into narrative descriptions for a [ENCOUNTER_TYPE] encounter in a [LOCATION_TYPE]. The character is currently [CURRENT_SITUATION] with the objective to [CHARACTER_GOAL].
-
-Current state: Momentum [M], Pressure [P]
-Approach values: Analysis [A], Precision [P], Rapport [R], Dominance [D], Evasion [C]
-Active narrative tags: [LIST_TAGS]
-Key NPCs present: [NPC_LIST]
-
-For each choice, write a 1-2 sentence description that:
-1. Reflects the mechanical approach and focus (how and what)
-2. Is appropriate for the encounter type (Social/Intellectual/Physical)
-3. Relates to the current situation and goal
-4. Shows how the character would execute this choice in this specific context
-5. For blocked choices (by narrative tags), still create a description but indicate why it might be difficult
-
-CHOICES:
-1. [CHOICE_1_NAME] ([CHOICE_1_APPROACH] + [CHOICE_1_FOCUS], [EFFECT_TYPE])
-2. [CHOICE_2_NAME] ([CHOICE_2_APPROACH] + [CHOICE_2_FOCUS], [EFFECT_TYPE])
-3. [CHOICE_3_NAME] ([CHOICE_3_APPROACH] + [CHOICE_3_FOCUS], [EFFECT_TYPE])
-4. [CHOICE_4_NAME] ([CHOICE_4_APPROACH] + [CHOICE_4_FOCUS], [EFFECT_TYPE])
-
-Format each as a numbered list with the choice name as a heading and the description below.
-```
-
-#### 3. Turn Resolution Prompt
-
-This prompt generates the outcome of the player's choice and introduces the new situation/challenge for the next turn.
-
-```
-Generate a narrative outcome for a character in a [ENCOUNTER_TYPE] encounter who chose [SELECTED_CHOICE] ([APPROACH] + [FOCUS], [EFFECT_TYPE]). The encounter takes place in [LOCATION] with the objective to [CHARACTER_GOAL].
-
-Previous state: Momentum [M_OLD], Pressure [P_OLD]
-New state: Momentum [M_NEW], Pressure [P_NEW]
-Approach changes: [APPROACH_CHANGES]
-Focus changes: [FOCUS_CHANGES]
-Narrative tags activated: [NEW_NARRATIVE_TAGS]
-Strategic effects triggered: [STRATEGIC_EFFECTS]
-Turn: [CURRENT_TURN] of [MAX_TURNS]
-
-Write a response in two parts:
-1. OUTCOME (2-3 paragraphs):
-   - Describe the immediate result of the chosen action
-   - Show how approach/focus tags increase narratively
-   - Illustrate strategic tag effects (momentum/pressure changes)
-   - If narrative tags activated, describe their effects subtly
-   - Include NPC reactions if applicable
-   - Indicate progress toward the overall goal
-
-2. NEW SITUATION (1 paragraph):
-   - Present a new challenge or development for the next turn
-   - Update NPC status/positions if applicable
-   - Reference the character's current progress
-   - Provide context for the next set of choices
-   - If turn count is high, increase sense of urgency
-
-Maintain the tone appropriate for a [ENCOUNTER_TYPE] encounter. If narrative tags are now blocking certain focuses, subtly hint at this limitation in the character's perspective.
-```
-
 ### Design Rationale
 
 The narrative system serves several important purposes:
@@ -835,31 +432,31 @@ The narrative system serves several important purposes:
 
 Character archetypes serve as starting points for players, each specializing in one approach and having a basic set of choices.
 
-### Warrior (Dominance)
+### Knight (Dominance)
 - **Offensive Choice**: "Display of Force" (+2 momentum, +2 Dominance, +1 chosen focus)
 - **Defensive Choice**: "Stand Ground" (-1 pressure, +1 Dominance, +1 chosen focus)
 - Naturally excels in combat encounters
 - Struggles in intellectual and diplomatic encounters
 
-### Bard (Rapport)
+### Courtier (Rapport)
 - **Offensive Choice**: "Charming Words" (+2 momentum, +2 Rapport, +1 chosen focus)
 - **Defensive Choice**: "Smooth Over" (-1 pressure, +1 Rapport, +1 chosen focus)
 - Naturally excels in social and negotiation encounters
 - Struggles in combat and stealthy encounters
 
-### Scholar (Analysis)
+### Sage (Analysis)
 - **Offensive Choice**: "Analytical Insight" (+2 momentum, +2 Analysis, +1 chosen focus)
 - **Defensive Choice**: "Careful Consideration" (-1 pressure, +1 Analysis, +1 chosen focus)
 - Naturally excels in intellectual and investigation encounters
 - Struggles in fast-paced combat encounters
 
-### Ranger (Precision)
+### Forester (Precision)
 - **Offensive Choice**: "Precise Strike" (+2 momentum, +2 Precision, +1 chosen focus)
 - **Defensive Choice**: "Measured Response" (-1 pressure, +1 Precision, +1 chosen focus)
 - Naturally excels in exploration and hunting encounters
 - Balances well across most encounter types
 
-### Thief (Evasion)
+### Shadow (Evasion)
 - **Offensive Choice**: "Hidden Advantage" (+2 momentum, +2 Evasion, +1 chosen focus)
 - **Defensive Choice**: "Fade Away" (-1 pressure, +1 Evasion, +1 chosen focus)
 - Naturally excels in stealth and theft encounters
