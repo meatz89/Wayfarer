@@ -126,7 +126,7 @@
 
     // Game time
     public int CurrentTimeInHours { get; set; }
-    public int CurrentTimeMinutes { get; set; } 
+    public int CurrentTimeMinutes { get; set; }
     public TimeWindows WorldTime { get; set; }
 
 

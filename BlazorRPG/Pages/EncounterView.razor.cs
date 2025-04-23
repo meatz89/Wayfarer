@@ -61,7 +61,7 @@ public partial class EncounterViewBase : ComponentBase
 
         if (_tooltipModule != null)
         {
-            var position = await _tooltipModule.InvokeAsync<TooltipPosition>(
+            TooltipPosition position = await _tooltipModule.InvokeAsync<TooltipPosition>(
                 "getTooltipPositionRelativeToElement", $"{elementId}");
 
             tooltipX = position.TooltipX;

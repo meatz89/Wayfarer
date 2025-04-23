@@ -1,42 +1,50 @@
-﻿public class ActionRepository
+﻿/// <summary>
+/// Repository for action definitions, backed by the ContentRegistry.
+/// </summary>
+public class ActionRepository
 {
-    private List<ActionDefinition> _actionTemplates = new List<ActionDefinition>();
+    private readonly ContentRegistry _contentRegistry;
 
-    public ActionRepository()
+    public ActionRepository(ContentRegistry contentRegistry)
     {
-        List<ActionDefinition> actions = WorldActionContent.GetAllTemplates();
-        foreach (ActionDefinition actionTemplate in actions)
-        {
-            _actionTemplates.Add(actionTemplate);
-        }
+        _contentRegistry = contentRegistry;
     }
+
     public ActionDefinition GetAction(string actionId)
     {
-        ActionDefinition? existingTemplate = _actionTemplates.FirstOrDefault(x => x.Id == actionId);
-        return existingTemplate;
+        if (_contentRegistry.TryResolve<ActionDefinition>(actionId, out ActionDefinition? action))
+            return action;
+
+        Console.WriteLine($"Action '{actionId}' not found in contentRegistry.");
+
+        ActionDefinition actionDefinition = GetDefaultActionDefinition(actionId, "DefaultLocation", "DefaultLocationSpot");
+        return actionDefinition;
     }
 
-    public string AddActionTemplate(ActionDefinition spotAction)
+    public void RegisterAction(ActionDefinition action)
     {
-        _actionTemplates.Add(spotAction);
-        return spotAction.Id;
+        if (!_contentRegistry.Register<ActionDefinition>(action.Id, action))
+            throw new InvalidOperationException($"Duplicate action ID '{action.Id}'.");
     }
 
-
-    public EncounterTemplate GetEncounterForAction(ActionDefinition actionTemplate)
+    private ActionDefinition GetDefaultActionDefinition(
+        string actionName,
+        string locationSpotName,
+        string locationName)
     {
-        ActionGenerationContext context = new ActionGenerationContext
+        ActionDefinition actionDefinition = new()
         {
-            ActionId = actionTemplate.Id,
-            Goal = actionTemplate.Goal,
-            Complication = actionTemplate.Complication,
-            BasicActionType = actionTemplate.EncounterType.ToString(),
-            SpotName = actionTemplate.LocationSpotName,
-            LocationName = actionTemplate.LocationName,
+            Id = actionName,
+            Difficulty = 1,
+            Goal = "Goal",
+            Complication = "Complication",
+            Description = "Description",
+            EncounterChance = 50,
+            IsRepeatable = true,
+            EncounterType = EncounterTypes.Exploration,
+            LocationName = locationName,
+            LocationSpotName = locationSpotName
         };
-
-        EncounterTemplate encounterTemplate = WorldEncounterContent.GetDefaultTemplate();
-
-        return encounterTemplate;
+        return actionDefinition;
     }
 }

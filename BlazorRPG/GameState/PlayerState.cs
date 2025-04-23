@@ -354,4 +354,9 @@
     {
         throw new NotImplementedException();
     }
+
+    internal void UpdateRelationship(object characterId, object delta)
+    {
+        throw new NotImplementedException();
+    }
 }

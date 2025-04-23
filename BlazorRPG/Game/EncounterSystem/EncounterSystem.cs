@@ -18,7 +18,6 @@
     public EncounterSystem(
         GameState gameState,
         MessageSystem messageSystem,
-        GameContentProvider contentProvider,
         ResourceManager resourceManager,
         NarrativeContextManager narrativeContextManager,
         NarrativeService narrativeService,
@@ -233,5 +232,5 @@
     {
         return gameState.ActionStateTracker.UserEncounterChoiceOptions;
     }
-    
+
 }

@@ -29,7 +29,7 @@
     [Parameter] public List<Location> Locations { get; set; }
     [Parameter] public EventCallback<string> OnTravel { get; set; }
 
-    private IEnumerable<Location> GetTravelableLocations()
+    private List<Location> GetTravelableLocations()
     {
         List<Location> enumerable = Locations.Where(loc =>
             loc.Name != CurrentLocation.Name &&
