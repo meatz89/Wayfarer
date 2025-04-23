@@ -163,7 +163,8 @@ public class GameManager
         MessageSystem.AddSystemMessage($"Gained {skillXp} {skill} skill experience");
 
         await HandlePlayerMoving(actionImplementation);
-        UpdateTime(actionImplementation.TimeCostHours);
+
+        UpdateTime();
         await UpdateState();
     }
 
@@ -224,14 +225,8 @@ public class GameManager
         }
     }
 
-    private void UpdateTime(int timeCostHours)
+    private void UpdateTime()
     {
-        int hours = timeCostHours;
-        for (int i = 0; i < hours; i++)
-        {
-            gameState.TimeManager.AdvanceTime(1);
-        }
-
         Location currentLocation = worldState.CurrentLocation;
         currentLocation.OnTimeChanged(worldState.WorldTime);
 
@@ -688,15 +683,12 @@ public class GameManager
         const int hoursPerTimeWindow = 6;
         int timeWindow = (gameState.WorldState.CurrentTimeInHours / hoursPerTimeWindow) % timeWindowsPerDay;
 
-        gameState.WorldState.DetermineCurrentTimeWindow(timeWindow);
-
         if (daySkip)
         {
         }
 
         return true;
     }
-
 
     public string GetTimeOfDay(int totalMinutes)
     {
@@ -819,4 +811,15 @@ public class GameManager
         return true;
     }
 
+    internal ActionDefinition GetWaitAction()
+    {
+        ActionDefinition waitAction = new ActionDefinition("Wait", "Wait", 0, 0, EncounterTypes.None, true)
+        {
+            Costs = new List<Outcome>()
+            {
+                new TimeOutcome(1)
+            }
+        };
+        return waitAction;
+    }
 }

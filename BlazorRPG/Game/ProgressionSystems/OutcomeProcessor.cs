@@ -1,4 +1,5 @@
-﻿public class OutcomeProcessor
+﻿
+public class OutcomeProcessor
 {
     public GameState GameState { get; }
     public PlayerProgression PlayerProgression { get; }
@@ -136,6 +137,22 @@
         }
 
         return (int)(baseDepletion * skillFactor);
+    }
+
+    public static bool GetOfType<T>(List<Outcome> costs, out T outCost)
+    {
+        T? t = default;
+        outCost = t;
+
+        foreach (var cost in costs)
+        {
+            if (cost is T costT)
+            {
+                outCost = (T)costT;
+                return true;
+            }
+        }
+        return false;
     }
 
     //private void ApplyOutcome(YieldTypes type, string targetId, int amount, GameState gameState, Location location, LocationSpot spot)

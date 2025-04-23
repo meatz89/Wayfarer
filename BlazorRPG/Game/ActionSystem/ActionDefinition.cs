@@ -19,12 +19,6 @@
     public string Goal { get; set; }
     public string Complication { get; set; }
     public EncounterTypes EncounterType { get; set; }
-    public int TimeCost { get; internal set; }
-    public int EnergyCost { get; internal set; }
-
-    public ActionDefinition()
-    {
-    }
 
     public ActionDefinition(string actionId, string name, int difficulty, int encounterChance, EncounterTypes encounterType, bool isRepeatable)
     {

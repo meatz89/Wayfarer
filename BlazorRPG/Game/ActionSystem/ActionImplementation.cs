@@ -1,4 +1,5 @@
-﻿public record ActionImplementation
+﻿
+public record ActionImplementation
 {
     public string Id { get; set; }
     public string Description { get; set; }
@@ -22,24 +23,30 @@
     public int EncounterChance { get; set; }
 
     public string CompletionId { get; set; }
-    public int TimeCostHours { get; set; } = 1;
-
-    public int EnergyCost { get; internal set; }
-    public int TimeCost { get; internal set; }
     public EncounterTypes EncounterType { get; internal set; }
 
-    public void ApplyTimeCost(GameState gameState)
+    public int GetTimeCost()
     {
-        // Currently just delegates to the existing method
-        gameState.WorldState.CurrentTimeInHours =
-            (gameState.WorldState.CurrentTimeInHours + TimeCostHours) % 24;
+        TimeOutcome timeCost;
+        var hasTimeCost = OutcomeProcessor.GetOfType<TimeOutcome>(Costs, out timeCost);
 
-        // Update time window
-        const int timeWindowsPerDay = 4;
-        const int hoursPerTimeWindow = 6;
-        int timeWindow = (gameState.WorldState.CurrentTimeInHours / hoursPerTimeWindow) % timeWindowsPerDay;
+        if (hasTimeCost)
+        {
+            return timeCost.hours;
+        }
+        return 0;
+    }
 
-        gameState.WorldState.DetermineCurrentTimeWindow(timeWindow);
+    public int GetEnergyCost()
+    {
+        EnergyOutcome energyCost;
+        var hasEnergyCost = OutcomeProcessor.GetOfType<EnergyOutcome>(Costs, out energyCost);
+
+        if (hasEnergyCost)
+        {
+            return energyCost.Amount;
+        }
+        return 0;
     }
 
     public bool IsCompleted(WorldState worldState)

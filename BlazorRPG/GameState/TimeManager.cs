@@ -1,4 +1,6 @@
-﻿public class TimeManager
+﻿
+
+public class TimeManager
 {
     private readonly WorldState worldState;
 
@@ -87,5 +89,4 @@
     {
         // Future implementation: Handle day change effects
     }
-
 }

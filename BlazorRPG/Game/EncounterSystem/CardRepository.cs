@@ -81,7 +81,7 @@ public class CardRepository
                 TagModification.IncreaseFocus(FocusTags.Relationship)
             },
             new EnvironmentalPropertyEffect(new() { Population.Crowded }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
-            new List<SkillRequirement> { new SkillRequirement { SkillType = SkillTypes.Warfare, RequiredLevel = 1 } }
+            new List<SkillRequirement> { new SkillRequirement(SkillTypes.Warfare, 1) }
         ));
 
         // COURTIER CARDS (Rapport)
@@ -136,7 +136,7 @@ public class CardRepository
                 TagModification.IncreaseFocus(FocusTags.Resource)
             },
             new EnvironmentalPropertyEffect(new() { Atmosphere.Tense }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
-            new List<SkillRequirement> { new SkillRequirement { SkillType = SkillTypes.Diplomacy, RequiredLevel = 1 } }
+            new List<SkillRequirement> { new SkillRequirement (SkillTypes.Diplomacy, 1) }
         ));
 
         // SAGE CARDS (Analysis)
@@ -191,7 +191,7 @@ public class CardRepository
                 TagModification.IncreaseFocus(FocusTags.Physical)
             },
             new EnvironmentalPropertyEffect(new() { Physical.Hazardous }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
-            new List<SkillRequirement> { new SkillRequirement { SkillType = SkillTypes.Scholarship, RequiredLevel = 1 } }
+            new List<SkillRequirement> { new SkillRequirement (SkillTypes.Scholarship, 1) }
         ));
 
         // FORESTER CARDS (Precision)
@@ -263,7 +263,7 @@ public class CardRepository
                 TagModification.IncreaseFocus(FocusTags.Environment)
             },
             new EnvironmentalPropertyEffect(new() { Physical.Expansive }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
-            new List<SkillRequirement> { new SkillRequirement { SkillType = SkillTypes.Wilderness, RequiredLevel = 1 } }
+            new List<SkillRequirement> { new SkillRequirement (SkillTypes.Wilderness, 1) }
         ));
 
         // SHADOW CARDS (Concealment)
@@ -335,7 +335,7 @@ public class CardRepository
                 TagModification.IncreaseFocus(FocusTags.Information)
             },
             new EnvironmentalPropertyEffect(new() { Population.Scholarly }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Concealment),
-            new List<SkillRequirement> { new SkillRequirement { SkillType = SkillTypes.Subterfuge, RequiredLevel = 1 } }
+            new List<SkillRequirement> { new SkillRequirement (SkillTypes.Subterfuge, 1) }
         ));
 
         // Special cards
@@ -354,7 +354,7 @@ public class CardRepository
             },
             new EnvironmentalPropertyEffect(new() { Physical.Expansive }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
             new List<SkillRequirement> {
-                new SkillRequirement { SkillType = SkillTypes.Subterfuge, RequiredLevel = 2 }
+                new SkillRequirement (SkillTypes.Subterfuge, 2)
             }
         ));
     }

@@ -5,7 +5,7 @@ public partial class NarrativeViewBase : ComponentBase
     [Inject] public GameState GameState { get; set; }
     [Parameter] public string LocationName { get; set; }
     [Parameter] public EventCallback OnNarrativeCompleted { get; set; }
-    [Parameter] public EncounterResult Result { get; set; }
+    [Parameter] public EncounterResult EncounterResult { get; set; }
     [Parameter] public bool ShowResult { get; set; } = true;
 
     protected override void OnParametersSet()
@@ -14,7 +14,7 @@ public partial class NarrativeViewBase : ComponentBase
 
     public bool HasPostEncounterEvolution()
     {
-        return Result?.PostEncounterEvolution != null;
+        return EncounterResult?.PostEncounterEvolution != null;
     }
 
     // In NarrativeViewBase
@@ -64,7 +64,7 @@ public partial class NarrativeViewBase : ComponentBase
 
         List<LocationChangeWithDepth> changes = new List<LocationChangeWithDepth>();
 
-        foreach (Location location in Result.PostEncounterEvolution.NewLocations)
+        foreach (Location location in EncounterResult.PostEncounterEvolution.NewLocations)
         {
             changes.Add(new LocationChangeWithDepth
             {
@@ -98,7 +98,7 @@ public partial class NarrativeViewBase : ComponentBase
 
         List<ActionWithEnergy> changes = new List<ActionWithEnergy>();
 
-        foreach (NewAction action in Result.PostEncounterEvolution.NewActions)
+        foreach (NewAction action in EncounterResult.PostEncounterEvolution.NewActions)
         {
             changes.Add(new ActionWithEnergy
             {
@@ -124,7 +124,7 @@ public partial class NarrativeViewBase : ComponentBase
 
     public List<Outcome> GetActionOutcomesSuccess()
     {
-        ActionImplementation actionImplementation = Result.ActionImplementation;
+        ActionImplementation actionImplementation = EncounterResult.ActionImplementation;
 
         List<Outcome> outcomes = new List<Outcome>();
         outcomes.AddRange(actionImplementation.Costs.ToList());
@@ -135,18 +135,13 @@ public partial class NarrativeViewBase : ComponentBase
 
     public List<Outcome> GetActionOutcomesFailure()
     {
-        ActionImplementation actionImplementation = Result.ActionImplementation;
+        ActionImplementation actionImplementation = EncounterResult.ActionImplementation;
 
         List<Outcome> outcomes = new List<Outcome>();
         outcomes.AddRange(actionImplementation.Costs.ToList());
         outcomes.AddRange(actionImplementation.Yields.ToList());
 
         return outcomes;
-    }
-
-    public int GetEnergyCost()
-    {
-        return Result.ActionImplementation.EnergyCost;
     }
 
     public MarkupString GetOutcomeIcon(Outcome outcome)
@@ -166,11 +161,17 @@ public partial class NarrativeViewBase : ComponentBase
         };
     }
 
+    public int GetEnergyCost()
+    {
+        ActionImplementation actionImplementation = EncounterResult.ActionImplementation;
+        int encergyCost = actionImplementation.GetEnergyCost();
+        return encergyCost;
+    }
+
     public MarkupString GetEnergyTypeIcon()
     {
         return new MarkupString("<i class='value-icon physical-icon'>⚡</i>");
     }
-
 
     public List<CharacterChangeDisplay> GetCharacterChanges()
     {
@@ -179,7 +180,7 @@ public partial class NarrativeViewBase : ComponentBase
         List<CharacterChangeDisplay> changes = new List<CharacterChangeDisplay>();
 
         // Add new characters
-        foreach (Character character in Result.PostEncounterEvolution.NewCharacters)
+        foreach (Character character in EncounterResult.PostEncounterEvolution.NewCharacters)
         {
             changes.Add(new CharacterChangeDisplay
             {
@@ -199,9 +200,9 @@ public partial class NarrativeViewBase : ComponentBase
         List<RelationshipChangeDisplay> changes = new List<RelationshipChangeDisplay>();
 
         // Add relationship changes
-        if (Result.PostEncounterEvolution.RelationshipChanges != null)
+        if (EncounterResult.PostEncounterEvolution.RelationshipChanges != null)
         {
-            foreach (RelationshipChange relationship in Result.PostEncounterEvolution.RelationshipChanges)
+            foreach (RelationshipChange relationship in EncounterResult.PostEncounterEvolution.RelationshipChanges)
             {
                 changes.Add(new RelationshipChangeDisplay
                 {
@@ -216,26 +217,26 @@ public partial class NarrativeViewBase : ComponentBase
 
     public CoinsChangeDisplay GetCoinsChange()
     {
-        if (!HasPostEncounterEvolution() || Result.PostEncounterEvolution.CoinChange == 0)
+        if (!HasPostEncounterEvolution() || EncounterResult.PostEncounterEvolution.CoinChange == 0)
             return null;
 
         return new CoinsChangeDisplay
         {
-            Amount = Result.PostEncounterEvolution.CoinChange,
+            Amount = EncounterResult.PostEncounterEvolution.CoinChange,
             Current = GameState.PlayerState.Coins,
-            New = GameState.PlayerState.Coins + Result.PostEncounterEvolution.CoinChange
+            New = GameState.PlayerState.Coins + EncounterResult.PostEncounterEvolution.CoinChange
         };
     }
 
     public List<ResourceChangeDisplay> GetResourceChanges()
     {
-        if (!HasPostEncounterEvolution() || Result.PostEncounterEvolution.ResourceChanges == null)
+        if (!HasPostEncounterEvolution() || EncounterResult.PostEncounterEvolution.ResourceChanges == null)
             return new List<ResourceChangeDisplay>();
 
         List<ResourceChangeDisplay> changes = new List<ResourceChangeDisplay>();
 
         // Add items added
-        foreach (string item in Result.PostEncounterEvolution.ResourceChanges.ItemsAdded)
+        foreach (string item in EncounterResult.PostEncounterEvolution.ResourceChanges.ItemsAdded)
         {
             changes.Add(new ResourceChangeDisplay
             {
@@ -245,7 +246,7 @@ public partial class NarrativeViewBase : ComponentBase
         }
 
         // Add items removed
-        foreach (string item in Result.PostEncounterEvolution.ResourceChanges.ItemsRemoved)
+        foreach (string item in EncounterResult.PostEncounterEvolution.ResourceChanges.ItemsRemoved)
         {
             changes.Add(new ResourceChangeDisplay
             {

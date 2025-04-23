@@ -10,6 +10,8 @@
     public ActionImplementation CreateActionFromTemplate(ActionDefinition template)
     {
         ActionImplementation actionImplementation = new ActionImplementation();
+            
+
         actionImplementation.Id = template.Id;
         actionImplementation.Description = template.Description;
         actionImplementation.Goal = template.Goal;
@@ -19,8 +21,6 @@
         actionImplementation.IsRepeatable = template.IsRepeatable;
         actionImplementation.Difficulty = template.Difficulty;
         actionImplementation.Yields = template.Yields;
-        actionImplementation.EnergyCost = template.EnergyCost;
-        actionImplementation.TimeCost = template.TimeCost;
         actionImplementation.EncounterType = template.EncounterType;
 
         Random random = new Random();
@@ -29,9 +29,6 @@
 
         actionImplementation.EncounterChance = template.EncounterChance;
         actionImplementation.ActionType = startsEncounter ? ActionTypes.Encounter : ActionTypes.Basic;
-
-        // Set time cost based on action type or template
-        actionImplementation.TimeCostHours = template.TimeCost > 0 ? template.TimeCost : 1;
 
         // Set current and destination locations
         actionImplementation.CurrentLocation = template.LocationName;
