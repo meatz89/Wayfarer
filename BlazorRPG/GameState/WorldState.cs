@@ -9,27 +9,12 @@
     private Dictionary<string, int> LocationVisitCounts { get; } = new Dictionary<string, int>();
 
     // Track last hub visited and depth
-
     private Dictionary<string, int> LocationDepths { get; } = new Dictionary<string, int>();
     public string LastHubLocationId { get; set; }
     public int LastHubDepth { get; set; } = 0;
 
     public List<string> CompletedEncounters { get; } = new List<string>();
-
-    public List<string> KnownLocationSpotIds { get; } = new List<string>();
-    public List<string> UnlockedActionIds { get; } = new List<string>();
-    public Dictionary<string, int> TravelDiscounts { get; } = new Dictionary<string, int>();
-    public Dictionary<string, int> EncounterChanceReductions { get; } = new Dictionary<string, int>();
-    public Dictionary<string, float> EfficiencyBoosts { get; } = new Dictionary<string, float>();
     private Dictionary<string, int> ActionCounts { get; } = new Dictionary<string, int>();
-
-    // Method to track action counts for ProgressiveAction conditions
-    public int GetActionCount(string actionId)
-    {
-        if (ActionCounts.TryGetValue(actionId, out int count))
-            return count;
-        return 0;
-    }
 
     public void IncrementActionCount(string actionId)
     {
@@ -141,12 +126,9 @@
 
     // Game time
     public int CurrentTimeInHours { get; set; }
-    public int CurrentTimeMinutes { get; set; }  // Minutes since game start
+    public int CurrentTimeMinutes { get; set; } 
     public TimeWindows WorldTime { get; set; }
 
-    // World history
-    public List<string> WorldEvents { get; set; } = new List<string>();
-    public WeatherTypes WorldWeather { get; set; }
 
     // Current location tracking
     public Location CurrentLocation { get; set; }
@@ -210,27 +192,6 @@
         };
     }
 
-    public void ChangeWeather(WeatherTypes weatherType)
-    {
-        WorldWeather = weatherType;
-    }
-
-    public bool HasProperty<T>(T worldStatusProperty) where T : struct, Enum
-    {
-        if (worldStatusProperty is TimeWindows timeWindow)
-        {
-            return WorldTime == timeWindow;
-        }
-        else if (worldStatusProperty is WeatherTypes weather)
-        {
-            return WorldWeather == weather;
-        }
-        else
-        {
-            // You can handle other types or throw an exception if needed
-            throw new ArgumentException($"Unsupported property type: {typeof(T)}");
-        }
-    }
     public void AdvanceTime(int hours)
     {
         this.CurrentTimeInHours += hours;

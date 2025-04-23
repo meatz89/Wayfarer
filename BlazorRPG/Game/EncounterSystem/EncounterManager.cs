@@ -10,7 +10,7 @@
     private NarrativeContext narrativeContext;
 
     private ResourceManager resourceManager;
-    private readonly WorldStateInputCreator worldStateInputCreator;
+    private readonly WorldStateInputBuilder worldStateInputCreator;
     public List<CardDefinition> CurrentChoices = new List<CardDefinition>();
 
     public PlayerState playerState;
@@ -28,7 +28,7 @@
         CardSelectionAlgorithm cardSelector,
         NarrativeService narrativeService,
         ResourceManager resourceManager,
-        WorldStateInputCreator worldStateInputCreator,
+        WorldStateInputBuilder worldStateInputCreator,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {

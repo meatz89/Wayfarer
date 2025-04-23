@@ -22,7 +22,6 @@
         actionImplementation.EnergyCost = template.EnergyCost;
         actionImplementation.TimeCost = template.TimeCost;
         actionImplementation.EncounterType = template.EncounterType;
-        actionImplementation.Category = template.Category;
 
         Random random = new Random();
         int r = random.Next(random.Next(0, 100));
@@ -49,20 +48,14 @@
         }
 
         // Add energy costs
-        actionImplementation.Requirements = template.Requirements ?? new();
-        actionImplementation.Costs = template.Costs ?? new();
-        actionImplementation.Rewards = template.Yields ?? new();
-
-
-        actionImplementation.EnergyCost = template.EnergyCost;
-        actionImplementation.TimeCost = template.TimeCost;
         actionImplementation.EncounterType = template.EncounterType;
-        actionImplementation.Category = template.Category;
+
+        actionImplementation.Requirements = template.Requirements ?? new();
         actionImplementation.Yields = template.Yields ?? new();
+        actionImplementation.Costs = template.Costs ?? new();
 
         actionImplementation.EncounterTemplate = ActionRepository.GetEncounterForAction(template);
 
         return actionImplementation;
     }
-
 }

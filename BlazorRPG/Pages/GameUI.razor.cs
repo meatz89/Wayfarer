@@ -316,13 +316,6 @@ public partial class GameUI : ComponentBase
             "", "", ""
         ));
 
-        // Add weather property
-        properties.Add(new PropertyDisplay(
-            GetIconForWeatherType(world.WorldWeather),
-            FormatEnumString(world.WorldWeather.ToString()),
-            "", "", ""
-        ));
-
         return properties;
     }
     #endregion
@@ -336,18 +329,6 @@ public partial class GameUI : ComponentBase
             TimeWindows.Morning => "🌄",
             TimeWindows.Afternoon => "☀️",
             TimeWindows.Evening => "🌆",
-            _ => "❓"
-        };
-    }
-
-    private string GetIconForWeatherType(WeatherTypes type)
-    {
-        return type switch
-        {
-            WeatherTypes.Clear => "🌤️",
-            WeatherTypes.Sunny => "☀️",
-            WeatherTypes.Windy => "💨",
-            WeatherTypes.Stormy => "⛈️",
             _ => "❓"
         };
     }

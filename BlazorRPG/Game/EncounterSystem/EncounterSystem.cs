@@ -13,7 +13,7 @@
     public WorldState worldState;
 
     public EncounterFactory encounterFactory;
-    private readonly WorldStateInputCreator worldStateInputCreator;
+    private readonly WorldStateInputBuilder worldStateInputCreator;
 
     public EncounterSystem(
         GameState gameState,
@@ -24,7 +24,7 @@
         NarrativeService narrativeService,
         CardRepository choiceRepository,
         EncounterFactory encounterFactory,
-        WorldStateInputCreator worldStateInputCreator,
+        WorldStateInputBuilder worldStateInputCreator,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {

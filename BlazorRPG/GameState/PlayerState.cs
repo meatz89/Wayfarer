@@ -33,11 +33,9 @@
 
     public int Coins { get; set; }
 
-    public Equipment Equipment { get; set; }
     public HashSet<(string, EncounterTypes)> LocationActionAvailability { get; set; } = new();
 
     public List<PlayerNegativeStatus> NegativeStatusTypes { get; set; }
-    public PlayerConfidenceTypes ConfidenceType { get; set; }
     public bool IsInitialized { get; set; } = false;
 
     public List<string> KnownLocations { get; private set; } = new List<string>();
@@ -69,7 +67,6 @@
         Background = GameRules.StandardRuleset.Background;
 
         Inventory = new Inventory(GameRules.StandardRuleset.StartingInventorySize);
-        Equipment = new Equipment();
 
         Level = 1;
         CurrentXP = 0;
@@ -79,10 +76,7 @@
         Food = 2;
         MedicinalHerbs = 2;
 
-        Reputation = MaxReputation;
-
         NegativeStatusTypes = new();
-        ConfidenceType = PlayerConfidenceTypes.Neutral;
 
         SetCharacterStats();
         HealFully();
@@ -215,14 +209,7 @@
 
     private void ClearInventory()
     {
-        // Simple method to clear all slots
-        for (int i = 0; i < Inventory.MaxCapacity; i++)
-        {
-            if (Inventory.ContainsItem(ItemTypes.None) == false)
-            {
-                Inventory.RemoveItem(Inventory.GetFirstItem());
-            }
-        }
+        Inventory.Clear();
     }
 
     public bool ModifyHealth(int count)
@@ -315,30 +302,6 @@
         return false;
     }
 
-    public bool HasAchievement(AchievementTypes achievementType)
-    {
-        return true;
-    }
-
-    public void UnlockAchievement(AchievementTypes achievementType)
-    {
-    }
-
-    public void ModifyResource(ResourceChangeTypes changeType, ItemTypes resourceType, int amount)
-    {
-    }
-
-
-    public int GetRelationshipLevel(CharacterTypes character)
-    {
-        return 1;
-    }
-
-    public bool HasConfidence(PlayerConfidenceTypes expectedValue)
-    {
-        return ConfidenceType == expectedValue;
-    }
-
     public bool HasStatusEffect(PlayerNegativeStatus expectedValue)
     {
         return NegativeStatusTypes.Contains(expectedValue);
@@ -383,6 +346,11 @@
     }
 
     internal void AddEnergy(int amount)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal int GetRelationshipLevel(string character)
     {
         throw new NotImplementedException();
     }

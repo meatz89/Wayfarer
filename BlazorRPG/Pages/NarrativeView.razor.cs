@@ -128,7 +128,7 @@ public partial class NarrativeViewBase : ComponentBase
 
         List<Outcome> outcomes = new List<Outcome>();
         outcomes.AddRange(actionImplementation.Costs.ToList());
-        outcomes.AddRange(actionImplementation.Rewards.ToList());
+        outcomes.AddRange(actionImplementation.Yields.ToList());
 
         return outcomes;
     }
@@ -139,7 +139,7 @@ public partial class NarrativeViewBase : ComponentBase
 
         List<Outcome> outcomes = new List<Outcome>();
         outcomes.AddRange(actionImplementation.Costs.ToList());
-        outcomes.AddRange(actionImplementation.Rewards.ToList());
+        outcomes.AddRange(actionImplementation.Yields.ToList());
 
         return outcomes;
     }
@@ -162,7 +162,6 @@ public partial class NarrativeViewBase : ComponentBase
             ConcentrationOutcome => new MarkupString("<i class='value-icon concentration-icon'>🌀</i>"),
             ConfidenceOutcome => new MarkupString("<i class='value-icon confidence-icon'>👤</i>"),
             CoinsOutcome => new MarkupString("<i class='value-icon coins-icon'>💰</i>"),
-            ResourceOutcome => new MarkupString("<i class='value-icon resource-icon'>📦</i>"),
             _ => new MarkupString("")
         };
     }

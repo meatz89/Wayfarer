@@ -1,15 +1,8 @@
-﻿/// <summary>
-/// If Encounter has IEnvironmentalProperty present
-/// Then apply EffectType
-/// But Consider ApproachTag
-/// </summary>
-public class EnvironmentalPropertyEffect
+﻿public class EnvironmentalPropertyEffect
 {
     public string Name;
     public List<IEnvironmentalProperty> ActivationProperties { get; }
     public StrategicTagEffectType EffectType { get; }
-
-    public EffectTargetTypes TargetId { get; set; }
     public ApproachTags TargetApproach { get; }
     public float Multiplier { get; set; }
 

@@ -4,7 +4,6 @@
     {
         GameState gameState = new GameState();
         gameState.WorldState.SetCurrentTime(12);
-        gameState.WorldState.ChangeWeather(WeatherTypes.Clear);
 
         GameRules gameRules = GameRules.StandardRuleset;
 

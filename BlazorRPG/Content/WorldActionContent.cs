@@ -1,4 +1,6 @@
-﻿public static class WorldActionContent
+﻿using Microsoft.VisualBasic.FileIO;
+
+public static class WorldActionContent
 {
     public static List<ActionDefinition> GetAllTemplates()
     {
@@ -18,18 +20,17 @@
             .WithEnergyCost(5)
             .WithTimeCost(10)
             .WithEncounterChance(10)
-            .WithCategory(ActionCategories.Exploration)
             .WithDifficulty(1)
             .IsRepeatableAction()
-            .AddYield(yield => yield
+        .AddYield(yield => yield
                 .WithType(YieldTypes.SkillXP)
                 .WithTargetId("navigation")
                 .WithBaseAmount(1))
-            .AddYield(yield => yield
+        .AddYield(yield => yield
                 .WithType(YieldTypes.NodeDiscovery)
                 .WithTargetId("Worn Tracks")
                 .WithBaseAmount(1))
-            .AddYield(yield => yield
+        .AddYield(yield => yield
                 .WithType(YieldTypes.TravelDiscount)
                 .WithTargetId("Elmridge Village")
                 .WithBaseAmount(5))
@@ -43,10 +44,9 @@
             .WithEnergyCost(5)
             .WithTimeCost(10)
             .WithEncounterChance(10)
-            .WithCategory(ActionCategories.Exploration)
             .WithDifficulty(1)
             .IsRepeatableAction()
-            .AddYield(yield => yield
+        .AddYield(yield => yield
                 .WithType(YieldTypes.SkillXP)
                 .WithTargetId("navigation")
                 .WithBaseAmount(1))

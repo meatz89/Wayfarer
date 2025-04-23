@@ -8,14 +8,11 @@
 
     private List<string> actionIds = new();
     private List<string> connectedTo = new();
-    private List<NodeAspectDefinition> discoverableApects = new();
 
     public Illumination? illumination { get; set; }
     public Population? population { get; set; }
     public Physical? physical { get; set; }
     public Atmosphere? atmosphere { get; set; }
-    public ResourceNodeTypes nodeType { get; private set; }
-    public QualityTiers qualityTier { get; private set; }
 
     public LocationSpotBuilder(string locationName)
     {
@@ -81,30 +78,6 @@
         return this;
     }
 
-    public LocationSpotBuilder WithNodeType(ResourceNodeTypes nodeType)
-    {
-        this.nodeType = nodeType;
-        return this;
-    }
-
-    public LocationSpotBuilder WithQuality(QualityTiers qualityTier)
-    {
-        this.qualityTier = qualityTier;
-        return this;
-    }
-
-    public LocationSpotBuilder WithDiscoverableAspect(Action<NodeAspectDefinitionBuilder> buildNodeAspect)
-    {
-        NodeAspectDefinitionBuilder nodeAspectBuilder = new NodeAspectDefinitionBuilder();
-        buildNodeAspect(nodeAspectBuilder);
-
-        NodeAspectDefinition discoverableApect = nodeAspectBuilder.Build();
-
-        this.discoverableApects.Add(discoverableApect);
-
-        return this;
-    }
-
     public LocationSpot Build()
     {
         // Validation: Ensure name and actionType are set
@@ -125,9 +98,6 @@
                 Illumination = illumination ?? Illumination.Bright,
                 PlayerKnowledge = playerKnowledge,
                 BaseActionIds = actionIds,
-                NodeType = nodeType,
-                Quality = qualityTier,
-                DiscoverableAspects = discoverableApects
             };
 
         if (character != null)
