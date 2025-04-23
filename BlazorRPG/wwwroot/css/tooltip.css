@@ -1,0 +1,45 @@
+﻿
+/* ==================== Tooltip ==================== */
+.tooltip {
+	position: fixed;
+	z-index: 9999;
+	pointer-events: none;
+	background-color: var(--parchment);
+	color: var(--charcoal);
+	padding: 1rem;
+	border: 1px solid var(--oak-dark);
+	border-radius: 4px;
+	overflow: hidden;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+	.tooltip h4, .tooltip h5 {
+		font-family: var(--font-primary);
+		color: var(--oak-dark);
+		margin-top: 0;
+		border-bottom: 1px solid var(--oak-mid);
+		padding-bottom: 0.5rem;
+	}
+
+.tooltip-item {
+	background-color: var(--parchment-dark);
+	padding: 0.7rem;
+	border-radius: 3px;
+	margin-bottom: 0.5rem;
+}
+
+	.tooltip-item.wide {
+		width: 100%;
+	}
+
+.tooltip-section {
+	margin-bottom: 1rem;
+}
+
+.tooltip-item-content {
+	line-height: 1.5;
+}
+
+.tooltip-item-name {
+	color: var(--font-tertiary);
+}

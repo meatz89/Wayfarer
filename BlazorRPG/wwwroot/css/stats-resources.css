@@ -1,0 +1,136 @@
+﻿
+/* ==================== Stats & Resources ==================== */
+.stat {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	min-width: 100px;
+	position: relative;
+}
+
+.stat-label {
+	color: var(--text-secondary);
+	font-size: 0.9rem;
+	margin: 4px 0;
+	font-family: var(--font-tertiary);
+}
+
+.stat-value {
+	font-weight: bold;
+	font-size: 1.2rem;
+	color: var(--parchment);
+}
+
+.player-stat {
+	background-color: var(--bg-card);
+	padding: 8px 12px;
+	border-radius: 3px;
+	display: grid;
+	align-items: center;
+}
+
+	.player-stat .stat-icon {
+		width: 24px;
+		text-align: center;
+		margin-right: 8px;
+	}
+
+.player-resource {
+	background-color: var(--bg-card);
+	padding: 8px 12px;
+	border-radius: 3px;
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+}
+
+	.player-resource .resource-icon {
+		width: 24px;
+		text-align: center;
+		margin-right: 8px;
+		flex-shrink: 0;
+	}
+
+	.player-resource .resource-label {
+		margin-right: 8px;
+		flex-shrink: 0;
+	}
+
+	.player-resource .resource-value {
+		margin-right: auto;
+	}
+
+.tag-value {
+	display: flex;
+	justify-content: space-between;
+	background-color: var(--bg-card);
+	padding: 8px 12px;
+	border-radius: 3px;
+	border-left: 3px solid var(--approach-tag);
+}
+
+.inventory-item {
+	background-color: var(--bg-card);
+	padding: 8px 12px;
+	border-radius: 3px;
+	display: flex;
+	align-items: center;
+}
+
+.item-icon {
+	width: 24px;
+	text-align: center;
+	margin-right: 8px;
+}
+
+.item-name {
+	flex-grow: 1;
+	color: var(--text-secondary);
+}
+
+.item-count {
+	background-color: var(--leather);
+	color: var(--parchment);
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.8rem;
+	font-weight: bold;
+}
+
+/* Status styles */
+.player-status {
+	display: flex;
+	gap: 20px;
+}
+
+.status-item {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.status-icon {
+	font-size: 1.2rem;
+}
+
+.status-label {
+	color: var(--text-secondary);
+	margin-right: 5px;
+}
+
+.status-value {
+	font-weight: bold;
+}
+
+.status-effect.negative {
+	border-left: 3px solid var(--resource-health);
+}
+
+.danger {
+	color: var(--resource-health);
+}

@@ -17,7 +17,7 @@
                 <div class="location-name">
                     @spot.Name @(spot.IsClosed ? "(Closed)" : "")
                 </div>
-                <div class="location-type">@spot.Name</div>
+                <div class="location-type">@spot.Description</div>
 
                 @* Add travel option if not current spot *@
                 @if (spot.Name != CurrentSpot.Name)
