@@ -17,7 +17,9 @@
 
         _providers = new Dictionary<AIProviderType, IAIService>
         {
-            { AIProviderType.Claude, new ClaudeNarrativeService(postEncounterEvolutionParser, _contextManager, configuration, _logger, narrativeLogManager) }
+            { AIProviderType.Claude, new ClaudeNarrativeService(postEncounterEvolutionParser, _contextManager, configuration, _logger, narrativeLogManager) },
+            { AIProviderType.OpenAI, new OpenAINarrativeService(postEncounterEvolutionParser, _contextManager, configuration, _logger, narrativeLogManager) },
+            { AIProviderType.Gemini, new GeminiNarrativeService(postEncounterEvolutionParser, _contextManager, configuration, _logger, narrativeLogManager) }
         };
 
         // Set default provider from configuration
@@ -29,8 +31,8 @@
             case "claude":
                 _currentProvider = AIProviderType.Claude;
                 break;
-            case "gemma":
-                _currentProvider = AIProviderType.Gemma3;
+            case "gemini":
+                _currentProvider = AIProviderType.Gemini;
                 break;
             default:
                 _currentProvider = AIProviderType.OpenAI;
