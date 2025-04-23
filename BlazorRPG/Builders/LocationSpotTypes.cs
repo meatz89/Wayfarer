@@ -1,4 +1,4 @@
 ﻿public enum LocationSpotTypes
 {
-    Rest
+    Location, Character
 }

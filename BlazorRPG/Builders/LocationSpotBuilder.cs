@@ -102,7 +102,7 @@
 
         if (character != null)
         {
-            locationSpot.Character = character;
+            locationSpot.CharacterName = character;
         }
         return locationSpot;
     }

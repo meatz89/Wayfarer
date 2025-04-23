@@ -22,18 +22,6 @@ public static class WorldActionContent
             .WithEncounterChance(10)
             .WithDifficulty(1)
             .IsRepeatableAction()
-        .AddYield(yield => yield
-                .WithType(YieldTypes.SkillXP)
-                .WithTargetId("navigation")
-                .WithBaseAmount(1))
-        .AddYield(yield => yield
-                .WithType(YieldTypes.NodeDiscovery)
-                .WithTargetId("Worn Tracks")
-                .WithBaseAmount(1))
-        .AddYield(yield => yield
-                .WithType(YieldTypes.TravelDiscount)
-                .WithTargetId("Elmridge Village")
-                .WithBaseAmount(5))
             .Build());
 
         actionTemplates.Add(new ActionTemplateBuilder()
@@ -46,18 +34,6 @@ public static class WorldActionContent
             .WithEncounterChance(10)
             .WithDifficulty(1)
             .IsRepeatableAction()
-        .AddYield(yield => yield
-                .WithType(YieldTypes.SkillXP)
-                .WithTargetId("navigation")
-                .WithBaseAmount(1))
-            .AddYield(yield => yield
-                .WithType(YieldTypes.NodeDiscovery)
-                .WithTargetId("Worn Tracks")
-                .WithBaseAmount(1))
-            .AddYield(yield => yield
-                .WithType(YieldTypes.TravelDiscount)
-                .WithTargetId("Elmridge Village")
-                .WithBaseAmount(5))
             .Build());
 
         return actionTemplates;
