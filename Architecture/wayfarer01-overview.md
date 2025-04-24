@@ -515,7 +515,7 @@ When an encounter ends, the outcome is determined by the momentum level reached:
 
 The following example demonstrates how all these systems work together to create a complete encounter experience.
 
-### Ancient Library Encounter
+### Library Encounter
 
 **Character**: Scholar (Analysis-focused)
 - Starting Approach Tags: Analysis 2, others 0
@@ -526,7 +526,6 @@ The following example demonstrates how all these systems work together to create
 
 **Location**: Ancient Library (Intellectual Encounter)
 - Strategic Tags: Analysis increases momentum, Precision decreases pressure, Dominance increases pressure, Rapport decreases momentum
-- Narrative Tags: "Detail Fixation" (Analysis 3+ blocks Environment focus), "Theoretical Mindset" (Analysis 4+ blocks Resource focus)
 - Difficulty: 2 (adds +2 pressure per turn)
 - Goal: Find a specific ancient text before a rival scholar
 

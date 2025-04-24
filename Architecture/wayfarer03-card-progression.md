@@ -56,38 +56,9 @@ This creates significant strategic considerations:
 
 The system now uses dynamic environmental properties to create strategic tags that cards can synergize with:
 
-#### Environmental & Situational Properties
-
-Strategic tags are based on properties that can be combined to create varied environments:
-
-**Illumination Properties**
-- **Bright** - Well-lit areas with clear visibility
-- **Shadowy** - Areas with mixed lighting and many shadows
-- **Dark** - Poorly lit or nighttime environments
-
-**Population Properties**
-- **Crowded** - Densely populated areas with many people
-- **Quiet** - Sparsely populated with few observers
-- **Isolated** - Completely private or secluded environments
-
-**Atmosphere Properties**
-- **Tense** - High-pressure, stressful environments
-- **Formal** - Rule-bound, ceremonial, or structured settings
-- **Chaotic** - Unpredictable, disordered environments
-
-**Economic Properties**
-- **Wealthy** - Affluent areas with valuable resources
-- **Commercial** - Trading environments with economic activity
-- **Humble** - Simple environments with limited resources
-
-**Physical Properties**
-- **Confined** - Tight spaces with limited movement
-- **Expansive** - Open areas with room to maneuver
-- **Hazardous** - Physically dangerous environments
-
 #### Card-Property Synergies
 
-Cards now include conditional effects based on environmental properties:
+Cards include conditional effects based on environmental properties:
 
 - Each card may have synergy effects with specific properties
 - These effects only activate when the corresponding strategic tag is present
