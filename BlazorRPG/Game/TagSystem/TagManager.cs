@@ -24,7 +24,10 @@
 
     public void CreateEncounterTags(List<IEncounterTag> locationTags)
     {
-        HashSet<string> previouslyActive = new(EncounterTags.Select(t => t.NarrativeName));
+        HashSet<string> previouslyActive = new(EncounterTags.Select(t =>
+        {
+            return t.NarrativeName;
+        }));
 
         EncounterTags.Clear();
         ResetTagEffects();
@@ -86,13 +89,22 @@
         _focusPressureModifiers[focus] += modifier;
     }
 
-    public EncounterTagSystem CloneTagSystem() => EncounterTagSystem.Clone();
+    public EncounterTagSystem CloneTagSystem()
+    {
+        return EncounterTagSystem.Clone();
+    }
 
     public List<StrategicTag> GetStrategicActiveTags()
     {
         List<StrategicTag> list = EncounterTags
-            .Where(x => x is StrategicTag strategicTag)
-            .Select(x => (StrategicTag)x)
+            .Where(x =>
+            {
+                return x is StrategicTag strategicTag;
+            })
+            .Select(x =>
+            {
+                return (StrategicTag)x;
+            })
             .ToList();
 
         return list;
@@ -101,8 +113,14 @@
     public List<NarrativeTag> GetNarrativeActiveTags()
     {
         List<NarrativeTag> list = EncounterTags
-            .Where(x => x is NarrativeTag narrativeTag)
-            .Select(x => (NarrativeTag)x)
+            .Where(x =>
+            {
+                return x is NarrativeTag narrativeTag;
+            })
+            .Select(x =>
+            {
+                return (NarrativeTag)x;
+            })
             .ToList();
 
         return list;

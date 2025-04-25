@@ -1,4 +1,5 @@
-﻿public class ActionFactory
+﻿
+public class ActionFactory
 {
     public ActionFactory(ActionRepository actionRepository)
     {
@@ -7,31 +8,19 @@
 
     public ActionRepository ActionRepository { get; }
 
-    public ActionImplementation CreateActionFromTemplate(ActionDefinition template)
+    public ActionImplementation CreateActionFromTemplate(ActionDefinition template, string location, string locationSpot)
     {
         ActionImplementation actionImplementation = new ActionImplementation();
-            
+
 
         actionImplementation.Id = template.Id;
+        actionImplementation.Name = template.Name;
+
         actionImplementation.Description = template.Description;
-        actionImplementation.Goal = template.Goal;
-        actionImplementation.Complication = template.Complication;
-        actionImplementation.EncounterType = template.EncounterType;
-        actionImplementation.TimeWindows = template.AvailableWindows ?? new();
-        actionImplementation.IsRepeatable = template.IsRepeatable;
         actionImplementation.Difficulty = template.Difficulty;
-        actionImplementation.Yields = template.Yields;
-        actionImplementation.EncounterType = template.EncounterType;
 
-        Random random = new Random();
-        int r = random.Next(random.Next(0, 100));
-        bool startsEncounter = template.EncounterChance > r;
-
-        actionImplementation.EncounterChance = template.EncounterChance;
-        actionImplementation.ActionType = startsEncounter ? ActionTypes.Encounter : ActionTypes.Basic;
-
-        // Set current and destination locations
-        actionImplementation.CurrentLocation = template.LocationName;
+        actionImplementation.LocationName = location;
+        actionImplementation.LocationSpotName = locationSpot;
 
         // If this is a movement action with a target spot
         if (!string.IsNullOrEmpty(template.MoveToLocation))
@@ -44,32 +33,64 @@
             actionImplementation.DestinationLocationSpot = template.MoveToLocationSpot;
         }
 
-        // Add energy costs
+        actionImplementation.Goal = template.Goal;
+        actionImplementation.Complication = template.Complication;
         actionImplementation.EncounterType = template.EncounterType;
 
-        actionImplementation.Requirements = template.Requirements ?? new();
-        actionImplementation.Yields = template.Yields ?? new();
-        actionImplementation.Costs = template.Costs ?? new();
+        actionImplementation.EncounterType = template.EncounterType;
+        actionImplementation.SpotXp = template.SpotXp;
 
-        actionImplementation.EncounterTemplate = GetEncounterForAction(template);
+        actionImplementation.ActionType = template.IsOneTimeEncounter ? ActionTypes.Encounter : ActionTypes.Basic;
+
+        actionImplementation.Requirements = CreateRequirements(template);
+        actionImplementation.Costs = CreateCosts(template);
+        actionImplementation.Yields = CreateYields(template);
+
+        actionImplementation.EncounterTemplate = actionImplementation.GetEncounterTemplate();
 
         return actionImplementation;
     }
 
-    public EncounterTemplate GetEncounterForAction(ActionDefinition actionTemplate)
+
+    private List<Requirement> CreateRequirements(ActionDefinition template)
     {
-        ActionGenerationContext context = new ActionGenerationContext
+        List<Requirement> requirements = new()
         {
-            ActionId = actionTemplate.Id,
-            Goal = actionTemplate.Goal,
-            Complication = actionTemplate.Complication,
-            BasicActionType = actionTemplate.EncounterType.ToString(),
-            SpotName = actionTemplate.LocationSpotName,
-            LocationName = actionTemplate.LocationName,
+            new TimeRequirement(template.TimeWindows),
+            new EnergyRequirement(template.EnergyCost),
+            new ConcentrationRequirement(template.ConcentrationCost),
+            new CoinRequirement(template.CoinCost),
+            new ConfidenceRequirement(template.ConfidenceCost),
+        };
+        return requirements;
+    }
+
+    private List<Outcome> CreateCosts(ActionDefinition template)
+    {
+        List<Outcome> costs = new()
+        {
+            new TimeOutcome(template.TimeCost),
+            new EnergyOutcome(template.EnergyCost),
+            new ConcentrationOutcome(template.ConcentrationCost),
+            new CoinOutcome(template.CoinCost),
+            new ConfidenceOutcome(template.ConfidenceCost),
+        };
+        return costs;
+    }
+
+    private List<Outcome> CreateYields(ActionDefinition template)
+    {
+        List<Outcome> yields = new()
+        {
+            new EnergyOutcome(template.RestoresEnergy),
+            new CoinOutcome(template.CoinGain),
         };
 
-        EncounterTemplate encounterTemplate = WorldEncounterContent.GetDefaultTemplate();
+        foreach (RelationshipChange relationshipGain in template.RelationshipGains)
+        {
+            yields.Add(new RelationshipOutcome(relationshipGain.CharacterName, relationshipGain.ChangeAmount));
+        }
 
-        return encounterTemplate;
+        return yields;
     }
 }

@@ -1,11 +1,11 @@
 ﻿/// <summary>
 /// Repository of all available choices in the game
 /// </summary>
-public class CardRepository
+public class ChoiceRepository
 {
     private readonly List<CardDefinition> cards = new();
 
-    public CardRepository()
+    public ChoiceRepository()
     {
         InitializeChoices();
     }
@@ -136,7 +136,7 @@ public class CardRepository
                 TagModification.IncreaseFocus(FocusTags.Resource)
             },
             new EnvironmentalPropertyEffect(new() { Atmosphere.Tense }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Rapport),
-            new List<SkillRequirement> { new SkillRequirement (SkillTypes.Diplomacy, 1) }
+            new List<SkillRequirement> { new SkillRequirement(SkillTypes.Diplomacy, 1) }
         ));
 
         // SAGE CARDS (Analysis)
@@ -191,7 +191,7 @@ public class CardRepository
                 TagModification.IncreaseFocus(FocusTags.Physical)
             },
             new EnvironmentalPropertyEffect(new() { Physical.Hazardous }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
-            new List<SkillRequirement> { new SkillRequirement (SkillTypes.Scholarship, 1) }
+            new List<SkillRequirement> { new SkillRequirement(SkillTypes.Scholarship, 1) }
         ));
 
         // FORESTER CARDS (Precision)
@@ -263,7 +263,7 @@ public class CardRepository
                 TagModification.IncreaseFocus(FocusTags.Environment)
             },
             new EnvironmentalPropertyEffect(new() { Physical.Expansive }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
-            new List<SkillRequirement> { new SkillRequirement (SkillTypes.Wilderness, 1) }
+            new List<SkillRequirement> { new SkillRequirement(SkillTypes.Wilderness, 1) }
         ));
 
         // SHADOW CARDS (Concealment)
@@ -335,7 +335,7 @@ public class CardRepository
                 TagModification.IncreaseFocus(FocusTags.Information)
             },
             new EnvironmentalPropertyEffect(new() { Population.Scholarly }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Concealment),
-            new List<SkillRequirement> { new SkillRequirement (SkillTypes.Subterfuge, 1) }
+            new List<SkillRequirement> { new SkillRequirement(SkillTypes.Subterfuge, 1) }
         ));
 
         // Special cards
@@ -372,13 +372,19 @@ public class CardRepository
     public List<CardDefinition> GetCardsForLevel(int level, ArchetypeTypes archetype)
     {
         // Get all cards of appropriate tier
-        List<CardDefinition> tierCards = cards.Where(x => (int)x.Tier <= level).ToList();
+        List<CardDefinition> tierCards = cards.Where(x =>
+        {
+            return (int)x.Tier <= level;
+        }).ToList();
 
         // Get cards that align with the archetype's preferred approach
         ApproachTags preferredApproach = GetPreferredApproach(archetype);
 
         // Sort cards so that the archetype's preferred approach cards come first
-        return tierCards.OrderByDescending(x => x.Approach == preferredApproach).ToList();
+        return tierCards.OrderByDescending(x =>
+        {
+            return x.Approach == preferredApproach;
+        }).ToList();
     }
 
     private ApproachTags GetPreferredApproach(ArchetypeTypes archetype)

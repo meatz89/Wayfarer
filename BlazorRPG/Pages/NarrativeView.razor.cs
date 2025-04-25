@@ -156,7 +156,7 @@ public partial class NarrativeViewBase : ComponentBase
             HealthOutcome => new MarkupString("<i class='value-icon health-icon'>❤️</i>"),
             ConcentrationOutcome => new MarkupString("<i class='value-icon concentration-icon'>🌀</i>"),
             ConfidenceOutcome => new MarkupString("<i class='value-icon confidence-icon'>👤</i>"),
-            CoinsOutcome => new MarkupString("<i class='value-icon coins-icon'>💰</i>"),
+            CoinOutcome => new MarkupString("<i class='value-icon coins-icon'>💰</i>"),
             _ => new MarkupString("")
         };
     }

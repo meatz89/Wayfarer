@@ -1,6 +1,5 @@
 ﻿using BlazorRPG.Pages;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System.Text;
 public partial class EncounterViewBase : ComponentBase
@@ -12,7 +11,13 @@ public partial class EncounterViewBase : ComponentBase
     [Parameter] public EncounterManager EncounterManager { get; set; }
     [Parameter] public EventCallback<EncounterResult> OnEncounterCompleted { get; set; }
     private IJSObjectReference _tooltipModule;
-    public PlayerState PlayerState => GameState.PlayerState;
+    public PlayerState PlayerState
+    {
+        get
+        {
+            return GameState.PlayerState;
+        }
+    }
 
     public UserEncounterChoiceOption hoveredChoice;
     public bool showTooltip;
@@ -20,12 +25,30 @@ public partial class EncounterViewBase : ComponentBase
     public double tooltipY;
 
     public bool IsLoading = true;
-    public ApproachTags[] GetApproachTags() => Enum.GetValues<ApproachTags>().Where(x => x != ApproachTags.None).ToArray();
-    public FocusTags[] GetFocusTags() => Enum.GetValues<FocusTags>().Where(x => true).ToArray();
+    public ApproachTags[] GetApproachTags()
+    {
+        return Enum.GetValues<ApproachTags>().Where(x =>
+    {
+        return x != ApproachTags.None;
+    }).ToArray();
+    }
+
+    public FocusTags[] GetFocusTags()
+    {
+        return Enum.GetValues<FocusTags>().Where(x =>
+        {
+            return true;
+        }).ToArray();
+    }
+
     public EncounterResult EncounterResult { get; private set; }
     public List<UserEncounterChoiceOption> CurrentChoices = new List<UserEncounterChoiceOption>();
 
-    public bool IsChoiceDisabled(UserEncounterChoiceOption userEncounterChoiceOption) => userEncounterChoiceOption.Choice.IsBlocked;
+    public bool IsChoiceDisabled(UserEncounterChoiceOption userEncounterChoiceOption)
+    {
+        return userEncounterChoiceOption.Choice.IsBlocked;
+    }
+
     public EncounterViewModel Model;
 
     protected override async Task OnInitializedAsync()
@@ -140,12 +163,6 @@ public partial class EncounterViewBase : ComponentBase
             await OnEncounterCompleted.InvokeAsync(result);
         }
     }
-    public List<PropertyDisplay> GetLocationTags()
-    {
-        List<PropertyDisplay> properties = new List<PropertyDisplay>();
-
-        return properties;
-    }
 
     public void GetChoices()
     {
@@ -182,7 +199,10 @@ public partial class EncounterViewBase : ComponentBase
         foreach (IEncounterTag tag in EncounterManager.EncounterState.EncounterInfo.AllEncounterTags)
         {
             // Skip if the tag is already active
-            if (EncounterManager.EncounterState.ActiveTags.Any(t => t.NarrativeName == tag.NarrativeName))
+            if (EncounterManager.EncounterState.ActiveTags.Any(t =>
+            {
+                return t.NarrativeName == tag.NarrativeName;
+            }))
                 continue;
 
             string icon = GetTagIcon(tag);
@@ -245,7 +265,10 @@ public partial class EncounterViewBase : ComponentBase
     public string GetTagEffectDescription(string tagName)
     {
         // Find the tag by name and use its description method
-        IEncounterTag tag = EncounterManager.EncounterState.ActiveTags.FirstOrDefault(t => t.NarrativeName == tagName);
+        IEncounterTag tag = EncounterManager.EncounterState.ActiveTags.FirstOrDefault(t =>
+        {
+            return t.NarrativeName == tagName;
+        });
         if (tag is StrategicTag strategicTag)
         {
             return strategicTag.GetEffectDescription();

@@ -1,5 +1,12 @@
 ﻿public class AlwaysActiveCondition : ActivationCondition
 {
-    public override bool IsActive(EncounterTagSystem tagSystem) => true;
-    public override string GetDescription() => "Always active";
+    public override bool IsActive(EncounterTagSystem tagSystem)
+    {
+        return true;
+    }
+
+    public override string GetDescription()
+    {
+        return "Always active";
+    }
 }

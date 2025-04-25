@@ -6,12 +6,12 @@
     public Encounter CreateEncounterFromTemplate(
         EncounterTemplate template,
         Location location,
-        string locationSpot,
+        LocationSpot locationSpot,
         EncounterTypes EncounterType)
     {
         Encounter encounter = new Encounter(
             location.Name,
-            locationSpot,
+            locationSpot.Name,
             template.Duration,
             template.MaxPressure,
             template.PartialThreshold, template.StandardThreshold, template.ExceptionalThreshold, // Momentum thresholds: 12+ (Partial), 16+ (Standard), 20+ (Exceptional)
@@ -25,8 +25,7 @@
             encounter.AddTag(narrativeTag);
         }
 
-        LocationSpot spot = location.LocationSpots.Where(x => x.Name == locationSpot).FirstOrDefault();
-        List<StrategicTag> tags = CreateStrategicTags(spot);
+        List<StrategicTag> tags = CreateStrategicTags(locationSpot);
         foreach (StrategicTag strategicTag in tags)
         {
             encounter.AddTag(strategicTag);

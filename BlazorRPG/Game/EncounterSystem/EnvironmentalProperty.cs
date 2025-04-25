@@ -26,7 +26,14 @@ public interface IEnvironmentalProperty
 }
 public class Illumination : IEnvironmentalProperty, IEquatable<Illumination>
 {
-    public static IEnvironmentalProperty Any => new EnvironmentalPropertyAny(nameof(Illumination));
+    public static IEnvironmentalProperty Any
+    {
+        get
+        {
+            return new EnvironmentalPropertyAny(nameof(Illumination));
+        }
+    }
+
     public static Illumination Bright = new Illumination("Bright");
     public static Illumination Shadowy = new Illumination("Shadowy");
     public static Illumination Dark = new Illumination("Dark");
@@ -81,7 +88,14 @@ public class Illumination : IEnvironmentalProperty, IEquatable<Illumination>
 
 public class Population : IEnvironmentalProperty, IEquatable<Population>
 {
-    public static IEnvironmentalProperty Any => new EnvironmentalPropertyAny(nameof(Population));
+    public static IEnvironmentalProperty Any
+    {
+        get
+        {
+            return new EnvironmentalPropertyAny(nameof(Population));
+        }
+    }
+
     public static Population Crowded = new Population("Crowded");
     public static Population Quiet = new Population("Quiet");
     public static Population Scholarly = new Population("Scholarly");
@@ -136,7 +150,14 @@ public class Population : IEnvironmentalProperty, IEquatable<Population>
 
 public class Physical : IEnvironmentalProperty, IEquatable<Physical>
 {
-    public static IEnvironmentalProperty Any => new EnvironmentalPropertyAny(nameof(Physical));
+    public static IEnvironmentalProperty Any
+    {
+        get
+        {
+            return new EnvironmentalPropertyAny(nameof(Physical));
+        }
+    }
+
     public static Physical Confined = new Physical("Confined");
     public static Physical Expansive = new Physical("Expansive");
     public static Physical Hazardous = new Physical("Hazardous");
@@ -191,7 +212,14 @@ public class Physical : IEnvironmentalProperty, IEquatable<Physical>
 
 public class Atmosphere : IEnvironmentalProperty, IEquatable<Atmosphere>
 {
-    public static IEnvironmentalProperty Any => new EnvironmentalPropertyAny(nameof(Atmosphere));
+    public static IEnvironmentalProperty Any
+    {
+        get
+        {
+            return new EnvironmentalPropertyAny(nameof(Atmosphere));
+        }
+    }
+
     public static Atmosphere Calm = new Atmosphere("Calm");
     public static Atmosphere Rough = new Atmosphere("Rough");
     public static Atmosphere Tense = new Atmosphere("Tense");

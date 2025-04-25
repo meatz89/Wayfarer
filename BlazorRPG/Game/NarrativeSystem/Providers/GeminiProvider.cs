@@ -12,7 +12,13 @@ public class GeminiProvider : IAIProvider
     private const int MaxRetryAttempts = 3;
     private const int InitialDelayMilliseconds = 500;
 
-    public string Name => "Google Gemini";
+    public string Name
+    {
+        get
+        {
+            return "Google Gemini";
+        }
+    }
 
     public GeminiProvider(IConfiguration configuration, ILogger<EncounterSystem> logger)
     {
@@ -36,7 +42,7 @@ public class GeminiProvider : IAIProvider
         string systemMessage = "";
         List<object> formattedMessages = new List<object>();
 
-        foreach (var message in messages)
+        foreach (ConversationEntry message in messages)
         {
             if (message.Role.ToLower() == "system")
             {

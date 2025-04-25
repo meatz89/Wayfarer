@@ -2,24 +2,98 @@
 {
     public int Level { get; set; } = 1;
     public int XP { get; set; } = 0;
-    public int XPToNextLevel => Level * 100;
+    public int XPToNextLevel
+    {
+        get
+        {
+            return Level * 100;
+        }
+    }
 }
 
 public class PlayerSkills
 {
     public readonly Dictionary<SkillTypes, SkillProgress> Skills = new();
 
-    public int Warfare => Skills[SkillTypes.Warfare].Level;
-    public int Wilderness => Skills[SkillTypes.Wilderness].Level;
-    public int Scholarship => Skills[SkillTypes.Scholarship].Level;
-    public int Subterfuge => Skills[SkillTypes.Subterfuge].Level;
-    public int Diplomacy => Skills[SkillTypes.Diplomacy].Level;
+    public int Warfare
+    {
+        get
+        {
+            return Skills[SkillTypes.Warfare].Level;
+        }
+    }
 
-    public int BonusMaxHealth => Warfare * 2;
-    public int BonusMaxEnergy => Wilderness * 2;
-    public int BonusMaxConcentration => Scholarship * 2;
-    public int BonusMaxConfidence => Diplomacy * 2;
-    public int BonusReputation => Subterfuge * 2;
+    public int Wilderness
+    {
+        get
+        {
+            return Skills[SkillTypes.Wilderness].Level;
+        }
+    }
+
+    public int Scholarship
+    {
+        get
+        {
+            return Skills[SkillTypes.Scholarship].Level;
+        }
+    }
+
+    public int Subterfuge
+    {
+        get
+        {
+            return Skills[SkillTypes.Subterfuge].Level;
+        }
+    }
+
+    public int Diplomacy
+    {
+        get
+        {
+            return Skills[SkillTypes.Diplomacy].Level;
+        }
+    }
+
+    public int BonusMaxHealth
+    {
+        get
+        {
+            return Warfare * 2;
+        }
+    }
+
+    public int BonusMaxEnergy
+    {
+        get
+        {
+            return Wilderness * 2;
+        }
+    }
+
+    public int BonusMaxConcentration
+    {
+        get
+        {
+            return Scholarship * 2;
+        }
+    }
+
+    public int BonusMaxConfidence
+    {
+        get
+        {
+            return Diplomacy * 2;
+        }
+    }
+
+    public int BonusReputation
+    {
+        get
+        {
+            return Subterfuge * 2;
+        }
+    }
 
     public PlayerSkills()
     {
@@ -27,7 +101,18 @@ public class PlayerSkills
             Skills[type] = new SkillProgress();
     }
 
-    public int GetLevelForSkill(SkillTypes skillType) => Skills[skillType].Level;
-    public int GetXPForSkill(SkillTypes skillType) => Skills[skillType].XP;
-    public int GetXPToNextForSkill(SkillTypes skillType) => Skills[skillType].XPToNextLevel;
+    public int GetLevelForSkill(SkillTypes skillType)
+    {
+        return Skills[skillType].Level;
+    }
+
+    public int GetXPForSkill(SkillTypes skillType)
+    {
+        return Skills[skillType].XP;
+    }
+
+    public int GetXPToNextForSkill(SkillTypes skillType)
+    {
+        return Skills[skillType].XPToNextLevel;
+    }
 }

@@ -41,7 +41,7 @@ public partial class ActionPreviewBase : ComponentBase
         foreach (Requirement req in basicAction.Requirements)
         {
             string description = req.GetDescription();
-            bool isSatisfied = req.IsSatisfied(GameState);
+            bool isSatisfied = req.IsMet(GameState);
 
             if (isSatisfied) { continue; }
             string color = isSatisfied ? "positive" : "negative";

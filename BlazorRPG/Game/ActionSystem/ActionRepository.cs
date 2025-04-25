@@ -23,8 +23,8 @@ public class ActionRepository
 
     public void RegisterAction(ActionDefinition action)
     {
-        if (!_contentRegistry.Register<ActionDefinition>(action.Id, action))
-            throw new InvalidOperationException($"Duplicate action ID '{action.Id}'.");
+        if (!_contentRegistry.Register<ActionDefinition>(action.Name, action))
+            throw new InvalidOperationException($"Duplicate action ID '{action.Name}'.");
     }
 
     private ActionDefinition GetDefaultActionDefinition(
@@ -32,13 +32,11 @@ public class ActionRepository
         string locationSpotName,
         string locationName)
     {
-        ActionDefinition actionDefinition = new(actionName, actionName, 1, 50, EncounterTypes.Exploration, true)
+        ActionDefinition actionDefinition = new(actionName, actionName)
         {
             Goal = "Goal",
             Complication = "Complication",
             Description = "Description",
-            LocationName = locationName,
-            LocationSpotName = locationSpotName
         };
         return actionDefinition;
     }

@@ -28,8 +28,13 @@ public class EncounterStatusModel
     // Added properties
     public List<IEncounterTag> ActiveTags { get; }
     public Encounter EncounterInfo { get; }
-    public EncounterTypes EncounterType => EncounterInfo?.EncounterType ?? EncounterTypes.Exploration;
-
+    public EncounterTypes EncounterType
+    {
+        get
+        {
+            return EncounterInfo?.EncounterType ?? EncounterTypes.Exploration;
+        }
+    }
 
     public EncounterStatusModel(
         int currentTurn,

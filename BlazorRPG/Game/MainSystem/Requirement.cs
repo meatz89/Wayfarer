@@ -1,6 +1,6 @@
 ﻿public abstract class Requirement
 {
-    public abstract bool IsSatisfied(GameState gameState);
+    public abstract bool IsMet(GameState gameState);
     public abstract string GetDescription();
 }
 
@@ -15,7 +15,7 @@ public class SkillRequirement : Requirement
         RequiredLevel = requiredLevel;
     }
 
-    public override bool IsSatisfied(GameState gameState)
+    public override bool IsMet(GameState gameState)
     {
         return gameState.PlayerState.PlayerSkills.GetLevelForSkill(SkillType) >= RequiredLevel;
     }
@@ -23,6 +23,32 @@ public class SkillRequirement : Requirement
     public override string GetDescription()
     {
         return $"Skill Level Required: {SkillType} {RequiredLevel}";
+    }
+}
+
+public class TimeRequirement : Requirement
+{
+    public List<TimeWindow> PossibleTimeWindows { get; set; }
+
+    public TimeRequirement(List<TimeWindow> timeWindows)
+    {
+        PossibleTimeWindows = timeWindows;
+    }
+
+    public override bool IsMet(GameState gameState)
+    {
+        if(PossibleTimeWindows == null || PossibleTimeWindows.Count == 0)
+            return true;
+
+        return PossibleTimeWindows.Contains(gameState.WorldState.TimeWindow);
+    }
+
+    public override string GetDescription()
+    {
+        if(PossibleTimeWindows == null || PossibleTimeWindows.Count == 0) 
+            return "Any Time";
+
+        return $"Only Possible when one of: {string.Join(", ", PossibleTimeWindows)}";
     }
 }
 
@@ -35,7 +61,7 @@ public class EnergyRequirement : Requirement
         Amount = count;
     }
 
-    public override bool IsSatisfied(GameState gameState)
+    public override bool IsMet(GameState gameState)
     {
         return gameState.PlayerState.Energy >= Amount;
     }
@@ -43,6 +69,26 @@ public class EnergyRequirement : Requirement
     public override string GetDescription()
     {
         return $"Energy Required: {Amount}";
+    }
+}
+
+public class CoidRequirement : Requirement
+{
+    public int Amount { get; set; }
+
+    public CoidRequirement(int count)
+    {
+        Amount = count;
+    }
+
+    public override bool IsMet(GameState gameState)
+    {
+        return gameState.PlayerState.Coins >= Amount;
+    }
+
+    public override string GetDescription()
+    {
+        return $"Coid Required: {Amount}";
     }
 }
 
@@ -55,7 +101,7 @@ public class FoodRequirement : Requirement
         Amount = count;
     }
 
-    public override bool IsSatisfied(GameState gameState)
+    public override bool IsMet(GameState gameState)
     {
         return gameState.PlayerState.Food >= Amount;
     }
@@ -63,26 +109,6 @@ public class FoodRequirement : Requirement
     public override string GetDescription()
     {
         return $"Food Required: {Amount}";
-    }
-}
-
-public class MedicinalHerbsRequirement : Requirement
-{
-    public int Amount { get; set; }
-
-    public MedicinalHerbsRequirement(int count)
-    {
-        Amount = count;
-    }
-
-    public override bool IsSatisfied(GameState gameState)
-    {
-        return gameState.PlayerState.MedicinalHerbs >= Amount;
-    }
-
-    public override string GetDescription()
-    {
-        return $"Medicinal Herbs Required: {Amount}";
     }
 }
 
@@ -95,7 +121,7 @@ public class HealthRequirement : Requirement
         Count = count;
     }
 
-    public override bool IsSatisfied(GameState gameState)
+    public override bool IsMet(GameState gameState)
     {
         return gameState.PlayerState.Health >= Count;
     }
@@ -106,36 +132,56 @@ public class HealthRequirement : Requirement
     }
 }
 
-public class FocusRequirement : Requirement
+public class ConcentrationRequirement : Requirement
 {
     public int Count { get; }
 
-    public FocusRequirement(int count)
+    public ConcentrationRequirement(int count)
     {
         Count = count;
     }
 
-    public override bool IsSatisfied(GameState gameState)
+    public override bool IsMet(GameState gameState)
     {
         return gameState.PlayerState.Concentration >= Count;
     }
 
     public override string GetDescription()
     {
-        return $"Focus Required: {Count}";
+        return $"Concentration Required: {Count}";
     }
 }
 
-public class CoinsRequirement : Requirement
+public class ConfidenceRequirement : Requirement
 {
     public int Count { get; }
 
-    public CoinsRequirement(int count)
+    public ConfidenceRequirement(int count)
     {
         Count = count;
     }
 
-    public override bool IsSatisfied(GameState gameState)
+    public override bool IsMet(GameState gameState)
+    {
+        return gameState.PlayerState.Confidence >= Count;
+    }
+
+    public override string GetDescription()
+    {
+        return $"ConfidenceRequirement Required: {Count}";
+    }
+}
+
+public class CoinRequirement : Requirement
+{
+    public int Count { get; }
+
+    public CoinRequirement(int count)
+    {
+        Count = count;
+    }
+
+    public override bool IsMet(GameState gameState)
     {
         return gameState.PlayerState.Coins >= Count;
     }
@@ -155,7 +201,7 @@ public class ItemRequirement : Requirement
         ResourceType = resourceType;
     }
 
-    public override bool IsSatisfied(GameState gameState)
+    public override bool IsMet(GameState gameState)
     {
         return gameState.PlayerState.Inventory.GetItemCount(ResourceType.ToString()) > 0;
     }
@@ -177,7 +223,7 @@ public class ResourceRequirement : Requirement
         Count = count;
     }
 
-    public override bool IsSatisfied(GameState gameState)
+    public override bool IsMet(GameState gameState)
     {
         return gameState.PlayerState.Inventory.GetItemCount(ResourceType.ToString()) >= Count;
     }
@@ -197,7 +243,7 @@ public class InventorySlotsRequirement : Requirement
         Count = count;
     }
 
-    public override bool IsSatisfied(GameState gameState)
+    public override bool IsMet(GameState gameState)
     {
         return gameState.PlayerState.Inventory.GetEmptySlots() >= Count;
     }
@@ -219,7 +265,7 @@ public class RelationshipRequirement : Requirement
         Level = level;
     }
 
-    public override bool IsSatisfied(GameState gameState)
+    public override bool IsMet(GameState gameState)
     {
         return gameState.PlayerState.GetRelationshipLevel(Character) >= Level;
     }
@@ -239,7 +285,7 @@ public class PlayerNegativeStatusRequirement : Requirement
         Status = property;
     }
 
-    public override bool IsSatisfied(GameState gameState)
+    public override bool IsMet(GameState gameState)
     {
         return gameState.PlayerState.HasStatusEffect(Status);
     }

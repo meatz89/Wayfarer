@@ -1,5 +1,4 @@
-﻿
-public class ContentRegistry
+﻿public class ContentRegistry
 {
     private readonly Dictionary<string, object> _items = new(StringComparer.OrdinalIgnoreCase);
 
@@ -27,7 +26,9 @@ public class ContentRegistry
     }
 
     public List<T> GetAllOfType<T>()
-        => _items.Values.OfType<T>().ToList();
+    {
+        return _items.Values.OfType<T>().ToList();
+    }
 
     public List<string> ValidateReferences<T>(List<string> ids)
     {

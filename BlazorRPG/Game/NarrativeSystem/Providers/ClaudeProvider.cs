@@ -14,7 +14,13 @@ public class ClaudeProvider : IAIProvider
     private const int InitialDelayMilliseconds = 1000;
     private readonly Random _jitterer = new Random();
 
-    public string Name => "Anthropic Claude";
+    public string Name
+    {
+        get
+        {
+            return "Anthropic Claude";
+        }
+    }
 
     public ClaudeProvider(IConfiguration configuration, ILogger<EncounterSystem> logger)
     {
@@ -33,7 +39,10 @@ public class ClaudeProvider : IAIProvider
         List<ConversationEntry> messagesList = messages.ToList();
 
         // Find and extract system message
-        ConversationEntry systemEntry = messagesList.FirstOrDefault(m => m.Role.ToLower() == "system");
+        ConversationEntry systemEntry = messagesList.FirstOrDefault(m =>
+        {
+            return m.Role.ToLower() == "system";
+        });
         string systemMessage = null;
         if (systemEntry != null)
         {
@@ -42,10 +51,13 @@ public class ClaudeProvider : IAIProvider
         }
 
         // Format messages for Claude API
-        var formattedMessages = messagesList.Select(m => new
+        var formattedMessages = messagesList.Select(m =>
         {
-            role = m.Role.ToLower() == "assistant" ? "assistant" : "user",
-            content = m.Content
+            return new
+            {
+                role = m.Role.ToLower() == "assistant" ? "assistant" : "user",
+                content = m.Content
+            };
         }).ToArray();
 
         return await ExecuteWithRetryAsync(formattedMessages, systemMessage, model, fallbackModel);

@@ -12,8 +12,8 @@ public static class ActionJsonParser
 
         if (result.Action != null)
         {
-            if (!contentRegistry.Register<ActionDefinition>(result.Action.Id, result.Action))
-                errors.Add($"Duplicate action ID: {result.Action.Id}");
+            if (!contentRegistry.Register<ActionDefinition>(result.Action.Name, result.Action))
+                errors.Add($"Duplicate action ID: {result.Action.Name}");
 
             // e.g., validate any referenced character unlocks
             // errors.AddRange(contentRegistry.ValidateReferences<Character>(result.Action.YieldCharacterIds));
@@ -78,14 +78,10 @@ public static class ActionJsonParser
             BasicActionType = ParseBasicActionType(actionTypeStr);
         }
 
-        ActionDefinition model = new ActionDefinition(Name, Name, 1, 50, BasicActionType, true);
-
-        // Extract basic text fields
+        ActionDefinition model = new ActionDefinition(Name, Name);
         model.Description = GetStringProperty(element, "description", model.Description);
         model.Goal = GetStringProperty(element, "goal", model.Goal);
         model.Complication = GetStringProperty(element, "complication", model.Complication);
-        model.LocationName = GetStringProperty(element, "locationName", model.LocationName);
-        model.LocationSpotName = GetStringProperty(element, "spotName", model.LocationSpotName);
 
         return model;
     }

@@ -62,7 +62,10 @@ public class NarrativeSummaryBuilder
     {
         // Get only the most recent event to keep things concise
         NarrativeEvent? mostRecentEvent = context.Events
-            .OrderByDescending(e => e.TurnNumber)
+            .OrderByDescending(e =>
+            {
+                return e.TurnNumber;
+            })
             .FirstOrDefault();
 
         if (mostRecentEvent == null)

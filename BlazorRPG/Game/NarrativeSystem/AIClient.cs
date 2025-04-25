@@ -21,10 +21,13 @@
 
     public async Task<string> GetCompletionAsync(IEnumerable<ConversationEntry> conversationMessages, string model, string fallbackModel)
     {
-        List<ConversationEntry> messages = conversationMessages.Select(conversationMessage => new ConversationEntry
+        List<ConversationEntry> messages = conversationMessages.Select(conversationMessage =>
         {
-            Role = conversationMessage.Role.ToLower(), // Ensure role is lowercase (system, user, assistant)
-            Content = conversationMessage.Content
+            return new ConversationEntry
+            {
+                Role = conversationMessage.Role.ToLower(), // Ensure role is lowercase (system, user, assistant)
+                Content = conversationMessage.Content
+            };
         }).ToList();
 
         return await GetCompletionAsync(messages, model, fallbackModel);

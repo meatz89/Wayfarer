@@ -1,9 +1,8 @@
 ﻿public class Location
 {
-    public string Name { get; set; }
+    public string Name { get; private set; }
     public string Description { get; set; }
     public List<string> ConnectedTo { get; set; } = new List<string>();
-    public List<LocationSpot> LocationSpots { get; set; } = new List<LocationSpot>();
     public int TravelTimeMinutes { get; set; }
     public string TravelDescription { get; set; }
     public int Difficulty { get; set; }
@@ -21,18 +20,8 @@
     public int VisitCount { get; set; }
     public bool PlayerKnowledge { get; set; }
 
-    public void AddSpot(LocationSpot spot)
+    public Location(string name)
     {
-        LocationSpots.Add(spot);
-    }
-
-    public void OnTimeChanged(TimeWindows newTimeWindow)
-    {
-        EnvironmentalPropertyManager.UpdateLocationForTime(this, newTimeWindow);
-
-        foreach (LocationSpot spot in LocationSpots)
-        {
-            spot.OnTimeChanged(newTimeWindow);
-        }
+        Name = name;
     }
 }

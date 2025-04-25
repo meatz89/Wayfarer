@@ -340,23 +340,12 @@
         KnownLocationSpots.Add(locationSpot);
     }
 
-    internal void AddFood(int amount)
-    {
-        throw new NotImplementedException();
-    }
-
-    internal void AddEnergy(int amount)
-    {
-        throw new NotImplementedException();
-    }
-
     internal int GetRelationshipLevel(string character)
     {
-        throw new NotImplementedException();
+        return 1;
     }
 
     internal void UpdateRelationship(object characterId, object delta)
     {
-        throw new NotImplementedException();
     }
 }

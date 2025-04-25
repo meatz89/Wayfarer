@@ -61,17 +61,26 @@
         List<ConversationEntry> optimizedHistory = new List<ConversationEntry>();
 
         // Always include system message
-        ConversationEntry? systemMessage = fullHistory.FirstOrDefault(m => m.Type == MessageType.System);
+        ConversationEntry? systemMessage = fullHistory.FirstOrDefault(m =>
+        {
+            return m.Type == MessageType.System;
+        });
         if (systemMessage != null)
         {
             optimizedHistory.Add(new ConversationEntry { Role = systemMessage.Role, Content = systemMessage.Content });
         }
 
         // Always include introduction with memory and its response
-        ConversationEntry? introPrompt = fullHistory.FirstOrDefault(m => m.Type == MessageType.Introduction && m.Role == "user");
+        ConversationEntry? introPrompt = fullHistory.FirstOrDefault(m =>
+        {
+            return m.Type == MessageType.Introduction && m.Role == "user";
+        });
         string simplifiedIntro = introPrompt!.Content;
 
-        ConversationEntry? introResponse = fullHistory.FirstOrDefault(m => m.Type == MessageType.Introduction && m.Role == "assistant");
+        ConversationEntry? introResponse = fullHistory.FirstOrDefault(m =>
+        {
+            return m.Type == MessageType.Introduction && m.Role == "assistant";
+        });
 
         if (introPrompt != null)
             optimizedHistory.Add(new ConversationEntry { Role = introPrompt.Role, Content = simplifiedIntro });
@@ -112,7 +121,10 @@
         }
 
         // Include the current prompt we're about to send
-        ConversationEntry? currentPrompt = fullHistory.LastOrDefault(m => m.Role == "user");
+        ConversationEntry? currentPrompt = fullHistory.LastOrDefault(m =>
+        {
+            return m.Role == "user";
+        });
         if (currentPrompt != null)
         {
             // Don't add it again if it's already the last one we added

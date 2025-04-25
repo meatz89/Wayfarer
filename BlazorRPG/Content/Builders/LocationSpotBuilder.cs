@@ -87,17 +87,14 @@
         }
 
         LocationSpot locationSpot =
-            new LocationSpot()
+            new LocationSpot(name, locationName)
             {
-                Name = name,
                 Description = description,
-                LocationName = locationName,
                 Population = population ?? Population.Quiet,
                 Atmosphere = atmosphere ?? Atmosphere.Calm,
                 Physical = physical ?? Physical.Confined,
                 Illumination = illumination ?? Illumination.Bright,
                 PlayerKnowledge = playerKnowledge,
-                BaseActionIds = actionIds,
             };
 
         if (character != null)
