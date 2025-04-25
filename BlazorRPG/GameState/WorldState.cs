@@ -80,17 +80,26 @@
 
     public Location GetLocation(string name)
     {
-        return Locations.FirstOrDefault(x => x.Name == name); ;
+        return Locations.FirstOrDefault(x =>
+        {
+            return x.Name == name;
+        }); ;
     }
 
     public Character GetCharacter(string name)
     {
-        return characters.FirstOrDefault(x => x.Name == name);
+        return characters.FirstOrDefault(x =>
+        {
+            return x.Name == name;
+        });
     }
 
     public Opportunity GetOpportunity(string name)
     {
-        return opportunities.FirstOrDefault(x => x.Name == name);
+        return opportunities.FirstOrDefault(x =>
+        {
+            return x.Name == name;
+        });
     }
 
 
@@ -127,38 +136,24 @@
     // Game time
     public int CurrentTimeInHours { get; set; }
     public int CurrentTimeMinutes { get; set; }
-    public TimeWindows WorldTime { get; set; }
+    public TimeWindow TimeWindow { get; set; }
 
 
     // Current location tracking
-    public Location CurrentLocation { get; set; }
-    public LocationSpot CurrentLocationSpot { get; set; }
+    public Location CurrentLocation { get; private set; }
+    public LocationSpot CurrentLocationSpot { get; private set; }
 
     // Navigation options
     public List<UserLocationTravelOption> CurrentTravelOptions { get; set; } = new();
 
     public int CurrentDay { get; set; } = 1;
 
-
-    public void SetCurrentLocation(Location location)
+    public void SetCurrentLocation(Location location, LocationSpot currentLocationSpot)
     {
         CurrentLocation = location;
+        SetCurrentLocationSpot(currentLocationSpot);
 
         if (location == null) return;
-
-        if (location.LocationSpots == null || !location.LocationSpots.Any())
-        {
-            Console.WriteLine($"WARNING: Location {location.Name} has no spots!");
-            return;
-        }
-
-        // Ensure we have a current location spot
-        if (location.LocationSpots?.Any() == true && (CurrentLocationSpot == null || !location.LocationSpots.Contains(CurrentLocationSpot)))
-        {
-            Console.WriteLine($"Setting location spot to {location.LocationSpots.First().Name} in OnPlayerEnterLocation");
-            SetCurrentLocationSpot(location.LocationSpots.First());
-        }
-
     }
 
     public void SetCurrentLocationSpot(LocationSpot locationSpot)

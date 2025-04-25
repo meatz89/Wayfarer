@@ -1,37 +1,50 @@
-﻿/// <summary>
-/// Loads and registers all content into the contentRegistry.
-/// </summary>
-public static class ContentBootstrapper
+﻿public static class ContentBootstrapper
 {
     public static ContentRegistry InitializeRegistry()
     {
-        ContentRegistry contentRegistry = new ContentRegistry();
-        RegisterLocations(contentRegistry);
-        RegisterActions(contentRegistry);
+        var contentRegistry = new ContentRegistry();
 
+        // 1) register spots first
+        RegisterLocationSpots(contentRegistry);
+
+        // 2) then register only those locations that actually have spots
+        RegisterLocations(contentRegistry);
+
+        RegisterActions(contentRegistry);
         return contentRegistry;
+    }
+
+    private static void RegisterLocationSpots(ContentRegistry contentRegistry)
+    {
+        foreach (var locSpot in WorldLocationsContent.AllLocationSpots)
+        {
+            var spotId = $"{locSpot.LocationName}:{locSpot.Name}";
+            contentRegistry.Register<LocationSpot>(spotId, locSpot);
+        }
     }
 
     private static void RegisterLocations(ContentRegistry contentRegistry)
     {
-        // Register Locations and their Spots
-        foreach (Location loc in WorldLocationsContent.AllLocations)
+        // Build a set of all location names that have at least one spot
+        var locationsWithSpots = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var spot in contentRegistry.GetAllOfType<LocationSpot>())
+            locationsWithSpots.Add(spot.LocationName);
+
+        foreach (var loc in WorldLocationsContent.AllLocations)
         {
+            if (!locationsWithSpots.Contains(loc.Name))
+                throw new InvalidOperationException(
+                    $"Cannot register Location '{loc.Name}' – no LocationSpot has been registered for it.");
+
             contentRegistry.Register<Location>(loc.Name, loc);
-            foreach (LocationSpot spot in loc.LocationSpots)
-            {
-                string spotId = $"{loc.Name}:{spot.Name}";
-                contentRegistry.Register<LocationSpot>(spotId, spot);
-            }
         }
     }
 
     private static void RegisterActions(ContentRegistry contentRegistry)
     {
-        // Register Actions
-        foreach (ActionDefinition action in WorldActionContent.GetAllTemplates())
+        foreach (var action in WorldActionContent.GetAllTemplates())
         {
-            contentRegistry.Register<ActionDefinition>(action.Id, action);
+            contentRegistry.Register<ActionDefinition>(action.Name, action);
         }
     }
 }

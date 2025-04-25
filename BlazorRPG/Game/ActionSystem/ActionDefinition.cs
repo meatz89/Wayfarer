@@ -1,31 +1,34 @@
 ﻿public class ActionDefinition
 {
     public string Id { get; set; }
-    public int Difficulty { get; set; }
-    public int EncounterChance { get; set; }
-    public bool IsRepeatable { get; set; }
+    public string Name { get; set; }
 
-    public List<TimeWindows> AvailableWindows { get; set; }
     public string Description { get; set; }
-    public string LocationName { get; set; }
-    public string LocationSpotName { get; set; }
+    public int Difficulty { get; set; } = 1;
     public string MoveToLocation { get; set; }
     public string MoveToLocationSpot { get; set; }
-
-    public List<Requirement> Requirements { get; set; }
-    public List<Outcome> Costs { get; set; }
-    public List<Outcome> Yields { get; set; }
 
     public string Goal { get; set; }
     public string Complication { get; set; }
     public EncounterTypes EncounterType { get; set; }
+    public bool IsOneTimeEncounter { get; set; }
 
-    public ActionDefinition(string actionId, string name, int difficulty, int encounterChance, EncounterTypes encounterType, bool isRepeatable)
+    public int SpotXp { get; set; }
+
+    public List<TimeWindow> TimeWindows { get; set; }
+    public int EnergyCost { get; set; }
+    public int CoinCost { get; set; }
+    public int ConfidenceCost { get; set; }
+    public int ConcentrationCost { get; set; }
+    public int TimeCost { get; set; }
+
+    public int CoinGain { get; set; }
+    public int RestoresEnergy { get; set; }
+    public List<RelationshipChange> RelationshipGains { get; set; } = new();
+
+    public ActionDefinition(string id, string name)
     {
-        Id = name;
-        Difficulty = difficulty;
-        EncounterChance = encounterChance;
-        EncounterType = encounterType;
-        IsRepeatable = isRepeatable;
+        Id = id;
+        Name = name;
     }
 }

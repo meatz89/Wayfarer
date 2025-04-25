@@ -48,8 +48,14 @@ public class PromptManager
         string template = _promptTemplates[INTRO_MD];
 
         // Get primary approach values
-        string primaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).First().Key.ToString();
-        string secondaryApproach = state.ApproachTags.OrderByDescending(t => t.Value).Skip(1).First().Key.ToString();
+        string primaryApproach = state.ApproachTags.OrderByDescending(t =>
+        {
+            return t.Value;
+        }).First().Key.ToString();
+        string secondaryApproach = state.ApproachTags.OrderByDescending(t =>
+        {
+            return t.Value;
+        }).Skip(1).First().Key.ToString();
 
         // Format environment and NPC details
         string environmentDetails = $"A {context.locationSpotName.ToLower()} in a {context.LocationName.ToLower()} with difficulty level {state.EncounterInfo?.EncounterDifficulty ?? 1}";
@@ -94,7 +100,10 @@ public class PromptManager
 
         // Filter characters by current location
         List<Character> locationCharacters = worldState.GetCharacters()
-            .Where(c => c.Location.Equals(locationName, StringComparison.OrdinalIgnoreCase))
+            .Where(c =>
+            {
+                return c.Location.Equals(locationName, StringComparison.OrdinalIgnoreCase);
+            })
             .ToList();
 
         if (locationCharacters.Count == 0)
@@ -218,7 +227,10 @@ public class PromptManager
             .Replace("{NEW_PRESSURE}", state.Pressure.ToString())
             .Replace("{OLD_PRESSURE}", previousPressure.ToString())
             .Replace("{MAX_PRESSURE}", state.MaxPressure.ToString())
-            .Replace("{ACTIVE_TAGS}", FormatTags(state.ActiveTags.Select(x => x.NarrativeName).ToList()))
+            .Replace("{ACTIVE_TAGS}", FormatTags(state.ActiveTags.Select(x =>
+            {
+                return x.NarrativeName;
+            }).ToList()))
             .Replace("{SELECTED_CHOICE}", choiceDescription.ShorthandName)
             .Replace("{CHOICE_DESCRIPTION}", choiceDescription.FullDescription)
             .Replace("{OLD_HEALTH}", (state.Health - outcome.HealthChange).ToString())
@@ -259,8 +271,14 @@ public class PromptManager
 
         // Format active narrative tags
         string narrativeTagsInfo = string.Join(Environment.NewLine,
-            state.ActiveTags.Where(t => t is NarrativeTag)
-            .Select(tag => $"- {tag.NarrativeName}: {((NarrativeTag)tag).GetEffectDescription()}"));
+            state.ActiveTags.Where(t =>
+            {
+                return t is NarrativeTag;
+            })
+            .Select(tag =>
+            {
+                return $"- {tag.NarrativeName}: {((NarrativeTag)tag).GetEffectDescription()}";
+            }));
 
         // Build choices info without StringBuilder - do it conditionally
         string choicesInfo = "";
@@ -312,9 +330,15 @@ public class PromptManager
 
             // Only add strategic effects if there are any
             List<ChoiceProjection.ValueComponent> momentumComponents = projection.MomentumComponents
-                .Where(c => c.Source != "Momentum Choice Base").ToList();
+                .Where(c =>
+                {
+                    return c.Source != "Momentum Choice Base";
+                }).ToList();
             List<ChoiceProjection.ValueComponent> pressureComponents = projection.PressureComponents
-                .Where(c => c.Source != "Pressure Choice Base").ToList();
+                .Where(c =>
+                {
+                    return c.Source != "Pressure Choice Base";
+                }).ToList();
 
             // Add this choice's text to the overall choices info
             choicesInfo += choiceText;
@@ -330,7 +354,10 @@ public class PromptManager
             .Replace("{MAX_MOMENTUM}", state.MaxMomentum.ToString())
             .Replace("{PRESSURE}", state.Pressure.ToString())
             .Replace("{MAX_PRESSURE}", state.MaxPressure.ToString())
-            .Replace("{ACTIVE_TAGS}", FormatTags(state.ActiveTags.Select(x => x.NarrativeName).ToList()))
+            .Replace("{ACTIVE_TAGS}", FormatTags(state.ActiveTags.Select(x =>
+            {
+                return x.NarrativeName;
+            }).ToList()))
             .Replace("{ENCOUNTER_GOAL}", context.ActionImplementation.Goal)
             .Replace("{ENCOUNTER_COMPLICATION}", context.ActionImplementation.Complication)
             .Replace("{HEALTH}", state.Health.ToString())
@@ -628,17 +655,35 @@ public class PromptManager
             List<string> significantTags = new List<string>();
 
             // Only include approach tags with values of 2 or higher
-            foreach (KeyValuePair<ApproachTags, int> tag in state.ApproachTags.Where(t => t.Value >= 2).OrderByDescending(t => t.Value))
+            foreach (KeyValuePair<ApproachTags, int> tag in state.ApproachTags.Where(t =>
+            {
+                return t.Value >= 2;
+            }).OrderByDescending(t =>
+{
+    return t.Value;
+}))
             {
                 significantTags.Add($"{tag.Key} {tag.Value}");
             }
             // Only include approach tags with values of 2 or higher
-            foreach (KeyValuePair<ApproachTags, int> tag in state.ApproachTags.Where(t => t.Value >= 2).OrderByDescending(t => t.Value))
+            foreach (KeyValuePair<ApproachTags, int> tag in state.ApproachTags.Where(t =>
+            {
+                return t.Value >= 2;
+            }).OrderByDescending(t =>
+{
+    return t.Value;
+}))
             {
                 significantTags.Add($"{tag.Key} {tag.Value}");
             }
             // Only include focus tags with values of 2 or higher
-            foreach (KeyValuePair<FocusTags, int> tag in state.FocusTags.Where(t => t.Value >= 2).OrderByDescending(t => t.Value))
+            foreach (KeyValuePair<FocusTags, int> tag in state.FocusTags.Where(t =>
+            {
+                return t.Value >= 2;
+            }).OrderByDescending(t =>
+{
+    return t.Value;
+}))
             {
                 significantTags.Add($"{tag.Key} {tag.Value}");
             }
@@ -658,7 +703,10 @@ public class PromptManager
                 return "None";
 
             // Only include significant changes (value > 1)
-            List<KeyValuePair<TKey, int>> significantChanges = tagChanges.Where(c => Math.Abs(c.Value) > 1).ToList();
+            List<KeyValuePair<TKey, int>> significantChanges = tagChanges.Where(c =>
+            {
+                return Math.Abs(c.Value) > 1;
+            }).ToList();
             if (significantChanges.Count == 0)
                 return "Minor changes only";
 
@@ -691,7 +739,10 @@ public class PromptManager
         public (string, string) GetSignificantApproachTags(EncounterStatusModel state)
         {
             List<KeyValuePair<ApproachTags, int>> orderedTags = state.ApproachTags
-                .OrderByDescending(t => t.Value)
+                .OrderByDescending(t =>
+                {
+                    return t.Value;
+                })
                 .ToList();
             string primary = orderedTags.Count > 0 ? orderedTags[0].Key.ToString() : "None";
             string secondary = orderedTags.Count > 1 ? orderedTags[1].Key.ToString() : "None";
@@ -701,7 +752,10 @@ public class PromptManager
         public (string, string) GetSignificantFocusTags(EncounterStatusModel state)
         {
             List<KeyValuePair<FocusTags, int>> orderedTags = state.FocusTags
-                .OrderByDescending(t => t.Value)
+                .OrderByDescending(t =>
+                {
+                    return t.Value;
+                })
                 .ToList();
             string primary = orderedTags.Count > 0 ? orderedTags[0].Key.ToString() : "None";
             string secondary = orderedTags.Count > 1 ? orderedTags[1].Key.ToString() : "None";
@@ -712,13 +766,19 @@ public class PromptManager
         {
             List<string> changes = new List<string>();
             // Format approach tag changes
-            foreach (KeyValuePair<ApproachTags, int> change in ApproachTagChanges.Where(c => c.Value != 0))
+            foreach (KeyValuePair<ApproachTags, int> change in ApproachTagChanges.Where(c =>
+            {
+                return c.Value != 0;
+            }))
             {
                 changes.Add($"\n- Approach Tag Changes: ");
                 changes.Add($"{change.Key} {(change.Value > 0 ? "+" : "")}{change.Value}");
             }
             // Format focus tag changes
-            foreach (KeyValuePair<FocusTags, int> change in FocusTagChanges.Where(c => c.Value != 0))
+            foreach (KeyValuePair<FocusTags, int> change in FocusTagChanges.Where(c =>
+            {
+                return c.Value != 0;
+            }))
             {
                 changes.Add($"\n- Focus Tag Changes: ");
                 changes.Add($"{change.Key} {(change.Value > 0 ? "+" : "")}{change.Value}");
@@ -741,8 +801,11 @@ public class PromptManager
         {
             // Since EncounterStatus doesn't expose tag objects directly, work with names
             List<string> activeNarrativeTagNames = state.ActiveTagNames
-                .Where(name => name.Contains("Market") || name.Contains("Territory") ||
-                               name.Contains("Fight") || name.Contains("Weapons"))
+                .Where(name =>
+                {
+                    return name.Contains("Market") || name.Contains("Territory") ||
+                                                   name.Contains("Fight") || name.Contains("Weapons");
+                })
                 .ToList();
 
             if (activeNarrativeTagNames.Count == 0)
@@ -762,8 +825,11 @@ public class PromptManager
         {
             // Since EncounterStatus doesn't expose tag objects directly, work with names
             List<string> activeStrategicTagNames = state.ActiveTagNames
-                .Where(name => !name.Contains("Market") && !name.Contains("Territory") &&
-                              !name.Contains("Fight") && !name.Contains("Weapons"))
+                .Where(name =>
+                {
+                    return !name.Contains("Market") && !name.Contains("Territory") &&
+                                                  !name.Contains("Fight") && !name.Contains("Weapons");
+                })
                 .ToList();
 
             if (activeStrategicTagNames.Count == 0)

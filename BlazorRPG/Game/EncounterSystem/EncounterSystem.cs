@@ -2,7 +2,7 @@
 {
     private readonly GameState gameState;
     private readonly IConfiguration configuration;
-    private readonly CardRepository choiceRepository;
+    private readonly ChoiceRepository choiceRepository;
     private readonly ILogger<EncounterSystem> logger;
     private AIProviderType currentAIProvider;
 
@@ -21,7 +21,7 @@
         ResourceManager resourceManager,
         NarrativeContextManager narrativeContextManager,
         NarrativeService narrativeService,
-        CardRepository choiceRepository,
+        ChoiceRepository choiceRepository,
         EncounterFactory encounterFactory,
         WorldStateInputBuilder worldStateInputCreator,
         IConfiguration configuration,
@@ -60,7 +60,7 @@
     public async Task<EncounterManager> GenerateEncounter(
         string id,
         Location location,
-        string locationSpot,
+        LocationSpot locationSpot,
         EncounterContext context,
         WorldState worldState,
         PlayerState playerState,

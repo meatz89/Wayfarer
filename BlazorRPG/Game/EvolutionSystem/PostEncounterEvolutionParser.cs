@@ -43,37 +43,55 @@ public class PostEncounterEvolutionParser
             result.RelationshipChanges = GetArrayOfType(
                 root,
                 "relationshipChanges",
-                element => ParseRelationshipChange(element));
+                element =>
+                {
+                    return ParseRelationshipChange(element);
+                });
 
             // Parse locations
             result.Locations = GetArrayOfType(
                 root,
                 "locations",
-                element => ParseLocationDefinition(element));
+                element =>
+                {
+                    return ParseLocationDefinition(element);
+                });
 
             // Parse location spots
             result.LocationSpots = GetArrayOfType(
                 root,
                 "locationSpots",
-                element => ParseLocationSpotDefinition(element));
+                element =>
+                {
+                    return ParseLocationSpotDefinition(element);
+                });
 
             // Parse action definitions
             result.ActionDefinitions = GetArrayOfType(
                 root,
                 "actionDefinitions",
-                element => ParseActionDefinition(element));
+                element =>
+                {
+                    return ParseActionDefinition(element);
+                });
 
             // Parse characters
             result.Characters = GetArrayOfType(
                 root,
                 "characters",
-                element => ParseCharacter(element));
+                element =>
+                {
+                    return ParseCharacter(element);
+                });
 
             // Parse opportunities
             result.Opportunities = GetArrayOfType(
                 root,
                 "opportunities",
-                element => ParseOpportunity(element));
+                element =>
+                {
+                    return ParseOpportunity(element);
+                });
         }
         catch (Exception ex)
         {
@@ -128,12 +146,9 @@ public class PostEncounterEvolutionParser
 
         foreach (LocationSpotDefinition spotDef in flatResponse.LocationSpots)
         {
-            LocationSpot spot = new LocationSpot
+            LocationSpot spot = new LocationSpot(spotDef.Name, spotDef.LocationName)
             {
-                Name = spotDef.Name,
                 Description = spotDef.Description,
-                LocationName = spotDef.LocationName,
-                BaseActionIds = new List<string>()
             };
 
             // Add to spots by location
@@ -144,7 +159,10 @@ public class PostEncounterEvolutionParser
             spotsByLocation[spotDef.LocationName].Add(spot);
 
             // Also add to NewLocationSpots if it's not part of a new location
-            if (!flatResponse.Locations.Any(l => l.Name == spotDef.LocationName))
+            if (!flatResponse.Locations.Any(l =>
+            {
+                return l.Name == spotDef.LocationName;
+            }))
             {
                 result.NewLocationSpots.Add(spot);
             }
@@ -153,12 +171,10 @@ public class PostEncounterEvolutionParser
         // Create locations with their spots
         foreach (LocationDefinition locDef in flatResponse.Locations)
         {
-            Location location = new Location
+            Location location = new Location(locDef.Name)
             {
-                Name = locDef.Name,
                 Description = locDef.Description,
                 Difficulty = locDef.Difficulty,
-                // Forward progression additions
                 Depth = locDef.Depth,
                 LocationType = ParseLocationType(locDef.LocationType),
                 AvailableServices = ParseServices(locDef.AvailableServices),
@@ -166,15 +182,8 @@ public class PostEncounterEvolutionParser
                 DiscoveryBonusCoins = locDef.DiscoveryBonusCoins,
                 HasBeenVisited = false,
                 VisitCount = 0,
-                ConnectedTo = locDef.ConnectedTo,
-                LocationSpots = new List<LocationSpot>()
+                ConnectedTo = locDef.ConnectedTo
             };
-
-            // Add spots for this location
-            if (spotsByLocation.TryGetValue(locDef.Name, out List<LocationSpot>? spots))
-            {
-                location.LocationSpots.AddRange(spots);
-            }
 
             result.NewLocations.Add(location);
         }
@@ -210,77 +219,95 @@ public class PostEncounterEvolutionParser
 
     private RelationshipChange ParseRelationshipChange(JsonElement element)
     {
-        return SafeParseEntity("relationship change", () => new RelationshipChange
+        return SafeParseEntity("relationship change", () =>
         {
-            CharacterName = GetStringProperty(element, "characterName", "Unknown Character"),
-            ChangeAmount = GetIntProperty(element, "changeAmount", 0),
-            Reason = GetStringProperty(element, "reason", "Unspecified reason")
+            return new RelationshipChange
+            {
+                CharacterName = GetStringProperty(element, "characterName", "Unknown Character"),
+                ChangeAmount = GetIntProperty(element, "changeAmount", 0),
+                Reason = GetStringProperty(element, "reason", "Unspecified reason")
+            };
         });
     }
 
     private LocationDefinition ParseLocationDefinition(JsonElement element)
     {
-        return SafeParseEntity("location", () => new LocationDefinition
+        return SafeParseEntity("location", () =>
         {
-            Name = GetStringProperty(element, "name", "Unnamed Location"),
-            Description = GetStringProperty(element, "description", "No description available."),
-            Difficulty = GetIntProperty(element, "difficulty", 1),
-            Depth = GetIntProperty(element, "depth", 0),
-            LocationType = GetStringProperty(element, "locationType", "Connective"),
-            AvailableServices = GetStringArray(element, "availableServices"),
-            DiscoveryBonusXP = GetIntProperty(element, "discoveryBonusXP", 10),
-            DiscoveryBonusCoins = GetIntProperty(element, "discoveryBonusCoins", 5),
-            ConnectedTo = GetStringArrayOrSingle(element, "connectedTo"),
-            EnvironmentalProperties = GetStringArray(element, "environmentalProperties")
+            return new LocationDefinition
+            {
+                Name = GetStringProperty(element, "name", "Unnamed Location"),
+                Description = GetStringProperty(element, "description", "No description available."),
+                Difficulty = GetIntProperty(element, "difficulty", 1),
+                Depth = GetIntProperty(element, "depth", 0),
+                LocationType = GetStringProperty(element, "locationType", "Connective"),
+                AvailableServices = GetStringArray(element, "availableServices"),
+                DiscoveryBonusXP = GetIntProperty(element, "discoveryBonusXP", 10),
+                DiscoveryBonusCoins = GetIntProperty(element, "discoveryBonusCoins", 5),
+                ConnectedTo = GetStringArrayOrSingle(element, "connectedTo"),
+                EnvironmentalProperties = GetStringArray(element, "environmentalProperties")
+            };
         });
     }
 
     private LocationSpotDefinition ParseLocationSpotDefinition(JsonElement element)
     {
-        return SafeParseEntity("location spot", () => new LocationSpotDefinition
+        return SafeParseEntity("location spot", () =>
         {
-            Name = GetStringProperty(element, "name", "Unnamed Spot"),
-            Description = GetStringProperty(element, "description", "No description available."),
-            LocationName = GetStringProperty(element, "locationName", "Unknown Location")
+            return new LocationSpotDefinition
+            {
+                Name = GetStringProperty(element, "name", "Unnamed Spot"),
+                Description = GetStringProperty(element, "description", "No description available."),
+                LocationName = GetStringProperty(element, "locationName", "Unknown Location")
+            };
         });
     }
 
     private EvolutionActionTemplate ParseActionDefinition(JsonElement element)
     {
-        return SafeParseEntity("action definition", () => new EvolutionActionTemplate
+        return SafeParseEntity("action definition", () =>
         {
-            Name = GetStringProperty(element, "name", "Unnamed Action"),
-            Description = GetStringProperty(element, "description", "No description available."),
-            Goal = GetStringProperty(element, "goal", "Unknown goal"),
-            Complication = GetStringProperty(element, "complication", "Unknown complication"),
-            ActionType = GetStringProperty(element, "actionType", "Discuss"),
-            SpotName = GetStringProperty(element, "spotName", "Unknown Spot"),
-            LocationName = GetStringProperty(element, "locationName", "Unknown Location"),
-            IsRepeatable = GetBoolProperty(element, "isRepeatable", false),
-            EnergyCost = GetIntProperty(element, "energyCost", 1)
+            return new EvolutionActionTemplate
+            {
+                Name = GetStringProperty(element, "name", "Unnamed Action"),
+                Description = GetStringProperty(element, "description", "No description available."),
+                Goal = GetStringProperty(element, "goal", "Unknown goal"),
+                Complication = GetStringProperty(element, "complication", "Unknown complication"),
+                ActionType = GetStringProperty(element, "actionType", "Discuss"),
+                SpotName = GetStringProperty(element, "spotName", "Unknown Spot"),
+                LocationName = GetStringProperty(element, "locationName", "Unknown Location"),
+                IsRepeatable = GetBoolProperty(element, "isRepeatable", false),
+                EnergyCost = GetIntProperty(element, "energyCost", 1)
+            };
         });
     }
 
     private Character ParseCharacter(JsonElement element)
     {
-        return SafeParseEntity("character", () => new Character
+        return SafeParseEntity("character", () =>
         {
-            Name = GetStringProperty(element, "name", "Unnamed Character"),
-            Role = GetStringProperty(element, "role", "Unknown Role"),
-            Description = GetStringProperty(element, "description", "No description available."),
-            Location = GetStringProperty(element, "location", "Unknown Location")
+            return new Character
+            {
+                Name = GetStringProperty(element, "name", "Unnamed Character"),
+                Role = GetStringProperty(element, "role", "Unknown Role"),
+                Description = GetStringProperty(element, "description", "No description available."),
+                Location = GetStringProperty(element, "location", "Unknown Location")
+            };
         });
     }
 
     private Opportunity ParseOpportunity(JsonElement element)
     {
-        return SafeParseEntity("opportunity", () => new Opportunity
+        return SafeParseEntity("opportunity", () =>
         {
-            Name = GetStringProperty(element, "name", "Unnamed Opportunity"),
-            Type = GetStringProperty(element, "type", "Unknown Type"),
-            Description = GetStringProperty(element, "description", "No description available."),
-            Location = GetStringProperty(element, "location", "Unknown Location"),
-            RelatedCharacter = GetStringProperty(element, "relatedCharacter", "Unknown Character")
+            return new Opportunity
+            {
+                Name = GetStringProperty(element, "name", "Unnamed Opportunity"),
+                Type = GetStringProperty(element, "type", "Unknown Type"),
+                Description = GetStringProperty(element, "description", "No description available."),
+                Location = GetStringProperty(element, "location", "Unknown Location"),
+                RelatedCharacter = GetStringProperty(element, "relatedCharacter", "Unknown Character")
+            };
         });
     }
 

@@ -1,6 +1,4 @@
-﻿using Microsoft.Win32;
-
-public class LocationCreationSystem
+﻿public class LocationCreationSystem
 {
     private readonly ContentRegistry contentRegistry;
     private readonly NarrativeService narrativeService;
@@ -61,7 +59,7 @@ public class LocationCreationSystem
         string locId = details.LocationUpdate.NewLocationName;
         if (!contentRegistry.TryResolve<Location>(locId, out Location? location))
         {
-            location = new Location { Name = locId };
+            location = new Location(locId);
             contentRegistry.Register<Location>(locId, location);
         }
         location.Description = details.Description;
@@ -71,14 +69,19 @@ public class LocationCreationSystem
         foreach (SpotDetails spotDetail in details.NewLocationSpots)
         {
             string spotId = $"{locId}:{spotDetail.Name}";
-            LocationSpot spot = new LocationSpot
+            LocationSpot spot = new LocationSpot(spotDetail.Name, locId)
             {
                 Name = spotDetail.Name,
                 LocationName = locId,
                 Description = spotDetail.Description,
-                BaseActionIds = spotDetail.ActionIds.ToList(),
                 PlayerKnowledge = true
             };
+
+            foreach (string? actionId in spotDetail.ActionIds.ToList())
+            {
+                spot.RegisterActionDefinition(actionId);
+            }
+
             contentRegistry.Register<LocationSpot>(spotId, spot);
         }
 
@@ -94,8 +97,9 @@ public class LocationCreationSystem
 
             ActionDefinition actionDef = actionRepository.GetAction(actionId);
             string spotId = $"{locId}:{newAction.SpotName}";
+
             if (contentRegistry.TryResolve<LocationSpot>(spotId, out LocationSpot? spot))
-                spot.BaseActionIds.Add(actionDef.Id);
+                spot.RegisterActionDefinition(actionDef.Name);
         }
 
         return location;
@@ -106,18 +110,16 @@ public class LocationCreationSystem
         foreach (NewAction newAction in details.NewActions)
         {
             Location targetLocation = worldState.GetLocation(newAction.LocationName);
-            if (targetLocation != null && targetLocation.LocationSpots != null)
+            List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(targetLocation.Name);
+            if (targetLocation != null && locationSpots != null)
             {
-                LocationSpot spotForAction = targetLocation.LocationSpots.FirstOrDefault(s =>
-                    s.Name.Equals(newAction.SpotName, StringComparison.OrdinalIgnoreCase));
+                LocationSpot spotForAction = locationSpots.FirstOrDefault(s =>
+                {
+                    return s.Name.Equals(newAction.SpotName, StringComparison.OrdinalIgnoreCase);
+                });
 
                 if (spotForAction != null)
                 {
-                    if (spotForAction.BaseActionIds == null)
-                    {
-                        spotForAction.BaseActionIds = new List<string>();
-                    }
-
                     string newActionId = newAction.Name.Replace(" ", "");
                     string actionId = await actionGenerator.GenerateActionAndEncounter(
                         newAction.Name,
@@ -128,7 +130,7 @@ public class LocationCreationSystem
                         ParseActionType(newAction.ActionType).ToString());
 
                     ActionDefinition actionTemplate = actionRepository.GetAction(actionId);
-                    spotForAction.BaseActionIds.Add(actionTemplate.Id);
+                    spotForAction.RegisterActionDefinition(actionTemplate.Name);
 
                     Console.WriteLine($"Created new action {newAction.Name} at {newAction.LocationName}/{newAction.SpotName}");
                 }

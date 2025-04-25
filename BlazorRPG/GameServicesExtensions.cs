@@ -21,7 +21,7 @@
         services.AddSingleton<OpportunitySystem>();
         services.AddSingleton<EncounterSystem>();
         services.AddSingleton<ActionSystem>();
-        services.AddSingleton<CardRepository>();
+        services.AddSingleton<ChoiceRepository>();
         services.AddSingleton<OutcomeProcessor>();
         services.AddSingleton<EncounterFactory>();
         services.AddSingleton<WorldStateInputBuilder>();
@@ -35,6 +35,7 @@
         services.AddSingleton<ResourceManager>();
         services.AddSingleton<NarrativeService>();
         services.AddSingleton<PostEncounterEvolutionParser>();
+        services.AddSingleton<EnvironmentalPropertyManager>();
 
         return services;
     }

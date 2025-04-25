@@ -55,7 +55,13 @@
         }
     }
 
-    public AIProviderType CurrentProvider => _currentProvider;
+    public AIProviderType CurrentProvider
+    {
+        get
+        {
+            return _currentProvider;
+        }
+    }
 
     public string GetCurrentProviderName()
     {

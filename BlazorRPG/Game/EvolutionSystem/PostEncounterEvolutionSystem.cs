@@ -97,7 +97,6 @@
             else
             {
                 existingSpot.Description = spot.Description;
-                existingSpot.BaseActionIds = spot.BaseActionIds;
                 existingSpot.PlayerKnowledge = spot.PlayerKnowledge;
             }
         }
@@ -114,7 +113,9 @@
             ActionDefinition actionDef = _actionRepository.GetAction(actionId);
             string spotId = $"{newAction.LocationName}:{newAction.SpotName}";
             if (contentRegistry.TryResolve<LocationSpot>(spotId, out LocationSpot? spot))
-                spot.BaseActionIds.Add(actionDef.Id);
+            {
+                spot.RegisterActionDefinition(actionDef.Name);
+            }
         }
 
         foreach (Character character in evolution.NewCharacters)
@@ -131,18 +132,16 @@
         foreach (NewAction newAction in evolution.NewActions)
         {
             Location targetLocation = worldState.GetLocation(newAction.LocationName);
-            if (targetLocation != null && targetLocation.LocationSpots != null)
+            List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(targetLocation.Name);
+            if (targetLocation != null && locationSpots != null)
             {
-                LocationSpot spotForAction = targetLocation.LocationSpots.FirstOrDefault(s =>
-                    s.Name.Equals(newAction.SpotName, StringComparison.OrdinalIgnoreCase));
+                LocationSpot spotForAction = locationSpots.FirstOrDefault(s =>
+                {
+                    return s.Name.Equals(newAction.SpotName, StringComparison.OrdinalIgnoreCase);
+                });
 
                 if (spotForAction != null)
                 {
-                    if (spotForAction.BaseActionIds == null)
-                    {
-                        spotForAction.BaseActionIds = new List<string>();
-                    }
-
                     // Create action template linked to the encounter
                     string actionId = await _actionGenerator.GenerateActionAndEncounter(
                         newAction.Name,
@@ -153,7 +152,7 @@
                         ParseActionType(newAction.ActionType).ToString());
 
                     ActionDefinition actionTemplate = _actionRepository.GetAction(newAction.Name);
-                    spotForAction.BaseActionIds.Add(actionId);
+                    spotForAction.RegisterActionDefinition(actionId);
 
                     Console.WriteLine($"Created new action {newAction.Name} at {newAction.LocationName}/{newAction.SpotName}");
                 }

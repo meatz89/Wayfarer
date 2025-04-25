@@ -1,30 +1,98 @@
-﻿
-public class OutcomeProcessor
+﻿public class OutcomeProcessor
 {
-    public GameState GameState { get; }
-    public PlayerProgression PlayerProgression { get; }
-    public MessageSystem MessageSystem { get; }
+    public GameState gameState { get; }
+    public PlayerState glayerState { get; }
+    public WorldState worldState { get; }
+    public PlayerProgression playerProgression { get; }
+    public EnvironmentalPropertyManager environmentalPropertyManager { get; }
+    public ChoiceRepository choiceRepository { get; }
+    public MessageSystem messageSystem { get; }
 
     public OutcomeProcessor(
         GameState gameState,
         PlayerProgression playerProgression,
+        EnvironmentalPropertyManager environmentalPropertyManager,
+        ChoiceRepository choiceRepository,
         MessageSystem messageSystem)
     {
-        GameState = gameState;
-        PlayerProgression = playerProgression;
-        MessageSystem = messageSystem;
+        this.gameState = gameState;
+        this.playerProgression = playerProgression;
+        this.environmentalPropertyManager = environmentalPropertyManager;
+        this.choiceRepository = choiceRepository;
+        this.messageSystem = messageSystem;
+        glayerState = gameState.PlayerState;
+        worldState = gameState.WorldState;
     }
 
-    public void ProcessActionYields(ActionImplementation actionImplementation)
+    public void ProcessActionYields(ActionImplementation action)
     {
+        // Apply Action Outcomes
+        IncreaseSkillXP(action);
+        UnlockCards();
 
-        foreach (Outcome reward in actionImplementation.Yields)
+        foreach (Outcome reward in action.Yields)
         {
-            reward.Apply(GameState);
-            MessageSystem.AddOutcome(reward);
+            reward.Apply(gameState);
+            messageSystem.AddOutcome(reward);
         }
     }
 
+    private void UnlockCards()
+    {
+        foreach (CardDefinition card in choiceRepository.GetAll())
+        {
+            if (IsCardUnlocked(card, glayerState.PlayerSkills))
+            {
+                glayerState.UnlockCard(card);
+            }
+        }
+    }
+
+    bool IsCardUnlocked(CardDefinition card, PlayerSkills playerSkills)
+    {
+        foreach (SkillRequirement requirement in card.UnlockRequirements)
+        {
+            int skillLevel = playerSkills.GetLevelForSkill(requirement.SkillType);
+            if (skillLevel < requirement.RequiredLevel)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    private void IncreaseSkillXP(ActionImplementation action)
+    {
+        SkillTypes skill = DetermineSkillForAction(action);
+        int skillXp = CalculateBasicActionSkillXP(action);
+        playerProgression.AddSkillExp(skill, skillXp);
+        messageSystem.AddSystemMessage($"Gained {skillXp} {skill} skill experience");
+    }
+
+
+    private SkillTypes DetermineSkillForAction(ActionImplementation action)
+    {
+        // Map encounter type or action category to skill
+        return action.EncounterType switch
+        {
+            EncounterTypes.Combat => SkillTypes.Warfare,
+            EncounterTypes.Social => SkillTypes.Diplomacy,
+            EncounterTypes.Stealth => SkillTypes.Subterfuge,
+            EncounterTypes.Exploration => SkillTypes.Wilderness,
+            EncounterTypes.Lore => SkillTypes.Scholarship,
+            _ => SkillTypes.Scholarship,
+        };
+    }
+
+    private int CalculateBasicActionSkillXP(ActionImplementation action)
+    {
+        return action.Difficulty * 5;
+    }
+
+    private void UpdateTime()
+    {
+        Location currentLocation = worldState.CurrentLocation;
+        environmentalPropertyManager.UpdateLocationForTime(currentLocation, worldState.TimeWindow);
+    }
 
     //public void ProcessActionYields(ActionImplementation action, GameState gameState)
     //{
@@ -144,7 +212,7 @@ public class OutcomeProcessor
         T? t = default;
         outCost = t;
 
-        foreach (var cost in costs)
+        foreach (Outcome cost in costs)
         {
             if (cost is T costT)
             {
@@ -153,6 +221,22 @@ public class OutcomeProcessor
             }
         }
         return false;
+    }
+
+    internal void ProcessActionCosts(ActionImplementation action)
+    {
+        foreach (Outcome cost in action.Costs)
+        {
+            if (cost is TimeOutcome timeCost)
+            {
+                UpdateTime();
+            }
+            else
+            {
+                cost.Apply(gameState);
+            }
+            messageSystem.AddOutcome(cost);
+        }
     }
 
     //private void ApplyOutcome(YieldTypes type, string targetId, int amount, GameState gameState, Location location, LocationSpot spot)

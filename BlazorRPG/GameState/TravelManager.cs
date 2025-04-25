@@ -24,43 +24,55 @@
     {
         Location currentLocation = worldState.CurrentLocation;
 
-        int travelMinutes = CalculateTravelTime(currentLocation, travelLocation, travelMethod);
+        if (currentLocation == null)
+        {
+            EndLocationTravel(travelLocation);
+            return null;
+        }
+        else
+        {
+            int travelMinutes = CalculateTravelTime(currentLocation, travelLocation, travelMethod);
+            int travelHours = (int)Math.Ceiling(travelMinutes / 60.0);
 
-        int travelHours = (int)Math.Ceiling(travelMinutes / 60.0);
+            ConsumeTravelResources(travelMinutes, travelMethod);
 
-        ConsumeTravelResources(travelMinutes, travelMethod);
+            ActionDefinition travelTemplate = GetTravelTemplate(travelLocation, string.Empty);
+            ActionImplementation travelAction = ActionFactory.CreateActionFromTemplate(travelTemplate, currentLocation.Name, string.Empty);
 
-        bool isFirstVisit = worldState.IsFirstVisit(travelLocation);
+            return travelAction;
+        }
+    }
 
+    public void EndLocationTravel(string travelLocation)
+    {
+        Location targetLocation = LocationSystem.GetLocation(travelLocation);
+
+        List<LocationSpot> spots = LocationSystem.GetLocationSpots(targetLocation.Name);
+        LocationSpot firstSpot = spots.FirstOrDefault();
+
+        worldState.SetCurrentLocation(targetLocation, firstSpot!);
+
+        string? currentLocation = worldState.CurrentLocation?.Name;
+
+        bool isFirstVisit = worldState.IsFirstVisit(targetLocation.Name);
         if (isFirstVisit)
         {
-            Location targetLocation = LocationSystem.GetLocation(travelLocation);
+            worldState.RecordLocationVisit(targetLocation.Name);
             if (targetLocation != null)
             {
                 ApplyDiscoveryBonus(targetLocation);
             }
         }
-
-        ActionDefinition travelTemplate = GetTravelTemplate(travelLocation, string.Empty);
-        ActionImplementation travelAction = ActionFactory.CreateActionFromTemplate(travelTemplate);
-
-        return travelAction;
     }
 
     private ActionDefinition GetTravelTemplate(string location, string locationSpot)
     {
-        ActionDefinition travelTemplate = new ActionDefinition("travel", "travel", 1, 50, EncounterTypes.Exploration, true)
+        ActionDefinition travelTemplate = new ActionDefinition("travel", "travel")
         {
             Goal = "Travel safely to your destination",
             MoveToLocation = location,
             MoveToLocationSpot = locationSpot,
-            Costs = new()
-            {
-                new EnergyOutcome(-1)
-                {
-                    Amount = -1
-                }
-            },
+            EnergyCost = 1,
         };
 
         return travelTemplate;
@@ -128,7 +140,10 @@
         // Get base travel time between locations
         int baseTravelMinutes = 0;
 
-        if (worldState.GetLocations().Any(x => x.Name == endLocationId))
+        if (worldState.GetLocations().Any(x =>
+        {
+            return x.Name == endLocationId;
+        }))
         {
             Location location = worldState.GetLocation(endLocationId);
             baseTravelMinutes = location.TravelTimeMinutes;
@@ -151,8 +166,5 @@
             default: return 1.0;
         }
     }
-
-
-
 }
 

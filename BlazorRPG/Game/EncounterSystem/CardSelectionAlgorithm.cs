@@ -1,8 +1,8 @@
 ﻿public class CardSelectionAlgorithm
 {
-    private readonly CardRepository _cardRepository;
+    private readonly ChoiceRepository _cardRepository;
 
-    public CardSelectionAlgorithm(CardRepository cardRepository)
+    public CardSelectionAlgorithm(ChoiceRepository cardRepository)
     {
         _cardRepository = cardRepository;
     }
@@ -184,8 +184,14 @@
 
         // Extract active environmental properties
         List<IEnvironmentalProperty> properties = state.ActiveTags
-            .Where(t => t is StrategicTag)
-            .Select(t => ((StrategicTag)t).EnvironmentalProperty)
+            .Where(t =>
+            {
+                return t is StrategicTag;
+            })
+            .Select(t =>
+            {
+                return ((StrategicTag)t).EnvironmentalProperty;
+            })
             .ToList();
 
         // Define which approaches are favored by each environmental property
@@ -295,7 +301,10 @@
         if (card.StrategicEffect != null)
         {
             List<StrategicTag> environmentTags = state.ActiveTags
-                .Where(t => t is StrategicTag)
+                .Where(t =>
+                {
+                    return t is StrategicTag;
+                })
                 .Cast<StrategicTag>()
                 .ToList();
 
@@ -338,8 +347,14 @@
 
     private void EnsureCardTypeBalance(List<CardDefinition> viableCards, Dictionary<CardDefinition, CardViabilityScore> cardScores)
     {
-        bool hasMomentumCard = viableCards.Any(c => c.EffectType == EffectTypes.Momentum);
-        bool hasPressureCard = viableCards.Any(c => c.EffectType == EffectTypes.Pressure);
+        bool hasMomentumCard = viableCards.Any(c =>
+        {
+            return c.EffectType == EffectTypes.Momentum;
+        });
+        bool hasPressureCard = viableCards.Any(c =>
+        {
+            return c.EffectType == EffectTypes.Pressure;
+        });
 
         if (!hasMomentumCard || !hasPressureCard)
         {
@@ -349,7 +364,9 @@
             if (!hasMomentumCard)
             {
                 CardDefinition basicMomentumCard = allCards.FirstOrDefault(c =>
-                    c.EffectType == EffectTypes.Momentum && c.Tier == 1);
+                {
+                    return c.EffectType == EffectTypes.Momentum && c.Tier == 1;
+                });
 
                 if (basicMomentumCard != null)
                 {
@@ -361,7 +378,9 @@
             if (!hasPressureCard)
             {
                 CardDefinition basicPressureCard = allCards.FirstOrDefault(c =>
-                    c.EffectType == EffectTypes.Pressure && c.Tier == 1);
+                {
+                    return c.EffectType == EffectTypes.Pressure && c.Tier == 1;
+                });
 
                 if (basicPressureCard != null)
                 {
@@ -384,7 +403,10 @@
         if (viableCards.Any())
         {
             CardDefinition bestCard = viableCards
-                .OrderBy(c => cardScores[c].TotalScore)
+                .OrderBy(c =>
+                {
+                    return cardScores[c].TotalScore;
+                })
                 .First();
 
             result.Add(bestCard);
@@ -402,11 +424,20 @@
         AddCardsWithUniqueFocuses(result, viableCards, cardScores, usedApproaches, usedFocuses);
 
         // If we still need cards, add highest scoring remaining cards
-        while (result.Count < 4 && viableCards.Any(c => !result.Contains(c)))
+        while (result.Count < 4 && viableCards.Any(c =>
+        {
+            return !result.Contains(c);
+        }))
         {
             CardDefinition nextCard = viableCards
-                .Where(c => !result.Contains(c))
-                .OrderBy(c => cardScores[c].TotalScore)
+                .Where(c =>
+                {
+                    return !result.Contains(c);
+                })
+                .OrderBy(c =>
+                {
+                    return cardScores[c].TotalScore;
+                })
                 .First();
 
             result.Add(nextCard);
@@ -422,14 +453,26 @@
         HashSet<ApproachTags> usedApproaches,
         HashSet<FocusTags> usedFocuses)
     {
-        bool hasMomentumCard = result.Any(c => c.EffectType == EffectTypes.Momentum);
-        bool hasPressureCard = result.Any(c => c.EffectType == EffectTypes.Pressure);
+        bool hasMomentumCard = result.Any(c =>
+        {
+            return c.EffectType == EffectTypes.Momentum;
+        });
+        bool hasPressureCard = result.Any(c =>
+        {
+            return c.EffectType == EffectTypes.Pressure;
+        });
 
         if (!hasMomentumCard)
         {
             CardDefinition bestMomentumCard = viableCards
-                .Where(c => c.EffectType == EffectTypes.Momentum && !result.Contains(c))
-                .OrderBy(c => cardScores[c].TotalScore)
+                .Where(c =>
+                {
+                    return c.EffectType == EffectTypes.Momentum && !result.Contains(c);
+                })
+                .OrderBy(c =>
+                {
+                    return cardScores[c].TotalScore;
+                })
                 .FirstOrDefault();
 
             if (bestMomentumCard != null)
@@ -443,8 +486,14 @@
         if (!hasPressureCard)
         {
             CardDefinition bestPressureCard = viableCards
-                .Where(c => c.EffectType == EffectTypes.Pressure && !result.Contains(c))
-                .OrderBy(c => cardScores[c].TotalScore)
+                .Where(c =>
+                {
+                    return c.EffectType == EffectTypes.Pressure && !result.Contains(c);
+                })
+                .OrderBy(c =>
+                {
+                    return cardScores[c].TotalScore;
+                })
                 .FirstOrDefault();
 
             if (bestPressureCard != null)
@@ -463,11 +512,20 @@
         HashSet<ApproachTags> usedApproaches,
         HashSet<FocusTags> usedFocuses)
     {
-        while (result.Count < 3 && viableCards.Any(c => !result.Contains(c) && !usedApproaches.Contains(c.Approach)))
+        while (result.Count < 3 && viableCards.Any(c =>
+        {
+            return !result.Contains(c) && !usedApproaches.Contains(c.Approach);
+        }))
         {
             CardDefinition card = viableCards
-                .Where(c => !result.Contains(c) && !usedApproaches.Contains(c.Approach))
-                .OrderBy(c => cardScores[c].TotalScore)
+                .Where(c =>
+                {
+                    return !result.Contains(c) && !usedApproaches.Contains(c.Approach);
+                })
+                .OrderBy(c =>
+                {
+                    return cardScores[c].TotalScore;
+                })
                 .First();
 
             result.Add(card);
@@ -483,11 +541,20 @@
         HashSet<ApproachTags> usedApproaches,
         HashSet<FocusTags> usedFocuses)
     {
-        while (result.Count < 4 && viableCards.Any(c => !result.Contains(c) && !usedFocuses.Contains(c.Focus)))
+        while (result.Count < 4 && viableCards.Any(c =>
+        {
+            return !result.Contains(c) && !usedFocuses.Contains(c.Focus);
+        }))
         {
             CardDefinition card = viableCards
-                .Where(c => !result.Contains(c) && !usedFocuses.Contains(c.Focus))
-                .OrderBy(c => cardScores[c].TotalScore)
+                .Where(c =>
+                {
+                    return !result.Contains(c) && !usedFocuses.Contains(c.Focus);
+                })
+                .OrderBy(c =>
+                {
+                    return cardScores[c].TotalScore;
+                })
                 .First();
 
             result.Add(card);

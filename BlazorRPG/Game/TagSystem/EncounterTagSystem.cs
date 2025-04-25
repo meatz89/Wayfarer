@@ -35,10 +35,25 @@ public class EncounterTagSystem
             SetFocusTagValue(tag, 0);
     }
 
-    public Dictionary<ApproachTags, int> GetAllApproachTags() => _ApproachTags;
-    public Dictionary<FocusTags, int> GetAllFocusTags() => _focusTags;
-    public int GetApproachTagValue(ApproachTags tag) => _ApproachTags[tag];
-    public int GetFocusTagValue(FocusTags tag) => _focusTags[tag];
+    public Dictionary<ApproachTags, int> GetAllApproachTags()
+    {
+        return _ApproachTags;
+    }
+
+    public Dictionary<FocusTags, int> GetAllFocusTags()
+    {
+        return _focusTags;
+    }
+
+    public int GetApproachTagValue(ApproachTags tag)
+    {
+        return _ApproachTags[tag];
+    }
+
+    public int GetFocusTagValue(FocusTags tag)
+    {
+        return _focusTags[tag];
+    }
 
     public void ModifyApproachPosition(ApproachTags tag, int delta)
     {

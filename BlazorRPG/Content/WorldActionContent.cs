@@ -2,40 +2,21 @@
 {
     public static List<ActionDefinition> GetAllTemplates()
     {
-        List<ActionDefinition> actionTemplates = [.. LocationActions(), .. GlobalActions()];
+        List<ActionDefinition> actionTemplates = [.. Actions, .. GlobalActions()];
         return actionTemplates;
     }
 
-    public static List<ActionDefinition> LocationActions()
+    public static List<ActionDefinition> Actions = new List<ActionDefinition>
     {
-        List<ActionDefinition> actionTemplates = new List<ActionDefinition>();
-
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Read Signpost")
-            .WithGoal("Examine the weathered signpost and the surrounding area")
-            .WithComplication("")
-            .WithEncounterType(EncounterTypes.Lore)
-            .WithEnergyCost(5)
-            .WithTimeCost(10)
-            .WithEncounterChance(10)
-            .WithDifficulty(1)
-            .IsRepeatableAction()
-            .Build());
-
-        actionTemplates.Add(new ActionTemplateBuilder()
-            .WithName("Village Gate Inspection")
-            .WithGoal("Examine the Village Gate and the surrounding area")
-            .WithComplication("")
-            .WithEncounterType(EncounterTypes.Social)
-            .WithEnergyCost(5)
-            .WithTimeCost(10)
-            .WithEncounterChance(10)
-            .WithDifficulty(1)
-            .IsRepeatableAction()
-            .Build());
-
-        return actionTemplates;
-    }
+        new ActionDefinition("purchase_simple_room", "Purchase Simple Room")
+        { TimeWindows = [TimeWindow.Evening], CoinCost = 5, RestoresEnergy = 20, SpotXp = 10 },
+        new ActionDefinition("share_evening_story", "Share Evening Story")
+        { TimeWindows = [TimeWindow.Evening], ConfidenceCost = 10, RelationshipGains = [new(){ CharacterName = "Maren", ChangeAmount = 2 }], SpotXp = 8 },
+        new ActionDefinition("host_festival_preparation", "Host Festival Preparation")
+        { TimeWindows = [TimeWindow.Morning], EnergyCost = 20, RelationshipGains = [new(){ CharacterName = "Maren", ChangeAmount = 5 }], SpotXp = 50, IsOneTimeEncounter = true },
+        new ActionDefinition("negotiate_tavern_trade", "Negotiate Tavern Trade")
+        { TimeWindows = [TimeWindow.Afternoon], ConcentrationCost = 10, CoinGain = 8, RelationshipGains = [new() { CharacterName = "Maren", ChangeAmount = 1 }], SpotXp = 12 }
+    };
 
     public static List<ActionDefinition> GlobalActions()
     {
@@ -62,7 +43,6 @@
             .WithDifficulty(0)
             .WithEncounterChance(0)
             .WithTimeCost(0)
-            .ExpendsMedicinalHerbs(1)
             .RestoresHealth(15)
             .RestoresConcentration(15)
             .RestoresConfidence(0)

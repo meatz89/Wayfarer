@@ -14,7 +14,7 @@
     private int difficulty = 1;
     private int encounterChance = 0;
     private EncounterTypes basicActionType;
-    private List<TimeWindows> timeWindows = new List<TimeWindows>();
+    private List<TimeWindow> timeWindows = new List<TimeWindow>();
 
     public ActionTemplateBuilder WithName(string name)
     {
@@ -28,9 +28,9 @@
         return this;
     }
 
-    public ActionTemplateBuilder AvailableDuring(params TimeWindows[] timeWindows)
+    public ActionTemplateBuilder AvailableDuring(params TimeWindow[] timeWindows)
     {
-        foreach (TimeWindows window in timeWindows)
+        foreach (TimeWindow window in timeWindows)
         {
             this.timeWindows.Add(window);
         }
@@ -54,8 +54,8 @@
     {
         if (cost < 0) return this;
 
-        requirements.Add(new CoinsRequirement(cost));
-        costs.Add(new CoinsOutcome(-cost));
+        requirements.Add(new CoinRequirement(cost));
+        costs.Add(new CoinOutcome(-cost));
         return this;
     }
 
@@ -65,15 +65,6 @@
 
         requirements.Add(new FoodRequirement(amount));
         costs.Add(new FoodOutcome(-amount));
-        return this;
-    }
-
-    public ActionTemplateBuilder ExpendsMedicinalHerbs(int amount)
-    {
-        if (amount < 0) return this;
-
-        requirements.Add(new MedicinalHerbsRequirement(amount));
-        costs.Add(new MedicinalHerbOutcome(-amount));
         return this;
     }
 
@@ -171,11 +162,7 @@
 
         return new ActionDefinition(
             actionId,
-            name,
-            difficulty,
-            encounterChance,
-            basicActionType,
-            isRepeatable)
+            name)
         {
             Description = goal,
 
@@ -183,11 +170,7 @@
             Complication = complication,
             MoveToLocationSpot = movesToLocationSpot,
 
-            AvailableWindows = timeWindows,
-
-            Requirements = requirements,
-            Costs = costs,
-            Yields = yields,
+            TimeWindows = timeWindows,
         };
     }
 }

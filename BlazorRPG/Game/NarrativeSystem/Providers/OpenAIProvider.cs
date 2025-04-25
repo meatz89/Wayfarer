@@ -12,7 +12,13 @@ public class OpenAIProvider : IAIProvider
     private const int MaxRetryAttempts = 3;
     private const int InitialDelayMilliseconds = 500;
 
-    public string Name => "OpenAI";
+    public string Name
+    {
+        get
+        {
+            return "OpenAI";
+        }
+    }
 
     public OpenAIProvider(IConfiguration configuration, ILogger<EncounterSystem> logger)
     {
@@ -36,10 +42,13 @@ public class OpenAIProvider : IAIProvider
         int delay = InitialDelayMilliseconds;
 
         // Format for OpenAI - simple mapping from our generic format
-        var formattedMessages = messages.Select(m => new
+        var formattedMessages = messages.Select(m =>
         {
-            role = m.Role.ToLower(),
-            content = m.Content
+            return new
+            {
+                role = m.Role.ToLower(),
+                content = m.Content
+            };
         }).ToArray();
 
         while (true)

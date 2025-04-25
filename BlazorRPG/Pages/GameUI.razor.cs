@@ -13,19 +13,94 @@ public partial class GameUI : ComponentBase
     #endregion
 
     #region Player State Properties
-    public PlayerState PlayerState => GameState.PlayerState;
-    public PlayerState Player => PlayerState; // Alias for compatibility
+    public PlayerState PlayerState
+    {
+        get
+        {
+            return GameState.PlayerState;
+        }
+    }
+
+    public PlayerState Player
+    {
+        get
+        {
+            return PlayerState; // Alias for compatibility
+        }
+    }
 
     // Player Resources
-    public int Energy => PlayerState.Energy;
-    public int MaxEnergy => PlayerState.MaxEnergy;
-    public int Health => PlayerState.Health;
-    public int MaxHealth => PlayerState.MaxHealth;
-    public int Concentration => PlayerState.Concentration;
-    public int MaxConcentration => PlayerState.MaxConcentration;
-    public int Confidence => PlayerState.Confidence;
-    public int MaxConfidence => PlayerState.MaxConfidence;
-    public int Coins => PlayerState.Coins;
+    public int Energy
+    {
+        get
+        {
+            return PlayerState.Energy;
+        }
+    }
+
+    public int MaxEnergy
+    {
+        get
+        {
+            return PlayerState.MaxEnergy;
+        }
+    }
+
+    public int Health
+    {
+        get
+        {
+            return PlayerState.Health;
+        }
+    }
+
+    public int MaxHealth
+    {
+        get
+        {
+            return PlayerState.MaxHealth;
+        }
+    }
+
+    public int Concentration
+    {
+        get
+        {
+            return PlayerState.Concentration;
+        }
+    }
+
+    public int MaxConcentration
+    {
+        get
+        {
+            return PlayerState.MaxConcentration;
+        }
+    }
+
+    public int Confidence
+    {
+        get
+        {
+            return PlayerState.Confidence;
+        }
+    }
+
+    public int MaxConfidence
+    {
+        get
+        {
+            return PlayerState.MaxConfidence;
+        }
+    }
+
+    public int Coins
+    {
+        get
+        {
+            return PlayerState.Coins;
+        }
+    }
 
     public EncounterResult EncounterResult { get; private set; }
     #endregion
@@ -33,11 +108,45 @@ public partial class GameUI : ComponentBase
     #region World State Properties
 
     public CurrentViews CurrentScreen = CurrentViews.CharacterScreen;
-    public Location CurrentLocation => GameState.WorldState.CurrentLocation;
-    public LocationSpot CurrentSpot => GameState.WorldState.CurrentLocationSpot;
-    public TimeWindows CurrentTime => GameState.WorldState.WorldTime;
-    public int CurrentHour => GameState.WorldState.CurrentTimeInHours;
-    public List<Location> Locations => GameManager.GetPlayerKnownLocations();
+    public Location CurrentLocation
+    {
+        get
+        {
+            return GameState.WorldState.CurrentLocation;
+        }
+    }
+
+    public LocationSpot CurrentSpot
+    {
+        get
+        {
+            return GameState.WorldState.CurrentLocationSpot;
+        }
+    }
+
+    public TimeWindow CurrentTime
+    {
+        get
+        {
+            return GameState.WorldState.TimeWindow;
+        }
+    }
+
+    public int CurrentHour
+    {
+        get
+        {
+            return GameState.WorldState.CurrentTimeInHours;
+        }
+    }
+
+    public List<Location> Locations
+    {
+        get
+        {
+            return GameManager.GetPlayerKnownLocations();
+        }
+    }
 
     public EncounterManager EncounterManager = null;
     public ActionImplementation ActionImplementation = null;
@@ -135,7 +244,7 @@ public partial class GameUI : ComponentBase
 
     public Location GetCurrentLocation()
     {
-        return CurrentLocation ?? new Location() { Name = "Default" };
+        return CurrentLocation ?? new Location("default");
     }
 
     private async Task HandleSpotSelection(LocationSpot locationSpot)
@@ -154,7 +263,7 @@ public partial class GameUI : ComponentBase
 
         ActionImplementation = await GameManager.ExecuteAction(action);
 
-        EncounterManager = GameManager.EncounterSystem.GetCurrentEncounter();
+        EncounterManager = GameState.ActionStateTracker.GetCurrentEncounter();
         if (EncounterManager == null)
         {
             EncounterResult = GameManager.GetEncounterResultFor(action.ActionImplementation);
@@ -205,7 +314,10 @@ public partial class GameUI : ComponentBase
     private async Task UseResource(ActionNames actionName)
     {
         UserActionOption globalAction = GameState.ActionStateTracker.GlobalActions
-            .FirstOrDefault(a => a.ActionId == actionName.ToString());
+            .FirstOrDefault(a =>
+            {
+                return a.ActionId == actionName.ToString();
+            });
 
         if (globalAction != null && !globalAction.IsDisabled)
         {
@@ -220,11 +332,10 @@ public partial class GameUI : ComponentBase
     private async Task WaitOneHour()
     {
         // Create a "Wait" action that advances time without other effects
-        ActionDefinition waitAction = GameManager.GetWaitAction();
-        ActionImplementation waitImpl = GameManager.ActionFactory.CreateActionFromTemplate(waitAction);
+        ActionImplementation waitAction = GameManager.GetWaitAction();
 
         UserActionOption waitOption = new UserActionOption(
-            "Wait for one hour", false, waitImpl,
+            "Wait for one hour", false, waitAction,
             GameState.WorldState.CurrentLocation?.Name ?? "Global",
             GameState.WorldState.CurrentLocationSpot?.Name ?? "Global",
             null, 0, null);
@@ -256,7 +367,10 @@ public partial class GameUI : ComponentBase
             actionMessageType = "success";  // Default to success
 
             // Set message type based on content analysis
-            if (actionMessages.Any(m => m.Contains("not enough") || m.Contains("cannot")))
+            if (actionMessages.Any(m =>
+            {
+                return m.Contains("not enough") || m.Contains("cannot");
+            }))
             {
                 actionMessageType = "warning";
             }
@@ -307,8 +421,8 @@ public partial class GameUI : ComponentBase
 
         // Add time property
         properties.Add(new PropertyDisplay(
-            GetIconForTimeWindow(world.WorldTime),
-            FormatEnumString(world.WorldTime.ToString()),
+            GetIconForTimeWindow(world.TimeWindow),
+            FormatEnumString(world.TimeWindow.ToString()),
             "", "", ""
         ));
 
@@ -317,14 +431,14 @@ public partial class GameUI : ComponentBase
     #endregion
 
     #region Helper Methods
-    private string GetIconForTimeWindow(TimeWindows time)
+    private string GetIconForTimeWindow(TimeWindow time)
     {
         return time switch
         {
-            TimeWindows.Night => "🌙",
-            TimeWindows.Morning => "🌄",
-            TimeWindows.Afternoon => "☀️",
-            TimeWindows.Evening => "🌆",
+            TimeWindow.Night => "🌙",
+            TimeWindow.Morning => "🌄",
+            TimeWindow.Afternoon => "☀️",
+            TimeWindow.Evening => "🌆",
             _ => "❓"
         };
     }
@@ -332,7 +446,10 @@ public partial class GameUI : ComponentBase
     private string FormatEnumString(string value)
     {
         return string.Concat(value
-            .Select((x, i) => i > 0 && char.IsUpper(x) ? " " + x : x.ToString()))
+            .Select((x, i) =>
+            {
+                return i > 0 && char.IsUpper(x) ? " " + x : x.ToString();
+            }))
             .Replace("Type", "")
             .Replace("Types", "");
     }
@@ -415,10 +532,10 @@ public partial class GameUI : ComponentBase
     {
         return CurrentTime switch
         {
-            TimeWindows.Morning => "time-morning",
-            TimeWindows.Afternoon => "time-afternoon",
-            TimeWindows.Evening => "time-evening",
-            TimeWindows.Night => "time-night",
+            TimeWindow.Morning => "time-morning",
+            TimeWindow.Afternoon => "time-afternoon",
+            TimeWindow.Evening => "time-evening",
+            TimeWindow.Night => "time-night",
             _ => ""
         };
     }

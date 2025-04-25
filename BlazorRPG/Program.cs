@@ -18,7 +18,10 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 // Ensure proper disposal on exit:
-AppDomain.CurrentDomain.ProcessExit += (s, e) => Log.CloseAndFlush();
+AppDomain.CurrentDomain.ProcessExit += (s, e) =>
+{
+    Log.CloseAndFlush();
+};
 
 
 // Register your game services

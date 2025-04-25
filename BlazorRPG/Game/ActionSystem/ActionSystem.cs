@@ -3,10 +3,15 @@
 public class ActionSystem
 {
     private readonly ActionRepository actionRepository;
+    private readonly LocationSystem locationSystem;
 
-    public ActionSystem(ActionRepository actionRepository)
+    public ActionSystem(
+        ActionRepository actionRepository,
+        LocationSystem locationSystem
+        )
     {
         this.actionRepository = actionRepository;
+        this.locationSystem = locationSystem;
     }
 
     public string FormatExistingActions(List<Location> locations)
@@ -18,22 +23,19 @@ public class ActionSystem
 
         foreach (Location location in locations)
         {
-            if (location.LocationSpots == null || !location.LocationSpots.Any())
-                continue;
-
-            foreach (LocationSpot spot in location.LocationSpots)
+            foreach (LocationSpot spot in locationSystem.GetLocationSpots(location.Name))
             {
-                if (spot.BaseActionIds == null || !spot.BaseActionIds.Any())
+                if (spot.GetActionsForLevel(spot.CurrentLevel).Any())
                     continue;
 
                 sb.AppendLine($"## Actions at {location.Name} / {spot.Name}:");
 
-                foreach (string actionTemplate in spot.BaseActionIds)
+                foreach (string actionTemplate in spot.GetActionsForLevel(spot.CurrentLevel))
                 {
                     ActionDefinition action = actionRepository.GetAction(actionTemplate);
                     if (action != null)
                     {
-                        sb.AppendLine($"- {action.Id}: {action.Goal}");
+                        sb.AppendLine($"- {action.Name}: {action.Goal}");
                     }
                 }
                 sb.AppendLine();

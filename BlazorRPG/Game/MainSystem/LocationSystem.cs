@@ -22,16 +22,25 @@ public class LocationSystem
         gameState.WorldState.LastHubLocationId = startingLocation;
         gameState.WorldState.LastHubDepth = 0;
 
-        foreach (Location? loc in allLocations.Where(l => l.Name != startingLocation))
+        foreach (Location? loc in allLocations.Where(l =>
+        {
+            return l.Name != startingLocation;
+        }))
         {
             int depth = loc.ConnectedTo.Contains(startingLocation) ? 1 : 2;
             gameState.WorldState.SetLocationDepth(loc.Name, depth);
         }
 
-        foreach (Location? loc in allLocations.Where(l => l.PlayerKnowledge))
+        foreach (Location? loc in allLocations.Where(l =>
+        {
+            return l.PlayerKnowledge;
+        }))
         {
             gameState.PlayerState.AddKnownLocation(loc.Name);
-            foreach (LocationSpot? spot in locationRepo.GetSpotsForLocation(loc.Name).Where(s => s.PlayerKnowledge))
+            foreach (LocationSpot? spot in locationRepo.GetSpotsForLocation(loc.Name).Where(s =>
+            {
+                return s.PlayerKnowledge;
+            }))
                 gameState.PlayerState.AddKnownLocationSpot(spot.Name);
         }
 
@@ -39,19 +48,34 @@ public class LocationSystem
     }
 
     public Location GetLocation(string name)
-        => locationRepo.GetLocation(name);
+    {
+        Location location = locationRepo.GetLocation(name);
+        return location;
+    }
 
     public List<Location> GetAllLocations()
-        => locationRepo.GetAllLocations();
+    {
+        List<Location> locations = locationRepo.GetAllLocations();
+        return locations;
+    }
 
     public List<LocationSpot> GetLocationSpots(string locationName)
-        => locationRepo.GetSpotsForLocation(locationName);
+    {
+        List<LocationSpot> locationSpots = locationRepo.GetSpotsForLocation(locationName);
+        return locationSpots;
+    }
 
     public LocationSpot GetLocationSpot(string locationName, string spotName)
-        => locationRepo.GetSpot(locationName, spotName);
+    {
+        LocationSpot locationSpot = locationRepo.GetSpot(locationName, spotName);
+        return locationSpot;
+    }
 
     internal List<Location> GetConnectedLocations(string location)
-        => locationRepo.GetConnectedLocations(location);
+    {
+        List<Location> locations = locationRepo.GetConnectedLocations(location);
+        return locations;
+    }
 
     public string FormatLocations(List<Location> locations)
     {
@@ -72,10 +96,11 @@ public class LocationSystem
     {
         StringBuilder sb = new StringBuilder();
 
-        if (location == null || location.LocationSpots == null || !location.LocationSpots.Any())
+        List<LocationSpot> locationSpots = GetLocationSpots(location.Name);
+        if (location == null || locationSpots == null || !locationSpots.Any())
             return "None";
 
-        foreach (LocationSpot spot in location.LocationSpots)
+        foreach (LocationSpot spot in locationSpots)
         {
             sb.AppendLine($"- {spot.Name}: {spot.Description}");
         }

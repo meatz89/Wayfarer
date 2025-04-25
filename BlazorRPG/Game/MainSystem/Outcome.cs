@@ -287,11 +287,11 @@ public class ConfidenceOutcome : Outcome
     }
 }
 
-public class CoinsOutcome : Outcome
+public class CoinOutcome : Outcome
 {
     public int Amount { get; }
 
-    public CoinsOutcome(int count)
+    public CoinOutcome(int count)
     {
         Amount = count;
     }
@@ -311,6 +311,35 @@ public class CoinsOutcome : Outcome
         // Coins can't go below 0
         int newValue = Math.Max(0, gameState.PlayerState.Coins + Amount);
         return $"({gameState.PlayerState.Coins} -> {newValue})";
+    }
+}
+
+public class RelationshipOutcome : Outcome
+{
+    public string CharacterName { get; }
+    public int ChangeAmount { get; }
+
+    public RelationshipOutcome(string characterName, int changeAmount)
+    {
+        CharacterName = characterName;
+        ChangeAmount = changeAmount;
+    }
+
+    public override void Apply(GameState gameState)
+    {
+        gameState.PlayerState.UpdateRelationship(CharacterName, ChangeAmount);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(ChangeAmount >= 0 ? "+" : "")}{ChangeAmount} relationship with {CharacterName}";
+    }
+
+    public override string GetPreview(GameState gameState)
+    {
+        // Coins can't go below 0
+        int newValue = Math.Max(0, gameState.PlayerState.GetRelationshipLevel(CharacterName) + ChangeAmount);
+        return $"({gameState.PlayerState.GetRelationshipLevel(CharacterName)} -> {newValue})";
     }
 }
 

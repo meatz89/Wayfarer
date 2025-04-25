@@ -1,20 +1,30 @@
-﻿public static class EnvironmentalPropertyManager
+﻿public class EnvironmentalPropertyManager
 {
-    public static void UpdateLocationForTime(Location location, TimeWindows timeWindow)
+    private readonly LocationSystem locationSystem;
+
+    public EnvironmentalPropertyManager(
+        LocationSystem locationSystem)
     {
+        this.locationSystem = locationSystem;
+    }
+
+    public void UpdateLocationForTime(Location location, TimeWindow timeWindow)
+    {
+        List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(location.Name);
+
         switch (timeWindow)
         {
-            case TimeWindows.Morning:
-            case TimeWindows.Afternoon:
-                SetIllumination(location, Illumination.Bright);
+            case TimeWindow.Morning:
+            case TimeWindow.Afternoon:
+                SetIllumination(locationSpots, Illumination.Bright);
                 break;
 
-            case TimeWindows.Evening:
-                SetIllumination(location, Illumination.Shadowy);
+            case TimeWindow.Evening:
+                SetIllumination(locationSpots, Illumination.Shadowy);
                 break;
 
-            case TimeWindows.Night:
-                SetIllumination(location, Illumination.Dark);
+            case TimeWindow.Night:
+                SetIllumination(locationSpots, Illumination.Dark);
                 break;
         }
 
@@ -22,67 +32,67 @@
         switch (location.LocationType)
         {
             case LocationTypes.Hub:
-                UpdateHubForTime(location, timeWindow);
+                UpdateHubForTime(locationSpots, timeWindow);
                 break;
 
                 // Other location types with specific behaviors
         }
     }
 
-    private static void UpdateHubForTime(Location location, TimeWindows timeWindow)
+    private static void UpdateHubForTime(List<LocationSpot> locationSpots, TimeWindow timeWindow)
     {
         // Hub locations (towns, cities) behaviors
         switch (timeWindow)
         {
-            case TimeWindows.Morning:
-                SetPopulation(location, Population.Quiet);
-                SetAtmosphere(location, Atmosphere.Tense);
+            case TimeWindow.Morning:
+                SetPopulation(locationSpots, Population.Quiet);
+                SetAtmosphere(locationSpots, Atmosphere.Tense);
                 break;
 
-            case TimeWindows.Afternoon:
-                SetPopulation(location, Population.Crowded);
-                SetAtmosphere(location, Atmosphere.Tense);
+            case TimeWindow.Afternoon:
+                SetPopulation(locationSpots, Population.Crowded);
+                SetAtmosphere(locationSpots, Atmosphere.Tense);
                 break;
 
-            case TimeWindows.Evening:
-                SetPopulation(location, Population.Crowded);
-                SetAtmosphere(location, Atmosphere.Chaotic);
+            case TimeWindow.Evening:
+                SetPopulation(locationSpots, Population.Crowded);
+                SetAtmosphere(locationSpots, Atmosphere.Chaotic);
                 break;
 
-            case TimeWindows.Night:
-                SetPopulation(location, Population.Quiet);
-                SetAtmosphere(location, Atmosphere.Rough);
+            case TimeWindow.Night:
+                SetPopulation(locationSpots, Population.Quiet);
+                SetAtmosphere(locationSpots, Atmosphere.Rough);
                 break;
         }
     }
 
-    private static void SetIllumination(Location location, Illumination illumination)
+    private static void SetIllumination(List<LocationSpot> locationSpots, Illumination illumination)
     {
-        foreach (LocationSpot spot in location.LocationSpots)
+        foreach (LocationSpot spot in locationSpots)
         {
             spot.Illumination = illumination;
         }
     }
 
-    private static void SetPopulation(Location location, Population population)
+    private static void SetPopulation(List<LocationSpot> locationSpots, Population population)
     {
-        foreach (LocationSpot spot in location.LocationSpots)
+        foreach (LocationSpot spot in locationSpots)
         {
             spot.Population = population;
         }
     }
 
-    private static void SetAtmosphere(Location location, Atmosphere atmosphere)
+    private static void SetAtmosphere(List<LocationSpot> locationSpots, Atmosphere atmosphere)
     {
-        foreach (LocationSpot spot in location.LocationSpots)
+        foreach (LocationSpot spot in locationSpots)
         {
             spot.Atmosphere = atmosphere;
         }
     }
 
-    private static void SetPhysical(Location location, Physical physical)
+    private static void SetPhysical(List<LocationSpot> locationSpots, Physical physical)
     {
-        foreach (LocationSpot spot in location.LocationSpots)
+        foreach (LocationSpot spot in locationSpots)
         {
             spot.Physical = physical;
         }

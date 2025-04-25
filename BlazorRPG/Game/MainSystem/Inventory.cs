@@ -3,7 +3,16 @@ public class Inventory
 {
     private string[] Slots;
     public int MaxCapacity { get { return Slots.Length; } }
-    public int UsedCapacity { get { return Slots.Count(s => s != string.Empty); } }
+    public int UsedCapacity
+    {
+        get
+        {
+            return Slots.Count(s =>
+    {
+        return s != string.Empty;
+    });
+        }
+    }
 
     public Inventory(int size)
     {

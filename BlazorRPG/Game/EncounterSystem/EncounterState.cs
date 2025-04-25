@@ -14,8 +14,21 @@
     public LocationSpot LocationSpot { get; set; }
 
     // Expose tag system through the TagManager
-    public EncounterTagSystem EncounterTagSystem => _tagManager.EncounterTagSystem;
-    public List<IEncounterTag> ActiveTags => _tagManager.EncounterTags;
+    public EncounterTagSystem EncounterTagSystem
+    {
+        get
+        {
+            return _tagManager.EncounterTagSystem;
+        }
+    }
+
+    public List<IEncounterTag> ActiveTags
+    {
+        get
+        {
+            return _tagManager.EncounterTags;
+        }
+    }
 
     private readonly TagManager _tagManager;
     private readonly ResourceManager _resourceManager;
@@ -57,7 +70,10 @@
         float skillBonus = 0.0f;
 
         List<SkillApproachMapping> relevantMappings = SkillTagMappings.ApproachMappings
-            .FindAll(mapping => mapping.ApproachTag == approachTag);
+            .FindAll(mapping =>
+            {
+                return mapping.ApproachTag == approachTag;
+            });
 
         foreach (SkillApproachMapping mapping in relevantMappings)
         {
@@ -74,7 +90,10 @@
         float skillBonus = 0.0f;
 
         List<SkillFocusMapping> relevantMappings = SkillTagMappings.FocusMappings
-            .FindAll(mapping => mapping.FocusTag == focusTag);
+            .FindAll(mapping =>
+            {
+                return mapping.FocusTag == focusTag;
+            });
 
         foreach (SkillFocusMapping mapping in relevantMappings)
         {
@@ -86,17 +105,25 @@
     }
 
     // Forward methods used by IEncounterTag.ApplyEffect and Choice.ApplyChoice
-    public void AddFocusMomentumBonus(FocusTags focus, int bonus) =>
+    public void AddFocusMomentumBonus(FocusTags focus, int bonus)
+    {
         _tagManager.AddFocusMomentumBonus(focus, bonus);
+    }
 
-    public void AddFocusPressureModifier(FocusTags focus, int modifier) =>
+    public void AddFocusPressureModifier(FocusTags focus, int modifier)
+    {
         _tagManager.AddFocusPressureModifier(focus, modifier);
+    }
 
-    public int GetTotalMomentum(CardDefinition choice, int baseMomentum) =>
-        _tagManager.GetTotalMomentum(choice, baseMomentum);
+    public int GetTotalMomentum(CardDefinition choice, int baseMomentum)
+    {
+        return _tagManager.GetTotalMomentum(choice, baseMomentum);
+    }
 
-    public int GetTotalPressure(CardDefinition choice, int basePressure) =>
-        _tagManager.GetTotalPressure(choice, basePressure);
+    public int GetTotalPressure(CardDefinition choice, int basePressure)
+    {
+        return _tagManager.GetTotalPressure(choice, basePressure);
+    }
 
     public ChoiceProjection ApplyChoice(PlayerState playerState, Encounter encounterInfo, CardDefinition choice)
     {
@@ -169,11 +196,20 @@
         }
     }
 
-    public void BuildMomentum(int amount) => Momentum += amount;
+    public void BuildMomentum(int amount)
+    {
+        Momentum += amount;
+    }
 
-    public void BuildPressure(int amount) => Pressure += amount;
+    public void BuildPressure(int amount)
+    {
+        Pressure += amount;
+    }
 
-    public void ReducePressure(int amount) => Pressure = Math.Max(0, Pressure - amount);
+    public void ReducePressure(int amount)
+    {
+        Pressure = Math.Max(0, Pressure - amount);
+    }
 
     public ChoiceProjection CreateChoiceProjection(CardDefinition choice)
     {
@@ -186,7 +222,10 @@
 
     public List<string> GetActiveTagsNames()
     {
-        return ActiveTags.Select(t => t.NarrativeName).ToList();
+        return ActiveTags.Select(t =>
+        {
+            return t.NarrativeName;
+        }).ToList();
     }
 
 

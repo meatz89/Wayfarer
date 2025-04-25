@@ -51,7 +51,7 @@ public class ActionGenerator
 
         // Register AI or default action via repository
         _actionRepo.RegisterAction(actionDef);
-        return actionDef.Id;
+        return actionDef.Name;
     }
 
     private ActionDefinition GetDefaultActionDefinition(
@@ -59,13 +59,11 @@ public class ActionGenerator
         string locationSpotName,
         string locationName)
     {
-        return new ActionDefinition(actionName, actionName, 1, 50, EncounterTypes.Exploration, true)
+        return new ActionDefinition(actionName, actionName)
         {
             Goal = "Goal",
             Complication = "Complication",
             Description = "Description",
-            LocationName = locationName,
-            LocationSpotName = locationSpotName
         };
     }
 

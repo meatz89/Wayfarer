@@ -1,7 +1,4 @@
-﻿
-using System.Reflection.Metadata.Ecma335;
-
-public class GameRules
+﻿public class GameRules
 {
     public static GameRules StandardRuleset = new GameRules
     {
