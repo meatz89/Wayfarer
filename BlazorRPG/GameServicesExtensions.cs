@@ -3,7 +3,7 @@
     public static IServiceCollection AddGameServices(this IServiceCollection services)
     {
         // Initialize contentRegistry and register as singleton
-        ContentRegistry contentRegistry = ContentBootstrapper.InitializeRegistry();
+        GameContentRegistry contentRegistry = GameContentBootstrapper.InitializeRegistry("content");
         services.AddSingleton(contentRegistry);
 
         // Repositories depend on the contentRegistry

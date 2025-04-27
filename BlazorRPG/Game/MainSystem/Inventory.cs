@@ -180,7 +180,7 @@ public class Inventory
         return count;
     }
 
-    internal void Apply(object invChange)
+    public void Apply(object invChange)
     {
         throw new NotImplementedException();
     }

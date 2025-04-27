@@ -1,0 +1,7 @@
+{
+	"id": "village",
+	"name": "Village",
+	"description": "A peaceful village surrounded by lush farmland and shaded by ancient oaks.",
+	"detailedDescription": "Smoke curls from thatched cottage chimneys, villagers tend small gardens, and the distant church bells echo through the green fields.",
+	"connectedTo": [ "forest_trail", "stone_bridge" ]
+}

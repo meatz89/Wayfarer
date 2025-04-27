@@ -1,5 +1,4 @@
-﻿
-public record ActionImplementation
+﻿public record ActionImplementation
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -11,9 +10,9 @@ public record ActionImplementation
     public string DestinationLocation { get; set; }
     public string DestinationLocationSpot { get; set; }
 
-    public string LocationName { get; internal set; }
-    public string LocationSpotName { get; internal set; }
-    public int SpotXp { get; internal set; }
+    public string LocationName { get; set; }
+    public string LocationSpotName { get; set; }
+    public int SpotXp { get; set; }
 
     public EncounterTemplate EncounterTemplate { get; set; }
 
@@ -25,30 +24,6 @@ public record ActionImplementation
 
     public ActionTypes ActionType { get; set; }
     public EncounterTypes EncounterType { get; set; }
-
-    public int GetTimeCost()
-    {
-        TimeOutcome timeCost;
-        bool hasTimeCost = OutcomeProcessor.GetOfType<TimeOutcome>(Costs, out timeCost);
-
-        if (hasTimeCost)
-        {
-            return timeCost.hours;
-        }
-        return 0;
-    }
-
-    public int GetEnergyCost()
-    {
-        EnergyOutcome energyCost;
-        bool hasEnergyCost = OutcomeProcessor.GetOfType<EnergyOutcome>(Costs, out energyCost);
-
-        if (hasEnergyCost)
-        {
-            return energyCost.Amount;
-        }
-        return 0;
-    }
 
     public bool IsCompleted(WorldState worldState)
     {
@@ -66,7 +41,7 @@ public record ActionImplementation
         });
     }
 
-    public EncounterTemplate GetEncounterTemplate()
+    public ActionGenerationContext GetActionGenerationContext()
     {
         ActionGenerationContext context = new ActionGenerationContext
         {
@@ -78,8 +53,6 @@ public record ActionImplementation
             LocationName = LocationName,
         };
 
-        EncounterTemplate encounterTemplate = WorldEncounterContent.GetDefaultTemplate();
-
-        return encounterTemplate;
+        return context;
     }
 }

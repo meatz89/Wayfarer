@@ -161,13 +161,6 @@ public partial class NarrativeViewBase : ComponentBase
         };
     }
 
-    public int GetEnergyCost()
-    {
-        ActionImplementation actionImplementation = EncounterResult.ActionImplementation;
-        int encergyCost = actionImplementation.GetEnergyCost();
-        return encergyCost;
-    }
-
     public MarkupString GetEnergyTypeIcon()
     {
         return new MarkupString("<i class='value-icon physical-icon'>⚡</i>");

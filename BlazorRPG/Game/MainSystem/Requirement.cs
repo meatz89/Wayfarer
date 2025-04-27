@@ -37,7 +37,7 @@ public class TimeRequirement : Requirement
 
     public override bool IsMet(GameState gameState)
     {
-        if(PossibleTimeWindows == null || PossibleTimeWindows.Count == 0)
+        if (PossibleTimeWindows == null || PossibleTimeWindows.Count == 0)
             return true;
 
         return PossibleTimeWindows.Contains(gameState.WorldState.TimeWindow);
@@ -45,7 +45,7 @@ public class TimeRequirement : Requirement
 
     public override string GetDescription()
     {
-        if(PossibleTimeWindows == null || PossibleTimeWindows.Count == 0) 
+        if (PossibleTimeWindows == null || PossibleTimeWindows.Count == 0)
             return "Any Time";
 
         return $"Only Possible when one of: {string.Join(", ", PossibleTimeWindows)}";

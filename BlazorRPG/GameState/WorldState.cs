@@ -26,7 +26,14 @@
 
     public void SetLocationDepth(string locationId, int depth)
     {
-        LocationDepths[locationId] = depth;
+        if (!LocationDepths.ContainsKey(locationId))
+        {
+            LocationDepths.Add(locationId, depth);
+        }
+        else
+        {
+            LocationDepths[locationId] = depth;
+        }
     }
 
     public int GetLocationDepth(string locationId)

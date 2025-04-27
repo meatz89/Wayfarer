@@ -71,7 +71,7 @@ public class LocationSystem
         return locationSpot;
     }
 
-    internal List<Location> GetConnectedLocations(string location)
+    public List<Location> GetConnectedLocations(string location)
     {
         List<Location> locations = locationRepo.GetConnectedLocations(location);
         return locations;

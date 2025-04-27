@@ -198,7 +198,7 @@ public class TimeOutcome : Outcome
 
     public override string GetDescription()
     {
-        return $"{(hours >= 0 ? "+" : "")}{hours} Energy";
+        return $"{(hours >= 0 ? "+" : "")}{hours} Time";
     }
 
     public override string GetPreview(GameState gameState)

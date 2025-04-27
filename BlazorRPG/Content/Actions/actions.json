@@ -1,0 +1,19 @@
+{
+	"id": "purchase_simple_room",
+	"name": "Purchase Simple Room",
+	"description": "Pay for a night's stay at the inn.",
+	"timeWindows": [ "Evening" ],
+	"costs": {
+		"coin": 5
+	},
+	"yields": {
+		"energy": 20,
+		"spotXp": 10,
+		"relationships": [
+			{
+				"characterName": "Maren",
+				"amount": 1
+			}
+		]
+	}
+}

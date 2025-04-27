@@ -340,12 +340,12 @@
         KnownLocationSpots.Add(locationSpot);
     }
 
-    internal int GetRelationshipLevel(string character)
+    public int GetRelationshipLevel(string character)
     {
         return 1;
     }
 
-    internal void UpdateRelationship(object characterId, object delta)
+    public void UpdateRelationship(object characterId, object delta)
     {
     }
 }
