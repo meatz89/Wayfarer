@@ -45,8 +45,7 @@ public class ActionGenerator
             WorldStateInput worldStateInput = await _worldStateInputCreator.CreateWorldStateInput(locationName);
             string json = await _narrativeService.GenerateActionsAsync(context, worldStateInput);
 
-            ActionCreationResult result = ActionJsonParser.Parse(json);
-            actionDef = result.Action;
+            actionDef = ActionParser.ParseAction(json);
         }
 
         // Register AI or default action via repository

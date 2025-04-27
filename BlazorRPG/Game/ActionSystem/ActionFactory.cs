@@ -1,27 +1,25 @@
 ﻿public class ActionFactory
 {
+    private readonly ActionRepository _actionRepository;
+
     public ActionFactory(ActionRepository actionRepository)
     {
-        ActionRepository = actionRepository;
+        _actionRepository = actionRepository;
     }
-
-    public ActionRepository ActionRepository { get; }
 
     public ActionImplementation CreateActionFromTemplate(ActionDefinition template, string location, string locationSpot)
     {
         ActionImplementation actionImplementation = new ActionImplementation();
 
-
+        // Transfer basic properties
         actionImplementation.Id = template.Id;
         actionImplementation.Name = template.Name;
-
         actionImplementation.Description = template.Description;
         actionImplementation.Difficulty = template.Difficulty;
-
         actionImplementation.LocationName = location;
         actionImplementation.LocationSpotName = locationSpot;
 
-        // If this is a movement action with a target spot
+        // Handle movement actions
         if (!string.IsNullOrEmpty(template.MoveToLocation))
         {
             actionImplementation.DestinationLocation = template.MoveToLocation;
@@ -32,38 +30,48 @@
             actionImplementation.DestinationLocationSpot = template.MoveToLocationSpot;
         }
 
+        // Set encounter properties
         actionImplementation.Goal = template.Goal;
         actionImplementation.Complication = template.Complication;
         actionImplementation.EncounterType = template.EncounterType;
 
-        actionImplementation.EncounterType = template.EncounterType;
-        actionImplementation.SpotXp = template.SpotXp;
+        // Convert SpotXp from float to int if needed
+        actionImplementation.SpotXp = (int)template.SpotXp;
 
+        // Set action type based on whether it's a one-time encounter
         actionImplementation.ActionType = template.IsOneTimeEncounter ? ActionTypes.Encounter : ActionTypes.Basic;
 
+        // Create requirements, costs, and yields
         actionImplementation.Requirements = CreateRequirements(template);
         actionImplementation.Costs = CreateCosts(template);
         actionImplementation.Yields = CreateYields(template);
 
+        // Create encounter template if needed
         var context = actionImplementation.GetActionGenerationContext();
         EncounterTemplate encounterTemplate = GameContentBootstrapper.GetDefaultEncounterTemplate();
 
         return actionImplementation;
     }
 
-
-    private List<Requirement> CreateRequirements(ActionDefinition template)
+    private List<IRequirement> CreateRequirements(ActionDefinition template)
     {
-        List<Requirement> requirements = new();
+        List<IRequirement> requirements = new();
 
+        // Time window requirement
         if (template.TimeWindows != null && template.TimeWindows.Count > 0)
         {
-            requirements.Add(new TimeRequirement(template.TimeWindows));
+            requirements.Add(new TimeWindowRequirement(template.TimeWindows));
         }
 
+        // Resource requirements - use specific requirement types
         if (template.EnergyCost > 0)
         {
             requirements.Add(new EnergyRequirement(template.EnergyCost));
+        }
+
+        if (template.HealthCost > 0)
+        {
+            requirements.Add(new HealthRequirement(template.HealthCost));
         }
 
         if (template.ConcentrationCost > 0)
@@ -71,14 +79,14 @@
             requirements.Add(new ConcentrationRequirement(template.ConcentrationCost));
         }
 
-        if (template.CoinCost > 0)
-        {
-            requirements.Add(new CoinRequirement(template.CoinCost));
-        }
-
         if (template.ConfidenceCost > 0)
         {
             requirements.Add(new ConfidenceRequirement(template.ConfidenceCost));
+        }
+
+        if (template.CoinCost > 0)
+        {
+            requirements.Add(new CoinRequirement(template.CoinCost));
         }
 
         return requirements;
@@ -91,7 +99,7 @@
 
         if (template.TimeCost > 0)
         {
-            costs.Add(new TimeOutcome(-template.TimeCost));
+            costs.Add(new TimeOutcome(template.TimeCost));
         }
 
         if (template.EnergyCost > 0)
@@ -99,19 +107,24 @@
             costs.Add(new EnergyOutcome(-template.EnergyCost));
         }
 
+        if (template.HealthCost > 0)
+        {
+            costs.Add(new HealthOutcome(-template.HealthCost));
+        }
+
         if (template.ConcentrationCost > 0)
         {
             costs.Add(new ConcentrationOutcome(-template.ConcentrationCost));
         }
 
-        if (template.CoinCost > 0)
-        {
-            costs.Add(new CoinOutcome(-template.CoinCost));
-        }
-
         if (template.ConfidenceCost > 0)
         {
             costs.Add(new ConfidenceOutcome(-template.ConfidenceCost));
+        }
+
+        if (template.CoinCost > 0)
+        {
+            costs.Add(new CoinOutcome(-template.CoinCost));
         }
 
         return costs;
@@ -121,9 +134,25 @@
     {
         List<Outcome> yields = new();
 
+        // Resource gains
         if (template.RestoresEnergy > 0)
         {
             yields.Add(new EnergyOutcome(template.RestoresEnergy));
+        }
+
+        if (template.RestoresHealth > 0)
+        {
+            yields.Add(new HealthOutcome(template.RestoresHealth));
+        }
+
+        if (template.RestoresConcentration > 0)
+        {
+            yields.Add(new ConcentrationOutcome(template.RestoresConcentration));
+        }
+
+        if (template.RestoresConfidence > 0)
+        {
+            yields.Add(new ConfidenceOutcome(template.RestoresConfidence));
         }
 
         if (template.CoinGain > 0)
@@ -131,9 +160,10 @@
             yields.Add(new CoinOutcome(template.CoinGain));
         }
 
-        if (template.RelationshipGains != null)
+        // Relationship gains
+        if (template.RelationshipChanges != null)
         {
-            foreach (RelationshipGain relationshipGain in template.RelationshipGains)
+            foreach (RelationshipGain relationshipGain in template.RelationshipChanges)
             {
                 if (relationshipGain.ChangeAmount > 0)
                 {

@@ -1,4 +1,6 @@
-﻿public class LocationSpot
+﻿
+
+public class LocationSpot
 {
     public string Name { get; init; }
     public string LocationName { get; init; }
@@ -86,5 +88,22 @@
         }
 
         return spotLevel;
+    }
+
+    public void IncreaseSpotXP(int spotXp)
+    {
+        CurrentSpotXP += spotXp;
+        if (CurrentSpotXP >= XPToNextLevel)
+        {
+            CurrentLevel++;
+            CurrentSpotXP = 0;
+            XPToNextLevel = CalculateXPToNextLevel(CurrentLevel);
+        }
+    }
+
+    private int CalculateXPToNextLevel(int currentLevel)
+    {
+        // Simple formula for now, can be adjusted later
+        return currentLevel * 100; // Example: 100 XP per level
     }
 }

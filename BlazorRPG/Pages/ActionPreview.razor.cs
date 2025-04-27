@@ -38,7 +38,7 @@ public partial class ActionPreviewBase : ComponentBase
     {
         List<string> descriptions = new();
         ActionImplementation basicAction = CurrentAction.ActionImplementation;
-        foreach (Requirement req in basicAction.Requirements)
+        foreach (IRequirement req in basicAction.Requirements)
         {
             string description = req.GetDescription();
             bool isSatisfied = req.IsMet(GameState);
@@ -69,12 +69,6 @@ public partial class ActionPreviewBase : ComponentBase
         {
             return new MarkupString("<i class='value-icon physical-icon'>⚡</i>");
         }
-        return new MarkupString("");
-    }
-
-    public MarkupString GetRequirementIcon(Requirement requirement)
-    {
-        // Add icons for each requirement type like in EncounterChoiceTooltip
         return new MarkupString("");
     }
 

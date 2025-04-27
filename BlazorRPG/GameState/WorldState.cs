@@ -16,6 +16,21 @@
     public List<string> CompletedEncounters { get; } = new List<string>();
     private Dictionary<string, int> ActionCounts { get; } = new Dictionary<string, int>();
 
+    // Game time
+    public int CurrentTimeInHours { get; set; }
+    public int CurrentTimeMinutes { get; set; }
+    public TimeWindow TimeWindow { get; set; }
+
+
+    // Current location tracking
+    public Location CurrentLocation { get; private set; }
+    public LocationSpot CurrentLocationSpot { get; private set; }
+
+    // Navigation options
+    public List<UserLocationTravelOption> CurrentTravelOptions { get; set; } = new();
+
+    public int CurrentDay { get; set; } = 1;
+
     public void IncrementActionCount(string actionId)
     {
         if (!ActionCounts.ContainsKey(actionId))
@@ -139,21 +154,6 @@
     {
         opportunities.Add(opportunity);
     }
-
-    // Game time
-    public int CurrentTimeInHours { get; set; }
-    public int CurrentTimeMinutes { get; set; }
-    public TimeWindow TimeWindow { get; set; }
-
-
-    // Current location tracking
-    public Location CurrentLocation { get; private set; }
-    public LocationSpot CurrentLocationSpot { get; private set; }
-
-    // Navigation options
-    public List<UserLocationTravelOption> CurrentTravelOptions { get; set; } = new();
-
-    public int CurrentDay { get; set; } = 1;
 
     public void SetCurrentLocation(Location location, LocationSpot currentLocationSpot)
     {

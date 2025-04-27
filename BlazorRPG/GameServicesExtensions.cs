@@ -22,7 +22,7 @@
         services.AddSingleton<EncounterSystem>();
         services.AddSingleton<ActionSystem>();
         services.AddSingleton<ChoiceRepository>();
-        services.AddSingleton<OutcomeProcessor>();
+        services.AddSingleton<ActionProcessor>();
         services.AddSingleton<EncounterFactory>();
         services.AddSingleton<WorldStateInputBuilder>();
         services.AddSingleton<PlayerProgression>();

@@ -11,7 +11,7 @@
 		{
 			"level": 1,
 			"description": "A warm-faced woman wiping down the bar and greeting weary travelers.",
-			"actionIds": [ "purchase_simple_room", "share_evening_story" ]
+			"actionIds": [ "negotiate_tavern_trade" ]
 		},
 		{
 			"level": 2,
@@ -21,7 +21,7 @@
 				"name": "Host Festival Preparation",
 				"description": "Maren needs help preparing for the upcoming village festival."
 			},
-			"actionIds": [ "purchase_simple_room", "negotiate_tavern_trade" ]
+			"actionIds": [ "purchase_simple_room", "share_evening_story" ]
 		}
 	]
 }
