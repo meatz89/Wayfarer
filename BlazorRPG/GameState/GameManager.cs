@@ -35,7 +35,7 @@
     {
         ProcessPlayerArchetype();
 
-        string startingLocationName = WorldLocationsContent.GetStartingLocation();
+        string startingLocationName = "village";
         Location startingLocation = await locationSystem.Initialize(startingLocationName);
 
         worldState.RecordLocationVisit(startingLocationName);
@@ -234,7 +234,7 @@
         string? currentLocation = worldState.CurrentLocation?.Name;
         if (string.IsNullOrWhiteSpace(currentLocation)) return new List<UserActionOption>();
 
-        IEnumerable<string> locationSpotActions = locationSpot.GetActionsForLevel(locationSpot.CurrentLevel);
+        List<string> locationSpotActions = locationSpot.GetActionsForLevel(locationSpot.CurrentLevel);
 
         List<UserActionOption> options = new List<UserActionOption>();
         foreach (string locationSpotAction in locationSpotActions)

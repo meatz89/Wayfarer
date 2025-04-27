@@ -5,14 +5,14 @@ public static class ActionJsonParser
 
     public static (ActionDefinition Action, List<string> ValidationErrors) ParseAndRegister(
         string json,
-        ContentRegistry contentRegistry)
+        GameContentRegistry contentRegistry)
     {
         ActionCreationResult result = ActionJsonParser.Parse(json);
         List<string> errors = new List<string>();
 
         if (result.Action != null)
         {
-            if (!contentRegistry.Register<ActionDefinition>(result.Action.Name, result.Action))
+            if (!contentRegistry.RegisterAction(result.Action.Name, result.Action))
                 errors.Add($"Duplicate action ID: {result.Action.Name}");
 
             // e.g., validate any referenced character unlocks

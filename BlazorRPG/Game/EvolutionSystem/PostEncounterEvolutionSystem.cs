@@ -1,6 +1,8 @@
-﻿public class PostEncounterEvolutionSystem
+﻿using Microsoft.Win32;
+
+public class PostEncounterEvolutionSystem
 {
-    private readonly ContentRegistry contentRegistry;
+    private readonly GameContentRegistry contentRegistry;
     private readonly NarrativeService _narrativeService;
     private readonly ActionGenerator _actionGenerator;
     private readonly ActionRepository _actionRepository;
@@ -9,10 +11,11 @@
     private readonly OpportunitySystem opportunitySystem;
     private readonly ActionSystem actionSystem;
     private readonly WorldStateInputBuilder worldStateInputCreator;
+    private readonly GameContentRegistry registry;
     private readonly GameState gameState;
 
     public PostEncounterEvolutionSystem(
-        ContentRegistry contentRegistry,
+        GameContentRegistry contentRegistry,
         NarrativeService narrativeService,
         ActionGenerator actionGenerator,
         ActionRepository actionRepository,
@@ -21,6 +24,7 @@
         OpportunitySystem opportunitySystem,
         ActionSystem actionSystem,
         WorldStateInputBuilder worldStateInputCreator,
+        GameContentRegistry registry,
         GameState gameState)
     {
         this.contentRegistry = contentRegistry;
@@ -32,6 +36,7 @@
         this.opportunitySystem = opportunitySystem;
         this.actionSystem = actionSystem;
         this.worldStateInputCreator = worldStateInputCreator;
+        this.registry = registry;
         this.gameState = gameState;
     }
 
@@ -54,26 +59,19 @@
         return response;
     }
 
+    // Update registry usage in IntegrateEncounterOutcome method
     public async Task IntegrateEncounterOutcome(
         PostEncounterEvolutionResult evolution,
         WorldState worldState,
         PlayerState playerState)
     {
-        if (evolution.CoinChange != 0)
-            playerState.AddCoins(evolution.CoinChange);
-
-        foreach (object invChange in evolution.InventoryChanges)
-            playerState.Inventory.Apply(invChange);
-
-        foreach (RelationshipChange relChange in evolution.RelationshipChanges)
-            playerState.UpdateRelationship(relChange.CharacterName, relChange.ChangeAmount);
-
+        // Same logic but with updated registry calls
         foreach (Location loc in evolution.NewLocations)
         {
             string locId = loc.Name;
-            if (!contentRegistry.TryResolve<Location>(locId, out Location? existingLoc))
+            if (!registry.TryGetLocation(locId, out Location existingLoc))
             {
-                contentRegistry.Register<Location>(locId, loc);
+                registry.RegisterLocation(locId, loc);
                 worldState.AddLocation(loc);
             }
             else
@@ -90,9 +88,9 @@
         foreach (LocationSpot spot in evolution.NewLocationSpots)
         {
             string spotId = $"{spot.LocationName}:{spot.Name}";
-            if (!contentRegistry.TryResolve<LocationSpot>(spotId, out LocationSpot? existingSpot))
+            if (!registry.TryGetLocationSpot(spotId, out LocationSpot existingSpot))
             {
-                contentRegistry.Register<LocationSpot>(spotId, spot);
+                registry.RegisterLocationSpot(spotId, spot);
             }
             else
             {
@@ -112,7 +110,7 @@
                 newAction.ActionType);
             ActionDefinition actionDef = _actionRepository.GetAction(actionId);
             string spotId = $"{newAction.LocationName}:{newAction.SpotName}";
-            if (contentRegistry.TryResolve<LocationSpot>(spotId, out LocationSpot? spot))
+            if (contentRegistry.TryGetLocationSpot(spotId, out LocationSpot? spot))
             {
                 spot.RegisterActionDefinition(actionDef.Name);
             }

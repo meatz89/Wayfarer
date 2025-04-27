@@ -1,6 +1,7 @@
 ﻿public class Location
 {
-    public string Name { get; private set; }
+    public string Id { get; private set; }
+    public string Name { get; set; }
     public string Description { get; set; }
     public List<string> ConnectedTo { get; set; } = new List<string>();
     public int TravelTimeMinutes { get; set; }
@@ -20,8 +21,8 @@
     public int VisitCount { get; set; }
     public bool PlayerKnowledge { get; set; }
 
-    public Location(string name)
+    public Location(string id)
     {
-        Name = name;
+        Id = id;
     }
 }

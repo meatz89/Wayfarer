@@ -9,7 +9,7 @@ public class PostEncounterEvolutionResult
     public ResourceChanges ResourceChanges { get; set; } = new ResourceChanges();
     public List<RelationshipChange> RelationshipChanges { get; set; } = new List<RelationshipChange>();
     public int CoinChange { get; set; } = 0;
-    public List<object> InventoryChanges { get; internal set; }
+    public List<object> InventoryChanges { get; set; }
 }
 
 public class RelationshipChange

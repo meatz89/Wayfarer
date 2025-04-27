@@ -1,6 +1,4 @@
-﻿
-
-public class LocationSpot
+﻿public class LocationSpot
 {
     public string Name { get; init; }
     public string LocationName { get; init; }
@@ -14,9 +12,10 @@ public class LocationSpot
     public bool PlayerKnowledge { get; set; }
 
     // Progression
-    public int CurrentSpotXP { get; set; } = 0;
-    public List<SpotLevel> SpotLevels { get; set; } = new List<SpotLevel>();
+    public List<SpotLevel> LevelData { get; set; } = new List<SpotLevel>();
     public int CurrentLevel { get; set; } = 1;
+    public int CurrentSpotXP { get; set; } = 0;
+    public int XPToNextLevel { get; set; } = 0;
 
     // Requirements
     public Dictionary<string, int> SkillRequirements { get; set; }
@@ -40,17 +39,17 @@ public class LocationSpot
     /// If an EncounterActionId exists at that exact level, only that action is returned.
     /// Otherwise, applies all Added/Removed lists for definitions <= currentLevel.
     /// </summary>
-    public IEnumerable<string> GetActionsForLevel(int currentLevel)
+    public List<string> GetActionsForLevel(int currentLevel)
     {
         // Check for exact encounter at this level
-        foreach (SpotLevel def in SpotLevels)
+        foreach (SpotLevel def in LevelData)
         {
             if (def.Level == currentLevel && !string.IsNullOrEmpty(def.EncounterActionId))
-                return new[] { def.EncounterActionId };
+                return new() { def.EncounterActionId };
         }
 
         List<string> actions = new List<string>();
-        foreach (SpotLevel def in SpotLevels)
+        foreach (SpotLevel def in LevelData)
         {
             if (def.Level <= currentLevel)
             {
@@ -73,7 +72,7 @@ public class LocationSpot
     {
         SpotLevel spotLevel = null;
 
-        if (SpotLevels.FirstOrDefault(x =>
+        if (LevelData.FirstOrDefault(x =>
         {
             return x.Level == CurrentLevel;
         }) is SpotLevel level)
@@ -83,17 +82,9 @@ public class LocationSpot
         else
         {
             spotLevel = new SpotLevel() { Level = CurrentLevel };
-            SpotLevels.Add(spotLevel);
+            LevelData.Add(spotLevel);
         }
 
         return spotLevel;
-    }
-
-    internal void RegisterActionDefinitions(List<string> actionIds)
-    {
-        foreach (string actionId in actionIds)
-        {
-            RegisterActionDefinition(actionId);
-        }
     }
 }

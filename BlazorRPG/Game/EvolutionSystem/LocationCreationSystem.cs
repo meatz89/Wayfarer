@@ -1,6 +1,6 @@
 ﻿public class LocationCreationSystem
 {
-    private readonly ContentRegistry contentRegistry;
+    private readonly GameContentRegistry contentRegistry;
     private readonly NarrativeService narrativeService;
     private readonly WorldState worldState;
     private readonly LocationSystem locationSystem;
@@ -11,9 +11,10 @@
     private readonly ActionGenerator actionGenerator;
     private readonly ActionRepository actionRepository;
     private readonly WorldStateInputBuilder worldStateInputCreator;
+    private readonly GameContentRegistry registry;
 
     public LocationCreationSystem(
-        ContentRegistry contentRegistry,
+        GameContentRegistry contentRegistry,
         NarrativeService narrativeService,
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
@@ -22,7 +23,8 @@
         GameState gameState,
         ActionGenerator actionGenerator,
         ActionRepository actionRepository,
-        WorldStateInputBuilder worldStateInputCreator
+        WorldStateInputBuilder worldStateInputCreator,
+        GameContentRegistry registry
         )
     {
         this.contentRegistry = contentRegistry;
@@ -35,6 +37,7 @@
         this.actionGenerator = actionGenerator;
         this.actionRepository = actionRepository;
         this.worldStateInputCreator = worldStateInputCreator;
+        this.registry = registry;
         this.narrativeService = narrativeService;
         this.worldState = gameState.WorldState;
     }
@@ -54,13 +57,14 @@
         return await IntegrateNewLocation(details);
     }
 
+    // Update registry usage in IntegrateNewLocation method
     public async Task<Location> IntegrateNewLocation(LocationDetails details)
     {
         string locId = details.LocationUpdate.NewLocationName;
-        if (!contentRegistry.TryResolve<Location>(locId, out Location? location))
+        if (!registry.TryGetLocation(locId, out Location location))
         {
             location = new Location(locId);
-            contentRegistry.Register<Location>(locId, location);
+            registry.RegisterLocation(locId, location);
         }
         location.Description = details.Description;
         location.DetailedDescription = details.DetailedDescription;
@@ -82,7 +86,7 @@
                 spot.RegisterActionDefinition(actionId);
             }
 
-            contentRegistry.Register<LocationSpot>(spotId, spot);
+            contentRegistry.RegisterLocationSpot(spotId, spot);
         }
 
         foreach (NewAction newAction in details.NewActions)
@@ -98,7 +102,7 @@
             ActionDefinition actionDef = actionRepository.GetAction(actionId);
             string spotId = $"{locId}:{newAction.SpotName}";
 
-            if (contentRegistry.TryResolve<LocationSpot>(spotId, out LocationSpot? spot))
+            if (contentRegistry.TryGetLocationSpot(spotId, out LocationSpot? spot))
                 spot.RegisterActionDefinition(actionDef.Name);
         }
 
