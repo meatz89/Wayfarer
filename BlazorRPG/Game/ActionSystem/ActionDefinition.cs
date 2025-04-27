@@ -1,32 +1,44 @@
 ﻿public class ActionDefinition
 {
+    // Basic properties
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public string Goal { get; set; }
-    public string Complication { get; set; }
-    public int SpotXp { get; set; }
+    public ActionTypes ActionType { get; set; }
 
-    public int Difficulty { get; set; } = 1;
-    public string MoveToLocation { get; set; }
-    public string MoveToLocationSpot { get; set; }
-
-    public EncounterTypes EncounterType { get; set; }
-    public bool IsOneTimeEncounter { get; set; }
-
-    public List<TimeWindow> TimeWindows { get; set; }
-    public int EnergyCost { get; set; }
+    // Resource costs
     public int CoinCost { get; set; }
+    public int EnergyCost { get; set; }
+    public int HealthCost { get; set; }
     public int ConfidenceCost { get; set; }
     public int ConcentrationCost { get; set; }
     public int TimeCost { get; set; }
 
+    // Resource yields
     public int CoinGain { get; set; }
     public int RestoresEnergy { get; set; }
-    public List<RelationshipGain> RelationshipGains { get; set; } = new();
     public int RestoresHealth { get; set; }
     public int RestoresConcentration { get; set; }
     public int RestoresConfidence { get; set; }
+    public List<RelationshipGain> RelationshipChanges { get; set; } = new();
+
+    // Requirements
+    public List<TimeWindow> TimeWindows { get; set; } = new List<TimeWindow>();
+    public List<RelationshipRequirement> RelationshipRequirements { get; set; } = new();
+    public List<ReputationRequirement> ReputationRequirements { get; internal set; } = new();
+    public List<SkillRequirement> SkillRequirements { get; internal set; } = new();
+
+    // Outcome effects
+    public int SpotXp { get; set; }
+
+    // Encounter details
+    public bool IsOneTimeEncounter { get; set; }
+    public string Goal { get; set; }
+    public string Complication { get; set; }
+    public EncounterTypes EncounterType { get; set; } = EncounterTypes.Social;
+    public int Difficulty { get; internal set; }
+    public string MoveToLocation { get; internal set; }
+    public string MoveToLocationSpot { get; internal set; }
 
     public ActionDefinition(string id, string name)
     {

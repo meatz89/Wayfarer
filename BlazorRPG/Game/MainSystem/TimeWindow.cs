@@ -3,5 +3,6 @@
     Night,
     Morning,
     Afternoon,
-    Evening
+    Evening,
+    None
 }

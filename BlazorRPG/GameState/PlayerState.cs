@@ -348,4 +348,9 @@
     public void UpdateRelationship(object characterId, object delta)
     {
     }
+
+    internal int GetReputation(string location)
+    {
+        throw new NotImplementedException();
+    }
 }

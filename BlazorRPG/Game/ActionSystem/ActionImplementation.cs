@@ -16,7 +16,7 @@
 
     public EncounterTemplate EncounterTemplate { get; set; }
 
-    public List<Requirement> Requirements { get; set; } = new();
+    public List<IRequirement> Requirements { get; set; } = new();
     public List<Outcome> Costs { get; set; }
     public List<Outcome> Yields { get; set; }
 

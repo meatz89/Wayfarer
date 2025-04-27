@@ -70,7 +70,7 @@
             try
             {
                 string json = File.ReadAllText(filePath);
-                ActionDefinition action = ContentParser.ParseAction(json);
+                ActionDefinition action = ActionParser.ParseAction(json);
                 actions.Add(action);
             }
             catch (Exception ex)

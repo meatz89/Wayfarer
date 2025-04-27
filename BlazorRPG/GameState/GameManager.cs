@@ -1,4 +1,6 @@
-﻿public class GameManager(
+﻿using System;
+
+public class GameManager(
     GameState gameState,
     EncounterSystem encounterSystem,
     PostEncounterEvolutionSystem evolutionSystem,
@@ -9,7 +11,7 @@
     TravelManager travelManager,
     ActionGenerator actionGenerator,
     PlayerProgression playerProgression,
-    OutcomeProcessor outcomeProcessor,
+    ActionProcessor actionProcessor,
     IConfiguration configuration)
 {
     public PlayerState playerState
@@ -122,8 +124,7 @@
         gameState.ActionStateTracker.CompleteAction();
         await HandlePlayerMoving(action);
 
-        outcomeProcessor.ProcessActionCosts(action);
-        outcomeProcessor.ProcessActionYields(action);
+        actionProcessor.ProcessAction(action);
 
         await UpdateState();
     }
@@ -256,7 +257,7 @@
 
             ActionImplementation actionImplementation = actionFactory.CreateActionFromTemplate(actionTemplate, location.Name, locationSpot.Name);
 
-            UserActionOption userActionOption =
+            UserActionOption action =
                 new UserActionOption(
                     actionImplementation.Id.ToString(),
                     locationSpot.IsClosed,
@@ -267,9 +268,10 @@
                     location.Difficulty,
                     string.Empty);
 
-            bool requirementsMet = AreRequirementsMet(userActionOption);
-            userActionOption = userActionOption with { IsDisabled = !requirementsMet };
-            options.Add(userActionOption);
+            bool requirementsMet = actionProcessor.CanExecute(action.ActionImplementation);
+
+            action = action with { IsDisabled = !requirementsMet };
+            options.Add(action);
         }
 
         return options;
@@ -531,30 +533,6 @@
     public bool CanMoveToSpot(string locationSpotName)
     {
         return true;
-    }
-
-    public bool AreRequirementsMet(UserActionOption action)
-    {
-        foreach (Requirement requirement in action.ActionImplementation.Requirements)
-        {
-            if (!requirement.IsMet(gameState))
-            {
-                return false; // Requirement not met
-            }
-        }
-
-        // Check if the action has been completed and is non-repeatable
-        if (action.ActionImplementation.ActionType == ActionTypes.Encounter)
-        {
-            string encounterId = action.ActionId;
-            if (gameState.WorldState.IsEncounterCompleted(encounterId))
-            {
-                return false; // Already completed this non-repeatable action
-            }
-        }
-
-        // Continue with existing requirement checks
-        return action.ActionImplementation.CanExecute(gameState);
     }
 
     public string GetTimeOfDay(int totalMinutes)

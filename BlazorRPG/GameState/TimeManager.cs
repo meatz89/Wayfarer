@@ -1,4 +1,5 @@
-﻿public class TimeManager
+﻿
+public class TimeManager
 {
     private readonly WorldState worldState;
 
@@ -53,14 +54,14 @@
         }
     }
 
-    private void ModifyLocationIllumination(LocationSpot locationSpot, Illumination illumination)
-    {
-        locationSpot.Illumination = illumination;
-    }
-
     // Handle day change effects
     private void OnDayChanged()
     {
         // Future implementation: Handle day change effects
+    }
+
+    public TimeWindow GetCurrentTimeWindow()
+    {
+        return worldState.TimeWindow;
     }
 }

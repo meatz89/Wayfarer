@@ -1,297 +1,214 @@
-﻿public abstract class Requirement
+﻿public interface IRequirement
 {
-    public abstract bool IsMet(GameState gameState);
-    public abstract string GetDescription();
+    bool IsMet(GameState gameState);
+    string GetDescription();
 }
 
-public class SkillRequirement : Requirement
+public class TimeWindowRequirement : IRequirement
 {
-    public SkillTypes SkillType { get; set; }
-    public int RequiredLevel { get; set; }
+    public List<TimeWindow> AllowedWindows { get; }
 
-    public SkillRequirement(SkillTypes skillType, int requiredLevel)
+    public TimeWindowRequirement(List<TimeWindow> allowedWindows)
+    {
+        AllowedWindows = allowedWindows;
+    }
+
+    public bool IsMet(GameState gameState)
+    {
+        TimeWindow currentWindow = gameState.TimeManager.GetCurrentTimeWindow();
+        return AllowedWindows.Contains(currentWindow);
+    }
+
+    public string GetDescription()
+    {
+        return $"Available during: {string.Join(", ", AllowedWindows)}";
+    }
+}
+
+public class RelationshipRequirement : IRequirement
+{
+    public string CharacterName { get; }
+    public int MinimumValue { get; }
+
+    public RelationshipRequirement(string characterName, int minimumValue)
+    {
+        CharacterName = characterName;
+        MinimumValue = minimumValue;
+    }
+
+    public bool IsMet(GameState gameState)
+    {
+        int currentValue = gameState.PlayerState.GetRelationshipLevel(CharacterName);
+        return currentValue >= MinimumValue;
+    }
+
+    public string GetDescription()
+    {
+        return $"Requires {MinimumValue}+ relationship with {CharacterName}";
+    }
+}
+
+public class ReputationRequirement : IRequirement
+{
+    public string Location { get; }
+    public int MinimumValue { get; }
+
+    public ReputationRequirement(string location, int minimumValue)
+    {
+        Location = location;
+        MinimumValue = minimumValue;
+    }
+
+    public bool IsMet(GameState gameState)
+    {
+        int currentValue = gameState.PlayerState.GetReputation(Location);
+        return currentValue >= MinimumValue;
+    }
+
+    public string GetDescription()
+    {
+        return $"Requires {MinimumValue}+ reputation in {Location}";
+    }
+}
+
+public class SkillRequirement : IRequirement
+{
+    public SkillTypes SkillType { get; }
+    public int RequiredLevel { get; }
+
+    public SkillRequirement(SkillTypes skillType, int minimumLevel)
     {
         SkillType = skillType;
-        RequiredLevel = requiredLevel;
+        RequiredLevel = minimumLevel;
     }
 
-    public override bool IsMet(GameState gameState)
+    public bool IsMet(GameState gameState)
     {
-        return gameState.PlayerState.PlayerSkills.GetLevelForSkill(SkillType) >= RequiredLevel;
+        int currentLevel = gameState.PlayerState.PlayerSkills.GetLevelForSkill(SkillType);
+        return currentLevel >= RequiredLevel;
     }
 
-    public override string GetDescription()
+    public string GetDescription()
     {
-        return $"Skill Level Required: {SkillType} {RequiredLevel}";
+        return $"Requires {SkillType} level {RequiredLevel}+";
+    }
+}
+public class EnergyRequirement : IRequirement
+{
+    public int RequiredAmount { get; }
+
+    public EnergyRequirement(int requiredAmount)
+    {
+        RequiredAmount = requiredAmount;
+    }
+
+    public bool IsMet(GameState gameState)
+    {
+        return gameState.PlayerState.Energy >= RequiredAmount;
+    }
+
+    public string GetDescription()
+    {
+        return $"Requires {RequiredAmount} Energy";
     }
 }
 
-public class TimeRequirement : Requirement
+public class HealthRequirement : IRequirement
 {
-    public List<TimeWindow> PossibleTimeWindows { get; set; }
+    public int RequiredAmount { get; }
 
-    public TimeRequirement(List<TimeWindow> timeWindows)
+    public HealthRequirement(int requiredAmount)
     {
-        PossibleTimeWindows = timeWindows;
+        RequiredAmount = requiredAmount;
     }
 
-    public override bool IsMet(GameState gameState)
+    public bool IsMet(GameState gameState)
     {
-        if (PossibleTimeWindows == null || PossibleTimeWindows.Count == 0)
-            return true;
-
-        return PossibleTimeWindows.Contains(gameState.WorldState.TimeWindow);
+        return gameState.PlayerState.Health >= RequiredAmount;
     }
 
-    public override string GetDescription()
+    public string GetDescription()
     {
-        if (PossibleTimeWindows == null || PossibleTimeWindows.Count == 0)
-            return "Any Time";
-
-        return $"Only Possible when one of: {string.Join(", ", PossibleTimeWindows)}";
+        return $"Requires {RequiredAmount} Health";
     }
 }
 
-public class EnergyRequirement : Requirement
+public class ConcentrationRequirement : IRequirement
 {
-    public int Amount { get; set; }
+    public int RequiredAmount { get; }
 
-    public EnergyRequirement(int count)
+    public ConcentrationRequirement(int requiredAmount)
     {
-        Amount = count;
+        RequiredAmount = requiredAmount;
     }
 
-    public override bool IsMet(GameState gameState)
+    public bool IsMet(GameState gameState)
     {
-        return gameState.PlayerState.Energy >= Amount;
+        return gameState.PlayerState.Concentration >= RequiredAmount;
     }
 
-    public override string GetDescription()
+    public string GetDescription()
     {
-        return $"Energy Required: {Amount}";
+        return $"Requires {RequiredAmount} Concentration";
     }
 }
 
-public class CoidRequirement : Requirement
+public class ConfidenceRequirement : IRequirement
 {
-    public int Amount { get; set; }
+    public int RequiredAmount { get; }
 
-    public CoidRequirement(int count)
+    public ConfidenceRequirement(int requiredAmount)
     {
-        Amount = count;
+        RequiredAmount = requiredAmount;
     }
 
-    public override bool IsMet(GameState gameState)
+    public bool IsMet(GameState gameState)
     {
-        return gameState.PlayerState.Coins >= Amount;
+        return gameState.PlayerState.Confidence >= RequiredAmount;
     }
 
-    public override string GetDescription()
+    public string GetDescription()
     {
-        return $"Coid Required: {Amount}";
+        return $"Requires {RequiredAmount} Confidence";
     }
 }
 
-public class FoodRequirement : Requirement
+public class CoinRequirement : IRequirement
 {
-    public int Amount { get; set; }
+    public int RequiredAmount { get; }
 
-    public FoodRequirement(int count)
+    public CoinRequirement(int requiredAmount)
     {
-        Amount = count;
+        RequiredAmount = requiredAmount;
     }
 
-    public override bool IsMet(GameState gameState)
+    public bool IsMet(GameState gameState)
     {
-        return gameState.PlayerState.Food >= Amount;
+        return gameState.PlayerState.Coins >= RequiredAmount;
     }
 
-    public override string GetDescription()
+    public string GetDescription()
     {
-        return $"Food Required: {Amount}";
+        return $"Requires {RequiredAmount} Coins";
     }
 }
 
-public class HealthRequirement : Requirement
+public class FoodRequirement : IRequirement
 {
-    public int Count { get; }
+    public int RequiredAmount { get; }
 
-    public HealthRequirement(int count)
+    public FoodRequirement(int requiredAmount)
     {
-        Count = count;
+        RequiredAmount = requiredAmount;
     }
 
-    public override bool IsMet(GameState gameState)
+    public bool IsMet(GameState gameState)
     {
-        return gameState.PlayerState.Health >= Count;
+        return gameState.PlayerState.Food >= RequiredAmount;
     }
 
-    public override string GetDescription()
+    public string GetDescription()
     {
-        return $"Health Required: {Count}";
-    }
-}
-
-public class ConcentrationRequirement : Requirement
-{
-    public int Count { get; }
-
-    public ConcentrationRequirement(int count)
-    {
-        Count = count;
-    }
-
-    public override bool IsMet(GameState gameState)
-    {
-        return gameState.PlayerState.Concentration >= Count;
-    }
-
-    public override string GetDescription()
-    {
-        return $"Concentration Required: {Count}";
-    }
-}
-
-public class ConfidenceRequirement : Requirement
-{
-    public int Count { get; }
-
-    public ConfidenceRequirement(int count)
-    {
-        Count = count;
-    }
-
-    public override bool IsMet(GameState gameState)
-    {
-        return gameState.PlayerState.Confidence >= Count;
-    }
-
-    public override string GetDescription()
-    {
-        return $"ConfidenceRequirement Required: {Count}";
-    }
-}
-
-public class CoinRequirement : Requirement
-{
-    public int Count { get; }
-
-    public CoinRequirement(int count)
-    {
-        Count = count;
-    }
-
-    public override bool IsMet(GameState gameState)
-    {
-        return gameState.PlayerState.Coins >= Count;
-    }
-
-    public override string GetDescription()
-    {
-        return $"Coins Required: {Count}";
-    }
-}
-
-public class ItemRequirement : Requirement
-{
-    public ItemTypes ResourceType { get; }
-
-    public ItemRequirement(ItemTypes resourceType)
-    {
-        ResourceType = resourceType;
-    }
-
-    public override bool IsMet(GameState gameState)
-    {
-        return gameState.PlayerState.Inventory.GetItemCount(ResourceType.ToString()) > 0;
-    }
-
-    public override string GetDescription()
-    {
-        return $"{ResourceType} Required";
-    }
-}
-
-public class ResourceRequirement : Requirement
-{
-    public ItemTypes ResourceType { get; }
-    public int Count { get; }
-
-    public ResourceRequirement(ItemTypes resourceType, int count)
-    {
-        ResourceType = resourceType;
-        Count = count;
-    }
-
-    public override bool IsMet(GameState gameState)
-    {
-        return gameState.PlayerState.Inventory.GetItemCount(ResourceType.ToString()) >= Count;
-    }
-
-    public override string GetDescription()
-    {
-        return $"{ResourceType} Required: {Count}";
-    }
-}
-
-public class InventorySlotsRequirement : Requirement
-{
-    public int Count { get; }
-
-    public InventorySlotsRequirement(int count)
-    {
-        Count = count;
-    }
-
-    public override bool IsMet(GameState gameState)
-    {
-        return gameState.PlayerState.Inventory.GetEmptySlots() >= Count;
-    }
-
-    public override string GetDescription()
-    {
-        return $"Empty Inventory Slots Required: {Count}";
-    }
-}
-
-public class RelationshipRequirement : Requirement
-{
-    public string Character { get; }
-    public int Level { get; }
-
-    public RelationshipRequirement(string character, int level)
-    {
-        Character = character;
-        Level = level;
-    }
-
-    public override bool IsMet(GameState gameState)
-    {
-        return gameState.PlayerState.GetRelationshipLevel(Character) >= Level;
-    }
-
-    public override string GetDescription()
-    {
-        return $"Relationship with {Character} Required: {Level}";
-    }
-}
-
-public class PlayerNegativeStatusRequirement : Requirement
-{
-    public PlayerNegativeStatus Status { get; }
-
-    public PlayerNegativeStatusRequirement(PlayerNegativeStatus property)
-    {
-        Status = property;
-    }
-
-    public override bool IsMet(GameState gameState)
-    {
-        return gameState.PlayerState.HasStatusEffect(Status);
-    }
-
-    public override string GetDescription()
-    {
-        return $"Player Status Required: {Status}";
+        return $"Requires {RequiredAmount} Food";
     }
 }
