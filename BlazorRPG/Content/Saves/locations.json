@@ -1,0 +1,16 @@
+[
+	{
+		"id": "village",
+		"name": "Village",
+		"description": "A peaceful village surrounded by lush farmland and shaded by ancient oaks.",
+		"detailedDescription": "Smoke curls from thatched cottage chimneys, villagers tend small gardens, and the distant church bells echo through the green fields.",
+		"connectedTo": [ "forest_trail" ]
+	},
+	{
+		"id": "forest_trail",
+		"name": "Forest Trail",
+		"description": "A winding path through ancient trees.",
+		"detailedDescription": "Sunlight filters through the dense canopy, creating dappled patterns on the forest floor.",
+		"connectedTo": [ "village" ]
+	}
+]

@@ -36,7 +36,7 @@
                         @onclick="() => OnActionSelected.InvokeAsync(action)"
                         disabled="@(action.IsDisabled)"
                         @onmouseover="(e) => HandleShowTooltip(action, e)"
-                        @onmouseout="HandleHideTooltip">@action.ActionImplementation.Id (@action.ActionImplementation.ActionType)
+                        @onmouseout="HandleHideTooltip">@action.ActionImplementation.Name (@action.ActionImplementation.ActionType)
                         </button>
                     }
                 }

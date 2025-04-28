@@ -154,22 +154,22 @@
 
 /* Choice tier styling */
 .choice-option.tier-1 {
-	border-left-color: #606060;
+	border-left-color: #606060; /* No matching variable */
 }
 
 .choice-option.tier-2 {
-	border-left-color: #2F6329;
+	border-left-color: var(--moss);
 }
 
 .choice-option.tier-3 {
-	border-left-color: #19559E;
+	border-left-color: #19559E; /* No matching variable */
 }
 
 .choice-option.tier-4 {
-	border-left-color: #6A3A99;
+	border-left-color: #6A3A99; /* No matching variable */
 }
 
 .choice-option.tier-5 {
-	border-left-color: #A25B0F;
+	border-left-color: #A25B0F; /* No matching variable */
 	box-shadow: 0 0 5px rgba(162, 91, 15, 0.5);
 }

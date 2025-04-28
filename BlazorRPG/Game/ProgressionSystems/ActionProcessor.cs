@@ -37,7 +37,7 @@
         // Check if the action has been completed and is non-repeatable
         if (action.ActionType == ActionTypes.Encounter)
         {
-            string encounterId = action.Id;
+            string encounterId = action.Name;
             if (gameState.WorldState.IsEncounterCompleted(encounterId))
             {
                 return false; // Encounter already completed

@@ -23,7 +23,6 @@
 	padding: 0 1rem;
 }
 
-/* Value styling */
 .positive-change {
 	color: var(--positive);
 	font-weight: bold;
@@ -39,7 +38,6 @@
 	font-weight: bold;
 }
 
-/* Icon styles */
 .value-icon {
 	margin-right: 5px;
 	font-style: normal;
