@@ -24,6 +24,12 @@
         worldState = gameState.WorldState;
     }
 
+    public void UpdateState()
+    {
+        Location currentLocation = worldState.CurrentLocation;
+        environmentalPropertyManager.UpdateLocationForTime(currentLocation, worldState.TimeWindow);
+    }
+
     public bool CanExecute(ActionImplementation action)
     {
         foreach (IRequirement requirement in action.Requirements)
@@ -74,7 +80,7 @@
             if (cost is TimeOutcome timeCost)
             {
                 gameState.TimeManager.AdvanceTime(timeCost.hours);
-                UpdateTime();
+                UpdateState();
             }
             else
             {
@@ -144,28 +150,4 @@
     {
         return action.Difficulty * 5;
     }
-
-    private void UpdateTime()
-    {
-        Location currentLocation = worldState.CurrentLocation;
-        environmentalPropertyManager.UpdateLocationForTime(currentLocation, worldState.TimeWindow);
-    }
-
-    private int CalculateDepletionAmount(float baseDepletion, PlayerSkills skills)
-    {
-        // More skilled players deplete resources less
-        float skillFactor = 1.0f;
-
-        // Apply skill-based reduction (example using Foraging)
-        int foragingLevel = skills.GetLevelForSkill(SkillTypes.Warfare);
-        if (foragingLevel > 0)
-        {
-            skillFactor = 1.0f - (0.05f * foragingLevel); // 5% reduction per level
-            skillFactor = Math.Max(0.5f, skillFactor); // Cap at 50% reduction
-        }
-
-        return (int)(baseDepletion * skillFactor);
-    }
-
-
 }
