@@ -84,7 +84,8 @@
             Console.WriteLine("Current location spot is null despite spots existing - manually setting");
             worldState.SetCurrentLocationSpot(locationSystem.GetLocationSpots(currentLocation.Name).First());
         }
-
+        
+        gameState.ActionStateTracker.CompleteAction();
         await UpdateState();
 
         Location? currentLoc = currentLocation;
@@ -143,7 +144,6 @@
             case ActionExecutionType.Basic:
             default:
                 await ProcessActionCompletion(actionImplementation);
-                await UpdateState();
                 break;
         }
 
@@ -153,13 +153,13 @@
     public async Task ProcessActionCompletion(ActionImplementation action)
     {
         gameState.ActionStateTracker.CompleteAction();
+
         await HandlePlayerMoving(action);
 
         actionProcessor.ProcessAction(action);
 
         await UpdateState();
     }
-
 
     private SkillTypes DetermineSkillForAction(ActionImplementation action)
     {
@@ -588,6 +588,7 @@
     public async Task UpdateState()
     {
         gameState.ActionStateTracker.ClearCurrentUserAction();
+        actionProcessor.UpdateState();
 
         List<UserActionOption> locationSpotActionOptions =
             await CreateLocationSpotActions(
