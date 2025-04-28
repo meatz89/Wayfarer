@@ -1,6 +1,6 @@
 ﻿public record UserActionOption
-    (
-    string ActionId,
+(
+    string actionName,
     bool IsDisabled,
     ActionImplementation ActionImplementation,
     string Location,
@@ -8,10 +8,4 @@
     string Character,
     int LocationDifficulty,
     string DisabledReason
-    )
-{
-    public string Display()
-    {
-        return $"{ActionId}";
-    }
-}
+);

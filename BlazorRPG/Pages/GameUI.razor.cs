@@ -327,21 +327,9 @@ public partial class GameUI : ComponentBase
 
     private async Task UseResource(ActionNames actionName)
     {
-        UserActionOption globalAction = GameState.ActionStateTracker.GlobalActions
-            .FirstOrDefault(a =>
-            {
-                return a.ActionId == actionName.ToString();
-            });
-
-        if (globalAction != null && !globalAction.IsDisabled)
-        {
-            await GameManager.ExecuteAction(globalAction);
-        }
-
         CurrentScreen = CurrentViews.LocationScreen;
         ChangeState();
     }
-
 
     private async Task WaitOneHour()
     {

@@ -1,5 +1,4 @@
-﻿
-/* ==================== Badges & Special Elements ==================== */
+﻿/* ==================== Badges & Special Elements ==================== */
 .resource-use-btn {
 	background-color: var(--leather);
 	color: var(--parchment);
@@ -33,23 +32,23 @@
 }
 
 	.tier-badge.tier-1 {
-		background-color: #606060;
+		background-color: #606060; /* No matching variable */
 	}
 
 	.tier-badge.tier-2 {
-		background-color: #2F6329;
+		background-color: var(--moss);
 	}
 
 	.tier-badge.tier-3 {
-		background-color: #19559E;
+		background-color: #19559E; /* No matching variable */
 	}
 
 	.tier-badge.tier-4 {
-		background-color: #6A3A99;
+		background-color: #6A3A99; /* No matching variable */
 	}
 
 	.tier-badge.tier-5 {
-		background-color: #A25B0F;
+		background-color: #A25B0F; /* No matching variable */
 	}
 
 .objective-title {
@@ -89,7 +88,6 @@
 	font-size: 0.8rem;
 	line-height: 1.4;
 }
-
 
 @keyframes pulse {
 	0% {

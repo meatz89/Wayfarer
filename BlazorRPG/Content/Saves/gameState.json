@@ -1,0 +1,20 @@
+{
+	"CurrentLocationId": "village",
+	"CurrentLocationSpotId": "village_square",
+	"CurrentDay": 1,
+	"CurrentTimeMinutes": 480,
+	"Player": {
+		"Name": null,
+		"Gender": null,
+		"Archetype": null,
+		"Coins": 50,
+		"Food": 2,
+		"Health": 20,
+		"Energy": 10,
+		"Concentration": 20,
+		"Confidence": 20,
+		"Level": 1,
+		"CurrentXP": 0,
+		"InventoryItems": []
+	}
+}

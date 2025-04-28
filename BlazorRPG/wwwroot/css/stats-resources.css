@@ -102,7 +102,6 @@
 	font-weight: bold;
 }
 
-/* Status styles */
 .player-status {
 	display: flex;
 	gap: 20px;

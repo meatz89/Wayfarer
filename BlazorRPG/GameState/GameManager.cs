@@ -1,37 +1,56 @@
-﻿public class GameManager(
-    GameState gameState,
-    EncounterSystem encounterSystem,
-    PostEncounterEvolutionSystem evolutionSystem,
-    LocationSystem locationSystem,
-    MessageSystem messageSystem,
-    ActionFactory actionFactory,
-    ActionRepository actionRepository,
-    LocationRepository locationRepository,
-    TravelManager travelManager,
-    ActionGenerator actionGenerator,
-    PlayerProgression playerProgression,
-    ActionProcessor actionProcessor,
-    ContentLoader contentLoader,
-    IConfiguration configuration)
+﻿public class GameManager
 {
+    private bool _useMemory;
+    private bool _processStateChanges;
+    private readonly GameState gameState;
+    private readonly PlayerState playerState;
+    private readonly WorldState worldState;
+    private readonly EncounterSystem encounterSystem;
+    private readonly PostEncounterEvolutionSystem evolutionSystem;
+    private readonly LocationSystem locationSystem;
+    private readonly MessageSystem messageSystem;
+    private readonly ActionFactory actionFactory;
+    private readonly ActionRepository actionRepository;
+    private readonly LocationRepository locationRepository;
+    private readonly TravelManager travelManager;
+    private readonly ActionGenerator actionGenerator;
+    private readonly PlayerProgression playerProgression;
+    private readonly ActionProcessor actionProcessor;
+    private readonly ContentLoader contentLoader;
 
-    private bool _useMemory = configuration.GetValue<bool>("useMemory");
-    private bool _processStateChanges = configuration.GetValue<bool>("processStateChanges");
-
-    public PlayerState playerState
+    public GameManager(
+        GameState gameState,
+        EncounterSystem encounterSystem,
+        PostEncounterEvolutionSystem evolutionSystem,
+        LocationSystem locationSystem,
+        MessageSystem messageSystem,
+        ActionFactory actionFactory,
+        ActionRepository actionRepository,
+        LocationRepository locationRepository,
+        TravelManager travelManager,
+        ActionGenerator actionGenerator,
+        PlayerProgression playerProgression,
+        ActionProcessor actionProcessor,
+        ContentLoader contentLoader,
+        IConfiguration configuration)
     {
-        get
-        {
-            return gameState.PlayerState;
-        }
-    }
-
-    public WorldState worldState
-    {
-        get
-        {
-            return gameState.WorldState;
-        }
+        this.gameState = gameState;
+        this.playerState = gameState.PlayerState;
+        this.worldState = gameState.WorldState;
+        this.encounterSystem = encounterSystem;
+        this.evolutionSystem = evolutionSystem;
+        this.locationSystem = locationSystem;
+        this.messageSystem = messageSystem;
+        this.actionFactory = actionFactory;
+        this.actionRepository = actionRepository;
+        this.locationRepository = locationRepository;
+        this.travelManager = travelManager;
+        this.actionGenerator = actionGenerator;
+        this.playerProgression = playerProgression;
+        this.actionProcessor = actionProcessor;
+        this.contentLoader = contentLoader;
+        _useMemory = configuration.GetValue<bool>("useMemory");
+        _processStateChanges = configuration.GetValue<bool>("processStateChanges");
     }
 
     public async Task SaveGame()
@@ -195,38 +214,6 @@
         }
     }
 
-    public void CreateGlobalActions()
-    {
-        List<UserActionOption> userActions = new List<UserActionOption>();
-
-        // Only add food consumption if player has food
-        if (gameState.PlayerState.Food > 0)
-        {
-            ActionDefinition foodActionTemplate = actionRepository.GetAction(ActionNames.ConsumeFood.ToString());
-            if (foodActionTemplate != null)
-            {
-                ActionImplementation consumeFoodAction = actionFactory.CreateActionFromTemplate(foodActionTemplate, string.Empty, string.Empty);
-
-                // Check if requirements are met
-                bool requirementsMet = consumeFoodAction.CanExecute(gameState);
-
-                UserActionOption consumeFoodOption = new UserActionOption(
-                    consumeFoodAction.Id.ToString(),
-                    !requirementsMet,
-                    consumeFoodAction,
-                    gameState.WorldState.CurrentLocation?.Name ?? "Global",
-                    gameState.WorldState.CurrentLocationSpot?.Name ?? "Global",
-                    null,
-                    0,
-                    string.Empty);
-
-                userActions.Add(consumeFoodOption);
-            }
-        }
-
-        gameState.ActionStateTracker.SetGlobalActions(userActions);
-    }
-
     public async Task InitiateTravelToLocation(string locationName)
     {
         // Create travel action using travelManager
@@ -254,8 +241,6 @@
         {
             ActionDefinition actionTemplate = actionRepository.GetAction(locationSpotAction);
 
-            locationSpot.RegisterActionDefinition(actionTemplate.Name);
-
             if (actionTemplate == null)
             {
                 string actionId =
@@ -271,7 +256,7 @@
 
             UserActionOption action =
                 new UserActionOption(
-                    actionImplementation.Id.ToString(),
+                    actionImplementation.Name.ToString(),
                     locationSpot.IsClosed,
                     actionImplementation,
                     locationSpot.LocationName,
@@ -332,7 +317,7 @@
         };
 
         EncounterManager encounterManager = await encounterSystem
-            .GenerateEncounter(actionImplementation.Id, location, locationSpot, context, worldState, playerState, actionImplementation);
+            .GenerateEncounter(actionImplementation.Name, location, locationSpot, context, worldState, playerState, actionImplementation);
 
         List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterManager.EncounterResult);
         gameState.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
@@ -387,7 +372,7 @@
     /// <returns></returns>
     public async Task ProcessEncounterNarrativeEnding(EncounterResult result)
     {
-        worldState.MarkEncounterCompleted(result.ActionImplementation.Id);
+        worldState.MarkEncounterCompleted(result.ActionImplementation.Name);
 
         gameState.ActionStateTracker.EncounterResult = result;
 
@@ -444,7 +429,7 @@
 
         string location = encounterResult.NarrativeContext.LocationName;
         string locationSpot = encounterResult.NarrativeContext.locationSpotName;
-        string actionName = encounterResult.ActionImplementation.Id;
+        string actionName = encounterResult.ActionImplementation.Name;
         string goal = encounterResult.ActionImplementation.Goal;
 
         string title = $"{location} - {locationSpot}, {actionName} - {goal}" + Environment.NewLine;
@@ -603,7 +588,6 @@
     public async Task UpdateState()
     {
         gameState.ActionStateTracker.ClearCurrentUserAction();
-        CreateGlobalActions();
 
         List<UserActionOption> locationSpotActionOptions =
             await CreateLocationSpotActions(

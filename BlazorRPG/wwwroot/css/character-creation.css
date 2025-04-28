@@ -1,8 +1,5 @@
 ﻿
 /* ==================== Character Creation ==================== */
-
-
-/* Character section styling */
 .player-character {
 	background-color: var(--bg-card);
 	border-radius: 5px;
@@ -36,7 +33,6 @@
 	color: var(--text-primary);
 }
 
-/* Skills section styling */
 .skills-grid {
 	display: flex;
 	flex-direction: column;
@@ -68,8 +64,8 @@
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
-	flex: 1; /* fill remaining space */
-	min-width: 100px; /* ensure bar + numbers have room */
+	flex: 1;
+	min-width: 100px;
 }
 
 .skill-level-left,
@@ -83,18 +79,18 @@
 
 .skill-progress {
 	position: relative;
-	flex: 1; /* let the bar expand */
+	flex: 1;
 	background-color: var(--bg-panel);
 	height: 8px;
 	border-radius: 4px;
 	overflow: hidden;
-	min-width: 50px; /* always show some bar even at 0% */
+	min-width: 50px;
 }
 
 .skill-progress-inner {
 	background-color: var(--leather);
 	height: 100%;
-	width: 0%; /* updated inline via style="width:xx%" */
+	width: 0%;
 	transition: width 0.3s ease;
 }
 
@@ -205,8 +201,6 @@
 	}
 }
 
-
-
 .archetype-card {
 	display: flex;
 	flex-direction: column;
@@ -274,7 +268,6 @@
 	text-overflow: ellipsis;
 }
 
-/* Name input with generator button */
 .name-input-container {
 	position: relative;
 	display: flex;
@@ -310,7 +303,6 @@
 		transform: rotate(15deg);
 	}
 
-/* Two-panel character creation layout */
 .character-container {
 	padding: 2rem;
 }
@@ -321,7 +313,6 @@
 	margin-bottom: 2rem;
 }
 
-/* Left panel with archetype options */
 .archetype-options {
 	flex: 0 0 280px;
 	display: flex;
@@ -379,7 +370,6 @@
 	overflow: hidden;
 }
 
-/* Right panel with detailed information */
 .archetype-details {
 	flex: 1;
 	background-color: var(--bg-active);
@@ -422,7 +412,6 @@
 	margin: 0 0 5px 0;
 	font-weight: normal;
 }
-
 
 .archetype-card {
 	background-color: var(--bg-card);
@@ -482,7 +471,6 @@
 	color: var(--text-primary);
 }
 
-/* Gender toggle styling */
 .gender-toggle {
 	display: flex;
 	gap: 15px;
@@ -519,14 +507,6 @@
 		font-size: 1.2rem;
 	}
 
-/* Animation for changing the character portrait */
-.archetype-portrait img {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-}
-
-
 .starting-items {
 	margin-top: 15px;
 }
@@ -539,14 +519,13 @@
 }
 
 	.items-list .item {
-		background-color: rgba(96, 108, 56, 0.2);
+		background-color: rgba(96, 108, 56, 0.2); /* Semi-transparent moss green */
 		padding: 5px 10px;
 		border-radius: 3px;
 		font-size: 0.9em;
 		color: var(--text-primary);
 	}
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
 	.archetype-selection {
 		flex-direction: column;
@@ -578,20 +557,6 @@
 	animation: pulse 1.5s infinite;
 }
 
-@keyframes pulse {
-	0% {
-		box-shadow: 0 0 0 0 rgba(168, 125, 95, 0.7);
-	}
-
-	70% {
-		box-shadow: 0 0 0 10px rgba(168, 125, 95, 0);
-	}
-
-	100% {
-		box-shadow: 0 0 0 0 rgba(168, 125, 95, 0);
-	}
-}
-
 .starting-items {
 	margin-top: auto;
 }
@@ -613,7 +578,7 @@
 	}
 
 .selected .items-list .item {
-	background-color: rgba(96, 108, 56, 0.2);
+	background-color: rgba(96, 108, 56, 0.2); /* Semi-transparent moss green */
 	color: var(--text-primary);
 }
 
