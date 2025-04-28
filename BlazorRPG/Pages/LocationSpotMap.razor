@@ -30,7 +30,7 @@
                 }
                 else
                 {
-                    @foreach (UserActionOption action in GameState.GetActions())
+                    @foreach (UserActionOption action in GameState.ActionStateTracker.LocationSpotActions)
                     {
                         <button class="action-button"
                         @onclick="() => OnActionSelected.InvokeAsync(action)"

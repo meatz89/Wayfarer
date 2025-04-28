@@ -1,0 +1,76 @@
+[
+	{
+		"id": "negotiate_tavern_trade",
+		"name": "Negotiate Tavern Trade",
+		"description": "Discuss supply arrangements with the innkeeper to earn coins",
+		"actionType": "Trade",
+
+		"timeWindows": [ "Afternoon", "Evening" ],
+
+		"costs": {
+			"energy": 10,
+			"concentration": 15,
+			"confidence": 0,
+			"health": 0,
+			"coin": 0,
+			"time": 45
+		},
+
+		"yields": {
+			"energy": 0,
+			"concentration": 0,
+			"confidence": 5,
+			"health": 0,
+			"coin": 15,
+			"food": 0,
+			"medicinalHerbs": 0,
+			"spotXp": 12,
+			"relationships": [
+				{
+					"characterName": "Maren",
+					"amount": 1
+				}
+			],
+			"discoveredLocations": [ "merchant_quarter" ],
+			"discoveredLocationSpots": [ "village:traveling_merchant" ],
+			"items": [
+				{
+					"type": "WineBottle",
+					"amount": 1
+				}
+			]
+		},
+
+		"requirements": {
+			"timeWindows": [ "Afternoon", "Evening" ],
+			"relationships": [
+				{
+					"characterName": "Maren",
+					"minimumValue": 5
+				}
+			],
+			"reputation": {
+				"location": "Village",
+				"minimumValue": 10
+			},
+			"skills": [
+				{
+					"skillType": "Diplomacy",
+					"minimumLevel": 2
+				}
+			],
+			"resources": {
+				"energy": 10,
+				"concentration": 15,
+				"coin": 0
+			}
+		},
+
+		"encounterDetails": {
+			"isOneTimeEncounter": false,
+			"goal": "Negotiate favorable trade terms with the tavern",
+			"complication": "A competing merchant is offering better prices",
+			"encounterType": "Social"
+		}
+	}
+]

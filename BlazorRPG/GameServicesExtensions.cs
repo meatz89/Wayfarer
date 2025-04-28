@@ -2,22 +2,27 @@
 {
     public static IServiceCollection AddGameServices(this IServiceCollection services)
     {
-        // Initialize contentRegistry and register as singleton
-        GameContentRegistry contentRegistry = GameContentBootstrapper.InitializeRegistry("content");
-        services.AddSingleton(contentRegistry);
+        string contentDirectory = "content";
 
-        // Repositories depend on the contentRegistry
+        // Create ContentLoader
+        ContentLoader contentLoader = new ContentLoader(contentDirectory);
+        services.AddSingleton(contentLoader);
+
+        // Load game state
+        GameState gameState = contentLoader.LoadGame();
+        services.AddSingleton(gameState);
+
+        // Register the content validator
+        services.AddSingleton<ContentValidator>();
+
+        // Register repositories
         services.AddSingleton<ActionRepository>();
         services.AddSingleton<LocationRepository>();
-
-        GameState game = GameSetup.CreateNewGame();
-        services.AddSingleton(game);
-
+        services.AddSingleton<LocationSystem>();
         services.AddSingleton<ActionFactory>();
         services.AddSingleton<ActionGenerator>();
         services.AddSingleton<TravelManager>();
         services.AddSingleton<CharacterSystem>();
-        services.AddSingleton<LocationSystem>();
         services.AddSingleton<OpportunitySystem>();
         services.AddSingleton<EncounterSystem>();
         services.AddSingleton<ActionSystem>();

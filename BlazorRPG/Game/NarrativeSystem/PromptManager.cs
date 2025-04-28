@@ -31,9 +31,6 @@ public class PromptManager
 
         string prompt = template
             .Replace("{ACTIONNAME}", context.ActionId)
-            .Replace("{GOAL}", context.Goal)
-            .Replace("{COMPLICATION}", context.Complication)
-            .Replace("{ACTION_TYPE}", context.BasicActionType)
             .Replace("{SPOT_NAME}", context.SpotName)
             .Replace("{LOCATION_NAME}", context.LocationName);
 
@@ -592,8 +589,7 @@ public class PromptManager
             .Replace("{activeOpportunities}", input.ActiveOpportunities)
             .Replace("{currentLocationSpots}", input.CurrentLocationSpots)
             .Replace("{connectedLocations}", input.ConnectedLocations)
-            .Replace("{locationDepth}", input.CurrentDepth.ToString())
-            .Replace("{lastHubDepth}", input.LastHubDepth.ToString());
+            .Replace("{locationDepth}", input.CurrentDepth.ToString());
     }
 
     public string BuildLocationCreationPrompt(LocationCreationInput input)

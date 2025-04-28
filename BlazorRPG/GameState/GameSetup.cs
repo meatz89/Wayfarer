@@ -1,15 +1,8 @@
-﻿public class GameSetup
+﻿public static class GameSetup
 {
-    public static GameState CreateNewGame()
+    public static GameState CreateNewGame(string contentDirectory)
     {
-        GameState gameState = new GameState();
-        GameRules gameRules = GameRules.StandardRuleset;
-
-        PlayerState playerInfo = gameState.PlayerState;
-        playerInfo.Coins = gameRules.StartingCoins;
-
-        gameState.PlayerState = playerInfo;
-
-        return gameState;
+        ContentLoader contentLoader = new ContentLoader(contentDirectory);
+        return contentLoader.LoadGame();
     }
 }

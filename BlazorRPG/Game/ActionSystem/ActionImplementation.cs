@@ -46,9 +46,6 @@
         ActionGenerationContext context = new ActionGenerationContext
         {
             ActionId = Id,
-            Goal = Goal,
-            Complication = Complication,
-            BasicActionType = EncounterType.ToString(),
             SpotName = LocationSpotName,
             LocationName = LocationName,
         };

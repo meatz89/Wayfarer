@@ -115,4 +115,9 @@ public class PlayerSkills
     {
         return Skills[skillType].XPToNextLevel;
     }
+
+    public void SetSkillXP(SkillTypes skillType, int XP)
+    {
+        Skills[skillType].XP = XP;
+    }
 }

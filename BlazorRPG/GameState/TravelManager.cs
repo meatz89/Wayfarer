@@ -4,12 +4,14 @@
     public WorldState worldState { get; }
     public LocationSystem LocationSystem { get; }
     public ActionRepository ActionRepository { get; }
+    public LocationRepository LocationRepository { get; }
     public ActionFactory ActionFactory { get; }
 
     public TravelManager(
         GameState gameState,
         LocationSystem locationSystem,
         ActionRepository actionRepository,
+        LocationRepository locationRepository,
         ActionFactory actionFactory
         )
     {
@@ -17,6 +19,7 @@
         this.worldState = gameState.WorldState;
         this.LocationSystem = locationSystem;
         this.ActionRepository = actionRepository;
+        LocationRepository = locationRepository;
         this.ActionFactory = actionFactory;
     }
 
@@ -102,13 +105,8 @@
         string currentLocation = worldState.CurrentLocation?.Name;
         if (string.IsNullOrWhiteSpace(currentLocation)) return;
 
-        int currentDepth = worldState.GetLocationDepth(currentLocation);
-
         // Base energy cost (1 energy per 30 minutes)
         int baseCost = Math.Max(1, travelMinutes / 30);
-
-        // Depth scaling (higher depths cost more)
-        double depthMultiplier = 1.0 + (currentDepth * 0.1);
 
         // Method modifier (different travel methods have different efficiency)
         double methodMultiplier = travelMethod switch
@@ -120,7 +118,7 @@
         };
 
         // Calculate final energy cost
-        int energyCost = (int)Math.Ceiling(baseCost * depthMultiplier * methodMultiplier);
+        int energyCost = (int)Math.Ceiling(baseCost * methodMultiplier);
         energyCost = Math.Max(1, energyCost); // Always cost at least 1 energy
 
         // Apply energy cost
@@ -140,12 +138,12 @@
         // Get base travel time between locations
         int baseTravelMinutes = 0;
 
-        if (worldState.GetLocations().Any(x =>
+        if (LocationRepository.GetAllLocations().Any(x =>
         {
             return x.Name == endLocationId;
         }))
         {
-            Location location = worldState.GetLocation(endLocationId);
+            Location location = LocationRepository.GetLocation(endLocationId);
             baseTravelMinutes = location.TravelTimeMinutes;
         }
 

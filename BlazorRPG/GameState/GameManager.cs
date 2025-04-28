@@ -1,6 +1,4 @@
-﻿using System;
-
-public class GameManager(
+﻿public class GameManager(
     GameState gameState,
     EncounterSystem encounterSystem,
     PostEncounterEvolutionSystem evolutionSystem,
@@ -8,12 +6,18 @@ public class GameManager(
     MessageSystem messageSystem,
     ActionFactory actionFactory,
     ActionRepository actionRepository,
+    LocationRepository locationRepository,
     TravelManager travelManager,
     ActionGenerator actionGenerator,
     PlayerProgression playerProgression,
     ActionProcessor actionProcessor,
+    ContentLoader contentLoader,
     IConfiguration configuration)
 {
+
+    private bool _useMemory = configuration.GetValue<bool>("useMemory");
+    private bool _processStateChanges = configuration.GetValue<bool>("processStateChanges");
+
     public PlayerState playerState
     {
         get
@@ -30,8 +34,19 @@ public class GameManager(
         }
     }
 
-    private bool _useMemory = configuration.GetValue<bool>("useMemory");
-    private bool _processStateChanges = configuration.GetValue<bool>("processStateChanges");
+    public async Task SaveGame()
+    {
+        try
+        {
+            contentLoader.SaveGame(gameState);
+            messageSystem.AddSystemMessage("Game saved successfully");
+        }
+        catch (Exception ex)
+        {
+            messageSystem.AddSystemMessage($"Failed to save game: {ex.Message}");
+            Console.WriteLine($"Error saving game: {ex}");
+        }
+    }
 
     public async Task StartGame()
     {
@@ -88,9 +103,6 @@ public class GameManager(
     public async Task<ActionImplementation> ExecuteAction(UserActionOption action)
     {
         ActionImplementation actionImplementation = action.ActionImplementation;
-
-        // Track action count for progressive action yields
-        worldState.IncrementActionCount(actionImplementation.Id);
 
         Location location = locationSystem.GetLocation(action.Location);
         string locationSpot = action.LocationSpot;
@@ -247,7 +259,7 @@ public class GameManager(
             if (actionTemplate == null)
             {
                 string actionId =
-                    await actionGenerator.GenerateActionAndEncounter(
+                    await actionGenerator.GenerateAction(
                     locationSpotAction,
                     locationSpot.Name,
                     location.Name);
@@ -284,7 +296,7 @@ public class GameManager(
         string locationName = location.Name;
 
         // Get time of day
-        string timeOfDay = GetTimeOfDay(worldState.CurrentTimeMinutes);
+        string timeOfDay = GetTimeOfDay(worldState.CurrentTimeHours);
 
         // Find characters at this location
         List<Character> presentCharacters = worldState.GetCharacters()
@@ -399,7 +411,7 @@ public class GameManager(
         // If not a travel encounter, evolve the current location
         EncounterTypes basicActionType = result.ActionImplementation.EncounterType;
 
-        Location currentLocation = worldState.GetLocation(result.NarrativeContext.LocationName);
+        Location currentLocation = locationRepository.GetLocation(result.NarrativeContext.LocationName);
         if (_useMemory)
         {
             await CreateMemoryRecord(result);
@@ -535,11 +547,8 @@ public class GameManager(
         return true;
     }
 
-    public string GetTimeOfDay(int totalMinutes)
+    public string GetTimeOfDay(int totalHours)
     {
-        // Calculate hours (24-hour clock)
-        int totalHours = (totalMinutes / 60) % 24;
-
         if (totalHours >= 5 && totalHours < 12) return "Morning";
         if (totalHours >= 12 && totalHours < 17) return "Afternoon";
         if (totalHours >= 17 && totalHours < 21) return "Evening";
