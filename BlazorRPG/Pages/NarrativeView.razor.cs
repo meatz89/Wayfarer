@@ -148,7 +148,7 @@ public partial class NarrativeViewBase : ComponentBase
     {
         if (outcome is EnergyOutcome energyOutcome)
         {
-            return GetEnergyTypeIcon();
+            return new MarkupString("<i class='value-icon physical-icon'>⚡</i>");
         }
 
         return outcome switch
@@ -159,11 +159,6 @@ public partial class NarrativeViewBase : ComponentBase
             CoinOutcome => new MarkupString("<i class='value-icon coins-icon'>💰</i>"),
             _ => new MarkupString("")
         };
-    }
-
-    public MarkupString GetEnergyTypeIcon()
-    {
-        return new MarkupString("<i class='value-icon physical-icon'>⚡</i>");
     }
 
     public List<CharacterChangeDisplay> GetCharacterChanges()
@@ -268,21 +263,6 @@ public partial class NarrativeViewBase : ComponentBase
     }
 }
 
-// Helper classes for display
-public class LocationChangeDisplay
-{
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public string Type { get; set; }
-}
-
-public class ActionChangeDisplay
-{
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public string Type { get; set; }
-}
-
 public class CharacterChangeDisplay
 {
     public string Name { get; set; }
@@ -301,11 +281,6 @@ public class CoinsChangeDisplay
     public int Amount { get; set; }
     public int Current { get; set; }
     public int New { get; set; }
-}
-
-public class LocationUpdateDisplay
-{
-    public string NewLocationName { get; set; }
 }
 
 public class ResourceChangeDisplay
