@@ -69,7 +69,15 @@ public partial class ActionPreviewBase : ComponentBase
         {
             return new MarkupString("<i class='value-icon physical-icon'>⚡</i>");
         }
-        return new MarkupString("");
+
+        return outcome switch
+        {
+            HealthOutcome => new MarkupString("<i class='value-icon health-icon'>❤️</i>"),
+            ConcentrationOutcome => new MarkupString("<i class='value-icon concentration-icon'>🌀</i>"),
+            ConfidenceOutcome => new MarkupString("<i class='value-icon confidence-icon'>👤</i>"),
+            CoinOutcome => new MarkupString("<i class='value-icon coins-icon'>💰</i>"),
+            _ => new MarkupString("")
+        };
     }
 
     public async Task HandleConfirm()
