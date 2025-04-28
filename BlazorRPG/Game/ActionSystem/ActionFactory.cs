@@ -1,10 +1,14 @@
 ﻿public class ActionFactory
 {
-    private readonly ActionRepository _actionRepository;
+    private readonly ActionRepository actionRepository;
+    private readonly EncounterFactory encounterFactory;
 
-    public ActionFactory(ActionRepository actionRepository)
+    public ActionFactory(
+        ActionRepository actionRepository,
+        EncounterFactory encounterFactory)
     {
-        _actionRepository = actionRepository;
+        this.actionRepository = actionRepository;
+        this.encounterFactory = encounterFactory;
     }
 
     public ActionImplementation CreateActionFromTemplate(ActionDefinition template, string location, string locationSpot)
@@ -47,8 +51,8 @@
         actionImplementation.Yields = CreateYields(template);
 
         // Create encounter template if needed
-        var context = actionImplementation.GetActionGenerationContext();
-        EncounterTemplate encounterTemplate = GameContentBootstrapper.GetDefaultEncounterTemplate();
+        ActionGenerationContext context = actionImplementation.GetActionGenerationContext();
+        EncounterTemplate encounterTemplate = encounterFactory.GetDefaultEncounterTemplate();
 
         return actionImplementation;
     }

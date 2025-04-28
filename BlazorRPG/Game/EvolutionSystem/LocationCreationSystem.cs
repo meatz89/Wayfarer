@@ -1,20 +1,17 @@
 ﻿public class LocationCreationSystem
 {
-    private readonly GameContentRegistry contentRegistry;
     private readonly NarrativeService narrativeService;
-    private readonly WorldState worldState;
     private readonly LocationSystem locationSystem;
     private readonly CharacterSystem characterSystem;
     private readonly OpportunitySystem opportunitySystem;
     private readonly ActionSystem actionSystem;
     private readonly GameState gameState;
     private readonly ActionGenerator actionGenerator;
+    private readonly LocationRepository locationRepository;
     private readonly ActionRepository actionRepository;
     private readonly WorldStateInputBuilder worldStateInputCreator;
-    private readonly GameContentRegistry registry;
 
     public LocationCreationSystem(
-        GameContentRegistry contentRegistry,
         NarrativeService narrativeService,
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
@@ -22,12 +19,11 @@
         ActionSystem actionSystem,
         GameState gameState,
         ActionGenerator actionGenerator,
+        LocationRepository locationRepository,
         ActionRepository actionRepository,
-        WorldStateInputBuilder worldStateInputCreator,
-        GameContentRegistry registry
+        WorldStateInputBuilder worldStateInputCreator
         )
     {
-        this.contentRegistry = contentRegistry;
         this.narrativeService = narrativeService;
         this.locationSystem = locationSystem;
         this.characterSystem = characterSystem;
@@ -35,20 +31,19 @@
         this.actionSystem = actionSystem;
         this.gameState = gameState;
         this.actionGenerator = actionGenerator;
+        this.locationRepository = locationRepository;
         this.actionRepository = actionRepository;
         this.worldStateInputCreator = worldStateInputCreator;
-        this.registry = registry;
         this.narrativeService = narrativeService;
-        this.worldState = gameState.WorldState;
     }
 
-    public async Task<Location> PopulateLocation(
-        string locationToPopulate,
-        string travelOrigin,
-        int locationDepth)
+    public async Task<Location> CreateLocation(string locationId)
     {
-        LocationCreationInput input = CreateLocationInput(travelOrigin, locationToPopulate, locationDepth);
-        WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(locationToPopulate);
+        string travelOrigin = locationRepository.CurrentLocation.Name;
+        int locationDepth = locationRepository.CurrentLocation.Depth + 1;
+
+        LocationCreationInput input = CreateLocationInput(travelOrigin, locationId, locationDepth);
+        WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(locationId);
 
         // Get location details from AI
         LocationDetails details = await narrativeService.GenerateLocationDetailsAsync(input, worldStateInput);
@@ -60,11 +55,12 @@
     // Update registry usage in IntegrateNewLocation method
     public async Task<Location> IntegrateNewLocation(LocationDetails details)
     {
-        string locId = details.LocationUpdate.NewLocationName;
-        if (!registry.TryGetLocation(locId, out Location location))
+        string locationName = details.LocationUpdate.NewLocationName;
+        Location location = locationRepository.GetLocation(locationName);
+        if (location == null)
         {
-            location = new Location(locId);
-            registry.RegisterLocation(locId, location);
+            location = new Location(locationName);
+            locationRepository.AddLocation(location);
         }
         location.Description = details.Description;
         location.DetailedDescription = details.DetailedDescription;
@@ -72,11 +68,11 @@
 
         foreach (SpotDetails spotDetail in details.NewLocationSpots)
         {
-            string spotId = $"{locId}:{spotDetail.Name}";
-            LocationSpot spot = new LocationSpot(spotDetail.Name, locId)
+            string spotId = $"{locationName}:{spotDetail.Name}";
+            LocationSpot spot = new LocationSpot(spotDetail.Name, locationName)
             {
                 Name = spotDetail.Name,
-                LocationName = locId,
+                LocationName = locationName,
                 Description = spotDetail.Description,
                 PlayerKnowledge = true
             };
@@ -86,23 +82,21 @@
                 spot.RegisterActionDefinition(actionId);
             }
 
-            contentRegistry.RegisterLocationSpot(spotId, spot);
+            locationRepository.AddLocationSpot(spot);
         }
 
         foreach (NewAction newAction in details.NewActions)
         {
-            string actionId = await actionGenerator.GenerateActionAndEncounter(
+            string actionId = await actionGenerator.GenerateAction(
                 newAction.Name,
                 newAction.SpotName,
-                locId,
-                newAction.Goal,
-                newAction.Complication,
-                newAction.ActionType);
+                locationName);
 
             ActionDefinition actionDef = actionRepository.GetAction(actionId);
-            string spotId = $"{locId}:{newAction.SpotName}";
+            string spotId = $"{locationName}:{newAction.SpotName}";
 
-            if (contentRegistry.TryGetLocationSpot(spotId, out LocationSpot? spot))
+            LocationSpot spot = locationRepository.GetSpot(locationName, newAction.SpotName);
+            if (spot != null)
                 spot.RegisterActionDefinition(actionDef.Name);
         }
 
@@ -113,7 +107,7 @@
     {
         foreach (NewAction newAction in details.NewActions)
         {
-            Location targetLocation = worldState.GetLocation(newAction.LocationName);
+            Location targetLocation = locationRepository.GetLocation(newAction.LocationName);
             List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(targetLocation.Name);
             if (targetLocation != null && locationSpots != null)
             {
@@ -125,13 +119,10 @@
                 if (spotForAction != null)
                 {
                     string newActionId = newAction.Name.Replace(" ", "");
-                    string actionId = await actionGenerator.GenerateActionAndEncounter(
+                    string actionId = await actionGenerator.GenerateAction(
                         newAction.Name,
                         newAction.SpotName,
-                        newAction.LocationName,
-                        newAction.Goal,
-                        newAction.Complication,
-                        ParseActionType(newAction.ActionType).ToString());
+                        newAction.LocationName);
 
                     ActionDefinition actionTemplate = actionRepository.GetAction(actionId);
                     spotForAction.RegisterActionDefinition(actionTemplate.Name);
@@ -171,11 +162,8 @@
         WorldState worldState = gameState.WorldState;
         PlayerState playerState = gameState.PlayerState;
 
-        // Get current depth and hub depth
-        int currentDepth = worldState.GetLocationDepth(worldState.CurrentLocation?.Name ?? "");
-
         // Get all locations
-        List<Location> allLocations = worldState.GetLocations();
+        List<Location> allLocations = locationRepository.GetAllLocations();
 
         // Create context for location generation
         LocationCreationInput context = new LocationCreationInput
@@ -196,7 +184,7 @@
             TravelDestination = travelDestination,
 
             CurrentDepth = locationDepth,
-            LastHubDepth = worldState.LastHubDepth,
+            LastHubDepth = worldState.CurrentLocation.Depth,
         };
         return context;
     }

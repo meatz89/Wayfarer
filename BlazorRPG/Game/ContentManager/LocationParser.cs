@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-public static class ContentParser
+public static class LocationParser
 {
     public static Location ParseLocation(string json)
     {

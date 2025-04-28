@@ -1,4 +1,5 @@
 ﻿
+
 public class Inventory
 {
     private string[] Slots;
@@ -18,6 +19,11 @@ public class Inventory
     {
         Slots = new string[size];
         Clear();
+    }
+
+    public List<string> GetAllItems()
+    {
+        return Slots.ToList();
     }
 
     public void Clear()
@@ -184,4 +190,5 @@ public class Inventory
     {
         throw new NotImplementedException();
     }
+
 }

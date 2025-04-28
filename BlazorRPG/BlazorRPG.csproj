@@ -29,6 +29,18 @@
 	</ItemGroup>
     
 	<ItemGroup>
+		<Content Update="Content\Templates\actions.json">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="Content\Templates\gameState.json">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="Content\Templates\locations.json">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="Content\Templates\locationSpots.json">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
 		<Content Update="wwwroot\images\subtle-parchment.png">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>

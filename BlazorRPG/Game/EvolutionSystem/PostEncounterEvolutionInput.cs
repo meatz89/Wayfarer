@@ -14,7 +14,6 @@
     public string AllExistingActions { get; set; }
 
     public int CurrentDepth { get; set; }
-    public int LastHubDepth { get; set; }
 
     public int Health { get; set; }
     public int MaxHealth { get; set; }

@@ -5,14 +5,12 @@ namespace BlazorRPG.Pages;
 
 public partial class GameUI : ComponentBase
 {
-    #region Injected Services
     [Inject] private IJSRuntime JSRuntime { get; set; }
     [Inject] private GameState GameState { get; set; }
     [Inject] private GameManager GameManager { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
-    #endregion
 
-    #region Player State Properties
+
     public PlayerState PlayerState
     {
         get
@@ -103,9 +101,8 @@ public partial class GameUI : ComponentBase
     }
 
     public EncounterResult EncounterResult { get; private set; }
-    #endregion
 
-    #region World State Properties
+
 
     public CurrentViews CurrentScreen = CurrentViews.CharacterScreen;
     public Location CurrentLocation
@@ -136,7 +133,7 @@ public partial class GameUI : ComponentBase
     {
         get
         {
-            return GameState.WorldState.CurrentTimeInHours;
+            return GameState.WorldState.CurrentTimeHours;
         }
     }
 
@@ -153,9 +150,10 @@ public partial class GameUI : ComponentBase
 
     private int StateVersion = 0;
 
-    #endregion
 
-    #region UI State
+    [Inject] private ContentValidator ContentValidator { get; set; }
+
+
     // Navigation State
     private string selectedLocation;
 
@@ -178,6 +176,31 @@ public partial class GameUI : ComponentBase
         { SidebarSections.inventory, false },
         { SidebarSections.status, false }
     };
+
+    protected override async Task OnInitializedAsync()
+    {
+        ContentValidationResult validationResult = ContentValidator.ValidateContent();
+        bool missingReferences = validationResult.HasMissingReferences;
+
+        if (missingReferences)
+        {
+            CurrentScreen = CurrentViews.MissingReferences;
+        }
+        else if (!PlayerState.IsInitialized)
+        {
+            await InitializeGame();
+        }
+    }
+
+    private async Task ResolvedMissingReferences()
+    {
+        if (!PlayerState.IsInitialized)
+        {
+            await InitializeGame();
+        }
+
+        ChangeState();
+    }
 
     private async Task ToggleSection(SidebarSections sectionName)
     {
@@ -204,17 +227,6 @@ public partial class GameUI : ComponentBase
         }
     }
 
-    #endregion
-
-    #region Lifecycle Methods
-    protected override async Task OnInitializedAsync()
-    {
-        if (!PlayerState.IsInitialized)
-        {
-            await InitializeGame();
-        }
-    }
-
     private async Task InitializeGame()
     {
         CurrentScreen = CurrentViews.CharacterScreen;
@@ -227,9 +239,8 @@ public partial class GameUI : ComponentBase
         await GameManager.StartGame();
     }
 
-    #endregion
 
-    #region Navigation and UI Methods
+
     public void SwitchAreaMap()
     {
         if (CurrentScreen == CurrentViews.MapScreen)
@@ -253,9 +264,12 @@ public partial class GameUI : ComponentBase
         ChangeState();
     }
 
-    #endregion
 
-    #region Action and Encounter Methods
+
+    private async Task SaveGame()
+    {
+        await GameManager.SaveGame();
+    }
 
     private async Task HandleActionSelection(UserActionOption action)
     {
@@ -354,9 +368,7 @@ public partial class GameUI : ComponentBase
         StateHasChanged();
     }
 
-    #endregion
 
-    #region UI Display Methods
     private void DisplayActionMessages()
     {
         actionMessages = GetResultMessages();
@@ -428,9 +440,7 @@ public partial class GameUI : ComponentBase
 
         return properties;
     }
-    #endregion
 
-    #region Helper Methods
     private string GetIconForTimeWindow(TimeWindow time)
     {
         return time switch
@@ -539,7 +549,6 @@ public partial class GameUI : ComponentBase
             _ => ""
         };
     }
-    #endregion
 }
 
 public enum SidebarSections

@@ -11,14 +11,14 @@ public class TimeManager
     // Advance time by hours
     public void AdvanceTime(int hours)
     {
-        int currentHour = worldState.CurrentTimeInHours;
+        int currentHour = worldState.CurrentTimeHours;
         int newHour = (currentHour + hours) % 24;
 
         // Track day change
         bool dayChanged = (newHour < currentHour);
 
         // Update hour
-        worldState.CurrentTimeInHours = newHour;
+        worldState.CurrentTimeHours = newHour;
 
         // Update time window (morning, afternoon, evening, night)
         UpdateTimeWindow();
@@ -34,7 +34,7 @@ public class TimeManager
     // Update the current time window based on hour
     private void UpdateTimeWindow()
     {
-        int hour = worldState.CurrentTimeInHours;
+        int hour = worldState.CurrentTimeHours;
 
         if (hour >= 5 && hour < 12)
         {

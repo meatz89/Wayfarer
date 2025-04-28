@@ -2,6 +2,12 @@
 @inherits ComponentBase
 
 <div class="game-container">
+
+    @if (CurrentScreen == CurrentViews.MissingReferences)
+    {
+        <MissingReferences OnMissingReferencesResolved="ResolvedMissingReferences" />
+    }
+
     @if (CurrentScreen != CurrentViews.CharacterScreen)
     {
         <div class="game-status-bar">
@@ -38,6 +44,12 @@
                         @PlayerState.Energy / @PlayerState.MaxEnergy
                     </span>
                 </div>
+            </div>
+
+            <div class="game-actions">
+                <button class="save-button" @onclick="SaveGame">
+                    <span class="save-icon">💾</span> Save Game
+                </button>
             </div>
 
             <div class="game-info">

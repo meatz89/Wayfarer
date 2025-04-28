@@ -215,8 +215,6 @@ public class PostEncounterEvolutionParser
         return services;
     }
 
-    #region Parser Helper Methods
-
     private RelationshipChange ParseRelationshipChange(JsonElement element)
     {
         return SafeParseEntity("relationship change", () =>
@@ -344,9 +342,6 @@ public class PostEncounterEvolutionParser
         return Illumination.Bright; // Default fallback
     }
 
-    #endregion
-
-    #region Utility Methods
 
     private T SafeParseEntity<T>(string entityType, Func<T> parser) where T : class
     {
@@ -488,5 +483,5 @@ public class PostEncounterEvolutionParser
         return defaultValue;
     }
 
-    #endregion
+
 }

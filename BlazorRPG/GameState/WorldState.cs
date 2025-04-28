@@ -1,69 +1,25 @@
-﻿public class WorldState
+﻿
+
+public class WorldState
 {
     // Core data collections
-    public List<Location> Locations { get; private set; } = new();
+    public List<Location> locations { get; private set; } = new();
+    public List<LocationSpot> locationSpots { get; private set; } = new();
+    public List<ActionDefinition> actions { get; private set; } = new();
     private List<Character> characters { get; set; } = new();
     private List<Opportunity> opportunities { get; set; } = new();
 
-    // Forward progression tracking
     private Dictionary<string, int> LocationVisitCounts { get; } = new Dictionary<string, int>();
-
-    // Track last hub visited and depth
-    private Dictionary<string, int> LocationDepths { get; } = new Dictionary<string, int>();
-    public string LastHubLocationId { get; set; }
-    public int LastHubDepth { get; set; } = 0;
-
     public List<string> CompletedEncounters { get; } = new List<string>();
-    private Dictionary<string, int> ActionCounts { get; } = new Dictionary<string, int>();
 
     // Game time
-    public int CurrentTimeInHours { get; set; }
-    public int CurrentTimeMinutes { get; set; }
+    public int CurrentDay { get; set; } = 1;
+    public int CurrentTimeHours { get; set; }
     public TimeWindow TimeWindow { get; set; }
-
 
     // Current location tracking
     public Location CurrentLocation { get; private set; }
     public LocationSpot CurrentLocationSpot { get; private set; }
-
-    // Navigation options
-    public List<UserLocationTravelOption> CurrentTravelOptions { get; set; } = new();
-
-    public int CurrentDay { get; set; } = 1;
-
-    public void IncrementActionCount(string actionId)
-    {
-        if (!ActionCounts.ContainsKey(actionId))
-            ActionCounts[actionId] = 0;
-
-        ActionCounts[actionId]++;
-    }
-
-    public void SetLocationDepth(string locationId, int depth)
-    {
-        if (!LocationDepths.ContainsKey(locationId))
-        {
-            LocationDepths.Add(locationId, depth);
-        }
-        else
-        {
-            LocationDepths[locationId] = depth;
-        }
-    }
-
-    public int GetLocationDepth(string locationId)
-    {
-        return LocationDepths.TryGetValue(locationId, out int depth) ? depth : 0;
-    }
-
-    public void UpdateHubTracking(Location location)
-    {
-        if (location.LocationType == LocationTypes.Hub && location.Depth > LastHubDepth)
-        {
-            LastHubLocationId = location.Name;
-            LastHubDepth = location.Depth;
-        }
-    }
 
     public void RecordLocationVisit(string locationId)
     {
@@ -85,76 +41,6 @@
         return GetLocationVisitCount(locationId) == 0;
     }
 
-    public List<Location> GetLocations()
-    {
-        return Locations.ToList();
-    }
-
-    public List<Opportunity> GetOpportunities()
-    {
-        return opportunities.ToList();
-    }
-
-    public List<Character> GetCharacters()
-    {
-        return characters.ToList();
-    }
-
-    public Location GetLocation(string name)
-    {
-        return Locations.FirstOrDefault(x =>
-        {
-            return x.Name == name;
-        }); ;
-    }
-
-    public Character GetCharacter(string name)
-    {
-        return characters.FirstOrDefault(x =>
-        {
-            return x.Name == name;
-        });
-    }
-
-    public Opportunity GetOpportunity(string name)
-    {
-        return opportunities.FirstOrDefault(x =>
-        {
-            return x.Name == name;
-        });
-    }
-
-
-    public void AddLocations(List<Location> newLocations)
-    {
-        Locations.AddRange(newLocations);
-    }
-
-    public void AddCharacters(List<Character> newCharacters)
-    {
-        characters.AddRange(newCharacters);
-    }
-
-    public void AddOpportunities(List<Opportunity> newOpportunities)
-    {
-        opportunities.AddRange(newOpportunities);
-    }
-
-    public void AddLocation(Location location)
-    {
-        Locations.Add(location);
-    }
-
-    public void AddCharacter(Character character)
-    {
-        characters.Add(character);
-    }
-
-    public void AddOpportunity(Opportunity opportunity)
-    {
-        opportunities.Add(opportunity);
-    }
-
     public void SetCurrentLocation(Location location, LocationSpot currentLocationSpot)
     {
         CurrentLocation = location;
@@ -168,16 +54,6 @@
         CurrentLocationSpot = locationSpot;
     }
 
-    public void SetCurrentTravelOptions(List<UserLocationTravelOption> options)
-    {
-        CurrentTravelOptions = options;
-    }
-
-    public void AdvanceTime(int hours)
-    {
-        this.CurrentTimeInHours += hours;
-    }
-
     public bool IsEncounterCompleted(string actionId)
     {
         return CompletedEncounters.Contains(actionId);
@@ -186,5 +62,25 @@
     public void MarkEncounterCompleted(string actionId)
     {
         CompletedEncounters.Add(actionId);
+    }
+
+    internal void AddCharacter(Character character)
+    {
+        characters.Add(character);
+    }
+
+    internal void AddOpportunity(Opportunity opp)
+    {
+        opportunities.Add(opp);
+    }
+
+    internal List<Character> GetCharacters()
+    {
+        return characters;
+    }
+
+    internal List<Opportunity> GetOpportunities()
+    {
+        return opportunities;
     }
 }

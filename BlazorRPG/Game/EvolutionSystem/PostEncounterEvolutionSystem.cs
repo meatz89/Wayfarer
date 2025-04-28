@@ -1,43 +1,38 @@
-﻿using Microsoft.Win32;
-
-public class PostEncounterEvolutionSystem
+﻿public class PostEncounterEvolutionSystem
 {
-    private readonly GameContentRegistry contentRegistry;
     private readonly NarrativeService _narrativeService;
     private readonly ActionGenerator _actionGenerator;
     private readonly ActionRepository _actionRepository;
+    private readonly GameState gameState;
     private readonly LocationSystem locationSystem;
     private readonly CharacterSystem characterSystem;
     private readonly OpportunitySystem opportunitySystem;
     private readonly ActionSystem actionSystem;
     private readonly WorldStateInputBuilder worldStateInputCreator;
-    private readonly GameContentRegistry registry;
-    private readonly GameState gameState;
+    private readonly LocationRepository locationRepository;
 
     public PostEncounterEvolutionSystem(
-        GameContentRegistry contentRegistry,
         NarrativeService narrativeService,
         ActionGenerator actionGenerator,
-        ActionRepository actionRepository,
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
         OpportunitySystem opportunitySystem,
         ActionSystem actionSystem,
         WorldStateInputBuilder worldStateInputCreator,
-        GameContentRegistry registry,
+        LocationRepository locationRepository,
+        ActionRepository actionRepository,
         GameState gameState)
     {
-        this.contentRegistry = contentRegistry;
-        _narrativeService = narrativeService;
+        this._narrativeService = narrativeService;
         this._actionGenerator = actionGenerator;
         this._actionRepository = actionRepository;
+        this.gameState = gameState;
         this.locationSystem = locationSystem;
         this.characterSystem = characterSystem;
         this.opportunitySystem = opportunitySystem;
         this.actionSystem = actionSystem;
         this.worldStateInputCreator = worldStateInputCreator;
-        this.registry = registry;
-        this.gameState = gameState;
+        this.locationRepository = locationRepository;
     }
 
     public async Task<string> ConsolidateMemory(
@@ -68,11 +63,11 @@ public class PostEncounterEvolutionSystem
         // Same logic but with updated registry calls
         foreach (Location loc in evolution.NewLocations)
         {
-            string locId = loc.Name;
-            if (!registry.TryGetLocation(locId, out Location existingLoc))
+            string locationName = loc.Name;
+            Location existingLoc = locationRepository.GetLocation(locationName);
+            if (existingLoc == null)
             {
-                registry.RegisterLocation(locId, loc);
-                worldState.AddLocation(loc);
+                locationRepository.AddLocation(loc);
             }
             else
             {
@@ -81,16 +76,15 @@ public class PostEncounterEvolutionSystem
                 existingLoc.ConnectedTo = loc.ConnectedTo;
                 existingLoc.Depth = loc.Depth;
             }
-            worldState.SetLocationDepth(locId, loc.Depth);
-            worldState.UpdateHubTracking(loc);
         }
 
         foreach (LocationSpot spot in evolution.NewLocationSpots)
         {
-            string spotId = $"{spot.LocationName}:{spot.Name}";
-            if (!registry.TryGetLocationSpot(spotId, out LocationSpot existingSpot))
+            string spotName = $"{spot.LocationName}:{spot.Name}";
+            LocationSpot existingSpot = locationRepository.GetSpot(spot.LocationName, spot.Name);
+            if (existingSpot == null)
             {
-                registry.RegisterLocationSpot(spotId, spot);
+                locationRepository.AddLocationSpot(spot);
             }
             else
             {
@@ -101,16 +95,15 @@ public class PostEncounterEvolutionSystem
 
         foreach (NewAction newAction in evolution.NewActions)
         {
-            string actionId = await _actionGenerator.GenerateActionAndEncounter(
+            string actionId = await _actionGenerator.GenerateAction(
                 newAction.Name,
                 newAction.SpotName,
-                newAction.LocationName,
-                newAction.Goal,
-                newAction.Complication,
-                newAction.ActionType);
+                newAction.LocationName);
+
             ActionDefinition actionDef = _actionRepository.GetAction(actionId);
             string spotId = $"{newAction.LocationName}:{newAction.SpotName}";
-            if (contentRegistry.TryGetLocationSpot(spotId, out LocationSpot? spot))
+            LocationSpot spot = locationRepository.GetSpot(newAction.LocationName, newAction.SpotName);
+            if (spot != null)
             {
                 spot.RegisterActionDefinition(actionDef.Name);
             }
@@ -129,7 +122,7 @@ public class PostEncounterEvolutionSystem
     {
         foreach (NewAction newAction in evolution.NewActions)
         {
-            Location targetLocation = worldState.GetLocation(newAction.LocationName);
+            Location targetLocation = locationRepository.GetLocation(newAction.LocationName);
             List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(targetLocation.Name);
             if (targetLocation != null && locationSpots != null)
             {
@@ -141,13 +134,10 @@ public class PostEncounterEvolutionSystem
                 if (spotForAction != null)
                 {
                     // Create action template linked to the encounter
-                    string actionId = await _actionGenerator.GenerateActionAndEncounter(
+                    string actionId = await _actionGenerator.GenerateAction(
                         newAction.Name,
                         newAction.SpotName,
-                        newAction.LocationName,
-                        newAction.Goal,
-                        newAction.Complication,
-                        ParseActionType(newAction.ActionType).ToString());
+                        newAction.LocationName);
 
                     ActionDefinition actionTemplate = _actionRepository.GetAction(newAction.Name);
                     spotForAction.RegisterActionDefinition(actionId);
@@ -242,11 +232,8 @@ public class PostEncounterEvolutionSystem
         WorldState worldState = gameState.WorldState;
         PlayerState playerState = gameState.PlayerState;
 
-        // Get current depth and hub depth
-        int currentDepth = worldState.GetLocationDepth(worldState.CurrentLocation?.Name ?? "");
-
         // Get all locations
-        List<Location> allLocations = worldState.GetLocations();
+        List<Location> allLocations = locationRepository.GetAllLocations();
 
         return new PostEncounterEvolutionInput
         {
@@ -263,8 +250,7 @@ public class PostEncounterEvolutionSystem
             ConnectedLocations = locationSystem.FormatLocations(locationSystem.GetConnectedLocations(worldState.CurrentLocation.Name)),
             AllExistingActions = actionSystem.FormatExistingActions(allLocations),
 
-            CurrentDepth = currentDepth,
-            LastHubDepth = worldState.LastHubDepth,
+            CurrentDepth = worldState.CurrentLocation.Depth,
 
             Health = playerState.Health,
             MaxHealth = playerState.MaxHealth,

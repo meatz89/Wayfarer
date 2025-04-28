@@ -6,5 +6,6 @@ public enum CurrentViews
     EncounterScreen,
     NarrativeScreen,
     MapScreen,
-    LocationScreen
+    LocationScreen,
+    MissingReferences
 }

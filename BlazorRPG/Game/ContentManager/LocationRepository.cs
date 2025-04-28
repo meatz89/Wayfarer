@@ -1,0 +1,124 @@
+﻿public class LocationRepository
+{
+    private readonly WorldState _worldState;
+    public Location CurrentLocation
+    {
+        get
+        {
+            return _worldState.CurrentLocation;
+        }
+    }
+
+    public LocationRepository(GameState gameState)
+    {
+        _worldState = gameState.WorldState;
+    }
+
+    public Location GetLocation(string locationName)
+    {
+        Location location = _worldState.locations.FirstOrDefault(l =>
+        {
+            return l.Name.Equals(locationName, StringComparison.OrdinalIgnoreCase);
+        });
+
+        if (location != null)
+            return location;
+
+        throw new KeyNotFoundException($"Location '{locationName}' not found.");
+    }
+
+    public List<Location> GetAllLocations()
+    {
+        return _worldState.locations;
+    }
+
+    public List<LocationSpot> GetSpotsForLocation(string locationName)
+    {
+        return _worldState.locationSpots
+            .Where(spot =>
+            {
+                return spot.LocationName.Equals(locationName, StringComparison.OrdinalIgnoreCase);
+            })
+            .ToList();
+    }
+
+    public LocationSpot GetSpot(string locationName, string spotName)
+    {
+        LocationSpot spot = _worldState.locationSpots.FirstOrDefault(s =>
+        {
+            return s.LocationName.Equals(locationName, StringComparison.OrdinalIgnoreCase) &&
+                        s.Name.Equals(spotName, StringComparison.OrdinalIgnoreCase);
+        });
+
+        if (spot == null)
+            throw new KeyNotFoundException($"Spot '{spotName}' not found in '{locationName}'.");
+
+        return spot;
+    }
+
+    public List<Location> GetConnectedLocations(string currentLocation)
+    {
+        return _worldState.locations
+            .Where(l =>
+            {
+                return l.ConnectedTo.Contains(currentLocation);
+            })
+            .ToList();
+    }
+
+    // Additional methods remain largely unchanged, just using _worldState instead
+    public bool CanLocationSpotLevelUp(string locationName, string spotName)
+    {
+        LocationSpot spot = GetSpot(locationName, spotName);
+        return spot.CurrentSpotXP >= spot.XPToNextLevel;
+    }
+
+    public void ApplyLocationSpotLevelUp(string locationName, string spotName)
+    {
+        LocationSpot spot = GetSpot(locationName, spotName);
+        spot.CurrentLevel++;
+        spot.CurrentSpotXP = 0;
+        // Handle level-specific action changes
+    }
+
+    public List<string> GetAvailableActionsForLocationSpot(string locationName, string spotName)
+    {
+        LocationSpot spot = GetSpot(locationName, spotName);
+        return spot.GetActionsForLevel(spot.CurrentLevel);
+    }
+
+    public List<LocationSpot> GetSpotsReadyToLevelUp()
+    {
+        return _worldState.locationSpots
+            .Where(spot =>
+            {
+                return spot.CurrentSpotXP >= spot.XPToNextLevel;
+            })
+            .ToList();
+    }
+
+    // New method to add a location to the world
+    public void AddLocation(Location location)
+    {
+        if (_worldState.locations.Any(l =>
+        {
+            return l.Name.Equals(location.Name, StringComparison.OrdinalIgnoreCase);
+        }))
+            throw new InvalidOperationException($"Location '{location.Name}' already exists.");
+
+        _worldState.locations.Add(location);
+    }
+
+    // New method to add a location spot to the world
+    public void AddLocationSpot(LocationSpot spot)
+    {
+        if (_worldState.locationSpots.Any(s =>
+        {
+            return s.LocationName.Equals(spot.LocationName, StringComparison.OrdinalIgnoreCase) &&
+                        s.Name.Equals(spot.Name, StringComparison.OrdinalIgnoreCase);
+        }))
+            throw new InvalidOperationException($"Spot '{spot.Name}' already exists in '{spot.LocationName}'.");
+
+        _worldState.locationSpots.Add(spot);
+    }
+}

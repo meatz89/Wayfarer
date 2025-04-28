@@ -203,8 +203,8 @@ public class TimeOutcome : Outcome
 
     public override string GetPreview(GameState gameState)
     {
-        int currentValue = gameState.WorldState.CurrentTimeInHours;
-        int newValue = gameState.WorldState.CurrentTimeInHours + hours;
+        int currentValue = gameState.WorldState.CurrentTimeHours;
+        int newValue = gameState.WorldState.CurrentTimeHours + hours;
         return $"({currentValue} -> {newValue})";
     }
 }

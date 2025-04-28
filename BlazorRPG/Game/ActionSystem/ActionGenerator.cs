@@ -4,7 +4,7 @@
 public class ActionGenerator
 {
     private readonly NarrativeService _narrativeService;
-    private readonly ActionRepository _actionRepo;
+    private readonly ActionRepository actionRepository;
     private readonly WorldStateInputBuilder _worldStateInputCreator;
     private readonly IConfiguration _configuration;
 
@@ -15,18 +15,15 @@ public class ActionGenerator
         IConfiguration configuration)
     {
         _narrativeService = narrativeService;
-        _actionRepo = actionRepository;
+        this.actionRepository = actionRepository;
         _worldStateInputCreator = worldStateInputCreator;
         _configuration = configuration;
     }
 
-    public async Task<string> GenerateActionAndEncounter(
+    public async Task<string> GenerateAction(
         string actionName,
         string locationSpotName,
-        string locationName,
-        string goal = "",
-        string complication = "",
-        string basicActionType = "")
+        string locationName)
     {
         ActionDefinition actionDef = GetDefaultActionDefinition(actionName, locationSpotName, locationName);
 
@@ -37,9 +34,6 @@ public class ActionGenerator
                 ActionId = actionName.Replace(" ", ""),
                 SpotName = locationSpotName,
                 LocationName = locationName,
-                Goal = goal,
-                Complication = complication,
-                BasicActionType = basicActionType
             };
 
             WorldStateInput worldStateInput = await _worldStateInputCreator.CreateWorldStateInput(locationName);
@@ -48,8 +42,7 @@ public class ActionGenerator
             actionDef = ActionParser.ParseAction(json);
         }
 
-        // Register AI or default action via repository
-        _actionRepo.RegisterAction(actionDef);
+        actionRepository.AddAction(actionDef);
         return actionDef.Name;
     }
 

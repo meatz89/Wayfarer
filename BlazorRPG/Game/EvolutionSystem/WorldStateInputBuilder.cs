@@ -24,9 +24,6 @@ public class WorldStateInputBuilder
         WorldState worldState = gameState.WorldState;
         PlayerState playerState = gameState.PlayerState;
 
-        // Get current depth and hub depth
-        int currentDepth = worldState.GetLocationDepth(worldState.CurrentLocation?.Name ?? "");
-
         // Create context for location generation
         WorldStateInput context = new WorldStateInput
         {
@@ -45,7 +42,7 @@ public class WorldStateInputBuilder
             CurrentLocation = currentLocation,
             LocationSpots = LocationSystem.FormatLocationSpots(worldState.CurrentLocation),
             CurrentSpot = worldState.CurrentLocationSpot.Name,
-            LocationDepth = currentDepth,
+            LocationDepth = worldState.CurrentLocation.Depth,
             ConnectedLocations = LocationSystem.FormatLocations(LocationSystem.GetConnectedLocations(worldState.CurrentLocation.Name)),
 
             Inventory = FormatPlayerInventory(playerState.Inventory),
