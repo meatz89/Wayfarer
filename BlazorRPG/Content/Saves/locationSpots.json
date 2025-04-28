@@ -1,9 +1,177 @@
 [
 	{
-		"id": "maren_innkeeper",
-		"name": "Maren the Innkeeper",
+		"id": "village_healer_hut",
+		"name": "Healer's Hut",
 		"locationId": "village",
-		"description": "A warm-faced woman wiping down the bar and greeting weary travelers.",
+		"description": "A small thatched cottage filled with drying herbs and the scent of remedies.",
+		"spotType": "Service",
+		"currentLevel": 1,
+		"currentXP": 0,
+		"xpToNextLevel": 100,
+		"levels": [
+			{
+				"level": 1,
+				"description": "Bundles of herbs hang from the ceiling while Miriam works at a worn wooden table preparing remedies.",
+				"actionIds": [ "assist_village_healer" ]
+			},
+			{
+				"level": 2,
+				"description": "Miriam has reorganized her workspace with your help. Her collection of remedies has expanded, and she now has a dedicated area for patients.",
+				"levelUpEncounter": {
+					"id": "rare_herb_expedition",
+					"name": "Rare Herb Expedition",
+					"description": "Miriam needs help obtaining a rare herb from the deep forest."
+				},
+				"actionIds": []
+			}
+		]
+	},
+
+	{
+		"id": "monastery_meditation_chamber",
+		"name": "Meditation Chamber",
+		"locationId": "monastery",
+		"description": "A quiet, dimly lit room where monks practice meditation and contemplation.",
+		"spotType": "Feature",
+		"currentLevel": 1,
+		"currentXP": 0,
+		"xpToNextLevel": 100,
+		"levels": [
+			{
+				"level": 1,
+				"description": "Stone walls and a few scattered cushions create an atmosphere of peaceful solitude, with Brother Thomas quietly guiding practitioners.",
+				"actionIds": [ "monastery_meditation" ]
+			},
+			{
+				"level": 2,
+				"description": "Your regular visits have earned you a dedicated space in the chamber. Brother Thomas now offers you more advanced techniques.",
+				"levelUpEncounter": {
+					"id": "ancient_meditation_technique",
+					"name": "Ancient Meditation Technique",
+					"description": "Brother Thomas offers to teach you a rare meditation technique passed down through generations."
+				},
+				"actionIds": []
+			}
+		]
+	},
+
+	{
+		"id": "tavern_common_room",
+		"name": "Tavern Common Room",
+		"locationId": "tavern",
+		"description": "The warm, bustling heart of the tavern where patrons gather for drinks and entertainment.",
+		"spotType": "Social",
+		"currentLevel": 1,
+		"currentXP": 0,
+		"xpToNextLevel": 100,
+		"levels": [
+			{
+				"level": 1,
+				"description": "A crackling fireplace, wooden tables worn smooth from years of use, and the constant hum of conversation fill this welcoming space.",
+				"actionIds": [ "tavern_performance" ]
+			},
+			{
+				"level": 2,
+				"description": "Your performances have made you a familiar face in the tavern. Patrons often request your stories or songs when you enter.",
+				"levelUpEncounter": {
+					"id": "traveling_bard_competition",
+					"name": "Traveling Bard Competition",
+					"description": "A famous traveling bard has come to town and challenges local performers to a friendly contest."
+				},
+				"actionIds": []
+			}
+		]
+	},
+
+	{
+		"id": "village_market_square",
+		"name": "Market Square",
+		"locationId": "village",
+		"description": "A lively open area where merchants set up stalls and villagers gather to trade goods.",
+		"spotType": "Commerce",
+		"currentLevel": 1,
+		"currentXP": 0,
+		"xpToNextLevel": 100,
+		"levels": [
+			{
+				"level": 1,
+				"description": "Colorful awnings shade merchants' wares as they call out to passing customers. The air is filled with the scents of fresh bread, spices, and livestock.",
+				"actionIds": [ "market_day_trading" ]
+			},
+			{
+				"level": 2,
+				"description": "Your trading activities have earned you respect among the merchants. Some now reserve their best goods for you and offer better prices.",
+				"levelUpEncounter": {
+					"id": "merchant_guild_invitation",
+					"name": "Merchant Guild Invitation",
+					"description": "Your trading success has caught the attention of the regional merchant guild."
+				},
+				"actionIds": []
+			}
+		]
+	},
+
+	{
+		"id": "village_blacksmith",
+		"name": "Village Blacksmith",
+		"locationId": "village",
+		"description": "A sweltering forge where the village blacksmith and his apprentice craft metal goods.",
+		"spotType": "Service",
+		"currentLevel": 1,
+		"currentXP": 0,
+		"xpToNextLevel": 100,
+		"levels": [
+			{
+				"level": 1,
+				"description": "The rhythmic clanging of hammer on anvil fills the air as Emil works under the watchful eye of Master Osgar. Heat radiates from the glowing forge.",
+				"actionIds": [ "help_blacksmith_apprentice" ]
+			},
+			{
+				"level": 2,
+				"description": "Emil has grown more confident with your help. Master Osgar now lets him work on more complex projects and occasionally nods approvingly at your assistance.",
+				"levelUpEncounter": {
+					"id": "special_commission",
+					"name": "Special Commission",
+					"description": "Master Osgar has received a prestigious commission and needs additional help."
+				},
+				"actionIds": []
+			}
+		]
+	},
+
+	{
+		"id": "guard_training_yard",
+		"name": "Guard Training Yard",
+		"locationId": "village",
+		"description": "An open area near the village wall where the guards practice combat techniques.",
+		"spotType": "Training",
+		"currentLevel": 1,
+		"currentXP": 0,
+		"xpToNextLevel": 100,
+		"levels": [
+			{
+				"level": 1,
+				"description": "Weapon racks line one wall, while training dummies bear the scars of countless practice strikes. Captain Aldric oversees the morning drills with stern efficiency.",
+				"actionIds": [ "guard_training" ]
+			},
+			{
+				"level": 2,
+				"description": "Your dedication has impressed Captain Aldric. He now includes you in advanced drills and occasionally asks for your input on training methods.",
+				"levelUpEncounter": {
+					"id": "village_defense_test",
+					"name": "Village Defense Test",
+					"description": "Captain Aldric wants to test the guards' readiness with a surprise drill."
+				},
+				"actionIds": []
+			}
+		]
+	},
+
+	{
+		"id": "forest_hunters_camp",
+		"name": "Hunter's Camp",
+		"locationId": "forest_trail",
+		"description": "A small clearing in the forest where Rowan the hunter makes his temporary camp.",
 		"spotType": "Character",
 		"currentLevel": 1,
 		"currentXP": 0,
@@ -11,18 +179,102 @@
 		"levels": [
 			{
 				"level": 1,
-				"description": "A warm-faced woman wiping down the bar and greeting weary travelers.",
-				"actionIds": [ "negotiate_tavern_trade" ]
+				"description": "A simple lean-to shelter, small fire pit, and several stretched animal hides mark this as Rowan's domain. Various tracking and hunting tools are meticulously organized nearby.",
+				"actionIds": [ "forest_tracking" ]
 			},
 			{
 				"level": 2,
-				"description": "Maren greets you with a smile of recognition and gestures you to your usual spot at the bar.",
+				"description": "Rowan has expanded his camp to accommodate your frequent visits. He's set aside a space for you to practice tracking skills and keeps a spare bow on hand.",
 				"levelUpEncounter": {
-					"id": "host_festival_preparation",
-					"name": "Host Festival Preparation",
-					"description": "Maren needs help preparing for the upcoming village festival."
+					"id": "track_mysterious_beast",
+					"name": "Track Mysterious Beast",
+					"description": "Rowan has found unusual tracks and wants your help identifying the creature."
 				},
-				"actionIds": [ ]
+				"actionIds": []
+			}
+		]
+	},
+
+	{
+		"id": "monastery_library",
+		"name": "Monastery Library",
+		"locationId": "monastery",
+		"description": "A quiet, dust-filled room lined with shelves of ancient texts and scrolls.",
+		"spotType": "Study",
+		"currentLevel": 1,
+		"currentXP": 0,
+		"xpToNextLevel": 100,
+		"levels": [
+			{
+				"level": 1,
+				"description": "Narrow windows cast beams of light across worn wooden tables where Brother Elias carefully tends to the monastery's collection of knowledge.",
+				"actionIds": [ "ancient_scroll_study" ]
+			},
+			{
+				"level": 2,
+				"description": "Brother Elias now grants you access to the more restricted sections of the library. He's begun to consult you on particularly difficult translations.",
+				"levelUpEncounter": {
+					"id": "mysterious_manuscript",
+					"name": "Mysterious Manuscript",
+					"description": "Brother Elias has discovered an unusual manuscript that defies conventional translation methods."
+				},
+				"actionIds": []
+			}
+		]
+	},
+
+	{
+		"id": "village_market_judges_stand",
+		"name": "Market Judge's Stand",
+		"locationId": "village",
+		"description": "A small raised platform where the village elder resolves market disputes.",
+		"spotType": "Social",
+		"currentLevel": 1,
+		"currentXP": 0,
+		"xpToNextLevel": 100,
+		"levels": [
+			{
+				"level": 1,
+				"description": "A simple wooden podium stands empty most days, but becomes the center of attention when disputes arise. Elder Matilda occasionally seeks assistance from trusted villagers.",
+				"actionIds": [ "mediate_market_dispute" ]
+			},
+			{
+				"level": 2,
+				"description": "Your fair judgments have earned you respect. Elder Matilda now directly refers certain disputes to you and values your counsel on more complex matters.",
+				"levelUpEncounter": {
+					"id": "major_merchant_conflict",
+					"name": "Major Merchant Conflict",
+					"description": "A serious dispute between two influential merchant families threatens village harmony."
+				},
+				"actionIds": []
+			}
+		]
+	},
+
+	{
+		"id": "tavern_shadowy_corner",
+		"name": "Tavern Shadowy Corner",
+		"locationId": "tavern",
+		"description": "A dimly lit alcove perfect for observing the tavern's patrons without drawing attention.",
+		"spotType": "Stealth",
+		"currentLevel": 1,
+		"currentXP": 0,
+		"xpToNextLevel": 100,
+		"levels": [
+			{
+				"level": 1,
+				"description": "Partially hidden by a support beam and perpetually in shadow, this corner table offers an ideal vantage point to watch and listen to the tavern's many conversations.",
+				"actionIds": [ "tavern_information_gathering" ]
+			},
+			{
+				"level": 2,
+				"description": "You've become so familiar with this spot that the tavern staff rarely notice your presence. Regular patrons unknowingly speak freely around you.",
+				"levelUpEncounter": {
+					"id": "mysterious_stranger",
+					"name": "Mysterious Stranger",
+					"description": "A cloaked figure notices your information gathering and offers a proposition."
+				},
+				"actionIds": []
 			}
 		]
 	}
