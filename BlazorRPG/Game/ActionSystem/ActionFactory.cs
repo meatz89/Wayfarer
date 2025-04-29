@@ -101,9 +101,9 @@
         // Only add costs that have a value greater than 0
         List<Outcome> costs = new();
 
-        if (template.TimeCost > 0)
+        if (template.TimeWindowCost != string.Empty)
         {
-            costs.Add(new TimeOutcome(template.TimeCost));
+            costs.Add(new TimeOutcome(template.TimeWindowCost));
         }
 
         if (template.EnergyCost > 0)
