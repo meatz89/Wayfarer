@@ -84,7 +84,7 @@
 
     public List<LocationSpot> GetKnownSpots()
     {
-        List<LocationSpot> locationSpots = LocationSystem.GetLocationSpots(CurrentLocation.Name);
+        List<LocationSpot> locationSpots = LocationSystem.GetLocationSpots(CurrentLocation.Id);
         return locationSpots;
     }
 
