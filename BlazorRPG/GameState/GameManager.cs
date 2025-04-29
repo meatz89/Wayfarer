@@ -84,7 +84,7 @@
             Console.WriteLine("Current location spot is null despite spots existing - manually setting");
             worldState.SetCurrentLocationSpot(locationSystem.GetLocationSpots(currentLocation.Name).First());
         }
-        
+
         gameState.ActionStateTracker.CompleteAction();
         await UpdateState();
 
@@ -203,7 +203,7 @@
     {
         string location = actionImplementation.DestinationLocation;
         string locationSpot = actionImplementation.DestinationLocationSpot;
-        
+
         if (!string.IsNullOrWhiteSpace(location))
         {
             travelManager.EndLocationTravel(location);
@@ -533,7 +533,11 @@
 
     public bool CanMoveToSpot(string locationSpotName)
     {
-        return true;
+        Location location = locationRepository.GetCurrentLocation();
+        LocationSpot locationSpot = locationRepository.GetSpot(location.Name, locationSpotName);
+        bool canMove = !locationSpot.IsClosed;
+
+        return canMove;
     }
 
     public string GetTimeOfDay(int totalHours)

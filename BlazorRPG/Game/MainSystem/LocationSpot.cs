@@ -1,6 +1,4 @@
-﻿
-
-public class LocationSpot
+﻿public class LocationSpot
 {
     public string Name { get; init; }
     public string LocationId { get; init; }
@@ -27,6 +25,7 @@ public class LocationSpot
     public LocationSpotTypes LocationSpotType = LocationSpotTypes.Location;
     public string CharacterName { get; set; }
 
+    public List<TimeWindow> TimeWindowsOpen { get; set; } = new() { TimeWindow.Morning, TimeWindow.Afternoon, TimeWindow.Evening, TimeWindow.Night };
     public bool IsClosed { get; set; } = true;
 
     public LocationSpot(string name, string locationName)

@@ -39,8 +39,9 @@
 
     public async Task<Location> CreateLocation(string locationId)
     {
-        string travelOrigin = locationRepository.CurrentLocation.Name;
-        int locationDepth = locationRepository.CurrentLocation.Depth + 1;
+        Location location = locationRepository.GetCurrentLocation();
+        string travelOrigin = location.Name;
+        int locationDepth = location.Depth + 1;
 
         LocationCreationInput input = CreateLocationInput(travelOrigin, locationId, locationDepth);
         WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(locationId);

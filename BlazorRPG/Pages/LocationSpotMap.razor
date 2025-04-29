@@ -22,9 +22,8 @@
                 @* Add travel option if not current spot *@
                 @if (spot.Name != CurrentSpot.Name)
                 {
-                    <button class="action-button"
-                    @onclick="() => OnSpotSelected.InvokeAsync(spot)"
-                    disabled="@(!GameManager.CanMoveToSpot(spot.Name))">
+                    <button class="action-button" disabled="@(!GameManager.CanMoveToSpot(spot.Name))"
+                    @onclick="() => OnSpotSelected.InvokeAsync(spot)">
                         MOVE HERE
                     </button>
                 }

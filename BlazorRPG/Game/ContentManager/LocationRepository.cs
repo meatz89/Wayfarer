@@ -1,17 +1,20 @@
 ﻿public class LocationRepository
 {
     private readonly WorldState _worldState;
-    public Location CurrentLocation
-    {
-        get
-        {
-            return _worldState.CurrentLocation;
-        }
-    }
 
     public LocationRepository(GameState gameState)
     {
         _worldState = gameState.WorldState;
+    }
+
+    public Location GetCurrentLocation()
+    {
+        return _worldState.CurrentLocation;
+    }
+
+    public LocationSpot GetCurrentLocationSpot()
+    {
+        return _worldState.CurrentLocationSpot;
     }
 
     public Location GetLocation(string locationName)
