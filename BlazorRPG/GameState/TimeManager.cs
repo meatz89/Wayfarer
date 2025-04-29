@@ -1,4 +1,5 @@
 ﻿
+
 public class TimeManager
 {
     private readonly WorldState worldState;
@@ -63,5 +64,22 @@ public class TimeManager
     public TimeWindow GetCurrentTimeWindow()
     {
         return worldState.TimeWindow;
+    }
+
+    public string PreviewTimeAdvancement(string timeWindow)
+    {
+        switch(worldState.TimeWindow)
+        {
+            case TimeWindow.Morning:
+                return timeWindow == "Half" ? "Morning" : "Afternoon";
+            case TimeWindow.Afternoon:
+                return timeWindow == "Half" ? "Afternoon" : "Evening";
+            case TimeWindow.Evening:
+                return timeWindow == "Half" ? "Evening" : "Night";
+            case TimeWindow.Night:
+                return timeWindow == "Half" ? "Night" : "Morning";
+        }
+
+        return timeWindow;
     }
 }

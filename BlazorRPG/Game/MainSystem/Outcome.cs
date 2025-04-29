@@ -204,7 +204,8 @@ public class TimeOutcome : Outcome
     public override string GetPreview(GameState gameState)
     {
         string currentValue = gameState.WorldState.TimeWindow.ToString();
-        return $"({currentValue} -> Next Time Window)";
+        string nextTimeWindow = gameState.TimeManager.PreviewTimeAdvancement(TimeWindow);
+        return $"({currentValue} -> {nextTimeWindow})";
     }
 }
 
