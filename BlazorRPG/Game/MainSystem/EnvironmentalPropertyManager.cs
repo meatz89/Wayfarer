@@ -11,7 +11,7 @@ public class EnvironmentalPropertyManager
 
     public void UpdateLocationForTime(Location location, TimeWindow timeWindow)
     {
-        List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(location.Name);
+        List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(location.Id);
 
         SetClosed(locationSpots, timeWindow);
 
