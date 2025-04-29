@@ -312,7 +312,10 @@ public partial class EncounterViewBase : ComponentBase
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
-        if (EncounterManager.EncounterState?.ActiveTags == null)
+        if (EncounterManager == null)
+            return properties;
+
+        if (EncounterManager?.EncounterState?.ActiveTags == null)
             return properties;
 
         foreach (IEncounterTag tag in EncounterManager.EncounterState.ActiveTags)

@@ -32,12 +32,12 @@
         return _worldState.locations;
     }
 
-    public List<LocationSpot> GetSpotsForLocation(string locationName)
+    public List<LocationSpot> GetSpotsForLocation(string location)
     {
         return _worldState.locationSpots
             .Where(spot =>
             {
-                return spot.LocationName.Equals(locationName, StringComparison.OrdinalIgnoreCase);
+                return spot.LocationId.Equals(location, StringComparison.OrdinalIgnoreCase);
             })
             .ToList();
     }
@@ -46,7 +46,7 @@
     {
         LocationSpot spot = _worldState.locationSpots.FirstOrDefault(s =>
         {
-            return s.LocationName.Equals(locationName, StringComparison.OrdinalIgnoreCase) &&
+            return s.LocationId.Equals(locationName, StringComparison.OrdinalIgnoreCase) &&
                         s.Name.Equals(spotName, StringComparison.OrdinalIgnoreCase);
         });
 
@@ -114,10 +114,10 @@
     {
         if (_worldState.locationSpots.Any(s =>
         {
-            return s.LocationName.Equals(spot.LocationName, StringComparison.OrdinalIgnoreCase) &&
+            return s.LocationId.Equals(spot.LocationId, StringComparison.OrdinalIgnoreCase) &&
                         s.Name.Equals(spot.Name, StringComparison.OrdinalIgnoreCase);
         }))
-            throw new InvalidOperationException($"Spot '{spot.Name}' already exists in '{spot.LocationName}'.");
+            throw new InvalidOperationException($"Spot '{spot.Name}' already exists in '{spot.LocationId}'.");
 
         _worldState.locationSpots.Add(spot);
     }

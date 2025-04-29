@@ -202,12 +202,13 @@
     private async Task HandlePlayerMoving(ActionImplementation actionImplementation)
     {
         string location = actionImplementation.DestinationLocation;
+        string locationSpot = actionImplementation.DestinationLocationSpot;
+        
         if (!string.IsNullOrWhiteSpace(location))
         {
             travelManager.EndLocationTravel(location);
-            await UpdateState();
         }
-        string locationSpot = actionImplementation.DestinationLocationSpot;
+
         if (!string.IsNullOrWhiteSpace(locationSpot))
         {
             await MoveToLocationSpot(locationSpot);
@@ -216,8 +217,11 @@
 
     public async Task InitiateTravelToLocation(string locationName)
     {
+        Location loc = locationRepository.GetLocation(locationName);
+        string locationSpotName = locationRepository.GetSpotsForLocation(loc.Id).FirstOrDefault()?.Name;
+
         // Create travel action using travelManager
-        ActionImplementation travelAction = travelManager.TravelToLocation(locationName, TravelMethods.Walking);
+        ActionImplementation travelAction = travelManager.TravelToLocation(locationName, locationSpotName, TravelMethods.Walking);
 
         // Create option with consistent structure
         UserActionOption travelOption = new UserActionOption(
@@ -259,7 +263,7 @@
                     actionImplementation.Name.ToString(),
                     locationSpot.IsClosed,
                     actionImplementation,
-                    locationSpot.LocationName,
+                    locationSpot.LocationId,
                     locationSpot.Name,
                     default,
                     location.Difficulty,
@@ -481,7 +485,7 @@
     {
         Location location = gameState.WorldState.CurrentLocation;
 
-        LocationSpot locationSpot = locationSystem.GetLocationSpot(location.Name, locationSpotName);
+        LocationSpot locationSpot = locationSystem.GetLocationSpot(location.Id, locationSpotName);
         gameState.WorldState.SetCurrentLocation(location, locationSpot);
 
         await UpdateState();

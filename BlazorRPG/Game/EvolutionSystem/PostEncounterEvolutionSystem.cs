@@ -80,8 +80,8 @@
 
         foreach (LocationSpot spot in evolution.NewLocationSpots)
         {
-            string spotName = $"{spot.LocationName}:{spot.Name}";
-            LocationSpot existingSpot = locationRepository.GetSpot(spot.LocationName, spot.Name);
+            string spotName = $"{spot.LocationId}:{spot.Name}";
+            LocationSpot existingSpot = locationRepository.GetSpot(spot.LocationId, spot.Name);
             if (existingSpot == null)
             {
                 locationRepository.AddLocationSpot(spot);

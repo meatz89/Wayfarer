@@ -2,7 +2,11 @@
 @inject GameManager ActionManager
 @inject GameState GameState
 
-<div class="area-map-container">
+<div class="world-map-container">
+    <div class="world-map">
+        <img src="/images//world-map.png" />
+    </div>
+
     <div class="locations-grid">
         @foreach (var location in GetTravelableLocations())
         {
@@ -28,7 +32,8 @@
     private List<Location> GetTravelableLocations()
     {
         List<Location> enumerable = Locations.Where(loc =>
-            GameManager.CanTravelTo(loc.Id)).ToList();
+            loc.Name != CurrentLocation.Name &&
+            GameManager.CanTravelTo(loc.Name)).ToList();
 
         return enumerable;
     }
