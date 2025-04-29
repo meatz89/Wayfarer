@@ -235,7 +235,7 @@
 		"actionType": "Rest",
 		"costs": {
 			"coin": 5,
-			"timeWindowCost": "FullDay"
+			"timeWindowCost": "Full"
 		},
 		"yields": {
 			"energy": 10,
@@ -461,7 +461,7 @@
 		"description": "Set up a basic camp to sleep through the night",
 		"actionType": "Rest",
 		"costs": {
-			"timeWindowCost": "FullDay"
+			"timeWindowCost": "Full"
 		},
 		"yields": {
 			"energy": 5,

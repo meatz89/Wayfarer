@@ -349,7 +349,7 @@
     {
     }
 
-    internal int GetReputation(string location)
+    public int GetReputation(string location)
     {
         throw new NotImplementedException();
     }

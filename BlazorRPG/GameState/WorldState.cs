@@ -1,5 +1,6 @@
 ﻿
 
+
 public class WorldState
 {
     // Core data collections
@@ -64,22 +65,22 @@ public class WorldState
         CompletedEncounters.Add(actionId);
     }
 
-    internal void AddCharacter(Character character)
+    public void AddCharacter(Character character)
     {
         characters.Add(character);
     }
 
-    internal void AddOpportunity(Opportunity opp)
+    public void AddOpportunity(Opportunity opp)
     {
         opportunities.Add(opp);
     }
 
-    internal List<Character> GetCharacters()
+    public List<Character> GetCharacters()
     {
         return characters;
     }
 
-    internal List<Opportunity> GetOpportunities()
+    public List<Opportunity> GetOpportunities()
     {
         return opportunities;
     }
