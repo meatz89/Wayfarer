@@ -1,4 +1,6 @@
-﻿public class ActionProcessor
+﻿using System.Threading;
+
+public class ActionProcessor
 {
     private readonly LocationRepository locationRepository;
 
@@ -84,12 +86,14 @@
 
     private void ProcessActionCosts(ActionImplementation action)
     {
+        int hours = 3; // at least 3 hours;
+        string timeWindowCost = "Half";
+
         foreach (Outcome cost in action.Costs)
         {
             if (cost is TimeOutcome timeCost)
             {
-                gameState.TimeManager.AdvanceTime(timeCost.hours);
-                UpdateState();
+                timeWindowCost = timeCost.TimeWindow;
             }
             else
             {
@@ -97,7 +101,16 @@
             }
             messageSystem.AddOutcome(cost);
         }
+
+        if (!string.IsNullOrWhiteSpace(timeWindowCost) && timeWindowCost.ToLower() == "full")
+        {
+            hours = 6;
+        }
+        
+        gameState.TimeManager.AdvanceTime(hours);
+        UpdateState();
     }
+
     private void IncreaseSpotXp(ActionImplementation action)
     {
         int spotXp = action.SpotXp;

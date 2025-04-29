@@ -1,39 +1,10 @@
 [
 	{
-		"id": "miriam_the_healer",
-		"name": "Miriam the Healer",
-		"locationId": "healers_cottage",
-		"description": "A kindly middle-aged woman with knowledge of herbs and healing techniques.",
+		"id": "village_market_stalls",
+		"name": "Market Stalls",
+		"locationId": "village_square",
+		"description": "Rows of wooden stalls where merchants sell their wares.",
 		"timeWindows": [ "Morning", "Afternoon" ],
-		"spotType": "Character",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Miriam works at a worn wooden table preparing remedies, her hands moving with practiced efficiency. Her gentle eyes reflect years of caring for the village's sick and injured.",
-				"actionIds": [ "assist_village_healer" ]
-			},
-			{
-				"level": 2,
-				"description": "Miriam now greets you as a helper rather than a visitor. She's begun to share more advanced healing techniques and trusts you with preparing basic remedies.",
-				"levelUpEncounter": {
-					"id": "rare_herb_expedition",
-					"name": "Rare Herb Expedition",
-					"description": "Miriam needs help obtaining a rare herb from the deep forest."
-				},
-				"actionIds": []
-			}
-		]
-	},
-
-	{
-		"id": "herb_garden",
-		"name": "Herb Garden",
-		"locationId": "healers_cottage",
-		"description": "A carefully tended garden full of medicinal plants and herbs.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
 		"spotType": "Feature",
 		"currentLevel": 1,
 		"currentXP": 0,
@@ -41,254 +12,21 @@
 		"levels": [
 			{
 				"level": 1,
-				"description": "Neat rows of various herbs grow in carefully maintained beds, each labeled with small wooden markers.",
-				"actionIds": []
+				"description": "Merchants hawk their goods while villagers haggle over prices. A lively buzz fills the air as people trade gossip along with their coins.",
+				"actionIds": [ "market_day_trading", "mediate_market_dispute" ]
 			},
 			{
 				"level": 2,
-				"description": "With your help, the garden has expanded to include rarer specimens, organized by medicinal properties rather than just alphabetically.",
-				"levelUpEncounter": {
-					"id": "healing_garden_expansion",
-					"name": "Healing Garden Expansion",
-					"description": "Miriam wants to expand the garden to grow more exotic healing plants."
-				},
-				"actionIds": []
-			}
-		]
-	},
-
-	{
-		"id": "brother_thomas",
-		"name": "Brother Thomas",
-		"locationId": "monastery",
-		"description": "A serene monk who teaches meditation techniques to visitors.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"spotType": "Character",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Brother Thomas sits cross-legged on a well-worn cushion, his weathered face peaceful and eyes kind as he quietly guides meditation sessions.",
-				"actionIds": [ "monastery_meditation" ]
-			},
-			{
-				"level": 2,
-				"description": "Brother Thomas now greets you by name and has begun to share deeper spiritual insights during your meditation sessions.",
-				"levelUpEncounter": {
-					"id": "ancient_meditation_technique",
-					"name": "Ancient Meditation Technique",
-					"description": "Brother Thomas offers to teach you a rare meditation technique passed down through generations."
-				},
-				"actionIds": []
-			}
-		]
-	},
-
-	{
-		"id": "brother_elias",
-		"name": "Brother Elias",
-		"locationId": "monastery",
-		"description": "The elderly monk who serves as the monastery's librarian and scholar.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening" ],
-		"spotType": "Character",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Brother Elias shuffles between the bookshelves, his stooped frame and spectacles giving him the appearance of a human owl among his beloved texts.",
-				"actionIds": [ "ancient_scroll_study" ]
-			},
-			{
-				"level": 2,
-				"description": "Brother Elias has begun to treat you as a fellow scholar rather than just a visitor. He now shares his theories about ancient texts and seeks your opinion on difficult translations.",
-				"levelUpEncounter": {
-					"id": "mysterious_manuscript",
-					"name": "Mysterious Manuscript",
-					"description": "Brother Elias has discovered an unusual manuscript that defies conventional translation methods."
-				},
-				"actionIds": []
-			}
-		]
-	},
-
-	{
-		"id": "hannah_the_innkeeper",
-		"name": "Hannah the Innkeeper",
-		"locationId": "crown_and_flagon",
-		"description": "The robust, good-humored woman who owns and runs the Crown and Flagon.",
-		"timeWindows": [ "Evening", "Night" ],
-		"spotType": "Character",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Hannah moves efficiently behind the bar, filling mugs and exchanging friendly banter with regulars while keeping a watchful eye on the room.",
-				"actionIds": []
-			},
-			{
-				"level": 2,
-				"description": "Hannah now greets you by name and occasionally slips you an extra portion of food or drink 'on the house.' She's begun to share village gossip she doesn't tell to just anyone.",
-				"levelUpEncounter": {
-					"id": "tavern_trouble",
-					"name": "Tavern Trouble",
-					"description": "Hannah needs help dealing with a group of troublesome customers who won't leave."
-				},
-				"actionIds": []
-			}
-		]
-	},
-
-	{
-		"id": "tavern_common_room",
-		"name": "Common Room",
-		"locationId": "crown_and_flagon",
-		"description": "The warm, bustling heart of the tavern where patrons gather for drinks and entertainment.",
-		"timeWindows": [ "Evening", "Night" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "A crackling fireplace, wooden tables worn smooth from years of use, and the constant hum of conversation fill this welcoming space.",
-				"actionIds": [ "tavern_performance" ]
-			},
-			{
-				"level": 2,
-				"description": "Your performances have made you a familiar face in the tavern. Patrons often request your stories or songs when you enter.",
-				"levelUpEncounter": {
-					"id": "traveling_bard_competition",
-					"name": "Traveling Bard Competition",
-					"description": "A famous traveling bard has come to town and challenges local performers to a friendly contest."
-				},
-				"actionIds": []
-			}
-		]
-	},
-
-	{
-		"id": "tavern_shadowy_corner",
-		"name": "Shadowy Corner",
-		"locationId": "crown_and_flagon",
-		"description": "A dimly lit alcove perfect for observing the tavern's patrons without drawing attention.",
-		"timeWindows": [ "Evening", "Night" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Partially hidden by a support beam and perpetually in shadow, this corner table offers an ideal vantage point to watch and listen to the tavern's many conversations.",
-				"actionIds": [ "tavern_information_gathering" ]
-			},
-			{
-				"level": 2,
-				"description": "You've become so familiar with this spot that the tavern staff rarely notice your presence. Regular patrons unknowingly speak freely around you.",
-				"levelUpEncounter": {
-					"id": "mysterious_stranger",
-					"name": "Mysterious Stranger",
-					"description": "A cloaked figure notices your information gathering and offers a proposition."
-				},
-				"actionIds": []
-			}
-		]
-	},
-
-	{
-		"id": "greta_market_master",
-		"name": "Greta the Market Master",
-		"locationId": "market_grounds",
-		"description": "A sharp-eyed woman who oversees the village market and settles merchant disputes.",
-		"timeWindows": [ "Morning", "Afternoon" ],
-		"spotType": "Character",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Greta moves briskly through the market, her ledger always in hand as she collects fees and resolves minor disputes with practiced efficiency.",
-				"actionIds": [ "mediate_market_dispute" ]
-			},
-			{
-				"level": 2,
-				"description": "Greta now acknowledges you with a respectful nod and occasionally seeks your opinion on market matters. Merchants have noticed her favor and treat you with increased respect.",
-				"levelUpEncounter": {
-					"id": "major_merchant_conflict",
-					"name": "Major Merchant Conflict",
-					"description": "Greta needs help with a serious dispute between two influential merchant families."
-				},
-				"actionIds": []
-			}
-		]
-	},
-
-	{
-		"id": "merchant_stalls",
-		"name": "Merchant Stalls",
-		"locationId": "market_grounds",
-		"description": "Rows of colorful stalls where merchants display their goods on market days.",
-		"timeWindows": [ "Morning" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Colorful awnings shade merchants' wares as they call out to passing customers. The air is filled with the scents of fresh bread, spices, and livestock.",
-				"actionIds": [ "market_day_trading" ]
-			},
-			{
-				"level": 2,
-				"description": "Your trading activities have earned you respect among the merchants. Some now reserve their best goods for you and offer better prices.",
+				"description": "Your face is now recognized among the regular traders. Some merchants save their best goods for you, and troubled sellers occasionally seek your advice.",
 				"levelUpEncounter": {
 					"id": "merchant_guild_invitation",
 					"name": "Merchant Guild Invitation",
 					"description": "Your trading success has caught the attention of the regional merchant guild."
 				},
-				"actionIds": []
+				"actionIds": [ ]
 			}
 		]
 	},
-
-	{
-		"id": "osgar_blacksmith",
-		"name": "Osgar the Blacksmith",
-		"locationId": "blacksmith_forge",
-		"description": "A burly, bearded man with arms like tree trunks and a lifetime of smithing experience.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening" ],
-		"spotType": "Character",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Osgar pounds rhythmically at the anvil, his weathered face focused on the glowing metal as sweat glistens on his bald head and thick beard.",
-				"actionIds": []
-			},
-			{
-				"level": 2,
-				"description": "Osgar now greets you with a gruff nod of respect. He occasionally asks your opinion on a piece he's working on and has begun to share some basic smithing techniques.",
-				"levelUpEncounter": {
-					"id": "masterwork_commission",
-					"name": "Masterwork Commission",
-					"description": "Osgar has received a prestigious commission and considers letting you assist."
-				},
-				"actionIds": []
-			}
-		]
-	},
-
 	{
 		"id": "emil_apprentice",
 		"name": "Emil the Apprentice",
@@ -313,15 +51,116 @@
 					"name": "Special Commission",
 					"description": "Emil has received his first personal commission and asks for your support."
 				},
-				"actionIds": []
+				"actionIds": [  ]
 			}
 		]
 	},
-
+	{
+		"id": "tavern_common_room",
+		"name": "Tavern Common Room",
+		"locationId": "crown_and_flagon",
+		"description": "The warm, bustling heart of the tavern where patrons gather for drinks and entertainment.",
+		"timeWindows": [ "Evening", "Night" ],
+		"spotType": "Feature",
+		"currentLevel": 1,
+		"currentXP": 0,
+		"xpToNextLevel": 100,
+		"levels": [
+			{
+				"level": 1,
+				"description": "A crackling fireplace, wooden tables worn smooth from years of use, and the constant hum of conversation fill this welcoming space.",
+				"actionIds": [ "tavern_performance", "tavern_information_gathering", "purchase_meal" ]
+			},
+			{
+				"level": 2,
+				"description": "Your performances have made you a familiar face in the tavern. Patrons often request your stories or songs when you enter.",
+				"levelUpEncounter": {
+					"id": "traveling_bard_competition",
+					"name": "Traveling Bard Competition",
+					"description": "A famous traveling bard has come to town and challenges local performers to a friendly contest."
+				},
+				"actionIds": [ ]
+			}
+		]
+	},
+	{
+		"id": "inn_room",
+		"name": "Inn Room",
+		"locationId": "crown_and_flagon",
+		"description": "A simple but clean room available for rent on the tavern's upper floor.",
+		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"spotType": "Feature",
+		"currentLevel": 1,
+		"currentXP": 0,
+		"xpToNextLevel": 100,
+		"levels": [
+			{
+				"level": 1,
+				"description": "A narrow bed, small table, and washbasin furnish this modest room. The sounds of the tavern below are muffled but still audible.",
+				"actionIds": [ "rest_in_inn_room", "nap_in_inn_room" ]
+			}
+		]
+	},
+	{
+		"id": "brother_thomas",
+		"name": "Brother Thomas",
+		"locationId": "monastery",
+		"description": "A serene monk who teaches meditation techniques to visitors.",
+		"timeWindows": [ "Morning", "Evening" ],
+		"spotType": "Character",
+		"currentLevel": 1,
+		"currentXP": 0,
+		"xpToNextLevel": 100,
+		"levels": [
+			{
+				"level": 1,
+				"description": "Brother Thomas sits cross-legged on a well-worn cushion, his weathered face peaceful and eyes kind as he quietly guides meditation sessions.",
+				"actionIds": [ "monastery_meditation" ]
+			},
+			{
+				"level": 2,
+				"description": "Brother Thomas now greets you by name and has begun to share deeper spiritual insights during your meditation sessions.",
+				"levelUpEncounter": {
+					"id": "ancient_meditation_technique",
+					"name": "Ancient Meditation Technique",
+					"description": "Brother Thomas offers to teach you a rare meditation technique passed down through generations."
+				},
+				"actionIds": [ ]
+			}
+		]
+	},
+	{
+		"id": "brother_elias",
+		"name": "Brother Elias",
+		"locationId": "monastery",
+		"description": "The elderly monk who serves as the monastery's librarian and scholar.",
+		"timeWindows": [ "Afternoon" ],
+		"spotType": "Character",
+		"currentLevel": 1,
+		"currentXP": 0,
+		"xpToNextLevel": 100,
+		"levels": [
+			{
+				"level": 1,
+				"description": "Brother Elias shuffles between the bookshelves, his stooped frame and spectacles giving him the appearance of a human owl among his beloved texts.",
+				"actionIds": [ "ancient_scroll_study" ]
+			},
+			{
+				"level": 2,
+				"description": "Brother Elias has begun to treat you as a fellow scholar rather than just a visitor. He now shares his theories about ancient texts and seeks your opinion on difficult translations.",
+				"levelUpEncounter": {
+					"id": "mysterious_manuscript",
+					"name": "Mysterious Manuscript",
+					"description": "Brother Elias has discovered an unusual manuscript that defies conventional translation methods."
+				},
+				"actionIds": [ ]
+			}
+		]
+	},
 	{
 		"id": "captain_aldric",
 		"name": "Captain Aldric",
-		"locationId": "guard_post",
+		"locationId": "village_square",
 		"description": "A stern veteran with a scarred face who leads the village guard with military discipline.",
 		"timeWindows": [ "Morning" ],
 		"spotType": "Character",
@@ -342,40 +181,10 @@
 					"name": "Village Defense Test",
 					"description": "Captain Aldric wants to test the guards' readiness with a surprise drill."
 				},
-				"actionIds": []
+				"actionIds": [  ]
 			}
 		]
 	},
-
-	{
-		"id": "guard_post_armory",
-		"name": "Guard Armory",
-		"locationId": "guard_post",
-		"description": "A secure room where the village guard stores weapons, armor, and supplies.",
-		"timeWindows": [ "Morning", "Afternoon" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Racks of spears, swords, and leather armor line the walls of this well-maintained room. Access is strictly controlled by Captain Aldric.",
-				"actionIds": []
-			},
-			{
-				"level": 2,
-				"description": "Your proven reliability has earned you limited access to the armory. Captain Aldric occasionally allows you to borrow training equipment.",
-				"levelUpEncounter": {
-					"id": "armory_inventory",
-					"name": "Armory Inventory",
-					"description": "Captain Aldric needs help conducting the annual inventory and maintenance check."
-				},
-				"actionIds": []
-			}
-		]
-	},
-
 	{
 		"id": "rowan_hunter",
 		"name": "Rowan the Hunter",
@@ -400,242 +209,15 @@
 					"name": "Track Mysterious Beast",
 					"description": "Rowan has found unusual tracks and wants your help identifying the creature."
 				},
-				"actionIds": []
-			}
-		]
-	},
-
-	{
-		"id": "hunters_cache",
-		"name": "Hunter's Cache",
-		"locationId": "hunters_camp",
-		"description": "A well-hidden storage area where hunting tools and preserved game are kept.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "A hollow beneath a fallen tree has been carefully reinforced to create a dry storage space. Various tools, traps, and bundles of dried meat are organized inside.",
-				"actionIds": []
-			},
-			{
-				"level": 2,
-				"description": "Rowan has shown you how to access his cache and occasionally leaves supplies for you to use. You've helped improve the storage system with your own ideas.",
-				"levelUpEncounter": {
-					"id": "cache_thief",
-					"name": "Cache Thief",
-					"description": "Someone has been stealing from the hunters' caches throughout the forest."
-				},
-				"actionIds": []
+				"actionIds": [  ]
 			}
 		]
 	},
 	{
-		"id": "central_square",
-		"name": "Central Square",
-		"locationId": "village_square",
-		"description": "The heart of the village where paths lead to various locations.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "A large open space with a central well. Villagers pass through on various errands while paths branch out to different parts of the settlement.",
-				"actionIds": [
-					"village_square_to_tavern",
-					"village_square_to_blacksmith",
-					"village_square_to_market",
-					"village_square_to_guard_post",
-					"village_square_to_monastery",
-					"village_square_to_healers_cottage"
-				]
-			}
-		]
-	},
-
-	{
-		"id": "cottage_entrance",
-		"name": "Cottage Entrance",
-		"locationId": "healers_cottage",
-		"description": "The front door and small porch of Miriam's healing cottage.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "A wooden door with dried herbs hanging above it marks the entrance to the healer's domain. A small bench sits on the porch for waiting patients.",
-				"actionIds": [
-					"healers_cottage_to_village_square",
-					"healers_cottage_to_forest"
-				]
-			}
-		]
-	},
-
-	{
-		"id": "forge_entrance",
-		"name": "Forge Entrance",
-		"locationId": "blacksmith_forge",
-		"description": "The wide doorway of the blacksmith's shop, open to allow heat to escape.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Heat and the smell of hot metal waft through the large open doorway. Tools hang neatly on the wall just inside the entrance.",
-				"actionIds": [
-					"blacksmith_to_village_square"
-				]
-			}
-		]
-	},
-
-	{
-		"id": "guard_post_entrance",
-		"name": "Guard Post Entrance",
-		"locationId": "guard_post",
-		"description": "The gateway to the village guard's headquarters and training area.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "A sturdy wooden gate marks the entrance to the guard post. A roster of duty assignments is posted nearby.",
-				"actionIds": [
-					"guard_post_to_village_square",
-					"guard_post_to_forest"
-				]
-			}
-		]
-	},
-
-	{
-		"id": "market_entrance",
-		"name": "Market Entrance",
-		"locationId": "market_grounds",
-		"description": "The main entrance to the village market grounds.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "A decorative arch marks the entrance to the market area. Announcements about market days and rules are posted on a nearby board.",
-				"actionIds": [
-					"market_to_village_square"
-				]
-			}
-		]
-	},
-
-	{
-		"id": "monastery_courtyard",
-		"name": "Monastery Courtyard",
-		"locationId": "monastery",
-		"description": "The open courtyard at the center of the monastery complex.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "A peaceful stone courtyard with a small fountain at its center. Doors lead to various monastery buildings, and a path leads down to the village.",
-				"actionIds": [
-					"monastery_to_village_square",
-					"monastery_to_gardens"
-				]
-			}
-		]
-	},
-
-	{
-		"id": "garden_entrance",
-		"name": "Garden Entrance",
-		"locationId": "monastery_gardens",
-		"description": "The entrance to the monastery's carefully tended gardens.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "A simple wooden gate with climbing roses marks the entrance to the gardens. A stone path leads back to the monastery buildings.",
-				"actionIds": [
-					"gardens_to_monastery"
-				]
-			}
-		]
-	},
-
-	{
-		"id": "forest_entrance",
-		"name": "Forest Edge",
+		"id": "forest_clearing",
+		"name": "Forest Clearing",
 		"locationId": "forest_trail",
-		"description": "The boundary between the village and the forest wilderness.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Here the cultivated lands of the village give way to the wild forest. A weathered signpost warns travelers of potential dangers ahead.",
-				"actionIds": [
-					"forest_to_guard_post",
-					"forest_trail_to_healer"
-				]
-			}
-		]
-	},
-
-	{
-		"id": "forest_deep",
-		"name": "Deep Forest",
-		"locationId": "forest_trail",
-		"description": "A particularly dense section of the forest where few villagers venture.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Ancient trees with massive trunks create a cathedral-like canopy overhead. The underbrush is sparse in the dim light, and animal tracks crisscross the forest floor.",
-				"actionIds": [
-					"forest_deep_to_hunters_camp"
-				]
-			}
-		]
-	},
-
-	{
-		"id": "inn_room",
-		"name": "Inn Room",
-		"locationId": "crown_and_flagon",
-		"description": "A simple but clean room available for rent on the tavern's upper floor.",
+		"description": "A peaceful opening among the trees where sunlight warms the ground.",
 		"timeWindows": [ "Morning", "Afternoon", "Evening" ],
 		"spotType": "Feature",
 		"currentLevel": 1,
@@ -644,11 +226,8 @@
 		"levels": [
 			{
 				"level": 1,
-				"description": "A narrow bed, small table, and washbasin furnish this modest room. The sounds of the tavern below are muffled but still audible.",
-				"actionIds": [
-					"inn_room_to_tavern_common",
-					"rest_in_inn_room"
-				]
+				"description": "Birds sing overhead and small animals occasionally scurry through the underbrush. A fallen log provides a comfortable place to rest.",
+				"actionIds": [ "sleep_in_forest", "forage_for_herbs" ]
 			}
 		]
 	}

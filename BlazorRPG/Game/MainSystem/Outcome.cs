@@ -184,28 +184,27 @@ public class EnergyOutcome : Outcome
 
 public class TimeOutcome : Outcome
 {
-    public int hours { get; set; }
+    public string TimeWindow { get; set; }
 
-    public TimeOutcome(int count)
+    public TimeOutcome(string timeWindow)
     {
-        hours = count;
+        TimeWindow = timeWindow;
     }
 
     public override void Apply(GameState gameState)
     {
-        gameState.TimeManager.AdvanceTime(hours);
+        // In ActionProcessor
     }
 
     public override string GetDescription()
     {
-        return $"{(hours >= 0 ? "+" : "")}{hours} Time";
+        return $"Time: {TimeWindow}";
     }
 
     public override string GetPreview(GameState gameState)
     {
-        int currentValue = gameState.WorldState.CurrentTimeHours;
-        int newValue = gameState.WorldState.CurrentTimeHours + hours;
-        return $"({currentValue} -> {newValue})";
+        string currentValue = gameState.WorldState.TimeWindow.ToString();
+        return $"({currentValue} -> Next Time Window)";
     }
 }
 

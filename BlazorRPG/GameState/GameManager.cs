@@ -617,7 +617,7 @@
     {
         ActionDefinition waitAction = new ActionDefinition("Wait", "Wait")
         {
-            TimeCost = 1
+            TimeWindowCost = "Half"
         };
 
         ActionImplementation action = actionFactory

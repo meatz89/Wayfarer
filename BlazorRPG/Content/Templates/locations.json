@@ -1,17 +1,10 @@
 [
 	{
-		"id": "healers_cottage",
-		"name": "Healer's Cottage",
-		"description": "A small thatched cottage at the edge of the village, surrounded by herb gardens.",
-		"detailedDescription": "The sweet and pungent smells of various medicinal plants waft from the neatly tended garden beds. Smoke curls from the chimney, carrying hints of brewing remedies.",
-		"connectedTo": [ "village_square", "forest_trail" ]
-	},
-	{
 		"id": "village_square",
 		"name": "Village Square",
 		"description": "The central gathering place of the village, bustling with activity.",
 		"detailedDescription": "Cobblestones worn smooth from generations of villagers' feet create a pleasant open space where merchants, travelers, and locals cross paths throughout the day.",
-		"connectedTo": [ "healers_cottage", "blacksmith_forge", "crown_and_flagon", "guard_post" ]
+		"connectedTo": [ "blacksmith_forge", "crown_and_flagon", "monastery", "forest_trail" ]
 	},
 	{
 		"id": "blacksmith_forge",
@@ -28,17 +21,10 @@
 		"connectedTo": [ "village_square" ]
 	},
 	{
-		"id": "guard_post",
-		"name": "Village Guard Post",
-		"description": "A stone building near the village entrance where the local guards operate.",
-		"detailedDescription": "The small but sturdy building houses the village's protective force. A bulletin board outside displays notices and warnings for travelers.",
-		"connectedTo": [ "village_square", "forest_trail" ]
-	},
-	{
-		"id": "market_grounds",
-		"name": "Market Grounds",
-		"description": "An open area where merchants set up stalls on market days.",
-		"detailedDescription": "Though quiet on regular days, this space transforms during market days into a vibrant hub of commerce, filled with traders from throughout the region.",
+		"id": "monastery",
+		"name": "Hillside Monastery",
+		"description": "An ancient stone monastery perched on a gentle hill overlooking the village.",
+		"detailedDescription": "The weathered stone walls have stood for centuries, housing monks devoted to prayer, study, and healing.",
 		"connectedTo": [ "village_square" ]
 	},
 	{
@@ -46,7 +32,7 @@
 		"name": "Forest Trail",
 		"description": "A winding path through ancient trees at the edge of the village.",
 		"detailedDescription": "Sunlight filters through the dense canopy, creating dappled patterns on the forest floor. The sounds of the village fade as the wilderness embraces you.",
-		"connectedTo": [ "healers_cottage", "guard_post", "hunters_camp" ]
+		"connectedTo": [ "village_square", "hunters_camp" ]
 	},
 	{
 		"id": "hunters_camp",
@@ -54,19 +40,5 @@
 		"description": "A small, semi-permanent camp deep in the forest.",
 		"detailedDescription": "Hidden among the trees, this camp serves as a base for the village hunters and trappers who provide game for the local tables.",
 		"connectedTo": [ "forest_trail" ]
-	},
-	{
-		"id": "monastery",
-		"name": "Hillside Monastery",
-		"description": "An ancient stone monastery perched on a gentle hill overlooking the village.",
-		"detailedDescription": "The weathered stone walls have stood for centuries, housing monks devoted to prayer, study, and healing.",
-		"connectedTo": [ "village_square", "monastery_gardens" ]
-	},
-	{
-		"id": "monastery_gardens",
-		"name": "Monastery Gardens",
-		"description": "Peaceful gardens surrounding the monastery where herbs and vegetables are grown.",
-		"detailedDescription": "Meticulously tended beds of herbs, vegetables, and flowers create a serene space where monks tend to earthly needs while contemplating higher matters.",
-		"connectedTo": [ "monastery" ]
 	}
 ]

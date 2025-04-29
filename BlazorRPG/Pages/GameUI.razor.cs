@@ -273,12 +273,7 @@ public partial class GameUI : ComponentBase
         ActionImplementation = await GameManager.ExecuteAction(action);
 
         EncounterManager = GameState.ActionStateTracker.GetCurrentEncounter();
-        if (EncounterManager == null)
-        {
-            EncounterResult = GameManager.GetEncounterResultFor(action.ActionImplementation);
-            await OnEncounterCompleted(EncounterResult);
-        }
-        else
+        if (EncounterManager != null)
         {
             CurrentScreen = CurrentViews.EncounterScreen;
         }
@@ -326,7 +321,7 @@ public partial class GameUI : ComponentBase
         ChangeState();
     }
 
-    private async Task WaitOneHour()
+    private async Task WaitHalfTimeWindow()
     {
         // Create a "Wait" action that advances time without other effects
         ActionImplementation waitAction = GameManager.GetWaitAction();

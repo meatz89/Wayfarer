@@ -258,7 +258,7 @@ public static class GameStateSerializer
                     confidence = action.ConfidenceCost,
                     health = action.HealthCost,
                     coin = action.CoinCost,
-                    time = action.TimeCost
+                    timeWindowCost = action.TimeWindowCost.ToString()
                 },
                 yields = new
                 {
