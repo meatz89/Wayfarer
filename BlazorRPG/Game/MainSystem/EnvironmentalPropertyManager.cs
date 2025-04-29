@@ -12,12 +12,15 @@ public class EnvironmentalPropertyManager
     public void UpdateLocationForTime(Location location, TimeWindow timeWindow)
     {
         List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(location.Name);
-        
+
         SetClosed(locationSpots, timeWindow);
 
         switch (timeWindow)
         {
             case TimeWindow.Morning:
+                SetIllumination(locationSpots, Illumination.Shadowy);
+                break;
+
             case TimeWindow.Afternoon:
                 SetIllumination(locationSpots, Illumination.Bright);
                 break;
@@ -30,50 +33,14 @@ public class EnvironmentalPropertyManager
                 SetIllumination(locationSpots, Illumination.Dark);
                 break;
         }
-
-        // Location-specific time adjustments based on location type
-        switch (location.LocationType)
-        {
-            case LocationTypes.Hub:
-                UpdateHubForTime(locationSpots, timeWindow);
-                break;
-
-                // Other location types with specific behaviors
-        }
     }
 
     private void SetClosed(List<LocationSpot> locationSpots, TimeWindow timeWindow)
     {
         foreach (LocationSpot spot in locationSpots)
         {
-            spot.IsClosed = !spot.TimeWindowsOpen.Contains(timeWindow);
-        }
-    }
-
-    private static void UpdateHubForTime(List<LocationSpot> locationSpots, TimeWindow timeWindow)
-    {
-        // Hub locations (towns, cities) behaviors
-        switch (timeWindow)
-        {
-            case TimeWindow.Morning:
-                SetPopulation(locationSpots, Population.Quiet);
-                SetAtmosphere(locationSpots, Atmosphere.Tense);
-                break;
-
-            case TimeWindow.Afternoon:
-                SetPopulation(locationSpots, Population.Crowded);
-                SetAtmosphere(locationSpots, Atmosphere.Tense);
-                break;
-
-            case TimeWindow.Evening:
-                SetPopulation(locationSpots, Population.Crowded);
-                SetAtmosphere(locationSpots, Atmosphere.Chaotic);
-                break;
-
-            case TimeWindow.Night:
-                SetPopulation(locationSpots, Population.Quiet);
-                SetAtmosphere(locationSpots, Atmosphere.Rough);
-                break;
+            List<TimeWindow> timeWindows = spot.TimeWindows;
+            spot.IsClosed = !timeWindows.Contains(timeWindow);
         }
     }
 

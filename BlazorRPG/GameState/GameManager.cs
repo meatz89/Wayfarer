@@ -71,11 +71,12 @@
     {
         ProcessPlayerArchetype();
 
-        string startingLocationName = "village";
+        string startingLocationName = "village_square";
+        string startingLocationSpotName = "Central Square";
         Location startingLocation = await locationSystem.Initialize(startingLocationName);
 
         worldState.RecordLocationVisit(startingLocationName);
-        travelManager.EndLocationTravel(startingLocationName);
+        travelManager.StartLocationTravel(startingLocationName);
 
         Location currentLocation = worldState.CurrentLocation;
 
@@ -124,7 +125,7 @@
     {
         ActionImplementation actionImplementation = action.ActionImplementation;
 
-        Location location = locationSystem.GetLocation(action.Location);
+        Location location = locationSystem.GetLocation(action.LocationId);
         string locationSpot = action.LocationSpot;
 
         // Set current action in game state
@@ -206,27 +207,21 @@
 
         if (!string.IsNullOrWhiteSpace(location))
         {
-            travelManager.EndLocationTravel(location);
-        }
-
-        if (!string.IsNullOrWhiteSpace(locationSpot))
-        {
-            await MoveToLocationSpot(locationSpot);
+            travelManager.EndLocationTravel(location, locationSpot);
         }
     }
 
     public async Task InitiateTravelToLocation(string locationName)
     {
-        Location loc = locationRepository.GetLocation(locationName);
-        string locationSpotName = locationRepository.GetSpotsForLocation(loc.Id).FirstOrDefault()?.Name;
+        Location loc = locationRepository.GetLocationByName(locationName);
 
         // Create travel action using travelManager
-        ActionImplementation travelAction = travelManager.TravelToLocation(locationName, locationSpotName, TravelMethods.Walking);
+        ActionImplementation travelAction = travelManager.StartLocationTravel(loc.Id, TravelMethods.Walking);
 
         // Create option with consistent structure
         UserActionOption travelOption = new UserActionOption(
             "Travel to " + locationName, false, travelAction,
-            worldState.CurrentLocation.Name, worldState.CurrentLocationSpot.Name,
+            worldState.CurrentLocation.Id, worldState.CurrentLocationSpot.Name,
             null, worldState.CurrentLocation.Difficulty, null);
 
         // Use unified action execution
@@ -400,7 +395,7 @@
         // If not a travel encounter, evolve the current location
         EncounterTypes basicActionType = result.ActionImplementation.EncounterType;
 
-        Location currentLocation = locationRepository.GetLocation(result.NarrativeContext.LocationName);
+        Location currentLocation = locationRepository.GetLocationById(result.NarrativeContext.LocationName);
         if (_useMemory)
         {
             await CreateMemoryRecord(result);
@@ -534,7 +529,7 @@
     public bool CanMoveToSpot(string locationSpotName)
     {
         Location location = locationRepository.GetCurrentLocation();
-        LocationSpot locationSpot = locationRepository.GetSpot(location.Name, locationSpotName);
+        LocationSpot locationSpot = locationRepository.GetSpot(location.Id, locationSpotName);
         bool canMove = !locationSpot.IsClosed;
 
         return canMove;

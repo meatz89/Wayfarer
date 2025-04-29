@@ -41,9 +41,9 @@ public class LocationSystem
         return GetLocation(startingLocation);
     }
 
-    public Location GetLocation(string name)
+    public Location GetLocation(string id)
     {
-        Location location = locationRepository.GetLocation(name);
+        Location location = locationRepository.GetLocationById(id);
         return location;
     }
 

@@ -1263,7 +1263,8 @@ body {
 
 .main-content {
     flex: 3;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 ::-webkit-scrollbar {

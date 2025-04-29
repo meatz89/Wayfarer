@@ -4,7 +4,6 @@
 		"name": "Assist Village Healer",
 		"description": "Help Miriam gather and prepare medicinal herbs",
 		"actionType": "Labor",
-		"timeWindows": [ "Morning", "Afternoon" ],
 		"costs": {
 			"energy": 15,
 			"concentration": 5,
@@ -48,7 +47,6 @@
 		"name": "Monastery Meditation",
 		"description": "Join Brother Thomas in quiet meditation to improve mental focus",
 		"actionType": "Study",
-		"timeWindows": [ "Morning", "Evening" ],
 		"costs": {
 			"energy": 5,
 			"concentration": 0,
@@ -72,6 +70,7 @@
 			]
 		},
 		"requirements": {
+			"timeWindows": [ "Morning", "Evening" ],
 			"resources": {
 				"energy": 5
 			}
@@ -89,7 +88,6 @@
 		"name": "Tavern Performance",
 		"description": "Perform a song or story for the tavern patrons",
 		"actionType": "Social",
-		"timeWindows": [ "Evening" ],
 		"costs": {
 			"energy": 10,
 			"concentration": 10,
@@ -132,7 +130,6 @@
 		"name": "Market Day Trading",
 		"description": "Buy low and sell high at the bustling village market",
 		"actionType": "Trade",
-		"timeWindows": [ "Morning", "Afternoon" ],
 		"costs": {
 			"energy": 8,
 			"concentration": 8,
@@ -177,7 +174,6 @@
 		"name": "Help Blacksmith's Apprentice",
 		"description": "Assist young Emil with his daily tasks at the forge",
 		"actionType": "Labor",
-		"timeWindows": [ "Morning", "Afternoon" ],
 		"costs": {
 			"energy": 15,
 			"concentration": 5,
@@ -219,7 +215,6 @@
 		"name": "Guard Training",
 		"description": "Join the village guards for their morning drills",
 		"actionType": "Training",
-		"timeWindows": [ "Morning" ],
 		"costs": {
 			"energy": 20,
 			"concentration": 5,
@@ -262,7 +257,6 @@
 		"name": "Forest Tracking",
 		"description": "Learn tracking skills from Rowan the hunter",
 		"actionType": "Training",
-		"timeWindows": [ "Morning", "Afternoon" ],
 		"costs": {
 			"energy": 15,
 			"concentration": 10,
@@ -479,9 +473,9 @@
 			"timeWindowCost": "FullDay"
 		},
 		"yields": {
-			"energy": 5, // Half energy restoration - poor quality rest
+			"energy": 5, 
 			"concentration": 5,
-			"confidence": -1, // Minor confidence loss from poor accommodations
+			"confidence": -1, 
 			"health": 0
 		},
 		"requirements": {}
@@ -496,10 +490,10 @@
 			"timeWindowCost": "FullDay"
 		},
 		"yields": {
-			"energy": 5, // Half energy restoration
+			"energy": 5,
 			"concentration": 5,
 			"confidence": 0,
-			"health": -1 // Minor health loss from rough conditions
+			"health": -1 
 		},
 		"requirements": {
 			"skills": [
@@ -520,8 +514,8 @@
 			"timeWindowCost": "FullDay"
 		},
 		"yields": {
-			"energy": 8, // Good but not perfect rest
-			"concentration": 10, // Excellent for concentration due to quiet
+			"energy": 8,
+			"concentration": 10,
 			"confidence": 0,
 			"health": 3
 		},

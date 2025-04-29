@@ -25,25 +25,6 @@ public static class ActionParser
             }
         }
 
-        // Parse time windows
-        if (root.TryGetProperty("timeWindows", out JsonElement timeWindowsArray) &&
-            timeWindowsArray.ValueKind == JsonValueKind.Array)
-        {
-            action.TimeWindows = new List<TimeWindow>();
-            foreach (JsonElement item in timeWindowsArray.EnumerateArray())
-            {
-                if (item.ValueKind == JsonValueKind.String)
-                {
-                    string value = item.GetString();
-                    if (!string.IsNullOrEmpty(value) &&
-                        Enum.TryParse(value, true, out TimeWindow window))
-                    {
-                        action.TimeWindows.Add(window);
-                    }
-                }
-            }
-        }
-
         // Parse costs
         if (root.TryGetProperty("costs", out JsonElement costsElement))
         {

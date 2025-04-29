@@ -1,5 +1,7 @@
 ﻿public class ActionProcessor
 {
+    private readonly LocationRepository locationRepository;
+
     public GameState gameState { get; }
     public PlayerState glayerState { get; }
     public WorldState worldState { get; }
@@ -13,12 +15,14 @@
         PlayerProgression playerProgression,
         EnvironmentalPropertyManager environmentalPropertyManager,
         ChoiceRepository choiceRepository,
+        LocationRepository locationRepository,
         MessageSystem messageSystem)
     {
         this.gameState = gameState;
         this.playerProgression = playerProgression;
         this.environmentalPropertyManager = environmentalPropertyManager;
         this.choiceRepository = choiceRepository;
+        this.locationRepository = locationRepository;
         this.messageSystem = messageSystem;
         glayerState = gameState.PlayerState;
         worldState = gameState.WorldState;
@@ -27,7 +31,12 @@
     public void UpdateState()
     {
         Location currentLocation = worldState.CurrentLocation;
-        environmentalPropertyManager.UpdateLocationForTime(currentLocation, worldState.TimeWindow);
+        List<Location> allLocs = locationRepository.GetAllLocations();
+
+        foreach (Location loc in allLocs)
+        {
+            environmentalPropertyManager.UpdateLocationForTime(loc, worldState.TimeWindow);
+        }
     }
 
     public bool CanExecute(ActionImplementation action)

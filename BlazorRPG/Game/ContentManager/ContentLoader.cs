@@ -88,7 +88,6 @@
         return actions;
     }
 
-
     public GameState LoadGame()
     {
         try
@@ -114,18 +113,13 @@
                     File.ReadAllText(Path.Combine(savePath, "gameState.json")),
                     locations, spots, actions);
             }
+            else if(HasTemplateFiles())
+            {
+                return LoadGameFromTemplates();
+            }
             else
             {
-                // Try loading template, or create new game with initial content
-                if (HasTemplateFiles())
-                {
-                    CopyTemplateToSave();
-                    return LoadGame(); // Recursive call now that files exist
-                }
-                else
-                {
-                    return CreateNewGameState();
-                }
+                return CreateNewGameState();
             }
 
             return gameState;
@@ -137,10 +131,37 @@
         }
     }
 
+    private GameState LoadGameFromTemplates()
+    {
+        string templatePath = Path.Combine(_contentDirectory, "Templates");
+
+        // Load content from save files
+        List<Location> locations = GameStateSerializer.DeserializeLocations(
+            File.ReadAllText(Path.Combine(templatePath, "locations.json")));
+
+        List<LocationSpot> spots = GameStateSerializer.DeserializeLocationSpots(
+            File.ReadAllText(Path.Combine(templatePath, "locationSpots.json")));
+
+        List<ActionDefinition> actions = GameStateSerializer.DeserializeActions(
+            File.ReadAllText(Path.Combine(templatePath, "actions.json")));
+
+        // Load game state using the loaded content
+        var gameState = GameStateSerializer.DeserializeGameState(
+            File.ReadAllText(Path.Combine(templatePath, "gameState.json")),
+            locations, spots, actions);
+
+        return gameState;
+    }
+
     public void SaveGame(GameState gameState)
     {
         try
         {
+            if (!HasSaveFiles(_saveFolder) && HasTemplateFiles())
+            {
+                CopyTemplateToSave();
+            }
+
             string savePath = Path.Combine(_contentDirectory, _saveFolder);
 
             // Serialize and save all content
