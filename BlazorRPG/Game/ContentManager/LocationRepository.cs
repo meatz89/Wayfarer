@@ -32,12 +32,12 @@
         return _worldState.locations;
     }
 
-    public List<LocationSpot> GetSpotsForLocation(string location)
+    public List<LocationSpot> GetSpotsForLocation(string locationId)
     {
         return _worldState.locationSpots
             .Where(spot =>
             {
-                return spot.LocationId.Equals(location, StringComparison.OrdinalIgnoreCase);
+                return spot.LocationId.Equals(locationId, StringComparison.OrdinalIgnoreCase);
             })
             .ToList();
     }

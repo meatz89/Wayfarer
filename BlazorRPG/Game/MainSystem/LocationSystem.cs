@@ -53,9 +53,9 @@ public class LocationSystem
         return locations;
     }
 
-    public List<LocationSpot> GetLocationSpots(string locationName)
+    public List<LocationSpot> GetLocationSpots(string locationId)
     {
-        List<LocationSpot> locationSpots = locationRepository.GetSpotsForLocation(locationName);
+        List<LocationSpot> locationSpots = locationRepository.GetSpotsForLocation(locationId);
         return locationSpots;
     }
 
