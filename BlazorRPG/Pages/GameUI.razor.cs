@@ -151,7 +151,6 @@ public partial class GameUI : ComponentBase
 
     [Inject] private ContentValidator ContentValidator { get; set; }
 
-
     // Navigation State
     private string selectedLocation;
 
@@ -334,7 +333,7 @@ public partial class GameUI : ComponentBase
 
         UserActionOption waitOption = new UserActionOption(
             "Wait for one hour", false, waitAction,
-            GameState.WorldState.CurrentLocation?.Name ?? "Global",
+            GameState.WorldState.CurrentLocation?.Id ?? "Global",
             GameState.WorldState.CurrentLocationSpot?.Name ?? "Global",
             null, 0, null);
 

@@ -17,7 +17,20 @@
         return _worldState.CurrentLocationSpot;
     }
 
-    public Location GetLocation(string locationName)
+    public Location GetLocationById(string locationId)
+    {
+        Location location = _worldState.locations.FirstOrDefault(l =>
+        {
+            return l.Id.Equals(locationId, StringComparison.OrdinalIgnoreCase);
+        });
+
+        if (location != null)
+            return location;
+
+        throw new KeyNotFoundException($"Location '{locationId}' not found.");
+    }
+
+    public Location GetLocationByName(string locationName)
     {
         Location location = _worldState.locations.FirstOrDefault(l =>
         {
@@ -45,16 +58,13 @@
             .ToList();
     }
 
-    public LocationSpot GetSpot(string locationName, string spotName)
+    public LocationSpot GetSpot(string locationId, string spotName)
     {
-        LocationSpot spot = _worldState.locationSpots.FirstOrDefault(s =>
-        {
-            return s.LocationId.Equals(locationName, StringComparison.OrdinalIgnoreCase) &&
-                        s.Name.Equals(spotName, StringComparison.OrdinalIgnoreCase);
-        });
+        List<LocationSpot> spots = _worldState.locationSpots.Where(s => s.LocationId == locationId).ToList();
+        LocationSpot? spot = spots.FirstOrDefault(s => s.Name.Equals(spotName, StringComparison.OrdinalIgnoreCase));
 
         if (spot == null)
-            throw new KeyNotFoundException($"Spot '{spotName}' not found in '{locationName}'.");
+            throw new KeyNotFoundException($"Spot '{spotName}' not found in '{locationId}'.");
 
         return spot;
     }

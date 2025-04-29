@@ -64,7 +64,7 @@
         foreach (Location loc in evolution.NewLocations)
         {
             string locationName = loc.Name;
-            Location existingLoc = locationRepository.GetLocation(locationName);
+            Location existingLoc = locationRepository.GetLocationById(locationName);
             if (existingLoc == null)
             {
                 locationRepository.AddLocation(loc);
@@ -122,7 +122,7 @@
     {
         foreach (NewAction newAction in evolution.NewActions)
         {
-            Location targetLocation = locationRepository.GetLocation(newAction.LocationName);
+            Location targetLocation = locationRepository.GetLocationById(newAction.LocationName);
             List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(targetLocation.Name);
             if (targetLocation != null && locationSpots != null)
             {

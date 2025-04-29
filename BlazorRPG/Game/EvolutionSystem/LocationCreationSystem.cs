@@ -57,7 +57,7 @@
     public async Task<Location> IntegrateNewLocation(LocationDetails details)
     {
         string locationName = details.LocationUpdate.NewLocationName;
-        Location location = locationRepository.GetLocation(locationName);
+        Location location = locationRepository.GetLocationById(locationName);
         if (location == null)
         {
             location = new Location(locationName);
@@ -108,7 +108,7 @@
     {
         foreach (NewAction newAction in details.NewActions)
         {
-            Location targetLocation = locationRepository.GetLocation(newAction.LocationName);
+            Location targetLocation = locationRepository.GetLocationById(newAction.LocationName);
             List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(targetLocation.Name);
             if (targetLocation != null && locationSpots != null)
             {

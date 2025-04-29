@@ -23,27 +23,40 @@
         this.ActionFactory = actionFactory;
     }
 
-    public ActionImplementation TravelToLocation(
-        string travelLocation,
-        string travelLocationSpot,
+    public ActionImplementation StartLocationTravel(
+        string travelLocationId,
         TravelMethods travelMethod = TravelMethods.Walking)
     {
         Location currentLocation = worldState.CurrentLocation;
 
+        List<LocationSpot> locationSpots = LocationRepository
+            .GetSpotsForLocation(travelLocationId);
+
+        LocationSpot? locationSpot = locationSpots
+            .FirstOrDefault(ls =>
+            {
+                return !ls.IsClosed;
+            });
+
+        if (locationSpot == null)
+        {
+            locationSpot = locationSpots.FirstOrDefault();
+        }
+
         if (currentLocation == null)
         {
-            EndLocationTravel(travelLocation);
+            EndLocationTravel(travelLocationId, locationSpot.Name);
             return null;
         }
         else
         {
-            int travelMinutes = CalculateTravelTime(currentLocation, travelLocation, travelMethod);
+            int travelMinutes = CalculateTravelTime(currentLocation, travelLocationId, travelMethod);
             int travelHours = (int)Math.Ceiling(travelMinutes / 60.0);
 
             ConsumeTravelResources(travelMinutes, travelMethod);
 
             ActionDefinition travelTemplate =
-                GetTravelTemplate(travelLocation, travelLocationSpot);
+                GetTravelTemplate(travelLocationId, locationSpot.Name);
 
             ActionImplementation travelAction =
                 ActionFactory.CreateActionFromTemplate(travelTemplate, currentLocation.Name, string.Empty);
@@ -52,14 +65,17 @@
         }
     }
 
-    public void EndLocationTravel(string travelLocation)
+    public void EndLocationTravel(string travelLocation, string locationSpotName)
     {
         Location targetLocation = LocationSystem.GetLocation(travelLocation);
 
         List<LocationSpot> spots = LocationSystem.GetLocationSpots(targetLocation.Id);
-        LocationSpot firstSpot = spots.FirstOrDefault();
+        LocationSpot? locSpot = spots.FirstOrDefault(ls =>
+        {
+            return ls.Name == locationSpotName;
+        });
 
-        worldState.SetCurrentLocation(targetLocation, firstSpot!);
+        worldState.SetCurrentLocation(targetLocation, locSpot);
 
         string? currentLocation = worldState.CurrentLocation?.Id;
 
@@ -149,7 +165,7 @@
             return x.Name == endLocationId;
         }))
         {
-            Location location = LocationRepository.GetLocation(endLocationId);
+            Location location = LocationRepository.GetLocationById(endLocationId);
             baseTravelMinutes = location.TravelTimeMinutes;
         }
 

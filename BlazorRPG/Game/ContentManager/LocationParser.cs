@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Text.Json;
 
 public static class LocationParser
 {
@@ -34,6 +35,30 @@ public static class LocationParser
             CurrentSpotXP = GetIntProperty(root, "currentXP", 0),
             XPToNextLevel = GetIntProperty(root, "xpToNextLevel", 100)
         };
+
+        // Parse time windows
+        if (root.TryGetProperty("timeWindows", out JsonElement timeWindowsArray) &&
+            timeWindowsArray.ValueKind == JsonValueKind.Array)
+        {
+            spot.TimeWindows = new();
+            foreach (JsonElement item in timeWindowsArray.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String)
+                {
+                    string value = item.GetString();
+                    if (!string.IsNullOrEmpty(value) &&
+                        Enum.TryParse(value, true, out TimeWindow window))
+                    {
+                        spot.TimeWindows.Add(window);
+                    }
+                }
+            }
+            if (spot.TimeWindows.Count == 0)
+            {
+                // fallback to always open
+                spot.TimeWindows = new() { TimeWindow.Morning, TimeWindow.Afternoon, TimeWindow.Evening, TimeWindow.Night };
+            }
+        }
 
         // Parse levels
         spot.LevelData = new List<SpotLevel>();

@@ -3,7 +3,7 @@
     string actionName,
     bool IsDisabled,
     ActionImplementation ActionImplementation,
-    string Location,
+    string LocationId,
     string LocationSpot,
     string Character,
     int LocationDifficulty,

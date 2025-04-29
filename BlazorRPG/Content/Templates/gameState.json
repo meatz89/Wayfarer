@@ -1,6 +1,6 @@
 {
-	"CurrentLocationId": "village",
-	"CurrentLocationSpotId": "village_square",
+	"CurrentLocationId": "village_square",
+	"CurrentLocationSpotId": "Central Square",
 	"CurrentDay": 1,
 	"CurrentTimeMinutes": 480,
 	"Player": {
