@@ -114,7 +114,7 @@ public static class GameStateSerializer
                 {
                     currentSpot = spots.FirstOrDefault(s =>
                     {
-                        return s.LocationName == serialized.CurrentLocationId &&
+                        return s.LocationId == serialized.CurrentLocationId &&
                                                 s.Name == serialized.CurrentLocationSpotId;
                     });
                 }
@@ -123,7 +123,7 @@ public static class GameStateSerializer
                 {
                     currentSpot = spots.FirstOrDefault(s =>
                     {
-                        return s.LocationName == serialized.CurrentLocationId;
+                        return s.LocationId == serialized.CurrentLocationId;
                     });
                 }
 
@@ -197,7 +197,7 @@ public static class GameStateSerializer
             return new
             {
                 name = spot.Name,
-                locationId = spot.LocationName,
+                locationId = spot.LocationId,
                 description = spot.Description,
                 currentLevel = spot.CurrentLevel,
                 currentXP = spot.CurrentSpotXP,

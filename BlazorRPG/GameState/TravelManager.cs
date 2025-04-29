@@ -23,7 +23,10 @@
         this.ActionFactory = actionFactory;
     }
 
-    public ActionImplementation TravelToLocation(string travelLocation, TravelMethods travelMethod = TravelMethods.Walking)
+    public ActionImplementation TravelToLocation(
+        string travelLocation,
+        string travelLocationSpot,
+        TravelMethods travelMethod = TravelMethods.Walking)
     {
         Location currentLocation = worldState.CurrentLocation;
 
@@ -39,8 +42,11 @@
 
             ConsumeTravelResources(travelMinutes, travelMethod);
 
-            ActionDefinition travelTemplate = GetTravelTemplate(travelLocation, string.Empty);
-            ActionImplementation travelAction = ActionFactory.CreateActionFromTemplate(travelTemplate, currentLocation.Name, string.Empty);
+            ActionDefinition travelTemplate = 
+                GetTravelTemplate(travelLocation, travelLocationSpot);
+
+            ActionImplementation travelAction = 
+                ActionFactory.CreateActionFromTemplate(travelTemplate, currentLocation.Name, string.Empty);
 
             return travelAction;
         }
@@ -50,17 +56,17 @@
     {
         Location targetLocation = LocationSystem.GetLocation(travelLocation);
 
-        List<LocationSpot> spots = LocationSystem.GetLocationSpots(targetLocation.Name);
+        List<LocationSpot> spots = LocationSystem.GetLocationSpots(targetLocation.Id);
         LocationSpot firstSpot = spots.FirstOrDefault();
 
         worldState.SetCurrentLocation(targetLocation, firstSpot!);
 
-        string? currentLocation = worldState.CurrentLocation?.Name;
+        string? currentLocation = worldState.CurrentLocation?.Id;
 
-        bool isFirstVisit = worldState.IsFirstVisit(targetLocation.Name);
+        bool isFirstVisit = worldState.IsFirstVisit(targetLocation.Id);
         if (isFirstVisit)
         {
-            worldState.RecordLocationVisit(targetLocation.Name);
+            worldState.RecordLocationVisit(targetLocation.Id);
             if (targetLocation != null)
             {
                 ApplyDiscoveryBonus(targetLocation);

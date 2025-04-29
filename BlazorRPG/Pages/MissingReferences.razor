@@ -21,7 +21,7 @@
                 {
                     <div class="missing-item">
                         <span class="missing-id">@missing.ActionId</span>
-                        <span class="reference-detail">Referenced by: @missing.ReferencingSpot.LocationName / @missing.ReferencingSpot.Name</span>
+                        <span class="reference-detail">Referenced by: @missing.ReferencingSpot.LocationId / @missing.ReferencingSpot.Name</span>
                     </div>
                 }
             </div>
@@ -119,7 +119,7 @@
             await ActionGenerator.GenerateAction(
                 missingAction.ActionId,
                 missingAction.ReferencingSpot.Name,
-                missingAction.ReferencingSpot.LocationName);
+                missingAction.ReferencingSpot.LocationId);
 
             generatedCount++;
             StateHasChanged();

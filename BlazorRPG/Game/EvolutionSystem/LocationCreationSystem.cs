@@ -72,7 +72,7 @@
             LocationSpot spot = new LocationSpot(spotDetail.Name, locationName)
             {
                 Name = spotDetail.Name,
-                LocationName = locationName,
+                LocationId = locationName,
                 Description = spotDetail.Description,
                 PlayerKnowledge = true
             };

@@ -3,7 +3,7 @@
 public class LocationSpot
 {
     public string Name { get; init; }
-    public string LocationName { get; init; }
+    public string LocationId { get; init; }
     public string Description { get; set; }
     public string InteractionDescription { get; set; }
 
@@ -32,7 +32,7 @@ public class LocationSpot
     public LocationSpot(string name, string locationName)
     {
         Name = name;
-        LocationName = locationName;
+        LocationId = locationName;
     }
 
 

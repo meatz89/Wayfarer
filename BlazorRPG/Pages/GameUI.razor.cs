@@ -102,8 +102,6 @@ public partial class GameUI : ComponentBase
 
     public EncounterResult EncounterResult { get; private set; }
 
-
-
     public CurrentViews CurrentScreen = CurrentViews.CharacterScreen;
     public Location CurrentLocation
     {
@@ -303,7 +301,7 @@ public partial class GameUI : ComponentBase
 
         await GameManager.InitiateTravelToLocation(travelLocationName);
 
-        CurrentScreen = CurrentViews.EncounterScreen;
+        CurrentScreen = CurrentViews.LocationScreen;
         ChangeState();
     }
 
@@ -412,21 +410,6 @@ public partial class GameUI : ComponentBase
         }
 
         return list;
-    }
-
-    private List<PropertyDisplay> GetLocationProperties(Location location)
-    {
-        List<PropertyDisplay> properties = new List<PropertyDisplay>();
-        WorldState world = GameState.WorldState;
-
-        // Add time property
-        properties.Add(new PropertyDisplay(
-            GetIconForTimeWindow(world.TimeWindow),
-            FormatEnumString(world.TimeWindow.ToString()),
-            "", "", ""
-        ));
-
-        return properties;
     }
 
     private string GetIconForTimeWindow(TimeWindow time)

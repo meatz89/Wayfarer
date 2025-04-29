@@ -16,10 +16,10 @@
         {
             if (!_worldState.locations.Any(l =>
             {
-                return l.Id == spot.LocationName;
+                return l.Id == spot.LocationId;
             }))
             {
-                result.AddMissingLocation(spot.LocationName, spot);
+                result.AddMissingLocation(spot.LocationId, spot);
             }
         }
 
