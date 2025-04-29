@@ -1,0 +1,81 @@
+[
+	{
+		"id": "wait_half_window",
+		"name": "Wait a While",
+		"description": "Pass the time until the next half of the current time window",
+		"actionType": "Wait",
+		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"costs": {
+			"energy": 0,
+			"timeWindowCost": "Half"
+		},
+		"yields": {
+			"energy": 2, // Small energy recovery from resting
+		},
+		"requirements": {}
+	},
+
+	{
+		"id": "wait_full_window",
+		"name": "Wait for Next Time Period",
+		"description": "Pass the time until the next time window",
+		"actionType": "Wait",
+		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"costs": {
+			"energy": 0,
+			"timeWindowCost": "Full"
+		},
+		"yields": {
+			"energy": 5, // Larger energy recovery from extended resting
+		},
+		"requirements": {}
+	},
+	{
+		"id": "eat_bread",
+		"name": "Eat Bread",
+		"description": "Consume a loaf of bread to restore some energy",
+		"actionType": "Consume",
+		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"costs": {
+			"timeWindowCost": "Half",
+			"items": [
+				{
+					"type": "Bread",
+					"amount": 1
+				}
+			]
+		},
+		"yields": {
+			"energy": 3 // Partial energy restoration
+		},
+		"requirements": {
+			"items": [
+				{
+					"type": "Bread",
+					"minimumAmount": 1
+				}
+			]
+		}
+	},
+	{
+		"id": "eat_stew",
+		"name": "Eat Hearty Stew",
+		"description": "Enjoy a filling bowl of stew at the tavern",
+		"actionType": "Consume",
+		"timeWindows": [ "Afternoon", "Evening" ],
+		"costs": {
+			"timeWindowCost": "Half",
+			"coin": 2
+		},
+		"yields": {
+			"energy": 5, // Significant energy restoration
+			"health": 2 // Small health boost
+		},
+		"requirements": {
+			"resources": {
+				"coin": 2
+			},
+			"locationId": "crown_and_flagon" // Only available at the tavern
+		}
+	}
+]

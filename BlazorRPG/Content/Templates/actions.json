@@ -390,7 +390,6 @@
 			"encounterType": "Social"
 		}
 	},
-
 	{
 		"id": "tavern_information_gathering",
 		"name": "Tavern Information Gathering",
@@ -433,6 +432,106 @@
 			"goal": "Gather valuable information without drawing attention",
 			"complication": "A suspicious guard is keeping watch over the tavern tonight",
 			"encounterType": "Stealth"
+		}
+	},
+	
+	{
+		"id": "rest_in_inn_room",
+		"name": "Sleep Until Morning",
+		"description": "Get a full night's rest in your rented room",
+		"actionType": "Rest",
+		"timeWindows": [ "Evening", "Night" ],
+		"costs": {
+			"coin": 0,
+			"timeWindowCost": "Full"
+		},
+		"yields": {
+			"energy": 50, 
+			"concentration": 10,
+			"confidence": 10,
+			"health": 10
+		},
+		"requirements": {}
+	},
+
+	{
+		"id": "nap_in_inn_room",
+		"name": "Take a Nap",
+		"description": "Rest for a few hours in your room",
+		"actionType": "Rest",
+		"timeWindows": [ "Morning", "Afternoon", "Evening" ],
+		"costs": {
+			"timeWindowCost": "Half"
+		},
+		"yields": {
+			"energy": 25,
+			"health": 5
+		},
+		"requirements": {}
+	},
+	{
+		"id": "sleep_in_stable",
+		"name": "Sleep in Stable",
+		"description": "Find a spot in the hay to sleep for the night",
+		"actionType": "Rest",
+		"timeWindows": [ "Night" ],
+		"costs": {
+			"timeWindowCost": "FullDay"
+		},
+		"yields": {
+			"energy": 5, // Half energy restoration - poor quality rest
+			"concentration": 5,
+			"confidence": -1, // Minor confidence loss from poor accommodations
+			"health": 0
+		},
+		"requirements": {}
+	},
+	{
+		"id": "sleep_in_forest",
+		"name": "Camp in Forest",
+		"description": "Set up a basic camp to sleep through the night",
+		"actionType": "Rest",
+		"timeWindows": [ "Evening", "Night" ],
+		"costs": {
+			"timeWindowCost": "FullDay"
+		},
+		"yields": {
+			"energy": 5, // Half energy restoration
+			"concentration": 5,
+			"confidence": 0,
+			"health": -1 // Minor health loss from rough conditions
+		},
+		"requirements": {
+			"skills": [
+				{
+					"skillType": "Wilderness",
+					"minimumLevel": 1
+				}
+			]
+		}
+	},
+	{
+		"id": "rest_at_monastery",
+		"name": "Rest in Monastery Cell",
+		"description": "The monks offer simple but comfortable sleeping quarters to respectful visitors",
+		"actionType": "Rest",
+		"timeWindows": [ "Evening", "Night" ],
+		"costs": {
+			"timeWindowCost": "FullDay"
+		},
+		"yields": {
+			"energy": 8, // Good but not perfect rest
+			"concentration": 10, // Excellent for concentration due to quiet
+			"confidence": 0,
+			"health": 3
+		},
+		"requirements": {
+			"relationships": [
+				{
+					"characterName": "Brother Thomas",
+					"minimumValue": 10
+				}
+			]
 		}
 	}
 ]
