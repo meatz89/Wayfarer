@@ -2,7 +2,7 @@
 <div class="locations-grid">
     @foreach (LocationSpot spot in GetKnownSpots())
     {
-        <div class="@(!spot.IsClosed ? "disabled" : "disabled")">
+        <div class="@(!spot.IsClosed ? "enabled" : "disabled")">
 
             <div class="location-card @(spot.Name == CurrentSpot.Name ? "current" : "reachable")">
                 <div class="location-spot-properties">

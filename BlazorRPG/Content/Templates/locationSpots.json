@@ -4,7 +4,7 @@
 		"name": "Market Stalls",
 		"locationId": "village_square",
 		"description": "Rows of wooden stalls where merchants sell their wares.",
-		"timeWindows": [ "Morning", "Afternoon" ],
+		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
 		"spotType": "Feature",
 		"currentLevel": 1,
 		"currentXP": 0,
