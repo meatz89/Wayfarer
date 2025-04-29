@@ -262,8 +262,6 @@ public partial class GameUI : ComponentBase
         ChangeState();
     }
 
-
-
     private async Task SaveGame()
     {
         await GameManager.SaveGame();
@@ -364,15 +362,6 @@ public partial class GameUI : ComponentBase
             showActionMessage = true;
             actionMessageType = "success";  // Default to success
 
-            // Set message type based on content analysis
-            if (actionMessages.Any(m =>
-            {
-                return m.Contains("not enough") || m.Contains("cannot");
-            }))
-            {
-                actionMessageType = "warning";
-            }
-
             // Auto-dismiss after 5 seconds
             Task.Delay(5000).ContinueWith(_ =>
             {
@@ -422,17 +411,6 @@ public partial class GameUI : ComponentBase
             TimeWindow.Evening => "🌆",
             _ => "❓"
         };
-    }
-
-    private string FormatEnumString(string value)
-    {
-        return string.Concat(value
-            .Select((x, i) =>
-            {
-                return i > 0 && char.IsUpper(x) ? " " + x : x.ToString();
-            }))
-            .Replace("Type", "")
-            .Replace("Types", "");
     }
 
     private string GetArchetypeIcon(ArchetypeTypes archetype)
