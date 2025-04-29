@@ -190,7 +190,7 @@
 		"name": "Rowan the Hunter",
 		"locationId": "hunters_camp",
 		"description": "A quiet, sharp-eyed woodsman who supplies the village with game and forest knowledge.",
-		"timeWindows": [ "Morning", "Afternoon" ],
+		"timeWindows": [ "Morning", "Afternoon", "Evening" ],
 		"spotType": "Character",
 		"currentLevel": 1,
 		"currentXP": 0,
@@ -209,7 +209,7 @@
 					"name": "Track Mysterious Beast",
 					"description": "Rowan has found unusual tracks and wants your help identifying the creature."
 				},
-				"actionIds": [  ]
+				"actionIds": []
 			}
 		]
 	},
@@ -218,7 +218,7 @@
 		"name": "Forest Clearing",
 		"locationId": "forest_trail",
 		"description": "A peaceful opening among the trees where sunlight warms the ground.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening" ],
+		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
 		"spotType": "Feature",
 		"currentLevel": 1,
 		"currentXP": 0,
