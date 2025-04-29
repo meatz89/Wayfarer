@@ -43,7 +43,7 @@
     public List<CardDefinition> KnownCards { get; private set; } = new List<CardDefinition>();
     public PlayerSkills PlayerSkills { get; private set; } = new();
 
-    private int BaseMaxEnergy { get; set; } = 10;
+    private int BaseMaxEnergy { get; set; } = 20;
     private int BaseMaxHealth { get; set; } = 20;
     private int BaseMaxConcentration { get; set; } = 20;
     private int BaseMaxConfidence { get; set; } = 20;

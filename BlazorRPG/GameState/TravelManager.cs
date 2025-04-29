@@ -42,10 +42,10 @@
 
             ConsumeTravelResources(travelMinutes, travelMethod);
 
-            ActionDefinition travelTemplate = 
+            ActionDefinition travelTemplate =
                 GetTravelTemplate(travelLocation, travelLocationSpot);
 
-            ActionImplementation travelAction = 
+            ActionImplementation travelAction =
                 ActionFactory.CreateActionFromTemplate(travelTemplate, currentLocation.Name, string.Empty);
 
             return travelAction;

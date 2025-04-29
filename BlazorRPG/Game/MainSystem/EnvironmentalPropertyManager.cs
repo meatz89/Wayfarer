@@ -1,4 +1,5 @@
-﻿public class EnvironmentalPropertyManager
+﻿
+public class EnvironmentalPropertyManager
 {
     private readonly LocationSystem locationSystem;
 
@@ -11,6 +12,8 @@
     public void UpdateLocationForTime(Location location, TimeWindow timeWindow)
     {
         List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(location.Name);
+        
+        SetClosed(locationSpots, timeWindow);
 
         switch (timeWindow)
         {
@@ -36,6 +39,14 @@
                 break;
 
                 // Other location types with specific behaviors
+        }
+    }
+
+    private void SetClosed(List<LocationSpot> locationSpots, TimeWindow timeWindow)
+    {
+        foreach (LocationSpot spot in locationSpots)
+        {
+            spot.IsClosed = !spot.TimeWindowsOpen.Contains(timeWindow);
         }
     }
 
