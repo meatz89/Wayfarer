@@ -32,7 +32,7 @@ For each choice, create:
 1. NAME based on encounter type:
    - Physical: Action thoughts without quotation marks (I'll create a distraction with that barrel...)
    - Intellectual: Insight thoughts without quotation marks (That merchant's ledger has a hidden meaning...)
-   - Social: Direct speech in quotation marks ("Perhaps we could come to an arrangement...")
+   - Rapport: Direct speech in quotation marks ("Perhaps we could come to an arrangement...")
 
 2. DESCRIPTION (1-2 sentences):
    - Must CREATE a NEW SITUATION or CHANGE the existing one

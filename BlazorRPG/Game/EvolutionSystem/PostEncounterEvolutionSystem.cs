@@ -222,7 +222,7 @@
         }
 
         // Default fallback
-        return EncounterTypes.Exploration;
+        return EncounterTypes.Persuasion;
     }
 
     public PostEncounterEvolutionInput PreparePostEncounterEvolutionInput(

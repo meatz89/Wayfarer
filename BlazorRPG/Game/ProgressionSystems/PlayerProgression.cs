@@ -27,7 +27,7 @@ public class PlayerProgression
 
     public void AddSkillExp(SkillTypes skill, int xp)
     {
-        SkillProgress prog = playerState.PlayerSkills.Skills[skill];
+        SkillProgress prog = playerState.Skills.Skills[skill];
         prog.XP += xp;
         while (prog.XP >= prog.XPToNextLevel)
         {

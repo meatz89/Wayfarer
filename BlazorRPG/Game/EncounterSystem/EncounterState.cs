@@ -48,13 +48,13 @@
 
         foreach (ApproachTags approach in Enum.GetValues<ApproachTags>())
         {
-            int bonus = CalculateStartingApproachValue(approach, playerState.PlayerSkills);
+            int bonus = CalculateStartingApproachValue(approach, playerState.Skills);
             EncounterTagSystem.ModifyApproachPosition(approach, bonus);
         }
 
         foreach (FocusTags focus in Enum.GetValues<FocusTags>())
         {
-            int bonus = CalculateStartingFocusValue(focus, playerState.PlayerSkills);
+            int bonus = CalculateStartingFocusValue(focus, playerState.Skills);
             EncounterTagSystem.ModifyFocusPosition(focus, bonus);
         }
 
@@ -227,7 +227,5 @@
             return t.NarrativeName;
         }).ToList();
     }
-
-
 
 }

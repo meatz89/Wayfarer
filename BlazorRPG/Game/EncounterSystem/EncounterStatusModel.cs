@@ -32,7 +32,7 @@ public class EncounterStatusModel
     {
         get
         {
-            return EncounterInfo?.EncounterType ?? EncounterTypes.Exploration;
+            return EncounterInfo?.EncounterType ?? EncounterTypes.Persuasion;
         }
     }
 

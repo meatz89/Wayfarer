@@ -68,7 +68,7 @@ public class TimeManager
 
     public string PreviewTimeAdvancement(string timeWindow)
     {
-        switch(worldState.TimeWindow)
+        switch (worldState.TimeWindow)
         {
             case TimeWindow.Morning:
                 return timeWindow == "Half" ? "Morning" : "Afternoon";

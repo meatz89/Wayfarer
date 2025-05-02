@@ -113,7 +113,7 @@
                     File.ReadAllText(Path.Combine(savePath, "gameState.json")),
                     locations, spots, actions);
             }
-            else if(HasTemplateFiles())
+            else if (HasTemplateFiles())
             {
                 return LoadGameFromTemplates();
             }
@@ -146,7 +146,7 @@
             File.ReadAllText(Path.Combine(templatePath, "actions.json")));
 
         // Load game state using the loaded content
-        var gameState = GameStateSerializer.DeserializeGameState(
+        GameState gameState = GameStateSerializer.DeserializeGameState(
             File.ReadAllText(Path.Combine(templatePath, "gameState.json")),
             locations, spots, actions);
 

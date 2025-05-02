@@ -53,7 +53,7 @@ Never mention mechanical terms like "momentum," "pressure," "approach tags," or 
 Create the opening narrative for a new Wayfarer encounter with the following parameters:
 
 LOCATION: [Location Name] - [Brief description]
-ENCOUNTER TYPE: [Social/Intellectual/Physical]
+ENCOUNTER TYPE: [Rapport/Intellectual/Physical]
 
 PLAYER CHARACTER:
 - Archetype: [Scholar/Warrior/Bard/Ranger/Thief]
@@ -145,7 +145,7 @@ MECHANICAL CHANGES (represent narratively, don't mention directly):
 
 STRATEGIC EFFECTS:
 - [List any strategic tag effects triggered]
-- Example: "Social Currency" (Rapport increases momentum)
+- Example: "Rapport Currency" (Rapport increases momentum)
 
 ENCOUNTER CONTEXT:
 - Turn: [Current]/[Maximum]

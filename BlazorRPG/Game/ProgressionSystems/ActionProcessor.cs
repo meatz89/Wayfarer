@@ -106,7 +106,7 @@ public class ActionProcessor
         {
             hours = 6;
         }
-        
+
         gameState.TimeManager.AdvanceTime(hours);
         UpdateState();
     }
@@ -135,7 +135,7 @@ public class ActionProcessor
     {
         foreach (CardDefinition card in choiceRepository.GetAll())
         {
-            if (IsCardUnlocked(card, glayerState.PlayerSkills))
+            if (IsCardUnlocked(card, glayerState.Skills))
             {
                 glayerState.UnlockCard(card);
             }
@@ -159,12 +159,12 @@ public class ActionProcessor
         // Map encounter type or action category to skill
         return action.EncounterType switch
         {
-            EncounterTypes.Combat => SkillTypes.Warfare,
-            EncounterTypes.Social => SkillTypes.Diplomacy,
-            EncounterTypes.Stealth => SkillTypes.Subterfuge,
-            EncounterTypes.Exploration => SkillTypes.Wilderness,
-            EncounterTypes.Lore => SkillTypes.Scholarship,
-            _ => SkillTypes.Scholarship,
+            EncounterTypes.Force => SkillTypes.Endurance,
+            EncounterTypes.Rapport => SkillTypes.Diplomacy,
+            EncounterTypes.Precision => SkillTypes.Finesse,
+            EncounterTypes.Persuasion => SkillTypes.Charm,
+            EncounterTypes.Observation => SkillTypes.Insight,
+            _ => SkillTypes.Insight,
         };
     }
 

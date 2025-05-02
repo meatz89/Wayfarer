@@ -84,7 +84,7 @@ public class SkillRequirement : IRequirement
 
     public bool IsMet(GameState gameState)
     {
-        int currentLevel = gameState.PlayerState.PlayerSkills.GetLevelForSkill(SkillType);
+        int currentLevel = gameState.PlayerState.Skills.GetLevelForSkill(SkillType);
         return currentLevel >= RequiredLevel;
     }
 

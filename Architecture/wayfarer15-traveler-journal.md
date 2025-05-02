@@ -23,7 +23,7 @@ The true innovation is reframing progression around transformation rather than a
 **Traveler's Insights** (Skill breakthroughs)
 - Gained at skill levels 2, 3, and 4
 - Provide unique abilities related to that skill
-- Example: "Wilderness 2: Forest Whispers" - Gather one additional herb from a basic gather action
+- Example: "Charm 2: Forest Whispers" - Gather one additional herb from a basic gather action
 
 This system creates sustainable progression because these bonuses remain regardless of location. The traveler grows stronger through experiences, not possessions or place.
 
@@ -73,8 +73,8 @@ Resources gain value through their purposes, not trading:
 - Required for level-up encounters (creating strategic choices)
 - Examples for Wild Herbs:
   - **Basic Purpose**: Consume directly for +1 Health (no skill required)
-  - **Skilled Purpose**: Create tonic for +3 Health (requires Scholarship 2)
-  - **Advanced Purpose**: Make remedy for Health AND Concentration (requires Scholarship 3)
+  - **Skilled Purpose**: Create tonic for +3 Health (requires Observation 2)
+  - **Advanced Purpose**: Make remedy for Health AND Concentration (requires Observation 3)
   - **Special Purpose**: Gift to Healer for relationship advancement
 
 ### Limited Inventory
@@ -97,7 +97,7 @@ The three vital resources create strategic tension:
 - If 0, cannot perform mental actions
 - Below 5: -2 skill XP gains, -1 to mental yields
 
-### Confidence (Social capability)
+### Confidence (Rapport capability)
 - Required for social actions
 - If 0, cannot perform social actions
 - Below 5: -2 relationship gains, -1 to social yields
@@ -109,11 +109,11 @@ The brutal strategic insight: It's more efficient to let one resource fall to ex
 Skills represent the traveler's accumulated knowledge:
 
 ### Five Core Skills
-- **Warfare**: Combat and security techniques
-- **Wilderness**: Survival and natural knowledge
-- **Scholarship**: Intellectual and technical knowledge
-- **Diplomacy**: Social interaction and negotiation
-- **Subterfuge**: Stealth and hidden knowledge
+- **Endurance**: Force and security techniques
+- **Charm**: Survival and natural knowledge
+- **Observation**: Intellectual and technical knowledge
+- **Diplomacy**: Rapport interaction and negotiation
+- **Finesse**: Precision and hidden knowledge
 
 ### Skill Advancement
 - Actions provide skill XP based on relevance
@@ -143,10 +143,10 @@ Here's how this creates profound strategic depth:
 
 ### Morning Dilemma: Skill vs. Relationship
 The player has 10 Energy and must choose between:
-- Forest herb gathering (builds Wilderness skill, yields herbs)
+- Forest herb gathering (builds Charm skill, yields herbs)
 - Helping village healer (builds relationship, yields less herbs)
 
-The player chooses gathering, gaining herbs and Wilderness XP.
+The player chooses gathering, gaining herbs and Charm XP.
 
 ### Afternoon Dilemma: Purpose Decision
 With herbs collected, player must decide their purpose:
@@ -307,7 +307,7 @@ This system creates a framework for believable world expansion:
 
 1. **Connection Types**
    - Geographic: "The path continues north toward the foothills"
-   - Social: "My sister runs an inn in the next town"
+   - Rapport: "My sister runs an inn in the next town"
    - Historical: "These ruins match those described in the book you found"
    - Thematic: "If you enjoy herbs, the valley gardens are unmatched"
 

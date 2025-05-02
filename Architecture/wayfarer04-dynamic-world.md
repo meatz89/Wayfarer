@@ -88,7 +88,7 @@ The player manages several persistent resources:
 - Items: Equipment and quest items
 - Health: Physical wellbeing (resets at beginning of physical encounters)
 - Concentration: Mental focus (resets at beginning of intellectual encounters)
-- Confidence: Social standing (resets at beginning of social encounters)
+- Confidence: Rapport standing (resets at beginning of social encounters)
 
 ### Environmental Properties and Time
 
@@ -289,7 +289,7 @@ New players experience a tightly focused introduction:
 
 This creates an accessible entry point without overwhelming new players with options.
 
-### Middle Exploration
+### Middle Observation
 
 As players engage with the world, complexity grows organically:
 
@@ -486,7 +486,7 @@ Strategic tags are now based on properties that can be combined to create varied
   
 - **Isolated** - Completely private or secluded environments
   - *Effect Example*: Boosts extreme approaches (very high Dominance or Evasion)
-  - *Locations*: Wilderness, abandoned buildings, private chambers
+  - *Locations*: Charm, abandoned buildings, private chambers
 
 ### Atmosphere Properties
 - **Tense** - High-pressure, stressful environments
@@ -528,7 +528,7 @@ Strategic tags are defined by:
   - *Description*: The calm, undisturbed environment enhances analytical thinking
   - *Effect*: +1 momentum per 2 Analysis points
 
-- **"Social Scrutiny"** (Formal, Increases Pressure, scales with Rapport)
+- **"Rapport Scrutiny"** (Formal, Increases Pressure, scales with Rapport)
   - *Description*: The formal setting creates social pressure when trying to be charming
   - *Effect*: +1 pressure per 2 Rapport points
 
@@ -591,7 +591,7 @@ Locations combine multiple properties to create unique strategic environments:
 - Strategic Tags:
   - "Merchant's Eye" (Commercial, Increases Momentum, scales with Analysis)
   - "Public Spectacle" (Crowded, Increases Momentum, scales with Dominance)
-  - "Social Pressure" (Tense, Increases Pressure, scales with Rapport)
+  - "Rapport Pressure" (Tense, Increases Pressure, scales with Rapport)
   - "Clear Visibility" (Bright, Decreases Momentum, scales with Evasion)
 
 **Evening Market** (6pm-9pm)
@@ -607,7 +607,7 @@ Locations combine multiple properties to create unique strategic environments:
 - Strategic Tags:
   - "Merchant's Eye" (Commercial, Increases Momentum, scales with Analysis)
   - "Whispered Deals" (Quiet, Increases Momentum, scales with Rapport)
-  - "Social Pressure" (Tense, Increases Pressure, scales with Rapport)
+  - "Rapport Pressure" (Tense, Increases Pressure, scales with Rapport)
   - "Cloak of Darkness" (Dark, Increases Momentum, scales with Evasion)
 
 ## Gameplay Impact
@@ -618,7 +618,7 @@ The property-based strategic tag system transforms gameplay in several ways:
 
 Players consider not just where to go, but when to go there:
 - Sneaky characters prefer night versions of locations
-- Socially dominant characters prefer crowded daytime settings
+- Rapportly dominant characters prefer crowded daytime settings
 - Analytical characters might prefer quiet morning hours
 - Different quests may be easier at different times of day
 

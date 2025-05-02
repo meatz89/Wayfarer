@@ -258,7 +258,7 @@ Players design their card constellations to create strategic pathing options:
 Rapport/Relationship Path:
 "Basic Charm" (Tier 1): Rapport 1, Relationship 1
 "Friendly Conversation" (Tier 2): Rapport 3, Relationship 2
-"Social Influence" (Tier 3): Rapport 5, Relationship 2
+"Rapport Influence" (Tier 3): Rapport 5, Relationship 2
 "Masterful Rhetoric" (Tier 4): Rapport 6, Relationship 3
 
 Analysis/Information Path:
@@ -325,7 +325,7 @@ As players progress through the game:
 - **Strategic Tags:**
   - "Insightful Approach" (Analysis → Increases Momentum): +1 momentum per 2 points of Analysis
   - "Careful Positioning" (Precision → Decreases Pressure): -1 pressure per 2 points of Precision
-  - "Social Distraction" (Rapport → Decreases Momentum): -1 momentum per 2 points of Rapport
+  - "Rapport Distraction" (Rapport → Decreases Momentum): -1 momentum per 2 points of Rapport
   - "Paranoid Mindset" (Concealment → Increases Pressure): +1 pressure per 2 points of Concealment
 
 **Starting Position:**

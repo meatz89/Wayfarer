@@ -35,7 +35,7 @@
     public bool IsOneTimeEncounter { get; set; }
     public string Goal { get; set; }
     public string Complication { get; set; }
-    public EncounterTypes EncounterType { get; set; } = EncounterTypes.Social;
+    public EncounterTypes EncounterType { get; set; } = EncounterTypes.Rapport;
     public int Difficulty { get; set; }
     public string MoveToLocation { get; set; }
     public string MoveToLocationSpot { get; set; }

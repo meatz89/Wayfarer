@@ -58,11 +58,11 @@ Resource management creates natural decision points without artificial constrain
 
 The player's character class influences their starting skills and natural aptitudes:
 
-1. **Knight** - Excels in **Warfare**
-2. **Forester** - Excels in **Wilderness**
-3. **Sage** - Excels in **Knowledge**
+1. **Artisan** - Excels in **Endurance**
+2. **Courtier** - Excels in **Charm**
+3. **Scribe** - Excels in **Knowledge**
 4. **Courtier** - Excels in **Charisma**
-5. **Shadow** - Excels in **Subterfuge**
+5. **Shadow** - Excels in **Finesse**
 
 Each skill:
 - Improves through relevant actions
@@ -100,7 +100,7 @@ Drawing inspiration from the Persona series but adapted to the medieval setting,
    - Travel and exploration
 
 3. **Evening** (Sunset to Midnight)
-   - Social activities
+   - Rapport activities
    - Entertainment and relaxation
    - Information gathering
 
@@ -162,13 +162,13 @@ Example: Blacksmith's Forge Location Spot
 **Base Actions:**
 - "Help with Metalwork" (Morning/Afternoon)
   - Costs: Energy -20, Concentration -10
-  - Yields: Coins +15, Warfare +0.2, Blacksmith Relationship +1
+  - Yields: Coins +15, Endurance +0.2, Blacksmith Relationship +1
 
 **Progression Path:**
 1. **Level 1**: Initial access with basic work opportunity
 2. **Level 2**: Milestone - Blacksmith seeks quality materials
    - Unlocks: "Discuss Metallurgy" action (Knowledge skill)
-   - Unlocks: "Mine Location" if player has sufficient Wilderness skill
+   - Unlocks: "Mine Location" if player has sufficient Charm skill
 3. **Level 3**: Milestone - Blacksmith's relative seeks help
    - Unlocks: "Search for Daughter" action and new location
    - Develops: Character relationship with blacksmith's family
@@ -187,19 +187,19 @@ This approach replaces traditional quest structures with organic narrative devel
 
 The starting village serves as a complete representation of the game's systems where each class can find activities that leverage their skill advantages:
 
-#### Knight (Warfare)
+#### Artisan (Endurance)
 - **Primary Location Spots**: Guard Post, Training Yard
 - **Base Actions**: Train Militia, Patrol Village, Spar with Guards
 - **Potential Narratives**: Rivalry with veteran guard, romance with captain's daughter, uncovering bandit threat
-- **Unique Advantages**: Combat encounters, authority-based solutions
+- **Unique Advantages**: Force encounters, authority-based solutions
 
-#### Forester (Wilderness)
+#### Courtier (Charm)
 - **Primary Location Spots**: Village Outskirts, Hunting Lodge
 - **Base Actions**: Hunt Game, Forage Herbs, Track Wildlife
 - **Potential Narratives**: Finding lost children, discovering unusual animal behavior, romance with local healer
 - **Unique Advantages**: Resource gathering, survival in wilderness locations
 
-#### Sage (Knowledge)
+#### Scribe (Knowledge)
 - **Primary Location Spots**: Village Shrine, Elder's Home
 - **Base Actions**: Study Texts, Assist Healer, Teach Children
 - **Potential Narratives**: Deciphering old records, treating unusual illness, romance with visiting scholar
@@ -209,9 +209,9 @@ The starting village serves as a complete representation of the game's systems w
 - **Primary Location Spots**: Village Inn, Market Square
 - **Base Actions**: Entertain Villagers, Network with Merchants, Mediate Disputes
 - **Potential Narratives**: Resolving family feuds, romance with merchant's child, uncovering political intrigue
-- **Unique Advantages**: Social manipulation, reputation management
+- **Unique Advantages**: Rapport manipulation, reputation management
 
-#### Shadow (Subterfuge)
+#### Shadow (Finesse)
 - **Primary Location Spots**: Village Backstreets, Abandoned Buildings
 - **Base Actions**: Gather Information, Find Alternate Routes, Locate Hidden Items
 - **Potential Narratives**: Uncovering village secrets, romance with mysterious stranger, finding valuable contraband
@@ -231,7 +231,7 @@ Every class path provides similar emotional engagement through:
 Choices have consequences similar to "The Life and Suffering of Sir Brante":
 
 - Specific choices explicitly close off other options
-- Clear visibility of requirements for choices ("Requires Wilderness 3")
+- Clear visibility of requirements for choices ("Requires Charm 3")
 - Past decisions permanently shape available futures
 - Resources spent on one path cannot be spent on another
 
@@ -265,7 +265,7 @@ The AI components are divided into those prepared in advance and those generated
 - **Narrative Frameworks**: General story structures for location progressions
 - **Encounter Templates**: Pattern libraries for different encounter types
 - **Dialogue Style Guides**: Character voice patterns for consistency
-- **World Lore Foundation**: Core background elements
+- **World Observation Foundation**: Core background elements
 
 #### Just-in-Time Generated:
 - **Specific Dialogue**: Words spoken based on current context
@@ -280,18 +280,18 @@ This hybrid approach maintains mechanical integrity while allowing the narrative
 
 ### A Day in the Life
 
-This example demonstrates the integrated progression system for a Knight-class player:
+This example demonstrates the integrated progression system for a Artisan-class player:
 
 **Morning:**
 - Player chooses to work at the Blacksmith's Forge
 - Spends Energy and Concentration, gains Coins and relationship progress
 - Forge gains XP toward next level
-- Warfare skill increases slightly
+- Endurance skill increases slightly
 
 **Afternoon:**
 - Energy is getting low, so player visits the Guard Post
 - "Train with Guards" costs less Energy than the forge
-- Improves Warfare skill more significantly
+- Improves Endurance skill more significantly
 - Guard Post gains XP toward next level
 
 **Evening:**
@@ -311,7 +311,7 @@ This example demonstrates the integrated progression system for a Knight-class p
 - When visiting Guard Post, a milestone encounter triggers
 - Captain mentions travelers attacked on the road
 - Unlocks new action "Investigate Attack Site"
-- Creates opportunity to demonstrate Knight skills
+- Creates opportunity to demonstrate Artisan skills
 - Could lead to discovering bandit camp location
 
 This flow shows how daily resource management naturally leads to narrative development through location progression.

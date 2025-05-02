@@ -15,35 +15,35 @@ public class PlayerSkills
 {
     public readonly Dictionary<SkillTypes, SkillProgress> Skills = new();
 
-    public int Warfare
+    public int Endurance
     {
         get
         {
-            return Skills[SkillTypes.Warfare].Level;
+            return Skills[SkillTypes.Endurance].Level;
         }
     }
 
-    public int Wilderness
+    public int Charm
     {
         get
         {
-            return Skills[SkillTypes.Wilderness].Level;
+            return Skills[SkillTypes.Charm].Level;
         }
     }
 
-    public int Scholarship
+    public int Observation
     {
         get
         {
-            return Skills[SkillTypes.Scholarship].Level;
+            return Skills[SkillTypes.Insight].Level;
         }
     }
 
-    public int Subterfuge
+    public int Finesse
     {
         get
         {
-            return Skills[SkillTypes.Subterfuge].Level;
+            return Skills[SkillTypes.Finesse].Level;
         }
     }
 
@@ -55,11 +55,20 @@ public class PlayerSkills
         }
     }
 
+    public int Insight
+    {
+        get
+        {
+            return Skills[SkillTypes.Lore].Level;
+        }
+    }
     public int BonusMaxHealth
     {
         get
         {
-            return Warfare * 2;
+            return Skills[SkillTypes.Endurance].Level +
+                Skills[SkillTypes.Charm].Level +
+                Skills[SkillTypes.Insight].Level;
         }
     }
 
@@ -67,7 +76,9 @@ public class PlayerSkills
     {
         get
         {
-            return Wilderness * 2;
+            return Skills[SkillTypes.Endurance].Level +
+                Skills[SkillTypes.Finesse].Level +
+                Skills[SkillTypes.Diplomacy].Level;
         }
     }
 
@@ -75,7 +86,9 @@ public class PlayerSkills
     {
         get
         {
-            return Scholarship * 2;
+            return Skills[SkillTypes.Finesse].Level +
+                Skills[SkillTypes.Insight].Level +
+                Skills[SkillTypes.Lore].Level;
         }
     }
 
@@ -83,15 +96,9 @@ public class PlayerSkills
     {
         get
         {
-            return Diplomacy * 2;
-        }
-    }
-
-    public int BonusReputation
-    {
-        get
-        {
-            return Subterfuge * 2;
+            return Skills[SkillTypes.Diplomacy].Level +
+                Skills[SkillTypes.Charm].Level +
+                Skills[SkillTypes.Lore].Level;
         }
     }
 
@@ -119,5 +126,10 @@ public class PlayerSkills
     public void SetSkillXP(SkillTypes skillType, int XP)
     {
         Skills[skillType].XP = XP;
+    }
+
+    internal void AddLevelBonus(SkillTypes skillType, int level)
+    {
+        Skills[skillType].Level += level;
     }
 }
