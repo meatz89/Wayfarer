@@ -61,10 +61,10 @@ public class EncounterStatusModel
 
         Health = playerState.Health;
         MaxHealth = playerState.MaxHealth;
-        Concentration = playerState.Concentration;
-        MaxConcentration = playerState.MaxConcentration;
-        Confidence = playerState.Confidence;
-        MaxConfidence = playerState.MaxConfidence;
+        Concentration = playerState.Focus;
+        MaxConcentration = playerState.MaxFocus;
+        Confidence = playerState.Spirit;
+        MaxConfidence = playerState.MaxSpirit;
 
         ApproachTags = approachTags;
         FocusTags = focusTags;

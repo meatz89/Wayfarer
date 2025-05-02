@@ -164,7 +164,7 @@ Write a response in two clearly distinct sections:
    - [If applicable] The narrative tag activation appears as a natural psychological limitation
    - NPCs react based on their established motivations with psychological depth (thoughts, emotions, calculations)
    - Strategic effects manifest through environmental or social advantages/challenges
-   - [If resources changed] Why the character's health/confidence/concentration changed
+   - [If resources changed] Why the character's health/spirit/focus changed
    - Previous choices and their consequences continue to influence the current situation
 
 2. NEW SITUATION (1 paragraph):

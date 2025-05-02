@@ -256,8 +256,8 @@ public class ConcentrationOutcome : Outcome
 
     public override string GetPreview(GameState gameState)
     {
-        int newValue = Math.Clamp(gameState.PlayerState.Concentration + Count, 0, gameState.PlayerState.MaxConcentration);
-        return $"({gameState.PlayerState.Concentration} -> {newValue})";
+        int newValue = Math.Clamp(gameState.PlayerState.Focus + Count, 0, gameState.PlayerState.MaxFocus);
+        return $"({gameState.PlayerState.Focus} -> {newValue})";
     }
 }
 
@@ -282,8 +282,8 @@ public class ConfidenceOutcome : Outcome
 
     public override string GetPreview(GameState gameState)
     {
-        int newValue = Math.Clamp(gameState.PlayerState.Confidence + Count, 0, gameState.PlayerState.MaxConfidence);
-        return $"({gameState.PlayerState.Confidence} -> {newValue})";
+        int newValue = Math.Clamp(gameState.PlayerState.Spirit + Count, 0, gameState.PlayerState.MaxSpirit);
+        return $"({gameState.PlayerState.Spirit} -> {newValue})";
     }
 }
 

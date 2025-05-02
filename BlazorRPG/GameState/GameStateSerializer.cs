@@ -26,8 +26,8 @@ public static class GameStateSerializer
                 MedicinalHerbs = gameState.PlayerState.MedicinalHerbs,
                 Health = gameState.PlayerState.Health,
                 Energy = gameState.PlayerState.Energy,
-                Concentration = gameState.PlayerState.Concentration,
-                Confidence = gameState.PlayerState.Confidence,
+                Concentration = gameState.PlayerState.Focus,
+                Confidence = gameState.PlayerState.Spirit,
                 Level = gameState.PlayerState.Level,
                 CurrentXP = gameState.PlayerState.CurrentXP,
                 InventoryItems = gameState.PlayerState.Inventory.GetAllItems()
@@ -82,8 +82,8 @@ public static class GameStateSerializer
             gameState.PlayerState.MedicinalHerbs = serialized.Player.MedicinalHerbs;
             gameState.PlayerState.Health = serialized.Player.Health;
             gameState.PlayerState.Energy = serialized.Player.Energy;
-            gameState.PlayerState.Concentration = serialized.Player.Concentration;
-            gameState.PlayerState.Confidence = serialized.Player.Confidence;
+            gameState.PlayerState.Focus = serialized.Player.Concentration;
+            gameState.PlayerState.Spirit = serialized.Player.Confidence;
 
             // Apply progression
             gameState.PlayerState.Level = serialized.Player.Level;
@@ -254,8 +254,8 @@ public static class GameStateSerializer
                 costs = new
                 {
                     energy = action.EnergyCost,
-                    concentration = action.ConcentrationCost,
-                    confidence = action.ConfidenceCost,
+                    focus = action.ConcentrationCost,
+                    spirit = action.ConfidenceCost,
                     health = action.HealthCost,
                     coin = action.CoinCost,
                     timeWindowCost = action.TimeWindowCost.ToString()
@@ -263,8 +263,8 @@ public static class GameStateSerializer
                 yields = new
                 {
                     energy = action.RestoresEnergy,
-                    concentration = action.RestoresConcentration,
-                    confidence = action.RestoresConfidence,
+                    focus = action.RestoresConcentration,
+                    spirit = action.RestoresConfidence,
                     health = action.RestoresHealth,
                     coin = action.CoinGain,
                     relationships = action.RelationshipChanges?.Select(r =>

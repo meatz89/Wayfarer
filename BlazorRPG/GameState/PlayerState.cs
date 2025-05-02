@@ -45,14 +45,14 @@
 
     public int MinHealth { get; set; }
     public int Health { get; set; }
-    public int Concentration { get; set; }
-    public int Confidence { get; set; }
+    public int Focus { get; set; }
+    public int Spirit { get; set; }
     public int Energy { get; set; }
 
     public int MaxHealth;
     public int MaxEnergy;
-    public int MaxConcentration;
-    public int MaxConfidence;
+    public int MaxFocus;
+    public int MaxSpirit;
 
     public PlayerState()
     {
@@ -77,8 +77,8 @@
     {
         Energy = MaxEnergy;
         Health = MaxHealth;
-        Concentration = MaxConcentration;
-        Confidence = MaxConfidence;
+        Focus = MaxFocus;
+        Spirit = MaxSpirit;
     }
 
     public void Initialize(string playerName, ArchetypeTypes selectedArchetype, Genders gender)
@@ -96,8 +96,8 @@
     {
         MaxHealth = 10 + Skills.BonusMaxHealth;
         MaxEnergy = 10 + Skills.BonusMaxEnergy;
-        MaxConcentration = 10 + Skills.BonusMaxConcentration;
-        MaxConfidence = 10 + Skills.BonusMaxConfidence;
+        MaxFocus = 10 + Skills.BonusMaxConcentration;
+        MaxSpirit = 10 + Skills.BonusMaxConfidence;
     }
 
     public void SetArchetype(ArchetypeTypes archetype)
@@ -241,10 +241,10 @@
 
     public bool ModifyConcentration(int count)
     {
-        int newConcentration = Math.Clamp(Concentration + count, 0, MaxConcentration);
-        if (newConcentration != Concentration)
+        int newConcentration = Math.Clamp(Focus + count, 0, MaxFocus);
+        if (newConcentration != Focus)
         {
-            Concentration = newConcentration;
+            Focus = newConcentration;
             return true;
         }
         return false;
@@ -252,10 +252,10 @@
 
     public bool ModifyConfidence(int count)
     {
-        int newConfidence = Math.Clamp(Confidence + count, 0, MaxConfidence);
-        if (newConfidence != Confidence)
+        int newConfidence = Math.Clamp(Spirit + count, 0, MaxSpirit);
+        if (newConfidence != Spirit)
         {
-            Confidence = newConfidence;
+            Spirit = newConfidence;
             return true;
         }
         return false;

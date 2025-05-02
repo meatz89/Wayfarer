@@ -228,7 +228,7 @@ This creates a progression system where advancement feels like growing mastery r
 
 The player manages several resources that add meaningful constraints to exploration:
 
-- Health, concentration, and confidence during encounters
+- Health, focus, and spirit during encounters
 - Money and food for survival and travel
 - Items that provide strategic advantages in specific situations
 

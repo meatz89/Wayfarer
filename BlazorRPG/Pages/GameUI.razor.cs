@@ -64,7 +64,7 @@ public partial class GameUI : ComponentBase
     {
         get
         {
-            return PlayerState.Concentration;
+            return PlayerState.Focus;
         }
     }
 
@@ -72,7 +72,7 @@ public partial class GameUI : ComponentBase
     {
         get
         {
-            return PlayerState.MaxConcentration;
+            return PlayerState.MaxFocus;
         }
     }
 
@@ -80,7 +80,7 @@ public partial class GameUI : ComponentBase
     {
         get
         {
-            return PlayerState.Confidence;
+            return PlayerState.Spirit;
         }
     }
 
@@ -88,7 +88,7 @@ public partial class GameUI : ComponentBase
     {
         get
         {
-            return PlayerState.MaxConfidence;
+            return PlayerState.MaxSpirit;
         }
     }
 

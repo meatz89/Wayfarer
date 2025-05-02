@@ -89,7 +89,7 @@ Player progression in Wayfarer consists of:
 1. Level: Overall character advancement
 2. Card Collection: Unlocked skills / abilities that can be used in encounters
 3. Relationships: Connections with NPCs (numerical values with defined states)
-4. Resources: Money, food, items, and encounter resources (health, concentration, confidence)
+4. Resources: Money, food, items, and encounter resources (health, focus, spirit)
 
 Unlike the temporary approach/focus tags used in encounters, these elements persist between encounters and represent actual character development.
 

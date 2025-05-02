@@ -144,7 +144,7 @@ public class ConcentrationRequirement : IRequirement
 
     public bool IsMet(GameState gameState)
     {
-        return gameState.PlayerState.Concentration >= RequiredAmount;
+        return gameState.PlayerState.Focus >= RequiredAmount;
     }
 
     public string GetDescription()
@@ -164,7 +164,7 @@ public class ConfidenceRequirement : IRequirement
 
     public bool IsMet(GameState gameState)
     {
-        return gameState.PlayerState.Confidence >= RequiredAmount;
+        return gameState.PlayerState.Spirit >= RequiredAmount;
     }
 
     public string GetDescription()
