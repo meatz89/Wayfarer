@@ -256,7 +256,7 @@ Respond with only the reflection narrative, approximately 150-200 words, written
 
 ### Example Action Prelude
 ```
-The heat of the forge washes over you in waves as you approach Emil's workstation. His thin shoulders are hunched with concentration, lower lip caught between his teeth as he struggles to maintain his grip on the heavy tongs. A single bead of sweat traces its way down the side of his face, catching the orange glow of the coals.
+The heat of the forge washes over you in waves as you approach Emil's workstation. His thin shoulders are hunched with focus, lower lip caught between his teeth as he struggles to maintain his grip on the heavy tongs. A single bead of sweat traces its way down the side of his face, catching the orange glow of the coals.
 ```
 
 ### Example Spot Milestone Narrative

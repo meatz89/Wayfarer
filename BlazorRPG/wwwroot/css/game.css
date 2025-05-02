@@ -28,8 +28,8 @@
     --resource-coins: #DAA520;
     --resource-food: var(--moss);
     --resource-energy: #BC6C25;
-    --resource-confidence: #556573;
-    --resource-concentration: #7D7045;
+    --resource-spirit: #556573;
+    --resource-focus: #7D7045;
     /* Status Colors */
     --positive: var(--moss);
     --negative: #9E2A2B;
@@ -1197,8 +1197,8 @@ css /* ==================== Badges & Special Elements ==================== */
     --resource-coins: #DAA520;
     --resource-food: var(--moss);
     --resource-energy: #BC6C25;
-    --resource-confidence: #556573;
-    --resource-concentration: #7D7045;
+    --resource-spirit: #556573;
+    --resource-focus: #7D7045;
     /* Status Colors */
     --positive: var(--moss);
     --negative: #9E2A2B;

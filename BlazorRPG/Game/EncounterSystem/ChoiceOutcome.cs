@@ -27,8 +27,8 @@ public class ChoiceOutcome
         bool isEncounterOver,
         EncounterOutcomes outcome,
         int healthChange = 0,
-        int concentrationChange = 0,
-        int confidenceChange = 0)
+        int focusChange = 0,
+        int spiritChange = 0)
     {
         MomentumGain = momentumGained;
         PressureGain = pressureBuilt;
@@ -36,8 +36,8 @@ public class ChoiceOutcome
         IsEncounterOver = isEncounterOver;
         Outcome = outcome;
         HealthChange = healthChange;
-        ConcentrationChange = concentrationChange;
-        ConfidenceChange = confidenceChange;
+        ConcentrationChange = focusChange;
+        ConfidenceChange = spiritChange;
 
         // Initialize empty collections
         FocusTagChanges = new Dictionary<FocusTags, int>();

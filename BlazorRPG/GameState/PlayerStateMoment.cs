@@ -13,7 +13,7 @@
         MedicinalHerbs = playerState.MedicinalHerbs;
         Energy = playerState.Energy;
         Health = playerState.Health;
-        Concentration = playerState.Concentration;
-        Confidence = playerState.Confidence;
+        Concentration = playerState.Focus;
+        Confidence = playerState.Spirit;
     }
 }

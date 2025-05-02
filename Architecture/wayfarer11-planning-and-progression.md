@@ -114,7 +114,7 @@ Each action consumes a specific time window, forcing meaningful choices about da
 
 Unlike Sir Brante's rigid scheduling, Wayfarer uses a resource-based limitation system:
 
-- Activities drain specific resource combinations (energy, concentration, confidence)
+- Activities drain specific resource combinations (energy, focus, spirit)
 - Time windows limit when specific actions are available
 - Location accessibility creates travel considerations
 - Natural cycles of depletion and restoration create rhythm

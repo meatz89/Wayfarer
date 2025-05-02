@@ -29,8 +29,8 @@ public static class ActionParser
         if (root.TryGetProperty("costs", out JsonElement costsElement))
         {
             action.EnergyCost = GetIntProperty(costsElement, "energy", 0);
-            action.ConcentrationCost = GetIntProperty(costsElement, "concentration", 0);
-            action.ConfidenceCost = GetIntProperty(costsElement, "confidence", 0);
+            action.ConcentrationCost = GetIntProperty(costsElement, "focus", 0);
+            action.ConfidenceCost = GetIntProperty(costsElement, "spirit", 0);
             action.HealthCost = GetIntProperty(costsElement, "health", 0);
             action.CoinCost = GetIntProperty(costsElement, "coin", 0);
             action.TimeWindowCost = GetStringProperty(costsElement, "timeWindowCost", "half");
@@ -41,8 +41,8 @@ public static class ActionParser
         {
             // Resource yields
             action.RestoresEnergy = GetIntProperty(yieldsElement, "energy", 0);
-            action.RestoresConcentration = GetIntProperty(yieldsElement, "concentration", 0);
-            action.RestoresConfidence = GetIntProperty(yieldsElement, "confidence", 0);
+            action.RestoresConcentration = GetIntProperty(yieldsElement, "focus", 0);
+            action.RestoresConfidence = GetIntProperty(yieldsElement, "spirit", 0);
             action.RestoresHealth = GetIntProperty(yieldsElement, "health", 0);
             action.CoinGain = GetIntProperty(yieldsElement, "coin", 0);
 

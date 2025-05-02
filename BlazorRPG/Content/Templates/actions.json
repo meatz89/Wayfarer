@@ -6,16 +6,16 @@
 		"actionType": "Trade",
 		"costs": {
 			"energy": 3,
-			"concentration": 2,
-			"confidence": 0,
+			"focus": 2,
+			"spirit": 0,
 			"health": 0,
 			"coin": 5,
 			"timeWindowCost": "Half"
 		},
 		"yields": {
 			"energy": 0,
-			"concentration": 0,
-			"confidence": 0,
+			"focus": 0,
+			"spirit": 0,
 			"health": 0,
 			"coin": 12,
 			"spotXp": 10
@@ -23,7 +23,7 @@
 		"requirements": {
 			"resources": {
 				"energy": 3,
-				"concentration": 2,
+				"focus": 2,
 				"coin": 5
 			}
 		},
@@ -41,16 +41,16 @@
 		"actionType": "Rapport",
 		"costs": {
 			"energy": 2,
-			"concentration": 4,
-			"confidence": 3,
+			"focus": 4,
+			"spirit": 3,
 			"health": 0,
 			"coin": 0,
 			"timeWindowCost": "Half"
 		},
 		"yields": {
 			"energy": 0,
-			"concentration": 0,
-			"confidence": 2,
+			"focus": 0,
+			"spirit": 2,
 			"health": 0,
 			"coin": 3,
 			"spotXp": 15,
@@ -64,8 +64,8 @@
 		"requirements": {
 			"resources": {
 				"energy": 2,
-				"concentration": 4,
-				"confidence": 3
+				"focus": 4,
+				"spirit": 3
 			}
 		},
 		"encounterDetails": {
@@ -82,16 +82,16 @@
 		"actionType": "Labor",
 		"costs": {
 			"energy": 5,
-			"concentration": 2,
-			"confidence": 0,
+			"focus": 2,
+			"spirit": 0,
 			"health": 0,
 			"coin": 0,
 			"timeWindowCost": "Half"
 		},
 		"yields": {
 			"energy": 0,
-			"concentration": 0,
-			"confidence": 0,
+			"focus": 0,
+			"spirit": 0,
 			"health": 0,
 			"coin": 0,
 			"spotXp": 20,
@@ -111,7 +111,7 @@
 		"requirements": {
 			"resources": {
 				"energy": 5,
-				"concentration": 2
+				"focus": 2
 			}
 		},
 		"encounterDetails": {
@@ -128,16 +128,16 @@
 		"actionType": "Rapport",
 		"costs": {
 			"energy": 3,
-			"concentration": 3,
-			"confidence": 0,
+			"focus": 3,
+			"spirit": 0,
 			"health": 0,
 			"coin": 0,
 			"timeWindowCost": "Half"
 		},
 		"yields": {
 			"energy": 0,
-			"concentration": 0,
-			"confidence": 4,
+			"focus": 0,
+			"spirit": 4,
 			"health": 0,
 			"coin": 5,
 			"spotXp": 15,
@@ -151,7 +151,7 @@
 		"requirements": {
 			"resources": {
 				"energy": 3,
-				"concentration": 3
+				"focus": 3
 			}
 		},
 		"encounterDetails": {
@@ -168,16 +168,16 @@
 		"actionType": "Consume",
 		"costs": {
 			"energy": 0,
-			"concentration": 0,
-			"confidence": 0,
+			"focus": 0,
+			"spirit": 0,
 			"health": 0,
 			"coin": 3,
 			"timeWindowCost": "Half"
 		},
 		"yields": {
 			"energy": 5,
-			"concentration": 0,
-			"confidence": 1,
+			"focus": 0,
+			"spirit": 1,
 			"health": 2,
 			"coin": 0
 		},
@@ -194,16 +194,16 @@
 		"actionType": "Precision",
 		"costs": {
 			"energy": 2,
-			"concentration": 5,
-			"confidence": 0,
+			"focus": 5,
+			"spirit": 0,
 			"health": 0,
 			"coin": 1,
 			"timeWindowCost": "Half"
 		},
 		"yields": {
 			"energy": 0,
-			"concentration": 0,
-			"confidence": 0,
+			"focus": 0,
+			"spirit": 0,
 			"health": 0,
 			"coin": 0,
 			"spotXp": 12,
@@ -217,7 +217,7 @@
 		"requirements": {
 			"resources": {
 				"energy": 2,
-				"concentration": 5,
+				"focus": 5,
 				"coin": 1
 			}
 		},
@@ -239,8 +239,8 @@
 		},
 		"yields": {
 			"energy": 10,
-			"concentration": 10,
-			"confidence": 5,
+			"focus": 10,
+			"spirit": 5,
 			"health": 5
 		},
 		"requirements": {
@@ -259,8 +259,8 @@
 		},
 		"yields": {
 			"energy": 5,
-			"concentration": 5,
-			"confidence": 0,
+			"focus": 5,
+			"spirit": 0,
 			"health": 2
 		},
 		"requirements": {}
@@ -272,16 +272,16 @@
 		"actionType": "Study",
 		"costs": {
 			"energy": 2,
-			"concentration": 0,
-			"confidence": 0,
+			"focus": 0,
+			"spirit": 0,
 			"health": 0,
 			"coin": 0,
 			"timeWindowCost": "Half"
 		},
 		"yields": {
 			"energy": 0,
-			"concentration": 5,
-			"confidence": 0,
+			"focus": 5,
+			"spirit": 0,
 			"health": 0,
 			"coin": 0,
 			"spotXp": 8,
@@ -317,16 +317,16 @@
 		"actionType": "Study",
 		"costs": {
 			"energy": 2,
-			"concentration": 6,
-			"confidence": 0,
+			"focus": 6,
+			"spirit": 0,
 			"health": 0,
 			"coin": 0,
 			"timeWindowCost": "Full"
 		},
 		"yields": {
 			"energy": 0,
-			"concentration": 0,
-			"confidence": 0,
+			"focus": 0,
+			"spirit": 0,
 			"health": 0,
 			"coin": 0,
 			"spotXp": 20,
@@ -346,7 +346,7 @@
 		"requirements": {
 			"resources": {
 				"energy": 2,
-				"concentration": 6
+				"focus": 6
 			},
 			"skills": [
 				{
@@ -369,16 +369,16 @@
 		"actionType": "Training",
 		"costs": {
 			"energy": 6,
-			"concentration": 2,
-			"confidence": 0,
+			"focus": 2,
+			"spirit": 0,
 			"health": 0,
 			"coin": 0,
 			"timeWindowCost": "Half"
 		},
 		"yields": {
 			"energy": 0,
-			"concentration": 0,
-			"confidence": 2,
+			"focus": 0,
+			"spirit": 2,
 			"health": 0,
 			"coin": 0,
 			"spotXp": 15,
@@ -398,7 +398,7 @@
 		"requirements": {
 			"resources": {
 				"energy": 6,
-				"concentration": 2
+				"focus": 2
 			}
 		},
 		"encounterDetails": {
@@ -415,16 +415,16 @@
 		"actionType": "Training",
 		"costs": {
 			"energy": 4,
-			"concentration": 3,
-			"confidence": 0,
+			"focus": 3,
+			"spirit": 0,
 			"health": 0,
 			"coin": 0,
 			"timeWindowCost": "Half"
 		},
 		"yields": {
 			"energy": 0,
-			"concentration": 0,
-			"confidence": 0,
+			"focus": 0,
+			"spirit": 0,
 			"health": 0,
 			"coin": 0,
 			"food": 1,
@@ -445,7 +445,7 @@
 		"requirements": {
 			"resources": {
 				"energy": 4,
-				"concentration": 3
+				"focus": 3
 			}
 		},
 		"encounterDetails": {
@@ -465,8 +465,8 @@
 		},
 		"yields": {
 			"energy": 5,
-			"concentration": 5,
-			"confidence": 0,
+			"focus": 5,
+			"spirit": 0,
 			"health": -1
 		},
 		"requirements": {
@@ -485,16 +485,16 @@
 		"actionType": "Gather",
 		"costs": {
 			"energy": 3,
-			"concentration": 4,
-			"confidence": 0,
+			"focus": 4,
+			"spirit": 0,
 			"health": 0,
 			"coin": 0,
 			"timeWindowCost": "Half"
 		},
 		"yields": {
 			"energy": 0,
-			"concentration": 0,
-			"confidence": 0,
+			"focus": 0,
+			"spirit": 0,
 			"health": 0,
 			"coin": 0,
 			"medicinalHerbs": 1,
@@ -509,7 +509,7 @@
 		"requirements": {
 			"resources": {
 				"energy": 3,
-				"concentration": 4
+				"focus": 4
 			}
 		},
 		"encounterDetails": {
