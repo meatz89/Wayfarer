@@ -60,8 +60,14 @@
 
     public LocationSpot GetSpot(string locationId, string spotName)
     {
-        List<LocationSpot> spots = _worldState.locationSpots.Where(s => s.LocationId == locationId).ToList();
-        LocationSpot? spot = spots.FirstOrDefault(s => s.Name.Equals(spotName, StringComparison.OrdinalIgnoreCase));
+        List<LocationSpot> spots = _worldState.locationSpots.Where(s =>
+        {
+            return s.LocationId == locationId;
+        }).ToList();
+        LocationSpot? spot = spots.FirstOrDefault(s =>
+        {
+            return s.Name.Equals(spotName, StringComparison.OrdinalIgnoreCase);
+        });
 
         if (spot == null)
             throw new KeyNotFoundException($"Spot '{spotName}' not found in '{locationId}'.");

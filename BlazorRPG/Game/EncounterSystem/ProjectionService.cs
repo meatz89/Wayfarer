@@ -146,7 +146,7 @@
         // Check for skill bonuses that enhance this card
         foreach (SkillRequirement req in choice.UnlockRequirements)
         {
-            int skillLevel = _playerState.PlayerSkills.GetLevelForSkill(req.SkillType);
+            int skillLevel = _playerState.Skills.GetLevelForSkill(req.SkillType);
             if (skillLevel > req.RequiredLevel)
             {
                 int skillBonus = skillLevel - req.RequiredLevel;
@@ -272,10 +272,10 @@
 
     private bool IsArchetypeApproach(ArchetypeTypes archetype, ApproachTags approach)
     {
-        return (archetype == ArchetypeTypes.Knight && approach == ApproachTags.Dominance) ||
+        return (archetype == ArchetypeTypes.Artisan && approach == ApproachTags.Dominance) ||
                (archetype == ArchetypeTypes.Courtier && approach == ApproachTags.Rapport) ||
-               (archetype == ArchetypeTypes.Sage && approach == ApproachTags.Analysis) ||
-               (archetype == ArchetypeTypes.Forester && approach == ApproachTags.Precision) ||
+               (archetype == ArchetypeTypes.Scribe && approach == ApproachTags.Analysis) ||
+               (archetype == ArchetypeTypes.Herbalist && approach == ApproachTags.Precision) ||
                (archetype == ArchetypeTypes.Shadow && approach == ApproachTags.Concealment);
     }
 
@@ -322,7 +322,7 @@
 
             switch (_encounterInfo.EncounterType)
             {
-                case EncounterTypes.Combat:
+                case EncounterTypes.Force:
                     projection.HealthChange = resourceImpact;
                     projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
                     {
@@ -331,7 +331,7 @@
                     });
                     break;
 
-                case EncounterTypes.Lore:
+                case EncounterTypes.Observation:
                     projection.ConcentrationChange = resourceImpact;
                     projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
                     {
@@ -341,7 +341,7 @@
                     break;
 
 
-                case EncounterTypes.Exploration:
+                case EncounterTypes.Persuasion:
                     projection.ConcentrationChange = resourceImpact;
                     projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
                     {
@@ -351,7 +351,7 @@
                     break;
 
 
-                case EncounterTypes.Stealth:
+                case EncounterTypes.Precision:
                     projection.HealthChange = resourceImpact;
                     projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
                     {
@@ -360,7 +360,7 @@
                     });
                     break;
 
-                case EncounterTypes.Social:
+                case EncounterTypes.Rapport:
                     projection.ConfidenceChange = resourceImpact;
                     projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
                     {

@@ -166,7 +166,7 @@ World evolution ensures resource accessibility:
 
 Player advancement correlates with world progression:
 
-- **XP from Exploration**: Discovering new locations grants experience
+- **XP from Observation**: Discovering new locations grants experience
 - **Depth-Appropriate Challenges**: Encounters scale to challenge but not overwhelm
 - **Skill Requirements**: Some paths require minimum levels or skills
 - **Training Opportunities**: Hubs offer advancement opportunities

@@ -151,7 +151,7 @@
         }
 
         // Default fallback
-        return EncounterTypes.Exploration;
+        return EncounterTypes.Persuasion;
     }
 
     private LocationCreationInput CreateLocationInput(

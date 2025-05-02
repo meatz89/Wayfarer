@@ -25,5 +25,17 @@
     PuzzleBox,
     AncientText,
     PoisonVial,
-    DisguiseKit
+    DisguiseKit,
+    Hammer,
+    Chisel,
+    Trowel,
+    Mortar,
+    Ledger,
+    Scales,
+    CoinPurse,
+    TradeDocuments,
+    TradeGoods,
+    HerbSatchel,
+    MortarAndPestle,
+    FieldGuide
 }

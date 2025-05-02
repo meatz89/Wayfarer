@@ -31,14 +31,14 @@
 			"isOneTimeEncounter": false,
 			"goal": "Make a profit by trading goods at the market",
 			"complication": "Prices are fluctuating due to recent supply shortages",
-			"encounterType": "Social"
+			"encounterType": "Rapport"
 		}
 	},
 	{
 		"id": "mediate_market_dispute",
 		"name": "Mediate Dispute",
 		"description": "Help settle a disagreement between merchants",
-		"actionType": "Social",
+		"actionType": "Rapport",
 		"costs": {
 			"energy": 2,
 			"concentration": 4,
@@ -72,7 +72,7 @@
 			"isOneTimeEncounter": false,
 			"goal": "Find a fair solution that satisfies both merchants",
 			"complication": "Both sides are stubborn and believe they are in the right",
-			"encounterType": "Social"
+			"encounterType": "Rapport"
 		}
 	},
 	{
@@ -103,7 +103,7 @@
 			],
 			"skills": [
 				{
-					"skillType": "Warfare",
+					"skillType": "Endurance",
 					"amount": 1
 				}
 			]
@@ -118,14 +118,14 @@
 			"isOneTimeEncounter": false,
 			"goal": "Build trust with Emil while learning basic forge work",
 			"complication": "Emil is shy and reluctant to accept help",
-			"encounterType": "Social"
+			"encounterType": "Rapport"
 		}
 	},
 	{
 		"id": "tavern_performance",
 		"name": "Perform",
 		"description": "Perform a song or story for the tavern patrons",
-		"actionType": "Social",
+		"actionType": "Rapport",
 		"costs": {
 			"energy": 3,
 			"concentration": 3,
@@ -158,7 +158,7 @@
 			"isOneTimeEncounter": false,
 			"goal": "Entertain the crowd and build your reputation",
 			"complication": "A drunk patron is particularly critical of performances",
-			"encounterType": "Social"
+			"encounterType": "Rapport"
 		}
 	},
 	{
@@ -191,7 +191,7 @@
 		"id": "tavern_information_gathering",
 		"name": "Gather Information",
 		"description": "Listen to conversations and gather useful gossip",
-		"actionType": "Stealth",
+		"actionType": "Precision",
 		"costs": {
 			"energy": 2,
 			"concentration": 5,
@@ -209,7 +209,7 @@
 			"spotXp": 12,
 			"skills": [
 				{
-					"skillType": "Subterfuge",
+					"skillType": "Finesse",
 					"amount": 2
 				}
 			]
@@ -225,7 +225,7 @@
 			"isOneTimeEncounter": false,
 			"goal": "Gather valuable information without drawing attention",
 			"complication": "A suspicious guard is keeping watch over the tavern tonight",
-			"encounterType": "Stealth"
+			"encounterType": "Precision"
 		}
 	},
 	{
@@ -287,7 +287,7 @@
 			"spotXp": 8,
 			"skills": [
 				{
-					"skillType": "Scholarship",
+					"skillType": "Observation",
 					"amount": 2
 				}
 			],
@@ -332,7 +332,7 @@
 			"spotXp": 20,
 			"skills": [
 				{
-					"skillType": "Scholarship",
+					"skillType": "Observation",
 					"amount": 4
 				}
 			],
@@ -350,7 +350,7 @@
 			},
 			"skills": [
 				{
-					"skillType": "Scholarship",
+					"skillType": "Observation",
 					"minimumLevel": 1
 				}
 			]
@@ -364,7 +364,7 @@
 	},
 	{
 		"id": "guard_training",
-		"name": "Combat Training",
+		"name": "Force Training",
 		"description": "Join the village guards for their morning drills",
 		"actionType": "Training",
 		"costs": {
@@ -384,7 +384,7 @@
 			"spotXp": 15,
 			"skills": [
 				{
-					"skillType": "Warfare",
+					"skillType": "Endurance",
 					"amount": 3
 				}
 			],
@@ -431,7 +431,7 @@
 			"spotXp": 18,
 			"skills": [
 				{
-					"skillType": "Wilderness",
+					"skillType": "Charm",
 					"amount": 3
 				}
 			],
@@ -452,7 +452,7 @@
 			"isOneTimeEncounter": false,
 			"goal": "Learn to identify and follow animal tracks in the forest",
 			"complication": "Recent rain has washed away many obvious signs",
-			"encounterType": "Exploration"
+			"encounterType": "Observation"
 		}
 	},
 	{
@@ -472,7 +472,7 @@
 		"requirements": {
 			"skills": [
 				{
-					"skillType": "Wilderness",
+					"skillType": "Charm",
 					"minimumLevel": 1
 				}
 			]
@@ -501,7 +501,7 @@
 			"spotXp": 10,
 			"skills": [
 				{
-					"skillType": "Wilderness",
+					"skillType": "Charm",
 					"amount": 1
 				}
 			]
@@ -516,7 +516,7 @@
 			"isOneTimeEncounter": false,
 			"goal": "Find rare and useful medicinal plants",
 			"complication": "Some valuable herbs grow in hard-to-reach places",
-			"encounterType": "Exploration"
+			"encounterType": "Observation"
 		}
 	}
 ]

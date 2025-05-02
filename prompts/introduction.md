@@ -28,4 +28,4 @@ Remember:
 - DO NOT include any numbered or bulleted choices in your response
 - Your final paragraph MUST present a clear problem requiring decision
 
-The tone should match a {ENCOUNTER_TYPE} encounter - [for Social: conversational and interpersonal; for Intellectual: analytical and observational; for Physical: action-oriented and environmental].
+The tone should match a {ENCOUNTER_TYPE} encounter - [for Rapport: conversational and interpersonal; for Intellectual: analytical and observational; for Physical: action-oriented and environmental].

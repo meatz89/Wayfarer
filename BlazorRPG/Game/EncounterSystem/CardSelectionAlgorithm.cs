@@ -139,20 +139,20 @@
     {
         Dictionary<ApproachTags, int> bonuses = new Dictionary<ApproachTags, int>();
 
-        // Warfare skill → Dominance approach
-        bonuses[ApproachTags.Dominance] = playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Warfare) / 2;
+        // Endurance skill → Dominance approach
+        bonuses[ApproachTags.Dominance] = playerState.Skills.GetLevelForSkill(SkillTypes.Endurance) / 2;
 
         // Diplomacy skill → Rapport approach
-        bonuses[ApproachTags.Rapport] = playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Diplomacy) / 2;
+        bonuses[ApproachTags.Rapport] = playerState.Skills.GetLevelForSkill(SkillTypes.Diplomacy) / 2;
 
-        // Scholarship skill → Analysis approach
-        bonuses[ApproachTags.Analysis] = playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Scholarship) / 2;
+        // Observation skill → Analysis approach
+        bonuses[ApproachTags.Analysis] = playerState.Skills.GetLevelForSkill(SkillTypes.Insight) / 2;
 
-        // Wilderness skill → Precision approach
-        bonuses[ApproachTags.Precision] = playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Wilderness) / 2;
+        // Charm skill → Precision approach
+        bonuses[ApproachTags.Precision] = playerState.Skills.GetLevelForSkill(SkillTypes.Charm) / 2;
 
-        // Subterfuge skill → Concealment approach
-        bonuses[ApproachTags.Concealment] = playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Subterfuge) / 2;
+        // Finesse skill → Concealment approach
+        bonuses[ApproachTags.Concealment] = playerState.Skills.GetLevelForSkill(SkillTypes.Finesse) / 2;
 
         return bonuses;
     }
@@ -162,18 +162,18 @@
         Dictionary<FocusTags, int> bonuses = new Dictionary<FocusTags, int>();
 
         // Create skill-focus mappings
-        bonuses[FocusTags.Physical] = (playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Warfare) +
-                                     playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Wilderness)) / 3;
+        bonuses[FocusTags.Physical] = (playerState.Skills.GetLevelForSkill(SkillTypes.Endurance) +
+                                     playerState.Skills.GetLevelForSkill(SkillTypes.Charm)) / 3;
 
-        bonuses[FocusTags.Information] = (playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Scholarship) +
-                                        playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Subterfuge)) / 3;
+        bonuses[FocusTags.Information] = (playerState.Skills.GetLevelForSkill(SkillTypes.Insight) +
+                                        playerState.Skills.GetLevelForSkill(SkillTypes.Finesse)) / 3;
 
-        bonuses[FocusTags.Relationship] = playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Diplomacy) / 2;
+        bonuses[FocusTags.Relationship] = playerState.Skills.GetLevelForSkill(SkillTypes.Diplomacy) / 2;
 
-        bonuses[FocusTags.Environment] = playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Wilderness) / 2;
+        bonuses[FocusTags.Environment] = playerState.Skills.GetLevelForSkill(SkillTypes.Charm) / 2;
 
-        bonuses[FocusTags.Resource] = (playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Subterfuge) +
-                                     playerState.PlayerSkills.GetLevelForSkill(SkillTypes.Diplomacy)) / 4;
+        bonuses[FocusTags.Resource] = (playerState.Skills.GetLevelForSkill(SkillTypes.Finesse) +
+                                     playerState.Skills.GetLevelForSkill(SkillTypes.Diplomacy)) / 4;
 
         return bonuses;
     }
@@ -335,7 +335,7 @@
         // Check if player has skills that directly enhance this card
         foreach (SkillRequirement req in card.UnlockRequirements)
         {
-            int skillLevel = playerState.PlayerSkills.GetLevelForSkill(req.SkillType);
+            int skillLevel = playerState.Skills.GetLevelForSkill(req.SkillType);
             if (skillLevel >= req.RequiredLevel)
             {
                 bonus += skillLevel - req.RequiredLevel + 1;

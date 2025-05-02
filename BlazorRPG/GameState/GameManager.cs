@@ -100,20 +100,20 @@
 
         switch (archetype)
         {
-            case ArchetypeTypes.Knight:
-                playerProgression.AddSkillExp(SkillTypes.Warfare, XpBonusForArchetype);
+            case ArchetypeTypes.Artisan:
+                playerProgression.AddSkillExp(SkillTypes.Endurance, XpBonusForArchetype);
                 break;
             case ArchetypeTypes.Courtier:
                 playerProgression.AddSkillExp(SkillTypes.Diplomacy, XpBonusForArchetype);
                 break;
-            case ArchetypeTypes.Sage:
-                playerProgression.AddSkillExp(SkillTypes.Scholarship, XpBonusForArchetype);
+            case ArchetypeTypes.Scribe:
+                playerProgression.AddSkillExp(SkillTypes.Insight, XpBonusForArchetype);
                 break;
-            case ArchetypeTypes.Forester:
-                playerProgression.AddSkillExp(SkillTypes.Wilderness, XpBonusForArchetype);
+            case ArchetypeTypes.Herbalist:
+                playerProgression.AddSkillExp(SkillTypes.Charm, XpBonusForArchetype);
                 break;
             case ArchetypeTypes.Shadow:
-                playerProgression.AddSkillExp(SkillTypes.Subterfuge, XpBonusForArchetype);
+                playerProgression.AddSkillExp(SkillTypes.Finesse, XpBonusForArchetype);
                 break;
 
             default:
@@ -167,12 +167,12 @@
         // Map encounter type or action category to skill
         return action.EncounterType switch
         {
-            EncounterTypes.Combat => SkillTypes.Warfare,
-            EncounterTypes.Social => SkillTypes.Diplomacy,
-            EncounterTypes.Stealth => SkillTypes.Subterfuge,
-            EncounterTypes.Exploration => SkillTypes.Wilderness,
-            EncounterTypes.Lore => SkillTypes.Scholarship,
-            _ => SkillTypes.Scholarship,
+            EncounterTypes.Force => SkillTypes.Endurance,
+            EncounterTypes.Rapport => SkillTypes.Diplomacy,
+            EncounterTypes.Precision => SkillTypes.Finesse,
+            EncounterTypes.Persuasion => SkillTypes.Charm,
+            EncounterTypes.Observation => SkillTypes.Insight,
+            _ => SkillTypes.Insight,
         };
     }
 

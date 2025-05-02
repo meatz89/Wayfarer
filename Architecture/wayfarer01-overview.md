@@ -45,10 +45,10 @@ Approach tags represent how the character is currently tackling the specific cha
 | Approach Tag  | Description                               |
 |---------------|-------------------------------------------|
 | Dominance     | Force, authority, intimidation            |
-| Rapport       | Social connections, charm, persuasion     |
+| Rapport       | Rapport connections, charm, persuasion     |
 | Analysis      | Intelligence, observation, problem-solving|
 | Precision     | Careful execution, finesse, accuracy      |
-| Evasion   | Stealth, hiding, subterfuge               |
+| Evasion   | Precision, hiding, subterfuge               |
 
 ### Focus Tags (WHAT) - Temporary Encounter State
 
@@ -95,7 +95,7 @@ Each encounter tracks two primary resources:
 Depending on the encounter type, pressure damages one of three secondary resources:
 
 **Health** (Physical Encounters): Represents physical wellbeing and stamina.  
-**Confidence** (Social Encounters): Represents social standing and composure.  
+**Confidence** (Rapport Encounters): Represents social standing and composure.  
 **Concentration** (Intellectual Encounters): Represents mental focus and clarity.
 
 When these resources reach zero, the encounter automatically fails.
@@ -168,14 +168,14 @@ Here is a selection of sample choices showing how the system works:
 **"Display of Force"** (Dominance + Physical, Momentum)
 - Tag Effects: +2 Dominance, +1 Physical
 - Mechanical Effect: +2 momentum
-- Social Description: *"You raise your voice and speak with unwavering authority, making it clear you won't back down."*
+- Rapport Description: *"You raise your voice and speak with unwavering authority, making it clear you won't back down."*
 - Intellectual Description: *"You forcefully assert your interpretation, dismissing alternative theories with conviction."*
 - Physical Description: *"You flex your muscles and adopt an intimidating stance, demonstrating your physical power."*
 
 **"Stand Ground"** (Dominance + Physical, Pressure)
 - Tag Effects: +1 Dominance, +1 Physical
 - Mechanical Effect: -1 pressure
-- Social Description: *"You refuse to be intimidated, standing tall and maintaining your position despite challenges."*
+- Rapport Description: *"You refuse to be intimidated, standing tall and maintaining your position despite challenges."*
 - Intellectual Description: *"You hold firmly to your conclusion despite criticism, confident in your analysis."*
 - Physical Description: *"You plant your feet and stand firm, refusing to yield ground to your opponent."*
 
@@ -184,14 +184,14 @@ Here is a selection of sample choices showing how the system works:
 **"Charming Words"** (Rapport + Relationship, Momentum)
 - Tag Effects: +2 Rapport, +1 Relationship
 - Mechanical Effect: +2 momentum
-- Social Description: *"You engage with warmth and genuine interest, making the other person feel valued and understood."*
+- Rapport Description: *"You engage with warmth and genuine interest, making the other person feel valued and understood."*
 - Intellectual Description: *"You frame your ideas in a way that resonates emotionally with your audience."*
 - Physical Description: *"Your friendly demeanor puts others at ease, creating natural cooperation in physical tasks."*
 
 **"Smooth Over"** (Rapport + Relationship, Pressure)
 - Tag Effects: +1 Rapport, +1 Relationship
 - Mechanical Effect: -1 pressure
-- Social Description: *"You defuse tension with well-chosen words and genuine empathy, easing strained relationships."*
+- Rapport Description: *"You defuse tension with well-chosen words and genuine empathy, easing strained relationships."*
 - Intellectual Description: *"You incorporate others' perspectives respectfully, reducing defensive reactions."*
 - Physical Description: *"You use humor and camaraderie to release tension during physically challenging moments."*
 
@@ -200,14 +200,14 @@ Here is a selection of sample choices showing how the system works:
 **"Analytical Insight"** (Analysis + Information, Momentum)
 - Tag Effects: +2 Analysis, +1 Information
 - Mechanical Effect: +2 momentum
-- Social Description: *"You observe subtle social cues and patterns, gaining crucial insights into motivations and relationships."*
+- Rapport Description: *"You observe subtle social cues and patterns, gaining crucial insights into motivations and relationships."*
 - Intellectual Description: *"You identify the critical connection between seemingly unrelated pieces of information."*
 - Physical Description: *"You analyze patterns of movement and position, discovering an optimal approach to the physical challenge."*
 
 **"Careful Consideration"** (Analysis + Information, Pressure)
 - Tag Effects: +1 Analysis, +1 Information
 - Mechanical Effect: -1 pressure
-- Social Description: *"You consider all available information before speaking, avoiding potential social missteps."*
+- Rapport Description: *"You consider all available information before speaking, avoiding potential social missteps."*
 - Intellectual Description: *"You methodically rule out incorrect interpretations, preventing wasted effort."*
 - Physical Description: *"You gather crucial information before acting, avoiding unnecessary risks and dangers."*
 
@@ -216,14 +216,14 @@ Here is a selection of sample choices showing how the system works:
 **"Precise Strike"** (Precision + Physical, Momentum)
 - Tag Effects: +2 Precision, +1 Physical
 - Mechanical Effect: +2 momentum
-- Social Description: *"You deliver exactly the right words at exactly the right moment for maximum impact."*
+- Rapport Description: *"You deliver exactly the right words at exactly the right moment for maximum impact."*
 - Intellectual Description: *"You focus on the exactly correct detail that unlocks the entire problem."*
 - Physical Description: *"You execute a perfectly timed movement with flawless technique."*
 
 **"Measured Response"** (Precision + Physical, Pressure)
 - Tag Effects: +1 Precision, +1 Physical
 - Mechanical Effect: -1 pressure
-- Social Description: *"You calibrate your response perfectly to defuse tension without showing weakness."*
+- Rapport Description: *"You calibrate your response perfectly to defuse tension without showing weakness."*
 - Intellectual Description: *"You make careful, measured adjustments to your approach, avoiding overreactions."*
 - Physical Description: *"You move with deliberate control, minimizing strain and risk of injury."*
 
@@ -232,14 +232,14 @@ Here is a selection of sample choices showing how the system works:
 **"Hidden Advantage"** (Evasion + Physical, Momentum)
 - Tag Effects: +2 Evasion, +1 Physical
 - Mechanical Effect: +2 momentum
-- Social Description: *"You hide your true capabilities until the perfect moment to reveal them for maximum effect."*
+- Rapport Description: *"You hide your true capabilities until the perfect moment to reveal them for maximum effect."*
 - Intellectual Description: *"You work behind the scenes, developing insights others haven't considered."*
 - Physical Description: *"You move stealthily, positioning yourself for an advantageous approach."*
 
 **"Fade Away"** (Evasion + Physical, Pressure)
 - Tag Effects: +1 Evasion, +1 Physical
 - Mechanical Effect: -1 pressure
-- Social Description: *"You make yourself socially invisible when attention would create complications."*
+- Rapport Description: *"You make yourself socially invisible when attention would create complications."*
 - Intellectual Description: *"You withdraw your more controversial ideas temporarily, reducing resistance."*
 - Physical Description: *"You slip into the shadows, removing yourself from immediate danger."*
 
@@ -376,7 +376,7 @@ Locations define the strategic and narrative context for encounters. Each locati
 ### Encounter Definition Components
 
 - **Location Name and Type**: Thematic identity and physical characteristics
-- **Encounter Type**: Social, Intellectual, or Physical (for narrative presentation)
+- **Encounter Type**: Rapport, Intellectual, or Physical (for narrative presentation)
 - **Strategic Tags**: Four approach-related effects (two beneficial, two detrimental)
 - **Narrative Tags**: 2-3 tags that block specific focus choices at approach thresholds
 - **Momentum Thresholds**: Success breakpoints (Failure, Partial, Standard, Exceptional)
@@ -402,7 +402,7 @@ The narrative system translates mechanical choices and outcomes into engaging, c
 
 The narrative system adapts its output to three distinct presentation modes:
 
-#### Social Encounters - Direct Speech
+#### Rapport Encounters - Direct Speech
 All choices and outcomes presented as dialogue between characters.
 - Example: *"Good evening! I'm new to these parts. What can you tell me about the road conditions ahead?"*
 
@@ -432,7 +432,7 @@ The narrative system serves several important purposes:
 
 Character archetypes serve as starting points for players, each specializing in one approach and having a basic set of choices.
 
-### Knight (Dominance)
+### Artisan (Dominance)
 - **Offensive Choice**: "Display of Force" (+2 momentum, +2 Dominance, +1 chosen focus)
 - **Defensive Choice**: "Stand Ground" (-1 pressure, +1 Dominance, +1 chosen focus)
 - Naturally excels in combat encounters
@@ -444,13 +444,13 @@ Character archetypes serve as starting points for players, each specializing in 
 - Naturally excels in social and negotiation encounters
 - Struggles in combat and stealthy encounters
 
-### Sage (Analysis)
+### Scribe (Analysis)
 - **Offensive Choice**: "Analytical Insight" (+2 momentum, +2 Analysis, +1 chosen focus)
 - **Defensive Choice**: "Careful Consideration" (-1 pressure, +1 Analysis, +1 chosen focus)
 - Naturally excels in intellectual and investigation encounters
 - Struggles in fast-paced combat encounters
 
-### Forester (Precision)
+### Courtier (Precision)
 - **Offensive Choice**: "Precise Strike" (+2 momentum, +2 Precision, +1 chosen focus)
 - **Defensive Choice**: "Measured Response" (-1 pressure, +1 Precision, +1 chosen focus)
 - Naturally excels in exploration and hunting encounters

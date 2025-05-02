@@ -85,7 +85,7 @@
     [Inject] protected GameState GameState { get; set; }
 
     private string playerName;
-    private ArchetypeTypes selectedArchetype = ArchetypeTypes.Knight;
+    private ArchetypeTypes selectedArchetype = ArchetypeTypes.Artisan;
     private Genders selectedGender = Genders.Male;
     private bool changingImage = false;
     private bool changingContent = false;
@@ -204,37 +204,42 @@
     {
         return archetype switch
         {
-            ArchetypeTypes.Knight => "Masters of warfare who rely on dominance and physical prowess. Trained in combat techniques and inspiring fear in opponents.",
-            ArchetypeTypes.Sage => "Scholars who excel at analysis and information gathering. Their methodical approach reveals hidden knowledge and solves complex problems.",
-            ArchetypeTypes.Forester => "Masters of wilderness survival who rely on precision and careful observation. Expert trackers and hunters with deep knowledge of nature.",
-            ArchetypeTypes.Courtier => "Skilled diplomats who excel at social interactions and building relationships. Their charm and persuasive abilities open doors closed to others.",
-            ArchetypeTypes.Shadow => "Masters of subterfuge who rely on concealment and misdirection. They navigate unseen through dangerous situations and access restricted areas.",
+            ArchetypeTypes.Artisan => "Crafters and builders, skilled with their hands and strong of body. Artisans shape the world through force and endurance, from forging metal to raising walls.",
+            ArchetypeTypes.Scribe => "Keepers of knowledge and masters of observation. Scribes decipher secrets, study ancient texts, and record the deeds of nobles and peasants alike.",
+            ArchetypeTypes.Herbalist => "Wanderers of the wilds who know every leaf and root. Herbalists survive and thrive through precision, observation, and a deep connection to nature's cycles.",
+            ArchetypeTypes.Courtier => "Silver-tongued negotiators navigating courts and guild halls. Courtiers weave influence with charm, persuasion, and a keen sense of hidden motives.",
+            ArchetypeTypes.Merchant => "Dealmakers and travelers who see value where others see clutter. Merchants command resources, read people, and seize opportunity with swift precision.",
+            ArchetypeTypes.Shadow => "Silent operatives who move through the cracks of society. Shadows excel in stealth, precision, and deception, securing what others dare not attempt.",
             _ => "Unknown archetype"
         };
     }
+
 
     private string GetNaturalTags(ArchetypeTypes archetype)
     {
         return archetype switch
         {
-            ArchetypeTypes.Knight => "Dominance, Physical",
-            ArchetypeTypes.Sage => "Analysis, Information",
-            ArchetypeTypes.Forester => "Precision, Environment",
+            ArchetypeTypes.Artisan => "Physical, Environment",
+            ArchetypeTypes.Scribe => "Analysis, Information",
+            ArchetypeTypes.Herbalist => "Precision, Environment",
             ArchetypeTypes.Courtier => "Rapport, Relationship",
-            ArchetypeTypes.Shadow => "Concealment, Resource",
+            ArchetypeTypes.Merchant => "Dominance, Resource",
+            ArchetypeTypes.Shadow => "Concealment, Precision",
             _ => "None"
         };
     }
+
 
     private List<string> GetStartingItems(ArchetypeTypes archetype)
     {
         return archetype switch
         {
-            ArchetypeTypes.Knight => new List<string> { "Sword", "Shield", "Chain Mail", "Whetstone", "Rations" },
-            ArchetypeTypes.Sage => new List<string> { "Journal", "Quill & Ink", "Spectacles", "Puzzle Box", "Ancient Text" },
-            ArchetypeTypes.Forester => new List<string> { "Bow", "Skinning Knife", "Snares", "Flint & Steel", "Herb Pouch" },
-            ArchetypeTypes.Courtier => new List<string> { "Fine Clothes", "Wax Seal Kit", "Perfume", "Silver Coins", "Wine Flask" },
-            ArchetypeTypes.Shadow => new List<string> { "Lockpicks", "Dark Cloak", "Grappling Hook", "Poison Vial", "Disguise Kit" },
+            ArchetypeTypes.Artisan => new List<string> { "Hammer", "Chisel", "Trowel", "Mortar", "Rations" },
+            ArchetypeTypes.Scribe => new List<string> { "Journal", "Quill & Ink", "Spectacles", "Puzzle Box", "Ancient Text" },
+            ArchetypeTypes.Herbalist => new List<string> { "Herb Satchel", "Mortar & Pestle", "Field Guide", "Herbal Poultice", "Hunting Knife" },
+            ArchetypeTypes.Courtier => new List<string> { "Fine Clothes", "Wax Seal Kit", "Perfume", "Silver Coins", "Parley Notes" },
+            ArchetypeTypes.Merchant => new List<string> { "Ledger", "Scales", "Trade Goods", "Coin Purse", "Caravan Permit" },
+            ArchetypeTypes.Shadow => new List<string> { "Lockpicks", "Dark Cloak", "Grappling Hook", "Dagger", "Poison Vial" },
             _ => new List<string> { "Rations" }
         };
     }

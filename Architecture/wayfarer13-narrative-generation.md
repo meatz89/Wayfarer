@@ -277,7 +277,7 @@ The heat of the forge washes over you in waves as you approach Emil's workstatio
     },
     {
       "text": "Offer to help Emil practice these techniques during your regular sessions",
-      "skillRequirement": "Warfare 1",
+      "skillRequirement": "Endurance 1",
       "narrativeOutcome": "You become part of Emil's journey to reclaim his family legacy, earning special trust from both apprentice and master"
     },
     {

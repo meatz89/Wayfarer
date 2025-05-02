@@ -165,19 +165,20 @@
                                 <div class="skills-grid">
                                     @foreach (var skill in new[]
                                     {
-                                        (SkillTypes.Warfare, "⚔️", "Warfare"),
-                                        (SkillTypes.Wilderness, "🌲", "Wilderness"),
-                                        (SkillTypes.Scholarship, "📚", "Scholarship"),
-                                        (SkillTypes.Diplomacy, "🤝", "Diplomacy"),
-                                        (SkillTypes.Subterfuge, "🕵️", "Subterfuge")
+                                        (SkillTypes.Endurance, "", "Endurance"),
+                                        (SkillTypes.Finesse, "", "Finesse"),
+                                        (SkillTypes.Diplomacy, "", "Diplomacy"),
+                                        (SkillTypes.Charm, "", "Charm"),
+                                        (SkillTypes.Insight, "", "Insight"),
+                                        (SkillTypes.Lore, "", "Lore")
                                     })
                                     {
                                         var type = skill.Item1;
                                         var icon = skill.Item2;
                                         var label = skill.Item3;
-                                        var lvl = PlayerState.PlayerSkills.GetLevelForSkill(type);
-                                        var xp = PlayerState.PlayerSkills.GetXPForSkill(type);
-                                        var next = PlayerState.PlayerSkills.GetXPToNextForSkill(type);
+                                        var lvl = PlayerState.Skills.GetLevelForSkill(type);
+                                        var xp = PlayerState.Skills.GetXPForSkill(type);
+                                        var next = PlayerState.Skills.GetXPToNextForSkill(type);
                                         var pct = next > 0 ? (double)xp / next * 100 : 0;
                                         <div class="player-skill">
                                             <span class="skill-icon">@icon</span>

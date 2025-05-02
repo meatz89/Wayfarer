@@ -4,7 +4,7 @@
 
 Wayfarer's compelling gameplay loop should leverage the tension between immediate gratification and long-term planning. The most addictive loops always create a sense of "almost there" – a feeling that one more action will unlock something meaningful.
 
-Create a multi-layered progression system where several advancement tracks move at different speeds. When the player completes any action, they should always be visibly progressing toward at least one short-term goal while also advancing longer-term objectives. For example, after helping the blacksmith's apprentice, the player might see they're one action away from leveling up that relationship, three actions from improving their Warfare skill, and halfway to affording better lodging.
+Create a multi-layered progression system where several advancement tracks move at different speeds. When the player completes any action, they should always be visibly progressing toward at least one short-term goal while also advancing longer-term objectives. For example, after helping the blacksmith's apprentice, the player might see they're one action away from leveling up that relationship, three actions from improving their Endurance skill, and halfway to affording better lodging.
 
 Implement progress bars that fill disproportionately faster at the beginning and slow down near completion – this creates a psychological pull to "just finish" what seems nearly complete. Each location spot should have its own XP meter with clearly visible thresholds that reward curiosity and repeated engagement.
 
@@ -78,7 +78,7 @@ SpotMilestone Example:
   NarrativeTitle: "The Broken Blade"
   NarrativeText: [200-300 word scene where Emil reveals his father was a renowned swordsmith who fell from grace]
   Choices:
-    - Offer to help Emil learn his father's techniques (requires Warfare 3)
+    - Offer to help Emil learn his father's techniques (requires Endurance 3)
     - Suggest Emil focus on his own style instead (requires Diplomacy 2)
     - Ask more about what happened to his father (requires Analysis 1)
   Outcomes:

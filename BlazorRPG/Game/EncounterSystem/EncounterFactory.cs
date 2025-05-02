@@ -135,7 +135,7 @@
         if (population.Equals(Population.Crowded))
         {
             strategicTags.Add(new StrategicTag(
-                "Social Pressure",
+                "Rapport Pressure",
                 population,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { population },
@@ -208,7 +208,7 @@
             ));
 
             strategicTags.Add(new StrategicTag(
-                "Social Protocol",
+                "Rapport Protocol",
                 atmosphere,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { atmosphere },

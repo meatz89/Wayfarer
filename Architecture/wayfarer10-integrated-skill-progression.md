@@ -10,11 +10,11 @@ Instead of separate affinities, I propose an integrated skill progression system
 
 Each basic action type develops a corresponding skill:
 
-- **Warfare**: Improves Health on level up, increases rest effectiveness and resource restoration
-- **Wilderness**: Improves Energy on level up, increases medicinal herb discovery and effectiveness
-- **Scholarship**: Improves Concentration on level up, increases discovery chances and resource spotting
+- **Endurance**: Improves Health on level up, increases rest effectiveness and resource restoration
+- **Charm**: Improves Energy on level up, increases medicinal herb discovery and effectiveness
+- **Observation**: Improves Concentration on level up, increases discovery chances and resource spotting
 - **Diplomacy**: Improves Confidence on level up, increases social options and rewards
-- **Subterfuge**: Improves Reputation on level up, increases options to remain undetected
+- **Finesse**: Improves Reputation on level up, increases options to remain undetected
 
 ### Secondary Skills (Resource-Based)
 
@@ -23,7 +23,7 @@ These skills develop through resource management:
 - **Energy Management**: Develops through efficient energy usage
 - **Health Resilience**: Builds through physical encounter survival
 - **Mental Clarity**: Improves through intellectual challenges
-- **Social Poise**: Strengthens through social interactions
+- **Rapport Poise**: Strengthens through social interactions
 
 ## Why This System Transforms our Game
 
@@ -73,7 +73,7 @@ Unlike typical RPG leveling that just increases numbers, this system:
 2. **Provides Constant Feedback**: Every action moves progress bars, creating satisfaction
 3. **Encourages Varied Gameplay**: Different skills advance through different activities
 4. **Balances Specialist vs. Generalist**: Both approaches are viable with different advantages
-5. **Makes Non-Combat Gameplay Rewarding**: Gathering and traveling become progression mechanics, not just maintenance
+5. **Makes Non-Force Gameplay Rewarding**: Gathering and traveling become progression mechanics, not just maintenance
 
 Most importantly, this system makes Wayfarer addictive even without encounters because every action contributes to meaningful progression. Players will eagerly perform "just one more" basic action to reach the next skill threshold and unlock new capabilities.
 

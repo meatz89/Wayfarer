@@ -41,26 +41,18 @@
     public List<string> KnownLocations { get; private set; } = new List<string>();
     public List<string> KnownLocationSpots { get; private set; } = new List<string>();
     public List<CardDefinition> KnownCards { get; private set; } = new List<CardDefinition>();
-    public PlayerSkills PlayerSkills { get; private set; } = new();
-
-    private int BaseMaxEnergy { get; set; } = 20;
-    private int BaseMaxHealth { get; set; } = 20;
-    private int BaseMaxConcentration { get; set; } = 20;
-    private int BaseMaxConfidence { get; set; } = 20;
-    private int BaseMaxReputation { get; set; } = 20;
+    public PlayerSkills Skills { get; private set; } = new();
 
     public int MinHealth { get; set; }
     public int Health { get; set; }
     public int Concentration { get; set; }
     public int Confidence { get; set; }
     public int Energy { get; set; }
-    public int Reputation { get; set; }
 
     public int MaxHealth;
     public int MaxEnergy;
     public int MaxConcentration;
     public int MaxConfidence;
-    public int MaxReputation;
 
     public PlayerState()
     {
@@ -78,7 +70,6 @@
 
         NegativeStatusTypes = new();
 
-        SetCharacterStats();
         HealFully();
     }
 
@@ -90,25 +81,23 @@
         Confidence = MaxConfidence;
     }
 
-    public void SetCharacterStats()
-    {
-        MaxHealth = BaseMaxHealth + PlayerSkills.BonusMaxHealth;
-        MaxEnergy = BaseMaxEnergy + PlayerSkills.BonusMaxEnergy;
-        MaxConcentration = BaseMaxConcentration + PlayerSkills.BonusMaxConcentration;
-        MaxConfidence = BaseMaxConfidence + PlayerSkills.BonusMaxConfidence;
-        MaxReputation = BaseMaxReputation + PlayerSkills.BonusReputation;
-    }
-
     public void Initialize(string playerName, ArchetypeTypes selectedArchetype, Genders gender)
     {
         Name = playerName;
         Gender = gender;
         SetArchetype(selectedArchetype);
 
-        SetCharacterStats();
         HealFully();
 
         IsInitialized = true;
+    }
+
+    public void SetCharacterStats()
+    {
+        MaxHealth = 10 + Skills.BonusMaxHealth;
+        MaxEnergy = 10 + Skills.BonusMaxEnergy;
+        MaxConcentration = 10 + Skills.BonusMaxConcentration;
+        MaxConfidence = 10 + Skills.BonusMaxConfidence;
     }
 
     public void SetArchetype(ArchetypeTypes archetype)
@@ -117,24 +106,23 @@
 
         switch (archetype)
         {
-            case ArchetypeTypes.Knight:
-                InitializeKnightInventory();
+            case ArchetypeTypes.Artisan:
+                InitializeArtisan();
                 break;
-
             case ArchetypeTypes.Courtier:
-                InitializeCourtierInventory();
+                InitializeCourtier();
                 break;
-
-            case ArchetypeTypes.Sage:
-                InitializeSageInventory();
+            case ArchetypeTypes.Scribe:
+                InitializeScribe();
                 break;
-
-            case ArchetypeTypes.Forester:
-                InitializeForesterInventory();
+            case ArchetypeTypes.Herbalist:
+                InitializeHerbalist();
                 break;
-
             case ArchetypeTypes.Shadow:
-                InitializeShadowInventory();
+                InitializeShadow();
+                break;
+            case ArchetypeTypes.Merchant:
+                InitializeMerchant();
                 break;
 
             default:
@@ -142,69 +130,86 @@
         }
     }
 
-    private void InitializeKnightInventory()
+    private void InitializeArtisan()
     {
-        // Clear existing inventory first
+        // Inventory
         ClearInventory();
+        Inventory.AddItem(ItemTypes.Hammer);
+        Inventory.AddItem(ItemTypes.Chisel);
+        Inventory.AddItem(ItemTypes.Trowel);
+        Inventory.AddItem(ItemTypes.Mortar);
 
-        // Add warrior-specific items
-        Inventory.AddItem(ItemTypes.Sword);
-        Inventory.AddItem(ItemTypes.Shield);
-        Inventory.AddItem(ItemTypes.Chainmail);
-        Inventory.AddItem(ItemTypes.Whetstone);
-        Inventory.AddItem(ItemTypes.FlintAndSteel);
+        // Skill bonuses: excels in Endurance and Finesse
+        Skills.AddLevelBonus(SkillTypes.Endurance, 1);
+        Skills.AddLevelBonus(SkillTypes.Finesse, 1);
     }
 
-    private void InitializeCourtierInventory()
+    private void InitializeCourtier()
     {
-        // Clear existing inventory first
         ClearInventory();
-
-        // Add bard-specific items
         Inventory.AddItem(ItemTypes.FineClothes);
         Inventory.AddItem(ItemTypes.WaxSealKit);
         Inventory.AddItem(ItemTypes.Perfume);
         Inventory.AddItem(ItemTypes.SilverCoins);
         Inventory.AddItem(ItemTypes.WineFlask);
+
+        // Skill bonuses: excels in Charm and Diplomacy
+        Skills.AddLevelBonus(SkillTypes.Charm, 1);
+        Skills.AddLevelBonus(SkillTypes.Diplomacy, 1);
     }
 
-    private void InitializeSageInventory()
+    private void InitializeScribe()
     {
-        // Clear existing inventory first
         ClearInventory();
-
-        // Add scholar-specific items
         Inventory.AddItem(ItemTypes.Journal);
         Inventory.AddItem(ItemTypes.QuillAndInk);
         Inventory.AddItem(ItemTypes.Spectacles);
         Inventory.AddItem(ItemTypes.PuzzleBox);
         Inventory.AddItem(ItemTypes.AncientText);
+
+        // Skill bonuses: excels in Lore and Insight
+        Skills.AddLevelBonus(SkillTypes.Lore, 1);
+        Skills.AddLevelBonus(SkillTypes.Lore, 1);
     }
 
-    private void InitializeForesterInventory()
+    private void InitializeHerbalist()
     {
-        // Clear existing inventory first
         ClearInventory();
+        Inventory.AddItem(ItemTypes.HerbSatchel);
+        Inventory.AddItem(ItemTypes.MortarAndPestle);
+        Inventory.AddItem(ItemTypes.FieldGuide);
 
-        // Add ranger-specific items
-        Inventory.AddItem(ItemTypes.Bow);
-        Inventory.AddItem(ItemTypes.SkinningKnife);
-        Inventory.AddItem(ItemTypes.Snares);
-        Inventory.AddItem(ItemTypes.FlintAndSteel);
-        Inventory.AddItem(ItemTypes.HerbPouch);
+        // Skill bonuses: excels in Insight and Lore
+        Skills.AddLevelBonus(SkillTypes.Insight, 1);
+        Skills.AddLevelBonus(SkillTypes.Lore, 1);
     }
 
-    private void InitializeShadowInventory()
+    private void InitializeShadow()
     {
-        // Clear existing inventory first
         ClearInventory();
-
-        // Add thief-specific items
         Inventory.AddItem(ItemTypes.Lockpicks);
         Inventory.AddItem(ItemTypes.DarkCloak);
         Inventory.AddItem(ItemTypes.GrapplingHook);
         Inventory.AddItem(ItemTypes.PoisonVial);
         Inventory.AddItem(ItemTypes.DisguiseKit);
+
+        // Skill bonuses: excels in Finesse and Insight
+        Skills.AddLevelBonus(SkillTypes.Finesse, 1);
+        Skills.AddLevelBonus(SkillTypes.Lore, 1);
+    }
+
+    private void InitializeMerchant()
+    {
+        ClearInventory();
+        Inventory.AddItem(ItemTypes.Ledger);
+        Inventory.AddItem(ItemTypes.Scales);
+        Inventory.AddItem(ItemTypes.TradeGoods);
+        Inventory.AddItem(ItemTypes.CoinPurse);
+        Inventory.AddItem(ItemTypes.TradeDocuments);
+
+        // Skill bonuses: excels in Diplomacy and Charm
+        Skills.AddLevelBonus(SkillTypes.Diplomacy, 1);
+        Skills.AddLevelBonus(SkillTypes.Charm, 1);
     }
 
     private void ClearInventory()
@@ -353,4 +358,5 @@
     {
         throw new NotImplementedException();
     }
+
 }

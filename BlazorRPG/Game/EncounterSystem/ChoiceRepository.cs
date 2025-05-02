@@ -81,7 +81,7 @@ public class ChoiceRepository
                 TagModification.IncreaseFocus(FocusTags.Relationship)
             },
             new EnvironmentalPropertyEffect(new() { Population.Crowded }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
-            new List<SkillRequirement> { new SkillRequirement(SkillTypes.Warfare, 1) }
+            new List<SkillRequirement> { new SkillRequirement(SkillTypes.Endurance, 1) }
         ));
 
         // COURTIER CARDS (Rapport)
@@ -124,7 +124,7 @@ public class ChoiceRepository
         // Tier 2
         cards.Add(CardDefinitionFactory.BuildCard(
             "social_leverage",
-            "Social Leverage",
+            "Rapport Leverage",
             "You skillfully use your connections and charm to gain access to valuable resources.",
             2,
             ApproachTags.Rapport, 3,
@@ -191,7 +191,7 @@ public class ChoiceRepository
                 TagModification.IncreaseFocus(FocusTags.Physical)
             },
             new EnvironmentalPropertyEffect(new() { Physical.Hazardous }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Analysis),
-            new List<SkillRequirement> { new SkillRequirement(SkillTypes.Scholarship, 1) }
+            new List<SkillRequirement> { new SkillRequirement(SkillTypes.Insight, 1) }
         ));
 
         // FORESTER CARDS (Precision)
@@ -263,7 +263,7 @@ public class ChoiceRepository
                 TagModification.IncreaseFocus(FocusTags.Environment)
             },
             new EnvironmentalPropertyEffect(new() { Physical.Expansive }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Precision),
-            new List<SkillRequirement> { new SkillRequirement(SkillTypes.Wilderness, 1) }
+            new List<SkillRequirement> { new SkillRequirement(SkillTypes.Charm, 1) }
         ));
 
         // SHADOW CARDS (Concealment)
@@ -288,7 +288,7 @@ public class ChoiceRepository
 
         cards.Add(CardDefinitionFactory.BuildCard(
             "stealth_approach",
-            "Stealth Approach",
+            "Precision Approach",
             "You move silently through the environment, avoiding detection entirely.",
             1,
             ApproachTags.Concealment, 0,  // Changed from 2 to 0
@@ -335,7 +335,7 @@ public class ChoiceRepository
                 TagModification.IncreaseFocus(FocusTags.Information)
             },
             new EnvironmentalPropertyEffect(new() { Population.Scholarly }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Concealment),
-            new List<SkillRequirement> { new SkillRequirement(SkillTypes.Subterfuge, 1) }
+            new List<SkillRequirement> { new SkillRequirement(SkillTypes.Finesse, 1) }
         ));
 
         // Special cards
@@ -354,7 +354,7 @@ public class ChoiceRepository
             },
             new EnvironmentalPropertyEffect(new() { Physical.Expansive }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Dominance),
             new List<SkillRequirement> {
-                new SkillRequirement (SkillTypes.Subterfuge, 2)
+                new SkillRequirement (SkillTypes.Finesse, 2)
             }
         ));
     }
@@ -391,10 +391,10 @@ public class ChoiceRepository
     {
         return archetype switch
         {
-            ArchetypeTypes.Knight => ApproachTags.Dominance,
+            ArchetypeTypes.Artisan => ApproachTags.Dominance,
             ArchetypeTypes.Courtier => ApproachTags.Rapport,
-            ArchetypeTypes.Sage => ApproachTags.Analysis,
-            ArchetypeTypes.Forester => ApproachTags.Precision,
+            ArchetypeTypes.Scribe => ApproachTags.Analysis,
+            ArchetypeTypes.Herbalist => ApproachTags.Precision,
             ArchetypeTypes.Shadow => ApproachTags.Concealment,
             _ => ApproachTags.Analysis
         };

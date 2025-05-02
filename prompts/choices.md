@@ -22,7 +22,7 @@ For each choice, write a 1-2 sentence description that:
 3. Reflects both the approach method (HOW) and focus (WHAT)
 4. Subtly telegraphs potential consequences without stating mechanical effects
 5. References relevant environmental elements or NPC dynamics
-6. Is appropriate for the encounter type (Social/Intellectual/Physical)
+6. Is appropriate for the encounter type (Rapport/Intellectual/Physical)
 7. Shows how the character would execute this choice under the current time pressure
 
 Each choice MUST provide a different approach to solving the CURRENT URGENT PROBLEM.

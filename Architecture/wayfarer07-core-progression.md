@@ -96,7 +96,7 @@ Most substantive actions trigger encounters:
   Action: Local News
   Goal: Gather information about recent events
   Complication: Innkeeper is busy with other patrons
-  Type: Social Encounter
+  Type: Rapport Encounter
   Location Spot: Bar (at Crown and Rose Inn)
   ```
 
@@ -165,10 +165,10 @@ During encounters, player choices build temporary tags:
 
 - **Approach Tags** (HOW players tackle challenges):
   - Dominance: Force, authority, intimidation
-  - Rapport: Social connections, charm, persuasion
+  - Rapport: Rapport connections, charm, persuasion
   - Analysis: Intelligence, observation, problem-solving
   - Precision: Careful execution, finesse, accuracy
-  - Evasion: Stealth, hiding, subterfuge
+  - Evasion: Precision, hiding, subterfuge
 
 - **Focus Tags** (WHAT players concentrate on):
   - Relationship: Connections with others, social dynamics

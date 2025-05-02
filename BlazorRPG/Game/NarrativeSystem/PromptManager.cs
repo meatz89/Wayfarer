@@ -840,7 +840,7 @@ public class PromptManager
                 else if (tagName.Contains("Coordinated"))
                     tagDescriptions.Add($"{tagName} (Adds momentum to Force approaches)");
                 else if (tagName.Contains("Distracted"))
-                    tagDescriptions.Add($"{tagName} (Adds momentum to Stealth approaches)");
+                    tagDescriptions.Add($"{tagName} (Adds momentum to Precision approaches)");
                 else if (tagName.Contains("Exhaustion"))
                     tagDescriptions.Add($"{tagName} (Reduces health based on pressure)");
                 else

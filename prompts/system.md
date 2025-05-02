@@ -59,13 +59,13 @@ Every narrative scene should follow this progression:
 ## KEY TAGS REFERENCE
 - APPROACHES (HOW the player acts):
   * Dominance: Direct power, authority, intimidation, aggression
-  * Rapport: Social grace, persuasion, empathy, appeal
+  * Rapport: Rapport grace, persuasion, empathy, appeal
   * Analysis: Intelligence, observation, problem-solving, strategy
   * Precision: Careful execution, skill, attention to detail, accuracy
   * Evasion: Subtlety, stealth, indirect methods, avoidance
 
 - FOCUSES (WHAT the player focuses on):
-  * Relationship: Social connections, status, trust, interactions
+  * Relationship: Rapport connections, status, trust, interactions
   * Information: Knowledge, facts, observations, understanding
   * Physical: Bodies, items, direct physical interaction
   * Environment: Surroundings, location features, terrain

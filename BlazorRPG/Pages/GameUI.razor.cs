@@ -411,9 +411,9 @@ public partial class GameUI : ComponentBase
     {
         return archetype switch
         {
-            ArchetypeTypes.Knight => "⚔️",
-            ArchetypeTypes.Sage => "📚",
-            ArchetypeTypes.Forester => "🏹",
+            ArchetypeTypes.Artisan => "⚔️",
+            ArchetypeTypes.Scribe => "📚",
+            ArchetypeTypes.Herbalist => "🏹",
             ArchetypeTypes.Courtier => "🎵",
             ArchetypeTypes.Shadow => "🗝️",
             _ => "❓"
