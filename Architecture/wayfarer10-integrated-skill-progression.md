@@ -10,20 +10,12 @@ Instead of separate affinities, I propose an integrated skill progression system
 
 Each basic action type develops a corresponding skill:
 
-- **Endurance**: Improves Health on level up, increases rest effectiveness and resource restoration
-- **Charm**: Improves Energy on level up, increases medicinal herb discovery and effectiveness
-- **Observation**: Improves Concentration on level up, increases discovery chances and resource spotting
-- **Diplomacy**: Improves Confidence on level up, increases social options and rewards
-- **Finesse**: Improves Reputation on level up, increases options to remain undetected
-
-### Secondary Skills (Resource-Based)
-
-These skills develop through resource management:
-
-- **Energy Management**: Develops through efficient energy usage
-- **Health Resilience**: Builds through physical encounter survival
-- **Mental Clarity**: Improves through intellectual challenges
-- **Rapport Poise**: Strengthens through social interactions
+- **Endurance**:
+- **Finesse**
+- **Diplomacy**
+- **Charm**
+- **Insight**
+- **Lore**
 
 ## Why This System Transforms our Game
 

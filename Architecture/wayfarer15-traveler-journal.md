@@ -49,13 +49,6 @@ This system creates sustainable progression because these bonuses remain regardl
   - Reveals connections to new locations or characters
   - At level up, becomes a permanent Journal entry
 
-### Natural Movement Incentive
-- After reaching level up, spots provide diminishing returns:
-  - XP gains reduced by 50%
-  - Resource yields reduced by 25%
-- Creates natural incentive to explore new areas
-- Never forces movement - player choice remains paramount
-
 ## Resource System: Purpose Over Exchange
 
 Resources gain value through their purposes, not trading:
@@ -74,7 +67,7 @@ Resources gain value through their purposes, not trading:
 - Examples for Wild Herbs:
   - **Basic Purpose**: Consume directly for +1 Health (no skill required)
   - **Skilled Purpose**: Create tonic for +3 Health (requires Observation 2)
-  - **Advanced Purpose**: Make remedy for Health AND Concentration (requires Observation 3)
+  - **Advanced Purpose**: Make remedy for Health AND Focus (requires Observation 3)
   - **Special Purpose**: Gift to Healer for relationship advancement
 
 ### Limited Inventory
@@ -92,12 +85,12 @@ The three vital resources create strategic tension:
 - If 0, cannot perform physical actions
 - Below 5: Energy cap reduced to 8, -1 to physical yields
 
-### Concentration (Mental focus)
+### Focus (Mental focus)
 - Required for intellectual actions
 - If 0, cannot perform mental actions
 - Below 5: -2 skill XP gains, -1 to mental yields
 
-### Confidence (Rapport capability)
+### Spirit (Rapport capability)
 - Required for social actions
 - If 0, cannot perform social actions
 - Below 5: -2 relationship gains, -1 to social yields
@@ -109,11 +102,12 @@ The brutal strategic insight: It's more efficient to let one resource fall to ex
 Skills represent the traveler's accumulated knowledge:
 
 ### Five Core Skills
-- **Endurance**: Force and security techniques
-- **Charm**: Survival and natural knowledge
-- **Observation**: Intellectual and technical knowledge
-- **Diplomacy**: Rapport interaction and negotiation
-- **Finesse**: Precision and hidden knowledge
+- Endurance
+- Finesse
+- Diplomacy
+- Charm
+- Insight
+- Lore
 
 ### Skill Advancement
 - Actions provide skill XP based on relevance
@@ -158,12 +152,12 @@ With herbs collected, player must decide their purpose:
 Player decides to use herbs for healer relationship, advancing toward level 2.
 
 ### Evening Dilemma: Resource Triangle
-With Health and Confidence declining, player must prioritize:
+With Health and Spirit declining, player must prioritize:
 - Restore Health (enabling tomorrow's physical actions)
-- Restore Confidence (enabling social advancement)
+- Restore Spirit (enabling social advancement)
 - Continue skill development despite resource penalties
 
-Player restores Health but lets Confidence fall to 5, accepting minimum social penalties.
+Player restores Health but lets Spirit fall to 5, accepting minimum social penalties.
 
 ### Location Progression Dilemma
 At the forest's XP threshold, player finds rare flower needed for level-up:
@@ -179,8 +173,8 @@ This system creates several non-obvious strategic depths:
 
 ### 1. The Resource Priority Rotation
 Instead of maintaining all resources equally, the expert strategy is planned rotation:
-- Focus on physical actions while maintaining Health, letting Concentration decline
-- Switch to mental actions while rebuilding Concentration, letting Confidence decline
+- Focus on physical actions while maintaining Health, letting Focus decline
+- Switch to mental actions while rebuilding Focus, letting Spirit decline
 - Cycle through priorities based on current objectives
 
 ### 2. The Journal Advancement Path
@@ -324,3 +318,84 @@ This system creates a framework for believable world expansion:
    - Narrative coherence (each discovery makes sense in context)
 
 This approach creates a world that feels like it's being genuinely explored rather than artificially revealed, with each discovery feeling earned and connected to the player's unique journey.
+
+
+# Wayfarer's Traveler-Focused Action Economy
+
+The refined action economy of Wayfarer centers on a journey-based experience where the player constantly travels between locations rather than settling down. This creates unique strategic tensions without relying on building, crafting, or maintenance systems.
+
+## Core Daily Action Framework
+
+Each day begins with a fixed pool of Personal Effort points (4-6). As a traveler, your challenges come from:
+
+- Allocating Effort between travel, exploration, social interaction, and basic needs
+- Managing limited inventory while on the road
+- Paying for essentials like lodging and food with finite coin
+- Building knowledge and relationships that travel with you
+
+Actions are divided into essential categories that reflect a traveler's life:
+
+**Travel Actions** (Moving between locations)
+- "Journey to New Location" - Costs 2-3 Effort depending on distance and familiarity
+- "Explore Surroundings" - Costs 1 Effort, increases location familiarity
+- "Seek Hidden Path" - Costs 2 Effort, may reveal shortcuts for future journeys
+
+**Acquisition Actions** (Gathering resources and knowledge)
+- "Gather Local Resources" - Costs 1 Effort, yields based on location type
+- "Learn Local Knowledge" - Costs 1 Effort, creates journal entries about the area
+- "Observe Distinctive Features" - Costs 1 Effort, reveals location-specific opportunities
+
+**Social Actions** (Engaging with NPCs)
+- "Meet Locals" - Costs 1 Effort, introduces character connections
+- "Build Relationship" - Costs 1-2 Effort, strengthens bonds with specific NPCs
+- "Request Assistance" - Costs 1 Effort, effectiveness based on relationship strength
+
+**Necessity Actions** (Meeting basic needs)
+- "Secure Lodging" - Costs coins (not Effort), essential for proper rest
+- "Obtain Food" - Costs either Effort (foraging) or coins (purchasing)
+- "Rest and Recover" - Sleeping at inn restores full Effort, sleeping outdoors restores less
+
+## The Traveler's Journal System
+
+Instead of building permanent structures, your character develops a Traveler's Journal that records meaningful experiences. These journal entries represent knowledge and connections that stay with you regardless of location:
+
+**Remembered Places** (Location knowledge)
+- Created when location familiarity reaches threshold levels
+- Provides permanent bonus to actions in similar location types
+- Example: "Forest Paths of the North" gives +1 to gathering in all forest locations
+
+**Meaningful Bonds** (Character connections)
+- Formed when relationships with NPCs reach significant levels
+- Provides ongoing benefits related to the NPC's expertise
+- Example: "Emil the Blacksmith" reduces coin cost when purchasing metal tools
+
+**Traveler's Insights** (Skill development)
+- Gained through repeated successful actions
+- Reduces Effort cost for specific action types
+- Example: "Efficient Foraging" reduces gathering Effort cost by 1 in all locations
+
+## Strategic Depth Without Settlement
+
+This system creates meaningful strategic depth through several interlocking considerations:
+
+**Location Investment vs. Movement**
+- Each day spent in a location builds familiarity and relationships
+- However, staying too long means not exploring new opportunities elsewhere
+- The optimal strategy balances developing current location knowledge with discovering new areas
+
+**Resource Distribution**
+- Different location types offer unique resources and opportunities
+- Certain regions have specialties worth traveling for (herbs in forests, information in towns)
+- Planning efficient travel routes becomes a key strategic element
+
+**Coin Management**
+- Lodging at inns costs coins but provides full Effort restoration
+- Camping outdoors is free but restores less Effort
+- Trading for essential items requires coin that could be used for comfortable lodging
+
+**Relationship Networks**
+- Building strong relationships in key locations creates a network of allies
+- These connections provide benefits when you return to visit
+- Strategic relationship development focuses on NPCs whose expertise aligns with your needs
+
+This action economy creates the tension of a traveling lifestyle where each day brings decisions about where to go, what to prioritize, and how to balance immediate needs against long-term development—all without requiring building, crafting, or maintenance systems.

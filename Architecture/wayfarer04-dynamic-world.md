@@ -68,9 +68,7 @@ Travel in Wayfarer isn't merely a loading screen between locations. Players move
 
 The journey itself is meaningful:
 
-- Travel methods reflect the character's development (walking → horseback → carriage)
 - Travel time passes in the game world, affecting locations upon arrival
-- Resources are consumed during longer journeys
 - Travel encounters may occur, especially on less-traveled paths
 - Initially limited to foot travel (slowest)
 - Can unlock faster travel methods through gameplay
@@ -87,8 +85,8 @@ The player manages several persistent resources:
 - Food: Required for travel and survival
 - Items: Equipment and quest items
 - Health: Physical wellbeing (resets at beginning of physical encounters)
-- Concentration: Mental focus (resets at beginning of intellectual encounters)
-- Confidence: Rapport standing (resets at beginning of social encounters)
+- Focus: Mental focus (resets at beginning of intellectual encounters)
+- Spirit: Rapport standing (resets at beginning of social encounters)
 
 ### Environmental Properties and Time
 
@@ -376,7 +374,6 @@ The system is designed to handle edge cases elegantly:
 
 This ensures the game remains playable and coherent even in unexpected situations.
 
-
 ## 12. World Growth Management
 
 ### The Significance Threshold
@@ -580,35 +577,15 @@ Locations combine multiple properties to create unique strategic environments:
 
 **Morning Market** (7am-11am)
 - Properties: Bright + Crowded + Commercial + Chaotic
-- Strategic Tags:
-  - "Merchant's Eye" (Commercial, Increases Momentum, scales with Analysis)
-  - "Public Spectacle" (Crowded, Increases Momentum, scales with Dominance)
-  - "Overwhelming Stimuli" (Chaotic, Increases Pressure, scales with Precision)
-  - "Clear Visibility" (Bright, Decreases Momentum, scales with Evasion)
 
 **Afternoon Market** (12pm-5pm)
 - Properties: Bright + Crowded + Commercial + Tense
-- Strategic Tags:
-  - "Merchant's Eye" (Commercial, Increases Momentum, scales with Analysis)
-  - "Public Spectacle" (Crowded, Increases Momentum, scales with Dominance)
-  - "Rapport Pressure" (Tense, Increases Pressure, scales with Rapport)
-  - "Clear Visibility" (Bright, Decreases Momentum, scales with Evasion)
 
 **Evening Market** (6pm-9pm)
 - Properties: Shadowy + Crowded + Commercial + Chaotic
-- Strategic Tags:
-  - "Merchant's Eye" (Commercial, Increases Momentum, scales with Analysis)
-  - "Public Spectacle" (Crowded, Increases Momentum, scales with Dominance)
-  - "Overwhelming Stimuli" (Chaotic, Increases Pressure, scales with Precision)
-  - "Shadow's Embrace" (Shadowy, Decreases Pressure, scales with Evasion)
 
 **Night Market** (10pm-12am)
 - Properties: Dark + Quiet + Commercial + Tense
-- Strategic Tags:
-  - "Merchant's Eye" (Commercial, Increases Momentum, scales with Analysis)
-  - "Whispered Deals" (Quiet, Increases Momentum, scales with Rapport)
-  - "Rapport Pressure" (Tense, Increases Pressure, scales with Rapport)
-  - "Cloak of Darkness" (Dark, Increases Momentum, scales with Evasion)
 
 ## Gameplay Impact
 
@@ -652,8 +629,6 @@ When implementing the property-based card system:
 2. **Gradual Transitions**: Properties should change gradually (Bright → Shadowy → Dark)
 3. **Weather Impact**: Weather conditions should modify available properties
 4. **Card Balance**: Ensure cards have synergies with diverse property combinations
-5. **UI Elements**: Clearly show active properties and card synergies to players
-6. **Property Icons**: Create distinctive icons for each property
 7. **Time System**: Implement a day/night cycle that affects all locations
 
 ## Conclusion

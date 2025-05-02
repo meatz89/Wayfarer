@@ -44,42 +44,6 @@ Create special high-value actions that are only available under specific conditi
 
 This creates urgency and planning around the calendar: "If I can save enough coins by Market Day, I can buy that better equipment."
 
-### 4. Action Chains with Escalating Returns
-
-Design interrelated actions where completing earlier steps enhances later ones:
-
-```
-Smith Progression Chain:
-1. "Help Blacksmith Apprentice" (available immediately)
-   - Yields: +1 Emil relationship, +1 Endurance skill
-2. "Learn Basic Smithing" (unlocks at Emil relationship 10)
-   - Yields: +2 Endurance skill, enables crafting Basic Tools
-3. "Study Advanced Techniques" (unlocks at Endurance skill 5)
-   - Yields: +3 Endurance skill, enables crafting Weapons
-4. "Master Special Alloys" (unlocks at Spot level 3)
-   - Yields: +5 Endurance skill, enables crafting Valuable Items
-```
-
-Each step in the chain increases the rewards, creating a sense of accelerating returns that makes players eager to continue the sequence.
-
-### 5. Resource Conversion Networks
-
-Create multiple paths to convert between resources with different efficiencies:
-
-```
-Energy → Coins Conversions:
-- "Chop Firewood": 2 Energy → 1 Coin (basic, always available)
-- "Hunt Game": 3 Energy → 3 Coins (requires Charm 2)
-- "Guard Caravan": 5 Energy → 8 Coins (requires Endurance 3)
-
-Coins → Energy Conversions:
-- "Buy Bread": 1 Coin → 1 Energy
-- "Tavern Meal": 3 Coins → 4 Energy
-- "Special Stew": 5 Coins → 7 Energy + 1 Health
-```
-
-This creates strategic planning where players identify the most efficient conversion rates based on their current skills and needs.
-
 ## Implementation Example: One Day in Wayfarer
 
 Let's follow how these systems create strategic depth in a single game day:

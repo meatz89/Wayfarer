@@ -57,8 +57,8 @@ The player manages several resources that constrain their activities:
 - **Money**: Used for purchases, services, and some actions
 - **Physical Resources**:
   - **Health**: Affected by physical encounters, reduced by pressure
-  - **Concentration**: Affected by intellectual encounters, reduced by pressure
-  - **Confidence**: Affected by social encounters, reduced by pressure
+  - **Focus**: Affected by intellectual encounters, reduced by pressure
+  - **Spirit**: Affected by social encounters, reduced by pressure
 
 ### Knowledge and Access
 
@@ -191,7 +191,7 @@ Encounters track two primary resources:
 - **Pressure**: Complications, stress, and risk
   - Increases through ineffective choices
   - Causes failure if too high
-  - Affects secondary resources (Health/Confidence/Concentration)
+  - Affects secondary resources (Health/Spirit/Focus)
 
 ### Encounter Flow
 

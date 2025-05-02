@@ -19,29 +19,24 @@ You select: "Work at the Forge"
 
 How will you approach this work?
 
-1. "Assist with Metal Crafting" 
+1. "Assist with Metal work" 
    Requirements: Warfare Skill ≥ 2
    Costs: 3 Energy
-   Yields: 8 coins, Metal Crafting technique, +0.2 Warfare
-   Enables: Guard armor discussions, Special commissions
 
 2. "Organize Tools and Materials"
    Requirements: Relationship with Emil ≥ 5
-   Costs: 2 Energy, 1 Concentration
-   Yields: 4 coins, Forge layout knowledge, +0.3 Emil Relationship
-   Enables: Efficient crafting, Access to storage room
+   Costs: 2 Energy, 1 Focus
+   Yields: 4 coins, Forge layout knowledge, +3 Emil Relationship
 
 3. "Study Forge Techniques"
    Requirements: Scholarship Skill ≥ 2
-   Costs: 1 Energy, 3 Concentration
-   Yields: 2 coins, Metallurgy knowledge, +0.2 Scholarship
-   Enables: Alloy identification, Market appraisal advantage
+   Costs: 1 Energy, 3 Focus
+   Yields: 2 coins, Metallurgy knowledge, +2 Scholarship
 
 4. "Provide Basic Labor" (Always Available)
    Requirements: None
    Costs: 3 Energy
-   Yields: 3 coins, +0.1 Warfare
-   Enables: Nothing specific
+   Yields: 3 coins, +1 Warfare
 ```
 
 ## Strategic Web of Enablement
@@ -50,7 +45,6 @@ The key innovation is how each approach specifically enables different actions a
 
 ```
 FORGE approaches enable GUARD POST approaches:
-- Metal Crafting technique → "Discuss Armor Maintenance" at Guard Post
 - Forge layout knowledge → "Suggest Equipment Storage" at Guard Post
 
 GUARD POST approaches enable WILDERNESS approaches:
@@ -82,9 +76,9 @@ All requirements use trackable numeric values:
 
 1. **Skills** (0-10 scale)
    - Warfare, Wilderness, Scholarship, Diplomacy, Subterfuge
-   - Increased by using related approaches (+0.1 to +0.3)
+   - Increased by using related approaches (+1 to +3)
 
-2. **Relationships** (0-100 scale)
+2. **Relationships** (0-10 scale)
    - Each character has relationship value
    - Increased through character interactions (+1 to +3)
 
@@ -96,8 +90,7 @@ All requirements use trackable numeric values:
    - Tracked as specific named items
    - Boolean flags for possession
 
-5. **Knowledge** (boolean flags)
-   - Techniques and information tracked as yes/no values
+5. **Knowledge**
    - Once learned, always available
 
 ## Distinct Approach Types
@@ -117,7 +110,6 @@ Each action offers fundamentally different approaches, not just scaled versions:
 3. **Resource-Based Approaches**
    - Require specific items
    - Yield valuable new items or substantial coin
-   - Enable crafting and material-based approaches
 
 4. **Knowledge-Based Approaches**
    - Require learned techniques or information
@@ -155,15 +147,15 @@ You select: "Explore Forest Path"
 
 1. "Track Wildlife" 
    Requirements: Wilderness ≥ 2
-   Enables: Efficient hunting, Hidden animal dens
+   Enables: Efficient hunting
 
 2. "Identify Medicinal Plants"
    Requirements: Scholarship ≥ 2
-   Enables: Healer conversations, Remedy creation
+   Enables: Remedy creation
 
 3. "Search for Hidden Passages"
    Requirements: Knowledge of local landmarks
-   Enables: Shortcut travel options, Secret locations
+   Enables: Shortcut travel options
 ```
 
 ## The Key Benefits
@@ -213,7 +205,7 @@ Depth: 1-3 (relationship)
 ### Insight Entries (What you've learned)
 ```
 "Metal Properties"
-Tags: [Crafting, Material, Trade]
+Tags: [Trade]
 Depth: 1-3 (understanding)
 ```
 
@@ -240,17 +232,17 @@ ACTION: "Work at the Forge"
 
 1. "Apply Material Knowledge" (Knowledge Approach)
    Requires: INSIGHT:[Metal,Crafting]:2
-   Costs: 3 Energy, 2 Concentration
+   Costs: 3 Energy, 2 Focus
    Yields: 8 coins, deepen Metal Properties insight
 
 2. "Collaborate with Smith" (Social Approach)
    Requires: BOND:[Craftsman,Village]:1  
-   Costs: 2 Energy, 1 Concentration
+   Costs: 2 Energy, 1 Focus
    Yields: 6 coins, deepen relationship with smith
 
 3. "Use Forge Layout" (Experience Approach)
    Requires: PLACE:[Workshop]:1
-   Costs: 3 Energy, 1 Concentration
+   Costs: 3 Energy, 1 Focus
    Yields: 5 coins, new insight about techniques
 
 4. "Provide Basic Labor" (Always Available)

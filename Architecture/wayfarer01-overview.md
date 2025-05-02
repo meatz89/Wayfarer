@@ -42,35 +42,11 @@ The foundation of the Wayfarer system is its tag-based approach to **temporary e
 
 Character archetypes serve as starting points for players, each specializing in one approach and having a basic set of choices.
 
-### Artisan (Dominance)
-- **Offensive Choice**: "Display of Force" (+2 momentum, +2 Dominance, +1 chosen focus)
-- **Defensive Choice**: "Stand Ground" (-1 pressure, +1 Dominance, +1 chosen focus)
-- Naturally excels in combat encounters
-- Struggles in intellectual and diplomatic encounters
-
-### Courtier (Rapport)
-- **Offensive Choice**: "Charming Words" (+2 momentum, +2 Rapport, +1 chosen focus)
-- **Defensive Choice**: "Smooth Over" (-1 pressure, +1 Rapport, +1 chosen focus)
-- Naturally excels in social and negotiation encounters
-- Struggles in combat and stealthy encounters
-
-### Scribe (Analysis)
-- **Offensive Choice**: "Analytical Insight" (+2 momentum, +2 Analysis, +1 chosen focus)
-- **Defensive Choice**: "Careful Consideration" (-1 pressure, +1 Analysis, +1 chosen focus)
-- Naturally excels in intellectual and investigation encounters
-- Struggles in fast-paced combat encounters
-
-### Courtier (Precision)
-- **Offensive Choice**: "Precise Strike" (+2 momentum, +2 Precision, +1 chosen focus)
-- **Defensive Choice**: "Measured Response" (-1 pressure, +1 Precision, +1 chosen focus)
-- Naturally excels in exploration and hunting encounters
-- Balances well across most encounter types
-
-### Shadow (Evasion)
-- **Offensive Choice**: "Hidden Advantage" (+2 momentum, +2 Evasion, +1 chosen focus)
-- **Defensive Choice**: "Fade Away" (-1 pressure, +1 Evasion, +1 chosen focus)
-- Naturally excels in stealth and theft encounters
-- Struggles in direct social encounters
+- Artisan
+- Herbalist
+- Scribe
+- Shadow
+- Merchant
 
 ### Design Rationale
 
@@ -102,7 +78,7 @@ At the start of an encounter:
 - Set momentum to 0
 - Set pressure to 0
 - Initialize approach and focus tags from character's current values
-- Set secondary resource (Health/Confidence/Concentration) to starting value
+- Set secondary resource (Health/Spirit/Focus) to starting value
 - Apply the encounter setup prompt to generate initial narrative
 
 ### End Conditions
@@ -132,7 +108,7 @@ The following example demonstrates how all these systems work together to create
 - Starting Focus Tags: All 0
 - Momentum: 0
 - Pressure: 0
-- Concentration: 10
+- Focus: 10
 
 **Location**: Ancient Library (Intellectual Encounter)
 - Strategic Tags: Analysis increases momentum, Precision decreases pressure, Dominance increases pressure, Rapport decreases momentum
