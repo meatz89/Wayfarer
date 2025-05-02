@@ -273,7 +273,7 @@ The heat of the forge washes over you in waves as you approach Emil's workstatio
     {
       "text": "Encourage Emil by noting how his hands resemble those in the sword's grip design",
       "skillRequirement": "Diplomacy 1",
-      "narrativeOutcome": "Emil gains confidence in his inherited ability, strengthening his relationship with both you and Osgar"
+      "narrativeOutcome": "Emil gains Spirit in his inherited ability, strengthening his relationship with both you and Osgar"
     },
     {
       "text": "Offer to help Emil practice these techniques during your regular sessions",

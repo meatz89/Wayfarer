@@ -109,7 +109,6 @@ NarrativeText: [Scene describing player's weariness and options for rest]
 Choices:
 - Pay last coins for proper lodging
 - Ask Hannah for credit (requires relationship 15+)
-- Find shelter in stables
 Outcomes: Different restoration amounts and relationship effects
 
 ### 5. Daily Reflection (Frequency: Once Per Day)
@@ -157,7 +156,6 @@ Mechanical Loop Integration:
 4. This action yields better skill XP than regular help
 5. At 60 relationship, Emil shares rumor about hidden sword design
 6. This creates mechanical treasure hunt opportunity
-7. Finding design unlocks unique crafting option
 
 Each narrative piece reveals just enough to create curiosity about the next revelation, while each mechanical advancement promises a new narrative moment just a few actions away. 
 

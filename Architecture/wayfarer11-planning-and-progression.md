@@ -43,8 +43,8 @@ Player planning revolves around managing several limited resources:
 
 1. **Time**: Divided into morning, afternoon, evening, and night
 2. **Energy**: Expended by physical activities and travel
-3. **Concentration**: Required for intellectual activities
-4. **Confidence**: Used in social interactions
+3. **Focus**: Required for intellectual activities
+4. **Spirit**: Used in social interactions
 5. **Health**: Maintained for survival and effectiveness
 6. **Coin**: Earned and spent on goods and services
 
@@ -126,8 +126,8 @@ This approach maintains the addictive planning element of Sir Brante while feeli
 Resource management creates natural planning considerations:
 
 - **Energy**: Restored primarily through sleep and food
-- **Concentration**: Restored through relaxation and meaningful activity changes
-- **Confidence**: Restored through successes and positive social interactions
+- **Focus**: Restored through relaxation and meaningful activity changes
+- **Spirit**: Restored through successes and positive social interactions
 - **Health**: Maintained through appropriate care and avoiding exhaustion
 
 Different restoration methods have different efficiencies, costs, and time requirements, creating strategic decisions about how to recover resources.
@@ -161,8 +161,8 @@ Example: Blacksmith's Forge Location Spot
 
 **Base Actions:**
 - "Help with Metalwork" (Morning/Afternoon)
-  - Costs: Energy -20, Concentration -10
-  - Yields: Coins +15, Endurance +0.2, Blacksmith Relationship +1
+  - Costs: Energy -20, Focus -10
+  - Yields: Coins +15, Endurance +2, Blacksmith Relationship +1
 
 **Progression Path:**
 1. **Level 1**: Initial access with basic work opportunity
@@ -172,12 +172,6 @@ Example: Blacksmith's Forge Location Spot
 3. **Level 3**: Milestone - Blacksmith's relative seeks help
    - Unlocks: "Search for Daughter" action and new location
    - Develops: Character relationship with blacksmith's family
-4. **Level 4**: Milestone - Blacksmith offers apprenticeship
-   - Unlocks: "Learn Smithing" action with improved benefits
-   - Yields: Special equipment crafting options
-5. **Level 5**: Milestone - Master project opportunity
-   - Unlocks: Reputation boost with village
-   - Yields: Unique equipment
 
 This approach replaces traditional quest structures with organic narrative development based on player engagement with locations.
 
@@ -284,7 +278,7 @@ This example demonstrates the integrated progression system for a Artisan-class 
 
 **Morning:**
 - Player chooses to work at the Blacksmith's Forge
-- Spends Energy and Concentration, gains Coins and relationship progress
+- Spends Energy and Focus, gains Coins and relationship progress
 - Forge gains XP toward next level
 - Endurance skill increases slightly
 
@@ -295,7 +289,7 @@ This example demonstrates the integrated progression system for a Artisan-class 
 - Guard Post gains XP toward next level
 
 **Evening:**
-- Player needs to restore Concentration
+- Player needs to restore Focus
 - Visits the creek to relax (free, but slower restoration)
 - Encounters NPC also at the creek
 - Relationship with NPC improves

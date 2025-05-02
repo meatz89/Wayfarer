@@ -79,7 +79,7 @@ Every X depth levels, the world contains a hub location:
 
 - **Hub Intervals**: Major hubs appear at depths 0, 3-5, 8-10, etc.
 - **Essential Services**: Each hub contains spots for rest, trade, healing, and information
-- **NPC Concentration**: Multiple characters with relationship development potential
+- **NPC Focus**: Multiple characters with relationship development potential
 - **Multiple Actions**: At least 5-8 different actions available
 - **Story Beats**: Major narrative developments occur at hubs
 
@@ -136,7 +136,7 @@ Some actions may change type based on context:
 Players must manage several critical resources:
 
 - **Energy**: Required for travel and some actions
-- **Health/Confidence/Concentration**: Sustains encounters
+- **Health/Spirit/Focus**: Sustains encounters
 - **Money**: Required for goods and services
 - **Time**: Advances with actions and travel
 - **Supplies**: Consumables for resource recovery
