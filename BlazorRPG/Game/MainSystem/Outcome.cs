@@ -102,33 +102,6 @@ public class EnergyOutcome : Outcome
     }
 }
 
-public class TimeOutcome : Outcome
-{
-    public string TimeWindow { get; set; }
-
-    public TimeOutcome(string timeWindow)
-    {
-        TimeWindow = timeWindow;
-    }
-
-    public override void Apply(GameState gameState)
-    {
-        // In ActionProcessor
-    }
-
-    public override string GetDescription()
-    {
-        return $"Time: {TimeWindow}";
-    }
-
-    public override string GetPreview(GameState gameState)
-    {
-        string currentValue = gameState.WorldState.TimeWindow.ToString();
-        string nextTimeWindow = gameState.TimeManager.PreviewTimeAdvancement(TimeWindow);
-        return $"({currentValue} -> {nextTimeWindow})";
-    }
-}
-
 public class HealthOutcome : Outcome
 {
     public int Count { get; }

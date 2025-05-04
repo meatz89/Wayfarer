@@ -240,7 +240,6 @@ public static class GameStateSerializer
                     spirit = action.ConfidenceCost,
                     health = action.HealthCost,
                     coin = action.CoinCost,
-                    timeWindowCost = action.TimeWindowCost.ToString()
                 },
                 yields = new
                 {

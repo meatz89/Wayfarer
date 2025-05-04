@@ -106,13 +106,16 @@
                 playerProgression.AddSkillExp(SkillTypes.Diplomacy, XpBonusForArchetype);
                 break;
             case ArchetypeTypes.Scholar:
-                playerProgression.AddSkillExp(SkillTypes.Insight, XpBonusForArchetype);
+                playerProgression.AddSkillExp(SkillTypes.Lore, XpBonusForArchetype);
                 break;
             case ArchetypeTypes.Explorer:
                 playerProgression.AddSkillExp(SkillTypes.Charm, XpBonusForArchetype);
                 break;
             case ArchetypeTypes.Rogue:
                 playerProgression.AddSkillExp(SkillTypes.Finesse, XpBonusForArchetype);
+                break;
+            case ArchetypeTypes.Merchant:
+                playerProgression.AddSkillExp(SkillTypes.Insight, XpBonusForArchetype);
                 break;
 
             default:
@@ -615,9 +618,7 @@
     public ActionImplementation GetWaitAction(string spotId)
     {
         ActionDefinition waitAction = new ActionDefinition("Wait", "Wait", spotId)
-        {
-            TimeWindowCost = "Half"
-        };
+        { };
 
         ActionImplementation action = actionFactory
             .CreateActionFromTemplate(waitAction, string.Empty, string.Empty);

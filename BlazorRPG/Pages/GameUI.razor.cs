@@ -123,7 +123,7 @@ public partial class GameUI : ComponentBase
     {
         get
         {
-            return GameState.WorldState.TimeWindow;
+            return GameState.WorldState.CurrentTimeWindow;
         }
     }
 

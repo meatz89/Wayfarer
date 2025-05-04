@@ -13,7 +13,7 @@
     public int CurrentXP { get; set; } = 0;
     public int XPToNextLevel { get; set; } = 100;
 
-    // Domains
+    // Afflictions
     public int MaxActionPoints { get; set; } = 4;
     public int ActionPoints { get; set; } = 4;
     public int MaxVigor { get; set; } = 10;
@@ -335,11 +335,6 @@
     internal void ApplyActionPointCost(int actionPointCost)
     {
         ActionPoints -= actionPointCost;
-    }
-
-    internal void ApplyVigorCost(int vigorCost)
-    {
-        Vigor -= vigorCost;
     }
 
     internal void AddExhaustionPoints(int exhaustionPoints)
