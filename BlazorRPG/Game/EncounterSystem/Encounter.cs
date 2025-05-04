@@ -22,7 +22,7 @@ public class Encounter
     public int EncounterDifficulty { get; set; }
 
     // Presentation style for this location
-    public EncounterTypes EncounterType { get; set; }
+    public EncounterApproaches EncounterType { get; set; }
 
     public Encounter(
         string locationName,
@@ -33,7 +33,7 @@ public class Encounter
         int standardThreshold,
         int exceptionalThreshold,
         HostilityLevels hostility,
-        EncounterTypes style)
+        EncounterApproaches style)
     {
         this.LocationName = locationName;
         this.LocationSpotName = locationSpot;

@@ -205,15 +205,15 @@
         }
     }
 
-    private EncounterTypes ParseActionType(string actionTypeStr)
+    private EncounterApproaches ParseActionType(string actionTypeStr)
     {
-        if (Enum.TryParse<EncounterTypes>(actionTypeStr, true, out EncounterTypes actionType))
+        if (Enum.TryParse<EncounterApproaches>(actionTypeStr, true, out EncounterApproaches actionType))
         {
             return actionType;
         }
 
         // Default fallback
-        return EncounterTypes.Persuasion;
+        return EncounterApproaches.Persuasion;
     }
 
     public PostEncounterEvolutionInput PreparePostEncounterEvolutionInput(

@@ -39,7 +39,7 @@
 
     public int Coins { get; set; }
 
-    public HashSet<(string, EncounterTypes)> LocationActionAvailability { get; set; } = new();
+    public HashSet<(string, EncounterApproaches)> LocationActionAvailability { get; set; } = new();
 
     public List<PlayerNegativeStatus> NegativeStatusTypes { get; set; }
     public bool IsInitialized { get; set; } = false;
@@ -371,5 +371,4 @@
         int newVigor = Math.Clamp(Vigor + amount, 0, MaxVigor);
         this.Vigor = newVigor;
     }
-
 }

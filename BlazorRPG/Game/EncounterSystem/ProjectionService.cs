@@ -322,7 +322,7 @@
 
             switch (_encounterInfo.EncounterType)
             {
-                case EncounterTypes.Force:
+                case EncounterApproaches.Force:
                     projection.HealthChange = resourceImpact;
                     projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
                     {
@@ -331,7 +331,7 @@
                     });
                     break;
 
-                case EncounterTypes.Observation:
+                case EncounterApproaches.Observation:
                     projection.ConcentrationChange = resourceImpact;
                     projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
                     {
@@ -341,7 +341,7 @@
                     break;
 
 
-                case EncounterTypes.Persuasion:
+                case EncounterApproaches.Persuasion:
                     projection.ConcentrationChange = resourceImpact;
                     projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
                     {
@@ -351,7 +351,7 @@
                     break;
 
 
-                case EncounterTypes.Precision:
+                case EncounterApproaches.Precision:
                     projection.HealthChange = resourceImpact;
                     projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
                     {
@@ -360,7 +360,7 @@
                     });
                     break;
 
-                case EncounterTypes.Rapport:
+                case EncounterApproaches.Rapport:
                     projection.ConfidenceChange = resourceImpact;
                     projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
                     {

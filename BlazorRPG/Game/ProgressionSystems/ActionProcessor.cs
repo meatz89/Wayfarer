@@ -224,11 +224,11 @@ public class ActionProcessor
         // Map encounter type or action category to skill
         return action.EncounterType switch
         {
-            EncounterTypes.Force => SkillTypes.Endurance,
-            EncounterTypes.Rapport => SkillTypes.Diplomacy,
-            EncounterTypes.Precision => SkillTypes.Finesse,
-            EncounterTypes.Persuasion => SkillTypes.Charm,
-            EncounterTypes.Observation => SkillTypes.Insight,
+            EncounterApproaches.Force => SkillTypes.Endurance,
+            EncounterApproaches.Rapport => SkillTypes.Diplomacy,
+            EncounterApproaches.Precision => SkillTypes.Finesse,
+            EncounterApproaches.Persuasion => SkillTypes.Charm,
+            EncounterApproaches.Observation => SkillTypes.Insight,
             _ => SkillTypes.Insight,
         };
     }
