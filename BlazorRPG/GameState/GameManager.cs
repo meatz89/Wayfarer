@@ -53,7 +53,7 @@
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
     }
 
-    public async Task SaveGame()
+    public async Task StartNewDay()
     {
         try
         {
@@ -64,6 +64,11 @@
         {
             messageSystem.AddSystemMessage($"Failed to save game: {ex.Message}");
             Console.WriteLine($"Error saving game: {ex}");
+        }
+
+        if (gameState.PlayerState.ActionPoints == 0)
+        {
+            actionProcessor.ChangeDay();
         }
     }
 

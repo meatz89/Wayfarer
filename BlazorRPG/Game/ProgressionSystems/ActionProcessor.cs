@@ -27,6 +27,7 @@
         glayerState = gameState.PlayerState;
         worldState = gameState.WorldState;
     }
+
     public void ProcessAction(ActionImplementation action)
     {
         ProcessDomains(action);
@@ -142,16 +143,10 @@
 
         gameState.TimeManager.UpdateTimeWindow();
 
-        // Handle day change if all actions are spent
-        if (gameState.PlayerState.ActionPoints == 0)
-        {
-            OnDayChanged();
-        }
-
         UpdateState();
     }
 
-    private void OnDayChanged()
+    public void ChangeDay()
     {
         worldState.CurrentDay++;
         
