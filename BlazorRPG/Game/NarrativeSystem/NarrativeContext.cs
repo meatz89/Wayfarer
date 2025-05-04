@@ -54,7 +54,7 @@ public class NarrativeContext
             if (evt.ChosenOption != null)
             {
                 prompt.AppendLine("Player Choice:");
-                prompt.AppendLine($"- {evt.ChosenOption.Name}: {evt.ChoiceNarrative}");
+                prompt.AppendLine($"- {evt.ChosenOption.Id}: {evt.ChoiceNarrative}");
                 prompt.AppendLine();
 
                 if (!string.IsNullOrEmpty(evt.Outcome))

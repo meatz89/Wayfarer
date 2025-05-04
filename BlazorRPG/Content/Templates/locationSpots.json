@@ -1,234 +1,26 @@
 [
 	{
-		"id": "village_market_stalls",
-		"name": "Market Stalls",
-		"locationId": "village_square",
-		"description": "Rows of wooden stalls where merchants sell their wares.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Merchants hawk their goods while villagers haggle over prices. A lively buzz fills the air as people trade gossip along with their coins.",
-				"actionIds": [ "market_day_trading", "mediate_market_dispute" ]
-			},
-			{
-				"level": 2,
-				"description": "Your face is now recognized among the regular traders. Some merchants save their best goods for you, and troubled sellers occasionally seek your advice.",
-				"levelUpEncounter": {
-					"id": "merchant_guild_invitation",
-					"name": "Merchant Guild Invitation",
-					"description": "Your trading success has caught the attention of the regional merchant guild."
-				},
-				"actionIds": [ ]
-			}
-		]
+		"id": "innkeeper",
+		"name": "The Innkeeper (Borin)",
+		"type": "CHARACTER",
+		"description": "A middle-aged man named Borin with a gruff demeanor but observant eyes.",
+		"initialState": "Wiping the bar counter with a rag, occasionally glancing at the player and other patrons.",
+		"relationshipThresholds": [ 5, 15, 30 ]
 	},
 	{
-		"id": "emil_apprentice",
-		"name": "Emil the Apprentice",
-		"locationId": "blacksmith_forge",
-		"description": "A thin, nervous young man learning the blacksmith's trade under Osgar's stern tutelage.",
-		"timeWindows": [ "Morning", "Afternoon" ],
-		"spotType": "Character",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Emil hurries about the forge, fetching tools and stoking the fire, his movements quick but uncertain as he tries to anticipate his master's needs.",
-				"actionIds": [ "help_blacksmith_apprentice" ]
-			},
-			{
-				"level": 2,
-				"description": "Emil has grown more confident with your help. He now works on simple projects independently and has begun to develop his own smithing style.",
-				"levelUpEncounter": {
-					"id": "special_commission",
-					"name": "Special Commission",
-					"description": "Emil has received his first personal commission and asks for your support."
-				},
-				"actionIds": [  ]
-			}
-		]
+		"id": "notice_board",
+		"name": "The Notice Board",
+		"type": "FEATURE",
+		"description": "A weathered wooden board near the entrance, displaying various notices.",
+		"initialState": "Several pieces of parchment pinned haphazardly.",
+		"relationshipThresholds": [ 3, 8, 15 ]
 	},
 	{
-		"id": "tavern_common_room",
-		"name": "Tavern Common Room",
-		"locationId": "crown_and_flagon",
-		"description": "The warm, bustling heart of the tavern where patrons gather for drinks and entertainment.",
-		"timeWindows": [ "Evening", "Night" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "A crackling fireplace, wooden tables worn smooth from years of use, and the constant hum of conversation fill this welcoming space.",
-				"actionIds": [ "tavern_performance", "tavern_information_gathering", "purchase_meal" ]
-			},
-			{
-				"level": 2,
-				"description": "Your performances have made you a familiar face in the tavern. Patrons often request your stories or songs when you enter.",
-				"levelUpEncounter": {
-					"id": "traveling_bard_competition",
-					"name": "Traveling Bard Competition",
-					"description": "A famous traveling bard has come to town and challenges local performers to a friendly contest."
-				},
-				"actionIds": [ ]
-			}
-		]
-	},
-	{
-		"id": "inn_room",
-		"name": "Inn Room",
-		"locationId": "crown_and_flagon",
-		"description": "A simple but clean room available for rent on the tavern's upper floor.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "A narrow bed, small table, and washbasin furnish this modest room. The sounds of the tavern below are muffled but still audible.",
-				"actionIds": [ "rest_in_inn_room", "nap_in_inn_room" ]
-			}
-		]
-	},
-	{
-		"id": "brother_thomas",
-		"name": "Brother Thomas",
-		"locationId": "monastery",
-		"description": "A serene monk who teaches meditation techniques to visitors.",
-		"timeWindows": [ "Morning", "Evening" ],
-		"spotType": "Character",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Brother Thomas sits cross-legged on a well-worn cushion, his weathered face peaceful and eyes kind as he quietly guides meditation sessions.",
-				"actionIds": [ "monastery_meditation" ]
-			},
-			{
-				"level": 2,
-				"description": "Brother Thomas now greets you by name and has begun to share deeper spiritual insights during your meditation sessions.",
-				"levelUpEncounter": {
-					"id": "ancient_meditation_technique",
-					"name": "Ancient Meditation Technique",
-					"description": "Brother Thomas offers to teach you a rare meditation technique passed down through generations."
-				},
-				"actionIds": [ ]
-			}
-		]
-	},
-	{
-		"id": "brother_elias",
-		"name": "Brother Elias",
-		"locationId": "monastery",
-		"description": "The elderly monk who serves as the monastery's librarian and scholar.",
-		"timeWindows": [ "Afternoon" ],
-		"spotType": "Character",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Brother Elias shuffles between the bookshelves, his stooped frame and spectacles giving him the appearance of a human owl among his beloved texts.",
-				"actionIds": [ "ancient_scroll_study" ]
-			},
-			{
-				"level": 2,
-				"description": "Brother Elias has begun to treat you as a fellow scholar rather than just a visitor. He now shares his theories about ancient texts and seeks your opinion on difficult translations.",
-				"levelUpEncounter": {
-					"id": "mysterious_manuscript",
-					"name": "Mysterious Manuscript",
-					"description": "Brother Elias has discovered an unusual manuscript that defies conventional translation methods."
-				},
-				"actionIds": [ ]
-			}
-		]
-	},
-	{
-		"id": "captain_aldric",
-		"name": "Captain Aldric",
-		"locationId": "village_square",
-		"description": "A stern veteran with a scarred face who leads the village guard with military discipline.",
-		"timeWindows": [ "Morning" ],
-		"spotType": "Character",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Captain Aldric stands straight-backed in the training yard, barking orders and corrections as his guards drill with weapons and formations.",
-				"actionIds": [ "guard_training" ]
-			},
-			{
-				"level": 2,
-				"description": "Your dedication has impressed Captain Aldric. He now includes you in advanced drills and occasionally asks for your input on training methods.",
-				"levelUpEncounter": {
-					"id": "village_defense_test",
-					"name": "Village Defense Test",
-					"description": "Captain Aldric wants to test the guards' readiness with a surprise drill."
-				},
-				"actionIds": [  ]
-			}
-		]
-	},
-	{
-		"id": "rowan_hunter",
-		"name": "Rowan the Hunter",
-		"locationId": "hunters_camp",
-		"description": "A quiet, sharp-eyed woodsman who supplies the village with game and forest knowledge.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening" ],
-		"spotType": "Character",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Rowan tends to his equipment with meticulous care, his weathered hands moving with practiced efficiency. He acknowledges your presence with little more than a nod.",
-				"actionIds": [ "forest_tracking" ]
-			},
-			{
-				"level": 2,
-				"description": "Rowan has begun to share more of his knowledge with you. He now treats you as a hunting partner rather than a curious visitor.",
-				"levelUpEncounter": {
-					"id": "track_mysterious_beast",
-					"name": "Track Mysterious Beast",
-					"description": "Rowan has found unusual tracks and wants your help identifying the creature."
-				},
-				"actionIds": []
-			}
-		]
-	},
-	{
-		"id": "forest_clearing",
-		"name": "Forest Clearing",
-		"locationId": "forest_trail",
-		"description": "A peaceful opening among the trees where sunlight warms the ground.",
-		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
-		"spotType": "Feature",
-		"currentLevel": 1,
-		"currentXP": 0,
-		"xpToNextLevel": 100,
-		"levels": [
-			{
-				"level": 1,
-				"description": "Birds sing overhead and small animals occasionally scurry through the underbrush. A fallen log provides a comfortable place to rest.",
-				"actionIds": [ "sleep_in_forest", "forage_for_herbs" ]
-			}
-		]
+		"id": "hearth",
+		"name": "The Hearth",
+		"type": "FEATURE",
+		"description": "A large stone hearth occupies the far end of the common room, providing light and warmth.",
+		"initialState": "Crackling fire casting long shadows, a few stools nearby.",
+		"relationshipThresholds": [ 2, 7, 15 ]
 	}
 ]

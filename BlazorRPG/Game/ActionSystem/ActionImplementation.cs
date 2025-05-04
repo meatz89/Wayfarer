@@ -1,6 +1,7 @@
-﻿public record ActionImplementation
+﻿
+public record ActionImplementation
 {
-    private string Id { get; set; }
+    public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
 
@@ -20,10 +21,11 @@
     public List<Outcome> Costs { get; set; }
     public List<Outcome> Yields { get; set; }
 
-    public int Difficulty { get; set; } = 1;
-
     public ActionTypes ActionType { get; set; }
     public EncounterTypes EncounterType { get; set; }
+    public int ActionPointCost { get; internal set; }
+
+    public int Difficulty { get; set; } = 1;
 
     public bool IsCompleted(WorldState worldState)
     {
@@ -51,5 +53,25 @@
         };
 
         return context;
+    }
+
+    internal string GetExertionType()
+    {
+        return "None";
+    }
+
+    internal string GetMentalLoadType()
+    {
+        return "None";
+    }
+
+    internal string GetSocialImpactType()
+    {
+        return "None";
+    }
+
+    internal string GetRecoveryType()
+    {
+        return "None";
     }
 }

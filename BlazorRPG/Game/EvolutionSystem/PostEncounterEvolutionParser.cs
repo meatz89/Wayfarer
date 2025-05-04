@@ -146,22 +146,22 @@ public class PostEncounterEvolutionParser
 
         foreach (LocationSpotDefinition spotDef in flatResponse.LocationSpots)
         {
-            LocationSpot spot = new LocationSpot(spotDef.Name, spotDef.LocationName)
+            LocationSpot spot = new LocationSpot(spotDef.Name, spotDef.LocationId)
             {
                 Description = spotDef.Description,
             };
 
             // Add to spots by location
-            if (!spotsByLocation.ContainsKey(spotDef.LocationName))
+            if (!spotsByLocation.ContainsKey(spotDef.LocationId))
             {
-                spotsByLocation[spotDef.LocationName] = new List<LocationSpot>();
+                spotsByLocation[spotDef.LocationId] = new List<LocationSpot>();
             }
-            spotsByLocation[spotDef.LocationName].Add(spot);
+            spotsByLocation[spotDef.LocationId].Add(spot);
 
             // Also add to NewLocationSpots if it's not part of a new location
             if (!flatResponse.Locations.Any(l =>
             {
-                return l.Name == spotDef.LocationName;
+                return l.Name == spotDef.Name;
             }))
             {
                 result.NewLocationSpots.Add(spot);
@@ -171,7 +171,9 @@ public class PostEncounterEvolutionParser
         // Create locations with their spots
         foreach (LocationDefinition locDef in flatResponse.Locations)
         {
-            Location location = new Location(locDef.Name)
+            string locationId = locDef.Name.Replace(" ", "_").ToLowerInvariant();
+
+            Location location = new Location(locationId, locDef.Name)
             {
                 Description = locDef.Description,
                 Difficulty = locDef.Difficulty,
@@ -256,7 +258,7 @@ public class PostEncounterEvolutionParser
             {
                 Name = GetStringProperty(element, "name", "Unnamed Spot"),
                 Description = GetStringProperty(element, "description", "No description available."),
-                LocationName = GetStringProperty(element, "locationName", "Unknown Location")
+                LocationId = GetStringProperty(element, "locationName", "Unknown Location")
             };
         });
     }

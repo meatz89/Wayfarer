@@ -25,6 +25,7 @@
 	</ItemGroup>
     
 	<ItemGroup>
+	  <Folder Include="Game\ContentManager\" />
 	  <Folder Include="wwwroot\images\cursors\" />
 	</ItemGroup>
     

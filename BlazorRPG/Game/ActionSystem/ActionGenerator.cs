@@ -43,7 +43,7 @@ public class ActionGenerator
         }
 
         actionRepository.AddAction(actionDef);
-        return actionDef.Name;
+        return actionDef.Id;
     }
 
     private ActionDefinition GetDefaultActionDefinition(

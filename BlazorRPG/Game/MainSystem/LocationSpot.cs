@@ -1,7 +1,7 @@
 ﻿public class LocationSpot
 {
+    public string Id { get; init; }
     public string Name { get; init; }
-    public string LocationId { get; init; }
     public string Description { get; set; }
     public string InteractionDescription { get; set; }
 
@@ -27,11 +27,12 @@
 
     public List<TimeWindow> TimeWindows { get; set; } = new() { TimeWindow.Morning, TimeWindow.Afternoon, TimeWindow.Evening, TimeWindow.Night };
     public bool IsClosed { get; set; }
+    public string LocationId { get; internal set; }
 
-    public LocationSpot(string name, string locationName)
+    public LocationSpot(string id, string name)
     {
+        Id = id;
         Name = name;
-        LocationId = locationName;
     }
 
 

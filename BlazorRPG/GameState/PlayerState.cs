@@ -13,6 +13,10 @@
     public int CurrentXP { get; set; } = 0;
     public int XPToNextLevel { get; set; } = 100;
 
+    // Domains
+    public int ActionPoints { get; set; }
+    public int Vigor { get; set; }
+
     // Resources
     public int Money { get; set; }
     public int Food { get; set; }
@@ -354,9 +358,39 @@
     {
     }
 
-    public int GetReputation(string location)
+    internal void ApplyActionPointCost(int actionPointCost)
     {
-        throw new NotImplementedException();
+        ActionPoints -= actionPointCost;
     }
 
+    internal void ApplyVigorCost(int vigorCost)
+    {
+        Vigor -= vigorCost;
+    }
+
+    internal void AddExhaustionPoints(int exhaustionPoints)
+    {
+    }
+
+    internal void AddHungerPoints(int hungerPoints)
+    {
+    }
+
+    internal void AddMentalLoadPoints(int mentalLoad)
+    {
+    }
+
+    internal void AddDisconnectPoints(int disconnectionPoints)
+    {
+    }
+
+    internal int GetHunger()
+    {
+        return 0;
+    }
+
+    internal int GetExhaustion()
+    {
+        return 0;
+    }
 }

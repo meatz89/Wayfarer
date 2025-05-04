@@ -142,6 +142,8 @@
         List<LocationSpot> spots = GameStateSerializer.DeserializeLocationSpots(
             File.ReadAllText(Path.Combine(templatePath, "locationSpots.json")));
 
+        ConnectLocationsToSpots(locations, spots);
+
         List<ActionDefinition> actions = GameStateSerializer.DeserializeActions(
             File.ReadAllText(Path.Combine(templatePath, "actions.json")));
 
@@ -149,6 +151,7 @@
         GameState gameState = GameStateSerializer.DeserializeGameState(
             File.ReadAllText(Path.Combine(templatePath, "gameState.json")),
             locations, spots, actions);
+
 
         return gameState;
     }
@@ -226,6 +229,8 @@
         // Load fresh content from the content directory
         List<Location> locations = LoadLocations();
         List<LocationSpot> spots = LoadLocationSpots();
+        locations = ConnectLocationsToSpots(locations, spots);
+
         List<ActionDefinition> actions = LoadActions();
 
         // Add content to game state
@@ -239,5 +244,23 @@
         gameState.WorldState.actions.AddRange(actions);
 
         return gameState;
+    }
+
+    private List<Location> ConnectLocationsToSpots(List<Location> locations, List<LocationSpot> spots)
+    {
+        foreach (Location location in locations)
+        {
+            foreach (string locSpotId in location.LocationSpotIds)
+            {
+                LocationSpot? spot = spots.FirstOrDefault(s => s.Id == locSpotId);
+                if (spot != null)
+                {
+                    location.LocationSpots.Add(spot);
+                    spot.LocationId = location.Id;
+                }
+            }
+        }
+
+        return locations;
     }
 }

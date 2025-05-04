@@ -82,7 +82,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         if (choiceDescriptions != null && choiceDescriptions.ContainsKey(choiceCard))
             choiceNarrative = choiceDescriptions[choiceCard];
 
-        string description = choiceCard.Name;
+        string description = choiceCard.Id;
         if (choiceNarrative != null)
         {
             description = choiceNarrative.FullDescription;

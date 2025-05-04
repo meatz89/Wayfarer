@@ -40,7 +40,7 @@
     public async Task<Location> CreateLocation(string locationId)
     {
         Location location = locationRepository.GetCurrentLocation();
-        string travelOrigin = location.Name;
+        string travelOrigin = location.Id;
         int locationDepth = location.Depth + 1;
 
         LocationCreationInput input = CreateLocationInput(travelOrigin, locationId, locationDepth);
@@ -56,15 +56,15 @@
     // Update registry usage in IntegrateNewLocation method
     public async Task<Location> IntegrateNewLocation(LocationDetails details)
     {
+        string locationId = details.LocationUpdate.NewLocationName.Replace(" ", "_").ToLowerInvariant();
         string locationName = details.LocationUpdate.NewLocationName;
         Location location = locationRepository.GetLocationById(locationName);
         if (location == null)
         {
-            location = new Location(locationName);
+            location = new Location(locationId, locationName);
             locationRepository.AddLocation(location);
         }
         location.Description = details.Description;
-        location.DetailedDescription = details.DetailedDescription;
         location.ConnectedTo = details.ConnectedLocationIds;
 
         foreach (SpotDetails spotDetail in details.NewLocationSpots)
@@ -72,6 +72,7 @@
             string spotId = $"{locationName}:{spotDetail.Name}";
             LocationSpot spot = new LocationSpot(spotDetail.Name, locationName)
             {
+                Id = spotDetail.Name.Replace(" ", "_").ToLowerInvariant(),
                 Name = spotDetail.Name,
                 LocationId = locationName,
                 Description = spotDetail.Description,
@@ -98,10 +99,31 @@
 
             LocationSpot spot = locationRepository.GetSpot(locationName, newAction.SpotName);
             if (spot != null)
-                spot.RegisterActionDefinition(actionDef.Name);
+                spot.RegisterActionDefinition(actionDef.Id);
         }
 
         return location;
+    }
+
+
+    public async Task<LocationSpot> CreateLocationSpot(string locationId, string locationSpotId)
+    {
+        Location location = locationRepository.GetLocationById(locationId);
+        LocationSpot locationSpot = new LocationSpot(locationSpotId, locationId)
+        {
+            Id = locationSpotId,
+            LocationId = locationId,
+            Description = "A new location spot.",
+            PlayerKnowledge = true
+        };
+
+        // Register the new location spot
+        locationRepository.AddLocationSpot(locationSpot);
+
+        // Register the new location spot in the location
+        location.LocationSpots.Add(locationSpot);
+
+        return locationSpot;
     }
 
     private async Task ProcessNewActions(LocationDetails details, WorldState worldState)
@@ -109,13 +131,13 @@
         foreach (NewAction newAction in details.NewActions)
         {
             Location targetLocation = locationRepository.GetLocationById(newAction.LocationName);
-            List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(targetLocation.Name);
+            List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(targetLocation.Id);
             if (targetLocation != null && locationSpots != null)
             {
-                LocationSpot spotForAction = locationSpots.FirstOrDefault(s =>
+                LocationSpot spotForAction = locationSpots.FirstOrDefault((Func<LocationSpot, bool>)(s =>
                 {
-                    return s.Name.Equals(newAction.SpotName, StringComparison.OrdinalIgnoreCase);
-                });
+                    return (bool)s.Id.Equals(newAction.SpotName, StringComparison.OrdinalIgnoreCase);
+                }));
 
                 if (spotForAction != null)
                 {
@@ -126,7 +148,7 @@
                         newAction.LocationName);
 
                     ActionDefinition actionTemplate = actionRepository.GetAction(actionId);
-                    spotForAction.RegisterActionDefinition(actionTemplate.Name);
+                    spotForAction.RegisterActionDefinition(actionTemplate.Id);
 
                     Console.WriteLine($"Created new action {newAction.Name} at {newAction.LocationName}/{newAction.SpotName}");
                 }
@@ -170,14 +192,14 @@
         LocationCreationInput context = new LocationCreationInput
         {
             CharacterArchetype = playerState.Archetype.ToString(),
-            LocationName = worldState.CurrentLocation?.Name ?? "Unknown",
+            LocationName = worldState.CurrentLocation?.Id ?? "Unknown",
 
             KnownLocations = this.locationSystem.FormatLocations(allLocations),
             KnownCharacters = characterSystem.FormatKnownCharacters(worldState.GetCharacters()),
             ActiveOpportunities = opportunitySystem.FormatActiveOpportunities(worldState.GetOpportunities()),
 
             CurrentLocationSpots = this.locationSystem.FormatLocationSpots(worldState.CurrentLocation),
-            ConnectedLocations = this.locationSystem.FormatLocations(locationSystem.GetConnectedLocations(worldState.CurrentLocation.Name)),
+            ConnectedLocations = this.locationSystem.FormatLocations(locationSystem.GetConnectedLocations(worldState.CurrentLocation.Id)),
             AllExistingActions = actionSystem.FormatExistingActions(allLocations),
 
             WasTravelEncounter = true,

@@ -25,7 +25,6 @@
     // Requirements
     public List<TimeWindow> TimeWindows { get; set; } = new List<TimeWindow>();
     public List<RelationshipRequirement> RelationshipRequirements { get; set; } = new();
-    public List<ReputationRequirement> ReputationRequirements { get; set; } = new();
     public List<SkillRequirement> SkillRequirements { get; set; } = new();
 
     // Outcome effects

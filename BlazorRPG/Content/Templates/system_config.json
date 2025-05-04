@@ -1,0 +1,63 @@
+{
+	"pointMapping": {
+		"EXERTION": {
+			"LIGHT": 1,
+			"MODERATE": 2,
+			"HEAVY": 3
+		},
+		"MENTAL_LOAD": {
+			"SIMPLE": 1,
+			"STANDARD": 2,
+			"COMPLEX": 3
+		},
+		"SOCIAL_IMPACT": {
+			"ISOLATION": -1,
+			"BONDING": -2,
+			"SOLITARY": 1
+		},
+		"RECOVERY": {
+			"BASIC": {
+				"HUNGER": 3,
+				"ENERGY": 2,
+				"EXHAUSTION": 2,
+				"DISCONNECTION": 2,
+				"MENTAL": 3
+			},
+			"QUALITY": {
+				"HUNGER": 6,
+				"ENERGY": 4,
+				"EXHAUSTION": 4,
+				"DISCONNECTION": 5,
+				"MENTAL": 6
+			},
+			"PREMIUM": {
+				"HUNGER": 10,
+				"ENERGY": 6,
+				"EXHAUSTION": 6,
+				"DISCONNECTION": 8,
+				"MENTAL": 10
+			}
+		}
+	},
+	"vigorCosts": {
+		"NATURAL": 0,
+		"NEUTRAL": 1,
+		"WEAK": 2
+	},
+	"afflictionScaling": {
+		"HUNGER_ACTIVE": {
+			"per_action": 1
+		},
+		"EXHAUSTION_ACTIVE": {
+			"per_ap": 1
+		},
+		"MENTAL_STRAIN_ACTIVE": {
+			"all_actions": 1,
+			"failed_actions": 2
+		},
+		"ISOLATION_ACTIVE": {
+			"social_vigor_cost": 1,
+			"base_generation": 1
+		}
+	}
+}

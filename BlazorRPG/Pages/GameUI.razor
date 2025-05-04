@@ -34,7 +34,7 @@
                     <span class="status-icon">🗣️</span>
                     <span class="status-label">Confidence</span>
                     <span class="status-value">
-                        @PlayerState.Confidence / @PlayerState.MaxSpirit
+                        @PlayerState.Spirit / @PlayerState.MaxSpirit
                     </span>
                 </div>
                 <div class="status-item">
@@ -81,7 +81,7 @@
                     case CurrentViews.MapScreen:
                         <div class="location-container">
                             <div class="location-header">
-                                <h2 class="location-title">@GetCurrentLocation().Name</h2>
+                                <h2 class="location-title">@GetCurrentLocation().Id</h2>
                                 <div class="location-actions">
                                     <button class="location-button" @onclick="@SwitchAreaMap">
                                         Travel 🗺️
@@ -99,7 +99,7 @@
                     case CurrentViews.LocationScreen:
                         <div class="location-container">
                             <div class="location-header">
-                                <h2 class="location-title">@GetCurrentLocation().Name</h2>
+                                <h2 class="location-title">@GetCurrentLocation().Id</h2>
                                 <div class="location-actions">
                                     <button class="location-button" @onclick="WaitHalfTimeWindow">
                                         Wait

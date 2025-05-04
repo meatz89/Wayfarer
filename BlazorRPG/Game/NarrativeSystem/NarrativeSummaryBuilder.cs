@@ -33,7 +33,7 @@ public class NarrativeSummaryBuilder
                 // For other turns, add chosen option and outcome
                 if (evt.ChosenOption != null)
                 {
-                    history.AppendLine($"### Choice: {evt.ChosenOption.Name}");
+                    history.AppendLine($"### Choice: {evt.ChosenOption.Id}");
 
                     // Add choice narrative description if available
                     if (evt.ChoiceNarrative != null && !string.IsNullOrEmpty(evt.ChoiceNarrative.FullDescription))

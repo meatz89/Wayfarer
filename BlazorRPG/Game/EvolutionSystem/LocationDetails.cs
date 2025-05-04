@@ -2,7 +2,6 @@
 {
     public string Name { get; set; } = "";
     public string Description { get; set; } = "";
-    public string DetailedDescription { get; set; } = "";
     public string History { get; set; } = "";
     public string PointsOfInterest { get; set; } = "";
     public int TravelTimeMinutes { get; set; }

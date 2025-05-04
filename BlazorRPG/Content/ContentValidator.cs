@@ -11,15 +11,15 @@
     {
         ContentValidationResult result = new ContentValidationResult();
 
-        // Check location spots have valid location references
-        foreach (LocationSpot spot in _worldState.locationSpots)
+        // Check locations have valid location spot references
+        foreach (Location location in _worldState.locations)
         {
-            if (!_worldState.locations.Any(l =>
+            foreach (string locationSpotId in location.LocationSpotIds)
             {
-                return l.Id == spot.LocationId;
-            }))
-            {
-                result.AddMissingLocation(spot.LocationId, spot);
+                if (!_worldState.locationSpots.Any(ls => ls.Id == locationSpotId))
+                {
+                    result.AddMissingLocationSpot(locationSpotId, location);
+                }
             }
         }
 
@@ -41,7 +41,6 @@
             }
         }
 
-        // Check location connections exist
         foreach (Location location in _worldState.locations)
         {
             if (location.ConnectedTo != null)

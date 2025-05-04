@@ -68,7 +68,7 @@ public partial class NarrativeViewBase : ComponentBase
         {
             changes.Add(new LocationChangeWithDepth
             {
-                Name = location.Name,
+                Name = location.Id,
                 Description = location.Description,
                 Type = location.LocationType.ToString(),
                 Depth = location.Depth,

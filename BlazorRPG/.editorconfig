@@ -96,7 +96,7 @@ csharp_style_var_when_type_is_apparent = false:suggestion
 csharp_style_expression_bodied_accessors = false:warning
 csharp_style_expression_bodied_constructors = false:warning
 csharp_style_expression_bodied_indexers = false:warning
-csharp_style_expression_bodied_lambdas = false:warning
+csharp_style_expression_bodied_lambdas = false:silent
 csharp_style_expression_bodied_local_functions = false:warning
 csharp_style_expression_bodied_methods = false:warning
 csharp_style_expression_bodied_operators = false:warning
@@ -243,6 +243,9 @@ dotnet_naming_style.begins_with_i.required_prefix = I
 dotnet_naming_style.begins_with_i.required_suffix = 
 dotnet_naming_style.begins_with_i.word_separator = 
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
+
+# IDE0053: Use block body for lambda expression
+dotnet_diagnostic.IDE0053.severity = silent
 
 [*.{cs,vb}]
 dotnet_style_coalesce_expression = true:suggestion

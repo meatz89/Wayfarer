@@ -4,7 +4,7 @@
     {
         <div class="@(!spot.IsClosed ? "enabled" : "disabled")">
 
-            <div class="location-card @(spot.Name == CurrentSpot.Name ? "current" : "reachable")">
+            <div class="location-card @(spot.Id == CurrentSpot.Id ? "current" : "reachable")">
                 <div class="location-spot-properties">
                     @foreach (var prop in GetSpotProperties(spot))
                     {
@@ -15,14 +15,14 @@
                     }
                 </div>
                 <div class="location-name">
-                    @spot.Name @(spot.IsClosed ? "(Closed)" : "")
+                    @spot.Id @(spot.IsClosed ? "(Closed)" : "")
                 </div>
                 <div class="location-type">@spot.Description</div>
 
                 @* Add travel option if not current spot *@
-                @if (spot.Name != CurrentSpot.Name)
+                @if (spot.Id != CurrentSpot.Id)
                 {
-                    <button class="action-button" disabled="@(!GameManager.CanMoveToSpot(spot.Name))"
+                    <button class="action-button" disabled="@(!GameManager.CanMoveToSpot(spot.Id))"
                     @onclick="() => OnSpotSelected.InvokeAsync(spot)">
                         MOVE HERE
                     </button>
@@ -35,7 +35,7 @@
                         @onclick="() => OnActionSelected.InvokeAsync(action)"
                         disabled="@(action.IsDisabled)"
                         @onmouseover="(e) => HandleShowTooltip(action, e)"
-                        @onmouseout="HandleHideTooltip">@action.ActionImplementation.Name (@action.ActionImplementation.ActionType)
+                        @onmouseout="HandleHideTooltip">@action.ActionImplementation.Id (@action.ActionImplementation.ActionType)
                         </button>
                     }
                 }

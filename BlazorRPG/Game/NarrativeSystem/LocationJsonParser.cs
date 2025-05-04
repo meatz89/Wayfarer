@@ -32,7 +32,6 @@ public static class LocationJsonParser
         // Set default values for required fields
         details.Name = GetStringProperty(root, "name", "Unknown Location");
         details.Description = GetStringProperty(root, "description", "A newly discovered location");
-        details.DetailedDescription = GetStringProperty(root, "detailedDescription", string.Empty);
         details.History = GetStringProperty(root, "history", string.Empty);
         details.PointsOfInterest = GetStringProperty(root, "pointsOfInterest", string.Empty);
         details.TravelTimeMinutes = GetIntProperty(root, "travelTimeMinutes", 60);

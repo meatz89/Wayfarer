@@ -11,7 +11,7 @@ public partial class ActionPreviewBase : ComponentBase
     {
         ActionImplementation action = CurrentAction.ActionImplementation;
 
-        string name = $"{action.ActionType} - {action.Name}";
+        string name = $"{action.ActionType} - {action.Id}";
         return name;
     }
 

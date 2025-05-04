@@ -16,7 +16,7 @@
         ActionImplementation actionImplementation = new ActionImplementation();
 
         // Transfer basic properties
-        actionImplementation.Name = template.Id;
+        actionImplementation.Id = template.Id;
         actionImplementation.Name = template.Name;
         actionImplementation.Description = template.Description;
         actionImplementation.Difficulty = template.Difficulty;

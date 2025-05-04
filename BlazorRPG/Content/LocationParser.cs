@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 public static class LocationParser
 {
@@ -8,13 +7,15 @@ public static class LocationParser
         using JsonDocument doc = JsonDocument.Parse(json);
         JsonElement root = doc.RootElement;
 
-        string id = GetStringProperty(root, "id", "");
-        Location location = new Location(id)
+        string id = GetStringProperty(root, "id", "id");
+        string name = GetStringProperty(root, "name", "name");
+
+        Location location = new Location(id, name)
         {
-            Name = GetStringProperty(root, "name", id),
             Description = GetStringProperty(root, "description", ""),
-            DetailedDescription = GetStringProperty(root, "detailedDescription", ""),
-            ConnectedTo = GetStringArray(root, "connectedTo")
+            ConnectedTo = GetStringArray(root, "connectedTo"),
+            LocationSpotIds = GetStringArray(root, "locationSpots"),
+            EnvironmentalProperties = GetStringArray(root, "environmentalProperties")
         };
 
         return location;
@@ -25,10 +26,10 @@ public static class LocationParser
         using JsonDocument doc = JsonDocument.Parse(json);
         JsonElement root = doc.RootElement;
 
+        string id = GetStringProperty(root, "id", "");
         string name = GetStringProperty(root, "name", "");
-        string locationId = GetStringProperty(root, "locationId", "");
 
-        LocationSpot spot = new LocationSpot(name, locationId)
+        LocationSpot spot = new LocationSpot(id, name)
         {
             Description = GetStringProperty(root, "description", ""),
             CurrentLevel = GetIntProperty(root, "currentLevel", 1),

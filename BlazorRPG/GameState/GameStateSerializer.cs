@@ -11,8 +11,8 @@ public static class GameStateSerializer
     {
         SerializableGameState serialized = new SerializableGameState
         {
-            CurrentLocationId = gameState.WorldState.CurrentLocation?.Name,
-            CurrentLocationSpotId = gameState.WorldState.CurrentLocationSpot?.Name,
+            CurrentLocationId = gameState.WorldState.CurrentLocation?.Id,
+            CurrentLocationSpotId = gameState.WorldState.CurrentLocationSpot?.Id,
             CurrentDay = gameState.WorldState.CurrentDay,
             CurrentTimeHours = gameState.WorldState.CurrentTimeHours,
 
@@ -105,18 +105,19 @@ public static class GameStateSerializer
         {
             Location currentLocation = locations.FirstOrDefault(l =>
             {
-                return l.Name == serialized.CurrentLocationId;
+                return l.Id == serialized.CurrentLocationId;
             });
+
             if (currentLocation != null)
             {
                 LocationSpot currentSpot = null;
                 if (!string.IsNullOrEmpty(serialized.CurrentLocationSpotId))
                 {
-                    currentSpot = spots.FirstOrDefault(s =>
+                    currentSpot = spots.FirstOrDefault((Func<LocationSpot, bool>)(s =>
                     {
                         return s.LocationId == serialized.CurrentLocationId &&
-                                                s.Name == serialized.CurrentLocationSpotId;
-                    });
+                                                s.Id == serialized.CurrentLocationSpotId;
+                    }));
                 }
 
                 if (currentSpot == null)
@@ -151,10 +152,9 @@ public static class GameStateSerializer
         {
             return new
             {
-                id = loc.Name,
-                name = loc.Name,
+                id = loc.Id,
+                name = loc.Id,
                 description = loc.Description,
-                detailedDescription = loc.DetailedDescription,
                 connectedTo = loc.ConnectedTo
             };
         }).ToList();
@@ -196,7 +196,7 @@ public static class GameStateSerializer
         {
             return new
             {
-                name = spot.Name,
+                name = spot.Id,
                 locationId = spot.LocationId,
                 description = spot.Description,
                 currentLevel = spot.CurrentLevel,
@@ -244,7 +244,7 @@ public static class GameStateSerializer
             return new
             {
                 id = action.Id,
-                name = action.Name,
+                name = action.Id,
                 description = action.Description,
                 actionType = action.ActionType.ToString(),
                 timeWindows = action.TimeWindows?.Select(tw =>

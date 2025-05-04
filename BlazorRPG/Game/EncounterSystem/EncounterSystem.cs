@@ -79,7 +79,7 @@
         EncounterManager encounterManager = await StartEncounter(encounter, location, this.worldState, playerState, actionImplementation);
 
         // Create Encounter with initial stage
-        string situation = $"{actionImplementation.Name} ({actionImplementation.ActionType} Action)";
+        string situation = $"{actionImplementation.Id} ({actionImplementation.ActionType} Action)";
         return encounterManager;
     }
 

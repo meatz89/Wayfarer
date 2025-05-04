@@ -1,44 +1,15 @@
 [
 	{
-		"id": "village_square",
-		"name": "Village Square",
-		"description": "The central gathering place of the village, bustling with activity.",
-		"detailedDescription": "Cobblestones worn smooth from generations of villagers' feet create a pleasant open space where merchants, travelers, and locals cross paths throughout the day.",
-		"connectedTo": [ "blacksmith_forge", "crown_and_flagon", "monastery", "forest_trail" ]
-	},
-	{
-		"id": "blacksmith_forge",
-		"name": "Blacksmith Forge",
-		"description": "A sturdy stone building with smoke billowing from its chimney.",
-		"detailedDescription": "The rhythmic clanging of metal on metal can be heard well before you reach this essential village business. Heat radiates from the open doorway.",
-		"connectedTo": [ "village_square" ]
-	},
-	{
-		"id": "crown_and_flagon",
-		"name": "Crown and Flagon Tavern",
-		"description": "The village's bustling tavern, center of social life and gossip.",
-		"detailedDescription": "Warmth and laughter spill from the doorway along with the aroma of hearty stew and ale. The tavern serves as both inn and meeting place for locals and travelers alike.",
-		"connectedTo": [ "village_square" ]
-	},
-	{
-		"id": "monastery",
-		"name": "Hillside Monastery",
-		"description": "An ancient stone monastery perched on a gentle hill overlooking the village.",
-		"detailedDescription": "The weathered stone walls have stood for centuries, housing monks devoted to prayer, study, and healing.",
-		"connectedTo": [ "village_square" ]
-	},
-	{
-		"id": "forest_trail",
-		"name": "Forest Trail",
-		"description": "A winding path through ancient trees at the edge of the village.",
-		"detailedDescription": "Sunlight filters through the dense canopy, creating dappled patterns on the forest floor. The sounds of the village fade as the wilderness embraces you.",
-		"connectedTo": [ "village_square", "hunters_camp" ]
-	},
-	{
-		"id": "hunters_camp",
-		"name": "Hunter's Camp",
-		"description": "A small, semi-permanent camp deep in the forest.",
-		"detailedDescription": "Hidden among the trees, this camp serves as a base for the village hunters and trappers who provide game for the local tables.",
-		"connectedTo": [ "forest_trail" ]
+		"id": "dusty_flagon",
+		"name": "The Dusty Flagon",
+		"description": "A moderately sized, somewhat dilapidated inn situated within an implied larger medieval market town.",
+		"environmentalProperties": {
+			"morning": [ "Bright", "Quiet", "Formal" ],
+			"afternoon": [ "Bright", "Crowded", "Relaxed" ],
+			"evening": [ "Shadowy", "Crowded", "Relaxed" ],
+			"night": [ "Dark", "Quiet", "Intimate" ]
+		},
+		"locationSpots": [ "innkeeper", "notice_board", "suspicious_patron", "discarded_satchel", "hearth", "common_room_floor" ],
+		"connectedTo": []
 	}
 ]

@@ -41,14 +41,12 @@
 	}
 
 .missing-list {
-	background-color: var(--parchment-dark);
+	background-color: var(--bg-panel);
 	border-radius: 3px;
 	padding: 1rem;
 	max-height: 200px;
 	overflow-y: auto;
 	border: 1px solid var(--oak-dark);
-	background-image: url("/images/subtle-parchment.png");
-	background-repeat: repeat;
 	color: var(--charcoal);
 }
 
@@ -66,7 +64,7 @@
 
 .reference-detail {
 	font-size: 0.9rem;
-	color: var(--text-secondary);
+	color: var(--rust);
 	font-family: var(--font-tertiary);
 }
 

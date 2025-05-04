@@ -110,18 +110,6 @@ public static class ActionParser
                 }
             }
 
-            // Reputation requirement
-            if (requirementsElement.TryGetProperty("reputation", out JsonElement reputationElement))
-            {
-                string location = GetStringProperty(reputationElement, "location", "");
-                int minimumValue = GetIntProperty(reputationElement, "minimumValue", 0);
-
-                if (!string.IsNullOrEmpty(location) && minimumValue > 0)
-                {
-                    action.ReputationRequirements.Add(new ReputationRequirement(location, minimumValue));
-                }
-            }
-
             // Skill requirements
             if (requirementsElement.TryGetProperty("skills", out JsonElement skillsArray) &&
                 skillsArray.ValueKind == JsonValueKind.Array)
