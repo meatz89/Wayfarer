@@ -352,7 +352,7 @@ public partial class GameUI : ComponentBase
         hasApLeft = PlayerState.CurrentActionPoints() > 0;
 
         DisplayActionMessages();
-        
+
         StateVersion++;
         StateHasChanged();
     }

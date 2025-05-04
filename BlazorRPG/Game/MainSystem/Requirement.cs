@@ -84,129 +84,129 @@ public class HealthRequirement : IRequirement
     }
 }
 
-    public class ConcentrationRequirement : IRequirement
+public class ConcentrationRequirement : IRequirement
+{
+    public int RequiredAmount { get; }
+
+    public ConcentrationRequirement(int requiredAmount)
     {
-        public int RequiredAmount { get; }
-
-        public ConcentrationRequirement(int requiredAmount)
-        {
-            RequiredAmount = requiredAmount;
-        }
-
-        public bool IsMet(GameState gameState)
-        {
-            return gameState.PlayerState.Focus >= RequiredAmount;
-        }
-
-        public string GetDescription()
-        {
-            return $"Requires {RequiredAmount} Concentration";
-        }
+        RequiredAmount = requiredAmount;
     }
 
-    public class ConfidenceRequirement : IRequirement
+    public bool IsMet(GameState gameState)
     {
-        public int RequiredAmount { get; }
-
-        public ConfidenceRequirement(int requiredAmount)
-        {
-            RequiredAmount = requiredAmount;
-        }
-
-        public bool IsMet(GameState gameState)
-        {
-            return gameState.PlayerState.Spirit >= RequiredAmount;
-        }
-
-        public string GetDescription()
-        {
-            return $"Requires {RequiredAmount} Confidence";
-        }
+        return gameState.PlayerState.Focus >= RequiredAmount;
     }
 
-    public class CoinRequirement : IRequirement
+    public string GetDescription()
     {
-        public int RequiredAmount { get; }
+        return $"Requires {RequiredAmount} Concentration";
+    }
+}
 
-        public CoinRequirement(int requiredAmount)
-        {
-            RequiredAmount = requiredAmount;
-        }
+public class ConfidenceRequirement : IRequirement
+{
+    public int RequiredAmount { get; }
 
-        public bool IsMet(GameState gameState)
-        {
-            return gameState.PlayerState.Coins >= RequiredAmount;
-        }
-
-        public string GetDescription()
-        {
-            return $"Requires {RequiredAmount} Coins";
-        }
+    public ConfidenceRequirement(int requiredAmount)
+    {
+        RequiredAmount = requiredAmount;
     }
 
-    public class FoodRequirement : IRequirement
+    public bool IsMet(GameState gameState)
     {
-        public int RequiredAmount { get; }
-
-        public FoodRequirement(int requiredAmount)
-        {
-            RequiredAmount = requiredAmount;
-        }
-
-        public bool IsMet(GameState gameState)
-        {
-            return gameState.PlayerState.Food >= RequiredAmount;
-        }
-
-        public string GetDescription()
-        {
-            return $"Requires {RequiredAmount} Food";
-        }
+        return gameState.PlayerState.Spirit >= RequiredAmount;
     }
 
-    public class TimeWindowRequirement : IRequirement
+    public string GetDescription()
     {
-        public List<TimeWindow> AllowedWindows { get; }
+        return $"Requires {RequiredAmount} Confidence";
+    }
+}
 
-        public TimeWindowRequirement(List<TimeWindow> allowedWindows)
-        {
-            AllowedWindows = allowedWindows;
-        }
+public class CoinRequirement : IRequirement
+{
+    public int RequiredAmount { get; }
 
-        public bool IsMet(GameState gameState)
-        {
-            TimeWindow currentWindow = gameState.TimeManager.GetCurrentTimeWindow();
-            return AllowedWindows.Contains(currentWindow);
-        }
-
-        public string GetDescription()
-        {
-            return $"Available during: {string.Join(", ", AllowedWindows)}";
-        }
+    public CoinRequirement(int requiredAmount)
+    {
+        RequiredAmount = requiredAmount;
     }
 
-    public class RelationshipRequirement : IRequirement
+    public bool IsMet(GameState gameState)
     {
-        public string CharacterName { get; }
-        public int MinimumValue { get; }
-
-        public RelationshipRequirement(string characterName, int minimumValue)
-        {
-            CharacterName = characterName;
-            MinimumValue = minimumValue;
-        }
-
-        public bool IsMet(GameState gameState)
-        {
-            int currentValue = gameState.PlayerState.GetRelationshipLevel(CharacterName);
-            return currentValue >= MinimumValue;
-        }
-
-        public string GetDescription()
-        {
-            return $"Requires {MinimumValue}+ relationship with {CharacterName}";
-        }
+        return gameState.PlayerState.Coins >= RequiredAmount;
     }
+
+    public string GetDescription()
+    {
+        return $"Requires {RequiredAmount} Coins";
+    }
+}
+
+public class FoodRequirement : IRequirement
+{
+    public int RequiredAmount { get; }
+
+    public FoodRequirement(int requiredAmount)
+    {
+        RequiredAmount = requiredAmount;
+    }
+
+    public bool IsMet(GameState gameState)
+    {
+        return gameState.PlayerState.Food >= RequiredAmount;
+    }
+
+    public string GetDescription()
+    {
+        return $"Requires {RequiredAmount} Food";
+    }
+}
+
+public class TimeWindowRequirement : IRequirement
+{
+    public List<TimeWindow> AllowedWindows { get; }
+
+    public TimeWindowRequirement(List<TimeWindow> allowedWindows)
+    {
+        AllowedWindows = allowedWindows;
+    }
+
+    public bool IsMet(GameState gameState)
+    {
+        TimeWindow currentWindow = gameState.TimeManager.GetCurrentTimeWindow();
+        return AllowedWindows.Contains(currentWindow);
+    }
+
+    public string GetDescription()
+    {
+        return $"Available during: {string.Join(", ", AllowedWindows)}";
+    }
+}
+
+public class RelationshipRequirement : IRequirement
+{
+    public string CharacterName { get; }
+    public int MinimumValue { get; }
+
+    public RelationshipRequirement(string characterName, int minimumValue)
+    {
+        CharacterName = characterName;
+        MinimumValue = minimumValue;
+    }
+
+    public bool IsMet(GameState gameState)
+    {
+        int currentValue = gameState.PlayerState.GetRelationshipLevel(CharacterName);
+        return currentValue >= MinimumValue;
+    }
+
+    public string GetDescription()
+    {
+        return $"Requires {MinimumValue}+ relationship with {CharacterName}";
+    }
+}
 
 public class SkillRequirement : IRequirement
 {
