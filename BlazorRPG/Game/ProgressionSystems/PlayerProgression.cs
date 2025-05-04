@@ -32,15 +32,12 @@
         {
             prog.XP -= prog.XPToNextLevel;
             prog.Level++;
-            playerState.SetCharacterStats();
         }
     }
 
     private void LevelUp()
     {
         playerState.Level++;
-        playerState.SetCharacterStats();
-        playerState.HealFully();
 
         // Heal on level up
         playerState.HealFully();

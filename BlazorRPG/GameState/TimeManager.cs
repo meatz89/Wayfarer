@@ -13,7 +13,7 @@
     public void UpdateTimeWindow()
     {
         int maxAP = playerState.MaxActionPoints;
-        int currentAP = playerState.ActionPoints;
+        int currentAP = playerState.CurrentActionPoints();
         int actionsUsed = maxAP - currentAP;
 
         int activeDayStartHour = dayStartingHour;  // 6 AM

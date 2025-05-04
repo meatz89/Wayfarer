@@ -35,7 +35,7 @@ public class WorldStateInputBuilder
             MaxConcentration = playerState.MaxFocus,
             Confidence = playerState.Spirit,
             MaxConfidence = playerState.MaxSpirit,
-            Energy = playerState.Energy,
+            Energy = playerState.CurrentEnergy(),
             MaxEnergy = playerState.MaxEnergy,
             Coins = playerState.Coins,
 

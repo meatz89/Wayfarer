@@ -23,10 +23,7 @@ public class ActionPointOutcome : Outcome
 
     public override void Apply(GameState gameState)
     {
-        gameState.PlayerState.ActionPoints = Math.Clamp(
-            gameState.PlayerState.ActionPoints + Amount,
-            0,
-            gameState.PlayerState.MaxActionPoints);
+        gameState.PlayerState.ModifyActionPoints(Amount);
     }
 
     public override string GetDescription()
@@ -36,7 +33,7 @@ public class ActionPointOutcome : Outcome
 
     public override string GetPreview(GameState gameState)
     {
-        int currentValue = gameState.PlayerState.ActionPoints;
+        int currentValue = gameState.PlayerState.CurrentActionPoints();
         int newValue = Math.Clamp(currentValue + Amount, 0, gameState.PlayerState.MaxActionPoints);
         return $"({currentValue} -> {newValue})";
     }
@@ -53,10 +50,7 @@ public class VigorOutcome : Outcome
 
     public override void Apply(GameState gameState)
     {
-        gameState.PlayerState.Vigor = Math.Clamp(
-            gameState.PlayerState.Vigor + Amount,
-            0,
-            gameState.PlayerState.MaxVigor);
+        gameState.PlayerState.ModifyVigor(Amount);
     }
 
     public override string GetDescription()
@@ -66,7 +60,7 @@ public class VigorOutcome : Outcome
 
     public override string GetPreview(GameState gameState)
     {
-        int currentValue = gameState.PlayerState.Vigor;
+        int currentValue = gameState.PlayerState.CurrentVigor();
         int newValue = Math.Clamp(currentValue + Amount, 0, gameState.PlayerState.MaxVigor);
         return $"({currentValue} -> {newValue})";
     }
@@ -83,10 +77,7 @@ public class EnergyOutcome : Outcome
 
     public override void Apply(GameState gameState)
     {
-        gameState.PlayerState.Energy = Math.Clamp(
-            gameState.PlayerState.Energy + Amount,
-            0,
-            gameState.PlayerState.MaxEnergy);
+        gameState.PlayerState.ModifyEnergy(Amount);
     }
 
     public override string GetDescription()
@@ -96,7 +87,7 @@ public class EnergyOutcome : Outcome
 
     public override string GetPreview(GameState gameState)
     {
-        int currentValue = gameState.PlayerState.Energy;
+        int currentValue = gameState.PlayerState.CurrentEnergy();
         int newValue = Math.Clamp(currentValue + Amount, 0, gameState.PlayerState.MaxEnergy);
         return $"({currentValue} -> {newValue})";
     }

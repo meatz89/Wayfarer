@@ -245,7 +245,6 @@
 
             Health = playerState.Health,
             MaxHealth = playerState.MaxHealth,
-            Energy = playerState.Energy,
             MaxEnergy = playerState.MaxEnergy
         };
     }

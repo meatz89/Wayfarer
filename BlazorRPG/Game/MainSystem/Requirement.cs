@@ -15,7 +15,7 @@ public class ActionPointRequirement : IRequirement
 
     public bool IsMet(GameState gameState)
     {
-        return gameState.PlayerState.ActionPoints >= RequiredAmount;
+        return gameState.PlayerState.CurrentActionPoints() >= RequiredAmount;
     }
 
     public string GetDescription()
@@ -35,7 +35,7 @@ public class VigorRequirement : IRequirement
 
     public bool IsMet(GameState gameState)
     {
-        return gameState.PlayerState.Vigor >= RequiredAmount;
+        return gameState.PlayerState.CurrentVigor() >= RequiredAmount;
     }
 
     public string GetDescription()
@@ -55,7 +55,7 @@ public class EnergyRequirement : IRequirement
 
     public bool IsMet(GameState gameState)
     {
-        return gameState.PlayerState.Energy >= RequiredAmount;
+        return gameState.PlayerState.CurrentEnergy() >= RequiredAmount;
     }
 
     public string GetDescription()

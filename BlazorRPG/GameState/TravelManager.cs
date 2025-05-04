@@ -143,9 +143,6 @@
         int energyCost = (int)Math.Ceiling(baseCost * methodMultiplier);
         energyCost = Math.Max(1, energyCost); // Always cost at least 1 energy
 
-        // Apply energy cost
-        gameState.PlayerState.ModifyEnergy(-energyCost);
-
         // Potentially apply food cost for longer journeys
         if (travelMinutes > 60) // Over an hour
         {
