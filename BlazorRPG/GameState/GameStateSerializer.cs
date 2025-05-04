@@ -22,10 +22,6 @@ public static class GameStateSerializer
                 Gender = gameState.PlayerState.Gender.ToString(),
                 Archetype = gameState.PlayerState.Archetype.ToString(),
                 Coins = gameState.PlayerState.Coins,
-                Health = gameState.PlayerState.Health,
-                Energy = gameState.PlayerState.Energy,
-                Concentration = gameState.PlayerState.Focus,
-                Confidence = gameState.PlayerState.Spirit,
                 Level = gameState.PlayerState.Level,
                 CurrentXP = gameState.PlayerState.CurrentXP,
                 InventoryItems = gameState.PlayerState.Inventory.GetAllItems()
@@ -76,10 +72,6 @@ public static class GameStateSerializer
 
             // Apply resources
             gameState.PlayerState.Coins = serialized.Player.Coins;
-            gameState.PlayerState.Health = serialized.Player.Health;
-            gameState.PlayerState.Energy = serialized.Player.Energy;
-            gameState.PlayerState.Focus = serialized.Player.Concentration;
-            gameState.PlayerState.Spirit = serialized.Player.Confidence;
 
             // Apply progression
             gameState.PlayerState.Level = serialized.Player.Level;

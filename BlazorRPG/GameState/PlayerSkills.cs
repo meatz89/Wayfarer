@@ -128,7 +128,7 @@ public class PlayerSkills
         Skills[skillType].XP = XP;
     }
 
-    internal void AddLevelBonus(SkillTypes skillType, int level)
+    public void AddLevelBonus(SkillTypes skillType, int level)
     {
         Skills[skillType].Level += level;
     }

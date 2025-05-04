@@ -1,4 +1,6 @@
-﻿public class PlayerState
+﻿using System.Diagnostics;
+
+public class PlayerState
 {
     // Core identity
     public string Name { get; set; }
@@ -14,10 +16,12 @@
     public int XPToNextLevel { get; set; } = 100;
 
     // Afflictions
-    public int MaxActionPoints { get; set; } = 4;
-    public int ActionPoints { get; set; } = 0;
-    public int MaxVigor { get; set; } = 10;
-    public int Vigor { get; set; } = 10;
+    public int MaxActionPoints { get; } = 4;
+    private int ActionPoints { get; set; }
+    public int MaxVigor { get; } = 20;
+    private int Vigor { get; set; }
+    public int MaxEnergy { get; } = 12;
+    private int Energy { get; set; }
 
     // Resources
     public int Money { get; set; }
@@ -47,30 +51,25 @@
     public List<CardDefinition> KnownCards { get; private set; } = new List<CardDefinition>();
     public PlayerSkills Skills { get; private set; } = new();
 
-    public int Food { get; internal set; }
+    public int Food { get; set; }
 
     public int MinHealth { get; set; }
     public int Health { get; set; }
     public int Focus { get; set; }
     public int Spirit { get; set; }
-    public int Energy { get; set; }
 
     public int MaxHealth;
-    public int MaxEnergy;
     public int MaxFocus;
     public int MaxSpirit;
 
     public PlayerState()
     {
         Background = GameRules.StandardRuleset.Background;
-
-        Inventory = new Inventory(GameRules.StandardRuleset.StartingInventorySize);
+        Inventory = new Inventory(10);
 
         Level = 1;
         CurrentXP = 0;
         XPToNextLevel = 100;
-
-        Coins = GameRules.StandardRuleset.StartingCoins;
 
         NegativeStatusTypes = new();
     }
@@ -78,6 +77,8 @@
     public void HealFully()
     {
         Energy = MaxEnergy;
+        Vigor = MaxVigor;
+
         Health = MaxHealth;
         Focus = MaxFocus;
         Spirit = MaxSpirit;
@@ -92,14 +93,6 @@
         HealFully();
 
         IsInitialized = true;
-    }
-
-    public void SetCharacterStats()
-    {
-        MaxHealth = 10 + Skills.BonusMaxHealth;
-        MaxEnergy = 10 + Skills.BonusMaxEnergy;
-        MaxFocus = 10 + Skills.BonusMaxConcentration;
-        MaxSpirit = 10 + Skills.BonusMaxConfidence;
     }
 
     public void SetArchetype(ArchetypeTypes archetype)
@@ -230,17 +223,6 @@
         return false;
     }
 
-    public bool ModifyEnergy(int count)
-    {
-        int newEnergy = Math.Clamp(Energy + count, 0, MaxEnergy);
-        if (newEnergy != Energy)
-        {
-            Energy = newEnergy;
-            return true;
-        }
-        return false;
-    }
-
     public bool ModifyConcentration(int count)
     {
         int newConcentration = Math.Clamp(Focus + count, 0, MaxFocus);
@@ -279,7 +261,6 @@
         if (Food >= amount)
         {
             Food -= amount;
-            ModifyEnergy(amount * 25); // Each food unit restores 25 Energy
             return true;
         }
         return false;
@@ -332,34 +313,67 @@
     {
     }
 
-    internal void ApplyActionPointCost(int actionPointCost)
+    public void ApplyActionPointCost(int actionPointCost)
     {
         ActionPoints -= actionPointCost;
     }
 
-    internal void AddExhaustionPoints(int exhaustionPoints)
+    public void AddExhaustionPoints(int exhaustionPoints)
     {
     }
 
-    internal void AddHungerPoints(int hungerPoints)
+    public void AddHungerPoints(int hungerPoints)
     {
     }
 
-    internal void AddMentalLoadPoints(int mentalLoad)
+    public void AddMentalLoadPoints(int mentalLoad)
     {
     }
 
-    internal void AddDisconnectPoints(int disconnectionPoints)
+    public void AddDisconnectPoints(int disconnectionPoints)
     {
     }
 
-    internal int GetHunger()
+    public int GetHunger()
     {
         return 0;
     }
 
-    internal int GetExhaustion()
+    public int GetExhaustion()
     {
         return 0;
+    }
+
+    public int CurrentActionPoints()
+    {
+        return ActionPoints;
+    }
+
+    public void ModifyActionPoints(int amount)
+    {
+        int newActionPoints = Math.Clamp(ActionPoints + amount, 0, MaxActionPoints);
+        this.ActionPoints = newActionPoints;
+    }
+
+    public int CurrentEnergy()
+    {
+        return Energy;
+    }
+
+    public void ModifyEnergy(int amount)
+    {
+        int newEnergy = Math.Clamp(Energy + amount, 0, MaxEnergy);
+        this.Energy = newEnergy;
+    }
+
+    public int CurrentVigor()
+    {
+        return Vigor;
+    }
+
+    public void ModifyVigor(int amount)
+    {
+        int newVigor = Math.Clamp(Vigor + amount, 0, MaxVigor);
+        this.Vigor = newVigor;
     }
 }

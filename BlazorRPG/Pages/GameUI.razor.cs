@@ -40,7 +40,7 @@ public partial class GameUI : ComponentBase
     {
         get
         {
-            return PlayerState.Energy;
+            return PlayerState.CurrentEnergy();
         }
     }
 
@@ -349,7 +349,7 @@ public partial class GameUI : ComponentBase
 
     public void ChangeState()
     {
-        hasApLeft = PlayerState.ActionPoints > 0;
+        hasApLeft = PlayerState.CurrentActionPoints() > 0;
 
         DisplayActionMessages();
         

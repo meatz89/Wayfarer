@@ -135,12 +135,7 @@
             messageSystem.AddOutcome(cost);
         }
 
-        gameState.PlayerState.ActionPoints += actionPointCost;
-        if (gameState.PlayerState.ActionPoints < 0)
-        {
-            gameState.PlayerState.ActionPoints = 0;
-        }
-
+        gameState.PlayerState.ModifyActionPoints(actionPointCost);
         gameState.TimeManager.UpdateTimeWindow();
 
         UpdateState();

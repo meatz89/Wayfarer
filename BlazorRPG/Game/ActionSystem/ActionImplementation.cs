@@ -22,7 +22,7 @@
 
     public ActionTypes ActionType { get; set; }
     public EncounterTypes EncounterType { get; set; }
-    public int ActionPointCost { get; internal set; }
+    public int ActionPointCost { get; set; }
 
     public int Difficulty { get; set; } = 1;
 
@@ -54,22 +54,22 @@
         return context;
     }
 
-    internal string GetExertionType()
+    public string GetExertionType()
     {
         return "None";
     }
 
-    internal string GetMentalLoadType()
+    public string GetMentalLoadType()
     {
         return "None";
     }
 
-    internal string GetSocialImpactType()
+    public string GetSocialImpactType()
     {
         return "None";
     }
 
-    internal string GetRecoveryType()
+    public string GetRecoveryType()
     {
         return "None";
     }

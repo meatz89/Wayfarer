@@ -57,10 +57,10 @@
     {
         //SaveGame();
 
-        if (gameState.PlayerState.ActionPoints == 0)
+        if (gameState.PlayerState.CurrentActionPoints() == 0)
         {
             gameState.TimeManager.StartNewDay();
-            gameState.PlayerState.ActionPoints = gameState.PlayerState.MaxActionPoints;
+            gameState.PlayerState.ModifyActionPoints(gameState.PlayerState.MaxActionPoints);
         }
      
         await UpdateState();
@@ -130,7 +130,6 @@
             case ArchetypeTypes.Merchant:
                 playerProgression.AddSkillExp(SkillTypes.Insight, XpBonusForArchetype);
                 break;
-
             default:
                 throw new ArgumentOutOfRangeException(nameof(archetype));
         }

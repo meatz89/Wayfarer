@@ -26,7 +26,7 @@
 
     public List<TimeWindow> TimeWindows { get; set; } = new() { TimeWindow.Morning, TimeWindow.Afternoon, TimeWindow.Evening, TimeWindow.Night };
     public bool IsClosed { get; set; }
-    public string LocationId { get; internal set; }
+    public string LocationId { get; set; }
 
     public LocationSpot(string id, string name)
     {

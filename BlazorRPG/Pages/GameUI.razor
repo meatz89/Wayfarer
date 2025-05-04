@@ -17,21 +17,21 @@
         <div class="game-status-bar">
             <div class="player-status">
                 <div class="status-item">
+                    <span class="status-label">Energy</span>
+                    <span class="status-value">
+                        @PlayerState.CurrentEnergy() / @PlayerState.MaxEnergy
+                    </span>
+                </div>
+                <div class="status-item">
                     <span class="status-label">Action Points</span>
-                    <span class="status-value @(PlayerState.ActionPoints < PlayerState.MaxActionPoints / 3 ? "danger" : "")">
-                        @PlayerState.ActionPoints / @PlayerState.MaxActionPoints
+                    <span class="status-value @(PlayerState.CurrentActionPoints() < PlayerState.MaxActionPoints / 3 ? "danger" : "")">
+                        @PlayerState.CurrentActionPoints() / @PlayerState.MaxActionPoints
                     </span>
                 </div>
                 <div class="status-item">
                     <span class="status-label">Vigor</span>
                     <span class="status-value">
-                        @PlayerState.Vigor / @PlayerState.MaxVigor
-                    </span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Energy</span>
-                    <span class="status-value">
-                        @PlayerState.Energy / @PlayerState.MaxEnergy
+                        @PlayerState.CurrentVigor() / @PlayerState.MaxVigor
                     </span>
                 </div>
             </div>
