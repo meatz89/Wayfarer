@@ -204,7 +204,7 @@
                     AddOrIncrease(bonuses, ApproachTags.Dominance, 1);
                     AddOrIncrease(bonuses, ApproachTags.Precision, 1);
                 }
-                else if (illumination.Equals(Illumination.Shadowy))
+                else if (illumination.Equals(Illumination.Roguey))
                 {
                     AddOrIncrease(bonuses, ApproachTags.Precision, 1);
                     AddOrIncrease(bonuses, ApproachTags.Concealment, 1);

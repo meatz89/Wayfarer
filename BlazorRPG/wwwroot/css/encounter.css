@@ -126,7 +126,7 @@
 	.choice-option:hover:not(.disabled) {
 		background-color: var(--bg-active);
 		transform: translateY(-2px);
-		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+		box-Rogue: 0 4px 8px rgba(0, 0, 0, 0.2);
 	}
 
 	.choice-option.disabled {
@@ -171,5 +171,5 @@
 
 .choice-option.tier-5 {
 	border-left-color: #A25B0F; /* No matching variable */
-	box-shadow: 0 0 5px rgba(162, 91, 15, 0.5);
+	box-Rogue: 0 0 5px rgba(162, 91, 15, 0.5);
 }

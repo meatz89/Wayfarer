@@ -62,7 +62,7 @@
   * Discuss, Persuade, Perform (social actions)
   * Study, Investigate, Analyze (intellectual actions)
 - Environmental properties must use standard values only:
-  * Illumination: Bright, Shadowy, Dark
+  * Illumination: Bright, Roguey, Dark
   * Population: Crowded, Quiet, Isolated
   * Atmosphere: Tense, Formal, Chaotic
   * Economic: Wealthy, Commercial, Humble

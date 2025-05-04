@@ -411,11 +411,11 @@ public partial class GameUI : ComponentBase
     {
         return archetype switch
         {
-            ArchetypeTypes.Artisan => "⚔️",
-            ArchetypeTypes.Scribe => "📚",
-            ArchetypeTypes.Herbalist => "🏹",
-            ArchetypeTypes.Courtier => "🎵",
-            ArchetypeTypes.Shadow => "🗝️",
+            ArchetypeTypes.Guard => "⚔️",
+            ArchetypeTypes.Scholar => "📚",
+            ArchetypeTypes.Explorer => "🏹",
+            ArchetypeTypes.Diplomat => "🎵",
+            ArchetypeTypes.Rogue => "🗝️",
             _ => "❓"
         };
     }

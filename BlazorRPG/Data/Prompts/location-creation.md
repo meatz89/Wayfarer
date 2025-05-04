@@ -91,7 +91,7 @@ You must provide your response ONLY as a valid JSON object with the following st
       "interactionDescription": "Description of what happens on basic interaction",
       "position": "Center/North/East/South/West",
       "environmentalProperties": {
-        "illumination": "Bright/Shadowy/Dark",
+        "illumination": "Bright/Roguey/Dark",
         "population": "Crowded/Quiet/Isolated",
         "atmosphere": "Tense/Formal/Chaotic",
         "economic": "Wealthy/Commercial/Humble",

@@ -106,20 +106,20 @@
 
         switch (archetype)
         {
-            case ArchetypeTypes.Artisan:
-                InitializeArtisan();
+            case ArchetypeTypes.Guard:
+                InitializeGuard();
                 break;
-            case ArchetypeTypes.Courtier:
-                InitializeCourtier();
+            case ArchetypeTypes.Diplomat:
+                InitializeDiplomat();
                 break;
-            case ArchetypeTypes.Scribe:
-                InitializeScribe();
+            case ArchetypeTypes.Scholar:
+                InitializeScholar();
                 break;
-            case ArchetypeTypes.Herbalist:
-                InitializeHerbalist();
+            case ArchetypeTypes.Explorer:
+                InitializeExplorer();
                 break;
-            case ArchetypeTypes.Shadow:
-                InitializeShadow();
+            case ArchetypeTypes.Rogue:
+                InitializeRogue();
                 break;
             case ArchetypeTypes.Merchant:
                 InitializeMerchant();
@@ -130,7 +130,7 @@
         }
     }
 
-    private void InitializeArtisan()
+    private void InitializeGuard()
     {
         // Inventory
         ClearInventory();
@@ -144,7 +144,7 @@
         Skills.AddLevelBonus(SkillTypes.Finesse, 1);
     }
 
-    private void InitializeCourtier()
+    private void InitializeDiplomat()
     {
         ClearInventory();
         Inventory.AddItem(ItemTypes.FineClothes);
@@ -158,7 +158,7 @@
         Skills.AddLevelBonus(SkillTypes.Diplomacy, 1);
     }
 
-    private void InitializeScribe()
+    private void InitializeScholar()
     {
         ClearInventory();
         Inventory.AddItem(ItemTypes.Journal);
@@ -172,7 +172,7 @@
         Skills.AddLevelBonus(SkillTypes.Lore, 1);
     }
 
-    private void InitializeHerbalist()
+    private void InitializeExplorer()
     {
         ClearInventory();
         Inventory.AddItem(ItemTypes.HerbSatchel);
@@ -184,7 +184,7 @@
         Skills.AddLevelBonus(SkillTypes.Lore, 1);
     }
 
-    private void InitializeShadow()
+    private void InitializeRogue()
     {
         ClearInventory();
         Inventory.AddItem(ItemTypes.Lockpicks);

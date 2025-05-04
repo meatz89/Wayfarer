@@ -15,7 +15,7 @@ Weave a world that engages all senses—the metallic tang of fresh-forged iron, 
 Write with restraint, trusting the reader to sense the current beneath still waters. The heaviest emotions often hide behind the simplest words. Less is more.
 
 ## [ACTION PRELUDE REQUIREMENTS]
-Generate a single paragraph (2-3 sentences) that sets the scene just before the player performs the specified action. Focus on sensory details, character micro-expressions, or environmental elements that create atmosphere and context. Do not describe the outcome of the action, only the moment before action begins.
+Generate a single paragraph (2-3 sentences) that sets the scene just before the player performs the specified action. Focus on sensory details, character micro-expressions, or environmental elements that create atmosphere and context. Do not deScholar the outcome of the action, only the moment before action begins.
 
 ## [GAME CONTEXT]
 Player Character: {{playerName}}, a {{playerArchetype}} with skill focus in {{primarySkill}} and {{secondarySkill}}

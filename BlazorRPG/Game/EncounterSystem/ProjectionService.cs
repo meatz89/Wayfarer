@@ -272,11 +272,11 @@
 
     private bool IsArchetypeApproach(ArchetypeTypes archetype, ApproachTags approach)
     {
-        return (archetype == ArchetypeTypes.Artisan && approach == ApproachTags.Dominance) ||
-               (archetype == ArchetypeTypes.Courtier && approach == ApproachTags.Rapport) ||
-               (archetype == ArchetypeTypes.Scribe && approach == ApproachTags.Analysis) ||
-               (archetype == ArchetypeTypes.Herbalist && approach == ApproachTags.Precision) ||
-               (archetype == ArchetypeTypes.Shadow && approach == ApproachTags.Concealment);
+        return (archetype == ArchetypeTypes.Guard && approach == ApproachTags.Dominance) ||
+               (archetype == ArchetypeTypes.Diplomat && approach == ApproachTags.Rapport) ||
+               (archetype == ArchetypeTypes.Scholar && approach == ApproachTags.Analysis) ||
+               (archetype == ArchetypeTypes.Explorer && approach == ApproachTags.Precision) ||
+               (archetype == ArchetypeTypes.Rogue && approach == ApproachTags.Concealment);
     }
 
     private void EnsureNoNegativeValues(

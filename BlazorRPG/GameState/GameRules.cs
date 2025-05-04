@@ -31,7 +31,7 @@
     public static int StrategicInsightRequirement = 4;
     public static int StrategicResonanceRequirement = 4;
 
-    public ArchetypeTypes PlayerArchetype = ArchetypeTypes.Artisan;
+    public ArchetypeTypes PlayerArchetype = ArchetypeTypes.Guard;
 
     public string Background = string.Empty;
     public string Name = "Wayfarer";
