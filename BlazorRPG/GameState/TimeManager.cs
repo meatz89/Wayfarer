@@ -1,5 +1,6 @@
 ﻿public class TimeManager
 {
+    private const int dayStartingHour = 6;
     private readonly PlayerState playerState;
     private readonly WorldState worldState;
 
@@ -15,27 +16,44 @@
         int currentAP = playerState.ActionPoints;
         int actionsUsed = maxAP - currentAP;
 
-        // Total hours in day = 24
-        double hoursPerAP = 24.0 / maxAP;
+        int activeDayStartHour = dayStartingHour;  // 6 AM
+        int activeDayEndHour = 24;   // Midnight
+        int activeDayHours = activeDayEndHour - activeDayStartHour;  // 18 hours
+
+        double hoursPerAP = activeDayHours / (double)maxAP;
         double totalHoursAdvanced = actionsUsed * hoursPerAP;
 
-        int baseHour = 5; // Let's say day starts at 6 AM (Morning starts)
-        int newHour = (baseHour + (int)Math.Floor(totalHoursAdvanced)) % 24;
+        int newHour = activeDayStartHour + (int)Math.Floor(totalHoursAdvanced);
+        if (newHour >= 24)
+            newHour = 23;  // Cap to prevent overflow, last action sits near midnight
 
         worldState.CurrentTimeHours = newHour;
 
         // Now update TimeWindow based on newHour
         TimeWindow newWindow;
-        if (newHour >= 5 && newHour < 11)
+        if (newHour >= dayStartingHour && newHour < 12)
             newWindow = TimeWindow.Morning;
-        else if (newHour >= 11 && newHour < 17)
+        else if (newHour >= 12 && newHour < 18)
             newWindow = TimeWindow.Afternoon;
-        else if (newHour >= 17 && newHour < 23)
+        else if (newHour >= 18 && newHour < 24)
             newWindow = TimeWindow.Evening;
         else
-            newWindow = TimeWindow.Night;
+            newWindow = TimeWindow.Night;  // should never hit this because of cap
 
         worldState.CurrentTimeWindow = newWindow;
+
+        if (currentAP == 0)
+        {
+            worldState.CurrentTimeHours = 0;
+            worldState.CurrentTimeWindow = TimeWindow.Night;
+        }
+    }
+
+    public void StartNewDay()
+    {
+        worldState.CurrentDay++;
+        worldState.CurrentTimeHours = dayStartingHour;
+        worldState.CurrentTimeWindow = TimeWindow.Morning;
     }
 
     public TimeWindow GetCurrentTimeWindow()

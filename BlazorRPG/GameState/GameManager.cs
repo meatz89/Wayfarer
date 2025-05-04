@@ -55,6 +55,19 @@
 
     public async Task StartNewDay()
     {
+        //SaveGame();
+
+        if (gameState.PlayerState.ActionPoints == 0)
+        {
+            gameState.TimeManager.StartNewDay();
+            gameState.PlayerState.ActionPoints = gameState.PlayerState.MaxActionPoints;
+        }
+     
+        await UpdateState();
+    }
+
+    private void SaveGame()
+    {
         try
         {
             contentLoader.SaveGame(gameState);
@@ -64,11 +77,6 @@
         {
             messageSystem.AddSystemMessage($"Failed to save game: {ex.Message}");
             Console.WriteLine($"Error saving game: {ex}");
-        }
-
-        if (gameState.PlayerState.ActionPoints == 0)
-        {
-            actionProcessor.ChangeDay();
         }
     }
 
