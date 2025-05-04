@@ -90,13 +90,13 @@
         }
     }
 
-    private ActionDefinition GetTravelTemplate(string location, string locationSpot)
+    private ActionDefinition GetTravelTemplate(string location, string locationSpotId)
     {
-        ActionDefinition travelTemplate = new ActionDefinition("travel", "travel")
+        ActionDefinition travelTemplate = new ActionDefinition("travel", "travel", locationSpotId)
         {
             Goal = "Travel safely to your destination",
             MoveToLocation = location,
-            MoveToLocationSpot = locationSpot,
+            MoveToLocationSpot = locationSpotId,
             EnergyCost = 1,
         };
 

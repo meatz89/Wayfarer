@@ -19,8 +19,6 @@
 
     // Resources
     public int Money { get; set; }
-    public int Food { get; set; }
-    public int MedicinalHerbs { get; set; }
     public Inventory Inventory { get; set; } = new Inventory(10);
 
     // Relationships with characters
@@ -47,6 +45,8 @@
     public List<CardDefinition> KnownCards { get; private set; } = new List<CardDefinition>();
     public PlayerSkills Skills { get; private set; } = new();
 
+    public int Food { get; internal set; }
+
     public int MinHealth { get; set; }
     public int Health { get; set; }
     public int Focus { get; set; }
@@ -69,12 +69,8 @@
         XPToNextLevel = 100;
 
         Coins = GameRules.StandardRuleset.StartingCoins;
-        Food = 2;
-        MedicinalHerbs = 2;
 
         NegativeStatusTypes = new();
-
-        HealFully();
     }
 
     public void HealFully()
@@ -276,36 +272,12 @@
         return false;
     }
 
-    public bool ModifyMedicinalHerbs(int amount)
-    {
-        int newHerbs = Math.Max(0, MedicinalHerbs + amount);
-        if (newHerbs != MedicinalHerbs)
-        {
-            MedicinalHerbs = newHerbs;
-            return true;
-        }
-        return false;
-    }
-
     public bool ConsumeFood(int amount)
     {
         if (Food >= amount)
         {
             Food -= amount;
             ModifyEnergy(amount * 25); // Each food unit restores 25 Energy
-            return true;
-        }
-        return false;
-    }
-
-    public bool ConsumeMedicinalHerbs(int amount)
-    {
-        if (MedicinalHerbs >= amount)
-        {
-            MedicinalHerbs -= amount;
-            ModifyHealth(amount * 15);
-            ModifyConcentration(amount * 15);
-            ModifyConfidence(amount * 15);
             return true;
         }
         return false;

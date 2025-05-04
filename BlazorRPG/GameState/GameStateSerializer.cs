@@ -22,8 +22,6 @@ public static class GameStateSerializer
                 Gender = gameState.PlayerState.Gender.ToString(),
                 Archetype = gameState.PlayerState.Archetype.ToString(),
                 Coins = gameState.PlayerState.Coins,
-                Food = gameState.PlayerState.Food,
-                MedicinalHerbs = gameState.PlayerState.MedicinalHerbs,
                 Health = gameState.PlayerState.Health,
                 Energy = gameState.PlayerState.Energy,
                 Concentration = gameState.PlayerState.Focus,
@@ -78,8 +76,6 @@ public static class GameStateSerializer
 
             // Apply resources
             gameState.PlayerState.Coins = serialized.Player.Coins;
-            gameState.PlayerState.Food = serialized.Player.Food;
-            gameState.PlayerState.MedicinalHerbs = serialized.Player.MedicinalHerbs;
             gameState.PlayerState.Health = serialized.Player.Health;
             gameState.PlayerState.Energy = serialized.Player.Energy;
             gameState.PlayerState.Focus = serialized.Player.Concentration;
@@ -201,21 +197,7 @@ public static class GameStateSerializer
                 description = spot.Description,
                 currentLevel = spot.CurrentLevel,
                 currentXP = spot.CurrentSpotXP,
-                xpToNextLevel = spot.XPToNextLevel,
-                levels = spot.LevelData.Select(level =>
-                {
-                    return new
-                    {
-                        level = level.Level,
-                        description = level.Description,
-                        actionIds = level.AddedActionIds,
-                        removedActionIds = level.RemovedActionIds,
-                        levelUpEncounter = new
-                        {
-                            id = level.EncounterActionId
-                        }
-                    };
-                }).ToList()
+                xpToNextLevel = spot.XPToNextLevel
             };
         }).ToList<object>();
 

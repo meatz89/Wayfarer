@@ -11,8 +11,8 @@ public record ActionImplementation
     public string DestinationLocation { get; set; }
     public string DestinationLocationSpot { get; set; }
 
-    public string LocationName { get; set; }
-    public string LocationSpotName { get; set; }
+    public string LocationId { get; set; }
+    public string LocationSpotId { get; set; }
     public int SpotXp { get; set; }
 
     public EncounterTemplate EncounterTemplate { get; set; }
@@ -48,8 +48,8 @@ public record ActionImplementation
         ActionGenerationContext context = new ActionGenerationContext
         {
             ActionId = Id,
-            SpotName = LocationSpotName,
-            LocationName = LocationName,
+            SpotName = LocationSpotId,
+            LocationName = LocationId,
         };
 
         return context;

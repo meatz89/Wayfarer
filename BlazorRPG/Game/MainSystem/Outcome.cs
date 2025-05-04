@@ -88,32 +88,6 @@ public class LocationSpotKnowledgeOutcome : Outcome
     }
 }
 
-public class MedicinalHerbOutcome : Outcome
-{
-    public int Amount { get; }
-
-    public MedicinalHerbOutcome(int amount)
-    {
-        Amount = amount;
-    }
-
-    public override void Apply(GameState gameState)
-    {
-        gameState.PlayerState.ModifyMedicinalHerbs(Amount);
-    }
-
-    public override string GetDescription()
-    {
-        return $"{(Amount >= 0 ? "+" : "")}{Amount} Medicinal Herbs";
-    }
-
-    public override string GetPreview(GameState gameState)
-    {
-        int newValue = Math.Max(0, gameState.PlayerState.MedicinalHerbs + Amount);
-        return $"({gameState.PlayerState.MedicinalHerbs} -> {newValue})";
-    }
-}
-
 public class ItemOutcome : Outcome
 {
     public ItemTypes ItemType { get; set; }

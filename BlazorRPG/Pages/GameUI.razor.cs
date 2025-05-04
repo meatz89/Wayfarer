@@ -324,7 +324,7 @@ public partial class GameUI : ComponentBase
     private async Task WaitHalfTimeWindow()
     {
         // Create a "Wait" action that advances time without other effects
-        ActionImplementation waitAction = GameManager.GetWaitAction();
+        ActionImplementation waitAction = GameManager.GetWaitAction(CurrentSpot.Id);
 
         UserActionOption waitOption = new UserActionOption(
             "Wait for one hour", false, waitAction,

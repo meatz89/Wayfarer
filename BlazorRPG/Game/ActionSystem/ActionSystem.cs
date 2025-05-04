@@ -25,17 +25,13 @@ public class ActionSystem
         {
             foreach (LocationSpot spot in locationSystem.GetLocationSpots(location.Id))
             {
-                if (spot.GetActionsForLevel(spot.CurrentLevel).Any())
-                    continue;
-
                 sb.AppendLine($"## Actions at {location.Id} / {spot.Id}:");
 
-                foreach (string actionTemplate in spot.GetActionsForLevel(spot.CurrentLevel))
+                foreach (ActionDefinition actionTemplate in actionRepository.GetActionsForSpot(spot.Id))
                 {
-                    ActionDefinition action = actionRepository.GetAction(actionTemplate);
-                    if (action != null)
+                    if (actionTemplate != null)
                     {
-                        sb.AppendLine($"- {action.Id}: {action.Goal}");
+                        sb.AppendLine($"- {actionTemplate.Id}: {actionTemplate.Goal}");
                     }
                 }
                 sb.AppendLine();

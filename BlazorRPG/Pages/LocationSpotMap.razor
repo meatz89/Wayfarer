@@ -20,24 +20,25 @@
                 <div class="location-type">@spot.Description</div>
 
                 @* Add travel option if not current spot *@
-                @if (spot.Id != CurrentSpot.Id)
-                {
-                    <button class="action-button" disabled="@(!GameManager.CanMoveToSpot(spot.Id))"
-                    @onclick="() => OnSpotSelected.InvokeAsync(spot)">
-                        MOVE HERE
-                    </button>
-                }
-                else
+                @if (spot.Id == CurrentSpot.Id)
                 {
                     @foreach (UserActionOption action in GameState.ActionStateTracker.LocationSpotActions)
                     {
                         <button class="action-button"
-                        @onclick="() => OnActionSelected.InvokeAsync(action)"
-                        disabled="@(action.IsDisabled)"
-                        @onmouseover="(e) => HandleShowTooltip(action, e)"
-                        @onmouseout="HandleHideTooltip">@action.ActionImplementation.Id (@action.ActionImplementation.ActionType)
+                                @onclick="() => OnActionSelected.InvokeAsync(action)"
+                                disabled="@(action.IsDisabled)"
+                                @onmouseover="(e) => HandleShowTooltip(action, e)"
+                                @onmouseout="HandleHideTooltip">
+                            @action.ActionImplementation.Name (@action.ActionImplementation.ActionType)
                         </button>
                     }
+                }
+                else
+                {
+                    <button class="action-button" disabled="@(!GameManager.CanMoveToSpot(spot.Id))"
+                            @onclick="() => OnSpotSelected.InvokeAsync(spot)">
+                        MOVE HERE
+                    </button>
                 }
             </div>
         </div>
