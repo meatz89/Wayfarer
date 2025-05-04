@@ -4,11 +4,11 @@
         <h4>Choose Your Gender</h4>
         <div class="gender-toggle">
             <button class="gender-option @(selectedGender == Genders.Male ? "selected" : "")"
-                    @onclick="() => SelectGender(Genders.Male)">
+            @onclick="() => SelectGender(Genders.Male)">
                 <span><i class="fas fa-mars icon-spacing"></i> Male</span>
             </button>
             <button class="gender-option @(selectedGender == Genders.Female ? "selected" : "")"
-                    @onclick="() => SelectGender(Genders.Female)">
+            @onclick="() => SelectGender(Genders.Female)">
                 <span><i class="fas fa-venus icon-spacing"></i> Female</span>
             </button>
         </div>
@@ -21,7 +21,7 @@
                 @foreach (ArchetypeTypes archetype in Enum.GetValues(typeof(ArchetypeTypes)))
                 {
                     <div class="archetype-option @(selectedArchetype == archetype ? "selected" : "")"
-                         @onclick="() => SelectArchetype(archetype)">
+                    @onclick="() => SelectArchetype(archetype)">
                         <span class="archetype-name">@FormatArchetypeName(archetype)</span>
                         <span class="archetype-brief">@GetShortDescription(archetype)</span>
                     </div>
@@ -33,8 +33,8 @@
                 {
                     <div class="archetype-portrait portrait-high">
                         <img class="@(changingImage ? "changing" : "")"
-                             src="/images/characters/@(selectedGender.ToString().ToLower())_@(selectedArchetype.ToString().ToLower()).png"
-                             alt="@FormatArchetypeName(selectedArchetype)" />
+                        src="@GetArchetypeImage(selectedArchetype)"
+                        alt="@FormatArchetypeName(selectedArchetype)" />
                     </div>
                     <div class="archetype-content @(changingContent ? "changing" : "")">
                         <h3 class="archetype-title">@FormatArchetypeName(selectedArchetype)</h3>
@@ -198,6 +198,13 @@
             "([A-Z])",
             " $1",
             System.Text.RegularExpressions.RegexOptions.Compiled).Trim();
+    }
+
+    private string GetArchetypeImage(ArchetypeTypes archetype)
+    {
+        string selectedGenderString = selectedGender.ToString().ToLower();
+        string imagePath = $"/images/characters/{selectedGenderString}_{selectedArchetype.ToString().ToLower()}.png";
+        return imagePath;
     }
 
     private string GetArchetypeDescription(ArchetypeTypes archetype)
