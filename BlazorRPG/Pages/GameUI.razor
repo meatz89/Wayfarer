@@ -36,11 +36,9 @@
                 </div>
             </div>
 
-            <div class="game-actions">
-                <button class="save-button" @onclick="SaveGame">
-                    <span class="save-icon">💾</span> Save Game
-                </button>
-            </div>
+            <button class="save-button" @onclick="EndDay" disabled="@hasApLeft">
+                <span class="save-icon">💾</span> Start New Day
+            </button>
 
             <div class="game-info">
                 <div class="time-display @GetTimeOfDayStyle()">

@@ -10,6 +10,7 @@ public partial class GameUI : ComponentBase
     [Inject] private GameManager GameManager { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
 
+    public bool hasApLeft = false;
 
     public PlayerState PlayerState
     {
@@ -261,9 +262,9 @@ public partial class GameUI : ComponentBase
         ChangeState();
     }
 
-    private async Task SaveGame()
+    private async Task EndDay()
     {
-        await GameManager.SaveGame();
+        await GameManager.StartNewDay();
     }
 
     private async Task HandleActionSelection(UserActionOption action)
@@ -340,8 +341,10 @@ public partial class GameUI : ComponentBase
 
     public void ChangeState()
     {
-        DisplayActionMessages();
+        hasApLeft = PlayerState.ActionPoints > 0;
 
+        DisplayActionMessages();
+        
         StateVersion++;
         StateHasChanged();
     }
