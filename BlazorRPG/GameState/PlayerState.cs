@@ -14,8 +14,8 @@
     public int XPToNextLevel { get; set; } = 100;
 
     // Afflictions
-    public int MaxActionPoints { get; } = 4;
-    private int ActionPoints { get; set; }
+    public int TurnActionPoints { get; } = 4;
+    private int ActionPoints { get; set; } = 4;
     public int MaxVigor { get; } = 20;
     private int Vigor { get; set; }
     public int MaxEnergy { get; } = 12;
@@ -55,6 +55,10 @@
     public int Health { get; set; }
     public int Focus { get; set; }
     public int Spirit { get; set; }
+    public int ExhaustionPoints { get; private set; }
+    public int HungerPoints { get; private set; }
+    public int MentalLoadPoints { get; private set; }
+    public int IsolationPoints { get; private set; }
 
     public int MaxHealth;
     public int MaxFocus;
@@ -318,30 +322,24 @@
 
     public void AddExhaustionPoints(int exhaustionPoints)
     {
+        this.ExhaustionPoints += exhaustionPoints;
     }
 
     public void AddHungerPoints(int hungerPoints)
     {
+        this.HungerPoints += hungerPoints;
     }
 
     public void AddMentalLoadPoints(int mentalLoad)
     {
+        this.MentalLoadPoints += mentalLoad;
     }
 
     public void AddDisconnectPoints(int disconnectionPoints)
     {
+        this.IsolationPoints += disconnectionPoints;
     }
-
-    public int GetHunger()
-    {
-        return 0;
-    }
-
-    public int GetExhaustion()
-    {
-        return 0;
-    }
-
+    
     public int CurrentActionPoints()
     {
         return ActionPoints;
@@ -349,7 +347,7 @@
 
     public void ModifyActionPoints(int amount)
     {
-        int newActionPoints = Math.Clamp(ActionPoints + amount, 0, MaxActionPoints);
+        int newActionPoints = Math.Clamp(ActionPoints + amount, 0, TurnActionPoints);
         this.ActionPoints = newActionPoints;
     }
 
@@ -358,9 +356,8 @@
         return Energy;
     }
 
-    public void ModifyEnergy(int amount)
+    public void SetNewEnergy(int newEnergy)
     {
-        int newEnergy = Math.Clamp(Energy + amount, 0, MaxEnergy);
         this.Energy = newEnergy;
     }
 
@@ -374,4 +371,5 @@
         int newVigor = Math.Clamp(Vigor + amount, 0, MaxVigor);
         this.Vigor = newVigor;
     }
+
 }

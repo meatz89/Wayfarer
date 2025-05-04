@@ -1,4 +1,6 @@
-﻿public class GameManager
+﻿using Microsoft.AspNetCore.Mvc.ActionConstraints;
+
+public class GameManager
 {
     private bool _useMemory;
     private bool _processStateChanges;
@@ -53,14 +55,38 @@
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
     }
 
+    public async Task StartGame()
+    {
+        ProcessPlayerArchetype();
+        playerState.HealFully();
+
+        gameState.TimeManager.SetNewTime(TimeManager.TimeDayStart);
+
+        Location startingLocation = await locationSystem.Initialize();
+        worldState.RecordLocationVisit(startingLocation.Id);
+        travelManager.StartLocationTravel(startingLocation.Id);
+
+        Location currentLocation = worldState.CurrentLocation;
+        if (worldState.CurrentLocationSpot == null && locationSystem.GetLocationSpots(currentLocation.Id).Any() == true)
+        {
+            Console.WriteLine("Current location spot is null despite spots existing - manually setting");
+            worldState.SetCurrentLocationSpot(locationSystem.GetLocationSpots(currentLocation.Id).First());
+        }
+
+        Location? currentLoc = currentLocation;
+        Console.WriteLine($"Game started at: {currentLoc?.Id}, Current spot: {worldState.CurrentLocationSpot?.Id}");
+
+        gameState.ActionStateTracker.CompleteAction();
+        await UpdateState();
+    }
+
     public async Task StartNewDay()
     {
         //SaveGame();
 
         if (gameState.PlayerState.CurrentActionPoints() == 0)
         {
-            gameState.TimeManager.StartNewDay();
-            gameState.PlayerState.ModifyActionPoints(gameState.PlayerState.MaxActionPoints);
+            actionProcessor.ProcessTurnChange();
         }
 
         await UpdateState();
@@ -78,31 +104,6 @@
             messageSystem.AddSystemMessage($"Failed to save game: {ex.Message}");
             Console.WriteLine($"Error saving game: {ex}");
         }
-    }
-
-    public async Task StartGame()
-    {
-        ProcessPlayerArchetype();
-        playerState.HealFully();
-
-        Location startingLocation = await locationSystem.Initialize();
-
-        worldState.RecordLocationVisit(startingLocation.Id);
-        travelManager.StartLocationTravel(startingLocation.Id);
-
-        Location currentLocation = worldState.CurrentLocation;
-
-        if (worldState.CurrentLocationSpot == null && locationSystem.GetLocationSpots(currentLocation.Id).Any() == true)
-        {
-            Console.WriteLine("Current location spot is null despite spots existing - manually setting");
-            worldState.SetCurrentLocationSpot(locationSystem.GetLocationSpots(currentLocation.Id).First());
-        }
-
-        gameState.ActionStateTracker.CompleteAction();
-        await UpdateState();
-
-        Location? currentLoc = currentLocation;
-        Console.WriteLine($"Game started at: {currentLoc?.Id}, Current spot: {worldState.CurrentLocationSpot?.Id}");
     }
 
     private void ProcessPlayerArchetype()

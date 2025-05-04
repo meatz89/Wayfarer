@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using System;
 
 namespace BlazorRPG.Pages;
 
@@ -27,14 +28,6 @@ public partial class GameUI : ComponentBase
         }
     }
 
-    public PlayerState Player
-    {
-        get
-        {
-            return PlayerState; // Alias for compatibility
-        }
-    }
-
     // Player Resources
     public int Energy
     {
@@ -44,69 +37,42 @@ public partial class GameUI : ComponentBase
         }
     }
 
-    public int MaxEnergy
+    public int ActionPoints
     {
         get
         {
-            return PlayerState.MaxEnergy;
+            return PlayerState.CurrentActionPoints();
         }
     }
 
-    public int Health
+    public int TurnActionPoints
     {
         get
         {
-            return PlayerState.Health;
+            return PlayerState.TurnActionPoints;
         }
     }
 
-    public int MaxHealth
+    public int Vigor
     {
         get
         {
-            return PlayerState.MaxHealth;
+            return PlayerState.CurrentVigor();
         }
     }
 
-    public int Concentration
+    public int MaxVigor
     {
         get
         {
-            return PlayerState.Focus;
+            return PlayerState.MaxVigor;
         }
     }
 
-    public int MaxConcentration
-    {
-        get
-        {
-            return PlayerState.MaxFocus;
-        }
-    }
-
-    public int Confidence
-    {
-        get
-        {
-            return PlayerState.Spirit;
-        }
-    }
-
-    public int MaxConfidence
-    {
-        get
-        {
-            return PlayerState.MaxSpirit;
-        }
-    }
-
-    public int Coins
-    {
-        get
-        {
-            return PlayerState.Coins;
-        }
-    }
+    public int Exhaustion;
+    public int Hunger;
+    public int MentalLoad;
+    public int Isolation;
 
     public EncounterResult EncounterResult { get; private set; }
 
@@ -244,8 +210,6 @@ public partial class GameUI : ComponentBase
         await GameManager.StartGame();
     }
 
-
-
     public void SwitchAreaMap()
     {
         if (CurrentScreen == CurrentViews.MapScreen)
@@ -350,6 +314,11 @@ public partial class GameUI : ComponentBase
     public void ChangeState()
     {
         hasApLeft = PlayerState.CurrentActionPoints() > 0;
+        Exhaustion = PlayerState.ExhaustionPoints;
+        Hunger = PlayerState.HungerPoints;
+        MentalLoad = PlayerState.MentalLoadPoints;
+        Isolation = PlayerState.IsolationPoints;
+
 
         DisplayActionMessages();
 
@@ -416,6 +385,12 @@ public partial class GameUI : ComponentBase
             TimeWindow.Evening => "🌆",
             _ => "❓"
         };
+    }
+    
+    public string GetArchetypePortrait()
+    {
+        string portraitPath = $"/images/characters/{PlayerState.Gender.ToString().ToLower()}_{PlayerState.Archetype.ToString().ToLower()}.png";
+        return portraitPath;
     }
 
     private string GetArchetypeIcon(ArchetypeTypes archetype)
