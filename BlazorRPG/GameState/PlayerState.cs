@@ -15,7 +15,7 @@
 
     // Afflictions
     public int MaxActionPoints { get; set; } = 4;
-    public int ActionPoints { get; set; } = 4;
+    public int ActionPoints { get; set; } = 0;
     public int MaxVigor { get; set; } = 10;
     public int Vigor { get; set; } = 10;
 

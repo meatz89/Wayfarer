@@ -146,15 +146,6 @@
         UpdateState();
     }
 
-    public void ChangeDay()
-    {
-        worldState.CurrentDay++;
-        
-        gameState.PlayerState.ActionPoints = gameState.PlayerState.MaxActionPoints;
-        
-        worldState.CurrentTimeWindow = TimeWindow.Morning;
-    }
-
     private void IncreaseSpotXp(ActionImplementation action)
     {
         int spotXp = action.SpotXp;

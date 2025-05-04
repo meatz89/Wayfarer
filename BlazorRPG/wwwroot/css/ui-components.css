@@ -150,6 +150,11 @@
 		transform: translateY(-2px);
 	}
 
+.location-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
 .location-spot-properties {
 	margin-bottom: 1rem;
 }

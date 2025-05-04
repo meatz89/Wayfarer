@@ -36,10 +36,6 @@
                 </div>
             </div>
 
-            <button class="save-button" @onclick="EndDay" disabled="@hasApLeft">
-                <span class="save-icon">💾</span> Start New Day
-            </button>
-
             <div class="game-info">
                 <div class="time-display @GetTimeOfDayStyle()">
                     <span class="time-icon">@GetIconForTimeWindow(CurrentTime)</span>
@@ -89,10 +85,13 @@
                             <div class="location-header">
                                 <h2 class="location-title">@GetCurrentLocation().Id</h2>
                                 <div class="location-actions">
-                                    <button class="location-button" @onclick="WaitHalfTimeWindow">
+                                    <button class="location-button" @onclick="@StartNewDay" disabled="@hasApLeft">
+                                        Start Day
+                                    </button>
+                                    <button class="location-button" @onclick="@WaitAction" disabled="@hasNoApLeft">
                                         Wait
                                     </button>
-                                    <button class="location-button" @onclick="@SwitchAreaMap">
+                                    <button class="location-button" @onclick="@SwitchAreaMap" disabled="@hasNoApLeft">
                                         Travel 🗺️
                                     </button>
                                 </div>

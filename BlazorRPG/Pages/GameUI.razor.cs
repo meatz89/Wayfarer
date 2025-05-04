@@ -11,6 +11,13 @@ public partial class GameUI : ComponentBase
     [Inject] private MessageSystem MessageSystem { get; set; }
 
     public bool hasApLeft = false;
+    public bool hasNoApLeft
+    {
+        get
+        {
+            return !hasApLeft;
+        }
+    }
 
     public PlayerState PlayerState
     {
@@ -262,9 +269,10 @@ public partial class GameUI : ComponentBase
         ChangeState();
     }
 
-    private async Task EndDay()
+    private async Task StartNewDay()
     {
         await GameManager.StartNewDay();
+        ChangeState();
     }
 
     private async Task HandleActionSelection(UserActionOption action)
@@ -322,7 +330,7 @@ public partial class GameUI : ComponentBase
         ChangeState();
     }
 
-    private async Task WaitHalfTimeWindow()
+    private async Task WaitAction()
     {
         // Create a "Wait" action that advances time without other effects
         ActionImplementation waitAction = GameManager.GetWaitAction(CurrentSpot.Id);
