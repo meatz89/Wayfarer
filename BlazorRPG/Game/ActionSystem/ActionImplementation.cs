@@ -1,5 +1,4 @@
-﻿
-public record ActionImplementation
+﻿public record ActionImplementation
 {
     public string Id { get; set; }
     public string Name { get; set; }

@@ -14,8 +14,10 @@
     public int XPToNextLevel { get; set; } = 100;
 
     // Domains
-    public int ActionPoints { get; set; }
-    public int Vigor { get; set; }
+    public int MaxActionPoints { get; set; } = 4;
+    public int ActionPoints { get; set; } = 4;
+    public int MaxVigor { get; set; } = 10;
+    public int Vigor { get; set; } = 10;
 
     // Resources
     public int Money { get; set; }
