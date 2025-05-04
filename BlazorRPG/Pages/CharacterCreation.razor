@@ -211,42 +211,40 @@
     {
         return archetype switch
         {
-            ArchetypeTypes.Guard => "Crafters and builders, skilled with their hands and strong of body. Guards shape the world through force and endurance, from forging metal to raising walls.",
-            ArchetypeTypes.Scholar => "Keepers of knowledge and masters of observation. Scholars decipher secrets, study ancient texts, and record the deeds of nobles and peasants alike.",
-            ArchetypeTypes.Explorer => "Wanderers of the wilds who know every leaf and root. Explorers survive and thrive through precision, observation, and a deep connection to nature's cycles.",
-            ArchetypeTypes.Diplomat => "Silver-tongued negotiators navigating courts and guild halls. Diplomats weave influence with charm, persuasion, and a keen sense of hidden motives.",
-            ArchetypeTypes.Merchant => "Dealmakers and travelers who see value where others see clutter. Merchants command resources, read people, and seize opportunity with swift precision.",
-            ArchetypeTypes.Rogue => "Silent operatives who move through the cracks of society. Rogues excel in stealth, precision, and deception, securing what others dare not attempt.",
-            _ => "Unknown archetype"
+            ArchetypeTypes.Guard => "Strong of arm and steady of purpose, Guards ensure the village thrives—mending roofs, reinforcing walls, and crafting essential tools for daily life.",
+            ArchetypeTypes.Rogue => "Lightfooted wanderers of alley and backroad, Rogues excel at discreet tasks—liberating keys from locked chests, gathering secrets, and slipping unnoticed through crowds.",
+            ArchetypeTypes.Diplomat => "Eloquent voices at court and council, Diplomats soothe disputes, broker alliances, and settle rival ambitions with words rather than blades.",
+            ArchetypeTypes.Merchant => "Shrewd traders versed in supply and demand, Merchants move goods along trade routes, bargain for profit, and keep markets bustling.",
+            ArchetypeTypes.Explorer => "Adventurous travelers into forests and hills, Explorers chart unseen paths, gather medicinal herbs, and return with tales to enrich community life.",
+            ArchetypeTypes.Scholar => "Quiet seekers of knowledge in dusty halls, Scholars pore over ancient scrolls, record the town’s story, and guide others with learned counsel.",
+            _ => "An undefined soul wandering uncertain roads"
         };
     }
-
 
     private string GetNaturalTags(ArchetypeTypes archetype)
     {
         return archetype switch
         {
-            ArchetypeTypes.Guard => "Physical, Environment",
-            ArchetypeTypes.Scholar => "Analysis, Information",
-            ArchetypeTypes.Explorer => "Precision, Environment",
-            ArchetypeTypes.Diplomat => "Rapport, Relationship",
-            ArchetypeTypes.Merchant => "Dominance, Resource",
-            ArchetypeTypes.Rogue => "Concealment, Precision",
+            ArchetypeTypes.Guard => "+Force, -Contemplation",
+            ArchetypeTypes.Rogue => "+Precision, -Rapport",
+            ArchetypeTypes.Diplomat => "+Rapport, -Precision",
+            ArchetypeTypes.Merchant => "+Persuasion, -Observation",
+            ArchetypeTypes.Explorer => "+Observation, -Persuasion",
+            ArchetypeTypes.Scholar => "+Contemplation, -Force",
             _ => "None"
         };
     }
-
 
     private List<string> GetStartingItems(ArchetypeTypes archetype)
     {
         return archetype switch
         {
-            ArchetypeTypes.Guard => new List<string> { "Hammer", "Chisel", "Trowel", "Mortar", "Rations" },
-            ArchetypeTypes.Scholar => new List<string> { "Journal", "Quill & Ink", "Spectacles", "Puzzle Box", "Ancient Text" },
-            ArchetypeTypes.Explorer => new List<string> { "Herb Satchel", "Mortar & Pestle", "Field Guide", "Herbal Poultice", "Hunting Knife" },
-            ArchetypeTypes.Diplomat => new List<string> { "Fine Clothes", "Wax Seal Kit", "Perfume", "Silver Coins", "Parley Notes" },
-            ArchetypeTypes.Merchant => new List<string> { "Ledger", "Scales", "Trade Goods", "Coin Purse", "Caravan Permit" },
-            ArchetypeTypes.Rogue => new List<string> { "Lockpicks", "Dark Cloak", "Grappling Hook", "Dagger", "Poison Vial" },
+            ArchetypeTypes.Guard => new List<string> { "Toolkit", "Work Gloves", "Sturdy Garment", "Backpack", "Rations" },
+            ArchetypeTypes.Rogue => new List<string> { "Basic Cloak", "Lockpick Set", "Small Blade", "Backpack", "Rations" },
+            ArchetypeTypes.Diplomat => new List<string> { "Fine Garment", "Sealing Wax", "Letter Set", "Journal", "Coin Pouch" },
+            ArchetypeTypes.Merchant => new List<string> { "Ledger", "Scales", "Sample Pouch", "Trade Papers", "Coin Pouch" },
+            ArchetypeTypes.Explorer => new List<string> { "Field Journal", "Herb Pouch", "Map", "Waterskin", "Rations" },
+            ArchetypeTypes.Scholar => new List<string> { "Quill & Ink", "Notebook", "Spectacles", "Scroll", "Reference Text" },
             _ => new List<string> { "Rations" }
         };
     }

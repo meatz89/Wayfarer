@@ -98,7 +98,7 @@
 		"name": "Investigate Satchel",
 		"description": "Examine the abandoned satchel without touching it.",
 		"spotId": "discarded_satchel",
-		"approach": "ANALYSIS",
+		"approach": "OBSERVATION",
 		"characteristics": {
 			"exertion": "MODERATE",
 			"mentalLoad": "STANDARD",

@@ -255,7 +255,7 @@ public static class GameStateSerializer
                     goal = action.Goal,
                     complication = action.Complication,
                     isOneTimeEncounter = action.IsOneTimeEncounter,
-                    encounterType = action.EncounterType.ToString(),
+                    encounterType = action.EncounterApproach.ToString(),
                     difficulty = action.Difficulty
                 },
                 moveToLocation = action.MoveToLocation,

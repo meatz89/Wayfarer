@@ -2,13 +2,18 @@
 {
     private readonly ActionRepository actionRepository;
     private readonly EncounterFactory encounterFactory;
+    private readonly GameState gameState;
+    private readonly PlayerState playerState;
 
     public ActionFactory(
         ActionRepository actionRepository,
+        GameState gameState,
         EncounterFactory encounterFactory)
     {
         this.actionRepository = actionRepository;
         this.encounterFactory = encounterFactory;
+        this.gameState = gameState;
+        this.playerState = gameState.PlayerState;
     }
 
     public ActionImplementation CreateActionFromTemplate(ActionDefinition template, string location, string locationSpot)
@@ -37,7 +42,7 @@
         // Set encounter properties
         actionImplementation.Goal = template.Goal;
         actionImplementation.Complication = template.Complication;
-        actionImplementation.EncounterType = template.EncounterType;
+        actionImplementation.EncounterType = template.EncounterApproach;
 
         // Convert SpotXp from float to int if needed
         actionImplementation.SpotXp = (int)template.SpotXp;
@@ -54,13 +59,25 @@
         ActionGenerationContext context = actionImplementation.GetActionGenerationContext();
         EncounterTemplate encounterTemplate = encounterFactory.GetDefaultEncounterTemplate();
 
-        int vigorCost = 1;
+        if (template.EncounterApproach != EncounterApproaches.Neutral)
+        {
+            EncounterApproaches encounterApproach = template.EncounterApproach;
 
-        actionImplementation.Requirements.Add(new VigorRequirement(vigorCost));
-        actionImplementation.Costs.Add(new VigorOutcome(-vigorCost));
+            int vigorCost = 1;
+            if (ArchetypeAffinities.GetNaturalForArchetype(playerState.Archetype) == encounterApproach)
+            {
+                vigorCost = 0;
+            }
+            if (ArchetypeAffinities.GetIncompatibleForArchetype(playerState.Archetype) == encounterApproach)
+            {
+                vigorCost = 2;
+            }
+
+            actionImplementation.Requirements.Add(new VigorRequirement(vigorCost));
+            actionImplementation.Costs.Add(new VigorOutcome(-vigorCost));
+        }
 
         int actionCost = 1;
-
         actionImplementation.Requirements.Add(new ActionPointRequirement(actionCost));
         actionImplementation.Costs.Add(new ActionPointOutcome(-actionCost));
 

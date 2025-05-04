@@ -7,14 +7,14 @@ public class NarrativeContext
 {
     public string LocationName { get; }
     public string locationSpotName { get; }
-    public EncounterTypes EncounterType { get; }
+    public EncounterApproaches EncounterType { get; }
     public ActionImplementation ActionImplementation { get; }
     public List<NarrativeEvent> Events { get; } = new List<NarrativeEvent>();
 
     public NarrativeContext(
         string location,
         string locationSpot,
-        EncounterTypes encounterType,
+        EncounterApproaches encounterType,
         ActionImplementation incitingAction)
     {
         LocationName = location;

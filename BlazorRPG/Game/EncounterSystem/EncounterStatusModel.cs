@@ -28,11 +28,11 @@ public class EncounterStatusModel
     // Added properties
     public List<IEncounterTag> ActiveTags { get; }
     public Encounter EncounterInfo { get; }
-    public EncounterTypes EncounterType
+    public EncounterApproaches EncounterType
     {
         get
         {
-            return EncounterInfo?.EncounterType ?? EncounterTypes.Persuasion;
+            return EncounterInfo?.EncounterType ?? EncounterApproaches.Persuasion;
         }
     }
 

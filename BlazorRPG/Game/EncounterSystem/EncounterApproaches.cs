@@ -1,9 +1,10 @@
-﻿public enum EncounterTypes
+﻿public enum EncounterApproaches
 {
+    Neutral = 0, // Neutral // Neutral, // Neutral approach, no advantage or disadvantage
     Force, // Physical // Endurance, // Physical labor, carrying, building, hauling, long travel, bodily toughness
     Precision, // Physical // Finesse, // Delicate hand work, stealth, sleight-of-hand, lockpicking, precise tool use
-    Persuasion, // Social // Diplomacy, // Bargaining, negotiation, convincing, intimidation, rhetoric
     Rapport, // Social // Charm, // Rapport grace, making friends, gathering favors, soothing tensions
+    Persuasion, // Social // Diplomacy, // Bargaining, negotiation, convincing, intimidation, rhetoric
     Observation, // Intellectual // Insight, // Spotting details, reading people, navigation, awareness of surroundings
     Contemplation, // Intellectual // Observation, // Knowledge, deduction, analysis, memorization, cultural literacy
 }

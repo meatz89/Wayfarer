@@ -13,8 +13,15 @@ public static class ActionParser
 
         ActionDefinition action = new ActionDefinition(id, name, spotId)
         {
-            Description = GetStringProperty(root, "description", "")
+            Description = GetStringProperty(root, "description", ""),
         };
+
+        string encounterApproachString = GetStringProperty(root, "approach", "");
+        if (!string.IsNullOrEmpty(encounterApproachString) &&
+            Enum.TryParse(encounterApproachString, true, out EncounterApproaches encounterType))
+        {
+            action.EncounterApproach = encounterType;
+        }
 
         // Parse action type
         string actionTypeStr = GetStringProperty(root, "actionType", "");
@@ -135,14 +142,6 @@ public static class ActionParser
             action.Goal = GetStringProperty(encounterElement, "goal", "");
             action.Complication = GetStringProperty(encounterElement, "complication", "");
             action.IsOneTimeEncounter = GetBoolProperty(encounterElement, "isOneTimeEncounter", false);
-
-            string encounterTypeStr = GetStringProperty(encounterElement, "encounterType", "");
-            if (!string.IsNullOrEmpty(encounterTypeStr) &&
-                Enum.TryParse(encounterTypeStr, true, out EncounterTypes encounterType))
-            {
-                action.EncounterType = encounterType;
-            }
-
             action.Difficulty = GetIntProperty(encounterElement, "difficulty", 1);
         }
 

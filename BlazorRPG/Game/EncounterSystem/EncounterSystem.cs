@@ -69,7 +69,7 @@
         this.worldState = worldState;
 
         Location loc = context.Location;
-        EncounterTypes encounterType = actionImplementation.EncounterType;
+        EncounterApproaches encounterType = actionImplementation.EncounterType;
         EncounterTemplate template = actionImplementation.EncounterTemplate;
 
         Encounter encounter = encounterFactory.CreateEncounterFromTemplate(
