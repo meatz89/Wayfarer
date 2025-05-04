@@ -62,7 +62,7 @@
             gameState.TimeManager.StartNewDay();
             gameState.PlayerState.ModifyActionPoints(gameState.PlayerState.MaxActionPoints);
         }
-     
+
         await UpdateState();
     }
 

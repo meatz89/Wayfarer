@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-public class PlayerState
+﻿public class PlayerState
 {
     // Core identity
     public string Name { get; set; }
