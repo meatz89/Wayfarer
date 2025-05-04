@@ -91,7 +91,7 @@
                 )
             ));
         }
-        else if (illumination.Equals(Illumination.Shadowy))
+        else if (illumination.Equals(Illumination.Roguey))
         {
             strategicTags.Add(new StrategicTag(
                 "Partial Cover",

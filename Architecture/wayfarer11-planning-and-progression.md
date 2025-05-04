@@ -58,7 +58,7 @@ Resource management creates natural decision points without artificial constrain
 
 The player's character class influences their starting skills and natural aptitudes:
 
-1. **Artisan** - Excels in **Endurance**
+1. **Guard** - Excels in **Endurance**
 2. **Courtier** - Excels in **Charm**
 3. **Scribe** - Excels in **Knowledge**
 4. **Courtier** - Excels in **Charisma**
@@ -181,7 +181,7 @@ This approach replaces traditional quest structures with organic narrative devel
 
 The starting village serves as a complete representation of the game's systems where each class can find activities that leverage their skill advantages:
 
-#### Artisan (Endurance)
+#### Guard (Endurance)
 - **Primary Location Spots**: Guard Post, Training Yard
 - **Base Actions**: Train Militia, Patrol Village, Spar with Guards
 - **Potential Narratives**: Rivalry with veteran guard, romance with captain's daughter, uncovering bandit threat
@@ -274,7 +274,7 @@ This hybrid approach maintains mechanical integrity while allowing the narrative
 
 ### A Day in the Life
 
-This example demonstrates the integrated progression system for a Artisan-class player:
+This example demonstrates the integrated progression system for a Guard-class player:
 
 **Morning:**
 - Player chooses to work at the Blacksmith's Forge
@@ -305,7 +305,7 @@ This example demonstrates the integrated progression system for a Artisan-class 
 - When visiting Guard Post, a milestone encounter triggers
 - Captain mentions travelers attacked on the road
 - Unlocks new action "Investigate Attack Site"
-- Creates opportunity to demonstrate Artisan skills
+- Creates opportunity to demonstrate Guard skills
 - Could lead to discovering bandit camp location
 
 This flow shows how daily resource management naturally leads to narrative development through location progression.

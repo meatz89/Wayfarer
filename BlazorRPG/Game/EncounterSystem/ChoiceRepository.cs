@@ -84,7 +84,7 @@ public class ChoiceRepository
             new List<SkillRequirement> { new SkillRequirement(SkillTypes.Endurance, 1) }
         ));
 
-        // COURTIER CARDS (Rapport)
+        // Diplomat CARDS (Rapport)
 
         // Tier 1
         cards.Add(CardDefinitionFactory.BuildCard(
@@ -266,7 +266,7 @@ public class ChoiceRepository
             new List<SkillRequirement> { new SkillRequirement(SkillTypes.Charm, 1) }
         ));
 
-        // SHADOW CARDS (Concealment)
+        // Rogue CARDS (Concealment)
 
         // Tier 1
         cards.Add(CardDefinitionFactory.BuildCard(
@@ -282,7 +282,7 @@ public class ChoiceRepository
                 TagModification.IncreaseApproach(ApproachTags.Concealment),
                 TagModification.IncreaseFocus(FocusTags.Resource)
             },
-            new EnvironmentalPropertyEffect(new() { Illumination.Shadowy }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Concealment),
+            new EnvironmentalPropertyEffect(new() { Illumination.Roguey }, StrategicTagEffectType.IncreaseMomentum, ApproachTags.Concealment),
             new List<SkillRequirement>()
         ));
 
@@ -306,7 +306,7 @@ public class ChoiceRepository
         cards.Add(CardDefinitionFactory.BuildCard(
             "fade_away",
             "Fade Away",
-            "You slip into the shadows, removing yourself from immediate danger.",
+            "You slip into the Rogues, removing yourself from immediate danger.",
             1,
             ApproachTags.Concealment, 0,  // Changed from 1 to 0
             FocusTags.Physical, 0,  // Changed from 1 to 0
@@ -391,11 +391,11 @@ public class ChoiceRepository
     {
         return archetype switch
         {
-            ArchetypeTypes.Artisan => ApproachTags.Dominance,
-            ArchetypeTypes.Courtier => ApproachTags.Rapport,
-            ArchetypeTypes.Scribe => ApproachTags.Analysis,
-            ArchetypeTypes.Herbalist => ApproachTags.Precision,
-            ArchetypeTypes.Shadow => ApproachTags.Concealment,
+            ArchetypeTypes.Guard => ApproachTags.Dominance,
+            ArchetypeTypes.Diplomat => ApproachTags.Rapport,
+            ArchetypeTypes.Scholar => ApproachTags.Analysis,
+            ArchetypeTypes.Explorer => ApproachTags.Precision,
+            ArchetypeTypes.Rogue => ApproachTags.Concealment,
             _ => ApproachTags.Analysis
         };
     }

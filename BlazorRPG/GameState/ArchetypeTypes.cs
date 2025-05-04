@@ -1,18 +1,18 @@
 ﻿public enum ArchetypeTypes
 {
-    Artisan, // Master of labor and physical work
-    Herbalist, // Potionbrewer and explorer
-    Scribe, // Keeper of records and histories
-    Courtier, // Master of salons, gossip, alliances, and noble networks
+    Guard, // Master of labor and physical work
+    Rogue, // Thief and infiltrator
+    Diplomat, // Master of salons, gossip, alliances, and noble networks
+    Scholar, // Keeper of records and histories
     Merchant, // Hard-nosed trader and negotiator
-    Shadow, // Thief and infiltrator
+    Explorer, // Potionbrewer and explorer
 }
 
-//| Class | Signature Skill(Excels) | Why ?                                                                                |
-//| ---------------- | ------------------------ | ----------------------------------------------------------------------------------- |
-//| **Artisan**      | Endurance                | Laborer; master of sustained physical work                   |
-//| **Shadow**       | Finesse                  | Thief and infiltrator; master of stealth, nimble hands, and quiet steps             |
-//| **Courtier**     | Charm                    | Master of salons, gossip, alliances, and noble networks                             |
-//| **Scribe**       | Lore                     | Keeper of records and histories; master of knowledge and careful study              |
-//| **Merchant**     | Diplomacy                | Hard-nosed trader and negotiator; master of deals and persuasion                    |
-//| **Herbalist**    | Insight                  | explorer; master of observation, navigation, and situational awareness |
+//| Class | Signature Skill(Excels) | Why ?                                                                                          |
+//| --------------- | ------------------------ | ----------------------------------------------------------------------------------- |
+//| **Guard**       | Endurance                | Laborer; master of sustained physical work                                          |
+//| **Rogue**       | Finesse                  | Thief and infiltrator; master of stealth, nimble hands, and quiet steps             |
+//| **Diplomat**    | Charm                    | Master of salons, gossip, alliances, and noble networks                             |
+//| **Scholar**     | Lore                     | Keeper of records and histories; master of knowledge and careful study              |
+//| **Merchant**    | Diplomacy                | Hard-nosed trader and negotiator; master of deals and persuasion                    |
+//| **Explorer**    | Insight                  | explorer; master of observation, navigation, and situational awareness              |

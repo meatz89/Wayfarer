@@ -315,7 +315,7 @@ public class PostEncounterEvolutionParser
         {
             // Illumination properties
             { "Bright", Illumination.Bright },
-            { "Shadowy", Illumination.Shadowy },
+            { "Roguey", Illumination.Roguey },
             { "Dark", Illumination.Dark },
             
             // Population properties

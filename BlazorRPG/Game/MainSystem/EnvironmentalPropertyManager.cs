@@ -18,7 +18,7 @@ public class EnvironmentalPropertyManager
         switch (timeWindow)
         {
             case TimeWindow.Morning:
-                SetIllumination(locationSpots, Illumination.Shadowy);
+                SetIllumination(locationSpots, Illumination.Roguey);
                 break;
 
             case TimeWindow.Afternoon:
@@ -26,7 +26,7 @@ public class EnvironmentalPropertyManager
                 break;
 
             case TimeWindow.Evening:
-                SetIllumination(locationSpots, Illumination.Shadowy);
+                SetIllumination(locationSpots, Illumination.Roguey);
                 break;
 
             case TimeWindow.Night:

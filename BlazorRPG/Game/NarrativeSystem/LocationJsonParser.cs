@@ -139,7 +139,7 @@ public static class LocationJsonParser
                 switch (value.ToLower())
                 {
                     case "bright": return Illumination.Bright;
-                    case "shadowy": return Illumination.Shadowy;
+                    case "Roguey": return Illumination.Roguey;
                     case "dark": return Illumination.Dark;
                     default: return Illumination.Any;
                 }

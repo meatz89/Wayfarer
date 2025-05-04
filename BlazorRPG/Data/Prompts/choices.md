@@ -51,7 +51,7 @@ For each choice, create:
 
 4. PERIOD AUTHENTICITY:
    - Use language true to a medieval character of the archetype
-   - Describe observations through concrete sensory details, not abstract systems
+   - DeScholar observations through concrete sensory details, not abstract systems
    - Frame tactics through experience and instinct, not modern analytical terms
    - Avoid modern concepts like "scanning," "monitoring," or "surveillance"
 

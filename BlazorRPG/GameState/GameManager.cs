@@ -100,19 +100,19 @@
 
         switch (archetype)
         {
-            case ArchetypeTypes.Artisan:
+            case ArchetypeTypes.Guard:
                 playerProgression.AddSkillExp(SkillTypes.Endurance, XpBonusForArchetype);
                 break;
-            case ArchetypeTypes.Courtier:
+            case ArchetypeTypes.Diplomat:
                 playerProgression.AddSkillExp(SkillTypes.Diplomacy, XpBonusForArchetype);
                 break;
-            case ArchetypeTypes.Scribe:
+            case ArchetypeTypes.Scholar:
                 playerProgression.AddSkillExp(SkillTypes.Insight, XpBonusForArchetype);
                 break;
-            case ArchetypeTypes.Herbalist:
+            case ArchetypeTypes.Explorer:
                 playerProgression.AddSkillExp(SkillTypes.Charm, XpBonusForArchetype);
                 break;
-            case ArchetypeTypes.Shadow:
+            case ArchetypeTypes.Rogue:
                 playerProgression.AddSkillExp(SkillTypes.Finesse, XpBonusForArchetype);
                 break;
 

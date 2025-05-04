@@ -47,15 +47,15 @@
 
 .time-morning .time-icon,
 .time-afternoon .time-icon {
-	text-shadow: 0 0 5px rgba(255, 242, 180, 0.7);
+	text-Rogue: 0 0 5px rgba(255, 242, 180, 0.7);
 }
 
 .time-evening .time-icon {
-	text-shadow: 0 0 5px rgba(180, 170, 220, 0.7);
+	text-Rogue: 0 0 5px rgba(180, 170, 220, 0.7);
 }
 
 .time-night .time-icon {
-	text-shadow: 0 0 5px rgba(180, 215, 255, 0.7);
+	text-Rogue: 0 0 5px rgba(180, 215, 255, 0.7);
 }
 
 /* Add a bit of spacing for the time elements */
