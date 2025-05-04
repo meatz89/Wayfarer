@@ -12,7 +12,6 @@
     public bool PlayerKnowledge { get; set; }
 
     // Progression
-    public List<SpotLevel> LevelData { get; set; } = new List<SpotLevel>();
     public int CurrentLevel { get; set; } = 1;
     public int CurrentSpotXP { get; set; } = 0;
     public int XPToNextLevel { get; set; } = 0;
@@ -33,61 +32,6 @@
     {
         Id = id;
         Name = name;
-    }
-
-
-    /// <summary>
-    /// Returns available actions for the given spot-level.
-    /// If an EncounterActionId exists at that exact level, only that action is returned.
-    /// Otherwise, applies all Added/Removed lists for definitions <= currentLevel.
-    /// </summary>
-    public List<string> GetActionsForLevel(int currentLevel)
-    {
-        // Check for exact encounter at this level
-        foreach (SpotLevel def in LevelData)
-        {
-            if (def.Level == currentLevel && !string.IsNullOrEmpty(def.EncounterActionId))
-                return new() { def.EncounterActionId };
-        }
-
-        List<string> actions = new List<string>();
-        foreach (SpotLevel def in LevelData)
-        {
-            if (def.Level <= currentLevel)
-            {
-                foreach (string rem in def.RemovedActionIds)
-                    actions.Remove(rem);
-                foreach (string add in def.AddedActionIds)
-                    if (!actions.Contains(add)) actions.Add(add);
-            }
-        }
-        return actions;
-    }
-
-    public void RegisterActionDefinition(string actionId)
-    {
-        SpotLevel spotLevel = GetCurrentSpotLevel();
-        spotLevel.AddedActionIds.Add(actionId);
-    }
-
-    private SpotLevel GetCurrentSpotLevel()
-    {
-        SpotLevel spotLevel = null;
-
-        if (LevelData.FirstOrDefault(x =>
-        {
-            return x.Level == CurrentLevel;
-        }) is SpotLevel level)
-        {
-            spotLevel = level;
-        }
-        else
-        {
-            spotLevel = new SpotLevel() { Level = CurrentLevel };
-            LevelData.Add(spotLevel);
-        }
-
-        return spotLevel;
     }
 
     public void IncreaseSpotXP(int spotXp)

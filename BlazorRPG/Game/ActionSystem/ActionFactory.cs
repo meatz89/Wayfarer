@@ -20,8 +20,8 @@
         actionImplementation.Name = template.Name;
         actionImplementation.Description = template.Description;
         actionImplementation.Difficulty = template.Difficulty;
-        actionImplementation.LocationName = location;
-        actionImplementation.LocationSpotName = locationSpot;
+        actionImplementation.LocationId = location;
+        actionImplementation.LocationSpotId = locationSpot;
 
         // Handle movement actions
         if (!string.IsNullOrEmpty(template.MoveToLocation))

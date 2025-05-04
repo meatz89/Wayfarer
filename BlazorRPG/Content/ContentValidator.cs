@@ -23,21 +23,14 @@
             }
         }
 
-        // Check location spot actions exist
-        foreach (LocationSpot spot in _worldState.locationSpots)
+        foreach (ActionDefinition actionDefinition in _worldState.actions)
         {
-            foreach (SpotLevel level in spot.LevelData)
+            if (!_worldState.locationSpots.Any(ls =>
             {
-                foreach (string actionId in level.AddedActionIds)
-                {
-                    if (!_worldState.actions.Any(a =>
-                    {
-                        return a.Id == actionId;
-                    }))
-                    {
-                        result.AddMissingAction(actionId, spot);
-                    }
-                }
+                return ls.Id == actionDefinition.SpotId;
+            }))
+            {
+                result.AddMissingAction(actionDefinition.SpotId, actionDefinition.SpotId, actionDefinition);
             }
         }
 

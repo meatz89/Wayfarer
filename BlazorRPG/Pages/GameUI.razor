@@ -222,16 +222,6 @@
                                             <button class="resource-use-btn" @onclick="() => UseResource(ActionNames.ConsumeFood)">Use</button>
                                         }
                                     </div>
-
-                                    <div class="player-resource">
-                                        <span class="resource-icon" style="color: var(--resource-herbs, #606C38)">🌿</span>
-                                        <span class="resource-label">Herbs</span>
-                                        <span class="resource-value">@PlayerState.MedicinalHerbs</span>
-                                        @if (PlayerState.MedicinalHerbs > 0)
-                                        {
-                                            <button class="resource-use-btn" @onclick="() => UseResource(ActionNames.ConsumeMedicinalHerbs)">Use</button>
-                                        }
-                                    </div>
                                 </div>
                             </div>
                         }

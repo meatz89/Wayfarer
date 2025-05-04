@@ -50,7 +50,7 @@
 
     public List<LocationSpot> GetSpotsForLocation(string locationId)
     {
-        var location = GetLocationById(locationId);
+        Location location = GetLocationById(locationId);
         return location.LocationSpots;
     }
 
@@ -59,7 +59,7 @@
         Location location = GetLocationById(locationId);
 
         LocationSpot spot = location.LocationSpots.FirstOrDefault(s => s.Id == spotId);
-        
+
         if (spot == null)
             throw new KeyNotFoundException($"Spot '{spotId}' not found in '{locationId}'.");
 
@@ -89,12 +89,6 @@
         spot.CurrentLevel++;
         spot.CurrentSpotXP = 0;
         // Handle level-specific action changes
-    }
-
-    public List<string> GetAvailableActionsForLocationSpot(string locationName, string spotName)
-    {
-        LocationSpot spot = GetSpot(locationName, spotName);
-        return spot.GetActionsForLevel(spot.CurrentLevel);
     }
 
     public List<LocationSpot> GetSpotsReadyToLevelUp()

@@ -70,6 +70,7 @@
     public async Task StartGame()
     {
         ProcessPlayerArchetype();
+        playerState.HealFully();
 
         Location startingLocation = await locationSystem.Initialize();
 
@@ -231,29 +232,29 @@
         string? currentLocation = worldState.CurrentLocation?.Id;
         if (string.IsNullOrWhiteSpace(currentLocation)) return new List<UserActionOption>();
 
-        List<string> locationSpotActions = locationSpot.GetActionsForLevel(locationSpot.CurrentLevel);
-
         List<UserActionOption> options = new List<UserActionOption>();
-        foreach (string locationSpotAction in locationSpotActions)
+        List<ActionDefinition> locationSpotActions = actionRepository.GetActionsForSpot(locationSpot.Id);
+        for (int i = 0; i < locationSpotActions.Count; i++)
         {
-            ActionDefinition actionTemplate = actionRepository.GetAction(locationSpotAction);
+            ActionDefinition actionTemplate = locationSpotActions[i];
 
             if (actionTemplate == null)
             {
                 string actionId =
                     await actionGenerator.GenerateAction(
-                    locationSpotAction,
-                    locationSpot.Id,
-                    location.Id);
+                    actionTemplate.Name,
+                    location.Id,
+                    locationSpot.Id
+                    );
 
-                actionTemplate = actionRepository.GetAction(locationSpotAction);
+                actionTemplate = actionRepository.GetAction(actionTemplate.Id);
             }
 
             ActionImplementation actionImplementation = actionFactory.CreateActionFromTemplate(actionTemplate, location.Id, locationSpot.Id);
 
             UserActionOption action =
                 new UserActionOption(
-                    actionImplementation.Id,
+                    actionImplementation.Name,
                     locationSpot.IsClosed,
                     actionImplementation,
                     locationSpot.LocationId,
@@ -611,9 +612,9 @@
         };
     }
 
-    public ActionImplementation GetWaitAction()
+    public ActionImplementation GetWaitAction(string spotId)
     {
-        ActionDefinition waitAction = new ActionDefinition("Wait", "Wait")
+        ActionDefinition waitAction = new ActionDefinition("Wait", "Wait", spotId)
         {
             TimeWindowCost = "Half"
         };

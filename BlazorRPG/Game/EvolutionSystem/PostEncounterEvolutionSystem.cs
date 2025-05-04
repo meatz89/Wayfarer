@@ -101,11 +101,6 @@
 
             ActionDefinition actionDef = _actionRepository.GetAction(actionId);
             string spotId = $"{newAction.LocationName}:{newAction.SpotName}";
-            LocationSpot spot = locationRepository.GetSpot(newAction.LocationName, newAction.SpotName);
-            if (spot != null)
-            {
-                spot.RegisterActionDefinition(actionDef.Name);
-            }
         }
 
         foreach (Character character in evolution.NewCharacters)
@@ -137,9 +132,6 @@
                         newAction.Name,
                         newAction.SpotName,
                         newAction.LocationName);
-
-                    ActionDefinition actionTemplate = _actionRepository.GetAction(newAction.Name);
-                    spotForAction.RegisterActionDefinition(actionId);
 
                     Console.WriteLine($"Created new action {newAction.Name} at {newAction.LocationName}/{newAction.SpotName}");
                 }
@@ -246,7 +238,7 @@
             ActiveOpportunities = opportunitySystem.FormatActiveOpportunities(worldState.GetOpportunities()),
 
             CurrentLocationSpots = locationSystem.FormatLocationSpots(worldState.CurrentLocation),
-            ConnectedLocations = locationSystem.FormatLocations(locationSystem.GetConnectedLocations(worldState.CurrentLocation.Name)),   
+            ConnectedLocations = locationSystem.FormatLocations(locationSystem.GetConnectedLocations(worldState.CurrentLocation.Name)),
             AllExistingActions = actionSystem.FormatExistingActions(allLocations),
 
             CurrentDepth = worldState.CurrentLocation.Depth,

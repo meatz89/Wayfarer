@@ -4,11 +4,11 @@
     private readonly LocationSystem locationSystem;
     private readonly CharacterSystem characterSystem;
     private readonly OpportunitySystem opportunitySystem;
-    private readonly ActionSystem actionSystem;
     private readonly GameState gameState;
     private readonly ActionGenerator actionGenerator;
     private readonly LocationRepository locationRepository;
     private readonly ActionRepository actionRepository;
+    private readonly ActionSystem actionSystem;
     private readonly WorldStateInputBuilder worldStateInputCreator;
 
     public LocationCreationSystem(
@@ -16,11 +16,11 @@
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
         OpportunitySystem opportunitySystem,
-        ActionSystem actionSystem,
         GameState gameState,
         ActionGenerator actionGenerator,
         LocationRepository locationRepository,
         ActionRepository actionRepository,
+        ActionSystem actionSystem,
         WorldStateInputBuilder worldStateInputCreator
         )
     {
@@ -28,11 +28,11 @@
         this.locationSystem = locationSystem;
         this.characterSystem = characterSystem;
         this.opportunitySystem = opportunitySystem;
-        this.actionSystem = actionSystem;
         this.gameState = gameState;
         this.actionGenerator = actionGenerator;
         this.locationRepository = locationRepository;
         this.actionRepository = actionRepository;
+        this.actionSystem = actionSystem;
         this.worldStateInputCreator = worldStateInputCreator;
         this.narrativeService = narrativeService;
     }
@@ -79,11 +79,6 @@
                 PlayerKnowledge = true
             };
 
-            foreach (string? actionId in spotDetail.ActionIds.ToList())
-            {
-                spot.RegisterActionDefinition(actionId);
-            }
-
             locationRepository.AddLocationSpot(spot);
         }
 
@@ -96,10 +91,6 @@
 
             ActionDefinition actionDef = actionRepository.GetAction(actionId);
             string spotId = $"{locationName}:{newAction.SpotName}";
-
-            LocationSpot spot = locationRepository.GetSpot(locationName, newAction.SpotName);
-            if (spot != null)
-                spot.RegisterActionDefinition(actionDef.Id);
         }
 
         return location;
@@ -146,9 +137,6 @@
                         newAction.Name,
                         newAction.SpotName,
                         newAction.LocationName);
-
-                    ActionDefinition actionTemplate = actionRepository.GetAction(actionId);
-                    spotForAction.RegisterActionDefinition(actionTemplate.Id);
 
                     Console.WriteLine($"Created new action {newAction.Name} at {newAction.LocationName}/{newAction.SpotName}");
                 }

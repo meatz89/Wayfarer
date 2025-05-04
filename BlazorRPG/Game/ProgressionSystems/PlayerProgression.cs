@@ -1,5 +1,4 @@
-﻿
-public class PlayerProgression
+﻿public class PlayerProgression
 {
     private readonly PlayerState playerState;
     private readonly MessageSystem messageSystem;
@@ -41,6 +40,7 @@ public class PlayerProgression
     {
         playerState.Level++;
         playerState.SetCharacterStats();
+        playerState.HealFully();
 
         // Heal on level up
         playerState.HealFully();

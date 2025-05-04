@@ -20,8 +20,8 @@
                 @foreach (var missing in validationResult.MissingActions)
                 {
                     <div class="missing-item">
-                        <span class="missing-id">@missing.ActionId</span>
-                        <span class="reference-detail">Referenced by: @missing.ReferencingSpot.LocationId / @missing.ReferencingSpot.Id</span>
+                        <span class="missing-id">@missing.SpotId</span>
+                        <span class="reference-detail">Referenced by: @missing.ReferencingAction.Name / @missing.ReferencingAction.Id</span>
                     </div>
                 }
             </div>
@@ -117,9 +117,9 @@
         foreach (var missingAction in validationResult.MissingActions)
         {
             await ActionGenerator.GenerateAction(
-                missingAction.ActionId,
-                missingAction.ReferencingSpot.Id,
-                missingAction.ReferencingSpot.LocationId);
+                missingAction.ReferencingAction.Name,
+                missingAction.LocationId,
+                missingAction.SpotId);
 
             generatedCount++;
             StateHasChanged();

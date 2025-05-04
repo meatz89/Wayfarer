@@ -9,8 +9,9 @@ public static class ActionParser
 
         string id = GetStringProperty(root, "id", "");
         string name = GetStringProperty(root, "name", id);
+        string spotId = GetStringProperty(root, "spotId", "spotId");
 
-        ActionDefinition action = new ActionDefinition(id, name)
+        ActionDefinition action = new ActionDefinition(id, name, spotId)
         {
             Description = GetStringProperty(root, "description", "")
         };

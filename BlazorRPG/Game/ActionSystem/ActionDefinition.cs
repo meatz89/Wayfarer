@@ -3,6 +3,7 @@
     // Basic properties
     public string Id { get; set; }
     public string Name { get; set; }
+    public string SpotId { get; set; }
     public string Description { get; set; }
     public ActionTypes ActionType { get; set; }
 
@@ -39,9 +40,10 @@
     public string MoveToLocation { get; set; }
     public string MoveToLocationSpot { get; set; }
 
-    public ActionDefinition(string id, string name)
+    public ActionDefinition(string id, string name, string spotId)
     {
         Id = id;
         Name = name;
+        SpotId = spotId;
     }
 }

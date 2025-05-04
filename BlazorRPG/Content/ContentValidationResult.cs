@@ -9,9 +9,9 @@
         MissingLocationSpots.Add(new MissingLocationSpotReference(locationSpotId, referencingLocation));
     }
 
-    public void AddMissingAction(string actionId, LocationSpot referencingSpot)
+    public void AddMissingAction(string locationId, string spotId, ActionDefinition referencingAction)
     {
-        MissingActions.Add(new MissingActionReference(actionId, referencingSpot));
+        MissingActions.Add(new MissingActionReference(locationId, spotId, referencingAction));
     }
 
     public void AddMissingConnectedLocation(string locationId, Location referencingLocation)
@@ -44,13 +44,15 @@ public class MissingLocationSpotReference
 
 public class MissingActionReference
 {
-    public string ActionId { get; }
-    public LocationSpot ReferencingSpot { get; }
+    public string LocationId { get; }
+    public string SpotId { get; }
+    public ActionDefinition ReferencingAction { get; }
 
-    public MissingActionReference(string actionId, LocationSpot referencingSpot)
+    public MissingActionReference(string locationId, string spotId, ActionDefinition referencingAction)
     {
-        ActionId = actionId;
-        ReferencingSpot = referencingSpot;
+        LocationId = spotId;
+        SpotId = spotId;
+        ReferencingAction = referencingAction;
     }
 }
 

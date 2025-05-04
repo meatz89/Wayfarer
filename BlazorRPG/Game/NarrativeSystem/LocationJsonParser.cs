@@ -82,7 +82,6 @@ public static class LocationJsonParser
             Name = GetStringProperty(element, "name", "Unnamed Spot"),
             Description = GetStringProperty(element, "description", "No description available."),
             InteractionDescription = GetStringProperty(element, "interactionDescription", ""),
-            ActionIds = new List<string>(),
             EnvironmentalProperties = new Dictionary<string, string>()
         };
 

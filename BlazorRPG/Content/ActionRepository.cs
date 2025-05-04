@@ -1,4 +1,6 @@
-﻿public class ActionRepository
+﻿using System.Collections.Generic;
+
+public class ActionRepository
 {
     private readonly WorldState _worldState;
 
@@ -38,15 +40,29 @@
     }
 
     // Create default action implementation remains unchanged
-    private ActionDefinition CreateDefaultAction(string actionName, string locationName, string locationSpotName)
+    private ActionDefinition CreateDefaultAction(string actionName, string locationName, string locationSpotId)
     {
         // Implementation remains the same
-        ActionDefinition action = new ActionDefinition(actionName, actionName)
+        ActionDefinition action = new ActionDefinition(actionName, actionName, locationSpotId)
         {
             Goal = "Goal",
             Complication = "Complication",
             Description = "Description",
         };
         return action;
+    }
+
+    public List<ActionDefinition> GetActionsForSpot(string spotId)
+    {
+        List<ActionDefinition> actions = new List<ActionDefinition>();
+        foreach (ActionDefinition action in _worldState.actions)
+        {
+            if (action.SpotId == spotId)
+            {
+                actions.Add(action);
+            }
+        }
+
+        return actions;
     }
 }

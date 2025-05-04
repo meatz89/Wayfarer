@@ -61,33 +61,6 @@ public static class LocationParser
             }
         }
 
-        // Parse levels
-        spot.LevelData = new List<SpotLevel>();
-        if (root.TryGetProperty("levels", out JsonElement levelsArray) &&
-            levelsArray.ValueKind == JsonValueKind.Array)
-        {
-            foreach (JsonElement levelElement in levelsArray.EnumerateArray())
-            {
-                SpotLevel level = new SpotLevel
-                {
-                    Level = GetIntProperty(levelElement, "level", 1),
-                    Description = GetStringProperty(levelElement, "description", ""),
-                    AddedActionIds = GetStringArray(levelElement, "actionIds")
-                };
-
-                // Parse level-up encounter if present
-                if (levelElement.TryGetProperty("levelUpEncounter", out JsonElement encounterElement))
-                {
-                    level.EncounterActionId = GetStringProperty(encounterElement, "id", "");
-                }
-
-                // Parse removed actions
-                level.RemovedActionIds = GetStringArray(levelElement, "removedActionIds");
-
-                spot.LevelData.Add(level);
-            }
-        }
-
         return spot;
     }
 

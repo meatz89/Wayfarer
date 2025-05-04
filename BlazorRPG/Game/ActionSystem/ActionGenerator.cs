@@ -5,38 +5,43 @@ public class ActionGenerator
 {
     private readonly NarrativeService _narrativeService;
     private readonly ActionRepository actionRepository;
+    private readonly LocationRepository locationRepository;
     private readonly WorldStateInputBuilder _worldStateInputCreator;
     private readonly IConfiguration _configuration;
 
     public ActionGenerator(
         NarrativeService narrativeService,
         ActionRepository actionRepository,
+        LocationRepository locationRepository,
         WorldStateInputBuilder worldStateInputCreator,
         IConfiguration configuration)
     {
         _narrativeService = narrativeService;
         this.actionRepository = actionRepository;
+        this.locationRepository = locationRepository;
         _worldStateInputCreator = worldStateInputCreator;
         _configuration = configuration;
     }
 
     public async Task<string> GenerateAction(
         string actionName,
-        string locationSpotName,
-        string locationName)
+        string locationId,
+        string spotId)
     {
-        ActionDefinition actionDef = GetDefaultActionDefinition(actionName, locationSpotName, locationName);
+        Location location = locationRepository.GetLocationById(locationId);
+        LocationSpot locationSpot = locationRepository.GetSpot(locationId, spotId);
+        ActionDefinition actionDef = GetDefaultActionDefinition(actionName, locationSpot.Id);
 
         if (_configuration.GetValue<bool>("actionGeneration"))
         {
             ActionGenerationContext context = new ActionGenerationContext
             {
                 ActionId = actionName.Replace(" ", ""),
-                SpotName = locationSpotName,
-                LocationName = locationName,
+                SpotName = locationSpot.Name,
+                LocationName = location.Name,
             };
 
-            WorldStateInput worldStateInput = await _worldStateInputCreator.CreateWorldStateInput(locationName);
+            WorldStateInput worldStateInput = await _worldStateInputCreator.CreateWorldStateInput(location.Name);
             string json = await _narrativeService.GenerateActionsAsync(context, worldStateInput);
 
             actionDef = ActionParser.ParseAction(json);
@@ -48,10 +53,9 @@ public class ActionGenerator
 
     private ActionDefinition GetDefaultActionDefinition(
         string actionName,
-        string locationSpotName,
-        string locationName)
+        string spotId)
     {
-        return new ActionDefinition(actionName, actionName)
+        return new ActionDefinition(actionName.Replace(" ", "_").ToLowerInvariant(), actionName, spotId)
         {
             Goal = "Goal",
             Complication = "Complication",
