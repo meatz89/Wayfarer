@@ -10,6 +10,6 @@
         PlayerState = new PlayerState();
         ActionStateTracker = new ActionStateTracker();
         WorldState = new WorldState();
-        TimeManager = new TimeManager(WorldState);
+        TimeManager = new TimeManager(PlayerState, WorldState);
     }
 }

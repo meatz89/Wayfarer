@@ -1,8 +1,4 @@
-﻿using System;
-using System.Numerics;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
-public class ActionProcessor
+﻿public class ActionProcessor
 {
     private readonly LocationRepository locationRepository;
 
@@ -31,40 +27,6 @@ public class ActionProcessor
         glayerState = gameState.PlayerState;
         worldState = gameState.WorldState;
     }
-
-    public void UpdateState()
-    {
-        Location currentLocation = worldState.CurrentLocation;
-        List<Location> allLocs = locationRepository.GetAllLocations();
-
-        foreach (Location loc in allLocs)
-        {
-            environmentalPropertyManager.UpdateLocationForTime(loc, worldState.TimeWindow);
-        }
-    }
-
-    public bool CanExecute(ActionImplementation action)
-    {
-        foreach (IRequirement requirement in action.Requirements)
-        {
-            if (!requirement.IsMet(gameState))
-            {
-                return false; // Requirement not met
-            }
-        }
-
-        // Check if the action has been completed and is non-repeatable
-        if (action.ActionType == ActionTypes.Encounter)
-        {
-            string encounterId = action.Id;
-            if (gameState.WorldState.IsEncounterCompleted(encounterId))
-            {
-                return false; // Encounter already completed
-            }
-        }
-        return true; // All requirements are met
-    }
-
     public void ProcessAction(ActionImplementation action)
     {
         ProcessDomains(action);
@@ -78,10 +40,6 @@ public class ActionProcessor
         LocationSpot spot = locationRepository.GetCurrentLocationSpot();
 
         gameState.PlayerState.ApplyActionPointCost(action.ActionPointCost);
-
-        // Calculate Vigor cost based on approach alignment
-        int vigorCost = GetVigorCost(action);
-        gameState.PlayerState.ApplyVigorCost(vigorCost);
 
         // Apply standard point generation based on action characteristics
         string exertion = action.GetExertionType();
@@ -145,11 +103,6 @@ public class ActionProcessor
         return 1;
     }
 
-    private int GetVigorCost(ActionImplementation action)
-    {
-        return 1;
-    }
-
     private void ProcessActionOutcomes(ActionImplementation action)
     {
         // Apply Action Outcomes
@@ -166,14 +119,13 @@ public class ActionProcessor
 
     private void ProcessActionCosts(ActionImplementation action)
     {
-        int hours = 3; // at least 3 hours;
-        string timeWindowCost = "Half";
+        int actionPointCost = 1; // Default cost of 1 action point
 
         foreach (Outcome cost in action.Costs)
         {
-            if (cost is TimeOutcome timeCost)
+            if (cost is ActionPointOutcome apCost)
             {
-                timeWindowCost = timeCost.TimeWindow;
+                actionPointCost = apCost.Amount;
             }
             else
             {
@@ -182,13 +134,30 @@ public class ActionProcessor
             messageSystem.AddOutcome(cost);
         }
 
-        if (!string.IsNullOrWhiteSpace(timeWindowCost) && timeWindowCost.ToLower() == "full")
+        gameState.PlayerState.ActionPoints += actionPointCost;
+        if (gameState.PlayerState.ActionPoints < 0)
         {
-            hours = 6;
+            gameState.PlayerState.ActionPoints = 0;
         }
 
-        gameState.TimeManager.AdvanceTime(hours);
+        gameState.TimeManager.UpdateTimeWindow();
+
+        // Handle day change if all actions are spent
+        if (gameState.PlayerState.ActionPoints == 0)
+        {
+            OnDayChanged();
+        }
+
         UpdateState();
+    }
+
+    private void OnDayChanged()
+    {
+        worldState.CurrentDay++;
+        
+        gameState.PlayerState.ActionPoints = gameState.PlayerState.MaxActionPoints;
+        
+        worldState.CurrentTimeWindow = TimeWindow.Morning;
     }
 
     private void IncreaseSpotXp(ActionImplementation action)
@@ -252,4 +221,39 @@ public class ActionProcessor
     {
         return action.Difficulty * 5;
     }
+
+
+    public void UpdateState()
+    {
+        Location currentLocation = worldState.CurrentLocation;
+        List<Location> allLocs = locationRepository.GetAllLocations();
+
+        foreach (Location loc in allLocs)
+        {
+            environmentalPropertyManager.UpdateLocationForTime(loc, worldState.CurrentTimeWindow);
+        }
+    }
+
+    public bool CanExecute(ActionImplementation action)
+    {
+        foreach (IRequirement requirement in action.Requirements)
+        {
+            if (!requirement.IsMet(gameState))
+            {
+                return false; // Requirement not met
+            }
+        }
+
+        // Check if the action has been completed and is non-repeatable
+        if (action.ActionType == ActionTypes.Encounter)
+        {
+            string encounterId = action.Id;
+            if (gameState.WorldState.IsEncounterCompleted(encounterId))
+            {
+                return false; // Encounter already completed
+            }
+        }
+        return true; // All requirements are met
+    }
+
 }

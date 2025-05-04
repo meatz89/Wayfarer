@@ -34,7 +34,6 @@ public static class ActionParser
             action.ConfidenceCost = GetIntProperty(costsElement, "spirit", 0);
             action.HealthCost = GetIntProperty(costsElement, "health", 0);
             action.CoinCost = GetIntProperty(costsElement, "coin", 0);
-            action.TimeWindowCost = GetStringProperty(costsElement, "timeWindowCost", "half");
         }
 
         // Parse yields

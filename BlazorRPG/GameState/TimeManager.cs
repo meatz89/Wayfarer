@@ -1,74 +1,51 @@
-﻿
-
-public class TimeManager
+﻿public class TimeManager
 {
+    private readonly PlayerState playerState;
     private readonly WorldState worldState;
 
-    public TimeManager(WorldState worldState)
+    public TimeManager(PlayerState playerState, WorldState worldState)
     {
+        this.playerState = playerState;
         this.worldState = worldState;
     }
 
-    // Advance time by hours
-    public void AdvanceTime(int hours)
+    public void UpdateTimeWindow()
     {
-        int currentHour = worldState.CurrentTimeHours;
-        int newHour = (currentHour + hours) % 24;
+        int maxAP = playerState.MaxActionPoints;
+        int currentAP = playerState.ActionPoints;
+        int actionsUsed = maxAP - currentAP;
 
-        // Track day change
-        bool dayChanged = (newHour < currentHour);
+        // Total hours in day = 24
+        double hoursPerAP = 24.0 / maxAP;
+        double totalHoursAdvanced = actionsUsed * hoursPerAP;
 
-        // Update hour
+        int baseHour = 5; // Let's say day starts at 6 AM (Morning starts)
+        int newHour = (baseHour + (int)Math.Floor(totalHoursAdvanced)) % 24;
+
         worldState.CurrentTimeHours = newHour;
 
-        // Update time window (morning, afternoon, evening, night)
-        UpdateTimeWindow();
-
-        // Handle day change
-        if (dayChanged)
-        {
-            worldState.CurrentDay++;
-            OnDayChanged();
-        }
-    }
-
-    // Update the current time window based on hour
-    private void UpdateTimeWindow()
-    {
-        int hour = worldState.CurrentTimeHours;
-
-        if (hour >= 5 && hour < 12)
-        {
-            worldState.TimeWindow = TimeWindow.Morning;
-        }
-        else if (hour >= 12 && hour < 17)
-        {
-            worldState.TimeWindow = TimeWindow.Afternoon;
-        }
-        else if (hour >= 17 && hour < 21)
-        {
-            worldState.TimeWindow = TimeWindow.Evening;
-        }
+        // Now update TimeWindow based on newHour
+        TimeWindow newWindow;
+        if (newHour >= 5 && newHour < 11)
+            newWindow = TimeWindow.Morning;
+        else if (newHour >= 11 && newHour < 17)
+            newWindow = TimeWindow.Afternoon;
+        else if (newHour >= 17 && newHour < 23)
+            newWindow = TimeWindow.Evening;
         else
-        {
-            worldState.TimeWindow = TimeWindow.Night;
-        }
-    }
+            newWindow = TimeWindow.Night;
 
-    // Handle day change effects
-    private void OnDayChanged()
-    {
-        // Future implementation: Handle day change effects
+        worldState.CurrentTimeWindow = newWindow;
     }
 
     public TimeWindow GetCurrentTimeWindow()
     {
-        return worldState.TimeWindow;
+        return worldState.CurrentTimeWindow;
     }
 
     public string PreviewTimeAdvancement(string timeWindow)
     {
-        switch (worldState.TimeWindow)
+        switch (worldState.CurrentTimeWindow)
         {
             case TimeWindow.Morning:
                 return timeWindow == "Half" ? "Morning" : "Afternoon";
