@@ -34,7 +34,7 @@ public class ActionPointOutcome : Outcome
     public override string GetPreview(GameState gameState)
     {
         int currentValue = gameState.PlayerState.CurrentActionPoints();
-        int newValue = Math.Clamp(currentValue + Amount, 0, gameState.PlayerState.MaxActionPoints);
+        int newValue = Math.Clamp(currentValue + Amount, 0, gameState.PlayerState.TurnActionPoints);
         return $"({currentValue} -> {newValue})";
     }
 }
@@ -77,7 +77,8 @@ public class EnergyOutcome : Outcome
 
     public override void Apply(GameState gameState)
     {
-        gameState.PlayerState.ModifyEnergy(Amount);
+        var newEnergy = gameState.PlayerState.CurrentEnergy() + Amount;
+        gameState.PlayerState.SetNewEnergy(newEnergy);
     }
 
     public override string GetDescription()

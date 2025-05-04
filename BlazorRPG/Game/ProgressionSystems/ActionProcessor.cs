@@ -1,4 +1,6 @@
-﻿public class ActionProcessor
+﻿using System;
+
+public class ActionProcessor
 {
     private readonly LocationRepository locationRepository;
 
@@ -28,81 +30,114 @@
         worldState = gameState.WorldState;
     }
 
-    public void ProcessAction(ActionImplementation action)
-    {
-        ProcessDomains(action);
+    public void ProcessTurnChange()
+    {   
+        PlayerState playerState = gameState.PlayerState;
 
-        ProcessActionCosts(action);
-        ProcessActionOutcomes(action);
+        int energy = playerState.CurrentEnergy();
+        int turnAp = playerState.TurnActionPoints;
+
+        int newEnergy = energy - turnAp;
+        if (newEnergy >= 0)
+        {
+            playerState.SetNewEnergy(newEnergy);
+        }
+        else
+        {
+            int exhaustionPoints = Math.Abs(newEnergy);
+            playerState.AddExhaustionPoints(exhaustionPoints);
+        }
+
+        gameState.TimeManager.StartNewDay();
+        gameState.PlayerState.ModifyActionPoints(gameState.PlayerState.TurnActionPoints);
     }
 
-    private void ProcessDomains(ActionImplementation action)
+    public void ProcessAction(ActionImplementation action)
+    {
+        PlayerState playerState = gameState.PlayerState;
+        playerState.ApplyActionPointCost(action.ActionPointCost);
+        
+        ProcessActionCosts(action);
+        ProcessActionOutcomes(action);
+
+        ProcessAfflictions(action);
+    }
+
+    private void ProcessAfflictions(ActionImplementation action)
     {
         LocationSpot spot = locationRepository.GetCurrentLocationSpot();
-
-        gameState.PlayerState.ApplyActionPointCost(action.ActionPointCost);
+        PlayerState playerState = gameState.PlayerState;
 
         // Apply standard point generation based on action characteristics
+        ApplyNewAfflictions(action, playerState);
+        ApplyRecovery(action);
+        ApplyEscalation(playerState);
+    }
+
+    private void ApplyNewAfflictions(ActionImplementation action, PlayerState playerState)
+    {
         string exertion = action.GetExertionType();
         if (!string.IsNullOrWhiteSpace(exertion))
         {
             int hungerPoints = MapExertion(exertion);
-            gameState.PlayerState.AddHungerPoints(hungerPoints);
+            playerState.AddHungerPoints(hungerPoints);
         }
 
         string mentalLoad = action.GetMentalLoadType();
         if (!string.IsNullOrWhiteSpace(mentalLoad))
         {
             int mentalLoadPoints = MapMentalLoad(exertion);
-            gameState.PlayerState.AddMentalLoadPoints(mentalLoadPoints);
+            playerState.AddMentalLoadPoints(mentalLoadPoints);
         }
 
         string socialImpact = action.GetSocialImpactType();
         if (!string.IsNullOrWhiteSpace(socialImpact))
         {
             int disconnectionPoints = MapSocialImpact(exertion);
-            gameState.PlayerState.AddDisconnectPoints(disconnectionPoints);
+            playerState.AddDisconnectPoints(disconnectionPoints);
+        }
+    }
+
+    private static void ApplyEscalation(PlayerState playerState)
+    {
+        if (playerState.ExhaustionPoints > 0)
+        {
+            int scalingPoints = 1;
+            playerState.AddExhaustionPoints(scalingPoints);
         }
 
-        // Apply recovery effects if any
+        if (playerState.HungerPoints > 0)
+        {
+            int scalingPoints = 1;
+            playerState.AddHungerPoints(scalingPoints);
+        }
+    }
+
+    private void ApplyRecovery(ActionImplementation action)
+    {
         string recoveryType = action.GetRecoveryType();
-        if (!string.IsNullOrWhiteSpace(socialImpact))
-        {
-            ApplyRecovery(recoveryType);
-        }
-
-        // Apply affliction penalties if active
-        if (gameState.PlayerState.GetHunger() > 0)
-        {
-            int scalingPoints = 1;
-            gameState.PlayerState.AddHungerPoints(scalingPoints);
-        }
-
-        if (gameState.PlayerState.GetExhaustion() > 0)
-        {
-            int scalingPoints = 1;
-            gameState.PlayerState.AddExhaustionPoints(scalingPoints);
-        }
+        ApplyRecovery(recoveryType);
     }
 
     private void ApplyRecovery(string recoveryType)
     {
     }
 
+    private int MapExertion(string exertion)
+    {
+        return 0;
+    }
+
     private int MapSocialImpact(string socialImpact)
     {
-        return 1;
+        return 0;
     }
 
     private int MapMentalLoad(string mentalLoad)
     {
-        return 1;
+        return 0;
     }
 
-    private int MapExertion(string exertion)
-    {
-        return 1;
-    }
 
     private void ProcessActionOutcomes(ActionImplementation action)
     {

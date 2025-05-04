@@ -146,11 +146,6 @@ public partial class NarrativeViewBase : ComponentBase
 
     public MarkupString GetOutcomeIcon(Outcome outcome)
     {
-        if (outcome is EnergyOutcome energyOutcome)
-        {
-            return new MarkupString("<i class='value-icon physical-icon'>⚡</i>");
-        }
-
         return outcome switch
         {
             HealthOutcome => new MarkupString("<i class='value-icon health-icon'>❤️</i>"),

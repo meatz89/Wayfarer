@@ -19,21 +19,54 @@
                 <div class="status-item">
                     <span class="status-label">Energy</span>
                     <span class="status-value">
-                        @PlayerState.CurrentEnergy() / @PlayerState.MaxEnergy
+                        @Energy
                     </span>
+                    <span class="danger">
+                        @(TurnActionPoints * -1)
+                    </span>
+
                 </div>
                 <div class="status-item">
                     <span class="status-label">Action Points</span>
-                    <span class="status-value @(PlayerState.CurrentActionPoints() < PlayerState.MaxActionPoints / 3 ? "danger" : "")">
-                        @PlayerState.CurrentActionPoints() / @PlayerState.MaxActionPoints
+                    <span class="status-value">
+                        @ActionPoints / @TurnActionPoints
                     </span>
                 </div>
                 <div class="status-item">
                     <span class="status-label">Vigor</span>
-                    <span class="status-value">
-                        @PlayerState.CurrentVigor() / @PlayerState.MaxVigor
+                    <span class="status-value @((PlayerState.CurrentVigor() < 3) ? "danger" : "")">
+                        @Vigor / @MaxVigor
                     </span>
                 </div>
+                
+                <div class="status-item">
+                    <span class="status-label">Exhaustion</span>
+                    <span class="status-value @((PlayerState.ExhaustionPoints > 0) ? "danger" : "")">
+                        @Exhaustion
+                    </span>
+                </div>
+
+                <div class="status-item">
+                    <span class="status-label">Hunger</span>
+                    <span class="status-value @((PlayerState.HungerPoints > 0) ? "danger" : "")">
+                        @Hunger
+                    </span>
+                </div>
+
+                <div class="status-item">
+                    <span class="status-label">Mental Load</span>
+                    <span class="status-value @((PlayerState.MentalLoadPoints > 0) ? "danger" : "")">
+						@MentalLoad
+                    </span>
+                </div>
+
+                <div class="status-item">
+                    <span class="status-label">Isolation</span>
+                    <span class="status-value @((PlayerState.IsolationPoints > 0) ? "danger" : "")">
+                        @Isolation
+                    </span>
+                </div>
+
             </div>
 
             <div class="game-info">
@@ -116,7 +149,7 @@
 
                         <div class="section-content">
                             <div class="archetype-portrait">
-                                <img src="/images/characters/@(Player.Gender.ToString().ToLower())_@(Player.Archetype.ToString().ToLower()).png" />
+                                <img src=@GetArchetypePortrait() />
                             </div>
 
                             <div class="player-character">
@@ -283,7 +316,7 @@
 {
     <div class="tooltip" style="left: @(mouseX + 10)px; top: @(mouseY + 10)px">
         <ActionPreview CurrentAction="@hoveredAction"
-                       Player="@Player" />
+                       Player="@PlayerState" />
     </div>
 }
 

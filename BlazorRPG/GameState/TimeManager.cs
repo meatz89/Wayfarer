@@ -1,6 +1,6 @@
 ﻿public class TimeManager
 {
-    private const int dayStartingHour = 6;
+    public const int TimeDayStart = 6;
     private readonly PlayerState playerState;
     private readonly WorldState worldState;
 
@@ -12,11 +12,11 @@
 
     public void UpdateTimeWindow()
     {
-        int maxAP = playerState.MaxActionPoints;
+        int maxAP = playerState.TurnActionPoints;
         int currentAP = playerState.CurrentActionPoints();
         int actionsUsed = maxAP - currentAP;
 
-        int activeDayStartHour = dayStartingHour;  // 6 AM
+        int activeDayStartHour = TimeDayStart;  // 6 AM
         int activeDayEndHour = 24;   // Midnight
         int activeDayHours = activeDayEndHour - activeDayStartHour;  // 18 hours
 
@@ -31,7 +31,7 @@
 
         // Now update TimeWindow based on newHour
         TimeWindow newWindow;
-        if (newHour >= dayStartingHour && newHour < 12)
+        if (newHour >= TimeDayStart && newHour < 12)
             newWindow = TimeWindow.Morning;
         else if (newHour >= 12 && newHour < 18)
             newWindow = TimeWindow.Afternoon;
@@ -52,8 +52,13 @@
     public void StartNewDay()
     {
         worldState.CurrentDay++;
-        worldState.CurrentTimeHours = dayStartingHour;
-        worldState.CurrentTimeWindow = TimeWindow.Morning;
+        SetNewTime(TimeDayStart); 
+    }
+
+    public void SetNewTime(int hours)
+    {
+        worldState.CurrentTimeHours = hours;
+        UpdateTimeWindow();
     }
 
     public TimeWindow GetCurrentTimeWindow()

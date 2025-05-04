@@ -64,12 +64,6 @@
         actionImplementation.Requirements.Add(new ActionPointRequirement(actionCost));
         actionImplementation.Costs.Add(new ActionPointOutcome(-actionCost));
 
-        int energyCost = 1;
-
-        actionImplementation.Requirements.Add(new EnergyRequirement(energyCost));
-        actionImplementation.Costs.Add(new EnergyOutcome(-energyCost));
-
-
         return actionImplementation;
     }
 
@@ -116,11 +110,6 @@
     {
         // Only add costs that have a value greater than 0
         List<Outcome> costs = new();
-
-        if (template.EnergyCost > 0)
-        {
-            costs.Add(new EnergyOutcome(-template.EnergyCost));
-        }
 
         if (template.HealthCost > 0)
         {
