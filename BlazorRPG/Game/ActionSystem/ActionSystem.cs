@@ -23,19 +23,19 @@ public class ActionSystem
 
         foreach (Location location in locations)
         {
-            foreach (LocationSpot spot in locationSystem.GetLocationSpots(location.Name))
+            foreach (LocationSpot spot in locationSystem.GetLocationSpots(location.Id))
             {
                 if (spot.GetActionsForLevel(spot.CurrentLevel).Any())
                     continue;
 
-                sb.AppendLine($"## Actions at {location.Name} / {spot.Name}:");
+                sb.AppendLine($"## Actions at {location.Id} / {spot.Id}:");
 
                 foreach (string actionTemplate in spot.GetActionsForLevel(spot.CurrentLevel))
                 {
                     ActionDefinition action = actionRepository.GetAction(actionTemplate);
                     if (action != null)
                     {
-                        sb.AppendLine($"- {action.Name}: {action.Goal}");
+                        sb.AppendLine($"- {action.Id}: {action.Goal}");
                     }
                 }
                 sb.AppendLine();

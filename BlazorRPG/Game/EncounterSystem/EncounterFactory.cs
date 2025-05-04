@@ -30,8 +30,8 @@
         EncounterTypes EncounterType)
     {
         Encounter encounter = new Encounter(
-            location.Name,
-            locationSpot.Name,
+            location.Id,
+            locationSpot.Id,
             template.Duration,
             template.MaxPressure,
             template.PartialThreshold, template.StandardThreshold, template.ExceptionalThreshold, // Momentum thresholds: 12+ (Partial), 16+ (Standard), 20+ (Exceptional)

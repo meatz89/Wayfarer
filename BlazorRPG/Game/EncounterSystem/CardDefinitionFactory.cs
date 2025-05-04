@@ -18,7 +18,7 @@
         CardDefinition cardDefinition = new CardDefinition();
 
         cardDefinition.Id = id;
-        cardDefinition.Name = name;
+        cardDefinition.Id = name;
         cardDefinition.Description = description;
         cardDefinition.Tier = tier;
         cardDefinition.Approach = approach;

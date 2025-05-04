@@ -88,7 +88,7 @@
                 memoryContent = await MemoryFileAccess.ReadFromMemoryFile();
             }
 
-            WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location.Name);
+            WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location.Id);
             introduction = await narrativeService.GenerateIntroductionAsync(
                 narrativeContext,
                 status,
@@ -113,7 +113,7 @@
         Dictionary<CardDefinition, ChoiceNarrative> choiceDescriptions = null;
         if (_useAiNarrative)
         {
-            WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location.Name);
+            WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location.Id);
 
             choiceDescriptions = await narrativeService.GenerateChoiceDescriptionsAsync(
                 narrativeContext,
@@ -319,7 +319,7 @@
     public ChoiceProjection ProjectChoice(CardDefinition choice)
     {
         ChoiceProjection projection = EncounterState.CreateChoiceProjection(choice);
-        projection.NarrativeDescription = choice.Name + " " + choice.Description;
+        projection.NarrativeDescription = choice.Id + " " + choice.Description;
         return projection;
     }
 

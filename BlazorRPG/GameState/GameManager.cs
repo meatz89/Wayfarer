@@ -71,26 +71,24 @@
     {
         ProcessPlayerArchetype();
 
-        string startingLocationName = "village_square";
-        string startingLocationSpotName = "Central Square";
-        Location startingLocation = await locationSystem.Initialize(startingLocationName);
+        Location startingLocation = await locationSystem.Initialize();
 
-        worldState.RecordLocationVisit(startingLocationName);
-        travelManager.StartLocationTravel(startingLocationName);
+        worldState.RecordLocationVisit(startingLocation.Id);
+        travelManager.StartLocationTravel(startingLocation.Id);
 
         Location currentLocation = worldState.CurrentLocation;
 
-        if (worldState.CurrentLocationSpot == null && locationSystem.GetLocationSpots(currentLocation.Name).Any() == true)
+        if (worldState.CurrentLocationSpot == null && locationSystem.GetLocationSpots(currentLocation.Id).Any() == true)
         {
             Console.WriteLine("Current location spot is null despite spots existing - manually setting");
-            worldState.SetCurrentLocationSpot(locationSystem.GetLocationSpots(currentLocation.Name).First());
+            worldState.SetCurrentLocationSpot(locationSystem.GetLocationSpots(currentLocation.Id).First());
         }
 
         gameState.ActionStateTracker.CompleteAction();
         await UpdateState();
 
         Location? currentLoc = currentLocation;
-        Console.WriteLine($"Game started at: {currentLoc?.Name}, Current spot: {worldState.CurrentLocationSpot?.Name}");
+        Console.WriteLine($"Game started at: {currentLoc?.Id}, Current spot: {worldState.CurrentLocationSpot?.Id}");
     }
 
     private void ProcessPlayerArchetype()
@@ -221,7 +219,7 @@
         // Create option with consistent structure
         UserActionOption travelOption = new UserActionOption(
             "Travel to " + locationName, false, travelAction,
-            worldState.CurrentLocation.Id, worldState.CurrentLocationSpot.Name,
+            worldState.CurrentLocation.Id, worldState.CurrentLocationSpot.Id,
             null, worldState.CurrentLocation.Difficulty, null);
 
         // Use unified action execution
@@ -230,7 +228,7 @@
 
     private async Task<List<UserActionOption>> CreateLocationSpotActions(Location location, LocationSpot locationSpot)
     {
-        string? currentLocation = worldState.CurrentLocation?.Name;
+        string? currentLocation = worldState.CurrentLocation?.Id;
         if (string.IsNullOrWhiteSpace(currentLocation)) return new List<UserActionOption>();
 
         List<string> locationSpotActions = locationSpot.GetActionsForLevel(locationSpot.CurrentLevel);
@@ -245,21 +243,21 @@
                 string actionId =
                     await actionGenerator.GenerateAction(
                     locationSpotAction,
-                    locationSpot.Name,
-                    location.Name);
+                    locationSpot.Id,
+                    location.Id);
 
                 actionTemplate = actionRepository.GetAction(locationSpotAction);
             }
 
-            ActionImplementation actionImplementation = actionFactory.CreateActionFromTemplate(actionTemplate, location.Name, locationSpot.Name);
+            ActionImplementation actionImplementation = actionFactory.CreateActionFromTemplate(actionTemplate, location.Id, locationSpot.Id);
 
             UserActionOption action =
                 new UserActionOption(
-                    actionImplementation.Name.ToString(),
+                    actionImplementation.Id,
                     locationSpot.IsClosed,
                     actionImplementation,
                     locationSpot.LocationId,
-                    locationSpot.Name,
+                    locationSpot.Id,
                     default,
                     location.Difficulty,
                     string.Empty);
@@ -276,8 +274,8 @@
     private async Task<EncounterManager> PrepareEncounter(ActionImplementation actionImplementation)
     {
         Location location = worldState.CurrentLocation;
-        string locationId = location.Name;
-        string locationName = location.Name;
+        string locationId = location.Id;
+        string locationName = location.Id;
 
         // Get time of day
         string timeOfDay = GetTimeOfDay(worldState.CurrentTimeHours);
@@ -302,7 +300,7 @@
         List<string> previousInteractions = new();
 
         LocationSpot? locationSpot = locationSystem.GetLocationSpot(
-            location.Name, worldState.CurrentLocationSpot.Name);
+            location.Id, worldState.CurrentLocationSpot.Id);
 
         // Create initial context with our new value system
         int playerLevel = playerState.Level;
@@ -316,7 +314,7 @@
         };
 
         EncounterManager encounterManager = await encounterSystem
-            .GenerateEncounter(actionImplementation.Name, location, locationSpot, context, worldState, playerState, actionImplementation);
+            .GenerateEncounter(actionImplementation.Id, location, locationSpot, context, worldState, playerState, actionImplementation);
 
         List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterManager.EncounterResult);
         gameState.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
@@ -328,7 +326,7 @@
     {
         Location location = locationSystem.GetLocation(choiceOption.LocationName);
 
-        string? currentLocation = worldState.CurrentLocation?.Name;
+        string? currentLocation = worldState.CurrentLocation?.Id;
         if (string.IsNullOrWhiteSpace(currentLocation)) return null;
 
         EncounterResult encounterResult = await encounterSystem.ExecuteChoice(
@@ -371,7 +369,7 @@
     /// <returns></returns>
     public async Task ProcessEncounterNarrativeEnding(EncounterResult result)
     {
-        worldState.MarkEncounterCompleted(result.ActionImplementation.Name);
+        worldState.MarkEncounterCompleted(result.ActionImplementation.Id);
 
         gameState.ActionStateTracker.EncounterResult = result;
 
@@ -421,14 +419,14 @@
         // Create memory entry
         MemoryConsolidationInput memoryInput = new MemoryConsolidationInput { OldMemory = oldMemory };
 
-        string currentLocation = worldState.CurrentLocation.Name;
+        string currentLocation = worldState.CurrentLocation.Id;
         if (string.IsNullOrWhiteSpace(currentLocation)) return;
 
         string memoryEntry = await evolutionSystem.ConsolidateMemory(encounterResult.NarrativeContext, memoryInput);
 
         string location = encounterResult.NarrativeContext.LocationName;
         string locationSpot = encounterResult.NarrativeContext.locationSpotName;
-        string actionName = encounterResult.ActionImplementation.Name;
+        string actionName = encounterResult.ActionImplementation.Id;
         string goal = encounterResult.ActionImplementation.Goal;
 
         string title = $"{location} - {locationSpot}, {actionName} - {goal}" + Environment.NewLine;
@@ -510,7 +508,7 @@
             })
             .Select(x =>
             {
-                return x.Name;
+                return x.Id;
             })
             .ToList();
 
@@ -526,10 +524,10 @@
         return worldState.CurrentLocation.ConnectedTo?.Contains(destinationName) ?? false;
     }
 
-    public bool CanMoveToSpot(string locationSpotName)
+    public bool CanMoveToSpot(string locationSpotId)
     {
         Location location = locationRepository.GetCurrentLocation();
-        LocationSpot locationSpot = locationRepository.GetSpot(location.Id, locationSpotName);
+        LocationSpot locationSpot = locationRepository.GetSpot(location.Id, locationSpotId);
         bool canMove = !locationSpot.IsClosed;
 
         return canMove;

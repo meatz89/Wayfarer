@@ -21,23 +21,23 @@
                 {
                     <div class="missing-item">
                         <span class="missing-id">@missing.ActionId</span>
-                        <span class="reference-detail">Referenced by: @missing.ReferencingSpot.LocationId / @missing.ReferencingSpot.Name</span>
+                        <span class="reference-detail">Referenced by: @missing.ReferencingSpot.LocationId / @missing.ReferencingSpot.Id</span>
                     </div>
                 }
             </div>
         </div>
     }
 
-    @if (validationResult.MissingLocations.Count > 0)
+    @if (validationResult.MissingLocationSpots.Count > 0)
     {
         <div class="missing-section">
             <h3>Missing Locations</h3>
             <div class="missing-list">
-                @foreach (var missing in validationResult.MissingLocations)
+                @foreach (var missing in validationResult.MissingLocationSpots)
                 {
                     <div class="missing-item">
-                        <span class="missing-id">@missing.LocationId</span>
-                        <span class="reference-detail">Referenced by spot: @missing.ReferencingSpot.Name</span>
+                        <span class="missing-id">@missing.LocationSpotId</span>
+                        <span class="reference-detail">Referenced by spot: @missing.ReferencingLocation.Id</span>
                     </div>
                 }
             </div>
@@ -53,7 +53,7 @@
                 {
                     <div class="missing-item">
                         <span class="missing-id">@missing.LocationId</span>
-                        <span class="reference-detail">Referenced by location: @missing.ReferencingLocation.Name</span>
+                        <span class="reference-detail">Referenced by location: @missing.ReferencingLocation.Id</span>
                     </div>
                 }
             </div>
@@ -61,7 +61,7 @@
     }
 
     <div class="action-buttons">
-        <button class="generate-button" @onclick="GenerateMissingContent">Generate Missing Content</button>
+        <button class="generate-button" disabled="true" @onclick="GenerateMissingContent">Generate Missing Content</button>
         <button class="continue-button" @onclick="ContinueWithoutGenerating">Continue Anyway</button>
     </div>
 
@@ -94,13 +94,13 @@
         isGenerating = true;
         generatedCount = 0;
         totalToGenerate = validationResult.MissingActions.Count +
-                         validationResult.MissingLocations.Count +
+                         validationResult.MissingLocationSpots.Count +
                          validationResult.MissingConnectedLocations.Count;
 
         // First generate missing locations as actions may depend on them
-        foreach (var missingLocation in validationResult.MissingLocations)
+        foreach (var missingLocation in validationResult.MissingLocationSpots)
         {
-            await LocationCreationSystem.CreateLocation(missingLocation.LocationId);
+            await LocationCreationSystem.CreateLocationSpot(missingLocation.ReferencingLocation.Id, missingLocation.LocationSpotId);
             generatedCount++;
             StateHasChanged();
         }
@@ -118,7 +118,7 @@
         {
             await ActionGenerator.GenerateAction(
                 missingAction.ActionId,
-                missingAction.ReferencingSpot.Name,
+                missingAction.ReferencingSpot.Id,
                 missingAction.ReferencingSpot.LocationId);
 
             generatedCount++;

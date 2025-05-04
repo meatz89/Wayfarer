@@ -12,11 +12,11 @@
         {
             <div class="location-card reachable">
                 <div class="location-name">
-                    @location.Name @(location.Name == CurrentLocation.Name ? "(Current)" : "")
+                    @location.Id @(location.Id == CurrentLocation.Id ? "(Current)" : "")
                 </div>
 
                 <button class="action-button"
-                        @onclick="() => OnTravel.InvokeAsync(location.Name)">
+                        @onclick="() => OnTravel.InvokeAsync(location.Id)">
                     TRAVEL
                 </button>
             </div>
@@ -32,8 +32,8 @@
     private List<Location> GetTravelableLocations()
     {
         List<Location> enumerable = Locations.Where(loc =>
-            loc.Name != CurrentLocation.Name &&
-            GameManager.CanTravelTo(loc.Name)).ToList();
+            loc.Id != CurrentLocation.Id &&
+            GameManager.CanTravelTo(loc.Id)).ToList();
 
         return enumerable;
     }

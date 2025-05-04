@@ -8,11 +8,11 @@
         {
             <div class="location-card reachable">
                 <div class="location-name">
-                    @location.Name @(location.Name == CurrentLocation.Name ? "(Current)" : "")
+                    @location.Id @(location.Id == CurrentLocation.Id ? "(Current)" : "")
                 </div>
 
                 <button class="action-button"
-                        @onclick="() => OnTravel.InvokeAsync(location.Name)">
+                        @onclick="() => OnTravel.InvokeAsync(location.Id)">
                     TRAVEL
                 </button>
             </div>

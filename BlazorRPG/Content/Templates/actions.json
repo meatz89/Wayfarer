@@ -1,522 +1,120 @@
 [
 	{
-		"id": "market_day_trading",
-		"name": "Trade at Market",
-		"description": "Buy low and sell high at the bustling village market",
-		"actionType": "Trade",
-		"costs": {
-			"energy": 3,
-			"focus": 2,
-			"spirit": 0,
-			"health": 0,
-			"coin": 5,
-			"timeWindowCost": "Half"
-		},
-		"yields": {
-			"energy": 0,
-			"focus": 0,
-			"spirit": 0,
-			"health": 0,
-			"coin": 12,
-			"spotXp": 10
+		"id": "talk_innkeeper",
+		"name": "Talk to Innkeeper",
+		"description": "Strike up a conversation with Borin, the gruff innkeeper.",
+		"spotId": "innkeeper",
+		"apCost": 1,
+		"approach": "RAPPORT",
+		"characteristics": {
+			"exertion": "LIGHT",
+			"mentalLoad": "SIMPLE",
+			"socialImpact": "BONDING"
 		},
 		"requirements": {
-			"resources": {
-				"energy": 3,
-				"focus": 2,
-				"coin": 5
-			}
+			"relationshipLevel": 0
 		},
-		"encounterDetails": {
-			"isOneTimeEncounter": false,
-			"goal": "Make a profit by trading goods at the market",
-			"complication": "Prices are fluctuating due to recent supply shortages",
-			"encounterType": "Rapport"
+		"grants": {
+			"relationshipXP": 1
 		}
 	},
 	{
-		"id": "mediate_market_dispute",
-		"name": "Mediate Dispute",
-		"description": "Help settle a disagreement between merchants",
-		"actionType": "Rapport",
-		"costs": {
-			"energy": 2,
-			"focus": 4,
-			"spirit": 3,
-			"health": 0,
-			"coin": 0,
-			"timeWindowCost": "Half"
-		},
-		"yields": {
-			"energy": 0,
-			"focus": 0,
-			"spirit": 2,
-			"health": 0,
-			"coin": 3,
-			"spotXp": 15,
-			"skills": [
-				{
-					"skillType": "Diplomacy",
-					"amount": 3
-				}
-			]
+		"id": "persuade_innkeeper",
+		"name": "Persuade Innkeeper",
+		"description": "Try to convince Borin to share special information or offer a discount.",
+		"spotId": "innkeeper",
+		"apCost": 2,
+		"approach": "RAPPORT",
+		"characteristics": {
+			"exertion": "MODERATE",
+			"mentalLoad": "COMPLEX",
+			"socialImpact": "BONDING"
 		},
 		"requirements": {
-			"resources": {
-				"energy": 2,
-				"focus": 4,
-				"spirit": 3
+			"relationshipLevel": 0,
+			"stats": {
+				"DIP": 3
 			}
 		},
-		"encounterDetails": {
-			"isOneTimeEncounter": false,
-			"goal": "Find a fair solution that satisfies both merchants",
-			"complication": "Both sides are stubborn and believe they are in the right",
-			"encounterType": "Rapport"
+		"grants": {
+			"relationshipXP": 3
 		}
 	},
 	{
-		"id": "help_blacksmith_apprentice",
-		"name": "Help Emil",
-		"description": "Assist young Emil with his daily tasks at the forge",
-		"actionType": "Labor",
-		"costs": {
-			"energy": 5,
-			"focus": 2,
-			"spirit": 0,
-			"health": 0,
-			"coin": 0,
-			"timeWindowCost": "Half"
-		},
-		"yields": {
-			"energy": 0,
-			"focus": 0,
-			"spirit": 0,
-			"health": 0,
-			"coin": 0,
-			"spotXp": 20,
-			"relationships": [
-				{
-					"characterName": "Emil",
-					"amount": 3
-				}
-			],
-			"skills": [
-				{
-					"skillType": "Endurance",
-					"amount": 1
-				}
-			]
+		"id": "purchase_food",
+		"name": "Purchase Basic Food",
+		"description": "Buy some simple fare from the inn's kitchen.",
+		"spotId": "innkeeper",
+		"apCost": 1,
+		"approach": "NEUTRAL",
+		"characteristics": {
+			"recoveryType": "HUNGER",
+			"recoveryAmount": "BASIC"
 		},
 		"requirements": {
+			"relationshipLevel": 0,
 			"resources": {
-				"energy": 5,
-				"focus": 2
+				"COINS": 2
 			}
 		},
-		"encounterDetails": {
-			"isOneTimeEncounter": false,
-			"goal": "Build trust with Emil while learning basic forge work",
-			"complication": "Emil is shy and reluctant to accept help",
-			"encounterType": "Rapport"
+		"grants": {
+			"relationshipXP": 1
 		}
 	},
 	{
-		"id": "tavern_performance",
-		"name": "Perform",
-		"description": "Perform a song or story for the tavern patrons",
-		"actionType": "Rapport",
-		"costs": {
-			"energy": 3,
-			"focus": 3,
-			"spirit": 0,
-			"health": 0,
-			"coin": 0,
-			"timeWindowCost": "Half"
-		},
-		"yields": {
-			"energy": 0,
-			"focus": 0,
-			"spirit": 4,
-			"health": 0,
-			"coin": 5,
-			"spotXp": 15,
-			"skills": [
-				{
-					"skillType": "Diplomacy",
-					"amount": 1
-				}
-			]
+		"id": "rent_basic_room",
+		"name": "Rent Basic Room",
+		"description": "Pay for a simple room for the night.",
+		"spotId": "innkeeper",
+		"apCost": 1,
+		"approach": "NEUTRAL",
+		"characteristics": {
+			"recoveryType": [ "ENERGY", "EXHAUSTION" ],
+			"recoveryAmount": "BASIC"
 		},
 		"requirements": {
+			"relationshipLevel": 1,
 			"resources": {
-				"energy": 3,
-				"focus": 3
-			}
-		},
-		"encounterDetails": {
-			"isOneTimeEncounter": false,
-			"goal": "Entertain the crowd and build your reputation",
-			"complication": "A drunk patron is particularly critical of performances",
-			"encounterType": "Rapport"
-		}
-	},
-	{
-		"id": "purchase_meal",
-		"name": "Buy Meal",
-		"description": "Purchase a hearty meal to restore energy",
-		"actionType": "Consume",
-		"costs": {
-			"energy": 0,
-			"focus": 0,
-			"spirit": 0,
-			"health": 0,
-			"coin": 3,
-			"timeWindowCost": "Half"
-		},
-		"yields": {
-			"energy": 5,
-			"focus": 0,
-			"spirit": 1,
-			"health": 2,
-			"coin": 0
-		},
-		"requirements": {
-			"resources": {
-				"coin": 3
+				"COINS": 5
 			}
 		}
 	},
 	{
-		"id": "tavern_information_gathering",
-		"name": "Gather Information",
-		"description": "Listen to conversations and gather useful gossip",
-		"actionType": "Precision",
-		"costs": {
-			"energy": 2,
-			"focus": 5,
-			"spirit": 0,
-			"health": 0,
-			"coin": 1,
-			"timeWindowCost": "Half"
-		},
-		"yields": {
-			"energy": 0,
-			"focus": 0,
-			"spirit": 0,
-			"health": 0,
-			"coin": 0,
-			"spotXp": 12,
-			"skills": [
-				{
-					"skillType": "Finesse",
-					"amount": 2
-				}
-			]
+		"id": "basic_rest",
+		"name": "Rest by the Fire",
+		"description": "Take a short rest near the warm hearth.",
+		"spotId": "hearth",
+		"apCost": 2,
+		"approach": "NEUTRAL",
+		"characteristics": {
+			"exertion": "LIGHT",
+			"recoveryType": [ "ENERGY", "EXHAUSTION" ],
+			"recoveryAmount": "BASIC"
 		},
 		"requirements": {
-			"resources": {
-				"energy": 2,
-				"focus": 5,
-				"coin": 1
-			}
+			"relationshipLevel": 0
 		},
-		"encounterDetails": {
-			"isOneTimeEncounter": false,
-			"goal": "Gather valuable information without drawing attention",
-			"complication": "A suspicious guard is keeping watch over the tavern tonight",
-			"encounterType": "Precision"
+		"grants": {
+			"relationshipXP": 1
 		}
 	},
 	{
-		"id": "rest_in_inn_room",
-		"name": "Sleep Until Morning",
-		"description": "Get a full night's rest in your rented room",
-		"actionType": "Rest",
-		"costs": {
-			"coin": 5,
-			"timeWindowCost": "Full"
-		},
-		"yields": {
-			"energy": 10,
-			"focus": 10,
-			"spirit": 5,
-			"health": 5
+		"id": "investigate_satchel",
+		"name": "Investigate Satchel",
+		"description": "Examine the abandoned satchel without touching it.",
+		"spotId": "discarded_satchel",
+		"apCost": 1,
+		"approach": "ANALYSIS",
+		"characteristics": {
+			"exertion": "MODERATE",
+			"mentalLoad": "STANDARD",
+			"socialImpact": "SOLITARY"
 		},
 		"requirements": {
-			"resources": {
-				"coin": 5
-			}
-		}
-	},
-	{
-		"id": "nap_in_inn_room",
-		"name": "Take a Nap",
-		"description": "Rest for a few hours in your room",
-		"actionType": "Rest",
-		"costs": {
-			"timeWindowCost": "Half"
+			"relationshipLevel": 0
 		},
-		"yields": {
-			"energy": 5,
-			"focus": 5,
-			"spirit": 0,
-			"health": 2
-		},
-		"requirements": {}
-	},
-	{
-		"id": "monastery_meditation",
-		"name": "Meditate",
-		"description": "Join Brother Thomas in quiet meditation to improve mental focus",
-		"actionType": "Study",
-		"costs": {
-			"energy": 2,
-			"focus": 0,
-			"spirit": 0,
-			"health": 0,
-			"coin": 0,
-			"timeWindowCost": "Half"
-		},
-		"yields": {
-			"energy": 0,
-			"focus": 5,
-			"spirit": 0,
-			"health": 0,
-			"coin": 0,
-			"spotXp": 8,
-			"skills": [
-				{
-					"skillType": "Observation",
-					"amount": 2
-				}
-			],
-			"relationships": [
-				{
-					"characterName": "Brother Thomas",
-					"amount": 1
-				}
-			]
-		},
-		"requirements": {
-			"resources": {
-				"energy": 2
-			}
-		},
-		"encounterDetails": {
-			"isOneTimeEncounter": false,
-			"goal": "Achieve mental clarity through guided meditation",
-			"complication": "Distracting noises from the nearby village make focus difficult",
-			"encounterType": "Intellectual"
-		}
-	},
-	{
-		"id": "ancient_scroll_study",
-		"name": "Study Scrolls",
-		"description": "Decipher old texts with the monastery librarian",
-		"actionType": "Study",
-		"costs": {
-			"energy": 2,
-			"focus": 6,
-			"spirit": 0,
-			"health": 0,
-			"coin": 0,
-			"timeWindowCost": "Full"
-		},
-		"yields": {
-			"energy": 0,
-			"focus": 0,
-			"spirit": 0,
-			"health": 0,
-			"coin": 0,
-			"spotXp": 20,
-			"skills": [
-				{
-					"skillType": "Observation",
-					"amount": 4
-				}
-			],
-			"relationships": [
-				{
-					"characterName": "Brother Elias",
-					"amount": 2
-				}
-			]
-		},
-		"requirements": {
-			"resources": {
-				"energy": 2,
-				"focus": 6
-			},
-			"skills": [
-				{
-					"skillType": "Observation",
-					"minimumLevel": 1
-				}
-			]
-		},
-		"encounterDetails": {
-			"isOneTimeEncounter": false,
-			"goal": "Translate and understand ancient historical documents",
-			"complication": "Some passages are written in an obscure dialect",
-			"encounterType": "Intellectual"
-		}
-	},
-	{
-		"id": "guard_training",
-		"name": "Force Training",
-		"description": "Join the village guards for their morning drills",
-		"actionType": "Training",
-		"costs": {
-			"energy": 6,
-			"focus": 2,
-			"spirit": 0,
-			"health": 0,
-			"coin": 0,
-			"timeWindowCost": "Half"
-		},
-		"yields": {
-			"energy": 0,
-			"focus": 0,
-			"spirit": 2,
-			"health": 0,
-			"coin": 0,
-			"spotXp": 15,
-			"skills": [
-				{
-					"skillType": "Endurance",
-					"amount": 3
-				}
-			],
-			"relationships": [
-				{
-					"characterName": "Captain Aldric",
-					"amount": 1
-				}
-			]
-		},
-		"requirements": {
-			"resources": {
-				"energy": 6,
-				"focus": 2
-			}
-		},
-		"encounterDetails": {
-			"isOneTimeEncounter": false,
-			"goal": "Learn combat techniques from the village guards",
-			"complication": "The captain has high standards and pushes everyone hard",
-			"encounterType": "Physical"
-		}
-	},
-	{
-		"id": "forest_tracking",
-		"name": "Track Game",
-		"description": "Learn tracking skills from Rowan the hunter",
-		"actionType": "Training",
-		"costs": {
-			"energy": 4,
-			"focus": 3,
-			"spirit": 0,
-			"health": 0,
-			"coin": 0,
-			"timeWindowCost": "Half"
-		},
-		"yields": {
-			"energy": 0,
-			"focus": 0,
-			"spirit": 0,
-			"health": 0,
-			"coin": 0,
-			"food": 1,
-			"spotXp": 18,
-			"skills": [
-				{
-					"skillType": "Charm",
-					"amount": 3
-				}
-			],
-			"relationships": [
-				{
-					"characterName": "Rowan",
-					"amount": 1
-				}
-			]
-		},
-		"requirements": {
-			"resources": {
-				"energy": 4,
-				"focus": 3
-			}
-		},
-		"encounterDetails": {
-			"isOneTimeEncounter": false,
-			"goal": "Learn to identify and follow animal tracks in the forest",
-			"complication": "Recent rain has washed away many obvious signs",
-			"encounterType": "Observation"
-		}
-	},
-	{
-		"id": "sleep_in_forest",
-		"name": "Camp in Forest",
-		"description": "Set up a basic camp to sleep through the night",
-		"actionType": "Rest",
-		"costs": {
-			"timeWindowCost": "Full"
-		},
-		"yields": {
-			"energy": 5,
-			"focus": 5,
-			"spirit": 0,
-			"health": -1
-		},
-		"requirements": {
-			"skills": [
-				{
-					"skillType": "Charm",
-					"minimumLevel": 1
-				}
-			]
-		}
-	},
-	{
-		"id": "forage_for_herbs",
-		"name": "Forage Herbs",
-		"description": "Search the forest for useful medicinal herbs",
-		"actionType": "Gather",
-		"costs": {
-			"energy": 3,
-			"focus": 4,
-			"spirit": 0,
-			"health": 0,
-			"coin": 0,
-			"timeWindowCost": "Half"
-		},
-		"yields": {
-			"energy": 0,
-			"focus": 0,
-			"spirit": 0,
-			"health": 0,
-			"coin": 0,
-			"medicinalHerbs": 1,
-			"spotXp": 10,
-			"skills": [
-				{
-					"skillType": "Charm",
-					"amount": 1
-				}
-			]
-		},
-		"requirements": {
-			"resources": {
-				"energy": 3,
-				"focus": 4
-			}
-		},
-		"encounterDetails": {
-			"isOneTimeEncounter": false,
-			"goal": "Find rare and useful medicinal plants",
-			"complication": "Some valuable herbs grow in hard-to-reach places",
-			"encounterType": "Observation"
+		"grants": {
+			"relationshipXP": 1
 		}
 	}
 ]

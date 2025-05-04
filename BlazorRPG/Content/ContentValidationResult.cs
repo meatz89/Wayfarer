@@ -1,12 +1,12 @@
 ﻿public class ContentValidationResult
 {
-    public List<MissingLocationReference> MissingLocations { get; } = new List<MissingLocationReference>();
+    public List<MissingLocationSpotReference> MissingLocationSpots { get; } = new List<MissingLocationSpotReference>();
     public List<MissingActionReference> MissingActions { get; } = new List<MissingActionReference>();
     public List<MissingConnectedLocationReference> MissingConnectedLocations { get; } = new List<MissingConnectedLocationReference>();
 
-    public void AddMissingLocation(string locationId, LocationSpot referencingSpot)
+    public void AddMissingLocationSpot(string locationSpotId, Location referencingLocation)
     {
-        MissingLocations.Add(new MissingLocationReference(locationId, referencingSpot));
+        MissingLocationSpots.Add(new MissingLocationSpotReference(locationSpotId, referencingLocation));
     }
 
     public void AddMissingAction(string actionId, LocationSpot referencingSpot)
@@ -23,22 +23,22 @@
     {
         get
         {
-            return MissingLocations.Count > 0 ||
+            return MissingLocationSpots.Count > 0 ||
                 MissingActions.Count > 0 ||
                 MissingConnectedLocations.Count > 0;
         }
     }
 }
 
-public class MissingLocationReference
+public class MissingLocationSpotReference
 {
-    public string LocationId { get; }
-    public LocationSpot ReferencingSpot { get; }
+    public string LocationSpotId { get; }
+    public Location ReferencingLocation { get; }
 
-    public MissingLocationReference(string locationId, LocationSpot referencingSpot)
+    public MissingLocationSpotReference(string locationSpotId, Location referencingLocation)
     {
-        LocationId = locationId;
-        ReferencingSpot = referencingSpot;
+        LocationSpotId = locationSpotId;
+        ReferencingLocation = referencingLocation;
     }
 }
 

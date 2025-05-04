@@ -4,12 +4,12 @@
     public string Name { get; set; }
     public string Description { get; set; }
     public List<string> ConnectedTo { get; set; } = new List<string>();
+    public List<string> LocationSpotIds { get; set; } = new List<string>();
+    public List<string> EnvironmentalProperties { get; set; } = new List<string>();
+    public List<LocationSpot> LocationSpots { get; set; } = new List<LocationSpot>();
     public int TravelTimeMinutes { get; set; }
     public string TravelDescription { get; set; }
     public int Difficulty { get; set; }
-    public string DetailedDescription { get; set; }
-    public string History { get; set; }
-    public string PointsOfInterest { get; set; }
     public List<StrategicTag> StrategicTags { get; set; } = new List<StrategicTag>();
     public List<NarrativeTag> NarrativeTags { get; set; } = new List<NarrativeTag>();
     public int Depth { get; set; }
@@ -21,8 +21,9 @@
     public int VisitCount { get; set; }
     public bool PlayerKnowledge { get; set; }
 
-    public Location(string id)
+    public Location(string id, string name)
     {
         Id = id;
+        Name = name;
     }
 }

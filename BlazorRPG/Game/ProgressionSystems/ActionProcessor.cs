@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.Numerics;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 public class ActionProcessor
 {
@@ -54,20 +56,98 @@ public class ActionProcessor
         // Check if the action has been completed and is non-repeatable
         if (action.ActionType == ActionTypes.Encounter)
         {
-            string encounterId = action.Name;
+            string encounterId = action.Id;
             if (gameState.WorldState.IsEncounterCompleted(encounterId))
             {
                 return false; // Encounter already completed
             }
         }
-
         return true; // All requirements are met
     }
 
     public void ProcessAction(ActionImplementation action)
     {
+        ProcessDomains(action);
+
         ProcessActionCosts(action);
         ProcessActionOutcomes(action);
+    }
+
+    private void ProcessDomains(ActionImplementation action)
+    {
+        LocationSpot spot = locationRepository.GetCurrentLocationSpot();
+
+        gameState.PlayerState.ApplyActionPointCost(action.ActionPointCost);
+
+        // Calculate Vigor cost based on approach alignment
+        int vigorCost = GetVigorCost(action);
+        gameState.PlayerState.ApplyVigorCost(vigorCost);
+
+        // Apply standard point generation based on action characteristics
+        string exertion = action.GetExertionType();
+        if (!string.IsNullOrWhiteSpace(exertion))
+        {
+            int hungerPoints = MapExertion(exertion);
+            gameState.PlayerState.AddHungerPoints(hungerPoints);
+        }
+
+        string mentalLoad = action.GetMentalLoadType();
+        if (!string.IsNullOrWhiteSpace(mentalLoad))
+        {
+            int mentalLoadPoints = MapMentalLoad(exertion);
+            gameState.PlayerState.AddMentalLoadPoints(mentalLoadPoints);
+        }
+
+        string socialImpact = action.GetSocialImpactType();
+        if (!string.IsNullOrWhiteSpace(socialImpact))
+        {
+            int disconnectionPoints = MapSocialImpact(exertion);
+            gameState.PlayerState.AddDisconnectPoints(disconnectionPoints);
+        }
+
+        // Apply recovery effects if any
+        string recoveryType = action.GetRecoveryType();
+        if (!string.IsNullOrWhiteSpace(socialImpact))
+        {
+            ApplyRecovery(recoveryType);
+        }
+
+        // Apply affliction penalties if active
+        if (gameState.PlayerState.GetHunger() > 0)
+        {
+            int scalingPoints = 1;
+            gameState.PlayerState.AddHungerPoints(scalingPoints);
+        }
+
+        if (gameState.PlayerState.GetExhaustion() > 0)
+        {
+            int scalingPoints = 1;
+            gameState.PlayerState.AddExhaustionPoints(scalingPoints);
+        }
+    }
+
+    private void ApplyRecovery(string recoveryType)
+    {
+    }
+
+    private int MapSocialImpact(string socialImpact)
+    {
+        return 1;
+    }
+
+    private int MapMentalLoad(string mentalLoad)
+    {
+        return 1;
+    }
+
+    private int MapExertion(string exertion)
+    {
+        return 1;
+    }
+
+    private int GetVigorCost(ActionImplementation action)
+    {
+        return 1;
     }
 
     private void ProcessActionOutcomes(ActionImplementation action)
@@ -118,7 +198,7 @@ public class ActionProcessor
         if (spotXp > 0 && currentLocationSpot != null)
         {
             currentLocationSpot.IncreaseSpotXP(spotXp);
-            messageSystem.AddSystemMessage($"Gained {spotXp} spotXp for {currentLocationSpot.Name}");
+            messageSystem.AddSystemMessage($"Gained {spotXp} spotXp for {currentLocationSpot.Id}");
         }
     }
 

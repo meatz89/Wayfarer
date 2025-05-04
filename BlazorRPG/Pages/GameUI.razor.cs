@@ -252,12 +252,12 @@ public partial class GameUI : ComponentBase
 
     public Location GetCurrentLocation()
     {
-        return CurrentLocation ?? new Location("default");
+        return CurrentLocation;
     }
 
     private async Task HandleSpotSelection(LocationSpot locationSpot)
     {
-        await GameManager.MoveToLocationSpot(locationSpot.Name);
+        await GameManager.MoveToLocationSpot(locationSpot.Id);
         ChangeState();
     }
 
@@ -285,7 +285,7 @@ public partial class GameUI : ComponentBase
     {
         selectedLocation = travelLocationName;
 
-        if (travelLocationName == CurrentLocation.Name)
+        if (travelLocationName == CurrentLocation.Id)
         {
             ChangeState();
             return;
@@ -329,7 +329,7 @@ public partial class GameUI : ComponentBase
         UserActionOption waitOption = new UserActionOption(
             "Wait for one hour", false, waitAction,
             GameState.WorldState.CurrentLocation?.Id ?? "Global",
-            GameState.WorldState.CurrentLocationSpot?.Name ?? "Global",
+            GameState.WorldState.CurrentLocationSpot?.Id ?? "Global",
             null, 0, null);
 
         await GameManager.ExecuteAction(waitOption);

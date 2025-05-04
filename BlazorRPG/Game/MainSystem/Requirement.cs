@@ -48,29 +48,6 @@ public class RelationshipRequirement : IRequirement
     }
 }
 
-public class ReputationRequirement : IRequirement
-{
-    public string Location { get; }
-    public int MinimumValue { get; }
-
-    public ReputationRequirement(string location, int minimumValue)
-    {
-        Location = location;
-        MinimumValue = minimumValue;
-    }
-
-    public bool IsMet(GameState gameState)
-    {
-        int currentValue = gameState.PlayerState.GetReputation(Location);
-        return currentValue >= MinimumValue;
-    }
-
-    public string GetDescription()
-    {
-        return $"Requires {MinimumValue}+ reputation in {Location}";
-    }
-}
-
 public class SkillRequirement : IRequirement
 {
     public SkillTypes SkillType { get; }

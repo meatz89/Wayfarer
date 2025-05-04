@@ -11,18 +11,19 @@ public class LocationSystem
         this.locationRepository = locationRepo;
     }
 
-    public async Task<Location> Initialize(string startingLocation)
+    public async Task<Location> Initialize()
     {
         List<Location> allLocations = locationRepository.GetAllLocations().ToList();
-        Location startLoc = GetLocation(startingLocation);
+        Location startLoc = allLocations.First();
+
         startLoc.LocationType = LocationTypes.Hub;
 
         foreach (Location? loc in allLocations.Where(l =>
         {
-            return l.Name != startingLocation;
+            return l.Id != startLoc.Id;
         }))
         {
-            int depth = loc.ConnectedTo.Contains(startingLocation) ? 1 : 2;
+            int depth = loc.ConnectedTo.Contains(startLoc.Id) ? 1 : 2;
         }
 
         foreach (Location? loc in allLocations.Where(l =>
@@ -30,15 +31,15 @@ public class LocationSystem
             return l.PlayerKnowledge;
         }))
         {
-            gameState.PlayerState.AddKnownLocation(loc.Name);
-            foreach (LocationSpot? spot in locationRepository.GetSpotsForLocation(loc.Name).Where(s =>
+            gameState.PlayerState.AddKnownLocation(loc.Id);
+            foreach (LocationSpot? spot in locationRepository.GetSpotsForLocation(loc.Id).Where(s =>
             {
                 return s.PlayerKnowledge;
             }))
-                gameState.PlayerState.AddKnownLocationSpot(spot.Name);
+                gameState.PlayerState.AddKnownLocationSpot(spot.Id);
         }
 
-        return GetLocation(startingLocation);
+        return GetLocation(startLoc.Id);
     }
 
     public Location GetLocation(string id)
@@ -80,7 +81,7 @@ public class LocationSystem
 
         foreach (Location loc in locations)
         {
-            sb.AppendLine($"- {loc.Name}: {loc.Description} (Depth: {loc.Depth})");
+            sb.AppendLine($"- {loc.Id}: {loc.Description} (Depth: {loc.Depth})");
         }
 
         return sb.ToString();
@@ -90,13 +91,13 @@ public class LocationSystem
     {
         StringBuilder sb = new StringBuilder();
 
-        List<LocationSpot> locationSpots = GetLocationSpots(location.Name);
+        List<LocationSpot> locationSpots = GetLocationSpots(location.Id);
         if (location == null || locationSpots == null || !locationSpots.Any())
             return "None";
 
         foreach (LocationSpot spot in locationSpots)
         {
-            sb.AppendLine($"- {spot.Name}: {spot.Description}");
+            sb.AppendLine($"- {spot.Id}: {spot.Description}");
         }
 
         return sb.ToString();

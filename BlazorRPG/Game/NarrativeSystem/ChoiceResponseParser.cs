@@ -64,6 +64,6 @@ public static class ChoiceResponseParser
             description += " This might be risky but could yield valuable results.";
         }
 
-        return new ChoiceNarrative(choice.Name, description);
+        return new ChoiceNarrative(choice.Id, description);
     }
 }

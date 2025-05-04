@@ -45,7 +45,7 @@
 
         if (currentLocation == null)
         {
-            EndLocationTravel(travelLocationId, locationSpot.Name);
+            EndLocationTravel(travelLocationId, locationSpot.Id);
             return null;
         }
         else
@@ -56,10 +56,10 @@
             ConsumeTravelResources(travelMinutes, travelMethod);
 
             ActionDefinition travelTemplate =
-                GetTravelTemplate(travelLocationId, locationSpot.Name);
+                GetTravelTemplate(travelLocationId, locationSpot.Id);
 
             ActionImplementation travelAction =
-                ActionFactory.CreateActionFromTemplate(travelTemplate, currentLocation.Name, string.Empty);
+                ActionFactory.CreateActionFromTemplate(travelTemplate, currentLocation.Id, string.Empty);
 
             return travelAction;
         }
@@ -70,10 +70,10 @@
         Location targetLocation = LocationSystem.GetLocation(travelLocation);
 
         List<LocationSpot> spots = LocationSystem.GetLocationSpots(targetLocation.Id);
-        LocationSpot? locSpot = spots.FirstOrDefault(ls =>
+        LocationSpot? locSpot = spots.FirstOrDefault((Func<LocationSpot, bool>)(ls =>
         {
-            return ls.Name == locationSpotName;
-        });
+            return ls.Id == locationSpotName;
+        }));
 
         worldState.SetCurrentLocation(targetLocation, locSpot);
 
@@ -124,7 +124,7 @@
     private void ConsumeTravelResources(int travelMinutes, TravelMethods travelMethod)
     {
         // Calculate energy cost based on travel time and location depth
-        string currentLocation = worldState.CurrentLocation?.Name;
+        string currentLocation = worldState.CurrentLocation?.Id;
         if (string.IsNullOrWhiteSpace(currentLocation)) return;
 
         // Base energy cost (1 energy per 30 minutes)
@@ -162,7 +162,7 @@
 
         if (LocationRepository.GetAllLocations().Any(x =>
         {
-            return x.Name == endLocationId;
+            return x.Id == endLocationId;
         }))
         {
             Location location = LocationRepository.GetLocationById(endLocationId);

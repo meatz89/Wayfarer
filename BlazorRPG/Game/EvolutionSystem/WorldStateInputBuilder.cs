@@ -41,9 +41,9 @@ public class WorldStateInputBuilder
 
             CurrentLocation = currentLocation,
             LocationSpots = LocationSystem.FormatLocationSpots(worldState.CurrentLocation),
-            CurrentSpot = worldState.CurrentLocationSpot.Name,
+            CurrentSpot = worldState.CurrentLocationSpot.Id,
             LocationDepth = worldState.CurrentLocation.Depth,
-            ConnectedLocations = LocationSystem.FormatLocations(LocationSystem.GetConnectedLocations(worldState.CurrentLocation.Name)),
+            ConnectedLocations = LocationSystem.FormatLocations(LocationSystem.GetConnectedLocations(worldState.CurrentLocation.Id)),
 
             Inventory = FormatPlayerInventory(playerState.Inventory),
             Relationships = playerState.Relationships.ToString(),

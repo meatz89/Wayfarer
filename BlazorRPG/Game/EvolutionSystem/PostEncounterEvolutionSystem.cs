@@ -63,7 +63,7 @@
         // Same logic but with updated registry calls
         foreach (Location loc in evolution.NewLocations)
         {
-            string locationName = loc.Name;
+            string locationName = loc.Id;
             Location existingLoc = locationRepository.GetLocationById(locationName);
             if (existingLoc == null)
             {
@@ -72,7 +72,6 @@
             else
             {
                 existingLoc.Description = loc.Description;
-                existingLoc.DetailedDescription = loc.DetailedDescription;
                 existingLoc.ConnectedTo = loc.ConnectedTo;
                 existingLoc.Depth = loc.Depth;
             }
@@ -80,8 +79,8 @@
 
         foreach (LocationSpot spot in evolution.NewLocationSpots)
         {
-            string spotName = $"{spot.LocationId}:{spot.Name}";
-            LocationSpot existingSpot = locationRepository.GetSpot(spot.LocationId, spot.Name);
+            string spotName = $"{spot.LocationId}:{spot.Id}";
+            LocationSpot existingSpot = locationRepository.GetSpot(spot.LocationId, spot.Id);
             if (existingSpot == null)
             {
                 locationRepository.AddLocationSpot(spot);
@@ -123,13 +122,13 @@
         foreach (NewAction newAction in evolution.NewActions)
         {
             Location targetLocation = locationRepository.GetLocationById(newAction.LocationName);
-            List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(targetLocation.Name);
+            List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(targetLocation.Id);
             if (targetLocation != null && locationSpots != null)
             {
-                LocationSpot spotForAction = locationSpots.FirstOrDefault(s =>
+                LocationSpot spotForAction = locationSpots.FirstOrDefault((Func<LocationSpot, bool>)(s =>
                 {
-                    return s.Name.Equals(newAction.SpotName, StringComparison.OrdinalIgnoreCase);
-                });
+                    return (bool)s.Id.Equals(newAction.SpotName, StringComparison.OrdinalIgnoreCase);
+                }));
 
                 if (spotForAction != null)
                 {
@@ -239,7 +238,7 @@
         {
             EncounterNarrative = encounterNarrative,
             CharacterBackground = playerState.Archetype.ToString(),
-            CurrentLocation = worldState.CurrentLocation?.Name ?? "Unknown",
+            CurrentLocation = worldState.CurrentLocation?.Id ?? "Unknown",
             EncounterOutcome = encounterOutcome,
 
             KnownLocations = locationSystem.FormatLocations(allLocations),
@@ -247,7 +246,7 @@
             ActiveOpportunities = opportunitySystem.FormatActiveOpportunities(worldState.GetOpportunities()),
 
             CurrentLocationSpots = locationSystem.FormatLocationSpots(worldState.CurrentLocation),
-            ConnectedLocations = locationSystem.FormatLocations(locationSystem.GetConnectedLocations(worldState.CurrentLocation.Name)),
+            ConnectedLocations = locationSystem.FormatLocations(locationSystem.GetConnectedLocations(worldState.CurrentLocation.Name)),   
             AllExistingActions = actionSystem.FormatExistingActions(allLocations),
 
             CurrentDepth = worldState.CurrentLocation.Depth,
