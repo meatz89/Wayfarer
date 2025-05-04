@@ -4,7 +4,6 @@
 		"name": "Talk to Innkeeper",
 		"description": "Strike up a conversation with Borin, the gruff innkeeper.",
 		"spotId": "innkeeper",
-		"apCost": 1,
 		"approach": "RAPPORT",
 		"characteristics": {
 			"exertion": "LIGHT",
@@ -23,7 +22,6 @@
 		"name": "Persuade Innkeeper",
 		"description": "Try to convince Borin to share special information or offer a discount.",
 		"spotId": "innkeeper",
-		"apCost": 2,
 		"approach": "RAPPORT",
 		"characteristics": {
 			"exertion": "MODERATE",
@@ -45,7 +43,6 @@
 		"name": "Purchase Basic Food",
 		"description": "Buy some simple fare from the inn's kitchen.",
 		"spotId": "innkeeper",
-		"apCost": 1,
 		"approach": "NEUTRAL",
 		"characteristics": {
 			"recoveryType": "HUNGER",
@@ -66,7 +63,6 @@
 		"name": "Rent Basic Room",
 		"description": "Pay for a simple room for the night.",
 		"spotId": "innkeeper",
-		"apCost": 1,
 		"approach": "NEUTRAL",
 		"characteristics": {
 			"recoveryType": [ "ENERGY", "EXHAUSTION" ],
@@ -84,7 +80,6 @@
 		"name": "Rest by the Fire",
 		"description": "Take a short rest near the warm hearth.",
 		"spotId": "hearth",
-		"apCost": 2,
 		"approach": "NEUTRAL",
 		"characteristics": {
 			"exertion": "LIGHT",
@@ -103,7 +98,6 @@
 		"name": "Investigate Satchel",
 		"description": "Examine the abandoned satchel without touching it.",
 		"spotId": "discarded_satchel",
-		"apCost": 1,
 		"approach": "ANALYSIS",
 		"characteristics": {
 			"exertion": "MODERATE",

@@ -17,28 +17,18 @@
         <div class="game-status-bar">
             <div class="player-status">
                 <div class="status-item">
-                    <span class="status-icon">❤️</span>
-                    <span class="status-label">Health</span>
-                    <span class="status-value @(PlayerState.Health < PlayerState.MaxHealth / 3 ? "danger" : "")">
-                        @PlayerState.Health / @PlayerState.MaxHealth
+                    <span class="status-label">Action Points</span>
+                    <span class="status-value @(PlayerState.ActionPoints < PlayerState.MaxActionPoints / 3 ? "danger" : "")">
+                        @PlayerState.ActionPoints / @PlayerState.MaxActionPoints
                     </span>
                 </div>
                 <div class="status-item">
-                    <span class="status-icon">🧠</span>
-                    <span class="status-label">Concentration</span>
+                    <span class="status-label">Vigor</span>
                     <span class="status-value">
-                        @PlayerState.Focus / @PlayerState.MaxFocus
+                        @PlayerState.Vigor / @PlayerState.MaxVigor
                     </span>
                 </div>
                 <div class="status-item">
-                    <span class="status-icon">🗣️</span>
-                    <span class="status-label">Confidence</span>
-                    <span class="status-value">
-                        @PlayerState.Spirit / @PlayerState.MaxSpirit
-                    </span>
-                </div>
-                <div class="status-item">
-                    <span class="status-icon">⚡</span>
                     <span class="status-label">Energy</span>
                     <span class="status-value">
                         @PlayerState.Energy / @PlayerState.MaxEnergy

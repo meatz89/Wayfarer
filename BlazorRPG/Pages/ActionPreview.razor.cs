@@ -11,7 +11,7 @@ public partial class ActionPreviewBase : ComponentBase
     {
         ActionImplementation action = CurrentAction.ActionImplementation;
 
-        string name = $"{action.ActionType} - {action.Id}";
+        string name = $"{action.ActionType} - {action.Name}";
         return name;
     }
 
@@ -33,8 +33,23 @@ public partial class ActionPreviewBase : ComponentBase
         return CurrentAction.ActionImplementation.Yields;
     }
 
-    // Now we work directly with our strongly-typed classes
-    public List<string> GetRequirementDescriptions()
+    public bool GetRequirementsMet()
+    {
+
+        List<string> descriptions = new();
+        ActionImplementation basicAction = CurrentAction.ActionImplementation;
+        foreach (IRequirement req in basicAction.Requirements)
+        {
+            string description = req.GetDescription();
+            bool isSatisfied = req.IsMet(GameState);
+
+            if (!isSatisfied) return false;
+        }
+
+        return true;
+    }
+
+    public List<string> GetRequirements()
     {
         List<string> descriptions = new();
         ActionImplementation basicAction = CurrentAction.ActionImplementation;
@@ -43,7 +58,6 @@ public partial class ActionPreviewBase : ComponentBase
             string description = req.GetDescription();
             bool isSatisfied = req.IsMet(GameState);
 
-            if (isSatisfied) { continue; }
             string color = isSatisfied ? "positive" : "negative";
             descriptions.Add($"<span class='{color}'>{description}</span>");
         }

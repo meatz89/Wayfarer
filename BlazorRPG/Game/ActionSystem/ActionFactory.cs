@@ -54,6 +54,9 @@
         ActionGenerationContext context = actionImplementation.GetActionGenerationContext();
         EncounterTemplate encounterTemplate = encounterFactory.GetDefaultEncounterTemplate();
 
+        actionImplementation.Requirements.Add(new ActionPointRequirement(1));
+        actionImplementation.Costs.Add(new ActionPointOutcome(-1));
+
         return actionImplementation;
     }
 
@@ -101,7 +104,7 @@
         // Only add costs that have a value greater than 0
         List<Outcome> costs = new();
 
-        if (template.TimeWindowCost != string.Empty)
+        if (template.TimeWindowCost is not null && template.TimeWindowCost != string.Empty)
         {
             costs.Add(new TimeOutcome(template.TimeWindowCost));
         }

@@ -7,7 +7,7 @@ public static class ActionParser
         using JsonDocument doc = JsonDocument.Parse(json);
         JsonElement root = doc.RootElement;
 
-        string id = GetStringProperty(root, "id", "");
+        string id = GetStringProperty(root, "id", "id");
         string name = GetStringProperty(root, "name", id);
         string spotId = GetStringProperty(root, "spotId", "spotId");
 

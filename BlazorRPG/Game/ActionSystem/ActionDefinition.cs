@@ -13,7 +13,7 @@
     public int HealthCost { get; set; }
     public int ConfidenceCost { get; set; }
     public int ConcentrationCost { get; set; }
-    public string TimeWindowCost { get; set; }
+    public string TimeWindowCost { get; set; } = string.Empty;
 
     // Resource yields
     public int CoinGain { get; set; }

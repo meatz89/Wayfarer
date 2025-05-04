@@ -12,119 +12,65 @@
     }
 }
 
-public class FoodOutcome : Outcome
+public class ActionPointOutcome : Outcome
 {
-    public int Amount { get; }
+    public int Amount { get; set; }
 
-    public FoodOutcome(int amount)
+    public ActionPointOutcome(int count)
     {
-        Amount = amount;
+        Amount = count;
     }
 
     public override void Apply(GameState gameState)
     {
-        gameState.PlayerState.ModifyFood(Amount);
+        gameState.PlayerState.ActionPoints = Math.Clamp(
+            gameState.PlayerState.ActionPoints + Amount,
+            0,
+            gameState.PlayerState.MaxActionPoints);
     }
 
     public override string GetDescription()
     {
-        return $"{(Amount >= 0 ? "+" : "")}{Amount} Food";
+        return $"{(Amount >= 0 ? "+" : "")}{Amount} Action Points";
     }
 
     public override string GetPreview(GameState gameState)
     {
-        int newValue = Math.Max(0, gameState.PlayerState.Food + Amount);
-        return $"({gameState.PlayerState.Food} -> {newValue})";
+        int currentValue = gameState.PlayerState.ActionPoints;
+        int newValue = Math.Clamp(currentValue + Amount, 0, gameState.PlayerState.MaxActionPoints);
+        return $"({currentValue} -> {newValue})";
     }
 }
 
-public class LocationKnowledgeOutcome : Outcome
+public class VigorOutcome : Outcome
 {
-    public string Location { get; }
+    public int Amount { get; set; }
 
-    public LocationKnowledgeOutcome(string location)
+    public VigorOutcome(int count)
     {
-        Location = location;
+        Amount = count;
     }
 
     public override void Apply(GameState gameState)
     {
-        gameState.PlayerState.AddKnownLocation(Location);
+        gameState.PlayerState.Vigor = Math.Clamp(
+            gameState.PlayerState.Vigor + Amount,
+            0,
+            gameState.PlayerState.MaxVigor);
     }
 
     public override string GetDescription()
     {
-        return $"{Location} discovered";
+        return $"{(Amount >= 0 ? "+" : "")}{Amount} Vigor";
     }
 
     public override string GetPreview(GameState gameState)
     {
-        return $"{Location} discovered";
+        int currentValue = gameState.PlayerState.Vigor;
+        int newValue = Math.Clamp(currentValue + Amount, 0, gameState.PlayerState.MaxVigor);
+        return $"({currentValue} -> {newValue})";
     }
 }
-
-public class LocationSpotKnowledgeOutcome : Outcome
-{
-    public string LocationSpot { get; }
-
-    public LocationSpotKnowledgeOutcome(string locationSpot)
-    {
-        LocationSpot = locationSpot;
-    }
-
-    public override void Apply(GameState gameState)
-    {
-        gameState.PlayerState.AddKnownLocationSpot(LocationSpot);
-    }
-
-    public override string GetDescription()
-    {
-        return $"{LocationSpot} discovered";
-    }
-
-    public override string GetPreview(GameState gameState)
-    {
-        return $"{LocationSpot} discovered";
-    }
-}
-
-public class ItemOutcome : Outcome
-{
-    public ItemTypes ItemType { get; set; }
-    public int QuantityChange { get; set; }
-
-    public ItemOutcome(ItemTypes itemType, int quantityChange)
-    {
-        ItemType = itemType;
-        QuantityChange = quantityChange;
-    }
-
-    public override void Apply(GameState gameState)
-    {
-        if (QuantityChange > 0)
-        {
-            // Add item(s)
-            for (int i = 0; i < QuantityChange; i++)
-            {
-                gameState.PlayerState.Inventory.AddItem(ItemType);
-            }
-        }
-        else
-        {
-        }
-    }
-
-    public override string GetDescription()
-    {
-        return "Item Change";
-    }
-
-    public override string GetPreview(GameState gameState)
-    {
-        return "Item Change";
-    }
-}
-
 
 public class EnergyOutcome : Outcome
 {
@@ -316,6 +262,123 @@ public class RelationshipOutcome : Outcome
         return $"({gameState.PlayerState.GetRelationshipLevel(CharacterName)} -> {newValue})";
     }
 }
+
+
+
+public class FoodOutcome : Outcome
+{
+    public int Amount { get; }
+
+    public FoodOutcome(int amount)
+    {
+        Amount = amount;
+    }
+
+    public override void Apply(GameState gameState)
+    {
+        gameState.PlayerState.ModifyFood(Amount);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(Amount >= 0 ? "+" : "")}{Amount} Food";
+    }
+
+    public override string GetPreview(GameState gameState)
+    {
+        int newValue = Math.Max(0, gameState.PlayerState.Food + Amount);
+        return $"({gameState.PlayerState.Food} -> {newValue})";
+    }
+}
+
+public class LocationKnowledgeOutcome : Outcome
+{
+    public string Location { get; }
+
+    public LocationKnowledgeOutcome(string location)
+    {
+        Location = location;
+    }
+
+    public override void Apply(GameState gameState)
+    {
+        gameState.PlayerState.AddKnownLocation(Location);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{Location} discovered";
+    }
+
+    public override string GetPreview(GameState gameState)
+    {
+        return $"{Location} discovered";
+    }
+}
+
+public class LocationSpotKnowledgeOutcome : Outcome
+{
+    public string LocationSpot { get; }
+
+    public LocationSpotKnowledgeOutcome(string locationSpot)
+    {
+        LocationSpot = locationSpot;
+    }
+
+    public override void Apply(GameState gameState)
+    {
+        gameState.PlayerState.AddKnownLocationSpot(LocationSpot);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{LocationSpot} discovered";
+    }
+
+    public override string GetPreview(GameState gameState)
+    {
+        return $"{LocationSpot} discovered";
+    }
+}
+
+public class ItemOutcome : Outcome
+{
+    public ItemTypes ItemType { get; set; }
+    public int QuantityChange { get; set; }
+
+    public ItemOutcome(ItemTypes itemType, int quantityChange)
+    {
+        ItemType = itemType;
+        QuantityChange = quantityChange;
+    }
+
+    public override void Apply(GameState gameState)
+    {
+        if (QuantityChange > 0)
+        {
+            // Add item(s)
+            for (int i = 0; i < QuantityChange; i++)
+            {
+                gameState.PlayerState.Inventory.AddItem(ItemType);
+            }
+        }
+        else
+        {
+        }
+    }
+
+    public override string GetDescription()
+    {
+        return "Item Change";
+    }
+
+    public override string GetPreview(GameState gameState)
+    {
+        return "Item Change";
+    }
+}
+
+
 
 public class DayChangeOutcome : Outcome
 {
