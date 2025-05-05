@@ -14,15 +14,16 @@
     public int XPToNextLevel { get; set; } = 100;
 
     // Afflictions
-    public int TurnActionPoints { get; } = 4;
-    private int ActionPoints { get; set; } = 4;
-    public int MaxVigor { get; } = 20;
-    private int Vigor { get; set; }
-    public int MaxEnergy { get; } = 12;
-    private int Energy { get; set; }
+    public int MaxActionPoints { get; set;  } = 4;
+    public int ActionPoints { get; set; } = 4;
+    public int MaxVigor { get; set; } = 20;
+    public int Vigor { get; set; }
+    public int MaxEnergyPoints { get; set; } = 12;
+    public int EnergyPoints { get; set; }
 
     // Resources
-    public int Money { get; set; }
+    public int Coins { get; set; }
+
     public Inventory Inventory { get; set; } = new Inventory(10);
 
     // Relationships with characters
@@ -37,7 +38,6 @@
     // Travel capabilities
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
 
-    public int Coins { get; set; }
 
     public HashSet<(string, EncounterApproaches)> LocationActionAvailability { get; set; } = new();
 
@@ -57,7 +57,7 @@
     public int Spirit { get; set; }
     public int ExhaustionPoints { get; private set; }
     public int HungerPoints { get; private set; }
-    public int MentalLoadPoints { get; private set; }
+    public int MentalStrainPoints { get; private set; }
     public int IsolationPoints { get; private set; }
 
     public int MaxHealth;
@@ -69,6 +69,7 @@
         Background = GameRules.StandardRuleset.Background;
         Inventory = new Inventory(10);
 
+        Coins = 5;
         Level = 1;
         CurrentXP = 0;
         XPToNextLevel = 100;
@@ -78,7 +79,7 @@
 
     public void HealFully()
     {
-        Energy = MaxEnergy;
+        EnergyPoints = MaxEnergyPoints;
         Vigor = MaxVigor;
 
         Health = MaxHealth;
@@ -332,7 +333,7 @@
 
     public void AddMentalLoadPoints(int mentalLoad)
     {
-        this.MentalLoadPoints += mentalLoad;
+        this.MentalStrainPoints += mentalLoad;
     }
 
     public void AddDisconnectPoints(int disconnectionPoints)
@@ -347,18 +348,18 @@
 
     public void ModifyActionPoints(int amount)
     {
-        int newActionPoints = Math.Clamp(ActionPoints + amount, 0, TurnActionPoints);
+        int newActionPoints = Math.Clamp(ActionPoints + amount, 0, MaxActionPoints);
         this.ActionPoints = newActionPoints;
     }
 
     public int CurrentEnergy()
     {
-        return Energy;
+        return EnergyPoints;
     }
 
     public void SetNewEnergy(int newEnergy)
     {
-        this.Energy = newEnergy;
+        this.EnergyPoints = newEnergy;
     }
 
     public int CurrentVigor()
@@ -370,5 +371,30 @@
     {
         int newVigor = Math.Clamp(Vigor + amount, 0, MaxVigor);
         this.Vigor = newVigor;
+    }
+
+    internal void ModifyHunger(int amount)
+    {
+        this.HungerPoints += amount;
+    }
+
+    internal void ModifyEnergy(int amount)
+    {
+        this.EnergyPoints += amount;
+    }
+
+    internal void ModifyExhaustion(int amount)
+    {
+        this.ExhaustionPoints += amount;
+    }
+
+    internal void ModifyMentalStrain(int amount)
+    {
+        this.MentalStrainPoints += amount;
+    }
+
+    internal void ModifyIsolation(int amount)
+    {
+        this.IsolationPoints += amount;
     }
 }

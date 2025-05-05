@@ -166,16 +166,16 @@ public class FoodRequirement : IRequirement
 
 public class TimeWindowRequirement : IRequirement
 {
-    public List<TimeWindow> AllowedWindows { get; }
+    public List<TimeWindows> AllowedWindows { get; }
 
-    public TimeWindowRequirement(List<TimeWindow> allowedWindows)
+    public TimeWindowRequirement(List<TimeWindows> allowedWindows)
     {
         AllowedWindows = allowedWindows;
     }
 
     public bool IsMet(GameState gameState)
     {
-        TimeWindow currentWindow = gameState.TimeManager.GetCurrentTimeWindow();
+        TimeWindows currentWindow = gameState.TimeManager.GetCurrentTimeWindow();
         return AllowedWindows.Contains(currentWindow);
     }
 

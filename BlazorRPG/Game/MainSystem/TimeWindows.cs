@@ -1,4 +1,4 @@
-﻿public enum TimeWindow
+﻿public enum TimeWindows
 {
     Night,
     Morning,

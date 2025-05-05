@@ -57,8 +57,6 @@ public class ActionGenerator
     {
         return new ActionDefinition(actionName.Replace(" ", "_").ToLowerInvariant(), actionName, spotId)
         {
-            Goal = "Goal",
-            Complication = "Complication",
             Description = "Description",
         };
     }

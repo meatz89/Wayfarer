@@ -35,7 +35,7 @@ public class ActionProcessor
         PlayerState playerState = gameState.PlayerState;
 
         int energy = playerState.CurrentEnergy();
-        int turnAp = playerState.TurnActionPoints;
+        int turnAp = playerState.MaxActionPoints;
 
         int newEnergy = energy - turnAp;
         if (newEnergy >= 0)
@@ -49,7 +49,7 @@ public class ActionProcessor
         }
 
         gameState.TimeManager.StartNewDay();
-        gameState.PlayerState.ModifyActionPoints(gameState.PlayerState.TurnActionPoints);
+        gameState.PlayerState.ModifyActionPoints(gameState.PlayerState.MaxActionPoints);
     }
 
     public void ProcessAction(ActionImplementation action)

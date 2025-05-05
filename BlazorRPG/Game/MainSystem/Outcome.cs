@@ -34,7 +34,7 @@ public class ActionPointOutcome : Outcome
     public override string GetPreview(GameState gameState)
     {
         int currentValue = gameState.PlayerState.CurrentActionPoints();
-        int newValue = Math.Clamp(currentValue + Amount, 0, gameState.PlayerState.TurnActionPoints);
+        int newValue = Math.Clamp(currentValue + Amount, 0, gameState.PlayerState.MaxActionPoints);
         return $"({currentValue} -> {newValue})";
     }
 }
@@ -89,7 +89,7 @@ public class EnergyOutcome : Outcome
     public override string GetPreview(GameState gameState)
     {
         int currentValue = gameState.PlayerState.CurrentEnergy();
-        int newValue = Math.Clamp(currentValue + Amount, 0, gameState.PlayerState.MaxEnergy);
+        int newValue = Math.Clamp(currentValue + Amount, 0, gameState.PlayerState.MaxEnergyPoints);
         return $"({currentValue} -> {newValue})";
     }
 }
@@ -228,8 +228,6 @@ public class RelationshipOutcome : Outcome
     }
 }
 
-
-
 public class FoodOutcome : Outcome
 {
     public int Amount { get; }
@@ -343,7 +341,136 @@ public class ItemOutcome : Outcome
     }
 }
 
+public class HungerRecoveryOutcome : Outcome
+{
+    public int Amount { get; }
 
+    public HungerRecoveryOutcome(int amount)
+    {
+        Amount = amount;
+    }
+
+    public override void Apply(GameState gameState)
+    {
+        gameState.PlayerState.ModifyHunger(Amount);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(Amount >= 0 ? "+" : "")}{Amount} Hunger Recovery";
+    }
+
+    public override string GetPreview(GameState gameState)
+    {
+        int newValue = Math.Max(0, gameState.PlayerState.HungerPoints + Amount);
+        return $"({gameState.PlayerState.HungerPoints} -> {newValue})";
+    }
+}
+
+public class EnergyRecoveryOutcome : Outcome
+{
+    public int Amount { get; }
+
+    public EnergyRecoveryOutcome(int amount)
+    {
+        Amount = amount;
+    }
+
+    public override void Apply(GameState gameState)
+    {
+        gameState.PlayerState.ModifyEnergy(Amount);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(Amount >= 0 ? "+" : "")}{Amount} Energy Recovery";
+    }
+
+    public override string GetPreview(GameState gameState)
+    {
+        int newValue = Math.Max(0, gameState.PlayerState.EnergyPoints + Amount);
+        return $"({gameState.PlayerState.EnergyPoints} -> {newValue})";
+    }
+}
+
+
+public class ExhaustionRecoveryOutcome : Outcome
+{
+    public int Amount { get; }
+
+    public ExhaustionRecoveryOutcome(int amount)
+    {
+        Amount = amount;
+    }
+
+    public override void Apply(GameState gameState)
+    {
+        gameState.PlayerState.ModifyExhaustion(Amount);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(Amount >= 0 ? "+" : "")}{Amount} Exhaustion Recovery";
+    }
+
+    public override string GetPreview(GameState gameState)
+    {
+        int newValue = Math.Max(0, gameState.PlayerState.ExhaustionPoints + Amount);
+        return $"({gameState.PlayerState.ExhaustionPoints} -> {newValue})";
+    }
+}
+
+public class MentalStrainRecoveryOutcome : Outcome
+{
+    public int Amount { get; }
+
+    public MentalStrainRecoveryOutcome(int amount)
+    {
+        Amount = amount;
+    }
+
+    public override void Apply(GameState gameState)
+    {
+        gameState.PlayerState.ModifyMentalStrain(Amount);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(Amount >= 0 ? "+" : "")}{Amount} MentalStrain Recovery";
+    }
+
+    public override string GetPreview(GameState gameState)
+    {
+        int newValue = Math.Max(0, gameState.PlayerState.MentalStrainPoints + Amount);
+        return $"({gameState.PlayerState.MentalStrainPoints} -> {newValue})";
+    }
+}
+
+public class IsolationRecoveryOutcome : Outcome
+{
+    public int Amount { get; }
+
+    public IsolationRecoveryOutcome(int amount)
+    {
+        Amount = amount;
+    }
+
+    public override void Apply(GameState gameState)
+    {
+        gameState.PlayerState.ModifyIsolation(Amount);
+    }
+
+    public override string GetDescription()
+    {
+        return $"{(Amount >= 0 ? "+" : "")}{Amount} Isolation Recovery";
+    }
+
+    public override string GetPreview(GameState gameState)
+    {
+        int newValue = Math.Max(0, gameState.PlayerState.IsolationPoints + Amount);
+        return $"({gameState.PlayerState.IsolationPoints} -> {newValue})";
+    }
+}
 
 public class DayChangeOutcome : Outcome
 {

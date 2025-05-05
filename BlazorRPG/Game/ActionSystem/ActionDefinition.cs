@@ -5,37 +5,32 @@
     public string Name { get; set; }
     public string SpotId { get; set; }
     public string Description { get; set; }
-    public ActionTypes ActionType { get; set; }
+    public EncounterApproaches EncounterApproach { get; set; } = EncounterApproaches.Neutral;
 
     // Resource costs
     public int CoinCost { get; set; }
-    public int EnergyCost { get; set; }
-    public int HealthCost { get; set; }
-    public int ConfidenceCost { get; set; }
-    public int ConcentrationCost { get; set; }
-
-    // Resource yields
-    public int CoinGain { get; set; }
-    public int RestoresEnergy { get; set; }
-    public int RestoresHealth { get; set; }
-    public int RestoresConcentration { get; set; }
-    public int RestoresConfidence { get; set; }
-    public List<RelationshipGain> RelationshipChanges { get; set; } = new();
+    public int FoodCost { get; set; }
 
     // Requirements
-    public List<TimeWindow> TimeWindows { get; set; } = new List<TimeWindow>();
-    public List<RelationshipRequirement> RelationshipRequirements { get; set; } = new();
-    public List<SkillRequirement> SkillRequirements { get; set; } = new();
+    public int RelationshipLevel { get; set; }
+    public List<TimeWindows> TimeWindows { get; set; } = new List<TimeWindows>();
 
-    // Outcome effects
-    public int SpotXp { get; set; }
+    // Grants
+    public int SpotXP { get; set; }
 
-    // Encounter details
-    public bool IsOneTimeEncounter { get; set; }
-    public string Goal { get; set; }
-    public string Complication { get; set; }
-    public EncounterApproaches EncounterApproach { get; set; } = EncounterApproaches.Neutral;
-    public int Difficulty { get; set; }
+    // Recovery types
+    public RecoveryLevels HungerRecovery { get; set; }
+    public RecoveryLevels EnergyRecovery { get; set; }
+    public RecoveryLevels ExhaustionRecovery { get; set; }
+    public RecoveryLevels MentalStrainRecovery { get; set; }
+    public RecoveryLevels IsolationRecovery { get; set; }
+
+    // Characteristics
+    public ExertionLevels Exertion { get; set; } = ExertionLevels.Low;
+    public MentalLoadLevels MentalLoad { get; set; } = MentalLoadLevels.Low;
+    public SocialImpactTypes SocialImpact { get; set; } = SocialImpactTypes.Solitary;
+
+    // Movement
     public string MoveToLocation { get; set; }
     public string MoveToLocationSpot { get; set; }
 

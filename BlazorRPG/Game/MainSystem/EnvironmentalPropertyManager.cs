@@ -9,7 +9,7 @@ public class EnvironmentalPropertyManager
         this.locationSystem = locationSystem;
     }
 
-    public void UpdateLocationForTime(Location location, TimeWindow timeWindow)
+    public void UpdateLocationForTime(Location location, TimeWindows timeWindow)
     {
         List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(location.Id);
 
@@ -17,29 +17,29 @@ public class EnvironmentalPropertyManager
 
         switch (timeWindow)
         {
-            case TimeWindow.Morning:
+            case TimeWindows.Morning:
                 SetIllumination(locationSpots, Illumination.Roguey);
                 break;
 
-            case TimeWindow.Afternoon:
+            case TimeWindows.Afternoon:
                 SetIllumination(locationSpots, Illumination.Bright);
                 break;
 
-            case TimeWindow.Evening:
+            case TimeWindows.Evening:
                 SetIllumination(locationSpots, Illumination.Roguey);
                 break;
 
-            case TimeWindow.Night:
+            case TimeWindows.Night:
                 SetIllumination(locationSpots, Illumination.Dark);
                 break;
         }
     }
 
-    private void SetClosed(List<LocationSpot> locationSpots, TimeWindow timeWindow)
+    private void SetClosed(List<LocationSpot> locationSpots, TimeWindows timeWindow)
     {
         foreach (LocationSpot spot in locationSpots)
         {
-            List<TimeWindow> timeWindows = spot.TimeWindows;
+            List<TimeWindows> timeWindows = spot.TimeWindows;
             spot.IsClosed = !timeWindows.Contains(timeWindow);
         }
     }
