@@ -118,14 +118,14 @@
                             <div class="location-header">
                                 <h2 class="location-title">@GetCurrentLocation().Id</h2>
                                 <div class="location-actions">
-                                    <button class="location-button" @onclick="@StartNewDay" disabled="@hasApLeft">
-                                        Start Day
-                                    </button>
-                                    <button class="location-button" @onclick="@WaitAction" disabled="@hasNoApLeft">
+                                    <button class="location-button" @onclick="@WaitAction" hidden="@hasNoApLeft">
                                         Wait
                                     </button>
-                                    <button class="location-button" @onclick="@SwitchAreaMap" disabled="@hasNoApLeft">
+                                    <button class="location-button" @onclick="@SwitchAreaMap" hidden="@hasNoApLeft">
                                         Travel 🗺️
+                                    </button>
+                                    <button class="location-button" @onclick="@StartNewDay" hidden="@hasApLeft">
+                                        Rest till next Day
                                     </button>
                                 </div>
                             </div>
