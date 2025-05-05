@@ -94,10 +94,8 @@
     {
         ActionDefinition travelTemplate = new ActionDefinition("travel", "travel", locationSpotId)
         {
-            Goal = "Travel safely to your destination",
             MoveToLocation = location,
             MoveToLocationSpot = locationSpotId,
-            EnergyCost = 1,
         };
 
         return travelTemplate;

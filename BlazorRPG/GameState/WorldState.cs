@@ -16,7 +16,7 @@ public class WorldState
     // Game time
     public int CurrentDay { get; set; } = 1;
     public int CurrentTimeHours { get; set; }
-    public TimeWindow CurrentTimeWindow { get; set; }
+    public TimeWindows CurrentTimeWindow { get; set; }
 
     // Current location tracking
     public Location CurrentLocation { get; private set; }

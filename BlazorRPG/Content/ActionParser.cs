@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Text.Json;
 
 public static class ActionParser
 {
@@ -16,133 +17,96 @@ public static class ActionParser
             Description = GetStringProperty(root, "description", ""),
         };
 
-        string encounterApproachString = GetStringProperty(root, "approach", "");
-        if (!string.IsNullOrEmpty(encounterApproachString) &&
-            Enum.TryParse(encounterApproachString, true, out EncounterApproaches encounterType))
+        // Parse approach
+        string approachString = GetStringProperty(root, "approach", "NEUTRAL");
+        if (Enum.TryParse(approachString, true, out EncounterApproaches approach))
         {
-            action.EncounterApproach = encounterType;
-        }
-
-        // Parse action type
-        string actionTypeStr = GetStringProperty(root, "actionType", "");
-        if (!string.IsNullOrEmpty(actionTypeStr))
-        {
-            if (Enum.TryParse(actionTypeStr, true, out ActionTypes actionType))
-            {
-                action.ActionType = actionType;
-            }
-        }
-
-        // Parse costs
-        if (root.TryGetProperty("costs", out JsonElement costsElement))
-        {
-            action.EnergyCost = GetIntProperty(costsElement, "energy", 0);
-            action.ConcentrationCost = GetIntProperty(costsElement, "focus", 0);
-            action.ConfidenceCost = GetIntProperty(costsElement, "spirit", 0);
-            action.HealthCost = GetIntProperty(costsElement, "health", 0);
-            action.CoinCost = GetIntProperty(costsElement, "coin", 0);
-        }
-
-        // Parse yields
-        if (root.TryGetProperty("yields", out JsonElement yieldsElement))
-        {
-            // Resource yields
-            action.RestoresEnergy = GetIntProperty(yieldsElement, "energy", 0);
-            action.RestoresConcentration = GetIntProperty(yieldsElement, "focus", 0);
-            action.RestoresConfidence = GetIntProperty(yieldsElement, "spirit", 0);
-            action.RestoresHealth = GetIntProperty(yieldsElement, "health", 0);
-            action.CoinGain = GetIntProperty(yieldsElement, "coin", 0);
-
-            // Relationship gains
-            if (yieldsElement.TryGetProperty("relationships", out JsonElement relationshipsArray) &&
-                relationshipsArray.ValueKind == JsonValueKind.Array)
-            {
-                action.RelationshipChanges = new List<RelationshipGain>();
-                foreach (JsonElement relationshipElement in relationshipsArray.EnumerateArray())
-                {
-                    string characterName = GetStringProperty(relationshipElement, "characterName", "");
-                    int amount = GetIntProperty(relationshipElement, "amount", 0);
-
-                    if (!string.IsNullOrEmpty(characterName) && amount != 0)
-                    {
-                        action.RelationshipChanges.Add(new RelationshipGain
-                        {
-                            CharacterName = characterName,
-                            ChangeAmount = amount
-                        });
-                    }
-                }
-            }
-
-            // Location spot XP
-            action.SpotXp = GetIntProperty(yieldsElement, "spotXp", 0);
+            action.EncounterApproach = approach;
         }
 
         // Parse requirements
         if (root.TryGetProperty("requirements", out JsonElement requirementsElement))
         {
-            // Time window requirements
-            if (requirementsElement.TryGetProperty("timeWindows", out JsonElement timeWindowsReq) &&
-                timeWindowsReq.ValueKind == JsonValueKind.Array)
-            {
-                List<TimeWindow> allowedWindows = new List<TimeWindow>();
-                foreach (JsonElement windowElement in timeWindowsReq.EnumerateArray())
-                {
-                    if (windowElement.ValueKind == JsonValueKind.String &&
-                        Enum.TryParse(windowElement.GetString(), true, out TimeWindow window))
-                    {
-                        allowedWindows.Add(window);
-                    }
-                }
+            // Relationship level requirement
+            action.RelationshipLevel = GetIntProperty(requirementsElement, "relationshipLevel", 0);
 
-                if (allowedWindows.Count > 0)
-                {
-                    action.TimeWindows = allowedWindows;
-                }
+            // Resource requirements
+            if (requirementsElement.TryGetProperty("resources", out JsonElement resourcesElement))
+            {
+                action.CoinCost = GetIntProperty(resourcesElement, "COINS", 0);
+                action.FoodCost = GetIntProperty(resourcesElement, "FOOD", 0);
             }
+        }
 
-            // Relationship requirements
-            if (requirementsElement.TryGetProperty("relationships", out JsonElement relationshipsReq) &&
-                relationshipsReq.ValueKind == JsonValueKind.Array)
+        // Parse grants
+        if (root.TryGetProperty("grants", out JsonElement grantsElement))
+        {
+            action.SpotXP = GetIntProperty(grantsElement, "spotXP", 0);
+        }
+
+        // Parse recovery
+        if (root.TryGetProperty("recovery", out JsonElement recoveryElement))
+        {
+            foreach (JsonProperty property in recoveryElement.EnumerateObject())
             {
-                foreach (JsonElement relationshipElement in relationshipsReq.EnumerateArray())
+                string recoveryType = property.Value.GetString() ?? string.Empty;
+                bool canParse = Enum.TryParse(recoveryType, true, out RecoveryLevels recoveryLevel);
+                if (!canParse) continue;
+
+                switch (property.Name)
                 {
-                    string characterName = GetStringProperty(relationshipElement, "characterName", "");
-                    int minimumValue = GetIntProperty(relationshipElement, "minimumValue", 0);
-
-                    if (!string.IsNullOrEmpty(characterName) && minimumValue > 0)
-                    {
-                        action.RelationshipRequirements.Add(new RelationshipRequirement(characterName, minimumValue));
-                    }
-                }
-            }
-
-            // Skill requirements
-            if (requirementsElement.TryGetProperty("skills", out JsonElement skillsArray) &&
-                skillsArray.ValueKind == JsonValueKind.Array)
-            {
-                foreach (JsonElement skillElement in skillsArray.EnumerateArray())
-                {
-                    string skillTypeStr = GetStringProperty(skillElement, "skillType", "");
-                    int minimumLevel = GetIntProperty(skillElement, "minimumLevel", 0);
-
-                    if (!string.IsNullOrEmpty(skillTypeStr) &&
-                        Enum.TryParse(skillTypeStr, true, out SkillTypes skillType) &&
-                        minimumLevel > 0)
-                    {
-                        action.SkillRequirements.Add(new SkillRequirement(skillType, minimumLevel));
-                    }
+                    case "HUNGER":
+                        action.HungerRecovery = recoveryLevel;
+                        break;
+                    case "ENERGY":
+                        action.EnergyRecovery = recoveryLevel;
+                        break;
+                    case "EXHAUSTION":
+                        action.ExhaustionRecovery = recoveryLevel;
+                        break;
+                    case "MENTAL_STRAIN":
+                        action.MentalStrainRecovery = recoveryLevel;
+                        break;
+                    case "ISOLATION":
+                        action.IsolationRecovery = recoveryLevel;
+                        break;
                 }
             }
         }
 
-        // Parse encounter details
-        if (root.TryGetProperty("encounterDetails", out JsonElement encounterElement))
+        // Parse characteristics
+        if (root.TryGetProperty("characteristics", out JsonElement characteristicsElement))
         {
-            action.Goal = GetStringProperty(encounterElement, "goal", "");
-            action.Complication = GetStringProperty(encounterElement, "complication", "");
-            action.IsOneTimeEncounter = GetBoolProperty(encounterElement, "isOneTimeEncounter", false);
-            action.Difficulty = GetIntProperty(encounterElement, "difficulty", 1);
+            string exertion = GetStringProperty(characteristicsElement, "exertion", "LOW");
+            string mentalLoad = GetStringProperty(characteristicsElement, "mentalLoad", "LOW");
+            string socialImpact = GetStringProperty(characteristicsElement, "socialImpact", "SOLITARY");
+
+            if (Enum.TryParse(exertion, true, out ExertionLevels exertionLevel))
+                action.Exertion = exertionLevel;
+            if (Enum.TryParse(mentalLoad, true, out MentalLoadLevels mentalLoadLevel))
+                action.MentalLoad = mentalLoadLevel;
+            if (Enum.TryParse(socialImpact, true, out SocialImpactTypes socialImpactType))
+                action.SocialImpact = socialImpactType;
+        }
+
+        // Parse time windows
+        if (root.TryGetProperty("timeWindows", out JsonElement timeWindowsElement) &&
+            timeWindowsElement.ValueKind == JsonValueKind.Array)
+        {
+            List<TimeWindows> allowedWindows = new List<TimeWindows>();
+            foreach (JsonElement windowElement in timeWindowsElement.EnumerateArray())
+            {
+                if (windowElement.ValueKind == JsonValueKind.String &&
+                    Enum.TryParse(windowElement.GetString(), true, out TimeWindows window))
+                {
+                    allowedWindows.Add(window);
+                }
+            }
+
+            if (allowedWindows.Count > 0)
+            {
+                action.TimeWindows = allowedWindows;
+            }
         }
 
         // Parse movement details if present
@@ -151,7 +115,6 @@ public static class ActionParser
 
         return action;
     }
-
 
     // Property getters
     private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
@@ -170,23 +133,6 @@ public static class ActionParser
         if (element.TryGetProperty(propertyName, out JsonElement property))
         {
             if (property.ValueKind == JsonValueKind.Number && property.TryGetInt32(out int value))
-            {
-                return value;
-            }
-        }
-        return defaultValue;
-    }
-
-    private static bool GetBoolProperty(JsonElement element, string propertyName, bool defaultValue)
-    {
-        if (element.TryGetProperty(propertyName, out JsonElement property))
-        {
-            if (property.ValueKind == JsonValueKind.True)
-                return true;
-            else if (property.ValueKind == JsonValueKind.False)
-                return false;
-            else if (property.ValueKind == JsonValueKind.String &&
-                     bool.TryParse(property.GetString(), out bool value))
             {
                 return value;
             }

@@ -17,3 +17,36 @@
 //| **Charm**       | Rapport                | Rapport grace, making friends, gathering favors, soothing tensions           |
 //| **Insight**     | Observation            | Spotting details, reading people, navigation, awareness of surroundings     |
 //| **Observation**        | Contemplation          | Knowledge, deduction, analysis, memorization, cultural literacy             |
+
+public enum ExertionLevels
+{
+    Low,
+    Moderate,
+    High,
+    Extreme
+}
+
+public enum MentalLoadLevels
+{
+    Low,
+    Standard,
+    Moderate,
+    High
+}
+
+public enum SocialImpactTypes
+{
+    Solitary,
+    Private,
+    Social,
+    Public
+}
+
+public enum RecoveryLevels
+{
+    None = 0,
+    Basic = 3,
+    Standard = 5,
+    Enhanced = 7,
+    Superior = 10
+}

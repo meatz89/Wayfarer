@@ -5,16 +5,11 @@
 		"description": "Strike up a conversation with Borin, the gruff innkeeper.",
 		"spotId": "innkeeper",
 		"approach": "RAPPORT",
-		"characteristics": {
-			"exertion": "LIGHT",
-			"mentalLoad": "SIMPLE",
-			"socialImpact": "BONDING"
-		},
 		"requirements": {
 			"relationshipLevel": 0
 		},
 		"grants": {
-			"relationshipXP": 1
+			"spotXP": 1
 		}
 	},
 	{
@@ -33,7 +28,7 @@
 			}
 		},
 		"grants": {
-			"relationshipXP": 1
+			"spotXP": 1
 		}
 	},
 	{
@@ -50,7 +45,8 @@
 			"resources": {
 				"COINS": 5
 			}
-		}
+		},
+		"timeWindows": [ "Evening", "Night" ]
 	},
 	{
 		"id": "basic_rest",
@@ -65,7 +61,7 @@
 			"relationshipLevel": 0
 		},
 		"grants": {
-			"relationshipXP": 1
+			"spotXP": 1
 		}
 	},
 	{
@@ -83,7 +79,7 @@
 			"relationshipLevel": 0
 		},
 		"grants": {
-			"relationshipXP": 1
+			"spotXP": 1
 		}
 	}
 ]

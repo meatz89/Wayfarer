@@ -36,7 +36,7 @@ public class WorldStateInputBuilder
             Confidence = playerState.Spirit,
             MaxConfidence = playerState.MaxSpirit,
             Energy = playerState.CurrentEnergy(),
-            MaxEnergy = playerState.MaxEnergy,
+            MaxEnergy = playerState.MaxEnergyPoints,
             Coins = playerState.Coins,
 
             CurrentLocation = currentLocation,

@@ -19,16 +19,21 @@ public static class GameStateSerializer
             Player = new SerializablePlayerState
             {
                 Name = gameState.PlayerState.Name,
-                Gender = gameState.PlayerState.Gender.ToString(),
-                Archetype = gameState.PlayerState.Archetype.ToString(),
+                Gender = gameState.PlayerState.IsInitialized ? gameState.PlayerState.Gender.ToString() : null,
+                Archetype = gameState.PlayerState.IsInitialized ? gameState.PlayerState.Archetype.ToString() : null,
                 Coins = gameState.PlayerState.Coins,
+                MaxActionPoints = gameState.PlayerState.MaxActionPoints,
+                ActionPoints = gameState.PlayerState.ActionPoints,
+                MaxVigor = gameState.PlayerState.MaxVigor,
+                Vigor = gameState.PlayerState.Vigor,
+                MaxEnergy = gameState.PlayerState.MaxEnergyPoints,
+                Energy = gameState.PlayerState.EnergyPoints,
+                MaxHealth = gameState.PlayerState.MaxHealth,
+                Health = gameState.PlayerState.Health,
                 Level = gameState.PlayerState.Level,
                 CurrentXP = gameState.PlayerState.CurrentXP,
                 InventoryItems = gameState.PlayerState.Inventory.GetAllItems()
-                    .Select(item =>
-                    {
-                        return item.ToString();
-                    })
+                    .Select(item => item.ToString())
                     .ToList()
             }
         };
@@ -58,7 +63,7 @@ public static class GameStateSerializer
 
         // Apply basic state data
         gameState.WorldState.CurrentDay = serialized.CurrentDay;
-        gameState.WorldState.CurrentTimeHours = serialized.CurrentTimeHours;
+        gameState.TimeManager.SetNewTime(serialized.CurrentTimeHours);
 
         // Apply player state if character exists
         if (!string.IsNullOrEmpty(serialized.Player.Name))
@@ -72,6 +77,14 @@ public static class GameStateSerializer
 
             // Apply resources
             gameState.PlayerState.Coins = serialized.Player.Coins;
+            gameState.PlayerState.MaxActionPoints = serialized.Player.MaxActionPoints;
+            gameState.PlayerState.ActionPoints = serialized.Player.ActionPoints;
+            gameState.PlayerState.MaxVigor = serialized.Player.MaxVigor;
+            gameState.PlayerState.Vigor = serialized.Player.Vigor;
+            gameState.PlayerState.MaxEnergyPoints = serialized.Player.MaxEnergy;
+            gameState.PlayerState.EnergyPoints = serialized.Player.Energy;
+            gameState.PlayerState.MaxHealth = serialized.Player.MaxHealth;
+            gameState.PlayerState.Health = serialized.Player.Health;
 
             // Apply progression
             gameState.PlayerState.Level = serialized.Player.Level;
@@ -91,29 +104,21 @@ public static class GameStateSerializer
         // Set current location and spot
         if (!string.IsNullOrEmpty(serialized.CurrentLocationId))
         {
-            Location currentLocation = locations.FirstOrDefault(l =>
-            {
-                return l.Id == serialized.CurrentLocationId;
-            });
+            Location currentLocation = locations.FirstOrDefault(l => l.Id == serialized.CurrentLocationId);
 
             if (currentLocation != null)
             {
                 LocationSpot currentSpot = null;
                 if (!string.IsNullOrEmpty(serialized.CurrentLocationSpotId))
                 {
-                    currentSpot = spots.FirstOrDefault((Func<LocationSpot, bool>)(s =>
-                    {
-                        return s.LocationId == serialized.CurrentLocationId &&
-                                                s.Id == serialized.CurrentLocationSpotId;
-                    }));
+                    currentSpot = spots.FirstOrDefault(s =>
+                        s.LocationId == serialized.CurrentLocationId &&
+                        s.Id == serialized.CurrentLocationSpotId);
                 }
 
                 if (currentSpot == null)
                 {
-                    currentSpot = spots.FirstOrDefault(s =>
-                    {
-                        return s.LocationId == serialized.CurrentLocationId;
-                    });
+                    currentSpot = spots.FirstOrDefault(s => s.LocationId == serialized.CurrentLocationId);
                 }
 
                 if (currentSpot != null)
@@ -128,26 +133,20 @@ public static class GameStateSerializer
 
     public static string SerializeLocations(List<Location> locations)
     {
-        // Make sure we're serializing a list/array, not a single object
         if (locations.Count == 0)
         {
-            // Return empty array if no locations
             return "[]";
         }
 
-        // Create array of anonymous objects for serialization
-        var serializableLocations = locations.Select(loc =>
+        // Cast to List<object> explicitly
+        List<object> serializableLocations = locations.Select(loc => (object)new
         {
-            return new
-            {
-                id = loc.Id,
-                name = loc.Id,
-                description = loc.Description,
-                connectedTo = loc.ConnectedTo
-            };
+            id = loc.Id,
+            name = loc.Id,
+            description = loc.Description,
+            connectedTo = loc.ConnectedTo
         }).ToList();
 
-        // Serialize the list as a JSON array
         return JsonSerializer.Serialize(serializableLocations, _jsonOptions);
     }
 
@@ -155,7 +154,6 @@ public static class GameStateSerializer
     {
         List<Location> locations = new List<Location>();
 
-        // Handle empty arrays or null
         if (string.IsNullOrWhiteSpace(json) || json == "[]")
         {
             return locations;
@@ -163,7 +161,6 @@ public static class GameStateSerializer
 
         using (JsonDocument doc = JsonDocument.Parse(json))
         {
-            // Ensure we're dealing with an array
             if (doc.RootElement.ValueKind != JsonValueKind.Array)
             {
                 throw new FormatException("Location JSON must be an array of location objects");
@@ -180,18 +177,16 @@ public static class GameStateSerializer
 
     public static string SerializeLocationSpots(List<LocationSpot> spots)
     {
-        List<object> serializableSpots = spots.Select(spot =>
+        // Cast to List<object> explicitly
+        List<object> serializableSpots = spots.Select(spot => (object)new
         {
-            return new
-            {
-                name = spot.Id,
-                locationId = spot.LocationId,
-                description = spot.Description,
-                currentLevel = spot.CurrentLevel,
-                currentXP = spot.CurrentSpotXP,
-                xpToNextLevel = spot.XPToNextLevel
-            };
-        }).ToList<object>();
+            name = spot.Id,
+            locationId = spot.LocationId,
+            description = spot.Description,
+            currentLevel = spot.CurrentLevel,
+            currentXP = spot.CurrentSpotXP,
+            xpToNextLevel = spot.XPToNextLevel
+        }).ToList();
 
         return JsonSerializer.Serialize(serializableSpots, _jsonOptions);
     }
@@ -213,55 +208,44 @@ public static class GameStateSerializer
 
     public static string SerializeActions(List<ActionDefinition> actions)
     {
-        List<object> serializableActions = actions.Select(action =>
+        List<object> serializableActions = actions.Select(action => (object)new
         {
-            return new
+            id = action.Id,
+            name = action.Name,
+            description = action.Description,
+            spotId = action.SpotId,
+            approach = action.EncounterApproach.ToString(),
+            timeWindows = action.TimeWindows?.Select(tw => tw.ToString()).ToList(),
+            requirements = new
             {
-                id = action.Id,
-                name = action.Id,
-                description = action.Description,
-                actionType = action.ActionType.ToString(),
-                timeWindows = action.TimeWindows?.Select(tw =>
+                relationshipLevel = action.RelationshipLevel,
+                resources = new
                 {
-                    return tw.ToString();
-                }).ToList(),
-                costs = new
-                {
-                    energy = action.EnergyCost,
-                    focus = action.ConcentrationCost,
-                    spirit = action.ConfidenceCost,
-                    health = action.HealthCost,
-                    coin = action.CoinCost,
-                },
-                yields = new
-                {
-                    energy = action.RestoresEnergy,
-                    focus = action.RestoresConcentration,
-                    spirit = action.RestoresConfidence,
-                    health = action.RestoresHealth,
-                    coin = action.CoinGain,
-                    relationships = action.RelationshipChanges?.Select(r =>
-                    {
-                        return new
-                        {
-                            characterName = r.CharacterName,
-                            amount = r.ChangeAmount
-                        };
-                    }).ToList(),
-                    spotXp = action.SpotXp
-                },
-                encounterDetails = new
-                {
-                    goal = action.Goal,
-                    complication = action.Complication,
-                    isOneTimeEncounter = action.IsOneTimeEncounter,
-                    encounterType = action.EncounterApproach.ToString(),
-                    difficulty = action.Difficulty
-                },
-                moveToLocation = action.MoveToLocation,
-                moveToLocationSpot = action.MoveToLocationSpot
-            };
-        }).ToList<object>();
+                    COINS = action.CoinCost,
+                    FOOD = action.FoodCost
+                }
+            },
+            grants = new
+            {
+                spotXP = action.SpotXP
+            },
+            recovery = new
+            {
+                HUNGER = action.HungerRecovery,
+                ENERGY = action.EnergyRecovery,
+                EXHAUSTION = action.ExhaustionRecovery,
+                MENTAL_STRAIN = action.MentalStrainRecovery,
+                ISOLATION = action.IsolationRecovery
+            },
+            characteristics = new
+            {
+                exertion = action.Exertion.ToString(),
+                mentalLoad = action.MentalLoad.ToString(),
+                socialImpact = action.SocialImpact.ToString()
+            },
+            moveToLocation = action.MoveToLocation,
+            moveToLocationSpot = action.MoveToLocationSpot
+        }).ToList();
 
         return JsonSerializer.Serialize(serializableActions, _jsonOptions);
     }

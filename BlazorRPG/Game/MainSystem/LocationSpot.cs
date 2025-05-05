@@ -24,7 +24,7 @@
     public LocationSpotTypes LocationSpotType = LocationSpotTypes.Location;
     public string CharacterName { get; set; }
 
-    public List<TimeWindow> TimeWindows { get; set; } = new() { TimeWindow.Morning, TimeWindow.Afternoon, TimeWindow.Evening, TimeWindow.Night };
+    public List<TimeWindows> TimeWindows { get; set; } = new() { global::TimeWindows.Morning, global::TimeWindows.Afternoon, global::TimeWindows.Evening, global::TimeWindows.Night };
     public bool IsClosed { get; set; }
     public string LocationId { get; set; }
 

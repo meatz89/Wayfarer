@@ -48,7 +48,7 @@ public static class LocationParser
                 {
                     string value = item.GetString();
                     if (!string.IsNullOrEmpty(value) &&
-                        Enum.TryParse(value, true, out TimeWindow window))
+                        Enum.TryParse(value, true, out TimeWindows window))
                     {
                         spot.TimeWindows.Add(window);
                     }
@@ -57,7 +57,7 @@ public static class LocationParser
             if (spot.TimeWindows.Count == 0)
             {
                 // fallback to always open
-                spot.TimeWindows = new() { TimeWindow.Morning, TimeWindow.Afternoon, TimeWindow.Evening, TimeWindow.Night };
+                spot.TimeWindows = new() { TimeWindows.Morning, TimeWindows.Afternoon, TimeWindows.Evening, TimeWindows.Night };
             }
         }
 

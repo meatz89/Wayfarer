@@ -31,7 +31,7 @@ public class ActionSystem
                 {
                     if (actionTemplate != null)
                     {
-                        sb.AppendLine($"- {actionTemplate.Id}: {actionTemplate.Goal}");
+                        sb.AppendLine($"- {actionTemplate.Name}: {actionTemplate.Description}");
                     }
                 }
                 sb.AppendLine();

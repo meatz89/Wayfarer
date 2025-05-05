@@ -49,7 +49,7 @@ public partial class GameUI : ComponentBase
     {
         get
         {
-            return PlayerState.TurnActionPoints;
+            return PlayerState.MaxActionPoints;
         }
     }
 
@@ -93,7 +93,7 @@ public partial class GameUI : ComponentBase
         }
     }
 
-    public TimeWindow CurrentTime
+    public TimeWindows CurrentTime
     {
         get
         {
@@ -316,7 +316,7 @@ public partial class GameUI : ComponentBase
         hasApLeft = PlayerState.CurrentActionPoints() > 0;
         Exhaustion = PlayerState.ExhaustionPoints;
         Hunger = PlayerState.HungerPoints;
-        MentalLoad = PlayerState.MentalLoadPoints;
+        MentalLoad = PlayerState.MentalStrainPoints;
         Isolation = PlayerState.IsolationPoints;
 
 
@@ -375,14 +375,14 @@ public partial class GameUI : ComponentBase
         return list;
     }
 
-    private string GetIconForTimeWindow(TimeWindow time)
+    private string GetIconForTimeWindow(TimeWindows time)
     {
         return time switch
         {
-            TimeWindow.Night => "🌙",
-            TimeWindow.Morning => "🌄",
-            TimeWindow.Afternoon => "☀️",
-            TimeWindow.Evening => "🌆",
+            TimeWindows.Night => "🌙",
+            TimeWindows.Morning => "🌄",
+            TimeWindows.Afternoon => "☀️",
+            TimeWindows.Evening => "🌆",
             _ => "❓"
         };
     }
@@ -471,10 +471,10 @@ public partial class GameUI : ComponentBase
     {
         return CurrentTime switch
         {
-            TimeWindow.Morning => "time-morning",
-            TimeWindow.Afternoon => "time-afternoon",
-            TimeWindow.Evening => "time-evening",
-            TimeWindow.Night => "time-night",
+            TimeWindows.Morning => "time-morning",
+            TimeWindows.Afternoon => "time-afternoon",
+            TimeWindows.Evening => "time-evening",
+            TimeWindows.Night => "time-night",
             _ => ""
         };
     }

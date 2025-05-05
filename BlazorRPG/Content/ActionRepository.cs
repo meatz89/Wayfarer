@@ -45,8 +45,6 @@ public class ActionRepository
         // Implementation remains the same
         ActionDefinition action = new ActionDefinition(actionName, actionName, locationSpotId)
         {
-            Goal = "Goal",
-            Complication = "Complication",
             Description = "Description",
         };
         return action;

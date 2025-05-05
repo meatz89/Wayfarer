@@ -2,7 +2,6 @@
 {
     private readonly ActionRepository actionRepository;
     private readonly EncounterFactory encounterFactory;
-    private readonly GameState gameState;
     private readonly PlayerState playerState;
 
     public ActionFactory(
@@ -12,7 +11,6 @@
     {
         this.actionRepository = actionRepository;
         this.encounterFactory = encounterFactory;
-        this.gameState = gameState;
         this.playerState = gameState.PlayerState;
     }
 
@@ -24,7 +22,6 @@
         actionImplementation.Id = template.Id;
         actionImplementation.Name = template.Name;
         actionImplementation.Description = template.Description;
-        actionImplementation.Difficulty = template.Difficulty;
         actionImplementation.LocationId = location;
         actionImplementation.LocationSpotId = locationSpot;
 
@@ -39,36 +36,29 @@
             actionImplementation.DestinationLocationSpot = template.MoveToLocationSpot;
         }
 
-        // Set encounter properties
-        actionImplementation.Goal = template.Goal;
-        actionImplementation.Complication = template.Complication;
+        // Set encounter type
         actionImplementation.EncounterType = template.EncounterApproach;
 
-        // Convert SpotXp from float to int if needed
-        actionImplementation.SpotXp = (int)template.SpotXp;
+        // Set spot XP
+        actionImplementation.SpotXp = template.SpotXP;
 
-        // Set action type based on whether it's a one-time encounter
-        actionImplementation.ActionType = template.IsOneTimeEncounter ? ActionTypes.Encounter : ActionTypes.Basic;
+        // Set action type (assuming all actions with encounter approach are encounters)
+        actionImplementation.ActionType = ActionTypes.Basic;
 
         // Create requirements, costs, and yields
         actionImplementation.Requirements = CreateRequirements(template);
         actionImplementation.Costs = CreateCosts(template);
         actionImplementation.Yields = CreateYields(template);
 
-        // Create encounter template if needed
-        ActionGenerationContext context = actionImplementation.GetActionGenerationContext();
-        EncounterTemplate encounterTemplate = encounterFactory.GetDefaultEncounterTemplate();
-
+        // Handle encounter approach vigor costs
         if (template.EncounterApproach != EncounterApproaches.Neutral)
         {
-            EncounterApproaches encounterApproach = template.EncounterApproach;
-
             int vigorCost = 1;
-            if (ArchetypeAffinities.GetNaturalForArchetype(playerState.Archetype) == encounterApproach)
+            if (ArchetypeAffinities.GetNaturalForArchetype(playerState.Archetype) == template.EncounterApproach)
             {
                 vigorCost = 0;
             }
-            if (ArchetypeAffinities.GetIncompatibleForArchetype(playerState.Archetype) == encounterApproach)
+            if (ArchetypeAffinities.GetIncompatibleForArchetype(playerState.Archetype) == template.EncounterApproach)
             {
                 vigorCost = 2;
             }
@@ -77,6 +67,7 @@
             actionImplementation.Costs.Add(new VigorOutcome(-vigorCost));
         }
 
+        // Add base AP cost requirement
         int actionCost = 1;
         actionImplementation.Requirements.Add(new ActionPointRequirement(actionCost));
         actionImplementation.Costs.Add(new ActionPointOutcome(-actionCost));
@@ -94,30 +85,21 @@
             requirements.Add(new TimeWindowRequirement(template.TimeWindows));
         }
 
-        // Resource requirements - use specific requirement types
-        if (template.EnergyCost > 0)
+        // Relationship level requirement
+        if (template.RelationshipLevel > 0)
         {
-            requirements.Add(new EnergyRequirement(template.EnergyCost));
+            requirements.Add(new RelationshipRequirement(template.SpotId, template.RelationshipLevel));
         }
 
-        if (template.HealthCost > 0)
-        {
-            requirements.Add(new HealthRequirement(template.HealthCost));
-        }
-
-        if (template.ConcentrationCost > 0)
-        {
-            requirements.Add(new ConcentrationRequirement(template.ConcentrationCost));
-        }
-
-        if (template.ConfidenceCost > 0)
-        {
-            requirements.Add(new ConfidenceRequirement(template.ConfidenceCost));
-        }
-
+        // Resource requirements
         if (template.CoinCost > 0)
         {
             requirements.Add(new CoinRequirement(template.CoinCost));
+        }
+
+        if (template.FoodCost > 0)
+        {
+            requirements.Add(new FoodRequirement(template.FoodCost));
         }
 
         return requirements;
@@ -125,27 +107,16 @@
 
     private List<Outcome> CreateCosts(ActionDefinition template)
     {
-        // Only add costs that have a value greater than 0
         List<Outcome> costs = new();
-
-        if (template.HealthCost > 0)
-        {
-            costs.Add(new HealthOutcome(-template.HealthCost));
-        }
-
-        if (template.ConcentrationCost > 0)
-        {
-            costs.Add(new ConcentrationOutcome(-template.ConcentrationCost));
-        }
-
-        if (template.ConfidenceCost > 0)
-        {
-            costs.Add(new ConfidenceOutcome(-template.ConfidenceCost));
-        }
 
         if (template.CoinCost > 0)
         {
             costs.Add(new CoinOutcome(-template.CoinCost));
+        }
+
+        if (template.FoodCost > 0)
+        {
+            costs.Add(new FoodOutcome(-template.FoodCost));
         }
 
         return costs;
@@ -155,42 +126,30 @@
     {
         List<Outcome> yields = new();
 
-        // Resource gains
-        if (template.RestoresEnergy > 0)
+        // Recovery amounts
+        if (template.HungerRecovery > 0)
         {
-            yields.Add(new EnergyOutcome(template.RestoresEnergy));
+            yields.Add(new HungerRecoveryOutcome((int)template.HungerRecovery));
         }
 
-        if (template.RestoresHealth > 0)
+        if (template.EnergyRecovery > 0)
         {
-            yields.Add(new HealthOutcome(template.RestoresHealth));
+            yields.Add(new EnergyRecoveryOutcome((int)template.EnergyRecovery));
         }
 
-        if (template.RestoresConcentration > 0)
+        if (template.ExhaustionRecovery > 0)
         {
-            yields.Add(new ConcentrationOutcome(template.RestoresConcentration));
+            yields.Add(new ExhaustionRecoveryOutcome((int)template.ExhaustionRecovery));
         }
 
-        if (template.RestoresConfidence > 0)
+        if (template.MentalStrainRecovery > 0)
         {
-            yields.Add(new ConfidenceOutcome(template.RestoresConfidence));
+            yields.Add(new MentalStrainRecoveryOutcome((int)template.MentalStrainRecovery));
         }
 
-        if (template.CoinGain > 0)
+        if (template.IsolationRecovery > 0)
         {
-            yields.Add(new CoinOutcome(template.CoinGain));
-        }
-
-        // Relationship gains
-        if (template.RelationshipChanges != null)
-        {
-            foreach (RelationshipGain relationshipGain in template.RelationshipChanges)
-            {
-                if (relationshipGain.ChangeAmount > 0)
-                {
-                    yields.Add(new RelationshipOutcome(relationshipGain.CharacterName, relationshipGain.ChangeAmount));
-                }
-            }
+            yields.Add(new IsolationRecoveryOutcome((int)template.IsolationRecovery));
         }
 
         return yields;
