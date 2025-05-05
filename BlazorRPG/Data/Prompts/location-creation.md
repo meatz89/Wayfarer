@@ -108,7 +108,6 @@ You must provide your response ONLY as a valid JSON object with the following st
       "locationName": "{locationName}",
       "locationSpot": "Spot name", // MUST BE AN ALREADY KNOWN SPOT NAME OR DEFINED IN THIS RESPONSE,
       "goal": "The player's goal in this action",
-      "complication": "What makes this challenging",
       "actionType": "Discuss/Persuade/Perform/Study/Investigate/Analyze/Rest/Labor/Gather/Fight",
       "isRepeatable": true,
       "energyCost": 1,
@@ -119,7 +118,6 @@ You must provide your response ONLY as a valid JSON object with the following st
       },
       "encounterDefinition": {
         "goal": "The player's goal in this encounter",
-        "complication": "What makes this challenging",
         "strategicTags": ["Tag1", "Tag2"]
       }
     }

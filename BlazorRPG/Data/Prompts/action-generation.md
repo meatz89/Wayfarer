@@ -32,7 +32,6 @@ Respond with a JSON object containing both action and encounter details:
   "action": {
     "name": "Negotiate with Merchants",
     "goal": "Secure favorable trade terms for your goods",
-    "complication": "Established traders are suspicious of newcomers",
     "actionType": "Encounter",
     "coinCost": 5
   },
