@@ -1,7 +1,7 @@
 [
 	{
 		"id": "innkeeper",
-		"name": "The Innkeeper (Borin)",
+		"name": "Innkeeper (Borin)",
 		"type": "CHARACTER",
 		"description": "A middle-aged man named Borin with a gruff demeanor but observant eyes.",
 		"initialState": "Wiping the bar counter with a rag, occasionally glancing at the player and other patrons.",
@@ -9,7 +9,7 @@
 	},
 	{
 		"id": "notice_board",
-		"name": "The Notice Board",
+		"name": "Notice Board",
 		"type": "FEATURE",
 		"description": "A weathered wooden board near the entrance, displaying various notices.",
 		"initialState": "Several pieces of parchment pinned haphazardly.",
@@ -17,7 +17,7 @@
 	},
 	{
 		"id": "hearth",
-		"name": "The Hearth",
+		"name": "Hearth",
 		"type": "FEATURE",
 		"description": "A large stone hearth occupies the far end of the common room, providing light and warmth.",
 		"initialState": "Crackling fire casting long shadows, a few stools nearby.",

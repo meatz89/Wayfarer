@@ -18,35 +18,13 @@
 		}
 	},
 	{
-		"id": "persuade_innkeeper",
-		"name": "Persuade Innkeeper",
-		"description": "Try to convince Borin to share special information or offer a discount.",
-		"spotId": "innkeeper",
-		"approach": "RAPPORT",
-		"characteristics": {
-			"exertion": "MODERATE",
-			"mentalLoad": "COMPLEX",
-			"socialImpact": "BONDING"
-		},
-		"requirements": {
-			"relationshipLevel": 0,
-			"stats": {
-				"DIP": 3
-			}
-		},
-		"grants": {
-			"relationshipXP": 3
-		}
-	},
-	{
 		"id": "purchase_food",
 		"name": "Purchase Basic Food",
 		"description": "Buy some simple fare from the inn's kitchen.",
 		"spotId": "innkeeper",
 		"approach": "NEUTRAL",
-		"characteristics": {
-			"recoveryType": "HUNGER",
-			"recoveryAmount": "BASIC"
+		"recovery": {
+			"HUNGER": "BASIC"
 		},
 		"requirements": {
 			"relationshipLevel": 0,
@@ -64,9 +42,8 @@
 		"description": "Pay for a simple room for the night.",
 		"spotId": "innkeeper",
 		"approach": "NEUTRAL",
-		"characteristics": {
-			"recoveryType": [ "ENERGY", "EXHAUSTION" ],
-			"recoveryAmount": "BASIC"
+		"recovery": {
+			"ENERGY": "BASIC"
 		},
 		"requirements": {
 			"relationshipLevel": 1,
@@ -81,10 +58,8 @@
 		"description": "Take a short rest near the warm hearth.",
 		"spotId": "hearth",
 		"approach": "NEUTRAL",
-		"characteristics": {
-			"exertion": "LIGHT",
-			"recoveryType": [ "ENERGY", "EXHAUSTION" ],
-			"recoveryAmount": "BASIC"
+		"recovery": {
+			"ENERGY": "BASIC"
 		},
 		"requirements": {
 			"relationshipLevel": 0
