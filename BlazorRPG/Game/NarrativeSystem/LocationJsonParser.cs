@@ -122,8 +122,7 @@ public static class LocationJsonParser
         // Get encounter definition info
         if (element.TryGetProperty("encounterDefinition", out JsonElement encounterElement))
         {
-            action.Goal = GetStringProperty(encounterElement, "goal", "");
-            action.Complication = GetStringProperty(encounterElement, "complication", "");
+            action.Description = GetStringProperty(encounterElement, "goal", "");
         }
 
         return action;

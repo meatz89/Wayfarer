@@ -444,9 +444,9 @@ public class GameManager
         string location = encounterResult.NarrativeContext.LocationName;
         string locationSpot = encounterResult.NarrativeContext.locationSpotName;
         string actionName = encounterResult.ActionImplementation.Id;
-        string goal = encounterResult.ActionImplementation.Goal;
+        string description = encounterResult.ActionImplementation.Description;
 
-        string title = $"{location} - {locationSpot}, {actionName} - {goal}" + Environment.NewLine;
+        string title = $"{location} - {locationSpot}, {actionName} - {description}" + Environment.NewLine;
 
         string memoryEntryToWrite = title + memoryEntry;
 

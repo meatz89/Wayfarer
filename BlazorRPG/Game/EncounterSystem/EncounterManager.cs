@@ -127,7 +127,7 @@
 
         NarrativeResult result = new NarrativeResult(
             introduction,
-            actionImplementation.Goal,
+            actionImplementation.Description,
             choices,
             projections,
             choiceDescriptions,

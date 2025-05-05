@@ -9,7 +9,6 @@ IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowl
 - Pressure: {PRESSURE}/{MAX_PRESSURE}
 - Active Narrative Tags: {ACTIVE_TAGS}
 - Goal: {ENCOUNTER_GOAL}
-- Complication: {ENCOUNTER_COMPLICATION}
 
 ## Player Character Status
 {PLAYER_STATUS}

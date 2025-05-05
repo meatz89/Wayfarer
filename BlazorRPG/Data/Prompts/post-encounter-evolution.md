@@ -56,7 +56,7 @@
 
 ## Format Requirements
 - Character names: SIMPLE FIRST NAMES ONLY (e.g., "Giles", not "Giles the merchant")
-- All actions require a known location spot, a goal and a complication
+- All actions require a known location spot, a goal
 - Action Type must only be one of:
   * Rest, Labor, Gather, Fight (physical actions)
   * Discuss, Persuade, Perform (social actions)
@@ -89,7 +89,6 @@ You must provide your response ONLY as a valid JSON object with the following st
       "name": "ActionName",
       "description": "What this action involves",
       "goal": "The player's goal in this action",
-      "complication": "What makes this challenging",
       "actionType": "Discuss",
       "isRepeatable": true/false,
       "energyCost": 1,

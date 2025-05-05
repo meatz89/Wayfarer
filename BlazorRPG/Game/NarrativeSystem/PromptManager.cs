@@ -67,10 +67,8 @@ public class PromptManager
         string characterArchetype = state.PlayerState.Archetype.ToString();
         string approachStats = FormatApproachValues(state);
 
-        // Format encounter goal and complication
         ActionImplementation actionImplementation = context.ActionImplementation;
-        string encounterGoal = actionImplementation.Goal;
-        string encounterComplication = actionImplementation.Complication;
+        string encounterGoal = actionImplementation.Description;
 
         // Replace placeholders in template
         string prompt = template
@@ -84,8 +82,7 @@ public class PromptManager
             .Replace("{ENVIRONMENT_DETAILS}", environmentDetails)
             .Replace("{NPC_LIST}", npcList)
             .Replace("{TIME_CONSTRAINTS}", timeConstraints)
-            .Replace("{ADDITIONAL_CHALLENGES}", additionalChallenges)
-            .Replace("{ENCOUNTER_COMPLICATION}", encounterComplication);
+            .Replace("{ADDITIONAL_CHALLENGES}", additionalChallenges);
 
         return CreatePromptJson(prompt);
     }
@@ -316,7 +313,7 @@ public class PromptManager
                 choiceText += $"\n- Final Outcome: {projection.ProjectedOutcome}";
                 choiceText += $"\n- Goal Achievement: " +
                     $"{(projection.ProjectedOutcome != EncounterOutcomes.Failure ?
-                    "Will achieve goal to" : "Will fail to")} {context.ActionImplementation.Goal}";
+                    "Will achieve goal to" : "Will fail to")} {context.ActionImplementation.Description}";
             }
 
             // Only add narrative tags if any would activate
@@ -355,8 +352,7 @@ public class PromptManager
             {
                 return x.NarrativeName;
             }).ToList()))
-            .Replace("{ENCOUNTER_GOAL}", context.ActionImplementation.Goal)
-            .Replace("{ENCOUNTER_COMPLICATION}", context.ActionImplementation.Complication)
+            .Replace("{ENCOUNTER_GOAL}", context.ActionImplementation.Description)
             .Replace("{HEALTH}", state.Health.ToString())
             .Replace("{MAX_HEALTH}", state.MaxHealth.ToString())
             .Replace("{CONFIDENCE}", state.Confidence.ToString())
@@ -417,7 +413,7 @@ public class PromptManager
         string formattedFocusValues = focusValues.ToString().TrimEnd(',', ' ');
 
         // Extract encounter goal from inciting action
-        string encounterGoal = context.ActionImplementation.Goal;
+        string encounterGoal = context.ActionImplementation.Description;
 
         // Add goal achievement status
         string goalAchievementStatus = outcome != EncounterOutcomes.Failure

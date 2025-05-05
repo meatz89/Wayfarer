@@ -4,9 +4,6 @@
     public string Name { get; set; }
     public string Description { get; set; }
 
-    public string Goal { get; set; }
-    public string Complication { get; set; }
-
     public string DestinationLocation { get; set; }
     public string DestinationLocationSpot { get; set; }
 
@@ -26,51 +23,4 @@
 
     public int Difficulty { get; set; } = 1;
 
-    public bool IsCompleted(WorldState worldState)
-    {
-        if (ActionType == ActionTypes.Basic) return false;
-        if (string.IsNullOrEmpty(Id)) return false;
-
-        return worldState.IsEncounterCompleted(Id);
-    }
-
-    public bool CanExecute(GameState gameState)
-    {
-        return Requirements.All(r =>
-        {
-            return r.IsMet(gameState);
-        });
-    }
-
-    public ActionGenerationContext GetActionGenerationContext()
-    {
-        ActionGenerationContext context = new ActionGenerationContext
-        {
-            ActionId = Id,
-            SpotName = LocationSpotId,
-            LocationName = LocationId,
-        };
-
-        return context;
-    }
-
-    public string GetExertionType()
-    {
-        return "None";
-    }
-
-    public string GetMentalLoadType()
-    {
-        return "None";
-    }
-
-    public string GetSocialImpactType()
-    {
-        return "None";
-    }
-
-    public string GetRecoveryType()
-    {
-        return "None";
-    }
 }

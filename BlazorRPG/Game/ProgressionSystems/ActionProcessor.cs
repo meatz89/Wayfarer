@@ -76,26 +76,26 @@ public class ActionProcessor
 
     private void ApplyNewAfflictions(ActionImplementation action, PlayerState playerState)
     {
-        string exertion = action.GetExertionType();
-        if (!string.IsNullOrWhiteSpace(exertion))
-        {
-            int hungerPoints = MapExertion(exertion);
-            playerState.AddHungerPoints(hungerPoints);
-        }
+        //string exertion = action.GetExertionType();
+        //if (!string.IsNullOrWhiteSpace(exertion))
+        //{
+        //    int hungerPoints = MapExertion(exertion);
+        //    playerState.AddHungerPoints(hungerPoints);
+        //}
 
-        string mentalLoad = action.GetMentalLoadType();
-        if (!string.IsNullOrWhiteSpace(mentalLoad))
-        {
-            int mentalLoadPoints = MapMentalLoad(exertion);
-            playerState.AddMentalLoadPoints(mentalLoadPoints);
-        }
+        //string mentalLoad = action.GetMentalLoadType();
+        //if (!string.IsNullOrWhiteSpace(mentalLoad))
+        //{
+        //    int mentalLoadPoints = MapMentalLoad(exertion);
+        //    playerState.AddMentalLoadPoints(mentalLoadPoints);
+        //}
 
-        string socialImpact = action.GetSocialImpactType();
-        if (!string.IsNullOrWhiteSpace(socialImpact))
-        {
-            int disconnectionPoints = MapSocialImpact(exertion);
-            playerState.AddDisconnectPoints(disconnectionPoints);
-        }
+        //string socialImpact = action.GetSocialImpactType();
+        //if (!string.IsNullOrWhiteSpace(socialImpact))
+        //{
+        //    int disconnectionPoints = MapSocialImpact(exertion);
+        //    playerState.AddDisconnectPoints(disconnectionPoints);
+        //}
     }
 
     private static void ApplyEscalation(PlayerState playerState)
@@ -115,8 +115,8 @@ public class ActionProcessor
 
     private void ApplyRecovery(ActionImplementation action)
     {
-        string recoveryType = action.GetRecoveryType();
-        ApplyRecovery(recoveryType);
+        //string recoveryType = action.GetRecoveryType();
+        //ApplyRecovery(recoveryType);
     }
 
     private void ApplyRecovery(string recoveryType)

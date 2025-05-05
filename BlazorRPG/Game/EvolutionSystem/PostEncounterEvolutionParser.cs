@@ -127,10 +127,8 @@ public class PostEncounterEvolutionParser
                     LocationName = actionDef.LocationName,
                     Name = actionDef.Name,
                     Description = actionDef.Description,
-                    Goal = actionDef.Goal,
-                    Complication = actionDef.Complication,
+                    Goal = actionDef.Description,
                     ActionType = actionDef.ActionType,
-                    // Forward progression additions
                     IsRepeatable = actionDef.IsRepeatable,
                     EnergyCost = actionDef.EnergyCost
                 });
@@ -272,7 +270,6 @@ public class PostEncounterEvolutionParser
                 Name = GetStringProperty(element, "name", "Unnamed Action"),
                 Description = GetStringProperty(element, "description", "No description available."),
                 Goal = GetStringProperty(element, "goal", "Unknown goal"),
-                Complication = GetStringProperty(element, "complication", "Unknown complication"),
                 ActionType = GetStringProperty(element, "actionType", "Discuss"),
                 SpotName = GetStringProperty(element, "spotName", "Unknown Spot"),
                 LocationName = GetStringProperty(element, "locationName", "Unknown Location"),
