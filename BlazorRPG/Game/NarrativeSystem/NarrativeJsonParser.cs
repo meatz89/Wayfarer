@@ -31,6 +31,7 @@ public static class NarrativeJsonParser
             // Try hardcore manual parsing first (most resilient)
             if (TryParseChoicesManually(jsonContent, choices, result))
             {
+                NormalizeAllDescriptions(result);
                 return result;
             }
 
@@ -51,6 +52,8 @@ public static class NarrativeJsonParser
                     JsonElement root = document.RootElement;
                     ProcessJsonElement(root, choices, result);
                 }
+
+                NormalizeAllDescriptions(result);
             }
             catch (JsonException ex)
             {
@@ -60,6 +63,8 @@ public static class NarrativeJsonParser
                     // If regex fails too, try the most aggressive line-by-line parsing
                     FallbackLineParser(jsonContent, choices, result);
                 }
+
+                NormalizeAllDescriptions(result);
             }
         }
         catch (Exception ex)
@@ -68,6 +73,7 @@ public static class NarrativeJsonParser
             try
             {
                 FallbackLineParser(response, choices, result);
+                NormalizeAllDescriptions(result);
             }
             catch
             {
@@ -76,6 +82,58 @@ public static class NarrativeJsonParser
         }
 
         return result;
+    }
+
+    private static void NormalizeAllDescriptions(Dictionary<CardDefinition, ChoiceNarrative> choices)
+    {
+        foreach (var key in choices.Keys.ToList())
+        {
+            ChoiceNarrative narrative = choices[key];
+            if (!string.IsNullOrEmpty(narrative.FullDescription))
+            {
+                narrative.FullDescription = NormalizeText(narrative.FullDescription);
+                choices[key] = narrative;
+            }
+        }
+    }
+
+    private static string NormalizeText(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return text;
+
+        // Remove carriage returns
+        text = text.Replace("\r", "");
+
+        // Replace multiple consecutive newlines with a single newline
+        text = Regex.Replace(text, @"\n{2,}", "\n");
+
+        // Remove line breaks that split sentences or paragraphs incorrectly
+        // This regex looks for lines that don't end with typical sentence endings
+        text = Regex.Replace(text, @"([^\.\?\!\""])\n", "$1 ");
+
+        // Clean up any double spaces
+        text = Regex.Replace(text, @"\s{2,}", " ");
+
+        // Fix spacing after periods, question marks, and exclamation points
+        text = Regex.Replace(text, @"([\.\?\!])\s*([A-Z])", "$1 $2");
+
+        // Ensure standard apostrophes are used
+        text = text.Replace("doesn\"t", "doesn't")
+                   .Replace("don\"t", "don't")
+                   .Replace("isn\"t", "isn't")
+                   .Replace("wouldn\"t", "wouldn't")
+                   .Replace("couldn\"t", "couldn't")
+                   .Replace("shouldn\"t", "shouldn't")
+                   .Replace("hasn\"t", "hasn't")
+                   .Replace("haven\"t", "haven't")
+                   .Replace("won\"t", "won't")
+                   .Replace("didn\"t", "didn't");
+
+        // Convert any strange quote characters to standard ones
+        text = Regex.Replace(text, @"[""]", "\"");
+
+        return text.Trim();
     }
 
     private static bool TryParseChoicesManually(string jsonContent, List<CardDefinition> choices, Dictionary<CardDefinition, ChoiceNarrative> result)
@@ -186,7 +244,7 @@ public static class NarrativeJsonParser
             {
                 result[choices[i]] = new ChoiceNarrative(
                     extractedChoices[i].Key,
-                    extractedChoices[i].Value.Replace("\\\"", "\"").Replace("\\\\", "\\")
+                    NormalizeText(extractedChoices[i].Value.Replace("\\\"", "\"").Replace("\\\\", "\\"))
                 );
             }
 
@@ -340,7 +398,7 @@ public static class NarrativeJsonParser
             // If we have a name or description, create the ChoiceNarrative
             if (!string.IsNullOrWhiteSpace(name) || !string.IsNullOrWhiteSpace(description))
             {
-                result[choices[index]] = new ChoiceNarrative(name, description);
+                result[choices[index]] = new ChoiceNarrative(name, NormalizeText(description));
             }
 
             index++;
@@ -394,7 +452,7 @@ public static class NarrativeJsonParser
 
                     if (!string.IsNullOrWhiteSpace(name) || !string.IsNullOrWhiteSpace(description))
                     {
-                        result[choices[i]] = new ChoiceNarrative(name, description);
+                        result[choices[i]] = new ChoiceNarrative(name, NormalizeText(description));
                         break; // Found a match for this choice, move to next
                     }
                 }
@@ -428,7 +486,7 @@ public static class NarrativeJsonParser
 
                 if (!string.IsNullOrWhiteSpace(name) || !string.IsNullOrWhiteSpace(description))
                 {
-                    result[choices[i]] = new ChoiceNarrative(name, description);
+                    result[choices[i]] = new ChoiceNarrative(name, NormalizeText(description));
                 }
             }
 
@@ -547,7 +605,7 @@ public static class NarrativeJsonParser
 
         for (int i = 0; i < count; i++)
         {
-            result[choices[i]] = new ChoiceNarrative(names[i], descriptions[i]);
+            result[choices[i]] = new ChoiceNarrative(names[i], NormalizeText(descriptions[i]));
         }
     }
 
@@ -732,10 +790,11 @@ public static class NarrativeJsonParser
         // If we found a JSON structure, return everything before it
         if (jsonStart > 0)
         {
-            return text.Substring(0, jsonStart).Trim();
+            string narrativeText = text.Substring(0, jsonStart).Trim();
+            return NormalizeText(narrativeText);
         }
 
-        // If no JSON found, return the whole text
-        return text;
+        // If no JSON found, return the whole text normalized
+        return NormalizeText(text);
     }
 }

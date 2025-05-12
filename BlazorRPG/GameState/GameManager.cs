@@ -380,9 +380,19 @@ public class GameManager
         }
         else
         {
-            gameState.ActionStateTracker.CompleteAction();
+            GameOver();
             return;
         }
+    }
+
+    private void GameOver()
+    {
+        gameState.ActionStateTracker.CompleteAction();
+    }
+
+    private bool IsGameOver(PlayerState playerState)
+    {
+        return false;
     }
 
     /// <summary>
@@ -505,15 +515,6 @@ public class GameManager
         gameState.WorldState.SetCurrentLocation(location, locationSpot);
 
         await UpdateState();
-    }
-
-    private bool IsGameOver(PlayerState player)
-    {
-        if (player.Health <= 0) return true;
-        if (player.Focus <= 0) return true;
-        if (player.Spirit <= 0) return true;
-
-        return false;
     }
 
     public List<Location> GetPlayerKnownLocations()
