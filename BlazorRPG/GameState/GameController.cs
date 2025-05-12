@@ -10,19 +10,19 @@
 
     public async Task<NpcCharacter> GenerateNewNpcAsync()
     {
-        // Generate a villager between 25-40 years old
-        NpcCharacter npc = await ollamaService.GenerateCharacterAsync(
-            archetype: "villager",
-            region: "the northern farmlands",
-            gender: "", // empty for any
-            minAge: 25,
-            maxAge: 40,
-            additionalTraits: "knows local herbs, distrustful of outsiders"
-        );
+        // Create a console watcher
+        IResponseStreamWatcher watcher = new ConsoleResponseWatcher();
 
-        // Save the character to a file
-        string filePath = Path.Combine("GameData", "Characters", $"{npc.Name.Replace(" ", "_")}.json");
-        //await _ollamaService.SaveCharacterToFileAsync(npc, filePath);
+        // Generate character with streaming
+        NpcCharacter npc = await ollamaService.GenerateCharacterAsync(
+            archetype: "merchant",
+            region: "coastal town",
+            gender: "male",
+            minAge: 40,
+            maxAge: 60,
+            additionalTraits: "seafaring experience, shrewd negotiator",
+            watcher: watcher
+        );
 
         return npc;
     }

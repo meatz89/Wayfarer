@@ -30,7 +30,11 @@ public class OpenAIProvider : IAIProvider
         _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
     }
 
-    public async Task<string> GetCompletionAsync(List<ConversationEntry> messages, string model, string fallbackModel)
+    public async Task<string> GetCompletionAsync(
+        List<ConversationEntry> messages, 
+        string model, 
+        string fallbackModel, 
+        IResponseStreamWatcher watcher)
     {
         // o4-mini doesn't need a fallback model since we're optimizing for speed
         return await ExecuteWithRetryAsync(messages, model);

@@ -27,7 +27,11 @@ public class GeminiProvider : IAIProvider
         _logger = logger;
     }
 
-    public async Task<string> GetCompletionAsync(List<ConversationEntry> messages, string model, string fallbackModel)
+    public async Task<string> GetCompletionAsync(
+        List<ConversationEntry> messages, 
+        string model, 
+        string fallbackModel, 
+        IResponseStreamWatcher watcher)
     {
         // For speed optimization, we ignore the fallback model
         return await ExecuteWithRetryAsync(messages, model);
