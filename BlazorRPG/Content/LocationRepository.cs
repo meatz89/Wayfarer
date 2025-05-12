@@ -27,7 +27,7 @@
         if (location != null)
             return location;
 
-        throw new KeyNotFoundException($"Location '{locationId}' not found.");
+        return null;
     }
 
     public Location GetLocationByName(string locationName)
@@ -40,7 +40,7 @@
         if (location != null)
             return location;
 
-        throw new KeyNotFoundException($"Location '{locationName}' not found.");
+        return null;
     }
 
     public List<Location> GetAllLocations()
@@ -57,11 +57,7 @@
     public LocationSpot GetSpot(string locationId, string spotId)
     {
         Location location = GetLocationById(locationId);
-
         LocationSpot spot = location.LocationSpots.FirstOrDefault(s => s.Id == spotId);
-
-        if (spot == null)
-            throw new KeyNotFoundException($"Spot '{spotId}' not found in '{locationId}'.");
 
         return spot;
     }
@@ -101,7 +97,7 @@
             .ToList();
     }
 
-    // New method to add a location to the world
+    // Add a location to the world
     public void AddLocation(Location location)
     {
         if (_worldState.locations.Any(l =>
@@ -113,7 +109,7 @@
         _worldState.locations.Add(location);
     }
 
-    // New method to add a location spot to the world
+    // Add a location spot to the world
     public void AddLocationSpot(LocationSpot spot)
     {
         if (_worldState.locationSpots.Any((Func<LocationSpot, bool>)(s =>

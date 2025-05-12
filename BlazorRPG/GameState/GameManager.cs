@@ -76,7 +76,6 @@ public class GameManager
         Location? currentLoc = currentLocation;
         Console.WriteLine($"Game started at: {currentLoc?.Id}, Current spot: {worldState.CurrentLocationSpot?.Id}");
 
-        gameState.ActionStateTracker.CompleteAction();
         await UpdateState();
     }
 
