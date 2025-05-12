@@ -4,15 +4,26 @@ using System.Text;
 public class OllamaProvider : IAIProvider
 {
     private readonly HttpClient _httpClient;
+    private readonly ILogger<EncounterSystem> _logger;
     private readonly string _baseUrl;
     private readonly string _modelName = "gemma3:12b-it-qat";
     private readonly string _fallbackModel = "gemma3:2b-it";
 
     public string Name => "Ollama";
 
-    public OllamaProvider(string baseUrl)
+    public OllamaProvider(IConfiguration configuration, ILogger<EncounterSystem> logger)
+    {
+        _baseUrl = configuration.GetValue<string>("Ollama:BaseUrl") ?? "http://localhost:11434";
+        _logger = logger;
+
+        _httpClient = new HttpClient();
+        _httpClient.Timeout = TimeSpan.FromMinutes(5);
+    }
+
+    public OllamaProvider(string baseUrl, ILogger<EncounterSystem> logger = null)
     {
         _baseUrl = baseUrl ?? throw new ArgumentNullException(nameof(baseUrl));
+        _logger = logger;
 
         _httpClient = new HttpClient();
         _httpClient.Timeout = TimeSpan.FromMinutes(5);
@@ -62,6 +73,8 @@ public class OllamaProvider : IAIProvider
 
         try
         {
+            _logger?.LogInformation($"Sending request to Ollama API using model: {actualModel}");
+
             // If streaming is enabled, handle it differently
             if (watcher != null)
             {
@@ -77,11 +90,13 @@ public class OllamaProvider : IAIProvider
                 response.EnsureSuccessStatusCode();
                 string jsonResponse = await response.Content.ReadAsStringAsync();
                 string content = OllamaResponseParser.ExtractMessageContent(jsonResponse);
+                _logger?.LogInformation($"Received response from Ollama API ({content.Length} chars)");
                 return content;
             }
         }
         catch (Exception ex)
         {
+            _logger?.LogError(ex, $"Error calling Ollama API: {ex.Message}");
             watcher?.OnError(ex);
             throw;
         }

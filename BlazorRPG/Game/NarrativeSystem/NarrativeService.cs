@@ -15,11 +15,14 @@
         _contextManager = narrativeContextManager;
         _logger = logger;
 
+        ConsoleResponseWatcher watcher = new ConsoleResponseWatcher();
+
         _providers = new Dictionary<AIProviderType, IAIService>
         {
-            { AIProviderType.Claude, new ClaudeNarrativeService(postEncounterEvolutionParser, _contextManager, configuration, _logger, narrativeLogManager) },
-            { AIProviderType.OpenAI, new OpenAINarrativeService(postEncounterEvolutionParser, _contextManager, configuration, _logger, narrativeLogManager) },
-            { AIProviderType.Gemini, new GeminiNarrativeService(postEncounterEvolutionParser, _contextManager, configuration, _logger, narrativeLogManager) }
+            { AIProviderType.Claude, new ClaudeNarrativeService(postEncounterEvolutionParser, _contextManager, configuration, _logger, narrativeLogManager, watcher ) },
+            { AIProviderType.OpenAI, new OpenAINarrativeService(postEncounterEvolutionParser, _contextManager, configuration, _logger, narrativeLogManager, watcher ) },
+            { AIProviderType.Gemini, new GeminiNarrativeService(postEncounterEvolutionParser, _contextManager, configuration, _logger, narrativeLogManager, watcher ) },
+            { AIProviderType.Ollama, new OllamaNarrativeService(postEncounterEvolutionParser, _contextManager, configuration, _logger, narrativeLogManager, watcher ) }
         };
 
         // Set default provider from configuration
@@ -33,6 +36,9 @@
                 break;
             case "gemini":
                 _currentProvider = AIProviderType.Gemini;
+                break;
+            case "ollama":
+                _currentProvider = AIProviderType.Ollama;
                 break;
             default:
                 _currentProvider = AIProviderType.OpenAI;

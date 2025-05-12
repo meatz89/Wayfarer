@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-public class NpcCharacterGenerator
+﻿public class NpcCharacterGenerator
 {
     private readonly AIClient _aiClient;
 

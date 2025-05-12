@@ -42,7 +42,7 @@
 
     private void SetAiProviderFromConfig(IConfiguration configuration)
     {
-        string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "OpenAI";
+        string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "ollama";
         switch (defaultProvider.ToLower())
         {
             case "claude":
@@ -50,6 +50,9 @@
                 break;
             case "gemma":
                 currentAIProvider = AIProviderType.Gemini;
+                break;
+            case "ollama":
+                currentAIProvider = AIProviderType.Ollama;
                 break;
             default:
                 currentAIProvider = AIProviderType.OpenAI;
@@ -72,13 +75,16 @@
         EncounterApproaches encounterType = actionImplementation.EncounterType;
         EncounterTemplate template = actionImplementation.EncounterTemplate;
 
+        if(template == null)
+        {
+            template = encounterFactory.GetDefaultEncounterTemplate();
+        }
+
         Encounter encounter = encounterFactory.CreateEncounterFromTemplate(
             template, location, locationSpot, encounterType);
 
-        // Create encounter manager
         EncounterManager encounterManager = await StartEncounter(encounter, location, this.worldState, playerState, actionImplementation);
 
-        // Create Encounter with initial stage
         string situation = $"{actionImplementation.Id} ({actionImplementation.ActionType} Action)";
         return encounterManager;
     }
@@ -213,11 +219,6 @@
 
     public ChoiceProjection GetChoiceProjection(EncounterManager encounter, CardDefinition choice)
     {
-        if (IsGameOver(gameState.PlayerState))
-        {
-            throw new Exception("Game Over");
-        }
-
         EncounterManager encounterManager = GetCurrentEncounter();
         ChoiceProjection choiceProjection = encounterManager.ProjectChoice(choice);
         return choiceProjection;
