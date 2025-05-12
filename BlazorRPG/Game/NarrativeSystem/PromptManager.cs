@@ -38,9 +38,9 @@ public class PromptManager
     }
 
     public string BuildIntroductionPrompt(
-    NarrativeContext context,
-    EncounterStatusModel state,
-    string memoryContent)
+        NarrativeContext context,
+        EncounterStatusModel state,
+        string memoryContent)
     {
         string template = _promptTemplates[INTRO_MD];
 

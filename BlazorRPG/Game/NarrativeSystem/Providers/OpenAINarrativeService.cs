@@ -1,5 +1,4 @@
-﻿
-public class OpenAINarrativeService : BaseNarrativeAIService
+﻿public class OpenAINarrativeService : BaseNarrativeAIService
 {
     public PostEncounterEvolutionParser PostEncounterEvolutionParser { get; }
     public NarrativeContextManager _contextManager { get; }
@@ -15,7 +14,7 @@ public class OpenAINarrativeService : BaseNarrativeAIService
         ILogger<EncounterSystem> logger,
         NarrativeLogManager narrativeLogManager
         )
-        : base(new OpenAIProvider(configuration, logger), configuration, logger, narrativeLogManager)
+        : base(new OpenAIProvider(configuration, logger), configuration, narrativeLogManager)
     {
         PostEncounterEvolutionParser = postEncounterEvolutionParser;
         _contextManager = narrativeContextManager;

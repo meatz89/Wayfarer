@@ -14,7 +14,7 @@
         ILogger<EncounterSystem> logger,
         NarrativeLogManager narrativeLogManager
         )
-        : base(new GeminiProvider(configuration, logger), configuration, logger, narrativeLogManager)
+        : base(new GeminiProvider(configuration, logger), configuration, narrativeLogManager)
     {
         PostEncounterEvolutionParser = postEncounterEvolutionParser;
         _contextManager = narrativeContextManager;

@@ -2,21 +2,16 @@
 {
     private readonly IAIProvider _aiProvider;
     private readonly string _gameInstanceId;
-    private readonly ILogger _logger;
     private readonly NarrativeLogManager _logManager;
 
     public AIClient(
         IAIProvider aiProvider,
         string gameInstanceId,
-        ILogger logger,
         NarrativeLogManager logManager)
     {
         _aiProvider = aiProvider ?? throw new ArgumentNullException(nameof(aiProvider));
         _gameInstanceId = gameInstanceId;
-        _logger = logger;
         this._logManager = logManager;
-        logger?.LogInformation($"Initialized AIClientService with provider: {aiProvider.Name}, game instance ID: {_gameInstanceId}");
-        logger?.LogInformation($"Logging conversation to: {_logManager.GetSessionDirectory()}");
     }
 
     public async Task<string> GetCompletionAsync(IEnumerable<ConversationEntry> conversationMessages, string model, string fallbackModel)
@@ -52,9 +47,6 @@
                 Timestamp = DateTime.UtcNow
             };
 
-            // Log the request with basic info
-            _logger?.LogInformation($"Sending prompt to {_aiProvider.Name} (Game ID: {_gameInstanceId}). Message count: {messages.Count}");
-
             // The actual API call is delegated to the provider implementation
             string result = await _aiProvider.GetCompletionAsync(messages, model, fallbackModel);
 
@@ -62,8 +54,6 @@
             result = result?.Trim();
             generatedContent = result;
 
-            // Log success
-            _logger?.LogInformation($"Received response from {_aiProvider.Name} (Game ID: {_gameInstanceId}). Character count: {result?.Length ?? 0}");
 
             return result;
         }
@@ -72,29 +62,19 @@
             // Capture error details
             errorMessage = $"Error: {ex.Message}\nStack Trace: {ex.StackTrace}";
 
-            // Log the error
-            _logger?.LogError(ex, $"Error getting completion from {_aiProvider.Name} (Game ID: {_gameInstanceId}): {ex.Message}");
-
             throw; // Rethrow to let the caller handle it
         }
         finally
         {
             // Log the entire interaction, regardless of success or failure
-            try
-            {
-                await _logManager.LogApiInteractionAsync(
-                    conversationId,
-                    messages,
-                    requestBody,
-                    jsonResponse,
-                    generatedContent,
-                    errorMessage
-                );
-            }
-            catch (Exception logEx)
-            {
-                _logger?.LogError(logEx, $"Failed to log API interaction: {logEx.Message}");
-            }
+            await _logManager.LogApiInteractionAsync(
+                conversationId,
+                messages,
+                requestBody,
+                jsonResponse,
+                generatedContent,
+                errorMessage
+            );
         }
     }
 

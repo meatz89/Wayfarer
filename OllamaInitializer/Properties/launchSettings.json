@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "OllamaInitializer": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

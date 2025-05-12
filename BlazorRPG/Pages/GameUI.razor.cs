@@ -210,8 +210,10 @@ public partial class GameUI : ComponentBase
         await GameManager.StartGame();
     }
 
-    public void SwitchAreaMap()
+    public async Task SwitchAreaMap()
     {
+        await GameManager.CreateNpc();
+
         if (CurrentScreen == CurrentViews.MapScreen)
         {
             CurrentScreen = CurrentViews.LocationScreen;
