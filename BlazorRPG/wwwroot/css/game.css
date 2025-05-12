@@ -1097,15 +1097,6 @@ css /* ==================== Badges & Special Elements ==================== */
     font-weight: normal;
 }
 
-.stage-situation {
-    line-height: 1.6;
-    font-family: var(--font-tertiary);
-    font-size: 1.1rem;
-    color: var(--text-primary);
-    white-space: pre-line;
-    margin-bottom: 1rem;
-}
-
 .choice-option {
     background-color: var(--bg-card);
     border-radius: 5px;
