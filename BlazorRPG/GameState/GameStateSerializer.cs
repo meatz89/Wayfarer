@@ -69,7 +69,7 @@ public static class GameStateSerializer
         if (!string.IsNullOrEmpty(serialized.Player.Name))
         {
             if (Enum.TryParse<Genders>(serialized.Player.Gender, out Genders gender) &&
-                Enum.TryParse<ArchetypeTypes>(serialized.Player.Archetype, out ArchetypeTypes archetype))
+                Enum.TryParse<Professions>(serialized.Player.Archetype, out Professions archetype))
             {
                 // Initialize player
                 gameState.PlayerState.Initialize(serialized.Player.Name, archetype, gender);

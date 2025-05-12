@@ -270,13 +270,13 @@
         }
     }
 
-    private bool IsArchetypeApproach(ArchetypeTypes archetype, ApproachTags approach)
+    private bool IsArchetypeApproach(Professions archetype, ApproachTags approach)
     {
-        return (archetype == ArchetypeTypes.Guard && approach == ApproachTags.Dominance) ||
-               (archetype == ArchetypeTypes.Diplomat && approach == ApproachTags.Rapport) ||
-               (archetype == ArchetypeTypes.Scholar && approach == ApproachTags.Analysis) ||
-               (archetype == ArchetypeTypes.Explorer && approach == ApproachTags.Precision) ||
-               (archetype == ArchetypeTypes.Rogue && approach == ApproachTags.Concealment);
+        return (archetype == Professions.Warrior && approach == ApproachTags.Dominance) ||
+               (archetype == Professions.Diplomat && approach == ApproachTags.Rapport) ||
+               (archetype == Professions.Scholar && approach == ApproachTags.Analysis) ||
+               (archetype == Professions.Mystic && approach == ApproachTags.Precision) ||
+               (archetype == Professions.Ranger && approach == ApproachTags.Concealment);
     }
 
     private void EnsureNoNegativeValues(

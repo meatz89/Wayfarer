@@ -369,7 +369,7 @@ public class ChoiceRepository
         return cards.ToList();
     }
 
-    public List<CardDefinition> GetCardsForLevel(int level, ArchetypeTypes archetype)
+    public List<CardDefinition> GetCardsForLevel(int level, Professions archetype)
     {
         // Get all cards of appropriate tier
         List<CardDefinition> tierCards = cards.Where(x =>
@@ -387,15 +387,15 @@ public class ChoiceRepository
         }).ToList();
     }
 
-    private ApproachTags GetPreferredApproach(ArchetypeTypes archetype)
+    private ApproachTags GetPreferredApproach(Professions archetype)
     {
         return archetype switch
         {
-            ArchetypeTypes.Guard => ApproachTags.Dominance,
-            ArchetypeTypes.Diplomat => ApproachTags.Rapport,
-            ArchetypeTypes.Scholar => ApproachTags.Analysis,
-            ArchetypeTypes.Explorer => ApproachTags.Precision,
-            ArchetypeTypes.Rogue => ApproachTags.Concealment,
+            Professions.Warrior => ApproachTags.Dominance,
+            Professions.Diplomat => ApproachTags.Rapport,
+            Professions.Scholar => ApproachTags.Analysis,
+            Professions.Mystic => ApproachTags.Precision,
+            Professions.Ranger => ApproachTags.Concealment,
             _ => ApproachTags.Analysis
         };
     }

@@ -1,12 +1,11 @@
-﻿
-public enum ArchetypeTypes
+﻿public enum Professions
 {
-    Guard, // Master of labor and physical work
-    Rogue, // Thief and infiltrator
-    Diplomat, // Master of salons, gossip, alliances, and noble networks
-    Scholar, // Keeper of records and histories
-    Merchant, // Hard-nosed trader and negotiator
-    Explorer, // Potionbrewer and explorer
+    Warrior,
+    Scholar,
+    Courtier,
+    Ranger,
+    Mystic,
+    Diplomat
 }
 
 //| Class | Signature Skill(Excels) | Why ?                                                                                          |
@@ -21,91 +20,91 @@ public enum ArchetypeTypes
 
 public static class ArchetypeAffinities
 {
-    public static ArchetypeAffinity Guard = new ArchetypeAffinity { 
-        ArchetypeType = ArchetypeTypes.Guard,
+    public static ArchetypeAffinity Warrior = new ArchetypeAffinity { 
+        ArchetypeType = Professions.Warrior,
         NaturalAffinity = EncounterApproaches.Force, 
         IncompatibleAffinity = EncounterApproaches.Contemplation 
     };
-    public static ArchetypeAffinity Rogue = new ArchetypeAffinity
+    public static ArchetypeAffinity Ranger = new ArchetypeAffinity
     {
-        ArchetypeType = ArchetypeTypes.Rogue,
+        ArchetypeType = Professions.Ranger,
         NaturalAffinity = EncounterApproaches.Precision,
         IncompatibleAffinity = EncounterApproaches.Rapport
     };
 
     public static ArchetypeAffinity Diplomat = new ArchetypeAffinity
     {
-        ArchetypeType = ArchetypeTypes.Diplomat,
+        ArchetypeType = Professions.Diplomat,
         NaturalAffinity = EncounterApproaches.Rapport,
         IncompatibleAffinity = EncounterApproaches.Precision
     };
 
-    public static ArchetypeAffinity Merchant = new ArchetypeAffinity
+    public static ArchetypeAffinity Courtier = new ArchetypeAffinity
     {
-        ArchetypeType = ArchetypeTypes.Merchant,
+        ArchetypeType = Professions.Courtier,
         NaturalAffinity = EncounterApproaches.Persuasion,
         IncompatibleAffinity = EncounterApproaches.Observation
     };
 
-    public static ArchetypeAffinity Explorer = new ArchetypeAffinity
+    public static ArchetypeAffinity Mystic = new ArchetypeAffinity
     {
-        ArchetypeType = ArchetypeTypes.Explorer,
+        ArchetypeType = Professions.Mystic,
         NaturalAffinity = EncounterApproaches.Observation,
         IncompatibleAffinity = EncounterApproaches.Persuasion
     };
 
     public static ArchetypeAffinity Scholar = new ArchetypeAffinity
     {
-        ArchetypeType = ArchetypeTypes.Scholar,
+        ArchetypeType = Professions.Scholar,
         NaturalAffinity = EncounterApproaches.Contemplation,
         IncompatibleAffinity = EncounterApproaches.Force
     };
 
-    public static EncounterApproaches GetNaturalForArchetype(ArchetypeTypes archetype)
+    public static EncounterApproaches GetNaturalForArchetype(Professions archetype)
     {
         switch (archetype)
         {
-            case ArchetypeTypes.Guard:
-                return Guard.NaturalAffinity;
+            case Professions.Warrior:
+                return Warrior.NaturalAffinity;
 
-            case ArchetypeTypes.Rogue:
-                return Rogue.NaturalAffinity;
+            case Professions.Ranger:
+                return Ranger.NaturalAffinity;
 
-            case ArchetypeTypes.Diplomat:
+            case Professions.Diplomat:
                 return Diplomat.NaturalAffinity;
 
-            case ArchetypeTypes.Merchant:
-                return Merchant.NaturalAffinity;
+            case Professions.Courtier:
+                return Courtier.NaturalAffinity;
 
-            case ArchetypeTypes.Explorer:
-                return Explorer.NaturalAffinity;
+            case Professions.Mystic:
+                return Mystic.NaturalAffinity;
 
-            case ArchetypeTypes.Scholar:
+            case Professions.Scholar:
                 return Scholar.NaturalAffinity;
         }
         return EncounterApproaches.Neutral; // Default case
     }
 
-    public static EncounterApproaches GetIncompatibleForArchetype(ArchetypeTypes archetype)
+    public static EncounterApproaches GetIncompatibleForArchetype(Professions archetype)
     {
         switch(archetype)
         {
-            case ArchetypeTypes.Guard:
-                return Guard.IncompatibleAffinity;
+            case Professions.Warrior:
+                return Warrior.IncompatibleAffinity;
 
-            case ArchetypeTypes.Rogue:
-                return Rogue.IncompatibleAffinity;
+            case Professions.Ranger:
+                return Ranger.IncompatibleAffinity;
 
-            case ArchetypeTypes.Diplomat:
+            case Professions.Diplomat:
                 return Diplomat.IncompatibleAffinity;
 
-            case ArchetypeTypes.Merchant:
-                return Merchant.IncompatibleAffinity;
+            case Professions.Courtier:
+                return Courtier.IncompatibleAffinity;
 
-            case ArchetypeTypes.Explorer:
-                return Explorer.IncompatibleAffinity;
+            case Professions.Mystic:
+                return Mystic.IncompatibleAffinity;
 
-            case ArchetypeTypes.Scholar:
+            case Professions.Scholar:
                 return Scholar.IncompatibleAffinity;
         }
         return EncounterApproaches.Neutral; // Default case
@@ -114,7 +113,7 @@ public static class ArchetypeAffinities
 
 public class ArchetypeAffinity
 {
-    public ArchetypeTypes ArchetypeType;
+    public Professions ArchetypeType;
     public EncounterApproaches NaturalAffinity;
     public EncounterApproaches IncompatibleAffinity;
 }

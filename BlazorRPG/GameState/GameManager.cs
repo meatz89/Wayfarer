@@ -108,27 +108,27 @@ public class GameManager
 
     private void ProcessPlayerArchetype()
     {
-        ArchetypeTypes archetype = playerState.Archetype;
+        Professions archetype = playerState.Archetype;
         int XpBonusForArchetype = 300;
 
         switch (archetype)
         {
-            case ArchetypeTypes.Guard:
+            case Professions.Warrior:
                 playerProgression.AddSkillExp(SkillTypes.Endurance, XpBonusForArchetype);
                 break;
-            case ArchetypeTypes.Diplomat:
+            case Professions.Diplomat:
                 playerProgression.AddSkillExp(SkillTypes.Diplomacy, XpBonusForArchetype);
                 break;
-            case ArchetypeTypes.Scholar:
+            case Professions.Scholar:
                 playerProgression.AddSkillExp(SkillTypes.Lore, XpBonusForArchetype);
                 break;
-            case ArchetypeTypes.Explorer:
+            case Professions.Mystic:
                 playerProgression.AddSkillExp(SkillTypes.Charm, XpBonusForArchetype);
                 break;
-            case ArchetypeTypes.Rogue:
+            case Professions.Ranger:
                 playerProgression.AddSkillExp(SkillTypes.Finesse, XpBonusForArchetype);
                 break;
-            case ArchetypeTypes.Merchant:
+            case Professions.Courtier:
                 playerProgression.AddSkillExp(SkillTypes.Insight, XpBonusForArchetype);
                 break;
             default:
