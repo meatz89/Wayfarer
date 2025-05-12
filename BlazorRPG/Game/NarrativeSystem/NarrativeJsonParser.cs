@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.IO;
+using System.Text;
 
 public static class NarrativeJsonParser
 {
@@ -19,19 +21,25 @@ public static class NarrativeJsonParser
             // Clean up the response to remove markdown code blocks
             response = response.Replace("```json", "").Replace("```", "");
 
-            // Extract JSON content
+            // Extract the JSON content
             string jsonContent = ExtractJsonContent(response);
             if (string.IsNullOrWhiteSpace(jsonContent))
             {
                 return result;
             }
 
-            // Fix common JSON errors before parsing
-            jsonContent = FixCommonJsonErrors(jsonContent);
+            // Try hardcore manual parsing first (most resilient)
+            if (TryParseChoicesManually(jsonContent, choices, result))
+            {
+                return result;
+            }
 
-            // Try to parse the JSON
+            // Try to fix the JSON and parse it properly
             try
             {
+                // Pre-process to handle the unescaped quotes
+                jsonContent = PreProcessJson(jsonContent);
+
                 JsonDocumentOptions documentOptions = new JsonDocumentOptions
                 {
                     AllowTrailingCommas = true,
@@ -44,19 +52,232 @@ public static class NarrativeJsonParser
                     ProcessJsonElement(root, choices, result);
                 }
             }
-            catch (JsonException)
+            catch (JsonException ex)
             {
-                // If JSON parsing fails, try to extract individual choices using regex
-                ExtractChoicesWithRegex(jsonContent, choices, result);
+                // If JSON parsing fails, try to extract with regex
+                if (!ExtractChoicesWithRegex(jsonContent, choices, result))
+                {
+                    // If regex fails too, try the most aggressive line-by-line parsing
+                    FallbackLineParser(jsonContent, choices, result);
+                }
             }
         }
         catch (Exception ex)
         {
-            // Handle any other exceptions
-            // Consider logging the error here if needed
+            // Last-ditch attempt with most aggressive parser
+            try
+            {
+                FallbackLineParser(response, choices, result);
+            }
+            catch
+            {
+                // Nothing more we can do
+            }
         }
 
         return result;
+    }
+
+    private static bool TryParseChoicesManually(string jsonContent, List<CardDefinition> choices, Dictionary<CardDefinition, ChoiceNarrative> result)
+    {
+        try
+        {
+            // Extract choices from JSON content using our own parser
+            List<KeyValuePair<string, string>> extractedChoices = new List<KeyValuePair<string, string>>();
+
+            bool inChoicesArray = false;
+            bool inChoiceObject = false;
+            string currentName = "";
+            string currentDescription = "";
+
+            // Regex to find name and description
+            Regex nameRegex = new Regex(@"""name""[\s\:]*""([^""]+)""", RegexOptions.IgnoreCase);
+            Regex descRegex = new Regex(@"""description""[\s\:]*""([^""]+[^\\]"")", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+            // Split into lines to process
+            string[] lines = jsonContent.Split('\n');
+
+            foreach (string line in lines)
+            {
+                string trimmedLine = line.Trim();
+
+                if (trimmedLine.Contains("\"choices\"") || trimmedLine.Contains("\"choices\" :"))
+                {
+                    inChoicesArray = true;
+                    continue;
+                }
+
+                if (inChoicesArray && trimmedLine.StartsWith("{"))
+                {
+                    inChoiceObject = true;
+                    continue;
+                }
+
+                if (inChoiceObject && trimmedLine.Contains("\"name\""))
+                {
+                    Match match = nameRegex.Match(trimmedLine);
+                    if (match.Success)
+                    {
+                        currentName = match.Groups[1].Value;
+                    }
+                    continue;
+                }
+
+                if (inChoiceObject && trimmedLine.Contains("\"description\""))
+                {
+                    // This is trickier because description might span multiple lines
+                    int startIndex = line.IndexOf("\"description\"");
+                    if (startIndex >= 0)
+                    {
+                        startIndex = line.IndexOf("\"", startIndex + "\"description\"".Length);
+                        if (startIndex >= 0)
+                        {
+                            // Start building the description
+                            currentDescription = line.Substring(startIndex + 1);
+
+                            // Find the closing quote, checking for escaped quotes
+                            int endIndex = FindClosingQuote(currentDescription);
+                            if (endIndex >= 0)
+                            {
+                                // We found the end in this line
+                                currentDescription = currentDescription.Substring(0, endIndex);
+                            }
+                            else
+                            {
+                                // Description continues on next lines
+                                // This will be handled by the multi-line parser
+                            }
+                        }
+                    }
+                    continue;
+                }
+
+                if (inChoiceObject && trimmedLine.EndsWith("},") || trimmedLine.EndsWith("}"))
+                {
+                    // End of a choice object
+                    if (!string.IsNullOrEmpty(currentName) || !string.IsNullOrEmpty(currentDescription))
+                    {
+                        extractedChoices.Add(new KeyValuePair<string, string>(currentName, currentDescription));
+                    }
+
+                    currentName = "";
+                    currentDescription = "";
+                    inChoiceObject = false;
+
+                    continue;
+                }
+
+                if (inChoicesArray && trimmedLine.EndsWith("]"))
+                {
+                    // End of choices array
+                    inChoicesArray = false;
+                    continue;
+                }
+
+                // If we're inside a description, append this line
+                if (inChoiceObject && !string.IsNullOrEmpty(currentDescription))
+                {
+                    currentDescription += " " + trimmedLine;
+                }
+            }
+
+            // Map the extracted choices to the provided ones
+            for (int i = 0; i < Math.Min(extractedChoices.Count, choices.Count); i++)
+            {
+                result[choices[i]] = new ChoiceNarrative(
+                    extractedChoices[i].Key,
+                    extractedChoices[i].Value.Replace("\\\"", "\"").Replace("\\\\", "\\")
+                );
+            }
+
+            return extractedChoices.Count > 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static int FindClosingQuote(string text)
+    {
+        for (int i = 0; i < text.Length; i++)
+        {
+            // If we find a non-escaped quote, it's the end
+            if (text[i] == '"' && (i == 0 || text[i - 1] != '\\'))
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static string PreProcessJson(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return "{}";
+
+        // First, escape any unescaped quotes in JSON strings
+        StringBuilder processedJson = new StringBuilder();
+        bool inString = false;
+        bool escaped = false;
+
+        for (int i = 0; i < json.Length; i++)
+        {
+            char c = json[i];
+
+            if (escaped)
+            {
+                processedJson.Append(c);
+                escaped = false;
+                continue;
+            }
+
+            if (c == '\\')
+            {
+                processedJson.Append(c);
+                escaped = true;
+                continue;
+            }
+
+            if (c == '"')
+            {
+                if (!inString)
+                {
+                    // Start of a string
+                    inString = true;
+                    processedJson.Append(c);
+                }
+                else
+                {
+                    // Potentially end of a string - check if next non-whitespace is a colon or comma
+                    int j = i + 1;
+                    while (j < json.Length && char.IsWhiteSpace(json[j])) j++;
+
+                    if (j < json.Length && (json[j] == ',' || json[j] == '}' || json[j] == ']' || json[j] == ':'))
+                    {
+                        // This is an actual end of a JSON string
+                        inString = false;
+                        processedJson.Append(c);
+                    }
+                    else
+                    {
+                        // This is an embedded quote - escape it
+                        processedJson.Append('\\').Append(c);
+                    }
+                }
+            }
+            else
+            {
+                processedJson.Append(c);
+            }
+        }
+
+        json = processedJson.ToString();
+
+        // Fix common issues
+        json = FixCommonJsonErrors(json);
+
+        return json;
     }
 
     private static void ProcessJsonElement(JsonElement root, List<CardDefinition> choices, Dictionary<CardDefinition, ChoiceNarrative> result)
@@ -181,36 +402,176 @@ public static class NarrativeJsonParser
         }
     }
 
-    private static void ExtractChoicesWithRegex(string jsonContent, List<CardDefinition> choices, Dictionary<CardDefinition, ChoiceNarrative> result)
+    private static bool ExtractChoicesWithRegex(string jsonContent, List<CardDefinition> choices, Dictionary<CardDefinition, ChoiceNarrative> result)
     {
-        // Use regex to extract choices when JSON parsing fails completely
         try
         {
-            // Pattern to extract name and description
-            string pattern = @"""name""?\s*:\s*""([^""\\]*(?:\\.[^""\\]*)*)""[\s,]*(?:""description""?\s*:\s*""([^""\\]*(?:\\.[^""\\]*)*)""|""text""?\s*:\s*""([^""\\]*(?:\\.[^""\\]*)*)"")?";
+            // Simple pattern to match "name": "value" pairs
+            Regex namePattern = new Regex(@"""name""\s*:\s*""([^""\\]*(\\.[^""\\]*)*)"",?\s*", RegexOptions.Singleline);
+            Regex descPattern = new Regex(@"""description""\s*:\s*""([^""\\]*(\\.[^""\\]*)*)"",?\s*", RegexOptions.Singleline);
 
-            MatchCollection matches = Regex.Matches(jsonContent, pattern, RegexOptions.Singleline);
+            // Find all name matches
+            MatchCollection nameMatches = namePattern.Matches(jsonContent);
 
-            for (int i = 0; i < Math.Min(matches.Count, choices.Count); i++)
+            // Find all description matches
+            MatchCollection descMatches = descPattern.Matches(jsonContent);
+
+            // Use the smaller collection to avoid index out of bounds
+            int matchCount = Math.Min(nameMatches.Count, descMatches.Count);
+            matchCount = Math.Min(matchCount, choices.Count);
+
+            // Extract and create choice narratives
+            for (int i = 0; i < matchCount; i++)
             {
-                Match match = matches[i];
-                string name = match.Groups[1].Value.Replace("\\\"", "\"");
-
-                // Get description from either group 2 or 3, whichever has a value
-                string description = string.IsNullOrEmpty(match.Groups[2].Value) ?
-                                     match.Groups[3].Value : match.Groups[2].Value;
-                description = description.Replace("\\\"", "\"");
+                string name = nameMatches[i].Groups[1].Value;
+                string description = descMatches[i].Groups[1].Value;
 
                 if (!string.IsNullOrWhiteSpace(name) || !string.IsNullOrWhiteSpace(description))
                 {
                     result[choices[i]] = new ChoiceNarrative(name, description);
                 }
             }
+
+            return matchCount > 0;
         }
         catch
         {
-            // Ignore regex errors - this is a last resort attempt
+            return false;
         }
+    }
+
+    private static void FallbackLineParser(string content, List<CardDefinition> choices, Dictionary<CardDefinition, ChoiceNarrative> result)
+    {
+        // This is the most aggressive parser for when all else fails
+        // It simply looks for name/description patterns line by line
+
+        List<string> names = new List<string>();
+        List<string> descriptions = new List<string>();
+
+        string[] lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+        bool inName = false;
+        bool inDescription = false;
+        string currentName = "";
+        string currentDescription = "";
+
+        foreach (string line in lines)
+        {
+            string trimmedLine = line.Trim();
+
+            // Check for name start
+            if (trimmedLine.Contains("\"name\"") || trimmedLine.Contains("\"title\""))
+            {
+                if (inDescription && !string.IsNullOrWhiteSpace(currentDescription))
+                {
+                    descriptions.Add(currentDescription);
+                    currentDescription = "";
+                }
+
+                inName = true;
+                inDescription = false;
+                currentName = ExtractValue(trimmedLine);
+
+                if (!string.IsNullOrWhiteSpace(currentName))
+                {
+                    names.Add(currentName);
+                    currentName = "";
+                    inName = false;
+                }
+
+                continue;
+            }
+
+            // Check for description start
+            if (trimmedLine.Contains("\"description\"") || trimmedLine.Contains("\"text\""))
+            {
+                if (inName && !string.IsNullOrWhiteSpace(currentName))
+                {
+                    names.Add(currentName);
+                    currentName = "";
+                }
+
+                inName = false;
+                inDescription = true;
+                currentDescription = ExtractValue(trimmedLine);
+
+                if (!string.IsNullOrWhiteSpace(currentDescription) &&
+                    (trimmedLine.EndsWith("\",") || trimmedLine.EndsWith("\"")))
+                {
+                    descriptions.Add(currentDescription);
+                    currentDescription = "";
+                    inDescription = false;
+                }
+
+                continue;
+            }
+
+            // Continue collecting multiline values
+            if (inName)
+            {
+                currentName += " " + trimmedLine.Replace("\"", "").Replace(",", "");
+
+                if (trimmedLine.EndsWith("\",") || trimmedLine.EndsWith("\""))
+                {
+                    names.Add(currentName);
+                    currentName = "";
+                    inName = false;
+                }
+            }
+            else if (inDescription)
+            {
+                currentDescription += " " + trimmedLine.Replace("\"", "").Replace(",", "");
+
+                if (trimmedLine.EndsWith("\",") || trimmedLine.EndsWith("\""))
+                {
+                    descriptions.Add(currentDescription);
+                    currentDescription = "";
+                    inDescription = false;
+                }
+            }
+        }
+
+        // Add any remaining items
+        if (inName && !string.IsNullOrWhiteSpace(currentName))
+        {
+            names.Add(currentName);
+        }
+
+        if (inDescription && !string.IsNullOrWhiteSpace(currentDescription))
+        {
+            descriptions.Add(currentDescription);
+        }
+
+        // Assemble the results
+        int count = Math.Min(Math.Min(names.Count, descriptions.Count), choices.Count);
+
+        for (int i = 0; i < count; i++)
+        {
+            result[choices[i]] = new ChoiceNarrative(names[i], descriptions[i]);
+        }
+    }
+
+    private static string ExtractValue(string line)
+    {
+        int colonPos = line.IndexOf(':');
+        if (colonPos < 0) return "";
+
+        string afterColon = line.Substring(colonPos + 1).Trim();
+
+        if (afterColon.StartsWith("\""))
+        {
+            int endQuote = afterColon.LastIndexOf('"');
+            if (endQuote > 0)
+            {
+                return afterColon.Substring(1, endQuote - 1);
+            }
+            else if (afterColon.Length > 1)
+            {
+                return afterColon.Substring(1);
+            }
+        }
+
+        return "";
     }
 
     private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
@@ -339,12 +700,6 @@ public static class NarrativeJsonParser
                   .Replace("shouldn\"t", "shouldn't")
                   .Replace("hasn\"t", "hasn't")
                   .Replace("haven\"t", "haven't");
-
-        // Fix apostrophes more generally (looking for word"s patterns)
-        json = Regex.Replace(json, "([a-zA-Z])\"([a-zA-Z])", "$1'$2");
-
-        // Replace escaped quotes that might be breaking the JSON
-        json = json.Replace("\\\"", "'");
 
         return json;
     }
