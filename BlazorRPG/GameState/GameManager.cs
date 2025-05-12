@@ -19,6 +19,7 @@ public class GameManager
     private readonly PlayerProgression playerProgression;
     private readonly ActionProcessor actionProcessor;
     private readonly ContentLoader contentLoader;
+    private readonly GameController gameController;
 
     public GameManager(
         GameState gameState,
@@ -34,6 +35,7 @@ public class GameManager
         PlayerProgression playerProgression,
         ActionProcessor actionProcessor,
         ContentLoader contentLoader,
+        GameController gameController,
         IConfiguration configuration)
     {
         this.gameState = gameState;
@@ -51,6 +53,7 @@ public class GameManager
         this.playerProgression = playerProgression;
         this.actionProcessor = actionProcessor;
         this.contentLoader = contentLoader;
+        this.gameController = gameController;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
     }
@@ -637,5 +640,10 @@ public class GameManager
             .CreateActionFromTemplate(waitAction, string.Empty, string.Empty);
 
         return action;
+    }
+
+    internal async Task CreateNpc()
+    {
+        NpcCharacter npc = await gameController.GenerateNewNpcAsync();
     }
 }

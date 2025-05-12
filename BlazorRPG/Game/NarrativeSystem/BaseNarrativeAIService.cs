@@ -2,23 +2,18 @@
 {
     protected readonly AIClient _aiClient;
     protected readonly PromptManager _promptManager;
-    protected readonly ILogger<EncounterSystem> _logger;
     protected readonly string _gameInstanceId;
 
     protected BaseNarrativeAIService(
         IAIProvider aiProvider,
         IConfiguration configuration,
-        ILogger<EncounterSystem> logger,
         NarrativeLogManager narrativeLogManager
         )
     {
         _gameInstanceId = $"game_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString().Substring(0, 8)}";
 
         _promptManager = new PromptManager(configuration);
-        _logger = logger;
-        _aiClient = new AIClient(aiProvider, _gameInstanceId, logger, narrativeLogManager);
-
-        _logger?.LogInformation($"Initialized NarrativeAIService with {aiProvider.Name} and game instance ID: {_gameInstanceId}");
+        _aiClient = new AIClient(aiProvider, _gameInstanceId, narrativeLogManager);
     }
 
     public string GetProviderName()

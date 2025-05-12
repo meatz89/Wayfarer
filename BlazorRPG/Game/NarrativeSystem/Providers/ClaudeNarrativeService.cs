@@ -15,7 +15,7 @@
         ILogger<EncounterSystem> logger,
         NarrativeLogManager narrativeLogManager
         )
-        : base(new ClaudeProvider(configuration, logger), configuration, logger, narrativeLogManager)
+        : base(new ClaudeProvider(configuration, logger), configuration, narrativeLogManager)
     {
         PostEncounterEvolutionParser = postEncounterEvolutionParser;
         _contextManager = narrativeContextManager;

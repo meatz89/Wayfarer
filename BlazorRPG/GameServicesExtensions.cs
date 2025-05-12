@@ -33,6 +33,7 @@
         services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<GameManager>();
+        services.AddSingleton<GameController>();
         services.AddSingleton<NarrativeLogManager>();
         services.AddSingleton<NarrativeContextManager>();
         services.AddSingleton<LocationCreationSystem>();
@@ -41,6 +42,17 @@
         services.AddSingleton<NarrativeService>();
         services.AddSingleton<PostEncounterEvolutionParser>();
         services.AddSingleton<EnvironmentalPropertyManager>();
+
+        services.AddSingleton<OllamaService>(provider => {
+            ILogger<OllamaService> logger = provider.GetRequiredService<ILogger<OllamaService>>();
+            IConfiguration config = provider.GetRequiredService<IConfiguration>();
+            NarrativeLogManager logManager = provider.GetRequiredService<NarrativeLogManager>();
+
+            string gameInstanceId = Guid.NewGuid().ToString();
+            string ollamaBaseUrl = config["ollamaBaseUrl"] ?? "http://localhost:11434";
+
+            return new OllamaService(gameInstanceId, ollamaBaseUrl, logManager);
+        });
 
         return services;
     }
