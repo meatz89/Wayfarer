@@ -1,12 +1,18 @@
 version: '3'
 services:
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama:rocm  # AMD GPU-optimized image
     ports:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
       - ./scripts:/app/scripts
+    devices:
+      - /dev/kfd:/dev/kfd  # AMD GPU device mapping
+      - /dev/dri:/dev/dri  # AMD GPU device mapping
+    environment:
+      - HSA_OVERRIDE_GFX_VERSION=10.3.0  # Helps with AMD GPU compatibility
+      - ROCR_VISIBLE_DEVICES=0  # Use first GPU
     restart: unless-stopped
     entrypoint: ["/app/scripts/startup-with-model.sh"]
 
