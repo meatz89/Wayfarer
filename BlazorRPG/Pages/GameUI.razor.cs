@@ -393,15 +393,15 @@ public partial class GameUI : ComponentBase
         return portraitPath;
     }
 
-    private string GetArchetypeIcon(ArchetypeTypes archetype)
+    private string GetArchetypeIcon(Professions archetype)
     {
         return archetype switch
         {
-            ArchetypeTypes.Guard => "⚔️",
-            ArchetypeTypes.Scholar => "📚",
-            ArchetypeTypes.Explorer => "🏹",
-            ArchetypeTypes.Diplomat => "🎵",
-            ArchetypeTypes.Rogue => "🗝️",
+            Professions.Warrior => "⚔️",
+            Professions.Scholar => "📚",
+            Professions.Mystic => "🏹",
+            Professions.Diplomat => "🎵",
+            Professions.Ranger => "🗝️",
             _ => "❓"
         };
     }

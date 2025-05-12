@@ -6,7 +6,7 @@
     public string Background { get; set; }
 
     // Archetype
-    public ArchetypeTypes Archetype { get; set; }
+    public Professions Archetype { get; set; }
 
     // Progression systems
     public int Level { get; set; } = 1;
@@ -87,7 +87,7 @@
         Spirit = MaxSpirit;
     }
 
-    public void Initialize(string playerName, ArchetypeTypes selectedArchetype, Genders gender)
+    public void Initialize(string playerName, Professions selectedArchetype, Genders gender)
     {
         Name = playerName;
         Gender = gender;
@@ -98,28 +98,28 @@
         IsInitialized = true;
     }
 
-    public void SetArchetype(ArchetypeTypes archetype)
+    public void SetArchetype(Professions archetype)
     {
         this.Archetype = archetype;
 
         switch (archetype)
         {
-            case ArchetypeTypes.Guard:
+            case Professions.Warrior:
                 InitializeGuard();
                 break;
-            case ArchetypeTypes.Diplomat:
+            case Professions.Diplomat:
                 InitializeDiplomat();
                 break;
-            case ArchetypeTypes.Scholar:
+            case Professions.Scholar:
                 InitializeScholar();
                 break;
-            case ArchetypeTypes.Explorer:
+            case Professions.Mystic:
                 InitializeExplorer();
                 break;
-            case ArchetypeTypes.Rogue:
+            case Professions.Ranger:
                 InitializeRogue();
                 break;
-            case ArchetypeTypes.Merchant:
+            case Professions.Courtier:
                 InitializeMerchant();
                 break;
 

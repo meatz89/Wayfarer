@@ -5,7 +5,7 @@
     };
 
 
-    public ArchetypeTypes PlayerArchetype = ArchetypeTypes.Guard;
+    public Professions PlayerArchetype = Professions.Warrior;
 
     public string Background = string.Empty;
     public string Name = "Wayfarer";

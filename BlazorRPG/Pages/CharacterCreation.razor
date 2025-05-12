@@ -18,7 +18,7 @@
         <h4>Choose Your Profession</h4>
         <div class="archetype-selection">
             <div class="archetype-options">
-                @foreach (ArchetypeTypes archetype in Enum.GetValues(typeof(ArchetypeTypes)))
+                @foreach (Professions archetype in Enum.GetValues(typeof(Professions)))
                 {
                     <div class="archetype-option @(selectedArchetype == archetype ? "selected" : "")"
                     @onclick="() => SelectArchetype(archetype)">
@@ -85,7 +85,7 @@
     [Inject] protected GameState GameState { get; set; }
 
     private string playerName;
-    private ArchetypeTypes selectedArchetype = ArchetypeTypes.Guard;
+    private Professions selectedArchetype = Professions.Warrior;
     private Genders selectedGender = Genders.Male;
     private bool changingImage = false;
     private bool changingContent = false;
@@ -124,7 +124,7 @@
         GenerateRandomName();
     }
 
-    private void SelectArchetype(ArchetypeTypes archetype)
+    private void SelectArchetype(Professions archetype)
     {
         if (selectedArchetype == archetype) return;
 
@@ -164,7 +164,7 @@
             : FemaleNames[random.Next(FemaleNames.Count)];
     }
 
-    private string GetShortDescription(ArchetypeTypes archetype)
+    private string GetShortDescription(Professions archetype)
     {
         // Return a shortened version of the description (just first sentence or two)
         string fullDesc = GetArchetypeDescription(archetype);
@@ -190,7 +190,7 @@
         await OnCharacterCreated.InvokeAsync(GameState.PlayerState);
     }
 
-    private string FormatArchetypeName(ArchetypeTypes archetype)
+    private string FormatArchetypeName(Professions archetype)
     {
         // Convert enum name to a formatted string (e.g., "WarriorType" to "Warrior Type")
         return System.Text.RegularExpressions.Regex.Replace(
@@ -200,52 +200,89 @@
             System.Text.RegularExpressions.RegexOptions.Compiled).Trim();
     }
 
-    private string GetArchetypeImage(ArchetypeTypes archetype)
+    private string GetArchetypeImage(Professions archetype)
     {
         string selectedGenderString = selectedGender.ToString().ToLower();
         string imagePath = $"/images/characters/{selectedGenderString}_{selectedArchetype.ToString().ToLower()}.png";
         return imagePath;
     }
 
-    private string GetArchetypeDescription(ArchetypeTypes archetype)
+    private string GetArchetypeDescription(Professions archetype)
     {
         return archetype switch
         {
-            ArchetypeTypes.Guard => "Strong of arm and steady of purpose, Guards ensure the village thrives—mending roofs, reinforcing walls, and crafting essential tools for daily life.",
-            ArchetypeTypes.Rogue => "Lightfooted wanderers of alley and backroad, Rogues excel at discreet tasks—liberating keys from locked chests, gathering secrets, and slipping unnoticed through crowds.",
-            ArchetypeTypes.Diplomat => "Eloquent voices at court and council, Diplomats soothe disputes, broker alliances, and settle rival ambitions with words rather than blades.",
-            ArchetypeTypes.Merchant => "Shrewd traders versed in supply and demand, Merchants move goods along trade routes, bargain for profit, and keep markets bustling.",
-            ArchetypeTypes.Explorer => "Adventurous travelers into forests and hills, Explorers chart unseen paths, gather medicinal herbs, and return with tales to enrich community life.",
-            ArchetypeTypes.Scholar => "Quiet seekers of knowledge in dusty halls, Scholars pore over ancient scrolls, record the town’s story, and guide others with learned counsel.",
+            Professions.Warrior => "With hands scarred from a thousand labors and eyes that measure the weight of a blade in a single glance, you navigate the world through sheer physical mastery. While scholars debate ancient texts, you've been busy building, breaking, and reshaping the world with calloused hands and unyielding determination. You speak through action and demonstration—a fact that leaves nobles both impressed by your capabilities and puzzled by your blunt manner. Villages whisper your name when trouble looms, though fine society might find your unvarnished honesty somewhat... abrasive.",
+            Professions.Scholar => "The world reveals its secrets to those who know how to look—and you've spent a lifetime perfecting that art. Where others see coincidence, you discern patterns; where they hear noise, you detect meaning. Your mind dissects problems with surgical precision, though your body might protest at carrying your ever-growing collection of notes and reference materials. You've learned enough social graces to secure patronage and share your insights, though you occasionally catch yourself analyzing conversations rather than participating in them. Ink stains your fingers permanently, a badge of honor in your personal war against ignorance.",
+            Professions.Courtier => "You dance through social waters with the same effortless grace that others struggle to walk a straight line. Your laugh can disarm a hostile room; your whispered suggestion can redirect the course of a kingdom. Court intrigue is your battlefield, reputation your weapon, and influence your treasure. You've maintained just enough physical capability to keep up appearances—whether that's dancing until dawn or deftly handling a decorative dueling blade. What you perceive, you perceive through the lens of human ambition and desire, finding that understanding people renders understanding abstract ideas largely unnecessary. After all, in your world, perception is reality.",
+            Professions.Ranger => "The road speaks to you in a language urban dwellers have forgotten—the crack of a twig that signals danger, the subtle change in wind that promises rain. Your body has been shaped by the wilderness—lean, efficient, purposeful. Though no philosopher, you've picked up enough charm and common sense to trade in villages and share stories by campfires, making you a welcome sight at remote settlements. What you miss in scholarly understanding, you make up for in practical knowledge—how to find water, mend what's broken, and reach destinations others consider unreachable. The rhythm of your footfalls matches the pulse of wild places better than any book-learned theory.",
+            Professions.Mystic => "Your gaze has always cut deeper than others', perceiving the threads that connect seemingly random events. You notice patterns in starlight, significance in a falling leaf, meaning in coincidence. People find your insights either mesmerizing or deeply unsettling—there seems to be no middle ground. The physical world receives your grudging participation; you've learned enough to sustain your body, though your mind constantly wanders to more interesting realms. Social niceties often feel like rituals in a language you never quite mastered, leaving you isolated yet strangely content in that solitude. Some call you sage, others call you madman—you find both labels equally amusing.",
+            Professions.Diplomat => "Words flow from your lips like fine wine—sometimes sweet, sometimes sharp, but always potent. Where warriors see problems to overcome through force, you see knots to untangle through carefully chosen phrases. Your greatest weapon is the perfectly timed silence, your finest armor the disarming smile. Though you might struggle to lift a blacksmith's hammer, you've learned to wield something far more powerful—the desires and fears that drive all human interaction. Courts and councils value your mediation; merchants seek your negotiation skills. Your greatest victory is when others believe your subtle guidance was their own idea all along.",
             _ => "An undefined soul wandering uncertain roads"
         };
     }
 
-    private string GetNaturalTags(ArchetypeTypes archetype)
+    private string GetNaturalTags(Professions archetype)
     {
         return archetype switch
         {
-            ArchetypeTypes.Guard => "+Force, -Contemplation",
-            ArchetypeTypes.Rogue => "+Precision, -Rapport",
-            ArchetypeTypes.Diplomat => "+Rapport, -Precision",
-            ArchetypeTypes.Merchant => "+Persuasion, -Observation",
-            ArchetypeTypes.Explorer => "+Observation, -Persuasion",
-            ArchetypeTypes.Scholar => "+Contemplation, -Force",
+            Professions.Warrior => "+Physical, oMental, -Social",
+            Professions.Scholar => "+Mental oSocial, -Physical",
+            Professions.Courtier => "+Social, oPhysical, -Mental",
+            Professions.Ranger => "+Physical, oSocial, -Mental",
+            Professions.Mystic => "+Mental, oPhysical, -Social",
+            Professions.Diplomat => "+Social, oMental, -Physical",
             _ => "None"
         };
     }
 
-    private List<string> GetStartingItems(ArchetypeTypes archetype)
+    private List<string> GetStartingItems(Professions archetype)
     {
         return archetype switch
         {
-            ArchetypeTypes.Guard => new List<string> { "Toolkit", "Work Gloves", "Sturdy Garment", "Backpack", "Rations" },
-            ArchetypeTypes.Rogue => new List<string> { "Basic Cloak", "Lockpick Set", "Small Blade", "Backpack", "Rations" },
-            ArchetypeTypes.Diplomat => new List<string> { "Fine Garment", "Sealing Wax", "Letter Set", "Journal", "Coin Pouch" },
-            ArchetypeTypes.Merchant => new List<string> { "Ledger", "Scales", "Sample Pouch", "Trade Papers", "Coin Pouch" },
-            ArchetypeTypes.Explorer => new List<string> { "Field Journal", "Herb Pouch", "Map", "Waterskin", "Rations" },
-            ArchetypeTypes.Scholar => new List<string> { "Quill & Ink", "Notebook", "Spectacles", "Scroll", "Reference Text" },
+            Professions.Warrior => new List<string>
+        {
+            "Warrior's Maintenance Kit",
+            "Sturdy Gloves",
+            "Meditation Stone",
+            "Traveler's Guidebook"
+        },
+            Professions.Scholar => new List<string>
+        {
+            "Research Journal",
+            "Reading Spectacles",
+            "Herbal Tea Set",
+            "Sturdy Walking Staff"
+        },
+            Professions.Courtier => new List<string>
+        {
+            "Formal Attire",
+            "Perfumed Handkerchief",
+            "Silver Flask",
+            "Traveler's Guide to Local Customs"
+        },
+            Professions.Ranger => new List<string>
+        {
+            "Journeyman's Boots",
+            "Hunting Kit",
+            "Weather-Resistant Cloak",
+            "Tavern Token Collection"
+        },
+            Professions.Mystic => new List<string>
+        {
+            "Meditation Beads",
+            "Symbolic Pendant",
+            "Herbal Bundle",
+            "Sturdy Work Gloves"
+        },
+            Professions.Diplomat => new List<string>
+        {
+            "Diplomatic Seal",
+            "Writing Kit",
+            "Quality Wine",
+            "Traveler's Satchel"
+        },
             _ => new List<string> { "Rations" }
         };
     }
+
 }
