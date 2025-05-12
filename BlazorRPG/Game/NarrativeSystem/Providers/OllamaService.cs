@@ -3,6 +3,7 @@
 public class OllamaService
 {
     private readonly NpcCharacterGenerator _characterGenerator;
+    private readonly OllamaProvider ollamaProvider;
 
     public OllamaService(
         string gameInstanceId,
@@ -10,7 +11,7 @@ public class OllamaService
         NarrativeLogManager logManager)
     {
         // Create the AI provider and client
-        IAIProvider ollamaProvider = new OllamaProvider(ollamaBaseUrl);
+        ollamaProvider = new OllamaProvider(ollamaBaseUrl);
         AIClient aiClient = new AIClient(ollamaProvider, gameInstanceId, logManager);
 
         // Initialize character generator
@@ -23,7 +24,8 @@ public class OllamaService
         string gender = "",
         int minAge = 18,
         int maxAge = 60,
-        string additionalTraits = "")
+        string additionalTraits = "",
+        IResponseStreamWatcher watcher = null)
     {
         CharacterGenerationRequest request = new CharacterGenerationRequest
         {
@@ -35,7 +37,8 @@ public class OllamaService
             AdditionalTraits = additionalTraits
         };
 
-        NpcCharacter character = await _characterGenerator.GenerateCharacterAsync(request);
+        // Pass the watcher to the character generator
+        NpcCharacter character = await _characterGenerator.GenerateCharacterAsync(request, watcher);
         return character;
     }
 

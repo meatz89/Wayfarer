@@ -9,8 +9,19 @@ public class NpcCharacterGenerator
         _aiClient = aiClient ?? throw new ArgumentNullException(nameof(aiClient));
     }
 
-    public async Task<NpcCharacter> GenerateCharacterAsync(CharacterGenerationRequest request)
+    public async Task<NpcCharacter> GenerateCharacterAsync(CharacterGenerationRequest request,
+        IResponseStreamWatcher watcher)
     {
+        List<ConversationEntry> messages = BuildCharacterGenerationPrompt(request);
+
+        string response = await _aiClient.GetCompletionAsync(messages, null, null, watcher);
+        NpcCharacter character = OllamaResponseParser.ParseCharacterJson(response);
+        return character;
+    }
+
+    private List<ConversationEntry> BuildCharacterGenerationPrompt(CharacterGenerationRequest request)
+    {
+        // Same implementation as before
         List<ConversationEntry> messages = new List<ConversationEntry>();
 
         // System message with instructions
@@ -55,9 +66,6 @@ Your response must be ONLY this JSON with no other text, headers, or explanation
                       $"Additional traits: {request.AdditionalTraits}"
         });
 
-        // The model should already be pulled and available
-        string response = await _aiClient.GetCompletionAsync(messages, null, null);
-        NpcCharacter character = OllamaResponseParser.ParseCharacterJson(response);
-        return character;
+        return messages;
     }
 }

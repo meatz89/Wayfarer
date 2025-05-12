@@ -14,7 +14,11 @@
         this._logManager = logManager;
     }
 
-    public async Task<string> GetCompletionAsync(IEnumerable<ConversationEntry> conversationMessages, string model, string fallbackModel)
+    public async Task<string> GetCompletionAsync(
+        IEnumerable<ConversationEntry> conversationMessages, 
+        string model, 
+        string fallbackModel,
+        IResponseStreamWatcher watcher = null)
     {
         List<ConversationEntry> messages = conversationMessages.Select(conversationMessage =>
         {
@@ -28,7 +32,11 @@
         return await GetCompletionAsync(messages, model, fallbackModel);
     }
 
-    public async Task<string> GetCompletionAsync(List<ConversationEntry> messages, string model, string fallbackModel)
+    public async Task<string> GetCompletionAsync(
+        List<ConversationEntry> messages, 
+        string model, 
+        string fallbackModel,
+        IResponseStreamWatcher watcher)
     {
         string conversationId = Guid.NewGuid().ToString();
         string jsonResponse = null;
@@ -48,7 +56,11 @@
             };
 
             // The actual API call is delegated to the provider implementation
-            string result = await _aiProvider.GetCompletionAsync(messages, model, fallbackModel);
+            string result = await _aiProvider.GetCompletionAsync(
+                messages, 
+                model, 
+                fallbackModel,
+                watcher);
 
             // Trim any potential whitespace
             result = result?.Trim();

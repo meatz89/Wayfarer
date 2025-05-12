@@ -33,7 +33,11 @@ public class ClaudeProvider : IAIProvider
         _httpClient.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
     }
 
-    public async Task<string> GetCompletionAsync(List<ConversationEntry> messages, string model, string fallbackModel)
+    public async Task<string> GetCompletionAsync(
+        List<ConversationEntry> messages, 
+        string model, 
+        string fallbackModel, 
+        IResponseStreamWatcher watcher)
     {
         // Extract system message if present
         List<ConversationEntry> messagesList = messages.ToList();
