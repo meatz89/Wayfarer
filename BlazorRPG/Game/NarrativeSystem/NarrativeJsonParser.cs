@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Collections.Generic;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 public static class NarrativeJsonParser
@@ -7,201 +9,292 @@ public static class NarrativeJsonParser
     {
         Dictionary<CardDefinition, ChoiceNarrative> result = new Dictionary<CardDefinition, ChoiceNarrative>();
 
-        // Extract JSON content
-        string jsonContent = ExtractJsonContent(response);
-        if (string.IsNullOrWhiteSpace(jsonContent))
+        if (string.IsNullOrWhiteSpace(response) || choices == null || choices.Count == 0)
         {
             return result;
         }
 
-        // Verify JSON structure before attempting to parse
-        if (!IsValidJsonStructure(jsonContent))
+        try
         {
-            // Try to extract individual choices if full JSON is malformed
-            return ExtractChoicesManually(jsonContent, choices);
+            // Clean up the response to remove markdown code blocks
+            response = response.Replace("```json", "").Replace("```", "");
+
+            // Extract JSON content
+            string jsonContent = ExtractJsonContent(response);
+            if (string.IsNullOrWhiteSpace(jsonContent))
+            {
+                return result;
+            }
+
+            // Fix common JSON errors before parsing
+            jsonContent = FixCommonJsonErrors(jsonContent);
+
+            // Try to parse the JSON
+            try
+            {
+                JsonDocumentOptions documentOptions = new JsonDocumentOptions
+                {
+                    AllowTrailingCommas = true,
+                    CommentHandling = JsonCommentHandling.Skip
+                };
+
+                using (JsonDocument document = JsonDocument.Parse(jsonContent, documentOptions))
+                {
+                    JsonElement root = document.RootElement;
+                    ProcessJsonElement(root, choices, result);
+                }
+            }
+            catch (JsonException)
+            {
+                // If JSON parsing fails, try to extract individual choices using regex
+                ExtractChoicesWithRegex(jsonContent, choices, result);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle any other exceptions
+            // Consider logging the error here if needed
         }
 
-        // Try to parse as a complete ChoicesResponse
-        JsonSerializerOptions options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            AllowTrailingCommas = true,
-            ReadCommentHandling = JsonCommentHandling.Skip
-        };
+        return result;
+    }
 
-        using (JsonDocument document = JsonDocument.Parse(jsonContent, new JsonDocumentOptions
+    private static void ProcessJsonElement(JsonElement root, List<CardDefinition> choices, Dictionary<CardDefinition, ChoiceNarrative> result)
+    {
+        // Try to process as an object with a "choices" property
+        if (root.TryGetProperty("choices", out JsonElement choicesElement) &&
+            choicesElement.ValueKind == JsonValueKind.Array)
         {
-            AllowTrailingCommas = true,
-            CommentHandling = JsonCommentHandling.Skip
-        }))
-        {
-            JsonElement root = document.RootElement;
+            ProcessChoicesArray(choicesElement, choices, result);
+            return;
+        }
 
-            // Look for "choices" array property
-            if (root.TryGetProperty("choices", out JsonElement choicesElement) &&
-                choicesElement.ValueKind == JsonValueKind.Array)
+        // Try to process as a direct array
+        if (root.ValueKind == JsonValueKind.Array)
+        {
+            ProcessChoicesArray(root, choices, result);
+            return;
+        }
+
+        // Try to process as individual choice objects
+        if (root.ValueKind == JsonValueKind.Object)
+        {
+            ProcessIndividualChoices(root, choices, result);
+        }
+    }
+
+    private static void ProcessChoicesArray(JsonElement arrayElement, List<CardDefinition> choices, Dictionary<CardDefinition, ChoiceNarrative> result)
+    {
+        if (arrayElement.ValueKind != JsonValueKind.Array)
+        {
+            return;
+        }
+
+        int index = 0;
+        foreach (JsonElement choice in arrayElement.EnumerateArray())
+        {
+            if (index >= choices.Count) break;
+
+            // Try to extract choice data using multiple approaches
+            string name = "";
+            string description = "";
+
+            // Check for named properties
+            name = GetStringProperty(choice, "name", "");
+            description = GetStringProperty(choice, "description", "");
+
+            // If name is empty, try "title" property
+            if (string.IsNullOrWhiteSpace(name))
             {
-                // Process each choice in the array
-                int index = 0;
-                foreach (JsonElement choice in choicesElement.EnumerateArray())
-                {
-                    if (index >= choices.Count) break;
+                name = GetStringProperty(choice, "title", "");
+            }
 
+            // If description is empty, try "text" or "content" properties
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                description = GetStringProperty(choice, "text",
+                               GetStringProperty(choice, "content", ""));
+            }
+
+            // If we have a name or description, create the ChoiceNarrative
+            if (!string.IsNullOrWhiteSpace(name) || !string.IsNullOrWhiteSpace(description))
+            {
+                result[choices[index]] = new ChoiceNarrative(name, description);
+            }
+
+            index++;
+        }
+    }
+
+    private static void ProcessIndividualChoices(JsonElement root, List<CardDefinition> choices, Dictionary<CardDefinition, ChoiceNarrative> result)
+    {
+        // This handles a non-standard format where the root object might have choice1, choice2 properties
+
+        for (int i = 0; i < choices.Count; i++)
+        {
+            // Try different property name patterns for choices
+            string[] possiblePropertyNames = new[]
+            {
+                "choice" + (i+1), "option" + (i+1), "choice_" + (i+1), "option_" + (i+1),
+                "choice " + (i+1), "option " + (i+1), "choice-" + (i+1), "option-" + (i+1),
+                "choice" + i, "option" + i, "choice_" + i, "option_" + i,
+                "choice " + i, "option " + i, "choice-" + i, "option-" + i
+            };
+
+            foreach (string propName in possiblePropertyNames)
+            {
+                if (root.TryGetProperty(propName, out JsonElement choiceElement))
+                {
                     string name = "";
                     string description = "";
 
-                    if (choice.TryGetProperty("name", out JsonElement nameElement) &&
-                        nameElement.ValueKind == JsonValueKind.String)
+                    if (choiceElement.ValueKind == JsonValueKind.Object)
                     {
-                        name = nameElement.GetString() ?? "";
-                    }
+                        name = GetStringProperty(choiceElement, "name", "");
+                        description = GetStringProperty(choiceElement, "description", "");
 
-                    if (choice.TryGetProperty("description", out JsonElement descElement) &&
-                        descElement.ValueKind == JsonValueKind.String)
+                        // Try alternative property names
+                        if (string.IsNullOrWhiteSpace(name))
+                        {
+                            name = GetStringProperty(choiceElement, "title", "");
+                        }
+
+                        if (string.IsNullOrWhiteSpace(description))
+                        {
+                            description = GetStringProperty(choiceElement, "text",
+                                           GetStringProperty(choiceElement, "content", ""));
+                        }
+                    }
+                    else if (choiceElement.ValueKind == JsonValueKind.String)
                     {
-                        description = descElement.GetString() ?? "";
+                        // If the property is a string, use it as the description
+                        description = choiceElement.GetString() ?? "";
                     }
 
                     if (!string.IsNullOrWhiteSpace(name) || !string.IsNullOrWhiteSpace(description))
                     {
-                        result[choices[index]] = new ChoiceNarrative(name, description);
-                    }
-
-                    index++;
-                }
-            }
-            else
-            {
-                // If there's no "choices" property, try to parse as a direct array
-                if (root.ValueKind == JsonValueKind.Array)
-                {
-                    int index = 0;
-                    foreach (JsonElement choice in root.EnumerateArray())
-                    {
-                        if (index >= choices.Count) break;
-
-                        string name = "";
-                        string description = "";
-
-                        if (choice.TryGetProperty("name", out JsonElement nameElement) &&
-                            nameElement.ValueKind == JsonValueKind.String)
-                        {
-                            name = nameElement.GetString() ?? "";
-                        }
-
-                        if (choice.TryGetProperty("description", out JsonElement descElement) &&
-                            descElement.ValueKind == JsonValueKind.String)
-                        {
-                            description = descElement.GetString() ?? "";
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(name) || !string.IsNullOrWhiteSpace(description))
-                        {
-                            result[choices[index]] = new ChoiceNarrative(name, description);
-                        }
-
-                        index++;
+                        result[choices[i]] = new ChoiceNarrative(name, description);
+                        break; // Found a match for this choice, move to next
                     }
                 }
             }
         }
-
-        return result;
     }
 
-    private static bool IsValidJsonStructure(string jsonContent)
+    private static void ExtractChoicesWithRegex(string jsonContent, List<CardDefinition> choices, Dictionary<CardDefinition, ChoiceNarrative> result)
     {
+        // Use regex to extract choices when JSON parsing fails completely
         try
         {
-            using (JsonDocument.Parse(jsonContent, new JsonDocumentOptions
+            // Pattern to extract name and description
+            string pattern = @"""name""?\s*:\s*""([^""\\]*(?:\\.[^""\\]*)*)""[\s,]*(?:""description""?\s*:\s*""([^""\\]*(?:\\.[^""\\]*)*)""|""text""?\s*:\s*""([^""\\]*(?:\\.[^""\\]*)*)"")?";
+
+            MatchCollection matches = Regex.Matches(jsonContent, pattern, RegexOptions.Singleline);
+
+            for (int i = 0; i < Math.Min(matches.Count, choices.Count); i++)
             {
-                AllowTrailingCommas = true,
-                CommentHandling = JsonCommentHandling.Skip
-            }))
-            {
-                return true;
+                Match match = matches[i];
+                string name = match.Groups[1].Value.Replace("\\\"", "\"");
+
+                // Get description from either group 2 or 3, whichever has a value
+                string description = string.IsNullOrEmpty(match.Groups[2].Value) ?
+                                     match.Groups[3].Value : match.Groups[2].Value;
+                description = description.Replace("\\\"", "\"");
+
+                if (!string.IsNullOrWhiteSpace(name) || !string.IsNullOrWhiteSpace(description))
+                {
+                    result[choices[i]] = new ChoiceNarrative(name, description);
+                }
             }
         }
         catch
         {
-            return false;
+            // Ignore regex errors - this is a last resort attempt
         }
     }
 
-    private static Dictionary<CardDefinition, ChoiceNarrative> ExtractChoicesManually(string content, List<CardDefinition> choices)
+    private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
     {
-        Dictionary<CardDefinition, ChoiceNarrative> result = new Dictionary<CardDefinition, ChoiceNarrative>();
-
-        // Use regex to find choice objects even in malformed JSON
-        string pattern = @"\{[^{}]*""name""[^{}]*""description""[^{}]*\}|\{[^{}]*""description""[^{}]*""name""[^{}]*\}";
-        MatchCollection matches = Regex.Matches(content, pattern);
-
-        for (int i = 0; i < matches.Count && i < choices.Count; i++)
+        if (element.TryGetProperty(propertyName, out JsonElement property))
         {
-            string choiceJson = matches[i].Value;
-
-            // Extract name and description with regex
-            string name = ExtractProperty(choiceJson, "name");
-            string description = ExtractProperty(choiceJson, "description");
-
-            if (!string.IsNullOrWhiteSpace(name) || !string.IsNullOrWhiteSpace(description))
+            if (property.ValueKind == JsonValueKind.String)
             {
-                result[choices[i]] = new ChoiceNarrative(name, description);
+                string value = property.GetString() ?? defaultValue;
+                return !string.IsNullOrWhiteSpace(value) ? value : defaultValue;
+            }
+            else if (property.ValueKind == JsonValueKind.Object ||
+                     property.ValueKind == JsonValueKind.Array)
+            {
+                // Try to get the value as JSON string
+                try
+                {
+                    return property.ToString();
+                }
+                catch
+                {
+                    return defaultValue;
+                }
             }
         }
-
-        return result;
-    }
-
-    private static string ExtractProperty(string json, string propertyName)
-    {
-        string pattern = $@"""{propertyName}""[\s:]*""([^""\\]*(\\.[^""\\]*)*)""";
-        Match match = Regex.Match(json, pattern);
-
-        if (match.Success && match.Groups.Count > 1)
-        {
-            return match.Groups[1].Value;
-        }
-
-        return "";
+        return defaultValue;
     }
 
     private static string ExtractJsonContent(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
-            return "";
+            return "{}";
 
         string content = text.Trim();
 
-        // Find the first occurrence of '{' that could be the start of JSON
-        int startMarker = content.IndexOf('{');
-
-        // Check if we also have a JSON array
+        // Try to find JSON object or array
+        int objectStart = content.IndexOf('{');
         int arrayStart = content.IndexOf('[');
-        if (arrayStart >= 0 && (arrayStart < startMarker || startMarker < 0))
+
+        // Determine which comes first (if any)
+        int startMarker = -1;
+        char startChar = '{';
+
+        if (objectStart >= 0 && (arrayStart < 0 || objectStart < arrayStart))
+        {
+            startMarker = objectStart;
+            startChar = '{';
+        }
+        else if (arrayStart >= 0)
         {
             startMarker = arrayStart;
+            startChar = '[';
         }
 
         if (startMarker < 0)
         {
-            return "";
+            return "{}"; // Return empty object if no JSON found
         }
 
         content = content.Substring(startMarker);
 
         // Find corresponding closing bracket/brace
-        char openChar = content[0];
-        char closeChar = (openChar == '{') ? '}' : ']';
+        char closeChar = (startChar == '{') ? '}' : ']';
 
         int openCount = 1;
         int closeCount = 0;
         int endMarker = -1;
+        bool inString = false;
 
         for (int i = 1; i < content.Length; i++)
         {
-            if (content[i] == openChar) openCount++;
-            else if (content[i] == closeChar) closeCount++;
+            char current = content[i];
+
+            // Handle string literals correctly (don't count braces inside strings)
+            if (current == '"' && (i == 0 || content[i - 1] != '\\'))
+            {
+                inString = !inString;
+                continue;
+            }
+
+            if (inString) continue; // Skip any character inside strings
+
+            if (current == startChar) openCount++;
+            else if (current == closeChar) closeCount++;
 
             if (openCount == closeCount)
             {
@@ -212,14 +305,48 @@ public static class NarrativeJsonParser
 
         if (endMarker >= 0)
         {
-            content = content.Substring(0, endMarker + 1);
+            return content.Substring(0, endMarker + 1);
         }
 
-        // Remove any markdown code block markers
-        content = Regex.Replace(content, @"^```\w*\s*", "");
-        content = Regex.Replace(content, @"\s*```$", "");
+        // If we couldn't find matching braces, return empty object
+        return "{}";
+    }
 
-        return content;
+    private static string FixCommonJsonErrors(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return "{}";
+
+        // Fix missing quotes around property names
+        json = Regex.Replace(json, @"(\{|\,)\s*([a-zA-Z0-9_]+)\s*:", "$1\"$2\":");
+
+        // Fix single quotes used instead of double quotes
+        json = Regex.Replace(json, @"'([^']*)'", "\"$1\"");
+
+        // Fix trailing commas in arrays and objects
+        json = Regex.Replace(json, @",(\s*[\}\]])", "$1");
+
+        // Fix common contractions
+        json = json.Replace("isn\"t", "isn't")
+                  .Replace("aren\"t", "aren't")
+                  .Replace("doesn\"t", "doesn't")
+                  .Replace("didn\"t", "didn't")
+                  .Replace("won\"t", "won't")
+                  .Replace("can\"t", "can't")
+                  .Replace("don\"t", "don't")
+                  .Replace("wouldn\"t", "wouldn't")
+                  .Replace("couldn\"t", "couldn't")
+                  .Replace("shouldn\"t", "shouldn't")
+                  .Replace("hasn\"t", "hasn't")
+                  .Replace("haven\"t", "haven't");
+
+        // Fix apostrophes more generally (looking for word"s patterns)
+        json = Regex.Replace(json, "([a-zA-Z])\"([a-zA-Z])", "$1'$2");
+
+        // Replace escaped quotes that might be breaking the JSON
+        json = json.Replace("\\\"", "'");
+
+        return json;
     }
 
     public static string ExtractNarrativeContext(string fullText)
@@ -229,20 +356,31 @@ public static class NarrativeJsonParser
 
         string text = fullText.Trim();
 
-        // Find the first occurrence of either '{' or '['
-        int jsonStart = text.IndexOf('{');
-        int arrayStart = text.IndexOf('[');
+        // Find the first JSON structure
+        int jsonObjectStart = text.IndexOf('{');
+        int jsonArrayStart = text.IndexOf('[');
 
-        if (arrayStart >= 0 && (arrayStart < jsonStart || jsonStart < 0))
+        int jsonStart = -1;
+        if (jsonObjectStart >= 0 && jsonArrayStart >= 0)
         {
-            jsonStart = arrayStart;
+            jsonStart = Math.Min(jsonObjectStart, jsonArrayStart);
+        }
+        else if (jsonObjectStart >= 0)
+        {
+            jsonStart = jsonObjectStart;
+        }
+        else if (jsonArrayStart >= 0)
+        {
+            jsonStart = jsonArrayStart;
         }
 
-        if (jsonStart <= 0)
+        // If we found a JSON structure, return everything before it
+        if (jsonStart > 0)
         {
-            return text;
+            return text.Substring(0, jsonStart).Trim();
         }
 
-        return text.Substring(0, jsonStart).Trim();
+        // If no JSON found, return the whole text
+        return text;
     }
 }

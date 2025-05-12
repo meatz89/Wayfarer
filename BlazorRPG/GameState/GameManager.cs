@@ -19,7 +19,6 @@ public class GameManager
     private readonly PlayerProgression playerProgression;
     private readonly ActionProcessor actionProcessor;
     private readonly ContentLoader contentLoader;
-    private readonly GameController gameController;
 
     public GameManager(
         GameState gameState,
@@ -35,7 +34,6 @@ public class GameManager
         PlayerProgression playerProgression,
         ActionProcessor actionProcessor,
         ContentLoader contentLoader,
-        GameController gameController,
         IConfiguration configuration)
     {
         this.gameState = gameState;
@@ -53,7 +51,6 @@ public class GameManager
         this.playerProgression = playerProgression;
         this.actionProcessor = actionProcessor;
         this.contentLoader = contentLoader;
-        this.gameController = gameController;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
     }
@@ -154,13 +151,13 @@ public class GameManager
 
         switch (executionType)
         {
-            case ActionExecutionType.Encounter:
+            case ActionExecutionType.Basic:
                 EncounterManager encounterManager = await PrepareEncounter(actionImplementation);
                 gameState.ActionStateTracker.SetActiveEncounter(encounterManager);
 
                 break;
 
-            case ActionExecutionType.Basic:
+            case ActionExecutionType.Encounter:
             default:
                 await ProcessActionCompletion(actionImplementation);
                 break;
@@ -333,8 +330,14 @@ public class GameManager
             LocationSpot = locationSpot,
         };
 
-        EncounterManager encounterManager = await encounterSystem
-            .GenerateEncounter(actionImplementation.Id, location, locationSpot, context, worldState, playerState, actionImplementation);
+        EncounterManager encounterManager = await encounterSystem.GenerateEncounter(
+            actionImplementation.Id, 
+            location, 
+            locationSpot, 
+            context, 
+            worldState, 
+            playerState, 
+            actionImplementation);
 
         List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterManager.EncounterResult);
         gameState.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
@@ -640,10 +643,5 @@ public class GameManager
             .CreateActionFromTemplate(waitAction, string.Empty, string.Empty);
 
         return action;
-    }
-
-    internal async Task CreateNpc()
-    {
-        NpcCharacter npc = await gameController.GenerateNewNpcAsync();
     }
 }

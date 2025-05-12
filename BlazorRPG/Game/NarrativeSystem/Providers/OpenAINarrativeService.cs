@@ -3,6 +3,7 @@
     public PostEncounterEvolutionParser PostEncounterEvolutionParser { get; }
     public NarrativeContextManager _contextManager { get; }
     public NarrativeLogManager NarrativeLogManager { get; }
+    public IResponseStreamWatcher Watcher { get; }
     public IConfiguration Configuration { get; }
 
     private readonly string _model = "o4-mini"; // Default to o4-mini
@@ -12,13 +13,15 @@
         NarrativeContextManager narrativeContextManager,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger,
-        NarrativeLogManager narrativeLogManager
+        NarrativeLogManager narrativeLogManager,
+        IResponseStreamWatcher watcher
         )
         : base(new OpenAIProvider(configuration, logger), configuration, narrativeLogManager)
     {
         PostEncounterEvolutionParser = postEncounterEvolutionParser;
         _contextManager = narrativeContextManager;
         NarrativeLogManager = narrativeLogManager;
+        Watcher = watcher;
         Configuration = configuration;
 
         // Allow model override from config
@@ -39,7 +42,7 @@
 
         string response = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            _model, _model); // Same model for fallback - we're optimizing for speed
+            _model, _model, Watcher); // Same model for fallback - we're optimizing for speed
 
         _contextManager.AddAssistantMessage(conversationId, response, MessageType.Introduction);
 
@@ -70,7 +73,7 @@
 
         string jsonResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            _model, _model);
+            _model, _model, Watcher);
 
         _contextManager.AddAssistantMessage(conversationId, jsonResponse, MessageType.ChoiceGeneration);
         return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
@@ -101,7 +104,7 @@
 
         string narrativeResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            _model, _model);
+            _model, _model, Watcher);
 
         _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
@@ -132,7 +135,7 @@
 
         string narrativeResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            _model, _model);
+            _model, _model, Watcher);
 
         _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
@@ -152,7 +155,7 @@
         List<ConversationEntry> messages = [entrySystem, entryUser];
 
         string jsonResponse = await _aiClient.GetCompletionAsync(messages,
-            _model, _model);
+            _model, _model, Watcher);
 
         return LocationJsonParser.ParseLocationDetails(jsonResponse);
     }
@@ -178,7 +181,7 @@
 
         string jsonResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            _model, _model);
+            _model, _model, Watcher);
 
         PostEncounterEvolutionResult postEncounterEvolutionResponse = await PostEncounterEvolutionParser.ParsePostEncounterEvolutionResponseAsync(jsonResponse);
         return postEncounterEvolutionResponse;
@@ -205,7 +208,7 @@
 
         string memoryContentResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            _model, _model);
+            _model, _model, Watcher);
 
         return memoryContentResponse;
     }
@@ -224,7 +227,7 @@
         List<ConversationEntry> messages = [entrySystem, entryUser];
 
         string jsonResponse = await _aiClient.GetCompletionAsync(messages,
-            _model, _model);
+            _model, _model, Watcher);
 
         return jsonResponse;
     }

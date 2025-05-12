@@ -18,7 +18,7 @@
         IEnumerable<ConversationEntry> conversationMessages, 
         string model, 
         string fallbackModel,
-        IResponseStreamWatcher watcher = null)
+        IResponseStreamWatcher watcher)
     {
         List<ConversationEntry> messages = conversationMessages.Select(conversationMessage =>
         {
@@ -29,7 +29,7 @@
             };
         }).ToList();
 
-        return await GetCompletionAsync(messages, model, fallbackModel);
+        return await GetCompletionAsync(messages, model, fallbackModel, watcher);
     }
 
     public async Task<string> GetCompletionAsync(

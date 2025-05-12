@@ -4,6 +4,7 @@
     public NarrativeContextManager _contextManager { get; }
     public NarrativeLogManager NarrativeLogManager { get; }
     public IConfiguration Configuration { get; }
+    private IResponseStreamWatcher Watcher { get; }
 
     private readonly string _modelHigh;
     private readonly string _modelLow;
@@ -13,17 +14,17 @@
         NarrativeContextManager narrativeContextManager,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger,
-        NarrativeLogManager narrativeLogManager
-        )
+        NarrativeLogManager narrativeLogManager,
+        IResponseStreamWatcher watcher)
         : base(new ClaudeProvider(configuration, logger), configuration, narrativeLogManager)
     {
         PostEncounterEvolutionParser = postEncounterEvolutionParser;
         _contextManager = narrativeContextManager;
         NarrativeLogManager = narrativeLogManager;
+        Watcher = watcher;
         Configuration = configuration;
         _modelHigh = configuration.GetValue<string>("Anthropic:Model") ?? "claude-3-7-sonnet-latest";
         _modelLow = configuration.GetValue<string>("Anthropic:BackupModel") ?? "claude-3-5-haiku-latest";
-
     }
 
     public override async Task<string> GenerateIntroductionAsync(
@@ -47,7 +48,7 @@
 
         string response = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel);
+            model, fallbackModel, Watcher);
 
         _contextManager.AddAssistantMessage(conversationId, response, MessageType.Introduction);
 
@@ -85,7 +86,7 @@
 
         string jsonResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel);
+            model, fallbackModel, Watcher);
 
         _contextManager.AddAssistantMessage(conversationId, jsonResponse, MessageType.ChoiceGeneration);
         return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
@@ -123,7 +124,7 @@
 
         string narrativeResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel);
+            model, fallbackModel, Watcher);
 
         _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
@@ -161,7 +162,7 @@
 
         string narrativeResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel);
+            model, fallbackModel, Watcher);
 
         _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
@@ -189,7 +190,7 @@
         }
 
         string jsonResponse = await _aiClient.GetCompletionAsync(messages,
-            model, fallbackModel);
+            model, fallbackModel, Watcher);
 
         // Parse the JSON response into location details
         return LocationJsonParser.ParseLocationDetails(jsonResponse);
@@ -225,7 +226,7 @@
 
         string jsonResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel);
+            model, fallbackModel, Watcher);
 
         PostEncounterEvolutionResult postEncounterEvolutionResponse = await PostEncounterEvolutionParser.ParsePostEncounterEvolutionResponseAsync(jsonResponse);
         return postEncounterEvolutionResponse;
@@ -260,7 +261,7 @@
 
         string memoryContentResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel);
+            model, fallbackModel, Watcher);
 
         return memoryContentResponse;
     }
@@ -286,7 +287,7 @@
         }
 
         string jsonResponse = await _aiClient.GetCompletionAsync(messages,
-            model, fallbackModel);
+            model, fallbackModel, Watcher);
 
         return jsonResponse;
     }

@@ -14,13 +14,7 @@ public class ClaudeProvider : IAIProvider
     private const int InitialDelayMilliseconds = 1000;
     private readonly Random _jitterer = new Random();
 
-    public string Name
-    {
-        get
-        {
-            return "Anthropic Claude";
-        }
-    }
+    public string Name => "Anthropic Claude";
 
     public ClaudeProvider(IConfiguration configuration, ILogger<EncounterSystem> logger)
     {
@@ -34,9 +28,9 @@ public class ClaudeProvider : IAIProvider
     }
 
     public async Task<string> GetCompletionAsync(
-        List<ConversationEntry> messages, 
-        string model, 
-        string fallbackModel, 
+        List<ConversationEntry> messages,
+        string model,
+        string fallbackModel,
         IResponseStreamWatcher watcher)
     {
         // Extract system message if present
@@ -64,11 +58,118 @@ public class ClaudeProvider : IAIProvider
             };
         }).ToArray();
 
-        return await ExecuteWithRetryAsync(formattedMessages, systemMessage, model, fallbackModel);
+        if (watcher != null)
+        {
+            return await ExecuteWithStreamingAsync(formattedMessages, systemMessage, model, fallbackModel, watcher);
+        }
+        else
+        {
+            return await ExecuteWithRetryAsync(formattedMessages, systemMessage, model, fallbackModel);
+        }
+    }
+
+    private async Task<string> ExecuteWithStreamingAsync(
+        object[] messages,
+        string systemMessage,
+        string model,
+        string fallbackModel,
+        IResponseStreamWatcher watcher)
+    {
+        // Format the request with streaming enabled
+        var requestBody = new
+        {
+            model = model,
+            messages = messages,
+            system = systemMessage,
+            max_tokens = 5000,
+            temperature = 0.7,
+            stream = true  // Enable streaming
+        };
+
+        StringContent content = new StringContent(
+            JsonSerializer.Serialize(requestBody),
+            Encoding.UTF8,
+            "application/json"
+        );
+
+        try
+        {
+            _logger?.LogInformation($"Sending streaming request to Claude API using model: {model}");
+
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, RequestUri)
+            {
+                Content = content
+            };
+
+            // Add headers required for streaming
+            request.Headers.Add("x-api-key", _apiKey);
+            request.Headers.Add("anthropic-version", "2023-06-01");
+
+            using HttpResponseMessage response = await _httpClient.SendAsync(
+                request,
+                HttpCompletionOption.ResponseHeadersRead);
+
+            response.EnsureSuccessStatusCode();
+
+            using Stream stream = await response.Content.ReadAsStreamAsync();
+            using StreamReader reader = new StreamReader(stream);
+
+            StringBuilder fullResponseBuilder = new StringBuilder();
+
+            // Process the stream line by line (Claude uses SSE format)
+            while (!reader.EndOfStream)
+            {
+                string line = await reader.ReadLineAsync();
+
+                if (string.IsNullOrEmpty(line) || !line.StartsWith("data:"))
+                    continue;
+
+                string data = line.Substring(5).Trim();
+                if (data == "[DONE]")
+                    break;
+
+                try
+                {
+                    using JsonDocument doc = JsonDocument.Parse(data);
+                    JsonElement root = doc.RootElement;
+
+                    if (root.TryGetProperty("type", out JsonElement typeElement) &&
+                        typeElement.GetString() == "content_block_delta" &&
+                        root.TryGetProperty("delta", out JsonElement deltaElement) &&
+                        deltaElement.TryGetProperty("text", out JsonElement textElement))
+                    {
+                        string chunk = textElement.GetString() ?? string.Empty;
+                        fullResponseBuilder.Append(chunk);
+
+                        // Report the chunk to the watcher
+                        watcher.OnResponseChunk(chunk);
+                    }
+                }
+                catch (JsonException)
+                {
+                    // Skip malformed JSON
+                    continue;
+                }
+            }
+
+            string finalResponse = fullResponseBuilder.ToString();
+            watcher.OnResponseComplete(finalResponse);
+            return finalResponse;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, $"Error in streaming from Claude API: {ex.Message}");
+            watcher.OnError(ex);
+
+            // Fallback to non-streaming on error
+            return await ExecuteWithRetryAsync(messages, systemMessage, model, fallbackModel);
+        }
     }
 
     private async Task<string> ExecuteWithRetryAsync(object[] messages, string systemMessage, string model, string fallbackModel)
     {
+        // Existing implementation...
+        // (Keeping your original implementation)
         int attempts = 0;
         int delay = InitialDelayMilliseconds;
         string currentModel = model; // Start with primary model
