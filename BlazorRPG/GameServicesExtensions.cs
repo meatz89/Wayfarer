@@ -50,6 +50,7 @@
         services.AddSingleton<NarrativeLogManager>();
         services.AddSingleton<PostEncounterEvolutionParser>();
         services.AddSingleton<IResponseStreamWatcher, ConsoleResponseWatcher>();
+        services.AddSingleton<LoadingStateService>();
 
         // Get configuration to determine which provider to use
         using (ServiceProvider sp = services.BuildServiceProvider())

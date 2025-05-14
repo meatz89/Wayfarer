@@ -10,6 +10,13 @@ public partial class GameUI : ComponentBase
     [Inject] private GameState GameState { get; set; }
     [Inject] private GameManager GameManager { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
+    [Inject] private LoadingStateService LoadingStateService { get; set; }
+
+    private Timer _pollingTimer;
+    private bool _previousLoadingState;
+    private string _previousMessage = string.Empty;
+    private int _previousProgress;
+
 
     public bool hasApLeft = false;
     public bool hasNoApLeft
@@ -161,6 +168,30 @@ public partial class GameUI : ComponentBase
         {
             await InitializeGame();
         }
+
+        _pollingTimer = new Timer(CheckLoadingState, null, 0, 100); 
+    }
+
+    private void CheckLoadingState(object state)
+    {
+        // Check if loading state has changed
+        bool hasChanged = _previousLoadingState != LoadingStateService.IsLoading ||
+            _previousMessage != LoadingStateService.Message ||
+            _previousProgress != LoadingStateService.Progress;
+
+        if (hasChanged)
+        {
+            _previousLoadingState = LoadingStateService.IsLoading;
+            _previousMessage = LoadingStateService.Message;
+            _previousProgress = LoadingStateService.Progress;
+            
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        _pollingTimer?.Dispose();
     }
 
     private async Task ResolvedMissingReferences()
