@@ -24,11 +24,12 @@
                 {
                     @foreach (UserActionOption action in GameState.ActionStateTracker.LocationSpotActions)
                     {
-                        <button class="action-button"
+                        <button class="action-button @GetCardCostClass(action.CardCostType)"
                                 @onclick="() => OnActionSelected.InvokeAsync(action)"
                                 disabled="@(action.IsDisabled)"
                                 @onmouseover="(e) => HandleShowTooltip(action, e)"
                                 @onmouseout="HandleHideTooltip">
+                            <div class="card-cost-indicator"></div>
                             @action.ActionImplementation.Name (@action.ActionImplementation.ActionType)
                         </button>
                     }
@@ -67,6 +68,18 @@
     private UserActionOption hoveredAction;
     private double mouseX;
     private double mouseY;
+
+    
+    private string GetCardCostClass(CardTypes costType)
+    {
+        return costType switch
+        {
+            CardTypes.Physical => "physical-cost",
+            CardTypes.Intellectual => "intellectual-cost",
+            CardTypes.Social => "social-cost",
+            _ => ""
+        };
+    }
 
     private void HandleShowTooltip(UserActionOption action, MouseEventArgs e)
     {

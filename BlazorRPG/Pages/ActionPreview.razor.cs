@@ -7,6 +7,16 @@ public partial class ActionPreviewBase : ComponentBase
     [Parameter] public EventCallback<bool> OnActionConfirmed { get; set; }
     [Parameter] public EventCallback OnBack { get; set; }
 
+    protected string GetCardCostClass(CardTypes costType)
+    {
+        return costType switch
+        {
+            CardTypes.Physical => "physical",
+            CardTypes.Intellectual => "intellectual",
+            CardTypes.Social => "social",
+            _ => ""
+        };
+    }
     public string GetActionName()
     {
         ActionImplementation action = CurrentAction.ActionImplementation;

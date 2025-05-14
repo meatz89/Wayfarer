@@ -64,6 +64,8 @@
     public int MaxFocus;
     public int MaxSpirit;
 
+    public List<Card> Cards { get; private set; } = new List<Card>();
+
     public PlayerState()
     {
         Background = GameRules.StandardRuleset.Background;
@@ -75,6 +77,18 @@
         XPToNextLevel = 100;
 
         NegativeStatusTypes = new();
+
+        Cards = new List<Card>();
+
+        var card1 = new Card() { Name = "Card 1", Type = CardTypes.Physical };
+        var card2 = new Card() { Name = "Card 2", Type = CardTypes.Physical };
+        var card3 = new Card() { Name = "Card 3", Type = CardTypes.Intellectual };
+        var card4 = new Card() { Name = "Card 4", Type = CardTypes.Social };
+
+        Cards.Add(card1);
+        Cards.Add(card2);
+        Cards.Add(card3);
+        Cards.Add(card4);
     }
 
     public void HealFully()
