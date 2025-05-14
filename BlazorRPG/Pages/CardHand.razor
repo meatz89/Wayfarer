@@ -1,0 +1,27 @@
+﻿@* CardHand.razor *@
+@inject GameManager ActionManager
+@inject GameState GameState
+
+@foreach (var card in PlayerCards)
+{
+    <div class="card @GetCardTypeClass(card.Type)" title="@card.Name">
+        <div class="card-content">
+            <div class="card-name">@card.Name</div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public List<Card> PlayerCards { get; set; }
+
+    private string GetCardTypeClass(CardTypes type)
+    {
+        return type switch
+        {
+            CardTypes.Physical => "physical",
+            CardTypes.Intellectual => "intellectual",
+            CardTypes.Social => "social",
+            _ => ""
+        };
+    }
+}

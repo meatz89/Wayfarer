@@ -303,7 +303,7 @@ public partial class GameUI : ComponentBase
             "Wait for one hour", false, waitAction,
             GameState.WorldState.CurrentLocation?.Id ?? "Global",
             GameState.WorldState.CurrentLocationSpot?.Id ?? "Global",
-            null, 0, null);
+            null, 0, null, CardTypes.Physical);
 
         await GameManager.ExecuteAction(waitOption);
 

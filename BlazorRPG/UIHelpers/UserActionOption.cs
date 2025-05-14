@@ -7,5 +7,6 @@
     string LocationSpot,
     string Character,
     int LocationDifficulty,
-    string DisabledReason
+    string DisabledReason,
+    CardTypes CardCostType
 );

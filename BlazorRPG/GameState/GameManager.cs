@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.ActionConstraints;
-
-public class GameManager
+﻿public class GameManager
 {
     private bool _useMemory;
     private bool _processStateChanges;
@@ -236,7 +234,7 @@ public class GameManager
         UserActionOption travelOption = new UserActionOption(
             "Travel to " + locationName, false, travelAction,
             worldState.CurrentLocation.Id, worldState.CurrentLocationSpot.Id,
-            null, worldState.CurrentLocation.Difficulty, null);
+            null, worldState.CurrentLocation.Difficulty, null, CardTypes.Physical);
 
         // Use unified action execution
         await ExecuteAction(travelOption);
@@ -276,7 +274,8 @@ public class GameManager
                     locationSpot.Id,
                     default,
                     location.Difficulty,
-                    string.Empty);
+                    string.Empty,
+                    CardTypes.Physical);
 
             bool requirementsMet = actionProcessor.CanExecute(action.ActionImplementation);
 

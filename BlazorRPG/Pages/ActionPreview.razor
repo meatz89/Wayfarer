@@ -3,6 +3,13 @@
 <div class="action-preview">
     <div class="preview-header">
         <h4>@GetActionName()</h4>
+        @if (CurrentAction.CardCostType != CardTypes.None)
+        {
+            <div class="card-cost-display">
+                <div class="card-preview @GetCardCostClass(CurrentAction.CardCostType)"></div>
+                <span>@CurrentAction.CardCostType Card</span>
+            </div>
+        }
         <p class="action-description">@GetActionDescription()</p>
     </div>
 

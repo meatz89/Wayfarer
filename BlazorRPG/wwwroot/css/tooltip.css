@@ -1,16 +1,15 @@
-﻿
-/* ==================== Tooltip ==================== */
+﻿/* ==================== Tooltip ==================== */
 .tooltip {
 	position: fixed;
 	z-index: 9999;
 	pointer-events: none;
 	background-color: var(--parchment);
-	color: var(--charcoal);
+	color: var(--text-dark-primary); /* Changed from --charcoal */
 	padding: 1rem;
 	border: 1px solid var(--oak-dark);
 	border-radius: 4px;
 	overflow: hidden;
-	box-Rogue: 0 4px 12px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 	.tooltip h4, .tooltip h5 {
@@ -38,8 +37,28 @@
 
 .tooltip-item-content {
 	line-height: 1.5;
+	color: var(--text-dark-primary); /* Added for consistency */
 }
 
 .tooltip-item-name {
-	color: var(--font-tertiary);
+	color: var(--text-dark-secondary); /* Fixed: Changed from var(--font-tertiary) which was a font, not a color */
+}
+
+/* Additional styles for tooltip elements that need proper colors */
+.tooltip-item-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.tooltip-item-title {
+	color: var(--text-dark-primary);
+	display: flex;
+	align-items: center;
+}
+
+.tooltip-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
 }

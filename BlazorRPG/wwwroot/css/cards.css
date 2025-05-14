@@ -1,0 +1,119 @@
+﻿/* ==================== Card System Styles ==================== */
+
+/* Card Hand Display */
+.card-hand {
+	display: flex;
+	gap: 5px;
+	height: 90px;
+	align-items: center;
+	justify-content: center;
+	perspective: 800px;
+}
+
+.card {
+	position: relative;
+	width: 60px;
+	height: 90px;
+	border-radius: 4px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+	background-size: cover;
+	background-repeat: no-repeat;
+	transform-style: preserve-3d;
+}
+
+	.card:hover {
+		transform: translateY(-10px) scale(1.2) rotateY(5deg);
+		z-index: 10;
+		box-shadow: 2px 8px 8px rgba(0, 0, 0, 0.5);
+	}
+
+	.card.physical {
+		background-image: url('/images/cards/card_red.png');
+	}
+
+	.card.intellectual {
+		background-image: url('/images/cards/card_blue.png');
+	}
+
+	.card.social {
+		background-image: url('/images/cards/card_purple.png');
+	}
+
+.card-name {
+	position: absolute;
+	bottom: 5px;
+	left: 0;
+	right: 0;
+	text-align: center;
+	font-size: 8px;
+	color: white;
+	text-shadow: 0 0 2px black;
+	padding: 0 3px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* Card Cost for Action Buttons */
+.action-button {
+	position: relative;
+	padding-left: 30px !important;
+}
+
+	.action-button.physical-cost .card-cost-indicator,
+	.action-button.intellectual-cost .card-cost-indicator,
+	.action-button.social-cost .card-cost-indicator {
+		position: absolute;
+		left: 5px;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 20px;
+		height: 30px;
+		border-radius: 3px;
+		background-size: cover;
+		background-position: center;
+	}
+
+	.action-button.physical-cost .card-cost-indicator {
+		background-image: url('/images/cards/card_red.png');
+	}
+
+	.action-button.intellectual-cost .card-cost-indicator {
+		background-image: url('/images/cards/card_blue.png');
+	}
+
+	.action-button.social-cost .card-cost-indicator {
+		background-image: url('/images/cards/card_purple.png');
+	}
+
+/* Card Preview in Action Preview */
+.card-cost-display {
+	display: flex;
+	align-items: center;
+	margin-bottom: 5px;
+	font-size: 0.9rem;
+	color: var(--text-dark-primary);
+}
+
+.card-preview {
+	width: 24px;
+	height: 36px;
+	border-radius: 2px;
+	margin-right: 8px;
+	background-size: cover;
+	background-position: center;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+	.card-preview.physical {
+		background-image: url('/images/cards/card_red.png');
+	}
+
+	.card-preview.intellectual {
+		background-image: url('/images/cards/card_blue.png');
+	}
+
+	.card-preview.social {
+		background-image: url('/images/cards/card_purple.png');
+	}
