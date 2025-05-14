@@ -1,19 +1,18 @@
-﻿
-public class AIGenerationQueue
+﻿public class AIGenerationQueue
 {
     private readonly object _queueLock = new object();
     private readonly PriorityQueue<AIGenerationCommand, (int Priority, DateTime Timestamp)> _queue = new();
     private readonly IAIProvider _aiProvider;
     private readonly string _gameInstanceId;
     private readonly NarrativeLogManager _logManager;
-    private readonly ILogger _logger;
+    private readonly ILogger<EncounterSystem> _logger;
     private bool _isProcessing = false;
 
     public AIGenerationQueue(
         IAIProvider aiProvider,
         string gameInstanceId,
         NarrativeLogManager logManager,
-        ILogger logger)
+        ILogger<EncounterSystem> logger)
     {
         _aiProvider = aiProvider;
         _gameInstanceId = gameInstanceId;
@@ -26,8 +25,8 @@ public class AIGenerationQueue
         string model,
         string fallbackModel,
         IResponseStreamWatcher watcher,
-        int priority = 5,
-        string sourceSystem = "Unknown")
+        int priority,
+        string sourceSystem)
     {
         AIGenerationCommand command = new AIGenerationCommand(
             messages, model, fallbackModel, watcher, priority, sourceSystem);
