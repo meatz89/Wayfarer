@@ -2,7 +2,6 @@
 {
     private readonly AIGenerationQueue _queue;
     private readonly string _gameInstanceId;
-    private readonly ILogger _logger;
 
     // Priority constants
     public const int PRIORITY_IMMEDIATE = 1;
@@ -14,11 +13,10 @@
     public AIClient(
         IAIProvider aiProvider,
         string gameInstanceId,
-        ILogger logger,
+        ILogger<EncounterSystem> logger,
         NarrativeLogManager logManager)
     {
         _gameInstanceId = gameInstanceId;
-        _logger = logger;
 
         // Create the queue internally
         _queue = new AIGenerationQueue(aiProvider, gameInstanceId, logManager, logger);
