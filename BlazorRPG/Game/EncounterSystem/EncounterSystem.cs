@@ -5,7 +5,6 @@
     private readonly ChoiceRepository choiceRepository;
     private readonly ILogger<EncounterSystem> logger;
 
-    private ResourceManager resourceManager;
     private readonly IAIService _aiService;
     private CardSelectionAlgorithm cardSelector;
 
@@ -18,7 +17,6 @@
     public EncounterSystem(
         GameState gameState,
         MessageSystem messageSystem,
-        ResourceManager resourceManager,
         NarrativeContextManager narrativeContextManager,
         IAIService aiService,
         ChoiceRepository choiceRepository,
@@ -33,15 +31,11 @@
         this.encounterFactory = encounterFactory;
         this.worldStateInputCreator = worldStateInputCreator;
         this.logger = logger;
-
-        this.resourceManager = resourceManager;
         this._aiService = aiService;
 
         _preGenerationManager = new PreGenerationManager();
     }
 
-
-    // Add this method to start pre-generations after displaying choices
     public async Task StartPreGenerationsAsync(EncounterManager encounterManager, NarrativeResult currentNarrative)
     {
         // Clear any existing pre-generated content
@@ -152,7 +146,6 @@
             actionImplementation,
             cardSelector,
             _aiService, // Pass IAIService directly
-            resourceManager,
             worldStateInputCreator,
             configuration,
             logger);

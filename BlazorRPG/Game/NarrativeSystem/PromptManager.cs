@@ -44,16 +44,6 @@ public class PromptManager
     {
         string template = _promptTemplates[INTRO_MD];
 
-        // Get primary approach values
-        string primaryApproach = state.ApproachTags.OrderByDescending(t =>
-        {
-            return t.Value;
-        }).First().Key.ToString();
-        string secondaryApproach = state.ApproachTags.OrderByDescending(t =>
-        {
-            return t.Value;
-        }).Skip(1).First().Key.ToString();
-
         // Format environment and NPC details
         string environmentDetails = $"A {context.locationSpotName.ToLower()} in a {context.LocationName.ToLower()} with difficulty level {state.EncounterInfo?.EncounterDifficulty ?? 1}";
         string timeConstraints = $"Maximum {state.MaxTurns} turns";
@@ -65,7 +55,6 @@ public class PromptManager
 
         // Format player character info
         string characterArchetype = state.PlayerState.Archetype.ToString();
-        string approachStats = FormatApproachValues(state);
 
         ActionImplementation actionImplementation = context.ActionImplementation;
         string encounterGoal = actionImplementation.Description;
@@ -77,7 +66,6 @@ public class PromptManager
             .Replace("{LOCATION_NAME}", context.LocationName)
             .Replace("{LOCATION_SPOT}", context.locationSpotName)
             .Replace("{CHARACTER_ARCHETYPE}", characterArchetype)
-            .Replace("{APPROACH_STATS}", approachStats)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
             .Replace("{ENVIRONMENT_DETAILS}", environmentDetails)
             .Replace("{NPC_LIST}", npcList)
@@ -178,9 +166,6 @@ public class PromptManager
     {
         string template = _promptTemplates[REACTION_MD];
 
-        // Extract primary approach tag
-        ApproachTags primaryApproach = chosenOption.Approach;
-
         // Calculate encounter stage
         string encounterStage = DetermineEncounterStage(state.CurrentTurn, state.MaxTurns, state.Momentum, state.MaxMomentum, state.Pressure, state.MaxPressure);
 
@@ -236,8 +221,6 @@ public class PromptManager
             .Replace("{OLD_CONCENTRATION}", (state.Concentration - outcome.ConcentrationChange).ToString())
             .Replace("{NEW_CONCENTRATION}", state.Concentration.ToString())
             .Replace("{MAX_CONCENTRATION}", state.MaxConcentration.ToString())
-            .Replace("{APPROACH_CHANGES}", FormatApproachChanges(outcome.ApproachTagChanges))
-            .Replace("{FOCUS_CHANGES}", FormatFocusChanges(outcome.FocusTagChanges))
             .Replace("{PLAYER_STATUS}", BuildCharacterStatusSummary(state))
             .Replace("{STRATEGIC_EFFECTS}", strategicEffects.ToString());
 
@@ -281,7 +264,7 @@ public class PromptManager
             CardDefinition choice = choices[i];
             ChoiceProjection projection = projections[i];
 
-            string choiceText = $"\nCHOICE {i + 1}:\n- Approach used: {choice.Approach}\n- Built on Focus Tag: {choice.Focus}";
+            string choiceText = $"\nCHOICE {i + 1}:\n";
 
             // Only add momentum/pressure changes if non-zero
             if (projection.MomentumGained != 0)
@@ -290,11 +273,6 @@ public class PromptManager
             if (projection.PressureBuilt != 0)
                 choiceText += $"\n- Pressure Change: {projection.PressureBuilt}";
 
-            if (projection.ApproachTagChanges.Count > 0 || projection.FocusTagChanges.Count > 0)
-            {
-                TagFormatter tagFormatter = new TagFormatter();
-                choiceText += tagFormatter.FormatKeyTagChanges(projection.ApproachTagChanges, projection.FocusTagChanges);
-            }
 
             // Only add resource changes if non-zero
             if (projection.HealthChange != 0)
@@ -399,19 +377,6 @@ public class PromptManager
             lastNarrative = lastEvent.Summary;
         }
 
-        // Format approach values
-        string approachValues = FormatApproachValues(finalState);
-
-        // Format focus values
-        StringBuilder focusValues = new StringBuilder();
-        foreach (KeyValuePair<FocusTags, int> focus in finalState.FocusTags)
-        {
-            focusValues.Append($"{focus.Key} {focus.Value}, ");
-        }
-
-        // Remove trailing comma
-        string formattedFocusValues = focusValues.ToString().TrimEnd(',', ' ');
-
         // Extract encounter goal from inciting action
         string encounterGoal = context.ActionImplementation.Description;
 
@@ -431,40 +396,10 @@ public class PromptManager
             .Replace("{CHARACTER_GOAL}", encounterGoal)
             .Replace("{FINAL_MOMENTUM}", finalState.Momentum.ToString())
             .Replace("{FINAL_PRESSURE}", finalState.Pressure.ToString())
-            .Replace("{APPROACH_VALUES}", approachValues)
-            .Replace("{FOCUS_VALUES}", formattedFocusValues)
             .Replace("{LAST_NARRATIVE}", lastNarrative)
             .Replace("{GOAL_ACHIEVEMENT_STATUS}", goalAchievementStatus);
 
         return CreatePromptJson(prompt);
-    }
-
-    private string FormatApproachChanges(Dictionary<ApproachTags, int> approachChanges)
-    {
-        if (approachChanges == null || !approachChanges.Any())
-            return "No significant approach changes";
-
-        StringBuilder builder = new StringBuilder();
-        foreach (KeyValuePair<ApproachTags, int> change in approachChanges)
-        {
-            builder.AppendLine($"- {change.Key}: {(change.Value > 0 ? "+" : "")}{change.Value}");
-        }
-
-        return builder.ToString();
-    }
-
-    private string FormatFocusChanges(Dictionary<FocusTags, int> focusChanges)
-    {
-        if (focusChanges == null || !focusChanges.Any())
-            return "No significant focus changes";
-
-        StringBuilder builder = new StringBuilder();
-        foreach (KeyValuePair<FocusTags, int> change in focusChanges)
-        {
-            builder.AppendLine($"- {change.Key}: {(change.Value > 0 ? "+" : "")}{change.Value}");
-        }
-
-        return builder.ToString();
     }
 
     private string FormatTags(List<string> newTags)
@@ -479,16 +414,6 @@ public class PromptManager
         }
 
         return builder.ToString();
-    }
-
-    private string FormatApproachValues(EncounterStatusModel state)
-    {
-        List<string> approaches = new List<string>();
-        foreach (KeyValuePair<ApproachTags, int> approach in state.ApproachTags)
-        {
-            approaches.Add($"{approach.Key} {approach.Value}");
-        }
-        return string.Join(", ", approaches);
     }
 
     public static string CreatePromptJson(string markdownContent)
@@ -641,53 +566,6 @@ public class PromptManager
 
     public class TagFormatter
     {
-        // Format significant tags - keep this existing method but enhance it
-        public string GetSignificantTagsFormatted(EncounterStatusModel state)
-        {
-            List<string> significantTags = new List<string>();
-
-            // Only include approach tags with values of 2 or higher
-            foreach (KeyValuePair<ApproachTags, int> tag in state.ApproachTags.Where(t =>
-            {
-                return t.Value >= 2;
-            }).OrderByDescending(t =>
-{
-    return t.Value;
-}))
-            {
-                significantTags.Add($"{tag.Key} {tag.Value}");
-            }
-            // Only include approach tags with values of 2 or higher
-            foreach (KeyValuePair<ApproachTags, int> tag in state.ApproachTags.Where(t =>
-            {
-                return t.Value >= 2;
-            }).OrderByDescending(t =>
-{
-    return t.Value;
-}))
-            {
-                significantTags.Add($"{tag.Key} {tag.Value}");
-            }
-            // Only include focus tags with values of 2 or higher
-            foreach (KeyValuePair<FocusTags, int> tag in state.FocusTags.Where(t =>
-            {
-                return t.Value >= 2;
-            }).OrderByDescending(t =>
-{
-    return t.Value;
-}))
-            {
-                significantTags.Add($"{tag.Key} {tag.Value}");
-            }
-
-            foreach (string tag in state.ActiveTagNames)
-            {
-                significantTags.Add($"{tag}");
-            }
-
-            return significantTags.Count > 0 ? string.Join(", ", significantTags) : "None";
-        }
-
         // Simplified tag modifications format
         public string FormatTagModifications<TKey>(Dictionary<TKey, int> tagChanges) where TKey : notnull
         {
@@ -726,56 +604,6 @@ public class PromptManager
             return activeTagsWithEffects.Count > 0 ?
                 string.Join(", ", activeTagsWithEffects) :
                 "No approach restrictions";
-        }
-
-        public (string, string) GetSignificantApproachTags(EncounterStatusModel state)
-        {
-            List<KeyValuePair<ApproachTags, int>> orderedTags = state.ApproachTags
-                .OrderByDescending(t =>
-                {
-                    return t.Value;
-                })
-                .ToList();
-            string primary = orderedTags.Count > 0 ? orderedTags[0].Key.ToString() : "None";
-            string secondary = orderedTags.Count > 1 ? orderedTags[1].Key.ToString() : "None";
-            return (primary, secondary);
-        }
-
-        public (string, string) GetSignificantFocusTags(EncounterStatusModel state)
-        {
-            List<KeyValuePair<FocusTags, int>> orderedTags = state.FocusTags
-                .OrderByDescending(t =>
-                {
-                    return t.Value;
-                })
-                .ToList();
-            string primary = orderedTags.Count > 0 ? orderedTags[0].Key.ToString() : "None";
-            string secondary = orderedTags.Count > 1 ? orderedTags[1].Key.ToString() : "None";
-            return (primary, secondary);
-        }
-
-        public string FormatKeyTagChanges(Dictionary<ApproachTags, int> ApproachTagChanges, Dictionary<FocusTags, int> FocusTagChanges)
-        {
-            List<string> changes = new List<string>();
-            // Format approach tag changes
-            foreach (KeyValuePair<ApproachTags, int> change in ApproachTagChanges.Where(c =>
-            {
-                return c.Value != 0;
-            }))
-            {
-                changes.Add($"\n- Approach Tag Changes: ");
-                changes.Add($"{change.Key} {(change.Value > 0 ? "+" : "")}{change.Value}");
-            }
-            // Format focus tag changes
-            foreach (KeyValuePair<FocusTags, int> change in FocusTagChanges.Where(c =>
-            {
-                return c.Value != 0;
-            }))
-            {
-                changes.Add($"\n- Focus Tag Changes: ");
-                changes.Add($"{change.Key} {(change.Value > 0 ? "+" : "")}{change.Value}");
-            }
-            return changes.Count > 0 ? string.Join(" ", changes) : "No significant changes";
         }
 
         public string FormatTagValues<TKey>(Dictionary<TKey, int> tags) where TKey : notnull

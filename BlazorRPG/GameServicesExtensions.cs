@@ -35,7 +35,6 @@
         services.AddSingleton<GameManager>();
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<PostEncounterEvolutionSystem>();
-        services.AddSingleton<ResourceManager>();
         services.AddSingleton<EnvironmentalPropertyManager>();
 
         services.AddAIServices();

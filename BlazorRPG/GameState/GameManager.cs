@@ -481,7 +481,7 @@
 
             UserEncounterChoiceOption option = new UserEncounterChoiceOption(
                 i,
-                choice.GetDetails(),
+                choice.Description,
                 "Narrative",
                 narrativeContext.LocationName,
                 "locationSpotName",

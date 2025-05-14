@@ -1,18 +1,12 @@
 ﻿public class ProjectionService
 {
-    private readonly TagManager _tagManager;
-    private readonly ResourceManager _resourceManager;
     private readonly Encounter _encounterInfo;
     private readonly PlayerState _playerState;
 
     public ProjectionService(
-        TagManager tagManager,
-        ResourceManager resourceManager,
         Encounter encounterInfo,
         PlayerState playerState)
     {
-        _tagManager = tagManager;
-        _resourceManager = resourceManager;
         _encounterInfo = encounterInfo;
         _playerState = playerState;
     }
@@ -25,13 +19,6 @@
     {
         ChoiceProjection projection = new ChoiceProjection(choice);
 
-        // Create working copy of tag system
-        EncounterTagSystem clonedTagSystem = _tagManager.CloneTagSystem();
-
-        // Apply all tag modifications from the card
-        ApplyTagModifications(choice, clonedTagSystem, projection);
-
-        // Track momentum and pressure changes
         int momentumChange = 0;
         int pressureChange = 0;
 
@@ -43,12 +30,6 @@
 
         // 3. Calculate skill bonuses
         CalculateSkillBonuses(choice, projection, ref momentumChange, ref pressureChange);
-
-        // 4. Calculate environmental strategic effects
-        CalculateStrategicTagEffects(choice, projection, clonedTagSystem, ref momentumChange, ref pressureChange);
-
-        // 5. Calculate approach bonuses
-        CalculateApproachBonuses(choice, projection, clonedTagSystem, ref momentumChange, ref pressureChange);
 
         // Ensure values don't go negative
         EnsureNoNegativeValues(currentMomentum, currentPressure, projection, ref momentumChange, ref pressureChange);
@@ -66,30 +47,6 @@
         DetermineEncounterOutcome(projection, currentTurn);
 
         return projection;
-    }
-
-    private void ApplyTagModifications(
-        CardDefinition choice,
-        EncounterTagSystem tagSystem,
-        ChoiceProjection projection)
-    {
-        foreach (TagModification mod in choice.TagModifications)
-        {
-            if (mod.EncounterTagType == TagModification.TagTypes.Approach)
-            {
-                ApproachTags tag = (ApproachTags)mod.TagName;
-                int currentValue = tagSystem.GetApproachTagValue(tag);
-                tagSystem.SetApproachTagValue(tag, currentValue + 1);
-                projection.ApproachTagChanges[tag] = currentValue + 1;
-            }
-            else if (mod.EncounterTagType == TagModification.TagTypes.Focus)
-            {
-                FocusTags tag = (FocusTags)mod.TagName;
-                int currentValue = tagSystem.GetFocusTagValue(tag);
-                tagSystem.SetFocusTagValue(tag, currentValue + 1);
-                projection.FocusTagChanges[tag] = currentValue + 1;
-            }
-        }
     }
 
     private void CalculateBaseCardEffect(
@@ -172,113 +129,6 @@
             }
         }
     }
-
-    private void CalculateStrategicTagEffects(
-        CardDefinition choice,
-        ChoiceProjection projection,
-        EncounterTagSystem tagSystem,
-        ref int momentumChange,
-        ref int pressureChange)
-    {
-        if (choice.StrategicEffect == null)
-            return;
-
-        List<StrategicTag> strategicTags = _tagManager.GetStrategicActiveTags();
-
-        foreach (StrategicTag tag in strategicTags)
-        {
-            if (choice.StrategicEffect.IsActive(tag))
-            {
-                projection.StrategicTagEffects.Add(choice.StrategicEffect.ToString());
-
-                int targetApproachValue = tagSystem.GetApproachTagValue(choice.StrategicEffect.TargetApproach);
-                int effectValue = targetApproachValue / 2; // 1 point per 2 approach points
-
-                if (choice.StrategicEffect.EffectType == StrategicTagEffectType.IncreaseMomentum)
-                {
-                    momentumChange += effectValue;
-                    projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = $"{tag.NarrativeName} Strategic Effect ({choice.StrategicEffect.TargetApproach})",
-                        Value = effectValue
-                    });
-                }
-                else if (choice.StrategicEffect.EffectType == StrategicTagEffectType.DecreaseMomentum)
-                {
-                    momentumChange -= effectValue;
-                    projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = $"{tag.NarrativeName} Strategic Effect ({choice.StrategicEffect.TargetApproach})",
-                        Value = -effectValue
-                    });
-                }
-                else if (choice.StrategicEffect.EffectType == StrategicTagEffectType.IncreasePressure)
-                {
-                    pressureChange += effectValue;
-                    projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = $"{tag.NarrativeName} Strategic Effect ({choice.StrategicEffect.TargetApproach})",
-                        Value = effectValue
-                    });
-                }
-                else if (choice.StrategicEffect.EffectType == StrategicTagEffectType.DecreasePressure)
-                {
-                    pressureChange -= effectValue;
-                    projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = $"{tag.NarrativeName} Strategic Effect ({choice.StrategicEffect.TargetApproach})",
-                        Value = -effectValue
-                    });
-                }
-            }
-        }
-    }
-
-    private void CalculateApproachBonuses(
-        CardDefinition choice,
-        ChoiceProjection projection,
-        EncounterTagSystem tagSystem,
-        ref int momentumChange,
-        ref int pressureChange)
-    {
-        // Calculate approach-based bonuses (e.g., archetype advantage)
-        int approachValue = tagSystem.GetApproachTagValue(choice.Approach);
-
-        // Check if this approach aligns with player's archetype
-        if (IsArchetypeApproach(_playerState.Archetype, choice.Approach) && approachValue >= 3)
-        {
-            int archetypeBonus = approachValue / 3; // 1 point per 3 approach points
-
-            if (choice.EffectType == EffectTypes.Momentum)
-            {
-                momentumChange += archetypeBonus;
-                projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
-                {
-                    Source = $"Archetype Approach Bonus ({choice.Approach})",
-                    Value = archetypeBonus
-                });
-            }
-            else if (choice.EffectType == EffectTypes.Pressure)
-            {
-                pressureChange -= archetypeBonus;
-                projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-                {
-                    Source = $"Archetype Approach Bonus ({choice.Approach})",
-                    Value = -archetypeBonus
-                });
-            }
-        }
-    }
-
-    private bool IsArchetypeApproach(Professions archetype, ApproachTags approach)
-    {
-        return (archetype == Professions.Warrior && approach == ApproachTags.Dominance) ||
-               (archetype == Professions.Diplomat && approach == ApproachTags.Rapport) ||
-               (archetype == Professions.Scholar && approach == ApproachTags.Analysis) ||
-               (archetype == Professions.Mystic && approach == ApproachTags.Precision) ||
-               (archetype == Professions.Ranger && approach == ApproachTags.Concealment);
-    }
-
     private void EnsureNoNegativeValues(
         int currentMomentum,
         int currentPressure,

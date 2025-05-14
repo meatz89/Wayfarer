@@ -14,9 +14,6 @@ public class ChoiceOutcome
     public int ConcentrationChange { get; }
     public int ConfidenceChange { get; }
 
-    // Added tag-related fields
-    public Dictionary<ApproachTags, int> ApproachTagChanges { get; }
-    public Dictionary<FocusTags, int> FocusTagChanges { get; }
     public List<string> NewlyActivatedTags { get; }
     public List<string> DeactivatedTags { get; }
 
@@ -39,9 +36,6 @@ public class ChoiceOutcome
         ConcentrationChange = focusChange;
         ConfidenceChange = spiritChange;
 
-        // Initialize empty collections
-        FocusTagChanges = new Dictionary<FocusTags, int>();
-        ApproachTagChanges = new Dictionary<ApproachTags, int>();
         NewlyActivatedTags = new List<string>();
         DeactivatedTags = new List<string>();
     }

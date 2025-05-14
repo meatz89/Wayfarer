@@ -48,32 +48,6 @@
                     }
                 </div>
             </div>
-
-            <div class="tag-section">
-                <div class="properties-header">Approach Tags</div>
-                <div class="tag-grid">
-                    @foreach (var tag in GetApproachTags())
-                    {
-                        <div class="tag-value">
-                            <span>@tag</span>
-                            <span>@Model.State?.EncounterTagSystem.GetApproachTagValue(tag)</span>
-                        </div>
-                    }
-                </div>
-            </div>
-
-            <div class="tag-section">
-                <div class="properties-header">Focus Tags</div>
-                <div class="tag-grid">
-                    @foreach (var tag in GetFocusTags())
-                    {
-                        <div class="tag-value">
-                            <span>@tag</span>
-                            <span>@Model.State?.EncounterTagSystem.GetFocusTagValue(tag)</span>
-                        </div>
-                    }
-                </div>
-            </div>
         </div>
     </div>
 
