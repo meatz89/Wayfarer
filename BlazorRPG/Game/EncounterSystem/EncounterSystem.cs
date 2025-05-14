@@ -4,14 +4,12 @@
     private readonly IConfiguration configuration;
     private readonly ChoiceRepository choiceRepository;
     private readonly ILogger<EncounterSystem> logger;
-    private AIProviderType currentAIProvider;
 
     private ResourceManager resourceManager;
-    private readonly NarrativeService narrativeService;
+    private readonly IAIService _aiService; 
     private CardSelectionAlgorithm cardSelector;
 
     public WorldState worldState;
-
     public EncounterFactory encounterFactory;
     private readonly WorldStateInputBuilder worldStateInputCreator;
 
@@ -20,7 +18,7 @@
         MessageSystem messageSystem,
         ResourceManager resourceManager,
         NarrativeContextManager narrativeContextManager,
-        NarrativeService narrativeService,
+        IAIService aiService, 
         ChoiceRepository choiceRepository,
         EncounterFactory encounterFactory,
         WorldStateInputBuilder worldStateInputCreator,
@@ -35,29 +33,7 @@
         this.logger = logger;
 
         this.resourceManager = resourceManager;
-        this.narrativeService = narrativeService;
-
-        SetAiProviderFromConfig(configuration);
-    }
-
-    private void SetAiProviderFromConfig(IConfiguration configuration)
-    {
-        string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "ollama";
-        switch (defaultProvider.ToLower())
-        {
-            case "claude":
-                currentAIProvider = AIProviderType.Claude;
-                break;
-            case "gemma":
-                currentAIProvider = AIProviderType.Gemini;
-                break;
-            case "ollama":
-                currentAIProvider = AIProviderType.Ollama;
-                break;
-            default:
-                currentAIProvider = AIProviderType.OpenAI;
-                break;
-        }
+        this._aiService = aiService;
     }
 
     public async Task<EncounterManager> GenerateEncounter(
@@ -75,7 +51,7 @@
         EncounterApproaches encounterType = actionImplementation.EncounterType;
         EncounterTemplate template = actionImplementation.EncounterTemplate;
 
-        if(template == null)
+        if (template == null)
         {
             template = encounterFactory.GetDefaultEncounterTemplate();
         }
@@ -99,12 +75,12 @@
         // Create the core components
         cardSelector = new CardSelectionAlgorithm(choiceRepository);
 
-        // Create encounter manager with the switchable service
+        // Create encounter manager with the direct service
         EncounterManager encounterManager = new EncounterManager(
             encounter,
             actionImplementation,
             cardSelector,
-            narrativeService,
+            _aiService, // Pass IAIService directly
             resourceManager,
             worldStateInputCreator,
             configuration,
@@ -112,17 +88,13 @@
 
         gameState.ActionStateTracker.SetActiveEncounter(encounterManager);
 
-        // Set the current AI provider
-        encounterManager.SwitchAIProvider(currentAIProvider);
-
         // Start the encounter with narrative
         NarrativeResult initialResult = await encounterManager.StartEncounterWithNarrativeAsync(
             location,
             encounter,
             worldState,
             playerState,
-            actionImplementation,
-            currentAIProvider);
+            actionImplementation);
 
         encounterManager.EncounterResult = new EncounterResult()
         {

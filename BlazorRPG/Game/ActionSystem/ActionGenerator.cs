@@ -3,24 +3,24 @@
 /// </summary>
 public class ActionGenerator
 {
-    private readonly NarrativeService _narrativeService;
     private readonly ActionRepository actionRepository;
     private readonly LocationRepository locationRepository;
     private readonly WorldStateInputBuilder _worldStateInputCreator;
     private readonly IConfiguration _configuration;
+    private readonly IAIService _aiService;
 
     public ActionGenerator(
-        NarrativeService narrativeService,
         ActionRepository actionRepository,
         LocationRepository locationRepository,
         WorldStateInputBuilder worldStateInputCreator,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IAIService aiService)
     {
-        _narrativeService = narrativeService;
         this.actionRepository = actionRepository;
         this.locationRepository = locationRepository;
         _worldStateInputCreator = worldStateInputCreator;
         _configuration = configuration;
+        this._aiService = aiService;
     }
 
     public async Task<string> GenerateAction(
@@ -42,7 +42,7 @@ public class ActionGenerator
             };
 
             WorldStateInput worldStateInput = await _worldStateInputCreator.CreateWorldStateInput(location.Name);
-            string json = await _narrativeService.GenerateActionsAsync(context, worldStateInput);
+            string json = await _aiService.GenerateActionsAsync(context, worldStateInput);
 
             actionDef = ActionParser.ParseAction(json);
         }

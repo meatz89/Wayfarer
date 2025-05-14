@@ -1,9 +1,9 @@
 ﻿public class PostEncounterEvolutionSystem
 {
-    private readonly NarrativeService _narrativeService;
     private readonly ActionGenerator _actionGenerator;
     private readonly ActionRepository _actionRepository;
     private readonly GameState gameState;
+    private readonly IAIService aiService;
     private readonly LocationSystem locationSystem;
     private readonly CharacterSystem characterSystem;
     private readonly OpportunitySystem opportunitySystem;
@@ -12,7 +12,6 @@
     private readonly LocationRepository locationRepository;
 
     public PostEncounterEvolutionSystem(
-        NarrativeService narrativeService,
         ActionGenerator actionGenerator,
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
@@ -21,12 +20,14 @@
         WorldStateInputBuilder worldStateInputCreator,
         LocationRepository locationRepository,
         ActionRepository actionRepository,
-        GameState gameState)
+        GameState gameState,
+        IAIService aiService
+        )
     {
-        this._narrativeService = narrativeService;
         this._actionGenerator = actionGenerator;
         this._actionRepository = actionRepository;
         this.gameState = gameState;
+        this.aiService = aiService;
         this.locationSystem = locationSystem;
         this.characterSystem = characterSystem;
         this.opportunitySystem = opportunitySystem;
@@ -40,7 +41,7 @@
         MemoryConsolidationInput input)
     {
         WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(context.LocationName);
-        return await _narrativeService.ProcessMemoryConsolidation(context, input, worldStateInput);
+        return await aiService.ProcessMemoryConsolidation(context, input, worldStateInput);
     }
 
     public async Task<PostEncounterEvolutionResult> ProcessEncounterOutcome(
@@ -50,7 +51,7 @@
     {
         // Get world evolution response from narrative service
         WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(context.LocationName);
-        PostEncounterEvolutionResult response = await _narrativeService.ProcessPostEncounterEvolution(context, input, worldStateInput);
+        PostEncounterEvolutionResult response = await aiService.ProcessPostEncounterEvolution(context, input, worldStateInput);
         return response;
     }
 

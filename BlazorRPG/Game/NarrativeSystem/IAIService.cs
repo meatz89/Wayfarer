@@ -47,4 +47,5 @@
     Task<string> GenerateActionsAsync(
         ActionGenerationContext input,
         WorldStateInput worldStateInput);
+    string GetProviderName();
 }

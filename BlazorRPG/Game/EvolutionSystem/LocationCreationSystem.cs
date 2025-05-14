@@ -1,6 +1,5 @@
 ﻿public class LocationCreationSystem
 {
-    private readonly NarrativeService narrativeService;
     private readonly LocationSystem locationSystem;
     private readonly CharacterSystem characterSystem;
     private readonly OpportunitySystem opportunitySystem;
@@ -10,9 +9,9 @@
     private readonly ActionRepository actionRepository;
     private readonly ActionSystem actionSystem;
     private readonly WorldStateInputBuilder worldStateInputCreator;
+    private readonly IAIService aiService;
 
     public LocationCreationSystem(
-        NarrativeService narrativeService,
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
         OpportunitySystem opportunitySystem,
@@ -21,10 +20,10 @@
         LocationRepository locationRepository,
         ActionRepository actionRepository,
         ActionSystem actionSystem,
-        WorldStateInputBuilder worldStateInputCreator
+        WorldStateInputBuilder worldStateInputCreator,
+        IAIService aiService
         )
     {
-        this.narrativeService = narrativeService;
         this.locationSystem = locationSystem;
         this.characterSystem = characterSystem;
         this.opportunitySystem = opportunitySystem;
@@ -34,7 +33,7 @@
         this.actionRepository = actionRepository;
         this.actionSystem = actionSystem;
         this.worldStateInputCreator = worldStateInputCreator;
-        this.narrativeService = narrativeService;
+        this.aiService = aiService;
     }
 
     public async Task<Location> CreateLocation(string locationId)
@@ -47,7 +46,7 @@
         WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(locationId);
 
         // Get location details from AI
-        LocationDetails details = await narrativeService.GenerateLocationDetailsAsync(input, worldStateInput);
+        LocationDetails details = await aiService.GenerateLocationDetailsAsync(input, worldStateInput);
 
         // Convert SpotDetails to LocationSpot objects
         return await IntegrateNewLocation(details);

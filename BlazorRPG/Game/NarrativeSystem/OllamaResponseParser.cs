@@ -57,49 +57,6 @@ public static class OllamaResponseParser
         }
     }
 
-    public static NpcCharacter ParseCharacterJson(string messageContent)
-    {
-        try
-        {
-            // Find JSON within the content (sometimes it's wrapped in ```json blocks)
-            int startIndex = messageContent.IndexOf('{');
-            int endIndex = messageContent.LastIndexOf('}');
-
-            if (startIndex >= 0 && endIndex >= 0 && endIndex > startIndex)
-            {
-                string jsonString = messageContent.Substring(startIndex, endIndex - startIndex + 1);
-
-                using JsonDocument doc = JsonDocument.Parse(jsonString);
-                JsonElement root = doc.RootElement;
-
-                NpcCharacter character = new NpcCharacter
-                {
-                    Name = GetStringProperty(root, "name", "Unknown"),
-                    Age = GetIntProperty(root, "age", 30),
-                    Gender = GetStringProperty(root, "gender", "unknown"),
-                    Occupation = GetStringProperty(root, "occupation", "unknown"),
-                    Appearance = GetStringProperty(root, "appearance", string.Empty),
-                    Background = GetStringProperty(root, "background", string.Empty),
-                    Personality = GetStringProperty(root, "personality", string.Empty),
-                    Motivation = GetStringProperty(root, "motivation", string.Empty),
-                    Quirk = GetStringProperty(root, "quirk", string.Empty),
-                    Secret = GetStringProperty(root, "secret", string.Empty),
-                    Possessions = GetStringArray(root, "possessions"),
-                    Skills = GetStringArray(root, "skills"),
-                    Relationships = GetStringArray(root, "relationships")
-                };
-
-                return character;
-            }
-
-            throw new FormatException("Could not find JSON in the response");
-        }
-        catch (Exception ex)
-        {
-            throw new FormatException($"Failed to parse character data: {ex.Message}", ex);
-        }
-    }
-
     private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
     {
         if (element.TryGetProperty(propertyName, out JsonElement property) &&
@@ -107,18 +64,6 @@ public static class OllamaResponseParser
         {
             string value = property.GetString() ?? defaultValue;
             return !string.IsNullOrWhiteSpace(value) ? value : defaultValue;
-        }
-        return defaultValue;
-    }
-
-    private static int GetIntProperty(JsonElement element, string propertyName, int defaultValue)
-    {
-        if (element.TryGetProperty(propertyName, out JsonElement property))
-        {
-            if (property.ValueKind == JsonValueKind.Number)
-            {
-                return property.GetInt32();
-            }
         }
         return defaultValue;
     }
@@ -133,28 +78,5 @@ public static class OllamaResponseParser
             }
         }
         return defaultValue;
-    }
-
-    private static List<string> GetStringArray(JsonElement element, string propertyName)
-    {
-        List<string> results = new List<string>();
-
-        if (element.TryGetProperty(propertyName, out JsonElement arrayElement) &&
-            arrayElement.ValueKind == JsonValueKind.Array)
-        {
-            foreach (JsonElement item in arrayElement.EnumerateArray())
-            {
-                if (item.ValueKind == JsonValueKind.String)
-                {
-                    string value = item.GetString() ?? string.Empty;
-                    if (!string.IsNullOrWhiteSpace(value))
-                    {
-                        results.Add(value);
-                    }
-                }
-            }
-        }
-
-        return results;
     }
 }

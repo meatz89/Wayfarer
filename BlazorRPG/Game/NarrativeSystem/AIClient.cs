@@ -1,98 +1,65 @@
 ﻿public class AIClient
 {
-    private readonly IAIProvider _aiProvider;
+    private readonly AIGenerationQueue _queue;
     private readonly string _gameInstanceId;
-    private readonly NarrativeLogManager _logManager;
+    private readonly ILogger _logger;
+
+    // Priority constants
+    public const int PRIORITY_IMMEDIATE = 1;
+    public const int PRIORITY_HIGH = 3;
+    public const int PRIORITY_NORMAL = 5;
+    public const int PRIORITY_LOW = 7;
+    public const int PRIORITY_BACKGROUND = 10;
 
     public AIClient(
         IAIProvider aiProvider,
         string gameInstanceId,
+        ILogger logger,
         NarrativeLogManager logManager)
     {
-        _aiProvider = aiProvider ?? throw new ArgumentNullException(nameof(aiProvider));
         _gameInstanceId = gameInstanceId;
-        this._logManager = logManager;
+        _logger = logger;
+
+        // Create the queue internally
+        _queue = new AIGenerationQueue(aiProvider, gameInstanceId, logManager, logger);
     }
 
     public async Task<string> GetCompletionAsync(
-        IEnumerable<ConversationEntry> conversationMessages, 
-        string model, 
+        List<ConversationEntry> messages,
+        string model,
         string fallbackModel,
-        IResponseStreamWatcher watcher)
+        IResponseStreamWatcher watcher,
+        int priority = PRIORITY_NORMAL,
+        string sourceSystem = "Unknown")
     {
-        List<ConversationEntry> messages = conversationMessages.Select(conversationMessage =>
-        {
-            return new ConversationEntry
-            {
-                Role = conversationMessage.Role.ToLower(), // Ensure role is lowercase (system, user, assistant)
-                Content = conversationMessage.Content
-            };
-        }).ToList();
-
-        return await GetCompletionAsync(messages, model, fallbackModel, watcher);
+        return await _queue.EnqueueCommand(
+            messages,
+            model,
+            fallbackModel,
+            watcher,
+            priority,
+            sourceSystem);
     }
 
+    // For backward compatibility
     public async Task<string> GetCompletionAsync(
-        List<ConversationEntry> messages, 
-        string model, 
+        List<ConversationEntry> messages,
+        string model,
         string fallbackModel,
         IResponseStreamWatcher watcher)
     {
-        string conversationId = Guid.NewGuid().ToString();
-        string jsonResponse = null;
-        string generatedContent = null;
-        string errorMessage = null;
-        object requestBody = null;
-
-        try
-        {
-            // Prepare request body for logging
-            requestBody = new
-            {
-                Provider = _aiProvider.Name,
-                GameInstanceId = _gameInstanceId,
-                MessageCount = messages.Count,
-                Timestamp = DateTime.UtcNow
-            };
-
-            // The actual API call is delegated to the provider implementation
-            string result = await _aiProvider.GetCompletionAsync(
-                messages, 
-                model, 
-                fallbackModel,
-                watcher);
-
-            // Trim any potential whitespace
-            result = result?.Trim();
-            generatedContent = result;
-
-
-            return result;
-        }
-        catch (Exception ex)
-        {
-            // Capture error details
-            errorMessage = $"Error: {ex.Message}\nStack Trace: {ex.StackTrace}";
-
-            throw; // Rethrow to let the caller handle it
-        }
-        finally
-        {
-            // Log the entire interaction, regardless of success or failure
-            await _logManager.LogApiInteractionAsync(
-                conversationId,
-                messages,
-                requestBody,
-                jsonResponse,
-                generatedContent,
-                errorMessage
-            );
-        }
+        return await GetCompletionAsync(
+            messages,
+            model,
+            fallbackModel,
+            watcher,
+            PRIORITY_NORMAL,
+            "Default");
     }
 
     public string GetProviderName()
     {
-        return _aiProvider.Name;
+        return _queue.GetProviderName();
     }
 
     public string GetGameInstanceId()

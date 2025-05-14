@@ -1,5 +1,7 @@
-﻿public class OllamaNarrativeService : BaseNarrativeAIService
+﻿public class OllamaNarrativeService : IAIService
 {
+    private readonly AIClient _aiClient;
+    private readonly PromptManager _promptManager;
     public PostEncounterEvolutionParser PostEncounterEvolutionParser { get; }
     public NarrativeContextManager _contextManager { get; }
     public NarrativeLogManager NarrativeLogManager { get; }
@@ -16,8 +18,13 @@
         ILogger<EncounterSystem> logger,
         NarrativeLogManager narrativeLogManager,
         IResponseStreamWatcher watcher)
-        : base(new OllamaProvider(configuration, logger), configuration, narrativeLogManager)
     {
+        // Create the AIClient directly with the Ollama provider
+        string gameInstanceId = $"game_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString().Substring(0, 8)}";
+        IAIProvider ollamaProvider = new OllamaProvider(configuration, logger);
+        _aiClient = new AIClient(ollamaProvider, gameInstanceId, logger, narrativeLogManager);
+
+        _promptManager = NarrativeServiceUtils.CreatePromptManager(configuration);
         PostEncounterEvolutionParser = postEncounterEvolutionParser;
         _contextManager = narrativeContextManager;
         NarrativeLogManager = narrativeLogManager;
@@ -29,7 +36,17 @@
         _fallbackModel = configuration.GetValue<string>("Ollama:BackupModel") ?? "gemma3:2b-it";
     }
 
-    public override async Task<string> GenerateIntroductionAsync(
+    public string GetProviderName()
+    {
+        return _aiClient.GetProviderName();
+    }
+
+    public string GetGameInstanceId()
+    {
+        return _aiClient.GetGameInstanceId();
+    }
+
+    public async Task<string> GenerateIntroductionAsync(
         NarrativeContext context,
         EncounterStatusModel state,
         string memoryContent,
@@ -48,17 +65,18 @@
             model = _fallbackModel;
         }
 
-        // Pass the response watcher for streaming if available
+        // Using PRIORITY_HIGH for player-facing content
         string response = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel, Watcher);
+            model, fallbackModel, Watcher,
+            AIClient.PRIORITY_HIGH, "IntroductionGeneration");
 
         _contextManager.AddAssistantMessage(conversationId, response, MessageType.Introduction);
 
         return response;
     }
 
-    public override async Task<Dictionary<CardDefinition, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+    public async Task<Dictionary<CardDefinition, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
         NarrativeContext context,
         List<CardDefinition> choices,
         List<ChoiceProjection> projections,
@@ -87,15 +105,17 @@
             model = _fallbackModel;
         }
 
+        // Using PRIORITY_HIGH for player-facing content
         string jsonResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel, Watcher);
+            model, fallbackModel, Watcher,
+            AIClient.PRIORITY_HIGH, "ChoiceGeneration");
 
         _contextManager.AddAssistantMessage(conversationId, jsonResponse, MessageType.ChoiceGeneration);
         return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
     }
 
-    public override async Task<string> GenerateEncounterNarrative(
+    public async Task<string> GenerateEncounterNarrative(
         NarrativeContext context,
         CardDefinition chosenOption,
         ChoiceNarrative choiceNarrative,
@@ -125,15 +145,17 @@
             model = _fallbackModel;
         }
 
+        // Using PRIORITY_HIGH for player-facing content
         string narrativeResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel, Watcher);
+            model, fallbackModel, Watcher,
+            AIClient.PRIORITY_HIGH, "EncounterNarrative");
 
         _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
     }
 
-    public override async Task<string> GenerateEndingAsync(
+    public async Task<string> GenerateEndingAsync(
         NarrativeContext context,
         CardDefinition chosenOption,
         ChoiceNarrative choiceNarrative,
@@ -163,15 +185,17 @@
             model = _fallbackModel;
         }
 
+        // Using PRIORITY_HIGH for player-facing content
         string narrativeResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel, Watcher);
+            model, fallbackModel, Watcher,
+            AIClient.PRIORITY_HIGH, "EncounterEnding");
 
         _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
     }
 
-    public override async Task<LocationDetails> GenerateLocationDetailsAsync(
+    public async Task<LocationDetails> GenerateLocationDetailsAsync(
         LocationCreationInput context,
         WorldStateInput worldStateInput)
     {
@@ -191,14 +215,17 @@
             model = _fallbackModel;
         }
 
-        string jsonResponse = await _aiClient.GetCompletionAsync(messages,
-            model, fallbackModel, Watcher);
+        // Using PRIORITY_NORMAL for location generation
+        string jsonResponse = await _aiClient.GetCompletionAsync(
+            messages,
+            model, fallbackModel, Watcher,
+            AIClient.PRIORITY_NORMAL, "LocationGeneration");
 
         // Parse the JSON response into location details
         return LocationJsonParser.ParseLocationDetails(jsonResponse);
     }
 
-    public override async Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(
+    public async Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(
         NarrativeContext context,
         PostEncounterEvolutionInput input,
         WorldStateInput worldStateInput)
@@ -225,15 +252,17 @@
             model = _fallbackModel;
         }
 
+        // Using PRIORITY_LOW for post-encounter evolution
         string jsonResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel, Watcher);
+            model, fallbackModel, Watcher,
+            AIClient.PRIORITY_LOW, "PostEncounterEvolution");
 
         PostEncounterEvolutionResult postEncounterEvolutionResponse = await PostEncounterEvolutionParser.ParsePostEncounterEvolutionResponseAsync(jsonResponse);
         return postEncounterEvolutionResponse;
     }
 
-    public override async Task<string> ProcessMemoryConsolidation(
+    public async Task<string> ProcessMemoryConsolidation(
         NarrativeContext context,
         MemoryConsolidationInput input,
         WorldStateInput worldStateInput)
@@ -260,14 +289,16 @@
             model = _fallbackModel;
         }
 
+        // Using PRIORITY_LOW for memory consolidation
         string memoryContentResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel, Watcher);
+            model, fallbackModel, Watcher,
+            AIClient.PRIORITY_LOW, "MemoryConsolidation");
 
         return memoryContentResponse;
     }
 
-    public override async Task<string> GenerateActionsAsync(
+    public async Task<string> GenerateActionsAsync(
         ActionGenerationContext context,
         WorldStateInput worldStateInput)
     {
@@ -287,72 +318,13 @@
             model = _fallbackModel;
         }
 
-        string jsonResponse = await _aiClient.GetCompletionAsync(messages,
-            model, fallbackModel, Watcher);
+        // Using PRIORITY_NORMAL for action generation
+        string jsonResponse = await _aiClient.GetCompletionAsync(
+            messages,
+            model, fallbackModel, Watcher,
+            AIClient.PRIORITY_NORMAL, "ActionGeneration");
 
         return jsonResponse;
     }
 
-    // Character generation method specifically for Ollama
-    public async Task<NpcCharacter> GenerateCharacterAsync(
-        CharacterGenerationRequest request,
-        IResponseStreamWatcher watcher)
-    {
-        string conversationId = $"character_generation_{Guid.NewGuid()}";
-
-        List<ConversationEntry> messages = new List<ConversationEntry>();
-
-        // System message with instructions
-        messages.Add(new ConversationEntry
-        {
-            Role = "system",
-            Content = @"You are a medieval character generator for the text-based RPG 'Wayfarer'. 
-Generate a detailed medieval character following the narrative style principles:
-- Write with measured elegance, focusing on ordinary moments and intimate details
-- Create characters that feel flesh and blood real with private hopes and quiet sorrows
-- Include background that shapes who they are, revealed through subtle details
-- Focus on intimate conflicts: relationships, unfulfilled dreams, daily bread, personal honor
-- Be historically authentic for medieval life without fantasy elements
-
-Respond ONLY with a JSON object matching this exact structure:
-{
-  ""name"": ""[Character's full name]"",
-  ""age"": [age as integer],
-  ""gender"": ""[male or female]"",
-  ""occupation"": ""[Primary occupation]"",
-  ""appearance"": ""[Brief physical description, 2-3 sentences]"",
-  ""background"": ""[Life history and key events, 3-5 sentences]"",
-  ""personality"": ""[Core traits and behaviors, 2-3 sentences]"",
-  ""motivation"": ""[What drives this character, 1-2 sentences]"",
-  ""quirk"": ""[A distinctive habit or trait, 1 sentence]"",
-  ""secret"": ""[Something this person doesn't want others to know, 1-2 sentences]"",
-  ""possessions"": [Array of 3-5 notable items they own, as strings],
-  ""skills"": [Array of 2-4 things they're good at, as strings],
-  ""relationships"": [Array of 2-3 important connections to other people, as strings]
-}
-
-Your response must be ONLY this JSON with no other text, headers, or explanations."
-        });
-
-        // User message with specific request
-        messages.Add(new ConversationEntry
-        {
-            Role = "user",
-            Content = $"Generate a {request.Archetype} character from {request.Region} with the following specifications:\n" +
-                    $"Gender: {(string.IsNullOrEmpty(request.Gender) ? "any" : request.Gender)}\n" +
-                    $"Age range: {request.MinAge}-{request.MaxAge}\n" +
-                    $"Additional traits: {request.AdditionalTraits}"
-        });
-
-        // Use the primary model for character generation
-        string response = await _aiClient.GetCompletionAsync(
-            messages,
-            _primaryModel,
-            _fallbackModel,
-            watcher ?? Watcher);
-
-        // Parse the response to get a character
-        NpcCharacter character = OllamaResponseParser.ParseCharacterJson(response);
-        return character;
-    }
 }
