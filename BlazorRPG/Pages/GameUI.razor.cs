@@ -169,7 +169,7 @@ public partial class GameUI : ComponentBase
             await InitializeGame();
         }
 
-        _pollingTimer = new Timer(CheckLoadingState, null, 0, 100); 
+        _pollingTimer = new Timer(CheckLoadingState, null, 0, 100);
     }
 
     private void CheckLoadingState(object state)
@@ -184,7 +184,7 @@ public partial class GameUI : ComponentBase
             _previousLoadingState = LoadingStateService.IsLoading;
             _previousMessage = LoadingStateService.Message;
             _previousProgress = LoadingStateService.Progress;
-            
+
             InvokeAsync(StateHasChanged);
         }
     }
@@ -417,7 +417,7 @@ public partial class GameUI : ComponentBase
             _ => "❓"
         };
     }
-    
+
     public string GetArchetypePortrait()
     {
         string portraitPath = $"/images/characters/{PlayerState.Gender.ToString().ToLower()}_{PlayerState.Archetype.ToString().ToLower()}.png";

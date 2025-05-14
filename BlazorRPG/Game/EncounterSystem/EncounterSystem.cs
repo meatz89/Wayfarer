@@ -6,7 +6,7 @@
     private readonly ILogger<EncounterSystem> logger;
 
     private ResourceManager resourceManager;
-    private readonly IAIService _aiService; 
+    private readonly IAIService _aiService;
     private CardSelectionAlgorithm cardSelector;
 
     public WorldState worldState;
@@ -20,7 +20,7 @@
         MessageSystem messageSystem,
         ResourceManager resourceManager,
         NarrativeContextManager narrativeContextManager,
-        IAIService aiService, 
+        IAIService aiService,
         ChoiceRepository choiceRepository,
         EncounterFactory encounterFactory,
         WorldStateInputBuilder worldStateInputCreator,
@@ -76,8 +76,8 @@
             {
                 try
                 {
-                    // Pre-generate with low priority
-                    NarrativeResult result = await encounterManager.ApplyChoiceWithNarrativeAsync(
+                    // Use the simulation method instead of the regular method
+                    NarrativeResult result = await encounterManager.SimulateChoiceForPreGeneration(
                         encounterManager.Encounter.LocationName,
                         choiceCopy,
                         narrativeCopy,
@@ -90,9 +90,15 @@
 
                     return result;
                 }
-                catch (Exception) when (token.IsCancellationRequested)
+                catch (Exception ex) when (token.IsCancellationRequested)
                 {
                     // Task was cancelled, return null
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but don't rethrow - pre-generation errors shouldn't block gameplay
+                    logger?.LogError(ex, $"Error during pre-generation for choice {choiceCopy.Id}");
                     return null;
                 }
             }, token);

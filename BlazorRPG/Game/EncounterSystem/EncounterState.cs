@@ -13,6 +13,43 @@
     public Encounter EncounterInfo { get; }
     public LocationSpot LocationSpot { get; set; }
 
+    public static EncounterState CreateDeepCopy(
+        EncounterState originalState,
+        PlayerState playerState,
+        ResourceManager resourceManager)
+    {
+        // Create a fresh EncounterState with the same encounter info
+        EncounterState copy = new EncounterState(
+            originalState.EncounterInfo,
+            playerState.Clone(),
+            resourceManager);
+
+        // Copy the current state values
+        copy.Momentum = originalState.Momentum;
+        copy.Pressure = originalState.Pressure;
+        copy.CurrentTurn = originalState.CurrentTurn;
+        copy.LocationSpot = originalState.LocationSpot;
+
+        // Copy approach values
+        foreach (ApproachTags approach in Enum.GetValues<ApproachTags>())
+        {
+            int value = originalState.EncounterTagSystem.GetApproachTagValue(approach);
+            copy.EncounterTagSystem.ModifyApproachPosition(approach, value);
+        }
+
+        // Copy focus values
+        foreach (FocusTags focus in Enum.GetValues<FocusTags>())
+        {
+            int value = originalState.EncounterTagSystem.GetFocusTagValue(focus);
+            copy.EncounterTagSystem.ModifyFocusPosition(focus, value);
+        }
+
+        // Copy active tags (or recreate them based on current values)
+        copy._tagManager.CreateEncounterTags(originalState.EncounterInfo.AllEncounterTags);
+
+        return copy;
+    }
+
     // Expose tag system through the TagManager
     public EncounterTagSystem EncounterTagSystem
     {
@@ -222,10 +259,15 @@
 
     public List<string> GetActiveTagsNames()
     {
-        return ActiveTags.Select(t =>
+        if (ActiveTags == null) return new List<string>();
+
+        List<string> list = ActiveTags.Select(t =>
         {
             return t.NarrativeName;
         }).ToList();
+
+        if (list == null) return new List<string>();
+        return list;
     }
 
 }

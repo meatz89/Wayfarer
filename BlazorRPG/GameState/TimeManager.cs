@@ -52,7 +52,7 @@
     public void StartNewDay()
     {
         worldState.CurrentDay++;
-        SetNewTime(TimeDayStart); 
+        SetNewTime(TimeDayStart);
     }
 
     public void SetNewTime(int hours)

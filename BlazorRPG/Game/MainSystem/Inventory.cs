@@ -1,9 +1,7 @@
-﻿
-
-public class Inventory
+﻿public class Inventory
 {
-    private string[] Slots;
-    public int MaxCapacity { get { return Slots.Length; } }
+    public string[] Slots;
+    public int Capacity { get { return Slots.Length; } }
     public int UsedCapacity
     {
         get

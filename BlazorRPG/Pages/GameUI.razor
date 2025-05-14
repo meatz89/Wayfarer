@@ -227,7 +227,7 @@
 
                     <div class="sidebar-section @(expandedSections[SidebarSections.inventory] ? "expanded" : "collapsed")">
                         <div class="section-header hover" id="section-inventory" @onclick="() => ToggleSection(SidebarSections.inventory)">
-                            <span>Inventory (@PlayerState.Inventory.UsedCapacity / @PlayerState.Inventory.MaxCapacity)</span>
+                            <span>Inventory (@PlayerState.Inventory.UsedCapacity / @PlayerState.Inventory.Capacity)</span>
                             <span class="expand-icon">@(expandedSections[SidebarSections.inventory] ? "▼" : "►")</span>
                         </div>
 

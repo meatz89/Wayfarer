@@ -47,6 +47,116 @@
         return _aiService.GetProviderName();
     }
 
+    public async Task<NarrativeResult> SimulateChoiceForPreGeneration(
+    string location,
+    CardDefinition choice,
+    ChoiceNarrative choiceDescription,
+    int priority)
+    {
+        // Create deep copies of state to avoid threading issues
+        PlayerState playerStateCopy = this.playerState.Clone();
+        ResourceManager resourceManagerCopy = new ResourceManager();
+
+        // Create a deep copy of the current encounter state
+        EncounterState encounterStateCopy = EncounterState.CreateDeepCopy(
+            this.EncounterState,
+            playerStateCopy,
+            resourceManagerCopy);
+
+        // Proceed with simulation using the copied state
+        ChoiceOutcome outcome = ApplyChoiceProjection(playerStateCopy, encounterStateCopy, choice);
+
+        // Get status after the choice
+        EncounterStatusModel newStatus = GetEncounterStatusModel(playerStateCopy, worldState);
+
+        // Generate narrative based on the simulation
+        string narrative = "Continued Narrative";
+
+        if (_useAiNarrative)
+        {
+            WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location);
+
+            if (outcome.IsEncounterOver)
+            {
+                narrative = await _aiService.GenerateEndingAsync(
+                    narrativeContext,
+                    choice,
+                    choiceDescription,
+                    outcome,
+                    newStatus,
+                    worldStateInput,
+                    priority);
+            }
+            else
+            {
+                narrative = await _aiService.GenerateEncounterNarrative(
+                    narrativeContext,
+                    choice,
+                    choiceDescription,
+                    outcome,
+                    newStatus,
+                    worldStateInput,
+                    priority);
+            }
+        }
+
+        // Create a narrative event for the simulation
+        NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
+
+        // Prepare the response based on whether the encounter ends
+        if (outcome.IsEncounterOver)
+        {
+            NarrativeResult result = new(
+                narrative,
+                string.Empty,
+                new List<CardDefinition>(),
+                new List<ChoiceProjection>(),
+                new Dictionary<CardDefinition, ChoiceNarrative>(),
+                narrativeEvent.ChoiceNarrative);
+
+            result.SetOutcome(outcome.Outcome);
+            result.SetIsEncounterOver(outcome.IsEncounterOver);
+
+            return result;
+        }
+        else
+        {
+            // Generate choices for the next step
+            // This needs to be done on the copy to avoid interfering with the actual state
+            List<CardDefinition> newChoices = cardSelectionAlgorithm.SelectChoices(
+                encounterStateCopy, playerStateCopy);
+
+            List<ChoiceProjection> newProjections = newChoices.Select(
+                c => encounterStateCopy.CreateChoiceProjection(c)).ToList();
+
+            // Generate choice descriptions
+            Dictionary<CardDefinition, ChoiceNarrative> newChoiceDescriptions = null;
+
+            if (_useAiNarrative)
+            {
+                WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location);
+                newChoiceDescriptions = await _aiService.GenerateChoiceDescriptionsAsync(
+                    narrativeContext,
+                    newChoices,
+                    newProjections,
+                    newStatus,
+                    worldStateInput,
+                    priority);
+            }
+
+            // Create and return narrative result
+            NarrativeResult result = new(
+                narrative,
+                string.Empty,
+                newChoices,
+                newProjections,
+                newChoiceDescriptions,
+                narrativeEvent.ChoiceNarrative);
+
+            return result;
+        }
+    }
+
     // Replace all uses of narrativeService with _aiService
     public async Task<NarrativeResult> StartEncounterWithNarrativeAsync(
         Location location,
@@ -142,13 +252,13 @@
 
 
     public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
-    string location,
-    CardDefinition choice,
-    ChoiceNarrative choiceDescription,
-    int priority = AIClient.PRIORITY_IMMEDIATE)
+        string location,
+        CardDefinition choice,
+        ChoiceNarrative choiceDescription,
+        int priority = AIClient.PRIORITY_IMMEDIATE)
     {
         // Apply the choice
-        ChoiceOutcome outcome = ApplyChoiceProjection(playerState, Encounter, choice);
+        ChoiceOutcome outcome = ApplyChoiceProjection(playerState, EncounterState, choice);
 
         // Get status after the choice
         EncounterStatusModel newStatus = GetEncounterStatusModel(playerState, worldState);
@@ -169,7 +279,7 @@
                     outcome,
                     newStatus,
                     worldStateInput,
-                    priority); // Pass priority to the service
+                    priority);  // Pass priority parameter
             }
 
             NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
@@ -200,7 +310,7 @@
                     outcome,
                     newStatus,
                     worldStateInput,
-                    priority); // Pass priority to the service
+                    priority);  // Pass priority parameter
             }
 
             NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
@@ -223,7 +333,7 @@
                     newProjections,
                     newStatus,
                     worldStateInput,
-                    priority); // Pass priority to the service
+                    priority);  // Pass priority parameter
             }
 
             // Add the choice descriptions to the latest event
@@ -249,11 +359,11 @@
         }
     }
 
-    private ChoiceOutcome ApplyChoiceProjection(PlayerState playerState, Encounter encounterInfo, CardDefinition choice)
+    private ChoiceOutcome ApplyChoiceProjection(PlayerState playerState, EncounterState encounterState, CardDefinition choice)
     {
         this.playerState = playerState;
 
-        ChoiceProjection projection = EncounterState.ApplyChoice(playerState, encounterInfo, choice);
+        ChoiceProjection projection = encounterState.ApplyChoice(playerState, Encounter, choice);
 
         ChoiceOutcome outcome = new ChoiceOutcome(
             projection.MomentumGained,

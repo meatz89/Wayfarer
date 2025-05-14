@@ -31,7 +31,7 @@ public class ActionProcessor
     }
 
     public void ProcessTurnChange()
-    {   
+    {
         PlayerState playerState = gameState.PlayerState;
 
         int energy = playerState.CurrentEnergy();
@@ -56,7 +56,7 @@ public class ActionProcessor
     {
         PlayerState playerState = gameState.PlayerState;
         playerState.ApplyActionPointCost(action.ActionPointCost);
-        
+
         ProcessActionCosts(action);
         ProcessActionOutcomes(action);
 

@@ -26,31 +26,51 @@
     }
 
     public async Task<string> GetCompletionAsync(
-        List<ConversationEntry> messages,
-        string model,
-        string fallbackModel,
-        IResponseStreamWatcher watcher,
-        int priority,
-        string sourceSystem)
+    List<ConversationEntry> messages,
+    string model,
+    string fallbackModel,
+    IResponseStreamWatcher watcher,
+    int priority,
+    string sourceSystem)
     {
+        // Only show loading screens for non-background priority requests
+        bool isBackgroundRequest = priority >= PRIORITY_BACKGROUND;
+
         try
         {
-            // Start loading with a message specific to this generation type
-            _loadingStateService.StartLoading($"Generating {FormatSourceSystem(sourceSystem)}...");
+            // Only start loading UI for non-background requests
+            if (!isBackgroundRequest)
+            {
+                _loadingStateService.StartLoading($"Generating {FormatSourceSystem(sourceSystem)}...");
+            }
 
-            // Create a custom watcher that updates the loading state
-            IResponseStreamWatcher combinedWatcher = watcher != null
-                ? new ProgressTrackingWatcher(watcher, _loadingStateService)
-                : new ProgressTrackingWatcher(null, _loadingStateService);
+            // Determine which watcher to use
+            IResponseStreamWatcher effectiveWatcher;
+
+            if (isBackgroundRequest)
+            {
+                // For background tasks, use raw watcher without progress tracking
+                effectiveWatcher = watcher;
+            }
+            else
+            {
+                // For foreground tasks, use progress tracking watcher
+                effectiveWatcher = watcher != null
+                    ? new ProgressTrackingWatcher(watcher, _loadingStateService)
+                    : new ProgressTrackingWatcher(null, _loadingStateService);
+            }
 
             // Use the queue to get the completion
             return await _queue.EnqueueCommand(
-                messages, model, fallbackModel, combinedWatcher, priority, sourceSystem);
+                messages, model, fallbackModel, effectiveWatcher, priority, sourceSystem);
         }
         finally
         {
-            // Make sure we stop loading even if there's an exception
-            _loadingStateService.StopLoading();
+            // Only stop loading if we started it (non-background requests)
+            if (!isBackgroundRequest)
+            {
+                _loadingStateService.StopLoading();
+            }
         }
     }
 

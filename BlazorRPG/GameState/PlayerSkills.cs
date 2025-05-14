@@ -132,4 +132,24 @@ public class PlayerSkills
     {
         Skills[skillType].Level += level;
     }
+
+    public PlayerSkills Clone()
+    {
+        PlayerSkills clone = new PlayerSkills();
+
+        // Assuming PlayerSkills has some internal collection of skill levels
+        // that needs to be copied
+
+        // Copy each skill level
+        foreach (SkillTypes skillType in Enum.GetValues<SkillTypes>())
+        {
+            int level = this.GetLevelForSkill(skillType);
+            for (int i = 0; i < level; i++)
+            {
+                clone.AddLevelBonus(skillType, 1);
+            }
+        }
+
+        return clone;
+    }
 }
