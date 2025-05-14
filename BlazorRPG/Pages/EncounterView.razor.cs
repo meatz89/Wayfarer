@@ -25,21 +25,6 @@ public partial class EncounterViewBase : ComponentBase
     public double tooltipY;
 
     public bool IsLoading = true;
-    public ApproachTags[] GetApproachTags()
-    {
-        return Enum.GetValues<ApproachTags>().Where(x =>
-    {
-        return x != ApproachTags.None;
-    }).ToArray();
-    }
-
-    public FocusTags[] GetFocusTags()
-    {
-        return Enum.GetValues<FocusTags>().Where(x =>
-        {
-            return true;
-        }).ToArray();
-    }
 
     public EncounterResult EncounterResult { get; private set; }
     public List<UserEncounterChoiceOption> CurrentChoices = new List<UserEncounterChoiceOption>();
@@ -119,7 +104,7 @@ public partial class EncounterViewBase : ComponentBase
             ChoiceSetName = "None",
             CurrentChoices = new List<UserEncounterChoiceOption>(),
             CurrentEncounter = null,
-            State = EncounterState.Last,
+            State = EncounterState.PreviousEncounterState,
             EncounterResult = new EncounterResult()
             {
                 ActionImplementation = null,
@@ -180,7 +165,7 @@ public partial class EncounterViewBase : ComponentBase
         if (choiceDescriptions != null && choiceDescriptions.ContainsKey(card))
             choiceNarrative = choiceDescriptions[card];
 
-        string name = $"{card.GetName()}";
+        string name = $"{card.Name}";
         if (choiceNarrative != null)
         {
             name = choiceNarrative.ShorthandName;
@@ -251,8 +236,7 @@ public partial class EncounterViewBase : ComponentBase
 
         if (tag is NarrativeTag narrativeTag)
         {
-            if (narrativeTag.AffectedFocus != null)
-                tooltip.AppendLine($"{narrativeTag.GetEffectDescription()}");
+            tooltip.AppendLine($"{narrativeTag.GetEffectDescription()}");
         }
         else if (tag is StrategicTag strategicTag)
         {

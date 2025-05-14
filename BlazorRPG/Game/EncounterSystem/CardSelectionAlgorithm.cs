@@ -15,13 +15,6 @@
         // FIRST FILTER: Remove cards that don't meet minimum approach/focus requirements
         List<CardDefinition> playableCards = FilterPlayableCards(allCards, state);
 
-        // Calculate positional advantages from skills
-        Dictionary<ApproachTags, int> approachAdvantages = CalculateSkillApproachBonuses(playerState);
-        Dictionary<FocusTags, int> focusAdvantages = CalculateSkillFocusBonuses(playerState);
-
-        // Calculate environmental influences
-        Dictionary<ApproachTags, int> environmentalBonuses = CalculateEnvironmentalBonuses(state);
-
         // Calculate card viability scores
         Dictionary<CardDefinition, CardViabilityScore> cardScores = new Dictionary<CardDefinition, CardViabilityScore>();
         foreach (CardDefinition card in playableCards)
@@ -29,10 +22,7 @@
             CardViabilityScore score = CalculateCardViability(
                 card,
                 state,
-                playerState,
-                approachAdvantages,
-                focusAdvantages,
-                environmentalBonuses
+                playerState
             );
             cardScores[card] = score;
         }
@@ -50,22 +40,11 @@
 
         foreach (CardDefinition card in allCards)
         {
-            // Get current position values
-            int currentApproachValue = state.EncounterTagSystem.GetApproachTagValue(card.Approach);
-            int currentFocusValue = state.EncounterTagSystem.GetFocusTagValue(card.Focus);
-
             // Tier 1 cards are always playable
             if (card.Tier == 1)
             {
                 playableCards.Add(card);
                 continue;
-            }
-
-            // CHECK REQUIREMENTS: Card is only playable if we meet BOTH minimum values
-            if (currentApproachValue >= card.OptimalApproachPosition &&
-                currentFocusValue >= card.OptimalFocusPosition)
-            {
-                playableCards.Add(card);
             }
         }
 
@@ -75,23 +54,9 @@
     private CardViabilityScore CalculateCardViability(
         CardDefinition card,
         EncounterState state,
-        PlayerState playerState,
-        Dictionary<ApproachTags, int> approachAdvantages,
-        Dictionary<FocusTags, int> focusAdvantages,
-        Dictionary<ApproachTags, int> environmentalBonuses)
+        PlayerState playerState)
     {
         CardViabilityScore score = new CardViabilityScore();
-
-        // Get current approach/focus values
-        int approachValue = state.EncounterTagSystem.GetApproachTagValue(card.Approach);
-        int focusValue = state.EncounterTagSystem.GetFocusTagValue(card.Focus);
-
-        // For scoring purposes, we can add skill advantages
-        if (approachAdvantages.TryGetValue(card.Approach, out int approachBonus))
-            approachValue += approachBonus;
-
-        if (focusAdvantages.TryGetValue(card.Focus, out int focusBonus))
-            focusValue += focusBonus;
 
         // For Tier 1 cards, position doesn't matter as much
         if (card.Tier == 1)
@@ -101,17 +66,6 @@
         }
         else
         {
-            // For higher tier cards, calculate positional advantage (not requirements)
-            int approachAdvantage = approachValue - card.OptimalApproachPosition;
-            int focusAdvantage = focusValue - card.OptimalFocusPosition;
-
-            // Calculate how far beyond requirements we are (positive is good)
-            score.PositionalScore = -(approachAdvantage + focusAdvantage);
-
-            // Environmental bonus improves position score
-            if (environmentalBonuses.TryGetValue(card.Approach, out int envBonus))
-                score.PositionalScore -= envBonus;
-
             // Apply tier modifiers
             score.PositionalScore -= card.Tier; // Higher tier cards get an advantage
 
@@ -133,142 +87,6 @@
                           score.EnvironmentalSynergy - score.SkillBonus;
 
         return score;
-    }
-
-    private Dictionary<ApproachTags, int> CalculateSkillApproachBonuses(PlayerState playerState)
-    {
-        Dictionary<ApproachTags, int> bonuses = new Dictionary<ApproachTags, int>();
-
-        // Endurance skill → Dominance approach
-        bonuses[ApproachTags.Dominance] = playerState.Skills.GetLevelForSkill(SkillTypes.Endurance) / 2;
-
-        // Diplomacy skill → Rapport approach
-        bonuses[ApproachTags.Rapport] = playerState.Skills.GetLevelForSkill(SkillTypes.Diplomacy) / 2;
-
-        // Observation skill → Analysis approach
-        bonuses[ApproachTags.Analysis] = playerState.Skills.GetLevelForSkill(SkillTypes.Insight) / 2;
-
-        // Charm skill → Precision approach
-        bonuses[ApproachTags.Precision] = playerState.Skills.GetLevelForSkill(SkillTypes.Charm) / 2;
-
-        // Finesse skill → Concealment approach
-        bonuses[ApproachTags.Concealment] = playerState.Skills.GetLevelForSkill(SkillTypes.Finesse) / 2;
-
-        return bonuses;
-    }
-
-    private Dictionary<FocusTags, int> CalculateSkillFocusBonuses(PlayerState playerState)
-    {
-        Dictionary<FocusTags, int> bonuses = new Dictionary<FocusTags, int>();
-
-        // Create skill-focus mappings
-        bonuses[FocusTags.Physical] = (playerState.Skills.GetLevelForSkill(SkillTypes.Endurance) +
-                                     playerState.Skills.GetLevelForSkill(SkillTypes.Charm)) / 3;
-
-        bonuses[FocusTags.Information] = (playerState.Skills.GetLevelForSkill(SkillTypes.Insight) +
-                                        playerState.Skills.GetLevelForSkill(SkillTypes.Finesse)) / 3;
-
-        bonuses[FocusTags.Relationship] = playerState.Skills.GetLevelForSkill(SkillTypes.Diplomacy) / 2;
-
-        bonuses[FocusTags.Environment] = playerState.Skills.GetLevelForSkill(SkillTypes.Charm) / 2;
-
-        bonuses[FocusTags.Resource] = (playerState.Skills.GetLevelForSkill(SkillTypes.Finesse) +
-                                     playerState.Skills.GetLevelForSkill(SkillTypes.Diplomacy)) / 4;
-
-        return bonuses;
-    }
-
-    private Dictionary<ApproachTags, int> CalculateEnvironmentalBonuses(EncounterState state)
-    {
-        Dictionary<ApproachTags, int> bonuses = new Dictionary<ApproachTags, int>();
-
-        // Extract active environmental properties
-        List<IEnvironmentalProperty> properties = state.ActiveTags
-            .Where(t =>
-            {
-                return t is StrategicTag;
-            })
-            .Select(t =>
-            {
-                return ((StrategicTag)t).EnvironmentalProperty;
-            })
-            .ToList();
-
-        // Define which approaches are favored by each environmental property
-        foreach (IEnvironmentalProperty property in properties)
-        {
-            if (property is Illumination illumination)
-            {
-                if (illumination.Equals(Illumination.Bright))
-                {
-                    AddOrIncrease(bonuses, ApproachTags.Dominance, 1);
-                    AddOrIncrease(bonuses, ApproachTags.Precision, 1);
-                }
-                else if (illumination.Equals(Illumination.Roguey))
-                {
-                    AddOrIncrease(bonuses, ApproachTags.Precision, 1);
-                    AddOrIncrease(bonuses, ApproachTags.Concealment, 1);
-                }
-                else if (illumination.Equals(Illumination.Dark))
-                {
-                    AddOrIncrease(bonuses, ApproachTags.Concealment, 2);
-                }
-            }
-            else if (property is Population population)
-            {
-                if (population.Equals(Population.Crowded))
-                {
-                    AddOrIncrease(bonuses, ApproachTags.Rapport, 2);
-                    AddOrIncrease(bonuses, ApproachTags.Dominance, 1);
-                }
-                else if (population.Equals(Population.Quiet))
-                {
-                    AddOrIncrease(bonuses, ApproachTags.Analysis, 1);
-                    AddOrIncrease(bonuses, ApproachTags.Precision, 1);
-                }
-                else if (population.Equals(Population.Scholarly))
-                {
-                    AddOrIncrease(bonuses, ApproachTags.Analysis, 2);
-                }
-            }
-            else if (property is Physical physical)
-            {
-                if (physical.Equals(Physical.Confined))
-                {
-                    AddOrIncrease(bonuses, ApproachTags.Precision, 1);
-                    AddOrIncrease(bonuses, ApproachTags.Concealment, 1);
-                }
-                else if (physical.Equals(Physical.Expansive))
-                {
-                    AddOrIncrease(bonuses, ApproachTags.Dominance, 1);
-                    AddOrIncrease(bonuses, ApproachTags.Precision, 1);
-                }
-                else if (physical.Equals(Physical.Hazardous))
-                {
-                    AddOrIncrease(bonuses, ApproachTags.Analysis, 1);
-                    AddOrIncrease(bonuses, ApproachTags.Precision, 1);
-                }
-            }
-            else if (property is Atmosphere atmosphere)
-            {
-                if (atmosphere.Equals(Atmosphere.Rough))
-                {
-                    AddOrIncrease(bonuses, ApproachTags.Dominance, 2);
-                }
-                else if (atmosphere.Equals(Atmosphere.Calm))
-                {
-                    AddOrIncrease(bonuses, ApproachTags.Rapport, 1);
-                    AddOrIncrease(bonuses, ApproachTags.Precision, 1);
-                }
-                else if (atmosphere.Equals(Atmosphere.Chaotic))
-                {
-                    AddOrIncrease(bonuses, ApproachTags.Analysis, 1);
-                    AddOrIncrease(bonuses, ApproachTags.Concealment, 1);
-                }
-            }
-        }
-
-        return bonuses;
     }
 
     private int CalculateSituationalValue(CardDefinition card, EncounterState state)
@@ -314,13 +132,6 @@
                 {
                     // Card has direct synergy with this environment
                     synergy += 2;
-
-                    // Additional synergy if the effect scales with an approach the player has developed
-                    int approachValue = state.EncounterTagSystem.GetApproachTagValue(card.StrategicEffect.TargetApproach);
-                    if (approachValue >= 3)
-                    {
-                        synergy += 1;
-                    }
                 }
             }
         }
@@ -396,8 +207,6 @@
         Dictionary<CardDefinition, CardViabilityScore> cardScores)
     {
         List<CardDefinition> result = new List<CardDefinition>();
-        HashSet<ApproachTags> usedApproaches = new HashSet<ApproachTags>();
-        HashSet<FocusTags> usedFocuses = new HashSet<FocusTags>();
 
         // First pass: select best card, add its approach/focus to used sets
         if (viableCards.Any())
@@ -410,18 +219,7 @@
                 .First();
 
             result.Add(bestCard);
-            usedApproaches.Add(bestCard.Approach);
-            usedFocuses.Add(bestCard.Focus);
         }
-
-        // Ensure we have one momentum and one pressure card
-        EnsureEffectTypeDiversity(result, viableCards, cardScores, usedApproaches, usedFocuses);
-
-        // Add cards with unique approaches
-        AddCardsWithUniqueApproaches(result, viableCards, cardScores, usedApproaches, usedFocuses);
-
-        // Add cards with unique focuses
-        AddCardsWithUniqueFocuses(result, viableCards, cardScores, usedApproaches, usedFocuses);
 
         // If we still need cards, add highest scoring remaining cards
         while (result.Count < 4 && viableCards.Any(c =>
@@ -445,139 +243,4 @@
 
         return result;
     }
-
-    private void EnsureEffectTypeDiversity(
-        List<CardDefinition> result,
-        List<CardDefinition> viableCards,
-        Dictionary<CardDefinition, CardViabilityScore> cardScores,
-        HashSet<ApproachTags> usedApproaches,
-        HashSet<FocusTags> usedFocuses)
-    {
-        bool hasMomentumCard = result.Any(c =>
-        {
-            return c.EffectType == EffectTypes.Momentum;
-        });
-        bool hasPressureCard = result.Any(c =>
-        {
-            return c.EffectType == EffectTypes.Pressure;
-        });
-
-        if (!hasMomentumCard)
-        {
-            CardDefinition bestMomentumCard = viableCards
-                .Where(c =>
-                {
-                    return c.EffectType == EffectTypes.Momentum && !result.Contains(c);
-                })
-                .OrderBy(c =>
-                {
-                    return cardScores[c].TotalScore;
-                })
-                .FirstOrDefault();
-
-            if (bestMomentumCard != null)
-            {
-                result.Add(bestMomentumCard);
-                usedApproaches.Add(bestMomentumCard.Approach);
-                usedFocuses.Add(bestMomentumCard.Focus);
-            }
-        }
-
-        if (!hasPressureCard)
-        {
-            CardDefinition bestPressureCard = viableCards
-                .Where(c =>
-                {
-                    return c.EffectType == EffectTypes.Pressure && !result.Contains(c);
-                })
-                .OrderBy(c =>
-                {
-                    return cardScores[c].TotalScore;
-                })
-                .FirstOrDefault();
-
-            if (bestPressureCard != null)
-            {
-                result.Add(bestPressureCard);
-                usedApproaches.Add(bestPressureCard.Approach);
-                usedFocuses.Add(bestPressureCard.Focus);
-            }
-        }
-    }
-
-    private void AddCardsWithUniqueApproaches(
-        List<CardDefinition> result,
-        List<CardDefinition> viableCards,
-        Dictionary<CardDefinition, CardViabilityScore> cardScores,
-        HashSet<ApproachTags> usedApproaches,
-        HashSet<FocusTags> usedFocuses)
-    {
-        while (result.Count < 3 && viableCards.Any(c =>
-        {
-            return !result.Contains(c) && !usedApproaches.Contains(c.Approach);
-        }))
-        {
-            CardDefinition card = viableCards
-                .Where(c =>
-                {
-                    return !result.Contains(c) && !usedApproaches.Contains(c.Approach);
-                })
-                .OrderBy(c =>
-                {
-                    return cardScores[c].TotalScore;
-                })
-                .First();
-
-            result.Add(card);
-            usedApproaches.Add(card.Approach);
-            usedFocuses.Add(card.Focus);
-        }
-    }
-
-    private void AddCardsWithUniqueFocuses(
-        List<CardDefinition> result,
-        List<CardDefinition> viableCards,
-        Dictionary<CardDefinition, CardViabilityScore> cardScores,
-        HashSet<ApproachTags> usedApproaches,
-        HashSet<FocusTags> usedFocuses)
-    {
-        while (result.Count < 4 && viableCards.Any(c =>
-        {
-            return !result.Contains(c) && !usedFocuses.Contains(c.Focus);
-        }))
-        {
-            CardDefinition card = viableCards
-                .Where(c =>
-                {
-                    return !result.Contains(c) && !usedFocuses.Contains(c.Focus);
-                })
-                .OrderBy(c =>
-                {
-                    return cardScores[c].TotalScore;
-                })
-                .First();
-
-            result.Add(card);
-            usedApproaches.Add(card.Approach);
-            usedFocuses.Add(card.Focus);
-        }
-    }
-
-    private void AddOrIncrease(Dictionary<ApproachTags, int> dict, ApproachTags key, int amount)
-    {
-        if (dict.ContainsKey(key))
-            dict[key] += amount;
-        else
-            dict[key] = amount;
-    }
-}
-
-public class CardViabilityScore
-{
-    public int PositionalScore { get; set; } // Lower is better
-    public int SituationalValue { get; set; } // Higher is better
-    public int EnvironmentalSynergy { get; set; } // Higher is better
-    public int SkillBonus { get; set; } // Higher is better
-    public int TotalScore { get; set; } // Lower is better
-    public bool IsPlayable { get; set; }
 }

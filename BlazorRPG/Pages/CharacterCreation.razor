@@ -40,11 +40,6 @@
                         <h3 class="archetype-title">@FormatArchetypeName(selectedArchetype)</h3>
                         <p class="archetype-description">@GetArchetypeDescription(selectedArchetype)</p>
 
-                        <div class="archetype-advantages">
-                            <strong>Advantages:</strong>
-                            <div class="archetype-approaches">@GetNaturalTags(selectedArchetype)</div>
-                        </div>
-
                         <div class="starting-items">
                             <strong>Starting Items:</strong>
                             <div class="items-list">
@@ -218,20 +213,6 @@
             Professions.Mystic => "Your gaze has always cut deeper than others', perceiving the threads that connect seemingly random events. You notice patterns in starlight, significance in a falling leaf, meaning in coincidence. People find your insights either mesmerizing or deeply unsettling—there seems to be no middle ground. The physical world receives your grudging participation; you've learned enough to sustain your body, though your mind constantly wanders to more interesting realms. Social niceties often feel like rituals in a language you never quite mastered, leaving you isolated yet strangely content in that solitude. Some call you sage, others call you madman—you find both labels equally amusing.",
             Professions.Diplomat => "Words flow from your lips like fine wine—sometimes sweet, sometimes sharp, but always potent. Where warriors see problems to overcome through force, you see knots to untangle through carefully chosen phrases. Your greatest weapon is the perfectly timed silence, your finest armor the disarming smile. Though you might struggle to lift a blacksmith's hammer, you've learned to wield something far more powerful—the desires and fears that drive all human interaction. Courts and councils value your mediation; merchants seek your negotiation skills. Your greatest victory is when others believe your subtle guidance was their own idea all along.",
             _ => "An undefined soul wandering uncertain roads"
-        };
-    }
-
-    private string GetNaturalTags(Professions archetype)
-    {
-        return archetype switch
-        {
-            Professions.Warrior => "+Physical, oMental, -Social",
-            Professions.Scholar => "+Mental oSocial, -Physical",
-            Professions.Courtier => "+Social, oPhysical, -Mental",
-            Professions.Ranger => "+Physical, oSocial, -Mental",
-            Professions.Mystic => "+Mental, oPhysical, -Social",
-            Professions.Diplomat => "+Social, oMental, -Physical",
-            _ => "None"
         };
     }
 

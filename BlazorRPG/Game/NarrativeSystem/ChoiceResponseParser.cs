@@ -48,11 +48,10 @@ public static class ChoiceResponseParser
 
     private static ChoiceNarrative GenerateFallbackNarrative(CardDefinition choice)
     {
-        string focus = choice.Focus.ToString();
         string effectType = choice.EffectType.ToString();
 
         // Create a basic name and description based on tags
-        string description = $"I focus on {focus} to make progress.";
+        string description = $"";
 
         // Add effect type information
         if (effectType == "Momentum")

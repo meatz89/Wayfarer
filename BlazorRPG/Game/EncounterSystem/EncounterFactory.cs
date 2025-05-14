@@ -76,8 +76,7 @@
                 illumination,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { illumination },
-                    StrategicTagEffectType.IncreaseMomentum,
-                    ApproachTags.Precision
+                    StrategicTagEffectType.IncreaseMomentum
                 )
             ));
 
@@ -86,8 +85,7 @@
                 illumination,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { illumination },
-                    StrategicTagEffectType.DecreaseMomentum,
-                    ApproachTags.Concealment
+                    StrategicTagEffectType.DecreaseMomentum
                 )
             ));
         }
@@ -98,8 +96,7 @@
                 illumination,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { illumination },
-                    StrategicTagEffectType.DecreasePressure,
-                    ApproachTags.Concealment
+                    StrategicTagEffectType.DecreasePressure
                 )
             ));
         }
@@ -110,8 +107,7 @@
                 illumination,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { illumination },
-                    StrategicTagEffectType.IncreaseMomentum,
-                    ApproachTags.Concealment
+                    StrategicTagEffectType.IncreaseMomentum
                 )
             ));
 
@@ -120,8 +116,7 @@
                 illumination,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { illumination },
-                    StrategicTagEffectType.DecreaseMomentum,
-                    ApproachTags.Precision
+                    StrategicTagEffectType.DecreaseMomentum
                 )
             ));
         }
@@ -139,8 +134,7 @@
                 population,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { population },
-                    StrategicTagEffectType.IncreaseMomentum,
-                    ApproachTags.Rapport
+                    StrategicTagEffectType.IncreaseMomentum
                 )
             ));
 
@@ -149,8 +143,7 @@
                 population,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { population },
-                    StrategicTagEffectType.IncreasePressure,
-                    ApproachTags.Concealment
+                    StrategicTagEffectType.IncreasePressure
                 )
             ));
         }
@@ -161,8 +154,7 @@
                 population,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { population },
-                    StrategicTagEffectType.IncreaseMomentum,
-                    ApproachTags.Analysis
+                    StrategicTagEffectType.IncreaseMomentum
                 )
             ));
         }
@@ -173,8 +165,7 @@
                 population,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { population },
-                    StrategicTagEffectType.DecreasePressure,
-                    ApproachTags.Analysis
+                    StrategicTagEffectType.DecreasePressure
                 )
             ));
 
@@ -183,8 +174,7 @@
                 population,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { population },
-                    StrategicTagEffectType.DecreaseMomentum,
-                    ApproachTags.Dominance
+                    StrategicTagEffectType.DecreaseMomentum
                 )
             ));
         }
@@ -202,8 +192,7 @@
                 atmosphere,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { atmosphere },
-                    StrategicTagEffectType.IncreaseMomentum,
-                    ApproachTags.Precision
+                    StrategicTagEffectType.IncreaseMomentum
                 )
             ));
 
@@ -212,8 +201,7 @@
                 atmosphere,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { atmosphere },
-                    StrategicTagEffectType.DecreaseMomentum,
-                    ApproachTags.Dominance
+                    StrategicTagEffectType.DecreaseMomentum
                 )
             ));
         }
@@ -224,8 +212,7 @@
                 atmosphere,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { atmosphere },
-                    StrategicTagEffectType.IncreasePressure,
-                    ApproachTags.Precision
+                    StrategicTagEffectType.IncreasePressure
                 )
             ));
 
@@ -234,8 +221,7 @@
                 atmosphere,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { atmosphere },
-                    StrategicTagEffectType.IncreaseMomentum,
-                    ApproachTags.Concealment
+                    StrategicTagEffectType.IncreaseMomentum
                 )
             ));
         }
@@ -246,8 +232,7 @@
                 atmosphere,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { atmosphere },
-                    StrategicTagEffectType.IncreaseMomentum,
-                    ApproachTags.Dominance
+                    StrategicTagEffectType.IncreaseMomentum
                 )
             ));
 
@@ -256,8 +241,7 @@
                 atmosphere,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { atmosphere },
-                    StrategicTagEffectType.DecreaseMomentum,
-                    ApproachTags.Rapport
+                    StrategicTagEffectType.DecreaseMomentum
                 )
             ));
         }
@@ -275,8 +259,7 @@
                 physical,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { physical },
-                    StrategicTagEffectType.DecreaseMomentum,
-                    ApproachTags.Dominance
+                    StrategicTagEffectType.DecreaseMomentum
                 )
             ));
 
@@ -285,8 +268,7 @@
                 physical,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { physical },
-                    StrategicTagEffectType.IncreaseMomentum,
-                    ApproachTags.Precision
+                    StrategicTagEffectType.IncreaseMomentum
                 )
             ));
         }
@@ -297,8 +279,7 @@
                 physical,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { physical },
-                    StrategicTagEffectType.IncreaseMomentum,
-                    ApproachTags.Dominance
+                    StrategicTagEffectType.IncreaseMomentum
                 )
             ));
 
@@ -307,8 +288,7 @@
                 physical,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { physical },
-                    StrategicTagEffectType.DecreasePressure,
-                    ApproachTags.Concealment
+                    StrategicTagEffectType.DecreasePressure
                 )
             ));
         }
@@ -319,8 +299,7 @@
                 physical,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { physical },
-                    StrategicTagEffectType.IncreasePressure,
-                    ApproachTags.Dominance
+                    StrategicTagEffectType.IncreasePressure
                 )
             ));
 
@@ -329,8 +308,7 @@
                 physical,
                 new EnvironmentalPropertyEffect(
                     new List<IEnvironmentalProperty> { physical },
-                    StrategicTagEffectType.DecreasePressure,
-                    ApproachTags.Precision
+                    StrategicTagEffectType.DecreasePressure
                 )
             ));
         }

@@ -9,7 +9,6 @@
     private IAIService _aiService;
     private NarrativeContext narrativeContext;
 
-    private ResourceManager resourceManager;
     private readonly WorldStateInputBuilder worldStateInputCreator;
     public List<CardDefinition> CurrentChoices = new List<CardDefinition>();
 
@@ -26,8 +25,7 @@
         Encounter encounter,
         ActionImplementation actionImplementation,
         CardSelectionAlgorithm cardSelector,
-        IAIService aiService, // Changed parameter type
-        ResourceManager resourceManager,
+        IAIService aiService,
         WorldStateInputBuilder worldStateInputCreator,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
@@ -36,7 +34,6 @@
         ActionImplementation = actionImplementation;
         cardSelectionAlgorithm = cardSelector;
         _aiService = aiService;
-        this.resourceManager = resourceManager;
         this.worldStateInputCreator = worldStateInputCreator;
         _useAiNarrative = configuration.GetValue<bool>("useAiNarrative");
         _useMemory = configuration.GetValue<bool>("useMemory");
@@ -55,13 +52,9 @@
     {
         // Create deep copies of state to avoid threading issues
         PlayerState playerStateCopy = this.playerState.Clone();
-        ResourceManager resourceManagerCopy = new ResourceManager();
-
-        // Create a deep copy of the current encounter state
         EncounterState encounterStateCopy = EncounterState.CreateDeepCopy(
             this.EncounterState,
-            playerStateCopy,
-            resourceManagerCopy);
+            playerStateCopy);
 
         // Proceed with simulation using the copied state
         ChoiceOutcome outcome = ApplyChoiceProjection(playerStateCopy, encounterStateCopy, choice);
@@ -247,7 +240,7 @@
         this.worldState = worldState;
         this.playerState = playerState;
 
-        EncounterState = new EncounterState(encounterInfo, playerState, this.resourceManager);
+        EncounterState = new EncounterState(encounterInfo, playerState);
     }
 
 
@@ -375,16 +368,6 @@
             projection.ConcentrationChange,
             projection.ConfidenceChange);
 
-        foreach (KeyValuePair<FocusTags, int> kvp in projection.FocusTagChanges)
-        {
-            outcome.FocusTagChanges[kvp.Key] = kvp.Value;
-        }
-
-        foreach (KeyValuePair<ApproachTags, int> kvp in projection.ApproachTagChanges)
-        {
-            outcome.ApproachTagChanges[kvp.Key] = kvp.Value;
-        }
-
         outcome.NewlyActivatedTags.AddRange(projection.NewlyActivatedTags);
         outcome.DeactivatedTags.AddRange(projection.DeactivatedTags);
 
@@ -419,8 +402,6 @@
             maxTurns: EncounterState.EncounterInfo.MaxTurns,
             momentum: EncounterState.Momentum,
             pressure: EncounterState.Pressure,
-            approachTags: EncounterState.EncounterTagSystem.GetAllApproachTags(),
-            focusTags: EncounterState.EncounterTagSystem.GetAllFocusTags(),
             activeTagNames: EncounterState.GetActiveTagsNames(),
             playerState: playerState,
             worldState: worldState

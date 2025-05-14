@@ -16,7 +16,6 @@ public class NarrativeTagRepository
     /// </summary>
     public static readonly NarrativeTag AffableManner = new NarrativeTag(
         "Affable Manner",
-        FocusTags.Relationship,
         -1  // Reduces the required Relationship focus.
     );
 
@@ -25,7 +24,6 @@ public class NarrativeTagRepository
     /// </summary>
     public static readonly NarrativeTag StrainedInteraction = new NarrativeTag(
         "Strained Interaction",
-        FocusTags.Relationship,
         +1  // Increases the required Relationship focus.
     );
 
@@ -38,7 +36,6 @@ public class NarrativeTagRepository
     /// </summary>
     public static readonly NarrativeTag LucidConcentration = new NarrativeTag(
         "Lucid Concentration",
-        FocusTags.Information,
         -2  // Greatly reduces the Information focus needed.
     );
 
@@ -47,7 +44,6 @@ public class NarrativeTagRepository
     /// </summary>
     public static readonly NarrativeTag DistractingCommotion = new NarrativeTag(
         "Distracting Commotion",
-        FocusTags.Information,
         +1  // Increases the required Information focus.
     );
 
@@ -60,7 +56,6 @@ public class NarrativeTagRepository
     /// </summary>
     public static readonly NarrativeTag FluidMovement = new NarrativeTag(
         "Fluid Movement",
-        FocusTags.Physical,
         -1  // Lowers the demand for Physical focus.
     );
 
@@ -69,7 +64,6 @@ public class NarrativeTagRepository
     /// </summary>
     public static readonly NarrativeTag UnsteadyConditions = new NarrativeTag(
         "Unsteady Conditions",
-        FocusTags.Physical,
         +1  // Raises the required Physical focus.
     );
 
@@ -82,7 +76,6 @@ public class NarrativeTagRepository
     /// </summary>
     public static readonly NarrativeTag HarmoniousOrder = new NarrativeTag(
         "Harmonious Order",
-        FocusTags.Environment,
         -1  // Decreases the Environmental focus needed.
     );
 
@@ -91,7 +84,6 @@ public class NarrativeTagRepository
     /// </summary>
     public static readonly NarrativeTag DisorderedAmbience = new NarrativeTag(
         "Disordered Ambience",
-        FocusTags.Environment,
         +2  // Significantly increases the required Environmental focus.
     );
 
@@ -104,7 +96,6 @@ public class NarrativeTagRepository
     /// </summary>
     public static readonly NarrativeTag PlentifulProvisions = new NarrativeTag(
         "Plentiful Provisions",
-        FocusTags.Resource,
         -1  // Reduces the required Resource focus.
     );
 
@@ -113,7 +104,6 @@ public class NarrativeTagRepository
     /// </summary>
     public static readonly NarrativeTag ScarceAssets = new NarrativeTag(
         "Scarce Assets",
-        FocusTags.Resource,
         +1  // Increases the required Resource focus.
     );
 }

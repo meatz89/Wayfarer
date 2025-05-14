@@ -19,8 +19,6 @@ public class EncounterStatusModel
     public int Momentum { get; }
     public int Pressure { get; }
 
-    public Dictionary<ApproachTags, int> ApproachTags { get; }
-    public Dictionary<FocusTags, int> FocusTags { get; }
     public List<string> ActiveTagNames { get; }
     public WorldState WorldState { get; }
     public PlayerState PlayerState { get; }
@@ -44,8 +42,6 @@ public class EncounterStatusModel
         int maxTurns,
         int momentum,
         int pressure,
-        Dictionary<ApproachTags, int> approachTags,
-        Dictionary<FocusTags, int> focusTags,
         List<string> activeTagNames,
         PlayerState playerState,
         WorldState worldState)
@@ -66,8 +62,6 @@ public class EncounterStatusModel
         Confidence = playerState.Spirit;
         MaxConfidence = playerState.MaxSpirit;
 
-        ApproachTags = approachTags;
-        FocusTags = focusTags;
         ActiveTagNames = activeTagNames;
         PlayerState = playerState;
 
