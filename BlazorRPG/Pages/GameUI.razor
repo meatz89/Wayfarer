@@ -7,8 +7,11 @@
     {
         <MissingReferences OnMissingReferencesResolved="ResolvedMissingReferences" />
     }
-
-    @if (CurrentScreen != CurrentViews.CharacterScreen)
+    else if (CurrentScreen == CurrentViews.CharacterScreen)
+    {
+        <CharacterCreation OnCharacterCreated="HandleCharacterCreated" />
+    }
+    else
     {
         <div class="game-status-bar">
             <ObjectiveView StateVersion="@StateVersion" />
@@ -273,10 +276,7 @@
             }
         </div>
     }
-    else
-    {
-        <CharacterCreation OnCharacterCreated="HandleCharacterCreated" />
-    }
+    
 </div>
 
         
