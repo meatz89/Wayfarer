@@ -14,7 +14,7 @@
     public int XPToNextLevel { get; set; } = 100;
 
     // Afflictions
-    public int MaxActionPoints { get; set;  } = 4;
+    public int MaxActionPoints { get; set; } = 4;
     public int ActionPoints { get; set; } = 4;
     public int MaxVigor { get; set; } = 20;
     public int Vigor { get; set; }
@@ -80,10 +80,10 @@
 
         Cards = new List<Card>();
 
-        var card1 = new Card() { Name = "Card 1", Type = CardTypes.Physical };
-        var card2 = new Card() { Name = "Card 2", Type = CardTypes.Physical };
-        var card3 = new Card() { Name = "Card 3", Type = CardTypes.Intellectual };
-        var card4 = new Card() { Name = "Card 4", Type = CardTypes.Social };
+        Card card1 = new Card() { Name = "Card 1", Type = CardTypes.Physical };
+        Card card2 = new Card() { Name = "Card 2", Type = CardTypes.Physical };
+        Card card3 = new Card() { Name = "Card 3", Type = CardTypes.Intellectual };
+        Card card4 = new Card() { Name = "Card 4", Type = CardTypes.Social };
 
         Cards.Add(card1);
         Cards.Add(card2);
@@ -354,7 +354,7 @@
     {
         this.IsolationPoints += disconnectionPoints;
     }
-    
+
     public int CurrentActionPoints()
     {
         return ActionPoints;
@@ -410,5 +410,87 @@
     internal void ModifyIsolation(int amount)
     {
         this.IsolationPoints += amount;
+    }
+
+    public PlayerState Clone()
+    {
+        // Create a new PlayerState instance
+        PlayerState clone = new PlayerState();
+
+        // Copy simple properties
+        clone.Name = this.Name;
+        clone.Gender = this.Gender;
+        clone.Background = this.Background;
+        clone.Archetype = this.Archetype;
+        clone.Level = this.Level;
+        clone.CurrentXP = this.CurrentXP;
+        clone.XPToNextLevel = this.XPToNextLevel;
+        clone.MaxActionPoints = this.MaxActionPoints;
+        clone.ActionPoints = this.ActionPoints;
+        clone.MaxVigor = this.MaxVigor;
+        clone.Vigor = this.Vigor;
+        clone.MaxEnergyPoints = this.MaxEnergyPoints;
+        clone.EnergyPoints = this.EnergyPoints;
+        clone.Coins = this.Coins;
+        clone.Food = this.Food;
+        clone.MinHealth = this.MinHealth;
+        clone.Health = this.Health;
+        clone.Focus = this.Focus;
+        clone.Spirit = this.Spirit;
+        clone.ExhaustionPoints = this.ExhaustionPoints;
+        clone.HungerPoints = this.HungerPoints;
+        clone.MentalStrainPoints = this.MentalStrainPoints;
+        clone.IsolationPoints = this.IsolationPoints;
+        clone.MaxHealth = this.MaxHealth;
+        clone.MaxFocus = this.MaxFocus;
+        clone.MaxSpirit = this.MaxSpirit;
+        clone.IsInitialized = this.IsInitialized;
+
+        // Deep copy Inventory
+        clone.Inventory = new Inventory(this.Inventory.Capacity);
+        foreach (string item in this.Inventory.GetAllItems())
+        {
+            clone.Inventory.AddItem(item);
+        }
+
+        // Deep copy of RelationshipList
+        clone.Relationships = this.Relationships.Clone();
+
+        // Deep copy of card collections
+        clone.UnlockedCards = new List<CardDefinition>(this.UnlockedCards);
+        clone.KnownCards = new List<CardDefinition>(this.KnownCards);
+
+        // Deep copy of location knowledge
+        clone.DiscoveredLocationIds = new List<string>(this.DiscoveredLocationIds);
+        clone.KnownLocations = new List<string>(this.KnownLocations);
+        clone.KnownLocationSpots = new List<string>(this.KnownLocationSpots);
+
+        // Deep copy of travel methods
+        clone.UnlockedTravelMethods = new List<string>(this.UnlockedTravelMethods);
+
+        // Deep copy of LocationActionAvailability HashSet
+        clone.LocationActionAvailability = new HashSet<(string, EncounterApproaches)>(
+            this.LocationActionAvailability);
+
+        // Deep copy of NegativeStatusTypes
+        clone.NegativeStatusTypes = new List<PlayerNegativeStatus>(this.NegativeStatusTypes);
+
+        // Deep copy of Skills
+        clone.Skills = this.Skills.Clone();
+
+        // Deep copy of Cards
+        clone.Cards = new List<Card>();
+        foreach (Card card in this.Cards)
+        {
+            Card cardCopy = new Card
+            {
+                Name = card.Name,
+                Type = card.Type
+                // Copy other Card properties as needed
+            };
+            clone.Cards.Add(cardCopy);
+        }
+
+        return clone;
     }
 }

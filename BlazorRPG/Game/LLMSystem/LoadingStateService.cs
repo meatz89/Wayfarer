@@ -14,20 +14,41 @@
     // Simple getters and setters
     public bool IsLoading
     {
-        get => isLoading;
-        set => isLoading = value;
+        get
+        {
+            return isLoading;
+        }
+
+        set
+        {
+            isLoading = value;
+        }
     }
 
     public string Message
     {
-        get => message;
-        set => message = value;
+        get
+        {
+            return message;
+        }
+
+        set
+        {
+            message = value;
+        }
     }
 
     public int Progress
     {
-        get => progress;
-        set => progress = value;
+        get
+        {
+            return progress;
+        }
+
+        set
+        {
+            progress = value;
+        }
     }
 
     public void StartLoading(string newMessage = null)

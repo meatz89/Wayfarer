@@ -14,7 +14,13 @@ public class ClaudeProvider : IAIProvider
     private const int InitialDelayMilliseconds = 1000;
     private readonly Random _jitterer = new Random();
 
-    public string Name => "Anthropic Claude";
+    public string Name
+    {
+        get
+        {
+            return "Anthropic Claude";
+        }
+    }
 
     public ClaudeProvider(IConfiguration configuration, ILogger<EncounterSystem> logger)
     {

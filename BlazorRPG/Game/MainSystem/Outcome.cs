@@ -77,7 +77,7 @@ public class EnergyOutcome : Outcome
 
     public override void Apply(GameState gameState)
     {
-        var newEnergy = gameState.PlayerState.CurrentEnergy() + Amount;
+        int newEnergy = gameState.PlayerState.CurrentEnergy() + Amount;
         gameState.PlayerState.SetNewEnergy(newEnergy);
     }
 

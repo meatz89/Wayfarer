@@ -1,5 +1,5 @@
-﻿using System.Text.Json;
-using System.Text;
+﻿using System.Text;
+using System.Text.Json;
 
 public class OllamaProvider : IAIProvider
 {
@@ -9,7 +9,13 @@ public class OllamaProvider : IAIProvider
     private readonly string _modelName = "gemma3:12b-it-qat";
     private readonly string _fallbackModel = "gemma3:2b-it";
 
-    public string Name => "Ollama";
+    public string Name
+    {
+        get
+        {
+            return "Ollama";
+        }
+    }
 
     public OllamaProvider(IConfiguration configuration, ILogger<EncounterSystem> logger)
     {

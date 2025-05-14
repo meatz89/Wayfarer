@@ -329,12 +329,12 @@
         };
 
         EncounterManager encounterManager = await encounterSystem.GenerateEncounter(
-            actionImplementation.Id, 
-            location, 
-            locationSpot, 
-            context, 
-            worldState, 
-            playerState, 
+            actionImplementation.Id,
+            location,
+            locationSpot,
+            context,
+            worldState,
+            playerState,
             actionImplementation);
 
         List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterManager.EncounterResult);

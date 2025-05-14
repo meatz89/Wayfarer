@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.IO;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 public static class NarrativeJsonParser
 {
@@ -86,7 +86,7 @@ public static class NarrativeJsonParser
 
     private static void NormalizeAllDescriptions(Dictionary<CardDefinition, ChoiceNarrative> choices)
     {
-        foreach (var key in choices.Keys.ToList())
+        foreach (CardDefinition? key in choices.Keys.ToList())
         {
             ChoiceNarrative narrative = choices[key];
             if (!string.IsNullOrEmpty(narrative.FullDescription))

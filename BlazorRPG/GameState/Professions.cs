@@ -20,10 +20,11 @@
 
 public static class ArchetypeAffinities
 {
-    public static ArchetypeAffinity Warrior = new ArchetypeAffinity { 
+    public static ArchetypeAffinity Warrior = new ArchetypeAffinity
+    {
         ArchetypeType = Professions.Warrior,
-        NaturalAffinity = EncounterApproaches.Force, 
-        IncompatibleAffinity = EncounterApproaches.Contemplation 
+        NaturalAffinity = EncounterApproaches.Force,
+        IncompatibleAffinity = EncounterApproaches.Contemplation
     };
     public static ArchetypeAffinity Ranger = new ArchetypeAffinity
     {
@@ -87,7 +88,7 @@ public static class ArchetypeAffinities
 
     public static EncounterApproaches GetIncompatibleForArchetype(Professions archetype)
     {
-        switch(archetype)
+        switch (archetype)
         {
             case Professions.Warrior:
                 return Warrior.IncompatibleAffinity;
