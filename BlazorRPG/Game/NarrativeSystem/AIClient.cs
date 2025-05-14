@@ -39,22 +39,6 @@
             sourceSystem);
     }
 
-    // For backward compatibility
-    public async Task<string> GetCompletionAsync(
-        List<ConversationEntry> messages,
-        string model,
-        string fallbackModel,
-        IResponseStreamWatcher watcher)
-    {
-        return await GetCompletionAsync(
-            messages,
-            model,
-            fallbackModel,
-            watcher,
-            PRIORITY_NORMAL,
-            "Default");
-    }
-
     public string GetProviderName()
     {
         return _queue.GetProviderName();
