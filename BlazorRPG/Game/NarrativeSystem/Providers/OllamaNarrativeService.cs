@@ -82,7 +82,8 @@
         List<CardDefinition> choices,
         List<ChoiceProjection> projections,
         EncounterStatusModel state,
-        WorldStateInput worldStateInput)
+        WorldStateInput worldStateInput,
+        int priority)
     {
         string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
@@ -110,7 +111,7 @@
         string jsonResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel, Watcher,
-            AIClient.PRIORITY_IMMEDIATE, "ChoiceGeneration");
+            priority, "ChoiceGeneration");
 
         _contextManager.AddAssistantMessage(conversationId, jsonResponse, MessageType.ChoiceGeneration);
         return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
@@ -122,7 +123,8 @@
         ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
         EncounterStatusModel newState,
-        WorldStateInput worldStateInput)
+        WorldStateInput worldStateInput,
+        int priority)
     {
         string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
@@ -150,7 +152,7 @@
         string narrativeResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel, Watcher,
-            AIClient.PRIORITY_IMMEDIATE, "EncounterNarrative");
+            priority, "EncounterNarrative");
 
         _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
@@ -162,7 +164,8 @@
         ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
         EncounterStatusModel newState,
-        WorldStateInput worldStateInput)
+        WorldStateInput worldStateInput,
+        int priority)
     {
         string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
@@ -190,7 +193,7 @@
         string narrativeResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel, Watcher,
-            AIClient.PRIORITY_HIGH, "EncounterEnding");
+            priority, "EncounterEnding");
 
         _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
