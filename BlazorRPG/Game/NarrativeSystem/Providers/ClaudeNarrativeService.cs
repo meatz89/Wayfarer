@@ -1,5 +1,7 @@
-﻿public class ClaudeNarrativeService : BaseNarrativeAIService
+﻿public class ClaudeNarrativeService : IAIService
 {
+    private readonly AIClient _aiClient;
+    private readonly PromptManager _promptManager;
     public PostEncounterEvolutionParser PostEncounterEvolutionParser { get; }
     public NarrativeContextManager _contextManager { get; }
     public NarrativeLogManager NarrativeLogManager { get; }
@@ -16,8 +18,12 @@
         ILogger<EncounterSystem> logger,
         NarrativeLogManager narrativeLogManager,
         IResponseStreamWatcher watcher)
-        : base(new ClaudeProvider(configuration, logger), configuration, narrativeLogManager)
     {
+        string gameInstanceId = $"game_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString().Substring(0, 8)}";
+        IAIProvider claudeProvider = new ClaudeProvider(configuration, logger);
+        _aiClient = new AIClient(claudeProvider, gameInstanceId, logger, narrativeLogManager);
+
+        _promptManager = NarrativeServiceUtils.CreatePromptManager(configuration);
         PostEncounterEvolutionParser = postEncounterEvolutionParser;
         _contextManager = narrativeContextManager;
         NarrativeLogManager = narrativeLogManager;
@@ -27,13 +33,23 @@
         _modelLow = configuration.GetValue<string>("Anthropic:BackupModel") ?? "claude-3-5-haiku-latest";
     }
 
-    public override async Task<string> GenerateIntroductionAsync(
+    public string GetProviderName()
+    {
+        return _aiClient.GetProviderName();
+    }
+
+    public string GetGameInstanceId()
+    {
+        return _aiClient.GetGameInstanceId();
+    }
+
+    public async Task<string> GenerateIntroductionAsync(
         NarrativeContext context,
         EncounterStatusModel state,
         string memoryContent,
         WorldStateInput worldStateInput)
     {
-        string conversationId = $"{context.LocationName}_encounter"; // Consistent ID
+        string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
         string prompt = _promptManager.BuildIntroductionPrompt(context, state, memoryContent);
 
@@ -46,16 +62,18 @@
             model = _modelLow;
         }
 
+        // Use high priority for introduction
         string response = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel, Watcher);
+            model, fallbackModel, Watcher,
+            AIClient.PRIORITY_HIGH, "IntroductionGeneration");
 
         _contextManager.AddAssistantMessage(conversationId, response, MessageType.Introduction);
 
         return response;
     }
 
-    public override async Task<Dictionary<CardDefinition, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+    public async Task<Dictionary<CardDefinition, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
         NarrativeContext context,
         List<CardDefinition> choices,
         List<ChoiceProjection> projections,
@@ -84,15 +102,18 @@
             model = _modelLow;
         }
 
+        // Use high priority for choices
         string jsonResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel, Watcher);
+            model, fallbackModel, Watcher,
+            AIClient.PRIORITY_HIGH, "ChoiceGeneration");
 
         _contextManager.AddAssistantMessage(conversationId, jsonResponse, MessageType.ChoiceGeneration);
         return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
     }
 
-    public override async Task<string> GenerateEncounterNarrative(
+
+    public async Task<string> GenerateEncounterNarrative(
         NarrativeContext context,
         CardDefinition chosenOption,
         ChoiceNarrative choiceNarrative,
@@ -122,15 +143,17 @@
             model = _modelLow;
         }
 
+        // Using PRIORITY_HIGH for player-facing content
         string narrativeResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel, Watcher);
+            model, fallbackModel, Watcher,
+            AIClient.PRIORITY_HIGH, "EncounterNarrative");
 
         _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
     }
 
-    public override async Task<string> GenerateEndingAsync(
+    public async Task<string> GenerateEndingAsync(
         NarrativeContext context,
         CardDefinition chosenOption,
         ChoiceNarrative choiceNarrative,
@@ -160,16 +183,17 @@
             model = _modelLow;
         }
 
+        // Using PRIORITY_HIGH for player-facing content
         string narrativeResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel, Watcher);
+            model, fallbackModel, Watcher,
+            AIClient.PRIORITY_HIGH, "EncounterEnding");
 
         _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;
     }
 
-
-    public override async Task<LocationDetails> GenerateLocationDetailsAsync(
+    public async Task<LocationDetails> GenerateLocationDetailsAsync(
         LocationCreationInput context,
         WorldStateInput worldStateInput)
     {
@@ -189,15 +213,17 @@
             model = _modelLow;
         }
 
-        string jsonResponse = await _aiClient.GetCompletionAsync(messages,
-            model, fallbackModel, Watcher);
+        // Using PRIORITY_NORMAL for location details
+        string jsonResponse = await _aiClient.GetCompletionAsync(
+            messages,
+            model, fallbackModel, Watcher,
+            AIClient.PRIORITY_NORMAL, "LocationGeneration");
 
         // Parse the JSON response into location details
         return LocationJsonParser.ParseLocationDetails(jsonResponse);
     }
 
-
-    public override async Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(
+    public async Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(
         NarrativeContext context,
         PostEncounterEvolutionInput input,
         WorldStateInput worldStateInput)
@@ -224,15 +250,17 @@
             model = _modelLow;
         }
 
+        // Using PRIORITY_LOW for post-encounter evolution
         string jsonResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel, Watcher);
+            model, fallbackModel, Watcher,
+            AIClient.PRIORITY_LOW, "PostEncounterEvolution");
 
         PostEncounterEvolutionResult postEncounterEvolutionResponse = await PostEncounterEvolutionParser.ParsePostEncounterEvolutionResponseAsync(jsonResponse);
         return postEncounterEvolutionResponse;
     }
 
-    public override async Task<string> ProcessMemoryConsolidation(
+    public async Task<string> ProcessMemoryConsolidation(
         NarrativeContext context,
         MemoryConsolidationInput input,
         WorldStateInput worldStateInput)
@@ -259,14 +287,16 @@
             model = _modelLow;
         }
 
+        // Using PRIORITY_LOW for memory consolidation
         string memoryContentResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
-            model, fallbackModel, Watcher);
+            model, fallbackModel, Watcher,
+            AIClient.PRIORITY_LOW, "MemoryConsolidation");
 
         return memoryContentResponse;
     }
 
-    public override async Task<string> GenerateActionsAsync(
+    public async Task<string> GenerateActionsAsync(
         ActionGenerationContext context,
         WorldStateInput worldStateInput)
     {
@@ -286,10 +316,12 @@
             model = _modelLow;
         }
 
-        string jsonResponse = await _aiClient.GetCompletionAsync(messages,
-            model, fallbackModel, Watcher);
+        // Using PRIORITY_NORMAL for action generation
+        string jsonResponse = await _aiClient.GetCompletionAsync(
+            messages,
+            model, fallbackModel, Watcher,
+            AIClient.PRIORITY_NORMAL, "ActionGeneration");
 
         return jsonResponse;
     }
-
 }

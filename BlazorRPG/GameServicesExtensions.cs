@@ -1,4 +1,4 @@
-﻿public static class GameServicesExpressures
+﻿public static class GameServiceExtensions
 {
     public static IServiceCollection AddGameServices(this IServiceCollection services)
     {
@@ -33,15 +33,46 @@
         services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<GameManager>();
-        services.AddSingleton<NarrativeLogManager>();
-        services.AddSingleton<NarrativeContextManager>();
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<PostEncounterEvolutionSystem>();
         services.AddSingleton<ResourceManager>();
-        services.AddSingleton<NarrativeService>();
-        services.AddSingleton<PostEncounterEvolutionParser>();
         services.AddSingleton<EnvironmentalPropertyManager>();
+
+        services.AddAIServices();
 
         return services;
     }
+
+    public static IServiceCollection AddAIServices(this IServiceCollection services)
+    {
+        // Register core services
+        services.AddSingleton<NarrativeContextManager>();
+        services.AddSingleton<NarrativeLogManager>();
+        services.AddSingleton<PostEncounterEvolutionParser>();
+        services.AddSingleton<IResponseStreamWatcher, ConsoleResponseWatcher>();
+
+        // Get configuration to determine which provider to use
+        using (ServiceProvider sp = services.BuildServiceProvider())
+        {
+            IConfiguration configuration = sp.GetRequiredService<IConfiguration>();
+            string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "Ollama";
+
+            // Register the appropriate AI service based on configuration
+            switch (defaultProvider.ToLower())
+            {
+                case "claude":
+                    services.AddSingleton<IAIService, ClaudeNarrativeService>();
+                    break;
+                case "ollama":
+                    services.AddSingleton<IAIService, OllamaNarrativeService>();
+                    break;
+                default: // Default to ollama
+                    services.AddSingleton<IAIService, OllamaNarrativeService>();
+                    break;
+            }
+        }
+
+        return services;
+    }
+
 }

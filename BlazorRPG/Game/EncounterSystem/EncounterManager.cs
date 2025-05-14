@@ -6,7 +6,7 @@
     private CardSelectionAlgorithm cardSelectionAlgorithm;
     public EncounterState EncounterState;
 
-    private NarrativeService narrativeService;
+    private IAIService _aiService;
     private NarrativeContext narrativeContext;
 
     private ResourceManager resourceManager;
@@ -26,7 +26,7 @@
         Encounter encounter,
         ActionImplementation actionImplementation,
         CardSelectionAlgorithm cardSelector,
-        NarrativeService narrativeService,
+        IAIService aiService, // Changed parameter type
         ResourceManager resourceManager,
         WorldStateInputBuilder worldStateInputCreator,
         IConfiguration configuration,
@@ -35,33 +35,28 @@
         this.encounter = encounter;
         ActionImplementation = actionImplementation;
         cardSelectionAlgorithm = cardSelector;
-        this.narrativeService = narrativeService;
+        _aiService = aiService;
         this.resourceManager = resourceManager;
         this.worldStateInputCreator = worldStateInputCreator;
         _useAiNarrative = configuration.GetValue<bool>("useAiNarrative");
         _useMemory = configuration.GetValue<bool>("useMemory");
     }
 
-    private void StartEncounter(WorldState worldState, PlayerState playerState, Encounter encounterInfo)
+    public string GetCurrentAIProviderName()
     {
-        this.worldState = worldState;
-        this.playerState = playerState;
-
-        EncounterState = new EncounterState(encounterInfo, playerState, this.resourceManager);
+        return _aiService.GetProviderName();
     }
 
+    // Replace all uses of narrativeService with _aiService
     public async Task<NarrativeResult> StartEncounterWithNarrativeAsync(
         Location location,
         Encounter encounterInfo,
         WorldState worldState,
         PlayerState playerState,
-        ActionImplementation actionImplementation,
-        AIProviderType providerType)
+        ActionImplementation actionImplementation)
     {
         this.playerState = playerState;
         this.Encounter = encounterInfo;
-
-        narrativeService.SwitchProvider(providerType);
 
         // Start the encounter mechanically
         StartEncounter(worldState, playerState, encounterInfo);
@@ -89,7 +84,7 @@
             }
 
             WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location.Id);
-            introduction = await narrativeService.GenerateIntroductionAsync(
+            introduction = await _aiService.GenerateIntroductionAsync(
                 narrativeContext,
                 status,
                 memoryContent,
@@ -115,7 +110,7 @@
         {
             WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location.Id);
 
-            choiceDescriptions = await narrativeService.GenerateChoiceDescriptionsAsync(
+            choiceDescriptions = await _aiService.GenerateChoiceDescriptionsAsync(
                 narrativeContext,
                 choices,
                 projections,
@@ -137,6 +132,13 @@
         return result;
     }
 
+    private void StartEncounter(WorldState worldState, PlayerState playerState, Encounter encounterInfo)
+    {
+        this.worldState = worldState;
+        this.playerState = playerState;
+
+        EncounterState = new EncounterState(encounterInfo, playerState, this.resourceManager);
+    }
     public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
         string location,
         CardDefinition choice,
@@ -157,7 +159,7 @@
             if (_useAiNarrative)
             {
                 WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location);
-                narrative = await narrativeService.GenerateEndingAsync(
+                narrative = await _aiService.GenerateEndingAsync(
                     narrativeContext,
                     choice,
                     choiceDescription,
@@ -187,7 +189,7 @@
             if (_useAiNarrative)
             {
                 WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location);
-                narrative = await narrativeService.GenerateEncounterNarrative(
+                narrative = await _aiService.GenerateEncounterNarrative(
                     narrativeContext,
                     choice,
                     choiceDescription,
@@ -210,7 +212,7 @@
             if (_useAiNarrative)
             {
                 WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location);
-                newChoiceDescriptions = await narrativeService.GenerateChoiceDescriptionsAsync(
+                newChoiceDescriptions = await _aiService.GenerateChoiceDescriptionsAsync(
                     narrativeContext,
                     newChoices,
                     newProjections,
@@ -321,24 +323,6 @@
         ChoiceProjection projection = EncounterState.CreateChoiceProjection(choice);
         projection.NarrativeDescription = choice.Id + " " + choice.Description;
         return projection;
-    }
-
-    public void SwitchAIProvider(AIProviderType providerType)
-    {
-        if (narrativeService != null)
-        {
-            narrativeService.SwitchProvider(providerType);
-        }
-    }
-
-    public AIProviderType GetCurrentAIProvider()
-    {
-        return narrativeService?.CurrentProvider ?? AIProviderType.OpenAI;
-    }
-
-    public string GetCurrentAIProviderName()
-    {
-        return narrativeService?.GetCurrentProviderName() ?? "None";
     }
 
     // Existing methods remain the same
