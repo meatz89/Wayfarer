@@ -145,7 +145,7 @@ public class OllamaProvider : IAIProvider
                     fullResponseBuilder.Append(chunk);
 
                     // Report the chunk to the watcher
-                    watcher.OnResponseChunk(chunk);
+                    watcher.OnStreamUpdate(chunk);
                 }
 
                 // When we reach a "done": true message, we have the complete response
@@ -163,7 +163,7 @@ public class OllamaProvider : IAIProvider
         }
 
         string finalResponse = fullMessageContent;
-        watcher.OnResponseComplete(finalResponse);
+        watcher.OnStreamComplete(finalResponse);
         return finalResponse;
     }
 }

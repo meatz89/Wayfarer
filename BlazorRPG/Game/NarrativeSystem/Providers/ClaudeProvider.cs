@@ -142,7 +142,7 @@ public class ClaudeProvider : IAIProvider
                         fullResponseBuilder.Append(chunk);
 
                         // Report the chunk to the watcher
-                        watcher.OnResponseChunk(chunk);
+                        watcher.OnStreamUpdate(chunk);
                     }
                 }
                 catch (JsonException)
@@ -153,7 +153,7 @@ public class ClaudeProvider : IAIProvider
             }
 
             string finalResponse = fullResponseBuilder.ToString();
-            watcher.OnResponseComplete(finalResponse);
+            watcher.OnStreamComplete(finalResponse);
             return finalResponse;
         }
         catch (Exception ex)

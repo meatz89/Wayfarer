@@ -2,8 +2,8 @@
 
 public interface IResponseStreamWatcher
 {
-    void OnResponseChunk(string chunk);
-    void OnResponseComplete(string completeResponse);
+    void OnStreamUpdate(string chunk);
+    void OnStreamComplete(string completeResponse);
     void OnError(Exception ex);
 }
 
@@ -25,7 +25,7 @@ public class ConsoleResponseWatcher : IResponseStreamWatcher
         _currentLineLength = 10; // "Response: " length
     }
 
-    public void OnResponseChunk(string chunk)
+    public void OnStreamUpdate(string chunk)
     {
         // Append to our complete response
         _responseBuilder.Append(chunk);
@@ -58,7 +58,7 @@ public class ConsoleResponseWatcher : IResponseStreamWatcher
         }
     }
 
-    public void OnResponseComplete(string completeResponse)
+    public void OnStreamComplete(string completeResponse)
     {
         // Final line break and completion message
         Console.WriteLine();

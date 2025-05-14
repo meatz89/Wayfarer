@@ -2,7 +2,7 @@
 @inherits ComponentBase
 
 <div class="game-container">
-
+    
     @if (CurrentScreen == CurrentViews.MissingReferences)
     {
         <MissingReferences OnMissingReferencesResolved="ResolvedMissingReferences" />
@@ -13,6 +13,13 @@
     }
     else
     {
+        
+        <LoadingIndicator 
+            IsVisible="@LoadingStateService.IsLoading"
+            Message="@LoadingStateService.Message"
+            ShowProgress="true"
+            Progress="@LoadingStateService.Progress" />
+
         <div class="game-status-bar">
             <ObjectiveView StateVersion="@StateVersion" />
         </div>

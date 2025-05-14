@@ -17,11 +17,12 @@
         IConfiguration configuration,
         ILogger<EncounterSystem> logger,
         NarrativeLogManager narrativeLogManager,
+        LoadingStateService loadingStateService,
         IResponseStreamWatcher watcher)
     {
         string gameInstanceId = $"game_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString().Substring(0, 8)}";
         IAIProvider claudeProvider = new ClaudeProvider(configuration, logger);
-        _aiClient = new AIClient(claudeProvider, gameInstanceId, logger, narrativeLogManager);
+        _aiClient = new AIClient(claudeProvider, gameInstanceId, logger, narrativeLogManager, loadingStateService);
 
         _promptManager = NarrativeServiceUtils.CreatePromptManager(configuration);
         PostEncounterEvolutionParser = postEncounterEvolutionParser;

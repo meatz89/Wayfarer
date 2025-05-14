@@ -17,12 +17,13 @@
         IConfiguration configuration,
         ILogger<EncounterSystem> logger,
         NarrativeLogManager narrativeLogManager,
+        LoadingStateService loadingStateService,
         IResponseStreamWatcher watcher)
     {
         // Create the AIClient directly with the Ollama provider
         string gameInstanceId = $"game_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString().Substring(0, 8)}";
         IAIProvider ollamaProvider = new OllamaProvider(configuration, logger);
-        _aiClient = new AIClient(ollamaProvider, gameInstanceId, logger, narrativeLogManager);
+        _aiClient = new AIClient(ollamaProvider, gameInstanceId, logger, narrativeLogManager, loadingStateService);
 
         _promptManager = NarrativeServiceUtils.CreatePromptManager(configuration);
         PostEncounterEvolutionParser = postEncounterEvolutionParser;
@@ -69,7 +70,7 @@
         string response = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel, Watcher,
-            AIClient.PRIORITY_HIGH, "IntroductionGeneration");
+            AIClient.PRIORITY_IMMEDIATE, "IntroductionGeneration");
 
         _contextManager.AddAssistantMessage(conversationId, response, MessageType.Introduction);
 
@@ -109,7 +110,7 @@
         string jsonResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel, Watcher,
-            AIClient.PRIORITY_HIGH, "ChoiceGeneration");
+            AIClient.PRIORITY_IMMEDIATE, "ChoiceGeneration");
 
         _contextManager.AddAssistantMessage(conversationId, jsonResponse, MessageType.ChoiceGeneration);
         return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
@@ -149,7 +150,7 @@
         string narrativeResponse = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel, Watcher,
-            AIClient.PRIORITY_HIGH, "EncounterNarrative");
+            AIClient.PRIORITY_IMMEDIATE, "EncounterNarrative");
 
         _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
         return narrativeResponse;

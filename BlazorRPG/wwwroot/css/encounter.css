@@ -105,9 +105,9 @@
 }
 
 .stage-situation {
-	line-height: 1.6;
+	line-height: 1.5;
 	font-family: var(--font-tertiary);
-	font-size: 1.2rem;
+	font-size: 1.1rem;
 	color: var(--text-primary);
 	white-space: pre-line;
 	margin-bottom: 1rem;
