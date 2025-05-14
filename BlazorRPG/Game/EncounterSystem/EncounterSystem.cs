@@ -13,6 +13,8 @@
     public EncounterFactory encounterFactory;
     private readonly WorldStateInputBuilder worldStateInputCreator;
 
+    private readonly PreGenerationManager _preGenerationManager;
+
     public EncounterSystem(
         GameState gameState,
         MessageSystem messageSystem,
@@ -34,6 +36,69 @@
 
         this.resourceManager = resourceManager;
         this._aiService = aiService;
+
+        _preGenerationManager = new PreGenerationManager();
+    }
+
+
+    // Add this method to start pre-generations after displaying choices
+    public async Task StartPreGenerationsAsync(EncounterManager encounterManager, NarrativeResult currentNarrative)
+    {
+        // Clear any existing pre-generated content
+        _preGenerationManager.Clear();
+
+        // If no choices or encounter is over, don't pre-generate
+        if (currentNarrative.IsEncounterOver || currentNarrative.Choices == null ||
+            currentNarrative.Choices.Count == 0)
+        {
+            return;
+        }
+
+        List<CardDefinition> choices = currentNarrative.Choices;
+
+        // Start pre-generating responses for each choice
+        foreach (CardDefinition choice in choices)
+        {
+            ChoiceNarrative choiceNarrative = null;
+            if (currentNarrative.ChoiceDescriptions != null &&
+                currentNarrative.ChoiceDescriptions.ContainsKey(choice))
+            {
+                choiceNarrative = currentNarrative.ChoiceDescriptions[choice];
+            }
+
+            // Create a copy of variables needed in the task to avoid closure issues
+            CardDefinition choiceCopy = choice;
+            ChoiceNarrative narrativeCopy = choiceNarrative;
+            CancellationToken token = _preGenerationManager.GetCancellationToken();
+
+            // Start pre-generation as a background task with low priority
+            Task<NarrativeResult> preGenTask = Task.Run(async () =>
+            {
+                try
+                {
+                    // Pre-generate with low priority
+                    NarrativeResult result = await encounterManager.ApplyChoiceWithNarrativeAsync(
+                        encounterManager.Encounter.LocationName,
+                        choiceCopy,
+                        narrativeCopy,
+                        AIClient.PRIORITY_BACKGROUND);
+
+                    if (!token.IsCancellationRequested)
+                    {
+                        _preGenerationManager.StoreCompletedResult(choiceCopy.Id, result);
+                    }
+
+                    return result;
+                }
+                catch (Exception) when (token.IsCancellationRequested)
+                {
+                    // Task was cancelled, return null
+                    return null;
+                }
+            }, token);
+
+            _preGenerationManager.StartPreGeneration(choice.Id, preGenTask);
+        }
     }
 
     public async Task<EncounterManager> GenerateEncounter(
@@ -105,6 +170,10 @@
             NarrativeContext = encounterManager.GetNarrativeContext()
         };
 
+        // Start pre-generating responses for the initial choices
+        // This is fire-and-forget to avoid blocking
+        _ = Task.Run(() => StartPreGenerationsAsync(encounterManager, initialResult));
+
         return encounterManager;
     }
 
@@ -113,22 +182,51 @@
         CardDefinition choice)
     {
         NarrativeResult currentNarrative = narrativeResult;
-
-        Dictionary<CardDefinition, ChoiceNarrative> choiceDescriptions = currentNarrative.ChoiceDescriptions;
-
-        ChoiceNarrative? selectedDescription = null;
-        if (currentNarrative.ChoiceDescriptions != null && choiceDescriptions.ContainsKey(choice))
-        {
-            selectedDescription = currentNarrative.ChoiceDescriptions[choice];
-        }
+        NarrativeResult cachedResult = null;
 
         EncounterManager encounterManager = GetCurrentEncounter();
-        currentNarrative = await encounterManager.ApplyChoiceWithNarrativeAsync(
-            encounterManager.Encounter.LocationName,
-            choice,
-            selectedDescription);
 
+        // Try to get pre-generated result
+        bool hasPreGeneratedResult = _preGenerationManager.TryGetCachedResult(choice.Id, out cachedResult);
+
+        if (hasPreGeneratedResult)
+        {
+            // Use the pre-generated result
+            currentNarrative = cachedResult;
+        }
+        else
+        {
+            // Cancel any pending pre-generations and generate the response
+            _preGenerationManager.CancelAllPendingGenerations();
+
+            // Continue with existing code for generating the response in real-time
+            Dictionary<CardDefinition, ChoiceNarrative> choiceDescriptions = currentNarrative.ChoiceDescriptions;
+            ChoiceNarrative selectedDescription = null;
+
+            if (currentNarrative.ChoiceDescriptions != null && choiceDescriptions.ContainsKey(choice))
+            {
+                selectedDescription = currentNarrative.ChoiceDescriptions[choice];
+            }
+
+            // Generate with immediate priority since player is waiting
+            currentNarrative = await encounterManager.ApplyChoiceWithNarrativeAsync(
+                encounterManager.Encounter.LocationName,
+                choice,
+                selectedDescription,
+                AIClient.PRIORITY_IMMEDIATE);
+        }
+
+        // Create and return encounter result
         encounterManager.EncounterResult = CreateEncounterResult(encounterManager, currentNarrative);
+
+        // If encounter continues, start pre-generating for the next set of choices
+        if (!currentNarrative.IsEncounterOver)
+        {
+            // Start pre-generations for the next set of choices
+            // This is fire-and-forget to avoid blocking
+            _ = Task.Run(() => StartPreGenerationsAsync(encounterManager, currentNarrative));
+        }
+
         return encounterManager.EncounterResult;
     }
 

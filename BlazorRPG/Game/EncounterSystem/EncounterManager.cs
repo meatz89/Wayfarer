@@ -139,10 +139,13 @@
 
         EncounterState = new EncounterState(encounterInfo, playerState, this.resourceManager);
     }
+
+
     public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
-        string location,
-        CardDefinition choice,
-        ChoiceNarrative choiceDescription)
+    string location,
+    CardDefinition choice,
+    ChoiceNarrative choiceDescription,
+    int priority = AIClient.PRIORITY_IMMEDIATE)
     {
         // Apply the choice
         ChoiceOutcome outcome = ApplyChoiceProjection(playerState, Encounter, choice);
@@ -165,7 +168,8 @@
                     choiceDescription,
                     outcome,
                     newStatus,
-                    worldStateInput);
+                    worldStateInput,
+                    priority); // Pass priority to the service
             }
 
             NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
@@ -195,7 +199,8 @@
                     choiceDescription,
                     outcome,
                     newStatus,
-                    worldStateInput);
+                    worldStateInput,
+                    priority); // Pass priority to the service
             }
 
             NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
@@ -217,7 +222,8 @@
                     newChoices,
                     newProjections,
                     newStatus,
-                    worldStateInput);
+                    worldStateInput,
+                    priority); // Pass priority to the service
             }
 
             // Add the choice descriptions to the latest event
@@ -229,8 +235,6 @@
                     narrativeEvent.ChoiceDescriptions[kvp.Key] = kvp.Value;
                 }
             }
-
-            ChoiceNarrative lastChoiceNarrative = narrativeEvent.ChoiceNarrative;
 
             // Return the narrative result
             NarrativeResult ongoingResult = new(
