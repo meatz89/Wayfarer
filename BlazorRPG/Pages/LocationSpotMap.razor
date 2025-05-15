@@ -45,15 +45,17 @@
                                         @foreach (var approach in action.ActionImplementation.Approaches)
                                         {
                                             <div class="approach-option">
-                                                <div class="approach-header">
-                                                    <h4>@approach.Name</h4>
-                                                    <div class="card-requirement">
-                                                        <div class="card-preview @GetCardTypeClass(approach.RequiredCardType)"></div>
-                                                        <span>@approach.RequiredCardType Card</span>
+                                                <div class="approach-content">
+                                                    <div class="approach-header">
+                                                        <h4>@approach.Name</h4>
+                                                        <div class="card-requirement">
+                                                            <div class="card-preview @GetCardTypeClass(approach.RequiredCardType)"></div>
+                                                            <span>@approach.RequiredCardType Card</span>
+                                                        </div>
                                                     </div>
-                                                </div>
 
-                                                <p class="approach-description">@approach.Description</p>
+                                                    <p class="approach-description">@approach.Description</p>
+                                                </div>
 
                                                 <button class="approach-button"
                                                         @onclick="() => SelectApproach(action, approach)"
