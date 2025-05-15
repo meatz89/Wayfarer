@@ -88,6 +88,30 @@
         return actions;
     }
 
+    // New method for loading cards
+    public List<CardDefinition> LoadCards()
+    {
+        List<CardDefinition> cards = new List<CardDefinition>();
+        string cardsPath = Path.Combine(_contentDirectory, "Cards");
+        if (!Directory.Exists(cardsPath))
+            return cards;
+
+        foreach (string filePath in Directory.GetFiles(cardsPath, "*.json"))
+        {
+            try
+            {
+                string json = File.ReadAllText(filePath);
+                CardDefinition card = CardParser.ParseCard(json);
+                cards.Add(card);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading card from {filePath}: {ex.Message}");
+            }
+        }
+        return cards;
+    }
+
     public GameState LoadGame()
     {
         try
@@ -108,10 +132,19 @@
                 List<ActionDefinition> actions = GameStateSerializer.DeserializeActions(
                     File.ReadAllText(Path.Combine(savePath, "actions.json")));
 
+                // Load cards if available
+                List<CardDefinition> cards = new List<CardDefinition>();
+                string cardsFilePath = Path.Combine(savePath, "cards.json");
+                if (File.Exists(cardsFilePath))
+                {
+                    cards = GameStateSerializer.DeserializeCards(
+                        File.ReadAllText(cardsFilePath));
+                }
+
                 // Load game state using the loaded content
                 gameState = GameStateSerializer.DeserializeGameState(
                     File.ReadAllText(Path.Combine(savePath, "gameState.json")),
-                    locations, spots, actions);
+                    locations, spots, actions, cards);
             }
             else if (HasTemplateFiles())
             {
@@ -135,7 +168,7 @@
     {
         string templatePath = Path.Combine(_contentDirectory, "Templates");
 
-        // Load content from save files
+        // Load content from template files
         List<Location> locations = GameStateSerializer.DeserializeLocations(
             File.ReadAllText(Path.Combine(templatePath, "locations.json")));
 
@@ -147,11 +180,19 @@
         List<ActionDefinition> actions = GameStateSerializer.DeserializeActions(
             File.ReadAllText(Path.Combine(templatePath, "actions.json")));
 
+        // Load cards if available
+        List<CardDefinition> cards = new List<CardDefinition>();
+        string cardsFilePath = Path.Combine(templatePath, "cards.json");
+        if (File.Exists(cardsFilePath))
+        {
+            cards = GameStateSerializer.DeserializeCards(
+                File.ReadAllText(cardsFilePath));
+        }
+
         // Load game state using the loaded content
         GameState gameState = GameStateSerializer.DeserializeGameState(
             File.ReadAllText(Path.Combine(templatePath, "gameState.json")),
-            locations, spots, actions);
-
+            locations, spots, actions, cards);
 
         return gameState;
     }
@@ -184,6 +225,14 @@
                 Path.Combine(savePath, "actions.json"),
                 GameStateSerializer.SerializeActions(gameState.WorldState.actions));
 
+            // Save cards if they exist in world state
+            if (gameState.WorldState.AllCards != null && gameState.WorldState.AllCards.Count > 0)
+            {
+                File.WriteAllText(
+                    Path.Combine(savePath, "cards.json"),
+                    GameStateSerializer.SerializeCards(gameState.WorldState.AllCards));
+            }
+
             Console.WriteLine("Game saved successfully");
         }
         catch (Exception ex)
@@ -195,6 +244,7 @@
 
     private bool HasSaveFiles(string savePath)
     {
+        // Cards file is not mandatory for backward compatibility
         return File.Exists(Path.Combine(savePath, "gameState.json")) &&
                File.Exists(Path.Combine(savePath, "locations.json")) &&
                File.Exists(Path.Combine(savePath, "locationSpots.json")) &&
@@ -204,6 +254,7 @@
     private bool HasTemplateFiles()
     {
         string templatePath = Path.Combine(_contentDirectory, "Templates");
+        // Cards file is not mandatory for backward compatibility
         return Directory.Exists(templatePath) &&
                File.Exists(Path.Combine(templatePath, "gameState.json")) &&
                File.Exists(Path.Combine(templatePath, "locations.json")) &&
@@ -220,6 +271,13 @@
         File.Copy(Path.Combine(templatePath, "locations.json"), Path.Combine(savePath, "locations.json"), true);
         File.Copy(Path.Combine(templatePath, "locationSpots.json"), Path.Combine(savePath, "locationSpots.json"), true);
         File.Copy(Path.Combine(templatePath, "actions.json"), Path.Combine(savePath, "actions.json"), true);
+
+        // Copy cards.json if it exists
+        string templateCardsPath = Path.Combine(templatePath, "cards.json");
+        if (File.Exists(templateCardsPath))
+        {
+            File.Copy(templateCardsPath, Path.Combine(savePath, "cards.json"), true);
+        }
     }
 
     private GameState CreateNewGameState()
@@ -232,6 +290,7 @@
         locations = ConnectLocationsToSpots(locations, spots);
 
         List<ActionDefinition> actions = LoadActions();
+        List<CardDefinition> cards = LoadCards();
 
         // Add content to game state
         gameState.WorldState.locations.Clear();
@@ -242,6 +301,13 @@
 
         gameState.WorldState.actions.Clear();
         gameState.WorldState.actions.AddRange(actions);
+
+        // Add cards to world state if applicable
+        if (gameState.WorldState.AllCards != null)
+        {
+            gameState.WorldState.AllCards.Clear();
+            gameState.WorldState.AllCards.AddRange(cards);
+        }
 
         return gameState;
     }

@@ -32,14 +32,17 @@ public static class GameStateSerializer
                 CurrentXP = gameState.PlayerState.CurrentXP,
                 InventoryItems = gameState.PlayerState.Inventory.GetAllItems()
                     .Select(item => item.ToString())
-                    .ToList()
+                    .ToList(),
+                // Add serialization for player's cards if needed
+                SelectedCards = gameState.PlayerState.SelectedCards?.Select(c => c.Id).ToList() ?? new List<string>()
             }
         };
 
         return JsonSerializer.Serialize(serialized, _jsonOptions);
     }
 
-    public static GameState DeserializeGameState(string json, List<Location> locations, List<LocationSpot> spots, List<ActionDefinition> actions)
+    public static GameState DeserializeGameState(string json, List<Location> locations, List<LocationSpot> spots,
+                                                List<ActionDefinition> actions, List<CardDefinition> cards)
     {
         SerializableGameState serialized = JsonSerializer.Deserialize<SerializableGameState>(json, _jsonOptions);
         if (serialized == null)
@@ -58,6 +61,13 @@ public static class GameStateSerializer
 
         gameState.WorldState.actions.Clear();
         gameState.WorldState.actions.AddRange(actions);
+
+        // Add cards to world state if applicable
+        if (gameState.WorldState.AllCards != null)
+        {
+            gameState.WorldState.AllCards.Clear();
+            gameState.WorldState.AllCards.AddRange(cards);
+        }
 
         // Apply basic state data
         gameState.WorldState.CurrentDay = serialized.CurrentDay;
@@ -93,6 +103,20 @@ public static class GameStateSerializer
                 if (Enum.TryParse<ItemTypes>(itemName, out ItemTypes itemType))
                 {
                     gameState.PlayerState.Inventory.AddItem(itemType);
+                }
+            }
+
+            // Apply selected cards if available
+            if (serialized.Player.SelectedCards != null && cards != null)
+            {
+                gameState.PlayerState.SelectedCards = new List<CardDefinition>();
+                foreach (string cardId in serialized.Player.SelectedCards)
+                {
+                    CardDefinition card = cards.FirstOrDefault(c => c.Id == cardId);
+                    if (card != null)
+                    {
+                        gameState.PlayerState.SelectedCards.Add(card);
+                    }
                 }
             }
         }
@@ -134,12 +158,20 @@ public static class GameStateSerializer
             return "[]";
         }
 
-        // Cast to List<object> explicitly
+        // Cast to List<object> explicitly with updated structure
         List<object> serializableLocations = locations.Select(loc => (object)new
         {
             id = loc.Id,
-            name = loc.Id,
+            name = loc.Name,
             description = loc.Description,
+            environmentalProperties = new
+            {
+                morning = loc.MorningProperties,
+                afternoon = loc.AfternoonProperties,
+                evening = loc.EveningProperties,
+                night = loc.NightProperties
+            },
+            locationSpots = loc.LocationSpotIds,
             connectedTo = loc.ConnectedTo
         }).ToList();
 
@@ -173,12 +205,13 @@ public static class GameStateSerializer
 
     public static string SerializeLocationSpots(List<LocationSpot> spots)
     {
-        // Cast to List<object> explicitly
         List<object> serializableSpots = spots.Select(spot => (object)new
         {
-            name = spot.Id,
-            locationId = spot.LocationId,
+            id = spot.Id,
+            name = spot.Name,
+            type = spot.Type,
             description = spot.Description,
+            locationId = spot.LocationId,
             currentLevel = spot.CurrentLevel,
             currentXP = spot.CurrentSpotXP,
             xpToNextLevel = spot.XPToNextLevel
@@ -204,14 +237,26 @@ public static class GameStateSerializer
 
     public static string SerializeActions(List<ActionDefinition> actions)
     {
+        // Updated to handle the new action structure with approaches
         List<object> serializableActions = actions.Select(action => (object)new
         {
             id = action.Id,
             name = action.Name,
             description = action.Description,
             spotId = action.SpotId,
-            category = action.Category.ToString(),
-            timeWindows = action.TimeWindows?.Select(tw => tw.ToString()).ToList(),
+
+            // Serialize approaches list
+            approaches = action.Approaches.Select(approach => new
+            {
+                id = approach.Id,
+                name = approach.Name,
+                description = approach.Description,
+                cardType = approach.CardType,
+                skill = approach.Skill,
+                difficulty = approach.Difficulty,
+                rewards = approach.Rewards
+            }).ToList(),
+
             requirements = new
             {
                 relationshipLevel = action.RelationshipLevel,
@@ -221,10 +266,10 @@ public static class GameStateSerializer
                     FOOD = action.FoodCost
                 }
             },
-            grants = new
-            {
-                spotXP = action.SpotXP
-            },
+
+            // Time windows (string list)
+            timeWindows = action.TimeWindows?.Select(tw => tw.ToString()).ToList(),
+
             moveToLocation = action.MoveToLocation,
             moveToLocationSpot = action.MoveToLocationSpot
         }).ToList();
@@ -245,5 +290,38 @@ public static class GameStateSerializer
         }
 
         return actions;
+    }
+
+    // New methods for card serialization
+    public static string SerializeCards(List<CardDefinition> cards)
+    {
+        List<object> serializableCards = cards.Select(card => (object)new
+        {
+            id = card.Id,
+            name = card.Name,
+            type = card.Type.ToString(),
+            skill = card.Skill.ToString(),
+            level = card.Level,
+            cost = card.Cost,
+            gain = card.Gain,
+            tags = card.Tags
+        }).ToList();
+
+        return JsonSerializer.Serialize(serializableCards, _jsonOptions);
+    }
+
+    public static List<CardDefinition> DeserializeCards(string json)
+    {
+        List<CardDefinition> cards = new List<CardDefinition>();
+
+        using (JsonDocument doc = JsonDocument.Parse(json))
+        {
+            foreach (JsonElement cardElement in doc.RootElement.EnumerateArray())
+            {
+                cards.Add(CardParser.ParseCard(cardElement.GetRawText()));
+            }
+        }
+
+        return cards;
     }
 }

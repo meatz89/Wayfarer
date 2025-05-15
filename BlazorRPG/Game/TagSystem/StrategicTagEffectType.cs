@@ -1,12 +1,12 @@
 ﻿public enum StrategicTagEffectType
 {
     // Beneficial effects
-    IncreaseMomentum,  
-    DecreasePressure,   
+    IncreaseMomentum,
+    DecreasePressure,
 
     // Detrimental effects
-    DecreaseMomentum,   
-    IncreasePressure,   
+    DecreaseMomentum,
+    IncreasePressure,
 
-    IncreaseInjury      
+    IncreaseInjury
 }

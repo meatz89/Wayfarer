@@ -111,22 +111,7 @@
         switch (archetype)
         {
             case Professions.Warrior:
-                playerProgression.AddSkillExp(SkillTypes.Endurance, XpBonusForArchetype);
-                break;
-            case Professions.Diplomat:
-                playerProgression.AddSkillExp(SkillTypes.Diplomacy, XpBonusForArchetype);
-                break;
-            case Professions.Scholar:
-                playerProgression.AddSkillExp(SkillTypes.Lore, XpBonusForArchetype);
-                break;
-            case Professions.Mystic:
-                playerProgression.AddSkillExp(SkillTypes.Charm, XpBonusForArchetype);
-                break;
-            case Professions.Ranger:
-                playerProgression.AddSkillExp(SkillTypes.Finesse, XpBonusForArchetype);
-                break;
-            case Professions.Courtier:
-                playerProgression.AddSkillExp(SkillTypes.Insight, XpBonusForArchetype);
+                playerProgression.AddSkillExp(Skills.Endurance, XpBonusForArchetype);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(archetype));
@@ -174,17 +159,14 @@
         await UpdateState();
     }
 
-    private SkillTypes DetermineSkillForAction(ActionImplementation action)
+    private Skills DetermineSkillForAction(ActionImplementation action)
     {
         // Map encounter type or action category to skill
         return action.EncounterType switch
         {
-            EncounterCategories.Force => SkillTypes.Endurance,
-            EncounterCategories.Rapport => SkillTypes.Diplomacy,
-            EncounterCategories.Precision => SkillTypes.Finesse,
-            EncounterCategories.Persuasion => SkillTypes.Charm,
-            EncounterCategories.Observation => SkillTypes.Insight,
-            _ => SkillTypes.Insight,
+            EncounterCategories.Force => Skills.Endurance,
+            EncounterCategories.Persuasion => Skills.Charm,
+            _ => Skills.Knowledge,
         };
     }
 
@@ -205,7 +187,7 @@
         messageSystem.AddSystemMessage($"Gained {xpAward} experience points");
 
         // Grant skill XP based on encounter type
-        SkillTypes skill = DetermineSkillForAction(result.ActionImplementation);
+        Skills skill = DetermineSkillForAction(result.ActionImplementation);
         int skillXp = xpAward; // or a fraction thereof
         playerProgression.AddSkillExp(skill, skillXp);
         messageSystem.AddSystemMessage($"Gained {skillXp} {skill} skill experience");

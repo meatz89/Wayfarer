@@ -5,18 +5,17 @@
     public string Name { get; set; }
     public string SpotId { get; set; }
     public string Description { get; set; }
-    public EncounterCategories Category { get; set; } = EncounterCategories.Neutral;
 
-    // Resource costs
-    public int CoinCost { get; set; }
-    public int FoodCost { get; set; }
+    // Approaches
+    public List<Approach> Approaches { get; set; } = new List<Approach>();
 
     // Requirements
     public int RelationshipLevel { get; set; }
-    public List<TimeWindows> TimeWindows { get; set; } = new List<TimeWindows>();
+    public int CoinCost { get; set; }
+    public int FoodCost { get; set; }
 
-    // Grants
-    public int SpotXP { get; set; }
+    // Time windows - updated to use the new TimeWindows class
+    public List<TimeWindowTypes> TimeWindows { get; set; } = new List<TimeWindowTypes>();
 
     // Movement
     public string MoveToLocation { get; set; }

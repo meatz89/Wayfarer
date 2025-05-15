@@ -1,85 +1,273 @@
 [
 	{
-		"id": "talk_innkeeper",
-		"name": "Talk to Innkeeper",
-		"description": "Strike up a conversation with Borin, the gruff innkeeper.",
+		"id": "approach_innkeeper",
+		"name": "Approach Innkeeper",
+		"description": "Interact with the proprietor of the establishment.",
 		"spotId": "innkeeper",
-		"category": "RAPPORT",
+		"approaches": [
+			{
+				"id": "labor_offer",
+				"name": "Offer Labor",
+				"description": "Propose helping around the inn in exchange for benefits.",
+				"cardType": "PHYSICAL",
+				"skill": "STRENGTH",
+				"difficulty": 2,
+				"rewards": {
+					"coinDiscount": 3,
+					"spotXP": 1
+				}
+			},
+			{
+				"id": "information_gathering",
+				"name": "Gather Information",
+				"description": "Ask about the area, available services, and current events.",
+				"cardType": "INTELLECTUAL",
+				"skill": "KNOWLEDGE",
+				"difficulty": 2,
+				"rewards": {
+					"rumors": 2,
+					"spotXP": 1
+				}
+			},
+			{
+				"id": "business_negotiation",
+				"name": "Negotiate Rates",
+				"description": "Attempt to secure better prices for inn services.",
+				"cardType": "SOCIAL",
+				"skill": "PERSUASION",
+				"difficulty": 2,
+				"rewards": {
+					"serviceDiscount": 20,
+					"spotXP": 1
+				}
+			}
+		],
 		"requirements": {
 			"relationshipLevel": 0
 		},
-		"grants": {
-			"spotXP": 1
-		}
+		"timeWindows": [ "Morning", "Afternoon", "Evening" ]
 	},
 	{
-		"id": "purchase_food",
-		"name": "Purchase Basic Food",
-		"description": "Buy some simple fare from the inn's kitchen.",
-		"spotId": "innkeeper",
-		"category": "NEUTRAL",
-		"recovery": {
-			"HUNGER": "BASIC"
-		},
-		"requirements": {
-			"relationshipLevel": 0,
-			"resources": {
-				"COINS": 2
+		"id": "observe_room",
+		"name": "Observe Room",
+		"description": "Study the tavern's occupants and atmosphere.",
+		"spotId": "common_room",
+		"approaches": [
+			{
+				"id": "casual_glance",
+				"name": "Casual Glance",
+				"description": "Take a quick look around the room.",
+				"cardType": "INTELLECTUAL",
+				"skill": "OBSERVATION",
+				"difficulty": 0,
+				"rewards": {
+					"basicInfo": 1,
+					"spotXP": 1
+				}
+			},
+			{
+				"id": "detailed_observation",
+				"name": "Detailed Observation",
+				"description": "Carefully study the patrons and their interactions.",
+				"cardType": "INTELLECTUAL",
+				"skill": "OBSERVATION",
+				"difficulty": 2,
+				"rewards": {
+					"detailedInfo": 1,
+					"relationships": 1,
+					"spotXP": 2
+				}
+			},
+			{
+				"id": "strategic_analysis",
+				"name": "Strategic Analysis",
+				"description": "Assess the room for opportunities and potential contacts.",
+				"cardType": "INTELLECTUAL",
+				"skill": "ANALYSIS",
+				"difficulty": 3,
+				"rewards": {
+					"opportunities": 1,
+					"spotXP": 3
+				}
 			}
+		],
+		"requirements": {
+			"relationshipLevel": 0
 		},
-		"grants": {
-			"spotXP": 1
-		}
+		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ]
 	},
 	{
-		"id": "rent_basic_room",
-		"name": "Rent Basic Room",
-		"description": "Pay for a simple room for the night.",
-		"spotId": "innkeeper",
-		"category": "NEUTRAL",
-		"recovery": {
-			"ENERGY": "BASIC"
-		},
+		"id": "hunt_game",
+		"name": "Hunt Game",
+		"description": "Search for animals to provide food and resources.",
+		"spotId": "forest_clearing",
+		"approaches": [
+			{
+				"id": "simple_snare",
+				"name": "Set Simple Snare",
+				"description": "Place a basic trap for small game.",
+				"cardType": "PHYSICAL",
+				"skill": "PRECISION",
+				"difficulty": 0,
+				"rewards": {
+					"food": 1,
+					"spotXP": 1
+				}
+			},
+			{
+				"id": "active_pursuit",
+				"name": "Active Pursuit",
+				"description": "Chase and track animals through the forest.",
+				"cardType": "PHYSICAL",
+				"skill": "AGILITY",
+				"difficulty": 3,
+				"rewards": {
+					"food": 3,
+					"spotXP": 2
+				}
+			},
+			{
+				"id": "patient_stalking",
+				"name": "Patient Stalking",
+				"description": "Wait silently for the perfect shot.",
+				"cardType": "PHYSICAL",
+				"skill": "PRECISION",
+				"difficulty": 3,
+				"rewards": {
+					"food": 4,
+					"hide": 1,
+					"spotXP": 3
+				}
+			}
+		],
 		"requirements": {
-			"relationshipLevel": 1,
+			"relationshipLevel": 0
+		},
+		"timeWindows": [ "Morning", "Afternoon" ]
+	},
+	{
+		"id": "browse_market",
+		"name": "Browse Market Goods",
+		"description": "Examine the merchandise available from vendors.",
+		"spotId": "marketplace",
+		"approaches": [
+			{
+				"id": "handle_merchandise",
+				"name": "Handle Merchandise",
+				"description": "Physically inspect items for quality.",
+				"cardType": "PHYSICAL",
+				"skill": "PRECISION",
+				"difficulty": 2,
+				"rewards": {
+					"qualityAssessment": 1,
+					"spotXP": 1
+				}
+			},
+			{
+				"id": "compare_offerings",
+				"name": "Compare Offerings",
+				"description": "Analyze different vendors and their prices.",
+				"cardType": "INTELLECTUAL",
+				"skill": "ANALYSIS",
+				"difficulty": 2,
+				"rewards": {
+					"priceSavings": 10,
+					"spotXP": 1
+				}
+			},
+			{
+				"id": "chat_with_vendors",
+				"name": "Chat with Vendors",
+				"description": "Make conversation to learn about goods and sources.",
+				"cardType": "SOCIAL",
+				"skill": "CHARM",
+				"difficulty": 2,
+				"rewards": {
+					"specialItemInfo": 1,
+					"relationshipXP": 1,
+					"spotXP": 1
+				}
+			}
+		],
+		"requirements": {
+			"relationshipLevel": 0
+		},
+		"timeWindows": [ "Morning", "Afternoon" ]
+	},
+	{
+		"id": "rest_at_inn",
+		"name": "Rest at Inn",
+		"description": "Take proper rest in paid accommodations.",
+		"spotId": "inn_room",
+		"approaches": [
+			{
+				"id": "basic_sleep",
+				"name": "Basic Sleep",
+				"description": "Get a night's rest in a simple bed.",
+				"cardType": "PHYSICAL",
+				"skill": "ENDURANCE",
+				"difficulty": 0,
+				"rewards": {
+					"physicalCardsRefreshed": 2,
+					"energyRecovered": 4
+				}
+			}
+		],
+		"requirements": {
 			"resources": {
 				"COINS": 5
 			}
 		},
+		"timeWindows": [ "Night" ]
+	},
+	{
+		"id": "quiet_contemplation",
+		"name": "Quiet Contemplation",
+		"description": "Spend time in thought or study.",
+		"spotId": "library",
+		"approaches": [
+			{
+				"id": "meditate",
+				"name": "Meditate",
+				"description": "Clear your mind through focused breathing.",
+				"cardType": "INTELLECTUAL",
+				"skill": "ANALYSIS",
+				"difficulty": 0,
+				"rewards": {
+					"intellectualCardsRefreshed": 1,
+					"mentalStrainReduced": 2
+				}
+			}
+		],
+		"requirements": {
+			"relationshipLevel": 0
+		},
+		"timeWindows": [ "Morning", "Afternoon", "Evening" ]
+	},
+	{
+		"id": "social_gathering",
+		"name": "Join Social Gathering",
+		"description": "Participate in casual conversation and socializing.",
+		"spotId": "tavern",
+		"approaches": [
+			{
+				"id": "share_stories",
+				"name": "Share Stories",
+				"description": "Engage in conversation with other patrons.",
+				"cardType": "SOCIAL",
+				"skill": "CHARM",
+				"difficulty": 0,
+				"rewards": {
+					"socialCardsRefreshed": 1,
+					"isolationReduced": 2
+				}
+			}
+		],
+		"requirements": {
+			"resources": {
+				"COINS": 2
+			}
+		},
 		"timeWindows": [ "Evening", "Night" ]
-	},
-	{
-		"id": "basic_rest",
-		"name": "Rest by the Fire",
-		"description": "Take a short rest near the warm hearth.",
-		"spotId": "hearth",
-		"category": "NEUTRAL",
-		"recovery": {
-			"ENERGY": "BASIC"
-		},
-		"requirements": {
-			"relationshipLevel": 0
-		},
-		"grants": {
-			"spotXP": 1
-		}
-	},
-	{
-		"id": "investigate_satchel",
-		"name": "Investigate Satchel",
-		"description": "Examine the abandoned satchel without touching it.",
-		"spotId": "discarded_satchel",
-		"category": "OBSERVATION",
-		"characteristics": {
-			"exertion": "MODERATE",
-			"mentalLoad": "STANDARD",
-			"socialImpact": "SOLITARY"
-		},
-		"requirements": {
-			"relationshipLevel": 0
-		},
-		"grants": {
-			"spotXP": 1
-		}
 	}
 ]

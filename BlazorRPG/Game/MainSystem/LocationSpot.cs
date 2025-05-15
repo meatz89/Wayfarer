@@ -1,32 +1,23 @@
 ﻿public class LocationSpot
 {
-    public string Id { get; init; }
-    public string Name { get; init; }
+    public string Id { get; set; }
+    public string Name { get; set; }
     public string Description { get; set; }
-    public string InteractionDescription { get; set; }
-
-    public Population? Population { get; set; } = Population.Quiet;
-    public Atmosphere? Atmosphere { get; set; } = Atmosphere.Calm;
-    public Physical? Physical { get; set; } = Physical.Confined;
-    public Illumination? Illumination { get; set; } = Illumination.Bright;
-    public bool PlayerKnowledge { get; set; }
-
-    // Progression
+    public string LocationId { get; set; }
+    public LocationSpotTypes Type { get; set; }
     public int CurrentLevel { get; set; } = 1;
     public int CurrentSpotXP { get; set; } = 0;
-    public int XPToNextLevel { get; set; } = 0;
+    public int XPToNextLevel { get; set; } = 100;
+    public TimeWindows TimeWindows { get; set; } = TimeWindows.None;
+
+    public string InitialState { get; set; }
+    public bool PlayerKnowledge { get; set; }
 
     // Requirements
     public Dictionary<string, int> SkillRequirements { get; set; }
     public Dictionary<string, int> RelationshipRequirements { get; set; }
-    public int ReputationRequirement { get; set; }
-
-    public LocationSpotTypes LocationSpotType = LocationSpotTypes.Location;
     public string CharacterName { get; set; }
-
-    public List<TimeWindows> TimeWindows { get; set; } = new() { global::TimeWindows.Morning, global::TimeWindows.Afternoon, global::TimeWindows.Evening, global::TimeWindows.Night };
     public bool IsClosed { get; set; }
-    public string LocationId { get; set; }
 
     public LocationSpot(string id, string name)
     {

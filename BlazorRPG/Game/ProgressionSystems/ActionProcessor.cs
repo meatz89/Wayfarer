@@ -54,42 +54,6 @@ public class ActionProcessor
 
         ProcessActionCosts(action);
         ProcessActionOutcomes(action);
-
-        ProcessAfflictions(action);
-    }
-
-    private void ProcessAfflictions(ActionImplementation action)
-    {
-        LocationSpot spot = locationRepository.GetCurrentLocationSpot();
-        PlayerState playerState = gameState.PlayerState;
-
-        // Apply standard point generation based on action characteristics
-        ApplyNewAfflictions(action, playerState);
-        ApplyRecovery(action);
-    }
-
-    private void ApplyNewAfflictions(ActionImplementation action, PlayerState playerState)
-    {
-        //string exertion = action.GetExertionType();
-        //if (!string.IsNullOrWhiteSpace(exertion))
-        //{
-        //    int hungerPoints = MapExertion(exertion);
-        //    playerState.AddHungerPoints(hungerPoints);
-        //}
-
-        //string mentalLoad = action.GetMentalLoadType();
-        //if (!string.IsNullOrWhiteSpace(mentalLoad))
-        //{
-        //    int mentalLoadPoints = MapMentalLoad(exertion);
-        //    playerState.AddMentalLoadPoints(mentalLoadPoints);
-        //}
-
-        //string socialImpact = action.GetSocialImpactType();
-        //if (!string.IsNullOrWhiteSpace(socialImpact))
-        //{
-        //    int disconnectionPoints = MapSocialImpact(exertion);
-        //    playerState.AddDisconnectPoints(disconnectionPoints);
-        //}
     }
 
     private void ApplyRecovery(ActionImplementation action)
@@ -98,30 +62,9 @@ public class ActionProcessor
         //ApplyRecovery(recoveryType);
     }
 
-    private void ApplyRecovery(string recoveryType)
-    {
-    }
-
-    private int MapExertion(string exertion)
-    {
-        return 0;
-    }
-
-    private int MapSocialImpact(string socialImpact)
-    {
-        return 0;
-    }
-
-    private int MapMentalLoad(string mentalLoad)
-    {
-        return 0;
-    }
-
-
     private void ProcessActionOutcomes(ActionImplementation action)
     {
         // Apply Action Outcomes
-        IncreaseSpotXp(action);
         IncreaseSkillXP(action);
         UnlockCards();
 
@@ -155,20 +98,9 @@ public class ActionProcessor
         UpdateState();
     }
 
-    private void IncreaseSpotXp(ActionImplementation action)
-    {
-        int spotXp = action.SpotXp;
-        LocationSpot currentLocationSpot = gameState.WorldState.CurrentLocationSpot;
-        if (spotXp > 0 && currentLocationSpot != null)
-        {
-            currentLocationSpot.IncreaseSpotXP(spotXp);
-            messageSystem.AddSystemMessage($"Gained {spotXp} spotXp for {currentLocationSpot.Id}");
-        }
-    }
-
     private void IncreaseSkillXP(ActionImplementation action)
     {
-        SkillTypes skill = DetermineSkillForAction(action);
+        Skills skill = DetermineSkillForAction(action);
         int skillXp = CalculateBasicActionSkillXP(action);
         playerProgression.AddSkillExp(skill, skillXp);
         messageSystem.AddSystemMessage($"Gained {skillXp} {skill} skill experience");
@@ -177,38 +109,15 @@ public class ActionProcessor
 
     private void UnlockCards()
     {
-        foreach (CardDefinition card in choiceRepository.GetAll())
-        {
-            if (IsCardUnlocked(card, glayerState.Skills))
-            {
-                glayerState.UnlockCard(card);
-            }
-        }
     }
 
-    bool IsCardUnlocked(CardDefinition card, PlayerSkills playerSkills)
-    {
-        foreach (SkillRequirement requirement in card.UnlockRequirements)
-        {
-            int skillLevel = playerSkills.GetLevelForSkill(requirement.SkillType);
-            if (skillLevel < requirement.RequiredLevel)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-    private SkillTypes DetermineSkillForAction(ActionImplementation action)
+    private Skills DetermineSkillForAction(ActionImplementation action)
     {
         // Map encounter type or action category to skill
         return action.EncounterType switch
         {
-            EncounterCategories.Force => SkillTypes.Endurance,
-            EncounterCategories.Rapport => SkillTypes.Diplomacy,
-            EncounterCategories.Precision => SkillTypes.Finesse,
-            EncounterCategories.Persuasion => SkillTypes.Charm,
-            EncounterCategories.Observation => SkillTypes.Insight,
-            _ => SkillTypes.Insight,
+            EncounterCategories.Force => Skills.Endurance,
+            EncounterCategories.Persuasion => Skills.Charm,
         };
     }
 

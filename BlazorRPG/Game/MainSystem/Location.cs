@@ -1,17 +1,25 @@
 ﻿public class Location
 {
-    public string Id { get; private set; }
+    public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public List<string> ConnectedTo { get; set; } = new List<string>();
     public List<string> LocationSpotIds { get; set; } = new List<string>();
-    public List<string> EnvironmentalProperties { get; set; } = new List<string>();
     public List<LocationSpot> LocationSpots { get; set; } = new List<LocationSpot>();
+
+    public List<string> MorningProperties { get; set; } = new List<string>();
+    public List<string> AfternoonProperties { get; set; } = new List<string>();
+    public List<string> EveningProperties { get; set; } = new List<string>();
+    public List<string> NightProperties { get; set; } = new List<string>();
+
+    public Population? Population { get; set; } = Population.Quiet;
+    public Atmosphere? Atmosphere { get; set; } = Atmosphere.Calm;
+    public Physical? Physical { get; set; } = Physical.Confined;
+    public Illumination? Illumination { get; set; } = Illumination.Bright;
+
     public int TravelTimeMinutes { get; set; }
     public string TravelDescription { get; set; }
     public int Difficulty { get; set; }
-    public List<StrategicTag> StrategicTags { get; set; } = new List<StrategicTag>();
-    public List<NarrativeTag> NarrativeTags { get; set; } = new List<NarrativeTag>();
     public int Depth { get; set; }
     public LocationTypes LocationType { get; set; } = LocationTypes.Connective;
     public List<ServiceTypes> AvailableServices { get; set; } = new List<ServiceTypes>();

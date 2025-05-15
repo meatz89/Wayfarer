@@ -9,7 +9,6 @@
 
     public string LocationId { get; set; }
     public string LocationSpotId { get; set; }
-    public int SpotXp { get; set; }
 
     public EncounterTemplate EncounterTemplate { get; set; }
 

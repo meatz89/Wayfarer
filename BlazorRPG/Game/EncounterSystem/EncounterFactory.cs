@@ -45,7 +45,7 @@
             encounter.AddTag(narrativeTag);
         }
 
-        List<StrategicTag> tags = CreateStrategicTags(locationSpot);
+        List<StrategicTag> tags = CreateStrategicTags(location, locationSpot);
         foreach (StrategicTag strategicTag in tags)
         {
             encounter.AddTag(strategicTag);
@@ -53,14 +53,14 @@
         return encounter;
     }
 
-    private List<StrategicTag> CreateStrategicTags(LocationSpot locationSpot)
+    private List<StrategicTag> CreateStrategicTags(Location location, LocationSpot locationSpot)
     {
         List<StrategicTag> strategicTags =
         [
-            .. AddIlluminationStrategicTags(locationSpot.Illumination),
-            .. AddPopulationStrategicTags(locationSpot.Population),
-            .. AddAtmosphereStrategicTags(locationSpot.Atmosphere),
-            .. AddPhysicalStrategicTags(locationSpot.Physical),
+            .. AddIlluminationStrategicTags(location.Illumination),
+            .. AddPopulationStrategicTags(location.Population),
+            .. AddAtmosphereStrategicTags(location.Atmosphere),
+            .. AddPhysicalStrategicTags(location.Physical),
         ];
 
         return strategicTags;

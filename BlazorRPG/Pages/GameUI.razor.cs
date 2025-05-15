@@ -93,7 +93,7 @@ public partial class GameUI : ComponentBase
         }
     }
 
-    public TimeWindows CurrentTime
+    public TimeWindowTypes CurrentTime
     {
         get
         {
@@ -391,14 +391,14 @@ public partial class GameUI : ComponentBase
         return list;
     }
 
-    private string GetIconForTimeWindow(TimeWindows time)
+    private string GetIconForTimeWindow(TimeWindowTypes time)
     {
         return time switch
         {
-            TimeWindows.Night => "🌙",
-            TimeWindows.Morning => "🌄",
-            TimeWindows.Afternoon => "☀️",
-            TimeWindows.Evening => "🌆",
+            TimeWindowTypes.Night => "🌙",
+            TimeWindowTypes.Morning => "🌄",
+            TimeWindowTypes.Afternoon => "☀️",
+            TimeWindowTypes.Evening => "🌆",
             _ => "❓"
         };
     }
@@ -487,10 +487,10 @@ public partial class GameUI : ComponentBase
     {
         return CurrentTime switch
         {
-            TimeWindows.Morning => "time-morning",
-            TimeWindows.Afternoon => "time-afternoon",
-            TimeWindows.Evening => "time-evening",
-            TimeWindows.Night => "time-night",
+            TimeWindowTypes.Morning => "time-morning",
+            TimeWindowTypes.Afternoon => "time-afternoon",
+            TimeWindowTypes.Evening => "time-evening",
+            TimeWindowTypes.Night => "time-night",
             _ => ""
         };
     }

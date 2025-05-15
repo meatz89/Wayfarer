@@ -14,10 +14,17 @@
     public int XPToNextLevel { get; set; } = 100;
 
     // Afflictions
-    public int MaxActionPoints { get; set; } = 4;
     public int ActionPoints { get; set; } = 4;
-    public int MaxEnergyPoints { get; set; } = 12;
     public int EnergyPoints { get; set; }
+    public int Concentration { get; set; }
+    public int Health { get; set; }
+    public int Food { get; set; }
+
+    public int MaxActionPoints { get; set; } = 4;
+    public int MaxEnergyPoints { get; set; } = 12;
+    public int MaxConcentration { get; set; }
+    public int MinHealth { get; set; }
+    public int MaxHealth { get; set; }
 
     // Resources
     public int Coins { get; set; }
@@ -27,8 +34,6 @@
     // Relationships with characters
     public RelationshipList Relationships { get; set; } = new();
 
-    // Card collection (player skills)
-    public List<CardDefinition> UnlockedCards { get; set; } = new List<CardDefinition>();
 
     // Location knowledge
     public List<string> DiscoveredLocationIds { get; set; } = new List<string>();
@@ -44,19 +49,11 @@
 
     public List<string> KnownLocations { get; private set; } = new List<string>();
     public List<string> KnownLocationSpots { get; private set; } = new List<string>();
-    public List<CardDefinition> KnownCards { get; private set; } = new List<CardDefinition>();
     public PlayerSkills Skills { get; private set; } = new();
 
-    public int Food { get; set; }
-
-    public int MinHealth { get; set; }
-    public int Health { get; set; }
-    public int Concentration { get; set; }
-
-    public int MaxHealth { get; set; }
-    public int MaxConcentration { get; set; }
-
-    public List<Card> Cards { get; private set; } = new List<Card>();
+    // Card collection (player skills)
+    public List<CardDefinition> PlayerSkillCards { get; set; } = new List<CardDefinition>();
+    public List<CardDefinition> SelectedCards { get; internal set; } = new List<CardDefinition>();
 
     public PlayerState()
     {
@@ -70,17 +67,17 @@
 
         NegativeStatusTypes = new();
 
-        Cards = new List<Card>();
+        SelectedCards = new List<CardDefinition>();
 
-        Card card1 = new Card() { Name = "Card 1", Type = CardTypes.Physical };
-        Card card2 = new Card() { Name = "Card 2", Type = CardTypes.Physical };
-        Card card3 = new Card() { Name = "Card 3", Type = CardTypes.Intellectual };
-        Card card4 = new Card() { Name = "Card 4", Type = CardTypes.Social };
+        CardDefinition card1 = new CardDefinition("1", "1") { Type = CardTypes.Physical };
+        CardDefinition card2 = new CardDefinition("1", "1") { Type = CardTypes.Physical };
+        CardDefinition card3 = new CardDefinition("1", "1") { Type = CardTypes.Intellectual };
+        CardDefinition card4 = new CardDefinition("1", "1") { Type = CardTypes.Social };
 
-        Cards.Add(card1);
-        Cards.Add(card2);
-        Cards.Add(card3);
-        Cards.Add(card4);
+        SelectedCards.Add(card1);
+        SelectedCards.Add(card2);
+        SelectedCards.Add(card3);
+        SelectedCards.Add(card4);
     }
 
     public void HealFully()
@@ -139,10 +136,6 @@
         Inventory.AddItem(ItemTypes.Chisel);
         Inventory.AddItem(ItemTypes.Trowel);
         Inventory.AddItem(ItemTypes.Mortar);
-
-        // Skill bonuses: excels in Endurance and Finesse
-        Skills.AddLevelBonus(SkillTypes.Endurance, 1);
-        Skills.AddLevelBonus(SkillTypes.Finesse, 1);
     }
 
     private void InitializeDiplomat()
@@ -153,10 +146,6 @@
         Inventory.AddItem(ItemTypes.Perfume);
         Inventory.AddItem(ItemTypes.SilverCoins);
         Inventory.AddItem(ItemTypes.WineFlask);
-
-        // Skill bonuses: excels in Charm and Diplomacy
-        Skills.AddLevelBonus(SkillTypes.Charm, 1);
-        Skills.AddLevelBonus(SkillTypes.Diplomacy, 1);
     }
 
     private void InitializeScholar()
@@ -167,10 +156,6 @@
         Inventory.AddItem(ItemTypes.Spectacles);
         Inventory.AddItem(ItemTypes.PuzzleBox);
         Inventory.AddItem(ItemTypes.AncientText);
-
-        // Skill bonuses: excels in Lore and Insight
-        Skills.AddLevelBonus(SkillTypes.Lore, 1);
-        Skills.AddLevelBonus(SkillTypes.Lore, 1);
     }
 
     private void InitializeExplorer()
@@ -179,10 +164,6 @@
         Inventory.AddItem(ItemTypes.HerbSatchel);
         Inventory.AddItem(ItemTypes.MortarAndPestle);
         Inventory.AddItem(ItemTypes.FieldGuide);
-
-        // Skill bonuses: excels in Insight and Lore
-        Skills.AddLevelBonus(SkillTypes.Insight, 1);
-        Skills.AddLevelBonus(SkillTypes.Lore, 1);
     }
 
     private void InitializeRogue()
@@ -193,10 +174,6 @@
         Inventory.AddItem(ItemTypes.GrapplingHook);
         Inventory.AddItem(ItemTypes.PoisonVial);
         Inventory.AddItem(ItemTypes.DisguiseKit);
-
-        // Skill bonuses: excels in Finesse and Insight
-        Skills.AddLevelBonus(SkillTypes.Finesse, 1);
-        Skills.AddLevelBonus(SkillTypes.Lore, 1);
     }
 
     private void InitializeMerchant()
@@ -207,10 +184,6 @@
         Inventory.AddItem(ItemTypes.TradeGoods);
         Inventory.AddItem(ItemTypes.CoinPurse);
         Inventory.AddItem(ItemTypes.TradeDocuments);
-
-        // Skill bonuses: excels in Diplomacy and Charm
-        Skills.AddLevelBonus(SkillTypes.Diplomacy, 1);
-        Skills.AddLevelBonus(SkillTypes.Charm, 1);
     }
 
     private void ClearInventory()
@@ -286,7 +259,7 @@
 
     public void UnlockCard(CardDefinition card)
     {
-        KnownCards.Add(card);
+        PlayerSkillCards.Add(card);
     }
 
     public void AddKnownLocation(string location)
@@ -377,38 +350,35 @@
         clone.Relationships = this.Relationships.Clone();
 
         // Deep copy of card collections
-        clone.UnlockedCards = new List<CardDefinition>(this.UnlockedCards);
-        clone.KnownCards = new List<CardDefinition>(this.KnownCards);
+        clone.PlayerSkillCards = [.. this.PlayerSkillCards];
+        clone.PlayerSkillCards = [.. this.PlayerSkillCards];
 
         // Deep copy of location knowledge
-        clone.DiscoveredLocationIds = new List<string>(this.DiscoveredLocationIds);
-        clone.KnownLocations = new List<string>(this.KnownLocations);
-        clone.KnownLocationSpots = new List<string>(this.KnownLocationSpots);
+        clone.DiscoveredLocationIds = [.. this.DiscoveredLocationIds];
+        clone.KnownLocations = [.. this.KnownLocations];
+        clone.KnownLocationSpots = [.. this.KnownLocationSpots];
 
         // Deep copy of travel methods
-        clone.UnlockedTravelMethods = new List<string>(this.UnlockedTravelMethods);
+        clone.UnlockedTravelMethods = [.. this.UnlockedTravelMethods];
 
         // Deep copy of LocationActionAvailability HashSet
-        clone.LocationActionAvailability = new HashSet<(string, EncounterCategories)>(
-            this.LocationActionAvailability);
+        clone.LocationActionAvailability = [.. this.LocationActionAvailability];
 
         // Deep copy of NegativeStatusTypes
-        clone.NegativeStatusTypes = new List<PlayerNegativeStatus>(this.NegativeStatusTypes);
+        clone.NegativeStatusTypes = [.. this.NegativeStatusTypes];
 
         // Deep copy of Skills
         clone.Skills = this.Skills.Clone();
 
         // Deep copy of Cards
-        clone.Cards = new List<Card>();
-        foreach (Card card in this.Cards)
+        clone.SelectedCards = new List<CardDefinition>();
+        foreach (CardDefinition card in this.SelectedCards)
         {
-            Card cardCopy = new Card
+            CardDefinition cardCopy = new CardDefinition(card.Id, card.Name)
             {
-                Name = card.Name,
                 Type = card.Type
-                // Copy other Card properties as needed
             };
-            clone.Cards.Add(cardCopy);
+            clone.SelectedCards.Add(cardCopy);
         }
 
         return clone;

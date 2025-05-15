@@ -6,7 +6,7 @@
 
             <div class="location-card @(spot.Id == CurrentSpot.Id ? "current" : "reachable")">
                 <div class="location-spot-properties">
-                    @foreach (var prop in GetSpotProperties(spot))
+                    @foreach (var prop in GetSpotProperties(GetLocation(), spot))
                     {
                         <div class="property-tag @prop.CssClass">
                             <span class="property-icon">@prop.Icon</span>
@@ -101,37 +101,42 @@
         return locationSpots;
     }
 
-    private List<PropertyDisplay> GetSpotProperties(LocationSpot spot)
+    public Location GetLocation()
+    {
+        return LocationSystem.GetLocation(CurrentLocation.Id);
+	}
+
+    private List<PropertyDisplay> GetSpotProperties(Location location, LocationSpot spot)
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
 
-        if (spot.Population != null)
+        if (location.Population != null)
         {
             properties.Add(new(
             "📐",
-            FormatEnumString(spot.Population.ToString()),
+            FormatEnumString(location.Population.ToString()),
             "",
             "",
             ""
             ));
         }
 
-        if (spot.Physical != null)
+        if (location.Physical != null)
         {
             properties.Add(new(
             "🧩",
-            FormatEnumString(spot.Physical.ToString()),
+            FormatEnumString(location.Physical.ToString()),
             "",
             "",
             ""
             ));
         }
 
-        if (spot.Illumination != null)
+        if (location.Illumination != null)
         {
             properties.Add(new(
             "☀️",
-            FormatEnumString(spot.Illumination.ToString()),
+            FormatEnumString(location.Illumination.ToString()),
             "",
             "",
             ""

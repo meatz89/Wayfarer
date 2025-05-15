@@ -5,5 +5,7 @@
     Landmark,
     Hazard,
     Forest,
-    Village
+    Village,
+    Settlement,
+    Rest
 }

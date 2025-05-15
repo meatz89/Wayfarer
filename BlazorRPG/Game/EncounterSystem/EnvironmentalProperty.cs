@@ -220,6 +220,8 @@ public class Atmosphere : IEnvironmentalProperty, IEquatable<Atmosphere>
         }
     }
 
+    public static Atmosphere? Formal { get; internal set; }
+
     public static Atmosphere Calm = new Atmosphere("Calm");
     public static Atmosphere Rough = new Atmosphere("Rough");
     public static Atmosphere Tense = new Atmosphere("Tense");

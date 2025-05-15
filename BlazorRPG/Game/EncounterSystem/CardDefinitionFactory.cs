@@ -4,22 +4,20 @@
         string id,
         string name,
         string description,
-        int tier,
-        EffectTypes effectType,
-        int effectValue,
-        EnvironmentalPropertyEffect strategicEffect,
-        List<SkillRequirement> unlockRequirements)
+        CardTypes type,
+        Skills skill,
+        int level,
+        int cost,
+        List<string> tags)
     {
-        CardDefinition cardDefinition = new CardDefinition();
+        CardDefinition cardDefinition = new CardDefinition(id, name);
 
-        cardDefinition.Id = id;
-        cardDefinition.Id = name;
         cardDefinition.Description = description;
-        cardDefinition.Tier = tier;
-        cardDefinition.EffectType = effectType;
-        cardDefinition.EffectValue = effectValue;
-        cardDefinition.StrategicEffect = strategicEffect;
-        cardDefinition.UnlockRequirements = unlockRequirements;
+        cardDefinition.Type = type;
+        cardDefinition.Skill = skill;
+        cardDefinition.Level = level;
+        cardDefinition.Cost = cost;
+        cardDefinition.Tags = tags;
 
         return cardDefinition;
     }
