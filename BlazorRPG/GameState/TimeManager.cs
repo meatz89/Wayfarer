@@ -30,22 +30,22 @@
         worldState.CurrentTimeHours = newHour;
 
         // Now update TimeWindow based on newHour
-        TimeWindows newWindow;
+        TimeWindowTypes newWindow;
         if (newHour >= TimeDayStart && newHour < 12)
-            newWindow = TimeWindows.Morning;
+            newWindow = TimeWindowTypes.Morning;
         else if (newHour >= 12 && newHour < 18)
-            newWindow = TimeWindows.Afternoon;
+            newWindow = TimeWindowTypes.Afternoon;
         else if (newHour >= 18 && newHour < 24)
-            newWindow = TimeWindows.Evening;
+            newWindow = TimeWindowTypes.Evening;
         else
-            newWindow = TimeWindows.Night;  // should never hit this because of cap
+            newWindow = TimeWindowTypes.Night;  // should never hit this because of cap
 
         worldState.CurrentTimeWindow = newWindow;
 
         if (currentAP == 0)
         {
             worldState.CurrentTimeHours = 0;
-            worldState.CurrentTimeWindow = TimeWindows.Night;
+            worldState.CurrentTimeWindow = TimeWindowTypes.Night;
         }
     }
 
@@ -61,7 +61,7 @@
         UpdateTimeWindow();
     }
 
-    public TimeWindows GetCurrentTimeWindow()
+    public TimeWindowTypes GetCurrentTimeWindow()
     {
         return worldState.CurrentTimeWindow;
     }
@@ -70,13 +70,13 @@
     {
         switch (worldState.CurrentTimeWindow)
         {
-            case TimeWindows.Morning:
+            case TimeWindowTypes.Morning:
                 return timeWindow == "Half" ? "Morning" : "Afternoon";
-            case TimeWindows.Afternoon:
+            case TimeWindowTypes.Afternoon:
                 return timeWindow == "Half" ? "Afternoon" : "Evening";
-            case TimeWindows.Evening:
+            case TimeWindowTypes.Evening:
                 return timeWindow == "Half" ? "Evening" : "Night";
-            case TimeWindows.Night:
+            case TimeWindowTypes.Night:
                 return timeWindow == "Half" ? "Night" : "Morning";
         }
 

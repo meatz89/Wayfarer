@@ -126,16 +126,16 @@ public class FoodRequirement : IRequirement
 
 public class TimeWindowRequirement : IRequirement
 {
-    public List<TimeWindows> AllowedWindows { get; }
+    public List<TimeWindowTypes> AllowedWindows { get; }
 
-    public TimeWindowRequirement(List<TimeWindows> allowedWindows)
+    public TimeWindowRequirement(List<TimeWindowTypes> allowedWindows)
     {
         AllowedWindows = allowedWindows;
     }
 
     public bool IsMet(GameState gameState)
     {
-        TimeWindows currentWindow = gameState.TimeManager.GetCurrentTimeWindow();
+        TimeWindowTypes currentWindow = gameState.TimeManager.GetCurrentTimeWindow();
         return AllowedWindows.Contains(currentWindow);
     }
 
@@ -170,10 +170,10 @@ public class RelationshipRequirement : IRequirement
 
 public class SkillRequirement : IRequirement
 {
-    public SkillTypes SkillType { get; }
+    public Skills SkillType { get; }
     public int RequiredLevel { get; }
 
-    public SkillRequirement(SkillTypes skillType, int minimumLevel)
+    public SkillRequirement(Skills skillType, int minimumLevel)
     {
         SkillType = skillType;
         RequiredLevel = minimumLevel;

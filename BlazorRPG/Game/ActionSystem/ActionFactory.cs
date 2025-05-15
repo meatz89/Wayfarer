@@ -38,11 +38,9 @@ public class ActionFactory
         }
 
         // Set encounter type
-        actionImplementation.EncounterType = template.Category;
+        actionImplementation.EncounterType = EncounterCategories.None;
 
         // Set spot XP
-        actionImplementation.SpotXp = template.SpotXP;
-
         // Set action type (assuming all actions with encounter category are encounters)
         actionImplementation.ActionType = ActionTypes.Basic;
 

@@ -27,7 +27,7 @@
         <div class="game-status-bar">
             <div class="player-status">
                 
-                <CardHand PlayerCards="@PlayerState.Cards" />
+                <CardHand PlayerCards="@PlayerState.SelectedCards" />
 
                 <div class="status-item">
                     <span class="status-label">Energy</span>
@@ -167,12 +167,8 @@
                                 <div class="skills-grid">
                                     @foreach (var skill in new[]
                                     {
-                                        (SkillTypes.Endurance, "", "Endurance"),
-                                        (SkillTypes.Finesse, "", "Finesse"),
-                                        (SkillTypes.Diplomacy, "", "Diplomacy"),
-                                        (SkillTypes.Charm, "", "Charm"),
-                                        (SkillTypes.Insight, "", "Insight"),
-                                        (SkillTypes.Lore, "", "Lore")
+                                        (Skills.Endurance, "", "Endurance"),
+                                        (Skills.Charm, "", "Charm"),
                                     })
                                     {
                                         var type = skill.Item1;

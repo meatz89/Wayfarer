@@ -33,36 +33,6 @@ public static class ChoiceResponseParser
             }
         }
 
-        // Handle any missing choices with generated narratives based on approach and focus
-        for (int i = 0; i < choices.Count; i++)
-        {
-            if (!result.ContainsKey(choices[i]))
-            {
-                // Generate a reasonable fallback based on the approach and focus tags
-                result[choices[i]] = GenerateFallbackNarrative(choices[i]);
-            }
-        }
-
         return result;
-    }
-
-    private static ChoiceNarrative GenerateFallbackNarrative(CardDefinition choice)
-    {
-        string effectType = choice.EffectType.ToString();
-
-        // Create a basic name and description based on tags
-        string description = $"";
-
-        // Add effect type information
-        if (effectType == "Momentum")
-        {
-            description += " This should help me advance toward my goal.";
-        }
-        else if (effectType == "Pressure")
-        {
-            description += " This might be risky but could yield valuable results.";
-        }
-
-        return new ChoiceNarrative(choice.Id, description);
     }
 }

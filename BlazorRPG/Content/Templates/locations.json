@@ -4,12 +4,38 @@
 		"name": "The Dusty Flagon",
 		"description": "A moderately sized, somewhat dilapidated inn situated within an implied larger medieval market town.",
 		"environmentalProperties": {
-			"morning": [ "Bright", "Quiet", "Formal" ],
-			"afternoon": [ "Bright", "Crowded", "Relaxed" ],
-			"evening": [ "Shadowy", "Crowded", "Relaxed" ],
-			"night": [ "Dark", "Quiet", "Intimate" ]
+			"morning": [ "WELL-LIT", "QUIET", "INTERIOR" ],
+			"afternoon": [ "WELL-LIT", "CROWDED", "INTERIOR" ],
+			"evening": [ "SHADOWY", "CROWDED", "INTERIOR" ],
+			"night": [ "DARK", "QUIET", "INTERIOR" ]
 		},
-		"locationSpots": [ "innkeeper", "notice_board", "suspicious_patron", "discarded_satchel", "hearth", "common_room_floor" ],
-		"connectedTo": []
+		"locationSpots": [ "innkeeper", "hearth", "common_room", "inn_room", "tavern" ],
+		"connectedTo": [ "town_square", "forest_path" ]
+	},
+	{
+		"id": "town_square",
+		"name": "Town Square",
+		"description": "The bustling center of the town where merchants, travelers, and locals gather for commerce and news.",
+		"environmentalProperties": {
+			"morning": [ "WELL-LIT", "URBAN", "COMMERCE" ],
+			"afternoon": [ "WELL-LIT", "CROWDED", "COMMERCE" ],
+			"evening": [ "SHADOWY", "CROWDED", "URBAN" ],
+			"night": [ "DARK", "QUIET", "URBAN" ]
+		},
+		"locationSpots": [ "marketplace", "library", "market_stall", "village_elder" ],
+		"connectedTo": [ "dusty_flagon", "forest_path" ]
+	},
+	{
+		"id": "forest_path",
+		"name": "Forest Path",
+		"description": "A winding trail leading through the dense woods that surround the town.",
+		"environmentalProperties": {
+			"morning": [ "WELL-LIT", "OUTDOOR", "SECLUDED" ],
+			"afternoon": [ "WELL-LIT", "OUTDOOR", "TRAVEL" ],
+			"evening": [ "SHADOWY", "OUTDOOR", "SECLUDED" ],
+			"night": [ "DARK", "OUTDOOR", "SECLUDED" ]
+		},
+		"locationSpots": [ "forest_clearing" ],
+		"connectedTo": [ "dusty_flagon", "town_square" ]
 	}
 ]

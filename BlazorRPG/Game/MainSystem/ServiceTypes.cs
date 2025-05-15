@@ -8,5 +8,6 @@
     EquipmentRepair,
     FoodProduction,
     Trading,
-    Lodging
+    Lodging,
+    Market
 }

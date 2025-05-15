@@ -1,11 +1,17 @@
-﻿public enum SkillTypes
+﻿public enum Skills
 {
+    Strength,
     Endurance,
-    Finesse,
-    Diplomacy,
+    Precision,
+    Agility,
+    Analysis,
+    Observation,
+    Knowledge,
+    Planning,
     Charm,
-    Insight,
-    Lore,
+    Persuasion,
+    Deception,
+    Intimidation
 }
 
 // | Skill Name    | Action Type(s) Covered | Description                                                                 |

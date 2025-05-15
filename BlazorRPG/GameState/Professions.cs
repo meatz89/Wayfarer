@@ -83,7 +83,7 @@ public static class ArchetypeAffinities
             case Professions.Scholar:
                 return Scholar.NaturalAffinity;
         }
-        return EncounterCategories.Neutral; // Default case
+        return EncounterCategories.None; // Default case
     }
 
     public static EncounterCategories GetIncompatibleForArchetype(Professions archetype)
@@ -108,7 +108,7 @@ public static class ArchetypeAffinities
             case Professions.Scholar:
                 return Scholar.IncompatibleAffinity;
         }
-        return EncounterCategories.Neutral; // Default case
+        return EncounterCategories.None; // Default case
     }
 }
 

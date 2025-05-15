@@ -12,7 +12,7 @@ public class ChoiceOutcome
 
     public int HealthChange { get; }
     public int ConcentrationChange { get; }
-    
+
     public ChoiceOutcome(
         int momentumGained,
         int pressureBuilt,

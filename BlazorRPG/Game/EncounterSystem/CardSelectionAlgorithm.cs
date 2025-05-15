@@ -26,9 +26,6 @@
             cardScores[card] = score;
         }
 
-        // Ensure at least one momentum and one pressure card
-        EnsureCardTypeBalance(playableCards, cardScores);
-
         // Select 4 strategically diverse cards based on the viability scores
         return SelectStrategicCardHand(playableCards, cardScores);
     }
@@ -40,7 +37,7 @@
         foreach (CardDefinition card in allCards)
         {
             // Tier 1 cards are always playable
-            if (card.Tier == 1)
+            if (card.Level == 1)
             {
                 playableCards.Add(card);
                 continue;
@@ -58,7 +55,7 @@
         CardViabilityScore score = new CardViabilityScore();
 
         // For Tier 1 cards, position doesn't matter as much
-        if (card.Tier == 1)
+        if (card.Level == 1)
         {
             score.PositionalScore = 0;
             score.IsPlayable = true;
@@ -66,14 +63,11 @@
         else
         {
             // Apply tier modifiers
-            score.PositionalScore -= card.Tier; // Higher tier cards get an advantage
+            score.PositionalScore -= card.Level; // Higher tier cards get an advantage
 
             // Card is already confirmed playable
             score.IsPlayable = true;
         }
-
-        // Situational value based on encounter state
-        score.SituationalValue = CalculateSituationalValue(card, state);
 
         // Strategic synergy with environmental properties
         score.EnvironmentalSynergy = CalculateEnvironmentalSynergy(card, state);
@@ -87,53 +81,10 @@
 
         return score;
     }
-
-    private int CalculateSituationalValue(CardDefinition card, EncounterState state)
-    {
-        int value = 0;
-
-        // Momentum-building cards become more valuable as encounter nears end
-        if (card.EffectType == EffectTypes.Momentum &&
-            state.CurrentTurn >= state.EncounterInfo.MaxTurns - 2 &&
-            state.Momentum < state.EncounterInfo.StandardThreshold)
-        {
-            value += 3;
-        }
-
-        // Pressure-reducing cards become more valuable as pressure rises
-        if (card.EffectType == EffectTypes.Pressure &&
-            state.Pressure >= state.EncounterInfo.MaxPressure * 0.6)
-        {
-            value += 3;
-        }
-
-        return value;
-    }
-
+    
     private int CalculateEnvironmentalSynergy(CardDefinition card, EncounterState state)
     {
         int synergy = 0;
-
-        // Check if card's strategic effect is relevant to the current environment
-        if (card.StrategicEffect != null)
-        {
-            List<StrategicTag> environmentTags = state.ActiveTags
-                .Where(t =>
-                {
-                    return t is StrategicTag;
-                })
-                .Cast<StrategicTag>()
-                .ToList();
-
-            foreach (StrategicTag tag in environmentTags)
-            {
-                if (card.StrategicEffect.IsActive(tag))
-                {
-                    // Card has direct synergy with this environment
-                    synergy += 2;
-                }
-            }
-        }
 
         return synergy;
     }
@@ -142,63 +93,7 @@
     {
         int bonus = 0;
 
-        // Check if player has skills that directly enhance this card
-        foreach (SkillRequirement req in card.UnlockRequirements)
-        {
-            int skillLevel = playerState.Skills.GetLevelForSkill(req.SkillType);
-            if (skillLevel >= req.RequiredLevel)
-            {
-                bonus += skillLevel - req.RequiredLevel + 1;
-            }
-        }
-
         return bonus;
-    }
-
-    private void EnsureCardTypeBalance(List<CardDefinition> viableCards, Dictionary<CardDefinition, CardViabilityScore> cardScores)
-    {
-        bool hasMomentumCard = viableCards.Any(c =>
-        {
-            return c.EffectType == EffectTypes.Momentum;
-        });
-        bool hasPressureCard = viableCards.Any(c =>
-        {
-            return c.EffectType == EffectTypes.Pressure;
-        });
-
-        if (!hasMomentumCard || !hasPressureCard)
-        {
-            // Add basic cards of the missing type
-            List<CardDefinition> allCards = _cardRepository.GetAll();
-
-            if (!hasMomentumCard)
-            {
-                CardDefinition basicMomentumCard = allCards.FirstOrDefault(c =>
-                {
-                    return c.EffectType == EffectTypes.Momentum && c.Tier == 1;
-                });
-
-                if (basicMomentumCard != null)
-                {
-                    viableCards.Add(basicMomentumCard);
-                    cardScores[basicMomentumCard] = new CardViabilityScore { IsPlayable = true, TotalScore = 20 };
-                }
-            }
-
-            if (!hasPressureCard)
-            {
-                CardDefinition basicPressureCard = allCards.FirstOrDefault(c =>
-                {
-                    return c.EffectType == EffectTypes.Pressure && c.Tier == 1;
-                });
-
-                if (basicPressureCard != null)
-                {
-                    viableCards.Add(basicPressureCard);
-                    cardScores[basicPressureCard] = new CardViabilityScore { IsPlayable = true, TotalScore = 20 };
-                }
-            }
-        }
     }
 
     private List<CardDefinition> SelectStrategicCardHand(

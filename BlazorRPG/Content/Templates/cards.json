@@ -1,0 +1,122 @@
+[
+	{
+		"id": "persistent_labor",
+		"name": "Persistent Labor",
+		"type": "PHYSICAL",
+		"skill": "STRENGTH",
+		"level": 1,
+		"cost": 1,
+		"gain": 1,
+		"tags": [ "INTERIOR", "CRAFTING", "THOROUGH" ]
+	},
+	{
+		"id": "steady_pace",
+		"name": "Steady Pace",
+		"type": "PHYSICAL",
+		"skill": "ENDURANCE",
+		"level": 1,
+		"cost": 1,
+		"gain": 1,
+		"tags": [ "OUTDOOR", "TRAVEL", "CAUTIOUS" ]
+	},
+	{
+		"id": "careful_handiwork",
+		"name": "Careful Handiwork",
+		"type": "PHYSICAL",
+		"skill": "PRECISION",
+		"level": 1,
+		"cost": 1,
+		"gain": 1,
+		"tags": [ "INTERIOR", "CRAFTING", "CAUTIOUS" ]
+	},
+	{
+		"id": "swift_movement",
+		"name": "Swift Movement",
+		"type": "PHYSICAL",
+		"skill": "AGILITY",
+		"level": 1,
+		"cost": 1,
+		"gain": 1,
+		"tags": [ "OUTDOOR", "TRAVEL", "SWIFT" ]
+	},
+	{
+		"id": "methodical_reasoning",
+		"name": "Methodical Reasoning",
+		"type": "INTELLECTUAL",
+		"skill": "ANALYSIS",
+		"level": 1,
+		"cost": 1,
+		"gain": 1,
+		"tags": [ "SECLUDED", "INFORMATION", "THOROUGH" ]
+	},
+	{
+		"id": "attentive_gaze",
+		"name": "Attentive Gaze",
+		"type": "INTELLECTUAL",
+		"skill": "OBSERVATION",
+		"level": 1,
+		"cost": 1,
+		"gain": 1,
+		"tags": [ "URBAN", "INFORMATION", "CAUTIOUS" ]
+	},
+	{
+		"id": "common_wisdom",
+		"name": "Common Wisdom",
+		"type": "INTELLECTUAL",
+		"skill": "KNOWLEDGE",
+		"level": 1,
+		"cost": 1,
+		"gain": 1,
+		"tags": [ "INTERIOR", "INFORMATION", "THOROUGH" ]
+	},
+	{
+		"id": "basic_preparation",
+		"name": "Basic Preparation",
+		"type": "INTELLECTUAL",
+		"skill": "PLANNING",
+		"level": 1,
+		"cost": 1,
+		"gain": 1,
+		"tags": [ "INTERIOR", "COMMERCE", "CAUTIOUS" ]
+	},
+	{
+		"id": "friendly_demeanor",
+		"name": "Friendly Demeanor",
+		"type": "SOCIAL",
+		"skill": "CHARM",
+		"level": 1,
+		"cost": 0,
+		"gain": 1,
+		"tags": [ "CROWDED", "COMMERCE", "BOLD" ]
+	},
+	{
+		"id": "reasonable_argument",
+		"name": "Reasonable Argument",
+		"type": "SOCIAL",
+		"skill": "PERSUASION",
+		"level": 1,
+		"cost": 0,
+		"gain": 1,
+		"tags": [ "INTERIOR", "COMMERCE", "THOROUGH" ]
+	},
+	{
+		"id": "small_misdirection",
+		"name": "Small Misdirection",
+		"type": "SOCIAL",
+		"skill": "DECEPTION",
+		"level": 1,
+		"cost": 0,
+		"gain": 1,
+		"tags": [ "CROWDED", "URBAN", "SUBTLE" ]
+	},
+	{
+		"id": "stern_presence",
+		"name": "Stern Presence",
+		"type": "SOCIAL",
+		"skill": "INTIMIDATION",
+		"level": 1,
+		"cost": 0,
+		"gain": 1,
+		"tags": [ "URBAN", "BOLD", "SWIFT" ]
+	}
+]

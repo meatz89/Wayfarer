@@ -1,26 +1,92 @@
 [
 	{
 		"id": "innkeeper",
-		"name": "Innkeeper (Borin)",
+		"name": "Innkeeper",
 		"type": "CHARACTER",
-		"description": "A middle-aged man named Borin with a gruff demeanor but observant eyes.",
-		"initialState": "Wiping the bar counter with a rag, occasionally glancing at the player and other patrons.",
-		"relationshipThresholds": [ 5, 15, 30 ]
+		"description": "A middle-aged proprietor with a weathered face and calculating eyes.",
+		"initialState": "Standing behind the counter, tallying figures in a worn ledger.",
+		"locationId": "dusty_flagon",
+		"timeWindows": [ "Morning", "Afternoon", "Evening" ]
 	},
 	{
-		"id": "notice_board",
-		"name": "Notice Board",
+		"id": "common_room",
+		"name": "Common Room",
 		"type": "FEATURE",
-		"description": "A weathered wooden board near the entrance, displaying various notices.",
-		"initialState": "Several pieces of parchment pinned haphazardly.",
-		"relationshipThresholds": [ 3, 8, 15 ]
+		"description": "The main gathering area of the inn with tables, benches, and a long wooden bar.",
+		"initialState": "A handful of patrons scattered about, the murmur of conversation filling the air.",
+		"locationId": "dusty_flagon",
+		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ]
 	},
 	{
 		"id": "hearth",
 		"name": "Hearth",
 		"type": "FEATURE",
-		"description": "A large stone hearth occupies the far end of the common room, providing light and warmth.",
-		"initialState": "Crackling fire casting long shadows, a few stools nearby.",
-		"relationshipThresholds": [ 2, 7, 15 ]
+		"description": "A large stone fireplace that provides warmth and light to the common room.",
+		"initialState": "Crackling flames casting dancing shadows on nearby faces.",
+		"locationId": "dusty_flagon",
+		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ]
+	},
+	{
+		"id": "forest_clearing",
+		"name": "Forest Clearing",
+		"type": "FEATURE",
+		"description": "An open space within the dense forest, allowing sunlight to reach the ground.",
+		"initialState": "Dappled sunlight falls through the canopy, animal tracks visible in the soft earth.",
+		"locationId": "forest_path",
+		"timeWindows": [ "Morning", "Afternoon", "Evening" ]
+	},
+	{
+		"id": "marketplace",
+		"name": "Town Marketplace",
+		"type": "FEATURE",
+		"description": "The bustling center of commerce where merchants and townsfolk gather to trade.",
+		"initialState": "Vendors call out their wares as shoppers move between stalls.",
+		"locationId": "town_square",
+		"timeWindows": [ "Morning", "Afternoon" ]
+	},
+	{
+		"id": "inn_room",
+		"name": "Private Room",
+		"type": "FEATURE",
+		"description": "A small but serviceable room with a bed, small table, and window.",
+		"initialState": "Clean linens on the bed, a pitcher of water on the table.",
+		"locationId": "dusty_flagon",
+		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ]
+	},
+	{
+		"id": "library",
+		"name": "Town Library",
+		"type": "FEATURE",
+		"description": "A modest collection of books and scrolls maintained by the local scholar.",
+		"initialState": "Quiet shelves lined with leather-bound volumes, dust motes dancing in shafts of light.",
+		"locationId": "town_square",
+		"timeWindows": [ "Morning", "Afternoon", "Evening" ]
+	},
+	{
+		"id": "tavern",
+		"name": "Tavern Hall",
+		"type": "FEATURE",
+		"description": "The lively drinking area of the inn where patrons gather for ale and conversation.",
+		"initialState": "Boisterous laughter and the clink of mugs fill the air.",
+		"locationId": "dusty_flagon",
+		"timeWindows": [ "Afternoon", "Evening", "Night" ]
+	},
+	{
+		"id": "market_stall",
+		"name": "Merchant's Stall",
+		"type": "CHARACTER",
+		"description": "A trader offering various goods from nearby regions.",
+		"initialState": "Arranging wares and calling to passersby.",
+		"locationId": "town_square",
+		"timeWindows": [ "Morning", "Afternoon" ]
+	},
+	{
+		"id": "village_elder",
+		"name": "Village Elder",
+		"type": "CHARACTER",
+		"description": "An elderly person with a lifetime of knowledge about the region.",
+		"initialState": "Sitting quietly, observing the day's activities with knowing eyes.",
+		"locationId": "town_square",
+		"timeWindows": [ "Morning", "Afternoon", "Evening" ]
 	}
 ]

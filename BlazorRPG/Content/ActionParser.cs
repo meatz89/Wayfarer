@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 public static class ActionParser
 {
@@ -17,10 +16,39 @@ public static class ActionParser
             Description = GetStringProperty(root, "description", ""),
         };
 
-        string categoryString = GetStringProperty(root, "category", "NEUTRAL");
-        if (Enum.TryParse(categoryString, true, out EncounterCategories category))
+        // Parse approaches
+        if (root.TryGetProperty("approaches", out JsonElement approachesElement) &&
+            approachesElement.ValueKind == JsonValueKind.Array)
         {
-            action.Category = category;
+            foreach (JsonElement approachElement in approachesElement.EnumerateArray())
+            {
+                string approachId = GetStringProperty(approachElement, "id", "");
+                string approachName = GetStringProperty(approachElement, "name", "");
+
+                Approach approach = new Approach(approachId, approachName)
+                {
+                    Description = GetStringProperty(approachElement, "description", ""),
+                    CardType = GetStringProperty(approachElement, "cardType", ""),
+                    Skill = GetStringProperty(approachElement, "skill", ""),
+                    Difficulty = GetIntProperty(approachElement, "difficulty", 0)
+                };
+
+                // Parse rewards
+                if (approachElement.TryGetProperty("rewards", out JsonElement rewardsElement) &&
+                    rewardsElement.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (JsonProperty reward in rewardsElement.EnumerateObject())
+                    {
+                        if (reward.Value.ValueKind == JsonValueKind.Number &&
+                            reward.Value.TryGetInt32(out int rewardValue))
+                        {
+                            approach.Rewards.Add(reward.Name, rewardValue);
+                        }
+                    }
+                }
+
+                action.Approaches.Add(approach);
+            }
         }
 
         // Parse requirements
@@ -32,34 +60,47 @@ public static class ActionParser
             // Resource requirements
             if (requirementsElement.TryGetProperty("resources", out JsonElement resourcesElement))
             {
-                action.CoinCost = GetIntProperty(resourcesElement, "COINS", 0);
-                action.FoodCost = GetIntProperty(resourcesElement, "FOOD", 0);
+                if (resourcesElement.TryGetProperty("COINS", out JsonElement coinsElement) &&
+                    coinsElement.ValueKind == JsonValueKind.Number)
+                {
+                    action.CoinCost = coinsElement.GetInt32();
+                }
+
+                if (resourcesElement.TryGetProperty("FOOD", out JsonElement foodElement) &&
+                    foodElement.ValueKind == JsonValueKind.Number)
+                {
+                    action.FoodCost = foodElement.GetInt32();
+                }
             }
         }
 
-        // Parse grants
-        if (root.TryGetProperty("grants", out JsonElement grantsElement))
-        {
-            action.SpotXP = GetIntProperty(grantsElement, "spotXP", 0);
-        }
-
-        // Parse time windows
+        // Parse time windows - UPDATED for new TimeWindows structure
         if (root.TryGetProperty("timeWindows", out JsonElement timeWindowsElement) &&
             timeWindowsElement.ValueKind == JsonValueKind.Array)
         {
-            List<TimeWindows> allowedWindows = new List<TimeWindows>();
             foreach (JsonElement windowElement in timeWindowsElement.EnumerateArray())
             {
-                if (windowElement.ValueKind == JsonValueKind.String &&
-                    Enum.TryParse(windowElement.GetString(), true, out TimeWindows window))
+                if (windowElement.ValueKind == JsonValueKind.String)
                 {
-                    allowedWindows.Add(window);
+                    string windowStr = windowElement.GetString();
+                    if (!string.IsNullOrEmpty(windowStr))
+                    {
+                        // Map string to TimeWindowTypes enum
+                        if (Enum.TryParse<TimeWindowTypes>(windowStr, true, out TimeWindowTypes windowType))
+                        {
+                            action.TimeWindows.Add(windowType);
+                        }
+                    }
                 }
             }
 
-            if (allowedWindows.Count > 0)
+            // If no time windows are specified, default to all
+            if (action.TimeWindows.Count == 0)
             {
-                action.TimeWindows = allowedWindows;
+                action.TimeWindows.Add(TimeWindowTypes.Morning);
+                action.TimeWindows.Add(TimeWindowTypes.Afternoon);
+                action.TimeWindows.Add(TimeWindowTypes.Evening);
+                action.TimeWindows.Add(TimeWindowTypes.Night);
             }
         }
 

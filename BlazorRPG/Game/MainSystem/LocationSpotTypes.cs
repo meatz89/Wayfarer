@@ -1,4 +1,5 @@
 ﻿public enum LocationSpotTypes
 {
-    Location, Character
+    FEATURE,
+    CHARACTER
 }

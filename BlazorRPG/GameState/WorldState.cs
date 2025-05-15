@@ -1,9 +1,6 @@
-﻿
-
-
-public class WorldState
+﻿public class WorldState
 {
-    // Core data collections
+// Core data collections
     public List<Location> locations { get; private set; } = new();
     public List<LocationSpot> locationSpots { get; private set; } = new();
     public List<ActionDefinition> actions { get; private set; } = new();
@@ -16,11 +13,12 @@ public class WorldState
     // Game time
     public int CurrentDay { get; set; } = 1;
     public int CurrentTimeHours { get; set; }
-    public TimeWindows CurrentTimeWindow { get; set; }
+    public TimeWindowTypes CurrentTimeWindow { get; set; }
 
     // Current location tracking
     public Location CurrentLocation { get; private set; }
     public LocationSpot CurrentLocationSpot { get; private set; }
+    public List<CardDefinition> AllCards { get; set; } = new List<CardDefinition>();
 
     public void RecordLocationVisit(string locationId)
     {

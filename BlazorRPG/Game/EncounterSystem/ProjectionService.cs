@@ -1,4 +1,5 @@
-﻿public class ProjectionService
+﻿
+public class ProjectionService
 {
     private readonly Encounter _encounterInfo;
     private readonly PlayerState _playerState;
@@ -28,7 +29,6 @@
         // 2. Calculate environmental turn pressure
         CalculateEnvironmentalPressure(currentTurn, projection, ref pressureChange);
 
-        // 3. Calculate skill bonuses
         CalculateSkillBonuses(choice, projection, ref momentumChange, ref pressureChange);
 
         // Ensure values don't go negative
@@ -46,32 +46,21 @@
         return projection;
     }
 
+    private void CalculateSkillBonuses(CardDefinition choice, ChoiceProjection projection, ref int momentumChange, ref int pressureChange)
+    {
+    }
+
     private void CalculateBaseCardEffect(
         CardDefinition choice,
         ChoiceProjection projection,
         ref int momentumChange,
         ref int pressureChange)
     {
-        if (choice.EffectType == EffectTypes.Momentum)
+        projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
         {
-            int baseValue = choice.EffectValue;
-            momentumChange += baseValue;
-            projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
-            {
-                Source = $"Card Base Effect (Tier {choice.Tier})",
-                Value = baseValue
-            });
-        }
-        else if (choice.EffectType == EffectTypes.Pressure)
-        {
-            int baseValue = -choice.EffectValue; // Pressure cards reduce pressure
-            pressureChange += baseValue;
-            projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-            {
-                Source = $"Card Base Effect (Tier {choice.Tier})",
-                Value = baseValue
-            });
-        }
+            Source = $"Card Base Effect (Tier {choice.Level})",
+            Value = choice.Gain
+        });
     }
 
     private void CalculateEnvironmentalPressure(
@@ -91,41 +80,6 @@
         }
     }
 
-    private void CalculateSkillBonuses(
-        CardDefinition choice,
-        ChoiceProjection projection,
-        ref int momentumChange,
-        ref int pressureChange)
-    {
-        // Check for skill bonuses that enhance this card
-        foreach (SkillRequirement req in choice.UnlockRequirements)
-        {
-            int skillLevel = _playerState.Skills.GetLevelForSkill(req.SkillType);
-            if (skillLevel > req.RequiredLevel)
-            {
-                int skillBonus = skillLevel - req.RequiredLevel;
-
-                if (choice.EffectType == EffectTypes.Momentum)
-                {
-                    momentumChange += skillBonus;
-                    projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = $"{req.SkillType} Skill Bonus",
-                        Value = skillBonus
-                    });
-                }
-                else if (choice.EffectType == EffectTypes.Pressure)
-                {
-                    pressureChange -= skillBonus;
-                    projection.PressureComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = $"{req.SkillType} Skill Bonus",
-                        Value = -skillBonus
-                    });
-                }
-            }
-        }
-    }
     private void EnsureNoNegativeValues(
         int currentMomentum,
         int currentPressure,

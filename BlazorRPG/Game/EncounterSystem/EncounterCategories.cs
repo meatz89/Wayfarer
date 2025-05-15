@@ -1,6 +1,6 @@
 ﻿public enum EncounterCategories
 {
-    Neutral = 0, // Neutral // Neutral, // Neutral approach, no advantage or disadvantage
+    None = 0, // Neutral // Neutral, // Neutral approach, no advantage or disadvantage
     Force, // Physical // Endurance, // Physical labor, carrying, building, hauling, long travel, bodily toughness
     Precision, // Physical // Finesse, // Delicate hand work, stealth, sleight-of-hand, lockpicking, precise tool use
     Rapport, // Social // Charm, // Rapport grace, making friends, gathering favors, soothing tensions
