@@ -11,13 +11,19 @@ public static class NarrativeJsonParser
     {
         Dictionary<CardDefinition, ChoiceNarrative> result = new Dictionary<CardDefinition, ChoiceNarrative>();
 
-        if (string.IsNullOrWhiteSpace(response) || choices == null || choices.Count == 0)
+        if (string.IsNullOrWhiteSpace(response))
         {
             return result;
         }
 
         try
         {
+            // Check if the entire response is wrapped in quotes, and remove them
+            if (response.StartsWith("\"") && response.EndsWith("\"") && response.Length > 2)
+            {
+                response = response.Substring(1, response.Length - 2);
+            }
+
             // Clean up the response to remove markdown code blocks
             response = response.Replace("```json", "").Replace("```", "");
 
@@ -86,7 +92,7 @@ public static class NarrativeJsonParser
 
     private static void NormalizeAllDescriptions(Dictionary<CardDefinition, ChoiceNarrative> choices)
     {
-        foreach (CardDefinition? key in choices.Keys.ToList())
+        foreach (CardDefinition key in choices.Keys.ToList())
         {
             ChoiceNarrative narrative = choices[key];
             if (!string.IsNullOrEmpty(narrative.FullDescription))
@@ -140,102 +146,156 @@ public static class NarrativeJsonParser
     {
         try
         {
-            // Extract choices from JSON content using our own parser
+            // Extract choices by finding all name/description pairs
             List<KeyValuePair<string, string>> extractedChoices = new List<KeyValuePair<string, string>>();
 
-            bool inChoicesArray = false;
-            bool inChoiceObject = false;
-            string currentName = "";
-            string currentDescription = "";
+            // First find the choices array
+            int choicesStart = jsonContent.IndexOf("\"choices\"");
+            if (choicesStart < 0) return false;
 
-            // Regex to find name and description
-            Regex nameRegex = new Regex(@"""name""[\s\:]*""([^""]+)""", RegexOptions.IgnoreCase);
-            Regex descRegex = new Regex(@"""description""[\s\:]*""([^""]+[^\\]"")", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            int arrayStart = jsonContent.IndexOf('[', choicesStart);
+            if (arrayStart < 0) return false;
 
-            // Split into lines to process
-            string[] lines = jsonContent.Split('\n');
+            int arrayEnd = -1;
+            int openBrackets = 1;
+            bool inString = false;
+            bool escaped = false;
 
-            foreach (string line in lines)
+            // Find the end of the choices array
+            for (int i = arrayStart + 1; i < jsonContent.Length; i++)
             {
-                string trimmedLine = line.Trim();
+                char c = jsonContent[i];
 
-                if (trimmedLine.Contains("\"choices\"") || trimmedLine.Contains("\"choices\" :"))
+                if (escaped)
                 {
-                    inChoicesArray = true;
+                    escaped = false;
                     continue;
                 }
 
-                if (inChoicesArray && trimmedLine.StartsWith("{"))
+                if (c == '\\')
                 {
-                    inChoiceObject = true;
+                    escaped = true;
                     continue;
                 }
 
-                if (inChoiceObject && trimmedLine.Contains("\"name\""))
+                if (c == '"' && !escaped)
                 {
-                    Match match = nameRegex.Match(trimmedLine);
-                    if (match.Success)
+                    inString = !inString;
+                    continue;
+                }
+
+                if (!inString)
+                {
+                    if (c == '[') openBrackets++;
+                    else if (c == ']')
                     {
-                        currentName = match.Groups[1].Value;
-                    }
-                    continue;
-                }
-
-                if (inChoiceObject && trimmedLine.Contains("\"description\""))
-                {
-                    // This is trickier because description might span multiple lines
-                    int startIndex = line.IndexOf("\"description\"");
-                    if (startIndex >= 0)
-                    {
-                        startIndex = line.IndexOf("\"", startIndex + "\"description\"".Length);
-                        if (startIndex >= 0)
+                        openBrackets--;
+                        if (openBrackets == 0)
                         {
-                            // Start building the description
-                            currentDescription = line.Substring(startIndex + 1);
-
-                            // Find the closing quote, checking for escaped quotes
-                            int endIndex = FindClosingQuote(currentDescription);
-                            if (endIndex >= 0)
-                            {
-                                // We found the end in this line
-                                currentDescription = currentDescription.Substring(0, endIndex);
-                            }
-                            else
-                            {
-                                // Description continues on next lines
-                                // This will be handled by the multi-line parser
-                            }
+                            arrayEnd = i;
+                            break;
                         }
                     }
+                }
+            }
+
+            if (arrayEnd < 0) return false;
+
+            // Extract the choices array content
+            string choicesArray = jsonContent.Substring(arrayStart + 1, arrayEnd - arrayStart - 1);
+
+            // Split into individual choice objects
+            List<string> choiceObjects = new List<string>();
+            int objectStart = -1;
+            openBrackets = 0;
+            inString = false;
+            escaped = false;
+
+            for (int i = 0; i < choicesArray.Length; i++)
+            {
+                char c = choicesArray[i];
+
+                if (escaped)
+                {
+                    escaped = false;
                     continue;
                 }
 
-                if (inChoiceObject && trimmedLine.EndsWith("},") || trimmedLine.EndsWith("}"))
+                if (c == '\\')
                 {
-                    // End of a choice object
-                    if (!string.IsNullOrEmpty(currentName) || !string.IsNullOrEmpty(currentDescription))
+                    escaped = true;
+                    continue;
+                }
+
+                if (c == '"' && !escaped)
+                {
+                    inString = !inString;
+                    continue;
+                }
+
+                if (!inString)
+                {
+                    if (c == '{')
                     {
-                        extractedChoices.Add(new KeyValuePair<string, string>(currentName, currentDescription));
+                        if (openBrackets == 0)
+                        {
+                            objectStart = i;
+                        }
+                        openBrackets++;
                     }
+                    else if (c == '}')
+                    {
+                        openBrackets--;
+                        if (openBrackets == 0 && objectStart >= 0)
+                        {
+                            choiceObjects.Add(choicesArray.Substring(objectStart, i - objectStart + 1));
+                            objectStart = -1;
+                        }
+                    }
+                }
+            }
 
-                    currentName = "";
-                    currentDescription = "";
-                    inChoiceObject = false;
+            // Extract name and description from each choice
+            foreach (string choiceObj in choiceObjects)
+            {
+                string name = "";
+                string description = "";
 
-                    continue;
+                // Extract name
+                int nameStart = choiceObj.IndexOf("\"name\"");
+                if (nameStart >= 0)
+                {
+                    nameStart = choiceObj.IndexOf('"', nameStart + 6);
+                    if (nameStart >= 0)
+                    {
+                        int nameEnd = FindStringEnd(choiceObj, nameStart + 1);
+                        if (nameEnd > nameStart)
+                        {
+                            name = choiceObj.Substring(nameStart + 1, nameEnd - nameStart - 1);
+                        }
+                    }
                 }
 
-                if (inChoicesArray && trimmedLine.EndsWith("]"))
+                // Extract description
+                int descStart = choiceObj.IndexOf("\"description\"");
+                if (descStart >= 0)
                 {
-                    // End of choices array
-                    inChoicesArray = false;
-                    continue;
+                    descStart = choiceObj.IndexOf('"', descStart + 13);
+                    if (descStart >= 0)
+                    {
+                        int descEnd = FindStringEnd(choiceObj, descStart + 1);
+                        if (descEnd > descStart)
+                        {
+                            description = choiceObj.Substring(descStart + 1, descEnd - descStart - 1);
+                            // Unescape quotes
+                            description = description.Replace("\\\"", "\"").Replace("\\\\", "\\");
+                        }
+                    }
                 }
 
-                // If we're inside a description, append this line
-                if (inChoiceObject && !string.IsNullOrEmpty(currentDescription))
+                if (!string.IsNullOrEmpty(name) || !string.IsNullOrEmpty(description))
                 {
-                    currentDescription += " " + trimmedLine;
+                    extractedChoices.Add(new KeyValuePair<string, string>(name, description));
                 }
             }
 
@@ -244,7 +304,7 @@ public static class NarrativeJsonParser
             {
                 result[choices[i]] = new ChoiceNarrative(
                     extractedChoices[i].Key,
-                    NormalizeText(extractedChoices[i].Value.Replace("\\\"", "\"").Replace("\\\\", "\\"))
+                    NormalizeText(extractedChoices[i].Value)
                 );
             }
 
@@ -254,6 +314,33 @@ public static class NarrativeJsonParser
         {
             return false;
         }
+    }
+
+    private static int FindStringEnd(string text, int startIndex)
+    {
+        bool escaped = false;
+
+        for (int i = startIndex; i < text.Length; i++)
+        {
+            if (escaped)
+            {
+                escaped = false;
+                continue;
+            }
+
+            if (text[i] == '\\')
+            {
+                escaped = true;
+                continue;
+            }
+
+            if (text[i] == '"')
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     private static int FindClosingQuote(string text)
@@ -274,10 +361,85 @@ public static class NarrativeJsonParser
         if (string.IsNullOrWhiteSpace(json))
             return "{}";
 
-        // First, escape any unescaped quotes in JSON strings
-        StringBuilder processedJson = new StringBuilder();
+        // Initial pass to handle embedded quotes in descriptions
+        StringBuilder initialPass = new StringBuilder();
         bool inString = false;
+        bool inDescription = false;
         bool escaped = false;
+
+        for (int i = 0; i < json.Length; i++)
+        {
+            char c = json[i];
+
+            if (escaped)
+            {
+                initialPass.Append(c);
+                escaped = false;
+                continue;
+            }
+
+            if (c == '\\')
+            {
+                initialPass.Append(c);
+                escaped = true;
+                continue;
+            }
+
+            if (c == '"' && !escaped)
+            {
+                if (!inString)
+                {
+                    inString = true;
+                    initialPass.Append(c);
+
+                    // Check if we're entering a description field
+                    if (i >= 14 && json.Substring(Math.Max(0, i - 14), Math.Min(14, i)).Contains("description"))
+                    {
+                        inDescription = true;
+                    }
+                }
+                else
+                {
+                    // If we're in a description, be more careful about ending the string
+                    if (inDescription)
+                    {
+                        // Look ahead to see if this is really the end of the description
+                        int j = i + 1;
+                        while (j < json.Length && char.IsWhiteSpace(json[j])) j++;
+
+                        if (j < json.Length && (json[j] == ',' || json[j] == '}'))
+                        {
+                            // This is the actual end of the description
+                            inString = false;
+                            inDescription = false;
+                            initialPass.Append(c);
+                        }
+                        else
+                        {
+                            // This is an embedded quote in the description, escape it
+                            initialPass.Append('\\').Append(c);
+                        }
+                    }
+                    else
+                    {
+                        // Standard string end detection
+                        inString = false;
+                        initialPass.Append(c);
+                    }
+                }
+            }
+            else
+            {
+                initialPass.Append(c);
+            }
+        }
+
+        json = initialPass.ToString();
+
+        // Second pass with original logic
+        StringBuilder processedJson = new StringBuilder();
+        inString = false;
+        escaped = false;
 
         for (int i = 0; i < json.Length; i++)
         {

@@ -153,11 +153,11 @@
     }
 
     public async Task<NarrativeResult> StartEncounterWithNarrativeAsync(
-    Location location,
-    Encounter encounterInfo,
-    WorldState worldState,
-    PlayerState playerState,
-    ActionImplementation actionImplementation)
+        Location location,
+        Encounter encounterInfo,
+        WorldState worldState,
+        PlayerState playerState,
+        ActionImplementation actionImplementation)
     {
         this.playerState = playerState;
         this.Encounter = encounterInfo;
