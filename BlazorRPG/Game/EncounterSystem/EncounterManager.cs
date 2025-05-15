@@ -21,6 +21,8 @@
 
     public EncounterResult EncounterResult;
 
+    public bool IsInitialState { get; internal set; }
+
     public EncounterManager(
         Encounter encounter,
         ActionImplementation actionImplementation,
@@ -150,13 +152,12 @@
         }
     }
 
-    // Replace all uses of narrativeService with _aiService
     public async Task<NarrativeResult> StartEncounterWithNarrativeAsync(
-        Location location,
-        Encounter encounterInfo,
-        WorldState worldState,
-        PlayerState playerState,
-        ActionImplementation actionImplementation)
+    Location location,
+    Encounter encounterInfo,
+    WorldState worldState,
+    PlayerState playerState,
+    ActionImplementation actionImplementation)
     {
         this.playerState = playerState;
         this.Encounter = encounterInfo;
@@ -186,12 +187,14 @@
                 memoryContent = await MemoryFileAccess.ReadFromMemoryFile();
             }
 
+            // Use IMMEDIATE priority for initial generation to ensure it's fully synchronous
             WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location.Id);
             introduction = await _aiService.GenerateIntroductionAsync(
                 narrativeContext,
                 status,
                 memoryContent,
-                worldStateInput);
+                worldStateInput,
+                AIClient.PRIORITY_IMMEDIATE);  // Ensure this uses immediate priority
         }
 
         // Get available choices
@@ -207,18 +210,20 @@
 
         narrativeContext.AddEvent(firstNarrative);
 
-        // Generate choice descriptions
+        // Generate choice descriptions - wait for this to complete
         Dictionary<CardDefinition, ChoiceNarrative> choiceDescriptions = null;
         if (_useAiNarrative)
         {
             WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location.Id);
 
+            // Use IMMEDIATE priority for initial choice descriptions
             choiceDescriptions = await _aiService.GenerateChoiceDescriptionsAsync(
                 narrativeContext,
                 choices,
                 projections,
                 status,
-                worldStateInput);
+                worldStateInput,
+                AIClient.PRIORITY_IMMEDIATE);  // Ensure this uses immediate priority
 
             firstNarrative.SetAvailableChoiceDescriptions(choiceDescriptions);
         }

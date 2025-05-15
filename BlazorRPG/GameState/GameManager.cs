@@ -546,16 +546,10 @@
         return "Night";
     }
 
-    public List<UserEncounterChoiceOption> GetChoices()
-    {
-        List<UserEncounterChoiceOption> userEncounterChoiceOptions = encounterSystem.GetUserEncounterChoiceOptions();
-        return userEncounterChoiceOptions;
-    }
-
     public EncounterViewModel? GetEncounterViewModel()
     {
         EncounterManager encounterManager = encounterSystem.GetCurrentEncounter();
-        List<UserEncounterChoiceOption> userEncounterChoiceOptions = GetChoices();
+        List<UserEncounterChoiceOption> userEncounterChoiceOptions = gameState.ActionStateTracker.UserEncounterChoiceOptions;
 
         if (encounterManager == null)
         {
