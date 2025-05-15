@@ -1,43 +1,73 @@
-﻿.approaches-container {
-    background-color: var(--bg-panel);
-    border: 1px solid var(--oak-mid);
-    border-radius: 5px;
-    padding: 1rem;
+﻿/* Action Headers and Approaches */
+.action-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
     margin-top: 1rem;
-    position: relative;
 }
 
-.approaches-header {
+.action-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--oak-mid);
+    padding: 0.8rem 1rem;
+    background-color: var(--bg-active);
+    border: 1px solid var(--oak-mid);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-    .approaches-header h3 {
-        font-family: var(--font-primary);
-        color: var(--leather);
-        margin: 0;
-        font-weight: normal;
+    .action-header.expanded {
+        background-color: var(--leather);
+        border-radius: 5px 5px 0 0;
+        border-bottom: none;
     }
 
-.close-button {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
+    .action-header:hover {
+        background-color: var(--leather);
+    }
+
+.action-header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.action-title {
+    font-family: var(--font-primary);
     color: var(--text-primary);
-    cursor: pointer;
+    font-weight: normal;
+}
+
+.action-type {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+.action-toggle-icon {
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+}
+
+.approaches-container {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-mid);
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+    padding: 1rem;
 }
 
 .approaches-description {
     margin-bottom: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
 }
 
 .approaches-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 1rem;
 }
 
@@ -46,10 +76,12 @@
     border: 1px solid var(--oak-mid);
     border-radius: 5px;
     padding: 1rem;
+    transition: all 0.2s ease;
 }
 
-    .approach-option.disabled {
-        opacity: 0.7;
+    .approach-option:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
 .approach-header {
@@ -57,12 +89,15 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--oak-mid);
 }
 
     .approach-header h4 {
         margin: 0;
-        font-family: var(--font-primary);
         color: var(--text-primary);
+        font-family: var(--font-primary);
+        font-weight: normal;
     }
 
 .card-requirement {
@@ -74,12 +109,8 @@
 .approach-description {
     margin-bottom: 1rem;
     color: var(--text-secondary);
-}
-
-.requirement-unmet {
-    color: var(--rust);
-    margin-bottom: 0.5rem;
-    font-style: italic;
+    font-size: 0.9rem;
+    line-height: 1.4;
 }
 
 .approach-button {
@@ -88,20 +119,33 @@
     border: none;
     border-radius: 3px;
     padding: 8px 12px;
+    width: 100%;
     cursor: pointer;
     font-family: var(--font-primary);
     letter-spacing: 0.05em;
     transition: all 0.2s ease;
-    width: 100%;
 }
 
-    .approach-button:hover:not(:disabled) {
+    .approach-button:hover {
         background-color: var(--clay);
         transform: translateY(-2px);
     }
 
-    .approach-button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        background-color: var(--text-muted);
-    }
+.card-preview-small {
+    width: 16px;
+    height: 24px;
+    border-radius: 2px;
+    background-size: cover;
+    background-position: center;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+.positive {
+    color: var(--positive);
+}
+
+.negative {
+    color: var(--negative);
+}

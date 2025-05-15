@@ -3,6 +3,7 @@
 public partial class ActionPreviewBase : ComponentBase
 {
     [Parameter] public UserActionOption CurrentAction { get; set; }
+    [Parameter] public ApproachOption CurrentApproach { get; set; }
     [Parameter] public GameState GameState { get; set; }
     [Parameter] public EventCallback<bool> OnActionConfirmed { get; set; }
     [Parameter] public EventCallback OnBack { get; set; }
@@ -19,18 +20,18 @@ public partial class ActionPreviewBase : ComponentBase
     }
     public string GetActionName()
     {
-        ActionImplementation action = CurrentAction.ActionImplementation;
+        ActionImplementation action = CurrentAction?.ActionImplementation;
 
-        string name = $"{action.ActionType} - {action.Name}";
-        return name;
+        string name = $"{action?.ActionType} - {action?.Name}";
+        return string.IsNullOrWhiteSpace(name) ? "No Action" : name;
     }
 
     public string GetActionDescription()
     {
-        ActionImplementation action = CurrentAction.ActionImplementation;
+        ActionImplementation action = CurrentAction?.ActionImplementation;
 
-        string name = $"{action.Description}";
-        return name;
+        string name = $"{action?.Description}";
+        return string.IsNullOrWhiteSpace(name) ? "No Action" : name;
     }
 
     public List<Outcome> GetCosts()
@@ -45,7 +46,6 @@ public partial class ActionPreviewBase : ComponentBase
 
     public bool GetRequirementsMet()
     {
-
         List<string> descriptions = new();
         ActionImplementation basicAction = CurrentAction.ActionImplementation;
         foreach (IRequirement req in basicAction.Requirements)
