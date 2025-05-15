@@ -8,5 +8,5 @@
     string Character,
     int LocationDifficulty,
     string DisabledReason,
-    CardTypes CardCostType
+    ApproachOption SelectedApproach
 );

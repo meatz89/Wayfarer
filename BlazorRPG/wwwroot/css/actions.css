@@ -1,0 +1,107 @@
+﻿.approaches-container {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-mid);
+    border-radius: 5px;
+    padding: 1rem;
+    margin-top: 1rem;
+    position: relative;
+}
+
+.approaches-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--oak-mid);
+}
+
+    .approaches-header h3 {
+        font-family: var(--font-primary);
+        color: var(--leather);
+        margin: 0;
+        font-weight: normal;
+    }
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.approaches-description {
+    margin-bottom: 1rem;
+}
+
+.approaches-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.approach-option {
+    background-color: var(--bg-card);
+    border: 1px solid var(--oak-mid);
+    border-radius: 5px;
+    padding: 1rem;
+}
+
+    .approach-option.disabled {
+        opacity: 0.7;
+    }
+
+.approach-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+    .approach-header h4 {
+        margin: 0;
+        font-family: var(--font-primary);
+        color: var(--text-primary);
+    }
+
+.card-requirement {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.approach-description {
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+}
+
+.requirement-unmet {
+    color: var(--rust);
+    margin-bottom: 0.5rem;
+    font-style: italic;
+}
+
+.approach-button {
+    background-color: var(--leather);
+    color: var(--parchment);
+    border: none;
+    border-radius: 3px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-family: var(--font-primary);
+    letter-spacing: 0.05em;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+    .approach-button:hover:not(:disabled) {
+        background-color: var(--clay);
+        transform: translateY(-2px);
+    }
+
+    .approach-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background-color: var(--text-muted);
+    }
