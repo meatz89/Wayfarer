@@ -4,6 +4,5 @@
     Pressure,
     Health,
     Concentration,
-    Confidence,
     None
 }

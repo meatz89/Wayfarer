@@ -82,7 +82,6 @@ public partial class ActionPreviewBase : ComponentBase
             ValueTypes.Pressure => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
             ValueTypes.Health => new MarkupString("<i class='value-icon physical-icon'>⚡</i>"),
             ValueTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
-            ValueTypes.Confidence => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
             _ => new MarkupString("")
         };
     }
@@ -95,18 +94,12 @@ public partial class ActionPreviewBase : ComponentBase
             EnergyOutcome => new MarkupString("<i class='value-icon energy-icon'>⚡</i>"),
             HealthOutcome => new MarkupString("<i class='value-icon health-icon'>❤️</i>"),
             ConcentrationOutcome => new MarkupString("<i class='value-icon focus-icon'>🌀</i>"),
-            ConfidenceOutcome => new MarkupString("<i class='value-icon spirit-icon'>👤</i>"),
             CoinOutcome => new MarkupString("<i class='value-icon coins-icon'>💰</i>"),
             FoodOutcome => new MarkupString("<i class='value-icon food-icon'>🍖</i>"),
             ActionPointOutcome => new MarkupString("<i class='value-icon ap-icon'>🔹</i>"),
-            VigorOutcome => new MarkupString("<i class='value-icon vigor-icon'>💪</i>"),
 
             // Recovery outcomes
-            HungerRecoveryOutcome => new MarkupString("<i class='value-icon hunger-icon'>🍴</i>"),
             EnergyRecoveryOutcome => new MarkupString("<i class='value-icon energy-recovery-icon'>🔋</i>"),
-            ExhaustionRecoveryOutcome => new MarkupString("<i class='value-icon rest-icon'>💤</i>"),
-            MentalStrainRecoveryOutcome => new MarkupString("<i class='value-icon clarity-icon'>🌟</i>"),
-            IsolationRecoveryOutcome => new MarkupString("<i class='value-icon connection-icon'>🤝</i>"),
 
             _ => new MarkupString("")
         };

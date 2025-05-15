@@ -21,11 +21,7 @@ This choice has NOT YET HAPPENED and must be executed in this scene.
 - Momentum Change: {OLD_MOMENTUM} → {NEW_MOMENTUM}
 - Pressure Change: {OLD_PRESSURE} → {NEW_PRESSURE}
 - Health Change: {OLD_HEALTH} → {NEW_HEALTH}/{MAX_HEALTH}
-- Confidence Change: {OLD_CONFIDENCE} → {NEW_CONFIDENCE}/{MAX_CONFIDENCE}
 - Concentration Change: {OLD_CONCENTRATION} → {NEW_CONCENTRATION}/{MAX_CONCENTRATION}
-- Approach Changes: {APPROACH_CHANGES} | Focus Changes: {FOCUS_CHANGES}
-- Focus Changes (WHAT) represent player's accumulated progress during the encounter / what you've accomplished/learned through this action
-- Approach Changes (HOW) represent the method used to make progress / how you're acting in this situation
 
 ## Character Continuity
 - Limit new NAMED characters to 1-2 per encounter (not per turn)
@@ -49,15 +45,9 @@ Write three paragraphs in first-person present tense:
 3. Present a new challenge requiring decision with NPC involvement
 
 ## Narrative Implementation of Mechanical Changes:
-- Show approach/focus combination in player's actions
 - Demonstrate momentum/pressure/resource changes narratively
 - MOMENTUM CHANGES must be shown as progress (or setbacks) toward the character's goal
 - PRESSURE CHANGES must be reflected as situational escalation or de-escalation
-- RESOURCE CHANGES (Health/Confidence/Concentration) are CRITICALLY IMPORTANT and must be shown as actual injuries or impacts to the character
-- APPROACH CHANGES must be reflected in how the environment and NPCs react to the player
-- NEW TAGS must manifest as situational constraints or new opportunities
-- STRATEGIC EFFECTS must be shown as contextual advantages or disadvantages
-- If using a NATURAL approach for this archetype: Show confidence, skill, and ease
-- If using a DANGEROUS approach for this archetype: Show struggle, discomfort, or inexperience
+- RESOURCE CHANGES (Health/Concentration) are CRITICALLY IMPORTANT and must be shown as actual injuries or impacts to the character
 
 Start with acknowledging the player's intent, but then show what ACTUALLY happens based on the mechanical outcomes.

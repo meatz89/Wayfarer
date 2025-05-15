@@ -1,5 +1,4 @@
-﻿
-/// <summary>
+﻿/// <summary>
 /// Repository of narrative tags reflecting general conditions in a medieval traveler story.
 /// The tags are designed to be generic, so they can be applied in any setting regardless of location.
 /// Each tag adjusts the focus requirement (Relationship, Information, Physical, Environment, Resource)

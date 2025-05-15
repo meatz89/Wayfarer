@@ -65,23 +65,6 @@ You must provide your response ONLY as a valid JSON object with the following st
     "locationChanged": true
   },
   
-  "strategicTags": [
-    {
-      "approachType": "Analysis/Dominance/Rapport/Precision/Concealment",
-      "effectType": "IncreasesMomentum/DecreasesPressure/DecreasesMomentum/IncreasesPressure",
-      "description": "Description of how this approach affects encounters here"
-    }
-  ],
-  
-  "narrativeTags": [
-    {
-      "approachType": "Analysis/Dominance/Rapport/Precision/Concealment",
-      "focusType": "Relationship/Information/Physical/Environment/Resource",
-      "threshold": 3,
-      "description": "Description of how this approach affects focus availability"
-    }
-  ],
-  
   "locationSpots": [
     {
       "name": "Spot name",

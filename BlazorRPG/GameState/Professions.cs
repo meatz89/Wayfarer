@@ -23,45 +23,45 @@ public static class ArchetypeAffinities
     public static ArchetypeAffinity Warrior = new ArchetypeAffinity
     {
         ArchetypeType = Professions.Warrior,
-        NaturalAffinity = EncounterApproaches.Force,
-        IncompatibleAffinity = EncounterApproaches.Contemplation
+        NaturalAffinity = EncounterCategories.Force,
+        IncompatibleAffinity = EncounterCategories.Contemplation
     };
     public static ArchetypeAffinity Ranger = new ArchetypeAffinity
     {
         ArchetypeType = Professions.Ranger,
-        NaturalAffinity = EncounterApproaches.Precision,
-        IncompatibleAffinity = EncounterApproaches.Rapport
+        NaturalAffinity = EncounterCategories.Precision,
+        IncompatibleAffinity = EncounterCategories.Rapport
     };
 
     public static ArchetypeAffinity Diplomat = new ArchetypeAffinity
     {
         ArchetypeType = Professions.Diplomat,
-        NaturalAffinity = EncounterApproaches.Rapport,
-        IncompatibleAffinity = EncounterApproaches.Precision
+        NaturalAffinity = EncounterCategories.Rapport,
+        IncompatibleAffinity = EncounterCategories.Precision
     };
 
     public static ArchetypeAffinity Courtier = new ArchetypeAffinity
     {
         ArchetypeType = Professions.Courtier,
-        NaturalAffinity = EncounterApproaches.Persuasion,
-        IncompatibleAffinity = EncounterApproaches.Observation
+        NaturalAffinity = EncounterCategories.Persuasion,
+        IncompatibleAffinity = EncounterCategories.Observation
     };
 
     public static ArchetypeAffinity Mystic = new ArchetypeAffinity
     {
         ArchetypeType = Professions.Mystic,
-        NaturalAffinity = EncounterApproaches.Observation,
-        IncompatibleAffinity = EncounterApproaches.Persuasion
+        NaturalAffinity = EncounterCategories.Observation,
+        IncompatibleAffinity = EncounterCategories.Persuasion
     };
 
     public static ArchetypeAffinity Scholar = new ArchetypeAffinity
     {
         ArchetypeType = Professions.Scholar,
-        NaturalAffinity = EncounterApproaches.Contemplation,
-        IncompatibleAffinity = EncounterApproaches.Force
+        NaturalAffinity = EncounterCategories.Contemplation,
+        IncompatibleAffinity = EncounterCategories.Force
     };
 
-    public static EncounterApproaches GetNaturalForArchetype(Professions archetype)
+    public static EncounterCategories GetNaturalForArchetype(Professions archetype)
     {
         switch (archetype)
         {
@@ -83,10 +83,10 @@ public static class ArchetypeAffinities
             case Professions.Scholar:
                 return Scholar.NaturalAffinity;
         }
-        return EncounterApproaches.Neutral; // Default case
+        return EncounterCategories.Neutral; // Default case
     }
 
-    public static EncounterApproaches GetIncompatibleForArchetype(Professions archetype)
+    public static EncounterCategories GetIncompatibleForArchetype(Professions archetype)
     {
         switch (archetype)
         {
@@ -108,13 +108,13 @@ public static class ArchetypeAffinities
             case Professions.Scholar:
                 return Scholar.IncompatibleAffinity;
         }
-        return EncounterApproaches.Neutral; // Default case
+        return EncounterCategories.Neutral; // Default case
     }
 }
 
 public class ArchetypeAffinity
 {
     public Professions ArchetypeType;
-    public EncounterApproaches NaturalAffinity;
-    public EncounterApproaches IncompatibleAffinity;
+    public EncounterCategories NaturalAffinity;
+    public EncounterCategories IncompatibleAffinity;
 }

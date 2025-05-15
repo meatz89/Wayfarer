@@ -42,11 +42,6 @@ public class ActionProcessor
         {
             playerState.SetNewEnergy(newEnergy);
         }
-        else
-        {
-            int exhaustionPoints = Math.Abs(newEnergy);
-            playerState.AddExhaustionPoints(exhaustionPoints);
-        }
 
         gameState.TimeManager.StartNewDay();
         gameState.PlayerState.ModifyActionPoints(gameState.PlayerState.MaxActionPoints);
@@ -71,7 +66,6 @@ public class ActionProcessor
         // Apply standard point generation based on action characteristics
         ApplyNewAfflictions(action, playerState);
         ApplyRecovery(action);
-        ApplyEscalation(playerState);
     }
 
     private void ApplyNewAfflictions(ActionImplementation action, PlayerState playerState)
@@ -96,21 +90,6 @@ public class ActionProcessor
         //    int disconnectionPoints = MapSocialImpact(exertion);
         //    playerState.AddDisconnectPoints(disconnectionPoints);
         //}
-    }
-
-    private static void ApplyEscalation(PlayerState playerState)
-    {
-        if (playerState.ExhaustionPoints > 0)
-        {
-            int scalingPoints = 1;
-            playerState.AddExhaustionPoints(scalingPoints);
-        }
-
-        if (playerState.HungerPoints > 0)
-        {
-            int scalingPoints = 1;
-            playerState.AddHungerPoints(scalingPoints);
-        }
     }
 
     private void ApplyRecovery(ActionImplementation action)
@@ -224,11 +203,11 @@ public class ActionProcessor
         // Map encounter type or action category to skill
         return action.EncounterType switch
         {
-            EncounterApproaches.Force => SkillTypes.Endurance,
-            EncounterApproaches.Rapport => SkillTypes.Diplomacy,
-            EncounterApproaches.Precision => SkillTypes.Finesse,
-            EncounterApproaches.Persuasion => SkillTypes.Charm,
-            EncounterApproaches.Observation => SkillTypes.Insight,
+            EncounterCategories.Force => SkillTypes.Endurance,
+            EncounterCategories.Rapport => SkillTypes.Diplomacy,
+            EncounterCategories.Precision => SkillTypes.Finesse,
+            EncounterCategories.Persuasion => SkillTypes.Charm,
+            EncounterCategories.Observation => SkillTypes.Insight,
             _ => SkillTypes.Insight,
         };
     }

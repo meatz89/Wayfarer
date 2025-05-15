@@ -179,11 +179,11 @@
         // Map encounter type or action category to skill
         return action.EncounterType switch
         {
-            EncounterApproaches.Force => SkillTypes.Endurance,
-            EncounterApproaches.Rapport => SkillTypes.Diplomacy,
-            EncounterApproaches.Precision => SkillTypes.Finesse,
-            EncounterApproaches.Persuasion => SkillTypes.Charm,
-            EncounterApproaches.Observation => SkillTypes.Insight,
+            EncounterCategories.Force => SkillTypes.Endurance,
+            EncounterCategories.Rapport => SkillTypes.Diplomacy,
+            EncounterCategories.Precision => SkillTypes.Finesse,
+            EncounterCategories.Persuasion => SkillTypes.Charm,
+            EncounterCategories.Observation => SkillTypes.Insight,
             _ => SkillTypes.Insight,
         };
     }
@@ -422,7 +422,7 @@
     private async Task ProcessPostEncounterEvolution(EncounterResult result, string narrative, string outcome)
     {
         // If not a travel encounter, evolve the current location
-        EncounterApproaches basicActionType = result.ActionImplementation.EncounterType;
+        EncounterCategories basicActionType = result.ActionImplementation.EncounterType;
 
         Location currentLocation = locationRepository.GetLocationById(result.NarrativeContext.LocationName);
         if (_useMemory)

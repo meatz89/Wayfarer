@@ -287,7 +287,6 @@ public partial class EncounterViewBase : ComponentBase
             ValueTypes.Pressure => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
             ValueTypes.Health => new MarkupString("<i class='value-icon physical-icon'>⚡</i>"),
             ValueTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
-            ValueTypes.Confidence => new MarkupString("<i class='value-icon social-icon'>👥</i>"),
             _ => new MarkupString("")
         };
     }

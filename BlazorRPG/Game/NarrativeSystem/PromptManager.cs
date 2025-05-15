@@ -189,11 +189,6 @@ public class PromptManager
             strategicEffects.AppendLine($"- Concentration Change: {outcome.ConcentrationChange}");
         }
 
-        if (outcome.ConfidenceChange != 0)
-        {
-            strategicEffects.AppendLine($"- Confidence Change: {outcome.ConfidenceChange}");
-        }
-
         // Replace placeholders in template
         string prompt = template
             .Replace("{ENCOUNTER_TYPE}", state.EncounterType.ToString())
@@ -215,9 +210,6 @@ public class PromptManager
             .Replace("{OLD_HEALTH}", (state.Health - outcome.HealthChange).ToString())
             .Replace("{NEW_HEALTH}", state.Health.ToString())
             .Replace("{MAX_HEALTH}", state.MaxHealth.ToString())
-            .Replace("{OLD_CONFIDENCE}", (state.Confidence - outcome.ConfidenceChange).ToString())
-            .Replace("{NEW_CONFIDENCE}", state.Confidence.ToString())
-            .Replace("{MAX_CONFIDENCE}", state.MaxConfidence.ToString())
             .Replace("{OLD_CONCENTRATION}", (state.Concentration - outcome.ConcentrationChange).ToString())
             .Replace("{NEW_CONCENTRATION}", state.Concentration.ToString())
             .Replace("{MAX_CONCENTRATION}", state.MaxConcentration.ToString())
@@ -281,9 +273,6 @@ public class PromptManager
             if (projection.ConcentrationChange != 0)
                 choiceText += $"\n- Concentration Change: {projection.ConcentrationChange}";
 
-            if (projection.ConfidenceChange != 0)
-                choiceText += $"\n- Confidence Change: {projection.ConfidenceChange}";
-
             // Only add encounter ending info if applicable
             if (projection.EncounterWillEnd)
             {
@@ -294,11 +283,6 @@ public class PromptManager
                     "Will achieve goal to" : "Will fail to")} {context.ActionImplementation.Description}";
             }
 
-            // Only add narrative tags if any would activate
-            if (projection.NewlyActivatedTags.Any())
-            {
-                choiceText += $"\n- Would Activate Tags: {string.Join(", ", projection.NewlyActivatedTags)}";
-            }
 
             // Only add strategic effects if there are any
             List<ChoiceProjection.ValueComponent> momentumComponents = projection.MomentumComponents
@@ -333,8 +317,6 @@ public class PromptManager
             .Replace("{ENCOUNTER_GOAL}", context.ActionImplementation.Description)
             .Replace("{HEALTH}", state.Health.ToString())
             .Replace("{MAX_HEALTH}", state.MaxHealth.ToString())
-            .Replace("{CONFIDENCE}", state.Confidence.ToString())
-            .Replace("{MAX_CONFIDENCE}", state.MaxConfidence.ToString())
             .Replace("{CONCENTRATION}", state.Concentration.ToString())
             .Replace("{MAX_CONCENTRATION}", state.MaxConcentration.ToString())
             .Replace("{PLAYER_STATUS}", BuildCharacterStatusSummary(state))
@@ -349,9 +331,6 @@ public class PromptManager
 
         if (state.Health < state.MaxHealth)
             status.Append($"Health: {state.Health}/{state.MaxHealth}. ");
-
-        if (state.Confidence < state.MaxConfidence)
-            status.Append($"Confidence: {state.Confidence}/{state.MaxConfidence}. ");
 
         if (state.Concentration < state.MaxConcentration)
             status.Append($"Concentration: {state.Concentration}/{state.MaxConcentration}. ");
@@ -656,21 +635,6 @@ public class PromptManager
                 return "None";
 
             List<string> tagDescriptions = new List<string>();
-            foreach (string tagName in activeStrategicTagNames)
-            {
-                // Add basic descriptions for known strategic tags
-                if (tagName.Contains("Tension"))
-                    tagDescriptions.Add($"{tagName} (Adds pressure each turn)");
-                else if (tagName.Contains("Coordinated"))
-                    tagDescriptions.Add($"{tagName} (Adds momentum to Force approaches)");
-                else if (tagName.Contains("Distracted"))
-                    tagDescriptions.Add($"{tagName} (Adds momentum to Precision approaches)");
-                else if (tagName.Contains("Exhaustion"))
-                    tagDescriptions.Add($"{tagName} (Reduces health based on pressure)");
-                else
-                    tagDescriptions.Add($"{tagName} (Strategic effect)");
-            }
-
             return string.Join(", ", tagDescriptions);
         }
 

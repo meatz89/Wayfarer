@@ -1,4 +1,5 @@
-﻿public class ActionFactory
+﻿
+public class ActionFactory
 {
     private readonly ActionRepository actionRepository;
     private readonly EncounterFactory encounterFactory;
@@ -37,12 +38,12 @@
         }
 
         // Set encounter type
-        actionImplementation.EncounterType = template.EncounterApproach;
+        actionImplementation.EncounterType = template.Category;
 
         // Set spot XP
         actionImplementation.SpotXp = template.SpotXP;
 
-        // Set action type (assuming all actions with encounter approach are encounters)
+        // Set action type (assuming all actions with encounter category are encounters)
         actionImplementation.ActionType = ActionTypes.Basic;
 
         // Create requirements, costs, and yields
@@ -50,29 +51,17 @@
         actionImplementation.Costs = CreateCosts(template);
         actionImplementation.Yields = CreateYields(template);
 
-        // Handle encounter approach vigor costs
-        if (template.EncounterApproach != EncounterApproaches.Neutral)
-        {
-            int vigorCost = 1;
-            if (ArchetypeAffinities.GetNaturalForArchetype(playerState.Archetype) == template.EncounterApproach)
-            {
-                vigorCost = 0;
-            }
-            if (ArchetypeAffinities.GetIncompatibleForArchetype(playerState.Archetype) == template.EncounterApproach)
-            {
-                vigorCost = 2;
-            }
-
-            actionImplementation.Requirements.Add(new VigorRequirement(vigorCost));
-            actionImplementation.Costs.Add(new VigorOutcome(-vigorCost));
-        }
-
         // Add base AP cost requirement
         int actionCost = 1;
         actionImplementation.Requirements.Add(new ActionPointRequirement(actionCost));
         actionImplementation.Costs.Add(new ActionPointOutcome(-actionCost));
 
         return actionImplementation;
+    }
+
+    private List<Outcome> CreateYields(ActionDefinition template)
+    {
+        return new List<Outcome>();
     }
 
     private List<IRequirement> CreateRequirements(ActionDefinition template)
@@ -120,38 +109,5 @@
         }
 
         return costs;
-    }
-
-    private List<Outcome> CreateYields(ActionDefinition template)
-    {
-        List<Outcome> yields = new();
-
-        // Recovery amounts
-        if (template.HungerRecovery > 0)
-        {
-            yields.Add(new HungerRecoveryOutcome((int)template.HungerRecovery));
-        }
-
-        if (template.EnergyRecovery > 0)
-        {
-            yields.Add(new EnergyRecoveryOutcome((int)template.EnergyRecovery));
-        }
-
-        if (template.ExhaustionRecovery > 0)
-        {
-            yields.Add(new ExhaustionRecoveryOutcome((int)template.ExhaustionRecovery));
-        }
-
-        if (template.MentalStrainRecovery > 0)
-        {
-            yields.Add(new MentalStrainRecoveryOutcome((int)template.MentalStrainRecovery));
-        }
-
-        if (template.IsolationRecovery > 0)
-        {
-            yields.Add(new IsolationRecoveryOutcome((int)template.IsolationRecovery));
-        }
-
-        return yields;
     }
 }

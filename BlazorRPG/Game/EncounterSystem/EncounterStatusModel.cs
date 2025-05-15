@@ -10,8 +10,6 @@ public class EncounterStatusModel
 
     public int Health { get; set; } = 10;
     public int MaxHealth { get; set; } = 10;
-    public int Confidence { get; set; } = 10;
-    public int MaxConfidence { get; set; } = 10;
     public int Concentration { get; set; } = 10;
     public int MaxConcentration { get; set; } = 10;
 
@@ -26,11 +24,11 @@ public class EncounterStatusModel
     // Added properties
     public List<IEncounterTag> ActiveTags { get; }
     public Encounter EncounterInfo { get; }
-    public EncounterApproaches EncounterType
+    public EncounterCategories EncounterType
     {
         get
         {
-            return EncounterInfo?.EncounterType ?? EncounterApproaches.Persuasion;
+            return EncounterInfo?.EncounterType ?? EncounterCategories.Persuasion;
         }
     }
 
@@ -57,10 +55,8 @@ public class EncounterStatusModel
 
         Health = playerState.Health;
         MaxHealth = playerState.MaxHealth;
-        Concentration = playerState.Focus;
-        MaxConcentration = playerState.MaxFocus;
-        Confidence = playerState.Spirit;
-        MaxConfidence = playerState.MaxSpirit;
+        Concentration = playerState.Concentration;
+        MaxConcentration = playerState.MaxConcentration;
 
         ActiveTagNames = activeTagNames;
         PlayerState = playerState;

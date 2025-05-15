@@ -6,8 +6,6 @@
     public int MaxHealth { get; set; }
     public int Concentration { get; set; }
     public int MaxConcentration { get; set; }
-    public int Confidence { get; set; }
-    public int MaxConfidence { get; set; }
     public int Energy { get; set; }
     public int MaxEnergy { get; set; }
     public int Coins { get; set; }
