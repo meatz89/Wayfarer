@@ -40,9 +40,6 @@
         projection.FinalMomentum = currentMomentum + momentumChange;
         projection.FinalPressure = currentPressure + pressureChange;
 
-        // Calculate pressure-based resource damage
-        CalculateResourceImpacts(projection);
-
         // Determine if encounter will end
         DetermineEncounterOutcome(projection, currentTurn);
 
@@ -158,67 +155,6 @@
                 Source = "Minimum Pressure Limit",
                 Value = adjustment
             });
-        }
-    }
-
-    private void CalculateResourceImpacts(ChoiceProjection projection)
-    {
-        // Calculate resource damage based on pressure
-        int resourceImpact = 0;
-
-        if (projection.FinalPressure > _encounterInfo.MaxPressure * 0.75f)
-        {
-            resourceImpact = -1; // High pressure causes resource damage
-
-            switch (_encounterInfo.EncounterType)
-            {
-                case EncounterApproaches.Force:
-                    projection.HealthChange = resourceImpact;
-                    projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = "High Pressure Impact",
-                        Value = resourceImpact
-                    });
-                    break;
-
-                case EncounterApproaches.Observation:
-                    projection.ConcentrationChange = resourceImpact;
-                    projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = "High Pressure Impact",
-                        Value = resourceImpact
-                    });
-                    break;
-
-
-                case EncounterApproaches.Persuasion:
-                    projection.ConcentrationChange = resourceImpact;
-                    projection.ConcentrationComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = "High Pressure Impact",
-                        Value = resourceImpact
-                    });
-                    break;
-
-
-                case EncounterApproaches.Precision:
-                    projection.HealthChange = resourceImpact;
-                    projection.HealthComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = "High Pressure Impact",
-                        Value = resourceImpact
-                    });
-                    break;
-
-                case EncounterApproaches.Rapport:
-                    projection.ConfidenceChange = resourceImpact;
-                    projection.ConfidenceComponents.Add(new ChoiceProjection.ValueComponent
-                    {
-                        Source = "High Pressure Impact",
-                        Value = resourceImpact
-                    });
-                    break;
-            }
         }
     }
 

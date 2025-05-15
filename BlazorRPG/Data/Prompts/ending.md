@@ -13,8 +13,6 @@ CRITICAL: This scene must directly continue from the player's final choice.
 - Location: {LOCATION_SPOT} of {LOCATION_NAME}
 - Objective: {CHARACTER_GOAL}
 - Momentum: {FINAL_MOMENTUM} | Pressure: {FINAL_PRESSURE}
-- Approach values: {APPROACH_VALUES}
-- Focus values: {FOCUS_VALUES}
 
 ## Requirements
 Write 3-4 paragraphs of first-person narrative that:
@@ -26,7 +24,6 @@ Write 3-4 paragraphs of first-person narrative that:
    - EXCEPTIONAL: Show how the character not only achieved the goal but gained additional benefits
 
 2. SHOWS THE CONSEQUENCES of the character's approach emphasis:
-   - Show how the dominant approaches affected goal achievement
    - Provide concrete details about what was gained or lost
    - Use specific quantities, descriptions, and tangible outcomes
 

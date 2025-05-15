@@ -44,6 +44,14 @@ public partial class GameUI : ComponentBase
         }
     }
 
+    public int Concentration
+    {
+        get
+        {
+            return PlayerState.Concentration;
+        }
+    }
+
     public int ActionPoints
     {
         get
@@ -60,21 +68,6 @@ public partial class GameUI : ComponentBase
         }
     }
 
-    public int Vigor
-    {
-        get
-        {
-            return PlayerState.CurrentVigor();
-        }
-    }
-
-    public int MaxVigor
-    {
-        get
-        {
-            return PlayerState.MaxVigor;
-        }
-    }
 
     public int Exhaustion;
     public int Hunger;
@@ -341,22 +334,14 @@ public partial class GameUI : ComponentBase
         ChangeState();
     }
 
-
     public void ChangeState()
     {
         hasApLeft = PlayerState.CurrentActionPoints() > 0;
-        Exhaustion = PlayerState.ExhaustionPoints;
-        Hunger = PlayerState.HungerPoints;
-        MentalLoad = PlayerState.MentalStrainPoints;
-        Isolation = PlayerState.IsolationPoints;
-
-
         DisplayActionMessages();
 
         StateVersion++;
         StateHasChanged();
     }
-
 
     private void DisplayActionMessages()
     {

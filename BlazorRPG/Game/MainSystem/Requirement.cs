@@ -24,26 +24,6 @@ public class ActionPointRequirement : IRequirement
     }
 }
 
-public class VigorRequirement : IRequirement
-{
-    public int RequiredAmount { get; }
-
-    public VigorRequirement(int requiredAmount)
-    {
-        RequiredAmount = requiredAmount;
-    }
-
-    public bool IsMet(GameState gameState)
-    {
-        return gameState.PlayerState.CurrentVigor() >= RequiredAmount;
-    }
-
-    public string GetDescription()
-    {
-        return $"Requires {RequiredAmount} Vigor";
-    }
-}
-
 public class EnergyRequirement : IRequirement
 {
     public int RequiredAmount { get; }
@@ -95,32 +75,12 @@ public class ConcentrationRequirement : IRequirement
 
     public bool IsMet(GameState gameState)
     {
-        return gameState.PlayerState.Focus >= RequiredAmount;
+        return gameState.PlayerState.Concentration >= RequiredAmount;
     }
 
     public string GetDescription()
     {
         return $"Requires {RequiredAmount} Concentration";
-    }
-}
-
-public class ConfidenceRequirement : IRequirement
-{
-    public int RequiredAmount { get; }
-
-    public ConfidenceRequirement(int requiredAmount)
-    {
-        RequiredAmount = requiredAmount;
-    }
-
-    public bool IsMet(GameState gameState)
-    {
-        return gameState.PlayerState.Spirit >= RequiredAmount;
-    }
-
-    public string GetDescription()
-    {
-        return $"Requires {RequiredAmount} Confidence";
     }
 }
 

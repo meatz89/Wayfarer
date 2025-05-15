@@ -152,15 +152,15 @@
     }
 
 
-    private EncounterApproaches ParseActionType(string actionTypeStr)
+    private EncounterCategories ParseActionType(string actionTypeStr)
     {
-        if (Enum.TryParse<EncounterApproaches>(actionTypeStr, true, out EncounterApproaches actionType))
+        if (Enum.TryParse<EncounterCategories>(actionTypeStr, true, out EncounterCategories actionType))
         {
             return actionType;
         }
 
         // Default fallback
-        return EncounterApproaches.Persuasion;
+        return EncounterCategories.Persuasion;
     }
 
     private LocationCreationInput CreateLocationInput(

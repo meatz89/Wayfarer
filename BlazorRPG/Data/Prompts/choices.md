@@ -22,8 +22,6 @@ IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowl
 - AVOID passive observation, static analysis, or waiting
 - Create meaningful CONSEQUENCES for each potential choice
 - Each choice should feel like a true BRANCH in the story
-- Focus Changes (WHAT) represent player's accumulated progress during the encounter / what you've accomplished/learned through this action
-- Approach Changes (HOW) represent the method used to make progress / how you're acting in this situation
 
 ## Format Requirements
 For each choice, create:
@@ -53,20 +51,6 @@ For each choice, create:
    - DeScholar observations through concrete sensory details, not abstract systems
    - Frame tactics through experience and instinct, not modern analytical terms
    - Avoid modern concepts like "scanning," "monitoring," or "surveillance"
-
-5. Approach manifestation:
-   - Analysis: Noticing crucial details that create IMMEDIATE advantage, spotting a weakness to exploit NOW
-   - Precision: Swift, targeted movements that change the encounter state
-   - Rapport: Emotional appeals that provoke immediate reactions
-   - Concealment: Deceptive actions that create new opportunities
-   - Dominance: Forceful interventions that alter power dynamics
-
-6. Focus manifestation:
-   - Relationship: Provoking specific reactions from NPCs that change the encounter
-   - Information: Using knowledge to CREATE an advantage, not just gather more data
-   - Physical: Manipulating bodies or objects to transform the situation
-   - Environment: Changing terrain, creating new paths, or altering surroundings
-   - Resource: Transforming objects into tools that change encounter dynamics
 
 ## RESPONSE FORMAT
 You must respond with a SINGLE JSON object containing a "choices" array:

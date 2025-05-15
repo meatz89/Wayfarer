@@ -4,7 +4,7 @@
 		"name": "Talk to Innkeeper",
 		"description": "Strike up a conversation with Borin, the gruff innkeeper.",
 		"spotId": "innkeeper",
-		"approach": "RAPPORT",
+		"category": "RAPPORT",
 		"requirements": {
 			"relationshipLevel": 0
 		},
@@ -17,7 +17,7 @@
 		"name": "Purchase Basic Food",
 		"description": "Buy some simple fare from the inn's kitchen.",
 		"spotId": "innkeeper",
-		"approach": "NEUTRAL",
+		"category": "NEUTRAL",
 		"recovery": {
 			"HUNGER": "BASIC"
 		},
@@ -36,7 +36,7 @@
 		"name": "Rent Basic Room",
 		"description": "Pay for a simple room for the night.",
 		"spotId": "innkeeper",
-		"approach": "NEUTRAL",
+		"category": "NEUTRAL",
 		"recovery": {
 			"ENERGY": "BASIC"
 		},
@@ -53,7 +53,7 @@
 		"name": "Rest by the Fire",
 		"description": "Take a short rest near the warm hearth.",
 		"spotId": "hearth",
-		"approach": "NEUTRAL",
+		"category": "NEUTRAL",
 		"recovery": {
 			"ENERGY": "BASIC"
 		},
@@ -69,7 +69,7 @@
 		"name": "Investigate Satchel",
 		"description": "Examine the abandoned satchel without touching it.",
 		"spotId": "discarded_satchel",
-		"approach": "OBSERVATION",
+		"category": "OBSERVATION",
 		"characteristics": {
 			"exertion": "MODERATE",
 			"mentalLoad": "STANDARD",

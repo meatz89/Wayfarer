@@ -16,8 +16,6 @@
     // Afflictions
     public int MaxActionPoints { get; set; } = 4;
     public int ActionPoints { get; set; } = 4;
-    public int MaxVigor { get; set; } = 20;
-    public int Vigor { get; set; }
     public int MaxEnergyPoints { get; set; } = 12;
     public int EnergyPoints { get; set; }
 
@@ -39,7 +37,7 @@
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
 
 
-    public HashSet<(string, EncounterApproaches)> LocationActionAvailability { get; set; } = new();
+    public HashSet<(string, EncounterCategories)> LocationActionAvailability { get; set; } = new();
 
     public List<PlayerNegativeStatus> NegativeStatusTypes { get; set; }
     public bool IsInitialized { get; set; } = false;
@@ -53,16 +51,10 @@
 
     public int MinHealth { get; set; }
     public int Health { get; set; }
-    public int Focus { get; set; }
-    public int Spirit { get; set; }
-    public int ExhaustionPoints { get; private set; }
-    public int HungerPoints { get; private set; }
-    public int MentalStrainPoints { get; private set; }
-    public int IsolationPoints { get; private set; }
+    public int Concentration { get; set; }
 
-    public int MaxHealth;
-    public int MaxFocus;
-    public int MaxSpirit;
+    public int MaxHealth { get; set; }
+    public int MaxConcentration { get; set; }
 
     public List<Card> Cards { get; private set; } = new List<Card>();
 
@@ -94,11 +86,8 @@
     public void HealFully()
     {
         EnergyPoints = MaxEnergyPoints;
-        Vigor = MaxVigor;
-
         Health = MaxHealth;
-        Focus = MaxFocus;
-        Spirit = MaxSpirit;
+        Concentration = MaxConcentration;
     }
 
     public void Initialize(string playerName, Professions selectedArchetype, Genders gender)
@@ -242,21 +231,10 @@
 
     public bool ModifyConcentration(int count)
     {
-        int newConcentration = Math.Clamp(Focus + count, 0, MaxFocus);
-        if (newConcentration != Focus)
+        int newConcentration = Math.Clamp(Concentration + count, 0, MaxConcentration);
+        if (newConcentration != Concentration)
         {
-            Focus = newConcentration;
-            return true;
-        }
-        return false;
-    }
-
-    public bool ModifyConfidence(int count)
-    {
-        int newConfidence = Math.Clamp(Spirit + count, 0, MaxSpirit);
-        if (newConfidence != Spirit)
-        {
-            Spirit = newConfidence;
+            Concentration = newConcentration;
             return true;
         }
         return false;
@@ -335,26 +313,6 @@
         ActionPoints -= actionPointCost;
     }
 
-    public void AddExhaustionPoints(int exhaustionPoints)
-    {
-        this.ExhaustionPoints += exhaustionPoints;
-    }
-
-    public void AddHungerPoints(int hungerPoints)
-    {
-        this.HungerPoints += hungerPoints;
-    }
-
-    public void AddMentalLoadPoints(int mentalLoad)
-    {
-        this.MentalStrainPoints += mentalLoad;
-    }
-
-    public void AddDisconnectPoints(int disconnectionPoints)
-    {
-        this.IsolationPoints += disconnectionPoints;
-    }
-
     public int CurrentActionPoints()
     {
         return ActionPoints;
@@ -376,41 +334,11 @@
         this.EnergyPoints = newEnergy;
     }
 
-    public int CurrentVigor()
-    {
-        return Vigor;
-    }
-
-    public void ModifyVigor(int amount)
-    {
-        int newVigor = Math.Clamp(Vigor + amount, 0, MaxVigor);
-        this.Vigor = newVigor;
-    }
-
-    internal void ModifyHunger(int amount)
-    {
-        this.HungerPoints += amount;
-    }
-
     internal void ModifyEnergy(int amount)
     {
         this.EnergyPoints += amount;
     }
 
-    internal void ModifyExhaustion(int amount)
-    {
-        this.ExhaustionPoints += amount;
-    }
-
-    internal void ModifyMentalStrain(int amount)
-    {
-        this.MentalStrainPoints += amount;
-    }
-
-    internal void ModifyIsolation(int amount)
-    {
-        this.IsolationPoints += amount;
-    }
 
     public PlayerState Clone()
     {
@@ -427,23 +355,15 @@
         clone.XPToNextLevel = this.XPToNextLevel;
         clone.MaxActionPoints = this.MaxActionPoints;
         clone.ActionPoints = this.ActionPoints;
-        clone.MaxVigor = this.MaxVigor;
-        clone.Vigor = this.Vigor;
         clone.MaxEnergyPoints = this.MaxEnergyPoints;
         clone.EnergyPoints = this.EnergyPoints;
         clone.Coins = this.Coins;
         clone.Food = this.Food;
         clone.MinHealth = this.MinHealth;
         clone.Health = this.Health;
-        clone.Focus = this.Focus;
-        clone.Spirit = this.Spirit;
-        clone.ExhaustionPoints = this.ExhaustionPoints;
-        clone.HungerPoints = this.HungerPoints;
-        clone.MentalStrainPoints = this.MentalStrainPoints;
-        clone.IsolationPoints = this.IsolationPoints;
+        clone.Concentration = this.Concentration;
         clone.MaxHealth = this.MaxHealth;
-        clone.MaxFocus = this.MaxFocus;
-        clone.MaxSpirit = this.MaxSpirit;
+        clone.MaxConcentration = this.MaxConcentration;
         clone.IsInitialized = this.IsInitialized;
 
         // Deep copy Inventory
@@ -469,7 +389,7 @@
         clone.UnlockedTravelMethods = new List<string>(this.UnlockedTravelMethods);
 
         // Deep copy of LocationActionAvailability HashSet
-        clone.LocationActionAvailability = new HashSet<(string, EncounterApproaches)>(
+        clone.LocationActionAvailability = new HashSet<(string, EncounterCategories)>(
             this.LocationActionAvailability);
 
         // Deep copy of NegativeStatusTypes

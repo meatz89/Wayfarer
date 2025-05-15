@@ -12,7 +12,6 @@
         // Get all available cards
         List<CardDefinition> allCards = _cardRepository.GetForEncounter(state);
 
-        // FIRST FILTER: Remove cards that don't meet minimum approach/focus requirements
         List<CardDefinition> playableCards = FilterPlayableCards(allCards, state);
 
         // Calculate card viability scores
@@ -208,7 +207,6 @@
     {
         List<CardDefinition> result = new List<CardDefinition>();
 
-        // First pass: select best card, add its approach/focus to used sets
         if (viableCards.Any())
         {
             CardDefinition bestCard = viableCards

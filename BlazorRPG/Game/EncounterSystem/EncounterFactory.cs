@@ -27,7 +27,7 @@
         EncounterTemplate template,
         Location location,
         LocationSpot locationSpot,
-        EncounterApproaches EncounterType)
+        EncounterCategories EncounterType)
     {
         Encounter encounter = new Encounter(
             location.Id,

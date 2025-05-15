@@ -38,13 +38,17 @@
                         @(TurnActionPoints * -1)
                     </span>
                 </div>
-
+                
                 <div class="status-item">
                     <span class="status-label">Concentration</span>
-                    <span class="status-value @((PlayerState.CurrentVigor() < 3) ? "danger" : "")">
-                        @Vigor / @MaxVigor
+                    <span class="status-value">
+                        @Concentration
+                    </span>
+                    <span class="danger">
+                        @(TurnActionPoints * -1)
                     </span>
                 </div>
+
             </div>
 
             <div class="game-info">

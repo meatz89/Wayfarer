@@ -113,7 +113,7 @@
         this.worldState = worldState;
 
         Location loc = context.Location;
-        EncounterApproaches encounterType = actionImplementation.EncounterType;
+        EncounterCategories encounterType = actionImplementation.EncounterType;
         EncounterTemplate template = actionImplementation.EncounterTemplate;
 
         if (template == null)
@@ -280,8 +280,7 @@
     private bool IsGameOver(PlayerState player)
     {
         if (player.Health <= 0) return true;
-        if (player.Focus <= 0) return true;
-        if (player.Spirit <= 0) return true;
+        if (player.Concentration <= 0) return true;
 
         return false;
     }

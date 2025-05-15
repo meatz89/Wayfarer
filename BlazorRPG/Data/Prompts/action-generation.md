@@ -17,14 +17,6 @@ Design a complete encounter that implements this action, providing all required 
   * "Encounter" - Triggers the tag-based encounter system (most actions are this type)
 - **CoinCost**: Any upfront coin cost to attempt the action (often 0)
 
-## Encounter Balance Guidelines
-- Duration should match complexity (simple=3-4 turns, complex=5-7 turns)
-- Thresholds should be spaced 2-3 points apart (e.g., 10, 14, 18)
-- MaxPressure should be roughly 2× StandardThreshold
-- Strategic tags should include 2 beneficial and 2 detrimental approach effects
-- Narrative tags should activate at approach values 3+ or 4+
-- PressureReducingFocuses and MomentumReducingFocuses should be different focus tags
-
 ## Response Format
 Respond with a JSON object containing both action and encounter details:
 
@@ -43,8 +35,6 @@ Respond with a JSON object containing both action and encounter details:
     "standardThreshold": 7, 
     "exceptionalThreshold": 10,
     "hostility": "Neutral",
-    "pressureReducingFocuses": ["Relationship", "Resource"],
-    "momentumReducingFocuses": ["Physical", "Environment"],
     "strategicTags": [
       {"name": "Market Daylight", "environmentalProperty": "Bright"},
       {"name": "Bustling Shoppers", "environmentalProperty": "Crowded"},

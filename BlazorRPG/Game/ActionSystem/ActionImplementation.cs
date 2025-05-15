@@ -18,7 +18,7 @@
     public List<Outcome> Yields { get; set; }
 
     public ActionTypes ActionType { get; set; }
-    public EncounterApproaches EncounterType { get; set; }
+    public EncounterCategories EncounterType { get; set; }
     public int ActionPointCost { get; set; }
 
     public int Difficulty { get; set; } = 1;

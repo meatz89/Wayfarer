@@ -5,7 +5,7 @@
     public string Name { get; set; }
     public string SpotId { get; set; }
     public string Description { get; set; }
-    public EncounterApproaches EncounterApproach { get; set; } = EncounterApproaches.Neutral;
+    public EncounterCategories Category { get; set; } = EncounterCategories.Neutral;
 
     // Resource costs
     public int CoinCost { get; set; }
@@ -17,18 +17,6 @@
 
     // Grants
     public int SpotXP { get; set; }
-
-    // Recovery types
-    public RecoveryLevels HungerRecovery { get; set; }
-    public RecoveryLevels EnergyRecovery { get; set; }
-    public RecoveryLevels ExhaustionRecovery { get; set; }
-    public RecoveryLevels MentalStrainRecovery { get; set; }
-    public RecoveryLevels IsolationRecovery { get; set; }
-
-    // Characteristics
-    public ExertionLevels Exertion { get; set; } = ExertionLevels.Low;
-    public MentalLoadLevels MentalLoad { get; set; } = MentalLoadLevels.Low;
-    public SocialImpactTypes SocialImpact { get; set; } = SocialImpactTypes.Solitary;
 
     // Movement
     public string MoveToLocation { get; set; }

@@ -24,8 +24,6 @@ public static class GameStateSerializer
                 Coins = gameState.PlayerState.Coins,
                 MaxActionPoints = gameState.PlayerState.MaxActionPoints,
                 ActionPoints = gameState.PlayerState.ActionPoints,
-                MaxVigor = gameState.PlayerState.MaxVigor,
-                Vigor = gameState.PlayerState.Vigor,
                 MaxEnergy = gameState.PlayerState.MaxEnergyPoints,
                 Energy = gameState.PlayerState.EnergyPoints,
                 MaxHealth = gameState.PlayerState.MaxHealth,
@@ -79,8 +77,6 @@ public static class GameStateSerializer
             gameState.PlayerState.Coins = serialized.Player.Coins;
             gameState.PlayerState.MaxActionPoints = serialized.Player.MaxActionPoints;
             gameState.PlayerState.ActionPoints = serialized.Player.ActionPoints;
-            gameState.PlayerState.MaxVigor = serialized.Player.MaxVigor;
-            gameState.PlayerState.Vigor = serialized.Player.Vigor;
             gameState.PlayerState.MaxEnergyPoints = serialized.Player.MaxEnergy;
             gameState.PlayerState.EnergyPoints = serialized.Player.Energy;
             gameState.PlayerState.MaxHealth = serialized.Player.MaxHealth;
@@ -214,7 +210,7 @@ public static class GameStateSerializer
             name = action.Name,
             description = action.Description,
             spotId = action.SpotId,
-            approach = action.EncounterApproach.ToString(),
+            category = action.Category.ToString(),
             timeWindows = action.TimeWindows?.Select(tw => tw.ToString()).ToList(),
             requirements = new
             {
@@ -228,20 +224,6 @@ public static class GameStateSerializer
             grants = new
             {
                 spotXP = action.SpotXP
-            },
-            recovery = new
-            {
-                HUNGER = action.HungerRecovery,
-                ENERGY = action.EnergyRecovery,
-                EXHAUSTION = action.ExhaustionRecovery,
-                MENTAL_STRAIN = action.MentalStrainRecovery,
-                ISOLATION = action.IsolationRecovery
-            },
-            characteristics = new
-            {
-                exertion = action.Exertion.ToString(),
-                mentalLoad = action.MentalLoad.ToString(),
-                socialImpact = action.SocialImpact.ToString()
             },
             moveToLocation = action.MoveToLocation,
             moveToLocationSpot = action.MoveToLocationSpot

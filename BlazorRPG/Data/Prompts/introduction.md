@@ -19,7 +19,6 @@ Talk in the voice of the player character archetype. The narration of a warrior,
 - Reflect resource limitations (low health, energy, etc.) through character's feelings or physical state rather than numbers
 
 ## Encounter Clarification
-- Set up the challenge requiring approach/focus choices
 - Make clear what success would accomplish
 - Hint at consequences of failure
 

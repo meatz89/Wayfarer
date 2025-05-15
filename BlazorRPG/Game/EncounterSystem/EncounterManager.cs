@@ -365,11 +365,7 @@
             projection.EncounterWillEnd,
             projection.ProjectedOutcome,
             projection.HealthChange,
-            projection.ConcentrationChange,
-            projection.ConfidenceChange);
-
-        outcome.NewlyActivatedTags.AddRange(projection.NewlyActivatedTags);
-        outcome.DeactivatedTags.AddRange(projection.DeactivatedTags);
+            projection.ConcentrationChange);
 
         return outcome;
     }

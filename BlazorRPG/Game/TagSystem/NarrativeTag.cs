@@ -1,7 +1,5 @@
-﻿
-
-/// <summary>
-/// Represents an environmental modifier that adjusts the focus requirement for playing choices based on narrative conditions.
+﻿/// <summary>
+/// Represents an environmental modifier
 /// For example, a calm atmosphere may ease the effort needed to gather information,
 /// while a chaotic state might make social interactions more challenging.
 /// </summary>

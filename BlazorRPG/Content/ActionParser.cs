@@ -17,11 +17,10 @@ public static class ActionParser
             Description = GetStringProperty(root, "description", ""),
         };
 
-        // Parse approach
-        string approachString = GetStringProperty(root, "approach", "NEUTRAL");
-        if (Enum.TryParse(approachString, true, out EncounterApproaches approach))
+        string categoryString = GetStringProperty(root, "category", "NEUTRAL");
+        if (Enum.TryParse(categoryString, true, out EncounterCategories category))
         {
-            action.EncounterApproach = approach;
+            action.Category = category;
         }
 
         // Parse requirements
@@ -42,51 +41,6 @@ public static class ActionParser
         if (root.TryGetProperty("grants", out JsonElement grantsElement))
         {
             action.SpotXP = GetIntProperty(grantsElement, "spotXP", 0);
-        }
-
-        // Parse recovery
-        if (root.TryGetProperty("recovery", out JsonElement recoveryElement))
-        {
-            foreach (JsonProperty property in recoveryElement.EnumerateObject())
-            {
-                string recoveryType = property.Value.GetString() ?? string.Empty;
-                bool canParse = Enum.TryParse(recoveryType, true, out RecoveryLevels recoveryLevel);
-                if (!canParse) continue;
-
-                switch (property.Name)
-                {
-                    case "HUNGER":
-                        action.HungerRecovery = recoveryLevel;
-                        break;
-                    case "ENERGY":
-                        action.EnergyRecovery = recoveryLevel;
-                        break;
-                    case "EXHAUSTION":
-                        action.ExhaustionRecovery = recoveryLevel;
-                        break;
-                    case "MENTAL_STRAIN":
-                        action.MentalStrainRecovery = recoveryLevel;
-                        break;
-                    case "ISOLATION":
-                        action.IsolationRecovery = recoveryLevel;
-                        break;
-                }
-            }
-        }
-
-        // Parse characteristics
-        if (root.TryGetProperty("characteristics", out JsonElement characteristicsElement))
-        {
-            string exertion = GetStringProperty(characteristicsElement, "exertion", "LOW");
-            string mentalLoad = GetStringProperty(characteristicsElement, "mentalLoad", "LOW");
-            string socialImpact = GetStringProperty(characteristicsElement, "socialImpact", "SOLITARY");
-
-            if (Enum.TryParse(exertion, true, out ExertionLevels exertionLevel))
-                action.Exertion = exertionLevel;
-            if (Enum.TryParse(mentalLoad, true, out MentalLoadLevels mentalLoadLevel))
-                action.MentalLoad = mentalLoadLevel;
-            if (Enum.TryParse(socialImpact, true, out SocialImpactTypes socialImpactType))
-                action.SocialImpact = socialImpactType;
         }
 
         // Parse time windows

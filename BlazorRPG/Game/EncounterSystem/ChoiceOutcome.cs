@@ -12,11 +12,7 @@ public class ChoiceOutcome
 
     public int HealthChange { get; }
     public int ConcentrationChange { get; }
-    public int ConfidenceChange { get; }
-
-    public List<string> NewlyActivatedTags { get; }
-    public List<string> DeactivatedTags { get; }
-
+    
     public ChoiceOutcome(
         int momentumGained,
         int pressureBuilt,
@@ -24,8 +20,7 @@ public class ChoiceOutcome
         bool isEncounterOver,
         EncounterOutcomes outcome,
         int healthChange = 0,
-        int focusChange = 0,
-        int spiritChange = 0)
+        int concentrationChange = 0)
     {
         MomentumGain = momentumGained;
         PressureGain = pressureBuilt;
@@ -33,10 +28,6 @@ public class ChoiceOutcome
         IsEncounterOver = isEncounterOver;
         Outcome = outcome;
         HealthChange = healthChange;
-        ConcentrationChange = focusChange;
-        ConfidenceChange = spiritChange;
-
-        NewlyActivatedTags = new List<string>();
-        DeactivatedTags = new List<string>();
+        ConcentrationChange = concentrationChange;
     }
 }
