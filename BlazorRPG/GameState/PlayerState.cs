@@ -383,4 +383,16 @@
 
         return clone;
     }
+
+    public bool HasAvailableCard(CardTypes cardTypes)
+    {
+        foreach (CardDefinition card in SelectedCards)
+        {
+            if (card.Type == cardTypes)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 }

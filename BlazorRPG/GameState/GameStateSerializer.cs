@@ -251,7 +251,7 @@ public static class GameStateSerializer
                 id = approach.Id,
                 name = approach.Name,
                 description = approach.Description,
-                cardType = approach.CardType,
+                cardType = approach.RequiredCardType,
                 skill = approach.Skill,
                 difficulty = approach.Difficulty,
                 rewards = approach.Rewards

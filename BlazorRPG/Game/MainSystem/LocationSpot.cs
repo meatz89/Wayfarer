@@ -25,17 +25,6 @@
         Name = name;
     }
 
-    public void IncreaseSpotXP(int spotXp)
-    {
-        CurrentSpotXP += spotXp;
-        if (CurrentSpotXP >= XPToNextLevel)
-        {
-            CurrentLevel++;
-            CurrentSpotXP = 0;
-            XPToNextLevel = CalculateXPToNextLevel(CurrentLevel);
-        }
-    }
-
     private int CalculateXPToNextLevel(int currentLevel)
     {
         // Simple formula for now, can be adjusted later

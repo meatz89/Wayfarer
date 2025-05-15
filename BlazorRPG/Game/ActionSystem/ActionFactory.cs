@@ -26,6 +26,8 @@ public class ActionFactory
         actionImplementation.LocationId = location;
         actionImplementation.LocationSpotId = locationSpot;
 
+        actionImplementation.Approaches = template.Approaches;
+
         // Handle movement actions
         if (!string.IsNullOrEmpty(template.MoveToLocation))
         {

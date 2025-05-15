@@ -25,10 +25,10 @@ public static class ActionParser
                 string approachId = GetStringProperty(approachElement, "id", "");
                 string approachName = GetStringProperty(approachElement, "name", "");
 
-                Approach approach = new Approach(approachId, approachName)
+                ApproachOption approach = new ApproachOption(approachId, approachName)
                 {
                     Description = GetStringProperty(approachElement, "description", ""),
-                    CardType = GetStringProperty(approachElement, "cardType", ""),
+                    RequiredCardType = Enum.Parse<CardTypes>(GetStringProperty(approachElement, "cardType", ""), true),
                     Skill = GetStringProperty(approachElement, "skill", ""),
                     Difficulty = GetIntProperty(approachElement, "difficulty", 0)
                 };

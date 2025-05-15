@@ -114,7 +114,8 @@
                 playerProgression.AddSkillExp(Skills.Endurance, XpBonusForArchetype);
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(archetype));
+                playerProgression.AddSkillExp(Skills.Endurance, XpBonusForArchetype);
+                break;
         }
     }
 
@@ -216,7 +217,7 @@
         UserActionOption travelOption = new UserActionOption(
             "Travel to " + locationName, false, travelAction,
             worldState.CurrentLocation.Id, worldState.CurrentLocationSpot.Id,
-            null, worldState.CurrentLocation.Difficulty, null, CardTypes.Physical);
+            null, worldState.CurrentLocation.Difficulty, null, null);
 
         // Use unified action execution
         await ExecuteAction(travelOption);
@@ -257,7 +258,7 @@
                     default,
                     location.Difficulty,
                     string.Empty,
-                    CardTypes.Physical);
+                    null);
 
             bool requirementsMet = actionProcessor.CanExecute(action.ActionImplementation);
 
