@@ -22,17 +22,52 @@
                 @* Add travel option if not current spot *@
                 @if (spot.Id == CurrentSpot.Id)
                 {
-                    @foreach (UserActionOption action in GameState.ActionStateTracker.LocationSpotActions)
-                    {
-                        <button class="action-button"
-                                @onclick="() => ShowApproachesForAction(action)"
-                                disabled="@(action.IsDisabled)"
-                                @onmouseover="(e) => HandleShowTooltip(action, e)"
-                                @onmouseout="HandleHideTooltip">
-                            <div class="card-cost-indicator"></div>
-                            @action.ActionImplementation.Name (@action.ActionImplementation.ActionType)
-                        </button>
-                    }
+                    <div class="action-list">
+                        @foreach (UserActionOption action in GameState.ActionStateTracker.LocationSpotActions)
+                        {
+                            <div class="action-header @(selectedAction?.ActionImplementation.Id == action.ActionImplementation.Id ? "expanded" : "")"
+                                 @onclick="() => ToggleActionApproaches(action)">
+                                <div class="action-header-content">
+                                    <span class="action-title">@action.ActionImplementation.Name</span>
+                                    <span class="action-type">@action.ActionImplementation.ActionType</span>
+                                </div>
+                                <span class="action-toggle-icon">@(selectedAction?.ActionImplementation.Id == action.ActionImplementation.Id ? "▼" : "►")</span>
+                            </div>
+
+                            @if (selectedAction?.ActionImplementation.Id == action.ActionImplementation.Id)
+                            {
+                                <div class="approaches-container">
+                                    <div class="approaches-description">
+                                        @action.ActionImplementation.Description
+                                    </div>
+
+                                    <div class="approaches-list">
+                                        @foreach (var approach in action.ActionImplementation.Approaches)
+                                        {
+                                            <div class="approach-option">
+                                                <div class="approach-header">
+                                                    <h4>@approach.Name</h4>
+                                                    <div class="card-requirement">
+                                                        <div class="card-preview @GetCardTypeClass(approach.RequiredCardType)"></div>
+                                                        <span>@approach.RequiredCardType Card</span>
+                                                    </div>
+                                                </div>
+
+                                                <p class="approach-description">@approach.Description</p>
+
+                                                <button class="approach-button"
+                                                        @onclick="() => SelectApproach(action, approach)"
+                                                        @onmouseover="(e) => HandleShowApproachTooltip(action, approach, e)"
+                                                        @onmouseout="HandleHideTooltip">
+                                                    Select Approach
+                                                </button>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
                 }
                 else
                 {
@@ -41,61 +76,17 @@
                         MOVE HERE
                     </button>
                 }
-
-                @if (showingApproaches && selectedAction != null)
-                {
-                    <div class="approaches-container">
-                        <div class="approaches-header">
-                            <h3>@selectedAction.ActionImplementation.Name - Select Your Approach</h3>
-                            <button class="close-button" @onclick="HideApproaches">×</button>
-                        </div>
-
-                        <div class="approaches-description">
-                            @selectedAction.ActionImplementation.Description
-                        </div>
-
-                        <div class="approaches-list">
-                            @foreach (var approach in GetApproachesForAction(selectedAction))
-                            {
-                                bool canUseApproach = CanUseApproach(approach);
-                                <div class="approach-option @(canUseApproach ? "" : "disabled")">
-                                    <div class="approach-header">
-                                        <h4>@approach.Name</h4>
-                                        <div class="card-requirement">
-                                            <div class="card-preview @GetCardTypeClass(approach.RequiredCardType)"></div>
-                                            <span>@approach.RequiredCardType Card</span>
-                                        </div>
-                                    </div>
-
-                                    <p class="approach-description">@approach.Description</p>
-
-                                    @if (!canUseApproach)
-                                    {
-                                        <div class="requirement-unmet">
-                                            <span>@GetUnmetRequirementMessage(approach)</span>
-                                        </div>
-                                    }
-
-                                    <button class="approach-button"
-                                            disabled="@(!canUseApproach)"
-                                            @onclick="() => SelectApproach(approach)">
-                                        Select Approach
-                                    </button>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                }
             </div>
         </div>
     }
 </div>
 
-@if (showTooltip && hoveredAction != null)
+@if (showTooltip && hoveredApproach != null)
 {
     <div class="tooltip" style="left: @(mouseX + 10)px; top: @(mouseY + 10)px">
-        <ActionPreview CurrentAction="@hoveredAction"
-        GameState="@GameState" />
+        <ActionPreview CurrentAction="@selectedAction"
+                       CurrentApproach="@hoveredApproach"
+                       GameState="@GameState" />
     </div>
 }
 
@@ -110,65 +101,10 @@
     [Parameter] public EventCallback<UserActionOption> OnActionSelected { get; set; }
 
     private bool showTooltip;
-    private UserActionOption hoveredAction;
+    private UserActionOption selectedAction = null;
+    private ApproachOption hoveredApproach = null;
     private double mouseX;
     private double mouseY;
-
-    private UserActionOption selectedAction = null;
-    private bool showingApproaches = false;
-
-
-    private string GetCardCostClass(CardTypes costType)
-    {
-        return costType switch
-        {
-            CardTypes.Physical => "physical-cost",
-            CardTypes.Intellectual => "intellectual-cost",
-            CardTypes.Social => "social-cost",
-            _ => ""
-        };
-    }
-
-    private List<ApproachOption> GetApproachesForAction(UserActionOption action)
-    {
-        return action.ActionImplementation.Approaches;
-    }
-
-    private bool CanUseApproach(ApproachOption approach)
-    {
-        // Check if player has the required card type and meets other requirements
-        bool hasRequiredCard = PlayerHasAvailableCard(approach.RequiredCardType);
-
-        // Additional requirements would be checked here
-        return hasRequiredCard;
-    }
-
-    private string GetUnmetRequirementMessage(ApproachOption approach)
-    {
-        // Return appropriate message based on what requirement isn't met
-        if (!PlayerHasAvailableCard(approach.RequiredCardType))
-            return $"You need an available {approach.RequiredCardType} card";
-
-        return "Requirements not met";
-    }
-
-    private bool PlayerHasAvailableCard(CardTypes cardType)
-    {
-        // Check if player has an available (non-exhausted) card of the required type
-        return GameState.PlayerState.HasAvailableCard(cardType);
-    }
-
-    private void SelectApproach(ApproachOption approach)
-    {
-        // Update the selected action with the chosen approach
-        UserActionOption actionWithApproach = selectedAction with { SelectedApproach = approach };
-
-        // Execute the action with the selected approach
-        OnActionSelected.InvokeAsync(actionWithApproach);
-
-        // Reset the approach selection UI
-        HideApproaches();
-    }
 
     private string GetCardTypeClass(CardTypes type)
     {
@@ -181,21 +117,41 @@
         };
     }
 
-    private void ShowApproachesForAction(UserActionOption action)
+    private void ToggleActionApproaches(UserActionOption action)
     {
-        selectedAction = action;
-        showingApproaches = true;
+        if (selectedAction?.ActionImplementation.Id == action.ActionImplementation.Id)
+        {
+            selectedAction = null; // Collapse if already selected
+        }
+        else
+        {
+            selectedAction = action; // Expand this action
+        }
     }
 
-    private void HideApproaches()
+    private void SelectApproach(UserActionOption action, ApproachOption approach)
     {
-        showingApproaches = false;
+        showTooltip = false;
+
+        if (!GameState.PlayerState.HasAvailableCard(approach.RequiredCardType))
+        {
+            return;
+        }
+
+        // Update the selected action with the chosen approach
+        UserActionOption actionWithApproach = action with { SelectedApproach = approach };
+
+        // Execute the action with the selected approach
+        OnActionSelected.InvokeAsync(actionWithApproach);
+
+        // Reset selection
         selectedAction = null;
     }
 
-    private void HandleShowTooltip(UserActionOption action, MouseEventArgs e)
+    private void HandleShowApproachTooltip(UserActionOption action, ApproachOption approach, MouseEventArgs e)
     {
-        hoveredAction = action;
+        selectedAction = action;
+        hoveredApproach = approach;
         mouseX = e.ClientX;
         mouseY = e.ClientY;
         showTooltip = true;
@@ -203,7 +159,7 @@
 
     private void HandleHideTooltip()
     {
-        hoveredAction = null;
+        hoveredApproach = null;
         showTooltip = false;
     }
 
@@ -216,7 +172,7 @@
     public Location GetLocation()
     {
         return LocationSystem.GetLocation(CurrentLocation.Id);
-	}
+    }
 
     private List<PropertyDisplay> GetSpotProperties(Location location, LocationSpot spot)
     {
@@ -265,5 +221,4 @@
             .Replace("Type", "")
             .Replace("Types", "");
     }
-
 }
