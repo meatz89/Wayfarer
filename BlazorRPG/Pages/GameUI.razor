@@ -13,16 +13,13 @@
     }
     else
     {
-        
         <LoadingIndicator 
             IsVisible="@LoadingStateService.IsLoading"
             Message="@LoadingStateService.Message"
             ShowProgress="true"
             Progress="@LoadingStateService.Progress" />
-
-        <div class="game-status-bar">
-            <ObjectiveView StateVersion="@StateVersion" />
-        </div>
+            
+        <ObjectiveView StateVersion="@StateVersion" />
 
         <div class="game-status-bar">
             <div class="player-status">

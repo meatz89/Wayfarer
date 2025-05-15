@@ -27,7 +27,7 @@ public partial class EncounterViewBase : ComponentBase
     public bool IsLoading = true;
 
     public EncounterResult EncounterResult { get; private set; }
-    public List<UserEncounterChoiceOption> CurrentChoices = new List<UserEncounterChoiceOption>();
+    public List<UserEncounterChoiceOption> CurrentChoices { get; set; } = new();
 
     public bool IsChoiceDisabled(UserEncounterChoiceOption userEncounterChoiceOption)
     {
@@ -151,7 +151,7 @@ public partial class EncounterViewBase : ComponentBase
 
     public void GetChoices()
     {
-        CurrentChoices = GameManager.GetChoices();
+        CurrentChoices = GameState.ActionStateTracker.UserEncounterChoiceOptions;
         StateHasChanged();
     }
 

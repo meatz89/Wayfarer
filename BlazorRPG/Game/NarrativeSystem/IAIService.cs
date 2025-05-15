@@ -8,7 +8,9 @@
         NarrativeContext context,
         EncounterStatusModel state,
         string memoryContent,
-        WorldStateInput worldStateInput);
+        WorldStateInput worldStateInput,
+        int priority);
+
 
     Task<string> GenerateEncounterNarrative(
         NarrativeContext context,
@@ -17,7 +19,7 @@
         ChoiceOutcome outcome,
         EncounterStatusModel newState,
         WorldStateInput worldStateInput,
-        int priority = AIClient.PRIORITY_IMMEDIATE);
+        int priority);
 
     Task<string> GenerateEndingAsync(
         NarrativeContext context,
@@ -26,7 +28,7 @@
         ChoiceOutcome outcome,
         EncounterStatusModel newState,
         WorldStateInput worldStateInput,
-        int priority = AIClient.PRIORITY_IMMEDIATE);
+        int priority);
 
     Task<Dictionary<CardDefinition, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
         NarrativeContext context,
@@ -34,7 +36,7 @@
         List<ChoiceProjection> projections,
         EncounterStatusModel state,
         WorldStateInput worldStateInput,
-        int priority = AIClient.PRIORITY_IMMEDIATE);
+        int priority);
 
     Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(
         NarrativeContext context,

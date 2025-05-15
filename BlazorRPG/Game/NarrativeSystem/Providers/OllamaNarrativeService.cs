@@ -51,7 +51,8 @@
         NarrativeContext context,
         EncounterStatusModel state,
         string memoryContent,
-        WorldStateInput worldStateInput)
+        WorldStateInput worldStateInput,
+        int priority)
     {
         string conversationId = $"{context.LocationName}_encounter"; // Consistent ID
         string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
@@ -70,7 +71,7 @@
         string response = await _aiClient.GetCompletionAsync(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel, Watcher,
-            AIClient.PRIORITY_IMMEDIATE, "IntroductionGeneration");
+            priority, "IntroductionGeneration");
 
         _contextManager.AddAssistantMessage(conversationId, response, MessageType.Introduction);
 
