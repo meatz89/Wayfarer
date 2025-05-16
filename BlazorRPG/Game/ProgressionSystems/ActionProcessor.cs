@@ -116,8 +116,14 @@ public class ActionProcessor
         // Map encounter type or action category to skill
         return action.EncounterType switch
         {
-            EncounterCategories.Force => Skills.Endurance,
-            EncounterCategories.Persuasion => Skills.Charm,
+            EncounterCategories.None => Skills.Strength,
+            EncounterCategories.Force => Skills.Strength,
+            EncounterCategories.Precision => Skills.Precision,
+            EncounterCategories.Rapport => Skills.Charm,
+            EncounterCategories.Persuasion => Skills.Persuasion,
+            EncounterCategories.Observation => Skills.Observation,
+            EncounterCategories.Contemplation => Skills.Analysis,
+            _ => Skills.Strength, // Default skill if none match
         };
     }
 
@@ -149,7 +155,7 @@ public class ActionProcessor
         }
 
         // Check if the action has been completed and is non-repeatable
-        if (action.ActionType == ActionTypes.Encounter)
+        if (action.ActionType == ActionExecutionTypes.Encounter)
         {
             string encounterId = action.Id;
             if (gameState.WorldState.IsEncounterCompleted(encounterId))

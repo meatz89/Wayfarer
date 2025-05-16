@@ -15,7 +15,7 @@ public class ActionFactory
         this.playerState = gameState.PlayerState;
     }
 
-    public ActionImplementation CreateActionFromTemplate(ActionDefinition template, string location, string locationSpot)
+    public ActionImplementation CreateActionFromTemplate(ActionDefinition template, string location, string locationSpot, ActionExecutionTypes actionType)
     {
         ActionImplementation actionImplementation = new ActionImplementation();
 
@@ -42,9 +42,8 @@ public class ActionFactory
         // Set encounter type
         actionImplementation.EncounterType = EncounterCategories.None;
 
-        // Set spot XP
         // Set action type (assuming all actions with encounter category are encounters)
-        actionImplementation.ActionType = ActionTypes.Basic;
+        actionImplementation.ActionType = actionType;
 
         // Create requirements, costs, and yields
         actionImplementation.Requirements = CreateRequirements(template);

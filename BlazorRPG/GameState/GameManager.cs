@@ -104,20 +104,23 @@
         gameState.ActionStateTracker.SetCurrentUserAction(action);
 
         // Use our action classification system to determine execution path
-        ActionExecutionType executionType = GetExecutionType(action.ActionImplementation);
+        ActionExecutionTypes executionType = GetExecutionType(action.ActionImplementation);
 
         ActionCardDefinition card = action.SelectedCard;
-        playerState.ExhaustCard(card);
+        if (card != null)
+        { 
+            playerState.ExhaustCard(card);
+        }
 
         switch (executionType)
         {
-            case ActionExecutionType.Basic:
+            case ActionExecutionTypes.Encounter:
                 EncounterManager encounterManager = await PrepareEncounter(actionImplementation);
                 gameState.ActionStateTracker.SetActiveEncounter(encounterManager);
 
                 break;
 
-            case ActionExecutionType.Encounter:
+            case ActionExecutionTypes.Instant:
             default:
                 await ProcessActionCompletion(actionImplementation);
                 break;
@@ -188,7 +191,7 @@
                 actionTemplate = actionRepository.GetAction(actionTemplate.Id);
             }
 
-            ActionImplementation actionImplementation = actionFactory.CreateActionFromTemplate(actionTemplate, location.Id, locationSpot.Id);
+            ActionImplementation actionImplementation = actionFactory.CreateActionFromTemplate(actionTemplate, location.Id, locationSpot.Id, ActionExecutionTypes.Encounter);
 
             UserActionOption action =
                 new UserActionOption(
@@ -516,15 +519,14 @@
         return null;
     }
 
-    public ActionExecutionType GetExecutionType(ActionImplementation action)
+    public ActionExecutionTypes GetExecutionType(ActionImplementation action)
     {
-        if (action.ActionType == ActionTypes.Encounter)
+        if (action.ActionType == ActionExecutionTypes.Encounter)
         {
-            return ActionExecutionType.Encounter;
+            return ActionExecutionTypes.Encounter;
         }
-
-        // Basic action
-        return ActionExecutionType.Basic;
+        // Instant action
+        return ActionExecutionTypes.Instant;
     }
 
     public async Task UpdateState()
@@ -558,7 +560,7 @@
         { };
 
         ActionImplementation action = actionFactory
-            .CreateActionFromTemplate(waitAction, string.Empty, string.Empty);
+            .CreateActionFromTemplate(waitAction, worldState.CurrentLocation.Id, spotId, ActionExecutionTypes.Instant);
 
         return action;
     }
@@ -592,7 +594,7 @@
 
         // Grant skill XP based on encounter type
         Skills skill = DetermineSkillForAction(result.ActionImplementation);
-        int skillXp = xpAward; // or a fraction thereof
+        int skillXp = xpAward; 
         playerProgression.AddSkillExp(skill, skillXp);
         messageSystem.AddSystemMessage($"Gained {skillXp} {skill} skill experience");
     }
