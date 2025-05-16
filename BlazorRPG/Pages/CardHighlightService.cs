@@ -36,6 +36,6 @@
 
 public enum HighlightMode
 {
-    Refresh,
-    Highlight,
+    Highlight = 0,
+    Refresh = 1,
 }

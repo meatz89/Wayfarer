@@ -41,7 +41,14 @@ public partial class LocationSpotMap : ComponentBase
 
     private void ActivateHighlightMode(CardTypes cardType)
     {
-        CardHighlightService.ActivateHighlightMode(cardType, HighlightMode.Highlight);
+        if(CardHighlightService.IsHighlightModeActive)
+        {
+            CardHighlightService.DeactivateHighlightMode();
+        }
+        else
+        {
+            CardHighlightService.ActivateHighlightMode(cardType, HighlightMode.Highlight);
+        }
     }
 
     public void Dispose()
