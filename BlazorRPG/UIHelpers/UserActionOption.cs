@@ -9,4 +9,7 @@
     int LocationDifficulty,
     string DisabledReason,
     ActionApproach SelectedApproach
-);
+)
+{
+    public ActionCardDefinition SelectedCard { get; internal set; }
+}

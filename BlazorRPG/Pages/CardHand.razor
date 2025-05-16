@@ -1,32 +1,34 @@
 ﻿@* CardHand.razor *@
-@inject GameManager ActionManager
-@inject GameState GameState
-@inject DragDropService DragDropService
-@implements IDisposable
-
-<div class="card-hand">
-    @foreach (var card in PlayerCards)
-    {
-        bool isSelected = DragDropService.DraggedCard == card;
-        <div class="card @GetCardTypeClass(card.Type) @(card.IsExhausted ? "exhausted" : "") @(isSelected ? "selected" : "")"
-             @onclick="() => SelectCard(card)"
-             title="@card.Name">
-            <div class="card-content">
-                <div class="card-name">@card.Name</div>
-                @if (card.IsExhausted)
-                {
-                    <div class="exhausted-overlay"></div>
-                }
-                @if (isSelected)
-                {
-                    <div class="selection-indicator">✓</div>
-                }
+<div class="card-hand-container">
+    <div class="card-instruction @(DragDropService.DraggedCard == null ? "visible" : "hidden")">
+        Select a card to use with an action
+    </div>
+    <div class="card-hand">
+        @foreach (var card in PlayerCards)
+        {
+            bool isSelected = DragDropService.DraggedCard == card;
+            <div class="card @GetCardTypeClass(card.Type) @(card.IsExhausted ? "exhausted" : "") @(isSelected ? "selected" : "")"
+                 @onclick="() => SelectCard(card)"
+                 title="@card.Name">
+                <div class="card-content">
+                    <div class="card-name">@card.Name</div>
+                    @if (card.IsExhausted)
+                    {
+                        <div class="exhausted-overlay"></div>
+                    }
+                    @if (isSelected)
+                    {
+                        <div class="selection-indicator">✓</div>
+                    }
+                </div>
             </div>
-        </div>
-    }
+        }
+    </div>
 </div>
 
 @code {
+    [Inject] private DragDropService DragDropService { get; set; }
+
     [Parameter] public List<ActionCardDefinition> PlayerCards { get; set; }
 
     protected override void OnInitialized()
