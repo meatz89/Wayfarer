@@ -6,7 +6,7 @@
 
             <div class="location-card @(spot.Id == CurrentSpot.Id ? "current" : "reachable")">
                 <div class="location-spot-properties">
-                    @foreach (var prop in GetSpotProperties(GetLocation(), spot))
+                    @foreach (var prop in StyleHelper.GetSpotProperties(GetLocation(), spot))
                     {
                         <div class="property-tag @prop.CssClass">
                             <span class="property-icon">@prop.Icon</span>
@@ -19,7 +19,6 @@
                 </div>
                 <div class="location-type">@spot.Description</div>
 
-                @* Add travel option if not current spot *@
                 @if (spot.Id == CurrentSpot.Id)
                 {
                     <div class="action-list">
@@ -73,6 +72,7 @@
                 }
                 else
                 {
+                    @* Add travel option if not current spot *@
                     <button class="action-button" disabled="@(!GameManager.CanMoveToSpot(spot.Id))"
                             @onclick="() => OnSpotSelected.InvokeAsync(spot)">
                         MOVE HERE
@@ -90,137 +90,4 @@
                        CurrentApproach="@hoveredApproach"
                        GameState="@GameState" />
     </div>
-}
-
-@code {
-    [Inject] private GameManager GameManager { get; set; }
-    [Inject] private GameState GameState { get; set; }
-    [Inject] private LocationSystem LocationSystem { get; set; }
-
-    [Parameter] public Location CurrentLocation { get; set; }
-    [Parameter] public LocationSpot CurrentSpot { get; set; }
-    [Parameter] public EventCallback<LocationSpot> OnSpotSelected { get; set; }
-    [Parameter] public EventCallback<UserActionOption> OnActionSelected { get; set; }
-
-    private bool showTooltip;
-    private UserActionOption selectedAction = null;
-    private ApproachOption hoveredApproach = null;
-    private double mouseX;
-    private double mouseY;
-
-    private string GetCardTypeClass(CardTypes type)
-    {
-        return type switch
-        {
-            CardTypes.Physical => "physical",
-            CardTypes.Intellectual => "intellectual",
-            CardTypes.Social => "social",
-            _ => ""
-        };
-    }
-
-    private void ToggleActionApproaches(UserActionOption action)
-    {
-        if (selectedAction?.ActionImplementation.Id == action.ActionImplementation.Id)
-        {
-            selectedAction = null; // Collapse if already selected
-        }
-        else
-        {
-            selectedAction = action; // Expand this action
-        }
-    }
-
-    private void SelectApproach(UserActionOption action, ApproachOption approach)
-    {
-        showTooltip = false;
-
-        if (!GameState.PlayerState.HasAvailableCard(approach.RequiredCardType))
-        {
-            return;
-        }
-
-        // Update the selected action with the chosen approach
-        UserActionOption actionWithApproach = action with { SelectedApproach = approach };
-
-        // Execute the action with the selected approach
-        OnActionSelected.InvokeAsync(actionWithApproach);
-
-        // Reset selection
-        selectedAction = null;
-    }
-
-    private void HandleShowApproachTooltip(UserActionOption action, ApproachOption approach, MouseEventArgs e)
-    {
-        selectedAction = action;
-        hoveredApproach = approach;
-        mouseX = e.ClientX;
-        mouseY = e.ClientY;
-        showTooltip = true;
-    }
-
-    private void HandleHideTooltip()
-    {
-        hoveredApproach = null;
-        showTooltip = false;
-    }
-
-    public List<LocationSpot> GetKnownSpots()
-    {
-        List<LocationSpot> locationSpots = LocationSystem.GetLocationSpots(CurrentLocation.Id);
-        return locationSpots;
-    }
-
-    public Location GetLocation()
-    {
-        return LocationSystem.GetLocation(CurrentLocation.Id);
-    }
-
-    private List<PropertyDisplay> GetSpotProperties(Location location, LocationSpot spot)
-    {
-        List<PropertyDisplay> properties = new List<PropertyDisplay>();
-
-        if (location.Population != null)
-        {
-            properties.Add(new(
-            "📐",
-            FormatEnumString(location.Population.ToString()),
-            "",
-            "",
-            ""
-            ));
-        }
-
-        if (location.Physical != null)
-        {
-            properties.Add(new(
-            "🧩",
-            FormatEnumString(location.Physical.ToString()),
-            "",
-            "",
-            ""
-            ));
-        }
-
-        if (location.Illumination != null)
-        {
-            properties.Add(new(
-            "☀️",
-            FormatEnumString(location.Illumination.ToString()),
-            "",
-            "",
-            ""
-            ));
-        }
-
-        return properties;
-    }
-
-    private string FormatEnumString(string value)
-    {
-        return string.Concat(value
-            .Select((x, i) => i > 0 && char.IsUpper(x) ? " " + x : x.ToString()))
-            .Replace("Type", "")
-            .Replace("Types", "");
-    }
 }

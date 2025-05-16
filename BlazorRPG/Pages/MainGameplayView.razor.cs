@@ -12,15 +12,54 @@ public partial class MainGameplayView : ComponentBase
     [Inject] private LoadingStateService? LoadingStateService { get; set; }
 
     public bool HasApLeft { get; private set; }
-    public bool HasNoApLeft => !HasApLeft;
+    public bool HasNoApLeft
+    {
+        get
+        {
+            return !HasApLeft;
+        }
+    }
 
-    public PlayerState PlayerState => GameState.PlayerState;
+    public PlayerState PlayerState
+    {
+        get
+        {
+            return GameState.PlayerState;
+        }
+    }
 
     // Player Resources
-    public int Energy => PlayerState.CurrentEnergy();
-    public int Concentration => PlayerState.Concentration;
-    public int ActionPoints => PlayerState.CurrentActionPoints();
-    public int TurnActionPoints => PlayerState.MaxActionPoints;
+    public int Energy
+    {
+        get
+        {
+            return PlayerState.CurrentEnergy();
+        }
+    }
+
+    public int Concentration
+    {
+        get
+        {
+            return PlayerState.Concentration;
+        }
+    }
+
+    public int ActionPoints
+    {
+        get
+        {
+            return PlayerState.CurrentActionPoints();
+        }
+    }
+
+    public int TurnActionPoints
+    {
+        get
+        {
+            return PlayerState.MaxActionPoints;
+        }
+    }
 
     public int Exhaustion;
     public int Hunger;
@@ -30,11 +69,45 @@ public partial class MainGameplayView : ComponentBase
     public EncounterResult EncounterResult { get; private set; }
 
     public CurrentViews CurrentScreen { get; private set; } = CurrentViews.LocationScreen;
-    public Location CurrentLocation => GameState.WorldState.CurrentLocation;
-    public LocationSpot CurrentSpot => GameState.WorldState.CurrentLocationSpot;
-    public TimeWindowTypes CurrentTime => GameState.WorldState.CurrentTimeWindow;
-    public int CurrentHour => GameState.WorldState.CurrentTimeHours;
-    public List<Location> Locations => GameManager.GetPlayerKnownLocations();
+    public Location CurrentLocation
+    {
+        get
+        {
+            return GameState.WorldState.CurrentLocation;
+        }
+    }
+
+    public LocationSpot CurrentSpot
+    {
+        get
+        {
+            return GameState.WorldState.CurrentLocationSpot;
+        }
+    }
+
+    public TimeWindowTypes CurrentTime
+    {
+        get
+        {
+            return GameState.WorldState.CurrentTimeWindow;
+        }
+    }
+
+    public int CurrentHour
+    {
+        get
+        {
+            return GameState.WorldState.CurrentTimeHours;
+        }
+    }
+
+    public List<Location> Locations
+    {
+        get
+        {
+            return GameManager.GetPlayerKnownLocations();
+        }
+    }
 
     public EncounterManager EncounterManager = null;
     public ActionImplementation ActionImplementation = null;
