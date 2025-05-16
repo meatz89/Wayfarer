@@ -43,7 +43,8 @@
                                 @foreach (var approach in action.ActionImplementation.Approaches)
                                 {
                                     bool isCompatible = IsValidCardForApproach(approach.RequiredCardType);
-                                    <div class="approach-option @(isCompatible ? "compatible-approach" : "incompatible-approach")">
+                                    <div class="approach-option @(isCompatible ? "compatible-approach" : "incompatible-approach")"
+                                            @onclick="() => ActivateHighlightMode(approach.RequiredCardType)">
                                         <div class="approach-content">
                                             <div class="approach-header">
                                                 <h4>@approach.Name</h4>

@@ -93,6 +93,11 @@
         }
     }
 
+    public async Task RefreshCard(ActionCardDefinition card)
+    {
+        playerState.RefreshCard(card);
+    }
+
     public async Task<ActionImplementation> ExecuteAction(UserActionOption action)
     {
         ActionImplementation actionImplementation = action.ActionImplementation;
@@ -625,4 +630,5 @@
             Console.WriteLine($"Error saving game: {ex}");
         }
     }
+
 }
