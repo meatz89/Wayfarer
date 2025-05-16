@@ -120,14 +120,10 @@
 	margin-right: 5px;
 }
 
-/* Approach instruction and compatibility styling */
-.approach-instruction {
-	text-align: center;
-	color: var(--leather);
-	font-weight: bold;
-	margin-bottom: 10px;
-	text-shadow: 0 1px 3px rgba(0,0,0,0.5);
-	animation: pulse-text 2s infinite;
+.card-requirement.matching-card {
+	background-color: rgba(96, 108, 56, 0.2);
+	border-radius: 4px;
+	padding: 2px 5px;
 }
 
 .compatible-approach {
@@ -136,19 +132,12 @@
 	transform: scale(1.02);
 	z-index: 5;
 	position: relative;
-	animation: pulse-border 2s infinite;
 }
 
 .incompatible-approach {
 	opacity: 0.7;
 }
 
-.card-requirement.matching-card {
-	background-color: rgba(96, 108, 56, 0.2);
-	border-radius: 4px;
-	padding: 2px 5px;
-	animation: pulse-bg 2s infinite;
-}
 
 .compatible-button {
 	background-color: var(--moss) !important;
@@ -216,24 +205,6 @@
 	animation: pulse 1.5s infinite;
 }
 
-.card-instruction {
-	position: absolute;
-	top: -5px;
-	left: 0;
-	right: 0;
-	text-align: center;
-	font-size: 14px;
-	color: var(--leather);
-	text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-	opacity: 0;
-	transition: opacity 0.3s ease;
-	pointer-events: none;
-}
-
-	.card-instruction.visible {
-		opacity: 1;
-		animation: pulse-text 2s infinite;
-	}
 
 .cancel-selection {
 	position: absolute;
