@@ -77,32 +77,6 @@
         await UpdateState();
     }
 
-    public async Task StartNewDay()
-    {
-        //SaveGame();
-
-        if (gameState.PlayerState.CurrentActionPoints() == 0)
-        {
-            actionProcessor.ProcessTurnChange();
-        }
-
-        await UpdateState();
-    }
-
-    private void SaveGame()
-    {
-        try
-        {
-            contentLoader.SaveGame(gameState);
-            messageSystem.AddSystemMessage("Game saved successfully");
-        }
-        catch (Exception ex)
-        {
-            messageSystem.AddSystemMessage($"Failed to save game: {ex.Message}");
-            Console.WriteLine($"Error saving game: {ex}");
-        }
-    }
-
     private void ProcessPlayerArchetype()
     {
         Professions archetype = playerState.Archetype;
@@ -132,6 +106,9 @@
         // Use our action classification system to determine execution path
         ActionExecutionType executionType = GetExecutionType(action.ActionImplementation);
 
+        CardTypes cardType = action.SelectedApproach.RequiredCardType;
+        playerState.ExhaustCardType(cardType);
+
         switch (executionType)
         {
             case ActionExecutionType.Basic:
@@ -159,41 +136,6 @@
 
         await UpdateState();
     }
-
-    private Skills DetermineSkillForAction(ActionImplementation action)
-    {
-        // Map encounter type or action category to skill
-        return action.EncounterType switch
-        {
-            EncounterCategories.Force => Skills.Endurance,
-            EncounterCategories.Persuasion => Skills.Charm,
-            _ => Skills.Knowledge,
-        };
-    }
-
-    private void GainExperience(EncounterResult result)
-    {
-        int xpAward;
-        switch (result.NarrativeResult?.Outcome)
-        {
-            case EncounterOutcomes.Exceptional: xpAward = 50; break;
-            case EncounterOutcomes.Standard: xpAward = 30; break;
-            case EncounterOutcomes.Partial: xpAward = 15; break;
-            default: xpAward = 5; break;
-        }
-        xpAward += 10;
-
-        // Grant player XP level
-        playerProgression.AddPlayerExp(xpAward);
-        messageSystem.AddSystemMessage($"Gained {xpAward} experience points");
-
-        // Grant skill XP based on encounter type
-        Skills skill = DetermineSkillForAction(result.ActionImplementation);
-        int skillXp = xpAward; // or a fraction thereof
-        playerProgression.AddSkillExp(skill, skillXp);
-        messageSystem.AddSystemMessage($"Gained {skillXp} {skill} skill experience");
-    }
-
 
     private async Task HandlePlayerMoving(ActionImplementation actionImplementation)
     {
@@ -619,5 +561,66 @@
             .CreateActionFromTemplate(waitAction, string.Empty, string.Empty);
 
         return action;
+    }
+
+    private Skills DetermineSkillForAction(ActionImplementation action)
+    {
+        // Map encounter type or action category to skill
+        return action.EncounterType switch
+        {
+            EncounterCategories.Force => Skills.Endurance,
+            EncounterCategories.Persuasion => Skills.Charm,
+            _ => Skills.Knowledge,
+        };
+    }
+
+    private void GainExperience(EncounterResult result)
+    {
+        int xpAward;
+        switch (result.NarrativeResult?.Outcome)
+        {
+            case EncounterOutcomes.Exceptional: xpAward = 50; break;
+            case EncounterOutcomes.Standard: xpAward = 30; break;
+            case EncounterOutcomes.Partial: xpAward = 15; break;
+            default: xpAward = 5; break;
+        }
+        xpAward += 10;
+
+        // Grant player XP level
+        playerProgression.AddPlayerExp(xpAward);
+        messageSystem.AddSystemMessage($"Gained {xpAward} experience points");
+
+        // Grant skill XP based on encounter type
+        Skills skill = DetermineSkillForAction(result.ActionImplementation);
+        int skillXp = xpAward; // or a fraction thereof
+        playerProgression.AddSkillExp(skill, skillXp);
+        messageSystem.AddSystemMessage($"Gained {skillXp} {skill} skill experience");
+    }
+
+
+    public async Task StartNewDay()
+    {
+        //SaveGame();
+
+        if (gameState.PlayerState.CurrentActionPoints() == 0)
+        {
+            actionProcessor.ProcessTurnChange();
+        }
+
+        await UpdateState();
+    }
+
+    private void SaveGame()
+    {
+        try
+        {
+            contentLoader.SaveGame(gameState);
+            messageSystem.AddSystemMessage("Game saved successfully");
+        }
+        catch (Exception ex)
+        {
+            messageSystem.AddSystemMessage($"Failed to save game: {ex.Message}");
+            Console.WriteLine($"Error saving game: {ex}");
+        }
     }
 }

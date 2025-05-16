@@ -1,6 +1,6 @@
 ﻿public record UserActionOption
 (
-    string actionName,
+    string ActionName,
     bool IsDisabled,
     ActionImplementation ActionImplementation,
     string LocationId,

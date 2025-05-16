@@ -53,7 +53,7 @@
 
     // Card collection (player skills)
     public List<ActionCardDefinition> PlayerSkillCards { get; set; } = new List<ActionCardDefinition>();
-    public List<ActionCardDefinition> SelectedCards { get; set; } = new List<ActionCardDefinition>();
+    public List<ActionCardDefinition> PlayerHandCards { get; set; } = new List<ActionCardDefinition>();
 
     public PlayerState()
     {
@@ -67,24 +67,17 @@
 
         NegativeStatusTypes = new();
 
-        SelectedCards = new List<ActionCardDefinition>();
+        PlayerHandCards = new List<ActionCardDefinition>();
 
         ActionCardDefinition card1 = new ActionCardDefinition("1", "1") { Type = CardTypes.Physical };
         ActionCardDefinition card2 = new ActionCardDefinition("1", "1") { Type = CardTypes.Physical };
         ActionCardDefinition card3 = new ActionCardDefinition("1", "1") { Type = CardTypes.Intellectual };
         ActionCardDefinition card4 = new ActionCardDefinition("1", "1") { Type = CardTypes.Social };
 
-        SelectedCards.Add(card1);
-        SelectedCards.Add(card2);
-        SelectedCards.Add(card3);
-        SelectedCards.Add(card4);
-    }
-
-    public void HealFully()
-    {
-        EnergyPoints = MaxEnergyPoints;
-        Health = MaxHealth;
-        Concentration = MaxConcentration;
+        PlayerHandCards.Add(card1);
+        PlayerHandCards.Add(card2);
+        PlayerHandCards.Add(card3);
+        PlayerHandCards.Add(card4);
     }
 
     public void Initialize(string playerName, Professions selectedArchetype, Genders gender)
@@ -97,6 +90,14 @@
 
         IsInitialized = true;
     }
+
+    public void HealFully()
+    {
+        EnergyPoints = MaxEnergyPoints;
+        Health = MaxHealth;
+        Concentration = MaxConcentration;
+    }
+
 
     public void SetArchetype(Professions archetype)
     {
@@ -184,6 +185,30 @@
         Inventory.AddItem(ItemTypes.TradeGoods);
         Inventory.AddItem(ItemTypes.CoinPurse);
         Inventory.AddItem(ItemTypes.TradeDocuments);
+    }
+
+    public bool HasAvailableCard(CardTypes cardTypes)
+    {
+        foreach (ActionCardDefinition card in PlayerHandCards)
+        {
+            if (card.Type == cardTypes && !card.IsExhausted)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void ExhaustCardType(CardTypes cardType)
+    {
+        if(HasAvailableCard(cardType));
+        {
+            foreach (ActionCardDefinition card in PlayerHandCards)
+            {
+                card.IsExhausted = true;
+                break;
+            }
+        }
     }
 
     private void ClearInventory()
@@ -371,28 +396,17 @@
         clone.Skills = this.Skills.Clone();
 
         // Deep copy of Cards
-        clone.SelectedCards = new List<ActionCardDefinition>();
-        foreach (ActionCardDefinition card in this.SelectedCards)
+        clone.PlayerHandCards = new List<ActionCardDefinition>();
+        foreach (ActionCardDefinition card in this.PlayerHandCards)
         {
             ActionCardDefinition cardCopy = new ActionCardDefinition(card.Id, card.Name)
             {
                 Type = card.Type
             };
-            clone.SelectedCards.Add(cardCopy);
+            clone.PlayerHandCards.Add(cardCopy);
         }
 
         return clone;
     }
 
-    public bool HasAvailableCard(CardTypes cardTypes)
-    {
-        foreach (ActionCardDefinition card in SelectedCards)
-        {
-            if (card.Type == cardTypes)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
 }
