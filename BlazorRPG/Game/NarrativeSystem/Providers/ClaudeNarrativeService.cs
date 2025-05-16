@@ -75,9 +75,9 @@
         return response;
     }
 
-    public async Task<Dictionary<CardDefinition, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+    public async Task<Dictionary<NarrativeChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
         NarrativeContext context,
-        List<CardDefinition> choices,
+        List<NarrativeChoice> choices,
         List<ChoiceProjection> projections,
         EncounterStatusModel state,
         WorldStateInput worldStateInput,
@@ -118,7 +118,7 @@
 
     public async Task<string> GenerateEncounterNarrative(
         NarrativeContext context,
-        CardDefinition chosenOption,
+        NarrativeChoice chosenOption,
         ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
         EncounterStatusModel newState,
@@ -159,7 +159,7 @@
 
     public async Task<string> GenerateEndingAsync(
         NarrativeContext context,
-        CardDefinition chosenOption,
+        NarrativeChoice chosenOption,
         ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
         EncounterStatusModel newState,

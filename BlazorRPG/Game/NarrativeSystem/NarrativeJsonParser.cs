@@ -7,9 +7,9 @@ using System.Text.RegularExpressions;
 
 public static class NarrativeJsonParser
 {
-    public static Dictionary<CardDefinition, ChoiceNarrative> ParseChoiceResponse(string response, List<CardDefinition> choices)
+    public static Dictionary<NarrativeChoice, ChoiceNarrative> ParseChoiceResponse(string response, List<NarrativeChoice> choices)
     {
-        Dictionary<CardDefinition, ChoiceNarrative> result = new Dictionary<CardDefinition, ChoiceNarrative>();
+        Dictionary<NarrativeChoice, ChoiceNarrative> result = new Dictionary<NarrativeChoice, ChoiceNarrative>();
 
         if (string.IsNullOrWhiteSpace(response))
         {
@@ -90,9 +90,9 @@ public static class NarrativeJsonParser
         return result;
     }
 
-    private static void NormalizeAllDescriptions(Dictionary<CardDefinition, ChoiceNarrative> choices)
+    private static void NormalizeAllDescriptions(Dictionary<NarrativeChoice, ChoiceNarrative> choices)
     {
-        foreach (CardDefinition key in choices.Keys.ToList())
+        foreach (NarrativeChoice key in choices.Keys.ToList())
         {
             ChoiceNarrative narrative = choices[key];
             if (!string.IsNullOrEmpty(narrative.FullDescription))
@@ -142,7 +142,7 @@ public static class NarrativeJsonParser
         return text.Trim();
     }
 
-    private static bool TryParseChoicesManually(string jsonContent, List<CardDefinition> choices, Dictionary<CardDefinition, ChoiceNarrative> result)
+    private static bool TryParseChoicesManually(string jsonContent, List<NarrativeChoice> choices, Dictionary<NarrativeChoice, ChoiceNarrative> result)
     {
         try
         {
@@ -500,7 +500,7 @@ public static class NarrativeJsonParser
         return json;
     }
 
-    private static void ProcessJsonElement(JsonElement root, List<CardDefinition> choices, Dictionary<CardDefinition, ChoiceNarrative> result)
+    private static void ProcessJsonElement(JsonElement root, List<NarrativeChoice> choices, Dictionary<NarrativeChoice, ChoiceNarrative> result)
     {
         // Try to process as an object with a "choices" property
         if (root.TryGetProperty("choices", out JsonElement choicesElement) &&
@@ -524,7 +524,7 @@ public static class NarrativeJsonParser
         }
     }
 
-    private static void ProcessChoicesArray(JsonElement arrayElement, List<CardDefinition> choices, Dictionary<CardDefinition, ChoiceNarrative> result)
+    private static void ProcessChoicesArray(JsonElement arrayElement, List<NarrativeChoice> choices, Dictionary<NarrativeChoice, ChoiceNarrative> result)
     {
         if (arrayElement.ValueKind != JsonValueKind.Array)
         {
@@ -567,7 +567,7 @@ public static class NarrativeJsonParser
         }
     }
 
-    private static void ProcessIndividualChoices(JsonElement root, List<CardDefinition> choices, Dictionary<CardDefinition, ChoiceNarrative> result)
+    private static void ProcessIndividualChoices(JsonElement root, List<NarrativeChoice> choices, Dictionary<NarrativeChoice, ChoiceNarrative> result)
     {
         // This handles a non-standard format where the root object might have choice1, choice2 properties
 
@@ -622,7 +622,7 @@ public static class NarrativeJsonParser
         }
     }
 
-    private static bool ExtractChoicesWithRegex(string jsonContent, List<CardDefinition> choices, Dictionary<CardDefinition, ChoiceNarrative> result)
+    private static bool ExtractChoicesWithRegex(string jsonContent, List<NarrativeChoice> choices, Dictionary<NarrativeChoice, ChoiceNarrative> result)
     {
         try
         {
@@ -660,7 +660,7 @@ public static class NarrativeJsonParser
         }
     }
 
-    private static void FallbackLineParser(string content, List<CardDefinition> choices, Dictionary<CardDefinition, ChoiceNarrative> result)
+    private static void FallbackLineParser(string content, List<NarrativeChoice> choices, Dictionary<NarrativeChoice, ChoiceNarrative> result)
     {
         // This is the most aggressive parser for when all else fails
         // It simply looks for name/description patterns line by line

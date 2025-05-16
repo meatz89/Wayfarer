@@ -69,7 +69,7 @@
 
         SelectedCards = new List<CardDefinition>();
 
-        CardDefinition card1 = new CardDefinition("1", "1") { Type = CardTypes.Physical };
+        CardDefinition card1 = new CardDefinition("1", "1") { Type = CardTypes.Physical, IsExhausted = true };
         CardDefinition card2 = new CardDefinition("1", "1") { Type = CardTypes.Physical };
         CardDefinition card3 = new CardDefinition("1", "1") { Type = CardTypes.Intellectual };
         CardDefinition card4 = new CardDefinition("1", "1") { Type = CardTypes.Social };

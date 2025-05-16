@@ -3,14 +3,14 @@
     private readonly Encounter encounter;
     public ActionImplementation ActionImplementation;
 
-    private CardSelectionAlgorithm cardSelectionAlgorithm;
+    private ChoiceSelectionAlgorithm cardSelectionAlgorithm;
     public EncounterState EncounterState;
 
     private IAIService _aiService;
     private NarrativeContext narrativeContext;
 
     private readonly WorldStateInputBuilder worldStateInputCreator;
-    public List<CardDefinition> CurrentChoices = new List<CardDefinition>();
+    public List<NarrativeChoice> CurrentChoices = new List<NarrativeChoice>();
 
     public PlayerState playerState;
     public WorldState worldState;
@@ -26,7 +26,7 @@
     public EncounterManager(
         Encounter encounter,
         ActionImplementation actionImplementation,
-        CardSelectionAlgorithm cardSelector,
+        ChoiceSelectionAlgorithm cardSelector,
         IAIService aiService,
         WorldStateInputBuilder worldStateInputCreator,
         IConfiguration configuration,
@@ -48,7 +48,7 @@
 
     public async Task<NarrativeResult> SimulateChoiceForPreGeneration(
     string location,
-    CardDefinition choice,
+    NarrativeChoice choice,
     ChoiceNarrative choiceDescription,
     int priority)
     {
@@ -104,9 +104,9 @@
             NarrativeResult result = new(
                 narrative,
                 string.Empty,
-                new List<CardDefinition>(),
+                new List<NarrativeChoice>(),
                 new List<ChoiceProjection>(),
-                new Dictionary<CardDefinition, ChoiceNarrative>(),
+                new Dictionary<NarrativeChoice, ChoiceNarrative>(),
                 narrativeEvent.ChoiceNarrative);
 
             result.SetOutcome(outcome.Outcome);
@@ -118,14 +118,14 @@
         {
             // Generate choices for the next step
             // This needs to be done on the copy to avoid interfering with the actual state
-            List<CardDefinition> newChoices = cardSelectionAlgorithm.SelectChoices(
+            List<NarrativeChoice> newChoices = cardSelectionAlgorithm.SelectChoices(
                 encounterStateCopy, playerStateCopy);
 
             List<ChoiceProjection> newProjections = newChoices.Select(
                 c => encounterStateCopy.CreateChoiceProjection(c)).ToList();
 
             // Generate choice descriptions
-            Dictionary<CardDefinition, ChoiceNarrative> newChoiceDescriptions = null;
+            Dictionary<NarrativeChoice, ChoiceNarrative> newChoiceDescriptions = null;
 
             if (_useAiNarrative)
             {
@@ -199,7 +199,7 @@
 
         // Get available choices
         GenerateChoicesForPlayer(playerState);
-        List<CardDefinition> choices = GetCurrentChoices();
+        List<NarrativeChoice> choices = GetCurrentChoices();
         List<ChoiceProjection> projections = choices.Select(ProjectChoice)
                                                     .ToList();
 
@@ -211,7 +211,7 @@
         narrativeContext.AddEvent(firstNarrative);
 
         // Generate choice descriptions - wait for this to complete
-        Dictionary<CardDefinition, ChoiceNarrative> choiceDescriptions = null;
+        Dictionary<NarrativeChoice, ChoiceNarrative> choiceDescriptions = null;
         if (_useAiNarrative)
         {
             WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location.Id);
@@ -251,7 +251,7 @@
 
     public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
         string location,
-        CardDefinition choice,
+        NarrativeChoice choice,
         ChoiceNarrative choiceDescription,
         int priority = AIClient.PRIORITY_IMMEDIATE)
     {
@@ -286,9 +286,9 @@
             NarrativeResult currentResult = new(
                 narrative,
                 string.Empty,
-                new List<CardDefinition>(),
+                new List<NarrativeChoice>(),
                 new List<ChoiceProjection>(),
-                new Dictionary<CardDefinition, ChoiceNarrative>(),
+                new Dictionary<NarrativeChoice, ChoiceNarrative>(),
                 narrativeEvent.ChoiceNarrative);
 
             currentResult.SetOutcome(outcome.Outcome);
@@ -316,11 +316,11 @@
 
             // Get the new choices and projections
             GenerateChoicesForPlayer(playerState);
-            List<CardDefinition> newChoices = GetCurrentChoices();
+            List<NarrativeChoice> newChoices = GetCurrentChoices();
             List<ChoiceProjection> newProjections = newChoices.Select(ProjectChoice).ToList();
 
             // Generate descriptive narratives for each choice
-            Dictionary<CardDefinition, ChoiceNarrative> newChoiceDescriptions = null;
+            Dictionary<NarrativeChoice, ChoiceNarrative> newChoiceDescriptions = null;
 
             if (_useAiNarrative)
             {
@@ -338,7 +338,7 @@
             narrativeEvent.ChoiceDescriptions.Clear();
             if (newChoiceDescriptions != null)
             {
-                foreach (KeyValuePair<CardDefinition, ChoiceNarrative> kvp in newChoiceDescriptions)
+                foreach (KeyValuePair<NarrativeChoice, ChoiceNarrative> kvp in newChoiceDescriptions)
                 {
                     narrativeEvent.ChoiceDescriptions[kvp.Key] = kvp.Value;
                 }
@@ -357,7 +357,7 @@
         }
     }
 
-    private ChoiceOutcome ApplyChoiceProjection(PlayerState playerState, EncounterState encounterState, CardDefinition choice)
+    private ChoiceOutcome ApplyChoiceProjection(PlayerState playerState, EncounterState encounterState, NarrativeChoice choice)
     {
         this.playerState = playerState;
 
@@ -377,7 +377,7 @@
 
 
     private NarrativeEvent GetNarrativeEvent(
-        CardDefinition choice,
+        NarrativeChoice choice,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         string narrative)
@@ -414,15 +414,15 @@
         return narrativeContext;
     }
 
-    public ChoiceProjection ProjectChoice(CardDefinition choice)
+    public ChoiceProjection ProjectChoice(NarrativeChoice choice)
     {
         ChoiceProjection projection = EncounterState.CreateChoiceProjection(choice);
-        projection.NarrativeDescription = choice.Id + " " + choice.Description;
+        projection.NarrativeDescription = choice.Id;
         return projection;
     }
 
     // Existing methods remain the same
-    public List<CardDefinition> GetCurrentChoices()
+    public List<NarrativeChoice> GetCurrentChoices()
     {
         return CurrentChoices;
     }

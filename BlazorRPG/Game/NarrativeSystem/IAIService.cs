@@ -14,7 +14,7 @@
 
     Task<string> GenerateEncounterNarrative(
         NarrativeContext context,
-        CardDefinition chosenOption,
+        NarrativeChoice chosenOption,
         ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
         EncounterStatusModel newState,
@@ -23,16 +23,16 @@
 
     Task<string> GenerateEndingAsync(
         NarrativeContext context,
-        CardDefinition chosenOption,
+        NarrativeChoice chosenOption,
         ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
         EncounterStatusModel newState,
         WorldStateInput worldStateInput,
         int priority);
 
-    Task<Dictionary<CardDefinition, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+    Task<Dictionary<NarrativeChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
         NarrativeContext context,
-        List<CardDefinition> choices,
+        List<NarrativeChoice> choices,
         List<ChoiceProjection> projections,
         EncounterStatusModel state,
         WorldStateInput worldStateInput,

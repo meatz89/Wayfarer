@@ -2,18 +2,23 @@
 @inject GameManager ActionManager
 @inject GameState GameState
 
-@foreach (var card in PlayerCards)
-{
-    <div class="card @GetCardTypeClass(card.Type)" title="@card.Name">
-        <div class="card-content">
-            <div class="card-name">@card.Name</div>
+<div class="card-hand">
+    @foreach (var card in PlayerCards)
+    {
+        <div class="card @GetCardTypeClass(card.Type) @(card.IsExhausted ? "exhausted" : "")" title="@card.Name">
+            <div class="card-content">
+                <div class="card-name">@card.Name</div>
+                @if (card.IsExhausted)
+                {
+                    <div class="exhausted-overlay"></div>
+                }
+            </div>
         </div>
-    </div>
-}
+    }
+</div>
 
 @code {
     [Parameter] public List<CardDefinition> PlayerCards { get; set; }
-
     private string GetCardTypeClass(CardTypes type)
     {
         return type switch

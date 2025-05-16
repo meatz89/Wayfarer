@@ -31,7 +31,7 @@ public partial class EncounterViewBase : ComponentBase
 
     public bool IsChoiceDisabled(UserEncounterChoiceOption userEncounterChoiceOption)
     {
-        return userEncounterChoiceOption.Choice.IsBlocked;
+        return userEncounterChoiceOption.Choice.IsDisabled;
     }
 
     public EncounterViewModel Model;
@@ -157,9 +157,9 @@ public partial class EncounterViewBase : ComponentBase
 
     public string GetChoiceName(UserEncounterChoiceOption choiceOption)
     {
-        CardDefinition card = choiceOption.Choice;
+        NarrativeChoice card = choiceOption.Choice;
         NarrativeResult narrativeResult = Model.EncounterResult.NarrativeResult;
-        Dictionary<CardDefinition, ChoiceNarrative> choiceDescriptions = narrativeResult?.ChoiceDescriptions;
+        Dictionary<NarrativeChoice, ChoiceNarrative> choiceDescriptions = narrativeResult?.ChoiceDescriptions;
         ChoiceNarrative choiceNarrative = null;
 
         if (choiceDescriptions != null && choiceDescriptions.ContainsKey(card))

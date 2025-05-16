@@ -159,7 +159,7 @@ public class PromptManager
 
     public string BuildReactionPrompt(
         NarrativeContext context,
-        CardDefinition chosenOption,
+        NarrativeChoice chosenOption,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         EncounterStatusModel state)
@@ -221,7 +221,7 @@ public class PromptManager
 
     public string BuildChoicesPrompt(
         NarrativeContext context,
-        List<CardDefinition> choices,
+        List<NarrativeChoice> choices,
         List<ChoiceProjection> projections,
         EncounterStatusModel state)
     {
@@ -253,7 +253,7 @@ public class PromptManager
         string choicesInfo = "";
         for (int i = 0; i < choices.Count; i++)
         {
-            CardDefinition choice = choices[i];
+            NarrativeChoice choice = choices[i];
             ChoiceProjection projection = projections[i];
 
             string choiceText = $"\nCHOICE {i + 1}:\n";
@@ -342,7 +342,7 @@ public class PromptManager
         NarrativeContext context,
         EncounterStatusModel finalState,
         EncounterOutcomes outcome,
-        CardDefinition finalChoice,
+        NarrativeChoice finalChoice,
         ChoiceNarrative choiceDescription
         )
     {

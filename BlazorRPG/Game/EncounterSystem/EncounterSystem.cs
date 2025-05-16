@@ -2,11 +2,11 @@
 {
     private readonly GameState gameState;
     private readonly IConfiguration configuration;
-    private readonly ChoiceRepository choiceRepository;
+    private readonly NarrativeChoiceRepository choiceRepository;
     private readonly ILogger<EncounterSystem> logger;
 
     private readonly IAIService _aiService;
-    private CardSelectionAlgorithm cardSelector;
+    private ChoiceSelectionAlgorithm cardSelector;
 
     public WorldState worldState;
     public EncounterFactory encounterFactory;
@@ -19,7 +19,7 @@
         MessageSystem messageSystem,
         NarrativeContextManager narrativeContextManager,
         IAIService aiService,
-        ChoiceRepository choiceRepository,
+        NarrativeChoiceRepository choiceRepository,
         EncounterFactory encounterFactory,
         WorldStateInputBuilder worldStateInputCreator,
         IConfiguration configuration,
@@ -73,7 +73,7 @@
         ActionImplementation actionImplementation)
     {
         // Create the core components
-        cardSelector = new CardSelectionAlgorithm(choiceRepository);
+        cardSelector = new ChoiceSelectionAlgorithm(choiceRepository);
 
         // Create encounter manager with the direct service
         EncounterManager encounterManager = new EncounterManager(
@@ -121,7 +121,7 @@
 
     public async Task<EncounterResult> ExecuteChoice(
         NarrativeResult narrativeResult,
-        CardDefinition choice)
+        NarrativeChoice choice)
     {
         NarrativeResult currentNarrative = narrativeResult;
         NarrativeResult cachedResult = null;
@@ -144,7 +144,7 @@
             _preGenerationManager.CancelAllPendingGenerations();
 
             // Continue with existing code for generating the response in real-time
-            Dictionary<CardDefinition, ChoiceNarrative> choiceDescriptions = currentNarrative.ChoiceDescriptions;
+            Dictionary<NarrativeChoice, ChoiceNarrative> choiceDescriptions = currentNarrative.ChoiceDescriptions;
             ChoiceNarrative selectedDescription = null;
 
             if (currentNarrative.ChoiceDescriptions != null && choiceDescriptions.ContainsKey(choice))
@@ -189,10 +189,10 @@
             return;
         }
 
-        List<CardDefinition> choices = currentNarrative.Choices;
+        List<NarrativeChoice> choices = currentNarrative.Choices;
 
         // Start pre-generating responses for each choice
-        foreach (CardDefinition choice in choices)
+        foreach (NarrativeChoice choice in choices)
         {
             ChoiceNarrative choiceNarrative = null;
             if (currentNarrative.ChoiceDescriptions != null &&
@@ -202,7 +202,7 @@
             }
 
             // Create a copy of variables needed in the task to avoid closure issues
-            CardDefinition choiceCopy = choice;
+            NarrativeChoice choiceCopy = choice;
             ChoiceNarrative narrativeCopy = choiceNarrative;
             CancellationToken token = _preGenerationManager.GetCancellationToken();
 
@@ -283,10 +283,10 @@
         return ongoingResult;
     }
 
-    public List<CardDefinition> GetChoices()
+    public List<NarrativeChoice> GetChoices()
     {
         EncounterManager encounterManager = GetCurrentEncounter();
-        List<CardDefinition> choices = encounterManager.GetCurrentChoices();
+        List<NarrativeChoice> choices = encounterManager.GetCurrentChoices();
         return choices;
     }
 
@@ -298,7 +298,7 @@
         return false;
     }
 
-    public ChoiceProjection GetChoiceProjection(EncounterManager encounter, CardDefinition choice)
+    public ChoiceProjection GetChoiceProjection(EncounterManager encounter, NarrativeChoice choice)
     {
         EncounterManager encounterManager = GetCurrentEncounter();
         ChoiceProjection choiceProjection = encounterManager.ProjectChoice(choice);

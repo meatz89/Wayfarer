@@ -1,22 +1,22 @@
-﻿public class CardSelectionAlgorithm
+﻿public class ChoiceSelectionAlgorithm
 {
-    private readonly ChoiceRepository _cardRepository;
+    private readonly NarrativeChoiceRepository _narrativeChoiceRepository;
 
-    public CardSelectionAlgorithm(ChoiceRepository cardRepository)
+    public ChoiceSelectionAlgorithm(NarrativeChoiceRepository cardRepository)
     {
-        _cardRepository = cardRepository;
+        _narrativeChoiceRepository = cardRepository;
     }
 
-    public List<CardDefinition> SelectChoices(EncounterState state, PlayerState playerState)
+    public List<NarrativeChoice> SelectChoices(EncounterState state, PlayerState playerState)
     {
         // Get all available cards
-        List<CardDefinition> allCards = _cardRepository.GetForEncounter(state);
+        List<NarrativeChoice> allCards = _narrativeChoiceRepository.GetForEncounter(state);
 
-        List<CardDefinition> playableCards = FilterPlayableCards(allCards, state);
+        List<NarrativeChoice> playableCards = FilterPlayableCards(allCards, state);
 
         // Calculate card viability scores
-        Dictionary<CardDefinition, CardViabilityScore> cardScores = new Dictionary<CardDefinition, CardViabilityScore>();
-        foreach (CardDefinition card in playableCards)
+        Dictionary<NarrativeChoice, CardViabilityScore> cardScores = new Dictionary<NarrativeChoice, CardViabilityScore>();
+        foreach (NarrativeChoice card in playableCards)
         {
             CardViabilityScore score = CalculateCardViability(
                 card,
@@ -30,14 +30,14 @@
         return SelectStrategicCardHand(playableCards, cardScores);
     }
 
-    private List<CardDefinition> FilterPlayableCards(List<CardDefinition> allCards, EncounterState state)
+    private List<NarrativeChoice> FilterPlayableCards(List<NarrativeChoice> allCards, EncounterState state)
     {
-        List<CardDefinition> playableCards = new List<CardDefinition>();
+        List<NarrativeChoice> playableCards = new List<NarrativeChoice>();
 
-        foreach (CardDefinition card in allCards)
+        foreach (NarrativeChoice card in allCards)
         {
             // Tier 1 cards are always playable
-            if (card.Level == 1)
+            if (card.Difficulty == 1)
             {
                 playableCards.Add(card);
                 continue;
@@ -48,14 +48,14 @@
     }
 
     private CardViabilityScore CalculateCardViability(
-        CardDefinition card,
+        NarrativeChoice card,
         EncounterState state,
         PlayerState playerState)
     {
         CardViabilityScore score = new CardViabilityScore();
 
         // For Tier 1 cards, position doesn't matter as much
-        if (card.Level == 1)
+        if (card.Difficulty == 1)
         {
             score.PositionalScore = 0;
             score.IsPlayable = true;
@@ -63,7 +63,7 @@
         else
         {
             // Apply tier modifiers
-            score.PositionalScore -= card.Level; // Higher tier cards get an advantage
+            score.PositionalScore -= card.Difficulty; // Higher tier cards get an advantage
 
             // Card is already confirmed playable
             score.IsPlayable = true;
@@ -82,29 +82,29 @@
         return score;
     }
     
-    private int CalculateEnvironmentalSynergy(CardDefinition card, EncounterState state)
+    private int CalculateEnvironmentalSynergy(NarrativeChoice card, EncounterState state)
     {
         int synergy = 0;
 
         return synergy;
     }
 
-    private int CalculateSkillBonus(CardDefinition card, PlayerState playerState)
+    private int CalculateSkillBonus(NarrativeChoice card, PlayerState playerState)
     {
         int bonus = 0;
 
         return bonus;
     }
 
-    private List<CardDefinition> SelectStrategicCardHand(
-        List<CardDefinition> viableCards,
-        Dictionary<CardDefinition, CardViabilityScore> cardScores)
+    private List<NarrativeChoice> SelectStrategicCardHand(
+        List<NarrativeChoice> viableCards,
+        Dictionary<NarrativeChoice, CardViabilityScore> cardScores)
     {
-        List<CardDefinition> result = new List<CardDefinition>();
+        List<NarrativeChoice> result = new List<NarrativeChoice>();
 
         if (viableCards.Any())
         {
-            CardDefinition bestCard = viableCards
+            NarrativeChoice bestCard = viableCards
                 .OrderBy(c =>
                 {
                     return cardScores[c].TotalScore;
@@ -120,7 +120,7 @@
             return !result.Contains(c);
         }))
         {
-            CardDefinition nextCard = viableCards
+            NarrativeChoice nextCard = viableCards
                 .Where(c =>
                 {
                     return !result.Contains(c);

@@ -13,10 +13,10 @@
         </h4>
 
         <div class="effects-section">
-            @if (hoveredChoice.Choice is CardDefinition cardChoiceTier)
+            @if (hoveredChoice.Choice is NarrativeChoice cardChoiceTier)
             {
-                <span class="tier-badge tier-@((int)cardChoiceTier.Level)">
-                    Tier @cardChoiceTier.Level
+                <span class="tier-badge tier-@((int)cardChoiceTier.Difficulty)">
+                    Difficulty @cardChoiceTier.Difficulty
                 </span>
             }
         </div>
