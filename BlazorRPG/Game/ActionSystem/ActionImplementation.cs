@@ -21,6 +21,6 @@
     public int ActionPointCost { get; set; }
 
     public int Difficulty { get; set; } = 1;
-    public List<ApproachOption> Approaches { get; set; } = new List<ApproachOption>();
+    public List<ActionApproach> Approaches { get; set; } = new List<ActionApproach>();
 
 }

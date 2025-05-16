@@ -17,10 +17,34 @@ public partial class LocationSpotMap : ComponentBase
 
     private bool showTooltip;
     private UserActionOption selectedAction = null;
-    private ApproachOption hoveredApproach = null;
+    private ActionApproach hoveredApproach = null;
     private double mouseX;
     private double mouseY;
 
+    private async Task HandleApproachSelection(UserActionOption action, ActionApproach approach)
+    {
+        // Check if a card is selected and is valid for this approach
+        if (DragDropService.IsValidDropTarget(approach.RequiredCardType))
+        {
+            ActionCardDefinition card = DragDropService.DraggedCard;
+            DragDropService.Reset();
+
+            await SelectApproachWithCard(action, approach, card);
+        }
+
+        StateHasChanged();
+    }
+
+    private bool IsValidDropTarget(CardTypes requiredCardType)
+    {
+        return DragDropService.IsValidDropTarget(requiredCardType);
+    }
+
+    private async Task SelectApproachWithCard(UserActionOption action, ActionApproach approach, ActionCardDefinition card)
+    {
+        // Proceed with the approach selection
+        await SelectApproach(action, approach);
+    }
     private string GetCardTypeClass(CardTypes type)
     {
         return type switch
@@ -44,7 +68,7 @@ public partial class LocationSpotMap : ComponentBase
         }
     }
 
-    private void SelectApproach(UserActionOption action, ApproachOption approach)
+    private async Task SelectApproach(UserActionOption action, ActionApproach approach)
     {
         showTooltip = false;
 
@@ -63,7 +87,7 @@ public partial class LocationSpotMap : ComponentBase
         selectedAction = null;
     }
 
-    private void HandleShowApproachTooltip(UserActionOption action, ApproachOption approach, MouseEventArgs e)
+    private void HandleShowApproachTooltip(UserActionOption action, ActionApproach approach, MouseEventArgs e)
     {
         selectedAction = action;
         hoveredApproach = approach;

@@ -8,5 +8,5 @@
     string Character,
     int LocationDifficulty,
     string DisabledReason,
-    ApproachOption SelectedApproach
+    ActionApproach SelectedApproach
 );

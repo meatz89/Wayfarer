@@ -7,7 +7,7 @@
     public string Description { get; set; }
 
     // Approaches
-    public List<ApproachOption> Approaches { get; set; } = new List<ApproachOption>();
+    public List<ActionApproach> Approaches { get; set; } = new List<ActionApproach>();
 
     // Requirements
     public int RelationshipLevel { get; set; }

@@ -1,4 +1,6 @@
 ﻿@* LocationSpotMap.razor *@
+@inject DragDropService DragDropService
+
 <div class="locations-grid">
     @foreach (LocationSpot spot in GetKnownSpots())
     {
@@ -32,7 +34,6 @@
                                 </div>
                                 <span class="action-toggle-icon">@(selectedAction?.ActionImplementation.Id == action.ActionImplementation.Id ? "▼" : "►")</span>
                             </div>
-
                             @if (selectedAction?.ActionImplementation.Id == action.ActionImplementation.Id)
                             {
                                 <div class="approaches-container">
@@ -43,7 +44,8 @@
                                     <div class="approaches-list">
                                         @foreach (var approach in action.ActionImplementation.Approaches)
                                         {
-                                            <div class="approach-option">
+                                            <div class="approach-option @(IsValidDropTarget(approach.RequiredCardType) ? "valid-drop-target" : "")"
+                                                 @onclick="() => HandleApproachSelection(action, approach)">
                                                 <div class="approach-content">
                                                     <div class="approach-header">
                                                         <h4>@approach.Name</h4>
@@ -57,7 +59,7 @@
                                                 </div>
 
                                                 <button class="approach-button"
-                                                        @onclick="() => SelectApproach(action, approach)"
+                                                        @onclick="() => HandleApproachSelection(action, approach)"
                                                         @onmouseover="(e) => HandleShowApproachTooltip(action, approach, e)"
                                                         @onmouseout="HandleHideTooltip">
                                                     Select Approach
