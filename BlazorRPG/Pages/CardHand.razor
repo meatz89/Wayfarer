@@ -1,16 +1,25 @@
 ﻿@* CardHand.razor *@
 @inject GameManager ActionManager
 @inject GameState GameState
+@inject DragDropService DragDropService
+@implements IDisposable
 
 <div class="card-hand">
     @foreach (var card in PlayerCards)
     {
-        <div class="card @GetCardTypeClass(card.Type) @(card.IsExhausted ? "exhausted" : "")" title="@card.Name">
+        bool isSelected = DragDropService.DraggedCard == card;
+        <div class="card @GetCardTypeClass(card.Type) @(card.IsExhausted ? "exhausted" : "") @(isSelected ? "selected" : "")"
+             @onclick="() => SelectCard(card)"
+             title="@card.Name">
             <div class="card-content">
                 <div class="card-name">@card.Name</div>
                 @if (card.IsExhausted)
                 {
                     <div class="exhausted-overlay"></div>
+                }
+                @if (isSelected)
+                {
+                    <div class="selection-indicator">✓</div>
                 }
             </div>
         </div>
@@ -19,6 +28,12 @@
 
 @code {
     [Parameter] public List<ActionCardDefinition> PlayerCards { get; set; }
+
+    protected override void OnInitialized()
+    {
+        DragDropService.OnDragStateChanged += StateHasChanged;
+    }
+
     private string GetCardTypeClass(CardTypes type)
     {
         return type switch
@@ -28,5 +43,28 @@
             CardTypes.Social => "social",
             _ => ""
         };
+    }
+
+    private void SelectCard(ActionCardDefinition card)
+    {
+        if (!card.IsExhausted)
+        {
+            if (DragDropService.DraggedCard == card)
+            {
+                // Clicking the same card deselects it
+                DragDropService.Reset();
+            }
+            else
+            {
+                DragDropService.DraggedCard = card;
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        // Clean up when component is removed
+        DragDropService.OnDragStateChanged -= StateHasChanged;
+        DragDropService.Reset();
     }
 }

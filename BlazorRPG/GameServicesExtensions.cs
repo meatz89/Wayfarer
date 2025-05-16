@@ -1,4 +1,6 @@
-﻿public static class GameServiceExtensions
+﻿using BlazorRPG.Pages;
+
+public static class GameServiceExtensions
 {
     public static IServiceCollection AddGameServices(this IServiceCollection services)
     {
@@ -36,6 +38,7 @@
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<PostEncounterEvolutionSystem>();
         services.AddSingleton<EnvironmentalPropertyManager>();
+        services.AddSingleton<DragDropService>();
 
         services.AddAIServices();
 

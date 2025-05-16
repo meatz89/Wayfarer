@@ -1,4 +1,4 @@
-﻿public class ApproachOption
+﻿public class ActionApproach
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -8,7 +8,7 @@
     public int Difficulty { get; set; }
     public Dictionary<string, int> Rewards { get; set; } = new Dictionary<string, int>();
 
-    public ApproachOption(string id, string name)
+    public ActionApproach(string id, string name)
     {
         Id = id;
         Name = name;
