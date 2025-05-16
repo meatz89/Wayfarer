@@ -15,7 +15,13 @@ public partial class GameUI : ComponentBase
 
     public CurrentViews CurrentScreen { get; private set; } = CurrentViews.CharacterScreen;
 
-    public PlayerState PlayerState => GameState.PlayerState;
+    public PlayerState PlayerState
+    {
+        get
+        {
+            return GameState.PlayerState;
+        }
+    }
 
     [Inject] private LoadingStateService LoadingStateService { get; set; }
 
