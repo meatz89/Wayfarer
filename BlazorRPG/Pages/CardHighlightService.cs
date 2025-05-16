@@ -8,7 +8,7 @@
 
     public event Action OnHighlightModeChanged;
 
-    public HighlightMode _highlightMode = HighlightMode.OnlyExhausted;
+    public HighlightMode _highlightMode = HighlightMode.Refresh;
 
     public void ActivateHighlightMode(CardTypes cardType, HighlightMode highlightMode)
     {
@@ -30,12 +30,12 @@
             return false;
 
         return card.Type == _targetCardType && 
-            (_highlightMode == HighlightMode.OnlyExhausted ? card.IsExhausted : !card.IsExhausted);
+            (_highlightMode == HighlightMode.Refresh ? card.IsExhausted : !card.IsExhausted);
     }
 }
 
 public enum HighlightMode
 {
-    OnlyExhausted,
-    OnlyAvailable, // Not exhausted
+    Refresh,
+    Highlight,
 }

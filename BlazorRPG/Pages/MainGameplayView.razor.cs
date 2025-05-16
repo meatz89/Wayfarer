@@ -142,7 +142,7 @@ public partial class MainGameplayView : ComponentBase
     {
         HasApLeft = PlayerState.CurrentActionPoints() > 0;
         DisplayActionMessages();
-        CardRefreshService.ActivateHighlightMode(CardTypes.Physical, HighlightMode.OnlyExhausted);
+        CardRefreshService.ActivateHighlightMode(CardTypes.Physical, HighlightMode.Refresh);
     }
 
     public async Task SwitchAreaMap()

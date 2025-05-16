@@ -1,9 +1,9 @@
 ﻿@* CardHand.razor *@
 <div class="card-hand-container">
-    @if (CardRefreshService.IsHighlightModeActive && CardRefreshService._highlightMode == HighlightMode.OnlyExhausted)
+    @if (CardHighlightService.IsHighlightModeActive && CardHighlightService._highlightMode == HighlightMode.Refresh)
     {
         <div class="refresh-mode-indicator">
-            <span>Select an exhausted @CardRefreshService.TargetCardType.ToString() card to refresh</span>
+            <span>Select an exhausted @CardHighlightService.TargetCardType.ToString() card to refresh</span>
             <button class="cancel-button" @onclick="CancelRefreshMode">Cancel</button>
         </div>
     }
@@ -11,7 +11,7 @@
         @foreach (var card in PlayerCards)
         {
             bool isSelected = CardSelectionService.SelectedCard == card;
-            bool isHighlighted = CardRefreshService.ShouldHighlightCard(card);
+            bool isHighlighted = CardHighlightService.ShouldHighlightCard(card);
             <div class="card @GetCardTypeClass(card.Type) @(card.IsExhausted ? "exhausted" : "") @(isSelected ? "selected" : "") @(isHighlighted ? "highlighted" : "")"
                  @onclick="() => HandleCardClick(card)"
                  title="@card.Name">
@@ -32,18 +32,18 @@
 </div>
 
 @code {
-    [Inject] private CardHighlightService CardRefreshService { get; set; }
+    [Inject] private CardHighlightService CardHighlightService { get; set; }
     [Inject] private CardSelectionService CardSelectionService { get; set; }
     [Inject] private GameManager GameManager { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
-    
+
     [Parameter] public List<ActionCardDefinition> PlayerCards { get; set; }
     [Parameter] public EventCallback<ActionCardDefinition> OnCardRefreshed { get; set; }
 
     protected override void OnInitialized()
     {
         CardSelectionService.OnStateChanged += StateHasChanged;
-        CardRefreshService.OnHighlightModeChanged += StateHasChanged;
+        CardHighlightService.OnHighlightModeChanged += StateHasChanged;
     }
 
     private string GetCardTypeClass(CardTypes type)
@@ -59,28 +59,51 @@
 
     private async Task HandleCardClick(ActionCardDefinition card)
     {
-        if (CardRefreshService.IsHighlightModeActive)
+        if (CardHighlightService.IsHighlightModeActive)
         {
-            if (CardRefreshService.ShouldHighlightCard(card))
+            if (CardHighlightService.ShouldHighlightCard(card))
             {
-                await OnCardRefreshed.InvokeAsync(card);
-                CardRefreshService.DeactivateHighlightMode();
+                if (CardHighlightService._highlightMode == HighlightMode.Refresh)
+                {
+                    await OnCardRefreshed.InvokeAsync(card);
+                }
+                else
+                {
+                    SelectCard(card);
+                }
+                CardHighlightService.DeactivateHighlightMode();
             }
         }
         else
         {
             CardSelectionService.Reset();
+            SelectCard(card);
+        }
+    }
+    
+    private void SelectCard(ActionCardDefinition card)
+    {
+        if (!card.IsExhausted)
+        {
+            if (CardSelectionService.SelectedCard == card)
+            {
+                CardSelectionService.Reset();
+            }
+            else
+            {
+                CardSelectionService.SelectedCard = card;
+            }
         }
     }
 
     private void CancelRefreshMode()
     {
-        CardRefreshService.DeactivateHighlightMode();
+        CardHighlightService.DeactivateHighlightMode();
     }
 
     public void Dispose()
     {
         CardSelectionService.OnStateChanged -= StateHasChanged;
-        CardRefreshService.OnHighlightModeChanged -= StateHasChanged;
+        CardHighlightService.OnHighlightModeChanged -= StateHasChanged;
     }
 }
