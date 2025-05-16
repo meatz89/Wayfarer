@@ -203,7 +203,7 @@
 
             // Create a copy of variables needed in the task to avoid closure issues
             NarrativeChoice choiceCopy = choice;
-            ChoiceNarrative narrativeCopy = choiceNarrative;
+            ChoiceNarrative narrativeCopy = choiceNarrative ?? new ChoiceNarrative("default", "default");
             CancellationToken token = _preGenerationManager.GetCancellationToken();
 
             // Start pre-generation as a background task with low priority
