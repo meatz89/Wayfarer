@@ -95,7 +95,7 @@ public class MemoryFileAccess
             // Write the memory content directly to the file with FileShare.None
             using (FileStream fileStream = new FileStream(
                 filePath,
-                FileMode.Append,
+                FileMode.Truncate,
                 FileAccess.Write,
                 FileShare.None))
             using (StreamWriter writer = new StreamWriter(fileStream))
