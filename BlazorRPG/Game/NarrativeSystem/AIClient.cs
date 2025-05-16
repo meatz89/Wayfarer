@@ -1,4 +1,7 @@
-﻿public class AIClient
+﻿using Microsoft.Extensions.FileSystemGlobbing;
+using System.ComponentModel.Design;
+
+public class AIClient
 {
     private readonly AIGenerationQueue _queue;
     private readonly string _gameInstanceId;
@@ -20,49 +23,25 @@
     {
         _gameInstanceId = gameInstanceId;
         _loadingStateService = loadingStateService;
-
-        // Create the queue publicly
         _queue = new AIGenerationQueue(aiProvider, gameInstanceId, logManager, logger);
     }
 
-    public async Task<string> GetCompletionAsync(
-    List<ConversationEntry> messages,
-    string model,
-    string fallbackModel,
-    IResponseStreamWatcher watcher,
-    int priority,
-    string sourceSystem)
+    public async Task<string> ProcessCommand(AIGenerationCommand command)
     {
+        string result = string.Empty;
+
         // Only show loading screens for non-background priority requests
-        bool isBackgroundRequest = priority >= PRIORITY_BACKGROUND;
+        bool isBackgroundRequest = command.Priority >= PRIORITY_BACKGROUND;
 
         try
         {
             // Only start loading UI for non-background requests
             if (!isBackgroundRequest)
             {
-                _loadingStateService.StartLoading($"Generating {FormatSourceSystem(sourceSystem)}...");
+                _loadingStateService.StartLoading($"Generating {FormatSourceSystem(command.SourceSystem)}...");
             }
 
-            // Determine which watcher to use
-            IResponseStreamWatcher effectiveWatcher;
-
-            if (isBackgroundRequest)
-            {
-                // For background tasks, use raw watcher without progress tracking
-                effectiveWatcher = watcher;
-            }
-            else
-            {
-                // For foreground tasks, use progress tracking watcher
-                effectiveWatcher = watcher != null
-                    ? new ProgressTrackingWatcher(watcher, _loadingStateService)
-                    : new ProgressTrackingWatcher(null, _loadingStateService);
-            }
-
-            // Use the queue to get the completion
-            return await _queue.EnqueueCommand(
-                messages, model, fallbackModel, effectiveWatcher, priority, sourceSystem);
+            result = await _queue.WaitForResult(command.Id);
         }
         finally
         {
@@ -72,6 +51,39 @@
                 _loadingStateService.StopLoading();
             }
         }
+        return result;
+    }
+
+    public async Task<AIGenerationCommand> CreateAndQueueCommand(
+        List<ConversationEntry> messages,
+        string model,
+        string fallbackModel,
+        IResponseStreamWatcher watcher,
+        int priority,
+        string sourceSystem)
+    {
+        // Only show loading screens for non-background priority requests
+        bool isBackgroundRequest = priority >= PRIORITY_BACKGROUND;
+
+        // Determine which watcher to use
+        IResponseStreamWatcher effectiveWatcher;
+        if (isBackgroundRequest)
+        {
+            // For background tasks, use raw watcher without progress tracking
+            effectiveWatcher = watcher;
+        }
+        else
+        {
+            // For foreground tasks, use progress tracking watcher
+            effectiveWatcher = watcher != null
+                ? new ProgressTrackingWatcher(watcher, _loadingStateService)
+                : new ProgressTrackingWatcher(null, _loadingStateService);
+        }
+
+        AIGenerationCommand command = _queue.EnqueueCommand(
+            messages, model, fallbackModel, effectiveWatcher, priority, sourceSystem);
+
+        return command;
     }
 
     private string FormatSourceSystem(string sourceSystem)

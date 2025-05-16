@@ -65,10 +65,12 @@
         }
 
         // Use high priority for introduction
-        string response = await _aiClient.GetCompletionAsync(
+        AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel, Watcher,
             priority, "IntroductionGeneration");
+
+        string response = await _aiClient.ProcessCommand(aiGenerationCommand);
 
         _contextManager.AddAssistantMessage(conversationId, response, MessageType.Introduction);
 
@@ -106,13 +108,15 @@
         }
 
         // Use high priority for choices
-        string jsonResponse = await _aiClient.GetCompletionAsync(
+        AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel, Watcher,
             priority, "ChoiceGeneration");
 
-        _contextManager.AddAssistantMessage(conversationId, jsonResponse, MessageType.ChoiceGeneration);
-        return NarrativeJsonParser.ParseChoiceResponse(jsonResponse, choices);
+        string response = await _aiClient.ProcessCommand(aiGenerationCommand);
+
+        _contextManager.AddAssistantMessage(conversationId, response, MessageType.ChoiceGeneration);
+        return NarrativeJsonParser.ParseChoiceResponse(response, choices);
     }
 
 
@@ -148,13 +152,15 @@
         }
 
         // Using PRIORITY_HIGH for player-facing content
-        string narrativeResponse = await _aiClient.GetCompletionAsync(
+        AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel, Watcher,
             priority, "EncounterNarrative");
 
-        _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
-        return narrativeResponse;
+        string response = await _aiClient.ProcessCommand(aiGenerationCommand);
+
+        _contextManager.AddAssistantMessage(conversationId, response, MessageType.Narrative);
+        return response;
     }
 
     public async Task<string> GenerateEndingAsync(
@@ -189,13 +195,15 @@
         }
 
         // Using PRIORITY_HIGH for player-facing content
-        string narrativeResponse = await _aiClient.GetCompletionAsync(
+        AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel, Watcher,
             priority, "EncounterEnding");
 
-        _contextManager.AddAssistantMessage(conversationId, narrativeResponse, MessageType.Narrative);
-        return narrativeResponse;
+        string response = await _aiClient.ProcessCommand(aiGenerationCommand);
+
+        _contextManager.AddAssistantMessage(conversationId, response, MessageType.Narrative);
+        return response;
     }
 
     public async Task<LocationDetails> GenerateLocationDetailsAsync(
@@ -219,13 +227,14 @@
         }
 
         // Using PRIORITY_NORMAL for location details
-        string jsonResponse = await _aiClient.GetCompletionAsync(
+        AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             messages,
             model, fallbackModel, Watcher,
             AIClient.PRIORITY_NORMAL, "LocationGeneration");
 
-        // Parse the JSON response into location details
-        return LocationJsonParser.ParseLocationDetails(jsonResponse);
+        string response = await _aiClient.ProcessCommand(aiGenerationCommand);
+
+        return LocationJsonParser.ParseLocationDetails(response);
     }
 
     public async Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(
@@ -256,12 +265,14 @@
         }
 
         // Using PRIORITY_LOW for post-encounter evolution
-        string jsonResponse = await _aiClient.GetCompletionAsync(
+        AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel, Watcher,
             AIClient.PRIORITY_LOW, "PostEncounterEvolution");
 
-        PostEncounterEvolutionResult postEncounterEvolutionResponse = await PostEncounterEvolutionParser.ParsePostEncounterEvolutionResponseAsync(jsonResponse);
+        string response = await _aiClient.ProcessCommand(aiGenerationCommand);
+
+        PostEncounterEvolutionResult postEncounterEvolutionResponse = await PostEncounterEvolutionParser.ParsePostEncounterEvolutionResponseAsync(response);
         return postEncounterEvolutionResponse;
     }
 
@@ -293,12 +304,14 @@
         }
 
         // Using PRIORITY_LOW for memory consolidation
-        string memoryContentResponse = await _aiClient.GetCompletionAsync(
+        AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel, Watcher,
             AIClient.PRIORITY_LOW, "MemoryConsolidation");
 
-        return memoryContentResponse;
+        string response = await _aiClient.ProcessCommand(aiGenerationCommand);
+
+        return response;
     }
 
     public async Task<string> GenerateActionsAsync(
@@ -322,11 +335,13 @@
         }
 
         // Using PRIORITY_NORMAL for action generation
-        string jsonResponse = await _aiClient.GetCompletionAsync(
+        AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             messages,
             model, fallbackModel, Watcher,
             AIClient.PRIORITY_NORMAL, "ActionGeneration");
 
-        return jsonResponse;
+        string response = await _aiClient.ProcessCommand(aiGenerationCommand);
+
+        return response;
     }
 }
