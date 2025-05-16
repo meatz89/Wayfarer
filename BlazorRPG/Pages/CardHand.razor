@@ -1,11 +1,19 @@
 ﻿@* CardHand.razor *@
 <div class="card-hand-container">
+    @if (CardRefreshService.IsHighlightModeActive && CardRefreshService._highlightMode == HighlightMode.OnlyExhausted)
+    {
+        <div class="refresh-mode-indicator">
+            <span>Select an exhausted @CardRefreshService.TargetCardType.ToString() card to refresh</span>
+            <button class="cancel-button" @onclick="CancelRefreshMode">Cancel</button>
+        </div>
+    }
     <div class="card-hand">
         @foreach (var card in PlayerCards)
         {
-            bool isSelected = DragDropService.DraggedCard == card;
-            <div class="card @GetCardTypeClass(card.Type) @(card.IsExhausted ? "exhausted" : "") @(isSelected ? "selected" : "")"
-                 @onclick="() => SelectCard(card)"
+            bool isSelected = CardSelectionService.SelectedCard == card;
+            bool isHighlighted = CardRefreshService.ShouldHighlightCard(card);
+            <div class="card @GetCardTypeClass(card.Type) @(card.IsExhausted ? "exhausted" : "") @(isSelected ? "selected" : "") @(isHighlighted ? "highlighted" : "")"
+                 @onclick="() => HandleCardClick(card)"
                  title="@card.Name">
                 <div class="card-content">
                     <div class="card-name">@card.Name</div>
@@ -24,13 +32,18 @@
 </div>
 
 @code {
-    [Inject] private DragDropService DragDropService { get; set; }
-
+    [Inject] private CardHighlightService CardRefreshService { get; set; }
+    [Inject] private CardSelectionService CardSelectionService { get; set; }
+    [Inject] private GameManager GameManager { get; set; }
+    [Inject] private MessageSystem MessageSystem { get; set; }
+    
     [Parameter] public List<ActionCardDefinition> PlayerCards { get; set; }
+    [Parameter] public EventCallback<ActionCardDefinition> OnCardRefreshed { get; set; }
 
     protected override void OnInitialized()
     {
-        DragDropService.OnDragStateChanged += StateHasChanged;
+        CardSelectionService.OnStateChanged += StateHasChanged;
+        CardRefreshService.OnHighlightModeChanged += StateHasChanged;
     }
 
     private string GetCardTypeClass(CardTypes type)
@@ -44,26 +57,30 @@
         };
     }
 
-    private void SelectCard(ActionCardDefinition card)
+    private async Task HandleCardClick(ActionCardDefinition card)
     {
-        if (!card.IsExhausted)
+        if (CardRefreshService.IsHighlightModeActive)
         {
-            if (DragDropService.DraggedCard == card)
+            if (CardRefreshService.ShouldHighlightCard(card))
             {
-                // Clicking the same card deselects it
-                DragDropService.Reset();
-            }
-            else
-            {
-                DragDropService.DraggedCard = card;
+                await OnCardRefreshed.InvokeAsync(card);
+                CardRefreshService.DeactivateHighlightMode();
             }
         }
+        else
+        {
+            CardSelectionService.Reset();
+        }
+    }
+
+    private void CancelRefreshMode()
+    {
+        CardRefreshService.DeactivateHighlightMode();
     }
 
     public void Dispose()
     {
-        // Clean up when component is removed
-        DragDropService.OnDragStateChanged -= StateHasChanged;
-        DragDropService.Reset();
+        CardSelectionService.OnStateChanged -= StateHasChanged;
+        CardRefreshService.OnHighlightModeChanged -= StateHasChanged;
     }
 }

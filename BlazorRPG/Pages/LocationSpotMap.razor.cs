@@ -8,7 +8,8 @@ public partial class LocationSpotMap : ComponentBase
     [Inject] private GameManager GameManager { get; set; }
     [Inject] private GameState GameState { get; set; }
     [Inject] private LocationSystem LocationSystem { get; set; }
-    [Inject] private DragDropService DragDropService { get; set; }
+    [Inject] private CardSelectionService DragDropService { get; set; }
+    [Inject] private CardHighlightService CardHighlightService { get; set; }
 
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public LocationSpot CurrentSpot { get; set; }
@@ -23,7 +24,7 @@ public partial class LocationSpotMap : ComponentBase
 
     protected override void OnInitialized()
     {
-        DragDropService.OnDragStateChanged += StateHasChanged;
+        DragDropService.OnStateChanged += StateHasChanged;
     }
 
     private async Task HandleApproachSelection(UserActionOption action, ActionApproach approach)
@@ -31,16 +32,21 @@ public partial class LocationSpotMap : ComponentBase
         // Check if a card is selected and is valid for this approach
         if (DragDropService.IsValidDropTarget(approach.RequiredCardType))
         {
-            ActionCardDefinition card = DragDropService.DraggedCard;
+            ActionCardDefinition card = DragDropService.SelectedCard;
             DragDropService.Reset();
 
             await SelectApproach(action, approach, card);
         }
     }
 
+    private void ActivateHighlightMode(CardTypes cardType)
+    {
+        CardHighlightService.ActivateHighlightMode(cardType, HighlightMode.OnlyAvailable);
+    }
+
     public void Dispose()
     {
-        DragDropService.OnDragStateChanged -= StateHasChanged;
+        DragDropService.OnStateChanged -= StateHasChanged;
     }
 
     private bool IsValidCardForApproach(CardTypes requiredCardType)

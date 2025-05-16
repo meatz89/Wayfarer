@@ -3,7 +3,7 @@
 <div class="game-status-bar">
     <div class="player-status">
 
-        <CardHand PlayerCards="@PlayerState.PlayerHandCards" />
+        <CardHand PlayerCards="@PlayerState.PlayerHandCards" OnCardRefreshed="HandleCardRefreshed" />
 
         <div class="status-item">
             <span class="status-label">Energy</span>

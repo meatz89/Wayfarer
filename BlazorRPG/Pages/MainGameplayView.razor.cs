@@ -10,6 +10,7 @@ public partial class MainGameplayView : ComponentBase
     [Inject] private GameManager GameManager { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
     [Inject] private LoadingStateService? LoadingStateService { get; set; }
+    [Inject] private CardHighlightService CardRefreshService { get; set; }
 
     public bool HasApLeft { get; private set; }
     public bool HasNoApLeft
@@ -141,6 +142,7 @@ public partial class MainGameplayView : ComponentBase
     {
         HasApLeft = PlayerState.CurrentActionPoints() > 0;
         DisplayActionMessages();
+        CardRefreshService.ActivateHighlightMode(CardTypes.Physical, HighlightMode.OnlyExhausted);
     }
 
     public async Task SwitchAreaMap()
@@ -165,13 +167,13 @@ public partial class MainGameplayView : ComponentBase
     private async Task HandleSpotSelection(LocationSpot locationSpot)
     {
         await GameManager.MoveToLocationSpot(locationSpot.Id);
-        ChangeState();
+        UpdateState();
     }
 
     private async Task StartNewDay()
     {
         await GameManager.StartNewDay();
-        ChangeState();
+        UpdateState();
     }
 
     private async Task HandleActionSelection(UserActionOption action)
@@ -186,7 +188,7 @@ public partial class MainGameplayView : ComponentBase
             CurrentScreen = CurrentViews.EncounterScreen;
         }
 
-        ChangeState();
+        UpdateState();
     }
 
     private async Task HandleTravelStart(string travelLocationName)
@@ -195,14 +197,14 @@ public partial class MainGameplayView : ComponentBase
 
         if (travelLocationName == CurrentLocation.Id)
         {
-            ChangeState();
+            UpdateState();
             return;
         }
 
         await GameManager.InitiateTravelToLocation(travelLocationName);
 
         CurrentScreen = CurrentViews.LocationScreen;
-        ChangeState();
+        UpdateState();
     }
 
     private async Task OnEncounterCompleted(EncounterResult result)
@@ -212,7 +214,7 @@ public partial class MainGameplayView : ComponentBase
 
         EncounterResult = result;
         CurrentScreen = CurrentViews.NarrativeScreen;
-        ChangeState();
+        UpdateState();
     }
 
     private async Task OnNarrativeCompleted()
@@ -220,13 +222,20 @@ public partial class MainGameplayView : ComponentBase
         EncounterResult = null;
 
         CurrentScreen = CurrentViews.LocationScreen;
-        ChangeState();
+        UpdateState();
     }
 
     private async Task UseResource(ActionNames actionName)
     {
         CurrentScreen = CurrentViews.LocationScreen;
-        ChangeState();
+        UpdateState();
+    }
+
+    private async Task HandleCardRefreshed(ActionCardDefinition card)
+    {
+        await GameManager.RefreshCard(card);
+        MessageSystem.AddSystemMessage($"Refreshed {card.Name} card");
+        UpdateState();
     }
 
     private async Task WaitAction()
@@ -242,10 +251,10 @@ public partial class MainGameplayView : ComponentBase
 
         await GameManager.ExecuteAction(waitOption);
 
-        ChangeState();
+        UpdateState();
     }
 
-    public void ChangeState()
+    public void UpdateState()
     {
         HasApLeft = PlayerState.CurrentActionPoints() > 0;
         DisplayActionMessages();
