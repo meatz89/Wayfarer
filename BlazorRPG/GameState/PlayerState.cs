@@ -69,9 +69,9 @@
 
         PlayerHandCards = new List<ActionCardDefinition>();
 
-        ActionCardDefinition card1 = new ActionCardDefinition("1", "1") { Type = CardTypes.Physical, IsExhausted = true };
-        ActionCardDefinition card2 = new ActionCardDefinition("1", "1") { Type = CardTypes.Physical, IsExhausted = true };
-        ActionCardDefinition card3 = new ActionCardDefinition("1", "1") { Type = CardTypes.Intellectual, IsExhausted = true };
+        ActionCardDefinition card1 = new ActionCardDefinition("1", "1") { Type = CardTypes.Physical, };
+        ActionCardDefinition card2 = new ActionCardDefinition("1", "1") { Type = CardTypes.Physical, };
+        ActionCardDefinition card3 = new ActionCardDefinition("1", "1") { Type = CardTypes.Intellectual, };
         ActionCardDefinition card4 = new ActionCardDefinition("1", "1") { Type = CardTypes.Social, IsExhausted = true };
 
         PlayerHandCards.Add(card1);
