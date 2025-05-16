@@ -1,8 +1,5 @@
 ﻿@* CardHand.razor *@
 <div class="card-hand-container">
-    <div class="card-instruction @(DragDropService.DraggedCard == null ? "visible" : "hidden")">
-        Select a card to use with an action
-    </div>
     <div class="card-hand">
         @foreach (var card in PlayerCards)
         {

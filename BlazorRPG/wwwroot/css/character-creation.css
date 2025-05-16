@@ -554,7 +554,6 @@
 	align-items: center;
 	justify-content: center;
 	font-weight: bold;
-	animation: pulse 1.5s infinite;
 }
 
 .starting-items {
