@@ -1,0 +1,265 @@
+﻿
+.approaches-container {
+	background-color: var(--bg-panel);
+	border: 1px solid var(--oak-mid);
+	border-top: none;
+	border-radius: 0 0 5px 5px;
+	padding: 1rem;
+}
+
+.approaches-description {
+	margin-bottom: 1rem;
+	color: var(--text-secondary);
+	line-height: 1.4;
+}
+
+/* Approach containers with consistent sizing and alignment */
+.approaches-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+	justify-content: space-between;
+}
+
+.approach-option {
+	background-color: var(--bg-card);
+	border: 1px solid var(--oak-mid);
+	border-radius: 5px;
+	padding: 1rem;
+	transition: all 0.2s ease;
+	display: flex;
+	flex-direction: column;
+	height: 220px; /* Fixed height for consistency */
+	width: calc(33.333% - 1rem); /* Exactly one-third width minus gap */
+	min-width: 230px; /* Minimum width to maintain readability */
+	max-width: 320px; /* Maximum width to maintain consistency */
+	flex: 1 0 230px; /* Grow but don't shrink below min-width */
+}
+
+	.approach-option:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+	}
+
+/* Make sure last row aligns properly when less than 3 items */
+.approaches-list::after {
+	content: "";
+	flex: 1 0 230px;
+	max-width: 320px;
+	margin-right: 1rem;
+	display: none; /* Hidden by default */
+}
+
+.approaches-list.items-2::after {
+	display: block; /* Only show for 2 items */
+}
+
+.approach-content {
+	flex: 1; /* Takes up available space */
+	display: flex;
+	flex-direction: column;
+}
+
+.approach-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 0.5rem;
+	padding-bottom: 0.5rem;
+	border-bottom: 1px solid var(--oak-mid);
+}
+
+	.approach-header h4 {
+		margin: 0;
+		color: var(--text-primary);
+		font-family: var(--font-primary);
+		font-weight: normal;
+	}
+
+.card-requirement {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.approach-description {
+	color: var(--text-secondary);
+	font-size: 0.9rem;
+	line-height: 1.4;
+	flex: 1; /* Takes up available space */
+	overflow: auto; /* Allow scrolling if text is too long */
+}
+
+.approach-button {
+	background-color: var(--leather);
+	color: var(--parchment);
+	border: none;
+	border-radius: 3px;
+	padding: 8px 12px;
+	width: 100%;
+	cursor: pointer;
+	font-family: var(--font-primary);
+	letter-spacing: 0.05em;
+	transition: all 0.2s ease;
+	margin-top: 1rem; /* Consistent bottom spacing */
+}
+
+	.approach-button:hover {
+		background-color: var(--clay);
+		transform: translateY(-2px);
+	}
+
+.card-preview-small {
+	width: 16px;
+	height: 24px;
+	border-radius: 2px;
+	background-size: cover;
+	background-position: center;
+	display: inline-block;
+	vertical-align: middle;
+	margin-right: 5px;
+}
+
+/* Approach instruction and compatibility styling */
+.approach-instruction {
+	text-align: center;
+	color: var(--leather);
+	font-weight: bold;
+	margin-bottom: 10px;
+	text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+	animation: pulse-text 2s infinite;
+}
+
+.compatible-approach {
+	border: 2px solid var(--moss) !important;
+	box-shadow: 0 0 8px rgba(96, 108, 56, 0.4) !important;
+	transform: scale(1.02);
+	z-index: 5;
+	position: relative;
+	animation: pulse-border 2s infinite;
+}
+
+.incompatible-approach {
+	opacity: 0.7;
+}
+
+.card-requirement.matching-card {
+	background-color: rgba(96, 108, 56, 0.2);
+	border-radius: 4px;
+	padding: 2px 5px;
+	animation: pulse-bg 2s infinite;
+}
+
+.compatible-button {
+	background-color: var(--moss) !important;
+	color: var(--parchment) !important;
+	font-weight: bold;
+}
+
+.incompatible-button {
+	background-color: var(--bg-active) !important;
+	color: var(--text-muted) !important;
+	opacity: 0.8;
+	cursor: default !important;
+}
+
+	.incompatible-button:hover {
+		background-color: var(--bg-active) !important;
+		box-shadow: none !important;
+		transform: none !important;
+	}
+
+
+/* Card selection styling updates */
+.card-hand .card.selected {
+	transform: translateY(-15px) scale(1.15) !important;
+	box-shadow: 0 0 20px rgba(168, 125, 95, 0.7) !important;
+	border: 2px solid var(--leather) !important;
+	z-index: 100 !important;
+	position: relative !important;
+	filter: brightness(1.2) !important;
+}
+
+	.card-hand .card.selected:hover {
+		transform: translateY(-15px) scale(1.15) !important;
+		box-shadow: 0 0 20px rgba(168, 125, 95, 0.7) !important;
+	}
+
+	.card-hand .card.selected::after {
+		content: '';
+		position: absolute;
+		top: -5px;
+		left: -5px;
+		right: -5px;
+		bottom: -5px;
+		border-radius: 8px;
+		background: radial-gradient(circle, rgba(168, 125, 95, 0.4) 0%, rgba(168, 125, 95, 0) 70%);
+		z-index: -1;
+		pointer-events: none;
+	}
+
+.selection-indicator {
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	width: 20px;
+	height: 20px;
+	background-color: var(--leather);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--parchment);
+	font-weight: bold;
+	font-size: 14px;
+	box-shadow: 0 0 5px rgba(0,0,0,0.5);
+	animation: pulse 1.5s infinite;
+}
+
+.card-instruction {
+	position: absolute;
+	top: -5px;
+	left: 0;
+	right: 0;
+	text-align: center;
+	font-size: 14px;
+	color: var(--leather);
+	text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+	pointer-events: none;
+}
+
+	.card-instruction.visible {
+		opacity: 1;
+		animation: pulse-text 2s infinite;
+	}
+
+.cancel-selection {
+	position: absolute;
+	top: -5px;
+	right: 10px;
+	background-color: var(--bg-card);
+	border: 1px solid var(--oak-mid);
+	border-radius: 4px;
+	padding: 3px 8px;
+	font-size: 12px;
+	cursor: pointer;
+	color: var(--text-secondary);
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	transition: all 0.2s ease;
+}
+
+	.cancel-selection:hover {
+		background-color: var(--rust);
+		color: var(--parchment);
+	}
+
+/* Updated valid drop target visual */
+.valid-drop-target {
+	border: 2px dashed var(--leather);
+	box-shadow: 0 0 10px rgba(168, 125, 95, 0.5);
+	transition: all 0.2s ease;
+}

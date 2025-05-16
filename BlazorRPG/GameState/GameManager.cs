@@ -106,8 +106,8 @@
         // Use our action classification system to determine execution path
         ActionExecutionType executionType = GetExecutionType(action.ActionImplementation);
 
-        CardTypes cardType = action.SelectedApproach.RequiredCardType;
-        playerState.ExhaustCardType(cardType);
+        ActionCardDefinition card = action.SelectedCard;
+        playerState.ExhaustCard(card);
 
         switch (executionType)
         {

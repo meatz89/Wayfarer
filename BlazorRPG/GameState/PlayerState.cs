@@ -199,16 +199,9 @@
         return false;
     }
 
-    public void ExhaustCardType(CardTypes cardType)
+    public void ExhaustCard(ActionCardDefinition card)
     {
-        if(HasAvailableCard(cardType));
-        {
-            foreach (ActionCardDefinition card in PlayerHandCards)
-            {
-                card.IsExhausted = true;
-                break;
-            }
-        }
+        card.IsExhausted = true;
     }
 
     private void ClearInventory()

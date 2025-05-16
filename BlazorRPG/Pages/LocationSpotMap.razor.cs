@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using System.Threading;
 
 namespace BlazorRPG.Pages;
 
@@ -9,6 +8,7 @@ public partial class LocationSpotMap : ComponentBase
     [Inject] private GameManager GameManager { get; set; }
     [Inject] private GameState GameState { get; set; }
     [Inject] private LocationSystem LocationSystem { get; set; }
+    [Inject] private DragDropService DragDropService { get; set; }
 
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public LocationSpot CurrentSpot { get; set; }
@@ -21,6 +21,11 @@ public partial class LocationSpotMap : ComponentBase
     private double mouseX;
     private double mouseY;
 
+    protected override void OnInitialized()
+    {
+        DragDropService.OnDragStateChanged += StateHasChanged;
+    }
+
     private async Task HandleApproachSelection(UserActionOption action, ActionApproach approach)
     {
         // Check if a card is selected and is valid for this approach
@@ -29,22 +34,20 @@ public partial class LocationSpotMap : ComponentBase
             ActionCardDefinition card = DragDropService.DraggedCard;
             DragDropService.Reset();
 
-            await SelectApproachWithCard(action, approach, card);
+            await SelectApproach(action, approach, card);
         }
-
-        StateHasChanged();
     }
 
-    private bool IsValidDropTarget(CardTypes requiredCardType)
+    public void Dispose()
+    {
+        DragDropService.OnDragStateChanged -= StateHasChanged;
+    }
+
+    private bool IsValidCardForApproach(CardTypes requiredCardType)
     {
         return DragDropService.IsValidDropTarget(requiredCardType);
     }
 
-    private async Task SelectApproachWithCard(UserActionOption action, ActionApproach approach, ActionCardDefinition card)
-    {
-        // Proceed with the approach selection
-        await SelectApproach(action, approach);
-    }
     private string GetCardTypeClass(CardTypes type)
     {
         return type switch
@@ -68,7 +71,7 @@ public partial class LocationSpotMap : ComponentBase
         }
     }
 
-    private async Task SelectApproach(UserActionOption action, ActionApproach approach)
+    private async Task SelectApproach(UserActionOption action, ActionApproach approach, ActionCardDefinition card)
     {
         showTooltip = false;
 
@@ -77,11 +80,9 @@ public partial class LocationSpotMap : ComponentBase
             return;
         }
 
-        // Update the selected action with the chosen approach
-        UserActionOption actionWithApproach = action with { SelectedApproach = approach };
+        UserActionOption actionWithApproach = action with { SelectedApproach = approach, SelectedCard = card };
 
-        // Execute the action with the selected approach
-        OnActionSelected.InvokeAsync(actionWithApproach);
+        await OnActionSelected.InvokeAsync(actionWithApproach);
 
         // Reset selection
         selectedAction = null;

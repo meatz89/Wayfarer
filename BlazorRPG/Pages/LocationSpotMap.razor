@@ -1,6 +1,4 @@
 ﻿@* LocationSpotMap.razor *@
-@inject DragDropService DragDropService
-
 <div class="locations-grid">
     @foreach (LocationSpot spot in GetKnownSpots())
     {
@@ -21,56 +19,56 @@
                 </div>
                 <div class="location-type">@spot.Description</div>
 
-                @if (spot.Id == CurrentSpot.Id)
+        @if (spot.Id == CurrentSpot.Id)
+        {
+            <div class="action-list">
+                @foreach (UserActionOption action in GameState.ActionStateTracker.LocationSpotActions)
                 {
-                    <div class="action-list">
-                        @foreach (UserActionOption action in GameState.ActionStateTracker.LocationSpotActions)
-                        {
-                            <div class="action-header @(selectedAction?.ActionImplementation.Id == action.ActionImplementation.Id ? "expanded" : "")"
-                                 @onclick="() => ToggleActionApproaches(action)">
-                                <div class="action-header-content">
-                                    <span class="action-title">@action.ActionImplementation.Name</span>
-                                    <span class="action-type">@action.ActionImplementation.ActionType</span>
-                                </div>
-                                <span class="action-toggle-icon">@(selectedAction?.ActionImplementation.Id == action.ActionImplementation.Id ? "▼" : "►")</span>
-                            </div>
-                            @if (selectedAction?.ActionImplementation.Id == action.ActionImplementation.Id)
-                            {
-                                <div class="approaches-container">
-                                    <div class="approaches-description">
-                                        @action.ActionImplementation.Description
-                                    </div>
-
-                                    <div class="approaches-list">
-                                        @foreach (var approach in action.ActionImplementation.Approaches)
-                                        {
-                                            <div class="approach-option @(IsValidDropTarget(approach.RequiredCardType) ? "valid-drop-target" : "")"
-                                                 @onclick="() => HandleApproachSelection(action, approach)">
-                                                <div class="approach-content">
-                                                    <div class="approach-header">
-                                                        <h4>@approach.Name</h4>
-                                                        <div class="card-requirement">
-                                                            <div class="card-preview @GetCardTypeClass(approach.RequiredCardType)"></div>
-                                                            <span>@approach.RequiredCardType</span>
-                                                        </div>
-                                                    </div>
-
-                                                    <p class="approach-description">@approach.Description</p>
-                                                </div>
-
-                                                <button class="approach-button"
-                                                        @onclick="() => HandleApproachSelection(action, approach)"
-                                                        @onmouseover="(e) => HandleShowApproachTooltip(action, approach, e)"
-                                                        @onmouseout="HandleHideTooltip">
-                                                    Select Approach
-                                                </button>
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        }
+                    <div class="action-header @(selectedAction?.ActionImplementation.Id == action.ActionImplementation.Id ? "expanded" : "")"
+                            @onclick="() => ToggleActionApproaches(action)">
+                        <div class="action-header-content">
+                            <span class="action-title">@action.ActionImplementation.Name</span>
+                            <span class="action-type">@action.ActionImplementation.ActionType</span>
+                        </div>
+                        <span class="action-toggle-icon">@(selectedAction?.ActionImplementation.Id == action.ActionImplementation.Id ? "▼" : "►")</span>
                     </div>
+                    @if (selectedAction?.ActionImplementation.Id == action.ActionImplementation.Id)
+                    {
+                        <div class="approaches-container">
+                            <div class="approaches-description">
+                                @action.ActionImplementation.Description
+                            </div>
+
+                            <div class="approaches-list">
+                                @foreach (var approach in action.ActionImplementation.Approaches)
+                                {
+                                    bool isCompatible = IsValidCardForApproach(approach.RequiredCardType);
+                                    <div class="approach-option @(isCompatible ? "compatible-approach" : "incompatible-approach")">
+                                        <div class="approach-content">
+                                            <div class="approach-header">
+                                                <h4>@approach.Name</h4>
+                                                <div class="card-requirement">
+                                                    <div class="card-preview @GetCardTypeClass(approach.RequiredCardType)"></div>
+                                                    <span>@approach.RequiredCardType</span>
+                                                </div>
+                                            </div>
+
+                                            <p class="approach-description">@approach.Description</p>
+                                        </div>
+
+                                        <button class="approach-button @(isCompatible ? "compatible-button" : "incompatible-button")"
+                                            @onclick="() => HandleApproachSelection(action, approach)"
+                                            @onmouseover="(e) => HandleShowApproachTooltip(action, approach, e)"
+                                            @onmouseout="HandleHideTooltip">
+                                            @(isCompatible ? "Use Selected Card" : "Select Approach")
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
                 }
                 else
                 {
