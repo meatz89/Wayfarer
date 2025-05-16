@@ -21,7 +21,7 @@
         _gameInstanceId = gameInstanceId;
         _loadingStateService = loadingStateService;
 
-        // Create the queue internally
+        // Create the queue publicly
         _queue = new AIGenerationQueue(aiProvider, gameInstanceId, logManager, logger);
     }
 

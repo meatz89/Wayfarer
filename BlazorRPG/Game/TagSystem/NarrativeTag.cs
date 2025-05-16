@@ -15,7 +15,7 @@ public class NarrativeTag : IEncounterTag
         RequirementChangeFocus = requirementChange;
     }
 
-    internal string GetEffectDescription()
+    public string GetEffectDescription()
     {
         return NarrativeName;
     }

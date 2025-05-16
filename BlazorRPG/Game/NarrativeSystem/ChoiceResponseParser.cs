@@ -7,9 +7,9 @@ public static class ChoiceResponseParser
         @"Choice\s+(\d+)\s*:\s*(I[^-]+)\s+-\s*(I.+?)(?=\s*Choice\s+\d+\s*:|$)",
         RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
-    public static Dictionary<CardDefinition, ChoiceNarrative> ParseChoiceNarratives(string response, List<CardDefinition> choices)
+    public static Dictionary<ActionCardDefinition, ChoiceNarrative> ParseChoiceNarratives(string response, List<ActionCardDefinition> choices)
     {
-        Dictionary<CardDefinition, ChoiceNarrative> result = new Dictionary<CardDefinition, ChoiceNarrative>();
+        Dictionary<ActionCardDefinition, ChoiceNarrative> result = new Dictionary<ActionCardDefinition, ChoiceNarrative>();
 
         // Use regex to find all choices in the response
         MatchCollection matches = ChoicePattern.Matches(response);

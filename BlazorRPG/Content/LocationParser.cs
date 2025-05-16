@@ -4,7 +4,7 @@ public static class LocationParser
 {
     public static Location ParseLocation(string json)
     {
-        var options = new JsonDocumentOptions
+        JsonDocumentOptions options = new JsonDocumentOptions
         {
             AllowTrailingCommas = true
         };
@@ -36,7 +36,7 @@ public static class LocationParser
 
     public static LocationSpot ParseLocationSpot(string json)
     {
-        var options = new JsonDocumentOptions
+        JsonDocumentOptions options = new JsonDocumentOptions
         {
             AllowTrailingCommas = true
         };

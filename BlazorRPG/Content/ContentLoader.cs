@@ -89,9 +89,9 @@
     }
 
     // New method for loading cards
-    public List<CardDefinition> LoadCards()
+    public List<ActionCardDefinition> LoadCards()
     {
-        List<CardDefinition> cards = new List<CardDefinition>();
+        List<ActionCardDefinition> cards = new List<ActionCardDefinition>();
         string cardsPath = Path.Combine(_contentDirectory, "Cards");
         if (!Directory.Exists(cardsPath))
             return cards;
@@ -101,7 +101,7 @@
             try
             {
                 string json = File.ReadAllText(filePath);
-                CardDefinition card = CardParser.ParseCard(json);
+                ActionCardDefinition card = CardParser.ParseCard(json);
                 cards.Add(card);
             }
             catch (Exception ex)
@@ -133,7 +133,7 @@
                     File.ReadAllText(Path.Combine(savePath, "actions.json")));
 
                 // Load cards if available
-                List<CardDefinition> cards = new List<CardDefinition>();
+                List<ActionCardDefinition> cards = new List<ActionCardDefinition>();
                 string cardsFilePath = Path.Combine(savePath, "cards.json");
                 if (File.Exists(cardsFilePath))
                 {
@@ -181,7 +181,7 @@
             File.ReadAllText(Path.Combine(templatePath, "actions.json")));
 
         // Load cards if available
-        List<CardDefinition> cards = new List<CardDefinition>();
+        List<ActionCardDefinition> cards = new List<ActionCardDefinition>();
         string cardsFilePath = Path.Combine(templatePath, "cards.json");
         if (File.Exists(cardsFilePath))
         {
@@ -290,7 +290,7 @@
         locations = ConnectLocationsToSpots(locations, spots);
 
         List<ActionDefinition> actions = LoadActions();
-        List<CardDefinition> cards = LoadCards();
+        List<ActionCardDefinition> cards = LoadCards();
 
         // Add content to game state
         gameState.WorldState.locations.Clear();
