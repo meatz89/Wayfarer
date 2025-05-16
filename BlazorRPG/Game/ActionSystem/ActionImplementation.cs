@@ -16,7 +16,7 @@
     public List<Outcome> Costs { get; set; }
     public List<Outcome> Yields { get; set; }
 
-    public ActionTypes ActionType { get; set; }
+    public ActionExecutionTypes ActionType { get; set; }
     public EncounterCategories EncounterType { get; set; }
     public int ActionPointCost { get; set; }
 

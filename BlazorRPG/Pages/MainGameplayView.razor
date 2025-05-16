@@ -72,7 +72,7 @@
             case CurrentViews.LocationScreen:
                 <div class="location-container">
                     <div class="location-header">
-                        <h2 class="location-title">@GetCurrentLocation().Id</h2>
+                        <h2 class="location-title">@GetCurrentLocation().Name</h2>
                         <div class="location-actions">
                             <button class="location-button" @onclick="WaitAction" hidden="@HasNoApLeft">
                                 Wait

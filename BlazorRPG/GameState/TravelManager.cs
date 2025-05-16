@@ -59,7 +59,7 @@
                 GetTravelTemplate(travelLocationId, locationSpot.Id);
 
             ActionImplementation travelAction =
-                ActionFactory.CreateActionFromTemplate(travelTemplate, currentLocation.Id, string.Empty);
+                ActionFactory.CreateActionFromTemplate(travelTemplate, currentLocation.Id, locationSpot.Id, ActionExecutionTypes.Instant);
 
             return travelAction;
         }
