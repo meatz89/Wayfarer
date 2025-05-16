@@ -32,7 +32,7 @@
         return new List<Relationship>(_relationships);
     }
 
-    internal RelationshipList Clone()
+    public RelationshipList Clone()
     {
         // Create a new empty RelationshipList
         RelationshipList clone = new RelationshipList();

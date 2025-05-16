@@ -1,5 +1,4 @@
-﻿
-public class ProjectionService
+﻿public class ProjectionService
 {
     private readonly Encounter _encounterInfo;
     private readonly PlayerState _playerState;

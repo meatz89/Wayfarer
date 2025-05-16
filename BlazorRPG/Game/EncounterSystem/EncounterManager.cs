@@ -21,7 +21,7 @@
 
     public EncounterResult EncounterResult;
 
-    public bool IsInitialState { get; internal set; }
+    public bool IsInitialState { get; set; }
 
     public EncounterManager(
         Encounter encounter,

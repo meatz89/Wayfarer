@@ -50,7 +50,7 @@ public class PlayerSkills
     {
         PlayerSkills clone = new PlayerSkills();
 
-        // Assuming PlayerSkills has some internal collection of skill levels
+        // Assuming PlayerSkills has some public collection of skill levels
         // that needs to be copied
 
         // Copy each skill level

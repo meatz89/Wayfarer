@@ -1,5 +1,4 @@
-﻿
-public class NarrativeChoice
+﻿public class NarrativeChoice
 {
 
     public NarrativeChoice(string id, string name)
@@ -8,12 +7,12 @@ public class NarrativeChoice
         Name = name;
     }
 
-    public string Id { get; internal set; }
-    public string Name { get; internal set; }
-    public string Description { get; internal set; }
-    public Skills Skill { get; internal set; }
-    public List<string> Tags { get; internal set; }
-    public int Difficulty { get; internal set; }
-    public int Reward { get; internal set; }
-    public bool IsDisabled { get; internal set; } = false;
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public Skills Skill { get; set; }
+    public List<string> Tags { get; set; }
+    public int Difficulty { get; set; }
+    public int Reward { get; set; }
+    public bool IsDisabled { get; set; } = false;
 }

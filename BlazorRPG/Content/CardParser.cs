@@ -2,7 +2,7 @@
 
 public static class CardParser
 {
-    public static CardDefinition ParseCard(string json)
+    public static ActionCardDefinition ParseCard(string json)
     {
         using JsonDocument doc = JsonDocument.Parse(json);
         JsonElement root = doc.RootElement;
@@ -10,7 +10,7 @@ public static class CardParser
         string id = GetStringProperty(root, "id", "id");
         string name = GetStringProperty(root, "name", id);
 
-        CardDefinition card = new CardDefinition(id, name);
+        ActionCardDefinition card = new ActionCardDefinition(id, name);
 
         // Parse card type
         string typeString = GetStringProperty(root, "type", "PHYSICAL");

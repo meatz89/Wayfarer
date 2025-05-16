@@ -14,7 +14,7 @@
     {
         Values.Add(window);
     }
-    
+
     public bool Contains(TimeWindowTypes window)
     {
         return Values.Contains(window);

@@ -81,7 +81,7 @@
 
         return score;
     }
-    
+
     private int CalculateEnvironmentalSynergy(NarrativeChoice card, EncounterState state)
     {
         int synergy = 0;

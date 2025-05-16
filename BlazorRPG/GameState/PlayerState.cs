@@ -52,8 +52,8 @@
     public PlayerSkills Skills { get; private set; } = new();
 
     // Card collection (player skills)
-    public List<CardDefinition> PlayerSkillCards { get; set; } = new List<CardDefinition>();
-    public List<CardDefinition> SelectedCards { get; internal set; } = new List<CardDefinition>();
+    public List<ActionCardDefinition> PlayerSkillCards { get; set; } = new List<ActionCardDefinition>();
+    public List<ActionCardDefinition> SelectedCards { get; set; } = new List<ActionCardDefinition>();
 
     public PlayerState()
     {
@@ -67,12 +67,12 @@
 
         NegativeStatusTypes = new();
 
-        SelectedCards = new List<CardDefinition>();
+        SelectedCards = new List<ActionCardDefinition>();
 
-        CardDefinition card1 = new CardDefinition("1", "1") { Type = CardTypes.Physical, IsExhausted = true };
-        CardDefinition card2 = new CardDefinition("1", "1") { Type = CardTypes.Physical };
-        CardDefinition card3 = new CardDefinition("1", "1") { Type = CardTypes.Intellectual };
-        CardDefinition card4 = new CardDefinition("1", "1") { Type = CardTypes.Social };
+        ActionCardDefinition card1 = new ActionCardDefinition("1", "1") { Type = CardTypes.Physical };
+        ActionCardDefinition card2 = new ActionCardDefinition("1", "1") { Type = CardTypes.Physical };
+        ActionCardDefinition card3 = new ActionCardDefinition("1", "1") { Type = CardTypes.Intellectual };
+        ActionCardDefinition card4 = new ActionCardDefinition("1", "1") { Type = CardTypes.Social };
 
         SelectedCards.Add(card1);
         SelectedCards.Add(card2);
@@ -257,7 +257,7 @@
         }
     }
 
-    public void UnlockCard(CardDefinition card)
+    public void UnlockCard(ActionCardDefinition card)
     {
         PlayerSkillCards.Add(card);
     }
@@ -307,7 +307,7 @@
         this.EnergyPoints = newEnergy;
     }
 
-    internal void ModifyEnergy(int amount)
+    public void ModifyEnergy(int amount)
     {
         this.EnergyPoints += amount;
     }
@@ -371,10 +371,10 @@
         clone.Skills = this.Skills.Clone();
 
         // Deep copy of Cards
-        clone.SelectedCards = new List<CardDefinition>();
-        foreach (CardDefinition card in this.SelectedCards)
+        clone.SelectedCards = new List<ActionCardDefinition>();
+        foreach (ActionCardDefinition card in this.SelectedCards)
         {
-            CardDefinition cardCopy = new CardDefinition(card.Id, card.Name)
+            ActionCardDefinition cardCopy = new ActionCardDefinition(card.Id, card.Name)
             {
                 Type = card.Type
             };
@@ -386,7 +386,7 @@
 
     public bool HasAvailableCard(CardTypes cardTypes)
     {
-        foreach (CardDefinition card in SelectedCards)
+        foreach (ActionCardDefinition card in SelectedCards)
         {
             if (card.Type == cardTypes)
             {

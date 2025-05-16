@@ -1,6 +1,6 @@
 ﻿public class WorldState
 {
-// Core data collections
+    // Core data collections
     public List<Location> locations { get; private set; } = new();
     public List<LocationSpot> locationSpots { get; private set; } = new();
     public List<ActionDefinition> actions { get; private set; } = new();
@@ -18,7 +18,7 @@
     // Current location tracking
     public Location CurrentLocation { get; private set; }
     public LocationSpot CurrentLocationSpot { get; private set; }
-    public List<CardDefinition> AllCards { get; set; } = new List<CardDefinition>();
+    public List<ActionCardDefinition> AllCards { get; set; } = new List<ActionCardDefinition>();
 
     public void RecordLocationVisit(string locationId)
     {

@@ -42,7 +42,7 @@ public static class GameStateSerializer
     }
 
     public static GameState DeserializeGameState(string json, List<Location> locations, List<LocationSpot> spots,
-                                                List<ActionDefinition> actions, List<CardDefinition> cards)
+                                                List<ActionDefinition> actions, List<ActionCardDefinition> cards)
     {
         SerializableGameState serialized = JsonSerializer.Deserialize<SerializableGameState>(json, _jsonOptions);
         if (serialized == null)
@@ -109,10 +109,10 @@ public static class GameStateSerializer
             // Apply selected cards if available
             if (serialized.Player.SelectedCards != null && cards != null)
             {
-                gameState.PlayerState.SelectedCards = new List<CardDefinition>();
+                gameState.PlayerState.SelectedCards = new List<ActionCardDefinition>();
                 foreach (string cardId in serialized.Player.SelectedCards)
                 {
-                    CardDefinition card = cards.FirstOrDefault(c => c.Id == cardId);
+                    ActionCardDefinition card = cards.FirstOrDefault(c => c.Id == cardId);
                     if (card != null)
                     {
                         gameState.PlayerState.SelectedCards.Add(card);
@@ -293,7 +293,7 @@ public static class GameStateSerializer
     }
 
     // New methods for card serialization
-    public static string SerializeCards(List<CardDefinition> cards)
+    public static string SerializeCards(List<ActionCardDefinition> cards)
     {
         List<object> serializableCards = cards.Select(card => (object)new
         {
@@ -310,9 +310,9 @@ public static class GameStateSerializer
         return JsonSerializer.Serialize(serializableCards, _jsonOptions);
     }
 
-    public static List<CardDefinition> DeserializeCards(string json)
+    public static List<ActionCardDefinition> DeserializeCards(string json)
     {
-        List<CardDefinition> cards = new List<CardDefinition>();
+        List<ActionCardDefinition> cards = new List<ActionCardDefinition>();
 
         using (JsonDocument doc = JsonDocument.Parse(json))
         {

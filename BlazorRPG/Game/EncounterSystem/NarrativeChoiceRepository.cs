@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-/// <summary>
+﻿/// <summary>
 /// Repository of all available choices in the game
 /// </summary>
 public class NarrativeChoiceRepository

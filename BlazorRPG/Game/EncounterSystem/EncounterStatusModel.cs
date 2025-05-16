@@ -3,15 +3,15 @@
 /// </summary>
 public class EncounterStatusModel
 {
-    public int MaxMomentum { get; set; } = 20;
-    public int MaxPressure { get; set; } = 15;
-    public int SuccessThreshold { get; set; } = 15;
-    public int MaxTurns { get; set; } = 6;
+    public int MaxMomentum { get; set; }
+    public int MaxPressure { get; set; }
+    public int SuccessThreshold { get; set; }
+    public int MaxTurns { get; set; }
 
-    public int Health { get; set; } = 10;
-    public int MaxHealth { get; set; } = 10;
-    public int Concentration { get; set; } = 10;
-    public int MaxConcentration { get; set; } = 10;
+    public int Health { get; set; }
+    public int MaxHealth { get; set; }
+    public int Concentration { get; set; }
+    public int MaxConcentration { get; set; }
 
     public int CurrentTurn { get; }
     public int Momentum { get; }

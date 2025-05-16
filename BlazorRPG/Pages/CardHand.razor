@@ -18,7 +18,7 @@
 </div>
 
 @code {
-    [Parameter] public List<CardDefinition> PlayerCards { get; set; }
+    [Parameter] public List<ActionCardDefinition> PlayerCards { get; set; }
     private string GetCardTypeClass(CardTypes type)
     {
         return type switch
