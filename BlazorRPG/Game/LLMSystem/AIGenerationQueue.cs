@@ -2,6 +2,7 @@
 {
     private readonly object _queueLock = new object();
     private readonly PriorityQueue<AIGenerationCommand, (int Priority, DateTime Timestamp)> _queue = new();
+    private readonly Dictionary<string, TaskCompletionSource<string>> _pendingResults = new();
     private readonly IAIProvider _aiProvider;
     private readonly string _gameInstanceId;
     private readonly NarrativeLogManager _logManager;
@@ -20,7 +21,7 @@
         _logger = logger;
     }
 
-    public Task<string> EnqueueCommand(
+    public AIGenerationCommand EnqueueCommand(
         List<ConversationEntry> messages,
         string model,
         string fallbackModel,
@@ -28,14 +29,18 @@
         int priority,
         string sourceSystem)
     {
+        string commandId = Guid.NewGuid().ToString();
+
         AIGenerationCommand command = new AIGenerationCommand(
-            messages, model, fallbackModel, watcher, priority, sourceSystem);
+            commandId, messages, model, fallbackModel, watcher, priority, sourceSystem);
 
         lock (_queueLock)
         {
             _queue.Enqueue(command, (command.Priority, command.Timestamp));
+            _pendingResults[commandId] = command.CompletionSource;
+
             _logger?.LogInformation(
-                $"Enqueued request from {sourceSystem} with priority {priority}. Queue depth: {_queue.Count}");
+                $"Enqueued request {commandId} from {sourceSystem} with priority {priority}. Queue depth: {_queue.Count}");
 
             // If not currently processing, start processing
             if (!_isProcessing)
@@ -45,7 +50,20 @@
             }
         }
 
-        return command.CompletionSource.Task;
+        return command;
+    }
+
+    public Task<string> WaitForResult(string commandId)
+    {
+        lock (_queueLock)
+        {
+            if (_pendingResults.TryGetValue(commandId, out TaskCompletionSource<string> tcs))
+            {
+                return tcs.Task;
+            }
+
+            throw new KeyNotFoundException($"No pending command with ID {commandId} found");
+        }
     }
 
     private async Task ProcessQueue()
@@ -72,7 +90,7 @@
 
             try
             {
-                _logger?.LogInformation($"Processing request from {command.SourceSystem} with priority {command.Priority}");
+                _logger?.LogInformation($"Processing request {command.Id} from {command.SourceSystem} with priority {command.Priority}");
 
                 // Prepare request body for logging
                 requestBody = new
@@ -95,13 +113,25 @@
 
                 // Complete the task
                 command.CompletionSource.SetResult(result);
-                _logger?.LogInformation($"Completed request from {command.SourceSystem}");
+                _logger?.LogInformation($"Completed request {command.Id} from {command.SourceSystem}");
+
+                // Remove from pending results
+                lock (_queueLock)
+                {
+                    _pendingResults.Remove(command.Id);
+                }
             }
             catch (Exception ex)
             {
                 errorMessage = $"Error: {ex.Message}\nStack Trace: {ex.StackTrace}";
-                _logger?.LogError(ex, $"Error processing request from {command.SourceSystem}");
+                _logger?.LogError(ex, $"Error processing request {command.Id} from {command.SourceSystem}");
                 command.CompletionSource.SetException(ex);
+
+                // Remove from pending results
+                lock (_queueLock)
+                {
+                    _pendingResults.Remove(command.Id);
+                }
             }
             finally
             {
