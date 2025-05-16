@@ -3,55 +3,51 @@
 /// <summary>
 /// Repository of all available choices in the game
 /// </summary>
-public class ChoiceRepository
+public class NarrativeChoiceRepository
 {
-    private readonly List<CardDefinition> cards = new();
+    private readonly List<NarrativeChoice> narrativeChoices = new();
 
-    public ChoiceRepository()
+    public NarrativeChoiceRepository()
     {
         InitializeChoices();
     }
 
     private void InitializeChoices()
     {
-        cards.Add(CardDefinitionFactory.BuildCard(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "imposing_stance",
             "Imposing Stance",
             "You adopt a powerful stance, projecting physical dominance and control.",
-            CardTypes.Physical,
             Skills.Strength,
             1,
             1,
             new List<string>() { "Physical", "Stance" }
         ));
 
-        cards.Add(CardDefinitionFactory.BuildCard(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "intimidate",
             "Intimidate",
             "You intimidate your opponent, causing them to hesitate.",
-            CardTypes.Physical,
             Skills.Strength,
             1,
             1,
             new List<string>() { "Physical", "Intimidate" }
         ));
 
-        cards.Add(CardDefinitionFactory.BuildCard(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "taunt",
             "Taunt",
             "You taunt your opponent, drawing their attention and ire.",
-            CardTypes.Physical,
             Skills.Strength,
             1,
             1,
             new List<string>() { "Physical", "Taunt" }
         ));
 
-        cards.Add(CardDefinitionFactory.BuildCard(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "distract",
             "Distract",
             "You distract your opponent, causing them to lose focus.",
-            CardTypes.Physical,
             Skills.Strength,
             1,
             1,
@@ -59,13 +55,13 @@ public class ChoiceRepository
         ));
     }
 
-    public List<CardDefinition> GetAll()
+    public List<NarrativeChoice> GetAll()
     {
-        return cards.ToList();
+        return narrativeChoices.ToList();
     }
 
-    public List<CardDefinition> GetForEncounter(EncounterState state)
+    public List<NarrativeChoice> GetForEncounter(EncounterState state)
     {
-        return cards.ToList();
+        return narrativeChoices.ToList();
     }
 }

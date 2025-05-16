@@ -1,7 +1,7 @@
 ﻿public class ChoiceProjection
 {
     // Source choice
-    public CardDefinition Choice { get; }
+    public NarrativeChoice Choice { get; }
 
     // State changes
     public int MomentumGained { get; set; }
@@ -35,7 +35,7 @@
     // Narrative description
     public string NarrativeDescription { get; set; }
 
-    public ChoiceProjection(CardDefinition choice)
+    public ChoiceProjection(NarrativeChoice choice)
     {
         Choice = choice;
     }

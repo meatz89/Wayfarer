@@ -1,7 +1,7 @@
 ﻿public class EncounterState
 {
     public static EncounterState PreviousEncounterState { get; set; }
-    public CardDefinition PreviousChoice { get; set; }
+    public NarrativeChoice PreviousChoice { get; set; }
     public int PreviousMomentum { get; set; }
     public int PreviousPressure { get; set; }
     public int Momentum { get; private set; }
@@ -54,7 +54,7 @@
         return copy;
     }
 
-    public ChoiceProjection ApplyChoice(PlayerState playerState, Encounter encounterInfo, CardDefinition choice)
+    public ChoiceProjection ApplyChoice(PlayerState playerState, Encounter encounterInfo, NarrativeChoice choice)
     {
         // Store the current state before making changes
         this.UpdateStateHistory(choice);
@@ -74,7 +74,7 @@
         CurrentTurn++;
     }
 
-    public void UpdateStateHistory(CardDefinition selectedChoice)
+    public void UpdateStateHistory(NarrativeChoice selectedChoice)
     {
         // Store previous choice
         PreviousChoice = selectedChoice;
@@ -99,7 +99,7 @@
         Pressure = Math.Max(0, Pressure - amount);
     }
 
-    public ChoiceProjection CreateChoiceProjection(CardDefinition choice)
+    public ChoiceProjection CreateChoiceProjection(NarrativeChoice choice)
     {
         return _projectionService.CreateChoiceProjection(
             choice,

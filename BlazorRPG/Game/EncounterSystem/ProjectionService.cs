@@ -13,7 +13,7 @@ public class ProjectionService
     }
 
     public ChoiceProjection CreateChoiceProjection(
-        CardDefinition choice,
+        NarrativeChoice choice,
         int currentMomentum,
         int currentPressure,
         int currentTurn)
@@ -46,20 +46,20 @@ public class ProjectionService
         return projection;
     }
 
-    private void CalculateSkillBonuses(CardDefinition choice, ChoiceProjection projection, ref int momentumChange, ref int pressureChange)
+    private void CalculateSkillBonuses(NarrativeChoice choice, ChoiceProjection projection, ref int momentumChange, ref int pressureChange)
     {
     }
 
     private void CalculateBaseCardEffect(
-        CardDefinition choice,
+        NarrativeChoice choice,
         ChoiceProjection projection,
         ref int momentumChange,
         ref int pressureChange)
     {
         projection.MomentumComponents.Add(new ChoiceProjection.ValueComponent
         {
-            Source = $"Card Base Effect (Tier {choice.Level})",
-            Value = choice.Gain
+            Source = $"Card Base Effect (Tier {choice.Difficulty})",
+            Value = choice.Reward
         });
     }
 

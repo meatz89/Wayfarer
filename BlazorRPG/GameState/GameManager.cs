@@ -453,18 +453,18 @@
     public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions(EncounterResult encounterResult)
     {
         NarrativeResult narrativeResult = encounterResult.NarrativeResult;
-        List<CardDefinition> choices = encounterSystem.GetChoices();
+        List<NarrativeChoice> choices = encounterSystem.GetChoices();
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
 
         int i = 0;
-        foreach (CardDefinition choice in choices)
+        foreach (NarrativeChoice choice in choices)
         {
             i++;
             NarrativeContext narrativeContext = encounterResult.NarrativeContext;
 
             UserEncounterChoiceOption option = new UserEncounterChoiceOption(
                 i,
-                choice.Description,
+                "description",
                 "Narrative",
                 narrativeContext.LocationName,
                 "locationSpotName",

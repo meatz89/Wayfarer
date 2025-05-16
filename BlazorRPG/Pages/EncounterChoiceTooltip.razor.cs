@@ -45,8 +45,8 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
 
     public string GetChoiceNarrative(UserEncounterChoiceOption choice)
     {
-        CardDefinition choiceCard = choice.Choice;
-        Dictionary<CardDefinition, ChoiceNarrative> choiceDescriptions = choice.NarrativeResult?.ChoiceDescriptions;
+        NarrativeChoice choiceCard = choice.Choice;
+        Dictionary<NarrativeChoice, ChoiceNarrative> choiceDescriptions = choice.NarrativeResult?.ChoiceDescriptions;
         ChoiceNarrative choiceNarrative = null;
 
         if (choiceDescriptions != null && choiceDescriptions.ContainsKey(choiceCard))
