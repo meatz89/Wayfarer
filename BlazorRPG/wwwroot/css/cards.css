@@ -20,6 +20,7 @@
 	background-repeat: no-repeat;
 	transform-style: preserve-3d;
 	transition: transform 0.1s ease, opacity 0.1s ease;
+	cursor: pointer;
 }
 
 	.card:hover {
@@ -78,13 +79,6 @@
 		pointer-events: none;
 	}
 
-.card-hand .card[draggable="true"] {
-	user-select: none !important;
-	-webkit-user-select: none !important;
-	-moz-user-select: none !important;
-	-ms-user-select: none !important;
-}
-
 .exhausted-overlay {
 	position: absolute;
 	top: 50%;
@@ -122,7 +116,6 @@
 	text-overflow: ellipsis;
 }
 
-/* Card Cost for Action Buttons */
 .action-button {
 	position: relative;
 	padding-left: 30px !important;
@@ -160,7 +153,6 @@
 		opacity: 0.6;
 	}
 
-/* Card Preview in Action Preview */
 .card-cost-display {
 	display: flex;
 	align-items: center;
@@ -224,25 +216,52 @@
 	box-shadow: 0 0 5px rgba(0,0,0,0.5);
 }
 
-/* Cancel selection button */
-.cancel-selection {
-	position: absolute;
-	top: -5px;
-	right: 10px;
-	background-color: var(--bg-card);
-	border: 1px solid var(--oak-mid);
-	border-radius: 4px;
-	padding: 3px 8px;
-	font-size: 12px;
-	cursor: pointer;
-	color: var(--text-secondary);
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	transition: all 0.2s ease;
+.card-preview-small {
+	width: 16px;
+	height: 24px;
+	border-radius: 2px;
+	background-size: cover;
+	background-position: center;
+	display: inline-block;
+	vertical-align: middle;
+	margin-right: 5px;
 }
 
-	.cancel-selection:hover {
-		background-color: var(--negative);
-		color: white;
+.card-requirement.matching-card {
+	background-color: rgba(96, 108, 56, 0.2);
+	border-radius: 4px;
+	padding: 2px 5px;
+}
+
+.compatible-approach {
+	border: 2px solid var(--moss) !important;
+	box-shadow: 0 0 8px rgba(96, 108, 56, 0.4) !important;
+	transform: scale(1.02);
+	z-index: 5;
+	position: relative;
+}
+
+.incompatible-approach {
+	opacity: 0.7;
+}
+
+
+.compatible-button {
+	background-color: var(--moss) !important;
+	color: var(--parchment) !important;
+	font-weight: bold;
+}
+
+.incompatible-button {
+	background-color: var(--bg-active) !important;
+	color: var(--text-muted) !important;
+	opacity: 0.8;
+	cursor: default !important;
+}
+
+	.incompatible-button:hover {
+		background-color: var(--bg-active) !important;
+		box-shadow: none !important;
+		transform: none !important;
 	}
+
