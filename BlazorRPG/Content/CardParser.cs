@@ -2,7 +2,7 @@
 
 public static class CardParser
 {
-    public static ActionCardDefinition ParseCard(string json)
+    public static CardDefinition ParseCard(string json)
     {
         using JsonDocument doc = JsonDocument.Parse(json);
         JsonElement root = doc.RootElement;
@@ -10,7 +10,7 @@ public static class CardParser
         string id = GetStringProperty(root, "id", "id");
         string name = GetStringProperty(root, "name", id);
 
-        ActionCardDefinition card = new ActionCardDefinition(id, name);
+        CardDefinition card = new CardDefinition(id, name);
 
         // Parse card type
         string typeString = GetStringProperty(root, "type", "PHYSICAL");
@@ -21,15 +21,15 @@ public static class CardParser
 
         // Parse skill
         string skillString = GetStringProperty(root, "skill", "STRENGTH");
-        if (Enum.TryParse(skillString, true, out Skills skill))
+        if (Enum.TryParse(skillString, true, out SkillTypes skill))
         {
             card.Skill = skill;
         }
 
         // Parse numeric properties
         card.Level = GetIntProperty(root, "level", 1);
-        card.Cost = GetIntProperty(root, "cost", 1);
-        card.Gain = GetIntProperty(root, "gain", 1);
+        card.EnergyCost = GetIntProperty(root, "cost", 1);
+        card.SkillBonus = GetIntProperty(root, "gain", 1);
 
         // Parse tags
         card.Tags = GetStringArray(root, "tags");

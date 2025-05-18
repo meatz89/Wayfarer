@@ -13,10 +13,13 @@
     public int CurrentXP { get; set; } = 0;
     public int XPToNextLevel { get; set; } = 100;
 
-    // Afflictions
-    public int ActionPoints { get; set; } = 4;
-    public int EnergyPoints { get; set; }
-    public int Concentration { get; set; }
+
+    // Resources
+    public int Silver { get; set; } = 10;
+    public int ActionPoints { get; set; } = 18;
+    public int EnergyPoints { get; set; } = 10;
+    public int Concentration { get; set; } = 10;
+    public int Reputation { get; set; } = 0;
     public int Health { get; set; }
     public int Food { get; set; }
 
@@ -26,8 +29,6 @@
     public int MinHealth { get; set; }
     public int MaxHealth { get; set; }
 
-    // Resources
-    public int Coins { get; set; }
 
     public Inventory Inventory { get; set; } = new Inventory(10);
 
@@ -42,7 +43,7 @@
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
 
 
-    public HashSet<(string, EncounterCategories)> LocationActionAvailability { get; set; } = new();
+    public HashSet<(string, CardTypes)> LocationActionAvailability { get; set; } = new();
 
     public List<PlayerNegativeStatus> NegativeStatusTypes { get; set; }
     public bool IsInitialized { get; set; } = false;
@@ -52,27 +53,29 @@
     public PlayerSkills Skills { get; private set; } = new();
 
     // Card collection (player skills)
-    public List<ActionCardDefinition> PlayerSkillCards { get; set; } = new List<ActionCardDefinition>();
-    public List<ActionCardDefinition> PlayerHandCards { get; set; } = new List<ActionCardDefinition>();
+    public List<CardDefinition> PlayerSkillCards { get; set; } = new List<CardDefinition>();
+    public List<CardDefinition> PlayerHandCards { get; set; } = new List<CardDefinition>();
+    public Location CurrentLocation { get; internal set; }
+    public LocationSpot CurrentLocationSpot { get; internal set; }
 
     public PlayerState()
     {
         Background = GameRules.StandardRuleset.Background;
         Inventory = new Inventory(10);
 
-        Coins = 5;
+        Silver = 5;
         Level = 1;
         CurrentXP = 0;
         XPToNextLevel = 100;
 
         NegativeStatusTypes = new();
 
-        PlayerHandCards = new List<ActionCardDefinition>();
+        PlayerHandCards = new List<CardDefinition>();
 
-        ActionCardDefinition card1 = new ActionCardDefinition("1", "1") { Type = CardTypes.Physical, };
-        ActionCardDefinition card2 = new ActionCardDefinition("1", "1") { Type = CardTypes.Physical, };
-        ActionCardDefinition card3 = new ActionCardDefinition("1", "1") { Type = CardTypes.Intellectual, };
-        ActionCardDefinition card4 = new ActionCardDefinition("1", "1") { Type = CardTypes.Social, IsExhausted = true };
+        CardDefinition card1 = new CardDefinition("1", "1") { Type = CardTypes.Physical, };
+        CardDefinition card2 = new CardDefinition("1", "1") { Type = CardTypes.Physical, };
+        CardDefinition card3 = new CardDefinition("1", "1") { Type = CardTypes.Intellectual, };
+        CardDefinition card4 = new CardDefinition("1", "1") { Type = CardTypes.Social, IsExhausted = true };
 
         PlayerHandCards.Add(card1);
         PlayerHandCards.Add(card2);
@@ -189,7 +192,7 @@
 
     public bool HasAvailableCard(CardTypes cardTypes)
     {
-        foreach (ActionCardDefinition card in PlayerHandCards)
+        foreach (CardDefinition card in PlayerHandCards)
         {
             if (card.Type == cardTypes && !card.IsExhausted)
             {
@@ -199,12 +202,12 @@
         return false;
     }
 
-    public void ExhaustCard(ActionCardDefinition card)
+    public void ExhaustCard(CardDefinition card)
     {
         card.IsExhausted = true;
     }
     
-    public void RefreshCard(ActionCardDefinition card)
+    public void RefreshCard(CardDefinition card)
     {
         card.IsExhausted = false;
     }
@@ -273,14 +276,14 @@
 
     public void AddCoins(int count)
     {
-        int newCoins = Math.Max(0, Coins + count);
-        if (newCoins != Coins)
+        int newCoins = Math.Max(0, Silver + count);
+        if (newCoins != Silver)
         {
-            Coins = newCoins;
+            Silver = newCoins;
         }
     }
 
-    public void UnlockCard(ActionCardDefinition card)
+    public void UnlockCard(CardDefinition card)
     {
         PlayerSkillCards.Add(card);
     }
@@ -353,7 +356,7 @@
         clone.ActionPoints = this.ActionPoints;
         clone.MaxEnergyPoints = this.MaxEnergyPoints;
         clone.EnergyPoints = this.EnergyPoints;
-        clone.Coins = this.Coins;
+        clone.Silver = this.Silver;
         clone.Food = this.Food;
         clone.MinHealth = this.MinHealth;
         clone.Health = this.Health;
@@ -394,10 +397,10 @@
         clone.Skills = this.Skills.Clone();
 
         // Deep copy of Cards
-        clone.PlayerHandCards = new List<ActionCardDefinition>();
-        foreach (ActionCardDefinition card in this.PlayerHandCards)
+        clone.PlayerHandCards = new List<CardDefinition>();
+        foreach (CardDefinition card in this.PlayerHandCards)
         {
-            ActionCardDefinition cardCopy = new ActionCardDefinition(card.Id, card.Name)
+            CardDefinition cardCopy = new CardDefinition(card.Id, card.Name)
             {
                 Type = card.Type
             };
@@ -407,4 +410,19 @@
         return clone;
     }
 
+    internal bool HasNonExhaustedCardOfType(CardTypes requiredCardType)
+    {
+        return true;
+    }
+
+    internal int GetSkillLevel(SkillTypes skill)
+    {
+        int level = Skills.GetLevelForSkill(skill);
+        return level;
+    }
+
+    internal CardDefinition GetSelectedCardForSkill(SkillTypes skill)
+    {
+        return null;
+    }
 }

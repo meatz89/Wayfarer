@@ -116,53 +116,6 @@
         return locationSpot;
     }
 
-    private async Task ProcessNewActions(LocationDetails details, WorldState worldState)
-    {
-        foreach (NewAction newAction in details.NewActions)
-        {
-            Location targetLocation = locationRepository.GetLocationById(newAction.LocationName);
-            List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(targetLocation.Id);
-            if (targetLocation != null && locationSpots != null)
-            {
-                LocationSpot spotForAction = locationSpots.FirstOrDefault((Func<LocationSpot, bool>)(s =>
-                {
-                    return (bool)s.Id.Equals(newAction.SpotName, StringComparison.OrdinalIgnoreCase);
-                }));
-
-                if (spotForAction != null)
-                {
-                    string newActionId = newAction.Name.Replace(" ", "");
-                    string actionId = await actionGenerator.GenerateAction(
-                        newAction.Name,
-                        newAction.SpotName,
-                        newAction.LocationName);
-
-                    Console.WriteLine($"Created new action {newAction.Name} at {newAction.LocationName}/{newAction.SpotName}");
-                }
-                else
-                {
-                    Console.WriteLine($"WARNING: Could not find spot {newAction.SpotName} at location {newAction.LocationName} for action {newAction.Name}");
-                }
-            }
-            else
-            {
-                Console.WriteLine($"WARNING: Could not find location {newAction.LocationName} for action {newAction.Name}");
-            }
-        }
-    }
-
-
-    private EncounterCategories ParseActionType(string actionTypeStr)
-    {
-        if (Enum.TryParse<EncounterCategories>(actionTypeStr, true, out EncounterCategories actionType))
-        {
-            return actionType;
-        }
-
-        // Default fallback
-        return EncounterCategories.Persuasion;
-    }
-
     private LocationCreationInput CreateLocationInput(
         string travelOrigin,
         string travelDestination,

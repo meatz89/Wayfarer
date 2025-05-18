@@ -141,8 +141,8 @@
                         <div class="skills-grid">
                             @foreach (var skill in new[]
                                                 {
-                                        (Skills.Endurance, "", "Endurance"),
-                                        (Skills.Charm, "", "Charm"),
+                                        (SkillTypes.Endurance, "", "Endurance"),
+                                        (SkillTypes.Charm, "", "Charm"),
                                         })
                             {
                                 var type = skill.Item1;
@@ -182,7 +182,7 @@
                             <div class="player-resource">
                                 <span class="resource-icon" style="color: var(--resource-coins)">💰</span>
                                 <span class="resource-label">Coins</span>
-                                <span class="resource-value">@PlayerState.Coins</span>
+                                <span class="resource-value">@PlayerState.Silver</span>
                             </div>
 
                             <div class="player-resource">

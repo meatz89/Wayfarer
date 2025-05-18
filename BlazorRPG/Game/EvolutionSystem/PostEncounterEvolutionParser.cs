@@ -308,9 +308,9 @@ public class PostEncounterEvolutionParser
         });
     }
 
-    private IEnvironmentalProperty ParseEnvironmentalProperty(string propertyString)
+    private ILocationProperty ParseEnvironmentalProperty(string propertyString)
     {
-        Dictionary<string, IEnvironmentalProperty> propertyMap = new Dictionary<string, IEnvironmentalProperty>(StringComparer.OrdinalIgnoreCase)
+        Dictionary<string, ILocationProperty> propertyMap = new Dictionary<string, ILocationProperty>(StringComparer.OrdinalIgnoreCase)
         {
             // Illumination properties
             { "Bright", Illumination.Bright },
@@ -333,7 +333,7 @@ public class PostEncounterEvolutionParser
             { "Chaotic", Atmosphere.Chaotic }
         };
 
-        if (propertyMap.TryGetValue(propertyString, out IEnvironmentalProperty property))
+        if (propertyMap.TryGetValue(propertyString, out ILocationProperty property))
         {
             return property;
         }

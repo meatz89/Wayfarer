@@ -1,0 +1,88 @@
+[
+	{
+		"id": "inn_assistance",
+		"name": "Assist at the Inn",
+		"description": "The innkeeper needs help with various tasks around the establishment.",
+		"type": "ACCUMULATIVE",
+		"progressThreshold": 8,
+		"expirationDays": 3,
+		"reputationRequirement": 0,
+		"initialLocationId": "dusty_flagon",
+		"silverReward": 10,
+		"reputationReward": 8,
+		"insightPointReward": 0,
+		"tier": 1,
+		"approaches": [
+			{
+				"id": "inn_maintenance",
+				"name": "Handle Maintenance",
+				"description": "Repair furniture, clean rooms, and tend to physical needs of the inn.",
+				"requiredCardType": "PHYSICAL",
+				"primarySkill": "STRENGTH",
+				"secondarySkill": "ENDURANCE"
+			},
+			{
+				"id": "inn_inventory",
+				"name": "Organize Inventory",
+				"description": "Sort supplies, maintain ledgers, and track stock.",
+				"requiredCardType": "INTELLECTUAL",
+				"primarySkill": "ANALYSIS",
+				"secondarySkill": "OBSERVATION"
+			},
+			{
+				"id": "inn_guests",
+				"name": "Attend to Guests",
+				"description": "Serve customers, handle requests, and manage social aspects of inn operation.",
+				"requiredCardType": "SOCIAL",
+				"primarySkill": "CHARM",
+				"secondarySkill": "PERSUASION"
+			}
+		]
+	},
+	{
+		"id": "merchant_theft",
+		"name": "Investigate Merchant Theft",
+		"description": "A local merchant has reported missing items and suspects theft. Investigate the situation.",
+		"type": "SEQUENTIAL",
+		"progressThreshold": 15,
+		"expirationDays": 5,
+		"reputationRequirement": 5,
+		"initialLocationId": "town_square",
+		"silverReward": 15,
+		"reputationReward": 12,
+		"insightPointReward": 2,
+		"tier": 1,
+		"initialStep": {
+			"name": "Question Witnesses",
+			"description": "Gather information from people in the marketplace about the missing goods.",
+			"locationId": "town_square",
+			"progressGoal": 5,
+			"approaches": [
+				{
+					"id": "intimidate_witnesses",
+					"name": "Intimidating Presence",
+					"description": "Use physical presence to pressure witnesses into talking.",
+					"requiredCardType": "PHYSICAL",
+					"primarySkill": "STRENGTH",
+					"secondarySkill": "ENDURANCE"
+				},
+				{
+					"id": "analyze_witnesses",
+					"name": "Analytical Questioning",
+					"description": "Apply logical reasoning to extract consistent information.",
+					"requiredCardType": "INTELLECTUAL",
+					"primarySkill": "ANALYSIS",
+					"secondarySkill": "OBSERVATION"
+				},
+				{
+					"id": "charm_witnesses",
+					"name": "Sympathetic Listening",
+					"description": "Build rapport and encourage witnesses to share what they know.",
+					"requiredCardType": "SOCIAL",
+					"primarySkill": "CHARM",
+					"secondarySkill": "PERSUASION"
+				}
+			]
+		}
+	}
+]

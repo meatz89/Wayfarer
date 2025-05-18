@@ -3,7 +3,7 @@
 /// </summary>
 public class NarrativeChoiceRepository
 {
-    private readonly List<NarrativeChoice> narrativeChoices = new();
+    private readonly List<EncounterOption> narrativeChoices = new();
 
     public NarrativeChoiceRepository()
     {
@@ -16,7 +16,7 @@ public class NarrativeChoiceRepository
             "imposing_stance",
             "Imposing Stance",
             "You adopt a powerful stance, projecting physical dominance and control.",
-            Skills.Strength,
+            SkillTypes.Strength,
             1,
             1,
             new List<string>() { "Physical", "Stance" }
@@ -26,7 +26,7 @@ public class NarrativeChoiceRepository
             "intimidate",
             "Intimidate",
             "You intimidate your opponent, causing them to hesitate.",
-            Skills.Strength,
+            SkillTypes.Strength,
             1,
             1,
             new List<string>() { "Physical", "Intimidate" }
@@ -36,7 +36,7 @@ public class NarrativeChoiceRepository
             "taunt",
             "Taunt",
             "You taunt your opponent, drawing their attention and ire.",
-            Skills.Strength,
+            SkillTypes.Strength,
             1,
             1,
             new List<string>() { "Physical", "Taunt" }
@@ -46,19 +46,19 @@ public class NarrativeChoiceRepository
             "distract",
             "Distract",
             "You distract your opponent, causing them to lose focus.",
-            Skills.Strength,
+            SkillTypes.Strength,
             1,
             1,
             new List<string>() { "Physical", "Distract" }
         ));
     }
 
-    public List<NarrativeChoice> GetAll()
+    public List<EncounterOption> GetAll()
     {
         return narrativeChoices.ToList();
     }
 
-    public List<NarrativeChoice> GetForEncounter(EncounterState state)
+    public List<EncounterOption> GetForEncounter(EncounterState state)
     {
         return narrativeChoices.ToList();
     }

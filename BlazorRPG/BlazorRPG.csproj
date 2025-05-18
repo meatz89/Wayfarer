@@ -30,28 +30,28 @@
 	</ItemGroup>
     
 	<ItemGroup>
-		<Content Update="Content\Templates\actions.json">
+		<Content Update="Content\Templates\basic_actions.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Update="Content\Templates\action_config.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<Content Update="Content\Templates\gameState.json">
+		<Content Update="Content\Templates\basic_commissions.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<Content Update="Content\Templates\globalActions.json">
+		<Content Update="Content\Templates\cards.json">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="Content\Templates\gameState.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Update="Content\Templates\locations.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<Content Update="Content\Templates\locationSpots.json">
+		<Content Update="Content\Templates\location_spots.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<Content Update="Content\Templates\system_config.json">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Update="Content\Templates\travelActions.json">
+		<Content Update="Content\Templates\location_properties.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Update="wwwroot\images\characters\female_diplomat.png">

@@ -39,22 +39,19 @@ public class PromptManager
 
     public string BuildIntroductionPrompt(
         NarrativeContext context,
-        EncounterStatusModel state,
+        List<Character> characters,
+        RelationshipList relationshipList,
         string memoryContent)
     {
         string template = _promptTemplates[INTRO_MD];
 
         // Format environment and NPC details
-        string environmentDetails = $"A {context.locationSpotName.ToLower()} in a {context.LocationName.ToLower()} with difficulty level {state.EncounterInfo?.EncounterDifficulty ?? 1}";
-        string timeConstraints = $"Maximum {state.MaxTurns} turns";
-        string additionalChallenges = state.EncounterInfo != null
-            ? $"Difficulty level {state.EncounterInfo.EncounterDifficulty} (starts with +{state.EncounterInfo.EncounterDifficulty} pressure)"
-            : "Standard difficulty";
+        string environmentDetails = $"A {context.locationSpotName.ToLower()} in a {context.LocationName.ToLower()}";
 
-        string npcList = GetCharactersAtLocation(context.LocationName, state.WorldState, state.PlayerState);
+        string npcList = GetCharactersAtLocation(context.LocationName, characters, relationshipList);
 
         // Format player character info
-        string characterArchetype = state.PlayerState.Archetype.ToString();
+        string characterArchetype = context.PlayerState.Archetype.ToString();
 
         ActionImplementation actionImplementation = context.ActionImplementation;
         string encounterGoal = actionImplementation.Description;
@@ -62,26 +59,22 @@ public class PromptManager
         // Replace placeholders in template
         string prompt = template
             .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
-            .Replace("{PLAYER_STATUS}", BuildCharacterStatusSummary(state))
             .Replace("{LOCATION_NAME}", context.LocationName)
             .Replace("{LOCATION_SPOT}", context.locationSpotName)
             .Replace("{CHARACTER_ARCHETYPE}", characterArchetype)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
             .Replace("{ENVIRONMENT_DETAILS}", environmentDetails)
-            .Replace("{NPC_LIST}", npcList)
-            .Replace("{TIME_CONSTRAINTS}", timeConstraints)
-            .Replace("{ADDITIONAL_CHALLENGES}", additionalChallenges);
+            .Replace("{NPC_LIST}", npcList);
 
         return CreatePromptJson(prompt);
     }
 
-    private string GetCharactersAtLocation(string locationName, WorldState worldState, PlayerState playerState)
+    private string GetCharactersAtLocation(string locationName, 
+        List<Character> characters, 
+        RelationshipList relationshipList)
     {
-        if (worldState == null)
-            return "Local individuals relevant to the encounter";
-
         // Filter characters by current location
-        List<Character> locationCharacters = worldState.GetCharacters()
+        List<Character> locationCharacters = characters
             .Where(c =>
             {
                 return c.Location.Equals(locationName, StringComparison.OrdinalIgnoreCase);
@@ -100,11 +93,8 @@ public class PromptManager
             int relationshipLevel = 0;
             string relationshipDescription = "Stranger";
 
-            if (playerState?.Relationships != null)
-            {
-                relationshipLevel = playerState.Relationships.GetLevel(character.Name);
-                relationshipDescription = GetRelationshipDescription(relationshipLevel);
-            }
+            relationshipLevel = relationshipList.GetLevel(character.Name);
+            relationshipDescription = GetRelationshipDescription(relationshipLevel);
 
             characterInfo.AppendLine($"- {character.Name}: {character.Role}. {character.Description}");
             characterInfo.AppendLine($"  Relationship: {relationshipDescription} (Level {relationshipLevel})");
@@ -159,26 +149,14 @@ public class PromptManager
 
     public string BuildReactionPrompt(
         NarrativeContext context,
-        NarrativeChoice chosenOption,
+        EncounterOption chosenOption,
         ChoiceNarrative choiceDescription,
-        ChoiceOutcome outcome,
-        EncounterStatusModel state)
+        ChoiceOutcome outcome)
     {
         string template = _promptTemplates[REACTION_MD];
 
-        // Calculate encounter stage
-        string encounterStage = DetermineEncounterStage(state.CurrentTurn, state.MaxTurns, state.Momentum, state.MaxMomentum, state.Pressure, state.MaxPressure);
-
-        // Get previous momentum and pressure
-        int previousMomentum = state.Momentum - outcome.MomentumGain;
-        int previousPressure = state.Pressure - outcome.PressureGain;
-
         // Format strategic effects
         StringBuilder strategicEffects = new StringBuilder();
-        strategicEffects.AppendLine("## Momentum and Pressure Changes:");
-        strategicEffects.AppendLine($"- Momentum Gained: {outcome.MomentumGain}");
-        strategicEffects.AppendLine($"- Pressure Gained: {outcome.PressureGain}");
-
         if (outcome.HealthChange != 0)
         {
             strategicEffects.AppendLine($"- Health Change: {outcome.HealthChange}");
@@ -191,29 +169,8 @@ public class PromptManager
 
         // Replace placeholders in template
         string prompt = template
-            .Replace("{ENCOUNTER_TYPE}", state.EncounterType.ToString())
-            .Replace("{CURRENT_TURN}", context.Events.Count.ToString())
-            .Replace("{MAX_TURNS}", state.MaxTurns.ToString())
-            .Replace("{SUCCESS_THRESHOLD}", state.SuccessThreshold.ToString())
-            .Replace("{NEW_MOMENTUM}", state.Momentum.ToString())
-            .Replace("{OLD_MOMENTUM}", previousMomentum.ToString())
-            .Replace("{MAX_MOMENTUM}", state.MaxMomentum.ToString())
-            .Replace("{NEW_PRESSURE}", state.Pressure.ToString())
-            .Replace("{OLD_PRESSURE}", previousPressure.ToString())
-            .Replace("{MAX_PRESSURE}", state.MaxPressure.ToString())
-            .Replace("{ACTIVE_TAGS}", FormatTags(state.ActiveTags.Select(x =>
-            {
-                return x.NarrativeName;
-            }).ToList()))
             .Replace("{SELECTED_CHOICE}", choiceDescription.ShorthandName)
             .Replace("{CHOICE_DESCRIPTION}", choiceDescription.FullDescription)
-            .Replace("{OLD_HEALTH}", (state.Health - outcome.HealthChange).ToString())
-            .Replace("{NEW_HEALTH}", state.Health.ToString())
-            .Replace("{MAX_HEALTH}", state.MaxHealth.ToString())
-            .Replace("{OLD_CONCENTRATION}", (state.Concentration - outcome.ConcentrationChange).ToString())
-            .Replace("{NEW_CONCENTRATION}", state.Concentration.ToString())
-            .Replace("{MAX_CONCENTRATION}", state.MaxConcentration.ToString())
-            .Replace("{PLAYER_STATUS}", BuildCharacterStatusSummary(state))
             .Replace("{STRATEGIC_EFFECTS}", strategicEffects.ToString());
 
         return CreatePromptJson(prompt);
@@ -221,14 +178,10 @@ public class PromptManager
 
     public string BuildChoicesPrompt(
         NarrativeContext context,
-        List<NarrativeChoice> choices,
-        List<ChoiceProjection> projections,
-        EncounterStatusModel state)
+        List<EncounterOption> choices,
+        List<ChoiceProjection> projections)
     {
         string template = _promptTemplates[CHOICES_MD];
-
-        // Calculate encounter stage
-        string encounterStage = DetermineEncounterStage(state.CurrentTurn, state.MaxTurns, state.Momentum, state.MaxMomentum, state.Pressure, state.MaxPressure);
 
         // Get the most recent narrative event for current situation
         string currentSituation = "No previous narrative available.";
@@ -238,33 +191,14 @@ public class PromptManager
             currentSituation = lastEvent.Summary;
         }
 
-        // Format active narrative tags
-        string narrativeTagsInfo = string.Join(Environment.NewLine,
-            state.ActiveTags.Where(t =>
-            {
-                return t is NarrativeTag;
-            })
-            .Select(tag =>
-            {
-                return $"- {tag.NarrativeName}: {((NarrativeTag)tag).GetEffectDescription()}";
-            }));
-
         // Build choices info without StringBuilder - do it conditionally
         string choicesInfo = "";
         for (int i = 0; i < choices.Count; i++)
         {
-            NarrativeChoice choice = choices[i];
+            EncounterOption choice = choices[i];
             ChoiceProjection projection = projections[i];
 
             string choiceText = $"\nCHOICE {i + 1}:\n";
-
-            // Only add momentum/pressure changes if non-zero
-            if (projection.MomentumGained != 0)
-                choiceText += $"\n- Momentum Change: {projection.MomentumGained}";
-
-            if (projection.PressureBuilt != 0)
-                choiceText += $"\n- Pressure Change: {projection.PressureBuilt}";
-
 
             // Only add resource changes if non-zero
             if (projection.HealthChange != 0)
@@ -283,66 +217,22 @@ public class PromptManager
                     "Will achieve goal to" : "Will fail to")} {context.ActionImplementation.Description}";
             }
 
-
-            // Only add strategic effects if there are any
-            List<ChoiceProjection.ValueComponent> momentumComponents = projection.MomentumComponents
-                .Where(c =>
-                {
-                    return c.Source != "Momentum Choice Base";
-                }).ToList();
-            List<ChoiceProjection.ValueComponent> pressureComponents = projection.PressureComponents
-                .Where(c =>
-                {
-                    return c.Source != "Pressure Choice Base";
-                }).ToList();
-
             // Add this choice's text to the overall choices info
             choicesInfo += choiceText;
         }
 
         // Replace placeholders in template
         string prompt = template
-            .Replace("{ENCOUNTER_TYPE}", state.EncounterType.ToString())
-            .Replace("{CURRENT_TURN}", context.Events.Count.ToString())
-            .Replace("{MAX_TURNS}", state.MaxTurns.ToString())
-            .Replace("{SUCCESS_THRESHOLD}", state.SuccessThreshold.ToString())
-            .Replace("{MOMENTUM}", state.Momentum.ToString())
-            .Replace("{MAX_MOMENTUM}", state.MaxMomentum.ToString())
-            .Replace("{PRESSURE}", state.Pressure.ToString())
-            .Replace("{MAX_PRESSURE}", state.MaxPressure.ToString())
-            .Replace("{ACTIVE_TAGS}", FormatTags(state.ActiveTags.Select(x =>
-            {
-                return x.NarrativeName;
-            }).ToList()))
             .Replace("{ENCOUNTER_GOAL}", context.ActionImplementation.Description)
-            .Replace("{HEALTH}", state.Health.ToString())
-            .Replace("{MAX_HEALTH}", state.MaxHealth.ToString())
-            .Replace("{CONCENTRATION}", state.Concentration.ToString())
-            .Replace("{MAX_CONCENTRATION}", state.MaxConcentration.ToString())
-            .Replace("{PLAYER_STATUS}", BuildCharacterStatusSummary(state))
             .Replace("{CHOICES_INFO}", choicesInfo);
 
         return CreatePromptJson(prompt);
     }
 
-    private string BuildCharacterStatusSummary(EncounterStatusModel state)
-    {
-        StringBuilder status = new StringBuilder();
-
-        if (state.Health < state.MaxHealth)
-            status.Append($"Health: {state.Health}/{state.MaxHealth}. ");
-
-        if (state.Concentration < state.MaxConcentration)
-            status.Append($"Concentration: {state.Concentration}/{state.MaxConcentration}. ");
-
-        return status.Length > 0 ? status.ToString() : "In good condition";
-    }
-
     public string BuildEncounterEndPrompt(
         NarrativeContext context,
-        EncounterStatusModel finalState,
         EncounterOutcomes outcome,
-        NarrativeChoice finalChoice,
+        EncounterOption finalChoice,
         ChoiceNarrative choiceDescription
         )
     {
@@ -373,8 +263,6 @@ public class PromptManager
             .Replace("{LOCATION_NAME}", context.LocationName)
             .Replace("{LOCATION_SPOT}", context.locationSpotName)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
-            .Replace("{FINAL_MOMENTUM}", finalState.Momentum.ToString())
-            .Replace("{FINAL_PRESSURE}", finalState.Pressure.ToString())
             .Replace("{LAST_NARRATIVE}", lastNarrative)
             .Replace("{GOAL_ACHIEVEMENT_STATUS}", goalAchievementStatus);
 
@@ -569,22 +457,6 @@ public class PromptManager
             return string.Join(", ", modificationStrings);
         }
 
-        // Simplified active narrative tags format
-        public string FormatActiveNarrativeTags(EncounterStatusModel state)
-        {
-            // Only include narrative tags that block approaches
-            List<string> activeTagsWithEffects = new List<string>();
-
-            foreach (string tag in state.ActiveTagNames)
-            {
-                activeTagsWithEffects.Add($"{tag}");
-            }
-
-            return activeTagsWithEffects.Count > 0 ?
-                string.Join(", ", activeTagsWithEffects) :
-                "No approach restrictions";
-        }
-
         public string FormatTagValues<TKey>(Dictionary<TKey, int> tags) where TKey : notnull
         {
             List<string> tagStrings = new List<string>();
@@ -596,51 +468,6 @@ public class PromptManager
             return string.Join(", ", tagStrings);
         }
 
-        public string FormatNarrativeTags(EncounterStatusModel state)
-        {
-            // Since EncounterStatus doesn't expose tag objects directly, work with names
-            List<string> activeNarrativeTagNames = state.ActiveTagNames
-                .Where(name =>
-                {
-                    return name.Contains("Market") || name.Contains("Territory") ||
-                                                   name.Contains("Fight") || name.Contains("Weapons");
-                })
-                .ToList();
-
-            if (activeNarrativeTagNames.Count == 0)
-                return "None";
-
-            List<string> tagDescriptions = new List<string>();
-            foreach (string tagName in activeNarrativeTagNames)
-            {
-                tagDescriptions.Add($"{tagName}");
-            }
-
-            return string.Join(", ", tagDescriptions);
-        }
-
-        // Format strategic tags with effect descriptions
-        public string FormatStrategicTags(EncounterStatusModel state)
-        {
-            // Since EncounterStatus doesn't expose tag objects directly, work with names
-            List<string> activeStrategicTagNames = state.ActiveTagNames
-                .Where(name =>
-                {
-                    return !name.Contains("Market") && !name.Contains("Territory") &&
-                                                  !name.Contains("Fight") && !name.Contains("Weapons");
-                })
-                .ToList();
-
-            if (activeStrategicTagNames.Count == 0)
-                return "None";
-
-            List<string> tagDescriptions = new List<string>();
-            return string.Join(", ", tagDescriptions);
-        }
-
-        // Add these methods to your TagFormatter class
-
-        // Format narrative tags with effect descriptions - for when you have direct access to NarrativeTag objects
         public string FormatNarrativeTagsExtended(List<NarrativeTag> narrativeTags)
         {
             if (narrativeTags == null || narrativeTags.Count == 0)

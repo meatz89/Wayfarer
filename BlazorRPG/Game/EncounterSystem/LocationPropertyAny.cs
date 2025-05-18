@@ -1,11 +1,11 @@
 ﻿/// <summary>
 /// Special implementation of IEnvironmentalProperty that matches any property of the same type
 /// </summary>
-public class EnvironmentalPropertyAny : IEnvironmentalProperty
+public class LocationPropertyAny : ILocationProperty
 {
     private readonly string _propertyType;
 
-    public EnvironmentalPropertyAny(string propertyType)
+    public LocationPropertyAny(string propertyType)
     {
         _propertyType = propertyType;
     }
@@ -22,7 +22,7 @@ public class EnvironmentalPropertyAny : IEnvironmentalProperty
 
     public override bool Equals(object obj)
     {
-        if (obj is IEnvironmentalProperty other)
+        if (obj is ILocationProperty other)
         {
             // Match any property with the same type
             return GetPropertyType() == other.GetPropertyType();

@@ -27,15 +27,6 @@
 		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ]
 	},
 	{
-		"id": "forest_clearing",
-		"name": "Forest Clearing",
-		"type": "FEATURE",
-		"description": "An open space within the dense forest, allowing sunlight to reach the ground.",
-		"initialState": "Dappled sunlight falls through the canopy, animal tracks visible in the soft earth.",
-		"locationId": "forest_path",
-		"timeWindows": [ "Morning", "Afternoon", "Evening" ]
-	},
-	{
 		"id": "marketplace",
 		"name": "Town Marketplace",
 		"type": "FEATURE",
@@ -79,14 +70,5 @@
 		"initialState": "Arranging wares and calling to passersby.",
 		"locationId": "town_square",
 		"timeWindows": [ "Morning", "Afternoon" ]
-	},
-	{
-		"id": "village_elder",
-		"name": "Village Elder",
-		"type": "CHARACTER",
-		"description": "An elderly person with a lifetime of knowledge about the region.",
-		"initialState": "Sitting quietly, observing the day's activities with knowing eyes.",
-		"locationId": "town_square",
-		"timeWindows": [ "Morning", "Afternoon", "Evening" ]
 	}
 ]

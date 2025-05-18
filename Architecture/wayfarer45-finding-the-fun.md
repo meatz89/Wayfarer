@@ -1,365 +1,196 @@
-# Strategic Depth Within Wayfarer's Framework: Finding the Fun
+# Refined Resource Economy & Reward Structure for Wayfarer
 
-After thoroughly reexamining your documentation, I understand I need to identify the strategic fun within your existing encounter and commission framework without adding complexity. Let me distill where the genuine decisions emerge in your system.
+After thoroughly examining the system, I've refined the core resource economy to create tight, meaningful progression loops without unnecessary complexity.
 
-## The Strategic Triangle: Three Key Tensions
+## Reward Structure Analysis
 
-After multiple analyses, I've identified three fundamental constraints that create strategic depth when properly balanced:
+### Core Resource Types
+1. **Action Resources**
+   - Time Blocks (Morning, Afternoon, Evening, Night)
+   - Action Points (18 per day, one for each waking hour)
+   - Cards (Physical, Intellectual, Social) (hand limit: 4)
+   - Energy (limits Physical cards)
+   - Concentration (limits Intellectual cards)
+   - Silver (universal currency)
 
-### 1. Time Block Scarcity (3 per day)
+2. **Progression Resources**
+   - Reputation (0-100) - Primary measure of social standing
+   - Insight Points - Used for Chronicle advancements
+   - Commission Progress - Steps toward commission completion
 
-Time blocks are your most precious resource. Each day provides exactly 3 blocks (Morning, Afternoon, Evening), and every significant activity consumes one:
-- Traveling to a new location
-- Initiating an encounter at a location
-- Resting to recover Energy/Concentration
+### Resource Loops That Create Tension
 
-This simple constraint creates immediate strategic tension - you can only do 3 things per day, period.
+The system creates three interconnected resource loops:
 
-### 2. Card Specialization & Exhaustion
+**Basic Survival Loop**
+- Spend Cards → Complete Actions → Earn Silver → Pay for Lodging → Refresh Cards
 
-Cards aren't just generic "Physical/Intellectual/Social" tokens - they represent specific skills:
-- **Physical**: Strength, Endurance, Precision, Agility
-- **Intellectual**: Analysis, Observation, Knowledge, Planning
-- **Social**: Charm, Persuasion, Deception, Intimidation
+**Progression Loop**
+- Complete Commissions → Earn Reputation → Access Better Commissions → Earn More Resources
 
-When you use a card, it's exhausted until properly refreshed. This creates strategic card selection because:
-- Commission steps require specific location + card type combinations
-- Encounter skill checks benefit from specific skill types
-- Limited deck space forces prioritization of certain capabilities each day
+**Development Loop**
+- Earn Insight Points → Improve Skills → Enhance Card Effectiveness → Handle Harder Commissions
 
-### 3. Encounter Decision Points
+## Action Reward Refinement
 
-Encounters aren't just pass/fail skill checks - they're multi-stage decision trees where each choice:
-- Can succeed/fail based on skill checks
-- Affects subsequent encounter stages
-- Determines the quality of commission progress
-- Potentially creates unexpected complications
+### Repeatable Actions (Always Available)
+**Physical Approaches**
+- **Primary Reward**: Silver (2-3)
+- **Secondary Reward**: None or minimal Reputation (0-1)
+- **NEVER Provides**: Insight Points, significant Reputation
 
-The strategy emerges from how these three constraints interact without needing additional systems.
+**Intellectual Approaches**
+- **Primary Reward**: Insight Points (1)
+- **Secondary Reward**: Minimal Silver (1-2)
+- **NEVER Provides**: Significant Silver, significant Reputation
 
-## How These Create Strategic Depth
+**Social Approaches**
+- **Primary Reward**: Reputation (1-2)
+- **Secondary Reward**: Minimal Silver (1)
+- **NEVER Provides**: Insight Points, significant Silver
 
-Here's how these three constraints create genuine strategic decisions:
+### Commission Actions (One-Time Only)
+**Labor Commissions**
+- **Primary Reward**: Silver (8-15)
+- **Secondary Reward**: Moderate Reputation (3-8)
+- **NEVER Provides**: Significant Insight Points
 
-### 1. Card Selection Strategy
+**Research Commissions**
+- **Primary Reward**: Insight Points (1-3)
+- **Secondary Reward**: Moderate Silver (5-10), Moderate Reputation (3-5)
+- **NEVER Provides**: Highest Silver rewards
 
-Your daily deck isn't just "what cards do I have" but "which specific skills do I need today":
+**Diplomatic Commissions**
+- **Primary Reward**: Reputation (8-15)
+- **Secondary Reward**: Moderate Silver (5-8)
+- **NEVER Provides**: Highest Silver rewards, Significant Insight Points
 
+## Progression Gates & Critical Requirements
+
+**Reputation Thresholds**
+- **Basic Commissions**: 0 Reputation (available immediately)
+- **Intermediate Commissions**: 15 Reputation
+- **Advanced Commissions**: 30 Reputation
+- **Position Offers**: 40+ Reputation AND completion of specific commission chains
+
+**Lodging Options**
+- **Floor Space**: 2 Silver/night (minimal card refresh)
+- **Shared Room**: 5 Silver/night (partial card refresh)
+- **Private Room**: 8 Silver/night (full card refresh, counts for success)
+- **Rented Cottage**: 100 Silver deposit (permanent lodging, counts for success)
+
+**Card Refresh Costs**
+- First refresh: 2 Silver
+- Second refresh: 5 Silver
+- Third refresh: 10 Silver
+- Fourth+ refresh: 15 Silver each
+
+## Procedural Encounter System Refinement
+
+### Structured Approach Options
+Each action must offer 1-3 approach options with these differences:
+- Different card type requirement (Physical/Intellectual/Social)
+- Different reward profiles aligned with card type
+- Different skill check paths in the generated encounter
+
+### Encounter Generation Parameters
+- **Stage Count**: 2-3 stages based on commission complexity
+- **Progress Threshold**: 8-15 based on commission tier
+- **Base Progress Formula**: `2 × stage_number`
+- **Skill Check Difficulty**: `1 + stage_number + location_modifiers`
+- **Bonus Progress**: +2 for primary skill, +0 for secondary skill
+- **Failure Impact**: Minimal progress (+1) or minor setback (-1)
+
+### Sample Structured Progress Thresholds
+- **Tier 1 Commission**: 8 progress needed (completable in one good encounter)
+- **Tier 2 Commission**: 12 progress needed (requires strategic choices)
+- **Tier 3 Commission**: 15 progress needed (requires optimal skill usage)
+
+## Sample Implementation
+
+### Repeatable Action
 ```
-Commission: Investigate Merchant Discrepancy
-Required steps:
-1. Examine Records (at Guild Hall, Intellectual card required)
-2. Question Witnesses (at Market, Social card required)
-3. Search Warehouse (at Docks, Physical card required)
+Action: "Inn Assistance"
+Location: Dusty Flagon (Common Room)
+Approaches:
+- Physical: "Manual Labor" (Physical card)
+  • Reward: 3 Silver
+  • Suitable for: Quick silver generation
 
-Available cards (maximum 5):
-- Strength (Physical) - +2 to forceful approaches
-- Precision (Physical) - +1 to detailed examination
-- Agility (Physical) - +2 to stealth and quick movement
-- Analysis (Intellectual) - +2 to pattern recognition
-- Knowledge (Intellectual) - +1 to historical or theoretical understanding
-- Observation (Intellectual) - +2 to environmental details
-- Charm (Social) - +2 to friendly persuasion
-- Intimidation (Social) - +1 to forceful questioning
-```
+- Intellectual: "Organize Records" (Intellectual card)
+  • Reward: 1 Silver, 1 Insight Point
+  • Suitable for: Chronicle advancement
 
-This creates genuine decisions - not just "I need a Physical card" but "I need the right Physical card for the encounter choices I plan to make."
-
-### 2. Time Block Optimization
-
-With only 3 time blocks daily, you constantly face decisions about priority:
-
-```
-Day planning considerations:
-- Commission A step must be completed today (deadline)
-- Commission B offers higher reward but requires traveling twice
-- Current Energy is low, suggesting using a block for rest
-- Specific card needed for Commission C is exhausted
-```
-
-These constraints force prioritization between competing goals without needing additional systems.
-
-### 3. Encounter Path Selection
-
-Within encounters, your choices create branching outcomes:
-
-```
-Encounter: Examine Merchant Records
-Stage 1 - Gaining Access:
-- Official request (requires Persuasion)
-- Sneak in after hours (requires Agility)
-- Bribe clerk (requires Deception, costs Silver)
-- Ask for public records only (no requirement, limits information)
-
-[Based on choice, proceeds to different Stage 2 options...]
-```
-
-Each path has different requirements, risks, and potential rewards, creating meaningful decision points even within a single encounter.
-
-## The Daily Strategic Loop
-
-This creates a tight strategic loop where players must constantly evaluate:
-
-1. **Morning Planning**:
-   - Which commissions should I prioritize today?
-   - Which cards best support my plans?
-   - What's my optimal route between locations?
-
-2. **Encounter Execution**:
-   - Which approach gives me the best chance with my cards?
-   - Is it worth attempting higher-difficulty options?
-   - How do I adapt if early encounter stages go poorly?
-
-3. **Resource Management**:
-   - Should I use a time block to refresh exhausted cards?
-   - Is it better to complete one commission fully or make progress on multiple?
-   - How do I balance immediate rewards vs. positioning for tomorrow?
-
-## Implementation Example
-
-```
-Day 3 - Starting Situation:
-
-Time Blocks: 3 (Morning, Afternoon, Evening)
-Location: Inn
-
-Active Commissions:
-1. Investigate Theft (2/3 complete)
-   - Final step: Confront Suspect (at Tavern, requires Social card)
-   - Deadline: Today
-   - Reward: 12 Silver, +5 Reputation
-
-2. Document Irregularities (1/3 complete)
-   - Next step: Compare Ledgers (at Guild Hall, requires Intellectual card)
-   - Deadline: Tomorrow
-   - Reward: 8 Silver, +10 Reputation
-
-Available Cards:
-- Strength (Physical, +2) - Exhausted
-- Observation (Intellectual, +1)
-- Analysis (Intellectual, +2)
-- Charm (Social, +1)
-- Persuasion (Social, +2)
-
-Energy: 2/10 (Low)
-Concentration: 8/10 (High)
+- Social: "Customer Service" (Social card)
+  • Reward: 1 Silver, 2 Reputation
+  • Suitable for: Building initial reputation
 ```
 
-This creates meaningful decisions without additional systems:
-- Do I prioritize completing the Theft commission before it expires?
-- Should I use a time block to rest and refresh my Strength card?
-- Is it worth traveling to Guild Hall to make progress on the second commission?
-- Which Social card should I use for the confrontation? (Charm for friendly approach or Persuasion for direct questioning)
+### Commission Action (Tier 1)
+```
+Commission: "Repair Damaged Furniture"
+Location: Dusty Flagon
+Progress Threshold: 8
+Reputation Requirement: 0
+Expires: 2 days
 
-## Where the Strategic Fun Lies
+Approaches:
+- Physical: "Direct Repairs" (Physical card)
+  • Reward: 8 Silver, 3 Reputation
+  • Encounter focuses on Strength/Precision checks
 
-The strategic depth emerges from:
+- Intellectual: "Design-Based Approach" (Intellectual card)
+  • Reward: 5 Silver, 3 Reputation, 1 Insight Point
+  • Encounter focuses on Analysis/Knowledge checks
 
-1. **Opportunity Cost**: Every choice means not doing something else
-2. **Resource Juggling**: Managing cards, time blocks, and commission deadlines
-3. **Risk Assessment**: Judging when to attempt difficult skill checks
-4. **Path Optimization**: Finding efficient routes through commission steps
-5. **Encounter Navigation**: Selecting appropriate approaches based on available cards
+- Social: "Coordinate Helpers" (Social card)
+  • Reward: 5 Silver, 5 Reputation
+  • Encounter focuses on Persuasion/Charm checks
+```
 
-This creates meaningful gameplay without additional complexity because the constraints create natural tension and force trade-offs between competing priorities.
+### Commission Action (Tier 2)
+```
+Commission: "Investigate Merchant Discrepancies"
+Location: Market District
+Progress Threshold: 12
+Reputation Requirement: 15
+Expires: 3 days
 
-## Profession Differentiation
+Approaches:
+- Physical: "Shadow Suspects" (Physical card)
+  • Reward: 10 Silver, 5 Reputation
+  • Encounter focuses on Endurance/Agility checks
 
-Each profession approaches these constraints differently:
+- Intellectual: "Audit Records" (Intellectual card)
+  • Reward: 8 Silver, 5 Reputation, 2 Insight Points
+  • Encounter focuses on Analysis/Knowledge checks
 
-- **Warrior**: More efficient with Physical cards, can succeed with fewer of them
-- **Scholar**: Intellectual encounters require less Concentration
-- **Courtier**: Social cards refresh more easily, reducing resource pressure
+- Social: "Question Merchants" (Social card)
+  • Reward: 7 Silver, 8 Reputation
+  • Encounter focuses on Charm/Deception checks
+```
 
-This creates diverse playstyles using the same core mechanics.
+### Position Offer Commission (Tier 3)
+```
+Commission: "Guard Captain Assessment"
+Location: Town Square
+Progress Threshold: 15
+Reputation Requirement: 30
+Prerequisite: Complete "Town Guard Training"
+Expires: 2 days
 
-The strategic fun comes not from complex systems, but from how simple constraints interact to create meaningful decisions at every level - from daily planning to encounter execution.
+Approaches:
+- Physical: "Combat Demonstration" (Physical card)
+  • Reward: 15 Silver, 10 Reputation, Guard Position Offer
+  • Encounter focuses on Strength/Endurance checks
 
+- Intellectual: "Tactical Assessment" (Intellectual card)
+  • Reward: 12 Silver, 8 Reputation, 2 Insight Points, Guard Position Offer
+  • Encounter focuses on Analysis/Planning checks
 
-# Minimal Commission System: Proof of Concept Specification
+- Social: "Leadership Demonstration" (Social card)
+  • Reward: 10 Silver, 12 Reputation, Guard Position Offer
+  • Encounter focuses on Persuasion/Intimidation checks
+```
 
-After carefully analyzing the most efficient implementation path, I've designed a streamlined commission system that creates meaningful strategic decisions while minimizing development complexity.
-
-## Core Mechanical Components
-
-### 1. Commission Structure
-Each commission contains:
-- **Name**: Clear identifier
-- **Description**: Brief narrative context
-- **Steps**: Exactly 2 steps per commission (minimal yet strategic)
-- **Deadline**: Number of days to complete (1-2 for POC)
-- **Rewards**: Silver and Reputation gains
-
-### 2. Step Requirements
-Each commission step requires:
-- **Location**: Specific spot where step must be performed
-- **Card Type**: Physical, Intellectual, or Social
-- **Specific Skill**: Which skill card is optimal (Strength, Analysis, etc.)
-- **Approach Options**: Different ways to tackle the step
-
-### 3. Player Limitations
-- **Maximum Active**: 2 commissions simultaneously
-- **Step Order**: Steps must be completed sequentially
-- **Card Requirements**: Must use specified card type for step encounter
-
-## Strategic Tension Creators
-
-The minimal POC deliberately creates three key strategic tensions:
-
-### 1. Time vs. Reward Trade-off
-- Commission 1: Tight deadline but conveniently located
-- Commission 2: Longer deadline but moderate travel
-- Commission 3: Longer deadline with highest reward but requires extensive travel
-
-### 2. Card Selection Strategy
-Each commission deliberately requires different card combinations:
-- Commission 1: Intellectual → Physical
-- Commission 2: Social → Intellectual
-- Commission 3: Physical → Social
-
-### 3. Approach Selection Dilemmas
-Each step offers 2-3 approach options with:
-- Different specific skill requirements
-- Varying success conditions
-- Risk/reward trade-offs
-
-## Day One Implementation: Static Commissions
-
-### Commission 1: "Urgent Inn Repairs"
-- **Description**: "The innkeeper needs critical repairs before tonight's guests arrive."
-- **Deadline**: End of today (creates immediate pressure)
-- **Steps**:
-  1. **Assess Damage** (Location: Inn, Intellectual Card)
-     - **Approach A**: Thorough Analysis (Analysis Skill, +1 to repair)
-     - **Approach B**: Quick Inspection (Observation Skill, faster but no bonus)
-  
-  2. **Complete Repairs** (Location: Inn, Physical Card)
-     - **Approach A**: Careful Reconstruction (Precision Skill, better quality)
-     - **Approach B**: Forceful Repairs (Strength Skill, faster completion)
-- **Reward**: 8 Silver, +5 Reputation
-- **Strategic Value**: Completable in one location, tight timeline
-
-### Commission 2: "Missing Merchant Records"
-- **Description**: "A merchant's ledger has disappeared containing sensitive information."
-- **Deadline**: End of tomorrow
-- **Steps**:
-  1. **Interview Witnesses** (Location: Market, Social Card)
-     - **Approach A**: Friendly Questioning (Charm Skill, builds rapport)
-     - **Approach B**: Direct Interrogation (Persuasion Skill, faster information)
-  
-  2. **Search Merchant Quarter** (Location: Merchant Quarter, Intellectual Card)
-     - **Approach A**: Methodical Investigation (Analysis Skill, more thorough)
-     - **Approach B**: Spot Checking Likely Areas (Observation Skill, faster search)
-- **Reward**: 6 Silver, +8 Reputation
-- **Strategic Value**: Balanced rewards, requires travel between two locations
-
-### Commission 3: "Noble's Disputed Order"
-- **Description**: "Resolve a dispute between the blacksmith and a noble client."
-- **Deadline**: End of tomorrow
-- **Steps**:
-  1. **Examine Craftsmanship** (Location: Forge, Physical Card)
-     - **Approach A**: Detailed Inspection (Precision Skill, identifies issues)
-     - **Approach B**: Practical Testing (Strength Skill, tests functionality)
-  
-  2. **Mediate Agreement** (Location: Noble Quarter, Social Card)
-     - **Approach A**: Diplomatic Solution (Charm Skill, preserves relationships)
-     - **Approach B**: Assertive Negotiation (Persuasion Skill, better terms)
-- **Reward**: 10 Silver, +3 Reputation
-- **Strategic Value**: Highest silver reward, requires lengthy travel between distant locations
-
-## Required Interface Elements
-
-### 1. Commission Board
-- Lists available commissions with key details
-- Shows deadlines and rewards clearly
-- Allows accepting up to 2 active commissions
-
-### 2. Active Commission Tracker
-- Displays current progress on each step
-- Shows time remaining until deadline
-- Indicates required card type and location for next step
-
-### 3. Encounter Integration
-- Marks locations with commission steps available
-- Displays approach options when using required card type
-- Shows success/failure and progress updates
-
-## Implementation Requirements
-
-The minimal POC requires:
-- 3 pre-designed static commissions
-- 6 total commission steps (2 per commission)
-- 12-18 approach options (2-3 per step)
-- Basic UI for commission tracking
-- Integration with existing card and location systems
-
-## Core Game Loop
-
-1. Player reviews available commissions at start of day
-2. Player selects cards based on planned commission steps
-3. Player travels to required locations using time blocks
-4. Player completes steps using required card types
-5. Player manages time blocks to meet deadlines
-6. Commission rewards are granted upon completion
-
-This minimal implementation creates genuine strategic decisions through the interplay of limited time blocks, card specialization, location travel requirements, and varying rewards - all without introducing unnecessary complexity.
-
-# Success and Failure States for Wayfarer
-
-After carefully considering your game's mechanics, here's a simple but effective framework for success and failure:
-
-## Success State: Establish Yourself in Town
-
-The player succeeds when they reach a position of respect and stability in the town within a 14-day timeframe, indicated by:
-
-- **Reputation Level 3+**: The townspeople recognize and respect you
-- **Stable Lodging**: You've secured proper accommodations (rented room or small property)
-- **Reliable Income**: You have a consistent way to earn silver (regular commission source)
-
-This represents successfully establishing yourself in a new place - a modest but meaningful achievement for a medieval traveler.
-
-## Failure States
-
-The player fails if any of these conditions occur:
-
-1. **Destitution**: Running out of silver with no lodging (forced to sleep in streets)
-2. **Expulsion**: Reputation falls below Level 0 (asked to leave town)
-3. **Time Limit**: 14 days pass without achieving success conditions
-
-## Multiple Paths to Success
-
-Each profession has a natural but non-exclusive path to establish themselves:
-
-### Physical Path (Warrior)
-- Build reputation through labor-focused commissions
-- Establish relationship with the Guard Captain or Blacksmith
-- Secure position as guard trainee or smith's assistant
-
-### Intellectual Path (Scholar)
-- Build reputation through research-focused commissions
-- Establish relationship with the Merchant Guild or Scribe
-- Secure position as record keeper or teacher
-
-### Social Path (Courtier)
-- Build reputation through diplomatic commissions
-- Establish relationship with the Innkeeper or Town Official
-- Secure position as mediator or representative
-
-## Strategic Play That's Fun
-
-Success comes from:
-- **Skill Development**: Improving capabilities in areas that match your playstyle
-- **Daily Planning**: Making efficient use of limited time blocks
-- **Card Management**: Selecting appropriate cards for upcoming challenges
-- **Building Relationships**: Creating connections with key NPCs
-- **Encounter Navigation**: Making wise choices during multi-stage encounters
-
-## Paths to Failure That Feel Fair
-
-Failure occurs when players:
-- **Ignore Reputation**: Repeatedly failing commission deadlines or making poor encounter choices
-- **Mismanage Resources**: Spending silver carelessly without maintaining lodging
-- **Repeat Ineffective Actions**: Attempting the same approaches despite poor results
-- **Neglect Card Refreshing**: Exhausting all cards of a specific type with no means to refresh
-
-This creates a simple but compelling framework where success feels earned through strategic play, and failure feels like a natural consequence of poor decisions rather than arbitrary punishment.
+This refined system creates genuine strategic tension through resource scarcity and meaningful choices, while maintaining mechanical clarity and implementation feasibility. Each resource has a clear purpose in the progression loop, and rewards are tightly calibrated to create distinct paths to success based on player approach preferences.

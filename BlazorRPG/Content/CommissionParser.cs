@@ -1,0 +1,155 @@
+﻿using System.Text.Json;
+
+public static class CommissionParser
+{
+    public static CommissionDefinition ParseCommission(string json)
+    {
+        using JsonDocument doc = JsonDocument.Parse(json);
+        JsonElement root = doc.RootElement;
+
+        string id = GetStringProperty(root, "id", "id");
+        string name = GetStringProperty(root, "name", id);
+        string description = GetStringProperty(root, "description", "");
+
+        // Parse commission type
+        CommissionTypes type = Enum.TryParse<CommissionTypes>(
+            GetStringProperty(root, "type", "ACCUMULATIVE"), true,
+            out CommissionTypes parsedType) ? parsedType : CommissionTypes.Accumulative;
+
+        // Parse thresholds and requirements
+        int progressThreshold = GetIntProperty(root, "progressThreshold", 8);
+        int expirationDays = GetIntProperty(root, "expirationDays", 3);
+        int reputationRequirement = GetIntProperty(root, "reputationRequirement", 0);
+
+        // Parse rewards
+        int silverReward = GetIntProperty(root, "silverReward", 0);
+        int reputationReward = GetIntProperty(root, "reputationReward", 0);
+        int insightPointReward = GetIntProperty(root, "insightPointReward", 0);
+
+        // Parse location and tier
+        string initialLocationId = GetStringProperty(root, "initialLocationId", "");
+        int tier = GetIntProperty(root, "tier", 1);
+
+        // Create the commission
+        CommissionDefinition commission = new CommissionDefinition
+        {
+            Id = id,
+            Name = name,
+            Description = description,
+            Type = type,
+            ProgressThreshold = progressThreshold,
+            ExpirationDays = expirationDays,
+            ReputationRequirement = reputationRequirement,
+            InitialLocationId = initialLocationId,
+            SilverReward = silverReward,
+            ReputationReward = reputationReward,
+            InsightPointReward = insightPointReward,
+            Tier = tier,
+        };
+
+        // Parse approaches
+        if (root.TryGetProperty("approaches", out JsonElement approachesElement) &&
+            approachesElement.ValueKind == JsonValueKind.Array)
+        {
+            commission.Approaches = ParseApproaches(approachesElement);
+        }
+
+        // For sequential commissions, parse the initial step
+        if (type == CommissionTypes.Sequential &&
+            root.TryGetProperty("initialStep", out JsonElement initialStepElement))
+        {
+            commission.InitialStep = ParseCommissionStep(initialStepElement);
+        }
+
+        return commission;
+    }
+
+    private static CommissionStep ParseCommissionStep(JsonElement stepElement)
+    {
+        string name = GetStringProperty(stepElement, "name", "");
+        string description = GetStringProperty(stepElement, "description", "");
+        string locationId = GetStringProperty(stepElement, "locationId", "");
+        int progressGoal = GetIntProperty(stepElement, "progressGoal", 5);
+
+        CommissionStep step = new CommissionStep
+        {
+            Name = name,
+            Description = description,
+            LocationId = locationId,
+            ProgressGoal = progressGoal
+        };
+
+        // Parse approaches for this step
+        if (stepElement.TryGetProperty("approaches", out JsonElement approachesElement) &&
+            approachesElement.ValueKind == JsonValueKind.Array)
+        {
+            step.Approaches = ParseApproaches(approachesElement);
+        }
+
+        return step;
+    }
+
+    private static List<ApproachDefinition> ParseApproaches(JsonElement approachesElement)
+    {
+        List<ApproachDefinition> approaches = new List<ApproachDefinition>();
+
+        foreach (JsonElement approachElement in approachesElement.EnumerateArray())
+        {
+            string id = GetStringProperty(approachElement, "id", "");
+            string name = GetStringProperty(approachElement, "name", "");
+            string description = GetStringProperty(approachElement, "description", "");
+
+            // Parse card type
+            string cardTypeStr = GetStringProperty(approachElement, "requiredCardType", "");
+            CardTypes requiredCardType = Enum.TryParse<CardTypes>(cardTypeStr, true,
+                out CardTypes parsedCardType) ? parsedCardType : CardTypes.Physical;
+
+            // Parse skills
+            string primarySkillStr = GetStringProperty(approachElement, "primarySkill", "");
+            SkillTypes primarySkill = Enum.TryParse<SkillTypes>(primarySkillStr, true,
+                out SkillTypes parsedPrimarySkill) ? parsedPrimarySkill : SkillTypes.Strength;
+
+            string secondarySkillStr = GetStringProperty(approachElement, "secondarySkill", "");
+            SkillTypes secondarySkill = Enum.TryParse<SkillTypes>(secondarySkillStr, true,
+                out SkillTypes parsedSecondarySkill) ? parsedSecondarySkill : SkillTypes.Endurance;
+
+            ApproachDefinition approach = new ApproachDefinition
+            {
+                Id = id,
+                Name = name,
+                Description = description,
+                RequiredCardType = requiredCardType,
+                PrimarySkill = primarySkill,
+                SecondarySkill = secondarySkill
+            };
+
+            approaches.Add(approach);
+        }
+
+        return approaches;
+    }
+
+    // Property getters (same as in ActionParser)
+    private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
+    {
+        if (element.TryGetProperty(propertyName, out JsonElement property) &&
+            property.ValueKind == JsonValueKind.String)
+        {
+            string value = property.GetString() ?? defaultValue;
+            return !string.IsNullOrWhiteSpace(value) ? value : defaultValue;
+        }
+        return defaultValue;
+    }
+
+    private static int GetIntProperty(JsonElement element, string propertyName, int defaultValue)
+    {
+        if (element.TryGetProperty(propertyName, out JsonElement property))
+        {
+            if (property.ValueKind == JsonValueKind.Number && property.TryGetInt32(out int value))
+            {
+                return value;
+            }
+        }
+        return defaultValue;
+    }
+}

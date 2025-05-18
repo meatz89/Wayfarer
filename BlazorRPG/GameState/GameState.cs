@@ -12,4 +12,12 @@
         WorldState = new WorldState();
         TimeManager = new TimeManager(PlayerState, WorldState);
     }
+
+    public void SetCurrentLocation(Location location, LocationSpot locationSpot)
+    {
+        WorldState.SetCurrentLocation(location, locationSpot);
+        WorldState.SetCurrentLocationSpot(locationSpot);
+        PlayerState.CurrentLocation = location;
+        PlayerState.CurrentLocationSpot = locationSpot;
+    }
 }

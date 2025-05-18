@@ -1,0 +1,51 @@
+[
+	{
+		"propertyId": "WELL-LIT",
+		"skillModifiers": {
+			"OBSERVATION": 1,
+			"PRECISION": 1
+		}
+	},
+	{
+		"propertyId": "DARK",
+		"skillModifiers": {
+			"OBSERVATION": -1,
+			"PRECISION": -1
+		}
+	},
+	{
+		"propertyId": "CROWDED",
+		"skillModifiers": {
+			"CHARM": 1,
+			"OBSERVATION": -1,
+			"ANALYSIS": -1
+		}
+	},
+	{
+		"propertyId": "QUIET",
+		"skillModifiers": {
+			"ANALYSIS": 1,
+			"OBSERVATION": 1,
+			"CHARM": -1
+		}
+	},
+	{
+		"propertyId": "INTERIOR",
+		"skillModifiers": {
+			"PRECISION": 1
+		}
+	},
+	{
+		"propertyId": "URBAN",
+		"skillModifiers": {
+			"CHARM": 1,
+			"PERSUASION": 1
+		}
+	},
+	{
+		"propertyId": "COMMERCE",
+		"skillModifiers": {
+			"PERSUASION": 1
+		}
+	}
+]

@@ -68,7 +68,7 @@
         if (worldState.CurrentLocationSpot == null && locationSystem.GetLocationSpots(currentLocation.Id).Any() == true)
         {
             Console.WriteLine("Current location spot is null despite spots existing - manually setting");
-            worldState.SetCurrentLocationSpot(locationSystem.GetLocationSpots(currentLocation.Id).First());
+            gameState.SetCurrentLocation(startingLocation, locationSystem.GetLocationSpots(currentLocation.Id).First());
         }
 
         Location? currentLoc = currentLocation;
@@ -85,15 +85,15 @@
         switch (archetype)
         {
             case Professions.Warrior:
-                playerProgression.AddSkillExp(Skills.Endurance, XpBonusForArchetype);
+                playerProgression.AddSkillExp(SkillTypes.Endurance, XpBonusForArchetype);
                 break;
             default:
-                playerProgression.AddSkillExp(Skills.Endurance, XpBonusForArchetype);
+                playerProgression.AddSkillExp(SkillTypes.Endurance, XpBonusForArchetype);
                 break;
         }
     }
 
-    public async Task RefreshCard(ActionCardDefinition card)
+    public async Task RefreshCard(CardDefinition card)
     {
         playerState.RefreshCard(card);
     }
@@ -111,7 +111,7 @@
         // Use our action classification system to determine execution path
         ActionExecutionTypes executionType = GetExecutionType(action.ActionImplementation);
 
-        ActionCardDefinition card = action.SelectedCard;
+        CardDefinition card = action.SelectedCard;
         if (card != null)
         { 
             playerState.ExhaustCard(card);
@@ -120,7 +120,13 @@
         switch (executionType)
         {
             case ActionExecutionTypes.Encounter:
-                EncounterManager encounterManager = await PrepareEncounter(actionImplementation);
+                EncounterManager encounterManager = 
+                    await PrepareEncounter(
+                        actionImplementation.Id,
+                        actionImplementation.Commission,
+                        action.ApproachId,
+                        actionImplementation);
+
                 gameState.ActionStateTracker.SetActiveEncounter(encounterManager);
 
                 break;
@@ -219,7 +225,11 @@
         return options;
     }
 
-    private async Task<EncounterManager> PrepareEncounter(ActionImplementation actionImplementation)
+    private async Task<EncounterManager> PrepareEncounter(
+        string id,
+        CommissionDefinition commission,
+        string approachId,
+        ActionImplementation actionImplementation)
     {
         Location location = worldState.CurrentLocation;
         string locationId = location.Id;
@@ -253,19 +263,23 @@
         // Create initial context with our new value system
         int playerLevel = playerState.Level;
 
+        var approach = commission.Approaches.Where(a => a.Id == approachId).FirstOrDefault();
+        var encounterType = approach.RequiredCardType;
+
         EncounterContext context = new EncounterContext()
         {
             ActionImplementation = actionImplementation,
-            BasicActionType = actionImplementation.EncounterType,
+            EncounterCategories = encounterType,
             Location = location,
             LocationSpot = locationSpot,
         };
 
         EncounterManager encounterManager = await encounterSystem.GenerateEncounter(
-            actionImplementation.Id,
+            id,
+            commission,
+            approachId,
             location,
             locationSpot,
-            context,
             worldState,
             playerState,
             actionImplementation);
@@ -341,11 +355,6 @@
         string narrative = narrativeResult?.SceneNarrative;
         string outcome = narrativeResult?.Outcome.ToString();
 
-        if (result.ActionResult == ActionResults.EncounterSuccess)
-        {
-            GainExperience(result);
-        }
-
         if (_processStateChanges)
         {
             await ProcessPostEncounterEvolution(result, narrative, outcome);
@@ -354,9 +363,6 @@
 
     private async Task ProcessPostEncounterEvolution(EncounterResult result, string narrative, string outcome)
     {
-        // If not a travel encounter, evolve the current location
-        EncounterCategories basicActionType = result.ActionImplementation.EncounterType;
-
         Location currentLocation = locationRepository.GetLocationById(result.NarrativeContext.LocationName);
         if (_useMemory)
         {
@@ -403,11 +409,11 @@
     public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions(EncounterResult encounterResult)
     {
         NarrativeResult narrativeResult = encounterResult.NarrativeResult;
-        List<NarrativeChoice> choices = encounterSystem.GetChoices();
+        List<EncounterOption> choices = encounterSystem.GetChoices();
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
 
         int i = 0;
-        foreach (NarrativeChoice choice in choices)
+        foreach (EncounterOption choice in choices)
         {
             i++;
             NarrativeContext narrativeContext = encounterResult.NarrativeContext;
@@ -443,7 +449,7 @@
         Location location = gameState.WorldState.CurrentLocation;
 
         LocationSpot locationSpot = locationSystem.GetLocationSpot(location.Id, locationSpotName);
-        gameState.WorldState.SetCurrentLocation(location, locationSpot);
+        gameState.SetCurrentLocation(location, locationSpot);
 
         await UpdateState();
     }
@@ -569,41 +575,6 @@
 
         return action;
     }
-
-    private Skills DetermineSkillForAction(ActionImplementation action)
-    {
-        // Map encounter type or action category to skill
-        return action.EncounterType switch
-        {
-            EncounterCategories.Force => Skills.Endurance,
-            EncounterCategories.Persuasion => Skills.Charm,
-            _ => Skills.Knowledge,
-        };
-    }
-
-    private void GainExperience(EncounterResult result)
-    {
-        int xpAward;
-        switch (result.NarrativeResult?.Outcome)
-        {
-            case EncounterOutcomes.Exceptional: xpAward = 50; break;
-            case EncounterOutcomes.Standard: xpAward = 30; break;
-            case EncounterOutcomes.Partial: xpAward = 15; break;
-            default: xpAward = 5; break;
-        }
-        xpAward += 10;
-
-        // Grant player XP level
-        playerProgression.AddPlayerExp(xpAward);
-        messageSystem.AddSystemMessage($"Gained {xpAward} experience points");
-
-        // Grant skill XP based on encounter type
-        Skills skill = DetermineSkillForAction(result.ActionImplementation);
-        int skillXp = xpAward; 
-        playerProgression.AddSkillExp(skill, skillXp);
-        messageSystem.AddSystemMessage($"Gained {skillXp} {skill} skill experience");
-    }
-
 
     public async Task StartNewDay()
     {

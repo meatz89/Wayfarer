@@ -1,12 +1,12 @@
-﻿public class EnvironmentalPropertyEffect
+﻿public class LocationPropertyEffect
 {
     public string Name;
-    public List<IEnvironmentalProperty> ActivationProperties { get; }
+    public List<ILocationProperty> ActivationProperties { get; }
     public StrategicTagEffectType EffectType { get; }
     public float Multiplier { get; set; }
 
-    public EnvironmentalPropertyEffect(
-        List<IEnvironmentalProperty> activationProperties,
+    public LocationPropertyEffect(
+        List<ILocationProperty> activationProperties,
         StrategicTagEffectType effectType,
         int multiplier = 1)
     {
@@ -18,7 +18,7 @@
     public override string ToString()
     {
         string activationProperties = string.Empty;
-        foreach (IEnvironmentalProperty property in ActivationProperties)
+        foreach (ILocationProperty property in ActivationProperties)
         {
             if (!string.IsNullOrWhiteSpace(activationProperties)) activationProperties += ", ";
             activationProperties += property.ToString();

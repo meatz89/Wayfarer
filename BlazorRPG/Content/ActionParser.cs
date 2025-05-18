@@ -9,72 +9,29 @@ public static class ActionParser
 
         string id = GetStringProperty(root, "id", "id");
         string name = GetStringProperty(root, "name", id);
-        string spotId = GetStringProperty(root, "spotId", "spotId");
+        string spotId = GetStringProperty(root, "locationSpotId", "");
+        string description = GetStringProperty(root, "description", "");
 
         ActionDefinition action = new ActionDefinition(id, name, spotId)
         {
-            Description = GetStringProperty(root, "description", ""),
+            Description = description,
+            ActionPointCost = GetIntProperty(root, "actionPointCost", 1),
+            SilverCost = GetIntProperty(root, "silverCost", 0),
+            EnergyCost = GetIntProperty(root, "energyCost", 0),
+            ConcentrationCost = GetIntProperty(root, "concentrationCost", 0)
         };
 
-        // Parse approaches
-        if (root.TryGetProperty("approaches", out JsonElement approachesElement) &&
-            approachesElement.ValueKind == JsonValueKind.Array)
+        // Parse refresh card type if present
+        string refreshCardType = GetStringProperty(root, "refreshCardType", "");
+        if (!string.IsNullOrEmpty(refreshCardType))
         {
-            foreach (JsonElement approachElement in approachesElement.EnumerateArray())
+            if (Enum.TryParse<CardTypes>(refreshCardType, true, out CardTypes cardType))
             {
-                string approachId = GetStringProperty(approachElement, "id", "");
-                string approachName = GetStringProperty(approachElement, "name", "");
-
-                ActionApproach approach = new ActionApproach(approachId, approachName)
-                {
-                    Description = GetStringProperty(approachElement, "description", ""),
-                    RequiredCardType = Enum.Parse<CardTypes>(GetStringProperty(approachElement, "cardType", ""), true),
-                    Skill = GetStringProperty(approachElement, "skill", ""),
-                    Difficulty = GetIntProperty(approachElement, "difficulty", 0)
-                };
-
-                // Parse rewards
-                if (approachElement.TryGetProperty("rewards", out JsonElement rewardsElement) &&
-                    rewardsElement.ValueKind == JsonValueKind.Object)
-                {
-                    foreach (JsonProperty reward in rewardsElement.EnumerateObject())
-                    {
-                        if (reward.Value.ValueKind == JsonValueKind.Number &&
-                            reward.Value.TryGetInt32(out int rewardValue))
-                        {
-                            approach.Rewards.Add(reward.Name, rewardValue);
-                        }
-                    }
-                }
-
-                action.Approaches.Add(approach);
+                action.RefreshCardType = cardType;
             }
         }
 
-        // Parse requirements
-        if (root.TryGetProperty("requirements", out JsonElement requirementsElement))
-        {
-            // Relationship level requirement
-            action.RelationshipLevel = GetIntProperty(requirementsElement, "relationshipLevel", 0);
-
-            // Resource requirements
-            if (requirementsElement.TryGetProperty("resources", out JsonElement resourcesElement))
-            {
-                if (resourcesElement.TryGetProperty("COINS", out JsonElement coinsElement) &&
-                    coinsElement.ValueKind == JsonValueKind.Number)
-                {
-                    action.CoinCost = coinsElement.GetInt32();
-                }
-
-                if (resourcesElement.TryGetProperty("FOOD", out JsonElement foodElement) &&
-                    foodElement.ValueKind == JsonValueKind.Number)
-                {
-                    action.FoodCost = foodElement.GetInt32();
-                }
-            }
-        }
-
-        // Parse time windows - UPDATED for new TimeWindows structure
+        // Parse time windows
         if (root.TryGetProperty("timeWindows", out JsonElement timeWindowsElement) &&
             timeWindowsElement.ValueKind == JsonValueKind.Array)
         {

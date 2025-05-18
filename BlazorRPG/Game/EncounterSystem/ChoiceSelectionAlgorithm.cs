@@ -2,138 +2,80 @@
 {
     private readonly NarrativeChoiceRepository _narrativeChoiceRepository;
 
-    public ChoiceSelectionAlgorithm(NarrativeChoiceRepository cardRepository)
+    public ChoiceSelectionAlgorithm(NarrativeChoiceRepository choiceRepository)
     {
-        _narrativeChoiceRepository = cardRepository;
+        _narrativeChoiceRepository = choiceRepository;
     }
 
-    public List<NarrativeChoice> SelectChoices(EncounterState state, PlayerState playerState)
+    public List<EncounterOption> SelectChoices(EncounterState state, PlayerState playerState)
     {
-        // Get all available cards
-        List<NarrativeChoice> allCards = _narrativeChoiceRepository.GetForEncounter(state);
+        // Get the current stage's options
+        List<EncounterOption> stageOptions = GetCurrentStageOptions(state);
 
-        List<NarrativeChoice> playableCards = FilterPlayableCards(allCards, state);
+        // Filter options based on player's available cards
+        List<EncounterOption> filteredOptions = FilterOptionsByAvailableCards(stageOptions, playerState);
 
-        // Calculate card viability scores
-        Dictionary<NarrativeChoice, CardViabilityScore> cardScores = new Dictionary<NarrativeChoice, CardViabilityScore>();
-        foreach (NarrativeChoice card in playableCards)
+        return filteredOptions;
+    }
+
+    private List<EncounterOption> GetCurrentStageOptions(EncounterState state)
+    {
+        if (state.CurrentStageIndex < state.EncounterInfo.Stages.Count)
         {
-            CardViabilityScore score = CalculateCardViability(
-                card,
-                state,
-                playerState
-            );
-            cardScores[card] = score;
+            return state.EncounterInfo.Stages[state.CurrentStageIndex].Options;
         }
 
-        // Select 4 strategically diverse cards based on the viability scores
-        return SelectStrategicCardHand(playableCards, cardScores);
+        return new List<EncounterOption>();
     }
 
-    private List<NarrativeChoice> FilterPlayableCards(List<NarrativeChoice> allCards, EncounterState state)
+    private List<EncounterOption> FilterOptionsByAvailableCards(List<EncounterOption> options, PlayerState playerState)
     {
-        List<NarrativeChoice> playableCards = new List<NarrativeChoice>();
+        List<EncounterOption> availableOptions = new List<EncounterOption>();
 
-        foreach (NarrativeChoice card in allCards)
+        foreach (EncounterOption option in options)
         {
-            // Tier 1 cards are always playable
-            if (card.Difficulty == 1)
+            // Check if player has a card that can be used for this skill type
+            CardTypes requiredCardType = GetCardTypeForSkill(option.Skill);
+            bool hasCardAvailable = playerState.HasNonExhaustedCardOfType(requiredCardType);
+
+            if (hasCardAvailable || option.Skill == SkillTypes.None)
             {
-                playableCards.Add(card);
-                continue;
+                availableOptions.Add(option);
             }
         }
 
-        return playableCards;
-    }
-
-    private CardViabilityScore CalculateCardViability(
-        NarrativeChoice card,
-        EncounterState state,
-        PlayerState playerState)
-    {
-        CardViabilityScore score = new CardViabilityScore();
-
-        // For Tier 1 cards, position doesn't matter as much
-        if (card.Difficulty == 1)
+        // Always ensure at least one option is available
+        if (availableOptions.Count == 0 && options.Count > 0)
         {
-            score.PositionalScore = 0;
-            score.IsPlayable = true;
-        }
-        else
-        {
-            // Apply tier modifiers
-            score.PositionalScore -= card.Difficulty; // Higher tier cards get an advantage
+            // Add a "safe" option that doesn't require a skill check
+            EncounterOption safeOption = new EncounterOption
+            {
+                Id = "safe_option",
+                Name = "Cautious Approach",
+                Description = "Take a safe but less effective approach",
+                Skill = SkillTypes.None,
+                Difficulty = 0,
+                SuccessProgress = 1,
+                FailureProgress = 0
+            };
 
-            // Card is already confirmed playable
-            score.IsPlayable = true;
+            availableOptions.Add(safeOption);
         }
 
-        // Strategic synergy with environmental properties
-        score.EnvironmentalSynergy = CalculateEnvironmentalSynergy(card, state);
-
-        // Check if skills make this card more effective
-        score.SkillBonus = CalculateSkillBonus(card, playerState);
-
-        // Final score calculation (lower is better)
-        score.TotalScore = score.PositionalScore - score.SituationalValue -
-                          score.EnvironmentalSynergy - score.SkillBonus;
-
-        return score;
+        return availableOptions;
     }
 
-    private int CalculateEnvironmentalSynergy(NarrativeChoice card, EncounterState state)
+    private CardTypes GetCardTypeForSkill(SkillTypes skill)
     {
-        int synergy = 0;
+        if (SkillCheckService.IsPhysicalSkill(skill))
+            return CardTypes.Physical;
 
-        return synergy;
-    }
+        if (SkillCheckService.IsIntellectualSkill(skill))
+            return CardTypes.Intellectual;
 
-    private int CalculateSkillBonus(NarrativeChoice card, PlayerState playerState)
-    {
-        int bonus = 0;
+        if (SkillCheckService.IsSocialSkill(skill))
+            return CardTypes.Social;
 
-        return bonus;
-    }
-
-    private List<NarrativeChoice> SelectStrategicCardHand(
-        List<NarrativeChoice> viableCards,
-        Dictionary<NarrativeChoice, CardViabilityScore> cardScores)
-    {
-        List<NarrativeChoice> result = new List<NarrativeChoice>();
-
-        if (viableCards.Any())
-        {
-            NarrativeChoice bestCard = viableCards
-                .OrderBy(c =>
-                {
-                    return cardScores[c].TotalScore;
-                })
-                .First();
-
-            result.Add(bestCard);
-        }
-
-        // If we still need cards, add highest scoring remaining cards
-        while (result.Count < 4 && viableCards.Any(c =>
-        {
-            return !result.Contains(c);
-        }))
-        {
-            NarrativeChoice nextCard = viableCards
-                .Where(c =>
-                {
-                    return !result.Contains(c);
-                })
-                .OrderBy(c =>
-                {
-                    return cardScores[c].TotalScore;
-                })
-                .First();
-
-            result.Add(nextCard);
-        }
-
-        return result;
+        return CardTypes.Physical; // Default fallback
     }
 }

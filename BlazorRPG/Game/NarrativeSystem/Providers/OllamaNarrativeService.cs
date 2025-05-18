@@ -49,14 +49,13 @@
 
     public async Task<string> GenerateIntroductionAsync(
         NarrativeContext context,
-        EncounterStatusModel state,
         string memoryContent,
         WorldStateInput worldStateInput,
         int priority)
     {
         string conversationId = $"{context.LocationName}_encounter"; // Consistent ID
         string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
-        string prompt = _promptManager.BuildIntroductionPrompt(context, state, memoryContent);
+        string prompt = _promptManager.BuildIntroductionPrompt(context, worldStateInput.Characters, worldStateInput.RelationshipList, memoryContent);
 
         _contextManager.InitializeConversation(conversationId, systemMessage, prompt);
 
@@ -80,18 +79,17 @@
         return response;
     }
 
-    public async Task<Dictionary<NarrativeChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+    public async Task<Dictionary<EncounterOption, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
         NarrativeContext context,
-        List<NarrativeChoice> choices,
+        List<EncounterOption> choices,
         List<ChoiceProjection> projections,
-        EncounterStatusModel state,
         WorldStateInput worldStateInput,
         int priority)
     {
         string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
         string prompt = _promptManager.BuildChoicesPrompt(
-            context, choices, projections, state);
+            context, choices, projections);
 
         if (!_contextManager.ConversationExists(conversationId))
         {
@@ -124,17 +122,16 @@
 
     public async Task<string> GenerateEncounterNarrative(
         NarrativeContext context,
-        NarrativeChoice chosenOption,
+        EncounterOption chosenOption,
         ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
-        EncounterStatusModel newState,
         WorldStateInput worldStateInput,
         int priority)
     {
         string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
         string prompt = _promptManager.BuildReactionPrompt(
-            context, chosenOption, choiceNarrative, outcome, newState);
+            context, chosenOption, choiceNarrative, outcome);
 
         if (!_contextManager.ConversationExists(conversationId))
         {
@@ -167,17 +164,16 @@
 
     public async Task<string> GenerateEndingAsync(
         NarrativeContext context,
-        NarrativeChoice chosenOption,
+        EncounterOption chosenOption,
         ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
-        EncounterStatusModel newState,
         WorldStateInput worldStateInput,
         int priority)
     {
         string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
         string prompt = _promptManager.BuildEncounterEndPrompt(
-            context, newState, outcome.Outcome, chosenOption, choiceNarrative);
+            context, outcome.Outcome, chosenOption, choiceNarrative);
 
         if (!_contextManager.ConversationExists(conversationId))
         {

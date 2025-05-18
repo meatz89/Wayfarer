@@ -19,18 +19,18 @@
 /// Atmosphere (Tense, Formal, Chaotic)
 /// 
 /// </summary>
-public interface IEnvironmentalProperty
+public interface ILocationProperty
 {
     string GetPropertyType();
     string GetPropertyValue();
 }
-public class Illumination : IEnvironmentalProperty, IEquatable<Illumination>
+public class Illumination : ILocationProperty, IEquatable<Illumination>
 {
-    public static IEnvironmentalProperty Any
+    public static ILocationProperty Any
     {
         get
         {
-            return new EnvironmentalPropertyAny(nameof(Illumination));
+            return new LocationPropertyAny(nameof(Illumination));
         }
     }
 
@@ -55,7 +55,7 @@ public class Illumination : IEnvironmentalProperty, IEquatable<Illumination>
     public override bool Equals(object obj)
     {
         // Handle EnvironmentalPropertyAny - let it handle the comparison
-        if (obj is EnvironmentalPropertyAny any)
+        if (obj is LocationPropertyAny any)
             return any.Equals(this);
 
         // Handle same type comparison
@@ -86,13 +86,13 @@ public class Illumination : IEnvironmentalProperty, IEquatable<Illumination>
     }
 }
 
-public class Population : IEnvironmentalProperty, IEquatable<Population>
+public class Population : ILocationProperty, IEquatable<Population>
 {
-    public static IEnvironmentalProperty Any
+    public static ILocationProperty Any
     {
         get
         {
-            return new EnvironmentalPropertyAny(nameof(Population));
+            return new LocationPropertyAny(nameof(Population));
         }
     }
 
@@ -117,7 +117,7 @@ public class Population : IEnvironmentalProperty, IEquatable<Population>
     public override bool Equals(object obj)
     {
         // Handle EnvironmentalPropertyAny - let it handle the comparison
-        if (obj is EnvironmentalPropertyAny any)
+        if (obj is LocationPropertyAny any)
             return any.Equals(this);
 
         // Handle same type comparison
@@ -148,13 +148,13 @@ public class Population : IEnvironmentalProperty, IEquatable<Population>
     }
 }
 
-public class Physical : IEnvironmentalProperty, IEquatable<Physical>
+public class Physical : ILocationProperty, IEquatable<Physical>
 {
-    public static IEnvironmentalProperty Any
+    public static ILocationProperty Any
     {
         get
         {
-            return new EnvironmentalPropertyAny(nameof(Physical));
+            return new LocationPropertyAny(nameof(Physical));
         }
     }
 
@@ -179,7 +179,7 @@ public class Physical : IEnvironmentalProperty, IEquatable<Physical>
     public override bool Equals(object obj)
     {
         // Handle EnvironmentalPropertyAny - let it handle the comparison
-        if (obj is EnvironmentalPropertyAny any)
+        if (obj is LocationPropertyAny any)
             return any.Equals(this);
 
         // Handle same type comparison
@@ -210,13 +210,13 @@ public class Physical : IEnvironmentalProperty, IEquatable<Physical>
     }
 }
 
-public class Atmosphere : IEnvironmentalProperty, IEquatable<Atmosphere>
+public class Atmosphere : ILocationProperty, IEquatable<Atmosphere>
 {
-    public static IEnvironmentalProperty Any
+    public static ILocationProperty Any
     {
         get
         {
-            return new EnvironmentalPropertyAny(nameof(Atmosphere));
+            return new LocationPropertyAny(nameof(Atmosphere));
         }
     }
 
@@ -243,7 +243,7 @@ public class Atmosphere : IEnvironmentalProperty, IEquatable<Atmosphere>
     public override bool Equals(object obj)
     {
         // Handle EnvironmentalPropertyAny - let it handle the comparison
-        if (obj is EnvironmentalPropertyAny any)
+        if (obj is LocationPropertyAny any)
             return any.Equals(this);
 
         // Handle same type comparison

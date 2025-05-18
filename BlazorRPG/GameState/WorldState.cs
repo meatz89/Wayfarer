@@ -1,9 +1,11 @@
-﻿public class WorldState
+﻿
+public class WorldState
 {
     // Core data collections
     public List<Location> locations { get; private set; } = new();
     public List<LocationSpot> locationSpots { get; private set; } = new();
     public List<ActionDefinition> actions { get; private set; } = new();
+    public List<CommissionDefinition> comissions { get; private set; } = new();
     private List<Character> characters { get; set; } = new();
     private List<Opportunity> opportunities { get; set; } = new();
 
@@ -18,7 +20,13 @@
     // Current location tracking
     public Location CurrentLocation { get; private set; }
     public LocationSpot CurrentLocationSpot { get; private set; }
-    public List<ActionCardDefinition> AllCards { get; set; } = new List<ActionCardDefinition>();
+    public List<CardDefinition> AllCards { get; set; } = new List<CardDefinition>();
+
+    public string GetLocationIdForSpot(string locationSpotId)
+    {
+        string? locationId = locationSpots.Where(x => x.Id == locationSpotId).Select(x => x.LocationId).FirstOrDefault();
+        return locationId;
+    }
 
     public void RecordLocationVisit(string locationId)
     {
@@ -43,8 +51,6 @@
     public void SetCurrentLocation(Location location, LocationSpot currentLocationSpot)
     {
         CurrentLocation = location;
-        SetCurrentLocationSpot(currentLocationSpot);
-
         if (location == null) return;
     }
 
@@ -82,4 +88,5 @@
     {
         return opportunities;
     }
+
 }

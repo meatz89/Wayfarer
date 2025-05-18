@@ -1,122 +1,98 @@
 [
 	{
-		"id": "persistent_labor",
+		"id": "basic_strength",
 		"name": "Persistent Labor",
 		"type": "PHYSICAL",
-		"skill": "STRENGTH",
-		"level": 1,
-		"cost": 1,
-		"gain": 1,
-		"tags": [ "INTERIOR", "CRAFTING", "THOROUGH" ]
+		"primarySkill": "STRENGTH",
+		"energyCost": 1,
+		"concentrationCost": 0
 	},
 	{
-		"id": "steady_pace",
+		"id": "basic_endurance",
 		"name": "Steady Pace",
 		"type": "PHYSICAL",
-		"skill": "ENDURANCE",
-		"level": 1,
-		"cost": 1,
-		"gain": 1,
-		"tags": [ "OUTDOOR", "TRAVEL", "CAUTIOUS" ]
+		"primarySkill": "ENDURANCE",
+		"energyCost": 1,
+		"concentrationCost": 0
 	},
 	{
-		"id": "careful_handiwork",
-		"name": "Careful Handiwork",
+		"id": "basic_precision",
+		"name": "Careful Aim",
 		"type": "PHYSICAL",
-		"skill": "PRECISION",
-		"level": 1,
-		"cost": 1,
-		"gain": 1,
-		"tags": [ "INTERIOR", "CRAFTING", "CAUTIOUS" ]
+		"primarySkill": "PRECISION",
+		"energyCost": 1,
+		"concentrationCost": 0
 	},
 	{
-		"id": "swift_movement",
-		"name": "Swift Movement",
+		"id": "basic_agility",
+		"name": "Quick Step",
 		"type": "PHYSICAL",
-		"skill": "AGILITY",
-		"level": 1,
-		"cost": 1,
-		"gain": 1,
-		"tags": [ "OUTDOOR", "TRAVEL", "SWIFT" ]
+		"primarySkill": "AGILITY",
+		"energyCost": 1,
+		"concentrationCost": 0
 	},
 	{
-		"id": "methodical_reasoning",
+		"id": "basic_analysis",
 		"name": "Methodical Reasoning",
 		"type": "INTELLECTUAL",
-		"skill": "ANALYSIS",
-		"level": 1,
-		"cost": 1,
-		"gain": 1,
-		"tags": [ "SECLUDED", "INFORMATION", "THOROUGH" ]
+		"primarySkill": "ANALYSIS",
+		"energyCost": 0,
+		"concentrationCost": 1
 	},
 	{
-		"id": "attentive_gaze",
+		"id": "basic_observation",
 		"name": "Attentive Gaze",
 		"type": "INTELLECTUAL",
-		"skill": "OBSERVATION",
-		"level": 1,
-		"cost": 1,
-		"gain": 1,
-		"tags": [ "URBAN", "INFORMATION", "CAUTIOUS" ]
+		"primarySkill": "OBSERVATION",
+		"energyCost": 0,
+		"concentrationCost": 1
 	},
 	{
-		"id": "common_wisdom",
-		"name": "Common Wisdom",
+		"id": "basic_knowledge",
+		"name": "Recall Fact",
 		"type": "INTELLECTUAL",
-		"skill": "KNOWLEDGE",
-		"level": 1,
-		"cost": 1,
-		"gain": 1,
-		"tags": [ "INTERIOR", "INFORMATION", "THOROUGH" ]
+		"primarySkill": "KNOWLEDGE",
+		"energyCost": 0,
+		"concentrationCost": 1
 	},
 	{
-		"id": "basic_preparation",
-		"name": "Basic Preparation",
+		"id": "basic_planning",
+		"name": "Strategic Outline",
 		"type": "INTELLECTUAL",
-		"skill": "PLANNING",
-		"level": 1,
-		"cost": 1,
-		"gain": 1,
-		"tags": [ "INTERIOR", "COMMERCE", "CAUTIOUS" ]
+		"primarySkill": "PLANNING",
+		"energyCost": 0,
+		"concentrationCost": 1
 	},
 	{
-		"id": "friendly_demeanor",
+		"id": "basic_charm",
 		"name": "Friendly Demeanor",
 		"type": "SOCIAL",
-		"skill": "CHARM",
-		"level": 1,
-		"cost": 0,
-		"gain": 1,
-		"tags": [ "CROWDED", "COMMERCE", "BOLD" ]
+		"primarySkill": "CHARM",
+		"energyCost": 0,
+		"concentrationCost": 0
 	},
 	{
-		"id": "reasonable_argument",
+		"id": "basic_persuasion",
 		"name": "Reasonable Argument",
 		"type": "SOCIAL",
-		"skill": "PERSUASION",
-		"level": 1,
-		"cost": 0,
-		"gain": 1,
-		"tags": [ "INTERIOR", "COMMERCE", "THOROUGH" ]
+		"primarySkill": "PERSUASION",
+		"energyCost": 0,
+		"concentrationCost": 0
 	},
 	{
-		"id": "small_misdirection",
-		"name": "Small Misdirection",
+		"id": "basic_deception",
+		"name": "White Lie",
 		"type": "SOCIAL",
-		"skill": "DECEPTION",
-		"level": 1,
-		"cost": 0,
-		"gain": 1,
-		"tags": [ "CROWDED", "URBAN", "SUBTLE" ]
+		"primarySkill": "DECEPTION",
+		"energyCost": 0,
+		"concentrationCost": 0
 	},
 	{
-		"id": "stern_presence",
-		"name": "Stern Presence",
+		"id": "basic_intimidation",
+		"name": "Stern Glare",
 		"type": "SOCIAL",
-		"skill": "INTIMIDATION",
-		"level": 1,
-		"cost": 0,
-		"gain": 1,
-		"tags": [ "URBAN", "BOLD", "SWIFT" ]
+		"primarySkill": "INTIMIDATION",
+		"energyCost": 0,
+		"concentrationCost": 0
 	}
 ]

@@ -1,32 +1,24 @@
-﻿/// <summary>
-/// Represents the outcome of the player character (PC)'s choice
-/// </summary>
-public class ChoiceOutcome
+﻿public class ChoiceOutcome
 {
-    public string Description { get; }
+    public int ProgressGained { get; }
     public bool IsEncounterOver { get; }
     public EncounterOutcomes Outcome { get; }
-
-    public int MomentumGain { get; }
-    public int PressureGain { get; }
-
+    public string Description { get; }
     public int HealthChange { get; }
     public int ConcentrationChange { get; }
 
     public ChoiceOutcome(
-        int momentumGained,
-        int pressureBuilt,
+        int progressGained,
         string description,
-        bool isEncounterOver,
-        EncounterOutcomes outcome,
-        int healthChange = 0,
-        int concentrationChange = 0)
+        bool encounterWillEnd,
+        EncounterOutcomes projectedOutcome,
+        int healthChange,
+        int concentrationChange)
     {
-        MomentumGain = momentumGained;
-        PressureGain = pressureBuilt;
+        ProgressGained = progressGained;
         Description = description;
-        IsEncounterOver = isEncounterOver;
-        Outcome = outcome;
+        IsEncounterOver = encounterWillEnd;
+        Outcome = projectedOutcome;
         HealthChange = healthChange;
         ConcentrationChange = concentrationChange;
     }

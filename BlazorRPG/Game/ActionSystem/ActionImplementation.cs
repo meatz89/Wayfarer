@@ -10,17 +10,14 @@
     public string LocationId { get; set; }
     public string LocationSpotId { get; set; }
 
-    public EncounterTemplate EncounterTemplate { get; set; }
-
     public List<IRequirement> Requirements { get; set; } = new();
     public List<Outcome> Costs { get; set; }
     public List<Outcome> Yields { get; set; }
 
     public ActionExecutionTypes ActionType { get; set; }
-    public EncounterCategories EncounterType { get; set; }
     public int ActionPointCost { get; set; }
 
     public int Difficulty { get; set; } = 1;
-    public List<ActionApproach> Approaches { get; set; } = new List<ActionApproach>();
-
+    public List<ApproachDefinition> Approaches { get; set; } = new List<ApproachDefinition>();
+    public CommissionDefinition Commission { get; internal set; }
 }

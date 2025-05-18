@@ -1,0 +1,50 @@
+[
+	{
+		"id": "warm_by_hearth",
+		"name": "Warm by Hearth",
+		"description": "Rest by the warm hearth to recover your physical energy.",
+		"locationSpotId": "hearth",
+		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"actionPointCost": 1,
+		"silverCost": 0,
+		"refreshCardType": "PHYSICAL",
+		"energyCost": 0,
+		"concentrationCost": 0
+	},
+	{
+		"id": "browse_books",
+		"name": "Browse Books",
+		"description": "Peruse the library's collection to refresh your mental faculties.",
+		"locationSpotId": "library",
+		"timeWindows": [ "Morning", "Afternoon", "Evening" ],
+		"actionPointCost": 1,
+		"silverCost": 0,
+		"refreshCardType": "INTELLECTUAL",
+		"energyCost": 0,
+		"concentrationCost": 0
+	},
+	{
+		"id": "join_conversation",
+		"name": "Join Tavern Conversation",
+		"description": "Engage in casual conversation with other patrons.",
+		"locationSpotId": "tavern",
+		"timeWindows": [ "Afternoon", "Evening", "Night" ],
+		"actionPointCost": 1,
+		"silverCost": 0,
+		"refreshCardType": "SOCIAL",
+		"energyCost": 0,
+		"concentrationCost": 0
+	},
+	{
+		"id": "rent_room",
+		"name": "Rent Room",
+		"description": "Secure lodging for the night.",
+		"locationSpotId": "innkeeper",
+		"timeWindows": [ "Morning", "Afternoon", "Evening" ],
+		"actionPointCost": 1,
+		"silverCost": 5,
+		"refreshCardType": null,
+		"energyCost": 0,
+		"concentrationCost": 0
+	}
+]

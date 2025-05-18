@@ -13,35 +13,35 @@
 
 public class PlayerSkills
 {
-    public readonly Dictionary<Skills, SkillProgress> Skills = new();
+    public readonly Dictionary<SkillTypes, SkillProgress> Skills = new();
 
     public PlayerSkills()
     {
-        foreach (Skills type in Enum.GetValues(typeof(Skills)))
+        foreach (SkillTypes type in Enum.GetValues(typeof(SkillTypes)))
             Skills[type] = new SkillProgress();
     }
 
-    public int GetLevelForSkill(Skills skillType)
+    public int GetLevelForSkill(SkillTypes skillType)
     {
         return Skills[skillType].Level;
     }
 
-    public int GetXPForSkill(Skills skillType)
+    public int GetXPForSkill(SkillTypes skillType)
     {
         return Skills[skillType].XP;
     }
 
-    public int GetXPToNextForSkill(Skills skillType)
+    public int GetXPToNextForSkill(SkillTypes skillType)
     {
         return Skills[skillType].XPToNextLevel;
     }
 
-    public void SetSkillXP(Skills skillType, int XP)
+    public void SetSkillXP(SkillTypes skillType, int XP)
     {
         Skills[skillType].XP = XP;
     }
 
-    public void AddLevelBonus(Skills skillType, int level)
+    public void AddLevelBonus(SkillTypes skillType, int level)
     {
         Skills[skillType].Level += level;
     }
@@ -54,7 +54,7 @@ public class PlayerSkills
         // that needs to be copied
 
         // Copy each skill level
-        foreach (Skills skillType in Enum.GetValues<Skills>())
+        foreach (SkillTypes skillType in Enum.GetValues<SkillTypes>())
         {
             int level = this.GetLevelForSkill(skillType);
             for (int i = 0; i < level; i++)

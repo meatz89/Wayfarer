@@ -8,8 +8,8 @@
     string Character,
     int LocationDifficulty,
     string DisabledReason,
-    ActionApproach SelectedApproach
+    string ApproachId
 )
 {
-    public ActionCardDefinition SelectedCard { get; internal set; }
+    public CardDefinition SelectedCard { get; internal set; }
 }
