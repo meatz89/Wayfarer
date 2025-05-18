@@ -37,7 +37,7 @@ public static class GameServiceExtensions
         services.AddSingleton<GameManager>();
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<PostEncounterEvolutionSystem>();
-        services.AddSingleton<EnvironmentalPropertyManager>();
+        services.AddSingleton<LocationPropertyManager>();
 
         // UI Razor Services
         services.AddSingleton<CardSelectionService>();

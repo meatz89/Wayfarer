@@ -2,6 +2,6 @@
 {
     public string Name { get; set; }
     public string Goal { get; set; }
-    public EncounterCategories ActionType { get; set; }
+    public CardTypes ActionType { get; set; }
     public int CoinCost { get; set; }
 }

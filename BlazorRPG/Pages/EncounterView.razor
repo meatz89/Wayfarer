@@ -34,21 +34,6 @@
                 }
             </div>
         </div>
-
-        <div class="encounter-sidebar">
-            <div class="tag-section">
-                <div class="properties-header">Active Tags</div>
-                <div class="properties-grid">
-                    @foreach (var tag in GetActiveTags())
-                    {
-                        <div class="property-tag @tag.CssClass">
-                            <span class="property-icon">@tag.Icon</span>
-                            <span class="property-text">@tag.Text</span>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
     </div>
 
     @if (showTooltip && hoveredChoice != null)

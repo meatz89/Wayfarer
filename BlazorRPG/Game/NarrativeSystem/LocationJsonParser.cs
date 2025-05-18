@@ -128,7 +128,7 @@ public static class LocationJsonParser
         return action;
     }
 
-    private static IEnvironmentalProperty CreateEnvironmentalProperty(string type, string value)
+    private static ILocationProperty CreateEnvironmentalProperty(string type, string value)
     {
         switch (type.ToLower())
         {

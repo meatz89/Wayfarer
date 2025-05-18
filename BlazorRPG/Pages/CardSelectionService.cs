@@ -1,8 +1,8 @@
 ﻿public class CardSelectionService
 {
-    private ActionCardDefinition _selectedCard;
+    private CardDefinition _selectedCard;
 
-    public ActionCardDefinition SelectedCard
+    public CardDefinition SelectedCard
     {
         get => _selectedCard;
         set

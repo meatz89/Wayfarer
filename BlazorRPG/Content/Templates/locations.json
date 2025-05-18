@@ -10,7 +10,7 @@
 			"night": [ "DARK", "QUIET", "INTERIOR" ]
 		},
 		"locationSpots": [ "innkeeper", "hearth", "common_room", "inn_room", "tavern" ],
-		"connectedTo": [ "town_square", "forest_path" ]
+		"connectedTo": [ "town_square" ]
 	},
 	{
 		"id": "town_square",
@@ -22,20 +22,7 @@
 			"evening": [ "SHADOWY", "CROWDED", "URBAN" ],
 			"night": [ "DARK", "QUIET", "URBAN" ]
 		},
-		"locationSpots": [ "marketplace", "library", "market_stall", "village_elder" ],
-		"connectedTo": [ "dusty_flagon", "forest_path" ]
-	},
-	{
-		"id": "forest_path",
-		"name": "Forest Path",
-		"description": "A winding trail leading through the dense woods that surround the town.",
-		"environmentalProperties": {
-			"morning": [ "WELL-LIT", "OUTDOOR", "SECLUDED" ],
-			"afternoon": [ "WELL-LIT", "OUTDOOR", "TRAVEL" ],
-			"evening": [ "SHADOWY", "OUTDOOR", "SECLUDED" ],
-			"night": [ "DARK", "OUTDOOR", "SECLUDED" ]
-		},
-		"locationSpots": [ "forest_clearing" ],
-		"connectedTo": [ "dusty_flagon", "town_square" ]
+		"locationSpots": [ "marketplace", "library", "market_stall" ],
+		"connectedTo": [ "dusty_flagon" ]
 	}
 ]

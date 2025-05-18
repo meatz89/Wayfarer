@@ -31,22 +31,10 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         }
     }
 
-    public List<ChoiceProjection.ValueComponent> GetMomentumBreakdown()
-    {
-        // Now we can directly use the detailed components from the projection
-        return Preview?.MomentumComponents ?? new List<ChoiceProjection.ValueComponent>();
-    }
-
-    public List<ChoiceProjection.ValueComponent> GetPressureBreakdown()
-    {
-        // Now we can directly use the detailed components from the projection
-        return Preview?.PressureComponents ?? new List<ChoiceProjection.ValueComponent>();
-    }
-
     public string GetChoiceNarrative(UserEncounterChoiceOption choice)
     {
-        NarrativeChoice choiceCard = choice.Choice;
-        Dictionary<NarrativeChoice, ChoiceNarrative> choiceDescriptions = choice.NarrativeResult?.ChoiceDescriptions;
+        EncounterOption choiceCard = choice.Choice;
+        Dictionary<EncounterOption, ChoiceNarrative> choiceDescriptions = choice.NarrativeResult?.ChoiceDescriptions;
         ChoiceNarrative choiceNarrative = null;
 
         if (choiceDescriptions != null && choiceDescriptions.ContainsKey(choiceCard))

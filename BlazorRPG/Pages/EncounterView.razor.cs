@@ -157,9 +157,9 @@ public partial class EncounterViewBase : ComponentBase
 
     public string GetChoiceName(UserEncounterChoiceOption choiceOption)
     {
-        NarrativeChoice card = choiceOption.Choice;
+        EncounterOption card = choiceOption.Choice;
         NarrativeResult narrativeResult = Model.EncounterResult.NarrativeResult;
-        Dictionary<NarrativeChoice, ChoiceNarrative> choiceDescriptions = narrativeResult?.ChoiceDescriptions;
+        Dictionary<EncounterOption, ChoiceNarrative> choiceDescriptions = narrativeResult?.ChoiceDescriptions;
         ChoiceNarrative choiceNarrative = null;
 
         if (choiceDescriptions != null && choiceDescriptions.ContainsKey(card))
@@ -176,33 +176,6 @@ public partial class EncounterViewBase : ComponentBase
     public List<PropertyDisplay> GetAvailableTags()
     {
         List<PropertyDisplay> properties = new List<PropertyDisplay>();
-
-        if (EncounterManager.EncounterState?.EncounterInfo?.AllEncounterTags == null)
-            return properties;
-
-        // Get all available tags that aren't currently active
-        foreach (IEncounterTag tag in EncounterManager.EncounterState.EncounterInfo.AllEncounterTags)
-        {
-            // Skip if the tag is already active
-            if (EncounterManager.EncounterState.ActiveTags.Any(t =>
-            {
-                return t.NarrativeName == tag.NarrativeName;
-            }))
-                continue;
-
-            string icon = GetTagIcon(tag);
-            string tooltipText = GetTagTooltipText(tag);
-            string cssClass = GetTagCssClass(tag);
-
-            properties.Add(new PropertyDisplay
-            {
-                Text = tag.NarrativeName,
-                Icon = icon,
-                TooltipText = tooltipText,
-                CssClass = cssClass,
-                TagName = "",
-            });
-        }
 
         return properties;
     }
@@ -248,35 +221,7 @@ public partial class EncounterViewBase : ComponentBase
 
     public string GetTagEffectDescription(string tagName)
     {
-        // Find the tag by name and use its description method
-        IEncounterTag tag = EncounterManager.EncounterState.ActiveTags.FirstOrDefault(t =>
-        {
-            return t.NarrativeName == tagName;
-        });
-        if (tag is StrategicTag strategicTag)
-        {
-            return strategicTag.GetEffectDescription();
-        }
-        else if (tag is NarrativeTag narrativeTag)
-        {
-            return $"{narrativeTag.GetEffectDescription()}";
-        }
-
         return "Affects encounter mechanics";
-    }
-
-    public int GetCurrentValue(ValueTypes changeType)
-    {
-        EncounterState state = Model.State;
-        switch (changeType)
-        {
-            case ValueTypes.Momentum:
-                return state.Momentum;
-
-            case ValueTypes.Pressure:
-                return state.Pressure;
-        }
-        return 0;
     }
 
     public MarkupString GetValueTypeIcon(ValueTypes valueType)
@@ -297,25 +242,6 @@ public partial class EncounterViewBase : ComponentBase
 
         if (EncounterManager == null)
             return properties;
-
-        if (EncounterManager?.EncounterState?.ActiveTags == null)
-            return properties;
-
-        foreach (IEncounterTag tag in EncounterManager.EncounterState.ActiveTags)
-        {
-            string icon = GetTagIcon(tag);
-            string tooltipText = GetTagTooltipText(tag);
-            string cssClass = GetTagCssClass(tag) + " active";
-
-            properties.Add(new PropertyDisplay
-            {
-                Text = tag.NarrativeName,
-                Icon = icon,
-                TooltipText = tooltipText,
-                CssClass = cssClass,
-                TagName = tag.NarrativeName // Add the tag name
-            });
-        }
 
         return properties;
     }

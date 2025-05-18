@@ -6,7 +6,6 @@
     /// </summary>
     Task<string> GenerateIntroductionAsync(
         NarrativeContext context,
-        EncounterStatusModel state,
         string memoryContent,
         WorldStateInput worldStateInput,
         int priority);
@@ -14,27 +13,24 @@
 
     Task<string> GenerateEncounterNarrative(
         NarrativeContext context,
-        NarrativeChoice chosenOption,
+        EncounterOption chosenOption,
         ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
-        EncounterStatusModel newState,
         WorldStateInput worldStateInput,
         int priority);
 
     Task<string> GenerateEndingAsync(
         NarrativeContext context,
-        NarrativeChoice chosenOption,
+        EncounterOption chosenOption,
         ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
-        EncounterStatusModel newState,
         WorldStateInput worldStateInput,
         int priority);
 
-    Task<Dictionary<NarrativeChoice, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+    Task<Dictionary<EncounterOption, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
         NarrativeContext context,
-        List<NarrativeChoice> choices,
+        List<EncounterOption> choices,
         List<ChoiceProjection> projections,
-        EncounterStatusModel state,
         WorldStateInput worldStateInput,
         int priority);
 

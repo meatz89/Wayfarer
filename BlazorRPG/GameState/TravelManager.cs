@@ -75,7 +75,7 @@
             return ls.Id == locationSpotName;
         }));
 
-        worldState.SetCurrentLocation(targetLocation, locSpot);
+        gameState.SetCurrentLocation(targetLocation, locSpot);
 
         string? currentLocation = worldState.CurrentLocation?.Id;
 

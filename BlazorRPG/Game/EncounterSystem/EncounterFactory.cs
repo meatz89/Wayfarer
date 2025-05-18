@@ -1,318 +1,155 @@
 ﻿public class EncounterFactory
 {
-    public EncounterTemplate GetDefaultEncounterTemplate()
-    {
-        return new EncounterTemplate()
-        {
-            Name = "Default Template",
-            Duration = 4,
-            MaxPressure = 12,
-            PartialThreshold = 8,
-            StandardThreshold = 12,
-            ExceptionalThreshold = 16,
-            Hostility = Encounter.HostilityLevels.Neutral,
+    private readonly LocationRepository _locationRepository;
 
-            EncounterNarrativeTags = new List<NarrativeTag>
-            {
-                NarrativeTagRepository.DistractingCommotion,
-                NarrativeTagRepository.UnsteadyConditions
-            },
-        };
+    public EncounterFactory(LocationRepository locationRepository)
+    {
+        _locationRepository = locationRepository;
     }
 
-    /// <summary>
-    /// Creates the encounter for the given location
-    /// </summary>
-    public Encounter CreateEncounterFromTemplate(
-        EncounterTemplate template,
-        Location location,
-        LocationSpot locationSpot,
-        EncounterCategories EncounterType)
+    public Encounter CreateEncounterFromCommission(
+        CommissionDefinition commission,
+        string approachId,
+        PlayerState playerState,
+        Location location)
     {
-        Encounter encounter = new Encounter(
-            location.Id,
-            locationSpot.Id,
-            template.Duration,
-            template.MaxPressure,
-            template.PartialThreshold, template.StandardThreshold, template.ExceptionalThreshold, // Momentum thresholds: 12+ (Partial), 16+ (Standard), 20+ (Exceptional)
-            template.Hostility,
-            EncounterType);
-
-        encounter.SetDifficulty(location.Difficulty);
-
-        foreach (NarrativeTag narrativeTag in template.EncounterNarrativeTags)
+        Encounter encounter = new Encounter
         {
-            encounter.AddTag(narrativeTag);
+            Id = $"{commission.Id}_{approachId}",
+            CommissionId = commission.Id,
+            ApproachId = approachId,
+            TotalProgress = commission.ProgressThreshold,
+            LocationName = location.Id,
+            LocationSpotName = playerState.CurrentLocationSpot.Id,
+            EncounterType = DetermineEncounterType(approachId),
+            EncounterDifficulty = commission.Tier
+        };
+
+        if (commission.Type == CommissionTypes.Accumulative)
+        {
+            // For accumulative commissions, create a single-stage encounter
+            ApproachDefinition approach = commission.Approaches.FirstOrDefault(a => a.Id == approachId);
+            encounter.Stages = GenerateEncounterStagesForApproach(approach, commission.Tier, location);
+        }
+        else if (commission.Type == CommissionTypes.Sequential)
+        {
+            // For sequential commissions, start with the initial step
+            CommissionStep initialStep = commission.InitialStep;
+            ApproachDefinition approach = initialStep.Approaches.FirstOrDefault(a => a.Id == approachId);
+            encounter.Stages = GenerateEncounterStagesForApproach(approach, commission.Tier, location);
         }
 
-        List<StrategicTag> tags = CreateStrategicTags(location, locationSpot);
-        foreach (StrategicTag strategicTag in tags)
-        {
-            encounter.AddTag(strategicTag);
-        }
         return encounter;
     }
 
-    private List<StrategicTag> CreateStrategicTags(Location location, LocationSpot locationSpot)
+    private List<EncounterStage> GenerateEncounterStagesForApproach(
+        ApproachDefinition approach,
+        int tier,
+        Location location)
     {
-        List<StrategicTag> strategicTags =
-        [
-            .. AddIlluminationStrategicTags(location.Illumination),
-            .. AddPopulationStrategicTags(location.Population),
-            .. AddAtmosphereStrategicTags(location.Atmosphere),
-            .. AddPhysicalStrategicTags(location.Physical),
-        ];
+        int stageCount = 2 + (tier > 1 ? 1 : 0);
+        List<EncounterStage> stages = new List<EncounterStage>();
 
-        return strategicTags;
+        for (int stageNum = 1; stageNum <= stageCount; stageNum++)
+        {
+            int baseDifficulty = stageNum + (tier - 1);
+            int baseProgress = stageNum * 2;
+
+            EncounterStage stage = new EncounterStage
+            {
+                StageNumber = stageNum,
+                Description = $"Stage {stageNum} of the {approach.Name} approach",
+                Options = new List<EncounterOption>()
+            };
+
+            // Primary skill option
+            stage.Options.Add(new EncounterOption
+            {
+                Id = $"primary_{approach.PrimarySkill.ToString().ToLower()}_{stageNum}",
+                Name = $"{approach.PrimarySkill} Approach",
+                Description = $"Use your {approach.PrimarySkill} skill for this challenge",
+                Skill = approach.PrimarySkill,
+                Difficulty = baseDifficulty,
+                SuccessProgress = baseProgress + 2,
+                FailureProgress = 0
+            });
+
+            // Secondary skill option
+            stage.Options.Add(new EncounterOption
+            {
+                Id = $"secondary_{approach.SecondarySkill.ToString().ToLower()}_{stageNum}",
+                Name = $"{approach.SecondarySkill} Approach",
+                Description = $"Use your {approach.SecondarySkill} skill for this challenge",
+                Skill = approach.SecondarySkill,
+                Difficulty = baseDifficulty - 1,
+                SuccessProgress = baseProgress,
+                FailureProgress = -1
+            });
+
+            // Safe option
+            stage.Options.Add(new EncounterOption
+            {
+                Id = $"safe_option_{stageNum}",
+                Name = "Cautious Approach",
+                Description = "Take a safe but less effective approach",
+                Skill = SkillTypes.None,
+                Difficulty = 0,
+                SuccessProgress = baseProgress - 2,
+                FailureProgress = 0
+            });
+
+            stages.Add(stage);
+        }
+
+        return stages;
     }
 
-    private List<StrategicTag> AddIlluminationStrategicTags(Illumination illumination)
+    private CardTypes DetermineEncounterType(string approachId)
     {
-        List<StrategicTag> strategicTags = new List<StrategicTag>();
-        if (illumination.Equals(Illumination.Bright))
-        {
-            strategicTags.Add(new StrategicTag(
-                "Clear Visibility",
-                illumination,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { illumination },
-                    StrategicTagEffectType.IncreaseMomentum
-                )
-            ));
+        // Map approach ID to encounter type
+        if (approachId.Contains("physical"))
+            return CardTypes.Physical;
 
-            strategicTags.Add(new StrategicTag(
-                "Exposed Position",
-                illumination,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { illumination },
-                    StrategicTagEffectType.DecreaseMomentum
-                )
-            ));
-        }
-        else if (illumination.Equals(Illumination.Roguey))
-        {
-            strategicTags.Add(new StrategicTag(
-                "Partial Cover",
-                illumination,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { illumination },
-                    StrategicTagEffectType.DecreasePressure
-                )
-            ));
-        }
-        else if (illumination.Equals(Illumination.Dark))
-        {
-            strategicTags.Add(new StrategicTag(
-                "Concealing Darkness",
-                illumination,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { illumination },
-                    StrategicTagEffectType.IncreaseMomentum
-                )
-            ));
+        if (approachId.Contains("intellectual"))
+            return CardTypes.Intellectual;
 
-            strategicTags.Add(new StrategicTag(
-                "Limited Visibility",
-                illumination,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { illumination },
-                    StrategicTagEffectType.DecreaseMomentum
-                )
-            ));
-        }
+        if (approachId.Contains("social"))
+            return CardTypes.Social;
 
-        return strategicTags;
+        return CardTypes.None;
     }
 
-    private List<StrategicTag> AddPopulationStrategicTags(Population population)
+    public Encounter GetDefaultEncounterTemplate()
     {
-        List<StrategicTag> strategicTags = new List<StrategicTag>();
-        if (population.Equals(Population.Crowded))
+        // Create a simple default encounter template for testing
+        Encounter defaultEncounter = new Encounter
         {
-            strategicTags.Add(new StrategicTag(
-                "Rapport Pressure",
-                population,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { population },
-                    StrategicTagEffectType.IncreaseMomentum
-                )
-            ));
+            Id = "default_encounter",
+            TotalProgress = 8,
+            EncounterDifficulty = 1,
+            Stages = new List<EncounterStage>
+            {
+                new EncounterStage
+                {
+                    StageNumber = 1,
+                    Description = "A simple challenge",
+                    Options = new List<EncounterOption>
+                    {
+                        new EncounterOption
+                        {
+                            Id = "default_option",
+                            Name = "Basic Approach",
+                            Skill = SkillTypes.None,
+                            Difficulty = 0,
+                            SuccessProgress = 2,
+                            FailureProgress = 0
+                        }
+                    }
+                }
+            }
+        };
 
-            strategicTags.Add(new StrategicTag(
-                "Public Scrutiny",
-                population,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { population },
-                    StrategicTagEffectType.IncreasePressure
-                )
-            ));
-        }
-        else if (population.Equals(Population.Quiet))
-        {
-            strategicTags.Add(new StrategicTag(
-                "Focused Attention",
-                population,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { population },
-                    StrategicTagEffectType.IncreaseMomentum
-                )
-            ));
-        }
-        else if (population.Equals(Population.Scholarly))
-        {
-            strategicTags.Add(new StrategicTag(
-                "Scholarly Focus",
-                population,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { population },
-                    StrategicTagEffectType.DecreasePressure
-                )
-            ));
-
-            strategicTags.Add(new StrategicTag(
-                "Careful Deliberation",
-                population,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { population },
-                    StrategicTagEffectType.DecreaseMomentum
-                )
-            ));
-        }
-
-        return strategicTags;
-    }
-
-    private List<StrategicTag> AddAtmosphereStrategicTags(Atmosphere atmosphere)
-    {
-        List<StrategicTag> strategicTags = new List<StrategicTag>();
-        if (atmosphere.Equals(Atmosphere.Tense))
-        {
-            strategicTags.Add(new StrategicTag(
-                "Structured Environment",
-                atmosphere,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { atmosphere },
-                    StrategicTagEffectType.IncreaseMomentum
-                )
-            ));
-
-            strategicTags.Add(new StrategicTag(
-                "Rapport Protocol",
-                atmosphere,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { atmosphere },
-                    StrategicTagEffectType.DecreaseMomentum
-                )
-            ));
-        }
-        else if (atmosphere.Equals(Atmosphere.Chaotic))
-        {
-            strategicTags.Add(new StrategicTag(
-                "Unpredictable Situation",
-                atmosphere,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { atmosphere },
-                    StrategicTagEffectType.IncreasePressure
-                )
-            ));
-
-            strategicTags.Add(new StrategicTag(
-                "Opportunity in Chaos",
-                atmosphere,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { atmosphere },
-                    StrategicTagEffectType.IncreaseMomentum
-                )
-            ));
-        }
-        else if (atmosphere.Equals(Atmosphere.Rough))
-        {
-            strategicTags.Add(new StrategicTag(
-                "Intimidating Presence",
-                atmosphere,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { atmosphere },
-                    StrategicTagEffectType.IncreaseMomentum
-                )
-            ));
-
-            strategicTags.Add(new StrategicTag(
-                "Tense Atmosphere",
-                atmosphere,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { atmosphere },
-                    StrategicTagEffectType.DecreaseMomentum
-                )
-            ));
-        }
-
-        return strategicTags;
-    }
-
-    private List<StrategicTag> AddPhysicalStrategicTags(Physical physical)
-    {
-        List<StrategicTag> strategicTags = new List<StrategicTag>();
-        if (physical.Equals(Physical.Confined))
-        {
-            strategicTags.Add(new StrategicTag(
-                "Limited Movement",
-                physical,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { physical },
-                    StrategicTagEffectType.DecreaseMomentum
-                )
-            ));
-
-            strategicTags.Add(new StrategicTag(
-                "Close Quarters",
-                physical,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { physical },
-                    StrategicTagEffectType.IncreaseMomentum
-                )
-            ));
-        }
-        else if (physical.Equals(Physical.Expansive))
-        {
-            strategicTags.Add(new StrategicTag(
-                "Room to Maneuver",
-                physical,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { physical },
-                    StrategicTagEffectType.IncreaseMomentum
-                )
-            ));
-
-            strategicTags.Add(new StrategicTag(
-                "Many Hiding Places",
-                physical,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { physical },
-                    StrategicTagEffectType.DecreasePressure
-                )
-            ));
-        }
-        else if (physical.Equals(Physical.Hazardous))
-        {
-            strategicTags.Add(new StrategicTag(
-                "Dangerous Terrain",
-                physical,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { physical },
-                    StrategicTagEffectType.IncreasePressure
-                )
-            ));
-
-            strategicTags.Add(new StrategicTag(
-                "Careful Navigation",
-                physical,
-                new EnvironmentalPropertyEffect(
-                    new List<IEnvironmentalProperty> { physical },
-                    StrategicTagEffectType.DecreasePressure
-                )
-            ));
-        }
-
-        return strategicTags;
+        return defaultEncounter;
     }
 }
+

@@ -25,12 +25,14 @@
 
         foreach (ActionDefinition actionDefinition in _worldState.actions)
         {
-            if (!_worldState.locationSpots.Any(ls =>
+            if (!_worldState.locationSpots.Any((Func<LocationSpot, bool>)(ls =>
             {
-                return ls.Id == actionDefinition.SpotId;
-            }))
+                return ls.Id == actionDefinition.LocationSpotId;
+            })))
             {
-                result.AddMissingAction(actionDefinition.SpotId, actionDefinition.SpotId, actionDefinition);
+                // Need to get the locationId for this spot, not just use the spotId twice
+                string locationIdForSpot = _worldState.GetLocationIdForSpot(actionDefinition.LocationSpotId);
+                result.AddMissingAction(locationIdForSpot, actionDefinition.LocationSpotId, actionDefinition);
             }
         }
 

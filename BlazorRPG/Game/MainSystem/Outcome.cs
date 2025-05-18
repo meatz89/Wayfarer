@@ -141,8 +141,8 @@ public class CoinOutcome : Outcome
     public override string GetPreview(GameState gameState)
     {
         // Coins can't go below 0
-        int newValue = Math.Max(0, gameState.PlayerState.Coins + Amount);
-        return $"({gameState.PlayerState.Coins} -> {newValue})";
+        int newValue = Math.Max(0, gameState.PlayerState.Silver + Amount);
+        return $"({gameState.PlayerState.Silver} -> {newValue})";
     }
 }
 

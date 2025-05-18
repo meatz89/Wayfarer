@@ -24,7 +24,7 @@
         OnHighlightModeChanged?.Invoke();
     }
 
-    public bool ShouldHighlightCard(ActionCardDefinition card)
+    public bool ShouldHighlightCard(CardDefinition card)
     {
         if (!isHighlightModeActive)
             return false;

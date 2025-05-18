@@ -60,30 +60,4 @@ public class ActionGenerator
             Description = "Description",
         };
     }
-
-    public EncounterTemplate CreateEncounterTemplate(string id, EncounterTemplateModel model)
-    {
-        return new EncounterTemplate
-        {
-            ActionId = id,
-            Name = model.Name,
-            Duration = model.Duration,
-            MaxPressure = model.MaxPressure,
-            PartialThreshold = model.PartialThreshold,
-            StandardThreshold = model.StandardThreshold,
-            ExceptionalThreshold = model.ExceptionalThreshold,
-            Hostility = ParseHostility(model.Hostility),
-            EncounterStrategicTags = new()
-        };
-    }
-
-    private Encounter.HostilityLevels ParseHostility(string hostility)
-    {
-        return hostility.ToLower() switch
-        {
-            "friendly" => Encounter.HostilityLevels.Friendly,
-            "hostile" => Encounter.HostilityLevels.Hostile,
-            _ => Encounter.HostilityLevels.Neutral
-        };
-    }
 }

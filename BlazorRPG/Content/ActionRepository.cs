@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-public class ActionRepository
+﻿public class ActionRepository
 {
     private readonly WorldState _worldState;
 
@@ -55,7 +53,7 @@ public class ActionRepository
         List<ActionDefinition> actions = new List<ActionDefinition>();
         foreach (ActionDefinition action in _worldState.actions)
         {
-            if (action.SpotId == spotId)
+            if (action.LocationSpotId == spotId)
             {
                 actions.Add(action);
             }

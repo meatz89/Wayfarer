@@ -1,21 +1,19 @@
 ﻿public static class NarrativeChoiceDefinitionFactory
 {
-    public static NarrativeChoice BuildChoice(
+    public static EncounterOption BuildChoice(
         string id,
         string name,
         string description,
-        Skills skill,
+        SkillTypes skill,
         int difficulty,
         int reward,
         List<string> tags)
     {
-        NarrativeChoice choice = new NarrativeChoice(id, name);
+        EncounterOption choice = new EncounterOption(id, name);
 
         choice.Description = description;
         choice.Skill = skill;
         choice.Difficulty = difficulty;
-        choice.Reward = reward;
-        choice.Tags = tags;
 
         return choice;
     }

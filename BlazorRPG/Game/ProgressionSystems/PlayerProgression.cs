@@ -24,7 +24,7 @@
         }
     }
 
-    public void AddSkillExp(Skills skill, int xp)
+    public void AddSkillExp(SkillTypes skill, int xp)
     {
         SkillProgress prog = playerState.Skills.Skills[skill];
         prog.XP += xp;

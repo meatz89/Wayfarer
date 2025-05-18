@@ -95,7 +95,7 @@ public class CoinRequirement : IRequirement
 
     public bool IsMet(GameState gameState)
     {
-        return gameState.PlayerState.Coins >= RequiredAmount;
+        return gameState.PlayerState.Silver >= RequiredAmount;
     }
 
     public string GetDescription()
@@ -170,10 +170,10 @@ public class RelationshipRequirement : IRequirement
 
 public class SkillRequirement : IRequirement
 {
-    public Skills SkillType { get; }
+    public SkillTypes SkillType { get; }
     public int RequiredLevel { get; }
 
-    public SkillRequirement(Skills skillType, int minimumLevel)
+    public SkillRequirement(SkillTypes skillType, int minimumLevel)
     {
         SkillType = skillType;
         RequiredLevel = minimumLevel;

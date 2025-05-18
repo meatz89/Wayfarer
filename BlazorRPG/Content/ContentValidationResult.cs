@@ -50,7 +50,7 @@ public class MissingActionReference
 
     public MissingActionReference(string locationId, string spotId, ActionDefinition referencingAction)
     {
-        LocationId = spotId;
+        LocationId = locationId;
         SpotId = spotId;
         ReferencingAction = referencingAction;
     }

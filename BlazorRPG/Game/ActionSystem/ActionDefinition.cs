@@ -1,20 +1,16 @@
 ﻿public class ActionDefinition
 {
-    // Basic properties
     public string Id { get; set; }
     public string Name { get; set; }
-    public string SpotId { get; set; }
     public string Description { get; set; }
+    public string LocationSpotId { get; set; }
+    public int ActionPointCost { get; set; }
+    public int SilverCost { get; set; }
+    public CardTypes? RefreshCardType { get; set; }
+    public int EnergyCost { get; set; }
+    public int ConcentrationCost { get; set; }
 
     // Approaches
-    public List<ActionApproach> Approaches { get; set; } = new List<ActionApproach>();
-
-    // Requirements
-    public int RelationshipLevel { get; set; }
-    public int CoinCost { get; set; }
-    public int FoodCost { get; set; }
-
-    // Time windows - updated to use the new TimeWindows class
     public List<TimeWindowTypes> TimeWindows { get; set; } = new List<TimeWindowTypes>();
 
     // Movement
@@ -25,6 +21,6 @@
     {
         Id = id;
         Name = name;
-        SpotId = spotId;
+        LocationSpotId = spotId;
     }
 }

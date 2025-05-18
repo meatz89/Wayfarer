@@ -1,8 +1,8 @@
-﻿public class EnvironmentalPropertyManager
+﻿public class LocationPropertyManager
 {
     private readonly LocationSystem locationSystem;
 
-    public EnvironmentalPropertyManager(
+    public LocationPropertyManager(
         LocationSystem locationSystem)
     {
         this.locationSystem = locationSystem;

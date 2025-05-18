@@ -231,7 +231,7 @@ public partial class MainGameplayView : ComponentBase
         UpdateState();
     }
 
-    private async Task HandleCardRefreshed(ActionCardDefinition card)
+    private async Task HandleCardRefreshed(CardDefinition card)
     {
         await GameManager.RefreshCard(card);
         MessageSystem.AddSystemMessage($"Refreshed {card.Name} card");

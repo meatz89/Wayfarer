@@ -10,7 +10,7 @@
     private NarrativeContext narrativeContext;
 
     private readonly WorldStateInputBuilder worldStateInputCreator;
-    public List<NarrativeChoice> CurrentChoices = new List<NarrativeChoice>();
+    public List<EncounterOption> CurrentChoices = new List<EncounterOption>();
 
     public PlayerState playerState;
     public WorldState worldState;
@@ -48,7 +48,7 @@
 
     public async Task<NarrativeResult> SimulateChoiceForPreGeneration(
     string location,
-    NarrativeChoice choice,
+    EncounterOption choice,
     ChoiceNarrative choiceDescription,
     int priority)
     {
@@ -60,9 +60,6 @@
 
         // Proceed with simulation using the copied state
         ChoiceOutcome outcome = ApplyChoiceProjection(playerStateCopy, encounterStateCopy, choice);
-
-        // Get status after the choice
-        EncounterStatusModel newStatus = GetEncounterStatusModel(playerStateCopy, worldState);
 
         // Generate narrative based on the simulation
         string narrative = "Continued Narrative";
@@ -78,7 +75,6 @@
                     choice,
                     choiceDescription,
                     outcome,
-                    newStatus,
                     worldStateInput,
                     priority);
             }
@@ -89,7 +85,6 @@
                     choice,
                     choiceDescription,
                     outcome,
-                    newStatus,
                     worldStateInput,
                     priority);
             }
@@ -104,9 +99,9 @@
             NarrativeResult result = new(
                 narrative,
                 string.Empty,
-                new List<NarrativeChoice>(),
+                new List<EncounterOption>(),
                 new List<ChoiceProjection>(),
-                new Dictionary<NarrativeChoice, ChoiceNarrative>(),
+                new Dictionary<EncounterOption, ChoiceNarrative>(),
                 narrativeEvent.ChoiceNarrative);
 
             result.SetOutcome(outcome.Outcome);
@@ -118,14 +113,14 @@
         {
             // Generate choices for the next step
             // This needs to be done on the copy to avoid interfering with the actual state
-            List<NarrativeChoice> newChoices = cardSelectionAlgorithm.SelectChoices(
+            List<EncounterOption> newChoices = cardSelectionAlgorithm.SelectChoices(
                 encounterStateCopy, playerStateCopy);
 
             List<ChoiceProjection> newProjections = newChoices.Select(
-                c => encounterStateCopy.CreateChoiceProjection(c)).ToList();
+                c => encounterStateCopy.CreateChoiceProjection(c, playerState)).ToList();
 
             // Generate choice descriptions
-            Dictionary<NarrativeChoice, ChoiceNarrative> newChoiceDescriptions = null;
+            Dictionary<EncounterOption, ChoiceNarrative> newChoiceDescriptions = null;
 
             if (_useAiNarrative)
             {
@@ -134,7 +129,6 @@
                     narrativeContext,
                     newChoices,
                     newProjections,
-                    newStatus,
                     worldStateInput,
                     priority);
             }
@@ -173,9 +167,6 @@
                 encounterInfo.EncounterType,
                 actionImplementation);
 
-        // Generate introduction
-        EncounterStatusModel status = GetEncounterStatusModel(playerState, worldState);
-
         string introduction = "introduction";
 
         if (_useAiNarrative)
@@ -191,7 +182,6 @@
             WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location.Id);
             introduction = await _aiService.GenerateIntroductionAsync(
                 narrativeContext,
-                status,
                 memoryContent,
                 worldStateInput,
                 AIClient.PRIORITY_IMMEDIATE);  // Ensure this uses immediate priority
@@ -199,7 +189,7 @@
 
         // Get available choices
         GenerateChoicesForPlayer(playerState);
-        List<NarrativeChoice> choices = GetCurrentChoices();
+        List<EncounterOption> choices = GetCurrentChoices();
         List<ChoiceProjection> projections = choices.Select(ProjectChoice)
                                                     .ToList();
 
@@ -211,7 +201,7 @@
         narrativeContext.AddEvent(firstNarrative);
 
         // Generate choice descriptions - wait for this to complete
-        Dictionary<NarrativeChoice, ChoiceNarrative> choiceDescriptions = null;
+        Dictionary<EncounterOption, ChoiceNarrative> choiceDescriptions = null;
         if (_useAiNarrative)
         {
             WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location.Id);
@@ -221,7 +211,6 @@
                 narrativeContext,
                 choices,
                 projections,
-                status,
                 worldStateInput,
                 AIClient.PRIORITY_IMMEDIATE);  // Ensure this uses immediate priority
 
@@ -251,15 +240,12 @@
 
     public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
         string location,
-        NarrativeChoice choice,
+        EncounterOption choice,
         ChoiceNarrative choiceDescription,
         int priority = AIClient.PRIORITY_IMMEDIATE)
     {
         // Apply the choice
         ChoiceOutcome outcome = ApplyChoiceProjection(playerState, EncounterState, choice);
-
-        // Get status after the choice
-        EncounterStatusModel newStatus = GetEncounterStatusModel(playerState, worldState);
 
         // Generate narrative for the reaction and new scene
         string narrative = "Continued Narrative";
@@ -275,7 +261,6 @@
                     choice,
                     choiceDescription,
                     outcome,
-                    newStatus,
                     worldStateInput,
                     priority);  // Pass priority parameter
             }
@@ -286,9 +271,9 @@
             NarrativeResult currentResult = new(
                 narrative,
                 string.Empty,
-                new List<NarrativeChoice>(),
+                new List<EncounterOption>(),
                 new List<ChoiceProjection>(),
-                new Dictionary<NarrativeChoice, ChoiceNarrative>(),
+                new Dictionary<EncounterOption, ChoiceNarrative>(),
                 narrativeEvent.ChoiceNarrative);
 
             currentResult.SetOutcome(outcome.Outcome);
@@ -306,7 +291,6 @@
                     choice,
                     choiceDescription,
                     outcome,
-                    newStatus,
                     worldStateInput,
                     priority);  // Pass priority parameter
             }
@@ -316,11 +300,11 @@
 
             // Get the new choices and projections
             GenerateChoicesForPlayer(playerState);
-            List<NarrativeChoice> newChoices = GetCurrentChoices();
+            List<EncounterOption> newChoices = GetCurrentChoices();
             List<ChoiceProjection> newProjections = newChoices.Select(ProjectChoice).ToList();
 
             // Generate descriptive narratives for each choice
-            Dictionary<NarrativeChoice, ChoiceNarrative> newChoiceDescriptions = null;
+            Dictionary<EncounterOption, ChoiceNarrative> newChoiceDescriptions = null;
 
             if (_useAiNarrative)
             {
@@ -329,7 +313,6 @@
                     narrativeContext,
                     newChoices,
                     newProjections,
-                    newStatus,
                     worldStateInput,
                     priority);  // Pass priority parameter
             }
@@ -338,7 +321,7 @@
             narrativeEvent.ChoiceDescriptions.Clear();
             if (newChoiceDescriptions != null)
             {
-                foreach (KeyValuePair<NarrativeChoice, ChoiceNarrative> kvp in newChoiceDescriptions)
+                foreach (KeyValuePair<EncounterOption, ChoiceNarrative> kvp in newChoiceDescriptions)
                 {
                     narrativeEvent.ChoiceDescriptions[kvp.Key] = kvp.Value;
                 }
@@ -357,16 +340,15 @@
         }
     }
 
-    private ChoiceOutcome ApplyChoiceProjection(PlayerState playerState, EncounterState encounterState, NarrativeChoice choice)
+    private ChoiceOutcome ApplyChoiceProjection(PlayerState playerState, EncounterState encounterState, EncounterOption choice)
     {
         this.playerState = playerState;
 
         ChoiceProjection projection = encounterState.ApplyChoice(playerState, Encounter, choice);
 
         ChoiceOutcome outcome = new ChoiceOutcome(
-            projection.MomentumGained,
-            projection.PressureBuilt,
-            projection.NarrativeDescription,
+            projection.ProgressGained,
+            projection.Description,
             projection.EncounterWillEnd,
             projection.ProjectedOutcome,
             projection.HealthChange,
@@ -377,7 +359,7 @@
 
 
     private NarrativeEvent GetNarrativeEvent(
-        NarrativeChoice choice,
+        EncounterOption choice,
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome,
         string narrative)
@@ -392,37 +374,20 @@
         return narrativeEvent;
     }
 
-
-    public EncounterStatusModel GetEncounterStatusModel(PlayerState playerState, WorldState worldState)
-    {
-        return new EncounterStatusModel(
-            currentTurn: EncounterState.CurrentTurn,
-            maxMomentum: EncounterState.EncounterInfo.ExceptionalThreshold,
-            maxPressure: EncounterState.EncounterInfo.MaxPressure,
-            successThreshold: EncounterState.EncounterInfo.StandardThreshold,
-            maxTurns: EncounterState.EncounterInfo.MaxTurns,
-            momentum: EncounterState.Momentum,
-            pressure: EncounterState.Pressure,
-            activeTagNames: EncounterState.GetActiveTagsNames(),
-            playerState: playerState,
-            worldState: worldState
-        );
-    }
-
     public NarrativeContext GetNarrativeContext()
     {
         return narrativeContext;
     }
 
-    public ChoiceProjection ProjectChoice(NarrativeChoice choice)
+    public ChoiceProjection ProjectChoice(EncounterOption choice)
     {
-        ChoiceProjection projection = EncounterState.CreateChoiceProjection(choice);
-        projection.NarrativeDescription = choice.Id;
+        ChoiceProjection projection = EncounterState.CreateChoiceProjection(choice, playerState);
+        projection.Description = choice.Id;
         return projection;
     }
 
     // Existing methods remain the same
-    public List<NarrativeChoice> GetCurrentChoices()
+    public List<EncounterOption> GetCurrentChoices()
     {
         return CurrentChoices;
     }

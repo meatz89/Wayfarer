@@ -38,28 +38,25 @@
 
     public async Task<EncounterManager> GenerateEncounter(
         string id,
+        CommissionDefinition commission,
+        string approachId,
         Location location,
         LocationSpot locationSpot,
-        EncounterContext context,
         WorldState worldState,
         PlayerState playerState,
         ActionImplementation actionImplementation)
     {
         this.worldState = worldState;
 
-        Location loc = context.Location;
-        EncounterCategories encounterType = actionImplementation.EncounterType;
-        EncounterTemplate template = actionImplementation.EncounterTemplate;
+        Encounter encounter = encounterFactory.CreateEncounterFromCommission(
+            commission, approachId, playerState, location);
 
-        if (template == null)
-        {
-            template = encounterFactory.GetDefaultEncounterTemplate();
-        }
-
-        Encounter encounter = encounterFactory.CreateEncounterFromTemplate(
-            template, location, locationSpot, encounterType);
-
-        EncounterManager encounterManager = await StartEncounter(encounter, location, this.worldState, playerState, actionImplementation);
+        EncounterManager encounterManager = await StartEncounter(
+            encounter, 
+            location, 
+            this.worldState, 
+            playerState, 
+            actionImplementation);
 
         string situation = $"{actionImplementation.Id} ({actionImplementation.ActionType} Action)";
         return encounterManager;
@@ -121,7 +118,7 @@
 
     public async Task<EncounterResult> ExecuteChoice(
         NarrativeResult narrativeResult,
-        NarrativeChoice choice)
+        EncounterOption choice)
     {
         NarrativeResult currentNarrative = narrativeResult;
         NarrativeResult cachedResult = null;
@@ -144,7 +141,7 @@
             _preGenerationManager.CancelAllPendingGenerations();
 
             // Continue with existing code for generating the response in real-time
-            Dictionary<NarrativeChoice, ChoiceNarrative> choiceDescriptions = currentNarrative.ChoiceDescriptions;
+            Dictionary<EncounterOption, ChoiceNarrative> choiceDescriptions = currentNarrative.ChoiceDescriptions;
             ChoiceNarrative selectedDescription = null;
 
             if (currentNarrative.ChoiceDescriptions != null && choiceDescriptions.ContainsKey(choice))
@@ -189,10 +186,10 @@
             return;
         }
 
-        List<NarrativeChoice> choices = currentNarrative.Choices;
+        List<EncounterOption> choices = currentNarrative.Choices;
 
         // Start pre-generating responses for each choice
-        foreach (NarrativeChoice choice in choices)
+        foreach (EncounterOption choice in choices)
         {
             ChoiceNarrative choiceNarrative = null;
             if (currentNarrative.ChoiceDescriptions != null &&
@@ -202,7 +199,7 @@
             }
 
             // Create a copy of variables needed in the task to avoid closure issues
-            NarrativeChoice choiceCopy = choice;
+            EncounterOption choiceCopy = choice;
             ChoiceNarrative narrativeCopy = choiceNarrative ?? new ChoiceNarrative("default", "default");
             CancellationToken token = _preGenerationManager.GetCancellationToken();
 
@@ -283,22 +280,14 @@
         return ongoingResult;
     }
 
-    public List<NarrativeChoice> GetChoices()
+    public List<EncounterOption> GetChoices()
     {
         EncounterManager encounterManager = GetCurrentEncounter();
-        List<NarrativeChoice> choices = encounterManager.GetCurrentChoices();
+        List<EncounterOption> choices = encounterManager.GetCurrentChoices();
         return choices;
     }
 
-    private bool IsGameOver(PlayerState player)
-    {
-        if (player.Health <= 0) return true;
-        if (player.Concentration <= 0) return true;
-
-        return false;
-    }
-
-    public ChoiceProjection GetChoiceProjection(EncounterManager encounter, NarrativeChoice choice)
+    public ChoiceProjection GetChoiceProjection(EncounterManager encounter, EncounterOption choice)
     {
         EncounterManager encounterManager = GetCurrentEncounter();
         ChoiceProjection choiceProjection = encounterManager.ProjectChoice(choice);
@@ -315,4 +304,8 @@
         return gameState.ActionStateTracker.UserEncounterChoiceOptions;
     }
 
+    internal async Task<EncounterManager> GenerateEncounter(string? id, object commission, object approachId, Location location, LocationSpot locationSpot, WorldState worldState, PlayerState playerState, ActionImplementation actionImplementation)
+    {
+        throw new NotImplementedException();
+    }
 }

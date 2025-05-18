@@ -18,7 +18,7 @@ public partial class LocationSpotMap : ComponentBase
 
     private bool showTooltip;
     private UserActionOption selectedAction = null;
-    private ActionApproach hoveredApproach = null;
+    private ApproachDefinition hoveredApproach = null;
     private double mouseX;
     private double mouseY;
 
@@ -27,12 +27,12 @@ public partial class LocationSpotMap : ComponentBase
         DragDropService.OnStateChanged += StateHasChanged;
     }
 
-    private async Task HandleApproachSelection(UserActionOption action, ActionApproach approach)
+    private async Task HandleApproachSelection(UserActionOption action, ApproachDefinition approach)
     {
         // Check if a card is selected and is valid for this approach
         if (DragDropService.IsValidDropTarget(approach.RequiredCardType))
         {
-            ActionCardDefinition card = DragDropService.SelectedCard;
+            CardDefinition card = DragDropService.SelectedCard;
             DragDropService.Reset();
 
             await SelectApproach(action, approach, card);
@@ -84,7 +84,7 @@ public partial class LocationSpotMap : ComponentBase
         }
     }
 
-    private async Task SelectApproach(UserActionOption action, ActionApproach approach, ActionCardDefinition card)
+    private async Task SelectApproach(UserActionOption action, ApproachDefinition approach, CardDefinition card)
     {
         showTooltip = false;
 
@@ -93,7 +93,7 @@ public partial class LocationSpotMap : ComponentBase
             return;
         }
 
-        UserActionOption actionWithApproach = action with { SelectedApproach = approach, SelectedCard = card };
+        UserActionOption actionWithApproach = action with { ApproachId = approach.Id, SelectedCard = card };
 
         await OnActionSelected.InvokeAsync(actionWithApproach);
 
@@ -101,7 +101,7 @@ public partial class LocationSpotMap : ComponentBase
         selectedAction = null;
     }
 
-    private void HandleShowApproachTooltip(UserActionOption action, ActionApproach approach, MouseEventArgs e)
+    private void HandleShowApproachTooltip(UserActionOption action, ApproachDefinition approach, MouseEventArgs e)
     {
         selectedAction = action;
         hoveredApproach = approach;

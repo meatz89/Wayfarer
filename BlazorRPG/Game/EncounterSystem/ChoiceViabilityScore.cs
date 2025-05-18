@@ -1,4 +1,4 @@
-﻿public class CardViabilityScore
+﻿public class ChoiceViabilityScore
 {
     public int PositionalScore { get; set; } // Lower is better
     public int SituationalValue { get; set; } // Higher is better

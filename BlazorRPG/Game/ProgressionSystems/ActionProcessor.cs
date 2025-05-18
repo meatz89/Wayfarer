@@ -8,14 +8,14 @@ public class ActionProcessor
     public PlayerState glayerState { get; }
     public WorldState worldState { get; }
     public PlayerProgression playerProgression { get; }
-    public EnvironmentalPropertyManager environmentalPropertyManager { get; }
+    public LocationPropertyManager environmentalPropertyManager { get; }
     public NarrativeChoiceRepository choiceRepository { get; }
     public MessageSystem messageSystem { get; }
 
     public ActionProcessor(
         GameState gameState,
         PlayerProgression playerProgression,
-        EnvironmentalPropertyManager environmentalPropertyManager,
+        LocationPropertyManager environmentalPropertyManager,
         NarrativeChoiceRepository choiceRepository,
         LocationRepository locationRepository,
         MessageSystem messageSystem)
@@ -56,16 +56,8 @@ public class ActionProcessor
         ProcessActionOutcomes(action);
     }
 
-    private void ApplyRecovery(ActionImplementation action)
-    {
-        //string recoveryType = action.GetRecoveryType();
-        //ApplyRecovery(recoveryType);
-    }
-
     private void ProcessActionOutcomes(ActionImplementation action)
     {
-        // Apply Action Outcomes
-        IncreaseSkillXP(action);
         UnlockCards();
 
         foreach (Outcome reward in action.Yields)
@@ -98,33 +90,8 @@ public class ActionProcessor
         UpdateState();
     }
 
-    private void IncreaseSkillXP(ActionImplementation action)
-    {
-        Skills skill = DetermineSkillForAction(action);
-        int skillXp = CalculateBasicActionSkillXP(action);
-        playerProgression.AddSkillExp(skill, skillXp);
-        messageSystem.AddSystemMessage($"Gained {skillXp} {skill} skill experience");
-    }
-
-
     private void UnlockCards()
     {
-    }
-
-    private Skills DetermineSkillForAction(ActionImplementation action)
-    {
-        // Map encounter type or action category to skill
-        return action.EncounterType switch
-        {
-            EncounterCategories.None => Skills.Strength,
-            EncounterCategories.Force => Skills.Strength,
-            EncounterCategories.Precision => Skills.Precision,
-            EncounterCategories.Rapport => Skills.Charm,
-            EncounterCategories.Persuasion => Skills.Persuasion,
-            EncounterCategories.Observation => Skills.Observation,
-            EncounterCategories.Contemplation => Skills.Analysis,
-            _ => Skills.Strength, // Default skill if none match
-        };
     }
 
     private int CalculateBasicActionSkillXP(ActionImplementation action)

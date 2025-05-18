@@ -4,5 +4,5 @@
     public LocationSpot LocationSpot { get; set; }
 
     public ActionImplementation ActionImplementation { get; set; }
-    public EncounterCategories BasicActionType { get; set; }
+    public CardTypes EncounterCategories { get; set; }
 }
