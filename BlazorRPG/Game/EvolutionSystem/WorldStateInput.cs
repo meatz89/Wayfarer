@@ -17,8 +17,6 @@
     public string LocationSpots { get; set; }
 
     public string Inventory { get; set; }
-    public string Relationships { get; set; }
-
     public string KnownCharacters { get; set; }
     public string ActiveOpportunities { get; set; }
 

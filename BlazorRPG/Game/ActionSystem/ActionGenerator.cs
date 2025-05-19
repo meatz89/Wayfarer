@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿
+
+/// <summary>
 /// Generates actions via AI and registers them safely.
 /// </summary>
 public class ActionGenerator
@@ -49,6 +51,11 @@ public class ActionGenerator
 
         actionRepository.AddAction(actionDef);
         return actionDef.Id;
+    }
+
+    internal async Task<string> GenerateCommission(string name, string id1, string id2)
+    {
+        throw new NotImplementedException();
     }
 
     private ActionDefinition GetDefaultActionDefinition(

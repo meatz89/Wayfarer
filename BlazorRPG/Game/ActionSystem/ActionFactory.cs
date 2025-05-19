@@ -1,4 +1,5 @@
-﻿public class ActionFactory
+﻿
+public class ActionFactory
 {
     private readonly ActionRepository actionRepository;
     private readonly EncounterFactory encounterFactory;
@@ -36,7 +37,7 @@
             actionImplementation.DestinationLocationSpot = template.MoveToLocationSpot;
         }
         // Set encounter type
-        actionImplementation.ActionType = ActionExecutionTypes.Instant;
+        actionImplementation.ActionType = actionType;
 
         // Create requirements, costs, and yields
         actionImplementation.Requirements = CreateRequirements(template);
@@ -50,6 +51,54 @@
     }
 
 
+
+    // Helper method to find a default spot in a location
+    private LocationSpot FindDefaultSpotForLocation(string locationId)
+    {
+        Location location = worldState.locations.FirstOrDefault(l => l.Id == locationId);
+        if (location == null || location.LocationSpotIds == null || location.LocationSpotIds.Count == 0)
+        {
+            return null;
+        }
+
+        // Try to find a central/main spot first (marketplace, common_room, etc.)
+        string[] preferredSpotNames = { "marketplace", "common_room", "center", "main" };
+
+        foreach (string spotId in location.LocationSpotIds)
+        {
+            LocationSpot spot = worldState.locationSpots.FirstOrDefault(s => s.Id == spotId);
+            if (spot != null && preferredSpotNames.Any(name => spot.Id.Contains(name)))
+            {
+                return spot;
+            }
+        }
+
+        // If no preferred spot found, return the first available spot
+        string firstSpotId = location.LocationSpotIds.First();
+        return worldState.locationSpots.FirstOrDefault(s => s.Id == firstSpotId);
+    }
+
+    private List<Outcome> CreateYields(ActionDefinition template)
+    {
+        return new List<Outcome>();
+    }
+
+    private List<IRequirement> CreateRequirements(ActionDefinition template)
+    {
+        List<IRequirement> requirements = new();
+        // Time window requirement
+        if (template.TimeWindows != null && template.TimeWindows.Count > 0)
+        {
+            requirements.Add(new TimeWindowRequirement(template.TimeWindows));
+        }
+        return requirements;
+    }
+
+    private List<Outcome> CreateCosts(ActionDefinition template)
+    {
+        List<Outcome> costs = new();
+        return costs;
+    }
 
     public ActionImplementation CreateActionFromCommission(CommissionDefinition commission)
     {
@@ -104,53 +153,5 @@
         actionImplementation.Yields = new List<Outcome>();
 
         return actionImplementation;
-    }
-
-    // Helper method to find a default spot in a location
-    private LocationSpot FindDefaultSpotForLocation(string locationId)
-    {
-        Location location = worldState.locations.FirstOrDefault(l => l.Id == locationId);
-        if (location == null || location.LocationSpotIds == null || location.LocationSpotIds.Count == 0)
-        {
-            return null;
-        }
-
-        // Try to find a central/main spot first (marketplace, common_room, etc.)
-        string[] preferredSpotNames = { "marketplace", "common_room", "center", "main" };
-
-        foreach (string spotId in location.LocationSpotIds)
-        {
-            LocationSpot spot = worldState.locationSpots.FirstOrDefault(s => s.Id == spotId);
-            if (spot != null && preferredSpotNames.Any(name => spot.Id.Contains(name)))
-            {
-                return spot;
-            }
-        }
-
-        // If no preferred spot found, return the first available spot
-        string firstSpotId = location.LocationSpotIds.First();
-        return worldState.locationSpots.FirstOrDefault(s => s.Id == firstSpotId);
-    }
-
-    private List<Outcome> CreateYields(ActionDefinition template)
-    {
-        return new List<Outcome>();
-    }
-
-    private List<IRequirement> CreateRequirements(ActionDefinition template)
-    {
-        List<IRequirement> requirements = new();
-        // Time window requirement
-        if (template.TimeWindows != null && template.TimeWindows.Count > 0)
-        {
-            requirements.Add(new TimeWindowRequirement(template.TimeWindows));
-        }
-        return requirements;
-    }
-
-    private List<Outcome> CreateCosts(ActionDefinition template)
-    {
-        List<Outcome> costs = new();
-        return costs;
     }
 }

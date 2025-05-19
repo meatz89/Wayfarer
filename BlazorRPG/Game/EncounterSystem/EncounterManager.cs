@@ -3,7 +3,7 @@
     private readonly Encounter encounter;
     public ActionImplementation ActionImplementation;
 
-    private ChoiceSelectionAlgorithm cardSelectionAlgorithm;
+    private ChoiceCardSelector cardSelectionAlgorithm;
     public EncounterState EncounterState;
 
     private IAIService _aiService;
@@ -26,7 +26,7 @@
     public EncounterManager(
         Encounter encounter,
         ActionImplementation actionImplementation,
-        ChoiceSelectionAlgorithm cardSelector,
+        ChoiceCardSelector cardSelector,
         IAIService aiService,
         WorldStateInputBuilder worldStateInputCreator,
         IConfiguration configuration,
@@ -53,13 +53,13 @@
     int priority)
     {
         // Create deep copies of state to avoid threading issues
-        PlayerState playerStateCopy = this.playerState.Clone();
+        PlayerState playerState = this.playerState;
         EncounterState encounterStateCopy = EncounterState.CreateDeepCopy(
             this.EncounterState,
-            playerStateCopy);
+            playerState);
 
         // Proceed with simulation using the copied state
-        ChoiceOutcome outcome = ApplyChoiceProjection(playerStateCopy, encounterStateCopy, choice);
+        ChoiceOutcome outcome = ApplyChoiceProjection(playerState, encounterStateCopy, choice);
 
         // Generate narrative based on the simulation
         string narrative = "Continued Narrative";
@@ -114,7 +114,7 @@
             // Generate choices for the next step
             // This needs to be done on the copy to avoid interfering with the actual state
             List<EncounterOption> newChoices = cardSelectionAlgorithm.SelectChoices(
-                encounterStateCopy, playerStateCopy);
+                encounterStateCopy, playerState);
 
             List<ChoiceProjection> newProjections = newChoices.Select(
                 c => encounterStateCopy.CreateChoiceProjection(c, playerState)).ToList();
@@ -165,6 +165,7 @@
                 encounterInfo.LocationName.ToString(),
                 encounterInfo.LocationSpotName.ToString(),
                 encounterInfo.EncounterType,
+                playerState,
                 actionImplementation);
 
         string introduction = "introduction";

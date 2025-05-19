@@ -1,21 +1,21 @@
-﻿public class ChoiceSelectionAlgorithm
+﻿public class ChoiceCardSelector
 {
     private readonly NarrativeChoiceRepository _narrativeChoiceRepository;
 
-    public ChoiceSelectionAlgorithm(NarrativeChoiceRepository choiceRepository)
+    public ChoiceCardSelector(NarrativeChoiceRepository choiceRepository)
     {
         _narrativeChoiceRepository = choiceRepository;
     }
 
     public List<EncounterOption> SelectChoices(EncounterState state, PlayerState playerState)
     {
-        // Get the current stage's options
-        List<EncounterOption> stageOptions = GetCurrentStageOptions(state);
+        // Get the current stage's options - no card filtering needed
+        if (state.CurrentStageIndex < state.EncounterInfo.Stages.Count)
+        {
+            return state.EncounterInfo.Stages[state.CurrentStageIndex].Options;
+        }
 
-        // Filter options based on player's available cards
-        List<EncounterOption> filteredOptions = FilterOptionsByAvailableCards(stageOptions, playerState);
-
-        return filteredOptions;
+        return new List<EncounterOption>();
     }
 
     private List<EncounterOption> GetCurrentStageOptions(EncounterState state)

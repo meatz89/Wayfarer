@@ -1,1 +1,1 @@
-﻿public enum ActionResults { Ongoing, EncounterSuccess, EncounterFailure, GameOver, Started };
+﻿public enum ActionResults { Ongoing, EncounterSuccess, EncounterFailure, GameOver };

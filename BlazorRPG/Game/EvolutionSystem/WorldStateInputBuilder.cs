@@ -44,12 +44,14 @@ public class WorldStateInputBuilder
             ConnectedLocations = LocationSystem.FormatLocations(LocationSystem.GetConnectedLocations(worldState.CurrentLocation.Id)),
 
             Inventory = FormatPlayerInventory(playerState.Inventory),
-            Relationships = playerState.Relationships.ToString(),
 
             KnownCharacters = CharacterSystem.FormatKnownCharacters(worldState.GetCharacters()),
             ActiveOpportunities = OpportunitySystem.FormatActiveOpportunities(worldState.GetOpportunities()),
 
             MemorySummary = await MemoryFileAccess.ReadFromMemoryFile(),
+
+            Characters = worldState.GetCharacters(),
+            RelationshipList = playerState.Relationships
         };
 
         await MemoryFileAccess.WriteToLogFile(context);

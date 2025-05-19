@@ -1,12 +1,13 @@
 ﻿public class EncounterSystem
 {
     private readonly GameState gameState;
+    private readonly MessageSystem messageSystem;
     private readonly IConfiguration configuration;
     private readonly NarrativeChoiceRepository choiceRepository;
     private readonly ILogger<EncounterSystem> logger;
 
     private readonly IAIService _aiService;
-    private ChoiceSelectionAlgorithm cardSelector;
+    private ChoiceCardSelector cardSelector;
 
     public WorldState worldState;
     public EncounterFactory encounterFactory;
@@ -26,6 +27,7 @@
         ILogger<EncounterSystem> logger)
     {
         this.gameState = gameState;
+        this.messageSystem = messageSystem;
         this.configuration = configuration;
         this.choiceRepository = choiceRepository;
         this.encounterFactory = encounterFactory;
@@ -70,7 +72,7 @@
         ActionImplementation actionImplementation)
     {
         // Create the core components
-        cardSelector = new ChoiceSelectionAlgorithm(choiceRepository);
+        cardSelector = new ChoiceCardSelector(choiceRepository);
 
         // Create encounter manager with the direct service
         EncounterManager encounterManager = new EncounterManager(
@@ -102,7 +104,7 @@
         encounterManager.EncounterResult = new EncounterResult()
         {
             ActionImplementation = actionImplementation,
-            ActionResult = ActionResults.Started,
+            ActionResult = ActionResults.Ongoing,
             EncounterEndMessage = "",
             NarrativeResult = initialResult,
             NarrativeContext = encounterManager.GetNarrativeContext()
@@ -162,6 +164,7 @@
 
         // Create and return encounter result
         encounterManager.EncounterResult = CreateEncounterResult(encounterManager, currentNarrative);
+        ProcessEncounterProgress(encounterManager.EncounterResult, gameState);
 
         // If encounter continues, start pre-generating for the next set of choices
         if (!currentNarrative.IsEncounterOver)
@@ -277,7 +280,59 @@
             NarrativeResult = currentNarrative,
             NarrativeContext = encounter.GetNarrativeContext()
         };
+
         return ongoingResult;
+    }
+
+    // In the appropriate method that processes encounter results
+    public void ProcessEncounterProgress(EncounterResult result, GameState gameState)
+    {
+        // If this encounter was part of a commission
+        if (result.ActionImplementation.Commission != null)
+        {
+            CommissionDefinition commission = result.ActionImplementation.Commission;
+
+            // Calculate progress based on success level
+            int progress = 0;
+            switch (result.ActionResult)
+            {
+                case ActionResults.EncounterSuccess:
+                    progress = 5;
+                    break;
+                case ActionResults.EncounterFailure:
+                    progress = 1; 
+                    break;
+                default:
+                    progress = 0; // No progress for failure
+                    break;
+            }
+
+            // Add progress
+            commission.AddProgress(progress, gameState);
+
+            // Check if commission is complete
+            if (commission.IsComplete())
+            {
+                CompleteCommission(commission, gameState);
+            }
+        }
+    }
+
+    private void CompleteCommission(CommissionDefinition commission, GameState gameState)
+    {
+        // Award rewards
+        gameState.PlayerState.AddSilver(commission.SilverReward);
+        gameState.PlayerState.AddReputation(commission.ReputationReward);
+        gameState.PlayerState.AddInsightPoints(commission.InsightPointReward);
+
+        // Add message
+        // Assuming you have a message system
+        messageSystem.AddSystemMessage($"Commission completed: {commission.Name}");
+
+        // Remove from active commissions
+        // Add to completed commissions history
+        gameState.WorldState.CompletedCommissions.Add(commission);
+        gameState.WorldState.ActiveCommissions.Remove(commission);
     }
 
     public List<EncounterOption> GetChoices()

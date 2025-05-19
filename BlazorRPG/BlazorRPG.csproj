@@ -30,13 +30,13 @@
 	</ItemGroup>
     
 	<ItemGroup>
-		<Content Update="Content\Templates\basic_actions.json">
+		<Content Update="Content\Templates\actions.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Update="Content\Templates\action_config.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<Content Update="Content\Templates\basic_commissions.json">
+		<Content Update="Content\Templates\commissions.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Update="Content\Templates\cards.json">
@@ -48,10 +48,10 @@
 		<Content Update="Content\Templates\locations.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<Content Update="Content\Templates\location_spots.json">
+		<Content Update="Content\Templates\locationSpots.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<Content Update="Content\Templates\location_properties.json">
+		<Content Update="Content\Templates\locationProperties.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Update="wwwroot\images\characters\female_diplomat.png">

@@ -20,7 +20,7 @@ public class EncounterState
 
     public static EncounterState CreateDeepCopy(EncounterState originalState, PlayerState playerState)
     {
-        EncounterState copy = new EncounterState(originalState.EncounterInfo, playerState.Clone());
+        EncounterState copy = new EncounterState(originalState.EncounterInfo, playerState.Serialize());
         copy.CurrentProgress = originalState.CurrentProgress;
         copy.CurrentStageIndex = originalState.CurrentStageIndex;
         copy.CurrentTurn = originalState.CurrentTurn;

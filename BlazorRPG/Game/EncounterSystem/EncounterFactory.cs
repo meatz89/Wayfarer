@@ -1,9 +1,13 @@
 ﻿public class EncounterFactory
 {
     private readonly LocationRepository _locationRepository;
+    private readonly WorldState worldState;
 
-    public EncounterFactory(LocationRepository locationRepository)
+    public EncounterFactory(
+        GameState gameState,
+        LocationRepository locationRepository)
     {
+        this.worldState = gameState.WorldState;
         _locationRepository = locationRepository;
     }
 
@@ -43,10 +47,13 @@
     }
 
     private List<EncounterStage> GenerateEncounterStagesForApproach(
-        ApproachDefinition approach,
-        int tier,
-        Location location)
+    ApproachDefinition approach,
+    int tier,
+    Location location)
     {
+        // Get current time of day from the game state
+        TimeWindowTypes timeOfDay = worldState.CurrentTimeWindow;
+
         int stageCount = 2 + (tier > 1 ? 1 : 0);
         List<EncounterStage> stages = new List<EncounterStage>();
 
@@ -62,31 +69,27 @@
                 Options = new List<EncounterOption>()
             };
 
-            // Primary skill option
-            stage.Options.Add(new EncounterOption
-            {
-                Id = $"primary_{approach.PrimarySkill.ToString().ToLower()}_{stageNum}",
-                Name = $"{approach.PrimarySkill} Approach",
-                Description = $"Use your {approach.PrimarySkill} skill for this challenge",
-                Skill = approach.PrimarySkill,
-                Difficulty = baseDifficulty,
-                SuccessProgress = baseProgress + 2,
-                FailureProgress = 0
-            });
+            // Primary skill option with location property effects
+            stage.Options.Add(CreateSkillCheckOption(
+                $"primary_{approach.PrimarySkill.ToString().ToLower()}_{stageNum}",
+                approach.PrimarySkill.ToString(),
+                approach.PrimarySkill,
+                baseDifficulty,
+                baseProgress + 2,
+                0,
+                location));
 
-            // Secondary skill option
-            stage.Options.Add(new EncounterOption
-            {
-                Id = $"secondary_{approach.SecondarySkill.ToString().ToLower()}_{stageNum}",
-                Name = $"{approach.SecondarySkill} Approach",
-                Description = $"Use your {approach.SecondarySkill} skill for this challenge",
-                Skill = approach.SecondarySkill,
-                Difficulty = baseDifficulty - 1,
-                SuccessProgress = baseProgress,
-                FailureProgress = -1
-            });
+            // Secondary skill option with location property effects
+            stage.Options.Add(CreateSkillCheckOption(
+                $"secondary_{approach.SecondarySkill.ToString().ToLower()}_{stageNum}",
+                approach.SecondarySkill.ToString(),
+                approach.SecondarySkill,
+                baseDifficulty - 1,
+                baseProgress,
+                -1,
+                location));
 
-            // Safe option
+            // Safe option always available
             stage.Options.Add(new EncounterOption
             {
                 Id = $"safe_option_{stageNum}",
@@ -102,6 +105,91 @@
         }
 
         return stages;
+    }
+
+    private EncounterOption CreateSkillCheckOption(
+        string id,
+        string skillName,
+        SkillTypes skill,
+        int baseDifficulty,
+        int successProgress,
+        int failureProgress,
+        Location location)
+    {
+        // Apply location property modifiers to difficulty
+        int locationModifier = GetLocationPropertyModifier(skill, location);
+        int adjustedDifficulty = baseDifficulty + locationModifier;
+
+        // Create appropriate description based on location modifiers
+        string difficultyDescription = locationModifier switch
+        {
+            < 0 => $"(Favored by this location's properties)",
+            > 0 => $"(Hindered by this location's properties)",
+            _ => ""
+        };
+
+        return new EncounterOption
+        {
+            Id = id,
+            Name = $"{skillName} Approach",
+            Description = $"Use your {skillName} skill for this challenge {difficultyDescription}",
+            Skill = skill,
+            Difficulty = adjustedDifficulty,
+            SuccessProgress = successProgress,
+            FailureProgress = failureProgress,
+            LocationModifier = locationModifier
+        };
+    }
+
+    private int GetLocationPropertyModifier(SkillTypes skill, Location location)
+    {
+        // Call the static method from SkillCheckService
+        return SkillCheckService.GetLocationPropertyModifier(skill, location);
+    }
+
+    private int GetLocationDifficultyModifier(SkillTypes skill, Location location)
+    {
+        int modifier = 0;
+
+        // Apply modifiers based on location properties
+        if (SkillCheckService.IsIntellectualSkill(skill))
+        {
+            // Intellectual skills are affected by Population and Illumination
+            if (location.Population == Population.Crowded)
+                modifier += 1; // Higher difficulty in crowds
+
+            if (location.Illumination == Illumination.Dark)
+                modifier += 1; // Higher difficulty in darkness
+
+            if (location.Population == Population.Scholarly)
+                modifier -= 1; // Lower difficulty in scholarly environment
+        }
+        else if (SkillCheckService.IsSocialSkill(skill))
+        {
+            // Social skills are affected by Population and Atmosphere
+            if (location.Population == Population.Quiet)
+                modifier += 1; // Higher difficulty in quiet environments
+
+            if (location.Atmosphere == Atmosphere.Tense)
+                modifier += 1; // Higher difficulty in tense atmosphere
+
+            if (location.Population == Population.Crowded)
+                modifier -= 1; // Lower difficulty in crowded environments
+        }
+        else if (SkillCheckService.IsPhysicalSkill(skill))
+        {
+            // Physical skills are affected by Physical property and Illumination
+            if (location.Physical == Physical.Confined)
+                modifier += 1; // Higher difficulty in confined spaces
+
+            if (location.Illumination == Illumination.Dark)
+                modifier += 1; // Higher difficulty in darkness
+
+            if (location.Physical == Physical.Expansive)
+                modifier -= 1; // Lower difficulty in open spaces
+        }
+
+        return modifier;
     }
 
     private CardTypes DetermineEncounterType(string approachId)
