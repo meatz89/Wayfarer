@@ -29,7 +29,6 @@ public partial class LocationSpotMap : ComponentBase
 
     private async Task HandleApproachSelection(UserActionOption action, ApproachDefinition approach)
     {
-        // Check if a card is selected and is valid for this approach
         if (DragDropService.IsValidDropTarget(approach.RequiredCardType))
         {
             CardDefinition card = DragDropService.SelectedCard;
@@ -37,6 +36,15 @@ public partial class LocationSpotMap : ComponentBase
 
             await SelectApproach(action, approach, card);
         }
+    }
+
+    private async Task HandleActionSelection(UserActionOption action)
+    {
+        showTooltip = false;
+
+        await OnActionSelected.InvokeAsync(action);
+
+        selectedAction = null;
     }
 
     private void ActivateHighlightMode(CardTypes cardType)
