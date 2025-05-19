@@ -46,7 +46,7 @@ public class PromptManager
         string template = _promptTemplates[INTRO_MD];
 
         // Format environment and NPC details
-        string environmentDetails = $"A {context.locationSpotName.ToLower()} in a {context.LocationName.ToLower()}";
+        string environmentDetails = $"A {context.LocationSpotName.ToLower()} in a {context.LocationName.ToLower()}";
 
         string npcList = GetCharactersAtLocation(context.LocationName, characters, relationshipList);
 
@@ -60,7 +60,7 @@ public class PromptManager
         string prompt = template
             .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
             .Replace("{LOCATION_NAME}", context.LocationName)
-            .Replace("{LOCATION_SPOT}", context.locationSpotName)
+            .Replace("{LOCATION_SPOT}", context.LocationSpotName)
             .Replace("{CHARACTER_ARCHETYPE}", characterArchetype)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
             .Replace("{ENVIRONMENT_DETAILS}", environmentDetails)
@@ -261,7 +261,7 @@ public class PromptManager
             .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
             .Replace("{ENCOUNTER_OUTCOME}", outcome.ToString())
             .Replace("{LOCATION_NAME}", context.LocationName)
-            .Replace("{LOCATION_SPOT}", context.locationSpotName)
+            .Replace("{LOCATION_SPOT}", context.LocationSpotName)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
             .Replace("{LAST_NARRATIVE}", lastNarrative)
             .Replace("{GOAL_ACHIEVEMENT_STATUS}", goalAchievementStatus);

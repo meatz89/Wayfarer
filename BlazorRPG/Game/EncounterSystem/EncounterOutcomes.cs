@@ -1,3 +1,6 @@
-﻿public enum EncounterOutcomes {
-    Success, Failure, Partial
+﻿public enum EncounterOutcomes 
+{
+    Success, 
+    Failure, 
+    Partial
 }

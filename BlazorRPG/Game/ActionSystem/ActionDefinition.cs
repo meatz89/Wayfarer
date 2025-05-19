@@ -10,8 +10,12 @@
     public int EnergyCost { get; set; }
     public int ConcentrationCost { get; set; }
 
-    // Approaches
+    // Time windows
     public List<TimeWindowTypes> TimeWindows { get; set; } = new List<TimeWindowTypes>();
+
+    // Tag Resonance System
+    public List<string> ContextTags { get; set; } = new List<string>();
+    public List<string> DomainTags { get; set; } = new List<string>();
 
     // Movement
     public string MoveToLocation { get; set; }

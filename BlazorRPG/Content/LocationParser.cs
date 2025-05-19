@@ -19,7 +19,8 @@ public static class LocationParser
         {
             Description = GetStringProperty(root, "description", ""),
             ConnectedTo = GetStringArray(root, "connectedTo"),
-            LocationSpotIds = GetStringArray(root, "locationSpots")
+            LocationSpotIds = GetStringArray(root, "locationSpots"),
+            DomainTags = GetStringArray(root, "domainTags")
         };
 
         if (root.TryGetProperty("environmentalProperties", out JsonElement envProps) &&
@@ -53,12 +54,15 @@ public static class LocationParser
             Description = GetStringProperty(root, "description", ""),
             InitialState = GetStringProperty(root, "initialState", ""),
             LocationId = locationId,
-            Type = Enum.Parse<LocationSpotTypes>(GetStringProperty(root, "type", "FEATURE"), true)
+            Type = Enum.Parse<LocationSpotTypes>(GetStringProperty(root, "type", "FEATURE"), true),
+            DomainTags = GetStringArray(root, "domainTags"),
+            PreferredApproach = GetStringProperty(root, "preferredApproach", null),
+            DislikedApproach = GetStringProperty(root, "dislikedApproach", null),
+            DomainExpertise = GetStringProperty(root, "domainExpertise", null)
         };
 
         // Parse time windows
         List<string> timeWindowStrings = GetStringArray(root, "timeWindows");
-        spot.TimeWindows = TimeWindows.None;
 
         foreach (string windowString in timeWindowStrings)
         {
@@ -70,8 +74,11 @@ public static class LocationParser
 
         if (timeWindowStrings.Count == 0)
         {
-            // fallback to always open
-            spot.TimeWindows = TimeWindows.All;
+            // Add all time windows as default
+            spot.TimeWindows.Add(TimeWindowTypes.Morning);
+            spot.TimeWindows.Add(TimeWindowTypes.Afternoon);
+            spot.TimeWindows.Add(TimeWindowTypes.Evening);
+            spot.TimeWindows.Add(TimeWindowTypes.Night);
         }
 
         return spot;

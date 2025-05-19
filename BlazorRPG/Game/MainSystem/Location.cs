@@ -5,12 +5,15 @@
     public string Description { get; set; }
     public List<string> ConnectedTo { get; set; } = new List<string>();
     public List<string> LocationSpotIds { get; set; } = new List<string>();
-    public List<LocationSpot> LocationSpots { get; set; } = new List<LocationSpot>();
 
+    // Environmental properties by time window
     public List<string> MorningProperties { get; set; } = new List<string>();
     public List<string> AfternoonProperties { get; set; } = new List<string>();
     public List<string> EveningProperties { get; set; } = new List<string>();
     public List<string> NightProperties { get; set; } = new List<string>();
+
+    // Tag Resonance System
+    public List<string> DomainTags { get; set; } = new List<string>();
 
     public Population? Population { get; set; } = Population.Quiet;
     public Atmosphere? Atmosphere { get; set; } = Atmosphere.Calm;
@@ -28,6 +31,7 @@
     public bool HasBeenVisited { get; set; }
     public int VisitCount { get; set; }
     public bool PlayerKnowledge { get; set; }
+    public List<LocationSpot> LocationSpots { get; internal set; } = new List<LocationSpot>();
 
     public List<ILocationProperty> GetLocationProperties(TimeWindowTypes timeOfDay)
     {

@@ -110,11 +110,6 @@
             NarrativeContext = encounterManager.GetNarrativeContext()
         };
 
-        // IMPORTANT: For subsequent choices, start pre-generation AFTER we return
-        // This keeps the initial encounter setup fully synchronous
-        Task.Run(() => StartPreGenerationsAsync(encounterManager, initialResult));
-
-        // Return the completely initialized encounter manager
         return encounterManager;
     }
 
@@ -130,34 +125,23 @@
         // Check if this is the initial state of the encounter
         bool isInitialChoice = encounterManager.IsInitialState;
 
-        // If this is the initial choice, always generate synchronously
-        // Otherwise, try to use pregenerated results
-        if (!isInitialChoice && _preGenerationManager.TryGetCachedResult(choice.Id, out cachedResult))
+        _preGenerationManager.CancelAllPendingGenerations();
+
+        // Continue with existing code for generating the response in real-time
+        Dictionary<EncounterOption, ChoiceNarrative> choiceDescriptions = currentNarrative.ChoiceDescriptions;
+        ChoiceNarrative selectedDescription = null;
+
+        if (currentNarrative.ChoiceDescriptions != null && choiceDescriptions.ContainsKey(choice))
         {
-            // Use the pre-generated result
-            currentNarrative = cachedResult;
+            selectedDescription = currentNarrative.ChoiceDescriptions[choice];
         }
-        else
-        {
-            // Cancel any pending pre-generations and generate the response
-            _preGenerationManager.CancelAllPendingGenerations();
 
-            // Continue with existing code for generating the response in real-time
-            Dictionary<EncounterOption, ChoiceNarrative> choiceDescriptions = currentNarrative.ChoiceDescriptions;
-            ChoiceNarrative selectedDescription = null;
-
-            if (currentNarrative.ChoiceDescriptions != null && choiceDescriptions.ContainsKey(choice))
-            {
-                selectedDescription = currentNarrative.ChoiceDescriptions[choice];
-            }
-
-            // Generate with immediate priority since player is waiting
-            currentNarrative = await encounterManager.ApplyChoiceWithNarrativeAsync(
-                encounterManager.Encounter.LocationName,
-                choice,
-                selectedDescription,
-                AIClient.PRIORITY_IMMEDIATE);
-        }
+        // Generate with immediate priority since player is waiting
+        currentNarrative = await encounterManager.ApplyChoiceWithNarrativeAsync(
+            encounterManager.Encounter.LocationName,
+            choice,
+            selectedDescription,
+            AIClient.PRIORITY_IMMEDIATE);
 
         // After the first choice is made, set the flag to false
         encounterManager.IsInitialState = false;
@@ -166,80 +150,7 @@
         encounterManager.EncounterResult = CreateEncounterResult(encounterManager, currentNarrative);
         ProcessEncounterProgress(encounterManager.EncounterResult, gameState);
 
-        // If encounter continues, start pre-generating for the next set of choices
-        if (!currentNarrative.IsEncounterOver)
-        {
-            // Start pre-generations for the next set of choices
-            // This is fire-and-forget to avoid blocking
-            _ = Task.Run(() => StartPreGenerationsAsync(encounterManager, currentNarrative));
-        }
-
         return encounterManager.EncounterResult;
-    }
-
-    public async Task StartPreGenerationsAsync(EncounterManager encounterManager, NarrativeResult currentNarrative)
-    {
-        // Clear any existing pre-generated content
-        _preGenerationManager.Clear();
-
-        // If no choices or encounter is over, don't pre-generate
-        if (currentNarrative.IsEncounterOver || currentNarrative.Choices == null ||
-            currentNarrative.Choices.Count == 0)
-        {
-            return;
-        }
-
-        List<EncounterOption> choices = currentNarrative.Choices;
-
-        // Start pre-generating responses for each choice
-        foreach (EncounterOption choice in choices)
-        {
-            ChoiceNarrative choiceNarrative = null;
-            if (currentNarrative.ChoiceDescriptions != null &&
-                currentNarrative.ChoiceDescriptions.ContainsKey(choice))
-            {
-                choiceNarrative = currentNarrative.ChoiceDescriptions[choice];
-            }
-
-            // Create a copy of variables needed in the task to avoid closure issues
-            EncounterOption choiceCopy = choice;
-            ChoiceNarrative narrativeCopy = choiceNarrative ?? new ChoiceNarrative("default", "default");
-            CancellationToken token = _preGenerationManager.GetCancellationToken();
-
-            // Start pre-generation as a background task with low priority
-            Task<NarrativeResult> preGenTask = Task.Run(async () =>
-            {
-                try
-                {
-                    // Use the simulation method instead of the regular method
-                    NarrativeResult result = await encounterManager.SimulateChoiceForPreGeneration(
-                        encounterManager.Encounter.LocationName,
-                        choiceCopy,
-                        narrativeCopy,
-                        AIClient.PRIORITY_BACKGROUND);
-
-                    if (!token.IsCancellationRequested)
-                    {
-                        _preGenerationManager.StoreCompletedResult(choiceCopy.Id, result);
-                    }
-
-                    return result;
-                }
-                catch (Exception ex) when (token.IsCancellationRequested)
-                {
-                    // Task was cancelled, return null
-                    return null;
-                }
-                catch (Exception ex)
-                {
-                    // Log the error but don't rethrow - pre-generation errors shouldn't block gameplay
-                    logger?.LogError(ex, $"Error during pre-generation for choice {choiceCopy.Id}");
-                    return null;
-                }
-            }, token);
-
-            _preGenerationManager.StartPreGeneration(choice.Id, preGenTask);
-        }
     }
 
     private EncounterResult CreateEncounterResult(EncounterManager encounter, NarrativeResult currentNarrative)

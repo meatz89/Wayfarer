@@ -9,7 +9,9 @@
 		"silverCost": 0,
 		"refreshCardType": "PHYSICAL",
 		"energyCost": 0,
-		"concentrationCost": 0
+		"concentrationCost": 0,
+		"contextTags": [ "INTERIOR" ],
+		"domainTags": [ "LABOR" ]
 	},
 	{
 		"id": "browse_books",
@@ -21,7 +23,9 @@
 		"silverCost": 0,
 		"refreshCardType": "INTELLECTUAL",
 		"energyCost": 0,
-		"concentrationCost": 0
+		"concentrationCost": 0,
+		"contextTags": [ "QUIET", "INTERIOR" ],
+		"domainTags": [ "KNOWLEDGE" ]
 	},
 	{
 		"id": "join_conversation",
@@ -33,7 +37,9 @@
 		"silverCost": 0,
 		"refreshCardType": "SOCIAL",
 		"energyCost": 0,
-		"concentrationCost": 0
+		"concentrationCost": 0,
+		"contextTags": [ "CROWDED", "INTERIOR" ],
+		"domainTags": [ "SOCIAL" ]
 	},
 	{
 		"id": "rent_room",
@@ -45,6 +51,8 @@
 		"silverCost": 5,
 		"refreshCardType": null,
 		"energyCost": 0,
-		"concentrationCost": 0
+		"concentrationCost": 0,
+		"contextTags": [ "INTERIOR" ],
+		"domainTags": [ "COMMERCE" ]
 	}
 ]

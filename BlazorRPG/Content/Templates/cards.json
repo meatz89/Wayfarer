@@ -5,7 +5,10 @@
 		"type": "PHYSICAL",
 		"primarySkill": "STRENGTH",
 		"energyCost": 1,
-		"concentrationCost": 0
+		"concentrationCost": 0,
+		"contextTag": "INTERIOR",
+		"approachTag": "THOROUGH",
+		"domainTag": "LABOR"
 	},
 	{
 		"id": "basic_endurance",
@@ -13,7 +16,10 @@
 		"type": "PHYSICAL",
 		"primarySkill": "ENDURANCE",
 		"energyCost": 1,
-		"concentrationCost": 0
+		"concentrationCost": 0,
+		"contextTag": "OUTDOOR",
+		"approachTag": "METHODICAL",
+		"domainTag": "TRAVEL"
 	},
 	{
 		"id": "basic_precision",
@@ -21,7 +27,10 @@
 		"type": "PHYSICAL",
 		"primarySkill": "PRECISION",
 		"energyCost": 1,
-		"concentrationCost": 0
+		"concentrationCost": 0,
+		"contextTag": "INTERIOR",
+		"approachTag": "CAUTIOUS",
+		"domainTag": "CRAFTING"
 	},
 	{
 		"id": "basic_agility",
@@ -29,7 +38,10 @@
 		"type": "PHYSICAL",
 		"primarySkill": "AGILITY",
 		"energyCost": 1,
-		"concentrationCost": 0
+		"concentrationCost": 0,
+		"contextTag": "OUTDOOR",
+		"approachTag": "SWIFT",
+		"domainTag": "TRAVEL"
 	},
 	{
 		"id": "basic_analysis",
@@ -37,7 +49,10 @@
 		"type": "INTELLECTUAL",
 		"primarySkill": "ANALYSIS",
 		"energyCost": 0,
-		"concentrationCost": 1
+		"concentrationCost": 1,
+		"contextTag": "QUIET",
+		"approachTag": "METHODICAL",
+		"domainTag": "INVESTIGATION"
 	},
 	{
 		"id": "basic_observation",
@@ -45,7 +60,10 @@
 		"type": "INTELLECTUAL",
 		"primarySkill": "OBSERVATION",
 		"energyCost": 0,
-		"concentrationCost": 1
+		"concentrationCost": 1,
+		"contextTag": "WELL-LIT",
+		"approachTag": "THOROUGH",
+		"domainTag": "INVESTIGATION"
 	},
 	{
 		"id": "basic_knowledge",
@@ -53,7 +71,10 @@
 		"type": "INTELLECTUAL",
 		"primarySkill": "KNOWLEDGE",
 		"energyCost": 0,
-		"concentrationCost": 1
+		"concentrationCost": 1,
+		"contextTag": "QUIET",
+		"approachTag": "METHODICAL",
+		"domainTag": "KNOWLEDGE"
 	},
 	{
 		"id": "basic_planning",
@@ -61,7 +82,10 @@
 		"type": "INTELLECTUAL",
 		"primarySkill": "PLANNING",
 		"energyCost": 0,
-		"concentrationCost": 1
+		"concentrationCost": 1,
+		"contextTag": "QUIET",
+		"approachTag": "THOROUGH",
+		"domainTag": "COMMERCE"
 	},
 	{
 		"id": "basic_charm",
@@ -69,7 +93,10 @@
 		"type": "SOCIAL",
 		"primarySkill": "CHARM",
 		"energyCost": 0,
-		"concentrationCost": 0
+		"concentrationCost": 0,
+		"contextTag": "CROWDED",
+		"approachTag": "BOLD",
+		"domainTag": "SOCIAL"
 	},
 	{
 		"id": "basic_persuasion",
@@ -77,7 +104,10 @@
 		"type": "SOCIAL",
 		"primarySkill": "PERSUASION",
 		"energyCost": 0,
-		"concentrationCost": 0
+		"concentrationCost": 0,
+		"contextTag": "INTERIOR",
+		"approachTag": "METHODICAL",
+		"domainTag": "COMMERCE"
 	},
 	{
 		"id": "basic_deception",
@@ -85,7 +115,10 @@
 		"type": "SOCIAL",
 		"primarySkill": "DECEPTION",
 		"energyCost": 0,
-		"concentrationCost": 0
+		"concentrationCost": 0,
+		"contextTag": "CROWDED",
+		"approachTag": "SWIFT",
+		"domainTag": "SOCIAL"
 	},
 	{
 		"id": "basic_intimidation",
@@ -93,6 +126,9 @@
 		"type": "SOCIAL",
 		"primarySkill": "INTIMIDATION",
 		"energyCost": 0,
-		"concentrationCost": 0
+		"concentrationCost": 0,
+		"contextTag": "INTERIOR",
+		"approachTag": "BOLD",
+		"domainTag": "SOCIAL"
 	}
 ]

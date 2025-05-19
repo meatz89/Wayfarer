@@ -1,6 +1,7 @@
 ﻿public record UserEncounterChoiceOption(
     int Index,
-    string ChoiceDescription,
+    string ChoiceShortName,
+    string ChoiceNarrative,
     string Narrative,
     string LocationName,
     string locationSpotName,
@@ -8,8 +9,4 @@
     NarrativeResult NarrativeResult,
     EncounterOption Choice)
 {
-    public string Display()
-    {
-        return $"{Index}. {ChoiceDescription}";
-    }
 }

@@ -44,7 +44,7 @@ public static class CommissionParser
             SilverReward = silverReward,
             ReputationReward = reputationReward,
             InsightPointReward = insightPointReward,
-            Tier = tier,
+            Tier = tier
         };
 
         // Parse approaches
@@ -120,7 +120,10 @@ public static class CommissionParser
                 Description = description,
                 RequiredCardType = requiredCardType,
                 PrimarySkill = primarySkill,
-                SecondarySkill = secondarySkill
+                SecondarySkill = secondarySkill,
+                ContextTags = GetStringArray(approachElement, "contextTags"),
+                ApproachTags = GetStringArray(approachElement, "approachTags"),
+                DomainTags = GetStringArray(approachElement, "domainTags")
             };
 
             approaches.Add(approach);
@@ -129,7 +132,7 @@ public static class CommissionParser
         return approaches;
     }
 
-    // Property getters (same as in ActionParser)
+    // Property getters
     private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
     {
         if (element.TryGetProperty(propertyName, out JsonElement property) &&
@@ -151,5 +154,28 @@ public static class CommissionParser
             }
         }
         return defaultValue;
+    }
+
+    private static List<string> GetStringArray(JsonElement element, string propertyName)
+    {
+        List<string> results = new List<string>();
+
+        if (element.TryGetProperty(propertyName, out JsonElement arrayElement) &&
+            arrayElement.ValueKind == JsonValueKind.Array)
+        {
+            foreach (JsonElement item in arrayElement.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String)
+                {
+                    string value = item.GetString() ?? string.Empty;
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        results.Add(value);
+                    }
+                }
+            }
+        }
+
+        return results;
     }
 }
