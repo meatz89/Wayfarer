@@ -5,7 +5,7 @@ public class WorldState
     public List<Location> locations { get; private set; } = new();
     public List<LocationSpot> locationSpots { get; private set; } = new();
     public List<ActionDefinition> actions { get; private set; } = new();
-    public List<CommissionDefinition> comissions { get; private set; } = new();
+    public List<CommissionDefinition> commissions { get; private set; } = new();
     private List<Character> characters { get; set; } = new();
     private List<Opportunity> opportunities { get; set; } = new();
 
@@ -21,6 +21,9 @@ public class WorldState
     public Location CurrentLocation { get; private set; }
     public LocationSpot CurrentLocationSpot { get; private set; }
     public List<CardDefinition> AllCards { get; set; } = new List<CardDefinition>();
+    public List<CommissionDefinition> CompletedCommissions { get; internal set; }
+    public List<CommissionDefinition> ActiveCommissions { get; internal set; }
+    public List<CommissionDefinition> FailedCommissions { get; internal set; }
 
     public string GetLocationIdForSpot(string locationSpotId)
     {

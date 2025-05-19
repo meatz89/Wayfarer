@@ -18,21 +18,12 @@
     private readonly ActionProcessor actionProcessor;
     private readonly ContentLoader contentLoader;
 
-    public GameManager(
-        GameState gameState,
-        EncounterSystem encounterSystem,
-        PostEncounterEvolutionSystem evolutionSystem,
-        LocationSystem locationSystem,
-        MessageSystem messageSystem,
-        ActionFactory actionFactory,
-        ActionRepository actionRepository,
-        LocationRepository locationRepository,
-        TravelManager travelManager,
-        ActionGenerator actionGenerator,
-        PlayerProgression playerProgression,
-        ActionProcessor actionProcessor,
-        ContentLoader contentLoader,
-        IConfiguration configuration)
+    public GameManager(GameState gameState, EncounterSystem encounterSystem,
+                       PostEncounterEvolutionSystem evolutionSystem, LocationSystem locationSystem,
+                       MessageSystem messageSystem, ActionFactory actionFactory, ActionRepository actionRepository,
+                       LocationRepository locationRepository, TravelManager travelManager,
+                       ActionGenerator actionGenerator, PlayerProgression playerProgression,
+                       ActionProcessor actionProcessor, ContentLoader contentLoader, IConfiguration configuration)
     {
         this.gameState = gameState;
         this.playerState = gameState.PlayerState;
@@ -96,6 +87,87 @@
     public async Task RefreshCard(CardDefinition card)
     {
         playerState.RefreshCard(card);
+    }
+
+    private async Task<List<UserActionOption>> CreateUserActionsForLocationSpot(Location location, LocationSpot locationSpot)
+    {
+        string? currentLocation = worldState.CurrentLocation?.Id;
+        if (string.IsNullOrWhiteSpace(currentLocation)) return new List<UserActionOption>();
+
+        List<UserActionOption> options = new List<UserActionOption>();
+        List<ActionDefinition> locationSpotActions = actionRepository.GetActionsForSpot(locationSpot.Id);
+        for (int i = 0; i < locationSpotActions.Count; i++)
+        {
+            ActionDefinition actionTemplate = locationSpotActions[i];
+            if (actionTemplate == null)
+            {
+                string actionId =
+                    await actionGenerator.GenerateAction(
+                    actionTemplate.Name,
+                    location.Id,
+                    locationSpot.Id
+                    );
+
+                actionTemplate = actionRepository.GetAction(actionTemplate.Id);
+            }
+
+            ActionImplementation actionImplementation = actionFactory.CreateActionFromTemplate(actionTemplate, location.Id, locationSpot.Id, ActionExecutionTypes.Instant);
+
+            UserActionOption action =
+                new UserActionOption(
+                    actionImplementation.Name,
+                    locationSpot.IsClosed,
+                    actionImplementation,
+                    locationSpot.LocationId,
+                    locationSpot.Id,
+                    default,
+                    location.Difficulty,
+                    string.Empty,
+                    null);
+
+            bool requirementsMet = actionProcessor.CanExecute(action.ActionImplementation);
+
+            action = action with { IsDisabled = !requirementsMet };
+            options.Add(action);
+        }
+
+        List<CommissionDefinition> locationSpotCommissions = actionRepository.GetCommissionsForSpot(locationSpot.Id);
+        for (int i = 0; i < locationSpotCommissions.Count; i++)
+        {
+            CommissionDefinition commissionTemplate = locationSpotCommissions[i];
+            if (commissionTemplate == null)
+            {
+                string commissionId =
+                    await actionGenerator.GenerateCommission(
+                    commissionTemplate.Name,
+                    location.Id,
+                    locationSpot.Id
+                    );
+
+                commissionTemplate = actionRepository.GetCommission(commissionTemplate.Id);
+            }
+
+            ActionImplementation commissionImplementation = actionFactory.CreateActionFromCommission(commissionTemplate);
+
+            UserActionOption commission =
+                new UserActionOption(
+                    commissionImplementation.Name,
+                    locationSpot.IsClosed,
+                    commissionImplementation,
+                    locationSpot.LocationId,
+                    locationSpot.Id,
+                    default,
+                    location.Difficulty,
+                    string.Empty,
+                    null);
+
+            bool requirementsMet = actionProcessor.CanExecute(commission.ActionImplementation);
+
+            commission = commission with { IsDisabled = !requirementsMet };
+            options.Add(commission);
+        }
+
+        return options;
     }
 
     public async Task<ActionImplementation> ExecuteAction(UserActionOption action)
@@ -177,52 +249,6 @@
 
         // Use unified action execution
         await ExecuteAction(travelOption);
-    }
-
-    private async Task<List<UserActionOption>> CreateLocationSpotActions(Location location, LocationSpot locationSpot)
-    {
-        string? currentLocation = worldState.CurrentLocation?.Id;
-        if (string.IsNullOrWhiteSpace(currentLocation)) return new List<UserActionOption>();
-
-        List<UserActionOption> options = new List<UserActionOption>();
-        List<ActionDefinition> locationSpotActions = actionRepository.GetActionsForSpot(locationSpot.Id);
-        for (int i = 0; i < locationSpotActions.Count; i++)
-        {
-            ActionDefinition actionTemplate = locationSpotActions[i];
-
-            if (actionTemplate == null)
-            {
-                string actionId =
-                    await actionGenerator.GenerateAction(
-                    actionTemplate.Name,
-                    location.Id,
-                    locationSpot.Id
-                    );
-
-                actionTemplate = actionRepository.GetAction(actionTemplate.Id);
-            }
-
-            ActionImplementation actionImplementation = actionFactory.CreateActionFromTemplate(actionTemplate, location.Id, locationSpot.Id, ActionExecutionTypes.Encounter);
-
-            UserActionOption action =
-                new UserActionOption(
-                    actionImplementation.Name,
-                    locationSpot.IsClosed,
-                    actionImplementation,
-                    locationSpot.LocationId,
-                    locationSpot.Id,
-                    default,
-                    location.Difficulty,
-                    string.Empty,
-                    null);
-
-            bool requirementsMet = actionProcessor.CanExecute(action.ActionImplementation);
-
-            action = action with { IsDisabled = !requirementsMet };
-            options.Add(action);
-        }
-
-        return options;
     }
 
     private async Task<EncounterManager> PrepareEncounter(
@@ -546,7 +572,7 @@
         actionProcessor.UpdateState();
 
         List<UserActionOption> locationSpotActionOptions =
-            await CreateLocationSpotActions(
+            await CreateUserActionsForLocationSpot(
                 worldState.CurrentLocation,
                 worldState.CurrentLocationSpot);
 
@@ -585,7 +611,36 @@
             actionProcessor.ProcessTurnChange();
         }
 
+        UpdateCommissions(gameState);
         await UpdateState();
+    }
+
+    public void UpdateCommissions(GameState gameState)
+    {
+        List<CommissionDefinition> expiredCommissions = new List<CommissionDefinition>();
+
+        foreach (CommissionDefinition commission in gameState.WorldState.ActiveCommissions)
+        {
+            // Reduce days remaining
+            commission.ExpirationDays--;
+
+            // Check if expired
+            if (commission.ExpirationDays <= 0)
+            {
+                expiredCommissions.Add(commission);
+            }
+        }
+
+        // Remove expired commissions
+        foreach (CommissionDefinition expired in expiredCommissions)
+        {
+            gameState.WorldState.ActiveCommissions.Remove(expired);
+            // Optionally: Add to failed commissions list
+            gameState.WorldState.FailedCommissions.Add(expired);
+
+            // Add message
+            // messageSystem.AddSystemMessage($"Commission expired: {expired.Name}");
+        }
     }
 
     private void SaveGame()

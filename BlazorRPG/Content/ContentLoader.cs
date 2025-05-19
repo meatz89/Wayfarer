@@ -18,161 +18,56 @@
         }
     }
 
-    public List<Location> LoadLocations()
-    {
-        List<Location> locations = new List<Location>();
-        string locationsPath = Path.Combine(_contentDirectory, "Locations");
-
-        foreach (string filePath in Directory.GetFiles(locationsPath, "*.json"))
-        {
-            try
-            {
-                string json = File.ReadAllText(filePath);
-                Location location = LocationParser.ParseLocation(json);
-                locations.Add(location);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading location from {filePath}: {ex.Message}");
-            }
-        }
-        return locations;
-    }
-
-    public List<LocationSpot> LoadLocationSpots()
-    {
-        List<LocationSpot> spots = new List<LocationSpot>();
-        string spotsPath = Path.Combine(_contentDirectory, "LocationSpots");
-
-        foreach (string filePath in Directory.GetFiles(spotsPath, "*.json"))
-        {
-            try
-            {
-                string json = File.ReadAllText(filePath);
-                LocationSpot spot = LocationParser.ParseLocationSpot(json);
-                spots.Add(spot);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading location spot from {filePath}: {ex.Message}");
-            }
-        }
-
-        return spots;
-    }
-
-    public List<ActionDefinition> LoadActions()
-    {
-        List<ActionDefinition> actions = new List<ActionDefinition>();
-        string actionsPath = Path.Combine(_contentDirectory, "basic_actions");
-
-        foreach (string filePath in Directory.GetFiles(actionsPath, "*.json"))
-        {
-            try
-            {
-                string json = File.ReadAllText(filePath);
-                ActionDefinition action = ActionParser.ParseAction(json);
-                actions.Add(action);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading action from {filePath}: {ex.Message}");
-            }
-        }
-        return actions;
-    }
-
-    public List<CommissionDefinition> LoadCommissions()
-    {
-        List<CommissionDefinition> commissions = new List<CommissionDefinition>();
-        string commissionsPath = Path.Combine(_contentDirectory, "basic_commissions");
-
-        foreach (string filePath in Directory.GetFiles(commissionsPath, "*.json"))
-        {
-            try
-            {
-                string json = File.ReadAllText(filePath);
-                CommissionDefinition action = CommissionParser.ParseCommission(json);
-                commissions.Add(action);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading action from {filePath}: {ex.Message}");
-            }
-        }
-
-        return commissions;
-    }
-
-    public List<CardDefinition> LoadCards()
-    {
-        List<CardDefinition> cards = new List<CardDefinition>();
-        string cardsPath = Path.Combine(_contentDirectory, "Cards");
-
-        foreach (string filePath in Directory.GetFiles(cardsPath, "*.json"))
-        {
-            try
-            {
-                string json = File.ReadAllText(filePath);
-                CardDefinition card = CardParser.ParseCard(json);
-                cards.Add(card);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading card from {filePath}: {ex.Message}");
-            }
-        }
-        return cards;
-    }
-
     public GameState LoadGame()
     {
-        try
+        string savePath = Path.Combine(_contentDirectory, _saveFolder);
+        GameState gameState = CreateNewGameState();
+
+        bool shouldLoad = false;
+
+        // Check if save files exist
+        if (Directory.Exists(savePath) && shouldLoad)
         {
-            string savePath = Path.Combine(_contentDirectory, _saveFolder);
-            GameState gameState = new GameState();
-
-            bool shouldLoad = false;
-
-            // Check if save files exist
-            if (Directory.Exists(savePath) && shouldLoad)
-            {
-                // Load content from save files
-                List<Location> locations = GameStateSerializer.DeserializeLocations(
-                    File.ReadAllText(Path.Combine(savePath, "locations.json")));
-
-                List<LocationSpot> spots = GameStateSerializer.DeserializeLocationSpots(
-                    File.ReadAllText(Path.Combine(savePath, "locationSpots.json")));
-
-                List<ActionDefinition> actions = GameStateSerializer.DeserializeActions(
-                    File.ReadAllText(Path.Combine(savePath, "actions.json")));
-
-                // Load cards if available
-                List<CardDefinition> cards = new List<CardDefinition>();
-                string cardsFilePath = Path.Combine(savePath, "cards.json");
-                if (File.Exists(cardsFilePath))
-                {
-                    cards = GameStateSerializer.DeserializeCards(
-                        File.ReadAllText(cardsFilePath));
-                }
-
-                // Load game state using the loaded content
-                gameState = GameStateSerializer.DeserializeGameState(
-                    File.ReadAllText(Path.Combine(savePath, "gameState.json")),
-                    locations, spots, actions, cards);
-            }
-            else
-            {
-                return LoadGameFromTemplates();
-            }
-
-            return gameState;
+            gameState = LoadGameFromSaveFile(savePath);
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine($"Error loading game: {ex.Message}");
-            return CreateNewGameState();
+            return LoadGameFromTemplates();
         }
+
+        return gameState;
+    }
+
+    private static GameState LoadGameFromSaveFile(string savePath)
+    {
+        GameState gameState;
+        // Load content from save files
+        List<Location> locations = GameStateSerializer.DeserializeLocations(
+            File.ReadAllText(Path.Combine(savePath, "locations.json")));
+
+        List<LocationSpot> spots = GameStateSerializer.DeserializeLocationSpots(
+            File.ReadAllText(Path.Combine(savePath, "locationSpots.json")));
+
+        List<ActionDefinition> actions = GameStateSerializer.DeserializeActions(
+            File.ReadAllText(Path.Combine(savePath, "actions.json")));
+
+        List<CommissionDefinition> commissions = GameStateSerializer.DeserializeCommissions(
+            File.ReadAllText(Path.Combine(savePath, "commissions.json")));
+
+        // Load cards if available
+        List<CardDefinition> cards = new List<CardDefinition>();
+        string cardsFilePath = Path.Combine(savePath, "cards.json");
+        if (File.Exists(cardsFilePath))
+        {
+            cards = GameStateSerializer.DeserializeCards(
+                File.ReadAllText(cardsFilePath));
+        }
+
+        // Load game state using the loaded content
+        gameState = GameStateSerializer.DeserializeGameState(
+            File.ReadAllText(Path.Combine(savePath, "gameState.json")),
+            locations, spots, actions, commissions, cards);
+        return gameState;
     }
 
     private GameState LoadGameFromTemplates()
@@ -184,15 +79,15 @@
             File.ReadAllText(Path.Combine(templatePath, "locations.json")));
 
         List<LocationSpot> spots = GameStateSerializer.DeserializeLocationSpots(
-            File.ReadAllText(Path.Combine(templatePath, "location_Spots.json")));
+            File.ReadAllText(Path.Combine(templatePath, "locationSpots.json")));
 
         ConnectLocationsToSpots(locations, spots);
 
         List<ActionDefinition> actions = GameStateSerializer.DeserializeActions(
-            File.ReadAllText(Path.Combine(templatePath, "basic_actions.json")));
+            File.ReadAllText(Path.Combine(templatePath, "actions.json")));
 
-        List<CommissionDefinition> commissions = new List<CommissionDefinition>();
-        File.ReadAllText(Path.Combine(templatePath, "basic_commissions.json"));
+        List<CommissionDefinition> commissions = GameStateSerializer.DeserializeCommissions(
+            File.ReadAllText(Path.Combine(templatePath, "commissions.json")));
 
         // Load cards if available
         List<CardDefinition> cards = new List<CardDefinition>();
@@ -206,7 +101,7 @@
         // Load game state using the loaded content
         GameState gameState = GameStateSerializer.DeserializeGameState(
             File.ReadAllText(Path.Combine(templatePath, "gameState.json")),
-            locations, spots, actions, cards);
+            locations, spots, actions, commissions, cards);
 
         return gameState;
     }
@@ -279,14 +174,14 @@
         GameState gameState = new GameState();
 
         // Load fresh content from the content directory
-        List<Location> locations = LoadLocations();
-        List<LocationSpot> spots = LoadLocationSpots();
+        List<Location> locations = new List<Location>();
+        List<LocationSpot> spots = new List<LocationSpot>();
         locations = ConnectLocationsToSpots(locations, spots);
 
-        List<ActionDefinition> actions = LoadActions();
-        List<CommissionDefinition> comissions = LoadCommissions();
+        List<ActionDefinition> actions = new List<ActionDefinition>();
+        List<CommissionDefinition> comissions = new List<CommissionDefinition>();
 
-        List<CardDefinition> cards = LoadCards();
+        List<CardDefinition> cards = new List<CardDefinition>();
 
         // Add content to game state
         gameState.WorldState.locations.Clear();
@@ -297,7 +192,7 @@
 
         gameState.WorldState.actions.Clear();
         gameState.WorldState.actions.AddRange(actions);
-        gameState.WorldState.comissions.AddRange(comissions);
+        gameState.WorldState.commissions.AddRange(comissions);
 
         // Add cards to world state if applicable
         if (gameState.WorldState.AllCards != null)

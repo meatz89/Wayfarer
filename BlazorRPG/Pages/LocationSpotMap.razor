@@ -26,11 +26,8 @@
                 {
                     if(action.ActionImplementation.ActionType == ActionExecutionTypes.Instant)
                     {
-                        <button class="action-button" @onclick="() => HandleActionSelection(action)">
-                                <div class="action-header-content">
-                                <span class="action-title">@action.ActionImplementation.Name</span>
-                                <span class="action-type">@action.ActionImplementation.ActionType</span>
-                            </div>
+                        <button class="approach-button" @onclick="() => HandleActionSelection(action)">
+                                @action.ActionImplementation.Name
                         </button >
                     }
                     else

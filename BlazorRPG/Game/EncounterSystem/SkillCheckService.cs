@@ -10,14 +10,43 @@
     {
         ChoiceProjection projection = new ChoiceProjection(choice);
 
+        // For "safe" options with no skill check
+        if (choice.Skill == SkillTypes.None)
+        {
+            projection.ProgressGained = choice.SuccessProgress;
+            projection.Description = "Safe approach guarantees minimal progress";
+
+            // Check if encounter will complete
+            bool willCompleteSafe = (currentProgress + projection.ProgressGained) >= progressThreshold;
+            projection.EncounterWillEnd = willCompleteSafe;
+
+            if (willCompleteSafe)
+            {
+                projection.ProjectedOutcome = EncounterOutcomes.Partial;
+            }
+
+            return projection;
+        }
+
         // Calculate the effective skill level
-        int effectiveSkill = CalculateEffectiveSkill(choice.Skill, playerState, location);
+        int skillLevel = playerState.GetSkillLevel(choice.Skill);
+        int effectiveSkill = skillLevel;
 
         // Determine if the skill check succeeds
         bool success = effectiveSkill >= choice.Difficulty;
 
         // Set progress based on success or failure
         projection.ProgressGained = success ? choice.SuccessProgress : choice.FailureProgress;
+
+        // Set descriptive text
+        if (success)
+        {
+            projection.Description = $"Success! You meet the {choice.Difficulty} difficulty with your skill of {effectiveSkill}";
+        }
+        else
+        {
+            projection.Description = $"Failure. Your skill of {effectiveSkill} doesn't meet the {choice.Difficulty} difficulty";
+        }
 
         // Calculate if this will complete the encounter
         bool willComplete = (currentProgress + projection.ProgressGained) >= progressThreshold;
@@ -26,36 +55,13 @@
         // Determine outcome if encounter will end
         if (willComplete)
         {
-            if (success && choice.SuccessProgress > 0)
-            {
-                projection.ProjectedOutcome = EncounterOutcomes.Success;
-            }
-            else
-            {
-                projection.ProjectedOutcome = EncounterOutcomes.Partial;
-            }
+            projection.ProjectedOutcome = success ? EncounterOutcomes.Success : EncounterOutcomes.Partial;
         }
 
         return projection;
     }
 
-    private static int CalculateEffectiveSkill(SkillTypes skill, PlayerState playerState, Location location)
-    {
-        // Get base skill level from player
-        int skillLevel = playerState.GetSkillLevel(skill);
-
-        // Add bonus from selected card if any
-        CardDefinition selectedCard = playerState.GetSelectedCardForSkill(skill);
-        int cardBonus = selectedCard?.SkillBonus ?? 0;
-
-        // Apply location property modifiers
-        int locationModifier = GetLocationPropertyModifier(skill, location);
-
-        // Calculate final effective skill
-        return skillLevel + cardBonus + locationModifier;
-    }
-
-    private static int GetLocationPropertyModifier(SkillTypes skill, Location location)
+    public static int GetLocationPropertyModifier(SkillTypes skill, Location location)
     {
         int modifier = 0;
 

@@ -10,17 +10,19 @@ public class NarrativeContext
     public CardTypes EncounterType { get; }
     public ActionImplementation ActionImplementation { get; }
     public List<NarrativeEvent> Events { get; } = new List<NarrativeEvent>();
-    public PlayerState PlayerState { get; internal set; }
+    public PlayerState PlayerState { get; set; }
 
     public NarrativeContext(
         string location,
         string locationSpot,
         CardTypes encounterType,
+        PlayerState playerState,
         ActionImplementation incitingAction)
     {
         LocationName = location;
         locationSpotName = locationSpot;
         EncounterType = encounterType;
+        PlayerState = playerState;
         ActionImplementation = incitingAction;
     }
 

@@ -10,6 +10,7 @@
     public int SkillBonus { get; set; } = 1;
     public List<string> Tags { get; set; } = new List<string>();
     public bool IsExhausted { get; set; } = false;
+    public SkillTypes PrimarySkill { get; internal set; }
 
     public CardDefinition(string id, string name)
     {

@@ -423,7 +423,6 @@ public class PromptManager
             .Replace("{CONNECTED_LOCATIONS}", input.ConnectedLocations)
             .Replace("{LOCATION_SPOTS}", input.LocationSpots)
             .Replace("{INVENTORY}", input.Inventory)
-            .Replace("{RELATIONSHIPS}", input.Relationships)
             .Replace("{KNOWN_CHARACTERS}", input.KnownCharacters)
             .Replace("{ACTIVE_OPPORTUNITIES}", input.ActiveOpportunities)
             .Replace("{MEMORY_SUMMARY}", input.MemorySummary);

@@ -29,6 +29,11 @@
     public int VisitCount { get; set; }
     public bool PlayerKnowledge { get; set; }
 
+    public List<ILocationProperty> GetLocationProperties(TimeWindowTypes timeOfDay)
+    {
+        return new List<ILocationProperty>();
+    }
+
     public Location(string id, string name)
     {
         Id = id;

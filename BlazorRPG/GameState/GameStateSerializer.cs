@@ -42,7 +42,7 @@ public static class GameStateSerializer
     }
 
     public static GameState DeserializeGameState(string json, List<Location> locations, List<LocationSpot> spots,
-                                                List<ActionDefinition> actions, List<CardDefinition> cards)
+            List<ActionDefinition> actions, List<CommissionDefinition> commissions, List<CardDefinition> cards)
     {
         SerializableGameState serialized = JsonSerializer.Deserialize<SerializableGameState>(json, _jsonOptions);
         if (serialized == null)
@@ -61,6 +61,9 @@ public static class GameStateSerializer
 
         gameState.WorldState.actions.Clear();
         gameState.WorldState.actions.AddRange(actions);
+        
+        gameState.WorldState.commissions.Clear();
+        gameState.WorldState.commissions.AddRange(commissions);
 
         // Add cards to world state if applicable
         if (gameState.WorldState.AllCards != null)
@@ -268,6 +271,21 @@ public static class GameStateSerializer
         }
 
         return actions;
+    }
+
+    public static List<CommissionDefinition> DeserializeCommissions(string json)
+    {
+        List<CommissionDefinition> commissions = new List<CommissionDefinition>();
+
+        using (JsonDocument doc = JsonDocument.Parse(json))
+        {
+            foreach (JsonElement commissionElement in doc.RootElement.EnumerateArray())
+            {
+                commissions.Add(CommissionParser.ParseCommission(commissionElement.GetRawText()));
+            }
+        }
+
+        return commissions;
     }
 
     // New methods for card serialization

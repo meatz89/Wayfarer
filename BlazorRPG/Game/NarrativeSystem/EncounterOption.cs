@@ -8,6 +8,7 @@
     public int SuccessProgress { get; set; }
     public int FailureProgress { get; set; }
     public bool IsDisabled { get; set; } = false;
+    public int LocationModifier { get; set; }
 
     public EncounterOption()
     {

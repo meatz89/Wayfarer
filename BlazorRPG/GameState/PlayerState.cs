@@ -55,8 +55,8 @@
     // Card collection (player skills)
     public List<CardDefinition> PlayerSkillCards { get; set; } = new List<CardDefinition>();
     public List<CardDefinition> PlayerHandCards { get; set; } = new List<CardDefinition>();
-    public Location CurrentLocation { get; internal set; }
-    public LocationSpot CurrentLocationSpot { get; internal set; }
+    public Location CurrentLocation { get; set; }
+    public LocationSpot CurrentLocationSpot { get; set; }
 
     public PlayerState()
     {
@@ -338,8 +338,38 @@
         this.EnergyPoints += amount;
     }
 
+    internal bool HasNonExhaustedCardOfType(CardTypes requiredCardType)
+    {
+        return true;
+    }
 
-    public PlayerState Clone()
+    internal int GetSkillLevel(SkillTypes skill)
+    {
+        int level = Skills.GetLevelForSkill(skill);
+        return level;
+    }
+
+    internal CardDefinition GetSelectedCardForSkill(SkillTypes skill)
+    {
+        return null;
+    }
+
+    internal void AddSilver(int silverReward)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal void AddReputation(int reputationReward)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal void AddInsightPoints(int insightPointReward)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal PlayerState Serialize()
     {
         // Create a new PlayerState instance
         PlayerState clone = new PlayerState();
@@ -364,6 +394,8 @@
         clone.MaxHealth = this.MaxHealth;
         clone.MaxConcentration = this.MaxConcentration;
         clone.IsInitialized = this.IsInitialized;
+        clone.CurrentLocation = this.CurrentLocation;
+        clone.CurrentLocationSpot = this.CurrentLocationSpot;
 
         // Deep copy Inventory
         clone.Inventory = new Inventory(this.Inventory.Capacity);
@@ -410,19 +442,8 @@
         return clone;
     }
 
-    internal bool HasNonExhaustedCardOfType(CardTypes requiredCardType)
+    internal CardDefinition GetBestNonExhaustedCardOfType(CardTypes requiredCardType)
     {
-        return true;
-    }
-
-    internal int GetSkillLevel(SkillTypes skill)
-    {
-        int level = Skills.GetLevelForSkill(skill);
-        return level;
-    }
-
-    internal CardDefinition GetSelectedCardForSkill(SkillTypes skill)
-    {
-        return null;
+        throw new NotImplementedException();
     }
 }
