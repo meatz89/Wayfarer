@@ -9,6 +9,7 @@
 			"evening": [ "SHADOWY", "CROWDED", "INTERIOR" ],
 			"night": [ "DARK", "QUIET", "INTERIOR" ]
 		},
+		"domainTags": [ "SOCIAL", "LABOR" ],
 		"locationSpots": [ "innkeeper", "hearth", "common_room", "inn_room", "tavern" ],
 		"connectedTo": [ "town_square" ]
 	},
@@ -22,6 +23,7 @@
 			"evening": [ "SHADOWY", "CROWDED", "URBAN" ],
 			"night": [ "DARK", "QUIET", "URBAN" ]
 		},
+		"domainTags": [ "COMMERCE", "KNOWLEDGE" ],
 		"locationSpots": [ "marketplace", "library", "market_stall" ],
 		"connectedTo": [ "dusty_flagon" ]
 	}

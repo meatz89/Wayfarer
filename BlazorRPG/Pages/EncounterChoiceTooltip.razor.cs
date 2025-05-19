@@ -8,15 +8,6 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     [Parameter] public double tooltipX { get; set; }
     [Parameter] public double tooltipY { get; set; }
 
-    protected string GetChoiceNarrative(UserEncounterChoiceOption choice)
-    {
-        if (choice.Choice is EncounterOption option && option.Skill != SkillTypes.None)
-        {
-            return choice.Choice.Description;
-        }
-        return choice.ChoiceDescription;
-    }
-
     protected string GetSkillCheckInfo(UserEncounterChoiceOption choice)
     {
         if (choice.Choice is EncounterOption option && option.Skill != SkillTypes.None)

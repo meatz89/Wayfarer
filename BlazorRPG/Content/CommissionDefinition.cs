@@ -50,16 +50,12 @@
     {
         CurrentProgress += progress;
 
-        // Handle step transitions for sequential commissions
         if (Type == CommissionTypes.Sequential && InitialStep != null)
         {
-            // If we've reached the current step's goal
             if (CurrentProgress >= InitialStep.ProgressGoal)
             {
-                // Store completed step
                 CompletedSteps.Add(InitialStep);
 
-                // Generate next step if we haven't reached total threshold
                 if (CurrentProgress < ProgressThreshold)
                 {
                     InitialStep = GenerateNextStep(gameState);
@@ -96,12 +92,11 @@
         // In a full implementation, this would use more sophisticated logic
         if (previousStep.LocationId == InitialLocationId)
         {
-            // Find a connected location
             return gameState.WorldState.locations
                 .FirstOrDefault(l => l.Id != InitialLocationId &&
                                    l.ConnectedTo.Contains(InitialLocationId))?.Id ?? InitialLocationId;
         }
-        return InitialLocationId; // Return to starting location
+        return InitialLocationId; 
     }
 
     private List<ApproachDefinition> GenerateApproachesForStep(CommissionStep previousStep)
@@ -110,7 +105,6 @@
         // This is a simple implementation - a full implementation would be more sophisticated
         List<ApproachDefinition> approaches = new List<ApproachDefinition>();
 
-        // For each card type, create a relevant approach
         approaches.Add(new ApproachDefinition
         {
             Id = $"physical_followup_{Guid.NewGuid()}",

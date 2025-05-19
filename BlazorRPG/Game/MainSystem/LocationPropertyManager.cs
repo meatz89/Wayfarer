@@ -20,8 +20,7 @@
     {
         foreach (LocationSpot spot in locationSpots)
         {
-            TimeWindows timeWindows = spot.TimeWindows;
-            spot.IsClosed = !timeWindows.Contains(timeWindow);
+            spot.IsClosed = !spot.TimeWindows.Contains(timeWindow);
         }
     }
 

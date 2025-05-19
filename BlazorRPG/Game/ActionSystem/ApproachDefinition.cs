@@ -1,5 +1,4 @@
-﻿
-public class ApproachDefinition
+﻿public class ApproachDefinition
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -7,15 +6,9 @@ public class ApproachDefinition
     public CardTypes RequiredCardType { get; set; }
     public SkillTypes PrimarySkill { get; set; }
     public SkillTypes SecondarySkill { get; set; }
-    
-    public ApproachDefinition()
-    {
 
-    }
-
-    public ApproachDefinition(string id, string name)
-    {
-        Id = id;
-        Name = name;
-    }
+    // Tag Resonance System
+    public List<string> ContextTags { get; set; } = new List<string>();
+    public List<string> ApproachTags { get; set; } = new List<string>();
+    public List<string> DomainTags { get; set; } = new List<string>();
 }

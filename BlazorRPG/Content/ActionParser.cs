@@ -25,7 +25,7 @@ public static class ActionParser
         string refreshCardType = GetStringProperty(root, "refreshCardType", "");
         if (!string.IsNullOrEmpty(refreshCardType))
         {
-            if (Enum.TryParse<CardTypes>(refreshCardType, true, out CardTypes cardType))
+            if (Enum.TryParse(refreshCardType, true, out CardTypes cardType))
             {
                 action.RefreshCardType = cardType;
             }
@@ -42,8 +42,7 @@ public static class ActionParser
                     string windowStr = windowElement.GetString();
                     if (!string.IsNullOrEmpty(windowStr))
                     {
-                        // Map string to TimeWindowTypes enum
-                        if (Enum.TryParse<TimeWindowTypes>(windowStr, true, out TimeWindowTypes windowType))
+                        if (Enum.TryParse(windowStr, true, out TimeWindowTypes windowType))
                         {
                             action.TimeWindows.Add(windowType);
                         }
@@ -60,6 +59,10 @@ public static class ActionParser
                 action.TimeWindows.Add(TimeWindowTypes.Night);
             }
         }
+
+        // Parse tag resonance properties
+        action.ContextTags = GetStringArray(root, "contextTags");
+        action.DomainTags = GetStringArray(root, "domainTags");
 
         // Parse movement details if present
         action.MoveToLocation = GetStringProperty(root, "moveToLocation", null);
@@ -90,5 +93,28 @@ public static class ActionParser
             }
         }
         return defaultValue;
+    }
+
+    private static List<string> GetStringArray(JsonElement element, string propertyName)
+    {
+        List<string> results = new List<string>();
+
+        if (element.TryGetProperty(propertyName, out JsonElement arrayElement) &&
+            arrayElement.ValueKind == JsonValueKind.Array)
+        {
+            foreach (JsonElement item in arrayElement.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String)
+                {
+                    string value = item.GetString() ?? string.Empty;
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        results.Add(value);
+                    }
+                }
+            }
+        }
+
+        return results;
     }
 }

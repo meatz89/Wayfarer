@@ -6,7 +6,7 @@
 public class NarrativeContext
 {
     public string LocationName { get; }
-    public string locationSpotName { get; }
+    public string LocationSpotName { get; }
     public CardTypes EncounterType { get; }
     public ActionImplementation ActionImplementation { get; }
     public List<NarrativeEvent> Events { get; } = new List<NarrativeEvent>();
@@ -20,7 +20,7 @@ public class NarrativeContext
         ActionImplementation incitingAction)
     {
         LocationName = location;
-        locationSpotName = locationSpot;
+        LocationSpotName = locationSpot;
         EncounterType = encounterType;
         PlayerState = playerState;
         ActionImplementation = incitingAction;

@@ -6,7 +6,10 @@
 		"description": "A middle-aged proprietor with a weathered face and calculating eyes.",
 		"initialState": "Standing behind the counter, tallying figures in a worn ledger.",
 		"locationId": "dusty_flagon",
-		"timeWindows": [ "Morning", "Afternoon", "Evening" ]
+		"timeWindows": [ "Morning", "Afternoon", "Evening" ],
+		"preferredApproach": "METHODICAL",
+		"dislikedApproach": "SWIFT",
+		"domainExpertise": "COMMERCE"
 	},
 	{
 		"id": "common_room",
@@ -15,7 +18,8 @@
 		"description": "The main gathering area of the inn with tables, benches, and a long wooden bar.",
 		"initialState": "A handful of patrons scattered about, the murmur of conversation filling the air.",
 		"locationId": "dusty_flagon",
-		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ]
+		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "SOCIAL" ]
 	},
 	{
 		"id": "hearth",
@@ -24,7 +28,8 @@
 		"description": "A large stone fireplace that provides warmth and light to the common room.",
 		"initialState": "Crackling flames casting dancing shadows on nearby faces.",
 		"locationId": "dusty_flagon",
-		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ]
+		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "LABOR" ]
 	},
 	{
 		"id": "marketplace",
@@ -33,7 +38,8 @@
 		"description": "The bustling center of commerce where merchants and townsfolk gather to trade.",
 		"initialState": "Vendors call out their wares as shoppers move between stalls.",
 		"locationId": "town_square",
-		"timeWindows": [ "Morning", "Afternoon" ]
+		"timeWindows": [ "Morning", "Afternoon" ],
+		"domainTags": [ "COMMERCE" ]
 	},
 	{
 		"id": "inn_room",
@@ -42,7 +48,8 @@
 		"description": "A small but serviceable room with a bed, small table, and window.",
 		"initialState": "Clean linens on the bed, a pitcher of water on the table.",
 		"locationId": "dusty_flagon",
-		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ]
+		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "LABOR" ]
 	},
 	{
 		"id": "library",
@@ -51,7 +58,8 @@
 		"description": "A modest collection of books and scrolls maintained by the local scholar.",
 		"initialState": "Quiet shelves lined with leather-bound volumes, dust motes dancing in shafts of light.",
 		"locationId": "town_square",
-		"timeWindows": [ "Morning", "Afternoon", "Evening" ]
+		"timeWindows": [ "Morning", "Afternoon", "Evening" ],
+		"domainTags": [ "KNOWLEDGE", "INVESTIGATION" ]
 	},
 	{
 		"id": "tavern",
@@ -60,7 +68,8 @@
 		"description": "The lively drinking area of the inn where patrons gather for ale and conversation.",
 		"initialState": "Boisterous laughter and the clink of mugs fill the air.",
 		"locationId": "dusty_flagon",
-		"timeWindows": [ "Afternoon", "Evening", "Night" ]
+		"timeWindows": [ "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "SOCIAL" ]
 	},
 	{
 		"id": "market_stall",
@@ -69,6 +78,9 @@
 		"description": "A trader offering various goods from nearby regions.",
 		"initialState": "Arranging wares and calling to passersby.",
 		"locationId": "town_square",
-		"timeWindows": [ "Morning", "Afternoon" ]
+		"timeWindows": [ "Morning", "Afternoon" ],
+		"preferredApproach": "SWIFT",
+		"dislikedApproach": "METHODICAL",
+		"domainExpertise": "COMMERCE"
 	}
 ]

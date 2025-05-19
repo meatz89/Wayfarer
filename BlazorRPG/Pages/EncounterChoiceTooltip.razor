@@ -2,9 +2,9 @@
 <div class="tooltip" style="top:@tooltipYpx; left:@tooltipXpx;">
     <div class="preview-header">
         <h4>
-            @hoveredChoice.ChoiceDescription
+            @hoveredChoice.ChoiceShortName
         </h4>
-        <div class="choice-narrative">@GetChoiceNarrative(@hoveredChoice)</div>
+        <div class="choice-narrative">@hoveredChoice.ChoiceNarrative</div>
     </div>
 
     <div class="tooltip-section">
@@ -12,6 +12,7 @@
         <h4>
             Skill Check
         </h4>
+        <div class="choice-narrative">@hoveredChoice.Choice.Description</div>
 
         <div class="effects-section">
             @GetSkillCheckInfo(@hoveredChoice)

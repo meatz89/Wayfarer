@@ -19,7 +19,10 @@
 				"description": "Repair furniture, clean rooms, and tend to physical needs of the inn.",
 				"requiredCardType": "PHYSICAL",
 				"primarySkill": "STRENGTH",
-				"secondarySkill": "ENDURANCE"
+				"secondarySkill": "ENDURANCE",
+				"contextTags": [ "INTERIOR" ],
+				"approachTags": [ "THOROUGH" ],
+				"domainTags": [ "LABOR" ]
 			},
 			{
 				"id": "inn_inventory",
@@ -27,7 +30,10 @@
 				"description": "Sort supplies, maintain ledgers, and track stock.",
 				"requiredCardType": "INTELLECTUAL",
 				"primarySkill": "ANALYSIS",
-				"secondarySkill": "OBSERVATION"
+				"secondarySkill": "OBSERVATION",
+				"contextTags": [ "INTERIOR", "QUIET" ],
+				"approachTags": [ "METHODICAL" ],
+				"domainTags": [ "COMMERCE" ]
 			},
 			{
 				"id": "inn_guests",
@@ -35,7 +41,10 @@
 				"description": "Serve customers, handle requests, and manage social aspects of inn operation.",
 				"requiredCardType": "SOCIAL",
 				"primarySkill": "CHARM",
-				"secondarySkill": "PERSUASION"
+				"secondarySkill": "PERSUASION",
+				"contextTags": [ "INTERIOR", "CROWDED" ],
+				"approachTags": [ "SWIFT" ],
+				"domainTags": [ "SOCIAL" ]
 			}
 		]
 	},
@@ -64,7 +73,10 @@
 					"description": "Use physical presence to pressure witnesses into talking.",
 					"requiredCardType": "PHYSICAL",
 					"primarySkill": "STRENGTH",
-					"secondarySkill": "ENDURANCE"
+					"secondarySkill": "ENDURANCE",
+					"contextTags": [ "CROWDED" ],
+					"approachTags": [ "BOLD", "DIRECT" ],
+					"domainTags": [ "SOCIAL", "INVESTIGATION" ]
 				},
 				{
 					"id": "analyze_witnesses",
@@ -72,7 +84,10 @@
 					"description": "Apply logical reasoning to extract consistent information.",
 					"requiredCardType": "INTELLECTUAL",
 					"primarySkill": "ANALYSIS",
-					"secondarySkill": "OBSERVATION"
+					"secondarySkill": "OBSERVATION",
+					"contextTags": [ "QUIET" ],
+					"approachTags": [ "METHODICAL", "THOROUGH" ],
+					"domainTags": [ "INVESTIGATION" ]
 				},
 				{
 					"id": "charm_witnesses",
@@ -80,7 +95,10 @@
 					"description": "Build rapport and encourage witnesses to share what they know.",
 					"requiredCardType": "SOCIAL",
 					"primarySkill": "CHARM",
-					"secondarySkill": "PERSUASION"
+					"secondarySkill": "PERSUASION",
+					"contextTags": [ "CROWDED" ],
+					"approachTags": [ "CAUTIOUS" ],
+					"domainTags": [ "SOCIAL", "INVESTIGATION" ]
 				}
 			]
 		}

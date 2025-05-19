@@ -421,7 +421,7 @@
         string memoryEntry = await evolutionSystem.ConsolidateMemory(encounterResult.NarrativeContext, memoryInput);
 
         string location = encounterResult.NarrativeContext.LocationName;
-        string locationSpot = encounterResult.NarrativeContext.locationSpotName;
+        string locationSpot = encounterResult.NarrativeContext.LocationSpotName;
         string actionName = encounterResult.ActionImplementation.Id;
         string description = encounterResult.ActionImplementation.Description;
 
@@ -444,10 +444,13 @@
             i++;
             NarrativeContext narrativeContext = encounterResult.NarrativeContext;
 
+            string shorthandName = narrativeResult.ChoiceDescriptions[choice].ShorthandName;
+            string fullDescription = narrativeResult.ChoiceDescriptions[choice].FullDescription;
             UserEncounterChoiceOption option = new UserEncounterChoiceOption(
                 i,
-                "description",
-                "Narrative",
+                shorthandName,
+                fullDescription,
+                choice.Description,
                 narrativeContext.LocationName,
                 "locationSpotName",
                 encounterResult,
