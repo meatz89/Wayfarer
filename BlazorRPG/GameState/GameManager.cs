@@ -89,48 +89,38 @@
         playerState.RefreshCard(card);
     }
 
-    private async Task<List<UserActionOption>> CreateUserActionsForLocationSpot(Location location, LocationSpot locationSpot)
+    private async Task<List<UserActionOption>> CreateUserActionsForLocationSpot(Location location, LocationSpot locationSpot, List<ActionImplementation> actionImplementations)
     {
         string? currentLocation = worldState.CurrentLocation?.Id;
         if (string.IsNullOrWhiteSpace(currentLocation)) return new List<UserActionOption>();
 
         List<UserActionOption> options = new List<UserActionOption>();
-        List<ActionDefinition> locationSpotActions = actionRepository.GetActionsForSpot(locationSpot.Id);
-        for (int i = 0; i < locationSpotActions.Count; i++)
+        foreach (var actionImplementation in actionImplementations)
         {
-            ActionDefinition actionTemplate = locationSpotActions[i];
-            if (actionTemplate == null)
-            {
-                string actionId =
-                    await actionGenerator.GenerateAction(
-                    actionTemplate.Name,
-                    location.Id,
-                    locationSpot.Id
-                    );
+            UserActionOption commission =
+                    new UserActionOption(
+                        actionImplementation.Name,
+                        locationSpot.IsClosed,
+                        actionImplementation,
+                        locationSpot.LocationId,
+                        locationSpot.Id,
+                        default,
+                        location.Difficulty,
+                        string.Empty,
+                        null);
 
-                actionTemplate = actionRepository.GetAction(actionTemplate.Id);
-            }
+            bool requirementsMet = actionProcessor.CanExecute(commission.ActionImplementation);
 
-            ActionImplementation actionImplementation = actionFactory.CreateActionFromTemplate(actionTemplate, location.Id, locationSpot.Id, ActionExecutionTypes.Instant);
-
-            UserActionOption action =
-                new UserActionOption(
-                    actionImplementation.Name,
-                    locationSpot.IsClosed,
-                    actionImplementation,
-                    locationSpot.LocationId,
-                    locationSpot.Id,
-                    default,
-                    location.Difficulty,
-                    string.Empty,
-                    null);
-
-            bool requirementsMet = actionProcessor.CanExecute(action.ActionImplementation);
-
-            action = action with { IsDisabled = !requirementsMet };
-            options.Add(action);
+            commission = commission with { IsDisabled = !requirementsMet };
+            options.Add(commission);
         }
 
+        return options;
+    }
+
+    private async Task<List<ActionImplementation>> CreateCommissions(Location location, LocationSpot locationSpot)
+    {
+        List<ActionImplementation> commissionImplementations = new List<ActionImplementation>();
         List<CommissionDefinition> locationSpotCommissions = actionRepository.GetCommissionsForSpot(locationSpot.Id);
         for (int i = 0; i < locationSpotCommissions.Count; i++)
         {
@@ -147,27 +137,37 @@
                 commissionTemplate = actionRepository.GetCommission(commissionTemplate.Id);
             }
 
-            ActionImplementation commissionImplementation = actionFactory.CreateActionFromCommission(commissionTemplate);
-
-            UserActionOption commission =
-                new UserActionOption(
-                    commissionImplementation.Name,
-                    locationSpot.IsClosed,
-                    commissionImplementation,
-                    locationSpot.LocationId,
-                    locationSpot.Id,
-                    default,
-                    location.Difficulty,
-                    string.Empty,
-                    null);
-
-            bool requirementsMet = actionProcessor.CanExecute(commission.ActionImplementation);
-
-            commission = commission with { IsDisabled = !requirementsMet };
-            options.Add(commission);
+            var commissionImplementation = actionFactory.CreateActionFromCommission(commissionTemplate);
+            commissionImplementations.Add(commissionImplementation);
         }
 
-        return options;
+        return commissionImplementations;
+    }
+
+    private async Task<List<ActionImplementation>> CreateActions(Location location, LocationSpot locationSpot)
+    {
+        List<ActionImplementation> actionImplementations = new List<ActionImplementation>();
+        List<ActionDefinition> locationSpotActions = actionRepository.GetActionsForSpot(locationSpot.Id);
+        for (int i = 0; i < locationSpotActions.Count; i++)
+        {
+            ActionDefinition actionTemplate = locationSpotActions[i];
+            if (actionTemplate == null)
+            {
+                string actionId =
+                    await actionGenerator.GenerateAction(
+                    actionTemplate.Name,
+                    location.Id,
+                    locationSpot.Id
+                    );
+
+                actionTemplate = actionRepository.GetAction(actionTemplate.Id);
+            }
+
+            var actionImplementation = actionFactory.CreateActionFromTemplate(actionTemplate, location.Id, locationSpot.Id, ActionExecutionTypes.Instant);
+            actionImplementations.Add(actionImplementation);
+        }
+
+        return actionImplementations;
     }
 
     public async Task<ActionImplementation> ExecuteAction(UserActionOption action)
@@ -579,10 +579,18 @@
         gameState.ActionStateTracker.ClearCurrentUserAction();
         actionProcessor.UpdateState();
 
+        Location location = worldState.CurrentLocation;
+        LocationSpot locationSpot = worldState.CurrentLocationSpot;
+
+        List<ActionImplementation> actionImplementations = await CreateActions(location, locationSpot);
+        List<ActionImplementation> commissionImplementations = await CreateCommissions(location, locationSpot);
+        actionImplementations.AddRange(commissionImplementations);
+
         List<UserActionOption> locationSpotActionOptions =
             await CreateUserActionsForLocationSpot(
-                worldState.CurrentLocation,
-                worldState.CurrentLocationSpot);
+                location,
+                locationSpot,
+                actionImplementations);
 
         gameState.ActionStateTracker.SetLocationSpotActions(locationSpotActionOptions);
     }
