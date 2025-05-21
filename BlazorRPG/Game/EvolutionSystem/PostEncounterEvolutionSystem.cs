@@ -85,9 +85,10 @@
             if(locationId == null)
             {
                 locationId = worldState.CurrentLocation.Id;
+                spot.LocationId = locationId;
             }
 
-            LocationSpot existingSpot = locationRepository.GetSpot(spot.LocationId, spot.Id);
+            LocationSpot existingSpot = locationRepository.GetSpot(locationId, spot.Id);
             if (existingSpot == null)
             {
                 locationRepository.AddLocationSpot(spot);
