@@ -81,6 +81,12 @@
         foreach (LocationSpot spot in evolution.NewLocationSpots)
         {
             string spotName = $"{spot.LocationId}:{spot.Id}";
+            string locationId = spot.LocationId;
+            if(locationId == null)
+            {
+                locationId = worldState.CurrentLocation.Id;
+            }
+
             LocationSpot existingSpot = locationRepository.GetSpot(spot.LocationId, spot.Id);
             if (existingSpot == null)
             {
