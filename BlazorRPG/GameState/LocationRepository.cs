@@ -1,25 +1,25 @@
 ﻿public class LocationRepository
 {
-    private readonly WorldState _worldState;
+    private readonly WorldState worldState;
 
     public LocationRepository(GameState gameState)
     {
-        _worldState = gameState.WorldState;
+        worldState = gameState.WorldState;
     }
 
     public Location GetCurrentLocation()
     {
-        return _worldState.CurrentLocation;
+        return worldState.CurrentLocation;
     }
 
     public LocationSpot GetCurrentLocationSpot()
     {
-        return _worldState.CurrentLocationSpot;
+        return worldState.CurrentLocationSpot;
     }
 
     public Location GetLocationById(string locationId)
     {
-        Location location = _worldState.locations.FirstOrDefault(l =>
+        Location location = worldState.locations.FirstOrDefault(l =>
         {
             return l.Id.Equals(locationId, StringComparison.OrdinalIgnoreCase);
         });
@@ -32,7 +32,7 @@
 
     public Location GetLocationByName(string locationName)
     {
-        Location location = _worldState.locations.FirstOrDefault(l =>
+        Location location = worldState.locations.FirstOrDefault(l =>
         {
             return l.Id.Equals(locationName, StringComparison.OrdinalIgnoreCase);
         });
@@ -45,7 +45,7 @@
 
     public List<Location> GetAllLocations()
     {
-        return _worldState.locations;
+        return worldState.locations;
     }
 
     public List<LocationSpot> GetSpotsForLocation(string locationId)
@@ -57,6 +57,7 @@
     public LocationSpot GetSpot(string locationId, string spotId)
     {
         Location location = GetLocationById(locationId);
+        if (location == null) location = worldState.CurrentLocation;
         LocationSpot spot = location.LocationSpots.FirstOrDefault(s => s.Id == spotId);
 
         return spot;
@@ -64,7 +65,7 @@
 
     public List<Location> GetConnectedLocations(string currentLocation)
     {
-        return _worldState.locations
+        return worldState.locations
             .Where(l =>
             {
                 return l.ConnectedTo.Contains(currentLocation);
@@ -89,7 +90,7 @@
 
     public List<LocationSpot> GetSpotsReadyToLevelUp()
     {
-        return _worldState.locationSpots
+        return worldState.locationSpots
             .Where(spot =>
             {
                 return spot.CurrentSpotXP >= spot.XPToNextLevel;
@@ -100,25 +101,25 @@
     // Add a location to the world
     public void AddLocation(Location location)
     {
-        if (_worldState.locations.Any(l =>
+        if (worldState.locations.Any(l =>
         {
             return l.Id.Equals(location.Id, StringComparison.OrdinalIgnoreCase);
         }))
             throw new InvalidOperationException($"Location '{location.Id}' already exists.");
 
-        _worldState.locations.Add(location);
+        worldState.locations.Add(location);
     }
 
     // Add a location spot to the world
     public void AddLocationSpot(LocationSpot spot)
     {
-        if (_worldState.locationSpots.Any((Func<LocationSpot, bool>)(s =>
+        if (worldState.locationSpots.Any((Func<LocationSpot, bool>)(s =>
         {
             return (bool)(s.LocationId.Equals(spot.LocationId, StringComparison.OrdinalIgnoreCase) &&
                         s.Id.Equals((string)spot.Id, StringComparison.OrdinalIgnoreCase));
         })))
             throw new InvalidOperationException($"Spot '{spot.Id}' already exists in '{spot.LocationId}'.");
 
-        _worldState.locationSpots.Add(spot);
+        worldState.locationSpots.Add(spot);
     }
 }

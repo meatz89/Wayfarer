@@ -32,6 +32,12 @@ public class ActionGenerator
     {
         Location location = locationRepository.GetLocationById(locationId);
         LocationSpot locationSpot = locationRepository.GetSpot(locationId, spotId);
+
+        if(location == null || locationSpot == null)
+        {
+            throw new Exception();
+        }
+
         ActionDefinition actionDef = GetDefaultActionDefinition(actionName, locationSpot.Id);
 
         if (_configuration.GetValue<bool>("actionGeneration"))
