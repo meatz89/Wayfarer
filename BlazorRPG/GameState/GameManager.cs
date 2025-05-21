@@ -444,8 +444,13 @@
             i++;
             NarrativeContext narrativeContext = encounterResult.NarrativeContext;
 
-            string shorthandName = narrativeResult.ChoiceDescriptions[choice].ShorthandName;
-            string fullDescription = narrativeResult.ChoiceDescriptions[choice].FullDescription;
+            string shorthandName = "short name";
+            string fullDescription = "description";
+            if (narrativeResult.ChoiceDescriptions != null)
+            {
+                shorthandName = narrativeResult.ChoiceDescriptions[choice].ShorthandName;
+                fullDescription = narrativeResult.ChoiceDescriptions[choice].FullDescription;
+            }
             UserEncounterChoiceOption option = new UserEncounterChoiceOption(
                 i,
                 shorthandName,
