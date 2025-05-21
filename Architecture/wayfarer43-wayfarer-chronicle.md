@@ -119,7 +119,7 @@ The Chronicle system consists of three interlinked mechanical subsystems that re
 ### 1. Journal Entry System (Progression Mechanism)
 
 **Data Structure:**
-- **Reflection Points**: Objects with approach/focus tags generated from actions
+- **Reflection Points**: Objects generated from actions
 - **Journal Entries**: Permanent records created from Reflection Point conversion
 - **Skill Increments**: Numerical values (+1) applied to specific skills
 

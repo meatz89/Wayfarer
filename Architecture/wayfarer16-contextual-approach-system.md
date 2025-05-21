@@ -10,35 +10,6 @@
    - Clear enablement for other actions/approaches
 4. **Player selects one available approach** based on requirements they meet
 
-## Example Implementation
-
-```
-You select: "Work at the Forge"
-
-[After committing to this action, you see...]
-
-How will you approach this work?
-
-1. "Assist with Metal work" 
-   Requirements: Warfare Skill ≥ 2
-   Costs: 3 Energy
-
-2. "Organize Tools and Materials"
-   Requirements: Relationship with Emil ≥ 5
-   Costs: 2 Energy, 1 Focus
-   Yields: 4 coins, Forge layout knowledge, +3 Emil Relationship
-
-3. "Study Forge Techniques"
-   Requirements: Scholarship Skill ≥ 2
-   Costs: 1 Energy, 3 Focus
-   Yields: 2 coins, Metallurgy knowledge, +2 Scholarship
-
-4. "Provide Basic Labor" (Always Available)
-   Requirements: None
-   Costs: 3 Energy
-   Yields: 3 coins, +1 Warfare
-```
-
 ## Strategic Web of Enablement
 
 The key innovation is how each approach specifically enables different actions across locations:
@@ -82,16 +53,11 @@ All requirements use trackable numeric values:
    - Each character has relationship value
    - Increased through character interactions (+1 to +3)
 
-3. **Location Spot Levels** (1-5 scale)
-   - Spots gain XP through interactions
-   - Higher levels unlock more approaches
-
-4. **Resources & Items** (inventory system)
+3. **Resources & Items** (inventory system)
    - Tracked as specific named items
    - Boolean flags for possession
 
-5. **Knowledge**
-   - Once learned, always available
+4. **Knowledge Points**
 
 ## Distinct Approach Types
 

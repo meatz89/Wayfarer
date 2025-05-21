@@ -42,7 +42,7 @@ Actions are specific activities the player can perform at location spots.
 Encounters are interactive scenarios that use the tag-based system to determine outcomes.
 
 - **Trigger**: Most (but not all) actions start encounters
-- **Structure**: 3-7 turns where player makes choices that affect approach/focus tags
+- **Structure**: 3-7 turns where player makes choices
 - **Resolution**: Determined by final momentum vs. success threshold
 - **Purpose**: Primary method for unlocking new content and progressing the narrative
 
@@ -108,28 +108,6 @@ When players fail encounters, the world evolves to provide alternative paths:
 - **Alternative Routes**: New locations/spots/actions that offer different approaches
 - **Second Chances**: New characters or opportunities that provide ways to retry
 - **Narrative Divergence**: Storylines that adapt to account for the failure
-
-## Encounter Mechanics Detail
-
-### Approach and Focus Tags
-
-During encounters, player choices build temporary tags:
-
-- **Approach Tags** (HOW players tackle challenges):
-  - Dominance: Force, authority, intimidation
-  - Rapport: Rapport connections, charm, persuasion
-  - Analysis: Intelligence, observation, problem-solving
-  - Precision: Careful execution, finesse, accuracy
-  - Evasion: Precision, hiding, subterfuge
-
-- **Focus Tags** (WHAT players concentrate on):
-  - Relationship: Connections with others, social dynamics
-  - Information: Knowledge, facts, understanding
-  - Physical: Bodies, movement, physical objects
-  - Environment: Surroundings, spaces, terrain
-  - Resource: Items, money, supplies, valuables
-
-These tags exist ONLY during encounters and reset afterward.
 
 ## Implementation Requirements
 
