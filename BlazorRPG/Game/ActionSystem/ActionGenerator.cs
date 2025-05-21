@@ -1,6 +1,4 @@
-﻿
-
-/// <summary>
+﻿/// <summary>
 /// Generates actions via AI and registers them safely.
 /// </summary>
 public class ActionGenerator
@@ -10,8 +8,10 @@ public class ActionGenerator
     private readonly WorldStateInputBuilder _worldStateInputCreator;
     private readonly IConfiguration _configuration;
     private readonly IAIService _aiService;
+    private readonly WorldState worldState;
 
     public ActionGenerator(
+        GameState gameState,
         ActionRepository actionRepository,
         LocationRepository locationRepository,
         WorldStateInputBuilder worldStateInputCreator,
@@ -23,6 +23,7 @@ public class ActionGenerator
         _worldStateInputCreator = worldStateInputCreator;
         _configuration = configuration;
         this._aiService = aiService;
+        worldState = gameState.WorldState;
     }
 
     public async Task<string> GenerateAction(
@@ -35,7 +36,8 @@ public class ActionGenerator
 
         if(location == null || locationSpot == null)
         {
-            throw new Exception();
+            location = worldState.CurrentLocation;
+            locationSpot = worldState.CurrentLocationSpot;
         }
 
         ActionDefinition actionDef = GetDefaultActionDefinition(actionName, locationSpot.Id);

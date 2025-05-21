@@ -178,17 +178,6 @@ This creates a world where opportunities feel naturally integrated into the envi
 
 ## 6. Encounters and Narratives
 
-### The Unified Encounter System
-
-All interactions—whether social, intellectual, or physical—use Wayfarer's unified encounter system:
-
-- Approach tags (HOW) track the player's strategy within the encounter
-- Focus tags (WHAT) track what the player is concentrating on
-- Strategic tags create location-specific advantages for different approaches
-- Narrative tags block certain focuses when approach thresholds are reached
-
-This creates consistent gameplay mechanics while allowing for rich narrative variety.
-
 ### Environmental Impact on Encounters
 
 A location's environmental properties dramatically affect encounter strategies:
