@@ -34,7 +34,7 @@ public class ActionGenerator
         Location location = locationRepository.GetLocationById(locationId);
         LocationSpot locationSpot = locationRepository.GetSpot(locationId, spotId);
 
-        if(location == null || locationSpot == null)
+        if (location == null || locationSpot == null)
         {
             location = worldState.CurrentLocation;
             locationSpot = worldState.CurrentLocationSpot;

@@ -1,4 +1,4 @@
-﻿public static class UniversalEncounterService
+﻿public static class ChoiceProjectionService
 {
     public static ChoiceProjection CreateUniversalChoiceProjection(
         EncounterOption choice,
@@ -71,7 +71,7 @@
     private static bool DetermineSkillCheckSuccess(EncounterOption choice, PlayerState playerState, Location location)
     {
         int skillLevel = playerState.GetSkillLevel(choice.Skill);
-        int locationModifier = UniversalEncounterService.GetLocationPropertyModifier(choice.Skill, location);
+        int locationModifier = ChoiceProjectionService.GetLocationPropertyModifier(choice.Skill, location);
         int effectiveSkill = skillLevel + locationModifier;
 
         return effectiveSkill >= choice.Difficulty;

@@ -8,7 +8,8 @@
 
     public List<TimeWindowTypes> Values { get; set; } = new List<TimeWindowTypes>();
 
-    public TimeWindows() {
+    public TimeWindows()
+    {
         Values = new List<TimeWindowTypes>();
     }
 

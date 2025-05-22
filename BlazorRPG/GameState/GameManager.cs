@@ -95,7 +95,7 @@
         if (string.IsNullOrWhiteSpace(currentLocation)) return new List<UserActionOption>();
 
         List<UserActionOption> options = new List<UserActionOption>();
-        foreach (var actionImplementation in actionImplementations)
+        foreach (ActionImplementation actionImplementation in actionImplementations)
         {
             UserActionOption commission =
                     new UserActionOption(
@@ -137,7 +137,7 @@
                 commissionTemplate = actionRepository.GetCommission(commissionTemplate.Id);
             }
 
-            var commissionImplementation = actionFactory.CreateActionFromCommission(commissionTemplate);
+            ActionImplementation commissionImplementation = actionFactory.CreateActionFromCommission(commissionTemplate);
             commissionImplementations.Add(commissionImplementation);
         }
 
@@ -163,7 +163,7 @@
                 actionTemplate = actionRepository.GetAction(actionTemplate.Id);
             }
 
-            var actionImplementation = actionFactory.CreateActionFromTemplate(actionTemplate, location.Id, locationSpot.Id, ActionExecutionTypes.Instant);
+            ActionImplementation actionImplementation = actionFactory.CreateActionFromTemplate(actionTemplate, location.Id, locationSpot.Id, ActionExecutionTypes.Instant);
             actionImplementations.Add(actionImplementation);
         }
 
@@ -185,14 +185,14 @@
 
         CardDefinition card = action.SelectedCard;
         if (card != null)
-        { 
+        {
             playerState.ExhaustCard(card);
         }
 
         switch (executionType)
         {
             case ActionExecutionTypes.Encounter:
-                EncounterManager encounterManager = 
+                EncounterManager encounterManager =
                     await PrepareEncounter(
                         actionImplementation.Id,
                         actionImplementation.Commission,
@@ -289,8 +289,8 @@
         // Create initial context with our new value system
         int playerLevel = playerState.Level;
 
-        var approach = commission.Approaches.Where(a => a.Id == approachId).FirstOrDefault();
-        var encounterType = approach.RequiredCardType;
+        ApproachDefinition? approach = commission.Approaches.Where(a => a.Id == approachId).FirstOrDefault();
+        CardTypes encounterType = approach.RequiredCardType;
 
         EncounterContext context = new EncounterContext()
         {

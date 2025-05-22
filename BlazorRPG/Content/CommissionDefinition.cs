@@ -96,7 +96,7 @@
                 .FirstOrDefault(l => l.Id != InitialLocationId &&
                                    l.ConnectedTo.Contains(InitialLocationId))?.Id ?? InitialLocationId;
         }
-        return InitialLocationId; 
+        return InitialLocationId;
     }
 
     private List<ApproachDefinition> GenerateApproachesForStep(CommissionStep previousStep)

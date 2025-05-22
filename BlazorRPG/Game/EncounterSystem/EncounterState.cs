@@ -202,7 +202,7 @@
         Location location = playerState.CurrentLocation;
 
         // Create enhanced projection using Universal Encounter System
-        return UniversalEncounterService.CreateUniversalChoiceProjection(
+        return ChoiceProjectionService.CreateUniversalChoiceProjection(
             choice,
             CurrentProgress,
             EncounterInfo.TotalProgress,

@@ -206,7 +206,7 @@
     {
         card.IsExhausted = true;
     }
-    
+
     public void RefreshCard(CardDefinition card)
     {
         card.IsExhausted = false;

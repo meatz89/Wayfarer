@@ -49,7 +49,7 @@ public partial class LocationSpotMap : ComponentBase
 
     private void ActivateHighlightMode(CardTypes cardType)
     {
-        if(CardHighlightService.IsHighlightModeActive)
+        if (CardHighlightService.IsHighlightModeActive)
         {
             CardHighlightService.DeactivateHighlightMode();
         }

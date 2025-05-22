@@ -3,7 +3,7 @@
     private readonly GameState gameState;
     private readonly MessageSystem messageSystem;
     private readonly IConfiguration configuration;
-    private readonly NarrativeChoiceRepository choiceRepository;
+    private readonly ChoiceRepository choiceRepository;
     private readonly ILogger<EncounterSystem> logger;
 
     private readonly IAIService _aiService;
@@ -20,7 +20,7 @@
         MessageSystem messageSystem,
         NarrativeContextManager narrativeContextManager,
         IAIService aiService,
-        NarrativeChoiceRepository choiceRepository,
+        ChoiceRepository choiceRepository,
         EncounterFactory encounterFactory,
         WorldStateInputBuilder worldStateInputCreator,
         IConfiguration configuration,
@@ -48,19 +48,21 @@
         PlayerState playerState,
         ActionImplementation actionImplementation)
     {
+        logger.LogInformation("GenerateEncounter called with id: {Id}, commission: {CommissionId}, approachId: {ApproachId}, location: {LocationId}, locationSpot: {LocationSpotId}", id, commission?.Id, approachId, location?.Id, locationSpot?.Id);
         this.worldState = worldState;
 
         Encounter encounter = encounterFactory.CreateEncounterFromCommission(
             commission, approachId, playerState, location);
 
         EncounterManager encounterManager = await StartEncounter(
-            encounter, 
-            location, 
-            this.worldState, 
-            playerState, 
+            encounter,
+            location,
+            this.worldState,
+            playerState,
             actionImplementation);
 
         string situation = $"{actionImplementation.Id} ({actionImplementation.ActionType} Action)";
+        logger.LogInformation("Encounter generated for situation: {Situation}", situation);
         return encounterManager;
     }
 
@@ -71,10 +73,9 @@
         PlayerState playerState,
         ActionImplementation actionImplementation)
     {
-        // Create the core components
+        logger.LogInformation("StartEncounter called for encounter: {EncounterId}, location: {LocationId}", encounter?.Id, location?.Id);
         cardSelector = new ChoiceCardSelector(choiceRepository);
 
-        // Create encounter manager with the direct service
         EncounterManager encounterManager = new EncounterManager(
             encounter,
             actionImplementation,
@@ -86,7 +87,6 @@
 
         gameState.ActionStateTracker.SetActiveEncounter(encounterManager);
 
-        // Start the encounter with narrative - generate synchronously
         NarrativeResult initialResult = await encounterManager.StartEncounterWithNarrativeAsync(
             location,
             encounter,
@@ -94,13 +94,8 @@
             playerState,
             actionImplementation);
 
-        // For the initial encounter setup, we don't want to use any pre-generated content
-        // Make sure the narrative and choices are fully generated before continuing
-
-        // Explicitly mark as not using pre-generated content
         encounterManager.IsInitialState = true;
 
-        // Store the initial result in the encounter manager
         encounterManager.EncounterResult = new EncounterResult()
         {
             ActionImplementation = actionImplementation,
@@ -110,6 +105,7 @@
             NarrativeContext = encounterManager.GetNarrativeContext()
         };
 
+        logger.LogInformation("Encounter started: {EncounterId}", encounter?.Id);
         return encounterManager;
     }
 
@@ -117,17 +113,15 @@
         NarrativeResult narrativeResult,
         EncounterOption choice)
     {
+        logger.LogInformation("ExecuteChoice called for choice: {ChoiceId}", choice?.Id);
         NarrativeResult currentNarrative = narrativeResult;
         NarrativeResult cachedResult = null;
 
         EncounterManager encounterManager = GetCurrentEncounter();
-
-        // Check if this is the initial state of the encounter
         bool isInitialChoice = encounterManager.IsInitialState;
 
         _preGenerationManager.CancelAllPendingGenerations();
 
-        // Continue with existing code for generating the response in real-time
         Dictionary<EncounterOption, ChoiceNarrative> choiceDescriptions = currentNarrative.ChoiceDescriptions;
         ChoiceNarrative selectedDescription = null;
 
@@ -136,20 +130,16 @@
             selectedDescription = currentNarrative.ChoiceDescriptions[choice];
         }
 
-        // Generate with immediate priority since player is waiting
         currentNarrative = await encounterManager.ApplyChoiceWithNarrativeAsync(
             encounterManager.Encounter.LocationName,
             choice,
             selectedDescription,
             AIClient.PRIORITY_IMMEDIATE);
 
-        // After the first choice is made, set the flag to false
         encounterManager.IsInitialState = false;
-
-        // Create and return encounter result
         encounterManager.EncounterResult = CreateEncounterResult(encounterManager, currentNarrative);
-        ProcessEncounterProgress(encounterManager.EncounterResult, gameState);
 
+        logger.LogInformation("Choice executed: {ChoiceId}, EncounterOver: {IsEncounterOver}", choice?.Id, currentNarrative.IsEncounterOver);
         return encounterManager.EncounterResult;
     }
 
@@ -159,6 +149,13 @@
         {
             if (currentNarrative.Outcome == EncounterOutcomes.Failure)
             {
+                logger.LogInformation("Encounter ended in failure. ActionId: {ActionId}, Outcome: {Outcome}, Narrative: {Narrative}, Choices: {Choices}, IsEncounterOver: {IsEncounterOver}",
+                    encounter.ActionImplementation?.Id,
+                    currentNarrative.Outcome,
+                    currentNarrative?.ToString(),
+                    currentNarrative?.ChoiceDescriptions?.Count ?? 0,
+                    currentNarrative.IsEncounterOver);
+
                 EncounterResult failureResult = new EncounterResult()
                 {
                     ActionImplementation = encounter.ActionImplementation,
@@ -171,6 +168,13 @@
             }
             else
             {
+                logger.LogInformation("Encounter ended in success. ActionId: {ActionId}, Outcome: {Outcome}, Narrative: {Narrative}, Choices: {Choices}, IsEncounterOver: {IsEncounterOver}",
+                    encounter.ActionImplementation?.Id,
+                    currentNarrative.Outcome,
+                    currentNarrative?.ToString(),
+                    currentNarrative?.ChoiceDescriptions?.Count ?? 0,
+                    currentNarrative.IsEncounterOver);
+
                 EncounterResult successResult = new EncounterResult()
                 {
                     ActionImplementation = encounter.ActionImplementation,
@@ -183,6 +187,13 @@
             }
         }
 
+        logger.LogInformation("Encounter ongoing. ActionId: {ActionId}, Outcome: {Outcome}, Narrative: {Narrative}, Choices: {Choices}, IsEncounterOver: {IsEncounterOver}",
+            encounter.ActionImplementation?.Id,
+            currentNarrative.Outcome,
+            currentNarrative?.ToString(),
+            currentNarrative?.ChoiceDescriptions?.Count ?? 0,
+            currentNarrative.IsEncounterOver);
+
         EncounterResult ongoingResult = new EncounterResult()
         {
             ActionImplementation = encounter.ActionImplementation,
@@ -194,16 +205,12 @@
 
         return ongoingResult;
     }
-
-    // In the appropriate method that processes encounter results
     public void ProcessEncounterProgress(EncounterResult result, GameState gameState)
     {
-        // If this encounter was part of a commission
         if (result.ActionImplementation.Commission != null)
         {
             CommissionDefinition commission = result.ActionImplementation.Commission;
 
-            // Calculate progress based on success level
             int progress = 0;
             switch (result.ActionResult)
             {
@@ -211,17 +218,15 @@
                     progress = 5;
                     break;
                 case ActionResults.EncounterFailure:
-                    progress = 1; 
+                    progress = 1;
                     break;
                 default:
                     progress = 0; // No progress for failure
                     break;
             }
 
-            // Add progress
             commission.AddProgress(progress, gameState);
 
-            // Check if commission is complete
             if (commission.IsComplete())
             {
                 CompleteCommission(commission, gameState);
@@ -231,17 +236,12 @@
 
     private void CompleteCommission(CommissionDefinition commission, GameState gameState)
     {
-        // Award rewards
         gameState.PlayerState.AddSilver(commission.SilverReward);
         gameState.PlayerState.AddReputation(commission.ReputationReward);
         gameState.PlayerState.AddInsightPoints(commission.InsightPointReward);
 
-        // Add message
-        // Assuming you have a message system
         messageSystem.AddSystemMessage($"Commission completed: {commission.Name}");
 
-        // Remove from active commissions
-        // Add to completed commissions history
         gameState.WorldState.CompletedCommissions.Add(commission);
         gameState.WorldState.ActiveCommissions.Remove(commission);
     }
@@ -263,15 +263,5 @@
     public EncounterManager GetCurrentEncounter()
     {
         return gameState.ActionStateTracker.CurrentEncounter;
-    }
-
-    public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions()
-    {
-        return gameState.ActionStateTracker.UserEncounterChoiceOptions;
-    }
-
-    internal async Task<EncounterManager> GenerateEncounter(string? id, object commission, object approachId, Location location, LocationSpot locationSpot, WorldState worldState, PlayerState playerState, ActionImplementation actionImplementation)
-    {
-        throw new NotImplementedException();
     }
 }
