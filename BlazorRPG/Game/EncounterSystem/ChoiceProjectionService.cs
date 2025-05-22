@@ -20,7 +20,14 @@
         // Determine skill check success for negative consequence mitigation
         if (choice.Skill != SkillTypes.None)
         {
-            projection.SkillCheckSuccess = DetermineSkillCheckSuccess(choice, playerState, location);
+            int skillLevel = playerState.GetSkillLevel(choice.Skill);
+            int locationModifier = GetLocationPropertyModifier(choice.Skill, location);
+            int effectiveSkill = skillLevel + locationModifier;
+
+            projection.SkillLevel = skillLevel;
+            projection.LocationModifier = locationModifier;
+            projection.EffectiveSkillLevelForCheck = effectiveSkill;
+            projection.SkillCheckSuccess = effectiveSkill >= choice.Difficulty;
         }
         else
         {
@@ -66,15 +73,6 @@
                 projection.SetTokenCost(tokenCost.Key, tokenCost.Value);
             }
         }
-    }
-
-    private static bool DetermineSkillCheckSuccess(EncounterOption choice, PlayerState playerState, Location location)
-    {
-        int skillLevel = playerState.GetSkillLevel(choice.Skill);
-        int locationModifier = ChoiceProjectionService.GetLocationPropertyModifier(choice.Skill, location);
-        int effectiveSkill = skillLevel + locationModifier;
-
-        return effectiveSkill >= choice.Difficulty;
     }
 
     private static void CalculateProgressGained(ChoiceProjection projection, EncounterOption choice, EncounterState encounterState)

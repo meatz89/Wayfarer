@@ -10,9 +10,12 @@
 
     // Universal Encounter System additions
     public int FocusCost { get; set; }
+    public int EffectiveSkillLevelForCheck { get; set; }
     public bool SkillCheckSuccess { get; set; }
     public bool IsConversionChoice { get; set; }
     public NegativeConsequenceTypes NegativeConsequenceType { get; set; }
+    public int SkillLevel { get; internal set; }
+    public int LocationModifier { get; internal set; }
 
     private Dictionary<AspectTokenTypes, int> tokenGains;
     private Dictionary<AspectTokenTypes, int> tokenCosts;
