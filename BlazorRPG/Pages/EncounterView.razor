@@ -8,27 +8,87 @@
             Loading...
         </div>
     }
+
+    <!-- Universal Encounter System Status Display -->
+    <div class="encounter-stats">
+        <div class="stat">
+            <span class="stat-label">Focus</span>
+            <span class="stat-value">@GetCurrentFocusPoints() / @GetMaxFocusPoints()</span>
+        </div>
+
+        <div class="stat">
+            <span class="stat-label">Progress</span>
+            <span class="stat-value">@GetCurrentProgress() / @GetProgressThreshold()</span>
+        </div>
+
+        @if (GetAspectTokenCounts().Values.Any(v => v > 0))
+        {
+            <div class="stat">
+                <span class="stat-label">Tokens</span>
+                <div class="progress-item">
+                    @foreach (var tokenCount in GetAspectTokenCounts())
+                    {
+                        if (tokenCount.Value > 0)
+                        {
+                            <span class="tag-value token-@(tokenCount.Key.ToString().ToLower())">
+                                @GetTokenIcon(tokenCount.Key) @tokenCount.Value
+                            </span>
+                        }
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
     <div class="encounter-content">
         <div class="encounter-main">
             <div class="encounter-stage">
                 <div class="stage-header">
-                    <div class="choice-set-name">Chosen Action: @Model.EncounterResult.NarrativeResult?.LastChoiceNarrative.ShorthandName</div>
+                    <div class="choice-set-name">@GetStageTitle()</div>
                 </div>
                 <div class="stage-situation">@Model.EncounterResult.NarrativeResult?.SceneNarrative</div>
             </div>
 
             <div class="encounter-choices">
-                @if(CurrentChoices.Count > 0)
+                @if (CurrentChoices.Count > 0)
                 {
                     @foreach (UserEncounterChoiceOption choice in CurrentChoices)
                     {
-                        <div id="choice-@choice.Index" class="choice-option @(IsChoiceDisabled(choice) ? "disabled" : "")"
+                        bool canAfford = CanAffordChoice(choice);
+                        bool hasRequiredTokens = HasRequiredTokens(choice);
+                        bool isDisabled = IsChoiceDisabled(choice) || !canAfford || !hasRequiredTokens;
+
+                        <div id="choice-@choice.Index"
+                             class="choice-option @(isDisabled ? "disabled" : "") @GetChoiceCssClass(choice)"
                              @onclick="(() => HandleChoiceSelection(choice))"
                              @onmouseover="@(() => ShowTooltip(choice, $"choice-{choice.Index}"))"
                              @onmouseout="HideTooltip">
 
                             <div class="choice-index">@choice.Index</div>
-                            <div class="choice-name">@GetChoiceName(choice)</div>
+
+                            <div class="choice-name">
+                                @GetChoiceName(choice)
+                                @if (GetFocusCost(choice) > 0)
+                                {
+                                    <span class="status-value">⚡@GetFocusCost(choice)</span>
+                                }
+                            </div>
+
+                            @if (GetTokenRequirements(choice).Any())
+                            {
+                                <div class="blocked-reason">
+                                    Requires: @string.Join(", ", GetTokenRequirements(choice))
+                                </div>
+                            }
+
+                            @if (!canAfford)
+                            {
+                                <div class="blocked-reason">Insufficient Focus</div>
+                            }
+                            @if (!hasRequiredTokens)
+                            {
+                                <div class="blocked-reason">Missing Required Tokens</div>
+                            }
                         </div>
                     }
                 }

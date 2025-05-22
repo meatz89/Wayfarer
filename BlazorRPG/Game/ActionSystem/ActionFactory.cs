@@ -1,5 +1,4 @@
-﻿
-public class ActionFactory
+﻿public class ActionFactory
 {
     private readonly ActionRepository actionRepository;
     private readonly EncounterFactory encounterFactory;
@@ -20,14 +19,12 @@ public class ActionFactory
     public ActionImplementation CreateActionFromTemplate(ActionDefinition template, string location, string locationSpot, ActionExecutionTypes actionType)
     {
         ActionImplementation actionImplementation = new ActionImplementation();
-        // Transfer basic properties
         actionImplementation.Id = template.Id;
         actionImplementation.Name = template.Name;
         actionImplementation.Description = template.Description;
         actionImplementation.LocationId = location;
         actionImplementation.LocationSpotId = locationSpot;
 
-        // Handle movement actions
         if (!string.IsNullOrEmpty(template.MoveToLocation))
         {
             actionImplementation.DestinationLocation = template.MoveToLocation;
@@ -36,23 +33,18 @@ public class ActionFactory
         {
             actionImplementation.DestinationLocationSpot = template.MoveToLocationSpot;
         }
-        // Set encounter type
         actionImplementation.ActionType = actionType;
 
-        // Create requirements, costs, and yields
         actionImplementation.Requirements = CreateRequirements(template);
         actionImplementation.Costs = CreateCosts(template);
         actionImplementation.Yields = CreateYields(template);
-        // Add base AP cost requirement
+
         int actionCost = 1;
         actionImplementation.Requirements.Add(new ActionPointRequirement(actionCost));
         actionImplementation.Costs.Add(new ActionPointOutcome(-actionCost));
         return actionImplementation;
     }
 
-
-
-    // Helper method to find a default spot in a location
     private LocationSpot FindDefaultSpotForLocation(string locationId)
     {
         Location location = worldState.locations.FirstOrDefault(l => l.Id == locationId);
@@ -104,42 +96,32 @@ public class ActionFactory
     {
         ActionImplementation actionImplementation = new ActionImplementation();
 
-        // Set basic commission properties
         actionImplementation.Id = commission.Id;
         actionImplementation.Name = commission.Name;
         actionImplementation.Description = commission.Description;
         actionImplementation.Commission = commission;
 
-        // Different location handling based on commission type
         if (commission.Type == CommissionTypes.Accumulative)
         {
-            // For accumulative commissions, set location to initial location
             actionImplementation.LocationId = commission.InitialLocationId;
 
-            // Find a suitable spot in that location (e.g., the marketplace for town_square)
             LocationSpot defaultSpot = FindDefaultSpotForLocation(commission.InitialLocationId);
             actionImplementation.LocationSpotId = defaultSpot?.Id;
 
-            // Set approaches from commission
             actionImplementation.Approaches = commission.Approaches;
         }
         else if (commission.Type == CommissionTypes.Sequential && commission.InitialStep != null)
         {
-            // For sequential commissions, set location to the initial step's location
             actionImplementation.LocationId = commission.InitialStep.LocationId;
 
-            // Find a suitable spot in that location
             LocationSpot defaultSpot = FindDefaultSpotForLocation(commission.InitialStep.LocationId);
             actionImplementation.LocationSpotId = defaultSpot?.Id;
 
-            // Set approaches from initial step
             actionImplementation.Approaches = commission.InitialStep.Approaches;
         }
 
-        // Set action and encounter types
         actionImplementation.ActionType = ActionExecutionTypes.Encounter;
 
-        // Set standard costs and requirements
         actionImplementation.Requirements = new List<IRequirement>
         {
             new ActionPointRequirement(1),
