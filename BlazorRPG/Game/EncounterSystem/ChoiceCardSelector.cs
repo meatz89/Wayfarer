@@ -1,8 +1,8 @@
 ﻿public class ChoiceCardSelector
 {
-    private readonly NarrativeChoiceRepository _narrativeChoiceRepository;
+    private readonly ChoiceRepository _narrativeChoiceRepository;
 
-    public ChoiceCardSelector(NarrativeChoiceRepository choiceRepository)
+    public ChoiceCardSelector(ChoiceRepository choiceRepository)
     {
         _narrativeChoiceRepository = choiceRepository;
     }
@@ -44,7 +44,7 @@
             };
 
             // Apply location modifier to difficulty
-            modifiedChoice.LocationModifier = UniversalEncounterService.GetLocationPropertyModifier(choice.Skill, location);
+            modifiedChoice.LocationModifier = ChoiceProjectionService.GetLocationPropertyModifier(choice.Skill, location);
             modifiedChoice.Difficulty += modifiedChoice.LocationModifier;
 
             modifiedChoices.Add(modifiedChoice);
@@ -55,6 +55,7 @@
 
     private List<EncounterOption> FilterByFocusAffordability(List<EncounterOption> choices, EncounterState state)
     {
-        return choices.Where(choice => state.CanAffordFocusCost(choice.FocusCost)).ToList();
+        List<EncounterOption> encounterOptions = choices.Where(choice => state.CanAffordFocusCost(choice.FocusCost)).ToList();
+        return encounterOptions;
     }
 }

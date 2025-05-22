@@ -103,8 +103,27 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         };
     }
 
-    public string tooltipXpx => $"{tooltipX}px";
-    public string tooltipYpx => $"{tooltipY}px";
+    public string tooltipXpx
+    {
+        get
+        {
+            return $"{tooltipX}px";
+        }
+    }
 
-    public ChoiceProjection Preview => GameManager.GetChoicePreview(hoveredChoice);
+    public string tooltipYpx
+    {
+        get
+        {
+            return $"{tooltipY}px";
+        }
+    }
+
+    public ChoiceProjection Preview
+    {
+        get
+        {
+            return GameManager.GetChoicePreview(hoveredChoice);
+        }
+    }
 }

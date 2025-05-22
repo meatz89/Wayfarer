@@ -3,8 +3,21 @@
     private bool isHighlightModeActive = false;
     private CardTypes _targetCardType = CardTypes.Physical;
 
-    public bool IsHighlightModeActive => isHighlightModeActive;
-    public CardTypes TargetCardType => _targetCardType;
+    public bool IsHighlightModeActive
+    {
+        get
+        {
+            return isHighlightModeActive;
+        }
+    }
+
+    public CardTypes TargetCardType
+    {
+        get
+        {
+            return _targetCardType;
+        }
+    }
 
     public event Action OnHighlightModeChanged;
 
@@ -29,7 +42,7 @@
         if (!isHighlightModeActive)
             return false;
 
-        return card.Type == _targetCardType && 
+        return card.Type == _targetCardType &&
             (_highlightMode == HighlightMode.Refresh ? card.IsExhausted : !card.IsExhausted);
     }
 }

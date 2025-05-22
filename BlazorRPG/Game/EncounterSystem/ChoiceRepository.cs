@@ -1,8 +1,8 @@
-﻿public class NarrativeChoiceRepository
+﻿public class ChoiceRepository
 {
     private readonly List<EncounterOption> narrativeChoices = new();
 
-    public NarrativeChoiceRepository()
+    public ChoiceRepository()
     {
         InitializeChoices();
     }
@@ -22,7 +22,7 @@
     private void InitializeSafetyOptions()
     {
         // Physical Safety Options
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "observe_physical_situation",
             "Survey the Situation",
             "Take a moment to carefully assess the physical challenges ahead",
@@ -37,7 +37,7 @@
         ));
 
         // Social Safety Options  
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "observe_social_situation",
             "Listen and Assess",
             "Quietly observe the social dynamics before taking action",
@@ -52,7 +52,7 @@
         ));
 
         // Intellectual Safety Options
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "observe_intellectual_situation",
             "Consider Options",
             "Think through the problem methodically before proceeding",
@@ -72,7 +72,7 @@
         // FORCE GENERATION OPTIONS
 
         // Physical Force Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "apply_physical_force",
             "Apply Direct Force",
             "Use raw physical strength to overcome the obstacle",
@@ -87,7 +87,7 @@
         ));
 
         // Social Force Generation  
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "assert_dominance",
             "Assert Dominance",
             "Take command of the social situation through forceful presence",
@@ -102,7 +102,7 @@
         ));
 
         // Intellectual Force Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "cut_to_analysis",
             "Direct Analysis",
             "Cut straight to the core of the problem with analytical thinking",
@@ -119,7 +119,7 @@
         // FLOW GENERATION OPTIONS
 
         // Physical Flow Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "move_fluidly",
             "Move Fluidly",
             "Adapt your movement to flow around obstacles",
@@ -134,7 +134,7 @@
         ));
 
         // Social Flow Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "read_and_adapt",
             "Read and Adapt",
             "Read the social situation and adapt your approach accordingly",
@@ -149,7 +149,7 @@
         ));
 
         // Intellectual Flow Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "follow_patterns",
             "Follow Patterns",
             "Notice emerging patterns and follow where they lead",
@@ -166,7 +166,7 @@
         // FOCUS GENERATION OPTIONS
 
         // Physical Focus Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "work_precisely",
             "Work with Precision",
             "Apply careful, precise technique to the physical task",
@@ -181,7 +181,7 @@
         ));
 
         // Social Focus Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "targeted_persuasion",
             "Targeted Persuasion",
             "Focus your words precisely to convince the other person",
@@ -196,7 +196,7 @@
         ));
 
         // Intellectual Focus Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "apply_expertise",
             "Apply Expertise",
             "Draw upon your concentrated knowledge and expertise",
@@ -213,7 +213,7 @@
         // FORTITUDE GENERATION OPTIONS (Higher cost, higher reward)
 
         // Physical Fortitude Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "sustained_effort",
             "Sustained Physical Effort",
             "Commit to persistent, methodical physical work",
@@ -228,7 +228,7 @@
         ));
 
         // Social Fortitude Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "maintain_deception",
             "Maintain Consistent Facade",
             "Keep up a consistent social facade over time",
@@ -243,7 +243,7 @@
         ));
 
         // Intellectual Fortitude Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "methodical_planning",
             "Methodical Planning",
             "Engage in careful, long-term strategic thinking",
@@ -263,7 +263,7 @@
         // BASIC CONVERSION OPTIONS (Force + Flow → Progress)
 
         // Physical Basic Conversion
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "combined_physical_effort",
             "Combined Physical Effort",
             "Combine strength and agility for efficient physical work",
@@ -278,7 +278,7 @@
         ));
 
         // Social Basic Conversion
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "balanced_social_approach",
             "Balanced Social Approach",
             "Balance assertiveness with adaptability in your social approach",
@@ -293,7 +293,7 @@
         ));
 
         // Intellectual Basic Conversion  
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "analytical_observation",
             "Analytical Observation",
             "Combine direct analysis with careful observation",
@@ -310,7 +310,7 @@
         // SPECIALIZED CONVERSION OPTIONS (2 of same token → Progress + bonus)
 
         // Physical Specialized Conversions
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "pure_strength_application",
             "Pure Strength Application",
             "Apply overwhelming physical force to the problem",
@@ -324,7 +324,7 @@
             new List<string> { "Physical", "Specialized", "Force" }
         ));
 
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "sustained_endurance",
             "Sustained Endurance",
             "Apply persistent, methodical physical effort over time",
@@ -339,7 +339,7 @@
         ));
 
         // Social Specialized Conversions
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "sustained_social_pressure",
             "Sustained Social Pressure",
             "Maintain consistent social pressure over time",
@@ -354,7 +354,7 @@
         ));
 
         // Intellectual Specialized Conversions
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "deep_expertise_application",
             "Deep Expertise Application",
             "Apply concentrated expertise to solve the problem",
@@ -371,7 +371,7 @@
         // PREMIUM CONVERSION OPTIONS (Force + Flow + Focus → Maximum Progress)
 
         // Physical Premium Conversion
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "masterful_physical_execution",
             "Masterful Physical Execution",
             "Execute a masterful combination of strength, agility, and precision",
@@ -390,7 +390,7 @@
         ));
 
         // Social Premium Conversion
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "masterful_social_execution",
             "Masterful Social Execution",
             "Execute a perfect combination of force, adaptability, and precision in social interaction",
@@ -409,7 +409,7 @@
         ));
 
         // Intellectual Premium Conversion
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildUniversalChoice(
+        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
             "masterful_intellectual_synthesis",
             "Masterful Intellectual Synthesis",
             "Synthesize analysis, observation, and knowledge into a perfect solution",

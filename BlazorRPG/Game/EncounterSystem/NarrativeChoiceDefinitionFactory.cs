@@ -6,33 +6,6 @@
         string description,
         SkillTypes skill,
         int difficulty,
-        int reward,
-        List<string> tags)
-    {
-        EncounterOption choice = new EncounterOption(id, name);
-        choice.Description = description;
-        choice.Skill = skill;
-        choice.Difficulty = difficulty;
-        choice.SuccessProgress = reward;
-        choice.FailureProgress = 0;
-        choice.Tags = tags;
-
-        // Default Universal Encounter System values
-        choice.FocusCost = 1;
-        choice.ActionType = UniversalActionType.GenerateForce; // Default
-        choice.TokenGeneration = new Dictionary<AspectTokenTypes, int>();
-        choice.TokenCosts = new Dictionary<AspectTokenTypes, int>();
-        choice.NegativeConsequenceType = NegativeConsequenceTypes.ProgressLoss;
-
-        return choice;
-    }
-
-    public static EncounterOption BuildUniversalChoice(
-        string id,
-        string name,
-        string description,
-        SkillTypes skill,
-        int difficulty,
         int focusCost,
         UniversalActionType actionType,
         Dictionary<AspectTokenTypes, int> tokenGeneration,
@@ -63,10 +36,10 @@
         return actionType switch
         {
             UniversalActionType.SafetyOption => 0,
-            UniversalActionType.GenerateForce => 0,
-            UniversalActionType.GenerateFlow => 0,
-            UniversalActionType.GenerateFocus => 0,
-            UniversalActionType.GenerateFortitude => 0,
+            UniversalActionType.GenerateForce => 1,
+            UniversalActionType.GenerateFlow => 1,
+            UniversalActionType.GenerateFocus => 1,
+            UniversalActionType.GenerateFortitude => 1,
             UniversalActionType.BasicConversion => 3, // 2 tokens → 3 progress
             UniversalActionType.SpecializedConversion => 2, // 2 tokens → 2 progress + bonus
             UniversalActionType.PremiumConversion => 4, // 3 tokens → 4 progress

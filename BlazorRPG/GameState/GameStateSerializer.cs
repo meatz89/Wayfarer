@@ -61,7 +61,7 @@ public static class GameStateSerializer
 
         gameState.WorldState.actions.Clear();
         gameState.WorldState.actions.AddRange(actions);
-        
+
         gameState.WorldState.commissions.Clear();
         gameState.WorldState.commissions.AddRange(commissions);
 

@@ -9,14 +9,14 @@ public class ActionProcessor
     public WorldState worldState { get; }
     public PlayerProgression playerProgression { get; }
     public LocationPropertyManager environmentalPropertyManager { get; }
-    public NarrativeChoiceRepository choiceRepository { get; }
+    public ChoiceRepository choiceRepository { get; }
     public MessageSystem messageSystem { get; }
 
     public ActionProcessor(
         GameState gameState,
         PlayerProgression playerProgression,
         LocationPropertyManager environmentalPropertyManager,
-        NarrativeChoiceRepository choiceRepository,
+        ChoiceRepository choiceRepository,
         LocationRepository locationRepository,
         MessageSystem messageSystem)
     {

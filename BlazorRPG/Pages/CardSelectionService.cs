@@ -4,7 +4,11 @@
 
     public CardDefinition SelectedCard
     {
-        get => _selectedCard;
+        get
+        {
+            return _selectedCard;
+        }
+
         set
         {
             if (_selectedCard != value)

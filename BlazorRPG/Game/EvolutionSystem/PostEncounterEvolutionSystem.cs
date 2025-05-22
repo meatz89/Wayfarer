@@ -82,7 +82,7 @@
         {
             string spotName = $"{spot.LocationId}:{spot.Id}";
             string locationId = spot.LocationId;
-            if(locationId == null)
+            if (locationId == null)
             {
                 locationId = worldState.CurrentLocation.Id;
                 spot.LocationId = locationId;

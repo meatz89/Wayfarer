@@ -69,8 +69,8 @@ public class PromptManager
         return CreatePromptJson(prompt);
     }
 
-    private string GetCharactersAtLocation(string locationName, 
-        List<Character> characters, 
+    private string GetCharactersAtLocation(string locationName,
+        List<Character> characters,
         RelationshipList relationshipList)
     {
         // Filter characters by current location
