@@ -336,14 +336,12 @@ public partial class EncounterViewBase : ComponentBase
         {
             return option.ActionType switch
             {
-                UniversalActionType.SafetyOption => "tier-1",
-                UniversalActionType.GenerateForce => "tier-2",
-                UniversalActionType.GenerateFlow => "tier-2",
-                UniversalActionType.GenerateFocus => "tier-2",
-                UniversalActionType.GenerateFortitude => "tier-3",
-                UniversalActionType.BasicConversion => "tier-3",
-                UniversalActionType.SpecializedConversion => "tier-4",
-                UniversalActionType.PremiumConversion => "tier-5",
+                UniversalActionTypes.Recovery => "tier-1",
+                UniversalActionTypes.GenerationA => "tier-2",
+                UniversalActionTypes.GenerationB => "tier-2",
+                UniversalActionTypes.ConversionA => "tier-3",
+                UniversalActionTypes.ConversionB => "tier-3",
+                UniversalActionTypes.Hybrid => "tier-4",
                 _ => "tier-1"
             };
         }

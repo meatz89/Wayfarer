@@ -51,100 +51,6 @@
         return _aiService.GetProviderName();
     }
 
-    public async Task<NarrativeResult> SimulateChoiceForPreGeneration(
-        string location,
-        EncounterOption choice,
-        ChoiceNarrative choiceDescription,
-        int priority)
-    {
-        _logger.LogInformation("SimulateChoiceForPreGeneration called with location: {Location}, choice: {ChoiceId}, priority: {Priority}", location, choice?.Id, priority);
-        PlayerState playerState = this.playerState;
-        EncounterState encounterStateCopy = EncounterState.CreateDeepCopy(
-            this.EncounterState,
-            playerState);
-
-        ChoiceOutcome outcome = ApplyChoiceProjection(playerState, encounterStateCopy, choice);
-
-        string narrative = "Continued Narrative";
-
-        if (_useAiNarrative)
-        {
-            WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location);
-
-            if (outcome.IsEncounterOver)
-            {
-                narrative = await _aiService.GenerateEndingAsync(
-                    narrativeContext,
-                    choice,
-                    choiceDescription,
-                    outcome,
-                    worldStateInput,
-                    priority);
-            }
-            else
-            {
-                narrative = await _aiService.GenerateEncounterNarrative(
-                    narrativeContext,
-                    choice,
-                    choiceDescription,
-                    outcome,
-                    worldStateInput,
-                    priority);
-            }
-        }
-
-        NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, choiceDescription, outcome, narrative);
-
-        if (outcome.IsEncounterOver)
-        {
-            NarrativeResult result = new(
-                narrative,
-                string.Empty,
-                new List<EncounterOption>(),
-                new List<ChoiceProjection>(),
-                new Dictionary<EncounterOption, ChoiceNarrative>(),
-                narrativeEvent.ChoiceNarrative);
-
-            result.SetOutcome(outcome.Outcome);
-            result.SetIsEncounterOver(outcome.IsEncounterOver);
-
-            _logger.LogInformation("SimulateChoiceForPreGeneration completed: Encounter is over.");
-            return result;
-        }
-        else
-        {
-            List<EncounterOption> newChoices = cardSelectionAlgorithm.SelectChoices(
-                encounterStateCopy, playerState);
-
-            List<ChoiceProjection> newProjections = newChoices.Select(
-                c => encounterStateCopy.CreateChoiceProjection(c, playerState)).ToList();
-
-            Dictionary<EncounterOption, ChoiceNarrative> newChoiceDescriptions = null;
-
-            if (_useAiNarrative)
-            {
-                WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location);
-                newChoiceDescriptions = await _aiService.GenerateChoiceDescriptionsAsync(
-                    narrativeContext,
-                    newChoices,
-                    newProjections,
-                    worldStateInput,
-                    priority);
-            }
-
-            NarrativeResult result = new(
-                narrative,
-                string.Empty,
-                newChoices,
-                newProjections,
-                newChoiceDescriptions,
-                narrativeEvent.ChoiceNarrative);
-
-            _logger.LogInformation("SimulateChoiceForPreGeneration completed: Encounter continues.");
-            return result;
-        }
-    }
-
     public async Task<NarrativeResult> StartEncounterWithNarrativeAsync(
         Location location,
         Encounter encounterInfo,
@@ -187,8 +93,11 @@
 
         GenerateChoicesForPlayer(playerState);
         List<EncounterOption> choices = GetCurrentChoices();
-        List<ChoiceProjection> projections = choices.Select(ProjectChoice)
-                                                    .ToList();
+        List<ChoiceProjection> projections = new List<ChoiceProjection>();
+        foreach (EncounterOption encounterOption in choices)
+        {
+            projections.Add(ProjectChoice(EncounterState, encounterOption));
+        }
 
         NarrativeEvent firstNarrative = new NarrativeEvent(
             EncounterState.CurrentTurn,
@@ -300,7 +209,11 @@
 
             GenerateChoicesForPlayer(playerState);
             List<EncounterOption> newChoices = GetCurrentChoices();
-            List<ChoiceProjection> newProjections = newChoices.Select(ProjectChoice).ToList();
+            List<ChoiceProjection> newProjections = new List<ChoiceProjection>();
+            foreach (var newChoice in newChoices)
+            {
+                newProjections.Add(ProjectChoice(EncounterState, choice));
+            }
 
             Dictionary<EncounterOption, ChoiceNarrative> newChoiceDescriptions = null;
 
@@ -353,23 +266,19 @@
 
         // Log details of the projection
         _logger.LogInformation(
-            "ApplyChoiceProjection: ChoiceId={ChoiceId}, ProgressGained={ProgressGained}, EncounterWillEnd={EncounterWillEnd}, ProjectedOutcome={ProjectedOutcome}, HealthChange={HealthChange}, ConcentrationChange={ConcentrationChange}, IsConversionChoice={IsConversionChoice}",
+            "ApplyChoiceProjection: ChoiceId={ChoiceId}, ProgressGained={ProgressGained}, EncounterWillEnd={EncounterWillEnd}, ProjectedOutcome={ProjectedOutcome}",
             choice?.Id,
             projection.ProgressGained,
-            projection.EncounterWillEnd,
-            projection.ProjectedOutcome,
-            projection.HealthChange,
-            projection.ConcentrationChange,
-            projection.IsConversionChoice
+            projection.WillEncounterEnd,
+            projection.ProjectedOutcome
         );
 
         ChoiceOutcome outcome = new ChoiceOutcome(
             projection.ProgressGained,
-            projection.Description,
-            projection.EncounterWillEnd,
-            projection.ProjectedOutcome,
-            projection.HealthChange,
-            projection.ConcentrationChange);
+            projection.NarrativeDescription,
+            projection.MechanicalDescription,
+            projection.WillEncounterEnd,
+            projection.ProjectedOutcome);
 
         return outcome;
     }
@@ -386,7 +295,7 @@
 
         narrativeEvent.SetChosenOption(choice);
         narrativeEvent.SetChoiceNarrative(choiceDescription);
-        narrativeEvent.SetOutcome(outcome.Description);
+        narrativeEvent.SetOutcome(outcome.MechanicalDescription);
         return narrativeEvent;
     }
 
@@ -395,10 +304,10 @@
         return narrativeContext;
     }
 
-    public ChoiceProjection ProjectChoice(EncounterOption choice)
+    public ChoiceProjection ProjectChoice(EncounterState encounterState, EncounterOption choice)
     {
         ChoiceProjection projection = EncounterState.CreateChoiceProjection(choice, playerState);
-        projection.Description = choice.Id;
+        projection.MechanicalDescription = choice.Id;
         return projection;
     }
 

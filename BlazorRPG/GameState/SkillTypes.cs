@@ -1,23 +1,19 @@
 ﻿public enum SkillTypes
 {
-    None = 0,
-
-    // Physical skills
+    None,
+    // Physical Skills
     Strength,
     Endurance,
     Precision,
     Agility,
-
-    // Intellectual skills
+    // Intellectual Skills
     Analysis,
     Observation,
     Knowledge,
     Planning,
-
-    // Social skills
+    // Social Skills
     Charm,
     Persuasion,
     Deception,
-    Intimidation,
+    Intimidation
 }
-

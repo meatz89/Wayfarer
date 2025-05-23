@@ -22,58 +22,63 @@
             Id = $"{commission.Id}_{approachId}",
             CommissionId = commission.Id,
             ApproachId = approachId,
-            TotalProgress = commission.ProgressThreshold,
+            TotalProgress = GetProgressThresholdForTier(commission.Tier),
             LocationName = location.Id,
             LocationSpotName = playerState.CurrentLocationSpot.Id,
             EncounterType = DetermineEncounterType(approachId),
-            EncounterDifficulty = commission.Tier
+            EncounterDifficulty = commission.Tier,
+            SuccessThreshold = 10
         };
 
-        // Create the encounter stages structure (choices come from NarrativeChoiceRepository)
-        encounter.Stages = GenerateEncounterStageStructure(commission.Tier);
+        // Always create exactly 5 stages for The Wayfarer's Resolve system
+        encounter.Stages = GenerateUniversalFiveStageStructure();
 
         return encounter;
     }
 
-    private List<EncounterStage> GenerateEncounterStageStructure(int tier)
+    private List<EncounterStage> GenerateUniversalFiveStageStructure()
     {
-        int stageCount = CalculateStageCount(tier);
         List<EncounterStage> stages = new List<EncounterStage>();
 
-        for (int stageNum = 1; stageNum <= stageCount; stageNum++)
+        // Always exactly 5 stages as per The Wayfarer's Resolve system
+        for (int stageNum = 1; stageNum <= 5; stageNum++)
         {
             EncounterStage stage = new EncounterStage
             {
                 StageNumber = stageNum,
-                Description = GetStageDescription(stageNum, stageCount),
+                Description = GetUniversalStageDescription(stageNum),
                 Options = new List<EncounterOption>() // Empty - populated by ChoiceCardSelector
             };
-
             stages.Add(stage);
         }
 
         return stages;
     }
 
-    private int CalculateStageCount(int tier)
+    private string GetUniversalStageDescription(int stageNum)
     {
-        return tier switch
+        // Following the tier structure from The Wayfarer's Resolve system
+        return stageNum switch
         {
-            1 => 2, // Simple encounters
-            2 => 3, // Standard encounters  
-            _ => 3  // Complex encounters
+            1 => "Foundation - Initial assessment and preparation", // Foundation Tier
+            2 => "Foundation - Building your approach and gathering resources", // Foundation Tier
+            3 => "Development - Applying skills with increased intensity", // Development Tier
+            4 => "Development - Major effort combining your capabilities", // Development Tier
+            5 => "Execution - Final push to complete your objective", // Execution Tier
+            _ => $"Stage {stageNum}"
         };
     }
 
-    private string GetStageDescription(int stageNum, int totalStages)
+    private int GetProgressThresholdForTier(int tier)
     {
-        return stageNum switch
+        // Based on The Wayfarer's Resolve three-tier success structure
+        // Basic Success: 10, Good Success: 14, Excellent Success: 18
+        return tier switch
         {
-            1 => "Initial approach and preparation",
-            2 when totalStages == 2 => "Final execution and resolution",
-            2 when totalStages > 2 => "Development and major effort",
-            3 => "Final push and completion",
-            _ => $"Stage {stageNum} of {totalStages}"
+            1 => 10, // Basic success threshold for Tier 1 commissions
+            2 => 12, // Moderate threshold for Tier 2 commissions
+            3 => 14, // Higher threshold for Tier 3 commissions
+            _ => 10  // Default to basic threshold
         };
     }
 
@@ -81,10 +86,8 @@
     {
         if (approachId.Contains("physical", StringComparison.OrdinalIgnoreCase))
             return CardTypes.Physical;
-
         if (approachId.Contains("intellectual", StringComparison.OrdinalIgnoreCase))
             return CardTypes.Intellectual;
-
         if (approachId.Contains("social", StringComparison.OrdinalIgnoreCase))
             return CardTypes.Social;
 
@@ -96,10 +99,10 @@
         Encounter defaultEncounter = new Encounter
         {
             Id = "default_encounter",
-            TotalProgress = 8,
+            TotalProgress = 10, // Basic success threshold
             EncounterDifficulty = 1,
             EncounterType = CardTypes.Physical,
-            Stages = GenerateEncounterStageStructure(1)
+            Stages = GenerateUniversalFiveStageStructure() // Always 5 stages
         };
 
         return defaultEncounter;

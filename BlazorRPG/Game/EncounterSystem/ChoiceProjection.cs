@@ -1,59 +1,57 @@
 ﻿public class ChoiceProjection
 {
     public EncounterOption Choice { get; }
-    public string Description { get; set; }
-    public int ProgressGained { get; set; }
-    public bool EncounterWillEnd { get; set; }
-    public EncounterOutcomes ProjectedOutcome { get; set; } = EncounterOutcomes.Partial;
-    public int HealthChange { get; set; }
-    public int ConcentrationChange { get; set; }
+    public string NarrativeDescription { get; set; }
+    public string FormattedOutcomeSummary { get; set; }
 
-    // Universal Encounter System additions
+    // --- Cost & Affordability ---
     public int FocusCost { get; set; }
-    public int EffectiveSkillLevelForCheck { get; set; }
-    public bool SkillCheckSuccess { get; set; }
-    public bool IsConversionChoice { get; set; }
-    public NegativeConsequenceTypes NegativeConsequenceType { get; set; }
-    public int SkillLevel { get; internal set; }
-    public int LocationModifier { get; internal set; }
+    public bool IsAffordableFocus { get; set; }
+    public Dictionary<AspectTokenTypes, int> AspectTokenCosts { get; private set; }
+    public bool IsAffordableAspectTokens { get; set; }
+    public bool IsDisabled => !IsAffordableFocus || (Choice.RequiresTokens() && !IsAffordableAspectTokens);
 
-    private Dictionary<AspectTokenTypes, int> tokenGains;
-    private Dictionary<AspectTokenTypes, int> tokenCosts;
+    // --- Projected Positive Effects (if affordable and chosen) ---
+    public Dictionary<AspectTokenTypes, int> AspectTokensGained { get; private set; }
+    public int ProgressGained { get; set; }
+    public int FocusPointsGained { get; set; }
+
+    // --- Skill Check Details ---
+    public bool HasSkillCheck { get; }
+    public SkillTypes SkillUsed { get; }
+    public int BaseSkillLevel { get; set; }
+    public int LocationModifierValue { get; set; }
+    public int EffectiveSkillLevel { get; set; }
+    public int SkillCheckDifficulty { get; }
+    public bool SkillCheckSuccess { get; set; }
+
+    // --- Projected Negative Consequence (if skill check fails) ---
+    public NegativeConsequenceTypes NegativeConsequenceType { get; }
+    public string MechanicalDescription { get; set; } 
+
+    // --- Encounter End & Outcome Projection ---
+    public bool WillEncounterEnd { get; set; }
+    public EncounterOutcomes ProjectedOutcome { get; set; }
 
     public ChoiceProjection(EncounterOption choice)
     {
         Choice = choice;
-        tokenGains = new Dictionary<AspectTokenTypes, int>();
-        tokenCosts = new Dictionary<AspectTokenTypes, int>();
+        NarrativeDescription = choice.Description;
+
+        FocusCost = choice.FocusCost;
+
+        AspectTokensGained = new Dictionary<AspectTokenTypes, int>(choice.TokenGeneration ?? new Dictionary<AspectTokenTypes, int>());
+        AspectTokenCosts = new Dictionary<AspectTokenTypes, int>(choice.TokenCosts ?? new Dictionary<AspectTokenTypes, int>());
+        ProgressGained = choice.SuccessProgress; 
+
+        SkillUsed = choice.Skill;
+        HasSkillCheck = choice.Skill != SkillTypes.None;
+        SkillCheckDifficulty = choice.Difficulty;
+        NegativeConsequenceType = choice.NegativeConsequenceType;
     }
 
-    public void SetTokenGain(AspectTokenTypes tokenType, int amount)
-    {
-        tokenGains[tokenType] = amount;
-    }
-
-    public void SetTokenCost(AspectTokenTypes tokenType, int amount)
-    {
-        tokenCosts[tokenType] = amount;
-    }
-
-    public int GetTokenGain(AspectTokenTypes tokenType)
-    {
-        return tokenGains.TryGetValue(tokenType, out int value) ? value : 0;
-    }
-
-    public int GetTokenCost(AspectTokenTypes tokenType)
-    {
-        return tokenCosts.TryGetValue(tokenType, out int value) ? value : 0;
-    }
-
-    public Dictionary<AspectTokenTypes, int> GetAllTokenGains()
-    {
-        return new Dictionary<AspectTokenTypes, int>(tokenGains);
-    }
-
-    public Dictionary<AspectTokenTypes, int> GetAllTokenCosts()
-    {
-        return new Dictionary<AspectTokenTypes, int>(tokenCosts);
-    }
+    public int GetTokenGain(AspectTokenTypes tokenType) => AspectTokensGained.TryGetValue(tokenType, out int value) ? value : 0;
+    public int GetTokenCost(AspectTokenTypes tokenType) => AspectTokenCosts.TryGetValue(tokenType, out int value) ? value : 0;
+    public Dictionary<AspectTokenTypes, int> GetAllTokenGains() => new Dictionary<AspectTokenTypes, int>(AspectTokensGained);
+    public Dictionary<AspectTokenTypes, int> GetAllTokenCosts() => new Dictionary<AspectTokenTypes, int>(AspectTokenCosts);
 }

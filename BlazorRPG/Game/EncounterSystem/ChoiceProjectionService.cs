@@ -1,253 +1,256 @@
-﻿public static class ChoiceProjectionService
+﻿using System.Text;
+
+public static class ChoiceProjectionService
 {
     public static ChoiceProjection CreateUniversalChoiceProjection(
         EncounterOption choice,
-        int currentProgress,
-        int progressThreshold,
-        int currentTurn,
+        EncounterState encounterState,   
         PlayerState playerState,
-        Location location,
-        EncounterState encounterState)
+        Location location)
     {
         ChoiceProjection projection = new ChoiceProjection(choice);
 
-        // Set Focus cost
-        projection.FocusCost = choice.FocusCost;
+        // --- 1. Determine Affordability (Focus Points & Aspect Tokens) ---
+        projection.IsAffordableFocus = encounterState.FocusPoints >= choice.FocusCost;
 
-        // Apply positive effects (always happen)
-        ApplyPositiveEffects(projection, choice);
-
-        // Determine skill check success for negative consequence mitigation
-        if (choice.Skill != SkillTypes.None)
+        projection.IsAffordableAspectTokens = true; 
+        if (choice.RequiresTokens()) 
         {
-            int skillLevel = playerState.GetSkillLevel(choice.Skill);
-            int locationModifier = GetLocationPropertyModifier(choice.Skill, location);
-            int effectiveSkill = skillLevel + locationModifier;
+            foreach (var costEntry in choice.TokenCosts)
+            {
+                if (encounterState.AspectTokens.GetTokenCount(costEntry.Key) < costEntry.Value)
+                {
+                    projection.IsAffordableAspectTokens = false;
+                    break;
+                }
+            }
+        }
 
-            projection.SkillLevel = skillLevel;
-            projection.LocationModifier = locationModifier;
-            projection.EffectiveSkillLevelForCheck = effectiveSkill;
-            projection.SkillCheckSuccess = effectiveSkill >= choice.Difficulty;
+        // --- 2. Project Positive Effects ---
+        if (choice.ActionType == UniversalActionTypes.Recovery)
+        {
+            projection.FocusPointsGained = 1; 
+            projection.ProgressGained = 0;
+            projection.AspectTokensGained.Clear();
         }
         else
         {
-            projection.SkillCheckSuccess = true; // No skill check means no negative consequence
+            if (choice.RequiresTokens() && !projection.IsAffordableAspectTokens)
+            {
+                if (choice.ActionType == UniversalActionTypes.ConversionA || choice.ActionType == UniversalActionTypes.ConversionB)
+                {
+                    projection.ProgressGained = 0;
+                }
+            }
         }
 
-        // Set negative consequence type
-        projection.NegativeConsequenceType = choice.NegativeConsequenceType;
-
-        // Calculate total progress gained (from tokens converted + direct progress)
-        CalculateProgressGained(projection, choice, encounterState);
-
-        // Determine if encounter will end
-        bool willComplete = (currentProgress + projection.ProgressGained) >= progressThreshold;
-        projection.EncounterWillEnd = willComplete;
-
-        // Set projected outcome
-        if (willComplete)
+        // --- 3. Project Skill Check for Negative Consequence Mitigation ---
+        if (projection.HasSkillCheck)
         {
-            projection.ProjectedOutcome = DetermineCompletionOutcome(currentProgress + projection.ProgressGained, progressThreshold);
+            projection.BaseSkillLevel = playerState.GetSkillLevel(choice.Skill);
+            projection.LocationModifierValue = GetLocationPropertyModifier(choice.Skill, location);
+            projection.EffectiveSkillLevel = projection.BaseSkillLevel + projection.LocationModifierValue;
+            projection.SkillCheckSuccess = projection.EffectiveSkillLevel >= choice.Difficulty;
+        }
+        else 
+        {
+            projection.SkillCheckSuccess = (choice.NegativeConsequenceType == NegativeConsequenceTypes.None);
         }
 
-        // Set description
-        SetProjectionDescription(projection, choice, playerState);
+        // --- 4. Describe the Projected Mechanical Negative Effect ---
+        projection.MechanicalDescription = GetProjectedNegativeEffectText(
+            choice, 
+            projection.SkillCheckSuccess,
+            encounterState 
+        );
+
+        // --- 5. Project Encounter End & Outcome ---
+        int totalStages = encounterState.EncounterInfo.Stages.Count;
+        bool isLastStage = (encounterState.CurrentStageIndex == totalStages - 1); 
+        int projectedProgressAfterThisChoice = encounterState.CurrentProgress + (projection.IsDisabled ? 0 : projection.ProgressGained);
+
+        int effectiveOutcomeThresholdModifier = encounterState.OutcomeThresholdModifier;
+        if (choice.ActionType == UniversalActionTypes.Recovery &&
+            choice.FocusCost == 0 &&
+            !projection.SkillCheckSuccess)
+        {
+            NegativeConsequenceTypes recoveryNegative = DetermineActualRecoveryNegative(encounterState);
+            if (recoveryNegative == NegativeConsequenceTypes.ThresholdIncrease)
+            {
+                effectiveOutcomeThresholdModifier++;
+            }
+        }
+
+        projection.WillEncounterEnd = isLastStage;
+        if (isLastStage)
+        {
+            int successThreshold = encounterState.EncounterInfo.SuccessThreshold;
+            int progressNeededForSuccess = successThreshold + effectiveOutcomeThresholdModifier;
+            projection.ProjectedOutcome = 
+                projectedProgressAfterThisChoice >= progressNeededForSuccess 
+                ? EncounterOutcomes.Success 
+                : EncounterOutcomes.Failure; 
+        }
+        else
+        {
+            projection.ProjectedOutcome = EncounterOutcomes.None;
+        }
+
+        // --- 6. Generate Comprehensive Formatted Outcome Summary Text ---
+        projection.FormattedOutcomeSummary = GenerateFormattedOutcomeSummary(projection, playerState, choice);
 
         return projection;
     }
 
-    private static void ApplyPositiveEffects(ChoiceProjection projection, EncounterOption choice)
+    private static string GetProjectedNegativeEffectText(
+        EncounterOption choice,
+        bool isSkillCheckProjectedToSucceed,
+        EncounterState encounterState)
     {
-        // Token generation effects
-        foreach (KeyValuePair<AspectTokenTypes, int> tokenGen in choice.TokenGeneration)
+        if (isSkillCheckProjectedToSucceed)
         {
-            projection.SetTokenGain(tokenGen.Key, tokenGen.Value);
+            if (choice.NegativeConsequenceType == NegativeConsequenceTypes.None && !choice.HasSkillCheck)
+                return "This action has no inherent negative consequence.";
+            else
+                return "Projected: Negative consequence will be AVOIDED.";
         }
 
-        // Token conversion effects (if this is a conversion choice)
-        if (choice.RequiresTokens())
+        NegativeConsequenceTypes actualNegativeType = choice.NegativeConsequenceType;
+        if (choice.ActionType == UniversalActionTypes.Recovery)
         {
-            projection.IsConversionChoice = true;
-            foreach (KeyValuePair<AspectTokenTypes, int> tokenCost in choice.TokenCosts)
-            {
-                projection.SetTokenCost(tokenCost.Key, tokenCost.Value);
-            }
+            actualNegativeType = DetermineActualRecoveryNegative(encounterState);
+        }
+
+        if (actualNegativeType == NegativeConsequenceTypes.None)
+        {
+            return "This action has no inherent negative consequence.";
+        }
+
+        string penaltyPrefix = "RISK (if skill check fails or N/A): ";
+        switch (actualNegativeType)
+        {
+            case NegativeConsequenceTypes.ProgressLoss:
+                return penaltyPrefix + "Lose 1 Progress Marker.";
+            case NegativeConsequenceTypes.FocusLoss:
+                return penaltyPrefix + "Lose 1 Focus Point from your encounter pool.";
+            case NegativeConsequenceTypes.TokenDisruption:
+                return penaltyPrefix + "Discard 1 random Aspect Token from your Pool.";
+            case NegativeConsequenceTypes.FutureCostIncrease:
+                return penaltyPrefix + "Your next choice this encounter will cost +1 Focus Point.";
+            case NegativeConsequenceTypes.ThresholdIncrease:
+                return penaltyPrefix + "Final success thresholds for this encounter will increase by 1.";
+            default:
+                return penaltyPrefix + "An unforeseen setback occurs.";
         }
     }
 
-    private static void CalculateProgressGained(ChoiceProjection projection, EncounterOption choice, EncounterState encounterState)
+    private static NegativeConsequenceTypes DetermineActualRecoveryNegative(EncounterState encounterState)
     {
-        int totalProgress = 0;
-
-        // Direct progress from the choice
-        totalProgress += choice.SuccessProgress;
-
-        // Progress from token conversion (if applicable)
-        if (choice.RequiresTokens())
-        {
-            totalProgress += CalculateConversionProgress(choice, encounterState);
-        }
-
-        projection.ProgressGained = totalProgress;
-    }
-
-    private static int CalculateConversionProgress(EncounterOption choice, EncounterState encounterState)
-    {
-        // Calculate progress based on conversion ratios from the universal templates
-        int totalTokensSpent = choice.TokenCosts.Values.Sum();
-
-        return choice.ActionType switch
-        {
-            UniversalActionType.BasicConversion => totalTokensSpent + 1, // 2 tokens → 3 progress
-            UniversalActionType.SpecializedConversion => totalTokensSpent, // 2 tokens → 2 progress + bonus
-            UniversalActionType.PremiumConversion => totalTokensSpent + 1, // 3 tokens → 4 progress
-            _ => 0
-        };
-    }
-
-    private static EncounterOutcomes DetermineCompletionOutcome(int finalProgress, int threshold)
-    {
-        if (finalProgress >= threshold + 4) return EncounterOutcomes.Success;
-        if (finalProgress >= threshold) return EncounterOutcomes.Partial;
-        return EncounterOutcomes.Failure;
-    }
-
-    private static void SetProjectionDescription(ChoiceProjection projection, EncounterOption choice, PlayerState playerState)
-    {
-        if (choice.Skill == SkillTypes.None)
-        {
-            projection.Description = "Safe approach guarantees positive outcome";
-        }
+        if (encounterState.CurrentProgress > 0)
+            return NegativeConsequenceTypes.ProgressLoss;
+        else if (encounterState.AspectTokens.GetAllTokenCounts().Values.Sum() >= 2)
+            return NegativeConsequenceTypes.TokenDisruption;
         else
-        {
-            string skillName = choice.Skill.ToString();
-            int skillLevel = playerState.GetSkillLevel(choice.Skill);
+            return NegativeConsequenceTypes.ThresholdIncrease;
+    }
 
-            if (projection.SkillCheckSuccess)
+    private static bool WouldRecoveryNegativeIncreaseThreshold(NegativeConsequenceTypes originalNegTypeForRecovery, EncounterState encounterState)
+    {
+        return DetermineActualRecoveryNegative(encounterState) == NegativeConsequenceTypes.ThresholdIncrease;
+    }
+
+
+    private static string GenerateFormattedOutcomeSummary(ChoiceProjection projection, PlayerState playerState, EncounterOption choice)
+    {
+        StringBuilder summary = new StringBuilder();
+
+        // Cost
+        summary.Append($"Cost: {projection.FocusCost} Focus. ");
+        if (!projection.IsAffordableFocus) summary.Append("(CANNOT AFFORD) ");
+
+        if (choice.RequiresTokens())
+        {
+            summary.Append("Requires: ");
+            List<string> costStrings = new List<string>();
+            foreach (var cost in projection.AspectTokenCosts)
             {
-                projection.Description = $"Success! Your {skillName} skill ({skillLevel}) meets the difficulty ({choice.Difficulty})";
+                costStrings.Add($"{cost.Value} {cost.Key}");
+            }
+            summary.Append(string.Join(", ", costStrings) + ". ");
+            if (!projection.IsAffordableAspectTokens) summary.Append("(INSUFFICIENT TOKENS) ");
+        }
+        summary.AppendLine();
+
+        // Positive Effects
+        summary.Append("Effect: ");
+        List<string> positiveEffects = new List<string>();
+        if (projection.FocusPointsGained > 0) positiveEffects.Add($"Gain {projection.FocusPointsGained} Focus Point");
+
+        foreach (var gain in projection.AspectTokensGained)
+        {
+            if (gain.Value > 0) positiveEffects.Add($"Gain {gain.Value} {gain.Key}");
+        }
+        if (projection.ProgressGained > 0)
+        {
+            if (choice.RequiresTokens() && !projection.IsAffordableAspectTokens)
+            {
+                if (choice.ActionType == UniversalActionTypes.ConversionA || choice.ActionType == UniversalActionTypes.ConversionB)
+                    positiveEffects.Add($"Gain 0 Progress (cannot afford tokens)");
+                else 
+                    positiveEffects.Add($"Gain {projection.ProgressGained} Progress"); 
             }
             else
             {
-                projection.Description = $"Risk! Your {skillName} skill ({skillLevel}) may not meet the difficulty ({choice.Difficulty})";
+                positiveEffects.Add($"Gain {projection.ProgressGained} Progress");
             }
         }
-    }
+        if (!positiveEffects.Any()) positiveEffects.Add("No direct change in resources or progress.");
+        summary.Append(string.Join(", ", positiveEffects).TrimEnd(',', ' '));
+        summary.AppendLine(".");
 
-    public static AspectTokenTypes MapSkillToToken(SkillTypes skill, CardTypes encounterType)
-    {
-        return encounterType switch
+        // Skill Check & Negative
+        if (projection.HasSkillCheck)
         {
-            CardTypes.Physical => MapPhysicalSkillToToken(skill),
-            CardTypes.Social => MapSocialSkillToToken(skill),
-            CardTypes.Intellectual => MapIntellectualSkillToToken(skill),
-            _ => AspectTokenTypes.Force // Default fallback
-        };
-    }
+            summary.Append($"Skill Check: {choice.Skill} ({projection.EffectiveSkillLevel}) vs Difficulty {choice.Difficulty}. ");
+            summary.Append(projection.SkillCheckSuccess ? "Likely SUCCESS. " : "Likely FAILURE. ");
+        }
 
-    private static AspectTokenTypes MapPhysicalSkillToToken(SkillTypes skill)
-    {
-        return skill switch
+        // Final Outcome if encounter ends
+        if (projection.WillEncounterEnd)
         {
-            SkillTypes.Strength => AspectTokenTypes.Force,
-            SkillTypes.Agility => AspectTokenTypes.Flow,
-            SkillTypes.Precision => AspectTokenTypes.Focus,
-            SkillTypes.Endurance => AspectTokenTypes.Fortitude,
-            _ => AspectTokenTypes.Force
-        };
+            summary.AppendLine($"Encounter will end. Projected Outcome: {projection.ProjectedOutcome}.");
+        }
+
+        return summary.ToString().Trim();
     }
 
-    private static AspectTokenTypes MapSocialSkillToToken(SkillTypes skill)
-    {
-        return skill switch
-        {
-            SkillTypes.Intimidation => AspectTokenTypes.Force,
-            SkillTypes.Charm => AspectTokenTypes.Flow,
-            SkillTypes.Persuasion => AspectTokenTypes.Focus,
-            SkillTypes.Deception => AspectTokenTypes.Fortitude,
-            _ => AspectTokenTypes.Flow
-        };
-    }
-
-    private static AspectTokenTypes MapIntellectualSkillToToken(SkillTypes skill)
-    {
-        return skill switch
-        {
-            SkillTypes.Analysis => AspectTokenTypes.Force,
-            SkillTypes.Observation => AspectTokenTypes.Flow,
-            SkillTypes.Knowledge => AspectTokenTypes.Focus,
-            SkillTypes.Planning => AspectTokenTypes.Fortitude,
-            _ => AspectTokenTypes.Focus
-        };
-    }
-
-
+    // --- Helper methods from user's original code (ensure they are present) ---
     public static int GetLocationPropertyModifier(SkillTypes skill, Location location)
     {
         int modifier = 0;
-
-        // Apply modifiers based on location properties
         if (IsIntellectualSkill(skill))
         {
-            // Intellectual skills are affected by Population and Illumination
-            if (location.Population == Population.Crowded)
-                modifier -= 1; // Hard to concentrate in crowds
-
-            if (location.Illumination == Illumination.Dark)
-                modifier -= 1; // Hard to analyze in darkness
-
-            if (location.Population == Population.Scholarly)
-                modifier += 1; // Easier to think in scholarly environment
+            if (location.Population == Population.Crowded) modifier -= 1;
+            if (location.Illumination == Illumination.Dark) modifier -= 1;
+            if (location.Population == Population.Scholarly) modifier += 1;
         }
         else if (IsSocialSkill(skill))
         {
-            // Social skills are affected by Population and Atmosphere
-            if (location.Population == Population.Quiet)
-                modifier -= 1; // Fewer social opportunities
-
-            if (location.Atmosphere == Atmosphere.Tense)
-                modifier -= 1; // Harder to be persuasive in tense atmosphere
-
-            if (location.Population == Population.Crowded)
-                modifier += 1; // More social opportunities
+            if (location.Population == Population.Quiet) modifier -= 1;
+            if (location.Atmosphere == Atmosphere.Tense) modifier -= 1;
+            if (location.Population == Population.Crowded) modifier += 1;
         }
         else if (IsPhysicalSkill(skill))
         {
-            // Physical skills are affected by Physical property and Illumination
-            if (location.Physical == Physical.Confined)
-                modifier -= 1; // Limited physical movement
-
-            if (location.Illumination == Illumination.Dark)
-                modifier -= 1; // Hard to see for precise movements
-
-            if (location.Physical == Physical.Expansive)
-                modifier += 1; // Room to move freely
+            if (location.Physical == Physical.Confined) modifier -= 1;
+            if (location.Illumination == Illumination.Dark) modifier -= 1;
+            if (location.Physical == Physical.Expansive) modifier += 1;
         }
-
         return modifier;
     }
 
-    public static bool IsPhysicalSkill(SkillTypes skill)
-    {
-        return skill == SkillTypes.Strength ||
-               skill == SkillTypes.Endurance ||
-               skill == SkillTypes.Precision ||
-               skill == SkillTypes.Agility;
-    }
+    public static bool IsPhysicalSkill(SkillTypes skill) => skill == SkillTypes.Strength || skill == SkillTypes.Endurance || skill == SkillTypes.Precision || skill == SkillTypes.Agility;
+    public static bool IsIntellectualSkill(SkillTypes skill) => skill == SkillTypes.Analysis || skill == SkillTypes.Observation || skill == SkillTypes.Knowledge || skill == SkillTypes.Planning;
+    public static bool IsSocialSkill(SkillTypes skill) => skill == SkillTypes.Charm || skill == SkillTypes.Persuasion || skill == SkillTypes.Deception || skill == SkillTypes.Intimidation;
 
-    public static bool IsIntellectualSkill(SkillTypes skill)
-    {
-        return skill == SkillTypes.Analysis ||
-               skill == SkillTypes.Observation ||
-               skill == SkillTypes.Knowledge ||
-               skill == SkillTypes.Planning;
-    }
-
-    public static bool IsSocialSkill(SkillTypes skill)
-    {
-        return skill == SkillTypes.Charm ||
-               skill == SkillTypes.Persuasion ||
-               skill == SkillTypes.Deception ||
-               skill == SkillTypes.Intimidation;
-    }
 }

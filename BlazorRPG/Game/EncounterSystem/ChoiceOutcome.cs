@@ -3,23 +3,22 @@
     public int ProgressGained { get; }
     public bool IsEncounterOver { get; }
     public EncounterOutcomes Outcome { get; }
-    public string Description { get; }
+    public string NarrativeDescription { get; }
+    public string MechanicalDescription { get; }
     public int HealthChange { get; }
     public int ConcentrationChange { get; }
 
     public ChoiceOutcome(
         int progressGained,
-        string description,
+        string narrativeDescription,
+        string mechanicalDescription,
         bool encounterWillEnd,
-        EncounterOutcomes projectedOutcome,
-        int healthChange,
-        int concentrationChange)
+        EncounterOutcomes projectedOutcome)
     {
         ProgressGained = progressGained;
-        Description = description;
+        NarrativeDescription = narrativeDescription;
+        MechanicalDescription = mechanicalDescription;
         IsEncounterOver = encounterWillEnd;
         Outcome = projectedOutcome;
-        HealthChange = healthChange;
-        ConcentrationChange = concentrationChange;
     }
 }
