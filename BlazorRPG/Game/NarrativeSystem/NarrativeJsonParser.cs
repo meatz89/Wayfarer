@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
 public static class NarrativeJsonParser
 {
-    public static Dictionary<EncounterOption, ChoiceNarrative> ParseChoiceResponse(string response, List<EncounterOption> choices)
+    public static Dictionary<string, ChoiceNarrative> ParseChoiceResponse(string response, List<EncounterOption> choices)
     {
-        Dictionary<EncounterOption, ChoiceNarrative> result = new Dictionary<EncounterOption, ChoiceNarrative>();
+        Dictionary<string, ChoiceNarrative> result = new Dictionary<string, ChoiceNarrative>();
 
         if (string.IsNullOrWhiteSpace(response))
         {
@@ -18,23 +15,19 @@ public static class NarrativeJsonParser
 
         try
         {
-            // Check if the entire response is wrapped in quotes, and remove them
             if (response.StartsWith("\"") && response.EndsWith("\"") && response.Length > 2)
             {
                 response = response.Substring(1, response.Length - 2);
             }
 
-            // Clean up the response to remove markdown code blocks
             response = response.Replace("```json", "").Replace("```", "");
 
-            // Extract the JSON content
             string jsonContent = ExtractJsonContent(response);
             if (string.IsNullOrWhiteSpace(jsonContent))
             {
                 return result;
             }
 
-            // Try hardcore manual parsing first (most resilient)
             if (TryParseChoicesManually(jsonContent, choices, result))
             {
                 NormalizeAllDescriptions(result);
@@ -90,9 +83,9 @@ public static class NarrativeJsonParser
         return result;
     }
 
-    private static void NormalizeAllDescriptions(Dictionary<EncounterOption, ChoiceNarrative> choices)
+    private static void NormalizeAllDescriptions(Dictionary<string, ChoiceNarrative> choices)
     {
-        foreach (EncounterOption key in choices.Keys.ToList())
+        foreach (string key in choices.Keys.ToList())
         {
             ChoiceNarrative narrative = choices[key];
             if (!string.IsNullOrEmpty(narrative.FullDescription))
@@ -142,7 +135,7 @@ public static class NarrativeJsonParser
         return text.Trim();
     }
 
-    private static bool TryParseChoicesManually(string jsonContent, List<EncounterOption> choices, Dictionary<EncounterOption, ChoiceNarrative> result)
+    private static bool TryParseChoicesManually(string jsonContent, List<EncounterOption> choices, Dictionary<string, ChoiceNarrative> result)
     {
         try
         {
@@ -302,7 +295,8 @@ public static class NarrativeJsonParser
             // Map the extracted choices to the provided ones
             for (int i = 0; i < Math.Min(extractedChoices.Count, choices.Count); i++)
             {
-                result[choices[i]] = new ChoiceNarrative(
+                EncounterOption encounterOption = choices[i];
+                result[encounterOption.Id] = new ChoiceNarrative(
                     extractedChoices[i].Key,
                     NormalizeText(extractedChoices[i].Value)
                 );
@@ -500,7 +494,7 @@ public static class NarrativeJsonParser
         return json;
     }
 
-    private static void ProcessJsonElement(JsonElement root, List<EncounterOption> choices, Dictionary<EncounterOption, ChoiceNarrative> result)
+    private static void ProcessJsonElement(JsonElement root, List<EncounterOption> choices, Dictionary<string, ChoiceNarrative> result)
     {
         // Try to process as an object with a "choices" property
         if (root.TryGetProperty("choices", out JsonElement choicesElement) &&
@@ -524,7 +518,7 @@ public static class NarrativeJsonParser
         }
     }
 
-    private static void ProcessChoicesArray(JsonElement arrayElement, List<EncounterOption> choices, Dictionary<EncounterOption, ChoiceNarrative> result)
+    private static void ProcessChoicesArray(JsonElement arrayElement, List<EncounterOption> choices, Dictionary<string, ChoiceNarrative> result)
     {
         if (arrayElement.ValueKind != JsonValueKind.Array)
         {
@@ -560,14 +554,15 @@ public static class NarrativeJsonParser
             // If we have a name or description, create the ChoiceNarrative
             if (!string.IsNullOrWhiteSpace(name) || !string.IsNullOrWhiteSpace(description))
             {
-                result[choices[index]] = new ChoiceNarrative(name, NormalizeText(description));
+                EncounterOption encounterOption = choices[index];
+                result[encounterOption.Id] = new ChoiceNarrative(name, NormalizeText(description));
             }
 
             index++;
         }
     }
 
-    private static void ProcessIndividualChoices(JsonElement root, List<EncounterOption> choices, Dictionary<EncounterOption, ChoiceNarrative> result)
+    private static void ProcessIndividualChoices(JsonElement root, List<EncounterOption> choices, Dictionary<string, ChoiceNarrative> result)
     {
         // This handles a non-standard format where the root object might have choice1, choice2 properties
 
@@ -614,7 +609,8 @@ public static class NarrativeJsonParser
 
                     if (!string.IsNullOrWhiteSpace(name) || !string.IsNullOrWhiteSpace(description))
                     {
-                        result[choices[i]] = new ChoiceNarrative(name, NormalizeText(description));
+                        EncounterOption encounterOption = choices[i];
+                        result[encounterOption.Id] = new ChoiceNarrative(name, NormalizeText(description));
                         break; // Found a match for this choice, move to next
                     }
                 }
@@ -622,7 +618,7 @@ public static class NarrativeJsonParser
         }
     }
 
-    private static bool ExtractChoicesWithRegex(string jsonContent, List<EncounterOption> choices, Dictionary<EncounterOption, ChoiceNarrative> result)
+    private static bool ExtractChoicesWithRegex(string jsonContent, List<EncounterOption> choices, Dictionary<string, ChoiceNarrative> result)
     {
         try
         {
@@ -648,7 +644,8 @@ public static class NarrativeJsonParser
 
                 if (!string.IsNullOrWhiteSpace(name) || !string.IsNullOrWhiteSpace(description))
                 {
-                    result[choices[i]] = new ChoiceNarrative(name, NormalizeText(description));
+                    EncounterOption encounterOption = choices[i];
+                    result[encounterOption.Id] = new ChoiceNarrative(name, NormalizeText(description));
                 }
             }
 
@@ -660,7 +657,7 @@ public static class NarrativeJsonParser
         }
     }
 
-    private static void FallbackLineParser(string content, List<EncounterOption> choices, Dictionary<EncounterOption, ChoiceNarrative> result)
+    private static void FallbackLineParser(string content, List<EncounterOption> choices, Dictionary<string, ChoiceNarrative> result)
     {
         // This is the most aggressive parser for when all else fails
         // It simply looks for name/description patterns line by line
@@ -767,7 +764,8 @@ public static class NarrativeJsonParser
 
         for (int i = 0; i < count; i++)
         {
-            result[choices[i]] = new ChoiceNarrative(names[i], NormalizeText(descriptions[i]));
+            EncounterOption encounterOption = choices[i];
+            result[encounterOption.Id] = new ChoiceNarrative(names[i], NormalizeText(descriptions[i]));
         }
     }
 

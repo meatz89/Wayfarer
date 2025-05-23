@@ -2,7 +2,7 @@
 
 public class PromptManager
 {
-    private readonly Dictionary<string, string> _promptTemplates;
+    private readonly Dictionary<string, string> promptTemplates;
 
     private const string SYSTEM_MD1 = "system";
     private const string INTRO_MD = "introduction";
@@ -21,13 +21,13 @@ public class PromptManager
         string promptsPath = configuration.GetValue<string>("NarrativePromptsPath") ?? "Data/Prompts";
 
         // Load all prompt templates
-        _promptTemplates = new Dictionary<string, string>();
+        promptTemplates = new Dictionary<string, string>();
         LoadPromptTemplates(promptsPath);
     }
 
     public string BuildActionGenerationPrompt(ActionGenerationContext context)
     {
-        string template = _promptTemplates[ACTION_GENERATION_MD];
+        string template = promptTemplates[ACTION_GENERATION_MD];
 
         string prompt = template
             .Replace("{ACTIONNAME}", context.ActionId)
@@ -43,18 +43,28 @@ public class PromptManager
         RelationshipList relationshipList,
         string memoryContent)
     {
-        string template = _promptTemplates[INTRO_MD];
+        string template = promptTemplates[INTRO_MD];
 
         // Format environment and NPC details
         string environmentDetails = $"A {context.LocationSpotName.ToLower()} in a {context.LocationName.ToLower()}";
-
         string npcList = GetCharactersAtLocation(context.LocationName, characters, relationshipList);
+        if (string.IsNullOrWhiteSpace(npcList))
+        {
+            npcList = "None";
+        }
 
         // Format player character info
         string characterArchetype = context.PlayerState.Archetype.ToString();
+        string playerStatus = $"Archetype: {characterArchetype}";
 
+        // Get action and approach information
         ActionImplementation actionImplementation = context.ActionImplementation;
-        string encounterGoal = actionImplementation.Description;
+        string actionGoal = actionImplementation.Description;
+
+        // Get chosen approach - CRITICAL ADDITION
+        string approachName = context.ChosenApproach?.Name ?? "General approach";
+        string approachDescription = context.ChosenApproach?.Description ?? "Using available skills";
+        string approachDetails = $"{approachName}: {approachDescription}";
 
         // Replace placeholders in template
         string prompt = template
@@ -62,9 +72,12 @@ public class PromptManager
             .Replace("{LOCATION_NAME}", context.LocationName)
             .Replace("{LOCATION_SPOT}", context.LocationSpotName)
             .Replace("{CHARACTER_ARCHETYPE}", characterArchetype)
-            .Replace("{CHARACTER_GOAL}", encounterGoal)
+            .Replace("{CHARACTER_GOAL}", actionGoal)
             .Replace("{ENVIRONMENT_DETAILS}", environmentDetails)
-            .Replace("{NPC_LIST}", npcList);
+            .Replace("{PLAYER_STATUS}", playerStatus)
+            .Replace("{NPC_LIST}", npcList)
+            .Replace("{MEMORY_CONTENT}", memoryContent ?? "")
+            .Replace("{CHOSEN_APPROACH}", approachDetails);
 
         return CreatePromptJson(prompt);
     }
@@ -153,7 +166,7 @@ public class PromptManager
         ChoiceNarrative choiceDescription,
         ChoiceOutcome outcome)
     {
-        string template = _promptTemplates[REACTION_MD];
+        string template = promptTemplates[REACTION_MD];
 
         // Format strategic effects
         StringBuilder strategicEffects = new StringBuilder();
@@ -176,49 +189,225 @@ public class PromptManager
         return CreatePromptJson(prompt);
     }
 
-    public string BuildChoicesPrompt(
-        NarrativeContext context,
-        List<EncounterOption> choices,
-        List<ChoiceProjection> projections)
+    public string BuildChoicesPrompt(NarrativeContext narrativeContext, EncounterState encounterState, List<EncounterOption> choices, List<ChoiceProjection> projections)
     {
-        string template = _promptTemplates[CHOICES_MD];
+        string prompt = promptTemplates[CHOICES_MD];
 
-        // Get the most recent narrative event for current situation
-        string currentSituation = "No previous narrative available.";
-        if (context.Events.Count > 0)
+        // Basic encounter info
+        prompt = prompt.Replace("{ENCOUNTER_TYPE}", GetEncounterTypeDescription(narrativeContext.EncounterType));
+        prompt = prompt.Replace("{CURRENT_STAGE}", (encounterState.CurrentStageIndex + 1).ToString());
+        prompt = prompt.Replace("{ENCOUNTER_TIER}", GetTierName(encounterState.CurrentStageIndex + 1));
+
+        // Progress tracking
+        prompt = prompt.Replace("{CURRENT_PROGRESS}", encounterState.CurrentProgress.ToString());
+        prompt = prompt.Replace("{SUCCESS_THRESHOLD}", encounterState.EncounterInfo.SuccessThreshold.ToString());
+
+        // Player status
+        prompt = prompt.Replace("{PLAYER_STATUS}", BuildPlayerStatusSection(encounterState, narrativeContext.PlayerState));
+
+        // Choices mechanical info
+        prompt = prompt.Replace("{CHOICES_INFO}", BuildChoicesInfo(narrativeContext, choices, projections));
+
+        return prompt;
+    }
+
+    private string GetEncounterTypeDescription(CardTypes encounterType)
+    {
+        return encounterType switch
         {
-            NarrativeEvent lastEvent = context.Events[context.Events.Count - 1];
-            currentSituation = lastEvent.Summary;
+            CardTypes.Physical => "Physical",
+            CardTypes.Social => "Social",
+            CardTypes.Intellectual => "Intellectual",
+            _ => "Unknown"
+        };
+    }
+
+    private string GetTierName(int stage)
+    {
+        return stage switch
+        {
+            1 or 2 => "Foundation",
+            3 or 4 => "Development",
+            5 => "Execution",
+            _ => "Foundation"
+        };
+    }
+
+    private string BuildPlayerStatusSection(EncounterState encounterState, PlayerState playerState)
+    {
+        StringBuilder status = new StringBuilder();
+
+        status.AppendLine($"Focus Points: {encounterState.FocusPoints}/6");
+
+        var tokenCounts = encounterState.AspectTokens.GetAllTokenCounts();
+        if (tokenCounts.Any(kvp => kvp.Value > 0))
+        {
+            status.AppendLine("Aspect Tokens:");
+            foreach (var token in tokenCounts.Where(kvp => kvp.Value > 0))
+            {
+                status.AppendLine($"  {token.Key}: {token.Value}");
+            }
+        }
+        else
+        {
+            status.AppendLine("Aspect Tokens: None");
         }
 
-        // Build choices info without StringBuilder - do it conditionally
-        string choicesInfo = "";
+        status.AppendLine($"Current Progress: {encounterState.CurrentProgress}");
+
+        // Add relevant skill levels for this encounter type
+        status.AppendLine($"Relevant Skills: {GetRelevantSkillsDisplay(playerState, encounterState.EncounterType)}");
+
+        return status.ToString().TrimEnd();
+    }
+
+    private string GetRelevantSkillsDisplay(PlayerState playerState, CardTypes encounterType)
+    {
+        return encounterType switch
+        {
+            CardTypes.Physical => $"Strength {playerState.GetSkillLevel(SkillTypes.Strength)}, Agility {playerState.GetSkillLevel(SkillTypes.Agility)}, Precision {playerState.GetSkillLevel(SkillTypes.Precision)}, Endurance {playerState.GetSkillLevel(SkillTypes.Endurance)}",
+            CardTypes.Social => $"Intimidation {playerState.GetSkillLevel(SkillTypes.Intimidation)}, Charm {playerState.GetSkillLevel(SkillTypes.Charm)}, Persuasion {playerState.GetSkillLevel(SkillTypes.Persuasion)}, Deception {playerState.GetSkillLevel(SkillTypes.Deception)}",
+            CardTypes.Intellectual => $"Analysis {playerState.GetSkillLevel(SkillTypes.Analysis)}, Observation {playerState.GetSkillLevel(SkillTypes.Observation)}, Knowledge {playerState.GetSkillLevel(SkillTypes.Knowledge)}, Planning {playerState.GetSkillLevel(SkillTypes.Planning)}",
+            _ => "Unknown skills"
+        };
+    }
+
+    private string GetTokenAmountText(EncounterOption choice)
+    {
+        if (choice.TokenGeneration == null || !choice.TokenGeneration.Any())
+            return "no tokens";
+
+        var amounts = choice.TokenGeneration.Select(kvp => $"{kvp.Value} {kvp.Key}");
+        return string.Join(", ", amounts);
+    }
+
+    private string GetTokenCostText(EncounterOption choice)
+    {
+        if (choice.TokenCosts == null || !choice.TokenCosts.Any())
+            return "no tokens";
+
+        var costs = choice.TokenCosts.Select(kvp => $"{kvp.Value} {kvp.Key}");
+        return string.Join(" + ", costs);
+    }
+
+    private string GetNegativeText(EncounterOption choice)
+    {
+        return choice.NegativeConsequenceType switch
+        {
+            NegativeConsequenceTypes.ProgressLoss => "Lose 1 Progress",
+            NegativeConsequenceTypes.FocusLoss => "Lose 1 Focus",
+            NegativeConsequenceTypes.TokenDisruption => "Reduced generation efficiency",
+            NegativeConsequenceTypes.ThresholdIncrease => "Increase success threshold by 1",
+            NegativeConsequenceTypes.ConversionReduction => "Reduced conversion efficiency",
+            _ => "Unknown consequence"
+        };
+    }
+
+    private string GetRecoveryNegativeText(EncounterState encounterState)
+    {
+        if (encounterState.CurrentProgress > 0)
+            return "Lose 1 Progress";
+        else if (encounterState.AspectTokens.GetAllTokenCounts().Values.Sum() >= 2)
+            return "Discard 2 random tokens";
+        else
+            return "Increase success threshold by 1";
+    }
+
+    private static string BuildChoicesInfo(NarrativeContext context, List<EncounterOption> choices, List<ChoiceProjection> projections)
+    {
+        string choicesInfo = string.Empty;
         for (int i = 0; i < choices.Count; i++)
         {
             EncounterOption choice = choices[i];
             ChoiceProjection projection = projections[i];
+            string choiceText = $"\nCHOICE {i + 1}: {choice.Name}\n";
+            choiceText += $"Description: {choice.Description}\n";
 
-            string choiceText = $"\nCHOICE {i + 1}:\n";
+            // Focus cost information
+            choiceText += $"Focus Cost: {projection.FocusCost}";
+            choiceText += "\n";
 
-            if (projection.WillEncounterEnd)
+            // Aspect token costs if any
+            if (choice.RequiresTokens())
             {
-                choiceText += $"\n- Encounter Will End: True";
-                choiceText += $"\n- Final Outcome: {projection.ProjectedOutcome}";
-                choiceText += $"\n- Goal Achievement: " +
-                    $"{(projection.ProjectedOutcome != EncounterOutcomes.Failure ?
-                    "Will achieve goal to" : "Will fail to")} {context.ActionImplementation.Description}";
+                choiceText += "Aspect Token Costs: ";
+                List<string> tokenCostStrings = new List<string>();
+                foreach (AspectTokenTypes tokenType in Enum.GetValues<AspectTokenTypes>())
+                {
+                    int cost = projection.GetTokenCost(tokenType);
+                    if (cost > 0)
+                    {
+                        tokenCostStrings.Add($"{cost} {tokenType}");
+                    }
+                }
+                choiceText += string.Join(", ", tokenCostStrings);
+                choiceText += "\n";
             }
 
-            // Add this choice's text to the overall choices info
+            // Positive effects - aspect tokens gained
+            if (choice.GeneratesTokens())
+            {
+                choiceText += "Aspect Tokens Gained: ";
+                List<string> tokenGainStrings = new List<string>();
+                foreach (AspectTokenTypes tokenType in Enum.GetValues<AspectTokenTypes>())
+                {
+                    int gain = projection.GetTokenGain(tokenType);
+                    if (gain > 0)
+                    {
+                        tokenGainStrings.Add($"{gain} {tokenType}");
+                    }
+                }
+                choiceText += string.Join(", ", tokenGainStrings) + "\n";
+            }
+
+            // Progress gained
+            if (projection.ProgressGained > 0)
+                choiceText += $"Progress Gained: {projection.ProgressGained}\n";
+
+            // Focus points gained (if any)
+            if (projection.FocusPointsGained > 0)
+                choiceText += $"Focus Points Gained: {projection.FocusPointsGained}\n";
+
+            // Skill check information
+            if (projection.HasSkillCheck)
+            {
+                choiceText += $"Skill Check: {projection.SkillUsed} ";
+                choiceText += $"Difficulty {projection.SkillCheckDifficulty}\n";
+            }
+
+            // Negative consequence if skill check fails
+            if (projection.HasSkillCheck && !projection.SkillCheckSuccess)
+            {
+                choiceText += $"Negative Consequence (will trigger): {projection.NegativeConsequenceType}";
+                if (!string.IsNullOrEmpty(projection.MechanicalDescription))
+                    choiceText += $" - {projection.MechanicalDescription}";
+                choiceText += "\n";
+            }
+            else if (projection.HasSkillCheck && projection.SkillCheckSuccess)
+            {
+                choiceText += $"Negative Consequence (avoided): {projection.NegativeConsequenceType}\n";
+            }
+
+            // Choice tags if any
+            if (choice.Tags.Count > 0)
+            {
+                choiceText += $"Tags: {string.Join(", ", choice.Tags)}\n";
+            }
+
+            // Encounter ending information
+            if (projection.WillEncounterEnd)
+            {
+                choiceText += "This choice will end the encounter\n";
+                choiceText += $"Projected Final Outcome: {projection.ProjectedOutcome}\n";
+                choiceText += $"Goal Achievement: " +
+                    $"{(projection.ProjectedOutcome != EncounterOutcomes.Failure ?
+                    "Will achieve goal to" : "Will fail to")} {context.ActionImplementation.Description}\n";
+            }
+
             choicesInfo += choiceText;
         }
 
-        // Replace placeholders in template
-        string prompt = template
-            .Replace("{ENCOUNTER_GOAL}", context.ActionImplementation.Description)
-            .Replace("{CHOICES_INFO}", choicesInfo);
-
-        return CreatePromptJson(prompt);
+        return choicesInfo;
     }
 
     public string BuildEncounterEndPrompt(
@@ -228,7 +417,7 @@ public class PromptManager
         ChoiceNarrative choiceDescription
         )
     {
-        string template = _promptTemplates[ENDING_MD];
+        string template = promptTemplates[ENDING_MD];
 
         // Get the last narrative event
         string lastNarrative = "No previous narrative available.";
@@ -259,20 +448,6 @@ public class PromptManager
             .Replace("{GOAL_ACHIEVEMENT_STATUS}", goalAchievementStatus);
 
         return CreatePromptJson(prompt);
-    }
-
-    private string FormatTags(List<string> newTags)
-    {
-        if (newTags == null || !newTags.Any())
-            return "No tags";
-
-        StringBuilder builder = new StringBuilder();
-        foreach (string tag in newTags)
-        {
-            builder.AppendLine($"- {tag}");
-        }
-
-        return builder.ToString();
     }
 
     public static string CreatePromptJson(string markdownContent)
@@ -318,7 +493,7 @@ public class PromptManager
             string key = Path.GetFileNameWithoutExtension(filePath);
             string mdContent = LoadPromptFile(filePath);
             string jsonContent = CreatePromptJson(mdContent);
-            _promptTemplates[key] = jsonContent;
+            promptTemplates[key] = jsonContent;
         }
     }
 
@@ -351,7 +526,7 @@ public class PromptManager
 
     public string BuildPostEncounterEvolutionPrompt(PostEncounterEvolutionInput input)
     {
-        string template = _promptTemplates[WORLD_EVOLUTION_MD];
+        string template = promptTemplates[WORLD_EVOLUTION_MD];
 
         return template
             .Replace("{characterBackground}", input.CharacterBackground)
@@ -374,7 +549,7 @@ public class PromptManager
 
     public string BuildLocationCreationPrompt(LocationCreationInput input)
     {
-        string template = _promptTemplates[LOCATION_GENERATION_MD];
+        string template = promptTemplates[LOCATION_GENERATION_MD];
 
         // Replace placeholders in template
         string prompt = template
@@ -392,7 +567,7 @@ public class PromptManager
 
     public string BuildMemoryPrompt(MemoryConsolidationInput input)
     {
-        string template = _promptTemplates[MEMORY_CONSOLIDATION_MD];
+        string template = promptTemplates[MEMORY_CONSOLIDATION_MD];
 
         string prompt = template
             .Replace("{FILE_CONTENT}", input.OldMemory);
@@ -402,7 +577,7 @@ public class PromptManager
 
     public string GetSystemMessage(WorldStateInput input)
     {
-        string staticSystemPrompt = _promptTemplates[SYSTEM_MD1];
+        string staticSystemPrompt = promptTemplates[SYSTEM_MD1];
 
         string dynamicSystemPrompt = staticSystemPrompt
             .Replace("{CHARACTER_ARCHETYPE}", input.CharacterArchetype)

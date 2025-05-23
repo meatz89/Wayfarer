@@ -157,15 +157,15 @@ public partial class EncounterViewBase : ComponentBase
 
     public string GetChoiceName(UserEncounterChoiceOption choiceOption)
     {
-        EncounterOption card = choiceOption.Choice;
+        EncounterOption choice = choiceOption.Choice;
         NarrativeResult narrativeResult = Model.EncounterResult.NarrativeResult;
-        Dictionary<EncounterOption, ChoiceNarrative> choiceDescriptions = narrativeResult?.ChoiceDescriptions;
+        Dictionary<string, ChoiceNarrative> choiceDescriptions = narrativeResult?.ChoiceDescriptions;
         ChoiceNarrative choiceNarrative = null;
 
-        if (choiceDescriptions != null && choiceDescriptions.ContainsKey(card))
-            choiceNarrative = choiceDescriptions[card];
+        if (choiceDescriptions != null && choiceDescriptions.ContainsKey(choice.Id))
+            choiceNarrative = choiceDescriptions[choice.Id];
 
-        string name = $"{card.Name}";
+        string name = $"{choice.Name}";
         if (choiceNarrative != null)
         {
             name = choiceNarrative.ShorthandName;
@@ -173,109 +173,36 @@ public partial class EncounterViewBase : ComponentBase
         return name;
     }
 
-    public List<PropertyDisplay> GetAvailableTags()
-    {
-        List<PropertyDisplay> properties = new List<PropertyDisplay>();
-
-        return properties;
-    }
-
-    private string GetTagIcon(IEncounterTag tag)
-    {
-        // Determine icon based on tag type
-        if (tag is NarrativeTag)
-            return "📜"; // Narrative tag icon
-        else if (tag is StrategicTag)
-            return "⚙️"; // Strategic tag icon
-
-        return "🏷️"; // Default tag icon
-    }
-
-    private string GetTagCssClass(IEncounterTag tag)
-    {
-        // Determine CSS class based on tag type
-        if (tag is NarrativeTag)
-            return "narrative-tag";
-        else if (tag is StrategicTag)
-            return "strategic-tag";
-
-        return "";
-    }
-
-    private string GetTagTooltipText(IEncounterTag tag)
-    {
-        StringBuilder tooltip = new StringBuilder();
-        tooltip.AppendLine(tag.NarrativeName);
-
-        if (tag is NarrativeTag narrativeTag)
-        {
-            tooltip.AppendLine($"{narrativeTag.GetEffectDescription()}");
-        }
-        else if (tag is StrategicTag strategicTag)
-        {
-            tooltip.AppendLine(strategicTag.GetEffectDescription());
-        }
-
-        return tooltip.ToString();
-    }
-
-    public string GetTagEffectDescription(string tagName)
-    {
-        return "Affects encounter mechanics";
-    }
-
-    public MarkupString GetValueTypeIcon(ValueTypes valueType)
-    {
-        return valueType switch
-        {
-            ValueTypes.Momentum => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
-            ValueTypes.Pressure => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
-            ValueTypes.Health => new MarkupString("<i class='value-icon physical-icon'>⚡</i>"),
-            ValueTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
-            _ => new MarkupString("")
-        };
-    }
-
-    public List<PropertyDisplay> GetActiveTags()
-    {
-        List<PropertyDisplay> properties = new List<PropertyDisplay>();
-
-        if (EncounterManager == null)
-            return properties;
-
-        return properties;
-    }
-
     protected int GetCurrentFocusPoints()
     {
-        return EncounterManager?.EncounterState?.FocusPoints ?? 0;
+        return EncounterManager?.encounterState?.FocusPoints ?? 0;
     }
 
     protected int GetMaxFocusPoints()
     {
-        return EncounterManager?.EncounterState?.MaxFocusPoints ?? 0;
+        return EncounterManager?.encounterState?.MaxFocusPoints ?? 0;
     }
 
     protected Dictionary<AspectTokenTypes, int> GetAspectTokenCounts()
     {
-        return EncounterManager?.EncounterState?.AspectTokens?.GetAllTokenCounts() ??
+        return EncounterManager?.encounterState?.AspectTokens?.GetAllTokenCounts() ??
                new Dictionary<AspectTokenTypes, int>();
     }
 
     protected int GetCurrentProgress()
     {
-        return EncounterManager?.EncounterState?.CurrentProgress ?? 0;
+        return EncounterManager?.encounterState?.CurrentProgress ?? 0;
     }
 
     protected int GetProgressThreshold()
     {
-        return EncounterManager?.EncounterState?.EncounterInfo?.TotalProgress ?? 0;
+        return EncounterManager?.encounterState?.EncounterInfo?.TotalProgress ?? 0;
     }
 
     protected string GetStageTitle()
     {
-        int currentStage = (EncounterManager?.EncounterState?.CurrentStageIndex ?? 0) + 1;
-        int totalStages = EncounterManager?.EncounterState?.EncounterInfo?.Stages?.Count ?? 0;
+        int currentStage = (EncounterManager?.encounterState?.CurrentStageIndex ?? 0) + 1;
+        int totalStages = EncounterManager?.encounterState?.EncounterInfo?.Stages?.Count ?? 0;
         return $"Stage {currentStage} of {totalStages}";
     }
 
@@ -283,7 +210,7 @@ public partial class EncounterViewBase : ComponentBase
     {
         if (choice.Choice is EncounterOption option)
         {
-            return EncounterManager?.EncounterState?.CanAffordFocusCost(option.FocusCost) ?? false;
+            return EncounterManager?.encounterState?.CanAffordFocusCost(option.FocusCost) ?? false;
         }
         return true;
     }
@@ -294,7 +221,7 @@ public partial class EncounterViewBase : ComponentBase
         {
             foreach (KeyValuePair<AspectTokenTypes, int> requirement in option.TokenCosts)
             {
-                if (!EncounterManager.EncounterState.HasAspectTokens(requirement.Key, requirement.Value))
+                if (!EncounterManager.encounterState.HasAspectTokens(requirement.Key, requirement.Value))
                 {
                     return false;
                 }

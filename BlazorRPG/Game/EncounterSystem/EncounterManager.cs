@@ -4,7 +4,7 @@
     public ActionImplementation ActionImplementation;
 
     private ChoiceCardSelector cardSelectionAlgorithm;
-    public EncounterState EncounterState;
+    public EncounterState encounterState;
 
     private IAIService _aiService;
     private NarrativeContext narrativeContext;
@@ -70,8 +70,66 @@
                 encounterInfo.LocationSpotName.ToString(),
                 encounterInfo.EncounterType,
                 playerState,
-                actionImplementation);
+                actionImplementation,
+                encounter.Approach);
 
+        string introduction = await CreateIntroduction(location);
+
+        GenerateChoicesForPlayer(playerState);
+        
+        NarrativeResult result = await CreateChoices(location, actionImplementation, introduction);
+
+        _logger.LogInformation("StartEncounterWithNarrativeAsync completed for encounter: {EncounterId}", encounterInfo?.Id);
+        return result;
+    }
+
+    private async Task<NarrativeResult> CreateChoices(
+        Location location, 
+        ActionImplementation actionImplementation, 
+        string introduction)
+    {
+        List<EncounterOption> choices = GetCurrentChoices();
+        List<ChoiceProjection> projections = new List<ChoiceProjection>();
+        foreach (EncounterOption encounterOption in choices)
+        {
+            projections.Add(ProjectChoice(encounterState, encounterOption));
+        }
+
+        NarrativeEvent firstNarrative = new NarrativeEvent(
+            encounterState.CurrentTurn,
+            introduction);
+
+        narrativeContext.AddEvent(firstNarrative);
+
+        Dictionary<string, ChoiceNarrative> choiceDescriptions = null;
+        if (_useAiNarrative)
+        {
+            WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location.Id);
+
+            choiceDescriptions = await _aiService.GenerateChoiceDescriptionsAsync(
+                narrativeContext,
+                encounterState,
+                choices,
+                projections,
+                worldStateInput,
+                AIClient.PRIORITY_IMMEDIATE);
+
+            firstNarrative.SetAvailableChoiceDescriptions(choiceDescriptions);
+        }
+
+        NarrativeResult result = new NarrativeResult(
+            introduction,
+            actionImplementation.Description,
+            choices,
+            projections,
+            choiceDescriptions,
+            firstNarrative.ChoiceNarrative);
+
+        return result;
+    }
+
+    private async Task<string> CreateIntroduction(Location location)
+    {
         string introduction = "introduction";
 
         if (_useAiNarrative)
@@ -91,45 +149,7 @@
                 AIClient.PRIORITY_IMMEDIATE);
         }
 
-        GenerateChoicesForPlayer(playerState);
-        List<EncounterOption> choices = GetCurrentChoices();
-        List<ChoiceProjection> projections = new List<ChoiceProjection>();
-        foreach (EncounterOption encounterOption in choices)
-        {
-            projections.Add(ProjectChoice(EncounterState, encounterOption));
-        }
-
-        NarrativeEvent firstNarrative = new NarrativeEvent(
-            EncounterState.CurrentTurn,
-            introduction);
-
-        narrativeContext.AddEvent(firstNarrative);
-
-        Dictionary<EncounterOption, ChoiceNarrative> choiceDescriptions = null;
-        if (_useAiNarrative)
-        {
-            WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location.Id);
-
-            choiceDescriptions = await _aiService.GenerateChoiceDescriptionsAsync(
-                narrativeContext,
-                choices,
-                projections,
-                worldStateInput,
-                AIClient.PRIORITY_IMMEDIATE);
-
-            firstNarrative.SetAvailableChoiceDescriptions(choiceDescriptions);
-        }
-
-        NarrativeResult result = new NarrativeResult(
-            introduction,
-            actionImplementation.Description,
-            choices,
-            projections,
-            choiceDescriptions,
-            firstNarrative.ChoiceNarrative);
-
-        _logger.LogInformation("StartEncounterWithNarrativeAsync completed for encounter: {EncounterId}", encounterInfo?.Id);
-        return result;
+        return introduction;
     }
 
     private void StartEncounter(WorldState worldState, PlayerState playerState, Encounter encounterInfo)
@@ -137,7 +157,7 @@
         this.worldState = worldState;
         this.playerState = playerState;
 
-        EncounterState = new EncounterState(encounterInfo, playerState);
+        encounterState = new EncounterState(encounterInfo, playerState);
     }
 
     public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
@@ -147,7 +167,7 @@
         int priority)
     {
         _logger.LogInformation("ApplyChoiceWithNarrativeAsync called with location: {Location}, choice: {ChoiceId}, priority: {Priority}", location, choice?.Id, priority);
-        ChoiceOutcome outcome = ApplyChoiceProjection(playerState, EncounterState, choice);
+        ChoiceOutcome outcome = ApplyChoiceProjection(playerState, encounterState, choice);
 
         string narrative = "Continued Narrative";
 
@@ -173,7 +193,7 @@
                 string.Empty,
                 new List<EncounterOption>(),
                 new List<ChoiceProjection>(),
-                new Dictionary<EncounterOption, ChoiceNarrative>(),
+                new Dictionary<string, ChoiceNarrative>(),
                 narrativeEvent.ChoiceNarrative);
 
             currentResult.SetOutcome(outcome.Outcome);
@@ -212,16 +232,17 @@
             List<ChoiceProjection> newProjections = new List<ChoiceProjection>();
             foreach (var newChoice in newChoices)
             {
-                newProjections.Add(ProjectChoice(EncounterState, choice));
+                newProjections.Add(ProjectChoice(encounterState, choice));
             }
 
-            Dictionary<EncounterOption, ChoiceNarrative> newChoiceDescriptions = null;
+            Dictionary<string, ChoiceNarrative> newChoiceDescriptions = null;
 
             if (_useAiNarrative)
             {
                 WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location);
                 newChoiceDescriptions = await _aiService.GenerateChoiceDescriptionsAsync(
                     narrativeContext,
+                    encounterState,
                     newChoices,
                     newProjections,
                     worldStateInput,
@@ -231,7 +252,7 @@
             narrativeEvent.ChoiceDescriptions.Clear();
             if (newChoiceDescriptions != null)
             {
-                foreach (KeyValuePair<EncounterOption, ChoiceNarrative> kvp in newChoiceDescriptions)
+                foreach (KeyValuePair<string, ChoiceNarrative> kvp in newChoiceDescriptions)
                 {
                     narrativeEvent.ChoiceDescriptions[kvp.Key] = kvp.Value;
                 }
@@ -290,7 +311,7 @@
         string narrative)
     {
         NarrativeEvent narrativeEvent = new NarrativeEvent(
-            EncounterState.CurrentTurn - 1,
+            encounterState.CurrentTurn - 1,
             narrative);
 
         narrativeEvent.SetChosenOption(choice);
@@ -306,7 +327,7 @@
 
     public ChoiceProjection ProjectChoice(EncounterState encounterState, EncounterOption choice)
     {
-        ChoiceProjection projection = EncounterState.CreateChoiceProjection(choice, playerState);
+        ChoiceProjection projection = this.encounterState.CreateChoiceProjection(choice, playerState);
         projection.MechanicalDescription = choice.Id;
         return projection;
     }
@@ -318,7 +339,7 @@
 
     public void GenerateChoicesForPlayer(PlayerState playerState)
     {
-        CurrentChoices = cardSelectionAlgorithm.SelectChoices(EncounterState, playerState);
+        CurrentChoices = cardSelectionAlgorithm.SelectChoices(encounterState, playerState);
     }
 
 }

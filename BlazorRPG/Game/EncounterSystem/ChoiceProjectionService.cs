@@ -26,13 +26,12 @@ public static class ChoiceProjectionService
             }
         }
 
-        // --- 2. Project Positive Effects Based on Tier and Template ---
+        // --- 2. Project Positive Effects ---
         ProjectPositiveEffects(projection, choice, encounterState);
 
         // --- 3. Project Skill Check for Negative Consequence Mitigation ---
-        if (choice.Skill != SkillTypes.None && choice.Difficulty > 0)
+        if (choice.HasSkillCheck)
         {
-            projection.HasSkillCheck = true;
             projection.BaseSkillLevel = playerState.GetSkillLevel(choice.Skill);
             projection.LocationModifierValue = GetLocationPropertyModifier(choice.Skill, location);
             projection.EffectiveSkillLevel = projection.BaseSkillLevel + projection.LocationModifierValue;
@@ -40,7 +39,6 @@ public static class ChoiceProjectionService
         }
         else
         {
-            projection.HasSkillCheck = false;
             projection.SkillCheckSuccess = (choice.NegativeConsequenceType == NegativeConsequenceTypes.None);
         }
 
@@ -62,178 +60,64 @@ public static class ChoiceProjectionService
 
     private static void ProjectPositiveEffects(ChoiceProjection projection, EncounterOption choice, EncounterState encounterState)
     {
-        // Get current stage tier (1-2 = Foundation, 3-4 = Development, 5 = Execution)
-        int currentStage = encounterState.CurrentStageIndex + 1;
-        EncounterTiers tier = GetEncounterTier(currentStage);
-
-        switch (choice.ActionType)
-        {
-            case UniversalActionTypes.GenerationA:
-                projection.AspectTokensGained[choice.PrimaryAspectType] = GetGenerationATokens(tier);
-                break;
-
-            case UniversalActionTypes.GenerationB:
-                projection.AspectTokensGained[choice.PrimaryAspectType] = GetGenerationBTokens(tier);
-                break;
-
-            case UniversalActionTypes.ConversionA:
-                if (projection.IsAffordableAspectTokens)
-                    projection.ProgressGained = GetConversionAProgress(tier);
-                break;
-
-            case UniversalActionTypes.ConversionB:
-                if (projection.IsAffordableAspectTokens)
-                    projection.ProgressGained = GetConversionBProgress(tier);
-                break;
-
-            case UniversalActionTypes.Hybrid:
-                projection.AspectTokensGained[choice.PrimaryAspectType] = GetHybridTokens(tier);
-                projection.ProgressGained = GetHybridProgress(tier);
-                break;
-
-            case UniversalActionTypes.Recovery:
-                projection.FocusPointsGained = 1; // Always +1 Focus, capped at starting maximum
-                break;
-        }
-
-        // Apply immediate negative effects for failed skill checks
-        if (!projection.SkillCheckSuccess)
-        {
-            ApplyImmediateNegativeEffects(projection, choice, encounterState);
-        }
-    }
-
-    private static void ApplyImmediateNegativeEffects(ChoiceProjection projection, EncounterOption choice, EncounterState encounterState)
-    {
-        NegativeConsequenceTypes effectiveNegative = choice.NegativeConsequenceType;
-
-        // Handle Recovery cascading negatives
         if (choice.ActionType == UniversalActionTypes.Recovery)
         {
-            effectiveNegative = DetermineActualRecoveryNegative(encounterState);
+            projection.FocusPointsGained = 1;
+            projection.ProgressGained = 0;
+            projection.AspectTokensGained.Clear();
         }
-
-        switch (effectiveNegative)
+        else
         {
-            case NegativeConsequenceTypes.GenerationReduction:
-                // "This generation produces 1 fewer token" - reduce token gain
-                if (choice.ActionType == UniversalActionTypes.GenerationA || choice.ActionType == UniversalActionTypes.GenerationB)
+            // Project token generation
+            if (choice.TokenGeneration != null)
+            {
+                foreach (var tokenGen in choice.TokenGeneration)
                 {
-                    var tokenType = choice.PrimaryAspectType;
-                    if (projection.AspectTokensGained.ContainsKey(tokenType))
-                    {
-                        projection.AspectTokensGained[tokenType] = Math.Max(0, projection.AspectTokensGained[tokenType] - 1);
-                    }
+                    projection.AspectTokensGained[tokenGen.Key] = tokenGen.Value;
                 }
-                break;
+            }
 
-            case NegativeConsequenceTypes.ConversionReduction:
-                // "This conversion yields 1 less Progress" - reduce progress gain
-                if (choice.ActionType == UniversalActionTypes.ConversionA || choice.ActionType == UniversalActionTypes.ConversionB)
-                {
-                    projection.ProgressGained = Math.Max(0, projection.ProgressGained - 1);
-                }
-                break;
+            // Project progress generation
+            if (choice.RequiresTokens() && !projection.IsAffordableAspectTokens)
+            {
+                projection.ProgressGained = 0; // Can't convert without tokens
+            }
+            else
+            {
+                projection.ProgressGained = choice.SuccessProgress;
+            }
 
-            // Other negatives are handled in encounter resolution, not projection
-            case NegativeConsequenceTypes.ProgressLoss:
-            case NegativeConsequenceTypes.FocusLoss:
-            case NegativeConsequenceTypes.ThresholdIncrease:
-                // These are projected but not applied to the projection itself
-                break;
+            projection.FocusPointsGained = 0;
         }
     }
-
-    private static EncounterTiers GetEncounterTier(int stageNumber)
-    {
-        return stageNumber switch
-        {
-            1 or 2 => EncounterTiers.Foundation,
-            3 or 4 => EncounterTiers.Development,
-            5 => EncounterTiers.Execution,
-            _ => EncounterTiers.Foundation
-        };
-    }
-
-    // Tier-based value tables matching our design document
-    private static int GetGenerationATokens(EncounterTiers tier) => tier switch
-    {
-        EncounterTiers.Foundation => 3,
-        EncounterTiers.Development => 4,
-        EncounterTiers.Execution => 4,
-        _ => 3
-    };
-
-    private static int GetGenerationBTokens(EncounterTiers tier) => tier switch
-    {
-        EncounterTiers.Foundation => 2,
-        EncounterTiers.Development => 6,
-        EncounterTiers.Execution => 6,
-        _ => 2
-    };
-
-    private static int GetConversionAProgress(EncounterTiers tier) => tier switch
-    {
-        EncounterTiers.Foundation => 2,
-        EncounterTiers.Development => 4,
-        EncounterTiers.Execution => 5,
-        _ => 2
-    };
-
-    private static int GetConversionBProgress(EncounterTiers tier) => tier switch
-    {
-        EncounterTiers.Foundation => 4,
-        EncounterTiers.Development => 6,
-        EncounterTiers.Execution => 7,
-        _ => 4
-    };
-
-    private static int GetHybridTokens(EncounterTiers tier) => tier switch
-    {
-        EncounterTiers.Foundation => 1,
-        EncounterTiers.Development => 3,
-        EncounterTiers.Execution => 1,
-        _ => 1
-    };
-
-    private static int GetHybridProgress(EncounterTiers tier) => tier switch
-    {
-        EncounterTiers.Foundation => 1,
-        EncounterTiers.Development => 2,
-        EncounterTiers.Execution => 3,
-        _ => 1
-    };
 
     private static void ProjectEncounterOutcome(ChoiceProjection projection, EncounterOption choice, EncounterState encounterState)
     {
-        int totalStages = 5; // All encounters have exactly 5 stages
+        int totalStages = encounterState.EncounterInfo.Stages.Count;
         bool isLastStage = (encounterState.CurrentStageIndex == totalStages - 1);
-        projection.WillEncounterEnd = isLastStage;
+        int projectedProgressAfterThisChoice = encounterState.CurrentProgress + projection.ProgressGained;
 
+        int effectiveOutcomeThresholdModifier = encounterState.OutcomeThresholdModifier;
+        if (choice.ActionType == UniversalActionTypes.Recovery &&
+            choice.FocusCost == 0 &&
+            !projection.SkillCheckSuccess)
+        {
+            NegativeConsequenceTypes recoveryNegative = DetermineActualRecoveryNegative(encounterState);
+            if (recoveryNegative == NegativeConsequenceTypes.ThresholdIncrease)
+            {
+                effectiveOutcomeThresholdModifier++;
+            }
+        }
+
+        projection.WillEncounterEnd = isLastStage;
         if (isLastStage)
         {
-            int projectedProgress = encounterState.CurrentProgress + (projection.IsDisabled ? 0 : projection.ProgressGained);
-
-            // Account for threshold increases
-            int effectiveThresholdModifier = encounterState.OutcomeThresholdModifier;
-            if (!projection.SkillCheckSuccess && choice.NegativeConsequenceType == NegativeConsequenceTypes.ThresholdIncrease)
-            {
-                effectiveThresholdModifier++;
-            }
-
-            // Standard thresholds: Basic (10), Good (14), Excellent (18)
-            int basicThreshold = 10 + effectiveThresholdModifier;
-            int goodThreshold = 14 + effectiveThresholdModifier;
-            int excellentThreshold = 18 + effectiveThresholdModifier;
-
-            if (projectedProgress >= excellentThreshold)
-                projection.ProjectedOutcome = EncounterOutcomes.ExcellentSuccess;
-            else if (projectedProgress >= goodThreshold)
-                projection.ProjectedOutcome = EncounterOutcomes.GoodSuccess;
-            else if (projectedProgress >= basicThreshold)
-                projection.ProjectedOutcome = EncounterOutcomes.BasicSuccess;
-            else
-                projection.ProjectedOutcome = EncounterOutcomes.Failure;
+            int successThreshold = encounterState.EncounterInfo.SuccessThreshold;
+            int progressNeededForSuccess = successThreshold + effectiveOutcomeThresholdModifier;
+            projection.ProjectedOutcome =
+                projectedProgressAfterThisChoice >= progressNeededForSuccess
+                ? EncounterOutcomes.BasicSuccess
+                : EncounterOutcomes.Failure;
         }
         else
         {
@@ -241,15 +125,12 @@ public static class ChoiceProjectionService
         }
     }
 
-    private static string GetProjectedNegativeEffectText(
-        EncounterOption choice,
-        bool isSkillCheckProjectedToSucceed,
-        EncounterState encounterState)
+    private static string GetProjectedNegativeEffectText(EncounterOption choice, bool isSkillCheckProjectedToSucceed, EncounterState encounterState)
     {
         if (isSkillCheckProjectedToSucceed)
         {
-            if (choice.NegativeConsequenceType == NegativeConsequenceTypes.None)
-                return "This action has no negative consequence.";
+            if (choice.NegativeConsequenceType == NegativeConsequenceTypes.None && !choice.HasSkillCheck)
+                return "This action has no inherent negative consequence.";
             else
                 return "Projected: Negative consequence will be AVOIDED.";
         }
@@ -260,17 +141,28 @@ public static class ChoiceProjectionService
             actualNegativeType = DetermineActualRecoveryNegative(encounterState);
         }
 
-        string riskPrefix = "RISK (if skill check fails): ";
+        if (actualNegativeType == NegativeConsequenceTypes.None)
+        {
+            return "This action has no inherent negative consequence.";
+        }
+
+        string penaltyPrefix = "RISK (if skill check fails): ";
         return actualNegativeType switch
         {
-            NegativeConsequenceTypes.ProgressLoss => riskPrefix + "Lose 1 Progress Marker.",
-            NegativeConsequenceTypes.FocusLoss => riskPrefix + "Lose 1 Focus Point.",
-            NegativeConsequenceTypes.GenerationReduction => riskPrefix + "This generation produces 1 fewer token.",
-            NegativeConsequenceTypes.ConversionReduction => riskPrefix + "This conversion yields 1 less Progress.",
-            NegativeConsequenceTypes.ThresholdIncrease => riskPrefix + "Success thresholds increase by 1.",
-            NegativeConsequenceTypes.None => "This action has no negative consequence.",
-            _ => riskPrefix + "An unforeseen setback occurs."
+            NegativeConsequenceTypes.ProgressLoss => penaltyPrefix + "Lose 1 Progress Marker.",
+            NegativeConsequenceTypes.FocusLoss => penaltyPrefix + "Lose 1 Focus Point from your encounter pool.",
+            NegativeConsequenceTypes.TokenDisruption => choice.ActionType == UniversalActionTypes.Recovery
+                ? penaltyPrefix + GetRecoveryTokenDisruptionText(encounterState)
+                : penaltyPrefix + "This generation produces 1 fewer token.",
+            NegativeConsequenceTypes.ThresholdIncrease => penaltyPrefix + "Final success thresholds for this encounter will increase by 1.",
+            _ => penaltyPrefix + "An unforeseen setback occurs."
         };
+    }
+
+    private static string GetRecoveryTokenDisruptionText(EncounterState encounterState)
+    {
+        int totalTokens = encounterState.AspectTokens.GetAllTokenCounts().Values.Sum();
+        return totalTokens >= 2 ? "Discard 2 random Aspect Tokens from your pool." : "Discard 1 random Aspect Token from your pool.";
     }
 
     private static NegativeConsequenceTypes DetermineActualRecoveryNegative(EncounterState encounterState)

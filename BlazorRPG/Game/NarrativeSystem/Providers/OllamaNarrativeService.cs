@@ -79,17 +79,22 @@
         return response;
     }
 
-    public async Task<Dictionary<EncounterOption, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+    public async Task<Dictionary<string, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
         NarrativeContext context,
+        EncounterState encounterState,
         List<EncounterOption> choices,
         List<ChoiceProjection> projections,
         WorldStateInput worldStateInput,
         int priority)
     {
+        List<NarrativeEvent> events = context.Events;
+        NarrativeEvent? narrativeEvent = events.FirstOrDefault();
+        var summary = narrativeEvent.Summary;
+
         string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
         string prompt = _promptManager.BuildChoicesPrompt(
-            context, choices, projections);
+            context, encounterState, choices, projections);
 
         if (!_contextManager.ConversationExists(conversationId))
         {

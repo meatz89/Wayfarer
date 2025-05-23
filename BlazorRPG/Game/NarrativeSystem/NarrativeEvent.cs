@@ -2,7 +2,7 @@
 {
     public int TurnNumber { get; }
     public string Summary { get; }
-    public Dictionary<EncounterOption, ChoiceNarrative> ChoiceDescriptions { get; set; } = new();
+    public Dictionary<string, ChoiceNarrative> ChoiceDescriptions { get; set; } = new();
     public EncounterOption ChosenOption { get; set; }
     public ChoiceNarrative ChoiceNarrative { get; set; }
     public string Outcome { get; set; }
@@ -15,7 +15,7 @@
         Summary = sceneDescription;
     }
 
-    public void SetAvailableChoiceDescriptions(Dictionary<EncounterOption, ChoiceNarrative> choiceDescriptions)
+    public void SetAvailableChoiceDescriptions(Dictionary<string, ChoiceNarrative> choiceDescriptions)
     {
         ChoiceDescriptions = choiceDescriptions;
     }

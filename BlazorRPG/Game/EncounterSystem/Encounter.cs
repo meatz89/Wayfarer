@@ -11,5 +11,5 @@
     public int EncounterDifficulty { get; set; }
     public int SuccessThreshold { get; set; }
     public string CommissionId { get; set; }
-    public string ApproachId { get; set; }
+    public ApproachDefinition Approach { get; set; }
 }

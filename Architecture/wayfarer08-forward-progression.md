@@ -53,15 +53,6 @@ The world organizes progression based on depth from the starting point:
 - **Mid Game (5-10)**: More complex encounters and strategic decisions
 - **Late Game (11+)**: Advanced challenges requiring mastery
 
-### 3.2 Difficulty Scaling
-
-Encounter difficulty increases with depth:
-
-- **Difficulty Level = Base + (Depth × Scaling Factor)**
-- **Momentum Requirements**: Higher thresholds at greater depths
-- **Pressure Generation**: Increased rate at greater depths
-- **Strategic Complexity**: More challenging strategic tag combinations
-
 ### 3.3 Forward Incentives
 
 Players are encouraged to move forward through:
