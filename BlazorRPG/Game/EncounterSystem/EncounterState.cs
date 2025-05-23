@@ -20,6 +20,7 @@
         CurrentStageIndex = 0;
         CurrentTurn = 0;
         EncounterInfo = encounterInfo;
+        OutcomeThresholdModifier = 0;
         PreviousEncounterState = this;
 
         // Initialize Universal Encounter System components
@@ -28,14 +29,8 @@
 
     private void InitializeUniversalEncounterSystem(Encounter encounterInfo)
     {
-        // Set Focus Points based on encounter length (standard 3-round encounters get 5-6 points)
-        int stageCount = encounterInfo.Stages.Count;
-        MaxFocusPoints = stageCount switch
-        {
-            <= 2 => 6, // Short encounters get more Focus
-            3 => 5,    // Standard encounters
-            >= 4 => 7  // Long encounters get more Focus
-        };
+        // All encounters use exactly 6 Focus Points (5-stage system)
+        MaxFocusPoints = 6;
         FocusPoints = MaxFocusPoints;
 
         // Initialize empty Aspect Token pool
@@ -78,33 +73,24 @@
         }
     }
 
-    private void ApplyPositiveEffects(ChoiceProjection projection)
+    public void AddProgress(int amount)
     {
-        // Handle Recovery option
-        if (projection.Choice.ActionType == UniversalActionTypes.Recovery)
-        {
-            RecoverFocusPoint();
-            return;
-        }
+        CurrentProgress = Math.Max(0, CurrentProgress + amount);
+    }
 
-        // Add aspect tokens from positive effects
-        foreach (AspectTokenTypes tokenType in Enum.GetValues<AspectTokenTypes>())
-        {
-            int tokenGain = projection.GetTokenGain(tokenType);
-            if (tokenGain > 0)
-            {
-                AddAspectTokens(tokenType, tokenGain);
-            }
-        }
+    public void LoseProgress(int amount)
+    {
+        CurrentProgress = Math.Max(0, CurrentProgress - amount);
     }
 
     public static EncounterState CreateDeepCopy(EncounterState originalState, PlayerState playerState)
     {
-        EncounterState copy = new EncounterState(originalState.EncounterInfo, playerState.Serialize());
+        EncounterState copy = new EncounterState(originalState.EncounterInfo, playerState);
         copy.CurrentProgress = originalState.CurrentProgress;
         copy.CurrentStageIndex = originalState.CurrentStageIndex;
         copy.CurrentTurn = originalState.CurrentTurn;
         copy.LocationSpot = originalState.LocationSpot;
+        copy.OutcomeThresholdModifier = originalState.OutcomeThresholdModifier;
 
         // Copy Universal Encounter System state
         copy.FocusPoints = originalState.FocusPoints;
@@ -125,12 +111,11 @@
 
     private void ApplyChoiceProjection(PlayerState playerState, Encounter encounterInfo, ChoiceProjection projection)
     {
-        CurrentProgress += projection.ProgressGained;
-        CurrentTurn++;
-
         // Apply Universal Encounter System effects
         ApplyUniversalEncounterEffects(projection, playerState);
 
+        // Advance turn and stage
+        CurrentTurn++;
         if (CurrentStageIndex < EncounterInfo.Stages.Count)
         {
             EncounterInfo.Stages[CurrentStageIndex].IsCompleted = true;
@@ -143,62 +128,114 @@
 
     private void ApplyUniversalEncounterEffects(ChoiceProjection projection, PlayerState playerState)
     {
-        // Spend Focus Points for the choice
-        SpendFocusPoints(projection.FocusCost);
+        EncounterOption choice = projection.Choice;
 
-        // Apply positive effects (token generation or conversion)
-        ApplyPositiveEffects(projection);
+        // Spend Focus Points for the choice
+        SpendFocusPoints(choice.FocusCost);
+
+        // Handle token conversion actions first (spend tokens)
+        if (choice.RequiresTokens() && projection.IsAffordableAspectTokens)
+        {
+            ApplyTokenConversion(choice);
+        }
+
+        // Apply positive effects
+        ApplyPositiveEffects(projection, choice);
 
         // Apply negative consequences if skill check failed
         if (!projection.SkillCheckSuccess)
         {
-            ApplyNegativeConsequences(projection, playerState);
+            ApplyNegativeConsequences(choice, playerState);
         }
     }
 
-    private void ApplyTokenConversion(ChoiceProjection projection)
+    private void ApplyTokenConversion(EncounterOption choice)
     {
-        // Spend the required tokens for conversion
-        foreach (AspectTokenTypes tokenType in Enum.GetValues<AspectTokenTypes>())
+        // Spend the required tokens for conversion actions
+        foreach (var tokenCost in choice.TokenCosts)
         {
-            int tokenCost = projection.GetTokenCost(tokenType);
-            if (tokenCost > 0)
+            SpendAspectTokens(tokenCost.Key, tokenCost.Value);
+        }
+    }
+
+    private void ApplyPositiveEffects(ChoiceProjection projection, EncounterOption choice)
+    {
+        // Handle Recovery option
+        if (choice.ActionType == UniversalActionTypes.Recovery)
+        {
+            RecoverFocusPoint();
+            return;
+        }
+
+        // Add aspect tokens from generation effects
+        foreach (var tokenGain in projection.AspectTokensGained)
+        {
+            if (tokenGain.Value > 0)
             {
-                SpendAspectTokens(tokenType, tokenCost);
+                AddAspectTokens(tokenGain.Key, tokenGain.Value);
             }
         }
+
+        // Add progress from conversion/hybrid effects
+        if (projection.ProgressGained > 0)
+        {
+            AddProgress(projection.ProgressGained);
+        }
     }
 
-    private void ApplyNegativeConsequences(ChoiceProjection projection, PlayerState playerState)
+    private void ApplyNegativeConsequences(EncounterOption choice, PlayerState playerState)
     {
-        NegativeConsequenceTypes consequenceType = projection.NegativeConsequenceType;
+        NegativeConsequenceTypes consequenceType = choice.NegativeConsequenceType;
+
+        // Handle Recovery cascading negative
+        if (choice.ActionType == UniversalActionTypes.Recovery)
+        {
+            consequenceType = DetermineRecoveryNegative();
+        }
 
         switch (consequenceType)
         {
-            case NegativeConsequenceTypes.FutureCostIncrease:
-                // Next choice costs +1 Focus (handled in choice generation)
-                break;
-
-            case NegativeConsequenceTypes.TokenDisruption:
-                // Discard 1 random token
-                AspectTokens.DiscardRandomToken();
-                break;
-
-            case NegativeConsequenceTypes.ThresholdIncrease:
-                // Increase final success requirements
-                EncounterInfo.TotalProgress += 1;
-                break;
-
             case NegativeConsequenceTypes.ProgressLoss:
-                // Lose progress
-                CurrentProgress = Math.Max(0, CurrentProgress - 1);
+                LoseProgress(1);
                 break;
 
             case NegativeConsequenceTypes.FocusLoss:
-                // Lose Focus from encounter pool
-                FocusPoints = Math.Max(0, FocusPoints - 1);
+                SpendFocusPoints(1);
+                break;
+
+            case NegativeConsequenceTypes.TokenDisruption:
+                AspectTokens.DiscardRandomTokens(2); // Recovery discard is 2 tokens
+                break;
+
+            case NegativeConsequenceTypes.ThresholdIncrease:
+                OutcomeThresholdModifier++;
+                break;
+
+            case NegativeConsequenceTypes.GenerationReduction:
+                // This is handled in ChoiceProjectionService during projection
+                // The tokens are already reduced in the projection
+                break;
+
+            case NegativeConsequenceTypes.ConversionReduction:
+                // This is handled in ChoiceProjectionService during projection
+                // The progress is already reduced in the projection
+                break;
+
+            case NegativeConsequenceTypes.None:
+                // No consequence to apply
                 break;
         }
+    }
+
+    private NegativeConsequenceTypes DetermineRecoveryNegative()
+    {
+        // Cascading recovery negative system
+        if (CurrentProgress > 0)
+            return NegativeConsequenceTypes.ProgressLoss;
+        else if (AspectTokens.GetTotalTokenCount() >= 2)
+            return NegativeConsequenceTypes.TokenDisruption;
+        else
+            return NegativeConsequenceTypes.ThresholdIncrease;
     }
 
     public void UpdateStateHistory(EncounterOption selectedChoice)
@@ -207,7 +244,7 @@
     }
 
     public ChoiceProjection CreateChoiceProjection(
-        EncounterOption choice, 
+        EncounterOption choice,
         PlayerState playerState)
     {
         Location location = playerState.CurrentLocation;
@@ -217,6 +254,29 @@
             this,
             playerState,
             location);
+    }
+
+    public bool IsEncounterComplete()
+    {
+        return CurrentStageIndex >= 4; // 5 stages (0-4), complete when past stage 4
+    }
+
+    public EncounterOutcomes GetFinalOutcome()
+    {
+        if (!IsEncounterComplete()) return EncounterOutcomes.None;
+
+        int basicThreshold = 10 + OutcomeThresholdModifier;
+        int goodThreshold = 14 + OutcomeThresholdModifier;
+        int excellentThreshold = 18 + OutcomeThresholdModifier;
+
+        if (CurrentProgress >= excellentThreshold)
+            return EncounterOutcomes.ExcellentSuccess;
+        else if (CurrentProgress >= goodThreshold)
+            return EncounterOutcomes.GoodSuccess;
+        else if (CurrentProgress >= basicThreshold)
+            return EncounterOutcomes.BasicSuccess;
+        else
+            return EncounterOutcomes.Failure;
     }
 }
 
@@ -235,7 +295,7 @@ public class AspectTokenPool
 
     public void AddTokens(AspectTokenTypes tokenType, int amount)
     {
-        tokens[tokenType] += amount;
+        tokens[tokenType] += Math.Max(0, amount);
     }
 
     public void SpendTokens(AspectTokenTypes tokenType, int amount)
@@ -248,25 +308,42 @@ public class AspectTokenPool
         return tokens[tokenType];
     }
 
+    public int GetTotalTokenCount()
+    {
+        return tokens.Values.Sum();
+    }
+
     public void DiscardRandomToken()
     {
-        List<AspectTokenTypes> availableTypes = tokens
-            .Where(kvp => kvp.Value > 0)
-            .Select(kvp => kvp.Key)
-            .ToList();
+        DiscardRandomTokens(1);
+    }
 
-        if (availableTypes.Count > 0)
+    public void DiscardRandomTokens(int count)
+    {
+        for (int i = 0; i < count; i++)
         {
-            Random random = new Random();
-            AspectTokenTypes randomType = availableTypes[random.Next(availableTypes.Count)];
-            SpendTokens(randomType, 1);
+            List<AspectTokenTypes> availableTypes = tokens
+                .Where(kvp => kvp.Value > 0)
+                .Select(kvp => kvp.Key)
+                .ToList();
+
+            if (availableTypes.Count > 0)
+            {
+                Random random = new Random();
+                AspectTokenTypes randomType = availableTypes[random.Next(availableTypes.Count)];
+                SpendTokens(randomType, 1);
+            }
+            else
+            {
+                break; // No more tokens to discard
+            }
         }
     }
 
     public AspectTokenPool CreateCopy()
     {
         AspectTokenPool copy = new AspectTokenPool();
-        foreach (KeyValuePair<AspectTokenTypes, int> kvp in tokens)
+        foreach (var kvp in tokens)
         {
             copy.tokens[kvp.Key] = kvp.Value;
         }
@@ -277,22 +354,25 @@ public class AspectTokenPool
     {
         return new Dictionary<AspectTokenTypes, int>(tokens);
     }
-}
 
-public enum AspectTokenTypes
-{
-    Force,    // Red - Direct, powerful application
-    Flow,     // Blue - Adaptive, responsive approach
-    Focus,    // Yellow - Concentrated, precise effort
-    Fortitude // Green - Sustained, patient approach
+    public bool HasTokens(AspectTokenTypes tokenType, int amount)
+    {
+        return tokens[tokenType] >= amount;
+    }
+
+    public bool HasAnyTokens()
+    {
+        return tokens.Values.Any(count => count > 0);
+    }
 }
 
 public enum NegativeConsequenceTypes
 {
     None,
-    FutureCostIncrease,  // Next choice costs +1 Focus
-    TokenDisruption,     // Discard 1 random token
-    ThresholdIncrease,   // Final success requirements +1
-    ProgressLoss,        // Lose 1 Progress Marker
-    FocusLoss,           // Lose 1 Focus Point from pool
+    GenerationReduction,    // "This generation produces 1 fewer token"
+    ConversionReduction,    // "This conversion yields 1 less Progress"
+    ProgressLoss,          // "Lose 1 Progress Marker"
+    FocusLoss,             // "Lose 1 Focus Point"
+    ThresholdIncrease,     // "Success thresholds increase by 1"
+    TokenDisruption        // "Discard random tokens" (used by Recovery)
 }

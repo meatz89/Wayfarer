@@ -354,7 +354,7 @@
         {
             UniversalActionTypes.GenerationA => NegativeConsequenceTypes.ProgressLoss,
             UniversalActionTypes.GenerationB => NegativeConsequenceTypes.TokenDisruption,
-            _ => NegativeConsequenceTypes.FutureCostIncrease
+            _ => NegativeConsequenceTypes.ThresholdIncrease
         };
     }
 
@@ -459,10 +459,3 @@
     }
 }
 
-
-public enum EncounterTiers
-{
-    Foundation,    // Stages 1-2
-    Development,   // Stages 3-4
-    Execution      // Stage 5
-}

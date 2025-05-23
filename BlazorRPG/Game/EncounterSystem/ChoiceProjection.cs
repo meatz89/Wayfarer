@@ -17,7 +17,7 @@
     public int FocusPointsGained { get; set; }
 
     // --- Skill Check Details ---
-    public bool HasSkillCheck { get; }
+    public bool HasSkillCheck { get; set;  }
     public SkillTypes SkillUsed { get; }
     public int BaseSkillLevel { get; set; }
     public int LocationModifierValue { get; set; }
