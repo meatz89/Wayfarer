@@ -119,8 +119,9 @@
     }
 
 
-    public async Task<string> GenerateEncounterNarrative(
+    public async Task<string> GenerateReactionAsync(
         NarrativeContext context,
+        EncounterState encounterState,
         EncounterOption chosenOption,
         ChoiceNarrative choiceNarrative,
         ChoiceOutcome outcome,
@@ -130,7 +131,7 @@
         string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
         string prompt = _promptManager.BuildReactionPrompt(
-            context, chosenOption, choiceNarrative, outcome);
+            context, encounterState, chosenOption, choiceNarrative, outcome);
 
         if (!_contextManager.ConversationExists(conversationId))
         {

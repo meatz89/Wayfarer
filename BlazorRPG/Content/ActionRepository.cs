@@ -11,9 +11,9 @@
     {
         if (_worldState.actions.Any(a =>
         {
-            return a.Id.Equals(action.Id, StringComparison.OrdinalIgnoreCase);
+            return a.Name.Equals(action.Name, StringComparison.OrdinalIgnoreCase);
         }))
-            throw new InvalidOperationException($"Action '{action.Id}' already exists.");
+            throw new InvalidOperationException($"Action '{action.Name}' already exists.");
 
         _worldState.actions.Add(action);
     }

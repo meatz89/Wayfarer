@@ -25,18 +25,6 @@ public class PromptManager
         LoadPromptTemplates(promptsPath);
     }
 
-    public string BuildActionGenerationPrompt(ActionGenerationContext context)
-    {
-        string template = promptTemplates[ACTION_GENERATION_MD];
-
-        string prompt = template
-            .Replace("{ACTIONNAME}", context.ActionId)
-            .Replace("{SPOT_NAME}", context.SpotName)
-            .Replace("{LOCATION_NAME}", context.LocationName);
-
-        return CreatePromptJson(prompt);
-    }
-
     public string BuildIntroductionPrompt(
         NarrativeContext context,
         List<Character> characters,
@@ -81,6 +69,70 @@ public class PromptManager
 
         return CreatePromptJson(prompt);
     }
+
+    public string BuildReactionPrompt(
+        NarrativeContext context,
+        EncounterState encounterState,
+        EncounterOption chosenOption,
+        ChoiceNarrative choiceDescription,
+        ChoiceOutcome outcome)
+    {
+        string template = promptTemplates[REACTION_MD];
+
+        // Format strategic effects
+        StringBuilder strategicEffects = new StringBuilder();
+        if (outcome.HealthChange != 0)
+        {
+            strategicEffects.AppendLine($"- Health Change: {outcome.HealthChange}");
+        }
+
+        if (outcome.ConcentrationChange != 0)
+        {
+            strategicEffects.AppendLine($"- Concentration Change: {outcome.ConcentrationChange}");
+        }
+
+        string environmentDetails = $"A {context.LocationSpotName.ToLower()} in a {context.LocationName.ToLower()}";
+
+        // Format player character info
+        string characterArchetype = context.PlayerState.Archetype.ToString();
+        string playerStatus = $"Archetype: {characterArchetype}";
+
+
+        string prompt = template
+            .Replace("{ENCOUNTER_TYPE}", context.EncounterType.ToString())
+            .Replace("{LOCATION_NAME}", context.LocationName)
+            .Replace("{CURRENT_TURN}", encounterState.CurrentTurn.ToString())
+            .Replace("{MAX_TURNS}", encounterState.MaxTurns.ToString())
+            .Replace("{ENVIRONMENT_DETAILS}", environmentDetails)
+            .Replace("{PLAYER_STATUS}", playerStatus)
+            .Replace("{SELECTED_CHOICE}", choiceDescription.ShorthandName)
+            .Replace("{CHOICE_DESCRIPTION}", choiceDescription.FullDescription);
+
+        return CreatePromptJson(prompt);
+    }
+
+    public string BuildChoicesPrompt(NarrativeContext narrativeContext, EncounterState encounterState, List<EncounterOption> choices, List<ChoiceProjection> projections)
+    {
+        string prompt = promptTemplates[CHOICES_MD];
+
+        // Basic encounter info
+        prompt = prompt.Replace("{ENCOUNTER_TYPE}", GetEncounterTypeDescription(narrativeContext.EncounterType));
+        prompt = prompt.Replace("{CURRENT_STAGE}", (encounterState.CurrentStageIndex + 1).ToString());
+        prompt = prompt.Replace("{ENCOUNTER_TIER}", GetTierName(encounterState.CurrentStageIndex + 1));
+
+        // Progress tracking
+        prompt = prompt.Replace("{CURRENT_PROGRESS}", encounterState.CurrentProgress.ToString());
+        prompt = prompt.Replace("{SUCCESS_THRESHOLD}", encounterState.EncounterInfo.SuccessThreshold.ToString());
+
+        // Player status
+        prompt = prompt.Replace("{PLAYER_STATUS}", BuildPlayerStatusSection(encounterState, narrativeContext.PlayerState));
+
+        // Choices mechanical info
+        prompt = prompt.Replace("{CHOICES_INFO}", BuildChoicesInfo(narrativeContext, choices, projections));
+
+        return prompt;
+    }
+
 
     private string GetCharactersAtLocation(string locationName,
         List<Character> characters,
@@ -129,10 +181,6 @@ public class PromptManager
             }
         }
 
-        characterInfo.AppendLine("Include these characters in the narrative with appropriate reactions based on relationship level.");
-        characterInfo.AppendLine("Characters with higher relationship levels should be more helpful and friendly.");
-        characterInfo.AppendLine("Characters with negative relationship levels should be wary, suspicious, or hostile.");
-
         return characterInfo.ToString();
     }
 
@@ -158,57 +206,6 @@ public class PromptManager
             return desc;
         else
             return "Unkown";
-    }
-
-    public string BuildReactionPrompt(
-        NarrativeContext context,
-        EncounterOption chosenOption,
-        ChoiceNarrative choiceDescription,
-        ChoiceOutcome outcome)
-    {
-        string template = promptTemplates[REACTION_MD];
-
-        // Format strategic effects
-        StringBuilder strategicEffects = new StringBuilder();
-        if (outcome.HealthChange != 0)
-        {
-            strategicEffects.AppendLine($"- Health Change: {outcome.HealthChange}");
-        }
-
-        if (outcome.ConcentrationChange != 0)
-        {
-            strategicEffects.AppendLine($"- Concentration Change: {outcome.ConcentrationChange}");
-        }
-
-        // Replace placeholders in template
-        string prompt = template
-            .Replace("{SELECTED_CHOICE}", choiceDescription.ShorthandName)
-            .Replace("{CHOICE_DESCRIPTION}", choiceDescription.FullDescription)
-            .Replace("{STRATEGIC_EFFECTS}", strategicEffects.ToString());
-
-        return CreatePromptJson(prompt);
-    }
-
-    public string BuildChoicesPrompt(NarrativeContext narrativeContext, EncounterState encounterState, List<EncounterOption> choices, List<ChoiceProjection> projections)
-    {
-        string prompt = promptTemplates[CHOICES_MD];
-
-        // Basic encounter info
-        prompt = prompt.Replace("{ENCOUNTER_TYPE}", GetEncounterTypeDescription(narrativeContext.EncounterType));
-        prompt = prompt.Replace("{CURRENT_STAGE}", (encounterState.CurrentStageIndex + 1).ToString());
-        prompt = prompt.Replace("{ENCOUNTER_TIER}", GetTierName(encounterState.CurrentStageIndex + 1));
-
-        // Progress tracking
-        prompt = prompt.Replace("{CURRENT_PROGRESS}", encounterState.CurrentProgress.ToString());
-        prompt = prompt.Replace("{SUCCESS_THRESHOLD}", encounterState.EncounterInfo.SuccessThreshold.ToString());
-
-        // Player status
-        prompt = prompt.Replace("{PLAYER_STATUS}", BuildPlayerStatusSection(encounterState, narrativeContext.PlayerState));
-
-        // Choices mechanical info
-        prompt = prompt.Replace("{CHOICES_INFO}", BuildChoicesInfo(narrativeContext, choices, projections));
-
-        return prompt;
     }
 
     private string GetEncounterTypeDescription(CardTypes encounterType)
@@ -646,6 +643,17 @@ public class PromptManager
             }
             return string.Join(", ", tagStrings);
         }
+    }
 
+    public string BuildActionGenerationPrompt(ActionGenerationContext context)
+    {
+        string template = promptTemplates[ACTION_GENERATION_MD];
+
+        string prompt = template
+            .Replace("{ACTIONNAME}", context.ActionId)
+            .Replace("{SPOT_NAME}", context.SpotName)
+            .Replace("{LOCATION_NAME}", context.LocationName);
+
+        return CreatePromptJson(prompt);
     }
 }
