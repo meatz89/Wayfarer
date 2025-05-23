@@ -6,5 +6,4 @@
     public string Type { get; set; } = "";
     public string LocationName { get; set; } = "";
     public string LocationSpotId { get; set; } = "";
-    public EncounterDefinition EncounterDefinition { get; set; }
 }

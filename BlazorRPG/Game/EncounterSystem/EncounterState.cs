@@ -8,11 +8,11 @@
     public Encounter EncounterInfo { get; }
     public LocationSpot LocationSpot { get; set; }
 
-    // Universal Encounter System additions
     public int FocusPoints { get; private set; }
     public int MaxFocusPoints { get; private set; }
     public AspectTokenPool AspectTokens { get; private set; }
     public CardTypes EncounterType { get; private set; }
+    public int OutcomeThresholdModifier { get; set; }
 
     public EncounterState(Encounter encounterInfo, PlayerState playerState)
     {
@@ -68,6 +68,34 @@
     public void SpendAspectTokens(AspectTokenTypes tokenType, int amount)
     {
         AspectTokens.SpendTokens(tokenType, amount);
+    }
+
+    public void RecoverFocusPoint()
+    {
+        if (FocusPoints < MaxFocusPoints)
+        {
+            FocusPoints++;
+        }
+    }
+
+    private void ApplyPositiveEffects(ChoiceProjection projection)
+    {
+        // Handle Recovery option
+        if (projection.Choice.ActionType == UniversalActionTypes.Recovery)
+        {
+            RecoverFocusPoint();
+            return;
+        }
+
+        // Add aspect tokens from positive effects
+        foreach (AspectTokenTypes tokenType in Enum.GetValues<AspectTokenTypes>())
+        {
+            int tokenGain = projection.GetTokenGain(tokenType);
+            if (tokenGain > 0)
+            {
+                AddAspectTokens(tokenType, tokenGain);
+            }
+        }
     }
 
     public static EncounterState CreateDeepCopy(EncounterState originalState, PlayerState playerState)
@@ -128,25 +156,6 @@
         }
     }
 
-    private void ApplyPositiveEffects(ChoiceProjection projection)
-    {
-        // Add aspect tokens from positive effects
-        foreach (AspectTokenTypes tokenType in Enum.GetValues<AspectTokenTypes>())
-        {
-            int tokenGain = projection.GetTokenGain(tokenType);
-            if (tokenGain > 0)
-            {
-                AddAspectTokens(tokenType, tokenGain);
-            }
-        }
-
-        // Convert tokens to progress if this was a conversion choice
-        if (projection.IsConversionChoice)
-        {
-            ApplyTokenConversion(projection);
-        }
-    }
-
     private void ApplyTokenConversion(ChoiceProjection projection)
     {
         // Spend the required tokens for conversion
@@ -197,19 +206,17 @@
         PreviousChoice = selectedChoice;
     }
 
-    public ChoiceProjection CreateChoiceProjection(EncounterOption choice, PlayerState playerState)
+    public ChoiceProjection CreateChoiceProjection(
+        EncounterOption choice, 
+        PlayerState playerState)
     {
         Location location = playerState.CurrentLocation;
 
-        // Create enhanced projection using Universal Encounter System
         return ChoiceProjectionService.CreateUniversalChoiceProjection(
             choice,
-            CurrentProgress,
-            EncounterInfo.TotalProgress,
-            CurrentTurn,
+            this,
             playerState,
-            location,
-            this); // Pass encounter state for Focus/Token context
+            location);
     }
 }
 
@@ -282,9 +289,10 @@ public enum AspectTokenTypes
 
 public enum NegativeConsequenceTypes
 {
+    None,
     FutureCostIncrease,  // Next choice costs +1 Focus
     TokenDisruption,     // Discard 1 random token
     ThresholdIncrease,   // Final success requirements +1
     ProgressLoss,        // Lose 1 Progress Marker
-    FocusLoss           // Lose 1 Focus Point from pool
+    FocusLoss,           // Lose 1 Focus Point from pool
 }

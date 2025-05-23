@@ -53,14 +53,14 @@
     {
         int currentCount = GetItemCount(item);
 
-        if (count > currentCount) // Adding items
+        if (count > currentCount) 
         {
             while (currentCount < count && AddItem(item))
             {
                 currentCount++;
             }
         }
-        else if (count < currentCount) // Removing items
+        else if (count < currentCount) 
         {
             while (currentCount > count && RemoveItem(item))
             {
@@ -69,7 +69,6 @@
         }
     }
 
-    // Method to add multiple items of the same type to the inventory
     public int AddItems(string resource, int count)
     {
         int addedCount = 0;
@@ -82,14 +81,13 @@
             }
             else
             {
-                break; // Stop if inventory is full
+                break;
             }
         }
 
-        return addedCount; // Return the number of items successfully added
+        return addedCount;
     }
 
-    // Method to remove multiple items of the same type from the inventory
     public int RemoveItems(string resource, int count)
     {
         int removedCount = 0;
@@ -102,20 +100,18 @@
             }
             else
             {
-                break; // Stop if no more items of the type are found
+                break; 
             }
         }
 
-        return removedCount; // Return the number of items successfully removed
+        return removedCount; 
     }
 
-    // Method to add an item to the inventory
     public bool AddItem(ItemTypes itemTypes)
     {
         return AddItem(itemTypes.ToString());
     }
 
-    // Method to add an item to the inventory
     public bool AddItem(string item)
     {
         for (int i = 0; i < Slots.Length; i++)
@@ -123,13 +119,12 @@
             if (Slots[i] == string.Empty)
             {
                 Slots[i] = item;
-                return true; // Successfully added
+                return true; 
             }
         }
-        return false; // Inventory full
+        return false; 
     }
 
-    // Method to remove an item from the inventory
     public bool RemoveItem(string item)
     {
         for (int i = 0; i < Slots.Length; i++)
@@ -137,13 +132,12 @@
             if (Slots[i] == item)
             {
                 Slots[i] = string.Empty;
-                return true; // Successfully removed
+                return true;
             }
         }
-        return false; // Item not found
+        return false;
     }
 
-    // Method to check if the inventory contains a specific item
     public bool ContainsItem(string item)
     {
         foreach (string slot in Slots)
@@ -156,7 +150,6 @@
         return false;
     }
 
-    // Method to check how many empty slots are left
     public int GetEmptySlots()
     {
         int emptyCount = 0;
@@ -170,7 +163,6 @@
         return emptyCount;
     }
 
-    // Method to count the number of a given item type in the inventory
     public int GetItemCount(string item)
     {
         int count = 0;

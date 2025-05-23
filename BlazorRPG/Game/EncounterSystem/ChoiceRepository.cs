@@ -1,522 +1,468 @@
 ﻿public class ChoiceRepository
 {
-    private readonly List<EncounterOption> narrativeChoices = new();
+    private readonly ILogger<ChoiceRepository> _logger;
 
-    public ChoiceRepository()
+    public ChoiceRepository(ILogger<ChoiceRepository> logger)
     {
-        InitializeChoices();
-    }
-
-    private void InitializeChoices()
-    {
-        // Safety Options (0 Focus cost - always available)
-        InitializeSafetyOptions();
-
-        // Token Generation Options (1-2 Focus cost)
-        InitializeTokenGenerationOptions();
-
-        // Token Conversion Options (1-2 Focus cost, require tokens)
-        InitializeTokenConversionOptions();
-    }
-
-    private void InitializeSafetyOptions()
-    {
-        // Physical Safety Options
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "observe_physical_situation",
-            "Survey the Situation",
-            "Take a moment to carefully assess the physical challenges ahead",
-            SkillTypes.Agility,
-            4,
-            0, // Focus cost
-            UniversalActionType.SafetyOption,
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Flow, 1 } },
-            new Dictionary<AspectTokenTypes, int>(),
-            NegativeConsequenceTypes.ThresholdIncrease,
-            new List<string> { "Physical", "Safety", "Observation" }
-        ));
-
-        // Social Safety Options  
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "observe_social_situation",
-            "Listen and Assess",
-            "Quietly observe the social dynamics before taking action",
-            SkillTypes.Persuasion,
-            4,
-            0, // Focus cost
-            UniversalActionType.SafetyOption,
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Focus, 1 } },
-            new Dictionary<AspectTokenTypes, int>(),
-            NegativeConsequenceTypes.ThresholdIncrease,
-            new List<string> { "Social", "Safety", "Observation" }
-        ));
-
-        // Intellectual Safety Options
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "observe_intellectual_situation",
-            "Consider Options",
-            "Think through the problem methodically before proceeding",
-            SkillTypes.Planning,
-            4,
-            0, // Focus cost
-            UniversalActionType.SafetyOption,
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Focus, 1 } },
-            new Dictionary<AspectTokenTypes, int>(),
-            NegativeConsequenceTypes.ThresholdIncrease,
-            new List<string> { "Intellectual", "Safety", "Planning" }
-        ));
-    }
-
-    private void InitializeTokenGenerationOptions()
-    {
-        // FORCE GENERATION OPTIONS
-
-        // Physical Force Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "apply_physical_force",
-            "Apply Direct Force",
-            "Use raw physical strength to overcome the obstacle",
-            SkillTypes.Strength,
-            3,
-            1, // Focus cost
-            UniversalActionType.GenerateForce,
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Force, 2 } },
-            new Dictionary<AspectTokenTypes, int>(),
-            NegativeConsequenceTypes.ProgressLoss,
-            new List<string> { "Physical", "Force", "Direct" }
-        ));
-
-        // Social Force Generation  
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "assert_dominance",
-            "Assert Dominance",
-            "Take command of the social situation through forceful presence",
-            SkillTypes.Intimidation,
-            3,
-            1, // Focus cost
-            UniversalActionType.GenerateForce,
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Force, 2 } },
-            new Dictionary<AspectTokenTypes, int>(),
-            NegativeConsequenceTypes.ProgressLoss,
-            new List<string> { "Social", "Force", "Intimidation" }
-        ));
-
-        // Intellectual Force Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "cut_to_analysis",
-            "Direct Analysis",
-            "Cut straight to the core of the problem with analytical thinking",
-            SkillTypes.Analysis,
-            3,
-            1, // Focus cost
-            UniversalActionType.GenerateForce,
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Force, 2 } },
-            new Dictionary<AspectTokenTypes, int>(),
-            NegativeConsequenceTypes.ProgressLoss,
-            new List<string> { "Intellectual", "Force", "Analysis" }
-        ));
-
-        // FLOW GENERATION OPTIONS
-
-        // Physical Flow Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "move_fluidly",
-            "Move Fluidly",
-            "Adapt your movement to flow around obstacles",
-            SkillTypes.Agility,
-            3,
-            1, // Focus cost
-            UniversalActionType.GenerateFlow,
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Flow, 2 } },
-            new Dictionary<AspectTokenTypes, int>(),
-            NegativeConsequenceTypes.TokenDisruption,
-            new List<string> { "Physical", "Flow", "Adaptive" }
-        ));
-
-        // Social Flow Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "read_and_adapt",
-            "Read and Adapt",
-            "Read the social situation and adapt your approach accordingly",
-            SkillTypes.Charm,
-            3,
-            1, // Focus cost
-            UniversalActionType.GenerateFlow,
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Flow, 2 } },
-            new Dictionary<AspectTokenTypes, int>(),
-            NegativeConsequenceTypes.TokenDisruption,
-            new List<string> { "Social", "Flow", "Adaptive" }
-        ));
-
-        // Intellectual Flow Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "follow_patterns",
-            "Follow Patterns",
-            "Notice emerging patterns and follow where they lead",
-            SkillTypes.Observation,
-            3,
-            1, // Focus cost
-            UniversalActionType.GenerateFlow,
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Flow, 2 } },
-            new Dictionary<AspectTokenTypes, int>(),
-            NegativeConsequenceTypes.TokenDisruption,
-            new List<string> { "Intellectual", "Flow", "Observation" }
-        ));
-
-        // FOCUS GENERATION OPTIONS
-
-        // Physical Focus Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "work_precisely",
-            "Work with Precision",
-            "Apply careful, precise technique to the physical task",
-            SkillTypes.Precision,
-            3,
-            1, // Focus cost
-            UniversalActionType.GenerateFocus,
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Focus, 2 } },
-            new Dictionary<AspectTokenTypes, int>(),
-            NegativeConsequenceTypes.FutureCostIncrease,
-            new List<string> { "Physical", "Focus", "Precision" }
-        ));
-
-        // Social Focus Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "targeted_persuasion",
-            "Targeted Persuasion",
-            "Focus your words precisely to convince the other person",
-            SkillTypes.Persuasion,
-            3,
-            1, // Focus cost
-            UniversalActionType.GenerateFocus,
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Focus, 2 } },
-            new Dictionary<AspectTokenTypes, int>(),
-            NegativeConsequenceTypes.FutureCostIncrease,
-            new List<string> { "Social", "Focus", "Persuasion" }
-        ));
-
-        // Intellectual Focus Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "apply_expertise",
-            "Apply Expertise",
-            "Draw upon your concentrated knowledge and expertise",
-            SkillTypes.Knowledge,
-            3,
-            1, // Focus cost
-            UniversalActionType.GenerateFocus,
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Focus, 2 } },
-            new Dictionary<AspectTokenTypes, int>(),
-            NegativeConsequenceTypes.FutureCostIncrease,
-            new List<string> { "Intellectual", "Focus", "Knowledge" }
-        ));
-
-        // FORTITUDE GENERATION OPTIONS (Higher cost, higher reward)
-
-        // Physical Fortitude Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "sustained_effort",
-            "Sustained Physical Effort",
-            "Commit to persistent, methodical physical work",
-            SkillTypes.Endurance,
-            4,
-            2, // Higher Focus cost
-            UniversalActionType.GenerateFortitude,
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Fortitude, 3 } },
-            new Dictionary<AspectTokenTypes, int>(),
-            NegativeConsequenceTypes.TokenDisruption,
-            new List<string> { "Physical", "Fortitude", "Endurance" }
-        ));
-
-        // Social Fortitude Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "maintain_deception",
-            "Maintain Consistent Facade",
-            "Keep up a consistent social facade over time",
-            SkillTypes.Deception,
-            4,
-            2, // Higher Focus cost
-            UniversalActionType.GenerateFortitude,
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Fortitude, 3 } },
-            new Dictionary<AspectTokenTypes, int>(),
-            NegativeConsequenceTypes.TokenDisruption,
-            new List<string> { "Social", "Fortitude", "Deception" }
-        ));
-
-        // Intellectual Fortitude Generation
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "methodical_planning",
-            "Methodical Planning",
-            "Engage in careful, long-term strategic thinking",
-            SkillTypes.Planning,
-            4,
-            2, // Higher Focus cost
-            UniversalActionType.GenerateFortitude,
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Fortitude, 3 } },
-            new Dictionary<AspectTokenTypes, int>(),
-            NegativeConsequenceTypes.TokenDisruption,
-            new List<string> { "Intellectual", "Fortitude", "Planning" }
-        ));
-    }
-
-    private void InitializeTokenConversionOptions()
-    {
-        // BASIC CONVERSION OPTIONS (Force + Flow → Progress)
-
-        // Physical Basic Conversion
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "combined_physical_effort",
-            "Combined Physical Effort",
-            "Combine strength and agility for efficient physical work",
-            SkillTypes.Strength,
-            4,
-            1, // Focus cost
-            UniversalActionType.BasicConversion,
-            new Dictionary<AspectTokenTypes, int>(), // No token generation
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Force, 1 }, { AspectTokenTypes.Flow, 1 } },
-            NegativeConsequenceTypes.TokenDisruption,
-            new List<string> { "Physical", "Conversion", "Combined" }
-        ));
-
-        // Social Basic Conversion
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "balanced_social_approach",
-            "Balanced Social Approach",
-            "Balance assertiveness with adaptability in your social approach",
-            SkillTypes.Persuasion,
-            4,
-            1, // Focus cost
-            UniversalActionType.BasicConversion,
-            new Dictionary<AspectTokenTypes, int>(), // No token generation
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Force, 1 }, { AspectTokenTypes.Flow, 1 } },
-            NegativeConsequenceTypes.TokenDisruption,
-            new List<string> { "Social", "Conversion", "Balanced" }
-        ));
-
-        // Intellectual Basic Conversion  
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "analytical_observation",
-            "Analytical Observation",
-            "Combine direct analysis with careful observation",
-            SkillTypes.Analysis,
-            4,
-            1, // Focus cost
-            UniversalActionType.BasicConversion,
-            new Dictionary<AspectTokenTypes, int>(), // No token generation
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Force, 1 }, { AspectTokenTypes.Flow, 1 } },
-            NegativeConsequenceTypes.TokenDisruption,
-            new List<string> { "Intellectual", "Conversion", "Analysis" }
-        ));
-
-        // SPECIALIZED CONVERSION OPTIONS (2 of same token → Progress + bonus)
-
-        // Physical Specialized Conversions
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "pure_strength_application",
-            "Pure Strength Application",
-            "Apply overwhelming physical force to the problem",
-            SkillTypes.Strength,
-            4,
-            1, // Focus cost
-            UniversalActionType.SpecializedConversion,
-            new Dictionary<AspectTokenTypes, int>(), // No token generation
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Force, 2 } },
-            NegativeConsequenceTypes.FutureCostIncrease,
-            new List<string> { "Physical", "Specialized", "Force" }
-        ));
-
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "sustained_endurance",
-            "Sustained Endurance",
-            "Apply persistent, methodical physical effort over time",
-            SkillTypes.Endurance,
-            4,
-            1, // Focus cost
-            UniversalActionType.SpecializedConversion,
-            new Dictionary<AspectTokenTypes, int>(), // No token generation
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Fortitude, 2 } },
-            NegativeConsequenceTypes.FutureCostIncrease,
-            new List<string> { "Physical", "Specialized", "Endurance" }
-        ));
-
-        // Social Specialized Conversions
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "sustained_social_pressure",
-            "Sustained Social Pressure",
-            "Maintain consistent social pressure over time",
-            SkillTypes.Deception,
-            4,
-            1, // Focus cost
-            UniversalActionType.SpecializedConversion,
-            new Dictionary<AspectTokenTypes, int>(), // No token generation
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Fortitude, 2 } },
-            NegativeConsequenceTypes.FutureCostIncrease,
-            new List<string> { "Social", "Specialized", "Sustained" }
-        ));
-
-        // Intellectual Specialized Conversions
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "deep_expertise_application",
-            "Deep Expertise Application",
-            "Apply concentrated expertise to solve the problem",
-            SkillTypes.Knowledge,
-            4,
-            1, // Focus cost
-            UniversalActionType.SpecializedConversion,
-            new Dictionary<AspectTokenTypes, int>(), // No token generation
-            new Dictionary<AspectTokenTypes, int> { { AspectTokenTypes.Focus, 2 } },
-            NegativeConsequenceTypes.FutureCostIncrease,
-            new List<string> { "Intellectual", "Specialized", "Expertise" }
-        ));
-
-        // PREMIUM CONVERSION OPTIONS (Force + Flow + Focus → Maximum Progress)
-
-        // Physical Premium Conversion
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "masterful_physical_execution",
-            "Masterful Physical Execution",
-            "Execute a masterful combination of strength, agility, and precision",
-            SkillTypes.Strength,
-            5,
-            2, // Higher Focus cost
-            UniversalActionType.PremiumConversion,
-            new Dictionary<AspectTokenTypes, int>(), // No token generation
-            new Dictionary<AspectTokenTypes, int> {
-                { AspectTokenTypes.Force, 1 },
-                { AspectTokenTypes.Flow, 1 },
-                { AspectTokenTypes.Focus, 1 }
-            },
-            NegativeConsequenceTypes.FocusLoss,
-            new List<string> { "Physical", "Premium", "Masterful" }
-        ));
-
-        // Social Premium Conversion
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "masterful_social_execution",
-            "Masterful Social Execution",
-            "Execute a perfect combination of force, adaptability, and precision in social interaction",
-            SkillTypes.Persuasion,
-            5,
-            2, // Higher Focus cost
-            UniversalActionType.PremiumConversion,
-            new Dictionary<AspectTokenTypes, int>(), // No token generation
-            new Dictionary<AspectTokenTypes, int> {
-                { AspectTokenTypes.Force, 1 },
-                { AspectTokenTypes.Flow, 1 },
-                { AspectTokenTypes.Focus, 1 }
-            },
-            NegativeConsequenceTypes.FocusLoss,
-            new List<string> { "Social", "Premium", "Masterful" }
-        ));
-
-        // Intellectual Premium Conversion
-        narrativeChoices.Add(NarrativeChoiceDefinitionFactory.BuildChoice(
-            "masterful_intellectual_synthesis",
-            "Masterful Intellectual Synthesis",
-            "Synthesize analysis, observation, and knowledge into a perfect solution",
-            SkillTypes.Analysis,
-            5,
-            2, // Higher Focus cost
-            UniversalActionType.PremiumConversion,
-            new Dictionary<AspectTokenTypes, int>(), // No token generation
-            new Dictionary<AspectTokenTypes, int> {
-                { AspectTokenTypes.Force, 1 },
-                { AspectTokenTypes.Flow, 1 },
-                { AspectTokenTypes.Focus, 1 }
-            },
-            NegativeConsequenceTypes.FocusLoss,
-            new List<string> { "Intellectual", "Premium", "Synthesis" }
-        ));
-    }
-
-    public List<EncounterOption> GetAll()
-    {
-        return narrativeChoices.ToList();
+        _logger = logger;
     }
 
     public List<EncounterOption> GetForEncounter(EncounterState state)
     {
-        CardTypes encounterType = state.EncounterType;
-        int currentStage = state.CurrentStageIndex + 1; // Convert to 1-based
-        int totalStages = state.EncounterInfo.Stages.Count;
+        int stageNumber = state.CurrentStageIndex + 1;
+        EncounterTiers tier = GetTierForStage(stageNumber);
 
-        List<EncounterOption> stageChoices = new List<EncounterOption>();
+        // Generate exactly 6 choices per stage following the universal template distribution
+        List<EncounterOption> choices = new List<EncounterOption>();
 
-        // Always include safety option
-        stageChoices.AddRange(GetSafetyOptionsForEncounterType(encounterType));
+        // 2 Generation options
+        choices.Add(CreateGenerationOption(UniversalActionTypes.GenerationA, tier, state.EncounterType, stageNumber));
+        choices.Add(CreateGenerationOption(UniversalActionTypes.GenerationB, tier, state.EncounterType, stageNumber));
 
-        // Add appropriate choices based on stage
-        if (currentStage <= 2) // Early stages - token generation
+        // 2 Conversion options (only if player has tokens)
+        choices.Add(CreateConversionOption(UniversalActionTypes.ConversionA, tier, state.EncounterType, stageNumber));
+        choices.Add(CreateConversionOption(UniversalActionTypes.ConversionB, tier, state.EncounterType, stageNumber));
+
+        // 1 Hybrid option
+        choices.Add(CreateHybridOption(tier, state.EncounterType, stageNumber));
+
+        // 1 Recovery option (always available at 0 Focus)
+        choices.Add(CreateRecoveryOption(state));
+
+        return choices;
+    }
+
+    private EncounterTiers GetTierForStage(int stageNumber)
+    {
+        return stageNumber switch
         {
-            stageChoices.AddRange(GetTokenGenerationOptionsForEncounterType(encounterType));
+            1 or 2 => EncounterTiers.Foundation,
+            3 or 4 => EncounterTiers.Development,
+            5 => EncounterTiers.Execution,
+            _ => EncounterTiers.Foundation
+        };
+    }
+
+    private EncounterOption CreateGenerationOption(UniversalActionTypes actionType, EncounterTiers tier, CardTypes encounterType, int stageNumber)
+    {
+        string id = $"Stage{stageNumber}_{actionType}";
+        string name = GetGenerationName(actionType, encounterType);
+
+        // Get tier-specific values
+        (int focusCost, int tokenAmount) = GetGenerationValues(actionType, tier);
+
+        // Map to appropriate skill based on encounter type
+        SkillTypes skill = GetPrimarySkillForGeneration(actionType, encounterType);
+        int difficulty = GetDifficultyForTier(tier);
+
+        EncounterOption option = new EncounterOption(id, name)
+        {
+            Description = GetGenerationDescription(actionType, encounterType),
+            FocusCost = focusCost,
+            Skill = skill,
+            Difficulty = difficulty,
+            ActionType = actionType,
+            TokenGeneration = new Dictionary<AspectTokenTypes, int>(),
+            TokenCosts = new Dictionary<AspectTokenTypes, int>(),
+            NegativeConsequenceType = GetNegativeConsequenceForGeneration(actionType),
+            Tags = new List<string> { "Generation", tier.ToString() }
+        };
+
+        // Set which token type this generates based on skill
+        AspectTokenTypes tokenType = MapSkillToToken(skill, encounterType);
+        option.TokenGeneration[tokenType] = tokenAmount;
+
+        return option;
+    }
+
+    public static AspectTokenTypes MapSkillToToken(SkillTypes skill, CardTypes encounterType)
+    {
+        return encounterType switch
+        {
+            CardTypes.Physical => MapPhysicalSkillToToken(skill),
+            CardTypes.Social => MapSocialSkillToToken(skill),
+            CardTypes.Intellectual => MapIntellectualSkillToToken(skill),
+            _ => AspectTokenTypes.Force // Default fallback
+        };
+    }
+
+    private static AspectTokenTypes MapPhysicalSkillToToken(SkillTypes skill)
+    {
+        return skill switch
+        {
+            SkillTypes.Strength => AspectTokenTypes.Force,
+            SkillTypes.Agility => AspectTokenTypes.Flow,
+            SkillTypes.Precision => AspectTokenTypes.Focus,
+            SkillTypes.Endurance => AspectTokenTypes.Fortitude,
+            _ => AspectTokenTypes.Force
+        };
+    }
+
+    private static AspectTokenTypes MapSocialSkillToToken(SkillTypes skill)
+    {
+        return skill switch
+        {
+            SkillTypes.Intimidation => AspectTokenTypes.Force,
+            SkillTypes.Charm => AspectTokenTypes.Flow,
+            SkillTypes.Persuasion => AspectTokenTypes.Focus,
+            SkillTypes.Deception => AspectTokenTypes.Fortitude,
+            _ => AspectTokenTypes.Flow
+        };
+    }
+
+    private static AspectTokenTypes MapIntellectualSkillToToken(SkillTypes skill)
+    {
+        return skill switch
+        {
+            SkillTypes.Analysis => AspectTokenTypes.Force,
+            SkillTypes.Observation => AspectTokenTypes.Flow,
+            SkillTypes.Knowledge => AspectTokenTypes.Focus,
+            SkillTypes.Planning => AspectTokenTypes.Fortitude,
+            _ => AspectTokenTypes.Focus
+        };
+    }
+
+
+
+    private EncounterOption CreateConversionOption(UniversalActionTypes actionType, EncounterTiers tier, CardTypes encounterType, int stageNumber)
+    {
+        string id = $"Stage{stageNumber}_{actionType}";
+        string name = GetConversionName(actionType, encounterType);
+
+        // Get tier-specific values
+        (int focusCost, int tokensRequired, int progressYield) = GetConversionValues(actionType, tier);
+
+        // Map to appropriate skill
+        SkillTypes skill = GetPrimarySkillForConversion(actionType, encounterType);
+        int difficulty = GetDifficultyForTier(tier);
+
+        EncounterOption option = new EncounterOption(id, name)
+        {
+            Description = GetConversionDescription(actionType, encounterType),
+            FocusCost = focusCost,
+            Skill = skill,
+            Difficulty = difficulty,
+            ActionType = actionType,
+            SuccessProgress = progressYield,
+            TokenGeneration = new Dictionary<AspectTokenTypes, int>(),
+            TokenCosts = new Dictionary<AspectTokenTypes, int>(),
+            NegativeConsequenceType = GetNegativeConsequenceForConversion(actionType),
+            Tags = new List<string> { "Conversion", tier.ToString() }
+        };
+
+        // Set token costs based on conversion type
+        SetConversionTokenCosts(option, actionType, tokensRequired, encounterType);
+
+        return option;
+    }
+
+    private EncounterOption CreateHybridOption(EncounterTiers tier, CardTypes encounterType, int stageNumber)
+    {
+        string id = $"Stage{stageNumber}_Hybrid";
+        string name = GetHybridName(encounterType);
+
+        // Get tier-specific values
+        (int focusCost, int tokenAmount, int progressAmount) = GetHybridValues(tier);
+
+        SkillTypes skill = GetSecondarySkillForEncounterType(encounterType);
+        int difficulty = GetDifficultyForTier(tier);
+
+        EncounterOption option = new EncounterOption(id, name)
+        {
+            Description = GetHybridDescription(encounterType),
+            FocusCost = focusCost,
+            Skill = skill,
+            Difficulty = difficulty,
+            ActionType = UniversalActionTypes.Hybrid,
+            SuccessProgress = progressAmount,
+            TokenGeneration = new Dictionary<AspectTokenTypes, int>(),
+            TokenCosts = new Dictionary<AspectTokenTypes, int>(),
+            NegativeConsequenceType = NegativeConsequenceTypes.TokenDisruption,
+            Tags = new List<string> { "Hybrid", tier.ToString() }
+        };
+
+        // Hybrid generates tokens AND progress
+        AspectTokenTypes tokenType = MapSkillToToken(skill, encounterType);
+        option.TokenGeneration[tokenType] = tokenAmount;
+
+        return option;
+    }
+
+    private EncounterOption CreateRecoveryOption(EncounterState state)
+    {
+        string id = $"Stage{state.CurrentStageIndex + 1}_Recovery";
+
+        EncounterOption option = new EncounterOption(id, "Gather Resolve")
+        {
+            Description = "Take a moment to gather your strength and focus",
+            FocusCost = 0, // Always 0 cost
+            Skill = SkillTypes.Planning, // Use Planning for recovery
+            Difficulty = 4, // Standard difficulty
+            ActionType = UniversalActionTypes.Recovery,
+            SuccessProgress = 0,
+            TokenGeneration = new Dictionary<AspectTokenTypes, int>(),
+            TokenCosts = new Dictionary<AspectTokenTypes, int>(),
+            NegativeConsequenceType = GetRecoveryNegativeConsequence(state),
+            Tags = new List<string> { "Recovery", "Safety" }
+        };
+
+        return option;
+    }
+
+    // Value lookup methods based on the refined numerical framework
+    private (int focusCost, int tokenAmount) GetGenerationValues(UniversalActionTypes actionType, EncounterTiers tier)
+    {
+        return (tier, actionType) switch
+        {
+            // Foundation Tier (Stages 1-2)
+            (EncounterTiers.Foundation, UniversalActionTypes.GenerationA) => (1, 3),
+            (EncounterTiers.Foundation, UniversalActionTypes.GenerationB) => (1, 2),
+
+            // Development Tier (Stages 3-4)
+            (EncounterTiers.Development, UniversalActionTypes.GenerationA) => (1, 4),
+            (EncounterTiers.Development, UniversalActionTypes.GenerationB) => (2, 6),
+
+            // Execution Tier (Stage 5)
+            (EncounterTiers.Execution, UniversalActionTypes.GenerationA) => (1, 4),
+            (EncounterTiers.Execution, UniversalActionTypes.GenerationB) => (2, 6),
+
+            _ => (1, 2)
+        };
+    }
+
+    private (int focusCost, int tokensRequired, int progressYield) GetConversionValues(UniversalActionTypes actionType, EncounterTiers tier)
+    {
+        return (tier, actionType) switch
+        {
+            // Foundation Tier
+            (EncounterTiers.Foundation, UniversalActionTypes.ConversionA) => (1, 1, 2),
+            (EncounterTiers.Foundation, UniversalActionTypes.ConversionB) => (1, 2, 4),
+
+            // Development Tier
+            (EncounterTiers.Development, UniversalActionTypes.ConversionA) => (1, 2, 4),
+            (EncounterTiers.Development, UniversalActionTypes.ConversionB) => (1, 3, 6),
+
+            // Execution Tier
+            (EncounterTiers.Execution, UniversalActionTypes.ConversionA) => (1, 2, 5),
+            (EncounterTiers.Execution, UniversalActionTypes.ConversionB) => (1, 3, 7),
+
+            _ => (1, 1, 2)
+        };
+    }
+
+    private (int focusCost, int tokenAmount, int progressAmount) GetHybridValues(EncounterTiers tier)
+    {
+        return tier switch
+        {
+            EncounterTiers.Foundation => (1, 1, 1),
+            EncounterTiers.Development => (2, 3, 2),
+            EncounterTiers.Execution => (1, 1, 3),
+            _ => (1, 1, 1)
+        };
+    }
+
+    private int GetDifficultyForTier(EncounterTiers tier)
+    {
+        return tier switch
+        {
+            EncounterTiers.Foundation => 3,
+            EncounterTiers.Development => 4,
+            EncounterTiers.Execution => 4,
+            _ => 3
+        };
+    }
+
+    private void SetConversionTokenCosts(EncounterOption option, UniversalActionTypes actionType, int tokensRequired, CardTypes encounterType)
+    {
+        // For simplicity, we'll require a mix of tokens based on the conversion type
+        if (actionType == UniversalActionTypes.ConversionA)
+        {
+            // Single token type conversion
+            AspectTokenTypes primaryToken = GetPrimaryTokenForEncounterType(encounterType);
+            option.TokenCosts[primaryToken] = tokensRequired;
         }
-
-        if (currentStage >= 2) // Later stages - token conversion  
+        else
         {
-            stageChoices.AddRange(GetTokenConversionOptionsForEncounterType(encounterType, state));
-        }
-
-        if (currentStage >= 3) // Final stage - premium options
-        {
-            stageChoices.AddRange(GetPremiumOptionsForEncounterType(encounterType, state));
-        }
-
-        return stageChoices;
-    }
-
-    private List<EncounterOption> GetSafetyOptionsForEncounterType(CardTypes encounterType)
-    {
-        string encounterTag = encounterType.ToString();
-        return narrativeChoices
-            .Where(choice => choice.Tags.Contains(encounterTag) && choice.Tags.Contains("Safety"))
-            .ToList();
-    }
-
-    private List<EncounterOption> GetTokenGenerationOptionsForEncounterType(CardTypes encounterType)
-    {
-        string encounterTag = encounterType.ToString();
-        return narrativeChoices
-            .Where(choice => choice.Tags.Contains(encounterTag) &&
-                           (choice.ActionType == UniversalActionType.GenerateForce ||
-                            choice.ActionType == UniversalActionType.GenerateFlow ||
-                            choice.ActionType == UniversalActionType.GenerateFocus ||
-                            choice.ActionType == UniversalActionType.GenerateFortitude))
-            .ToList();
-    }
-
-    private List<EncounterOption> GetTokenConversionOptionsForEncounterType(CardTypes encounterType, EncounterState state)
-    {
-        string encounterTag = encounterType.ToString();
-        List<EncounterOption> conversionOptions = narrativeChoices
-            .Where(choice => choice.Tags.Contains(encounterTag) &&
-                           (choice.ActionType == UniversalActionType.BasicConversion ||
-                            choice.ActionType == UniversalActionType.SpecializedConversion))
-            .ToList();
-
-        // Filter by available tokens
-        return conversionOptions.Where(choice => HasRequiredTokens(choice, state)).ToList();
-    }
-
-    private List<EncounterOption> GetPremiumOptionsForEncounterType(CardTypes encounterType, EncounterState state)
-    {
-        string encounterTag = encounterType.ToString();
-        List<EncounterOption> premiumOptions = narrativeChoices
-            .Where(choice => choice.Tags.Contains(encounterTag) &&
-                           choice.ActionType == UniversalActionType.PremiumConversion)
-            .ToList();
-
-        // Filter by available tokens
-        return premiumOptions.Where(choice => HasRequiredTokens(choice, state)).ToList();
-    }
-
-    private bool HasRequiredTokens(EncounterOption choice, EncounterState state)
-    {
-        foreach (KeyValuePair<AspectTokenTypes, int> requirement in choice.TokenCosts)
-        {
-            if (!state.HasAspectTokens(requirement.Key, requirement.Value))
+            // Multi-token conversion
+            if (tokensRequired == 2)
             {
-                return false;
+                option.TokenCosts[AspectTokenTypes.Force] = 1;
+                option.TokenCosts[AspectTokenTypes.Flow] = 1;
+            }
+            else if (tokensRequired == 3)
+            {
+                option.TokenCosts[AspectTokenTypes.Force] = 1;
+                option.TokenCosts[AspectTokenTypes.Flow] = 1;
+                option.TokenCosts[AspectTokenTypes.Focus] = 1;
             }
         }
-        return true;
     }
+
+    private AspectTokenTypes GetPrimaryTokenForEncounterType(CardTypes encounterType)
+    {
+        return encounterType switch
+        {
+            CardTypes.Physical => AspectTokenTypes.Force,
+            CardTypes.Social => AspectTokenTypes.Flow,
+            CardTypes.Intellectual => AspectTokenTypes.Focus,
+            _ => AspectTokenTypes.Force
+        };
+    }
+
+    private SkillTypes GetPrimarySkillForGeneration(UniversalActionTypes actionType, CardTypes encounterType)
+    {
+        return (encounterType, actionType) switch
+        {
+            (CardTypes.Physical, UniversalActionTypes.GenerationA) => SkillTypes.Strength,
+            (CardTypes.Physical, UniversalActionTypes.GenerationB) => SkillTypes.Agility,
+            (CardTypes.Social, UniversalActionTypes.GenerationA) => SkillTypes.Intimidation,
+            (CardTypes.Social, UniversalActionTypes.GenerationB) => SkillTypes.Charm,
+            (CardTypes.Intellectual, UniversalActionTypes.GenerationA) => SkillTypes.Analysis,
+            (CardTypes.Intellectual, UniversalActionTypes.GenerationB) => SkillTypes.Observation,
+            _ => SkillTypes.None
+        };
+    }
+
+    private SkillTypes GetPrimarySkillForConversion(UniversalActionTypes actionType, CardTypes encounterType)
+    {
+        return (encounterType, actionType) switch
+        {
+            (CardTypes.Physical, UniversalActionTypes.ConversionA) => SkillTypes.Precision,
+            (CardTypes.Physical, UniversalActionTypes.ConversionB) => SkillTypes.Endurance,
+            (CardTypes.Social, UniversalActionTypes.ConversionA) => SkillTypes.Persuasion,
+            (CardTypes.Social, UniversalActionTypes.ConversionB) => SkillTypes.Deception,
+            (CardTypes.Intellectual, UniversalActionTypes.ConversionA) => SkillTypes.Knowledge,
+            (CardTypes.Intellectual, UniversalActionTypes.ConversionB) => SkillTypes.Planning,
+            _ => SkillTypes.None
+        };
+    }
+
+    private SkillTypes GetSecondarySkillForEncounterType(CardTypes encounterType)
+    {
+        return encounterType switch
+        {
+            CardTypes.Physical => SkillTypes.Endurance,
+            CardTypes.Social => SkillTypes.Persuasion,
+            CardTypes.Intellectual => SkillTypes.Planning,
+            _ => SkillTypes.None
+        };
+    }
+
+    private NegativeConsequenceTypes GetNegativeConsequenceForGeneration(UniversalActionTypes actionType)
+    {
+        return actionType switch
+        {
+            UniversalActionTypes.GenerationA => NegativeConsequenceTypes.ProgressLoss,
+            UniversalActionTypes.GenerationB => NegativeConsequenceTypes.TokenDisruption,
+            _ => NegativeConsequenceTypes.FutureCostIncrease
+        };
+    }
+
+    private NegativeConsequenceTypes GetNegativeConsequenceForConversion(UniversalActionTypes actionType)
+    {
+        return actionType switch
+        {
+            UniversalActionTypes.ConversionA => NegativeConsequenceTypes.TokenDisruption,
+            UniversalActionTypes.ConversionB => NegativeConsequenceTypes.FocusLoss,
+            _ => NegativeConsequenceTypes.ThresholdIncrease
+        };
+    }
+
+    private NegativeConsequenceTypes GetRecoveryNegativeConsequence(EncounterState state)
+    {
+        // Cascading negative structure based on current state
+        if (state.CurrentProgress > 0)
+            return NegativeConsequenceTypes.ProgressLoss;
+        else if (state.AspectTokens.GetAllTokenCounts().Values.Sum() >= 2)
+            return NegativeConsequenceTypes.TokenDisruption;
+        else
+            return NegativeConsequenceTypes.ThresholdIncrease;
+    }
+
+    // Narrative generation helpers
+    private string GetGenerationName(UniversalActionTypes actionType, CardTypes encounterType)
+    {
+        return (encounterType, actionType) switch
+        {
+            (CardTypes.Physical, UniversalActionTypes.GenerationA) => "Apply Raw Strength",
+            (CardTypes.Physical, UniversalActionTypes.GenerationB) => "Move Fluidly",
+            (CardTypes.Social, UniversalActionTypes.GenerationA) => "Assert Dominance",
+            (CardTypes.Social, UniversalActionTypes.GenerationB) => "Read the Room",
+            (CardTypes.Intellectual, UniversalActionTypes.GenerationA) => "Direct Analysis",
+            (CardTypes.Intellectual, UniversalActionTypes.GenerationB) => "Observe Patterns",
+            _ => "Generate Tokens"
+        };
+    }
+
+    private string GetGenerationDescription(UniversalActionTypes actionType, CardTypes encounterType)
+    {
+        return (encounterType, actionType) switch
+        {
+            (CardTypes.Physical, UniversalActionTypes.GenerationA) => "Use your physical strength to overcome obstacles directly",
+            (CardTypes.Physical, UniversalActionTypes.GenerationB) => "Adapt your movements to the situation",
+            (CardTypes.Social, UniversalActionTypes.GenerationA) => "Take control of the social dynamic",
+            (CardTypes.Social, UniversalActionTypes.GenerationB) => "Adapt your approach based on social cues",
+            (CardTypes.Intellectual, UniversalActionTypes.GenerationA) => "Cut directly to the core of the problem",
+            (CardTypes.Intellectual, UniversalActionTypes.GenerationB) => "Notice emerging patterns and details",
+            _ => "Build up your capabilities"
+        };
+    }
+
+    private string GetConversionName(UniversalActionTypes actionType, CardTypes encounterType)
+    {
+        return (encounterType, actionType) switch
+        {
+            (CardTypes.Physical, UniversalActionTypes.ConversionA) => "Precise Application",
+            (CardTypes.Physical, UniversalActionTypes.ConversionB) => "Sustained Effort",
+            (CardTypes.Social, UniversalActionTypes.ConversionA) => "Persuasive Argument",
+            (CardTypes.Social, UniversalActionTypes.ConversionB) => "Maintained Deception",
+            (CardTypes.Intellectual, UniversalActionTypes.ConversionA) => "Applied Knowledge",
+            (CardTypes.Intellectual, UniversalActionTypes.ConversionB) => "Strategic Planning",
+            _ => "Convert Effort"
+        };
+    }
+
+    private string GetConversionDescription(UniversalActionTypes actionType, CardTypes encounterType)
+    {
+        return (encounterType, actionType) switch
+        {
+            (CardTypes.Physical, UniversalActionTypes.ConversionA) => "Apply precise technique to make progress",
+            (CardTypes.Physical, UniversalActionTypes.ConversionB) => "Push through with sustained physical effort",
+            (CardTypes.Social, UniversalActionTypes.ConversionA) => "Use persuasive skills to advance your position",
+            (CardTypes.Social, UniversalActionTypes.ConversionB) => "Maintain your facade to achieve your goals",
+            (CardTypes.Intellectual, UniversalActionTypes.ConversionA) => "Apply your knowledge to solve the problem",
+            (CardTypes.Intellectual, UniversalActionTypes.ConversionB) => "Execute your carefully laid plans",
+            _ => "Convert your accumulated efforts into progress"
+        };
+    }
+
+    private string GetHybridName(CardTypes encounterType)
+    {
+        return encounterType switch
+        {
+            CardTypes.Physical => "Balanced Physical Approach",
+            CardTypes.Social => "Diplomatic Balance",
+            CardTypes.Intellectual => "Thoughtful Progress",
+            _ => "Balanced Approach"
+        };
+    }
+
+    private string GetHybridDescription(CardTypes encounterType)
+    {
+        return encounterType switch
+        {
+            CardTypes.Physical => "Combine immediate action with building strength",
+            CardTypes.Social => "Make progress while maintaining relationships",
+            CardTypes.Intellectual => "Apply knowledge while gathering more insights",
+            _ => "Balance immediate progress with future preparation"
+        };
+    }
+}
+
+
+public enum EncounterTiers
+{
+    Foundation,    // Stages 1-2
+    Development,   // Stages 3-4
+    Execution      // Stage 5
 }

@@ -135,7 +135,6 @@
             }
             finally
             {
-                // Log the interaction, regardless of success or failure
                 try
                 {
                     await _logManager.LogApiInteractionAsync(

@@ -7,7 +7,7 @@
         SkillTypes skill,
         int difficulty,
         int focusCost,
-        UniversalActionType actionType,
+        UniversalActionTypes actionType,
         Dictionary<AspectTokenTypes, int> tokenGeneration,
         Dictionary<AspectTokenTypes, int> tokenCosts,
         NegativeConsequenceTypes negativeConsequence,
@@ -25,25 +25,10 @@
         choice.Tags = tags ?? new List<string>();
 
         // Set progress based on action type
-        choice.SuccessProgress = CalculateProgressForActionType(actionType, tokenCosts);
+        choice.SuccessProgress = 1;
         choice.FailureProgress = 0;
 
         return choice;
     }
 
-    private static int CalculateProgressForActionType(UniversalActionType actionType, Dictionary<AspectTokenTypes, int> tokenCosts)
-    {
-        return actionType switch
-        {
-            UniversalActionType.SafetyOption => 0,
-            UniversalActionType.GenerateForce => 1,
-            UniversalActionType.GenerateFlow => 1,
-            UniversalActionType.GenerateFocus => 1,
-            UniversalActionType.GenerateFortitude => 1,
-            UniversalActionType.BasicConversion => 3, // 2 tokens → 3 progress
-            UniversalActionType.SpecializedConversion => 2, // 2 tokens → 2 progress + bonus
-            UniversalActionType.PremiumConversion => 4, // 3 tokens → 4 progress
-            _ => 1
-        };
-    }
 }

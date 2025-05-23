@@ -200,15 +200,7 @@ public class PromptManager
 
             string choiceText = $"\nCHOICE {i + 1}:\n";
 
-            // Only add resource changes if non-zero
-            if (projection.HealthChange != 0)
-                choiceText += $"\n- Health Change: {projection.HealthChange}";
-
-            if (projection.ConcentrationChange != 0)
-                choiceText += $"\n- Concentration Change: {projection.ConcentrationChange}";
-
-            // Only add encounter ending info if applicable
-            if (projection.EncounterWillEnd)
+            if (projection.WillEncounterEnd)
             {
                 choiceText += $"\n- Encounter Will End: True";
                 choiceText += $"\n- Final Outcome: {projection.ProjectedOutcome}";

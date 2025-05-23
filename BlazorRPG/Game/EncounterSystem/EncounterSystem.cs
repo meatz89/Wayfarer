@@ -256,7 +256,7 @@
     public ChoiceProjection GetChoiceProjection(EncounterManager encounter, EncounterOption choice)
     {
         EncounterManager encounterManager = GetCurrentEncounter();
-        ChoiceProjection choiceProjection = encounterManager.ProjectChoice(choice);
+        ChoiceProjection choiceProjection = encounterManager.ProjectChoice(encounter.EncounterState, choice);
         return choiceProjection;
     }
 
