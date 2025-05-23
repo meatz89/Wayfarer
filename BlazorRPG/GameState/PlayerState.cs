@@ -45,7 +45,6 @@
 
     public HashSet<(string, CardTypes)> LocationActionAvailability { get; set; } = new();
 
-    public List<PlayerNegativeStatus> NegativeStatusTypes { get; set; }
     public bool IsInitialized { get; set; } = false;
 
     public List<string> KnownLocations { get; private set; } = new List<string>();
@@ -67,8 +66,6 @@
         Level = 1;
         CurrentXP = 0;
         XPToNextLevel = 100;
-
-        NegativeStatusTypes = new();
 
         PlayerHandCards = new List<CardDefinition>();
 
@@ -260,11 +257,6 @@
         return false;
     }
 
-    public bool HasStatusEffect(PlayerNegativeStatus expectedValue)
-    {
-        return NegativeStatusTypes.Contains(expectedValue);
-    }
-
     public void AddExperiencePoints(int xpBonus)
     {
         int newExperiencePoints = Math.Max(0, CurrentXP + xpBonus);
@@ -421,9 +413,6 @@
 
         // Deep copy of LocationActionAvailability HashSet
         clone.LocationActionAvailability = [.. this.LocationActionAvailability];
-
-        // Deep copy of NegativeStatusTypes
-        clone.NegativeStatusTypes = [.. this.NegativeStatusTypes];
 
         // Deep copy of Skills
         clone.Skills = this.Skills.Clone();

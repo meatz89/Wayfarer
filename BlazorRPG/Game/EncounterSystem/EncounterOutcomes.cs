@@ -1,6 +1,8 @@
 ﻿public enum EncounterOutcomes
 {
     None,
-    Success,
     Failure,
+    BasicSuccess,
+    GoodSuccess,
+    ExcellentSuccess
 }

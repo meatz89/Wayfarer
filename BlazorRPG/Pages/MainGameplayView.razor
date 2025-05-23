@@ -228,31 +228,6 @@
                     </div>
                 }
             </div>
-
-            @if (PlayerState.NegativeStatusTypes != null && PlayerState.NegativeStatusTypes.Any())
-            {
-                <div class="sidebar-section @(ExpandedSections[SidebarSections.status] ? "expanded" : "collapsed")">
-                    <div class="section-header hover" id="section-status" @onclick="() => ToggleSection(SidebarSections.status)">
-                        <span>Status Effects</span>
-                        <span class="expand-icon">@(ExpandedSections[SidebarSections.status] ? "▼" : "►")</span>
-                    </div>
-
-                    @if (ExpandedSections[SidebarSections.status])
-                    {
-                        <div class="section-content">
-                            <div class="status-effects-grid">
-                                @foreach (var status in PlayerState.NegativeStatusTypes)
-                                {
-                                    <div class="status-effect negative">
-                                        <span class="status-icon">⚠️</span>
-                                        <span class="status-name">@status</span>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
         </div>
     }
 </div>

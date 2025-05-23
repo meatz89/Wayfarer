@@ -23,6 +23,8 @@
         }
     }
 
+    public AspectTokenTypes PrimaryAspectType { get; internal set; }
+
     public EncounterOption(string id, string name)
     {
         Id = id;

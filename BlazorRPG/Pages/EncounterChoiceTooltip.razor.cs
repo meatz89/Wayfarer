@@ -82,7 +82,6 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     {
         return consequenceType switch
         {
-            NegativeConsequenceTypes.FutureCostIncrease => "Next choice costs +1 Focus",
             NegativeConsequenceTypes.TokenDisruption => "Lose 1 random token",
             NegativeConsequenceTypes.ThresholdIncrease => "Success requirements increase",
             NegativeConsequenceTypes.ProgressLoss => "Lose 1 progress",
