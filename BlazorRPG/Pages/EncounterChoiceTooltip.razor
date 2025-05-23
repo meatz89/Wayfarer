@@ -57,7 +57,25 @@
                     @foreach (var effect in positiveEffects)
                     {
                         <div class="effect-item positive">
-                            <span class="effect-icon">✓</span> @effect
+                            <span class="effect-icon">
+                                @if (effect.IsTokenEffect)
+                                {
+                                    @GetTokenEmoji(effect.TokenType)
+                                }
+                                else if (effect.IsProgressEffect)
+                                {
+                                    <span>🏆</span>
+                                }
+                                else if (effect.IsFocusEffect)
+                                {
+                                    <span>⚡</span>
+                                }
+                                else
+                                {
+                                    <span>✓</span>
+                                }
+                            </span>
+                            @effect.Description
                         </div>
                     }
                 </div>
