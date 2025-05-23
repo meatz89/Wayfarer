@@ -17,12 +17,6 @@ Talk in the voice of the player character archetype. The narration of a Warrior,
 ## Player Character Status
 {PLAYER_STATUS}
 
-## Resource Guidelines
-- Only mention player's resources (coins, health, energy, etc.) if directly relevant
-- Only reference inventory items when naturally applicable to the situation
-- If the encounter involves purchasing or trading, subtly establish spending context without stating exact coin amounts
-- Reflect resource limitations (low health, energy, etc.) through character's feelings or physical state rather than numbers
-
 ## Encounter Clarification
 - Make clear what success would accomplish through the SPECIFIC chosen approach
 - Hint at consequences of failure for this particular approach

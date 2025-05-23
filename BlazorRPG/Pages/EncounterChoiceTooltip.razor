@@ -3,10 +3,7 @@
 <div class="tooltip" style="top:@tooltipYpx; left:@tooltipXpx;">
     <!-- Choice Header -->
     <div class="tooltip-header">
-        <h4>@hoveredChoice.ChoiceShortName</h4>
-        <div class="choice-type-tag @GetActionTypeName(hoveredChoice.Choice.ActionType)">
-            @hoveredChoice.Choice.Description
-        </div>
+        <h4>@GetActionTypeName(hoveredChoice.Choice.ActionType)</h4>
     </div>
 
     <!-- Narrative Description -->

@@ -215,8 +215,9 @@
             if (_useAiNarrative)
             {
                 WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location);
-                narrative = await _aiService.GenerateEncounterNarrative(
+                narrative = await _aiService.GenerateReactionAsync(
                     narrativeContext,
+                    encounterState,
                     choice,
                     choiceDescription,
                     outcome,

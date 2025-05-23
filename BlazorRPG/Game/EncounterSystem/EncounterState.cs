@@ -5,9 +5,9 @@
     public int CurrentProgress { get; private set; }
     public int CurrentStageIndex { get; private set; }
     public int CurrentTurn { get; private set; }
+    public int MaxTurns { get; private set; }
     public Encounter EncounterInfo { get; }
     public LocationSpot LocationSpot { get; set; }
-
     public int FocusPoints { get; private set; }
     public int MaxFocusPoints { get; private set; }
     public AspectTokenPool AspectTokens { get; private set; }
@@ -22,6 +22,7 @@
         EncounterInfo = encounterInfo;
         OutcomeThresholdModifier = 0;
         PreviousEncounterState = this;
+        MaxTurns = encounterInfo.Stages.Count;
 
         // Initialize Universal Encounter System components
         InitializeUniversalEncounterSystem(encounterInfo);
@@ -116,7 +117,7 @@
 
         // Advance turn and stage
         CurrentTurn++;
-        if (CurrentStageIndex < EncounterInfo.Stages.Count)
+        if (CurrentStageIndex < MaxTurns)
         {
             EncounterInfo.Stages[CurrentStageIndex].IsCompleted = true;
             if (CurrentStageIndex < EncounterInfo.Stages.Count - 1)

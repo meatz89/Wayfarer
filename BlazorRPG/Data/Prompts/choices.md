@@ -10,6 +10,18 @@ IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowl
 ## Player Character Status
 {PLAYER_STATUS}
 
+## CRITICAL REQUIREMENT: NARRATIVE COMPREHENSION STEP
+Before creating choices, you MUST analyze the narrative context by answering the following three questions based on {CHOICES_INFO}:
+
+1. **What has already happened in the story leading to this point?**
+   - Summarize the key recent actions and consequences.
+2. **What is happening right now in this specific moment?**
+   - Describe the immediate setting, characters present, emotional or physical conflict, and current circumstances.
+3. **What decision is the protagonist currently facing as a direct result of recent events?**
+   - Clearly identify the tension or choice the player must now respond to, including any emotional or logistical stakes.
+
+You MUST complete this analysis internally before generating any choices. Choices that do not clearly emerge from this situational analysis are incorrect.
+
 ## CRITICAL REQUIREMENT: IDENTIFY THE CORE DECISION POINT
 Before creating choices, analyze the narrative to identify:
 1. Exactly where the character is physically located RIGHT NOW
@@ -32,11 +44,6 @@ Every choice must:
 - SHOW how this specific reaction advances the player toward resolving the situation
 - INDICATE what immediate risk the player accepts by taking this specific action
 - FEEL like a natural reaction a person would have to THIS situation
-
-## Choice Naming by Encounter Type:
-- **Physical**: Action thoughts referencing the current physical challenge
-- **Intellectual**: Insight thoughts referencing the current mental puzzle
-- **Social**: Direct speech referencing the current person or social dynamic
 
 ## Description Guidelines (1-2 sentences):
 - Reference SPECIFIC elements from the current situation (people, objects, challenges, opportunities)
