@@ -123,32 +123,59 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         };
     }
 
-    protected List<string> GetPositiveEffectsAsList(EncounterOption option, ChoiceProjection projection)
+    protected List<EffectItem> GetPositiveEffectsAsList(EncounterOption option, ChoiceProjection projection)
     {
-        List<string> effects = new List<string>();
+        List<EffectItem> effects = new List<EffectItem>();
 
         // Token generation
         foreach (KeyValuePair<AspectTokenTypes, int> tokenGen in option.TokenGeneration)
         {
             if (tokenGen.Value > 0)
             {
-                effects.Add($"Gain {tokenGen.Value} {GetTokenDisplayName(tokenGen.Key)} tokens");
+                effects.Add(new EffectItem
+                {
+                    TokenType = tokenGen.Key,
+                    Value = tokenGen.Value,
+                    Description = $"Gain {tokenGen.Value} {GetTokenDisplayName(tokenGen.Key)} tokens",
+                    IsTokenEffect = true
+                });
             }
         }
 
         // Direct progress
         if (projection.ProgressGained > 0)
         {
-            effects.Add($"Gain {projection.ProgressGained} Progress");
+            effects.Add(new EffectItem
+            {
+                Value = projection.ProgressGained,
+                Description = $"Gain {projection.ProgressGained} Progress",
+                IsProgressEffect = true
+            });
         }
-        
+
         // Focus gain (for Recovery actions)
         if (option.ActionType == UniversalActionTypes.Recovery)
         {
-            effects.Add($"Restore 1 Focus");
+            effects.Add(new EffectItem
+            {
+                Value = 1,
+                Description = $"Restore 1 Focus",
+                IsFocusEffect = true
+            });
         }
 
         return effects;
+    }
+
+    // Add this class to your component
+    protected class EffectItem
+    {
+        public AspectTokenTypes TokenType { get; set; }
+        public int Value { get; set; }
+        public string Description { get; set; }
+        public bool IsTokenEffect { get; set; }
+        public bool IsProgressEffect { get; set; }
+        public bool IsFocusEffect { get; set; }
     }
 
     protected string GetFormattedRiskDescription(EncounterOption option)
