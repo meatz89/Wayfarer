@@ -1,31 +1,126 @@
 ﻿@inherits EncounterChoiceTooltipBase
+
 <div class="tooltip" style="top:@tooltipYpx; left:@tooltipXpx;">
-    <div class="preview-header">
-        <h4>
-            @hoveredChoice.ChoiceShortName
-        </h4>
+    <!-- Choice Header -->
+    <div class="tooltip-header">
+        <h4>@hoveredChoice.ChoiceShortName</h4>
+        <div class="choice-type-tag @GetActionTypeName(hoveredChoice.Choice.ActionType)">
+            @hoveredChoice.Choice.Description
+        </div>
+    </div>
+
+    <!-- Narrative Description -->
+    <div class="tooltip-section narrative-section">
         <div class="choice-narrative">@hoveredChoice.ChoiceNarrative</div>
     </div>
 
-    <div class="tooltip-section">
-
-        <h4>
-            Skill Check
-        </h4>
-        <div class="choice-narrative">@hoveredChoice.Choice.Description</div>
-
-        <div class="effects-section">
-            @GetSkillCheckInfo(@hoveredChoice)
-            </div>
-
+    <!-- Costs Section -->
+    <div class="tooltip-section costs-section">
+        <h5>Costs</h5>
         <div class="tooltip-item">
-            <div class="tooltip-item-header">
-                <div class="tooltip-item-title">
-                    <span class="tooltip-item-name">Outcomes</span>
+            <div class="resource-costs">
+                @if (hoveredChoice.Choice.FocusCost > 0)
+                {
+                    <div class="resource-cost focus-cost">
+                        <span class="resource-icon">⚡</span> @hoveredChoice.Choice.FocusCost Focus
+                    </div>
+                }
+
+                @foreach (var tokenCost in hoveredChoice.Choice.TokenCosts)
+                {
+                    if (tokenCost.Value > 0)
+                    {
+                        <div class="resource-cost token-cost">
+                            <span class="resource-icon">@GetTokenEmoji(tokenCost.Key)</span>
+                            @tokenCost.Value @GetTokenDisplayName(tokenCost.Key)
+                        </div>
+                    }
+                }
+
+                @if (hoveredChoice.Choice.FocusCost == 0 && !hoveredChoice.Choice.TokenCosts.Any(tc => tc.Value > 0))
+                {
+                    <div class="resource-cost">No resource cost</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Effects Section -->
+    <div class="tooltip-section effects-section">
+        <h5>Effects</h5>
+        <div class="tooltip-item">
+            @{
+                var projection = Preview;
+                var positiveEffects = GetPositiveEffectsAsList(hoveredChoice.Choice, projection);
+            }
+
+            @if (positiveEffects.Any())
+            {
+                <div class="effect-list positive-effects">
+                    @foreach (var effect in positiveEffects)
+                    {
+                        <div class="effect-item positive">
+                            <span class="effect-icon">✓</span> @effect
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="effect-item neutral">No significant effects</div>
+            }
+        </div>
+    </div>
+
+    <!-- Skill Check Section -->
+    @if (hoveredChoice.Choice.HasSkillCheck)
+    {
+        <div class="tooltip-section skill-section">
+            <h5>Skill Check</h5>
+            <div class="tooltip-item">
+                <div class="skill-details">
+                    <div class="skill-name">
+                        @hoveredChoice.Choice.Skill @(hoveredChoice.Choice.Difficulty) Check
+                        @if (hoveredChoice.Choice.LocationModifier != 0)
+                        {
+                            <span class="location-modifier @(hoveredChoice.Choice.LocationModifier < 0 ? "positive" : "negative")">
+                                (@(hoveredChoice.Choice.LocationModifier < 0 ? "" : "+")@hoveredChoice.Choice.LocationModifier due to location)
+                            </span>
+                        }
+                    </div>
                 </div>
             </div>
-            <div class="tooltip-item-details">
-                @GetProgressInfo(@hoveredChoice)
+        </div>
+    }
+
+    <!-- Risk Section -->
+    <div class="tooltip-section risk-section">
+        <h5>Risk Assessment</h5>
+        <div class="tooltip-item">
+            @{
+                var riskDescription = GetFormattedRiskDescription(hoveredChoice.Choice);
+                var riskClass = hoveredChoice.Choice.HasSkillCheck && Preview.SkillCheckSuccess ? "low-risk" :
+                hoveredChoice.Choice.HasSkillCheck ? "high-risk" : "fixed-risk";
+            }
+            <div class="risk-description @riskClass">
+                @if (hoveredChoice.Choice.HasSkillCheck && Preview.SkillCheckSuccess)
+                {
+                    <span class="risk-icon">✓</span>
+                    <b>
+                        Low Risk:
+                        Likely to avoid @riskDescription
+                    </b>
+                }
+                else if (hoveredChoice.Choice.HasSkillCheck)
+                {
+                    <span class="risk-icon">⚠</span>
+                    <b>High Risk:Likely to suffer @riskDescription</b>
+                }
+                else
+                {
+                    <span class="risk-icon">⚠</span>
+                    <b>Fixed Outcome: Will suffer @riskDescription</b>
+                }
             </div>
         </div>
     </div>
