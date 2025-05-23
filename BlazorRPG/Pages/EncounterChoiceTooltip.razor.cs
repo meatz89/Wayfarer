@@ -90,7 +90,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         };
     }
 
-    private string GetTokenDisplayName(AspectTokenTypes tokenType)
+    protected string GetTokenDisplayName(AspectTokenTypes tokenType)
     {
         return tokenType switch
         {
@@ -100,6 +100,102 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
             AspectTokenTypes.Fortitude => "Fortitude",
             _ => tokenType.ToString()
         };
+    }
+
+    // NEW METHODS FOR THE ENHANCED TOOLTIP
+
+    protected string GetActionTypeClass(EncounterOption option)
+    {
+        return option.ActionType.ToString().ToLowerInvariant();
+    }
+
+    protected string GetActionTypeName(UniversalActionTypes actionType)
+    {
+        return actionType switch
+        {
+            UniversalActionTypes.Recovery => "Recovery",
+            UniversalActionTypes.GenerationA => "Generation",
+            UniversalActionTypes.GenerationB => "Generation",
+            UniversalActionTypes.ConversionA => "Conversion",
+            UniversalActionTypes.ConversionB => "Conversion",
+            UniversalActionTypes.Hybrid => "Hybrid",
+            _ => actionType.ToString()
+        };
+    }
+
+    protected List<string> GetPositiveEffectsAsList(EncounterOption option, ChoiceProjection projection)
+    {
+        List<string> effects = new List<string>();
+
+        // Token generation
+        foreach (KeyValuePair<AspectTokenTypes, int> tokenGen in option.TokenGeneration)
+        {
+            if (tokenGen.Value > 0)
+            {
+                effects.Add($"Gain {tokenGen.Value} {GetTokenDisplayName(tokenGen.Key)} tokens");
+            }
+        }
+
+        // Direct progress
+        if (projection.ProgressGained > 0)
+        {
+            effects.Add($"Gain {projection.ProgressGained} Progress");
+        }
+        
+        // Focus gain (for Recovery actions)
+        if (option.ActionType == UniversalActionTypes.Recovery)
+        {
+            effects.Add($"Restore 1 Focus");
+        }
+
+        return effects;
+    }
+
+    protected string GetFormattedRiskDescription(EncounterOption option)
+    {
+        return option.NegativeConsequenceType switch
+        {
+            NegativeConsequenceTypes.TokenDisruption => "token loss",
+            NegativeConsequenceTypes.ThresholdIncrease => "increased success requirements",
+            NegativeConsequenceTypes.ProgressLoss => "progress loss",
+            NegativeConsequenceTypes.FocusLoss => "Focus point loss",
+            _ => "unknown consequence"
+        };
+    }
+
+    protected string GetTokenEmoji(AspectTokenTypes tokenType)
+    {
+        return tokenType switch
+        {
+            AspectTokenTypes.Force => "🔴",
+            AspectTokenTypes.Flow => "🔵",
+            AspectTokenTypes.Focus => "🟡",
+            AspectTokenTypes.Fortitude => "🟢",
+            _ => "⚪"
+        };
+    }
+
+    protected int GetSkillCheckSuccessChance(UserEncounterChoiceOption choice)
+    {
+        if (!choice.Choice.HasSkillCheck) return 100;
+        
+        // This is a simplified version - you might need to update this
+        // to match your actual skill check calculation logic
+        var skillLevel = GetPlayerSkillLevel(choice.Choice.Skill);
+        var difficulty = choice.Choice.Difficulty + choice.Choice.LocationModifier;
+        
+        if (skillLevel >= difficulty + 2) return 100;
+        if (skillLevel >= difficulty + 1) return 75;
+        if (skillLevel == difficulty) return 50;
+        if (skillLevel == difficulty - 1) return 25;
+        return 0;
+    }
+
+    protected int GetPlayerSkillLevel(SkillTypes skill)
+    {
+        // This is a simplified placeholder - you'll need to update this
+        // to get the actual player's skill level from your game state
+        return GameState.PlayerState.GetSkillLevel(skill);
     }
 
     public string tooltipXpx
