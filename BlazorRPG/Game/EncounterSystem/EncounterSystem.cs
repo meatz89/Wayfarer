@@ -41,18 +41,21 @@
     public async Task<EncounterManager> GenerateEncounter(
         string id,
         CommissionDefinition commission,
-        string approachId,
+        ApproachDefinition approach,
         Location location,
         LocationSpot locationSpot,
         WorldState worldState,
         PlayerState playerState,
         ActionImplementation actionImplementation)
     {
-        logger.LogInformation("GenerateEncounter called with id: {Id}, commission: {CommissionId}, approachId: {ApproachId}, location: {LocationId}, locationSpot: {LocationSpotId}", id, commission?.Id, approachId, location?.Id, locationSpot?.Id);
+        logger.LogInformation(
+            "GenerateEncounter called with id: {Id}, commission: {CommissionId}, approachId: {ApproachId}, location: {LocationId}, locationSpot: {LocationSpotId}", 
+            id, commission?.Id, approach.Id, location?.Id, locationSpot?.Id);
+
         this.worldState = worldState;
 
         Encounter encounter = encounterFactory.CreateEncounterFromCommission(
-            commission, approachId, playerState, location);
+            commission, approach, playerState, location);
 
         EncounterManager encounterManager = await StartEncounter(
             encounter,
@@ -122,12 +125,12 @@
 
         _preGenerationManager.CancelAllPendingGenerations();
 
-        Dictionary<EncounterOption, ChoiceNarrative> choiceDescriptions = currentNarrative.ChoiceDescriptions;
+        Dictionary<string, ChoiceNarrative> choiceDescriptions = currentNarrative.ChoiceDescriptions;
         ChoiceNarrative selectedDescription = null;
 
-        if (currentNarrative.ChoiceDescriptions != null && choiceDescriptions.ContainsKey(choice))
+        if (currentNarrative.ChoiceDescriptions != null && choiceDescriptions.ContainsKey(choice.Id))
         {
-            selectedDescription = currentNarrative.ChoiceDescriptions[choice];
+            selectedDescription = currentNarrative.ChoiceDescriptions[choice.Id];
         }
 
         currentNarrative = await encounterManager.ApplyChoiceWithNarrativeAsync(
@@ -256,7 +259,7 @@
     public ChoiceProjection GetChoiceProjection(EncounterManager encounter, EncounterOption choice)
     {
         EncounterManager encounterManager = GetCurrentEncounter();
-        ChoiceProjection choiceProjection = encounterManager.ProjectChoice(encounter.EncounterState, choice);
+        ChoiceProjection choiceProjection = encounterManager.ProjectChoice(encounter.encounterState, choice);
         return choiceProjection;
     }
 

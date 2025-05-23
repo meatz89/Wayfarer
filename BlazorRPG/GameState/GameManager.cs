@@ -259,7 +259,7 @@
     {
         Location location = worldState.CurrentLocation;
         string locationId = location.Id;
-        string locationName = location.Id;
+        string locationName = location.Name;
 
         // Get time of day
         string timeOfDay = GetTimeOfDay(worldState.CurrentTimeHours);
@@ -303,7 +303,7 @@
         EncounterManager encounterManager = await encounterSystem.GenerateEncounter(
             id,
             commission,
-            approachId,
+            approach,
             location,
             locationSpot,
             worldState,
@@ -446,10 +446,11 @@
 
             string shorthandName = "short name";
             string fullDescription = "description";
-            if (narrativeResult.ChoiceDescriptions != null)
+            if (narrativeResult.ChoiceDescriptions != null && narrativeResult.ChoiceDescriptions[choice.Id] != null)
             {
-                shorthandName = narrativeResult.ChoiceDescriptions[choice].ShorthandName;
-                fullDescription = narrativeResult.ChoiceDescriptions[choice].FullDescription;
+                ChoiceNarrative choiceNarrative = narrativeResult.ChoiceDescriptions[choice.Id];
+                shorthandName = choiceNarrative.ShorthandName;
+                fullDescription = choiceNarrative.FullDescription;
             }
             UserEncounterChoiceOption option = new UserEncounterChoiceOption(
                 i,
@@ -550,7 +551,7 @@
         }
         else
         {
-            EncounterState state = encounterManager.EncounterState;
+            EncounterState state = encounterManager.encounterState;
 
             EncounterViewModel model = new EncounterViewModel();
             model.CurrentEncounter = encounterManager;

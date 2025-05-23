@@ -89,6 +89,15 @@ public class MemoryFileAccess
         await worldStateSemaphore.WaitAsync();
         try
         {
+            // Ensure the file exists before opening with FileMode.Truncate
+            if (!File.Exists(filePath))
+            {
+                using (FileStream fs = File.Create(filePath))
+                {
+                    // Optionally write an empty string or leave as is
+                }
+            }
+
             // Format the content for appending
             string contentToAppend = Environment.NewLine + Environment.NewLine + newContent;
 

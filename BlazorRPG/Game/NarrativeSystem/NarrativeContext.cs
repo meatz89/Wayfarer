@@ -9,6 +9,7 @@ public class NarrativeContext
     public string LocationSpotName { get; }
     public CardTypes EncounterType { get; }
     public ActionImplementation ActionImplementation { get; }
+    public ApproachDefinition ChosenApproach { get; }
     public List<NarrativeEvent> Events { get; } = new List<NarrativeEvent>();
     public PlayerState PlayerState { get; set; }
 
@@ -17,13 +18,15 @@ public class NarrativeContext
         string locationSpot,
         CardTypes encounterType,
         PlayerState playerState,
-        ActionImplementation incitingAction)
+        ActionImplementation incitingAction,
+        ApproachDefinition chosenApproach)
     {
         LocationName = location;
         LocationSpotName = locationSpot;
         EncounterType = encounterType;
         PlayerState = playerState;
         ActionImplementation = incitingAction;
+        ChosenApproach = chosenApproach;
     }
 
     public void AddEvent(NarrativeEvent narrativeEvent)

@@ -13,19 +13,19 @@
 
     public Encounter CreateEncounterFromCommission(
         CommissionDefinition commission,
-        string approachId,
+        ApproachDefinition approach,
         PlayerState playerState,
         Location location)
     {
         Encounter encounter = new Encounter
         {
-            Id = $"{commission.Id}_{approachId}",
+            Id = $"{commission.Id}_{approach.Id}",
             CommissionId = commission.Id,
-            ApproachId = approachId,
+            Approach = approach,
             TotalProgress = GetProgressThresholdForTier(commission.Tier),
-            LocationName = location.Id,
-            LocationSpotName = playerState.CurrentLocationSpot.Id,
-            EncounterType = DetermineEncounterType(approachId),
+            LocationName = location.Name,
+            LocationSpotName = playerState.CurrentLocationSpot.Name,
+            EncounterType = DetermineEncounterType(approach.Id),
             EncounterDifficulty = commission.Tier,
             SuccessThreshold = 10
         };

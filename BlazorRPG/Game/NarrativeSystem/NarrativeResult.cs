@@ -3,7 +3,7 @@
     public string SceneNarrative { get; }
     public List<EncounterOption> Choices { get; }
     public List<ChoiceProjection> Projections { get; }
-    public Dictionary<EncounterOption, ChoiceNarrative> ChoiceDescriptions { get; }
+    public Dictionary<string, ChoiceNarrative> ChoiceDescriptions { get; }
     public ChoiceNarrative LastChoiceNarrative { get; }
     public bool IsEncounterOver { get; private set; }
     public EncounterOutcomes? Outcome { get; private set; }
@@ -13,7 +13,7 @@
         string initialGoal,
         List<EncounterOption> choices,
         List<ChoiceProjection> projections,
-        Dictionary<EncounterOption, ChoiceNarrative> choiceDescriptions,
+        Dictionary<string, ChoiceNarrative> choiceDescriptions,
         ChoiceNarrative lastChoiceNarrative)
     {
         SceneNarrative = narrative;

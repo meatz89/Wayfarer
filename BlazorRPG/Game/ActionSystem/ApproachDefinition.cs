@@ -7,7 +7,6 @@
     public SkillTypes PrimarySkill { get; set; }
     public SkillTypes SecondarySkill { get; set; }
 
-    // Tag Resonance System
     public List<string> ContextTags { get; set; } = new List<string>();
     public List<string> ApproachTags { get; set; } = new List<string>();
     public List<string> DomainTags { get; set; } = new List<string>();

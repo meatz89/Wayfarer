@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.FileSystemGlobbing;
-using System.ComponentModel.Design;
-
-public class AIClient
+﻿public class AIClient
 {
     private readonly AIGenerationQueue _queue;
     private readonly string _gameInstanceId;

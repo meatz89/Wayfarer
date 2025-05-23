@@ -27,8 +27,9 @@
         WorldStateInput worldStateInput,
         int priority);
 
-    Task<Dictionary<EncounterOption, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+    Task<Dictionary<string, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
         NarrativeContext context,
+        EncounterState encounterState,
         List<EncounterOption> choices,
         List<ChoiceProjection> projections,
         WorldStateInput worldStateInput,

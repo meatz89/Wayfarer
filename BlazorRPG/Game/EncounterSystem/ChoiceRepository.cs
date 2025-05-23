@@ -352,7 +352,7 @@
     {
         return actionType switch
         {
-            UniversalActionTypes.GenerationA => NegativeConsequenceTypes.ProgressLoss,
+            UniversalActionTypes.GenerationA => NegativeConsequenceTypes.FocusLoss,
             UniversalActionTypes.GenerationB => NegativeConsequenceTypes.TokenDisruption,
             _ => NegativeConsequenceTypes.ThresholdIncrease
         };
@@ -362,8 +362,8 @@
     {
         return actionType switch
         {
-            UniversalActionTypes.ConversionA => NegativeConsequenceTypes.TokenDisruption,
-            UniversalActionTypes.ConversionB => NegativeConsequenceTypes.FocusLoss,
+            UniversalActionTypes.ConversionA => NegativeConsequenceTypes.ConversionReduction,
+            UniversalActionTypes.ConversionB => NegativeConsequenceTypes.ProgressLoss,
             _ => NegativeConsequenceTypes.ThresholdIncrease
         };
     }

@@ -211,11 +211,6 @@
                 OutcomeThresholdModifier++;
                 break;
 
-            case NegativeConsequenceTypes.GenerationReduction:
-                // This is handled in ChoiceProjectionService during projection
-                // The tokens are already reduced in the projection
-                break;
-
             case NegativeConsequenceTypes.ConversionReduction:
                 // This is handled in ChoiceProjectionService during projection
                 // The progress is already reduced in the projection
@@ -364,15 +359,4 @@ public class AspectTokenPool
     {
         return tokens.Values.Any(count => count > 0);
     }
-}
-
-public enum NegativeConsequenceTypes
-{
-    None,
-    GenerationReduction,    // "This generation produces 1 fewer token"
-    ConversionReduction,    // "This conversion yields 1 less Progress"
-    ProgressLoss,          // "Lose 1 Progress Marker"
-    FocusLoss,             // "Lose 1 Focus Point"
-    ThresholdIncrease,     // "Success thresholds increase by 1"
-    TokenDisruption        // "Discard random tokens" (used by Recovery)
 }
